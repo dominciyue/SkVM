@@ -1,0 +1,478 @@
+{
+  "rawRetained": "graph-receipts.json",
+  "formatRepairs": [
+    {
+      "agentPath": "/root/aq_graph_other",
+      "operation": "Insert three missing closing brackets immediately before wrongPremiseMappings; no word or rating changed",
+      "count": 3
+    }
+  ],
+  "audits": [
+    {
+      "id": "packet-878a6454ee73",
+      "extraction": {
+        "initial": "supported",
+        "final": "supported",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-878a6454ee73.json:extractionInitial.rules: q1.get.object.check and q1.post.change.check correctly represent has_perms_owner_aware checks; q1.doc.binding binds Document(pk=pk), q1.user.binding binds request.user.",
+          "packet-878a6454ee73.json:extractionFinal.rules: q1.owneraware.semantics and owner-bypass controls correctly state null-owner/owner/object-grant alternatives, sourced to ev-458142315ae76eda187c; preserved proposal conflicts are diagnostics, not source-claim errors."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [
+          "schedulerActions[0]: dependency q1.dep.owneraware; requested src/documents/permissions.py:624-637; evidence ev-458142315ae76eda187c."
+        ],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "hostChecks diagnostics path-not-closed q1 and policy-behavior-conflict q1 are graph/indeterminacy residuals; they do not establish a domain checker false rejection."
+        ],
+        "avoidableResiduals": [],
+        "checkerDetections": [
+          "hostChecks diagnostics: object-binding-missing, control-object-mismatch, path-not-closed, policy-behavior-conflict."
+        ],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-878a6454ee73.json:schedulerActions[0] and hostChecks[0].diagnostics; helper source request explicitly targets src/documents/permissions.py:624-637."
+        ]
+      },
+      "notes": "Extraction source claims are substantively aligned; final adds correctly supported owner-bypass semantics.",
+      "reviewer": "aq_graph_notes"
+    },
+    {
+      "id": "packet-10daef8608df",
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-10daef8608df.json:status=timeout-unknown; initial=null and final=null, so no actual extraction graph exists to assess."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [
+          "schedulerActions[0]: get.dep.owner-aware-view requested src/documents/permissions.py:624-637; evidence ev-458142315ae76eda187c."
+        ],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "Dependency remained a source gap after timeout; no graph path/check records were produced."
+        ],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-10daef8608df.json:schedulerActions[0].output.status=ok with requested path src/documents/permissions.py:624-637; packet status timeout-unknown."
+        ]
+      },
+      "notes": "Timeout packet has no extraction or checker graph.",
+      "reviewer": "aq_graph_notes"
+    },
+    {
+      "id": "packet-88121a21070a",
+      "extraction": {
+        "initial": "supported",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-88121a21070a.json:extractionInitial.rules correctly represent GET/POST endpoint, model permissions, addressed Document binding, owner-aware checks and note effects; ev-4f33a1e09c04ea0ad5ed and ev-dc649bb26c750cfc6bc5.",
+          "packet-88121a21070a.json:extractionFinal=null; no final graph exists."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "No schedulerActions; dependency records are NotesSerializer/Note effects only, so helper semantics were not scheduler-resolved."
+        ],
+        "avoidableResiduals": [],
+        "checkerDetections": [
+          "hostChecks control-schema and control-result-schema failures; path-not-closed and policy-behavior-conflict."
+        ],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-88121a21070a.json:hostChecks diagnostics include control-schema invalid binding objects and control-result-schema result has no valid structured behavior; these are protocol/schema failures, not domain checker detections."
+        ]
+      },
+      "notes": "Initial graph is substantively supported; final is absent. Do not infer false rejection from schema failures.",
+      "reviewer": "aq_graph_notes"
+    },
+    {
+      "id": "packet-1f6b3e10f8fb",
+      "extraction": {
+        "initial": "supported",
+        "final": "supported",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-1f6b3e10f8fb.json:extractionInitial.rules and extractionFinal.rules correctly bind endpoint, request principal, addressed document, GET/POST permission controls, owner-aware checks and effects; final owner semantics cite ev-fb8b1acf0bb547601ad1.",
+          "packet-1f6b3e10f8fb.json:extractionFinal.rules includes get-owner-aware-semantics/post-owner-aware-semantics and corresponding bypass effects, matching the source claim."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "No schedulerActions; helper dependency records exist in extraction graphs but were not automatically hit."
+        ],
+        "avoidableResiduals": [],
+        "checkerDetections": [
+          "hostChecks diagnostics: object-binding-missing, control-object-mismatch, active-branch-missing, control-conflict."
+        ],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-1f6b3e10f8fb.json:hostChecks diagnostics list graph binding/mismatch/conflict checks; hostChecks paths are checked allow paths, but diagnostics are structural and do not establish domain rejection."
+        ]
+      },
+      "notes": "Both extraction graphs preserve the correct owner-aware alternatives; unresolved proposal conflicts are graph diagnostics, not wrong source claims.",
+      "reviewer": "aq_graph_notes"
+    },
+    {
+      "id": "packet-e253a7ea408c",
+      "extraction": {
+        "initial": "partial",
+        "final": "partial",
+        "incorrectRules": [
+          "Initial bind-caller-process-file-other-user claims the other-user path uses user.id, but admin path is distinct; packet extractionInitial lines 1148-1161.",
+          "Final graph still has unresolved path closure and conflicting admin/save-helper proposals; finalValidation diagnostics include predicate-invalid, path-outcome-conflict, control-conflict, path-not-closed at packet lines 2665-2789."
+        ],
+        "wrongPremiseMappings": [
+          "The initial other-user binding maps all callers to user.id, omitting the admin file_id-only lookup; packet lines 1148-1161."
+        ],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-e253a7ea408c.json:1104-1197 initial graph; :1199-1766 final graph; source anchors retrieval.py:1546-1764 and 1340-1539 at :3103-3155."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [
+          "ctrl-d572610264aa94be4bf8 (process_file, retrieval.py:1546-1764)",
+          "ctrl-8a865b69069a653a2c6e (save_docs_to_vector_db, retrieval.py:1340-1539); schedulerActions at :3261-3373."
+        ],
+        "irrelevantOrInvalidReads": [
+          "Duplicate save_docs dependency proposal retained as control-conflict; predicate-invalid admin rule and path outcome conflict recorded at :2665-2679."
+        ],
+        "correctExcludedBranches": [
+          "Final prose correctly excludes vector write on BYPASS_EMBEDDING_AND_RETRIEVAL and non-admin missing/other-user file before processing; :242-279."
+        ],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "Helper internals and deployment configuration remain unverified; :287-305."
+        ],
+        "avoidableResiduals": [
+          "Graph closure and typed principal/resource bindings remain absent despite source reads; :2684-2789."
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "schedulerActions :3261-3373; finalValidation path states blocked/unknown with closure-not-proposed :2500-2655."
+        ]
+      },
+      "notes": "Source-bound final prose is semantically mostly correct; graph defects are incompleteness/conflict, not a demonstrated semantic false conclusion.",
+      "reviewer": "aq_graph_other"
+    },
+    {
+      "id": "packet-453e35684eea",
+      "extraction": {
+        "initial": "partial",
+        "final": "partial",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [
+          "Final preserves no-file as unspecified and omits a concrete 404 outcome, while the shown route has an HTTPException branch in the source evidence; packet final rules at :258-454, source retrieval.py:1706-1764."
+        ],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-453e35684eea.json:16-257 initial/final; dependency source anchor retrieval.py:1546-1764 at :787-817."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [
+          "ctrl-0924dfd2bc354acdcb51 (process_file, scheduler action at packet :1062-1110)."
+        ],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [
+          "No semantic branch was falsely excluded; final correctly keeps destination and file-state effects conditional on processing/save success."
+        ],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "No-file response/effect was explicitly left unestablished in extractionInitial, preserving a source gap; :16-197."
+        ],
+        "avoidableResiduals": [
+          "Admin branch disappears from final graph although initial contained it; final rule count 9 vs initial 10, :191-257."
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "schedulerActions :1062-1110; final graph :258-455."
+        ]
+      },
+      "notes": "Partial due to omitted/underrepresented admin/no-file path, not proven false extraction.",
+      "reviewer": "aq_graph_other"
+    },
+    {
+      "id": "packet-304081d6c030",
+      "extraction": {
+        "initial": "supported",
+        "final": "supported",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-304081d6c030.json:16-190 initial; :191-514 final. Claims match GetRepoPermissions source route/handler behavior."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [
+          "ctrl-c316735215640f9fa5a9 (GetRepoPermissions; scheduler action :1326-1380, source candidate in allowed Gitea paths)."
+        ],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [
+          "Final correctly excludes unauthorized caller before collaborator lookup and permission calculation; :191-514."
+        ],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "No semantic residual identified in graph."
+        ],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet :1235-1325 dependencies and :1326-1380 scheduler action."
+        ]
+      },
+      "notes": "Graph and mechanism are source-bound and coherent.",
+      "reviewer": "aq_graph_other"
+    },
+    {
+      "id": "packet-cad3dcf49056",
+      "extraction": {
+        "initial": "partial",
+        "final": "partial",
+        "incorrectRules": [
+          "Initial/final graph has repeated route-entry branches and malformed/unsupported predicates; finalValidation reports predicate-invalid and many premise-not-supplied/control-conflict diagnostics at :2621-2907."
+        ],
+        "wrongPremiseMappings": [
+          "No concrete semantic source claim proven false; malformed predicate/duplicate branch representation prevents complete evaluation."
+        ],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-cad3dcf49056.json:1692-2058 initial/final; final diagnostics :2621-2907."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [
+          "ctrl-1514ab4e37798d5228ec (GetRepoPermissions dependency; scheduler action :2970 onward)."
+        ],
+        "irrelevantOrInvalidReads": [
+          "Repeated route-group/reqToken entries and unsupported predicates generated premise-not-supplied/control-conflict diagnostics; :2621-2907."
+        ],
+        "correctExcludedBranches": [
+          "Final prose correctly distinguishes own-name, repo-admin/admin, and unauthorized 403 branches; packet final section :1918-2058."
+        ],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "No source-semantic residual beyond graph representation."
+        ],
+        "avoidableResiduals": [
+          "Path closure and predicate representation were left invalid despite decisive helper read."
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "scheduler action :2970 onward; diagnostics :2621-2907."
+        ]
+      },
+      "notes": "Partial from graph mechanics/closure, not a demonstrated wrong behavioral conclusion.",
+      "reviewer": "aq_graph_other"
+    },
+    {
+      "id": "packet-f1e6017fdc27",
+      "extraction": {
+        "initial": "partial",
+        "final": "partial",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [
+          "Initial contains only the entry claim; final adds six dependencies but no executable control rules sufficient to distinguish own/other/privileged paths; packet :16-191 and :38-748."
+        ],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-f1e6017fdc27.json:16-38 initial; :38-191 final; hostChecks empty :1224-1325."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [
+          "No schedulerActions were recorded (:1317); dependencies are present but no actual scheduler helper hits."
+        ],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "Missing graph mechanics justify residual uncertainty."
+        ],
+        "avoidableResiduals": [
+          "A decisive GetRepoPermissions source dependency was retained without scheduler extraction."
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [
+          "No checker evaluation occurred (hostChecks=[]), so semantic misses cannot be claimed."
+        ],
+        "evidence": [
+          "packet :1224-1325 hostChecks/dependencies; :1317 schedulerActions=[]"
+        ]
+      },
+      "notes": "Insufficient executable graph; no evidence of a false semantic claim.",
+      "reviewer": "aq_graph_other"
+    },
+    {
+      "id": "packet-c447297835e5",
+      "extraction": {
+        "initial": "partial",
+        "final": "partial",
+        "incorrectRules": [
+          "Initial graph states ordinary non-admin different-member removal is rejected, which is source-supported, but omits the decisive last-active-admin backend condition and policy comparison; final adds it but remains graph-inconsistent."
+        ],
+        "wrongPremiseMappings": [
+          "Initial self-removal path is presented as unconditional Store.DeleteSpaceMember reach; source-backed final needs last-active-admin guard. Packet initial :1211-1670; final diagnostics :3265-4074."
+        ],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-c447297835e5.json:1211-1670 initial; :1671-2120 final; diagnostics :3265-4074."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [
+          "ctrl-042f5b988f3b2ac057e1",
+          "ctrl-8207da2041aa38cc5e62; scheduler actions :4376 onward."
+        ],
+        "irrelevantOrInvalidReads": [
+          "predicate-invalid, premise-not-supplied, control-object-mismatch, policy-behavior-conflict, path-not-closed at :3265-4074."
+        ],
+        "correctExcludedBranches": [
+          "Different-target ordinary member rejection is correctly represented; final claims :1671-2120."
+        ],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "Backend last-active-admin behavior is represented only after later dependency reads."
+        ],
+        "avoidableResiduals": [
+          "Initial graph omitted backend guard and policy comparison; final retained graph inconsistencies."
+        ],
+        "checkerDetections": [
+          "Policy/graph conflicts detected as diagnostics, but not semantic checker conclusions."
+        ],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "schedulerActions :4376 onward; final diagnostics :3265-4074."
+        ]
+      },
+      "notes": "Partial due to incomplete mechanism/policy graph; no proven false rejection of actual ordinary-member branch.",
+      "reviewer": "aq_graph_other"
+    },
+    {
+      "id": "packet-adbc5b07ff27",
+      "extraction": {
+        "initial": "partial",
+        "final": "supported",
+        "incorrectRules": [
+          "Initial says different-target continuation requires ADMIN but does not encode backend last-active-admin guard; this is incompleteness rather than false claim."
+        ],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-adbc5b07ff27.json:161-385 initial; :386-689 final. Final includes last-active-admin rejection and backend checks."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [
+          "schedulerActions=[] at :2046; final dependencies exist but no recorded scheduler helper execution."
+        ],
+        "correctExcludedBranches": [
+          "Final correctly excludes ordinary non-admin different-target deletion and last-active-admin removal; :386-689."
+        ],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "No scheduler evidence; source helper execution cannot be independently credited."
+        ],
+        "avoidableResiduals": [
+          "Decisive dependencies were retained without scheduler action records."
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [
+          "No host checker false/miss evidence."
+        ],
+        "evidence": [
+          "packet :1622-2046 hostChecks/dependencies/schedulerActions."
+        ]
+      },
+      "notes": "Final semantic extraction is coherent; mechanism provenance is absent.",
+      "reviewer": "aq_graph_other"
+    },
+    {
+      "id": "packet-54b9e793caa5",
+      "extraction": {
+        "initial": "partial",
+        "final": "supported",
+        "incorrectRules": [
+          "Initial self-removal text says SQLite has no non-self ADMIN rejection but does not include the last-active-admin guard; later final corrects this."
+        ],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-54b9e793caa5.json:209-538 initial; :539-1080 final."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [
+          "schedulerActions=[] at :3361; dependency records exist but were not scheduler hits."
+        ],
+        "correctExcludedBranches": [
+          "Final correctly excludes ordinary non-admin different-target deletion and self-removal when target is last active administrator; :539-1080."
+        ],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "No actual scheduler helper evidence."
+        ],
+        "avoidableResiduals": [
+          "Dependency reads lacked scheduler action provenance."
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [
+          "No host checker semantic miss evidence."
+        ],
+        "evidence": [
+          "packet :1080-1434 dependencies/hostChecks and :3361 schedulerActions=[]"
+        ]
+      },
+      "notes": "Final extraction semantically supported; initial omission is partial only.",
+      "reviewer": "aq_graph_other"
+    }
+  ]
+}

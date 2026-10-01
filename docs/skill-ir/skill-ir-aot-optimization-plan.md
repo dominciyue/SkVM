@@ -1,8 +1,8 @@
 # Skill IR AOT 当前执行计划
 
-- 更新日期：2026-10-01
+- 更新日期：2026-10-02
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AQ0–AQ10已实现、验证并登记，工程绑定`3d4ba681`，AQ11固定48session两并发生成中；从干净`c0cd32d2`启动，AO/AP历史结果保留，真实收益尚未测。
+- 状态：AQ0–AQ16有限研究关闭，真实48+8行已评估；共享实现已验证，原生完整机制链及政策单独重算复用未达验收，收益negative/not-established。从干净`c0cd32d2`启动，首轮工程`3d4ba681`、共享修订`04b1b220`分列，AO/AP历史结果保留；发布状态见唯一当前入口及AQ机器记录。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[AQ0–AQ16](../superpowers/plans/2026-10-01-authorization-domain-execution.md)
@@ -23,6 +23,8 @@
 | AQ7–AQ9 | 普通入口、变化复用、两个入口联合验证 | 共用核心，旧默认兼容，预算与AP一致 |
 | AQ10–AQ13 | 40质量、4消融、4原skill普通消费 | 同运行器四臂、无答案泄漏、初轮/失败/修订分列 |
 | AQ14–AQ16 | 唯一研究复盘、有限验证、发布 | 可运行示例、效果与代价如实报告、用户origin同步 |
+
+**AQ实际结果：** 40质量行四臂首/终full为1/1/1/1（各10），交付9/10/3/4；32原任务full3、8预选重复full1。4消融为partial/not-delivered/full/incorrect，唯一共享修订8行full1，不替换原失败。434次真实provider调用、0目标执行，完整prompt8,282,973/output388,229 tokens、actualUSD和人力unknown。实际自动补读11次/7会话，无失败或完全重复范围；真实host不适用路径排除0。两原skill四次普通消费raw语义full3/4、compile/check均调用，但自动补读0、checked交付0/4，完整机制采用链未达AQ13。AQ8仅报告变化与机械索引适用性，变化任务fresh分析，政策单独重算收益未实现。相关481 pass/1平台skip、主/研究类型和56行零调用重放通过；最终记录见[AQ结果](../../results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/README.md)。不提升readiness、不自动新增调用，未达条目在任务书保留。
 
 开发质量与编写复用仍按约60/40投入，不作为分数或样本权重；AO作者8/8已有效，本轮不重复大作者面板。任务使用已暴露的四项目八任务；M/D1×legacy/domain-evidence-v1隔离执行支持与表示作用，所有臂含AP修复。正常48真实session，最多一次具名共享实现修订另8行；费用授权无用户金额上限，登记规模用于避免低分后不断重抽。Flash只记录可确认状态，不改全局配置。
 

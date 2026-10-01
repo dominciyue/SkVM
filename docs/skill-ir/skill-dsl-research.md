@@ -1212,7 +1212,7 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 ### 7.35 AQ 授权领域执行设计
 
-2026-10-01，AP代码、44项测试/201断言、主类型与AO离线重放已复核通过，用户授权[下一轮AQ0–AQ16](../superpowers/plans/2026-10-01-authorization-domain-execution.md)，由`gpt-6.1-sol / max`执行，Flash请求未由派发接口确认。本节当前是开发设计，真实结果由执行线程随后追加。
+2026-10-01，AP代码、44项测试/201断言、主类型与AO离线重放已复核通过，用户授权[下一轮AQ0–AQ16](../superpowers/plans/2026-10-01-authorization-domain-execution.md)，由`gpt-6.1-sol / max`执行，Flash请求未由派发接口确认。2026-10-02有限研究关闭，以下保留设计、开发问题与实际结果；完整机制验收缺口和收益未建立分别记录。
 
 **根因和取舍。** 现有`compileAuthorizationInquiry`只展开六类pending问题；`inquiry-run`把它们放入提示，源码动作仍由模型选。`conditions`与`assessment-program`已有请求/覆盖合同，但没有条件真值求值器；`inquiry-result`核对结构、问题和已展示引用。这解释了为什么字段已经丰富，允许范围内的helper仍可能漏读、明确null-owner仍保留不适用分支、源码allow仍可能与规范deny混写。继续加提示改动小但缺执行约束，完整静态分析平台范围过大；本轮选择局部规则提取与宿主领域执行。
 
@@ -1235,6 +1235,18 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 **AQ11共享合同缺陷与预登记修订。** 首轮真实请求暴露共享JSON Schema转换遗漏：ZodEffects包装的字符串identity被发成object，record(unknown)的谓词成员被发成object，显式null也被发成object。两种extraction transport使用同一错误转换；这属于共享实现缺陷，而非答案低分。真实请求字段与先红的schema-capture回归登记于AQ root的`shared-revision.json`。原48单元继续绑定`3d4ba681`，全部关闭后才修转换；在任何语义评分前登记OWUI ingestion、Gitea self-query、Memos remove、Paperless notes的M-E/D-E共8个修订单元，条件和预算不变，独立列账、不替换原分母。native使用手写工具合同，不因这处转换修复追加采样。匿名评价同时保留raw首答/终答与native文字交付，检查是否工具验证成功单列；只提供原源码范围索引，按原文件核验意义，不从字段数推断质量。当前生成未关闭，尚无语义效果结论。
 
 **AQ11恢复与共享修复。** 用户要求继续任务书后，确认原48行已封存（22 completed、20 transport-failed、2 budget-exhausted、1 timeout-unknown、2 completed-with-diagnostics、1 adapter-crashed），记录358次dispatch，未知完成不重发。两项既有红例新鲜复现后修复：共享转换器展开ZodEffects的输入schema，保留unknown/any的自由JSON值、显式null与nullable联合；本地Zod refinement与语义校验继续执行。研究driver为预登记revision绑定独立实现、沿用原任务/预算与独占claim，原48行不变。12项聚焦回归81断言通过；相关联合481 pass/1平台skip、3208断言，主/研究类型通过，原48行身份与预算零provider重放通过。修订八行只用于此具名实现缺陷，不按答案质量重抽；尚未建立语义评分或效果结论。
+
+**AQ12生成关闭与评价裁定（2026-10-02）。** 首轮48行绑定`3d4ba681`，修订8行绑定`04b1b220`，全部关闭后才生成56匿名packet。6位独立首评、3位定向二审、2位图/动作审查读原源码；原文逐份保留，1份图审JSON的3个括号仅作格式恢复。主开发者沿实际raw、source、proposal/action/check裁定；首轮裁定先于汇总揭示，最后定向修正沿具体源码差异在汇总揭示后进行。开发者已见历史材料，最终裁定不是完全独立盲评。评语出现把无prose的raw答案当未交付、把未知owner/grants本身当错误、把手工读helper当自动命中、把传输Schema失败当checker检出等问题，不能直接把多数意见当真值。两个具体错误由源码复核确立：Notes消融把not-given grants当absent；Notes修订M-E在non-owner/no-grant拒绝条件里漏掉null-owner，`permissions.py:624-635`与`views.py:1857-1892`证明该分支仍可通过。完整条件答案与host接收状态分开；原图、原答均未手改。首个未接受控制proposal也参与提取评价，legacy observations不计控制图。裁定、原评语和56行见[AQ结果](../../results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/README.md)与[逐条裁定](../../results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/evaluator/adjudications.json)。
+
+**实际质量与失败。** 40质量行M-L/D-L/M-E/D-E交付9/10/3/4，首/终full1/1/1/1（各10），过度unknown8/9/2/3；主面板无已证决定性错误，未交付仍在分母内。32原任务full3、8预选重复full1。4消融（OWUI scheduler-off/checks-off、Notes scheduler-off/checks-off）分别partial/not-delivered/full/incorrect，不能用这4个含协议失败的单元独立建立机制净收益。共享修订8行交付3/full1/incorrect1：2 completed-with-diagnostics、3 transport-failed、2 timeout-unknown、1 budget-exhausted；不替代原48。首轮存在共同Schema实现缺陷，不能把领域臂低交付解释成无缺陷实现的纯语义效果；不能丢掉失败后只报幸存答案。未建立稳定质量、token或人力净收益，结论negative/benefit-not-established。
+
+最后定向源码核验发现三份ShareLink首評full不成立：两份自述owner-aware helper未读；一份helper已读但PassUserMixin未读，尚未证明serializer self.user与当前caller的来源关联。另两位只读核验者检查这些具体差异及剩余三份Memos share/Download full；评语原文另存。主裁定对actor绑定缺口保留partial，即使定向建议full，依据为`views.py:406-428`与`serialisers.py:2873-2885`，不盲从评语。两政策的措辞不同，不把Notes的禁止ownership替代条款移到ShareLink。草拟汇总中的2/2/2/1因此更正为最终1/1/1/1；原答案与原评语保持。
+
+**真实机制与原skill边界。** 实际成功自动source读取11次/7会话（主面板1、修订10），失败或完全重复区间0。命中Memos current-user/resolver、Notes owner-aware helper、Gitea reqToken、OWUI file lookup及process/vector正文；分两段的正文续读不是同区间重复，也不能把父函数正文补读夸大成新helper发现。Host不适用路径/依赖0，未证明真实null-owner程序分支排除收益。7会话可沿缺失source binding node或非法有限谓词确认合同诊断；自然政策映射不足和对象/路径未闭合不等于checker误拒正确源码解释。提取图整体partial，不声称所有规则意义已独立证明；未建立语义误拒、错误接受或后续程序放大错误的具体事件，不据此声称无漏检。
+
+四次原skill普通native消费保留完整原文、reference/compile/observe/check均有trace。Cloudflare Notes原/owner=null、GitHub Memos原/policy-v2的raw语义full3/4，另1份Memos原任务虽读三个backend但未读current-user与member resolver正文，源内主体/资源绑定缺口不能归为deployment-only；变化任务实际读了这两处。3份最终prose，变化Memos在预算末adapter-crashed但raw首/终存在。四者checked delivery0/4、自动source补读0，所以AQ13完整机制采用链未满足。纯函数与普通inquiry接线有工程证据，不能用它替代这项原生实际验收；AQ8只报告变化与机械索引适用性，fresh分析而非政策单独重算，复用节省也未实现。这些缺口保留，不另开采样追positive。
+
+**完整代价与有限收口。** 全轮434次provider调用（首轮358/修订76）、0目标执行；已知input6,609,885/cache-read1,673,088/output388,229，完整prompt8,282,973 tokens，4次usage未知，434次USD未知，总USD为null。实际返回model、底层attempt数、开发代理用量/费用和真人分钟unknown；累计会话墙钟19,391,890ms不能当并发研究历时。源码index/physical read/display/cumulative model/resent分别103,011,150/361,969,155/1,116,705/4,116,030/3,012,441字节，是各会话阶段相加，非独有源码量或token。主/研究类型、481 pass/1平台skip、56行study/evaluation零provider重放通过；研究边界新增裁定变化不能重放旧分数的红绿例，8测试52断言。有限文档、历史保护、凭据与发布检查由AQ机器记录承载。保留opt-in工程，不提升readiness、不追加研究身份；最终发布到用户origin后停止。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

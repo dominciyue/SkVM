@@ -1,0 +1,1010 @@
+{
+  "schemaVersion": "authorization-aq-anonymous-packet/v1",
+  "id": "packet-51f43607e722",
+  "task": {
+    "brief": "Check DeleteSpaceMember in this Memos revision against the independently supplied current policy. May an ordinary space member remove a different member, and do visible admin and self-removal paths differ? Do not assume deployment middleware or undocumented role grants. Explain actual behavior, compare it with the policy, cite the controlling source and preserve any decisive missing facts.",
+    "mode": "conformance",
+    "policy": {
+      "text": "Only a space administrator may remove another member from that space. This policy does not prohibit a member leaving the space themselves.",
+      "origin": "user",
+      "location": "experimental-user-brief:memos-member-policy/v1"
+    }
+  },
+  "status": "transport-failed",
+  "initial": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "delete-space-member-conformance",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The visible DeleteSpaceMember handler first obtains the current space user, resolves the requested target member, and compares targetUser.ID with currentUser.ID. If the target is a different member, it calls requireSpaceAdministrator(callerMembership) and returns the error without reaching the deletion call when that check fails. Thus an ordinary non-administrator space member cannot remove a different member on this visible path. If the target is the caller themselves, the administrator check is skipped and the handler proceeds to Store.DeleteSpaceMember. The visible source therefore distinguishes the administrator-required removal path from the self-removal path."
+        },
+        "branches": [
+          {
+            "id": "different-member-ordinary-member",
+            "condition": "The resolved target user differs from the current user, and callerMembership is not a space administrator.",
+            "disposition": "deny",
+            "explanation": "The handler enters the !isSelf branch and requireSpaceAdministrator(callerMembership) returns an error before Store.DeleteSpaceMember is called.",
+            "evidenceIds": [
+              "ev-3f913436015dacb5a046"
+            ]
+          },
+          {
+            "id": "different-member-administrator",
+            "condition": "The resolved target user differs from the current user, and callerMembership satisfies requireSpaceAdministrator.",
+            "disposition": "allow",
+            "explanation": "The visible handler permits execution past the administrator guard and calls Store.DeleteSpaceMember for the resolved target membership.",
+            "evidenceIds": [
+              "ev-3f913436015dacb5a046"
+            ]
+          },
+          {
+            "id": "self-removal",
+            "condition": "The resolved target user is the current user.",
+            "disposition": "allow",
+            "explanation": "The handler sets isSelf to true, skips requireSpaceAdministrator, and calls Store.DeleteSpaceMember for the target membership using the current user as actor.",
+            "evidenceIds": [
+              "ev-3f913436015dacb5a046",
+              "ev-64e2a7ffa445e7f2e181"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046",
+          "ev-64e2a7ffa445e7f2e181",
+          "ev-5c87576818c2e5301932",
+          "ev-24a4b30e6d9d6dd8562d"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The implementations of requireCurrentSpaceUser, resolveSpaceMemberResource, and requireSpaceAdministrator were not established from source bodies here. The handler establishes their call order and uses their returned values, but the exact identity-resolution, resource-resolution, and administrator-role conditions remain source gaps.",
+            "nextRead": "Read the definitions of requireCurrentSpaceUser, resolveSpaceMemberResource, and requireSpaceAdministrator in the allowed server/api/v1 source."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The concrete database-driver implementations were not read. The handler visibly invokes Store.DeleteSpaceMember, and Store.DeleteSpaceMember validates positive space, target-user, and actor IDs before delegating, but the final persistence effect and backend-specific constraints were not established.",
+            "nextRead": "Read the selected store driver DeleteSpaceMember implementation and relevant backend variants if the persistence effect is decisive."
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "No deployment middleware, transport-level authorization, or undocumented role grants were assumed or verified. The result is limited to the shown source path.",
+            "nextRead": "Verify deployment and middleware controls separately if they are in scope."
+          }
+        ],
+        "policyAssessment": {
+          "status": "satisfied",
+          "explanation": "The independently supplied policy requires an administrator to remove another member and does not prohibit self-removal. The visible handler enforces an administrator check only when the target differs from the caller and permits the self-removal branch without that check, matching the policy on the examined source path."
+        }
+      }
+    ],
+    "observations": [
+      {
+        "questionId": "delete-space-member-conformance",
+        "kind": "entry",
+        "subject": "DeleteSpaceMember",
+        "object": "server/api/v1/space_service.go:741",
+        "claim": "The API handler is the examined entry point; the Connect wrapper delegates to the APIV1Service handler.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046",
+          "ev-8587192a0a224bab1e1c",
+          "ev-8cc3386f0794bfc13e1b"
+        ]
+      },
+      {
+        "questionId": "delete-space-member-conformance",
+        "kind": "principal-binding",
+        "subject": "currentUser",
+        "object": "requireCurrentSpaceUser(ctx)",
+        "claim": "The handler obtains a current space user before resolving the target and applying the authorization branch, but the helper's implementation was not read.",
+        "state": "unresolved",
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046"
+        ]
+      },
+      {
+        "questionId": "delete-space-member-conformance",
+        "kind": "resource-binding",
+        "subject": "request.name",
+        "object": "resolveSpaceMemberResource(ctx, request.Name, currentUser)",
+        "claim": "The requested resource is resolved into a space, target user, caller membership, and target membership; exact resolver semantics were not read.",
+        "state": "unresolved",
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046",
+          "ev-5c87576818c2e5301932"
+        ]
+      },
+      {
+        "questionId": "delete-space-member-conformance",
+        "kind": "guard",
+        "subject": "requireSpaceAdministrator(callerMembership)",
+        "object": "non-self branch",
+        "claim": "A different-member deletion is guarded by requireSpaceAdministrator and failure returns before the store deletion call.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046"
+        ]
+      },
+      {
+        "questionId": "delete-space-member-conformance",
+        "kind": "effect",
+        "subject": "Store.DeleteSpaceMember",
+        "object": "targetMembership.SpaceID,targetMembership.UserID,currentUser.ID",
+        "claim": "After the self/admin branch, the handler submits the resolved target membership and current user actor to the store; the final backend effect was not fully traced.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046",
+          "ev-24a4b30e6d9d6dd8562d",
+          "ev-3ca3c320881ed0c2f691"
+        ]
+      },
+      {
+        "questionId": "delete-space-member-conformance",
+        "kind": "exception",
+        "subject": "isSelf",
+        "object": "targetUser.ID == currentUser.ID",
+        "claim": "Self-removal is the visible exception to the administrator guard; the API comment independently states that a member may delete their own membership to leave the space.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046",
+          "ev-64e2a7ffa445e7f2e181"
+        ]
+      }
+    ],
+    "scope": "Conformance assessment of the shown DeleteSpaceMember source path in usememos/memos@cb42e326ba9cc266a6a9570c53e0fe04c62793f4. This is not a claim of all-repository coverage; deployment middleware, helper implementations, and concrete backend effects were not fully verified."
+  },
+  "final": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "delete-space-member-conformance",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The visible DeleteSpaceMember handler first obtains the current space user, resolves the requested target member, and compares targetUser.ID with currentUser.ID. If the target is a different member, it calls requireSpaceAdministrator(callerMembership) and returns the error without reaching the deletion call when that check fails. Thus an ordinary non-administrator space member cannot remove a different member on this visible path. If the target is the caller themselves, the administrator check is skipped and the handler proceeds to Store.DeleteSpaceMember. The visible source therefore distinguishes the administrator-required removal path from the self-removal path."
+        },
+        "branches": [
+          {
+            "id": "different-member-ordinary-member",
+            "condition": "The resolved target user differs from the current user, and callerMembership is not a space administrator.",
+            "disposition": "deny",
+            "explanation": "The handler enters the !isSelf branch and requireSpaceAdministrator(callerMembership) returns an error before Store.DeleteSpaceMember is called.",
+            "evidenceIds": [
+              "ev-3f913436015dacb5a046"
+            ]
+          },
+          {
+            "id": "different-member-administrator",
+            "condition": "The resolved target user differs from the current user, and callerMembership satisfies requireSpaceAdministrator.",
+            "disposition": "allow",
+            "explanation": "The visible handler permits execution past the administrator guard and calls Store.DeleteSpaceMember for the resolved target membership.",
+            "evidenceIds": [
+              "ev-3f913436015dacb5a046"
+            ]
+          },
+          {
+            "id": "self-removal",
+            "condition": "The resolved target user is the current user.",
+            "disposition": "allow",
+            "explanation": "The handler sets isSelf to true, skips requireSpaceAdministrator, and calls Store.DeleteSpaceMember for the target membership using the current user as actor.",
+            "evidenceIds": [
+              "ev-3f913436015dacb5a046",
+              "ev-64e2a7ffa445e7f2e181"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046",
+          "ev-64e2a7ffa445e7f2e181",
+          "ev-5c87576818c2e5301932",
+          "ev-24a4b30e6d9d6dd8562d"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The implementations of requireCurrentSpaceUser, resolveSpaceMemberResource, and requireSpaceAdministrator were not established from source bodies here. The handler establishes their call order and uses their returned values, but the exact identity-resolution, resource-resolution, and administrator-role conditions remain source gaps.",
+            "nextRead": "Read the definitions of requireCurrentSpaceUser, resolveSpaceMemberResource, and requireSpaceAdministrator in the allowed server/api/v1 source."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The concrete database-driver implementations were not read. The handler visibly invokes Store.DeleteSpaceMember, and Store.DeleteSpaceMember validates positive space, target-user, and actor IDs before delegating, but the final persistence effect and backend-specific constraints were not established.",
+            "nextRead": "Read the selected store driver DeleteSpaceMember implementation and relevant backend variants if the persistence effect is decisive."
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "No deployment middleware, transport-level authorization, or undocumented role grants were assumed or verified. The result is limited to the shown source path.",
+            "nextRead": "Verify deployment and middleware controls separately if they are in scope."
+          }
+        ],
+        "policyAssessment": {
+          "status": "satisfied",
+          "explanation": "The independently supplied policy requires an administrator to remove another member and does not prohibit self-removal. The visible handler enforces an administrator check only when the target differs from the caller and permits the self-removal branch without that check, matching the policy on the examined source path."
+        }
+      }
+    ],
+    "observations": [
+      {
+        "questionId": "delete-space-member-conformance",
+        "kind": "entry",
+        "subject": "DeleteSpaceMember",
+        "object": "server/api/v1/space_service.go:741",
+        "claim": "The API handler is the examined entry point; the Connect wrapper delegates to the APIV1Service handler.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046",
+          "ev-8587192a0a224bab1e1c",
+          "ev-8cc3386f0794bfc13e1b"
+        ]
+      },
+      {
+        "questionId": "delete-space-member-conformance",
+        "kind": "principal-binding",
+        "subject": "currentUser",
+        "object": "requireCurrentSpaceUser(ctx)",
+        "claim": "The handler obtains a current space user before resolving the target and applying the authorization branch, but the helper's implementation was not read.",
+        "state": "unresolved",
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046"
+        ]
+      },
+      {
+        "questionId": "delete-space-member-conformance",
+        "kind": "resource-binding",
+        "subject": "request.name",
+        "object": "resolveSpaceMemberResource(ctx, request.Name, currentUser)",
+        "claim": "The requested resource is resolved into a space, target user, caller membership, and target membership; exact resolver semantics were not read.",
+        "state": "unresolved",
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046",
+          "ev-5c87576818c2e5301932"
+        ]
+      },
+      {
+        "questionId": "delete-space-member-conformance",
+        "kind": "guard",
+        "subject": "requireSpaceAdministrator(callerMembership)",
+        "object": "non-self branch",
+        "claim": "A different-member deletion is guarded by requireSpaceAdministrator and failure returns before the store deletion call.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046"
+        ]
+      },
+      {
+        "questionId": "delete-space-member-conformance",
+        "kind": "effect",
+        "subject": "Store.DeleteSpaceMember",
+        "object": "targetMembership.SpaceID,targetMembership.UserID,currentUser.ID",
+        "claim": "After the self/admin branch, the handler submits the resolved target membership and current user actor to the store; the final backend effect was not fully traced.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046",
+          "ev-24a4b30e6d9d6dd8562d",
+          "ev-3ca3c320881ed0c2f691"
+        ]
+      },
+      {
+        "questionId": "delete-space-member-conformance",
+        "kind": "exception",
+        "subject": "isSelf",
+        "object": "targetUser.ID == currentUser.ID",
+        "claim": "Self-removal is the visible exception to the administrator guard; the API comment independently states that a member may delete their own membership to leave the space.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3f913436015dacb5a046",
+          "ev-64e2a7ffa445e7f2e181"
+        ]
+      }
+    ],
+    "scope": "Conformance assessment of the shown DeleteSpaceMember source path in usememos/memos@cb42e326ba9cc266a6a9570c53e0fe04c62793f4. This is not a claim of all-repository coverage; deployment middleware, helper implementations, and concrete backend effects were not fully verified."
+  },
+  "prose": null,
+  "initialProse": null,
+  "initialValidation": {
+    "valid": false,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "delete-space-member-conformance",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The visible DeleteSpaceMember handler first obtains the current space user, resolves the requested target member, and compares targetUser.ID with currentUser.ID. If the target is a different member, it calls requireSpaceAdministrator(callerMembership) and returns the error without reaching the deletion call when that check fails. Thus an ordinary non-administrator space member cannot remove a different member on this visible path. If the target is the caller themselves, the administrator check is skipped and the handler proceeds to Store.DeleteSpaceMember. The visible source therefore distinguishes the administrator-required removal path from the self-removal path."
+          },
+          "branches": [
+            {
+              "id": "different-member-ordinary-member",
+              "condition": "The resolved target user differs from the current user, and callerMembership is not a space administrator.",
+              "disposition": "deny",
+              "explanation": "The handler enters the !isSelf branch and requireSpaceAdministrator(callerMembership) returns an error before Store.DeleteSpaceMember is called.",
+              "evidenceIds": [
+                "ev-3f913436015dacb5a046"
+              ]
+            },
+            {
+              "id": "different-member-administrator",
+              "condition": "The resolved target user differs from the current user, and callerMembership satisfies requireSpaceAdministrator.",
+              "disposition": "allow",
+              "explanation": "The visible handler permits execution past the administrator guard and calls Store.DeleteSpaceMember for the resolved target membership.",
+              "evidenceIds": [
+                "ev-3f913436015dacb5a046"
+              ]
+            },
+            {
+              "id": "self-removal",
+              "condition": "The resolved target user is the current user.",
+              "disposition": "allow",
+              "explanation": "The handler sets isSelf to true, skips requireSpaceAdministrator, and calls Store.DeleteSpaceMember for the target membership using the current user as actor.",
+              "evidenceIds": [
+                "ev-3f913436015dacb5a046",
+                "ev-64e2a7ffa445e7f2e181"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-3f913436015dacb5a046",
+            "ev-64e2a7ffa445e7f2e181",
+            "ev-5c87576818c2e5301932",
+            "ev-24a4b30e6d9d6dd8562d"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The implementations of requireCurrentSpaceUser, resolveSpaceMemberResource, and requireSpaceAdministrator were not established from source bodies here. The handler establishes their call order and uses their returned values, but the exact identity-resolution, resource-resolution, and administrator-role conditions remain source gaps.",
+              "nextRead": "Read the definitions of requireCurrentSpaceUser, resolveSpaceMemberResource, and requireSpaceAdministrator in the allowed server/api/v1 source."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The concrete database-driver implementations were not read. The handler visibly invokes Store.DeleteSpaceMember, and Store.DeleteSpaceMember validates positive space, target-user, and actor IDs before delegating, but the final persistence effect and backend-specific constraints were not established.",
+              "nextRead": "Read the selected store driver DeleteSpaceMember implementation and relevant backend variants if the persistence effect is decisive."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "No deployment middleware, transport-level authorization, or undocumented role grants were assumed or verified. The result is limited to the shown source path.",
+              "nextRead": "Verify deployment and middleware controls separately if they are in scope."
+            }
+          ],
+          "policyAssessment": {
+            "status": "satisfied",
+            "explanation": "The independently supplied policy requires an administrator to remove another member and does not prohibit self-removal. The visible handler enforces an administrator check only when the target differs from the caller and permits the self-removal branch without that check, matching the policy on the examined source path."
+          }
+        }
+      ],
+      "observations": [
+        {
+          "questionId": "delete-space-member-conformance",
+          "kind": "entry",
+          "subject": "DeleteSpaceMember",
+          "object": "server/api/v1/space_service.go:741",
+          "claim": "The API handler is the examined entry point; the Connect wrapper delegates to the APIV1Service handler.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-3f913436015dacb5a046",
+            "ev-8587192a0a224bab1e1c",
+            "ev-8cc3386f0794bfc13e1b"
+          ]
+        },
+        {
+          "questionId": "delete-space-member-conformance",
+          "kind": "principal-binding",
+          "subject": "currentUser",
+          "object": "requireCurrentSpaceUser(ctx)",
+          "claim": "The handler obtains a current space user before resolving the target and applying the authorization branch, but the helper's implementation was not read.",
+          "state": "unresolved",
+          "evidenceIds": [
+            "ev-3f913436015dacb5a046"
+          ]
+        },
+        {
+          "questionId": "delete-space-member-conformance",
+          "kind": "resource-binding",
+          "subject": "request.name",
+          "object": "resolveSpaceMemberResource(ctx, request.Name, currentUser)",
+          "claim": "The requested resource is resolved into a space, target user, caller membership, and target membership; exact resolver semantics were not read.",
+          "state": "unresolved",
+          "evidenceIds": [
+            "ev-3f913436015dacb5a046",
+            "ev-5c87576818c2e5301932"
+          ]
+        },
+        {
+          "questionId": "delete-space-member-conformance",
+          "kind": "guard",
+          "subject": "requireSpaceAdministrator(callerMembership)",
+          "object": "non-self branch",
+          "claim": "A different-member deletion is guarded by requireSpaceAdministrator and failure returns before the store deletion call.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-3f913436015dacb5a046"
+          ]
+        },
+        {
+          "questionId": "delete-space-member-conformance",
+          "kind": "effect",
+          "subject": "Store.DeleteSpaceMember",
+          "object": "targetMembership.SpaceID,targetMembership.UserID,currentUser.ID",
+          "claim": "After the self/admin branch, the handler submits the resolved target membership and current user actor to the store; the final backend effect was not fully traced.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-3f913436015dacb5a046",
+            "ev-24a4b30e6d9d6dd8562d",
+            "ev-3ca3c320881ed0c2f691"
+          ]
+        },
+        {
+          "questionId": "delete-space-member-conformance",
+          "kind": "exception",
+          "subject": "isSelf",
+          "object": "targetUser.ID == currentUser.ID",
+          "claim": "Self-removal is the visible exception to the administrator guard; the API comment independently states that a member may delete their own membership to leave the space.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-3f913436015dacb5a046",
+            "ev-64e2a7ffa445e7f2e181"
+          ]
+        }
+      ],
+      "scope": "Conformance assessment of the shown DeleteSpaceMember source path in usememos/memos@cb42e326ba9cc266a6a9570c53e0fe04c62793f4. This is not a claim of all-repository coverage; deployment middleware, helper implementations, and concrete backend effects were not fully verified."
+    },
+    "diagnostics": [
+      {
+        "code": "path-not-closed",
+        "path": "delete-space-member-conformance",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      },
+      {
+        "code": "policy-behavior-conflict",
+        "path": "delete-space-member-conformance",
+        "message": "Current independent policy mappings yield undetermined; raw assessment claims satisfied. Incomplete mappings must remain undetermined.",
+        "severity": "error"
+      }
+    ],
+    "semanticSupport": "unreviewed"
+  },
+  "finalValidation": {
+    "valid": false,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "delete-space-member-conformance",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The visible DeleteSpaceMember handler first obtains the current space user, resolves the requested target member, and compares targetUser.ID with currentUser.ID. If the target is a different member, it calls requireSpaceAdministrator(callerMembership) and returns the error without reaching the deletion call when that check fails. Thus an ordinary non-administrator space member cannot remove a different member on this visible path. If the target is the caller themselves, the administrator check is skipped and the handler proceeds to Store.DeleteSpaceMember. The visible source therefore distinguishes the administrator-required removal path from the self-removal path."
+          },
+          "branches": [
+            {
+              "id": "different-member-ordinary-member",
+              "condition": "The resolved target user differs from the current user, and callerMembership is not a space administrator.",
+              "disposition": "deny",
+              "explanation": "The handler enters the !isSelf branch and requireSpaceAdministrator(callerMembership) returns an error before Store.DeleteSpaceMember is called.",
+              "evidenceIds": [
+                "ev-3f913436015dacb5a046"
+              ]
+            },
+            {
+              "id": "different-member-administrator",
+              "condition": "The resolved target user differs from the current user, and callerMembership satisfies requireSpaceAdministrator.",
+              "disposition": "allow",
+              "explanation": "The visible handler permits execution past the administrator guard and calls Store.DeleteSpaceMember for the resolved target membership.",
+              "evidenceIds": [
+                "ev-3f913436015dacb5a046"
+              ]
+            },
+            {
+              "id": "self-removal",
+              "condition": "The resolved target user is the current user.",
+              "disposition": "allow",
+              "explanation": "The handler sets isSelf to true, skips requireSpaceAdministrator, and calls Store.DeleteSpaceMember for the target membership using the current user as actor.",
+              "evidenceIds": [
+                "ev-3f913436015dacb5a046",
+                "ev-64e2a7ffa445e7f2e181"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-3f913436015dacb5a046",
+            "ev-64e2a7ffa445e7f2e181",
+            "ev-5c87576818c2e5301932",
+            "ev-24a4b30e6d9d6dd8562d"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The implementations of requireCurrentSpaceUser, resolveSpaceMemberResource, and requireSpaceAdministrator were not established from source bodies here. The handler establishes their call order and uses their returned values, but the exact identity-resolution, resource-resolution, and administrator-role conditions remain source gaps.",
+              "nextRead": "Read the definitions of requireCurrentSpaceUser, resolveSpaceMemberResource, and requireSpaceAdministrator in the allowed server/api/v1 source."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The concrete database-driver implementations were not read. The handler visibly invokes Store.DeleteSpaceMember, and Store.DeleteSpaceMember validates positive space, target-user, and actor IDs before delegating, but the final persistence effect and backend-specific constraints were not established.",
+              "nextRead": "Read the selected store driver DeleteSpaceMember implementation and relevant backend variants if the persistence effect is decisive."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "No deployment middleware, transport-level authorization, or undocumented role grants were assumed or verified. The result is limited to the shown source path.",
+              "nextRead": "Verify deployment and middleware controls separately if they are in scope."
+            }
+          ],
+          "policyAssessment": {
+            "status": "satisfied",
+            "explanation": "The independently supplied policy requires an administrator to remove another member and does not prohibit self-removal. The visible handler enforces an administrator check only when the target differs from the caller and permits the self-removal branch without that check, matching the policy on the examined source path."
+          }
+        }
+      ],
+      "observations": [
+        {
+          "questionId": "delete-space-member-conformance",
+          "kind": "entry",
+          "subject": "DeleteSpaceMember",
+          "object": "server/api/v1/space_service.go:741",
+          "claim": "The API handler is the examined entry point; the Connect wrapper delegates to the APIV1Service handler.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-3f913436015dacb5a046",
+            "ev-8587192a0a224bab1e1c",
+            "ev-8cc3386f0794bfc13e1b"
+          ]
+        },
+        {
+          "questionId": "delete-space-member-conformance",
+          "kind": "principal-binding",
+          "subject": "currentUser",
+          "object": "requireCurrentSpaceUser(ctx)",
+          "claim": "The handler obtains a current space user before resolving the target and applying the authorization branch, but the helper's implementation was not read.",
+          "state": "unresolved",
+          "evidenceIds": [
+            "ev-3f913436015dacb5a046"
+          ]
+        },
+        {
+          "questionId": "delete-space-member-conformance",
+          "kind": "resource-binding",
+          "subject": "request.name",
+          "object": "resolveSpaceMemberResource(ctx, request.Name, currentUser)",
+          "claim": "The requested resource is resolved into a space, target user, caller membership, and target membership; exact resolver semantics were not read.",
+          "state": "unresolved",
+          "evidenceIds": [
+            "ev-3f913436015dacb5a046",
+            "ev-5c87576818c2e5301932"
+          ]
+        },
+        {
+          "questionId": "delete-space-member-conformance",
+          "kind": "guard",
+          "subject": "requireSpaceAdministrator(callerMembership)",
+          "object": "non-self branch",
+          "claim": "A different-member deletion is guarded by requireSpaceAdministrator and failure returns before the store deletion call.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-3f913436015dacb5a046"
+          ]
+        },
+        {
+          "questionId": "delete-space-member-conformance",
+          "kind": "effect",
+          "subject": "Store.DeleteSpaceMember",
+          "object": "targetMembership.SpaceID,targetMembership.UserID,currentUser.ID",
+          "claim": "After the self/admin branch, the handler submits the resolved target membership and current user actor to the store; the final backend effect was not fully traced.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-3f913436015dacb5a046",
+            "ev-24a4b30e6d9d6dd8562d",
+            "ev-3ca3c320881ed0c2f691"
+          ]
+        },
+        {
+          "questionId": "delete-space-member-conformance",
+          "kind": "exception",
+          "subject": "isSelf",
+          "object": "targetUser.ID == currentUser.ID",
+          "claim": "Self-removal is the visible exception to the administrator guard; the API comment independently states that a member may delete their own membership to leave the space.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-3f913436015dacb5a046",
+            "ev-64e2a7ffa445e7f2e181"
+          ]
+        }
+      ],
+      "scope": "Conformance assessment of the shown DeleteSpaceMember source path in usememos/memos@cb42e326ba9cc266a6a9570c53e0fe04c62793f4. This is not a claim of all-repository coverage; deployment middleware, helper implementations, and concrete backend effects were not fully verified."
+    },
+    "diagnostics": [
+      {
+        "code": "path-not-closed",
+        "path": "delete-space-member-conformance",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      },
+      {
+        "code": "policy-behavior-conflict",
+        "path": "delete-space-member-conformance",
+        "message": "Current independent policy mappings yield undetermined; raw assessment claims satisfied. Incomplete mappings must remain undetermined.",
+        "severity": "error"
+      }
+    ],
+    "semanticSupport": "unreviewed"
+  },
+  "error": "Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"$\",\"code\":\"unrecognized_keys\"}]},{\"transport\":\"prompt-parse\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"controlDelta.rules.0.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.0.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.0.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.0.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.0.from\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.1.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.1.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.1.from\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.2.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.2.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.2.from\",\"code\":\"invalid_type\"}]}]",
+  "extractionInitial": {
+    "schemaVersion": "authorization-control-slice/v1",
+    "revision": 0,
+    "rules": [],
+    "dependencies": [],
+    "bindings": [],
+    "policyRules": [],
+    "conflicts": [],
+    "revisions": []
+  },
+  "extractionInitialOrigin": "first-answer-check",
+  "extractionFinal": {
+    "schemaVersion": "authorization-control-slice/v1",
+    "revision": 0,
+    "rules": [],
+    "dependencies": [],
+    "bindings": [],
+    "policyRules": [],
+    "conflicts": [],
+    "revisions": []
+  },
+  "extractionProposals": [],
+  "hostChecks": [
+    {
+      "structureValid": true,
+      "sourceBound": false,
+      "ruleConsistency": false,
+      "semanticSupport": "unreviewed",
+      "taskResolution": "partial",
+      "paths": [],
+      "diagnostics": [
+        {
+          "code": "path-not-closed",
+          "path": "delete-space-member-conformance",
+          "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+          "severity": "error"
+        },
+        {
+          "code": "policy-behavior-conflict",
+          "path": "delete-space-member-conformance",
+          "message": "Current independent policy mappings yield undetermined; raw assessment claims satisfied. Incomplete mappings must remain undetermined.",
+          "severity": "error"
+        }
+      ],
+      "policyComparisons": [
+        {
+          "questionId": "delete-space-member-conformance",
+          "status": "undetermined",
+          "origin": "host-derived-from-proposed-policy",
+          "semanticSupport": "unreviewed"
+        }
+      ],
+      "calculationCount": 0
+    }
+  ],
+  "dependencies": [],
+  "schedulerActions": [],
+  "evidence": [
+    {
+      "id": "ev-781099126d4473f5a6a1",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 126,
+      "endLine": 126,
+      "bytes": 77
+    },
+    {
+      "id": "ev-e97f2cbdd5d311b9c657",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 128,
+      "endLine": 128,
+      "bytes": 90
+    },
+    {
+      "id": "ev-77fb6b5d14d0b901a809",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 394,
+      "endLine": 394,
+      "bytes": 41
+    },
+    {
+      "id": "ev-8587192a0a224bab1e1c",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/connect_services.go",
+      "sha256": "b7c43523239e74e488104e9a550b0315c09f8e93714e37b220e79d79d31631b0",
+      "startLine": 650,
+      "endLine": 650,
+      "bytes": 174
+    },
+    {
+      "id": "ev-8cc3386f0794bfc13e1b",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/connect_services.go",
+      "sha256": "b7c43523239e74e488104e9a550b0315c09f8e93714e37b220e79d79d31631b0",
+      "startLine": 651,
+      "endLine": 651,
+      "bytes": 67
+    },
+    {
+      "id": "ev-cb9cce8501567f6ecb00",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 740,
+      "endLine": 740,
+      "bytes": 80
+    },
+    {
+      "id": "ev-9ee45f98c8803e5baf45",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 741,
+      "endLine": 741,
+      "bytes": 134
+    },
+    {
+      "id": "ev-6f0761b3437bb3341438",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 756,
+      "endLine": 756,
+      "bytes": 74
+    },
+    {
+      "id": "ev-1406155e35289f4c8840",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/mysql/space.go",
+      "sha256": "c3a222324d95f0ec5b25f4ae00abca9592670f3afd5656bd6830c269b586deb6",
+      "startLine": 399,
+      "endLine": 399,
+      "bytes": 118
+    },
+    {
+      "id": "ev-b937e51c129d5160f9ac",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/postgres/space.go",
+      "sha256": "904d4817ea006a369061588aa2ce843a6d9bd76ca0705b393f2dcad6d6896eb4",
+      "startLine": 437,
+      "endLine": 437,
+      "bytes": 118
+    },
+    {
+      "id": "ev-33b04536e00eb4ebfaf6",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/sqlite/space.go",
+      "sha256": "3342f78a8fee794e6bdaf2765874030661a1b2130b5bf9eb6b0e8d626f4572f9",
+      "startLine": 411,
+      "endLine": 411,
+      "bytes": 118
+    },
+    {
+      "id": "ev-f8ef9b01df78754b0cd1",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/driver.go",
+      "sha256": "8fb7f82b0338dbb5b9b683e7c6dd0b0107186b1106acf6d3cf292f2e6f8d24fb",
+      "startLine": 45,
+      "endLine": 45,
+      "bytes": 97
+    },
+    {
+      "id": "ev-fd8f6bc0120a2628f62d",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 134,
+      "endLine": 134,
+      "bytes": 62
+    },
+    {
+      "id": "ev-26bcf93f9afea265612b",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 135,
+      "endLine": 135,
+      "bytes": 38
+    },
+    {
+      "id": "ev-92698ef6bf9052def001",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 272,
+      "endLine": 272,
+      "bytes": 85
+    },
+    {
+      "id": "ev-4e8276f16b6f286a6211",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 274,
+      "endLine": 274,
+      "bytes": 115
+    },
+    {
+      "id": "ev-8386c158f397aee0ae85",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 278,
+      "endLine": 278,
+      "bytes": 67
+    },
+    {
+      "id": "ev-3f913436015dacb5a046",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 740,
+      "endLine": 764,
+      "bytes": 1069
+    },
+    {
+      "id": "ev-64e2a7ffa445e7f2e181",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 124,
+      "endLine": 130,
+      "bytes": 367
+    },
+    {
+      "id": "ev-5c87576818c2e5301932",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 390,
+      "endLine": 398,
+      "bytes": 412
+    },
+    {
+      "id": "ev-3ca3c320881ed0c2f691",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 130,
+      "endLine": 140,
+      "bytes": 307
+    },
+    {
+      "id": "ev-24a4b30e6d9d6dd8562d",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 268,
+      "endLine": 280,
+      "bytes": 582
+    },
+    {
+      "id": "ev-5509a04435c98463a92d",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 19,
+      "endLine": 19,
+      "bytes": 96
+    },
+    {
+      "id": "ev-f14612ad4f1c7e4edb2a",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 632,
+      "endLine": 632,
+      "bytes": 192
+    },
+    {
+      "id": "ev-7d71f7e0bc6b308bb2c4",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 54,
+      "endLine": 54,
+      "bytes": 71
+    },
+    {
+      "id": "ev-6f2905868b3ec01f1f9b",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 195,
+      "endLine": 195,
+      "bytes": 69
+    },
+    {
+      "id": "ev-13dfa899ab551b5ef2f8",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 247,
+      "endLine": 247,
+      "bytes": 69
+    },
+    {
+      "id": "ev-539f8d40a8bb2ae11149",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 275,
+      "endLine": 275,
+      "bytes": 75
+    },
+    {
+      "id": "ev-be967314a7cced42009f",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 324,
+      "endLine": 324,
+      "bytes": 75
+    },
+    {
+      "id": "ev-45c782efdab82ca10ce6",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 512,
+      "endLine": 512,
+      "bytes": 75
+    },
+    {
+      "id": "ev-78eb68701c8ded876792",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 718,
+      "endLine": 718,
+      "bytes": 75
+    },
+    {
+      "id": "ev-ee46c332e60ac55cb4a7",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 752,
+      "endLine": 752,
+      "bytes": 76
+    }
+  ],
+  "deliveryValid": false,
+  "reviewCaution": "Citations and host consistency do not prove extraction meaning. Evaluate raw first/final and final prose against original source at the retained evidence ranges. A native prose answer can be delivered despite failed host checking. Representation may reveal strategy; arm, cost and target scores are hidden. No earlier answer is supplied."
+}

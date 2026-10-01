@@ -1,0 +1,1432 @@
+{
+  "schemaVersion": "authorization-aq-anonymous-packet/v1",
+  "id": "packet-f160fca69278",
+  "task": {
+    "brief": "Investigate GetRepoPermissions in this Gitea revision. Compare a normal authenticated caller querying their own collaborator permission with the same caller querying another user's permission; include differences for privileged callers visible in source. Explain path-specific controls, identity comparison and the repository permission result. Follow upstream code only when relevant. Do not turn this behavior question into an invented normative policy.",
+    "mode": "behavior"
+  },
+  "status": "completed",
+  "initial": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "A normal authenticated caller may obtain the permission result only when the collaborator path name matches the caller's ctx.Doer.LowerName case-insensitively. The same caller querying another username receives a handler-level HTTP 403 unless the caller is a site administrator or is a repository administrator for the selected repository."
+        },
+        "branches": [
+          {
+            "id": "normal-self",
+            "condition": "Caller is token-authenticated, is not a site administrator, is not a repository administrator, and collaborator path name equals ctx.Doer.LowerName ignoring case.",
+            "disposition": "allow",
+            "explanation": "The name comparison succeeds, so the handler proceeds to resolve that user and calculate their permission on the current repository. If lookup and permission calculation succeed, it returns the JSON permission representation.",
+            "evidenceIds": [
+              "ev-fbe23fe17ab509d9b9df",
+              "ev-ff214123ff9d385c93ec",
+              "ev-8fa2974814e8f0c0ee30"
+            ]
+          },
+          {
+            "id": "normal-other",
+            "condition": "Caller is token-authenticated, is not a site administrator, is not a repository administrator, and collaborator path name does not equal ctx.Doer.LowerName ignoring case.",
+            "disposition": "deny",
+            "explanation": "The conjunction in the handler guard is true, so it returns HTTP 403 before GetUserByName and before GetIndividualUserRepoPermission. No repository permission result is computed on this path.",
+            "evidenceIds": [
+              "ev-fbe23fe17ab509d9b9df",
+              "ev-ff214123ff9d385c93ec",
+              "ev-8fa2974814e8f0c0ee30"
+            ]
+          },
+          {
+            "id": "site-admin-other",
+            "condition": "Caller is token-authenticated and ctx.Doer.IsAdmin is true, regardless of whether the collaborator name matches the caller.",
+            "disposition": "allow",
+            "explanation": "The site-admin term negates the first guard condition, so the handler proceeds to resolve the requested collaborator and calculate that user's repository permission.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec",
+              "ev-8fa2974814e8f0c0ee30"
+            ]
+          },
+          {
+            "id": "repo-admin-other",
+            "condition": "Caller is token-authenticated, is not necessarily a site administrator, and ctx.IsUserRepoAdmin() is true for the current repository.",
+            "disposition": "allow",
+            "explanation": "The repository-admin term negates the third guard condition, so a different collaborator name does not cause the handler's 403. In the API context, this predicate is based on ctx.Repo.Permission.IsAdmin().",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec",
+              "ev-0baefb0425cc895a6ed6"
+            ]
+          },
+          {
+            "id": "target-lookup-failure",
+            "condition": "The handler guard passes but GetUserByName cannot resolve the requested collaborator.",
+            "disposition": "deny",
+            "explanation": "A nonexistent collaborator produces HTTP 404; other lookup errors produce an internal API error. This is a post-authorization lookup branch, not the normal-self versus normal-other distinction.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ]
+          },
+          {
+            "id": "permission-lookup-failure",
+            "condition": "The handler and collaborator lookup succeed but GetIndividualUserRepoPermission returns an error.",
+            "disposition": "unknown",
+            "explanation": "The handler returns an internal API error and does not emit the permission JSON. The source establishes the error branch but not its externally specific status or cause.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-0422c77f6405d2eb65a6",
+          "ev-fbe23fe17ab509d9b9df",
+          "ev-ff214123ff9d385c93ec",
+          "ev-cfe26ad3d829b9cf3667",
+          "ev-0baefb0425cc895a6ed6"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The route's repository assignment and permission-loading upstream code was not fully traced. The route source shows ctx.Repo.Repository is already available, but this result does not establish all conditions under which that repository context is populated or whether other middleware can reject the request before GetRepoPermissions.",
+            "nextRead": "routers/api/v1/api.go: repoAssignment definition and the repository route/context setup; relevant services/context API repository-loading code"
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The exact implementation of access-mode helper branches called by GetIndividualUserRepoPermission, including modeByOwnerAndAccess and finalProcessRepoUnitPermission, was not read. The source does show the principal result's major branches: invisible owner yields none; public anonymous access yields read; target admin or repository owner yields owner; otherwise access derives from ownership/collaboration and organization-team data.",
+            "nextRead": "models/perm/access/repo_permission.go: modeByOwnerAndAccess and finalProcessRepoUnitPermission"
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The source confirms ctx.IsUserRepoAdmin() delegates to ctx.Repo.Permission.IsAdmin(), but the construction and precise semantics of ctx.Repo.Permission for every repository type were not established.",
+            "nextRead": "services/context and models/perm paths that load API repository permission"
+          },
+          {
+            "kind": "dependency-out-of-scope",
+            "detail": "The response conversion details of ToUserAndPermission were not read; only the handler's use of permission.AccessMode and the conversion call are established."
+          }
+        ],
+        "policyAssessment": {
+          "status": "undetermined",
+          "explanation": "This is a behavior inquiry with no normative expectation supplied. The result describes source-visible branches and does not assess compliance with an invented policy."
+        }
+      }
+    ],
+    "observations": [
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "entry",
+        "subject": "GetRepoPermissions entry and route",
+        "object": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission",
+        "claim": "The GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission route dispatches to GetRepoPermissions; the route group is wrapped by reqToken(), while this specific GET has no additional reqAnyRepoReader() or reqAdmin() wrapper shown.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-0422c77f6405d2eb65a6",
+          "ev-7c0146a501b98df9c24d",
+          "ev-e294e0511838d6709a3f"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "principal-binding",
+        "subject": "caller identity",
+        "object": "ctx.Doer",
+        "claim": "The handler uses ctx.Doer.IsAdmin and ctx.Doer.LowerName for the caller-side authorization comparison; the route itself requires a token via reqToken().",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-0422c77f6405d2eb65a6",
+          "ev-8fa2974814e8f0c0ee30"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "resource-binding",
+        "subject": "requested collaborator and repository",
+        "object": "ctx.Repo.Repository plus collaborator path parameter",
+        "claim": "The collaborator target is selected from the collaborator path parameter, resolved with GetUserByName, and the repository permission lookup is called for ctx.Repo.Repository and that resolved user.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-36b1686c5ef719f69642"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "guard",
+        "subject": "handler authorization guard",
+        "object": "GetRepoPermissions authorization condition",
+        "claim": "The handler rejects with HTTP 403 when the caller is not an instance admin, the requested collaborator name does not case-insensitively equal ctx.Doer.LowerName, and ctx.IsUserRepoAdmin() is false. Thus a non-privileged caller passes this handler guard only for their own username comparison.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-8fa2974814e8f0c0ee30"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "effect",
+        "subject": "permission result",
+        "object": "selected repository and resolved collaborator",
+        "claim": "After the guard and collaborator lookup, the handler obtains permission.AccessMode from GetIndividualUserRepoPermission for the selected repository and collaborator, then returns JSON through ToUserAndPermission.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "exception",
+        "subject": "privileged callers",
+        "object": "handler guard exceptions",
+        "claim": "An instance administrator bypasses the name-mismatch branch, and a caller for whom ctx.IsUserRepoAdmin() is true also bypasses it; the source read does not yet establish how IsUserRepoAdmin determines repository administration.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-8fa2974814e8f0c0ee30"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "entry",
+        "subject": "GetRepoPermissions entry and route",
+        "object": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission",
+        "claim": "The route dispatches to GetRepoPermissions. The enclosing collaborators route group requires reqToken(); this specific GET has no additional reqAnyRepoReader() or reqAdmin() wrapper shown.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-0422c77f6405d2eb65a6",
+          "ev-7c0146a501b98df9c24d",
+          "ev-e294e0511838d6709a3f"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "principal-binding",
+        "subject": "caller identity",
+        "object": "ctx.Doer",
+        "claim": "The handler uses ctx.Doer.IsAdmin and ctx.Doer.LowerName for caller-side authorization. The route-level reqToken() requires a signed-in/token-authenticated request before the handler runs.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-fbe23fe17ab509d9b9df",
+          "ev-8fa2974814e8f0c0ee30"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "resource-binding",
+        "subject": "requested collaborator and repository",
+        "object": "ctx.PathParam(\"collaborator\") and ctx.Repo.Repository",
+        "claim": "The target user is selected from the collaborator path parameter and resolved with GetUserByName. The repository permission lookup then uses ctx.Repo.Repository and that resolved user.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-36b1686c5ef719f69642"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "guard",
+        "subject": "handler authorization guard",
+        "object": "GetRepoPermissions authorization condition",
+        "claim": "The handler returns HTTP 403 if all three conditions hold: the caller is not a site administrator, the requested collaborator name does not case-insensitively equal ctx.Doer.LowerName, and ctx.IsUserRepoAdmin() is false. Therefore, for a normal authenticated caller who is not a repository admin, the handler permits the self-name case and rejects the other-user case before resolving the target user or calculating permission.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-8fa2974814e8f0c0ee30"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "effect",
+        "subject": "permission result",
+        "object": "selected repository and resolved collaborator",
+        "claim": "For a request that passes the guard and successfully resolves the collaborator, GetIndividualUserRepoPermission computes the selected user's access mode on ctx.Repo.Repository, and the handler returns JSON through ToUserAndPermission using permission.AccessMode.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-cfe26ad3d829b9cf3667"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "exception",
+        "subject": "privileged callers",
+        "object": "site-admin and repository-admin bypasses",
+        "claim": "ctx.Doer.IsAdmin bypasses the name-mismatch restriction. ctx.IsUserRepoAdmin() also bypasses it, so a repository administrator can query another user's permission on the current repository. The source confirms the API-context implementation checks ctx.Repo.Permission.IsAdmin(), while the full upstream construction of ctx.Repo.Permission is not traced here.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-8fa2974814e8f0c0ee30",
+          "ev-0baefb0425cc895a6ed6"
+        ]
+      }
+    ],
+    "scope": "go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b8; GetRepoPermissions and its directly relevant route and repository-permission lookup only; behavior investigation, not normative policy assessment."
+  },
+  "final": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "For the same signed-in, non-privileged caller, querying their own collaborator name passes the handler-specific check and proceeds to calculate and return that user's repository permission, subject to later lookup or permission-calculation errors. Querying another user's name is rejected with HTTP 403 before target-user lookup and before any repository permission is calculated. Site administrators and callers recognized as administrators of the current repository bypass that name restriction and may query another user's permission."
+        },
+        "branches": [
+          {
+            "id": "normal-self",
+            "condition": "The request is signed in; the caller is not a site administrator; the caller is not a repository administrator for the current repository; and the collaborator path value equals ctx.Doer.LowerName ignoring case.",
+            "disposition": "allow",
+            "explanation": "The handler guard does not reject the request. It resolves the path user and invokes GetIndividualUserRepoPermission for that user and the current repository. On success, it returns the permission representation.",
+            "evidenceIds": [
+              "ev-fbe23fe17ab509d9b9df",
+              "ev-ff214123ff9d385c93ec",
+              "ev-cfe26ad3d829b9cf3667"
+            ]
+          },
+          {
+            "id": "normal-other",
+            "condition": "The request is signed in; the caller is not a site administrator; the caller is not a repository administrator for the current repository; and the collaborator path value differs from ctx.Doer.LowerName ignoring case.",
+            "disposition": "deny",
+            "explanation": "All terms of the handler's rejection condition hold, so it returns HTTP 403 before GetUserByName and before GetIndividualUserRepoPermission. No repository permission result is computed on this path.",
+            "evidenceIds": [
+              "ev-fbe23fe17ab509d9b9df",
+              "ev-ff214123ff9d385c93ec",
+              "ev-8fa2974814e8f0c0ee30"
+            ]
+          },
+          {
+            "id": "site-admin-other",
+            "condition": "The request is signed in and ctx.Doer.IsAdmin is true, regardless of the collaborator name.",
+            "disposition": "allow",
+            "explanation": "The site-administrator condition disables the handler's name-mismatch rejection. The requested user is then resolved and their permission for the current repository is calculated.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec",
+              "ev-8fa2974814e8f0c0ee30"
+            ]
+          },
+          {
+            "id": "repo-admin-other",
+            "condition": "The request is signed in and ctx.IsUserRepoAdmin() is true for the current repository, regardless of the collaborator name.",
+            "disposition": "allow",
+            "explanation": "The repository-administrator condition disables the handler's name-mismatch rejection. The API-context implementation shown defines this predicate as ctx.Repo.Permission.IsAdmin().",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec",
+              "ev-0baefb0425cc895a6ed6"
+            ]
+          },
+          {
+            "id": "target-user-not-found",
+            "condition": "The handler guard passes but the requested collaborator cannot be resolved.",
+            "disposition": "deny",
+            "explanation": "GetUserByName produces HTTP 404 for a nonexistent user; other lookup errors produce an internal API error. This occurs after the authorization guard.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ]
+          },
+          {
+            "id": "permission-calculation-error",
+            "condition": "The handler and collaborator lookup succeed but GetIndividualUserRepoPermission returns an error.",
+            "disposition": "unknown",
+            "explanation": "The handler returns an internal API error instead of the permission JSON. The source read does not establish the particular external status or cause for such errors.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-0422c77f6405d2eb65a6",
+          "ev-fbe23fe17ab509d9b9df",
+          "ev-ff214123ff9d385c93ec",
+          "ev-cfe26ad3d829b9cf3667",
+          "ev-0baefb0425cc895a6ed6"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The repository-assignment and repository-context loading upstream code was not fully traced. The available route source shows the handler receives ctx.Repo.Repository, but does not establish every upstream condition that populates it or any other middleware rejection before the handler.",
+            "nextRead": "routers/api/v1/api.go: repoAssignment definition and repository route/context setup; relevant services/context repository-loading code"
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The exact helper branches inside GetIndividualUserRepoPermission, including modeByOwnerAndAccess and finalProcessRepoUnitPermission, were not read. Therefore this result does not enumerate every possible AccessMode value for every repository visibility, ownership, collaboration, organization, and team configuration.",
+            "nextRead": "models/perm/access/repo_permission.go: modeByOwnerAndAccess and finalProcessRepoUnitPermission"
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The source confirms that ctx.IsUserRepoAdmin() delegates to ctx.Repo.Permission.IsAdmin(), but the construction and precise semantics of ctx.Repo.Permission for all repository types were not established.",
+            "nextRead": "services/context and models/perm paths that load API repository permission"
+          },
+          {
+            "kind": "dependency-out-of-scope",
+            "detail": "ToUserAndPermission was not read; only the handler's use of permission.AccessMode and its conversion call are established.",
+            "nextRead": "services/convert/user.go: ToUserAndPermission"
+          }
+        ]
+      }
+    ],
+    "observations": [
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "entry",
+        "subject": "GetRepoPermissions entry and route",
+        "object": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission",
+        "claim": "The GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission route dispatches to GetRepoPermissions; the route group is wrapped by reqToken(), while this specific GET has no additional reqAnyRepoReader() or reqAdmin() wrapper shown.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-0422c77f6405d2eb65a6",
+          "ev-7c0146a501b98df9c24d",
+          "ev-e294e0511838d6709a3f"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "principal-binding",
+        "subject": "caller identity",
+        "object": "ctx.Doer",
+        "claim": "The handler uses ctx.Doer.IsAdmin and ctx.Doer.LowerName for the caller-side authorization comparison; the route itself requires a token via reqToken().",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-0422c77f6405d2eb65a6",
+          "ev-8fa2974814e8f0c0ee30"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "resource-binding",
+        "subject": "requested collaborator and repository",
+        "object": "ctx.Repo.Repository plus collaborator path parameter",
+        "claim": "The collaborator target is selected from the collaborator path parameter, resolved with GetUserByName, and the repository permission lookup is called for ctx.Repo.Repository and that resolved user.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-36b1686c5ef719f69642"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "guard",
+        "subject": "handler authorization guard",
+        "object": "GetRepoPermissions authorization condition",
+        "claim": "The handler rejects with HTTP 403 when the caller is not an instance admin, the requested collaborator name does not case-insensitively equal ctx.Doer.LowerName, and ctx.IsUserRepoAdmin() is false. Thus a non-privileged caller passes this handler guard only for their own username comparison.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-8fa2974814e8f0c0ee30"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "effect",
+        "subject": "permission result",
+        "object": "selected repository and resolved collaborator",
+        "claim": "After the guard and collaborator lookup, the handler obtains permission.AccessMode from GetIndividualUserRepoPermission for the selected repository and collaborator, then returns JSON through ToUserAndPermission.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "exception",
+        "subject": "privileged callers",
+        "object": "handler guard exceptions",
+        "claim": "An instance administrator bypasses the name-mismatch branch, and a caller for whom ctx.IsUserRepoAdmin() is true also bypasses it; the source read does not yet establish how IsUserRepoAdmin determines repository administration.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-8fa2974814e8f0c0ee30"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "entry",
+        "subject": "GetRepoPermissions route",
+        "object": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission",
+        "claim": "The route dispatches to GetRepoPermissions and is enclosed by a reqToken() middleware. This specific GET route has no additional reqAnyRepoReader() or reqAdmin() wrapper shown.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-0422c77f6405d2eb65a6",
+          "ev-7c0146a501b98df9c24d"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "principal-binding",
+        "subject": "caller identity",
+        "object": "ctx.Doer",
+        "claim": "The handler binds caller identity through ctx.Doer: it checks ctx.Doer.IsAdmin and compares ctx.Doer.LowerName with the collaborator path value. The enclosing reqToken() requires ctx.IsSigned before the handler proceeds.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-8fa2974814e8f0c0ee30",
+          "ev-fbe23fe17ab509d9b9df"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "resource-binding",
+        "subject": "requested user and repository",
+        "object": "ctx.PathParam(\"collaborator\") and ctx.Repo.Repository",
+        "claim": "The requested collaborator is selected from the path parameter, resolved with GetUserByName, and then used with ctx.Repo.Repository in GetIndividualUserRepoPermission.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-36b1686c5ef719f69642"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "guard",
+        "subject": "handler authorization guard",
+        "object": "name and privilege condition",
+        "claim": "The handler returns HTTP 403 when the caller is not an instance administrator, the requested collaborator name does not equal ctx.Doer.LowerName case-insensitively, and ctx.IsUserRepoAdmin() is false. Thus a non-privileged caller passes this handler guard only when querying their own username by that comparison.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-8fa2974814e8f0c0ee30"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "effect",
+        "subject": "repository permission result",
+        "object": "ctx.Repo.Repository and resolved collaborator",
+        "claim": "After the guard and user lookup succeed, the handler computes permission.AccessMode for the selected user on the selected repository and returns a JSON representation through ToUserAndPermission.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-cfe26ad3d829b9cf3667"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-self-vs-other",
+        "kind": "exception",
+        "subject": "privileged callers",
+        "object": "site administrator and repository administrator",
+        "claim": "ctx.Doer.IsAdmin bypasses the collaborator-name restriction. ctx.IsUserRepoAdmin() also bypasses it; in the API context this checks ctx.Repo.Permission.IsAdmin(). The complete construction and semantics of ctx.Repo.Permission were not traced.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-0baefb0425cc895a6ed6"
+        ]
+      }
+    ],
+    "scope": "go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b8; GetRepoPermissions, its directly relevant route, and the repository-permission lookup; behavior investigation only"
+  },
+  "prose": null,
+  "initialProse": null,
+  "initialValidation": {
+    "valid": false,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "A normal authenticated caller may obtain the permission result only when the collaborator path name matches the caller's ctx.Doer.LowerName case-insensitively. The same caller querying another username receives a handler-level HTTP 403 unless the caller is a site administrator or is a repository administrator for the selected repository."
+          },
+          "branches": [
+            {
+              "id": "normal-self",
+              "condition": "Caller is token-authenticated, is not a site administrator, is not a repository administrator, and collaborator path name equals ctx.Doer.LowerName ignoring case.",
+              "disposition": "allow",
+              "explanation": "The name comparison succeeds, so the handler proceeds to resolve that user and calculate their permission on the current repository. If lookup and permission calculation succeed, it returns the JSON permission representation.",
+              "evidenceIds": [
+                "ev-fbe23fe17ab509d9b9df",
+                "ev-ff214123ff9d385c93ec",
+                "ev-8fa2974814e8f0c0ee30"
+              ]
+            },
+            {
+              "id": "normal-other",
+              "condition": "Caller is token-authenticated, is not a site administrator, is not a repository administrator, and collaborator path name does not equal ctx.Doer.LowerName ignoring case.",
+              "disposition": "deny",
+              "explanation": "The conjunction in the handler guard is true, so it returns HTTP 403 before GetUserByName and before GetIndividualUserRepoPermission. No repository permission result is computed on this path.",
+              "evidenceIds": [
+                "ev-fbe23fe17ab509d9b9df",
+                "ev-ff214123ff9d385c93ec",
+                "ev-8fa2974814e8f0c0ee30"
+              ]
+            },
+            {
+              "id": "site-admin-other",
+              "condition": "Caller is token-authenticated and ctx.Doer.IsAdmin is true, regardless of whether the collaborator name matches the caller.",
+              "disposition": "allow",
+              "explanation": "The site-admin term negates the first guard condition, so the handler proceeds to resolve the requested collaborator and calculate that user's repository permission.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec",
+                "ev-8fa2974814e8f0c0ee30"
+              ]
+            },
+            {
+              "id": "repo-admin-other",
+              "condition": "Caller is token-authenticated, is not necessarily a site administrator, and ctx.IsUserRepoAdmin() is true for the current repository.",
+              "disposition": "allow",
+              "explanation": "The repository-admin term negates the third guard condition, so a different collaborator name does not cause the handler's 403. In the API context, this predicate is based on ctx.Repo.Permission.IsAdmin().",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec",
+                "ev-0baefb0425cc895a6ed6"
+              ]
+            },
+            {
+              "id": "target-lookup-failure",
+              "condition": "The handler guard passes but GetUserByName cannot resolve the requested collaborator.",
+              "disposition": "deny",
+              "explanation": "A nonexistent collaborator produces HTTP 404; other lookup errors produce an internal API error. This is a post-authorization lookup branch, not the normal-self versus normal-other distinction.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec"
+              ]
+            },
+            {
+              "id": "permission-lookup-failure",
+              "condition": "The handler and collaborator lookup succeed but GetIndividualUserRepoPermission returns an error.",
+              "disposition": "unknown",
+              "explanation": "The handler returns an internal API error and does not emit the permission JSON. The source establishes the error branch but not its externally specific status or cause.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-0422c77f6405d2eb65a6",
+            "ev-fbe23fe17ab509d9b9df",
+            "ev-ff214123ff9d385c93ec",
+            "ev-cfe26ad3d829b9cf3667",
+            "ev-0baefb0425cc895a6ed6"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The route's repository assignment and permission-loading upstream code was not fully traced. The route source shows ctx.Repo.Repository is already available, but this result does not establish all conditions under which that repository context is populated or whether other middleware can reject the request before GetRepoPermissions.",
+              "nextRead": "routers/api/v1/api.go: repoAssignment definition and the repository route/context setup; relevant services/context API repository-loading code"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The exact implementation of access-mode helper branches called by GetIndividualUserRepoPermission, including modeByOwnerAndAccess and finalProcessRepoUnitPermission, was not read. The source does show the principal result's major branches: invisible owner yields none; public anonymous access yields read; target admin or repository owner yields owner; otherwise access derives from ownership/collaboration and organization-team data.",
+              "nextRead": "models/perm/access/repo_permission.go: modeByOwnerAndAccess and finalProcessRepoUnitPermission"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The source confirms ctx.IsUserRepoAdmin() delegates to ctx.Repo.Permission.IsAdmin(), but the construction and precise semantics of ctx.Repo.Permission for every repository type were not established.",
+              "nextRead": "services/context and models/perm paths that load API repository permission"
+            },
+            {
+              "kind": "dependency-out-of-scope",
+              "detail": "The response conversion details of ToUserAndPermission were not read; only the handler's use of permission.AccessMode and the conversion call are established."
+            }
+          ],
+          "policyAssessment": {
+            "status": "undetermined",
+            "explanation": "This is a behavior inquiry with no normative expectation supplied. The result describes source-visible branches and does not assess compliance with an invented policy."
+          }
+        }
+      ],
+      "observations": [
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "entry",
+          "subject": "GetRepoPermissions entry and route",
+          "object": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission",
+          "claim": "The GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission route dispatches to GetRepoPermissions; the route group is wrapped by reqToken(), while this specific GET has no additional reqAnyRepoReader() or reqAdmin() wrapper shown.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-0422c77f6405d2eb65a6",
+            "ev-7c0146a501b98df9c24d",
+            "ev-e294e0511838d6709a3f"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "principal-binding",
+          "subject": "caller identity",
+          "object": "ctx.Doer",
+          "claim": "The handler uses ctx.Doer.IsAdmin and ctx.Doer.LowerName for the caller-side authorization comparison; the route itself requires a token via reqToken().",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-0422c77f6405d2eb65a6",
+            "ev-8fa2974814e8f0c0ee30"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "resource-binding",
+          "subject": "requested collaborator and repository",
+          "object": "ctx.Repo.Repository plus collaborator path parameter",
+          "claim": "The collaborator target is selected from the collaborator path parameter, resolved with GetUserByName, and the repository permission lookup is called for ctx.Repo.Repository and that resolved user.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-36b1686c5ef719f69642"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "guard",
+          "subject": "handler authorization guard",
+          "object": "GetRepoPermissions authorization condition",
+          "claim": "The handler rejects with HTTP 403 when the caller is not an instance admin, the requested collaborator name does not case-insensitively equal ctx.Doer.LowerName, and ctx.IsUserRepoAdmin() is false. Thus a non-privileged caller passes this handler guard only for their own username comparison.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-8fa2974814e8f0c0ee30"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "effect",
+          "subject": "permission result",
+          "object": "selected repository and resolved collaborator",
+          "claim": "After the guard and collaborator lookup, the handler obtains permission.AccessMode from GetIndividualUserRepoPermission for the selected repository and collaborator, then returns JSON through ToUserAndPermission.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "exception",
+          "subject": "privileged callers",
+          "object": "handler guard exceptions",
+          "claim": "An instance administrator bypasses the name-mismatch branch, and a caller for whom ctx.IsUserRepoAdmin() is true also bypasses it; the source read does not yet establish how IsUserRepoAdmin determines repository administration.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-8fa2974814e8f0c0ee30"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "entry",
+          "subject": "GetRepoPermissions entry and route",
+          "object": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission",
+          "claim": "The route dispatches to GetRepoPermissions. The enclosing collaborators route group requires reqToken(); this specific GET has no additional reqAnyRepoReader() or reqAdmin() wrapper shown.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-0422c77f6405d2eb65a6",
+            "ev-7c0146a501b98df9c24d",
+            "ev-e294e0511838d6709a3f"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "principal-binding",
+          "subject": "caller identity",
+          "object": "ctx.Doer",
+          "claim": "The handler uses ctx.Doer.IsAdmin and ctx.Doer.LowerName for caller-side authorization. The route-level reqToken() requires a signed-in/token-authenticated request before the handler runs.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-fbe23fe17ab509d9b9df",
+            "ev-8fa2974814e8f0c0ee30"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "resource-binding",
+          "subject": "requested collaborator and repository",
+          "object": "ctx.PathParam(\"collaborator\") and ctx.Repo.Repository",
+          "claim": "The target user is selected from the collaborator path parameter and resolved with GetUserByName. The repository permission lookup then uses ctx.Repo.Repository and that resolved user.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-36b1686c5ef719f69642"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "guard",
+          "subject": "handler authorization guard",
+          "object": "GetRepoPermissions authorization condition",
+          "claim": "The handler returns HTTP 403 if all three conditions hold: the caller is not a site administrator, the requested collaborator name does not case-insensitively equal ctx.Doer.LowerName, and ctx.IsUserRepoAdmin() is false. Therefore, for a normal authenticated caller who is not a repository admin, the handler permits the self-name case and rejects the other-user case before resolving the target user or calculating permission.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-8fa2974814e8f0c0ee30"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "effect",
+          "subject": "permission result",
+          "object": "selected repository and resolved collaborator",
+          "claim": "For a request that passes the guard and successfully resolves the collaborator, GetIndividualUserRepoPermission computes the selected user's access mode on ctx.Repo.Repository, and the handler returns JSON through ToUserAndPermission using permission.AccessMode.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-cfe26ad3d829b9cf3667"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "exception",
+          "subject": "privileged callers",
+          "object": "site-admin and repository-admin bypasses",
+          "claim": "ctx.Doer.IsAdmin bypasses the name-mismatch restriction. ctx.IsUserRepoAdmin() also bypasses it, so a repository administrator can query another user's permission on the current repository. The source confirms the API-context implementation checks ctx.Repo.Permission.IsAdmin(), while the full upstream construction of ctx.Repo.Permission is not traced here.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-8fa2974814e8f0c0ee30",
+            "ev-0baefb0425cc895a6ed6"
+          ]
+        }
+      ],
+      "scope": "go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b8; GetRepoPermissions and its directly relevant route and repository-permission lookup only; behavior investigation, not normative policy assessment."
+    },
+    "diagnostics": [
+      {
+        "code": "behavior-policy-assessment",
+        "path": "questions.0.policyAssessment",
+        "message": "Behavior has no normative policy comparison.",
+        "severity": "error"
+      }
+    ],
+    "semanticSupport": "unreviewed"
+  },
+  "finalValidation": {
+    "valid": true,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "For the same signed-in, non-privileged caller, querying their own collaborator name passes the handler-specific check and proceeds to calculate and return that user's repository permission, subject to later lookup or permission-calculation errors. Querying another user's name is rejected with HTTP 403 before target-user lookup and before any repository permission is calculated. Site administrators and callers recognized as administrators of the current repository bypass that name restriction and may query another user's permission."
+          },
+          "branches": [
+            {
+              "id": "normal-self",
+              "condition": "The request is signed in; the caller is not a site administrator; the caller is not a repository administrator for the current repository; and the collaborator path value equals ctx.Doer.LowerName ignoring case.",
+              "disposition": "allow",
+              "explanation": "The handler guard does not reject the request. It resolves the path user and invokes GetIndividualUserRepoPermission for that user and the current repository. On success, it returns the permission representation.",
+              "evidenceIds": [
+                "ev-fbe23fe17ab509d9b9df",
+                "ev-ff214123ff9d385c93ec",
+                "ev-cfe26ad3d829b9cf3667"
+              ]
+            },
+            {
+              "id": "normal-other",
+              "condition": "The request is signed in; the caller is not a site administrator; the caller is not a repository administrator for the current repository; and the collaborator path value differs from ctx.Doer.LowerName ignoring case.",
+              "disposition": "deny",
+              "explanation": "All terms of the handler's rejection condition hold, so it returns HTTP 403 before GetUserByName and before GetIndividualUserRepoPermission. No repository permission result is computed on this path.",
+              "evidenceIds": [
+                "ev-fbe23fe17ab509d9b9df",
+                "ev-ff214123ff9d385c93ec",
+                "ev-8fa2974814e8f0c0ee30"
+              ]
+            },
+            {
+              "id": "site-admin-other",
+              "condition": "The request is signed in and ctx.Doer.IsAdmin is true, regardless of the collaborator name.",
+              "disposition": "allow",
+              "explanation": "The site-administrator condition disables the handler's name-mismatch rejection. The requested user is then resolved and their permission for the current repository is calculated.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec",
+                "ev-8fa2974814e8f0c0ee30"
+              ]
+            },
+            {
+              "id": "repo-admin-other",
+              "condition": "The request is signed in and ctx.IsUserRepoAdmin() is true for the current repository, regardless of the collaborator name.",
+              "disposition": "allow",
+              "explanation": "The repository-administrator condition disables the handler's name-mismatch rejection. The API-context implementation shown defines this predicate as ctx.Repo.Permission.IsAdmin().",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec",
+                "ev-0baefb0425cc895a6ed6"
+              ]
+            },
+            {
+              "id": "target-user-not-found",
+              "condition": "The handler guard passes but the requested collaborator cannot be resolved.",
+              "disposition": "deny",
+              "explanation": "GetUserByName produces HTTP 404 for a nonexistent user; other lookup errors produce an internal API error. This occurs after the authorization guard.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec"
+              ]
+            },
+            {
+              "id": "permission-calculation-error",
+              "condition": "The handler and collaborator lookup succeed but GetIndividualUserRepoPermission returns an error.",
+              "disposition": "unknown",
+              "explanation": "The handler returns an internal API error instead of the permission JSON. The source read does not establish the particular external status or cause for such errors.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-0422c77f6405d2eb65a6",
+            "ev-fbe23fe17ab509d9b9df",
+            "ev-ff214123ff9d385c93ec",
+            "ev-cfe26ad3d829b9cf3667",
+            "ev-0baefb0425cc895a6ed6"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The repository-assignment and repository-context loading upstream code was not fully traced. The available route source shows the handler receives ctx.Repo.Repository, but does not establish every upstream condition that populates it or any other middleware rejection before the handler.",
+              "nextRead": "routers/api/v1/api.go: repoAssignment definition and repository route/context setup; relevant services/context repository-loading code"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The exact helper branches inside GetIndividualUserRepoPermission, including modeByOwnerAndAccess and finalProcessRepoUnitPermission, were not read. Therefore this result does not enumerate every possible AccessMode value for every repository visibility, ownership, collaboration, organization, and team configuration.",
+              "nextRead": "models/perm/access/repo_permission.go: modeByOwnerAndAccess and finalProcessRepoUnitPermission"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The source confirms that ctx.IsUserRepoAdmin() delegates to ctx.Repo.Permission.IsAdmin(), but the construction and precise semantics of ctx.Repo.Permission for all repository types were not established.",
+              "nextRead": "services/context and models/perm paths that load API repository permission"
+            },
+            {
+              "kind": "dependency-out-of-scope",
+              "detail": "ToUserAndPermission was not read; only the handler's use of permission.AccessMode and its conversion call are established.",
+              "nextRead": "services/convert/user.go: ToUserAndPermission"
+            }
+          ]
+        }
+      ],
+      "observations": [
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "entry",
+          "subject": "GetRepoPermissions entry and route",
+          "object": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission",
+          "claim": "The GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission route dispatches to GetRepoPermissions; the route group is wrapped by reqToken(), while this specific GET has no additional reqAnyRepoReader() or reqAdmin() wrapper shown.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-0422c77f6405d2eb65a6",
+            "ev-7c0146a501b98df9c24d",
+            "ev-e294e0511838d6709a3f"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "principal-binding",
+          "subject": "caller identity",
+          "object": "ctx.Doer",
+          "claim": "The handler uses ctx.Doer.IsAdmin and ctx.Doer.LowerName for the caller-side authorization comparison; the route itself requires a token via reqToken().",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-0422c77f6405d2eb65a6",
+            "ev-8fa2974814e8f0c0ee30"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "resource-binding",
+          "subject": "requested collaborator and repository",
+          "object": "ctx.Repo.Repository plus collaborator path parameter",
+          "claim": "The collaborator target is selected from the collaborator path parameter, resolved with GetUserByName, and the repository permission lookup is called for ctx.Repo.Repository and that resolved user.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-36b1686c5ef719f69642"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "guard",
+          "subject": "handler authorization guard",
+          "object": "GetRepoPermissions authorization condition",
+          "claim": "The handler rejects with HTTP 403 when the caller is not an instance admin, the requested collaborator name does not case-insensitively equal ctx.Doer.LowerName, and ctx.IsUserRepoAdmin() is false. Thus a non-privileged caller passes this handler guard only for their own username comparison.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-8fa2974814e8f0c0ee30"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "effect",
+          "subject": "permission result",
+          "object": "selected repository and resolved collaborator",
+          "claim": "After the guard and collaborator lookup, the handler obtains permission.AccessMode from GetIndividualUserRepoPermission for the selected repository and collaborator, then returns JSON through ToUserAndPermission.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "exception",
+          "subject": "privileged callers",
+          "object": "handler guard exceptions",
+          "claim": "An instance administrator bypasses the name-mismatch branch, and a caller for whom ctx.IsUserRepoAdmin() is true also bypasses it; the source read does not yet establish how IsUserRepoAdmin determines repository administration.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-8fa2974814e8f0c0ee30"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "entry",
+          "subject": "GetRepoPermissions route",
+          "object": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission",
+          "claim": "The route dispatches to GetRepoPermissions and is enclosed by a reqToken() middleware. This specific GET route has no additional reqAnyRepoReader() or reqAdmin() wrapper shown.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-0422c77f6405d2eb65a6",
+            "ev-7c0146a501b98df9c24d"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "principal-binding",
+          "subject": "caller identity",
+          "object": "ctx.Doer",
+          "claim": "The handler binds caller identity through ctx.Doer: it checks ctx.Doer.IsAdmin and compares ctx.Doer.LowerName with the collaborator path value. The enclosing reqToken() requires ctx.IsSigned before the handler proceeds.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-8fa2974814e8f0c0ee30",
+            "ev-fbe23fe17ab509d9b9df"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "resource-binding",
+          "subject": "requested user and repository",
+          "object": "ctx.PathParam(\"collaborator\") and ctx.Repo.Repository",
+          "claim": "The requested collaborator is selected from the path parameter, resolved with GetUserByName, and then used with ctx.Repo.Repository in GetIndividualUserRepoPermission.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-36b1686c5ef719f69642"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "guard",
+          "subject": "handler authorization guard",
+          "object": "name and privilege condition",
+          "claim": "The handler returns HTTP 403 when the caller is not an instance administrator, the requested collaborator name does not equal ctx.Doer.LowerName case-insensitively, and ctx.IsUserRepoAdmin() is false. Thus a non-privileged caller passes this handler guard only when querying their own username by that comparison.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-8fa2974814e8f0c0ee30"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "effect",
+          "subject": "repository permission result",
+          "object": "ctx.Repo.Repository and resolved collaborator",
+          "claim": "After the guard and user lookup succeed, the handler computes permission.AccessMode for the selected user on the selected repository and returns a JSON representation through ToUserAndPermission.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-cfe26ad3d829b9cf3667"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-self-vs-other",
+          "kind": "exception",
+          "subject": "privileged callers",
+          "object": "site administrator and repository administrator",
+          "claim": "ctx.Doer.IsAdmin bypasses the collaborator-name restriction. ctx.IsUserRepoAdmin() also bypasses it; in the API context this checks ctx.Repo.Permission.IsAdmin(). The complete construction and semantics of ctx.Repo.Permission were not traced.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-0baefb0425cc895a6ed6"
+          ]
+        }
+      ],
+      "scope": "go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b8; GetRepoPermissions, its directly relevant route, and the repository-permission lookup; behavior investigation only"
+    },
+    "diagnostics": [],
+    "semanticSupport": "unreviewed"
+  },
+  "error": null,
+  "extractionInitial": null,
+  "extractionInitialOrigin": "no-control-proposal",
+  "extractionFinal": null,
+  "extractionProposals": [],
+  "hostChecks": [],
+  "dependencies": [],
+  "schedulerActions": [],
+  "evidence": [
+    {
+      "id": "ev-7c0146a501b98df9c24d",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1370,
+      "endLine": 1370,
+      "bytes": 59
+    },
+    {
+      "id": "ev-a60533ab4a5b542475f5",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 247,
+      "endLine": 247,
+      "bytes": 67
+    },
+    {
+      "id": "ev-e294e0511838d6709a3f",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 248,
+      "endLine": 248,
+      "bytes": 57
+    },
+    {
+      "id": "ev-a3192c9940835e6f74bd",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 249,
+      "endLine": 249,
+      "bytes": 128
+    },
+    {
+      "id": "ev-ff214123ff9d385c93ec",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 248,
+      "endLine": 301,
+      "bytes": 2044
+    },
+    {
+      "id": "ev-0422c77f6405d2eb65a6",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1355,
+      "endLine": 1375,
+      "bytes": 1218
+    },
+    {
+      "id": "ev-8fa2974814e8f0c0ee30",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 279,
+      "endLine": 279,
+      "bytes": 120
+    },
+    {
+      "id": "ev-893f664edd9f68c4c7f5",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 107,
+      "endLine": 107,
+      "bytes": 81
+    },
+    {
+      "id": "ev-4476fcc8062e4ccb3946",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 167,
+      "endLine": 167,
+      "bytes": 89
+    },
+    {
+      "id": "ev-e477891631abe7009f18",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 230,
+      "endLine": 230,
+      "bytes": 89
+    },
+    {
+      "id": "ev-36b1686c5ef719f69642",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 284,
+      "endLine": 284,
+      "bytes": 80
+    },
+    {
+      "id": "ev-3f3d7d1c54119e20eb9b",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 26,
+      "endLine": 26,
+      "bytes": 60
+    },
+    {
+      "id": "ev-115a6020cac773c336a1",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 27,
+      "endLine": 27,
+      "bytes": 55
+    },
+    {
+      "id": "ev-11d994e5a4038e3f4a27",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 28,
+      "endLine": 28,
+      "bytes": 100
+    },
+    {
+      "id": "ev-09779c2b73f320f211f4",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 58,
+      "endLine": 58,
+      "bytes": 106
+    },
+    {
+      "id": "ev-45da08bfafb7631a3880",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 76,
+      "endLine": 76,
+      "bytes": 73
+    },
+    {
+      "id": "ev-c6f970019668cbe1d751",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 77,
+      "endLine": 77,
+      "bytes": 52
+    },
+    {
+      "id": "ev-378bf0cb4edf43490bcb",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 78,
+      "endLine": 78,
+      "bytes": 115
+    },
+    {
+      "id": "ev-366dc693f3e194758ed1",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 116,
+      "endLine": 116,
+      "bytes": 87
+    },
+    {
+      "id": "ev-5296fb998f42cb2082b2",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 128,
+      "endLine": 128,
+      "bytes": 78
+    },
+    {
+      "id": "ev-fc98daf8a51b8bd1e669",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 129,
+      "endLine": 129,
+      "bytes": 62
+    },
+    {
+      "id": "ev-d337a79d4ce08ca5db7d",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 130,
+      "endLine": 130,
+      "bytes": 114
+    },
+    {
+      "id": "ev-ace2a2b089417e324250",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 154,
+      "endLine": 154,
+      "bytes": 60
+    },
+    {
+      "id": "ev-ae68aeb2e04a75d88f11",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 165,
+      "endLine": 165,
+      "bytes": 60
+    },
+    {
+      "id": "ev-5d3934cc649031d85c82",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 187,
+      "endLine": 187,
+      "bytes": 111
+    },
+    {
+      "id": "ev-bd6c13757b1f20e74c23",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 199,
+      "endLine": 199,
+      "bytes": 68
+    },
+    {
+      "id": "ev-caa772f8246334781aaf",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 200,
+      "endLine": 200,
+      "bytes": 57
+    },
+    {
+      "id": "ev-202e93956e0f02557977",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 201,
+      "endLine": 201,
+      "bytes": 120
+    },
+    {
+      "id": "ev-a81d843e8592dc2b2f72",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 272,
+      "endLine": 272,
+      "bytes": 63
+    },
+    {
+      "id": "ev-fbe23fe17ab509d9b9df",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 374,
+      "endLine": 382,
+      "bytes": 324
+    },
+    {
+      "id": "ev-0baefb0425cc895a6ed6",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "services/context/api.go",
+      "sha256": "182aa57ba15df1e71a39b775f8520617d6d56a43d3239a2bb4ca5ea11598a665",
+      "startLine": 315,
+      "endLine": 335,
+      "bytes": 795
+    },
+    {
+      "id": "ev-cfe26ad3d829b9cf3667",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 426,
+      "endLine": 531,
+      "bytes": 3792
+    },
+    {
+      "id": "ev-39139a6cabe4f46c1fc0",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1290,
+      "endLine": 1380,
+      "bytes": 4994
+    },
+    {
+      "id": "ev-ff550ce153805de86532",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 146,
+      "endLine": 146,
+      "bytes": 60
+    },
+    {
+      "id": "ev-432e6268118cf4c1d949",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1268,
+      "endLine": 1268,
+      "bytes": 56
+    },
+    {
+      "id": "ev-de11fb1589f0829f100d",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1626,
+      "endLine": 1626,
+      "bytes": 55
+    },
+    {
+      "id": "ev-5e45c9ce85557bf91290",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1639,
+      "endLine": 1639,
+      "bytes": 55
+    },
+    {
+      "id": "ev-c2cb0a4244a9d17a79b1",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1765,
+      "endLine": 1765,
+      "bytes": 55
+    }
+  ],
+  "deliveryValid": true,
+  "reviewCaution": "Citations and host consistency do not prove extraction meaning. Evaluate raw first/final and final prose against original source at the retained evidence ranges. A native prose answer can be delivered despite failed host checking. Representation may reveal strategy; arm, cost and target scores are hidden. No earlier answer is supplied."
+}

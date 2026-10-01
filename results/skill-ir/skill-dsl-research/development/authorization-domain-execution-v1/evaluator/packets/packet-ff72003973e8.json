@@ -1,0 +1,1446 @@
+{
+  "schemaVersion": "authorization-aq-anonymous-packet/v1",
+  "id": "packet-ff72003973e8",
+  "task": {
+    "brief": "Check CreateIssue and its API route in this Gitea revision against the independently supplied current policy. Compare authenticated repository readers and principals with issue write permission. Trace route-level controls, repository or issue-unit checks and the issue creation effect; identify any relevant exceptions instead of assuming endpoint-local checks are the whole path. Explain policy compliance and precise source or deployment limits.",
+    "mode": "conformance",
+    "policy": {
+      "text": "Creating an issue requires write permission to the repository's issues unit. Read permission to the repository alone does not authorize this write.",
+      "origin": "user",
+      "location": "experimental-user-brief:gitea-issue-policy/v1"
+    }
+  },
+  "status": "completed",
+  "initial": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "create-issue-policy-conformance",
+        "behavior": {
+          "disposition": "deny",
+          "explanation": "Against the supplied policy, the route is non-conformant for the authenticated repository-reader scenario: its visible issue-creation guard is reqRepoReader(unit.TypeIssues), which is a read-permission guard (with admin alternatives), not an issues-unit write-permission guard. A read-only principal can therefore pass the visible route guard, subject to token and archive conditions, instead of being denied for lacking write permission. This conclusion is limited to the analyzed API route and does not claim all-repository coverage."
+        },
+        "branches": [
+          {
+            "id": "read-only-issues-unit-principal",
+            "condition": "Caller has the required token and read permission for the selected repository's issues unit, but lacks issues-unit write permission; repository is not archived and token-scope conditions permit access.",
+            "disposition": "allow",
+            "explanation": "The visible route guard asks for repository-reader access, not write access, so this caller can reach repo.CreateIssue. Whether the handler later rejects the caller is not established because its body was not read.",
+            "evidenceIds": [
+              "ev-3967dfcbd443c0640c6a",
+              "ev-c1e3bbeacb277a8179f5",
+              "ev-d65dc43ecf9277697329"
+            ]
+          },
+          {
+            "id": "issues-unit-write-principal",
+            "condition": "Caller has issues-unit write permission and satisfies token/archive conditions.",
+            "disposition": "allow",
+            "explanation": "Write access is stronger than the route's visible reader requirement, so the route permits progression. The source excerpt does not prove successful persistence or enumerate all additional handler validation.",
+            "evidenceIds": [
+              "ev-3967dfcbd443c0640c6a",
+              "ev-18fb41e3ffad60647ae4",
+              "ev-ae3e36cca61a8b5695cd"
+            ]
+          },
+          {
+            "id": "repository-or-site-admin-exception",
+            "condition": "Caller is a repository administrator or site administrator and satisfies the remaining route conditions.",
+            "disposition": "conditional",
+            "explanation": "The reqRepoReader comment identifies repository-admin/site-admin alternatives to specific read permission. The exact implementation and whether the independently supplied policy permits these role-based exceptions are not supplied.",
+            "evidenceIds": [
+              "ev-c1e3bbeacb277a8179f5",
+              "ev-d65dc43ecf9277697329"
+            ]
+          },
+          {
+            "id": "token-scope-or-archive-rejection",
+            "condition": "The repository is archived, or an applicable token-scope public-only check rejects access to the selected repository.",
+            "disposition": "deny",
+            "explanation": "mustNotBeArchived is on the POST route, and API scope handling can return forbidden for issue-scope tokens that cannot access a non-public repository. These are upstream denials independent of the read-versus-write mismatch.",
+            "evidenceIds": [
+              "ev-3967dfcbd443c0640c6a",
+              "ev-0016cc181dc0111a033c"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-3967dfcbd443c0640c6a",
+          "ev-11e71740a2599512c40e",
+          "ev-c1e3bbeacb277a8179f5",
+          "ev-d65dc43ecf9277697329",
+          "ev-91e0eacbce8061e6adc3",
+          "ev-9f7ab082883bfdfbb1a8",
+          "ev-0016cc181dc0111a033c"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "Read the complete reqRepoReader implementation at routers/api/v1/api.go lines 472-479 to verify its exact predicates, including whether admin/site-admin bypasses and unit permission comparisons use read mode as the comment indicates.",
+            "nextRead": "routers/api/v1/api.go:472-479"
+          },
+          {
+            "kind": "source-gap",
+            "detail": "Read the complete CreateIssue handler at routers/api/v1/repo/issue.go lines 533-653 and the directly called service/model code to determine whether a downstream write check or exception compensates for the route's reader guard and to identify the actual issue persistence effect.",
+            "nextRead": "routers/api/v1/repo/issue.go:533-653"
+          },
+          {
+            "kind": "source-gap",
+            "detail": "Trace reqToken, repoAssignment, mustNotBeArchived, and any route-group middleware applicable to this endpoint if exact authentication, repository selection, archive, or scope semantics are required.",
+            "nextRead": "routers/api/v1/api.go:1642-1649"
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "No deployment configuration, installed revision verification, reverse-proxy policy, token instance, caller identity, repository visibility, archive state, or effective permission data was supplied. Runtime authorization for a particular request is therefore not established."
+          }
+        ],
+        "policyAssessment": {
+          "status": "violated",
+          "explanation": "The visible API route does not enforce the independently supplied requirement that issue creation require write permission to the repository's issues unit; it enforces reqRepoReader(unit.TypeIssues), whose source comment describes read permission plus administrator alternatives. This is a route-level conformance violation for read-only authenticated repository readers, subject to the explicit source gap that the handler body was not read."
+        }
+      }
+    ],
+    "observations": [
+      {
+        "questionId": "create-issue-policy-conformance",
+        "kind": "entry",
+        "subject": "CreateIssue API entry",
+        "object": "POST /repos/{username}/{reponame}/issues",
+        "claim": "The API route groups repository issue operations and dispatches POST issue creation to repo.CreateIssue after token, archive, request binding, and repository issue-unit reader middleware.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-11e71740a2599512c40e",
+          "ev-3967dfcbd443c0640c6a",
+          "ev-df3586a0723854a0170b",
+          "ev-9f7ab082883bfdfbb1a8"
+        ]
+      },
+      {
+        "questionId": "create-issue-policy-conformance",
+        "kind": "principal-binding",
+        "subject": "Authenticated caller",
+        "object": "reqToken() and reqRepoReader(unit.TypeIssues)",
+        "claim": "The route requires a token and applies a repository-reader control for the issues unit. The available source does not establish the complete token-to-caller binding or enumerate every accepted principal for this request.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3967dfcbd443c0640c6a",
+          "ev-c1e3bbeacb277a8179f5",
+          "ev-d65dc43ecf9277697329"
+        ]
+      },
+      {
+        "questionId": "create-issue-policy-conformance",
+        "kind": "resource-binding",
+        "subject": "Repository and issues unit",
+        "object": "selected repository; unit.TypeIssues",
+        "claim": "The route's permission middleware is parameterized with unit.TypeIssues, and the source maps RepoUnitTypeIssues to unit.TypeIssues. Thus the checked resource is the selected repository's issues unit, not merely an unrelated repository-wide read check.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3967dfcbd443c0640c6a",
+          "ev-91e0eacbce8061e6adc3"
+        ]
+      },
+      {
+        "questionId": "create-issue-policy-conformance",
+        "kind": "guard",
+        "subject": "Route authorization guard",
+        "object": "reqRepoReader(unit.TypeIssues)",
+        "claim": "The route visibly requires repository read access for the issues unit, not explicitly write access. The helper's source comment states that reqRepoReader requires specific read permission or repository/site-admin status. Therefore a principal with only repository/issues-unit read permission is admitted by the route-level authorization guard rather than being required by this route to have issues-unit write permission.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3967dfcbd443c0640c6a",
+          "ev-c1e3bbeacb277a8179f5",
+          "ev-d65dc43ecf9277697329"
+        ]
+      },
+      {
+        "questionId": "create-issue-policy-conformance",
+        "kind": "effect",
+        "subject": "Issue creation effect",
+        "object": "repo.CreateIssue",
+        "claim": "The route dispatches to CreateIssue, whose declaration is located in routers/api/v1/repo/issue.go and whose handler reads the bound CreateIssueOption. The available evidence does not include the handler body or the downstream issue-persistence call, so the final mutation target and any handler-local authorization cannot be conclusively traced here.",
+        "state": "unresolved",
+        "evidenceIds": [
+          "ev-9f7ab082883bfdfbb1a8",
+          "ev-6648aa0ae3ab4e03684e",
+          "ev-79dd60d12b80c953bffe"
+        ]
+      },
+      {
+        "questionId": "create-issue-policy-conformance",
+        "kind": "exception",
+        "subject": "Route exceptions and upstream conditions",
+        "object": "reqToken(); mustNotBeArchived; reqRepoReader(unit.TypeIssues); token scope handling",
+        "claim": "The route also requires a token and rejects archived repositories through mustNotBeArchived. API-wide scope handling can reject a token whose issue scope is limited to public issues when the selected repository is not token-accessible. The reqRepoReader comment identifies repository-admin and site-admin alternatives to ordinary read permission. These are relevant exceptions/conditions, but the exact predicates and whether any handler-local exception changes creation authorization remain unread.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3967dfcbd443c0640c6a",
+          "ev-0016cc181dc0111a033c",
+          "ev-c1e3bbeacb277a8179f5",
+          "ev-d65dc43ecf9277697329"
+        ]
+      }
+    ],
+    "scope": "go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b; allowed source paths only; CreateIssue API route and directly evidenced upstream controls"
+  },
+  "final": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "create-issue-policy-conformance",
+        "behavior": {
+          "disposition": "deny",
+          "explanation": "Against the supplied policy, the route is non-conformant for the authenticated repository-reader scenario: its visible issue-creation guard is reqRepoReader(unit.TypeIssues), which is a read-permission guard (with admin alternatives), not an issues-unit write-permission guard. A read-only principal can therefore pass the visible route guard, subject to token and archive conditions, instead of being denied for lacking write permission. This conclusion is limited to the analyzed API route and does not claim all-repository coverage."
+        },
+        "branches": [
+          {
+            "id": "read-only-issues-unit-principal",
+            "condition": "Caller has the required token and read permission for the selected repository's issues unit, but lacks issues-unit write permission; repository is not archived and token-scope conditions permit access.",
+            "disposition": "allow",
+            "explanation": "The visible route guard asks for repository-reader access, not write access, so this caller can reach repo.CreateIssue. Whether the handler later rejects the caller is not established because its body was not read.",
+            "evidenceIds": [
+              "ev-3967dfcbd443c0640c6a",
+              "ev-c1e3bbeacb277a8179f5",
+              "ev-d65dc43ecf9277697329"
+            ]
+          },
+          {
+            "id": "issues-unit-write-principal",
+            "condition": "Caller has issues-unit write permission and satisfies token/archive conditions.",
+            "disposition": "allow",
+            "explanation": "Write access is stronger than the route's visible reader requirement, so the route permits progression. The source excerpt does not prove successful persistence or enumerate all additional handler validation.",
+            "evidenceIds": [
+              "ev-3967dfcbd443c0640c6a",
+              "ev-18fb41e3ffad60647ae4",
+              "ev-ae3e36cca61a8b5695cd"
+            ]
+          },
+          {
+            "id": "repository-or-site-admin-exception",
+            "condition": "Caller is a repository administrator or site administrator and satisfies the remaining route conditions.",
+            "disposition": "conditional",
+            "explanation": "The reqRepoReader comment identifies repository-admin/site-admin alternatives to specific read permission. The exact implementation and whether the independently supplied policy permits these role-based exceptions are not supplied.",
+            "evidenceIds": [
+              "ev-c1e3bbeacb277a8179f5",
+              "ev-d65dc43ecf9277697329"
+            ]
+          },
+          {
+            "id": "token-scope-or-archive-rejection",
+            "condition": "The repository is archived, or an applicable token-scope public-only check rejects access to the selected repository.",
+            "disposition": "deny",
+            "explanation": "mustNotBeArchived is on the POST route, and API scope handling can return forbidden for issue-scope tokens that cannot access a non-public repository. These are upstream denials independent of the read-versus-write mismatch.",
+            "evidenceIds": [
+              "ev-3967dfcbd443c0640c6a",
+              "ev-0016cc181dc0111a033c"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-3967dfcbd443c0640c6a",
+          "ev-11e71740a2599512c40e",
+          "ev-c1e3bbeacb277a8179f5",
+          "ev-d65dc43ecf9277697329",
+          "ev-91e0eacbce8061e6adc3",
+          "ev-9f7ab082883bfdfbb1a8",
+          "ev-0016cc181dc0111a033c"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "Read the complete reqRepoReader implementation at routers/api/v1/api.go lines 472-479 to verify its exact predicates, including whether admin/site-admin bypasses and unit permission comparisons use read mode as the comment indicates.",
+            "nextRead": "routers/api/v1/api.go:472-479"
+          },
+          {
+            "kind": "source-gap",
+            "detail": "Read the complete CreateIssue handler at routers/api/v1/repo/issue.go lines 533-653 and the directly called service/model code to determine whether a downstream write check or exception compensates for the route's reader guard and to identify the actual issue persistence effect.",
+            "nextRead": "routers/api/v1/repo/issue.go:533-653"
+          },
+          {
+            "kind": "source-gap",
+            "detail": "Trace reqToken, repoAssignment, mustNotBeArchived, and any route-group middleware applicable to this endpoint if exact authentication, repository selection, archive, or scope semantics are required.",
+            "nextRead": "routers/api/v1/api.go:1642-1649"
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "No deployment configuration, installed revision verification, reverse-proxy policy, token instance, caller identity, repository visibility, archive state, or effective permission data was supplied. Runtime authorization for a particular request is therefore not established."
+          }
+        ],
+        "policyAssessment": {
+          "status": "violated",
+          "explanation": "The visible API route does not enforce the independently supplied requirement that issue creation require write permission to the repository's issues unit; it enforces reqRepoReader(unit.TypeIssues), whose source comment describes read permission plus administrator alternatives. This is a route-level conformance violation for read-only authenticated repository readers, subject to the explicit source gap that the handler body was not read."
+        }
+      }
+    ],
+    "observations": [
+      {
+        "questionId": "create-issue-policy-conformance",
+        "kind": "entry",
+        "subject": "CreateIssue API entry",
+        "object": "POST /repos/{username}/{reponame}/issues",
+        "claim": "The API route groups repository issue operations and dispatches POST issue creation to repo.CreateIssue after token, archive, request binding, and repository issue-unit reader middleware.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-11e71740a2599512c40e",
+          "ev-3967dfcbd443c0640c6a",
+          "ev-df3586a0723854a0170b",
+          "ev-9f7ab082883bfdfbb1a8"
+        ]
+      },
+      {
+        "questionId": "create-issue-policy-conformance",
+        "kind": "principal-binding",
+        "subject": "Authenticated caller",
+        "object": "reqToken() and reqRepoReader(unit.TypeIssues)",
+        "claim": "The route requires a token and applies a repository-reader control for the issues unit. The available source does not establish the complete token-to-caller binding or enumerate every accepted principal for this request.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3967dfcbd443c0640c6a",
+          "ev-c1e3bbeacb277a8179f5",
+          "ev-d65dc43ecf9277697329"
+        ]
+      },
+      {
+        "questionId": "create-issue-policy-conformance",
+        "kind": "resource-binding",
+        "subject": "Repository and issues unit",
+        "object": "selected repository; unit.TypeIssues",
+        "claim": "The route's permission middleware is parameterized with unit.TypeIssues, and the source maps RepoUnitTypeIssues to unit.TypeIssues. Thus the checked resource is the selected repository's issues unit, not merely an unrelated repository-wide read check.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3967dfcbd443c0640c6a",
+          "ev-91e0eacbce8061e6adc3"
+        ]
+      },
+      {
+        "questionId": "create-issue-policy-conformance",
+        "kind": "guard",
+        "subject": "Route authorization guard",
+        "object": "reqRepoReader(unit.TypeIssues)",
+        "claim": "The route visibly requires repository read access for the issues unit, not explicitly write access. The helper's source comment states that reqRepoReader requires specific read permission or repository/site-admin status. Therefore a principal with only repository/issues-unit read permission is admitted by the route-level authorization guard rather than being required by this route to have issues-unit write permission.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3967dfcbd443c0640c6a",
+          "ev-c1e3bbeacb277a8179f5",
+          "ev-d65dc43ecf9277697329"
+        ]
+      },
+      {
+        "questionId": "create-issue-policy-conformance",
+        "kind": "effect",
+        "subject": "Issue creation effect",
+        "object": "repo.CreateIssue",
+        "claim": "The route dispatches to CreateIssue, whose declaration is located in routers/api/v1/repo/issue.go and whose handler reads the bound CreateIssueOption. The available evidence does not include the handler body or the downstream issue-persistence call, so the final mutation target and any handler-local authorization cannot be conclusively traced here.",
+        "state": "unresolved",
+        "evidenceIds": [
+          "ev-9f7ab082883bfdfbb1a8",
+          "ev-6648aa0ae3ab4e03684e",
+          "ev-79dd60d12b80c953bffe"
+        ]
+      },
+      {
+        "questionId": "create-issue-policy-conformance",
+        "kind": "exception",
+        "subject": "Route exceptions and upstream conditions",
+        "object": "reqToken(); mustNotBeArchived; reqRepoReader(unit.TypeIssues); token scope handling",
+        "claim": "The route also requires a token and rejects archived repositories through mustNotBeArchived. API-wide scope handling can reject a token whose issue scope is limited to public issues when the selected repository is not token-accessible. The reqRepoReader comment identifies repository-admin and site-admin alternatives to ordinary read permission. These are relevant exceptions/conditions, but the exact predicates and whether any handler-local exception changes creation authorization remain unread.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3967dfcbd443c0640c6a",
+          "ev-0016cc181dc0111a033c",
+          "ev-c1e3bbeacb277a8179f5",
+          "ev-d65dc43ecf9277697329"
+        ]
+      }
+    ],
+    "scope": "go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b; allowed source paths only; CreateIssue API route and directly evidenced upstream controls"
+  },
+  "prose": null,
+  "initialProse": null,
+  "initialValidation": {
+    "valid": true,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "create-issue-policy-conformance",
+          "behavior": {
+            "disposition": "deny",
+            "explanation": "Against the supplied policy, the route is non-conformant for the authenticated repository-reader scenario: its visible issue-creation guard is reqRepoReader(unit.TypeIssues), which is a read-permission guard (with admin alternatives), not an issues-unit write-permission guard. A read-only principal can therefore pass the visible route guard, subject to token and archive conditions, instead of being denied for lacking write permission. This conclusion is limited to the analyzed API route and does not claim all-repository coverage."
+          },
+          "branches": [
+            {
+              "id": "read-only-issues-unit-principal",
+              "condition": "Caller has the required token and read permission for the selected repository's issues unit, but lacks issues-unit write permission; repository is not archived and token-scope conditions permit access.",
+              "disposition": "allow",
+              "explanation": "The visible route guard asks for repository-reader access, not write access, so this caller can reach repo.CreateIssue. Whether the handler later rejects the caller is not established because its body was not read.",
+              "evidenceIds": [
+                "ev-3967dfcbd443c0640c6a",
+                "ev-c1e3bbeacb277a8179f5",
+                "ev-d65dc43ecf9277697329"
+              ]
+            },
+            {
+              "id": "issues-unit-write-principal",
+              "condition": "Caller has issues-unit write permission and satisfies token/archive conditions.",
+              "disposition": "allow",
+              "explanation": "Write access is stronger than the route's visible reader requirement, so the route permits progression. The source excerpt does not prove successful persistence or enumerate all additional handler validation.",
+              "evidenceIds": [
+                "ev-3967dfcbd443c0640c6a",
+                "ev-18fb41e3ffad60647ae4",
+                "ev-ae3e36cca61a8b5695cd"
+              ]
+            },
+            {
+              "id": "repository-or-site-admin-exception",
+              "condition": "Caller is a repository administrator or site administrator and satisfies the remaining route conditions.",
+              "disposition": "conditional",
+              "explanation": "The reqRepoReader comment identifies repository-admin/site-admin alternatives to specific read permission. The exact implementation and whether the independently supplied policy permits these role-based exceptions are not supplied.",
+              "evidenceIds": [
+                "ev-c1e3bbeacb277a8179f5",
+                "ev-d65dc43ecf9277697329"
+              ]
+            },
+            {
+              "id": "token-scope-or-archive-rejection",
+              "condition": "The repository is archived, or an applicable token-scope public-only check rejects access to the selected repository.",
+              "disposition": "deny",
+              "explanation": "mustNotBeArchived is on the POST route, and API scope handling can return forbidden for issue-scope tokens that cannot access a non-public repository. These are upstream denials independent of the read-versus-write mismatch.",
+              "evidenceIds": [
+                "ev-3967dfcbd443c0640c6a",
+                "ev-0016cc181dc0111a033c"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-3967dfcbd443c0640c6a",
+            "ev-11e71740a2599512c40e",
+            "ev-c1e3bbeacb277a8179f5",
+            "ev-d65dc43ecf9277697329",
+            "ev-91e0eacbce8061e6adc3",
+            "ev-9f7ab082883bfdfbb1a8",
+            "ev-0016cc181dc0111a033c"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "Read the complete reqRepoReader implementation at routers/api/v1/api.go lines 472-479 to verify its exact predicates, including whether admin/site-admin bypasses and unit permission comparisons use read mode as the comment indicates.",
+              "nextRead": "routers/api/v1/api.go:472-479"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "Read the complete CreateIssue handler at routers/api/v1/repo/issue.go lines 533-653 and the directly called service/model code to determine whether a downstream write check or exception compensates for the route's reader guard and to identify the actual issue persistence effect.",
+              "nextRead": "routers/api/v1/repo/issue.go:533-653"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "Trace reqToken, repoAssignment, mustNotBeArchived, and any route-group middleware applicable to this endpoint if exact authentication, repository selection, archive, or scope semantics are required.",
+              "nextRead": "routers/api/v1/api.go:1642-1649"
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "No deployment configuration, installed revision verification, reverse-proxy policy, token instance, caller identity, repository visibility, archive state, or effective permission data was supplied. Runtime authorization for a particular request is therefore not established."
+            }
+          ],
+          "policyAssessment": {
+            "status": "violated",
+            "explanation": "The visible API route does not enforce the independently supplied requirement that issue creation require write permission to the repository's issues unit; it enforces reqRepoReader(unit.TypeIssues), whose source comment describes read permission plus administrator alternatives. This is a route-level conformance violation for read-only authenticated repository readers, subject to the explicit source gap that the handler body was not read."
+          }
+        }
+      ],
+      "observations": [
+        {
+          "questionId": "create-issue-policy-conformance",
+          "kind": "entry",
+          "subject": "CreateIssue API entry",
+          "object": "POST /repos/{username}/{reponame}/issues",
+          "claim": "The API route groups repository issue operations and dispatches POST issue creation to repo.CreateIssue after token, archive, request binding, and repository issue-unit reader middleware.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-11e71740a2599512c40e",
+            "ev-3967dfcbd443c0640c6a",
+            "ev-df3586a0723854a0170b",
+            "ev-9f7ab082883bfdfbb1a8"
+          ]
+        },
+        {
+          "questionId": "create-issue-policy-conformance",
+          "kind": "principal-binding",
+          "subject": "Authenticated caller",
+          "object": "reqToken() and reqRepoReader(unit.TypeIssues)",
+          "claim": "The route requires a token and applies a repository-reader control for the issues unit. The available source does not establish the complete token-to-caller binding or enumerate every accepted principal for this request.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-3967dfcbd443c0640c6a",
+            "ev-c1e3bbeacb277a8179f5",
+            "ev-d65dc43ecf9277697329"
+          ]
+        },
+        {
+          "questionId": "create-issue-policy-conformance",
+          "kind": "resource-binding",
+          "subject": "Repository and issues unit",
+          "object": "selected repository; unit.TypeIssues",
+          "claim": "The route's permission middleware is parameterized with unit.TypeIssues, and the source maps RepoUnitTypeIssues to unit.TypeIssues. Thus the checked resource is the selected repository's issues unit, not merely an unrelated repository-wide read check.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-3967dfcbd443c0640c6a",
+            "ev-91e0eacbce8061e6adc3"
+          ]
+        },
+        {
+          "questionId": "create-issue-policy-conformance",
+          "kind": "guard",
+          "subject": "Route authorization guard",
+          "object": "reqRepoReader(unit.TypeIssues)",
+          "claim": "The route visibly requires repository read access for the issues unit, not explicitly write access. The helper's source comment states that reqRepoReader requires specific read permission or repository/site-admin status. Therefore a principal with only repository/issues-unit read permission is admitted by the route-level authorization guard rather than being required by this route to have issues-unit write permission.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-3967dfcbd443c0640c6a",
+            "ev-c1e3bbeacb277a8179f5",
+            "ev-d65dc43ecf9277697329"
+          ]
+        },
+        {
+          "questionId": "create-issue-policy-conformance",
+          "kind": "effect",
+          "subject": "Issue creation effect",
+          "object": "repo.CreateIssue",
+          "claim": "The route dispatches to CreateIssue, whose declaration is located in routers/api/v1/repo/issue.go and whose handler reads the bound CreateIssueOption. The available evidence does not include the handler body or the downstream issue-persistence call, so the final mutation target and any handler-local authorization cannot be conclusively traced here.",
+          "state": "unresolved",
+          "evidenceIds": [
+            "ev-9f7ab082883bfdfbb1a8",
+            "ev-6648aa0ae3ab4e03684e",
+            "ev-79dd60d12b80c953bffe"
+          ]
+        },
+        {
+          "questionId": "create-issue-policy-conformance",
+          "kind": "exception",
+          "subject": "Route exceptions and upstream conditions",
+          "object": "reqToken(); mustNotBeArchived; reqRepoReader(unit.TypeIssues); token scope handling",
+          "claim": "The route also requires a token and rejects archived repositories through mustNotBeArchived. API-wide scope handling can reject a token whose issue scope is limited to public issues when the selected repository is not token-accessible. The reqRepoReader comment identifies repository-admin and site-admin alternatives to ordinary read permission. These are relevant exceptions/conditions, but the exact predicates and whether any handler-local exception changes creation authorization remain unread.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-3967dfcbd443c0640c6a",
+            "ev-0016cc181dc0111a033c",
+            "ev-c1e3bbeacb277a8179f5",
+            "ev-d65dc43ecf9277697329"
+          ]
+        }
+      ],
+      "scope": "go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b; allowed source paths only; CreateIssue API route and directly evidenced upstream controls"
+    },
+    "diagnostics": [],
+    "semanticSupport": "unreviewed"
+  },
+  "finalValidation": {
+    "valid": true,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "create-issue-policy-conformance",
+          "behavior": {
+            "disposition": "deny",
+            "explanation": "Against the supplied policy, the route is non-conformant for the authenticated repository-reader scenario: its visible issue-creation guard is reqRepoReader(unit.TypeIssues), which is a read-permission guard (with admin alternatives), not an issues-unit write-permission guard. A read-only principal can therefore pass the visible route guard, subject to token and archive conditions, instead of being denied for lacking write permission. This conclusion is limited to the analyzed API route and does not claim all-repository coverage."
+          },
+          "branches": [
+            {
+              "id": "read-only-issues-unit-principal",
+              "condition": "Caller has the required token and read permission for the selected repository's issues unit, but lacks issues-unit write permission; repository is not archived and token-scope conditions permit access.",
+              "disposition": "allow",
+              "explanation": "The visible route guard asks for repository-reader access, not write access, so this caller can reach repo.CreateIssue. Whether the handler later rejects the caller is not established because its body was not read.",
+              "evidenceIds": [
+                "ev-3967dfcbd443c0640c6a",
+                "ev-c1e3bbeacb277a8179f5",
+                "ev-d65dc43ecf9277697329"
+              ]
+            },
+            {
+              "id": "issues-unit-write-principal",
+              "condition": "Caller has issues-unit write permission and satisfies token/archive conditions.",
+              "disposition": "allow",
+              "explanation": "Write access is stronger than the route's visible reader requirement, so the route permits progression. The source excerpt does not prove successful persistence or enumerate all additional handler validation.",
+              "evidenceIds": [
+                "ev-3967dfcbd443c0640c6a",
+                "ev-18fb41e3ffad60647ae4",
+                "ev-ae3e36cca61a8b5695cd"
+              ]
+            },
+            {
+              "id": "repository-or-site-admin-exception",
+              "condition": "Caller is a repository administrator or site administrator and satisfies the remaining route conditions.",
+              "disposition": "conditional",
+              "explanation": "The reqRepoReader comment identifies repository-admin/site-admin alternatives to specific read permission. The exact implementation and whether the independently supplied policy permits these role-based exceptions are not supplied.",
+              "evidenceIds": [
+                "ev-c1e3bbeacb277a8179f5",
+                "ev-d65dc43ecf9277697329"
+              ]
+            },
+            {
+              "id": "token-scope-or-archive-rejection",
+              "condition": "The repository is archived, or an applicable token-scope public-only check rejects access to the selected repository.",
+              "disposition": "deny",
+              "explanation": "mustNotBeArchived is on the POST route, and API scope handling can return forbidden for issue-scope tokens that cannot access a non-public repository. These are upstream denials independent of the read-versus-write mismatch.",
+              "evidenceIds": [
+                "ev-3967dfcbd443c0640c6a",
+                "ev-0016cc181dc0111a033c"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-3967dfcbd443c0640c6a",
+            "ev-11e71740a2599512c40e",
+            "ev-c1e3bbeacb277a8179f5",
+            "ev-d65dc43ecf9277697329",
+            "ev-91e0eacbce8061e6adc3",
+            "ev-9f7ab082883bfdfbb1a8",
+            "ev-0016cc181dc0111a033c"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "Read the complete reqRepoReader implementation at routers/api/v1/api.go lines 472-479 to verify its exact predicates, including whether admin/site-admin bypasses and unit permission comparisons use read mode as the comment indicates.",
+              "nextRead": "routers/api/v1/api.go:472-479"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "Read the complete CreateIssue handler at routers/api/v1/repo/issue.go lines 533-653 and the directly called service/model code to determine whether a downstream write check or exception compensates for the route's reader guard and to identify the actual issue persistence effect.",
+              "nextRead": "routers/api/v1/repo/issue.go:533-653"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "Trace reqToken, repoAssignment, mustNotBeArchived, and any route-group middleware applicable to this endpoint if exact authentication, repository selection, archive, or scope semantics are required.",
+              "nextRead": "routers/api/v1/api.go:1642-1649"
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "No deployment configuration, installed revision verification, reverse-proxy policy, token instance, caller identity, repository visibility, archive state, or effective permission data was supplied. Runtime authorization for a particular request is therefore not established."
+            }
+          ],
+          "policyAssessment": {
+            "status": "violated",
+            "explanation": "The visible API route does not enforce the independently supplied requirement that issue creation require write permission to the repository's issues unit; it enforces reqRepoReader(unit.TypeIssues), whose source comment describes read permission plus administrator alternatives. This is a route-level conformance violation for read-only authenticated repository readers, subject to the explicit source gap that the handler body was not read."
+          }
+        }
+      ],
+      "observations": [
+        {
+          "questionId": "create-issue-policy-conformance",
+          "kind": "entry",
+          "subject": "CreateIssue API entry",
+          "object": "POST /repos/{username}/{reponame}/issues",
+          "claim": "The API route groups repository issue operations and dispatches POST issue creation to repo.CreateIssue after token, archive, request binding, and repository issue-unit reader middleware.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-11e71740a2599512c40e",
+            "ev-3967dfcbd443c0640c6a",
+            "ev-df3586a0723854a0170b",
+            "ev-9f7ab082883bfdfbb1a8"
+          ]
+        },
+        {
+          "questionId": "create-issue-policy-conformance",
+          "kind": "principal-binding",
+          "subject": "Authenticated caller",
+          "object": "reqToken() and reqRepoReader(unit.TypeIssues)",
+          "claim": "The route requires a token and applies a repository-reader control for the issues unit. The available source does not establish the complete token-to-caller binding or enumerate every accepted principal for this request.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-3967dfcbd443c0640c6a",
+            "ev-c1e3bbeacb277a8179f5",
+            "ev-d65dc43ecf9277697329"
+          ]
+        },
+        {
+          "questionId": "create-issue-policy-conformance",
+          "kind": "resource-binding",
+          "subject": "Repository and issues unit",
+          "object": "selected repository; unit.TypeIssues",
+          "claim": "The route's permission middleware is parameterized with unit.TypeIssues, and the source maps RepoUnitTypeIssues to unit.TypeIssues. Thus the checked resource is the selected repository's issues unit, not merely an unrelated repository-wide read check.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-3967dfcbd443c0640c6a",
+            "ev-91e0eacbce8061e6adc3"
+          ]
+        },
+        {
+          "questionId": "create-issue-policy-conformance",
+          "kind": "guard",
+          "subject": "Route authorization guard",
+          "object": "reqRepoReader(unit.TypeIssues)",
+          "claim": "The route visibly requires repository read access for the issues unit, not explicitly write access. The helper's source comment states that reqRepoReader requires specific read permission or repository/site-admin status. Therefore a principal with only repository/issues-unit read permission is admitted by the route-level authorization guard rather than being required by this route to have issues-unit write permission.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-3967dfcbd443c0640c6a",
+            "ev-c1e3bbeacb277a8179f5",
+            "ev-d65dc43ecf9277697329"
+          ]
+        },
+        {
+          "questionId": "create-issue-policy-conformance",
+          "kind": "effect",
+          "subject": "Issue creation effect",
+          "object": "repo.CreateIssue",
+          "claim": "The route dispatches to CreateIssue, whose declaration is located in routers/api/v1/repo/issue.go and whose handler reads the bound CreateIssueOption. The available evidence does not include the handler body or the downstream issue-persistence call, so the final mutation target and any handler-local authorization cannot be conclusively traced here.",
+          "state": "unresolved",
+          "evidenceIds": [
+            "ev-9f7ab082883bfdfbb1a8",
+            "ev-6648aa0ae3ab4e03684e",
+            "ev-79dd60d12b80c953bffe"
+          ]
+        },
+        {
+          "questionId": "create-issue-policy-conformance",
+          "kind": "exception",
+          "subject": "Route exceptions and upstream conditions",
+          "object": "reqToken(); mustNotBeArchived; reqRepoReader(unit.TypeIssues); token scope handling",
+          "claim": "The route also requires a token and rejects archived repositories through mustNotBeArchived. API-wide scope handling can reject a token whose issue scope is limited to public issues when the selected repository is not token-accessible. The reqRepoReader comment identifies repository-admin and site-admin alternatives to ordinary read permission. These are relevant exceptions/conditions, but the exact predicates and whether any handler-local exception changes creation authorization remain unread.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-3967dfcbd443c0640c6a",
+            "ev-0016cc181dc0111a033c",
+            "ev-c1e3bbeacb277a8179f5",
+            "ev-d65dc43ecf9277697329"
+          ]
+        }
+      ],
+      "scope": "go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b; allowed source paths only; CreateIssue API route and directly evidenced upstream controls"
+    },
+    "diagnostics": [],
+    "semanticSupport": "unreviewed"
+  },
+  "error": null,
+  "extractionInitial": null,
+  "extractionInitialOrigin": "no-control-proposal",
+  "extractionFinal": null,
+  "extractionProposals": [],
+  "hostChecks": [],
+  "dependencies": [],
+  "schedulerActions": [],
+  "evidence": [
+    {
+      "id": "ev-3967dfcbd443c0640c6a",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1649,
+      "endLine": 1649,
+      "bytes": 130
+    },
+    {
+      "id": "ev-cfa2e8c8e7620508a928",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1665,
+      "endLine": 1665,
+      "bytes": 87
+    },
+    {
+      "id": "ev-ba1090507b2f41ce61f2",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1683,
+      "endLine": 1683,
+      "bytes": 114
+    },
+    {
+      "id": "ev-1c85707574f372be1aac",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1721,
+      "endLine": 1721,
+      "bytes": 79
+    },
+    {
+      "id": "ev-fcda70ee326753b64b45",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1729,
+      "endLine": 1729,
+      "bytes": 102
+    },
+    {
+      "id": "ev-c545c6aa588ff23f0b6c",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1733,
+      "endLine": 1733,
+      "bytes": 81
+    },
+    {
+      "id": "ev-6e9a102a22de00845757",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 272,
+      "endLine": 272,
+      "bytes": 89
+    },
+    {
+      "id": "ev-76ebfeff2b2e0ac02fc6",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 845,
+      "endLine": 845,
+      "bytes": 58
+    },
+    {
+      "id": "ev-3f5112c4b85fdcac522c",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 859,
+      "endLine": 859,
+      "bytes": 71
+    },
+    {
+      "id": "ev-fe8c792b397d5995f253",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 860,
+      "endLine": 860,
+      "bytes": 78
+    },
+    {
+      "id": "ev-51984583cc8846e83cfe",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 862,
+      "endLine": 862,
+      "bytes": 104
+    },
+    {
+      "id": "ev-10acb011d2bf32a54cb7",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1644,
+      "endLine": 1644,
+      "bytes": 53
+    },
+    {
+      "id": "ev-cac9e225e30fe4296185",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1647,
+      "endLine": 1647,
+      "bytes": 39
+    },
+    {
+      "id": "ev-11e71740a2599512c40e",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1600,
+      "endLine": 1660,
+      "bytes": 3812
+    },
+    {
+      "id": "ev-0016cc181dc0111a033c",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 230,
+      "endLine": 290,
+      "bytes": 2737
+    },
+    {
+      "id": "ev-0a79c83d924d5c301881",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/issues/dependency.go",
+      "sha256": "360e2c8ef7c52889028b0361ffebeb630ee036cc33a561e729b91af927470d47",
+      "startLine": 123,
+      "endLine": 123,
+      "bytes": 69
+    },
+    {
+      "id": "ev-5f0b84ebfbe83b1b3f01",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/issues/dependency.go",
+      "sha256": "360e2c8ef7c52889028b0361ffebeb630ee036cc33a561e729b91af927470d47",
+      "startLine": 124,
+      "endLine": 124,
+      "bytes": 104
+    },
+    {
+      "id": "ev-e158fa3b5abd77386910",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/issues/issue_search.go",
+      "sha256": "b178414b0ca43e11f2e0b9d12e8f556ed2e710c705f20556686c9c3957ecd4e2",
+      "startLine": 365,
+      "endLine": 365,
+      "bytes": 126
+    },
+    {
+      "id": "ev-25a9a6e9f2ce74cb75af",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/issues/stopwatch.go",
+      "sha256": "893ed4d095e1fb1e7bfaa2376c82b691f32319ac3aaa1fba94b11e1a1b80cc60",
+      "startLine": 170,
+      "endLine": 170,
+      "bytes": 98
+    },
+    {
+      "id": "ev-88a8aafe0805f6f46af2",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/issues/stopwatch.go",
+      "sha256": "893ed4d095e1fb1e7bfaa2376c82b691f32319ac3aaa1fba94b11e1a1b80cc60",
+      "startLine": 172,
+      "endLine": 172,
+      "bytes": 113
+    },
+    {
+      "id": "ev-839c0b8ba1b4f908699e",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/repo/repo_list.go",
+      "sha256": "722fa38680ec411a8cbcaf68d64bce56cd6e55c2b48a1d867b5c6626ac545ecb",
+      "startLine": 245,
+      "endLine": 245,
+      "bytes": 78
+    },
+    {
+      "id": "ev-cef65ff1c56507f45f62",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/repo/repo_list.go",
+      "sha256": "722fa38680ec411a8cbcaf68d64bce56cd6e55c2b48a1d867b5c6626ac545ecb",
+      "startLine": 246,
+      "endLine": 246,
+      "bytes": 88
+    },
+    {
+      "id": "ev-1720b1c8d873d8723dae",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "modules/structs/issue.go",
+      "sha256": "cbffbb88b6769d25cec13a6a06705f7fb54cfe8f0eaa852071e346a682e1f4db",
+      "startLine": 89,
+      "endLine": 89,
+      "bytes": 54
+    },
+    {
+      "id": "ev-9f99246793b7935d8f34",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "modules/structs/issue.go",
+      "sha256": "cbffbb88b6769d25cec13a6a06705f7fb54cfe8f0eaa852071e346a682e1f4db",
+      "startLine": 90,
+      "endLine": 90,
+      "bytes": 37
+    },
+    {
+      "id": "ev-5553bc84c66aa826fb39",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "modules/structs/issue_comment.go",
+      "sha256": "ac839c8717763a2ea7bf858570727202bf60c1caba357151f30f511a9db9095a",
+      "startLine": 36,
+      "endLine": 36,
+      "bytes": 76
+    },
+    {
+      "id": "ev-826001621c10fc252977",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "modules/structs/issue_comment.go",
+      "sha256": "ac839c8717763a2ea7bf858570727202bf60c1caba357151f30f511a9db9095a",
+      "startLine": 37,
+      "endLine": 37,
+      "bytes": 44
+    },
+    {
+      "id": "ev-df3586a0723854a0170b",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue.go",
+      "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+      "startLine": 532,
+      "endLine": 532,
+      "bytes": 53
+    },
+    {
+      "id": "ev-9f7ab082883bfdfbb1a8",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue.go",
+      "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+      "startLine": 533,
+      "endLine": 533,
+      "bytes": 50
+    },
+    {
+      "id": "ev-6648aa0ae3ab4e03684e",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue.go",
+      "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+      "startLine": 534,
+      "endLine": 534,
+      "bytes": 85
+    },
+    {
+      "id": "ev-c1e3bbeacb277a8179f5",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 471,
+      "endLine": 471,
+      "bytes": 100
+    },
+    {
+      "id": "ev-d65dc43ecf9277697329",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 472,
+      "endLine": 472,
+      "bytes": 77
+    },
+    {
+      "id": "ev-a51236002761ff09425c",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1317,
+      "endLine": 1317,
+      "bytes": 79
+    },
+    {
+      "id": "ev-20e948baf7c6eae5e47c",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1322,
+      "endLine": 1322,
+      "bytes": 120
+    },
+    {
+      "id": "ev-c00dd42b4870a1cf8cc3",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1330,
+      "endLine": 1330,
+      "bytes": 94
+    },
+    {
+      "id": "ev-80123641977b6fdaa54d",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1339,
+      "endLine": 1339,
+      "bytes": 88
+    },
+    {
+      "id": "ev-ee7154140801e08d5d96",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1344,
+      "endLine": 1344,
+      "bytes": 59
+    },
+    {
+      "id": "ev-4fcca76c09dc839e30bb",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1382,
+      "endLine": 1382,
+      "bytes": 126
+    },
+    {
+      "id": "ev-a23db8755e37f6368b77",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1383,
+      "endLine": 1383,
+      "bytes": 133
+    },
+    {
+      "id": "ev-383350ff32fbea222387",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1384,
+      "endLine": 1384,
+      "bytes": 127
+    },
+    {
+      "id": "ev-62beb0fdd8f6a219998c",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1386,
+      "endLine": 1386,
+      "bytes": 106
+    },
+    {
+      "id": "ev-282036f0bcfc9c669740",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1395,
+      "endLine": 1395,
+      "bytes": 73
+    },
+    {
+      "id": "ev-254a4be21974edab2e91",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1411,
+      "endLine": 1411,
+      "bytes": 77
+    },
+    {
+      "id": "ev-85382c66600063419d71",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1450,
+      "endLine": 1450,
+      "bytes": 47
+    },
+    {
+      "id": "ev-7f88479659e174da4999",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1502,
+      "endLine": 1502,
+      "bytes": 48
+    },
+    {
+      "id": "ev-61a43a4188f6a5641148",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1513,
+      "endLine": 1513,
+      "bytes": 149
+    },
+    {
+      "id": "ev-78d74b93080d7038b6c7",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1551,
+      "endLine": 1551,
+      "bytes": 89
+    },
+    {
+      "id": "ev-8354eda37c1d4a013e68",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1555,
+      "endLine": 1555,
+      "bytes": 44
+    },
+    {
+      "id": "ev-379520a0da27402cf847",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1569,
+      "endLine": 1569,
+      "bytes": 44
+    },
+    {
+      "id": "ev-38a003d6f9bcec8ad34c",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1581,
+      "endLine": 1581,
+      "bytes": 77
+    },
+    {
+      "id": "ev-91e0eacbce8061e6adc3",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "services/context/context.go",
+      "sha256": "afbfc7c930c691f655388f9e689c8a9b01833c5810eb29126faa3c6f109137e4",
+      "startLine": 100,
+      "endLine": 100,
+      "bytes": 56
+    },
+    {
+      "id": "ev-f55e472e910751cc0bb3",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/auth/access_token_scope.go",
+      "sha256": "084e065081ef91c0632897de9c1a5509de89f11affedd11b8ec7b516b0cd2acd",
+      "startLine": 226,
+      "endLine": 226,
+      "bytes": 34
+    },
+    {
+      "id": "ev-e65e966b84ff5608f0b9",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/issues/review.go",
+      "sha256": "c174175fb0f4d579354aa1f2dad68ff250d9801830c6b905907ab41122ec2f24",
+      "startLine": 292,
+      "endLine": 292,
+      "bytes": 120
+    },
+    {
+      "id": "ev-65e4d0efd51d1d32a082",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/issues/review.go",
+      "sha256": "c174175fb0f4d579354aa1f2dad68ff250d9801830c6b905907ab41122ec2f24",
+      "startLine": 321,
+      "endLine": 321,
+      "bytes": 84
+    },
+    {
+      "id": "ev-c1ad9049ac9fa162cbd0",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/issues/review.go",
+      "sha256": "c174175fb0f4d579354aa1f2dad68ff250d9801830c6b905907ab41122ec2f24",
+      "startLine": 980,
+      "endLine": 980,
+      "bytes": 78
+    },
+    {
+      "id": "ev-e08d0f628b8a686966c9",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/access.go",
+      "sha256": "ef188452e9ad97857123a2e191f234ce554a68786ec33cffba84327903c23e7d",
+      "startLine": 100,
+      "endLine": 100,
+      "bytes": 45
+    },
+    {
+      "id": "ev-9d509de8f50ad270cc19",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/access.go",
+      "sha256": "ef188452e9ad97857123a2e191f234ce554a68786ec33cffba84327903c23e7d",
+      "startLine": 230,
+      "endLine": 230,
+      "bytes": 39
+    },
+    {
+      "id": "ev-ae3e36cca61a8b5695cd",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 154,
+      "endLine": 154,
+      "bytes": 64
+    },
+    {
+      "id": "ev-467c16d48ea0b0eb9ede",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 593,
+      "endLine": 593,
+      "bytes": 89
+    },
+    {
+      "id": "ev-18fb41e3ffad60647ae4",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access_mode.go",
+      "sha256": "62b199f3bf45d3ed0840e52a33fbe8fdfdb1f8e787625e276fce83bb8fafce42",
+      "startLine": 20,
+      "endLine": 20,
+      "bytes": 41
+    },
+    {
+      "id": "ev-14ee5b70e99dc02c9796",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access_mode.go",
+      "sha256": "62b199f3bf45d3ed0840e52a33fbe8fdfdb1f8e787625e276fce83bb8fafce42",
+      "startLine": 30,
+      "endLine": 30,
+      "bytes": 28
+    },
+    {
+      "id": "ev-bfab7292e8af5254c28b",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access_mode.go",
+      "sha256": "62b199f3bf45d3ed0840e52a33fbe8fdfdb1f8e787625e276fce83bb8fafce42",
+      "startLine": 52,
+      "endLine": 52,
+      "bytes": 27
+    },
+    {
+      "id": "ev-a20a79e5821206a36a42",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/repo/repo_unit_actions.go",
+      "sha256": "bdec437d82211dcacb4a69a4d6343440a38068b4e3cc32f1397ba7c1fb2ad14f",
+      "startLine": 147,
+      "endLine": 147,
+      "bytes": 65
+    },
+    {
+      "id": "ev-de125ea915d789dcb169",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/repo/repo_unit_actions.go",
+      "sha256": "bdec437d82211dcacb4a69a4d6343440a38068b4e3cc32f1397ba7c1fb2ad14f",
+      "startLine": 159,
+      "endLine": 159,
+      "bytes": 64
+    },
+    {
+      "id": "ev-c8f8dfb38a8ab493aa90",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/repo/user_repo.go",
+      "sha256": "760ee3a456a71ae1bdee7fdfc2beb7dcfb186441962514fd022fdaec1330d4c8",
+      "startLine": 137,
+      "endLine": 137,
+      "bytes": 75
+    },
+    {
+      "id": "ev-616eb1f40cca9de462d9",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1772,
+      "endLine": 1772,
+      "bytes": 88
+    },
+    {
+      "id": "ev-72be60c9608522f9e7d4",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1776,
+      "endLine": 1776,
+      "bytes": 96
+    },
+    {
+      "id": "ev-b538f1aa8e227acd108e",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1782,
+      "endLine": 1782,
+      "bytes": 102
+    },
+    {
+      "id": "ev-ccc4bc9258115fc37e4c",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1783,
+      "endLine": 1783,
+      "bytes": 94
+    },
+    {
+      "id": "ev-ccb060620e1d37a06be0",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1829,
+      "endLine": 1829,
+      "bytes": 88
+    },
+    {
+      "id": "ev-e9b35aebefe8ddc55345",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 182,
+      "endLine": 182,
+      "bytes": 33
+    },
+    {
+      "id": "ev-d34dac77fe865f3378f5",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue.go",
+      "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+      "startLine": 555,
+      "endLine": 555,
+      "bytes": 56
+    },
+    {
+      "id": "ev-79dd60d12b80c953bffe",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue.go",
+      "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+      "startLine": 570,
+      "endLine": 570,
+      "bytes": 56
+    }
+  ],
+  "deliveryValid": true,
+  "reviewCaution": "Citations and host consistency do not prove extraction meaning. Evaluate raw first/final and final prose against original source at the retained evidence ranges. A native prose answer can be delivered despite failed host checking. Representation may reveal strategy; arm, cost and target scores are hidden. No earlier answer is supplied."
+}

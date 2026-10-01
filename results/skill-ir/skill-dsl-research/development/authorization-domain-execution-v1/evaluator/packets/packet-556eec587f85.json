@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "authorization-aq-anonymous-packet/v1",
+  "id": "packet-556eec587f85",
+  "task": {
+    "brief": "Investigate GetRepoPermissions in this Gitea revision. Compare a normal authenticated caller querying their own collaborator permission with the same caller querying another user's permission; include differences for privileged callers visible in source. Explain path-specific controls, identity comparison and the repository permission result. Follow upstream code only when relevant. Do not turn this behavior question into an invented normative policy.",
+    "mode": "behavior"
+  },
+  "status": "transport-failed",
+  "initial": null,
+  "final": null,
+  "prose": null,
+  "initialProse": null,
+  "initialValidation": null,
+  "finalValidation": null,
+  "error": "Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"delta\",\"code\":\"invalid_type\"},{\"path\":\"$\",\"code\":\"unrecognized_keys\"}]},{\"transport\":\"prompt-parse\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"controlDelta.rules.0.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.0.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.after.0\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.bindingKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.2.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.2.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.2.after.0\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.2.principal\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.2.resource\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.3.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.3.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.3.after.0\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.3.principal\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.3.resource\",\"code\":\"invalid_type\"}]}]",
+  "extractionInitial": {
+    "rules": [],
+    "dependencies": [],
+    "bindings": [],
+    "policyRules": []
+  },
+  "extractionInitialOrigin": "no-control-proposal",
+  "extractionFinal": {
+    "schemaVersion": "authorization-control-slice/v1",
+    "revision": 0,
+    "rules": [],
+    "dependencies": [],
+    "bindings": [],
+    "policyRules": [],
+    "conflicts": [],
+    "revisions": []
+  },
+  "extractionProposals": [],
+  "hostChecks": [],
+  "dependencies": [],
+  "schedulerActions": [],
+  "evidence": [
+    {
+      "id": "ev-7c0146a501b98df9c24d",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1370,
+      "endLine": 1370,
+      "bytes": 59
+    },
+    {
+      "id": "ev-a60533ab4a5b542475f5",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 247,
+      "endLine": 247,
+      "bytes": 67
+    },
+    {
+      "id": "ev-e294e0511838d6709a3f",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 248,
+      "endLine": 248,
+      "bytes": 57
+    },
+    {
+      "id": "ev-a3192c9940835e6f74bd",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 249,
+      "endLine": 249,
+      "bytes": 128
+    },
+    {
+      "id": "ev-eea5cd5d1cdfef383799",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 240,
+      "endLine": 330,
+      "bytes": 3403
+    },
+    {
+      "id": "ev-8bcaa886ffbd8720e746",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1325,
+      "endLine": 1380,
+      "bytes": 3143
+    }
+  ],
+  "deliveryValid": false,
+  "reviewCaution": "Citations and host consistency do not prove extraction meaning. Evaluate raw first/final and final prose against original source at the retained evidence ranges. A native prose answer can be delivered despite failed host checking. Representation may reveal strategy; arm, cost and target scores are hidden. No earlier answer is supplied."
+}

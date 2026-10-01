@@ -1,0 +1,1450 @@
+{
+  "schemaVersion": "authorization-aq-anonymous-packet/v1",
+  "id": "packet-304081d6c030",
+  "task": {
+    "brief": "Investigate GetRepoPermissions in this Gitea revision. Compare a normal authenticated caller querying their own collaborator permission with the same caller querying another user's permission; include differences for privileged callers visible in source. Explain path-specific controls, identity comparison and the repository permission result. Follow upstream code only when relevant. Do not turn this behavior question into an invented normative policy.",
+    "mode": "behavior"
+  },
+  "status": "transport-failed",
+  "initial": null,
+  "final": null,
+  "prose": null,
+  "initialProse": null,
+  "initialValidation": null,
+  "finalValidation": null,
+  "error": "Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"$\",\"code\":\"unrecognized_keys\"}]},{\"transport\":\"prompt-parse\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"result.questions.0\",\"code\":\"unrecognized_keys\"}]}]",
+  "extractionInitial": {
+    "schemaVersion": "authorization-control-slice/v1",
+    "rules": [
+      {
+        "key": "grp.entry.route",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "self-or-other",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-0da5439a0987e4df179c",
+          "ev-7c0146a501b98df9c24d"
+        ],
+        "claim": "The GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission route dispatches to GetRepoPermissions and has a route-level reqToken middleware.",
+        "complete": false
+      },
+      {
+        "key": "grp.binding.caller-doer",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "self-or-other",
+        "kind": "binding",
+        "after": [
+          "grp.entry.route"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "The handler evaluates the authenticated caller through ctx.Doer, including IsAdmin and LowerName.",
+        "bindingKey": "caller.ctx-doer",
+        "bindingKind": "principal"
+      },
+      {
+        "key": "grp.binding.target-collaborator",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "self-or-other",
+        "kind": "binding",
+        "after": [
+          "grp.entry.route"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "The requested collaborator identity is bound from the collaborator path parameter.",
+        "bindingKey": "target.path-collaborator",
+        "bindingKind": "principal"
+      },
+      {
+        "key": "grp.guard.query-permission",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "self-or-other",
+        "kind": "guard",
+        "after": [
+          "grp.binding.caller-doer",
+          "grp.binding.target-collaborator"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "The handler permits the query when the caller is an admin, or the caller name case-insensitively equals the collaborator path value, or ctx.IsUserRepoAdmin() is true; otherwise it returns HTTP 403 and terminates.",
+        "condition": {
+          "op": "any",
+          "args": [
+            {
+              "op": "eq",
+              "left": {
+                "binding": "caller.is-admin"
+              },
+              "right": true
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "caller.name-equals-target"
+              },
+              "right": true
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "caller.is-user-repo-admin"
+              },
+              "right": true
+            }
+          ]
+        },
+        "complete": false
+      },
+      {
+        "key": "grp.reject.unauthorized-other",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "other-normal-caller",
+        "kind": "reject",
+        "after": [
+          "grp.guard.query-permission"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "A caller who is neither an admin nor a repository admin and whose name does not equal the collaborator path value is rejected before collaborator lookup and permission calculation with HTTP 403.",
+        "condition": {
+          "op": "all",
+          "args": [
+            {
+              "op": "eq",
+              "left": {
+                "binding": "caller.is-admin"
+              },
+              "right": false
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "caller.name-equals-target"
+              },
+              "right": false
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "caller.is-user-repo-admin"
+              },
+              "right": false
+            }
+          ]
+        }
+      },
+      {
+        "key": "grp.effect.permission-result",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "authorized-query",
+        "kind": "effect",
+        "after": [
+          "grp.guard.query-permission"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "After the guard passes and lookup succeeds, the handler obtains the individual user's repository permission for ctx.Repo.Repository and the resolved collaborator, then returns JSON containing that collaborator and permission.AccessMode with HTTP 200.",
+        "complete": false
+      }
+    ],
+    "dependencies": [
+      {
+        "key": "grp.dep.route-token",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "self-or-other",
+        "from": "grp.entry.route",
+        "symbol": "reqToken",
+        "evidenceIds": [
+          "ev-0da5439a0987e4df179c"
+        ],
+        "reason": "The route applies reqToken before the handler; the middleware implementation is needed to characterize authentication behavior.",
+        "kind": "control",
+        "decisive": false,
+        "pathHint": "routers/api/v1/api.go"
+      },
+      {
+        "key": "grp.dep.repo-permission-helper",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "authorized-query",
+        "from": "grp.effect.permission-result",
+        "symbol": "GetIndividualUserRepoPermission",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "reason": "The returned repository permission result is delegated to this helper; read its implementation to explain the permission calculation.",
+        "kind": "effect",
+        "decisive": true,
+        "pathHint": "models/perm"
+      }
+    ],
+    "bindings": [],
+    "policyRules": []
+  },
+  "extractionInitialOrigin": "first-control-proposal",
+  "extractionFinal": {
+    "schemaVersion": "authorization-control-slice/v1",
+    "revision": 22,
+    "rules": [
+      {
+        "key": "grp.entry.route",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "self-or-other",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-0da5439a0987e4df179c",
+          "ev-7c0146a501b98df9c24d"
+        ],
+        "claim": "The GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission route dispatches to GetRepoPermissions and has a route-level reqToken middleware.",
+        "complete": false,
+        "id": "ctrl-dc0a93f32b02d03e3fad",
+        "digest": "c1b595d70b1f0087c45d3049c3802edbbc32c50de0ba81c5a995e02fc529c2f4",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "grp.binding.caller-doer",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "self-or-other",
+        "kind": "binding",
+        "after": [
+          "grp.entry.route"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "The handler evaluates the authenticated caller through ctx.Doer, including IsAdmin and LowerName.",
+        "bindingKey": "caller.ctx-doer",
+        "bindingKind": "principal",
+        "id": "ctrl-87249e31ec68308295a7",
+        "digest": "ad2d48624c5047124c820c9346521dddaa5182e786ac819142389bef58a67034",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "grp.binding.target-collaborator",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "self-or-other",
+        "kind": "binding",
+        "after": [
+          "grp.entry.route"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "The requested collaborator identity is bound from the collaborator path parameter.",
+        "bindingKey": "target.path-collaborator",
+        "bindingKind": "principal",
+        "id": "ctrl-3ca32d6eb519d7f6a792",
+        "digest": "09ed8cb9344c01f562ddca08cddc12c378d808248c5fe1c8e3050d6a78050db4",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "grp.effect.permission-result",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "authorized-query",
+        "kind": "effect",
+        "after": [
+          "grp.guard.query-permission"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "After the guard passes and lookup succeeds, the handler obtains the individual user's repository permission for ctx.Repo.Repository and the resolved collaborator, then returns JSON containing that collaborator and permission.AccessMode with HTTP 200.",
+        "complete": false,
+        "id": "ctrl-5bd6f4833a429ee10c83",
+        "digest": "0bc648c82b3fc1f0e49fbf457422bd5839c2c7fac65ed44dd6027cf6d14d836d",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "grp.entry.route.v2",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "all-requested-cases",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-0da5439a0987e4df179c",
+          "ev-fbe23fe17ab509d9b9df"
+        ],
+        "claim": "The requested operation enters through GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission, and the route group applies reqToken before the handler.",
+        "operation": "GET permission endpoint",
+        "complete": false,
+        "id": "ctrl-8ae28760fbecb72d27d9",
+        "digest": "70b7273eff4a8effa78b33bb7e4da64677c143e708e0d55a027b3ca306c577fe",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "grp.binding.caller-doer.v2",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "all-requested-cases",
+        "kind": "binding",
+        "after": [
+          "grp.entry.route.v2"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "The handler uses ctx.Doer as the caller identity for its admin test and compares ctx.Doer.LowerName with the collaborator path parameter.",
+        "bindingKey": "caller.ctx-doer",
+        "bindingKind": "principal",
+        "complete": false,
+        "id": "ctrl-e2ec59ca965ed8da564e",
+        "digest": "1e3fc5dc6cadecf9e6cd6907724f02c5cd64eeb366aa9291942583f87dd29a70",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "grp.binding.target-collaborator.v2",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "all-requested-cases",
+        "kind": "binding",
+        "after": [
+          "grp.entry.route.v2"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "The requested target identity is the collaborator path parameter; the handler later resolves that name to the collaborator user object.",
+        "bindingKey": "target.path-collaborator",
+        "bindingKind": "principal",
+        "complete": false,
+        "id": "ctrl-7e35db75eaecd1f7aea2",
+        "digest": "489d408f80c13cd35c477d54de02c2d6f83b4b0e1e5069743a8bb8bcee38e275",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "grp.guard.query-permission.repo-admin",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "repo-admin-query",
+        "kind": "guard",
+        "after": [
+          "grp.binding.caller-doer.v2"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "The handler permits querying another collaborator when ctx.IsUserRepoAdmin() is true.",
+        "complete": false,
+        "id": "ctrl-a865cff1948d898a7041",
+        "digest": "2f4f9ef384db41acffcc417a8d386dbd1426095645ed64777bdb2651d4b20687",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "grp.reject.unauthorized-other.v2",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "other-query-denied",
+        "kind": "reject",
+        "after": [
+          "grp.binding.caller-doer.v2",
+          "grp.binding.target-collaborator.v2"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "If the caller is neither an instance admin, nor querying their own name, nor a repository admin, the handler returns HTTP 403 before resolving the collaborator or computing repository permission.",
+        "complete": false,
+        "id": "ctrl-04bad15ae6f7b5266bf7",
+        "digest": "30131228942db95407a6ce7e35cf2466a7d8b93f0d0e40b36aef8a6ceb2ef109",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "grp.effect.permission-result.v2",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "successful-query",
+        "kind": "effect",
+        "after": [
+          "grp.guard.query-permission.self"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "After the authorization guard and collaborator lookup succeed, the handler computes the selected collaborator's repository permission and returns JSON containing that collaborator and permission.AccessMode.",
+        "resource": "repository permission for resolved collaborator",
+        "operation": "GetIndividualUserRepoPermission and JSON response",
+        "complete": false,
+        "id": "ctrl-12c553f2cc638d7b8308",
+        "digest": "28cdc7d194432b401ae7692a20f825b894682eed84b819c68355ab7d675b3d9b",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "g.entry.route",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "all-requested-cases",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-0da5439a0987e4df179c"
+        ],
+        "claim": "The requested operation enters through GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission and reaches GetRepoPermissions.",
+        "operation": "GET repository collaborator permission",
+        "id": "ctrl-39441813a5f16fc350d0",
+        "digest": "ff138a5069f8132b14995d41da61fc1f4771fad4626d55fd8a02b4fec066cfa2",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "g.guard.req-token",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "all-requested-cases",
+        "kind": "guard",
+        "after": [
+          "g.entry.route"
+        ],
+        "evidenceIds": [
+          "ev-0da5439a0987e4df179c",
+          "ev-fbe23fe17ab509d9b9df"
+        ],
+        "claim": "The route applies reqToken; an unsigned request is rejected with 401, while a signed request continues.",
+        "operation": "authenticated request",
+        "id": "ctrl-7f78d2b8a152cbe51ae7",
+        "digest": "fd184fe511660e23426cfa6a9b598f2daa915868a820f8300299175adb58050c",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "g.binding.caller",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "all-requested-cases",
+        "kind": "binding",
+        "after": [
+          "g.guard.req-token"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "The handler compares the signed request's ctx.Doer identity and privilege flags against the collaborator path parameter.",
+        "principal": "ctx.Doer",
+        "bindingKey": "caller.ctx-doer",
+        "bindingKind": "principal",
+        "id": "ctrl-26b8d6cd0079cd230367",
+        "digest": "71a45c09e9e5ed891822c7d56384c995bd721f4439789adf368de9b3eea8fb91",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "g.binding.target",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "all-requested-cases",
+        "kind": "binding",
+        "after": [
+          "g.guard.req-token"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "The target identity is selected from the collaborator path parameter and is later resolved with GetUserByName.",
+        "principal": "collaborator path parameter",
+        "bindingKey": "target.path-collaborator",
+        "bindingKind": "principal",
+        "id": "ctrl-1846453add4ce171d187",
+        "digest": "2971b1d12f2470a2069dc312d95bcc6d5758ecc91f24014118823fe60e81ec8c",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "g.reject.other",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "other-query-denied",
+        "kind": "reject",
+        "after": [
+          "g.binding.caller",
+          "g.binding.target"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "A non-admin, non-repo-admin caller querying a collaborator name that does not EqualFold-match ctx.Doer.LowerName receives 403 and the handler returns before resolving the target user or computing permission.",
+        "operation": "query collaborator permission",
+        "id": "ctrl-d5cc5bbeda2c035266a9",
+        "digest": "8b1624e23dcd117ee5499d088037559074ef5d41ed7b0f0b1a5de4810363d938",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "g.effect.resolve",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "authorized-query",
+        "kind": "effect",
+        "after": [
+          "g.guard.self"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "After the handler-level authorization guard, the collaborator username is resolved; missing users produce 404 and other lookup errors produce an internal error.",
+        "operation": "resolve collaborator",
+        "id": "ctrl-74944534d87f135d6828",
+        "digest": "7b2cf67cc987c735218caebf636606e8a9a7000263b515fb6d59a1cd4e19b94c",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "g.effect.permission",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "authorized-query",
+        "kind": "effect",
+        "after": [
+          "g.effect.resolve"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "For an authorized, successfully resolved target, the repository permission is obtained with GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator) and returned in JSON using permission.AccessMode.",
+        "resource": "ctx.Repo.Repository permission for resolved collaborator",
+        "operation": "read repository permission",
+        "id": "ctrl-b5621d44c703579864cc",
+        "digest": "7a444bc334eb4d077387ef278c2ab28db7faaf89e9ba77f5537e99a9641e1a17",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      }
+    ],
+    "dependencies": [
+      {
+        "key": "grp.dep.route-token",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "self-or-other",
+        "from": "grp.entry.route",
+        "symbol": "reqToken",
+        "evidenceIds": [
+          "ev-0da5439a0987e4df179c"
+        ],
+        "reason": "The route applies reqToken before the handler; the middleware implementation is needed to characterize authentication behavior.",
+        "kind": "control",
+        "decisive": false,
+        "pathHint": "routers/api/v1/api.go",
+        "id": "ctrl-c316735215640f9fa5a9",
+        "digest": "640189b219e19d16d574f9ca83c1c4c92375cf051a5e14b63a39785f5eecfd47",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "grp.dep.repo-permission-helper",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "authorized-query",
+        "from": "grp.effect.permission-result",
+        "symbol": "GetIndividualUserRepoPermission",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "reason": "The returned repository permission result is delegated to this helper; read its implementation to explain the permission calculation.",
+        "kind": "effect",
+        "decisive": true,
+        "pathHint": "models/perm",
+        "id": "ctrl-e5cbf56ac52e916d0c5b",
+        "digest": "184bb047746c083a78bb97c37fb3dcc914427e9003bf9d186557904f762c44ce",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "grp.dep.repo-permission-helper.v2",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "successful-query",
+        "from": "grp.effect.permission-result.v2",
+        "symbol": "GetIndividualUserRepoPermission",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "reason": "The helper determines the repository permission value returned by this endpoint; its implementation is needed to explain the permission result beyond the handler's call site.",
+        "kind": "effect",
+        "decisive": true,
+        "pathHint": "models/perm",
+        "id": "ctrl-3ba9d41c591670aaf5f1",
+        "digest": "30aa7b94408f7751422d0e82755800a1a6f776c56ea291204d9a5ef9135728aa",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "g.dep.repo-permission",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "authorized-query",
+        "from": "g.effect.permission",
+        "symbol": "GetIndividualUserRepoPermission",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "reason": "The helper determines the repository permission result and is directly called by the handler; its body is needed to explain the result semantics.",
+        "kind": "effect",
+        "decisive": true,
+        "pathHint": "models/perm/access/repo_permission.go",
+        "id": "ctrl-f535b0e459e3881f26fc",
+        "digest": "23fd565b5636687e1e932414c11b0acce52cb5382ef92cc5fc206965cb796416",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "g.dep.repo-admin",
+        "questionId": "get-repo-permissions-self-vs-other",
+        "pathKey": "privileged-query",
+        "from": "g.guard.repo-admin",
+        "symbol": "IsUserRepoAdmin",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "reason": "The repo-admin exception is a direct handler guard; the selected context implementation determines which caller/resource relation grants it.",
+        "kind": "control",
+        "decisive": true,
+        "pathHint": "services/context/api.go",
+        "id": "ctrl-ebb4ba896ad8986a35b3",
+        "digest": "be74de0ae7a0ca584c96a1523afd1acb561fbefb31054fc92f45c73a6e0800b6",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      }
+    ],
+    "bindings": [],
+    "policyRules": [],
+    "conflicts": [],
+    "revisions": []
+  },
+  "extractionProposals": [
+    {
+      "delta": {
+        "schemaVersion": "authorization-control-slice/v1",
+        "rules": [
+          {
+            "key": "grp.entry.route",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "self-or-other",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-0da5439a0987e4df179c",
+              "ev-7c0146a501b98df9c24d"
+            ],
+            "claim": "The GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission route dispatches to GetRepoPermissions and has a route-level reqToken middleware.",
+            "complete": false
+          },
+          {
+            "key": "grp.binding.caller-doer",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "self-or-other",
+            "kind": "binding",
+            "after": [
+              "grp.entry.route"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "The handler evaluates the authenticated caller through ctx.Doer, including IsAdmin and LowerName.",
+            "bindingKey": "caller.ctx-doer",
+            "bindingKind": "principal"
+          },
+          {
+            "key": "grp.binding.target-collaborator",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "self-or-other",
+            "kind": "binding",
+            "after": [
+              "grp.entry.route"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "The requested collaborator identity is bound from the collaborator path parameter.",
+            "bindingKey": "target.path-collaborator",
+            "bindingKind": "principal"
+          },
+          {
+            "key": "grp.guard.query-permission",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "self-or-other",
+            "kind": "guard",
+            "after": [
+              "grp.binding.caller-doer",
+              "grp.binding.target-collaborator"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "The handler permits the query when the caller is an admin, or the caller name case-insensitively equals the collaborator path value, or ctx.IsUserRepoAdmin() is true; otherwise it returns HTTP 403 and terminates.",
+            "condition": {
+              "op": "any",
+              "args": [
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "caller.is-admin"
+                  },
+                  "right": true
+                },
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "caller.name-equals-target"
+                  },
+                  "right": true
+                },
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "caller.is-user-repo-admin"
+                  },
+                  "right": true
+                }
+              ]
+            },
+            "complete": false
+          },
+          {
+            "key": "grp.reject.unauthorized-other",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "other-normal-caller",
+            "kind": "reject",
+            "after": [
+              "grp.guard.query-permission"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "A caller who is neither an admin nor a repository admin and whose name does not equal the collaborator path value is rejected before collaborator lookup and permission calculation with HTTP 403.",
+            "condition": {
+              "op": "all",
+              "args": [
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "caller.is-admin"
+                  },
+                  "right": false
+                },
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "caller.name-equals-target"
+                  },
+                  "right": false
+                },
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "caller.is-user-repo-admin"
+                  },
+                  "right": false
+                }
+              ]
+            }
+          },
+          {
+            "key": "grp.effect.permission-result",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "authorized-query",
+            "kind": "effect",
+            "after": [
+              "grp.guard.query-permission"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "After the guard passes and lookup succeeds, the handler obtains the individual user's repository permission for ctx.Repo.Repository and the resolved collaborator, then returns JSON containing that collaborator and permission.AccessMode with HTTP 200.",
+            "complete": false
+          }
+        ],
+        "dependencies": [
+          {
+            "key": "grp.dep.route-token",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "self-or-other",
+            "from": "grp.entry.route",
+            "symbol": "reqToken",
+            "evidenceIds": [
+              "ev-0da5439a0987e4df179c"
+            ],
+            "reason": "The route applies reqToken before the handler; the middleware implementation is needed to characterize authentication behavior.",
+            "kind": "control",
+            "decisive": false,
+            "pathHint": "routers/api/v1/api.go"
+          },
+          {
+            "key": "grp.dep.repo-permission-helper",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "authorized-query",
+            "from": "grp.effect.permission-result",
+            "symbol": "GetIndividualUserRepoPermission",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "reason": "The returned repository permission result is delegated to this helper; read its implementation to explain the permission calculation.",
+            "kind": "effect",
+            "decisive": true,
+            "pathHint": "models/perm"
+          }
+        ],
+        "bindings": [],
+        "policyRules": []
+      },
+      "diagnostics": [
+        {
+          "code": "predicate-invalid",
+          "path": "rules.grp.guard.query-permission",
+          "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+          "severity": "error"
+        },
+        {
+          "code": "predicate-invalid",
+          "path": "rules.grp.reject.unauthorized-other",
+          "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+          "severity": "error"
+        }
+      ],
+      "revision": 6
+    },
+    {
+      "delta": {
+        "schemaVersion": "authorization-control-slice/v1",
+        "rules": [
+          {
+            "key": "grp.entry.route.v2",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "all-requested-cases",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-0da5439a0987e4df179c",
+              "ev-fbe23fe17ab509d9b9df"
+            ],
+            "claim": "The requested operation enters through GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission, and the route group applies reqToken before the handler.",
+            "operation": "GET permission endpoint",
+            "complete": false
+          },
+          {
+            "key": "grp.binding.caller-doer.v2",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "all-requested-cases",
+            "kind": "binding",
+            "after": [
+              "grp.entry.route.v2"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "The handler uses ctx.Doer as the caller identity for its admin test and compares ctx.Doer.LowerName with the collaborator path parameter.",
+            "bindingKey": "caller.ctx-doer",
+            "bindingKind": "principal",
+            "complete": false
+          },
+          {
+            "key": "grp.binding.target-collaborator.v2",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "all-requested-cases",
+            "kind": "binding",
+            "after": [
+              "grp.entry.route.v2"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "The requested target identity is the collaborator path parameter; the handler later resolves that name to the collaborator user object.",
+            "bindingKey": "target.path-collaborator",
+            "bindingKind": "principal",
+            "complete": false
+          },
+          {
+            "key": "grp.guard.query-permission.self",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "self-query",
+            "kind": "guard",
+            "after": [
+              "grp.binding.caller-doer.v2",
+              "grp.binding.target-collaborator.v2"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "The handler permits the query when the caller name equals the collaborator path parameter, provided the request reached the handler.",
+            "condition": {
+              "op": "eq",
+              "left": {
+                "binding": "caller.ctx-doer.lower-name"
+              },
+              "right": "target.path-collaborator"
+            },
+            "complete": false
+          },
+          {
+            "key": "grp.guard.query-permission.admin",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "admin-query",
+            "kind": "guard",
+            "after": [
+              "grp.binding.caller-doer.v2"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "The handler permits querying another collaborator when ctx.Doer.IsAdmin is true.",
+            "condition": {
+              "op": "eq",
+              "left": {
+                "binding": "caller.ctx-doer.is-admin"
+              },
+              "right": true
+            },
+            "complete": false
+          },
+          {
+            "key": "grp.guard.query-permission.repo-admin",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "repo-admin-query",
+            "kind": "guard",
+            "after": [
+              "grp.binding.caller-doer.v2"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "The handler permits querying another collaborator when ctx.IsUserRepoAdmin() is true.",
+            "complete": false
+          },
+          {
+            "key": "grp.reject.unauthorized-other.v2",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "other-query-denied",
+            "kind": "reject",
+            "after": [
+              "grp.binding.caller-doer.v2",
+              "grp.binding.target-collaborator.v2"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "If the caller is neither an instance admin, nor querying their own name, nor a repository admin, the handler returns HTTP 403 before resolving the collaborator or computing repository permission.",
+            "complete": false
+          },
+          {
+            "key": "grp.effect.permission-result.v2",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "successful-query",
+            "kind": "effect",
+            "after": [
+              "grp.guard.query-permission.self"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "After the authorization guard and collaborator lookup succeed, the handler computes the selected collaborator's repository permission and returns JSON containing that collaborator and permission.AccessMode.",
+            "resource": "repository permission for resolved collaborator",
+            "operation": "GetIndividualUserRepoPermission and JSON response",
+            "complete": false
+          }
+        ],
+        "dependencies": [
+          {
+            "key": "grp.dep.repo-permission-helper.v2",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "successful-query",
+            "from": "grp.effect.permission-result.v2",
+            "symbol": "GetIndividualUserRepoPermission",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "reason": "The helper determines the repository permission value returned by this endpoint; its implementation is needed to explain the permission result beyond the handler's call site.",
+            "kind": "effect",
+            "decisive": true,
+            "pathHint": "models/perm"
+          }
+        ],
+        "bindings": [],
+        "policyRules": []
+      },
+      "diagnostics": [
+        {
+          "code": "predicate-invalid",
+          "path": "rules.grp.guard.query-permission.self",
+          "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+          "severity": "error"
+        },
+        {
+          "code": "predicate-invalid",
+          "path": "rules.grp.guard.query-permission.admin",
+          "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+          "severity": "error"
+        }
+      ],
+      "revision": 13
+    },
+    {
+      "delta": {
+        "schemaVersion": "authorization-control-slice/v1",
+        "rules": [
+          {
+            "key": "g.entry.route",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "all-requested-cases",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-0da5439a0987e4df179c"
+            ],
+            "claim": "The requested operation enters through GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission and reaches GetRepoPermissions.",
+            "operation": "GET repository collaborator permission"
+          },
+          {
+            "key": "g.guard.req-token",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "all-requested-cases",
+            "kind": "guard",
+            "after": [
+              "g.entry.route"
+            ],
+            "evidenceIds": [
+              "ev-0da5439a0987e4df179c",
+              "ev-fbe23fe17ab509d9b9df"
+            ],
+            "claim": "The route applies reqToken; an unsigned request is rejected with 401, while a signed request continues.",
+            "operation": "authenticated request"
+          },
+          {
+            "key": "g.binding.caller",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "all-requested-cases",
+            "kind": "binding",
+            "after": [
+              "g.guard.req-token"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "The handler compares the signed request's ctx.Doer identity and privilege flags against the collaborator path parameter.",
+            "principal": "ctx.Doer",
+            "bindingKey": "caller.ctx-doer",
+            "bindingKind": "principal"
+          },
+          {
+            "key": "g.binding.target",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "all-requested-cases",
+            "kind": "binding",
+            "after": [
+              "g.guard.req-token"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "The target identity is selected from the collaborator path parameter and is later resolved with GetUserByName.",
+            "principal": "collaborator path parameter",
+            "bindingKey": "target.path-collaborator",
+            "bindingKind": "principal"
+          },
+          {
+            "key": "g.guard.self",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "self-query",
+            "kind": "guard",
+            "after": [
+              "g.binding.caller",
+              "g.binding.target"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "The handler permits the query when the caller is not an admin, the case is not repo-admin authorization, and ctx.Doer.LowerName equals the collaborator parameter case-insensitively.",
+            "condition": {
+              "op": "eq",
+              "left": {
+                "binding": "caller.ctx-doer.lower-name"
+              },
+              "right": "target.path-collaborator"
+            },
+            "operation": "query collaborator permission"
+          },
+          {
+            "key": "g.guard.admin",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "privileged-query",
+            "kind": "guard",
+            "after": [
+              "g.binding.caller",
+              "g.binding.target"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "The handler permits the query when ctx.Doer.IsAdmin is true.",
+            "condition": {
+              "op": "eq",
+              "left": {
+                "binding": "caller.ctx-doer.is-admin"
+              },
+              "right": true
+            },
+            "operation": "query collaborator permission"
+          },
+          {
+            "key": "g.guard.repo-admin",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "privileged-query",
+            "kind": "guard",
+            "after": [
+              "g.binding.caller",
+              "g.binding.target"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "The handler permits the query when ctx.IsUserRepoAdmin() is true.",
+            "condition": {
+              "op": "eq",
+              "left": {
+                "binding": "caller.repo-admin"
+              },
+              "right": true
+            },
+            "operation": "query collaborator permission"
+          },
+          {
+            "key": "g.reject.other",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "other-query-denied",
+            "kind": "reject",
+            "after": [
+              "g.binding.caller",
+              "g.binding.target"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "A non-admin, non-repo-admin caller querying a collaborator name that does not EqualFold-match ctx.Doer.LowerName receives 403 and the handler returns before resolving the target user or computing permission.",
+            "operation": "query collaborator permission"
+          },
+          {
+            "key": "g.effect.resolve",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "authorized-query",
+            "kind": "effect",
+            "after": [
+              "g.guard.self"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "After the handler-level authorization guard, the collaborator username is resolved; missing users produce 404 and other lookup errors produce an internal error.",
+            "operation": "resolve collaborator"
+          },
+          {
+            "key": "g.effect.permission",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "authorized-query",
+            "kind": "effect",
+            "after": [
+              "g.effect.resolve"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "For an authorized, successfully resolved target, the repository permission is obtained with GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator) and returned in JSON using permission.AccessMode.",
+            "resource": "ctx.Repo.Repository permission for resolved collaborator",
+            "operation": "read repository permission"
+          }
+        ],
+        "dependencies": [
+          {
+            "key": "g.dep.repo-permission",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "authorized-query",
+            "from": "g.effect.permission",
+            "symbol": "GetIndividualUserRepoPermission",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "reason": "The helper determines the repository permission result and is directly called by the handler; its body is needed to explain the result semantics.",
+            "kind": "effect",
+            "decisive": true,
+            "pathHint": "models/perm/access/repo_permission.go"
+          },
+          {
+            "key": "g.dep.repo-admin",
+            "questionId": "get-repo-permissions-self-vs-other",
+            "pathKey": "privileged-query",
+            "from": "g.guard.repo-admin",
+            "symbol": "IsUserRepoAdmin",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "reason": "The repo-admin exception is a direct handler guard; the selected context implementation determines which caller/resource relation grants it.",
+            "kind": "control",
+            "decisive": true,
+            "pathHint": "services/context/api.go"
+          }
+        ],
+        "bindings": [
+          {
+            "questionId": "get-repo-permissions-self-vs-other",
+            "key": "caller.ctx-doer",
+            "value": "normal authenticated caller",
+            "origin": "user",
+            "text": "The comparison is between a normal authenticated caller querying their own collaborator permission and the same caller querying another user's permission."
+          },
+          {
+            "questionId": "get-repo-permissions-self-vs-other",
+            "key": "target.path-collaborator",
+            "value": "self-vs-other",
+            "origin": "user",
+            "text": "The comparison is between a normal authenticated caller querying their own collaborator permission and the same caller querying another user's permission."
+          }
+        ],
+        "policyRules": []
+      },
+      "diagnostics": [
+        {
+          "code": "predicate-invalid",
+          "path": "rules.g.guard.self",
+          "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+          "severity": "error"
+        },
+        {
+          "code": "predicate-invalid",
+          "path": "rules.g.guard.admin",
+          "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+          "severity": "error"
+        },
+        {
+          "code": "predicate-invalid",
+          "path": "rules.g.guard.repo-admin",
+          "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+          "severity": "error"
+        },
+        {
+          "code": "premise-not-supplied",
+          "path": "bindings.caller.ctx-doer",
+          "message": "Known values require an exact span of an original supplied user statement, not a model-authored premise; mapping meaning remains unreviewed.",
+          "severity": "error"
+        },
+        {
+          "code": "premise-not-supplied",
+          "path": "bindings.target.path-collaborator",
+          "message": "Known values require an exact span of an original supplied user statement, not a model-authored premise; mapping meaning remains unreviewed.",
+          "severity": "error"
+        }
+      ],
+      "revision": 22
+    }
+  ],
+  "hostChecks": [],
+  "dependencies": [
+    {
+      "id": "ctrl-c316735215640f9fa5a9",
+      "digest": "640189b219e19d16d574f9ca83c1c4c92375cf051a5e14b63a39785f5eecfd47",
+      "key": "grp.dep.route-token",
+      "questionId": "get-repo-permissions-self-vs-other",
+      "pathKey": "self-or-other",
+      "decisive": false,
+      "symbol": "reqToken",
+      "state": "read",
+      "reason": "Original candidate range is actually shown. Its semantic role still needs model analysis.",
+      "candidates": [
+        {
+          "id": "symbol-5bf2f3350f8e32953ca0fdbd",
+          "path": "routers/api/v1/api.go",
+          "name": "reqToken",
+          "kind": "function",
+          "startLine": 374,
+          "endLine": 382,
+          "boundary": "complete",
+          "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6"
+        }
+      ],
+      "evidenceIds": [
+        "ev-fbe23fe17ab509d9b9df"
+      ],
+      "semanticSupport": "unreviewed",
+      "code": "dependency-source-read"
+    },
+    {
+      "id": "ctrl-e5cbf56ac52e916d0c5b",
+      "digest": "184bb047746c083a78bb97c37fb3dcc914427e9003bf9d186557904f762c44ce",
+      "key": "grp.dep.repo-permission-helper",
+      "questionId": "get-repo-permissions-self-vs-other",
+      "pathKey": "authorized-query",
+      "decisive": true,
+      "symbol": "GetIndividualUserRepoPermission",
+      "state": "blocked",
+      "reason": "predecessor-missing:grp.guard.query-permission",
+      "candidates": [],
+      "evidenceIds": [],
+      "semanticSupport": "unreviewed",
+      "code": "dependency-control-gap"
+    },
+    {
+      "id": "ctrl-3ba9d41c591670aaf5f1",
+      "digest": "30aa7b94408f7751422d0e82755800a1a6f776c56ea291204d9a5ef9135728aa",
+      "key": "grp.dep.repo-permission-helper.v2",
+      "questionId": "get-repo-permissions-self-vs-other",
+      "pathKey": "successful-query",
+      "decisive": true,
+      "symbol": "GetIndividualUserRepoPermission",
+      "state": "blocked",
+      "reason": "predecessor-missing:grp.guard.query-permission.self",
+      "candidates": [],
+      "evidenceIds": [],
+      "semanticSupport": "unreviewed",
+      "code": "dependency-control-gap"
+    },
+    {
+      "id": "ctrl-ebb4ba896ad8986a35b3",
+      "digest": "be74de0ae7a0ca584c96a1523afd1acb561fbefb31054fc92f45c73a6e0800b6",
+      "key": "g.dep.repo-admin",
+      "questionId": "get-repo-permissions-self-vs-other",
+      "pathKey": "privileged-query",
+      "decisive": true,
+      "symbol": "IsUserRepoAdmin",
+      "state": "blocked",
+      "reason": "Dependency has no accepted local source node.",
+      "candidates": [],
+      "evidenceIds": [],
+      "semanticSupport": "unreviewed",
+      "code": "dependency-parent-missing"
+    },
+    {
+      "id": "ctrl-f535b0e459e3881f26fc",
+      "digest": "23fd565b5636687e1e932414c11b0acce52cb5382ef92cc5fc206965cb796416",
+      "key": "g.dep.repo-permission",
+      "questionId": "get-repo-permissions-self-vs-other",
+      "pathKey": "authorized-query",
+      "decisive": true,
+      "symbol": "GetIndividualUserRepoPermission",
+      "state": "blocked",
+      "reason": "predecessor-missing:g.guard.self",
+      "candidates": [],
+      "evidenceIds": [],
+      "semanticSupport": "unreviewed",
+      "code": "dependency-control-gap"
+    }
+  ],
+  "schedulerActions": [
+    {
+      "questionId": "get-repo-permissions-self-vs-other",
+      "dependencyId": "ctrl-c316735215640f9fa5a9",
+      "reason": "Live control dependency grp.dep.route-token: The route applies reqToken before the handler; the middleware implementation is needed to characterize authentication behavior.; location is unique in allowed source, read coverage is incomplete.",
+      "output": {
+        "status": "ok",
+        "evidence": [
+          {
+            "id": "ev-fbe23fe17ab509d9b9df",
+            "repository": "go-gitea/gitea",
+            "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+            "path": "routers/api/v1/api.go",
+            "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+            "startLine": 374,
+            "endLine": 382,
+            "bytes": 324
+          }
+        ],
+        "matches": [],
+        "candidates": [],
+        "requested": {
+          "path": "routers/api/v1/api.go",
+          "startLine": 374,
+          "endLine": 382
+        },
+        "truncated": false
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-7c0146a501b98df9c24d",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1370,
+      "endLine": 1370,
+      "bytes": 59
+    },
+    {
+      "id": "ev-a60533ab4a5b542475f5",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 247,
+      "endLine": 247,
+      "bytes": 67
+    },
+    {
+      "id": "ev-e294e0511838d6709a3f",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 248,
+      "endLine": 248,
+      "bytes": 57
+    },
+    {
+      "id": "ev-a3192c9940835e6f74bd",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 249,
+      "endLine": 249,
+      "bytes": 128
+    },
+    {
+      "id": "ev-ff214123ff9d385c93ec",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 248,
+      "endLine": 301,
+      "bytes": 2044
+    },
+    {
+      "id": "ev-0da5439a0987e4df179c",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1348,
+      "endLine": 1374,
+      "bytes": 1470
+    },
+    {
+      "id": "ev-fbe23fe17ab509d9b9df",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 374,
+      "endLine": 382,
+      "bytes": 324
+    },
+    {
+      "id": "ev-cfe26ad3d829b9cf3667",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 426,
+      "endLine": 531,
+      "bytes": 3792
+    },
+    {
+      "id": "ev-0c2904829a4ed971801c",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "services/context/api.go",
+      "sha256": "182aa57ba15df1e71a39b775f8520617d6d56a43d3239a2bb4ca5ea11598a665",
+      "startLine": 329,
+      "endLine": 331,
+      "bytes": 106
+    }
+  ],
+  "deliveryValid": false,
+  "reviewCaution": "Citations and host consistency do not prove extraction meaning. Evaluate raw first/final and final prose against original source at the retained evidence ranges. A native prose answer can be delivered despite failed host checking. Representation may reveal strategy; arm, cost and target scores are hidden. No earlier answer is supplied."
+}

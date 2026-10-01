@@ -1,0 +1,721 @@
+{
+  "schemaVersion": "authorization-aq-anonymous-packet/v1",
+  "id": "packet-34f44b3fff75",
+  "task": {
+    "brief": "Check DeleteSpaceMember in this Memos revision against the independently supplied current policy. May an ordinary space member remove a different member, and do visible admin and self-removal paths differ? Do not assume deployment middleware or undocumented role grants. Explain actual behavior, compare it with the policy, cite the controlling source and preserve any decisive missing facts.",
+    "mode": "conformance",
+    "policy": {
+      "text": "Only a space administrator may remove another member from that space. This policy does not prohibit a member leaving the space themselves.",
+      "origin": "user",
+      "location": "experimental-user-brief:memos-member-policy/v1"
+    }
+  },
+  "status": "completed",
+  "initial": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "An ordinary active space member may not remove a different member. The visible API handler resolves the caller and target in the same space, computes whether the target is the caller, and for a different target requires requireSpaceAdministrator(callerMembership); otherwise it returns an error before invoking deletion (ev-3ab3a4498be30e923f85). The database implementations independently enforce the same rule for a non-self deletion: the actor must be an active member with ADMIN role, otherwise they return permission denied (ev-4613bf5cc02521f91db5, ev-21f5cf9514ab66ef223, ev-e29fb091e04b74dd359a). Thus the ordinary-member/different-member branch is denied; an administrator may remove another active member subject to the additional last-active-admin invariant."
+        },
+        "branches": [
+          {
+            "id": "ordinary-member-removes-different-member",
+            "condition": "Caller is a resolved active member, target is a different resolved active member, and caller is not an administrator.",
+            "disposition": "deny",
+            "explanation": "The API's !isSelf branch calls requireSpaceAdministrator and returns on failure. Each inspected database driver also checks the actor's active membership role and rejects any non-ADMIN actor for actorID != targetID. No deployment middleware or undocumented grant is needed for this denial.",
+            "evidenceIds": [
+              "ev-3ab3a4498be30e923f85",
+              "ev-4613bf5cc02521f91db5",
+              "ev-21f5cf9514ab66ef223",
+              "ev-e29fb091e04b74dd359a"
+            ]
+          },
+          {
+            "id": "administrator-removes-different-member",
+            "condition": "Caller is an active space administrator and target is a different active member.",
+            "disposition": "conditional",
+            "explanation": "The API authorization branch permits progression for an administrator. Resource resolution requires the named space to resolve through the caller's membership and the target user to be normal and an active member (ev-2ffb20e72c767923a83d). The store then deletes the active target membership, but refuses deletion if the target is the last active administrator with a normal user status; all three inspected database implementations contain that guard (ev-4613bf5cc02521f91db5, ev-21f5cf9514ab66ef223, ev-e29fb091e04b74dd359a).",
+            "evidenceIds": [
+              "ev-3ab3a4498be30e923f85",
+              "ev-2ffb20e72c767923a83d",
+              "ev-4613bf5cc02521f91db5",
+              "ev-21f5cf9514ab66ef223",
+              "ev-e29fb091e04b74dd359a"
+            ]
+          },
+          {
+            "id": "member-removes-self",
+            "condition": "Caller and resolved target are the same user, with the caller/space and target membership successfully resolved.",
+            "disposition": "allow",
+            "explanation": "The API sets isSelf from the resolved target and caller IDs and skips requireSpaceAdministrator when true (ev-3ab3a4498be30e923f85). The database role check is likewise conditional on actorID != targetID, so self-removal does not require ADMIN in the inspected drivers. The effect is deletion of the caller's active membership, via Store.DeleteSpaceMember and the driver DELETE (ev-3ab3a4498be30e923a83d, ev-4613bf5cc02521f91db5, ev-21f5cf9514ab66ef223, ev-e29fb091e04b74dd359a).",
+            "evidenceIds": [
+              "ev-3ab3a4498be30e923f85",
+              "ev-2ffb20e72c767923a83d",
+              "ev-4613bf5cc02521f91db5",
+              "ev-21f5cf9514ab66ef223",
+              "ev-e29fb091e04b74dd359a"
+            ]
+          },
+          {
+            "id": "sole-active-admin-removes-self",
+            "condition": "Caller self-removes and is the only active administrator whose user status is NORMAL.",
+            "disposition": "deny",
+            "explanation": "Although the API skips the administrator check for self-removal, each inspected database implementation applies the last-active-admin guard after loading the target: an ADMIN target with NORMAL status is rejected when the active NORMAL administrator count is <= 1. Therefore the visible self-removal path differs from the different-member path, but it is not unconditionally successful.",
+            "evidenceIds": [
+              "ev-4613bf5cc02521f91db5",
+              "ev-21f5cf9514ab66ef223",
+              "ev-e29fb091e04b74dd359a"
+            ]
+          },
+          {
+            "id": "unresolved-or-ineligible-target",
+            "condition": "The name does not resolve to a normal user with an active membership in the resolved space.",
+            "disposition": "deny",
+            "explanation": "Resource resolution returns not found when the target user is absent, not NORMAL, or lacks an active membership. This is an upstream resource-binding protection, before the self/different-member authorization branch.",
+            "evidenceIds": [
+              "ev-2ffb20e72c767923a83d"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-3ab3a4498be30e923f85",
+          "ev-2ffb20e72c767923a83d",
+          "ev-4613bf5cc02521f91db5",
+          "ev-21f5cf9514ab66ef223",
+          "ev-e29fb091e04b74dd359a"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The bodies of requireCurrentSpaceUser and requireSpaceAdministrator were not readable in the recorded actions, so their exact error mapping and any additional checks are not established here. The handler's branch placement is directly visible, and the database implementations provide independent role enforcement for non-self deletion.",
+            "nextRead": "Read the definitions of requireCurrentSpaceUser and requireSpaceAdministrator in server/api/v1, if the source gateway accepts those paths, to confirm their exact predicates and error behavior."
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "No deployment middleware, route registration, authentication configuration, or alternate unregistered entry point was assumed or verified. The result describes the inspected DeleteSpaceMember service path and its store drivers only."
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "The active database driver selected by a deployment was not established. MySQL, PostgreSQL, and SQLite all show the same relevant non-self role check and last-admin guard, but this does not prove behavior for an uninspected or customized driver."
+          }
+        ],
+        "policyAssessment": {
+          "status": "satisfied",
+          "explanation": "The independent policy requires an administrator to remove another member and does not prohibit self-leaving. The inspected implementation denies ordinary-member removal of a different member and permits self-removal without an administrator role check. The implementation adds a narrower safety restriction: a sole active NORMAL administrator cannot self-remove because the space must retain an active administrator. That restriction does not contradict the supplied policy's stated permission for members to leave; it makes self-leaving conditional in this edge case."
+        }
+      }
+    ],
+    "observations": [],
+    "scope": "usememos/memos@cb42e326ba9cc266a6a9570c53e0fe04c62793f4; allowed source paths only; examined DeleteSpaceMember API path, resource resolution, store boundary, and MySQL/PostgreSQL/SQLite implementations; not a claim of all-repository coverage"
+  },
+  "final": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "An ordinary active space member may not remove a different member. The visible API handler resolves the caller and target in the same space, compares their user IDs, and for a different target requires space-administrator status before invoking deletion. The inspected database drivers independently enforce the same non-self administrator requirement. Self-removal follows a distinct path that skips the API administrator check and the driver role check, but remains subject to resource resolution and the last-active-administrator invariant."
+        },
+        "branches": [
+          {
+            "id": "ordinary-member-removes-different-member",
+            "condition": "Caller is a resolved active member, target is a different resolved active member, and caller is not an administrator.",
+            "disposition": "deny",
+            "explanation": "The handler's non-self branch calls requireSpaceAdministrator and returns on failure. PostgreSQL, MySQL, and SQLite each also reject actorID != targetID unless the actor is an active space member with ADMIN role. Therefore an ordinary member cannot remove another member on the inspected path.",
+            "evidenceIds": [
+              "ev-3ab3a4498be30e923f85",
+              "ev-4613bf5cc02521f91db5",
+              "ev-21f5cf9514ab3804eac2",
+              "ev-e29fb091e04b74dd359a"
+            ]
+          },
+          {
+            "id": "administrator-removes-different-member",
+            "condition": "Caller is an active space administrator and target is a different active member.",
+            "disposition": "conditional",
+            "explanation": "The API authorization branch permits an administrator to proceed. Resource resolution requires the target user to be NORMAL and to have an active membership in the resolved space. The store then deletes the active target membership, except when the target is the last active administrator with NORMAL user status; that safety guard is present in all three inspected database implementations.",
+            "evidenceIds": [
+              "ev-3ab3a4498be30e923f85",
+              "ev-2ffb20e72c767923a83d",
+              "ev-4613bf5cc02521f91db5",
+              "ev-21f5cf9514ab3804eac2",
+              "ev-e29fb091e04b74dd359a"
+            ]
+          },
+          {
+            "id": "member-removes-self",
+            "condition": "Caller and resolved target are the same user, with the caller/space and target membership successfully resolved.",
+            "disposition": "allow",
+            "explanation": "The handler sets isSelf by comparing the resolved target and current-user IDs and skips requireSpaceAdministrator when true. The database role check is likewise conditional on actorID != targetID, so self-removal does not require ADMIN in the inspected drivers. The effect is deletion of the caller's active membership.",
+            "evidenceIds": [
+              "ev-3ab3a4498be30e923f85",
+              "ev-2ffb20e72c767923a83d",
+              "ev-4613bf5cc02521f91db5",
+              "ev-21f5cf9514ab3804eac2",
+              "ev-e29fb091e04b74dd359a"
+            ]
+          },
+          {
+            "id": "sole-active-admin-removes-self",
+            "condition": "Caller self-removes and is the only active administrator whose user status is NORMAL.",
+            "disposition": "deny",
+            "explanation": "Although the API skips the administrator check for self-removal, each inspected database implementation checks whether an ADMIN target with NORMAL status is the sole active NORMAL administrator and returns the last-admin error when the count is at most one. Thus self-removal differs from removing another member, but is not unconditionally successful.",
+            "evidenceIds": [
+              "ev-4613bf5cc02521f91db5",
+              "ev-21f5cf9514ab3804eac2",
+              "ev-e29fb091e04b74dd359a"
+            ]
+          },
+          {
+            "id": "unresolved-or-ineligible-target",
+            "condition": "The requested name does not resolve to a NORMAL user with an active membership in the resolved space.",
+            "disposition": "deny",
+            "explanation": "Resource resolution returns not found when the target user is absent, not NORMAL, or lacks an active membership. This occurs before the self-versus-different authorization branch.",
+            "evidenceIds": [
+              "ev-2ffb20e72c767923a83d"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-3ab3a4498be30e923f85",
+          "ev-2ffb20e72c767923a83d",
+          "ev-4613bf5cc02521f91db5",
+          "ev-21f5cf9514ab3804eac2",
+          "ev-e29fb091e04b74dd359a",
+          "ev-913e502094afb66ef223"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The recorded reads did not include the bodies of requireCurrentSpaceUser or requireSpaceAdministrator. Their exact predicates and error mapping are therefore not established here, although the handler's branch placement is directly visible and the database drivers independently enforce the non-self ADMIN check.",
+            "nextRead": "Read the definitions of requireCurrentSpaceUser and requireSpaceAdministrator under the allowed server/api/v1 source paths, if accepted by the source gateway."
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "Deployment middleware, route registration, authentication configuration, and any alternate entry point were not verified. No such controls or undocumented role grants are assumed; this result describes the inspected DeleteSpaceMember service path and its store drivers."
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "The deployment-selected database driver was not established. PostgreSQL, MySQL, and SQLite all show the same relevant non-self role check and last-admin guard, but this does not prove behavior for an uninspected or customized driver."
+          }
+        ],
+        "policyAssessment": {
+          "status": "satisfied",
+          "explanation": "The supplied policy requires an administrator to remove another member and does not prohibit a member from leaving themselves. The inspected implementation denies ordinary-member removal of a different member and distinguishes self-removal by allowing it without an ADMIN requirement, subject to the independently visible last-active-administrator safety guard. That additional edge-case denial does not conflict with the policy as stated; it makes self-leaving conditional when removing the sole active normal administrator."
+        }
+      }
+    ],
+    "observations": [],
+    "scope": "usememos/memos@cb42e326ba9cc266a6a9570c53e0fe04c62793f4; allowed source paths only; examined the DeleteSpaceMember API path, resource resolution, store boundary, and MySQL/PostgreSQL/SQLite implementations; not a claim of all-repository coverage"
+  },
+  "prose": null,
+  "initialProse": null,
+  "initialValidation": {
+    "valid": false,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "An ordinary active space member may not remove a different member. The visible API handler resolves the caller and target in the same space, computes whether the target is the caller, and for a different target requires requireSpaceAdministrator(callerMembership); otherwise it returns an error before invoking deletion (ev-3ab3a4498be30e923f85). The database implementations independently enforce the same rule for a non-self deletion: the actor must be an active member with ADMIN role, otherwise they return permission denied (ev-4613bf5cc02521f91db5, ev-21f5cf9514ab66ef223, ev-e29fb091e04b74dd359a). Thus the ordinary-member/different-member branch is denied; an administrator may remove another active member subject to the additional last-active-admin invariant."
+          },
+          "branches": [
+            {
+              "id": "ordinary-member-removes-different-member",
+              "condition": "Caller is a resolved active member, target is a different resolved active member, and caller is not an administrator.",
+              "disposition": "deny",
+              "explanation": "The API's !isSelf branch calls requireSpaceAdministrator and returns on failure. Each inspected database driver also checks the actor's active membership role and rejects any non-ADMIN actor for actorID != targetID. No deployment middleware or undocumented grant is needed for this denial.",
+              "evidenceIds": [
+                "ev-3ab3a4498be30e923f85",
+                "ev-4613bf5cc02521f91db5",
+                "ev-21f5cf9514ab66ef223",
+                "ev-e29fb091e04b74dd359a"
+              ]
+            },
+            {
+              "id": "administrator-removes-different-member",
+              "condition": "Caller is an active space administrator and target is a different active member.",
+              "disposition": "conditional",
+              "explanation": "The API authorization branch permits progression for an administrator. Resource resolution requires the named space to resolve through the caller's membership and the target user to be normal and an active member (ev-2ffb20e72c767923a83d). The store then deletes the active target membership, but refuses deletion if the target is the last active administrator with a normal user status; all three inspected database implementations contain that guard (ev-4613bf5cc02521f91db5, ev-21f5cf9514ab66ef223, ev-e29fb091e04b74dd359a).",
+              "evidenceIds": [
+                "ev-3ab3a4498be30e923f85",
+                "ev-2ffb20e72c767923a83d",
+                "ev-4613bf5cc02521f91db5",
+                "ev-21f5cf9514ab66ef223",
+                "ev-e29fb091e04b74dd359a"
+              ]
+            },
+            {
+              "id": "member-removes-self",
+              "condition": "Caller and resolved target are the same user, with the caller/space and target membership successfully resolved.",
+              "disposition": "allow",
+              "explanation": "The API sets isSelf from the resolved target and caller IDs and skips requireSpaceAdministrator when true (ev-3ab3a4498be30e923f85). The database role check is likewise conditional on actorID != targetID, so self-removal does not require ADMIN in the inspected drivers. The effect is deletion of the caller's active membership, via Store.DeleteSpaceMember and the driver DELETE (ev-3ab3a4498be30e923a83d, ev-4613bf5cc02521f91db5, ev-21f5cf9514ab66ef223, ev-e29fb091e04b74dd359a).",
+              "evidenceIds": [
+                "ev-3ab3a4498be30e923f85",
+                "ev-2ffb20e72c767923a83d",
+                "ev-4613bf5cc02521f91db5",
+                "ev-21f5cf9514ab66ef223",
+                "ev-e29fb091e04b74dd359a"
+              ]
+            },
+            {
+              "id": "sole-active-admin-removes-self",
+              "condition": "Caller self-removes and is the only active administrator whose user status is NORMAL.",
+              "disposition": "deny",
+              "explanation": "Although the API skips the administrator check for self-removal, each inspected database implementation applies the last-active-admin guard after loading the target: an ADMIN target with NORMAL status is rejected when the active NORMAL administrator count is <= 1. Therefore the visible self-removal path differs from the different-member path, but it is not unconditionally successful.",
+              "evidenceIds": [
+                "ev-4613bf5cc02521f91db5",
+                "ev-21f5cf9514ab66ef223",
+                "ev-e29fb091e04b74dd359a"
+              ]
+            },
+            {
+              "id": "unresolved-or-ineligible-target",
+              "condition": "The name does not resolve to a normal user with an active membership in the resolved space.",
+              "disposition": "deny",
+              "explanation": "Resource resolution returns not found when the target user is absent, not NORMAL, or lacks an active membership. This is an upstream resource-binding protection, before the self/different-member authorization branch.",
+              "evidenceIds": [
+                "ev-2ffb20e72c767923a83d"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-3ab3a4498be30e923f85",
+            "ev-2ffb20e72c767923a83d",
+            "ev-4613bf5cc02521f91db5",
+            "ev-21f5cf9514ab66ef223",
+            "ev-e29fb091e04b74dd359a"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The bodies of requireCurrentSpaceUser and requireSpaceAdministrator were not readable in the recorded actions, so their exact error mapping and any additional checks are not established here. The handler's branch placement is directly visible, and the database implementations provide independent role enforcement for non-self deletion.",
+              "nextRead": "Read the definitions of requireCurrentSpaceUser and requireSpaceAdministrator in server/api/v1, if the source gateway accepts those paths, to confirm their exact predicates and error behavior."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "No deployment middleware, route registration, authentication configuration, or alternate unregistered entry point was assumed or verified. The result describes the inspected DeleteSpaceMember service path and its store drivers only."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "The active database driver selected by a deployment was not established. MySQL, PostgreSQL, and SQLite all show the same relevant non-self role check and last-admin guard, but this does not prove behavior for an uninspected or customized driver."
+            }
+          ],
+          "policyAssessment": {
+            "status": "satisfied",
+            "explanation": "The independent policy requires an administrator to remove another member and does not prohibit self-leaving. The inspected implementation denies ordinary-member removal of a different member and permits self-removal without an administrator role check. The implementation adds a narrower safety restriction: a sole active NORMAL administrator cannot self-remove because the space must retain an active administrator. That restriction does not contradict the supplied policy's stated permission for members to leave; it makes self-leaving conditional in this edge case."
+          }
+        }
+      ],
+      "observations": [],
+      "scope": "usememos/memos@cb42e326ba9cc266a6a9570c53e0fe04c62793f4; allowed source paths only; examined DeleteSpaceMember API path, resource resolution, store boundary, and MySQL/PostgreSQL/SQLite implementations; not a claim of all-repository coverage"
+    },
+    "diagnostics": [
+      {
+        "code": "evidence-not-shown",
+        "path": "questions.0.evidenceIds",
+        "message": "Evidence ev-21f5cf9514ab66ef223 was not shown in this analysis.",
+        "severity": "error"
+      },
+      {
+        "code": "evidence-not-shown",
+        "path": "questions.0.branches.0.evidenceIds",
+        "message": "Evidence ev-21f5cf9514ab66ef223 was not shown in this analysis.",
+        "severity": "error"
+      },
+      {
+        "code": "evidence-not-shown",
+        "path": "questions.0.branches.1.evidenceIds",
+        "message": "Evidence ev-21f5cf9514ab66ef223 was not shown in this analysis.",
+        "severity": "error"
+      },
+      {
+        "code": "evidence-not-shown",
+        "path": "questions.0.branches.2.evidenceIds",
+        "message": "Evidence ev-21f5cf9514ab66ef223 was not shown in this analysis.",
+        "severity": "error"
+      },
+      {
+        "code": "evidence-not-shown",
+        "path": "questions.0.branches.3.evidenceIds",
+        "message": "Evidence ev-21f5cf9514ab66ef223 was not shown in this analysis.",
+        "severity": "error"
+      }
+    ],
+    "semanticSupport": "unreviewed"
+  },
+  "finalValidation": {
+    "valid": true,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "An ordinary active space member may not remove a different member. The visible API handler resolves the caller and target in the same space, compares their user IDs, and for a different target requires space-administrator status before invoking deletion. The inspected database drivers independently enforce the same non-self administrator requirement. Self-removal follows a distinct path that skips the API administrator check and the driver role check, but remains subject to resource resolution and the last-active-administrator invariant."
+          },
+          "branches": [
+            {
+              "id": "ordinary-member-removes-different-member",
+              "condition": "Caller is a resolved active member, target is a different resolved active member, and caller is not an administrator.",
+              "disposition": "deny",
+              "explanation": "The handler's non-self branch calls requireSpaceAdministrator and returns on failure. PostgreSQL, MySQL, and SQLite each also reject actorID != targetID unless the actor is an active space member with ADMIN role. Therefore an ordinary member cannot remove another member on the inspected path.",
+              "evidenceIds": [
+                "ev-3ab3a4498be30e923f85",
+                "ev-4613bf5cc02521f91db5",
+                "ev-21f5cf9514ab3804eac2",
+                "ev-e29fb091e04b74dd359a"
+              ]
+            },
+            {
+              "id": "administrator-removes-different-member",
+              "condition": "Caller is an active space administrator and target is a different active member.",
+              "disposition": "conditional",
+              "explanation": "The API authorization branch permits an administrator to proceed. Resource resolution requires the target user to be NORMAL and to have an active membership in the resolved space. The store then deletes the active target membership, except when the target is the last active administrator with NORMAL user status; that safety guard is present in all three inspected database implementations.",
+              "evidenceIds": [
+                "ev-3ab3a4498be30e923f85",
+                "ev-2ffb20e72c767923a83d",
+                "ev-4613bf5cc02521f91db5",
+                "ev-21f5cf9514ab3804eac2",
+                "ev-e29fb091e04b74dd359a"
+              ]
+            },
+            {
+              "id": "member-removes-self",
+              "condition": "Caller and resolved target are the same user, with the caller/space and target membership successfully resolved.",
+              "disposition": "allow",
+              "explanation": "The handler sets isSelf by comparing the resolved target and current-user IDs and skips requireSpaceAdministrator when true. The database role check is likewise conditional on actorID != targetID, so self-removal does not require ADMIN in the inspected drivers. The effect is deletion of the caller's active membership.",
+              "evidenceIds": [
+                "ev-3ab3a4498be30e923f85",
+                "ev-2ffb20e72c767923a83d",
+                "ev-4613bf5cc02521f91db5",
+                "ev-21f5cf9514ab3804eac2",
+                "ev-e29fb091e04b74dd359a"
+              ]
+            },
+            {
+              "id": "sole-active-admin-removes-self",
+              "condition": "Caller self-removes and is the only active administrator whose user status is NORMAL.",
+              "disposition": "deny",
+              "explanation": "Although the API skips the administrator check for self-removal, each inspected database implementation checks whether an ADMIN target with NORMAL status is the sole active NORMAL administrator and returns the last-admin error when the count is at most one. Thus self-removal differs from removing another member, but is not unconditionally successful.",
+              "evidenceIds": [
+                "ev-4613bf5cc02521f91db5",
+                "ev-21f5cf9514ab3804eac2",
+                "ev-e29fb091e04b74dd359a"
+              ]
+            },
+            {
+              "id": "unresolved-or-ineligible-target",
+              "condition": "The requested name does not resolve to a NORMAL user with an active membership in the resolved space.",
+              "disposition": "deny",
+              "explanation": "Resource resolution returns not found when the target user is absent, not NORMAL, or lacks an active membership. This occurs before the self-versus-different authorization branch.",
+              "evidenceIds": [
+                "ev-2ffb20e72c767923a83d"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-3ab3a4498be30e923f85",
+            "ev-2ffb20e72c767923a83d",
+            "ev-4613bf5cc02521f91db5",
+            "ev-21f5cf9514ab3804eac2",
+            "ev-e29fb091e04b74dd359a",
+            "ev-913e502094afb66ef223"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The recorded reads did not include the bodies of requireCurrentSpaceUser or requireSpaceAdministrator. Their exact predicates and error mapping are therefore not established here, although the handler's branch placement is directly visible and the database drivers independently enforce the non-self ADMIN check.",
+              "nextRead": "Read the definitions of requireCurrentSpaceUser and requireSpaceAdministrator under the allowed server/api/v1 source paths, if accepted by the source gateway."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "Deployment middleware, route registration, authentication configuration, and any alternate entry point were not verified. No such controls or undocumented role grants are assumed; this result describes the inspected DeleteSpaceMember service path and its store drivers."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "The deployment-selected database driver was not established. PostgreSQL, MySQL, and SQLite all show the same relevant non-self role check and last-admin guard, but this does not prove behavior for an uninspected or customized driver."
+            }
+          ],
+          "policyAssessment": {
+            "status": "satisfied",
+            "explanation": "The supplied policy requires an administrator to remove another member and does not prohibit a member from leaving themselves. The inspected implementation denies ordinary-member removal of a different member and distinguishes self-removal by allowing it without an ADMIN requirement, subject to the independently visible last-active-administrator safety guard. That additional edge-case denial does not conflict with the policy as stated; it makes self-leaving conditional when removing the sole active normal administrator."
+          }
+        }
+      ],
+      "observations": [],
+      "scope": "usememos/memos@cb42e326ba9cc266a6a9570c53e0fe04c62793f4; allowed source paths only; examined the DeleteSpaceMember API path, resource resolution, store boundary, and MySQL/PostgreSQL/SQLite implementations; not a claim of all-repository coverage"
+    },
+    "diagnostics": [],
+    "semanticSupport": "unreviewed"
+  },
+  "error": null,
+  "extractionInitial": null,
+  "extractionInitialOrigin": "no-control-proposal",
+  "extractionFinal": null,
+  "extractionProposals": [],
+  "hostChecks": [],
+  "dependencies": [],
+  "schedulerActions": [],
+  "evidence": [
+    {
+      "id": "ev-781099126d4473f5a6a1",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 126,
+      "endLine": 126,
+      "bytes": 77
+    },
+    {
+      "id": "ev-e97f2cbdd5d311b9c657",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 128,
+      "endLine": 128,
+      "bytes": 90
+    },
+    {
+      "id": "ev-77fb6b5d14d0b901a809",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 394,
+      "endLine": 394,
+      "bytes": 41
+    },
+    {
+      "id": "ev-8587192a0a224bab1e1c",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/connect_services.go",
+      "sha256": "b7c43523239e74e488104e9a550b0315c09f8e93714e37b220e79d79d31631b0",
+      "startLine": 650,
+      "endLine": 650,
+      "bytes": 174
+    },
+    {
+      "id": "ev-8cc3386f0794bfc13e1b",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/connect_services.go",
+      "sha256": "b7c43523239e74e488104e9a550b0315c09f8e93714e37b220e79d79d31631b0",
+      "startLine": 651,
+      "endLine": 651,
+      "bytes": 67
+    },
+    {
+      "id": "ev-cb9cce8501567f6ecb00",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 740,
+      "endLine": 740,
+      "bytes": 80
+    },
+    {
+      "id": "ev-9ee45f98c8803e5baf45",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 741,
+      "endLine": 741,
+      "bytes": 134
+    },
+    {
+      "id": "ev-6f0761b3437bb3341438",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 756,
+      "endLine": 756,
+      "bytes": 74
+    },
+    {
+      "id": "ev-1406155e35289f4c8840",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/mysql/space.go",
+      "sha256": "c3a222324d95f0ec5b25f4ae00abca9592670f3afd5656bd6830c269b586deb6",
+      "startLine": 399,
+      "endLine": 399,
+      "bytes": 118
+    },
+    {
+      "id": "ev-b937e51c129d5160f9ac",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/postgres/space.go",
+      "sha256": "904d4817ea006a369061588aa2ce843a6d9bd76ca0705b393f2dcad6d6896eb4",
+      "startLine": 437,
+      "endLine": 437,
+      "bytes": 118
+    },
+    {
+      "id": "ev-33b04536e00eb4ebfaf6",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/sqlite/space.go",
+      "sha256": "3342f78a8fee794e6bdaf2765874030661a1b2130b5bf9eb6b0e8d626f4572f9",
+      "startLine": 411,
+      "endLine": 411,
+      "bytes": 118
+    },
+    {
+      "id": "ev-f8ef9b01df78754b0cd1",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/driver.go",
+      "sha256": "8fb7f82b0338dbb5b9b683e7c6dd0b0107186b1106acf6d3cf292f2e6f8d24fb",
+      "startLine": 45,
+      "endLine": 45,
+      "bytes": 97
+    },
+    {
+      "id": "ev-fd8f6bc0120a2628f62d",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 134,
+      "endLine": 134,
+      "bytes": 62
+    },
+    {
+      "id": "ev-26bcf93f9afea265612b",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 135,
+      "endLine": 135,
+      "bytes": 38
+    },
+    {
+      "id": "ev-92698ef6bf9052def001",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 272,
+      "endLine": 272,
+      "bytes": 85
+    },
+    {
+      "id": "ev-4e8276f16b6f286a6211",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 274,
+      "endLine": 274,
+      "bytes": 115
+    },
+    {
+      "id": "ev-8386c158f397aee0ae85",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 278,
+      "endLine": 278,
+      "bytes": 67
+    },
+    {
+      "id": "ev-3ab3a4498be30e923f85",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 741,
+      "endLine": 764,
+      "bytes": 989
+    },
+    {
+      "id": "ev-913e502094afb66ef223",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 120,
+      "endLine": 135,
+      "bytes": 666
+    },
+    {
+      "id": "ev-3ca3c320881ed0c2f691",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 130,
+      "endLine": 140,
+      "bytes": 307
+    },
+    {
+      "id": "ev-24a4b30e6d9d6dd8562d",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 268,
+      "endLine": 280,
+      "bytes": 582
+    },
+    {
+      "id": "ev-4613bf5cc02521f91db5",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/postgres/space.go",
+      "sha256": "904d4817ea006a369061588aa2ce843a6d9bd76ca0705b393f2dcad6d6896eb4",
+      "startLine": 437,
+      "endLine": 487,
+      "bytes": 2372
+    },
+    {
+      "id": "ev-21f5cf9514ab3804eac2",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/mysql/space.go",
+      "sha256": "c3a222324d95f0ec5b25f4ae00abca9592670f3afd5656bd6830c269b586deb6",
+      "startLine": 399,
+      "endLine": 449,
+      "bytes": 2354
+    },
+    {
+      "id": "ev-e29fb091e04b74dd359a",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/sqlite/space.go",
+      "sha256": "3342f78a8fee794e6bdaf2765874030661a1b2130b5bf9eb6b0e8d626f4572f9",
+      "startLine": 411,
+      "endLine": 455,
+      "bytes": 2456
+    },
+    {
+      "id": "ev-2ffb20e72c767923a83d",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 632,
+      "endLine": 663,
+      "bytes": 1684
+    }
+  ],
+  "deliveryValid": true,
+  "reviewCaution": "Citations and host consistency do not prove extraction meaning. Evaluate raw first/final and final prose against original source at the retained evidence ranges. A native prose answer can be delivered despite failed host checking. Representation may reveal strategy; arm, cost and target scores are hidden. No earlier answer is supplied."
+}

@@ -73,3 +73,20 @@ test("a revision resolves its own bound implementation without changing or resen
   expect(() => study.registeredRunIdentity({ ...manifest, revisions: [{ ...manifest.revisions[0], implementationCommit: null }] }, revised.id)).toThrow("unbound")
   expect(() => study.registeredRunIdentity(manifest, "unregistered-new-row")).toThrow("Unregistered")
 })
+
+test("semantic review retains the first rejected control proposal even without answer delivery", () => {
+  const first = { schemaVersion: "authorization-control-slice/v1", rules: [{ key: "r", claim: "Original unaccepted extraction" }] }
+  const packet = evaluation.makePacket("undelivered", { brief: "Current task" }, { status: "transport-failed", domain: { proposals: [{ delta: first, diagnostics: [{ code: "binding-source" }] }], slice: { rules: [] }, checkHistory: [] } })
+  expect(packet.initial).toBeNull()
+  expect(packet.extractionInitial).toEqual(first)
+  expect(packet.extractionInitialOrigin).toBe("first-control-proposal")
+  expect(packet.extractionFinal.rules).toEqual([])
+})
+
+test("evaluation replay rejects a stale grade after source-grounded adjudication", () => {
+  expect(typeof evaluation.assertReviewBindings).toBe("function")
+  const grade = { id: "packet-one", final: { rating: "partial" } }
+  expect(() => evaluation.assertReviewBindings([grade], [{ packetId: "packet-one", review: grade }])).not.toThrow()
+  expect(() => evaluation.assertReviewBindings([grade], [{ packetId: "packet-one", review: { ...grade, final: { rating: "full" } } }])).toThrow("Review changed")
+  expect(() => evaluation.assertReviewBindings([grade], [])).toThrow("Review denominator")
+})

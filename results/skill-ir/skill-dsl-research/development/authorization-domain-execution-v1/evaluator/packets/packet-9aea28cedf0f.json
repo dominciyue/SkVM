@@ -1,0 +1,741 @@
+{
+  "schemaVersion": "authorization-aq-anonymous-packet/v1",
+  "id": "packet-9aea28cedf0f",
+  "task": {
+    "brief": "Investigate process_file at /process/file in this Open WebUI revision. Trace the caller, the supplied file_id and the destination collection_name through authorization and the eventual processing or vector write. Explain whether the object authorized for input and the object affected by output are the same, and what happens for caller-owned versus another user's file. Do not assume the caller owns the destination collection. Give visible conditions and specific remaining limits; this is behavior investigation.",
+    "mode": "behavior"
+  },
+  "status": "transport-failed",
+  "initial": null,
+  "final": null,
+  "prose": null,
+  "initialProse": null,
+  "initialValidation": null,
+  "finalValidation": null,
+  "error": "Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"delta\",\"code\":\"invalid_type\"},{\"path\":\"$\",\"code\":\"unrecognized_keys\"}]},{\"transport\":\"prompt-parse\",\"category\":\"json-parse\",\"diagnostics\":[{\"path\":\"$\",\"code\":\"invalid-json\"}]}]",
+  "extractionInitial": {
+    "rules": [],
+    "dependencies": [],
+    "bindings": [],
+    "policyRules": []
+  },
+  "extractionInitialOrigin": "no-control-proposal",
+  "extractionFinal": {
+    "schemaVersion": "authorization-control-slice/v1",
+    "revision": 0,
+    "rules": [],
+    "dependencies": [],
+    "bindings": [],
+    "policyRules": [],
+    "conflicts": [],
+    "revisions": []
+  },
+  "extractionProposals": [],
+  "hostChecks": [],
+  "dependencies": [],
+  "schedulerActions": [],
+  "evidence": [
+    {
+      "id": "ev-0a8fd791f9bb2b1fee03",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1547,
+      "endLine": 1547,
+      "bytes": 31
+    },
+    {
+      "id": "ev-b28e7c999d3f86f18511",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2603,
+      "endLine": 2603,
+      "bytes": 38
+    },
+    {
+      "id": "ev-34cdd5668d0d960ec309",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2675,
+      "endLine": 2675,
+      "bytes": 96
+    },
+    {
+      "id": "ev-16bddd416453c0843ee7",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2696,
+      "endLine": 2696,
+      "bytes": 100
+    },
+    {
+      "id": "ev-cddc79303c63ebca0967",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 252,
+      "endLine": 252,
+      "bytes": 48
+    },
+    {
+      "id": "ev-ce23e564a8f08da4ea17",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1343,
+      "endLine": 1343,
+      "bytes": 28
+    },
+    {
+      "id": "ev-3e914a36d35a848245ab",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1366,
+      "endLine": 1366,
+      "bytes": 99
+    },
+    {
+      "id": "ev-da841e4d923c6fb6f94b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1371,
+      "endLine": 1371,
+      "bytes": 52
+    },
+    {
+      "id": "ev-83af45819130e0a5c426",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1459,
+      "endLine": 1459,
+      "bytes": 84
+    },
+    {
+      "id": "ev-fef56d57d381965a84d6",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1460,
+      "endLine": 1460,
+      "bytes": 76
+    },
+    {
+      "id": "ev-9de3c5e67b1e463d76b1",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1463,
+      "endLine": 1463,
+      "bytes": 91
+    },
+    {
+      "id": "ev-c9ede980e99d50a22600",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1464,
+      "endLine": 1464,
+      "bytes": 83
+    },
+    {
+      "id": "ev-f81406b61d425643c199",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1466,
+      "endLine": 1466,
+      "bytes": 117
+    },
+    {
+      "id": "ev-df8f90c47738c48684ad",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1469,
+      "endLine": 1469,
+      "bytes": 72
+    },
+    {
+      "id": "ev-9269113ddf066af05f41",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1527,
+      "endLine": 1527,
+      "bytes": 67
+    },
+    {
+      "id": "ev-f78a4fb1341992de9513",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1529,
+      "endLine": 1529,
+      "bytes": 52
+    },
+    {
+      "id": "ev-0f2f0d03f13584af2e51",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1533,
+      "endLine": 1533,
+      "bytes": 85
+    },
+    {
+      "id": "ev-87061571778a8d1fed09",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1543,
+      "endLine": 1543,
+      "bytes": 49
+    },
+    {
+      "id": "ev-8b43cac5a91230954128",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1566,
+      "endLine": 1566,
+      "bytes": 63
+    },
+    {
+      "id": "ev-ae6ddc7c7194c5f05d6a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1568,
+      "endLine": 1568,
+      "bytes": 47
+    },
+    {
+      "id": "ev-581492611d75e628f394",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1569,
+      "endLine": 1569,
+      "bytes": 59
+    },
+    {
+      "id": "ev-b3d5d680e8af0768b7f2",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1577,
+      "endLine": 1577,
+      "bytes": 109
+    },
+    {
+      "id": "ev-07ab60199fb73ed90db3",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1596,
+      "endLine": 1596,
+      "bytes": 51
+    },
+    {
+      "id": "ev-bcbabc554bee7455061d",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1601,
+      "endLine": 1601,
+      "bytes": 90
+    },
+    {
+      "id": "ev-d1146fbf9782f053bbb0",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1267,
+      "endLine": 1267,
+      "bytes": 49
+    },
+    {
+      "id": "ev-e26f74da7a44aa614252",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1268,
+      "endLine": 1268,
+      "bytes": 49
+    },
+    {
+      "id": "ev-1b8a194e6eef6218d32c",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1270,
+      "endLine": 1270,
+      "bytes": 63
+    },
+    {
+      "id": "ev-8bab07d4c233386824f6",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1271,
+      "endLine": 1271,
+      "bytes": 45
+    },
+    {
+      "id": "ev-633a4e4771509c8b3732",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1379,
+      "endLine": 1379,
+      "bytes": 78
+    },
+    {
+      "id": "ev-8eaa48e5cf5a6675d8ad",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1380,
+      "endLine": 1380,
+      "bytes": 78
+    },
+    {
+      "id": "ev-f17fca57d95262744d56",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1381,
+      "endLine": 1381,
+      "bytes": 47
+    },
+    {
+      "id": "ev-ecc35e89f6f7912153c5",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1383,
+      "endLine": 1383,
+      "bytes": 84
+    },
+    {
+      "id": "ev-5f7cd32512c98478dd6a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1385,
+      "endLine": 1385,
+      "bytes": 71
+    },
+    {
+      "id": "ev-b9b3abd9344257962002",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1541,
+      "endLine": 1541,
+      "bytes": 24
+    },
+    {
+      "id": "ev-f6e9ffb55ef10aa16815",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1560,
+      "endLine": 1560,
+      "bytes": 75
+    },
+    {
+      "id": "ev-474c2286da3f3d8be63a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1562,
+      "endLine": 1562,
+      "bytes": 96
+    },
+    {
+      "id": "ev-ede436c9575d3442a216",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1573,
+      "endLine": 1573,
+      "bytes": 107
+    },
+    {
+      "id": "ev-f0b43564442a2c235a13",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1576,
+      "endLine": 1576,
+      "bytes": 66
+    },
+    {
+      "id": "ev-ad5d8a0986c3178b4eee",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1589,
+      "endLine": 1589,
+      "bytes": 55
+    },
+    {
+      "id": "ev-b35e5f5c0fc92bf65ade",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1620,
+      "endLine": 1620,
+      "bytes": 59
+    },
+    {
+      "id": "ev-6d976fb200fb830e2aa2",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1644,
+      "endLine": 1644,
+      "bytes": 59
+    },
+    {
+      "id": "ev-9b3fd5129a63d5922dbd",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1658,
+      "endLine": 1658,
+      "bytes": 59
+    },
+    {
+      "id": "ev-d5689aae70b4e5cc4589",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1700,
+      "endLine": 1700,
+      "bytes": 55
+    },
+    {
+      "id": "ev-0d07907c78a7566c2ab6",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2495,
+      "endLine": 2495,
+      "bytes": 24
+    },
+    {
+      "id": "ev-345a460e2b3f74451355",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2506,
+      "endLine": 2506,
+      "bytes": 79
+    },
+    {
+      "id": "ev-3239b313218a6df67fe9",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2592,
+      "endLine": 2592,
+      "bytes": 24
+    },
+    {
+      "id": "ev-d65c9d340fc23fd8bf75",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2634,
+      "endLine": 2634,
+      "bytes": 48
+    },
+    {
+      "id": "ev-7b50b31d6435821c3bfb",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2643,
+      "endLine": 2643,
+      "bytes": 48
+    },
+    {
+      "id": "ev-50e0f6d9e35a5b8eb3cb",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2658,
+      "endLine": 2658,
+      "bytes": 51
+    },
+    {
+      "id": "ev-9656d6a9afa7c2cfab6f",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2672,
+      "endLine": 2672,
+      "bytes": 100
+    },
+    {
+      "id": "ev-68aa47a7211a10751298",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2676,
+      "endLine": 2676,
+      "bytes": 111
+    },
+    {
+      "id": "ev-908f8682705b07729e76",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2692,
+      "endLine": 2692,
+      "bytes": 107
+    },
+    {
+      "id": "ev-7f75f9004a2c98d4e924",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2699,
+      "endLine": 2699,
+      "bytes": 127
+    },
+    {
+      "id": "ev-2ba009e637070e0950c5",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1535,
+      "endLine": 1635,
+      "bytes": 4617
+    },
+    {
+      "id": "ev-10e08e9d6d931a9617ec",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 330,
+      "endLine": 330,
+      "bytes": 40
+    },
+    {
+      "id": "ev-4a7402cf1669089dfb77",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 718,
+      "endLine": 718,
+      "bytes": 37
+    },
+    {
+      "id": "ev-50b742ce38a9b7029b5b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1546,
+      "endLine": 1546,
+      "bytes": 37
+    },
+    {
+      "id": "ev-3c082cbf91266e039620",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1771,
+      "endLine": 1771,
+      "bytes": 37
+    },
+    {
+      "id": "ev-0ab8eff0d96920095ae4",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1806,
+      "endLine": 1806,
+      "bytes": 40
+    },
+    {
+      "id": "ev-b6e9b7b8c0205cff0a72",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1807,
+      "endLine": 1807,
+      "bytes": 36
+    },
+    {
+      "id": "ev-8fc0d66e236e3a87c6e9",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2179,
+      "endLine": 2179,
+      "bytes": 43
+    },
+    {
+      "id": "ev-e6d7524382585b693ef7",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2364,
+      "endLine": 2364,
+      "bytes": 34
+    },
+    {
+      "id": "ev-a51b70b05b7fb5e6b627",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2432,
+      "endLine": 2432,
+      "bytes": 41
+    },
+    {
+      "id": "ev-f84e2b9662acacc3430c",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2498,
+      "endLine": 2498,
+      "bytes": 31
+    },
+    {
+      "id": "ev-6c62df6245847c374c42",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2550,
+      "endLine": 2550,
+      "bytes": 33
+    },
+    {
+      "id": "ev-79b224bd5994aa89c1af",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2556,
+      "endLine": 2556,
+      "bytes": 38
+    },
+    {
+      "id": "ev-eb018015663bc550cf65",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2602,
+      "endLine": 2602,
+      "bytes": 44
+    },
+    {
+      "id": "ev-ec4ae791f442a8b35a57",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1636,
+      "endLine": 1770,
+      "bytes": 6608
+    },
+    {
+      "id": "ev-b5d6d5a53b0e5f0738fe",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/files.py",
+      "sha256": "bba7349241119a4f8efcf5f8f227751ba92029e4604948d11bc6183a94d42424",
+      "startLine": 150,
+      "endLine": 190,
+      "bytes": 1808
+    },
+    {
+      "id": "ev-956e7cc0c4ebb4682685",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/main.py",
+      "sha256": "6ba3213da413b8fa3e10e2ed110e90e09c05f10cb65236fff281bd66618dfa95",
+      "startLine": 1427,
+      "endLine": 1427,
+      "bytes": 92
+    }
+  ],
+  "deliveryValid": false,
+  "reviewCaution": "Citations and host consistency do not prove extraction meaning. Evaluate raw first/final and final prose against original source at the retained evidence ranges. A native prose answer can be delivered despite failed host checking. Representation may reveal strategy; arm, cost and target scores are hidden. No earlier answer is supplied."
+}

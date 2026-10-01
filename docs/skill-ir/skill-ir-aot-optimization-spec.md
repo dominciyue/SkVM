@@ -2594,8 +2594,10 @@ AM质量分别记录回答可靠性与任务解决，历史AK/AL评分保持。�
 
 **AO证据边界（2026-10-01）。** 56行全部终结、319次实际provider请求；32质量首答8/终答9完整，24主行M/D0/D1终答分别2/1/1（各8），8变化行M/D1分别3/2（各4），未建立稳定领域路线质量优势。8作者稿全部语义有效，但消费6/8交付、2/8严格完整。8普通源skill均实际加载原文；四领域包均调用compile，只有三包交付checked domain result，工具预算拒绝保留。源码只能证明所测范围的行为；结构/注册/已调用不等于语义正确或整份skill职责完成。自然输入的mode/policy必须由native runtime传递给模型；AO13零调用反例已修复普通scope-only输入缺失，已关闭实验因自然prompt原已提供这些字段而不重抽。匿名review原文、裁定、费用与剩余问题见[研究§7.34](skill-dsl-research.md#734-ao-真实授权任务与领域取证工具)和[评价](../../results/skill-ir/skill-dsl-research/development/authorization-inquiry-tools-v1/evaluation-summary.json)。
 
-**AQ领域执行合同（2026-10-01，已接线、真实效果待测）。** [AQ0–AQ16](../superpowers/plans/2026-10-01-authorization-domain-execution.md)沿用单repo/ref源码可见授权范围，增加可选`domain-evidence-v1`。版本化局部控制slice承载模型从本次展示源码提取的主体/资源/guard/effect/条件/依赖；用户前提、规范政策、源码观测、模型解释和宿主推导分列。宿主实际调度范围内依赖读取，执行有限三值条件代数并保留residual，再检查对象绑定、分支适用性、冲突及行为/政策一致性。规则sourceBound、形式一致和semanticSupport分别记录，不从policy生成源码答案，不因一次引用有效而认定提取正确。
+**AQ领域执行合同（2026-10-02，有限研究关闭、收益未建立）。** [AQ0–AQ16](../superpowers/plans/2026-10-01-authorization-domain-execution.md)沿用单repo/ref源码可见授权范围，增加可选`domain-evidence-v1`。版本化局部控制slice承载模型从本次展示源码提取的主体/资源/guard/effect/条件/依赖；用户前提、规范政策、源码观测、模型解释和宿主推导分列。宿主实际调度范围内依赖读取，执行有限三值条件代数并保留residual，再检查对象绑定、分支适用性、冲突及行为/政策一致性。规则sourceBound、形式一致和semanticSupport分别记录，不从policy生成源码答案，不因一次引用有效而认定提取正确。
 
 AQ普通inquiry与native共用状态机，旧接口/默认保持。所有自动补读进入共同工具与字节预算；native保持AP24总/22探索/2check，inquiry-run的24源码动作与12真实provider请求分账。每个提取/作者/fallback/修复调用计入限额，最多一次交付修复。当前自然任务不要求用户填写控制图；关系不适用可局部跳过，有影响的源码缺口不能静默丢失。规则修改或任务/源码变更使相应推导失效，原始模型文字和错误保留。
 
 AQ计划40四臂质量session、4消融和4普通原skill消费，全部已暴露development；M/D1与legacy/新策略共用AP后运行器、相同原始材料与预算。提取质量、机制执行、终答语义及成本分层评价，若共同执行器帮助两种表示，收益归于执行支持。最多一次具名共享实现修订另8行；旧AO/AP、保护输入和readiness不变。不预定positive，具体设计和复盘见[研究§7.35](skill-dsl-research.md#735-aq-授权领域执行设计)。
+
+**AQ实测边界。** 48首轮与8共享Schema修订均终结，434次provider调用、0目标执行。四质量臂首/终full1/1/1/1（各10），修订另列full1/8；协议失败和原始回答全部保留。真实自动补读11次/7会话，未证明host不适用分支排除收益。四原skill消费加载完整原文、compile/check均实际调用，raw语义full3/4但checked交付0/4、自动补读0；AQ13完整机制链未满足，工程接线不等于普通自动采用。当前compare报告变化及机械索引适用性，变化任务fresh分析，未实现政策单独重算的复用节省。独立评语与已暴露主开发者的具体源码裁定分列，最终分数不声称完全独立盲评。保留可选能力、旧默认与readiness；有限研究结论negative/benefit-not-established，不自动扩大样本。

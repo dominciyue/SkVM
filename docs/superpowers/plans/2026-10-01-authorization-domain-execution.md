@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 authorization/inquiry/native 实现与源码位置索引。沿用现有 CLI，不建设新平台或统一 IR。
 
-状态：`active / AQ11-primary-48-closed / shared-schema-repair-verified / eight-revisions-ready / semantic-review-pending`。规划基线为 `2c7dd07380999ca8df971a7cdc64d5e7ed1733c5`；实际干净启动头为 `c0cd32d2ff0a1824d84025bced4f1de5dfcbcabf`。目录 `D:\skill优化\SkVM`；分支 `skill-ir-aot`；唯一发布目标为用户 `origin/skill-ir-aot`。40输入及两原skill loader/reference零paid预检通过；48个首轮真实会话已终态关闭，记录358次provider调用（22 completed、20 transport-failed、2 budget-exhausted、1 timeout-unknown、2 completed-with-diagnostics、1 adapter-crashed）。用户中断当前操作后恢复检查未发现仍运行的所属generator/worker，新增模型调用0。用户已要求恢复直至完成。共享schema转换缺陷及修订身份接线的两项红例新鲜复现后已修复；481 pass/1 skip、3208断言、主/研究类型及原48行零调用重放通过。准备绑定一次共享修订的8行独立实现；独立语义評閱与发布尚未执行。
+状态：`closed-with-unmet-criteria / primary-48-and-revision-8-closed / source-adjudicated / benefit-not-established`。规划基线为 `2c7dd07380999ca8df971a7cdc64d5e7ed1733c5`；实际干净启动头为 `c0cd32d2ff0a1824d84025bced4f1de5dfcbcabf`。目录 `D:\skill优化\SkVM`；分支 `skill-ir-aot`；唯一发布目标为用户 `origin/skill-ir-aot`。首轮绑定`3d4ba681`，唯一8行共享Schema修订绑定`04b1b220`，全部56行终态保留。434次provider调用、0目标执行；四质量臂首/终full1/1/1/1（各10），修订另列full1/8。6首评、3定向二审、2图审、2定向源码核验与主开发者沿源码的裁定完成，原文和失败均保留；最终不是完全独立盲评。481 pass/1平台skip、3208断言、主/研究类型、56行study/evaluation零调用重放及研究8测试/52断言通过。AQ8政策单独重算未实现；四原skill消费虽raw语义full3/4且compile/check有记录，自动读取0、checked交付0/4，AQ13完整采用链未达。本轮有限研究关闭、不追加付费；最终有限检查和发布身份以[AQ机器状态](../../results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/status.json)为准。
 
 开发任务请求 `gpt-6.1-sol / max / Flash`。派发工具支持 model/effort，当前没有速度参数；记录实际可确认设置，Flash 未确认时如实说明，不修改全局配置。被测模型继续使用已配置的 `xty/gpt-5.6-sol`，与开发模型分账。
 
@@ -47,6 +47,8 @@ AO 中允许范围内的 helper 未读，属于取证策略缺口；owner/null-o
 实施位置校准：实际adapter为`src/adapters/bare-agent.ts`，相关测试为`bare-authorization.test.ts`，不另建adapter。AQ8 compare分别记录policy/premise/source/strategy变化及机械索引适用性；为保持当前任务来源明确，不自动复用旧语义slice，变化任务fresh分析，未主张政策单独重算带来成本节省。sourceBound/checked只证明引用与运行合同，语义提取仍独立评价。
 
 AQ11实际协议发现：初始真实request把ControlRule key等ZodEffects字符串转换成object，unknown record值及null也误为object；已有fallback无法修复错误的模型Schema。字段捕获测试已确认红灯。为保留同一首轮实现，48原登记仍绑定`3d4ba681`，不在运行中混入补丁；一次共享修订仅在primary关闭后实施。语义评分前已固定四项目病例OWUI ingestion、Paperless notes、Gitea self-query、Memos remove的M-E/D-E各一对，共8行，记录在AQ root/shared-revision.json。修订不改任务、source、原失败或旧答案，不给缺陷面板建立机制语义收益主张；native使用手写opaque参数Schema不受这次转换缺陷直接影响，不额外重抽native。
+
+2026-10-02收口：修订8行另76调用，full1/8；真实自动补读11次/7会话，无完全重复区间，host不适用路径排除0。保留共享纯模块与可选入口的工程证据；不能以raw正确或测试通过宣称原skill完整自动采用链已实现。以下未勾选的AQ8/AQ13/工程全验收条目是已确认未达项，不是尚待自动追加采样的任务。逐条原因、效果、完整token与未知USD见[AQ结果](../../results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/README.md)与研究§7.35。
 
 ## 3. 领域合同
 
@@ -133,90 +135,90 @@ native 继续使用 AP 总24、探索22、最终check2，compile/observe/referen
 
 **Files:** 本任务书、AQ root/status.json、journal.jsonl。
 
-- [ ] 记录实际分支/HEAD/工作树；核对 AP 已包含，不再重跑全部历史审计。
-- [ ] 按本任务书建立 AQ0–AQ16 状态；质量与工程分别有状态，不能用测试通过替代真实使用。
-- [ ] 记录开发模型/effort 和可确认速度。检查已配置 provider 的本地路线，不发连通性付费探针、不输出密钥。
+- [x] 记录实际分支/HEAD/工作树；核对 AP 已包含，不再重跑全部历史审计。
+- [x] 按本任务书建立 AQ0–AQ16 状态；质量与工程分别有状态，不能用测试通过替代真实使用。
+- [x] 记录开发模型/effort 和可确认速度。检查已配置 provider 的本地路线，不发连通性付费探针、不输出密钥。
 
 ### AQ1：固定真实缺口与可执行语义
 
 **Read:** AO manifest/evaluation-summary、相关源码与上述三个来源。
 **Write:** 研究 §7.35 的方法细节；AQ root/mechanism-cases.json。
 
-- [ ] 将 OWUI 输入/输出对象、Paperless owner/null-owner、Gitea 上游权限、Memos self/admin/政策变化各列一条因果链：旧遗漏→新机制→可观察变化。
-- [ ] 区分可读未读、语义提取错误、分支适用性、政策对照错误、AP协议失败；不要把它们合成一个“失败率”。
-- [ ] 所有实际分支答案只放 evaluator 材料。生成材料只留自然任务、独立政策、同一原始源码权限。
+- [x] 将 OWUI 输入/输出对象、Paperless owner/null-owner、Gitea 上游权限、Memos self/admin/政策变化各列一条因果链：旧遗漏→新机制→可观察变化。
+- [x] 区分可读未读、语义提取错误、分支适用性、政策对照错误、AP协议失败；不要把它们合成一个“失败率”。
+- [x] 所有实际分支答案只放 evaluator 材料。生成材料只留自然任务、独立政策、同一原始源码权限。
 
 ### AQ2：局部控制合同与来源
 
 **Create:** `src/task-dsl/authorization/control-slice.ts`、`control-slice.test.ts`。
 **Reuse:** inquiry types、evidence ID/context。
 
-- [ ] 失败测试覆盖跨问题证据、未读引用、policy 冒充 source、null 与 missing、引用同名不同对象、冲突 delta、未知版本和超限节点。
-- [ ] 实现 schema、稳定局部 ID、增量合并与 sourceBound/semanticSupport 分列。重复相同 delta 幂等，语义冲突返回诊断，不吞原提议。
-- [ ] 领域合同只要求实际适用的关系；不存在角色/owner 字段的任务可以通过其余关系分析。
+- [x] 失败测试覆盖跨问题证据、未读引用、policy 冒充 source、null 与 missing、引用同名不同对象、冲突 delta、未知版本和超限节点。
+- [x] 实现 schema、稳定局部 ID、增量合并与 sourceBound/semanticSupport 分列。重复相同 delta 幂等，语义冲突返回诊断，不吞原提议。
+- [x] 领域合同只要求实际适用的关系；不存在角色/owner 字段的任务可以通过其余关系分析。
 
 ### AQ3：依赖状态与有界位置解析
 
 **Create:** `src/benchmarks/authorization-dsl/inquiry-domain-scheduler.ts`、对应测试。
 **Reuse/Modify:** `inquiry-tools.ts` 的既有定位与 execute 接口。
 
-- [ ] 失败测试：helper 候选从已读调用处产生；唯一位置可读；同名两函数必须消歧；跨范围/循环/源码变化停止对应依赖；改仓库名/路径前缀不改变策略。
-- [ ] 维护稳定优先队列、去重与路径条件，缓存以 source identity、文件版本、单元位置及当前任务依赖为键；不能用上轮模型答案作新任务事实。
-- [ ] 使用现有 Python/Go 等符号定位能力；必要的语法支持放通用定位模块。位置不确定时保持候选，不为个别仓库写路径成功分支。
+- [x] 失败测试：helper 候选从已读调用处产生；唯一位置可读；同名两函数必须消歧；跨范围/循环/源码变化停止对应依赖；改仓库名/路径前缀不改变策略。
+- [x] 维护稳定优先队列、去重与路径条件，缓存以 source identity、文件版本、单元位置及当前任务依赖为键；不能用上轮模型答案作新任务事实。
+- [x] 使用现有 Python/Go 等符号定位能力；必要的语法支持放通用定位模块。位置不确定时保持候选，不为个别仓库写路径成功分支。
 
 ### AQ4：模型提取与实际调度接线
 
 **Modify:** `inquiry-run.ts`、`inquiry-native.ts`；scheduler。
 **Test:** 两入口对应测试与 scheduler 测试。
 
-- [ ] 在一次既有分析响应内允许模型提议局部规则/依赖；宿主校验后选择真实补读，随后把新证据交回模型。不要为每个节点新开模型请求。
-- [ ] mock 复现：模型只读入口并报告一个决定性 helper，宿主在同一会话实际读取该 helper；追踪记录有 scheduler origin 和明确因果理由。
-- [ ] 测试自动读取占用同一个24动作预算、native保留2次check、无剩余额度不补发；失败读和拒绝分别留账。
+- [x] 在一次既有分析响应内允许模型提议局部规则/依赖；宿主校验后选择真实补读，随后把新证据交回模型。不要为每个节点新开模型请求。
+- [x] mock 复现：模型只读入口并报告一个决定性 helper，宿主在同一会话实际读取该 helper；追踪记录有 scheduler origin 和明确因果理由。
+- [x] 测试自动读取占用同一个24动作预算、native保留2次check、无剩余额度不补发；失败读和拒绝分别留账。
 
 ### AQ5：有限条件代数与部分求值
 
 **Create:** `src/task-dsl/authorization/control-evaluation.ts`、对应测试。
 
-- [ ] 先测完整三值真值表与引用绑定：所有 all/any/not 组合、eq/neq、null/missing、不同 scalar 类型，嵌套表达式受深度/节点上限约束。
-- [ ] 实现 `partialEvaluate`，返回 truth/residual/missingBindings；不借助模型、目标代码执行或 JavaScript eval。
-- [ ] 具体业务反例：owner明确null时owner非空分支inapplicable；unknown grant在明确早拒绝之后无关；资源A检查不能移作资源B授权；政策改变不改变源码behavior。
-- [ ] 保存原式和推导轨迹。未知表达式、不支持的谓词保留残余，不默认为 false。
+- [x] 先测完整三值真值表与引用绑定：所有 all/any/not 组合、eq/neq、null/missing、不同 scalar 类型，嵌套表达式受深度/节点上限约束。
+- [x] 实现 `partialEvaluate`，返回 truth/residual/missingBindings；不借助模型、目标代码执行或 JavaScript eval。
+- [x] 具体业务反例：owner明确null时owner非空分支inapplicable；unknown grant在明确早拒绝之后无关；资源A检查不能移作资源B授权；政策改变不改变源码behavior。
+- [x] 保存原式和推导轨迹。未知表达式、不支持的谓词保留残余，不默认为 false。
 
 ### AQ6：路径处理与结论一致性
 
 **Create:** `src/task-dsl/authorization/control-conclusion.ts`、对应测试。
 **Modify:** `inquiry-result.ts` 的可选策略检查组合。
 
-- [ ] 先写至少六个反例：错资源；allow/reject冲突；错误保留owner分支；早拒绝后虚构缺口；未读可补helper却完整；behavior=allow与独立deny policy比较混淆。
-- [ ] 从控制slice和前提求活动路径及结果；使用显式顺序/边绑定，不按数组排列猜源码执行顺序。
-- [ ] 分列 `structureValid / sourceBound / ruleConsistency / semanticSupport / taskResolution`。同一检查器不会把自生规则标为语义已证；原始模型结果和宿主诊断并存。
-- [ ] 结论差异只进入一次既有修复；修复后仍不一致则部分交付并给局部缺口。保留首答和最终答案，不静默改写错误解释。
+- [x] 先写至少六个反例：错资源；allow/reject冲突；错误保留owner分支；早拒绝后虚构缺口；未读可补helper却完整；behavior=allow与独立deny policy比较混淆。
+- [x] 从控制slice和前提求活动路径及结果；使用显式顺序/边绑定，不按数组排列猜源码执行顺序。
+- [x] 分列 `structureValid / sourceBound / ruleConsistency / semanticSupport / taskResolution`。同一检查器不会把自生规则标为语义已证；原始模型结果和宿主诊断并存。
+- [x] 结论差异只进入一次既有修复；修复后仍不一致则部分交付并给局部缺口。保留首答和最终答案，不静默改写错误解释。
 
 ### AQ7：普通入口、native 和生命周期
 
 **Modify:** `inquiry-local.ts`、`src/cli/authorization-inquiry.ts`、`src/adapters/bare-authorization.ts` 及其参数注册位置；对应测试。
 
-- [ ] 增加显式 strategy 选项，check/inspect/compare 看得见实际策略、控制状态、来源与失败。零调用check可验证配置，无法预判真实源码答案。
-- [ ] 同一输入经普通与native进入相同纯模块；测试 legacy 原输出兼容、新开关错误值、missing policy、规则修订后旧成功失效、会话关闭后无续发。
-- [ ] 保存 scheduler、rule delta、partial evaluation 和 check 的紧凑轨迹。保留全部实际provider请求计量，不在context中重复附加整份旧ledger/原始失败响应。
+- [x] 增加显式 strategy 选项，check/inspect/compare 看得见实际策略、控制状态、来源与失败。零调用check可验证配置，无法预判真实源码答案。
+- [x] 同一输入经普通与native进入相同纯模块；测试 legacy 原输出兼容、新开关错误值、missing policy、规则修订后旧成功失效、会话关闭后无续发。
+- [x] 保存 scheduler、rule delta、partial evaluation 和 check 的紧凑轨迹。保留全部实际provider请求计量，不在context中重复附加整份旧ledger/原始失败响应。
 
 ### AQ8：任务修改、复用与可读包
 
 **Modify:** `examples/authorization-assessment/reusable-skill/`、inquiry edit/compare 的策略依赖；相关测试。
 
 - [ ] 同包支持自然brief；变更policy只重算政策相关解释，变更前提使分支/结论需复查，source变化使提取的控制规则失效。
-- [ ] 可复用未变源的机械索引/字节缓存；语义解释复用要保留依赖与缺口并重新检查。新任务不偷用旧答案或evaluator。
-- [ ] 包内说明简洁列用户输入、程序负责的步骤、仍由模型分析的部分。旧源skill正文和其余审查职责保留。
-- [ ] 编写四种确定性变化用例：policy-only、owner-premise-only、源码早拒绝、符号/路径重命名；原任务可读、变化可追踪。
+- [x] 可复用未变源的机械索引/字节缓存；语义解释复用要保留依赖与缺口并重新检查。新任务不偷用旧答案或evaluator。
+- [x] 包内说明简洁列用户输入、程序负责的步骤、仍由模型分析的部分。旧源skill正文和其余审查职责保留。
+- [x] 编写四种确定性变化用例：policy-only、owner-premise-only、源码早拒绝、符号/路径重命名；原任务可读、变化可追踪。
 
 ### AQ9：联合反例与零调用预检
 
 **Tests:** 新纯模块、inquiry-run/native/local、adapter/CLI、structured provider。
 
-- [ ] 用中性的synthetic源码跑完整“读入口→调度helper→提取规则→分支求值→结果检查→一次修复”，逐步断言真实执行，而非只检查工具注册。
-- [ ] 用相同fixture证明关闭scheduler或分支检查时相应反例复现；这些是机制测试，不记作真实质量分。
-- [ ] 两source skill的loader/reference/只读工具零调用接线预检；模型配置本地路由、相对路径搬移、源码/oracle隔离同时确认。
-- [ ] 若本轮还停留在字段/提示，没有实际host补读与纯函数分支推导，继续修实现，不能提前进入大面板。
+- [x] 用中性的synthetic源码跑完整“读入口→调度helper→提取规则→分支求值→结果检查→一次修复”，逐步断言真实执行，而非只检查工具注册。
+- [x] 用相同fixture证明关闭scheduler或分支检查时相应反例复现；这些是机制测试，不记作真实质量分。
+- [x] 两source skill的loader/reference/只读工具零调用接线预检；模型配置本地路由、相对路径搬移、源码/oracle隔离同时确认。
+- [x] 若本轮还停留在字段/提示，没有实际host补读与纯函数分支推导，继续修实现，不能提前进入大面板。
 
 ## 6. 真实验证 AQ10–AQ13
 
@@ -235,45 +237,45 @@ native 继续使用 AP 总24、探索22、最终check2，compile/observe/referen
 
 M-E可接收运行期局部规则提议，但不先塞入预编完整目标DSL；D臂自然作者成本照常记录。四臂共同源权限、可见规范事实、模型、输出质量要求、最多一次交付修复与预算。比较的是路线/运行支持；如果 M-E 与 D-E 同获益，归因为领域执行，不能归为 JSON 语法优势。
 
-- [ ] 8任务×4臂=32主session；预先指定 `owui-ingestion` 和 `paperless-notes` 各重复一次四臂=8，独立标记重复，共40质量session。
-- [ ] 两机制病例 `owui-ingestion`、`paperless-notes` 各加D-E“关闭自动调度”和“关闭部分求值/结论一致性”两个消融session，共4。其余条件及可见通用领域指导保持，基础结构/引用检查不关闭。
-- [ ] 两真实源skill的普通native使用共4session，见AQ13。正常总量48session，作者/提取/fallback均记录实际请求数；正常新增作者大面板为0。
-- [ ] per-call300s、session1200s、最多12实际provider dispatch、24工具动作、256KiB累计target-source展示；索引512文件/8MiB。native继续22+2。所有字段与实际实现一致，未支持的参数先接通再运行。
-- [ ] 轮换臂顺序，重复块反序；最多2个真实session并发，独立运行目录。所有提取/作者/fallback/修复计入总调用，模型设置及provider实际返回单列。
-- [ ] 一份manifest记录实现commit与各输入身份即可；模型可读根不含旧答案、review/oracle、expected分支或手填helper清单。原manifest里的metadata与模型材料分开。
-- [ ] rubric按任务决策、必要控制、分支适用性、对象绑定、合理未知、证据支持评价。不要用DSL字段数量、术语一致或路径全文穷举加分。
+- [x] 8任务×4臂=32主session；预先指定 `owui-ingestion` 和 `paperless-notes` 各重复一次四臂=8，独立标记重复，共40质量session。
+- [x] 两机制病例 `owui-ingestion`、`paperless-notes` 各加D-E“关闭自动调度”和“关闭部分求值/结论一致性”两个消融session，共4。其余条件及可见通用领域指导保持，基础结构/引用检查不关闭。
+- [x] 两真实源skill的普通native使用共4session，见AQ13。正常总量48session，作者/提取/fallback均记录实际请求数；正常新增作者大面板为0。
+- [x] per-call300s、session1200s、最多12实际provider dispatch、24工具动作、256KiB累计target-source展示；索引512文件/8MiB。native继续22+2。所有字段与实际实现一致，未支持的参数先接通再运行。
+- [x] 轮换臂顺序，重复块反序；最多2个真实session并发，独立运行目录。所有提取/作者/fallback/修复计入总调用，模型设置及provider实际返回单列。
+- [x] 一份manifest记录实现commit与各输入身份即可；模型可读根不含旧答案、review/oracle、expected分支或手填helper清单。原manifest里的metadata与模型材料分开。
+- [x] rubric按任务决策、必要控制、分支适用性、对象绑定、合理未知、证据支持评价。不要用DSL字段数量、术语一致或路径全文穷举加分。
 
 ### AQ11：真实生成与恢复
 
-- [ ] 从48个登记单元推进；四臂由当前同一实现执行，不用旧AO响应拼对照。原始首答、终答、提取图、宿主动作及失败全部保留。
-- [ ] 已派发未知完成不自动重发；明确未派发的配置故障可以修配置后恢复同单元并保留尝试。连续两次基础设施失败时停止新增付费派发，继续离线实现/评价/文档，不重复探针。
-- [ ] 首轮结果全部封存后才做语义评价；运行器不能读取evaluator-only材料。开发者已见旧案例的暴露状态如实标注。
-- [ ] 如暴露共享实现缺陷，先用确定性测试证实，允许一次共享修订，最多预登记4对受影响session（8行），单列revision。低质量、模型遗漏或未赢本身不构成重抽理由。
+- [x] 从48个登记单元推进；四臂由当前同一实现执行，不用旧AO响应拼对照。原始首答、终答、提取图、宿主动作及失败全部保留。
+- [x] 已派发未知完成不自动重发；明确未派发的配置故障可以修配置后恢复同单元并保留尝试。连续两次基础设施失败时停止新增付费派发，继续离线实现/评价/文档，不重复探针。
+- [x] 首轮结果全部封存后才做语义评价；运行器不能读取evaluator-only材料。开发者已见旧案例的暴露状态如实标注。
+- [x] 如暴露共享实现缺陷，先用确定性测试证实，允许一次共享修订，最多预登记4对受影响session（8行），单列revision。低质量、模型遗漏或未赢本身不构成重抽理由。
 
 ### AQ12：独立评价与机制归因
 
-- [ ] 用匿名packet分别评价原始提取与最终答案，隐藏arm/成本/目标成绩；评阅者读原源码和独立rubric。表示可能被猜出，如实说明。
-- [ ] 错误按“未定位/未读、提取错误、规则表达不足、调度优先级、前提/分支、政策对照、结论检查漏检、协议/基础设施”归因，允许多因；逐项给出处，避免只给full总数。
-- [ ] 报告40质量session首答/终答完整、决定性错误、过度unknown、false-complete；重复块、4消融、4native分列，不拼成一个成功率。
-- [ ] 统计实际调度补读、决定性依赖命中、无效/重复读取、被排除/保留分支、checker检出及误拒，连同完整tokens/缓存/调用/墙钟/实际USD。未知不补0，不估算真人分钟。
-- [ ] 用结果决定哪些机制保留、哪项仍缺提取能力。即使负向也完成工程说明和复盘，不扩大样本寻求positive。
+- [x] 用匿名packet分别评价原始提取与最终答案，隐藏arm/成本/目标成绩；评阅者读原源码和独立rubric。表示可能被猜出，如实说明。
+- [x] 错误按“未定位/未读、提取错误、规则表达不足、调度优先级、前提/分支、政策对照、结论检查漏检、协议/基础设施”归因，允许多因；逐项给出处，避免只给full总数。
+- [x] 报告40质量session首答/终答完整、决定性错误、过度unknown、false-complete；重复块、4消融、4native分列，不拼成一个成功率。
+- [x] 统计实际调度补读、决定性依赖命中、无效/重复读取、被排除/保留分支、checker检出及误拒，连同完整tokens/缓存/调用/墙钟/实际USD。未知不补0，不估算真人分钟。
+- [x] 用结果决定哪些机制保留、哪项仍缺提取能力。即使负向也完成工程说明和复盘，不扩大样本寻求positive。
 
 ### AQ13：原skill真实使用与变化
 
 使用AO已归档的 Cloudflare `security-audit` 和 GitHub `security-review` 两来源正文与直接引用，固定ref，分别接 Paperless notes 与 Memos remove 的授权职责。完整原文保留，补充工具说明的改动单列。
 
-- [ ] Cloudflare包：原任务与“owner明确null”的变化任务各1次；GitHub包：原规范与AO已登记policy/v2变化各1次，共4次普通native消费。
+- [x] Cloudflare包：原任务与“owner明确null”的变化任务各1次；GitHub包：原规范与AO已登记policy/v2变化各1次，共4次普通native消费。
 - [ ] 复用现有loader/普通run，实际出现compile/局部规则提议、scheduler源码补读、条件处理和check记录；某项因任务本就不适用时给出运行理由。
-- [ ] 两包共用同一执行实现；不手改生成的控制规则或最终答案。记录原文加载、程序实际调用、保留职责和效果。
-- [ ] 这些运行评价使用与变化响应，不声称真人作者时间节省。普通包必须从任务文本出发，不能依赖研究runner读取oracle或先写答案。
+- [x] 两包共用同一执行实现；不手改生成的控制规则或最终答案。记录原文加载、程序实际调用、保留职责和效果。
+- [x] 这些运行评价使用与变化响应，不声称真人作者时间节省。普通包必须从任务文本出发，不能依赖研究runner读取oracle或先写答案。
 
 ## 7. 收口 AQ14–AQ16
 
 ### AQ14：普通示例与唯一研究正文
 
-- [ ] 更新 `docs/usage.md`、`docs/skill-ir/developer-guide.md` 与已有reusable-skill示例；给零调用check、真实run、inspect、edit/compare的实际可运行命令。
-- [ ] 在 §7.35 记录“问题→原因→共享实现→确定性验证→真实结果→剩余缺口”，尤其说明规则提取错误是否被后续程序放大。
-- [ ] 当前状态、spec §14.34、执行计划和任务书同步最终行为。没有真实数据时保持未测，不用设计文字替代运行证据。
+- [x] 更新 `docs/usage.md`、`docs/skill-ir/developer-guide.md` 与已有reusable-skill示例；给零调用check、真实run、inspect、edit/compare的实际可运行命令。
+- [x] 在 §7.35 记录“问题→原因→共享实现→确定性验证→真实结果→剩余缺口”，尤其说明规则提取错误是否被后续程序放大。
+- [x] 当前状态、spec §14.34、执行计划和任务书同步最终行为。没有真实数据时保持未测，不用设计文字替代运行证据。
 
 ### AQ15：有限验证与一次独立复核
 
@@ -288,9 +290,9 @@ python -m unittest discover -s scripts -p check_skill_ir_doc_links_test.py
 git diff --check
 ```
 
-- [ ] 相关测试、typecheck、新证据零调用replay、文档检查各做一次。修复具体失败后只重跑受影响检查，不重复历史全量审计。
-- [ ] 独立只读复核一次，重点看oracle泄漏、前提/源码来源、scheduler实际执行、规则求值错误和预算；主线程沿具体行号处理，不盲从概括性建议。
-- [ ] 确认AO/AP历史结果未改，本轮暂存路径归属和凭据检查通过。无需再创建一套clean-archive哈希体系。
+- [x] 相关测试、typecheck、新证据零调用replay、文档检查各做一次。修复具体失败后只重跑受影响检查，不重复历史全量审计。
+- [x] 独立只读复核一次，重点看oracle泄漏、前提/源码来源、scheduler实际执行、规则求值错误和预算；主线程沿具体行号处理，不盲从概括性建议。
+- [x] 确认AO/AP历史结果未改，本轮暂存路径归属和凭据检查通过。无需再创建一套clean-archive哈希体系。
 
 ### AQ16：提交、发布和结束
 

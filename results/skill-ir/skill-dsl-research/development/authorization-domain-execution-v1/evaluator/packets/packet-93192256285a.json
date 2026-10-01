@@ -1,0 +1,1688 @@
+{
+  "schemaVersion": "authorization-aq-anonymous-packet/v1",
+  "id": "packet-93192256285a",
+  "task": {
+    "brief": "Check creating a share through ShareLinkViewSet against the current independently supplied policy. A principal asks to share an existing document; determine which endpoint and object controls apply to that exact document before the share is created. Include relevant inherited permission and serializer paths. Do not assume that document existence or a global model permission grants access to this document. Explain source behavior, policy compliance and specific missing facts.",
+    "mode": "conformance",
+    "policy": {
+      "text": "A caller creating a document share must have view_document permission for the exact shared document. A global add_sharelink permission or knowing a document ID alone is insufficient.",
+      "origin": "user",
+      "location": "experimental-user-brief:paperless-share-policy/v1"
+    }
+  },
+  "status": "completed-with-diagnostics",
+  "initial": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "sharelink-behavior",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The visible create path is conditional on an authenticated request, the POST/model-level permission path configured by PaperlessObjectPermissions, and ShareLinkSerializer validation of the exact selected document. The serializer rejects unless user.has_perm(\"documents.view_document\") and has_perms_owner_aware(user, \"view_document\", document) both succeed. On successful validation, it creates a ShareLink for that document with a generated slug. Exact inherited framework mechanics and the helper's internal exception branches are not shown."
+        },
+        "branches": [
+          {
+            "id": "unauthenticated",
+            "condition": "The request is not authenticated.",
+            "disposition": "deny",
+            "explanation": "ShareLinkViewSet includes IsAuthenticated.",
+            "evidenceIds": [
+              "ev-bec2b15ccdb4e93043eb"
+            ]
+          },
+          {
+            "id": "post-model-permission-fails",
+            "condition": "The inherited PaperlessObjectPermissions POST check does not grant the required ShareLink add permission.",
+            "disposition": "deny",
+            "explanation": "The view applies PaperlessObjectPermissions, whose POST mapping is add_<model>; the view model is ShareLink.",
+            "evidenceIds": [
+              "ev-bec2b15ccdb4e93043eb",
+              "ev-c6988b270a6495cc61fd"
+            ]
+          },
+          {
+            "id": "global-document-view-fails",
+            "condition": "serializer.user is null or user.has_perm(\"documents.view_document\") is false.",
+            "disposition": "deny",
+            "explanation": "validate_document raises PermissionDenied unless the user exists and the global view_document test succeeds.",
+            "evidenceIds": [
+              "ev-b77f458b6932208c6bee",
+              "ev-734e2fde9e7a31fe1f58"
+            ]
+          },
+          {
+            "id": "exact-document-helper-fails",
+            "condition": "has_perms_owner_aware(user, \"view_document\", selected_document) is false.",
+            "disposition": "deny",
+            "explanation": "The selected document is rejected before create.",
+            "evidenceIds": [
+              "ev-734e2fde9e7a31fe1f58"
+            ]
+          },
+          {
+            "id": "all-visible-checks-pass",
+            "condition": "Authentication, the inherited POST permission path, global documents.view_document, and has_perms_owner_aware for the selected document all succeed, and ordinary inherited serializer/model creation succeeds.",
+            "disposition": "allow",
+            "explanation": "The serializer accepts the exact document, generates a slug, and delegates creation of the ShareLink referring to that document.",
+            "evidenceIds": [
+              "ev-bec2b15ccdb4e93043eb",
+              "ev-c6988b270a6495cc61fd",
+              "ev-b77f458b6932208c6bee",
+              "ev-734e2fde9e7a31fe1f58",
+              "ev-fc0037336c0952214692"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-870d6c191245a4a099b5",
+          "ev-bec2b15ccdb4e93043eb",
+          "ev-c6988b270a6495cc61fd",
+          "ev-b77f458b6932208c6bee",
+          "ev-734e2fde9e7a31fe1f58",
+          "ev-085b43372cb4a1681a64",
+          "ev-fc0037336c0952214692"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The implementation of has_perms_owner_aware was not read, so its precise ownership, guardian, superuser, global-permission, and object-permission success branches remain unspecified.",
+            "nextRead": "Locate and read the definition of has_perms_owner_aware within the allowed source, if present."
+          },
+          {
+            "kind": "dependency-out-of-scope",
+            "detail": "The detailed inherited behavior of DRF CreateModelMixin, GenericViewSet, ModelSerializer, IsAuthenticated, and DjangoObjectPermissions is not contained in the cited repository source ranges."
+          }
+        ]
+      },
+      {
+        "questionId": "sharelink-policy-conformance",
+        "behavior": {
+          "disposition": "unknown",
+          "explanation": "The visible source is structurally consistent with the policy: add_sharelink alone is insufficient, knowing a document ID alone is insufficient, and the serializer invokes an owner-aware view_document check on the exact Document that will be attached to the share. However, conformance cannot be conclusively determined without the implementation semantics of has_perms_owner_aware, because a function name and arguments do not prove that every true branch represents view_document permission for that exact document."
+        },
+        "branches": [
+          {
+            "id": "helper-enforces-exact-document-view",
+            "condition": "Every true branch of has_perms_owner_aware(user, \"view_document\", document) represents the caller having view_document permission for that exact document.",
+            "disposition": "allow",
+            "explanation": "Then the serializer requires the policy's exact-document permission before creating the ShareLink, in addition to—not merely instead of—the add_sharelink path.",
+            "evidenceIds": [
+              "ev-734e2fde9e7a31fe1f58",
+              "ev-fc0037336c0952214692"
+            ]
+          },
+          {
+            "id": "helper-has-nonconforming-success-branch",
+            "condition": "The helper can return true based only on global permission, document existence/ID knowledge, or another condition that does not amount to view_document permission for the exact document.",
+            "disposition": "deny",
+            "explanation": "That branch would permit creation without satisfying the independently supplied exact-document policy.",
+            "evidenceIds": [
+              "ev-734e2fde9e7a31fe1f58"
+            ]
+          },
+          {
+            "id": "global-add-only",
+            "condition": "The caller has the ShareLink add permission but fails either global documents.view_document or the selected-document helper check.",
+            "disposition": "deny",
+            "explanation": "The visible serializer path makes add_sharelink alone insufficient.",
+            "evidenceIds": [
+              "ev-c6988b270a6495cc61fd",
+              "ev-734e2fde9e7a31fe1f58"
+            ]
+          },
+          {
+            "id": "document-id-only",
+            "condition": "The submitted document identifier resolves to a Document, but one of the serializer's view_document conditions fails.",
+            "disposition": "deny",
+            "explanation": "Resolution/existence alone does not pass validate_document.",
+            "evidenceIds": [
+              "ev-734e2fde9e7a31fe1f58"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-bec2b15ccdb4e93043eb",
+          "ev-c6988b270a6495cc61fd",
+          "ev-b77f458b6932208c6bee",
+          "ev-734e2fde9e7a31fe1f58",
+          "ev-fc0037336c0952214692"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "Decisive missing fact: the body and all success branches of has_perms_owner_aware, specifically whether true always establishes view_document permission for the exact Document argument.",
+            "nextRead": "Read the has_perms_owner_aware definition and any directly invoked permission predicate needed to classify its true branches."
+          },
+          {
+            "kind": "dependency-out-of-scope",
+            "detail": "If conformance also depends on runtime overrides or alternate authentication/permission backends, their deployed configuration is not established by this source-visible inquiry."
+          }
+        ],
+        "policyAssessment": {
+          "status": "undetermined",
+          "explanation": "The visible path does not rely on add_sharelink or document-ID knowledge alone and does perform a check parameterized by the exact selected document. The exact semantics of that check remain unread, preventing a definitive satisfied/violated finding."
+        }
+      }
+    ],
+    "observations": [
+      {
+        "questionId": "sharelink-behavior",
+        "kind": "entry",
+        "subject": "ShareLinkViewSet create route",
+        "object": "ShareLink",
+        "claim": "The API router registers ShareLinkViewSet under share_links beneath the api URL prefix. The view set includes CreateModelMixin and uses ShareLinkSerializer.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-870d6c191245a4a099b5",
+          "ev-bec2b15ccdb4e93043eb"
+        ]
+      },
+      {
+        "questionId": "sharelink-behavior",
+        "kind": "principal-binding",
+        "subject": "request.user",
+        "object": "ShareLinkSerializer.user",
+        "claim": "The view requires IsAuthenticated and PassUserMixin passes self.request.user into serializers derived from SerializerWithPerms; ShareLinkSerializer inherits OwnedObjectSerializer, which inherits SerializerWithPerms.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-bec2b15ccdb4e93043eb",
+          "ev-b77f458b6932208c6bee",
+          "ev-085b43372cb4a1681a64",
+          "ev-734e2fde9e7a31fe1f58"
+        ]
+      },
+      {
+        "questionId": "sharelink-behavior",
+        "kind": "resource-binding",
+        "subject": "request document field",
+        "object": "exact deserialized Document instance",
+        "claim": "ShareLinkSerializer exposes a document field for the ShareLink model, whose document attribute is a foreign key to Document. Its validate_document method receives that selected Document instance and passes the same instance to has_perms_owner_aware.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-734e2fde9e7a31fe1f58",
+          "ev-fc0037336c0952214692"
+        ]
+      },
+      {
+        "questionId": "sharelink-behavior",
+        "kind": "guard",
+        "subject": "POST create request",
+        "object": "ShareLink model and selected Document",
+        "claim": "At the view level, PaperlessObjectPermissions maps POST to add_<model>, which for this view's ShareLink model is add_sharelink; the source also requires authentication. Independently, serializer field validation accepts the selected document only when serializer.user is non-null, user.has_perm(\"documents.view_document\") is true, and has_perms_owner_aware(user, \"view_document\", document) is true; otherwise it raises PermissionDenied before serializer creation.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-bec2b15ccdb4e93043eb",
+          "ev-c6988b270a6495cc61fd",
+          "ev-734e2fde9e7a31fe1f58"
+        ]
+      },
+      {
+        "questionId": "sharelink-behavior",
+        "kind": "effect",
+        "subject": "ShareLinkSerializer.create",
+        "object": "new ShareLink referring to the selected Document",
+        "claim": "After successful validation, create adds a random 50-character slug and delegates creation. The resulting model object is a ShareLink whose document foreign key identifies the selected document and whose owner field can identify a user; the exact inherited owner-setting behavior was not read.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-734e2fde9e7a31fe1f58",
+          "ev-fc0037336c0952214692"
+        ]
+      },
+      {
+        "questionId": "sharelink-behavior",
+        "kind": "exception",
+        "subject": "has_perms_owner_aware and inherited framework paths",
+        "object": "selected Document and new ShareLink",
+        "claim": "The visible source establishes that has_perms_owner_aware must return true, but its implementation was not read, so ownership, superuser, guardian, or other exact-document branches inside that helper are not established here. Likewise, the detailed CreateModelMixin, ModelSerializer, IsAuthenticated, and DjangoObjectPermissions runtime implementations are dependency behavior not shown in the cited source.",
+        "state": "unresolved",
+        "evidenceIds": [
+          "ev-734e2fde9e7a31fe1f58",
+          "ev-c6988b270a6495cc61fd"
+        ]
+      },
+      {
+        "questionId": "sharelink-policy-conformance",
+        "kind": "entry",
+        "subject": "ShareLinkViewSet create route",
+        "object": "ShareLink",
+        "claim": "The relevant source path is the router-registered share_links ShareLinkViewSet using CreateModelMixin, ShareLinkSerializer, IsAuthenticated, and PaperlessObjectPermissions.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-870d6c191245a4a099b5",
+          "ev-bec2b15ccdb4e93043eb"
+        ]
+      },
+      {
+        "questionId": "sharelink-policy-conformance",
+        "kind": "principal-binding",
+        "subject": "authenticated request.user",
+        "object": "serializer permission checks",
+        "claim": "PassUserMixin binds the request's authenticated user to the serializer.user value used by validate_document.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-bec2b15ccdb4e93043eb",
+          "ev-b77f458b6932208c6bee",
+          "ev-734e2fde9e7a31fe1f58"
+        ]
+      },
+      {
+        "questionId": "sharelink-policy-conformance",
+        "kind": "resource-binding",
+        "subject": "document supplied for the share",
+        "object": "same Document passed to has_perms_owner_aware",
+        "claim": "The serializer's document validation is resource-bound: it checks the Document instance selected for the new ShareLink, not merely a document identifier or the ShareLink object.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-734e2fde9e7a31fe1f58",
+          "ev-fc0037336c0952214692"
+        ]
+      },
+      {
+        "questionId": "sharelink-policy-conformance",
+        "kind": "guard",
+        "subject": "caller",
+        "object": "selected Document",
+        "claim": "A global add_sharelink-style POST permission is not sufficient in the visible path: document validation additionally requires global documents.view_document and a true result from has_perms_owner_aware for the selected document. Failure raises PermissionDenied.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-c6988b270a6495cc61fd",
+          "ev-734e2fde9e7a31fe1f58"
+        ]
+      },
+      {
+        "questionId": "sharelink-policy-conformance",
+        "kind": "effect",
+        "subject": "successful validated create",
+        "object": "ShareLink for the checked Document",
+        "claim": "The document checked by validate_document is the document field persisted on the newly created ShareLink, so the visible serializer guard and protected effect are bound to the same document.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-734e2fde9e7a31fe1f58",
+          "ev-fc0037336c0952214692"
+        ]
+      },
+      {
+        "questionId": "sharelink-policy-conformance",
+        "kind": "exception",
+        "subject": "exact semantics of has_perms_owner_aware",
+        "object": "selected Document",
+        "claim": "Policy compliance turns on whether has_perms_owner_aware(user, \"view_document\", document) means that the caller has view_document permission for that exact document under all of its success branches. That implementation and its exceptions are not present in the evidence read, so conformance cannot be declared conclusively from the function name alone.",
+        "state": "unresolved",
+        "evidenceIds": [
+          "ev-734e2fde9e7a31fe1f58"
+        ]
+      }
+    ],
+    "scope": "Source-visible analysis of paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103 limited to the allowed paths src/documents and src/paperless/urls.py; no target execution and no claim of all-repository coverage."
+  },
+  "final": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "sharelink-behavior",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "Creating through the router-registered share_links endpoint is allowed only if authentication, the inherited POST/model-level ShareLink add-permission path, the serializer's global documents.view_document check, the exact-document has_perms_owner_aware check, and ordinary inherited creation behavior all succeed. The serializer then generates a slug and creates a ShareLink for the selected Document. The source read does not establish the internal branches of has_perms_owner_aware or all inherited framework mechanics."
+        },
+        "branches": [
+          {
+            "id": "unauthenticated",
+            "condition": "The request is not authenticated.",
+            "disposition": "deny",
+            "explanation": "ShareLinkViewSet declares IsAuthenticated.",
+            "evidenceIds": [
+              "ev-bec2b15ccdb4e93043eb"
+            ]
+          },
+          {
+            "id": "sharelink-add-check-fails",
+            "condition": "The inherited POST permission path does not grant the required add permission for the ShareLink model.",
+            "disposition": "deny",
+            "explanation": "PaperlessObjectPermissions maps POST to add_<model>; the view model is ShareLink.",
+            "evidenceIds": [
+              "ev-bec2b15ccdb4e93043eb",
+              "ev-c6988b270a6495cc61fd"
+            ]
+          },
+          {
+            "id": "global-view-check-fails",
+            "condition": "serializer.user is absent or user.has_perm(\"documents.view_document\") is false.",
+            "disposition": "deny",
+            "explanation": "validate_document raises PermissionDenied unless this condition succeeds.",
+            "evidenceIds": [
+              "ev-b77f458b6932208c6bee",
+              "ev-734e2fde9e7a31fe1f58"
+            ]
+          },
+          {
+            "id": "exact-document-check-fails",
+            "condition": "has_perms_owner_aware(user, \"view_document\", selected_document) is false.",
+            "disposition": "deny",
+            "explanation": "The selected document is rejected before serializer creation.",
+            "evidenceIds": [
+              "ev-734e2fde9e7a31fe1f58"
+            ]
+          },
+          {
+            "id": "visible-checks-pass",
+            "condition": "All visible checks pass and inherited serializer/model creation succeeds.",
+            "disposition": "allow",
+            "explanation": "The serializer accepts the selected Document, generates a slug, and delegates creation of the ShareLink.",
+            "evidenceIds": [
+              "ev-bec2b15ccdb4e93043eb",
+              "ev-c6988b270a6495cc61fd",
+              "ev-734e2fde9e7a31fe1f58",
+              "ev-fc0037336c0952214692"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-870d6c191245a4a099b5",
+          "ev-bec2b15ccdb4e93043eb",
+          "ev-c6988b270a6495cc61fd",
+          "ev-b77f458b6932208c6bee",
+          "ev-734e2fde9e7a31fe1f58",
+          "ev-fc0037336c0952214692"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The body and all success branches of has_perms_owner_aware were not read; its ownership, guardian, superuser, global-permission, and object-permission behavior is therefore unspecified.",
+            "nextRead": "Locate and read has_perms_owner_aware and any directly invoked permission predicate within the allowed source."
+          },
+          {
+            "kind": "dependency-out-of-scope",
+            "detail": "Detailed inherited behavior of DRF CreateModelMixin, GenericViewSet, ModelSerializer, IsAuthenticated, and DjangoObjectPermissions is not established by the cited repository source ranges."
+          }
+        ]
+      },
+      {
+        "questionId": "sharelink-policy-conformance",
+        "behavior": {
+          "disposition": "unknown",
+          "explanation": "The visible source is structurally consistent with the supplied policy: a global add_sharelink-style permission is not sufficient, document-ID knowledge or existence alone is not sufficient, and the serializer checks view_document against the exact selected Document. Conformance remains undetermined because the implementation of has_perms_owner_aware was not read, so the source evidence does not prove that every successful branch represents view_document permission for that exact Document."
+        },
+        "branches": [
+          {
+            "id": "helper-exact-document-view",
+            "condition": "Every true branch of has_perms_owner_aware(user, \"view_document\", document) establishes view_document permission for that exact Document.",
+            "disposition": "allow",
+            "explanation": "Under this source condition, creation requires the policy's exact-document permission in addition to the separate ShareLink add-permission path.",
+            "evidenceIds": [
+              "ev-734e2fde9e7a31fe1f58",
+              "ev-fc0037336c0952214692"
+            ]
+          },
+          {
+            "id": "helper-nonconforming-branch",
+            "condition": "The helper can return true based only on a global permission, document existence or ID knowledge, or another condition that is not exact-document view_document permission.",
+            "disposition": "deny",
+            "explanation": "That branch would permit creation without satisfying the independently supplied policy.",
+            "evidenceIds": [
+              "ev-734e2fde9e7a31fe1f58"
+            ]
+          },
+          {
+            "id": "global-add-only",
+            "condition": "The caller has the ShareLink add permission but fails global documents.view_document or the selected-document helper check.",
+            "disposition": "deny",
+            "explanation": "The visible serializer path requires both additional view-related conditions.",
+            "evidenceIds": [
+              "ev-c6988b270a6495cc61fd",
+              "ev-734e2fde9e7a31fe1f58"
+            ]
+          },
+          {
+            "id": "document-id-only",
+            "condition": "The submitted identifier resolves to an existing Document, but a shown view_document condition fails.",
+            "disposition": "deny",
+            "explanation": "Resolution or existence alone does not pass validate_document.",
+            "evidenceIds": [
+              "ev-734e2fde9e7a31fe1f58"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-bec2b15ccdb4e93043eb",
+          "ev-c6988b270a6495cc61fd",
+          "ev-734e2fde9e7a31fe1f58",
+          "ev-fc0037336c0952214692"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "Decisive missing fact: the implementation and all true branches of has_perms_owner_aware, specifically whether it always establishes view_document permission for the exact Document argument.",
+            "nextRead": "Read the has_perms_owner_aware definition and any directly invoked permission predicate needed to classify its true branches."
+          },
+          {
+            "kind": "dependency-out-of-scope",
+            "detail": "Any deployment-specific authentication, permission-backend, or runtime override behavior is not established by this source-visible inquiry."
+          }
+        ],
+        "policyAssessment": {
+          "status": "undetermined",
+          "explanation": "The source-visible path rejects the proposition that add_sharelink permission or document-ID knowledge alone suffices, and it invokes a check parameterized by the exact selected Document. The semantics of that check remain unread, so the policy cannot be conclusively marked satisfied or violated."
+        }
+      }
+    ],
+    "observations": [
+      {
+        "questionId": "sharelink-behavior",
+        "kind": "entry",
+        "subject": "ShareLinkViewSet create route",
+        "object": "ShareLink",
+        "claim": "The API router registers ShareLinkViewSet under share_links beneath the API URL prefix. ShareLinkViewSet includes CreateModelMixin, uses ShareLinkSerializer, and declares IsAuthenticated plus PaperlessObjectPermissions.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-870d6c191245a4a099b5",
+          "ev-bec2b15ccdb4e93043eb"
+        ]
+      },
+      {
+        "questionId": "sharelink-behavior",
+        "kind": "principal-binding",
+        "subject": "request.user",
+        "object": "ShareLinkSerializer.user",
+        "claim": "The path requires authentication. PassUserMixin supplies self.request.user to serializers derived from SerializerWithPerms; ShareLinkSerializer inherits OwnedObjectSerializer, which inherits SerializerWithPerms.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-bec2b15ccdb4e93043eb",
+          "ev-b77f458b6932208c6bee",
+          "ev-085b43372cb4a1681a64"
+        ]
+      },
+      {
+        "questionId": "sharelink-behavior",
+        "kind": "resource-binding",
+        "subject": "submitted document",
+        "object": "selected Document instance",
+        "claim": "ShareLinkSerializer validates the selected Document instance in validate_document, and passes that same instance to has_perms_owner_aware. ShareLink.document is a foreign key to Document.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-734e2fde9e7a31fe1f58",
+          "ev-fc0037336c0952214692"
+        ]
+      },
+      {
+        "questionId": "sharelink-behavior",
+        "kind": "guard",
+        "subject": "POST create request",
+        "object": "ShareLink and selected Document",
+        "claim": "PaperlessObjectPermissions maps POST to add_<model>; for this view model that is the ShareLink add permission. Separately, validate_document proceeds only if serializer.user is non-null, user.has_perm(\"documents.view_document\") is true, and has_perms_owner_aware(user, \"view_document\", document) is true. Otherwise it raises PermissionDenied before creation.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-bec2b15ccdb4e93043eb",
+          "ev-c6988b270a6495cc61fd",
+          "ev-734e2fde9e7a31fe1f58"
+        ]
+      },
+      {
+        "questionId": "sharelink-behavior",
+        "kind": "effect",
+        "subject": "ShareLinkSerializer.create",
+        "object": "new ShareLink for selected Document",
+        "claim": "After validation, ShareLinkSerializer generates a random 50-character slug and delegates creation. The resulting ShareLink refers to the selected Document; the exact inherited owner-setting behavior is not shown in the read source.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-734e2fde9e7a31fe1f58",
+          "ev-fc0037336c0952214692"
+        ]
+      },
+      {
+        "questionId": "sharelink-behavior",
+        "kind": "exception",
+        "subject": "helper and inherited framework paths",
+        "object": "selected Document and ShareLink",
+        "claim": "The implementation and branches of has_perms_owner_aware were not read. The detailed runtime implementations of the inherited DRF mixins, ModelSerializer, IsAuthenticated, and DjangoObjectPermissions were also not read in the allowed source.",
+        "state": "unresolved",
+        "evidenceIds": [
+          "ev-734e2fde9e7a31fe1f58",
+          "ev-c6988b270a6495cc61fd"
+        ]
+      },
+      {
+        "questionId": "sharelink-policy-conformance",
+        "kind": "entry",
+        "subject": "ShareLinkViewSet create route",
+        "object": "ShareLink",
+        "claim": "The policy-relevant path is the router-registered share_links ShareLinkViewSet using CreateModelMixin, ShareLinkSerializer, IsAuthenticated, and PaperlessObjectPermissions.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-870d6c191245a4a099b5",
+          "ev-bec2b15ccdb4e93043eb"
+        ]
+      },
+      {
+        "questionId": "sharelink-policy-conformance",
+        "kind": "principal-binding",
+        "subject": "authenticated request.user",
+        "object": "serializer permission checks",
+        "claim": "The authenticated request user is the user supplied to ShareLinkSerializer and used by validate_document.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-b77f458b6932208c6bee",
+          "ev-734e2fde9e7a31fe1f58"
+        ]
+      },
+      {
+        "questionId": "sharelink-policy-conformance",
+        "kind": "resource-binding",
+        "subject": "document supplied for the share",
+        "object": "same Document passed to permission helper and persisted on ShareLink",
+        "claim": "The visible serializer guard is bound to the exact Document selected for the new ShareLink, rather than merely to a document identifier or to the ShareLink object.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-734e2fde9e7a31fe1f58",
+          "ev-fc0037336c0952214692"
+        ]
+      },
+      {
+        "questionId": "sharelink-policy-conformance",
+        "kind": "guard",
+        "subject": "caller",
+        "object": "selected Document",
+        "claim": "The visible path requires more than the global ShareLink add permission: it also requires global documents.view_document and a true owner-aware view_document check for the selected Document. Document existence or ID resolution alone does not satisfy the shown serializer condition.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-c6988b270a6495cc61fd",
+          "ev-734e2fde9e7a31fe1f58"
+        ]
+      },
+      {
+        "questionId": "sharelink-policy-conformance",
+        "kind": "effect",
+        "subject": "successful validated create",
+        "object": "ShareLink for checked Document",
+        "claim": "The Document checked by validate_document is the document field attached to the created ShareLink, so the visible guard and effect refer to the same selected Document.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-734e2fde9e7a31fe1f58",
+          "ev-fc0037336c0952214692"
+        ]
+      },
+      {
+        "questionId": "sharelink-policy-conformance",
+        "kind": "exception",
+        "subject": "has_perms_owner_aware",
+        "object": "selected Document",
+        "claim": "Definitive conformance depends on whether every true branch of has_perms_owner_aware(user, \"view_document\", document) establishes view_document permission for that exact Document. That implementation is not in the evidence read.",
+        "state": "unresolved",
+        "evidenceIds": [
+          "ev-734e2fde9e7a31fe1f58"
+        ]
+      }
+    ],
+    "scope": "Source-visible analysis of paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103 limited to the allowed source paths and the source ranges read here; no target execution and no claim of all-repository coverage."
+  },
+  "prose": null,
+  "initialProse": null,
+  "initialValidation": {
+    "valid": false,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "sharelink-behavior",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The visible create path is conditional on an authenticated request, the POST/model-level permission path configured by PaperlessObjectPermissions, and ShareLinkSerializer validation of the exact selected document. The serializer rejects unless user.has_perm(\"documents.view_document\") and has_perms_owner_aware(user, \"view_document\", document) both succeed. On successful validation, it creates a ShareLink for that document with a generated slug. Exact inherited framework mechanics and the helper's internal exception branches are not shown."
+          },
+          "branches": [
+            {
+              "id": "unauthenticated",
+              "condition": "The request is not authenticated.",
+              "disposition": "deny",
+              "explanation": "ShareLinkViewSet includes IsAuthenticated.",
+              "evidenceIds": [
+                "ev-bec2b15ccdb4e93043eb"
+              ]
+            },
+            {
+              "id": "post-model-permission-fails",
+              "condition": "The inherited PaperlessObjectPermissions POST check does not grant the required ShareLink add permission.",
+              "disposition": "deny",
+              "explanation": "The view applies PaperlessObjectPermissions, whose POST mapping is add_<model>; the view model is ShareLink.",
+              "evidenceIds": [
+                "ev-bec2b15ccdb4e93043eb",
+                "ev-c6988b270a6495cc61fd"
+              ]
+            },
+            {
+              "id": "global-document-view-fails",
+              "condition": "serializer.user is null or user.has_perm(\"documents.view_document\") is false.",
+              "disposition": "deny",
+              "explanation": "validate_document raises PermissionDenied unless the user exists and the global view_document test succeeds.",
+              "evidenceIds": [
+                "ev-b77f458b6932208c6bee",
+                "ev-734e2fde9e7a31fe1f58"
+              ]
+            },
+            {
+              "id": "exact-document-helper-fails",
+              "condition": "has_perms_owner_aware(user, \"view_document\", selected_document) is false.",
+              "disposition": "deny",
+              "explanation": "The selected document is rejected before create.",
+              "evidenceIds": [
+                "ev-734e2fde9e7a31fe1f58"
+              ]
+            },
+            {
+              "id": "all-visible-checks-pass",
+              "condition": "Authentication, the inherited POST permission path, global documents.view_document, and has_perms_owner_aware for the selected document all succeed, and ordinary inherited serializer/model creation succeeds.",
+              "disposition": "allow",
+              "explanation": "The serializer accepts the exact document, generates a slug, and delegates creation of the ShareLink referring to that document.",
+              "evidenceIds": [
+                "ev-bec2b15ccdb4e93043eb",
+                "ev-c6988b270a6495cc61fd",
+                "ev-b77f458b6932208c6bee",
+                "ev-734e2fde9e7a31fe1f58",
+                "ev-fc0037336c0952214692"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-870d6c191245a4a099b5",
+            "ev-bec2b15ccdb4e93043eb",
+            "ev-c6988b270a6495cc61fd",
+            "ev-b77f458b6932208c6bee",
+            "ev-734e2fde9e7a31fe1f58",
+            "ev-085b43372cb4a1681a64",
+            "ev-fc0037336c0952214692"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The implementation of has_perms_owner_aware was not read, so its precise ownership, guardian, superuser, global-permission, and object-permission success branches remain unspecified.",
+              "nextRead": "Locate and read the definition of has_perms_owner_aware within the allowed source, if present."
+            },
+            {
+              "kind": "dependency-out-of-scope",
+              "detail": "The detailed inherited behavior of DRF CreateModelMixin, GenericViewSet, ModelSerializer, IsAuthenticated, and DjangoObjectPermissions is not contained in the cited repository source ranges."
+            }
+          ]
+        },
+        {
+          "questionId": "sharelink-policy-conformance",
+          "behavior": {
+            "disposition": "unknown",
+            "explanation": "The visible source is structurally consistent with the policy: add_sharelink alone is insufficient, knowing a document ID alone is insufficient, and the serializer invokes an owner-aware view_document check on the exact Document that will be attached to the share. However, conformance cannot be conclusively determined without the implementation semantics of has_perms_owner_aware, because a function name and arguments do not prove that every true branch represents view_document permission for that exact document."
+          },
+          "branches": [
+            {
+              "id": "helper-enforces-exact-document-view",
+              "condition": "Every true branch of has_perms_owner_aware(user, \"view_document\", document) represents the caller having view_document permission for that exact document.",
+              "disposition": "allow",
+              "explanation": "Then the serializer requires the policy's exact-document permission before creating the ShareLink, in addition to—not merely instead of—the add_sharelink path.",
+              "evidenceIds": [
+                "ev-734e2fde9e7a31fe1f58",
+                "ev-fc0037336c0952214692"
+              ]
+            },
+            {
+              "id": "helper-has-nonconforming-success-branch",
+              "condition": "The helper can return true based only on global permission, document existence/ID knowledge, or another condition that does not amount to view_document permission for the exact document.",
+              "disposition": "deny",
+              "explanation": "That branch would permit creation without satisfying the independently supplied exact-document policy.",
+              "evidenceIds": [
+                "ev-734e2fde9e7a31fe1f58"
+              ]
+            },
+            {
+              "id": "global-add-only",
+              "condition": "The caller has the ShareLink add permission but fails either global documents.view_document or the selected-document helper check.",
+              "disposition": "deny",
+              "explanation": "The visible serializer path makes add_sharelink alone insufficient.",
+              "evidenceIds": [
+                "ev-c6988b270a6495cc61fd",
+                "ev-734e2fde9e7a31fe1f58"
+              ]
+            },
+            {
+              "id": "document-id-only",
+              "condition": "The submitted document identifier resolves to a Document, but one of the serializer's view_document conditions fails.",
+              "disposition": "deny",
+              "explanation": "Resolution/existence alone does not pass validate_document.",
+              "evidenceIds": [
+                "ev-734e2fde9e7a31fe1f58"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-bec2b15ccdb4e93043eb",
+            "ev-c6988b270a6495cc61fd",
+            "ev-b77f458b6932208c6bee",
+            "ev-734e2fde9e7a31fe1f58",
+            "ev-fc0037336c0952214692"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "Decisive missing fact: the body and all success branches of has_perms_owner_aware, specifically whether true always establishes view_document permission for the exact Document argument.",
+              "nextRead": "Read the has_perms_owner_aware definition and any directly invoked permission predicate needed to classify its true branches."
+            },
+            {
+              "kind": "dependency-out-of-scope",
+              "detail": "If conformance also depends on runtime overrides or alternate authentication/permission backends, their deployed configuration is not established by this source-visible inquiry."
+            }
+          ],
+          "policyAssessment": {
+            "status": "undetermined",
+            "explanation": "The visible path does not rely on add_sharelink or document-ID knowledge alone and does perform a check parameterized by the exact selected document. The exact semantics of that check remain unread, preventing a definitive satisfied/violated finding."
+          }
+        }
+      ],
+      "observations": [
+        {
+          "questionId": "sharelink-behavior",
+          "kind": "entry",
+          "subject": "ShareLinkViewSet create route",
+          "object": "ShareLink",
+          "claim": "The API router registers ShareLinkViewSet under share_links beneath the api URL prefix. The view set includes CreateModelMixin and uses ShareLinkSerializer.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-870d6c191245a4a099b5",
+            "ev-bec2b15ccdb4e93043eb"
+          ]
+        },
+        {
+          "questionId": "sharelink-behavior",
+          "kind": "principal-binding",
+          "subject": "request.user",
+          "object": "ShareLinkSerializer.user",
+          "claim": "The view requires IsAuthenticated and PassUserMixin passes self.request.user into serializers derived from SerializerWithPerms; ShareLinkSerializer inherits OwnedObjectSerializer, which inherits SerializerWithPerms.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-bec2b15ccdb4e93043eb",
+            "ev-b77f458b6932208c6bee",
+            "ev-085b43372cb4a1681a64",
+            "ev-734e2fde9e7a31fe1f58"
+          ]
+        },
+        {
+          "questionId": "sharelink-behavior",
+          "kind": "resource-binding",
+          "subject": "request document field",
+          "object": "exact deserialized Document instance",
+          "claim": "ShareLinkSerializer exposes a document field for the ShareLink model, whose document attribute is a foreign key to Document. Its validate_document method receives that selected Document instance and passes the same instance to has_perms_owner_aware.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-734e2fde9e7a31fe1f58",
+            "ev-fc0037336c0952214692"
+          ]
+        },
+        {
+          "questionId": "sharelink-behavior",
+          "kind": "guard",
+          "subject": "POST create request",
+          "object": "ShareLink model and selected Document",
+          "claim": "At the view level, PaperlessObjectPermissions maps POST to add_<model>, which for this view's ShareLink model is add_sharelink; the source also requires authentication. Independently, serializer field validation accepts the selected document only when serializer.user is non-null, user.has_perm(\"documents.view_document\") is true, and has_perms_owner_aware(user, \"view_document\", document) is true; otherwise it raises PermissionDenied before serializer creation.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-bec2b15ccdb4e93043eb",
+            "ev-c6988b270a6495cc61fd",
+            "ev-734e2fde9e7a31fe1f58"
+          ]
+        },
+        {
+          "questionId": "sharelink-behavior",
+          "kind": "effect",
+          "subject": "ShareLinkSerializer.create",
+          "object": "new ShareLink referring to the selected Document",
+          "claim": "After successful validation, create adds a random 50-character slug and delegates creation. The resulting model object is a ShareLink whose document foreign key identifies the selected document and whose owner field can identify a user; the exact inherited owner-setting behavior was not read.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-734e2fde9e7a31fe1f58",
+            "ev-fc0037336c0952214692"
+          ]
+        },
+        {
+          "questionId": "sharelink-behavior",
+          "kind": "exception",
+          "subject": "has_perms_owner_aware and inherited framework paths",
+          "object": "selected Document and new ShareLink",
+          "claim": "The visible source establishes that has_perms_owner_aware must return true, but its implementation was not read, so ownership, superuser, guardian, or other exact-document branches inside that helper are not established here. Likewise, the detailed CreateModelMixin, ModelSerializer, IsAuthenticated, and DjangoObjectPermissions runtime implementations are dependency behavior not shown in the cited source.",
+          "state": "unresolved",
+          "evidenceIds": [
+            "ev-734e2fde9e7a31fe1f58",
+            "ev-c6988b270a6495cc61fd"
+          ]
+        },
+        {
+          "questionId": "sharelink-policy-conformance",
+          "kind": "entry",
+          "subject": "ShareLinkViewSet create route",
+          "object": "ShareLink",
+          "claim": "The relevant source path is the router-registered share_links ShareLinkViewSet using CreateModelMixin, ShareLinkSerializer, IsAuthenticated, and PaperlessObjectPermissions.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-870d6c191245a4a099b5",
+            "ev-bec2b15ccdb4e93043eb"
+          ]
+        },
+        {
+          "questionId": "sharelink-policy-conformance",
+          "kind": "principal-binding",
+          "subject": "authenticated request.user",
+          "object": "serializer permission checks",
+          "claim": "PassUserMixin binds the request's authenticated user to the serializer.user value used by validate_document.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-bec2b15ccdb4e93043eb",
+            "ev-b77f458b6932208c6bee",
+            "ev-734e2fde9e7a31fe1f58"
+          ]
+        },
+        {
+          "questionId": "sharelink-policy-conformance",
+          "kind": "resource-binding",
+          "subject": "document supplied for the share",
+          "object": "same Document passed to has_perms_owner_aware",
+          "claim": "The serializer's document validation is resource-bound: it checks the Document instance selected for the new ShareLink, not merely a document identifier or the ShareLink object.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-734e2fde9e7a31fe1f58",
+            "ev-fc0037336c0952214692"
+          ]
+        },
+        {
+          "questionId": "sharelink-policy-conformance",
+          "kind": "guard",
+          "subject": "caller",
+          "object": "selected Document",
+          "claim": "A global add_sharelink-style POST permission is not sufficient in the visible path: document validation additionally requires global documents.view_document and a true result from has_perms_owner_aware for the selected document. Failure raises PermissionDenied.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-c6988b270a6495cc61fd",
+            "ev-734e2fde9e7a31fe1f58"
+          ]
+        },
+        {
+          "questionId": "sharelink-policy-conformance",
+          "kind": "effect",
+          "subject": "successful validated create",
+          "object": "ShareLink for the checked Document",
+          "claim": "The document checked by validate_document is the document field persisted on the newly created ShareLink, so the visible serializer guard and protected effect are bound to the same document.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-734e2fde9e7a31fe1f58",
+            "ev-fc0037336c0952214692"
+          ]
+        },
+        {
+          "questionId": "sharelink-policy-conformance",
+          "kind": "exception",
+          "subject": "exact semantics of has_perms_owner_aware",
+          "object": "selected Document",
+          "claim": "Policy compliance turns on whether has_perms_owner_aware(user, \"view_document\", document) means that the caller has view_document permission for that exact document under all of its success branches. That implementation and its exceptions are not present in the evidence read, so conformance cannot be declared conclusively from the function name alone.",
+          "state": "unresolved",
+          "evidenceIds": [
+            "ev-734e2fde9e7a31fe1f58"
+          ]
+        }
+      ],
+      "scope": "Source-visible analysis of paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103 limited to the allowed paths src/documents and src/paperless/urls.py; no target execution and no claim of all-repository coverage."
+    },
+    "diagnostics": [
+      {
+        "code": "policy-assessment-missing",
+        "path": "questions.0",
+        "message": "Conformance must compare the independently supplied policy.",
+        "severity": "error"
+      }
+    ],
+    "semanticSupport": "unreviewed"
+  },
+  "finalValidation": {
+    "valid": false,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "sharelink-behavior",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "Creating through the router-registered share_links endpoint is allowed only if authentication, the inherited POST/model-level ShareLink add-permission path, the serializer's global documents.view_document check, the exact-document has_perms_owner_aware check, and ordinary inherited creation behavior all succeed. The serializer then generates a slug and creates a ShareLink for the selected Document. The source read does not establish the internal branches of has_perms_owner_aware or all inherited framework mechanics."
+          },
+          "branches": [
+            {
+              "id": "unauthenticated",
+              "condition": "The request is not authenticated.",
+              "disposition": "deny",
+              "explanation": "ShareLinkViewSet declares IsAuthenticated.",
+              "evidenceIds": [
+                "ev-bec2b15ccdb4e93043eb"
+              ]
+            },
+            {
+              "id": "sharelink-add-check-fails",
+              "condition": "The inherited POST permission path does not grant the required add permission for the ShareLink model.",
+              "disposition": "deny",
+              "explanation": "PaperlessObjectPermissions maps POST to add_<model>; the view model is ShareLink.",
+              "evidenceIds": [
+                "ev-bec2b15ccdb4e93043eb",
+                "ev-c6988b270a6495cc61fd"
+              ]
+            },
+            {
+              "id": "global-view-check-fails",
+              "condition": "serializer.user is absent or user.has_perm(\"documents.view_document\") is false.",
+              "disposition": "deny",
+              "explanation": "validate_document raises PermissionDenied unless this condition succeeds.",
+              "evidenceIds": [
+                "ev-b77f458b6932208c6bee",
+                "ev-734e2fde9e7a31fe1f58"
+              ]
+            },
+            {
+              "id": "exact-document-check-fails",
+              "condition": "has_perms_owner_aware(user, \"view_document\", selected_document) is false.",
+              "disposition": "deny",
+              "explanation": "The selected document is rejected before serializer creation.",
+              "evidenceIds": [
+                "ev-734e2fde9e7a31fe1f58"
+              ]
+            },
+            {
+              "id": "visible-checks-pass",
+              "condition": "All visible checks pass and inherited serializer/model creation succeeds.",
+              "disposition": "allow",
+              "explanation": "The serializer accepts the selected Document, generates a slug, and delegates creation of the ShareLink.",
+              "evidenceIds": [
+                "ev-bec2b15ccdb4e93043eb",
+                "ev-c6988b270a6495cc61fd",
+                "ev-734e2fde9e7a31fe1f58",
+                "ev-fc0037336c0952214692"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-870d6c191245a4a099b5",
+            "ev-bec2b15ccdb4e93043eb",
+            "ev-c6988b270a6495cc61fd",
+            "ev-b77f458b6932208c6bee",
+            "ev-734e2fde9e7a31fe1f58",
+            "ev-fc0037336c0952214692"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The body and all success branches of has_perms_owner_aware were not read; its ownership, guardian, superuser, global-permission, and object-permission behavior is therefore unspecified.",
+              "nextRead": "Locate and read has_perms_owner_aware and any directly invoked permission predicate within the allowed source."
+            },
+            {
+              "kind": "dependency-out-of-scope",
+              "detail": "Detailed inherited behavior of DRF CreateModelMixin, GenericViewSet, ModelSerializer, IsAuthenticated, and DjangoObjectPermissions is not established by the cited repository source ranges."
+            }
+          ]
+        },
+        {
+          "questionId": "sharelink-policy-conformance",
+          "behavior": {
+            "disposition": "unknown",
+            "explanation": "The visible source is structurally consistent with the supplied policy: a global add_sharelink-style permission is not sufficient, document-ID knowledge or existence alone is not sufficient, and the serializer checks view_document against the exact selected Document. Conformance remains undetermined because the implementation of has_perms_owner_aware was not read, so the source evidence does not prove that every successful branch represents view_document permission for that exact Document."
+          },
+          "branches": [
+            {
+              "id": "helper-exact-document-view",
+              "condition": "Every true branch of has_perms_owner_aware(user, \"view_document\", document) establishes view_document permission for that exact Document.",
+              "disposition": "allow",
+              "explanation": "Under this source condition, creation requires the policy's exact-document permission in addition to the separate ShareLink add-permission path.",
+              "evidenceIds": [
+                "ev-734e2fde9e7a31fe1f58",
+                "ev-fc0037336c0952214692"
+              ]
+            },
+            {
+              "id": "helper-nonconforming-branch",
+              "condition": "The helper can return true based only on a global permission, document existence or ID knowledge, or another condition that is not exact-document view_document permission.",
+              "disposition": "deny",
+              "explanation": "That branch would permit creation without satisfying the independently supplied policy.",
+              "evidenceIds": [
+                "ev-734e2fde9e7a31fe1f58"
+              ]
+            },
+            {
+              "id": "global-add-only",
+              "condition": "The caller has the ShareLink add permission but fails global documents.view_document or the selected-document helper check.",
+              "disposition": "deny",
+              "explanation": "The visible serializer path requires both additional view-related conditions.",
+              "evidenceIds": [
+                "ev-c6988b270a6495cc61fd",
+                "ev-734e2fde9e7a31fe1f58"
+              ]
+            },
+            {
+              "id": "document-id-only",
+              "condition": "The submitted identifier resolves to an existing Document, but a shown view_document condition fails.",
+              "disposition": "deny",
+              "explanation": "Resolution or existence alone does not pass validate_document.",
+              "evidenceIds": [
+                "ev-734e2fde9e7a31fe1f58"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-bec2b15ccdb4e93043eb",
+            "ev-c6988b270a6495cc61fd",
+            "ev-734e2fde9e7a31fe1f58",
+            "ev-fc0037336c0952214692"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "Decisive missing fact: the implementation and all true branches of has_perms_owner_aware, specifically whether it always establishes view_document permission for the exact Document argument.",
+              "nextRead": "Read the has_perms_owner_aware definition and any directly invoked permission predicate needed to classify its true branches."
+            },
+            {
+              "kind": "dependency-out-of-scope",
+              "detail": "Any deployment-specific authentication, permission-backend, or runtime override behavior is not established by this source-visible inquiry."
+            }
+          ],
+          "policyAssessment": {
+            "status": "undetermined",
+            "explanation": "The source-visible path rejects the proposition that add_sharelink permission or document-ID knowledge alone suffices, and it invokes a check parameterized by the exact selected Document. The semantics of that check remain unread, so the policy cannot be conclusively marked satisfied or violated."
+          }
+        }
+      ],
+      "observations": [
+        {
+          "questionId": "sharelink-behavior",
+          "kind": "entry",
+          "subject": "ShareLinkViewSet create route",
+          "object": "ShareLink",
+          "claim": "The API router registers ShareLinkViewSet under share_links beneath the API URL prefix. ShareLinkViewSet includes CreateModelMixin, uses ShareLinkSerializer, and declares IsAuthenticated plus PaperlessObjectPermissions.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-870d6c191245a4a099b5",
+            "ev-bec2b15ccdb4e93043eb"
+          ]
+        },
+        {
+          "questionId": "sharelink-behavior",
+          "kind": "principal-binding",
+          "subject": "request.user",
+          "object": "ShareLinkSerializer.user",
+          "claim": "The path requires authentication. PassUserMixin supplies self.request.user to serializers derived from SerializerWithPerms; ShareLinkSerializer inherits OwnedObjectSerializer, which inherits SerializerWithPerms.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-bec2b15ccdb4e93043eb",
+            "ev-b77f458b6932208c6bee",
+            "ev-085b43372cb4a1681a64"
+          ]
+        },
+        {
+          "questionId": "sharelink-behavior",
+          "kind": "resource-binding",
+          "subject": "submitted document",
+          "object": "selected Document instance",
+          "claim": "ShareLinkSerializer validates the selected Document instance in validate_document, and passes that same instance to has_perms_owner_aware. ShareLink.document is a foreign key to Document.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-734e2fde9e7a31fe1f58",
+            "ev-fc0037336c0952214692"
+          ]
+        },
+        {
+          "questionId": "sharelink-behavior",
+          "kind": "guard",
+          "subject": "POST create request",
+          "object": "ShareLink and selected Document",
+          "claim": "PaperlessObjectPermissions maps POST to add_<model>; for this view model that is the ShareLink add permission. Separately, validate_document proceeds only if serializer.user is non-null, user.has_perm(\"documents.view_document\") is true, and has_perms_owner_aware(user, \"view_document\", document) is true. Otherwise it raises PermissionDenied before creation.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-bec2b15ccdb4e93043eb",
+            "ev-c6988b270a6495cc61fd",
+            "ev-734e2fde9e7a31fe1f58"
+          ]
+        },
+        {
+          "questionId": "sharelink-behavior",
+          "kind": "effect",
+          "subject": "ShareLinkSerializer.create",
+          "object": "new ShareLink for selected Document",
+          "claim": "After validation, ShareLinkSerializer generates a random 50-character slug and delegates creation. The resulting ShareLink refers to the selected Document; the exact inherited owner-setting behavior is not shown in the read source.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-734e2fde9e7a31fe1f58",
+            "ev-fc0037336c0952214692"
+          ]
+        },
+        {
+          "questionId": "sharelink-behavior",
+          "kind": "exception",
+          "subject": "helper and inherited framework paths",
+          "object": "selected Document and ShareLink",
+          "claim": "The implementation and branches of has_perms_owner_aware were not read. The detailed runtime implementations of the inherited DRF mixins, ModelSerializer, IsAuthenticated, and DjangoObjectPermissions were also not read in the allowed source.",
+          "state": "unresolved",
+          "evidenceIds": [
+            "ev-734e2fde9e7a31fe1f58",
+            "ev-c6988b270a6495cc61fd"
+          ]
+        },
+        {
+          "questionId": "sharelink-policy-conformance",
+          "kind": "entry",
+          "subject": "ShareLinkViewSet create route",
+          "object": "ShareLink",
+          "claim": "The policy-relevant path is the router-registered share_links ShareLinkViewSet using CreateModelMixin, ShareLinkSerializer, IsAuthenticated, and PaperlessObjectPermissions.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-870d6c191245a4a099b5",
+            "ev-bec2b15ccdb4e93043eb"
+          ]
+        },
+        {
+          "questionId": "sharelink-policy-conformance",
+          "kind": "principal-binding",
+          "subject": "authenticated request.user",
+          "object": "serializer permission checks",
+          "claim": "The authenticated request user is the user supplied to ShareLinkSerializer and used by validate_document.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-b77f458b6932208c6bee",
+            "ev-734e2fde9e7a31fe1f58"
+          ]
+        },
+        {
+          "questionId": "sharelink-policy-conformance",
+          "kind": "resource-binding",
+          "subject": "document supplied for the share",
+          "object": "same Document passed to permission helper and persisted on ShareLink",
+          "claim": "The visible serializer guard is bound to the exact Document selected for the new ShareLink, rather than merely to a document identifier or to the ShareLink object.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-734e2fde9e7a31fe1f58",
+            "ev-fc0037336c0952214692"
+          ]
+        },
+        {
+          "questionId": "sharelink-policy-conformance",
+          "kind": "guard",
+          "subject": "caller",
+          "object": "selected Document",
+          "claim": "The visible path requires more than the global ShareLink add permission: it also requires global documents.view_document and a true owner-aware view_document check for the selected Document. Document existence or ID resolution alone does not satisfy the shown serializer condition.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-c6988b270a6495cc61fd",
+            "ev-734e2fde9e7a31fe1f58"
+          ]
+        },
+        {
+          "questionId": "sharelink-policy-conformance",
+          "kind": "effect",
+          "subject": "successful validated create",
+          "object": "ShareLink for checked Document",
+          "claim": "The Document checked by validate_document is the document field attached to the created ShareLink, so the visible guard and effect refer to the same selected Document.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-734e2fde9e7a31fe1f58",
+            "ev-fc0037336c0952214692"
+          ]
+        },
+        {
+          "questionId": "sharelink-policy-conformance",
+          "kind": "exception",
+          "subject": "has_perms_owner_aware",
+          "object": "selected Document",
+          "claim": "Definitive conformance depends on whether every true branch of has_perms_owner_aware(user, \"view_document\", document) establishes view_document permission for that exact Document. That implementation is not in the evidence read.",
+          "state": "unresolved",
+          "evidenceIds": [
+            "ev-734e2fde9e7a31fe1f58"
+          ]
+        }
+      ],
+      "scope": "Source-visible analysis of paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103 limited to the allowed source paths and the source ranges read here; no target execution and no claim of all-repository coverage."
+    },
+    "diagnostics": [
+      {
+        "code": "policy-assessment-missing",
+        "path": "questions.0",
+        "message": "Conformance must compare the independently supplied policy.",
+        "severity": "error"
+      }
+    ],
+    "semanticSupport": "unreviewed"
+  },
+  "error": null,
+  "extractionInitial": null,
+  "extractionInitialOrigin": "no-control-proposal",
+  "extractionFinal": null,
+  "extractionProposals": [],
+  "hostChecks": [],
+  "dependencies": [],
+  "schedulerActions": [],
+  "evidence": [
+    {
+      "id": "ev-13a3395da58caf1e14c8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4696,
+      "endLine": 4696,
+      "bytes": 31
+    },
+    {
+      "id": "ev-2d8f350887a7b7f1ebc0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 43,
+      "endLine": 43,
+      "bytes": 50
+    },
+    {
+      "id": "ev-04e9a1f74e3e05b3fb0c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 88,
+      "endLine": 88,
+      "bytes": 59
+    },
+    {
+      "id": "ev-bec2b15ccdb4e93043eb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4660,
+      "endLine": 4735,
+      "bytes": 3171
+    },
+    {
+      "id": "ev-870d6c191245a4a099b5",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 75,
+      "endLine": 100,
+      "bytes": 1367
+    },
+    {
+      "id": "ev-130cae1b8d9db6c8a05c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2851,
+      "endLine": 2851,
+      "bytes": 57
+    },
+    {
+      "id": "ev-5360e2715d0ae0535db5",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 591,
+      "endLine": 591,
+      "bytes": 77
+    },
+    {
+      "id": "ev-04b84023675462a3fef3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 638,
+      "endLine": 638,
+      "bytes": 77
+    },
+    {
+      "id": "ev-683b52ff0f7cae1e65eb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 718,
+      "endLine": 718,
+      "bytes": 77
+    },
+    {
+      "id": "ev-21b5572da99e58424afa",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1021,
+      "endLine": 1021,
+      "bytes": 78
+    },
+    {
+      "id": "ev-61afda06a4eb27c6d63b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1844,
+      "endLine": 1844,
+      "bytes": 62
+    },
+    {
+      "id": "ev-4c6d8551a6a5a344fdfb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 2068,
+      "endLine": 2068,
+      "bytes": 79
+    },
+    {
+      "id": "ev-96fa05369c4fbb82e742",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 2081,
+      "endLine": 2081,
+      "bytes": 79
+    },
+    {
+      "id": "ev-e9a579f0a6d2bb40cbd0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 2410,
+      "endLine": 2410,
+      "bytes": 76
+    },
+    {
+      "id": "ev-3a93d9f206e83c74580d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 2779,
+      "endLine": 2779,
+      "bytes": 77
+    },
+    {
+      "id": "ev-7efcf2828e81d9d80a73",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 2837,
+      "endLine": 2837,
+      "bytes": 78
+    },
+    {
+      "id": "ev-5169a4d763685ce4e4cb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 2943,
+      "endLine": 2943,
+      "bytes": 51
+    },
+    {
+      "id": "ev-7c43148b25c9a372e361",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3461,
+      "endLine": 3461,
+      "bytes": 51
+    },
+    {
+      "id": "ev-6d30ce281d473d9c232b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3589,
+      "endLine": 3589,
+      "bytes": 76
+    },
+    {
+      "id": "ev-c1533839034513b00ef0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3694,
+      "endLine": 3694,
+      "bytes": 76
+    },
+    {
+      "id": "ev-fdab3c65bbbbbfbb08fc",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3756,
+      "endLine": 3756,
+      "bytes": 51
+    },
+    {
+      "id": "ev-044d946f14096cb2e7aa",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3979,
+      "endLine": 3979,
+      "bytes": 51
+    },
+    {
+      "id": "ev-270e94400622ea0fcddd",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4087,
+      "endLine": 4087,
+      "bytes": 76
+    },
+    {
+      "id": "ev-12a93b6b4fce2f016fc9",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4174,
+      "endLine": 4174,
+      "bytes": 78
+    },
+    {
+      "id": "ev-210ac591ad63eb747158",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4186,
+      "endLine": 4186,
+      "bytes": 89
+    },
+    {
+      "id": "ev-93dc61bfbf77e27180c3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4234,
+      "endLine": 4234,
+      "bytes": 78
+    },
+    {
+      "id": "ev-f775af390e5f6d413ad2",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4455,
+      "endLine": 4455,
+      "bytes": 78
+    },
+    {
+      "id": "ev-83ffc7ef0e2236830b69",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4560,
+      "endLine": 4560,
+      "bytes": 82
+    },
+    {
+      "id": "ev-c9e4fd8bcea18c1cd841",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4710,
+      "endLine": 4710,
+      "bytes": 78
+    },
+    {
+      "id": "ev-d0466b7f78800bc69f10",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4744,
+      "endLine": 4744,
+      "bytes": 78
+    },
+    {
+      "id": "ev-bdd73c0aa39a27747c10",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4870,
+      "endLine": 4870,
+      "bytes": 35
+    },
+    {
+      "id": "ev-2d4194c9db6cac922872",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5017,
+      "endLine": 5017,
+      "bytes": 51
+    },
+    {
+      "id": "ev-bcb21e798a67c8f1b262",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5123,
+      "endLine": 5123,
+      "bytes": 78
+    },
+    {
+      "id": "ev-874864faf011c0f44089",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5141,
+      "endLine": 5141,
+      "bytes": 78
+    },
+    {
+      "id": "ev-a2f80bd597816dc1986d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5166,
+      "endLine": 5166,
+      "bytes": 78
+    },
+    {
+      "id": "ev-de33f5f92c5c3d003b15",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5220,
+      "endLine": 5220,
+      "bytes": 78
+    },
+    {
+      "id": "ev-d463ee9ec0c5a0a7aca3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5321,
+      "endLine": 5321,
+      "bytes": 51
+    },
+    {
+      "id": "ev-ac0aa1e1d499cc5588e6",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5577,
+      "endLine": 5577,
+      "bytes": 68
+    },
+    {
+      "id": "ev-c6988b270a6495cc61fd",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 1,
+      "endLine": 90,
+      "bytes": 3435
+    },
+    {
+      "id": "ev-b77f458b6932208c6bee",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 400,
+      "endLine": 435,
+      "bytes": 1280
+    },
+    {
+      "id": "ev-734e2fde9e7a31fe1f58",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2851,
+      "endLine": 2905,
+      "bytes": 1846
+    },
+    {
+      "id": "ev-085b43372cb4a1681a64",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 295,
+      "endLine": 380,
+      "bytes": 3464
+    },
+    {
+      "id": "ev-fc0037336c0952214692",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/models.py",
+      "sha256": "e5dfbdac82ea52a40b0b8665561b4fc8cc4890aa7ea2adc63c94f48b6d8b01d2",
+      "startLine": 972,
+      "endLine": 1031,
+      "bytes": 1735
+    }
+  ],
+  "deliveryValid": false,
+  "reviewCaution": "Citations and host consistency do not prove extraction meaning. Evaluate raw first/final and final prose against original source at the retained evidence ranges. A native prose answer can be delivered despite failed host checking. Representation may reveal strategy; arm, cost and target scores are hidden. No earlier answer is supplied."
+}

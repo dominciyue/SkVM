@@ -1,0 +1,3321 @@
+{
+  "reviewers": [
+    {
+      "id": "aq_review_notes",
+      "agentPath": "/root/aq_review_notes",
+      "role": "default",
+      "forkTurns": "none",
+      "independent": true
+    },
+    {
+      "id": "aq_review_owui",
+      "agentPath": "/root/aq_review_owui",
+      "role": "default",
+      "forkTurns": "none",
+      "independent": true
+    },
+    {
+      "id": "aq_review_memos_remove",
+      "agentPath": "/root/aq_review_memos_remove",
+      "role": "default",
+      "forkTurns": "none",
+      "independent": true
+    },
+    {
+      "id": "aq_review_gitea",
+      "agentPath": "/root/aq_review_gitea",
+      "role": "default",
+      "forkTurns": "none",
+      "independent": true
+    },
+    {
+      "id": "aq_review_paperless_other",
+      "agentPath": "/root/aq_review_paperless_other",
+      "role": "default",
+      "forkTurns": "none",
+      "independent": true
+    },
+    {
+      "id": "aq_review_memos_share",
+      "agentPath": "/root/aq_review_memos_share",
+      "role": "default",
+      "forkTurns": "none",
+      "independent": true
+    },
+    {
+      "id": "aq_review_notes_second",
+      "agentPath": "/root/aq_review_notes_second",
+      "role": "default",
+      "forkTurns": "none",
+      "independent": true,
+      "scope": "targeted second semantic review; advisory"
+    },
+    {
+      "id": "aq_review_owui_second",
+      "agentPath": "/root/aq_review_owui_second",
+      "role": "default",
+      "forkTurns": "none",
+      "independent": true,
+      "scope": "targeted second semantic review; advisory"
+    },
+    {
+      "id": "aq_review_gitea_self_second",
+      "agentPath": "/root/aq_review_gitea_self_second",
+      "role": "default",
+      "forkTurns": "none",
+      "independent": true,
+      "scope": "targeted second semantic review; advisory"
+    },
+    {
+      "id": "aq_graph_notes",
+      "role": "default",
+      "forkTurns": "none",
+      "independent": true,
+      "scope": "typed graph and scheduler audit; advisory"
+    },
+    {
+      "id": "aq_graph_other",
+      "role": "default",
+      "forkTurns": "none",
+      "independent": true,
+      "scope": "typed graph and scheduler audit; advisory"
+    },
+    {
+      "id": "aq_share_final_source",
+      "agentPath": "/root/aq_share_final_source",
+      "role": "default",
+      "forkTurns": "none",
+      "independent": true,
+      "scope": "final targeted source verification after a concrete helper-gap discrepancy; advisory"
+    },
+    {
+      "id": "aq_remaining_full_source",
+      "agentPath": "/root/aq_remaining_full_source",
+      "role": "default",
+      "forkTurns": "none",
+      "independent": true,
+      "scope": "final targeted source verification after a concrete helper-gap discrepancy; advisory"
+    },
+    {
+      "id": "main-source-adjudicator",
+      "independent": false,
+      "adjudicator": true,
+      "developerAlreadyExposed": true
+    }
+  ],
+  "adjudication": {
+    "artifact": "evaluator/adjudications.json",
+    "script": "adjudicate.ts",
+    "performedBeforeUnblinding": false,
+    "firstRoundBeforeAggregateUnblinding": true,
+    "finalTargetedCorrectionsAfterAggregateUnblinding": true,
+    "originalReceiptsPreserved": true,
+    "independentFirstReviewers": 6,
+    "targetedSecondReviewers": 3,
+    "graphAuditors": 2,
+    "finalTargetedSourceVerifiers": 2,
+    "mainAdjudicatorIndependent": false,
+    "semanticSupportOfAllIndividualRulesEstablished": false,
+    "rules": [
+      "Judge actual raw first/final and final prose separately from host acceptance/status",
+      "Unspecified current facts can support a complete conditional answer",
+      "No actual graph means extraction none",
+      "Only schedulerActions establish automatic reads; no host-inapplicable paths were observed",
+      "Protocol/schema failures are not semantic checker detections",
+      "No proven amplification/false acceptance/false rejection is not a claim of checker completeness"
+    ]
+  },
+  "reviews": [
+    {
+      "id": "packet-9676433a96b1",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-9676433a96b1.json initial.questions: both GET/POST retain missing grant, owner, and endpoint facts; source views.py:1841-1886 shows checks/effects but helper body is omitted",
+          "packet-9676433a96b1.json final.questions: conditional policy result and explicit owner/grant gaps; views.py:1848-1892 binds the same doc to checks/effect",
+          "paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-9676433a96b1.json initial.questions: both GET/POST retain missing grant, owner, and endpoint facts; source views.py:1841-1886 shows checks/effects but helper body is omitted",
+          "packet-9676433a96b1.json final.questions: conditional policy result and explicit owner/grant gaps; views.py:1848-1892 binds the same doc to checks/effect",
+          "paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-9676433a96b1.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [
+          "packet-9676433a96b1.json initial.questions[*].missing: permissions.py:624-635 is allowed and decisive but was not read",
+          "Requested source-visible control/effect remains unresolved; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-9676433a96b1.json schedulerActions, dependencies and hostChecks; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "packet-9676433a96b1.json initial.questions: both GET/POST retain missing grant, owner, and endpoint facts; source views.py:1841-1886 shows checks/effects but helper body is omitted First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-b1092582bce8",
+      "initial": {
+        "rating": "incorrect",
+        "decisiveError": true,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions branches get-no-object-grant-nonowner and post-no-object-grants-nonowner treat grants not supplied by the brief as absent; unspecified ownership also does not establish another non-null owner.",
+          "paperless/src/documents/permissions.py:624-635 and views.py:1857-1892: null owner passes each object check. The supplied brief explicitly requires retaining the unknown owner/grant branches."
+        ]
+      },
+      "final": {
+        "rating": "incorrect",
+        "decisiveError": true,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions branches get-no-object-grant-nonowner and post-no-object-grants-nonowner treat grants not supplied by the brief as absent; unspecified ownership also does not establish another non-null owner.",
+          "paperless/src/documents/permissions.py:624-635 and views.py:1857-1892: null owner passes each object check. The supplied brief explicitly requires retaining the unknown owner/grant branches."
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-b1092582bce8.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "packet-b1092582bce8.json: caller, owner, global permissions, and object grants are unspecified"
+        ],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-b1092582bce8.json schedulerActions, dependencies and hostChecks; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "premise-branch"
+      ],
+      "notes": "initial/final.questions branches get-no-object-grant-nonowner and post-no-object-grants-nonowner treat grants not supplied by the brief as absent; unspecified ownership also does not establish another non-null owner. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-583984122def",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-583984122def.json initial.questions: preserves owner, grants, principal, endpoint permissions, and route uncertainty; does not inspect helper body",
+          "packet-583984122def.json final.questions: same conditional conclusion and explicit source gaps",
+          "paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-583984122def.json initial.questions: preserves owner, grants, principal, endpoint permissions, and route uncertainty; does not inspect helper body",
+          "packet-583984122def.json final.questions: same conditional conclusion and explicit source gaps",
+          "paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-583984122def.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "packet-583984122def.json initial.questions.missing: owner/grants/global permissions unspecified"
+        ],
+        "avoidableResiduals": [
+          "packet-583984122def.json initial.questions.missing: helper body permissions.py:624-635 is allowed and decisive",
+          "Requested source-visible control/effect remains unresolved; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-583984122def.json schedulerActions, dependencies and hostChecks; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "packet-583984122def.json initial.questions: preserves owner, grants, principal, endpoint permissions, and route uncertainty; does not inspect helper body First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-878a6454ee73",
+      "initial": {
+        "rating": "incorrect",
+        "decisiveError": true,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions POST post-without-change-grant and post-no-view deny for a non-owner without the relevant grant, without requiring a non-null other owner. A null owner also differs from the caller and bypasses the check.",
+          "paperless/src/documents/permissions.py:624-635; views.py:1879-1892. This is a wrong branch, independent of the correctly stated policy violation."
+        ]
+      },
+      "final": {
+        "rating": "incorrect",
+        "decisiveError": true,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions POST post-without-change-grant and post-no-view deny for a non-owner without the relevant grant, without requiring a non-null other owner. A null owner also differs from the caller and bypasses the check.",
+          "paperless/src/documents/permissions.py:624-635; views.py:1879-1892. This is a wrong branch, independent of the correctly stated policy violation."
+        ]
+      },
+      "extraction": {
+        "initial": "partial",
+        "final": "partial",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-878a6454ee73.json extractionInitial/extractionFinal and preserved proposals; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892. Source-correct prose is separate from incomplete typed control/premise/path representation.",
+          "packet-878a6454ee73.json:extractionInitial.rules: q1.get.object.check and q1.post.change.check correctly represent has_perms_owner_aware checks; q1.doc.binding binds Document(pk=pk), q1.user.binding binds request.user.",
+          "Extraction partial means the complete requested typed branch/control/effect graph is not established; it does not assert that every cited prose claim is wrong. User premise bindings and source binding nodes are distinct contracts."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [
+          "ctrl-baef8855ad783d189b33: has_perms_owner_aware; src/documents/permissions.py:624-637"
+        ],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "packet-878a6454ee73.json: owner, grants, and upstream permissions unspecified"
+        ],
+        "avoidableResiduals": [],
+        "checkerDetections": [
+          "check[0] object-binding-missing at q1.doc.binding: rule names resource without a matching source binding node. src/task-dsl/authorization/control-conclusion.ts:64. Detection of an incomplete typed graph, not independent proof of source meaning."
+        ],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-878a6454ee73.json schedulerActions, dependencies and hostChecks; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "premise-branch",
+        "extraction-error"
+      ],
+      "notes": "initial/final.questions POST post-without-change-grant and post-no-view deny for a non-owner without the relevant grant, without requiring a non-null other owner. A null owner also differs from the caller and bypasses the check. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-88121a21070a",
+      "initial": {
+        "rating": "full",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions use the changed owner=null premise; final prose labels non-null-owner branches outside the current premise. Authentication/global permissions remain legitimately conditional.",
+          "paperless/src/documents/permissions.py:624-635,673-699; views.py:1841-1892. Invalid proposal bindings/evidence IDs prevent checked delivery but do not erase the source-correct raw answer and prose."
+        ]
+      },
+      "final": {
+        "rating": "full",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions use the changed owner=null premise; final prose labels non-null-owner branches outside the current premise. Authentication/global permissions remain legitimately conditional.",
+          "paperless/src/documents/permissions.py:624-635,673-699; views.py:1841-1892. Invalid proposal bindings/evidence IDs prevent checked delivery but do not erase the source-correct raw answer and prose."
+        ]
+      },
+      "extraction": {
+        "initial": "partial",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [
+          "First null-owner source claims are correct, but the bindings proposal does not satisfy the current binding contract; the final accepted graph is empty."
+        ],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-88121a21070a.json extractionInitial/extractionFinal and preserved proposals; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892. Source-correct prose is separate from incomplete typed control/premise/path representation.",
+          "packet-88121a21070a.json:extractionInitial.rules correctly represent GET/POST endpoint, model permissions, addressed Document binding, owner-aware checks and note effects; ev-4f33a1e09c04ea0ad5ed and ev-dc649bb26c750cfc6bc5.",
+          "Extraction partial means the complete requested typed branch/control/effect graph is not established; it does not assert that every cited prose claim is wrong. User premise bindings and source binding nodes are distinct contracts."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "packet-88121a21070a.json: authentication and global model permissions remain unspecified"
+        ],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-88121a21070a.json schedulerActions, dependencies and hostChecks; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "extraction-error"
+      ],
+      "notes": "initial/final.questions use the changed owner=null premise; final prose labels non-null-owner branches outside the current premise. Authentication/global permissions remain legitimately conditional. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-00eecdd73322",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-00eecdd73322.json initial.questions: conditional owner/grant analysis but helper implementation omitted",
+          "packet-00eecdd73322.json final.questions: conditional result and source gaps preserved",
+          "paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-00eecdd73322.json initial.questions: conditional owner/grant analysis but helper implementation omitted",
+          "packet-00eecdd73322.json final.questions: conditional result and source gaps preserved",
+          "paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-00eecdd73322.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "packet-00eecdd73322.json: owner/grants/global permissions unspecified"
+        ],
+        "avoidableResiduals": [
+          "helper body permissions.py:624-635 not read",
+          "Requested source-visible control/effect remains unresolved; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-00eecdd73322.json schedulerActions, dependencies and hostChecks; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "packet-00eecdd73322.json initial.questions: conditional owner/grant analysis but helper implementation omitted First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-70e3ab71e297",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-70e3ab71e297.json initial.questions: preserves policy and branch uncertainty; helper gap remains",
+          "packet-70e3ab71e297.json final.questions: same conditional analysis",
+          "paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-70e3ab71e297.json initial.questions: preserves policy and branch uncertainty; helper gap remains",
+          "packet-70e3ab71e297.json final.questions: same conditional analysis",
+          "paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-70e3ab71e297.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "packet-70e3ab71e297.json: unspecified owner/grants/upstream permissions"
+        ],
+        "avoidableResiduals": [
+          "permissions.py:624-635 helper not read",
+          "Requested source-visible control/effect remains unresolved; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-70e3ab71e297.json schedulerActions, dependencies and hostChecks; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "packet-70e3ab71e297.json initial.questions: preserves policy and branch uncertainty; helper gap remains First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-f6940ed09f62",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-f6940ed09f62.json initial.questions: conditional result with owner/grant gaps and helper not established",
+          "packet-f6940ed09f62.json final.questions: same",
+          "paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-f6940ed09f62.json initial.questions: conditional result with owner/grant gaps and helper not established",
+          "packet-f6940ed09f62.json final.questions: same",
+          "paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-f6940ed09f62.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "packet-f6940ed09f62.json: owner/grants/global permissions unspecified"
+        ],
+        "avoidableResiduals": [
+          "permissions.py:624-635 not read",
+          "Requested source-visible control/effect remains unresolved; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-f6940ed09f62.json schedulerActions, dependencies and hostChecks; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "packet-f6940ed09f62.json initial.questions: conditional result with owner/grant gaps and helper not established First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-10daef8608df",
+      "initial": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-10daef8608df.json: initial has no raw candidate/questions; status timeout-unknown",
+          "packet-10daef8608df.json: final has no raw candidate/prose",
+          "paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ]
+      },
+      "final": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-10daef8608df.json: initial has no raw candidate/questions; status timeout-unknown",
+          "packet-10daef8608df.json: final has no raw candidate/prose",
+          "paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ]
+      },
+      "extraction": {
+        "initial": "partial",
+        "final": "partial",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-10daef8608df.json extractionInitial/extractionFinal and preserved proposals; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892. Source-correct prose is separate from incomplete typed control/premise/path representation.",
+          "packet-10daef8608df.json:status=timeout-unknown; initial=null and final=null, so no actual extraction graph exists to assess.",
+          "Extraction partial means the complete requested typed branch/control/effect graph is not established; it does not assert that every cited prose claim is wrong. User premise bindings and source binding nodes are distinct contracts."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [
+          "ctrl-65b8e72bb76c9a66361b: has_perms_owner_aware; src/documents/permissions.py:624-637"
+        ],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-10daef8608df.json schedulerActions, dependencies and hostChecks; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "infrastructure",
+        "extraction-error"
+      ],
+      "notes": "No raw answer or native prose. timeout-unknown; extraction proposals, if any, remain separately graded. Authorization provider call did not settle within 300000ms (per-call deadline); request completion is unknown."
+    },
+    {
+      "id": "packet-ac8029aee9bd",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-ac8029aee9bd.json initial.questions: correctly identifies endpoint/effect but leaves helper semantics unknown",
+          "packet-ac8029aee9bd.json final.questions: same helper and upstream gaps",
+          "paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-ac8029aee9bd.json initial.questions: correctly identifies endpoint/effect but leaves helper semantics unknown",
+          "packet-ac8029aee9bd.json final.questions: same helper and upstream gaps",
+          "paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-ac8029aee9bd.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "packet-ac8029aee9bd.json: owner/grants/authentication unspecified"
+        ],
+        "avoidableResiduals": [
+          "permissions.py:624-635 allowed helper omitted",
+          "Requested source-visible control/effect remains unresolved; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-ac8029aee9bd.json schedulerActions, dependencies and hostChecks; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "packet-ac8029aee9bd.json initial.questions: correctly identifies endpoint/effect but leaves helper semantics unknown First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-a77069a4e25d",
+      "initial": {
+        "rating": "full",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions preserve unowned, caller-owned, other-owned grant-present/grant-absent, global gate and not-found branches; the view and change checks and effect use the same document.",
+          "paperless/src/documents/permissions.py:624-635,673-699; views.py:1841-1892. Conditional current facts do not make this bounded answer partial."
+        ]
+      },
+      "final": {
+        "rating": "full",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions preserve unowned, caller-owned, other-owned grant-present/grant-absent, global gate and not-found branches; the view and change checks and effect use the same document.",
+          "paperless/src/documents/permissions.py:624-635,673-699; views.py:1841-1892. Conditional current facts do not make this bounded answer partial."
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-a77069a4e25d.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "packet-a77069a4e25d.json: caller/owner/grants/upstream/payload remain unspecified"
+        ],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-a77069a4e25d.json schedulerActions, dependencies and hostChecks; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [],
+      "notes": "initial/final.questions preserve unowned, caller-owned, other-owned grant-present/grant-absent, global gate and not-found branches; the view and change checks and effect use the same document. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-effbd4b88680",
+      "initial": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-effbd4b88680.json: initial contains no raw candidate/questions; status transport-failed",
+          "packet-effbd4b88680.json: final contains no raw candidate/prose",
+          "paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ]
+      },
+      "final": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-effbd4b88680.json: initial contains no raw candidate/questions; status transport-failed",
+          "packet-effbd4b88680.json: final contains no raw candidate/prose",
+          "paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-effbd4b88680.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-effbd4b88680.json schedulerActions, dependencies and hostChecks; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "protocol"
+      ],
+      "notes": "No raw answer or native prose. transport-failed; extraction proposals, if any, remain separately graded. Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"delta\",\"code\":\"invalid_type\"},{\"path\":\"$\",\"code\":\"unrecognized_keys\"}]},{\"transport\":\"prompt-parse\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"delta.rules.0.key\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.0.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.1.key\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.1.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.1.after.0\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.1.principal\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.1.bindingKey\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.2.key\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.2.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.2.after.0\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.2.resource\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.2.bindingKey\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.3.key\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.3.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.3.after.0\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.3.after.1\",\"code\":\"invalid_type\"}]}]"
+    },
+    {
+      "id": "packet-a9d063011fc0",
+      "initial": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-a9d063011fc0.json: initial contains no raw candidate/questions; status transport-failed",
+          "packet-a9d063011fc0.json: final contains no raw candidate/prose",
+          "paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ]
+      },
+      "final": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-a9d063011fc0.json: initial contains no raw candidate/questions; status transport-failed",
+          "packet-a9d063011fc0.json: final contains no raw candidate/prose",
+          "paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-a9d063011fc0.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-a9d063011fc0.json schedulerActions, dependencies and hostChecks; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "protocol"
+      ],
+      "notes": "No raw answer or native prose. transport-failed; extraction proposals, if any, remain separately graded. Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"delta.rules.0.key\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.1.key\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.1.after.0\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.2.key\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.2.after.0\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.2.resource\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.3.key\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.4.key\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.4.after.0\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.5.key\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.5.after.0\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.5.resource\",\"code\":\"invalid_type\"},{\"path\":\"delta.dependencies.0.key\",\"code\":\"invalid_type\"},{\"path\":\"delta.dependencies.0.from\",\"code\":\"invalid_type\"},{\"path\":\"delta.dependencies.1.key\",\"code\":\"invalid_type\"},{\"path\":\"delta.dependencies.1.from\",\"code\":\"invalid_type\"}]},{\"transport\":\"prompt-parse\",\"category\":\"json-parse\",\"diagnostics\":[{\"path\":\"$\",\"code\":\"invalid-json\"}]}]"
+    },
+    {
+      "id": "packet-1f6b3e10f8fb",
+      "initial": {
+        "rating": "full",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions and final prose retain unowned, caller-owned and other-owner grant/denial branches, and compare ownership substitution against the independently supplied policy.",
+          "paperless/src/documents/permissions.py:624-635,673-699; views.py:1841-1892. Missing concrete request facts are legitimate conditional premises; the two graph conflicts are a separate extraction issue."
+        ]
+      },
+      "final": {
+        "rating": "full",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions and final prose retain unowned, caller-owned and other-owner grant/denial branches, and compare ownership substitution against the independently supplied policy.",
+          "paperless/src/documents/permissions.py:624-635,673-699; views.py:1841-1892. Missing concrete request facts are legitimate conditional premises; the two graph conflicts are a separate extraction issue."
+        ]
+      },
+      "extraction": {
+        "initial": "partial",
+        "final": "partial",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-1f6b3e10f8fb.json extractionInitial/extractionFinal and preserved proposals; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892. Source-correct prose is separate from incomplete typed control/premise/path representation.",
+          "packet-1f6b3e10f8fb.json:extractionInitial.rules and extractionFinal.rules correctly bind endpoint, request principal, addressed document, GET/POST permission controls, owner-aware checks and effects; final owner semantics cite ev-fb8b1acf0bb547601ad1.",
+          "Extraction partial means the complete requested typed branch/control/effect graph is not established; it does not assert that every cited prose claim is wrong. User premise bindings and source binding nodes are distinct contracts."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "packet-1f6b3e10f8fb.json: owner and global/object grants unspecified"
+        ],
+        "avoidableResiduals": [],
+        "checkerDetections": [
+          "check[0] object-binding-missing at get-endpoint-control: rule names principal/resource without a matching source binding node. src/task-dsl/authorization/control-conclusion.ts:64. Detection of an incomplete typed graph, not independent proof of source meaning."
+        ],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-1f6b3e10f8fb.json schedulerActions, dependencies and hostChecks; paperless/src/documents/permissions.py:624-635,673-699; src/documents/views.py:1841-1892. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "extraction-error"
+      ],
+      "notes": "initial/final.questions and final prose retain unowned, caller-owned and other-owner grant/denial branches, and compare ownership substitution against the independently supplied policy. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-9aea28cedf0f",
+      "initial": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-9aea28cedf0f.json:8-15 status transport-failed; no raw initial/final/prose candidate",
+          "packet-9aea28cedf0f.json:8-15",
+          "owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ]
+      },
+      "final": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-9aea28cedf0f.json:8-15 status transport-failed; no raw initial/final/prose candidate",
+          "packet-9aea28cedf0f.json:8-15",
+          "owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-9aea28cedf0f.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-9aea28cedf0f.json schedulerActions, dependencies and hostChecks; owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "protocol"
+      ],
+      "notes": "No raw answer or native prose. transport-failed; extraction proposals, if any, remain separately graded. Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"delta\",\"code\":\"invalid_type\"},{\"path\":\"$\",\"code\":\"unrecognized_keys\"}]},{\"transport\":\"prompt-parse\",\"category\":\"json-parse\",\"diagnostics\":[{\"path\":\"$\",\"code\":\"invalid-json\"}]}]"
+    },
+    {
+      "id": "packet-453e35684eea",
+      "initial": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-453e35684eea.json:8-15 timeout-unknown with null initial/final/prose",
+          "packet-453e35684eea.json:8-15",
+          "owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ]
+      },
+      "final": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-453e35684eea.json:8-15 timeout-unknown with null initial/final/prose",
+          "packet-453e35684eea.json:8-15",
+          "owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ]
+      },
+      "extraction": {
+        "initial": "partial",
+        "final": "partial",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-453e35684eea.json extractionInitial/extractionFinal and preserved proposals; owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764. Source-correct prose is separate from incomplete typed control/premise/path representation.",
+          "packet-453e35684eea.json:16-257 initial/final; dependency source anchor retrieval.py:1546-1764 at :787-817.",
+          "Extraction partial means the complete requested typed branch/control/effect graph is not established; it does not assert that every cited prose claim is wrong. User premise bindings and source binding nodes are distinct contracts."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [
+          "ctrl-0924dfd2bc354acdcb51: get_file_by_id_and_user_id; backend/open_webui/models/files.py:172-185"
+        ],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-453e35684eea.json schedulerActions, dependencies and hostChecks; owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "infrastructure",
+        "extraction-error"
+      ],
+      "notes": "No raw answer or native prose. timeout-unknown; extraction proposals, if any, remain separately graded. Authorization provider call did not settle within 300000ms (per-call deadline); request completion is unknown."
+    },
+    {
+      "id": "packet-df35983b306b",
+      "initial": {
+        "rating": "full",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions distinguish owner-constrained file lookup from independently supplied collection_name, preserve admin/other-user and processing branches, and bound external backend claims.",
+          "owui/backend/open_webui/models/files.py:161-185; routers/retrieval.py:1546-1764,1340-1539. Full bounded raw answer exists despite later budget exhaustion."
+        ]
+      },
+      "final": {
+        "rating": "full",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions distinguish owner-constrained file lookup from independently supplied collection_name, preserve admin/other-user and processing branches, and bound external backend claims.",
+          "owui/backend/open_webui/models/files.py:161-185; routers/retrieval.py:1546-1764,1340-1539. Full bounded raw answer exists despite later budget exhaustion."
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-df35983b306b.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "deployment vector-backend ACL unknown (packet-df35983b306b.json:95-104)",
+          "bounded caller-scope limitation (packet-df35983b306b.json:102-104)"
+        ],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-df35983b306b.json schedulerActions, dependencies and hostChecks; owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [],
+      "notes": "initial/final.questions distinguish owner-constrained file lookup from independently supplied collection_name, preserve admin/other-user and processing branches, and bound external backend claims. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-e253a7ea408c",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-e253a7ea408c.json:9-105 correctly states file-vs-collection separation but leaves get_verified_user, Files lookup, save helper/vector behavior as source gaps",
+          "packet-e253a7ea408c.json:209-230 final remains correct but does not close decisive helper gaps",
+          "owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-e253a7ea408c.json:9-105 correctly states file-vs-collection separation but leaves get_verified_user, Files lookup, save helper/vector behavior as source gaps",
+          "packet-e253a7ea408c.json:209-230 final remains correct but does not close decisive helper gaps",
+          "owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ]
+      },
+      "extraction": {
+        "initial": "partial",
+        "final": "partial",
+        "incorrectRules": [
+          "Preserved proposals contain unsupported/empty predicate forms or unresolved explicit revisions; see proposal diagnostics and rule conditions, rather than inferring semantic support from citations."
+        ],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-e253a7ea408c.json extractionInitial/extractionFinal and preserved proposals; owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764. Source-correct prose is separate from incomplete typed control/premise/path representation.",
+          "packet-e253a7ea408c.json:1104-1197 initial graph; :1199-1766 final graph; source anchors retrieval.py:1546-1764 and 1340-1539 at :3103-3155.",
+          "Extraction partial means the complete requested typed branch/control/effect graph is not established; it does not assert that every cited prose claim is wrong. User premise bindings and source binding nodes are distinct contracts."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [
+          "ctrl-d572610264aa94be4bf8: process_file; backend/open_webui/routers/retrieval.py:1546-1705",
+          "ctrl-d572610264aa94be4bf8: process_file; backend/open_webui/routers/retrieval.py:1706-1764",
+          "ctrl-8a865b69069a653a2c6e: save_docs_to_vector_db; backend/open_webui/routers/retrieval.py:1340-1499",
+          "ctrl-8a865b69069a653a2c6e: save_docs_to_vector_db; backend/open_webui/routers/retrieval.py:1500-1539"
+        ],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "deployment values and backend outcomes (packet-e253a7ea408c.json:98-104)"
+        ],
+        "avoidableResiduals": [
+          "Files lookup and relevant vector helper are within allowed backend/open_webui but were left unverified (packet-e253a7ea408c.json:86-95)",
+          "Requested source-visible control/effect remains unresolved; owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ],
+        "checkerDetections": [
+          "check[0] object-binding-missing at bind-caller-process-file: rule names principal without a matching source binding node. src/task-dsl/authorization/control-conclusion.ts:64. Detection of an incomplete typed graph, not independent proof of source meaning.",
+          "check[0] predicate-invalid at rules.guard-process-file-admin: the retained proposed condition is outside the finite predicate grammar. This is an expression-contract detection.",
+          "check[1] object-binding-missing at bind-caller-process-file: rule names principal without a matching source binding node. src/task-dsl/authorization/control-conclusion.ts:64. Detection of an incomplete typed graph, not independent proof of source meaning.",
+          "check[1] predicate-invalid at rules.guard-process-file-admin: the retained proposed condition is outside the finite predicate grammar. This is an expression-contract detection."
+        ],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-e253a7ea408c.json schedulerActions, dependencies and hostChecks; owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read",
+        "extraction-error"
+      ],
+      "notes": "packet-e253a7ea408c.json:9-105 correctly states file-vs-collection separation but leaves get_verified_user, Files lookup, save helper/vector behavior as source gaps First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-74eb747ffa19",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-74eb747ffa19.json:9-143 correct owner/admin and independent destination analysis, but lists multiple source gaps",
+          "packet-74eb747ffa19.json:189-230 final preserves correct core but leaves auth/caller and vector access gaps",
+          "owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-74eb747ffa19.json:9-143 correct owner/admin and independent destination analysis, but lists multiple source gaps",
+          "packet-74eb747ffa19.json:189-230 final preserves correct core but leaves auth/caller and vector access gaps",
+          "owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-74eb747ffa19.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "deployment-specific API-key/config/vector backend behavior (packet-74eb747ffa19.json:126-141)"
+        ],
+        "avoidableResiduals": [
+          "get_verified_user and exact caller/call-site/helper implementations remain unread in allowed scope (packet-74eb747ffa19.json:119-141)",
+          "Requested source-visible control/effect remains unresolved; owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-74eb747ffa19.json schedulerActions, dependencies and hostChecks; owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "packet-74eb747ffa19.json:9-143 correct owner/admin and independent destination analysis, but lists multiple source gaps First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-ff2da9a404b5",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-ff2da9a404b5.json:9-183 correctly identifies _validate_collection_access omission and file ownership branches, while leaving helper/caller/vector details open",
+          "packet-ff2da9a404b5.json:189-230 final is substantively correct but retains avoidable source gaps",
+          "owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-ff2da9a404b5.json:9-183 correctly identifies _validate_collection_access omission and file ownership branches, while leaving helper/caller/vector details open",
+          "packet-ff2da9a404b5.json:189-230 final is substantively correct but retains avoidable source gaps",
+          "owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-ff2da9a404b5.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "concrete backend/deployment ACL semantics (packet-ff2da9a404b5.json:176-181)"
+        ],
+        "avoidableResiduals": [
+          "requested missing-file/error and caller trace ranges were within allowedPaths but unread (packet-ff2da9a404b5.json:159-174)",
+          "Requested source-visible control/effect remains unresolved; owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-ff2da9a404b5.json schedulerActions, dependencies and hostChecks; owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "packet-ff2da9a404b5.json:9-183 correctly identifies _validate_collection_access omission and file ownership branches, while leaving helper/caller/vector details open First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-53d45e8efb6a",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "initial.questions process-file-input-output-identity/bypass explicitly says no vector write occurs while the file is still updated. Its deny label concerns that effect; the separate bypass-enabled branch correctly reports successful file update/response.",
+          "owui/backend/open_webui/routers/retrieval.py:1673-1681. No decisive bypass error is established; actual missing auth and file query bodies keep first/final partial."
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "initial.questions process-file-input-output-identity/bypass explicitly says no vector write occurs while the file is still updated. Its deny label concerns that effect; the separate bypass-enabled branch correctly reports successful file update/response.",
+          "owui/backend/open_webui/routers/retrieval.py:1673-1681. No decisive bypass error is established; actual missing auth and file query bodies keep first/final partial."
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-53d45e8efb6a.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "vector backend tenancy is outside traced route (packet-53d45e8efb6a.json:125-130)"
+        ],
+        "avoidableResiduals": [
+          "get_verified_user and Files lookup implementations are allowed and decisive but unread (packet-53d45e8efb6a.json:63-78)",
+          "Requested source-visible control/effect remains unresolved; owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-53d45e8efb6a.json schedulerActions, dependencies and hostChecks; owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "initial.questions process-file-input-output-identity/bypass explicitly says no vector write occurs while the file is still updated. Its deny label concerns that effect; the separate bypass-enabled branch correctly reports successful file update/response. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-02f0c4154dc5",
+      "initial": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-02f0c4154dc5.json:8-15 transport-failed; initial/final/prose null",
+          "packet-02f0c4154dc5.json:8-15",
+          "owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ]
+      },
+      "final": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-02f0c4154dc5.json:8-15 transport-failed; initial/final/prose null",
+          "packet-02f0c4154dc5.json:8-15",
+          "owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-02f0c4154dc5.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-02f0c4154dc5.json schedulerActions, dependencies and hostChecks; owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "protocol"
+      ],
+      "notes": "No raw answer or native prose. transport-failed; extraction proposals, if any, remain separately graded. Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"controlDelta.dependencies.0.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.0.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.0.from\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.0.kind\",\"code\":\"invalid_enum_value\"},{\"path\":\"controlDelta.dependencies.1.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.1.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.1.from\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.2.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.2.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.2.from\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.3.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.3.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.3.from\",\"code\":\"invalid_type\"}]},{\"transport\":\"prompt-parse\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"controlDelta.dependencies.0.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.0.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.0.from\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.1.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.1.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.1.from\",\"code\":\"invalid_type\"}]}]"
+    },
+    {
+      "id": "packet-b1be85739247",
+      "initial": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-b1be85739247.json:8-15 transport-failed; no raw candidate/prose",
+          "packet-b1be85739247.json:8-15",
+          "owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ]
+      },
+      "final": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-b1be85739247.json:8-15 transport-failed; no raw candidate/prose",
+          "packet-b1be85739247.json:8-15",
+          "owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-b1be85739247.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-b1be85739247.json schedulerActions, dependencies and hostChecks; owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "protocol"
+      ],
+      "notes": "No raw answer or native prose. transport-failed; extraction proposals, if any, remain separately graded. Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"$\",\"code\":\"unrecognized_keys\"}]},{\"transport\":\"prompt-parse\",\"category\":\"json-parse\",\"diagnostics\":[{\"path\":\"$\",\"code\":\"invalid-json\"}]}]"
+    },
+    {
+      "id": "packet-bfe2c68e11fc",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-bfe2c68e11fc.json:9-131 correctly separates file and collection controls but leaves get_verified_user, lookup, collection helper and backend semantics unread",
+          "packet-bfe2c68e11fc.json:164-230 final preserves correct core and explicit _validate_collection_access omission",
+          "owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-bfe2c68e11fc.json:9-131 correctly separates file and collection controls but leaves get_verified_user, lookup, collection helper and backend semantics unread",
+          "packet-bfe2c68e11fc.json:164-230 final preserves correct core and explicit _validate_collection_access omission",
+          "owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-bfe2c68e11fc.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "deployment/backend enforcement (packet-bfe2c68e11fc.json:117-124)"
+        ],
+        "avoidableResiduals": [
+          "Files lookup implementation and filter_accessible_collections are within allowed scope but unread (packet-bfe2c68e11fc.json:105-124)",
+          "Requested source-visible control/effect remains unresolved; owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-bfe2c68e11fc.json schedulerActions, dependencies and hostChecks; owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "packet-bfe2c68e11fc.json:9-131 correctly separates file and collection controls but leaves get_verified_user, lookup, collection helper and backend semantics unread First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-ec9c0d66fa84",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-ec9c0d66fa84.json:9-128 correctly traces ownership and destination but leaves lower-layer access/deployment unknown",
+          "packet-ec9c0d66fa84.json:164-230 final correctly states separate file and collection authorization",
+          "owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-ec9c0d66fa84.json:9-128 correctly traces ownership and destination but leaves lower-layer access/deployment unknown",
+          "packet-ec9c0d66fa84.json:164-230 final correctly states separate file and collection authorization",
+          "owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-ec9c0d66fa84.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "deployment/backend ACL unknown (packet-ec9c0d66fa84.json:144-153)"
+        ],
+        "avoidableResiduals": [
+          "filter_accessible_collections and lower-layer vector authorization were allowed but unread (packet-ec9c0d66fa84.json:144-149)",
+          "Requested source-visible control/effect remains unresolved; owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-ec9c0d66fa84.json schedulerActions, dependencies and hostChecks; owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "packet-ec9c0d66fa84.json:9-128 correctly traces ownership and destination but leaves lower-layer access/deployment unknown First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-ca9b6db6c09a",
+      "initial": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-ca9b6db6c09a.json:8-15 transport-failed; null initial/final/prose",
+          "packet-ca9b6db6c09a.json:8-15",
+          "owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ]
+      },
+      "final": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-ca9b6db6c09a.json:8-15 transport-failed; null initial/final/prose",
+          "packet-ca9b6db6c09a.json:8-15",
+          "owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-ca9b6db6c09a.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-ca9b6db6c09a.json schedulerActions, dependencies and hostChecks; owui/backend/open_webui/models/files.py:161-185; utils/auth.py:458-464; routers/retrieval.py:1340-1539,1546-1764. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "protocol"
+      ],
+      "notes": "No raw answer or native prose. transport-failed; extraction proposals, if any, remain separately graded. Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"delta\",\"code\":\"invalid_type\"},{\"path\":\"$\",\"code\":\"unrecognized_keys\"}]},{\"transport\":\"prompt-parse\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"result.questions.0\",\"code\":\"unrecognized_keys\"}]}]"
+    },
+    {
+      "id": "packet-51f43607e722",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "server/api/v1/space_service.go:632-662 defines resource resolution and :54-59 defines requireSpaceAdministrator, but the answer reports these as unresolved; DeleteSpaceMember branch is :740-760.",
+          "Final repeats avoidable source gaps for requireCurrentSpaceUser, resolveSpaceMemberResource, and requireSpaceAdministrator despite their bodies at server/api/v1/space_service.go:19-59 and :632-662; branch behavior at :740-760 is otherwise accurate.",
+          "memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies"
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "server/api/v1/space_service.go:632-662 defines resource resolution and :54-59 defines requireSpaceAdministrator, but the answer reports these as unresolved; DeleteSpaceMember branch is :740-760.",
+          "Final repeats avoidable source gaps for requireCurrentSpaceUser, resolveSpaceMemberResource, and requireSpaceAdministrator despite their bodies at server/api/v1/space_service.go:19-59 and :632-662; branch behavior at :740-760 is otherwise accurate.",
+          "memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-51f43607e722.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "Deployment middleware is outside supplied source scope."
+        ],
+        "avoidableResiduals": [
+          "Helper implementations were treated as unknown although allowed source contains them at server/api/v1/space_service.go:19-59,632-662.",
+          "Requested source-visible control/effect remains unresolved; memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-51f43607e722.json schedulerActions, dependencies and hostChecks; memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "server/api/v1/space_service.go:632-662 defines resource resolution and :54-59 defines requireSpaceAdministrator, but the answer reports these as unresolved; DeleteSpaceMember branch is :740-760. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-ddbf31ba36eb",
+      "initial": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial:null and prose:null; packet error reports network failure at packet JSON error.",
+          "final:null, prose:null, and no host checks; packet JSON error is openai-compatible network error.",
+          "memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies"
+        ]
+      },
+      "final": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial:null and prose:null; packet error reports network failure at packet JSON error.",
+          "final:null, prose:null, and no host checks; packet JSON error is openai-compatible network error.",
+          "memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-ddbf31ba36eb.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-ddbf31ba36eb.json schedulerActions, dependencies and hostChecks; memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "protocol"
+      ],
+      "notes": "No raw answer or native prose. transport-failed; extraction proposals, if any, remain separately graded. openai-compatible(svip.xty.app) network error: Unable to connect. Is the computer able to access the url?"
+    },
+    {
+      "id": "packet-c447297835e5",
+      "initial": {
+        "rating": "full",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions correctly deny an ordinary member removing another member, preserve admin/self/last-admin branches and compare policy v1.",
+          "memos/server/api/v1/space_service.go:19-59,632-663,740-760 and the cited backend deletion bodies. Policy-behavior-conflict on an incomplete formal policy/path graph is not a semantic false rejection of this raw answer."
+        ]
+      },
+      "final": {
+        "rating": "full",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions correctly deny an ordinary member removing another member, preserve admin/self/last-admin branches and compare policy v1.",
+          "memos/server/api/v1/space_service.go:19-59,632-663,740-760 and the cited backend deletion bodies. Policy-behavior-conflict on an incomplete formal policy/path graph is not a semantic false rejection of this raw answer."
+        ]
+      },
+      "extraction": {
+        "initial": "partial",
+        "final": "partial",
+        "incorrectRules": [
+          "Preserved proposals contain unsupported/empty predicate forms or unresolved explicit revisions; see proposal diagnostics and rule conditions, rather than inferring semantic support from citations."
+        ],
+        "wrongPremiseMappings": [
+          "Retained predicate proposal references values not established by exact current-user premise spans; see premise-not-supplied diagnostics and those proposal conditions."
+        ],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-c447297835e5.json extractionInitial/extractionFinal and preserved proposals; memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies. Source-correct prose is separate from incomplete typed control/premise/path representation.",
+          "packet-c447297835e5.json:1211-1670 initial; :1671-2120 final; diagnostics :3265-4074.",
+          "Extraction partial means the complete requested typed branch/control/effect graph is not established; it does not assert that every cited prose claim is wrong. User premise bindings and source binding nodes are distinct contracts."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [
+          "ctrl-042f5b988f3b2ac057e1: requireCurrentSpaceUser; server/api/v1/space_service.go:19-28",
+          "ctrl-8207da2041aa38cc5e62: resolveSpaceMemberResource; server/api/v1/space_service.go:632-663"
+        ],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "Last-active-administrator premise remains unspecified."
+        ],
+        "avoidableResiduals": [],
+        "checkerDetections": [
+          "check[0] predicate-invalid at rules.dsm.reject.ordinary: the retained proposed condition is outside the finite predicate grammar. This is an expression-contract detection.",
+          "check[1] predicate-invalid at rules.dsm.reject.ordinary: the retained proposed condition is outside the finite predicate grammar. This is an expression-contract detection."
+        ],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-c447297835e5.json schedulerActions, dependencies and hostChecks; memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "extraction-error"
+      ],
+      "notes": "initial/final.questions correctly deny an ordinary member removing another member, preserve admin/self/last-admin branches and compare policy v1. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-34f44b3fff75",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "Initial correctly covers ordinary denial, admin/self paths, and last-admin guard, but reports requireCurrentSpaceUser and requireSpaceAdministrator as unread despite server/api/v1/space_service.go:19-59; packet JSON lines 90-103.",
+          "Final behavior is accurate, but retains avoidable helper source gaps; packet JSON lines 191-208 and source helper bodies at server/api/v1/space_service.go:19-59.",
+          "memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies"
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "Initial correctly covers ordinary denial, admin/self paths, and last-admin guard, but reports requireCurrentSpaceUser and requireSpaceAdministrator as unread despite server/api/v1/space_service.go:19-59; packet JSON lines 90-103.",
+          "Final behavior is accurate, but retains avoidable helper source gaps; packet JSON lines 191-208 and source helper bodies at server/api/v1/space_service.go:19-59.",
+          "memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-34f44b3fff75.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "Deployment-selected driver."
+        ],
+        "avoidableResiduals": [
+          "requireCurrentSpaceUser and requireSpaceAdministrator bodies were available but reported as gaps.",
+          "Requested source-visible control/effect remains unresolved; memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-34f44b3fff75.json schedulerActions, dependencies and hostChecks; memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "Initial correctly covers ordinary denial, admin/self paths, and last-admin guard, but reports requireCurrentSpaceUser and requireSpaceAdministrator as unread despite server/api/v1/space_service.go:19-59; packet JSON lines 90-103. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-626bfbda6723",
+      "initial": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial:null, final:null, prose:null; packet error is structured extraction/schema failure at packet JSON lines 13-20.",
+          "No native prose or structured result was delivered; extraction slices are empty at lines 21-37.",
+          "memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies"
+        ]
+      },
+      "final": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial:null, final:null, prose:null; packet error is structured extraction/schema failure at packet JSON lines 13-20.",
+          "No native prose or structured result was delivered; extraction slices are empty at lines 21-37.",
+          "memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-626bfbda6723.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-626bfbda6723.json schedulerActions, dependencies and hostChecks; memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "protocol"
+      ],
+      "notes": "No raw answer or native prose. transport-failed; extraction proposals, if any, remain separately graded. Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"delta\",\"code\":\"invalid_type\"},{\"path\":\"$\",\"code\":\"unrecognized_keys\"}]},{\"transport\":\"prompt-parse\",\"category\":\"json-parse\",\"diagnostics\":[{\"path\":\"$\",\"code\":\"invalid-json\"}]}]"
+    },
+    {
+      "id": "packet-adbc5b07ff27",
+      "initial": {
+        "rating": "full",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions compare current policy v2, allowing any active member to remove another, with actual ADMIN-only different-target enforcement; violation and self-removal restrictions are correctly described.",
+          "memos/server/api/v1/space_service.go:740-760 and cited backend bodies. Adapter interruption and missing final prose do not erase the two captured structured answers."
+        ]
+      },
+      "final": {
+        "rating": "full",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions compare current policy v2, allowing any active member to remove another, with actual ADMIN-only different-target enforcement; violation and self-removal restrictions are correctly described.",
+          "memos/server/api/v1/space_service.go:740-760 and cited backend bodies. Adapter interruption and missing final prose do not erase the two captured structured answers."
+        ]
+      },
+      "extraction": {
+        "initial": "partial",
+        "final": "partial",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-adbc5b07ff27.json extractionInitial/extractionFinal and preserved proposals; memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies. Source-correct prose is separate from incomplete typed control/premise/path representation.",
+          "packet-adbc5b07ff27.json:161-385 initial; :386-689 final. Final includes last-active-admin rejection and backend checks.",
+          "Extraction partial means the complete requested typed branch/control/effect graph is not established; it does not assert that every cited prose claim is wrong. User premise bindings and source binding nodes are distinct contracts."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "Deployment middleware and selected backend configuration."
+        ],
+        "avoidableResiduals": [],
+        "checkerDetections": [
+          "check[1] object-binding-missing at dsm.self.effect: rule names resource without a matching source binding node. src/task-dsl/authorization/control-conclusion.ts:64. Detection of an incomplete typed graph, not independent proof of source meaning."
+        ],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-adbc5b07ff27.json schedulerActions, dependencies and hostChecks; memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "extraction-error"
+      ],
+      "notes": "initial/final.questions compare current policy v2, allowing any active member to remove another, with actual ADMIN-only different-target enforcement; violation and self-removal restrictions are correctly described. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-3d3ee2ac568b",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions bound the answer to PostgreSQL while leaving ordinary current-user/admin helper and other allowed backend bodies unresolved.",
+          "memos/server/api/v1/space_service.go:19-59,632-663,740-760; other shipped backends are inside this task's allowed source. Deployment selection is external, but these source bodies are readable."
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions bound the answer to PostgreSQL while leaving ordinary current-user/admin helper and other allowed backend bodies unresolved.",
+          "memos/server/api/v1/space_service.go:19-59,632-663,740-760; other shipped backends are inside this task's allowed source. Deployment selection is external, but these source bodies are readable."
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-3d3ee2ac568b.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "Active backend and middleware are genuinely outside read scope."
+        ],
+        "avoidableResiduals": [
+          "Requested source-visible control/effect remains unresolved; memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-3d3ee2ac568b.json schedulerActions, dependencies and hostChecks; memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "initial/final.questions bound the answer to PostgreSQL while leaving ordinary current-user/admin helper and other allowed backend bodies unresolved. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-54b9e793caa5",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions and prose establish the downstream non-self ADMIN/self distinction and last-active-admin restriction using all three backend bodies. However, requireCurrentSpaceUser and resolveSpaceMemberResource bodies were not shown in this packet: upstream caller/member-resource binding remains a readable source gap rather than a deployment-only fact.",
+          "memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/sqlite/space.go:424-465, postgres/space.go:457-490, mysql/space.go:419-452. Policy v1 does not guarantee unconditional self-removal; its last-admin policy uncertainty is defensible and is not the reason for partial. The counterpart changed native packet did read space_service.go:1-75 and632-665."
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions and prose establish the downstream non-self ADMIN/self distinction and last-active-admin restriction using all three backend bodies. However, requireCurrentSpaceUser and resolveSpaceMemberResource bodies were not shown in this packet: upstream caller/member-resource binding remains a readable source gap rather than a deployment-only fact.",
+          "memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/sqlite/space.go:424-465, postgres/space.go:457-490, mysql/space.go:419-452. Policy v1 does not guarantee unconditional self-removal; its last-admin policy uncertainty is defensible and is not the reason for partial. The counterpart changed native packet did read space_service.go:1-75 and632-665."
+        ]
+      },
+      "extraction": {
+        "initial": "partial",
+        "final": "partial",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-54b9e793caa5.json extractionInitial/extractionFinal and preserved proposals; memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies. Source-correct prose is separate from incomplete typed control/premise/path representation.",
+          "packet-54b9e793caa5.json:209-538 initial; :539-1080 final.",
+          "Extraction partial means the complete requested typed branch/control/effect graph is not established; it does not assert that every cited prose claim is wrong. User premise bindings and source binding nodes are distinct contracts."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "Deployment wiring."
+        ],
+        "avoidableResiduals": [
+          "Policy comparison treated non-prohibition as undetermined instead of recognizing extra implementation restriction as nonconflicting.",
+          "Requested source-visible control/effect remains unresolved; memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies"
+        ],
+        "checkerDetections": [
+          "check[0] object-binding-missing at dsm-admin-guard: rule names principal/resource without a matching source binding node. src/task-dsl/authorization/control-conclusion.ts:64. Detection of an incomplete typed graph, not independent proof of source meaning.",
+          "check[1] object-binding-missing at dsm-admin-guard: rule names principal/resource without a matching source binding node. src/task-dsl/authorization/control-conclusion.ts:64. Detection of an incomplete typed graph, not independent proof of source meaning."
+        ],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-54b9e793caa5.json schedulerActions, dependencies and hostChecks; memos/server/api/v1/space_service.go:19-59,632-663,740-760; store/db/{sqlite,postgres,mysql}/space.go deletion bodies. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read",
+        "extraction-error"
+      ],
+      "notes": "initial/final.questions and prose establish the downstream non-self ADMIN/self distinction and last-active-admin restriction using all three backend bodies. However, requireCurrentSpaceUser and resolveSpaceMemberResource bodies were not shown in this packet: upstream caller/member-resource binding remains a readable source gap rather than a deployment-only fact. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-304081d6c030",
+      "initial": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "Raw initial=null; first proposal leaves decisive GetIndividualUserRepoPermission dependency incomplete (packet-304081d6c030.json:173-185).",
+          "Handler semantics are source-supported at routers/api/v1/repo/collaborators.go:278-300.",
+          "Raw final=null; decisive helper dependencies are blocked with no candidates (packet-304081d6c030.json:1266-1324).",
+          "Helper implementations exist at models/perm/access/repo_permission.go:426-527 and services/context/api.go:328-331.",
+          "gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557"
+        ]
+      },
+      "final": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "Raw initial=null; first proposal leaves decisive GetIndividualUserRepoPermission dependency incomplete (packet-304081d6c030.json:173-185).",
+          "Handler semantics are source-supported at routers/api/v1/repo/collaborators.go:278-300.",
+          "Raw final=null; decisive helper dependencies are blocked with no candidates (packet-304081d6c030.json:1266-1324).",
+          "Helper implementations exist at models/perm/access/repo_permission.go:426-527 and services/context/api.go:328-331.",
+          "gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557"
+        ]
+      },
+      "extraction": {
+        "initial": "partial",
+        "final": "partial",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-304081d6c030.json extractionInitial/extractionFinal and preserved proposals; gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557. Source-correct prose is separate from incomplete typed control/premise/path representation.",
+          "packet-304081d6c030.json:16-190 initial; :191-514 final. Claims match GetRepoPermissions source route/handler behavior.",
+          "Extraction partial means the complete requested typed branch/control/effect graph is not established; it does not assert that every cited prose claim is wrong. User premise bindings and source binding nodes are distinct contracts."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [
+          "ctrl-c316735215640f9fa5a9: reqToken; routers/api/v1/api.go:374-382"
+        ],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-304081d6c030.json schedulerActions, dependencies and hostChecks; gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "protocol",
+        "extraction-error"
+      ],
+      "notes": "No raw answer or native prose. transport-failed; extraction proposals, if any, remain separately graded. Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"$\",\"code\":\"unrecognized_keys\"}]},{\"transport\":\"prompt-parse\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"result.questions.0\",\"code\":\"unrecognized_keys\"}]}]"
+    },
+    {
+      "id": "packet-373cdf755a9a",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "Initial candidate correctly covers route, self/other, and privileged branches (packet-373cdf755a9a.json:8-118).",
+          "It explicitly leaves IsUserRepoAdmin and GetIndividualUserRepoPermission bodies unread (packet-373cdf755a9a.json:94-108).",
+          "Final preserves correct 403-before-lookup and privileged bypass semantics (packet-373cdf755a9a.json:125-229).",
+          "Helper precedence remains unknown (packet-373cdf755a9a.json:209-227).",
+          "gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557"
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "Initial candidate correctly covers route, self/other, and privileged branches (packet-373cdf755a9a.json:8-118).",
+          "It explicitly leaves IsUserRepoAdmin and GetIndividualUserRepoPermission bodies unread (packet-373cdf755a9a.json:94-108).",
+          "Final preserves correct 403-before-lookup and privileged bypass semantics (packet-373cdf755a9a.json:125-229).",
+          "Helper precedence remains unknown (packet-373cdf755a9a.json:209-227).",
+          "gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-373cdf755a9a.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "concrete runtime repository/user facts absent"
+        ],
+        "avoidableResiduals": [
+          "helper bodies omitted",
+          "Requested source-visible control/effect remains unresolved; gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-373cdf755a9a.json schedulerActions, dependencies and hostChecks; gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "Initial candidate correctly covers route, self/other, and privileged branches (packet-373cdf755a9a.json:8-118). First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-cad3dcf49056",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "Initial candidate covers route, reqToken, handler guard, self/other, privileged branches, and helper AccessMode logic (packet-cad3dcf49056.json:8-225).",
+          "Original handler/helper support this at collaborators.go:278-300 and repo_permission.go:426-527.",
+          "Final preserves complete bounded behavior and explicit residuals (packet-cad3dcf49056.json:372-590).",
+          "Route and IsUserRepoAdmin source are confirmed at api.go:1364-1372 and services/context/api.go:328-331.",
+          "gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557"
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "Initial candidate covers route, reqToken, handler guard, self/other, privileged branches, and helper AccessMode logic (packet-cad3dcf49056.json:8-225).",
+          "Original handler/helper support this at collaborators.go:278-300 and repo_permission.go:426-527.",
+          "Final preserves complete bounded behavior and explicit residuals (packet-cad3dcf49056.json:372-590).",
+          "Route and IsUserRepoAdmin source are confirmed at api.go:1364-1372 and services/context/api.go:328-331.",
+          "gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557"
+        ]
+      },
+      "extraction": {
+        "initial": "partial",
+        "final": "partial",
+        "incorrectRules": [
+          "Preserved proposals contain unsupported/empty predicate forms or unresolved explicit revisions; see proposal diagnostics and rule conditions, rather than inferring semantic support from citations."
+        ],
+        "wrongPremiseMappings": [
+          "Retained predicate proposal references values not established by exact current-user premise spans; see premise-not-supplied diagnostics and those proposal conditions."
+        ],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-cad3dcf49056.json extractionInitial/extractionFinal and preserved proposals; gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557. Source-correct prose is separate from incomplete typed control/premise/path representation.",
+          "packet-cad3dcf49056.json:1692-2058 initial/final; final diagnostics :2621-2907.",
+          "Extraction partial means the complete requested typed branch/control/effect graph is not established; it does not assert that every cited prose claim is wrong. User premise bindings and source binding nodes are distinct contracts."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [
+          "ctrl-1514ab4e37798d5228ec: reqToken; routers/api/v1/api.go:375-382"
+        ],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "runtime repository context and concrete AccessMode depend on unsupplied premises"
+        ],
+        "avoidableResiduals": [
+          "Requested source-visible control/effect remains unresolved; gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557"
+        ],
+        "checkerDetections": [
+          "check[0] predicate-invalid at rules.r-guard-self-or-privileged: the retained proposed condition is outside the finite predicate grammar. This is an expression-contract detection."
+        ],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-cad3dcf49056.json schedulerActions, dependencies and hostChecks; gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read",
+        "extraction-error"
+      ],
+      "notes": "Initial candidate covers route, reqToken, handler guard, self/other, privileged branches, and helper AccessMode logic (packet-cad3dcf49056.json:8-225). First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-f160fca69278",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "Initial correctly distinguishes self allow, other 403-before-lookup, and admin bypasses (packet-f160fca69278.json:8-112).",
+          "It leaves helper branches and repository context as source gaps (packet-f160fca69278.json:87-106).",
+          "Final repeats correct handler behavior but omits helper internals (packet-f160fca69278.json:264-363).",
+          "Helper source is available at repo_permission.go:426-527.",
+          "gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557"
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "Initial correctly distinguishes self allow, other 403-before-lookup, and admin bypasses (packet-f160fca69278.json:8-112).",
+          "It leaves helper branches and repository context as source gaps (packet-f160fca69278.json:87-106).",
+          "Final repeats correct handler behavior but omits helper internals (packet-f160fca69278.json:264-363).",
+          "Helper source is available at repo_permission.go:426-527.",
+          "gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-f160fca69278.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "runtime repository context/actual data"
+        ],
+        "avoidableResiduals": [
+          "helper internals omitted",
+          "Requested source-visible control/effect remains unresolved; gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-f160fca69278.json schedulerActions, dependencies and hostChecks; gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "Initial correctly distinguishes self allow, other 403-before-lookup, and admin bypasses (packet-f160fca69278.json:8-112). First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-556eec587f85",
+      "initial": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final/prose are null after transport schema failure (packet-556eec587f85.json:7-15).",
+          "deliveryValid=false; no raw candidate or prose (packet-556eec587f85.json:37-100).",
+          "gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557"
+        ]
+      },
+      "final": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final/prose are null after transport schema failure (packet-556eec587f85.json:7-15).",
+          "deliveryValid=false; no raw candidate or prose (packet-556eec587f85.json:37-100).",
+          "gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-556eec587f85.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-556eec587f85.json schedulerActions, dependencies and hostChecks; gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "protocol"
+      ],
+      "notes": "No raw answer or native prose. transport-failed; extraction proposals, if any, remain separately graded. Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"delta\",\"code\":\"invalid_type\"},{\"path\":\"$\",\"code\":\"unrecognized_keys\"}]},{\"transport\":\"prompt-parse\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"controlDelta.rules.0.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.0.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.after.0\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.bindingKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.2.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.2.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.2.after.0\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.2.principal\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.2.resource\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.3.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.3.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.3.after.0\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.3.principal\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.3.resource\",\"code\":\"invalid_type\"}]}]"
+    },
+    {
+      "id": "packet-f1e6017fdc27",
+      "initial": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final/prose null after transport failure (packet-f1e6017fdc27.json:7-15).",
+          "No raw answer delivered; transport failure.",
+          "gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557"
+        ]
+      },
+      "final": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final/prose null after transport failure (packet-f1e6017fdc27.json:7-15).",
+          "No raw answer delivered; transport failure.",
+          "gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557"
+        ]
+      },
+      "extraction": {
+        "initial": "partial",
+        "final": "partial",
+        "incorrectRules": [
+          "Preserved proposals contain unsupported/empty predicate forms or unresolved explicit revisions; see proposal diagnostics and rule conditions, rather than inferring semantic support from citations."
+        ],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-f1e6017fdc27.json extractionInitial/extractionFinal and preserved proposals; gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557. Source-correct prose is separate from incomplete typed control/premise/path representation.",
+          "packet-f1e6017fdc27.json:16-38 initial; :38-191 final; hostChecks empty :1224-1325.",
+          "Extraction partial means the complete requested typed branch/control/effect graph is not established; it does not assert that every cited prose claim is wrong. User premise bindings and source binding nodes are distinct contracts."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-f1e6017fdc27.json schedulerActions, dependencies and hostChecks; gitea/routers/api/v1/repo/collaborators.go:GetRepoPermissions; services/context/api.go:328-331; models/perm/access/repo_permission.go:426-557. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "protocol",
+        "extraction-error"
+      ],
+      "notes": "No raw answer or native prose. transport-failed; extraction proposals, if any, remain separately graded. Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"delta\",\"code\":\"invalid_type\"},{\"path\":\"$\",\"code\":\"unrecognized_keys\"}]},{\"transport\":\"prompt-parse\",\"category\":\"json-parse\",\"diagnostics\":[{\"path\":\"$\",\"code\":\"invalid-json\"}]}]"
+    },
+    {
+      "id": "packet-ff72003973e8",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-ff72003973e8.json:13-100 correctly identifies route reader-vs-write mismatch but leaves handler body unread",
+          "routers/api/v1/api.go:1646-1650 shows POST uses reqRepoReader(unit.TypeIssues)",
+          "packet-ff72003973e8.json:186-271 final retains correct mismatch and explicitly says persistence/handler checks not established",
+          "routers/api/v1/repo/issue.go:570-624 shows no upfront write authorization; write only gates deadline/labels/assignees",
+          "gitea/routers/api/v1/repo/issue.go:CreateIssue; models/unit; services/issue issue creation path"
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "packet-ff72003973e8.json:13-100 correctly identifies route reader-vs-write mismatch but leaves handler body unread",
+          "routers/api/v1/api.go:1646-1650 shows POST uses reqRepoReader(unit.TypeIssues)",
+          "packet-ff72003973e8.json:186-271 final retains correct mismatch and explicitly says persistence/handler checks not established",
+          "routers/api/v1/repo/issue.go:570-624 shows no upfront write authorization; write only gates deadline/labels/assignees",
+          "gitea/routers/api/v1/repo/issue.go:CreateIssue; models/unit; services/issue issue creation path"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-ff72003973e8.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "runtime principal/data/deployment unknown"
+        ],
+        "avoidableResiduals": [
+          "initial/final could have read handler, though final accurately bounded",
+          "Requested source-visible control/effect remains unresolved; gitea/routers/api/v1/repo/issue.go:CreateIssue; models/unit; services/issue issue creation path"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-ff72003973e8.json schedulerActions, dependencies and hostChecks; gitea/routers/api/v1/repo/issue.go:CreateIssue; models/unit; services/issue issue creation path. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "packet-ff72003973e8.json:13-100 correctly identifies route reader-vs-write mismatch but leaves handler body unread First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-022259102b07",
+      "initial": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-022259102b07.json:13-20 transport failure; initial/final/prose null",
+          "packet-022259102b07.json:13-20 no delivery",
+          "gitea/routers/api/v1/repo/issue.go:CreateIssue; models/unit; services/issue issue creation path"
+        ]
+      },
+      "final": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-022259102b07.json:13-20 transport failure; initial/final/prose null",
+          "packet-022259102b07.json:13-20 no delivery",
+          "gitea/routers/api/v1/repo/issue.go:CreateIssue; models/unit; services/issue issue creation path"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-022259102b07.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-022259102b07.json schedulerActions, dependencies and hostChecks; gitea/routers/api/v1/repo/issue.go:CreateIssue; models/unit; services/issue issue creation path. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "protocol"
+      ],
+      "notes": "No raw answer or native prose. transport-failed; extraction proposals, if any, remain separately graded. Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"result.questions.0.missing.3.nextRead\",\"code\":\"invalid_type\"},{\"path\":\"result.questions.0.missing.4.nextRead\",\"code\":\"invalid_type\"}]},{\"transport\":\"prompt-parse\",\"category\":\"json-parse\",\"diagnostics\":[{\"path\":\"$\",\"code\":\"invalid-json\"}]}]"
+    },
+    {
+      "id": "packet-c67140c61c8a",
+      "initial": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-c67140c61c8a.json:13-20 initial/final/prose null; schema transport failure",
+          "packet-c67140c61c8a.json:13-20 no delivery",
+          "gitea/routers/api/v1/repo/issue.go:CreateIssue; models/unit; services/issue issue creation path"
+        ]
+      },
+      "final": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-c67140c61c8a.json:13-20 initial/final/prose null; schema transport failure",
+          "packet-c67140c61c8a.json:13-20 no delivery",
+          "gitea/routers/api/v1/repo/issue.go:CreateIssue; models/unit; services/issue issue creation path"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-c67140c61c8a.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-c67140c61c8a.json schedulerActions, dependencies and hostChecks; gitea/routers/api/v1/repo/issue.go:CreateIssue; models/unit; services/issue issue creation path. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "protocol"
+      ],
+      "notes": "No raw answer or native prose. transport-failed; extraction proposals, if any, remain separately graded. Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"controlDelta.rules.0.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.0.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.after.0\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.2.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.2.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.2.after.0\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.policyRules.0.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.policyRules.0.pathKey\",\"code\":\"invalid_type\"}]},{\"transport\":\"prompt-parse\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"controlDelta.rules.0.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.0.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.after.0\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.principal\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.resource\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.0.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.0.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.0.from\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.1.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.1.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.1.from\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.policyRules.0.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.policyRules.0.pathKey\",\"code\":\"invalid_type\"}]}]"
+    },
+    {
+      "id": "packet-451c686b382c",
+      "initial": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-451c686b382c.json:13-20 initial/final/prose null; transport failure",
+          "packet-451c686b382c.json:13-20 no delivery",
+          "gitea/routers/api/v1/repo/issue.go:CreateIssue; models/unit; services/issue issue creation path"
+        ]
+      },
+      "final": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "packet-451c686b382c.json:13-20 initial/final/prose null; transport failure",
+          "packet-451c686b382c.json:13-20 no delivery",
+          "gitea/routers/api/v1/repo/issue.go:CreateIssue; models/unit; services/issue issue creation path"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-451c686b382c.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-451c686b382c.json schedulerActions, dependencies and hostChecks; gitea/routers/api/v1/repo/issue.go:CreateIssue; models/unit; services/issue issue creation path. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "protocol"
+      ],
+      "notes": "No raw answer or native prose. transport-failed; extraction proposals, if any, remain separately graded. Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"kind\",\"code\":\"invalid_union_discriminator\"}]},{\"transport\":\"prompt-parse\",\"category\":\"json-parse\",\"diagnostics\":[{\"path\":\"$\",\"code\":\"invalid-json\"}]}]"
+    },
+    {
+      "id": "packet-d7090a9f7731",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "Initial behavior is directionally correct but labels authorization/resource binding unresolved despite original source exposing DocumentViewSet.download at src/documents/views.py:1834-1839 and helper path in src/documents/views.py:1360-1450; packet initial lines 29-32, 159-178.",
+          "Final repeats the avoidable source-gap claims for _resolve_request_and_root_doc, permissions, and serve_file; original source confirms download catches FileNotFoundError and Document.DoesNotExist at src/documents/views.py:1834-1839.",
+          "paperless/src/documents/views.py:1375-1448,1834-1839; versioning.py:169-195; permissions.py:30-53,624-635"
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "Initial behavior is directionally correct but labels authorization/resource binding unresolved despite original source exposing DocumentViewSet.download at src/documents/views.py:1834-1839 and helper path in src/documents/views.py:1360-1450; packet initial lines 29-32, 159-178.",
+          "Final repeats the avoidable source-gap claims for _resolve_request_and_root_doc, permissions, and serve_file; original source confirms download catches FileNotFoundError and Document.DoesNotExist at src/documents/views.py:1834-1839.",
+          "paperless/src/documents/views.py:1375-1448,1834-1839; versioning.py:169-195; permissions.py:30-53,624-635"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-d7090a9f7731.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "Caller ownership, object grants, and deployment state are unspecified by task premises."
+        ],
+        "avoidableResiduals": [
+          "Authorization target and exact file selection were called unread although allowed source contains relevant helpers.",
+          "Requested source-visible control/effect remains unresolved; paperless/src/documents/views.py:1375-1448,1834-1839; versioning.py:169-195; permissions.py:30-53,624-635"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-d7090a9f7731.json schedulerActions, dependencies and hostChecks; paperless/src/documents/views.py:1375-1448,1834-1839; versioning.py:169-195; permissions.py:30-53,624-635. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "Initial behavior is directionally correct but labels authorization/resource binding unresolved despite original source exposing DocumentViewSet.download at src/documents/views.py:1834-1839 and helper path in src/documents/views.py:1360-1450; packet initial lines 29-32, 159-178. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-c663bf34a01b",
+      "initial": {
+        "rating": "full",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "Initial correctly states root_doc is the authorization object while selected version controls returned file; packet lines 15-16, 30-64.",
+          "Final preserves correct root authorization versus version/file distinction and valid invalid-version branches; packet final mirrors initial.",
+          "paperless/src/documents/views.py:1375-1448,1834-1839; versioning.py:169-195; permissions.py:30-53,624-635"
+        ]
+      },
+      "final": {
+        "rating": "full",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "Initial correctly states root_doc is the authorization object while selected version controls returned file; packet lines 15-16, 30-64.",
+          "Final preserves correct root authorization versus version/file distinction and valid invalid-version branches; packet final mirrors initial.",
+          "paperless/src/documents/views.py:1375-1448,1834-1839; versioning.py:169-195; permissions.py:30-53,624-635"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-c663bf34a01b.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "Framework response details and runtime caller facts are outside supplied premises."
+        ],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-c663bf34a01b.json schedulerActions, dependencies and hostChecks; paperless/src/documents/views.py:1375-1448,1834-1839; versioning.py:169-195; permissions.py:30-53,624-635. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [],
+      "notes": "Initial correctly states root_doc is the authorization object while selected version controls returned file; packet lines 15-16, 30-64. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-5888c196a643",
+      "initial": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial:null and prose:null; packet lines 8-15 show transport/schema and JSON parse failure.",
+          "final:null and prose:null; packet lines 9-15.",
+          "paperless/src/documents/views.py:1375-1448,1834-1839; versioning.py:169-195; permissions.py:30-53,624-635"
+        ]
+      },
+      "final": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial:null and prose:null; packet lines 8-15 show transport/schema and JSON parse failure.",
+          "final:null and prose:null; packet lines 9-15.",
+          "paperless/src/documents/views.py:1375-1448,1834-1839; versioning.py:169-195; permissions.py:30-53,624-635"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-5888c196a643.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-5888c196a643.json schedulerActions, dependencies and hostChecks; paperless/src/documents/views.py:1375-1448,1834-1839; versioning.py:169-195; permissions.py:30-53,624-635. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "protocol"
+      ],
+      "notes": "No raw answer or native prose. transport-failed; extraction proposals, if any, remain separately graded. Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"controlDelta.rules.0.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.0.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.bindingKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.2.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.2.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.2.after.0\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.3.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.3.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.3.after.0\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.0.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.0.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.0.from\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.1.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.1.pathKey\",\"code\":\"invalid_type\"}]},{\"transport\":\"prompt-parse\",\"category\":\"json-parse\",\"diagnostics\":[{\"path\":\"$\",\"code\":\"invalid-json\"}]}]"
+    },
+    {
+      "id": "packet-1236102b9129",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "Initial identifies authentication/version/representation branches but explicitly leaves file and authorization binding unresolved; packet lines 15-16, 21-71, 104-127.",
+          "Final retains the same avoidable source gaps despite allowed source containing versioning and download helpers.",
+          "paperless/src/documents/views.py:1375-1448,1834-1839; versioning.py:169-195; permissions.py:30-53,624-635"
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "Initial identifies authentication/version/representation branches but explicitly leaves file and authorization binding unresolved; packet lines 15-16, 21-71, 104-127.",
+          "Final retains the same avoidable source gaps despite allowed source containing versioning and download helpers.",
+          "paperless/src/documents/views.py:1375-1448,1834-1839; versioning.py:169-195; permissions.py:30-53,624-635"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-1236102b9129.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "Caller and object-grant facts unspecified."
+        ],
+        "avoidableResiduals": [
+          "Exact authorization object and file_response chain left unread.",
+          "Requested source-visible control/effect remains unresolved; paperless/src/documents/views.py:1375-1448,1834-1839; versioning.py:169-195; permissions.py:30-53,624-635"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-1236102b9129.json schedulerActions, dependencies and hostChecks; paperless/src/documents/views.py:1375-1448,1834-1839; versioning.py:169-195; permissions.py:30-53,624-635. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "Initial identifies authentication/version/representation branches but explicitly leaves file and authorization binding unresolved; packet lines 15-16, 21-71, 104-127. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-888560434172",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions[0].missing expressly leave PassUserMixin unread while behavior assumes serializer self.user is the request principal. The current task asks for relevant inherited/serializer controls; this readable actor-binding path remains unsupported. q1-deny-object-view also omits non-null ownership in its condition, while its explanation correctly narrows rejection to owned documents: partial ambiguity, not a proven decisive error.",
+          "paperless/src/documents/views.py:406-428 binds request.user to serializer user; serialisers.py:2851-2885 validates self.user; permissions.py:624-635 includes null-owner bypass. Main adjudication retains partial despite the targeted advisory full grade; no current policy ownership ban is invented."
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions[0].missing expressly leave PassUserMixin unread while behavior assumes serializer self.user is the request principal. The current task asks for relevant inherited/serializer controls; this readable actor-binding path remains unsupported. q1-deny-object-view also omits non-null ownership in its condition, while its explanation correctly narrows rejection to owned documents: partial ambiguity, not a proven decisive error.",
+          "paperless/src/documents/views.py:406-428 binds request.user to serializer user; serialisers.py:2851-2885 validates self.user; permissions.py:624-635 includes null-owner bypass. Main adjudication retains partial despite the targeted advisory full grade; no current policy ownership ban is invented."
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-888560434172.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "Concrete caller/document permission values unspecified."
+        ],
+        "avoidableResiduals": [
+          "Requested source-visible control/effect remains unresolved; paperless/src/documents/views.py:406-428,4660-4735; serialisers.py:2851-2885; permissions.py:30-55,624-635"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-888560434172.json schedulerActions, dependencies and hostChecks; paperless/src/documents/views.py:406-428,4660-4735; serialisers.py:2851-2885; permissions.py:30-55,624-635. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "initial/final.questions[0].missing expressly leave PassUserMixin unread while behavior assumes serializer self.user is the request principal. The current task asks for relevant inherited/serializer controls; this readable actor-binding path remains unsupported. q1-deny-object-view also omits non-null ownership in its condition, while its explanation correctly narrows rejection to owned documents: partial ambiguity, not a proven decisive error. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-93192256285a",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions[1].missing and policyAssessment explicitly leave has_perms_owner_aware unread and policy undetermined. That helper is within the allowed source, so the exact-document authorization gap is avoidable.",
+          "paperless/src/documents/permissions.py:624-635; serialisers.py:2873-2885. Targeted independent source review confirms partial; concrete request facts alone are not the reason."
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions[1].missing and policyAssessment explicitly leave has_perms_owner_aware unread and policy undetermined. That helper is within the allowed source, so the exact-document authorization gap is avoidable.",
+          "paperless/src/documents/permissions.py:624-635; serialisers.py:2873-2885. Targeted independent source review confirms partial; concrete request facts alone are not the reason."
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-93192256285a.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "Actual caller/document facts unspecified."
+        ],
+        "avoidableResiduals": [
+          "Requested source-visible control/effect remains unresolved; paperless/src/documents/views.py:406-428,4660-4735; serialisers.py:2851-2885; permissions.py:30-55,624-635"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-93192256285a.json schedulerActions, dependencies and hostChecks; paperless/src/documents/views.py:406-428,4660-4735; serialisers.py:2851-2885; permissions.py:30-55,624-635. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "initial/final.questions[1].missing and policyAssessment explicitly leave has_perms_owner_aware unread and policy undetermined. That helper is within the allowed source, so the exact-document authorization gap is avoidable. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-3ea82f80f0f4",
+      "initial": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial:null and prose:null; packet lines 13-20 show schema-tool/prompt-parse failure.",
+          "final:null and prose:null; packet lines 13-20.",
+          "paperless/src/documents/views.py:406-428,4660-4735; serialisers.py:2851-2885; permissions.py:30-55,624-635"
+        ]
+      },
+      "final": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "initial:null and prose:null; packet lines 13-20 show schema-tool/prompt-parse failure.",
+          "final:null and prose:null; packet lines 13-20.",
+          "paperless/src/documents/views.py:406-428,4660-4735; serialisers.py:2851-2885; permissions.py:30-55,624-635"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-3ea82f80f0f4.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-3ea82f80f0f4.json schedulerActions, dependencies and hostChecks; paperless/src/documents/views.py:406-428,4660-4735; serialisers.py:2851-2885; permissions.py:30-55,624-635. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "protocol"
+      ],
+      "notes": "No raw answer or native prose. transport-failed; extraction proposals, if any, remain separately graded. Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"controlDelta.dependencies.0.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.0.from\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.1.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.1.from\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.2.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.2.from\",\"code\":\"invalid_type\"}]},{\"transport\":\"prompt-parse\",\"category\":\"json-parse\",\"diagnostics\":[{\"path\":\"$\",\"code\":\"invalid-json\"}]}]"
+    },
+    {
+      "id": "packet-9c8d199c729c",
+      "initial": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions[0].missing leave PassUserMixin, PaperlessObjectPermissions, OwnedObjectSerializer and has_perms_owner_aware unread; no permissions.py evidence range was read. Actor binding and object-helper branches remain avoidable source gaps.",
+          "paperless/src/documents/views.py:406-428; permissions.py:30-55,624-635; serialisers.py:2851-2885. Targeted independent source review confirms partial; not a semantic error merely because caller/grants are unknown."
+        ]
+      },
+      "final": {
+        "rating": "partial",
+        "decisiveError": false,
+        "overUnknown": true,
+        "falseComplete": false,
+        "evidence": [
+          "initial/final.questions[0].missing leave PassUserMixin, PaperlessObjectPermissions, OwnedObjectSerializer and has_perms_owner_aware unread; no permissions.py evidence range was read. Actor binding and object-helper branches remain avoidable source gaps.",
+          "paperless/src/documents/views.py:406-428; permissions.py:30-55,624-635; serialisers.py:2851-2885. Targeted independent source review confirms partial; not a semantic error merely because caller/grants are unknown."
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-9c8d199c729c.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "Caller authentication, exact document existence, and permission outcomes unspecified."
+        ],
+        "avoidableResiduals": [
+          "Requested source-visible control/effect remains unresolved; paperless/src/documents/views.py:406-428,4660-4735; serialisers.py:2851-2885; permissions.py:30-55,624-635"
+        ],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-9c8d199c729c.json schedulerActions, dependencies and hostChecks; paperless/src/documents/views.py:406-428,4660-4735; serialisers.py:2851-2885; permissions.py:30-55,624-635. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "not-read"
+      ],
+      "notes": "initial/final.questions[0].missing leave PassUserMixin, PaperlessObjectPermissions, OwnedObjectSerializer and has_perms_owner_aware unread; no permissions.py evidence range was read. Actor binding and object-helper branches remain avoidable source gaps. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-2a0d08e0e103",
+      "initial": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "Packet status is transport-failed and initial is null; evaluator/packets/packet-2a0d08e0e103.json:8-16.",
+          "Schema validation failed before any raw control proposal or answer was delivered; evaluator/packets/packet-2a0d08e0e103.json:15-22.",
+          "Packet final is null and status is transport-failed; evaluator/packets/packet-2a0d08e0e103.json:8-16.",
+          "No final prose or structured result was delivered; evaluator/packets/packet-2a0d08e0e103.json:23-37.",
+          "memos/server/api/v1/memo_share_service.go:170-213; memo_access.go:15-39; core/access/memo.go:87-153"
+        ]
+      },
+      "final": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "Packet status is transport-failed and initial is null; evaluator/packets/packet-2a0d08e0e103.json:8-16.",
+          "Schema validation failed before any raw control proposal or answer was delivered; evaluator/packets/packet-2a0d08e0e103.json:15-22.",
+          "Packet final is null and status is transport-failed; evaluator/packets/packet-2a0d08e0e103.json:8-16.",
+          "No final prose or structured result was delivered; evaluator/packets/packet-2a0d08e0e103.json:23-37.",
+          "memos/server/api/v1/memo_share_service.go:170-213; memo_access.go:15-39; core/access/memo.go:87-153"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-2a0d08e0e103.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-2a0d08e0e103.json schedulerActions, dependencies and hostChecks; memos/server/api/v1/memo_share_service.go:170-213; memo_access.go:15-39; core/access/memo.go:87-153. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "protocol"
+      ],
+      "notes": "No raw answer or native prose. transport-failed; extraction proposals, if any, remain separately graded. Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"controlDelta.rules.1.resource\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.bindingKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.3.resource\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.3.bindingKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.6.resource\",\"code\":\"invalid_type\"}]},{\"transport\":\"prompt-parse\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"controlDelta.dependencies.0.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.0.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.0.from\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.1.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.1.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.1.from\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.2.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.2.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.2.from\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.3.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.3.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.dependencies.3.from\",\"code\":\"invalid_type\"}]}]"
+    },
+    {
+      "id": "packet-dd4ec72c24df",
+      "initial": {
+        "rating": "full",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "Initial q1 correctly states token lookup, stored MemoID binding, preliminary state/visibility checks, read-context check, response payload boundary, and Parent removal; evaluator/packets/packet-dd4ec72c24df.json:10-129.",
+          "Source confirms GetSharedMemo calls getActiveMemoShare, loads memo by ms.MemoID, rejects non-Normal/SpaceAudience, checks SharedMemoID, lists reactions/attachments, and clears Parent; model/public-source/memos/server/api/v1/memo_share_service.go:170-213.",
+          "Final q1 preserves the correct conditional behavior and invalid/expired versus valid distinction; evaluator/packets/packet-dd4ec72c24df.json:135-253.",
+          "The final branches accurately match CheckMemoReadContext share equality and visibility behavior; model/public-source/memos/core/access/memo.go:87-153.",
+          "memos/server/api/v1/memo_share_service.go:170-213; memo_access.go:15-39; core/access/memo.go:87-153"
+        ]
+      },
+      "final": {
+        "rating": "full",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "Initial q1 correctly states token lookup, stored MemoID binding, preliminary state/visibility checks, read-context check, response payload boundary, and Parent removal; evaluator/packets/packet-dd4ec72c24df.json:10-129.",
+          "Source confirms GetSharedMemo calls getActiveMemoShare, loads memo by ms.MemoID, rejects non-Normal/SpaceAudience, checks SharedMemoID, lists reactions/attachments, and clears Parent; model/public-source/memos/server/api/v1/memo_share_service.go:170-213.",
+          "Final q1 preserves the correct conditional behavior and invalid/expired versus valid distinction; evaluator/packets/packet-dd4ec72c24df.json:135-253.",
+          "The final branches accurately match CheckMemoReadContext share equality and visibility behavior; model/public-source/memos/core/access/memo.go:87-153.",
+          "memos/server/api/v1/memo_share_service.go:170-213; memo_access.go:15-39; core/access/memo.go:87-153"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-dd4ec72c24df.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "No normative policy comparison because task explicitly supplies no normative policy; evaluator/rubric.json:9,25-30."
+        ],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-dd4ec72c24df.json schedulerActions, dependencies and hostChecks; memos/server/api/v1/memo_share_service.go:170-213; memo_access.go:15-39; core/access/memo.go:87-153. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [],
+      "notes": "Initial q1 correctly states token lookup, stored MemoID binding, preliminary state/visibility checks, read-context check, response payload boundary, and Parent removal; evaluator/packets/packet-dd4ec72c24df.json:10-129. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    },
+    {
+      "id": "packet-87a873df74b1",
+      "initial": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "Packet status is transport-failed and initial is null; evaluator/packets/packet-87a873df74b1.json:8-16.",
+          "The retained extraction proposal is empty and does not constitute a delivered semantic answer; evaluator/packets/packet-87a873df74b1.json:33-47.",
+          "Final, prose, and finalValidation are null after schema/json-parse failure; evaluator/packets/packet-87a873df74b1.json:8-16.",
+          "DeliveryValid is false; evaluator/packets/packet-87a873df74b1.json:49-72.",
+          "memos/server/api/v1/memo_share_service.go:170-213; memo_access.go:15-39; core/access/memo.go:87-153"
+        ]
+      },
+      "final": {
+        "rating": "not-delivered",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "Packet status is transport-failed and initial is null; evaluator/packets/packet-87a873df74b1.json:8-16.",
+          "The retained extraction proposal is empty and does not constitute a delivered semantic answer; evaluator/packets/packet-87a873df74b1.json:33-47.",
+          "Final, prose, and finalValidation are null after schema/json-parse failure; evaluator/packets/packet-87a873df74b1.json:8-16.",
+          "DeliveryValid is false; evaluator/packets/packet-87a873df74b1.json:49-72.",
+          "memos/server/api/v1/memo_share_service.go:170-213; memo_access.go:15-39; core/access/memo.go:87-153"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-87a873df74b1.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-87a873df74b1.json schedulerActions, dependencies and hostChecks; memos/server/api/v1/memo_share_service.go:170-213; memo_access.go:15-39; core/access/memo.go:87-153. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [
+        "protocol"
+      ],
+      "notes": "No raw answer or native prose. transport-failed; extraction proposals, if any, remain separately graded. Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"controlDelta.rules.0.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.1.after.0\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.2.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.2.after.0\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.2.resource\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.2.bindingKey\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.3.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.3.after.0\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.3.resource\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.4.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.4.after.0\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.4.resource\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.5.key\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.5.after.0\",\"code\":\"invalid_type\"},{\"path\":\"controlDelta.rules.5.resource\",\"code\":\"invalid_type\"}]},{\"transport\":\"prompt-parse\",\"category\":\"json-parse\",\"diagnostics\":[{\"path\":\"$\",\"code\":\"invalid-json\"}]}]"
+    },
+    {
+      "id": "packet-9a9eff221360",
+      "initial": {
+        "rating": "full",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "Initial delivery covers exact UID-to-MemoID binding, expiry boundary, endpoint gates, anonymous share behavior, payload scope, and operational failures; evaluator/packets/packet-9a9eff221360.json:8-231.",
+          "Source directly supports token lookup/expiry, memo binding, state gate, read check, dependency loads, and Parent clearing; model/public-source/memos/server/api/v1/memo_share_service.go:170-229.",
+          "Final delivery has three scoped questions distinguishing binding, validity comparison, and unauthenticated scope, with explicit source gaps rather than unsupported claims; evaluator/packets/packet-9a9eff221360.json:1384-1845.",
+          "The stated exact-share authorization and ordinary audience branches match source; model/public-source/memos/core/access/memo.go:107-153.",
+          "memos/server/api/v1/memo_share_service.go:170-213; memo_access.go:15-39; core/access/memo.go:87-153"
+        ]
+      },
+      "final": {
+        "rating": "full",
+        "decisiveError": false,
+        "overUnknown": false,
+        "falseComplete": false,
+        "evidence": [
+          "Initial delivery covers exact UID-to-MemoID binding, expiry boundary, endpoint gates, anonymous share behavior, payload scope, and operational failures; evaluator/packets/packet-9a9eff221360.json:8-231.",
+          "Source directly supports token lookup/expiry, memo binding, state gate, read check, dependency loads, and Parent clearing; model/public-source/memos/server/api/v1/memo_share_service.go:170-229.",
+          "Final delivery has three scoped questions distinguishing binding, validity comparison, and unauthenticated scope, with explicit source gaps rather than unsupported claims; evaluator/packets/packet-9a9eff221360.json:1384-1845.",
+          "The stated exact-share authorization and ordinary audience branches match source; model/public-source/memos/core/access/memo.go:107-153.",
+          "memos/server/api/v1/memo_share_service.go:170-213; memo_access.go:15-39; core/access/memo.go:87-153"
+        ]
+      },
+      "extraction": {
+        "initial": "none",
+        "final": "none",
+        "incorrectRules": [],
+        "wrongPremiseMappings": [],
+        "amplifiedError": false,
+        "evidence": [
+          "packet-9a9eff221360.json: no actual control rules in first or final graph; legacy observations are not this extraction."
+        ]
+      },
+      "mechanism": {
+        "decisiveHelperHits": [],
+        "irrelevantOrInvalidReads": [],
+        "correctExcludedBranches": [],
+        "wrongExcludedBranches": [],
+        "justifiedResiduals": [
+          "Deployment/proxy behavior was explicitly left unverified, which is appropriate for source-level scope; evaluator/packets/packet-9a9eff221360.json:70-75,138-143.",
+          "Separate attachment/comment/relation endpoint handlers were not traced; evaluator/packets/packet-9a9eff221360.json:221-230."
+        ],
+        "avoidableResiduals": [],
+        "checkerDetections": [],
+        "checkerFalseRejections": [],
+        "checkerMisses": [],
+        "evidence": [
+          "packet-9a9eff221360.json schedulerActions, dependencies and hostChecks; memos/server/api/v1/memo_share_service.go:170-213; memo_access.go:15-39; core/access/memo.go:87-153. Only actual scheduler reads count as automatic hits; semantic raw branches are not host exclusions."
+        ]
+      },
+      "causes": [],
+      "notes": "Initial delivery covers exact UID-to-MemoID binding, expiry boundary, endpoint gates, anonymous share behavior, payload scope, and operational failures; evaluator/packets/packet-9a9eff221360.json:8-231. First and final are graded on actual captured answers. Semantic checker false rejection, false acceptance, error amplification and automatic branch-exclusion benefit are not established by this packet."
+    }
+  ]
+}

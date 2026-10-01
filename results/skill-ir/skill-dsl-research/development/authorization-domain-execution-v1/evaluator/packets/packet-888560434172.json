@@ -1,0 +1,1182 @@
+{
+  "schemaVersion": "authorization-aq-anonymous-packet/v1",
+  "id": "packet-888560434172",
+  "task": {
+    "brief": "Check creating a share through ShareLinkViewSet against the current independently supplied policy. A principal asks to share an existing document; determine which endpoint and object controls apply to that exact document before the share is created. Include relevant inherited permission and serializer paths. Do not assume that document existence or a global model permission grants access to this document. Explain source behavior, policy compliance and specific missing facts.",
+    "mode": "conformance",
+    "policy": {
+      "text": "A caller creating a document share must have view_document permission for the exact shared document. A global add_sharelink permission or knowing a document ID alone is insufficient.",
+      "origin": "user",
+      "location": "experimental-user-brief:paperless-share-policy/v1"
+    }
+  },
+  "status": "completed",
+  "initial": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The applicable endpoint is the router-generated share_links endpoint backed by ShareLinkViewSet, with creation occurring through the ShareLinkSerializer. A POST is first subject to IsAuthenticated and PaperlessObjectPermissions. The generic object-permission map treats POST as requiring the ShareLink model's add permission, while the serializer independently validates the submitted document before creation. For the exact document, validate_document requires both the caller's global documents.view_document permission and has_perms_owner_aware(user, view_document, document). The latter allows the document owner or a guardian object-permission holder, so knowing the document ID or having only a global add-share permission is not sufficient. The serializer then creates the share and generates its slug only after validation succeeds."
+        },
+        "branches": [
+          {
+            "id": "q1-allow",
+            "condition": "The request is an authenticated POST to the registered share_links route; the caller has the ShareLink add model permission; the submitted document exists and resolves; the caller has global documents.view_document; and the caller is the document owner or has the document's view_document object permission.",
+            "disposition": "allow",
+            "explanation": "The route registration and viewset identify the endpoint and serializer. The viewset requires authentication and PaperlessObjectPermissions. PaperlessObjectPermissions maps POST to add_%(model_name)s, which for this viewset is the ShareLink model. The serializer's document validator requires global view_document and the owner-aware exact-document check; the owner-aware helper accepts ownership or an object permission. This branch meets the independent policy's exact-document view requirement.",
+            "evidenceIds": [
+              "ev-8c3abc591929eed2d6c5",
+              "ev-f6b3e1fb34ed185a8730",
+              "ev-5611a4dc255d7e8d2dab",
+              "ev-2407faa8d3605326db19",
+              "ev-03b8671dd5319b67dbb3",
+              "ev-130cae1b8d9db6c8a05c"
+            ]
+          },
+          {
+            "id": "q1-deny-unauthenticated",
+            "condition": "The caller is unauthenticated.",
+            "disposition": "deny",
+            "explanation": "The viewset includes IsAuthenticated, and the object-permission class is the second configured permission class.",
+            "evidenceIds": [
+              "ev-f6b3e1fb34ed185a8730",
+              "ev-5611a4dc255d7e8d2dab"
+            ]
+          },
+          {
+            "id": "q1-deny-share-add",
+            "condition": "The caller lacks the ShareLink model's add permission required by the generic POST permission mapping.",
+            "disposition": "deny",
+            "explanation": "PaperlessObjectPermissions maps POST to add_%(model_name)s; the viewset model is ShareLink.",
+            "evidenceIds": [
+              "ev-f6b3e1fb34ed185a8730",
+              "ev-5611a4dc255d7e8d2dab"
+            ]
+          },
+          {
+            "id": "q1-deny-global-view",
+            "condition": "The caller lacks global documents.view_document, even if the caller knows the document ID or has the share model's add permission.",
+            "disposition": "deny",
+            "explanation": "ShareLinkSerializer.validate_document explicitly requires user.has_perm(\"documents.view_document\"). The independent policy also rejects global add permission or document-ID knowledge as substitutes for access to the exact document.",
+            "evidenceIds": [
+              "ev-2407faa8d3605326db19",
+              "ev-eff88c87019e4267dde3"
+            ]
+          },
+          {
+            "id": "q1-deny-object-view",
+            "condition": "The submitted document exists, but the caller is neither its owner nor an object-permission holder for view_document on that document.",
+            "disposition": "deny",
+            "explanation": "The serializer calls has_perms_owner_aware for view_document on the specific document. That helper returns true only when the document has no owner, the caller is the owner, or the guardian-backed checker grants the permission; for an owned document lacking those conditions it fails.",
+            "evidenceIds": [
+              "ev-2407faa8d3605326db19",
+              "ev-8c04feac41175a6786da"
+            ]
+          },
+          {
+            "id": "q1-policy-implementation",
+            "condition": "Reviewing the implementation rather than a particular supplied caller/document state.",
+            "disposition": "conditional",
+            "explanation": "The direct ShareLink creation path contains an exact-document view_document check in addition to global and endpoint-level checks, so the source behavior is conformant to the stated normative requirement for the relevant path. Whether a particular attempted share is allowed remains unresolved without the request principal, document, and permission facts.",
+            "evidenceIds": [
+              "ev-2407faa8d3605326db19",
+              "ev-5611a4dc255d7e8d2dab",
+              "ev-8c3abc591929eed2d6c5"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-8c3abc591929eed2d6c5",
+          "ev-f6b3e1fb34ed185a8730",
+          "ev-5611a4dc255d7e8d2dab",
+          "ev-2407faa8d3605326db19",
+          "ev-03b8671dd5319b67dbb3",
+          "ev-8c04feac41175a6786da",
+          "ev-eff88c87019e4267dde3",
+          "ev-130cae1b8d9db6c8a05c"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "No concrete principal identity or authentication state was supplied; confirm the caller is authenticated and identify the effective user."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "No concrete document ID or request payload was supplied; confirm the submitted document field identifies the exact existing document and that serializer resolution succeeds."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "The caller's ShareLink add model permission is not supplied; verify the permission implied by the POST mapping, typically documents.add_sharelink for this model."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "The caller's global documents.view_document permission is not supplied."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "The exact document's owner and object-level view_document grants are not supplied; verify ownership or guardian-backed permission for that document."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The source-read budget prevented reading the ShareLink model body and the PassUserMixin definition. Those reads could further confirm model metadata and how the serializer receives the request user, but they do not remove the decisive exact-document validator already shown.",
+            "nextRead": "src/documents/models.py:972-1031 and the PassUserMixin definition in src/documents/views.py"
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "No live route configuration, authentication backend state, database state, or effective permission assignments were supplied; source behavior alone cannot establish those runtime facts."
+          }
+        ],
+        "policyAssessment": {
+          "status": "satisfied",
+          "explanation": "For the direct ShareLinkViewSet creation path, the implementation enforces the policy's decisive condition—view_document on the exact submitted document—through ShareLinkSerializer.validate_document and its owner-aware object-permission helper. It also imposes additional global and endpoint/model checks. Compliance of the specific requested share is conditional on the missing runtime facts above."
+        }
+      }
+    ],
+    "observations": [],
+    "scope": "Source-visible review of creating one ShareLink through the registered ShareLinkViewSet at paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103; no repository-wide or deployment claim."
+  },
+  "final": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The applicable endpoint is the router-generated share_links endpoint backed by ShareLinkViewSet, with creation occurring through the ShareLinkSerializer. A POST is first subject to IsAuthenticated and PaperlessObjectPermissions. The generic object-permission map treats POST as requiring the ShareLink model's add permission, while the serializer independently validates the submitted document before creation. For the exact document, validate_document requires both the caller's global documents.view_document permission and has_perms_owner_aware(user, view_document, document). The latter allows the document owner or a guardian object-permission holder, so knowing the document ID or having only a global add-share permission is not sufficient. The serializer then creates the share and generates its slug only after validation succeeds."
+        },
+        "branches": [
+          {
+            "id": "q1-allow",
+            "condition": "The request is an authenticated POST to the registered share_links route; the caller has the ShareLink add model permission; the submitted document exists and resolves; the caller has global documents.view_document; and the caller is the document owner or has the document's view_document object permission.",
+            "disposition": "allow",
+            "explanation": "The route registration and viewset identify the endpoint and serializer. The viewset requires authentication and PaperlessObjectPermissions. PaperlessObjectPermissions maps POST to add_%(model_name)s, which for this viewset is the ShareLink model. The serializer's document validator requires global view_document and the owner-aware exact-document check; the owner-aware helper accepts ownership or an object permission. This branch meets the independent policy's exact-document view requirement.",
+            "evidenceIds": [
+              "ev-8c3abc591929eed2d6c5",
+              "ev-f6b3e1fb34ed185a8730",
+              "ev-5611a4dc255d7e8d2dab",
+              "ev-2407faa8d3605326db19",
+              "ev-03b8671dd5319b67dbb3",
+              "ev-130cae1b8d9db6c8a05c"
+            ]
+          },
+          {
+            "id": "q1-deny-unauthenticated",
+            "condition": "The caller is unauthenticated.",
+            "disposition": "deny",
+            "explanation": "The viewset includes IsAuthenticated, and the object-permission class is the second configured permission class.",
+            "evidenceIds": [
+              "ev-f6b3e1fb34ed185a8730",
+              "ev-5611a4dc255d7e8d2dab"
+            ]
+          },
+          {
+            "id": "q1-deny-share-add",
+            "condition": "The caller lacks the ShareLink model's add permission required by the generic POST permission mapping.",
+            "disposition": "deny",
+            "explanation": "PaperlessObjectPermissions maps POST to add_%(model_name)s; the viewset model is ShareLink.",
+            "evidenceIds": [
+              "ev-f6b3e1fb34ed185a8730",
+              "ev-5611a4dc255d7e8d2dab"
+            ]
+          },
+          {
+            "id": "q1-deny-global-view",
+            "condition": "The caller lacks global documents.view_document, even if the caller knows the document ID or has the share model's add permission.",
+            "disposition": "deny",
+            "explanation": "ShareLinkSerializer.validate_document explicitly requires user.has_perm(\"documents.view_document\"). The independent policy also rejects global add permission or document-ID knowledge as substitutes for access to the exact document.",
+            "evidenceIds": [
+              "ev-2407faa8d3605326db19",
+              "ev-eff88c87019e4267dde3"
+            ]
+          },
+          {
+            "id": "q1-deny-object-view",
+            "condition": "The submitted document exists, but the caller is neither its owner nor an object-permission holder for view_document on that document.",
+            "disposition": "deny",
+            "explanation": "The serializer calls has_perms_owner_aware for view_document on the specific document. That helper returns true only when the document has no owner, the caller is the owner, or the guardian-backed checker grants the permission; for an owned document lacking those conditions it fails.",
+            "evidenceIds": [
+              "ev-2407faa8d3605326db19",
+              "ev-8c04feac41175a6786da"
+            ]
+          },
+          {
+            "id": "q1-policy-implementation",
+            "condition": "Reviewing the implementation rather than a particular supplied caller/document state.",
+            "disposition": "conditional",
+            "explanation": "The direct ShareLink creation path contains an exact-document view_document check in addition to global and endpoint-level checks, so the source behavior is conformant to the stated normative requirement for the relevant path. Whether a particular attempted share is allowed remains unresolved without the request principal, document, and permission facts.",
+            "evidenceIds": [
+              "ev-2407faa8d3605326db19",
+              "ev-5611a4dc255d7e8d2dab",
+              "ev-8c3abc591929eed2d6c5"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-8c3abc591929eed2d6c5",
+          "ev-f6b3e1fb34ed185a8730",
+          "ev-5611a4dc255d7e8d2dab",
+          "ev-2407faa8d3605326db19",
+          "ev-03b8671dd5319b67dbb3",
+          "ev-8c04feac41175a6786da",
+          "ev-eff88c87019e4267dde3",
+          "ev-130cae1b8d9db6c8a05c"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "No concrete principal identity or authentication state was supplied; confirm the caller is authenticated and identify the effective user."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "No concrete document ID or request payload was supplied; confirm the submitted document field identifies the exact existing document and that serializer resolution succeeds."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "The caller's ShareLink add model permission is not supplied; verify the permission implied by the POST mapping, typically documents.add_sharelink for this model."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "The caller's global documents.view_document permission is not supplied."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "The exact document's owner and object-level view_document grants are not supplied; verify ownership or guardian-backed permission for that document."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The source-read budget prevented reading the ShareLink model body and the PassUserMixin definition. Those reads could further confirm model metadata and how the serializer receives the request user, but they do not remove the decisive exact-document validator already shown.",
+            "nextRead": "src/documents/models.py:972-1031 and the PassUserMixin definition in src/documents/views.py"
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "No live route configuration, authentication backend state, database state, or effective permission assignments were supplied; source behavior alone cannot establish those runtime facts."
+          }
+        ],
+        "policyAssessment": {
+          "status": "satisfied",
+          "explanation": "For the direct ShareLinkViewSet creation path, the implementation enforces the policy's decisive condition—view_document on the exact submitted document—through ShareLinkSerializer.validate_document and its owner-aware object-permission helper. It also imposes additional global and endpoint/model checks. Compliance of the specific requested share is conditional on the missing runtime facts above."
+        }
+      }
+    ],
+    "observations": [],
+    "scope": "Source-visible review of creating one ShareLink through the registered ShareLinkViewSet at paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103; no repository-wide or deployment claim."
+  },
+  "prose": null,
+  "initialProse": null,
+  "initialValidation": {
+    "valid": true,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The applicable endpoint is the router-generated share_links endpoint backed by ShareLinkViewSet, with creation occurring through the ShareLinkSerializer. A POST is first subject to IsAuthenticated and PaperlessObjectPermissions. The generic object-permission map treats POST as requiring the ShareLink model's add permission, while the serializer independently validates the submitted document before creation. For the exact document, validate_document requires both the caller's global documents.view_document permission and has_perms_owner_aware(user, view_document, document). The latter allows the document owner or a guardian object-permission holder, so knowing the document ID or having only a global add-share permission is not sufficient. The serializer then creates the share and generates its slug only after validation succeeds."
+          },
+          "branches": [
+            {
+              "id": "q1-allow",
+              "condition": "The request is an authenticated POST to the registered share_links route; the caller has the ShareLink add model permission; the submitted document exists and resolves; the caller has global documents.view_document; and the caller is the document owner or has the document's view_document object permission.",
+              "disposition": "allow",
+              "explanation": "The route registration and viewset identify the endpoint and serializer. The viewset requires authentication and PaperlessObjectPermissions. PaperlessObjectPermissions maps POST to add_%(model_name)s, which for this viewset is the ShareLink model. The serializer's document validator requires global view_document and the owner-aware exact-document check; the owner-aware helper accepts ownership or an object permission. This branch meets the independent policy's exact-document view requirement.",
+              "evidenceIds": [
+                "ev-8c3abc591929eed2d6c5",
+                "ev-f6b3e1fb34ed185a8730",
+                "ev-5611a4dc255d7e8d2dab",
+                "ev-2407faa8d3605326db19",
+                "ev-03b8671dd5319b67dbb3",
+                "ev-130cae1b8d9db6c8a05c"
+              ]
+            },
+            {
+              "id": "q1-deny-unauthenticated",
+              "condition": "The caller is unauthenticated.",
+              "disposition": "deny",
+              "explanation": "The viewset includes IsAuthenticated, and the object-permission class is the second configured permission class.",
+              "evidenceIds": [
+                "ev-f6b3e1fb34ed185a8730",
+                "ev-5611a4dc255d7e8d2dab"
+              ]
+            },
+            {
+              "id": "q1-deny-share-add",
+              "condition": "The caller lacks the ShareLink model's add permission required by the generic POST permission mapping.",
+              "disposition": "deny",
+              "explanation": "PaperlessObjectPermissions maps POST to add_%(model_name)s; the viewset model is ShareLink.",
+              "evidenceIds": [
+                "ev-f6b3e1fb34ed185a8730",
+                "ev-5611a4dc255d7e8d2dab"
+              ]
+            },
+            {
+              "id": "q1-deny-global-view",
+              "condition": "The caller lacks global documents.view_document, even if the caller knows the document ID or has the share model's add permission.",
+              "disposition": "deny",
+              "explanation": "ShareLinkSerializer.validate_document explicitly requires user.has_perm(\"documents.view_document\"). The independent policy also rejects global add permission or document-ID knowledge as substitutes for access to the exact document.",
+              "evidenceIds": [
+                "ev-2407faa8d3605326db19",
+                "ev-eff88c87019e4267dde3"
+              ]
+            },
+            {
+              "id": "q1-deny-object-view",
+              "condition": "The submitted document exists, but the caller is neither its owner nor an object-permission holder for view_document on that document.",
+              "disposition": "deny",
+              "explanation": "The serializer calls has_perms_owner_aware for view_document on the specific document. That helper returns true only when the document has no owner, the caller is the owner, or the guardian-backed checker grants the permission; for an owned document lacking those conditions it fails.",
+              "evidenceIds": [
+                "ev-2407faa8d3605326db19",
+                "ev-8c04feac41175a6786da"
+              ]
+            },
+            {
+              "id": "q1-policy-implementation",
+              "condition": "Reviewing the implementation rather than a particular supplied caller/document state.",
+              "disposition": "conditional",
+              "explanation": "The direct ShareLink creation path contains an exact-document view_document check in addition to global and endpoint-level checks, so the source behavior is conformant to the stated normative requirement for the relevant path. Whether a particular attempted share is allowed remains unresolved without the request principal, document, and permission facts.",
+              "evidenceIds": [
+                "ev-2407faa8d3605326db19",
+                "ev-5611a4dc255d7e8d2dab",
+                "ev-8c3abc591929eed2d6c5"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-8c3abc591929eed2d6c5",
+            "ev-f6b3e1fb34ed185a8730",
+            "ev-5611a4dc255d7e8d2dab",
+            "ev-2407faa8d3605326db19",
+            "ev-03b8671dd5319b67dbb3",
+            "ev-8c04feac41175a6786da",
+            "ev-eff88c87019e4267dde3",
+            "ev-130cae1b8d9db6c8a05c"
+          ],
+          "missing": [
+            {
+              "kind": "premise-unspecified",
+              "detail": "No concrete principal identity or authentication state was supplied; confirm the caller is authenticated and identify the effective user."
+            },
+            {
+              "kind": "premise-unspecified",
+              "detail": "No concrete document ID or request payload was supplied; confirm the submitted document field identifies the exact existing document and that serializer resolution succeeds."
+            },
+            {
+              "kind": "premise-unspecified",
+              "detail": "The caller's ShareLink add model permission is not supplied; verify the permission implied by the POST mapping, typically documents.add_sharelink for this model."
+            },
+            {
+              "kind": "premise-unspecified",
+              "detail": "The caller's global documents.view_document permission is not supplied."
+            },
+            {
+              "kind": "premise-unspecified",
+              "detail": "The exact document's owner and object-level view_document grants are not supplied; verify ownership or guardian-backed permission for that document."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The source-read budget prevented reading the ShareLink model body and the PassUserMixin definition. Those reads could further confirm model metadata and how the serializer receives the request user, but they do not remove the decisive exact-document validator already shown.",
+              "nextRead": "src/documents/models.py:972-1031 and the PassUserMixin definition in src/documents/views.py"
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "No live route configuration, authentication backend state, database state, or effective permission assignments were supplied; source behavior alone cannot establish those runtime facts."
+            }
+          ],
+          "policyAssessment": {
+            "status": "satisfied",
+            "explanation": "For the direct ShareLinkViewSet creation path, the implementation enforces the policy's decisive condition—view_document on the exact submitted document—through ShareLinkSerializer.validate_document and its owner-aware object-permission helper. It also imposes additional global and endpoint/model checks. Compliance of the specific requested share is conditional on the missing runtime facts above."
+          }
+        }
+      ],
+      "observations": [],
+      "scope": "Source-visible review of creating one ShareLink through the registered ShareLinkViewSet at paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103; no repository-wide or deployment claim."
+    },
+    "diagnostics": [],
+    "semanticSupport": "unreviewed"
+  },
+  "finalValidation": {
+    "valid": true,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The applicable endpoint is the router-generated share_links endpoint backed by ShareLinkViewSet, with creation occurring through the ShareLinkSerializer. A POST is first subject to IsAuthenticated and PaperlessObjectPermissions. The generic object-permission map treats POST as requiring the ShareLink model's add permission, while the serializer independently validates the submitted document before creation. For the exact document, validate_document requires both the caller's global documents.view_document permission and has_perms_owner_aware(user, view_document, document). The latter allows the document owner or a guardian object-permission holder, so knowing the document ID or having only a global add-share permission is not sufficient. The serializer then creates the share and generates its slug only after validation succeeds."
+          },
+          "branches": [
+            {
+              "id": "q1-allow",
+              "condition": "The request is an authenticated POST to the registered share_links route; the caller has the ShareLink add model permission; the submitted document exists and resolves; the caller has global documents.view_document; and the caller is the document owner or has the document's view_document object permission.",
+              "disposition": "allow",
+              "explanation": "The route registration and viewset identify the endpoint and serializer. The viewset requires authentication and PaperlessObjectPermissions. PaperlessObjectPermissions maps POST to add_%(model_name)s, which for this viewset is the ShareLink model. The serializer's document validator requires global view_document and the owner-aware exact-document check; the owner-aware helper accepts ownership or an object permission. This branch meets the independent policy's exact-document view requirement.",
+              "evidenceIds": [
+                "ev-8c3abc591929eed2d6c5",
+                "ev-f6b3e1fb34ed185a8730",
+                "ev-5611a4dc255d7e8d2dab",
+                "ev-2407faa8d3605326db19",
+                "ev-03b8671dd5319b67dbb3",
+                "ev-130cae1b8d9db6c8a05c"
+              ]
+            },
+            {
+              "id": "q1-deny-unauthenticated",
+              "condition": "The caller is unauthenticated.",
+              "disposition": "deny",
+              "explanation": "The viewset includes IsAuthenticated, and the object-permission class is the second configured permission class.",
+              "evidenceIds": [
+                "ev-f6b3e1fb34ed185a8730",
+                "ev-5611a4dc255d7e8d2dab"
+              ]
+            },
+            {
+              "id": "q1-deny-share-add",
+              "condition": "The caller lacks the ShareLink model's add permission required by the generic POST permission mapping.",
+              "disposition": "deny",
+              "explanation": "PaperlessObjectPermissions maps POST to add_%(model_name)s; the viewset model is ShareLink.",
+              "evidenceIds": [
+                "ev-f6b3e1fb34ed185a8730",
+                "ev-5611a4dc255d7e8d2dab"
+              ]
+            },
+            {
+              "id": "q1-deny-global-view",
+              "condition": "The caller lacks global documents.view_document, even if the caller knows the document ID or has the share model's add permission.",
+              "disposition": "deny",
+              "explanation": "ShareLinkSerializer.validate_document explicitly requires user.has_perm(\"documents.view_document\"). The independent policy also rejects global add permission or document-ID knowledge as substitutes for access to the exact document.",
+              "evidenceIds": [
+                "ev-2407faa8d3605326db19",
+                "ev-eff88c87019e4267dde3"
+              ]
+            },
+            {
+              "id": "q1-deny-object-view",
+              "condition": "The submitted document exists, but the caller is neither its owner nor an object-permission holder for view_document on that document.",
+              "disposition": "deny",
+              "explanation": "The serializer calls has_perms_owner_aware for view_document on the specific document. That helper returns true only when the document has no owner, the caller is the owner, or the guardian-backed checker grants the permission; for an owned document lacking those conditions it fails.",
+              "evidenceIds": [
+                "ev-2407faa8d3605326db19",
+                "ev-8c04feac41175a6786da"
+              ]
+            },
+            {
+              "id": "q1-policy-implementation",
+              "condition": "Reviewing the implementation rather than a particular supplied caller/document state.",
+              "disposition": "conditional",
+              "explanation": "The direct ShareLink creation path contains an exact-document view_document check in addition to global and endpoint-level checks, so the source behavior is conformant to the stated normative requirement for the relevant path. Whether a particular attempted share is allowed remains unresolved without the request principal, document, and permission facts.",
+              "evidenceIds": [
+                "ev-2407faa8d3605326db19",
+                "ev-5611a4dc255d7e8d2dab",
+                "ev-8c3abc591929eed2d6c5"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-8c3abc591929eed2d6c5",
+            "ev-f6b3e1fb34ed185a8730",
+            "ev-5611a4dc255d7e8d2dab",
+            "ev-2407faa8d3605326db19",
+            "ev-03b8671dd5319b67dbb3",
+            "ev-8c04feac41175a6786da",
+            "ev-eff88c87019e4267dde3",
+            "ev-130cae1b8d9db6c8a05c"
+          ],
+          "missing": [
+            {
+              "kind": "premise-unspecified",
+              "detail": "No concrete principal identity or authentication state was supplied; confirm the caller is authenticated and identify the effective user."
+            },
+            {
+              "kind": "premise-unspecified",
+              "detail": "No concrete document ID or request payload was supplied; confirm the submitted document field identifies the exact existing document and that serializer resolution succeeds."
+            },
+            {
+              "kind": "premise-unspecified",
+              "detail": "The caller's ShareLink add model permission is not supplied; verify the permission implied by the POST mapping, typically documents.add_sharelink for this model."
+            },
+            {
+              "kind": "premise-unspecified",
+              "detail": "The caller's global documents.view_document permission is not supplied."
+            },
+            {
+              "kind": "premise-unspecified",
+              "detail": "The exact document's owner and object-level view_document grants are not supplied; verify ownership or guardian-backed permission for that document."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The source-read budget prevented reading the ShareLink model body and the PassUserMixin definition. Those reads could further confirm model metadata and how the serializer receives the request user, but they do not remove the decisive exact-document validator already shown.",
+              "nextRead": "src/documents/models.py:972-1031 and the PassUserMixin definition in src/documents/views.py"
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "No live route configuration, authentication backend state, database state, or effective permission assignments were supplied; source behavior alone cannot establish those runtime facts."
+            }
+          ],
+          "policyAssessment": {
+            "status": "satisfied",
+            "explanation": "For the direct ShareLinkViewSet creation path, the implementation enforces the policy's decisive condition—view_document on the exact submitted document—through ShareLinkSerializer.validate_document and its owner-aware object-permission helper. It also imposes additional global and endpoint/model checks. Compliance of the specific requested share is conditional on the missing runtime facts above."
+          }
+        }
+      ],
+      "observations": [],
+      "scope": "Source-visible review of creating one ShareLink through the registered ShareLinkViewSet at paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103; no repository-wide or deployment claim."
+    },
+    "diagnostics": [],
+    "semanticSupport": "unreviewed"
+  },
+  "error": null,
+  "extractionInitial": null,
+  "extractionInitialOrigin": "no-control-proposal",
+  "extractionFinal": null,
+  "extractionProposals": [],
+  "hostChecks": [],
+  "dependencies": [],
+  "schedulerActions": [],
+  "evidence": [
+    {
+      "id": "ev-13a3395da58caf1e14c8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4696,
+      "endLine": 4696,
+      "bytes": 31
+    },
+    {
+      "id": "ev-130cae1b8d9db6c8a05c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2851,
+      "endLine": 2851,
+      "bytes": 57
+    },
+    {
+      "id": "ev-2d8f350887a7b7f1ebc0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 43,
+      "endLine": 43,
+      "bytes": 50
+    },
+    {
+      "id": "ev-04e9a1f74e3e05b3fb0c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 88,
+      "endLine": 88,
+      "bytes": 59
+    },
+    {
+      "id": "ev-eff88c87019e4267dde3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 463,
+      "endLine": 463,
+      "bytes": 39
+    },
+    {
+      "id": "ev-7b01d5c71fce2c8b53a7",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 469,
+      "endLine": 469,
+      "bytes": 82
+    },
+    {
+      "id": "ev-825759007a828cb33802",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 644,
+      "endLine": 644,
+      "bytes": 54
+    },
+    {
+      "id": "ev-c931b5d113f4102178a6",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 645,
+      "endLine": 645,
+      "bytes": 50
+    },
+    {
+      "id": "ev-4f2f46f064ed40c2a081",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 646,
+      "endLine": 646,
+      "bytes": 51
+    },
+    {
+      "id": "ev-96483dcf86a8fc77e242",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 660,
+      "endLine": 660,
+      "bytes": 54
+    },
+    {
+      "id": "ev-bc424e1e539de4db6fbe",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 661,
+      "endLine": 661,
+      "bytes": 51
+    },
+    {
+      "id": "ev-64450e9ebbbd7ac43c86",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 662,
+      "endLine": 662,
+      "bytes": 50
+    },
+    {
+      "id": "ev-5cdc61ea0478ff165413",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 679,
+      "endLine": 679,
+      "bytes": 77
+    },
+    {
+      "id": "ev-b196982d1163668b9283",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 680,
+      "endLine": 680,
+      "bytes": 73
+    },
+    {
+      "id": "ev-f03e25990a3641e60181",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 683,
+      "endLine": 683,
+      "bytes": 45
+    },
+    {
+      "id": "ev-f25b863d1d9014e533fd",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 688,
+      "endLine": 688,
+      "bytes": 45
+    },
+    {
+      "id": "ev-f6b3e1fb34ed185a8730",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4688,
+      "endLine": 4775,
+      "bytes": 3565
+    },
+    {
+      "id": "ev-2407faa8d3605326db19",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2838,
+      "endLine": 2925,
+      "bytes": 2906
+    },
+    {
+      "id": "ev-8c3abc591929eed2d6c5",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 78,
+      "endLine": 96,
+      "bytes": 1090
+    },
+    {
+      "id": "ev-03b8671dd5319b67dbb3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 430,
+      "endLine": 505,
+      "bytes": 3371
+    },
+    {
+      "id": "ev-8c04feac41175a6786da",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 620,
+      "endLine": 705,
+      "bytes": 3276
+    },
+    {
+      "id": "ev-072ce65e73fba32917c1",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 142,
+      "endLine": 142,
+      "bytes": 61
+    },
+    {
+      "id": "ev-0a603f1f2ab562aabbbc",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 143,
+      "endLine": 143,
+      "bytes": 55
+    },
+    {
+      "id": "ev-e0120914074dfa2e45b6",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 161,
+      "endLine": 161,
+      "bytes": 45
+    },
+    {
+      "id": "ev-ad18c8fbcb5f384b4ad0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 162,
+      "endLine": 162,
+      "bytes": 51
+    },
+    {
+      "id": "ev-0799498e0d1ba63b5705",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 214,
+      "endLine": 214,
+      "bytes": 66
+    },
+    {
+      "id": "ev-7a3885c296ba7e4cc8ed",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 215,
+      "endLine": 215,
+      "bytes": 60
+    },
+    {
+      "id": "ev-ec991db632a8d82b0de6",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1984,
+      "endLine": 1984,
+      "bytes": 62
+    },
+    {
+      "id": "ev-aba2eeb35128640e2066",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1996,
+      "endLine": 1996,
+      "bytes": 70
+    },
+    {
+      "id": "ev-f6f2a43c68acebf0038b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4704,
+      "endLine": 4704,
+      "bytes": 29
+    },
+    {
+      "id": "ev-87c95279246f710831e1",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4706,
+      "endLine": 4706,
+      "bytes": 67
+    },
+    {
+      "id": "ev-e2dbf6aad22c9e846759",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4708,
+      "endLine": 4708,
+      "bytes": 50
+    },
+    {
+      "id": "ev-a88f10ed2dc6509a7030",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4716,
+      "endLine": 4716,
+      "bytes": 48
+    },
+    {
+      "id": "ev-db0214a01b8f1cd68fd2",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4725,
+      "endLine": 4725,
+      "bytes": 61
+    },
+    {
+      "id": "ev-2d4763ea73c9badec664",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4733,
+      "endLine": 4733,
+      "bytes": 83
+    },
+    {
+      "id": "ev-f0de41770f0105387dfd",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4734,
+      "endLine": 4734,
+      "bytes": 35
+    },
+    {
+      "id": "ev-8675dfe6f64f489aaa2a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4740,
+      "endLine": 4740,
+      "bytes": 52
+    },
+    {
+      "id": "ev-e532553d0cf7dfc57cba",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4742,
+      "endLine": 4742,
+      "bytes": 56
+    },
+    {
+      "id": "ev-6f24bb117db4da31c994",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4750,
+      "endLine": 4750,
+      "bytes": 54
+    },
+    {
+      "id": "ev-d61a7a32e20cbe9f2a81",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4807,
+      "endLine": 4807,
+      "bytes": 62
+    },
+    {
+      "id": "ev-eaba6cb2ddc10639d193",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4837,
+      "endLine": 4837,
+      "bytes": 70
+    },
+    {
+      "id": "ev-d8d1e2dd70dcdd6e8cfa",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4843,
+      "endLine": 4843,
+      "bytes": 62
+    },
+    {
+      "id": "ev-f1d94086681b52eaa721",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4873,
+      "endLine": 4873,
+      "bytes": 72
+    },
+    {
+      "id": "ev-352370a45f4a33b3d947",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4883,
+      "endLine": 4883,
+      "bytes": 96
+    },
+    {
+      "id": "ev-d7d5692a2a4c7346d63d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4890,
+      "endLine": 4890,
+      "bytes": 74
+    },
+    {
+      "id": "ev-efb404da88eaa081bd01",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4898,
+      "endLine": 4898,
+      "bytes": 51
+    },
+    {
+      "id": "ev-3b31a252f9d86de6177d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4899,
+      "endLine": 4899,
+      "bytes": 54
+    },
+    {
+      "id": "ev-6f2c3421ea241d1a6379",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4911,
+      "endLine": 4911,
+      "bytes": 66
+    },
+    {
+      "id": "ev-c49ec6e1b316a4c94652",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2956,
+      "endLine": 2956,
+      "bytes": 66
+    },
+    {
+      "id": "ev-b72bc204c1a30d53239f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2978,
+      "endLine": 2978,
+      "bytes": 66
+    },
+    {
+      "id": "ev-79f1052883c98dcab714",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2979,
+      "endLine": 2979,
+      "bytes": 73
+    },
+    {
+      "id": "ev-d59a1408faef77f670f4",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2981,
+      "endLine": 2981,
+      "bytes": 40
+    },
+    {
+      "id": "ev-c114b7be1e3e508aa5d3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 295,
+      "endLine": 295,
+      "bytes": 35
+    },
+    {
+      "id": "ev-725c205a64005f7aff2a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 531,
+      "endLine": 531,
+      "bytes": 85
+    },
+    {
+      "id": "ev-1b1321bafce37ff3f0e8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 552,
+      "endLine": 552,
+      "bytes": 84
+    },
+    {
+      "id": "ev-8dead3ee461df2c1d4eb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 607,
+      "endLine": 607,
+      "bytes": 75
+    },
+    {
+      "id": "ev-1c2b9c9ab821611fc7c3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1041,
+      "endLine": 1041,
+      "bytes": 34
+    },
+    {
+      "id": "ev-a1439f7b40f6d2a2cef4",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1394,
+      "endLine": 1394,
+      "bytes": 57
+    },
+    {
+      "id": "ev-be899529fbc189c667ac",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2545,
+      "endLine": 2545,
+      "bytes": 84
+    },
+    {
+      "id": "ev-d3fbed75e0cdbf1c87a5",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2619,
+      "endLine": 2619,
+      "bytes": 55
+    },
+    {
+      "id": "ev-9fa397289cc60e3c3a2a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2889,
+      "endLine": 2889,
+      "bytes": 63
+    },
+    {
+      "id": "ev-0dd473fa1283baba411b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 297,
+      "endLine": 297,
+      "bytes": 40
+    },
+    {
+      "id": "ev-5611a4dc255d7e8d2dab",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 30,
+      "endLine": 55,
+      "bytes": 1044
+    },
+    {
+      "id": "ev-0d5bec529fbca3ed34b1",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 295,
+      "endLine": 340,
+      "bytes": 1915
+    }
+  ],
+  "deliveryValid": true,
+  "reviewCaution": "Citations and host consistency do not prove extraction meaning. Evaluate raw first/final and final prose against original source at the retained evidence ranges. A native prose answer can be delivered despite failed host checking. Representation may reveal strategy; arm, cost and target scores are hidden. No earlier answer is supplied."
+}

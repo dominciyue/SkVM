@@ -1,0 +1,1786 @@
+{
+  "schemaVersion": "authorization-aq-anonymous-packet/v1",
+  "id": "packet-453e35684eea",
+  "task": {
+    "brief": "Investigate process_file at /process/file in this Open WebUI revision. Trace the caller, the supplied file_id and the destination collection_name through authorization and the eventual processing or vector write. Explain whether the object authorized for input and the object affected by output are the same, and what happens for caller-owned versus another user's file. Do not assume the caller owns the destination collection. Give visible conditions and specific remaining limits; this is behavior investigation.",
+    "mode": "behavior"
+  },
+  "status": "timeout-unknown",
+  "initial": null,
+  "final": null,
+  "prose": null,
+  "initialProse": null,
+  "initialValidation": null,
+  "finalValidation": null,
+  "error": "Authorization provider call did not settle within 300000ms (per-call deadline); request completion is unknown.",
+  "extractionInitial": {
+    "schemaVersion": "authorization-control-slice/v1",
+    "rules": [
+      {
+        "key": "q1.entry.process-file",
+        "questionId": "q1",
+        "pathKey": "caller-owned",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-50b742ce38a9b7029b5b",
+          "ev-dd4412b011d5928e4940"
+        ],
+        "claim": "POST /process/file enters process_file with file_id and optional collection_name/content, after get_verified_user supplies user",
+        "complete": false
+      },
+      {
+        "key": "q1.bind.file.caller-owned",
+        "questionId": "q1",
+        "pathKey": "caller-owned",
+        "kind": "binding",
+        "after": [
+          "q1.entry.process-file"
+        ],
+        "evidenceIds": [
+          "ev-474c2286da3f3d8be63a"
+        ],
+        "claim": "For a non-admin caller, the input file is looked up by supplied file_id together with user.id",
+        "principal": "caller",
+        "resource": "input-file",
+        "bindingKey": "q1.input-file-user-binding",
+        "bindingKind": "resource",
+        "complete": false
+      },
+      {
+        "key": "q1.guard.file.admin-bypass",
+        "questionId": "q1",
+        "pathKey": "admin",
+        "kind": "guard",
+        "after": [
+          "q1.entry.process-file"
+        ],
+        "evidenceIds": [
+          "ev-f6e9ffb55ef10aa16815",
+          "ev-dd4412b011d5928e4940"
+        ],
+        "claim": "If user.role is admin, lookup uses file_id without user.id",
+        "condition": {
+          "op": "eq",
+          "left": {
+            "binding": "caller-role"
+          },
+          "right": "admin"
+        },
+        "complete": false
+      },
+      {
+        "key": "q1.guard.file.exists",
+        "questionId": "q1",
+        "pathKey": "all-file-branches",
+        "kind": "guard",
+        "after": [
+          "q1.bind.file.caller-owned"
+        ],
+        "evidenceIds": [
+          "ev-dd4412b011d5928e4940"
+        ],
+        "claim": "Processing proceeds only inside if file; the shown excerpt does not establish the response/effect when lookup returns no file",
+        "complete": false
+      },
+      {
+        "key": "q1.bind.destination.requested",
+        "questionId": "q1",
+        "pathKey": "explicit-destination",
+        "kind": "binding",
+        "after": [
+          "q1.guard.file.exists"
+        ],
+        "evidenceIds": [
+          "ev-8b43cac5a91230954128",
+          "ev-07ab60199fb73ed90db3",
+          "ev-b8de4db3d7cee86a8c9d"
+        ],
+        "claim": "When collection_name is supplied, it becomes the destination collection_name",
+        "resource": "destination-collection",
+        "bindingKey": "q1.destination-collection-name",
+        "bindingKind": "resource",
+        "complete": false
+      },
+      {
+        "key": "q1.bind.destination.default",
+        "questionId": "q1",
+        "pathKey": "default-destination",
+        "kind": "binding",
+        "after": [
+          "q1.guard.file.exists"
+        ],
+        "evidenceIds": [
+          "ev-ae6ddc7c7194c5f05d6a",
+          "ev-581492611d75e628f394"
+        ],
+        "claim": "When collection_name is absent, destination collection_name is derived as file-{file.id}",
+        "resource": "destination-collection",
+        "bindingKey": "q1.destination-default-file-collection",
+        "bindingKind": "resource",
+        "complete": false
+      },
+      {
+        "key": "q1.effect.file-content-update",
+        "questionId": "q1",
+        "pathKey": "content-input",
+        "kind": "effect",
+        "after": [
+          "q1.guard.file.exists"
+        ],
+        "evidenceIds": [
+          "ev-b3d5d680e8af0768b7f2",
+          "ev-ad5d8a0986c3178b4eee",
+          "ev-dd4412b011d5928e4940"
+        ],
+        "claim": "With supplied content, the handler deletes file-{file.id}, builds document metadata containing file.user_id and file.id, and updates the file data content before vector processing",
+        "resource": "input-file",
+        "operation": "update-file-content",
+        "complete": false
+      },
+      {
+        "key": "q1.effect.vector-write",
+        "questionId": "q1",
+        "pathKey": "vector-write",
+        "kind": "effect",
+        "after": [
+          "q1.bind.destination.requested"
+        ],
+        "evidenceIds": [
+          "ev-b8de4db3d7cee86a8c9d",
+          "ev-b704b56b8b443017fa7c",
+          "ev-9269113ddf066af05f41",
+          "ev-f78a4fb1341992de9513",
+          "ev-0c1c2500c1dd570b896a"
+        ],
+        "claim": "If embedding/retrieval is not bypassed and save_docs_to_vector_db succeeds, the handler passes the chosen collection_name and add=True when form_data.collection_name is truthy; save_docs_to_vector_db inserts items into that collection",
+        "resource": "destination-collection",
+        "operation": "vector-insert",
+        "complete": false
+      },
+      {
+        "key": "q1.guard.destination-existing",
+        "questionId": "q1",
+        "pathKey": "vector-write",
+        "kind": "guard",
+        "after": [
+          "q1.effect.vector-write"
+        ],
+        "evidenceIds": [
+          "ev-83af45819130e0a5c426",
+          "ev-f81406b61d425643c199",
+          "ev-0c1c2500c1dd570b896a"
+        ],
+        "claim": "If the destination collection already exists and add is false, save_docs_to_vector_db returns true without inserting; with an explicit collection_name, add is true, so this no-insert branch is not selected by that condition",
+        "resource": "destination-collection",
+        "operation": "vector-insert",
+        "complete": false
+      },
+      {
+        "key": "q1.effect.file-metadata",
+        "questionId": "q1",
+        "pathKey": "vector-write",
+        "kind": "effect",
+        "after": [
+          "q1.effect.vector-write"
+        ],
+        "evidenceIds": [
+          "ev-e8c2d2a8f5af7829506e",
+          "ev-cd2f92c6841842752c86",
+          "ev-dd4412b011d5928e4940"
+        ],
+        "claim": "After a successful vector save, the handler updates the input file metadata with collection_name and marks the file completed",
+        "resource": "input-file",
+        "operation": "update-file-status-and-metadata",
+        "complete": false
+      }
+    ],
+    "dependencies": [
+      {
+        "key": "q1.dep.file-lookup-authorization",
+        "questionId": "q1",
+        "pathKey": "caller-owned",
+        "from": "q1.bind.file.caller-owned",
+        "symbol": "get_file_by_id_and_user_id",
+        "evidenceIds": [
+          "ev-474c2286da3f3d8be63a"
+        ],
+        "reason": "The non-admin lookup visibly binds file retrieval to user.id; implementation of the model helper is not yet read.",
+        "kind": "principal-binding",
+        "decisive": true
+      },
+      {
+        "key": "q1.dep.admin-file-lookup",
+        "questionId": "q1",
+        "pathKey": "admin",
+        "from": "q1.guard.file.admin-bypass",
+        "symbol": "get_file_by_id",
+        "evidenceIds": [
+          "ev-f6e9ffb55ef10aa16815"
+        ],
+        "reason": "The admin branch visibly omits user.id from the lookup.",
+        "kind": "principal-binding",
+        "decisive": true
+      },
+      {
+        "key": "q1.dep.destination-no-owner-check",
+        "questionId": "q1",
+        "pathKey": "explicit-destination",
+        "from": "q1.bind.destination.requested",
+        "symbol": "save_docs_to_vector_db",
+        "evidenceIds": [
+          "ev-b8de4db3d7cee86a8c9d",
+          "ev-b704b56b8b443017fa7c"
+        ],
+        "reason": "The shown process_file and save helper bind the output by collection_name; no collection-owner check is visible in these ranges.",
+        "kind": "resource-binding",
+        "decisive": true
+      },
+      {
+        "key": "q1.dep.vector-insert",
+        "questionId": "q1",
+        "pathKey": "vector-write",
+        "from": "q1.effect.vector-write",
+        "symbol": "insert",
+        "evidenceIds": [
+          "ev-f78a4fb1341992de9513",
+          "ev-0c1c2500c1dd570b896a"
+        ],
+        "reason": "The helper visibly calls VECTOR_DB_CLIENT.insert with the passed collection_name.",
+        "kind": "effect",
+        "decisive": true
+      }
+    ],
+    "bindings": [],
+    "policyRules": []
+  },
+  "extractionInitialOrigin": "first-control-proposal",
+  "extractionFinal": {
+    "schemaVersion": "authorization-control-slice/v1",
+    "revision": 13,
+    "rules": [
+      {
+        "key": "q1.entry.process-file",
+        "questionId": "q1",
+        "pathKey": "caller-owned",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-50b742ce38a9b7029b5b",
+          "ev-dd4412b011d5928e4940"
+        ],
+        "claim": "POST /process/file enters process_file with file_id and optional collection_name/content, after get_verified_user supplies user",
+        "complete": false,
+        "id": "ctrl-51b2a1d60c0e1f955aeb",
+        "digest": "9fed3b45e914c742483260e3af788d41241d1aac4d973e1b995fbab3589a0bdb",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "q1.bind.file.caller-owned",
+        "questionId": "q1",
+        "pathKey": "caller-owned",
+        "kind": "binding",
+        "after": [
+          "q1.entry.process-file"
+        ],
+        "evidenceIds": [
+          "ev-474c2286da3f3d8be63a"
+        ],
+        "claim": "For a non-admin caller, the input file is looked up by supplied file_id together with user.id",
+        "principal": "caller",
+        "resource": "input-file",
+        "bindingKey": "q1.input-file-user-binding",
+        "bindingKind": "resource",
+        "complete": false,
+        "id": "ctrl-3da6ed5fd365ab68ea0f",
+        "digest": "b1eb14a56fa75c723bd265d5847576fe644f5975364b955b8c4ec5e39e660d53",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "q1.guard.file.exists",
+        "questionId": "q1",
+        "pathKey": "all-file-branches",
+        "kind": "guard",
+        "after": [
+          "q1.bind.file.caller-owned"
+        ],
+        "evidenceIds": [
+          "ev-dd4412b011d5928e4940"
+        ],
+        "claim": "Processing proceeds only inside if file; the shown excerpt does not establish the response/effect when lookup returns no file",
+        "complete": false,
+        "id": "ctrl-bccca40bf9a8c341af2b",
+        "digest": "f00721fd5e29069b96d63c82aad777d73d3c0f3f767600c155a554e4cae9c76f",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "q1.bind.destination.requested",
+        "questionId": "q1",
+        "pathKey": "explicit-destination",
+        "kind": "binding",
+        "after": [
+          "q1.guard.file.exists"
+        ],
+        "evidenceIds": [
+          "ev-8b43cac5a91230954128",
+          "ev-07ab60199fb73ed90db3",
+          "ev-b8de4db3d7cee86a8c9d"
+        ],
+        "claim": "When collection_name is supplied, it becomes the destination collection_name",
+        "resource": "destination-collection",
+        "bindingKey": "q1.destination-collection-name",
+        "bindingKind": "resource",
+        "complete": false,
+        "id": "ctrl-e9f8f22a77b0dde9996e",
+        "digest": "bbd055a5646185566f796bb9be20cf0c268666fa096159f1db81b0f590f9a9ed",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "q1.bind.destination.default",
+        "questionId": "q1",
+        "pathKey": "default-destination",
+        "kind": "binding",
+        "after": [
+          "q1.guard.file.exists"
+        ],
+        "evidenceIds": [
+          "ev-ae6ddc7c7194c5f05d6a",
+          "ev-581492611d75e628f394"
+        ],
+        "claim": "When collection_name is absent, destination collection_name is derived as file-{file.id}",
+        "resource": "destination-collection",
+        "bindingKey": "q1.destination-default-file-collection",
+        "bindingKind": "resource",
+        "complete": false,
+        "id": "ctrl-71713e3e3d7fa8c042b8",
+        "digest": "f24e82b74de4ffa69c40c2478776ea894cf8fc45b256bca105f297f7641c7406",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "q1.effect.file-content-update",
+        "questionId": "q1",
+        "pathKey": "content-input",
+        "kind": "effect",
+        "after": [
+          "q1.guard.file.exists"
+        ],
+        "evidenceIds": [
+          "ev-b3d5d680e8af0768b7f2",
+          "ev-ad5d8a0986c3178b4eee",
+          "ev-dd4412b011d5928e4940"
+        ],
+        "claim": "With supplied content, the handler deletes file-{file.id}, builds document metadata containing file.user_id and file.id, and updates the file data content before vector processing",
+        "resource": "input-file",
+        "operation": "update-file-content",
+        "complete": false,
+        "id": "ctrl-ff0af510189f87adc0ac",
+        "digest": "cba1a9034470a6a0eb546232a3ac0a4b297354a69957a4763f5ee0081ae49894",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "q1.effect.vector-write",
+        "questionId": "q1",
+        "pathKey": "vector-write",
+        "kind": "effect",
+        "after": [
+          "q1.bind.destination.requested"
+        ],
+        "evidenceIds": [
+          "ev-b8de4db3d7cee86a8c9d",
+          "ev-b704b56b8b443017fa7c",
+          "ev-9269113ddf066af05f41",
+          "ev-f78a4fb1341992de9513",
+          "ev-0c1c2500c1dd570b896a"
+        ],
+        "claim": "If embedding/retrieval is not bypassed and save_docs_to_vector_db succeeds, the handler passes the chosen collection_name and add=True when form_data.collection_name is truthy; save_docs_to_vector_db inserts items into that collection",
+        "resource": "destination-collection",
+        "operation": "vector-insert",
+        "complete": false,
+        "id": "ctrl-35e69f87e7b26b3c25a1",
+        "digest": "ca8d1db61d0065801a768b121da6051bf35f3cc5bacb6914aa9ca15809571d9e",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "q1.guard.destination-existing",
+        "questionId": "q1",
+        "pathKey": "vector-write",
+        "kind": "guard",
+        "after": [
+          "q1.effect.vector-write"
+        ],
+        "evidenceIds": [
+          "ev-83af45819130e0a5c426",
+          "ev-f81406b61d425643c199",
+          "ev-0c1c2500c1dd570b896a"
+        ],
+        "claim": "If the destination collection already exists and add is false, save_docs_to_vector_db returns true without inserting; with an explicit collection_name, add is true, so this no-insert branch is not selected by that condition",
+        "resource": "destination-collection",
+        "operation": "vector-insert",
+        "complete": false,
+        "id": "ctrl-85f36400c618d7b07091",
+        "digest": "6b27a7e1aabf276379c62c1bfedbc37de4c6bd973391bc78cd8481de20a19dc8",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "q1.effect.file-metadata",
+        "questionId": "q1",
+        "pathKey": "vector-write",
+        "kind": "effect",
+        "after": [
+          "q1.effect.vector-write"
+        ],
+        "evidenceIds": [
+          "ev-e8c2d2a8f5af7829506e",
+          "ev-cd2f92c6841842752c86",
+          "ev-dd4412b011d5928e4940"
+        ],
+        "claim": "After a successful vector save, the handler updates the input file metadata with collection_name and marks the file completed",
+        "resource": "input-file",
+        "operation": "update-file-status-and-metadata",
+        "complete": false,
+        "id": "ctrl-d5ec0a4f820f5d1e6af7",
+        "digest": "83b31bbc3b4f61028f2624ce0fb2fed4322ba7ac98e13f16b63f16647fd81181",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      }
+    ],
+    "dependencies": [
+      {
+        "key": "q1.dep.file-lookup-authorization",
+        "questionId": "q1",
+        "pathKey": "caller-owned",
+        "from": "q1.bind.file.caller-owned",
+        "symbol": "get_file_by_id_and_user_id",
+        "evidenceIds": [
+          "ev-474c2286da3f3d8be63a"
+        ],
+        "reason": "The non-admin lookup visibly binds file retrieval to user.id; implementation of the model helper is not yet read.",
+        "kind": "principal-binding",
+        "decisive": true,
+        "id": "ctrl-0924dfd2bc354acdcb51",
+        "digest": "1daa8314a5f6d0cfc2b566df44758a3f5e4c3c7ae2556e3871d2b3ed6981fae6",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "q1.dep.admin-file-lookup",
+        "questionId": "q1",
+        "pathKey": "admin",
+        "from": "q1.guard.file.admin-bypass",
+        "symbol": "get_file_by_id",
+        "evidenceIds": [
+          "ev-f6e9ffb55ef10aa16815"
+        ],
+        "reason": "The admin branch visibly omits user.id from the lookup.",
+        "kind": "principal-binding",
+        "decisive": true,
+        "id": "ctrl-51e7a9f0c3bbaaa864cc",
+        "digest": "5fe164dbb7c0f4912c669b2d6644d313d6ecc28183fc27b80460e12883772833",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "q1.dep.destination-no-owner-check",
+        "questionId": "q1",
+        "pathKey": "explicit-destination",
+        "from": "q1.bind.destination.requested",
+        "symbol": "save_docs_to_vector_db",
+        "evidenceIds": [
+          "ev-b8de4db3d7cee86a8c9d",
+          "ev-b704b56b8b443017fa7c"
+        ],
+        "reason": "The shown process_file and save helper bind the output by collection_name; no collection-owner check is visible in these ranges.",
+        "kind": "resource-binding",
+        "decisive": true,
+        "id": "ctrl-c903fbdfd55103adcd08",
+        "digest": "dfd334089de3cf15ee08754f795f05584f02ae8b1799249be3a26ebffc4c43e0",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "q1.dep.vector-insert",
+        "questionId": "q1",
+        "pathKey": "vector-write",
+        "from": "q1.effect.vector-write",
+        "symbol": "insert",
+        "evidenceIds": [
+          "ev-f78a4fb1341992de9513",
+          "ev-0c1c2500c1dd570b896a"
+        ],
+        "reason": "The helper visibly calls VECTOR_DB_CLIENT.insert with the passed collection_name.",
+        "kind": "effect",
+        "decisive": true,
+        "id": "ctrl-fd6c1878653eee479a82",
+        "digest": "c7f05032e18fc01488a71f52b960c3319af301d13ecdb857e055236f2193ddc2",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      }
+    ],
+    "bindings": [],
+    "policyRules": [],
+    "conflicts": [],
+    "revisions": []
+  },
+  "extractionProposals": [
+    {
+      "delta": {
+        "schemaVersion": "authorization-control-slice/v1",
+        "rules": [
+          {
+            "key": "q1.entry.process-file",
+            "questionId": "q1",
+            "pathKey": "caller-owned",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-50b742ce38a9b7029b5b",
+              "ev-dd4412b011d5928e4940"
+            ],
+            "claim": "POST /process/file enters process_file with file_id and optional collection_name/content, after get_verified_user supplies user",
+            "complete": false
+          },
+          {
+            "key": "q1.bind.file.caller-owned",
+            "questionId": "q1",
+            "pathKey": "caller-owned",
+            "kind": "binding",
+            "after": [
+              "q1.entry.process-file"
+            ],
+            "evidenceIds": [
+              "ev-474c2286da3f3d8be63a"
+            ],
+            "claim": "For a non-admin caller, the input file is looked up by supplied file_id together with user.id",
+            "principal": "caller",
+            "resource": "input-file",
+            "bindingKey": "q1.input-file-user-binding",
+            "bindingKind": "resource",
+            "complete": false
+          },
+          {
+            "key": "q1.guard.file.admin-bypass",
+            "questionId": "q1",
+            "pathKey": "admin",
+            "kind": "guard",
+            "after": [
+              "q1.entry.process-file"
+            ],
+            "evidenceIds": [
+              "ev-f6e9ffb55ef10aa16815",
+              "ev-dd4412b011d5928e4940"
+            ],
+            "claim": "If user.role is admin, lookup uses file_id without user.id",
+            "condition": {
+              "op": "eq",
+              "left": {
+                "binding": "caller-role"
+              },
+              "right": "admin"
+            },
+            "complete": false
+          },
+          {
+            "key": "q1.guard.file.exists",
+            "questionId": "q1",
+            "pathKey": "all-file-branches",
+            "kind": "guard",
+            "after": [
+              "q1.bind.file.caller-owned"
+            ],
+            "evidenceIds": [
+              "ev-dd4412b011d5928e4940"
+            ],
+            "claim": "Processing proceeds only inside if file; the shown excerpt does not establish the response/effect when lookup returns no file",
+            "complete": false
+          },
+          {
+            "key": "q1.bind.destination.requested",
+            "questionId": "q1",
+            "pathKey": "explicit-destination",
+            "kind": "binding",
+            "after": [
+              "q1.guard.file.exists"
+            ],
+            "evidenceIds": [
+              "ev-8b43cac5a91230954128",
+              "ev-07ab60199fb73ed90db3",
+              "ev-b8de4db3d7cee86a8c9d"
+            ],
+            "claim": "When collection_name is supplied, it becomes the destination collection_name",
+            "resource": "destination-collection",
+            "bindingKey": "q1.destination-collection-name",
+            "bindingKind": "resource",
+            "complete": false
+          },
+          {
+            "key": "q1.bind.destination.default",
+            "questionId": "q1",
+            "pathKey": "default-destination",
+            "kind": "binding",
+            "after": [
+              "q1.guard.file.exists"
+            ],
+            "evidenceIds": [
+              "ev-ae6ddc7c7194c5f05d6a",
+              "ev-581492611d75e628f394"
+            ],
+            "claim": "When collection_name is absent, destination collection_name is derived as file-{file.id}",
+            "resource": "destination-collection",
+            "bindingKey": "q1.destination-default-file-collection",
+            "bindingKind": "resource",
+            "complete": false
+          },
+          {
+            "key": "q1.effect.file-content-update",
+            "questionId": "q1",
+            "pathKey": "content-input",
+            "kind": "effect",
+            "after": [
+              "q1.guard.file.exists"
+            ],
+            "evidenceIds": [
+              "ev-b3d5d680e8af0768b7f2",
+              "ev-ad5d8a0986c3178b4eee",
+              "ev-dd4412b011d5928e4940"
+            ],
+            "claim": "With supplied content, the handler deletes file-{file.id}, builds document metadata containing file.user_id and file.id, and updates the file data content before vector processing",
+            "resource": "input-file",
+            "operation": "update-file-content",
+            "complete": false
+          },
+          {
+            "key": "q1.effect.vector-write",
+            "questionId": "q1",
+            "pathKey": "vector-write",
+            "kind": "effect",
+            "after": [
+              "q1.bind.destination.requested"
+            ],
+            "evidenceIds": [
+              "ev-b8de4db3d7cee86a8c9d",
+              "ev-b704b56b8b443017fa7c",
+              "ev-9269113ddf066af05f41",
+              "ev-f78a4fb1341992de9513",
+              "ev-0c1c2500c1dd570b896a"
+            ],
+            "claim": "If embedding/retrieval is not bypassed and save_docs_to_vector_db succeeds, the handler passes the chosen collection_name and add=True when form_data.collection_name is truthy; save_docs_to_vector_db inserts items into that collection",
+            "resource": "destination-collection",
+            "operation": "vector-insert",
+            "complete": false
+          },
+          {
+            "key": "q1.guard.destination-existing",
+            "questionId": "q1",
+            "pathKey": "vector-write",
+            "kind": "guard",
+            "after": [
+              "q1.effect.vector-write"
+            ],
+            "evidenceIds": [
+              "ev-83af45819130e0a5c426",
+              "ev-f81406b61d425643c199",
+              "ev-0c1c2500c1dd570b896a"
+            ],
+            "claim": "If the destination collection already exists and add is false, save_docs_to_vector_db returns true without inserting; with an explicit collection_name, add is true, so this no-insert branch is not selected by that condition",
+            "resource": "destination-collection",
+            "operation": "vector-insert",
+            "complete": false
+          },
+          {
+            "key": "q1.effect.file-metadata",
+            "questionId": "q1",
+            "pathKey": "vector-write",
+            "kind": "effect",
+            "after": [
+              "q1.effect.vector-write"
+            ],
+            "evidenceIds": [
+              "ev-e8c2d2a8f5af7829506e",
+              "ev-cd2f92c6841842752c86",
+              "ev-dd4412b011d5928e4940"
+            ],
+            "claim": "After a successful vector save, the handler updates the input file metadata with collection_name and marks the file completed",
+            "resource": "input-file",
+            "operation": "update-file-status-and-metadata",
+            "complete": false
+          }
+        ],
+        "dependencies": [
+          {
+            "key": "q1.dep.file-lookup-authorization",
+            "questionId": "q1",
+            "pathKey": "caller-owned",
+            "from": "q1.bind.file.caller-owned",
+            "symbol": "get_file_by_id_and_user_id",
+            "evidenceIds": [
+              "ev-474c2286da3f3d8be63a"
+            ],
+            "reason": "The non-admin lookup visibly binds file retrieval to user.id; implementation of the model helper is not yet read.",
+            "kind": "principal-binding",
+            "decisive": true
+          },
+          {
+            "key": "q1.dep.admin-file-lookup",
+            "questionId": "q1",
+            "pathKey": "admin",
+            "from": "q1.guard.file.admin-bypass",
+            "symbol": "get_file_by_id",
+            "evidenceIds": [
+              "ev-f6e9ffb55ef10aa16815"
+            ],
+            "reason": "The admin branch visibly omits user.id from the lookup.",
+            "kind": "principal-binding",
+            "decisive": true
+          },
+          {
+            "key": "q1.dep.destination-no-owner-check",
+            "questionId": "q1",
+            "pathKey": "explicit-destination",
+            "from": "q1.bind.destination.requested",
+            "symbol": "save_docs_to_vector_db",
+            "evidenceIds": [
+              "ev-b8de4db3d7cee86a8c9d",
+              "ev-b704b56b8b443017fa7c"
+            ],
+            "reason": "The shown process_file and save helper bind the output by collection_name; no collection-owner check is visible in these ranges.",
+            "kind": "resource-binding",
+            "decisive": true
+          },
+          {
+            "key": "q1.dep.vector-insert",
+            "questionId": "q1",
+            "pathKey": "vector-write",
+            "from": "q1.effect.vector-write",
+            "symbol": "insert",
+            "evidenceIds": [
+              "ev-f78a4fb1341992de9513",
+              "ev-0c1c2500c1dd570b896a"
+            ],
+            "reason": "The helper visibly calls VECTOR_DB_CLIENT.insert with the passed collection_name.",
+            "kind": "effect",
+            "decisive": true
+          }
+        ],
+        "bindings": [],
+        "policyRules": []
+      },
+      "diagnostics": [
+        {
+          "code": "predicate-invalid",
+          "path": "rules.q1.guard.file.admin-bypass",
+          "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+          "severity": "error"
+        }
+      ],
+      "revision": 13
+    }
+  ],
+  "hostChecks": [],
+  "dependencies": [
+    {
+      "id": "ctrl-0924dfd2bc354acdcb51",
+      "digest": "1daa8314a5f6d0cfc2b566df44758a3f5e4c3c7ae2556e3871d2b3ed6981fae6",
+      "key": "q1.dep.file-lookup-authorization",
+      "questionId": "q1",
+      "pathKey": "caller-owned",
+      "decisive": true,
+      "symbol": "get_file_by_id_and_user_id",
+      "state": "read",
+      "reason": "Original candidate range is actually shown. Its semantic role still needs model analysis.",
+      "candidates": [
+        {
+          "id": "symbol-58712d7b0e3f6e8cb782fcd6",
+          "path": "backend/open_webui/models/files.py",
+          "name": "get_file_by_id_and_user_id",
+          "kind": "function",
+          "startLine": 172,
+          "endLine": 185,
+          "boundary": "complete",
+          "parent": "symbol-d72a6f24b2e4fcb37b36bbb4",
+          "sha256": "bba7349241119a4f8efcf5f8f227751ba92029e4604948d11bc6183a94d42424"
+        }
+      ],
+      "evidenceIds": [
+        "ev-8eefb54ab933b75e439e"
+      ],
+      "semanticSupport": "unreviewed",
+      "code": "dependency-source-read"
+    },
+    {
+      "id": "ctrl-51e7a9f0c3bbaaa864cc",
+      "digest": "5fe164dbb7c0f4912c669b2d6644d313d6ecc28183fc27b80460e12883772833",
+      "key": "q1.dep.admin-file-lookup",
+      "questionId": "q1",
+      "pathKey": "admin",
+      "decisive": true,
+      "symbol": "get_file_by_id",
+      "state": "blocked",
+      "reason": "Dependency has no accepted local source node.",
+      "candidates": [],
+      "evidenceIds": [],
+      "semanticSupport": "unreviewed",
+      "code": "dependency-parent-missing"
+    },
+    {
+      "id": "ctrl-c903fbdfd55103adcd08",
+      "digest": "dfd334089de3cf15ee08754f795f05584f02ae8b1799249be3a26ebffc4c43e0",
+      "key": "q1.dep.destination-no-owner-check",
+      "questionId": "q1",
+      "pathKey": "explicit-destination",
+      "decisive": true,
+      "symbol": "save_docs_to_vector_db",
+      "state": "blocked",
+      "reason": "Named dependency is not present in its shown source reference.",
+      "candidates": [],
+      "evidenceIds": [],
+      "semanticSupport": "unreviewed",
+      "code": "dependency-callsite-missing"
+    },
+    {
+      "id": "ctrl-fd6c1878653eee479a82",
+      "digest": "c7f05032e18fc01488a71f52b960c3319af301d13ecdb857e055236f2193ddc2",
+      "key": "q1.dep.vector-insert",
+      "questionId": "q1",
+      "pathKey": "vector-write",
+      "decisive": true,
+      "symbol": "insert",
+      "state": "located",
+      "reason": "Select a shown candidate using pathHint/candidateId in an explicit revision; host cannot infer the correct helper.",
+      "candidates": [
+        {
+          "id": "symbol-29a7ad4bc4762a61086c7d38",
+          "path": "backend/open_webui/models/automations.py",
+          "name": "insert",
+          "kind": "function",
+          "startLine": 121,
+          "endLine": 145,
+          "boundary": "complete",
+          "parent": "symbol-90c476db8054b3d4e3c3dc4a",
+          "sha256": "59aaccafbc1e00e15105fee0a226b91fe27998a349d02fb2f6be8f6db5f260e1"
+        },
+        {
+          "id": "symbol-d16bb08a61e471e96a34207c",
+          "path": "backend/open_webui/models/automations.py",
+          "name": "insert",
+          "kind": "function",
+          "startLine": 309,
+          "endLine": 330,
+          "boundary": "complete",
+          "parent": "symbol-7ff3b5e2aa055865e18eccec",
+          "sha256": "59aaccafbc1e00e15105fee0a226b91fe27998a349d02fb2f6be8f6db5f260e1"
+        },
+        {
+          "id": "symbol-9d0bb0cad10197b411715258",
+          "path": "backend/open_webui/retrieval/vector/async_client.py",
+          "name": "insert",
+          "kind": "function",
+          "startLine": 91,
+          "endLine": 93,
+          "boundary": "complete",
+          "parent": "symbol-1719f9ac3632ae7a86a27037",
+          "sha256": "75e377860c3aac8199fa0ad4bc23915e0eb83c4ad813aac91c40bd1047938c85"
+        },
+        {
+          "id": "symbol-76f525d4f26d72ea3ab66650",
+          "path": "backend/open_webui/retrieval/vector/dbs/chroma.py",
+          "name": "insert",
+          "kind": "function",
+          "startLine": 139,
+          "endLine": 156,
+          "boundary": "complete",
+          "parent": "symbol-6187dde011d6f6b115d05506",
+          "sha256": "fa4491a25bf04f77ad8765b5a03573be00e1baeb8671c67f1f9148faebeceada"
+        },
+        {
+          "id": "symbol-2bbe3cdcdf51c2dec68f6488",
+          "path": "backend/open_webui/retrieval/vector/dbs/elasticsearch.py",
+          "name": "insert",
+          "kind": "function",
+          "startLine": 229,
+          "endLine": 249,
+          "boundary": "complete",
+          "parent": "symbol-a108fd4e3ebf1bdf70610be1",
+          "sha256": "85fe98575b034b5f7e08b9ecdc9ee1a624885a91eca229be7924ed062e77c144"
+        },
+        {
+          "id": "symbol-8c462023d249ab6d37f5d087",
+          "path": "backend/open_webui/retrieval/vector/dbs/mariadb_vector.py",
+          "name": "insert",
+          "kind": "function",
+          "startLine": 300,
+          "endLine": 337,
+          "boundary": "complete",
+          "parent": "symbol-d2852b810e8a3b9f14be2640",
+          "sha256": "ebcac647c883585a312a96226e785b5fd19786cd0538a2a585500c5f93a15883"
+        },
+        {
+          "id": "symbol-e8b34406bdb33224e780e343",
+          "path": "backend/open_webui/retrieval/vector/dbs/milvus.py",
+          "name": "insert",
+          "kind": "function",
+          "startLine": 262,
+          "endLine": 287,
+          "boundary": "complete",
+          "parent": "symbol-e1558d79ad60c0a586c16029",
+          "sha256": "19bed475c2ad388b6e6141e83ee887085ee2e34e087e93b62da6a7156ce7cd1b"
+        },
+        {
+          "id": "symbol-20c470733ed6a91b5aa018ef",
+          "path": "backend/open_webui/retrieval/vector/dbs/milvus_multitenancy.py",
+          "name": "insert",
+          "kind": "function",
+          "startLine": 276,
+          "endLine": 277,
+          "boundary": "complete",
+          "parent": "symbol-2a7770802983f052d4b08915",
+          "sha256": "366085a72bafb95ac5e92de3f6ed498b4923f58eafa41bb53d79919cf2df5780"
+        },
+        {
+          "id": "symbol-021834accb93765f978ed680",
+          "path": "backend/open_webui/retrieval/vector/dbs/opengauss.py",
+          "name": "insert",
+          "kind": "function",
+          "startLine": 172,
+          "endLine": 192,
+          "boundary": "complete",
+          "parent": "symbol-0fd9586097a45ef037a00241",
+          "sha256": "be3d719856e5d40fe4c7b9ca10750643ddbb0bdd2833bb168d82f529431225e2"
+        },
+        {
+          "id": "symbol-e37d2b30affc2298baf04028",
+          "path": "backend/open_webui/retrieval/vector/dbs/opensearch.py",
+          "name": "insert",
+          "kind": "function",
+          "startLine": 188,
+          "endLine": 207,
+          "boundary": "complete",
+          "parent": "symbol-376e85d39306fd8459adf7f4",
+          "sha256": "6c7f8cdf878375344675e85277aa72576caf5853645a767d41826d657f2f80fd"
+        },
+        {
+          "id": "symbol-7dfc6caaa222a7441f1885ce",
+          "path": "backend/open_webui/retrieval/vector/dbs/oracle23ai.py",
+          "name": "insert",
+          "kind": "function",
+          "startLine": 396,
+          "endLine": 446,
+          "boundary": "complete",
+          "parent": "symbol-79e668bb0a71903b97d00d29",
+          "sha256": "e678321fbbee5b5fbe4efb02dbd9fc402825343b0f3bb1a24d1f549ceb4cf9d5"
+        },
+        {
+          "id": "symbol-be05326e9e0a79a936893ecb",
+          "path": "backend/open_webui/retrieval/vector/dbs/pgvector.py",
+          "name": "insert",
+          "kind": "function",
+          "startLine": 286,
+          "endLine": 338,
+          "boundary": "complete",
+          "parent": "symbol-028aac960b1bbdd2c7b6393b",
+          "sha256": "1cbb96e2f55348865dfc76b5287a3e6307278bd62d41ee2de48b76e8be70cfef"
+        },
+        {
+          "id": "symbol-8b5b885888e4e46f9a7c8069",
+          "path": "backend/open_webui/retrieval/vector/dbs/pinecone.py",
+          "name": "insert",
+          "kind": "function",
+          "startLine": 253,
+          "endLine": 281,
+          "boundary": "complete",
+          "parent": "symbol-15c467d1c0952366a3cc0a43",
+          "sha256": "88549ab37532c5c886d2719377c5cb37418df2d81cf979ea50718cb936739d6e"
+        },
+        {
+          "id": "symbol-0d7e5dafcede9f1aa197bb14",
+          "path": "backend/open_webui/retrieval/vector/dbs/qdrant.py",
+          "name": "insert",
+          "kind": "function",
+          "startLine": 202,
+          "endLine": 207,
+          "boundary": "complete",
+          "parent": "symbol-67c2e2f096948296c3f97514",
+          "sha256": "f5679b9d56f568a3842f54186a86c52e7f41d9a65c8927ec9543726b95983fa0"
+        },
+        {
+          "id": "symbol-cf6c900ea33e2f2f736101e4",
+          "path": "backend/open_webui/retrieval/vector/dbs/qdrant_multitenancy.py",
+          "name": "insert",
+          "kind": "function",
+          "startLine": 327,
+          "endLine": 332,
+          "boundary": "complete",
+          "parent": "symbol-c2a8efbe980b53d1c80f0027",
+          "sha256": "6bd1b7c3168e034ea2f6d923c642f03f80c9b9e86303f2f7b905c9a00f4d3183"
+        },
+        {
+          "id": "symbol-e780f8660697c8dcc1dbb877",
+          "path": "backend/open_webui/retrieval/vector/dbs/s3vector.py",
+          "name": "insert",
+          "kind": "function",
+          "startLine": 146,
+          "endLine": 210,
+          "boundary": "complete",
+          "parent": "symbol-7e41893695c6506123264792",
+          "sha256": "bfacc2b27e3aacb8ced053faafef3e8d3ee15316ad3f6a2790e8d07340d6503f"
+        },
+        {
+          "id": "symbol-29657fbc79f6da383994158d",
+          "path": "backend/open_webui/retrieval/vector/dbs/weaviate.py",
+          "name": "insert",
+          "kind": "function",
+          "startLine": 121,
+          "endLine": 139,
+          "boundary": "complete",
+          "parent": "symbol-21155a69147f68f216064320",
+          "sha256": "9b3bb333b1c281d70718bab76e31150b12d9755475a5bf6b413bcf6e17c679bb"
+        },
+        {
+          "id": "symbol-0b2d8ecca844ae51dcb00796",
+          "path": "backend/open_webui/retrieval/vector/main.py",
+          "name": "insert",
+          "kind": "function",
+          "startLine": 44,
+          "endLine": 48,
+          "boundary": "complete",
+          "parent": "symbol-6999dddc724015d01c9b8566",
+          "sha256": "9d701b70933917febdca1386d6057dd7cce57433c320c1c3ae1bc7fcf0cf1128"
+        }
+      ],
+      "evidenceIds": [],
+      "semanticSupport": "unreviewed",
+      "code": "dependency-ambiguous"
+    }
+  ],
+  "schedulerActions": [
+    {
+      "questionId": "q1",
+      "dependencyId": "ctrl-0924dfd2bc354acdcb51",
+      "reason": "Live principal-binding dependency q1.dep.file-lookup-authorization: The non-admin lookup visibly binds file retrieval to user.id; implementation of the model helper is not yet read.; location is unique in allowed source, read coverage is incomplete.",
+      "output": {
+        "status": "ok",
+        "evidence": [
+          {
+            "id": "ev-8eefb54ab933b75e439e",
+            "repository": "open-webui/open-webui",
+            "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+            "path": "backend/open_webui/models/files.py",
+            "sha256": "bba7349241119a4f8efcf5f8f227751ba92029e4604948d11bc6183a94d42424",
+            "startLine": 172,
+            "endLine": 185,
+            "bytes": 629
+          }
+        ],
+        "matches": [],
+        "candidates": [],
+        "requested": {
+          "path": "backend/open_webui/models/files.py",
+          "startLine": 172,
+          "endLine": 185
+        },
+        "truncated": false
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-0a8fd791f9bb2b1fee03",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1547,
+      "endLine": 1547,
+      "bytes": 31
+    },
+    {
+      "id": "ev-b28e7c999d3f86f18511",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2603,
+      "endLine": 2603,
+      "bytes": 38
+    },
+    {
+      "id": "ev-34cdd5668d0d960ec309",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2675,
+      "endLine": 2675,
+      "bytes": 96
+    },
+    {
+      "id": "ev-16bddd416453c0843ee7",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2696,
+      "endLine": 2696,
+      "bytes": 100
+    },
+    {
+      "id": "ev-50b742ce38a9b7029b5b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1546,
+      "endLine": 1546,
+      "bytes": 37
+    },
+    {
+      "id": "ev-eb018015663bc550cf65",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2602,
+      "endLine": 2602,
+      "bytes": 44
+    },
+    {
+      "id": "ev-cddc79303c63ebca0967",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 252,
+      "endLine": 252,
+      "bytes": 48
+    },
+    {
+      "id": "ev-ce23e564a8f08da4ea17",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1343,
+      "endLine": 1343,
+      "bytes": 28
+    },
+    {
+      "id": "ev-3e914a36d35a848245ab",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1366,
+      "endLine": 1366,
+      "bytes": 99
+    },
+    {
+      "id": "ev-da841e4d923c6fb6f94b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1371,
+      "endLine": 1371,
+      "bytes": 52
+    },
+    {
+      "id": "ev-83af45819130e0a5c426",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1459,
+      "endLine": 1459,
+      "bytes": 84
+    },
+    {
+      "id": "ev-fef56d57d381965a84d6",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1460,
+      "endLine": 1460,
+      "bytes": 76
+    },
+    {
+      "id": "ev-9de3c5e67b1e463d76b1",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1463,
+      "endLine": 1463,
+      "bytes": 91
+    },
+    {
+      "id": "ev-c9ede980e99d50a22600",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1464,
+      "endLine": 1464,
+      "bytes": 83
+    },
+    {
+      "id": "ev-f81406b61d425643c199",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1466,
+      "endLine": 1466,
+      "bytes": 117
+    },
+    {
+      "id": "ev-df8f90c47738c48684ad",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1469,
+      "endLine": 1469,
+      "bytes": 72
+    },
+    {
+      "id": "ev-9269113ddf066af05f41",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1527,
+      "endLine": 1527,
+      "bytes": 67
+    },
+    {
+      "id": "ev-f78a4fb1341992de9513",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1529,
+      "endLine": 1529,
+      "bytes": 52
+    },
+    {
+      "id": "ev-0f2f0d03f13584af2e51",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1533,
+      "endLine": 1533,
+      "bytes": 85
+    },
+    {
+      "id": "ev-87061571778a8d1fed09",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1543,
+      "endLine": 1543,
+      "bytes": 49
+    },
+    {
+      "id": "ev-8b43cac5a91230954128",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1566,
+      "endLine": 1566,
+      "bytes": 63
+    },
+    {
+      "id": "ev-ae6ddc7c7194c5f05d6a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1568,
+      "endLine": 1568,
+      "bytes": 47
+    },
+    {
+      "id": "ev-581492611d75e628f394",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1569,
+      "endLine": 1569,
+      "bytes": 59
+    },
+    {
+      "id": "ev-b3d5d680e8af0768b7f2",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1577,
+      "endLine": 1577,
+      "bytes": 109
+    },
+    {
+      "id": "ev-07ab60199fb73ed90db3",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1596,
+      "endLine": 1596,
+      "bytes": 51
+    },
+    {
+      "id": "ev-bcbabc554bee7455061d",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1601,
+      "endLine": 1601,
+      "bytes": 90
+    },
+    {
+      "id": "ev-477e59a752d65b67b752",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1678,
+      "endLine": 1678,
+      "bytes": 52
+    },
+    {
+      "id": "ev-b8de4db3d7cee86a8c9d",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1698,
+      "endLine": 1698,
+      "bytes": 64
+    },
+    {
+      "id": "ev-b704b56b8b443017fa7c",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1704,
+      "endLine": 1704,
+      "bytes": 83
+    },
+    {
+      "id": "ev-e460cff3afb810f0954f",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1707,
+      "endLine": 1707,
+      "bytes": 96
+    },
+    {
+      "id": "ev-e8c2d2a8f5af7829506e",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1715,
+      "endLine": 1715,
+      "bytes": 79
+    },
+    {
+      "id": "ev-cd2f92c6841842752c86",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1729,
+      "endLine": 1729,
+      "bytes": 75
+    },
+    {
+      "id": "ev-32c69b557b2c1ae10be6",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1768,
+      "endLine": 1768,
+      "bytes": 49
+    },
+    {
+      "id": "ev-b34a1cef0968fddd4a73",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1777,
+      "endLine": 1777,
+      "bytes": 55
+    },
+    {
+      "id": "ev-ca8f9ae42f6a671c608b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1778,
+      "endLine": 1778,
+      "bytes": 39
+    },
+    {
+      "id": "ev-54607b3694ae4975099a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1779,
+      "endLine": 1779,
+      "bytes": 76
+    },
+    {
+      "id": "ev-d1146fbf9782f053bbb0",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1267,
+      "endLine": 1267,
+      "bytes": 49
+    },
+    {
+      "id": "ev-e26f74da7a44aa614252",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1268,
+      "endLine": 1268,
+      "bytes": 49
+    },
+    {
+      "id": "ev-1b8a194e6eef6218d32c",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1270,
+      "endLine": 1270,
+      "bytes": 63
+    },
+    {
+      "id": "ev-8bab07d4c233386824f6",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1271,
+      "endLine": 1271,
+      "bytes": 45
+    },
+    {
+      "id": "ev-633a4e4771509c8b3732",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1379,
+      "endLine": 1379,
+      "bytes": 78
+    },
+    {
+      "id": "ev-8eaa48e5cf5a6675d8ad",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1380,
+      "endLine": 1380,
+      "bytes": 78
+    },
+    {
+      "id": "ev-f17fca57d95262744d56",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1381,
+      "endLine": 1381,
+      "bytes": 47
+    },
+    {
+      "id": "ev-ecc35e89f6f7912153c5",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1383,
+      "endLine": 1383,
+      "bytes": 84
+    },
+    {
+      "id": "ev-5f7cd32512c98478dd6a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1385,
+      "endLine": 1385,
+      "bytes": 71
+    },
+    {
+      "id": "ev-b9b3abd9344257962002",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1541,
+      "endLine": 1541,
+      "bytes": 24
+    },
+    {
+      "id": "ev-f6e9ffb55ef10aa16815",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1560,
+      "endLine": 1560,
+      "bytes": 75
+    },
+    {
+      "id": "ev-474c2286da3f3d8be63a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1562,
+      "endLine": 1562,
+      "bytes": 96
+    },
+    {
+      "id": "ev-ede436c9575d3442a216",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1573,
+      "endLine": 1573,
+      "bytes": 107
+    },
+    {
+      "id": "ev-f0b43564442a2c235a13",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1576,
+      "endLine": 1576,
+      "bytes": 66
+    },
+    {
+      "id": "ev-ad5d8a0986c3178b4eee",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1589,
+      "endLine": 1589,
+      "bytes": 55
+    },
+    {
+      "id": "ev-b35e5f5c0fc92bf65ade",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1620,
+      "endLine": 1620,
+      "bytes": 59
+    },
+    {
+      "id": "ev-6d976fb200fb830e2aa2",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1644,
+      "endLine": 1644,
+      "bytes": 59
+    },
+    {
+      "id": "ev-9b3fd5129a63d5922dbd",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1658,
+      "endLine": 1658,
+      "bytes": 59
+    },
+    {
+      "id": "ev-d5689aae70b4e5cc4589",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1700,
+      "endLine": 1700,
+      "bytes": 55
+    },
+    {
+      "id": "ev-0d07907c78a7566c2ab6",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2495,
+      "endLine": 2495,
+      "bytes": 24
+    },
+    {
+      "id": "ev-345a460e2b3f74451355",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2506,
+      "endLine": 2506,
+      "bytes": 79
+    },
+    {
+      "id": "ev-3239b313218a6df67fe9",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2592,
+      "endLine": 2592,
+      "bytes": 24
+    },
+    {
+      "id": "ev-d65c9d340fc23fd8bf75",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2634,
+      "endLine": 2634,
+      "bytes": 48
+    },
+    {
+      "id": "ev-7b50b31d6435821c3bfb",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2643,
+      "endLine": 2643,
+      "bytes": 48
+    },
+    {
+      "id": "ev-50e0f6d9e35a5b8eb3cb",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2658,
+      "endLine": 2658,
+      "bytes": 51
+    },
+    {
+      "id": "ev-9656d6a9afa7c2cfab6f",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2672,
+      "endLine": 2672,
+      "bytes": 100
+    },
+    {
+      "id": "ev-68aa47a7211a10751298",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2676,
+      "endLine": 2676,
+      "bytes": 111
+    },
+    {
+      "id": "ev-908f8682705b07729e76",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2692,
+      "endLine": 2692,
+      "bytes": 107
+    },
+    {
+      "id": "ev-7f75f9004a2c98d4e924",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2699,
+      "endLine": 2699,
+      "bytes": 127
+    },
+    {
+      "id": "ev-dd4412b011d5928e4940",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1537,
+      "endLine": 1745,
+      "bytes": 10181
+    },
+    {
+      "id": "ev-0c1c2500c1dd570b896a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1330,
+      "endLine": 1535,
+      "bytes": 9714
+    },
+    {
+      "id": "ev-8eefb54ab933b75e439e",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/files.py",
+      "sha256": "bba7349241119a4f8efcf5f8f227751ba92029e4604948d11bc6183a94d42424",
+      "startLine": 172,
+      "endLine": 185,
+      "bytes": 629
+    },
+    {
+      "id": "ev-34bcaccc72d7b0e94900",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1738,
+      "endLine": 1760,
+      "bytes": 1061
+    }
+  ],
+  "deliveryValid": false,
+  "reviewCaution": "Citations and host consistency do not prove extraction meaning. Evaluate raw first/final and final prose against original source at the retained evidence ranges. A native prose answer can be delivered despite failed host checking. Representation may reveal strategy; arm, cost and target scores are hidden. No earlier answer is supplied."
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "gitea-create-issue",
+  "repository": "go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "sourceRoot": "../public-source/gitea",
+  "allowedPaths": [
+    "routers/api/v1/repo",
+    "routers/api/v1/api.go",
+    "routers/api/v1/utils",
+    "modules/structs",
+    "modules/setting",
+    "modules/web",
+    "models/unit",
+    "models/perm",
+    "models/auth",
+    "models/user",
+    "models/repo",
+    "models/issues",
+    "models/organization",
+    "services/convert",
+    "services/issue",
+    "services/context"
+  ],
+  "brief": "Check CreateIssue and its API route in this Gitea revision against the independently supplied current policy. Compare authenticated repository readers and principals with issue write permission. Trace route-level controls, repository or issue-unit checks and the issue creation effect; identify any relevant exceptions instead of assuming endpoint-local checks are the whole path. Explain policy compliance and precise source or deployment limits.",
+  "mode": "conformance",
+  "policy": {
+    "text": "Creating an issue requires write permission to the repository's issues unit. Read permission to the repository alone does not authorize this write.",
+    "origin": "user",
+    "location": "experimental-user-brief:gitea-issue-policy/v1"
+  }
+}

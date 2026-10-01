@@ -1,0 +1,474 @@
+{
+  "schemaVersion": "authorization-aq-anonymous-packet/v1",
+  "id": "packet-9c8d199c729c",
+  "task": {
+    "brief": "Check creating a share through ShareLinkViewSet against the current independently supplied policy. A principal asks to share an existing document; determine which endpoint and object controls apply to that exact document before the share is created. Include relevant inherited permission and serializer paths. Do not assume that document existence or a global model permission grants access to this document. Explain source behavior, policy compliance and specific missing facts.",
+    "mode": "conformance",
+    "policy": {
+      "text": "A caller creating a document share must have view_document permission for the exact shared document. A global add_sharelink permission or knowing a document ID alone is insufficient.",
+      "origin": "user",
+      "location": "experimental-user-brief:paperless-share-policy/v1"
+    }
+  },
+  "status": "transport-failed",
+  "initial": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The share-creation endpoint is the ShareLinkViewSet registered as `share_links`, i.e. the router's share-links create route (normally POST /api/share_links/). The viewset declares IsAuthenticated and PaperlessObjectPermissions, and uses ShareLinkSerializer. Before ShareLink creation, ShareLinkSerializer.validate_document requires both the caller's global `documents.view_document` permission and `has_perms_owner_aware(caller, \"view_document\", document)`, binding the check to the exact document supplied in the `document` field. If validation passes, create generates a slug and delegates to the inherited serializer create path. The supplied policy is therefore satisfied by the shown serializer guard only when the caller is authenticated, has the global view permission, and has view permission for that exact document; knowing the ID or merely having a global add-share permission is not enough. The caller, document resolution/existence, and permission values are not supplied, so an actual allow/deny decision for this request cannot be made."
+        },
+        "branches": [
+          {
+            "id": "q1-exact-document-view-permission-present",
+            "condition": "The caller is authenticated, the supplied document resolves, the caller has documents.view_document, and has_perms_owner_aware grants view_document for that exact document.",
+            "disposition": "allow",
+            "explanation": "The request reaches ShareLinkSerializer.create only after validate_document accepts the exact document; the shown serializer path then creates the share record.",
+            "evidenceIds": [
+              "ev-6e0dffaa7a2a9b08538d",
+              "ev-5e6c89df2508e544dc90"
+            ]
+          },
+          {
+            "id": "q1-exact-document-view-permission-absent",
+            "condition": "The caller is unauthenticated, lacks documents.view_document, or has_perms_owner_aware deny/does not grant view_document for the exact document.",
+            "disposition": "deny",
+            "explanation": "Authentication or viewset permission checks can prevent entry, and validate_document raises PermissionDenied unless both the global view permission and the exact-document owner-aware permission check pass.",
+            "evidenceIds": [
+              "ev-6e0dffaa7a2a9b08538d",
+              "ev-5e6c89df2508e544dc90"
+            ]
+          },
+          {
+            "id": "q1-facts-unspecified",
+            "condition": "The caller identity, exact document binding/resolution, or relevant permission results are unknown.",
+            "disposition": "unknown",
+            "explanation": "Source shows the required checks but the inquiry supplies no values for them. Document existence and global model permission alone must not be inferred to establish access.",
+            "evidenceIds": [
+              "ev-6e0dffaa7a2a9b08538d",
+              "ev-5e6c89df2508e544dc90"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-04e9a1f74e3e05b3fb0c",
+          "ev-6e0dffaa7a2a9b08538d",
+          "ev-5e6c89df2508e544dc90"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "The caller's authentication state and identity are not supplied.",
+            "nextRead": "No source read can determine the runtime caller; obtain the request principal/deployment context."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "The exact document object supplied to the serializer, whether its ID resolves, and its identity binding are not supplied.",
+            "nextRead": "Obtain the request payload and runtime document lookup result."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "The caller's documents.view_document result and has_perms_owner_aware(view_document, exact_document) result are not supplied.",
+            "nextRead": "Evaluate these permissions for the actual caller and exact document."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The bodies of the inherited PassUserMixin, PaperlessObjectPermissions, OwnedObjectSerializer, and has_perms_owner_aware paths were not read, so their upstream ordering, object lookup behavior, and inherited effects remain unverified.",
+            "nextRead": "Read the definitions and relevant call paths in the allowed source if a more complete source-level control slice is required."
+          }
+        ],
+        "policyAssessment": {
+          "status": "undetermined",
+          "explanation": "The implementation visibly checks the exact-document view permission required by policy, in addition to a global documents.view_document check, and does not rely solely on a global add-share permission or document ID. However, the actual caller, exact document, and permission outcomes are unspecified, so compliance for this concrete request is undetermined."
+        }
+      }
+    ],
+    "observations": [],
+    "scope": "Reviewed only the allowed source paths and the returned source ranges for ShareLinkViewSet, ShareLinkSerializer, and router registration. This is not a claim of whole-repository or deployment coverage."
+  },
+  "final": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The share-creation endpoint is the ShareLinkViewSet registered as `share_links`, i.e. the router's share-links create route (normally POST /api/share_links/). The viewset declares IsAuthenticated and PaperlessObjectPermissions, and uses ShareLinkSerializer. Before ShareLink creation, ShareLinkSerializer.validate_document requires both the caller's global `documents.view_document` permission and `has_perms_owner_aware(caller, \"view_document\", document)`, binding the check to the exact document supplied in the `document` field. If validation passes, create generates a slug and delegates to the inherited serializer create path. The supplied policy is therefore satisfied by the shown serializer guard only when the caller is authenticated, has the global view permission, and has view permission for that exact document; knowing the ID or merely having a global add-share permission is not enough. The caller, document resolution/existence, and permission values are not supplied, so an actual allow/deny decision for this request cannot be made."
+        },
+        "branches": [
+          {
+            "id": "q1-exact-document-view-permission-present",
+            "condition": "The caller is authenticated, the supplied document resolves, the caller has documents.view_document, and has_perms_owner_aware grants view_document for that exact document.",
+            "disposition": "allow",
+            "explanation": "The request reaches ShareLinkSerializer.create only after validate_document accepts the exact document; the shown serializer path then creates the share record.",
+            "evidenceIds": [
+              "ev-6e0dffaa7a2a9b08538d",
+              "ev-5e6c89df2508e544dc90"
+            ]
+          },
+          {
+            "id": "q1-exact-document-view-permission-absent",
+            "condition": "The caller is unauthenticated, lacks documents.view_document, or has_perms_owner_aware deny/does not grant view_document for the exact document.",
+            "disposition": "deny",
+            "explanation": "Authentication or viewset permission checks can prevent entry, and validate_document raises PermissionDenied unless both the global view permission and the exact-document owner-aware permission check pass.",
+            "evidenceIds": [
+              "ev-6e0dffaa7a2a9b08538d",
+              "ev-5e6c89df2508e544dc90"
+            ]
+          },
+          {
+            "id": "q1-facts-unspecified",
+            "condition": "The caller identity, exact document binding/resolution, or relevant permission results are unknown.",
+            "disposition": "unknown",
+            "explanation": "Source shows the required checks but the inquiry supplies no values for them. Document existence and global model permission alone must not be inferred to establish access.",
+            "evidenceIds": [
+              "ev-6e0dffaa7a2a9b08538d",
+              "ev-5e6c89df2508e544dc90"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-04e9a1f74e3e05b3fb0c",
+          "ev-6e0dffaa7a2a9b08538d",
+          "ev-5e6c89df2508e544dc90"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "The caller's authentication state and identity are not supplied.",
+            "nextRead": "No source read can determine the runtime caller; obtain the request principal/deployment context."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "The exact document object supplied to the serializer, whether its ID resolves, and its identity binding are not supplied.",
+            "nextRead": "Obtain the request payload and runtime document lookup result."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "The caller's documents.view_document result and has_perms_owner_aware(view_document, exact_document) result are not supplied.",
+            "nextRead": "Evaluate these permissions for the actual caller and exact document."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The bodies of the inherited PassUserMixin, PaperlessObjectPermissions, OwnedObjectSerializer, and has_perms_owner_aware paths were not read, so their upstream ordering, object lookup behavior, and inherited effects remain unverified.",
+            "nextRead": "Read the definitions and relevant call paths in the allowed source if a more complete source-level control slice is required."
+          }
+        ],
+        "policyAssessment": {
+          "status": "undetermined",
+          "explanation": "The implementation visibly checks the exact-document view permission required by policy, in addition to a global documents.view_document check, and does not rely solely on a global add-share permission or document ID. However, the actual caller, exact document, and permission outcomes are unspecified, so compliance for this concrete request is undetermined."
+        }
+      }
+    ],
+    "observations": [],
+    "scope": "Reviewed only the allowed source paths and the returned source ranges for ShareLinkViewSet, ShareLinkSerializer, and router registration. This is not a claim of whole-repository or deployment coverage."
+  },
+  "prose": null,
+  "initialProse": null,
+  "initialValidation": {
+    "valid": false,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The share-creation endpoint is the ShareLinkViewSet registered as `share_links`, i.e. the router's share-links create route (normally POST /api/share_links/). The viewset declares IsAuthenticated and PaperlessObjectPermissions, and uses ShareLinkSerializer. Before ShareLink creation, ShareLinkSerializer.validate_document requires both the caller's global `documents.view_document` permission and `has_perms_owner_aware(caller, \"view_document\", document)`, binding the check to the exact document supplied in the `document` field. If validation passes, create generates a slug and delegates to the inherited serializer create path. The supplied policy is therefore satisfied by the shown serializer guard only when the caller is authenticated, has the global view permission, and has view permission for that exact document; knowing the ID or merely having a global add-share permission is not enough. The caller, document resolution/existence, and permission values are not supplied, so an actual allow/deny decision for this request cannot be made."
+          },
+          "branches": [
+            {
+              "id": "q1-exact-document-view-permission-present",
+              "condition": "The caller is authenticated, the supplied document resolves, the caller has documents.view_document, and has_perms_owner_aware grants view_document for that exact document.",
+              "disposition": "allow",
+              "explanation": "The request reaches ShareLinkSerializer.create only after validate_document accepts the exact document; the shown serializer path then creates the share record.",
+              "evidenceIds": [
+                "ev-6e0dffaa7a2a9b08538d",
+                "ev-5e6c89df2508e544dc90"
+              ]
+            },
+            {
+              "id": "q1-exact-document-view-permission-absent",
+              "condition": "The caller is unauthenticated, lacks documents.view_document, or has_perms_owner_aware deny/does not grant view_document for the exact document.",
+              "disposition": "deny",
+              "explanation": "Authentication or viewset permission checks can prevent entry, and validate_document raises PermissionDenied unless both the global view permission and the exact-document owner-aware permission check pass.",
+              "evidenceIds": [
+                "ev-6e0dffaa7a2a9b08538d",
+                "ev-5e6c89df2508e544dc90"
+              ]
+            },
+            {
+              "id": "q1-facts-unspecified",
+              "condition": "The caller identity, exact document binding/resolution, or relevant permission results are unknown.",
+              "disposition": "unknown",
+              "explanation": "Source shows the required checks but the inquiry supplies no values for them. Document existence and global model permission alone must not be inferred to establish access.",
+              "evidenceIds": [
+                "ev-6e0dffaa7a2a9b08538d",
+                "ev-5e6c89df2508e544dc90"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-04e9a1f74e3e05b3fb0c",
+            "ev-6e0dffaa7a2a9b08538d",
+            "ev-5e6c89df2508e544dc90"
+          ],
+          "missing": [
+            {
+              "kind": "premise-unspecified",
+              "detail": "The caller's authentication state and identity are not supplied.",
+              "nextRead": "No source read can determine the runtime caller; obtain the request principal/deployment context."
+            },
+            {
+              "kind": "premise-unspecified",
+              "detail": "The exact document object supplied to the serializer, whether its ID resolves, and its identity binding are not supplied.",
+              "nextRead": "Obtain the request payload and runtime document lookup result."
+            },
+            {
+              "kind": "premise-unspecified",
+              "detail": "The caller's documents.view_document result and has_perms_owner_aware(view_document, exact_document) result are not supplied.",
+              "nextRead": "Evaluate these permissions for the actual caller and exact document."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The bodies of the inherited PassUserMixin, PaperlessObjectPermissions, OwnedObjectSerializer, and has_perms_owner_aware paths were not read, so their upstream ordering, object lookup behavior, and inherited effects remain unverified.",
+              "nextRead": "Read the definitions and relevant call paths in the allowed source if a more complete source-level control slice is required."
+            }
+          ],
+          "policyAssessment": {
+            "status": "undetermined",
+            "explanation": "The implementation visibly checks the exact-document view permission required by policy, in addition to a global documents.view_document check, and does not rely solely on a global add-share permission or document ID. However, the actual caller, exact document, and permission outcomes are unspecified, so compliance for this concrete request is undetermined."
+          }
+        }
+      ],
+      "observations": [],
+      "scope": "Reviewed only the allowed source paths and the returned source ranges for ShareLinkViewSet, ShareLinkSerializer, and router registration. This is not a claim of whole-repository or deployment coverage."
+    },
+    "diagnostics": [
+      {
+        "code": "path-not-closed",
+        "path": "q1",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      }
+    ],
+    "semanticSupport": "unreviewed"
+  },
+  "finalValidation": {
+    "valid": false,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The share-creation endpoint is the ShareLinkViewSet registered as `share_links`, i.e. the router's share-links create route (normally POST /api/share_links/). The viewset declares IsAuthenticated and PaperlessObjectPermissions, and uses ShareLinkSerializer. Before ShareLink creation, ShareLinkSerializer.validate_document requires both the caller's global `documents.view_document` permission and `has_perms_owner_aware(caller, \"view_document\", document)`, binding the check to the exact document supplied in the `document` field. If validation passes, create generates a slug and delegates to the inherited serializer create path. The supplied policy is therefore satisfied by the shown serializer guard only when the caller is authenticated, has the global view permission, and has view permission for that exact document; knowing the ID or merely having a global add-share permission is not enough. The caller, document resolution/existence, and permission values are not supplied, so an actual allow/deny decision for this request cannot be made."
+          },
+          "branches": [
+            {
+              "id": "q1-exact-document-view-permission-present",
+              "condition": "The caller is authenticated, the supplied document resolves, the caller has documents.view_document, and has_perms_owner_aware grants view_document for that exact document.",
+              "disposition": "allow",
+              "explanation": "The request reaches ShareLinkSerializer.create only after validate_document accepts the exact document; the shown serializer path then creates the share record.",
+              "evidenceIds": [
+                "ev-6e0dffaa7a2a9b08538d",
+                "ev-5e6c89df2508e544dc90"
+              ]
+            },
+            {
+              "id": "q1-exact-document-view-permission-absent",
+              "condition": "The caller is unauthenticated, lacks documents.view_document, or has_perms_owner_aware deny/does not grant view_document for the exact document.",
+              "disposition": "deny",
+              "explanation": "Authentication or viewset permission checks can prevent entry, and validate_document raises PermissionDenied unless both the global view permission and the exact-document owner-aware permission check pass.",
+              "evidenceIds": [
+                "ev-6e0dffaa7a2a9b08538d",
+                "ev-5e6c89df2508e544dc90"
+              ]
+            },
+            {
+              "id": "q1-facts-unspecified",
+              "condition": "The caller identity, exact document binding/resolution, or relevant permission results are unknown.",
+              "disposition": "unknown",
+              "explanation": "Source shows the required checks but the inquiry supplies no values for them. Document existence and global model permission alone must not be inferred to establish access.",
+              "evidenceIds": [
+                "ev-6e0dffaa7a2a9b08538d",
+                "ev-5e6c89df2508e544dc90"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-04e9a1f74e3e05b3fb0c",
+            "ev-6e0dffaa7a2a9b08538d",
+            "ev-5e6c89df2508e544dc90"
+          ],
+          "missing": [
+            {
+              "kind": "premise-unspecified",
+              "detail": "The caller's authentication state and identity are not supplied.",
+              "nextRead": "No source read can determine the runtime caller; obtain the request principal/deployment context."
+            },
+            {
+              "kind": "premise-unspecified",
+              "detail": "The exact document object supplied to the serializer, whether its ID resolves, and its identity binding are not supplied.",
+              "nextRead": "Obtain the request payload and runtime document lookup result."
+            },
+            {
+              "kind": "premise-unspecified",
+              "detail": "The caller's documents.view_document result and has_perms_owner_aware(view_document, exact_document) result are not supplied.",
+              "nextRead": "Evaluate these permissions for the actual caller and exact document."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The bodies of the inherited PassUserMixin, PaperlessObjectPermissions, OwnedObjectSerializer, and has_perms_owner_aware paths were not read, so their upstream ordering, object lookup behavior, and inherited effects remain unverified.",
+              "nextRead": "Read the definitions and relevant call paths in the allowed source if a more complete source-level control slice is required."
+            }
+          ],
+          "policyAssessment": {
+            "status": "undetermined",
+            "explanation": "The implementation visibly checks the exact-document view permission required by policy, in addition to a global documents.view_document check, and does not rely solely on a global add-share permission or document ID. However, the actual caller, exact document, and permission outcomes are unspecified, so compliance for this concrete request is undetermined."
+          }
+        }
+      ],
+      "observations": [],
+      "scope": "Reviewed only the allowed source paths and the returned source ranges for ShareLinkViewSet, ShareLinkSerializer, and router registration. This is not a claim of whole-repository or deployment coverage."
+    },
+    "diagnostics": [
+      {
+        "code": "path-not-closed",
+        "path": "q1",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      }
+    ],
+    "semanticSupport": "unreviewed"
+  },
+  "error": "Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"delta\",\"code\":\"invalid_type\"},{\"path\":\"$\",\"code\":\"unrecognized_keys\"}]},{\"transport\":\"prompt-parse\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"delta.rules.0.key\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.0.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.1.key\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.1.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.1.after.0\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.1.bindingKey\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.2.key\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.2.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.2.after.0\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.2.bindingKey\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.3.key\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.3.pathKey\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.3.after.0\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.3.after.1\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.3.principal\",\"code\":\"invalid_type\"},{\"path\":\"delta.rules.3.resource\",\"code\":\"invalid_type\"}]}]",
+  "extractionInitial": {
+    "schemaVersion": "authorization-control-slice/v1",
+    "revision": 0,
+    "rules": [],
+    "dependencies": [],
+    "bindings": [],
+    "policyRules": [],
+    "conflicts": [],
+    "revisions": []
+  },
+  "extractionInitialOrigin": "first-answer-check",
+  "extractionFinal": {
+    "schemaVersion": "authorization-control-slice/v1",
+    "revision": 0,
+    "rules": [],
+    "dependencies": [],
+    "bindings": [],
+    "policyRules": [],
+    "conflicts": [],
+    "revisions": []
+  },
+  "extractionProposals": [],
+  "hostChecks": [
+    {
+      "structureValid": true,
+      "sourceBound": false,
+      "ruleConsistency": false,
+      "semanticSupport": "unreviewed",
+      "taskResolution": "partial",
+      "paths": [],
+      "diagnostics": [
+        {
+          "code": "path-not-closed",
+          "path": "q1",
+          "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+          "severity": "error"
+        }
+      ],
+      "policyComparisons": [
+        {
+          "questionId": "q1",
+          "status": "undetermined",
+          "origin": "host-derived-from-proposed-policy",
+          "semanticSupport": "unreviewed"
+        }
+      ],
+      "calculationCount": 0
+    }
+  ],
+  "dependencies": [],
+  "schedulerActions": [],
+  "evidence": [
+    {
+      "id": "ev-13a3395da58caf1e14c8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4696,
+      "endLine": 4696,
+      "bytes": 31
+    },
+    {
+      "id": "ev-130cae1b8d9db6c8a05c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2851,
+      "endLine": 2851,
+      "bytes": 57
+    },
+    {
+      "id": "ev-2d8f350887a7b7f1ebc0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 43,
+      "endLine": 43,
+      "bytes": 50
+    },
+    {
+      "id": "ev-04e9a1f74e3e05b3fb0c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 88,
+      "endLine": 88,
+      "bytes": 59
+    },
+    {
+      "id": "ev-6e0dffaa7a2a9b08538d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4660,
+      "endLine": 4765,
+      "bytes": 4404
+    },
+    {
+      "id": "ev-5e6c89df2508e544dc90",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 2800,
+      "endLine": 2915,
+      "bytes": 4139
+    },
+    {
+      "id": "ev-2898bf1d3d255fb7f606",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 35,
+      "endLine": 100,
+      "bytes": 3348
+    }
+  ],
+  "deliveryValid": false,
+  "reviewCaution": "Citations and host consistency do not prove extraction meaning. Evaluate raw first/final and final prose against original source at the retained evidence ranges. A native prose answer can be delivered despite failed host checking. Representation may reveal strategy; arm, cost and target scores are hidden. No earlier answer is supplied."
+}

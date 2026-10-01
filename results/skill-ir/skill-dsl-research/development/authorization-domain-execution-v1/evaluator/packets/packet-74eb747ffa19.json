@@ -1,0 +1,1777 @@
+{
+  "schemaVersion": "authorization-aq-anonymous-packet/v1",
+  "id": "packet-74eb747ffa19",
+  "task": {
+    "brief": "Investigate process_file at /process/file in this Open WebUI revision. Trace the caller, the supplied file_id and the destination collection_name through authorization and the eventual processing or vector write. Explain whether the object authorized for input and the object affected by output are the same, and what happens for caller-owned versus another user's file. Do not assume the caller owns the destination collection. Give visible conditions and specific remaining limits; this is behavior investigation.",
+    "mode": "behavior"
+  },
+  "status": "completed",
+  "initial": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The operation is conditional on a verified user identity and successful role-specific lookup of the supplied input file. A regular verified user can process only a file whose user_id matches the caller; an admin can process any resolvable file ID. Once that file guard passes, a caller-supplied destination collection_name is used independently, with no destination ownership or ACL check visible in the traced route/helper. Consequently, the checked object is the input file, while the vector object affected can be an unrelated named collection."
+        },
+        "branches": [
+          {
+            "id": "verified-user-owned-file-explicit-destination",
+            "condition": "Caller resolves as role user; supplied file_id belongs to caller; collection_name is supplied; retrieval bypass is disabled.",
+            "disposition": "allow",
+            "explanation": "The owner-scoped file lookup succeeds. The supplied collection name is passed directly to the vector helper with add=True. The helper may query that collection for duplicate content and, absent an error such as a conflicting duplicate hash, generates embeddings and inserts items into it. No destination ownership check is visible.",
+            "evidenceIds": [
+              "ev-1441f2d3aba714d2eb24",
+              "ev-0cc762f456b42fd8e427",
+              "ev-7532139640b1088f438e"
+            ]
+          },
+          {
+            "id": "verified-user-owned-file-default-destination",
+            "condition": "Caller resolves as role user; supplied file_id belongs to caller; collection_name is omitted; retrieval bypass is disabled.",
+            "disposition": "conditional",
+            "explanation": "The destination becomes file-{file.id}. If that collection does not exist, vectors are inserted. If it already exists, save_docs_to_vector_db sees add=False and returns success without inserting; the route still records completion and the collection name.",
+            "evidenceIds": [
+              "ev-1441f2d3aba714d2eb24",
+              "ev-7532139640b1088f438e"
+            ]
+          },
+          {
+            "id": "verified-user-other-users-file",
+            "condition": "Caller resolves as role user, but supplied file_id belongs to another user or does not exist.",
+            "disposition": "deny",
+            "explanation": "The lookup by both file ID and caller user ID returns no file, and the route raises 404 NOT_FOUND before file mutation, loading, embedding, or destination vector operations.",
+            "evidenceIds": [
+              "ev-1441f2d3aba714d2eb24",
+              "ev-0cc762f456b42fd8e427"
+            ]
+          },
+          {
+            "id": "admin-other-users-file-explicit-destination",
+            "condition": "Caller resolves as role admin; supplied file_id resolves regardless of owner; collection_name is supplied; retrieval bypass is disabled.",
+            "disposition": "allow",
+            "explanation": "Admin lookup is by file ID without a user_id predicate. Processing can therefore use another user's file and write its derived vectors to the caller-supplied destination collection, subject to processing/runtime errors rather than a visible destination authorization check.",
+            "evidenceIds": [
+              "ev-1441f2d3aba714d2eb24",
+              "ev-0cc762f456b42fd8e427",
+              "ev-7532139640b1088f438e"
+            ]
+          },
+          {
+            "id": "unverified-or-disallowed-role",
+            "condition": "Authentication does not resolve a user, or the resolved role is neither user nor admin.",
+            "disposition": "deny",
+            "explanation": "The get_verified_user dependency does not admit the request to process_file.",
+            "evidenceIds": [
+              "ev-9cb13be08490cf37bd0f",
+              "ev-1441f2d3aba714d2eb24"
+            ]
+          },
+          {
+            "id": "api-key-path-restriction",
+            "condition": "Caller authenticates by API key and endpoint restrictions are enabled, but /api/v1/retrieval/process/file is not within an allowed configured path prefix.",
+            "disposition": "deny",
+            "explanation": "The API-key authentication path rejects a request whose path is not allowed by API_KEYS_ALLOWED_ENDPOINTS before returning the caller identity to the route.",
+            "evidenceIds": [
+              "ev-9cb13be08490cf37bd0f",
+              "ev-956e7cc0c4ebb4682685"
+            ]
+          },
+          {
+            "id": "retrieval-bypass",
+            "condition": "The input-file lookup succeeds and BYPASS_EMBEDDING_AND_RETRIEVAL is enabled.",
+            "disposition": "conditional",
+            "explanation": "The file-processing request succeeds in updating the authorized file's content/status/hash, but no vector collection is written and the response reports collection_name null.",
+            "evidenceIds": [
+              "ev-1441f2d3aba714d2eb24"
+            ]
+          },
+          {
+            "id": "supplied-content-side-delete",
+            "condition": "The input-file lookup succeeds and form_data.content is truthy.",
+            "disposition": "conditional",
+            "explanation": "The route attempts deletion of file-{file.id} before later processing, even if the requested output destination is another explicit collection. Deletion failure is ignored; successful deletion affects the default file collection in addition to any later selected-destination write.",
+            "evidenceIds": [
+              "ev-1441f2d3aba714d2eb24",
+              "ev-45430f9faca86715403b"
+            ]
+          },
+          {
+            "id": "existing-explicit-destination",
+            "condition": "An explicit destination collection already exists and retrieval bypass is disabled.",
+            "disposition": "allow",
+            "explanation": "Because process_file sets add=True whenever collection_name is explicitly supplied, collection existence does not short-circuit. Subject to duplicate-hash and other runtime checks, new vector items are inserted into the existing named collection without a visible owner/ACL test.",
+            "evidenceIds": [
+              "ev-1441f2d3aba714d2eb24",
+              "ev-7532139640b1088f438e"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-956e7cc0c4ebb4682685",
+          "ev-1441f2d3aba714d2eb24",
+          "ev-0cc762f456b42fd8e427",
+          "ev-9cb13be08490cf37bd0f",
+          "ev-7532139640b1088f438e",
+          "ev-45430f9faca86715403b"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The complete get_current_user implementation and any authentication middleware preceding get_verified_user were not read, so this result does not enumerate every non-API-key credential transport, token/session validity condition, or upstream rejection.",
+            "nextRead": "backend/open_webui/utils/auth.py around the get_current_user definition and its direct helpers"
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "The deployed values of BYPASS_EMBEDDING_AND_RETRIEVAL, API-key enablement, API_KEYS_ALLOWED_ENDPOINTS, endpoint restrictions, embedding configuration, and caller role/identity are external to this source trace."
+          },
+          {
+            "kind": "dependency-out-of-scope",
+            "detail": "The selected vector backend's concrete namespace isolation, credentials, backend-enforced ACLs, and exact insert/delete semantics were not established. The application-level calls pass only collection_name and items/filter on the observed path."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "No all-repository caller/call-site inventory was performed. Comments identify file upload and knowledge flows, but this bounded trace establishes the route's behavior rather than every UI or internal source that invokes it.",
+            "nextRead": "Search exact request construction for /api/v1/retrieval/process/file in allowed backend sources, then read relevant knowledge/files router call paths if backend-originated calls exist."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The bounded route/helper read shows no destination collection authorization check, but this is not a claim that no such concept exists anywhere else in the repository. No general collection ownership model or all-backend cross-check was established.",
+            "nextRead": "Inspect the vector factory/backend selected in deployment and any collection access-control utilities used by retrieval or knowledge routes."
+          }
+        ]
+      }
+    ],
+    "observations": [
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "entry",
+        "subject": "POST /api/v1/retrieval/process/file",
+        "object": "process_file",
+        "claim": "The application mounts the retrieval router at /api/v1/retrieval, and process_file is registered as POST /process/file, making the combined visible path POST /api/v1/retrieval/process/file.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-956e7cc0c4ebb4682685",
+          "ev-1441f2d3aba714d2eb24"
+        ]
+      },
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "principal-binding",
+        "subject": "request caller",
+        "object": "verified user model",
+        "claim": "The route obtains its caller through Depends(get_verified_user). That dependency accepts only callers whose resolved user role is user or admin; other roles are rejected. For API-key authentication, the observed authentication path resolves a user by API key, checks API-key enablement/permission, and may additionally restrict the request path by deployment configuration.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-1441f2d3aba714d2eb24",
+          "ev-9cb13be08490cf37bd0f"
+        ]
+      },
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "resource-binding",
+        "subject": "form_data.file_id",
+        "object": "file record",
+        "claim": "The supplied file_id selects the input file. For an admin, lookup is by file ID alone. For a non-admin verified user, lookup is by the pair (file_id, caller user.id), and the model query explicitly filters both id and user_id.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-1441f2d3aba714d2eb24",
+          "ev-0cc762f456b42fd8e427"
+        ]
+      },
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "guard",
+        "subject": "non-admin verified user",
+        "object": "supplied file_id",
+        "claim": "A non-admin proceeds only when the file record is owned by that caller according to file.user_id == caller user.id as enforced by the combined database lookup. A missing or another user's file produces the same route-level 404 NOT_FOUND branch before processing or vector operations.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-1441f2d3aba714d2eb24",
+          "ev-0cc762f456b42fd8e427"
+        ]
+      },
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "exception",
+        "subject": "admin caller",
+        "object": "supplied file_id",
+        "claim": "The admin role is an explicit exception to owner-scoped file lookup: an admin uses get_file_by_id and can therefore process a file owned by another user if that ID resolves.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-1441f2d3aba714d2eb24",
+          "ev-0cc762f456b42fd8e427"
+        ]
+      },
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "resource-binding",
+        "subject": "form_data.collection_name",
+        "object": "destination vector collection",
+        "claim": "The output destination is independently selected: a supplied collection_name is used directly; otherwise it defaults to file-{authorized file.id}. No destination-collection owner, ACL, knowledge ownership, or caller-to-collection relation check is visible in process_file or save_docs_to_vector_db.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-1441f2d3aba714d2eb24",
+          "ev-7532139640b1088f438e"
+        ]
+      },
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "effect",
+        "subject": "authorized file record",
+        "object": "destination collection_name",
+        "claim": "The authorization object and principal output object need not be the same. Authorization is performed against the input file record, while the vector query/existence check and eventual insert use the separately supplied or defaulted collection_name. Thus ownership of the input file does not visibly establish ownership of the destination collection.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-1441f2d3aba714d2eb24",
+          "ev-7532139640b1088f438e"
+        ]
+      },
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "effect",
+        "subject": "process_file",
+        "object": "file record and vector collection",
+        "claim": "After file authorization, the route may read supplied content, saved file data, storage content, or the file's default vector collection; it updates the authorized file's stored content and later its status/hash and collection_name metadata. Unless retrieval is bypassed, it invokes save_docs_to_vector_db with the selected destination and the caller identity for embedding generation.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-1441f2d3aba714d2eb24"
+        ]
+      },
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "effect",
+        "subject": "save_docs_to_vector_db",
+        "object": "selected destination collection",
+        "claim": "The helper queries the selected collection for duplicate hashes, checks whether that collection exists, and inserts generated vector items into that same collection. When process_file received an explicit collection_name it passes add=True, so an existing collection is not rejected or ownership-checked and processing continues to insertion. With no explicit collection_name, add=False; if the default collection already exists, the helper returns success without inserting new items.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-7532139640b1088f438e",
+          "ev-1441f2d3aba714d2eb24"
+        ]
+      },
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "effect",
+        "subject": "form_data.content branch",
+        "object": "file-{file.id} and selected collection_name",
+        "claim": "If content is supplied, the route first attempts to delete the default file-{file.id} collection, swallowing deletion exceptions, even when a different explicit destination collection_name was supplied. It then prepares the supplied content for the later selected-destination write.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-1441f2d3aba714d2eb24",
+          "ev-45430f9faca86715403b"
+        ]
+      },
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "exception",
+        "subject": "BYPASS_EMBEDDING_AND_RETRIEVAL",
+        "object": "vector destination",
+        "claim": "When BYPASS_EMBEDDING_AND_RETRIEVAL is enabled, the route updates the authorized file's content/status/hash and returns with collection_name null, without reaching the vector-write helper.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-1441f2d3aba714d2eb24"
+        ]
+      }
+    ],
+    "scope": "open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9; bounded behavior trace for backend/open_webui route process_file and its directly observed authentication, file lookup, processing, and vector-write helper paths"
+  },
+  "final": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The operation is conditional on a verified user identity and successful role-specific lookup of the supplied input file. A regular verified user can process only a file whose user_id matches the caller; an admin can process any resolvable file ID. Once that file guard passes, a caller-supplied destination collection_name is used independently, with no destination ownership or ACL check visible in the traced route/helper. Consequently, the checked object is the input file, while the vector object affected can be an unrelated named collection."
+        },
+        "branches": [
+          {
+            "id": "verified-user-owned-file-explicit-destination",
+            "condition": "Caller resolves as role user; supplied file_id belongs to caller; collection_name is supplied; retrieval bypass is disabled.",
+            "disposition": "allow",
+            "explanation": "The owner-scoped file lookup succeeds. The supplied collection name is passed directly to the vector helper with add=True. The helper may query that collection for duplicate content and, absent an error such as a conflicting duplicate hash, generates embeddings and inserts items into it. No destination ownership check is visible.",
+            "evidenceIds": [
+              "ev-1441f2d3aba714d2eb24",
+              "ev-0cc762f456b42fd8e427",
+              "ev-7532139640b1088f438e"
+            ]
+          },
+          {
+            "id": "verified-user-owned-file-default-destination",
+            "condition": "Caller resolves as role user; supplied file_id belongs to caller; collection_name is omitted; retrieval bypass is disabled.",
+            "disposition": "conditional",
+            "explanation": "The destination becomes file-{file.id}. If that collection does not exist, vectors are inserted. If it already exists, save_docs_to_vector_db sees add=False and returns success without inserting; the route still records completion and the collection name.",
+            "evidenceIds": [
+              "ev-1441f2d3aba714d2eb24",
+              "ev-7532139640b1088f438e"
+            ]
+          },
+          {
+            "id": "verified-user-other-users-file",
+            "condition": "Caller resolves as role user, but supplied file_id belongs to another user or does not exist.",
+            "disposition": "deny",
+            "explanation": "The lookup by both file ID and caller user ID returns no file, and the route raises 404 NOT_FOUND before file mutation, loading, embedding, or destination vector operations.",
+            "evidenceIds": [
+              "ev-1441f2d3aba714d2eb24",
+              "ev-0cc762f456b42fd8e427"
+            ]
+          },
+          {
+            "id": "admin-other-users-file-explicit-destination",
+            "condition": "Caller resolves as role admin; supplied file_id resolves regardless of owner; collection_name is supplied; retrieval bypass is disabled.",
+            "disposition": "allow",
+            "explanation": "Admin lookup is by file ID without a user_id predicate. Processing can therefore use another user's file and write its derived vectors to the caller-supplied destination collection, subject to processing/runtime errors rather than a visible destination authorization check.",
+            "evidenceIds": [
+              "ev-1441f2d3aba714d2eb24",
+              "ev-0cc762f456b42fd8e427",
+              "ev-7532139640b1088f438e"
+            ]
+          },
+          {
+            "id": "unverified-or-disallowed-role",
+            "condition": "Authentication does not resolve a user, or the resolved role is neither user nor admin.",
+            "disposition": "deny",
+            "explanation": "The get_verified_user dependency does not admit the request to process_file.",
+            "evidenceIds": [
+              "ev-9cb13be08490cf37bd0f",
+              "ev-1441f2d3aba714d2eb24"
+            ]
+          },
+          {
+            "id": "api-key-path-restriction",
+            "condition": "Caller authenticates by API key and endpoint restrictions are enabled, but /api/v1/retrieval/process/file is not within an allowed configured path prefix.",
+            "disposition": "deny",
+            "explanation": "The API-key authentication path rejects a request whose path is not allowed by API_KEYS_ALLOWED_ENDPOINTS before returning the caller identity to the route.",
+            "evidenceIds": [
+              "ev-9cb13be08490cf37bd0f",
+              "ev-956e7cc0c4ebb4682685"
+            ]
+          },
+          {
+            "id": "retrieval-bypass",
+            "condition": "The input-file lookup succeeds and BYPASS_EMBEDDING_AND_RETRIEVAL is enabled.",
+            "disposition": "conditional",
+            "explanation": "The file-processing request succeeds in updating the authorized file's content/status/hash, but no vector collection is written and the response reports collection_name null.",
+            "evidenceIds": [
+              "ev-1441f2d3aba714d2eb24"
+            ]
+          },
+          {
+            "id": "supplied-content-side-delete",
+            "condition": "The input-file lookup succeeds and form_data.content is truthy.",
+            "disposition": "conditional",
+            "explanation": "The route attempts deletion of file-{file.id} before later processing, even if the requested output destination is another explicit collection. Deletion failure is ignored; successful deletion affects the default file collection in addition to any later selected-destination write.",
+            "evidenceIds": [
+              "ev-1441f2d3aba714d2eb24",
+              "ev-45430f9faca86715403b"
+            ]
+          },
+          {
+            "id": "existing-explicit-destination",
+            "condition": "An explicit destination collection already exists and retrieval bypass is disabled.",
+            "disposition": "allow",
+            "explanation": "Because process_file sets add=True whenever collection_name is explicitly supplied, collection existence does not short-circuit. Subject to duplicate-hash and other runtime checks, new vector items are inserted into the existing named collection without a visible owner/ACL test.",
+            "evidenceIds": [
+              "ev-1441f2d3aba714d2eb24",
+              "ev-7532139640b1088f438e"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-956e7cc0c4ebb4682685",
+          "ev-1441f2d3aba714d2eb24",
+          "ev-0cc762f456b42fd8e427",
+          "ev-9cb13be08490cf37bd0f",
+          "ev-7532139640b1088f438e",
+          "ev-45430f9faca86715403b"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The complete get_current_user implementation and any authentication middleware preceding get_verified_user were not read, so this result does not enumerate every non-API-key credential transport, token/session validity condition, or upstream rejection.",
+            "nextRead": "backend/open_webui/utils/auth.py around the get_current_user definition and its direct helpers"
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "The deployed values of BYPASS_EMBEDDING_AND_RETRIEVAL, API-key enablement, API_KEYS_ALLOWED_ENDPOINTS, endpoint restrictions, embedding configuration, and caller role/identity are external to this source trace."
+          },
+          {
+            "kind": "dependency-out-of-scope",
+            "detail": "The selected vector backend's concrete namespace isolation, credentials, backend-enforced ACLs, and exact insert/delete semantics were not established. The application-level calls pass only collection_name and items/filter on the observed path."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "No all-repository caller/call-site inventory was performed. Comments identify file upload and knowledge flows, but this bounded trace establishes the route's behavior rather than every UI or internal source that invokes it.",
+            "nextRead": "Search exact request construction for /api/v1/retrieval/process/file in allowed backend sources, then read relevant knowledge/files router call paths if backend-originated calls exist."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The bounded route/helper read shows no destination collection authorization check, but this is not a claim that no such concept exists anywhere else in the repository. No general collection ownership model or all-backend cross-check was established.",
+            "nextRead": "Inspect the vector factory/backend selected in deployment and any collection access-control utilities used by retrieval or knowledge routes."
+          }
+        ]
+      }
+    ],
+    "observations": [
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "entry",
+        "subject": "POST /api/v1/retrieval/process/file",
+        "object": "process_file",
+        "claim": "The application mounts the retrieval router at /api/v1/retrieval, and process_file is registered as POST /process/file, making the combined visible path POST /api/v1/retrieval/process/file.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-956e7cc0c4ebb4682685",
+          "ev-1441f2d3aba714d2eb24"
+        ]
+      },
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "principal-binding",
+        "subject": "request caller",
+        "object": "verified user model",
+        "claim": "The route obtains its caller through Depends(get_verified_user). That dependency accepts only callers whose resolved user role is user or admin; other roles are rejected. For API-key authentication, the observed authentication path resolves a user by API key, checks API-key enablement/permission, and may additionally restrict the request path by deployment configuration.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-1441f2d3aba714d2eb24",
+          "ev-9cb13be08490cf37bd0f"
+        ]
+      },
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "resource-binding",
+        "subject": "form_data.file_id",
+        "object": "file record",
+        "claim": "The supplied file_id selects the input file. For an admin, lookup is by file ID alone. For a non-admin verified user, lookup is by the pair (file_id, caller user.id), and the model query explicitly filters both id and user_id.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-1441f2d3aba714d2eb24",
+          "ev-0cc762f456b42fd8e427"
+        ]
+      },
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "guard",
+        "subject": "non-admin verified user",
+        "object": "supplied file_id",
+        "claim": "A non-admin proceeds only when the file record is owned by that caller according to file.user_id == caller user.id as enforced by the combined database lookup. A missing or another user's file produces the same route-level 404 NOT_FOUND branch before processing or vector operations.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-1441f2d3aba714d2eb24",
+          "ev-0cc762f456b42fd8e427"
+        ]
+      },
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "exception",
+        "subject": "admin caller",
+        "object": "supplied file_id",
+        "claim": "The admin role is an explicit exception to owner-scoped file lookup: an admin uses get_file_by_id and can therefore process a file owned by another user if that ID resolves.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-1441f2d3aba714d2eb24",
+          "ev-0cc762f456b42fd8e427"
+        ]
+      },
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "resource-binding",
+        "subject": "form_data.collection_name",
+        "object": "destination vector collection",
+        "claim": "The output destination is independently selected: a supplied collection_name is used directly; otherwise it defaults to file-{authorized file.id}. No destination-collection owner, ACL, knowledge ownership, or caller-to-collection relation check is visible in process_file or save_docs_to_vector_db.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-1441f2d3aba714d2eb24",
+          "ev-7532139640b1088f438e"
+        ]
+      },
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "effect",
+        "subject": "authorized file record",
+        "object": "destination collection_name",
+        "claim": "The authorization object and principal output object need not be the same. Authorization is performed against the input file record, while the vector query/existence check and eventual insert use the separately supplied or defaulted collection_name. Thus ownership of the input file does not visibly establish ownership of the destination collection.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-1441f2d3aba714d2eb24",
+          "ev-7532139640b1088f438e"
+        ]
+      },
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "effect",
+        "subject": "process_file",
+        "object": "file record and vector collection",
+        "claim": "After file authorization, the route may read supplied content, saved file data, storage content, or the file's default vector collection; it updates the authorized file's stored content and later its status/hash and collection_name metadata. Unless retrieval is bypassed, it invokes save_docs_to_vector_db with the selected destination and the caller identity for embedding generation.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-1441f2d3aba714d2eb24"
+        ]
+      },
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "effect",
+        "subject": "save_docs_to_vector_db",
+        "object": "selected destination collection",
+        "claim": "The helper queries the selected collection for duplicate hashes, checks whether that collection exists, and inserts generated vector items into that same collection. When process_file received an explicit collection_name it passes add=True, so an existing collection is not rejected or ownership-checked and processing continues to insertion. With no explicit collection_name, add=False; if the default collection already exists, the helper returns success without inserting new items.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-7532139640b1088f438e",
+          "ev-1441f2d3aba714d2eb24"
+        ]
+      },
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "effect",
+        "subject": "form_data.content branch",
+        "object": "file-{file.id} and selected collection_name",
+        "claim": "If content is supplied, the route first attempts to delete the default file-{file.id} collection, swallowing deletion exceptions, even when a different explicit destination collection_name was supplied. It then prepares the supplied content for the later selected-destination write.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-1441f2d3aba714d2eb24",
+          "ev-45430f9faca86715403b"
+        ]
+      },
+      {
+        "questionId": "process_file_authorization_and_effects",
+        "kind": "exception",
+        "subject": "BYPASS_EMBEDDING_AND_RETRIEVAL",
+        "object": "vector destination",
+        "claim": "When BYPASS_EMBEDDING_AND_RETRIEVAL is enabled, the route updates the authorized file's content/status/hash and returns with collection_name null, without reaching the vector-write helper.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-1441f2d3aba714d2eb24"
+        ]
+      }
+    ],
+    "scope": "open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9; bounded behavior trace for backend/open_webui route process_file and its directly observed authentication, file lookup, processing, and vector-write helper paths"
+  },
+  "prose": null,
+  "initialProse": null,
+  "initialValidation": {
+    "valid": true,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The operation is conditional on a verified user identity and successful role-specific lookup of the supplied input file. A regular verified user can process only a file whose user_id matches the caller; an admin can process any resolvable file ID. Once that file guard passes, a caller-supplied destination collection_name is used independently, with no destination ownership or ACL check visible in the traced route/helper. Consequently, the checked object is the input file, while the vector object affected can be an unrelated named collection."
+          },
+          "branches": [
+            {
+              "id": "verified-user-owned-file-explicit-destination",
+              "condition": "Caller resolves as role user; supplied file_id belongs to caller; collection_name is supplied; retrieval bypass is disabled.",
+              "disposition": "allow",
+              "explanation": "The owner-scoped file lookup succeeds. The supplied collection name is passed directly to the vector helper with add=True. The helper may query that collection for duplicate content and, absent an error such as a conflicting duplicate hash, generates embeddings and inserts items into it. No destination ownership check is visible.",
+              "evidenceIds": [
+                "ev-1441f2d3aba714d2eb24",
+                "ev-0cc762f456b42fd8e427",
+                "ev-7532139640b1088f438e"
+              ]
+            },
+            {
+              "id": "verified-user-owned-file-default-destination",
+              "condition": "Caller resolves as role user; supplied file_id belongs to caller; collection_name is omitted; retrieval bypass is disabled.",
+              "disposition": "conditional",
+              "explanation": "The destination becomes file-{file.id}. If that collection does not exist, vectors are inserted. If it already exists, save_docs_to_vector_db sees add=False and returns success without inserting; the route still records completion and the collection name.",
+              "evidenceIds": [
+                "ev-1441f2d3aba714d2eb24",
+                "ev-7532139640b1088f438e"
+              ]
+            },
+            {
+              "id": "verified-user-other-users-file",
+              "condition": "Caller resolves as role user, but supplied file_id belongs to another user or does not exist.",
+              "disposition": "deny",
+              "explanation": "The lookup by both file ID and caller user ID returns no file, and the route raises 404 NOT_FOUND before file mutation, loading, embedding, or destination vector operations.",
+              "evidenceIds": [
+                "ev-1441f2d3aba714d2eb24",
+                "ev-0cc762f456b42fd8e427"
+              ]
+            },
+            {
+              "id": "admin-other-users-file-explicit-destination",
+              "condition": "Caller resolves as role admin; supplied file_id resolves regardless of owner; collection_name is supplied; retrieval bypass is disabled.",
+              "disposition": "allow",
+              "explanation": "Admin lookup is by file ID without a user_id predicate. Processing can therefore use another user's file and write its derived vectors to the caller-supplied destination collection, subject to processing/runtime errors rather than a visible destination authorization check.",
+              "evidenceIds": [
+                "ev-1441f2d3aba714d2eb24",
+                "ev-0cc762f456b42fd8e427",
+                "ev-7532139640b1088f438e"
+              ]
+            },
+            {
+              "id": "unverified-or-disallowed-role",
+              "condition": "Authentication does not resolve a user, or the resolved role is neither user nor admin.",
+              "disposition": "deny",
+              "explanation": "The get_verified_user dependency does not admit the request to process_file.",
+              "evidenceIds": [
+                "ev-9cb13be08490cf37bd0f",
+                "ev-1441f2d3aba714d2eb24"
+              ]
+            },
+            {
+              "id": "api-key-path-restriction",
+              "condition": "Caller authenticates by API key and endpoint restrictions are enabled, but /api/v1/retrieval/process/file is not within an allowed configured path prefix.",
+              "disposition": "deny",
+              "explanation": "The API-key authentication path rejects a request whose path is not allowed by API_KEYS_ALLOWED_ENDPOINTS before returning the caller identity to the route.",
+              "evidenceIds": [
+                "ev-9cb13be08490cf37bd0f",
+                "ev-956e7cc0c4ebb4682685"
+              ]
+            },
+            {
+              "id": "retrieval-bypass",
+              "condition": "The input-file lookup succeeds and BYPASS_EMBEDDING_AND_RETRIEVAL is enabled.",
+              "disposition": "conditional",
+              "explanation": "The file-processing request succeeds in updating the authorized file's content/status/hash, but no vector collection is written and the response reports collection_name null.",
+              "evidenceIds": [
+                "ev-1441f2d3aba714d2eb24"
+              ]
+            },
+            {
+              "id": "supplied-content-side-delete",
+              "condition": "The input-file lookup succeeds and form_data.content is truthy.",
+              "disposition": "conditional",
+              "explanation": "The route attempts deletion of file-{file.id} before later processing, even if the requested output destination is another explicit collection. Deletion failure is ignored; successful deletion affects the default file collection in addition to any later selected-destination write.",
+              "evidenceIds": [
+                "ev-1441f2d3aba714d2eb24",
+                "ev-45430f9faca86715403b"
+              ]
+            },
+            {
+              "id": "existing-explicit-destination",
+              "condition": "An explicit destination collection already exists and retrieval bypass is disabled.",
+              "disposition": "allow",
+              "explanation": "Because process_file sets add=True whenever collection_name is explicitly supplied, collection existence does not short-circuit. Subject to duplicate-hash and other runtime checks, new vector items are inserted into the existing named collection without a visible owner/ACL test.",
+              "evidenceIds": [
+                "ev-1441f2d3aba714d2eb24",
+                "ev-7532139640b1088f438e"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-956e7cc0c4ebb4682685",
+            "ev-1441f2d3aba714d2eb24",
+            "ev-0cc762f456b42fd8e427",
+            "ev-9cb13be08490cf37bd0f",
+            "ev-7532139640b1088f438e",
+            "ev-45430f9faca86715403b"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The complete get_current_user implementation and any authentication middleware preceding get_verified_user were not read, so this result does not enumerate every non-API-key credential transport, token/session validity condition, or upstream rejection.",
+              "nextRead": "backend/open_webui/utils/auth.py around the get_current_user definition and its direct helpers"
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "The deployed values of BYPASS_EMBEDDING_AND_RETRIEVAL, API-key enablement, API_KEYS_ALLOWED_ENDPOINTS, endpoint restrictions, embedding configuration, and caller role/identity are external to this source trace."
+            },
+            {
+              "kind": "dependency-out-of-scope",
+              "detail": "The selected vector backend's concrete namespace isolation, credentials, backend-enforced ACLs, and exact insert/delete semantics were not established. The application-level calls pass only collection_name and items/filter on the observed path."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "No all-repository caller/call-site inventory was performed. Comments identify file upload and knowledge flows, but this bounded trace establishes the route's behavior rather than every UI or internal source that invokes it.",
+              "nextRead": "Search exact request construction for /api/v1/retrieval/process/file in allowed backend sources, then read relevant knowledge/files router call paths if backend-originated calls exist."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The bounded route/helper read shows no destination collection authorization check, but this is not a claim that no such concept exists anywhere else in the repository. No general collection ownership model or all-backend cross-check was established.",
+              "nextRead": "Inspect the vector factory/backend selected in deployment and any collection access-control utilities used by retrieval or knowledge routes."
+            }
+          ]
+        }
+      ],
+      "observations": [
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "entry",
+          "subject": "POST /api/v1/retrieval/process/file",
+          "object": "process_file",
+          "claim": "The application mounts the retrieval router at /api/v1/retrieval, and process_file is registered as POST /process/file, making the combined visible path POST /api/v1/retrieval/process/file.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-956e7cc0c4ebb4682685",
+            "ev-1441f2d3aba714d2eb24"
+          ]
+        },
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "principal-binding",
+          "subject": "request caller",
+          "object": "verified user model",
+          "claim": "The route obtains its caller through Depends(get_verified_user). That dependency accepts only callers whose resolved user role is user or admin; other roles are rejected. For API-key authentication, the observed authentication path resolves a user by API key, checks API-key enablement/permission, and may additionally restrict the request path by deployment configuration.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-1441f2d3aba714d2eb24",
+            "ev-9cb13be08490cf37bd0f"
+          ]
+        },
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "resource-binding",
+          "subject": "form_data.file_id",
+          "object": "file record",
+          "claim": "The supplied file_id selects the input file. For an admin, lookup is by file ID alone. For a non-admin verified user, lookup is by the pair (file_id, caller user.id), and the model query explicitly filters both id and user_id.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-1441f2d3aba714d2eb24",
+            "ev-0cc762f456b42fd8e427"
+          ]
+        },
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "guard",
+          "subject": "non-admin verified user",
+          "object": "supplied file_id",
+          "claim": "A non-admin proceeds only when the file record is owned by that caller according to file.user_id == caller user.id as enforced by the combined database lookup. A missing or another user's file produces the same route-level 404 NOT_FOUND branch before processing or vector operations.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-1441f2d3aba714d2eb24",
+            "ev-0cc762f456b42fd8e427"
+          ]
+        },
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "exception",
+          "subject": "admin caller",
+          "object": "supplied file_id",
+          "claim": "The admin role is an explicit exception to owner-scoped file lookup: an admin uses get_file_by_id and can therefore process a file owned by another user if that ID resolves.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-1441f2d3aba714d2eb24",
+            "ev-0cc762f456b42fd8e427"
+          ]
+        },
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "resource-binding",
+          "subject": "form_data.collection_name",
+          "object": "destination vector collection",
+          "claim": "The output destination is independently selected: a supplied collection_name is used directly; otherwise it defaults to file-{authorized file.id}. No destination-collection owner, ACL, knowledge ownership, or caller-to-collection relation check is visible in process_file or save_docs_to_vector_db.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-1441f2d3aba714d2eb24",
+            "ev-7532139640b1088f438e"
+          ]
+        },
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "effect",
+          "subject": "authorized file record",
+          "object": "destination collection_name",
+          "claim": "The authorization object and principal output object need not be the same. Authorization is performed against the input file record, while the vector query/existence check and eventual insert use the separately supplied or defaulted collection_name. Thus ownership of the input file does not visibly establish ownership of the destination collection.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-1441f2d3aba714d2eb24",
+            "ev-7532139640b1088f438e"
+          ]
+        },
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "effect",
+          "subject": "process_file",
+          "object": "file record and vector collection",
+          "claim": "After file authorization, the route may read supplied content, saved file data, storage content, or the file's default vector collection; it updates the authorized file's stored content and later its status/hash and collection_name metadata. Unless retrieval is bypassed, it invokes save_docs_to_vector_db with the selected destination and the caller identity for embedding generation.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-1441f2d3aba714d2eb24"
+          ]
+        },
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "effect",
+          "subject": "save_docs_to_vector_db",
+          "object": "selected destination collection",
+          "claim": "The helper queries the selected collection for duplicate hashes, checks whether that collection exists, and inserts generated vector items into that same collection. When process_file received an explicit collection_name it passes add=True, so an existing collection is not rejected or ownership-checked and processing continues to insertion. With no explicit collection_name, add=False; if the default collection already exists, the helper returns success without inserting new items.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-7532139640b1088f438e",
+            "ev-1441f2d3aba714d2eb24"
+          ]
+        },
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "effect",
+          "subject": "form_data.content branch",
+          "object": "file-{file.id} and selected collection_name",
+          "claim": "If content is supplied, the route first attempts to delete the default file-{file.id} collection, swallowing deletion exceptions, even when a different explicit destination collection_name was supplied. It then prepares the supplied content for the later selected-destination write.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-1441f2d3aba714d2eb24",
+            "ev-45430f9faca86715403b"
+          ]
+        },
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "exception",
+          "subject": "BYPASS_EMBEDDING_AND_RETRIEVAL",
+          "object": "vector destination",
+          "claim": "When BYPASS_EMBEDDING_AND_RETRIEVAL is enabled, the route updates the authorized file's content/status/hash and returns with collection_name null, without reaching the vector-write helper.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-1441f2d3aba714d2eb24"
+          ]
+        }
+      ],
+      "scope": "open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9; bounded behavior trace for backend/open_webui route process_file and its directly observed authentication, file lookup, processing, and vector-write helper paths"
+    },
+    "diagnostics": [],
+    "semanticSupport": "unreviewed"
+  },
+  "finalValidation": {
+    "valid": true,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The operation is conditional on a verified user identity and successful role-specific lookup of the supplied input file. A regular verified user can process only a file whose user_id matches the caller; an admin can process any resolvable file ID. Once that file guard passes, a caller-supplied destination collection_name is used independently, with no destination ownership or ACL check visible in the traced route/helper. Consequently, the checked object is the input file, while the vector object affected can be an unrelated named collection."
+          },
+          "branches": [
+            {
+              "id": "verified-user-owned-file-explicit-destination",
+              "condition": "Caller resolves as role user; supplied file_id belongs to caller; collection_name is supplied; retrieval bypass is disabled.",
+              "disposition": "allow",
+              "explanation": "The owner-scoped file lookup succeeds. The supplied collection name is passed directly to the vector helper with add=True. The helper may query that collection for duplicate content and, absent an error such as a conflicting duplicate hash, generates embeddings and inserts items into it. No destination ownership check is visible.",
+              "evidenceIds": [
+                "ev-1441f2d3aba714d2eb24",
+                "ev-0cc762f456b42fd8e427",
+                "ev-7532139640b1088f438e"
+              ]
+            },
+            {
+              "id": "verified-user-owned-file-default-destination",
+              "condition": "Caller resolves as role user; supplied file_id belongs to caller; collection_name is omitted; retrieval bypass is disabled.",
+              "disposition": "conditional",
+              "explanation": "The destination becomes file-{file.id}. If that collection does not exist, vectors are inserted. If it already exists, save_docs_to_vector_db sees add=False and returns success without inserting; the route still records completion and the collection name.",
+              "evidenceIds": [
+                "ev-1441f2d3aba714d2eb24",
+                "ev-7532139640b1088f438e"
+              ]
+            },
+            {
+              "id": "verified-user-other-users-file",
+              "condition": "Caller resolves as role user, but supplied file_id belongs to another user or does not exist.",
+              "disposition": "deny",
+              "explanation": "The lookup by both file ID and caller user ID returns no file, and the route raises 404 NOT_FOUND before file mutation, loading, embedding, or destination vector operations.",
+              "evidenceIds": [
+                "ev-1441f2d3aba714d2eb24",
+                "ev-0cc762f456b42fd8e427"
+              ]
+            },
+            {
+              "id": "admin-other-users-file-explicit-destination",
+              "condition": "Caller resolves as role admin; supplied file_id resolves regardless of owner; collection_name is supplied; retrieval bypass is disabled.",
+              "disposition": "allow",
+              "explanation": "Admin lookup is by file ID without a user_id predicate. Processing can therefore use another user's file and write its derived vectors to the caller-supplied destination collection, subject to processing/runtime errors rather than a visible destination authorization check.",
+              "evidenceIds": [
+                "ev-1441f2d3aba714d2eb24",
+                "ev-0cc762f456b42fd8e427",
+                "ev-7532139640b1088f438e"
+              ]
+            },
+            {
+              "id": "unverified-or-disallowed-role",
+              "condition": "Authentication does not resolve a user, or the resolved role is neither user nor admin.",
+              "disposition": "deny",
+              "explanation": "The get_verified_user dependency does not admit the request to process_file.",
+              "evidenceIds": [
+                "ev-9cb13be08490cf37bd0f",
+                "ev-1441f2d3aba714d2eb24"
+              ]
+            },
+            {
+              "id": "api-key-path-restriction",
+              "condition": "Caller authenticates by API key and endpoint restrictions are enabled, but /api/v1/retrieval/process/file is not within an allowed configured path prefix.",
+              "disposition": "deny",
+              "explanation": "The API-key authentication path rejects a request whose path is not allowed by API_KEYS_ALLOWED_ENDPOINTS before returning the caller identity to the route.",
+              "evidenceIds": [
+                "ev-9cb13be08490cf37bd0f",
+                "ev-956e7cc0c4ebb4682685"
+              ]
+            },
+            {
+              "id": "retrieval-bypass",
+              "condition": "The input-file lookup succeeds and BYPASS_EMBEDDING_AND_RETRIEVAL is enabled.",
+              "disposition": "conditional",
+              "explanation": "The file-processing request succeeds in updating the authorized file's content/status/hash, but no vector collection is written and the response reports collection_name null.",
+              "evidenceIds": [
+                "ev-1441f2d3aba714d2eb24"
+              ]
+            },
+            {
+              "id": "supplied-content-side-delete",
+              "condition": "The input-file lookup succeeds and form_data.content is truthy.",
+              "disposition": "conditional",
+              "explanation": "The route attempts deletion of file-{file.id} before later processing, even if the requested output destination is another explicit collection. Deletion failure is ignored; successful deletion affects the default file collection in addition to any later selected-destination write.",
+              "evidenceIds": [
+                "ev-1441f2d3aba714d2eb24",
+                "ev-45430f9faca86715403b"
+              ]
+            },
+            {
+              "id": "existing-explicit-destination",
+              "condition": "An explicit destination collection already exists and retrieval bypass is disabled.",
+              "disposition": "allow",
+              "explanation": "Because process_file sets add=True whenever collection_name is explicitly supplied, collection existence does not short-circuit. Subject to duplicate-hash and other runtime checks, new vector items are inserted into the existing named collection without a visible owner/ACL test.",
+              "evidenceIds": [
+                "ev-1441f2d3aba714d2eb24",
+                "ev-7532139640b1088f438e"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-956e7cc0c4ebb4682685",
+            "ev-1441f2d3aba714d2eb24",
+            "ev-0cc762f456b42fd8e427",
+            "ev-9cb13be08490cf37bd0f",
+            "ev-7532139640b1088f438e",
+            "ev-45430f9faca86715403b"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The complete get_current_user implementation and any authentication middleware preceding get_verified_user were not read, so this result does not enumerate every non-API-key credential transport, token/session validity condition, or upstream rejection.",
+              "nextRead": "backend/open_webui/utils/auth.py around the get_current_user definition and its direct helpers"
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "The deployed values of BYPASS_EMBEDDING_AND_RETRIEVAL, API-key enablement, API_KEYS_ALLOWED_ENDPOINTS, endpoint restrictions, embedding configuration, and caller role/identity are external to this source trace."
+            },
+            {
+              "kind": "dependency-out-of-scope",
+              "detail": "The selected vector backend's concrete namespace isolation, credentials, backend-enforced ACLs, and exact insert/delete semantics were not established. The application-level calls pass only collection_name and items/filter on the observed path."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "No all-repository caller/call-site inventory was performed. Comments identify file upload and knowledge flows, but this bounded trace establishes the route's behavior rather than every UI or internal source that invokes it.",
+              "nextRead": "Search exact request construction for /api/v1/retrieval/process/file in allowed backend sources, then read relevant knowledge/files router call paths if backend-originated calls exist."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The bounded route/helper read shows no destination collection authorization check, but this is not a claim that no such concept exists anywhere else in the repository. No general collection ownership model or all-backend cross-check was established.",
+              "nextRead": "Inspect the vector factory/backend selected in deployment and any collection access-control utilities used by retrieval or knowledge routes."
+            }
+          ]
+        }
+      ],
+      "observations": [
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "entry",
+          "subject": "POST /api/v1/retrieval/process/file",
+          "object": "process_file",
+          "claim": "The application mounts the retrieval router at /api/v1/retrieval, and process_file is registered as POST /process/file, making the combined visible path POST /api/v1/retrieval/process/file.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-956e7cc0c4ebb4682685",
+            "ev-1441f2d3aba714d2eb24"
+          ]
+        },
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "principal-binding",
+          "subject": "request caller",
+          "object": "verified user model",
+          "claim": "The route obtains its caller through Depends(get_verified_user). That dependency accepts only callers whose resolved user role is user or admin; other roles are rejected. For API-key authentication, the observed authentication path resolves a user by API key, checks API-key enablement/permission, and may additionally restrict the request path by deployment configuration.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-1441f2d3aba714d2eb24",
+            "ev-9cb13be08490cf37bd0f"
+          ]
+        },
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "resource-binding",
+          "subject": "form_data.file_id",
+          "object": "file record",
+          "claim": "The supplied file_id selects the input file. For an admin, lookup is by file ID alone. For a non-admin verified user, lookup is by the pair (file_id, caller user.id), and the model query explicitly filters both id and user_id.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-1441f2d3aba714d2eb24",
+            "ev-0cc762f456b42fd8e427"
+          ]
+        },
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "guard",
+          "subject": "non-admin verified user",
+          "object": "supplied file_id",
+          "claim": "A non-admin proceeds only when the file record is owned by that caller according to file.user_id == caller user.id as enforced by the combined database lookup. A missing or another user's file produces the same route-level 404 NOT_FOUND branch before processing or vector operations.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-1441f2d3aba714d2eb24",
+            "ev-0cc762f456b42fd8e427"
+          ]
+        },
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "exception",
+          "subject": "admin caller",
+          "object": "supplied file_id",
+          "claim": "The admin role is an explicit exception to owner-scoped file lookup: an admin uses get_file_by_id and can therefore process a file owned by another user if that ID resolves.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-1441f2d3aba714d2eb24",
+            "ev-0cc762f456b42fd8e427"
+          ]
+        },
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "resource-binding",
+          "subject": "form_data.collection_name",
+          "object": "destination vector collection",
+          "claim": "The output destination is independently selected: a supplied collection_name is used directly; otherwise it defaults to file-{authorized file.id}. No destination-collection owner, ACL, knowledge ownership, or caller-to-collection relation check is visible in process_file or save_docs_to_vector_db.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-1441f2d3aba714d2eb24",
+            "ev-7532139640b1088f438e"
+          ]
+        },
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "effect",
+          "subject": "authorized file record",
+          "object": "destination collection_name",
+          "claim": "The authorization object and principal output object need not be the same. Authorization is performed against the input file record, while the vector query/existence check and eventual insert use the separately supplied or defaulted collection_name. Thus ownership of the input file does not visibly establish ownership of the destination collection.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-1441f2d3aba714d2eb24",
+            "ev-7532139640b1088f438e"
+          ]
+        },
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "effect",
+          "subject": "process_file",
+          "object": "file record and vector collection",
+          "claim": "After file authorization, the route may read supplied content, saved file data, storage content, or the file's default vector collection; it updates the authorized file's stored content and later its status/hash and collection_name metadata. Unless retrieval is bypassed, it invokes save_docs_to_vector_db with the selected destination and the caller identity for embedding generation.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-1441f2d3aba714d2eb24"
+          ]
+        },
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "effect",
+          "subject": "save_docs_to_vector_db",
+          "object": "selected destination collection",
+          "claim": "The helper queries the selected collection for duplicate hashes, checks whether that collection exists, and inserts generated vector items into that same collection. When process_file received an explicit collection_name it passes add=True, so an existing collection is not rejected or ownership-checked and processing continues to insertion. With no explicit collection_name, add=False; if the default collection already exists, the helper returns success without inserting new items.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-7532139640b1088f438e",
+            "ev-1441f2d3aba714d2eb24"
+          ]
+        },
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "effect",
+          "subject": "form_data.content branch",
+          "object": "file-{file.id} and selected collection_name",
+          "claim": "If content is supplied, the route first attempts to delete the default file-{file.id} collection, swallowing deletion exceptions, even when a different explicit destination collection_name was supplied. It then prepares the supplied content for the later selected-destination write.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-1441f2d3aba714d2eb24",
+            "ev-45430f9faca86715403b"
+          ]
+        },
+        {
+          "questionId": "process_file_authorization_and_effects",
+          "kind": "exception",
+          "subject": "BYPASS_EMBEDDING_AND_RETRIEVAL",
+          "object": "vector destination",
+          "claim": "When BYPASS_EMBEDDING_AND_RETRIEVAL is enabled, the route updates the authorized file's content/status/hash and returns with collection_name null, without reaching the vector-write helper.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-1441f2d3aba714d2eb24"
+          ]
+        }
+      ],
+      "scope": "open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9; bounded behavior trace for backend/open_webui route process_file and its directly observed authentication, file lookup, processing, and vector-write helper paths"
+    },
+    "diagnostics": [],
+    "semanticSupport": "unreviewed"
+  },
+  "error": null,
+  "extractionInitial": null,
+  "extractionInitialOrigin": "no-control-proposal",
+  "extractionFinal": null,
+  "extractionProposals": [],
+  "hostChecks": [],
+  "dependencies": [],
+  "schedulerActions": [],
+  "evidence": [
+    {
+      "id": "ev-943df62ee3c81fb26a1a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 221,
+      "endLine": 221,
+      "bytes": 31
+    },
+    {
+      "id": "ev-5570b39646268823c629",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 245,
+      "endLine": 245,
+      "bytes": 56
+    },
+    {
+      "id": "ev-2d29e23a515f8efb652e",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 267,
+      "endLine": 267,
+      "bytes": 105
+    },
+    {
+      "id": "ev-d8f5cc10dede16ce01f0",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 269,
+      "endLine": 269,
+      "bytes": 60
+    },
+    {
+      "id": "ev-6d7db20777181764cd96",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 271,
+      "endLine": 271,
+      "bytes": 51
+    },
+    {
+      "id": "ev-4857072358daf11f6cff",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 281,
+      "endLine": 281,
+      "bytes": 89
+    },
+    {
+      "id": "ev-bedc61473a9ed6f96017",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 285,
+      "endLine": 285,
+      "bytes": 65
+    },
+    {
+      "id": "ev-8052d8e85e95d89bcab6",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 287,
+      "endLine": 287,
+      "bytes": 58
+    },
+    {
+      "id": "ev-835f7e74be58bf64a3e2",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 288,
+      "endLine": 288,
+      "bytes": 77
+    },
+    {
+      "id": "ev-1fb04333fd05ff08a010",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 295,
+      "endLine": 295,
+      "bytes": 73
+    },
+    {
+      "id": "ev-daab1f165ffab71726fe",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 334,
+      "endLine": 334,
+      "bytes": 32
+    },
+    {
+      "id": "ev-b68595f257319650e587",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 352,
+      "endLine": 352,
+      "bytes": 89
+    },
+    {
+      "id": "ev-4dd588695c05bcde118f",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 361,
+      "endLine": 361,
+      "bytes": 89
+    },
+    {
+      "id": "ev-11b2a7456a72b7f8167b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 364,
+      "endLine": 364,
+      "bytes": 79
+    },
+    {
+      "id": "ev-69b101b1180dd16fd75d",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 381,
+      "endLine": 381,
+      "bytes": 51
+    },
+    {
+      "id": "ev-c6816717a41b344a962d",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 442,
+      "endLine": 442,
+      "bytes": 93
+    },
+    {
+      "id": "ev-f3eb3d818154da93e716",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 510,
+      "endLine": 510,
+      "bytes": 79
+    },
+    {
+      "id": "ev-3622843647f45b208f79",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 513,
+      "endLine": 513,
+      "bytes": 51
+    },
+    {
+      "id": "ev-bc8ad5bae47318ba87fd",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 514,
+      "endLine": 514,
+      "bytes": 34
+    },
+    {
+      "id": "ev-b51a531cc24aaa02317a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 516,
+      "endLine": 516,
+      "bytes": 72
+    },
+    {
+      "id": "ev-134195929b7704c861b4",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 529,
+      "endLine": 529,
+      "bytes": 39
+    },
+    {
+      "id": "ev-49ddb7324f37b89649c5",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 543,
+      "endLine": 543,
+      "bytes": 57
+    },
+    {
+      "id": "ev-6305e6a630ad52bcd88c",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 559,
+      "endLine": 559,
+      "bytes": 74
+    },
+    {
+      "id": "ev-56bb22a6f5dbbde02256",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 561,
+      "endLine": 561,
+      "bytes": 38
+    },
+    {
+      "id": "ev-d35f639d375d2c4200e7",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 563,
+      "endLine": 563,
+      "bytes": 59
+    },
+    {
+      "id": "ev-c0d079776548ca408f88",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 583,
+      "endLine": 583,
+      "bytes": 119
+    },
+    {
+      "id": "ev-7eeb4456e0f83aa6c0b1",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 588,
+      "endLine": 588,
+      "bytes": 59
+    },
+    {
+      "id": "ev-df27dd98c3047a475f3d",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 589,
+      "endLine": 589,
+      "bytes": 107
+    },
+    {
+      "id": "ev-4fd4e16c45b3844051d8",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 606,
+      "endLine": 606,
+      "bytes": 39
+    },
+    {
+      "id": "ev-fe8c5e417deab4243d74",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 622,
+      "endLine": 622,
+      "bytes": 66
+    },
+    {
+      "id": "ev-8d12211f93c75cdfab31",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 625,
+      "endLine": 625,
+      "bytes": 37
+    },
+    {
+      "id": "ev-d45ff69ccc03f45e0951",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 630,
+      "endLine": 630,
+      "bytes": 86
+    },
+    {
+      "id": "ev-539042a153c4fa742344",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 635,
+      "endLine": 635,
+      "bytes": 115
+    },
+    {
+      "id": "ev-d0cdbdf87eae7ac23a0b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 637,
+      "endLine": 637,
+      "bytes": 115
+    },
+    {
+      "id": "ev-ead63c035bf58905bb97",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 639,
+      "endLine": 639,
+      "bytes": 59
+    },
+    {
+      "id": "ev-8849d96ccf60811ce6ad",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 642,
+      "endLine": 642,
+      "bytes": 55
+    },
+    {
+      "id": "ev-931e59f8e3cc560755a6",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 643,
+      "endLine": 643,
+      "bytes": 77
+    },
+    {
+      "id": "ev-c62ed2aee14ea0b5540c",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 661,
+      "endLine": 661,
+      "bytes": 39
+    },
+    {
+      "id": "ev-13c3eb798178f3d7b147",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 662,
+      "endLine": 662,
+      "bytes": 54
+    },
+    {
+      "id": "ev-5d612fab8c3c60bfb9c2",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 663,
+      "endLine": 663,
+      "bytes": 65
+    },
+    {
+      "id": "ev-7e78680205336e0d11c0",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 668,
+      "endLine": 668,
+      "bytes": 124
+    },
+    {
+      "id": "ev-c8ffb9dc1e1a26e2009c",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 1062,
+      "endLine": 1062,
+      "bytes": 39
+    },
+    {
+      "id": "ev-ba8e9d16038d6c2e23e1",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 1080,
+      "endLine": 1080,
+      "bytes": 39
+    },
+    {
+      "id": "ev-ba3040b618fab1e866d8",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 1083,
+      "endLine": 1083,
+      "bytes": 41
+    },
+    {
+      "id": "ev-20cecdc0d2d336662855",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 1133,
+      "endLine": 1133,
+      "bytes": 37
+    },
+    {
+      "id": "ev-ebaba7d00b7aa58ab0e2",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 1149,
+      "endLine": 1149,
+      "bytes": 55
+    },
+    {
+      "id": "ev-ada4634484607849faa4",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 1151,
+      "endLine": 1151,
+      "bytes": 80
+    },
+    {
+      "id": "ev-8bd0ac677b0226a8cef2",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 1252,
+      "endLine": 1252,
+      "bytes": 68
+    },
+    {
+      "id": "ev-99c3246ea9494abcfce8",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 1254,
+      "endLine": 1254,
+      "bytes": 73
+    },
+    {
+      "id": "ev-e6aefc549e177b5fdb98",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 1302,
+      "endLine": 1302,
+      "bytes": 83
+    },
+    {
+      "id": "ev-50b742ce38a9b7029b5b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1546,
+      "endLine": 1546,
+      "bytes": 37
+    },
+    {
+      "id": "ev-eb018015663bc550cf65",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2602,
+      "endLine": 2602,
+      "bytes": 44
+    },
+    {
+      "id": "ev-1441f2d3aba714d2eb24",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1500,
+      "endLine": 1775,
+      "bytes": 12853
+    },
+    {
+      "id": "ev-5f7ff366e5653f4f86cd",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1,
+      "endLine": 180,
+      "bytes": 6998
+    },
+    {
+      "id": "ev-0cc762f456b42fd8e427",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/files.py",
+      "sha256": "bba7349241119a4f8efcf5f8f227751ba92029e4604948d11bc6183a94d42424",
+      "startLine": 1,
+      "endLine": 260,
+      "bytes": 10030
+    },
+    {
+      "id": "ev-8096dcc51929d17943a8",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/utils/auth.py",
+      "sha256": "7a8fce4911892aaa82656df8a4ce4cbf7a6e46473795a629d63296cded7a3198",
+      "startLine": 80,
+      "endLine": 230,
+      "bytes": 5544
+    },
+    {
+      "id": "ev-ff9a709fd4414479dc91",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1340,
+      "endLine": 1340,
+      "bytes": 35
+    },
+    {
+      "id": "ev-da841e4d923c6fb6f94b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1371,
+      "endLine": 1371,
+      "bytes": 52
+    },
+    {
+      "id": "ev-83af45819130e0a5c426",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1459,
+      "endLine": 1459,
+      "bytes": 84
+    },
+    {
+      "id": "ev-9de3c5e67b1e463d76b1",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1463,
+      "endLine": 1463,
+      "bytes": 91
+    },
+    {
+      "id": "ev-f78a4fb1341992de9513",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1529,
+      "endLine": 1529,
+      "bytes": 52
+    },
+    {
+      "id": "ev-b8de4db3d7cee86a8c9d",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1698,
+      "endLine": 1698,
+      "bytes": 64
+    },
+    {
+      "id": "ev-7532139640b1088f438e",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1340,
+      "endLine": 1539,
+      "bytes": 9506
+    },
+    {
+      "id": "ev-9cb13be08490cf37bd0f",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/utils/auth.py",
+      "sha256": "7a8fce4911892aaa82656df8a4ce4cbf7a6e46473795a629d63296cded7a3198",
+      "startLine": 400,
+      "endLine": 475,
+      "bytes": 3115
+    },
+    {
+      "id": "ev-956e7cc0c4ebb4682685",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/main.py",
+      "sha256": "6ba3213da413b8fa3e10e2ed110e90e09c05f10cb65236fff281bd66618dfa95",
+      "startLine": 1427,
+      "endLine": 1427,
+      "bytes": 92
+    },
+    {
+      "id": "ev-45430f9faca86715403b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/vector/async_client.py",
+      "sha256": "75e377860c3aac8199fa0ad4bc23915e0eb83c4ad813aac91c40bd1047938c85",
+      "startLine": 1,
+      "endLine": 129,
+      "bytes": 5810
+    }
+  ],
+  "deliveryValid": true,
+  "reviewCaution": "Citations and host consistency do not prove extraction meaning. Evaluate raw first/final and final prose against original source at the retained evidence ranges. A native prose answer can be delivered despite failed host checking. Representation may reveal strategy; arm, cost and target scores are hidden. No earlier answer is supplied."
+}

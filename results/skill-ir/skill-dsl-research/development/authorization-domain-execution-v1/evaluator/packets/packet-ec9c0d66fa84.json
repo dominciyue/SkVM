@@ -1,0 +1,1682 @@
+{
+  "schemaVersion": "authorization-aq-anonymous-packet/v1",
+  "id": "packet-ec9c0d66fa84",
+  "task": {
+    "brief": "Investigate process_file at /process/file in this Open WebUI revision. Trace the caller, the supplied file_id and the destination collection_name through authorization and the eventual processing or vector write. Explain whether the object authorized for input and the object affected by output are the same, and what happens for caller-owned versus another user's file. Do not assume the caller owns the destination collection. Give visible conditions and specific remaining limits; this is behavior investigation.",
+    "mode": "behavior"
+  },
+  "status": "completed",
+  "initial": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The endpoint authorizes the input file by file ownership for non-admin callers, but it does not perform a corresponding collection authorization check before writing. Therefore the input authorization and output-resource authorization are not the same control. A non-admin can process only a file they own; if processing reaches the vector write, the supplied collection_name is used without the _validate_collection_access guard visible elsewhere in retrieval.py. Admin callers can select any file."
+        },
+        "branches": [
+          {
+            "id": "caller-owned-no-explicit-collection",
+            "condition": "Non-admin caller, file_id resolves to a file whose user_id equals caller.id, and collection_name is omitted",
+            "disposition": "conditional",
+            "explanation": "The file is fetched with get_file_by_id_and_user_id(file_id, user.id). With no supplied collection, the destination becomes file-{file.id}; save_docs_to_vector_db is called with add=False. If that collection already exists, the helper returns true without inserting because overwrite is false and add is false; otherwise it generates embeddings and inserts into file-{file.id}. The endpoint then updates the file's content/status/hash and records that collection name on success.",
+            "evidenceIds": [
+              "ev-e7f3f1fe277b4a6d3ee3",
+              "ev-474c2286da3f3d8be63a",
+              "ev-581492611d75e628f394",
+              "ev-b8de4db3d7cee86a8c9d",
+              "ev-b704b56b8b443017fa7c",
+              "ev-f78a4fb1341992de9513",
+              "ev-0f2f0d03f13584af2e51"
+            ]
+          },
+          {
+            "id": "caller-owned-explicit-collection",
+            "condition": "Non-admin caller owns the file and supplies collection_name",
+            "disposition": "allow",
+            "explanation": "The file ownership check passes, and the supplied collection_name is propagated to save_docs_to_vector_db. process_file does not call _validate_collection_access for this collection. Because add is set true when form_data.collection_name is supplied, an existing collection is retained and new items are inserted into it. The inserted metadata includes file_id=file.id, while the endpoint records the same collection_name in the file metadata after success. The source shows no check that the caller owns or otherwise has write access to that collection.",
+            "evidenceIds": [
+              "ev-e7f3f1fe277b4a6d3ee3",
+              "ev-474c2286da3f3d8be63a",
+              "ev-8b43cac5a91230954128",
+              "ev-b8de4db3d7cee86a8c9d",
+              "ev-b704b56b8b443017fa7c",
+              "ev-9269113ddf066af05f41",
+              "ev-f78a4fb1341992de9513",
+              "ev-0f2f0d03f13584af2e51",
+              "ev-e460cff3afb810f0954f",
+              "ev-e8c2d2a8f5af7829506e"
+            ]
+          },
+          {
+            "id": "caller-owned-explicit-content",
+            "condition": "Non-admin caller owns the file, supplies content, and may or may not supply collection_name",
+            "disposition": "conditional",
+            "explanation": "The supplied content takes precedence over file loading. The endpoint attempts to delete the per-file collection file-{file.id}, constructs a document whose metadata contains created_by=file.user_id and file_id=file.id, and writes to either the supplied collection_name or the default file-{file.id}. There is still no collection access check. The delete attempt is specifically against file-{file.id}, not the arbitrary supplied destination collection.",
+            "evidenceIds": [
+              "ev-e7f3f1fe277b4a6d3ee3",
+              "ev-474c2286da3f3d8be63a",
+              "ev-b3d5d680e8af0768b7f2",
+              "ev-ad5d8a0986c3178b4eee",
+              "ev-8b43cac5a91230954128",
+              "ev-b8de4db3d7cee86a8c9d",
+              "ev-b704b56b8b443017fa7c",
+              "ev-f78a4fb1341992de9513",
+              "ev-0f2f0d03f13584af2e51"
+            ]
+          },
+          {
+            "id": "another-users-file-nonadmin",
+            "condition": "Non-admin caller supplies a file_id belonging to another user",
+            "disposition": "deny",
+            "explanation": "The non-admin branch queries by both id and user_id. The model query filters by id=file_id and user_id=user.id. A file owned by another user therefore resolves as no file and the endpoint raises HTTP 404 NOT_FOUND before selecting a collection, loading content, updating file data, or writing vectors.",
+            "evidenceIds": [
+              "ev-e7f3f1fe277b4a6d3ee3",
+              "ev-474c2286da3f3d8be63a",
+              "ev-1ca1b376ba3d93be79f8"
+            ]
+          },
+          {
+            "id": "admin-another-users-file",
+            "condition": "Caller has role admin and supplies another user's file_id",
+            "disposition": "conditional",
+            "explanation": "Admins use get_file_by_id without a user_id predicate, so another user's file can be selected. The same collection behavior then applies: omitted collection defaults to file-{file.id}; supplied collection_name is used as the destination without the endpoint's collection-access guard. Subsequent file database updates target the selected file, and vector metadata preserves that file's user_id as created_by.",
+            "evidenceIds": [
+              "ev-e7f3f1fe277b4a6d3ee3",
+              "ev-f6e9ffb55ef10aa16815",
+              "ev-474c2286da3f3d8be63a",
+              "ev-b8de4db3d7cee86a8c9d",
+              "ev-b704b56b8b443017fa7c",
+              "ev-f78a4fb1341992de9513",
+              "ev-0f2f0d03f13584af2e51"
+            ]
+          },
+          {
+            "id": "missing-file",
+            "condition": "The requested file_id does not resolve under the applicable lookup",
+            "disposition": "deny",
+            "explanation": "The endpoint raises HTTP 404 NOT_FOUND when the ownership-filtered lookup for non-admins or unrestricted-by-user lookup for admins returns no file.",
+            "evidenceIds": [
+              "ev-e7f3f1fe277b4a6d3ee3"
+            ]
+          },
+          {
+            "id": "bypass-embedding",
+            "condition": "The file resolves, but BYPASS_EMBEDDING_AND_RETRIEVAL is enabled",
+            "disposition": "conditional",
+            "explanation": "The endpoint updates the file status and hash and returns success with collection_name null before calling save_docs_to_vector_db. In this branch no vector write is performed, so the destination collection is not affected by this endpoint execution.",
+            "evidenceIds": [
+              "ev-e7f3f1fe277b4a6d3ee3",
+              "ev-477e59a752d65b67b752"
+            ]
+          },
+          {
+            "id": "vector-write-guards",
+            "condition": "Vector processing is not bypassed and save_docs_to_vector_db reaches its helper guards",
+            "disposition": "conditional",
+            "explanation": "The helper checks duplicate hash metadata. If an existing matching hash has a different file_id, it raises DUPLICATE_CONTENT; the same file_id is treated as re-add/reindex. For an existing destination collection, add=False causes an early successful no-op, while add=True permits insertion. These are content/existence controls, not caller-to-collection authorization controls.",
+            "evidenceIds": [
+              "ev-97ebeb6532ca56c4b131",
+              "ev-da841e4d923c6fb6f94b",
+              "ev-5f7cd32512c98478dd6a",
+              "ev-f81406b61d425643c199",
+              "ev-9269113ddf066af05f41",
+              "ev-f78a4fb1341992de9513",
+              "ev-0f2f0d03f13584af2e51"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-50b742ce38a9b7029b5b",
+          "ev-e7f3f1fe277b4a6d3ee3",
+          "ev-1ca1b376ba3d93be79f8",
+          "ev-c0f343836151e27c535a",
+          "ev-d14112d87d3311f2e5a8",
+          "ev-d0f056935fc789e3e78b",
+          "ev-b183a804cae03eb475a7",
+          "ev-86da0cbada36c924e0e4",
+          "ev-4f5ab4c7b237a844486d",
+          "ev-b54c765f2decf106fe63",
+          "ev-97ebeb6532ca56c4b131",
+          "ev-485e2dfb271b870635d5"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The visible process_file path does not show a call to _validate_collection_access, but the implementation of filter_accessible_collections and any lower-level vector-client tenant enforcement were not read. Those could impose deployment- or backend-specific controls outside this endpoint; they are not invoked visibly by process_file before save_docs_to_vector_db.",
+            "nextRead": "backend/open_webui/utils/access_control/__init__.py and the vector backend selected by deployment, plus any save_docs_to_vector_db callers if broader path comparison is needed"
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "Actual HTTP route mounting/prefixes, authenticated caller role and identity, configured vector backend, collection existence, embedding configuration, and runtime database/vector state are not established by source inspection alone."
+          }
+        ],
+        "policyAssessment": {
+          "status": "undetermined",
+          "explanation": "This is a behavior investigation with no normative policy premise. The observed behavior is that file authorization is user-bound for non-admins, while explicit destination collection_name is not visibly checked by process_file; whether that is acceptable is outside scope."
+        }
+      }
+    ],
+    "observations": [],
+    "scope": "open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9; allowed source scope backend/open_webui; investigated process_file at POST /process/file and its visible callers and vector-write path"
+  },
+  "final": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The input file and output collection are authorized and bound separately. process_file authenticates a verified user, restricts non-admin file lookup to file_id plus that user's id, and permits admins to look up any file. It then uses the supplied collection_name directly, or defaults to file-{file.id}; the visible process_file path does not call _validate_collection_access for that destination. Thus the object authorized for input is the selected file, while the object affected by output is the selected vector collection, and they are not necessarily the same resource or ownership domain."
+        },
+        "branches": [
+          {
+            "id": "caller-owned-default-collection",
+            "condition": "Non-admin caller owns file_id; collection_name omitted; embedding/retrieval is not bypassed",
+            "disposition": "conditional",
+            "explanation": "The file is loaded with get_file_by_id_and_user_id(file_id, user.id). The destination is set to file-{file.id}. The helper is called with add=False. If that collection already exists, save_docs_to_vector_db returns true without inserting because overwrite is false and add is false; otherwise it generates embeddings and inserts into file-{file.id}. On a successful write, the selected file is updated with content, status, hash, and collection_name.",
+            "evidenceIds": [
+              "ev-e7f3f1fe277b4a6d3ee3",
+              "ev-474c2286da3f3d8be63a",
+              "ev-581492611d75e628f394",
+              "ev-b8de4db3d7cee86a8c9d",
+              "ev-b704b56b8b443017fa7c",
+              "ev-f78a4fb1341992de9513",
+              "ev-0f2f0d03f13584af2e51"
+            ]
+          },
+          {
+            "id": "caller-owned-explicit-collection",
+            "condition": "Non-admin caller owns file_id and supplies collection_name; embedding/retrieval is not bypassed",
+            "disposition": "conditional",
+            "explanation": "The file ownership lookup succeeds, and the supplied collection_name is passed to save_docs_to_vector_db. process_file does not visibly invoke _validate_collection_access for it. add is true when collection_name was supplied, so an existing destination collection is retained and new vector items may be inserted. The inserted metadata includes file_id=file.id and the selected file's user_id as created_by; after success the file metadata is updated with that collection_name. No visible check establishes that the caller owns or has write access to the destination collection.",
+            "evidenceIds": [
+              "ev-e7f3f1fe277b4a6d3ee3",
+              "ev-474c2286da3f3d8be63a",
+              "ev-8b43cac5a91230954128",
+              "ev-b8de4db3d7cee86a8c9d",
+              "ev-b704b56b8b443017fa7c",
+              "ev-9269113ddf066af05f41",
+              "ev-f78a4fb1341992de9513",
+              "ev-0f2f0d03f13584af2e51",
+              "ev-e460cff3afb810f0954f",
+              "ev-e8c2d2a8f5af7829506e"
+            ]
+          },
+          {
+            "id": "caller-owned-explicit-content",
+            "condition": "Non-admin caller owns file_id and supplies content, with or without collection_name",
+            "disposition": "conditional",
+            "explanation": "Supplied content takes precedence over loading the stored file. The endpoint attempts to delete only file-{file.id}, constructs documents carrying file_id=file.id and created_by=file.user_id, and writes to the supplied collection_name or the default file-{file.id}. The arbitrary supplied destination is not visibly checked by process_file.",
+            "evidenceIds": [
+              "ev-e7f3f1fe277b4a6d3ee3",
+              "ev-474c2286da3f3d8be63a",
+              "ev-b3d5d680e8af0768b7f2",
+              "ev-ad5d8a0986c3178b4eee",
+              "ev-8b43cac5a91230954128",
+              "ev-b8de4db3d7cee86a8c9d",
+              "ev-b704b56b8b443017fa7c",
+              "ev-f78a4fb1341992de9513",
+              "ev-0f2f0d03f13584af2e51"
+            ]
+          },
+          {
+            "id": "another-users-file-nonadmin",
+            "condition": "Non-admin caller supplies a file_id belonging to another user",
+            "disposition": "deny",
+            "explanation": "The lookup filters on both id=file_id and user_id=caller.id. Another user's file therefore resolves as no file and the endpoint raises HTTP 404 NOT_FOUND before selecting a destination, loading content, updating file data, or writing vectors.",
+            "evidenceIds": [
+              "ev-e7f3f1fe277b4a6d3ee3",
+              "ev-474c2286da3f3d8be63a",
+              "ev-1ca1b376ba3d93be79f8"
+            ]
+          },
+          {
+            "id": "another-users-file-admin",
+            "condition": "Caller has role admin and supplies another user's file_id",
+            "disposition": "conditional",
+            "explanation": "Admins use get_file_by_id without a user_id predicate, so another user's file can be selected. The same destination behavior then applies: omitted collection_name defaults to file-{file.id}, while a supplied collection_name is passed through without a visible collection-access check. File database updates target the selected file, and vector metadata records that file's id and user_id-derived created_by value.",
+            "evidenceIds": [
+              "ev-e7f3f1fe277b4a6d3ee3",
+              "ev-f6e9ffb55ef10aa16815",
+              "ev-474c2286da3f3d8be63a",
+              "ev-b8de4db3d7cee86a8c9d",
+              "ev-b704b56b8b443017fa7c",
+              "ev-f78a4fb1341992de9513",
+              "ev-0f2f0d03f13584af2e51"
+            ]
+          },
+          {
+            "id": "missing-file",
+            "condition": "file_id does not resolve under the applicable admin or non-admin lookup",
+            "disposition": "deny",
+            "explanation": "The endpoint raises HTTP 404 NOT_FOUND when the selected lookup returns no file.",
+            "evidenceIds": [
+              "ev-e7f3f1fe277b4a6d3ee3"
+            ]
+          },
+          {
+            "id": "bypass-embedding",
+            "condition": "The file resolves and BYPASS_EMBEDDING_AND_RETRIEVAL is enabled",
+            "disposition": "conditional",
+            "explanation": "The endpoint updates the selected file's status and hash and returns success with collection_name null before calling save_docs_to_vector_db. No vector write occurs in this branch, so no destination collection is affected by this execution.",
+            "evidenceIds": [
+              "ev-e7f3f1fe277b4a6d3ee3",
+              "ev-477e59a752d65b67b752"
+            ]
+          },
+          {
+            "id": "vector-helper-limits",
+            "condition": "Processing is not bypassed and save_docs_to_vector_db reaches its helper checks",
+            "disposition": "conditional",
+            "explanation": "The helper rejects a matching hash when the existing metadata has a different file_id, but allows the same file_id as a re-add/reindex. For an existing destination collection, add=False produces a successful no-op, whereas add=True permits insertion. These are duplicate-content and collection-existence behaviors, not caller-to-collection authorization checks.",
+            "evidenceIds": [
+              "ev-97ebeb6532ca56c4b131",
+              "ev-da841e4d923c6fb6f94b",
+              "ev-5f7cd32512c98478dd6a",
+              "ev-f81406b61d425643c199",
+              "ev-9269113ddf066af05f41",
+              "ev-f78a4fb1341992de9513",
+              "ev-0f2f0d03f13584af2e51"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-50b742ce38a9b7029b5b",
+          "ev-e7f3f1fe277b4a6d3ee3",
+          "ev-1ca1b376ba3d93be79f8",
+          "ev-c0f343836151e27c535a",
+          "ev-d14112d87d3311f2e5a8",
+          "ev-d0f056935fc789e3e78b",
+          "ev-b183a804cae03eb475a7",
+          "ev-86da0cbada36c924e0e4",
+          "ev-4f5ab4c7b237a844486d",
+          "ev-b54c765f2decf106fe63",
+          "ev-97ebeb6532ca56c4b131",
+          "ev-485e2dfb271b870635d5"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The visible process_file path does not call _validate_collection_access, but the implementation of filter_accessible_collections and lower-level vector-client tenant enforcement were not read. Those could impose controls outside this endpoint; they are not visibly invoked by process_file before save_docs_to_vector_db.",
+            "nextRead": "backend/open_webui/utils/access_control/__init__.py and the deployment-selected backend/open_webui/retrieval/vector/dbs implementation"
+          },
+          {
+            "kind": "source-gap",
+            "detail": "Visible internal callers were located in files.py and knowledge.py, including calls that supply file_id, content, or a knowledge collection id, but their surrounding authorization guards were not read here. Therefore caller-specific upstream protections for those internal paths remain unresolved.",
+            "nextRead": "backend/open_webui/routers/files.py around lines 120-165 and 540-605; backend/open_webui/routers/knowledge.py around lines 300-335, 640-670, and 720-750"
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "Actual route mounting, authenticated caller identity and role, configured vector backend, collection existence, embedding configuration, and runtime database/vector state are not established by source inspection alone."
+          }
+        ]
+      }
+    ],
+    "observations": [],
+    "scope": "open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9; allowed source scope backend/open_webui; investigated POST /process/file, visible internal callers, file lookup, collection propagation, and vector write path"
+  },
+  "prose": null,
+  "initialProse": null,
+  "initialValidation": {
+    "valid": false,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The endpoint authorizes the input file by file ownership for non-admin callers, but it does not perform a corresponding collection authorization check before writing. Therefore the input authorization and output-resource authorization are not the same control. A non-admin can process only a file they own; if processing reaches the vector write, the supplied collection_name is used without the _validate_collection_access guard visible elsewhere in retrieval.py. Admin callers can select any file."
+          },
+          "branches": [
+            {
+              "id": "caller-owned-no-explicit-collection",
+              "condition": "Non-admin caller, file_id resolves to a file whose user_id equals caller.id, and collection_name is omitted",
+              "disposition": "conditional",
+              "explanation": "The file is fetched with get_file_by_id_and_user_id(file_id, user.id). With no supplied collection, the destination becomes file-{file.id}; save_docs_to_vector_db is called with add=False. If that collection already exists, the helper returns true without inserting because overwrite is false and add is false; otherwise it generates embeddings and inserts into file-{file.id}. The endpoint then updates the file's content/status/hash and records that collection name on success.",
+              "evidenceIds": [
+                "ev-e7f3f1fe277b4a6d3ee3",
+                "ev-474c2286da3f3d8be63a",
+                "ev-581492611d75e628f394",
+                "ev-b8de4db3d7cee86a8c9d",
+                "ev-b704b56b8b443017fa7c",
+                "ev-f78a4fb1341992de9513",
+                "ev-0f2f0d03f13584af2e51"
+              ]
+            },
+            {
+              "id": "caller-owned-explicit-collection",
+              "condition": "Non-admin caller owns the file and supplies collection_name",
+              "disposition": "allow",
+              "explanation": "The file ownership check passes, and the supplied collection_name is propagated to save_docs_to_vector_db. process_file does not call _validate_collection_access for this collection. Because add is set true when form_data.collection_name is supplied, an existing collection is retained and new items are inserted into it. The inserted metadata includes file_id=file.id, while the endpoint records the same collection_name in the file metadata after success. The source shows no check that the caller owns or otherwise has write access to that collection.",
+              "evidenceIds": [
+                "ev-e7f3f1fe277b4a6d3ee3",
+                "ev-474c2286da3f3d8be63a",
+                "ev-8b43cac5a91230954128",
+                "ev-b8de4db3d7cee86a8c9d",
+                "ev-b704b56b8b443017fa7c",
+                "ev-9269113ddf066af05f41",
+                "ev-f78a4fb1341992de9513",
+                "ev-0f2f0d03f13584af2e51",
+                "ev-e460cff3afb810f0954f",
+                "ev-e8c2d2a8f5af7829506e"
+              ]
+            },
+            {
+              "id": "caller-owned-explicit-content",
+              "condition": "Non-admin caller owns the file, supplies content, and may or may not supply collection_name",
+              "disposition": "conditional",
+              "explanation": "The supplied content takes precedence over file loading. The endpoint attempts to delete the per-file collection file-{file.id}, constructs a document whose metadata contains created_by=file.user_id and file_id=file.id, and writes to either the supplied collection_name or the default file-{file.id}. There is still no collection access check. The delete attempt is specifically against file-{file.id}, not the arbitrary supplied destination collection.",
+              "evidenceIds": [
+                "ev-e7f3f1fe277b4a6d3ee3",
+                "ev-474c2286da3f3d8be63a",
+                "ev-b3d5d680e8af0768b7f2",
+                "ev-ad5d8a0986c3178b4eee",
+                "ev-8b43cac5a91230954128",
+                "ev-b8de4db3d7cee86a8c9d",
+                "ev-b704b56b8b443017fa7c",
+                "ev-f78a4fb1341992de9513",
+                "ev-0f2f0d03f13584af2e51"
+              ]
+            },
+            {
+              "id": "another-users-file-nonadmin",
+              "condition": "Non-admin caller supplies a file_id belonging to another user",
+              "disposition": "deny",
+              "explanation": "The non-admin branch queries by both id and user_id. The model query filters by id=file_id and user_id=user.id. A file owned by another user therefore resolves as no file and the endpoint raises HTTP 404 NOT_FOUND before selecting a collection, loading content, updating file data, or writing vectors.",
+              "evidenceIds": [
+                "ev-e7f3f1fe277b4a6d3ee3",
+                "ev-474c2286da3f3d8be63a",
+                "ev-1ca1b376ba3d93be79f8"
+              ]
+            },
+            {
+              "id": "admin-another-users-file",
+              "condition": "Caller has role admin and supplies another user's file_id",
+              "disposition": "conditional",
+              "explanation": "Admins use get_file_by_id without a user_id predicate, so another user's file can be selected. The same collection behavior then applies: omitted collection defaults to file-{file.id}; supplied collection_name is used as the destination without the endpoint's collection-access guard. Subsequent file database updates target the selected file, and vector metadata preserves that file's user_id as created_by.",
+              "evidenceIds": [
+                "ev-e7f3f1fe277b4a6d3ee3",
+                "ev-f6e9ffb55ef10aa16815",
+                "ev-474c2286da3f3d8be63a",
+                "ev-b8de4db3d7cee86a8c9d",
+                "ev-b704b56b8b443017fa7c",
+                "ev-f78a4fb1341992de9513",
+                "ev-0f2f0d03f13584af2e51"
+              ]
+            },
+            {
+              "id": "missing-file",
+              "condition": "The requested file_id does not resolve under the applicable lookup",
+              "disposition": "deny",
+              "explanation": "The endpoint raises HTTP 404 NOT_FOUND when the ownership-filtered lookup for non-admins or unrestricted-by-user lookup for admins returns no file.",
+              "evidenceIds": [
+                "ev-e7f3f1fe277b4a6d3ee3"
+              ]
+            },
+            {
+              "id": "bypass-embedding",
+              "condition": "The file resolves, but BYPASS_EMBEDDING_AND_RETRIEVAL is enabled",
+              "disposition": "conditional",
+              "explanation": "The endpoint updates the file status and hash and returns success with collection_name null before calling save_docs_to_vector_db. In this branch no vector write is performed, so the destination collection is not affected by this endpoint execution.",
+              "evidenceIds": [
+                "ev-e7f3f1fe277b4a6d3ee3",
+                "ev-477e59a752d65b67b752"
+              ]
+            },
+            {
+              "id": "vector-write-guards",
+              "condition": "Vector processing is not bypassed and save_docs_to_vector_db reaches its helper guards",
+              "disposition": "conditional",
+              "explanation": "The helper checks duplicate hash metadata. If an existing matching hash has a different file_id, it raises DUPLICATE_CONTENT; the same file_id is treated as re-add/reindex. For an existing destination collection, add=False causes an early successful no-op, while add=True permits insertion. These are content/existence controls, not caller-to-collection authorization controls.",
+              "evidenceIds": [
+                "ev-97ebeb6532ca56c4b131",
+                "ev-da841e4d923c6fb6f94b",
+                "ev-5f7cd32512c98478dd6a",
+                "ev-f81406b61d425643c199",
+                "ev-9269113ddf066af05f41",
+                "ev-f78a4fb1341992de9513",
+                "ev-0f2f0d03f13584af2e51"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-50b742ce38a9b7029b5b",
+            "ev-e7f3f1fe277b4a6d3ee3",
+            "ev-1ca1b376ba3d93be79f8",
+            "ev-c0f343836151e27c535a",
+            "ev-d14112d87d3311f2e5a8",
+            "ev-d0f056935fc789e3e78b",
+            "ev-b183a804cae03eb475a7",
+            "ev-86da0cbada36c924e0e4",
+            "ev-4f5ab4c7b237a844486d",
+            "ev-b54c765f2decf106fe63",
+            "ev-97ebeb6532ca56c4b131",
+            "ev-485e2dfb271b870635d5"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The visible process_file path does not show a call to _validate_collection_access, but the implementation of filter_accessible_collections and any lower-level vector-client tenant enforcement were not read. Those could impose deployment- or backend-specific controls outside this endpoint; they are not invoked visibly by process_file before save_docs_to_vector_db.",
+              "nextRead": "backend/open_webui/utils/access_control/__init__.py and the vector backend selected by deployment, plus any save_docs_to_vector_db callers if broader path comparison is needed"
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "Actual HTTP route mounting/prefixes, authenticated caller role and identity, configured vector backend, collection existence, embedding configuration, and runtime database/vector state are not established by source inspection alone."
+            }
+          ],
+          "policyAssessment": {
+            "status": "undetermined",
+            "explanation": "This is a behavior investigation with no normative policy premise. The observed behavior is that file authorization is user-bound for non-admins, while explicit destination collection_name is not visibly checked by process_file; whether that is acceptable is outside scope."
+          }
+        }
+      ],
+      "observations": [],
+      "scope": "open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9; allowed source scope backend/open_webui; investigated process_file at POST /process/file and its visible callers and vector-write path"
+    },
+    "diagnostics": [
+      {
+        "code": "behavior-policy-assessment",
+        "path": "questions.0.policyAssessment",
+        "message": "Behavior has no normative policy comparison.",
+        "severity": "error"
+      }
+    ],
+    "semanticSupport": "unreviewed"
+  },
+  "finalValidation": {
+    "valid": true,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The input file and output collection are authorized and bound separately. process_file authenticates a verified user, restricts non-admin file lookup to file_id plus that user's id, and permits admins to look up any file. It then uses the supplied collection_name directly, or defaults to file-{file.id}; the visible process_file path does not call _validate_collection_access for that destination. Thus the object authorized for input is the selected file, while the object affected by output is the selected vector collection, and they are not necessarily the same resource or ownership domain."
+          },
+          "branches": [
+            {
+              "id": "caller-owned-default-collection",
+              "condition": "Non-admin caller owns file_id; collection_name omitted; embedding/retrieval is not bypassed",
+              "disposition": "conditional",
+              "explanation": "The file is loaded with get_file_by_id_and_user_id(file_id, user.id). The destination is set to file-{file.id}. The helper is called with add=False. If that collection already exists, save_docs_to_vector_db returns true without inserting because overwrite is false and add is false; otherwise it generates embeddings and inserts into file-{file.id}. On a successful write, the selected file is updated with content, status, hash, and collection_name.",
+              "evidenceIds": [
+                "ev-e7f3f1fe277b4a6d3ee3",
+                "ev-474c2286da3f3d8be63a",
+                "ev-581492611d75e628f394",
+                "ev-b8de4db3d7cee86a8c9d",
+                "ev-b704b56b8b443017fa7c",
+                "ev-f78a4fb1341992de9513",
+                "ev-0f2f0d03f13584af2e51"
+              ]
+            },
+            {
+              "id": "caller-owned-explicit-collection",
+              "condition": "Non-admin caller owns file_id and supplies collection_name; embedding/retrieval is not bypassed",
+              "disposition": "conditional",
+              "explanation": "The file ownership lookup succeeds, and the supplied collection_name is passed to save_docs_to_vector_db. process_file does not visibly invoke _validate_collection_access for it. add is true when collection_name was supplied, so an existing destination collection is retained and new vector items may be inserted. The inserted metadata includes file_id=file.id and the selected file's user_id as created_by; after success the file metadata is updated with that collection_name. No visible check establishes that the caller owns or has write access to the destination collection.",
+              "evidenceIds": [
+                "ev-e7f3f1fe277b4a6d3ee3",
+                "ev-474c2286da3f3d8be63a",
+                "ev-8b43cac5a91230954128",
+                "ev-b8de4db3d7cee86a8c9d",
+                "ev-b704b56b8b443017fa7c",
+                "ev-9269113ddf066af05f41",
+                "ev-f78a4fb1341992de9513",
+                "ev-0f2f0d03f13584af2e51",
+                "ev-e460cff3afb810f0954f",
+                "ev-e8c2d2a8f5af7829506e"
+              ]
+            },
+            {
+              "id": "caller-owned-explicit-content",
+              "condition": "Non-admin caller owns file_id and supplies content, with or without collection_name",
+              "disposition": "conditional",
+              "explanation": "Supplied content takes precedence over loading the stored file. The endpoint attempts to delete only file-{file.id}, constructs documents carrying file_id=file.id and created_by=file.user_id, and writes to the supplied collection_name or the default file-{file.id}. The arbitrary supplied destination is not visibly checked by process_file.",
+              "evidenceIds": [
+                "ev-e7f3f1fe277b4a6d3ee3",
+                "ev-474c2286da3f3d8be63a",
+                "ev-b3d5d680e8af0768b7f2",
+                "ev-ad5d8a0986c3178b4eee",
+                "ev-8b43cac5a91230954128",
+                "ev-b8de4db3d7cee86a8c9d",
+                "ev-b704b56b8b443017fa7c",
+                "ev-f78a4fb1341992de9513",
+                "ev-0f2f0d03f13584af2e51"
+              ]
+            },
+            {
+              "id": "another-users-file-nonadmin",
+              "condition": "Non-admin caller supplies a file_id belonging to another user",
+              "disposition": "deny",
+              "explanation": "The lookup filters on both id=file_id and user_id=caller.id. Another user's file therefore resolves as no file and the endpoint raises HTTP 404 NOT_FOUND before selecting a destination, loading content, updating file data, or writing vectors.",
+              "evidenceIds": [
+                "ev-e7f3f1fe277b4a6d3ee3",
+                "ev-474c2286da3f3d8be63a",
+                "ev-1ca1b376ba3d93be79f8"
+              ]
+            },
+            {
+              "id": "another-users-file-admin",
+              "condition": "Caller has role admin and supplies another user's file_id",
+              "disposition": "conditional",
+              "explanation": "Admins use get_file_by_id without a user_id predicate, so another user's file can be selected. The same destination behavior then applies: omitted collection_name defaults to file-{file.id}, while a supplied collection_name is passed through without a visible collection-access check. File database updates target the selected file, and vector metadata records that file's id and user_id-derived created_by value.",
+              "evidenceIds": [
+                "ev-e7f3f1fe277b4a6d3ee3",
+                "ev-f6e9ffb55ef10aa16815",
+                "ev-474c2286da3f3d8be63a",
+                "ev-b8de4db3d7cee86a8c9d",
+                "ev-b704b56b8b443017fa7c",
+                "ev-f78a4fb1341992de9513",
+                "ev-0f2f0d03f13584af2e51"
+              ]
+            },
+            {
+              "id": "missing-file",
+              "condition": "file_id does not resolve under the applicable admin or non-admin lookup",
+              "disposition": "deny",
+              "explanation": "The endpoint raises HTTP 404 NOT_FOUND when the selected lookup returns no file.",
+              "evidenceIds": [
+                "ev-e7f3f1fe277b4a6d3ee3"
+              ]
+            },
+            {
+              "id": "bypass-embedding",
+              "condition": "The file resolves and BYPASS_EMBEDDING_AND_RETRIEVAL is enabled",
+              "disposition": "conditional",
+              "explanation": "The endpoint updates the selected file's status and hash and returns success with collection_name null before calling save_docs_to_vector_db. No vector write occurs in this branch, so no destination collection is affected by this execution.",
+              "evidenceIds": [
+                "ev-e7f3f1fe277b4a6d3ee3",
+                "ev-477e59a752d65b67b752"
+              ]
+            },
+            {
+              "id": "vector-helper-limits",
+              "condition": "Processing is not bypassed and save_docs_to_vector_db reaches its helper checks",
+              "disposition": "conditional",
+              "explanation": "The helper rejects a matching hash when the existing metadata has a different file_id, but allows the same file_id as a re-add/reindex. For an existing destination collection, add=False produces a successful no-op, whereas add=True permits insertion. These are duplicate-content and collection-existence behaviors, not caller-to-collection authorization checks.",
+              "evidenceIds": [
+                "ev-97ebeb6532ca56c4b131",
+                "ev-da841e4d923c6fb6f94b",
+                "ev-5f7cd32512c98478dd6a",
+                "ev-f81406b61d425643c199",
+                "ev-9269113ddf066af05f41",
+                "ev-f78a4fb1341992de9513",
+                "ev-0f2f0d03f13584af2e51"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-50b742ce38a9b7029b5b",
+            "ev-e7f3f1fe277b4a6d3ee3",
+            "ev-1ca1b376ba3d93be79f8",
+            "ev-c0f343836151e27c535a",
+            "ev-d14112d87d3311f2e5a8",
+            "ev-d0f056935fc789e3e78b",
+            "ev-b183a804cae03eb475a7",
+            "ev-86da0cbada36c924e0e4",
+            "ev-4f5ab4c7b237a844486d",
+            "ev-b54c765f2decf106fe63",
+            "ev-97ebeb6532ca56c4b131",
+            "ev-485e2dfb271b870635d5"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The visible process_file path does not call _validate_collection_access, but the implementation of filter_accessible_collections and lower-level vector-client tenant enforcement were not read. Those could impose controls outside this endpoint; they are not visibly invoked by process_file before save_docs_to_vector_db.",
+              "nextRead": "backend/open_webui/utils/access_control/__init__.py and the deployment-selected backend/open_webui/retrieval/vector/dbs implementation"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "Visible internal callers were located in files.py and knowledge.py, including calls that supply file_id, content, or a knowledge collection id, but their surrounding authorization guards were not read here. Therefore caller-specific upstream protections for those internal paths remain unresolved.",
+              "nextRead": "backend/open_webui/routers/files.py around lines 120-165 and 540-605; backend/open_webui/routers/knowledge.py around lines 300-335, 640-670, and 720-750"
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "Actual route mounting, authenticated caller identity and role, configured vector backend, collection existence, embedding configuration, and runtime database/vector state are not established by source inspection alone."
+            }
+          ]
+        }
+      ],
+      "observations": [],
+      "scope": "open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9; allowed source scope backend/open_webui; investigated POST /process/file, visible internal callers, file lookup, collection propagation, and vector write path"
+    },
+    "diagnostics": [],
+    "semanticSupport": "unreviewed"
+  },
+  "error": null,
+  "extractionInitial": null,
+  "extractionInitialOrigin": "no-control-proposal",
+  "extractionFinal": null,
+  "extractionProposals": [],
+  "hostChecks": [],
+  "dependencies": [],
+  "schedulerActions": [],
+  "evidence": [
+    {
+      "id": "ev-0a8fd791f9bb2b1fee03",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1547,
+      "endLine": 1547,
+      "bytes": 31
+    },
+    {
+      "id": "ev-b28e7c999d3f86f18511",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2603,
+      "endLine": 2603,
+      "bytes": 38
+    },
+    {
+      "id": "ev-34cdd5668d0d960ec309",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2675,
+      "endLine": 2675,
+      "bytes": 96
+    },
+    {
+      "id": "ev-16bddd416453c0843ee7",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2696,
+      "endLine": 2696,
+      "bytes": 100
+    },
+    {
+      "id": "ev-50b742ce38a9b7029b5b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1546,
+      "endLine": 1546,
+      "bytes": 37
+    },
+    {
+      "id": "ev-eb018015663bc550cf65",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2602,
+      "endLine": 2602,
+      "bytes": 44
+    },
+    {
+      "id": "ev-cddc79303c63ebca0967",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 252,
+      "endLine": 252,
+      "bytes": 48
+    },
+    {
+      "id": "ev-ce23e564a8f08da4ea17",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1343,
+      "endLine": 1343,
+      "bytes": 28
+    },
+    {
+      "id": "ev-3e914a36d35a848245ab",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1366,
+      "endLine": 1366,
+      "bytes": 99
+    },
+    {
+      "id": "ev-da841e4d923c6fb6f94b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1371,
+      "endLine": 1371,
+      "bytes": 52
+    },
+    {
+      "id": "ev-83af45819130e0a5c426",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1459,
+      "endLine": 1459,
+      "bytes": 84
+    },
+    {
+      "id": "ev-fef56d57d381965a84d6",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1460,
+      "endLine": 1460,
+      "bytes": 76
+    },
+    {
+      "id": "ev-9de3c5e67b1e463d76b1",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1463,
+      "endLine": 1463,
+      "bytes": 91
+    },
+    {
+      "id": "ev-c9ede980e99d50a22600",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1464,
+      "endLine": 1464,
+      "bytes": 83
+    },
+    {
+      "id": "ev-f81406b61d425643c199",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1466,
+      "endLine": 1466,
+      "bytes": 117
+    },
+    {
+      "id": "ev-df8f90c47738c48684ad",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1469,
+      "endLine": 1469,
+      "bytes": 72
+    },
+    {
+      "id": "ev-9269113ddf066af05f41",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1527,
+      "endLine": 1527,
+      "bytes": 67
+    },
+    {
+      "id": "ev-f78a4fb1341992de9513",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1529,
+      "endLine": 1529,
+      "bytes": 52
+    },
+    {
+      "id": "ev-0f2f0d03f13584af2e51",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1533,
+      "endLine": 1533,
+      "bytes": 85
+    },
+    {
+      "id": "ev-87061571778a8d1fed09",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1543,
+      "endLine": 1543,
+      "bytes": 49
+    },
+    {
+      "id": "ev-8b43cac5a91230954128",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1566,
+      "endLine": 1566,
+      "bytes": 63
+    },
+    {
+      "id": "ev-ae6ddc7c7194c5f05d6a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1568,
+      "endLine": 1568,
+      "bytes": 47
+    },
+    {
+      "id": "ev-581492611d75e628f394",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1569,
+      "endLine": 1569,
+      "bytes": 59
+    },
+    {
+      "id": "ev-b3d5d680e8af0768b7f2",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1577,
+      "endLine": 1577,
+      "bytes": 109
+    },
+    {
+      "id": "ev-07ab60199fb73ed90db3",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1596,
+      "endLine": 1596,
+      "bytes": 51
+    },
+    {
+      "id": "ev-bcbabc554bee7455061d",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1601,
+      "endLine": 1601,
+      "bytes": 90
+    },
+    {
+      "id": "ev-477e59a752d65b67b752",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1678,
+      "endLine": 1678,
+      "bytes": 52
+    },
+    {
+      "id": "ev-b8de4db3d7cee86a8c9d",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1698,
+      "endLine": 1698,
+      "bytes": 64
+    },
+    {
+      "id": "ev-b704b56b8b443017fa7c",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1704,
+      "endLine": 1704,
+      "bytes": 83
+    },
+    {
+      "id": "ev-e460cff3afb810f0954f",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1707,
+      "endLine": 1707,
+      "bytes": 96
+    },
+    {
+      "id": "ev-e8c2d2a8f5af7829506e",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1715,
+      "endLine": 1715,
+      "bytes": 79
+    },
+    {
+      "id": "ev-cd2f92c6841842752c86",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1729,
+      "endLine": 1729,
+      "bytes": 75
+    },
+    {
+      "id": "ev-32c69b557b2c1ae10be6",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1768,
+      "endLine": 1768,
+      "bytes": 49
+    },
+    {
+      "id": "ev-b34a1cef0968fddd4a73",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1777,
+      "endLine": 1777,
+      "bytes": 55
+    },
+    {
+      "id": "ev-ca8f9ae42f6a671c608b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1778,
+      "endLine": 1778,
+      "bytes": 39
+    },
+    {
+      "id": "ev-54607b3694ae4975099a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1779,
+      "endLine": 1779,
+      "bytes": 76
+    },
+    {
+      "id": "ev-749541b068e152c7035e",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1781,
+      "endLine": 1781,
+      "bytes": 95
+    },
+    {
+      "id": "ev-3017a0881123ad3afd6b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1792,
+      "endLine": 1792,
+      "bytes": 111
+    },
+    {
+      "id": "ev-9c8527af6ab2559dad9c",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1796,
+      "endLine": 1796,
+      "bytes": 55
+    },
+    {
+      "id": "ev-66164da973137b5c31e3",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1820,
+      "endLine": 1820,
+      "bytes": 63
+    },
+    {
+      "id": "ev-9966650ec2196e6aca82",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1821,
+      "endLine": 1821,
+      "bytes": 43
+    },
+    {
+      "id": "ev-5f558c0dbf97f87331b8",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1822,
+      "endLine": 1822,
+      "bytes": 85
+    },
+    {
+      "id": "ev-bc85d9ab8151f206b400",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1824,
+      "endLine": 1824,
+      "bytes": 103
+    },
+    {
+      "id": "ev-dbeab08b5212f08238f7",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1831,
+      "endLine": 1831,
+      "bytes": 44
+    },
+    {
+      "id": "ev-92e5473527c5599b7a06",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1837,
+      "endLine": 1837,
+      "bytes": 46
+    },
+    {
+      "id": "ev-ba4b191d0561285a99f1",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1841,
+      "endLine": 1841,
+      "bytes": 59
+    },
+    {
+      "id": "ev-381b2d3543345cc8d957",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2296,
+      "endLine": 2296,
+      "bytes": 48
+    },
+    {
+      "id": "ev-5dd9b43a080eb3db9cf9",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2310,
+      "endLine": 2310,
+      "bytes": 111
+    },
+    {
+      "id": "ev-262689c746b3c966d455",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2317,
+      "endLine": 2317,
+      "bytes": 44
+    },
+    {
+      "id": "ev-d2361f890541ae89cd24",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2326,
+      "endLine": 2326,
+      "bytes": 62
+    },
+    {
+      "id": "ev-83a2163e754425326632",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2339,
+      "endLine": 2339,
+      "bytes": 116
+    },
+    {
+      "id": "ev-6d5998b71372ab225905",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2345,
+      "endLine": 2345,
+      "bytes": 45
+    },
+    {
+      "id": "ev-957e0d97516821827da6",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2356,
+      "endLine": 2356,
+      "bytes": 32
+    },
+    {
+      "id": "ev-61dfbf9d374aaf7cff0f",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2370,
+      "endLine": 2370,
+      "bytes": 80
+    },
+    {
+      "id": "ev-0a70a39a058655cfc5db",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2375,
+      "endLine": 2375,
+      "bytes": 101
+    },
+    {
+      "id": "ev-5d602fa6714f96f91b69",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2376,
+      "endLine": 2376,
+      "bytes": 65
+    },
+    {
+      "id": "ev-d1146fbf9782f053bbb0",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1267,
+      "endLine": 1267,
+      "bytes": 49
+    },
+    {
+      "id": "ev-e26f74da7a44aa614252",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1268,
+      "endLine": 1268,
+      "bytes": 49
+    },
+    {
+      "id": "ev-1b8a194e6eef6218d32c",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1270,
+      "endLine": 1270,
+      "bytes": 63
+    },
+    {
+      "id": "ev-8bab07d4c233386824f6",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1271,
+      "endLine": 1271,
+      "bytes": 45
+    },
+    {
+      "id": "ev-633a4e4771509c8b3732",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1379,
+      "endLine": 1379,
+      "bytes": 78
+    },
+    {
+      "id": "ev-8eaa48e5cf5a6675d8ad",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1380,
+      "endLine": 1380,
+      "bytes": 78
+    },
+    {
+      "id": "ev-f17fca57d95262744d56",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1381,
+      "endLine": 1381,
+      "bytes": 47
+    },
+    {
+      "id": "ev-ecc35e89f6f7912153c5",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1383,
+      "endLine": 1383,
+      "bytes": 84
+    },
+    {
+      "id": "ev-5f7cd32512c98478dd6a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1385,
+      "endLine": 1385,
+      "bytes": 71
+    },
+    {
+      "id": "ev-b9b3abd9344257962002",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1541,
+      "endLine": 1541,
+      "bytes": 24
+    },
+    {
+      "id": "ev-f6e9ffb55ef10aa16815",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1560,
+      "endLine": 1560,
+      "bytes": 75
+    },
+    {
+      "id": "ev-474c2286da3f3d8be63a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1562,
+      "endLine": 1562,
+      "bytes": 96
+    },
+    {
+      "id": "ev-ede436c9575d3442a216",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1573,
+      "endLine": 1573,
+      "bytes": 107
+    },
+    {
+      "id": "ev-f0b43564442a2c235a13",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1576,
+      "endLine": 1576,
+      "bytes": 66
+    },
+    {
+      "id": "ev-ad5d8a0986c3178b4eee",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1589,
+      "endLine": 1589,
+      "bytes": 55
+    },
+    {
+      "id": "ev-b35e5f5c0fc92bf65ade",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1620,
+      "endLine": 1620,
+      "bytes": 59
+    },
+    {
+      "id": "ev-6d976fb200fb830e2aa2",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1644,
+      "endLine": 1644,
+      "bytes": 59
+    },
+    {
+      "id": "ev-9b3fd5129a63d5922dbd",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1658,
+      "endLine": 1658,
+      "bytes": 59
+    },
+    {
+      "id": "ev-d5689aae70b4e5cc4589",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1700,
+      "endLine": 1700,
+      "bytes": 55
+    },
+    {
+      "id": "ev-0d07907c78a7566c2ab6",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2495,
+      "endLine": 2495,
+      "bytes": 24
+    },
+    {
+      "id": "ev-345a460e2b3f74451355",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2506,
+      "endLine": 2506,
+      "bytes": 79
+    },
+    {
+      "id": "ev-3239b313218a6df67fe9",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2592,
+      "endLine": 2592,
+      "bytes": 24
+    },
+    {
+      "id": "ev-d65c9d340fc23fd8bf75",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2634,
+      "endLine": 2634,
+      "bytes": 48
+    },
+    {
+      "id": "ev-7b50b31d6435821c3bfb",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2643,
+      "endLine": 2643,
+      "bytes": 48
+    },
+    {
+      "id": "ev-50e0f6d9e35a5b8eb3cb",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2658,
+      "endLine": 2658,
+      "bytes": 51
+    },
+    {
+      "id": "ev-9656d6a9afa7c2cfab6f",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2672,
+      "endLine": 2672,
+      "bytes": 100
+    },
+    {
+      "id": "ev-68aa47a7211a10751298",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2676,
+      "endLine": 2676,
+      "bytes": 111
+    },
+    {
+      "id": "ev-908f8682705b07729e76",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2692,
+      "endLine": 2692,
+      "bytes": 107
+    },
+    {
+      "id": "ev-7f75f9004a2c98d4e924",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2699,
+      "endLine": 2699,
+      "bytes": 127
+    },
+    {
+      "id": "ev-e7f3f1fe277b4a6d3ee3",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1538,
+      "endLine": 1805,
+      "bytes": 12441
+    },
+    {
+      "id": "ev-97ebeb6532ca56c4b131",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1325,
+      "endLine": 1540,
+      "bytes": 10003
+    },
+    {
+      "id": "ev-485e2dfb271b870635d5",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2335,
+      "endLine": 2365,
+      "bytes": 1166
+    },
+    {
+      "id": "ev-f599b772e29aadc18397",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2485,
+      "endLine": 2520,
+      "bytes": 1457
+    },
+    {
+      "id": "ev-c71fa50d0126f016b038",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/files.py",
+      "sha256": "bba7349241119a4f8efcf5f8f227751ba92029e4604948d11bc6183a94d42424",
+      "startLine": 172,
+      "endLine": 172,
+      "bytes": 48
+    },
+    {
+      "id": "ev-1ca1b376ba3d93be79f8",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/files.py",
+      "sha256": "bba7349241119a4f8efcf5f8f227751ba92029e4604948d11bc6183a94d42424",
+      "startLine": 1,
+      "endLine": 180,
+      "bytes": 6261
+    },
+    {
+      "id": "ev-c55f7d59dbf56dcbf8ab",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2438,
+      "endLine": 2438,
+      "bytes": 79
+    },
+    {
+      "id": "ev-c0f343836151e27c535a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/files.py",
+      "sha256": "f92028460061cc4e03cb8214eafd4474a07370f41f61c3066deea4d30c774b9b",
+      "startLine": 45,
+      "endLine": 45,
+      "bytes": 76
+    },
+    {
+      "id": "ev-9065e3c8717d9e5aa38e",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/files.py",
+      "sha256": "f92028460061cc4e03cb8214eafd4474a07370f41f61c3066deea4d30c774b9b",
+      "startLine": 138,
+      "endLine": 138,
+      "bytes": 101
+    },
+    {
+      "id": "ev-114cb1c97027b640554e",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/files.py",
+      "sha256": "f92028460061cc4e03cb8214eafd4474a07370f41f61c3066deea4d30c774b9b",
+      "startLine": 147,
+      "endLine": 147,
+      "bytes": 69
+    },
+    {
+      "id": "ev-1492fd9b2b867c20ca20",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/files.py",
+      "sha256": "f92028460061cc4e03cb8214eafd4474a07370f41f61c3066deea4d30c774b9b",
+      "startLine": 157,
+      "endLine": 157,
+      "bytes": 65
+    },
+    {
+      "id": "ev-d14112d87d3311f2e5a8",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/files.py",
+      "sha256": "f92028460061cc4e03cb8214eafd4474a07370f41f61c3066deea4d30c774b9b",
+      "startLine": 571,
+      "endLine": 571,
+      "bytes": 78
+    },
+    {
+      "id": "ev-d0f056935fc789e3e78b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/files.py",
+      "sha256": "f92028460061cc4e03cb8214eafd4474a07370f41f61c3066deea4d30c774b9b",
+      "startLine": 591,
+      "endLine": 591,
+      "bytes": 85
+    },
+    {
+      "id": "ev-b183a804cae03eb475a7",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/knowledge.py",
+      "sha256": "d59cea488d300bf3206aeaf176af980b05de95b1e86e766373765b1fcd3f1342",
+      "startLine": 25,
+      "endLine": 25,
+      "bytes": 26
+    },
+    {
+      "id": "ev-86da0cbada36c924e0e4",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/knowledge.py",
+      "sha256": "d59cea488d300bf3206aeaf176af980b05de95b1e86e766373765b1fcd3f1342",
+      "startLine": 324,
+      "endLine": 324,
+      "bytes": 99
+    },
+    {
+      "id": "ev-4f5ab4c7b237a844486d",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/knowledge.py",
+      "sha256": "d59cea488d300bf3206aeaf176af980b05de95b1e86e766373765b1fcd3f1342",
+      "startLine": 663,
+      "endLine": 663,
+      "bytes": 82
+    },
+    {
+      "id": "ev-b54c765f2decf106fe63",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/knowledge.py",
+      "sha256": "d59cea488d300bf3206aeaf176af980b05de95b1e86e766373765b1fcd3f1342",
+      "startLine": 741,
+      "endLine": 741,
+      "bytes": 82
+    }
+  ],
+  "deliveryValid": true,
+  "reviewCaution": "Citations and host consistency do not prove extraction meaning. Evaluate raw first/final and final prose against original source at the retained evidence ranges. A native prose answer can be delivered despite failed host checking. Representation may reveal strategy; arm, cost and target scores are hidden. No earlier answer is supplied."
+}

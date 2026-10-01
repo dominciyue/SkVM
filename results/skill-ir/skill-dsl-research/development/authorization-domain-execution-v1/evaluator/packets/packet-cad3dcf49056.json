@@ -1,0 +1,3664 @@
+{
+  "schemaVersion": "authorization-aq-anonymous-packet/v1",
+  "id": "packet-cad3dcf49056",
+  "task": {
+    "brief": "Investigate GetRepoPermissions in this Gitea revision. Compare a normal authenticated caller querying their own collaborator permission with the same caller querying another user's permission; include differences for privileged callers visible in source. Explain path-specific controls, identity comparison and the repository permission result. Follow upstream code only when relevant. Do not turn this behavior question into an invented normative policy.",
+    "mode": "behavior"
+  },
+  "status": "timeout-unknown",
+  "initial": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "get-repo-permissions-path-controls",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "This path first requires a signed context through the enclosing reqToken middleware. In GetRepoPermissions, permission to inspect the requested collaborator is granted when at least one source-visible condition holds: the caller is a site admin, the collaborator path value case-insensitively matches ctx.Doer.LowerName, or the caller is an admin of the current repository. Otherwise the handler terminates with forbidden. If permitted, it resolves the collaborator by name and computes that explicit user's permission on ctx.Repo.Repository, then returns a converted user-and-permission object using the computed AccessMode."
+        },
+        "branches": [
+          {
+            "id": "unsigned",
+            "condition": "ctx.IsSigned is false at reqToken",
+            "disposition": "deny",
+            "explanation": "The enclosing /collaborators group invokes reqToken, which emits an unauthorized API error when the context is not signed.",
+            "evidenceIds": [
+              "ev-3fc2f220076282506b9e",
+              "ev-8e6e5a8ecf6b42494b52"
+            ]
+          },
+          {
+            "id": "query-forbidden",
+            "condition": "Signed, but caller is not a site admin, collaborator does not case-insensitively match ctx.Doer.LowerName, and caller is not current-repository admin",
+            "disposition": "deny",
+            "explanation": "The handler returns forbidden before collaborator lookup or permission computation.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ]
+          },
+          {
+            "id": "authorized-query",
+            "condition": "Signed and caller is a site admin, or self-name matches case-insensitively, or caller is current-repository admin",
+            "disposition": "allow",
+            "explanation": "The handler resolves the named collaborator, computes GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator), and returns permission.AccessMode through ToUserAndPermission. Lookup and internal failures can still terminate with not-found or internal error.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec",
+              "ev-a6b1d2bdd676f56f89ca",
+              "ev-1f34df3c7579a2af8b1d"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-3fc2f220076282506b9e",
+          "ev-8e6e5a8ecf6b42494b52",
+          "ev-ff214123ff9d385c93ec",
+          "ev-a6b1d2bdd676f56f89ca",
+          "ev-1f34df3c7579a2af8b1d"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The exact upstream middleware that populates ctx.Repo.Repository and ctx.Repo.Permission for /repos/{username}/{reponame} was not read. The route establishes the repository-shaped path and the handler visibly consumes those fields, but their complete assignment and repository visibility/error behavior are not established here.",
+            "nextRead": "Read the repository-assignment middleware attached above the shown /repos/{username}/{reponame} group and its APIContext population logic."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The body of services/convert.ToUserAndPermission was not available in the shown evidence, so the exact serialized permission fields or labels are not claimed.",
+            "nextRead": "Read the complete lexical body of ToUserAndPermission in services/convert/user.go using a range that fits the indexed original file."
+          }
+        ]
+      },
+      {
+        "questionId": "own-collaborator-permission",
+        "behavior": {
+          "disposition": "allow",
+          "explanation": "Given a normally authenticated caller who queries their own collaborator permission, the case-insensitive self comparison is the decisive handler control: it prevents the forbidden condition even if the caller is neither a site admin nor a repository admin. The path resolves the username to a user and computes the explicit user's permission on the current repository. This result is not merely a boolean collaborator check; it is the AccessMode produced by GetIndividualUserRepoPermission, including direct access and applicable repository-owner, visibility, organization-team, public-minimum, and unit rules."
+        },
+        "branches": [
+          {
+            "id": "own-success",
+            "condition": "Authenticated caller's ctx.Doer.LowerName case-insensitively equals the collaborator path value, user lookup succeeds, and permission computation succeeds",
+            "disposition": "allow",
+            "explanation": "Self-query is permitted. The resolved user's AccessMode for ctx.Repo.Repository is returned through the converter.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec",
+              "ev-1f34df3c7579a2af8b1d"
+            ]
+          },
+          {
+            "id": "own-user-missing-or-error",
+            "condition": "Self guard passes, but the path username does not resolve or a downstream load/permission operation fails",
+            "disposition": "conditional",
+            "explanation": "A nonexistent user produces not-found; other lookup or permission errors produce an internal error rather than a permission result.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-3fc2f220076282506b9e",
+          "ev-8e6e5a8ecf6b42494b52",
+          "ev-1f34df3c7579a2af8b1d"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "No concrete repository, caller identity, collaborator record, direct access mode, organization/team membership, repository visibility, restriction state, or ownership fact is supplied, so the exact returned AccessMode cannot be reduced to a specific value such as Read, Write, Admin, or Owner."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The exact output representation produced by ToUserAndPermission is not shown; only the fact that permission.AccessMode is passed to it is established.",
+            "nextRead": "Read ToUserAndPermission's complete body in services/convert/user.go."
+          }
+        ]
+      },
+      {
+        "questionId": "another-users-permission",
+        "behavior": {
+          "disposition": "deny",
+          "explanation": "For the same normally authenticated, nonprivileged caller querying another username, the self comparison differs from the own-query case: it is false. If the caller is also neither a site admin nor an admin of the current repository, GetRepoPermissions returns forbidden immediately. It does not look up the other user and does not compute or disclose that user's repository permission. If 'normal' was not intended to exclude repository-admin or site-admin status, the privilege branches below remain applicable."
+        },
+        "branches": [
+          {
+            "id": "other-normal-denied",
+            "condition": "Authenticated caller queries a different username and is neither site admin nor current-repository admin",
+            "disposition": "deny",
+            "explanation": "All three negated terms in the handler condition are true, so the request terminates with forbidden before user lookup.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec",
+              "ev-a6b1d2bdd676f56f89ca"
+            ]
+          },
+          {
+            "id": "other-repo-admin",
+            "condition": "Authenticated caller queries a different username but ctx.Repo.Permission.IsAdmin() is true",
+            "disposition": "allow",
+            "explanation": "Repository-admin status bypasses the self restriction; the other user's permission on the current repository is then computed and returned if downstream operations succeed.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec",
+              "ev-a6b1d2bdd676f56f89ca"
+            ]
+          },
+          {
+            "id": "other-site-admin",
+            "condition": "Authenticated caller queries a different username but ctx.Doer.IsAdmin is true",
+            "disposition": "allow",
+            "explanation": "Site-admin status bypasses the self and repository-admin requirements; the queried user's permission, rather than the caller's permission, is computed.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-a6b1d2bdd676f56f89ca"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "The phrase 'normal authenticated caller' does not mechanically specify the values of ctx.Doer.IsAdmin or ctx.Repo.Permission.IsAdmin(). The decisive denial is therefore stated for the ordinary non-site-admin, non-repository-admin interpretation, while both privileged alternatives are preserved."
+          }
+        ]
+      },
+      {
+        "questionId": "privileged-callers",
+        "behavior": {
+          "disposition": "allow",
+          "explanation": "Two source-visible privileges alter only who may query. A site administrator passes because ctx.Doer.IsAdmin is true. A current-repository administrator passes because ctx.IsUserRepoAdmin() returns ctx.Repo.Permission.IsAdmin(). Either may query a different collaborator. After that bypass, the target of permission computation remains the resolved collaborator and current repository. Caller privilege is not copied into the result. Separately, inside GetIndividualUserRepoPermission, if the queried collaborator is themselves a site admin or is the repository owner, that queried collaborator receives AccessModeOwner."
+        },
+        "branches": [
+          {
+            "id": "site-admin-query",
+            "condition": "ctx.Doer.IsAdmin is true",
+            "disposition": "allow",
+            "explanation": "The handler's first negated condition fails, so the query is not forbidden regardless of self-name match or repository-admin status. The result is still calculated for the queried collaborator.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ]
+          },
+          {
+            "id": "repo-admin-query",
+            "condition": "ctx.Repo.Permission.IsAdmin() is true",
+            "disposition": "allow",
+            "explanation": "The repository-admin exception permits querying any collaborator name on this current repository. The handler does not apply a separate reqAdmin middleware to this permission endpoint.",
+            "evidenceIds": [
+              "ev-3fc2f220076282506b9e",
+              "ev-ff214123ff9d385c93ec",
+              "ev-a6b1d2bdd676f56f89ca"
+            ]
+          },
+          {
+            "id": "queried-user-owner-result",
+            "condition": "The resolved queried user is a site admin or has user.ID equal to repo.OwnerID",
+            "disposition": "allow",
+            "explanation": "Independent of why the caller was allowed to inspect the permission, GetIndividualUserRepoPermission returns AccessModeOwner for a queried user who is a site admin or the repository owner.",
+            "evidenceIds": [
+              "ev-1f34df3c7579a2af8b1d"
+            ]
+          },
+          {
+            "id": "queried-user-other-result",
+            "condition": "The resolved queried user is neither a site admin nor repository owner",
+            "disposition": "conditional",
+            "explanation": "The result follows the queried user's direct collaborator/owner access plus applicable visibility, public-repository minimum, organization team, and unit permission processing; caller privilege does not determine that AccessMode.",
+            "evidenceIds": [
+              "ev-1f34df3c7579a2af8b1d"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-3fc2f220076282506b9e",
+          "ev-ff214123ff9d385c93ec",
+          "ev-a6b1d2bdd676f56f89ca",
+          "ev-1f34df3c7579a2af8b1d"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "No concrete privileged caller, queried collaborator, or repository state is supplied, so the exact target AccessMode remains dependent on the queried user's relation to that repository."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The exact construction of ctx.Repo.Permission was not traced, so this result identifies the visible repository-admin predicate but does not claim exhaustive upstream repository authorization behavior.",
+            "nextRead": "Read the middleware that assigns APIContext.Repo and computes its Permission for the selected repository."
+          }
+        ]
+      }
+    ],
+    "observations": [
+      {
+        "questionId": "get-repo-permissions-path-controls",
+        "kind": "entry",
+        "subject": "GET /repos/{username}/{reponame}/collaborators/{collaborator}/permission",
+        "object": "repo.GetRepoPermissions",
+        "claim": "The permission endpoint is registered inside the /collaborators group, and that group is protected by reqToken().",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3fc2f220076282506b9e",
+          "ev-8e6e5a8ecf6b42494b52"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-path-controls",
+        "kind": "principal-binding",
+        "subject": "caller",
+        "object": "ctx.Doer",
+        "claim": "The handler evaluates the caller through ctx.Doer.IsAdmin and ctx.Doer.LowerName; reqToken allows processing only when ctx.IsSigned is true.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-8e6e5a8ecf6b42494b52"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-path-controls",
+        "kind": "resource-binding",
+        "subject": "requested collaborator and repository",
+        "object": "collaboratorUsername, collaborator, ctx.Repo.Repository",
+        "claim": "The collaborator path value is read first, then resolved by name to a user; the permission computation uses that resolved user and ctx.Repo.Repository.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-path-controls",
+        "kind": "guard",
+        "subject": "permission-query authorization",
+        "object": "site-admin OR case-insensitive self match OR current-repository admin",
+        "claim": "The handler rejects only when all three are false: the caller is not a site admin, the caller's LowerName does not case-insensitively equal the collaborator path value, and ctx.IsUserRepoAdmin() is false.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-a6b1d2bdd676f56f89ca"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-path-controls",
+        "kind": "effect",
+        "subject": "authorized permission query",
+        "object": "resolved collaborator on ctx.Repo.Repository",
+        "claim": "After authorization and user resolution, the handler computes GetIndividualUserRepoPermission for the resolved collaborator, not for the caller, and passes permission.AccessMode to ToUserAndPermission for the successful JSON response.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-1f34df3c7579a2af8b1d"
+        ]
+      },
+      {
+        "questionId": "own-collaborator-permission",
+        "kind": "guard",
+        "subject": "normally authenticated caller querying self",
+        "object": "case-insensitive comparison of ctx.Doer.LowerName and collaborator path value",
+        "claim": "The self-match independently bypasses the forbidden branch; repository-admin or site-admin status is not required for this branch.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ]
+      },
+      {
+        "questionId": "own-collaborator-permission",
+        "kind": "effect",
+        "subject": "own collaborator permission query",
+        "object": "explicitly resolved caller-named user on current repository",
+        "claim": "The result is the explicit user's repository permission. The helper loads units, checks collaborator status and owner visibility, gives site admins or repository owners Owner access, otherwise combines direct access and, for organization repositories, public minimum access and team/unit access.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-1f34df3c7579a2af8b1d"
+        ]
+      },
+      {
+        "questionId": "another-users-permission",
+        "kind": "guard",
+        "subject": "normally authenticated caller querying another username",
+        "object": "site-admin or current-repository-admin exceptions",
+        "claim": "Because the self comparison is false, a caller who is neither a site admin nor a current-repository admin is rejected before the target user is looked up or their repository permission is computed.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-a6b1d2bdd676f56f89ca"
+        ]
+      },
+      {
+        "questionId": "another-users-permission",
+        "kind": "effect",
+        "subject": "authorized query about another user",
+        "object": "the other resolved user on ctx.Repo.Repository",
+        "claim": "If a privilege exception permits the query, the returned permission is still computed for the other user; the caller's elevated status authorizes inspection but is not substituted as the permission subject.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ]
+      },
+      {
+        "questionId": "privileged-callers",
+        "kind": "exception",
+        "subject": "site administrator",
+        "object": "handler query guard",
+        "claim": "ctx.Doer.IsAdmin bypasses both the self-name requirement and the repository-admin requirement.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ]
+      },
+      {
+        "questionId": "privileged-callers",
+        "kind": "exception",
+        "subject": "current-repository administrator",
+        "object": "handler query guard",
+        "claim": "ctx.IsUserRepoAdmin() bypasses the self-name requirement. In APIContext this is ctx.Repo.Permission.IsAdmin().",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-a6b1d2bdd676f56f89ca"
+        ]
+      },
+      {
+        "questionId": "privileged-callers",
+        "kind": "effect",
+        "subject": "privileged caller's authorized query",
+        "object": "queried collaborator's permission",
+        "claim": "The permission helper receives the queried collaborator, so caller privilege does not itself force an Owner/Admin result for the queried user. Within the helper, the queried user gets Owner when that queried user is a site admin or repository owner; other results follow direct, visibility, organization-team, and unit permission logic.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-1f34df3c7579a2af8b1d"
+        ]
+      }
+    ],
+    "scope": "Source-visible behavior of GetRepoPermissions at go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b, limited to the declared allowed paths and the evidence actually shown."
+  },
+  "final": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "get-repo-permissions-path-controls",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "This path first requires a signed context through the enclosing reqToken middleware. In GetRepoPermissions, permission to inspect the requested collaborator is granted when at least one source-visible condition holds: the caller is a site admin, the collaborator path value case-insensitively matches ctx.Doer.LowerName, or the caller is an admin of the current repository. Otherwise the handler terminates with forbidden. If permitted, it resolves the collaborator by name and computes that explicit user's permission on ctx.Repo.Repository, then returns a converted user-and-permission object using the computed AccessMode."
+        },
+        "branches": [
+          {
+            "id": "unsigned",
+            "condition": "ctx.IsSigned is false at reqToken",
+            "disposition": "deny",
+            "explanation": "The enclosing /collaborators group invokes reqToken, which emits an unauthorized API error when the context is not signed.",
+            "evidenceIds": [
+              "ev-3fc2f220076282506b9e",
+              "ev-8e6e5a8ecf6b42494b52"
+            ]
+          },
+          {
+            "id": "query-forbidden",
+            "condition": "Signed, but caller is not a site admin, collaborator does not case-insensitively match ctx.Doer.LowerName, and caller is not current-repository admin",
+            "disposition": "deny",
+            "explanation": "The handler returns forbidden before collaborator lookup or permission computation.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ]
+          },
+          {
+            "id": "authorized-query",
+            "condition": "Signed and caller is a site admin, or self-name matches case-insensitively, or caller is current-repository admin",
+            "disposition": "allow",
+            "explanation": "The handler resolves the named collaborator, computes GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator), and returns permission.AccessMode through ToUserAndPermission. Lookup and internal failures can still terminate with not-found or internal error.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec",
+              "ev-a6b1d2bdd676f56f89ca",
+              "ev-1f34df3c7579a2af8b1d"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-3fc2f220076282506b9e",
+          "ev-8e6e5a8ecf6b42494b52",
+          "ev-ff214123ff9d385c93ec",
+          "ev-a6b1d2bdd676f56f89ca",
+          "ev-1f34df3c7579a2af8b1d"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The exact upstream middleware that populates ctx.Repo.Repository and ctx.Repo.Permission for /repos/{username}/{reponame} was not read. The route establishes the repository-shaped path and the handler visibly consumes those fields, but their complete assignment and repository visibility/error behavior are not established here.",
+            "nextRead": "Read the repository-assignment middleware attached above the shown /repos/{username}/{reponame} group and its APIContext population logic."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The body of services/convert.ToUserAndPermission was not available in the shown evidence, so the exact serialized permission fields or labels are not claimed.",
+            "nextRead": "Read the complete lexical body of ToUserAndPermission in services/convert/user.go using a range that fits the indexed original file."
+          }
+        ]
+      },
+      {
+        "questionId": "own-collaborator-permission",
+        "behavior": {
+          "disposition": "allow",
+          "explanation": "Given a normally authenticated caller who queries their own collaborator permission, the case-insensitive self comparison is the decisive handler control: it prevents the forbidden condition even if the caller is neither a site admin nor a repository admin. The path resolves the username to a user and computes the explicit user's permission on the current repository. This result is not merely a boolean collaborator check; it is the AccessMode produced by GetIndividualUserRepoPermission, including direct access and applicable repository-owner, visibility, organization-team, public-minimum, and unit rules."
+        },
+        "branches": [
+          {
+            "id": "own-success",
+            "condition": "Authenticated caller's ctx.Doer.LowerName case-insensitively equals the collaborator path value, user lookup succeeds, and permission computation succeeds",
+            "disposition": "allow",
+            "explanation": "Self-query is permitted. The resolved user's AccessMode for ctx.Repo.Repository is returned through the converter.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec",
+              "ev-1f34df3c7579a2af8b1d"
+            ]
+          },
+          {
+            "id": "own-user-missing-or-error",
+            "condition": "Self guard passes, but the path username does not resolve or a downstream load/permission operation fails",
+            "disposition": "conditional",
+            "explanation": "A nonexistent user produces not-found; other lookup or permission errors produce an internal error rather than a permission result.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-3fc2f220076282506b9e",
+          "ev-8e6e5a8ecf6b42494b52",
+          "ev-1f34df3c7579a2af8b1d"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "No concrete repository, caller identity, collaborator record, direct access mode, organization/team membership, repository visibility, restriction state, or ownership fact is supplied, so the exact returned AccessMode cannot be reduced to a specific value such as Read, Write, Admin, or Owner."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The exact output representation produced by ToUserAndPermission is not shown; only the fact that permission.AccessMode is passed to it is established.",
+            "nextRead": "Read ToUserAndPermission's complete body in services/convert/user.go."
+          }
+        ]
+      },
+      {
+        "questionId": "another-users-permission",
+        "behavior": {
+          "disposition": "deny",
+          "explanation": "For the same normally authenticated, nonprivileged caller querying another username, the self comparison differs from the own-query case: it is false. If the caller is also neither a site admin nor an admin of the current repository, GetRepoPermissions returns forbidden immediately. It does not look up the other user and does not compute or disclose that user's repository permission. If 'normal' was not intended to exclude repository-admin or site-admin status, the privilege branches below remain applicable."
+        },
+        "branches": [
+          {
+            "id": "other-normal-denied",
+            "condition": "Authenticated caller queries a different username and is neither site admin nor current-repository admin",
+            "disposition": "deny",
+            "explanation": "All three negated terms in the handler condition are true, so the request terminates with forbidden before user lookup.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec",
+              "ev-a6b1d2bdd676f56f89ca"
+            ]
+          },
+          {
+            "id": "other-repo-admin",
+            "condition": "Authenticated caller queries a different username but ctx.Repo.Permission.IsAdmin() is true",
+            "disposition": "allow",
+            "explanation": "Repository-admin status bypasses the self restriction; the other user's permission on the current repository is then computed and returned if downstream operations succeed.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec",
+              "ev-a6b1d2bdd676f56f89ca"
+            ]
+          },
+          {
+            "id": "other-site-admin",
+            "condition": "Authenticated caller queries a different username but ctx.Doer.IsAdmin is true",
+            "disposition": "allow",
+            "explanation": "Site-admin status bypasses the self and repository-admin requirements; the queried user's permission, rather than the caller's permission, is computed.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-a6b1d2bdd676f56f89ca"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "The phrase 'normal authenticated caller' does not mechanically specify the values of ctx.Doer.IsAdmin or ctx.Repo.Permission.IsAdmin(). The decisive denial is therefore stated for the ordinary non-site-admin, non-repository-admin interpretation, while both privileged alternatives are preserved."
+          }
+        ]
+      },
+      {
+        "questionId": "privileged-callers",
+        "behavior": {
+          "disposition": "allow",
+          "explanation": "Two source-visible privileges alter only who may query. A site administrator passes because ctx.Doer.IsAdmin is true. A current-repository administrator passes because ctx.IsUserRepoAdmin() returns ctx.Repo.Permission.IsAdmin(). Either may query a different collaborator. After that bypass, the target of permission computation remains the resolved collaborator and current repository. Caller privilege is not copied into the result. Separately, inside GetIndividualUserRepoPermission, if the queried collaborator is themselves a site admin or is the repository owner, that queried collaborator receives AccessModeOwner."
+        },
+        "branches": [
+          {
+            "id": "site-admin-query",
+            "condition": "ctx.Doer.IsAdmin is true",
+            "disposition": "allow",
+            "explanation": "The handler's first negated condition fails, so the query is not forbidden regardless of self-name match or repository-admin status. The result is still calculated for the queried collaborator.",
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ]
+          },
+          {
+            "id": "repo-admin-query",
+            "condition": "ctx.Repo.Permission.IsAdmin() is true",
+            "disposition": "allow",
+            "explanation": "The repository-admin exception permits querying any collaborator name on this current repository. The handler does not apply a separate reqAdmin middleware to this permission endpoint.",
+            "evidenceIds": [
+              "ev-3fc2f220076282506b9e",
+              "ev-ff214123ff9d385c93ec",
+              "ev-a6b1d2bdd676f56f89ca"
+            ]
+          },
+          {
+            "id": "queried-user-owner-result",
+            "condition": "The resolved queried user is a site admin or has user.ID equal to repo.OwnerID",
+            "disposition": "allow",
+            "explanation": "Independent of why the caller was allowed to inspect the permission, GetIndividualUserRepoPermission returns AccessModeOwner for a queried user who is a site admin or the repository owner.",
+            "evidenceIds": [
+              "ev-1f34df3c7579a2af8b1d"
+            ]
+          },
+          {
+            "id": "queried-user-other-result",
+            "condition": "The resolved queried user is neither a site admin nor repository owner",
+            "disposition": "conditional",
+            "explanation": "The result follows the queried user's direct collaborator/owner access plus applicable visibility, public-repository minimum, organization team, and unit permission processing; caller privilege does not determine that AccessMode.",
+            "evidenceIds": [
+              "ev-1f34df3c7579a2af8b1d"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-3fc2f220076282506b9e",
+          "ev-ff214123ff9d385c93ec",
+          "ev-a6b1d2bdd676f56f89ca",
+          "ev-1f34df3c7579a2af8b1d"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "No concrete privileged caller, queried collaborator, or repository state is supplied, so the exact target AccessMode remains dependent on the queried user's relation to that repository."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The exact construction of ctx.Repo.Permission was not traced, so this result identifies the visible repository-admin predicate but does not claim exhaustive upstream repository authorization behavior.",
+            "nextRead": "Read the middleware that assigns APIContext.Repo and computes its Permission for the selected repository."
+          }
+        ]
+      }
+    ],
+    "observations": [
+      {
+        "questionId": "get-repo-permissions-path-controls",
+        "kind": "entry",
+        "subject": "GET /repos/{username}/{reponame}/collaborators/{collaborator}/permission",
+        "object": "repo.GetRepoPermissions",
+        "claim": "The permission endpoint is registered inside the /collaborators group, and that group is protected by reqToken().",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-3fc2f220076282506b9e",
+          "ev-8e6e5a8ecf6b42494b52"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-path-controls",
+        "kind": "principal-binding",
+        "subject": "caller",
+        "object": "ctx.Doer",
+        "claim": "The handler evaluates the caller through ctx.Doer.IsAdmin and ctx.Doer.LowerName; reqToken allows processing only when ctx.IsSigned is true.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-8e6e5a8ecf6b42494b52"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-path-controls",
+        "kind": "resource-binding",
+        "subject": "requested collaborator and repository",
+        "object": "collaboratorUsername, collaborator, ctx.Repo.Repository",
+        "claim": "The collaborator path value is read first, then resolved by name to a user; the permission computation uses that resolved user and ctx.Repo.Repository.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-path-controls",
+        "kind": "guard",
+        "subject": "permission-query authorization",
+        "object": "site-admin OR case-insensitive self match OR current-repository admin",
+        "claim": "The handler rejects only when all three are false: the caller is not a site admin, the caller's LowerName does not case-insensitively equal the collaborator path value, and ctx.IsUserRepoAdmin() is false.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-a6b1d2bdd676f56f89ca"
+        ]
+      },
+      {
+        "questionId": "get-repo-permissions-path-controls",
+        "kind": "effect",
+        "subject": "authorized permission query",
+        "object": "resolved collaborator on ctx.Repo.Repository",
+        "claim": "After authorization and user resolution, the handler computes GetIndividualUserRepoPermission for the resolved collaborator, not for the caller, and passes permission.AccessMode to ToUserAndPermission for the successful JSON response.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-1f34df3c7579a2af8b1d"
+        ]
+      },
+      {
+        "questionId": "own-collaborator-permission",
+        "kind": "guard",
+        "subject": "normally authenticated caller querying self",
+        "object": "case-insensitive comparison of ctx.Doer.LowerName and collaborator path value",
+        "claim": "The self-match independently bypasses the forbidden branch; repository-admin or site-admin status is not required for this branch.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ]
+      },
+      {
+        "questionId": "own-collaborator-permission",
+        "kind": "effect",
+        "subject": "own collaborator permission query",
+        "object": "explicitly resolved caller-named user on current repository",
+        "claim": "The result is the explicit user's repository permission. The helper loads units, checks collaborator status and owner visibility, gives site admins or repository owners Owner access, otherwise combines direct access and, for organization repositories, public minimum access and team/unit access.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-1f34df3c7579a2af8b1d"
+        ]
+      },
+      {
+        "questionId": "another-users-permission",
+        "kind": "guard",
+        "subject": "normally authenticated caller querying another username",
+        "object": "site-admin or current-repository-admin exceptions",
+        "claim": "Because the self comparison is false, a caller who is neither a site admin nor a current-repository admin is rejected before the target user is looked up or their repository permission is computed.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-a6b1d2bdd676f56f89ca"
+        ]
+      },
+      {
+        "questionId": "another-users-permission",
+        "kind": "effect",
+        "subject": "authorized query about another user",
+        "object": "the other resolved user on ctx.Repo.Repository",
+        "claim": "If a privilege exception permits the query, the returned permission is still computed for the other user; the caller's elevated status authorizes inspection but is not substituted as the permission subject.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ]
+      },
+      {
+        "questionId": "privileged-callers",
+        "kind": "exception",
+        "subject": "site administrator",
+        "object": "handler query guard",
+        "claim": "ctx.Doer.IsAdmin bypasses both the self-name requirement and the repository-admin requirement.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ]
+      },
+      {
+        "questionId": "privileged-callers",
+        "kind": "exception",
+        "subject": "current-repository administrator",
+        "object": "handler query guard",
+        "claim": "ctx.IsUserRepoAdmin() bypasses the self-name requirement. In APIContext this is ctx.Repo.Permission.IsAdmin().",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-a6b1d2bdd676f56f89ca"
+        ]
+      },
+      {
+        "questionId": "privileged-callers",
+        "kind": "effect",
+        "subject": "privileged caller's authorized query",
+        "object": "queried collaborator's permission",
+        "claim": "The permission helper receives the queried collaborator, so caller privilege does not itself force an Owner/Admin result for the queried user. Within the helper, the queried user gets Owner when that queried user is a site admin or repository owner; other results follow direct, visibility, organization-team, and unit permission logic.",
+        "state": "observed",
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec",
+          "ev-1f34df3c7579a2af8b1d"
+        ]
+      }
+    ],
+    "scope": "Source-visible behavior of GetRepoPermissions at go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b, limited to the declared allowed paths and the evidence actually shown."
+  },
+  "prose": null,
+  "initialProse": null,
+  "initialValidation": {
+    "valid": false,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "get-repo-permissions-path-controls",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "This path first requires a signed context through the enclosing reqToken middleware. In GetRepoPermissions, permission to inspect the requested collaborator is granted when at least one source-visible condition holds: the caller is a site admin, the collaborator path value case-insensitively matches ctx.Doer.LowerName, or the caller is an admin of the current repository. Otherwise the handler terminates with forbidden. If permitted, it resolves the collaborator by name and computes that explicit user's permission on ctx.Repo.Repository, then returns a converted user-and-permission object using the computed AccessMode."
+          },
+          "branches": [
+            {
+              "id": "unsigned",
+              "condition": "ctx.IsSigned is false at reqToken",
+              "disposition": "deny",
+              "explanation": "The enclosing /collaborators group invokes reqToken, which emits an unauthorized API error when the context is not signed.",
+              "evidenceIds": [
+                "ev-3fc2f220076282506b9e",
+                "ev-8e6e5a8ecf6b42494b52"
+              ]
+            },
+            {
+              "id": "query-forbidden",
+              "condition": "Signed, but caller is not a site admin, collaborator does not case-insensitively match ctx.Doer.LowerName, and caller is not current-repository admin",
+              "disposition": "deny",
+              "explanation": "The handler returns forbidden before collaborator lookup or permission computation.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec"
+              ]
+            },
+            {
+              "id": "authorized-query",
+              "condition": "Signed and caller is a site admin, or self-name matches case-insensitively, or caller is current-repository admin",
+              "disposition": "allow",
+              "explanation": "The handler resolves the named collaborator, computes GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator), and returns permission.AccessMode through ToUserAndPermission. Lookup and internal failures can still terminate with not-found or internal error.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec",
+                "ev-a6b1d2bdd676f56f89ca",
+                "ev-1f34df3c7579a2af8b1d"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-3fc2f220076282506b9e",
+            "ev-8e6e5a8ecf6b42494b52",
+            "ev-ff214123ff9d385c93ec",
+            "ev-a6b1d2bdd676f56f89ca",
+            "ev-1f34df3c7579a2af8b1d"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The exact upstream middleware that populates ctx.Repo.Repository and ctx.Repo.Permission for /repos/{username}/{reponame} was not read. The route establishes the repository-shaped path and the handler visibly consumes those fields, but their complete assignment and repository visibility/error behavior are not established here.",
+              "nextRead": "Read the repository-assignment middleware attached above the shown /repos/{username}/{reponame} group and its APIContext population logic."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The body of services/convert.ToUserAndPermission was not available in the shown evidence, so the exact serialized permission fields or labels are not claimed.",
+              "nextRead": "Read the complete lexical body of ToUserAndPermission in services/convert/user.go using a range that fits the indexed original file."
+            }
+          ]
+        },
+        {
+          "questionId": "own-collaborator-permission",
+          "behavior": {
+            "disposition": "allow",
+            "explanation": "Given a normally authenticated caller who queries their own collaborator permission, the case-insensitive self comparison is the decisive handler control: it prevents the forbidden condition even if the caller is neither a site admin nor a repository admin. The path resolves the username to a user and computes the explicit user's permission on the current repository. This result is not merely a boolean collaborator check; it is the AccessMode produced by GetIndividualUserRepoPermission, including direct access and applicable repository-owner, visibility, organization-team, public-minimum, and unit rules."
+          },
+          "branches": [
+            {
+              "id": "own-success",
+              "condition": "Authenticated caller's ctx.Doer.LowerName case-insensitively equals the collaborator path value, user lookup succeeds, and permission computation succeeds",
+              "disposition": "allow",
+              "explanation": "Self-query is permitted. The resolved user's AccessMode for ctx.Repo.Repository is returned through the converter.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec",
+                "ev-1f34df3c7579a2af8b1d"
+              ]
+            },
+            {
+              "id": "own-user-missing-or-error",
+              "condition": "Self guard passes, but the path username does not resolve or a downstream load/permission operation fails",
+              "disposition": "conditional",
+              "explanation": "A nonexistent user produces not-found; other lookup or permission errors produce an internal error rather than a permission result.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-3fc2f220076282506b9e",
+            "ev-8e6e5a8ecf6b42494b52",
+            "ev-1f34df3c7579a2af8b1d"
+          ],
+          "missing": [
+            {
+              "kind": "premise-unspecified",
+              "detail": "No concrete repository, caller identity, collaborator record, direct access mode, organization/team membership, repository visibility, restriction state, or ownership fact is supplied, so the exact returned AccessMode cannot be reduced to a specific value such as Read, Write, Admin, or Owner."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The exact output representation produced by ToUserAndPermission is not shown; only the fact that permission.AccessMode is passed to it is established.",
+              "nextRead": "Read ToUserAndPermission's complete body in services/convert/user.go."
+            }
+          ]
+        },
+        {
+          "questionId": "another-users-permission",
+          "behavior": {
+            "disposition": "deny",
+            "explanation": "For the same normally authenticated, nonprivileged caller querying another username, the self comparison differs from the own-query case: it is false. If the caller is also neither a site admin nor an admin of the current repository, GetRepoPermissions returns forbidden immediately. It does not look up the other user and does not compute or disclose that user's repository permission. If 'normal' was not intended to exclude repository-admin or site-admin status, the privilege branches below remain applicable."
+          },
+          "branches": [
+            {
+              "id": "other-normal-denied",
+              "condition": "Authenticated caller queries a different username and is neither site admin nor current-repository admin",
+              "disposition": "deny",
+              "explanation": "All three negated terms in the handler condition are true, so the request terminates with forbidden before user lookup.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec",
+                "ev-a6b1d2bdd676f56f89ca"
+              ]
+            },
+            {
+              "id": "other-repo-admin",
+              "condition": "Authenticated caller queries a different username but ctx.Repo.Permission.IsAdmin() is true",
+              "disposition": "allow",
+              "explanation": "Repository-admin status bypasses the self restriction; the other user's permission on the current repository is then computed and returned if downstream operations succeed.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec",
+                "ev-a6b1d2bdd676f56f89ca"
+              ]
+            },
+            {
+              "id": "other-site-admin",
+              "condition": "Authenticated caller queries a different username but ctx.Doer.IsAdmin is true",
+              "disposition": "allow",
+              "explanation": "Site-admin status bypasses the self and repository-admin requirements; the queried user's permission, rather than the caller's permission, is computed.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-a6b1d2bdd676f56f89ca"
+          ],
+          "missing": [
+            {
+              "kind": "premise-unspecified",
+              "detail": "The phrase 'normal authenticated caller' does not mechanically specify the values of ctx.Doer.IsAdmin or ctx.Repo.Permission.IsAdmin(). The decisive denial is therefore stated for the ordinary non-site-admin, non-repository-admin interpretation, while both privileged alternatives are preserved."
+            }
+          ]
+        },
+        {
+          "questionId": "privileged-callers",
+          "behavior": {
+            "disposition": "allow",
+            "explanation": "Two source-visible privileges alter only who may query. A site administrator passes because ctx.Doer.IsAdmin is true. A current-repository administrator passes because ctx.IsUserRepoAdmin() returns ctx.Repo.Permission.IsAdmin(). Either may query a different collaborator. After that bypass, the target of permission computation remains the resolved collaborator and current repository. Caller privilege is not copied into the result. Separately, inside GetIndividualUserRepoPermission, if the queried collaborator is themselves a site admin or is the repository owner, that queried collaborator receives AccessModeOwner."
+          },
+          "branches": [
+            {
+              "id": "site-admin-query",
+              "condition": "ctx.Doer.IsAdmin is true",
+              "disposition": "allow",
+              "explanation": "The handler's first negated condition fails, so the query is not forbidden regardless of self-name match or repository-admin status. The result is still calculated for the queried collaborator.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec"
+              ]
+            },
+            {
+              "id": "repo-admin-query",
+              "condition": "ctx.Repo.Permission.IsAdmin() is true",
+              "disposition": "allow",
+              "explanation": "The repository-admin exception permits querying any collaborator name on this current repository. The handler does not apply a separate reqAdmin middleware to this permission endpoint.",
+              "evidenceIds": [
+                "ev-3fc2f220076282506b9e",
+                "ev-ff214123ff9d385c93ec",
+                "ev-a6b1d2bdd676f56f89ca"
+              ]
+            },
+            {
+              "id": "queried-user-owner-result",
+              "condition": "The resolved queried user is a site admin or has user.ID equal to repo.OwnerID",
+              "disposition": "allow",
+              "explanation": "Independent of why the caller was allowed to inspect the permission, GetIndividualUserRepoPermission returns AccessModeOwner for a queried user who is a site admin or the repository owner.",
+              "evidenceIds": [
+                "ev-1f34df3c7579a2af8b1d"
+              ]
+            },
+            {
+              "id": "queried-user-other-result",
+              "condition": "The resolved queried user is neither a site admin nor repository owner",
+              "disposition": "conditional",
+              "explanation": "The result follows the queried user's direct collaborator/owner access plus applicable visibility, public-repository minimum, organization team, and unit permission processing; caller privilege does not determine that AccessMode.",
+              "evidenceIds": [
+                "ev-1f34df3c7579a2af8b1d"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-3fc2f220076282506b9e",
+            "ev-ff214123ff9d385c93ec",
+            "ev-a6b1d2bdd676f56f89ca",
+            "ev-1f34df3c7579a2af8b1d"
+          ],
+          "missing": [
+            {
+              "kind": "premise-unspecified",
+              "detail": "No concrete privileged caller, queried collaborator, or repository state is supplied, so the exact target AccessMode remains dependent on the queried user's relation to that repository."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The exact construction of ctx.Repo.Permission was not traced, so this result identifies the visible repository-admin predicate but does not claim exhaustive upstream repository authorization behavior.",
+              "nextRead": "Read the middleware that assigns APIContext.Repo and computes its Permission for the selected repository."
+            }
+          ]
+        }
+      ],
+      "observations": [
+        {
+          "questionId": "get-repo-permissions-path-controls",
+          "kind": "entry",
+          "subject": "GET /repos/{username}/{reponame}/collaborators/{collaborator}/permission",
+          "object": "repo.GetRepoPermissions",
+          "claim": "The permission endpoint is registered inside the /collaborators group, and that group is protected by reqToken().",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-3fc2f220076282506b9e",
+            "ev-8e6e5a8ecf6b42494b52"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-path-controls",
+          "kind": "principal-binding",
+          "subject": "caller",
+          "object": "ctx.Doer",
+          "claim": "The handler evaluates the caller through ctx.Doer.IsAdmin and ctx.Doer.LowerName; reqToken allows processing only when ctx.IsSigned is true.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-8e6e5a8ecf6b42494b52"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-path-controls",
+          "kind": "resource-binding",
+          "subject": "requested collaborator and repository",
+          "object": "collaboratorUsername, collaborator, ctx.Repo.Repository",
+          "claim": "The collaborator path value is read first, then resolved by name to a user; the permission computation uses that resolved user and ctx.Repo.Repository.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-path-controls",
+          "kind": "guard",
+          "subject": "permission-query authorization",
+          "object": "site-admin OR case-insensitive self match OR current-repository admin",
+          "claim": "The handler rejects only when all three are false: the caller is not a site admin, the caller's LowerName does not case-insensitively equal the collaborator path value, and ctx.IsUserRepoAdmin() is false.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-a6b1d2bdd676f56f89ca"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-path-controls",
+          "kind": "effect",
+          "subject": "authorized permission query",
+          "object": "resolved collaborator on ctx.Repo.Repository",
+          "claim": "After authorization and user resolution, the handler computes GetIndividualUserRepoPermission for the resolved collaborator, not for the caller, and passes permission.AccessMode to ToUserAndPermission for the successful JSON response.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-1f34df3c7579a2af8b1d"
+          ]
+        },
+        {
+          "questionId": "own-collaborator-permission",
+          "kind": "guard",
+          "subject": "normally authenticated caller querying self",
+          "object": "case-insensitive comparison of ctx.Doer.LowerName and collaborator path value",
+          "claim": "The self-match independently bypasses the forbidden branch; repository-admin or site-admin status is not required for this branch.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec"
+          ]
+        },
+        {
+          "questionId": "own-collaborator-permission",
+          "kind": "effect",
+          "subject": "own collaborator permission query",
+          "object": "explicitly resolved caller-named user on current repository",
+          "claim": "The result is the explicit user's repository permission. The helper loads units, checks collaborator status and owner visibility, gives site admins or repository owners Owner access, otherwise combines direct access and, for organization repositories, public minimum access and team/unit access.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-1f34df3c7579a2af8b1d"
+          ]
+        },
+        {
+          "questionId": "another-users-permission",
+          "kind": "guard",
+          "subject": "normally authenticated caller querying another username",
+          "object": "site-admin or current-repository-admin exceptions",
+          "claim": "Because the self comparison is false, a caller who is neither a site admin nor a current-repository admin is rejected before the target user is looked up or their repository permission is computed.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-a6b1d2bdd676f56f89ca"
+          ]
+        },
+        {
+          "questionId": "another-users-permission",
+          "kind": "effect",
+          "subject": "authorized query about another user",
+          "object": "the other resolved user on ctx.Repo.Repository",
+          "claim": "If a privilege exception permits the query, the returned permission is still computed for the other user; the caller's elevated status authorizes inspection but is not substituted as the permission subject.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec"
+          ]
+        },
+        {
+          "questionId": "privileged-callers",
+          "kind": "exception",
+          "subject": "site administrator",
+          "object": "handler query guard",
+          "claim": "ctx.Doer.IsAdmin bypasses both the self-name requirement and the repository-admin requirement.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec"
+          ]
+        },
+        {
+          "questionId": "privileged-callers",
+          "kind": "exception",
+          "subject": "current-repository administrator",
+          "object": "handler query guard",
+          "claim": "ctx.IsUserRepoAdmin() bypasses the self-name requirement. In APIContext this is ctx.Repo.Permission.IsAdmin().",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-a6b1d2bdd676f56f89ca"
+          ]
+        },
+        {
+          "questionId": "privileged-callers",
+          "kind": "effect",
+          "subject": "privileged caller's authorized query",
+          "object": "queried collaborator's permission",
+          "claim": "The permission helper receives the queried collaborator, so caller privilege does not itself force an Owner/Admin result for the queried user. Within the helper, the queried user gets Owner when that queried user is a site admin or repository owner; other results follow direct, visibility, organization-team, and unit permission logic.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-1f34df3c7579a2af8b1d"
+          ]
+        }
+      ],
+      "scope": "Source-visible behavior of GetRepoPermissions at go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b, limited to the declared allowed paths and the evidence actually shown."
+    },
+    "diagnostics": [
+      {
+        "code": "predicate-invalid",
+        "path": "rules.r-guard-self-or-privileged",
+        "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+        "severity": "error"
+      },
+      {
+        "code": "predicate-invalid",
+        "path": "rules.r-guard-other-deny",
+        "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+        "severity": "error"
+      },
+      {
+        "code": "premise-not-supplied",
+        "path": "bindings.doer_is_admin",
+        "message": "Known values require an exact span of an original supplied user statement, not a model-authored premise; mapping meaning remains unreviewed.",
+        "severity": "error"
+      },
+      {
+        "code": "premise-not-supplied",
+        "path": "bindings.doer_lower_name",
+        "message": "Known values require an exact span of an original supplied user statement, not a model-authored premise; mapping meaning remains unreviewed.",
+        "severity": "error"
+      },
+      {
+        "code": "premise-not-supplied",
+        "path": "bindings.collaborator_username",
+        "message": "Known values require an exact span of an original supplied user statement, not a model-authored premise; mapping meaning remains unreviewed.",
+        "severity": "error"
+      },
+      {
+        "code": "premise-not-supplied",
+        "path": "bindings.is_user_repo_admin",
+        "message": "Known values require an exact span of an original supplied user statement, not a model-authored premise; mapping meaning remains unreviewed.",
+        "severity": "error"
+      },
+      {
+        "code": "control-conflict",
+        "path": "rules.r-entry-route-permission",
+        "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+        "severity": "error"
+      },
+      {
+        "code": "control-conflict",
+        "path": "rules.r-entry-route-permission-own",
+        "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+        "severity": "error"
+      },
+      {
+        "code": "control-conflict",
+        "path": "rules.r-entry-route-permission-other",
+        "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+        "severity": "error"
+      },
+      {
+        "code": "control-conflict",
+        "path": "rules.r-entry-route-permission-priv",
+        "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+        "severity": "error"
+      },
+      {
+        "code": "control-conflict",
+        "path": "ctrl-9cfc11a208e631455b9e",
+        "message": "Unresolved conflicting extraction remains; explicit correction is needed.",
+        "severity": "error"
+      },
+      {
+        "code": "control-conflict",
+        "path": "ctrl-2819226030ca45f80950",
+        "message": "Unresolved conflicting extraction remains; explicit correction is needed.",
+        "severity": "error"
+      },
+      {
+        "code": "control-conflict",
+        "path": "ctrl-7473683643ccdd4969db",
+        "message": "Unresolved conflicting extraction remains; explicit correction is needed.",
+        "severity": "error"
+      },
+      {
+        "code": "control-conflict",
+        "path": "ctrl-541e7a9b6bcc7601172e",
+        "message": "Unresolved conflicting extraction remains; explicit correction is needed.",
+        "severity": "error"
+      },
+      {
+        "code": "path-not-closed",
+        "path": "get-repo-permissions-path-controls",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      },
+      {
+        "code": "path-not-closed",
+        "path": "own-collaborator-permission",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      },
+      {
+        "code": "path-not-closed",
+        "path": "another-users-permission",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      },
+      {
+        "code": "path-not-closed",
+        "path": "privileged-callers",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      }
+    ],
+    "semanticSupport": "unreviewed"
+  },
+  "finalValidation": {
+    "valid": false,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "get-repo-permissions-path-controls",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "This path first requires a signed context through the enclosing reqToken middleware. In GetRepoPermissions, permission to inspect the requested collaborator is granted when at least one source-visible condition holds: the caller is a site admin, the collaborator path value case-insensitively matches ctx.Doer.LowerName, or the caller is an admin of the current repository. Otherwise the handler terminates with forbidden. If permitted, it resolves the collaborator by name and computes that explicit user's permission on ctx.Repo.Repository, then returns a converted user-and-permission object using the computed AccessMode."
+          },
+          "branches": [
+            {
+              "id": "unsigned",
+              "condition": "ctx.IsSigned is false at reqToken",
+              "disposition": "deny",
+              "explanation": "The enclosing /collaborators group invokes reqToken, which emits an unauthorized API error when the context is not signed.",
+              "evidenceIds": [
+                "ev-3fc2f220076282506b9e",
+                "ev-8e6e5a8ecf6b42494b52"
+              ]
+            },
+            {
+              "id": "query-forbidden",
+              "condition": "Signed, but caller is not a site admin, collaborator does not case-insensitively match ctx.Doer.LowerName, and caller is not current-repository admin",
+              "disposition": "deny",
+              "explanation": "The handler returns forbidden before collaborator lookup or permission computation.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec"
+              ]
+            },
+            {
+              "id": "authorized-query",
+              "condition": "Signed and caller is a site admin, or self-name matches case-insensitively, or caller is current-repository admin",
+              "disposition": "allow",
+              "explanation": "The handler resolves the named collaborator, computes GetIndividualUserRepoPermission(ctx, ctx.Repo.Repository, collaborator), and returns permission.AccessMode through ToUserAndPermission. Lookup and internal failures can still terminate with not-found or internal error.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec",
+                "ev-a6b1d2bdd676f56f89ca",
+                "ev-1f34df3c7579a2af8b1d"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-3fc2f220076282506b9e",
+            "ev-8e6e5a8ecf6b42494b52",
+            "ev-ff214123ff9d385c93ec",
+            "ev-a6b1d2bdd676f56f89ca",
+            "ev-1f34df3c7579a2af8b1d"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The exact upstream middleware that populates ctx.Repo.Repository and ctx.Repo.Permission for /repos/{username}/{reponame} was not read. The route establishes the repository-shaped path and the handler visibly consumes those fields, but their complete assignment and repository visibility/error behavior are not established here.",
+              "nextRead": "Read the repository-assignment middleware attached above the shown /repos/{username}/{reponame} group and its APIContext population logic."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The body of services/convert.ToUserAndPermission was not available in the shown evidence, so the exact serialized permission fields or labels are not claimed.",
+              "nextRead": "Read the complete lexical body of ToUserAndPermission in services/convert/user.go using a range that fits the indexed original file."
+            }
+          ]
+        },
+        {
+          "questionId": "own-collaborator-permission",
+          "behavior": {
+            "disposition": "allow",
+            "explanation": "Given a normally authenticated caller who queries their own collaborator permission, the case-insensitive self comparison is the decisive handler control: it prevents the forbidden condition even if the caller is neither a site admin nor a repository admin. The path resolves the username to a user and computes the explicit user's permission on the current repository. This result is not merely a boolean collaborator check; it is the AccessMode produced by GetIndividualUserRepoPermission, including direct access and applicable repository-owner, visibility, organization-team, public-minimum, and unit rules."
+          },
+          "branches": [
+            {
+              "id": "own-success",
+              "condition": "Authenticated caller's ctx.Doer.LowerName case-insensitively equals the collaborator path value, user lookup succeeds, and permission computation succeeds",
+              "disposition": "allow",
+              "explanation": "Self-query is permitted. The resolved user's AccessMode for ctx.Repo.Repository is returned through the converter.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec",
+                "ev-1f34df3c7579a2af8b1d"
+              ]
+            },
+            {
+              "id": "own-user-missing-or-error",
+              "condition": "Self guard passes, but the path username does not resolve or a downstream load/permission operation fails",
+              "disposition": "conditional",
+              "explanation": "A nonexistent user produces not-found; other lookup or permission errors produce an internal error rather than a permission result.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-3fc2f220076282506b9e",
+            "ev-8e6e5a8ecf6b42494b52",
+            "ev-1f34df3c7579a2af8b1d"
+          ],
+          "missing": [
+            {
+              "kind": "premise-unspecified",
+              "detail": "No concrete repository, caller identity, collaborator record, direct access mode, organization/team membership, repository visibility, restriction state, or ownership fact is supplied, so the exact returned AccessMode cannot be reduced to a specific value such as Read, Write, Admin, or Owner."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The exact output representation produced by ToUserAndPermission is not shown; only the fact that permission.AccessMode is passed to it is established.",
+              "nextRead": "Read ToUserAndPermission's complete body in services/convert/user.go."
+            }
+          ]
+        },
+        {
+          "questionId": "another-users-permission",
+          "behavior": {
+            "disposition": "deny",
+            "explanation": "For the same normally authenticated, nonprivileged caller querying another username, the self comparison differs from the own-query case: it is false. If the caller is also neither a site admin nor an admin of the current repository, GetRepoPermissions returns forbidden immediately. It does not look up the other user and does not compute or disclose that user's repository permission. If 'normal' was not intended to exclude repository-admin or site-admin status, the privilege branches below remain applicable."
+          },
+          "branches": [
+            {
+              "id": "other-normal-denied",
+              "condition": "Authenticated caller queries a different username and is neither site admin nor current-repository admin",
+              "disposition": "deny",
+              "explanation": "All three negated terms in the handler condition are true, so the request terminates with forbidden before user lookup.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec",
+                "ev-a6b1d2bdd676f56f89ca"
+              ]
+            },
+            {
+              "id": "other-repo-admin",
+              "condition": "Authenticated caller queries a different username but ctx.Repo.Permission.IsAdmin() is true",
+              "disposition": "allow",
+              "explanation": "Repository-admin status bypasses the self restriction; the other user's permission on the current repository is then computed and returned if downstream operations succeed.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec",
+                "ev-a6b1d2bdd676f56f89ca"
+              ]
+            },
+            {
+              "id": "other-site-admin",
+              "condition": "Authenticated caller queries a different username but ctx.Doer.IsAdmin is true",
+              "disposition": "allow",
+              "explanation": "Site-admin status bypasses the self and repository-admin requirements; the queried user's permission, rather than the caller's permission, is computed.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-a6b1d2bdd676f56f89ca"
+          ],
+          "missing": [
+            {
+              "kind": "premise-unspecified",
+              "detail": "The phrase 'normal authenticated caller' does not mechanically specify the values of ctx.Doer.IsAdmin or ctx.Repo.Permission.IsAdmin(). The decisive denial is therefore stated for the ordinary non-site-admin, non-repository-admin interpretation, while both privileged alternatives are preserved."
+            }
+          ]
+        },
+        {
+          "questionId": "privileged-callers",
+          "behavior": {
+            "disposition": "allow",
+            "explanation": "Two source-visible privileges alter only who may query. A site administrator passes because ctx.Doer.IsAdmin is true. A current-repository administrator passes because ctx.IsUserRepoAdmin() returns ctx.Repo.Permission.IsAdmin(). Either may query a different collaborator. After that bypass, the target of permission computation remains the resolved collaborator and current repository. Caller privilege is not copied into the result. Separately, inside GetIndividualUserRepoPermission, if the queried collaborator is themselves a site admin or is the repository owner, that queried collaborator receives AccessModeOwner."
+          },
+          "branches": [
+            {
+              "id": "site-admin-query",
+              "condition": "ctx.Doer.IsAdmin is true",
+              "disposition": "allow",
+              "explanation": "The handler's first negated condition fails, so the query is not forbidden regardless of self-name match or repository-admin status. The result is still calculated for the queried collaborator.",
+              "evidenceIds": [
+                "ev-ff214123ff9d385c93ec"
+              ]
+            },
+            {
+              "id": "repo-admin-query",
+              "condition": "ctx.Repo.Permission.IsAdmin() is true",
+              "disposition": "allow",
+              "explanation": "The repository-admin exception permits querying any collaborator name on this current repository. The handler does not apply a separate reqAdmin middleware to this permission endpoint.",
+              "evidenceIds": [
+                "ev-3fc2f220076282506b9e",
+                "ev-ff214123ff9d385c93ec",
+                "ev-a6b1d2bdd676f56f89ca"
+              ]
+            },
+            {
+              "id": "queried-user-owner-result",
+              "condition": "The resolved queried user is a site admin or has user.ID equal to repo.OwnerID",
+              "disposition": "allow",
+              "explanation": "Independent of why the caller was allowed to inspect the permission, GetIndividualUserRepoPermission returns AccessModeOwner for a queried user who is a site admin or the repository owner.",
+              "evidenceIds": [
+                "ev-1f34df3c7579a2af8b1d"
+              ]
+            },
+            {
+              "id": "queried-user-other-result",
+              "condition": "The resolved queried user is neither a site admin nor repository owner",
+              "disposition": "conditional",
+              "explanation": "The result follows the queried user's direct collaborator/owner access plus applicable visibility, public-repository minimum, organization team, and unit permission processing; caller privilege does not determine that AccessMode.",
+              "evidenceIds": [
+                "ev-1f34df3c7579a2af8b1d"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-3fc2f220076282506b9e",
+            "ev-ff214123ff9d385c93ec",
+            "ev-a6b1d2bdd676f56f89ca",
+            "ev-1f34df3c7579a2af8b1d"
+          ],
+          "missing": [
+            {
+              "kind": "premise-unspecified",
+              "detail": "No concrete privileged caller, queried collaborator, or repository state is supplied, so the exact target AccessMode remains dependent on the queried user's relation to that repository."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The exact construction of ctx.Repo.Permission was not traced, so this result identifies the visible repository-admin predicate but does not claim exhaustive upstream repository authorization behavior.",
+              "nextRead": "Read the middleware that assigns APIContext.Repo and computes its Permission for the selected repository."
+            }
+          ]
+        }
+      ],
+      "observations": [
+        {
+          "questionId": "get-repo-permissions-path-controls",
+          "kind": "entry",
+          "subject": "GET /repos/{username}/{reponame}/collaborators/{collaborator}/permission",
+          "object": "repo.GetRepoPermissions",
+          "claim": "The permission endpoint is registered inside the /collaborators group, and that group is protected by reqToken().",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-3fc2f220076282506b9e",
+            "ev-8e6e5a8ecf6b42494b52"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-path-controls",
+          "kind": "principal-binding",
+          "subject": "caller",
+          "object": "ctx.Doer",
+          "claim": "The handler evaluates the caller through ctx.Doer.IsAdmin and ctx.Doer.LowerName; reqToken allows processing only when ctx.IsSigned is true.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-8e6e5a8ecf6b42494b52"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-path-controls",
+          "kind": "resource-binding",
+          "subject": "requested collaborator and repository",
+          "object": "collaboratorUsername, collaborator, ctx.Repo.Repository",
+          "claim": "The collaborator path value is read first, then resolved by name to a user; the permission computation uses that resolved user and ctx.Repo.Repository.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-path-controls",
+          "kind": "guard",
+          "subject": "permission-query authorization",
+          "object": "site-admin OR case-insensitive self match OR current-repository admin",
+          "claim": "The handler rejects only when all three are false: the caller is not a site admin, the caller's LowerName does not case-insensitively equal the collaborator path value, and ctx.IsUserRepoAdmin() is false.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-a6b1d2bdd676f56f89ca"
+          ]
+        },
+        {
+          "questionId": "get-repo-permissions-path-controls",
+          "kind": "effect",
+          "subject": "authorized permission query",
+          "object": "resolved collaborator on ctx.Repo.Repository",
+          "claim": "After authorization and user resolution, the handler computes GetIndividualUserRepoPermission for the resolved collaborator, not for the caller, and passes permission.AccessMode to ToUserAndPermission for the successful JSON response.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-1f34df3c7579a2af8b1d"
+          ]
+        },
+        {
+          "questionId": "own-collaborator-permission",
+          "kind": "guard",
+          "subject": "normally authenticated caller querying self",
+          "object": "case-insensitive comparison of ctx.Doer.LowerName and collaborator path value",
+          "claim": "The self-match independently bypasses the forbidden branch; repository-admin or site-admin status is not required for this branch.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec"
+          ]
+        },
+        {
+          "questionId": "own-collaborator-permission",
+          "kind": "effect",
+          "subject": "own collaborator permission query",
+          "object": "explicitly resolved caller-named user on current repository",
+          "claim": "The result is the explicit user's repository permission. The helper loads units, checks collaborator status and owner visibility, gives site admins or repository owners Owner access, otherwise combines direct access and, for organization repositories, public minimum access and team/unit access.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-1f34df3c7579a2af8b1d"
+          ]
+        },
+        {
+          "questionId": "another-users-permission",
+          "kind": "guard",
+          "subject": "normally authenticated caller querying another username",
+          "object": "site-admin or current-repository-admin exceptions",
+          "claim": "Because the self comparison is false, a caller who is neither a site admin nor a current-repository admin is rejected before the target user is looked up or their repository permission is computed.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-a6b1d2bdd676f56f89ca"
+          ]
+        },
+        {
+          "questionId": "another-users-permission",
+          "kind": "effect",
+          "subject": "authorized query about another user",
+          "object": "the other resolved user on ctx.Repo.Repository",
+          "claim": "If a privilege exception permits the query, the returned permission is still computed for the other user; the caller's elevated status authorizes inspection but is not substituted as the permission subject.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec"
+          ]
+        },
+        {
+          "questionId": "privileged-callers",
+          "kind": "exception",
+          "subject": "site administrator",
+          "object": "handler query guard",
+          "claim": "ctx.Doer.IsAdmin bypasses both the self-name requirement and the repository-admin requirement.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec"
+          ]
+        },
+        {
+          "questionId": "privileged-callers",
+          "kind": "exception",
+          "subject": "current-repository administrator",
+          "object": "handler query guard",
+          "claim": "ctx.IsUserRepoAdmin() bypasses the self-name requirement. In APIContext this is ctx.Repo.Permission.IsAdmin().",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-a6b1d2bdd676f56f89ca"
+          ]
+        },
+        {
+          "questionId": "privileged-callers",
+          "kind": "effect",
+          "subject": "privileged caller's authorized query",
+          "object": "queried collaborator's permission",
+          "claim": "The permission helper receives the queried collaborator, so caller privilege does not itself force an Owner/Admin result for the queried user. Within the helper, the queried user gets Owner when that queried user is a site admin or repository owner; other results follow direct, visibility, organization-team, and unit permission logic.",
+          "state": "observed",
+          "evidenceIds": [
+            "ev-ff214123ff9d385c93ec",
+            "ev-1f34df3c7579a2af8b1d"
+          ]
+        }
+      ],
+      "scope": "Source-visible behavior of GetRepoPermissions at go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b, limited to the declared allowed paths and the evidence actually shown."
+    },
+    "diagnostics": [
+      {
+        "code": "predicate-invalid",
+        "path": "rules.r-guard-self-or-privileged",
+        "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+        "severity": "error"
+      },
+      {
+        "code": "predicate-invalid",
+        "path": "rules.r-guard-other-deny",
+        "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+        "severity": "error"
+      },
+      {
+        "code": "premise-not-supplied",
+        "path": "bindings.doer_is_admin",
+        "message": "Known values require an exact span of an original supplied user statement, not a model-authored premise; mapping meaning remains unreviewed.",
+        "severity": "error"
+      },
+      {
+        "code": "premise-not-supplied",
+        "path": "bindings.doer_lower_name",
+        "message": "Known values require an exact span of an original supplied user statement, not a model-authored premise; mapping meaning remains unreviewed.",
+        "severity": "error"
+      },
+      {
+        "code": "premise-not-supplied",
+        "path": "bindings.collaborator_username",
+        "message": "Known values require an exact span of an original supplied user statement, not a model-authored premise; mapping meaning remains unreviewed.",
+        "severity": "error"
+      },
+      {
+        "code": "premise-not-supplied",
+        "path": "bindings.is_user_repo_admin",
+        "message": "Known values require an exact span of an original supplied user statement, not a model-authored premise; mapping meaning remains unreviewed.",
+        "severity": "error"
+      },
+      {
+        "code": "control-conflict",
+        "path": "rules.r-entry-route-permission",
+        "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+        "severity": "error"
+      },
+      {
+        "code": "control-conflict",
+        "path": "rules.r-entry-route-permission-own",
+        "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+        "severity": "error"
+      },
+      {
+        "code": "control-conflict",
+        "path": "rules.r-entry-route-permission-other",
+        "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+        "severity": "error"
+      },
+      {
+        "code": "control-conflict",
+        "path": "rules.r-entry-route-permission-priv",
+        "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+        "severity": "error"
+      },
+      {
+        "code": "control-conflict",
+        "path": "ctrl-9cfc11a208e631455b9e",
+        "message": "Unresolved conflicting extraction remains; explicit correction is needed.",
+        "severity": "error"
+      },
+      {
+        "code": "control-conflict",
+        "path": "ctrl-2819226030ca45f80950",
+        "message": "Unresolved conflicting extraction remains; explicit correction is needed.",
+        "severity": "error"
+      },
+      {
+        "code": "control-conflict",
+        "path": "ctrl-7473683643ccdd4969db",
+        "message": "Unresolved conflicting extraction remains; explicit correction is needed.",
+        "severity": "error"
+      },
+      {
+        "code": "control-conflict",
+        "path": "ctrl-541e7a9b6bcc7601172e",
+        "message": "Unresolved conflicting extraction remains; explicit correction is needed.",
+        "severity": "error"
+      },
+      {
+        "code": "path-not-closed",
+        "path": "get-repo-permissions-path-controls",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      },
+      {
+        "code": "path-not-closed",
+        "path": "own-collaborator-permission",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      },
+      {
+        "code": "path-not-closed",
+        "path": "another-users-permission",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      },
+      {
+        "code": "path-not-closed",
+        "path": "privileged-callers",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      }
+    ],
+    "semanticSupport": "unreviewed"
+  },
+  "error": "Authorization provider call did not settle within 300000ms (per-call deadline); request completion is unknown.",
+  "extractionInitial": {
+    "schemaVersion": "authorization-control-slice/v1",
+    "rules": [
+      {
+        "key": "r-entry-route-permission",
+        "questionId": "get-repo-permissions-path-controls",
+        "pathKey": "route-permission",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-4d153707b07e9b73aeeb"
+        ],
+        "claim": "The endpoint is the GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission route, registered inside a collaborators group with reqToken() applied to the group.",
+        "complete": false
+      },
+      {
+        "key": "r-entry-route-permission-own",
+        "questionId": "own-collaborator-permission",
+        "pathKey": "own",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-4d153707b07e9b73aeeb"
+        ],
+        "claim": "The own-collaborator scenario enters the GET collaborator permission endpoint under a route group with reqToken().",
+        "complete": false
+      },
+      {
+        "key": "r-entry-route-permission-other",
+        "questionId": "another-users-permission",
+        "pathKey": "other",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-4d153707b07e9b73aeeb"
+        ],
+        "claim": "The another-user scenario enters the same GET collaborator permission endpoint under a route group with reqToken().",
+        "complete": false
+      },
+      {
+        "key": "r-entry-route-permission-priv",
+        "questionId": "privileged-callers",
+        "pathKey": "privileged",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-4d153707b07e9b73aeeb"
+        ],
+        "claim": "Privileged callers use the same GET collaborator permission endpoint, whose route group visibly applies reqToken().",
+        "complete": false
+      },
+      {
+        "key": "r-guard-self-or-privileged",
+        "questionId": "get-repo-permissions-path-controls",
+        "pathKey": "route-permission",
+        "kind": "guard",
+        "after": [
+          "r-entry-route-permission"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "The handler permits continuation when at least one of these is true: ctx.Doer.IsAdmin; case-insensitive equality of ctx.Doer.LowerName and the collaborator path parameter; or ctx.IsUserRepoAdmin(). If all three are false, it returns HTTP 403.",
+        "condition": {
+          "op": "all",
+          "args": [
+            {
+              "op": "eq",
+              "left": {
+                "binding": "doer_is_admin"
+              },
+              "right": false
+            },
+            {
+              "op": "neq",
+              "left": {
+                "binding": "doer_lower_name"
+              },
+              "right": {
+                "binding": "collaborator_username"
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "is_user_repo_admin"
+              },
+              "right": false
+            }
+          ]
+        },
+        "complete": false
+      },
+      {
+        "key": "r-guard-self-or-privileged-own",
+        "questionId": "own-collaborator-permission",
+        "pathKey": "own",
+        "kind": "guard",
+        "after": [
+          "r-entry-route-permission-own"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "For the handler-level check, an own query passes the identity-comparison disjunct when ctx.Doer.LowerName equals the collaborator path parameter under the source's case-insensitive EqualFold comparison.",
+        "complete": false
+      },
+      {
+        "key": "r-guard-other-deny",
+        "questionId": "another-users-permission",
+        "pathKey": "other-deny",
+        "kind": "reject",
+        "after": [
+          "r-entry-route-permission-other"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "If the caller is not an admin, the caller name does not EqualFold the collaborator path parameter, and ctx.IsUserRepoAdmin() is false, the handler returns HTTP 403 and stops.",
+        "condition": {
+          "op": "all",
+          "args": [
+            {
+              "op": "eq",
+              "left": {
+                "binding": "doer_is_admin"
+              },
+              "right": false
+            },
+            {
+              "op": "neq",
+              "left": {
+                "binding": "doer_lower_name"
+              },
+              "right": {
+                "binding": "collaborator_username"
+              }
+            },
+            {
+              "op": "eq",
+              "left": {
+                "binding": "is_user_repo_admin"
+              },
+              "right": false
+            }
+          ]
+        },
+        "complete": false
+      },
+      {
+        "key": "r-continue-authorized-query",
+        "questionId": "get-repo-permissions-path-controls",
+        "pathKey": "authorized-query",
+        "kind": "continue",
+        "after": [
+          "r-guard-self-or-privileged"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "When the handler-level authorization condition is satisfied, execution continues to collaborator lookup and repository permission lookup.",
+        "complete": false
+      },
+      {
+        "key": "r-continue-own-query",
+        "questionId": "own-collaborator-permission",
+        "pathKey": "own",
+        "kind": "continue",
+        "after": [
+          "r-guard-self-or-privileged-own"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "For an own query, after the EqualFold identity comparison passes, the handler continues to collaborator lookup and repository permission lookup.",
+        "complete": false
+      },
+      {
+        "key": "r-effect-json-permission",
+        "questionId": "get-repo-permissions-path-controls",
+        "pathKey": "authorized-query",
+        "kind": "effect",
+        "after": [
+          "r-continue-authorized-query"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "After successful collaborator and permission lookup, the handler returns HTTP 200 JSON converted from the looked-up collaborator and permission.AccessMode.",
+        "complete": false
+      }
+    ],
+    "dependencies": [],
+    "bindings": [
+      {
+        "questionId": "get-repo-permissions-path-controls",
+        "key": "doer_is_admin",
+        "value": "source-derived boolean unavailable as user binding",
+        "origin": "user",
+        "text": "The subject of investigation is GetRepoPermissions in the specified Gitea revision."
+      },
+      {
+        "questionId": "get-repo-permissions-path-controls",
+        "key": "doer_lower_name",
+        "value": "source-derived identity unavailable as user binding",
+        "origin": "user",
+        "text": "The subject of investigation is GetRepoPermissions in the specified Gitea revision."
+      },
+      {
+        "questionId": "get-repo-permissions-path-controls",
+        "key": "collaborator_username",
+        "value": "source-derived identity unavailable as user binding",
+        "origin": "user",
+        "text": "The subject of investigation is GetRepoPermissions in the specified Gitea revision."
+      },
+      {
+        "questionId": "get-repo-permissions-path-controls",
+        "key": "is_user_repo_admin",
+        "value": "source-derived boolean unavailable as user binding",
+        "origin": "user",
+        "text": "The subject of investigation is GetRepoPermissions in the specified Gitea revision."
+      }
+    ],
+    "policyRules": []
+  },
+  "extractionInitialOrigin": "first-control-proposal",
+  "extractionFinal": {
+    "schemaVersion": "authorization-control-slice/v1",
+    "revision": 10,
+    "rules": [
+      {
+        "key": "r-entry-route-permission",
+        "questionId": "get-repo-permissions-path-controls",
+        "pathKey": "route-permission",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-4d153707b07e9b73aeeb"
+        ],
+        "claim": "The endpoint is the GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission route, registered inside a collaborators group with reqToken() applied to the group.",
+        "complete": false,
+        "id": "ctrl-9cfc11a208e631455b9e",
+        "digest": "637b1fac31a070f567e243f3d05584347e205b03448c8900fa9e2dad682e4822",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "r-entry-route-permission-own",
+        "questionId": "own-collaborator-permission",
+        "pathKey": "own",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-4d153707b07e9b73aeeb"
+        ],
+        "claim": "The own-collaborator scenario enters the GET collaborator permission endpoint under a route group with reqToken().",
+        "complete": false,
+        "id": "ctrl-2819226030ca45f80950",
+        "digest": "462b9f05dec300bc2aeae021a5d9798eeffb75b09de1c6c37d8ed8208e2902cc",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "r-entry-route-permission-other",
+        "questionId": "another-users-permission",
+        "pathKey": "other",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-4d153707b07e9b73aeeb"
+        ],
+        "claim": "The another-user scenario enters the same GET collaborator permission endpoint under a route group with reqToken().",
+        "complete": false,
+        "id": "ctrl-7473683643ccdd4969db",
+        "digest": "33eb2eae5e32deadaeaa055c9440df814a29e11797ef8ca22a3312cd41eda5d4",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "r-entry-route-permission-priv",
+        "questionId": "privileged-callers",
+        "pathKey": "privileged",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-4d153707b07e9b73aeeb"
+        ],
+        "claim": "Privileged callers use the same GET collaborator permission endpoint, whose route group visibly applies reqToken().",
+        "complete": false,
+        "id": "ctrl-541e7a9b6bcc7601172e",
+        "digest": "10fa0399af365e95cffda6db463b8609e827877508eaf5b5b24a6e408d021973",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "r-guard-self-or-privileged-own",
+        "questionId": "own-collaborator-permission",
+        "pathKey": "own",
+        "kind": "guard",
+        "after": [
+          "r-entry-route-permission-own"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "For the handler-level check, an own query passes the identity-comparison disjunct when ctx.Doer.LowerName equals the collaborator path parameter under the source's case-insensitive EqualFold comparison.",
+        "complete": false,
+        "id": "ctrl-c69d37387fdd4f694638",
+        "digest": "4ae5760e2a7189a2b0ed588ed8cac3da8c3e7b46c1f5dd7ee56f6f9978e6ef41",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "r-continue-authorized-query",
+        "questionId": "get-repo-permissions-path-controls",
+        "pathKey": "authorized-query",
+        "kind": "continue",
+        "after": [
+          "r-guard-self-or-privileged"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "When the handler-level authorization condition is satisfied, execution continues to collaborator lookup and repository permission lookup.",
+        "complete": false,
+        "id": "ctrl-72736e319e5d9e34ed84",
+        "digest": "be8615bdbcba0942dab74772885096db2bf16055a6a19e002c86302378f7ddc6",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "r-continue-own-query",
+        "questionId": "own-collaborator-permission",
+        "pathKey": "own",
+        "kind": "continue",
+        "after": [
+          "r-guard-self-or-privileged-own"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "For an own query, after the EqualFold identity comparison passes, the handler continues to collaborator lookup and repository permission lookup.",
+        "complete": false,
+        "id": "ctrl-4d3cacff56443bf7d600",
+        "digest": "9a2f2c745b7925aefc660deabf4a4e87ca56896959ffbe4099b41fa0ffc37942",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "r-effect-json-permission",
+        "questionId": "get-repo-permissions-path-controls",
+        "pathKey": "authorized-query",
+        "kind": "effect",
+        "after": [
+          "r-continue-authorized-query"
+        ],
+        "evidenceIds": [
+          "ev-ff214123ff9d385c93ec"
+        ],
+        "claim": "After successful collaborator and permission lookup, the handler returns HTTP 200 JSON converted from the looked-up collaborator and permission.AccessMode.",
+        "complete": false,
+        "id": "ctrl-1b2abbf1b5de9856bf26",
+        "digest": "fe52469aedf4c34b7ec4bfb36333785ffb7e8b9c42a2b9c411bace7d6117fc33",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      }
+    ],
+    "dependencies": [
+      {
+        "key": "dep-route-token",
+        "questionId": "get-repo-permissions-path-controls",
+        "pathKey": "route-permission",
+        "from": "r-entry-route-permission",
+        "symbol": "reqToken",
+        "evidenceIds": [
+          "ev-4d153707b07e9b73aeeb"
+        ],
+        "reason": "The route group visibly applies reqToken(); its implementation is needed to characterize the upstream authentication control.",
+        "kind": "control",
+        "decisive": false,
+        "pathHint": "routers/api/v1/api.go",
+        "id": "ctrl-eae401da12713d94da14",
+        "digest": "e87ce3dd2a6b817b8b2957827b48133c1fb701eb2c8a532234e07f46a8b6156e",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dep-route-token-own",
+        "questionId": "own-collaborator-permission",
+        "pathKey": "own",
+        "from": "r-entry-route-permission-own",
+        "symbol": "reqToken",
+        "evidenceIds": [
+          "ev-4d153707b07e9b73aeeb"
+        ],
+        "reason": "The own scenario is governed by the same route group's reqToken() control.",
+        "kind": "control",
+        "decisive": false,
+        "pathHint": "routers/api/v1/api.go",
+        "id": "ctrl-1514ab4e37798d5228ec",
+        "digest": "87c45742e616d28aa7a2da6f81321370639f09949e8a356f4b8f4adccc87cefe",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      }
+    ],
+    "bindings": [],
+    "policyRules": [],
+    "conflicts": [
+      {
+        "id": "ctrl-9cfc11a208e631455b9e",
+        "proposed": {
+          "key": "r-entry-route-permission",
+          "questionId": "get-repo-permissions-path-controls",
+          "pathKey": "route-permission",
+          "kind": "entry",
+          "after": [],
+          "evidenceIds": [
+            "ev-4d153707b07e9b73aeeb"
+          ],
+          "claim": "The request enters through GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission in the collaborators route group, with reqToken() applied to the group.",
+          "operation": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission",
+          "complete": false
+        },
+        "previous": {
+          "key": "r-entry-route-permission",
+          "questionId": "get-repo-permissions-path-controls",
+          "pathKey": "route-permission",
+          "kind": "entry",
+          "after": [],
+          "evidenceIds": [
+            "ev-4d153707b07e9b73aeeb"
+          ],
+          "claim": "The endpoint is the GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission route, registered inside a collaborators group with reqToken() applied to the group.",
+          "complete": false,
+          "id": "ctrl-9cfc11a208e631455b9e",
+          "digest": "637b1fac31a070f567e243f3d05584347e205b03448c8900fa9e2dad682e4822",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        "resolved": false
+      },
+      {
+        "id": "ctrl-2819226030ca45f80950",
+        "proposed": {
+          "key": "r-entry-route-permission-own",
+          "questionId": "own-collaborator-permission",
+          "pathKey": "own",
+          "kind": "entry",
+          "after": [],
+          "evidenceIds": [
+            "ev-4d153707b07e9b73aeeb"
+          ],
+          "claim": "The own-collaborator scenario uses the same GET permission route, in a route group with reqToken().",
+          "operation": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission",
+          "complete": false
+        },
+        "previous": {
+          "key": "r-entry-route-permission-own",
+          "questionId": "own-collaborator-permission",
+          "pathKey": "own",
+          "kind": "entry",
+          "after": [],
+          "evidenceIds": [
+            "ev-4d153707b07e9b73aeeb"
+          ],
+          "claim": "The own-collaborator scenario enters the GET collaborator permission endpoint under a route group with reqToken().",
+          "complete": false,
+          "id": "ctrl-2819226030ca45f80950",
+          "digest": "462b9f05dec300bc2aeae021a5d9798eeffb75b09de1c6c37d8ed8208e2902cc",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        "resolved": false
+      },
+      {
+        "id": "ctrl-7473683643ccdd4969db",
+        "proposed": {
+          "key": "r-entry-route-permission-other",
+          "questionId": "another-users-permission",
+          "pathKey": "other",
+          "kind": "entry",
+          "after": [],
+          "evidenceIds": [
+            "ev-4d153707b07e9b73aeeb"
+          ],
+          "claim": "The other-user scenario uses the same GET permission route, in a route group with reqToken().",
+          "operation": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission",
+          "complete": false
+        },
+        "previous": {
+          "key": "r-entry-route-permission-other",
+          "questionId": "another-users-permission",
+          "pathKey": "other",
+          "kind": "entry",
+          "after": [],
+          "evidenceIds": [
+            "ev-4d153707b07e9b73aeeb"
+          ],
+          "claim": "The another-user scenario enters the same GET collaborator permission endpoint under a route group with reqToken().",
+          "complete": false,
+          "id": "ctrl-7473683643ccdd4969db",
+          "digest": "33eb2eae5e32deadaeaa055c9440df814a29e11797ef8ca22a3312cd41eda5d4",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        "resolved": false
+      },
+      {
+        "id": "ctrl-541e7a9b6bcc7601172e",
+        "proposed": {
+          "key": "r-entry-route-permission-priv",
+          "questionId": "privileged-callers",
+          "pathKey": "privileged",
+          "kind": "entry",
+          "after": [],
+          "evidenceIds": [
+            "ev-4d153707b07e9b73aeeb"
+          ],
+          "claim": "The privileged-caller scenario uses the same GET permission route, in a route group with reqToken().",
+          "operation": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission",
+          "complete": false
+        },
+        "previous": {
+          "key": "r-entry-route-permission-priv",
+          "questionId": "privileged-callers",
+          "pathKey": "privileged",
+          "kind": "entry",
+          "after": [],
+          "evidenceIds": [
+            "ev-4d153707b07e9b73aeeb"
+          ],
+          "claim": "Privileged callers use the same GET collaborator permission endpoint, whose route group visibly applies reqToken().",
+          "complete": false,
+          "id": "ctrl-541e7a9b6bcc7601172e",
+          "digest": "10fa0399af365e95cffda6db463b8609e827877508eaf5b5b24a6e408d021973",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        "resolved": false
+      }
+    ],
+    "revisions": []
+  },
+  "extractionProposals": [
+    {
+      "delta": {
+        "schemaVersion": "authorization-control-slice/v1",
+        "rules": [
+          {
+            "key": "r-entry-route-permission",
+            "questionId": "get-repo-permissions-path-controls",
+            "pathKey": "route-permission",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-4d153707b07e9b73aeeb"
+            ],
+            "claim": "The endpoint is the GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission route, registered inside a collaborators group with reqToken() applied to the group.",
+            "complete": false
+          },
+          {
+            "key": "r-entry-route-permission-own",
+            "questionId": "own-collaborator-permission",
+            "pathKey": "own",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-4d153707b07e9b73aeeb"
+            ],
+            "claim": "The own-collaborator scenario enters the GET collaborator permission endpoint under a route group with reqToken().",
+            "complete": false
+          },
+          {
+            "key": "r-entry-route-permission-other",
+            "questionId": "another-users-permission",
+            "pathKey": "other",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-4d153707b07e9b73aeeb"
+            ],
+            "claim": "The another-user scenario enters the same GET collaborator permission endpoint under a route group with reqToken().",
+            "complete": false
+          },
+          {
+            "key": "r-entry-route-permission-priv",
+            "questionId": "privileged-callers",
+            "pathKey": "privileged",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-4d153707b07e9b73aeeb"
+            ],
+            "claim": "Privileged callers use the same GET collaborator permission endpoint, whose route group visibly applies reqToken().",
+            "complete": false
+          },
+          {
+            "key": "r-guard-self-or-privileged",
+            "questionId": "get-repo-permissions-path-controls",
+            "pathKey": "route-permission",
+            "kind": "guard",
+            "after": [
+              "r-entry-route-permission"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "The handler permits continuation when at least one of these is true: ctx.Doer.IsAdmin; case-insensitive equality of ctx.Doer.LowerName and the collaborator path parameter; or ctx.IsUserRepoAdmin(). If all three are false, it returns HTTP 403.",
+            "condition": {
+              "op": "all",
+              "args": [
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "doer_is_admin"
+                  },
+                  "right": false
+                },
+                {
+                  "op": "neq",
+                  "left": {
+                    "binding": "doer_lower_name"
+                  },
+                  "right": {
+                    "binding": "collaborator_username"
+                  }
+                },
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "is_user_repo_admin"
+                  },
+                  "right": false
+                }
+              ]
+            },
+            "complete": false
+          },
+          {
+            "key": "r-guard-self-or-privileged-own",
+            "questionId": "own-collaborator-permission",
+            "pathKey": "own",
+            "kind": "guard",
+            "after": [
+              "r-entry-route-permission-own"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "For the handler-level check, an own query passes the identity-comparison disjunct when ctx.Doer.LowerName equals the collaborator path parameter under the source's case-insensitive EqualFold comparison.",
+            "complete": false
+          },
+          {
+            "key": "r-guard-other-deny",
+            "questionId": "another-users-permission",
+            "pathKey": "other-deny",
+            "kind": "reject",
+            "after": [
+              "r-entry-route-permission-other"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "If the caller is not an admin, the caller name does not EqualFold the collaborator path parameter, and ctx.IsUserRepoAdmin() is false, the handler returns HTTP 403 and stops.",
+            "condition": {
+              "op": "all",
+              "args": [
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "doer_is_admin"
+                  },
+                  "right": false
+                },
+                {
+                  "op": "neq",
+                  "left": {
+                    "binding": "doer_lower_name"
+                  },
+                  "right": {
+                    "binding": "collaborator_username"
+                  }
+                },
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "is_user_repo_admin"
+                  },
+                  "right": false
+                }
+              ]
+            },
+            "complete": false
+          },
+          {
+            "key": "r-continue-authorized-query",
+            "questionId": "get-repo-permissions-path-controls",
+            "pathKey": "authorized-query",
+            "kind": "continue",
+            "after": [
+              "r-guard-self-or-privileged"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "When the handler-level authorization condition is satisfied, execution continues to collaborator lookup and repository permission lookup.",
+            "complete": false
+          },
+          {
+            "key": "r-continue-own-query",
+            "questionId": "own-collaborator-permission",
+            "pathKey": "own",
+            "kind": "continue",
+            "after": [
+              "r-guard-self-or-privileged-own"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "For an own query, after the EqualFold identity comparison passes, the handler continues to collaborator lookup and repository permission lookup.",
+            "complete": false
+          },
+          {
+            "key": "r-effect-json-permission",
+            "questionId": "get-repo-permissions-path-controls",
+            "pathKey": "authorized-query",
+            "kind": "effect",
+            "after": [
+              "r-continue-authorized-query"
+            ],
+            "evidenceIds": [
+              "ev-ff214123ff9d385c93ec"
+            ],
+            "claim": "After successful collaborator and permission lookup, the handler returns HTTP 200 JSON converted from the looked-up collaborator and permission.AccessMode.",
+            "complete": false
+          }
+        ],
+        "dependencies": [],
+        "bindings": [
+          {
+            "questionId": "get-repo-permissions-path-controls",
+            "key": "doer_is_admin",
+            "value": "source-derived boolean unavailable as user binding",
+            "origin": "user",
+            "text": "The subject of investigation is GetRepoPermissions in the specified Gitea revision."
+          },
+          {
+            "questionId": "get-repo-permissions-path-controls",
+            "key": "doer_lower_name",
+            "value": "source-derived identity unavailable as user binding",
+            "origin": "user",
+            "text": "The subject of investigation is GetRepoPermissions in the specified Gitea revision."
+          },
+          {
+            "questionId": "get-repo-permissions-path-controls",
+            "key": "collaborator_username",
+            "value": "source-derived identity unavailable as user binding",
+            "origin": "user",
+            "text": "The subject of investigation is GetRepoPermissions in the specified Gitea revision."
+          },
+          {
+            "questionId": "get-repo-permissions-path-controls",
+            "key": "is_user_repo_admin",
+            "value": "source-derived boolean unavailable as user binding",
+            "origin": "user",
+            "text": "The subject of investigation is GetRepoPermissions in the specified Gitea revision."
+          }
+        ],
+        "policyRules": []
+      },
+      "diagnostics": [
+        {
+          "code": "predicate-invalid",
+          "path": "rules.r-guard-self-or-privileged",
+          "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+          "severity": "error"
+        },
+        {
+          "code": "predicate-invalid",
+          "path": "rules.r-guard-other-deny",
+          "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+          "severity": "error"
+        },
+        {
+          "code": "premise-not-supplied",
+          "path": "bindings.doer_is_admin",
+          "message": "Known values require an exact span of an original supplied user statement, not a model-authored premise; mapping meaning remains unreviewed.",
+          "severity": "error"
+        },
+        {
+          "code": "premise-not-supplied",
+          "path": "bindings.doer_lower_name",
+          "message": "Known values require an exact span of an original supplied user statement, not a model-authored premise; mapping meaning remains unreviewed.",
+          "severity": "error"
+        },
+        {
+          "code": "premise-not-supplied",
+          "path": "bindings.collaborator_username",
+          "message": "Known values require an exact span of an original supplied user statement, not a model-authored premise; mapping meaning remains unreviewed.",
+          "severity": "error"
+        },
+        {
+          "code": "premise-not-supplied",
+          "path": "bindings.is_user_repo_admin",
+          "message": "Known values require an exact span of an original supplied user statement, not a model-authored premise; mapping meaning remains unreviewed.",
+          "severity": "error"
+        }
+      ],
+      "revision": 8
+    },
+    {
+      "delta": {
+        "schemaVersion": "authorization-control-slice/v1",
+        "rules": [
+          {
+            "key": "r-entry-route-permission",
+            "questionId": "get-repo-permissions-path-controls",
+            "pathKey": "route-permission",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-4d153707b07e9b73aeeb"
+            ],
+            "claim": "The request enters through GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission in the collaborators route group, with reqToken() applied to the group.",
+            "operation": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission",
+            "complete": false
+          },
+          {
+            "key": "r-entry-route-permission-own",
+            "questionId": "own-collaborator-permission",
+            "pathKey": "own",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-4d153707b07e9b73aeeb"
+            ],
+            "claim": "The own-collaborator scenario uses the same GET permission route, in a route group with reqToken().",
+            "operation": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission",
+            "complete": false
+          },
+          {
+            "key": "r-entry-route-permission-other",
+            "questionId": "another-users-permission",
+            "pathKey": "other",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-4d153707b07e9b73aeeb"
+            ],
+            "claim": "The other-user scenario uses the same GET permission route, in a route group with reqToken().",
+            "operation": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission",
+            "complete": false
+          },
+          {
+            "key": "r-entry-route-permission-priv",
+            "questionId": "privileged-callers",
+            "pathKey": "privileged",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-4d153707b07e9b73aeeb"
+            ],
+            "claim": "The privileged-caller scenario uses the same GET permission route, in a route group with reqToken().",
+            "operation": "GET /repos/{owner}/{repo}/collaborators/{collaborator}/permission",
+            "complete": false
+          }
+        ],
+        "dependencies": [
+          {
+            "key": "dep-route-token",
+            "questionId": "get-repo-permissions-path-controls",
+            "pathKey": "route-permission",
+            "from": "r-entry-route-permission",
+            "symbol": "reqToken",
+            "evidenceIds": [
+              "ev-4d153707b07e9b73aeeb"
+            ],
+            "reason": "The route group visibly applies reqToken(); its implementation is needed to characterize the upstream authentication control.",
+            "kind": "control",
+            "decisive": false,
+            "pathHint": "routers/api/v1/api.go"
+          },
+          {
+            "key": "dep-route-token-own",
+            "questionId": "own-collaborator-permission",
+            "pathKey": "own",
+            "from": "r-entry-route-permission-own",
+            "symbol": "reqToken",
+            "evidenceIds": [
+              "ev-4d153707b07e9b73aeeb"
+            ],
+            "reason": "The own scenario is governed by the same route group's reqToken() control.",
+            "kind": "control",
+            "decisive": false,
+            "pathHint": "routers/api/v1/api.go"
+          }
+        ],
+        "bindings": [],
+        "policyRules": []
+      },
+      "diagnostics": [
+        {
+          "code": "control-conflict",
+          "path": "rules.r-entry-route-permission",
+          "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+          "severity": "error"
+        },
+        {
+          "code": "control-conflict",
+          "path": "rules.r-entry-route-permission-own",
+          "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+          "severity": "error"
+        },
+        {
+          "code": "control-conflict",
+          "path": "rules.r-entry-route-permission-other",
+          "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+          "severity": "error"
+        },
+        {
+          "code": "control-conflict",
+          "path": "rules.r-entry-route-permission-priv",
+          "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+          "severity": "error"
+        }
+      ],
+      "revision": 10
+    }
+  ],
+  "hostChecks": [
+    {
+      "structureValid": true,
+      "sourceBound": true,
+      "ruleConsistency": false,
+      "semanticSupport": "unreviewed",
+      "taskResolution": "partial",
+      "paths": [
+        {
+          "questionId": "get-repo-permissions-path-controls",
+          "pathKey": "authorized-query",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "all",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "all",
+            "args": []
+          },
+          "nodeKeys": [
+            "r-continue-authorized-query",
+            "r-effect-json-permission"
+          ],
+          "terminalKeys": [
+            "r-effect-json-permission"
+          ],
+          "gaps": [
+            "predecessor-missing:r-guard-self-or-privileged",
+            "entry-missing",
+            "closure-not-proposed"
+          ],
+          "sourceBound": true
+        },
+        {
+          "questionId": "own-collaborator-permission",
+          "pathKey": "own",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "all",
+                "truth": "true"
+              },
+              {
+                "op": "all",
+                "truth": "true"
+              },
+              {
+                "op": "all",
+                "truth": "true"
+              },
+              {
+                "op": "any",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "any",
+            "args": [
+              {
+                "op": "all",
+                "args": []
+              },
+              {
+                "op": "all",
+                "args": []
+              },
+              {
+                "op": "all",
+                "args": []
+              }
+            ]
+          },
+          "nodeKeys": [
+            "r-entry-route-permission-own",
+            "r-guard-self-or-privileged-own",
+            "r-continue-own-query"
+          ],
+          "terminalKeys": [
+            "r-entry-route-permission-own",
+            "r-guard-self-or-privileged-own",
+            "r-continue-own-query"
+          ],
+          "gaps": [
+            "closure-not-proposed"
+          ],
+          "sourceBound": true
+        },
+        {
+          "questionId": "another-users-permission",
+          "pathKey": "other",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "all",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "all",
+            "args": []
+          },
+          "nodeKeys": [
+            "r-entry-route-permission-other"
+          ],
+          "terminalKeys": [
+            "r-entry-route-permission-other"
+          ],
+          "gaps": [
+            "closure-not-proposed"
+          ],
+          "sourceBound": true
+        },
+        {
+          "questionId": "privileged-callers",
+          "pathKey": "privileged",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "all",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "all",
+            "args": []
+          },
+          "nodeKeys": [
+            "r-entry-route-permission-priv"
+          ],
+          "terminalKeys": [
+            "r-entry-route-permission-priv"
+          ],
+          "gaps": [
+            "closure-not-proposed"
+          ],
+          "sourceBound": true
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "predicate-invalid",
+          "path": "rules.r-guard-self-or-privileged",
+          "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+          "severity": "error"
+        },
+        {
+          "code": "predicate-invalid",
+          "path": "rules.r-guard-other-deny",
+          "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+          "severity": "error"
+        },
+        {
+          "code": "premise-not-supplied",
+          "path": "bindings.doer_is_admin",
+          "message": "Known values require an exact span of an original supplied user statement, not a model-authored premise; mapping meaning remains unreviewed.",
+          "severity": "error"
+        },
+        {
+          "code": "premise-not-supplied",
+          "path": "bindings.doer_lower_name",
+          "message": "Known values require an exact span of an original supplied user statement, not a model-authored premise; mapping meaning remains unreviewed.",
+          "severity": "error"
+        },
+        {
+          "code": "premise-not-supplied",
+          "path": "bindings.collaborator_username",
+          "message": "Known values require an exact span of an original supplied user statement, not a model-authored premise; mapping meaning remains unreviewed.",
+          "severity": "error"
+        },
+        {
+          "code": "premise-not-supplied",
+          "path": "bindings.is_user_repo_admin",
+          "message": "Known values require an exact span of an original supplied user statement, not a model-authored premise; mapping meaning remains unreviewed.",
+          "severity": "error"
+        },
+        {
+          "code": "control-conflict",
+          "path": "rules.r-entry-route-permission",
+          "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+          "severity": "error"
+        },
+        {
+          "code": "control-conflict",
+          "path": "rules.r-entry-route-permission-own",
+          "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+          "severity": "error"
+        },
+        {
+          "code": "control-conflict",
+          "path": "rules.r-entry-route-permission-other",
+          "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+          "severity": "error"
+        },
+        {
+          "code": "control-conflict",
+          "path": "rules.r-entry-route-permission-priv",
+          "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+          "severity": "error"
+        },
+        {
+          "code": "control-conflict",
+          "path": "ctrl-9cfc11a208e631455b9e",
+          "message": "Unresolved conflicting extraction remains; explicit correction is needed.",
+          "severity": "error"
+        },
+        {
+          "code": "control-conflict",
+          "path": "ctrl-2819226030ca45f80950",
+          "message": "Unresolved conflicting extraction remains; explicit correction is needed.",
+          "severity": "error"
+        },
+        {
+          "code": "control-conflict",
+          "path": "ctrl-7473683643ccdd4969db",
+          "message": "Unresolved conflicting extraction remains; explicit correction is needed.",
+          "severity": "error"
+        },
+        {
+          "code": "control-conflict",
+          "path": "ctrl-541e7a9b6bcc7601172e",
+          "message": "Unresolved conflicting extraction remains; explicit correction is needed.",
+          "severity": "error"
+        },
+        {
+          "code": "path-not-closed",
+          "path": "get-repo-permissions-path-controls",
+          "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+          "severity": "error"
+        },
+        {
+          "code": "path-not-closed",
+          "path": "own-collaborator-permission",
+          "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+          "severity": "error"
+        },
+        {
+          "code": "path-not-closed",
+          "path": "another-users-permission",
+          "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+          "severity": "error"
+        },
+        {
+          "code": "path-not-closed",
+          "path": "privileged-callers",
+          "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+          "severity": "error"
+        }
+      ],
+      "policyComparisons": [],
+      "calculationCount": 10
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "ctrl-1514ab4e37798d5228ec",
+      "digest": "87c45742e616d28aa7a2da6f81321370639f09949e8a356f4b8f4adccc87cefe",
+      "key": "dep-route-token-own",
+      "questionId": "own-collaborator-permission",
+      "pathKey": "own",
+      "decisive": false,
+      "symbol": "reqToken",
+      "state": "read",
+      "reason": "Original candidate range is actually shown. Its semantic role still needs model analysis.",
+      "candidates": [
+        {
+          "id": "symbol-5bf2f3350f8e32953ca0fdbd",
+          "path": "routers/api/v1/api.go",
+          "name": "reqToken",
+          "kind": "function",
+          "startLine": 374,
+          "endLine": 382,
+          "boundary": "complete",
+          "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6"
+        }
+      ],
+      "evidenceIds": [
+        "ev-3bd1ee7a849080c74cd5",
+        "ev-c574522d6711d759a1ce",
+        "ev-8e6e5a8ecf6b42494b52"
+      ],
+      "semanticSupport": "unreviewed",
+      "code": "dependency-source-read"
+    },
+    {
+      "id": "ctrl-eae401da12713d94da14",
+      "digest": "e87ce3dd2a6b817b8b2957827b48133c1fb701eb2c8a532234e07f46a8b6156e",
+      "key": "dep-route-token",
+      "questionId": "get-repo-permissions-path-controls",
+      "pathKey": "route-permission",
+      "decisive": false,
+      "symbol": "reqToken",
+      "state": "read",
+      "reason": "Original candidate range is actually shown. Its semantic role still needs model analysis.",
+      "candidates": [
+        {
+          "id": "symbol-5bf2f3350f8e32953ca0fdbd",
+          "path": "routers/api/v1/api.go",
+          "name": "reqToken",
+          "kind": "function",
+          "startLine": 374,
+          "endLine": 382,
+          "boundary": "complete",
+          "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6"
+        }
+      ],
+      "evidenceIds": [
+        "ev-3bd1ee7a849080c74cd5",
+        "ev-c574522d6711d759a1ce",
+        "ev-8e6e5a8ecf6b42494b52"
+      ],
+      "semanticSupport": "unreviewed",
+      "code": "dependency-source-read"
+    }
+  ],
+  "schedulerActions": [
+    {
+      "questionId": "own-collaborator-permission",
+      "dependencyId": "ctrl-1514ab4e37798d5228ec",
+      "reason": "Live control dependency dep-route-token-own: The own scenario is governed by the same route group's reqToken() control.; location is unique in allowed source, read coverage is incomplete.",
+      "output": {
+        "status": "ok",
+        "evidence": [
+          {
+            "id": "ev-c574522d6711d759a1ce",
+            "repository": "go-gitea/gitea",
+            "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+            "path": "routers/api/v1/api.go",
+            "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+            "startLine": 375,
+            "endLine": 382,
+            "bytes": 270
+          }
+        ],
+        "matches": [],
+        "candidates": [],
+        "requested": {
+          "path": "routers/api/v1/api.go",
+          "startLine": 375,
+          "endLine": 382
+        },
+        "truncated": false
+      }
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev-7c0146a501b98df9c24d",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1370,
+      "endLine": 1370,
+      "bytes": 59
+    },
+    {
+      "id": "ev-ff214123ff9d385c93ec",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 248,
+      "endLine": 301,
+      "bytes": 2044
+    },
+    {
+      "id": "ev-4d153707b07e9b73aeeb",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1340,
+      "endLine": 1380,
+      "bytes": 2139
+    },
+    {
+      "id": "ev-3bd1ee7a849080c74cd5",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 374,
+      "endLine": 374,
+      "bytes": 54
+    },
+    {
+      "id": "ev-92945d3ea4bedc7a866a",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1050,
+      "endLine": 1050,
+      "bytes": 72
+    },
+    {
+      "id": "ev-c0121c07fa127315c200",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1052,
+      "endLine": 1052,
+      "bytes": 110
+    },
+    {
+      "id": "ev-1df1177bac25d889caee",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1053,
+      "endLine": 1053,
+      "bytes": 64
+    },
+    {
+      "id": "ev-b185ff38804a7641d14b",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1057,
+      "endLine": 1057,
+      "bytes": 67
+    },
+    {
+      "id": "ev-db9c92e14643e0d8c549",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1059,
+      "endLine": 1059,
+      "bytes": 61
+    },
+    {
+      "id": "ev-484352991aac1c079082",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1060,
+      "endLine": 1060,
+      "bytes": 67
+    },
+    {
+      "id": "ev-10a2e6f99ea8af7ab830",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1061,
+      "endLine": 1061,
+      "bytes": 99
+    },
+    {
+      "id": "ev-96ce745764427c55852f",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1062,
+      "endLine": 1062,
+      "bytes": 97
+    },
+    {
+      "id": "ev-395752d4626580fc5619",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1066,
+      "endLine": 1066,
+      "bytes": 65
+    },
+    {
+      "id": "ev-291a83ac3c409ead9d3b",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1067,
+      "endLine": 1067,
+      "bytes": 97
+    },
+    {
+      "id": "ev-5de2b833632c9ac0e9dd",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1068,
+      "endLine": 1068,
+      "bytes": 75
+    },
+    {
+      "id": "ev-0dde87a2e45b95fc2935",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1069,
+      "endLine": 1069,
+      "bytes": 81
+    },
+    {
+      "id": "ev-dcf810ad83d0fd2822c1",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1070,
+      "endLine": 1070,
+      "bytes": 116
+    },
+    {
+      "id": "ev-b655bb664063593cf04e",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1072,
+      "endLine": 1072,
+      "bytes": 75
+    },
+    {
+      "id": "ev-08e3fc25248e47154668",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1073,
+      "endLine": 1073,
+      "bytes": 75
+    },
+    {
+      "id": "ev-1fc70d069ea0a714cae6",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1095,
+      "endLine": 1095,
+      "bytes": 79
+    },
+    {
+      "id": "ev-72f15817c58ea21582fb",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1096,
+      "endLine": 1096,
+      "bytes": 85
+    },
+    {
+      "id": "ev-f4ab3a385bd4fbae18c3",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1097,
+      "endLine": 1097,
+      "bytes": 64
+    },
+    {
+      "id": "ev-ffcf4b0e41adf1f816d0",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1115,
+      "endLine": 1115,
+      "bytes": 50
+    },
+    {
+      "id": "ev-c574522d6711d759a1ce",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 375,
+      "endLine": 382,
+      "bytes": 270
+    },
+    {
+      "id": "ev-305e133ffc7a780cd95b",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 529,
+      "endLine": 529,
+      "bytes": 107
+    },
+    {
+      "id": "ev-b63203449630bcb89723",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 454,
+      "endLine": 454,
+      "bytes": 62
+    },
+    {
+      "id": "ev-641b8551d0df51abaf3d",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 464,
+      "endLine": 464,
+      "bytes": 98
+    },
+    {
+      "id": "ev-ff4b68515e9cd414ddf1",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 474,
+      "endLine": 474,
+      "bytes": 104
+    },
+    {
+      "id": "ev-8fa2974814e8f0c0ee30",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 279,
+      "endLine": 279,
+      "bytes": 120
+    },
+    {
+      "id": "ev-6b38c746ca8ab1099cae",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue_attachment.go",
+      "sha256": "de407017453ca604e7942bdbf1c280c49095189bf7689bc2588bed3ac785ebe6",
+      "startLine": 374,
+      "endLine": 374,
+      "bytes": 180
+    },
+    {
+      "id": "ev-5b7a9ce831708eca529d",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue_comment_attachment.go",
+      "sha256": "25acebc2101048e5390c4196888712a949c9d0813734a4fae58e718550728b19",
+      "startLine": 382,
+      "endLine": 382,
+      "bytes": 192
+    },
+    {
+      "id": "ev-a9356d11c368e7bbb11c",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue_tracked_time.go",
+      "sha256": "916c8191614fc7a3c1b9febf141934aab5ca63333b95e5309296326a751d8aec",
+      "startLine": 220,
+      "endLine": 220,
+      "bytes": 87
+    },
+    {
+      "id": "ev-ddafc2b8a9f04ee6c81d",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue_tracked_time.go",
+      "sha256": "916c8191614fc7a3c1b9febf141934aab5ca63333b95e5309296326a751d8aec",
+      "startLine": 439,
+      "endLine": 439,
+      "bytes": 82
+    },
+    {
+      "id": "ev-cd3807b5a583f822658b",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "services/context/api.go",
+      "sha256": "182aa57ba15df1e71a39b775f8520617d6d56a43d3239a2bb4ca5ea11598a665",
+      "startLine": 328,
+      "endLine": 328,
+      "bytes": 79
+    },
+    {
+      "id": "ev-48669a6b015974a625a0",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "services/context/api.go",
+      "sha256": "182aa57ba15df1e71a39b775f8520617d6d56a43d3239a2bb4ca5ea11598a665",
+      "startLine": 329,
+      "endLine": 329,
+      "bytes": 54
+    },
+    {
+      "id": "ev-f96b02ad49f167747b30",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "services/issue/comments.go",
+      "sha256": "faf5568a5d16ba72a7d0fd39adc5c99d3d95744a8ad44a1ade07a4f43f1b349f",
+      "startLine": 33,
+      "endLine": 33,
+      "bytes": 59
+    },
+    {
+      "id": "ev-4d50f2f420fec01a8c52",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "services/issue/comments.go",
+      "sha256": "faf5568a5d16ba72a7d0fd39adc5c99d3d95744a8ad44a1ade07a4f43f1b349f",
+      "startLine": 64,
+      "endLine": 64,
+      "bytes": 59
+    },
+    {
+      "id": "ev-4baae53fa985a5a787b6",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "services/issue/comments.go",
+      "sha256": "faf5568a5d16ba72a7d0fd39adc5c99d3d95744a8ad44a1ade07a4f43f1b349f",
+      "startLine": 107,
+      "endLine": 107,
+      "bytes": 68
+    },
+    {
+      "id": "ev-952292ecb45454bc5c66",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "services/issue/content.go",
+      "sha256": "a527434586944edad68d350602007df59ba65a2c789bde05bea309cf2540202d",
+      "startLine": 22,
+      "endLine": 22,
+      "bytes": 65
+    },
+    {
+      "id": "ev-9506172f21c087db1655",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "services/issue/issue.go",
+      "sha256": "632232e16929c6fa0a4b5c6e17aed3f52d4e5e372d8801793d2461ae42ee3c43",
+      "startLine": 100,
+      "endLine": 100,
+      "bytes": 66
+    },
+    {
+      "id": "ev-7e45a9d2c07af0ed3d8a",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/issues/issue_update.go",
+      "sha256": "9ca2f53fa9285d96f8ccebdf4b4d3c112c1172a4f003a4da752d9ccb0fc9b988",
+      "startLine": 685,
+      "endLine": 685,
+      "bytes": 89
+    },
+    {
+      "id": "ev-df616c5fbfe9164453f6",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/issues/issue_update.go",
+      "sha256": "9ca2f53fa9285d96f8ccebdf4b4d3c112c1172a4f003a4da752d9ccb0fc9b988",
+      "startLine": 687,
+      "endLine": 687,
+      "bytes": 90
+    },
+    {
+      "id": "ev-284b23ee4226820702ee",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/issues/pull_list.go",
+      "sha256": "de77af7dbf928f631df1a0e8df40aa843a5765dcad2b095a776e9e50f8fbd432",
+      "startLine": 114,
+      "endLine": 114,
+      "bytes": 111
+    },
+    {
+      "id": "ev-c24f25b0ee624e0bac6e",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/issues/pull_list.go",
+      "sha256": "de77af7dbf928f631df1a0e8df40aa843a5765dcad2b095a776e9e50f8fbd432",
+      "startLine": 127,
+      "endLine": 127,
+      "bytes": 98
+    },
+    {
+      "id": "ev-2b5b37e663a2dadfc8fb",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 337,
+      "endLine": 337,
+      "bytes": 95
+    },
+    {
+      "id": "ev-69252f0dd93fbc09b103",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 420,
+      "endLine": 420,
+      "bytes": 63
+    },
+    {
+      "id": "ev-82b999d75b44d4692920",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 423,
+      "endLine": 423,
+      "bytes": 96
+    },
+    {
+      "id": "ev-f3f3f4a5afdbd477ee62",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 426,
+      "endLine": 426,
+      "bytes": 147
+    },
+    {
+      "id": "ev-ce37cfd41b6a96ce987d",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 570,
+      "endLine": 570,
+      "bytes": 69
+    },
+    {
+      "id": "ev-a76f5518f6dd76c7f1f1",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 589,
+      "endLine": 589,
+      "bytes": 69
+    },
+    {
+      "id": "ev-284902d068070fd495a0",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 608,
+      "endLine": 608,
+      "bytes": 69
+    },
+    {
+      "id": "ev-9a9730ed8243c12d8f1e",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 661,
+      "endLine": 661,
+      "bytes": 69
+    },
+    {
+      "id": "ev-c56bbdb1f13f1d69a98b",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 663,
+      "endLine": 663,
+      "bytes": 62
+    },
+    {
+      "id": "ev-4facefe61b2062c0dce6",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 711,
+      "endLine": 711,
+      "bytes": 101
+    },
+    {
+      "id": "ev-368d915e8c821b9d43ad",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/collaborators.go",
+      "sha256": "bea31952884d2c87d9ea5c202788d8ea9936f6a0eed9ae1d2d5e0ae038ba8777",
+      "startLine": 294,
+      "endLine": 294,
+      "bytes": 111
+    },
+    {
+      "id": "ev-bd268089992772386378",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/repo/issue_tracked_time.go",
+      "sha256": "916c8191614fc7a3c1b9febf141934aab5ca63333b95e5309296326a751d8aec",
+      "startLine": 152,
+      "endLine": 152,
+      "bytes": 111
+    },
+    {
+      "id": "ev-e24bdc46f7e4c3f4209e",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "services/convert/convert.go",
+      "sha256": "17abaaac70dc2188bfd6b9284b76b94a95dd5dbd8c4e247547e0b1983a660ba6",
+      "startLine": 78,
+      "endLine": 78,
+      "bytes": 84
+    },
+    {
+      "id": "ev-332dab453a0def9455fa",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "services/convert/convert.go",
+      "sha256": "17abaaac70dc2188bfd6b9284b76b94a95dd5dbd8c4e247547e0b1983a660ba6",
+      "startLine": 111,
+      "endLine": 111,
+      "bytes": 89
+    },
+    {
+      "id": "ev-8fd5a3314c8771120417",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "services/convert/notification.go",
+      "sha256": "a24ee6fddcd23465b47894b9df03c4602184c84366488a1b0a74f9a8a3d23668",
+      "startLine": 30,
+      "endLine": 30,
+      "bytes": 91
+    },
+    {
+      "id": "ev-ae89ef62698b4535f15c",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "services/convert/notification.go",
+      "sha256": "a24ee6fddcd23465b47894b9df03c4602184c84366488a1b0a74f9a8a3d23668",
+      "startLine": 32,
+      "endLine": 32,
+      "bytes": 68
+    },
+    {
+      "id": "ev-c78a2d023ff54bac2834",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "services/convert/user.go",
+      "sha256": "a253de42b6a8666d50221854d75bcbb5b74c8224996189244ac82a4bc0940b03",
+      "startLine": 129,
+      "endLine": 129,
+      "bytes": 142
+    },
+    {
+      "id": "ev-8e6e5a8ecf6b42494b52",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 360,
+      "endLine": 390,
+      "bytes": 1188
+    },
+    {
+      "id": "ev-a6b1d2bdd676f56f89ca",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "services/context/api.go",
+      "sha256": "182aa57ba15df1e71a39b775f8520617d6d56a43d3239a2bb4ca5ea11598a665",
+      "startLine": 320,
+      "endLine": 336,
+      "bytes": 655
+    },
+    {
+      "id": "ev-1f34df3c7579a2af8b1d",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 400,
+      "endLine": 550,
+      "bytes": 5738
+    },
+    {
+      "id": "ev-3fc2f220076282506b9e",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6",
+      "startLine": 1310,
+      "endLine": 1375,
+      "bytes": 3707
+    },
+    {
+      "id": "ev-785c08c6329c221e8998",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "path": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58",
+      "startLine": 529,
+      "endLine": 565,
+      "bytes": 1400
+    }
+  ],
+  "deliveryValid": false,
+  "reviewCaution": "Citations and host consistency do not prove extraction meaning. Evaluate raw first/final and final prose against original source at the retained evidence ranges. A native prose answer can be delivered despite failed host checking. Representation may reveal strategy; arm, cost and target scores are hidden. No earlier answer is supplied."
+}

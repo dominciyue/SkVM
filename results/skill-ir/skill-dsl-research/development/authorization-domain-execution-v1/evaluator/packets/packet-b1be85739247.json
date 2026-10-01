@@ -1,0 +1,1221 @@
+{
+  "schemaVersion": "authorization-aq-anonymous-packet/v1",
+  "id": "packet-b1be85739247",
+  "task": {
+    "brief": "Investigate process_file at /process/file in this Open WebUI revision. Trace the caller, the supplied file_id and the destination collection_name through authorization and the eventual processing or vector write. Explain whether the object authorized for input and the object affected by output are the same, and what happens for caller-owned versus another user's file. Do not assume the caller owns the destination collection. Give visible conditions and specific remaining limits; this is behavior investigation.",
+    "mode": "behavior"
+  },
+  "status": "transport-failed",
+  "initial": null,
+  "final": null,
+  "prose": null,
+  "initialProse": null,
+  "initialValidation": null,
+  "finalValidation": null,
+  "error": "Structured extraction failed after 1 attempts: [{\"transport\":\"schema-tool\",\"category\":\"schema-validation\",\"diagnostics\":[{\"path\":\"$\",\"code\":\"unrecognized_keys\"}]},{\"transport\":\"prompt-parse\",\"category\":\"json-parse\",\"diagnostics\":[{\"path\":\"$\",\"code\":\"invalid-json\"}]}]",
+  "extractionInitial": {
+    "rules": [],
+    "dependencies": [],
+    "bindings": [],
+    "policyRules": []
+  },
+  "extractionInitialOrigin": "no-control-proposal",
+  "extractionFinal": {
+    "schemaVersion": "authorization-control-slice/v1",
+    "revision": 0,
+    "rules": [],
+    "dependencies": [],
+    "bindings": [],
+    "policyRules": [],
+    "conflicts": [],
+    "revisions": []
+  },
+  "extractionProposals": [],
+  "hostChecks": [],
+  "dependencies": [],
+  "schedulerActions": [],
+  "evidence": [
+    {
+      "id": "ev-c0f343836151e27c535a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/files.py",
+      "sha256": "f92028460061cc4e03cb8214eafd4474a07370f41f61c3066deea4d30c774b9b",
+      "startLine": 45,
+      "endLine": 45,
+      "bytes": 76
+    },
+    {
+      "id": "ev-d562eb09a6475299aab9",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/files.py",
+      "sha256": "f92028460061cc4e03cb8214eafd4474a07370f41f61c3066deea4d30c774b9b",
+      "startLine": 136,
+      "endLine": 136,
+      "bytes": 46
+    },
+    {
+      "id": "ev-d6ac7ff42a4eea7163eb",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/files.py",
+      "sha256": "f92028460061cc4e03cb8214eafd4474a07370f41f61c3066deea4d30c774b9b",
+      "startLine": 145,
+      "endLine": 145,
+      "bytes": 46
+    },
+    {
+      "id": "ev-5903850175eb7c8f505f",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/files.py",
+      "sha256": "f92028460061cc4e03cb8214eafd4474a07370f41f61c3066deea4d30c774b9b",
+      "startLine": 155,
+      "endLine": 155,
+      "bytes": 42
+    },
+    {
+      "id": "ev-db91ac74b8c0e4f9e2a5",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/files.py",
+      "sha256": "f92028460061cc4e03cb8214eafd4474a07370f41f61c3066deea4d30c774b9b",
+      "startLine": 569,
+      "endLine": 569,
+      "bytes": 38
+    },
+    {
+      "id": "ev-7ffd22c74373854f82ca",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/files.py",
+      "sha256": "f92028460061cc4e03cb8214eafd4474a07370f41f61c3066deea4d30c774b9b",
+      "startLine": 589,
+      "endLine": 589,
+      "bytes": 42
+    },
+    {
+      "id": "ev-3e4c2eda0eec0c3521a2",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/knowledge.py",
+      "sha256": "d59cea488d300bf3206aeaf176af980b05de95b1e86e766373765b1fcd3f1342",
+      "startLine": 24,
+      "endLine": 24,
+      "bytes": 23
+    },
+    {
+      "id": "ev-cb41504355d8836cb8ea",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/knowledge.py",
+      "sha256": "d59cea488d300bf3206aeaf176af980b05de95b1e86e766373765b1fcd3f1342",
+      "startLine": 26,
+      "endLine": 26,
+      "bytes": 30
+    },
+    {
+      "id": "ev-d4a129dec1ac6994e17c",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/knowledge.py",
+      "sha256": "d59cea488d300bf3206aeaf176af980b05de95b1e86e766373765b1fcd3f1342",
+      "startLine": 322,
+      "endLine": 322,
+      "bytes": 46
+    },
+    {
+      "id": "ev-ee0107730f709af58e6d",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/knowledge.py",
+      "sha256": "d59cea488d300bf3206aeaf176af980b05de95b1e86e766373765b1fcd3f1342",
+      "startLine": 661,
+      "endLine": 661,
+      "bytes": 34
+    },
+    {
+      "id": "ev-4ced7f71c9b74338b3d9",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/knowledge.py",
+      "sha256": "d59cea488d300bf3206aeaf176af980b05de95b1e86e766373765b1fcd3f1342",
+      "startLine": 739,
+      "endLine": 739,
+      "bytes": 34
+    },
+    {
+      "id": "ev-13d805782c52b27ca388",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/knowledge.py",
+      "sha256": "d59cea488d300bf3206aeaf176af980b05de95b1e86e766373765b1fcd3f1342",
+      "startLine": 1022,
+      "endLine": 1022,
+      "bytes": 51
+    },
+    {
+      "id": "ev-0a8fd791f9bb2b1fee03",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1547,
+      "endLine": 1547,
+      "bytes": 31
+    },
+    {
+      "id": "ev-b28e7c999d3f86f18511",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2603,
+      "endLine": 2603,
+      "bytes": 38
+    },
+    {
+      "id": "ev-34cdd5668d0d960ec309",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2675,
+      "endLine": 2675,
+      "bytes": 96
+    },
+    {
+      "id": "ev-16bddd416453c0843ee7",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2696,
+      "endLine": 2696,
+      "bytes": 100
+    },
+    {
+      "id": "ev-50b742ce38a9b7029b5b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 1546,
+      "endLine": 1546,
+      "bytes": 37
+    },
+    {
+      "id": "ev-eb018015663bc550cf65",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+      "startLine": 2602,
+      "endLine": 2602,
+      "bytes": 44
+    },
+    {
+      "id": "ev-943df62ee3c81fb26a1a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 221,
+      "endLine": 221,
+      "bytes": 31
+    },
+    {
+      "id": "ev-5570b39646268823c629",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 245,
+      "endLine": 245,
+      "bytes": 56
+    },
+    {
+      "id": "ev-2d29e23a515f8efb652e",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 267,
+      "endLine": 267,
+      "bytes": 105
+    },
+    {
+      "id": "ev-d8f5cc10dede16ce01f0",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 269,
+      "endLine": 269,
+      "bytes": 60
+    },
+    {
+      "id": "ev-6d7db20777181764cd96",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 271,
+      "endLine": 271,
+      "bytes": 51
+    },
+    {
+      "id": "ev-4857072358daf11f6cff",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 281,
+      "endLine": 281,
+      "bytes": 89
+    },
+    {
+      "id": "ev-bedc61473a9ed6f96017",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 285,
+      "endLine": 285,
+      "bytes": 65
+    },
+    {
+      "id": "ev-8052d8e85e95d89bcab6",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 287,
+      "endLine": 287,
+      "bytes": 58
+    },
+    {
+      "id": "ev-835f7e74be58bf64a3e2",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 288,
+      "endLine": 288,
+      "bytes": 77
+    },
+    {
+      "id": "ev-1fb04333fd05ff08a010",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 295,
+      "endLine": 295,
+      "bytes": 73
+    },
+    {
+      "id": "ev-daab1f165ffab71726fe",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 334,
+      "endLine": 334,
+      "bytes": 32
+    },
+    {
+      "id": "ev-b68595f257319650e587",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 352,
+      "endLine": 352,
+      "bytes": 89
+    },
+    {
+      "id": "ev-4dd588695c05bcde118f",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 361,
+      "endLine": 361,
+      "bytes": 89
+    },
+    {
+      "id": "ev-11b2a7456a72b7f8167b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 364,
+      "endLine": 364,
+      "bytes": 79
+    },
+    {
+      "id": "ev-69b101b1180dd16fd75d",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 381,
+      "endLine": 381,
+      "bytes": 51
+    },
+    {
+      "id": "ev-c6816717a41b344a962d",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 442,
+      "endLine": 442,
+      "bytes": 93
+    },
+    {
+      "id": "ev-f3eb3d818154da93e716",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 510,
+      "endLine": 510,
+      "bytes": 79
+    },
+    {
+      "id": "ev-3622843647f45b208f79",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 513,
+      "endLine": 513,
+      "bytes": 51
+    },
+    {
+      "id": "ev-bc8ad5bae47318ba87fd",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 514,
+      "endLine": 514,
+      "bytes": 34
+    },
+    {
+      "id": "ev-b51a531cc24aaa02317a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 516,
+      "endLine": 516,
+      "bytes": 72
+    },
+    {
+      "id": "ev-134195929b7704c861b4",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 529,
+      "endLine": 529,
+      "bytes": 39
+    },
+    {
+      "id": "ev-49ddb7324f37b89649c5",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 543,
+      "endLine": 543,
+      "bytes": 57
+    },
+    {
+      "id": "ev-6305e6a630ad52bcd88c",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 559,
+      "endLine": 559,
+      "bytes": 74
+    },
+    {
+      "id": "ev-56bb22a6f5dbbde02256",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 561,
+      "endLine": 561,
+      "bytes": 38
+    },
+    {
+      "id": "ev-d35f639d375d2c4200e7",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 563,
+      "endLine": 563,
+      "bytes": 59
+    },
+    {
+      "id": "ev-c0d079776548ca408f88",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 583,
+      "endLine": 583,
+      "bytes": 119
+    },
+    {
+      "id": "ev-7eeb4456e0f83aa6c0b1",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 588,
+      "endLine": 588,
+      "bytes": 59
+    },
+    {
+      "id": "ev-df27dd98c3047a475f3d",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 589,
+      "endLine": 589,
+      "bytes": 107
+    },
+    {
+      "id": "ev-4fd4e16c45b3844051d8",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 606,
+      "endLine": 606,
+      "bytes": 39
+    },
+    {
+      "id": "ev-fe8c5e417deab4243d74",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 622,
+      "endLine": 622,
+      "bytes": 66
+    },
+    {
+      "id": "ev-8d12211f93c75cdfab31",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 625,
+      "endLine": 625,
+      "bytes": 37
+    },
+    {
+      "id": "ev-d45ff69ccc03f45e0951",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 630,
+      "endLine": 630,
+      "bytes": 86
+    },
+    {
+      "id": "ev-539042a153c4fa742344",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 635,
+      "endLine": 635,
+      "bytes": 115
+    },
+    {
+      "id": "ev-d0cdbdf87eae7ac23a0b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 637,
+      "endLine": 637,
+      "bytes": 115
+    },
+    {
+      "id": "ev-ead63c035bf58905bb97",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 639,
+      "endLine": 639,
+      "bytes": 59
+    },
+    {
+      "id": "ev-8849d96ccf60811ce6ad",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 642,
+      "endLine": 642,
+      "bytes": 55
+    },
+    {
+      "id": "ev-931e59f8e3cc560755a6",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 643,
+      "endLine": 643,
+      "bytes": 77
+    },
+    {
+      "id": "ev-c62ed2aee14ea0b5540c",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 661,
+      "endLine": 661,
+      "bytes": 39
+    },
+    {
+      "id": "ev-13c3eb798178f3d7b147",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 662,
+      "endLine": 662,
+      "bytes": 54
+    },
+    {
+      "id": "ev-5d612fab8c3c60bfb9c2",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 663,
+      "endLine": 663,
+      "bytes": 65
+    },
+    {
+      "id": "ev-7e78680205336e0d11c0",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 668,
+      "endLine": 668,
+      "bytes": 124
+    },
+    {
+      "id": "ev-c8ffb9dc1e1a26e2009c",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 1062,
+      "endLine": 1062,
+      "bytes": 39
+    },
+    {
+      "id": "ev-ba8e9d16038d6c2e23e1",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 1080,
+      "endLine": 1080,
+      "bytes": 39
+    },
+    {
+      "id": "ev-ba3040b618fab1e866d8",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 1083,
+      "endLine": 1083,
+      "bytes": 41
+    },
+    {
+      "id": "ev-20cecdc0d2d336662855",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 1133,
+      "endLine": 1133,
+      "bytes": 37
+    },
+    {
+      "id": "ev-ebaba7d00b7aa58ab0e2",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 1149,
+      "endLine": 1149,
+      "bytes": 55
+    },
+    {
+      "id": "ev-ada4634484607849faa4",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 1151,
+      "endLine": 1151,
+      "bytes": 80
+    },
+    {
+      "id": "ev-8bd0ac677b0226a8cef2",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 1252,
+      "endLine": 1252,
+      "bytes": 68
+    },
+    {
+      "id": "ev-99c3246ea9494abcfce8",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 1254,
+      "endLine": 1254,
+      "bytes": 73
+    },
+    {
+      "id": "ev-e6aefc549e177b5fdb98",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/utils.py",
+      "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+      "startLine": 1302,
+      "endLine": 1302,
+      "bytes": 83
+    },
+    {
+      "id": "ev-2f6596f4832975f00f9a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/channels.py",
+      "sha256": "1b84f51d820f74c065ff68e31ee4474ac1ccf68d70ad08e7ba25b994e9fba576",
+      "startLine": 163,
+      "endLine": 163,
+      "bytes": 92
+    },
+    {
+      "id": "ev-fa190b02e55fda79d7a1",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/channels.py",
+      "sha256": "1b84f51d820f74c065ff68e31ee4474ac1ccf68d70ad08e7ba25b994e9fba576",
+      "startLine": 168,
+      "endLine": 168,
+      "bytes": 109
+    },
+    {
+      "id": "ev-e04f65c00848ace966d5",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/channels.py",
+      "sha256": "1b84f51d820f74c065ff68e31ee4474ac1ccf68d70ad08e7ba25b994e9fba576",
+      "startLine": 177,
+      "endLine": 177,
+      "bytes": 23
+    },
+    {
+      "id": "ev-520a0c273e1ee566957a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/channels.py",
+      "sha256": "1b84f51d820f74c065ff68e31ee4474ac1ccf68d70ad08e7ba25b994e9fba576",
+      "startLine": 696,
+      "endLine": 696,
+      "bytes": 122
+    },
+    {
+      "id": "ev-5936d9d7c3ee6b529e28",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/channels.py",
+      "sha256": "1b84f51d820f74c065ff68e31ee4474ac1ccf68d70ad08e7ba25b994e9fba576",
+      "startLine": 698,
+      "endLine": 698,
+      "bytes": 104
+    },
+    {
+      "id": "ev-a88d1e0602c01f71ad5a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/channels.py",
+      "sha256": "1b84f51d820f74c065ff68e31ee4474ac1ccf68d70ad08e7ba25b994e9fba576",
+      "startLine": 713,
+      "endLine": 713,
+      "bytes": 57
+    },
+    {
+      "id": "ev-6548f3fe847bc77e5e7b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/channels.py",
+      "sha256": "1b84f51d820f74c065ff68e31ee4474ac1ccf68d70ad08e7ba25b994e9fba576",
+      "startLine": 714,
+      "endLine": 714,
+      "bytes": 82
+    },
+    {
+      "id": "ev-357154d996215fe35181",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/channels.py",
+      "sha256": "1b84f51d820f74c065ff68e31ee4474ac1ccf68d70ad08e7ba25b994e9fba576",
+      "startLine": 718,
+      "endLine": 718,
+      "bytes": 104
+    },
+    {
+      "id": "ev-a5f75e9e5332808a421c",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/channels.py",
+      "sha256": "1b84f51d820f74c065ff68e31ee4474ac1ccf68d70ad08e7ba25b994e9fba576",
+      "startLine": 852,
+      "endLine": 852,
+      "bytes": 99
+    },
+    {
+      "id": "ev-fcdb38bfd7dc0b544331",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/channels.py",
+      "sha256": "1b84f51d820f74c065ff68e31ee4474ac1ccf68d70ad08e7ba25b994e9fba576",
+      "startLine": 859,
+      "endLine": 859,
+      "bytes": 46
+    },
+    {
+      "id": "ev-b09b8180a043b0f0a867",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/channels.py",
+      "sha256": "1b84f51d820f74c065ff68e31ee4474ac1ccf68d70ad08e7ba25b994e9fba576",
+      "startLine": 881,
+      "endLine": 881,
+      "bytes": 28
+    },
+    {
+      "id": "ev-f1961715a4ef44e1fc1b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/channels.py",
+      "sha256": "1b84f51d820f74c065ff68e31ee4474ac1ccf68d70ad08e7ba25b994e9fba576",
+      "startLine": 887,
+      "endLine": 887,
+      "bytes": 119
+    },
+    {
+      "id": "ev-4f2088ce02fe18a0b5a6",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/channels.py",
+      "sha256": "1b84f51d820f74c065ff68e31ee4474ac1ccf68d70ad08e7ba25b994e9fba576",
+      "startLine": 901,
+      "endLine": 901,
+      "bytes": 85
+    },
+    {
+      "id": "ev-fb75beeb39e2b7a65b3f",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/channels.py",
+      "sha256": "1b84f51d820f74c065ff68e31ee4474ac1ccf68d70ad08e7ba25b994e9fba576",
+      "startLine": 905,
+      "endLine": 905,
+      "bytes": 110
+    },
+    {
+      "id": "ev-d22a219116b3cfa585f8",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/chats.py",
+      "sha256": "9d77fc5221293c4fbc1827a9ab21e6609733db0de74f917c5a0296a18c253579",
+      "startLine": 105,
+      "endLine": 105,
+      "bytes": 92
+    },
+    {
+      "id": "ev-0f125d2718d293700ca9",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/chats.py",
+      "sha256": "9d77fc5221293c4fbc1827a9ab21e6609733db0de74f917c5a0296a18c253579",
+      "startLine": 110,
+      "endLine": 110,
+      "bytes": 100
+    },
+    {
+      "id": "ev-0052ab50b54d1f830df6",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/chats.py",
+      "sha256": "9d77fc5221293c4fbc1827a9ab21e6609733db0de74f917c5a0296a18c253579",
+      "startLine": 119,
+      "endLine": 119,
+      "bytes": 23
+    },
+    {
+      "id": "ev-7fc80ae4f00733b5f96b",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/chats.py",
+      "sha256": "9d77fc5221293c4fbc1827a9ab21e6609733db0de74f917c5a0296a18c253579",
+      "startLine": 1543,
+      "endLine": 1543,
+      "bytes": 36
+    },
+    {
+      "id": "ev-2d3950037a8626c3aef1",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/chats.py",
+      "sha256": "9d77fc5221293c4fbc1827a9ab21e6609733db0de74f917c5a0296a18c253579",
+      "startLine": 1547,
+      "endLine": 1547,
+      "bytes": 32
+    },
+    {
+      "id": "ev-2cde1048389b9bef2301",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/chats.py",
+      "sha256": "9d77fc5221293c4fbc1827a9ab21e6609733db0de74f917c5a0296a18c253579",
+      "startLine": 1550,
+      "endLine": 1550,
+      "bytes": 41
+    },
+    {
+      "id": "ev-c9b3fc091a6f5d7a774f",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/chats.py",
+      "sha256": "9d77fc5221293c4fbc1827a9ab21e6609733db0de74f917c5a0296a18c253579",
+      "startLine": 1553,
+      "endLine": 1553,
+      "bytes": 57
+    },
+    {
+      "id": "ev-90d18ab1748c3fbad5b1",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/chats.py",
+      "sha256": "9d77fc5221293c4fbc1827a9ab21e6609733db0de74f917c5a0296a18c253579",
+      "startLine": 1554,
+      "endLine": 1554,
+      "bytes": 118
+    },
+    {
+      "id": "ev-9c7ebc7ac46e798225eb",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/chats.py",
+      "sha256": "9d77fc5221293c4fbc1827a9ab21e6609733db0de74f917c5a0296a18c253579",
+      "startLine": 1555,
+      "endLine": 1555,
+      "bytes": 32
+    },
+    {
+      "id": "ev-04a8f283b2ffa60498e7",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/chats.py",
+      "sha256": "9d77fc5221293c4fbc1827a9ab21e6609733db0de74f917c5a0296a18c253579",
+      "startLine": 1568,
+      "endLine": 1568,
+      "bytes": 48
+    },
+    {
+      "id": "ev-badcd363214a38dcf40a",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/chats.py",
+      "sha256": "9d77fc5221293c4fbc1827a9ab21e6609733db0de74f917c5a0296a18c253579",
+      "startLine": 1572,
+      "endLine": 1572,
+      "bytes": 51
+    },
+    {
+      "id": "ev-27d3741727eca283cb64",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/chats.py",
+      "sha256": "9d77fc5221293c4fbc1827a9ab21e6609733db0de74f917c5a0296a18c253579",
+      "startLine": 1594,
+      "endLine": 1594,
+      "bytes": 116
+    },
+    {
+      "id": "ev-4b873732355713aa73d4",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/chats.py",
+      "sha256": "9d77fc5221293c4fbc1827a9ab21e6609733db0de74f917c5a0296a18c253579",
+      "startLine": 1597,
+      "endLine": 1597,
+      "bytes": 102
+    },
+    {
+      "id": "ev-09fbaa01786d2c79c624",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/chats.py",
+      "sha256": "9d77fc5221293c4fbc1827a9ab21e6609733db0de74f917c5a0296a18c253579",
+      "startLine": 1603,
+      "endLine": 1603,
+      "bytes": 121
+    },
+    {
+      "id": "ev-5b7285d73b30c59bf56f",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/chats.py",
+      "sha256": "9d77fc5221293c4fbc1827a9ab21e6609733db0de74f917c5a0296a18c253579",
+      "startLine": 1609,
+      "endLine": 1609,
+      "bytes": 87
+    },
+    {
+      "id": "ev-11003632b6a186c7331e",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/knowledge.py",
+      "sha256": "3d46620e841fa3d6565744062ef420486477539b7be13a8ee007833bc6585edb",
+      "startLine": 80,
+      "endLine": 80,
+      "bytes": 91
+    },
+    {
+      "id": "ev-a46ebd9cc0c184ab2f59",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/knowledge.py",
+      "sha256": "3d46620e841fa3d6565744062ef420486477539b7be13a8ee007833bc6585edb",
+      "startLine": 86,
+      "endLine": 86,
+      "bytes": 114
+    },
+    {
+      "id": "ev-5e414fa5fe56f2bbe75f",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/knowledge.py",
+      "sha256": "3d46620e841fa3d6565744062ef420486477539b7be13a8ee007833bc6585edb",
+      "startLine": 92,
+      "endLine": 92,
+      "bytes": 22
+    },
+    {
+      "id": "ev-2909ddd6dbcad2ee729c",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/knowledge.py",
+      "sha256": "3d46620e841fa3d6565744062ef420486477539b7be13a8ee007833bc6585edb",
+      "startLine": 301,
+      "endLine": 301,
+      "bytes": 81
+    },
+    {
+      "id": "ev-6192bee55cb58b80b7af",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/knowledge.py",
+      "sha256": "3d46620e841fa3d6565744062ef420486477539b7be13a8ee007833bc6585edb",
+      "startLine": 429,
+      "endLine": 429,
+      "bytes": 126
+    },
+    {
+      "id": "ev-05bba844eceaf4860187",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/knowledge.py",
+      "sha256": "3d46620e841fa3d6565744062ef420486477539b7be13a8ee007833bc6585edb",
+      "startLine": 435,
+      "endLine": 435,
+      "bytes": 68
+    },
+    {
+      "id": "ev-ceec0d0ee11ac0084277",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/knowledge.py",
+      "sha256": "3d46620e841fa3d6565744062ef420486477539b7be13a8ee007833bc6585edb",
+      "startLine": 464,
+      "endLine": 464,
+      "bytes": 81
+    },
+    {
+      "id": "ev-49368e372c7cf4971b54",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/knowledge.py",
+      "sha256": "3d46620e841fa3d6565744062ef420486477539b7be13a8ee007833bc6585edb",
+      "startLine": 533,
+      "endLine": 533,
+      "bytes": 81
+    },
+    {
+      "id": "ev-13552ea48de5d3f719b4",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/knowledge.py",
+      "sha256": "3d46620e841fa3d6565744062ef420486477539b7be13a8ee007833bc6585edb",
+      "startLine": 553,
+      "endLine": 553,
+      "bytes": 28
+    },
+    {
+      "id": "ev-006e6d128ec4125ef823",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/knowledge.py",
+      "sha256": "3d46620e841fa3d6565744062ef420486477539b7be13a8ee007833bc6585edb",
+      "startLine": 562,
+      "endLine": 562,
+      "bytes": 46
+    },
+    {
+      "id": "ev-4d01efc8216f2699a0d2",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/knowledge.py",
+      "sha256": "3d46620e841fa3d6565744062ef420486477539b7be13a8ee007833bc6585edb",
+      "startLine": 581,
+      "endLine": 581,
+      "bytes": 112
+    },
+    {
+      "id": "ev-283720bf321ba064c23e",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/knowledge.py",
+      "sha256": "3d46620e841fa3d6565744062ef420486477539b7be13a8ee007833bc6585edb",
+      "startLine": 586,
+      "endLine": 586,
+      "bytes": 111
+    },
+    {
+      "id": "ev-fc316e7f5a83f1ab6a67",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/knowledge.py",
+      "sha256": "3d46620e841fa3d6565744062ef420486477539b7be13a8ee007833bc6585edb",
+      "startLine": 593,
+      "endLine": 593,
+      "bytes": 87
+    },
+    {
+      "id": "ev-394c64020e616abfe183",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/models/knowledge.py",
+      "sha256": "3d46620e841fa3d6565744062ef420486477539b7be13a8ee007833bc6585edb",
+      "startLine": 597,
+      "endLine": 597,
+      "bytes": 116
+    },
+    {
+      "id": "ev-674ad1ef1a4fcca18553",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/loaders/mistral.py",
+      "sha256": "9029047398ba29e441b856c8e3a4b6b6de02b21d415f45df9b8ae4f0c057cd2a",
+      "startLine": 250,
+      "endLine": 250,
+      "bytes": 52
+    },
+    {
+      "id": "ev-01e4a01a86460d6dbee6",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/loaders/mistral.py",
+      "sha256": "9029047398ba29e441b856c8e3a4b6b6de02b21d415f45df9b8ae4f0c057cd2a",
+      "startLine": 251,
+      "endLine": 251,
+      "bytes": 34
+    },
+    {
+      "id": "ev-13782acc6f9ceab0ce87",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/loaders/mistral.py",
+      "sha256": "9029047398ba29e441b856c8e3a4b6b6de02b21d415f45df9b8ae4f0c057cd2a",
+      "startLine": 253,
+      "endLine": 253,
+      "bytes": 78
+    },
+    {
+      "id": "ev-4a06aaf81770c5b94586",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/loaders/mistral.py",
+      "sha256": "9029047398ba29e441b856c8e3a4b6b6de02b21d415f45df9b8ae4f0c057cd2a",
+      "startLine": 254,
+      "endLine": 254,
+      "bytes": 33
+    },
+    {
+      "id": "ev-0669042c0e53eb534af9",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/loaders/mistral.py",
+      "sha256": "9029047398ba29e441b856c8e3a4b6b6de02b21d415f45df9b8ae4f0c057cd2a",
+      "startLine": 294,
+      "endLine": 294,
+      "bytes": 48
+    },
+    {
+      "id": "ev-fc3fef538878bb164689",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/loaders/mistral.py",
+      "sha256": "9029047398ba29e441b856c8e3a4b6b6de02b21d415f45df9b8ae4f0c057cd2a",
+      "startLine": 295,
+      "endLine": 295,
+      "bytes": 30
+    },
+    {
+      "id": "ev-695de693b9c78aa11b79",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "path": "backend/open_webui/retrieval/loaders/mistral.py",
+      "sha256": "9029047398ba29e441b856c8e3a4b6b6de02b21d415f45df9b8ae4f0c057cd2a",
+      "startLine": 298,
+      "endLine": 298,
+      "bytes": 74
+    }
+  ],
+  "deliveryValid": false,
+  "reviewCaution": "Citations and host consistency do not prove extraction meaning. Evaluate raw first/final and final prose against original source at the retained evidence ranges. A native prose answer can be delivered despite failed host checking. Representation may reveal strategy; arm, cost and target scores are hidden. No earlier answer is supplied."
+}

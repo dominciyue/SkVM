@@ -1,0 +1,3482 @@
+{
+  "schemaVersion": "authorization-aq-anonymous-packet/v1",
+  "id": "packet-1f6b3e10f8fb",
+  "task": {
+    "brief": "Check GET and POST on the document notes operation against the current independently supplied policy. Compare viewing notes and creating a note on the addressed document. The document owner is unspecified, and object grants are not given; retain relevant owner and permission branches rather than silently supplying those facts. Trace endpoint and object controls to the corresponding effects, explain policy compliance and preserve exact gaps.",
+    "mode": "conformance",
+    "policy": {
+      "text": "Viewing notes requires a view_document grant for the addressed document; creating notes requires a change_document grant for that same document. Document ownership by itself does not substitute for either grant.",
+      "origin": "user",
+      "location": "experimental-user-brief:paperless-note-policy/v1"
+    }
+  },
+  "status": "completed",
+  "initial": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "document-notes-get",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "GET is first gated by PaperlessNotePermissions: the caller must be authenticated and hold global documents.view_note plus documents.view_document model permissions. The action then loads the document selected by pk and applies has_perms_owner_aware(user, \"view_document\", doc). That object check passes if the document is unowned, owned by the caller, or the caller has the object-level view_document permission. If it passes, the endpoint returns that document's serialized notes."
+        },
+        "branches": [
+          {
+            "id": "get-endpoint-deny",
+            "condition": "The caller is absent/unauthenticated or lacks either global documents.view_note or global documents.view_document.",
+            "disposition": "deny",
+            "explanation": "PaperlessNotePermissions rejects the request before the action effect.",
+            "evidenceIds": [
+              "ev-be4b071c2d36dd0b87af"
+            ]
+          },
+          {
+            "id": "get-owner-or-unowned-allow",
+            "condition": "The endpoint model-permission gate passes, and the addressed document is owned by the caller or has no owner; no object grant is assumed.",
+            "disposition": "allow",
+            "explanation": "has_perms_owner_aware treats caller ownership and no owner as sufficient, and GET then returns the notes.",
+            "evidenceIds": [
+              "ev-fb8b1acf0bb547601ad1",
+              "ev-4f33a1e09c04ea0ad5ed"
+            ]
+          },
+          {
+            "id": "get-object-grant-allow",
+            "condition": "The endpoint model-permission gate passes, the addressed document is owned by someone else, and the caller has view_document on that document.",
+            "disposition": "allow",
+            "explanation": "The owner-aware check accepts the object grant and GET returns the notes.",
+            "evidenceIds": [
+              "ev-fb8b1acf0bb547601ad1",
+              "ev-4f33a1e09c04ea0ad5ed"
+            ]
+          },
+          {
+            "id": "get-object-grant-deny",
+            "condition": "The endpoint model-permission gate passes, the addressed document is owned by someone else, and the caller lacks view_document on that document.",
+            "disposition": "deny",
+            "explanation": "The owner-aware check fails and the action returns Forbidden.",
+            "evidenceIds": [
+              "ev-fb8b1acf0bb547601ad1",
+              "ev-4f33a1e09c04ea0ad5ed"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-be4b071c2d36dd0b87af",
+          "ev-fb8b1acf0bb547601ad1",
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "The addressed document's owner relation is unspecified."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "The caller's global model permissions and object-level view_document grant are unspecified."
+          }
+        ],
+        "policyAssessment": {
+          "status": "violated",
+          "explanation": "The policy requires an object-level view_document grant and says ownership is not a substitute. Source permits GET for caller-owned and unowned documents without that object grant, provided the separate endpoint model-permission gate passes. The other-owner branch with an object view_document grant conforms, while the missing-grant other-owner branch is denied."
+        }
+      },
+      {
+        "questionId": "document-notes-post",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "POST is first gated by PaperlessNotePermissions: the authenticated caller must hold global documents.add_note, documents.view_document, and documents.change_document model permissions. The action loads the document selected by pk, applies an owner-aware view_document check, then an owner-aware change_document check. Each owner-aware check passes for an unowned document, caller ownership, or the corresponding object grant. If both pass, Note.objects.create writes a note linked to that same document and to request.user."
+        },
+        "branches": [
+          {
+            "id": "post-endpoint-deny",
+            "condition": "The caller is absent/unauthenticated or lacks any required global documents.add_note, documents.view_document, or documents.change_document permission.",
+            "disposition": "deny",
+            "explanation": "PaperlessNotePermissions rejects the request before note creation.",
+            "evidenceIds": [
+              "ev-be4b071c2d36dd0b87af"
+            ]
+          },
+          {
+            "id": "post-owner-or-unowned-allow",
+            "condition": "The endpoint model-permission gate passes, and the addressed document is owned by the caller or has no owner; no object grants are assumed.",
+            "disposition": "allow",
+            "explanation": "Both owner-aware checks pass through the owner/no-owner alternatives, after which a note is created on the addressed document.",
+            "evidenceIds": [
+              "ev-fb8b1acf0bb547601ad1",
+              "ev-4f33a1e09c04ea0ad5ed"
+            ]
+          },
+          {
+            "id": "post-other-owner-both-grants-allow",
+            "condition": "The endpoint model-permission gate passes, the document is owned by someone else, and the caller has both view_document and change_document on that document.",
+            "disposition": "allow",
+            "explanation": "Both object checks pass and the note is created on the same addressed document.",
+            "evidenceIds": [
+              "ev-fb8b1acf0bb547601ad1",
+              "ev-4f33a1e09c04ea0ad5ed"
+            ]
+          },
+          {
+            "id": "post-other-owner-no-view-deny",
+            "condition": "The endpoint gate passes, the document is owned by someone else, and the caller lacks view_document on that document.",
+            "disposition": "deny",
+            "explanation": "The initial owner-aware view check returns Forbidden before the change check and creation.",
+            "evidenceIds": [
+              "ev-fb8b1acf0bb547601ad1",
+              "ev-4f33a1e09c04ea0ad5ed"
+            ]
+          },
+          {
+            "id": "post-other-owner-view-no-change-deny",
+            "condition": "The endpoint gate passes, the document is owned by someone else, the caller has view_document, but lacks change_document on that document.",
+            "disposition": "deny",
+            "explanation": "The view check passes, but the subsequent owner-aware change check returns Forbidden before creation.",
+            "evidenceIds": [
+              "ev-fb8b1acf0bb547601ad1",
+              "ev-4f33a1e09c04ea0ad5ed"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-be4b071c2d36dd0b87af",
+          "ev-fb8b1acf0bb547601ad1",
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "The addressed document's owner relation is unspecified."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "The caller's global model permissions and object-level view_document/change_document grants are unspecified."
+          }
+        ],
+        "policyAssessment": {
+          "status": "violated",
+          "explanation": "The policy requires change_document on the addressed document and rejects ownership as a substitute. Source permits POST for caller-owned and unowned documents without an object-level change_document grant (and without an object-level view_document grant), provided the endpoint's global model-permission gate passes. For a document owned by someone else, source requires both object view_document and change_document; that is stricter than the supplied creation policy but includes its required change_document grant."
+        }
+      }
+    ],
+    "observations": [],
+    "scope": "Source-only conformance review of GET and POST for the DocumentViewSet notes action in src/documents/views.py and PaperlessNotePermissions/has_perms_owner_aware in src/documents/permissions.py at source ref 126ec414a8b65158368653a2604ae58415e43103. No target execution or deployment validation."
+  },
+  "final": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "document-notes-get",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "GET requires the endpoint gate and then an owner-aware view_document check on the document selected by pk. The endpoint gate requires authentication plus global documents.view_note and documents.view_document. The object check accepts an unowned document, caller ownership, or an object-level view_document grant; successful GET returns that document's notes."
+        },
+        "branches": [
+          {
+            "id": "get-view-grant",
+            "condition": "The endpoint gate passes and the owner-aware view_document check passes through an object grant on the addressed document.",
+            "disposition": "allow",
+            "explanation": "The action returns notes serialized from the same document loaded by pk.",
+            "evidenceIds": [
+              "ev-be4b071c2d36dd0b87af",
+              "ev-4f33a1e09c04ea0ad5ed",
+              "ev-fb8b1acf0bb547601ad1"
+            ]
+          },
+          {
+            "id": "get-owner-or-unowned-allow",
+            "condition": "The endpoint gate passes and the addressed document is caller-owned or unowned, with no object grant supplied.",
+            "disposition": "allow",
+            "explanation": "Ownership or no owner satisfies has_perms_owner_aware, so GET returns the notes.",
+            "evidenceIds": [
+              "ev-fb8b1acf0bb547601ad1",
+              "ev-4f33a1e09c04ea0ad5ed"
+            ]
+          },
+          {
+            "id": "get-endpoint-deny",
+            "condition": "The caller is unauthenticated or lacks global documents.view_note or documents.view_document.",
+            "disposition": "deny",
+            "explanation": "PaperlessNotePermissions rejects before the action effect.",
+            "evidenceIds": [
+              "ev-be4b071c2d36dd0b87af"
+            ]
+          },
+          {
+            "id": "get-object-deny",
+            "condition": "The endpoint gate passes, the document is owned by another principal, and the caller lacks object-level view_document.",
+            "disposition": "deny",
+            "explanation": "The action returns Forbidden.",
+            "evidenceIds": [
+              "ev-fb8b1acf0bb547601ad1",
+              "ev-4f33a1e09c04ea0ad5ed"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-be4b071c2d36dd0b87af",
+          "ev-fb8b1acf0bb547601ad1",
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "The addressed document owner is unspecified."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "The caller's global model permissions and object-level view_document grant are unspecified."
+          }
+        ],
+        "policyAssessment": {
+          "status": "violated",
+          "explanation": "The object-grant branch conforms, but source also allows caller-owned and unowned documents without an object-level view_document grant. That conflicts with the policy's grant requirement and its statement that ownership is not a substitute."
+        }
+      },
+      {
+        "questionId": "document-notes-post",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "POST requires authentication and global documents.add_note, documents.view_document, and documents.change_document at the endpoint. It then performs owner-aware view_document and change_document checks on the document selected by pk. Each accepts no owner, caller ownership, or its corresponding object grant. If both pass, the new note is linked to that same document."
+        },
+        "branches": [
+          {
+            "id": "post-create-grant",
+            "condition": "The endpoint gate passes and the addressed document's owner-aware view_document and change_document checks pass through the corresponding object grants.",
+            "disposition": "allow",
+            "explanation": "The action creates a note on the same document loaded by pk.",
+            "evidenceIds": [
+              "ev-be4b071c2d36dd0b87af",
+              "ev-4f33a1e09c04ea0ad5ed",
+              "ev-fb8b1acf0bb547601ad1"
+            ]
+          },
+          {
+            "id": "post-owner-or-unowned-allow",
+            "condition": "The endpoint gate passes and the addressed document is caller-owned or unowned, with no object grants supplied.",
+            "disposition": "allow",
+            "explanation": "Ownership or no owner makes both owner-aware checks pass, after which the note is created.",
+            "evidenceIds": [
+              "ev-fb8b1acf0bb547601ad1",
+              "ev-4f33a1e09c04ea0ad5ed"
+            ]
+          },
+          {
+            "id": "post-endpoint-deny",
+            "condition": "The caller is unauthenticated or lacks any required global add_note, view_document, or change_document permission.",
+            "disposition": "deny",
+            "explanation": "PaperlessNotePermissions rejects before creation.",
+            "evidenceIds": [
+              "ev-be4b071c2d36dd0b87af"
+            ]
+          },
+          {
+            "id": "post-no-view-deny",
+            "condition": "The endpoint gate passes, the document is owned by another principal, and object-level view_document is absent.",
+            "disposition": "deny",
+            "explanation": "The first owner-aware object check returns Forbidden.",
+            "evidenceIds": [
+              "ev-fb8b1acf0bb547601ad1",
+              "ev-4f33a1e09c04ea0ad5ed"
+            ]
+          },
+          {
+            "id": "post-no-change-deny",
+            "condition": "The endpoint gate and object view check pass, but the other-owned document lacks object-level change_document for the caller.",
+            "disposition": "deny",
+            "explanation": "The subsequent change check returns Forbidden before creation.",
+            "evidenceIds": [
+              "ev-fb8b1acf0bb547601ad1",
+              "ev-4f33a1e09c04ea0ad5ed"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-be4b071c2d36dd0b87af",
+          "ev-fb8b1acf0bb547601ad1",
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "The addressed document owner is unspecified."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "The caller's global model permissions and object-level view_document/change_document grants are unspecified."
+          }
+        ],
+        "policyAssessment": {
+          "status": "violated",
+          "explanation": "The other-owner branch requires object-level change_document and therefore meets that policy requirement, although source additionally requires object-level view_document. But source also allows caller-owned and unowned documents without object-level change_document, contrary to the policy and its no-ownership-substitute clause."
+        }
+      }
+    ],
+    "observations": [],
+    "scope": "Source-only conformance review of GET and POST for the document notes action at source ref 126ec414a8b65158368653a2604ae58415e43103. No execution or deployment validation."
+  },
+  "prose": "## Conclusion\n\nBoth **GET** and **POST** are **conditional**, because the document owner and the caller’s permissions were not supplied.\n\nAgainst the independently supplied policy, both operations are **non-conforming**:\n\n- **GET** can return notes based on document ownership—or because the document is unowned—without an object-level `view_document` grant.\n- **POST** can create a note based on document ownership—or because the document is unowned—without an object-level `change_document` grant.\n\nThat contradicts the policy statement that ownership does not substitute for the relevant grant.\n\n## GET: view document notes\n\n### Endpoint control\n\nThe notes detail action uses `PaperlessNotePermissions` (`src/documents/views.py:1841-1848`).\n\nFor GET, that permission class requires:\n\n- an authenticated user;\n- global/model `documents.view_note`; and\n- global/model `documents.view_document`.\n\nThe check is performed with `request.user.has_perms(...)` (`src/documents/permissions.py:673-699`).\n\n### Object control and effect\n\nThe action:\n\n1. takes the principal from `request.user`;\n2. loads the document addressed by `pk`;\n3. calls `has_perms_owner_aware(currentUser, \"view_document\", doc)`; and\n4. returns the notes serialized from that same document if the check passes.\n\nThese steps appear at `src/documents/views.py:1848-1871`.\n\n`has_perms_owner_aware` returns true when any of these is true:\n\n```python\nobj.owner is None\nor obj.owner == user\nor checker.has_perm(perms, obj)\n```\n\n(`src/documents/permissions.py:624-635`)\n\n### Preserved GET branches\n\n| Branch | Result | Policy comparison |\n|---|---|---|\n| Caller is unauthenticated or lacks global `view_note` or global `view_document` | Denied at the endpoint gate | No notes are disclosed |\n| Endpoint gate passes; document is owned by another user; caller has object-level `view_document` | Notes returned | Conforms |\n| Endpoint gate passes; document is owned by another user; caller lacks object-level `view_document` | Forbidden | Conforms |\n| Endpoint gate passes; caller owns the document, but no object grant is present | Notes returned | **Violates policy** |\n| Endpoint gate passes; document is unowned, but no object grant is present | Notes returned | **Violates policy** |\n\nThus, the global/model permission requirement does not repair the policy mismatch: the supplied policy specifically requires a grant for the addressed document, while the object-level helper independently accepts ownership and no-owner cases.\n\n## POST: create a document note\n\n### Endpoint control\n\nThe same `PaperlessNotePermissions` class governs POST. It requires:\n\n- an authenticated user;\n- global/model `documents.add_note`;\n- global/model `documents.view_document`; and\n- global/model `documents.change_document`.\n\nSee `src/documents/permissions.py:681-685,693-699`.\n\n### Object controls and effect\n\nPOST first passes the common owner-aware `view_document` check at `src/documents/views.py:1857-1862`. It then performs another owner-aware check for `change_document` at `src/documents/views.py:1877-1886`.\n\nIf both checks pass, the endpoint creates:\n\n```python\nNote.objects.create(\n    document=doc,\n    note=request.data[\"note\"],\n    user=currentUser,\n)\n```\n\nat `src/documents/views.py:1888-1892`. The affected document is therefore the same document selected by `pk`.\n\n### Preserved POST branches\n\n| Branch | Result | Policy comparison |\n|---|---|---|\n| Caller is unauthenticated or lacks any required global `add_note`, `view_document`, or `change_document` permission | Denied at endpoint gate | No note is created |\n| Document is owned by another user; caller has both object-level `view_document` and `change_document` | Note created | Conforms with the creation policy; implementation is stricter because it also requires object-level view permission |\n| Document is owned by another user; object-level `view_document` is absent | Forbidden by the first object check | Stricter than the supplied creation policy |\n| Document is owned by another user; object-level view passes but `change_document` is absent | Forbidden by the second object check | Conforms |\n| Caller owns the document, but no object grants are present | Both owner-aware checks pass; note created | **Violates policy** |\n| Document is unowned, but no object grants are present | Both owner-aware checks pass; note created | **Violates policy** |\n\n## Exact unresolved facts and limits\n\nThe following request-specific facts remain unspecified, so no single allow/deny answer can be selected:\n\n1. whether the addressed document is unowned, caller-owned, or owned by another principal;\n2. whether the caller has the required global/model permissions;\n3. whether the caller has object-level `view_document`;\n4. for POST, whether the caller has object-level `change_document`.\n\nThis was a source-only review of source ref `126ec414a8b65158368653a2604ae58415e43103`. No runtime, deployment, authentication-backend, or Guardian configuration behavior was tested.\n\nThe domain result checker confirmed the source-bound policy comparison as **violated** for both questions, but its final structured delivery remained formally partial because two previously proposed owner-bypass effect nodes retained conflicting extraction metadata. That tooling conflict does not change the cited source behavior or the conformance conclusion above.",
+  "initialProse": null,
+  "initialValidation": null,
+  "finalValidation": null,
+  "error": null,
+  "extractionInitial": {
+    "schemaVersion": "authorization-control-slice/v1",
+    "rules": [
+      {
+        "key": "get-entry",
+        "questionId": "document-notes-get",
+        "pathKey": "get-view-grant",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "The document notes action is an endpoint for GET and POST and uses PaperlessNotePermissions.",
+        "complete": false
+      },
+      {
+        "key": "get-endpoint-control",
+        "questionId": "document-notes-get",
+        "pathKey": "get-view-grant",
+        "kind": "guard",
+        "after": [
+          "get-entry"
+        ],
+        "evidenceIds": [
+          "ev-be4b071c2d36dd0b87af"
+        ],
+        "claim": "At the endpoint permission layer, GET requires the listed global model permissions documents.view_note and documents.view_document.",
+        "principal": "caller",
+        "resource": "document-notes-endpoint",
+        "operation": "GET",
+        "complete": false
+      },
+      {
+        "key": "get-object-load",
+        "questionId": "document-notes-get",
+        "pathKey": "get-view-grant",
+        "kind": "binding",
+        "after": [
+          "get-entry"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "The addressed document is loaded by pk and its owner relation is selected; the document is the object passed to the owner-aware permission check.",
+        "bindingKey": "addressed-document",
+        "bindingKind": "resource",
+        "complete": true
+      },
+      {
+        "key": "get-object-view-control",
+        "questionId": "document-notes-get",
+        "pathKey": "get-view-grant",
+        "kind": "guard",
+        "after": [
+          "get-object-load"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "Before the GET/POST method branch, the action calls has_perms_owner_aware for view_document on the addressed document and returns 403 if it fails.",
+        "principal": "caller",
+        "resource": "addressed-document",
+        "operation": "view_document",
+        "complete": false
+      },
+      {
+        "key": "get-effect",
+        "questionId": "document-notes-get",
+        "pathKey": "get-view-grant",
+        "kind": "effect",
+        "after": [
+          "get-endpoint-control",
+          "get-object-view-control"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "On the GET branch, serialized notes for the addressed document are returned.",
+        "principal": "caller",
+        "resource": "notes-of-addressed-document",
+        "operation": "view notes",
+        "authorizedBy": [
+          "get-object-view-control"
+        ],
+        "complete": true
+      },
+      {
+        "key": "post-entry",
+        "questionId": "document-notes-post",
+        "pathKey": "post-create-grant",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "The document notes action is an endpoint for POST and uses PaperlessNotePermissions.",
+        "complete": false
+      },
+      {
+        "key": "post-endpoint-control",
+        "questionId": "document-notes-post",
+        "pathKey": "post-create-grant",
+        "kind": "guard",
+        "after": [
+          "post-entry"
+        ],
+        "evidenceIds": [
+          "ev-be4b071c2d36dd0b87af"
+        ],
+        "claim": "At the endpoint permission layer, POST requires documents.add_note, documents.view_document, and documents.change_document.",
+        "principal": "caller",
+        "resource": "document-notes-endpoint",
+        "operation": "POST",
+        "complete": false
+      },
+      {
+        "key": "post-object-load",
+        "questionId": "document-notes-post",
+        "pathKey": "post-create-grant",
+        "kind": "binding",
+        "after": [
+          "post-entry"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "The addressed document is loaded by pk and its owner relation is selected; the document is the object passed to the owner-aware permission check.",
+        "bindingKey": "addressed-document",
+        "bindingKind": "resource",
+        "complete": true
+      },
+      {
+        "key": "post-object-view-control",
+        "questionId": "document-notes-post",
+        "pathKey": "post-create-grant",
+        "kind": "guard",
+        "after": [
+          "post-object-load"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "Before the POST branch, the action calls has_perms_owner_aware for view_document on the addressed document and returns 403 if it fails.",
+        "principal": "caller",
+        "resource": "addressed-document",
+        "operation": "view_document",
+        "complete": false
+      },
+      {
+        "key": "post-object-change-control",
+        "questionId": "document-notes-post",
+        "pathKey": "post-create-grant",
+        "kind": "guard",
+        "after": [
+          "post-object-view-control"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "Within POST, the action calls has_perms_owner_aware for change_document on the addressed document and returns 403 if it fails.",
+        "principal": "caller",
+        "resource": "addressed-document",
+        "operation": "change_document",
+        "complete": false
+      },
+      {
+        "key": "post-effect",
+        "questionId": "document-notes-post",
+        "pathKey": "post-create-grant",
+        "kind": "effect",
+        "after": [
+          "post-endpoint-control",
+          "post-object-view-control",
+          "post-object-change-control"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "After the POST object checks, a Note is created with document=the addressed document and user=currentUser.",
+        "principal": "caller",
+        "resource": "notes-of-addressed-document",
+        "operation": "create note",
+        "authorizedBy": [
+          "post-object-change-control"
+        ],
+        "complete": true
+      }
+    ],
+    "dependencies": [
+      {
+        "key": "get-owner-aware-semantics",
+        "questionId": "document-notes-get",
+        "pathKey": "get-view-grant",
+        "from": "get-object-view-control",
+        "symbol": "has_perms_owner_aware",
+        "kind": "control",
+        "decisive": true,
+        "evidenceIds": [
+          "ev-1c8abc47f43fb9e488ad"
+        ],
+        "reason": "The policy distinguishes an object grant from ownership; the helper body is needed to determine whether owner status substitutes for the requested view_document grant.",
+        "pathHint": "src/documents/permissions.py:624"
+      },
+      {
+        "key": "post-owner-aware-semantics",
+        "questionId": "document-notes-post",
+        "pathKey": "post-create-grant",
+        "from": "post-object-change-control",
+        "symbol": "has_perms_owner_aware",
+        "kind": "control",
+        "decisive": true,
+        "evidenceIds": [
+          "ev-1c8abc47f43fb9e488ad"
+        ],
+        "reason": "The policy distinguishes an object grant from ownership; the helper body is needed to determine whether owner status substitutes for the requested change_document grant.",
+        "pathHint": "src/documents/permissions.py:624"
+      }
+    ],
+    "policyRules": [
+      {
+        "key": "get-policy",
+        "questionId": "document-notes-get",
+        "pathKey": "get-view-grant",
+        "expected": "allow",
+        "origin": "policy",
+        "text": "Viewing notes requires a view_document grant for the addressed document; creating notes requires a change_document grant for that same document. Document ownership by itself does not substitute for either grant.",
+        "location": "experimental-user-brief:paperless-note-policy/v1"
+      },
+      {
+        "key": "post-policy",
+        "questionId": "document-notes-post",
+        "pathKey": "post-create-grant",
+        "expected": "allow",
+        "origin": "policy",
+        "text": "Viewing notes requires a view_document grant for the addressed document; creating notes requires a change_document grant for that same document. Document ownership by itself does not substitute for either grant.",
+        "location": "experimental-user-brief:paperless-note-policy/v1"
+      }
+    ]
+  },
+  "extractionInitialOrigin": "first-control-proposal",
+  "extractionFinal": {
+    "schemaVersion": "authorization-control-slice/v1",
+    "revision": 29,
+    "rules": [
+      {
+        "key": "get-entry",
+        "questionId": "document-notes-get",
+        "pathKey": "get-view-grant",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "The document notes action is an endpoint for GET and POST and uses PaperlessNotePermissions.",
+        "complete": false,
+        "id": "ctrl-94f04b575e271b50a8af",
+        "digest": "fd41f8bb707cc0962b7c8bc746df4e23e94e4c4cb1fe2c220ce0b089c4f83a53",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "get-endpoint-control",
+        "questionId": "document-notes-get",
+        "pathKey": "get-view-grant",
+        "kind": "guard",
+        "after": [
+          "get-entry"
+        ],
+        "evidenceIds": [
+          "ev-be4b071c2d36dd0b87af"
+        ],
+        "claim": "At the endpoint permission layer, GET requires the listed global model permissions documents.view_note and documents.view_document.",
+        "principal": "caller",
+        "resource": "document-notes-endpoint",
+        "operation": "GET",
+        "complete": false,
+        "id": "ctrl-a2a5af910da09cb03369",
+        "digest": "ace14249601cab4432f2e7190a99c1a4e4f90ad625b499cec48b754c58f97128",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "get-object-load",
+        "questionId": "document-notes-get",
+        "pathKey": "get-view-grant",
+        "kind": "binding",
+        "after": [
+          "get-entry"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "The addressed document is loaded by pk and its owner relation is selected; the document is the object passed to the owner-aware permission check.",
+        "bindingKey": "addressed-document",
+        "bindingKind": "resource",
+        "complete": true,
+        "id": "ctrl-81e7fd73f58ae248a4fb",
+        "digest": "9ff8362f21bf13876a2c8e79c308fe333f3d45a63a6f1d44dde72e8b1506094c",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "get-object-view-control",
+        "questionId": "document-notes-get",
+        "pathKey": "get-view-grant",
+        "kind": "guard",
+        "after": [
+          "get-object-load"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "Before the GET/POST method branch, the action calls has_perms_owner_aware for view_document on the addressed document and returns 403 if it fails.",
+        "principal": "caller",
+        "resource": "addressed-document",
+        "operation": "view_document",
+        "complete": false,
+        "id": "ctrl-8e66ff90d8d9199cc78c",
+        "digest": "49b270725889eafcf9f8722b7baa4a72501c9845df0629b279ddc545f0c3c643",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "get-effect",
+        "questionId": "document-notes-get",
+        "pathKey": "get-view-grant",
+        "kind": "effect",
+        "after": [
+          "get-endpoint-control",
+          "get-object-view-control"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "GET serializes and returns notes from the addressed document after the endpoint and object checks pass.",
+        "principal": "caller",
+        "resource": "notes-of-addressed-document",
+        "operation": "view",
+        "complete": true,
+        "id": "ctrl-0062c200979102f3f365",
+        "digest": "821ec5bb27362f9f3510e19a018e7e1473ed4649cebed494d3f887b11013184d",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "post-entry",
+        "questionId": "document-notes-post",
+        "pathKey": "post-create-grant",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "The document notes action is an endpoint for POST and uses PaperlessNotePermissions.",
+        "complete": false,
+        "id": "ctrl-531c1e2fc7b02faccf6c",
+        "digest": "f6aa7d492121bb3505ea4fb047abf3d95c7f0e8700376167b0051fdf41cd91aa",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "post-endpoint-control",
+        "questionId": "document-notes-post",
+        "pathKey": "post-create-grant",
+        "kind": "guard",
+        "after": [
+          "post-entry"
+        ],
+        "evidenceIds": [
+          "ev-be4b071c2d36dd0b87af"
+        ],
+        "claim": "At the endpoint permission layer, POST requires documents.add_note, documents.view_document, and documents.change_document.",
+        "principal": "caller",
+        "resource": "document-notes-endpoint",
+        "operation": "POST",
+        "complete": false,
+        "id": "ctrl-3759fe86ae6ec6d4c3aa",
+        "digest": "11114ed7c172db494fd057944b7c3c0856afa1fd74312176221f4c77cd890eb1",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "post-object-load",
+        "questionId": "document-notes-post",
+        "pathKey": "post-create-grant",
+        "kind": "binding",
+        "after": [
+          "post-entry"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "The addressed document is loaded by pk and its owner relation is selected; the document is the object passed to the owner-aware permission check.",
+        "bindingKey": "addressed-document",
+        "bindingKind": "resource",
+        "complete": true,
+        "id": "ctrl-44ab4459e053c19ccd1c",
+        "digest": "2aa545d715ac8f412b86fd7d9b070a919228c0a692351fceed30ea7e434f7545",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "post-object-view-control",
+        "questionId": "document-notes-post",
+        "pathKey": "post-create-grant",
+        "kind": "guard",
+        "after": [
+          "post-object-load"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "Before the POST branch, the action calls has_perms_owner_aware for view_document on the addressed document and returns 403 if it fails.",
+        "principal": "caller",
+        "resource": "addressed-document",
+        "operation": "view_document",
+        "complete": false,
+        "id": "ctrl-18458ff6a61de5eca91a",
+        "digest": "7be193eee948dfa54cba40dd68103a815af9059726f02455aa8a4109e8c3f460",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "post-object-change-control",
+        "questionId": "document-notes-post",
+        "pathKey": "post-create-grant",
+        "kind": "guard",
+        "after": [
+          "post-object-view-control"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "Within POST, the action calls has_perms_owner_aware for change_document on the addressed document and returns 403 if it fails.",
+        "principal": "caller",
+        "resource": "addressed-document",
+        "operation": "change_document",
+        "complete": false,
+        "id": "ctrl-98f5bde0e10e85759cb6",
+        "digest": "c5079fc88cb585cad4213dab0669807b198abd3d76d04abc4befa61ca614a554",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "post-effect",
+        "questionId": "document-notes-post",
+        "pathKey": "post-create-grant",
+        "kind": "effect",
+        "after": [
+          "post-endpoint-control",
+          "post-object-view-control",
+          "post-object-change-control"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "POST creates a note linked to the addressed document after the endpoint, view, and change checks pass.",
+        "principal": "caller",
+        "resource": "notes-of-addressed-document",
+        "operation": "create",
+        "complete": true,
+        "id": "ctrl-a6dad3d203b53feee609",
+        "digest": "39b4bbe7ddd1cbb69b2fc66279075a428d11e118a6c97dfca8c123b34949c8ca",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "get-owner-aware-semantics",
+        "questionId": "document-notes-get",
+        "pathKey": "get-owner-or-unowned-allow",
+        "kind": "guard",
+        "after": [
+          "get-object-load"
+        ],
+        "evidenceIds": [
+          "ev-fb8b1acf0bb547601ad1"
+        ],
+        "claim": "has_perms_owner_aware returns true when the addressed document is unowned, owned by the caller, or the caller has the requested object permission.",
+        "principal": "caller",
+        "resource": "addressed-document",
+        "operation": "view_document",
+        "id": "ctrl-a90559bbae8761e3cd4e",
+        "digest": "c703166875fba1c3fe6505d2c202b2bd37fd915527b2e6e49fdebb40214850cf",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "get-owner-bypass-effect",
+        "questionId": "document-notes-get",
+        "pathKey": "get-owner-or-unowned-allow",
+        "kind": "effect",
+        "after": [
+          "get-endpoint-control",
+          "get-owner-aware-semantics"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "After the endpoint model-permission control passes, GET returns the addressed document's serialized notes when the owner-aware check passes, including its owner and unowned alternatives.",
+        "principal": "caller",
+        "resource": "notes-of-addressed-document",
+        "operation": "view",
+        "authorizedBy": [
+          "get-endpoint-control",
+          "get-owner-aware-semantics"
+        ],
+        "complete": true,
+        "id": "ctrl-ebc92c91a4751319d027",
+        "digest": "fc8df4716ec86fcbd758481e2c068dfb9997404a10735d08b340fb6cf6215d21",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "post-owner-aware-semantics",
+        "questionId": "document-notes-post",
+        "pathKey": "post-owner-or-unowned-allow",
+        "kind": "guard",
+        "after": [
+          "post-object-load"
+        ],
+        "evidenceIds": [
+          "ev-fb8b1acf0bb547601ad1"
+        ],
+        "claim": "For both view_document and change_document calls, has_perms_owner_aware returns true when the addressed document is unowned, owned by the caller, or the caller has the requested object permission.",
+        "principal": "caller",
+        "resource": "addressed-document",
+        "id": "ctrl-0ad07d10795fd8d7cbc7",
+        "digest": "85ee14a67713180906863f10ae11a9c19f45f4f1d04f705faf9ac68cb0f8a4b9",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "post-owner-bypass-effect",
+        "questionId": "document-notes-post",
+        "pathKey": "post-owner-or-unowned-allow",
+        "kind": "effect",
+        "after": [
+          "post-endpoint-control",
+          "post-owner-aware-semantics"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "After the endpoint model-permission control passes, POST creates a note on the addressed document when both owner-aware calls pass; ownership or no owner makes both pass without object grants.",
+        "principal": "caller",
+        "resource": "notes-of-addressed-document",
+        "operation": "create",
+        "authorizedBy": [
+          "post-endpoint-control",
+          "post-owner-aware-semantics"
+        ],
+        "complete": true,
+        "id": "ctrl-308fa9663ce091900a28",
+        "digest": "c54e237129159f72282b6cdeab3e7525d9d4ea12a3cece22615b2a730939ddc1",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "get-caller-binding",
+        "questionId": "document-notes-get",
+        "pathKey": "get-view-grant",
+        "kind": "binding",
+        "after": [
+          "get-entry"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "The action binds the current principal from request.user.",
+        "bindingKey": "caller",
+        "bindingKind": "principal",
+        "id": "ctrl-3ddd3b2d869bb20d759c",
+        "digest": "07ba7e598485f022c0182682d1ea93a4ab28dcb8e5b4dabdd0b0d47c1b3fa849",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "get-endpoint-binding",
+        "questionId": "document-notes-get",
+        "pathKey": "get-view-grant",
+        "kind": "binding",
+        "after": [
+          "get-entry"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "The detail action accepting GET and POST is the document notes endpoint.",
+        "bindingKey": "document-notes-endpoint",
+        "bindingKind": "resource",
+        "id": "ctrl-cd3a7be8397c72d845e4",
+        "digest": "173aa36b1d549c15b45a98f2eb57ca30e6865190e588a556adea530dbc4a522e",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "get-notes-binding",
+        "questionId": "document-notes-get",
+        "pathKey": "get-view-grant",
+        "kind": "binding",
+        "after": [
+          "get-object-load"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "The returned notes are serialized from the document loaded by pk.",
+        "bindingKey": "notes-of-addressed-document",
+        "bindingKind": "resource",
+        "id": "ctrl-da049b9ba2fc8eb5cb3a",
+        "digest": "4827364e12fb76ae5e595e8d8a98affc84dbdb1b3b1eebcde93b0fbf6aa687fe",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "post-caller-binding",
+        "questionId": "document-notes-post",
+        "pathKey": "post-create-grant",
+        "kind": "binding",
+        "after": [
+          "post-entry"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "The action binds the current principal from request.user.",
+        "bindingKey": "caller",
+        "bindingKind": "principal",
+        "id": "ctrl-dea691f8dc7168d7a052",
+        "digest": "cb3be46741ec12ec9d35d3f30ce00ba106d866fd2886202a3201029c48c9839d",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "post-endpoint-binding",
+        "questionId": "document-notes-post",
+        "pathKey": "post-create-grant",
+        "kind": "binding",
+        "after": [
+          "post-entry"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "The detail action accepting GET and POST is the document notes endpoint.",
+        "bindingKey": "document-notes-endpoint",
+        "bindingKind": "resource",
+        "id": "ctrl-53682ec40f9de4f906f7",
+        "digest": "22b0c83c35f1725b87460523815b3157c7820fadf9dee04997b18acf69924fd4",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "post-notes-binding",
+        "questionId": "document-notes-post",
+        "pathKey": "post-create-grant",
+        "kind": "binding",
+        "after": [
+          "post-object-load"
+        ],
+        "evidenceIds": [
+          "ev-4f33a1e09c04ea0ad5ed"
+        ],
+        "claim": "The created note is linked to the document loaded by pk.",
+        "bindingKey": "notes-of-addressed-document",
+        "bindingKind": "resource",
+        "id": "ctrl-61b0c7e8019cdbc9ca06",
+        "digest": "6495816769a1d691c7aca6fc4df38d23be2f4d0a7cf0d812f50d08c32f6aef85",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      }
+    ],
+    "dependencies": [
+      {
+        "key": "get-owner-aware-semantics",
+        "questionId": "document-notes-get",
+        "pathKey": "get-view-grant",
+        "from": "get-object-view-control",
+        "symbol": "has_perms_owner_aware",
+        "evidenceIds": [
+          "ev-1c8abc47f43fb9e488ad"
+        ],
+        "reason": "The policy distinguishes an object grant from ownership; the helper body is needed to determine whether owner status substitutes for the requested view_document grant.",
+        "kind": "control",
+        "decisive": true,
+        "pathHint": "src/documents/permissions.py:624",
+        "id": "ctrl-3299992985152f86e0cc",
+        "digest": "e2739d9764071280e5106aabb1aafa7f726263b908c9a7f5c11297f736deb745",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "post-owner-aware-semantics",
+        "questionId": "document-notes-post",
+        "pathKey": "post-create-grant",
+        "from": "post-object-change-control",
+        "symbol": "has_perms_owner_aware",
+        "evidenceIds": [
+          "ev-1c8abc47f43fb9e488ad"
+        ],
+        "reason": "The policy distinguishes an object grant from ownership; the helper body is needed to determine whether owner status substitutes for the requested change_document grant.",
+        "kind": "control",
+        "decisive": true,
+        "pathHint": "src/documents/permissions.py:624",
+        "id": "ctrl-47ab6aaa4168b3d51e94",
+        "digest": "18529f012a7e56370a278b2c26915e1a31e08566e3c38c450c02d2d4aa5cd9ae",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      }
+    ],
+    "bindings": [],
+    "policyRules": [
+      {
+        "questionId": "document-notes-get",
+        "key": "get-policy",
+        "pathKey": "get-view-grant",
+        "expected": "allow",
+        "text": "Viewing notes requires a view_document grant for the addressed document; creating notes requires a change_document grant for that same document. Document ownership by itself does not substitute for either grant.",
+        "location": "experimental-user-brief:paperless-note-policy/v1",
+        "origin": "policy",
+        "id": "ctrl-de55fa860b04b5f5f618",
+        "digest": "07a717fba502a95dd73010b22609fdb7fbcc97d8530bb853e27207b2f1ebbe77",
+        "sourceBound": false,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "questionId": "document-notes-post",
+        "key": "post-policy",
+        "pathKey": "post-create-grant",
+        "expected": "allow",
+        "text": "Viewing notes requires a view_document grant for the addressed document; creating notes requires a change_document grant for that same document. Document ownership by itself does not substitute for either grant.",
+        "location": "experimental-user-brief:paperless-note-policy/v1",
+        "origin": "policy",
+        "id": "ctrl-7ae90534fd6d0d340d4e",
+        "digest": "81911553b54f3e1eac535137493f99ae658076c23914c067c270a15b66612dcd",
+        "sourceBound": false,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "questionId": "document-notes-get",
+        "key": "get-owner-policy",
+        "pathKey": "get-owner-or-unowned-allow",
+        "expected": "deny",
+        "text": "Viewing notes requires a view_document grant for the addressed document; creating notes requires a change_document grant for that same document. Document ownership by itself does not substitute for either grant.",
+        "location": "experimental-user-brief:paperless-note-policy/v1",
+        "origin": "policy",
+        "id": "ctrl-0228e7dc53aa631daea6",
+        "digest": "8871d1a676c6407bdde3c5aed67bab1c37d1e541b14fb46096cf8df793fb6f75",
+        "sourceBound": false,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "questionId": "document-notes-post",
+        "key": "post-owner-policy",
+        "pathKey": "post-owner-or-unowned-allow",
+        "expected": "deny",
+        "text": "Viewing notes requires a view_document grant for the addressed document; creating notes requires a change_document grant for that same document. Document ownership by itself does not substitute for either grant.",
+        "location": "experimental-user-brief:paperless-note-policy/v1",
+        "origin": "policy",
+        "id": "ctrl-78b2b8a4d3f77b71840f",
+        "digest": "efdca149f4955fc0042d448cbd6b28ec2d952f183b851ced92a2a88c7fe30bf9",
+        "sourceBound": false,
+        "semanticSupport": "unreviewed"
+      }
+    ],
+    "conflicts": [
+      {
+        "id": "ctrl-ebc92c91a4751319d027",
+        "proposed": {
+          "key": "get-owner-bypass-effect",
+          "questionId": "document-notes-get",
+          "pathKey": "get-owner-or-unowned-allow",
+          "kind": "effect",
+          "after": [
+            "get-endpoint-control",
+            "get-owner-aware-semantics"
+          ],
+          "evidenceIds": [
+            "ev-4f33a1e09c04ea0ad5ed"
+          ],
+          "claim": "After the endpoint model-permission control passes, GET returns the addressed document's serialized notes when the owner-aware check passes, including its owner and unowned alternatives.",
+          "principal": "caller",
+          "resource": "notes-of-addressed-document",
+          "operation": "view",
+          "complete": true
+        },
+        "previous": {
+          "key": "get-owner-bypass-effect",
+          "questionId": "document-notes-get",
+          "pathKey": "get-owner-or-unowned-allow",
+          "kind": "effect",
+          "after": [
+            "get-endpoint-control",
+            "get-owner-aware-semantics"
+          ],
+          "evidenceIds": [
+            "ev-4f33a1e09c04ea0ad5ed"
+          ],
+          "claim": "After the endpoint model-permission control passes, GET returns the addressed document's serialized notes when the owner-aware check passes, including its owner and unowned alternatives.",
+          "principal": "caller",
+          "resource": "notes-of-addressed-document",
+          "operation": "view",
+          "authorizedBy": [
+            "get-endpoint-control",
+            "get-owner-aware-semantics"
+          ],
+          "complete": true,
+          "id": "ctrl-ebc92c91a4751319d027",
+          "digest": "fc8df4716ec86fcbd758481e2c068dfb9997404a10735d08b340fb6cf6215d21",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        "resolved": false
+      },
+      {
+        "id": "ctrl-308fa9663ce091900a28",
+        "proposed": {
+          "key": "post-owner-bypass-effect",
+          "questionId": "document-notes-post",
+          "pathKey": "post-owner-or-unowned-allow",
+          "kind": "effect",
+          "after": [
+            "post-endpoint-control",
+            "post-owner-aware-semantics"
+          ],
+          "evidenceIds": [
+            "ev-4f33a1e09c04ea0ad5ed"
+          ],
+          "claim": "After the endpoint model-permission control passes, POST creates a note on the addressed document when both owner-aware calls pass; ownership or no owner makes both pass without object grants.",
+          "principal": "caller",
+          "resource": "notes-of-addressed-document",
+          "operation": "create",
+          "complete": true
+        },
+        "previous": {
+          "key": "post-owner-bypass-effect",
+          "questionId": "document-notes-post",
+          "pathKey": "post-owner-or-unowned-allow",
+          "kind": "effect",
+          "after": [
+            "post-endpoint-control",
+            "post-owner-aware-semantics"
+          ],
+          "evidenceIds": [
+            "ev-4f33a1e09c04ea0ad5ed"
+          ],
+          "claim": "After the endpoint model-permission control passes, POST creates a note on the addressed document when both owner-aware calls pass; ownership or no owner makes both pass without object grants.",
+          "principal": "caller",
+          "resource": "notes-of-addressed-document",
+          "operation": "create",
+          "authorizedBy": [
+            "post-endpoint-control",
+            "post-owner-aware-semantics"
+          ],
+          "complete": true,
+          "id": "ctrl-308fa9663ce091900a28",
+          "digest": "c54e237129159f72282b6cdeab3e7525d9d4ea12a3cece22615b2a730939ddc1",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        "resolved": false
+      }
+    ],
+    "revisions": [
+      {
+        "id": "ctrl-0062c200979102f3f365",
+        "previous": {
+          "key": "get-effect",
+          "questionId": "document-notes-get",
+          "pathKey": "get-view-grant",
+          "kind": "effect",
+          "after": [
+            "get-endpoint-control",
+            "get-object-view-control"
+          ],
+          "evidenceIds": [
+            "ev-4f33a1e09c04ea0ad5ed"
+          ],
+          "claim": "On the GET branch, serialized notes for the addressed document are returned.",
+          "principal": "caller",
+          "resource": "notes-of-addressed-document",
+          "operation": "view notes",
+          "authorizedBy": [
+            "get-object-view-control"
+          ],
+          "complete": true,
+          "id": "ctrl-0062c200979102f3f365",
+          "digest": "a32d3d888b7653d59bd3367d53c62b9a968a7fa36959770388523a4056c34ed9",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        "accepted": {
+          "key": "get-effect",
+          "questionId": "document-notes-get",
+          "pathKey": "get-view-grant",
+          "kind": "effect",
+          "after": [
+            "get-endpoint-control",
+            "get-object-view-control"
+          ],
+          "evidenceIds": [
+            "ev-4f33a1e09c04ea0ad5ed"
+          ],
+          "claim": "GET serializes and returns notes from the addressed document after the endpoint and object checks pass.",
+          "principal": "caller",
+          "resource": "notes-of-addressed-document",
+          "operation": "view",
+          "complete": true,
+          "id": "ctrl-0062c200979102f3f365",
+          "digest": "821ec5bb27362f9f3510e19a018e7e1473ed4649cebed494d3f887b11013184d",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        "reason": "Remove unsupported same-resource authorizedBy assertion; the source trace separately establishes the addressed document check and its notes effect."
+      },
+      {
+        "id": "ctrl-a6dad3d203b53feee609",
+        "previous": {
+          "key": "post-effect",
+          "questionId": "document-notes-post",
+          "pathKey": "post-create-grant",
+          "kind": "effect",
+          "after": [
+            "post-endpoint-control",
+            "post-object-view-control",
+            "post-object-change-control"
+          ],
+          "evidenceIds": [
+            "ev-4f33a1e09c04ea0ad5ed"
+          ],
+          "claim": "After the POST object checks, a Note is created with document=the addressed document and user=currentUser.",
+          "principal": "caller",
+          "resource": "notes-of-addressed-document",
+          "operation": "create note",
+          "authorizedBy": [
+            "post-object-change-control"
+          ],
+          "complete": true,
+          "id": "ctrl-a6dad3d203b53feee609",
+          "digest": "76bdbd6ca5b45594c31fe9c9a1d416145a16f0fff587935d843bc51aedf36d7a",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        "accepted": {
+          "key": "post-effect",
+          "questionId": "document-notes-post",
+          "pathKey": "post-create-grant",
+          "kind": "effect",
+          "after": [
+            "post-endpoint-control",
+            "post-object-view-control",
+            "post-object-change-control"
+          ],
+          "evidenceIds": [
+            "ev-4f33a1e09c04ea0ad5ed"
+          ],
+          "claim": "POST creates a note linked to the addressed document after the endpoint, view, and change checks pass.",
+          "principal": "caller",
+          "resource": "notes-of-addressed-document",
+          "operation": "create",
+          "complete": true,
+          "id": "ctrl-a6dad3d203b53feee609",
+          "digest": "39b4bbe7ddd1cbb69b2fc66279075a428d11e118a6c97dfca8c123b34949c8ca",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        "reason": "Remove unsupported same-resource authorizedBy assertion; the source trace separately establishes document controls and note creation."
+      }
+    ]
+  },
+  "extractionProposals": [
+    {
+      "delta": {
+        "schemaVersion": "authorization-control-slice/v1",
+        "rules": [
+          {
+            "key": "get-entry",
+            "questionId": "document-notes-get",
+            "pathKey": "get-view-grant",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "The document notes action is an endpoint for GET and POST and uses PaperlessNotePermissions.",
+            "complete": false
+          },
+          {
+            "key": "get-endpoint-control",
+            "questionId": "document-notes-get",
+            "pathKey": "get-view-grant",
+            "kind": "guard",
+            "after": [
+              "get-entry"
+            ],
+            "evidenceIds": [
+              "ev-be4b071c2d36dd0b87af"
+            ],
+            "claim": "At the endpoint permission layer, GET requires the listed global model permissions documents.view_note and documents.view_document.",
+            "principal": "caller",
+            "resource": "document-notes-endpoint",
+            "operation": "GET",
+            "complete": false
+          },
+          {
+            "key": "get-object-load",
+            "questionId": "document-notes-get",
+            "pathKey": "get-view-grant",
+            "kind": "binding",
+            "after": [
+              "get-entry"
+            ],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "The addressed document is loaded by pk and its owner relation is selected; the document is the object passed to the owner-aware permission check.",
+            "bindingKey": "addressed-document",
+            "bindingKind": "resource",
+            "complete": true
+          },
+          {
+            "key": "get-object-view-control",
+            "questionId": "document-notes-get",
+            "pathKey": "get-view-grant",
+            "kind": "guard",
+            "after": [
+              "get-object-load"
+            ],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "Before the GET/POST method branch, the action calls has_perms_owner_aware for view_document on the addressed document and returns 403 if it fails.",
+            "principal": "caller",
+            "resource": "addressed-document",
+            "operation": "view_document",
+            "complete": false
+          },
+          {
+            "key": "get-effect",
+            "questionId": "document-notes-get",
+            "pathKey": "get-view-grant",
+            "kind": "effect",
+            "after": [
+              "get-endpoint-control",
+              "get-object-view-control"
+            ],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "On the GET branch, serialized notes for the addressed document are returned.",
+            "principal": "caller",
+            "resource": "notes-of-addressed-document",
+            "operation": "view notes",
+            "authorizedBy": [
+              "get-object-view-control"
+            ],
+            "complete": true
+          },
+          {
+            "key": "post-entry",
+            "questionId": "document-notes-post",
+            "pathKey": "post-create-grant",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "The document notes action is an endpoint for POST and uses PaperlessNotePermissions.",
+            "complete": false
+          },
+          {
+            "key": "post-endpoint-control",
+            "questionId": "document-notes-post",
+            "pathKey": "post-create-grant",
+            "kind": "guard",
+            "after": [
+              "post-entry"
+            ],
+            "evidenceIds": [
+              "ev-be4b071c2d36dd0b87af"
+            ],
+            "claim": "At the endpoint permission layer, POST requires documents.add_note, documents.view_document, and documents.change_document.",
+            "principal": "caller",
+            "resource": "document-notes-endpoint",
+            "operation": "POST",
+            "complete": false
+          },
+          {
+            "key": "post-object-load",
+            "questionId": "document-notes-post",
+            "pathKey": "post-create-grant",
+            "kind": "binding",
+            "after": [
+              "post-entry"
+            ],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "The addressed document is loaded by pk and its owner relation is selected; the document is the object passed to the owner-aware permission check.",
+            "bindingKey": "addressed-document",
+            "bindingKind": "resource",
+            "complete": true
+          },
+          {
+            "key": "post-object-view-control",
+            "questionId": "document-notes-post",
+            "pathKey": "post-create-grant",
+            "kind": "guard",
+            "after": [
+              "post-object-load"
+            ],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "Before the POST branch, the action calls has_perms_owner_aware for view_document on the addressed document and returns 403 if it fails.",
+            "principal": "caller",
+            "resource": "addressed-document",
+            "operation": "view_document",
+            "complete": false
+          },
+          {
+            "key": "post-object-change-control",
+            "questionId": "document-notes-post",
+            "pathKey": "post-create-grant",
+            "kind": "guard",
+            "after": [
+              "post-object-view-control"
+            ],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "Within POST, the action calls has_perms_owner_aware for change_document on the addressed document and returns 403 if it fails.",
+            "principal": "caller",
+            "resource": "addressed-document",
+            "operation": "change_document",
+            "complete": false
+          },
+          {
+            "key": "post-effect",
+            "questionId": "document-notes-post",
+            "pathKey": "post-create-grant",
+            "kind": "effect",
+            "after": [
+              "post-endpoint-control",
+              "post-object-view-control",
+              "post-object-change-control"
+            ],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "After the POST object checks, a Note is created with document=the addressed document and user=currentUser.",
+            "principal": "caller",
+            "resource": "notes-of-addressed-document",
+            "operation": "create note",
+            "authorizedBy": [
+              "post-object-change-control"
+            ],
+            "complete": true
+          }
+        ],
+        "dependencies": [
+          {
+            "key": "get-owner-aware-semantics",
+            "questionId": "document-notes-get",
+            "pathKey": "get-view-grant",
+            "from": "get-object-view-control",
+            "symbol": "has_perms_owner_aware",
+            "kind": "control",
+            "decisive": true,
+            "evidenceIds": [
+              "ev-1c8abc47f43fb9e488ad"
+            ],
+            "reason": "The policy distinguishes an object grant from ownership; the helper body is needed to determine whether owner status substitutes for the requested view_document grant.",
+            "pathHint": "src/documents/permissions.py:624"
+          },
+          {
+            "key": "post-owner-aware-semantics",
+            "questionId": "document-notes-post",
+            "pathKey": "post-create-grant",
+            "from": "post-object-change-control",
+            "symbol": "has_perms_owner_aware",
+            "kind": "control",
+            "decisive": true,
+            "evidenceIds": [
+              "ev-1c8abc47f43fb9e488ad"
+            ],
+            "reason": "The policy distinguishes an object grant from ownership; the helper body is needed to determine whether owner status substitutes for the requested change_document grant.",
+            "pathHint": "src/documents/permissions.py:624"
+          }
+        ],
+        "policyRules": [
+          {
+            "key": "get-policy",
+            "questionId": "document-notes-get",
+            "pathKey": "get-view-grant",
+            "expected": "allow",
+            "origin": "policy",
+            "text": "Viewing notes requires a view_document grant for the addressed document; creating notes requires a change_document grant for that same document. Document ownership by itself does not substitute for either grant.",
+            "location": "experimental-user-brief:paperless-note-policy/v1"
+          },
+          {
+            "key": "post-policy",
+            "questionId": "document-notes-post",
+            "pathKey": "post-create-grant",
+            "expected": "allow",
+            "origin": "policy",
+            "text": "Viewing notes requires a view_document grant for the addressed document; creating notes requires a change_document grant for that same document. Document ownership by itself does not substitute for either grant.",
+            "location": "experimental-user-brief:paperless-note-policy/v1"
+          }
+        ]
+      },
+      "diagnostics": [],
+      "revision": 15
+    },
+    {
+      "delta": {
+        "schemaVersion": "authorization-control-slice/v1",
+        "rules": [
+          {
+            "key": "get-owner-aware-semantics",
+            "questionId": "document-notes-get",
+            "pathKey": "get-owner-or-unowned-allow",
+            "kind": "guard",
+            "after": [
+              "get-object-load"
+            ],
+            "evidenceIds": [
+              "ev-fb8b1acf0bb547601ad1"
+            ],
+            "claim": "has_perms_owner_aware returns true when the addressed document is unowned, owned by the caller, or the caller has the requested object permission.",
+            "principal": "caller",
+            "resource": "addressed-document",
+            "operation": "view_document"
+          },
+          {
+            "key": "get-owner-bypass-effect",
+            "questionId": "document-notes-get",
+            "pathKey": "get-owner-or-unowned-allow",
+            "kind": "effect",
+            "after": [
+              "get-endpoint-control",
+              "get-owner-aware-semantics"
+            ],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "After the endpoint model-permission control passes, GET returns the addressed document's serialized notes when the owner-aware check passes, including its owner and unowned alternatives.",
+            "principal": "caller",
+            "resource": "notes-of-addressed-document",
+            "operation": "view",
+            "authorizedBy": [
+              "get-endpoint-control",
+              "get-owner-aware-semantics"
+            ],
+            "complete": true
+          },
+          {
+            "key": "post-owner-aware-semantics",
+            "questionId": "document-notes-post",
+            "pathKey": "post-owner-or-unowned-allow",
+            "kind": "guard",
+            "after": [
+              "post-object-load"
+            ],
+            "evidenceIds": [
+              "ev-fb8b1acf0bb547601ad1"
+            ],
+            "claim": "For both view_document and change_document calls, has_perms_owner_aware returns true when the addressed document is unowned, owned by the caller, or the caller has the requested object permission.",
+            "principal": "caller",
+            "resource": "addressed-document"
+          },
+          {
+            "key": "post-owner-bypass-effect",
+            "questionId": "document-notes-post",
+            "pathKey": "post-owner-or-unowned-allow",
+            "kind": "effect",
+            "after": [
+              "post-endpoint-control",
+              "post-owner-aware-semantics"
+            ],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "After the endpoint model-permission control passes, POST creates a note on the addressed document when both owner-aware calls pass; ownership or no owner makes both pass without object grants.",
+            "principal": "caller",
+            "resource": "notes-of-addressed-document",
+            "operation": "create",
+            "authorizedBy": [
+              "post-endpoint-control",
+              "post-owner-aware-semantics"
+            ],
+            "complete": true
+          }
+        ],
+        "policyRules": [
+          {
+            "key": "get-owner-policy",
+            "questionId": "document-notes-get",
+            "pathKey": "get-owner-or-unowned-allow",
+            "expected": "deny",
+            "origin": "policy",
+            "text": "Viewing notes requires a view_document grant for the addressed document; creating notes requires a change_document grant for that same document. Document ownership by itself does not substitute for either grant.",
+            "location": "experimental-user-brief:paperless-note-policy/v1"
+          },
+          {
+            "key": "post-owner-policy",
+            "questionId": "document-notes-post",
+            "pathKey": "post-owner-or-unowned-allow",
+            "expected": "deny",
+            "origin": "policy",
+            "text": "Viewing notes requires a view_document grant for the addressed document; creating notes requires a change_document grant for that same document. Document ownership by itself does not substitute for either grant.",
+            "location": "experimental-user-brief:paperless-note-policy/v1"
+          }
+        ]
+      },
+      "diagnostics": [],
+      "revision": 21
+    },
+    {
+      "delta": {
+        "schemaVersion": "authorization-control-slice/v1",
+        "rules": [
+          {
+            "key": "get-caller-binding",
+            "questionId": "document-notes-get",
+            "pathKey": "get-view-grant",
+            "kind": "binding",
+            "after": [
+              "get-entry"
+            ],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "The action binds the current principal from request.user.",
+            "bindingKey": "caller",
+            "bindingKind": "principal"
+          },
+          {
+            "key": "get-endpoint-binding",
+            "questionId": "document-notes-get",
+            "pathKey": "get-view-grant",
+            "kind": "binding",
+            "after": [
+              "get-entry"
+            ],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "The detail action accepting GET and POST is the document notes endpoint.",
+            "bindingKey": "document-notes-endpoint",
+            "bindingKind": "resource"
+          },
+          {
+            "key": "get-notes-binding",
+            "questionId": "document-notes-get",
+            "pathKey": "get-view-grant",
+            "kind": "binding",
+            "after": [
+              "get-object-load"
+            ],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "The returned notes are serialized from the document loaded by pk.",
+            "bindingKey": "notes-of-addressed-document",
+            "bindingKind": "resource"
+          },
+          {
+            "key": "post-caller-binding",
+            "questionId": "document-notes-post",
+            "pathKey": "post-create-grant",
+            "kind": "binding",
+            "after": [
+              "post-entry"
+            ],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "The action binds the current principal from request.user.",
+            "bindingKey": "caller",
+            "bindingKind": "principal"
+          },
+          {
+            "key": "post-endpoint-binding",
+            "questionId": "document-notes-post",
+            "pathKey": "post-create-grant",
+            "kind": "binding",
+            "after": [
+              "post-entry"
+            ],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "The detail action accepting GET and POST is the document notes endpoint.",
+            "bindingKey": "document-notes-endpoint",
+            "bindingKind": "resource"
+          },
+          {
+            "key": "post-notes-binding",
+            "questionId": "document-notes-post",
+            "pathKey": "post-create-grant",
+            "kind": "binding",
+            "after": [
+              "post-object-load"
+            ],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "The created note is linked to the document loaded by pk.",
+            "bindingKey": "notes-of-addressed-document",
+            "bindingKind": "resource"
+          },
+          {
+            "key": "get-effect",
+            "questionId": "document-notes-get",
+            "pathKey": "get-view-grant",
+            "kind": "effect",
+            "after": [
+              "get-endpoint-control",
+              "get-object-view-control"
+            ],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "GET serializes and returns notes from the addressed document after the endpoint and object checks pass.",
+            "principal": "caller",
+            "resource": "notes-of-addressed-document",
+            "operation": "view",
+            "complete": true,
+            "revisionOf": "a32d3d888b7653d59bd3367d53c62b9a968a7fa36959770388523a4056c34ed9",
+            "revisionReason": "Remove unsupported same-resource authorizedBy assertion; the source trace separately establishes the addressed document check and its notes effect."
+          },
+          {
+            "key": "post-effect",
+            "questionId": "document-notes-post",
+            "pathKey": "post-create-grant",
+            "kind": "effect",
+            "after": [
+              "post-endpoint-control",
+              "post-object-view-control",
+              "post-object-change-control"
+            ],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "POST creates a note linked to the addressed document after the endpoint, view, and change checks pass.",
+            "principal": "caller",
+            "resource": "notes-of-addressed-document",
+            "operation": "create",
+            "complete": true,
+            "revisionOf": "76bdbd6ca5b45594c31fe9c9a1d416145a16f0fff587935d843bc51aedf36d7a",
+            "revisionReason": "Remove unsupported same-resource authorizedBy assertion; the source trace separately establishes document controls and note creation."
+          },
+          {
+            "key": "get-owner-bypass-effect",
+            "questionId": "document-notes-get",
+            "pathKey": "get-owner-or-unowned-allow",
+            "kind": "effect",
+            "after": [
+              "get-endpoint-control",
+              "get-owner-aware-semantics"
+            ],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "After the endpoint model-permission control passes, GET returns the addressed document's serialized notes when the owner-aware check passes, including its owner and unowned alternatives.",
+            "principal": "caller",
+            "resource": "notes-of-addressed-document",
+            "operation": "view",
+            "complete": true,
+            "revisionOf": "be07bfd8716125fdb00d04bf90ed9e4f1a98df4b37ba4b768202c10093aaef00",
+            "revisionReason": "Remove unsupported same-resource authorizedBy assertion while preserving explicit source order."
+          },
+          {
+            "key": "post-owner-bypass-effect",
+            "questionId": "document-notes-post",
+            "pathKey": "post-owner-or-unowned-allow",
+            "kind": "effect",
+            "after": [
+              "post-endpoint-control",
+              "post-owner-aware-semantics"
+            ],
+            "evidenceIds": [
+              "ev-4f33a1e09c04ea0ad5ed"
+            ],
+            "claim": "After the endpoint model-permission control passes, POST creates a note on the addressed document when both owner-aware calls pass; ownership or no owner makes both pass without object grants.",
+            "principal": "caller",
+            "resource": "notes-of-addressed-document",
+            "operation": "create",
+            "complete": true,
+            "revisionOf": "4409e2beb4073f0132b648e28e3bb79559cc32256d341ded75baaf90dd4c858e",
+            "revisionReason": "Remove unsupported same-resource authorizedBy assertion while preserving explicit source order."
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "code": "control-conflict",
+          "path": "rules.get-owner-bypass-effect",
+          "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+          "severity": "error"
+        },
+        {
+          "code": "control-conflict",
+          "path": "rules.post-owner-bypass-effect",
+          "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+          "severity": "error"
+        }
+      ],
+      "revision": 29
+    }
+  ],
+  "hostChecks": [
+    {
+      "structureValid": true,
+      "sourceBound": true,
+      "ruleConsistency": false,
+      "semanticSupport": "unreviewed",
+      "taskResolution": "partial",
+      "paths": [
+        {
+          "questionId": "document-notes-get",
+          "pathKey": "get-view-grant",
+          "state": "checked",
+          "disposition": "allow",
+          "complete": true,
+          "predicate": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "all",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "all",
+            "args": []
+          },
+          "nodeKeys": [
+            "get-entry",
+            "get-endpoint-control",
+            "get-object-load",
+            "get-object-view-control",
+            "get-effect"
+          ],
+          "terminalKeys": [
+            "get-effect"
+          ],
+          "gaps": [],
+          "sourceBound": true
+        },
+        {
+          "questionId": "document-notes-get",
+          "pathKey": "get-owner-or-unowned-allow",
+          "state": "checked",
+          "disposition": "allow",
+          "complete": true,
+          "predicate": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "all",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "all",
+            "args": []
+          },
+          "nodeKeys": [
+            "get-entry",
+            "get-endpoint-control",
+            "get-object-load",
+            "get-owner-aware-semantics",
+            "get-owner-bypass-effect"
+          ],
+          "terminalKeys": [
+            "get-owner-bypass-effect"
+          ],
+          "gaps": [],
+          "sourceBound": true
+        },
+        {
+          "questionId": "document-notes-post",
+          "pathKey": "post-create-grant",
+          "state": "checked",
+          "disposition": "allow",
+          "complete": true,
+          "predicate": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "all",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "all",
+            "args": []
+          },
+          "nodeKeys": [
+            "post-entry",
+            "post-endpoint-control",
+            "post-object-load",
+            "post-object-view-control",
+            "post-object-change-control",
+            "post-effect"
+          ],
+          "terminalKeys": [
+            "post-effect"
+          ],
+          "gaps": [],
+          "sourceBound": true
+        },
+        {
+          "questionId": "document-notes-post",
+          "pathKey": "post-owner-or-unowned-allow",
+          "state": "checked",
+          "disposition": "allow",
+          "complete": true,
+          "predicate": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "all",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "all",
+            "args": []
+          },
+          "nodeKeys": [
+            "post-entry",
+            "post-endpoint-control",
+            "post-object-load",
+            "post-owner-aware-semantics",
+            "post-owner-bypass-effect"
+          ],
+          "terminalKeys": [
+            "post-owner-bypass-effect"
+          ],
+          "gaps": [],
+          "sourceBound": true
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "object-binding-missing",
+          "path": "get-endpoint-control",
+          "message": "Typed principal caller is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "get-endpoint-control",
+          "message": "Typed resource document-notes-endpoint is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "get-object-view-control",
+          "message": "Typed principal caller is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "get-effect",
+          "message": "Typed principal caller is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "get-effect",
+          "message": "Typed resource notes-of-addressed-document is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "control-object-mismatch",
+          "path": "get-effect",
+          "message": "Claimed authorizing control and protected effect lack the same explicit principal/resource identity. Equal labels or identifiers do not establish it.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "post-endpoint-control",
+          "message": "Typed principal caller is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "post-endpoint-control",
+          "message": "Typed resource document-notes-endpoint is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "post-object-view-control",
+          "message": "Typed principal caller is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "post-object-change-control",
+          "message": "Typed principal caller is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "post-effect",
+          "message": "Typed principal caller is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "post-effect",
+          "message": "Typed resource notes-of-addressed-document is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "control-object-mismatch",
+          "path": "post-effect",
+          "message": "Claimed authorizing control and protected effect lack the same explicit principal/resource identity. Equal labels or identifiers do not establish it.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "get-owner-aware-semantics",
+          "message": "Typed principal caller is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "get-owner-bypass-effect",
+          "message": "Typed principal caller is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "get-owner-bypass-effect",
+          "message": "Typed resource notes-of-addressed-document is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "control-object-mismatch",
+          "path": "get-owner-bypass-effect",
+          "message": "Claimed authorizing control and protected effect lack the same explicit principal/resource identity. Equal labels or identifiers do not establish it.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "post-owner-aware-semantics",
+          "message": "Typed principal caller is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "post-owner-bypass-effect",
+          "message": "Typed principal caller is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "post-owner-bypass-effect",
+          "message": "Typed resource notes-of-addressed-document is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "control-object-mismatch",
+          "path": "post-owner-bypass-effect",
+          "message": "Claimed authorizing control and protected effect lack the same explicit principal/resource identity. Equal labels or identifiers do not establish it.",
+          "severity": "error"
+        },
+        {
+          "code": "active-branch-missing",
+          "path": "document-notes-get.get-view-grant",
+          "message": "Proposed active path is missing from the conditional answer. Match branch id to pathKey.",
+          "severity": "error"
+        },
+        {
+          "code": "active-branch-missing",
+          "path": "document-notes-post.post-create-grant",
+          "message": "Proposed active path is missing from the conditional answer. Match branch id to pathKey.",
+          "severity": "error"
+        }
+      ],
+      "policyComparisons": [
+        {
+          "questionId": "document-notes-get",
+          "status": "violated",
+          "origin": "host-derived-from-proposed-policy",
+          "semanticSupport": "unreviewed"
+        },
+        {
+          "questionId": "document-notes-post",
+          "status": "violated",
+          "origin": "host-derived-from-proposed-policy",
+          "semanticSupport": "unreviewed"
+        }
+      ],
+      "calculationCount": 8
+    },
+    {
+      "structureValid": true,
+      "sourceBound": true,
+      "ruleConsistency": false,
+      "semanticSupport": "unreviewed",
+      "taskResolution": "partial",
+      "paths": [
+        {
+          "questionId": "document-notes-get",
+          "pathKey": "get-view-grant",
+          "state": "checked",
+          "disposition": "allow",
+          "complete": true,
+          "predicate": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "all",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "all",
+            "args": []
+          },
+          "nodeKeys": [
+            "get-entry",
+            "get-endpoint-control",
+            "get-object-load",
+            "get-object-view-control",
+            "get-effect"
+          ],
+          "terminalKeys": [
+            "get-effect"
+          ],
+          "gaps": [],
+          "sourceBound": true
+        },
+        {
+          "questionId": "document-notes-get",
+          "pathKey": "get-owner-or-unowned-allow",
+          "state": "checked",
+          "disposition": "allow",
+          "complete": true,
+          "predicate": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "all",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "all",
+            "args": []
+          },
+          "nodeKeys": [
+            "get-entry",
+            "get-endpoint-control",
+            "get-object-load",
+            "get-owner-aware-semantics",
+            "get-owner-bypass-effect"
+          ],
+          "terminalKeys": [
+            "get-owner-bypass-effect"
+          ],
+          "gaps": [],
+          "sourceBound": true
+        },
+        {
+          "questionId": "document-notes-post",
+          "pathKey": "post-create-grant",
+          "state": "checked",
+          "disposition": "allow",
+          "complete": true,
+          "predicate": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "all",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "all",
+            "args": []
+          },
+          "nodeKeys": [
+            "post-entry",
+            "post-endpoint-control",
+            "post-object-load",
+            "post-object-view-control",
+            "post-object-change-control",
+            "post-effect"
+          ],
+          "terminalKeys": [
+            "post-effect"
+          ],
+          "gaps": [],
+          "sourceBound": true
+        },
+        {
+          "questionId": "document-notes-post",
+          "pathKey": "post-owner-or-unowned-allow",
+          "state": "checked",
+          "disposition": "allow",
+          "complete": true,
+          "predicate": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "all",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "all",
+            "args": []
+          },
+          "nodeKeys": [
+            "post-entry",
+            "post-endpoint-control",
+            "post-object-load",
+            "post-owner-aware-semantics",
+            "post-owner-bypass-effect"
+          ],
+          "terminalKeys": [
+            "post-owner-bypass-effect"
+          ],
+          "gaps": [],
+          "sourceBound": true
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "control-conflict",
+          "path": "rules.get-owner-bypass-effect",
+          "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+          "severity": "error"
+        },
+        {
+          "code": "control-conflict",
+          "path": "rules.post-owner-bypass-effect",
+          "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+          "severity": "error"
+        },
+        {
+          "code": "control-conflict",
+          "path": "ctrl-ebc92c91a4751319d027",
+          "message": "Unresolved conflicting extraction remains; explicit correction is needed.",
+          "severity": "error"
+        },
+        {
+          "code": "control-conflict",
+          "path": "ctrl-308fa9663ce091900a28",
+          "message": "Unresolved conflicting extraction remains; explicit correction is needed.",
+          "severity": "error"
+        },
+        {
+          "code": "control-object-mismatch",
+          "path": "get-owner-bypass-effect",
+          "message": "Claimed authorizing control and protected effect lack the same explicit principal/resource identity. Equal labels or identifiers do not establish it.",
+          "severity": "error"
+        },
+        {
+          "code": "control-object-mismatch",
+          "path": "post-owner-bypass-effect",
+          "message": "Claimed authorizing control and protected effect lack the same explicit principal/resource identity. Equal labels or identifiers do not establish it.",
+          "severity": "error"
+        }
+      ],
+      "policyComparisons": [
+        {
+          "questionId": "document-notes-get",
+          "status": "violated",
+          "origin": "host-derived-from-proposed-policy",
+          "semanticSupport": "unreviewed"
+        },
+        {
+          "questionId": "document-notes-post",
+          "status": "violated",
+          "origin": "host-derived-from-proposed-policy",
+          "semanticSupport": "unreviewed"
+        }
+      ],
+      "calculationCount": 8
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "ctrl-3299992985152f86e0cc",
+      "digest": "e2739d9764071280e5106aabb1aafa7f726263b908c9a7f5c11297f736deb745",
+      "key": "get-owner-aware-semantics",
+      "questionId": "document-notes-get",
+      "pathKey": "get-view-grant",
+      "decisive": true,
+      "symbol": "has_perms_owner_aware",
+      "state": "external-unknown",
+      "reason": "Requested dependency file is outside the allowed indexed scope.",
+      "candidates": [],
+      "evidenceIds": [],
+      "semanticSupport": "unreviewed",
+      "code": "dependency-out-of-scope"
+    },
+    {
+      "id": "ctrl-47ab6aaa4168b3d51e94",
+      "digest": "18529f012a7e56370a278b2c26915e1a31e08566e3c38c450c02d2d4aa5cd9ae",
+      "key": "post-owner-aware-semantics",
+      "questionId": "document-notes-post",
+      "pathKey": "post-create-grant",
+      "decisive": true,
+      "symbol": "has_perms_owner_aware",
+      "state": "external-unknown",
+      "reason": "Requested dependency file is outside the allowed indexed scope.",
+      "candidates": [],
+      "evidenceIds": [],
+      "semanticSupport": "unreviewed",
+      "code": "dependency-out-of-scope"
+    }
+  ],
+  "schedulerActions": [],
+  "evidence": [
+    {
+      "id": "ev-1f6986adf2660dead666",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 855,
+      "endLine": 855,
+      "bytes": 31
+    },
+    {
+      "id": "ev-09797ab1795a215e818e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 856,
+      "endLine": 856,
+      "bytes": 73
+    },
+    {
+      "id": "ev-b13a352109e346c3e653",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 861,
+      "endLine": 861,
+      "bytes": 55
+    },
+    {
+      "id": "ev-e1862068f65c504d5500",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1040,
+      "endLine": 1040,
+      "bytes": 28
+    },
+    {
+      "id": "ev-a4403ec559fbf1f3074d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1169,
+      "endLine": 1169,
+      "bytes": 38
+    },
+    {
+      "id": "ev-d7711deb81486f22323f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1202,
+      "endLine": 1202,
+      "bytes": 82
+    },
+    {
+      "id": "ev-e610f1fd3849a93c4bdc",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1203,
+      "endLine": 1203,
+      "bytes": 84
+    },
+    {
+      "id": "ev-b0eb13b4b8ae0511fc2b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1210,
+      "endLine": 1210,
+      "bytes": 64
+    },
+    {
+      "id": "ev-da78d301ba55f9786fa5",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1848,
+      "endLine": 1848,
+      "bytes": 46
+    },
+    {
+      "id": "ev-5fd8666a8ea4ea5ec01c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1853,
+      "endLine": 1853,
+      "bytes": 50
+    },
+    {
+      "id": "ev-00c9f628bfc37efe1571",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1862,
+      "endLine": 1862,
+      "bytes": 94
+    },
+    {
+      "id": "ev-ec2b2170fb4a630832f1",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1870,
+      "endLine": 1870,
+      "bytes": 78
+    },
+    {
+      "id": "ev-30c75455641c832ab599",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1871,
+      "endLine": 1871,
+      "bytes": 46
+    },
+    {
+      "id": "ev-82f9517609a6a35c983c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1873,
+      "endLine": 1873,
+      "bytes": 84
+    },
+    {
+      "id": "ev-ceaef64f13330d6e1ea0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1875,
+      "endLine": 1875,
+      "bytes": 93
+    },
+    {
+      "id": "ev-665b74503461c39d827e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1885,
+      "endLine": 1885,
+      "bytes": 75
+    },
+    {
+      "id": "ev-cf786c63b5eadc6f111e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1890,
+      "endLine": 1890,
+      "bytes": 54
+    },
+    {
+      "id": "ev-488c22affc95cbd9d8b9",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1894,
+      "endLine": 1894,
+      "bytes": 48
+    },
+    {
+      "id": "ev-489ba0eccf53bd181746",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1911,
+      "endLine": 1911,
+      "bytes": 78
+    },
+    {
+      "id": "ev-79e23bb5c68184accd8e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1913,
+      "endLine": 1913,
+      "bytes": 46
+    },
+    {
+      "id": "ev-083bfe0eb1b15aef6534",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1915,
+      "endLine": 1915,
+      "bytes": 79
+    },
+    {
+      "id": "ev-90c4ebe8371ad0e7ada0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1918,
+      "endLine": 1918,
+      "bytes": 90
+    },
+    {
+      "id": "ev-4186e405a00107e9d8b9",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1927,
+      "endLine": 1927,
+      "bytes": 96
+    },
+    {
+      "id": "ev-fa65d212762a961aebcc",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1929,
+      "endLine": 1929,
+      "bytes": 51
+    },
+    {
+      "id": "ev-abab1d6417b2bbc63cd8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1930,
+      "endLine": 1930,
+      "bytes": 35
+    },
+    {
+      "id": "ev-709cf21dbdebf2fd1234",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1933,
+      "endLine": 1933,
+      "bytes": 50
+    },
+    {
+      "id": "ev-14e717f5bc6928cd4d4d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1936,
+      "endLine": 1936,
+      "bytes": 80
+    },
+    {
+      "id": "ev-9263b17d3cbee109518b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1941,
+      "endLine": 1941,
+      "bytes": 66
+    },
+    {
+      "id": "ev-bb30aca89c37835384fb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1946,
+      "endLine": 1946,
+      "bytes": 33
+    },
+    {
+      "id": "ev-663339cb08c6e79d885d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1955,
+      "endLine": 1955,
+      "bytes": 74
+    },
+    {
+      "id": "ev-994a8395c8b49b9a56e3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1957,
+      "endLine": 1957,
+      "bytes": 42
+    },
+    {
+      "id": "ev-854023bd6b9ce7047ae6",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 158,
+      "endLine": 158,
+      "bytes": 40
+    },
+    {
+      "id": "ev-9dc0c656745173943fdc",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 171,
+      "endLine": 171,
+      "bytes": 65
+    },
+    {
+      "id": "ev-01f62fd3456760d56c38",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 205,
+      "endLine": 205,
+      "bytes": 56
+    },
+    {
+      "id": "ev-875a8ce639470295ce69",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 859,
+      "endLine": 859,
+      "bytes": 44
+    },
+    {
+      "id": "ev-0ebf5332f39708bfc516",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 870,
+      "endLine": 870,
+      "bytes": 87
+    },
+    {
+      "id": "ev-516e44ce6836076c23ff",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 874,
+      "endLine": 874,
+      "bytes": 51
+    },
+    {
+      "id": "ev-d8725f6288d47b8a64a9",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1170,
+      "endLine": 1170,
+      "bytes": 64
+    },
+    {
+      "id": "ev-61afda06a4eb27c6d63b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1844,
+      "endLine": 1844,
+      "bytes": 62
+    },
+    {
+      "id": "ev-9d99b5897f67220d34f1",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1888,
+      "endLine": 1888,
+      "bytes": 48
+    },
+    {
+      "id": "ev-34f1bc2658a270323cae",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1899,
+      "endLine": 1899,
+      "bytes": 65
+    },
+    {
+      "id": "ev-e73b07ab70d22a02139b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 995,
+      "endLine": 995,
+      "bytes": 57
+    },
+    {
+      "id": "ev-f3e71c067b0d12bafa15",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1056,
+      "endLine": 1056,
+      "bytes": 78
+    },
+    {
+      "id": "ev-556837de1bf7ce516eae",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1319,
+      "endLine": 1319,
+      "bytes": 28
+    },
+    {
+      "id": "ev-d58770d765763eca7c5b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1359,
+      "endLine": 1359,
+      "bytes": 71
+    },
+    {
+      "id": "ev-1c361b55d770a1776fe8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1378,
+      "endLine": 1378,
+      "bytes": 71
+    },
+    {
+      "id": "ev-0d771e8c5d37d206de82",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/models.py",
+      "sha256": "e5dfbdac82ea52a40b0b8665561b4fc8cc4890aa7ea2adc63c94f48b6d8b01d2",
+      "startLine": 626,
+      "endLine": 626,
+      "bytes": 42
+    },
+    {
+      "id": "ev-89a51efdde71cae0a4fb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/models.py",
+      "sha256": "e5dfbdac82ea52a40b0b8665561b4fc8cc4890aa7ea2adc63c94f48b6d8b01d2",
+      "startLine": 933,
+      "endLine": 933,
+      "bytes": 35
+    },
+    {
+      "id": "ev-efcd60e10d3256de5c8b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/models.py",
+      "sha256": "e5dfbdac82ea52a40b0b8665561b4fc8cc4890aa7ea2adc63c94f48b6d8b01d2",
+      "startLine": 949,
+      "endLine": 949,
+      "bytes": 36
+    },
+    {
+      "id": "ev-5650c82eeed9b21b77d7",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/models.py",
+      "sha256": "e5dfbdac82ea52a40b0b8665561b4fc8cc4890aa7ea2adc63c94f48b6d8b01d2",
+      "startLine": 958,
+      "endLine": 958,
+      "bytes": 36
+    },
+    {
+      "id": "ev-73c20026920ef4bfc1c5",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/models.py",
+      "sha256": "e5dfbdac82ea52a40b0b8665561b4fc8cc4890aa7ea2adc63c94f48b6d8b01d2",
+      "startLine": 965,
+      "endLine": 965,
+      "bytes": 39
+    },
+    {
+      "id": "ev-6615d35ece7305fa63d7",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/models.py",
+      "sha256": "e5dfbdac82ea52a40b0b8665561b4fc8cc4890aa7ea2adc63c94f48b6d8b01d2",
+      "startLine": 966,
+      "endLine": 966,
+      "bytes": 47
+    },
+    {
+      "id": "ev-0e65ea1dae6c59f95dbe",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/models.py",
+      "sha256": "e5dfbdac82ea52a40b0b8665561b4fc8cc4890aa7ea2adc63c94f48b6d8b01d2",
+      "startLine": 969,
+      "endLine": 969,
+      "bytes": 31
+    },
+    {
+      "id": "ev-5cdc61ea0478ff165413",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 679,
+      "endLine": 679,
+      "bytes": 77
+    },
+    {
+      "id": "ev-b196982d1163668b9283",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 680,
+      "endLine": 680,
+      "bytes": 73
+    },
+    {
+      "id": "ev-ef844bd8303206b0a106",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 682,
+      "endLine": 682,
+      "bytes": 40
+    },
+    {
+      "id": "ev-522b4023bdf85b917f78",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 687,
+      "endLine": 687,
+      "bytes": 43
+    },
+    {
+      "id": "ev-4f33a1e09c04ea0ad5ed",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1838,
+      "endLine": 1920,
+      "bytes": 3542
+    },
+    {
+      "id": "ev-be4b071c2d36dd0b87af",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 650,
+      "endLine": 710,
+      "bytes": 2186
+    },
+    {
+      "id": "ev-922a35d0d6fa759adaaa",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 19,
+      "endLine": 19,
+      "bytes": 50
+    },
+    {
+      "id": "ev-9f8b60451c2026f8094b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 20,
+      "endLine": 20,
+      "bytes": 53
+    },
+    {
+      "id": "ev-7a3a6f0281f9d531256b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 21,
+      "endLine": 21,
+      "bytes": 46
+    },
+    {
+      "id": "ev-485104b64b64ca1fac18",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 22,
+      "endLine": 22,
+      "bytes": 51
+    },
+    {
+      "id": "ev-88ebc8fdd35e5eb2c304",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 23,
+      "endLine": 23,
+      "bytes": 54
+    },
+    {
+      "id": "ev-0f828cab3bf203688e7d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 24,
+      "endLine": 24,
+      "bytes": 52
+    },
+    {
+      "id": "ev-bb09efbd8fc5ad1febe8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 25,
+      "endLine": 25,
+      "bytes": 53
+    },
+    {
+      "id": "ev-4bdcdc4bab68840d77df",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 26,
+      "endLine": 26,
+      "bytes": 53
+    },
+    {
+      "id": "ev-3479114e53e39532418c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 27,
+      "endLine": 27,
+      "bytes": 54
+    },
+    {
+      "id": "ev-db77b958a36b7db0233c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 28,
+      "endLine": 28,
+      "bytes": 50
+    },
+    {
+      "id": "ev-04bd6b0eb30077be2869",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 29,
+      "endLine": 29,
+      "bytes": 43
+    },
+    {
+      "id": "ev-cd8f5224d606c29999a4",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 30,
+      "endLine": 30,
+      "bytes": 44
+    },
+    {
+      "id": "ev-ec0cf2bb52399c8414c8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 31,
+      "endLine": 31,
+      "bytes": 62
+    },
+    {
+      "id": "ev-58a47768f087dd9d2c66",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 32,
+      "endLine": 32,
+      "bytes": 52
+    },
+    {
+      "id": "ev-7889c345f1ef18eab52b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 33,
+      "endLine": 33,
+      "bytes": 50
+    },
+    {
+      "id": "ev-51267c45a9c2c9f699a4",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 34,
+      "endLine": 34,
+      "bytes": 51
+    },
+    {
+      "id": "ev-654a7708339b58a1a072",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 35,
+      "endLine": 35,
+      "bytes": 61
+    },
+    {
+      "id": "ev-6ea7fce676c128aca2da",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 36,
+      "endLine": 36,
+      "bytes": 56
+    },
+    {
+      "id": "ev-b9190adb9bc5cc2312af",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 37,
+      "endLine": 37,
+      "bytes": 53
+    },
+    {
+      "id": "ev-ff3b7150f5c547831e5e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 38,
+      "endLine": 38,
+      "bytes": 50
+    },
+    {
+      "id": "ev-7932752493189ee5c397",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 39,
+      "endLine": 39,
+      "bytes": 56
+    },
+    {
+      "id": "ev-366522f33e95e81c8792",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 40,
+      "endLine": 40,
+      "bytes": 51
+    },
+    {
+      "id": "ev-64561127fa74b38d2ccd",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 41,
+      "endLine": 41,
+      "bytes": 48
+    },
+    {
+      "id": "ev-46cef417d9a07a84a6f5",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 42,
+      "endLine": 42,
+      "bytes": 56
+    },
+    {
+      "id": "ev-2d8f350887a7b7f1ebc0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 43,
+      "endLine": 43,
+      "bytes": 50
+    },
+    {
+      "id": "ev-a787dc02d030a2405f46",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 44,
+      "endLine": 44,
+      "bytes": 48
+    },
+    {
+      "id": "ev-2fc6042e18700d0705be",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 45,
+      "endLine": 45,
+      "bytes": 52
+    },
+    {
+      "id": "ev-23c0472807be05ca2100",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 46,
+      "endLine": 46,
+      "bytes": 50
+    },
+    {
+      "id": "ev-6cb57b6885302c92733c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 47,
+      "endLine": 47,
+      "bytes": 44
+    },
+    {
+      "id": "ev-87916119378b74e902d9",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 48,
+      "endLine": 48,
+      "bytes": 46
+    },
+    {
+      "id": "ev-665200b1b6bfe12495ca",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 49,
+      "endLine": 49,
+      "bytes": 43
+    },
+    {
+      "id": "ev-ff1085a077d086eded48",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 50,
+      "endLine": 50,
+      "bytes": 48
+    },
+    {
+      "id": "ev-46f41185e047b7888f4f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 51,
+      "endLine": 51,
+      "bytes": 54
+    },
+    {
+      "id": "ev-ac660c5548d4a17dad93",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 52,
+      "endLine": 52,
+      "bytes": 55
+    },
+    {
+      "id": "ev-7bf4e3d151adfcc502f0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 53,
+      "endLine": 53,
+      "bytes": 56
+    },
+    {
+      "id": "ev-81bc2a8be1bf7740684c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 54,
+      "endLine": 54,
+      "bytes": 49
+    },
+    {
+      "id": "ev-e3d35b3e2afba44d53ee",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 55,
+      "endLine": 55,
+      "bytes": 44
+    },
+    {
+      "id": "ev-b9070c210e53d01f9419",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 77,
+      "endLine": 77,
+      "bytes": 61
+    },
+    {
+      "id": "ev-f300b0f11665dd38cefa",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 146,
+      "endLine": 146,
+      "bytes": 41
+    },
+    {
+      "id": "ev-5fa63d98987f0f594dcf",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 162,
+      "endLine": 162,
+      "bytes": 63
+    },
+    {
+      "id": "ev-6a042fe47896ccb5d7da",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 167,
+      "endLine": 167,
+      "bytes": 66
+    },
+    {
+      "id": "ev-905c8c16143ee7b71a27",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 172,
+      "endLine": 172,
+      "bytes": 63
+    },
+    {
+      "id": "ev-65b10b0ef4815f0d4f1e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 177,
+      "endLine": 177,
+      "bytes": 62
+    },
+    {
+      "id": "ev-615e79769aaf9251cceb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 182,
+      "endLine": 182,
+      "bytes": 74
+    },
+    {
+      "id": "ev-de87e4260568a5ca7583",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 187,
+      "endLine": 187,
+      "bytes": 65
+    },
+    {
+      "id": "ev-d55b01f74df66f2a84ca",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 192,
+      "endLine": 192,
+      "bytes": 72
+    },
+    {
+      "id": "ev-f81d4ee7e49918f6d820",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 311,
+      "endLine": 311,
+      "bytes": 88
+    },
+    {
+      "id": "ev-e5c2b271c0f84c17bb97",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 317,
+      "endLine": 317,
+      "bytes": 85
+    },
+    {
+      "id": "ev-40c1554107dfba64092a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 323,
+      "endLine": 323,
+      "bytes": 87
+    },
+    {
+      "id": "ev-1c8abc47f43fb9e488ad",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 624,
+      "endLine": 624,
+      "bytes": 51
+    },
+    {
+      "id": "ev-fb8b1acf0bb547601ad1",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 600,
+      "endLine": 649,
+      "bytes": 2134
+    }
+  ],
+  "deliveryValid": false,
+  "reviewCaution": "Citations and host consistency do not prove extraction meaning. Evaluate raw first/final and final prose against original source at the retained evidence ranges. A native prose answer can be delivered despite failed host checking. Representation may reveal strategy; arm, cost and target scores are hidden. No earlier answer is supplied."
+}

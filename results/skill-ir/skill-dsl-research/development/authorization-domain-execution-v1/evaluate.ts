@@ -25,6 +25,7 @@ function evidenceReferences(evidence: any[]) {
 /** Meaning is reviewed from the raw answers and original source, after all registered generation closes. */
 export function makePacket(id: string, task: any, report: any) {
   const native = report.native, domain = report.domain ?? native?.domain, history = domain?.checkHistory ?? []
+  const firstProposal = domain?.proposals?.find((p: any) => ["rules", "dependencies", "bindings", "policyRules"].some(k => Array.isArray(p.delta?.[k]) && p.delta[k].length > 0))?.delta
   return {
     schemaVersion: "authorization-aq-anonymous-packet/v1", id,
     task: { brief: task.brief, mode: task.mode, policy: task.policy }, status: report.status,
@@ -33,7 +34,8 @@ export function makePacket(id: string, task: any, report: any) {
     initialProse: report.initial == null ? report.prose ?? null : null,
     initialValidation: report.initialValidation ?? null, finalValidation: report.validation ?? null,
     error: report.error ?? null,
-    extractionInitial: history[0]?.slice ?? (domain ? { rules: [], dependencies: [], bindings: [], policyRules: [] } : null),
+    extractionInitial: firstProposal ?? history[0]?.slice ?? (domain ? { rules: [], dependencies: [], bindings: [], policyRules: [] } : null),
+    extractionInitialOrigin: firstProposal ? "first-control-proposal" : history.length ? "first-answer-check" : "no-control-proposal",
     extractionFinal: domain?.slice ?? null, extractionProposals: domain?.proposals ?? [],
     hostChecks: history.map((h: any) => h.check), dependencies: domain?.dependencies ?? [],
     schedulerActions: (domain?.schedulerActions ?? []).map((a: any) => ({ questionId: a.questionId, dependencyId: a.dependencyId, reason: a.reason, output: { ...a.output, evidence: evidenceReferences(a.output.evidence ?? []) } })),
@@ -53,6 +55,14 @@ const Mechanism = z.object({
   evidence: z.array(z.string()).min(1),
 }).strict()
 export const ReviewSchema = z.object({ id: z.string(), initial: Rating, final: Rating, extraction: Extraction, mechanism: Mechanism, causes: z.array(z.enum(["not-located", "not-read", "extraction-error", "expression-limit", "scheduler-priority", "premise-branch", "policy-comparison", "checker-missed", "protocol", "infrastructure"])), notes: z.string() }).strict()
+
+export function assertReviewBindings(reviews: any[], rows: any[]) {
+  if (reviews.length !== rows.length || new Set(reviews.map(r => r.id)).size !== reviews.length) throw new Error("Review denominator changed")
+  for (const review of reviews) {
+    const bound = rows.find(r => r.packetId === review.id)?.review
+    if (JSON.stringify(bound) !== JSON.stringify(review)) throw new Error(`Review changed ${review.id}`)
+  }
+}
 
 export async function loadRow(row: any) {
   const dir = path.join(root, "runs", row.id), report = await json(path.join(dir, "report.json"))
@@ -81,6 +91,7 @@ async function packets() {
     criteria: ["Decision covers current requested scenarios", "Necessary endpoint/upstream controls and protected effect are supported by original source", "Current premises exclude only inapplicable branches; unspecified is not null", "Principal/resource bindings and input/output objects are distinct", "Unknown names a decisive fact and is not a readable helper omission", "Policy assessment compares only current independently supplied policy"],
     ratings: { full: "Correct complete bounded answer with no decisive error or avoidable source gap", partial: "Useful correct core but requested branch/control incomplete or avoidable unknown", incorrect: "Decisive source behavior, applicability or policy conclusion is wrong", "not-delivered": "No answer was submitted: neither raw structured result nor final native prose" },
     firstAndFinalSeparate: true, extractionMeaningSeparate: true, sourceCitationRequired: true, noFieldCountScore: true,
+    initialExtraction: "Rate the first nonempty raw control proposal even when host rejection prevented acceptance or answer delivery. Its origin is marked. Final extraction is accepted host state plus preserved proposals; citations/acceptance are separate from semantic support.",
     nativeProse: "If no structured candidate exists, the final prose is both first and final delivery. Otherwise rate the first structured candidate separately; assess final prose and final candidate together, including contradictions.",
     mechanisms: "Use arrays of specific dependency/path/check IDs with original-source anchors; an empty array means no observed semantic event. Host field counts and diagnostics alone are not proof of helper relevance, correctness or false rejection.",
     protocol: "No delivered answer after schema failure is not-delivered; preserved failures still count in the session denominator. Do not invent a semantic error from a format failure.",
@@ -123,7 +134,7 @@ async function summarize() {
   const quality = rows.filter(r => r.kind === "quality"), revisionRows = rows.filter(r => r.kind === "revision")
   const summary = {
     schemaVersion: "authorization-aq-evaluation/v1", denominator: { quality: 40, ablation: 4, native: 4, revision: revisionRows.length },
-    independentReview: { reviewers: raw.reviewers, armAndCostHidden: true, representationMayBeInferred: true, developerAlreadyExposedToPriorCases: true },
+    independentReview: { reviewers: raw.reviewers, adjudication: raw.adjudication ?? null, armAndCostHidden: true, representationMayBeInferred: true, developerAlreadyExposedToPriorCases: true },
     arms: Object.fromEntries(["M-L", "D-L", "M-E", "D-E"].map(arm => [arm, groupSummary(quality.filter(r => r.arm === arm))])),
     originalBlock: groupSummary(quality.filter(r => !r.repeat)), repeatBlock: groupSummary(quality.filter(r => r.repeat)),
     ablations: rows.filter(r => r.kind === "ablation"), native: rows.filter(r => r.kind === "native"),
@@ -138,6 +149,8 @@ async function replay() {
   const manifest = await json(path.join(root, "manifest.json")); await requireClosure(manifest)
   const registered = registeredEvaluationRows(manifest), mapping = await json(path.join(root, "evaluator/packet-map.json")), summary = await json(path.join(root, "evaluation-summary.json"))
   if (mapping.length !== registered.length || summary.rows.length !== registered.length) throw new Error("Evaluation denominator changed")
+  const reviews = await json(path.join(root, "evaluator/reviews.json"))
+  assertReviewBindings(reviews.reviews, summary.rows)
   for (const row of registered) {
     const map = mapping.find((m: any) => m.rowId === row.id), packet = await json(path.join(root, "evaluator/packets", `${map.id}.json`))
     const expected = makePacket(map.id, await json(path.join(root, "model/inputs", `${row.task}.json`)), await loadRow(row))

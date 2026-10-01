@@ -1,0 +1,3919 @@
+{
+  "schemaVersion": "authorization-aq-anonymous-packet/v1",
+  "id": "packet-d7090a9f7731",
+  "task": {
+    "brief": "Investigate the document Download operation in this Paperless revision. Explain how the requested document, selected version or original/archive representation, and authenticated user's authorization relate to the file returned. Identify relevant control branches and whether selecting another version changes the resource that is authorized. Ownership and object grants are unspecified: analyze relevant source branches rather than assuming a grant. State missing source or deployment facts precisely.",
+    "mode": "behavior"
+  },
+  "status": "completed",
+  "initial": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The source establishes a conditional download pipeline: the DocumentViewSet requires an authenticated user and PaperlessObjectPermissions; the download action delegates to file_response and returns an attachment, mapping missing documents/files to 404. Version resolution and representation selection can change which file is returned, but the evidence read here does not expose the body of the request/root authorization helper or the permission implementation, so the exact owner/global/object-grant branches cannot be completed. Ownership and grants therefore remain scenario inputs, not assumed grants."
+        },
+        "branches": [
+          {
+            "id": "q1-authentication",
+            "condition": "The request is unauthenticated.",
+            "disposition": "deny",
+            "explanation": "DocumentViewSet declares IsAuthenticated together with PaperlessObjectPermissions. Thus authentication is an upstream prerequisite before the download action can return a file.",
+            "evidenceIds": [
+              "ev-cf0d653750c79a60769b"
+            ]
+          },
+          {
+            "id": "q1-requested-document-authorization",
+            "condition": "The request is authenticated, and the permission machinery authorizes access to the document resource used by the download path.",
+            "disposition": "conditional",
+            "explanation": "The viewset-level controls apply to download, which has no action-specific permission override. The action delegates to file_response. However, the read evidence does not include PaperlessObjectPermissions, PermittedObjectsFilter, or the body of _resolve_request_and_root_doc, so whether authorization is satisfied by ownership, model permission, user/group object grant, superuser status, or another branch is unresolved. No grant is assumed.",
+            "evidenceIds": [
+              "ev-cf0d653750c79a60769b",
+              "ev-1f7c0904f372ac56d45f"
+            ]
+          },
+          {
+            "id": "q1-no-version-root-request",
+            "condition": "The URL pk identifies a root document and no version query parameter is supplied.",
+            "disposition": "conditional",
+            "explanation": "Version resolution selects the newest version for a root, falling back to the root itself when no version exists. Therefore the returned file may belong to the latest version even though the URL names the root. Return remains conditional on the upstream permission check and file availability.",
+            "evidenceIds": [
+              "ev-2a1d3ddc4932ff33a170",
+              "ev-c08cae9eb581161e6364",
+              "ev-1f7c0904f372ac56d45f"
+            ]
+          },
+          {
+            "id": "q1-no-version-version-request",
+            "condition": "The URL pk identifies a version document and no version query parameter is supplied.",
+            "disposition": "conditional",
+            "explanation": "The effective-document resolver preserves the explicitly addressed version when the request document has a root_document_id and no version parameter is present. Thus a version URL selects that version's file rather than automatically advancing to the newest version, subject to authorization and file availability.",
+            "evidenceIds": [
+              "ev-2a1d3ddc4932ff33a170",
+              "ev-c08cae9eb581161e6364"
+            ]
+          },
+          {
+            "id": "q1-explicit-version-valid",
+            "condition": "A version query parameter parses as an integer and identifies either the root itself or a document whose root_document_id equals the resolved root id.",
+            "disposition": "conditional",
+            "explanation": "The requested candidate is accepted only within the resolved root's version family. It then becomes the effective file document. Selecting another valid version changes the file-bearing Document row, but the source read does not establish a separate authorization check against that selected version; the exact authorized resource binding is unresolved because _resolve_request_and_root_doc was not read.",
+            "evidenceIds": [
+              "ev-2a1d3ddc4932ff33a170"
+            ]
+          },
+          {
+            "id": "q1-explicit-version-invalid",
+            "condition": "The version query parameter is present but is not an integer.",
+            "disposition": "deny",
+            "explanation": "Version resolution returns INVALID with no document. The precise HTTP mapping is in unread helper code, but no file document is selected, so the operation cannot return the requested file.",
+            "evidenceIds": [
+              "ev-2a1d3ddc4932ff33a170"
+            ]
+          },
+          {
+            "id": "q1-explicit-version-unrelated-or-missing",
+            "condition": "The version id does not exist, or exists but is neither the resolved root nor a child version of that root.",
+            "disposition": "deny",
+            "explanation": "The resolver returns NOT_FOUND and no document, preventing cross-root version selection. The exact response mapping requires the unread request/root helper, though the download action maps Document.DoesNotExist and FileNotFoundError to 404.",
+            "evidenceIds": [
+              "ev-2a1d3ddc4932ff33a170"
+            ]
+          },
+          {
+            "id": "q1-original-representation",
+            "condition": "The request selects the original representation according to original_requested(request).",
+            "disposition": "conditional",
+            "explanation": "file_response passes use_archive as false when original_requested is true, so serve_file is directed to the selected effective document's original representation. Representation selection occurs after document/version selection. The body defining the exact accepted query syntax and serve_file's file-field behavior was not read.",
+            "evidenceIds": [
+              "ev-a8a756e62b40ccc55f7e",
+              "ev-63fffb8cd24965f42869",
+              "ev-c08cae9eb581161e6364"
+            ]
+          },
+          {
+            "id": "q1-default-archive-available",
+            "condition": "The original representation is not requested and the selected effective document has an archive version.",
+            "disposition": "conditional",
+            "explanation": "The download/preview pattern passes use_archive=true only when original is not requested and the selected file document has an archive version. Consequently the archive representation of the selected effective document is returned, subject to authorization and storage availability.",
+            "evidenceIds": [
+              "ev-63fffb8cd24965f42869",
+              "ev-1f7c0904f372ac56d45f"
+            ]
+          },
+          {
+            "id": "q1-default-no-archive",
+            "condition": "The original representation is not requested but the selected effective document has no archive version.",
+            "disposition": "conditional",
+            "explanation": "The use_archive expression is false when no archive version exists, so serving falls back to the selected document's original representation, subject to authorization and file availability.",
+            "evidenceIds": [
+              "ev-63fffb8cd24965f42869",
+              "ev-1f7c0904f372ac56d45f"
+            ]
+          },
+          {
+            "id": "q1-resource-binding",
+            "condition": "A caller changes only the version parameter while retaining the same requested root family.",
+            "disposition": "conditional",
+            "explanation": "The selected file resource changes to the chosen family member, and unrelated versions are rejected. What does not follow from the available evidence is that authorization changes with it: the viewset permission classes are fixed, while the helper that binds the permission check to request_doc, root_doc, or selected version was not read. Accordingly, this revision visibly enforces family membership, but whether another version is independently authorized is unresolved rather than assumed.",
+            "evidenceIds": [
+              "ev-2a1d3ddc4932ff33a170",
+              "ev-cf0d653750c79a60769b",
+              "ev-857af03f98159eaf2621"
+            ]
+          },
+          {
+            "id": "q1-file-effect",
+            "condition": "Authorization and selection succeed and the selected original/archive file exists.",
+            "disposition": "allow",
+            "explanation": "download delegates to file_response with disposition attachment; file_response delegates to serve_file for the selected document and representation. The effect is a file response intended as a download.",
+            "evidenceIds": [
+              "ev-1f7c0904f372ac56d45f",
+              "ev-c08cae9eb581161e6364",
+              "ev-52bd868207f46b3f7435"
+            ]
+          },
+          {
+            "id": "q1-file-missing",
+            "condition": "The selected document row or selected file representation is unavailable.",
+            "disposition": "deny",
+            "explanation": "The download action catches FileNotFoundError and Document.DoesNotExist and raises Http404, so no file is returned.",
+            "evidenceIds": [
+              "ev-1f7c0904f372ac56d45f"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-cf0d653750c79a60769b",
+          "ev-1f7c0904f372ac56d45f",
+          "ev-2a1d3ddc4932ff33a170",
+          "ev-c08cae9eb581161e6364",
+          "ev-857af03f98159eaf2621",
+          "ev-a8a756e62b40ccc55f7e",
+          "ev-63fffb8cd24965f42869",
+          "ev-52bd868207f46b3f7435"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The body of DocumentViewSet._resolve_request_and_root_doc and adjacent _get_effective_file_doc/file_response/original_requested logic was not returned. This is the decisive source gap for determining whether authorization is checked against the URL request document, the root document, the selected version, or more than one of them, and for the exact error/HTTP branches.",
+            "nextRead": "src/documents/views.py lines 1360-1450"
+          },
+          {
+            "kind": "source-gap",
+            "detail": "PaperlessObjectPermissions and the owner-aware/object-grant helpers were not read. Their branches are required to enumerate how ownership, global model permission, direct user grant, group grant, superuser, and denial affect this action.",
+            "nextRead": "src/documents/permissions.py definitions and helpers used by PaperlessObjectPermissions"
+          },
+          {
+            "kind": "source-gap",
+            "detail": "PermittedObjectsFilter was named in DocumentViewSet.filter_backends but its implementation and whether it participates in this detail action were not read.",
+            "nextRead": "Locate and read PermittedObjectsFilter and DRF object retrieval/permission integration used by DocumentViewSet"
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The serve_file body was not read, so the exact original/archive file fields, content type, filename, range handling, and fallback/error behavior beyond the caller's use_archive flag are not established.",
+            "nextRead": "src/documents/views.py from line 4941 through the complete serve_file function"
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The router registration connecting /api/documents/{pk}/download/ to DocumentViewSet was indicated by the URL template but its surrounding router setup was not read.",
+            "nextRead": "src/paperless/urls.py around lines 295-320 and the documents router registration"
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "The authenticated user's ownership relation, global document permissions, direct user object grants, group memberships/object grants, superuser status, and the target document's owner are unspecified. These facts decide the permission branches and must not be treated as granted."
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "It is unverified that a deployed service is running exactly source revision 126ec414a8b65158368653a2604ae58415e43103 with the same authentication backends, DRF settings, middleware, URL configuration, database contents, and storage files."
+          },
+          {
+            "kind": "dependency-out-of-scope",
+            "detail": "Framework behavior from Django REST Framework, Django, and django-guardian—including action permission dispatch, object-permission invocation, and authentication response details—was not inspected within the allowed source scope."
+          }
+        ]
+      }
+    ],
+    "observations": [],
+    "scope": "Source-visible behavior of the single-document Download action in paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103, limited to allowed paths src/documents and src/paperless/urls.py. This is not an all-repository or deployed-system assessment."
+  },
+  "final": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The source establishes a conditional download pipeline: the DocumentViewSet requires an authenticated user and PaperlessObjectPermissions; the download action delegates to file_response and returns an attachment, mapping missing documents/files to 404. Version resolution and representation selection can change which file is returned, but the evidence read here does not expose the body of the request/root authorization helper or the permission implementation, so the exact owner/global/object-grant branches cannot be completed. Ownership and grants therefore remain scenario inputs, not assumed grants."
+        },
+        "branches": [
+          {
+            "id": "q1-authentication",
+            "condition": "The request is unauthenticated.",
+            "disposition": "deny",
+            "explanation": "DocumentViewSet declares IsAuthenticated together with PaperlessObjectPermissions. Thus authentication is an upstream prerequisite before the download action can return a file.",
+            "evidenceIds": [
+              "ev-cf0d653750c79a60769b"
+            ]
+          },
+          {
+            "id": "q1-requested-document-authorization",
+            "condition": "The request is authenticated, and the permission machinery authorizes access to the document resource used by the download path.",
+            "disposition": "conditional",
+            "explanation": "The viewset-level controls apply to download, which has no action-specific permission override. The action delegates to file_response. However, the read evidence does not include PaperlessObjectPermissions, PermittedObjectsFilter, or the body of _resolve_request_and_root_doc, so whether authorization is satisfied by ownership, model permission, user/group object grant, superuser status, or another branch is unresolved. No grant is assumed.",
+            "evidenceIds": [
+              "ev-cf0d653750c79a60769b",
+              "ev-1f7c0904f372ac56d45f"
+            ]
+          },
+          {
+            "id": "q1-no-version-root-request",
+            "condition": "The URL pk identifies a root document and no version query parameter is supplied.",
+            "disposition": "conditional",
+            "explanation": "Version resolution selects the newest version for a root, falling back to the root itself when no version exists. Therefore the returned file may belong to the latest version even though the URL names the root. Return remains conditional on the upstream permission check and file availability.",
+            "evidenceIds": [
+              "ev-2a1d3ddc4932ff33a170",
+              "ev-c08cae9eb581161e6364",
+              "ev-1f7c0904f372ac56d45f"
+            ]
+          },
+          {
+            "id": "q1-no-version-version-request",
+            "condition": "The URL pk identifies a version document and no version query parameter is supplied.",
+            "disposition": "conditional",
+            "explanation": "The effective-document resolver preserves the explicitly addressed version when the request document has a root_document_id and no version parameter is present. Thus a version URL selects that version's file rather than automatically advancing to the newest version, subject to authorization and file availability.",
+            "evidenceIds": [
+              "ev-2a1d3ddc4932ff33a170",
+              "ev-c08cae9eb581161e6364"
+            ]
+          },
+          {
+            "id": "q1-explicit-version-valid",
+            "condition": "A version query parameter parses as an integer and identifies either the root itself or a document whose root_document_id equals the resolved root id.",
+            "disposition": "conditional",
+            "explanation": "The requested candidate is accepted only within the resolved root's version family. It then becomes the effective file document. Selecting another valid version changes the file-bearing Document row, but the source read does not establish a separate authorization check against that selected version; the exact authorized resource binding is unresolved because _resolve_request_and_root_doc was not read.",
+            "evidenceIds": [
+              "ev-2a1d3ddc4932ff33a170"
+            ]
+          },
+          {
+            "id": "q1-explicit-version-invalid",
+            "condition": "The version query parameter is present but is not an integer.",
+            "disposition": "deny",
+            "explanation": "Version resolution returns INVALID with no document. The precise HTTP mapping is in unread helper code, but no file document is selected, so the operation cannot return the requested file.",
+            "evidenceIds": [
+              "ev-2a1d3ddc4932ff33a170"
+            ]
+          },
+          {
+            "id": "q1-explicit-version-unrelated-or-missing",
+            "condition": "The version id does not exist, or exists but is neither the resolved root nor a child version of that root.",
+            "disposition": "deny",
+            "explanation": "The resolver returns NOT_FOUND and no document, preventing cross-root version selection. The exact response mapping requires the unread request/root helper, though the download action maps Document.DoesNotExist and FileNotFoundError to 404.",
+            "evidenceIds": [
+              "ev-2a1d3ddc4932ff33a170"
+            ]
+          },
+          {
+            "id": "q1-original-representation",
+            "condition": "The request selects the original representation according to original_requested(request).",
+            "disposition": "conditional",
+            "explanation": "file_response passes use_archive as false when original_requested is true, so serve_file is directed to the selected effective document's original representation. Representation selection occurs after document/version selection. The body defining the exact accepted query syntax and serve_file's file-field behavior was not read.",
+            "evidenceIds": [
+              "ev-a8a756e62b40ccc55f7e",
+              "ev-63fffb8cd24965f42869",
+              "ev-c08cae9eb581161e6364"
+            ]
+          },
+          {
+            "id": "q1-default-archive-available",
+            "condition": "The original representation is not requested and the selected effective document has an archive version.",
+            "disposition": "conditional",
+            "explanation": "The download/preview pattern passes use_archive=true only when original is not requested and the selected file document has an archive version. Consequently the archive representation of the selected effective document is returned, subject to authorization and storage availability.",
+            "evidenceIds": [
+              "ev-63fffb8cd24965f42869",
+              "ev-1f7c0904f372ac56d45f"
+            ]
+          },
+          {
+            "id": "q1-default-no-archive",
+            "condition": "The original representation is not requested but the selected effective document has no archive version.",
+            "disposition": "conditional",
+            "explanation": "The use_archive expression is false when no archive version exists, so serving falls back to the selected document's original representation, subject to authorization and file availability.",
+            "evidenceIds": [
+              "ev-63fffb8cd24965f42869",
+              "ev-1f7c0904f372ac56d45f"
+            ]
+          },
+          {
+            "id": "q1-resource-binding",
+            "condition": "A caller changes only the version parameter while retaining the same requested root family.",
+            "disposition": "conditional",
+            "explanation": "The selected file resource changes to the chosen family member, and unrelated versions are rejected. What does not follow from the available evidence is that authorization changes with it: the viewset permission classes are fixed, while the helper that binds the permission check to request_doc, root_doc, or selected version was not read. Accordingly, this revision visibly enforces family membership, but whether another version is independently authorized is unresolved rather than assumed.",
+            "evidenceIds": [
+              "ev-2a1d3ddc4932ff33a170",
+              "ev-cf0d653750c79a60769b",
+              "ev-857af03f98159eaf2621"
+            ]
+          },
+          {
+            "id": "q1-file-effect",
+            "condition": "Authorization and selection succeed and the selected original/archive file exists.",
+            "disposition": "allow",
+            "explanation": "download delegates to file_response with disposition attachment; file_response delegates to serve_file for the selected document and representation. The effect is a file response intended as a download.",
+            "evidenceIds": [
+              "ev-1f7c0904f372ac56d45f",
+              "ev-c08cae9eb581161e6364",
+              "ev-52bd868207f46b3f7435"
+            ]
+          },
+          {
+            "id": "q1-file-missing",
+            "condition": "The selected document row or selected file representation is unavailable.",
+            "disposition": "deny",
+            "explanation": "The download action catches FileNotFoundError and Document.DoesNotExist and raises Http404, so no file is returned.",
+            "evidenceIds": [
+              "ev-1f7c0904f372ac56d45f"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-cf0d653750c79a60769b",
+          "ev-1f7c0904f372ac56d45f",
+          "ev-2a1d3ddc4932ff33a170",
+          "ev-c08cae9eb581161e6364",
+          "ev-857af03f98159eaf2621",
+          "ev-a8a756e62b40ccc55f7e",
+          "ev-63fffb8cd24965f42869",
+          "ev-52bd868207f46b3f7435"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The body of DocumentViewSet._resolve_request_and_root_doc and adjacent _get_effective_file_doc/file_response/original_requested logic was not returned. This is the decisive source gap for determining whether authorization is checked against the URL request document, the root document, the selected version, or more than one of them, and for the exact error/HTTP branches.",
+            "nextRead": "src/documents/views.py lines 1360-1450"
+          },
+          {
+            "kind": "source-gap",
+            "detail": "PaperlessObjectPermissions and the owner-aware/object-grant helpers were not read. Their branches are required to enumerate how ownership, global model permission, direct user grant, group grant, superuser, and denial affect this action.",
+            "nextRead": "src/documents/permissions.py definitions and helpers used by PaperlessObjectPermissions"
+          },
+          {
+            "kind": "source-gap",
+            "detail": "PermittedObjectsFilter was named in DocumentViewSet.filter_backends but its implementation and whether it participates in this detail action were not read.",
+            "nextRead": "Locate and read PermittedObjectsFilter and DRF object retrieval/permission integration used by DocumentViewSet"
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The serve_file body was not read, so the exact original/archive file fields, content type, filename, range handling, and fallback/error behavior beyond the caller's use_archive flag are not established.",
+            "nextRead": "src/documents/views.py from line 4941 through the complete serve_file function"
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The router registration connecting /api/documents/{pk}/download/ to DocumentViewSet was indicated by the URL template but its surrounding router setup was not read.",
+            "nextRead": "src/paperless/urls.py around lines 295-320 and the documents router registration"
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "The authenticated user's ownership relation, global document permissions, direct user object grants, group memberships/object grants, superuser status, and the target document's owner are unspecified. These facts decide the permission branches and must not be treated as granted."
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "It is unverified that a deployed service is running exactly source revision 126ec414a8b65158368653a2604ae58415e43103 with the same authentication backends, DRF settings, middleware, URL configuration, database contents, and storage files."
+          },
+          {
+            "kind": "dependency-out-of-scope",
+            "detail": "Framework behavior from Django REST Framework, Django, and django-guardian—including action permission dispatch, object-permission invocation, and authentication response details—was not inspected within the allowed source scope."
+          }
+        ]
+      }
+    ],
+    "observations": [],
+    "scope": "Source-visible behavior of the single-document Download action in paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103, limited to allowed paths src/documents and src/paperless/urls.py. This is not an all-repository or deployed-system assessment."
+  },
+  "prose": null,
+  "initialProse": null,
+  "initialValidation": {
+    "valid": true,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The source establishes a conditional download pipeline: the DocumentViewSet requires an authenticated user and PaperlessObjectPermissions; the download action delegates to file_response and returns an attachment, mapping missing documents/files to 404. Version resolution and representation selection can change which file is returned, but the evidence read here does not expose the body of the request/root authorization helper or the permission implementation, so the exact owner/global/object-grant branches cannot be completed. Ownership and grants therefore remain scenario inputs, not assumed grants."
+          },
+          "branches": [
+            {
+              "id": "q1-authentication",
+              "condition": "The request is unauthenticated.",
+              "disposition": "deny",
+              "explanation": "DocumentViewSet declares IsAuthenticated together with PaperlessObjectPermissions. Thus authentication is an upstream prerequisite before the download action can return a file.",
+              "evidenceIds": [
+                "ev-cf0d653750c79a60769b"
+              ]
+            },
+            {
+              "id": "q1-requested-document-authorization",
+              "condition": "The request is authenticated, and the permission machinery authorizes access to the document resource used by the download path.",
+              "disposition": "conditional",
+              "explanation": "The viewset-level controls apply to download, which has no action-specific permission override. The action delegates to file_response. However, the read evidence does not include PaperlessObjectPermissions, PermittedObjectsFilter, or the body of _resolve_request_and_root_doc, so whether authorization is satisfied by ownership, model permission, user/group object grant, superuser status, or another branch is unresolved. No grant is assumed.",
+              "evidenceIds": [
+                "ev-cf0d653750c79a60769b",
+                "ev-1f7c0904f372ac56d45f"
+              ]
+            },
+            {
+              "id": "q1-no-version-root-request",
+              "condition": "The URL pk identifies a root document and no version query parameter is supplied.",
+              "disposition": "conditional",
+              "explanation": "Version resolution selects the newest version for a root, falling back to the root itself when no version exists. Therefore the returned file may belong to the latest version even though the URL names the root. Return remains conditional on the upstream permission check and file availability.",
+              "evidenceIds": [
+                "ev-2a1d3ddc4932ff33a170",
+                "ev-c08cae9eb581161e6364",
+                "ev-1f7c0904f372ac56d45f"
+              ]
+            },
+            {
+              "id": "q1-no-version-version-request",
+              "condition": "The URL pk identifies a version document and no version query parameter is supplied.",
+              "disposition": "conditional",
+              "explanation": "The effective-document resolver preserves the explicitly addressed version when the request document has a root_document_id and no version parameter is present. Thus a version URL selects that version's file rather than automatically advancing to the newest version, subject to authorization and file availability.",
+              "evidenceIds": [
+                "ev-2a1d3ddc4932ff33a170",
+                "ev-c08cae9eb581161e6364"
+              ]
+            },
+            {
+              "id": "q1-explicit-version-valid",
+              "condition": "A version query parameter parses as an integer and identifies either the root itself or a document whose root_document_id equals the resolved root id.",
+              "disposition": "conditional",
+              "explanation": "The requested candidate is accepted only within the resolved root's version family. It then becomes the effective file document. Selecting another valid version changes the file-bearing Document row, but the source read does not establish a separate authorization check against that selected version; the exact authorized resource binding is unresolved because _resolve_request_and_root_doc was not read.",
+              "evidenceIds": [
+                "ev-2a1d3ddc4932ff33a170"
+              ]
+            },
+            {
+              "id": "q1-explicit-version-invalid",
+              "condition": "The version query parameter is present but is not an integer.",
+              "disposition": "deny",
+              "explanation": "Version resolution returns INVALID with no document. The precise HTTP mapping is in unread helper code, but no file document is selected, so the operation cannot return the requested file.",
+              "evidenceIds": [
+                "ev-2a1d3ddc4932ff33a170"
+              ]
+            },
+            {
+              "id": "q1-explicit-version-unrelated-or-missing",
+              "condition": "The version id does not exist, or exists but is neither the resolved root nor a child version of that root.",
+              "disposition": "deny",
+              "explanation": "The resolver returns NOT_FOUND and no document, preventing cross-root version selection. The exact response mapping requires the unread request/root helper, though the download action maps Document.DoesNotExist and FileNotFoundError to 404.",
+              "evidenceIds": [
+                "ev-2a1d3ddc4932ff33a170"
+              ]
+            },
+            {
+              "id": "q1-original-representation",
+              "condition": "The request selects the original representation according to original_requested(request).",
+              "disposition": "conditional",
+              "explanation": "file_response passes use_archive as false when original_requested is true, so serve_file is directed to the selected effective document's original representation. Representation selection occurs after document/version selection. The body defining the exact accepted query syntax and serve_file's file-field behavior was not read.",
+              "evidenceIds": [
+                "ev-a8a756e62b40ccc55f7e",
+                "ev-63fffb8cd24965f42869",
+                "ev-c08cae9eb581161e6364"
+              ]
+            },
+            {
+              "id": "q1-default-archive-available",
+              "condition": "The original representation is not requested and the selected effective document has an archive version.",
+              "disposition": "conditional",
+              "explanation": "The download/preview pattern passes use_archive=true only when original is not requested and the selected file document has an archive version. Consequently the archive representation of the selected effective document is returned, subject to authorization and storage availability.",
+              "evidenceIds": [
+                "ev-63fffb8cd24965f42869",
+                "ev-1f7c0904f372ac56d45f"
+              ]
+            },
+            {
+              "id": "q1-default-no-archive",
+              "condition": "The original representation is not requested but the selected effective document has no archive version.",
+              "disposition": "conditional",
+              "explanation": "The use_archive expression is false when no archive version exists, so serving falls back to the selected document's original representation, subject to authorization and file availability.",
+              "evidenceIds": [
+                "ev-63fffb8cd24965f42869",
+                "ev-1f7c0904f372ac56d45f"
+              ]
+            },
+            {
+              "id": "q1-resource-binding",
+              "condition": "A caller changes only the version parameter while retaining the same requested root family.",
+              "disposition": "conditional",
+              "explanation": "The selected file resource changes to the chosen family member, and unrelated versions are rejected. What does not follow from the available evidence is that authorization changes with it: the viewset permission classes are fixed, while the helper that binds the permission check to request_doc, root_doc, or selected version was not read. Accordingly, this revision visibly enforces family membership, but whether another version is independently authorized is unresolved rather than assumed.",
+              "evidenceIds": [
+                "ev-2a1d3ddc4932ff33a170",
+                "ev-cf0d653750c79a60769b",
+                "ev-857af03f98159eaf2621"
+              ]
+            },
+            {
+              "id": "q1-file-effect",
+              "condition": "Authorization and selection succeed and the selected original/archive file exists.",
+              "disposition": "allow",
+              "explanation": "download delegates to file_response with disposition attachment; file_response delegates to serve_file for the selected document and representation. The effect is a file response intended as a download.",
+              "evidenceIds": [
+                "ev-1f7c0904f372ac56d45f",
+                "ev-c08cae9eb581161e6364",
+                "ev-52bd868207f46b3f7435"
+              ]
+            },
+            {
+              "id": "q1-file-missing",
+              "condition": "The selected document row or selected file representation is unavailable.",
+              "disposition": "deny",
+              "explanation": "The download action catches FileNotFoundError and Document.DoesNotExist and raises Http404, so no file is returned.",
+              "evidenceIds": [
+                "ev-1f7c0904f372ac56d45f"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-cf0d653750c79a60769b",
+            "ev-1f7c0904f372ac56d45f",
+            "ev-2a1d3ddc4932ff33a170",
+            "ev-c08cae9eb581161e6364",
+            "ev-857af03f98159eaf2621",
+            "ev-a8a756e62b40ccc55f7e",
+            "ev-63fffb8cd24965f42869",
+            "ev-52bd868207f46b3f7435"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The body of DocumentViewSet._resolve_request_and_root_doc and adjacent _get_effective_file_doc/file_response/original_requested logic was not returned. This is the decisive source gap for determining whether authorization is checked against the URL request document, the root document, the selected version, or more than one of them, and for the exact error/HTTP branches.",
+              "nextRead": "src/documents/views.py lines 1360-1450"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "PaperlessObjectPermissions and the owner-aware/object-grant helpers were not read. Their branches are required to enumerate how ownership, global model permission, direct user grant, group grant, superuser, and denial affect this action.",
+              "nextRead": "src/documents/permissions.py definitions and helpers used by PaperlessObjectPermissions"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "PermittedObjectsFilter was named in DocumentViewSet.filter_backends but its implementation and whether it participates in this detail action were not read.",
+              "nextRead": "Locate and read PermittedObjectsFilter and DRF object retrieval/permission integration used by DocumentViewSet"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The serve_file body was not read, so the exact original/archive file fields, content type, filename, range handling, and fallback/error behavior beyond the caller's use_archive flag are not established.",
+              "nextRead": "src/documents/views.py from line 4941 through the complete serve_file function"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The router registration connecting /api/documents/{pk}/download/ to DocumentViewSet was indicated by the URL template but its surrounding router setup was not read.",
+              "nextRead": "src/paperless/urls.py around lines 295-320 and the documents router registration"
+            },
+            {
+              "kind": "premise-unspecified",
+              "detail": "The authenticated user's ownership relation, global document permissions, direct user object grants, group memberships/object grants, superuser status, and the target document's owner are unspecified. These facts decide the permission branches and must not be treated as granted."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "It is unverified that a deployed service is running exactly source revision 126ec414a8b65158368653a2604ae58415e43103 with the same authentication backends, DRF settings, middleware, URL configuration, database contents, and storage files."
+            },
+            {
+              "kind": "dependency-out-of-scope",
+              "detail": "Framework behavior from Django REST Framework, Django, and django-guardian—including action permission dispatch, object-permission invocation, and authentication response details—was not inspected within the allowed source scope."
+            }
+          ]
+        }
+      ],
+      "observations": [],
+      "scope": "Source-visible behavior of the single-document Download action in paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103, limited to allowed paths src/documents and src/paperless/urls.py. This is not an all-repository or deployed-system assessment."
+    },
+    "diagnostics": [],
+    "semanticSupport": "unreviewed"
+  },
+  "finalValidation": {
+    "valid": true,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The source establishes a conditional download pipeline: the DocumentViewSet requires an authenticated user and PaperlessObjectPermissions; the download action delegates to file_response and returns an attachment, mapping missing documents/files to 404. Version resolution and representation selection can change which file is returned, but the evidence read here does not expose the body of the request/root authorization helper or the permission implementation, so the exact owner/global/object-grant branches cannot be completed. Ownership and grants therefore remain scenario inputs, not assumed grants."
+          },
+          "branches": [
+            {
+              "id": "q1-authentication",
+              "condition": "The request is unauthenticated.",
+              "disposition": "deny",
+              "explanation": "DocumentViewSet declares IsAuthenticated together with PaperlessObjectPermissions. Thus authentication is an upstream prerequisite before the download action can return a file.",
+              "evidenceIds": [
+                "ev-cf0d653750c79a60769b"
+              ]
+            },
+            {
+              "id": "q1-requested-document-authorization",
+              "condition": "The request is authenticated, and the permission machinery authorizes access to the document resource used by the download path.",
+              "disposition": "conditional",
+              "explanation": "The viewset-level controls apply to download, which has no action-specific permission override. The action delegates to file_response. However, the read evidence does not include PaperlessObjectPermissions, PermittedObjectsFilter, or the body of _resolve_request_and_root_doc, so whether authorization is satisfied by ownership, model permission, user/group object grant, superuser status, or another branch is unresolved. No grant is assumed.",
+              "evidenceIds": [
+                "ev-cf0d653750c79a60769b",
+                "ev-1f7c0904f372ac56d45f"
+              ]
+            },
+            {
+              "id": "q1-no-version-root-request",
+              "condition": "The URL pk identifies a root document and no version query parameter is supplied.",
+              "disposition": "conditional",
+              "explanation": "Version resolution selects the newest version for a root, falling back to the root itself when no version exists. Therefore the returned file may belong to the latest version even though the URL names the root. Return remains conditional on the upstream permission check and file availability.",
+              "evidenceIds": [
+                "ev-2a1d3ddc4932ff33a170",
+                "ev-c08cae9eb581161e6364",
+                "ev-1f7c0904f372ac56d45f"
+              ]
+            },
+            {
+              "id": "q1-no-version-version-request",
+              "condition": "The URL pk identifies a version document and no version query parameter is supplied.",
+              "disposition": "conditional",
+              "explanation": "The effective-document resolver preserves the explicitly addressed version when the request document has a root_document_id and no version parameter is present. Thus a version URL selects that version's file rather than automatically advancing to the newest version, subject to authorization and file availability.",
+              "evidenceIds": [
+                "ev-2a1d3ddc4932ff33a170",
+                "ev-c08cae9eb581161e6364"
+              ]
+            },
+            {
+              "id": "q1-explicit-version-valid",
+              "condition": "A version query parameter parses as an integer and identifies either the root itself or a document whose root_document_id equals the resolved root id.",
+              "disposition": "conditional",
+              "explanation": "The requested candidate is accepted only within the resolved root's version family. It then becomes the effective file document. Selecting another valid version changes the file-bearing Document row, but the source read does not establish a separate authorization check against that selected version; the exact authorized resource binding is unresolved because _resolve_request_and_root_doc was not read.",
+              "evidenceIds": [
+                "ev-2a1d3ddc4932ff33a170"
+              ]
+            },
+            {
+              "id": "q1-explicit-version-invalid",
+              "condition": "The version query parameter is present but is not an integer.",
+              "disposition": "deny",
+              "explanation": "Version resolution returns INVALID with no document. The precise HTTP mapping is in unread helper code, but no file document is selected, so the operation cannot return the requested file.",
+              "evidenceIds": [
+                "ev-2a1d3ddc4932ff33a170"
+              ]
+            },
+            {
+              "id": "q1-explicit-version-unrelated-or-missing",
+              "condition": "The version id does not exist, or exists but is neither the resolved root nor a child version of that root.",
+              "disposition": "deny",
+              "explanation": "The resolver returns NOT_FOUND and no document, preventing cross-root version selection. The exact response mapping requires the unread request/root helper, though the download action maps Document.DoesNotExist and FileNotFoundError to 404.",
+              "evidenceIds": [
+                "ev-2a1d3ddc4932ff33a170"
+              ]
+            },
+            {
+              "id": "q1-original-representation",
+              "condition": "The request selects the original representation according to original_requested(request).",
+              "disposition": "conditional",
+              "explanation": "file_response passes use_archive as false when original_requested is true, so serve_file is directed to the selected effective document's original representation. Representation selection occurs after document/version selection. The body defining the exact accepted query syntax and serve_file's file-field behavior was not read.",
+              "evidenceIds": [
+                "ev-a8a756e62b40ccc55f7e",
+                "ev-63fffb8cd24965f42869",
+                "ev-c08cae9eb581161e6364"
+              ]
+            },
+            {
+              "id": "q1-default-archive-available",
+              "condition": "The original representation is not requested and the selected effective document has an archive version.",
+              "disposition": "conditional",
+              "explanation": "The download/preview pattern passes use_archive=true only when original is not requested and the selected file document has an archive version. Consequently the archive representation of the selected effective document is returned, subject to authorization and storage availability.",
+              "evidenceIds": [
+                "ev-63fffb8cd24965f42869",
+                "ev-1f7c0904f372ac56d45f"
+              ]
+            },
+            {
+              "id": "q1-default-no-archive",
+              "condition": "The original representation is not requested but the selected effective document has no archive version.",
+              "disposition": "conditional",
+              "explanation": "The use_archive expression is false when no archive version exists, so serving falls back to the selected document's original representation, subject to authorization and file availability.",
+              "evidenceIds": [
+                "ev-63fffb8cd24965f42869",
+                "ev-1f7c0904f372ac56d45f"
+              ]
+            },
+            {
+              "id": "q1-resource-binding",
+              "condition": "A caller changes only the version parameter while retaining the same requested root family.",
+              "disposition": "conditional",
+              "explanation": "The selected file resource changes to the chosen family member, and unrelated versions are rejected. What does not follow from the available evidence is that authorization changes with it: the viewset permission classes are fixed, while the helper that binds the permission check to request_doc, root_doc, or selected version was not read. Accordingly, this revision visibly enforces family membership, but whether another version is independently authorized is unresolved rather than assumed.",
+              "evidenceIds": [
+                "ev-2a1d3ddc4932ff33a170",
+                "ev-cf0d653750c79a60769b",
+                "ev-857af03f98159eaf2621"
+              ]
+            },
+            {
+              "id": "q1-file-effect",
+              "condition": "Authorization and selection succeed and the selected original/archive file exists.",
+              "disposition": "allow",
+              "explanation": "download delegates to file_response with disposition attachment; file_response delegates to serve_file for the selected document and representation. The effect is a file response intended as a download.",
+              "evidenceIds": [
+                "ev-1f7c0904f372ac56d45f",
+                "ev-c08cae9eb581161e6364",
+                "ev-52bd868207f46b3f7435"
+              ]
+            },
+            {
+              "id": "q1-file-missing",
+              "condition": "The selected document row or selected file representation is unavailable.",
+              "disposition": "deny",
+              "explanation": "The download action catches FileNotFoundError and Document.DoesNotExist and raises Http404, so no file is returned.",
+              "evidenceIds": [
+                "ev-1f7c0904f372ac56d45f"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-cf0d653750c79a60769b",
+            "ev-1f7c0904f372ac56d45f",
+            "ev-2a1d3ddc4932ff33a170",
+            "ev-c08cae9eb581161e6364",
+            "ev-857af03f98159eaf2621",
+            "ev-a8a756e62b40ccc55f7e",
+            "ev-63fffb8cd24965f42869",
+            "ev-52bd868207f46b3f7435"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The body of DocumentViewSet._resolve_request_and_root_doc and adjacent _get_effective_file_doc/file_response/original_requested logic was not returned. This is the decisive source gap for determining whether authorization is checked against the URL request document, the root document, the selected version, or more than one of them, and for the exact error/HTTP branches.",
+              "nextRead": "src/documents/views.py lines 1360-1450"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "PaperlessObjectPermissions and the owner-aware/object-grant helpers were not read. Their branches are required to enumerate how ownership, global model permission, direct user grant, group grant, superuser, and denial affect this action.",
+              "nextRead": "src/documents/permissions.py definitions and helpers used by PaperlessObjectPermissions"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "PermittedObjectsFilter was named in DocumentViewSet.filter_backends but its implementation and whether it participates in this detail action were not read.",
+              "nextRead": "Locate and read PermittedObjectsFilter and DRF object retrieval/permission integration used by DocumentViewSet"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The serve_file body was not read, so the exact original/archive file fields, content type, filename, range handling, and fallback/error behavior beyond the caller's use_archive flag are not established.",
+              "nextRead": "src/documents/views.py from line 4941 through the complete serve_file function"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The router registration connecting /api/documents/{pk}/download/ to DocumentViewSet was indicated by the URL template but its surrounding router setup was not read.",
+              "nextRead": "src/paperless/urls.py around lines 295-320 and the documents router registration"
+            },
+            {
+              "kind": "premise-unspecified",
+              "detail": "The authenticated user's ownership relation, global document permissions, direct user object grants, group memberships/object grants, superuser status, and the target document's owner are unspecified. These facts decide the permission branches and must not be treated as granted."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "It is unverified that a deployed service is running exactly source revision 126ec414a8b65158368653a2604ae58415e43103 with the same authentication backends, DRF settings, middleware, URL configuration, database contents, and storage files."
+            },
+            {
+              "kind": "dependency-out-of-scope",
+              "detail": "Framework behavior from Django REST Framework, Django, and django-guardian—including action permission dispatch, object-permission invocation, and authentication response details—was not inspected within the allowed source scope."
+            }
+          ]
+        }
+      ],
+      "observations": [],
+      "scope": "Source-visible behavior of the single-document Download action in paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103, limited to allowed paths src/documents and src/paperless/urls.py. This is not an all-repository or deployed-system assessment."
+    },
+    "diagnostics": [],
+    "semanticSupport": "unreviewed"
+  },
+  "error": null,
+  "extractionInitial": null,
+  "extractionInitialOrigin": "no-control-proposal",
+  "extractionFinal": null,
+  "extractionProposals": [],
+  "hostChecks": [],
+  "dependencies": [],
+  "schedulerActions": [],
+  "evidence": [
+    {
+      "id": "ev-052b3a00b7ad430ea030",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 367,
+      "endLine": 367,
+      "bytes": 39
+    },
+    {
+      "id": "ev-4ea724ca5655d7ea2214",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/models.py",
+      "sha256": "e5dfbdac82ea52a40b0b8665561b4fc8cc4890aa7ea2adc63c94f48b6d8b01d2",
+      "startLine": 570,
+      "endLine": 570,
+      "bytes": 53
+    },
+    {
+      "id": "ev-fa8388f969665a18a0e8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/tasks.py",
+      "sha256": "e916133fdf8b447a70194c2768d10d0cd1880089d0af962bc65037ca24d194ee",
+      "startLine": 23,
+      "endLine": 23,
+      "bytes": 61
+    },
+    {
+      "id": "ev-99b034ca9a6afd7282c8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/tasks.py",
+      "sha256": "e916133fdf8b447a70194c2768d10d0cd1880089d0af962bc65037ca24d194ee",
+      "startLine": 24,
+      "endLine": 24,
+      "bytes": 63
+    },
+    {
+      "id": "ev-5f4c5d0a9927b785b4e7",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 109,
+      "endLine": 109,
+      "bytes": 62
+    },
+    {
+      "id": "ev-3bd09802f47b9ed70dbc",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 110,
+      "endLine": 110,
+      "bytes": 69
+    },
+    {
+      "id": "ev-d8cd2e25d50d4a21379f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 111,
+      "endLine": 111,
+      "bytes": 64
+    },
+    {
+      "id": "ev-f3176ef202cffc7a3c63",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 757,
+      "endLine": 757,
+      "bytes": 34
+    },
+    {
+      "id": "ev-4b5429afb274b06ee6c6",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1835,
+      "endLine": 1835,
+      "bytes": 49
+    },
+    {
+      "id": "ev-a6fee3dd80aa7f0409f1",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4078,
+      "endLine": 4078,
+      "bytes": 45
+    },
+    {
+      "id": "ev-657c5b68587c796e5941",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4924,
+      "endLine": 4924,
+      "bytes": 67
+    },
+    {
+      "id": "ev-c2ec0798863c24834440",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4926,
+      "endLine": 4926,
+      "bytes": 52
+    },
+    {
+      "id": "ev-da30a2f423c4a97dde8a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4933,
+      "endLine": 4933,
+      "bytes": 55
+    },
+    {
+      "id": "ev-8f465f22ce1493edd132",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 195,
+      "endLine": 195,
+      "bytes": 57
+    },
+    {
+      "id": "ev-8678a114ff52dae43e6a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 197,
+      "endLine": 197,
+      "bytes": 60
+    },
+    {
+      "id": "ev-f81d4ee7e49918f6d820",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/paperless/urls.py",
+      "sha256": "a35796599a402e86a727d8e3c0b2b51a73c0dd794e0c33b3a47dd0087427c305",
+      "startLine": 311,
+      "endLine": 311,
+      "bytes": 88
+    },
+    {
+      "id": "ev-d981d4855c27572495f0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/barcodes.py",
+      "sha256": "a4813f609125fd9b81490c2086e6d002bbdee8f4a0d37c82ced202b3f6321ec0",
+      "startLine": 133,
+      "endLine": 133,
+      "bytes": 49
+    },
+    {
+      "id": "ev-1c45b6d8f36496c1665a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/barcodes.py",
+      "sha256": "a4813f609125fd9b81490c2086e6d002bbdee8f4a0d37c82ced202b3f6321ec0",
+      "startLine": 158,
+      "endLine": 158,
+      "bytes": 55
+    },
+    {
+      "id": "ev-89650af4cbf3080df38e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/barcodes.py",
+      "sha256": "a4813f609125fd9b81490c2086e6d002bbdee8f4a0d37c82ced202b3f6321ec0",
+      "startLine": 256,
+      "endLine": 256,
+      "bytes": 89
+    },
+    {
+      "id": "ev-6045f6b0645af15cce5f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/barcodes.py",
+      "sha256": "a4813f609125fd9b81490c2086e6d002bbdee8f4a0d37c82ced202b3f6321ec0",
+      "startLine": 263,
+      "endLine": 263,
+      "bytes": 48
+    },
+    {
+      "id": "ev-e582a89ed8737eb1336c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_download.py",
+      "sha256": "ec37c71d60b0b2d04cfd5b62fbf2cdd91a8f5c0b5e1ad123e8e9bf89f6085f0f",
+      "startLine": 61,
+      "endLine": 61,
+      "bytes": 53
+    },
+    {
+      "id": "ev-fbe79802b9cbbe8b27d4",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_download.py",
+      "sha256": "ec37c71d60b0b2d04cfd5b62fbf2cdd91a8f5c0b5e1ad123e8e9bf89f6085f0f",
+      "startLine": 83,
+      "endLine": 83,
+      "bytes": 41
+    },
+    {
+      "id": "ev-33eeb1b653203fa3a2c5",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_download.py",
+      "sha256": "ec37c71d60b0b2d04cfd5b62fbf2cdd91a8f5c0b5e1ad123e8e9bf89f6085f0f",
+      "startLine": 96,
+      "endLine": 96,
+      "bytes": 41
+    },
+    {
+      "id": "ev-cef7e35ea54ba4c01356",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 37,
+      "endLine": 37,
+      "bytes": 66
+    },
+    {
+      "id": "ev-f9d241a4a68823d218c7",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 38,
+      "endLine": 38,
+      "bytes": 56
+    },
+    {
+      "id": "ev-43170cc315eb4a3af7fc",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 50,
+      "endLine": 50,
+      "bytes": 66
+    },
+    {
+      "id": "ev-040f34b3cf77027ccfea",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 54,
+      "endLine": 54,
+      "bytes": 55
+    },
+    {
+      "id": "ev-3341bdcd405284d5499e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 115,
+      "endLine": 115,
+      "bytes": 64
+    },
+    {
+      "id": "ev-98b932f2c82de93730da",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 377,
+      "endLine": 377,
+      "bytes": 30
+    },
+    {
+      "id": "ev-5837cf976d555b1d4e09",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 383,
+      "endLine": 383,
+      "bytes": 58
+    },
+    {
+      "id": "ev-1b8e8c2e1e08ca0679e4",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 486,
+      "endLine": 486,
+      "bytes": 102
+    },
+    {
+      "id": "ev-024ce27e59d81f6a99ea",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 497,
+      "endLine": 497,
+      "bytes": 85
+    },
+    {
+      "id": "ev-278d97cb8b7ce0f05c11",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 514,
+      "endLine": 514,
+      "bytes": 106
+    },
+    {
+      "id": "ev-cc26c2220bfb67b1ae8b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 541,
+      "endLine": 541,
+      "bytes": 48
+    },
+    {
+      "id": "ev-7ff77c3c4e599128d1fd",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 554,
+      "endLine": 554,
+      "bytes": 62
+    },
+    {
+      "id": "ev-225db96e92b7bbdc6530",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 558,
+      "endLine": 558,
+      "bytes": 62
+    },
+    {
+      "id": "ev-8b9dc0a4f0b3c07dea0d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 578,
+      "endLine": 578,
+      "bytes": 57
+    },
+    {
+      "id": "ev-410a68a7febd662d48d0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 632,
+      "endLine": 632,
+      "bytes": 29
+    },
+    {
+      "id": "ev-b4e35745719ca8d4b38a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 636,
+      "endLine": 636,
+      "bytes": 44
+    },
+    {
+      "id": "ev-057b476f6c830f1d8893",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 651,
+      "endLine": 651,
+      "bytes": 37
+    },
+    {
+      "id": "ev-d4ff9441b3eee55f7c7d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 654,
+      "endLine": 654,
+      "bytes": 75
+    },
+    {
+      "id": "ev-5684c26f7aaf1cbc93d6",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 658,
+      "endLine": 658,
+      "bytes": 43
+    },
+    {
+      "id": "ev-18b84812f69ea24971d1",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 665,
+      "endLine": 665,
+      "bytes": 91
+    },
+    {
+      "id": "ev-167fc14c0e1fe7bede6e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 666,
+      "endLine": 666,
+      "bytes": 44
+    },
+    {
+      "id": "ev-bd1674af891146eb2258",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 667,
+      "endLine": 667,
+      "bytes": 57
+    },
+    {
+      "id": "ev-dfd7cd66d7b897bc832b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 670,
+      "endLine": 670,
+      "bytes": 42
+    },
+    {
+      "id": "ev-5479df2ae1399009e021",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 673,
+      "endLine": 673,
+      "bytes": 69
+    },
+    {
+      "id": "ev-166b4edbf139316912b1",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 675,
+      "endLine": 675,
+      "bytes": 48
+    },
+    {
+      "id": "ev-cb63f3b02b382a8d87e4",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 676,
+      "endLine": 676,
+      "bytes": 68
+    },
+    {
+      "id": "ev-5bac4ae44815d36476fe",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 686,
+      "endLine": 686,
+      "bytes": 86
+    },
+    {
+      "id": "ev-4cadccdac27c3a2beaaf",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 695,
+      "endLine": 695,
+      "bytes": 85
+    },
+    {
+      "id": "ev-7ad19fa3d637d4b0b558",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 708,
+      "endLine": 708,
+      "bytes": 58
+    },
+    {
+      "id": "ev-c78fa2bc2fd0ea0baf26",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 709,
+      "endLine": 709,
+      "bytes": 53
+    },
+    {
+      "id": "ev-03730e2d2f28996f369c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 837,
+      "endLine": 837,
+      "bytes": 75
+    },
+    {
+      "id": "ev-91c2270177a82fa6effa",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 865,
+      "endLine": 865,
+      "bytes": 102
+    },
+    {
+      "id": "ev-89993474e601bc2de034",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 930,
+      "endLine": 930,
+      "bytes": 92
+    },
+    {
+      "id": "ev-ca42c0f6d44f1ddc0829",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 972,
+      "endLine": 972,
+      "bytes": 49
+    },
+    {
+      "id": "ev-c5254c65c9061e1edf9f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 977,
+      "endLine": 977,
+      "bytes": 49
+    },
+    {
+      "id": "ev-d4a10dc7223a3ed9a273",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 982,
+      "endLine": 982,
+      "bytes": 66
+    },
+    {
+      "id": "ev-099419054fcd02a86a1d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 1064,
+      "endLine": 1064,
+      "bytes": 100
+    },
+    {
+      "id": "ev-d5e670362562fc21975d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/caching.py",
+      "sha256": "edcb0686d0f272f1b7bd0a8b348e0a10e328bc09f7ff6ffaf62c6284304aab9e",
+      "startLine": 31,
+      "endLine": 31,
+      "bytes": 33
+    },
+    {
+      "id": "ev-ee84740a65c7519e60bb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/caching.py",
+      "sha256": "edcb0686d0f272f1b7bd0a8b348e0a10e328bc09f7ff6ffaf62c6284304aab9e",
+      "startLine": 36,
+      "endLine": 36,
+      "bytes": 63
+    },
+    {
+      "id": "ev-776c35456c1d06353cca",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/caching.py",
+      "sha256": "edcb0686d0f272f1b7bd0a8b348e0a10e328bc09f7ff6ffaf62c6284304aab9e",
+      "startLine": 85,
+      "endLine": 85,
+      "bytes": 94
+    },
+    {
+      "id": "ev-dc0de1ef97f62bc640e7",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/caching.py",
+      "sha256": "edcb0686d0f272f1b7bd0a8b348e0a10e328bc09f7ff6ffaf62c6284304aab9e",
+      "startLine": 171,
+      "endLine": 171,
+      "bytes": 74
+    },
+    {
+      "id": "ev-68c3722f1379b3e6280b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/caching.py",
+      "sha256": "edcb0686d0f272f1b7bd0a8b348e0a10e328bc09f7ff6ffaf62c6284304aab9e",
+      "startLine": 193,
+      "endLine": 193,
+      "bytes": 67
+    },
+    {
+      "id": "ev-dc3a4b15c1aabe375b5e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/caching.py",
+      "sha256": "edcb0686d0f272f1b7bd0a8b348e0a10e328bc09f7ff6ffaf62c6284304aab9e",
+      "startLine": 256,
+      "endLine": 256,
+      "bytes": 50
+    },
+    {
+      "id": "ev-31e14cedc7a118fc696b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/classifier.py",
+      "sha256": "92182457bfc5209e95f7cf4f8c85f247614b3cb00a08ed02a8d89aa0d4970bab",
+      "startLine": 169,
+      "endLine": 169,
+      "bytes": 90
+    },
+    {
+      "id": "ev-8b33d4b5143468994248",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/classifier.py",
+      "sha256": "92182457bfc5209e95f7cf4f8c85f247614b3cb00a08ed02a8d89aa0d4970bab",
+      "startLine": 199,
+      "endLine": 199,
+      "bytes": 54
+    },
+    {
+      "id": "ev-6fcafdb616c44306a4c8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/classifier.py",
+      "sha256": "92182457bfc5209e95f7cf4f8c85f247614b3cb00a08ed02a8d89aa0d4970bab",
+      "startLine": 276,
+      "endLine": 276,
+      "bytes": 42
+    },
+    {
+      "id": "ev-34e47e51bff3f58bd249",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/classifier.py",
+      "sha256": "92182457bfc5209e95f7cf4f8c85f247614b3cb00a08ed02a8d89aa0d4970bab",
+      "startLine": 289,
+      "endLine": 289,
+      "bytes": 56
+    },
+    {
+      "id": "ev-53e0c544f0788da8b46d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/classifier.py",
+      "sha256": "92182457bfc5209e95f7cf4f8c85f247614b3cb00a08ed02a8d89aa0d4970bab",
+      "startLine": 291,
+      "endLine": 291,
+      "bytes": 72
+    },
+    {
+      "id": "ev-99f4fef914642dc58a94",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/classifier.py",
+      "sha256": "92182457bfc5209e95f7cf4f8c85f247614b3cb00a08ed02a8d89aa0d4970bab",
+      "startLine": 296,
+      "endLine": 296,
+      "bytes": 79
+    },
+    {
+      "id": "ev-a9ab0c5b6dae200426b3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/classifier.py",
+      "sha256": "92182457bfc5209e95f7cf4f8c85f247614b3cb00a08ed02a8d89aa0d4970bab",
+      "startLine": 309,
+      "endLine": 309,
+      "bytes": 89
+    },
+    {
+      "id": "ev-660a897180381a309122",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/conditionals.py",
+      "sha256": "6759a74119544a00bccc904a6f08be894665ceaadea78d83f7766d86b298ab1c",
+      "startLine": 16,
+      "endLine": 16,
+      "bytes": 71
+    },
+    {
+      "id": "ev-07ca583fbc5cd054bdb4",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/conditionals.py",
+      "sha256": "6759a74119544a00bccc904a6f08be894665ceaadea78d83f7766d86b298ab1c",
+      "startLine": 33,
+      "endLine": 33,
+      "bytes": 51
+    },
+    {
+      "id": "ev-da4584c49da43ef23513",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/conditionals.py",
+      "sha256": "6759a74119544a00bccc904a6f08be894665ceaadea78d83f7766d86b298ab1c",
+      "startLine": 58,
+      "endLine": 58,
+      "bytes": 60
+    },
+    {
+      "id": "ev-ae5b8518e8ebf809c3b9",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/conditionals.py",
+      "sha256": "6759a74119544a00bccc904a6f08be894665ceaadea78d83f7766d86b298ab1c",
+      "startLine": 122,
+      "endLine": 122,
+      "bytes": 86
+    },
+    {
+      "id": "ev-b7b53b0b0937a3dda302",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/conditionals.py",
+      "sha256": "6759a74119544a00bccc904a6f08be894665ceaadea78d83f7766d86b298ab1c",
+      "startLine": 123,
+      "endLine": 123,
+      "bytes": 72
+    },
+    {
+      "id": "ev-b12efdc8a5519001b29f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 249,
+      "endLine": 249,
+      "bytes": 41
+    },
+    {
+      "id": "ev-afe67084aad2549039b2",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 257,
+      "endLine": 257,
+      "bytes": 78
+    },
+    {
+      "id": "ev-a5ece98bbb2edceb6a42",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 259,
+      "endLine": 259,
+      "bytes": 37
+    },
+    {
+      "id": "ev-e1eb0c00c84a5709b312",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 263,
+      "endLine": 263,
+      "bytes": 54
+    },
+    {
+      "id": "ev-95d42ecd67d941fc4cf0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 272,
+      "endLine": 272,
+      "bytes": 38
+    },
+    {
+      "id": "ev-c78910ee6c7bab889866",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 274,
+      "endLine": 274,
+      "bytes": 56
+    },
+    {
+      "id": "ev-79139978ff7482440b90",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 286,
+      "endLine": 286,
+      "bytes": 58
+    },
+    {
+      "id": "ev-bbffac4d56730d12ba3c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 287,
+      "endLine": 287,
+      "bytes": 74
+    },
+    {
+      "id": "ev-0021c1d46ca34f8db0a7",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 288,
+      "endLine": 288,
+      "bytes": 33
+    },
+    {
+      "id": "ev-8da647772029d23f8b1a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 504,
+      "endLine": 504,
+      "bytes": 88
+    },
+    {
+      "id": "ev-e81cd0035df273799264",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 600,
+      "endLine": 600,
+      "bytes": 94
+    },
+    {
+      "id": "ev-ec6f4cf92f5a19184975",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 606,
+      "endLine": 606,
+      "bytes": 86
+    },
+    {
+      "id": "ev-9e5db8e7b29e46a786dc",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 614,
+      "endLine": 614,
+      "bytes": 135
+    },
+    {
+      "id": "ev-582e6e37b8fc50d1d3c0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 634,
+      "endLine": 634,
+      "bytes": 109
+    },
+    {
+      "id": "ev-448c84d835e78dfea1c5",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 639,
+      "endLine": 639,
+      "bytes": 92
+    },
+    {
+      "id": "ev-48d9d43ada08e2421b6a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 654,
+      "endLine": 654,
+      "bytes": 82
+    },
+    {
+      "id": "ev-169329ff9c6f0d74477d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 669,
+      "endLine": 669,
+      "bytes": 92
+    },
+    {
+      "id": "ev-df1486005cb7f5cabbd2",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 925,
+      "endLine": 925,
+      "bytes": 58
+    },
+    {
+      "id": "ev-1e034c37d8b1b4de875d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 926,
+      "endLine": 926,
+      "bytes": 71
+    },
+    {
+      "id": "ev-52477a5cbc37ad33294b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/data_models.py",
+      "sha256": "994beeb5bd75392ee7ee734200680bc5a800d6e3b1734da38e38a3394df1dcf8",
+      "startLine": 35,
+      "endLine": 35,
+      "bytes": 42
+    },
+    {
+      "id": "ev-f0614e9a86bb8d54a58c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/data_models.py",
+      "sha256": "994beeb5bd75392ee7ee734200680bc5a800d6e3b1734da38e38a3394df1dcf8",
+      "startLine": 63,
+      "endLine": 63,
+      "bytes": 49
+    },
+    {
+      "id": "ev-f1b7b8f2f62f5c8393f8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/data_models.py",
+      "sha256": "994beeb5bd75392ee7ee734200680bc5a800d6e3b1734da38e38a3394df1dcf8",
+      "startLine": 64,
+      "endLine": 64,
+      "bytes": 58
+    },
+    {
+      "id": "ev-cb204d025576ba37e7ac",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/file_handling.py",
+      "sha256": "7de3f41d1263ec6dbda7784f8acf54dd155cb0da8d059d0ab7cb163d3dbe10c1",
+      "startLine": 92,
+      "endLine": 92,
+      "bytes": 81
+    },
+    {
+      "id": "ev-1913922bc0a1076611f0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/file_handling.py",
+      "sha256": "7de3f41d1263ec6dbda7784f8acf54dd155cb0da8d059d0ab7cb163d3dbe10c1",
+      "startLine": 163,
+      "endLine": 163,
+      "bytes": 82
+    },
+    {
+      "id": "ev-aab24881b03d26b3e910",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/file_handling.py",
+      "sha256": "7de3f41d1263ec6dbda7784f8acf54dd155cb0da8d059d0ab7cb163d3dbe10c1",
+      "startLine": 165,
+      "endLine": 165,
+      "bytes": 29
+    },
+    {
+      "id": "ev-40221e96688f69dc6174",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/file_handling.py",
+      "sha256": "7de3f41d1263ec6dbda7784f8acf54dd155cb0da8d059d0ab7cb163d3dbe10c1",
+      "startLine": 166,
+      "endLine": 166,
+      "bytes": 39
+    },
+    {
+      "id": "ev-d45a89b6ce83c9bdbb0c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/file_handling.py",
+      "sha256": "7de3f41d1263ec6dbda7784f8acf54dd155cb0da8d059d0ab7cb163d3dbe10c1",
+      "startLine": 167,
+      "endLine": 167,
+      "bytes": 84
+    },
+    {
+      "id": "ev-cc303e97d276702fdf13",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/file_handling.py",
+      "sha256": "7de3f41d1263ec6dbda7784f8acf54dd155cb0da8d059d0ab7cb163d3dbe10c1",
+      "startLine": 202,
+      "endLine": 202,
+      "bytes": 93
+    },
+    {
+      "id": "ev-cf7bce2358eda0c01ba8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/file_handling.py",
+      "sha256": "7de3f41d1263ec6dbda7784f8acf54dd155cb0da8d059d0ab7cb163d3dbe10c1",
+      "startLine": 212,
+      "endLine": 212,
+      "bytes": 84
+    },
+    {
+      "id": "ev-b1760ca54d3a29abac59",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/filters.py",
+      "sha256": "009c82a63001c2b49c11d76d1c9850fb105353969ec6f3f9c03c2d4fc796a362",
+      "startLine": 55,
+      "endLine": 55,
+      "bytes": 65
+    },
+    {
+      "id": "ev-eaa0a4affc531bdb9e6a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/management/commands/document_archiver.py",
+      "sha256": "3ff9c435b2336cd7579e70fe49d1bdc5f54e2b4c45b315a02eb8d0d2c0f004a1",
+      "startLine": 32,
+      "endLine": 32,
+      "bytes": 49
+    },
+    {
+      "id": "ev-54f9f16b86f52aabb057",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/management/commands/document_archiver.py",
+      "sha256": "3ff9c435b2336cd7579e70fe49d1bdc5f54e2b4c45b315a02eb8d0d2c0f004a1",
+      "startLine": 58,
+      "endLine": 58,
+      "bytes": 89
+    },
+    {
+      "id": "ev-3a417512aff35a47fb89",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/management/commands/document_consumer.py",
+      "sha256": "3e6b85c65379e371bb8122f7dd839e82507da1884ad26e977d04a4c665ad1588",
+      "startLine": 222,
+      "endLine": 222,
+      "bytes": 42
+    },
+    {
+      "id": "ev-424ad5cfee90815015dc",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/management/commands/document_exporter.py",
+      "sha256": "25146bb977ece97c0d3cfda716114454104a3682e0c916c24bb14545fc7638a3",
+      "startLine": 67,
+      "endLine": 67,
+      "bytes": 35
+    },
+    {
+      "id": "ev-fa89a2179e64e1ad560c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/management/commands/document_exporter.py",
+      "sha256": "25146bb977ece97c0d3cfda716114454104a3682e0c916c24bb14545fc7638a3",
+      "startLine": 490,
+      "endLine": 490,
+      "bytes": 70
+    },
+    {
+      "id": "ev-d37627116537907fa266",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/management/commands/document_exporter.py",
+      "sha256": "25146bb977ece97c0d3cfda716114454104a3682e0c916c24bb14545fc7638a3",
+      "startLine": 494,
+      "endLine": 494,
+      "bytes": 59
+    },
+    {
+      "id": "ev-f4d0357748cbcf124cd8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/management/commands/document_exporter.py",
+      "sha256": "25146bb977ece97c0d3cfda716114454104a3682e0c916c24bb14545fc7638a3",
+      "startLine": 546,
+      "endLine": 546,
+      "bytes": 71
+    },
+    {
+      "id": "ev-e951c18575bde21ae6c6",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/management/commands/document_importer.py",
+      "sha256": "41b964cb8f7b5a5a5d6826575fefd21b9582e74270a1549775016c6b46595c74",
+      "startLine": 56,
+      "endLine": 56,
+      "bytes": 35
+    },
+    {
+      "id": "ev-0d3dfebce801ee3ed649",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/admin.py",
+      "sha256": "a4f9b9b96fa5e1ff0e384088515e687c8ce0f5fceffa6f9b2aa8a96237e6c4c8",
+      "startLine": 68,
+      "endLine": 68,
+      "bytes": 34
+    },
+    {
+      "id": "ev-c6053a6c9da9368f5c5a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/barcodes.py",
+      "sha256": "a4813f609125fd9b81490c2086e6d002bbdee8f4a0d37c82ced202b3f6321ec0",
+      "startLine": 132,
+      "endLine": 132,
+      "bytes": 65
+    },
+    {
+      "id": "ev-61922c315f5c6576a17f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/barcodes.py",
+      "sha256": "a4813f609125fd9b81490c2086e6d002bbdee8f4a0d37c82ced202b3f6321ec0",
+      "startLine": 165,
+      "endLine": 165,
+      "bytes": 127
+    },
+    {
+      "id": "ev-ac4b4f8dc44dc3732652",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/barcodes.py",
+      "sha256": "a4813f609125fd9b81490c2086e6d002bbdee8f4a0d37c82ced202b3f6321ec0",
+      "startLine": 166,
+      "endLine": 166,
+      "bytes": 99
+    },
+    {
+      "id": "ev-2c69e580bdd6fa5065d4",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/barcodes.py",
+      "sha256": "a4813f609125fd9b81490c2086e6d002bbdee8f4a0d37c82ced202b3f6321ec0",
+      "startLine": 171,
+      "endLine": 171,
+      "bytes": 66
+    },
+    {
+      "id": "ev-784ce9f79e1f28511a06",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/barcodes.py",
+      "sha256": "a4813f609125fd9b81490c2086e6d002bbdee8f4a0d37c82ced202b3f6321ec0",
+      "startLine": 220,
+      "endLine": 220,
+      "bytes": 89
+    },
+    {
+      "id": "ev-98e184b2f94922f8e456",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/barcodes.py",
+      "sha256": "a4813f609125fd9b81490c2086e6d002bbdee8f4a0d37c82ced202b3f6321ec0",
+      "startLine": 221,
+      "endLine": 221,
+      "bytes": 84
+    },
+    {
+      "id": "ev-f78568df66b2cd538948",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/barcodes.py",
+      "sha256": "a4813f609125fd9b81490c2086e6d002bbdee8f4a0d37c82ced202b3f6321ec0",
+      "startLine": 223,
+      "endLine": 223,
+      "bytes": 78
+    },
+    {
+      "id": "ev-141d6235f71fad713863",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/barcodes.py",
+      "sha256": "a4813f609125fd9b81490c2086e6d002bbdee8f4a0d37c82ced202b3f6321ec0",
+      "startLine": 232,
+      "endLine": 232,
+      "bytes": 56
+    },
+    {
+      "id": "ev-73b87326df0d193ba28d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/barcodes.py",
+      "sha256": "a4813f609125fd9b81490c2086e6d002bbdee8f4a0d37c82ced202b3f6321ec0",
+      "startLine": 260,
+      "endLine": 260,
+      "bytes": 48
+    },
+    {
+      "id": "ev-7daef237c8d2a70bb5c5",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/barcodes.py",
+      "sha256": "a4813f609125fd9b81490c2086e6d002bbdee8f4a0d37c82ced202b3f6321ec0",
+      "startLine": 491,
+      "endLine": 491,
+      "bytes": 61
+    },
+    {
+      "id": "ev-d0b5bbfb3e72d105df54",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/barcodes.py",
+      "sha256": "a4813f609125fd9b81490c2086e6d002bbdee8f4a0d37c82ced202b3f6321ec0",
+      "startLine": 532,
+      "endLine": 532,
+      "bytes": 84
+    },
+    {
+      "id": "ev-94b7b8f3dee48142cb37",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_download.py",
+      "sha256": "ec37c71d60b0b2d04cfd5b62fbf2cdd91a8f5c0b5e1ad123e8e9bf89f6085f0f",
+      "startLine": 106,
+      "endLine": 106,
+      "bytes": 71
+    },
+    {
+      "id": "ev-20e3173567023fe4c266",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 506,
+      "endLine": 506,
+      "bytes": 54
+    },
+    {
+      "id": "ev-1d09816a2f4633a7b4ad",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 526,
+      "endLine": 526,
+      "bytes": 42
+    },
+    {
+      "id": "ev-e550025150c90d8a55c3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 597,
+      "endLine": 597,
+      "bytes": 35
+    },
+    {
+      "id": "ev-88302cfca4015ab81218",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 600,
+      "endLine": 600,
+      "bytes": 59
+    },
+    {
+      "id": "ev-69be0f21bee3d6f84728",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 608,
+      "endLine": 608,
+      "bytes": 42
+    },
+    {
+      "id": "ev-55bd357fa8c0c03077eb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 613,
+      "endLine": 613,
+      "bytes": 31
+    },
+    {
+      "id": "ev-c194eb13f3ab1b9dae1e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 616,
+      "endLine": 616,
+      "bytes": 97
+    },
+    {
+      "id": "ev-ea13143538dfa657b222",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 745,
+      "endLine": 745,
+      "bytes": 42
+    },
+    {
+      "id": "ev-37d6e5a602935e641d55",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 781,
+      "endLine": 781,
+      "bytes": 47
+    },
+    {
+      "id": "ev-e4ae3242983e415ee032",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 790,
+      "endLine": 790,
+      "bytes": 58
+    },
+    {
+      "id": "ev-59b88913e4944fcff36b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 796,
+      "endLine": 796,
+      "bytes": 39
+    },
+    {
+      "id": "ev-39bfe2d270ab4c1c0c84",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 799,
+      "endLine": 799,
+      "bytes": 108
+    },
+    {
+      "id": "ev-2936dccae1b5c9b3bd2f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 857,
+      "endLine": 857,
+      "bytes": 50
+    },
+    {
+      "id": "ev-24020fa1cd0b615a822b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 877,
+      "endLine": 877,
+      "bytes": 41
+    },
+    {
+      "id": "ev-29ad8a334b3be64bc659",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 886,
+      "endLine": 886,
+      "bytes": 77
+    },
+    {
+      "id": "ev-0e21008c7b157da76ade",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 950,
+      "endLine": 950,
+      "bytes": 54
+    },
+    {
+      "id": "ev-714cbaf86d6dda1d25cd",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 967,
+      "endLine": 967,
+      "bytes": 42
+    },
+    {
+      "id": "ev-22d75ac812dd831f416c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 969,
+      "endLine": 969,
+      "bytes": 61
+    },
+    {
+      "id": "ev-4357ef9922f786584f6f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 988,
+      "endLine": 988,
+      "bytes": 38
+    },
+    {
+      "id": "ev-a3c54807dd56eaf7d6d8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 1017,
+      "endLine": 1017,
+      "bytes": 42
+    },
+    {
+      "id": "ev-a31cc25341adf1ea0b42",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 1077,
+      "endLine": 1077,
+      "bytes": 63
+    },
+    {
+      "id": "ev-d867938e747613f41b3e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 1099,
+      "endLine": 1099,
+      "bytes": 63
+    },
+    {
+      "id": "ev-3b937aa9b45450dbb233",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/bulk_edit.py",
+      "sha256": "6b0b7b4542db54d7e01912c02eb8a4c337db3618c85d6663a9d6957c6509eabc",
+      "startLine": 1105,
+      "endLine": 1105,
+      "bytes": 47
+    },
+    {
+      "id": "ev-e8e1476acf0a3d91486d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/caching.py",
+      "sha256": "edcb0686d0f272f1b7bd0a8b348e0a10e328bc09f7ff6ffaf62c6284304aab9e",
+      "startLine": 23,
+      "endLine": 23,
+      "bytes": 32
+    },
+    {
+      "id": "ev-e02c8cde2450d7c725fb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/caching.py",
+      "sha256": "edcb0686d0f272f1b7bd0a8b348e0a10e328bc09f7ff6ffaf62c6284304aab9e",
+      "startLine": 24,
+      "endLine": 24,
+      "bytes": 33
+    },
+    {
+      "id": "ev-f418b490f67cba3ccc11",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/caching.py",
+      "sha256": "edcb0686d0f272f1b7bd0a8b348e0a10e328bc09f7ff6ffaf62c6284304aab9e",
+      "startLine": 251,
+      "endLine": 251,
+      "bytes": 49
+    },
+    {
+      "id": "ev-47a048bb2f9f876518ec",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/caching.py",
+      "sha256": "edcb0686d0f272f1b7bd0a8b348e0a10e328bc09f7ff6ffaf62c6284304aab9e",
+      "startLine": 255,
+      "endLine": 255,
+      "bytes": 69
+    },
+    {
+      "id": "ev-3c937088675881cba692",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/caching.py",
+      "sha256": "edcb0686d0f272f1b7bd0a8b348e0a10e328bc09f7ff6ffaf62c6284304aab9e",
+      "startLine": 274,
+      "endLine": 274,
+      "bytes": 35
+    },
+    {
+      "id": "ev-58fac6d0328c283dc66e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/caching.py",
+      "sha256": "edcb0686d0f272f1b7bd0a8b348e0a10e328bc09f7ff6ffaf62c6284304aab9e",
+      "startLine": 287,
+      "endLine": 287,
+      "bytes": 37
+    },
+    {
+      "id": "ev-0be0dd2cd4e06321fba3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/conditionals.py",
+      "sha256": "6759a74119544a00bccc904a6f08be894665ceaadea78d83f7766d86b298ab1c",
+      "startLine": 84,
+      "endLine": 84,
+      "bytes": 104
+    },
+    {
+      "id": "ev-df2d2d4337cb4e74fc23",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/conditionals.py",
+      "sha256": "6759a74119544a00bccc904a6f08be894665ceaadea78d83f7766d86b298ab1c",
+      "startLine": 85,
+      "endLine": 85,
+      "bytes": 98
+    },
+    {
+      "id": "ev-6d29d85ad4d44a04f4df",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/conditionals.py",
+      "sha256": "6759a74119544a00bccc904a6f08be894665ceaadea78d83f7766d86b298ab1c",
+      "startLine": 96,
+      "endLine": 96,
+      "bytes": 105
+    },
+    {
+      "id": "ev-a3bde0798df94a9a1a22",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/conditionals.py",
+      "sha256": "6759a74119544a00bccc904a6f08be894665ceaadea78d83f7766d86b298ab1c",
+      "startLine": 101,
+      "endLine": 101,
+      "bytes": 27
+    },
+    {
+      "id": "ev-729846bd76281fed7ff9",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/conditionals.py",
+      "sha256": "6759a74119544a00bccc904a6f08be894665ceaadea78d83f7766d86b298ab1c",
+      "startLine": 103,
+      "endLine": 103,
+      "bytes": 53
+    },
+    {
+      "id": "ev-f837ec267d0b18aa7cf9",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/conditionals.py",
+      "sha256": "6759a74119544a00bccc904a6f08be894665ceaadea78d83f7766d86b298ab1c",
+      "startLine": 104,
+      "endLine": 104,
+      "bytes": 61
+    },
+    {
+      "id": "ev-de4b497645820348148b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/conditionals.py",
+      "sha256": "6759a74119544a00bccc904a6f08be894665ceaadea78d83f7766d86b298ab1c",
+      "startLine": 106,
+      "endLine": 106,
+      "bytes": 72
+    },
+    {
+      "id": "ev-140498acd92b12cf857b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 139,
+      "endLine": 139,
+      "bytes": 87
+    },
+    {
+      "id": "ev-2b652fb61a5133878262",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 204,
+      "endLine": 204,
+      "bytes": 90
+    },
+    {
+      "id": "ev-fcb1c1a2740fc1c2bbaf",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 268,
+      "endLine": 268,
+      "bytes": 43
+    },
+    {
+      "id": "ev-9b4f4fb5be1fd087ea78",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 269,
+      "endLine": 269,
+      "bytes": 58
+    },
+    {
+      "id": "ev-9dd193d8c7640c406a72",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 279,
+      "endLine": 279,
+      "bytes": 51
+    },
+    {
+      "id": "ev-e36c56c48194973a3514",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 308,
+      "endLine": 308,
+      "bytes": 69
+    },
+    {
+      "id": "ev-cedef2619ecf9bf14e4b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 311,
+      "endLine": 311,
+      "bytes": 70
+    },
+    {
+      "id": "ev-d95de150fccc7aa24654",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 381,
+      "endLine": 381,
+      "bytes": 89
+    },
+    {
+      "id": "ev-eb2448f4ce480c9d9dc3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 415,
+      "endLine": 415,
+      "bytes": 94
+    },
+    {
+      "id": "ev-4d660b756a8630a7dc8c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 416,
+      "endLine": 416,
+      "bytes": 50
+    },
+    {
+      "id": "ev-f1ba6fc657f949613e4b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 444,
+      "endLine": 444,
+      "bytes": 61
+    },
+    {
+      "id": "ev-988f375bac0b878b7978",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 445,
+      "endLine": 445,
+      "bytes": 55
+    },
+    {
+      "id": "ev-4e510720f752765873d3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 448,
+      "endLine": 448,
+      "bytes": 79
+    },
+    {
+      "id": "ev-d92c7442eb856446f104",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 450,
+      "endLine": 450,
+      "bytes": 60
+    },
+    {
+      "id": "ev-eed30eaadebc1450760e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 451,
+      "endLine": 451,
+      "bytes": 56
+    },
+    {
+      "id": "ev-7b9da08391b4c2798320",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 628,
+      "endLine": 628,
+      "bytes": 71
+    },
+    {
+      "id": "ev-8842219b9dee70f3606e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 630,
+      "endLine": 630,
+      "bytes": 67
+    },
+    {
+      "id": "ev-115b297d7e0ed32cd005",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 632,
+      "endLine": 632,
+      "bytes": 63
+    },
+    {
+      "id": "ev-c479956ff22686a1dda7",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 648,
+      "endLine": 648,
+      "bytes": 95
+    },
+    {
+      "id": "ev-a960837ccf54e1461e1a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 657,
+      "endLine": 657,
+      "bytes": 63
+    },
+    {
+      "id": "ev-229111a789a48d5f167f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 678,
+      "endLine": 678,
+      "bytes": 73
+    },
+    {
+      "id": "ev-eb4ceedbc30009ae09f4",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 679,
+      "endLine": 679,
+      "bytes": 62
+    },
+    {
+      "id": "ev-2b0bf9d40b2c9c93e98a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 706,
+      "endLine": 706,
+      "bytes": 63
+    },
+    {
+      "id": "ev-03acfb4dc314637ed273",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 707,
+      "endLine": 707,
+      "bytes": 78
+    },
+    {
+      "id": "ev-d1e4ebe7c81fa58ac215",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 763,
+      "endLine": 763,
+      "bytes": 92
+    },
+    {
+      "id": "ev-08da414e6ad060064501",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 765,
+      "endLine": 765,
+      "bytes": 68
+    },
+    {
+      "id": "ev-f6b7a0bd38546b11d290",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 768,
+      "endLine": 768,
+      "bytes": 91
+    },
+    {
+      "id": "ev-2658b38d774e75b43f15",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 770,
+      "endLine": 770,
+      "bytes": 103
+    },
+    {
+      "id": "ev-7c80e7f3fcedad11f090",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 772,
+      "endLine": 772,
+      "bytes": 68
+    },
+    {
+      "id": "ev-8605248d18c7d4e9db59",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 776,
+      "endLine": 776,
+      "bytes": 76
+    },
+    {
+      "id": "ev-eb1f3cb226561169e5f5",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 777,
+      "endLine": 777,
+      "bytes": 83
+    },
+    {
+      "id": "ev-46a4725d644c3cdc5ab6",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 846,
+      "endLine": 846,
+      "bytes": 81
+    },
+    {
+      "id": "ev-30d5fa83a247f5da3125",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 859,
+      "endLine": 859,
+      "bytes": 68
+    },
+    {
+      "id": "ev-ff5aad6b38d3673056fd",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 869,
+      "endLine": 869,
+      "bytes": 60
+    },
+    {
+      "id": "ev-757e92c5f02a042c2356",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 876,
+      "endLine": 876,
+      "bytes": 134
+    },
+    {
+      "id": "ev-cc069f6d9148a88b9f72",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 880,
+      "endLine": 880,
+      "bytes": 43
+    },
+    {
+      "id": "ev-74ad7431eb9b290a5e37",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 881,
+      "endLine": 881,
+      "bytes": 58
+    },
+    {
+      "id": "ev-b1303c038e0672481443",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 893,
+      "endLine": 893,
+      "bytes": 51
+    },
+    {
+      "id": "ev-d4f2e5e7359dfff21dda",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 972,
+      "endLine": 972,
+      "bytes": 79
+    },
+    {
+      "id": "ev-f47ca8ac7712f4331d4b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 995,
+      "endLine": 995,
+      "bytes": 75
+    },
+    {
+      "id": "ev-381243ce21129027129d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 996,
+      "endLine": 996,
+      "bytes": 51
+    },
+    {
+      "id": "ev-e6e76455270c2a3dc818",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 998,
+      "endLine": 998,
+      "bytes": 61
+    },
+    {
+      "id": "ev-d30d11d33a1d15d7fe86",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 1001,
+      "endLine": 1001,
+      "bytes": 90
+    },
+    {
+      "id": "ev-23e70a63423b66f497e1",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 1008,
+      "endLine": 1008,
+      "bytes": 79
+    },
+    {
+      "id": "ev-54680b08469ec1c4007d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 1029,
+      "endLine": 1029,
+      "bytes": 58
+    },
+    {
+      "id": "ev-e44ec95dd39ce495a59a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/consumer.py",
+      "sha256": "25d407fdca9fa3866d7e300432e473ca401638aa655763874f9e21974d76709a",
+      "startLine": 1034,
+      "endLine": 1034,
+      "bytes": 67
+    },
+    {
+      "id": "ev-6d73c88892f5cc459c02",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/converters.py",
+      "sha256": "e470c8277b2cb6cd03abfa1b7f16c609fef9c4b9ac19d38c0d657d0802d6d054",
+      "startLine": 17,
+      "endLine": 17,
+      "bytes": 68
+    },
+    {
+      "id": "ev-1f7c0904f372ac56d45f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1760,
+      "endLine": 1885,
+      "bytes": 5371
+    },
+    {
+      "id": "ev-2a1d3ddc4932ff33a170",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/versioning.py",
+      "sha256": "de017348cbb361787d68433537bdbd39f8b56a95185a53c3cef3aa10df365766",
+      "startLine": 1,
+      "endLine": 258,
+      "bytes": 10359
+    },
+    {
+      "id": "ev-5360e2715d0ae0535db5",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 591,
+      "endLine": 591,
+      "bytes": 77
+    },
+    {
+      "id": "ev-04b84023675462a3fef3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 638,
+      "endLine": 638,
+      "bytes": 77
+    },
+    {
+      "id": "ev-683b52ff0f7cae1e65eb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 718,
+      "endLine": 718,
+      "bytes": 77
+    },
+    {
+      "id": "ev-21b5572da99e58424afa",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1021,
+      "endLine": 1021,
+      "bytes": 78
+    },
+    {
+      "id": "ev-61afda06a4eb27c6d63b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1844,
+      "endLine": 1844,
+      "bytes": 62
+    },
+    {
+      "id": "ev-4c6d8551a6a5a344fdfb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 2068,
+      "endLine": 2068,
+      "bytes": 79
+    },
+    {
+      "id": "ev-96fa05369c4fbb82e742",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 2081,
+      "endLine": 2081,
+      "bytes": 79
+    },
+    {
+      "id": "ev-e9a579f0a6d2bb40cbd0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 2410,
+      "endLine": 2410,
+      "bytes": 76
+    },
+    {
+      "id": "ev-3a93d9f206e83c74580d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 2779,
+      "endLine": 2779,
+      "bytes": 77
+    },
+    {
+      "id": "ev-7efcf2828e81d9d80a73",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 2837,
+      "endLine": 2837,
+      "bytes": 78
+    },
+    {
+      "id": "ev-5169a4d763685ce4e4cb",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 2943,
+      "endLine": 2943,
+      "bytes": 51
+    },
+    {
+      "id": "ev-7c43148b25c9a372e361",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3461,
+      "endLine": 3461,
+      "bytes": 51
+    },
+    {
+      "id": "ev-6d30ce281d473d9c232b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3589,
+      "endLine": 3589,
+      "bytes": 76
+    },
+    {
+      "id": "ev-c1533839034513b00ef0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3694,
+      "endLine": 3694,
+      "bytes": 76
+    },
+    {
+      "id": "ev-fdab3c65bbbbbfbb08fc",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3756,
+      "endLine": 3756,
+      "bytes": 51
+    },
+    {
+      "id": "ev-044d946f14096cb2e7aa",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3979,
+      "endLine": 3979,
+      "bytes": 51
+    },
+    {
+      "id": "ev-270e94400622ea0fcddd",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4087,
+      "endLine": 4087,
+      "bytes": 76
+    },
+    {
+      "id": "ev-12a93b6b4fce2f016fc9",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4174,
+      "endLine": 4174,
+      "bytes": 78
+    },
+    {
+      "id": "ev-210ac591ad63eb747158",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4186,
+      "endLine": 4186,
+      "bytes": 89
+    },
+    {
+      "id": "ev-93dc61bfbf77e27180c3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4234,
+      "endLine": 4234,
+      "bytes": 78
+    },
+    {
+      "id": "ev-f775af390e5f6d413ad2",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4455,
+      "endLine": 4455,
+      "bytes": 78
+    },
+    {
+      "id": "ev-83ffc7ef0e2236830b69",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4560,
+      "endLine": 4560,
+      "bytes": 82
+    },
+    {
+      "id": "ev-c9e4fd8bcea18c1cd841",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4710,
+      "endLine": 4710,
+      "bytes": 78
+    },
+    {
+      "id": "ev-d0466b7f78800bc69f10",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4744,
+      "endLine": 4744,
+      "bytes": 78
+    },
+    {
+      "id": "ev-bdd73c0aa39a27747c10",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4870,
+      "endLine": 4870,
+      "bytes": 35
+    },
+    {
+      "id": "ev-2d4194c9db6cac922872",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5017,
+      "endLine": 5017,
+      "bytes": 51
+    },
+    {
+      "id": "ev-bcb21e798a67c8f1b262",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5123,
+      "endLine": 5123,
+      "bytes": 78
+    },
+    {
+      "id": "ev-874864faf011c0f44089",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5141,
+      "endLine": 5141,
+      "bytes": 78
+    },
+    {
+      "id": "ev-a2f80bd597816dc1986d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5166,
+      "endLine": 5166,
+      "bytes": 78
+    },
+    {
+      "id": "ev-de33f5f92c5c3d003b15",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5220,
+      "endLine": 5220,
+      "bytes": 78
+    },
+    {
+      "id": "ev-d463ee9ec0c5a0a7aca3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5321,
+      "endLine": 5321,
+      "bytes": 51
+    },
+    {
+      "id": "ev-ac0aa1e1d499cc5588e6",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5577,
+      "endLine": 5577,
+      "bytes": 68
+    },
+    {
+      "id": "ev-3f54ca7ad04131bf8282",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 493,
+      "endLine": 493,
+      "bytes": 71
+    },
+    {
+      "id": "ev-0873158ac69582209c49",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 558,
+      "endLine": 558,
+      "bytes": 34
+    },
+    {
+      "id": "ev-11089011bf5b374567b9",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 559,
+      "endLine": 559,
+      "bytes": 47
+    },
+    {
+      "id": "ev-e2a70d8eb709451568cd",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 658,
+      "endLine": 658,
+      "bytes": 67
+    },
+    {
+      "id": "ev-ae7ca53d2e991c9ff594",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1151,
+      "endLine": 1151,
+      "bytes": 83
+    },
+    {
+      "id": "ev-3b041438238582ab3e1c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1165,
+      "endLine": 1165,
+      "bytes": 35
+    },
+    {
+      "id": "ev-ff97dadda1602f0b927a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1316,
+      "endLine": 1316,
+      "bytes": 71
+    },
+    {
+      "id": "ev-0e59db341dbb45e136d9",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1339,
+      "endLine": 1339,
+      "bytes": 68
+    },
+    {
+      "id": "ev-317b863a38bd9f2c00d9",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 2683,
+      "endLine": 2683,
+      "bytes": 75
+    },
+    {
+      "id": "ev-0c08b8a5915aab637269",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4471,
+      "endLine": 4471,
+      "bytes": 94
+    },
+    {
+      "id": "ev-ec80227bd01b1079d2b4",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4515,
+      "endLine": 4515,
+      "bytes": 35
+    },
+    {
+      "id": "ev-89e8ed51e861ff56f9c6",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4550,
+      "endLine": 4550,
+      "bytes": 49
+    },
+    {
+      "id": "ev-3baf140b228de2f48c61",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4563,
+      "endLine": 4563,
+      "bytes": 46
+    },
+    {
+      "id": "ev-d82cc0628126c209f009",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4598,
+      "endLine": 4598,
+      "bytes": 83
+    },
+    {
+      "id": "ev-f30ceae384848683f3a3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4658,
+      "endLine": 4658,
+      "bytes": 39
+    },
+    {
+      "id": "ev-de3891c82932addb4c41",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4759,
+      "endLine": 4759,
+      "bytes": 35
+    },
+    {
+      "id": "ev-5659ee613e22ada0c966",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4762,
+      "endLine": 4762,
+      "bytes": 35
+    },
+    {
+      "id": "ev-3d3e1a4fc9b567980178",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5610,
+      "endLine": 5610,
+      "bytes": 72
+    },
+    {
+      "id": "ev-63e39ff35a7fd8252a4d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5622,
+      "endLine": 5622,
+      "bytes": 79
+    },
+    {
+      "id": "ev-52dee0038872f8eec7fe",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 61,
+      "endLine": 61,
+      "bytes": 52
+    },
+    {
+      "id": "ev-d2a56c3d0c31da7ebc7d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 178,
+      "endLine": 178,
+      "bytes": 73
+    },
+    {
+      "id": "ev-0146988d8e22b2dad060",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 436,
+      "endLine": 436,
+      "bytes": 33
+    },
+    {
+      "id": "ev-611f84d85d384083a30e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 499,
+      "endLine": 499,
+      "bytes": 51
+    },
+    {
+      "id": "ev-cbbd220bdbc6e0d84611",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 504,
+      "endLine": 504,
+      "bytes": 52
+    },
+    {
+      "id": "ev-8f7e2914072cf039b904",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 700,
+      "endLine": 700,
+      "bytes": 58
+    },
+    {
+      "id": "ev-7294cb7bfcfd3a89ad7d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1278,
+      "endLine": 1278,
+      "bytes": 44
+    },
+    {
+      "id": "ev-34dba847809fd680848a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1285,
+      "endLine": 1285,
+      "bytes": 44
+    },
+    {
+      "id": "ev-ccec9f47e40fb357fba5",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1355,
+      "endLine": 1355,
+      "bytes": 58
+    },
+    {
+      "id": "ev-980c06b1639f7ed24909",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1545,
+      "endLine": 1545,
+      "bytes": 40
+    },
+    {
+      "id": "ev-ac3e60f7686598fdd692",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1605,
+      "endLine": 1605,
+      "bytes": 40
+    },
+    {
+      "id": "ev-14e717f5bc6928cd4d4d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1936,
+      "endLine": 1936,
+      "bytes": 80
+    },
+    {
+      "id": "ev-8a046a97e63e2df8b62e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3803,
+      "endLine": 3803,
+      "bytes": 53
+    },
+    {
+      "id": "ev-ae557577efa33dee250a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3813,
+      "endLine": 3813,
+      "bytes": 91
+    },
+    {
+      "id": "ev-e69b9b311f8c9da5ff99",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3821,
+      "endLine": 3821,
+      "bytes": 53
+    },
+    {
+      "id": "ev-971d4f2f4a42d79ccc64",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3831,
+      "endLine": 3831,
+      "bytes": 53
+    },
+    {
+      "id": "ev-5db5bfa59a33a6c120b7",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3841,
+      "endLine": 3841,
+      "bytes": 53
+    },
+    {
+      "id": "ev-97cab7ee232840c1e13a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3863,
+      "endLine": 3863,
+      "bytes": 53
+    },
+    {
+      "id": "ev-84eb831f3bd8a0a25722",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3873,
+      "endLine": 3873,
+      "bytes": 53
+    },
+    {
+      "id": "ev-f80d4ae27087e043f701",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3993,
+      "endLine": 3993,
+      "bytes": 90
+    },
+    {
+      "id": "ev-3a6cc380738cf833737e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 3998,
+      "endLine": 3998,
+      "bytes": 58
+    },
+    {
+      "id": "ev-4e54da68708051362a5b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4007,
+      "endLine": 4007,
+      "bytes": 58
+    },
+    {
+      "id": "ev-9bfe949f9f9bb5821531",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4016,
+      "endLine": 4016,
+      "bytes": 58
+    },
+    {
+      "id": "ev-27b985bcbc6c1be51066",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4194,
+      "endLine": 4194,
+      "bytes": 44
+    },
+    {
+      "id": "ev-3d695be408bdf4f5fe35",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4836,
+      "endLine": 4836,
+      "bytes": 42
+    },
+    {
+      "id": "ev-a7aa95c7c2703459fcf4",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 5029,
+      "endLine": 5029,
+      "bytes": 71
+    },
+    {
+      "id": "ev-c08cae9eb581161e6364",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1429,
+      "endLine": 1429,
+      "bytes": 62
+    },
+    {
+      "id": "ev-857af03f98159eaf2621",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1401,
+      "endLine": 1401,
+      "bytes": 46
+    },
+    {
+      "id": "ev-f601db249f865089eb1f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1430,
+      "endLine": 1430,
+      "bytes": 62
+    },
+    {
+      "id": "ev-f6781879f5851dd9a090",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1481,
+      "endLine": 1481,
+      "bytes": 74
+    },
+    {
+      "id": "ev-3bf2ceb0048d04d8053b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1789,
+      "endLine": 1789,
+      "bytes": 96
+    },
+    {
+      "id": "ev-8533b1c11a3f511b4cf6",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1818,
+      "endLine": 1818,
+      "bytes": 96
+    },
+    {
+      "id": "ev-e864c052930945567bda",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1388,
+      "endLine": 1388,
+      "bytes": 40
+    },
+    {
+      "id": "ev-3624a7fd0a2795cd735f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1437,
+      "endLine": 1437,
+      "bytes": 56
+    },
+    {
+      "id": "ev-9305527459b3de0b729d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1487,
+      "endLine": 1487,
+      "bytes": 51
+    },
+    {
+      "id": "ev-9eb6571dd01a7a62ba03",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1794,
+      "endLine": 1794,
+      "bytes": 60
+    },
+    {
+      "id": "ev-bd03334ff3cbe2bf3c13",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1823,
+      "endLine": 1823,
+      "bytes": 60
+    },
+    {
+      "id": "ev-a8a756e62b40ccc55f7e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1369,
+      "endLine": 1369,
+      "bytes": 44
+    },
+    {
+      "id": "ev-63fffb8cd24965f42869",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1444,
+      "endLine": 1444,
+      "bytes": 68
+    },
+    {
+      "id": "ev-7e9a797a4f135854a14d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1802,
+      "endLine": 1802,
+      "bytes": 72
+    },
+    {
+      "id": "ev-52bd868207f46b3f7435",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1442,
+      "endLine": 1442,
+      "bytes": 34
+    },
+    {
+      "id": "ev-ca53238747460909d75a",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1800,
+      "endLine": 1800,
+      "bytes": 38
+    },
+    {
+      "id": "ev-10d9ff431ff4e1b98067",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4881,
+      "endLine": 4881,
+      "bytes": 42
+    },
+    {
+      "id": "ev-76bcbb3c5932f9e8d883",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 4941,
+      "endLine": 4941,
+      "bytes": 23
+    },
+    {
+      "id": "ev-7e9d17ffd73e6af9ca2f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 380,
+      "endLine": 570,
+      "bytes": 8440
+    },
+    {
+      "id": "ev-cf0d653750c79a60769b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1008,
+      "endLine": 1060,
+      "bytes": 2286
+    }
+  ],
+  "deliveryValid": true,
+  "reviewCaution": "Citations and host consistency do not prove extraction meaning. Evaluate raw first/final and final prose against original source at the retained evidence ranges. A native prose answer can be delivered despite failed host checking. Representation may reveal strategy; arm, cost and target scores are hidden. No earlier answer is supplied."
+}

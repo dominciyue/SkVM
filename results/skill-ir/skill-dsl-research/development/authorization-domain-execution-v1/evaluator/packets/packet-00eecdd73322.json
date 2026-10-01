@@ -1,0 +1,1154 @@
+{
+  "schemaVersion": "authorization-aq-anonymous-packet/v1",
+  "id": "packet-00eecdd73322",
+  "task": {
+    "brief": "Check GET and POST on the document notes operation against the current independently supplied policy. Compare viewing notes and creating a note on the addressed document. The document owner is unspecified, and object grants are not given; retain relevant owner and permission branches rather than silently supplying those facts. Trace endpoint and object controls to the corresponding effects, explain policy compliance and preserve exact gaps.",
+    "mode": "conformance",
+    "policy": {
+      "text": "Viewing notes requires a view_document grant for the addressed document; creating notes requires a change_document grant for that same document. Document ownership by itself does not substitute for either grant.",
+      "origin": "user",
+      "location": "experimental-user-brief:paperless-note-policy/v1"
+    }
+  },
+  "status": "completed",
+  "initial": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The notes operation is reachable only for an authenticated user with the method-level permissions in PaperlessNotePermissions, and the view then performs addressed-document checks. Viewing notes is conditionally compliant with the supplied policy only when the user has view_document on the addressed document and the endpoint's additional view_note requirement is also satisfied. Creating a note is conditionally compliant only when the user has change_document on the addressed document and the endpoint's method-level add_note and view_document requirements are satisfied. The source does not establish the user's actual grants, document owner, or whether grants are object-scoped in the relevant deployment."
+        },
+        "branches": [
+          {
+            "id": "q1-get-allow",
+            "condition": "GET on an existing addressed document; authenticated user has view_document on that document and also satisfies the endpoint's method-level documents.view_note requirement.",
+            "disposition": "allow",
+            "explanation": "The notes action is detail-scoped and GET returns the document's serialized notes after the view's addressed-document view_document check. Under the independent policy, the required view_document grant is present, so viewing is allowed. The endpoint additionally requires view_note at its permission-class gate.",
+            "evidenceIds": [
+              "ev-780193a04a4a6dc94819",
+              "ev-4b5fffa7b9d58001b919"
+            ]
+          },
+          {
+            "id": "q1-get-deny-no-view-document",
+            "condition": "GET user lacks view_document on the addressed document, including a case where the user is neither owner nor otherwise granted that permission.",
+            "disposition": "deny",
+            "explanation": "The view calls has_perms_owner_aware(currentUser, \"view_document\", doc) and returns HTTP 403 before serializing notes when it fails. The policy likewise requires view_document; ownership alone is not a policy substitute.",
+            "evidenceIds": [
+              "ev-4b5fffa7b9d58001b919",
+              "ev-780193a04a4a6dc94819"
+            ]
+          },
+          {
+            "id": "q1-get-unknown-owner",
+            "condition": "GET user is the document owner but the actual view_document grant is not established.",
+            "disposition": "unknown",
+            "explanation": "The source's owner-aware helper treats obj.owner == user as sufficient for its check, while the independent policy expressly says ownership by itself does not substitute for view_document. Because the owner and grant facts are unspecified, conformance cannot be decided for this branch without the actual addressed-document grant.",
+            "evidenceIds": [
+              "ev-4b5fffa7b9d58001b919",
+              "ev-780193a04a4a6dc94819"
+            ]
+          },
+          {
+            "id": "q1-get-missing-endpoint-view-note",
+            "condition": "GET user has view_document on the addressed document but fails the method-level documents.view_note check.",
+            "disposition": "deny",
+            "explanation": "PaperlessNotePermissions maps GET to both documents.view_note and documents.view_document, and has_permission requires all mapped permissions. Thus the endpoint denies even though the independent policy's document-view requirement is met.",
+            "evidenceIds": [
+              "ev-780193a04a4a6dc94819",
+              "ev-4b5fffa7b9d58001b919"
+            ]
+          },
+          {
+            "id": "q1-post-allow",
+            "condition": "POST on an existing addressed document; authenticated user has change_document on that document and satisfies the endpoint's method-level documents.add_note and documents.view_document requirements.",
+            "disposition": "allow",
+            "explanation": "The view performs an owner-aware change_document check on the addressed document, then creates Note(document=doc, ...) and updates the document/search state. Under the independent policy, change_document is the required creation grant, so creation is allowed when that object grant is actually present; the endpoint also requires add_note and view_document at its permission-class gate.",
+            "evidenceIds": [
+              "ev-780193a04a4a6dc94819",
+              "ev-4b5fffa7b9d58001b919"
+            ]
+          },
+          {
+            "id": "q1-post-deny-no-change-document",
+            "condition": "POST user lacks change_document on the addressed document, including a case where the user is neither owner nor otherwise granted that permission.",
+            "disposition": "deny",
+            "explanation": "After the initial document view check, the view calls has_perms_owner_aware(currentUser, \"change_document\", doc) and returns HTTP 403 before Note.objects.create when it fails. The independent policy requires change_document for creating notes.",
+            "evidenceIds": [
+              "ev-4b5fffa7b9d58001b919",
+              "ev-780193a04a4a6dc94819"
+            ]
+          },
+          {
+            "id": "q1-post-owner-only",
+            "condition": "POST user is the document owner but the actual change_document grant is not established.",
+            "disposition": "unknown",
+            "explanation": "The source's owner-aware helper treats ownership as sufficient for its in-view change_document check, but the independent policy expressly rejects ownership as a substitute for change_document. The owner and object-grant facts are unspecified, so this branch cannot be declared compliant.",
+            "evidenceIds": [
+              "ev-4b5fffa7b9d58001b919",
+              "ev-780193a04a4a6dc94819"
+            ]
+          },
+          {
+            "id": "q1-post-missing-endpoint-permission",
+            "condition": "POST user has the policy-required change_document grant but lacks any of the endpoint's method-level documents.add_note or documents.view_document requirements.",
+            "disposition": "deny",
+            "explanation": "PaperlessNotePermissions maps POST to documents.add_note, documents.view_document, and documents.change_document, and has_permission requires all mapped permissions. The policy comparison alone is therefore insufficient to predict endpoint success.",
+            "evidenceIds": [
+              "ev-780193a04a4a6dc94819",
+              "ev-4b5fffa7b9d58001b919"
+            ]
+          },
+          {
+            "id": "q1-post-effect",
+            "condition": "All applicable endpoint and policy checks pass and the request data contains the note field.",
+            "disposition": "allow",
+            "explanation": "The target effect is Note.objects.create(document=doc, note=request.data[\"note\"], user=currentUser), followed by audit logging when enabled, document modified-time persistence, search-index update, and serialization of the notes response. These effects are downstream of the permission checks; the source does not establish deployment settings or external side effects beyond the shown code.",
+            "evidenceIds": [
+              "ev-4b5fffa7b9d58001b919"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-780193a04a4a6dc94819",
+          "ev-4b5fffa7b9d58001b919",
+          "ev-3d59a622e3d1eafcf6ce",
+          "ev-e73b07ab70d22a02139b",
+          "ev-f3e71c067b0d12bafa15"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "The addressed document's owner is unspecified."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "The user's actual object-scoped view_document and change_document grants on the addressed document are unspecified; object grants were not supplied."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "For endpoint reachability, the user's documents.view_note, documents.add_note, and documents.view_document method-level grants are unspecified."
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "Authentication/user state, permission backend behavior, and deployment-specific grant assignments are not established by the source excerpts."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The allowed source did not provide a URL registration/body proving the exact externally exposed route beyond the detail action declaration; the action itself is shown as methods get/post/delete and detail=True.",
+            "nextRead": "src/paperless/urls.py around the DocumentViewSet router registration, if present"
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The complete implementation of permitted_object_ids and the permission backend's object-grant semantics was not read here; the cited helper shows the owner-aware fallback used by this endpoint, but not the full grant-assignment path.",
+            "nextRead": "src/documents/permissions.py around permitted_object_ids and its object permission helpers"
+          }
+        ],
+        "policyAssessment": {
+          "status": "undetermined",
+          "explanation": "The implementation contains the policy-named checks in the relevant branches, but conformance for the requested current user/document cannot be conclusively assessed because the document owner and object grants are explicitly unspecified. The source also reveals a semantic tension: has_perms_owner_aware grants its check to the owner (and to ownerless objects) even though the independent policy says ownership alone cannot substitute for view_document or change_document. Therefore owner-only branches are not treated as compliant."
+        }
+      }
+    ],
+    "observations": [],
+    "scope": "Allowed source scope only: paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103, with relevant evidence from src/documents/views.py, src/documents/permissions.py, and src/documents/serialisers.py. No all-repository coverage is claimed."
+  },
+  "final": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The notes operation is reachable only for an authenticated user with the method-level permissions in PaperlessNotePermissions, and the view then performs addressed-document checks. Viewing notes is conditionally compliant with the supplied policy only when the user has view_document on the addressed document and the endpoint's additional view_note requirement is also satisfied. Creating a note is conditionally compliant only when the user has change_document on the addressed document and the endpoint's method-level add_note and view_document requirements are satisfied. The source does not establish the user's actual grants, document owner, or whether grants are object-scoped in the relevant deployment."
+        },
+        "branches": [
+          {
+            "id": "q1-get-allow",
+            "condition": "GET on an existing addressed document; authenticated user has view_document on that document and also satisfies the endpoint's method-level documents.view_note requirement.",
+            "disposition": "allow",
+            "explanation": "The notes action is detail-scoped and GET returns the document's serialized notes after the view's addressed-document view_document check. Under the independent policy, the required view_document grant is present, so viewing is allowed. The endpoint additionally requires view_note at its permission-class gate.",
+            "evidenceIds": [
+              "ev-780193a04a4a6dc94819",
+              "ev-4b5fffa7b9d58001b919"
+            ]
+          },
+          {
+            "id": "q1-get-deny-no-view-document",
+            "condition": "GET user lacks view_document on the addressed document, including a case where the user is neither owner nor otherwise granted that permission.",
+            "disposition": "deny",
+            "explanation": "The view calls has_perms_owner_aware(currentUser, \"view_document\", doc) and returns HTTP 403 before serializing notes when it fails. The policy likewise requires view_document; ownership alone is not a policy substitute.",
+            "evidenceIds": [
+              "ev-4b5fffa7b9d58001b919",
+              "ev-780193a04a4a6dc94819"
+            ]
+          },
+          {
+            "id": "q1-get-unknown-owner",
+            "condition": "GET user is the document owner but the actual view_document grant is not established.",
+            "disposition": "unknown",
+            "explanation": "The source's owner-aware helper treats obj.owner == user as sufficient for its check, while the independent policy expressly says ownership by itself does not substitute for view_document. Because the owner and grant facts are unspecified, conformance cannot be decided for this branch without the actual addressed-document grant.",
+            "evidenceIds": [
+              "ev-4b5fffa7b9d58001b919",
+              "ev-780193a04a4a6dc94819"
+            ]
+          },
+          {
+            "id": "q1-get-missing-endpoint-view-note",
+            "condition": "GET user has view_document on the addressed document but fails the method-level documents.view_note check.",
+            "disposition": "deny",
+            "explanation": "PaperlessNotePermissions maps GET to both documents.view_note and documents.view_document, and has_permission requires all mapped permissions. Thus the endpoint denies even though the independent policy's document-view requirement is met.",
+            "evidenceIds": [
+              "ev-780193a04a4a6dc94819",
+              "ev-4b5fffa7b9d58001b919"
+            ]
+          },
+          {
+            "id": "q1-post-allow",
+            "condition": "POST on an existing addressed document; authenticated user has change_document on that document and satisfies the endpoint's method-level documents.add_note and documents.view_document requirements.",
+            "disposition": "allow",
+            "explanation": "The view performs an owner-aware change_document check on the addressed document, then creates Note(document=doc, ...) and updates the document/search state. Under the independent policy, change_document is the required creation grant, so creation is allowed when that object grant is actually present; the endpoint also requires add_note and view_document at its permission-class gate.",
+            "evidenceIds": [
+              "ev-780193a04a4a6dc94819",
+              "ev-4b5fffa7b9d58001b919"
+            ]
+          },
+          {
+            "id": "q1-post-deny-no-change-document",
+            "condition": "POST user lacks change_document on the addressed document, including a case where the user is neither owner nor otherwise granted that permission.",
+            "disposition": "deny",
+            "explanation": "After the initial document view check, the view calls has_perms_owner_aware(currentUser, \"change_document\", doc) and returns HTTP 403 before Note.objects.create when it fails. The independent policy requires change_document for creating notes.",
+            "evidenceIds": [
+              "ev-4b5fffa7b9d58001b919",
+              "ev-780193a04a4a6dc94819"
+            ]
+          },
+          {
+            "id": "q1-post-owner-only",
+            "condition": "POST user is the document owner but the actual change_document grant is not established.",
+            "disposition": "unknown",
+            "explanation": "The source's owner-aware helper treats ownership as sufficient for its in-view change_document check, but the independent policy expressly rejects ownership as a substitute for change_document. The owner and object-grant facts are unspecified, so this branch cannot be declared compliant.",
+            "evidenceIds": [
+              "ev-4b5fffa7b9d58001b919",
+              "ev-780193a04a4a6dc94819"
+            ]
+          },
+          {
+            "id": "q1-post-missing-endpoint-permission",
+            "condition": "POST user has the policy-required change_document grant but lacks any of the endpoint's method-level documents.add_note or documents.view_document requirements.",
+            "disposition": "deny",
+            "explanation": "PaperlessNotePermissions maps POST to documents.add_note, documents.view_document, and documents.change_document, and has_permission requires all mapped permissions. The policy comparison alone is therefore insufficient to predict endpoint success.",
+            "evidenceIds": [
+              "ev-780193a04a4a6dc94819",
+              "ev-4b5fffa7b9d58001b919"
+            ]
+          },
+          {
+            "id": "q1-post-effect",
+            "condition": "All applicable endpoint and policy checks pass and the request data contains the note field.",
+            "disposition": "allow",
+            "explanation": "The target effect is Note.objects.create(document=doc, note=request.data[\"note\"], user=currentUser), followed by audit logging when enabled, document modified-time persistence, search-index update, and serialization of the notes response. These effects are downstream of the permission checks; the source does not establish deployment settings or external side effects beyond the shown code.",
+            "evidenceIds": [
+              "ev-4b5fffa7b9d58001b919"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-780193a04a4a6dc94819",
+          "ev-4b5fffa7b9d58001b919",
+          "ev-3d59a622e3d1eafcf6ce",
+          "ev-e73b07ab70d22a02139b",
+          "ev-f3e71c067b0d12bafa15"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "The addressed document's owner is unspecified."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "The user's actual object-scoped view_document and change_document grants on the addressed document are unspecified; object grants were not supplied."
+          },
+          {
+            "kind": "premise-unspecified",
+            "detail": "For endpoint reachability, the user's documents.view_note, documents.add_note, and documents.view_document method-level grants are unspecified."
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "Authentication/user state, permission backend behavior, and deployment-specific grant assignments are not established by the source excerpts."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The allowed source did not provide a URL registration/body proving the exact externally exposed route beyond the detail action declaration; the action itself is shown as methods get/post/delete and detail=True.",
+            "nextRead": "src/paperless/urls.py around the DocumentViewSet router registration, if present"
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The complete implementation of permitted_object_ids and the permission backend's object-grant semantics was not read here; the cited helper shows the owner-aware fallback used by this endpoint, but not the full grant-assignment path.",
+            "nextRead": "src/documents/permissions.py around permitted_object_ids and its object permission helpers"
+          }
+        ],
+        "policyAssessment": {
+          "status": "undetermined",
+          "explanation": "The implementation contains the policy-named checks in the relevant branches, but conformance for the requested current user/document cannot be conclusively assessed because the document owner and object grants are explicitly unspecified. The source also reveals a semantic tension: has_perms_owner_aware grants its check to the owner (and to ownerless objects) even though the independent policy says ownership alone cannot substitute for view_document or change_document. Therefore owner-only branches are not treated as compliant."
+        }
+      }
+    ],
+    "observations": [],
+    "scope": "Allowed source scope only: paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103, with relevant evidence from src/documents/views.py, src/documents/permissions.py, and src/documents/serialisers.py. No all-repository coverage is claimed."
+  },
+  "prose": null,
+  "initialProse": null,
+  "initialValidation": {
+    "valid": true,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The notes operation is reachable only for an authenticated user with the method-level permissions in PaperlessNotePermissions, and the view then performs addressed-document checks. Viewing notes is conditionally compliant with the supplied policy only when the user has view_document on the addressed document and the endpoint's additional view_note requirement is also satisfied. Creating a note is conditionally compliant only when the user has change_document on the addressed document and the endpoint's method-level add_note and view_document requirements are satisfied. The source does not establish the user's actual grants, document owner, or whether grants are object-scoped in the relevant deployment."
+          },
+          "branches": [
+            {
+              "id": "q1-get-allow",
+              "condition": "GET on an existing addressed document; authenticated user has view_document on that document and also satisfies the endpoint's method-level documents.view_note requirement.",
+              "disposition": "allow",
+              "explanation": "The notes action is detail-scoped and GET returns the document's serialized notes after the view's addressed-document view_document check. Under the independent policy, the required view_document grant is present, so viewing is allowed. The endpoint additionally requires view_note at its permission-class gate.",
+              "evidenceIds": [
+                "ev-780193a04a4a6dc94819",
+                "ev-4b5fffa7b9d58001b919"
+              ]
+            },
+            {
+              "id": "q1-get-deny-no-view-document",
+              "condition": "GET user lacks view_document on the addressed document, including a case where the user is neither owner nor otherwise granted that permission.",
+              "disposition": "deny",
+              "explanation": "The view calls has_perms_owner_aware(currentUser, \"view_document\", doc) and returns HTTP 403 before serializing notes when it fails. The policy likewise requires view_document; ownership alone is not a policy substitute.",
+              "evidenceIds": [
+                "ev-4b5fffa7b9d58001b919",
+                "ev-780193a04a4a6dc94819"
+              ]
+            },
+            {
+              "id": "q1-get-unknown-owner",
+              "condition": "GET user is the document owner but the actual view_document grant is not established.",
+              "disposition": "unknown",
+              "explanation": "The source's owner-aware helper treats obj.owner == user as sufficient for its check, while the independent policy expressly says ownership by itself does not substitute for view_document. Because the owner and grant facts are unspecified, conformance cannot be decided for this branch without the actual addressed-document grant.",
+              "evidenceIds": [
+                "ev-4b5fffa7b9d58001b919",
+                "ev-780193a04a4a6dc94819"
+              ]
+            },
+            {
+              "id": "q1-get-missing-endpoint-view-note",
+              "condition": "GET user has view_document on the addressed document but fails the method-level documents.view_note check.",
+              "disposition": "deny",
+              "explanation": "PaperlessNotePermissions maps GET to both documents.view_note and documents.view_document, and has_permission requires all mapped permissions. Thus the endpoint denies even though the independent policy's document-view requirement is met.",
+              "evidenceIds": [
+                "ev-780193a04a4a6dc94819",
+                "ev-4b5fffa7b9d58001b919"
+              ]
+            },
+            {
+              "id": "q1-post-allow",
+              "condition": "POST on an existing addressed document; authenticated user has change_document on that document and satisfies the endpoint's method-level documents.add_note and documents.view_document requirements.",
+              "disposition": "allow",
+              "explanation": "The view performs an owner-aware change_document check on the addressed document, then creates Note(document=doc, ...) and updates the document/search state. Under the independent policy, change_document is the required creation grant, so creation is allowed when that object grant is actually present; the endpoint also requires add_note and view_document at its permission-class gate.",
+              "evidenceIds": [
+                "ev-780193a04a4a6dc94819",
+                "ev-4b5fffa7b9d58001b919"
+              ]
+            },
+            {
+              "id": "q1-post-deny-no-change-document",
+              "condition": "POST user lacks change_document on the addressed document, including a case where the user is neither owner nor otherwise granted that permission.",
+              "disposition": "deny",
+              "explanation": "After the initial document view check, the view calls has_perms_owner_aware(currentUser, \"change_document\", doc) and returns HTTP 403 before Note.objects.create when it fails. The independent policy requires change_document for creating notes.",
+              "evidenceIds": [
+                "ev-4b5fffa7b9d58001b919",
+                "ev-780193a04a4a6dc94819"
+              ]
+            },
+            {
+              "id": "q1-post-owner-only",
+              "condition": "POST user is the document owner but the actual change_document grant is not established.",
+              "disposition": "unknown",
+              "explanation": "The source's owner-aware helper treats ownership as sufficient for its in-view change_document check, but the independent policy expressly rejects ownership as a substitute for change_document. The owner and object-grant facts are unspecified, so this branch cannot be declared compliant.",
+              "evidenceIds": [
+                "ev-4b5fffa7b9d58001b919",
+                "ev-780193a04a4a6dc94819"
+              ]
+            },
+            {
+              "id": "q1-post-missing-endpoint-permission",
+              "condition": "POST user has the policy-required change_document grant but lacks any of the endpoint's method-level documents.add_note or documents.view_document requirements.",
+              "disposition": "deny",
+              "explanation": "PaperlessNotePermissions maps POST to documents.add_note, documents.view_document, and documents.change_document, and has_permission requires all mapped permissions. The policy comparison alone is therefore insufficient to predict endpoint success.",
+              "evidenceIds": [
+                "ev-780193a04a4a6dc94819",
+                "ev-4b5fffa7b9d58001b919"
+              ]
+            },
+            {
+              "id": "q1-post-effect",
+              "condition": "All applicable endpoint and policy checks pass and the request data contains the note field.",
+              "disposition": "allow",
+              "explanation": "The target effect is Note.objects.create(document=doc, note=request.data[\"note\"], user=currentUser), followed by audit logging when enabled, document modified-time persistence, search-index update, and serialization of the notes response. These effects are downstream of the permission checks; the source does not establish deployment settings or external side effects beyond the shown code.",
+              "evidenceIds": [
+                "ev-4b5fffa7b9d58001b919"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-780193a04a4a6dc94819",
+            "ev-4b5fffa7b9d58001b919",
+            "ev-3d59a622e3d1eafcf6ce",
+            "ev-e73b07ab70d22a02139b",
+            "ev-f3e71c067b0d12bafa15"
+          ],
+          "missing": [
+            {
+              "kind": "premise-unspecified",
+              "detail": "The addressed document's owner is unspecified."
+            },
+            {
+              "kind": "premise-unspecified",
+              "detail": "The user's actual object-scoped view_document and change_document grants on the addressed document are unspecified; object grants were not supplied."
+            },
+            {
+              "kind": "premise-unspecified",
+              "detail": "For endpoint reachability, the user's documents.view_note, documents.add_note, and documents.view_document method-level grants are unspecified."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "Authentication/user state, permission backend behavior, and deployment-specific grant assignments are not established by the source excerpts."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The allowed source did not provide a URL registration/body proving the exact externally exposed route beyond the detail action declaration; the action itself is shown as methods get/post/delete and detail=True.",
+              "nextRead": "src/paperless/urls.py around the DocumentViewSet router registration, if present"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The complete implementation of permitted_object_ids and the permission backend's object-grant semantics was not read here; the cited helper shows the owner-aware fallback used by this endpoint, but not the full grant-assignment path.",
+              "nextRead": "src/documents/permissions.py around permitted_object_ids and its object permission helpers"
+            }
+          ],
+          "policyAssessment": {
+            "status": "undetermined",
+            "explanation": "The implementation contains the policy-named checks in the relevant branches, but conformance for the requested current user/document cannot be conclusively assessed because the document owner and object grants are explicitly unspecified. The source also reveals a semantic tension: has_perms_owner_aware grants its check to the owner (and to ownerless objects) even though the independent policy says ownership alone cannot substitute for view_document or change_document. Therefore owner-only branches are not treated as compliant."
+          }
+        }
+      ],
+      "observations": [],
+      "scope": "Allowed source scope only: paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103, with relevant evidence from src/documents/views.py, src/documents/permissions.py, and src/documents/serialisers.py. No all-repository coverage is claimed."
+    },
+    "diagnostics": [],
+    "semanticSupport": "unreviewed"
+  },
+  "finalValidation": {
+    "valid": true,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The notes operation is reachable only for an authenticated user with the method-level permissions in PaperlessNotePermissions, and the view then performs addressed-document checks. Viewing notes is conditionally compliant with the supplied policy only when the user has view_document on the addressed document and the endpoint's additional view_note requirement is also satisfied. Creating a note is conditionally compliant only when the user has change_document on the addressed document and the endpoint's method-level add_note and view_document requirements are satisfied. The source does not establish the user's actual grants, document owner, or whether grants are object-scoped in the relevant deployment."
+          },
+          "branches": [
+            {
+              "id": "q1-get-allow",
+              "condition": "GET on an existing addressed document; authenticated user has view_document on that document and also satisfies the endpoint's method-level documents.view_note requirement.",
+              "disposition": "allow",
+              "explanation": "The notes action is detail-scoped and GET returns the document's serialized notes after the view's addressed-document view_document check. Under the independent policy, the required view_document grant is present, so viewing is allowed. The endpoint additionally requires view_note at its permission-class gate.",
+              "evidenceIds": [
+                "ev-780193a04a4a6dc94819",
+                "ev-4b5fffa7b9d58001b919"
+              ]
+            },
+            {
+              "id": "q1-get-deny-no-view-document",
+              "condition": "GET user lacks view_document on the addressed document, including a case where the user is neither owner nor otherwise granted that permission.",
+              "disposition": "deny",
+              "explanation": "The view calls has_perms_owner_aware(currentUser, \"view_document\", doc) and returns HTTP 403 before serializing notes when it fails. The policy likewise requires view_document; ownership alone is not a policy substitute.",
+              "evidenceIds": [
+                "ev-4b5fffa7b9d58001b919",
+                "ev-780193a04a4a6dc94819"
+              ]
+            },
+            {
+              "id": "q1-get-unknown-owner",
+              "condition": "GET user is the document owner but the actual view_document grant is not established.",
+              "disposition": "unknown",
+              "explanation": "The source's owner-aware helper treats obj.owner == user as sufficient for its check, while the independent policy expressly says ownership by itself does not substitute for view_document. Because the owner and grant facts are unspecified, conformance cannot be decided for this branch without the actual addressed-document grant.",
+              "evidenceIds": [
+                "ev-4b5fffa7b9d58001b919",
+                "ev-780193a04a4a6dc94819"
+              ]
+            },
+            {
+              "id": "q1-get-missing-endpoint-view-note",
+              "condition": "GET user has view_document on the addressed document but fails the method-level documents.view_note check.",
+              "disposition": "deny",
+              "explanation": "PaperlessNotePermissions maps GET to both documents.view_note and documents.view_document, and has_permission requires all mapped permissions. Thus the endpoint denies even though the independent policy's document-view requirement is met.",
+              "evidenceIds": [
+                "ev-780193a04a4a6dc94819",
+                "ev-4b5fffa7b9d58001b919"
+              ]
+            },
+            {
+              "id": "q1-post-allow",
+              "condition": "POST on an existing addressed document; authenticated user has change_document on that document and satisfies the endpoint's method-level documents.add_note and documents.view_document requirements.",
+              "disposition": "allow",
+              "explanation": "The view performs an owner-aware change_document check on the addressed document, then creates Note(document=doc, ...) and updates the document/search state. Under the independent policy, change_document is the required creation grant, so creation is allowed when that object grant is actually present; the endpoint also requires add_note and view_document at its permission-class gate.",
+              "evidenceIds": [
+                "ev-780193a04a4a6dc94819",
+                "ev-4b5fffa7b9d58001b919"
+              ]
+            },
+            {
+              "id": "q1-post-deny-no-change-document",
+              "condition": "POST user lacks change_document on the addressed document, including a case where the user is neither owner nor otherwise granted that permission.",
+              "disposition": "deny",
+              "explanation": "After the initial document view check, the view calls has_perms_owner_aware(currentUser, \"change_document\", doc) and returns HTTP 403 before Note.objects.create when it fails. The independent policy requires change_document for creating notes.",
+              "evidenceIds": [
+                "ev-4b5fffa7b9d58001b919",
+                "ev-780193a04a4a6dc94819"
+              ]
+            },
+            {
+              "id": "q1-post-owner-only",
+              "condition": "POST user is the document owner but the actual change_document grant is not established.",
+              "disposition": "unknown",
+              "explanation": "The source's owner-aware helper treats ownership as sufficient for its in-view change_document check, but the independent policy expressly rejects ownership as a substitute for change_document. The owner and object-grant facts are unspecified, so this branch cannot be declared compliant.",
+              "evidenceIds": [
+                "ev-4b5fffa7b9d58001b919",
+                "ev-780193a04a4a6dc94819"
+              ]
+            },
+            {
+              "id": "q1-post-missing-endpoint-permission",
+              "condition": "POST user has the policy-required change_document grant but lacks any of the endpoint's method-level documents.add_note or documents.view_document requirements.",
+              "disposition": "deny",
+              "explanation": "PaperlessNotePermissions maps POST to documents.add_note, documents.view_document, and documents.change_document, and has_permission requires all mapped permissions. The policy comparison alone is therefore insufficient to predict endpoint success.",
+              "evidenceIds": [
+                "ev-780193a04a4a6dc94819",
+                "ev-4b5fffa7b9d58001b919"
+              ]
+            },
+            {
+              "id": "q1-post-effect",
+              "condition": "All applicable endpoint and policy checks pass and the request data contains the note field.",
+              "disposition": "allow",
+              "explanation": "The target effect is Note.objects.create(document=doc, note=request.data[\"note\"], user=currentUser), followed by audit logging when enabled, document modified-time persistence, search-index update, and serialization of the notes response. These effects are downstream of the permission checks; the source does not establish deployment settings or external side effects beyond the shown code.",
+              "evidenceIds": [
+                "ev-4b5fffa7b9d58001b919"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-780193a04a4a6dc94819",
+            "ev-4b5fffa7b9d58001b919",
+            "ev-3d59a622e3d1eafcf6ce",
+            "ev-e73b07ab70d22a02139b",
+            "ev-f3e71c067b0d12bafa15"
+          ],
+          "missing": [
+            {
+              "kind": "premise-unspecified",
+              "detail": "The addressed document's owner is unspecified."
+            },
+            {
+              "kind": "premise-unspecified",
+              "detail": "The user's actual object-scoped view_document and change_document grants on the addressed document are unspecified; object grants were not supplied."
+            },
+            {
+              "kind": "premise-unspecified",
+              "detail": "For endpoint reachability, the user's documents.view_note, documents.add_note, and documents.view_document method-level grants are unspecified."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "Authentication/user state, permission backend behavior, and deployment-specific grant assignments are not established by the source excerpts."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The allowed source did not provide a URL registration/body proving the exact externally exposed route beyond the detail action declaration; the action itself is shown as methods get/post/delete and detail=True.",
+              "nextRead": "src/paperless/urls.py around the DocumentViewSet router registration, if present"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The complete implementation of permitted_object_ids and the permission backend's object-grant semantics was not read here; the cited helper shows the owner-aware fallback used by this endpoint, but not the full grant-assignment path.",
+              "nextRead": "src/documents/permissions.py around permitted_object_ids and its object permission helpers"
+            }
+          ],
+          "policyAssessment": {
+            "status": "undetermined",
+            "explanation": "The implementation contains the policy-named checks in the relevant branches, but conformance for the requested current user/document cannot be conclusively assessed because the document owner and object grants are explicitly unspecified. The source also reveals a semantic tension: has_perms_owner_aware grants its check to the owner (and to ownerless objects) even though the independent policy says ownership alone cannot substitute for view_document or change_document. Therefore owner-only branches are not treated as compliant."
+          }
+        }
+      ],
+      "observations": [],
+      "scope": "Allowed source scope only: paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103, with relevant evidence from src/documents/views.py, src/documents/permissions.py, and src/documents/serialisers.py. No all-repository coverage is claimed."
+    },
+    "diagnostics": [],
+    "semanticSupport": "unreviewed"
+  },
+  "error": null,
+  "extractionInitial": null,
+  "extractionInitialOrigin": "no-control-proposal",
+  "extractionFinal": null,
+  "extractionProposals": [],
+  "hostChecks": [],
+  "dependencies": [],
+  "schedulerActions": [],
+  "evidence": [
+    {
+      "id": "ev-854023bd6b9ce7047ae6",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 158,
+      "endLine": 158,
+      "bytes": 40
+    },
+    {
+      "id": "ev-9dc0c656745173943fdc",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 171,
+      "endLine": 171,
+      "bytes": 65
+    },
+    {
+      "id": "ev-01f62fd3456760d56c38",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 205,
+      "endLine": 205,
+      "bytes": 56
+    },
+    {
+      "id": "ev-875a8ce639470295ce69",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 859,
+      "endLine": 859,
+      "bytes": 44
+    },
+    {
+      "id": "ev-0ebf5332f39708bfc516",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 870,
+      "endLine": 870,
+      "bytes": 87
+    },
+    {
+      "id": "ev-516e44ce6836076c23ff",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 874,
+      "endLine": 874,
+      "bytes": 51
+    },
+    {
+      "id": "ev-d8725f6288d47b8a64a9",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1170,
+      "endLine": 1170,
+      "bytes": 64
+    },
+    {
+      "id": "ev-d7711deb81486f22323f",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1202,
+      "endLine": 1202,
+      "bytes": 82
+    },
+    {
+      "id": "ev-e610f1fd3849a93c4bdc",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1203,
+      "endLine": 1203,
+      "bytes": 84
+    },
+    {
+      "id": "ev-61afda06a4eb27c6d63b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1844,
+      "endLine": 1844,
+      "bytes": 62
+    },
+    {
+      "id": "ev-9d99b5897f67220d34f1",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1888,
+      "endLine": 1888,
+      "bytes": 48
+    },
+    {
+      "id": "ev-34f1bc2658a270323cae",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1899,
+      "endLine": 1899,
+      "bytes": 65
+    },
+    {
+      "id": "ev-14e717f5bc6928cd4d4d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1936,
+      "endLine": 1936,
+      "bytes": 80
+    },
+    {
+      "id": "ev-9263b17d3cbee109518b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1941,
+      "endLine": 1941,
+      "bytes": 66
+    },
+    {
+      "id": "ev-1f6986adf2660dead666",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 855,
+      "endLine": 855,
+      "bytes": 31
+    },
+    {
+      "id": "ev-09797ab1795a215e818e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 856,
+      "endLine": 856,
+      "bytes": 73
+    },
+    {
+      "id": "ev-e1862068f65c504d5500",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1040,
+      "endLine": 1040,
+      "bytes": 28
+    },
+    {
+      "id": "ev-b0eb13b4b8ae0511fc2b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1210,
+      "endLine": 1210,
+      "bytes": 64
+    },
+    {
+      "id": "ev-da78d301ba55f9786fa5",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1848,
+      "endLine": 1848,
+      "bytes": 46
+    },
+    {
+      "id": "ev-5fd8666a8ea4ea5ec01c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1853,
+      "endLine": 1853,
+      "bytes": 50
+    },
+    {
+      "id": "ev-00c9f628bfc37efe1571",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1862,
+      "endLine": 1862,
+      "bytes": 94
+    },
+    {
+      "id": "ev-ec2b2170fb4a630832f1",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1870,
+      "endLine": 1870,
+      "bytes": 78
+    },
+    {
+      "id": "ev-30c75455641c832ab599",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1871,
+      "endLine": 1871,
+      "bytes": 46
+    },
+    {
+      "id": "ev-82f9517609a6a35c983c",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1873,
+      "endLine": 1873,
+      "bytes": 84
+    },
+    {
+      "id": "ev-ceaef64f13330d6e1ea0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1875,
+      "endLine": 1875,
+      "bytes": 93
+    },
+    {
+      "id": "ev-665b74503461c39d827e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1885,
+      "endLine": 1885,
+      "bytes": 75
+    },
+    {
+      "id": "ev-489ba0eccf53bd181746",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1911,
+      "endLine": 1911,
+      "bytes": 78
+    },
+    {
+      "id": "ev-79e23bb5c68184accd8e",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1913,
+      "endLine": 1913,
+      "bytes": 46
+    },
+    {
+      "id": "ev-4186e405a00107e9d8b9",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1927,
+      "endLine": 1927,
+      "bytes": 96
+    },
+    {
+      "id": "ev-663339cb08c6e79d885d",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1955,
+      "endLine": 1955,
+      "bytes": 74
+    },
+    {
+      "id": "ev-994a8395c8b49b9a56e3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1957,
+      "endLine": 1957,
+      "bytes": 42
+    },
+    {
+      "id": "ev-eff88c87019e4267dde3",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 463,
+      "endLine": 463,
+      "bytes": 39
+    },
+    {
+      "id": "ev-7b01d5c71fce2c8b53a7",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 469,
+      "endLine": 469,
+      "bytes": 82
+    },
+    {
+      "id": "ev-825759007a828cb33802",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 644,
+      "endLine": 644,
+      "bytes": 54
+    },
+    {
+      "id": "ev-c931b5d113f4102178a6",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 645,
+      "endLine": 645,
+      "bytes": 50
+    },
+    {
+      "id": "ev-4f2f46f064ed40c2a081",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 646,
+      "endLine": 646,
+      "bytes": 51
+    },
+    {
+      "id": "ev-96483dcf86a8fc77e242",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 660,
+      "endLine": 660,
+      "bytes": 54
+    },
+    {
+      "id": "ev-bc424e1e539de4db6fbe",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 661,
+      "endLine": 661,
+      "bytes": 51
+    },
+    {
+      "id": "ev-64450e9ebbbd7ac43c86",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 662,
+      "endLine": 662,
+      "bytes": 50
+    },
+    {
+      "id": "ev-5cdc61ea0478ff165413",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 679,
+      "endLine": 679,
+      "bytes": 77
+    },
+    {
+      "id": "ev-b196982d1163668b9283",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 680,
+      "endLine": 680,
+      "bytes": 73
+    },
+    {
+      "id": "ev-f03e25990a3641e60181",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 683,
+      "endLine": 683,
+      "bytes": 45
+    },
+    {
+      "id": "ev-f25b863d1d9014e533fd",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 688,
+      "endLine": 688,
+      "bytes": 45
+    },
+    {
+      "id": "ev-103201ecdc4bc62543bc",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 684,
+      "endLine": 684,
+      "bytes": 47
+    },
+    {
+      "id": "ev-2b5d090dfa6fc8294906",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 689,
+      "endLine": 689,
+      "bytes": 47
+    },
+    {
+      "id": "ev-e73b07ab70d22a02139b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 995,
+      "endLine": 995,
+      "bytes": 57
+    },
+    {
+      "id": "ev-f3e71c067b0d12bafa15",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1056,
+      "endLine": 1056,
+      "bytes": 78
+    },
+    {
+      "id": "ev-556837de1bf7ce516eae",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1319,
+      "endLine": 1319,
+      "bytes": 28
+    },
+    {
+      "id": "ev-d58770d765763eca7c5b",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1359,
+      "endLine": 1359,
+      "bytes": 71
+    },
+    {
+      "id": "ev-1c361b55d770a1776fe8",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/serialisers.py",
+      "sha256": "991fa9d2462d0996438702600763353da4ed355ff04000e59cae8107a465f266",
+      "startLine": 1378,
+      "endLine": 1378,
+      "bytes": 71
+    },
+    {
+      "id": "ev-780193a04a4a6dc94819",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 620,
+      "endLine": 717,
+      "bytes": 3702
+    },
+    {
+      "id": "ev-3d59a622e3d1eafcf6ce",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "startLine": 430,
+      "endLine": 520,
+      "bytes": 4381
+    },
+    {
+      "id": "ev-4b5fffa7b9d58001b919",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1828,
+      "endLine": 1920,
+      "bytes": 3948
+    },
+    {
+      "id": "ev-b3919c5ade8bf7063cd0",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "startLine": 1080,
+      "endLine": 1230,
+      "bytes": 8138
+    }
+  ],
+  "deliveryValid": true,
+  "reviewCaution": "Citations and host consistency do not prove extraction meaning. Evaluate raw first/final and final prose against original source at the retained evidence ranges. A native prose answer can be delivered despite failed host checking. Representation may reveal strategy; arm, cost and target scores are hidden. No earlier answer is supplied."
+}

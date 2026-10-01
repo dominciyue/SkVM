@@ -1,0 +1,3846 @@
+{
+  "schemaVersion": "authorization-aq-anonymous-packet/v1",
+  "id": "packet-54b9e793caa5",
+  "task": {
+    "brief": "Check DeleteSpaceMember in this Memos revision against the independently supplied current policy. May an ordinary space member remove a different member, and do visible admin and self-removal paths differ? Do not assume deployment middleware or undocumented role grants. Explain actual behavior, compare it with the policy, cite the controlling source and preserve any decisive missing facts.",
+    "mode": "conformance",
+    "policy": {
+      "text": "Only a space administrator may remove another member from that space. This policy does not prohibit a member leaving the space themselves.",
+      "origin": "user",
+      "location": "experimental-user-brief:memos-member-policy/v1"
+    }
+  },
+  "status": "completed",
+  "initial": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "delete-different-member",
+        "behavior": {
+          "disposition": "deny",
+          "explanation": "No. For a different target, the visible API checks whether targetUser.ID differs from currentUser.ID and calls requireSpaceAdministrator. The SQLite, PostgreSQL, and MySQL deletion implementations repeat the protection: if actorUserID differs from delete.UserID, the actor must have an active ADMIN membership; otherwise they return ErrSpacePermissionDenied. Thus an ordinary space member cannot remove another member through this path. The source-visible implementation matches the supplied policy for this scenario."
+        },
+        "branches": [
+          {
+            "id": "different-member-denied",
+            "condition": "targetUser.ID != currentUser.ID",
+            "disposition": "deny",
+            "explanation": "The service-level administrator guard and backend administrator checks reject a non-admin actor before deletion.",
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-84264349a1295f03c6f1",
+              "ev-91e0c577dde3417420be",
+              "ev-b47c73b3bb6ac45fd1f1"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-a58f11610536809bca27",
+          "ev-84264349a1295f03c6f1",
+          "ev-91e0c577dde3417420be",
+          "ev-b47c73b3bb6ac45fd1f1"
+        ],
+        "missing": [],
+        "policyAssessment": {
+          "status": "satisfied",
+          "explanation": "For removal of another member, the implementation requires administrator authorization, consistent with the supplied policy."
+        }
+      },
+      {
+        "questionId": "delete-admin-vs-self",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "Yes, the visible paths differ. Different-target removal enters the administrator branch and requires an administrator. Self-removal skips that administrator guard and proceeds to the deletion effect. Both paths nevertheless share a backend invariant: SQLite, PostgreSQL, and MySQL reject deletion of the last active administrator with ErrLastSpaceAdmin. Therefore self-removal is not unconditionally allowed when the caller is the last active administrator, and administrator removal of a target who is the last active administrator is also rejected. The exact role and target membership must exist and be active; missing or invalid resources can fail separately."
+        },
+        "branches": [
+          {
+            "id": "administrator-removal",
+            "condition": "targetUser.ID != currentUser.ID",
+            "disposition": "conditional",
+            "explanation": "An administrator may remove a different active member; the shown implementations reject removal if the target is the last active administrator. A non-administrator is rejected by the service and drivers.",
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-84264349a1295f03c6f1",
+              "ev-91e0c577dde3417420be",
+              "ev-b47c73b3bb6ac45fd1f1",
+              "ev-2458576127240a3d70ac",
+              "ev-77b2afa28e0a055cabbb",
+              "ev-a6cd8745dc80b3879364"
+            ]
+          },
+          {
+            "id": "self-removal",
+            "condition": "targetUser.ID == currentUser.ID",
+            "disposition": "conditional",
+            "explanation": "A member may reach deletion without administrator authorization, but the shown backends reject deleting the last active administrator. Otherwise the active membership is deleted, subject to normal resource/error checks.",
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-84264349a1295f03c6f1",
+              "ev-91e0c577dde3417420be",
+              "ev-b47c73b3bb6ac45fd1f1",
+              "ev-2458576127240a3d70ac",
+              "ev-77b2afa28e0a055cabbb",
+              "ev-a6cd8745dc80b3879364"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-5f42b02eefefbb580847",
+          "ev-2458576127240a3d70ac",
+          "ev-77b2afa28e0a055cabbb",
+          "ev-a6cd8745dc80b3879364"
+        ],
+        "missing": [
+          {
+            "kind": "deployment-unverified",
+            "detail": "This conclusion is limited to the shown source. Deployment middleware, authentication setup, and any undocumented role grants were not assumed or verified."
+          }
+        ],
+        "policyAssessment": {
+          "status": "undetermined",
+          "explanation": "The policy clearly permits administrator-only removal of another member and does not prohibit self-leaving, but it does not state how to treat the source-visible last-active-administrator invariant. The source therefore shows a conditional implementation; whether that extra invariant is policy-conformant is not fully determined by the supplied wording alone."
+        }
+      }
+    ],
+    "observations": [],
+    "scope": "Named source-visible authorization question only; no execution, deployment validation, patching, or whole-repository audit."
+  },
+  "final": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "delete-different-member",
+        "behavior": {
+          "disposition": "deny",
+          "explanation": "No, on the shown source path an ordinary non-admin member cannot remove a different member. The API handler compares the target user with the current user and, when they differ, calls requireSpaceAdministrator (server/api/v1/space_service.go:740-755, evidence ev-9897150ffe8ea362c7f0). The SQLite, PostgreSQL, and MySQL implementations independently require the caller's active membership role to be ADMIN for a different target and otherwise return ErrSpacePermissionDenied (evidence ev-84264349a1295f03c6f1, ev-91e0c577dde3417420be, ev-b47c73b3bb6ac45fd1f1)."
+        },
+        "branches": [
+          {
+            "id": "different-member-denied",
+            "condition": "targetUser.ID != currentUser.ID",
+            "disposition": "deny",
+            "explanation": "The visible service and shown database implementations require administrator authorization before the deletion effect.",
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-84264349a1295f03c6f1",
+              "ev-91e0c577dde3417420be",
+              "ev-b47c73b3bb6ac45fd1f1"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-84264349a1295f03c6f1",
+          "ev-91e0c577dde3417420be",
+          "ev-b47c73b3bb6ac45fd1f1"
+        ],
+        "missing": [
+          {
+            "kind": "deployment-unverified",
+            "detail": "Only the shown source is assessed; deployment middleware, authentication wiring, and undocumented role grants were not assumed."
+          }
+        ],
+        "policyAssessment": {
+          "status": "satisfied",
+          "explanation": "The supplied policy requires administrator authorization to remove another member, which is the source-visible behavior for the different-target branch."
+        }
+      },
+      {
+        "questionId": "delete-admin-vs-self",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "Yes. The visible branches differ: a different target requires an administrator, while a target equal to the current user skips requireSpaceAdministrator. Both branches then share a backend invariant in the shown SQLite, PostgreSQL, and MySQL implementations: deletion of the last active administrator is rejected with ErrLastSpaceAdmin (evidence ev-2458576127240a3d70ac, ev-77b2afa28e0a055cabbb, ev-a6cd8745dc80b3879364). Thus self-removal is not unconditionally successful for the last active administrator. The request and memberships must also resolve successfully; other error outcomes are outside the authorization conclusion."
+        },
+        "branches": [
+          {
+            "id": "administrator-removal",
+            "condition": "targetUser.ID != currentUser.ID",
+            "disposition": "conditional",
+            "explanation": "Administrator authorization is required; after that, the shown backends reject removing the last active administrator.",
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-2458576127240a3d70ac",
+              "ev-77b2afa28e0a055cabbb",
+              "ev-a6cd8745dc80b3879364"
+            ]
+          },
+          {
+            "id": "self-removal",
+            "condition": "targetUser.ID == currentUser.ID",
+            "disposition": "conditional",
+            "explanation": "The service skips the administrator guard for self-removal, but the shown backends still reject deleting the last active administrator.",
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-2458576127240a3d70ac",
+              "ev-77b2afa28e0a055cabbb",
+              "ev-a6cd8745dc80b3879364"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-5f42b02eefefbb580847",
+          "ev-2458576127240a3d70ac",
+          "ev-77b2afa28e0a055cabbb",
+          "ev-a6cd8745dc80b3879364"
+        ],
+        "missing": [
+          {
+            "kind": "deployment-unverified",
+            "detail": "Only the shown source is assessed; deployment middleware, authentication wiring, and undocumented role grants were not assumed."
+          }
+        ],
+        "policyAssessment": {
+          "status": "undetermined",
+          "explanation": "The policy clearly requires administrator-only removal of another member and does not prohibit self-leaving. It does not expressly address the additional source-visible rule preventing removal of the last active administrator, so conformance of that edge case is undetermined."
+        }
+      }
+    ],
+    "observations": [],
+    "scope": "Named source-visible authorization question only; no execution, deployment validation, patching, or whole-repository audit."
+  },
+  "prose": "## Result\n\n### 1. Can an ordinary space member remove a different member?\n\n**No, based on the shown source.**\n\n`DeleteSpaceMember` first resolves the current user and the requested target membership. In `server/api/v1/space_service.go`, it compares the target and caller IDs:\n\n```go\nisSelf := targetUser.ID == currentUser.ID\nif !isSelf {\n    if err := requireSpaceAdministrator(callerMembership); err != nil {\n        return nil, err\n    }\n}\n```\n\nThat is the controlling service-level branch at `server/api/v1/space_service.go:740–755` ([`ev-9897150ffe8ea362c7f0`](#)).\n\nThe database implementations enforce the same authorization independently:\n\n- **SQLite:** when `actorUserID != delete.UserID`, the actor’s active space membership must have role `ADMIN`; otherwise it returns `ErrSpacePermissionDenied` (`store/db/sqlite/space.go:424–432`, [`ev-84264349a1295f03c6f1`](#)).\n- **PostgreSQL:** the same different-user condition requires `store.SpaceMemberRoleAdmin` (`store/db/postgres/space.go:457–465`, [`ev-91e0c577dde3417420be`](#)).\n- **MySQL:** the same check requires `store.SpaceMemberRoleAdmin` (`store/db/mysql/space.go:419–427`, [`ev-b47c73b3bb6ac45fd1f1`](#)).\n\nTherefore, an ordinary non-administrator member cannot remove another member through this source-visible path. The behavior conforms to the supplied policy for that scenario:\n\n> “Only a space administrator may remove another member from that space.”\n\n### 2. Do administrator-removal and self-removal paths differ?\n\n**Yes.**\n\nThe service distinguishes the paths by comparing the target and current user IDs:\n\n- **Different target:** the service invokes `requireSpaceAdministrator`; a non-admin is rejected before the store deletion call.\n- **Same target:** the service skips that administrator check and proceeds to `Store.DeleteSpaceMember`.\n\nThe API contract also explicitly documents self-removal:\n\n> “A member may delete their own membership to leave the space.”  \n> `proto/api/v1/space_service.proto:126–130` ([`ev-5f42b02eefefbb580847`](#)).\n\nHowever, the paths share a backend invariant. SQLite, PostgreSQL, and MySQL all check whether the target is the last active administrator and return `ErrLastSpaceAdmin` if deleting that membership would leave no active administrator:\n\n- SQLite: `store/db/sqlite/space.go:442–450` ([`ev-2458576127240a3d70ac`](#))\n- PostgreSQL: `store/db/postgres/space.go:474–482` ([`ev-77b2afa28e0a055cabbb`](#))\n- MySQL: `store/db/mysql/space.go:436–444` ([`ev-a6cd8745dc80b3879364`](#))\n\nAccordingly:\n\n| Path | Visible authorization behavior | Additional visible constraint |\n|---|---|---|\n| Administrator removes another member | Requires the caller to be an active space administrator | Cannot remove the last active administrator |\n| Member removes themselves | Skips the administrator-only service guard | Cannot remove the last active administrator |\n\nSelf-removal is therefore permitted by the authorization branch, but it is **not unconditionally successful** for the last active administrator.\n\n## Policy comparison\n\n- **Different-member removal:** **Satisfied** by the shown implementation. Ordinary members are denied; administrators are the authorized class.\n- **Self-removal:** The policy says it is not prohibited, and the visible service branch permits it without an administrator check. The implementation adds a last-active-administrator safeguard. The supplied policy does not expressly say whether that safeguard is permitted or required, so conformance of that edge case is **undetermined**, not a demonstrated violation.\n\n## Limits and missing facts\n\nThis conclusion is limited to the source shown for `DeleteSpaceMember` and its SQLite, PostgreSQL, and MySQL store implementations. I did **not** assume or verify:\n\n- deployment middleware or route-level authentication;\n- how `requireCurrentSpaceUser` is wired in deployment;\n- undocumented role grants or external privilege mechanisms;\n- behavior outside the shown source path;\n- runtime behavior or database-specific deployment configuration.\n\nThe source-visible authorization result is therefore: **ordinary members cannot remove different members; self-removal follows a separate, less restrictive branch, subject to the shared last-active-administrator invariant.**",
+  "initialProse": null,
+  "initialValidation": null,
+  "finalValidation": null,
+  "error": null,
+  "extractionInitial": {
+    "schemaVersion": "authorization-control-slice/v1",
+    "rules": [
+      {
+        "key": "dsm-entry",
+        "questionId": "delete-different-member",
+        "pathKey": "different-member-denied",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-5f42b02eefefbb580847"
+        ],
+        "claim": "DeleteSpaceMember requires a current user and resolves the requested member resource before applying the deletion decision.",
+        "complete": false
+      },
+      {
+        "key": "dsm-bind-principal",
+        "questionId": "delete-different-member",
+        "pathKey": "different-member-denied",
+        "kind": "binding",
+        "after": [
+          "dsm-entry"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0"
+        ],
+        "claim": "The caller is bound as currentUser and passed to the store as actorUserID.",
+        "bindingKey": "caller-current-user",
+        "bindingKind": "principal",
+        "complete": false
+      },
+      {
+        "key": "dsm-bind-resource",
+        "questionId": "delete-different-member",
+        "pathKey": "different-member-denied",
+        "kind": "binding",
+        "after": [
+          "dsm-entry"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-a58f11610536809bca27"
+        ],
+        "claim": "The request-selected target membership is bound to targetMembership.SpaceID and targetMembership.UserID.",
+        "bindingKey": "target-membership",
+        "bindingKind": "resource",
+        "complete": false
+      },
+      {
+        "key": "dsm-different-guard",
+        "questionId": "delete-different-member",
+        "pathKey": "different-member-denied",
+        "kind": "guard",
+        "after": [
+          "dsm-bind-principal",
+          "dsm-bind-resource"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0"
+        ],
+        "claim": "When targetUser.ID differs from currentUser.ID, requireSpaceAdministrator(callerMembership) is invoked and an error terminates the request.",
+        "condition": {
+          "op": "neq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "principal": "caller-current-user",
+        "resource": "target-membership",
+        "operation": "remove membership",
+        "complete": false
+      },
+      {
+        "key": "dsm-different-deny",
+        "questionId": "delete-different-member",
+        "pathKey": "different-member-denied",
+        "kind": "reject",
+        "after": [
+          "dsm-different-guard"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0"
+        ],
+        "claim": "A non-self removal does not reach Store.DeleteSpaceMember unless requireSpaceAdministrator succeeds.",
+        "condition": {
+          "op": "neq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "complete": false
+      },
+      {
+        "key": "dsm-admin-entry",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "administrator-removal",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-5f42b02eefefbb580847"
+        ],
+        "claim": "The administrator-removal path enters the same DeleteSpaceMember handler and resolves caller and target memberships.",
+        "complete": false
+      },
+      {
+        "key": "dsm-admin-guard",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "administrator-removal",
+        "kind": "guard",
+        "after": [
+          "dsm-admin-entry"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-84264349a1295f03c6f1",
+          "ev-91e0c577dde3417420be",
+          "ev-b47c73b3bb6ac45fd1f1"
+        ],
+        "claim": "For a different target, the API requires the caller membership to be administrator; each shown SQL backend also requires actorUserID != targetUserID callers to have active ADMIN membership.",
+        "condition": {
+          "op": "neq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "principal": "caller-current-user",
+        "resource": "target-membership",
+        "operation": "remove membership",
+        "complete": false
+      },
+      {
+        "key": "dsm-admin-effect",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "administrator-removal",
+        "kind": "effect",
+        "after": [
+          "dsm-admin-guard"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-84264349a1295f03c6f1",
+          "ev-91e0c577dde3417420be",
+          "ev-b47c73b3bb6ac45fd1f1"
+        ],
+        "claim": "After the administrator checks, the handler calls Store.DeleteSpaceMember with the resolved target membership and caller ID; backend deletion proceeds after the same non-self ADMIN check.",
+        "condition": {
+          "op": "neq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "principal": "caller-current-user",
+        "resource": "target-membership",
+        "operation": "remove membership",
+        "authorizedBy": [
+          "dsm-admin-guard"
+        ],
+        "complete": false
+      },
+      {
+        "key": "dsm-self-entry",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "self-removal",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-5f42b02eefefbb580847"
+        ],
+        "claim": "The self-removal path enters the same handler and resolves the target membership.",
+        "complete": false
+      },
+      {
+        "key": "dsm-self-branch",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "self-removal",
+        "kind": "continue",
+        "after": [
+          "dsm-self-entry"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0"
+        ],
+        "claim": "When targetUser.ID equals currentUser.ID, isSelf is true and the API-level administrator check is skipped.",
+        "condition": {
+          "op": "eq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "complete": false
+      },
+      {
+        "key": "dsm-self-effect",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "self-removal",
+        "kind": "effect",
+        "after": [
+          "dsm-self-branch"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-a58f11610536809bca27",
+          "ev-c40acec0eb5a704392dc"
+        ],
+        "claim": "The self-removal path calls Store.DeleteSpaceMember with the caller's own target membership and actorUserID; the SQLite backend has no non-self ADMIN rejection on this branch.",
+        "condition": {
+          "op": "eq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "principal": "caller-current-user",
+        "resource": "own-membership",
+        "operation": "remove membership",
+        "complete": false
+      }
+    ],
+    "dependencies": [
+      {
+        "key": "dsm-effect-dependency",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "administrator-removal",
+        "from": "dsm-admin-effect",
+        "symbol": "DeleteSpaceMember",
+        "kind": "effect",
+        "decisive": true,
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-84264349a1295f03c6f1",
+          "ev-91e0c577dde3417420be",
+          "ev-b47c73b3bb6ac45fd1f1"
+        ],
+        "reason": "Confirm the terminal database mutation and whether the shown backend implementations converge after authorization.",
+        "pathHint": "store/db/sqlite/space.go:411-445"
+      },
+      {
+        "key": "dsm-self-effect-dependency",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "self-removal",
+        "from": "dsm-self-effect",
+        "symbol": "DeleteSpaceMember",
+        "kind": "effect",
+        "decisive": true,
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-84264349a1295f03c6f1"
+        ],
+        "reason": "Confirm the terminal self-removal mutation and any invariant checks after the self branch.",
+        "pathHint": "store/db/sqlite/space.go:411-445"
+      }
+    ],
+    "policyRules": [
+      {
+        "key": "policy-different-deny",
+        "questionId": "delete-different-member",
+        "pathKey": "different-member-denied",
+        "expected": "deny",
+        "origin": "policy",
+        "text": "Only a space administrator may remove another member from that space.",
+        "location": "experimental-user-brief:memos-member-policy/v1",
+        "condition": {
+          "op": "neq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        }
+      },
+      {
+        "key": "policy-admin-allow",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "administrator-removal",
+        "expected": "allow",
+        "origin": "policy",
+        "text": "Only a space administrator may remove another member from that space.",
+        "location": "experimental-user-brief:memos-member-policy/v1",
+        "condition": {
+          "op": "neq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        }
+      },
+      {
+        "key": "policy-self-allow",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "self-removal",
+        "expected": "allow",
+        "origin": "policy",
+        "text": "This policy does not prohibit a member leaving the space themselves.",
+        "location": "experimental-user-brief:memos-member-policy/v1",
+        "condition": {
+          "op": "eq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        }
+      }
+    ]
+  },
+  "extractionInitialOrigin": "first-control-proposal",
+  "extractionFinal": {
+    "schemaVersion": "authorization-control-slice/v1",
+    "revision": 26,
+    "rules": [
+      {
+        "key": "dsm-entry",
+        "questionId": "delete-different-member",
+        "pathKey": "different-member-denied",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-5f42b02eefefbb580847"
+        ],
+        "claim": "DeleteSpaceMember requires a current user and resolves the requested member resource before applying the deletion decision.",
+        "complete": false,
+        "id": "ctrl-b1ed4c2da8cbe8013f7b",
+        "digest": "0718d043df062b478eeaeac9b292ff6877d6df84b55385630d04db4be74cd273",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-bind-principal",
+        "questionId": "delete-different-member",
+        "pathKey": "different-member-denied",
+        "kind": "binding",
+        "after": [
+          "dsm-entry"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0"
+        ],
+        "claim": "The caller is bound as currentUser and passed to the store as actorUserID.",
+        "bindingKey": "caller-current-user",
+        "bindingKind": "principal",
+        "complete": false,
+        "id": "ctrl-916785f5e15f6519ec72",
+        "digest": "cb5a8a3032032a425ef2027e60a60b5a9335a447d22a46b676255ffe8f8892a8",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-bind-resource",
+        "questionId": "delete-different-member",
+        "pathKey": "different-member-denied",
+        "kind": "binding",
+        "after": [
+          "dsm-entry"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-a58f11610536809bca27"
+        ],
+        "claim": "The request-selected target membership is bound to targetMembership.SpaceID and targetMembership.UserID.",
+        "bindingKey": "target-membership",
+        "bindingKind": "resource",
+        "complete": false,
+        "id": "ctrl-94653e1b03c01b9f3f9a",
+        "digest": "d4b1fb8595a9cc408e62589bec6ded98da71a2f151045b0c71e5f3536c4524d8",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-different-guard",
+        "questionId": "delete-different-member",
+        "pathKey": "different-member-denied",
+        "kind": "guard",
+        "after": [
+          "dsm-bind-principal",
+          "dsm-bind-resource"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0"
+        ],
+        "claim": "When targetUser.ID differs from currentUser.ID, requireSpaceAdministrator(callerMembership) is invoked and an error terminates the request.",
+        "condition": {
+          "op": "neq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "principal": "caller-current-user",
+        "resource": "target-membership",
+        "operation": "remove membership",
+        "complete": false,
+        "id": "ctrl-974983d19d12cec41a0e",
+        "digest": "a58ecedf059e5ae61589dafd567b6e0bfc25b870d6d4be5901bd0bbe35ffdd25",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-different-deny",
+        "questionId": "delete-different-member",
+        "pathKey": "different-member-denied",
+        "kind": "reject",
+        "after": [
+          "dsm-different-guard"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0"
+        ],
+        "claim": "A non-self removal does not reach Store.DeleteSpaceMember unless requireSpaceAdministrator succeeds.",
+        "condition": {
+          "op": "neq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "complete": false,
+        "id": "ctrl-c0c137d6a78ea49a0ef7",
+        "digest": "0367dbf48d64481a3ecb1e326b5d6502cce567062911ab24e53aeac3f7163702",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-admin-entry",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "administrator-removal",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-5f42b02eefefbb580847"
+        ],
+        "claim": "The administrator-removal path enters the same DeleteSpaceMember handler and resolves caller and target memberships.",
+        "complete": false,
+        "id": "ctrl-bfa04b7a151c6c5a8f54",
+        "digest": "69532eaa4398ea21117818119573f54dad5b676f0c79ee40d93ea06a64653467",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-admin-guard",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "administrator-removal",
+        "kind": "guard",
+        "after": [
+          "dsm-admin-entry"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-84264349a1295f03c6f1",
+          "ev-91e0c577dde3417420be",
+          "ev-b47c73b3bb6ac45fd1f1"
+        ],
+        "claim": "For a different target, the API requires the caller membership to be administrator; each shown SQL backend also requires actorUserID != targetUserID callers to have active ADMIN membership.",
+        "condition": {
+          "op": "neq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "principal": "caller-current-user",
+        "resource": "target-membership",
+        "operation": "remove membership",
+        "complete": false,
+        "id": "ctrl-0e6fa1642b4f7ee631a0",
+        "digest": "9620ac4ec0d9e3c918d2b5a0160801e5b00b8628d31cac3b9952c2a496a3785d",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-admin-effect",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "administrator-removal",
+        "kind": "effect",
+        "after": [
+          "dsm-admin-guard"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-84264349a1295f03c6f1",
+          "ev-91e0c577dde3417420be",
+          "ev-b47c73b3bb6ac45fd1f1"
+        ],
+        "claim": "After the administrator checks, the handler calls Store.DeleteSpaceMember with the resolved target membership and caller ID; backend deletion proceeds after the same non-self ADMIN check.",
+        "condition": {
+          "op": "neq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "principal": "caller-current-user",
+        "resource": "target-membership",
+        "operation": "remove membership",
+        "authorizedBy": [
+          "dsm-admin-guard"
+        ],
+        "complete": false,
+        "id": "ctrl-a7961d1d3ab046b0a059",
+        "digest": "f51abd5d370c1ae0ba6121e6a2422e36200d01633cf9d0774723d912e7967a20",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-self-entry",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "self-removal",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-5f42b02eefefbb580847"
+        ],
+        "claim": "The self-removal path enters the same handler and resolves the target membership.",
+        "complete": false,
+        "id": "ctrl-c9a07e2461d668bc95cc",
+        "digest": "13a7e0b633530e6a5f2c24ae7ccf5923802690c2ee7914d12e9a3d6bf1cfd615",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-self-branch",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "self-removal",
+        "kind": "continue",
+        "after": [
+          "dsm-self-entry"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0"
+        ],
+        "claim": "When targetUser.ID equals currentUser.ID, isSelf is true and the API-level administrator check is skipped.",
+        "condition": {
+          "op": "eq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "complete": false,
+        "id": "ctrl-d05dfe83ed1d9fe7bdf7",
+        "digest": "ade1b11d21d6c6da1d029ff24be403759074a6173c2de25e97333ce066eb1eb7",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-self-effect",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "self-removal",
+        "kind": "effect",
+        "after": [
+          "dsm-self-branch"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-a58f11610536809bca27",
+          "ev-c40acec0eb5a704392dc"
+        ],
+        "claim": "The self-removal path calls Store.DeleteSpaceMember with the caller's own target membership and actorUserID; the SQLite backend has no non-self ADMIN rejection on this branch.",
+        "condition": {
+          "op": "eq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "principal": "caller-current-user",
+        "resource": "own-membership",
+        "operation": "remove membership",
+        "complete": false,
+        "id": "ctrl-450e3c41d618b53121c9",
+        "digest": "6b461785fef3ea27cddd86079f050a1fd9e6f2cbd72a1552979ee4b3a570d838",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-entry-final",
+        "questionId": "delete-different-member",
+        "pathKey": "different-member-denied",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-5f42b02eefefbb580847"
+        ],
+        "claim": "DeleteSpaceMember authenticates/resolves the current user and requested membership before applying the branch.",
+        "id": "ctrl-149572adc5a0d7c6cbc4",
+        "digest": "1a4321375ea0da70c9af159bf8d486c60b3a570d3e6c14bd86d44633667ecc22",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-resource-final",
+        "questionId": "delete-different-member",
+        "pathKey": "different-member-denied",
+        "kind": "binding",
+        "after": [
+          "dsm-entry-final"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-a58f11610536809bca27"
+        ],
+        "claim": "The request-selected target membership supplies the space and target user deleted by the store operation.",
+        "bindingKey": "target-membership",
+        "bindingKind": "resource",
+        "id": "ctrl-41af6ae9e394d57861b7",
+        "digest": "cd9032c2d11ba45723a4f7c3f27606d9b9a2ed079b60d2f0025100b226440973",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-different-guard-final",
+        "questionId": "delete-different-member",
+        "pathKey": "different-member-denied",
+        "kind": "guard",
+        "after": [
+          "dsm-principal-final",
+          "dsm-resource-final"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-84264349a1295f03c6f1",
+          "ev-91e0c577dde3417420be",
+          "ev-b47c73b3bb6ac45fd1f1"
+        ],
+        "claim": "For a different target, the service requires a space administrator and each shown SQL backend independently requires the actor's active space role to be ADMIN.",
+        "condition": {
+          "op": "neq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "principal": "caller-current-user",
+        "resource": "target-membership",
+        "id": "ctrl-ea67200cb22622321897",
+        "digest": "1094eca4d0f3e247b8c074be34e65d14b2116c365ea446951e88620fb031def4",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-different-reject-final",
+        "questionId": "delete-different-member",
+        "pathKey": "different-member-denied",
+        "kind": "reject",
+        "after": [
+          "dsm-different-guard-final"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-84264349a1295f03c6f1",
+          "ev-91e0c577dde3417420be",
+          "ev-b47c73b3bb6ac45fd1f1"
+        ],
+        "claim": "An ordinary non-admin member is rejected before the deletion effect for a different target.",
+        "condition": {
+          "op": "neq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "complete": true,
+        "id": "ctrl-fc3a2891f21038fc503b",
+        "digest": "b11e340acf775d677e0d95ae3cf49fb469a557ce0f2d9e9d80d7c088e7bd47af",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-admin-entry-final",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "administrator-removal",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0"
+        ],
+        "claim": "The administrator-removal branch is the different-target branch.",
+        "id": "ctrl-43daf09151e3bbe0e201",
+        "digest": "9fb9745076c853d8627bdfdb439707e3884b5a2abd4fe7f9639754f74d823b63",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-admin-guard-final",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "administrator-removal",
+        "kind": "guard",
+        "after": [
+          "dsm-admin-entry-final"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-84264349a1295f03c6f1",
+          "ev-91e0c577dde3417420be",
+          "ev-b47c73b3bb6ac45fd1f1"
+        ],
+        "claim": "Different-target removal requires an administrator at both visible service and shown database-driver checks.",
+        "condition": {
+          "op": "neq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "principal": "caller-current-user",
+        "resource": "target-membership",
+        "id": "ctrl-55d2a5da3586a6e18a0b",
+        "digest": "054602424cdea4a03c42e8ac8110ba254d9c0f33e21f075f6c7a2e00f3386e52",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-admin-effect-final",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "administrator-removal",
+        "kind": "effect",
+        "after": [
+          "dsm-admin-guard-final"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-2458576127240a3d70ac",
+          "ev-77b2afa28e0a055cabbb",
+          "ev-a6cd8745dc80b3879364"
+        ],
+        "claim": "After authorization, deletion is performed, but deletion of the last active administrator is rejected by the shown SQLite, PostgreSQL, and MySQL implementations.",
+        "condition": {
+          "op": "neq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "principal": "caller-current-user",
+        "resource": "target-membership",
+        "authorizedBy": [
+          "dsm-admin-guard-final"
+        ],
+        "complete": true,
+        "id": "ctrl-492ff5b9e24d26b1ffa4",
+        "digest": "70a40d0cb151f168dbc1784ca9c383e697f8eded2dd26304b8bc3c9c1c404096",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-self-entry-final",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "self-removal",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0"
+        ],
+        "claim": "The self-removal branch is selected when targetUser.ID equals currentUser.ID.",
+        "id": "ctrl-5c807aa83522a5c1add1",
+        "digest": "4e1ed99ac4a9a38999812836d1e57005e023a9974d797101b097df5e58777cd4",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-self-continue-final",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "self-removal",
+        "kind": "continue",
+        "after": [
+          "dsm-self-entry-final"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-84264349a1295f03c6f1",
+          "ev-91e0c577dde3417420be",
+          "ev-b47c73b3bb6ac45fd1f1"
+        ],
+        "claim": "For self-removal, the service skips requireSpaceAdministrator and the shown drivers skip the different-target admin-role check.",
+        "condition": {
+          "op": "eq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "id": "ctrl-bbde4715c92d150a0708",
+        "digest": "05179afc1b1464f2d2293b22cf95b7769dff623741c53aace68fd4565079b953",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-self-effect-final",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "self-removal",
+        "kind": "effect",
+        "after": [
+          "dsm-self-continue-final"
+        ],
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-2458576127240a3d70ac",
+          "ev-77b2afa28e0a055cabbb",
+          "ev-a6cd8745dc80b3879364"
+        ],
+        "claim": "Self-removal reaches deletion without an administrator guard, but the shown backends still reject deletion when the target is the last active administrator.",
+        "condition": {
+          "op": "eq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "principal": "caller-current-user",
+        "resource": "own-membership",
+        "authorizedBy": [
+          "dsm-self-continue-final"
+        ],
+        "complete": true,
+        "id": "ctrl-8fc4ae7a54dfc49d3820",
+        "digest": "6e4c4e198bb11dd1418b0716a77cf83fd62648c1ecc18218c2ada34f83f014f2",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      }
+    ],
+    "dependencies": [
+      {
+        "key": "dsm-effect-dependency",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "administrator-removal",
+        "from": "dsm-admin-effect",
+        "symbol": "DeleteSpaceMember",
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-84264349a1295f03c6f1",
+          "ev-91e0c577dde3417420be",
+          "ev-b47c73b3bb6ac45fd1f1"
+        ],
+        "reason": "Confirm the terminal database mutation and whether the shown backend implementations converge after authorization.",
+        "kind": "effect",
+        "decisive": true,
+        "pathHint": "store/db/sqlite/space.go:411-445",
+        "id": "ctrl-789e88dafb2b6a522e1e",
+        "digest": "23ae913b87f66a8b73ac37881a5ca3fe2be8839f8a903b31975cd93b30187e5d",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "key": "dsm-self-effect-dependency",
+        "questionId": "delete-admin-vs-self",
+        "pathKey": "self-removal",
+        "from": "dsm-self-effect",
+        "symbol": "DeleteSpaceMember",
+        "evidenceIds": [
+          "ev-9897150ffe8ea362c7f0",
+          "ev-84264349a1295f03c6f1"
+        ],
+        "reason": "Confirm the terminal self-removal mutation and any invariant checks after the self branch.",
+        "kind": "effect",
+        "decisive": true,
+        "pathHint": "store/db/sqlite/space.go:411-445",
+        "id": "ctrl-d1882e4250890c999dea",
+        "digest": "137d5a2ae8cbbb01a915dd6f23fcaa18d421dc129701cf66e2144c2434c37c60",
+        "sourceBound": true,
+        "semanticSupport": "unreviewed"
+      }
+    ],
+    "bindings": [],
+    "policyRules": [
+      {
+        "questionId": "delete-different-member",
+        "key": "policy-different-deny",
+        "pathKey": "different-member-denied",
+        "condition": {
+          "op": "neq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "expected": "deny",
+        "text": "Only a space administrator may remove another member from that space.",
+        "location": "experimental-user-brief:memos-member-policy/v1",
+        "origin": "policy",
+        "id": "ctrl-92b6b5a46a03a0550bfc",
+        "digest": "9ecc4a1a8f1556b96f7cb6bacb745275624e1359a1add133bbe4615d787814e0",
+        "sourceBound": false,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "questionId": "delete-admin-vs-self",
+        "key": "policy-admin-allow",
+        "pathKey": "administrator-removal",
+        "condition": {
+          "op": "neq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "expected": "allow",
+        "text": "Only a space administrator may remove another member from that space.",
+        "location": "experimental-user-brief:memos-member-policy/v1",
+        "origin": "policy",
+        "id": "ctrl-89db8865b5ca26b7d0f6",
+        "digest": "3991466cb3633da6ce6c2888902e55aef32f4449d93075b6ef2be80ab2080d77",
+        "sourceBound": false,
+        "semanticSupport": "unreviewed"
+      },
+      {
+        "questionId": "delete-admin-vs-self",
+        "key": "policy-self-allow",
+        "pathKey": "self-removal",
+        "condition": {
+          "op": "eq",
+          "left": {
+            "binding": "target-user-id"
+          },
+          "right": {
+            "binding": "caller-user-id"
+          }
+        },
+        "expected": "allow",
+        "text": "This policy does not prohibit a member leaving the space themselves.",
+        "location": "experimental-user-brief:memos-member-policy/v1",
+        "origin": "policy",
+        "id": "ctrl-0efc255719c230bd2107",
+        "digest": "1450f40aed540203e95f1d4fa75ef395391bdabf622690af45eb52acce221a29",
+        "sourceBound": false,
+        "semanticSupport": "unreviewed"
+      }
+    ],
+    "conflicts": [],
+    "revisions": []
+  },
+  "extractionProposals": [
+    {
+      "delta": {
+        "schemaVersion": "authorization-control-slice/v1",
+        "rules": [
+          {
+            "key": "dsm-entry",
+            "questionId": "delete-different-member",
+            "pathKey": "different-member-denied",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-5f42b02eefefbb580847"
+            ],
+            "claim": "DeleteSpaceMember requires a current user and resolves the requested member resource before applying the deletion decision.",
+            "complete": false
+          },
+          {
+            "key": "dsm-bind-principal",
+            "questionId": "delete-different-member",
+            "pathKey": "different-member-denied",
+            "kind": "binding",
+            "after": [
+              "dsm-entry"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0"
+            ],
+            "claim": "The caller is bound as currentUser and passed to the store as actorUserID.",
+            "bindingKey": "caller-current-user",
+            "bindingKind": "principal",
+            "complete": false
+          },
+          {
+            "key": "dsm-bind-resource",
+            "questionId": "delete-different-member",
+            "pathKey": "different-member-denied",
+            "kind": "binding",
+            "after": [
+              "dsm-entry"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-a58f11610536809bca27"
+            ],
+            "claim": "The request-selected target membership is bound to targetMembership.SpaceID and targetMembership.UserID.",
+            "bindingKey": "target-membership",
+            "bindingKind": "resource",
+            "complete": false
+          },
+          {
+            "key": "dsm-different-guard",
+            "questionId": "delete-different-member",
+            "pathKey": "different-member-denied",
+            "kind": "guard",
+            "after": [
+              "dsm-bind-principal",
+              "dsm-bind-resource"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0"
+            ],
+            "claim": "When targetUser.ID differs from currentUser.ID, requireSpaceAdministrator(callerMembership) is invoked and an error terminates the request.",
+            "condition": {
+              "op": "neq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            },
+            "principal": "caller-current-user",
+            "resource": "target-membership",
+            "operation": "remove membership",
+            "complete": false
+          },
+          {
+            "key": "dsm-different-deny",
+            "questionId": "delete-different-member",
+            "pathKey": "different-member-denied",
+            "kind": "reject",
+            "after": [
+              "dsm-different-guard"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0"
+            ],
+            "claim": "A non-self removal does not reach Store.DeleteSpaceMember unless requireSpaceAdministrator succeeds.",
+            "condition": {
+              "op": "neq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            },
+            "complete": false
+          },
+          {
+            "key": "dsm-admin-entry",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "administrator-removal",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-5f42b02eefefbb580847"
+            ],
+            "claim": "The administrator-removal path enters the same DeleteSpaceMember handler and resolves caller and target memberships.",
+            "complete": false
+          },
+          {
+            "key": "dsm-admin-guard",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "administrator-removal",
+            "kind": "guard",
+            "after": [
+              "dsm-admin-entry"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-84264349a1295f03c6f1",
+              "ev-91e0c577dde3417420be",
+              "ev-b47c73b3bb6ac45fd1f1"
+            ],
+            "claim": "For a different target, the API requires the caller membership to be administrator; each shown SQL backend also requires actorUserID != targetUserID callers to have active ADMIN membership.",
+            "condition": {
+              "op": "neq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            },
+            "principal": "caller-current-user",
+            "resource": "target-membership",
+            "operation": "remove membership",
+            "complete": false
+          },
+          {
+            "key": "dsm-admin-effect",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "administrator-removal",
+            "kind": "effect",
+            "after": [
+              "dsm-admin-guard"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-84264349a1295f03c6f1",
+              "ev-91e0c577dde3417420be",
+              "ev-b47c73b3bb6ac45fd1f1"
+            ],
+            "claim": "After the administrator checks, the handler calls Store.DeleteSpaceMember with the resolved target membership and caller ID; backend deletion proceeds after the same non-self ADMIN check.",
+            "condition": {
+              "op": "neq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            },
+            "principal": "caller-current-user",
+            "resource": "target-membership",
+            "operation": "remove membership",
+            "authorizedBy": [
+              "dsm-admin-guard"
+            ],
+            "complete": false
+          },
+          {
+            "key": "dsm-self-entry",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "self-removal",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-5f42b02eefefbb580847"
+            ],
+            "claim": "The self-removal path enters the same handler and resolves the target membership.",
+            "complete": false
+          },
+          {
+            "key": "dsm-self-branch",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "self-removal",
+            "kind": "continue",
+            "after": [
+              "dsm-self-entry"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0"
+            ],
+            "claim": "When targetUser.ID equals currentUser.ID, isSelf is true and the API-level administrator check is skipped.",
+            "condition": {
+              "op": "eq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            },
+            "complete": false
+          },
+          {
+            "key": "dsm-self-effect",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "self-removal",
+            "kind": "effect",
+            "after": [
+              "dsm-self-branch"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-a58f11610536809bca27",
+              "ev-c40acec0eb5a704392dc"
+            ],
+            "claim": "The self-removal path calls Store.DeleteSpaceMember with the caller's own target membership and actorUserID; the SQLite backend has no non-self ADMIN rejection on this branch.",
+            "condition": {
+              "op": "eq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            },
+            "principal": "caller-current-user",
+            "resource": "own-membership",
+            "operation": "remove membership",
+            "complete": false
+          }
+        ],
+        "dependencies": [
+          {
+            "key": "dsm-effect-dependency",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "administrator-removal",
+            "from": "dsm-admin-effect",
+            "symbol": "DeleteSpaceMember",
+            "kind": "effect",
+            "decisive": true,
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-84264349a1295f03c6f1",
+              "ev-91e0c577dde3417420be",
+              "ev-b47c73b3bb6ac45fd1f1"
+            ],
+            "reason": "Confirm the terminal database mutation and whether the shown backend implementations converge after authorization.",
+            "pathHint": "store/db/sqlite/space.go:411-445"
+          },
+          {
+            "key": "dsm-self-effect-dependency",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "self-removal",
+            "from": "dsm-self-effect",
+            "symbol": "DeleteSpaceMember",
+            "kind": "effect",
+            "decisive": true,
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-84264349a1295f03c6f1"
+            ],
+            "reason": "Confirm the terminal self-removal mutation and any invariant checks after the self branch.",
+            "pathHint": "store/db/sqlite/space.go:411-445"
+          }
+        ],
+        "policyRules": [
+          {
+            "key": "policy-different-deny",
+            "questionId": "delete-different-member",
+            "pathKey": "different-member-denied",
+            "expected": "deny",
+            "origin": "policy",
+            "text": "Only a space administrator may remove another member from that space.",
+            "location": "experimental-user-brief:memos-member-policy/v1",
+            "condition": {
+              "op": "neq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            }
+          },
+          {
+            "key": "policy-admin-allow",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "administrator-removal",
+            "expected": "allow",
+            "origin": "policy",
+            "text": "Only a space administrator may remove another member from that space.",
+            "location": "experimental-user-brief:memos-member-policy/v1",
+            "condition": {
+              "op": "neq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            }
+          },
+          {
+            "key": "policy-self-allow",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "self-removal",
+            "expected": "allow",
+            "origin": "policy",
+            "text": "This policy does not prohibit a member leaving the space themselves.",
+            "location": "experimental-user-brief:memos-member-policy/v1",
+            "condition": {
+              "op": "eq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            }
+          }
+        ]
+      },
+      "diagnostics": [],
+      "revision": 16
+    },
+    {
+      "delta": {
+        "schemaVersion": "authorization-control-slice/v1",
+        "revisionOf": "16",
+        "revisionReason": "Complete the source-bound DeleteSpaceMember branches using the shown service and driver implementations; preserve backend-specific last-admin checks as downstream exceptions.",
+        "rules": [
+          {
+            "key": "dsm-entry-v2",
+            "questionId": "delete-different-member",
+            "pathKey": "different-member-denied",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-5f42b02eefefbb580847"
+            ],
+            "claim": "DeleteSpaceMember resolves the current user and the requested space-member resource before authorization and deletion."
+          },
+          {
+            "key": "dsm-principal-v2",
+            "questionId": "delete-different-member",
+            "pathKey": "different-member-denied",
+            "kind": "binding",
+            "after": [
+              "dsm-entry-v2"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0"
+            ],
+            "claim": "The caller is bound to currentUser.ID and passed as actorUserID to Store.DeleteSpaceMember.",
+            "bindingKey": "caller-current-user",
+            "bindingKind": "principal"
+          },
+          {
+            "key": "dsm-resource-v2",
+            "questionId": "delete-different-member",
+            "pathKey": "different-member-denied",
+            "kind": "binding",
+            "after": [
+              "dsm-entry-v2"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-a58f11610536809bca27"
+            ],
+            "claim": "The request-selected target membership supplies targetMembership.SpaceID and targetMembership.UserID to the deletion effect.",
+            "bindingKey": "target-membership",
+            "bindingKind": "resource"
+          },
+          {
+            "key": "dsm-different-guard-v2",
+            "questionId": "delete-different-member",
+            "pathKey": "different-member-denied",
+            "kind": "guard",
+            "after": [
+              "dsm-principal-v2",
+              "dsm-resource-v2"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-84264349a1295f03c6f1",
+              "ev-91e0c577dde3417420be",
+              "ev-b47c73b3bb6ac45fd1f1"
+            ],
+            "claim": "When targetUser.ID differs from currentUser.ID, the service requires administrator membership; each SQLite, PostgreSQL, and MySQL driver independently rejects a non-admin actor for a different target.",
+            "condition": {
+              "op": "neq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            },
+            "principal": "caller-current-user",
+            "resource": "target-membership"
+          },
+          {
+            "key": "dsm-different-reject-v2",
+            "questionId": "delete-different-member",
+            "pathKey": "different-member-denied",
+            "kind": "reject",
+            "after": [
+              "dsm-different-guard-v2"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-84264349a1295f03c6f1",
+              "ev-91e0c577dde3417420be",
+              "ev-b47c73b3bb6ac45fd1f1"
+            ],
+            "claim": "A non-administrator cannot reach the deletion effect for a different target; the visible service and all shown database drivers return permission denied.",
+            "condition": {
+              "op": "neq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            },
+            "complete": true
+          },
+          {
+            "key": "dsm-admin-entry-v2",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "administrator-removal",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0"
+            ],
+            "claim": "The administrator-removal branch enters when the resolved target user differs from the current user."
+          },
+          {
+            "key": "dsm-admin-guard-v2",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "administrator-removal",
+            "kind": "guard",
+            "after": [
+              "dsm-admin-entry-v2"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-84264349a1295f03c6f1",
+              "ev-91e0c577dde3417420be",
+              "ev-b47c73b3bb6ac45fd1f1"
+            ],
+            "claim": "Different-target removal requires an administrator at the service and driver layers.",
+            "condition": {
+              "op": "neq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            },
+            "principal": "caller-current-user",
+            "resource": "target-membership"
+          },
+          {
+            "key": "dsm-admin-effect-v2",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "administrator-removal",
+            "kind": "effect",
+            "after": [
+              "dsm-admin-guard-v2"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-84264349a1295f03c6f1",
+              "ev-91e0c577dde3417420be",
+              "ev-b47c73b3bb6ac45fd1f1"
+            ],
+            "claim": "After the administrator guard, the target membership is deleted, subject to the shown last-active-admin protection.",
+            "condition": {
+              "op": "neq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            },
+            "principal": "caller-current-user",
+            "resource": "target-membership",
+            "authorizedBy": [
+              "dsm-admin-guard-v2"
+            ]
+          },
+          {
+            "key": "dsm-self-entry-v2",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "self-removal",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0"
+            ],
+            "claim": "The self-removal branch is selected when the resolved target user is the current user."
+          },
+          {
+            "key": "dsm-self-continue-v2",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "self-removal",
+            "kind": "continue",
+            "after": [
+              "dsm-self-entry-v2"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-84264349a1295f03c6f1",
+              "ev-91e0c577dde3417420be",
+              "ev-b47c73b3bb6ac45fd1f1"
+            ],
+            "claim": "When targetUser.ID equals currentUser.ID, the service does not invoke requireSpaceAdministrator, and the shown drivers skip the non-self administrator check.",
+            "condition": {
+              "op": "eq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            }
+          },
+          {
+            "key": "dsm-self-effect-v2",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "self-removal",
+            "kind": "effect",
+            "after": [
+              "dsm-self-continue-v2"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-84264349a1295f03c6f1",
+              "ev-91e0c577dde3417420be",
+              "ev-b47c73b3bb6ac45fd1f1"
+            ],
+            "claim": "The caller's own active membership is deleted without the administrator guard, subject to membership existence and last-admin protection when applicable.",
+            "condition": {
+              "op": "eq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            },
+            "principal": "caller-current-user",
+            "resource": "own-membership",
+            "authorizedBy": [
+              "dsm-self-continue-v2"
+            ],
+            "complete": true
+          }
+        ],
+        "policyRules": [
+          {
+            "key": "policy-different-v2",
+            "questionId": "delete-different-member",
+            "pathKey": "different-member-denied",
+            "expected": "deny",
+            "origin": "policy",
+            "text": "Only a space administrator may remove another member from that space.",
+            "location": "experimental-user-brief:memos-member-policy/v1",
+            "condition": {
+              "op": "neq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            }
+          },
+          {
+            "key": "policy-admin-v2",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "administrator-removal",
+            "expected": "allow",
+            "origin": "policy",
+            "text": "Only a space administrator may remove another member from that space.",
+            "location": "experimental-user-brief:memos-member-policy/v1",
+            "condition": {
+              "op": "neq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            }
+          },
+          {
+            "key": "policy-self-v2",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "self-removal",
+            "expected": "allow",
+            "origin": "policy",
+            "text": "This policy does not prohibit a member leaving the space themselves.",
+            "location": "experimental-user-brief:memos-member-policy/v1",
+            "condition": {
+              "op": "eq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            }
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "code": "control-schema",
+          "path": "",
+          "message": "Unrecognized key(s) in object: 'revisionOf', 'revisionReason'",
+          "severity": "error"
+        }
+      ],
+      "revision": 16
+    },
+    {
+      "delta": {
+        "schemaVersion": "authorization-control-slice/v1",
+        "rules": [
+          {
+            "key": "dsm-entry-final",
+            "questionId": "delete-different-member",
+            "pathKey": "different-member-denied",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-5f42b02eefefbb580847"
+            ],
+            "claim": "DeleteSpaceMember authenticates/resolves the current user and requested membership before applying the branch."
+          },
+          {
+            "key": "dsm-principal-final",
+            "questionId": "delete-different-member",
+            "pathKey": "different-member-denied",
+            "kind": "binding",
+            "after": [
+              "dsm-entry-final"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f8c77b",
+              "ev-9897150ffe8ea362c7f0"
+            ],
+            "claim": "The caller is currentUser.ID, passed as actorUserID to Store.DeleteSpaceMember.",
+            "bindingKey": "caller-current-user",
+            "bindingKind": "principal"
+          },
+          {
+            "key": "dsm-resource-final",
+            "questionId": "delete-different-member",
+            "pathKey": "different-member-denied",
+            "kind": "binding",
+            "after": [
+              "dsm-entry-final"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-a58f11610536809bca27"
+            ],
+            "claim": "The request-selected target membership supplies the space and target user deleted by the store operation.",
+            "bindingKey": "target-membership",
+            "bindingKind": "resource"
+          },
+          {
+            "key": "dsm-different-guard-final",
+            "questionId": "delete-different-member",
+            "pathKey": "different-member-denied",
+            "kind": "guard",
+            "after": [
+              "dsm-principal-final",
+              "dsm-resource-final"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-84264349a1295f03c6f1",
+              "ev-91e0c577dde3417420be",
+              "ev-b47c73b3bb6ac45fd1f1"
+            ],
+            "claim": "For a different target, the service requires a space administrator and each shown SQL backend independently requires the actor's active space role to be ADMIN.",
+            "condition": {
+              "op": "neq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            },
+            "principal": "caller-current-user",
+            "resource": "target-membership"
+          },
+          {
+            "key": "dsm-different-reject-final",
+            "questionId": "delete-different-member",
+            "pathKey": "different-member-denied",
+            "kind": "reject",
+            "after": [
+              "dsm-different-guard-final"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-84264349a1295f03c6f1",
+              "ev-91e0c577dde3417420be",
+              "ev-b47c73b3bb6ac45fd1f1"
+            ],
+            "claim": "An ordinary non-admin member is rejected before the deletion effect for a different target.",
+            "condition": {
+              "op": "neq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            },
+            "complete": true
+          },
+          {
+            "key": "dsm-admin-entry-final",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "administrator-removal",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0"
+            ],
+            "claim": "The administrator-removal branch is the different-target branch."
+          },
+          {
+            "key": "dsm-admin-guard-final",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "administrator-removal",
+            "kind": "guard",
+            "after": [
+              "dsm-admin-entry-final"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-84264349a1295f03c6f1",
+              "ev-91e0c577dde3417420be",
+              "ev-b47c73b3bb6ac45fd1f1"
+            ],
+            "claim": "Different-target removal requires an administrator at both visible service and shown database-driver checks.",
+            "condition": {
+              "op": "neq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            },
+            "principal": "caller-current-user",
+            "resource": "target-membership"
+          },
+          {
+            "key": "dsm-admin-effect-final",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "administrator-removal",
+            "kind": "effect",
+            "after": [
+              "dsm-admin-guard-final"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-2458576127240a3d70ac",
+              "ev-77b2afa28e0a055cabbb",
+              "ev-a6cd8745dc80b3879364"
+            ],
+            "claim": "After authorization, deletion is performed, but deletion of the last active administrator is rejected by the shown SQLite, PostgreSQL, and MySQL implementations.",
+            "condition": {
+              "op": "neq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            },
+            "principal": "caller-current-user",
+            "resource": "target-membership",
+            "authorizedBy": [
+              "dsm-admin-guard-final"
+            ],
+            "complete": true
+          },
+          {
+            "key": "dsm-self-entry-final",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "self-removal",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0"
+            ],
+            "claim": "The self-removal branch is selected when targetUser.ID equals currentUser.ID."
+          },
+          {
+            "key": "dsm-self-continue-final",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "self-removal",
+            "kind": "continue",
+            "after": [
+              "dsm-self-entry-final"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-84264349a1295f03c6f1",
+              "ev-91e0c577dde3417420be",
+              "ev-b47c73b3bb6ac45fd1f1"
+            ],
+            "claim": "For self-removal, the service skips requireSpaceAdministrator and the shown drivers skip the different-target admin-role check.",
+            "condition": {
+              "op": "eq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            }
+          },
+          {
+            "key": "dsm-self-effect-final",
+            "questionId": "delete-admin-vs-self",
+            "pathKey": "self-removal",
+            "kind": "effect",
+            "after": [
+              "dsm-self-continue-final"
+            ],
+            "evidenceIds": [
+              "ev-9897150ffe8ea362c7f0",
+              "ev-2458576127240a3d70ac",
+              "ev-77b2afa28e0a055cabbb",
+              "ev-a6cd8745dc80b3879364"
+            ],
+            "claim": "Self-removal reaches deletion without an administrator guard, but the shown backends still reject deletion when the target is the last active administrator.",
+            "condition": {
+              "op": "eq",
+              "left": {
+                "binding": "target-user-id"
+              },
+              "right": {
+                "binding": "caller-user-id"
+              }
+            },
+            "principal": "caller-current-user",
+            "resource": "own-membership",
+            "authorizedBy": [
+              "dsm-self-continue-final"
+            ],
+            "complete": true
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "code": "evidence-not-shown",
+          "path": "rules.dsm-principal-final",
+          "message": "Evidence ev-9897150ffe8ea362c7f8c77b was not shown.",
+          "severity": "error"
+        }
+      ],
+      "revision": 26
+    }
+  ],
+  "hostChecks": [
+    {
+      "structureValid": true,
+      "sourceBound": true,
+      "ruleConsistency": false,
+      "semanticSupport": "unreviewed",
+      "taskResolution": "partial",
+      "paths": [
+        {
+          "questionId": "delete-different-member",
+          "pathKey": "different-member-denied",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "unknown",
+            "residual": {
+              "op": "any",
+              "args": [
+                {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "neq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    },
+                    {
+                      "op": "neq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "neq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    },
+                    {
+                      "op": "neq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "missingBindings": [
+              "caller-user-id",
+              "target-user-id"
+            ],
+            "trace": [
+              {
+                "op": "neq",
+                "truth": "unknown"
+              },
+              {
+                "op": "neq",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              },
+              {
+                "op": "neq",
+                "truth": "unknown"
+              },
+              {
+                "op": "neq",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              },
+              {
+                "op": "any",
+                "truth": "unknown"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "any",
+            "args": [
+              {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "neq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  },
+                  {
+                    "op": "neq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "neq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  },
+                  {
+                    "op": "neq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "nodeKeys": [
+            "dsm-entry",
+            "dsm-bind-principal",
+            "dsm-bind-resource",
+            "dsm-different-guard",
+            "dsm-different-deny",
+            "dsm-entry-final",
+            "dsm-resource-final",
+            "dsm-different-guard-final",
+            "dsm-different-reject-final"
+          ],
+          "terminalKeys": [
+            "dsm-different-deny",
+            "dsm-different-reject-final"
+          ],
+          "gaps": [
+            "closure-not-proposed",
+            "predecessor-missing:dsm-principal-final"
+          ],
+          "sourceBound": true
+        },
+        {
+          "questionId": "delete-admin-vs-self",
+          "pathKey": "administrator-removal",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "unknown",
+            "residual": {
+              "op": "any",
+              "args": [
+                {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "neq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    },
+                    {
+                      "op": "neq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "neq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    },
+                    {
+                      "op": "neq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "missingBindings": [
+              "caller-user-id",
+              "target-user-id"
+            ],
+            "trace": [
+              {
+                "op": "neq",
+                "truth": "unknown"
+              },
+              {
+                "op": "neq",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              },
+              {
+                "op": "neq",
+                "truth": "unknown"
+              },
+              {
+                "op": "neq",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              },
+              {
+                "op": "any",
+                "truth": "unknown"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "any",
+            "args": [
+              {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "neq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  },
+                  {
+                    "op": "neq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "neq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  },
+                  {
+                    "op": "neq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "nodeKeys": [
+            "dsm-admin-entry",
+            "dsm-admin-guard",
+            "dsm-admin-effect",
+            "dsm-admin-entry-final",
+            "dsm-admin-guard-final",
+            "dsm-admin-effect-final"
+          ],
+          "terminalKeys": [
+            "dsm-admin-effect",
+            "dsm-admin-effect-final"
+          ],
+          "gaps": [
+            "closure-not-proposed"
+          ],
+          "sourceBound": true
+        },
+        {
+          "questionId": "delete-admin-vs-self",
+          "pathKey": "self-removal",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "unknown",
+            "residual": {
+              "op": "any",
+              "args": [
+                {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    },
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    },
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "missingBindings": [
+              "caller-user-id",
+              "target-user-id"
+            ],
+            "trace": [
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              },
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              },
+              {
+                "op": "any",
+                "truth": "unknown"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "any",
+            "args": [
+              {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  },
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  },
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "nodeKeys": [
+            "dsm-self-entry",
+            "dsm-self-branch",
+            "dsm-self-effect",
+            "dsm-self-entry-final",
+            "dsm-self-continue-final",
+            "dsm-self-effect-final"
+          ],
+          "terminalKeys": [
+            "dsm-self-effect",
+            "dsm-self-effect-final"
+          ],
+          "gaps": [
+            "closure-not-proposed"
+          ],
+          "sourceBound": true
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "evidence-not-shown",
+          "path": "rules.dsm-principal-final",
+          "message": "Evidence ev-9897150ffe8ea362c7f8c77b was not shown.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-admin-guard",
+          "message": "Typed principal caller-current-user is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-admin-guard",
+          "message": "Typed resource target-membership is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-admin-effect",
+          "message": "Typed principal caller-current-user is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-admin-effect",
+          "message": "Typed resource target-membership is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-self-effect",
+          "message": "Typed principal caller-current-user is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-self-effect",
+          "message": "Typed resource own-membership is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-admin-guard-final",
+          "message": "Typed principal caller-current-user is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-admin-guard-final",
+          "message": "Typed resource target-membership is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-admin-effect-final",
+          "message": "Typed principal caller-current-user is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-admin-effect-final",
+          "message": "Typed resource target-membership is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-self-effect-final",
+          "message": "Typed principal caller-current-user is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-self-effect-final",
+          "message": "Typed resource own-membership is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "authorization-edge-missing",
+          "path": "dsm-self-effect-final",
+          "message": "Claimed authorizing guard dsm-self-continue-final is absent.",
+          "severity": "error"
+        },
+        {
+          "code": "path-not-closed",
+          "path": "delete-different-member",
+          "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+          "severity": "error"
+        },
+        {
+          "code": "policy-behavior-conflict",
+          "path": "delete-different-member",
+          "message": "Current independent policy mappings yield undetermined; raw assessment claims satisfied. Incomplete mappings must remain undetermined.",
+          "severity": "error"
+        },
+        {
+          "code": "path-not-closed",
+          "path": "delete-admin-vs-self",
+          "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+          "severity": "error"
+        }
+      ],
+      "policyComparisons": [
+        {
+          "questionId": "delete-different-member",
+          "status": "undetermined",
+          "origin": "host-derived-from-proposed-policy",
+          "semanticSupport": "unreviewed"
+        },
+        {
+          "questionId": "delete-admin-vs-self",
+          "status": "undetermined",
+          "origin": "host-derived-from-proposed-policy",
+          "semanticSupport": "unreviewed"
+        }
+      ],
+      "calculationCount": 9
+    },
+    {
+      "structureValid": true,
+      "sourceBound": true,
+      "ruleConsistency": false,
+      "semanticSupport": "unreviewed",
+      "taskResolution": "partial",
+      "paths": [
+        {
+          "questionId": "delete-different-member",
+          "pathKey": "different-member-denied",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "unknown",
+            "residual": {
+              "op": "any",
+              "args": [
+                {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "neq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    },
+                    {
+                      "op": "neq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "neq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    },
+                    {
+                      "op": "neq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "missingBindings": [
+              "caller-user-id",
+              "target-user-id"
+            ],
+            "trace": [
+              {
+                "op": "neq",
+                "truth": "unknown"
+              },
+              {
+                "op": "neq",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              },
+              {
+                "op": "neq",
+                "truth": "unknown"
+              },
+              {
+                "op": "neq",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              },
+              {
+                "op": "any",
+                "truth": "unknown"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "any",
+            "args": [
+              {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "neq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  },
+                  {
+                    "op": "neq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "neq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  },
+                  {
+                    "op": "neq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "nodeKeys": [
+            "dsm-entry",
+            "dsm-bind-principal",
+            "dsm-bind-resource",
+            "dsm-different-guard",
+            "dsm-different-deny",
+            "dsm-entry-final",
+            "dsm-resource-final",
+            "dsm-different-guard-final",
+            "dsm-different-reject-final"
+          ],
+          "terminalKeys": [
+            "dsm-different-deny",
+            "dsm-different-reject-final"
+          ],
+          "gaps": [
+            "closure-not-proposed",
+            "predecessor-missing:dsm-principal-final"
+          ],
+          "sourceBound": true
+        },
+        {
+          "questionId": "delete-admin-vs-self",
+          "pathKey": "administrator-removal",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "unknown",
+            "residual": {
+              "op": "any",
+              "args": [
+                {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "neq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    },
+                    {
+                      "op": "neq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "neq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    },
+                    {
+                      "op": "neq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "missingBindings": [
+              "caller-user-id",
+              "target-user-id"
+            ],
+            "trace": [
+              {
+                "op": "neq",
+                "truth": "unknown"
+              },
+              {
+                "op": "neq",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              },
+              {
+                "op": "neq",
+                "truth": "unknown"
+              },
+              {
+                "op": "neq",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              },
+              {
+                "op": "any",
+                "truth": "unknown"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "any",
+            "args": [
+              {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "neq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  },
+                  {
+                    "op": "neq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "neq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  },
+                  {
+                    "op": "neq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "nodeKeys": [
+            "dsm-admin-entry",
+            "dsm-admin-guard",
+            "dsm-admin-effect",
+            "dsm-admin-entry-final",
+            "dsm-admin-guard-final",
+            "dsm-admin-effect-final"
+          ],
+          "terminalKeys": [
+            "dsm-admin-effect",
+            "dsm-admin-effect-final"
+          ],
+          "gaps": [
+            "closure-not-proposed"
+          ],
+          "sourceBound": true
+        },
+        {
+          "questionId": "delete-admin-vs-self",
+          "pathKey": "self-removal",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "unknown",
+            "residual": {
+              "op": "any",
+              "args": [
+                {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    },
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    },
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "target-user-id"
+                      },
+                      "right": {
+                        "binding": "caller-user-id"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            "missingBindings": [
+              "caller-user-id",
+              "target-user-id"
+            ],
+            "trace": [
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              },
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              },
+              {
+                "op": "any",
+                "truth": "unknown"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "any",
+            "args": [
+              {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  },
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  }
+                ]
+              },
+              {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  },
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "target-user-id"
+                    },
+                    "right": {
+                      "binding": "caller-user-id"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "nodeKeys": [
+            "dsm-self-entry",
+            "dsm-self-branch",
+            "dsm-self-effect",
+            "dsm-self-entry-final",
+            "dsm-self-continue-final",
+            "dsm-self-effect-final"
+          ],
+          "terminalKeys": [
+            "dsm-self-effect",
+            "dsm-self-effect-final"
+          ],
+          "gaps": [
+            "closure-not-proposed"
+          ],
+          "sourceBound": true
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "evidence-not-shown",
+          "path": "rules.dsm-principal-final",
+          "message": "Evidence ev-9897150ffe8ea362c7f8c77b was not shown.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-admin-guard",
+          "message": "Typed principal caller-current-user is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-admin-guard",
+          "message": "Typed resource target-membership is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-admin-effect",
+          "message": "Typed principal caller-current-user is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-admin-effect",
+          "message": "Typed resource target-membership is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-self-effect",
+          "message": "Typed principal caller-current-user is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-self-effect",
+          "message": "Typed resource own-membership is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-admin-guard-final",
+          "message": "Typed principal caller-current-user is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-admin-guard-final",
+          "message": "Typed resource target-membership is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-admin-effect-final",
+          "message": "Typed principal caller-current-user is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-admin-effect-final",
+          "message": "Typed resource target-membership is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-self-effect-final",
+          "message": "Typed principal caller-current-user is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "object-binding-missing",
+          "path": "dsm-self-effect-final",
+          "message": "Typed resource own-membership is not bound in this question.",
+          "severity": "error"
+        },
+        {
+          "code": "authorization-edge-missing",
+          "path": "dsm-self-effect-final",
+          "message": "Claimed authorizing guard dsm-self-continue-final is absent.",
+          "severity": "error"
+        },
+        {
+          "code": "path-not-closed",
+          "path": "delete-different-member",
+          "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+          "severity": "error"
+        },
+        {
+          "code": "policy-behavior-conflict",
+          "path": "delete-different-member",
+          "message": "Current independent policy mappings yield undetermined; raw assessment claims satisfied. Incomplete mappings must remain undetermined.",
+          "severity": "error"
+        },
+        {
+          "code": "path-not-closed",
+          "path": "delete-admin-vs-self",
+          "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+          "severity": "error"
+        }
+      ],
+      "policyComparisons": [
+        {
+          "questionId": "delete-different-member",
+          "status": "undetermined",
+          "origin": "host-derived-from-proposed-policy",
+          "semanticSupport": "unreviewed"
+        },
+        {
+          "questionId": "delete-admin-vs-self",
+          "status": "undetermined",
+          "origin": "host-derived-from-proposed-policy",
+          "semanticSupport": "unreviewed"
+        }
+      ],
+      "calculationCount": 9
+    }
+  ],
+  "dependencies": [
+    {
+      "id": "ctrl-789e88dafb2b6a522e1e",
+      "digest": "23ae913b87f66a8b73ac37881a5ca3fe2be8839f8a903b31975cd93b30187e5d",
+      "key": "dsm-effect-dependency",
+      "questionId": "delete-admin-vs-self",
+      "pathKey": "administrator-removal",
+      "decisive": true,
+      "symbol": "DeleteSpaceMember",
+      "state": "external-unknown",
+      "reason": "Requested dependency file is outside the allowed indexed scope.",
+      "candidates": [],
+      "evidenceIds": [],
+      "semanticSupport": "unreviewed",
+      "code": "dependency-out-of-scope"
+    },
+    {
+      "id": "ctrl-d1882e4250890c999dea",
+      "digest": "137d5a2ae8cbbb01a915dd6f23fcaa18d421dc129701cf66e2144c2434c37c60",
+      "key": "dsm-self-effect-dependency",
+      "questionId": "delete-admin-vs-self",
+      "pathKey": "self-removal",
+      "decisive": true,
+      "symbol": "DeleteSpaceMember",
+      "state": "external-unknown",
+      "reason": "Requested dependency file is outside the allowed indexed scope.",
+      "candidates": [],
+      "evidenceIds": [],
+      "semanticSupport": "unreviewed",
+      "code": "dependency-out-of-scope"
+    }
+  ],
+  "schedulerActions": [],
+  "evidence": [
+    {
+      "id": "ev-781099126d4473f5a6a1",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 126,
+      "endLine": 126,
+      "bytes": 77
+    },
+    {
+      "id": "ev-e97f2cbdd5d311b9c657",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 128,
+      "endLine": 128,
+      "bytes": 90
+    },
+    {
+      "id": "ev-77fb6b5d14d0b901a809",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 394,
+      "endLine": 394,
+      "bytes": 41
+    },
+    {
+      "id": "ev-8587192a0a224bab1e1c",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/connect_services.go",
+      "sha256": "b7c43523239e74e488104e9a550b0315c09f8e93714e37b220e79d79d31631b0",
+      "startLine": 650,
+      "endLine": 650,
+      "bytes": 174
+    },
+    {
+      "id": "ev-8cc3386f0794bfc13e1b",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/connect_services.go",
+      "sha256": "b7c43523239e74e488104e9a550b0315c09f8e93714e37b220e79d79d31631b0",
+      "startLine": 651,
+      "endLine": 651,
+      "bytes": 67
+    },
+    {
+      "id": "ev-cb9cce8501567f6ecb00",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 740,
+      "endLine": 740,
+      "bytes": 80
+    },
+    {
+      "id": "ev-9ee45f98c8803e5baf45",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 741,
+      "endLine": 741,
+      "bytes": 134
+    },
+    {
+      "id": "ev-6f0761b3437bb3341438",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 756,
+      "endLine": 756,
+      "bytes": 74
+    },
+    {
+      "id": "ev-1406155e35289f4c8840",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/mysql/space.go",
+      "sha256": "c3a222324d95f0ec5b25f4ae00abca9592670f3afd5656bd6830c269b586deb6",
+      "startLine": 399,
+      "endLine": 399,
+      "bytes": 118
+    },
+    {
+      "id": "ev-b937e51c129d5160f9ac",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/postgres/space.go",
+      "sha256": "904d4817ea006a369061588aa2ce843a6d9bd76ca0705b393f2dcad6d6896eb4",
+      "startLine": 437,
+      "endLine": 437,
+      "bytes": 118
+    },
+    {
+      "id": "ev-33b04536e00eb4ebfaf6",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/sqlite/space.go",
+      "sha256": "3342f78a8fee794e6bdaf2765874030661a1b2130b5bf9eb6b0e8d626f4572f9",
+      "startLine": 411,
+      "endLine": 411,
+      "bytes": 118
+    },
+    {
+      "id": "ev-f8ef9b01df78754b0cd1",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/driver.go",
+      "sha256": "8fb7f82b0338dbb5b9b683e7c6dd0b0107186b1106acf6d3cf292f2e6f8d24fb",
+      "startLine": 45,
+      "endLine": 45,
+      "bytes": 97
+    },
+    {
+      "id": "ev-fd8f6bc0120a2628f62d",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 134,
+      "endLine": 134,
+      "bytes": 62
+    },
+    {
+      "id": "ev-26bcf93f9afea265612b",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 135,
+      "endLine": 135,
+      "bytes": 38
+    },
+    {
+      "id": "ev-92698ef6bf9052def001",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 272,
+      "endLine": 272,
+      "bytes": 85
+    },
+    {
+      "id": "ev-4e8276f16b6f286a6211",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 274,
+      "endLine": 274,
+      "bytes": 115
+    },
+    {
+      "id": "ev-8386c158f397aee0ae85",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 278,
+      "endLine": 278,
+      "bytes": 67
+    },
+    {
+      "id": "ev-de1f1fbac84dad52955f",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "core/access/memo.go",
+      "sha256": "86d782c17efe235db8ad4366b4f708a066d7a4a835639b6c0e70895f2e21e639",
+      "startLine": 47,
+      "endLine": 47,
+      "bytes": 29
+    },
+    {
+      "id": "ev-0e591dc194a19dd93823",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "core/access/memo.go",
+      "sha256": "86d782c17efe235db8ad4366b4f708a066d7a4a835639b6c0e70895f2e21e639",
+      "startLine": 150,
+      "endLine": 150,
+      "bytes": 35
+    },
+    {
+      "id": "ev-7b00488d776ee0f6405a",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "core/access/memo_resolve.go",
+      "sha256": "8b1a25c79431f51a5f7b5d8c1d12d7e587b7d45edfcefa853f2d9d02c9cb5d1e",
+      "startLine": 14,
+      "endLine": 14,
+      "bytes": 99
+    },
+    {
+      "id": "ev-10b06f5882ea1155ec25",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "core/access/memo_resolve.go",
+      "sha256": "8b1a25c79431f51a5f7b5d8c1d12d7e587b7d45edfcefa853f2d9d02c9cb5d1e",
+      "startLine": 75,
+      "endLine": 75,
+      "bytes": 116
+    },
+    {
+      "id": "ev-0ebbffdac6d67c648534",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "core/access/memo_resolve.go",
+      "sha256": "8b1a25c79431f51a5f7b5d8c1d12d7e587b7d45edfcefa853f2d9d02c9cb5d1e",
+      "startLine": 79,
+      "endLine": 79,
+      "bytes": 92
+    },
+    {
+      "id": "ev-5ff868c5f56e31fb38d5",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 88,
+      "endLine": 88,
+      "bytes": 87
+    },
+    {
+      "id": "ev-d42be957990ab2d74648",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 105,
+      "endLine": 105,
+      "bytes": 58
+    },
+    {
+      "id": "ev-48fb4f81fc3649b2ed37",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 106,
+      "endLine": 106,
+      "bytes": 91
+    },
+    {
+      "id": "ev-1b9550048efed9ba7e55",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 111,
+      "endLine": 111,
+      "bytes": 58
+    },
+    {
+      "id": "ev-8406ffc3e49e7b590f5f",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 112,
+      "endLine": 112,
+      "bytes": 74
+    },
+    {
+      "id": "ev-064155314196c157da51",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 117,
+      "endLine": 117,
+      "bytes": 60
+    },
+    {
+      "id": "ev-1b9fb65f0f17ee760978",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 118,
+      "endLine": 118,
+      "bytes": 80
+    },
+    {
+      "id": "ev-b7b8c1feece3fcd975e5",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 155,
+      "endLine": 155,
+      "bytes": 92
+    },
+    {
+      "id": "ev-5558b6720ab7f1dc32c9",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 175,
+      "endLine": 175,
+      "bytes": 76
+    },
+    {
+      "id": "ev-2f3b282fd1ba79935005",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 176,
+      "endLine": 176,
+      "bytes": 28
+    },
+    {
+      "id": "ev-3773828f4cb294d74d55",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 178,
+      "endLine": 178,
+      "bytes": 43
+    },
+    {
+      "id": "ev-e1d18fd4f4647e78420d",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 224,
+      "endLine": 224,
+      "bytes": 76
+    },
+    {
+      "id": "ev-23775def2377860885d5",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 359,
+      "endLine": 359,
+      "bytes": 40
+    },
+    {
+      "id": "ev-5f42b02eefefbb580847",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "proto/api/v1/space_service.proto",
+      "sha256": "1d0e3efa4a5d4b061ba54c4e26364f2d640d5369849cb3929606e09ca0484e7d",
+      "startLine": 120,
+      "endLine": 132,
+      "bytes": 576
+    },
+    {
+      "id": "ev-a58f11610536809bca27",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 128,
+      "endLine": 140,
+      "bytes": 366
+    },
+    {
+      "id": "ev-0fe61695f99d964c6066",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/space.go",
+      "sha256": "f6bd0e2e2eb57478245ce01f5d7535bfcd2918b5ef688795322affbc34282266",
+      "startLine": 266,
+      "endLine": 280,
+      "bytes": 706
+    },
+    {
+      "id": "ev-c40acec0eb5a704392dc",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/sqlite/space.go",
+      "sha256": "3342f78a8fee794e6bdaf2765874030661a1b2130b5bf9eb6b0e8d626f4572f9",
+      "startLine": 400,
+      "endLine": 430,
+      "bytes": 1430
+    },
+    {
+      "id": "ev-ef174207c747f7c8c77b",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/postgres/space.go",
+      "sha256": "904d4817ea006a369061588aa2ce843a6d9bd76ca0705b393f2dcad6d6896eb4",
+      "startLine": 430,
+      "endLine": 460,
+      "bytes": 1291
+    },
+    {
+      "id": "ev-d0b13e7ef30a70859418",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/mysql/space.go",
+      "sha256": "c3a222324d95f0ec5b25f4ae00abca9592670f3afd5656bd6830c269b586deb6",
+      "startLine": 392,
+      "endLine": 422,
+      "bytes": 1284
+    },
+    {
+      "id": "ev-9897150ffe8ea362c7f0",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "server/api/v1/space_service.go",
+      "sha256": "c00cd6ab86eefb0b3e6a8ea03c88894ac8f5dfa64ea2c1a36b8410311cc87be1",
+      "startLine": 740,
+      "endLine": 760,
+      "bytes": 978
+    },
+    {
+      "id": "ev-84264349a1295f03c6f1",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/sqlite/space.go",
+      "sha256": "3342f78a8fee794e6bdaf2765874030661a1b2130b5bf9eb6b0e8d626f4572f9",
+      "startLine": 424,
+      "endLine": 445,
+      "bytes": 1585
+    },
+    {
+      "id": "ev-91e0c577dde3417420be",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/postgres/space.go",
+      "sha256": "904d4817ea006a369061588aa2ce843a6d9bd76ca0705b393f2dcad6d6896eb4",
+      "startLine": 457,
+      "endLine": 475,
+      "bytes": 889
+    },
+    {
+      "id": "ev-b47c73b3bb6ac45fd1f1",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/mysql/space.go",
+      "sha256": "c3a222324d95f0ec5b25f4ae00abca9592670f3afd5656bd6830c269b586deb6",
+      "startLine": 419,
+      "endLine": 438,
+      "bytes": 1184
+    },
+    {
+      "id": "ev-2458576127240a3d70ac",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/sqlite/space.go",
+      "sha256": "3342f78a8fee794e6bdaf2765874030661a1b2130b5bf9eb6b0e8d626f4572f9",
+      "startLine": 434,
+      "endLine": 465,
+      "bytes": 1611
+    },
+    {
+      "id": "ev-77b2afa28e0a055cabbb",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/postgres/space.go",
+      "sha256": "904d4817ea006a369061588aa2ce843a6d9bd76ca0705b393f2dcad6d6896eb4",
+      "startLine": 457,
+      "endLine": 490,
+      "bytes": 1713
+    },
+    {
+      "id": "ev-a6cd8745dc80b3879364",
+      "repository": "usememos/memos",
+      "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+      "path": "store/db/mysql/space.go",
+      "sha256": "c3a222324d95f0ec5b25f4ae00abca9592670f3afd5656bd6830c269b586deb6",
+      "startLine": 419,
+      "endLine": 452,
+      "bytes": 1626
+    }
+  ],
+  "deliveryValid": false,
+  "reviewCaution": "Citations and host consistency do not prove extraction meaning. Evaluate raw first/final and final prose against original source at the retained evidence ranges. A native prose answer can be delivered despite failed host checking. Representation may reveal strategy; arm, cost and target scores are hidden. No earlier answer is supplied."
+}
