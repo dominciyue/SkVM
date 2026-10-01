@@ -2,6 +2,8 @@
 
 2026-10-02，本轮 48 个首轮会话和唯一预登记的 8 个共享修订会话已经关闭。工程实现与有限验证完成；研究结论为 **negative / benefit-not-established**，原生技能的完整机制验收仍有缺口。没有追加采样或改写原始回答。
 
+完整证据提交 `8e69ec5df2f29937d177b82b7fafc9f412877d33` 已推送并核对用户 `origin/skill-ir-aot`；发布时工作区干净。完成状态随后同步，具体证明保存在 [status](status.json) 与 [verification](verification.json)。AQ8、AQ13 及 AQ16 的完整工程验收条件保留未满足，不把有限研究关闭写成全部验收通过。
+
 ## 分母、实现与评价
 
 主面板为四项目八个已暴露 development 任务，M（自然 Markdown）/D1（声明）与 legacy/domain-evidence-v1 两轴交叉。每臂 8 原任务加 2 个预选反序重复，共 40；消融 4、两来源技能原/变普通 native 消费 4，首轮总 48。首轮绑定 `3d4ba68173f8ebde6b58fcef539212bbafcbd8a9`。共享 Schema 缺陷先以红例证实，修订在语义评价前固定 4 对、8 行，另绑定 `04b1b220f20e0e151b42f40a37f32ed22e1e9b39`，不替换原分母。见 [manifest](manifest.json)、[共享修订](shared-revision.json)和两份 generation-closed 文件。

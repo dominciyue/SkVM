@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 authorization/inquiry/native 实现与源码位置索引。沿用现有 CLI，不建设新平台或统一 IR。
 
-状态：`closed-with-unmet-criteria / primary-48-and-revision-8-closed / source-adjudicated / benefit-not-established`。规划基线为 `2c7dd07380999ca8df971a7cdc64d5e7ed1733c5`；实际干净启动头为 `c0cd32d2ff0a1824d84025bced4f1de5dfcbcabf`。目录 `D:\skill优化\SkVM`；分支 `skill-ir-aot`；唯一发布目标为用户 `origin/skill-ir-aot`。首轮绑定`3d4ba681`，唯一8行共享Schema修订绑定`04b1b220`，全部56行终态保留。434次provider调用、0目标执行；四质量臂首/终full1/1/1/1（各10），修订另列full1/8。6首评、3定向二审、2图审、2定向源码核验与主开发者沿源码的裁定完成，原文和失败均保留；最终不是完全独立盲评。481 pass/1平台skip、3208断言、主/研究类型、56行study/evaluation零调用重放及研究8测试/52断言通过。AQ8政策单独重算未实现；四原skill消费虽raw语义full3/4且compile/check有记录，自动读取0、checked交付0/4，AQ13完整采用链未达。本轮有限研究关闭、不追加付费；最终有限检查和发布身份以[AQ机器状态](../../results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/status.json)为准。
+状态：`closed-with-unmet-criteria / published / primary-48-and-revision-8-closed / source-adjudicated / benefit-not-established`。规划基线为 `2c7dd07380999ca8df971a7cdc64d5e7ed1733c5`；实际干净启动头为 `c0cd32d2ff0a1824d84025bced4f1de5dfcbcabf`。目录 `D:\skill优化\SkVM`；分支 `skill-ir-aot`；唯一发布目标为用户 `origin/skill-ir-aot`。首轮绑定`3d4ba681`，唯一8行共享Schema修订绑定`04b1b220`，全部56行终态保留。434次provider调用、0目标执行；四质量臂首/终full1/1/1/1（各10），修订另列full1/8。6首评、3定向二审、2图审、2定向源码核验与主开发者沿源码的裁定完成，原文和失败均保留；最终不是完全独立盲评。481 pass/1平台skip、3208断言、主/研究类型、56行study/evaluation零调用重放及研究8测试/52断言通过。AQ8政策单独重算未实现；四原skill消费虽raw语义full3/4且compile/check有记录，自动读取0、checked交付0/4，AQ13完整采用链未达。本轮有限研究关闭、不追加付费；完整证据`8e69ec5df2f29937d177b82b7fafc9f412877d33`已推送并核对用户origin，发布时工作区干净，完成状态随后同步。有限检查和发布证明以[AQ机器状态](../../results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/status.json)为准；未达工程验收条件不勾选。
 
 开发任务请求 `gpt-6.1-sol / max / Flash`。派发工具支持 model/effort，当前没有速度参数；记录实际可确认设置，Flash 未确认时如实说明，不修改全局配置。被测模型继续使用已配置的 `xty/gpt-5.6-sol`，与开发模型分账。
 
@@ -296,11 +296,11 @@ git diff --check
 
 ### AQ16：提交、发布和结束
 
-- [ ] 精确提交本轮文件，推用户origin/skill-ir-aot并核对远端；不触碰upstream，不清理历史未跟踪文件。
-- [ ] 追加外层 conversation_log、handoff、communication 的短交接；真实结果与恢复入口放仓内现有文档。
-- [ ] 最终报告提供：三个程序机制是否在普通入口实际工作、四臂与消融效果、失败原因、调用/费用未知、SHA与工作区状态。
+- [x] 精确提交本轮文件，推用户origin/skill-ir-aot并核对远端；不触碰upstream，不清理历史未跟踪文件。
+- [x] 追加外层 conversation_log、handoff、communication 的短交接；真实结果与恢复入口放仓内现有文档。
+- [x] 最终报告提供：三个程序机制是否在普通入口实际工作、四臂与消融效果、失败原因、调用/费用未知、SHA与工作区状态。
 - [ ] 工程完成须有三个机制及普通使用的执行证据；质量主张依据实际实验单列positive/mixed/negative/not-established。外部故障导致研究未完时如实记partial，不把所有checkbox勾满。
-- [ ] 所有本轮任务终结后停止；不等待、不重复模型调用凑时长，不自动追加新项目或研究identity。
+- [x] 所有本轮任务终结后停止；不等待、不重复模型调用凑时长，不自动追加新项目或研究identity。
 
 ## 8. 验收重点
 
