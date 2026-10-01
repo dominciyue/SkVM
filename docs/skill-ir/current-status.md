@@ -4,6 +4,8 @@
 
 ## 当前方向与任务
 
+**AP共享运行器修复已安排（2026-10-01）：** [AP0–AP4小任务书](../superpowers/plans/2026-10-01-authorization-runtime-contract-repair.md)修复数组Schema约束丢失、既有fallback缺少具体诊断和最终域工具检查被预算挤占。仅工程实现与确定性验证，不追加AO模型实验、不改旧结果。开发线程负责实施和发布；领域取证调度、分支处理与结论检查在父线程另行讨论。
+
 当前研究范围是单 repo/ref、源码可见的授权与信任边界评估。领域声明表达主体、资源关系、操作、条件、政策来源和入口；程序展开检查义务，模型分析控制路径，宿主检查引用与覆盖，评价者复核语义。
 
 **AO0–AO16已完成并发布（2026-10-01）：** [真实授权任务、领域 DSL 与有界取证工具](../superpowers/plans/2026-09-30-authorization-inquiry-and-evidence-tools.md)的工程、56/56真实终态行、319次provider请求、61匿名packet独立评阅和有限验证已关闭。首次完整发布头`47942ac33f1eda0f9140d449e496fc2230aff4f3`与用户origin一致、当时工作区干净；完成状态随本页同步。491 pass/1平台skip、主/研究类型、四项零provider重放、文档和目录检查通过，2,529实验文件暂存字节与原文件一致。行为/政策inquiry、同次分析只读补证、自然作者、普通bare-agent源skill接线及scope-only政策传递已实现。质量首答8/终答9完整（32计划），主M/D0/D1终答2/1/1（各8），变化M/D1为3/2（各4）；未建立稳定DSL质量优势。8作者稿语义有效，8消费6交付/2严格完整；8源skill均加载原文，领域四包均实际调用，但checked domain result仅3/4。四个配置失败均调用0、两消费协议失败保留、共享修订0。完整prompt4,726,375/output196,444 tokens，actualUSD/真人分钟/开发代理用量unknown，目标执行0。首次工程绑定`218f5bbf`和原始输出不改。[AO机器状态](../../results/skill-ir/skill-dsl-research/development/authorization-inquiry-tools-v1/status.json)保存验证与发布证据；结果与方法见[§7.34](skill-dsl-research.md#734-ao-真实授权任务与领域取证工具)。本队列停止，不自动追加研究调用。
