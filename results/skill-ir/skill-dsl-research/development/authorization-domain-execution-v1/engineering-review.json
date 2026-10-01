@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "authorization-aq-engineering-review/v1",
+  "date": "2026-10-01",
+  "reviewers": ["aq_engineering_rules_review", "aq_engineering_runtime_review"],
+  "readOnly": true,
+  "providerCalls": 0,
+  "targetExecutions": 0,
+  "findings": [
+    {
+      "reviewer": "aq_engineering_rules_review",
+      "claim": "Whole-tree validation causes any(true, unsupported) and all(false, unsupported) to return unknown instead of short-circuiting.",
+      "anchor": "src/task-dsl/authorization/control-evaluation.ts:29-30,45",
+      "disposition": "not-a-contract-defect",
+      "reason": "Only well-formed finite predicates are executable. Unsupported operators are rejected by mergeControlSlice before acceptance; partialEvaluate preserves that invalid entire expression as unknown with a diagnostic. A missing binding in a valid predicate is the supported unknown value and already obeys every three-valued short-circuit truth table. Eager pure child computation has no target-code side effect. Treating unsupported syntax as an accepted unknown predicate would change the strict algebra boundary.",
+      "evidence": ["src/task-dsl/authorization/control-slice.ts:81", "src/task-dsl/authorization/control-evaluation.ts:10-30", "src/task-dsl/authorization/control-evaluation.test.ts:5-39"]
+    },
+    {
+      "reviewer": "aq_engineering_runtime_review",
+      "claim": "Structured extraction continuation can bypass inquiry source accounting and request retention via completeWithToolResults.",
+      "anchor": "src/benchmarks/authorization-dsl/inquiry-run.ts:58-71",
+      "disposition": "unreachable-in-current-host",
+      "reason": "extractStructured schema-tool and prompt-parse both invoke provider.complete, never completeWithToolResults. Inquiry telemetry has no executableToolNames whitelist, so its continuation method rejects before dispatch. Both actual transports pass through boundedProvider.complete and recordingProvider.complete. Native uses its separate beforeDispatch continuation accounting. No bypass exists in this inquiry call chain; no speculative wrapper was added.",
+      "evidence": ["src/providers/structured.ts:143", "src/providers/structured.ts:203", "src/benchmarks/authorization-dsl/telemetry.ts:444-453", "src/benchmarks/authorization-dsl/inquiry-run.test.ts:source resend budget applies before fallback dispatch"]
+    }
+  ],
+  "unresolvedBlockingFindings": 0,
+  "limits": ["Review is bounded code inspection and deterministic tests, not proof of semantic extraction or real model quality", "Runtime reviewer test command only selected the CLI file; main-agent full suite is recorded separately"]
+}

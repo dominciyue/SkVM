@@ -1222,7 +1222,15 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 **开发与检验。** 沿用inquiry/native两个入口和旧默认，新增可选`domain-evidence-v1`；同一核心在普通包中运行。AO八任务的M/D1与新旧策略四臂32session，加两个预选任务的四臂重复8session；另4个关闭机制消融和4次原skill普通消费，均为已暴露development。全部使用AP后共享运行器、原始源码和独立政策，没有预写控制路径。作者、提取、fallback和修复全部计费留账，不重复AO已完成的8稿作者面板。评阅分别检查提取、执行和最终回答；研究收益依据真实数据报告。
 
-**当前状态。** 任务书已写入并同步current-status、spec和plan；尚未修改生产代码或启动本轮真实模型实验。执行者在此继续记录问题、修正、验证及方法结论，原始数据进入`development/authorization-domain-execution-v1/`，不另建逐轮长研究正文。
+**AQ0–AQ2/AQ5/AQ6实施（2026-10-01）。** 从干净`c0cd32d2`启动，AP包含；本地`xty/*`路由与凭据可用性零dispatch确认。原结果独立只读定位把可读未读、对象错配、分支/政策矛盾和AP协议失败分开，登记在AQ root的`mechanism-cases.json`，它不进入模型输入。新增control-slice、control-evaluation、control-conclusion三个纯模块：局部key由宿主补稳定ID和digest；显式`after`表示控制先后，`authorizedBy`只表示提取模型声称的授权关系，不能从同名对象推断。rule的condition是该节点可达条件，effect/reject是路径终点，complete是待核验的提取闭合主张。模型将明确用户原句映射成已知binding；映射意义仍unreviewed。policyRules必须引用当前独立政策，映射不完整保持undetermined。谓词使用独立有限校验而非递归展开大型模型Schema，支持eq/neq/is-null/all/any/not，12层/64表达式节点有界，unsupported保留具名诊断。
+
+14个纯模块业务反例先红后绿、95断言通过：原行证据与问题隔离、policy冒充source、null/missing、冲突增量及显式修订、全三值表、短路residual、typed对象、显式前驱环/缺口、错误行为/政策与17路径超限均被捕获。提取语义始终unreviewed。
+
+**AQ3–AQ10接线与预检。** 依赖调度只接受已读源码中词法出现的提议symbol，从共享索引给位置候选；唯一位置每轮最多两次真实source_read，候选歧义需要模型显式修订。实际动作留origin、question/dependency、理由和预算；缓存复用已展示范围，源变化、父依赖环和范围外分别保留。read不等于checked，须把helper证据纳入有显式前驱的局部规则；这个checked仍只指运行合同。普通步骤可提交control delta，native observe/check进入同一个runtime，自动读占用共同24及native22探索额度。checked旧结果在提议修订后失效，关闭后无续发。每次检查保留原规则snapshot、raw结果和诊断，首答/终答的提取可独立评阅；不在模型上下文重放整份proposal ledger。
+
+当前已知值绑定核对**原始用户brief/declaration**的原句，不能把作者模型新写的premise升级为用户事实；具体值映射仍需语义评价。policy自然原句只形成独立候选，未映射路径的规范结论undetermined。修改compare列policy-only/premise-only/source/strategy与受影响计算，源未变时机械索引可复用；当前保守地不自动加载旧语义slice，新任务fresh分析，因此未建立仅政策重算的成本节省。实际adapter文件是`bare-agent.ts`，任务书的`bare-authorization.ts`名字只对应测试，未新建第二adapter。
+
+联合回归474 pass/1平台skip、3151断言；随后检查snapshot与作者伪造用户前提反例25 pass/166断言。主类型通过；研究脚本另有strict typecheck和3项分母/不重发/匿名隔离测试，24断言。40输入组合、两原skill普通loader及实际companion读取零paid预检通过，source工具不注册shell/写/网络，oracle canary拒绝，相对输入root正确。登记固定40质量+4消融+4native，臂顺序轮换、预选重复反序、最多两worker独立进程；生成关闭前禁止建立语义packet。此时真实provider调用0，规则提取和最终质量收益仍待实测。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

@@ -8,6 +8,7 @@ import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquir
 import { createInquiryTools } from "./inquiry-tools.ts"
 import { runAuthorizationInquiry, type InquiryMethod, type RunAuthorizationInquiryOptions } from "./inquiry-run.ts"
 import type { LocalAuthorizationCliDependencies } from "./local-run.ts"
+import { parseInquiryStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 
 export const AuthorizationInquiryInputSchema = z.object({
   schemaVersion: z.literal("authorization-inquiry-input/v1"), taskId: InquiryText, repository: InquiryText, sourceRef: InquiryText,
@@ -27,18 +28,19 @@ export async function loadInquiryInput(inputFile: string) {
   const context = { repository: value.repository, sourceRef: value.sourceRef, sourceRoot: path.resolve(path.dirname(inputPath), value.sourceRoot), allowedPaths: value.allowedPaths }
   return { value, inputPath, original, inputSha256: sha(original), context }
 }
-export async function checkAuthorizationInquiry(inputFile: string, method: InquiryMethod = "D1") {
+export async function checkAuthorizationInquiry(inputFile: string, method: InquiryMethod = "D1", requestedStrategy: InquiryStrategy = "legacy") {
   try {
+    const strategy = parseInquiryStrategy(requestedStrategy)
     if (!["M", "D0", "D1"].includes(method)) throw new Error("Method must be M, D0 or D1")
     const loaded = await loadInquiryInput(inputFile), tools = await createInquiryTools(loaded.context)
-    return { schemaVersion: "authorization-inquiry-check/v1", status: "valid" as const, inputPath: loaded.inputPath, method,
+    return { schemaVersion: "authorization-inquiry-check/v1", status: "valid" as const, inputPath: loaded.inputPath, method, strategy,
       input: loaded.value, sourceFiles: tools.files, scopeGaps: tools.scopeGaps, sourceRefVerification: "authored", providerCalls: 0,
       ...(loaded.value.inquiry ? { program: compileAuthorizationInquiry(loaded.value.inquiry), authorProviderRequired: false } : { authorProviderRequired: method !== "M" }), diagnostics: [] }
   } catch (error) { return { schemaVersion: "authorization-inquiry-check/v1", status: "invalid" as const, providerCalls: 0, diagnostics: [{ code: "inquiry-input-invalid", message: String(error) }] } }
 }
 
-export async function executeLocalInquiryRun(options: { inputFile: string; outDir: string; model: string; method?: InquiryMethod; providerFactory?: LocalAuthorizationCliDependencies["providerFactory"]; execution?: Partial<RunAuthorizationInquiryOptions> }) {
-  const method = options.method ?? "D1", check = await checkAuthorizationInquiry(options.inputFile, method)
+export async function executeLocalInquiryRun(options: { inputFile: string; outDir: string; model: string; method?: InquiryMethod; strategy?: InquiryStrategy; providerFactory?: LocalAuthorizationCliDependencies["providerFactory"]; execution?: Partial<RunAuthorizationInquiryOptions> }) {
+  const method = options.method ?? "D1", strategy = options.strategy ?? options.execution?.strategy ?? "legacy", check = await checkAuthorizationInquiry(options.inputFile, method, strategy)
   if (check.status !== "valid") return check
   const loaded = await loadInquiryInput(options.inputFile), out = path.resolve(options.outDir), id = `${new Date().toISOString().replace(/[:.]/g, "")}-${randomUUID().slice(0, 8)}`
   const sessionPath = path.join(out, "sessions", id); await mkdir(sessionPath, { recursive: false }).catch(async error => {
@@ -46,7 +48,7 @@ export async function executeLocalInquiryRun(options: { inputFile: string; outDi
     await mkdir(path.join(out, "sessions"), { recursive: true }); await mkdir(sessionPath)
   })
   const save = (name: string, value: unknown) => writeFile(path.join(sessionPath, name), JSON.stringify(value, null, 2) + "\n", { encoding: "utf8", flag: "wx" })
-  const identity = { schemaVersion: "authorization-inquiry-session/v1", sessionId: id, sessionPath, createdAt: new Date().toISOString(), inputSha256: loaded.inputSha256, model: options.model, method, sourceFiles: check.sourceFiles, noAutomaticResend: true }
+  const identity = { schemaVersion: "authorization-inquiry-session/v1", sessionId: id, sessionPath, createdAt: new Date().toISOString(), inputSha256: loaded.inputSha256, model: options.model, method, strategy, sourceFiles: check.sourceFiles, noAutomaticResend: true }
   await save("session.json", identity); await writeFile(path.join(sessionPath, "input.json"), loaded.original, { encoding: "utf8", flag: "wx" }); await save("check.json", check)
   let provider
   try {
@@ -57,12 +59,12 @@ export async function executeLocalInquiryRun(options: { inputFile: string; outDi
     await save("report.json", report); await appendFile(path.join(out, "sessions.jsonl"), JSON.stringify({ relativePath: `sessions/${id}`, status: report.status }) + "\n"); return report
   }
   let requestId = 0
-  const run = await runAuthorizationInquiry({ ...options.execution, ...loaded.context, provider, method, inquiry: loaded.value.inquiry, brief: loaded.value.brief, mode: loaded.value.mode, policy: loaded.value.policy,
+  const run = await runAuthorizationInquiry({ ...options.execution, ...loaded.context, provider, method, strategy, inquiry: loaded.value.inquiry, brief: loaded.value.brief, mode: loaded.value.mode, policy: loaded.value.policy,
     onRequest: async request => { await save(`request-${++requestId}.json`, request); await options.execution?.onRequest?.(request) },
     onEvent: async event => { await appendFile(path.join(sessionPath, "events.jsonl"), JSON.stringify(event) + "\n"); if (event.kind === "dispatch" && event.sequence === 1) await save("dispatch.json", identity); await options.execution?.onEvent?.(event) },
   })
   await save("run.json", run)
-  const report = { ...identity, status: run.status, result: run.result, initial: run.initial, initialValidation: run.initialValidation, final: run.final, validation: run.validation, telemetry: run.telemetry, durationMs: run.durationMs, sourceAccounting: run.sourceAccounting, error: run.error }
+  const report = { ...identity, status: run.status, result: run.result, initial: run.initial, initialValidation: run.initialValidation, final: run.final, validation: run.validation, ...(run.domain ? { domain: run.domain } : {}), telemetry: run.telemetry, durationMs: run.durationMs, sourceAccounting: run.sourceAccounting, error: run.error }
   await save("report.json", report); await appendFile(path.join(out, "sessions.jsonl"), JSON.stringify({ relativePath: `sessions/${id}`, status: run.status }) + "\n")
   return report
 }
@@ -80,21 +82,28 @@ export async function inspectLocalInquiry(outDir: string) {
   let report
   try { report = JSON.parse(await readFile(path.join(root, "report.json"), "utf8")) }
   catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; return { ...identity, status: await stat(path.join(root, "dispatch.json")).then(() => "completion-unknown", () => "initialized") } }
-  if (report.sessionId !== identity.sessionId || report.model !== identity.model || report.method !== identity.method || report.inputSha256 !== identity.inputSha256 || !isDeepStrictEqual(report.sourceFiles, identity.sourceFiles)) throw new Error("Inquiry report/session identity mismatch")
+  if (report.sessionId !== identity.sessionId || report.model !== identity.model || report.method !== identity.method || (report.strategy ?? "legacy") !== (identity.strategy ?? "legacy") || report.inputSha256 !== identity.inputSha256 || !isDeepStrictEqual(report.sourceFiles, identity.sourceFiles)) throw new Error("Inquiry report/session identity mismatch")
   if (report.status !== "provider-unavailable") {
     const run = JSON.parse(await readFile(path.join(root, "run.json"), "utf8"))
-    if (run.status !== report.status || run.method !== identity.method || ["sourceFiles", "result", "initial", "initialValidation", "final", "validation", "sourceAccounting", "telemetry"].some(key => !isDeepStrictEqual(run[key], report[key]))) throw new Error("Inquiry report/run identity mismatch")
+    if (run.status !== report.status || run.method !== identity.method || (run.strategy ?? "legacy") !== (identity.strategy ?? "legacy") || ["sourceFiles", "result", "initial", "initialValidation", "final", "validation", "domain", "sourceAccounting", "telemetry"].some(key => !isDeepStrictEqual(run[key], report[key]))) throw new Error("Inquiry report/run identity mismatch")
   }
   return { ...report, sessionPath: root }
 }
-export async function compareLocalInquiry(inputFile: string, previous: string) {
+export async function compareLocalInquiry(inputFile: string, previous: string, requestedStrategy?: InquiryStrategy) {
   const report = await inspectLocalInquiry(previous), old = AuthorizationInquiryInputSchema.parse(JSON.parse(await readFile(path.join(report.sessionPath, "input.json"), "utf8")))
-  const check = await checkAuthorizationInquiry(inputFile, report.method)
+  const strategy = requestedStrategy ?? report.strategy ?? "legacy", check = await checkAuthorizationInquiry(inputFile, report.method, strategy)
   if (check.status !== "valid") return check
   const current = check.input!, omitRoot = (v: AuthorizationInquiryInput) => ({ ...v, sourceRoot: undefined })
   const taskChanged = !isDeepStrictEqual(omitRoot(old), omitRoot(current)), sourceChanged = !isDeepStrictEqual(report.sourceFiles, check.sourceFiles)
-  return { schemaVersion: "authorization-inquiry-compare/v1", status: taskChanged || sourceChanged ? "needs-review" : "current", taskChanged, sourceChanged,
-    reviewReasons: [...(taskChanged ? ["Current request, premises, policy or scope changed; recheck all requested questions in a fresh session."] : []), ...(sourceChanged ? ["Allowed original source changed, including uncited source; re-investigate controls and bindings."] : [])], answerReused: false }
+  const withoutPolicy = (v: AuthorizationInquiryInput) => ({ ...omitRoot(v), policy: undefined, inquiry: v.inquiry ? { ...v.inquiry, policy: undefined } : undefined })
+  const withoutPremises = (v: AuthorizationInquiryInput) => ({ ...omitRoot(v), inquiry: v.inquiry ? { ...v.inquiry, questions: v.inquiry.questions.map(q => ({ ...q, premises: [] })) } : undefined })
+  const policyOnly = taskChanged && !sourceChanged && isDeepStrictEqual(withoutPolicy(old), withoutPolicy(current))
+  const premiseOnly = taskChanged && !sourceChanged && isDeepStrictEqual(withoutPremises(old), withoutPremises(current))
+  const strategyChanged = strategy !== (report.strategy ?? "legacy")
+  return { schemaVersion: "authorization-inquiry-compare/v1", status: taskChanged || sourceChanged || strategyChanged ? "needs-review" : "current", taskChanged, sourceChanged, strategy, strategyChanged, policyOnly, premiseOnly,
+    affectedComputation: sourceChanged ? ["source-index", "control-extraction", "path-evaluation", "policy-comparison"] : policyOnly ? ["policy-mapping", "policy-comparison"] : premiseOnly ? ["premise-mapping", "path-evaluation", "policy-comparison"] : taskChanged || strategyChanged ? ["current-task-analysis"] : [],
+    mechanicalIndexReusable: !sourceChanged && isDeepStrictEqual(old.allowedPaths, current.allowedPaths), controlRulesReused: false,
+    reviewReasons: [...(taskChanged ? [policyOnly ? "Independent policy changed; source behavior dependencies are unchanged, map and check the new policy in a fresh session." : "Current request, premises, policy or scope changed; recheck affected questions and paths in a fresh session."] : []), ...(sourceChanged ? ["Allowed original source changed, including uncited source; extracted rules are invalidated."] : []), ...(strategyChanged ? ["Execution strategy changed; previous checks do not establish the new strategy result."] : [])], answerReused: false }
 }
 export function editAuthorizationInquiry(input: unknown, patch: unknown): AuthorizationInquiryInput {
   const value = AuthorizationInquiryInputSchema.parse(input), draft = structuredClone(value)

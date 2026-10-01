@@ -30,6 +30,7 @@ describe("RUN_FLAGS.parse — typed config", () => {
       "execution-observation": undefined,
       "authorization-scope": undefined,
       "authorization-domain-tools": false,
+      "authorization-strategy": undefined,
       "authorization-trace": undefined,
       "timeout-ms": undefined,
       "idle-timeout-ms": undefined,
@@ -68,6 +69,7 @@ describe("RUN_FLAGS.parse — typed config", () => {
       "execution-observation": "/tmp/observation.json",
       "authorization-scope": undefined,
       "authorization-domain-tools": false,
+      "authorization-strategy": undefined,
       "authorization-trace": undefined,
       "timeout-ms": 90000,
       "idle-timeout-ms": 30000,
@@ -170,6 +172,7 @@ Options:
   --execution-observation=<path>              Write a value-free execution observation JSON sidecar
   --authorization-scope=<path>                Opt into bounded read-only authorization source tools using an inquiry input file (bare-agent).
   --authorization-domain-tools                Enable inquiry compilation, relation observations and result checking in the restricted source run.
+  --authorization-strategy=<v>                Optional domain dependency scheduling, finite branch evaluation and conclusion checks; requires source scope and domain tools.
   --authorization-trace=<path>                Save the restricted authorization tool and provider trace outside target source.
   --timeout-ms=<n>                            Override the per-task agent execution timeout (ms).
                                               This caps how long the target adapter spends solving

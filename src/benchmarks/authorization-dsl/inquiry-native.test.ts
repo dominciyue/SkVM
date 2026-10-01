@@ -134,3 +134,42 @@ test("reserved checks still reject unshown source and isolated reference paths",
   expect(runtime.report().result).toBeUndefined()
   expect(runtime.report().evidence).toHaveLength(0)
 })
+
+test("native domain strategy uses shared scheduler/evaluator, preserves two checks and invalidates old success on rule revision", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "aq-native-")); await mkdir(path.join(root, "source"))
+  await writeFile(path.join(root, "source/entry.ts"), "export function entry() { return guard(); }\n")
+  await writeFile(path.join(root, "source/helper.ts"), "export function guard() { return false; }\n")
+  const inputFile = path.join(root, "input.json")
+  await writeFile(inputFile, JSON.stringify({ schemaVersion: "authorization-inquiry-input/v1", taskId: "current", repository: "neutral", sourceRef: "fixed", sourceRoot: "source", allowedPaths: ["."], brief: "Can anyone call entry?" }))
+  const runtime = await createNativeInquiryRuntime({ inputFile, workDir: root, domainTools: true, strategy: "domain-evidence-v1", maxToolCalls: 7 } as any)
+  const invoke = async (name: string, args: any = {}) => JSON.parse((await runtime.execute({ id: name, name, arguments: args })).output)
+  await invoke("authorization_compile", { inquiry: { schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q1", request: "Can anyone call entry?", premises: [] }] } })
+  const read = await invoke("source_read", { path: "entry.ts", startLine: 1, endLine: 1 }), ev = read.evidence[0].id
+  const observed = await invoke("authorization_observe", { controlDelta: { schemaVersion: "authorization-control-slice/v1", rules: [{ key: "entry", questionId: "q1", pathKey: "p", kind: "entry", after: [], claim: "Calls guard", evidenceIds: [ev] }], dependencies: [{ key: "guard", questionId: "q1", pathKey: "p", from: "entry", symbol: "guard", kind: "control", decisive: true, evidenceIds: [ev], reason: "Decision in helper" }] } })
+  expect(observed.autoReads[0].evidence[0].text).toContain("return false")
+  expect(observed.toolBudget).toMatchObject({ explorationUsed: 4, checksRemaining: 2 })
+  const helperId = observed.autoReads[0].evidence[0].id
+  const terminal = { key: "stop", questionId: "q1", pathKey: "p", kind: "reject", after: ["entry"], complete: true, claim: "Guard returns false", evidenceIds: [helperId] }
+  const result = { schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q1", behavior: { disposition: "deny", explanation: "Guard rejects" }, branches: [], evidenceIds: [helperId], missing: [] }], observations: [], scope: "local" }
+  expect((await invoke("authorization_check_result", { result, controlDelta: { schemaVersion: "authorization-control-slice/v1", rules: [terminal] } })).valid).toBe(true)
+  expect(runtime.report().result).toBeDefined()
+  const s = (runtime.report() as any).domain.slice.rules.find((r: any) => r.key === "stop")
+  await invoke("authorization_observe", { controlDelta: { schemaVersion: "authorization-control-slice/v1", rules: [{ ...terminal, kind: "effect", revisionOf: s.digest, revisionReason: "Correct old extraction" }] } })
+  expect(runtime.report().result).toBeUndefined()
+  expect((await invoke("authorization_check_result", { result })).valid).toBe(false)
+  const checks = (runtime.report() as any).domain.checkHistory
+  expect(checks).toHaveLength(2)
+  expect(checks[0].slice.rules.find((r: any) => r.key === "stop").kind).toBe("reject")
+  expect(checks[1].slice.rules.find((r: any) => r.key === "stop").kind).toBe("effect")
+  expect(checks[0].check.ruleConsistency).toBe(true)
+  expect(checks[1].check.ruleConsistency).toBe(false)
+  expect(runtime.report().toolBudget).toMatchObject({ totalUsed: 7, explorationUsed: 5, checksUsed: 2 })
+  await (runtime as any).close()
+  expect((await invoke("source_list")).code).toBe("session-closed")
+})
+
+test("invalid strategy/native tools combinations are rejected before any dispatch", async () => {
+  const { root } = await budgetFixture()
+  await expect(createNativeInquiryRuntime({ inputFile: path.join(root, "input.json"), workDir: root, domainTools: false, strategy: "domain-evidence-v1" } as any)).rejects.toThrow("strategy-requires-domain-tools")
+  await expect(createNativeInquiryRuntime({ inputFile: path.join(root, "input.json"), workDir: root, domainTools: true, strategy: "wrong" } as any)).rejects.toThrow("strategy")
+})

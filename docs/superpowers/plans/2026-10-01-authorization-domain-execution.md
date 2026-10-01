@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 authorization/inquiry/native 实现与源码位置索引。沿用现有 CLI，不建设新平台或统一 IR。
 
-状态：`authorized-not-started`。规划基线为 `2c7dd07380999ca8df971a7cdc64d5e7ed1733c5`；实际执行起点由 AQ0 记录。目录 `D:\skill优化\SkVM`；分支 `skill-ir-aot`；唯一发布目标为用户 `origin/skill-ir-aot`。
+状态：`AQ0-AQ9-implemented / AQ10-registered / engineering-review`。规划基线为 `2c7dd07380999ca8df971a7cdc64d5e7ed1733c5`；实际干净启动头为 `c0cd32d2ff0a1824d84025bced4f1de5dfcbcabf`。目录 `D:\skill优化\SkVM`；分支 `skill-ir-aot`；唯一发布目标为用户 `origin/skill-ir-aot`。40输入及两原skill loader/reference零paid预检通过；真实调用尚为0。
 
 开发任务请求 `gpt-6.1-sol / max / Flash`。派发工具支持 model/effort，当前没有速度参数；记录实际可确认设置，Flash 未确认时如实说明，不修改全局配置。被测模型继续使用已配置的 `xty/gpt-5.6-sol`，与开发模型分账。
 
@@ -43,6 +43,8 @@ AO 中允许范围内的 helper 未读，属于取证策略缺口；owner/null-o
 本轮一个开发线程是代码、共享文档和 Git 的唯一写者。只在主开发分支工作，不创建分支/worktree，不清理历史材料。父线程派发后不并行改这些文件。遇到其他线程的修改保留并从最新字节合并。
 
 新证据统一放 `results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/`，简称 **AQ root**。在 AQ0 建立一个 status.json 和简短 journal.jsonl；只保存必要输入、实际请求/响应、事件、评价与可重放摘要，不增加多层冻结或逐阶段长报告。
+
+实施位置校准：实际adapter为`src/adapters/bare-agent.ts`，相关测试为`bare-authorization.test.ts`，不另建adapter。AQ8 compare分别记录policy/premise/source/strategy变化及机械索引适用性；为保持当前任务来源明确，不自动复用旧语义slice，变化任务fresh分析，未主张政策单独重算带来成本节省。sourceBound/checked只证明引用与运行合同，语义提取仍独立评价。
 
 ## 3. 领域合同
 

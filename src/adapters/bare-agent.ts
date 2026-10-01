@@ -139,6 +139,11 @@ export class BareAgentAdapter implements AgentAdapter {
   }
 
   async setup(config: AdapterConfig): Promise<void> {
+    if (config.providerOptions?.authorizationStrategy !== undefined) {
+      const strategy = (await import("../task-dsl/authorization/control-slice.ts")).parseInquiryStrategy(config.providerOptions.authorizationStrategy)
+      if (!config.providerOptions.authorizationScope) throw new Error("authorization-strategy requires source scope")
+      if (strategy === "domain-evidence-v1" && config.providerOptions.authorizationDomainTools !== true) throw new Error("authorization-strategy requires domain-tools")
+    }
     this.provider = this.providerFactory(config)
     this.model = config.model
     this.maxSteps = config.maxSteps
@@ -193,7 +198,7 @@ Available skills:
 - **${skillName}**: ${task.skill!.meta.description}`
     }
     const restricted = typeof this.providerOptions.authorizationScope === "string"
-      ? await (await import("../benchmarks/authorization-dsl/inquiry-native.ts")).createNativeInquiryRuntime({ inputFile: this.providerOptions.authorizationScope, workDir: task.workDir, domainTools: this.providerOptions.authorizationDomainTools === true, skillContent: task.skill?.content, traceDir: typeof this.providerOptions.authorizationTraceDir === "string" ? this.providerOptions.authorizationTraceDir : undefined })
+      ? await (await import("../benchmarks/authorization-dsl/inquiry-native.ts")).createNativeInquiryRuntime({ inputFile: this.providerOptions.authorizationScope, workDir: task.workDir, domainTools: this.providerOptions.authorizationDomainTools === true, strategy: (await import("../task-dsl/authorization/control-slice.ts")).parseInquiryStrategy(this.providerOptions.authorizationStrategy), skillContent: task.skill?.content, traceDir: typeof this.providerOptions.authorizationTraceDir === "string" ? this.providerOptions.authorizationTraceDir : undefined })
       : undefined
     const telemetry = restricted ? (await import("../benchmarks/authorization-dsl/telemetry.ts")).createTelemetryProvider(activeProvider, { executableToolNames: restricted.definitions.map(t => t.name), maxDispatches: 12, perCallTimeoutMs: 300000, unitTimeoutMs: Math.min(task.timeoutMs ?? this.timeoutMs, 1200000), beforeDispatch: restricted.beforeDispatch, onEvent: restricted.onEvent }) : undefined
     if (restricted && telemetry) { activeProvider = telemetry.provider; system += `\n\n${restricted.system}` }
@@ -316,6 +321,7 @@ Available skills:
       loopResult = { text: telemetry.attempts.at(-1)?.response?.text ?? "", steps: [], tokens: summary.knownTokens, llmDurationMs: telemetry.attempts.reduce((n, a) => n + (a.response?.durationMs ?? 0), 0), iterations: telemetry.attempts.length, allToolCalls, error, timedOut: error.name === "AuthorizationCallTimeoutError" }
     } finally {
       await telemetry?.close("ordinary-skill-run-ended")
+      restricted?.close()
       if (convLog) {
         try {
           await convLog.finalize()

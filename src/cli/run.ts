@@ -75,6 +75,7 @@ export const RUN_FLAGS = defineFlags(
     },
     "authorization-scope": { kind: "string", placeholder: "<path>", help: "Opt into bounded read-only authorization source tools using an inquiry input file (bare-agent)." },
     "authorization-domain-tools": { kind: "bool", help: "Enable inquiry compilation, relation observations and result checking in the restricted source run." },
+    "authorization-strategy": { kind: "enum", values: ["legacy", "domain-evidence-v1"] as const, placeholder: "<v>", help: "Optional domain dependency scheduling, finite branch evaluation and conclusion checks; requires source scope and domain tools." },
     "authorization-trace": { kind: "string", placeholder: "<path>", help: "Save the restricted authorization tool and provider trace outside target source." },
     "timeout-ms": {
       kind: "int",
@@ -148,7 +149,8 @@ export type ValidatedRunConfig = {
 }
 
 export function validateRunConfig(config: RunConfig): ValidatedRunConfig {
-  if ((config["authorization-domain-tools"] || config["authorization-trace"]) && !config["authorization-scope"]) throw new UsageError("run: authorization tools/trace require --authorization-scope", RUN_FLAGS.help)
+  if ((config["authorization-domain-tools"] || config["authorization-trace"] || config["authorization-strategy"]) && !config["authorization-scope"]) throw new UsageError("run: authorization tools/trace/strategy require --authorization-scope", RUN_FLAGS.help)
+  if (config["authorization-strategy"] === "domain-evidence-v1" && !config["authorization-domain-tools"]) throw new UsageError("run: domain-evidence-v1 requires --authorization-domain-tools", RUN_FLAGS.help)
   if (config["authorization-scope"] && (config.adapter !== "bare-agent" || config.optimize || config["resume-optimization"])) throw new UsageError("run: authorization source scope requires bare-agent source execution", RUN_FLAGS.help)
   const hasTask = config.task !== undefined
   const hasPrompt = config.prompt !== undefined
@@ -398,7 +400,7 @@ export async function runRun(config: RunConfig): Promise<void> {
     timeoutMs: runRuntime.timeoutMs,
     idleTimeoutMs: config["idle-timeout-ms"],
     mode: adapterModeRun,
-    ...(config["authorization-scope"] ? { providerOptions: { authorizationScope: path.resolve(config["authorization-scope"]), authorizationDomainTools: config["authorization-domain-tools"] === true, ...(config["authorization-trace"] ? { authorizationTraceDir: path.resolve(config["authorization-trace"] + ".events") } : {}) } } : {}),
+    ...(config["authorization-scope"] ? { providerOptions: { authorizationScope: path.resolve(config["authorization-scope"]), authorizationDomainTools: config["authorization-domain-tools"] === true, ...(config["authorization-strategy"] ? { authorizationStrategy: config["authorization-strategy"] } : {}), ...(config["authorization-trace"] ? { authorizationTraceDir: path.resolve(config["authorization-trace"] + ".events") } : {}) } } : {}),
   }
 
   const adapter = createAdapter(harness)

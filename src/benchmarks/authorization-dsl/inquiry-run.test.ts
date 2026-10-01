@@ -118,3 +118,56 @@ test("an over-limit proposal cannot use fallback after the actual dispatch budge
   expect(run.attempts[0]!.response!.toolCalls[0]!.arguments.calls).toHaveLength(9)
   expect(run.events.some(event => event.kind === "dispatch-rejected")).toBe(true)
 })
+
+test("domain strategy actually schedules a reported helper and diagnoses contradictory allow before one repair", async () => {
+  const input = await setup(), mock = scripted((params, n) => {
+    const prompt = params.messages[0]!.content
+    const shown = JSON.parse(prompt.split("Already shown original source: ")[1]!.split("\n\nAction history:")[0]!).map((e: any) => e.id)
+    if (n === 0) return { kind: "tool", calls: [{ name: "source_read", arguments: { path: "src/entry.ts", startLine: 1, endLine: 1 } }] }
+    const entry = { key: "entry", questionId: "q1", pathKey: "p", kind: "entry", after: [], claim: "Calls guard", evidenceIds: [shown[0]] }
+    if (n === 1) return { kind: "control", delta: { schemaVersion: "authorization-control-slice/v1", rules: [entry], dependencies: [{ key: "guard", questionId: "q1", pathKey: "p", from: "entry", symbol: "guard", kind: "control", decisive: true, evidenceIds: [shown[0]], reason: "Authorization depends on helper" }] } }
+    expect(prompt).toContain("return false")
+    if (n === 2) return { kind: "final", controlDelta: { schemaVersion: "authorization-control-slice/v1", rules: [{ key: "stop", questionId: "q1", pathKey: "p", kind: "reject", after: ["entry"], complete: true, claim: "Guard rejects", evidenceIds: [shown.at(-1)] }] }, result: { ...(final(shown.at(-1)!) as any).result, questions: [{ ...(final(shown.at(-1)!) as any).result.questions[0], behavior: { disposition: "allow", explanation: "Original contradictory allow" } }] } }
+    expect(prompt).toContain("behavior-rule-conflict")
+    return final(shown.at(-1)!)
+  })
+  const run = await runAuthorizationInquiry({ ...input, method: "M", strategy: "domain-evidence-v1", provider: mock.provider } as any) as any
+  expect(run.status).toBe("completed")
+  expect(run.toolHistory).toHaveLength(2)
+  expect(run.domain.schedulerActions[0].actionOrigin).toBe("domain-scheduler")
+  expect(run.domain.dependencies[0].state).toBe("checked")
+  expect(run.initial.questions[0].behavior.disposition).toBe("allow")
+  expect(run.initialValidation.valid).toBe(false)
+  expect(run.result.questions[0].behavior.disposition).toBe("deny")
+  expect(mock.count()).toBe(4)
+})
+
+test("domain ablation disables auto reads and preserves a decisive gap under the same budget", async () => {
+  const input = await setup(), mock = scripted((params, n) => {
+    if (!n) return { kind: "tool", calls: [{ name: "source_read", arguments: { path: "src/entry.ts", startLine: 1, endLine: 1 } }] }
+    const id = [...params.messages[0]!.content.matchAll(/"id":"(ev-[a-f0-9]+)"/g)][0]![1]!
+    if (n === 1) return { kind: "control", delta: { schemaVersion: "authorization-control-slice/v1", rules: [{ key: "entry", questionId: "q1", pathKey: "p", kind: "entry", after: [], claim: "Calls guard", evidenceIds: [id] }], dependencies: [{ key: "guard", questionId: "q1", pathKey: "p", from: "entry", symbol: "guard", kind: "control", decisive: true, evidenceIds: [id], reason: "Authorization depends on helper" }] } }
+    return { kind: "final", result: { ...(final(id) as any).result, questions: [{ ...(final(id) as any).result.questions[0], behavior: { disposition: "unknown", explanation: "guard not read" }, missing: [{ kind: "source-gap", detail: "guard remains unexamined", nextRead: "guard" }] }] } }
+  })
+  const run = await runAuthorizationInquiry({ ...input, method: "M", strategy: "domain-evidence-v1", domainAblation: "scheduler-off", provider: mock.provider } as any) as any
+  expect(run.status).toBe("completed")
+  expect(run.toolHistory).toHaveLength(1)
+  expect(run.domain.schedulerActions).toHaveLength(0)
+  expect(run.domain.dependencies[0].state).not.toBe("read")
+  expect(run.domain.check.taskResolution).toBe("partial")
+})
+
+test("partial-evaluation/check ablation leaves the same contradictory answer uncorrected and records no evaluation", async () => {
+  const input = await setup(), mock = scripted((params, n) => {
+    if (!n) return { kind: "tool", calls: [{ name: "source_read", arguments: { path: "src/helper.ts", startLine: 1, endLine: 1 } }] }
+    const id = /"id":"(ev-[a-f0-9]+)"/.exec(params.messages[0]!.content)![1]!
+    return { kind: "final", controlDelta: { schemaVersion: "authorization-control-slice/v1", rules: [{ key: "entry", questionId: "q1", pathKey: "p", kind: "entry", after: [], claim: "entry", evidenceIds: [id] }, { key: "stop", questionId: "q1", pathKey: "p", kind: "reject", after: ["entry"], claim: "false", evidenceIds: [id], complete: true }] }, result: { ...(final(id) as any).result, questions: [{ ...(final(id) as any).result.questions[0], behavior: { disposition: "allow", explanation: "Raw contradiction" } }] } }
+  })
+  const run = await runAuthorizationInquiry({ ...input, method: "M", strategy: "domain-evidence-v1", domainAblation: "checks-off", provider: mock.provider } as any) as any
+  expect(run.status).toBe("completed")
+  expect(run.result.questions[0].behavior.disposition).toBe("allow")
+  expect(run.domain.computation.predicateEvaluations).toBe(0)
+  expect(run.domain.computation.conclusionChecks).toBe(0)
+  expect(run.domain.check.paths).toEqual([])
+  expect(mock.count()).toBe(2)
+})

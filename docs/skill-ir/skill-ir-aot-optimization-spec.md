@@ -2594,7 +2594,7 @@ AM质量分别记录回答可靠性与任务解决，历史AK/AL评分保持。�
 
 **AO证据边界（2026-10-01）。** 56行全部终结、319次实际provider请求；32质量首答8/终答9完整，24主行M/D0/D1终答分别2/1/1（各8），8变化行M/D1分别3/2（各4），未建立稳定领域路线质量优势。8作者稿全部语义有效，但消费6/8交付、2/8严格完整。8普通源skill均实际加载原文；四领域包均调用compile，只有三包交付checked domain result，工具预算拒绝保留。源码只能证明所测范围的行为；结构/注册/已调用不等于语义正确或整份skill职责完成。自然输入的mode/policy必须由native runtime传递给模型；AO13零调用反例已修复普通scope-only输入缺失，已关闭实验因自然prompt原已提供这些字段而不重抽。匿名review原文、裁定、费用与剩余问题见[研究§7.34](skill-dsl-research.md#734-ao-真实授权任务与领域取证工具)和[评价](../../results/skill-ir/skill-dsl-research/development/authorization-inquiry-tools-v1/evaluation-summary.json)。
 
-**AQ领域执行合同（2026-10-01，已授权待实现）。** [AQ0–AQ16](../superpowers/plans/2026-10-01-authorization-domain-execution.md)沿用单repo/ref源码可见授权范围，增加可选`domain-evidence-v1`。版本化局部控制slice承载模型从本次展示源码提取的主体/资源/guard/effect/条件/依赖；用户前提、规范政策、源码观测、模型解释和宿主推导分列。宿主实际调度范围内依赖读取，执行有限三值条件代数并保留residual，再检查对象绑定、分支适用性、冲突及行为/政策一致性。规则sourceBound、形式一致和semanticSupport分别记录，不从policy生成源码答案，不因一次引用有效而认定提取正确。
+**AQ领域执行合同（2026-10-01，已接线、真实效果待测）。** [AQ0–AQ16](../superpowers/plans/2026-10-01-authorization-domain-execution.md)沿用单repo/ref源码可见授权范围，增加可选`domain-evidence-v1`。版本化局部控制slice承载模型从本次展示源码提取的主体/资源/guard/effect/条件/依赖；用户前提、规范政策、源码观测、模型解释和宿主推导分列。宿主实际调度范围内依赖读取，执行有限三值条件代数并保留residual，再检查对象绑定、分支适用性、冲突及行为/政策一致性。规则sourceBound、形式一致和semanticSupport分别记录，不从policy生成源码答案，不因一次引用有效而认定提取正确。
 
 AQ普通inquiry与native共用状态机，旧接口/默认保持。所有自动补读进入共同工具与字节预算；native保持AP24总/22探索/2check，inquiry-run的24源码动作与12真实provider请求分账。每个提取/作者/fallback/修复调用计入限额，最多一次交付修复。当前自然任务不要求用户填写控制图；关系不适用可局部跳过，有影响的源码缺口不能静默丢失。规则修改或任务/源码变更使相应推导失效，原始模型文字和错误保留。
 

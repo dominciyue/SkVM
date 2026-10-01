@@ -10,16 +10,20 @@ Investigate visible authorization behavior; compare policy only when the user su
 For a natural task, copy this directory and start from [inquiry.json](inquiry.json). Replace its synthetic repository/ref, relative sourceRoot, allowedPaths and brief with the current task. `behavior` needs no policy, expected answer or preselected entry lines. For `conformance`, supply `policy:{text,origin:"user"|"external-policy",location}` independently. During D1 run the model declares questions, requests bounded source_list/search/symbol/read actions and returns behavior, conditional branches, evidence IDs and exact gaps. The host organizes six pending relations and checks citations; semantic correctness still needs review. M uses the brief with the same source tools; D0 declares questions without the relation queue.
 
 ```sh
-skvm authorization inquiry check --input=./inquiry.json --method=D1
-skvm authorization inquiry run --input=./inquiry.json --method=D1 --model=<provider/model> --out=./inquiry-runs
+skvm authorization inquiry check --input=./inquiry.json --method=D1 --strategy=domain-evidence-v1
+skvm authorization inquiry run --input=./inquiry.json --method=D1 --strategy=domain-evidence-v1 --model=<provider/model> --out=./inquiry-runs
 skvm authorization inquiry inspect --out=./inquiry-runs
 skvm authorization inquiry edit --input=./inquiry.json --edit=./inquiry-edit.json --out=./changed-inquiry.json
-skvm authorization inquiry compare --input=./changed-inquiry.json --previous=./inquiry-runs
+skvm authorization inquiry compare --input=./changed-inquiry.json --previous=./inquiry-runs --strategy=domain-evidence-v1
 ```
 
 Only run calls the provider. Inspect, edit and compare are offline. Compare checks the whole current task and indexed source, marks changed work needs-review and never reuses the old answer. Source tools cannot run target code, write files, use shell/network or read outside the allowlist. Limits are 12 dispatches, 24 tool actions, 256 KiB cumulative target source shown to the model, 300 seconds per call and 1200 seconds per session; one delivery repair is allowed. Save unknown completion and inspect the retained session rather than resend it automatically.
 
+The optional strategy above asks the model for cited local controls and helper dependencies. The program chooses up to two unambiguous source reads per response, substitutes explicit user premises into bounded conditions, and checks formal object/branch/behavior/policy consistency. The model still discovers and interprets source behavior, maps natural policy and explains gaps; these meanings need review. Omit the strategy to retain legacy behavior. No user-authored control graph or expected source answer is required. Changes to policy, premises, strategy or source are tracked by compare and require fresh analysis; old semantic rules are not automatically reused.
+
 To load an existing original skill through ordinary `skvm run`, use `--skill=<SKILL.md> --prompt=<current-task> --authorization-scope=./inquiry.json --authorization-trace=<new-json-file> --model=<provider/model>`. The opt-in bare-agent runtime preserves full skill injection and installs the same common read tools plus bounded skill_reference_read. Add `--authorization-domain-tools` only for a package that describes authorization_compile, authorization_observe and authorization_check_result. Domain check validates structure and actually shown evidence; it does not approve security semantics. Whole audits, deployment verification, patching and duties outside the bounded question remain the user's responsibility.
+
+With domain tools, add `--authorization-strategy=domain-evidence-v1` for the same execution engine. Submit incremental `authorization-control-slice/v1` proposals as `controlDelta` on observe/check. The runtime provides the bounded rule, dependency, predicate, user-binding and independent-policy shapes. Incorporate automatic source reads into linked rules, use returned digests for explicit revisions, and finish with the result check; one repaired check is available inside the native 22 exploration + 2 check budget.
 
 The older explicit assessment workflow below remains available when policy, scenarios and selected source ranges are already supplied.
 

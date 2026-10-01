@@ -74,7 +74,7 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
     files.set(relative, source); indexBytes += Buffer.byteLength(source.content); ioReadBytes += Buffer.byteLength(source.content)
     symbols.push(...indexAuthorizationSymbols(relative, source.content, options))
   }
-  const evidence: InquiryEvidence[] = [], history: Array<{ name: string; arguments: unknown; result: InquiryToolOutput }> = []
+  const evidence: InquiryEvidence[] = [], history: Array<{ name: string; arguments: unknown; result: InquiryToolOutput; actionOrigin?: string; questionId?: string; dependencyId?: string; reason?: string }> = []
   const blank = (status: InquiryToolOutput["status"], code?: string, message?: string): InquiryToolOutput => ({ status, ...(code ? { code } : {}), ...(message ? { message } : {}), evidence: [], matches: [], candidates: [] })
   const current = async (relative: string): Promise<SourceBundleFile | InquiryToolOutput> => {
     if (!safePath(relative) || !files.has(relative)) return blank("error", "source-out-of-scope", "Path is outside the allowed and indexed original source.")
@@ -101,7 +101,7 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
     if (!evidence.some(e => e.id === item.id)) evidence.push(item)
     return { ...blank(last === end ? "ok" : "partial"), evidence: [item], requested: { path: source.relativePath, startLine: start, endLine: end }, truncated: last !== end }
   }
-  const execute = async (name: string, args: Record<string, unknown>): Promise<InquiryToolOutput> => {
+  const execute = async (name: string, args: Record<string, unknown>, origin?: { actionOrigin: string; questionId: string; dependencyId: string; reason: string }): Promise<InquiryToolOutput> => {
     let result: InquiryToolOutput
     if (toolCalls >= maxToolCalls) result = blank("error", "tool-budget", "Session tool budget exhausted.")
     else {
@@ -145,10 +145,11 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
         }
       } catch (error) { result = blank("error", "source-read-failed", String(error)) }
     }
-    history.push({ name, arguments: structuredClone(args), result: structuredClone(result) }); return result
+    history.push({ name, arguments: structuredClone(args), result: structuredClone(result), ...origin }); return result
   }
   return { definitions: INQUIRY_SOURCE_TOOLS, execute, evidence, history, scopeGaps,
     files: [...files].map(([p, f]) => ({ path: p, sha256: f.sha256, bytes: Buffer.byteLength(f.content) })),
+    locateSymbols: (name: string) => structuredClone(symbols.filter(s => s.name === name)),
     get displayBytes() { return displayBytes }, get indexBytes() { return indexBytes }, get ioReadBytes() { return ioReadBytes }, get toolCalls() { return toolCalls }, maxToolCalls, maxDisplayBytes }
 }
 export type InquiryTools = Awaited<ReturnType<typeof createInquiryTools>>

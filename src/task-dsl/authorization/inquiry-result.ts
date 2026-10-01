@@ -37,12 +37,12 @@ export function validateInquiryObservations(input: unknown, context: InquiryEvid
     ...checkEvidence(item.evidenceIds, item.questionId, `observations.${i}.evidenceIds`, context),
   ])
 }
-export function validateAuthorizationInquiryResult(plan: AuthorizationInquiryProgram, input: unknown, context: InquiryEvidenceContext): {
+export function validateAuthorizationInquiryResult(plan: AuthorizationInquiryProgram, input: unknown, context: InquiryEvidenceContext, domainCheck?: { diagnostics: InquiryDiagnostic[] }): {
   valid: boolean; result?: AuthorizationInquiryResult; diagnostics: InquiryDiagnostic[]; semanticSupport: "unreviewed"
 } {
   const parsed = AuthorizationInquiryResultSchema.safeParse(input)
   if (!parsed.success) return { valid: false, diagnostics: parsed.error.issues.map(issue => diag("inquiry-result-schema", issue.path.join("."), issue.message)), semanticSupport: "unreviewed" }
-  const result = parsed.data, diagnostics = validateInquiryObservations(result.observations, context), seen = new Set<string>()
+  const result = parsed.data, diagnostics = [...validateInquiryObservations(result.observations, context), ...(domainCheck?.diagnostics ?? [])], seen = new Set<string>()
   for (const [i, item] of result.questions.entries()) {
     const field = `questions.${i}`
     if (!context.questionIds.includes(item.questionId)) diagnostics.push(diag("unknown-question", `${field}.questionId`, "Question is not declared."))

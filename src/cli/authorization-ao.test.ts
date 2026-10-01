@@ -5,6 +5,7 @@ import path from "node:path"
 import { runAuthorizationCli } from "./authorization.ts"
 import { emptyTokenUsage } from "../core/types.ts"
 import { inspectLocalInquiry } from "../benchmarks/authorization-dsl/inquiry-local.ts"
+import { RUN_FLAGS, validateRunConfig } from "./run.ts"
 
 async function fixture() {
   const root = await mkdtemp(path.join(os.tmpdir(), "ao-cli-")); await mkdir(path.join(root, "project"))
@@ -22,6 +23,39 @@ test("ordinary inquiry check compiles complete DSL without a provider; natural c
   await writeFile(input, JSON.stringify({ ...value, inquiry: undefined, brief: "Does this comply?", mode: "conformance" }))
   expect(await runAuthorizationCli(["inquiry", "check", `--input=${input}`], deps)).toBe(1)
   expect(providers).toBe(0)
+})
+
+test("inquiry strategy is a zero-call explicit option, persisted and checked in archived domain state", async () => {
+  const { input, root } = await fixture(); let output = "", providers = 0, calls = 0
+  const deps = { stdout: (s: string) => output = s, stderr: () => {}, providerFactory: () => { providers++; return { name: "mock", async complete(params: any) {
+    calls++; const prompt = params.messages[0].content, id = /"id":"(ev-[a-f0-9]+)"/.exec(prompt)?.[1]
+    const args = calls === 1 ? { kind: "tool", calls: [{ name: "source_read", arguments: { path: "access.ts", startLine: 1, endLine: 1 } }] } : { kind: "final", controlDelta: { schemaVersion: "authorization-control-slice/v1", rules: [{ key: "entry", questionId: "q1", pathKey: "p", kind: "entry", after: [], evidenceIds: [id], claim: "entry" }, { key: "stop", questionId: "q1", pathKey: "p", kind: "reject", after: ["entry"], evidenceIds: [id], claim: "false", complete: true }] }, result: { schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q1", behavior: { disposition: "deny", explanation: "False" }, branches: [], missing: [], evidenceIds: [id] }], observations: [], scope: "local" } }
+    return { text: "", toolCalls: [{ id: "c", name: params.tools[0].name, arguments: args }], tokens: emptyTokenUsage(), durationMs: 0, stopReason: "tool_use" as const }
+  }, async completeWithToolResults() { throw new Error("Unused") } } } }
+  expect(await runAuthorizationCli(["inquiry", "check", `--input=${input}`, "--strategy=domain-evidence-v1"], deps)).toBe(0)
+  expect(JSON.parse(output).strategy).toBe("domain-evidence-v1")
+  expect(providers).toBe(0)
+  expect(await runAuthorizationCli(["inquiry", "run", `--input=${input}`, "--strategy=wrong", "--model=mock", `--out=${root}/bad`], deps)).toBe(1)
+  expect(providers).toBe(0)
+  expect(await runAuthorizationCli(["inquiry", "run", `--input=${input}`, "--strategy=domain-evidence-v1", "--model=mock", `--out=${root}/runs`], deps)).toBe(0)
+  const session = JSON.parse(output).sessionPath
+  const report = await inspectLocalInquiry(session)
+  expect(report.strategy).toBe("domain-evidence-v1")
+  expect(report.domain.slice.rules).toHaveLength(2)
+  expect(await runAuthorizationCli(["inquiry", "compare", `--input=${input}`, `--previous=${session}`, "--strategy=legacy"], deps)).toBe(0)
+  expect(JSON.parse(output).strategyChanged).toBe(true)
+  expect(calls).toBe(2)
+  const archived = JSON.parse(await readFile(path.join(session, "report.json"), "utf8")); archived.domain.slice.rules = []
+  await writeFile(path.join(session, "report.json"), JSON.stringify(archived))
+  await expect(inspectLocalInquiry(session)).rejects.toThrow("identity")
+})
+
+test("ordinary run domain strategy is explicit and cannot bypass native tools/scope", () => {
+  const base = ["--prompt=Inspect access", "--model=mock/test", "--adapter=bare-agent"]
+  const validate = (args: string[]) => { const parsed = RUN_FLAGS.parse(args); if (parsed.help) throw new Error("Unexpected help"); return validateRunConfig(parsed) }
+  expect(() => validate([...base, "--authorization-strategy=domain-evidence-v1"])).toThrow("scope")
+  expect(() => validate([...base, "--authorization-scope=scope.json", "--authorization-strategy=domain-evidence-v1"])).toThrow("domain-tools")
+  expect(validate([...base, "--authorization-scope=scope.json", "--authorization-domain-tools", "--authorization-strategy=domain-evidence-v1"]).mode).toBe("source")
 })
 test("ordinary inquiry run persists actual reads, inspect is offline and request edit invalidates compare", async () => {
   const { input, root } = await fixture(); let output = "", calls = 0

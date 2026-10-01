@@ -20,3 +20,10 @@ test("ordinary bare-agent injects whole skill and uses real restricted continuat
   expect(calls).toBe(2)
   expect(run.authorizationInquiry?.telemetry).toBeDefined()
 })
+
+test("adapter rejects illegal strategy before provider creation and passes the shared domain runtime into ordinary use", async () => {
+  let providers = 0
+  const adapter = new BareAgentAdapter(() => { providers++; throw new Error("No provider expected") })
+  await expect(adapter.setup({ model: "mock/test", maxSteps: 12, timeoutMs: 10000, providerOptions: { authorizationScope: "input.json", authorizationStrategy: "domain-evidence-v1" } })).rejects.toThrow("domain-tools")
+  expect(providers).toBe(0)
+})
