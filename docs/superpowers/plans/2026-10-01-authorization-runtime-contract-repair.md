@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 provider mock、authorization inquiry、已有 telemetry。
 
-状态：AP0–AP3完成，AP4验证通过、待发布核对。实际起点HEAD `df18fece`、工作区干净，含尚未推送的任务书提交；工程基线：`256db3c12bfbea3b1ba01d324da41d51b8167411`。工作目录 `D:\skill优化\SkVM`，分支 `skill-ir-aot`。开发模型请求 `gpt-6.1-sol / max / Flash`；派发接口支持 model/effort，未提供速度参数，不能将请求的 Flash 写成实际已启用。不得修改全局模型/速度配置。
+状态：AP0–AP4完成。工程`ef9f1e57e795b3836c338cdc079fe5c6bf2c54c8`已推送用户origin/skill-ir-aot并核对同SHA、当时工作区干净；紧凑验证及完成说明随本任务书同步发布。实际起点HEAD `df18fece`、工作区干净，含当时尚未推送的任务书提交；工程基线：`256db3c12bfbea3b1ba01d324da41d51b8167411`。工作目录 `D:\skill优化\SkVM`，分支 `skill-ir-aot`。开发模型请求 `gpt-6.1-sol / max / Flash`；派发接口支持 model/effort，未提供速度参数，不能将请求的 Flash 写成实际已启用。不得修改全局模型/速度配置。
 
 ## 范围与协作
 
@@ -113,13 +113,15 @@ git diff --check
 
 若当前PATH无Bun，使用既有 `C:/Users/14182/AppData/Roaming/npm/node_modules/bun/bin/bun.exe`，不安装第二运行时。
 
-- [ ] AO replay只核对保留结果未变；新增mock恢复结果单列。新记录仅保存测试命令、结果、修复前后行为、相关提交与项目调用0；实际USD/真人收益不作新增结论。
+- [x] AO replay只核对保留结果未变；新增mock恢复结果单列。新记录仅保存测试命令、结果、修复前后行为、相关提交与项目调用0；实际USD/真人收益不作新增结论。
 - [x] 更新已有文档中受影响的参数/行为，运行现有文档单测，不新建长期组件文档。
 - [x] 向 `D:\skill优化\conversation_log.md` 追加简短阶段记录。
-- [ ] 仅提交本任务文件，推送用户 `origin/skill-ir-aot`，核对远端。SSH不可用可用既有gh认证的HTTPS方式，不修改持久远端配置或打印凭据。
-- [ ] 最终报告列出：修了什么、反例如何恢复、验证结果、是否仍有工程阻塞、SHA及工作区状态。完成后停止，不启动新研究任务。
+- [x] 仅提交本任务文件，推送用户 `origin/skill-ir-aot`，核对远端。SSH不可用可用既有gh认证的HTTPS方式，不修改持久远端配置或打印凭据。
+- [x] 最终报告列出：修了什么、反例如何恢复、验证结果、是否仍有工程阻塞、SHA及工作区状态。完成后停止，不启动新研究任务。
 
 AP4有限验证：指定五文件加原provider两个回归及inquiry-tools，共44 pass/0 fail、201断言/8文件；主typecheck exit0，AO evaluate replay重现56行/104映射且provider0；现有文档单测12/12，diff --check通过。AO结果目录git diff为空；独立default只读探子按具体函数/行号核验无阻塞。未扩展历史审计或付费实验。
+
+交付证据：[verification.json](../../../results/skill-ir/authorization-runtime-contract-repair-20261001/verification.json)。工程发布后AO目录Git tree仍为`e189248c54a344c1306dd68d30f53145e3ab700f`，与启动时完全相同。工程阻塞无；真实模型服从和语义质量增益未测。最终收尾提交SHA与用户origin核对在交付消息中报告。
 
 ## 验收清单
 

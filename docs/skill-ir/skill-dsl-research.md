@@ -1208,6 +1208,8 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 **费用与交付边界。** [评价摘要](../../results/skill-ir/skill-dsl-research/development/authorization-inquiry-tools-v1/evaluation-summary.json)保存逐行首答/终答、结构状态、review、source IO、调用与时长。全部319调用usage已报告：fresh input3,956,583、cache-read769,792、output196,444，完整prompt4,726,375（缓存仅一次）、完整prompt+output4,922,819；累计响应4,923,698.496ms、逐session墙钟合计4,959,264ms，合计并非并行实验日历耗时。319项actualUSD均未报告，总额unknown，已知小计0不表示免费；开发代理tokens、真人分钟unknown，目标执行0、共享修订0。一个仓外普通例子复制后check/edit/inspect/compare零provider通过，并复用已有Paperless session验证相对源字节、旧结果current及修改后needs-review。工程能力和复验成立，模型取证完整性与整体方法净收益仍未建立；不追加采样。精确恢复命令见[结果入口](../../results/skill-ir/skill-dsl-research/development/authorization-inquiry-tools-v1/README.md)。
 
+**AP运行合同修复（2026-10-01）。** AO关闭后复核确认：两条消费的模型Schema未暴露本地1–8数组界限、既有fallback未提供首次具体字段诊断，native共用24动作可在最终check前耗尽。[AP0–AP4](../superpowers/plans/2026-10-01-authorization-runtime-contract-repair.md)用通用临时源码/mock先红后绿修复三处共性合同：两通道保留min/max/exact长度；一次既有fallback收到有界path/code/界限/实际数量数据，9/10动作可按8加剩余动作分轮请求，不截断；native在总24内保留22探索+2最终check，拒绝与执行分账，无效第二次check清除旧result。工程`ef9f1e57`已与用户origin核对；44测试/201断言、主类型、文档12测试及AO 56行/104映射离线重放通过，独立只读核验无阻塞。[验证记录](../../results/skill-ir/authorization-runtime-contract-repair-20261001/verification.json)单列mock恢复。原AO全部证据、分母与质量/费用统计不变，项目model/API/paid调用0；没有新增真实质量或人工收益证据，也不保证模型取证和结论必然完整。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

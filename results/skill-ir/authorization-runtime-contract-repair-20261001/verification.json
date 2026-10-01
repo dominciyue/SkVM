@@ -1,0 +1,185 @@
+{
+  "schemaVersion": "authorization-runtime-contract-repair/v1",
+  "date": "2026-10-01",
+  "status": "verified-published-engineering",
+  "branch": "skill-ir-aot",
+  "engineeringBaseline": "256db3c12bfbea3b1ba01d324da41d51b8167411",
+  "taskStartCommit": "df18fece",
+  "engineeringCommit": "ef9f1e57e795b3836c338cdc079fe5c6bf2c54c8",
+  "runtime": "C:/Users/14182/AppData/Roaming/npm/node_modules/bun/bin/bun.exe",
+  "checks": [
+    {
+      "command": "bun test ./src/providers/structured.test.ts ./src/benchmarks/authorization-dsl/inquiry-run.test.ts ./src/benchmarks/authorization-dsl/inquiry-native.test.ts ./src/adapters/bare-authorization.test.ts ./src/cli/authorization-ao.test.ts ./src/benchmarks/authorization-dsl/inquiry-tools.test.ts ./test/providers/structured.test.ts ./test/providers/structured-error-propagation.test.ts",
+      "exitCode": 0,
+      "pass": 44,
+      "fail": 0,
+      "assertions": 201,
+      "files": 8
+    },
+    {
+      "command": "bun run typecheck",
+      "exitCode": 0
+    },
+    {
+      "command": "bun ./results/skill-ir/skill-dsl-research/development/authorization-inquiry-tools-v1/evaluate.ts replay",
+      "exitCode": 0,
+      "result": "Replayed 56 rows, 104 first/final mappings; zero provider calls"
+    },
+    {
+      "command": "python -m unittest discover -s scripts -p check_skill_ir_doc_links_test.py",
+      "exitCode": 0,
+      "pass": 12
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "redGreen": [
+    {
+      "stage": "AP1",
+      "red": {
+        "pass": 1,
+        "fail": 1,
+        "reason": "Model schema lacked minItems/maxItems"
+      },
+      "green": {
+        "pass": 2,
+        "fail": 0
+      }
+    },
+    {
+      "stage": "AP2",
+      "red": {
+        "pass": 10,
+        "fail": 4,
+        "reason": "Fallback lacked actionable calls/too_big/maximum/actualItems feedback"
+      },
+      "green": {
+        "pass": 29,
+        "fail": 0,
+        "assertions": 104
+      }
+    },
+    {
+      "stage": "AP3",
+      "red": {
+        "pass": 3,
+        "fail": 4,
+        "reason": "Exploration consumed check capacity; missing named diagnostics; stale valid result; no tiny-budget rejection"
+      },
+      "green": {
+        "pass": 8,
+        "fail": 0,
+        "assertions": 58
+      }
+    }
+  ],
+  "beforeAfter": [
+    {
+      "contract": "array-schema",
+      "before": "Local 1-8 calls had no visible minItems/maxItems",
+      "after": "Nested/optional/union/exact/unbounded array cases match in tool and prompt schemas"
+    },
+    {
+      "contract": "protocol-fallback",
+      "before": "Over-limit proposal repeated with no specific field feedback",
+      "after": "Mock proposals of 9/10 actions recover to 8 via the existing fallback; a later step requests the remaining 1/2; all actions execute without host truncation",
+      "mockProviderCallsPerRun": 4,
+      "stillInvalid": "10 then 9 remains an error with both payloads, field diagnostics and reported usage; network, timeout and exhausted dispatch/source budgets add no actual calls"
+    },
+    {
+      "contract": "native-check-budget",
+      "before": "Shared 24 could be exhausted before check",
+      "after": "22 source/reference/compile/observe executions plus initial check and one repaired check total 24",
+      "mockExecutedCalls": 24,
+      "mockRejectedCalls": 6,
+      "tinyBudgets": "Domain totals below 3 return tool-budget; common-only keeps its configured positive budget",
+      "validity": "Missing compilation/two invalid checks/third-check retry cannot yield a valid result; an invalid second check clears an earlier result"
+    }
+  ],
+  "retainedAO": {
+    "root": "results/skill-ir/skill-dsl-research/development/authorization-inquiry-tools-v1",
+    "gitTreeBefore": "e189248c54a344c1306dd68d30f53145e3ab700f",
+    "gitTreeAfter": "e189248c54a344c1306dd68d30f53145e3ab700f",
+    "directoryDiffExitCode": 0,
+    "originalRows": {
+      "quality": 32,
+      "author": 8,
+      "consume": 8,
+      "sourceSkill": 8
+    },
+    "counterexamples": [
+      {
+        "row": "consume-memos-remove-MD-original",
+        "status": "transport-failed",
+        "providerCalls": 4,
+        "actionCounts": [
+          5,
+          5,
+          10,
+          10
+        ]
+      },
+      {
+        "row": "consume-memos-remove-MD-changed",
+        "status": "transport-failed",
+        "providerCalls": 3,
+        "actionCounts": [
+          4,
+          10,
+          9
+        ]
+      }
+    ],
+    "archivedError": {
+      "path": "calls",
+      "code": "too_big",
+      "maximum": 8
+    },
+    "archivedSchemaBounds": {
+      "minItems": null,
+      "maxItems": null
+    },
+    "newResearchRows": 0
+  },
+  "independentReview": {
+    "agents": 1,
+    "role": "default",
+    "readOnly": true,
+    "scope": [
+      "structured transports/failure accounting",
+      "native exploration/check accounting and isolation"
+    ],
+    "blockingFindings": 0
+  },
+  "publication": {
+    "remote": "origin",
+    "repository": "github.com/dominciyue/SkVM",
+    "branch": "skill-ir-aot",
+    "verifiedEngineeringHead": "ef9f1e57e795b3836c338cdc079fe5c6bf2c54c8",
+    "engineeringWorkspaceClean": true,
+    "closureRecord": "Published in a following documentation commit; final head is available in Git history and the delivery message"
+  },
+  "projectCalls": {
+    "modelProvider": 0,
+    "api": 0,
+    "paid": 0,
+    "targetExecution": 0
+  },
+  "unknowns": {
+    "developmentAgentTokens": null,
+    "developmentAgentUsd": null,
+    "humanMinutes": null
+  },
+  "limits": [
+    "Engineering mock recovery is not proof of real-model compliance or semantic quality gain",
+    "Historical AO responses, scoring and costs remain unchanged",
+    "No subsequent research task or paid rerun started"
+  ],
+  "speed": {
+    "requested": "Flash",
+    "confirmedEnabled": false,
+    "globalConfigurationChanged": false
+  }
+}
