@@ -46,6 +46,8 @@ AO 中允许范围内的 helper 未读，属于取证策略缺口；owner/null-o
 
 实施位置校准：实际adapter为`src/adapters/bare-agent.ts`，相关测试为`bare-authorization.test.ts`，不另建adapter。AQ8 compare分别记录policy/premise/source/strategy变化及机械索引适用性；为保持当前任务来源明确，不自动复用旧语义slice，变化任务fresh分析，未主张政策单独重算带来成本节省。sourceBound/checked只证明引用与运行合同，语义提取仍独立评价。
 
+AQ11实际协议发现：初始真实request把ControlRule key等ZodEffects字符串转换成object，unknown record值及null也误为object；已有fallback无法修复错误的模型Schema。字段捕获测试已确认红灯。为保留同一首轮实现，48原登记仍绑定`3d4ba681`，不在运行中混入补丁；一次共享修订仅在primary关闭后实施。语义评分前已固定四项目病例OWUI ingestion、Paperless notes、Gitea self-query、Memos remove的M-E/D-E各一对，共8行，记录在AQ root/shared-revision.json。修订不改任务、source、原失败或旧答案，不给缺陷面板建立机制语义收益主张；native使用手写opaque参数Schema不受这次转换缺陷直接影响，不额外重抽native。
+
 ## 3. 领域合同
 
 ### 3.1 用户输入与模型责任

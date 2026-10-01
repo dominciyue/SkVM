@@ -113,3 +113,18 @@ it("propagates a provider network error without a fallback dispatch", async () =
   expect(thrown).toBe(error)
   expect(count).toBe(1)
 })
+
+it("exposes refined string identities, free predicate values and explicit null in both real extraction schemas", async () => {
+  const requests: CompletionParams[] = [], value = { key: "entry", condition: { op: "is-null", value: { binding: "owner" } }, known: null, optionalValue: null }
+  const schema = z.object({ key: z.string().refine(s => s !== "constructor"), condition: z.record(z.unknown()), known: z.union([z.string(), z.null()]), optionalValue: z.string().nullable() }).strict()
+  const provider: LLMProvider = { name: "domain-schema-contract", async complete(params) { requests.push(params); return { text: params.tools ? "" : JSON.stringify(value), toolCalls: [], tokens: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, durationMs: 0, stopReason: "end_turn" } }, async completeWithToolResults() { throw new Error("No executor") } }
+  await extractStructured({ provider, schema, schemaName: "answer", schemaDescription: "Answer", prompt: "Task", maxRetries: 1 })
+  const visible = requests[0]!.tools![0]!.inputSchema as any
+  expect(visible.properties.key).toEqual({ type: "string" })
+  expect(visible.properties.condition.additionalProperties).toEqual({})
+  expect(visible.properties.known.anyOf).toEqual([{ type: "string" }, { type: "null" }])
+  expect(visible.properties.optionalValue.anyOf).toEqual([{ type: "string" }, { type: "null" }])
+  const fallback = JSON.parse(requests[1]!.messages[0]!.content.match(/```json\n([\s\S]*?)\n```/)![1]!)
+  expect(fallback).toEqual(visible)
+  expect(schema.safeParse({ ...value, key: "constructor" }).success).toBe(false)
+})

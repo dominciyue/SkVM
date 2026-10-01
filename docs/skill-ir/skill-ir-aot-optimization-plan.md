@@ -2,7 +2,7 @@
 
 - 更新日期：2026-10-01
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AQ0–AQ9已实现并确定性验证，AQ10固定48session已登记，待独立工程复核和提交绑定后真实生成；从干净`c0cd32d2`启动，AO/AP历史结果保留，真实收益尚未测。
+- 状态：AQ0–AQ10已实现、验证并登记，工程绑定`3d4ba681`，AQ11固定48session两并发生成中；从干净`c0cd32d2`启动，AO/AP历史结果保留，真实收益尚未测。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[AQ0–AQ16](../superpowers/plans/2026-10-01-authorization-domain-execution.md)
