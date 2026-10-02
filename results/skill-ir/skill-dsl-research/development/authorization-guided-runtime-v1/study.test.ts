@@ -42,6 +42,9 @@ test("a valid justified unknown is a boundary, not a mandatory repair", async ()
   const root = await temp(), result = await api.developRows(root, [row("boundary"), row("next")], options({ concurrency: 1, execute: async () => ({ status: "completed", validation: { valid: true } }), evaluate: async (_r: any, report: any) => api.mechanicalReview(report) }))
   expect(result.rows.every((r: any) => r.status === "completed")).toBe(true)
 })
+test("a network transport failure is infrastructure rather than a model schema defect", () => {
+  expect(api.mechanicalReview({ status: "transport-failed", error: "ProviderNetworkError: network error: Unable to connect" }).failure.category).toBe("infrastructure")
+})
 test("a repair identity only reopens its own retained attempt and cannot bypass another shared defect", async () => {
   const root = await temp(), execute = async () => ({ status: "completed", telemetry: { providerCalls: 1 } })
   await api.developRows(root, [row("first"), row("other")], options({ execute, evaluate: async () => ({ failure: { category: "schema/wire", rootCause: "separate retained defect", components: ["wire"] } }) }))

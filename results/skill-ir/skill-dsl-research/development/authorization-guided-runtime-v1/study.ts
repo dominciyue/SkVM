@@ -26,7 +26,7 @@ export function plannedRows(): Row[] {
 export function mechanicalReview(report: any): Review {
   if (["completed", "valid"].includes(report.status) && report.validation?.valid !== false) return {}
   const status = String(report.status ?? "missing-report"), diagnostic = report.error ?? report.validation?.diagnostics?.[0]?.code ?? status
-  const category = /timeout|unavailable|unknown/.test(status) ? "infrastructure" : /budget/.test(status) ? "context/budget" : /transport|schema/.test(status + diagnostic) ? "schema/wire" : "state/checker"
+  const category = /timeout|unavailable|unknown/.test(status) || /ProviderNetworkError|network error|Unable to connect/.test(String(diagnostic)) ? "infrastructure" : /budget/.test(status) ? "context/budget" : /transport|schema/.test(status + diagnostic) ? "schema/wire" : "state/checker"
   return { failure: { category, rootCause: `${status}: ${diagnostic}`, components: category === "state/checker" ? ["checker", "delivery"] : ["wire", "source", "delivery"] } }
 }
 export async function retainLocalRun(report: any) {
