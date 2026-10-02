@@ -1,0 +1,140 @@
+import { createHash } from "node:crypto"
+import type { AuthorizationInquiryProgram, InquiryRelation } from "../../task-dsl/authorization/inquiry-program.ts"
+import { controlRuleReach } from "../../task-dsl/authorization/control-conclusion.ts"
+import type { ControlSlice } from "../../task-dsl/authorization/control-slice.ts"
+import type { DiscoverySymbol } from "./evidence-preparation/discovery.ts"
+import type { InquiryTools, InquiryToolOutput } from "./inquiry-tools.ts"
+import type { ScheduledDependency } from "./inquiry-domain-scheduler.ts"
+
+export type WorkState = "unlocated" | "awaiting-read" | "awaiting-interpretation" | "awaiting-binding" | "awaiting-verification" | "closed" | "external-unknown" | "blocked"
+export interface WorkItem {
+  id: string; questionId: string; kind: InquiryRelation; question: string; entryHint?: string; symbol?: string;
+  origin: "question-duty" | "source-reference" | "explicit-dependency"; parentId?: string; dependencyId?: string;
+  state: WorkState; decisive: boolean; code?: string; reason: string; candidates: DiscoverySymbol[]; selected?: DiscoverySymbol;
+  callsiteEvidenceIds: string[]; evidenceIds: string[]; semanticSupport: "unreviewed";
+  nextAction: { kind: "locate" | "select-candidate" | "read" | "interpret" | "bind" | "check" | "none"; itemId: string }
+}
+export interface WorklistAction {
+  actionOrigin: "domain-worklist"; questionId: string; dependencyId: string; name: "source_read";
+  arguments: { path: string; startLine: number; endLine: number }; reason: string; budgetConsumed: number; output: InquiryToolOutput
+}
+const stableId = (value: unknown) => "work-" + createHash("sha256").update(JSON.stringify(value)).digest("hex").slice(0, 20)
+const syntax = new Set(["if", "for", "while", "switch", "catch", "function", "func", "def", "class", "with", "match", "typeof", "sizeof", "return"])
+const priority: Record<InquiryRelation, number> = { entry: 0, "principal-binding": 1, "resource-binding": 2, guard: 3, effect: 4, exception: 5 }
+
+/** Source candidates are lexical work, never an inferred call graph or authorization fact. */
+export function createInquiryWorklist(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; remainingActions?: () => number; dependencyStates?: () => ScheduledDependency[] }) {
+  const items = new Map<string, WorkItem>(), choices = new Map<string, string>(), invalidFiles = new Set<string>(), failedReads = new Map<string, string>()
+  const actions: WorklistAction[] = [], questionIds = options.program.questions.map(q => q.id)
+  let lastQuestion = -1
+  const make = (id: string, questionId: string, kind: InquiryRelation, origin: WorkItem["origin"], question: string, extra: Partial<WorkItem> = {}): WorkItem => ({ id, questionId, kind, origin, question, state: "unlocated", decisive: false, reason: "Locate original source or an explicit question relation.", candidates: [], callsiteEvidenceIds: [], evidenceIds: [], semanticSupport: "unreviewed", nextAction: { kind: "locate", itemId: id }, ...extra })
+  for (const duty of options.program.queue) {
+    const q = options.program.questions.find(q => q.id === duty.questionId)!
+    items.set(duty.id, make(duty.id, duty.questionId, duty.kind, "question-duty", duty.question, { entryHint: q.entryHint, ...(duty.kind === "entry" ? { candidates: options.tools.symbolHints(q.entryHint ?? q.request).slice(0, 16), decisive: true } : {}) }))
+  }
+  const rootFor = (questionId: string) => [...items.values()].find(i => i.questionId === questionId && i.origin === "question-duty" && i.kind === "entry")!
+  const coveredThrough = (c: DiscoverySymbol) => {
+    let through = c.startLine - 1
+    for (const e of options.tools.evidence.filter(e => e.path === c.path && e.sha256 === c.sha256).sort((a, b) => a.startLine - b.startLine)) if (e.startLine <= through + 1 && e.endLine >= through + 1) through = e.endLine
+    return through
+  }
+  const evidenceFor = (c: DiscoverySymbol) => options.tools.evidence.filter(e => e.path === c.path && e.sha256 === c.sha256 && e.startLine <= c.endLine && e.endLine >= c.startLine)
+  const transition = (item: WorkItem, state: WorkState, action: WorkItem["nextAction"]["kind"], reason: string, code?: string) => Object.assign(item, { state, nextAction: { kind: action, itemId: item.id }, reason, code })
+  const represented = (item: WorkItem, slice: ControlSlice) => slice.rules.filter(r => r.questionId === item.questionId && r.evidenceIds.some(id => item.evidenceIds.includes(id)))
+  const discoverReferences = (parent: WorkItem) => {
+    if (!parent.selected) return
+    const names = new Set<string>(); let skippedDeclaration = false
+    for (const e of evidenceFor(parent.selected)) for (const [offset, line] of e.quote.split(/\r?\n/).entries()) for (const match of line.matchAll(/\b([A-Za-z_$][\w$]*)\s*\(/g)) {
+      const name = match[1]!
+      if (name === parent.selected.name && !skippedDeclaration && e.startLine + offset === parent.selected.startLine) { skippedDeclaration = true; continue }
+      if (!syntax.has(name)) names.add(name)
+    }
+    for (const name of names) {
+      const candidates = options.tools.locateSymbols(name)
+      if (!candidates.length) continue
+      const id = stableId([parent.questionId, parent.id, name])
+      if (items.has(id)) continue
+      if ([...items.values()].filter(i => i.questionId === parent.questionId && i.origin === "source-reference").length >= 32) { parent.code = "work-reference-limit"; break }
+      items.set(id, make(id, parent.questionId, "guard", "source-reference", `Interpret the lexical reference ${name} in relation to this current question; its role is not established.`, { symbol: name, parentId: parent.id, candidates: candidates.slice(0, 16), callsiteEvidenceIds: [...parent.evidenceIds] }))
+    }
+  }
+  const sync = (slice: ControlSlice, check?: { ruleConsistency: boolean; taskResolution: string }): WorkItem[] => {
+    for (const h of options.tools.history) if (["source-changed", "source-root-changed", "symlink-escape"].includes(h.result.code ?? "")) {
+      const paths = h.result.code === "source-root-changed" ? options.tools.files.map(f => f.path) : [String((h.arguments as Record<string, unknown>).path ?? "")]
+      for (const p of paths) invalidFiles.add(p)
+    }
+    const dependencies = options.dependencyStates?.() ?? []
+    for (const d of dependencies) {
+      const id = stableId(["dependency", d.id]), kind = slice.dependencies.find(p => p.id === d.id)?.kind
+      const relation: InquiryRelation = kind === "principal-binding" || kind === "resource-binding" || kind === "effect" || kind === "exception" ? kind : "guard"
+      const item = items.get(id) ?? make(id, d.questionId, relation, "explicit-dependency", d.reason, { dependencyId: d.id, symbol: d.symbol, decisive: d.decisive })
+      item.candidates = d.candidates; item.evidenceIds = d.evidenceIds; item.reason = d.reason
+      if (d.state === "inapplicable") transition(item, "closed", "none", d.reason, d.code)
+      else if (d.state === "external-unknown" || d.state === "blocked") transition(item, d.state, "none", d.reason, d.code)
+      else transition(item, "unlocated", "locate", d.reason, d.code)
+      items.set(id, item)
+    }
+    for (const item of [...items.values()]) {
+      if (item.origin === "explicit-dependency" && ["closed", "external-unknown", "blocked"].includes(item.state)) continue
+      const root = rootFor(item.questionId)
+      if (item.origin === "question-duty" && item.kind !== "entry") {
+        item.selected = root.selected; item.evidenceIds = [...root.evidenceIds]
+        if (root.selected && invalidFiles.has(root.selected.path)) { transition(item, "blocked", "none", "Entry source changed; this related duty cannot be promoted.", "source-invalidated"); continue }
+        transition(item, check?.ruleConsistency && check.taskResolution === "bounded" ? "closed" : represented(item, slice).length ? "awaiting-verification" : root.state === "awaiting-interpretation" ? "awaiting-interpretation" : "awaiting-binding", check?.ruleConsistency && check.taskResolution === "bounded" ? "none" : represented(item, slice).length ? "check" : "interpret", "Question duty follows actual entry evidence; optional roles are not invented. A closed duty is only coverage of proposed bounded paths.")
+        continue
+      }
+      const candidate = choices.has(item.id) ? item.candidates.find(c => c.id === choices.get(item.id)) : item.candidates.length === 1 ? item.candidates[0] : undefined
+      item.selected = candidate
+      if (candidate && invalidFiles.has(candidate.path)) { transition(item, "blocked", "none", "Original source changed; start a fresh session before promoting extraction.", "source-invalidated"); continue }
+      if (failedReads.has(item.id)) { transition(item, "blocked", "none", "The prior actual read failed; preserve the gap without spinning.", failedReads.get(item.id)); continue }
+      if (!candidate) { transition(item, "unlocated", item.candidates.length > 1 ? "select-candidate" : "locate", "Choose an original indexed candidate; no semantic location is inferred.", item.candidates.length > 1 ? "location-ambiguous" : "location-missing"); continue }
+      let ancestor = item.parentId ? items.get(item.parentId) : undefined, cyclic = false
+      while (ancestor) { if (candidate.id === ancestor.selected?.id) cyclic = true; ancestor = ancestor.parentId ? items.get(ancestor.parentId) : undefined }
+      if (cyclic) { transition(item, "blocked", "none", "The selected reference returns to an ancestor candidate; no automatic recursive read.", "reference-cycle"); continue }
+      item.evidenceIds = evidenceFor(candidate).map(e => e.id)
+      const parentRules = item.parentId ? represented(items.get(item.parentId)!, slice) : []
+      if (item.parentId && !parentRules.length) { transition(item, "awaiting-binding", "bind", "Interpret and link the parent source window before reading this lexical candidate.", "parent-interpretation-pending"); continue }
+      const declared = item.origin === "source-reference" ? slice.dependencies.filter(d => d.questionId === item.questionId && d.symbol === item.symbol && parentRules.some(r => r.key === d.from)).map(d => dependencies.find(s => s.id === d.id)) : []
+      if (declared.length && declared.every(d => d?.state === "inapplicable")) { transition(item, "closed", "none", "All explicitly linked occurrences are unreachable under the current proposed controls; a later correction can reopen this candidate.", "dependency-unreachable"); continue }
+      if (candidate.boundary === "uncertain") { transition(item, "blocked", "interpret", "The indexed declaration boundary is uncertain. Request an explicit original range and explain its coverage before promotion.", "source-boundary-uncertain"); continue }
+      if (coveredThrough(candidate) < candidate.endLine) { transition(item, "awaiting-read", "read", "A unique allowed candidate still has original lines not shown.", "source-range-unread"); continue }
+      const proposed = represented(item, slice)
+      if (!proposed.length) transition(item, "awaiting-interpretation", "interpret", "Original source is shown. Explain its role and conditions in a local update; citation is not interpretation.", "source-needs-interpretation")
+      else if (item.parentId && !proposed.some(r => controlRuleReach(slice, r).ancestors.some(a => parentRules.some(p => p.id === a.id)))) transition(item, "awaiting-binding", "bind", "Accepted interpretation still needs an explicit link to the parent source rule.", "source-link-missing")
+      else transition(item, check?.ruleConsistency && check.taskResolution === "bounded" ? "closed" : "awaiting-verification", check?.ruleConsistency && check.taskResolution === "bounded" ? "none" : "check", "Source is represented by a linked proposal; meaning remains unreviewed.")
+      discoverReferences(item)
+    }
+    return snapshot()
+  }
+  const snapshot = () => structuredClone([...items.values()])
+  const selectCandidate = (selection: { questionId: string; itemId: string; candidateId: string }) => {
+    const item = items.get(selection.itemId)
+    if (!item) return { status: "rejected", code: "work-item-missing" }
+    if (item.questionId !== selection.questionId) return { status: "rejected", code: "work-question-mismatch" }
+    if (!item.candidates.some(c => c.id === selection.candidateId)) return { status: "rejected", code: "work-candidate-missing" }
+    choices.set(item.id, selection.candidateId); failedReads.delete(item.id)
+    return { status: "accepted", itemId: item.id, candidateId: selection.candidateId }
+  }
+  const run = async (slice: ControlSlice, maxActions = 2) => {
+    const start = actions.length, limit = Math.min(2, Math.max(0, maxActions))
+    while (actions.length - start < limit) {
+      sync(slice)
+      let next: WorkItem | undefined
+      for (let offset = 1; offset <= questionIds.length; offset++) {
+        const index = (lastQuestion + offset) % questionIds.length
+        next = [...items.values()].filter(i => i.questionId === questionIds[index] && i.state === "awaiting-read" && i.selected?.boundary !== "uncertain").sort((a, b) => Number(b.decisive) - Number(a.decisive) || priority[a.kind] - priority[b.kind] || a.id.localeCompare(b.id))[0]
+        if (next) { lastQuestion = index; break }
+      }
+      if (!next) break
+      if (Math.min(options.tools.maxToolCalls - options.tools.toolCalls, options.remainingActions?.() ?? Infinity) <= 0) { transition(next, "blocked", "none", "Shared exploration budget is exhausted; no hidden read was dispatched.", "tool-budget"); break }
+      const c = next.selected!, startLine = Math.max(c.startLine, coveredThrough(c) + 1), args = { path: c.path, startLine, endLine: Math.min(c.endLine, startLine + 159) }
+      const origin = { actionOrigin: "domain-worklist" as const, questionId: next.questionId, dependencyId: next.id, reason: next.reason }, before = options.tools.toolCalls
+      const output = await options.tools.execute("source_read", args, origin)
+      actions.push({ ...origin, name: "source_read", arguments: args, budgetConsumed: options.tools.toolCalls - before, output })
+      if (output.status === "error") failedReads.set(next.id, output.code ?? "source-read-failed")
+      sync(slice)
+    }
+    return actions.slice(start)
+  }
+  return { sync, run, snapshot, selectCandidate, actions }
+}

@@ -89,7 +89,7 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
         const inquiry = schemas.authorization_compile.parse(call.arguments).inquiry, mode = loaded.value.inquiry?.mode ?? loaded.value.mode ?? "behavior", policy = loaded.value.inquiry?.policy ?? loaded.value.policy
         if (inquiry.mode !== mode || JSON.stringify(inquiry.policy) !== JSON.stringify(policy)) throw new Error("Declaration changes supplied mode or independent policy")
         program = compileAuthorizationInquiry(inquiry); observations.length = 0; result = undefined; checks = 0; output = program
-        if (strategy !== "legacy") domain = createInquiryDomainRuntime({ program, tools, remainingActions: () => toolBudget().explorationRemaining, suppliedUserText: loaded.value.inquiry ? loaded.value.inquiry.questions.flatMap(q => [q.request, ...q.premises.map(p => p.text)]) : [loaded.value.brief!] })
+        if (strategy !== "legacy") domain = createInquiryDomainRuntime({ program, tools, strategy, remainingActions: () => toolBudget().explorationRemaining, suppliedUserText: loaded.value.inquiry ? loaded.value.inquiry.questions.flatMap(q => [q.request, ...q.premises.map(p => p.text)]) : [loaded.value.brief!] })
       } else if (options.domainTools && call.name === "authorization_observe") {
         domainCalls++; if (!program) throw new Error("Compile current inquiry first")
         const args = schemas.authorization_observe.parse(call.arguments)
@@ -119,6 +119,7 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
   }
   const beforeDispatch = async (params: CompletionParams, toolResults?: LLMToolResult[], previousResponse?: LLMResponse) => {
     if (closed) throw new NativeToolRejection("session-closed", "This native source session is closed")
+    domain?.beginStep()
     const text = params.messages.map(m => m.content).join("\n") + (toolResults?.map(r => r.content).join("\n") ?? ""); let current = 0, resent = 0
     for (const e of tools.evidence) { const count = text.split(JSON.stringify(e.text)).length - 1; current += count * e.bytes; resent += (displayed.has(e.id) ? count : Math.max(0, count - 1)) * e.bytes }
     if (modelSourceBytes + current > (options.maxDisplayBytes ?? 262144)) throw new AuthorizationDispatchLimitError(options.maxDisplayBytes ?? 262144, "source-display-budget")

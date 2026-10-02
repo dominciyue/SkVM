@@ -150,6 +150,7 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
   return { definitions: INQUIRY_SOURCE_TOOLS, execute, evidence, history, scopeGaps,
     files: [...files].map(([p, f]) => ({ path: p, sha256: f.sha256, bytes: Buffer.byteLength(f.content) })),
     locateSymbols: (name: string) => structuredClone(symbols.filter(s => s.name === name)),
+    symbolHints: (text: string) => { const names = new Set(text.match(/[A-Za-z_$][\w$]*/g) ?? []); return structuredClone(symbols.filter(s => s.name.length >= 3 && names.has(s.name))) },
     get displayBytes() { return displayBytes }, get indexBytes() { return indexBytes }, get ioReadBytes() { return ioReadBytes }, get toolCalls() { return toolCalls }, maxToolCalls, maxDisplayBytes }
 }
 export type InquiryTools = Awaited<ReturnType<typeof createInquiryTools>>

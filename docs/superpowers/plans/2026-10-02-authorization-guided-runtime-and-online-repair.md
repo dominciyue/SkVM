@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有只读源码索引及 CLI。不另建通用 IR、完整静态分析平台、CLI 或 HTML 展示层。
 
-状态：`in-progress`。实际启动 `260477cc`；AR0 已完成，AR1 驱动工程通过。三次短接口探针已保留；AR2 现场修复继续真实复验，AR3 局部更新已接通共用核心并通过工程检查，AR4 可达绑定反例已修，工作队列/取证解释/复用继续开发。规划基线 `9b085ee0d212a248c04ce5a8ffa12ad7171b8fed`；执行启动时记录实际 HEAD。目录 `D:\skill优化\SkVM`，分支 `skill-ir-aot`，唯一发布目标 `origin/skill-ir-aot`。开发线程指定 `gpt-6.1-sol / max`；被测路由默认沿用 `xty/gpt-5.6-sol`，二者分账，不擅自换模型来取得好结果。
+状态：`in-progress`。实际启动 `260477cc`；AR0 已完成，AR1 驱动工程通过。四次短接口探针及零调用同题重放已保留；AR2 已有修后checked小探针，AR3 局部更新已接通共用核心，AR4 可达绑定反例已修，AR5 工作清单与 AR6 定位/读取机制通过工程回归；真实取证解释及复用继续开发。规划基线 `9b085ee0d212a248c04ce5a8ffa12ad7171b8fed`；执行启动时记录实际 HEAD。目录 `D:\skill优化\SkVM`，分支 `skill-ir-aot`，唯一发布目标 `origin/skill-ir-aot`。开发线程指定 `gpt-6.1-sol / max`；被测路由默认沿用 `xty/gpt-5.6-sol`，二者分账，不擅自换模型来取得好结果。
 
 本轮按约 12 小时主动工作安排，AR0–AR20 必做，AR21–AR23 是提前完成核心后的有序深化。12 小时是规划中心，不是成功条件或硬性中断点；不等待、重复测试、反复抽样凑时长。不能保证宿主连续在线精确 12 小时。若核心提前完成，继续有价值的深化；若仍有工程缺口，不因时间到了写“全部完成”。
 
@@ -169,20 +169,20 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 
 文件：inquiry-program.ts、inquiry-domain-runtime.ts；新建 `inquiry-worklist.ts`、`inquiry-worklist.test.ts`。
 
-- [ ] 从现有 entry/principal-binding/resource-binding/guard/effect/exception 展开具名 WorkItem，关联 question、原始入口线索、证据、阻塞原因、下一动作和状态。
-- [ ] 队列区分未定位、待阅读、待解释、待绑定、待核验、已闭合、范围外未知；状态由宿主实际动作推进，模型不能直接写 closed 即通过。
-- [ ] 即使模型尚未提交完整控制图，入口已有调用点/问题关系也能形成候选待办；候选仅是搜索线索，不是语义事实。
-- [ ] 公平分配各问题队列，优先决定性且可定位的缺口；不因为某项难就静默跳过，不用仓库名/函数名白名单生成成功。
-- [ ] mock 验证从零控制图启动、循环依赖、一个问题阻塞不拖垮其它问题、读后待解释而非自动确认语义。
+- [x] 从现有 entry/principal-binding/resource-binding/guard/effect/exception 展开具名 WorkItem，关联 question、原始入口线索、证据、阻塞原因、下一动作和状态。
+- [x] 队列区分未定位、待阅读、待解释、待绑定、待核验、已闭合、范围外未知；状态由宿主实际动作推进，模型不能直接写 closed 即通过。
+- [x] 即使模型尚未提交完整控制图，入口已有调用点/问题关系也能形成候选待办；候选仅是搜索线索，不是语义事实。
+- [x] 公平分配各问题队列，优先决定性且可定位的缺口；不因为某项难就静默跳过，不用仓库名/函数名白名单生成成功。
+- [x] mock 验证从零控制图启动、循环依赖、一个问题阻塞不拖垮其它问题、读后待解释而非自动确认语义。
 
 ### AR6 — 领域引导的依赖定位与真实补读
 
 文件：inquiry-domain-scheduler.ts、inquiry-tools.ts 及测试；只复用已有索引，不引入全仓语言分析器。
 
-- [ ] 将 WorkItem 连接现有 source_search/source_symbol/source_read；显式调用点、引用位置、imports/定义候选提供定位依据。
-- [ ] 唯一合法位置由宿主读取；多个候选返回小型消歧选择，不要求重新描述整个 dependency。定位失败返回可继续的源码缺口。
-- [ ] 复用 `(path,sha,startLine,endLine)` 范围覆盖，避免重复读取；读源变更时使相关工作项失效。按题限制候选和动作，不越出用户范围。
-- [ ] 对入口条件、身份来源、资源解析和效果调用的关联只提出候选，语义仍由局部解释步骤确认。
+- [x] 将 WorkItem 连接现有 source_search/source_symbol/source_read；显式调用点、引用位置、imports/定义候选提供定位依据。
+- [x] 唯一合法位置由宿主读取；多个候选返回小型消歧选择，不要求重新描述整个 dependency。定位失败返回可继续的源码缺口。
+- [x] 复用 `(path,sha,startLine,endLine)` 范围覆盖，避免重复读取；读源变更时使相关工作项失效。按题限制候选和动作，不越出用户范围。
+- [x] 对入口条件、身份来源、资源解析和效果调用的关联只提出候选，语义仍由局部解释步骤确认。
 - [ ] 用已有 Memos/Paperless 两种结构各做真实补读探针，当场修复共同遗漏；验证改名/目录搬移后仍走同一代码，不把研究 evaluator 的正确 helper 列表交给生成器。
 
 ### AR7 — 补读后的局部解释与条件提取

@@ -15,15 +15,17 @@ const premiseValue = z.discriminatedUnion("status", [knownPremise, unspecifiedPr
 const policyRule = PolicyRuleSchema.omit({ ...omit, origin: true }).extend(common)
 const itemSchemas = { rules: rule, sourceBindings: sourceBinding, dependencies: dependency, premiseValues: premiseValue, policyRules: policyRule }
 type Group = keyof typeof itemSchemas
+export const WorkSelectionSchema = z.object({ questionId: InquiryText, itemId: InquiryText, candidateId: InquiryText }).strict()
 const metadata = { schemaVersion: z.literal("authorization-control-update/v1"), baseRevision: z.number().int().nonnegative().optional(), atomic: z.boolean().default(false) }
 /** The full advertised contract; each item is checked by the host so one malformed item cannot erase unrelated valid work. */
-export const LocalControlDeltaSchema = z.object({ ...metadata, rules: z.array(rule).max(1024).default([]), sourceBindings: z.array(sourceBinding).max(1024).default([]), dependencies: z.array(dependency).max(1024).default([]), premiseValues: z.array(premiseValue).max(1024).default([]), policyRules: z.array(policyRule).max(256).default([]) }).strict()
-export const LocalControlEnvelopeSchema = z.object({ ...metadata, rules: z.array(z.unknown()).max(1024).default([]), sourceBindings: z.array(z.unknown()).max(1024).default([]), dependencies: z.array(z.unknown()).max(1024).default([]), premiseValues: z.array(z.unknown()).max(1024).default([]), policyRules: z.array(z.unknown()).max(256).default([]) }).strict()
+export const LocalControlDeltaSchema = z.object({ ...metadata, rules: z.array(rule).max(1024).default([]), sourceBindings: z.array(sourceBinding).max(1024).default([]), dependencies: z.array(dependency).max(1024).default([]), premiseValues: z.array(premiseValue).max(1024).default([]), policyRules: z.array(policyRule).max(256).default([]), workSelections: z.array(WorkSelectionSchema).max(64).default([]) }).strict()
+export const LocalControlEnvelopeSchema = z.object({ ...metadata, rules: z.array(z.unknown()).max(1024).default([]), sourceBindings: z.array(z.unknown()).max(1024).default([]), dependencies: z.array(z.unknown()).max(1024).default([]), premiseValues: z.array(z.unknown()).max(1024).default([]), policyRules: z.array(z.unknown()).max(256).default([]), workSelections: z.array(z.unknown()).max(64).default([]) }).strict()
 export const LOCAL_CONTROL_GUIDE = [
   'guided-evidence-v2 local interface: controlDelta is {schemaVersion:"authorization-control-update/v1",rules:[],sourceBindings:[],dependencies:[],premiseValues:[],policyRules:[],atomic?:false,baseRevision?:current revision}. Submit just changed items, not the entire graph.',
   "Each item has op:add|replace, questionId, targetKey. Replace names the current same-question target and supplies reason; the host fills revisionOf. baseRevision detects a stale view. atomic:true applies the whole group or none. Rejected items and their dependent gaps remain visible; correct only diagnosed items.",
   "rules are entry/guard/reject/continue/effect with pathKey,after,evidenceIds,claim and optional finite condition/principal/resource/operation/authorizedBy/complete. sourceBindings are source identities with pathKey,after,evidenceIds,claim,bindingKey,bindingKind; the host sets kind:binding. A source identity is never a user value.",
   "premiseValues are explicit user facts: {op,questionId,targetKey,status:known,value,text:<exact original user span>} or {op,questionId,targetKey,status:unspecified,text}. Unspecified has NO value field; it does not mean null or false. Omit unspecified items if no update is needed. Policy mappings stay in policyRules, with expected,text,location and optional condition; the host sets origin:policy.",
+  "For a shown ambiguous WorkItem submit workSelections:[{questionId,itemId,candidateId}] using its shown candidate ID. This is a lexical read choice, not an authorization fact or a closed-state declaration. Atomic applies to the control update groups; location choices are separate read intents.",
 ].join("\n")
 const diagnostic = (code: string, at: string, message: string): InquiryDiagnostic => ({ code, path: at, message, severity: "error" })
 type Identity = { group: Group; questionId: string; targetKey: string }
@@ -79,5 +81,5 @@ export function applyControlUpdates(previous: ControlSlice, input: unknown, prog
     rejected.push(...accepted.map(a => ({ group: a.group, questionId: a.questionId, targetKey: a.targetKey, diagnostics: [cause] }))); accepted.length = 0; state = structuredClone(previous)
     attemptUnresolved = unresolved; unresolved = unresolvedLinks(state, [])
   }
-  return { state, accepted, rejected, unresolved, attemptUnresolved, envelopeValid: true }
+  return { state, accepted, rejected, unresolved, attemptUnresolved, pendingSelections: parsed.data.workSelections, envelopeValid: true }
 }

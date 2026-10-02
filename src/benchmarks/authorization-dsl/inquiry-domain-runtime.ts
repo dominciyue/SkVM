@@ -1,10 +1,11 @@
 import type { AuthorizationInquiryProgram } from "../../task-dsl/authorization/inquiry-program.ts"
-import { ControlSliceDeltaSchema, createControlSlice, mergeControlSlice, type ControlSlice } from "../../task-dsl/authorization/control-slice.ts"
+import { ControlSliceDeltaSchema, createControlSlice, mergeControlSlice, type ControlSlice, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { evaluateControlPaths, checkControlConclusions } from "../../task-dsl/authorization/control-conclusion.ts"
 import type { InquiryDiagnostic } from "../../task-dsl/authorization/inquiry.ts"
 import type { InquiryTools } from "./inquiry-tools.ts"
 import { createInquiryDomainScheduler } from "./inquiry-domain-scheduler.ts"
-import { applyControlUpdates, LOCAL_CONTROL_GUIDE, type UpdateAcceptance, type UpdateRejection } from "./inquiry-control-updates.ts"
+import { applyControlUpdates, LOCAL_CONTROL_GUIDE, WorkSelectionSchema, type UpdateAcceptance, type UpdateRejection } from "./inquiry-control-updates.ts"
+import { createInquiryWorklist } from "./inquiry-worklist.ts"
 
 export type DomainAblation = "scheduler-off" | "checks-off"
 export const DOMAIN_EXECUTION_GUIDE = [
@@ -19,9 +20,11 @@ export const DOMAIN_EXECUTION_GUIDE = [
 export const GUIDED_EXECUTION_GUIDE = [LOCAL_CONTROL_GUIDE, ...DOMAIN_EXECUTION_GUIDE.split("\n").slice(2, 6).map(line => line.replace(/Known bindings are only explicit USER premises:.*?This mapping is a model interpretation, not source truth\./, "Only known premiseValues from exact current user spans enter evaluation; mapping meaning remains unreviewed.").replace(/\{key,questionId/g, "{op,targetKey,questionId")), "For unspecified values, retain alternative feasible outcomes and name the missing fact. Local extraction and mapping meaning remain unreviewed."].join("\n")
 
 /** One shared state machine used by structured inquiry and ordinary native tools. */
-export function createInquiryDomainRuntime(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; remainingActions?: () => number; ablation?: DomainAblation; suppliedUserText?: string[] }) {
+export function createInquiryDomainRuntime(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; strategy?: InquiryStrategy; remainingActions?: () => number; ablation?: DomainAblation; suppliedUserText?: string[] }) {
   let slice: ControlSlice = createControlSlice(), check: ReturnType<typeof checkControlConclusions> | undefined, closed = false
   const scheduler = createInquiryDomainScheduler({ ...options, evaluateConditions: options.ablation !== "checks-off" }), proposals: Array<{ delta: unknown; diagnostics: InquiryDiagnostic[]; revision: number; accepted?: UpdateAcceptance[]; rejected?: UpdateRejection[]; unresolved?: unknown[] }> = []
+  const worklist = options.strategy === "guided-evidence-v2" ? createInquiryWorklist({ ...options, dependencyStates: () => scheduler.snapshot() }) : undefined
+  let automaticActionsRemaining = 2
   let lastPaths: ReturnType<typeof evaluateControlPaths>["paths"] = []
   const issues = new Map<string, InquiryDiagnostic[]>(), computation = { merges: 0, pathEvaluations: 0, conclusionChecks: 0, predicateEvaluations: 0, durationMs: 0 }
   const checkHistory: Array<{ revision: number; slice: ControlSlice; result: unknown; check: ReturnType<typeof checkControlConclusions> }> = []
@@ -29,7 +32,10 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const calculate = <T>(fn: () => T): T => { const started = performance.now(); try { return fn() } finally { computation.durationMs += performance.now() - started } }
   const sync = async (execute = true) => {
     if (closed) throw new Error("session-closed: domain runtime cannot continue")
-    const actions = await scheduler.run(slice, execute && options.ablation !== "scheduler-off" ? 2 : 0)
+    await scheduler.run(slice, 0)
+    const actions = worklist ? await worklist.run(slice, execute && options.ablation !== "scheduler-off" ? automaticActionsRemaining : 0) : await scheduler.run(slice, execute && options.ablation !== "scheduler-off" ? 2 : 0)
+    if (worklist) { automaticActionsRemaining -= actions.length; await scheduler.run(slice, 0); worklist.sync(slice, check) }
+    for (const h of options.tools.history) if (["source-changed", "source-root-changed", "symlink-escape"].includes(h.result.code ?? "")) issues.set("$source", [{ code: "source-invalidated", path: "$source", message: "Original source changed during this session; current extraction requires a fresh session.", severity: "error" }])
     const evaluated = options.ablation === "checks-off" ? { paths: [], diagnostics: [], calculationCount: 0 } : calculate(() => evaluateControlPaths(slice))
     lastPaths = evaluated.paths
     if (options.ablation !== "checks-off") { computation.pathEvaluations++; computation.predicateEvaluations += evaluated.calculationCount }
@@ -40,11 +46,20 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     if (delta && typeof delta === "object" && (delta as Record<string, unknown>).schemaVersion === "authorization-control-update/v1") {
       const merged = calculate(() => applyControlUpdates(slice, delta, options.program, evidenceContext())); computation.merges++
       slice = merged.state; check = undefined
+      const selectionDiagnostics: InquiryDiagnostic[] = []
+      for (const raw of "pendingSelections" in merged ? merged.pendingSelections ?? [] : []) {
+        const parsed = WorkSelectionSchema.safeParse(raw)
+        if (!parsed.success) { const ds = parsed.error.issues.map(d => ({ code: "work-selection-schema", path: `workSelections.${d.path.join(".")}`, message: d.message, severity: "error" as const })); issues.set("$selection-schema", ds); selectionDiagnostics.push(...ds); continue }
+        const owned = worklist?.snapshot().find(w => w.id === parsed.data.itemId), key = `workSelections.${owned?.questionId ?? parsed.data.questionId}.${parsed.data.itemId}`
+        const selection = worklist?.selectCandidate(parsed.data) ?? { status: "rejected", code: "worklist-not-enabled" }
+        if (selection.status === "accepted") { issues.delete(key); issues.delete("$selection-schema") }
+        else { const ds = [{ code: selection.code!, path: key, message: "Choose a candidate shown for this same question and WorkItem; unrelated locations cannot be substituted.", severity: "error" as const }]; issues.set(owned ? key : "$selection-schema", ds); selectionDiagnostics.push(...ds) }
+      }
       const identity = (p: UpdateAcceptance | UpdateRejection) => `${p.group === "sourceBindings" ? "rules" : p.group === "premiseValues" ? "bindings" : p.group}.${p.questionId}.${p.targetKey}`
       if (merged.envelopeValid) issues.delete("$schema")
       for (const p of merged.accepted) issues.delete(identity(p))
       for (const p of merged.rejected) issues.set(merged.envelopeValid ? identity(p) : "$schema", p.diagnostics)
-      const diagnostics = merged.rejected.flatMap(p => p.diagnostics).concat(merged.unresolved.map(p => ({ code: p.code, path: `${p.group}.${p.questionId}.${p.targetKey}`, message: `Referenced item ${p.rejectedTarget} is missing or rejected; this work is not closed.`, severity: "error" as const })))
+      const diagnostics = selectionDiagnostics.concat(merged.rejected.flatMap(p => p.diagnostics), merged.unresolved.map(p => ({ code: p.code, path: `${p.group}.${p.questionId}.${p.targetKey}`, message: `Referenced item ${p.rejectedTarget} is missing or rejected; this work is not closed.`, severity: "error" as const })))
       proposals.push({ delta: structuredClone(delta), diagnostics, revision: slice.revision, accepted: merged.accepted, rejected: merged.rejected, unresolved: merged.unresolved })
       const { actions, evaluated } = await sync()
       return { ...merged, diagnostics, actions, evaluated }
@@ -71,13 +86,14 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     if (options.ablation === "checks-off") check = { structureValid: true, sourceBound: slice.rules.length > 0 && slice.rules.every(r => r.sourceBound), semanticSupport: "unreviewed", ruleConsistency: true, taskResolution: "partial", paths: [], diagnostics: [...issues.values()].flat(), policyComparisons: [], calculationCount: 0 }
     else { check = calculate(() => checkControlConclusions(options.program, slice, result, scheduler.snapshot())); computation.conclusionChecks++; computation.predicateEvaluations += check.calculationCount; check = { ...check, diagnostics: [...issues.values()].flat().concat(check.diagnostics) } }
     if ([...issues.values()].flat().some(d => d.severity === "error")) check = { ...check, ruleConsistency: false, taskResolution: "partial" }
+    worklist?.sync(slice, check)
     checkHistory.push({ revision: slice.revision, slice: structuredClone(slice), result: structuredClone(result), check: structuredClone(check) })
     return check
   }
   const feedback = () => ({ revision: slice.revision,
     rules: slice.rules.map(({ key, questionId, pathKey, kind, after, condition, bindingKey, bindingKind, principal, resource, digest }) => ({ key, questionId, pathKey, kind, after, condition, bindingKey, bindingKind, principal, resource, digest })),
     bindings: slice.bindings, policyRules: slice.policyRules, dependencies: scheduler.snapshot(), paths: lastPaths,
-    diagnostics: [...issues.values()].flat().concat(check?.diagnostics ?? []), semanticSupport: "unreviewed", ...(options.ablation ? { mechanismDisabled: options.ablation } : {}) })
-  return { propose, sync, validate, feedback, close: () => { closed = true },
-    report: () => ({ slice: structuredClone(slice), proposals: structuredClone(proposals), dependencies: scheduler.snapshot(), schedulerActions: structuredClone(scheduler.actions), check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed }) }
+    diagnostics: [...issues.values()].flat().concat(check?.diagnostics ?? []), ...(worklist ? { worklist: worklist.snapshot(), automaticActionsRemaining } : {}), semanticSupport: "unreviewed", ...(options.ablation ? { mechanismDisabled: options.ablation } : {}) })
+  return { propose, sync, validate, feedback, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { closed = true },
+    report: () => ({ slice: structuredClone(slice), proposals: structuredClone(proposals), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions) } } : {}), check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed }) }
 }

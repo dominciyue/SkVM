@@ -1,0 +1,15 @@
+{
+  "at": "2026-10-02T04:42:27.309Z",
+  "scope": "read-only worklist mechanical verification",
+  "originalMessage": "Focused tests: `bun test ./src/benchmarks/authorization-dsl/inquiry-worklist.test.ts ./src/benchmarks/authorization-dsl/inquiry-domain-runtime.test.ts ./src/benchmarks/authorization-dsl/inquiry-native.test.ts ./src/benchmarks/authorization-dsl/inquiry-run.test.ts` \\u2192 35 pass, 0 fail.\n\n\\u53EF\\u590D\\u73B0\\u6F0F\\u6D1E\\uFF081\\uFF09\\uFF1A\n\n- `SkVM/src/benchmarks/authorization-dsl/inquiry-worklist.ts:69-78`\n- `sync()` \\u5BF9 `explicit-dependency` \\u5728 `state \\u2208 {\"closed\",\"external-unknown\",\"blocked\"}` \\u65F6\\u6C38\\u4E45 `continue`\\uFF1A\n  ```ts\n  if (item.code === \"reference-cycle\" ||\n      item.origin === \"explicit-dependency\" &&\n      [\"closed\", \"external-unknown\", \"blocked\"].includes(item.state)) continue\n  ```\n- \\u521D\\u59CB\\u63A7\\u5236\\u56FE\\u4E2D\\u67D0 dependency \\u56E0\\u524D\\u7F6E reject/\\u6761\\u4EF6\\u4E0D\\u53EF\\u8FBE\\uFF0C\\u88AB scheduler \\u6807\\u8BB0 `inapplicable`\\uFF1Bworklist \\u540C\\u6B65\\u6210 `closed`\\u3002\\u968F\\u540E\\u63A5\\u53D7\\u63A7\\u5236\\u66F4\\u65B0\\uFF0C\\u79FB\\u9664\\u6216\\u66FF\\u6362\\u8BE5 reject\\uFF0C\\u4F7F scheduler \\u5C06\\u540C\\u4E00 dependency \\u91CD\\u65B0\\u53D8\\u6210 `located`/`read`\\uFF0C\\u4F46 worklist \\u4ECD\\u56E0\\u65E7 `closed` \\u72B6\\u6001\\u8DF3\\u8FC7\\uFF0C\\u65E0\\u6CD5\\u91CD\\u65B0\\u6392\\u961F\\u6216\\u95ED\\u5408\\u3002\n- \\u6700\\u5C0F\\u8F93\\u5165\\uFF1Aguided-evidence-v2\\uFF1B\\u58F0\\u660E\\u4E00\\u4E2A\\u552F\\u4E00\\u53EF\\u5B9A\\u4F4D dependency\\uFF1B\\u5148\\u63D0\\u4EA4\\u4F7F\\u5176\\u524D\\u7F6E terminating reject \\u4E3A\\u771F\\u7684 rule\\uFF0C\\u89E6\\u53D1 `dependency-unreachable`\\uFF1B\\u518D\\u63D0\\u4EA4 revision \\u5220\\u9664/\\u66FF\\u6362\\u8BE5 reject\\u3002\\u9884\\u671F worklist item \\u91CD\\u5F00\\u5E76\\u5141\\u8BB8 read\\uFF0C\\u5B9E\\u9645\\u4FDD\\u6301 `closed`/`nextAction:none`\\u3002\n- \\u73B0\\u6709\\u6D4B\\u8BD5\\u8986\\u76D6 rejected update \\u8BCA\\u65AD\\u4FDD\\u7559\\u3001rule revision \\u540E\\u6210\\u529F\\u5931\\u6548\\uFF0C\\u4F46\\u672A\\u8986\\u76D6 dependency \\u4ECE `inapplicable` \\u91CD\\u65B0\\u6FC0\\u6D3B\\u3002",
+  "mainVerification": "Actual shared-runtime red test reproduced stale closed state. Fix resets from current scheduler state; test also exposed lexical references bypassing declared unreachable dependencies and was extended. Selected-definition recursion test independently reproduced ambiguity poisoning and was fixed.",
+  "tests": {
+    "pass": 48,
+    "fail": 0,
+    "assertions": 286,
+    "files": 6
+  },
+  "mainTypecheck": "passed",
+  "providerCalls": 0,
+  "semanticSupport": "unreviewed"
+}
