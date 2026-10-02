@@ -58,7 +58,7 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
       items.set(id, make(id, parent.questionId, "guard", "source-reference", `Interpret the lexical reference ${name} in relation to this current question; its role is not established.`, { symbol: name, parentId: parent.id, candidates: candidates.slice(0, 16), callsiteEvidenceIds: [...parent.evidenceIds] }))
     }
   }
-  const sync = (slice: ControlSlice, check?: { ruleConsistency: boolean; taskResolution: string }): WorkItem[] => {
+  const sync = (slice: ControlSlice, check?: { ruleConsistency: boolean | null; taskResolution: string }): WorkItem[] => {
     for (const h of options.tools.history) if (["source-changed", "source-root-changed", "symlink-escape"].includes(h.result.code ?? "")) {
       const paths = h.result.code === "source-root-changed" ? options.tools.files.map(f => f.path) : [String((h.arguments as Record<string, unknown>).path ?? "")]
       for (const p of paths) invalidFiles.add(p)

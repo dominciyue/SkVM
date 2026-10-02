@@ -1282,6 +1282,8 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 **Paperless真实源窗口与AR9交接（2026-10-03）。** 首次启动实际为provider-unavailable/0派发，外层误读不存在run文件造成错误unknown归档；原件保留，经identity-bound inspect另列零派发裁定后恢复。第二attempt用2派发，首个原文局部解释因paraphrased未知项且atomic:true整组回滚，随后网络失败。共享说明补可省略/原文未知项、默认逐项、成功/拒绝节点可达条件和明确对象前驱；第三attempt首轮18项接受，实际自动读取notes和权限helper，局部机制有进展。但随后读到非决定性词法候选，四次step格式错误修订、当前局部错误未全关闭，11派发/10响应后最后一请求300s超时完成未知，无final。该请求不重发；所有原件、失败和成本保留，不能把局部进展算checked交付。三attempt合计13派发，加四个wire探针总32；actualUSD、真人分钟和开发代理用量仍未知，目标执行0。AR9新增逐题分层状态、规则轨迹和usableQuestions，反例发现同名跨题错误去重及runtime错误未并入分层报告，两处红绿修正；新鲜506 pass/1平台skip、3346断言/76文件、主/研究类型、零provider replay通过。独立复核进程被中断，没有结论。用户要求整理并转交gpt-6-astra/xhigh；任务书和恢复记录保存尚未达的真实Memos、普通skill、复用、作者包及质量面板，效果仍未建立。
 
+**恢复后的AR9复核（2026-10-03）。** 独立只读复核发现整体校验失败仍有canonical result，主线程失败用例确认并修复；外层run原已检查valid，但嵌套validation/native工具输出存在误用风险。逐题checks-off原本正确标unverified，复核所指true实际在汇总字段，现改为null并保留基础schema验证。主线程全局源失效注入又确认referenceValid误保留true，已修正；相邻题observation错误、重复答案、全局结构错误与局部可用输出都有确定性覆盖。65项相关回归/338断言通过，新增provider及目标调用0。独立发现与主裁定见`ar9-review-adjudication.json`，不代替语义变形、普通使用与收益验收；继续处理Paperless已保留的共享调度和step格式缺陷。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

@@ -80,13 +80,14 @@ export function validateAuthorizationInquiryResult(plan: AuthorizationInquiryPro
   const questionChecks = ids.map(questionId => {
     const matching = candidates.filter(q => q.questionId === questionId), answer = matching.length === 1 ? matching[0] : undefined, control = domainCheck?.questionChecks?.find(q => q.questionId === questionId)
     const local = [...diagnostics, ...(control?.diagnostics ?? [])].filter(d => d.code !== "control-result-schema" && (!questionIdForDiagnostic(ids, d) || questionIdForDiagnostic(ids, d) === questionId)).filter((d, i, all) => all.findIndex(v => v.code === d.code && v.path === d.path && v.message === d.message && v.questionId === d.questionId) === i)
-    const transportValid = !!answer && !local.some(d => ["inquiry-result-schema", "observation-schema"].includes(d.code)), referenceValid = transportValid && !local.some(d => ["evidence-not-shown", "evidence-question-mismatch", "answer-without-evidence", "branch-without-evidence", "observed-without-evidence", "policy-as-source"].includes(d.code))
+    const transportValid = !!answer && !local.some(d => ["inquiry-result-schema", "observation-schema"].includes(d.code)), referenceValid = transportValid && !local.some(d => ["evidence-not-shown", "evidence-question-mismatch", "answer-without-evidence", "branch-without-evidence", "observed-without-evidence", "policy-as-source", "source-invalidated"].includes(d.code))
     const ruleConsistent = control?.ruleConsistent ?? null
     const hasRawAnswer = rawQuestions.some(q => q && typeof q === "object" && q.questionId === questionId)
     const deliveryStatus = !hasRawAnswer ? "missing" as const : !transportValid || !referenceValid || ruleConsistent === false || local.some(d => d.severity === "error") ? "rejected" as const : ruleConsistent === true ? "checked" as const : "unverified" as const
     return { questionId, transportValid, referenceValid, ruleConsistent, evidenceCoverage: control?.evidenceCoverage ?? "unreviewed" as const, semanticReview: "unreviewed" as const, deliveryStatus, answer, diagnostics: local, ...(control?.trace ? { trace: control.trace } : {}) }
   })
-  return { valid: parsed.success && diagnostics.length === 0, result: parsed.success ? parsed.data : undefined, diagnostics, semanticSupport: "unreviewed" as const, questionChecks, usableQuestions: questionChecks.filter(q => ["checked", "unverified"].includes(q.deliveryStatus)).flatMap(q => q.answer ? [q.answer] : []) }
+  const valid = parsed.success && diagnostics.length === 0
+  return { valid, result: valid ? parsed.data : undefined, diagnostics, semanticSupport: "unreviewed" as const, questionChecks, usableQuestions: questionChecks.filter(q => ["checked", "unverified"].includes(q.deliveryStatus)).flatMap(q => q.answer ? [q.answer] : []) }
 }
 
 /** Mechanical queue status is feedback, not a proof that source control is sound. */

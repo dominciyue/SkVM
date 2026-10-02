@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "authorization-ar-review-adjudication/v1",
+  "date": "2026-10-03",
+  "baselineCommit": "3a299f5156cc9634fdb5e8d849d0737f380d621c",
+  "independentReviewer": "/root/ar9_independent_review",
+  "reviewRepresentation": "Main-agent summary of independent findings; not a verbatim transcript",
+  "findings": [
+    {
+      "finding": "Overall invalid evidence result still exports canonical result",
+      "location": "src/task-dsl/authorization/inquiry-result.ts:89",
+      "adjudication": "confirmed",
+      "redEvidence": "Missing or unshown evidence yields valid:false with a defined result. Existing outer inquiry/native callers gated valid, but nested validation/tool output still exposed it.",
+      "fix": "Return canonical result only on global validation success; retain local candidates and usable neighboring answers separately."
+    },
+    {
+      "finding": "Checks-off reports rule consistency as true",
+      "location": "src/benchmarks/authorization-dsl/inquiry-domain-runtime.ts:94",
+      "adjudication": "aggregate-confirmed-question-level-claim-corrected",
+      "redEvidence": "New integration test confirms question ruleConsistent:null and deliveryStatus:unverified already worked, but aggregate ruleConsistency was true.",
+      "fix": "Aggregate ruleConsistency is null when computation is disabled; basic structureValid reflects actual result schema."
+    },
+    {
+      "finding": "Global source invalidation rejected delivery but retained referenceValid:true",
+      "origin": "main-agent error-injection verification",
+      "adjudication": "confirmed",
+      "fix": "Include source-invalidated in reference diagnostics; all local answers are rejected and no canonical result is exported."
+    }
+  ],
+  "verification": {
+    "red": "17 tests: 13 pass/4 fail; after first fixes, 16 pass/1 source-reference failure",
+    "green": "65 tests/338 assertions across result, conclusion, runtime, worklist, inquiry-run and native; 0 failures",
+    "researchTypecheck": "passed",
+    "mainTypecheck": "passed after narrowing two new test literal types; production types passed",
+    "documentationTests": "12 passed",
+    "diffCheck": "passed",
+    "providerCallsAdded": 0,
+    "targetExecutionsAdded": 0
+  },
+  "limitations": ["AR9 semantic mutation acceptance remains pending", "No new real-use quality or benefit claim"]
+}

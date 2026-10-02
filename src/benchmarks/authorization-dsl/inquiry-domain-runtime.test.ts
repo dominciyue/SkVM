@@ -5,6 +5,7 @@ import path from "node:path"
 import { createInquiryTools } from "./inquiry-tools.ts"
 import { createInquiryDomainRuntime } from "./inquiry-domain-runtime.ts"
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
+import { validateAuthorizationInquiryResult } from "../../task-dsl/authorization/inquiry-result.ts"
 test("rejected extraction diagnostics cannot coexist with a reported consistent complete result", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-runtime-")); await writeFile(path.join(sourceRoot, "entry.ts"), "export const entry = true\n")
   const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["entry.ts"] })
@@ -123,4 +124,20 @@ test("runtime rejection joins only its own question's layered check", async () =
   expect(checked.ruleConsistency).toBe(false)
   expect(checked.questionChecks.map((q: any) => q.ruleConsistent)).toEqual([true, false])
   expect(checked.questionChecks[1].diagnostics.map((d: any) => d.code)).toContain("evidence-not-shown")
+})
+
+test("checks-off reports unverified local answers and no aggregate consistency claim", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-checks-off-")); await writeFile(path.join(sourceRoot, "entry.ts"), "export const entry = true\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["entry.ts"] })
+  const evidenceIds = [(await tools.execute("source_read", { path: "entry.ts", startLine: 1, endLine: 1 })).evidence[0]!.id]
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect entry", premises: [] }] })
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "guided-evidence-v2", ablation: "checks-off" })
+  const answer = { schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q", behavior: { disposition: "allow", explanation: "Source effect" }, evidenceIds, branches: [], missing: [] }], observations: [], scope: "local" }
+  const domain = await runtime.validate(answer)
+  const checked = validateAuthorizationInquiryResult(program, answer, { questionIds: ["q"], shownEvidenceIds: evidenceIds }, domain)
+  expect(checked.questionChecks[0]).toMatchObject({ ruleConsistent: null, evidenceCoverage: "unreviewed", deliveryStatus: "unverified" })
+  expect(domain.ruleConsistency).toBeNull()
+  expect(runtime.report().computation.conclusionChecks).toBe(0)
+  expect((await runtime.validate({ ...answer, questions: "malformed" })).structureValid).toBe(false)
+  runtime.close()
 })

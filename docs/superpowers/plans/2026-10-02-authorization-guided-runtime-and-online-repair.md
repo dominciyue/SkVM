@@ -215,6 +215,7 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 - [x] 分列 transportValid、referenceValid、ruleConsistent、evidenceCoverage、semanticReview、deliveryStatus；程序未知语义保持 unknown/unreviewed。
 - [x] 合理条件回答可以完整；允许范围内仍未读的决定性源码归为 unresolved，不包装为部署未知。政策评价与实现行为分别检查。
 - [x] 保留好的局部答案并明确其 checked/unverified 状态。检查失败不得伪造 checked success，也不得因一个无关项丢掉全部可用输出。
+- 2026-10-03恢复复核：独立核验指出无效整体仍返回result，主线程红绿修复；checks-off逐题本已unverified，但汇总true改为null。补全局结构/源失效、逐题observation及重复答案反例，源失效同时清除referenceValid。65项聚焦回归通过；未以这些工程检查代替下项语义变形验收。
 - [ ] 通过变形/错误注入检测 wrong-object、dead binding、null遗漏、grant absent/not-given 混淆和政策反推源码；拒绝错误答案的证据单独报告。
 
 ### AR10 — 普通 inquiry 与原 skill 统一使用新核心
