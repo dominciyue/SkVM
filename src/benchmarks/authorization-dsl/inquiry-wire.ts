@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { AuthorizationInquirySchema } from "../../task-dsl/authorization/inquiry.ts"
-import { AuthorizationInquiryResultSchema, AuthorizationObservationSchema } from "../../task-dsl/authorization/inquiry-result.ts"
+import { AuthorizationInquiryResultSchema, AuthorizationObservationSchema, InquiryQuestionResultSchema } from "../../task-dsl/authorization/inquiry-result.ts"
 import { ControlSliceDeltaSchema, canonicalControl, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { zodToJsonSchema } from "../../providers/structured.ts"
 import type { LLMTool } from "../../providers/types.ts"
@@ -41,10 +41,14 @@ const localSteps = (delta: typeof LocalControlDeltaSchema | typeof LocalControlE
 ])
 const localModelSteps = localSteps(LocalControlDeltaSchema), localParserSteps = localSteps(LocalControlEnvelopeSchema)
 export type InquiryStep = InquiryControlStep | z.infer<typeof localParserSteps>
-export function inquiryStepSchemas(strategy: InquiryStrategy, finalOnly = false) {
-  if (strategy === "guided-evidence-v2") return { schema: finalOnly ? localParserSteps.options[3] : localParserSteps, modelSchema: finalOnly ? localModelSteps.options[3] : localModelSteps }
+const resultModelSchema = (mode?: "behavior" | "conformance") => mode ? AuthorizationInquiryResultSchema.extend({ questions: z.array(mode === "behavior" ? InquiryQuestionResultSchema.omit({ policyAssessment: true }) : InquiryQuestionResultSchema.extend({ policyAssessment: InquiryQuestionResultSchema.shape.policyAssessment.unwrap() })) }) : AuthorizationInquiryResultSchema
+export function inquiryStepSchemas(strategy: InquiryStrategy, finalOnly = false, mode?: "behavior" | "conformance") {
+  const fullModel = strategy === "guided-evidence-v2" ? localModelSteps : strategy === "legacy" ? LegacyStepSchema : canonicalStep
+  const modelOptions: [z.ZodDiscriminatedUnionOption<"kind">, ...z.ZodDiscriminatedUnionOption<"kind">[]] = [fullModel.options[0], ...fullModel.options.slice(1).map(option => "result" in option.shape ? option.extend({ result: resultModelSchema(mode) }) : option)]
+  const modelSchema = finalOnly ? modelOptions.at(-1)! : z.discriminatedUnion("kind", modelOptions)
+  if (strategy === "guided-evidence-v2") return { schema: finalOnly ? localParserSteps.options[3] : localParserSteps, modelSchema }
   const schema = strategy === "legacy" ? LegacyStepSchema : finalOnly ? ControlFinalStepSchema : ControlStepSchema
-  return { schema, modelSchema: schema }
+  return { schema, modelSchema }
 }
 
 export function inquiryNativeSchemas(strategy: InquiryStrategy, parsing = false) {
@@ -56,8 +60,8 @@ export function inquiryNativeSchemas(strategy: InquiryStrategy, parsing = false)
     authorization_check_result: domain ? z.object({ result: AuthorizationInquiryResultSchema, controlDelta: delta.optional() }).strict() : z.object({ result: AuthorizationInquiryResultSchema }).strict(),
   }
 }
-export function inquiryNativeDefinitions(strategy: InquiryStrategy): LLMTool[] {
-  const schemas = inquiryNativeSchemas(strategy), descriptions = {
+export function inquiryNativeDefinitions(strategy: InquiryStrategy, mode?: "behavior" | "conformance"): LLMTool[] {
+  const original = inquiryNativeSchemas(strategy), schemas = { ...original, authorization_check_result: original.authorization_check_result.extend({ result: resultModelSchema(mode) }) }, descriptions = {
     authorization_compile: "Compile current user questions without inferring source behavior; returns the pending relation queue.",
     authorization_observe: "Record evidence-bound observations and local controlDelta. The host returns actual dependency reads and diagnostics; semantic support remains unreviewed.",
     authorization_check_result: "Check the final result against current questions, shown source and proposed controls; preserve diagnostics and finish in the original skill prose format.",

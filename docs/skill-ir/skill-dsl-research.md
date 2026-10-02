@@ -1276,6 +1276,8 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 **第三探针与局部更新接口。** `wire-3`在`480b38ad`用3次调用后transport-failed：tool根部额外observations被正确拒绝，但诊断未列未知字段；随后prompt+parse重发大Schema，返回两个拼接对象。原件保留，总调用14、目标执行0、费用未知。共享提取器新增具名字段诊断和一次同工具修复，保留完整工具合同、失败phase/sequence/rawResponse及计量。guided局部add/replace接口已接通普通inquiry/native共用运行时，sourceBindings与premiseValues分离，宿主填写revision digest，逐项拒绝保留好项并暴露未解决引用，原子回滚保留候选缺口但返回当前状态缺口。只读核验的跨组替换、dependency parent、回滚缺口问题经主线程红绿验证修正；dependency reason与替换元数据重名造成被丢也由新用例发现并修正。存在拒绝项时不能同时报一致/完整。468 pass/1平台skip、3203断言、主/研究类型通过；真实同题复验待执行，完整工作队列、实用与收益尚未验收。
 
+**第四次同题复验与内部状态修正。** `wire-4`在`47016856`、原模型/原六调用预算下用5次调用checked交付正确两分支，bindings为空，未知输入未填null。首答仍多出behavior题的policyAssessment，仅该项经一次诊断修订移除，首/终原件分列；无Schema错误，因此本次没有直接触发同工具错误重试，不能将全部改善归因于它。总真实调用19、目标执行0、费用未知。点检又发现实际源码已完整读到，但`pathHint:"entry.ts:1-4"`被误作范围外；任何missing抑制decisive缺口的旧条件还会让前提未知遮住取证状态。两处反例红绿后只无损归一确实匹配索引候选的path/range，决定性源码缺口须分别具名；实际原轨迹重读原源码、零provider且不改答案的重放将partial纠正为bounded、依赖checked。模型可见结果Schema也按已知mode排除/要求policy字段，通用parser仍保留原坏答案与诊断。该四行机制探针不计主质量面板，普通skill与完整引导队列仍待实用验收。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

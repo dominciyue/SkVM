@@ -92,3 +92,14 @@ test("question-local binding scope and a legitimate common predecessor are prese
   const slice = mergeControlSlice(createControlSlice(), { schemaVersion: "authorization-control-slice/v1", rules: rules.map(r => r.kind === "binding" ? { ...r, questionId: "other" } : r) }, multi, { ...context, questionIds: ["q", "other"] }).state
   expect(codes(api.checkControlConclusions(multi, slice, answer("allow"), []))).toContain("object-binding-missing")
 })
+
+test("a missing user premise cannot conceal a distinct decisive source dependency", () => {
+  const slice = state([rule("entry", "entry", []), rule("write", "effect", ["entry"], { complete: true })])
+  const dependency = { key: "grant", questionId: "q", pathKey: "p", state: "pending", decisive: true, symbol: "grantCheck" }
+  const hidden = answer("allow", { missing: [{ kind: "premise-unspecified", detail: "Owner is unknown" }] })
+  expect(codes(api.checkControlConclusions(plan, slice, hidden, [dependency]))).toContain("decisive-dependency-open")
+  const explicit = answer("allow", { missing: [{ kind: "source-gap", detail: "grantCheck is unread", nextRead: "Read grantCheck" }] })
+  const partial = api.checkControlConclusions(plan, slice, explicit, [dependency])
+  expect(codes(partial)).not.toContain("decisive-dependency-open")
+  expect(partial.taskResolution).toBe("partial")
+})

@@ -51,3 +51,12 @@ test("guided local schemas advertise full item contracts while the host can reta
   expect(api.inquiryNativeSchemas("guided-evidence-v2").authorization_observe.safeParse(value).success).toBe(false)
   expect(api.inquiryNativeSchemas("guided-evidence-v2", true).authorization_observe.safeParse(value).success).toBe(true)
 })
+
+test("actual mode-specific model contracts omit behavior policy and require conformance policy", () => {
+  const nativeBehavior = api.inquiryNativeDefinitions("guided-evidence-v2", "behavior").find((d: any) => d.name === "authorization_check_result").inputSchema
+  expect(nativeBehavior.properties.result.properties.questions.items.properties.policyAssessment).toBeUndefined()
+  const nativeConformance = api.inquiryNativeDefinitions("guided-evidence-v2", "conformance").find((d: any) => d.name === "authorization_check_result").inputSchema
+  expect(nativeConformance.properties.result.properties.questions.items.required).toContain("policyAssessment")
+  const behavior = api.inquiryStepSchemas("domain-evidence-v1", true, "behavior").modelSchema
+  expect(behavior.shape.result.shape.questions.element.shape.policyAssessment).toBeUndefined()
+})

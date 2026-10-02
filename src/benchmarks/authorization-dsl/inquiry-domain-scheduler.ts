@@ -6,7 +6,7 @@ import type { InquiryTools, InquiryToolOutput } from "./inquiry-tools.ts"
 
 export type DependencyState = "pending" | "located" | "read" | "proposed" | "checked" | "inapplicable" | "external-unknown" | "blocked"
 export interface ScheduledDependency extends DependencyCheckState {
-  id: string; digest: string; state: DependencyState; code?: string; reason: string; candidates: DiscoverySymbol[]; evidenceIds: string[]; semanticSupport: "unreviewed"
+  id: string; digest: string; state: DependencyState; code?: string; reason: string; candidates: DiscoverySymbol[]; evidenceIds: string[]; semanticSupport: "unreviewed"; locatorNormalization?: { from: string; to: string }
 }
 export interface SchedulerAction {
   actionOrigin: "domain-scheduler"; questionId: string; dependencyId: string; name: "source_read"; arguments: { path: string; startLine: number; endLine: number };
@@ -49,8 +49,14 @@ export function createInquiryDomainScheduler(options: { tools: InquiryTools; rem
     const escaped = d.symbol.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
     if (!d.evidenceIds.some(id => options.tools.evidence.some(e => e.id === id && new RegExp(`(?:^|[^A-Za-z0-9_])${escaped}(?:$|[^A-Za-z0-9_])`).test(e.quote)))) return stop("blocked", "dependency-callsite-missing", "Named dependency is not present in its shown source reference.")
     const all = options.tools.locateSymbols(d.symbol)
-    if (d.pathHint && !options.tools.files.some(f => f.path === d.pathHint)) return stop("external-unknown", "dependency-out-of-scope", "Requested dependency file is outside the allowed indexed scope.")
-    entry.candidates = all.filter(c => (!d.pathHint || c.path === d.pathHint) && (!d.candidateId || c.id === d.candidateId))
+    let pathHint = d.pathHint
+    if (pathHint && !options.tools.files.some(f => f.path === pathHint)) {
+      const range = /^(.+):(\d+)-(\d+)$/.exec(pathHint)
+      if (range && all.some(c => c.path === range[1] && c.startLine === Number(range[2]) && c.endLine === Number(range[3]) && (!d.candidateId || c.id === d.candidateId))) {
+        entry.locatorNormalization = { from: pathHint, to: range[1]! }; pathHint = range[1]
+      } else return stop("external-unknown", "dependency-out-of-scope", "Requested dependency file is outside the allowed indexed scope; use an exact indexed path or displayed candidate range.")
+    }
+    entry.candidates = all.filter(c => (!pathHint || c.path === pathHint) && (!d.candidateId || c.id === d.candidateId))
     if (!entry.candidates.length) return stop("blocked", "dependency-not-located", "No allowed lexical candidate was located; this is not proof of absent authorization.")
     if (entry.candidates.length !== 1) return stop("located", "dependency-ambiguous", "Select a shown candidate using pathHint/candidateId in an explicit revision; host cannot infer the correct helper.")
     const candidate = entry.candidates[0]!

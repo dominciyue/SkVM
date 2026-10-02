@@ -82,7 +82,8 @@ export function checkControlConclusions(program: AuthorizationInquiryProgram, sl
     const paths = evaluated.paths.filter(p => p.questionId === answer.questionId), live = paths.filter(p => p.state !== "inapplicable")
     const relevant = dependencies.filter(d => d.questionId === answer.questionId && d.state !== "inapplicable")
     const open = relevant.filter(d => d.decisive && d.state !== "checked")
-    if (answer.behavior.disposition !== "unknown" && !answer.missing.length && open.length) diagnostics.push(diag("decisive-dependency-open", answer.questionId, `Decisive dependencies remain: ${open.map(d => `${d.key}:${d.state}`).join(", ")}. Readable gaps cannot be silently treated as closed.`))
+    const unacknowledged = open.filter(d => !answer.missing.some(m => (m.kind === "source-gap" || d.state === "external-unknown" && m.kind === "dependency-out-of-scope") && [d.key, d.symbol].some(key => `${m.detail} ${m.nextRead ?? ""}`.includes(key))))
+    if (unacknowledged.length) diagnostics.push(diag("decisive-dependency-open", answer.questionId, `Decisive source dependencies remain without a corresponding source gap: ${unacknowledged.map(d => `${d.key}:${d.state}`).join(", ")}. An unspecified user premise or deployment fact cannot conceal them.`))
     if (answer.behavior.disposition !== "unknown" && (!live.length || live.some(p => !p.complete))) diagnostics.push(diag("path-not-closed", answer.questionId, "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap."))
     for (const branch of answer.branches) {
       const path = paths.find(p => p.pathKey === branch.id)

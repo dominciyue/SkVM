@@ -62,7 +62,7 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
     }
     await walk()
   }
-  const schemas = inquiryNativeSchemas(strategy, true), domainDefinitions = inquiryNativeDefinitions(strategy)
+  const schemas = inquiryNativeSchemas(strategy, true), domainDefinitions = inquiryNativeDefinitions(strategy, loaded.value.inquiry?.mode ?? loaded.value.mode ?? "behavior")
   const definitions: LLMTool[] = [...tools.definitions, ...(referenceRoot ? [{ name: "skill_reference_read", description: `Read installed original skill companions as data: ${references.map(r => r.path).join(", ")}`, inputSchema: { type: "object", properties: { path: { type: "string" } }, required: ["path"], additionalProperties: false } }] : []), ...(options.domainTools ? domainDefinitions : [])]
   const context = () => ({ questionIds: program?.questions.map(q => q.id) ?? [], shownEvidenceIds: tools.evidence.map(e => e.id) })
   const execute = async (call: LLMToolCall) => {

@@ -1,0 +1,1221 @@
+{
+  "schemaVersion": "authorization-inquiry-session/v1",
+  "sessionId": "2026-10-02T032612533Z-033bfb3d",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-guided-runtime-v1\\probes\\wire-4\\run\\sessions\\2026-10-02T032612533Z-033bfb3d",
+  "createdAt": "2026-10-02T03:26:12.534Z",
+  "inputSha256": "6d8783a0e247ce95a175f0caf939cca2a4fef63af728a3a5e16e57e4496bf936",
+  "model": "xty/gpt-5.6-sol",
+  "method": "M",
+  "strategy": "domain-evidence-v1",
+  "sourceFiles": [
+    {
+      "path": "entry.ts",
+      "sha256": "371365d678b092bb69364a13ac84447c6b83e9a97ea75c05c3541f696c683fa2",
+      "bytes": 89
+    }
+  ],
+  "noAutomaticResend": true,
+  "status": "completed",
+  "result": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "No. inspect does not return true for both enabled and disabled inputs. When enabled is false, the function returns false immediately at line 2. When enabled is true, the negated condition is false and execution reaches line 3, which returns true. The concrete value of enabled was not supplied, so the applicable branch for a particular invocation is unspecified."
+        },
+        "branches": [
+          {
+            "id": "q1.inspect.disabled",
+            "condition": "enabled is false",
+            "disposition": "deny",
+            "explanation": "The condition !enabled is true, so inspect returns false at line 2.",
+            "evidenceIds": [
+              "ev-c5e8789e2bd3c2b0641e"
+            ]
+          },
+          {
+            "id": "q1.inspect.enabled",
+            "condition": "enabled is true",
+            "disposition": "allow",
+            "explanation": "The condition !enabled is false, so execution continues to line 3 and inspect returns true.",
+            "evidenceIds": [
+              "ev-c5e8789e2bd3c2b0641e"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-c5e8789e2bd3c2b0641e"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "The concrete input value for enabled is unspecified, so no single invocation result can be selected.",
+            "nextRead": "No further source read is needed; provide enabled=true or enabled=false to determine one concrete result."
+          }
+        ]
+      }
+    ],
+    "observations": [],
+    "scope": "Allowed source scope: entry.ts only; inspect function body, lines 1-4. Behavior investigation only; no normative policy conclusion."
+  },
+  "initial": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "No. inspect does not return true for both inputs. The disabled branch is decisive: when enabled is false, it immediately returns false (line 2). The alternative branch returns true when execution reaches line 3, i.e. for the enabled case (lines 2-3). Because the user did not specify a concrete value for enabled, the overall result is conditional on that input."
+        },
+        "branches": [
+          {
+            "id": "q1.inspect.disabled",
+            "condition": "enabled is false",
+            "disposition": "deny",
+            "explanation": "The condition !enabled is true, so the function returns false at line 2.",
+            "evidenceIds": [
+              "ev-c5e8789e2bd3c2b0641e"
+            ]
+          },
+          {
+            "id": "q1.inspect.enabled",
+            "condition": "enabled is true",
+            "disposition": "allow",
+            "explanation": "The negated condition is false, so execution continues to line 3, which returns true.",
+            "evidenceIds": [
+              "ev-c5e8789e2bd3c2b0641e"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-c5e8789e2bd3c2b0641e"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "The concrete value of enabled was not supplied; therefore the applicable branch for a particular invocation is unspecified.",
+            "nextRead": "No further source read is needed for these two branches; supply the input value if a single concrete invocation result is required."
+          }
+        ],
+        "policyAssessment": {
+          "status": "undetermined",
+          "explanation": "No policy or normative expectation was supplied; this inquiry reports source behavior only."
+        }
+      }
+    ],
+    "observations": [],
+    "scope": "Allowed source scope: entry.ts only; inspect function body, lines 1-4. This is behavior investigation, not a normative policy assessment."
+  },
+  "initialValidation": {
+    "valid": false,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "No. inspect does not return true for both inputs. The disabled branch is decisive: when enabled is false, it immediately returns false (line 2). The alternative branch returns true when execution reaches line 3, i.e. for the enabled case (lines 2-3). Because the user did not specify a concrete value for enabled, the overall result is conditional on that input."
+          },
+          "branches": [
+            {
+              "id": "q1.inspect.disabled",
+              "condition": "enabled is false",
+              "disposition": "deny",
+              "explanation": "The condition !enabled is true, so the function returns false at line 2.",
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ]
+            },
+            {
+              "id": "q1.inspect.enabled",
+              "condition": "enabled is true",
+              "disposition": "allow",
+              "explanation": "The negated condition is false, so execution continues to line 3, which returns true.",
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-c5e8789e2bd3c2b0641e"
+          ],
+          "missing": [
+            {
+              "kind": "premise-unspecified",
+              "detail": "The concrete value of enabled was not supplied; therefore the applicable branch for a particular invocation is unspecified.",
+              "nextRead": "No further source read is needed for these two branches; supply the input value if a single concrete invocation result is required."
+            }
+          ],
+          "policyAssessment": {
+            "status": "undetermined",
+            "explanation": "No policy or normative expectation was supplied; this inquiry reports source behavior only."
+          }
+        }
+      ],
+      "observations": [],
+      "scope": "Allowed source scope: entry.ts only; inspect function body, lines 1-4. This is behavior investigation, not a normative policy assessment."
+    },
+    "diagnostics": [
+      {
+        "code": "behavior-policy-assessment",
+        "path": "questions.0.policyAssessment",
+        "message": "Behavior has no normative policy comparison.",
+        "severity": "error"
+      }
+    ],
+    "semanticSupport": "unreviewed"
+  },
+  "final": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "No. inspect does not return true for both enabled and disabled inputs. When enabled is false, the function returns false immediately at line 2. When enabled is true, the negated condition is false and execution reaches line 3, which returns true. The concrete value of enabled was not supplied, so the applicable branch for a particular invocation is unspecified."
+        },
+        "branches": [
+          {
+            "id": "q1.inspect.disabled",
+            "condition": "enabled is false",
+            "disposition": "deny",
+            "explanation": "The condition !enabled is true, so inspect returns false at line 2.",
+            "evidenceIds": [
+              "ev-c5e8789e2bd3c2b0641e"
+            ]
+          },
+          {
+            "id": "q1.inspect.enabled",
+            "condition": "enabled is true",
+            "disposition": "allow",
+            "explanation": "The condition !enabled is false, so execution continues to line 3 and inspect returns true.",
+            "evidenceIds": [
+              "ev-c5e8789e2bd3c2b0641e"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-c5e8789e2bd3c2b0641e"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "The concrete input value for enabled is unspecified, so no single invocation result can be selected.",
+            "nextRead": "No further source read is needed; provide enabled=true or enabled=false to determine one concrete result."
+          }
+        ]
+      }
+    ],
+    "observations": [],
+    "scope": "Allowed source scope: entry.ts only; inspect function body, lines 1-4. Behavior investigation only; no normative policy conclusion."
+  },
+  "validation": {
+    "valid": true,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "No. inspect does not return true for both enabled and disabled inputs. When enabled is false, the function returns false immediately at line 2. When enabled is true, the negated condition is false and execution reaches line 3, which returns true. The concrete value of enabled was not supplied, so the applicable branch for a particular invocation is unspecified."
+          },
+          "branches": [
+            {
+              "id": "q1.inspect.disabled",
+              "condition": "enabled is false",
+              "disposition": "deny",
+              "explanation": "The condition !enabled is true, so inspect returns false at line 2.",
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ]
+            },
+            {
+              "id": "q1.inspect.enabled",
+              "condition": "enabled is true",
+              "disposition": "allow",
+              "explanation": "The condition !enabled is false, so execution continues to line 3 and inspect returns true.",
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-c5e8789e2bd3c2b0641e"
+          ],
+          "missing": [
+            {
+              "kind": "premise-unspecified",
+              "detail": "The concrete input value for enabled is unspecified, so no single invocation result can be selected.",
+              "nextRead": "No further source read is needed; provide enabled=true or enabled=false to determine one concrete result."
+            }
+          ]
+        }
+      ],
+      "observations": [],
+      "scope": "Allowed source scope: entry.ts only; inspect function body, lines 1-4. Behavior investigation only; no normative policy conclusion."
+    },
+    "diagnostics": [],
+    "semanticSupport": "unreviewed"
+  },
+  "wireFailures": [],
+  "domain": {
+    "slice": {
+      "schemaVersion": "authorization-control-slice/v1",
+      "revision": 4,
+      "rules": [
+        {
+          "key": "q1.entry.inspect",
+          "questionId": "q1",
+          "pathKey": "q1.inspect",
+          "kind": "entry",
+          "after": [],
+          "evidenceIds": [
+            "ev-82b075ae5c280a23aa4e"
+          ],
+          "claim": "inspect is entered with an enabled boolean input",
+          "operation": "inspect",
+          "bindingKey": "inspect.input",
+          "bindingKind": "value",
+          "complete": false,
+          "id": "ctrl-c25bc011848f5a6ce5a7",
+          "digest": "639693177c879ffbc3d79fd2a1792e2e04d50356f950a7caca66f10dc68b84fc",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        {
+          "key": "q1.inspect.disabled.reject",
+          "questionId": "q1",
+          "pathKey": "q1.inspect.disabled",
+          "kind": "reject",
+          "after": [
+            "q1.entry.inspect"
+          ],
+          "evidenceIds": [
+            "ev-c5e8789e2bd3c2b0641e"
+          ],
+          "claim": "When inspect input is false, the function returns false.",
+          "condition": {
+            "op": "eq",
+            "left": {
+              "binding": "inspect.input"
+            },
+            "right": {
+              "literal": false
+            }
+          },
+          "bindingKey": "inspect.input",
+          "bindingKind": "value",
+          "complete": true,
+          "id": "ctrl-427c8d69879d58938d6d",
+          "digest": "f9cb9f1e0522b3076bdafe409861bd2a16e63a073571442ffc4173e95b0711f8",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        {
+          "key": "q1.inspect.enabled.effect",
+          "questionId": "q1",
+          "pathKey": "q1.inspect.enabled",
+          "kind": "effect",
+          "after": [
+            "q1.entry.inspect"
+          ],
+          "evidenceIds": [
+            "ev-c5e8789e2bd3c2b0641e"
+          ],
+          "claim": "When inspect input is true, the function returns true.",
+          "condition": {
+            "op": "eq",
+            "left": {
+              "binding": "inspect.input"
+            },
+            "right": {
+              "literal": true
+            }
+          },
+          "bindingKey": "inspect.input",
+          "bindingKind": "value",
+          "complete": true,
+          "id": "ctrl-77e68cc9815389c7cfc6",
+          "digest": "f2a858f2acb76b709c7da4d81fa926e2dcacd9e8d04c856871d19de8e1844221",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        }
+      ],
+      "dependencies": [
+        {
+          "key": "q1.dep.inspect.body",
+          "questionId": "q1",
+          "pathKey": "q1.inspect",
+          "from": "q1.entry.inspect",
+          "symbol": "inspect",
+          "evidenceIds": [
+            "ev-82b075ae5c280a23aa4e"
+          ],
+          "reason": "The function body is required to determine whether inspect returns true for enabled and disabled inputs.",
+          "kind": "effect",
+          "decisive": true,
+          "pathHint": "entry.ts:1-4",
+          "candidateId": "symbol-7fb98fa0c7c61c5fdc3434a3",
+          "id": "ctrl-5751107917e722e9f2c4",
+          "digest": "f1222c721cfea16c464ef264738bd4d4daab3d4fe4a6c7b10c28859d1c3621c0",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        }
+      ],
+      "bindings": [],
+      "policyRules": [],
+      "conflicts": [],
+      "revisions": []
+    },
+    "proposals": [
+      {
+        "delta": {
+          "schemaVersion": "authorization-control-slice/v1",
+          "rules": [
+            {
+              "key": "q1.entry.inspect",
+              "questionId": "q1",
+              "pathKey": "q1.inspect",
+              "kind": "entry",
+              "after": [],
+              "evidenceIds": [
+                "ev-82b075ae5c280a23aa4e"
+              ],
+              "claim": "inspect is entered with an enabled boolean input",
+              "operation": "inspect",
+              "bindingKey": "inspect.input",
+              "bindingKind": "value",
+              "complete": false
+            }
+          ],
+          "dependencies": [
+            {
+              "key": "q1.dep.inspect.body",
+              "questionId": "q1",
+              "pathKey": "q1.inspect",
+              "from": "q1.entry.inspect",
+              "symbol": "inspect",
+              "evidenceIds": [
+                "ev-82b075ae5c280a23aa4e"
+              ],
+              "reason": "The function body is required to determine whether inspect returns true for enabled and disabled inputs.",
+              "kind": "effect",
+              "decisive": true,
+              "pathHint": "entry.ts:1-4",
+              "candidateId": "symbol-7fb98fa0c7c61c5fdc3434a3"
+            }
+          ],
+          "bindings": [],
+          "policyRules": []
+        },
+        "diagnostics": [],
+        "revision": 2
+      },
+      {
+        "delta": {
+          "schemaVersion": "authorization-control-slice/v1",
+          "rules": [
+            {
+              "key": "q1.inspect.disabled.reject",
+              "questionId": "q1",
+              "pathKey": "q1.inspect.disabled",
+              "kind": "reject",
+              "after": [
+                "q1.entry.inspect"
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "When inspect input is false, the function returns false.",
+              "condition": {
+                "op": "eq",
+                "left": {
+                  "binding": "inspect.input"
+                },
+                "right": {
+                  "literal": false
+                }
+              },
+              "bindingKey": "inspect.input",
+              "bindingKind": "value",
+              "complete": true
+            },
+            {
+              "key": "q1.inspect.enabled.effect",
+              "questionId": "q1",
+              "pathKey": "q1.inspect.enabled",
+              "kind": "effect",
+              "after": [
+                "q1.entry.inspect"
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "When inspect input is true, the function returns true.",
+              "condition": {
+                "op": "eq",
+                "left": {
+                  "binding": "inspect.input"
+                },
+                "right": {
+                  "literal": true
+                }
+              },
+              "bindingKey": "inspect.input",
+              "bindingKind": "value",
+              "complete": true
+            }
+          ],
+          "dependencies": [],
+          "bindings": [],
+          "policyRules": []
+        },
+        "diagnostics": [],
+        "revision": 4
+      }
+    ],
+    "dependencies": [
+      {
+        "id": "ctrl-5751107917e722e9f2c4",
+        "digest": "f1222c721cfea16c464ef264738bd4d4daab3d4fe4a6c7b10c28859d1c3621c0",
+        "key": "q1.dep.inspect.body",
+        "questionId": "q1",
+        "pathKey": "q1.inspect",
+        "decisive": true,
+        "symbol": "inspect",
+        "state": "external-unknown",
+        "reason": "Requested dependency file is outside the allowed indexed scope.",
+        "candidates": [],
+        "evidenceIds": [],
+        "semanticSupport": "unreviewed",
+        "code": "dependency-out-of-scope"
+      }
+    ],
+    "schedulerActions": [],
+    "check": {
+      "structureValid": true,
+      "sourceBound": true,
+      "ruleConsistency": true,
+      "semanticSupport": "unreviewed",
+      "taskResolution": "partial",
+      "paths": [
+        {
+          "questionId": "q1",
+          "pathKey": "q1.inspect.disabled",
+          "state": "checked",
+          "disposition": "deny",
+          "complete": true,
+          "predicate": {
+            "truth": "unknown",
+            "residual": {
+              "op": "eq",
+              "left": {
+                "binding": "inspect.input"
+              },
+              "right": {
+                "literal": false
+              }
+            },
+            "missingBindings": [
+              "inspect.input"
+            ],
+            "trace": [
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "all",
+            "args": [
+              {
+                "op": "eq",
+                "left": {
+                  "binding": "inspect.input"
+                },
+                "right": {
+                  "literal": false
+                }
+              }
+            ]
+          },
+          "nodeKeys": [
+            "q1.entry.inspect",
+            "q1.inspect.disabled.reject"
+          ],
+          "terminalKeys": [
+            "q1.inspect.disabled.reject"
+          ],
+          "gaps": [],
+          "sourceBound": true
+        },
+        {
+          "questionId": "q1",
+          "pathKey": "q1.inspect.enabled",
+          "state": "checked",
+          "disposition": "allow",
+          "complete": true,
+          "predicate": {
+            "truth": "unknown",
+            "residual": {
+              "op": "eq",
+              "left": {
+                "binding": "inspect.input"
+              },
+              "right": {
+                "literal": true
+              }
+            },
+            "missingBindings": [
+              "inspect.input"
+            ],
+            "trace": [
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "all",
+            "args": [
+              {
+                "op": "eq",
+                "left": {
+                  "binding": "inspect.input"
+                },
+                "right": {
+                  "literal": true
+                }
+              }
+            ]
+          },
+          "nodeKeys": [
+            "q1.entry.inspect",
+            "q1.inspect.enabled.effect"
+          ],
+          "terminalKeys": [
+            "q1.inspect.enabled.effect"
+          ],
+          "gaps": [],
+          "sourceBound": true
+        }
+      ],
+      "diagnostics": [],
+      "policyComparisons": [],
+      "calculationCount": 4
+    },
+    "checkHistory": [
+      {
+        "revision": 4,
+        "slice": {
+          "schemaVersion": "authorization-control-slice/v1",
+          "revision": 4,
+          "rules": [
+            {
+              "key": "q1.entry.inspect",
+              "questionId": "q1",
+              "pathKey": "q1.inspect",
+              "kind": "entry",
+              "after": [],
+              "evidenceIds": [
+                "ev-82b075ae5c280a23aa4e"
+              ],
+              "claim": "inspect is entered with an enabled boolean input",
+              "operation": "inspect",
+              "bindingKey": "inspect.input",
+              "bindingKind": "value",
+              "complete": false,
+              "id": "ctrl-c25bc011848f5a6ce5a7",
+              "digest": "639693177c879ffbc3d79fd2a1792e2e04d50356f950a7caca66f10dc68b84fc",
+              "sourceBound": true,
+              "semanticSupport": "unreviewed"
+            },
+            {
+              "key": "q1.inspect.disabled.reject",
+              "questionId": "q1",
+              "pathKey": "q1.inspect.disabled",
+              "kind": "reject",
+              "after": [
+                "q1.entry.inspect"
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "When inspect input is false, the function returns false.",
+              "condition": {
+                "op": "eq",
+                "left": {
+                  "binding": "inspect.input"
+                },
+                "right": {
+                  "literal": false
+                }
+              },
+              "bindingKey": "inspect.input",
+              "bindingKind": "value",
+              "complete": true,
+              "id": "ctrl-427c8d69879d58938d6d",
+              "digest": "f9cb9f1e0522b3076bdafe409861bd2a16e63a073571442ffc4173e95b0711f8",
+              "sourceBound": true,
+              "semanticSupport": "unreviewed"
+            },
+            {
+              "key": "q1.inspect.enabled.effect",
+              "questionId": "q1",
+              "pathKey": "q1.inspect.enabled",
+              "kind": "effect",
+              "after": [
+                "q1.entry.inspect"
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "When inspect input is true, the function returns true.",
+              "condition": {
+                "op": "eq",
+                "left": {
+                  "binding": "inspect.input"
+                },
+                "right": {
+                  "literal": true
+                }
+              },
+              "bindingKey": "inspect.input",
+              "bindingKind": "value",
+              "complete": true,
+              "id": "ctrl-77e68cc9815389c7cfc6",
+              "digest": "f2a858f2acb76b709c7da4d81fa926e2dcacd9e8d04c856871d19de8e1844221",
+              "sourceBound": true,
+              "semanticSupport": "unreviewed"
+            }
+          ],
+          "dependencies": [
+            {
+              "key": "q1.dep.inspect.body",
+              "questionId": "q1",
+              "pathKey": "q1.inspect",
+              "from": "q1.entry.inspect",
+              "symbol": "inspect",
+              "evidenceIds": [
+                "ev-82b075ae5c280a23aa4e"
+              ],
+              "reason": "The function body is required to determine whether inspect returns true for enabled and disabled inputs.",
+              "kind": "effect",
+              "decisive": true,
+              "pathHint": "entry.ts:1-4",
+              "candidateId": "symbol-7fb98fa0c7c61c5fdc3434a3",
+              "id": "ctrl-5751107917e722e9f2c4",
+              "digest": "f1222c721cfea16c464ef264738bd4d4daab3d4fe4a6c7b10c28859d1c3621c0",
+              "sourceBound": true,
+              "semanticSupport": "unreviewed"
+            }
+          ],
+          "bindings": [],
+          "policyRules": [],
+          "conflicts": [],
+          "revisions": []
+        },
+        "result": {
+          "schemaVersion": "authorization-inquiry-result/v1",
+          "questions": [
+            {
+              "questionId": "q1",
+              "behavior": {
+                "disposition": "conditional",
+                "explanation": "No. inspect does not return true for both inputs. The disabled branch is decisive: when enabled is false, it immediately returns false (line 2). The alternative branch returns true when execution reaches line 3, i.e. for the enabled case (lines 2-3). Because the user did not specify a concrete value for enabled, the overall result is conditional on that input."
+              },
+              "branches": [
+                {
+                  "id": "q1.inspect.disabled",
+                  "condition": "enabled is false",
+                  "disposition": "deny",
+                  "explanation": "The condition !enabled is true, so the function returns false at line 2.",
+                  "evidenceIds": [
+                    "ev-c5e8789e2bd3c2b0641e"
+                  ]
+                },
+                {
+                  "id": "q1.inspect.enabled",
+                  "condition": "enabled is true",
+                  "disposition": "allow",
+                  "explanation": "The negated condition is false, so execution continues to line 3, which returns true.",
+                  "evidenceIds": [
+                    "ev-c5e8789e2bd3c2b0641e"
+                  ]
+                }
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "missing": [
+                {
+                  "kind": "premise-unspecified",
+                  "detail": "The concrete value of enabled was not supplied; therefore the applicable branch for a particular invocation is unspecified.",
+                  "nextRead": "No further source read is needed for these two branches; supply the input value if a single concrete invocation result is required."
+                }
+              ],
+              "policyAssessment": {
+                "status": "undetermined",
+                "explanation": "No policy or normative expectation was supplied; this inquiry reports source behavior only."
+              }
+            }
+          ],
+          "observations": [],
+          "scope": "Allowed source scope: entry.ts only; inspect function body, lines 1-4. This is behavior investigation, not a normative policy assessment."
+        },
+        "check": {
+          "structureValid": true,
+          "sourceBound": true,
+          "ruleConsistency": true,
+          "semanticSupport": "unreviewed",
+          "taskResolution": "partial",
+          "paths": [
+            {
+              "questionId": "q1",
+              "pathKey": "q1.inspect.disabled",
+              "state": "checked",
+              "disposition": "deny",
+              "complete": true,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "eq",
+                  "left": {
+                    "binding": "inspect.input"
+                  },
+                  "right": {
+                    "literal": false
+                  }
+                },
+                "missingBindings": [
+                  "inspect.input"
+                ],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "inspect.input"
+                    },
+                    "right": {
+                      "literal": false
+                    }
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "q1.entry.inspect",
+                "q1.inspect.disabled.reject"
+              ],
+              "terminalKeys": [
+                "q1.inspect.disabled.reject"
+              ],
+              "gaps": [],
+              "sourceBound": true
+            },
+            {
+              "questionId": "q1",
+              "pathKey": "q1.inspect.enabled",
+              "state": "checked",
+              "disposition": "allow",
+              "complete": true,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "eq",
+                  "left": {
+                    "binding": "inspect.input"
+                  },
+                  "right": {
+                    "literal": true
+                  }
+                },
+                "missingBindings": [
+                  "inspect.input"
+                ],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "inspect.input"
+                    },
+                    "right": {
+                      "literal": true
+                    }
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "q1.entry.inspect",
+                "q1.inspect.enabled.effect"
+              ],
+              "terminalKeys": [
+                "q1.inspect.enabled.effect"
+              ],
+              "gaps": [],
+              "sourceBound": true
+            }
+          ],
+          "diagnostics": [],
+          "policyComparisons": [],
+          "calculationCount": 4
+        }
+      },
+      {
+        "revision": 4,
+        "slice": {
+          "schemaVersion": "authorization-control-slice/v1",
+          "revision": 4,
+          "rules": [
+            {
+              "key": "q1.entry.inspect",
+              "questionId": "q1",
+              "pathKey": "q1.inspect",
+              "kind": "entry",
+              "after": [],
+              "evidenceIds": [
+                "ev-82b075ae5c280a23aa4e"
+              ],
+              "claim": "inspect is entered with an enabled boolean input",
+              "operation": "inspect",
+              "bindingKey": "inspect.input",
+              "bindingKind": "value",
+              "complete": false,
+              "id": "ctrl-c25bc011848f5a6ce5a7",
+              "digest": "639693177c879ffbc3d79fd2a1792e2e04d50356f950a7caca66f10dc68b84fc",
+              "sourceBound": true,
+              "semanticSupport": "unreviewed"
+            },
+            {
+              "key": "q1.inspect.disabled.reject",
+              "questionId": "q1",
+              "pathKey": "q1.inspect.disabled",
+              "kind": "reject",
+              "after": [
+                "q1.entry.inspect"
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "When inspect input is false, the function returns false.",
+              "condition": {
+                "op": "eq",
+                "left": {
+                  "binding": "inspect.input"
+                },
+                "right": {
+                  "literal": false
+                }
+              },
+              "bindingKey": "inspect.input",
+              "bindingKind": "value",
+              "complete": true,
+              "id": "ctrl-427c8d69879d58938d6d",
+              "digest": "f9cb9f1e0522b3076bdafe409861bd2a16e63a073571442ffc4173e95b0711f8",
+              "sourceBound": true,
+              "semanticSupport": "unreviewed"
+            },
+            {
+              "key": "q1.inspect.enabled.effect",
+              "questionId": "q1",
+              "pathKey": "q1.inspect.enabled",
+              "kind": "effect",
+              "after": [
+                "q1.entry.inspect"
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "When inspect input is true, the function returns true.",
+              "condition": {
+                "op": "eq",
+                "left": {
+                  "binding": "inspect.input"
+                },
+                "right": {
+                  "literal": true
+                }
+              },
+              "bindingKey": "inspect.input",
+              "bindingKind": "value",
+              "complete": true,
+              "id": "ctrl-77e68cc9815389c7cfc6",
+              "digest": "f2a858f2acb76b709c7da4d81fa926e2dcacd9e8d04c856871d19de8e1844221",
+              "sourceBound": true,
+              "semanticSupport": "unreviewed"
+            }
+          ],
+          "dependencies": [
+            {
+              "key": "q1.dep.inspect.body",
+              "questionId": "q1",
+              "pathKey": "q1.inspect",
+              "from": "q1.entry.inspect",
+              "symbol": "inspect",
+              "evidenceIds": [
+                "ev-82b075ae5c280a23aa4e"
+              ],
+              "reason": "The function body is required to determine whether inspect returns true for enabled and disabled inputs.",
+              "kind": "effect",
+              "decisive": true,
+              "pathHint": "entry.ts:1-4",
+              "candidateId": "symbol-7fb98fa0c7c61c5fdc3434a3",
+              "id": "ctrl-5751107917e722e9f2c4",
+              "digest": "f1222c721cfea16c464ef264738bd4d4daab3d4fe4a6c7b10c28859d1c3621c0",
+              "sourceBound": true,
+              "semanticSupport": "unreviewed"
+            }
+          ],
+          "bindings": [],
+          "policyRules": [],
+          "conflicts": [],
+          "revisions": []
+        },
+        "result": {
+          "schemaVersion": "authorization-inquiry-result/v1",
+          "questions": [
+            {
+              "questionId": "q1",
+              "behavior": {
+                "disposition": "conditional",
+                "explanation": "No. inspect does not return true for both enabled and disabled inputs. When enabled is false, the function returns false immediately at line 2. When enabled is true, the negated condition is false and execution reaches line 3, which returns true. The concrete value of enabled was not supplied, so the applicable branch for a particular invocation is unspecified."
+              },
+              "branches": [
+                {
+                  "id": "q1.inspect.disabled",
+                  "condition": "enabled is false",
+                  "disposition": "deny",
+                  "explanation": "The condition !enabled is true, so inspect returns false at line 2.",
+                  "evidenceIds": [
+                    "ev-c5e8789e2bd3c2b0641e"
+                  ]
+                },
+                {
+                  "id": "q1.inspect.enabled",
+                  "condition": "enabled is true",
+                  "disposition": "allow",
+                  "explanation": "The condition !enabled is false, so execution continues to line 3 and inspect returns true.",
+                  "evidenceIds": [
+                    "ev-c5e8789e2bd3c2b0641e"
+                  ]
+                }
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "missing": [
+                {
+                  "kind": "premise-unspecified",
+                  "detail": "The concrete input value for enabled is unspecified, so no single invocation result can be selected.",
+                  "nextRead": "No further source read is needed; provide enabled=true or enabled=false to determine one concrete result."
+                }
+              ]
+            }
+          ],
+          "observations": [],
+          "scope": "Allowed source scope: entry.ts only; inspect function body, lines 1-4. Behavior investigation only; no normative policy conclusion."
+        },
+        "check": {
+          "structureValid": true,
+          "sourceBound": true,
+          "ruleConsistency": true,
+          "semanticSupport": "unreviewed",
+          "taskResolution": "partial",
+          "paths": [
+            {
+              "questionId": "q1",
+              "pathKey": "q1.inspect.disabled",
+              "state": "checked",
+              "disposition": "deny",
+              "complete": true,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "eq",
+                  "left": {
+                    "binding": "inspect.input"
+                  },
+                  "right": {
+                    "literal": false
+                  }
+                },
+                "missingBindings": [
+                  "inspect.input"
+                ],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "inspect.input"
+                    },
+                    "right": {
+                      "literal": false
+                    }
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "q1.entry.inspect",
+                "q1.inspect.disabled.reject"
+              ],
+              "terminalKeys": [
+                "q1.inspect.disabled.reject"
+              ],
+              "gaps": [],
+              "sourceBound": true
+            },
+            {
+              "questionId": "q1",
+              "pathKey": "q1.inspect.enabled",
+              "state": "checked",
+              "disposition": "allow",
+              "complete": true,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "eq",
+                  "left": {
+                    "binding": "inspect.input"
+                  },
+                  "right": {
+                    "literal": true
+                  }
+                },
+                "missingBindings": [
+                  "inspect.input"
+                ],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "inspect.input"
+                    },
+                    "right": {
+                      "literal": true
+                    }
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "q1.entry.inspect",
+                "q1.inspect.enabled.effect"
+              ],
+              "terminalKeys": [
+                "q1.inspect.enabled.effect"
+              ],
+              "gaps": [],
+              "sourceBound": true
+            }
+          ],
+          "diagnostics": [],
+          "policyComparisons": [],
+          "calculationCount": 4
+        }
+      }
+    ],
+    "computation": {
+      "merges": 2,
+      "pathEvaluations": 4,
+      "conclusionChecks": 2,
+      "predicateEvaluations": 22,
+      "durationMs": 4.883599999982835
+    },
+    "closed": true
+  },
+  "telemetry": {
+    "providerCalls": 5,
+    "respondedCalls": 5,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 5,
+    "knownTokens": {
+      "input": 16307,
+      "output": 1859,
+      "cacheRead": 12416,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  },
+  "durationMs": 100291,
+  "sourceAccounting": {
+    "indexBytes": 89,
+    "physicalReadBytes": 356,
+    "toolDisplayBytes": 153,
+    "cumulativeModelSourceBytes": 507,
+    "resentSourceBytes": 354
+  }
+}

@@ -76,3 +76,14 @@ test("renaming source and repository prefixes preserves mechanism and host perfo
     expect(scheduler.actions[0].arguments.path).toBe(`${prefix}/helper.ts`)
   }
 })
+
+test("an exact displayed path-and-range locator is normalized without inventing a candidate", async () => {
+  const f = await fixture(), dependency = { ...f.dep, pathHint: "src/helper.ts:1-1" }
+  const scheduler = api.createInquiryDomainScheduler({ tools: f.tools })
+  await scheduler.run(f.merge(createControlSlice(), [dependency]).state)
+  expect(scheduler.snapshot()[0]).toMatchObject({ state: "read", locatorNormalization: { from: "src/helper.ts:1-1", to: "src/helper.ts" } })
+  expect(scheduler.actions[0].arguments.path).toBe("src/helper.ts")
+  const invalid = api.createInquiryDomainScheduler({ tools: f.tools })
+  await invalid.run(f.merge(createControlSlice(), [{ ...dependency, pathHint: "src/helper.ts:90-99" }]).state)
+  expect(invalid.snapshot()[0].state).toBe("external-unknown")
+})
