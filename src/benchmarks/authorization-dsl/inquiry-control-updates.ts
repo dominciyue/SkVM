@@ -1,25 +1,17 @@
 import { z } from "zod"
 import { InquiryText, type InquiryDiagnostic } from "../../task-dsl/authorization/inquiry.ts"
-import { ControlRuleSchema, ControlDependencySchema, UserBindingSchema, PolicyRuleSchema, mergeControlSlice, type ControlSlice } from "../../task-dsl/authorization/control-slice.ts"
+import { mergeControlSlice, type ControlSlice } from "../../task-dsl/authorization/control-slice.ts"
 import type { AuthorizationInquiryProgram } from "../../task-dsl/authorization/inquiry-program.ts"
 import type { InquiryEvidenceContext } from "../../task-dsl/authorization/inquiry-result.ts"
 
-const common = { op: z.enum(["add", "replace"]), questionId: InquiryText, targetKey: ControlRuleSchema.shape.key, reason: InquiryText.optional() }
-const omit = { key: true, questionId: true, revisionOf: true, revisionReason: true } as const
-const rule = ControlRuleSchema.omit(omit).extend({ ...common, kind: z.enum(["entry", "guard", "reject", "continue", "effect"]) })
-const sourceBinding = ControlRuleSchema.omit({ ...omit, kind: true }).extend({ ...common, bindingKey: ControlRuleSchema.shape.key, bindingKind: z.enum(["principal", "resource", "permission", "configuration", "value"]) })
-const dependency = ControlDependencySchema.omit(omit).extend({ ...common, reason: InquiryText })
-const knownPremise = UserBindingSchema.omit({ ...omit, origin: true }).extend({ ...common, status: z.literal("known") })
-const unspecifiedPremise = z.object({ ...common, status: z.literal("unspecified"), text: InquiryText }).strict()
-const premiseValue = z.discriminatedUnion("status", [knownPremise, unspecifiedPremise])
-const policyRule = PolicyRuleSchema.omit({ ...omit, origin: true }).extend(common)
-const itemSchemas = { rules: rule, sourceBindings: sourceBinding, dependencies: dependency, premiseValues: premiseValue, policyRules: policyRule }
+import { LocalUpdateItemSchemas as itemSchemas, LocalExtractionSchema } from "./inquiry-local-extraction.ts"
+const { rules: rule, sourceBindings: sourceBinding, dependencies: dependency, premiseValues: premiseValue, policyRules: policyRule } = itemSchemas
 type Group = keyof typeof itemSchemas
 export const WorkSelectionSchema = z.object({ questionId: InquiryText, itemId: InquiryText, candidateId: InquiryText }).strict()
 const metadata = { schemaVersion: z.literal("authorization-control-update/v1"), baseRevision: z.number().int().nonnegative().optional(), atomic: z.boolean().default(false) }
 /** The full advertised contract; each item is checked by the host so one malformed item cannot erase unrelated valid work. */
-export const LocalControlDeltaSchema = z.object({ ...metadata, rules: z.array(rule).max(1024).default([]), sourceBindings: z.array(sourceBinding).max(1024).default([]), dependencies: z.array(dependency).max(1024).default([]), premiseValues: z.array(premiseValue).max(1024).default([]), policyRules: z.array(policyRule).max(256).default([]), workSelections: z.array(WorkSelectionSchema).max(64).default([]) }).strict()
-export const LocalControlEnvelopeSchema = z.object({ ...metadata, rules: z.array(z.unknown()).max(1024).default([]), sourceBindings: z.array(z.unknown()).max(1024).default([]), dependencies: z.array(z.unknown()).max(1024).default([]), premiseValues: z.array(z.unknown()).max(1024).default([]), policyRules: z.array(z.unknown()).max(256).default([]), workSelections: z.array(z.unknown()).max(64).default([]) }).strict()
+export const LocalControlDeltaSchema = z.object({ ...metadata, rules: z.array(rule).max(1024).default([]), sourceBindings: z.array(sourceBinding).max(1024).default([]), dependencies: z.array(dependency).max(1024).default([]), premiseValues: z.array(premiseValue).max(1024).default([]), policyRules: z.array(policyRule).max(256).default([]), workSelections: z.array(WorkSelectionSchema).max(64).default([]), localExtractions: z.array(LocalExtractionSchema).max(16).default([]) }).strict()
+export const LocalControlEnvelopeSchema = z.object({ ...metadata, rules: z.array(z.unknown()).max(1024).default([]), sourceBindings: z.array(z.unknown()).max(1024).default([]), dependencies: z.array(z.unknown()).max(1024).default([]), premiseValues: z.array(z.unknown()).max(1024).default([]), policyRules: z.array(z.unknown()).max(256).default([]), workSelections: z.array(z.unknown()).max(64).default([]), localExtractions: z.array(z.unknown()).max(16).default([]) }).strict()
 export const LOCAL_CONTROL_GUIDE = [
   'guided-evidence-v2 local interface: controlDelta is {schemaVersion:"authorization-control-update/v1",rules:[],sourceBindings:[],dependencies:[],premiseValues:[],policyRules:[],atomic?:false,baseRevision?:current revision}. Submit just changed items, not the entire graph.',
   "Each item has op:add|replace, questionId, targetKey. Replace names the current same-question target and supplies reason; the host fills revisionOf. baseRevision detects a stale view. atomic:true applies the whole group or none. Rejected items and their dependent gaps remain visible; correct only diagnosed items.",
@@ -42,8 +34,8 @@ function unresolvedLinks(state: ControlSlice, rejected: UpdateRejection[]) {
   }
   return output
 }
-export function applyControlUpdates(previous: ControlSlice, input: unknown, program: AuthorizationInquiryProgram, context: InquiryEvidenceContext & { suppliedUserText?: string[] }) {
-  const parsed = LocalControlEnvelopeSchema.safeParse(input), accepted: UpdateAcceptance[] = [], rejected: UpdateRejection[] = []
+export function applyControlUpdates(previous: ControlSlice, input: unknown, program: AuthorizationInquiryProgram, context: InquiryEvidenceContext & { suppliedUserText?: string[] }, priorRejections: UpdateRejection[] = []) {
+  const parsed = LocalControlEnvelopeSchema.safeParse(input), accepted: UpdateAcceptance[] = [], rejected: UpdateRejection[] = [...priorRejections]
   let state = structuredClone(previous)
   if (!parsed.success) return { state, accepted, envelopeValid: false, rejected: [{ group: "rules" as const, questionId: "", targetKey: "$", diagnostics: parsed.error.issues.map(i => diagnostic("control-update-schema", i.path.join("."), i.message)) }], unresolved: [] }
   for (const group of Object.keys(itemSchemas) as Group[]) for (const [index, raw] of parsed.data[group].entries()) {

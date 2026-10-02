@@ -4,8 +4,9 @@ import { evaluateControlPaths, checkControlConclusions } from "../../task-dsl/au
 import type { InquiryDiagnostic } from "../../task-dsl/authorization/inquiry.ts"
 import type { InquiryTools } from "./inquiry-tools.ts"
 import { createInquiryDomainScheduler } from "./inquiry-domain-scheduler.ts"
-import { applyControlUpdates, LOCAL_CONTROL_GUIDE, WorkSelectionSchema, type UpdateAcceptance, type UpdateRejection } from "./inquiry-control-updates.ts"
+import { applyControlUpdates, LOCAL_CONTROL_GUIDE, LocalControlEnvelopeSchema, WorkSelectionSchema, type UpdateAcceptance, type UpdateRejection } from "./inquiry-control-updates.ts"
 import { createInquiryWorklist } from "./inquiry-worklist.ts"
+import { expandLocalExtractions, localExplanationContext, LOCAL_EXTRACTION_GUIDE, type LocalExplanationTask, type LocalUpdateGroup } from "./inquiry-local-extraction.ts"
 
 export type DomainAblation = "scheduler-off" | "checks-off"
 export const DOMAIN_EXECUTION_GUIDE = [
@@ -17,18 +18,20 @@ export const DOMAIN_EXECUTION_GUIDE = [
   "Policy mappings are separate candidates: {key,questionId,pathKey,expected:allow|deny,origin:policy,text:<exact policy span>,location:<current independent location>,condition?}. Map only the supplied policy, do not derive it from implementation. Each live path needs a mapping for a determined policy assessment; incomplete mappings remain undetermined while behavior is deliverable. Formal policy mapping is still unreviewed.",
   "Same-key duplicate is idempotent. To correct a conflicting accepted proposal, supply revisionOf:<host-returned digest> and revisionReason; no silent overwrite. Keep gaps local; one irrelevant relationship does not invalidate other questions. Host feedback is formal computation on proposed rules, not a source-semantic or deployment proof. At most64 nodes/question and16 paths/question; overflow remains a named gap.",
 ].join("\n")
-export const GUIDED_EXECUTION_GUIDE = [LOCAL_CONTROL_GUIDE, ...DOMAIN_EXECUTION_GUIDE.split("\n").slice(2, 6).map(line => line.replace(/Known bindings are only explicit USER premises:.*?This mapping is a model interpretation, not source truth\./, "Only known premiseValues from exact current user spans enter evaluation; mapping meaning remains unreviewed.").replace(/\{key,questionId/g, "{op,targetKey,questionId")), "For unspecified values, retain alternative feasible outcomes and name the missing fact. Local extraction and mapping meaning remain unreviewed."].join("\n")
+export const GUIDED_EXECUTION_GUIDE = [LOCAL_CONTROL_GUIDE, LOCAL_EXTRACTION_GUIDE, ...DOMAIN_EXECUTION_GUIDE.split("\n").slice(2, 6).map(line => line.replace(/Known bindings are only explicit USER premises:.*?This mapping is a model interpretation, not source truth\./, "Only known premiseValues from exact current user spans enter evaluation; mapping meaning remains unreviewed.").replace(/\{key,questionId/g, "{op,targetKey,questionId")), "For unspecified values, retain alternative feasible outcomes and name the missing fact. Local extraction and mapping meaning remain unreviewed."].join("\n")
 
 /** One shared state machine used by structured inquiry and ordinary native tools. */
-export function createInquiryDomainRuntime(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; strategy?: InquiryStrategy; remainingActions?: () => number; ablation?: DomainAblation; suppliedUserText?: string[] }) {
+export function createInquiryDomainRuntime(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; strategy?: InquiryStrategy; remainingActions?: () => number; ablation?: DomainAblation; suppliedUserText?: string[]; shownEvidenceIds?: () => string[] }) {
   let slice: ControlSlice = createControlSlice(), check: ReturnType<typeof checkControlConclusions> | undefined, closed = false
   const scheduler = createInquiryDomainScheduler({ ...options, evaluateConditions: options.ablation !== "checks-off" }), proposals: Array<{ delta: unknown; diagnostics: InquiryDiagnostic[]; revision: number; accepted?: UpdateAcceptance[]; rejected?: UpdateRejection[]; unresolved?: unknown[] }> = []
   const worklist = options.strategy === "guided-evidence-v2" ? createInquiryWorklist({ ...options, dependencyStates: () => scheduler.snapshot() }) : undefined
   let automaticActionsRemaining = 2
+  let offeredTasks: LocalExplanationTask[] = []
+  const localExtractions: ReturnType<typeof expandLocalExtractions>["records"] = []
   let lastPaths: ReturnType<typeof evaluateControlPaths>["paths"] = []
   const issues = new Map<string, InquiryDiagnostic[]>(), computation = { merges: 0, pathEvaluations: 0, conclusionChecks: 0, predicateEvaluations: 0, durationMs: 0 }
   const checkHistory: Array<{ revision: number; slice: ControlSlice; result: unknown; check: ReturnType<typeof checkControlConclusions> }> = []
-  const evidenceContext = () => ({ questionIds: options.program.questions.map(q => q.id), shownEvidenceIds: options.tools.evidence.map(e => e.id), suppliedUserText: options.suppliedUserText })
+  const evidenceContext = () => ({ questionIds: options.program.questions.map(q => q.id), shownEvidenceIds: options.shownEvidenceIds?.() ?? options.tools.evidence.map(e => e.id), suppliedUserText: options.suppliedUserText })
   const calculate = <T>(fn: () => T): T => { const started = performance.now(); try { return fn() } finally { computation.durationMs += performance.now() - started } }
   const sync = async (execute = true) => {
     if (closed) throw new Error("session-closed: domain runtime cannot continue")
@@ -44,7 +47,12 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const propose = async (delta: unknown) => {
     if (closed) throw new Error("session-closed: domain runtime cannot continue")
     if (delta && typeof delta === "object" && (delta as Record<string, unknown>).schemaVersion === "authorization-control-update/v1") {
-      const merged = calculate(() => applyControlUpdates(slice, delta, options.program, evidenceContext())); computation.merges++
+      worklist?.sync(slice, check)
+      const envelope = LocalControlEnvelopeSchema.safeParse(delta)
+      const expanded = expandLocalExtractions(envelope.success ? envelope.data.localExtractions : [], offeredTasks, worklist?.snapshot() ?? [])
+      localExtractions.push(...expanded.records)
+      const normalized = envelope.success ? { ...envelope.data, ...Object.fromEntries((Object.keys(expanded.groups) as LocalUpdateGroup[]).map(group => [group, [...envelope.data[group], ...expanded.groups[group]]])), localExtractions: [] } : delta
+      const merged = calculate(() => applyControlUpdates(slice, normalized, options.program, evidenceContext(), expanded.rejected)); computation.merges++
       slice = merged.state; check = undefined
       const selectionDiagnostics: InquiryDiagnostic[] = []
       for (const raw of "pendingSelections" in merged ? merged.pendingSelections ?? [] : []) {
@@ -94,6 +102,19 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     rules: slice.rules.map(({ key, questionId, pathKey, kind, after, condition, bindingKey, bindingKind, principal, resource, digest }) => ({ key, questionId, pathKey, kind, after, condition, bindingKey, bindingKind, principal, resource, digest })),
     bindings: slice.bindings, policyRules: slice.policyRules, dependencies: scheduler.snapshot(), paths: lastPaths,
     diagnostics: [...issues.values()].flat().concat(check?.diagnostics ?? []), ...(worklist ? { worklist: worklist.snapshot(), automaticActionsRemaining } : {}), semanticSupport: "unreviewed", ...(options.ablation ? { mechanismDisabled: options.ablation } : {}) })
-  return { propose, sync, validate, feedback, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { closed = true },
-    report: () => ({ slice: structuredClone(slice), proposals: structuredClone(proposals), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions) } } : {}), check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed }) }
+  const modelContext = () => {
+    if (closed) throw new Error("session-closed")
+    worklist?.sync(slice, check)
+    const diagnosed = [...issues.values()].flat().flatMap(d => slice.rules.filter(r => d.path.includes(`${r.questionId}.${r.key}`)).flatMap(r => r.evidenceIds))
+    const recent = options.tools.history.flatMap(h => h.result.evidence.map(e => e.id)).slice(-2)
+    const context = localExplanationContext(options.program, worklist?.snapshot() ?? [], options.tools.evidence, slice, diagnosed, recent)
+    offeredTasks = context.tasks
+    return context
+  }
+  const modelFeedback = () => {
+    const state = feedback(), diagnostics = state.diagnostics.filter((d, i, all) => all.findIndex(v => v.code === d.code && v.path === d.path && v.message === d.message) === i)
+    return { ...state, diagnostics: diagnostics.slice(0, 16), diagnosticCount: diagnostics.length }
+  }
+  return { propose, sync, validate, feedback, modelContext, modelFeedback, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { closed = true },
+    report: () => ({ slice: structuredClone(slice), proposals: structuredClone(proposals), localExtractions: structuredClone(localExtractions), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions) } } : {}), check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed }) }
 }

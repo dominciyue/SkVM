@@ -31,21 +31,31 @@ export function mechanicalReview(report: any): Review {
 }
 /** Dispatch at most two rows, evaluate each completion immediately, then pause affected new work. In-flight results are always retained. */
 export async function developRows(base: string, rows: Row[], options: DevelopOptions) {
+  for (const row of rows) if (!/^[a-zA-Z0-9_-]+$/.test(row.id)) throw new Error("Unsafe row identity")
+  let originalFailureId: string | undefined
+  if (options.repairId) {
+    const match = options.repairOf?.match(/^([a-zA-Z0-9_-]+)\/attempt-([1-9]\d*)$/)
+    if (!match || rows.length !== 1 || rows[0]!.id !== match[1]) throw new Error("A repair requires an existing same-row original attempt")
+    const original = path.join(base, "runs", options.repairOf!)
+    if (!(await exists(path.join(original, "claim.json"))) || !(await exists(path.join(original, "report.json")))) throw new Error("Missing retained original attempt")
+    const claim = await json(path.join(original, "claim.json")), retained = await json(path.join(original, "report.json"))
+    if (claim.row.id !== rows[0]!.id || claim.attempt !== Number(match[2]) || JSON.stringify(claim) !== JSON.stringify(retained.identity)) throw new Error("Invalid original attempt identity")
+    if (/unknown/.test(String(retained.report.status))) throw new Error("An original attempt of unknown completion cannot be redispatched")
+    originalFailureId = `${match[1]}-attempt-${match[2]}`
+  }
   await mkdir(base, { recursive: true })
   const pauses: Array<{ components: string[]; failureId: string }> = [], completed: any[] = []
   const unresolved = (await lines(path.join(base, "failures.jsonl"))).filter(f => f.outcome === "unresolved")
   const repaired = new Set((await lines(path.join(base, "repairs.jsonl"))).filter(r => r.outcome === "improved").map(r => r.failureId))
-  for (const failure of unresolved) if (!repaired.has(failure.id) && !options.repairId) pauses.push({ components: failure.components ?? ["wire", "source", "checker", "delivery", "worklist"], failureId: failure.id })
+  for (const failure of unresolved) if (!repaired.has(failure.id)) pauses.push({ components: failure.components ?? ["wire", "source", "checker", "delivery", "worklist"], failureId: failure.id })
   const width = Math.min(2, Math.max(1, options.concurrency ?? 1))
   for (let cursor = 0; cursor < rows.length; cursor += width) {
     await Promise.all(rows.slice(cursor, cursor + width).map(async row => {
       const runDir = path.join(base, "runs", row.id)
-      if (!/^[a-zA-Z0-9_-]+$/.test(row.id)) throw new Error("Unsafe row identity")
-      const paused = pauses.find(p => p.components.some(c => row.components.includes(c)))
-      if (paused && !options.repairId) { completed.push({ id: row.id, status: "not-run-after-defect", failureId: paused.failureId }); return }
+      const paused = pauses.find(p => p.failureId !== originalFailureId && p.components.some(c => row.components.includes(c)))
+      if (paused) { completed.push({ id: row.id, status: "not-run-after-defect", failureId: paused.failureId }); return }
       const attempts = (await readdir(runDir).catch(() => [])).filter(s => /^attempt-\d+$/.test(s))
       if (attempts.length && !options.repairId) { completed.push({ id: row.id, status: "already-retained" }); return }
-      if (options.repairId && !options.repairOf) throw new Error("A repair attempt requires its original attempt identity")
       const attempt = Math.max(0, ...attempts.map(a => Number(a.split("-")[1]))) + 1, output = path.join(runDir, `attempt-${attempt}`)
       const identity = { row, attempt, revision: options.revision, model: options.model, budgets: options.budgets, repairId: options.repairId ?? null, repairOf: options.repairOf ?? null, startedAt: new Date().toISOString(), development: "adaptive-exposed" }
       await save(path.join(output, "claim.json"), identity)
@@ -118,9 +128,11 @@ if (import.meta.main) {
     for (const task of manifest.tasks) { const c = await checkAuthorizationInquiry(path.resolve(root, task.inputFile), "M", "legacy"); if (c.status !== "valid") throw new Error(JSON.stringify(c)); checks.push({ task: task.id, files: c.sourceFiles.length, status: c.status }) }
     for (const evidence of (await json(path.join(root, "historical-failures.json"))).evidence) if (!(await exists(path.resolve(historical, evidence.artifact)))) throw new Error(`Missing historical failure: ${evidence.artifact}`)
     await save(path.join(root, "precheck.json"), { checks, providerCalls: 0 }, false); console.log(JSON.stringify({ action, checks: checks.length, providerCalls: 0 }))
-  } else if (action === "develop") {
+  } else if (action === "develop" || action === "probe") {
     const id = process.argv[3], repairId = process.argv[4], repairOf = process.argv[5]
-    const rows = manifest.rows.filter((r: Row) => r.id === id)
+    const probeFile = path.join(root, "source-probe-plan.json")
+    if (action === "probe" && !(await exists(probeFile))) await save(probeFile, { schemaVersion: "authorization-ar-source-probe/v1", model, budgets, rows: ["paperless-notes", "memos-remove"].map(task => ({ id: `probe-${task}-Mg`, task, method: "M", strategy: "guided-evidence-v2", components: ["wire", "source", "checker", "worklist", "delivery"], kind: "source-window-mechanism" })), mainQualityPanel: false, originalInputsOnly: true })
+    const rows = (action === "probe" ? (await json(probeFile)).rows : manifest.rows).filter((r: Row) => r.id === id)
     if (rows.length !== 1) throw new Error("develop requires one registered row; assess its source quality before the next block")
     const revision = execFileSync("git", ["rev-parse", "HEAD"], { cwd: repo, encoding: "utf8" }).trim()
     const result = await developRows(root, rows, { revision, model, budgets, repairId, repairOf, execute: async (row, outDir) => {
@@ -132,5 +144,5 @@ if (import.meta.main) {
     console.log(JSON.stringify(result))
   } else if (action === "replay") { console.log(JSON.stringify(await replay())) }
   else if (action === "evaluate") { const result = await replay(); await save(path.join(root, "evaluation-summary.json"), { ...result, qualityBenefit: "not-established", independentReview: "pending", firstAndRepairSeparate: true }, false); console.log(JSON.stringify({ rows: result.rows.length, providerCalls: 0 })) }
-  else throw new Error("Use check|develop <registered-row> [repair-id original/attempt-n]|evaluate|replay")
+  else throw new Error("Use check|develop|probe <registered-row> [repair-id original/attempt-n]|evaluate|replay")
 }

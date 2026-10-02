@@ -225,3 +225,47 @@ test("exhausted structured tool repair retains phase, concrete fields and both r
   expect(run.wireFailures[0]!.diagnostics[0]!.keys).toEqual(["observations"])
   expect(JSON.parse(run.wireFailures[1]!.rawResponse!).observations).toEqual([])
 })
+
+test("guided inquiry explains actual entry and helper windows in two ordinary calls with host-bound fields", async () => {
+  const input = await setup(), mock = scripted((params, n) => {
+    const prompt = params.messages[0]!.content
+    const context = JSON.parse(prompt.split("Current local explanation context: ")[1]!.split("\n\nRemaining dispatches:")[0]!)
+    const task = context.tasks[0], item = (targetKey: string, kind: string, after: string[], extra = {}) => ({ op: "add", targetKey, kind, pathKey: "p", after, claim: "Current original source interpretation", ...extra })
+    expect(task).toBeDefined()
+    if (!n) {
+      expect(context.sourceWindows.some((e: any) => e.text.includes("return guard()"))).toBe(true)
+      return { kind: "control", controlDelta: { schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: task.itemId, rules: [item("entry", "entry", [])], dependencies: [{ op: "add", targetKey: "helper", pathKey: "p", from: "entry", symbol: "guard", kind: "control", decisive: true, reason: "Return depends on original guard" }] }] } }
+    }
+    expect(context.sourceWindows.some((e: any) => e.text.includes("return false"))).toBe(true)
+    expect(task.duty.symbol).toBe("guard")
+    return { ...final(task.evidenceIds[0]), controlDelta: { schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: task.itemId, rules: [item("stop", "reject", ["entry"], { complete: true })] }] } }
+  })
+  const run = await runAuthorizationInquiry({ ...input, method: "M", strategy: "guided-evidence-v2", provider: mock.provider, maxDispatches: 4 })
+  expect(run.status).toBe("completed")
+  expect(mock.count()).toBe(2)
+  expect(run.domain!.localExtractions).toHaveLength(2)
+  expect(run.domain!.dependencies[0]!.state).toBe("checked")
+  expect(run.toolHistory.map(h => h.actionOrigin)).toEqual(["domain-worklist", "domain-worklist"])
+})
+
+test("guided source accounting counts selected raw windows and does not cite catalog-only unseen source", async () => {
+  const input = await setup()
+  for (const name of ["one", "two", "three", "four"]) await writeFile(path.join(input.sourceRoot, `src/${name}.ts`), `export const ${name} = '${name}-original';\n`)
+  const mock = scripted((params, n) => {
+    const prompt = params.messages[0]!.content
+    if (!n) return { kind: "tool", calls: ["one", "two", "three", "four"].map(name => ({ name: "source_read", arguments: { path: `src/${name}.ts`, startLine: 1, endLine: 1 } })) }
+    const context = JSON.parse(prompt.split("Current local explanation context: ")[1]!.split("\n\nRemaining dispatches:")[0]!)
+    expect(context.sourceWindows.map((e: any) => e.path)).toEqual(["src/three.ts", "src/four.ts"])
+    expect(prompt).not.toContain("one-original")
+    const unseen = context.evidenceCatalog.find((e: any) => e.path === "src/one.ts").id
+    if (n === 1) return final(unseen)
+    expect(prompt).toContain("evidence-not-shown")
+    return final(context.sourceWindows[0].id)
+  })
+  const run = await runAuthorizationInquiry({ ...input, inquiry: { ...input.inquiry, questions: [{ id: "q1", request: "Inspect these provided sources", premises: [] }] }, method: "M", strategy: "guided-evidence-v2", provider: mock.provider, maxDispatches: 4 })
+  expect(run.initialValidation?.valid).toBe(false)
+  expect(run.requests).toHaveLength(3)
+  const selectedBytes = run.evidence.filter(e => ["src/three.ts", "src/four.ts"].includes(e.path)).reduce((sum, e) => sum + e.bytes, 0)
+  expect(run.sourceAccounting.cumulativeModelSourceBytes).toBe(selectedBytes * 2)
+  expect(run.sourceAccounting.resentSourceBytes).toBe(selectedBytes)
+})

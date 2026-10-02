@@ -2,7 +2,7 @@ import path from "node:path"
 import { readdir, realpath, mkdir, appendFile, writeFile, stat } from "node:fs/promises"
 import type { LLMTool, LLMToolCall, CompletionParams, LLMToolResult, LLMResponse } from "../../providers/types.ts"
 import { loadInquiryInput } from "./inquiry-local.ts"
-import { createInquiryTools } from "./inquiry-tools.ts"
+import { createInquiryTools, modelSourceDisplay } from "./inquiry-tools.ts"
 import { inquiryToolModelView } from "./inquiry-run.ts"
 import { loadPortableSourceBundle } from "./inputs.ts"
 import { AuthorizationInquirySchema } from "../../task-dsl/authorization/inquiry.ts"
@@ -64,7 +64,7 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
   }
   const schemas = inquiryNativeSchemas(strategy, true), domainDefinitions = inquiryNativeDefinitions(strategy, loaded.value.inquiry?.mode ?? loaded.value.mode ?? "behavior")
   const definitions: LLMTool[] = [...tools.definitions, ...(referenceRoot ? [{ name: "skill_reference_read", description: `Read installed original skill companions as data: ${references.map(r => r.path).join(", ")}`, inputSchema: { type: "object", properties: { path: { type: "string" } }, required: ["path"], additionalProperties: false } }] : []), ...(options.domainTools ? domainDefinitions : [])]
-  const context = () => ({ questionIds: program?.questions.map(q => q.id) ?? [], shownEvidenceIds: tools.evidence.map(e => e.id) })
+  const context = () => ({ questionIds: program?.questions.map(q => q.id) ?? [], shownEvidenceIds: strategy === "guided-evidence-v2" ? [...displayed] : tools.evidence.map(e => e.id) })
   const execute = async (call: LLMToolCall) => {
     const started = performance.now(); let output: unknown, exitCode = 0, executed = false
     try {
@@ -77,7 +77,7 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
       if (!remaining.totalRemaining) throw new NativeToolRejection("tool-budget", "Session tool budget exhausted")
       if (!finalCheck && !remaining.explorationRemaining) throw new NativeToolRejection("exploration-budget", "Exploration budget exhausted; remaining calls are reserved for result checks")
       executed = true
-      if (call.name.startsWith("source_")) output = inquiryToolModelView(await tools.execute(call.name, call.arguments))
+      if (call.name.startsWith("source_")) output = inquiryToolModelView(await tools.execute(call.name, call.arguments), strategy === "guided-evidence-v2")
       else if (call.name === "skill_reference_read" && referenceRoot) {
         referenceCalls++; const ref = references.find(r => r.path === call.arguments.path)
         if (!ref) throw new Error("Reference not declared in installed skill bundle")
@@ -89,7 +89,7 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
         const inquiry = schemas.authorization_compile.parse(call.arguments).inquiry, mode = loaded.value.inquiry?.mode ?? loaded.value.mode ?? "behavior", policy = loaded.value.inquiry?.policy ?? loaded.value.policy
         if (inquiry.mode !== mode || JSON.stringify(inquiry.policy) !== JSON.stringify(policy)) throw new Error("Declaration changes supplied mode or independent policy")
         program = compileAuthorizationInquiry(inquiry); observations.length = 0; result = undefined; checks = 0; output = program
-        if (strategy !== "legacy") domain = createInquiryDomainRuntime({ program, tools, strategy, remainingActions: () => toolBudget().explorationRemaining, suppliedUserText: loaded.value.inquiry ? loaded.value.inquiry.questions.flatMap(q => [q.request, ...q.premises.map(p => p.text)]) : [loaded.value.brief!] })
+        if (strategy !== "legacy") domain = createInquiryDomainRuntime({ program, tools, strategy, remainingActions: () => toolBudget().explorationRemaining, ...(strategy === "guided-evidence-v2" ? { shownEvidenceIds: () => [...displayed] } : {}), suppliedUserText: loaded.value.inquiry ? loaded.value.inquiry.questions.flatMap(q => [q.request, ...q.premises.map(p => p.text)]) : [loaded.value.brief!] })
       } else if (options.domainTools && call.name === "authorization_observe") {
         domainCalls++; if (!program) throw new Error("Compile current inquiry first")
         const args = schemas.authorization_observe.parse(call.arguments)
@@ -100,13 +100,13 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
         if (domain) {
           const proposedControls = "controlDelta" in args && args.controlDelta ? await domain.propose(args.controlDelta) : await domain.sync()
           const actions = "actions" in proposedControls ? proposedControls.actions : []
-          output = { ...(output as Record<string, unknown>), ...("diagnostics" in proposedControls ? { controlDiagnostics: proposedControls.diagnostics } : {}), ...("accepted" in proposedControls && "rejected" in proposedControls && "unresolved" in proposedControls ? { accepted: proposedControls.accepted, rejected: proposedControls.rejected, unresolved: proposedControls.unresolved } : {}), autoReads: actions.map(a => ({ ...inquiryToolModelView(a.output) as Record<string, unknown>, actionOrigin: a.actionOrigin, questionId: a.questionId, dependencyId: a.dependencyId, reason: a.reason })), domain: domain.feedback() }
+          output = { ...(output as Record<string, unknown>), ...("diagnostics" in proposedControls ? { controlDiagnostics: proposedControls.diagnostics } : {}), ...("accepted" in proposedControls && "rejected" in proposedControls && "unresolved" in proposedControls ? { accepted: proposedControls.accepted, rejected: proposedControls.rejected, unresolved: proposedControls.unresolved } : {}), autoReads: actions.map(a => ({ ...inquiryToolModelView(a.output, strategy === "guided-evidence-v2") as Record<string, unknown>, actionOrigin: a.actionOrigin, questionId: a.questionId, dependencyId: a.dependencyId, reason: a.reason })), domain: domain.feedback() }
         }
       } else if (options.domainTools && call.name === "authorization_check_result") {
         domainCalls++; checks++
         const args = schemas.authorization_check_result.parse(call.arguments)
         let autoReads: unknown[] = [], localFeedback = {}
-        if (domain && "controlDelta" in args && args.controlDelta) { result = undefined; const proposed = await domain.propose(args.controlDelta); autoReads = proposed.actions.map(a => inquiryToolModelView(a.output)); if ("accepted" in proposed) localFeedback = { accepted: proposed.accepted, rejected: proposed.rejected, unresolved: proposed.unresolved } }
+        if (domain && "controlDelta" in args && args.controlDelta) { result = undefined; const proposed = await domain.propose(args.controlDelta); autoReads = proposed.actions.map(a => inquiryToolModelView(a.output, strategy === "guided-evidence-v2")); if ("accepted" in proposed) localFeedback = { accepted: proposed.accepted, rejected: proposed.rejected, unresolved: proposed.unresolved } }
         const domainCheck = domain ? await domain.validate(args.result) : undefined
         const checked = validateAuthorizationInquiryResult(program!, args.result, context(), domainCheck); result = checked.valid ? checked.result : undefined; output = domain ? { ...checked, domainCheck, autoReads, ...localFeedback } : checked
       } else throw new Error("Tool not registered in this read-only runtime")
@@ -120,11 +120,16 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
   const beforeDispatch = async (params: CompletionParams, toolResults?: LLMToolResult[], previousResponse?: LLMResponse) => {
     if (closed) throw new NativeToolRejection("session-closed", "This native source session is closed")
     domain?.beginStep()
-    const text = params.messages.map(m => m.content).join("\n") + (toolResults?.map(r => r.content).join("\n") ?? ""); let current = 0, resent = 0
-    for (const e of tools.evidence) { const count = text.split(JSON.stringify(e.text)).length - 1; current += count * e.bytes; resent += (displayed.has(e.id) ? count : Math.max(0, count - 1)) * e.bytes }
+    if (strategy === "guided-evidence-v2" && domain) {
+      await domain.sync(checks === 0 && toolBudget().explorationRemaining > 0)
+      params.messages = params.messages.filter(m => !m.content.startsWith("Current local explanation context: "))
+      params.messages.push({ role: "user", content: `Current local explanation context: ${JSON.stringify(domain.modelContext())}` })
+    }
+    const text = params.messages.map(m => m.content).join("\n") + (toolResults?.map(r => r.content).join("\n") ?? ""), display = modelSourceDisplay(tools.evidence, text, displayed)
+    const current = display.bytes, resent = display.resentBytes
     if (modelSourceBytes + current > (options.maxDisplayBytes ?? 262144)) throw new AuthorizationDispatchLimitError(options.maxDisplayBytes ?? 262144, "source-display-budget")
     modelSourceBytes += current; resentSourceBytes += resent
-    for (const e of tools.evidence) if (text.includes(JSON.stringify(e.text))) displayed.add(e.id)
+    for (const id of display.evidenceIds) displayed.add(id)
     const record = structuredClone({ params, toolResults, previousResponse }); requests.push(record)
     if (traceDir) await writeFile(path.join(traceDir, `request-${requests.length}.json`), JSON.stringify(record, null, 2) + "\n", { encoding: "utf8", flag: "wx" })
   }

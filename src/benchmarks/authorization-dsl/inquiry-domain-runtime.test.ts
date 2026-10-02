@@ -100,3 +100,15 @@ test("a dependency reopens when a corrected preceding reject no longer makes it 
   expect(runtime.report().dependencies[0]!.state).toBe("read")
   expect(item()).toMatchObject({ state: "awaiting-interpretation", nextAction: { kind: "interpret" } })
 })
+
+test("model repair feedback deduplicates and bounds diagnostics without dropping the complete retained failures", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-feedback-")); await writeFile(path.join(sourceRoot, "entry.ts"), "export const entry = true\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["."] })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Investigate entry", premises: [] }] })
+  const runtime: any = createInquiryDomainRuntime({ program, tools, strategy: "guided-evidence-v2" })
+  await runtime.propose({ schemaVersion: "authorization-control-update/v1", rules: Array.from({ length: 20 }, (_, i) => ({ op: "add", questionId: "q", targetKey: `bad-${i}`, pathKey: "p", kind: "entry", after: [], evidenceIds: ["not-shown"], claim: "Candidate" })) })
+  expect(runtime.feedback().diagnostics).toHaveLength(20)
+  expect(runtime.modelFeedback()).toMatchObject({ diagnosticCount: 20 })
+  expect(runtime.modelFeedback().diagnostics).toHaveLength(16)
+  expect(runtime.report().proposals[0].rejected).toHaveLength(20)
+})

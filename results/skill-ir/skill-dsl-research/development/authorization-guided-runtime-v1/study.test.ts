@@ -41,3 +41,25 @@ test("a valid justified unknown is a boundary, not a mandatory repair", async ()
   const root = await temp(), result = await api.developRows(root, [row("boundary"), row("next")], options({ concurrency: 1, execute: async () => ({ status: "completed", validation: { valid: true } }), evaluate: async (_r: any, report: any) => api.mechanicalReview(report) }))
   expect(result.rows.every((r: any) => r.status === "completed")).toBe(true)
 })
+test("a repair identity only reopens its own retained attempt and cannot bypass another shared defect", async () => {
+  const root = await temp(), execute = async () => ({ status: "completed", telemetry: { providerCalls: 1 } })
+  await api.developRows(root, [row("first"), row("other")], options({ execute, evaluate: async () => ({ failure: { category: "schema/wire", rootCause: "separate retained defect", components: ["wire"] } }) }))
+  const started: string[] = []
+  const result = await api.developRows(root, [row("first")], options({ repairId: "repair-first", repairOf: "first/attempt-1", execute: async (r: any) => { started.push(r.id); return execute() }, evaluate: async () => ({}) }))
+  expect(started).toEqual([])
+  expect(result.rows[0]).toMatchObject({ status: "not-run-after-defect", failureId: "other-attempt-1" })
+})
+test("repair references must name an existing same-row completed claim before dispatch", async () => {
+  const root = await temp(), started: string[] = []
+  const run = options({ concurrency: 1, execute: async (r: any) => { started.push(r.id); return { status: "completed" } }, evaluate: async () => ({}) })
+  await api.developRows(root, [row("first")], run)
+  for (const [id, repairOf] of [["other", "first/attempt-1"], ["first", "first/attempt-99"], ["first", "../first/attempt-1"]] as const) {
+    await expect(api.developRows(root, [row(id)], { ...run, repairId: "repair-test", repairOf })).rejects.toThrow(/original attempt/)
+  }
+  expect(started).toEqual(["first"])
+})
+test("a response of unknown completion is retained without another paid repair dispatch", async () => {
+  const root = await temp(), run = options({ execute: async () => ({ status: "completion-unknown", providerDispatches: 1 }), evaluate: async () => ({}) })
+  await api.developRows(root, [row("unknown")], run)
+  await expect(api.developRows(root, [row("unknown")], { ...run, repairId: "repair-test", repairOf: "unknown/attempt-1" })).rejects.toThrow(/unknown completion/)
+})

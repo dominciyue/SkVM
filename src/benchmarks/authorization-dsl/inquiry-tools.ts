@@ -154,3 +154,32 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
     get displayBytes() { return displayBytes }, get indexBytes() { return indexBytes }, get ioReadBytes() { return ioReadBytes }, get toolCalls() { return toolCalls }, maxToolCalls, maxDisplayBytes }
 }
 export type InquiryTools = Awaited<ReturnType<typeof createInquiryTools>>
+
+/** Count only original numbered windows actually present in this provider request. */
+export function modelSourceDisplay(evidence: InquiryEvidence[], serialized: string, displayed: ReadonlySet<string>) {
+  let bytes = 0, resentBytes = 0
+  const evidenceIds: string[] = [], originals = new Map(evidence.map(e => [e.id, e])), counts = new Map<string, number>()
+  // Host-rendered source windows start with their stable ID. A catalog ID or an
+  // equal text in another path cannot establish that this original was shown.
+  for (const match of serialized.matchAll(/\{\s*"id"\s*:\s*"(ev-[a-f0-9]+)"/g)) {
+    const e = originals.get(match[1]!); if (!e) continue
+    let depth = 0, quoted = false, escaped = false, end = match.index!
+    for (; end < serialized.length; end++) {
+      const char = serialized[end]!
+      if (quoted) { if (escaped) escaped = false; else if (char === "\\") escaped = true; else if (char === '"') quoted = false; continue }
+      if (char === '"') quoted = true
+      else if (char === "{") depth++
+      else if (char === "}" && --depth === 0) break
+    }
+    try {
+      const shown = JSON.parse(serialized.slice(match.index, end + 1))
+      if (["repository", "sourceRef", "path", "sha256", "startLine", "endLine", "text"].every(key => shown[key] === e[key as keyof InquiryEvidence])) counts.set(e.id, (counts.get(e.id) ?? 0) + 1)
+    } catch { /* Natural prose and catalog fragments are not original windows. */ }
+  }
+  for (const e of evidence) {
+    const count = counts.get(e.id) ?? 0
+    bytes += count * e.bytes; resentBytes += (displayed.has(e.id) ? count : Math.max(0, count - 1)) * e.bytes
+    if (count) evidenceIds.push(e.id)
+  }
+  return { bytes, resentBytes, evidenceIds }
+}

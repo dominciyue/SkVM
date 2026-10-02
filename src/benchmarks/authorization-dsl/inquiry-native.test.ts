@@ -180,6 +180,7 @@ test("native guided inquiry uses the same partial local updates without digest t
   const invoke = async (name: string, args: any = {}) => JSON.parse((await runtime.execute({ id: name, name, arguments: args })).output)
   await invoke("authorization_compile", { inquiry })
   const read = await invoke("source_read", { path: "entry.ts", startLine: 1, endLine: 1 }), id = read.evidence[0].id
+  await runtime.beforeDispatch({ messages: [{ role: "user", content: "Can anyone call entry?" }] })
   const item = (targetKey: string, extra = {}) => ({ op: "add", questionId: "q1", targetKey, pathKey: "p", kind: "entry", after: [], evidenceIds: [id], claim: "Entry", ...extra })
   const first = await invoke("authorization_check_result", { result: result(id), controlDelta: { schemaVersion: "authorization-control-update/v1", rules: [item("entry"), item("stop", { kind: "reject", after: ["entry"], complete: true }), item("bad", { after: "malformed" })] } })
   expect(first.valid).toBe(false)
@@ -190,4 +191,21 @@ test("native guided inquiry uses the same partial local updates without digest t
   expect(runtime.report().toolBudget.checksUsed).toBe(2)
   expect(runtime.report().result).toBeDefined()
   expect(runtime.system).toContain("guided-evidence-v2 local interface")
+})
+
+test("native guided dispatch offers actual original windows and accepts the same narrow extraction", async () => {
+  const { root, inquiry, result } = await budgetFixture()
+  const runtime = await createNativeInquiryRuntime({ inputFile: path.join(root, "input.json"), workDir: root, domainTools: true, strategy: "guided-evidence-v2" })
+  await runtime.execute({ id: "compile", name: "authorization_compile", arguments: { inquiry } })
+  const params: any = { messages: [{ role: "user", content: "Can anyone call entry?" }] }
+  await runtime.beforeDispatch(params)
+  const context = JSON.parse(params.messages.at(-1).content.split("Current local explanation context: ")[1])
+  expect(context.sourceWindows[0].text).toContain("return false")
+  const controlDelta = { schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: context.tasks[0].itemId, rules: [{ op: "add", targetKey: "entry", pathKey: "p", kind: "entry", after: [], claim: "Entry returns false" }, { op: "add", targetKey: "stop", pathKey: "p", kind: "reject", after: ["entry"], claim: "Rejects", complete: true }] }] }
+  const checked = JSON.parse((await runtime.execute({ id: "check", name: "authorization_check_result", arguments: { result: result(context.sourceWindows[0].id), controlDelta } })).output)
+  expect(checked.valid).toBe(true)
+  await runtime.beforeDispatch(params)
+  expect(params.messages.filter((m: any) => m.content.startsWith("Current local explanation context: "))).toHaveLength(1)
+  expect(runtime.report().domain!.localExtractions).toHaveLength(1)
+  expect(runtime.report().sourceAccounting.cumulativeModelSourceBytes).toBe(context.sourceWindows[0].bytes * 2)
 })
