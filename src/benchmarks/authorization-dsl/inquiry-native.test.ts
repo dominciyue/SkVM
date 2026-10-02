@@ -173,3 +173,21 @@ test("invalid strategy/native tools combinations are rejected before any dispatc
   await expect(createNativeInquiryRuntime({ inputFile: path.join(root, "input.json"), workDir: root, domainTools: false, strategy: "domain-evidence-v1" } as any)).rejects.toThrow("strategy-requires-domain-tools")
   await expect(createNativeInquiryRuntime({ inputFile: path.join(root, "input.json"), workDir: root, domainTools: true, strategy: "wrong" } as any)).rejects.toThrow("strategy")
 })
+
+test("native guided inquiry uses the same partial local updates without digest transcription", async () => {
+  const { root, inquiry, result } = await budgetFixture()
+  const runtime = await createNativeInquiryRuntime({ inputFile: path.join(root, "input.json"), workDir: root, domainTools: true, strategy: "guided-evidence-v2", maxToolCalls: 8 } as any)
+  const invoke = async (name: string, args: any = {}) => JSON.parse((await runtime.execute({ id: name, name, arguments: args })).output)
+  await invoke("authorization_compile", { inquiry })
+  const read = await invoke("source_read", { path: "entry.ts", startLine: 1, endLine: 1 }), id = read.evidence[0].id
+  const item = (targetKey: string, extra = {}) => ({ op: "add", questionId: "q1", targetKey, pathKey: "p", kind: "entry", after: [], evidenceIds: [id], claim: "Entry", ...extra })
+  const first = await invoke("authorization_check_result", { result: result(id), controlDelta: { schemaVersion: "authorization-control-update/v1", rules: [item("entry"), item("stop", { kind: "reject", after: ["entry"], complete: true }), item("bad", { after: "malformed" })] } })
+  expect(first.valid).toBe(false)
+  expect((runtime.report() as any).domain.slice.rules).toHaveLength(2)
+  const repaired = await invoke("authorization_check_result", { result: result(id), controlDelta: { schemaVersion: "authorization-control-update/v1", rules: [item("bad")] } })
+  expect(repaired.valid).toBe(true)
+  expect((runtime.report() as any).domain.proposals[0].rejected[0]).toMatchObject({ questionId: "q1", targetKey: "bad" })
+  expect(runtime.report().toolBudget.checksUsed).toBe(2)
+  expect(runtime.report().result).toBeDefined()
+  expect(runtime.system).toContain("guided-evidence-v2 local interface")
+})

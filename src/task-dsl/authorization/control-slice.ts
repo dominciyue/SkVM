@@ -5,11 +5,11 @@ import type { AuthorizationInquiryProgram } from "./inquiry-program.ts"
 import type { InquiryEvidenceContext } from "./inquiry-result.ts"
 import { predicateDiagnostics, type Scalar } from "./control-evaluation.ts"
 
-export type InquiryStrategy = "legacy" | "domain-evidence-v1"
-export const InquiryStrategySchema = z.enum(["legacy", "domain-evidence-v1"])
+export type InquiryStrategy = "legacy" | "domain-evidence-v1" | "guided-evidence-v2"
+export const InquiryStrategySchema = z.enum(["legacy", "domain-evidence-v1", "guided-evidence-v2"])
 export function parseInquiryStrategy(input: unknown): InquiryStrategy {
   const parsed = InquiryStrategySchema.safeParse(input ?? "legacy")
-  if (!parsed.success) throw new Error("inquiry-strategy: strategy must be legacy or domain-evidence-v1")
+  if (!parsed.success) throw new Error("inquiry-strategy: strategy must be legacy, domain-evidence-v1 or guided-evidence-v2")
   return parsed.data
 }
 const key = InquiryText.refine(s => !["__proto__", "constructor", "prototype"].includes(s), "Reserved binding key")
@@ -27,8 +27,8 @@ export const ControlDependencySchema = z.object({
   reason: InquiryText, kind: z.enum(["principal-binding", "resource-binding", "control", "effect", "exception"]), decisive: z.boolean(),
   condition: expression.optional(), after: z.array(key).max(64).optional(), parent: key.optional(), pathHint: InquiryText.optional(), candidateId: InquiryText.optional(), ...revision,
 }).strict()
-const UserBindingSchema = z.object({ questionId: InquiryText, key, value: z.union([z.string(), z.number().finite(), z.boolean(), z.null()]), origin: z.literal("user"), text: InquiryText, ...revision }).strict()
-const PolicyRuleSchema = z.object({ questionId: InquiryText, key, pathKey: key, condition: expression.optional(), expected: z.enum(["allow", "deny"]), text: InquiryText, location: InquiryText, origin: z.literal("policy"), ...revision }).strict()
+export const UserBindingSchema = z.object({ questionId: InquiryText, key, value: z.union([z.string(), z.number().finite(), z.boolean(), z.null()]), origin: z.literal("user"), text: InquiryText, ...revision }).strict()
+export const PolicyRuleSchema = z.object({ questionId: InquiryText, key, pathKey: key, condition: expression.optional(), expected: z.enum(["allow", "deny"]), text: InquiryText, location: InquiryText, origin: z.literal("policy"), ...revision }).strict()
 /** Predicates have a separately enforced finite algebra, avoiding an unbounded recursive model schema. */
 export const ControlSliceDeltaSchema = z.object({
   schemaVersion: z.literal("authorization-control-slice/v1"), rules: z.array(ControlRuleSchema).max(1024).default([]),

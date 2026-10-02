@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有只读源码索引及 CLI。不另建通用 IR、完整静态分析平台、CLI 或 HTML 展示层。
 
-状态：`in-progress`。实际启动 `260477cc`；AR0 已完成，AR1 驱动工程通过，AR2 已接线并正在现场修后真实复验。规划基线 `9b085ee0d212a248c04ce5a8ffa12ad7171b8fed`；执行启动时记录实际 HEAD。目录 `D:\skill优化\SkVM`，分支 `skill-ir-aot`，唯一发布目标 `origin/skill-ir-aot`。开发线程指定 `gpt-6.1-sol / max`；被测路由默认沿用 `xty/gpt-5.6-sol`，二者分账，不擅自换模型来取得好结果。
+状态：`in-progress`。实际启动 `260477cc`；AR0 已完成，AR1 驱动工程通过。三次短接口探针已保留；AR2 现场修复继续真实复验，AR3 局部更新已接通共用核心并通过工程检查，AR4 可达绑定反例已修，工作队列/取证解释/复用继续开发。规划基线 `9b085ee0d212a248c04ce5a8ffa12ad7171b8fed`；执行启动时记录实际 HEAD。目录 `D:\skill优化\SkVM`，分支 `skill-ir-aot`，唯一发布目标 `origin/skill-ir-aot`。开发线程指定 `gpt-6.1-sol / max`；被测路由默认沿用 `xty/gpt-5.6-sol`，二者分账，不擅自换模型来取得好结果。
 
 本轮按约 12 小时主动工作安排，AR0–AR20 必做，AR21–AR23 是提前完成核心后的有序深化。12 小时是规划中心，不是成功条件或硬性中断点；不等待、重复测试、反复抽样凑时长。不能保证宿主连续在线精确 12 小时。若核心提前完成，继续有价值的深化；若仍有工程缺口，不因时间到了写“全部完成”。
 
@@ -126,17 +126,19 @@ type FailureRecord = {
 - [x] 新策略统一使用 `controlDelta`。读取旧 `{kind:"control",delta:...}` 时只做具名无损别名归一；两字段冲突必须报错，不能择一。新增模型 Schema 只展示一个名字。
 - [x] native 从同一 Zod 定义生成完整 nested schema；拒绝只给空 object 加长文字来代替接口。控制条件保持有界代数，不递归生成无限 Schema。
 - [x] 把真实 AQ 坏响应交给新解析器做离线回归，记录哪些恢复、哪些仍语义无效。
-- [ ] **本步骤接线后立即运行一个短的真实工具消费探针**，检查实际请求及返回，失败按第3节现场修。不要等后半程才首次见真实模型。
+- [x] **本步骤接线后立即运行一个短的真实工具消费探针**，检查实际请求及返回，失败按第3节现场修。三次真实探针均归档，现场修后复验仍待 checked 成功；不据此声称质量收益。
 
 ### AR3 — 宿主维护增量更新和可操作诊断
 
 文件：control-slice.ts、inquiry-domain-runtime.ts、inquiry-wire.ts；新增 `inquiry-control-updates.ts` 仅在现有模块职责无法清晰承载时创建。
 
-- [ ] 提交采用 add/replace 的局部操作；替换目标由当前 question+key 明确定位，宿主生成 revisionOf，记录 reason。不要再要求模型抄当前 digest。
-- [ ] 区分 `sourceBindings` 与 `premiseValues` 的模型可见名称，归一到既有 slice；用户前提仍回到原始用户原句，policy 不能生成 source fact。
-- [ ] 新局部接口逐项返回 accepted/rejected 及原因；拒绝项不消失，引用拒绝项的后续节点保持 unresolved。跨项原子变更必须整组校验，不能留下半条授权边。
+- [x] 提交采用 add/replace 的局部操作；替换目标由当前 question+key 明确定位，宿主生成 revisionOf，记录 reason。不要再要求模型抄当前 digest。
+- [x] 区分 `sourceBindings` 与 `premiseValues` 的模型可见名称，归一到既有 slice；用户前提仍回到原始用户原句，policy 不能生成 source fact。
+- [x] 新局部接口逐项返回 accepted/rejected 及原因；拒绝项不消失，引用拒绝项的后续节点保持 unresolved。跨项原子变更必须整组校验，不能留下半条授权边。只读核验定位的跨组替换、回滚旧缺口及 dependency parent 已补红绿回归。
 - [ ] 在 run 报告保留结构化错误的 phase/path/code/rawResponse 引用和计量，而非只有 error 字符串；从诊断生成最小修复请求，仅发送相关项。
-- [ ] 测试无损归一、不同问题隔离、过时替换、混合有效无效项、冲突后修复、旧有效结果失效，保留旧入口行为。
+- [x] 测试无损归一、不同问题隔离、过时替换、混合有效无效项、冲突后修复、旧有效结果失效，保留旧入口行为。
+
+AR3 run/report 已保留 phase/sequence/path/code/rawResponse/usage，Schema 重试不再丢工具约束；最小修复上下文与证据窗口在 AR7/AR8 一起完成，故上一项仍未勾完成。
 
 ### AR4 — 补可达绑定及分支级结论检查
 
@@ -158,9 +160,9 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 });
 ```
 
-- [ ] 补 reachable-but-not-predecessor、同 key 不同对象、跨 question、合法共同前驱四类测试；检查对应可达前驱中的绑定。
+- [x] 补 reachable-but-not-predecessor、同 key 不同对象、跨 question、合法共同前驱四类测试；检查对应可达前驱中的绑定。
 - [ ] 增加 self/other/null owner、not-given grant、早拒绝后的 effect、互斥分支误合并反例；未知输入继续产生条件结果。
-- [ ] 不能强迫每个真实 effect 都有合法 guard：无授权保护本身可能是待报告行为。验证所声称的关系，不凭空补保护。
+- [x] 不能强迫每个真实 effect 都有合法 guard：无授权保护本身可能是待报告行为。验证所声称的关系，不凭空补保护。
 - [ ] 对模型 `complete:true` 仅作为提取主张；未完成取证项/已发现未表示的分支必须进入 coverage 缺口。
 
 ### AR5 — 把六类 pending 变成宿主工作队列

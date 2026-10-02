@@ -191,3 +191,37 @@ test("domain execution reserves its final dispatch for delivery and describes bo
   expect(run.status).toBe("completed")
   expect(mock.count()).toBe(4)
 })
+
+test("guided ordinary inquiry retains good extraction during a local item repair", async () => {
+  const input = await setup(), mock = scripted((params, n) => {
+    const prompt = params.messages[0]!.content
+    if (!n) {
+      expect(prompt).toContain("guided-evidence-v2 local interface")
+      const schema: any = params.tools![0]!.inputSchema
+      expect(schema.anyOf.find((s: any) => s.properties.kind.const === "control").properties.controlDelta.properties.sourceBindings).toBeDefined()
+      return { kind: "tool", calls: [{ name: "source_read", arguments: { path: "src/helper.ts", startLine: 1, endLine: 1 } }] }
+    }
+    const id = /"id":"(ev-[a-f0-9]+)"/.exec(prompt)![1]!
+    const item = (targetKey: string, extra = {}) => ({ op: "add", questionId: "q1", targetKey, pathKey: "p", kind: "entry", after: [], evidenceIds: [id], claim: "Shown guard", ...extra })
+    return { ...final(id), controlDelta: { schemaVersion: "authorization-control-update/v1", rules: n === 1 ? [item("entry"), item("stop", { kind: "reject", after: ["entry"], complete: true }), item("local", { evidenceIds: ["not-shown"] })] : [item("local")] } }
+  })
+  const run = await runAuthorizationInquiry({ ...input, method: "M", strategy: "guided-evidence-v2", provider: mock.provider, maxDispatches: 4 } as any)
+  expect(run.status).toBe("completed")
+  expect(run.initialValidation?.valid).toBe(false)
+  expect(run.validation?.valid).toBe(true)
+  expect(run.domain!.slice.rules.map(r => r.key)).toEqual(["entry", "stop", "local"])
+  expect(run.domain!.proposals[0]!.accepted).toHaveLength(2)
+  expect(run.domain!.proposals[0]!.rejected).toHaveLength(1)
+  expect(mock.count()).toBe(3)
+})
+
+test("exhausted structured tool repair retains phase, concrete fields and both raw attempts", async () => {
+  const input = await setup(), mock = scripted(() => ({ kind: "tool", calls: [{ name: "source_list", arguments: {} }], observations: [] }))
+  const run = await runAuthorizationInquiry({ ...input, method: "M", strategy: "domain-evidence-v1", provider: mock.provider, maxDispatches: 4 })
+  expect(run.status).toBe("transport-failed")
+  expect(mock.count()).toBe(2)
+  expect(run.toolHistory).toEqual([])
+  expect(run.wireFailures.map(f => [f.phase, f.sequence])).toEqual([["analysis", 1], ["analysis", 2]])
+  expect(run.wireFailures[0]!.diagnostics[0]!.keys).toEqual(["observations"])
+  expect(JSON.parse(run.wireFailures[1]!.rawResponse!).observations).toEqual([])
+})

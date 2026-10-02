@@ -5,6 +5,11 @@ const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inqu
 const context = { questionIds: ["q", "other"], shownEvidenceIds: ["ev-read"], evidenceQuestions: { "ev-read": ["q"] } }
 const rule = (key = "entry", extra = {}) => ({ key, questionId: "q", pathKey: "p", kind: "entry", after: [], evidenceIds: ["ev-read"], claim: "Observed entry", ...extra })
 const delta = (rules: unknown[] = [rule()], extra = {}) => ({ schemaVersion: "authorization-control-slice/v1", rules, ...extra })
+test("guided execution is an explicit opt-in and legacy remains the default", () => {
+  expect(api.parseInquiryStrategy(undefined)).toBe("legacy")
+  expect(api.parseInquiryStrategy("guided-evidence-v2")).toBe("guided-evidence-v2")
+  expect(() => api.parseInquiryStrategy("guided-evidence-v99")).toThrow("inquiry-strategy")
+})
 test("control contract binds original source per question and separates policy and semantics", () => {
   expect(typeof api.mergeControlSlice).toBe("function")
   const good = api.mergeControlSlice(api.createControlSlice(), delta(), program, context)

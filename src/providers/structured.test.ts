@@ -128,3 +128,34 @@ it("exposes refined string identities, free predicate values and explicit null i
   expect(fallback).toEqual(visible)
   expect(schema.safeParse({ ...value, key: "constructor" }).success).toBe(false)
 })
+
+it("can use its single repair opportunity on the supported tool with actionable unknown-key diagnostics", async () => {
+  const requests: CompletionParams[] = []
+  const provider: LLMProvider = { name: "same-tool-repair", async complete(params) {
+    requests.push(params)
+    const repair = requests.length === 2
+    if (repair) {
+      expect(params.tools?.[0]?.name).toBe("answer")
+      expect(params.messages[0]!.content).toContain('"keys":["observations"]')
+      expect(params.messages[0]!.content).not.toContain("```json")
+    }
+    return { text: "", toolCalls: [{ id: String(requests.length), name: "answer", arguments: repair ? { name: "entry" } : { name: "entry", observations: [] } }], tokens: { input: 2, output: 1, cacheRead: 0, cacheWrite: 0 }, durationMs: 0, stopReason: "tool_use" }
+  }, async completeWithToolResults() { throw new Error("No execution") } }
+  const result = await extractStructured({ provider, schema: z.object({ name: z.literal("entry") }).strict(), schemaName: "answer", schemaDescription: "Capture", prompt: "One structured step", maxRetries: 1, schemaRepair: "same-tool" } as any)
+  expect(result.result).toEqual({ name: "entry" })
+  expect(result.failures?.[0]?.diagnostics[0]).toMatchObject({ code: "unrecognized_keys", keys: ["observations"] })
+  expect(result.tokens.input).toBe(4)
+  expect(result.costUsd).toBeUndefined()
+  expect(requests).toHaveLength(2)
+})
+
+it("advertises complete item schemas while a local-update envelope retains invalid items for host diagnostics", async () => {
+  const schema = z.object({ items: z.array(z.unknown()) }).strict(), modelSchema = z.object({ items: z.array(z.object({ name: z.string(), count: z.number() }).strict()).max(8) }).strict()
+  let captured: any
+  const value = { items: [{ name: "good", count: 1 }, { name: "bad", count: "wrong" }] }
+  const provider: LLMProvider = { name: "local-envelope", async complete(params) { captured = params.tools![0]!.inputSchema; return { text: "", toolCalls: [{ id: "c", name: "answer", arguments: value }], tokens: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 }, durationMs: 0, stopReason: "tool_use" } }, async completeWithToolResults() { throw new Error("No executor") } }
+  const result = await extractStructured({ provider, schema, modelSchema, schemaName: "answer", schemaDescription: "Host checks each item", prompt: "Task" } as any)
+  expect(captured.properties.items.items.properties.count.type).toBe("number")
+  expect(captured.properties.items.maxItems).toBe(8)
+  expect(result.result).toEqual(value)
+})

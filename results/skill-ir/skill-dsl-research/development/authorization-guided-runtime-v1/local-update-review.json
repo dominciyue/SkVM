@@ -1,0 +1,25 @@
+{
+  "at": "2026-10-02T03:23:35.887Z",
+  "reviewer": "/root/ar_local_update_review",
+  "scope": "read-only local update contract review",
+  "originalMessage": "发现 3 个风险：\n\n1. **同问题跨组替换会覆盖普通 rule。**  \n   `inquiry-control-updates.ts:40-43`：`sourceBindings` 映射到 `targetGroup = \"rules\"`，随后只按 `questionId + key` 查找 `old`，未校验 `old.kind === \"binding\"`。  \n   可复现：先添加 `q/entry` 普通 `kind:\"entry\"` rule，再提交 `sourceBindings` 中 `op:\"replace\", questionId:\"q\", targetKey:\"entry\"` 的 binding；会被接受并覆盖普通 rule。现有 `inquiry-control-updates.test.ts:48-57` 只测跨问题同名，未测同问题跨组。\n\n2. **被拒绝的 dependency 不会形成 unresolved gap。**  \n   `inquiry-control-updates.ts:62` 仅扫描 `state.rules.after`，且 rejected 组只包含 `\"rules\"`、`\"sourceBindings\"`；不处理 `dependencies`。因此 dependency proposal 被拒绝时，complete effect 仍可能保留，`runtime.ts:47` 也不会生成依赖缺口诊断。现有测试未覆盖 rejected dependency 被引用时的闭合判断。\n\n3. **atomic 回滚后返回的 `unresolved` 可能对应回滚前状态。**  \n   `inquiry-control-updates.ts:62-65` 先计算 `unresolved`，再在 atomic 失败时恢复 `state = structuredClone(previous)`，但不清空或重算 `unresolved`。返回结果可能同时是回滚后的旧 state 和回滚前新增 rule 的 unresolved；runtime 会继续把该 stale gap 暴露到 diagnostics。现有 atomic 测试仅断言 state、accepted、rejected 数量（`inquiry-control-updates.test.ts:30-34`），未断言 unresolved 与回滚后 state 一致。\n",
+  "mainAdjudications": [
+    {
+      "finding": 1,
+      "judgment": "confirmed by red test and fixed with group isolation"
+    },
+    {
+      "finding": 2,
+      "judgment": "qualified: runtime already blocks checked success when rejected items persist; dependency parent/from/after feedback was incomplete and is now explicit. New red test additionally exposed dependency reason being removed as replacement metadata, now fixed."
+    },
+    {
+      "finding": 3,
+      "judgment": "confirmed by red test; rollback recomputes current gaps and separately retains attemptUnresolved"
+    }
+  ],
+  "verification": {
+    "tests": "7 local update tests pass",
+    "semanticQualityReviewed": false
+  },
+  "originalMessageArtifact": "local-update-review.json#originalMessage"
+}

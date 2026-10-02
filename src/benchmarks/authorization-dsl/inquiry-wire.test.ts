@@ -38,3 +38,16 @@ test("native schemas use the same complete nested types, strict objects and boun
   expect(parsed.success).toBe(false)
   expect(parsed.error.issues[0].code).toBe("unrecognized_keys")
 })
+
+test("guided local schemas advertise full item contracts while the host can retain a malformed item for partial feedback", () => {
+  const defs = api.inquiryNativeDefinitions("guided-evidence-v2")
+  const delta = defs.find((t: any) => t.name === "authorization_observe").inputSchema.properties.controlDelta
+  expect(delta.properties.schemaVersion.const).toBe("authorization-control-update/v1")
+  expect(delta.properties.rules.items.properties.targetKey.type).toBe("string")
+  expect(delta.properties.rules.items.properties.revisionOf).toBeUndefined()
+  expect(delta.properties.sourceBindings.items.properties.bindingKind.enum).toContain("resource")
+  expect(delta.properties.premiseValues.items.anyOf.find((v: any) => v.properties.status.const === "unspecified").properties.value).toBeUndefined()
+  const value = { controlDelta: { schemaVersion: "authorization-control-update/v1", rules: [{ questionId: "q", targetKey: "bad" }] } }
+  expect(api.inquiryNativeSchemas("guided-evidence-v2").authorization_observe.safeParse(value).success).toBe(false)
+  expect(api.inquiryNativeSchemas("guided-evidence-v2", true).authorization_observe.safeParse(value).success).toBe(true)
+})

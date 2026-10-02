@@ -1274,6 +1274,8 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 **第二探针与可达绑定修复。** 同原输入/同六调用预算的`wire-2`用5次调用取得正确的两分支原文字，但初次缺图/多余policy、修后把“enabled is unspecified”映射为已知null，故checked仍失败。独立只读复核认可原文字；其“null是合理未知占位”解释被主线程依据`controlBindings`及`partialEvaluate`纠正：null会按已知值比较并排除true/false路径。原复核和主裁定分开记录。新增保守显式未知文字拒绝规则及指南，unknown不再可伪成null/false；其它语言映射仍unreviewed。AR4红测试确实得到恒假非前驱、可达非前驱和同identity多对象均漏检，修后改为当前question明确前驱的唯一绑定。合法共同前驱和跨题隔离保留，458 pass/1平台skip联合回归通过。同题再复验仍需真实结果，未据原文字成功宣称checked。AQ绑定混用已定位到Cloudflare changed实际observe第22行，来源节点误放bindings被既有schema拒绝，先前type-error引用已更正。
 
+**第三探针与局部更新接口。** `wire-3`在`480b38ad`用3次调用后transport-failed：tool根部额外observations被正确拒绝，但诊断未列未知字段；随后prompt+parse重发大Schema，返回两个拼接对象。原件保留，总调用14、目标执行0、费用未知。共享提取器新增具名字段诊断和一次同工具修复，保留完整工具合同、失败phase/sequence/rawResponse及计量。guided局部add/replace接口已接通普通inquiry/native共用运行时，sourceBindings与premiseValues分离，宿主填写revision digest，逐项拒绝保留好项并暴露未解决引用，原子回滚保留候选缺口但返回当前状态缺口。只读核验的跨组替换、dependency parent、回滚缺口问题经主线程红绿验证修正；dependency reason与替换元数据重名造成被丢也由新用例发现并修正。存在拒绝项时不能同时报一致/完整。468 pass/1平台skip、3203断言、主/研究类型通过；真实同题复验待执行，完整工作队列、实用与收益尚未验收。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

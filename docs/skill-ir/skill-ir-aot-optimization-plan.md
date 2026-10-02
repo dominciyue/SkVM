@@ -2,7 +2,7 @@
 
 - 更新日期：2026-10-02
 - 路线：按skill/task范围设计领域表达，当前为源码可见授权与信任边界任务。
-- 状态：AR0–AR23已授权待启动，约12小时连续开发；现场修复、宿主取证队列、局部解释、普通交付与变化复用。AQ已关闭，未达验收和negative/not-established结论保留。
+- 状态：AR0–AR23执行中，局部更新与可达绑定已通过工程回归，真实修后复验及完整引导核心继续开发，约12小时连续开发；现场修复、宿主取证队列、局部解释、普通交付与变化复用。AQ已关闭，未达验收和negative/not-established结论保留。
 - 唯一入口：[current-status.md](current-status.md)
 - 合同：[spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)
 - 当前任务书：[AR0–AR23](../superpowers/plans/2026-10-02-authorization-guided-runtime-and-online-repair.md)
