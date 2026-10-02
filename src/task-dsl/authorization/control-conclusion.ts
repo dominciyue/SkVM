@@ -1,11 +1,14 @@
 import type { AuthorizationInquiryProgram } from "./inquiry-program.ts"
-import { AuthorizationInquiryResultSchema } from "./inquiry-result.ts"
-import type { InquiryDiagnostic } from "./inquiry.ts"
+import { AuthorizationInquiryResultSchema, InquiryQuestionResultSchema } from "./inquiry-result.ts"
+import { questionIdForDiagnostic, type InquiryDiagnostic } from "./inquiry.ts"
 import { controlBindings, canonicalControl, type ControlSlice, type BoundControlRule } from "./control-slice.ts"
 import { partialEvaluate, type PartialPredicate } from "./control-evaluation.ts"
 
 export interface DependencyCheckState { key: string; questionId: string; pathKey: string; state: string; decisive: boolean; symbol: string }
-const diag = (code: string, path: string, message: string): InquiryDiagnostic => ({ code, path, message, severity: "error" })
+const diag = (code: string, path: string, message: string, questionId?: string): InquiryDiagnostic => ({ code, path, message, severity: "error", ...(questionId ? { questionId } : {}) })
+export function diagnosticQuestionId(program: AuthorizationInquiryProgram, d: InquiryDiagnostic) {
+  return questionIdForDiagnostic(program.questions.map(q => q.id), d)
+}
 /** Explicit predecessor closure, independent of array ordering. No lexical call is accepted as control proof. */
 export function controlRuleReach(slice: ControlSlice, rule: BoundControlRule, evaluateConditions = true) {
   const ancestors: BoundControlRule[] = [], gaps: string[] = [], active = new Set<string>(), done = new Set<string>()
@@ -56,8 +59,10 @@ export function evaluateControlPaths(slice: ControlSlice): { paths: ControlPathE
 export function checkControlConclusions(program: AuthorizationInquiryProgram, slice: ControlSlice, input: unknown, dependencies: DependencyCheckState[]) {
   const parsed = AuthorizationInquiryResultSchema.safeParse(input), evaluated = evaluateControlPaths(slice), diagnostics = [...evaluated.diagnostics]
   const policyComparisons: Array<{ questionId: string; status: "satisfied" | "violated" | "undetermined"; origin: "host-derived-from-proposed-policy"; semanticSupport: "unreviewed" }> = []
-  if (!parsed.success) return { ...evaluated, structureValid: false, sourceBound: false, ruleConsistency: false, semanticSupport: "unreviewed" as const, taskResolution: "partial" as const, diagnostics: [diag("control-result-schema", "$", "Result has no valid structured behavior to compare.")], policyComparisons }
-  for (const conflict of slice.conflicts.filter(c => !c.resolved)) diagnostics.push(diag("control-conflict", conflict.id, "Unresolved conflicting extraction remains; explicit correction is needed."))
+  const rawQuestions = input && typeof input === "object" && Array.isArray((input as any).questions) ? (input as any).questions as unknown[] : []
+  const answers = parsed.success ? parsed.data.questions : rawQuestions.flatMap(q => { const p = InquiryQuestionResultSchema.safeParse(q); return p.success ? [p.data] : [] })
+  if (!parsed.success) diagnostics.push(diag("control-result-schema", "$", "Result has no valid complete structured envelope; usable question candidates are checked separately."))
+  for (const conflict of slice.conflicts.filter(c => !c.resolved)) diagnostics.push(diag("control-conflict", conflict.id, "Unresolved conflicting extraction remains; explicit correction is needed.", (conflict.previous as { questionId?: string })?.questionId))
   for (const rule of slice.rules) {
     const reach = controlRuleReach(slice, rule)
     if (reach.predicate.truth === "false" || reach.stoppedBy.length) continue
@@ -65,20 +70,20 @@ export function checkControlConclusions(program: AuthorizationInquiryProgram, sl
       if (!rule[field] || (rule.kind === "binding" && rule.bindingKind === field && rule.bindingKey === rule[field])) continue
       const declared = slice.rules.filter(r => r.questionId === rule.questionId && r.kind === "binding" && r.bindingKey === rule[field] && r.bindingKind === field)
       const preceding = declared.filter(r => r.key !== rule.key && reach.ancestors.some(a => a.id === r.id))
-      if (!declared.length) diagnostics.push(diag("object-binding-missing", rule.key, `Typed ${field} ${rule[field]} is not bound in this question.`))
-      else if (!preceding.length) diagnostics.push(diag("object-binding-unreachable", rule.key, `Typed ${field} ${rule[field]} has no binding among this rule's reachable explicit predecessors.`))
-      else if (preceding.length > 1) diagnostics.push(diag("object-binding-conflict", rule.key, `Typed ${field} ${rule[field]} resolves to multiple distinct predecessor bindings (${preceding.map(r => r.key).join(", ")}); use separate identity keys or explicitly revise the mistaken binding.`))
+      if (!declared.length) diagnostics.push(diag("object-binding-missing", rule.key, `Typed ${field} ${rule[field]} is not bound in this question.`, rule.questionId))
+      else if (!preceding.length) diagnostics.push(diag("object-binding-unreachable", rule.key, `Typed ${field} ${rule[field]} has no binding among this rule's reachable explicit predecessors.`, rule.questionId))
+      else if (preceding.length > 1) diagnostics.push(diag("object-binding-conflict", rule.key, `Typed ${field} ${rule[field]} resolves to multiple distinct predecessor bindings (${preceding.map(r => r.key).join(", ")}); use separate identity keys or explicitly revise the mistaken binding.`, rule.questionId))
     }
     for (const key of rule.authorizedBy ?? []) {
       const guard = slice.rules.find(r => r.questionId === rule.questionId && r.key === key && r.kind === "guard")
-      if (!guard) diagnostics.push(diag("authorization-edge-missing", rule.key, `Claimed authorizing guard ${key} is absent.`))
+      if (!guard) diagnostics.push(diag("authorization-edge-missing", rule.key, `Claimed authorizing guard ${key} is absent.`, rule.questionId))
       else {
-        if (!guard.resource || !rule.resource || !guard.principal || !rule.principal || guard.resource !== rule.resource || guard.principal !== rule.principal) diagnostics.push(diag("control-object-mismatch", rule.key, "Claimed authorizing control and protected effect lack the same explicit principal/resource identity. Equal labels or identifiers do not establish it."))
-        if (!reach.ancestors.some(r => r.key === key && r.key !== rule.key)) diagnostics.push(diag("control-order-missing", rule.key, "Claimed guard is not an explicit predecessor of this effect."))
+        if (!guard.resource || !rule.resource || !guard.principal || !rule.principal || guard.resource !== rule.resource || guard.principal !== rule.principal) diagnostics.push(diag("control-object-mismatch", rule.key, "Claimed authorizing control and protected effect lack the same explicit principal/resource identity. Equal labels or identifiers do not establish it.", rule.questionId))
+        if (!reach.ancestors.some(r => r.key === key && r.key !== rule.key)) diagnostics.push(diag("control-order-missing", rule.key, "Claimed guard is not an explicit predecessor of this effect.", rule.questionId))
       }
     }
   }
-  for (const answer of parsed.data.questions) {
+  for (const answer of answers) {
     const paths = evaluated.paths.filter(p => p.questionId === answer.questionId), live = paths.filter(p => p.state !== "inapplicable")
     const relevant = dependencies.filter(d => d.questionId === answer.questionId && d.state !== "inapplicable")
     const open = relevant.filter(d => d.decisive && d.state !== "checked")
@@ -108,6 +113,16 @@ export function checkControlConclusions(program: AuthorizationInquiryProgram, sl
       if (answer.policyAssessment && answer.policyAssessment.status !== status) diagnostics.push(diag("policy-behavior-conflict", answer.questionId, `Current independent policy mappings yield ${status}; raw assessment claims ${answer.policyAssessment.status}. Incomplete mappings must remain undetermined.`))
     }
   }
-  const unique = diagnostics.filter((d, i) => diagnostics.findIndex(v => v.code === d.code && v.path === d.path && v.message === d.message) === i)
-  return { structureValid: true, sourceBound: slice.rules.length > 0 && slice.rules.every(r => r.sourceBound), ruleConsistency: !unique.length, semanticSupport: "unreviewed" as const, taskResolution: unique.length || !evaluated.paths.length || evaluated.paths.some(p => p.state === "blocked") || dependencies.some(d => d.decisive && !["checked", "inapplicable"].includes(d.state)) ? "partial" as const : "bounded" as const, paths: evaluated.paths, diagnostics: unique, policyComparisons, calculationCount: evaluated.calculationCount }
+  const unique = diagnostics.filter((d, i) => diagnostics.findIndex(v => v.code === d.code && v.path === d.path && v.message === d.message && v.questionId === d.questionId) === i)
+  return { structureValid: parsed.success, sourceBound: slice.rules.length > 0 && slice.rules.every(r => r.sourceBound), ruleConsistency: !unique.length, semanticSupport: "unreviewed" as const, taskResolution: unique.length || !evaluated.paths.length || evaluated.paths.some(p => p.state === "blocked") || dependencies.some(d => d.decisive && !["checked", "inapplicable"].includes(d.state)) ? "partial" as const : "bounded" as const, paths: evaluated.paths, diagnostics: unique, policyComparisons, calculationCount: evaluated.calculationCount, questionChecks: summarizeControlQuestions(program, slice, dependencies, evaluated.paths, unique) }
+}
+/** Reuse the actual checker results; this is a scoped report, never a second semantic check. */
+export function summarizeControlQuestions(program: AuthorizationInquiryProgram, slice: ControlSlice, dependencies: DependencyCheckState[], paths: ControlPathEvaluation[], diagnostics: InquiryDiagnostic[]) {
+  return program.questions.map(q => {
+    const rules = slice.rules.filter(r => r.questionId === q.id), localPaths = paths.filter(p => p.questionId === q.id)
+    const open = dependencies.filter(d => d.questionId === q.id && d.decisive && !["checked", "inapplicable"].includes(d.state))
+    const localDiagnostics = diagnostics.filter(d => d.code !== "control-result-schema" && (!diagnosticQuestionId(program, d) || diagnosticQuestionId(program, d) === q.id))
+    return { questionId: q.id, ruleConsistent: !localDiagnostics.some(d => d.severity === "error"), evidenceCoverage: rules.length && rules.every(r => r.sourceBound) && localPaths.length && localPaths.every(p => p.state !== "blocked") && !open.length ? "bounded" as const : "unresolved" as const, semanticReview: "unreviewed" as const, diagnostics: localDiagnostics,
+      trace: { rules: rules.map(({ key, kind, after, pathKey, principal, resource, authorizedBy, evidenceIds }) => ({ key, kind, after, pathKey, principal, resource, authorizedBy, evidenceIds })), paths: localPaths, uncovered: [...new Set([...localPaths.flatMap(p => p.gaps), ...open.map(d => `${d.key}:${d.state}`)])] } }
+  })
 }

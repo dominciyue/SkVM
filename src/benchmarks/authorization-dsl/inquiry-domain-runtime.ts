@@ -1,6 +1,6 @@
 import type { AuthorizationInquiryProgram } from "../../task-dsl/authorization/inquiry-program.ts"
 import { ControlSliceDeltaSchema, createControlSlice, mergeControlSlice, type ControlSlice, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
-import { evaluateControlPaths, checkControlConclusions } from "../../task-dsl/authorization/control-conclusion.ts"
+import { evaluateControlPaths, checkControlConclusions, summarizeControlQuestions } from "../../task-dsl/authorization/control-conclusion.ts"
 import type { InquiryDiagnostic } from "../../task-dsl/authorization/inquiry.ts"
 import type { InquiryTools } from "./inquiry-tools.ts"
 import { createInquiryDomainScheduler } from "./inquiry-domain-scheduler.ts"
@@ -91,9 +91,10 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   }
   const validate = async (result: unknown) => {
     await sync(false)
-    if (options.ablation === "checks-off") check = { structureValid: true, sourceBound: slice.rules.length > 0 && slice.rules.every(r => r.sourceBound), semanticSupport: "unreviewed", ruleConsistency: true, taskResolution: "partial", paths: [], diagnostics: [...issues.values()].flat(), policyComparisons: [], calculationCount: 0 }
+    if (options.ablation === "checks-off") check = { structureValid: true, sourceBound: slice.rules.length > 0 && slice.rules.every(r => r.sourceBound), semanticSupport: "unreviewed", ruleConsistency: true, taskResolution: "partial", paths: [], diagnostics: [...issues.values()].flat(), policyComparisons: [], calculationCount: 0, questionChecks: [] }
     else { check = calculate(() => checkControlConclusions(options.program, slice, result, scheduler.snapshot())); computation.conclusionChecks++; computation.predicateEvaluations += check.calculationCount; check = { ...check, diagnostics: [...issues.values()].flat().concat(check.diagnostics) } }
     if ([...issues.values()].flat().some(d => d.severity === "error")) check = { ...check, ruleConsistency: false, taskResolution: "partial" }
+    if (options.ablation !== "checks-off") check.questionChecks = summarizeControlQuestions(options.program, slice, scheduler.snapshot(), check.paths, check.diagnostics)
     worklist?.sync(slice, check)
     checkHistory.push({ revision: slice.revision, slice: structuredClone(slice), result: structuredClone(result), check: structuredClone(check) })
     return check
@@ -112,7 +113,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     return context
   }
   const modelFeedback = () => {
-    const state = feedback(), diagnostics = state.diagnostics.filter((d, i, all) => all.findIndex(v => v.code === d.code && v.path === d.path && v.message === d.message) === i)
+    const state = feedback(), diagnostics = state.diagnostics.filter((d, i, all) => all.findIndex(v => v.code === d.code && v.path === d.path && v.message === d.message && v.questionId === d.questionId) === i)
     return { ...state, diagnostics: diagnostics.slice(0, 16), diagnosticCount: diagnostics.length }
   }
   return { propose, sync, validate, feedback, modelContext, modelFeedback, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { closed = true },

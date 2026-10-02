@@ -30,6 +30,8 @@ AQ 同轮旧策略有可评价答案 19/20、新策略 7/20，两组合计 full 
 
 ## 2. 执行上下文与文件所有权
 
+2026-10-03 用户要求整理后交给新进程，由 `gpt-6-astra / xhigh` 继续。原启动身份和历史调用保持，接手者不从AR0重跑；先读 [AR恢复记录](../../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/handoff.json) 与机器状态。AR9分层结果工程已通过新鲜回归，独立复核因中断未完成；Paperless attempt-3为完成未知，不重发。新进程启动后由其独占本任务书及相关代码写入，原进程停止开发。约12小时安排不重置为另一轮计时，不等待凑时长。
+
 主执行者亲自阅读：
 
 1. `D:\skill优化\AGENTS.md`、仓内 `AGENTS.md`、`docs/skill-ir/current-status.md`、本任务书。
@@ -209,10 +211,10 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 
 文件：control-conclusion.ts、inquiry-result.ts、inquiry-domain-runtime.ts、各自测试。
 
-- [ ] 对每个问题产生可追溯的 entry→binding→control→effect/拒绝关系及未覆盖列表；不要求所有任务机械具有全部节点。
-- [ ] 分列 transportValid、referenceValid、ruleConsistent、evidenceCoverage、semanticReview、deliveryStatus；程序未知语义保持 unknown/unreviewed。
-- [ ] 合理条件回答可以完整；允许范围内仍未读的决定性源码归为 unresolved，不包装为部署未知。政策评价与实现行为分别检查。
-- [ ] 保留好的局部答案并明确其 checked/unverified 状态。检查失败不得伪造 checked success，也不得因一个无关项丢掉全部可用输出。
+- [x] 对每个问题产生可追溯的 entry→binding→control→effect/拒绝关系及未覆盖列表；不要求所有任务机械具有全部节点。
+- [x] 分列 transportValid、referenceValid、ruleConsistent、evidenceCoverage、semanticReview、deliveryStatus；程序未知语义保持 unknown/unreviewed。
+- [x] 合理条件回答可以完整；允许范围内仍未读的决定性源码归为 unresolved，不包装为部署未知。政策评价与实现行为分别检查。
+- [x] 保留好的局部答案并明确其 checked/unverified 状态。检查失败不得伪造 checked success，也不得因一个无关项丢掉全部可用输出。
 - [ ] 通过变形/错误注入检测 wrong-object、dead binding、null遗漏、grant absent/not-given 混淆和政策反推源码；拒绝错误答案的证据单独报告。
 
 ### AR10 — 普通 inquiry 与原 skill 统一使用新核心

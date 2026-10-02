@@ -4,7 +4,7 @@
 
 ## 当前方向与任务
 
-AR当前启动头为`260477cc`，[机器状态](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/status.json)与journal已建立。四次同输入/同预算接口探针保留，共19调用；第四次5调用checked交付正确条件分支，首答多余policy与修订分列，未知未填null。随后定位状态反例已红绿修复；不改原答、零provider重放实际源/操作将partial纠正为bounded。AR5–AR8已接通从空图启动的六义务工作清单、原窗口局部解释和宿主绑定，63项聚焦回归/347断言、主类型通过；只读复核的相同文本伪显示及旧范围再请求问题均红绿修正。修订运行不得绕过其他缺陷或重发完成未知请求。工程验证不替代真实源码解释，下一步原Memos/Paperless探针、普通skill实用和变化复用仍待验收。该四行机制探针不计主质量面板。
+AR已按2026-10-03用户要求整理交接给`gpt-6-astra / xhigh`新进程，[恢复记录](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/handoff.json)和[机器状态](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/status.json)保存确切范围。启动头`260477cc`保持；AR5–AR8队列/局部解释及AR9逐题分层检查已接通，新鲜506 pass/1平台skip、3346断言/76文件、主/研究类型及零provider replay通过。四wire探针19派发；Paperless三attempt分别0派发启动失败、2派发网络失败、11派发后完成未知，总32，费用/人力未知。第三attempt真实自动读入口/helper并接受局部提取，但有无关候选读取与四次格式修订，无final；不得重发该未知请求或宣称完整验收。AR9独立复核因中断待补，真实Memos、普通skill、变化复用、作者包和主质量对照继续由新进程开发。原进程在新进程启动后停止写入。
 
 **AR长开发队列执行中（2026-10-02）：** [AR0–AR23任务书](../superpowers/plans/2026-10-02-authorization-guided-runtime-and-online-repair.md)承接AQ复核，以`9b085ee0`为规划基线，由`gpt-6.1-sol / max`在本分支连续开发。约12小时主动工作，AR0–AR20必做，核心提前完成后按序深化AR21–AR23。先统一模型合同、补可达绑定漏检，再实现宿主工作队列、局部源码解释、原skill实际交付和政策/前提变化重算。每个真实不良结果当场定位、针对性修复并验证；共享缺陷暂停受影响派发，不再把已知坏实现跑满。首答、修订、未运行和成本分列；允许在本轮继续修新发现的问题，不沿用AQ的一次全局修订限制。新策略`guided-evidence-v2`已接通局部更新opt-in，完整引导运行继续实现，尚无AR效果证据；生产执行状态仅在AR0启动后建立。方法取舍与复核归纳统一见[研究§7.36](skill-dsl-research.md#736-ar-宿主引导运行与现场修复)。AQ历史、旧默认、保护输入和readiness保持。
 

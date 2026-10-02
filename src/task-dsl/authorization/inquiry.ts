@@ -21,4 +21,7 @@ export const AuthorizationInquirySchema = z.object({
 })
 export type AuthorizationInquiry = z.infer<typeof AuthorizationInquirySchema>
 export type InquiryQuestion = z.infer<typeof InquiryQuestionSchema>
-export interface InquiryDiagnostic { code: string; path: string; message: string; severity: "error" | "warning" }
+export interface InquiryDiagnostic { code: string; path: string; message: string; severity: "error" | "warning"; questionId?: string }
+export function questionIdForDiagnostic(questionIds: string[], d: InquiryDiagnostic) {
+  return d.questionId ?? questionIds.find(id => d.path === id || d.path.startsWith(`${id}.`) || ["rules", "bindings", "dependencies", "policyRules", "sourceBindings", "premiseValues", "workSelections"].some(g => d.path.startsWith(`${g}.${id}.`)))
+}

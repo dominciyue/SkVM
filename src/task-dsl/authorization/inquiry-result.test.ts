@@ -24,3 +24,21 @@ test("duplicate/conflicting branch conditions diagnose without declaring semanti
   expect(checked.diagnostics.some(item => item.code === "duplicate-branch-condition")).toBe(true)
   expect(checked.semanticSupport).toBe("unreviewed")
 })
+test("a malformed or unshown neighboring answer does not erase a valid local answer", () => {
+  const multi = { ...plan(), questions: [...plan().questions, { ...plan().questions[0]!, id: "q2" }] }
+  const good = { questionId: "q1", behavior: { disposition: "allow", explanation: "Source-visible effect" }, branches: [], evidenceIds: ["e1"], missing: [] }
+  for (const bad of [{ ...good, questionId: "q2", evidenceIds: ["unshown"] }, { questionId: "q2", behavior: "invalid", branches: [], evidenceIds: [], missing: [] }]) {
+    const checked = validateAuthorizationInquiryResult(multi, { schemaVersion: "authorization-inquiry-result/v1", questions: [good, bad], observations: [], scope: "source" }, { questionIds: ["q1", "q2"], shownEvidenceIds: ["e1"] }) as any
+    expect(checked.valid).toBe(false)
+    expect(checked.questionChecks.find((q: any) => q.questionId === "q1")).toMatchObject({ transportValid: true, referenceValid: true, ruleConsistent: null, evidenceCoverage: "unreviewed", semanticReview: "unreviewed", deliveryStatus: "unverified" })
+    expect(checked.questionChecks.find((q: any) => q.questionId === "q2").deliveryStatus).toBe("rejected")
+    expect(checked.usableQuestions).toEqual([good])
+  }
+})
+test("formal consistency and unresolved evidence are separate layers for a valid local unknown", () => {
+  const value = { questionId: "q1", behavior: { disposition: "unknown", explanation: "Decisive helper unavailable" }, branches: [], evidenceIds: [], missing: [{ kind: "source-gap", detail: "helper unread" }] }
+  const domain = { diagnostics: [], questionChecks: [{ questionId: "q1", ruleConsistent: true, evidenceCoverage: "unresolved" as const, diagnostics: [], trace: { rules: [], paths: [], uncovered: ["helper"] } }] }
+  const checked = validateAuthorizationInquiryResult(plan(), { schemaVersion: "authorization-inquiry-result/v1", questions: [value], observations: [], scope: "source" }, { questionIds: ["q1"], shownEvidenceIds: [] }, domain) as any
+  expect(checked.valid).toBe(true)
+  expect(checked.questionChecks[0]).toMatchObject({ ruleConsistent: true, evidenceCoverage: "unresolved", semanticReview: "unreviewed", deliveryStatus: "checked" })
+})

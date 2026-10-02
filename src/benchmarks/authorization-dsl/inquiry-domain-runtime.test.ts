@@ -112,3 +112,15 @@ test("model repair feedback deduplicates and bounds diagnostics without dropping
   expect(runtime.modelFeedback().diagnostics).toHaveLength(16)
   expect(runtime.report().proposals[0].rejected).toHaveLength(20)
 })
+test("runtime rejection joins only its own question's layered check", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-question-check-")); await writeFile(path.join(sourceRoot, "entry.ts"), "export const entry = true\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["."] })
+  const evidenceIds = [(await tools.execute("source_read", { path: "entry.ts", startLine: 1, endLine: 1 })).evidence[0]!.id]
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: ["q", "other"].map(id => ({ id, request: "Inspect entry", premises: [] })) })
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "guided-evidence-v2" })
+  await runtime.propose({ schemaVersion: "authorization-control-update/v1", rules: [{ op: "add", questionId: "q", targetKey: "entry", pathKey: "p", kind: "entry", after: [], evidenceIds, claim: "Entry" }, { op: "add", questionId: "q", targetKey: "effect", pathKey: "p", kind: "effect", after: ["entry"], evidenceIds, claim: "Source effect", complete: true }, { op: "add", questionId: "other", targetKey: "bad", pathKey: "p", kind: "entry", after: [], evidenceIds: ["unshown"], claim: "Bad source" }] })
+  const checked: any = await runtime.validate({ schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q", behavior: { disposition: "allow", explanation: "Grounded local effect" }, evidenceIds, branches: [], missing: [] }, { questionId: "other", behavior: { disposition: "unknown", explanation: "Helper missing" }, evidenceIds: [], branches: [], missing: [{ kind: "source-gap", detail: "Helper missing" }] }], observations: [], scope: "local" })
+  expect(checked.ruleConsistency).toBe(false)
+  expect(checked.questionChecks.map((q: any) => q.ruleConsistent)).toEqual([true, false])
+  expect(checked.questionChecks[1].diagnostics.map((d: any) => d.code)).toContain("evidence-not-shown")
+})

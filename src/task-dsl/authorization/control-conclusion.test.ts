@@ -103,3 +103,23 @@ test("a missing user premise cannot conceal a distinct decisive source dependenc
   expect(codes(partial)).not.toContain("decisive-dependency-open")
   expect(partial.taskResolution).toBe("partial")
 })
+test("question-level control trace isolates a wrong object and retains the other checked path", () => {
+  const multi = { ...plan, questions: [...plan.questions, { ...plan.questions[0]!, id: "other" }] }
+  const rules = [rule("entry", "entry", []), rule("write", "effect", ["entry"], { complete: true }), rule("entry", "entry", [], { questionId: "other" }), rule("write", "effect", ["entry"], { questionId: "other", resource: "unbound", complete: true })]
+  const slice = mergeControlSlice(createControlSlice(), { schemaVersion: "authorization-control-slice/v1", rules }, multi, { ...context, questionIds: ["q", "other"] }).state
+  const raw = answer("allow"), checked = api.checkControlConclusions(multi, slice, { ...raw, questions: [raw.questions[0], { ...raw.questions[0], questionId: "other" }] }, [])
+  expect(checked.ruleConsistency).toBe(false)
+  expect(checked.questionChecks.find((q: any) => q.questionId === "q")).toMatchObject({ ruleConsistent: true, evidenceCoverage: "bounded", semanticReview: "unreviewed" })
+  const bad = checked.questionChecks.find((q: any) => q.questionId === "other")
+  expect(bad.ruleConsistent).toBe(false)
+  expect(bad.diagnostics.map((d: any) => d.code)).toContain("object-binding-missing")
+  expect(bad.trace.rules.find((r: any) => r.key === "write")).toMatchObject({ kind: "effect", after: ["entry"], resource: "unbound", evidenceIds: ["ev"] })
+})
+test("identical same-key binding errors in different questions are never deduplicated together", () => {
+  const multi = { ...plan, questions: [...plan.questions, { ...plan.questions[0]!, id: "other" }] }
+  const rules = ["q", "other"].flatMap(questionId => [rule("entry", "entry", [], { questionId }), rule("write", "effect", ["entry"], { questionId, resource: "unbound", complete: true })])
+  const slice = mergeControlSlice(createControlSlice(), { schemaVersion: "authorization-control-slice/v1", rules }, multi, { ...context, questionIds: ["q", "other"] }).state
+  const raw = answer("allow"), checked = api.checkControlConclusions(multi, slice, { ...raw, questions: [raw.questions[0], { ...raw.questions[0], questionId: "other" }] }, [])
+  expect(checked.questionChecks.map((q: any) => q.ruleConsistent)).toEqual([false, false])
+  expect(checked.diagnostics.filter((d: any) => d.code === "object-binding-missing")).toHaveLength(2)
+})
