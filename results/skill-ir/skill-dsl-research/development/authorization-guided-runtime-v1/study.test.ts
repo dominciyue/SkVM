@@ -1,8 +1,9 @@
 import { expect, test } from "bun:test"
-import { mkdtemp, readFile } from "node:fs/promises"
+import { mkdtemp, readFile, mkdir, writeFile } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 const api = await import("./study.ts").catch(() => ({} as any))
+const { executeLocalInquiryRun } = await import("../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts")
 const row = (id: string) => ({ id, task: "memos-remove", method: "D1", strategy: "guided-evidence-v2", components: ["wire", "checker"] })
 const options = (extra = {}) => ({ revision: "test-revision", model: "mock", budgets: { maxDispatches: 12 }, concurrency: 2, ...extra })
 const temp = () => mkdtemp(path.join(os.tmpdir(), "authorization-ar-driver-"))
@@ -62,4 +63,19 @@ test("a response of unknown completion is retained without another paid repair d
   const root = await temp(), run = options({ execute: async () => ({ status: "completion-unknown", providerDispatches: 1 }), evaluate: async () => ({}) })
   await api.developRows(root, [row("unknown")], run)
   await expect(api.developRows(root, [row("unknown")], { ...run, repairId: "repair-test", repairOf: "unknown/attempt-1" })).rejects.toThrow(/unknown completion/)
+})
+test("pre-dispatch provider failure is retained with zero calls without reading a nonexistent run", async () => {
+  const report = { status: "provider-unavailable", providerDispatches: 0, sessionPath: "nonexistent-pre-dispatch-session" }
+  expect(await api.retainLocalRun(report)).toEqual(report)
+})
+test("a misclassified outer failure can recover only from an inspected zero-dispatch session", async () => {
+  const root = await temp(), source = path.join(root, "source")
+  await mkdir(source); await writeFile(path.join(source, "entry.ts"), "export function inspect() { return true }\n")
+  const inputFile = path.join(root, "input.json")
+  await writeFile(inputFile, JSON.stringify({ schemaVersion: "authorization-inquiry-input/v1", taskId: "test", repository: "test", sourceRef: "test", sourceRoot: "source", allowedPaths: ["entry.ts"], brief: "Inspect the entry behavior." }))
+  await api.developRows(root, [row("pre-dispatch")], options({ execute: async (_r: any, outDir: string) => { await executeLocalInquiryRun({ inputFile, outDir, model: "mock", providerFactory: () => { throw new Error("route unavailable before dispatch") } }); return { status: "completion-unknown", providerDispatches: null } }, evaluate: async () => ({}) }))
+  const repaired = await api.developRows(root, [row("pre-dispatch")], options({ repairId: "archive-fix", repairOf: "pre-dispatch/attempt-1", execute: async () => ({ status: "completed", providerDispatches: 2 }), evaluate: async () => ({}) }))
+  expect(repaired.rows[0].status).toBe("completed")
+  expect((await api.replay(root)).rows[0]).toMatchObject({ providerCalls: 2, classificationCorrections: [{ artifact: "runs/pre-dispatch/attempt-1/report.json", verifiedStatus: "provider-unavailable", providerCalls: 0 }] })
+  expect((await json(path.join(root, "runs/pre-dispatch/attempt-1/report.json"))).report.status).toBe("completion-unknown")
 })

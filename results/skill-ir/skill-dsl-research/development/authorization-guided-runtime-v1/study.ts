@@ -29,6 +29,15 @@ export function mechanicalReview(report: any): Review {
   const category = /timeout|unavailable|unknown/.test(status) ? "infrastructure" : /budget/.test(status) ? "context/budget" : /transport|schema/.test(status + diagnostic) ? "schema/wire" : "state/checker"
   return { failure: { category, rootCause: `${status}: ${diagnostic}`, components: category === "state/checker" ? ["checker", "delivery"] : ["wire", "source", "delivery"] } }
 }
+export async function retainLocalRun(report: any) {
+  if (report.status === "provider-unavailable" || !report.sessionPath) return report
+  const run = await json(path.join(report.sessionPath, "run.json"))
+  return { ...report, telemetry: run.telemetry, initial: run.initial, final: run.final, validation: run.validation, attempts: run.attempts }
+}
+async function inspectedZeroDispatch(output: string) {
+  const local = await inspectLocalInquiry(output).catch(() => undefined)
+  return local?.status === "provider-unavailable" && local.providerDispatches === 0 && !(await exists(path.join(local.sessionPath, "dispatch.json"))) ? local : undefined
+}
 /** Dispatch at most two rows, evaluate each completion immediately, then pause affected new work. In-flight results are always retained. */
 export async function developRows(base: string, rows: Row[], options: DevelopOptions) {
   for (const row of rows) if (!/^[a-zA-Z0-9_-]+$/.test(row.id)) throw new Error("Unsafe row identity")
@@ -40,7 +49,7 @@ export async function developRows(base: string, rows: Row[], options: DevelopOpt
     if (!(await exists(path.join(original, "claim.json"))) || !(await exists(path.join(original, "report.json")))) throw new Error("Missing retained original attempt")
     const claim = await json(path.join(original, "claim.json")), retained = await json(path.join(original, "report.json"))
     if (claim.row.id !== rows[0]!.id || claim.attempt !== Number(match[2]) || JSON.stringify(claim) !== JSON.stringify(retained.identity)) throw new Error("Invalid original attempt identity")
-    if (/unknown/.test(String(retained.report.status))) throw new Error("An original attempt of unknown completion cannot be redispatched")
+    if (/unknown/.test(String(retained.report.status)) && !(await inspectedZeroDispatch(original))) throw new Error("An original attempt of unknown completion cannot be redispatched")
     originalFailureId = `${match[1]}-attempt-${match[2]}`
   }
   await mkdir(base, { recursive: true })
@@ -86,20 +95,22 @@ export async function replay(base = root) {
   for (const id of await readdir(path.join(base, "runs")).catch(() => [])) {
     const run = path.join(base, "runs", id), attempts = (await readdir(run)).filter(a => /^attempt-\d+$/.test(a)).sort((a, b) => Number(a.split("-")[1]) - Number(b.split("-")[1]))
     let providerCalls = 0, unknownCalls = false, knownUsd = 0, unknownUsd = false
-    const artifacts: string[] = []
+    const artifacts: string[] = [], classificationCorrections: any[] = []
     for (const attempt of attempts) {
       const file = path.join(run, attempt, "report.json"), claim = await json(path.join(run, attempt, "claim.json"))
       if (!(await exists(file))) { unknownCalls = unknownUsd = true; continue }
       const retained = await json(file)
       if (JSON.stringify(retained.identity) !== JSON.stringify(claim) || claim.row.id !== id) throw new Error(`Identity mismatch: ${id}/${attempt}`)
-      const report = retained.report, calls = report.telemetry?.providerCalls ?? report.providerDispatches
+      const report = retained.report, zero = /unknown/.test(String(report.status)) ? await inspectedZeroDispatch(path.join(run, attempt)) : undefined
+      if (zero) classificationCorrections.push({ artifact: `runs/${id}/${attempt}/report.json`, verifiedStatus: zero.status, providerCalls: 0 })
+      const calls = zero ? 0 : report.telemetry?.providerCalls ?? report.providerDispatches
       if (typeof calls === "number") providerCalls += calls; else unknownCalls = true
       const usd = report.telemetry?.totalActualUsd ?? report.telemetry?.costUsd ?? report.totalActualUsd
       if (typeof usd === "number") knownUsd += usd; else unknownUsd = true
       if (await exists(path.join(run, attempt, "sessions.jsonl"))) await inspectLocalInquiry(path.join(run, attempt))
       artifacts.push(`runs/${id}/${attempt}/report.json`)
     }
-    rows.push({ id, firstAttempt: artifacts[0] ?? null, repairAttempts: artifacts.slice(1), providerCalls: unknownCalls ? null : providerCalls, knownProviderCalls: providerCalls, knownUsdSubtotal: knownUsd, totalActualUsd: unknownUsd ? null : knownUsd })
+    rows.push({ id, firstAttempt: artifacts[0] ?? null, repairAttempts: artifacts.slice(1), providerCalls: unknownCalls ? null : providerCalls, knownProviderCalls: providerCalls, knownUsdSubtotal: knownUsd, totalActualUsd: unknownUsd ? null : knownUsd, ...(classificationCorrections.length ? { classificationCorrections } : {}) })
   }
   return { schemaVersion: "authorization-ar-replay/v1", rows, providerCallsDuringReplay: 0, targetExecutions: 0 }
 }
@@ -138,8 +149,7 @@ if (import.meta.main) {
     const result = await developRows(root, rows, { revision, model, budgets, repairId, repairOf, execute: async (row, outDir) => {
       const inputFile = path.resolve(root, manifest.tasks.find((t: any) => t.id === row.task).inputFile)
       const report = await executeLocalInquiryRun({ inputFile, outDir, model, method: row.method, strategy: row.strategy as any, execution: budgets })
-      const run = "sessionPath" in report && report.sessionPath ? await json(path.join(report.sessionPath, "run.json")) : undefined
-      return { ...report, ...(run ? { telemetry: run.telemetry, initial: run.initial, final: run.final, validation: run.validation, attempts: run.attempts } : {}) }
+      return retainLocalRun(report)
     }, evaluate: async (_row, report) => mechanicalReview(report) })
     console.log(JSON.stringify(result))
   } else if (action === "replay") { console.log(JSON.stringify(await replay())) }
