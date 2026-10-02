@@ -61,7 +61,14 @@ export function checkControlConclusions(program: AuthorizationInquiryProgram, sl
   for (const rule of slice.rules) {
     const reach = controlRuleReach(slice, rule)
     if (reach.predicate.truth === "false" || reach.stoppedBy.length) continue
-    for (const field of ["principal", "resource"] as const) if (rule[field] && !slice.rules.some(r => r.questionId === rule.questionId && r.kind === "binding" && r.bindingKey === rule[field] && r.bindingKind === field)) diagnostics.push(diag("object-binding-missing", rule.key, `Typed ${field} ${rule[field]} is not bound in this question.`))
+    for (const field of ["principal", "resource"] as const) {
+      if (!rule[field] || (rule.kind === "binding" && rule.bindingKind === field && rule.bindingKey === rule[field])) continue
+      const declared = slice.rules.filter(r => r.questionId === rule.questionId && r.kind === "binding" && r.bindingKey === rule[field] && r.bindingKind === field)
+      const preceding = declared.filter(r => r.key !== rule.key && reach.ancestors.some(a => a.id === r.id))
+      if (!declared.length) diagnostics.push(diag("object-binding-missing", rule.key, `Typed ${field} ${rule[field]} is not bound in this question.`))
+      else if (!preceding.length) diagnostics.push(diag("object-binding-unreachable", rule.key, `Typed ${field} ${rule[field]} has no binding among this rule's reachable explicit predecessors.`))
+      else if (preceding.length > 1) diagnostics.push(diag("object-binding-conflict", rule.key, `Typed ${field} ${rule[field]} resolves to multiple distinct predecessor bindings (${preceding.map(r => r.key).join(", ")}); use separate identity keys or explicitly revise the mistaken binding.`))
+    }
     for (const key of rule.authorizedBy ?? []) {
       const guard = slice.rules.find(r => r.questionId === rule.questionId && r.key === key && r.kind === "guard")
       if (!guard) diagnostics.push(diag("authorization-edge-missing", rule.key, `Claimed authorizing guard ${key} is absent.`))

@@ -1,0 +1,1005 @@
+{
+  "schemaVersion": "authorization-inquiry-session/v1",
+  "sessionId": "2026-10-02T021125922Z-f9c26536",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-guided-runtime-v1\\probes\\wire-2\\run\\sessions\\2026-10-02T021125922Z-f9c26536",
+  "createdAt": "2026-10-02T02:11:25.923Z",
+  "inputSha256": "6d8783a0e247ce95a175f0caf939cca2a4fef63af728a3a5e16e57e4496bf936",
+  "model": "xty/gpt-5.6-sol",
+  "method": "M",
+  "strategy": "domain-evidence-v1",
+  "sourceFiles": [
+    {
+      "path": "entry.ts",
+      "sha256": "371365d678b092bb69364a13ac84447c6b83e9a97ea75c05c3541f696c683fa2",
+      "bytes": 89
+    }
+  ],
+  "noAutomaticResend": true,
+  "status": "completed-with-diagnostics",
+  "initial": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "No: inspect does not return true for both inputs. The source has a terminating false branch when enabled is false (line 2), and otherwise returns true (line 3). Thus disabled input returns false, while enabled input returns true. The enabled value was not supplied as a user premise, but the function parameter is boolean and the source's remaining branch is the enabled/true case."
+        },
+        "branches": [
+          {
+            "id": "disabled-input",
+            "condition": "enabled is false",
+            "disposition": "deny",
+            "explanation": "The condition !enabled is true, so the function immediately returns false at line 2.",
+            "evidenceIds": [
+              "ev-c5e8789e2bd3c2b0641e"
+            ]
+          },
+          {
+            "id": "enabled-input",
+            "condition": "enabled is true",
+            "disposition": "allow",
+            "explanation": "The !enabled branch is not taken, so execution reaches return true at line 3.",
+            "evidenceIds": [
+              "ev-c5e8789e2bd3c2b0641e"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-c5e8789e2bd3c2b0641e"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "No concrete value for enabled was supplied; the result is therefore reported by the two boolean branches rather than for one selected runtime input."
+          }
+        ],
+        "policyAssessment": {
+          "status": "undetermined",
+          "explanation": "This is a behavior question with no normative policy supplied; no policy conclusion is made."
+        }
+      }
+    ],
+    "observations": [],
+    "scope": "entry.ts inspect function only; source-visible behavior investigation, not whole-repository coverage"
+  },
+  "initialValidation": {
+    "valid": false,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "No: inspect does not return true for both inputs. The source has a terminating false branch when enabled is false (line 2), and otherwise returns true (line 3). Thus disabled input returns false, while enabled input returns true. The enabled value was not supplied as a user premise, but the function parameter is boolean and the source's remaining branch is the enabled/true case."
+          },
+          "branches": [
+            {
+              "id": "disabled-input",
+              "condition": "enabled is false",
+              "disposition": "deny",
+              "explanation": "The condition !enabled is true, so the function immediately returns false at line 2.",
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ]
+            },
+            {
+              "id": "enabled-input",
+              "condition": "enabled is true",
+              "disposition": "allow",
+              "explanation": "The !enabled branch is not taken, so execution reaches return true at line 3.",
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-c5e8789e2bd3c2b0641e"
+          ],
+          "missing": [
+            {
+              "kind": "premise-unspecified",
+              "detail": "No concrete value for enabled was supplied; the result is therefore reported by the two boolean branches rather than for one selected runtime input."
+            }
+          ],
+          "policyAssessment": {
+            "status": "undetermined",
+            "explanation": "This is a behavior question with no normative policy supplied; no policy conclusion is made."
+          }
+        }
+      ],
+      "observations": [],
+      "scope": "entry.ts inspect function only; source-visible behavior investigation, not whole-repository coverage"
+    },
+    "diagnostics": [
+      {
+        "code": "path-not-closed",
+        "path": "q1",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      },
+      {
+        "code": "behavior-policy-assessment",
+        "path": "questions.0.policyAssessment",
+        "message": "Behavior has no normative policy comparison.",
+        "severity": "error"
+      }
+    ],
+    "semanticSupport": "unreviewed"
+  },
+  "final": {
+    "schemaVersion": "authorization-inquiry-result/v1",
+    "questions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "No. The disabled branch returns false, while the enabled branch returns true. Therefore inspect does not return true for both enabled and disabled inputs. The concrete enabled value was not supplied, so the result is stated across both boolean branches."
+        },
+        "branches": [
+          {
+            "id": "disabled-input",
+            "condition": "enabled is false",
+            "disposition": "deny",
+            "explanation": "The condition !enabled is true and line 2 immediately returns false.",
+            "evidenceIds": [
+              "ev-c5e8789e2bd3c2b0641e"
+            ]
+          },
+          {
+            "id": "enabled-input",
+            "condition": "enabled is true",
+            "disposition": "allow",
+            "explanation": "The !enabled branch is not taken and line 3 returns true.",
+            "evidenceIds": [
+              "ev-c5e8789e2bd3c2b0641e"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-c5e8789e2bd3c2b0641e"
+        ],
+        "missing": [
+          {
+            "kind": "premise-unspecified",
+            "detail": "No concrete value for enabled was supplied; both boolean branches are reported instead of selecting one runtime input."
+          }
+        ]
+      }
+    ],
+    "observations": [],
+    "scope": "entry.ts inspect function only; source-visible behavior investigation, not whole-repository coverage"
+  },
+  "validation": {
+    "valid": false,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "No. The disabled branch returns false, while the enabled branch returns true. Therefore inspect does not return true for both enabled and disabled inputs. The concrete enabled value was not supplied, so the result is stated across both boolean branches."
+          },
+          "branches": [
+            {
+              "id": "disabled-input",
+              "condition": "enabled is false",
+              "disposition": "deny",
+              "explanation": "The condition !enabled is true and line 2 immediately returns false.",
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ]
+            },
+            {
+              "id": "enabled-input",
+              "condition": "enabled is true",
+              "disposition": "allow",
+              "explanation": "The !enabled branch is not taken and line 3 returns true.",
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-c5e8789e2bd3c2b0641e"
+          ],
+          "missing": [
+            {
+              "kind": "premise-unspecified",
+              "detail": "No concrete value for enabled was supplied; both boolean branches are reported instead of selecting one runtime input."
+            }
+          ]
+        }
+      ],
+      "observations": [],
+      "scope": "entry.ts inspect function only; source-visible behavior investigation, not whole-repository coverage"
+    },
+    "diagnostics": [
+      {
+        "code": "path-not-closed",
+        "path": "q1",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      },
+      {
+        "code": "inapplicable-branch",
+        "path": "q1.disabled-input",
+        "message": "Explicit current premises or an earlier rejection exclude this branch.",
+        "severity": "error"
+      },
+      {
+        "code": "inapplicable-branch",
+        "path": "q1.enabled-input",
+        "message": "Explicit current premises or an earlier rejection exclude this branch.",
+        "severity": "error"
+      }
+    ],
+    "semanticSupport": "unreviewed"
+  },
+  "domain": {
+    "slice": {
+      "schemaVersion": "authorization-control-slice/v1",
+      "revision": 6,
+      "rules": [
+        {
+          "key": "q1-entry",
+          "questionId": "q1",
+          "pathKey": "disabled-input",
+          "kind": "entry",
+          "after": [],
+          "evidenceIds": [
+            "ev-c5e8789e2bd3c2b0641e"
+          ],
+          "claim": "inspect is entered with boolean parameter enabled.",
+          "operation": "inspect",
+          "bindingKey": "q1-enabled",
+          "bindingKind": "value",
+          "id": "ctrl-74719e1d0b97f6a7fced",
+          "digest": "4c6062069f668c7e53d88e0a93809d360e415e853b4ca57c0f8af6495d5feed9",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        {
+          "key": "q1-disabled-guard",
+          "questionId": "q1",
+          "pathKey": "disabled-input",
+          "kind": "guard",
+          "after": [
+            "q1-entry"
+          ],
+          "evidenceIds": [
+            "ev-c5e8789e2bd3c2b0641e"
+          ],
+          "claim": "The !enabled condition is true when enabled is false.",
+          "condition": {
+            "op": "eq",
+            "left": {
+              "binding": "q1-enabled"
+            },
+            "right": {
+              "literal": false
+            }
+          },
+          "id": "ctrl-3cbc6cea715ecb16e79b",
+          "digest": "497d6c5dceb00d8761e2b0b3e1514d6ca26b5f95dd9abead1a2c5ecbb1a0c8eb",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        {
+          "key": "q1-disabled-return",
+          "questionId": "q1",
+          "pathKey": "disabled-input",
+          "kind": "reject",
+          "after": [
+            "q1-disabled-guard"
+          ],
+          "evidenceIds": [
+            "ev-c5e8789e2bd3c2b0641e"
+          ],
+          "claim": "The function returns false for disabled input.",
+          "condition": {
+            "op": "eq",
+            "left": {
+              "binding": "q1-enabled"
+            },
+            "right": {
+              "literal": false
+            }
+          },
+          "complete": true,
+          "id": "ctrl-212d8558f9b3b6167608",
+          "digest": "82215e40c36833823dc90d6d68705a587020c3b1cd1ab1df094b45f20fecbce9",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        {
+          "key": "q1-enabled-guard",
+          "questionId": "q1",
+          "pathKey": "enabled-input",
+          "kind": "guard",
+          "after": [
+            "q1-entry"
+          ],
+          "evidenceIds": [
+            "ev-c5e8789e2bd3c2b0641e"
+          ],
+          "claim": "The !enabled condition is not taken when enabled is true.",
+          "condition": {
+            "op": "eq",
+            "left": {
+              "binding": "q1-enabled"
+            },
+            "right": {
+              "literal": true
+            }
+          },
+          "id": "ctrl-534f717342b057507809",
+          "digest": "1e19a7b8e948699700b7961077046a0e47ae11c6abfff67dd9eca320c2424055",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        {
+          "key": "q1-enabled-return",
+          "questionId": "q1",
+          "pathKey": "enabled-input",
+          "kind": "effect",
+          "after": [
+            "q1-enabled-guard"
+          ],
+          "evidenceIds": [
+            "ev-c5e8789e2bd3c2b0641e"
+          ],
+          "claim": "The function returns true for enabled input.",
+          "condition": {
+            "op": "eq",
+            "left": {
+              "binding": "q1-enabled"
+            },
+            "right": {
+              "literal": true
+            }
+          },
+          "complete": true,
+          "id": "ctrl-b125b0d57142763b20f5",
+          "digest": "6f168157fac91b2c5b2853c71382206b57541538002d0bbcf33da7034e97dd8c",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        }
+      ],
+      "dependencies": [],
+      "bindings": [
+        {
+          "questionId": "q1",
+          "key": "q1-enabled",
+          "value": null,
+          "origin": "user",
+          "text": "enabled is unspecified",
+          "id": "ctrl-cb33962c47ce80932865",
+          "digest": "553c5123476a7c394cc13f5f2031a1dad42907b9135c260249a7d1362ac4e476",
+          "sourceBound": false,
+          "semanticSupport": "unreviewed"
+        }
+      ],
+      "policyRules": [],
+      "conflicts": [],
+      "revisions": []
+    },
+    "proposals": [
+      {
+        "delta": {
+          "schemaVersion": "authorization-control-slice/v1",
+          "rules": [],
+          "dependencies": [],
+          "bindings": [],
+          "policyRules": []
+        },
+        "diagnostics": [],
+        "revision": 0
+      },
+      {
+        "delta": {
+          "schemaVersion": "authorization-control-slice/v1",
+          "rules": [
+            {
+              "key": "q1-entry",
+              "questionId": "q1",
+              "pathKey": "disabled-input",
+              "kind": "entry",
+              "after": [],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "inspect is entered with boolean parameter enabled.",
+              "operation": "inspect",
+              "bindingKey": "q1-enabled",
+              "bindingKind": "value"
+            },
+            {
+              "key": "q1-disabled-guard",
+              "questionId": "q1",
+              "pathKey": "disabled-input",
+              "kind": "guard",
+              "after": [
+                "q1-entry"
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "The !enabled condition is true when enabled is false.",
+              "condition": {
+                "op": "eq",
+                "left": {
+                  "binding": "q1-enabled"
+                },
+                "right": {
+                  "literal": false
+                }
+              }
+            },
+            {
+              "key": "q1-disabled-return",
+              "questionId": "q1",
+              "pathKey": "disabled-input",
+              "kind": "reject",
+              "after": [
+                "q1-disabled-guard"
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "The function returns false for disabled input.",
+              "condition": {
+                "op": "eq",
+                "left": {
+                  "binding": "q1-enabled"
+                },
+                "right": {
+                  "literal": false
+                }
+              },
+              "complete": true
+            },
+            {
+              "key": "q1-enabled-guard",
+              "questionId": "q1",
+              "pathKey": "enabled-input",
+              "kind": "guard",
+              "after": [
+                "q1-entry"
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "The !enabled condition is not taken when enabled is true.",
+              "condition": {
+                "op": "eq",
+                "left": {
+                  "binding": "q1-enabled"
+                },
+                "right": {
+                  "literal": true
+                }
+              }
+            },
+            {
+              "key": "q1-enabled-return",
+              "questionId": "q1",
+              "pathKey": "enabled-input",
+              "kind": "effect",
+              "after": [
+                "q1-enabled-guard"
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "The function returns true for enabled input.",
+              "condition": {
+                "op": "eq",
+                "left": {
+                  "binding": "q1-enabled"
+                },
+                "right": {
+                  "literal": true
+                }
+              },
+              "complete": true
+            }
+          ],
+          "dependencies": [],
+          "bindings": [
+            {
+              "questionId": "q1",
+              "key": "q1-enabled",
+              "value": null,
+              "origin": "user",
+              "text": "enabled is unspecified"
+            }
+          ],
+          "policyRules": []
+        },
+        "diagnostics": [],
+        "revision": 6
+      }
+    ],
+    "dependencies": [],
+    "schedulerActions": [],
+    "check": {
+      "structureValid": true,
+      "sourceBound": true,
+      "ruleConsistency": false,
+      "semanticSupport": "unreviewed",
+      "taskResolution": "partial",
+      "paths": [
+        {
+          "questionId": "q1",
+          "pathKey": "disabled-input",
+          "state": "inapplicable",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "false",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "any",
+                "truth": "false"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "any",
+            "args": []
+          },
+          "nodeKeys": [],
+          "terminalKeys": [],
+          "gaps": [],
+          "sourceBound": true
+        },
+        {
+          "questionId": "q1",
+          "pathKey": "enabled-input",
+          "state": "inapplicable",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "false",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "any",
+                "truth": "false"
+              }
+            ],
+            "diagnostics": []
+          },
+          "condition": {
+            "op": "any",
+            "args": []
+          },
+          "nodeKeys": [],
+          "terminalKeys": [],
+          "gaps": [],
+          "sourceBound": true
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "path-not-closed",
+          "path": "q1",
+          "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+          "severity": "error"
+        },
+        {
+          "code": "inapplicable-branch",
+          "path": "q1.disabled-input",
+          "message": "Explicit current premises or an earlier rejection exclude this branch.",
+          "severity": "error"
+        },
+        {
+          "code": "inapplicable-branch",
+          "path": "q1.enabled-input",
+          "message": "Explicit current premises or an earlier rejection exclude this branch.",
+          "severity": "error"
+        }
+      ],
+      "policyComparisons": [],
+      "calculationCount": 4
+    },
+    "checkHistory": [
+      {
+        "revision": 0,
+        "slice": {
+          "schemaVersion": "authorization-control-slice/v1",
+          "revision": 0,
+          "rules": [],
+          "dependencies": [],
+          "bindings": [],
+          "policyRules": [],
+          "conflicts": [],
+          "revisions": []
+        },
+        "result": {
+          "schemaVersion": "authorization-inquiry-result/v1",
+          "questions": [
+            {
+              "questionId": "q1",
+              "behavior": {
+                "disposition": "conditional",
+                "explanation": "No: inspect does not return true for both inputs. The source has a terminating false branch when enabled is false (line 2), and otherwise returns true (line 3). Thus disabled input returns false, while enabled input returns true. The enabled value was not supplied as a user premise, but the function parameter is boolean and the source's remaining branch is the enabled/true case."
+              },
+              "branches": [
+                {
+                  "id": "disabled-input",
+                  "condition": "enabled is false",
+                  "disposition": "deny",
+                  "explanation": "The condition !enabled is true, so the function immediately returns false at line 2.",
+                  "evidenceIds": [
+                    "ev-c5e8789e2bd3c2b0641e"
+                  ]
+                },
+                {
+                  "id": "enabled-input",
+                  "condition": "enabled is true",
+                  "disposition": "allow",
+                  "explanation": "The !enabled branch is not taken, so execution reaches return true at line 3.",
+                  "evidenceIds": [
+                    "ev-c5e8789e2bd3c2b0641e"
+                  ]
+                }
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "missing": [
+                {
+                  "kind": "premise-unspecified",
+                  "detail": "No concrete value for enabled was supplied; the result is therefore reported by the two boolean branches rather than for one selected runtime input."
+                }
+              ],
+              "policyAssessment": {
+                "status": "undetermined",
+                "explanation": "This is a behavior question with no normative policy supplied; no policy conclusion is made."
+              }
+            }
+          ],
+          "observations": [],
+          "scope": "entry.ts inspect function only; source-visible behavior investigation, not whole-repository coverage"
+        },
+        "check": {
+          "structureValid": true,
+          "sourceBound": false,
+          "ruleConsistency": false,
+          "semanticSupport": "unreviewed",
+          "taskResolution": "partial",
+          "paths": [],
+          "diagnostics": [
+            {
+              "code": "path-not-closed",
+              "path": "q1",
+              "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+              "severity": "error"
+            }
+          ],
+          "policyComparisons": [],
+          "calculationCount": 0
+        }
+      },
+      {
+        "revision": 6,
+        "slice": {
+          "schemaVersion": "authorization-control-slice/v1",
+          "revision": 6,
+          "rules": [
+            {
+              "key": "q1-entry",
+              "questionId": "q1",
+              "pathKey": "disabled-input",
+              "kind": "entry",
+              "after": [],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "inspect is entered with boolean parameter enabled.",
+              "operation": "inspect",
+              "bindingKey": "q1-enabled",
+              "bindingKind": "value",
+              "id": "ctrl-74719e1d0b97f6a7fced",
+              "digest": "4c6062069f668c7e53d88e0a93809d360e415e853b4ca57c0f8af6495d5feed9",
+              "sourceBound": true,
+              "semanticSupport": "unreviewed"
+            },
+            {
+              "key": "q1-disabled-guard",
+              "questionId": "q1",
+              "pathKey": "disabled-input",
+              "kind": "guard",
+              "after": [
+                "q1-entry"
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "The !enabled condition is true when enabled is false.",
+              "condition": {
+                "op": "eq",
+                "left": {
+                  "binding": "q1-enabled"
+                },
+                "right": {
+                  "literal": false
+                }
+              },
+              "id": "ctrl-3cbc6cea715ecb16e79b",
+              "digest": "497d6c5dceb00d8761e2b0b3e1514d6ca26b5f95dd9abead1a2c5ecbb1a0c8eb",
+              "sourceBound": true,
+              "semanticSupport": "unreviewed"
+            },
+            {
+              "key": "q1-disabled-return",
+              "questionId": "q1",
+              "pathKey": "disabled-input",
+              "kind": "reject",
+              "after": [
+                "q1-disabled-guard"
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "The function returns false for disabled input.",
+              "condition": {
+                "op": "eq",
+                "left": {
+                  "binding": "q1-enabled"
+                },
+                "right": {
+                  "literal": false
+                }
+              },
+              "complete": true,
+              "id": "ctrl-212d8558f9b3b6167608",
+              "digest": "82215e40c36833823dc90d6d68705a587020c3b1cd1ab1df094b45f20fecbce9",
+              "sourceBound": true,
+              "semanticSupport": "unreviewed"
+            },
+            {
+              "key": "q1-enabled-guard",
+              "questionId": "q1",
+              "pathKey": "enabled-input",
+              "kind": "guard",
+              "after": [
+                "q1-entry"
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "The !enabled condition is not taken when enabled is true.",
+              "condition": {
+                "op": "eq",
+                "left": {
+                  "binding": "q1-enabled"
+                },
+                "right": {
+                  "literal": true
+                }
+              },
+              "id": "ctrl-534f717342b057507809",
+              "digest": "1e19a7b8e948699700b7961077046a0e47ae11c6abfff67dd9eca320c2424055",
+              "sourceBound": true,
+              "semanticSupport": "unreviewed"
+            },
+            {
+              "key": "q1-enabled-return",
+              "questionId": "q1",
+              "pathKey": "enabled-input",
+              "kind": "effect",
+              "after": [
+                "q1-enabled-guard"
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "The function returns true for enabled input.",
+              "condition": {
+                "op": "eq",
+                "left": {
+                  "binding": "q1-enabled"
+                },
+                "right": {
+                  "literal": true
+                }
+              },
+              "complete": true,
+              "id": "ctrl-b125b0d57142763b20f5",
+              "digest": "6f168157fac91b2c5b2853c71382206b57541538002d0bbcf33da7034e97dd8c",
+              "sourceBound": true,
+              "semanticSupport": "unreviewed"
+            }
+          ],
+          "dependencies": [],
+          "bindings": [
+            {
+              "questionId": "q1",
+              "key": "q1-enabled",
+              "value": null,
+              "origin": "user",
+              "text": "enabled is unspecified",
+              "id": "ctrl-cb33962c47ce80932865",
+              "digest": "553c5123476a7c394cc13f5f2031a1dad42907b9135c260249a7d1362ac4e476",
+              "sourceBound": false,
+              "semanticSupport": "unreviewed"
+            }
+          ],
+          "policyRules": [],
+          "conflicts": [],
+          "revisions": []
+        },
+        "result": {
+          "schemaVersion": "authorization-inquiry-result/v1",
+          "questions": [
+            {
+              "questionId": "q1",
+              "behavior": {
+                "disposition": "conditional",
+                "explanation": "No. The disabled branch returns false, while the enabled branch returns true. Therefore inspect does not return true for both enabled and disabled inputs. The concrete enabled value was not supplied, so the result is stated across both boolean branches."
+              },
+              "branches": [
+                {
+                  "id": "disabled-input",
+                  "condition": "enabled is false",
+                  "disposition": "deny",
+                  "explanation": "The condition !enabled is true and line 2 immediately returns false.",
+                  "evidenceIds": [
+                    "ev-c5e8789e2bd3c2b0641e"
+                  ]
+                },
+                {
+                  "id": "enabled-input",
+                  "condition": "enabled is true",
+                  "disposition": "allow",
+                  "explanation": "The !enabled branch is not taken and line 3 returns true.",
+                  "evidenceIds": [
+                    "ev-c5e8789e2bd3c2b0641e"
+                  ]
+                }
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "missing": [
+                {
+                  "kind": "premise-unspecified",
+                  "detail": "No concrete value for enabled was supplied; both boolean branches are reported instead of selecting one runtime input."
+                }
+              ]
+            }
+          ],
+          "observations": [],
+          "scope": "entry.ts inspect function only; source-visible behavior investigation, not whole-repository coverage"
+        },
+        "check": {
+          "structureValid": true,
+          "sourceBound": true,
+          "ruleConsistency": false,
+          "semanticSupport": "unreviewed",
+          "taskResolution": "partial",
+          "paths": [
+            {
+              "questionId": "q1",
+              "pathKey": "disabled-input",
+              "state": "inapplicable",
+              "disposition": "unknown",
+              "complete": false,
+              "predicate": {
+                "truth": "false",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "any",
+                    "truth": "false"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "any",
+                "args": []
+              },
+              "nodeKeys": [],
+              "terminalKeys": [],
+              "gaps": [],
+              "sourceBound": true
+            },
+            {
+              "questionId": "q1",
+              "pathKey": "enabled-input",
+              "state": "inapplicable",
+              "disposition": "unknown",
+              "complete": false,
+              "predicate": {
+                "truth": "false",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "any",
+                    "truth": "false"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "any",
+                "args": []
+              },
+              "nodeKeys": [],
+              "terminalKeys": [],
+              "gaps": [],
+              "sourceBound": true
+            }
+          ],
+          "diagnostics": [
+            {
+              "code": "path-not-closed",
+              "path": "q1",
+              "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+              "severity": "error"
+            },
+            {
+              "code": "inapplicable-branch",
+              "path": "q1.disabled-input",
+              "message": "Explicit current premises or an earlier rejection exclude this branch.",
+              "severity": "error"
+            },
+            {
+              "code": "inapplicable-branch",
+              "path": "q1.enabled-input",
+              "message": "Explicit current premises or an earlier rejection exclude this branch.",
+              "severity": "error"
+            }
+          ],
+          "policyComparisons": [],
+          "calculationCount": 4
+        }
+      }
+    ],
+    "computation": {
+      "merges": 2,
+      "pathEvaluations": 4,
+      "conclusionChecks": 2,
+      "predicateEvaluations": 12,
+      "durationMs": 2.9143000000040047
+    },
+    "closed": true
+  },
+  "telemetry": {
+    "providerCalls": 5,
+    "respondedCalls": 5,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 5,
+    "knownTokens": {
+      "input": 10597,
+      "output": 1828,
+      "cacheRead": 15872,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  },
+  "durationMs": 57831,
+  "sourceAccounting": {
+    "indexBytes": 89,
+    "physicalReadBytes": 356,
+    "toolDisplayBytes": 153,
+    "cumulativeModelSourceBytes": 354,
+    "resentSourceBytes": 201
+  }
+}

@@ -1272,6 +1272,8 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 **首个接口探针与现场修订。** 中性四行源码的六调用探针未交付，使用6次真实provider、目标执行0，成本未返回；原请求和响应留于`probes/wire-1`，不计主质量面板。运行指南的`right:value`使模型反复提交裸布尔操作数，而实际代数要求左右均为`{binding}`或`{literal}`；随后模型又在最后机会提交control而非final。已明确指南格式并在剩余两次调用时限制为带可选局部增量的final（初次检查及诊断修订），不提高探针预算。停派驱动的并发回归又发现归档/评价与下一任务派发竞态，改为最多两题一块、全部已在途收齐后再推进。453 pass/1平台skip的相关联合回归、主类型、研究类型通过；修后真实同题验证待结果。旧AQ两份真实control响应重放仍因object型身份字段无效，未做猜测性强制转换，接口恢复不等于历史语义修复。
 
+**第二探针与可达绑定修复。** 同原输入/同六调用预算的`wire-2`用5次调用取得正确的两分支原文字，但初次缺图/多余policy、修后把“enabled is unspecified”映射为已知null，故checked仍失败。独立只读复核认可原文字；其“null是合理未知占位”解释被主线程依据`controlBindings`及`partialEvaluate`纠正：null会按已知值比较并排除true/false路径。原复核和主裁定分开记录。新增保守显式未知文字拒绝规则及指南，unknown不再可伪成null/false；其它语言映射仍unreviewed。AR4红测试确实得到恒假非前驱、可达非前驱和同identity多对象均漏检，修后改为当前question明确前驱的唯一绑定。合法共同前驱和跨题隔离保留，458 pass/1平台skip联合回归通过。同题再复验仍需真实结果，未据原文字成功宣称checked。AQ绑定混用已定位到Cloudflare changed实际observe第22行，来源节点误放bindings被既有schema拒绝，先前type-error引用已更正。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

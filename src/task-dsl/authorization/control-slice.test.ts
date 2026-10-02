@@ -52,3 +52,12 @@ test("control contract reports version, expression and per-question limits witho
   expect(overflow.diagnostics.some((d: any) => d.code === "control-node-limit")).toBe(true)
   expect(overflow.state.rules).toHaveLength(64)
 })
+
+test("explicitly unspecified user values cannot be fabricated as null or false", () => {
+  const input = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Owner is unspecified; grants are not given.", premises: [] }] })
+  for (const [key, value, text] of [["owner", null, "Owner is unspecified"], ["grant", false, "grants are not given"]] as const) {
+    const result = api.mergeControlSlice(api.createControlSlice(), delta([], { bindings: [{ questionId: "q", key, value, origin: "user", text }] }), input, { ...context, suppliedUserText: [input.questions[0]!.request] })
+    expect(result.diagnostics.some((d: any) => d.code === "premise-value-unspecified")).toBe(true)
+    expect(api.controlBindings(result.state, "q")).toEqual({})
+  }
+})

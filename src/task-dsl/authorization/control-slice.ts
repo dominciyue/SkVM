@@ -90,6 +90,7 @@ export function mergeControlSlice(previous: ControlSlice, input: unknown, progra
         const binding = item as z.infer<typeof UserBindingSchema>
         const supplied = context.suppliedUserText ?? (q ? [q.request, ...q.premises.map(p => p.text)] : [])
         if (!q || !supplied.some(t => t.includes(binding.text))) diagnostics.push(diagnostic("premise-not-supplied", at, "Known values require an exact span of an original supplied user statement, not a model-authored premise; mapping meaning remains unreviewed."))
+        if (/\b(?:unspecified|unknown|not (?:given|supplied|specified|provided|known))\b|未(?:给定|指定|提供)|未知/i.test(binding.text)) diagnostics.push(diagnostic("premise-value-unspecified", at, "This quoted user span explicitly leaves the value unspecified. Omit this known-value binding; null means a supplied null value, never an unknown placeholder. Other mapping meaning remains unreviewed."))
       } else {
         const p = item as z.infer<typeof PolicyRuleSchema>
         if (program.mode !== "conformance" || !program.policy || p.location !== program.policy.location || !program.policy.text.includes(p.text)) diagnostics.push(diagnostic("policy-not-supplied", at, "Policy mapping must quote the current independent policy in its own namespace."))

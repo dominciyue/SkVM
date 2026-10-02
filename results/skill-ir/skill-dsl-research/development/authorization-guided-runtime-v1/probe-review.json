@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "authorization-ar-probe-review/v1",
+  "runId": "wire-2",
+  "independentReviewer": "/root/ar_probe_review",
+  "independentFindings": {
+    "prose": "correct: disabled returns false and enabled returns true; both initial and final retain the unspecified concrete input",
+    "checked": "failed: validation false, ruleConsistency false, taskResolution partial; both paths inapplicable",
+    "mappingClaimVerbatim": "因此 null 是对‘用户未指定’的显式建模，不是把未指定伪造成 null 运行值。",
+    "evidence": ["probes/wire-1/source/entry.ts:1", "probes/wire-1/input.json:10", "probes/wire-2/run/sessions/2026-10-02T021125922Z-f9c26536/run.json:8600", "probes/wire-2/run/sessions/2026-10-02T021125922Z-f9c26536/run.json:8756"]
+  },
+  "mainAdjudication": {
+    "prose": "correct",
+    "checked": "failed",
+    "mappingClaim": "rejected: a null scalar is a known value in controlBindings and partialEvaluate; source text does not supply null. Both eq(false)/eq(true) become false.",
+    "evidence": ["src/task-dsl/authorization/control-slice.ts:103", "src/task-dsl/authorization/control-evaluation.ts:33", "src/task-dsl/authorization/control-evaluation.ts:36"],
+    "qualityBenefit": "not-established; neutral interface probe only"
+  },
+  "bindingLocator": {
+    "agent": "/root/ar_binding_failure_locator",
+    "artifact": "../authorization-domain-execution-v1/runs/native-cloudflare-security-audit-changed/native-trace/tools.jsonl:22",
+    "mainSpotCheck": "confirmed two source-style bindings rejected for missing value/origin/text and extra source fields",
+    "invalidSecondCheck": "no real AQ stale-success occurrence established; existing deterministic test remains separate"
+  }
+}

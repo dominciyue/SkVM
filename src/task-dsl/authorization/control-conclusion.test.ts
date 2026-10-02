@@ -66,3 +66,29 @@ test("cycles, missing predecessor, missing entry and branch limit stay explicit 
   const wide = state([rule("entry", "entry", []), ...Array.from({ length: 17 }, (_, n) => rule(`end${n}`, "effect", ["entry"], { pathKey: `p${n}`, complete: true }))])
   expect(api.evaluateControlPaths(wide).diagnostics.some((d: any) => d.code === "control-path-limit")).toBe(true)
 })
+
+test("an unreachable unrelated binding cannot satisfy the live effect", () => {
+  const never = { op: "eq", left: { literal: 1 }, right: { literal: 2 } }
+  const s = state([
+    rule("entry", "entry", []),
+    rule("hidden-user", "binding", ["entry"], { pathKey: "hidden", bindingKey: "caller", bindingKind: "principal", condition: never }),
+    rule("hidden-object", "binding", ["entry"], { pathKey: "hidden", bindingKey: "doc", bindingKind: "resource", condition: never }),
+    rule("write", "effect", ["entry"], { principal: "caller", resource: "doc", complete: true }),
+  ])
+  expect(codes(api.checkControlConclusions(plan, s, answer("allow"), []))).toContain("object-binding-unreachable")
+})
+test("live bindings on another branch are still not predecessors of this effect", () => {
+  const s = state([rule("entry", "entry", []), rule("caller", "binding", ["entry"], { pathKey: "other", bindingKey: "caller", bindingKind: "principal" }), rule("doc", "binding", ["entry"], { pathKey: "other", bindingKey: "doc", bindingKind: "resource" }), rule("write", "effect", ["entry"], { principal: "caller", resource: "doc", complete: true })])
+  expect(codes(api.checkControlConclusions(plan, s, answer("allow"), []))).toContain("object-binding-unreachable")
+})
+test("a guard and effect cannot conflate distinct source bindings with the same identity key", () => {
+  const s = state([rule("entry", "entry", []), rule("caller", "binding", ["entry"], { bindingKey: "caller", bindingKind: "principal" }), rule("input-doc", "binding", ["entry"], { bindingKey: "doc", bindingKind: "resource", claim: "Input document resolved from request" }), rule("guard", "guard", ["caller", "input-doc"], { principal: "caller", resource: "doc" }), rule("output-doc", "binding", ["entry"], { bindingKey: "doc", bindingKind: "resource", claim: "Output document resolved from destination" }), rule("write", "effect", ["guard", "output-doc"], { principal: "caller", resource: "doc", authorizedBy: ["guard"], complete: true })])
+  expect(codes(api.checkControlConclusions(plan, s, answer("allow"), []))).toContain("object-binding-conflict")
+})
+test("question-local binding scope and a legitimate common predecessor are preserved", () => {
+  const rules = [rule("entry", "entry", []), rule("caller", "binding", ["entry"], { bindingKey: "caller", bindingKind: "principal" }), rule("doc", "binding", ["entry"], { bindingKey: "doc", bindingKind: "resource" }), rule("guard", "guard", ["caller", "doc"], { principal: "caller", resource: "doc" }), rule("write", "effect", ["guard"], { principal: "caller", resource: "doc", authorizedBy: ["guard"], complete: true })]
+  expect(codes(api.checkControlConclusions(plan, state(rules), answer("allow"), []))).toEqual([])
+  const multi = { ...plan, questions: [...plan.questions, { ...plan.questions[0]!, id: "other" }] }
+  const slice = mergeControlSlice(createControlSlice(), { schemaVersion: "authorization-control-slice/v1", rules: rules.map(r => r.kind === "binding" ? { ...r, questionId: "other" } : r) }, multi, { ...context, questionIds: ["q", "other"] }).state
+  expect(codes(api.checkControlConclusions(multi, slice, answer("allow"), []))).toContain("object-binding-missing")
+})
