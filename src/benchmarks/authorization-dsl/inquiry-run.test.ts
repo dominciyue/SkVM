@@ -171,3 +171,23 @@ test("partial-evaluation/check ablation leaves the same contradictory answer unc
   expect(run.domain.check.paths).toEqual([])
   expect(mock.count()).toBe(2)
 })
+
+test("domain execution reserves its final dispatch for delivery and describes both literal operands", async () => {
+  const input = await setup(), mock = scripted((params, n) => {
+    const prompt = params.messages[0]!.content, schema: any = params.tools![0]!.inputSchema
+    if (n === 0) {
+      expect(prompt).toContain('right:{binding:name}|{literal:scalar}')
+      return { kind: "tool", calls: [{ name: "source_read", arguments: { path: "src/helper.ts", startLine: 1, endLine: 1 } }] }
+    }
+    if (n < 2) return { kind: "control", controlDelta: { schemaVersion: "authorization-control-slice/v1" } }
+    expect(schema.properties.kind.const).toBe("final")
+    expect(prompt).toContain("Reserved delivery opportunity")
+    const id = /"id":"(ev-[a-f0-9]+)"/.exec(prompt)![1]!
+    const answer = final(id)
+    if (n === 2) answer.result.questions[0]!.behavior.disposition = "allow"
+    return { ...answer, controlDelta: { schemaVersion: "authorization-control-slice/v1", rules: [{ key: "entry", questionId: "q1", pathKey: "p", kind: "entry", after: [], claim: "entry", evidenceIds: [id] }, { key: "stop", questionId: "q1", pathKey: "p", kind: "reject", after: ["entry"], claim: "false", evidenceIds: [id], complete: true }] } }
+  })
+  const run = await runAuthorizationInquiry({ ...input, method: "M", strategy: "domain-evidence-v1", provider: mock.provider, maxDispatches: 4 })
+  expect(run.status).toBe("completed")
+  expect(mock.count()).toBe(4)
+})

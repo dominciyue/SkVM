@@ -11,9 +11,9 @@ import { AuthorizationObservationSchema, validateInquiryObservations, inquiryObs
 import { AuthorizationDispatchLimitError, type AuthorizationLifecycleEvent } from "./telemetry.ts"
 import { parseInquiryStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { createInquiryDomainRuntime, DOMAIN_EXECUTION_GUIDE } from "./inquiry-domain-runtime.ts"
+import { inquiryNativeDefinitions, inquiryNativeSchemas } from "./inquiry-wire.ts"
+import { ZodError } from "zod"
 
-const domainTool = (name: string, key: string, description: string): LLMTool => ({ name, description, inputSchema: { type: "object", properties: { [key]: key === "observations" ? { type: "array", items: { type: "object" } } : { type: "object" } }, required: [key], additionalProperties: false } })
-const DOMAIN_TOOLS = [domainTool("authorization_compile", "inquiry", "Compile current authorization-inquiry/v1 questions without inferring source behavior; returns pending relation queue."), domainTool("authorization_observe", "observations", "Record source-bound relations with questionId,kind,subject,object?,claim,state,evidenceIds; evidence bookkeeping is not semantic proof."), domainTool("authorization_check_result", "result", "Check authorization-inquiry-result/v1 against compiled questions and actually shown evidence. At most one delivery repair; semantic support stays unreviewed.")]
 class NativeToolRejection extends Error {
   constructor(readonly code: string, message: string) { super(`${code}: ${message}`) }
 }
@@ -62,7 +62,7 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
     }
     await walk()
   }
-  const domainDefinitions = strategy === "domain-evidence-v1" ? DOMAIN_TOOLS.map(t => t.name === "authorization_observe" ? { ...t, description: "Propose source-bound controlDelta (authorization-control-slice/v1) and optional observations. Host executes at most two dependency reads and returns autoReads plus partial evaluation. Prefer proposing dependencies over choosing every helper read yourself.", inputSchema: { type: "object", properties: { observations: { type: "array", maxItems: 32, items: { type: "object" } }, controlDelta: { type: "object" } }, additionalProperties: false } } : t.name === "authorization_check_result" ? { ...t, inputSchema: { ...t.inputSchema, properties: { result: { type: "object" }, controlDelta: { type: "object" } } } } : t) : DOMAIN_TOOLS
+  const schemas = inquiryNativeSchemas(strategy), domainDefinitions = inquiryNativeDefinitions(strategy)
   const definitions: LLMTool[] = [...tools.definitions, ...(referenceRoot ? [{ name: "skill_reference_read", description: `Read installed original skill companions as data: ${references.map(r => r.path).join(", ")}`, inputSchema: { type: "object", properties: { path: { type: "string" } }, required: ["path"], additionalProperties: false } }] : []), ...(options.domainTools ? domainDefinitions : [])]
   const context = () => ({ questionIds: program?.questions.map(q => q.id) ?? [], shownEvidenceIds: tools.evidence.map(e => e.id) })
   const execute = async (call: LLMToolCall) => {
@@ -86,29 +86,31 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
         output = { path: ref.path, content: read.bundle.files[0]!.content, sha256: ref.sha256, kind: "skill-guidance" }
       } else if (options.domainTools && call.name === "authorization_compile") {
         domainCalls++; if (program) throw new Error("Inquiry already compiled; changes require a fresh session")
-        const inquiry = AuthorizationInquirySchema.parse(call.arguments.inquiry), mode = loaded.value.inquiry?.mode ?? loaded.value.mode ?? "behavior", policy = loaded.value.inquiry?.policy ?? loaded.value.policy
+        const inquiry = schemas.authorization_compile.parse(call.arguments).inquiry, mode = loaded.value.inquiry?.mode ?? loaded.value.mode ?? "behavior", policy = loaded.value.inquiry?.policy ?? loaded.value.policy
         if (inquiry.mode !== mode || JSON.stringify(inquiry.policy) !== JSON.stringify(policy)) throw new Error("Declaration changes supplied mode or independent policy")
         program = compileAuthorizationInquiry(inquiry); observations.length = 0; result = undefined; checks = 0; output = program
         if (strategy === "domain-evidence-v1") domain = createInquiryDomainRuntime({ program, tools, remainingActions: () => toolBudget().explorationRemaining, suppliedUserText: loaded.value.inquiry ? loaded.value.inquiry.questions.flatMap(q => [q.request, ...q.premises.map(p => p.text)]) : [loaded.value.brief!] })
       } else if (options.domainTools && call.name === "authorization_observe") {
         domainCalls++; if (!program) throw new Error("Compile current inquiry first")
-        if (domain && call.arguments.controlDelta) result = undefined
-        const proposed = AuthorizationObservationSchema.array().max(32).parse(domain ? call.arguments.observations ?? [] : call.arguments.observations), diagnostics = validateInquiryObservations(proposed, context())
+        const args = schemas.authorization_observe.parse(call.arguments)
+        if (domain && "controlDelta" in args && args.controlDelta) result = undefined
+        const proposed = AuthorizationObservationSchema.array().max(32).parse(args.observations ?? []), diagnostics = validateInquiryObservations(proposed, context())
         if (!diagnostics.length) observations.push(...proposed)
         output = { diagnostics, feedback: inquiryObservationFeedback(program, observations), semanticSupport: "unreviewed" }
         if (domain) {
-          const proposedControls = call.arguments.controlDelta ? await domain.propose(call.arguments.controlDelta) : await domain.sync()
+          const proposedControls = "controlDelta" in args && args.controlDelta ? await domain.propose(args.controlDelta) : await domain.sync()
           const actions = "actions" in proposedControls ? proposedControls.actions : []
           output = { ...(output as Record<string, unknown>), ...(proposedControls as any).diagnostics ? { controlDiagnostics: (proposedControls as any).diagnostics } : {}, autoReads: actions.map(a => ({ ...inquiryToolModelView(a.output) as Record<string, unknown>, actionOrigin: a.actionOrigin, questionId: a.questionId, dependencyId: a.dependencyId, reason: a.reason })), domain: domain.feedback() }
         }
       } else if (options.domainTools && call.name === "authorization_check_result") {
         domainCalls++; checks++
+        const args = schemas.authorization_check_result.parse(call.arguments)
         let autoReads: unknown[] = []
-        if (domain && call.arguments.controlDelta) { result = undefined; const proposed = await domain.propose(call.arguments.controlDelta); autoReads = proposed.actions.map(a => inquiryToolModelView(a.output)) }
-        const domainCheck = domain ? await domain.validate(call.arguments.result) : undefined
-        const checked = validateAuthorizationInquiryResult(program!, call.arguments.result, context(), domainCheck); result = checked.valid ? checked.result : undefined; output = domain ? { ...checked, domainCheck, autoReads } : checked
+        if (domain && "controlDelta" in args && args.controlDelta) { result = undefined; const proposed = await domain.propose(args.controlDelta); autoReads = proposed.actions.map(a => inquiryToolModelView(a.output)) }
+        const domainCheck = domain ? await domain.validate(args.result) : undefined
+        const checked = validateAuthorizationInquiryResult(program!, args.result, context(), domainCheck); result = checked.valid ? checked.result : undefined; output = domain ? { ...checked, domainCheck, autoReads } : checked
       } else throw new Error("Tool not registered in this read-only runtime")
-    } catch (error) { if (domain && ["authorization_observe", "authorization_check_result"].includes(call.name)) result = undefined; output = { status: "error", ...(error instanceof NativeToolRejection ? { code: error.code } : {}), message: String(error) }; exitCode = 1 }
+    } catch (error) { if (domain && ["authorization_observe", "authorization_check_result"].includes(call.name)) result = undefined; output = { status: "error", ...(error instanceof NativeToolRejection ? { code: error.code } : {}), ...(error instanceof ZodError ? { phase: call.name, diagnostics: error.issues.map(d => ({ path: d.path.join("."), code: d.code, message: d.message })) } : {}), message: String(error) }; exitCode = 1 }
     if (!executed) rejectedToolCalls++
     output = { ...(output as Record<string, unknown>), toolBudget: toolBudget() }
     const record = { call, output, exitCode, executed }; history.push(record)

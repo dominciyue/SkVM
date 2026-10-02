@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有只读源码索引及 CLI。不另建通用 IR、完整静态分析平台、CLI 或 HTML 展示层。
 
-状态：`authorized-not-started`。规划基线 `9b085ee0d212a248c04ce5a8ffa12ad7171b8fed`；执行启动时记录实际 HEAD。目录 `D:\skill优化\SkVM`，分支 `skill-ir-aot`，唯一发布目标 `origin/skill-ir-aot`。开发线程指定 `gpt-6.1-sol / max`；被测路由默认沿用 `xty/gpt-5.6-sol`，二者分账，不擅自换模型来取得好结果。
+状态：`in-progress`。实际启动 `260477cc`；AR0 已完成，AR1 驱动工程通过，AR2 已接线并正在现场修后真实复验。规划基线 `9b085ee0d212a248c04ce5a8ffa12ad7171b8fed`；执行启动时记录实际 HEAD。目录 `D:\skill优化\SkVM`，分支 `skill-ir-aot`，唯一发布目标 `origin/skill-ir-aot`。开发线程指定 `gpt-6.1-sol / max`；被测路由默认沿用 `xty/gpt-5.6-sol`，二者分账，不擅自换模型来取得好结果。
 
 本轮按约 12 小时主动工作安排，AR0–AR20 必做，AR21–AR23 是提前完成核心后的有序深化。12 小时是规划中心，不是成功条件或硬性中断点；不等待、重复测试、反复抽样凑时长。不能保证宿主连续在线精确 12 小时。若核心提前完成，继续有价值的深化；若仍有工程缺口，不因时间到了写“全部完成”。
 
@@ -105,27 +105,27 @@ type FailureRecord = {
 
 文件：本任务书、AR root/status.json、journal.jsonl；现有源码先只读。
 
-- [ ] 读上述上下文，检查 Git、当前分支和已有模型配置可用性，不输出凭据。
-- [ ] 记录启动时间、HEAD、线程模型、完成目标和 AR0–AR23 状态。区分工程、真实使用、效果三个结果字段。
-- [ ] 把 AQ 确认根因带入新身份，不重跑 AQ 全套面板/全库审计。恢复后先处理未完成修复再开启新样本。
+- [x] 读上述上下文，检查 Git、当前分支和已有模型配置可用性，不输出凭据。
+- [x] 记录启动时间、HEAD、线程模型、完成目标和 AR0–AR23 状态。区分工程、真实使用、效果三个结果字段。
+- [x] 把 AQ 确认根因带入新身份，不重跑 AQ 全套面板/全库审计。恢复后先处理未完成修复再开启新样本。
 
 ### AR1 — 失败语料与现场修复驱动
 
 文件：新建 AR root/study.ts、study.test.ts、tsconfig.json；复用 AQ 的输入清单与存档路径，不修改 AQ。
 
-- [ ] 登记八个已有任务：memos-share/remove、paperless-download/notes/share-create、owui-ingestion、gitea-self-query/create-issue。输入只有自然请求、允许范围、固定源码和独立政策。
+- [x] 登记八个已有任务：memos-share/remove、paperless-download/notes/share-create、owui-ingestion、gitea-self-query/create-issue。输入只有自然请求、允许范围、固定源码和独立政策。
 - [ ] 从 AQ 点取真实坏响应，覆盖 wrong schema type、delta/controlDelta、bindings 混用、owner-null 漏分支、未读 helper、无效第二次检查和预算终止。
-- [ ] 写驱动失败测试：共享缺陷触发后剩余相关任务不得派发；已在途记录不丢；每个失败关联修复；旧原答不覆盖；同题新尝试成本累加；合法 unknown 不触发强制改答案。
+- [x] 写驱动失败测试：共享缺陷触发后剩余相关任务不得派发；已在途记录不丢；每个失败关联修复；旧原答不覆盖；同题新尝试成本累加；合法 unknown 不触发强制改答案。
 - [ ] 实现 `check/develop/evaluate/replay` 四个脚本动作。`develop` 每完成一小块即可评价和修复，代码修复由开发主线程执行，研究 runner 不自行改生产文件。先用 mock 验证，再运行真实任务。
 
 ### AR2 — 统一模型 wire 与完整工具 Schema
 
 文件：新建 `src/benchmarks/authorization-dsl/inquiry-wire.ts` 和测试；修改 inquiry-run.ts、inquiry-native.ts；复用 providers/structured.ts 转换器。
 
-- [ ] 为两入口实际发出的 Schema 写捕获测试：refined string、null、自由 JSON 值、数组界限、嵌套 result/control、unknown 字段诊断均一致。
-- [ ] 新策略统一使用 `controlDelta`。读取旧 `{kind:"control",delta:...}` 时只做具名无损别名归一；两字段冲突必须报错，不能择一。新增模型 Schema 只展示一个名字。
-- [ ] native 从同一 Zod 定义生成完整 nested schema；拒绝只给空 object 加长文字来代替接口。控制条件保持有界代数，不递归生成无限 Schema。
-- [ ] 把真实 AQ 坏响应交给新解析器做离线回归，记录哪些恢复、哪些仍语义无效。
+- [x] 为两入口实际发出的 Schema 写捕获测试：refined string、null、自由 JSON 值、数组界限、嵌套 result/control、unknown 字段诊断均一致。
+- [x] 新策略统一使用 `controlDelta`。读取旧 `{kind:"control",delta:...}` 时只做具名无损别名归一；两字段冲突必须报错，不能择一。新增模型 Schema 只展示一个名字。
+- [x] native 从同一 Zod 定义生成完整 nested schema；拒绝只给空 object 加长文字来代替接口。控制条件保持有界代数，不递归生成无限 Schema。
+- [x] 把真实 AQ 坏响应交给新解析器做离线回归，记录哪些恢复、哪些仍语义无效。
 - [ ] **本步骤接线后立即运行一个短的真实工具消费探针**，检查实际请求及返回，失败按第3节现场修。不要等后半程才首次见真实模型。
 
 ### AR3 — 宿主维护增量更新和可操作诊断

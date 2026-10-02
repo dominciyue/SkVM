@@ -235,7 +235,7 @@ Output ONLY the JSON object, nothing else. No markdown fences, no explanation.`
  * Convert a Zod schema to a JSON Schema object.
  * Handles common Zod types used in our system.
  */
-function zodToJsonSchema(schema: ZodTypeAny): Record<string, unknown> {
+export function zodToJsonSchema(schema: ZodTypeAny): Record<string, unknown> {
   // Use Zod's built-in JSON schema generation if available,
   // otherwise do a basic manual conversion
   const def = (schema as any)._def
@@ -271,8 +271,12 @@ function zodDefToJsonSchema(def: any): Record<string, unknown> {
       }
     }
 
-    case "ZodString":
-      return { type: "string" }
+    case "ZodString": {
+      const checks = def.checks ?? []
+      const min = checks.filter((c: any) => c.kind === "min").map((c: any) => c.value)
+      const max = checks.filter((c: any) => c.kind === "max").map((c: any) => c.value)
+      return { type: "string", ...(min.length ? { minLength: Math.max(...min) } : {}), ...(max.length ? { maxLength: Math.min(...max) } : {}) }
+    }
 
     case "ZodNumber":
       return { type: "number" }

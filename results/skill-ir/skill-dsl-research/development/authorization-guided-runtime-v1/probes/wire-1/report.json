@@ -1,0 +1,369 @@
+{
+  "schemaVersion": "authorization-inquiry-session/v1",
+  "sessionId": "2026-10-02T015610762Z-c597dbeb",
+  "sessionPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-guided-runtime-v1\\probes\\wire-1\\run\\sessions\\2026-10-02T015610762Z-c597dbeb",
+  "createdAt": "2026-10-02T01:56:10.763Z",
+  "inputSha256": "6d8783a0e247ce95a175f0caf939cca2a4fef63af728a3a5e16e57e4496bf936",
+  "model": "xty/gpt-5.6-sol",
+  "method": "M",
+  "strategy": "domain-evidence-v1",
+  "sourceFiles": [
+    {
+      "path": "entry.ts",
+      "sha256": "371365d678b092bb69364a13ac84447c6b83e9a97ea75c05c3541f696c683fa2",
+      "bytes": 89
+    }
+  ],
+  "noAutomaticResend": true,
+  "status": "budget-exhausted",
+  "domain": {
+    "slice": {
+      "schemaVersion": "authorization-control-slice/v1",
+      "revision": 2,
+      "rules": [
+        {
+          "key": "q1_entry",
+          "questionId": "q1",
+          "pathKey": "q1_all",
+          "kind": "entry",
+          "after": [],
+          "evidenceIds": [
+            "ev-c5e8789e2bd3c2b0641e"
+          ],
+          "claim": "inspect(enabled: boolean) is entered with the boolean input enabled.",
+          "complete": false,
+          "id": "ctrl-bdc46d267670c7562f73",
+          "digest": "fd769f9178108ed769e757237b5278d852fd1204a009d29dbd424e17b5aeb1e3",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        }
+      ],
+      "dependencies": [
+        {
+          "key": "q1_enabled_input",
+          "questionId": "q1",
+          "pathKey": "q1_enabled",
+          "from": "q1_entry",
+          "symbol": "inspect",
+          "evidenceIds": [
+            "ev-c5e8789e2bd3c2b0641e"
+          ],
+          "reason": "The return branch depends on the runtime value of the enabled parameter.",
+          "kind": "control",
+          "decisive": true,
+          "pathHint": "entry.ts:1-4",
+          "id": "ctrl-178e10ae802b79391d7b",
+          "digest": "6dff2937faf97704726e535ea94be8abbff7f3c1cd2a244e06e0f7b3be21b7a7",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        }
+      ],
+      "bindings": [],
+      "policyRules": [],
+      "conflicts": [
+        {
+          "id": "ctrl-bdc46d267670c7562f73",
+          "proposed": {
+            "key": "q1_entry",
+            "questionId": "q1",
+            "pathKey": "q1_all",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-82b075ae5c280a23aa4e"
+            ],
+            "claim": "inspect receives the boolean input enabled."
+          },
+          "previous": {
+            "key": "q1_entry",
+            "questionId": "q1",
+            "pathKey": "q1_all",
+            "kind": "entry",
+            "after": [],
+            "evidenceIds": [
+              "ev-c5e8789e2bd3c2b0641e"
+            ],
+            "claim": "inspect(enabled: boolean) is entered with the boolean input enabled.",
+            "complete": false,
+            "id": "ctrl-bdc46d267670c7562f73",
+            "digest": "fd769f9178108ed769e757237b5278d852fd1204a009d29dbd424e17b5aeb1e3",
+            "sourceBound": true,
+            "semanticSupport": "unreviewed"
+          },
+          "resolved": false
+        }
+      ],
+      "revisions": []
+    },
+    "proposals": [
+      {
+        "delta": {
+          "schemaVersion": "authorization-control-slice/v1",
+          "rules": [],
+          "dependencies": [],
+          "bindings": [],
+          "policyRules": []
+        },
+        "diagnostics": [],
+        "revision": 0
+      },
+      {
+        "delta": {
+          "schemaVersion": "authorization-control-slice/v1",
+          "rules": [
+            {
+              "key": "q1_entry",
+              "questionId": "q1",
+              "pathKey": "q1_all",
+              "kind": "entry",
+              "after": [],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "inspect(enabled: boolean) is entered with the boolean input enabled.",
+              "complete": false
+            },
+            {
+              "key": "q1_disabled_reject",
+              "questionId": "q1",
+              "pathKey": "q1_disabled",
+              "kind": "reject",
+              "after": [
+                "q1_entry"
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "When enabled is false, inspect returns false immediately.",
+              "condition": {
+                "op": "eq",
+                "left": {
+                  "binding": "enabled"
+                },
+                "right": false
+              },
+              "complete": true
+            },
+            {
+              "key": "q1_enabled_continue",
+              "questionId": "q1",
+              "pathKey": "q1_enabled",
+              "kind": "continue",
+              "after": [
+                "q1_entry"
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "When enabled is not false, execution continues past the negated guard.",
+              "condition": {
+                "op": "neq",
+                "left": {
+                  "binding": "enabled"
+                },
+                "right": false
+              },
+              "complete": false
+            },
+            {
+              "key": "q1_enabled_effect",
+              "questionId": "q1",
+              "pathKey": "q1_enabled",
+              "kind": "effect",
+              "after": [
+                "q1_enabled_continue"
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "The continuing path returns true.",
+              "condition": {
+                "op": "neq",
+                "left": {
+                  "binding": "enabled"
+                },
+                "right": false
+              },
+              "complete": true
+            }
+          ],
+          "dependencies": [],
+          "bindings": [],
+          "policyRules": []
+        },
+        "diagnostics": [
+          {
+            "code": "predicate-invalid",
+            "path": "rules.q1_disabled_reject",
+            "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+            "severity": "error"
+          },
+          {
+            "code": "predicate-invalid",
+            "path": "rules.q1_enabled_continue",
+            "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+            "severity": "error"
+          },
+          {
+            "code": "predicate-invalid",
+            "path": "rules.q1_enabled_effect",
+            "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+            "severity": "error"
+          }
+        ],
+        "revision": 1
+      },
+      {
+        "delta": {
+          "schemaVersion": "authorization-control-slice/v1",
+          "rules": [
+            {
+              "key": "q1_entry",
+              "questionId": "q1",
+              "pathKey": "q1_all",
+              "kind": "entry",
+              "after": [],
+              "evidenceIds": [
+                "ev-82b075ae5c280a23aa4e"
+              ],
+              "claim": "inspect receives the boolean input enabled."
+            },
+            {
+              "key": "q1_disabled_reject",
+              "questionId": "q1",
+              "pathKey": "q1_disabled",
+              "kind": "reject",
+              "after": [
+                "q1_entry"
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "When enabled is false, inspect returns false.",
+              "condition": {
+                "op": "eq",
+                "left": {
+                  "binding": "enabled"
+                },
+                "right": false
+              },
+              "complete": true
+            },
+            {
+              "key": "q1_enabled_effect",
+              "questionId": "q1",
+              "pathKey": "q1_enabled",
+              "kind": "effect",
+              "after": [
+                "q1_entry"
+              ],
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "claim": "When enabled is true, inspect returns true.",
+              "condition": {
+                "op": "eq",
+                "left": {
+                  "binding": "enabled"
+                },
+                "right": true
+              },
+              "complete": true
+            }
+          ],
+          "dependencies": [
+            {
+              "key": "q1_enabled_input",
+              "questionId": "q1",
+              "pathKey": "q1_enabled",
+              "from": "q1_entry",
+              "symbol": "inspect",
+              "evidenceIds": [
+                "ev-c5e8789e2bd3c2b0641e"
+              ],
+              "reason": "The return branch depends on the runtime value of the enabled parameter.",
+              "kind": "control",
+              "decisive": true,
+              "pathHint": "entry.ts:1-4"
+            }
+          ],
+          "bindings": [],
+          "policyRules": []
+        },
+        "diagnostics": [
+          {
+            "code": "control-conflict",
+            "path": "rules.q1_entry",
+            "message": "Conflicting proposal retained. Explicit revisionOf digest and revisionReason are required; existing rule was not overwritten.",
+            "severity": "error"
+          },
+          {
+            "code": "predicate-invalid",
+            "path": "rules.q1_disabled_reject",
+            "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+            "severity": "error"
+          },
+          {
+            "code": "predicate-invalid",
+            "path": "rules.q1_enabled_effect",
+            "message": "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal.",
+            "severity": "error"
+          }
+        ],
+        "revision": 2
+      }
+    ],
+    "dependencies": [
+      {
+        "id": "ctrl-178e10ae802b79391d7b",
+        "digest": "6dff2937faf97704726e535ea94be8abbff7f3c1cd2a244e06e0f7b3be21b7a7",
+        "key": "q1_enabled_input",
+        "questionId": "q1",
+        "pathKey": "q1_enabled",
+        "decisive": true,
+        "symbol": "inspect",
+        "state": "external-unknown",
+        "reason": "Requested dependency file is outside the allowed indexed scope.",
+        "candidates": [],
+        "evidenceIds": [],
+        "semanticSupport": "unreviewed",
+        "code": "dependency-out-of-scope"
+      }
+    ],
+    "schedulerActions": [],
+    "checkHistory": [],
+    "computation": {
+      "merges": 3,
+      "pathEvaluations": 3,
+      "conclusionChecks": 0,
+      "predicateEvaluations": 4,
+      "durationMs": 1.9925999999959458
+    },
+    "closed": true
+  },
+  "telemetry": {
+    "providerCalls": 6,
+    "respondedCalls": 6,
+    "unknownUsageCalls": 0,
+    "unknownCostCalls": 6,
+    "knownTokens": {
+      "input": 37355,
+      "output": 2297,
+      "cacheRead": 4480,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "complete",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown"
+  },
+  "durationMs": 97649,
+  "sourceAccounting": {
+    "indexBytes": 89,
+    "physicalReadBytes": 356,
+    "toolDisplayBytes": 153,
+    "cumulativeModelSourceBytes": 507,
+    "resentSourceBytes": 354
+  }
+}

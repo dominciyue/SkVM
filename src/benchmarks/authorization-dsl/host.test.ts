@@ -397,7 +397,7 @@ describe("runAuthorizationTask", () => {
     expect(resultToolSchema.properties?.results?.items?.properties?.facts
       ?.properties?.entry?.items?.properties?.citations?.items?.properties)
       .toEqual(expect.objectContaining({
-        sourceId: { type: "string" },
+        sourceId: { type: "string", minLength: 1 },
         startLine: { type: "number" },
         endLine: { type: "number" },
       }))
