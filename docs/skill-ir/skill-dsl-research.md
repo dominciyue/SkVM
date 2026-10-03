@@ -1336,6 +1336,10 @@ AR `evaluate`现接严格语义评审及另存裁定，20项70断言、研究类
 
 request8–11反复offered前两入口，过程对象诊断未进入解释focus。3项红例后同优先级已读解释轮转，诊断按题归属聚焦；审稿指出的名称碰撞另补红测，显式question优先、无归属同名规则不全选。137测试757断言及主/研究类型通过，11实际prefix的解释选择零provider重放不改原source/结果，不模拟完整prompt或location候选。下一步同作者/同预算具名explanation-focus复验；语义收益、完整checked和previous仍待验，主16行与未知任务封存保持。
 
+### 7.37 2026-10-04：剩余条件反例与解释轮转实用失败
+
+35项163断言/主类型补齐具名self/other/null/explicit grant和临时原源未读helper+complete:true联合反例；仅显式提取机械合同，任意自然语义与未声明分支仍未核验。explanation-focus实际9/9，5题全rejected，revision38/39；4个缺pathKey及7个缺after草稿未按原身份纠正/撤回，typed对象/前驱/路径与依赖未闭合。解释轮转覆盖5题，有进展但无checked或previous资格。26源码尝试中24计费、20成功、5hostread，4个目录搜索越域错误并非目录源码不可用；旧工具合同只承诺精确文件。权限助手只搜声明，body可读但未读；独立window-only full评语与主任务完整性裁定分存，版本/文件说明改善不代替权限分支。累计338调用、实际USD/人力unknown，主16面板和封存请求未释放。下一修复限定已索引目录搜索及有界拒绝目标原稿反馈，不猜条件或填前驱；见active taskbook与explanation-focus-outcome.json。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

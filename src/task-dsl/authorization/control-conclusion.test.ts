@@ -34,6 +34,32 @@ test("null owner excludes a non-null branch, while unspecified owner keeps its r
   expect(unknown.predicate.truth).toBe("unknown")
   expect(unknown.predicate.missingBindings).toEqual(["owner"])
 })
+test("self other null owner and explicit object grant select distinct proposed authorization branches", () => {
+  const allowed = { op: "any", args: [
+    { op: "is-null", value: { binding: "owner" } },
+    { op: "eq", left: { binding: "owner" }, right: { binding: "caller" } },
+    { op: "eq", left: { binding: "grant" }, right: { literal: true } },
+  ] }
+  const rules = [rule("entry", "entry", []),
+    rule("permit", "effect", ["entry"], { pathKey: "permit", condition: allowed, complete: true }),
+    rule("refuse", "reject", ["entry"], { pathKey: "refuse", condition: { op: "not", arg: allowed }, complete: true }),
+  ]
+  for (const [owner, grant, disposition] of [["alice", false, "allow"], ["bob", false, "deny"], [null, false, "allow"], ["bob", true, "allow"]] as const) {
+    const ownerText = owner === null ? "Owner is null." : `Owner is ${owner}.`, grantText = grant ? "Grant is present." : "Grant is absent."
+    const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: `Caller is alice. ${ownerText} ${grantText}`, premises: [] }] })
+    const s = state(rules, { bindings: [
+      { questionId: "q", key: "caller", value: "alice", origin: "user", text: "Caller is alice." },
+      { questionId: "q", key: "owner", value: owner, origin: "user", text: ownerText },
+      { questionId: "q", key: "grant", value: grant, origin: "user", text: grantText },
+    ] }, p)
+    const checked = api.checkControlConclusions(p, s, answer(disposition), [])
+    expect(s.bindings).toHaveLength(3)
+    expect(checked.paths.map((path: any) => path.predicate.truth)).toEqual(disposition === "allow" ? ["true", "false"] : ["false", "true"])
+    expect(checked.ruleConsistency).toBe(true)
+    expect(codes(api.checkControlConclusions(p, s, answer(disposition === "allow" ? "deny" : "allow"), []))).toContain("behavior-rule-conflict")
+    expect(checked.semanticSupport).toBe("unreviewed")
+  }
+})
 test("terminal conflict and effect after early rejection are detected without guessing array order", () => {
   const s = state([rule("entry", "entry", []), rule("deny", "reject", ["entry"], { complete: true }), rule("allow", "effect", ["entry"], { complete: true })])
   expect(codes(api.checkControlConclusions(plan, s, answer("allow"), []))).toContain("path-outcome-conflict")

@@ -159,9 +159,13 @@ AR3 run/report 已保留 phase/sequence/path/code/rawResponse/usage，Schema 重
 
 ### AR4 — 补可达绑定及分支级结论检查
 
+2026-10-04剩余验收只读定位：null/unknown、grant false/not-given、早拒绝、互斥终端及已提出decisive dependency已有确定性回归；owner==caller的self/other具体值对照与实际源文件中未读helper+complete:true的联合用例缺少具名覆盖。当前普通复验在途时只补这两类测试，不修改其使用的核心；若出现预期外失败，先保存原件并等在途收尾再修实现。自由claim含义保持unreviewed，不能用字符串启发式冒充任意自然语言/源码一致性检查；实际分支提取及语义修复仍单列未达。
+
 2026-10-04实际复验补充：compact普通消费12/12、21源码动作、0wire失败，最终规则22/22/7/6/1仍全不checked。前两题principal字段为authenticated_request_user，声明bindingKey为request_user；现合同将bindingKey视作身份声明，principal/resource视作引用，不支持用字段改名。当前过程反馈直到首次final才有object-binding诊断。先写未final就显示该错误、显式改key后消除且partial草稿仍接受的反例，再把现有对象/authorization边检查抽成共享纯函数，按slice revision更新下一次model反馈；保留最终原验收、checks-off、跨题/可达性和未知值约束。过程提示不创建额外请求、拒绝层或自动别名；计量过程计算次数，GUIDE和诊断明确字段合同。
 
 本次2项预期红例后134测试744断言、主/研究类型及独立只读复核通过。纯对象检查在两策略下一次反馈出现，显式bindingKey修订可清除，partial接受、checks-off及原最终规则不变。11原提议零provider回放accepted state完全不变，身份诊断从第6提议revision46即可获得，早于原首次final revision88；原最终6对象诊断/全图失败保持。计量小修3项反例通过，只恢复匹配原身份的明确0派发，累计318、USD/人力unknown。下一步同原作者字节/同12与24预算early-object-feedback-v1具名普通复验；未证明真实语义收益，不释放未知Memos/Notes或主面板。
+
+2026-10-04剩余机械验收补齐：具名self/other/null/explicit grant对照与实际临时源码未读decisive helper+complete:true联合用例通过；35项163断言及主类型通过，0provider。仅验证显式提出的条件/依赖合同，任意claim含义、未知未声明源码分支及真实语义完整性不升格，下一coverage项仍开放。见ar4-remaining-verification.json。
 
 文件：control-conclusion.ts、control-conclusion.test.ts、control-evaluation.test.ts。
 
@@ -182,7 +186,7 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 ```
 
 - [x] 补 reachable-but-not-predecessor、同 key 不同对象、跨 question、合法共同前驱四类测试；检查对应可达前驱中的绑定。
-- [ ] 增加 self/other/null owner、not-given grant、早拒绝后的 effect、互斥分支误合并反例；未知输入继续产生条件结果。
+- [x] 增加 self/other/null owner、not-given grant、早拒绝后的 effect、互斥分支误合并反例；未知输入继续产生条件结果。
 - [x] 不能强迫每个真实 effect 都有合法 guard：无授权保护本身可能是待报告行为。验证所声称的关系，不凭空补保护。
 - [ ] 对模型 `complete:true` 仅作为提取主张；未完成取证项/已发现未表示的分支必须进入 coverage 缺口。
 
@@ -225,6 +229,10 @@ location-routing-v1真实8/8返回，三题已显式定位但五题仍rejected�
 本段工作计划：当前已读任务在同优先级下始终先列固定题序，request8–11只offered同两入口；早期对象diagnostics也未进入局部任务focus。先写五题共享原窗口的等待核验任务必须有界轮转、第三题对象错误定向第三题而不被共享ID抢占的红例，再按既有两个任务上限轮转同优先级解释，并用全部当前诊断绑定其所属题目。仍保留新读/具名修复优先、同题local绑定、完整原窗口、0额外读取或调用；无语义归纳或checked自动升格。修后确定性重放实际context，主/研究类型和相关回归通过后再具名复验；未知Notes/Memos及主面板封存不变。
 
 3项预期红例后137测试757断言及主/研究类型通过；独立代码复核的显式题名/规则名碰撞已补红绿修复，其余新读优先级与recent窗口保留按既有合同裁定。11实际prefix的零provider解释选择重放通过，5次涉及Q3诊断focus，候选未重放、无完整新prompt/答案或语义升格。原初/终对象快照审稿错误已按revision21/23另存裁定。下一步explanation-focus-v1同字节同预算普通复验，完整checked/语义previous仍未达。
+
+2026-10-04 explanation-focus普通复验9/9，5题全rejected，0usable；初/终revision38/39，原4缺pathKey+7缺after草稿没有原键纠正/撤回，9个typed identity缺口及开放路径/依赖仍在。解释任务实际轮转到5题，不等于修复；目录search四次source-out-of-scope占24工具预算中的4次，总26尝试/24计费/20成功/5hostread。版本与返回文件关系文字已展开，权限助手仅搜索声明未读body；独立window-only correct评语经允许范围/任务前提点验降为遗漏，不能把缺展示当缺源码。累计338调用，费用/人力unknown，unknown Notes/Memos和主面板保持封存。
+
+下一现场共享修复工作计划：先写目录selector必须只筛既有索引文件且防前缀碰撞/越界/未索引路径的红例，再支持source_search文件或目录（source_read仍精确文件）。第二组红例要求当前拒绝目标在模型反馈有有界原稿及精确question/group/key、原证据、所有自身诊断和是否已有accepted目标；最多4项/16KiB整项轮转，完整report不裁剪，超限仅给明确定位和省略原因。普通和局部原稿分别保留引用来源，局部补question/evidence仅复用原host绑定，不授权未读窗口。指令明确：从未接受的草稿纠正用add，已接受目标修订用replace；弃稿仅已存在的eligible withdrawal，不自动清除旧错误。pathKey/after/binding identity/条件/完整性由模型显式填写，缺字段不推断、不增加provider。对真实9prefix离线验证状态不变与修复可见性，相关红绿/类型/独立边界点验后再同作者字节同12/24预算具名ordinary复验。
 
 文件：新建 `inquiry-local-extraction.ts`、测试；接 inquiry-domain-runtime.ts 和现有 provider/telemetry。
 

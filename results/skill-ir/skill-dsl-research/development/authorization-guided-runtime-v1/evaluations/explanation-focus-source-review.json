@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "authorization-ar-independent-source-review/v1",
+  "task": "explanation_run_answer_review",
+  "verbatim": false,
+  "stage": "consume-authorization-cloudflare-download-repair-explanation-focus-v1",
+  "initialRatings": [
+    "correct",
+    "partial",
+    "correct",
+    "correct",
+    "correct"
+  ],
+  "finalRatings": [
+    "correct",
+    "correct",
+    "correct",
+    "correct",
+    "correct"
+  ],
+  "findings": [
+    {
+      "questionId": "download-request-document",
+      "pointers": [
+        "/initial/questions/0",
+        "/final/questions/0"
+      ],
+      "source": "src/documents/views.py:1388-1447;1834-1839",
+      "assessment": "Request/root/file separation and version-path special case are described."
+    },
+    {
+      "questionId": "download-version-selection",
+      "pointers": [
+        "/initial/questions/1",
+        "/final/questions/1"
+      ],
+      "source": "src/documents/versioning.py:140-195;views.py:1374-1399",
+      "assessment": "Initial top-level omitted-selector summary lacks the version-path exception but its branch contains it; final contains it."
+    },
+    {
+      "questionId": "download-original-archive",
+      "pointers": [
+        "/initial/questions/2",
+        "/final/questions/2"
+      ],
+      "source": "src/documents/views.py:1368-1373;1437-1447;4941-4995",
+      "assessment": "Original/archive selector, byte handle, MIME and naming use are described."
+    },
+    {
+      "questionId": "download-authorization-root-version",
+      "pointers": [
+        "/initial/questions/3",
+        "/final/questions/3"
+      ],
+      "source": "src/documents/views.py:1021;1421-1444",
+      "assessment": "Declares authentication and explicit root check, while leaving available helper semantics unresolved."
+    },
+    {
+      "questionId": "download-version-authorization-invariant",
+      "pointers": [
+        "/initial/questions/4",
+        "/final/questions/4"
+      ],
+      "source": "src/documents/views.py:1388-1444;versioning.py:189-195",
+      "assessment": "Separates source identity mismatch from intended policy conclusion."
+    }
+  ],
+  "limits": [
+    "Advisory review judged supplied windows; main adjudication also requires requested branch completeness within allowed source.",
+    "Formal graph validation remains false; no main panel inclusion."
+  ]
+}

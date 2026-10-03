@@ -6,6 +6,27 @@ import { createInquiryTools } from "./inquiry-tools.ts"
 import { createInquiryDomainRuntime } from "./inquiry-domain-runtime.ts"
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
 import { validateAuthorizationInquiryResult } from "../../task-dsl/authorization/inquiry-result.ts"
+test("a complete source-bound effect cannot conceal an actual unread decisive helper", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-unread-complete-"))
+  await writeFile(path.join(sourceRoot, "entry.ts"), "export function entry() { if (!gate()) return false; return true; }\n")
+  await writeFile(path.join(sourceRoot, "helper.ts"), "export function gate() { return false; }\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["."] })
+  const id = (await tools.execute("source_read", { path: "entry.ts", startLine: 1, endLine: 1 })).evidence[0]!.id
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect the entry authorization", entryHint: "entry", premises: [] }] })
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "guided-evidence-v2", ablation: "scheduler-off" })
+  await runtime.propose({ schemaVersion: "authorization-control-update/v1", rules: [
+    { op: "add", questionId: "q", targetKey: "entry", pathKey: "p", kind: "entry", after: [], evidenceIds: [id], claim: "Calls the gate before allowing" },
+    { op: "add", questionId: "q", targetKey: "effect", pathKey: "p", kind: "effect", after: ["entry"], evidenceIds: [id], claim: "Claims a fully examined effect", complete: true },
+  ], dependencies: [{ op: "add", questionId: "q", targetKey: "gate-body", pathKey: "p", from: "entry", symbol: "gate", kind: "control", decisive: true, evidenceIds: [id], reason: "This shown call controls the effect" }] })
+  const checked = await runtime.validate({ schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q", behavior: { disposition: "allow", explanation: "Incomplete source is claimed complete" }, branches: [], evidenceIds: [id], missing: [] }], observations: [], scope: "local" })
+  expect(runtime.report().slice.rules.find(r => r.key === "effect")!.complete).toBe(true)
+  expect(runtime.report().dependencies[0]!.state).not.toBe("checked")
+  expect(checked.diagnostics.map(d => d.code)).toContain("decisive-dependency-open")
+  expect(checked.questionChecks[0]!.ruleConsistent).toBe(false)
+  expect(checked.questionChecks[0]!.evidenceCoverage).not.toBe("bounded")
+  expect(tools.evidence.some(e => e.path === "helper.ts")).toBe(false)
+  expect(tools.toolCalls).toBe(1)
+})
 for (const strategy of ["domain-evidence-v1", "guided-evidence-v2"] as const) test(`${strategy} reports typed identity references before final without rejecting partial updates or inventing aliases`, async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-object-feedback-")); await writeFile(path.join(sourceRoot, "entry.ts"), "export const entry = true\n")
   const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["entry.ts"] })
