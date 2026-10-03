@@ -960,7 +960,10 @@ async function materializeCase(options: {
       options.diagnostics.push({ ...located.diagnostic, caseId: suggestion.id })
       return undefined
     }
-    const relative = options.variation || preserveProjections ? portableRelative(inputPath) : located.relative
+    // A cwd variation preserves the parent's relative interface. Only a path
+    // variation supplies a new destination; evidence locators are not paths.
+    const relocatePath = options.variation?.kind === "path"
+    const relative = relocatePath || preserveProjections ? portableRelative(inputPath) : located.relative
     if (!relative) {
       options.diagnostics.push({
         code: "validation-input-path-invalid",
@@ -969,8 +972,17 @@ async function materializeCase(options: {
       })
       return undefined
     }
-    if (!options.variation && inputPath.replaceAll("\\", "/") !== relative) {
+    if (!relocatePath && !preserveProjections && inputPath.replaceAll("\\", "/") !== relative) {
       argumentRewrites.set(inputPath, relative)
+      // Directory-taking commands refer to a parent of the selected file.
+      // Rewrite only ancestors within this already-bound evidence projection.
+      let locatorParent = path.posix.dirname(inputPath.replaceAll("\\", "/"))
+      let relativeParent = path.posix.dirname(relative)
+      while (relativeParent !== ".") {
+        argumentRewrites.set(locatorParent, relativeParent)
+        locatorParent = path.posix.dirname(locatorParent)
+        relativeParent = path.posix.dirname(relativeParent)
+      }
     }
     const textContent = inputSource === "task-fixtures"
       ? fixtures?.[located.relative ?? sourceInputPath.replaceAll("\\", "/")]

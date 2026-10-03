@@ -9,6 +9,7 @@ import {
 import type { ImplementationSelection } from "../../src/jit-optimize/implementations.ts"
 import type { Evidence, OptimizationAction } from "../../src/jit-optimize/types.ts"
 import { writePreRunInputSnapshot } from "../../src/run/pre-run-input-snapshot.ts"
+import { deriveValidationVariations } from "../../src/jit-optimize/validation-completion.ts"
 
 const dirs: string[] = []
 
@@ -80,6 +81,26 @@ async function evidenceWithFixture(options: {
 }
 
 describe("deriveProgramValidationPlan", () => {
+  test("keeps projected directory inputs relative to both parent and varied cwd", async () => {
+    const evidence = await evidenceWithFixture({ taskId: "directory-input", inputPath: "source/release.yml", input: "permissions: read-all", referencePath: "inventory.json", reference: "{}" })
+    const projection = ".optimize/tasks/directory-input/run-0-task-fixtures"
+    for (const directory of ["source", `${projection}/source`]) {
+      const action: OptimizationAction = {
+        id: "inventory", kind: "generate-script", evidenceIds: ["0"], sourceRefs: [], dependsOn: [], inputs: [], outputs: [], preconditions: [], changedPaths: ["scripts/convert.mjs"], residualDuties: [], verification: [],
+        validation: { cases: [{ id: "directory", evidenceId: "0", inputSource: "task-fixtures", inputFiles: [`${projection}/source/release.yml`], args: [directory, "inventory.json"], expectedFiles: [{ path: "inventory.json" }], basis: "task-contract", sourceRefs: [] }] },
+      }
+      const selected = implementation(action.id)
+      const variations = await deriveValidationVariations({ action, implementation: selected, evidences: [evidence] })
+      const plan = await deriveProgramValidationPlan({ action, implementation: selected, evidences: [evidence], validationRoot: await tempDir("validation-directory-cwd-"), derivedVariations: variations.generated })
+      expect(plan.status).toBe("ready")
+      expect(plan.cases).toHaveLength(2)
+      for (const item of plan.cases) {
+        expect(item.args).toEqual(["source", "inventory.json"])
+        expect(await Bun.file(path.join(item.cwd, item.args[0]!, "release.yml")).exists()).toBe(true)
+      }
+    }
+  })
+
   test("keeps an ordinary root interface when mixed explicit inputs have unique relative paths", async () => {
     const validationRoot = await tempDir("validation-mixed-root-")
     const evidence = await evidenceWithFixture({

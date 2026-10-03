@@ -35,6 +35,17 @@ test("list/search/symbol/read exposes numbered original bytes and independent sa
   expect(again.evidence[0]!.id).toBe(read.evidence[0]!.id)
   expect(tools.evidence.filter(item => item.id === read.evidence[0]!.id).length).toBe(1)
 })
+test("a read extending past EOF retains the available original window and exact requested range", async () => {
+  const { tools } = await fixture()
+  const read = await tools.execute("source_read", { path: "src/entry.ts", startLine: 1, endLine: 4 })
+  expect(read.status).toBe("ok")
+  expect(read.code).toBe("source-end-clamped")
+  expect(read.requested).toMatchObject({ startLine: 1, endLine: 4 })
+  expect(read.evidence[0]).toMatchObject({ startLine: 1, endLine: 3 })
+  expect(read.evidence[0]!.text).toContain("return authorizeRecord")
+  expect((await tools.execute("source_read", { path: "src/entry.ts", startLine: 1, endLine: 3 })).evidence[0]!.id).toBe(read.evidence[0]!.id)
+  for (const [startLine, endLine] of [[4, 5], [3, 2]]) expect((await tools.execute("source_read", { path: "src/entry.ts", startLine, endLine })).code).toBe("source-range")
+})
 test("canonical directory cycle is bounded and an escaping junction is rejected", async () => {
   const { root } = await fixture(), outside = await mkdtemp(path.join(os.tmpdir(), "ao-outside-"))
   await writeFile(path.join(outside, "hidden.ts"), "export const privateData = true;")

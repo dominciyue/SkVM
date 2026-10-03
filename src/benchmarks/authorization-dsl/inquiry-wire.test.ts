@@ -21,7 +21,7 @@ test("guided result moves explicitly owned nested observations without guessing 
   const parsed = schema.parse({ result: raw }).result
   expect(parsed.observations).toEqual([observation])
   expect(parsed.questions[0]).not.toHaveProperty("observations")
-  expect(raw.questions[0].observations).toEqual([observation])
+  expect(raw.questions[0]!.observations).toEqual([observation])
   for (const result of [{ ...raw, observations: [] }, { ...raw, questions: [{ ...q, observations: [{ ...observation, questionId: "other" }] }] }]) expect(schema.safeParse({ result }).success).toBe(false)
   expect(api.inquiryStepSchemas("guided-evidence-v2", true).schema.parse({ kind: "final", result: raw }).result).toEqual(parsed)
   expect(api.inquiryNativeSchemas("legacy", true).authorization_check_result.safeParse({ result: raw }).success).toBe(false)

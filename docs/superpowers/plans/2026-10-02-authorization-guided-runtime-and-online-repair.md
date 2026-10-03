@@ -281,6 +281,10 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 - [ ] 从仓外普通目录复制示例运行，源路径/依赖明确，不依赖 results identity 或绝对开发路径。
 - [ ] AR10、AR12、AR13若使用同一普通运行且证据齐全，可以共享该session；分别标明检验目的，不为重复证明同一性质增加调用，也不将共享session计为多个独立样本。
 
+2026-10-03实际程序作者已生成并运行Python命令；优化器也产生脚本，但因宿主cwd变化用例的投影路径错误回滚为no-change。原首稿/模型修稿/失败验证保留。红测后共用材料化修复45项200断言通过；下一步从保留的模型候选原字节，经当前validation/proposal/export API做零模型恢复，另列host-recovery，不主代理修改实验程序、不伪称原自动运行成功。随后同一个导出包在原任务及变化任务实际消费。
+
+政策变化修复尝试已编译但无checked交付；独立源码核验指出self-removal绕过管理员校验，原答案对此错误。真实EOF越界读取已作共用修复，19项80断言通过；语义错误保留，后续针对分支解释处理。
+
 ### AR14 — 分组质量对照，边运行边修
 
 文件：AR root/study.ts、evaluate.ts、failure records、evaluation-summary.json。

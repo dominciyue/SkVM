@@ -32,7 +32,7 @@ export const INQUIRY_SOURCE_TOOLS: LLMTool[] = [
   toolSchema("source_list", "List allowed original source paths, sizes and line counts. No source is implicitly read into analysis.", { offset: { type: "integer", minimum: 0 }, limit: int }),
   toolSchema("source_search", "Search literal text in allowed source, returning numbered source lines and evidence IDs; optional exact path.", { text: str, path: str, limit: int }, ["text"]),
   toolSchema("source_symbol", "Locate lexical symbol candidates with paths and original ranges. All ambiguous candidates are returned; read bodies explicitly. This is not a call graph.", { name: str, path: str }, ["name"]),
-  toolSchema("source_read", "Read a closed original source line range, with host-bound evidence ID, source digest and truncation. No shell, writes, network or target execution.", { path: str, startLine: int, endLine: int }, ["path", "startLine", "endLine"]),
+  toolSchema("source_read", "Read an original source line range; an end beyond EOF returns the available lines with actual evidence bounds. No shell, writes, network or target execution.", { path: str, startLine: int, endLine: int }, ["path", "startLine", "endLine"]),
 ]
 const schemas = {
   source_list: z.object({ offset: z.number().int().nonnegative().default(0), limit: z.number().int().min(1).max(512).default(128) }).strict(),
@@ -104,7 +104,9 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
   }
   const show = (source: SourceBundleFile, start: number, end: number): InquiryToolOutput => {
     const lines = linesOf(source.content)
-    if (end < start || start > lines.length || end > lines.length) return blank("error", "source-range", "Requested range does not fit the original file.")
+    if (end < start || start > lines.length) return blank("error", "source-range", "Requested range does not overlap the original file.")
+    const requestedEnd = end
+    end = Math.min(end, lines.length)
     let text = "", last = start - 1
     for (let i = start; i <= end; i++) {
       const line = `${i} | ${lines[i - 1]!}\n`
@@ -115,7 +117,7 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
     const bytes = Buffer.byteLength(text); displayBytes += bytes
     const item = originalWindow(source, start, last)
     if (!evidence.some(e => e.id === item.id)) evidence.push(item)
-    return { ...blank(last === end ? "ok" : "partial"), evidence: [item], requested: { path: source.relativePath, startLine: start, endLine: end }, truncated: last !== end }
+    return { ...blank(last === end ? "ok" : "partial", requestedEnd > end ? "source-end-clamped" : undefined, requestedEnd > end ? `Requested end ${requestedEnd} exceeds EOF ${end}; returning available original lines.` : undefined), evidence: [item], requested: { path: source.relativePath, startLine: start, endLine: requestedEnd }, truncated: last !== end }
   }
   const execute = async (name: string, args: Record<string, unknown>, origin?: { actionOrigin: string; questionId: string; dependencyId: string; reason: string }): Promise<InquiryToolOutput> => {
     let result: InquiryToolOutput
