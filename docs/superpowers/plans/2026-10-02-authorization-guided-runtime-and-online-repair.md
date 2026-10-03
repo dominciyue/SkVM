@@ -207,6 +207,7 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 - [x] 预留检查与最终交付机会，检查不能被编译/反复observe耗尽。真实同一根因诊断去重后再修，不把完整错误清单重复灌回模型。
 - [ ] 量化每个解决缺口的调用/读取/重发字节；出现“调用增加却无状态进展”立即登记并修调度，不只抬预算。
 - 2026-10-03 probe-3修复方案：发现词法引用时只读selected定义确切行范围，同题同原位置去重；未被明确关联dependency或局部candidate选择的引用只保留线索，不自动读。仅guided探索阶段将根部纯controlDelta及无calls的纯tool/controlDelta无损归一为control，保留原文与归一记录；含混字段/无效delta/最后final专用阶段仍拒绝。不提高原预算、不重发attempt-3未知请求。
+- 2026-10-03 Memos首探针2派发失败：原稿提供明确calls却漏kind；修稿补kind但controlDelta漏当前策略常量schemaVersion。计划以真实原件作红绿回归：仅guided已选合同补缺失的版本常量，明确非空合法calls且没有其它分支字段时补tool种类，记录归一；显式错误版本/含混结果/空calls仍拒绝。原模型Schema仍要求完整字段，不改语义项或自动选择candidate，原失败与成本单列，修后同题复验。
 - [ ] 回归中确认首答、检查失败后修订、总限额、关闭后无续发、不同问题的局部结果保存。
 
 ### AR9 — 从局部规则到分层答案检查

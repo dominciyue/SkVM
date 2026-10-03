@@ -40,13 +40,25 @@ const localSteps = (delta: typeof LocalControlDeltaSchema | typeof LocalControlE
   z.object({ kind: z.literal("final"), result: AuthorizationInquiryResultSchema, controlDelta: delta.optional() }).strict(),
 ])
 const localModelSteps = localSteps(LocalControlDeltaSchema), localParserSteps = localSteps(LocalControlEnvelopeSchema)
-/** Normalize only pure local-control envelopes; do not infer a tool action or a final answer. */
+function guidedDeltaWithContextVersion(input: unknown) {
+  if (!input || typeof input !== "object" || Array.isArray(input) || "schemaVersion" in input) return input
+  const candidate = { ...input, schemaVersion: "authorization-control-update/v1" }
+  return LocalControlEnvelopeSchema.safeParse(candidate).success ? candidate : input
+}
+/** Fill only omitted routing metadata from the selected strategy and explicit payload; never invent calls or a final answer. */
 export function normalizeGuidedControlEnvelope(input: unknown) {
   if (!input || typeof input !== "object" || Array.isArray(input)) return { value: input }
-  const value = input as Record<string, unknown>, keys = Object.keys(value)
-  if (!("controlDelta" in value) || !keys.every(key => ["kind", "controlDelta"].includes(key))) return { value: input }
-  const code = !("kind" in value) ? "control-kind-omitted" : value.kind === "tool" ? "control-tool-without-calls" : undefined
-  return code ? { value: { ...value, kind: "control" }, normalization: { code, originalKind: value.kind ?? null } } : { value: input }
+  const original = input as Record<string, unknown>, keys = Object.keys(original), filled: string[] = []
+  let value = original, code: string | undefined
+  if ("controlDelta" in value && keys.every(key => ["kind", "controlDelta"].includes(key))) {
+    code = !("kind" in value) ? "control-kind-omitted" : value.kind === "tool" ? "control-tool-without-calls" : undefined
+    if (code) { value = { ...value, kind: "control" }; filled.push("kind") }
+  } else if (!("kind" in value) && keys.every(key => ["calls", "controlDelta"].includes(key)) && calls.safeParse(value.calls).success) {
+    value = { ...value, kind: "tool" }; filled.push("kind"); code = "guided-envelope-metadata-omitted"
+  }
+  const controlDelta = guidedDeltaWithContextVersion(value.controlDelta)
+  if (controlDelta !== value.controlDelta) { value = { ...value, controlDelta }; filled.push("controlDelta.schemaVersion"); code = "guided-envelope-metadata-omitted" }
+  return code ? { value, normalization: { code, originalKind: original.kind ?? null, ...(code === "guided-envelope-metadata-omitted" ? { filled } : {}) } } : { value: input }
 }
 export type InquiryStep = InquiryControlStep | z.infer<typeof localParserSteps>
 const resultModelSchema = (mode?: "behavior" | "conformance") => mode ? AuthorizationInquiryResultSchema.extend({ questions: z.array(mode === "behavior" ? InquiryQuestionResultSchema.omit({ policyAssessment: true }) : InquiryQuestionResultSchema.extend({ policyAssessment: InquiryQuestionResultSchema.shape.policyAssessment.unwrap() })) }) : AuthorizationInquiryResultSchema
@@ -61,7 +73,7 @@ export function inquiryStepSchemas(strategy: InquiryStrategy, finalOnly = false,
 
 export function inquiryNativeSchemas(strategy: InquiryStrategy, parsing = false) {
   const domain = strategy !== "legacy"
-  const delta = strategy === "guided-evidence-v2" ? parsing ? LocalControlEnvelopeSchema : LocalControlDeltaSchema : ControlSliceDeltaSchema
+  const delta = strategy === "guided-evidence-v2" ? parsing ? z.preprocess(guidedDeltaWithContextVersion, LocalControlEnvelopeSchema) : LocalControlDeltaSchema : ControlSliceDeltaSchema
   return {
     authorization_compile: z.object({ inquiry: AuthorizationInquirySchema }).strict(),
     authorization_observe: domain ? z.object({ observations: observations.min(0).optional(), controlDelta: delta.optional() }).strict() : z.object({ observations: observations.min(0) }).strict(),

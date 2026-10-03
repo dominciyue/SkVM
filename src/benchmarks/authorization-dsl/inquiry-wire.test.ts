@@ -72,3 +72,19 @@ test("guided exploration accepts only unambiguous lossless control envelopes and
   for (const raw of [{ controlDelta, result: {} }, { controlDelta, observations: [] }, { kind: "tool", controlDelta, calls: [] }, { kind: "invented", controlDelta }, { controlDelta: { schemaVersion: "invented" } }, { controlDelta, extra: true }]) expect(schema.safeParse(raw).success).toBe(false)
   expect(api.inquiryStepSchemas("legacy").schema.safeParse({ controlDelta }).success).toBe(false)
 })
+
+test("guided metadata omission preserves explicit source calls and current local content without inferring semantics", () => {
+  const raw = { calls: [{ name: "source_read", arguments: { path: "entry.ts", startLine: 1, endLine: 4 } }], controlDelta: { workSelections: [{ questionId: "q", itemId: "q::entry", candidateId: "shown" }] } }
+  const schemas = api.inquiryStepSchemas("guided-evidence-v2")
+  const result = schemas.schema.parse(raw)
+  expect(result).toMatchObject({ kind: "tool", calls: raw.calls, controlDelta: { ...raw.controlDelta, schemaVersion: "authorization-control-update/v1" } })
+  expect(raw).not.toHaveProperty("kind")
+  expect(raw.controlDelta).not.toHaveProperty("schemaVersion")
+  expect(api.normalizeGuidedControlEnvelope(raw).normalization).toMatchObject({ code: "guided-envelope-metadata-omitted", originalKind: null, filled: ["kind", "controlDelta.schemaVersion"] })
+  expect(schemas.modelSchema.safeParse(raw).success).toBe(false)
+  for (const invalid of [{ ...raw, result: {} }, { ...raw, observations: [] }, { ...raw, calls: [] }, { ...raw, calls: [{ name: "shell", arguments: {} }] }, { ...raw, controlDelta: { ...raw.controlDelta, schemaVersion: "old" } }]) expect(schemas.schema.safeParse(invalid).success).toBe(false)
+  expect(api.inquiryStepSchemas("guided-evidence-v2", true).schema.safeParse(raw).success).toBe(false)
+  expect(api.inquiryStepSchemas("legacy").schema.safeParse(raw).success).toBe(false)
+  expect(api.inquiryNativeSchemas("guided-evidence-v2", true).authorization_observe.parse({ controlDelta: raw.controlDelta }).controlDelta.schemaVersion).toBe("authorization-control-update/v1")
+  expect(api.inquiryNativeSchemas("guided-evidence-v2").authorization_observe.safeParse({ controlDelta: raw.controlDelta }).success).toBe(false)
+})
