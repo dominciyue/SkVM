@@ -104,3 +104,23 @@ test("a verified scoped adjudication releases only its distinct mechanism row an
   await expect(api.developRows(root, rows, run)).rejects.toThrow(/adjudication evidence/)
   expect(started).toEqual(["probe"])
 })
+
+test("replay rejects a claim attempt number that differs from its directory before review binding", async () => {
+  const root = await temp(), identity = { row: row("mismatched"), attempt: 2 }, dir = path.join(root, "runs/mismatched/attempt-1")
+  await mkdir(dir, { recursive: true }); await writeFile(path.join(dir, "claim.json"), JSON.stringify(identity)); await writeFile(path.join(dir, "report.json"), JSON.stringify({ identity, report: { providerDispatches: 1 } }))
+  await expect(api.replay(root)).rejects.toThrow(/attempt identity/)
+})
+test("a missing first report is never relabeled as the next repair report", async () => {
+  const root = await temp(), identity = (attempt: number) => ({ row: row("missing"), attempt })
+  for (const number of [1, 2]) { const dir = path.join(root, `runs/missing/attempt-${number}`); await mkdir(dir, { recursive: true }); await writeFile(path.join(dir, "claim.json"), JSON.stringify(identity(number))); if (number === 2) await writeFile(path.join(dir, "report.json"), JSON.stringify({ identity: identity(number), report: { providerDispatches: 3, totalActualUsd: null } })) }
+  expect((await api.replay(root)).rows[0]).toMatchObject({ firstAttempt: null, repairAttempts: ["runs/missing/attempt-2/report.json"], providerCalls: null, knownProviderCalls: 3, totalActualUsd: null })
+})
+test("invalid numeric accounting remains unknown rather than creating negative known savings", async () => {
+  const root = await temp(), identity = { row: row("invalid-cost"), attempt: 1 }, dir = path.join(root, "runs/invalid-cost/attempt-1")
+  await mkdir(dir, { recursive: true }); await writeFile(path.join(dir, "claim.json"), JSON.stringify(identity))
+  for (const value of [-1, Infinity]) {
+    const content = JSON.stringify({ identity, report: { providerDispatches: value, totalActualUsd: value } }).replaceAll('"providerDispatches":null', '"providerDispatches":1e400').replaceAll('"totalActualUsd":null', '"totalActualUsd":1e400')
+    await writeFile(path.join(dir, "report.json"), content)
+    expect((await api.replay(root)).rows[0]).toMatchObject({ providerCalls: null, knownProviderCalls: 0, knownUsdSubtotal: 0, totalActualUsd: null })
+  }
+})

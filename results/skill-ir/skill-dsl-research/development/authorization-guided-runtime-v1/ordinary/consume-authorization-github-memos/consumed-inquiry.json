@@ -1,0 +1,145 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "memos-remove",
+  "repository": "usememos/memos",
+  "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+  "sourceRoot": "./source",
+  "allowedPaths": [
+    "server/api/v1",
+    "core/access",
+    "store",
+    "proto/api/v1",
+    "internal/ratelimit"
+  ],
+  "inquiry": {
+    "schemaVersion": "authorization-inquiry/v1",
+    "mode": "conformance",
+    "questions": [
+      {
+        "id": "ordinary-member-removes-other-member",
+        "request": "Determine whether an authenticated ordinary member of a space may use DeleteSpaceMember to remove a different member from that same space, explain the actual authorization behavior, identify and cite the controlling source, and retain any decisive fact that cannot be established from the allowed source.",
+        "principal": "an authenticated ordinary member of the affected space who is not a space administrator and is different from the target member",
+        "resource": "a different user's membership in the same space, addressed through the DeleteSpaceMember resource name",
+        "operation": "DeleteSpaceMember: remove another member's space membership",
+        "entryHint": "Find the DeleteSpaceMember RPC declaration and implementation, then trace every visible authentication, membership-resolution, role-check, and deletion path within allowedPaths.",
+        "premises": [
+          {
+            "text": "The caller is an ordinary member of the affected space, is not a space administrator, and is not the target member.",
+            "origin": "user"
+          },
+          {
+            "text": "Do not assume deployment middleware, interceptors, gateways, or other controls that are not visible in the supplied allowed source.",
+            "origin": "user"
+          },
+          {
+            "text": "Do not assume undocumented role grants, role implications, or privileges.",
+            "origin": "user"
+          },
+          {
+            "text": "Base actual-behavior claims on repository usememos/memos at sourceRef cb42e326ba9cc266a6a9570c53e0fe04c62793f4 under ./source and only the supplied allowedPaths.",
+            "origin": "user"
+          },
+          {
+            "text": "Preserve as an explicit missing fact any authorization-relevant condition that is decisive but cannot be established from the allowed source; do not fill it by assumption.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "administrator-removes-other-member",
+        "request": "Determine the visible DeleteSpaceMember path when a space administrator removes a different member from that space, including the controlling authorization condition and source citations, so it can be compared with both the ordinary-member path and the independent policy.",
+        "principal": "an authenticated administrator of the affected space who is different from the target member",
+        "resource": "a different user's membership in the administrator's space, addressed through the DeleteSpaceMember resource name",
+        "operation": "DeleteSpaceMember: administrator removal of another member's space membership",
+        "entryHint": "Trace the non-self branch from DeleteSpaceMember through the administrator predicate and membership deletion, including definitions that control how administrator status is established.",
+        "premises": [
+          {
+            "text": "The caller is a space administrator for the affected space and is not the target member.",
+            "origin": "user"
+          },
+          {
+            "text": "Treat only administrator status established by visible source as relevant; do not invent or infer undocumented grants.",
+            "origin": "user"
+          },
+          {
+            "text": "Do not assume deployment middleware, interceptors, gateways, or other controls outside the supplied allowed source.",
+            "origin": "user"
+          },
+          {
+            "text": "Report actual visible behavior separately from policy conformance and cite the controlling source with paths and line locations.",
+            "origin": "user"
+          },
+          {
+            "text": "Preserve decisive missing facts rather than resolving them by assumption.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "member-self-removal",
+        "request": "Determine the visible DeleteSpaceMember path when a space member removes their own membership to leave the space, and explain whether and how that path differs from removal of another member, with controlling source citations and decisive unknowns preserved.",
+        "principal": "an authenticated member of the affected space who is the target member, without assuming administrator status",
+        "resource": "the caller's own membership in the same space, addressed through the DeleteSpaceMember resource name",
+        "operation": "DeleteSpaceMember: self-removal from the space",
+        "entryHint": "Trace the self-target branch in DeleteSpaceMember and compare its guards and deletion call with the non-self administrator branch and the RPC contract.",
+        "premises": [
+          {
+            "text": "The caller and target member are the same user, and the caller is a member of the affected space.",
+            "origin": "user"
+          },
+          {
+            "text": "Do not assume that the caller has administrator status; the independent policy expressly does not prohibit members from leaving by self-removal.",
+            "origin": "user"
+          },
+          {
+            "text": "Keep self-removal analytically distinct from removing another member, including any differences in visible role checks, resource resolution, and mutation behavior.",
+            "origin": "user"
+          },
+          {
+            "text": "Do not assume deployment middleware or undocumented role grants.",
+            "origin": "user"
+          },
+          {
+            "text": "Cite controlling source and preserve every decisive missing fact that the allowed source does not establish.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "policy-conformance-comparison",
+        "request": "Compare the established actual behavior for ordinary-member removal of another member, administrator removal of another member, and member self-removal against the independently supplied policy. State conformance or nonconformance only to the extent supported by cited source, and preserve any decisive uncertainty.",
+        "principal": "the three caller classes examined by this inquiry: ordinary non-administrator member, space administrator, and self-removing member",
+        "resource": "space memberships targeted through DeleteSpaceMember",
+        "operation": "compare DeleteSpaceMember authorization behavior with the independent member-removal policy",
+        "entryHint": "Synthesize only the source-supported results of the three behavior questions; keep the external policy separate from implementation evidence.",
+        "premises": [
+          {
+            "text": "The independent policy is authoritative for this conformance comparison but is not evidence of actual implementation behavior.",
+            "origin": "user"
+          },
+          {
+            "text": "Only a space administrator may remove another member from that space.",
+            "origin": "user"
+          },
+          {
+            "text": "The policy does not prohibit a member leaving the space themselves.",
+            "origin": "user"
+          },
+          {
+            "text": "Do not collapse administrator removal, ordinary-member removal of another member, and self-removal into one authorization path.",
+            "origin": "user"
+          },
+          {
+            "text": "Do not claim conformance where a decisive source fact is unavailable; identify that fact and its effect on the conclusion.",
+            "origin": "user"
+          }
+        ]
+      }
+    ],
+    "policy": {
+      "text": "Only a space administrator may remove another member from that space. This policy does not prohibit a member leaving the space themselves.",
+      "origin": "user",
+      "location": "experimental-user-brief:memos-member-policy/v1"
+    }
+  }
+}

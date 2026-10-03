@@ -120,22 +120,23 @@ export async function replay(base = root) {
   for (const id of await readdir(path.join(base, "runs")).catch(() => [])) {
     const run = path.join(base, "runs", id), attempts = (await readdir(run)).filter(a => /^attempt-\d+$/.test(a)).sort((a, b) => Number(a.split("-")[1]) - Number(b.split("-")[1]))
     let providerCalls = 0, unknownCalls = false, knownUsd = 0, unknownUsd = false
-    const artifacts: string[] = [], classificationCorrections: any[] = []
+    const artifacts: Array<{ attempt: number; path: string }> = [], classificationCorrections: any[] = []
     for (const attempt of attempts) {
       const file = path.join(run, attempt, "report.json"), claim = await json(path.join(run, attempt, "claim.json"))
+      if (!Number.isInteger(claim.attempt) || claim.attempt < 1 || claim.attempt !== Number(attempt.split("-")[1]) || claim.row?.id !== id) throw new Error(`Invalid attempt identity: ${id}/${attempt}`)
       if (!(await exists(file))) { unknownCalls = unknownUsd = true; continue }
       const retained = await json(file)
       if (JSON.stringify(retained.identity) !== JSON.stringify(claim) || claim.row.id !== id) throw new Error(`Identity mismatch: ${id}/${attempt}`)
       const report = retained.report, zero = /unknown/.test(String(report.status)) ? await inspectedZeroDispatch(path.join(run, attempt)) : undefined
       if (zero) classificationCorrections.push({ artifact: `runs/${id}/${attempt}/report.json`, verifiedStatus: zero.status, providerCalls: 0 })
       const calls = zero ? 0 : report.telemetry?.providerCalls ?? report.providerDispatches
-      if (typeof calls === "number") providerCalls += calls; else unknownCalls = true
+      if (typeof calls === "number" && Number.isFinite(calls) && Number.isInteger(calls) && calls >= 0) providerCalls += calls; else unknownCalls = true
       const usd = report.telemetry?.totalActualUsd ?? report.telemetry?.costUsd ?? report.totalActualUsd
-      if (typeof usd === "number") knownUsd += usd; else unknownUsd = true
+      if (typeof usd === "number" && Number.isFinite(usd) && usd >= 0) knownUsd += usd; else unknownUsd = true
       if (await exists(path.join(run, attempt, "sessions.jsonl"))) await inspectLocalInquiry(path.join(run, attempt))
-      artifacts.push(`runs/${id}/${attempt}/report.json`)
+      artifacts.push({ attempt: claim.attempt, path: `runs/${id}/${attempt}/report.json` })
     }
-    rows.push({ id, firstAttempt: artifacts[0] ?? null, repairAttempts: artifacts.slice(1), providerCalls: unknownCalls ? null : providerCalls, knownProviderCalls: providerCalls, knownUsdSubtotal: knownUsd, totalActualUsd: unknownUsd ? null : knownUsd, ...(classificationCorrections.length ? { classificationCorrections } : {}) })
+    rows.push({ id, firstAttempt: artifacts.find(a => a.attempt === 1)?.path ?? null, repairAttempts: artifacts.filter(a => a.attempt > 1).map(a => a.path), providerCalls: unknownCalls ? null : providerCalls, knownProviderCalls: providerCalls, knownUsdSubtotal: knownUsd, totalActualUsd: unknownUsd ? null : knownUsd, ...(classificationCorrections.length ? { classificationCorrections } : {}) })
   }
   return { schemaVersion: "authorization-ar-replay/v1", rows, providerCallsDuringReplay: 0, targetExecutions: 0 }
 }
@@ -178,6 +179,6 @@ if (import.meta.main) {
     }, evaluate: async (_row, report) => mechanicalReview(report) })
     console.log(JSON.stringify(result))
   } else if (action === "replay") { console.log(JSON.stringify(await replay())) }
-  else if (action === "evaluate") { const result = await replay(); await save(path.join(root, "evaluation-summary.json"), { ...result, qualityBenefit: "not-established", independentReview: "pending", firstAndRepairSeparate: true }, false); console.log(JSON.stringify({ rows: result.rows.length, providerCalls: 0 })) }
+  else if (action === "evaluate") { const { evaluateStudy } = await import("./evaluate.ts"); const result = await evaluateStudy(); await save(path.join(root, "evaluation-summary.json"), result, false); console.log(JSON.stringify({ planned: result.primarySummary.denominator, reviewedFirst: result.primarySummary.reviewedFirst, descriptive: result.descriptiveRows.length, paired: result.pairedFirstAttempts.length, providerCalls: 0 })) }
   else throw new Error("Use check|develop|probe <registered-row> [repair-id original/attempt-n]|evaluate|replay")
 }

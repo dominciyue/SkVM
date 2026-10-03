@@ -1314,6 +1314,10 @@ AR继续修入口队列停滞：原slice中同题已接受entry的原引用机�
 
 AR真实条件误拒补充：原政策Memos admin路径的guard/effect重复相同条件，实际residual为all(A,A)，政策为A；主代理点验表明这是有限布尔恒等式的检查缺口，并非独立政策sourceBound:false或用户值unspecified本身。两侧以同当前binding部分求值，新增比较只使用有限all/any结合、交换、幂等/单元素折叠，原源规则/digest/未知值不改，重复映射及不同条件仍拒绝。53测试310断言、主/研究类型与独立只读核验通过；纯原trace重放政策从undetermined到satisfied，但helper仍open，旧交付不升级，语义仍unreviewed。研究证据与原失败分列于[条件重放](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/policy-condition-replay.json)，累计250调用不增。
 
+**作者配置普通消费与语义评价（2026-10-04）。** GitHub/Memos具名修稿6请求/6响应、Cloudflare/Download首作者7/7，两配置格式valid；主代理完整读取原稿及USAGE，独立复核未发现源码答案预填或授权范围扩张。Memos档案命名被误当便携目录的审稿意见另作更正，普通消费复制模型原字节为inquiry.json/USAGE.md并携原source在仓外运行，未私改配置。Memos11派发10响应，末次SDK timeout无最终答案，原transport-failed及前驱图错误保留，按未知末请求封存不重发；Download12/12，首次final含五题对象及无关字符串，唯一受约束修复返回control而非final，交付失败。原读证据已含versioning.py:193–194的异根版本拒绝，模型仍称resolver缺口，属于抽取遗漏；不能把格式修正提升为完整语义交付。累计286派发、无在途、USD/人力unknown、目标执行0，Notes attempt-3和主面板继续暂停。
+
+AR `evaluate`现接严格语义评审及另存裁定，20项70断言、研究类型通过；独立核验发现attempt编号未绑目录、缺首报告标签漂移和非法数值计量，三项红例复现后修正。原评审与report字节绑定，first/repair与host/语义分开，输入/源码/revision/model/budget不符不配对。实际零调用评价仍列16未运行主行、2描述性探针、0已评主首次、0配对，未导入自由格式旧评审，效果not-established。普通消费原失败与独立核验均归档，下一步针对已知Download wire修复及普通SDK timeout状态边界，不能重复未知Memos请求。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

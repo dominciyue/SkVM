@@ -119,7 +119,11 @@ type FailureRecord = {
 - [x] 登记八个已有任务：memos-share/remove、paperless-download/notes/share-create、owui-ingestion、gitea-self-query/create-issue。输入只有自然请求、允许范围、固定源码和独立政策。
 - [ ] 从 AQ 点取真实坏响应，覆盖 wrong schema type、delta/controlDelta、bindings 混用、owner-null 漏分支、未读 helper、无效第二次检查和预算终止。
 - [x] 写驱动失败测试：共享缺陷触发后剩余相关任务不得派发；已在途记录不丢；每个失败关联修复；旧原答不覆盖；同题新尝试成本累加；合法 unknown 不触发强制改答案。
-- [ ] 实现 `check/develop/evaluate/replay` 四个脚本动作。`develop` 每完成一小块即可评价和修复，代码修复由开发主线程执行，研究 runner 不自行改生产文件。先用 mock 验证，再运行真实任务。
+- [x] 实现 `check/develop/evaluate/replay` 四个脚本动作。`develop` 每完成一小块即可评价和修复，代码修复由开发主线程执行，研究 runner 不自行改生产文件。先用 mock 验证，再运行真实任务。
+
+2026-10-04本阶段工作计划：先写语义评价反例，再为 `evaluate` 接入严格的独立评审记录与另存的开发主线程裁定。评审绑定具体 row/attempt 和原 report 字节；首次与修复尝试各自保留 initial/final、抽取含义、helper/分支/unknown/checker 机制证据，未评审不由 completed/valid 自动升格。固定保留16个主面板分母，普通使用与探针仅作描述性记录；只对输入摘要、源码索引、实现版本、模型及预算均相同的已评审主面板 M/D1 首次尝试配对。旧评价和原始评审不覆盖，缺失费用保持 unknown；评价与回放零派发，不要求其它样本先完成。两份作者配置的普通运行在稳定核心上并行进行，其间仅修改研究评价与记录。
+
+本阶段落实20测试70断言及研究类型通过，独立核验的编号/缺首报告/非法数值反例先红后绿。实际evaluate列16未运行主行、2描述性探针、0主首次评审/配对，不自动转换旧自由格式评审。作者修稿6调用、Download首作者7调用原配置格式通过；仓外同字节普通消费Memos11派发10响应末timeout未知、Download12/12 final数组污染/修复错误类型失败。原稿、原响应和后续核验分列，累计286、USD/人力unknown。下一段先定位普通SDK timeout终态及Download final受约束修复，未验完整交付/previous，Notes与未知Memos不得改名重发。
 
 ### AR2 — 统一模型 wire 与完整工具 Schema
 
