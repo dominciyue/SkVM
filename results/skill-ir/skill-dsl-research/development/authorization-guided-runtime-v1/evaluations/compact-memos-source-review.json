@@ -1,0 +1,50 @@
+{
+  "schemaVersion": "authorization-source-semantic-review/v1",
+  "reviewedAt": "2026-10-04",
+  "artifact": "ordinary/native-memos-policy-change-compact-repaired/stdout.txt",
+  "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+  "reviewer": {
+    "agent": "/root/memos_compact_semantics",
+    "role": "default",
+    "forkedHistory": false,
+    "scope": "read-only independent source and final-prose verification",
+    "recordMeaning": "Main-agent structured transcription of returned reviewer conclusions and cited anchors, followed by direct main-agent point checks; this is not a verbatim reviewer transcript."
+  },
+  "independentConclusions": [
+    {
+      "claim": "A non-administrator current member cannot remove a different member under the reviewed implementation, contrary to the separately supplied policy.",
+      "assessment": "supported",
+      "proseLines": [31, 36, 103, 129, 190, 206],
+      "anchors": ["server/api/v1/space_service.go:741-759", "store/db/mysql/space.go:409-427", "store/db/sqlite/space.go:424-432", "store/db/postgres/space.go:447-465"]
+    },
+    {
+      "claim": "Self-removal skips the nonself administrator checks but shares target lookup, active membership, and last-administrator constraints.",
+      "assessment": "supported-conditionally",
+      "proseLines": [141, 158, 174, 182, 191, 208],
+      "anchors": ["server/api/v1/space_service.go:632-662", "server/api/v1/space_service.go:750-755", "store/db/mysql/space.go:429-445", "store/db/sqlite/space.go:434-451", "store/db/postgres/space.go:467-483"]
+    },
+    {
+      "claim": "Caller and target identities are resolved separately; the report does not claim that space membership alone establishes unconditional mutation success.",
+      "assessment": "supported",
+      "anchors": ["server/api/v1/space_service.go:19-51", "server/api/v1/space_service.go:632-662"]
+    }
+  ],
+  "reviewerCaveats": [
+    "Unconditional self-removal success would be unsupported; the actual final report explicitly states the shared constraints.",
+    "Deployed database choice, concrete runtime state and uninspected middleware are not established; the actual report retains these limits."
+  ],
+  "mainAdjudication": {
+    "sourceVisibleQuestionCoverage": "full",
+    "behavior": "conditional on caller/target state and last-admin safeguards",
+    "policyConformance": "nonself ordinary-member undergrant supported; self-removal conditionally aligned",
+    "falseAllowOrDenyFound": false,
+    "unsupportedHypotheticalIsActualReportError": false,
+    "severity": "HIGH is the author's severity judgment, not independently measured impact",
+    "checkedGraph": false,
+    "originalOutputPreserved": true,
+    "qualityBenefit": "not-established",
+    "providerCallsDuringReview": 0,
+    "targetExecutionsDuringReview": 0
+  },
+  "archiveInspectionCorrection": "A separate metric locator reported missing message/worklist archives. Main inspection finds requests[].params.messages, requests[].previousResponse.toolCalls, attempts[].response.toolCalls and current-context state.worklist, plus final domain.worklist. Byte and ID-based accounting can therefore be derived; actual SDK payload and per-call physical file I/O remain unrecorded."
+}

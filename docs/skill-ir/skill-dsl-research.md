@@ -1306,6 +1306,8 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 **撤回未接受草稿（2026-10-04续作）。** 交接的两项红测亲自复现后，新增跨组/来源失效/过时/无效兄弟反例，按question/group/key维护当前草稿拒绝。具名withdrawal仅退休未接受目标的诊断，原proposal和理由仍归档；已接受规则、别题、全局来源失效及悬空边继续检查，原子失败不应用撤回。普通native丢失撤回返回值的独立红例也修正。58项相关回归329断言及5项撤回/native测试26断言通过；主类型校验记录在AR root。工程修复不提升旧Memos图资格，不释放Paperless原未知任务或主质量面板；真实效果待同题具名复验。
 
+**compact源码语义与真实归档计量（2026-10-04）。** 独立只读复核及主代理按出处点验支持最新原skill文字的nonself普通成员undergrant、self绕过管理员检查但共享目标/最后管理员限制；源码可见问题full/conditional，部署状态和作者HIGH评级不由此证明。原checked=false保留。六份native trace零provider派生进度，全部request/attempt/tool ID关联完整；UTF-8 messages累计EOF轨迹1,396,519 bytes、compact566,404 bytes，system/tools/toolResults另计，与交接时字符口径分开、不同生成轨迹仍非因果对照。compact实际19accepted/37rejected、37种诊断，9份队列快照0状态变化/最长连续8次停滞/0closed，不能用accepted数替代闭合。逐调用物理I/O和SDK载荷unknown；旧无request-worklist轨迹进度unknown。5项29断言及研究类型通过，独立统计核验未发现实质问题但只抽查compact；下一步针对已接受入口与队列关联缺口修复，不提高预算。累计229派发及未知USD/人力不变。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

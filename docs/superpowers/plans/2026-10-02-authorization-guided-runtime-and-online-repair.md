@@ -208,6 +208,7 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 - [x] 禁止对决定性源码做未经核验的语义压缩来节省 token。可以机械选窗、去重、显示范围和已保存证据索引。
 - [x] 预留检查与最终交付机会，检查不能被编译/反复observe耗尽。真实同一根因诊断去重后再修，不把完整错误清单重复灌回模型。
 - [ ] 量化每个解决缺口的调用/读取/重发字节；出现“调用增加却无状态进展”立即登记并修调度，不只抬预算。
+- 2026-10-04本阶段工作计划：先保存compact原报告的独立源码语义复核及主代理裁定；再以归档request、dispatch事件attemptId和response tool-call ID构造零provider进度汇总，测试UTF-8/重复窗口、归档关联缺失及跨题工作项隔离。分别记录序列化messages、system、tools和续接toolResults字节，不能称为SDK网络载荷；调用物理读取缺少逐项记录时保留unknown。工作队列状态、实际accepted/rejected及新诊断分别计量，不能以接受项数代替闭合或把同一错误反复累计为新错误。按六个原native归档生成结果，不重发原任务；随后针对实际停滞原因修宿主关联，并推进真实previous和两个授权作者配置。
 - 2026-10-03 probe-3修复方案：发现词法引用时只读selected定义确切行范围，同题同原位置去重；未被明确关联dependency或局部candidate选择的引用只保留线索，不自动读。仅guided探索阶段将根部纯controlDelta及无calls的纯tool/controlDelta无损归一为control，保留原文与归一记录；含混字段/无效delta/最后final专用阶段仍拒绝。不提高原预算、不重发attempt-3未知请求。
 - 2026-10-03 Memos首探针2派发失败：原稿提供明确calls却漏kind；修稿补kind但controlDelta漏当前策略常量schemaVersion。计划以真实原件作红绿回归：仅guided已选合同补缺失的版本常量，明确非空合法calls且没有其它分支字段时补tool种类，记录归一；显式错误版本/含混结果/空calls仍拒绝。原模型Schema仍要求完整字段，不改语义项或自动选择candidate，原失败与成本单列，修后同题复验。
 - [ ] 回归中确认首答、检查失败后修订、总限额、关闭后无续发、不同问题的局部结果保存。

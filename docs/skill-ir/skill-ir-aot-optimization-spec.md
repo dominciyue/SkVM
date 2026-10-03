@@ -2629,3 +2629,5 @@ AR格式归一补充：仅guided解析接受本身已完整有效的裸inquiry�
 AR轻量接口恢复：guided新add entry省略after表示根节点，已有前驱原样保留，replace及其它节点仍须明确after。终答observations省略只表示没有附加观察；不推断答案、来源或政策。EOF越界结束行截到实际文件末尾，实际窗口与请求范围分别保留。真实普通故障只作一次针对核查；模型候选因宿主错误被回滚后可保留原件，通过当前validation/proposal/export零模型恢复，明确host-recovery与原自动失败，不编辑实验程序或补造成功。
 
 AR错误草稿撤回（2026-10-04实现）：模型可用withdrawals具名指出questionId/group/targetKey及reason，仅撤回未接受目标的当前拒绝诊断；原proposal、被撤回诊断及withdrawal共同归档。不得删除已接受事实、其它组/题目或全局来源错误；过时revision和无当前草稿的目标拒绝。悬空前驱、缺少行为路径及必要证据仍由同一检查器保留，撤回本身不产生规则或checked结果。原子更新失败时撤回亦不生效，普通inquiry/native共用相同结果。
+
+AR归档进度计量（2026-10-04）：已有普通native归档的request、dispatch attemptId与response tool-call ID可关联调用、提议反馈和工作队列快照。UTF-8序列化messages/content、system、tools和toolResults分别计量，不充当SDK请求载荷；源码/重发复用既有原窗口验证。无逐调用物理I/O时仅保存原聚合值；每工作项闭合前共享session成本不能声称因果归属。无队列快照的旧轨迹进度unknown，重复诊断不重复算新错误，接受更新不等于队列闭合。compact轨迹原文字的源码语义复核full/conditional与checked图缺失分别记录，不升级原结果或释放暂停面板。
