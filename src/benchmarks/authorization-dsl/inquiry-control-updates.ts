@@ -4,7 +4,7 @@ import { mergeControlSlice, type ControlSlice } from "../../task-dsl/authorizati
 import type { AuthorizationInquiryProgram } from "../../task-dsl/authorization/inquiry-program.ts"
 import type { InquiryEvidenceContext } from "../../task-dsl/authorization/inquiry-result.ts"
 
-import { LocalUpdateItemSchemas as itemSchemas, LocalExtractionSchema } from "./inquiry-local-extraction.ts"
+import { LocalUpdateItemSchemas as itemSchemas, LocalExtractionSchema, normalizeNewEntry } from "./inquiry-local-extraction.ts"
 const { rules: rule, sourceBindings: sourceBinding, dependencies: dependency, premiseValues: premiseValue, policyRules: policyRule } = itemSchemas
 type Group = keyof typeof itemSchemas
 export const WorkSelectionSchema = z.object({ questionId: InquiryText, itemId: InquiryText, candidateId: InquiryText }).strict()
@@ -16,6 +16,7 @@ export const LOCAL_CONTROL_GUIDE = [
   'guided-evidence-v2 local interface: controlDelta is {schemaVersion:"authorization-control-update/v1",rules:[],sourceBindings:[],dependencies:[],premiseValues:[],policyRules:[],atomic?:false,baseRevision?:current revision}. Submit just changed items, not the entire graph.',
   "Each item has op:add|replace, questionId, targetKey. Replace names the current same-question target; a model reason is optional for ordinary items, and the host records explicit replacement provenance and revisionOf. Dependency reason remains required to explain source relevance. baseRevision detects a stale view. atomic:true applies the whole group or none. Rejected items and their dependent gaps remain visible; correct only diagnosed items.",
   "rules are entry/guard/reject/continue/effect with pathKey,after,evidenceIds,claim and optional finite condition/principal/resource/operation/authorizedBy/complete. sourceBindings are source identities with pathKey,after,evidenceIds,claim,bindingKey,bindingKind; the host sets kind:binding. A source identity is never a user value.",
+  "A new entry with omitted after declares a root (after:[]). Explicit entry predecessors stay unchanged. Replacements and all other rule kinds require after; a missing predecessor must never be guessed. Final observations may be omitted when there are no additional observations.",
   "premiseValues are explicit user facts: {op,questionId,targetKey,status:known,value,text:<exact original user span>} or {op,questionId,targetKey,status:unspecified,text}. Unspecified has NO value field; it does not mean null or false. Omit unspecified items if no update is needed. Policy mappings stay in policyRules, with expected,text,location and optional condition; the host sets origin:policy.",
   "For a shown ambiguous WorkItem submit workSelections:[{questionId,itemId,candidateId}] using its shown candidate ID. This is a lexical read choice, not an authorization fact or a closed-state declaration. Atomic applies to the control update groups; location choices are separate read intents.",
 ].join("\n")
@@ -40,7 +41,7 @@ export function applyControlUpdates(previous: ControlSlice, input: unknown, prog
   if (!parsed.success) return { state, accepted, envelopeValid: false, rejected: [{ group: "rules" as const, questionId: "", targetKey: "$", diagnostics: parsed.error.issues.map(i => diagnostic("control-update-schema", i.path.join("."), i.message)) }], unresolved: [] }
   for (const group of Object.keys(itemSchemas) as Group[]) for (const [index, raw] of parsed.data[group].entries()) {
     const value = raw && typeof raw === "object" ? raw as Record<string, unknown> : {}, identity = { group, questionId: String(value.questionId ?? ""), targetKey: String(value.targetKey ?? `invalid-${index}`) }
-    const at = `${group}.${identity.questionId}.${identity.targetKey}`, checked = itemSchemas[group].safeParse(raw), errors: InquiryDiagnostic[] = []
+    const at = `${group}.${identity.questionId}.${identity.targetKey}`, checked = itemSchemas[group].safeParse(group === "rules" ? normalizeNewEntry(raw) : raw), errors: InquiryDiagnostic[] = []
     if (!checked.success) { rejected.push({ ...identity, diagnostics: checked.error.issues.map(i => diagnostic("control-update-schema", `${at}.${i.path.join(".")}`, i.message)) }); continue }
     const item: any = checked.data, targetGroup = group === "sourceBindings" ? "rules" : group === "premiseValues" ? "bindings" : group
     const existing = state[targetGroup].find(v => v.questionId === item.questionId && v.key === item.targetKey)

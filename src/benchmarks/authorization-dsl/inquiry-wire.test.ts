@@ -26,6 +26,14 @@ test("guided result moves explicitly owned nested observations without guessing 
   expect(api.inquiryStepSchemas("guided-evidence-v2", true).schema.parse({ kind: "final", result: raw }).result).toEqual(parsed)
   expect(api.inquiryNativeSchemas("legacy", true).authorization_check_result.safeParse({ result: raw }).success).toBe(false)
 })
+test("guided final omission means no additional observations, not a missing answer", () => {
+  const result = { schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q", behavior: { disposition: "unknown", explanation: "Helper unavailable" }, branches: [], evidenceIds: [], missing: [{ kind: "source-gap", detail: "Helper" }] }], scope: "source" }
+  const schema = api.inquiryNativeSchemas("guided-evidence-v2", true).authorization_check_result
+  expect(schema.parse({ result }).result).toEqual({ ...result, observations: [] })
+  expect(result).not.toHaveProperty("observations")
+  expect(schema.safeParse({ result: { ...result, observations: null } }).success).toBe(false)
+  expect(api.inquiryNativeSchemas("legacy", true).authorization_check_result.safeParse({ result }).success).toBe(false)
+})
 test("structured control steps expose one canonical field and accept the lossless legacy alias", async () => {
   expect(api.ControlStepSchema).toBeDefined()
   const current = { kind: "control", controlDelta: delta }

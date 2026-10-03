@@ -37,7 +37,7 @@ export type InquiryControlStep = z.infer<typeof ControlStepSchema>
 function guidedResult(input: unknown) {
   if (!input || typeof input !== "object" || Array.isArray(input)) return input
   const value = input as Record<string, unknown>
-  if ("observations" in value || !Array.isArray(value.questions) || !value.questions.some(q => q && typeof q === "object" && "observations" in q)) return input
+  if ("observations" in value || !Array.isArray(value.questions)) return input
   const observations: unknown[] = [], questions: unknown[] = []
   for (const q of value.questions) {
     if (!q || typeof q !== "object" || Array.isArray(q)) return input

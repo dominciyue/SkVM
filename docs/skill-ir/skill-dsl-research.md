@@ -1300,6 +1300,8 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 **普通原skill首次Memos与非API作者链。** 原GitHub skill普通native用10次provider返回但无checked交付：入口原文成功读取后被“仅最后两次读取”截掉，编译问题只有operation而无entryHint又导致入口工作未启动。两项红测后修复当前调用全部新窗口及operation词法入口，36项181断言一次聚焦检查通过；同题与政策变化复验继续。原失败保留，不作语义成功。独立工作流任务实际13次provider响应、无文件交付，普通循环越预算多发一次已修；当前proposal/export成功但只有文档变更、没有实现程序，故不满足新程序验收。模型称缺少现有parser/interface/checker而不生成程序的依据需要继续核对，不能由开发者手造程序替代真实作者链。
 
+**非API程序与普通失败恢复。** 明确程序作者自然任务从完整原skill生成并实际运行Python清单命令，优化器生成参数化脚本及skill路由，但初次自动proposal因验证投影错误最终no-change。共用cwd材料化修复45项200断言后，保留模型候选原字节经现有validation/proposal/export API零模型恢复，主case及cwd case通过（独立语义case为0），导出draft包；原失败和source/optimizer贡献分列，不冒充首轮自动成功。同一包的仓外原/变化任务普通消费正在执行。Memos政策变化修复的raw self-removal判断经独立源码核验错误；EOF越界读取与空元数据阻碍已定向修，原坏答案保留，尚无checked交付或质量收益。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

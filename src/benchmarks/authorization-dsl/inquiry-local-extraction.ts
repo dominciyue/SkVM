@@ -16,6 +16,12 @@ const unspecified = z.object({ ...common, status: z.literal("unspecified"), text
 const policyRule = PolicyRuleSchema.omit({ ...omit, origin: true }).extend(common)
 export const LocalUpdateItemSchemas = { rules: rule, sourceBindings: sourceBinding, dependencies: dependency, premiseValues: z.discriminatedUnion("status", [known, unspecified]), policyRules: policyRule }
 export type LocalUpdateGroup = keyof typeof LocalUpdateItemSchemas
+/** A newly declared entry defaults to a root. Replacements must keep explicit predecessors. */
+export function normalizeNewEntry(input: unknown) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return input
+  const value = input as Record<string, unknown>
+  return value.op === "add" && value.kind === "entry" && !("after" in value) ? { ...value, after: [] } : input
+}
 export const LocalExtractionItemSchemas = {
   rules: rule.omit({ questionId: true, evidenceIds: true }),
   sourceBindings: sourceBinding.omit({ questionId: true, evidenceIds: true }),
@@ -80,7 +86,7 @@ export function expandLocalExtractions(input: unknown[], offered: LocalExplanati
     else if (!item || item.code === "source-invalidated") fail("rules", "$local", "local-source-invalidated", "This original window changed or its WorkItem is absent; start a fresh source session.")
     else if (!parsed.success) for (const d of parsed.error.issues) fail("rules", "$local", "local-extraction-schema", d.message, `.${d.path.join(".")}`, true)
     else for (const group of Object.keys(LocalExtractionItemSchemas) as LocalUpdateGroup[]) for (const [index, candidate] of parsed.data[group].entries()) {
-      const checked = LocalExtractionItemSchemas[group].safeParse(candidate), key = String(candidate && typeof candidate === "object" ? (candidate as Record<string, unknown>).targetKey ?? `invalid-${index}` : `invalid-${index}`)
+      const checked = LocalExtractionItemSchemas[group].safeParse(group === "rules" ? normalizeNewEntry(candidate) : candidate), key = String(candidate && typeof candidate === "object" ? (candidate as Record<string, unknown>).targetKey ?? `invalid-${index}` : `invalid-${index}`)
       if (!checked.success) { for (const d of checked.error.issues) fail(group, key, "local-extraction-schema", localSchemaMessage(d), `.${d.path.join(".")}`); continue }
       const normalized = { ...checked.data, questionId: task.question.id, ...(["rules", "sourceBindings", "dependencies"].includes(group) ? { evidenceIds: [...new Set([...task.evidenceIds, ...task.callsiteEvidenceIds])] } : {}) }
       groups[group].push(normalized); (expanded[group] ??= []).push(normalized)

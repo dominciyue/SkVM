@@ -7,6 +7,15 @@ const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inqu
 const context = { questionIds: ["q", "other"], shownEvidenceIds: ["ev"], suppliedUserText: [program.questions[0]!.request, program.questions[1]!.request] }
 const update = (targetKey: string, kind = "entry", extra = {}) => ({ op: "add", targetKey, questionId: "q", pathKey: "p", kind, after: [], evidenceIds: ["ev"], claim: targetKey, ...extra })
 const envelope = (extra = {}) => ({ schemaVersion: "authorization-control-update/v1", ...extra })
+test("an omitted root entry predecessor list does not roll back valid atomic siblings", () => {
+  const { after, ...root } = update("entry")
+  const result = api.applyControlUpdates(createControlSlice(), envelope({ atomic: true, rules: [root, update("effect", "effect", { after: ["entry"] })] }), program, context)
+  expect(result.rejected).toEqual([])
+  expect(result.state.rules.map((r: any) => r.after)).toEqual([[], ["entry"]])
+  expect(root).not.toHaveProperty("after")
+  const invalid = api.applyControlUpdates(createControlSlice(), envelope({ rules: [{ ...root, kind: "effect" }] }), program, context)
+  expect(invalid.rejected[0].diagnostics.some((d: any) => d.path.endsWith("after"))).toBe(true)
+})
 test("local add and replace use a current human target and host-generated revision digest", () => {
   expect(typeof api.applyControlUpdates).toBe("function")
   const first = api.applyControlUpdates(createControlSlice(), envelope({ rules: [update("entry")] }), program, context)
