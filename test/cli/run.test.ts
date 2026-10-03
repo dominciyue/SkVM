@@ -131,6 +131,16 @@ describe("RUN_FLAGS.parse — typed config", () => {
 })
 
 describe("runRun — cross-flag rules (typed config, no subprocess)", () => {
+  test("guided authorization is available from ordinary run and requires domain tools", () => {
+    const args = ["--prompt=Inspect the current authorization question", "--model=x/y", "--adapter=bare-agent", "--authorization-scope=./input.json", "--authorization-strategy=guided-evidence-v2"]
+    const config = RUN_FLAGS.parse(args)
+    if (config.help) throw new Error("unexpected help")
+    expect(() => validateRunConfig(config)).toThrow("guided-evidence-v2 requires --authorization-domain-tools")
+    const enabled = RUN_FLAGS.parse([...args, "--authorization-domain-tools"])
+    if (enabled.help) throw new Error("unexpected help")
+    expect(validateRunConfig(enabled)).toMatchObject({ mode: "source", model: "x/y" })
+  })
+
   test("--skill-mode without --skill throws before any execution", async () => {
     const config = RUN_FLAGS.parse(["--task=/tmp/task.json", "--model=x/y", "--skill-mode=inject"])
     if (config.help) throw new Error("unexpected help")

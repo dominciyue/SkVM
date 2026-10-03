@@ -233,6 +233,8 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 - [ ] `--strategy=guided-evidence-v2` 两入口共用合同、队列、状态和检查。不要创建研究专用的成功分支。
 - [ ] 原 skill 仍通过 loader 加载完整原文与 references；宿主能从已有 task 编译已知声明，减少无意义的重复编译调用，模型 authored 声明的成本另计。
 - 2026-10-03接线细节：guided native收到完整input.inquiry时初始化同一program/runtime，compile工具不再重复暴露，记录host-input来源及0编译工具调用；仅brief仍由模型声明且计入原预算。原skill/reference loader与旧策略接线不改；实际四消费另验。
+- 2026-10-03普通入口检查发现run CLI枚举仍缺guided-evidence-v2，且adapter setup只为旧domain策略检查domain-tools。先补CLI与provider创建前校验的红测，再用同一策略解析器接通，避免把直接调用内部native API当成普通CLI验收。
+- 两项预期红测成立后接通共享enum及非legacy策略校验；32项141断言、主类型检查通过。原skill四次真实运行尚未执行，不以入口测试代替消费证据。
 - [ ] 保持 skill 其它职责和原回答格式，领域能力只服务明确授权问题。用户不手填 trace、正确 helper 名、控制图或 oracle。
 - [ ] 真实使用 Cloudflare security-audit 与 GitHub security-review 的已归档正文，各覆盖原任务及一个前提/政策变化；四次都从普通入口启动。
 - [ ] 每次检查 trace 中补读、局部解释、分支计算、最终检查、文字交付五步是否真实发生。没有适用自动读取/排除时明确说明，不用无关动作刷采用率；失败现场修复并单列复测。

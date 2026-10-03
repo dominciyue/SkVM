@@ -142,7 +142,7 @@ export class BareAgentAdapter implements AgentAdapter {
     if (config.providerOptions?.authorizationStrategy !== undefined) {
       const strategy = (await import("../task-dsl/authorization/control-slice.ts")).parseInquiryStrategy(config.providerOptions.authorizationStrategy)
       if (!config.providerOptions.authorizationScope) throw new Error("authorization-strategy requires source scope")
-      if (strategy === "domain-evidence-v1" && config.providerOptions.authorizationDomainTools !== true) throw new Error("authorization-strategy requires domain-tools")
+      if (strategy !== "legacy" && config.providerOptions.authorizationDomainTools !== true) throw new Error("authorization-strategy requires domain-tools")
     }
     this.provider = this.providerFactory(config)
     this.model = config.model
