@@ -217,6 +217,7 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 - [x] 合理条件回答可以完整；允许范围内仍未读的决定性源码归为 unresolved，不包装为部署未知。政策评价与实现行为分别检查。
 - [x] 保留好的局部答案并明确其 checked/unverified 状态。检查失败不得伪造 checked success，也不得因一个无关项丢掉全部可用输出。
 - 2026-10-03恢复复核：独立核验指出无效整体仍返回result，主线程红绿修复；checks-off逐题本已unverified，但汇总true改为null。补全局结构/源失效、逐题observation及重复答案反例，源失效同时清除referenceValid。65项聚焦回归通过；未以这些工程检查代替下项语义变形验收。
+- 2026-10-03定向独立复核补记：unknown条件不能支持无条件allow/deny的反例红绿修复；结构闭合的条件回答保持合法，不把所有unknown路径机械改为失败。33项结果/运行时回归通过。逐题/全局/重复/observation归属核验无新增问题；源码遗漏和自然语义污染保持下项独立评价责任。
 - [ ] 通过变形/错误注入检测 wrong-object、dead binding、null遗漏、grant absent/not-given 混淆和政策反推源码；拒绝错误答案的证据单独报告。
 
 ### AR10 — 普通 inquiry 与原 skill 统一使用新核心
@@ -243,12 +244,14 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 
 文件：inquiry-local.ts、inquiry-domain-runtime.ts；新建 `inquiry-reuse.ts` 与测试；接现有 compare/run，而不是新增顶层命令。
 
-- [ ] `compare` 继续只读、零调用；在新策略 run 提供显式 `--previous=<session>`。默认 run 仍可从零开始。
-- [ ] policy-only：源、范围、问题、前提和方法相容时复用带出处的行为提取；重新映射新规范并计算 conformance，旧规范结论失效。自然政策映射所需模型调用照实计费。
-- [ ] premise-only：复用条件化控制结构，更新明确用户值并重算路径；新事实若激活旧未读取分支，则只补相关证据，不能复用旧最终答案。
-- [ ] source-changed：受改文件/依赖影响项失效；不能证明依赖闭合时保守失效更大范围。复用现有源码身份，不另加层层 hash 审批。
-- [ ] 旧报告缺少依赖足迹/checked 信息时返回 needs-fresh-analysis 并提供可执行恢复，不能从旧 partial 升级成功。
+- [x] `compare` 继续只读、零调用；在新策略 run 提供显式 `--previous=<session>`。默认 run 仍可从零开始。
+- [x] policy-only：源、范围、问题、前提和方法相容时复用带出处的行为提取；重新映射新规范并计算 conformance，旧规范结论失效。自然政策映射所需模型调用照实计费。
+- [x] premise-only：复用条件化控制结构，更新明确用户值并重算路径；新事实若激活旧未读取分支，则只补相关证据，不能复用旧最终答案。
+- [x] source-changed：受改文件/依赖影响项失效；不能证明依赖闭合时保守失效更大范围。复用现有源码身份，不另加层层 hash 审批。
+- [x] 旧报告缺少依赖足迹/checked 信息时返回 needs-fresh-analysis 并提供可执行恢复，不能从旧 partial 升级成功。
 - [ ] 验证 full replay 与局部重算的一致性、源未变但政策变的行为不变、前提变的分支变化、被激活缺口不会丢失。
+- 2026-10-03当前实现方案：只接受同model/method/guided策略、同源身份/范围/问题结构且原逐题checked并有bounded依赖足迹的旧session。重建canonical控制增量，不复制旧最终答案或旧checker状态；验证原证据的完整窗口与当前索引原字节后导入，并分别计导入与当前实际显示。policy-only清除旧政策映射；premise-only清除不再对应当前原文的旧值，由当前普通模型步骤重新映射，调度随新值重算并补新激活依赖。任何源码文件变化/缺旧足迹/其它不相容项保守返回needs-fresh-analysis及普通恢复命令，provider创建前止步；compare仍零调用。先做确定性反例，再接run --previous及实际消费。
+- 2026-10-03工程验证：前五项已由普通CLI/mock确定性验证，不等于真实付费消费。独立反例使前提失效收紧为清除前提上下文变化问题的全部值（防止旧句作为否定引文仍出现）；旧图另经当前机械检查，不信旧checked旗标。10项109断言覆盖政策fresh/reuse一致、前提激活helper、源/归档窗口失效、未知完成零provider及复用来源归档。真实消费及完整变化对照继续AR10–AR13。
 
 ### AR13 — 编写、修改与可搬移使用
 

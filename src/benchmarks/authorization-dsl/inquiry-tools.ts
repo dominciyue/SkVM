@@ -65,7 +65,7 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
   for (const scope of options.allowedPaths) await walk(scope)
   paths.sort()
   const files = new Map<string, SourceBundleFile>(), symbols: DiscoverySymbol[] = []
-  let indexBytes = 0, displayBytes = 0, toolCalls = 0, ioReadBytes = 0
+  let indexBytes = 0, displayBytes = 0, toolCalls = 0, ioReadBytes = 0, importedEvidenceBytes = 0
   for (const relative of paths) {
     if (files.size >= maxFiles) { scopeGaps.push({ code: "file-budget", path: relative, detail: "Allowed source exceeds the indexed file limit." }); continue }
     const loaded = await loadPortableSourceBundle({ sourceRoot: root, sourceFiles: [relative], repository: options.repository, sourceRef: options.sourceRef, maxBytes: maxReadBytes - indexBytes })
@@ -75,6 +75,23 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
     symbols.push(...indexAuthorizationSymbols(relative, source.content, options))
   }
   const evidence: InquiryEvidence[] = [], history: Array<{ name: string; arguments: unknown; result: InquiryToolOutput; actionOrigin?: string; questionId?: string; dependencyId?: string; reason?: string }> = []
+  const originalWindow = (source: SourceBundleFile, start: number, end: number): InquiryEvidence => {
+    const lines = linesOf(source.content), quote = lines.slice(start - 1, end).join("\n"), text = lines.slice(start - 1, end).map((line, i) => `${start + i} | ${line}\n`).join("")
+    return { id: `ev-${sha([options.repository, options.sourceRef, source.relativePath, source.sha256, start, end].join("\0")).slice(0, 20)}`, repository: options.repository, sourceRef: options.sourceRef, path: source.relativePath, sha256: source.sha256, startLine: start, endLine: end, text, quote, bytes: Buffer.byteLength(text) }
+  }
+  const restoreEvidence = (previous: readonly InquiryEvidence[]) => {
+    const verified: InquiryEvidence[] = [], diagnostics: Array<{ code: string; evidenceId: string; message: string }> = []
+    for (const raw of previous) {
+      const source = files.get(raw.path), validRange = Number.isSafeInteger(raw.startLine) && Number.isSafeInteger(raw.endLine) && raw.startLine > 0 && raw.endLine >= raw.startLine && !!source && raw.endLine <= linesOf(source.content).length
+      const expected = source && validRange ? originalWindow(source, raw.startLine, raw.endLine) : undefined
+      if (!expected || !Object.keys(expected).every(key => raw[key as keyof InquiryEvidence] === expected[key as keyof InquiryEvidence])) diagnostics.push({ code: "reuse-evidence-mismatch", evidenceId: raw.id, message: "Previous evidence must match the current original identity, bounds, text, quote and bytes." })
+      else if (!verified.some(e => e.id === expected.id)) verified.push(expected)
+    }
+    const added = verified.filter(e => !evidence.some(current => current.id === e.id)), addedBytes = added.reduce((sum, e) => sum + e.bytes, 0)
+    if (importedEvidenceBytes + addedBytes > maxDisplayBytes) diagnostics.push({ code: "reuse-evidence-budget", evidenceId: "$reuse", message: "Verified imported evidence exceeds the current bounded evidence budget; use fresh analysis." })
+    if (!diagnostics.length) { evidence.push(...added); importedEvidenceBytes += addedBytes }
+    return { diagnostics, importedEvidenceIds: diagnostics.length ? [] : verified.map(e => e.id) }
+  }
   const blank = (status: InquiryToolOutput["status"], code?: string, message?: string): InquiryToolOutput => ({ status, ...(code ? { code } : {}), ...(message ? { message } : {}), evidence: [], matches: [], candidates: [] })
   const current = async (relative: string): Promise<SourceBundleFile | InquiryToolOutput> => {
     if (!safePath(relative) || !files.has(relative)) return blank("error", "source-out-of-scope", "Path is outside the allowed and indexed original source.")
@@ -96,8 +113,7 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
     }
     if (!text) return blank("error", "display-budget", "No complete source line fits the remaining display budget.")
     const bytes = Buffer.byteLength(text); displayBytes += bytes
-    const item: InquiryEvidence = { id: `ev-${sha([options.repository, options.sourceRef, source.relativePath, source.sha256, start, last].join("\0")).slice(0, 20)}`,
-      repository: options.repository, sourceRef: options.sourceRef, path: source.relativePath, sha256: source.sha256, startLine: start, endLine: last, text, quote: lines.slice(start - 1, last).join("\n"), bytes }
+    const item = originalWindow(source, start, last)
     if (!evidence.some(e => e.id === item.id)) evidence.push(item)
     return { ...blank(last === end ? "ok" : "partial"), evidence: [item], requested: { path: source.relativePath, startLine: start, endLine: end }, truncated: last !== end }
   }
@@ -147,11 +163,11 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
     }
     history.push({ name, arguments: structuredClone(args), result: structuredClone(result), ...origin }); return result
   }
-  return { definitions: INQUIRY_SOURCE_TOOLS, execute, evidence, history, scopeGaps,
+  return { definitions: INQUIRY_SOURCE_TOOLS, execute, restoreEvidence, evidence, history, scopeGaps,
     files: [...files].map(([p, f]) => ({ path: p, sha256: f.sha256, bytes: Buffer.byteLength(f.content) })),
     locateSymbols: (name: string) => structuredClone(symbols.filter(s => s.name === name)),
     symbolHints: (text: string) => { const names = new Set(text.match(/[A-Za-z_$][\w$]*/g) ?? []); return structuredClone(symbols.filter(s => s.name.length >= 3 && names.has(s.name))) },
-    get displayBytes() { return displayBytes }, get indexBytes() { return indexBytes }, get ioReadBytes() { return ioReadBytes }, get toolCalls() { return toolCalls }, maxToolCalls, maxDisplayBytes }
+    get displayBytes() { return displayBytes }, get importedEvidenceBytes() { return importedEvidenceBytes }, get indexBytes() { return indexBytes }, get ioReadBytes() { return ioReadBytes }, get toolCalls() { return toolCalls }, maxToolCalls, maxDisplayBytes }
 }
 export type InquiryTools = Awaited<ReturnType<typeof createInquiryTools>>
 

@@ -123,3 +123,26 @@ test("identical same-key binding errors in different questions are never dedupli
   expect(checked.questionChecks.map((q: any) => q.ruleConsistent)).toEqual([false, false])
   expect(checked.diagnostics.filter((d: any) => d.code === "object-binding-missing")).toHaveLength(2)
 })
+
+test("an unresolved reachable condition cannot certify an unconditional outcome", () => {
+  const condition = { op: "eq", left: { binding: "enabled" }, right: { literal: true } }
+  for (const [kind, disposition] of [["effect", "allow"], ["reject", "deny"]]) {
+    const slice = state([rule("entry", "entry", []), rule("caller", "binding", ["entry"], { bindingKind: "principal", bindingKey: "caller", condition }), rule("terminal", kind!, ["caller"], { principal: "caller", complete: true })])
+    const checked = api.checkControlConclusions(plan, slice, answer(disposition!), [])
+    expect(checked.paths[0].predicate.truth).toBe("unknown")
+    expect(codes(checked)).toContain("unresolved-path-condition")
+    expect(checked.ruleConsistency).toBe(false)
+    expect(checked.taskResolution).toBe("partial")
+    expect(checked.questionChecks[0].ruleConsistent).toBe(false)
+  }
+})
+
+test("a complete conditional answer preserves an unresolved premise without inventing its value", () => {
+  const condition = { op: "eq", left: { binding: "enabled" }, right: { literal: true } }
+  const slice = state([rule("entry", "entry", []), rule("terminal", "effect", ["entry"], { condition, complete: true })])
+  const conditional = answer("conditional", { branches: [{ id: "p", condition: "When enabled is true", disposition: "allow", evidenceIds: ["ev"], explanation: "This path allows writing only under that condition" }], missing: [{ kind: "premise-unspecified", detail: "Whether enabled is true is not supplied" }] })
+  const checked = api.checkControlConclusions(plan, slice, conditional, [])
+  expect(checked).toMatchObject({ ruleConsistency: true, taskResolution: "bounded", semanticSupport: "unreviewed" })
+  expect(checked.paths[0].predicate).toMatchObject({ truth: "unknown", missingBindings: ["enabled"] })
+  expect(api.checkControlConclusions(plan, slice, answer("unknown", { missing: conditional.questions[0]!.missing }), []).ruleConsistency).toBe(true)
+})
