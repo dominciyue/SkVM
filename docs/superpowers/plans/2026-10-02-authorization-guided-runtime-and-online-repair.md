@@ -273,6 +273,8 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 
 文件：authoring-assist.ts/既有编辑入口、inquiry-local.ts、examples/authorization-assessment/reusable-skill/。
 
+2026-10-04作者现场修复：GitHub+Memos首稿11请求/11响应交付两文件，独立复核内容保留四项区分/政策来源；原输入因外层brief/mode/policy与完整inquiry冲突无效，USAGE另有真实CLI参数错误。先修公开complete/mode专用Schema及作者日志位置计数，格式4红转4绿/24断言、计数及真实logger前缀4绿/14断言；普通previous4项35断言及主/研究类型通过。原0计数与一次漏匹配prefix的unknown派生都保留，命名修正为11，不重发首稿。下一步把原稿、实际结构化诊断、当前公开格式/CLI用法交同源skill模型修稿，并并行独立Download首作者；最多两真实进程，核心稳定。Memos原政策复验10调用，42accepted/0rejected、66队列变化/最长2次停滞，但0closed，正文独立full与两项形式诊断分列；累计250派发、USD/人力unknown。
+
 2026-10-04具体续作：入口引用关联已由56项275断言、主/研究类型及compact原控制slice零调用重放验证，两题unlocated均推进待核验、没有新增读取/规则或升级旧失败。普通Memos原/政策输入的worklist具名复验只释放这两个普通修复用途，主面板与Paperless Notes原未知逻辑身份不释放。授权作者使用完整GitHub security-review + Memos自然请求，以及完整Cloudflare security-audit + Paperless Download自然请求（独立于封存Notes）。普通run在仓外目录从自然任务/源身份/范围和公开格式Schema生成完整inquiry.json及USAGE，不提供目标声明、图、helper答案、旧日志或oracle。保留作者首字节，宿主只做公开格式/源范围/独立政策检查；后续通过普通inquiry run消费同一配置，并用edit变政策/前提和previous检验，不私改作者实验字段。至少一项政策、一项前提变化继续，最多两个真实实验进程并行，运行时不修改共用核心。
 
 2026-10-03提速执行：原skill的Memos普通native使用与独立非API作者链并进；非API链用完整GitHub security-review skill和当前仓库原始workflow文件，自然任务为离线权限/action引用清单及安全评阅，经普通run --optimize捕获/proposal/export，再对同一新包做原任务及范围变化消费。不给作者目标程序或评分答案，保留人工语义评阅、其它skill职责与原源文件；no-change或文档包仍不算新程序成功。用户要求每个问题一次针对性检查，不新增重复哈希或审批门；未知请求不重发、原证据和质量分母照实保留。

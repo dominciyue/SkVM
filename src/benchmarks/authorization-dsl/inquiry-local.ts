@@ -23,6 +23,16 @@ export const AuthorizationInquiryInputSchema = z.object({
   if (v.brief && (v.mode ?? "behavior") === "behavior" && v.policy) c.addIssue({ code: z.ZodIssueCode.custom, path: ["policy"], message: "Behavior does not compare normative policy" })
 })
 export type AuthorizationInquiryInput = z.infer<typeof AuthorizationInquiryInputSchema>
+/** Publish the requested complete-declaration branch; Zod refinements alone do not express its mutually exclusive wire fields. */
+export function authorizationInquiryAuthoringSchema(mode: "behavior" | "conformance") {
+  const declaration = AuthorizationInquirySchema.innerType()
+  const refine = (value: unknown, context: z.RefinementCtx) => {
+    const checked = AuthorizationInquirySchema.safeParse(value)
+    if (!checked.success) for (const issue of checked.error.issues) context.addIssue(issue)
+  }
+  const inquiry = mode === "conformance" ? declaration.extend({ mode: z.literal(mode), policy: InquiryPolicySchema }).superRefine(refine) : declaration.omit({ policy: true }).extend({ mode: z.literal(mode) }).superRefine(refine)
+  return AuthorizationInquiryInputSchema.innerType().omit({ brief: true, mode: true, policy: true }).extend({ inquiry })
+}
 const sha = (value: string) => createHash("sha256").update(value).digest("hex")
 export async function loadInquiryInput(inputFile: string) {
   const inputPath = path.resolve(inputFile), original = await readFile(inputPath, "utf8"), value = AuthorizationInquiryInputSchema.parse(JSON.parse(original))

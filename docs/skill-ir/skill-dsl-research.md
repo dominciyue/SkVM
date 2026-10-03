@@ -1310,6 +1310,8 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 AR继续修入口队列停滞：原slice中同题已接受entry的原引用机械关联唯一索引声明，selectedBy保留定位方式，显式workSelections优先。4个反例覆盖手动读取、题/角色隔离、多位置/显式优先、修订和source失效；56项275断言及主/研究类型通过。compact实际原slice零provider重放使两题unlocated改为awaiting-verification，0新增读取，旧坏图未重验/提升。下一步Memos普通具名复验及两完整原skill的仓外授权配置作者；Download新作者不替换Paperless Notes封存身份，质量面板继续暂停。
 
+**实际作者格式与原政策复验（2026-10-04）。** Memos worklist修后10调用/10响应，42accepted/0rejected、66队列变化/最长2次停滞、0closed；UTF-8 messages883,335、源码31,570/重发16,820 bytes。独立原正文复核full，主代理点验原政策/handler出处，仍保留两项图诊断，不把条件政策映射或helper关联问题当已通过。不同轨迹不能直接推因果成本改善。GitHub原skill授权作者首稿11调用交付四问题声明和USAGE，独立内容评价sound；格式互斥和CLI命令错误保留。模式专用complete Schema现显式广告运行时分支，4测试24断言；实际conv-log任务hash绑定归档4测试14断言，首0计数及一次prefix漏匹配unknown派生保留，具名修正11请求/11响应。原/修/消费分别计量，下一步实际模型修稿及独立Cloudflare/Download作者。previous定向4测试35断言通过；入口关联会再次显示已导入窗口，纠正旧零显示断言，不改历史记录。主/研究类型通过，累计250派发、USD/人力unknown，主面板与Notes attempt-3保持封存。原审稿与主代理对其计数/档案目录误判的更正在[复核裁定](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/evaluations/current-source-review-adjudication.json)分列。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

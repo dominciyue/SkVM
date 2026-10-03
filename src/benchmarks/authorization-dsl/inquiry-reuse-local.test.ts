@@ -47,7 +47,9 @@ test("ordinary CLI --previous recomputes policy and archives verified reuse prov
   const run = JSON.parse(await readFile(path.join(current.sessionPath, "run.json"), "utf8"))
   expect(run.toolHistory).toEqual([])
   expect(run.sourceAccounting.importedEvidenceBytes).toBeGreaterThan(0)
-  expect(run.sourceAccounting.cumulativeModelSourceBytes).toBe(0)
+  expect(run.requests[0].params.messages.map((m: any) => m.content).join("\n")).toContain(JSON.stringify(run.evidence[0].text))
+  expect(run.sourceAccounting.cumulativeModelSourceBytes).toBe(run.evidence[0].bytes)
+  expect(run.sourceAccounting.toolDisplayBytes).toBe(0)
   expect(f.calls()).toBe(2)
   const reportPath = path.join(current.sessionPath, "report.json"), report = JSON.parse(await readFile(reportPath, "utf8"))
   report.reuseOrigin.previousSessionId = "unrelated-session"

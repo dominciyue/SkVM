@@ -2633,3 +2633,5 @@ AR错误草稿撤回（2026-10-04实现）：模型可用withdrawals具名指出
 AR归档进度计量（2026-10-04）：已有普通native归档的request、dispatch attemptId与response tool-call ID可关联调用、提议反馈和工作队列快照。UTF-8序列化messages/content、system、tools和toolResults分别计量，不充当SDK请求载荷；源码/重发复用既有原窗口验证。无逐调用物理I/O时仅保存原聚合值；每工作项闭合前共享session成本不能声称因果归属。无队列快照的旧轨迹进度unknown，重复诊断不重复算新错误，接受更新不等于队列闭合。compact轨迹原文字的源码语义复核full/conditional与checked图缺失分别记录，不升级原结果或释放暂停面板。
 
 AR入口队列关联：同题已接受sourceBound entry规则引用的原窗口若包含唯一索引声明行且path/sha一致，可以机械定位这个entry工作项；selectedBy记录accepted-entry-citation，显式候选选择优先。非entry、别题、未接受/未读证据和多候选不能消歧；当前规则修订会重新定位，来源变化仍阻断。不添加授权条件、已知用户值、依赖或源码语义；解释及最终闭合保持原检查合同。真实原slice重放仅验证位置与待核验状态，不重算/升级旧失败。
+
+AR完整作者格式：公开模式专用authoring Schema只表达完整inquiry分支，mode/policy由内部声明拥有，conformance必须独立policy，behavior不广告policy；普通自然输入兼容不变。原运行时refinement的互斥不能仅靠通用JSON转换广告，故作者格式显式排除外层brief/mode/policy，原运行时问题唯一性仍检查。真实首稿及错误使用说明保留，给模型当前格式和普通CLI实际参数作具名修稿，不私改实验声明或塞入源码答案。普通作者费用按确切任务hash的CLI conversation请求/响应计量，runtime目录存在不等于调用0；未知日志/费用和已知小计分开。已导入源码窗口被当前解释再次显示时照实记显示成本，不声称复用零prompt源码。

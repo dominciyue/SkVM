@@ -1,0 +1,80 @@
+{
+  "artifact": "D:/skill优化/SkVM/results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary/native-memos-worklist-repaired/stdout.txt",
+  "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+  "reviewer": "independent raw-prose semantic review",
+  "availability": {
+    "first": {
+      "available": false,
+      "evidence": "stdout contains run metadata and final output only; no separate first draft/prose is present."
+    },
+    "final": {
+      "available": true,
+      "anchor": "stdout.txt:23-237"
+    }
+  },
+  "finalRating": "full",
+  "supportedClaims": [
+    {
+      "claim": "Ordinary member removing a different member is denied.",
+      "prose": "stdout.txt:56-57, 167-171, 233-235",
+      "source": "server/api/v1/space_service.go:750-755; server/api/v1/space_service.go:54-59"
+    },
+    {
+      "claim": "Admin nonself removal reaches deletion after exact ADMIN-role check.",
+      "prose": "stdout.txt:56-58, 119-146, 167-171, 179-185, 231-235",
+      "source": "server/api/v1/space_service.go:751-759; server/api/v1/space_service.go:54-59"
+    },
+    {
+      "claim": "Self-removal skips the administrator-role check and reaches deletion.",
+      "prose": "stdout.txt:58-62, 105-115, 150-173, 187-193, 231-235",
+      "source": "server/api/v1/space_service.go:746-759"
+    },
+    {
+      "claim": "Caller and target are resolved distinctly, with active caller membership required and active target membership looked up in the same space.",
+      "prose": "stdout.txt:68-101",
+      "source": "server/api/v1/space_service.go:632-662; server/api/v1/space_service.go:30-51"
+    },
+    {
+      "claim": "The mutation uses the resolved target membership and caller ID.",
+      "prose": "stdout.txt:150-163",
+      "source": "server/api/v1/space_service.go:756-760"
+    },
+    {
+      "claim": "Policy comparison is conformant: only an administrator removes another member; self-removal is permitted.",
+      "prose": "stdout.txt:177-193",
+      "source": "memos-remove.json:14-19; server/api/v1/space_service.go:750-759"
+    }
+  ],
+  "actualErrors": [],
+  "avoidableUnknowns": [
+    "The prose says the resource resolver requires active caller membership and correctly cites the resolver, but does not quote the full target-resolution body in one contiguous source excerpt; the cited source anchors are sufficient.",
+    "The report retains a formal-checker limitation at stdout.txt:226-227, but this is accurately framed as tooling state rather than semantic uncertainty."
+  ],
+  "justifiedLimits": [
+    {
+      "limit": "Deployment identity integrity is unverified.",
+      "prose": "stdout.txt:197-219",
+      "source": "server/api/v1/auth_service_session.go:269-290",
+      "assessment": "Justified: the visible code consumes auth.GetUserID(ctx), while middleware/interceptor population is outside the supplied bounded source review."
+    },
+    {
+      "limit": "Successful persistence is unestablished.",
+      "prose": "stdout.txt:220-221",
+      "source": "server/api/v1/space_service.go:756-763",
+      "assessment": "Justified: handler-visible authorization and invocation do not prove database-driver/transaction completion."
+    },
+    {
+      "limit": "No undocumented external role grants assumed.",
+      "prose": "stdout.txt:223-224",
+      "source": "server/api/v1/space_service.go:54-59",
+      "assessment": "Justified and aligned with input brief's instruction not to assume undocumented grants."
+    }
+  ],
+  "decisiveAnchors": {
+    "inputPolicy": "D:/skill优化/SkVM/results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/model/inputs/memos-remove.json:14-19",
+    "resolver": "D:/skill优化/SkVM/results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/model/public-source/memos/server/api/v1/space_service.go:632-662",
+    "deleteHandler": "D:/skill优化/SkVM/results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/model/public-source/memos/server/api/v1/space_service.go:740-763",
+    "adminHelper": "D:/skill优化/SkVM/results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/model/public-source/memos/server/api/v1/space_service.go:54-59",
+    "currentUser": "D:/skill优化/SkVM/results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/model/public-source/memos/server/api/v1/auth_service_session.go:269-290"
+  }
+}
