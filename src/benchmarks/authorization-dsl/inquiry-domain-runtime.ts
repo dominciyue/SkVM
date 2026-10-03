@@ -112,11 +112,14 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     rules: slice.rules.map(({ key, questionId, pathKey, kind, after, condition, bindingKey, bindingKind, principal, resource, digest }) => ({ key, questionId, pathKey, kind, after, condition, bindingKey, bindingKind, principal, resource, digest })),
     bindings: slice.bindings, policyRules: slice.policyRules, dependencies: scheduler.snapshot(), paths: lastPaths,
     diagnostics: [...issues.values()].flat().concat(check?.diagnostics ?? []), ...(worklist ? { worklist: worklist.snapshot(), automaticActionsRemaining } : {}), semanticSupport: "unreviewed", ...(options.ablation ? { mechanismDisabled: options.ablation } : {}) })
+  let contextHistoryPosition = 0
   const modelContext = () => {
     if (closed) throw new Error("session-closed")
     worklist?.sync(slice, check)
     const diagnosed = [...issues.values()].flat().flatMap(d => slice.rules.filter(r => d.path.includes(`${r.questionId}.${r.key}`)).flatMap(r => r.evidenceIds))
-    const recent = options.tools.history.flatMap(h => h.result.evidence.map(e => e.id)).slice(-2)
+    const currentReads = options.tools.history.slice(contextHistoryPosition)
+    const recent = (currentReads.length ? currentReads : options.tools.history.slice(-2)).flatMap(h => h.result.evidence.map(e => e.id))
+    contextHistoryPosition = options.tools.history.length
     const context = localExplanationContext(options.program, worklist?.snapshot() ?? [], options.tools.evidence, slice, diagnosed, recent)
     offeredTasks = context.tasks
     return context

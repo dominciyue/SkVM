@@ -4,13 +4,13 @@ import { execFileSync } from "node:child_process"
 
 const root = import.meta.dir, repo = path.resolve(root, "../../../../.."), historical = path.join(path.dirname(root), "authorization-domain-execution-v1")
 const model = "xty/gpt-5.6-sol", action = process.argv[2]
-if (!["native-memos", "author-workflows"].includes(action ?? "")) throw new Error("Use native-memos|author-workflows")
+if (!["native-memos", "native-memos-repaired", "native-memos-policy-change", "author-workflows"].includes(action ?? "")) throw new Error("Use native-memos|native-memos-repaired|native-memos-policy-change|author-workflows")
 const output = path.join(root, "ordinary", action!), workDir = path.join(output, "workdir")
 await mkdir(workDir, { recursive: true })
 const skill = path.join(historical, "model/source-skills/github-security-review/SKILL.md")
 let prompt: string, extras: string[]
-if (action === "native-memos") {
-  const inputFile = path.join(historical, "model/inputs/memos-remove.json"), input = JSON.parse(await readFile(inputFile, "utf8"))
+if (action!.startsWith("native-memos")) {
+  const inputFile = path.join(historical, `model/inputs/${action === "native-memos-policy-change" ? "memos-remove-policy-change" : "memos-remove"}.json`), input = JSON.parse(await readFile(inputFile, "utf8"))
   prompt = `${input.brief}\nIndependent current policy: ${input.policy.text}\nUse the complete original security-review skill for this bounded source-visible authorization question. Whole audits, target execution, network calls and patch application are outside this task. Preserve its normal reporting format, cite original lines, separate source behavior from policy and explicitly retain unresolved facts.`
   extras = [`--authorization-scope=${inputFile}`, "--authorization-domain-tools", "--authorization-strategy=guided-evidence-v2", `--authorization-trace=${path.join(output, "native-trace.json")}`]
 } else {
@@ -22,7 +22,7 @@ if (action === "native-memos") {
   extras = ["--optimize", `--package-out=${path.join(output, "exported-package")}`]
 }
 const args = ["run", `--prompt=${prompt}`, `--skill=${skill}`, `--model=${model}`, "--adapter=bare-agent", `--workdir=${workDir}`, "--max-steps=12", "--timeout-ms=1200000", ...extras]
-await writeFile(path.join(output, "claim.json"), JSON.stringify({ at: new Date().toISOString(), revision: execFileSync("git", ["rev-parse", "HEAD"], { cwd: repo, encoding: "utf8" }).trim(), action, model, args, originalSkill: skill, purpose: action === "native-memos" ? "AR10/AR13 ordinary full-skill use and targeted shared-repair verification; main quality panel remains paused" : "New non-API original-skill run/capture/proposal/export chain", sourceSkillUnmodified: true, noAutomaticResend: true }, null, 2) + "\n", { flag: "wx" })
+await writeFile(path.join(output, "claim.json"), JSON.stringify({ at: new Date().toISOString(), revision: execFileSync("git", ["rev-parse", "HEAD"], { cwd: repo, encoding: "utf8" }).trim(), action, model, args, originalSkill: skill, purpose: action!.startsWith("native-memos") ? "AR10/AR13 ordinary full-skill use and targeted shared-repair verification; main quality panel remains paused" : "New non-API original-skill run/capture/proposal/export chain", sourceSkillUnmodified: true, noAutomaticResend: true }, null, 2) + "\n", { flag: "wx" })
 const child = Bun.spawn([process.execPath, path.join(repo, "src/index.ts"), ...args], { cwd: repo, env: process.env, stdout: "pipe", stderr: "pipe" })
 const [stdout, stderr, exitCode] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited])
 await writeFile(path.join(output, "stdout.txt"), stdout)

@@ -43,6 +43,13 @@ test("question fairness gives a second entry a turn before reading more of a lon
   expect(f.work.snapshot().find((w: any) => w.questionId === "alpha" && w.kind === "entry").state).toBe("awaiting-read")
   expect(f.work.snapshot().find((w: any) => w.questionId === "beta" && w.kind === "entry").state).toBe("awaiting-interpretation")
 })
+
+test("an explicitly declared operation supplies an entry location lead without duplicate entryHint", async () => {
+  const f = await fixture({ "entry.ts": "export function entry() { return false; }\n" }, [{ id: "q", request: "Can the current caller remove a member?", operation: "entry", premises: [] }] as any)
+  await f.work.run(createControlSlice(), 2)
+  expect(f.work.snapshot().find((w: any) => w.kind === "entry")).toMatchObject({ state: "awaiting-interpretation", semanticSupport: "unreviewed" })
+  expect(f.tools.evidence[0]?.text).toContain("return false")
+})
 test("ambiguous entries stay local and explicit candidate selection cannot borrow another question", async () => {
   const f = await fixture({ "a.ts": "export function entry() { return true; }\n", "b.ts": "export function entry() { return false; }\n", "other.ts": "export function other() { return true; }\n" }, [{ id: "q", request: "Investigate entry", entryHint: "entry", premises: [] }, { id: "other", request: "Investigate other", entryHint: "other", premises: [] }])
   await f.work.run(createControlSlice(), 2)

@@ -236,6 +236,7 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 - 2026-10-03接线细节：guided native收到完整input.inquiry时初始化同一program/runtime，compile工具不再重复暴露，记录host-input来源及0编译工具调用；仅brief仍由模型声明且计入原预算。原skill/reference loader与旧策略接线不改；实际四消费另验。
 - 2026-10-03普通入口检查发现run CLI枚举仍缺guided-evidence-v2，且adapter setup只为旧domain策略检查domain-tools。先补CLI与provider创建前校验的红测，再用同一策略解析器接通，避免把直接调用内部native API当成普通CLI验收。
 - 两项预期红测成立后接通共享enum及非legacy策略校验；32项141断言、主类型检查通过。原skill四次真实运行尚未执行，不以入口测试代替消费证据。
+- 完整GitHub skill的Memos普通CLI已真实10调用，读取源码并做两次检查/文字交付，但关键批次三次读取中入口不是最后两项，原文从展示被漏掉；编译有operation而无entryHint也未启动定位。两项针对红测确认，修为展示上次上下文以来所有实际新读窗口、operation可作词法候选线索。原坏答案/引用失败保持，修后同题与政策变化消费继续。
 - [ ] 保持 skill 其它职责和原回答格式，领域能力只服务明确授权问题。用户不手填 trace、正确 helper 名、控制图或 oracle。
 - [ ] 真实使用 Cloudflare security-audit 与 GitHub security-review 的已归档正文，各覆盖原任务及一个前提/政策变化；四次都从普通入口启动。
 - [ ] 每次检查 trace 中补读、局部解释、分支计算、最终检查、文字交付五步是否真实发生。没有适用自动读取/排除时明确说明，不用无关动作刷采用率；失败现场修复并单列复测。

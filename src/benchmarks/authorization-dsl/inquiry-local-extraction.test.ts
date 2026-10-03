@@ -91,7 +91,7 @@ test("explicit user null and absent grants remain known values independently of 
 test("explicitly rerequested old evidence reenters the current windows even when its stable ID is reused", async () => {
   const f = await fixture([{ id: "q", request: "Inspect allowed original windows", entryHint: "unindexed", premises: [] }])
   for (const line of [1, 2, 3, 4]) await f.tools.execute("source_read", { path: "entry.ts", startLine: line, endLine: line })
-  expect(f.runtime.modelContext().sourceWindows.map((e: any) => e.startLine)).toEqual([3, 4])
+  expect(f.runtime.modelContext().sourceWindows.map((e: any) => e.startLine)).toEqual([1, 2, 3, 4])
   await f.tools.execute("source_read", { path: "entry.ts", startLine: 1, endLine: 1 })
   expect(f.tools.evidence).toHaveLength(4)
   expect(f.runtime.modelContext().sourceWindows.some((e: any) => e.startLine === 1)).toBe(true)

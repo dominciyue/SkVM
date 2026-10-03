@@ -30,7 +30,7 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
   const make = (id: string, questionId: string, kind: InquiryRelation, origin: WorkItem["origin"], question: string, extra: Partial<WorkItem> = {}): WorkItem => ({ id, questionId, kind, origin, question, state: "unlocated", decisive: false, reason: "Locate original source or an explicit question relation.", candidates: [], callsiteEvidenceIds: [], evidenceIds: [], semanticSupport: "unreviewed", nextAction: { kind: "locate", itemId: id }, ...extra })
   for (const duty of options.program.queue) {
     const q = options.program.questions.find(q => q.id === duty.questionId)!
-    items.set(duty.id, make(duty.id, duty.questionId, duty.kind, "question-duty", duty.question, { entryHint: q.entryHint, ...(duty.kind === "entry" ? { candidates: options.tools.symbolHints(q.entryHint ?? q.request).slice(0, 16), decisive: true } : {}) }))
+    items.set(duty.id, make(duty.id, duty.questionId, duty.kind, "question-duty", duty.question, { entryHint: q.entryHint, ...(duty.kind === "entry" ? { candidates: options.tools.symbolHints(q.entryHint ?? q.operation ?? q.request).slice(0, 16), decisive: true } : {}) }))
   }
   const rootFor = (questionId: string) => [...items.values()].find(i => i.questionId === questionId && i.origin === "question-duty" && i.kind === "entry")!
   const coveredThrough = (c: DiscoverySymbol) => {
