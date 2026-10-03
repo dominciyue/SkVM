@@ -1312,6 +1312,8 @@ AR继续修入口队列停滞：原slice中同题已接受entry的原引用机�
 
 **实际作者格式与原政策复验（2026-10-04）。** Memos worklist修后10调用/10响应，42accepted/0rejected、66队列变化/最长2次停滞、0closed；UTF-8 messages883,335、源码31,570/重发16,820 bytes。独立原正文复核full，主代理点验原政策/handler出处，仍保留两项图诊断，不把条件政策映射或helper关联问题当已通过。不同轨迹不能直接推因果成本改善。GitHub原skill授权作者首稿11调用交付四问题声明和USAGE，独立内容评价sound；格式互斥和CLI命令错误保留。模式专用complete Schema现显式广告运行时分支，4测试24断言；实际conv-log任务hash绑定归档4测试14断言，首0计数及一次prefix漏匹配unknown派生保留，具名修正11请求/11响应。原/修/消费分别计量，下一步实际模型修稿及独立Cloudflare/Download作者。previous定向4测试35断言通过；入口关联会再次显示已导入窗口，纠正旧零显示断言，不改历史记录。主/研究类型通过，累计250派发、USD/人力unknown，主面板与Notes attempt-3保持封存。原审稿与主代理对其计数/档案目录误判的更正在[复核裁定](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/evaluations/current-source-review-adjudication.json)分列。
 
+AR真实条件误拒补充：原政策Memos admin路径的guard/effect重复相同条件，实际residual为all(A,A)，政策为A；主代理点验表明这是有限布尔恒等式的检查缺口，并非独立政策sourceBound:false或用户值unspecified本身。两侧以同当前binding部分求值，新增比较只使用有限all/any结合、交换、幂等/单元素折叠，原源规则/digest/未知值不改，重复映射及不同条件仍拒绝。53测试310断言、主/研究类型与独立只读核验通过；纯原trace重放政策从undetermined到satisfied，但helper仍open，旧交付不升级，语义仍unreviewed。研究证据与原失败分列于[条件重放](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/policy-condition-replay.json)，累计250调用不增。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

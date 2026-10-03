@@ -1,0 +1,41 @@
+{
+  "reviewer": "memos_dependency_check_locator",
+  "independentReadOnly": true,
+  "artifact": "ordinary/native-memos-worklist-repaired/native-trace.json",
+  "facts": {
+    "dependency": {
+      "key": "dep.require-space-admin",
+      "from": "guard.other-requires-admin",
+      "state": "read",
+      "symbol": "requireSpaceAdministrator",
+      "candidate": "space_service.go:54-59",
+      "candidateId": "symbol-79f56fc2a188f84c9e0a930f",
+      "callsiteEvidence": "ev-3ab3a4498be30e923f85",
+      "helperEvidence": [
+        "ev-7a80e5045e5259c2eebb",
+        "ev-d6c9c94bf08d1afe6292"
+      ]
+    },
+    "parent": {
+      "key": "guard.other-requires-admin",
+      "evidenceIds": [
+        "ev-3ab3a4498be30e923f85",
+        "ev-d6c9c94bf08d1afe6292",
+        "ev-7a80e5045e5259c2eebb"
+      ],
+      "claim": "For a different target, continuation is permitted only when callerMembership.Role is exactly SpaceMemberRoleAdmin."
+    },
+    "scheduler": "inquiry-domain-scheduler.ts:65-67 requires a different same-question rule using candidate evidence whose explicit predecessor closure contains dependency.from",
+    "policy": {
+      "mappings": 3,
+      "sourceBound": false,
+      "status": "undetermined",
+      "residualBindings": [
+        "current-user-id",
+        "target-user-id",
+        "caller-space-role"
+      ]
+    }
+  },
+  "mainCorrection": "Locator correctly identifies actual original helper coverage and parent linkage. Independent policy mappings intentionally have sourceBound:false; this is not the policy rejection cause. Actual admin residual repeats all(A,A), and old canonical comparison did not recognize A. Parent incorporation remains governed by explicit dependency edge contract, not independent prose score."
+}

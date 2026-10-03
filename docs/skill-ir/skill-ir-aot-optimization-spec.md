@@ -2635,3 +2635,5 @@ AR归档进度计量（2026-10-04）：已有普通native归档的request、disp
 AR入口队列关联：同题已接受sourceBound entry规则引用的原窗口若包含唯一索引声明行且path/sha一致，可以机械定位这个entry工作项；selectedBy记录accepted-entry-citation，显式候选选择优先。非entry、别题、未接受/未读证据和多候选不能消歧；当前规则修订会重新定位，来源变化仍阻断。不添加授权条件、已知用户值、依赖或源码语义；解释及最终闭合保持原检查合同。真实原slice重放仅验证位置与待核验状态，不重算/升级旧失败。
 
 AR完整作者格式：公开模式专用authoring Schema只表达完整inquiry分支，mode/policy由内部声明拥有，conformance必须独立policy，behavior不广告policy；普通自然输入兼容不变。原运行时refinement的互斥不能仅靠通用JSON转换广告，故作者格式显式排除外层brief/mode/policy，原运行时问题唯一性仍检查。真实首稿及错误使用说明保留，给模型当前格式和普通CLI实际参数作具名修稿，不私改实验声明或塞入源码答案。普通作者费用按确切任务hash的CLI conversation请求/响应计量，runtime目录存在不等于调用0；未知日志/费用和已知小计分开。已导入源码窗口被当前解释再次显示时照实记显示成本，不声称复用零prompt源码。
+
+AR政策条件等价：条件政策和路径在同一问题的当前binding下部分求值，再仅用有限all/any的结合、交换、幂等及单元素折叠比较unknown residual；非法/循环/超限表达式不等价，不同算子、严格值类型及多个映射仍留undetermined。不作任意逻辑蕴涵，不赋未知值，不把conditional升为无条件allow。原canonicalControl/digest及源/用户/政策provenance保持。当前纯检查可以消除真实A且A与A的误拒，但原模型交付/旧检查状态不改，helper未闭合仍partial，语义unreviewed。

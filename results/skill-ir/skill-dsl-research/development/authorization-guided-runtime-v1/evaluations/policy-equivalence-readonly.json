@@ -1,0 +1,34 @@
+{
+  "reviewer": "policy_equivalence_audit",
+  "independentReadOnly": true,
+  "finding": "未发现可复现错误或误放行",
+  "anchors": [
+    {
+      "file": "src/task-dsl/authorization/control-evaluation.ts:57-69",
+      "finding": "先验证有限表达式，只扁平化同算子 all/any、排序去重、单元素折叠；not 递归。不赋值，不修改原对象"
+    },
+    {
+      "file": "src/task-dsl/authorization/control-evaluation.ts:28-54",
+      "finding": "三值求值及 missingBindings 保持"
+    },
+    {
+      "file": "src/task-dsl/authorization/control-evaluation.test.ts:42-60",
+      "finding": "结合/交换/幂等、严格类型、三值 binding、循环/超限/非法反例"
+    },
+    {
+      "file": "src/task-dsl/authorization/control-conclusion.ts:106-118",
+      "finding": "政策和路径同问题当前 binding 求值，只有 true 或 unknown 且 residual 等价可匹配；完整路径且恰好一个 mapping"
+    },
+    {
+      "file": "src/task-dsl/authorization/control-conclusion.test.ts:176-205",
+      "finding": "nested/repeated conjunction 及 partial bindings 正例；不同条件/类型/重复 mapping 仍 undetermined"
+    },
+    {
+      "file": "src/task-dsl/authorization/control-slice.ts:49-52",
+      "finding": "canonicalControl/digest 未变"
+    }
+  ],
+  "replayQualification": "派生记录说明当前有限比较修复，不是新模型交付；source semantics 仍 unreviewed，没有未知值赋值或无条件 allow",
+  "mainAgentExposed": true,
+  "providerCallsDuringReview": 0
+}

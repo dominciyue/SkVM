@@ -1,8 +1,8 @@
 import type { AuthorizationInquiryProgram } from "./inquiry-program.ts"
 import { AuthorizationInquiryResultSchema, InquiryQuestionResultSchema } from "./inquiry-result.ts"
 import { questionIdForDiagnostic, type InquiryDiagnostic } from "./inquiry.ts"
-import { controlBindings, canonicalControl, type ControlSlice, type BoundControlRule } from "./control-slice.ts"
-import { partialEvaluate, type PartialPredicate } from "./control-evaluation.ts"
+import { controlBindings, type ControlSlice, type BoundControlRule } from "./control-slice.ts"
+import { partialEvaluate, equivalentPredicateConditions, type PartialPredicate } from "./control-evaluation.ts"
 
 export interface DependencyCheckState { key: string; questionId: string; pathKey: string; state: string; decisive: boolean; symbol: string }
 const diag = (code: string, path: string, message: string, questionId?: string): InquiryDiagnostic => ({ code, path, message, severity: "error", ...(questionId ? { questionId } : {}) })
@@ -105,7 +105,12 @@ export function checkControlConclusions(program: AuthorizationInquiryProgram, sl
     if (program.mode === "conformance") {
       let mismatches = 0, unmapped = !live.length
       for (const path of live) {
-        const mappings = slice.policyRules.filter(p => p.questionId === path.questionId && p.pathKey === path.pathKey && (!p.condition || partialEvaluate(p.condition, controlBindings(slice, path.questionId)).truth === "true" || canonicalControl(p.condition) === canonicalControl(path.predicate.residual)))
+        const mappings = slice.policyRules.filter(p => {
+          if (p.questionId !== path.questionId || p.pathKey !== path.pathKey) return false
+          if (!p.condition) return true
+          const condition = partialEvaluate(p.condition, controlBindings(slice, path.questionId))
+          return !condition.diagnostics.length && (condition.truth === "true" || condition.truth === "unknown" && equivalentPredicateConditions(condition.residual, path.predicate.residual))
+        })
         if (!path.complete || mappings.length !== 1) { unmapped = true; continue }
         if (path.disposition !== mappings[0]!.expected) mismatches++
       }

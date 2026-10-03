@@ -38,3 +38,23 @@ test("short circuits drop irrelevant unknowns, unsupported or over-limit express
     expect(r.diagnostics.length).toBeGreaterThan(0)
   }
 })
+
+test("condition equivalence handles only bounded associative commutative idempotent boolean groups", () => {
+  expect(typeof api.equivalentPredicateConditions).toBe("function")
+  const left = { op: "all", args: [t, { op: "all", args: [u, t] }] }, right = { op: "all", args: [u, t] }, raw = JSON.stringify(left)
+  expect(api.equivalentPredicateConditions(left, right)).toBe(true)
+  expect(api.equivalentPredicateConditions({ op: "any", args: [u, u] }, u)).toBe(true)
+  expect(api.equivalentPredicateConditions(left, { op: "any", args: [u, t] })).toBe(false)
+  expect(api.equivalentPredicateConditions(eq("t", true), eq("t", "true"))).toBe(false)
+  expect(JSON.stringify(left)).toBe(raw)
+  for (const a of [true, false, undefined]) for (const b of [true, false, undefined]) {
+    const bindings = { ...(a === undefined ? {} : { t: a }), ...(b === undefined ? {} : { u: b }) }
+    expect(api.partialEvaluate(left, bindings).truth).toBe(api.partialEvaluate(right, bindings).truth)
+  }
+})
+test("condition equivalence does not certify invalid cyclic or over-limit expressions", () => {
+  expect(typeof api.equivalentPredicateConditions).toBe("function")
+  const cyclic: any = { op: "not" }; cyclic.arg = cyclic
+  const wide = { op: "all", args: Array.from({ length: 65 }, () => u) }
+  for (const value of [null, cyclic, wide, { op: "custom", code: "true" }]) expect(api.equivalentPredicateConditions(value, value)).toBe(false)
+})

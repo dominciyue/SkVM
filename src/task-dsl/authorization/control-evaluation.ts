@@ -53,3 +53,18 @@ export function partialEvaluate(input: unknown, knownBindings: Record<string, Sc
   }
   return { ...evaluate(input as Predicate), trace, diagnostics }
 }
+
+/** Compare validated finite conditions using associative/commutative/idempotent all/any identities, without assigning any binding. */
+export function equivalentPredicateConditions(left: unknown, right: unknown): boolean {
+  if (predicateDiagnostics(left).length || predicateDiagnostics(right).length) return false
+  const key = (value: unknown) => JSON.stringify(value, (_name, v) => record(v) ? Object.fromEntries(Object.keys(v).sort().map(k => [k, v[k]])) : v)
+  const normalize = (p: Predicate): Predicate => {
+    if (p.op === "all" || p.op === "any") {
+      const children = p.args.map(normalize).flatMap(child => child.op === p.op ? (child as { args: Predicate[] }).args : [child])
+      const unique = [...new Map(children.map(child => [key(child), child])).entries()].sort(([a], [b]) => a.localeCompare(b)).map(([, child]) => child)
+      return unique.length === 1 ? unique[0]! : { op: p.op, args: unique }
+    }
+    return p.op === "not" ? { op: "not", arg: normalize(p.arg) } : p
+  }
+  return key(normalize(left as Predicate)) === key(normalize(right as Predicate))
+}

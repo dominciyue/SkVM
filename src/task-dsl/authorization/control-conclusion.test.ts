@@ -172,3 +172,35 @@ test("known absent grants deny while not-given grants cannot be treated as absen
   const preserved = answer("conditional", { branches: [false, true].map(grant => ({ id: grant ? "present" : "absent", condition: `grant is ${grant}`, disposition: grant ? "allow" : "deny", explanation: "Retained unresolved branch", evidenceIds: ["ev"] })), missing: [{ kind: "premise-unspecified", detail: "Grants are not given." }] })
   expect(api.checkControlConclusions(unspecified, unknown, preserved, []).ruleConsistency).toBe(true)
 })
+
+test("repeated nested path conjunctions match the same conditional policy without inventing current values", () => {
+  const policy = { text: "Only enabled owners may write.", origin: "user" as const, location: "policy" }
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "conformance", policy, questions: plan.questions })
+  const enabled = { op: "eq", left: { binding: "enabled" }, right: { literal: true } }, owner = { op: "eq", left: { binding: "owner" }, right: { binding: "caller" } }
+  const condition = { op: "all", args: [enabled, owner] }
+  const s = state([rule("entry", "entry", []), rule("guard", "guard", ["entry"], { condition }), rule("write", "effect", ["guard"], { condition, complete: true })], { policyRules: [{ key: "policy", questionId: "q", pathKey: "p", expected: "allow", origin: "policy", text: policy.text, location: policy.location, condition: { op: "all", args: [owner, enabled] } }] }, p)
+  const conditional = answer("conditional", { branches: [{ id: "p", condition: "Enabled owner", disposition: "allow", evidenceIds: ["ev"], explanation: "Source condition retained" }], policyAssessment: { status: "satisfied", explanation: "Matches independent conditional policy" } })
+  const checked = api.checkControlConclusions(p, s, conditional, [])
+  expect(checked.policyComparisons[0].status).toBe("satisfied")
+  expect(checked.ruleConsistency).toBe(true)
+  expect(checked.paths[0].predicate.truth).toBe("unknown")
+  expect(checked.semanticSupport).toBe("unreviewed")
+  expect(codes(api.checkControlConclusions(p, s, answer("allow"), []))).toContain("unresolved-path-condition")
+})
+test("policy condition matching reduces both sides under the same actual current bindings", () => {
+  const policy = { text: "Enabled owners may write.", origin: "user" as const, location: "policy" }, p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "conformance", policy, questions: [{ id: "q", request: "Enabled is true. Can a caller write?", premises: [] }] })
+  const condition = { op: "all", args: [{ op: "eq", left: { binding: "enabled" }, right: { literal: true } }, { op: "eq", left: { binding: "owner" }, right: { binding: "caller" } }] }
+  const s = state([rule("entry", "entry", []), rule("write", "effect", ["entry"], { condition, complete: true })], { bindings: [{ questionId: "q", key: "enabled", value: true, origin: "user", text: "Enabled is true." }], policyRules: [{ key: "policy", questionId: "q", pathKey: "p", expected: "allow", origin: "policy", text: policy.text, location: policy.location, condition }] }, p)
+  const checked = api.checkControlConclusions(p, s, answer("conditional", { branches: [{ id: "p", condition: "Owner matches caller", disposition: "allow", evidenceIds: ["ev"], explanation: "Owner remains unspecified" }], policyAssessment: { status: "satisfied", explanation: "Independent policy" } }), [])
+  expect(checked.policyComparisons[0].status).toBe("satisfied")
+  expect(checked.paths[0].predicate.missingBindings).toEqual(["caller", "owner"])
+})
+test("different boolean conditions and duplicate mappings remain undetermined", () => {
+  const policy = { text: "Only enabled owners may write.", origin: "user" as const, location: "policy" }, p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "conformance", policy, questions: plan.questions })
+  const args = [{ op: "eq", left: { binding: "enabled" }, right: { literal: true } }, { op: "eq", left: { binding: "owner" }, right: { binding: "caller" } }]
+  const rules = [rule("entry", "entry", []), rule("write", "effect", ["entry"], { condition: { op: "all", args }, complete: true })], mapping = { key: "policy", questionId: "q", pathKey: "p", expected: "allow", origin: "policy", text: policy.text, location: policy.location }
+  const conditional = answer("conditional", { branches: [{ id: "p", condition: "Enabled owner", disposition: "allow", evidenceIds: ["ev"], explanation: "Source condition" }] })
+  for (const condition of [{ op: "any", args }, { ...args[0], op: "neq" }, { op: "eq", left: { binding: "enabled" }, right: { literal: "true" } }]) expect(api.checkControlConclusions(p, state(rules, { policyRules: [{ ...mapping, condition }] }, p), conditional, []).policyComparisons[0].status).toBe("undetermined")
+  const duplicate = state(rules, { policyRules: [{ ...mapping, condition: { op: "all", args } }, { ...mapping, key: "second", condition: { op: "all", args } }] }, p)
+  expect(api.checkControlConclusions(p, duplicate, conditional, []).policyComparisons[0].status).toBe("undetermined")
+})
