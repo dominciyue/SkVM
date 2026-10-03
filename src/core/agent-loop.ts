@@ -52,6 +52,7 @@ export interface AgentLoopConfig {
    */
   parallelToolExecution?: boolean
   toolHistoryCharacterLimit?: number
+  /** @deprecated The dispatch boundary is now enforced for every run. */
   stopBeforeIterationLimit?: boolean
 }
 
@@ -270,7 +271,7 @@ export async function runAgentLoop(
       }
 
       // Next LLM call with tool results
-      if (config.stopBeforeIterationLimit && iteration >= maxIterations) { loopError = new Error("Agent iteration budget exhausted before continuation"); break }
+      if (iteration >= maxIterations) { loopError = new Error("Agent iteration budget exhausted before continuation"); break }
       runtimeTrace?.providerRequestStart(iteration + 1)
       response = await provider.completeWithToolResults(params, toolResults, response)
       runtimeTrace?.providerResponseReceived(iteration + 1, response)

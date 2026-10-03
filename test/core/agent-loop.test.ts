@@ -27,6 +27,17 @@ function mockProvider(delayMs: number): LLMProvider {
   }
 }
 
+test("ordinary iteration budget prevents an unaccounted continuation and reports unfinished work", async () => {
+  let calls = 0
+  const response = (): LLMResponse => ({ text: "", toolCalls: [{ id: `c${++calls}`, name: "read", arguments: {} }], tokens: { input: 10, output: 5, cacheRead: 0, cacheWrite: 0 }, durationMs: 1, stopReason: "tool_use" })
+  const provider: LLMProvider = { name: "budget", complete: async () => response(), completeWithToolResults: async () => response() }
+  const result = await runAgentLoop({ provider, model: "mock", tools: [], executeTool: async () => ({ output: "read", durationMs: 0 }), system: "", maxIterations: 1, timeoutMs: 5000 }, [{ role: "user", content: "read then answer" }])
+  expect(calls).toBe(1)
+  expect(result.error?.message).toContain("iteration budget exhausted")
+  expect(result.tokens.input).toBe(10)
+  expect(result.allToolCalls).toHaveLength(1)
+})
+
 describe("runAgentLoop deadline detection", () => {
   test("post-loop check catches over-time await that returned end_turn", async () => {
     // Regression for round-6 / sweep G6: the in-loop deadline check only
