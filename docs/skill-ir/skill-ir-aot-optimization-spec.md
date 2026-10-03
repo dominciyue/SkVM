@@ -2649,3 +2649,5 @@ AR局部上下文投影合同：每个WorkItem仍提供原id/questionId/state/ne
 AR过程对象反馈沿用最终对象检查合同：bindingKey声明同题typed identity，principal/resource字段只引用该身份，绑定节点上的不同字段值不自动构成alias。现有对象、可达前驱、顺序及authorization edge检查抽成纯函数，按slice revision缓存并在final前反馈；partial更新仍接受，checks-off不计算，不创建额外模型请求或成功标志。最终答案检查复用同一函数，原语义unreviewed边界不变。
 
 AR派发前计量只从匹配原身份的provider-unavailable报告推导明确整数providerDispatches:0；原外层null、报告字节、token及费用不改。缺报告、hash/model不符、bool/null和completion-unknown均不推零。
+
+AR历史失败语料的类别必须对应原响应和入口：owner-null原文字保留而typed condition缺失，应记形式提取缺口；structured源码显示budget终止不得记native收口失败。若历史付费首次valid/第二次invalid未建立，明确保留deterministic-only反例及有限负面点验，不能为满足七类清单虚构第七次历史发生。修正登记数据及原件指针，不改原AQ结果。

@@ -117,7 +117,7 @@ type FailureRecord = {
 文件：新建 AR root/study.ts、study.test.ts、tsconfig.json；复用 AQ 的输入清单与存档路径，不修改 AQ。
 
 - [x] 登记八个已有任务：memos-share/remove、paperless-download/notes/share-create、owui-ingestion、gitea-self-query/create-issue。输入只有自然请求、允许范围、固定源码和独立政策。
-- [ ] 从 AQ 点取真实坏响应，覆盖 wrong schema type、delta/controlDelta、bindings 混用、owner-null 漏分支、未读 helper、无效第二次检查和预算终止。
+- [x] 从 AQ 点取六类真实坏响应，覆盖 wrong schema type、delta/controlDelta、bindings 混用、owner-null形式条件缺口、未读 helper、structured预算终止；第七类无效第二次检查保留确定性反例，历史付费发生未建立（以下方法修订）。
 - 原证据点验修正：六类已有实际坏响应；owner-null案例的原文字已保留分支，缺的是typed condition提取；预算案例是structured累计source display终止。四个native原始/changed轨迹的八次check均invalid，没有建立先valid后invalid的付费实例。第七类保留确定性状态清除反例和这次有限负面点验，不能为满足计划将测试改称真实历史失败。
 - 计量小修计划：ordinary消费的provider创建失败原report明确记录providerDispatches:0，外层结果却没有telemetry而写null。派生汇总只在原report状态、输入hash、model与claim一致且明确整数0时恢复两项计数为0；原报告、原null字段及费用不改，缺报告/不同身份/未知完成均保持未知。先写确定性反例再修汇总，不增模型请求。
 - [x] 写驱动失败测试：共享缺陷触发后剩余相关任务不得派发；已在途记录不丢；每个失败关联修复；旧原答不覆盖；同题新尝试成本累加；合法 unknown 不触发强制改答案。
@@ -126,6 +126,8 @@ type FailureRecord = {
 2026-10-04本阶段工作计划：先写语义评价反例，再为 `evaluate` 接入严格的独立评审记录与另存的开发主线程裁定。评审绑定具体 row/attempt 和原 report 字节；首次与修复尝试各自保留 initial/final、抽取含义、helper/分支/unknown/checker 机制证据，未评审不由 completed/valid 自动升格。固定保留16个主面板分母，普通使用与探针仅作描述性记录；只对输入摘要、源码索引、实现版本、模型及预算均相同的已评审主面板 M/D1 首次尝试配对。旧评价和原始评审不覆盖，缺失费用保持 unknown；评价与回放零派发，不要求其它样本先完成。两份作者配置的普通运行在稳定核心上并行进行，其间仅修改研究评价与记录。
 
 本阶段落实20测试70断言及研究类型通过，独立核验的编号/缺首报告/非法数值反例先红后绿。实际evaluate列16未运行主行、2描述性探针、0主首次评审/配对，不自动转换旧自由格式评审。作者修稿6调用、Download首作者7调用原配置格式通过；仓外同字节普通消费Memos11派发10响应末timeout未知、Download12/12 final数组污染/修复错误类型失败。原稿、原响应和后续核验分列，累计286、USD/人力unknown。下一段先定位普通SDK timeout终态及Download final受约束修复，未验完整交付/previous，Notes与未知Memos不得改名重发。
+
+历史语料逐原件指针点验已完成，register登记器与historical-failures.json同步。零provider replay保留6实际/1确定性，14驱动测试37断言、研究类型通过。第七类由原要求真实历史发生修订为确定性回归＋四native八invalid检查的有限负面点验，不制造付费发生、不继续全量历史审计；owner-null/预算错误归因已纠正，原AQ字节不改。见historical-failure-replay.json。
 
 ### AR2 — 统一模型 wire 与完整工具 Schema
 

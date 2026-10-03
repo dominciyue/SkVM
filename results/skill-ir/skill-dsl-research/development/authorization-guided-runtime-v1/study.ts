@@ -148,15 +148,106 @@ export async function register() {
   const tasks = previous.tasks.map((t: any) => ({ id: t.id, inputFile: path.relative(root, path.join(historical, "model/inputs", `${t.id}.json`)).replaceAll("\\", "/"), source: t.source }))
   const manifest = { schemaVersion: "authorization-ar-study/v1", createdAt: new Date().toISOString(), model, budgets, tasks, rows: plannedRows(), development: "adaptive-exposed", targetExecuted: false, priorAnswersModelVisible: false, sourceIdentities: previous.sourceIdentities }
   await save(file, manifest)
-  await save(path.join(root, "historical-failures.json"), { historicalRoot: path.relative(root, historical).replaceAll("\\", "/"), evidence: [
-    { category: "schema/wire", kind: "wrong-schema-type", artifact: "shared-revision.json", rawRun: "runs/quality-memos-share-M-E" },
-    { category: "schema/wire", kind: "delta-controlDelta", artifact: "evaluator/packets/packet-ca9b6db6c09a.json" },
-    { category: "schema/wire", kind: "source-premise-binding-confusion", artifact: "evaluator/packets/packet-556eec587f85.json" },
-    { category: "semantic-extraction", kind: "owner-null-and-not-given", artifact: "runs/revision-paperless-notes-M-E/report.json", source: "model/public-source/paperless/src/documents/permissions.py:624-635" },
-    { category: "source-location", kind: "unread-decisive-helper", artifact: "evaluator/packets/packet-e253a7ea408c.json" },
-    { category: "context/budget", kind: "native-budget-delivery", artifact: "evaluator/packets/packet-df35983b306b.json" },
-    { category: "state/checker", kind: "invalid-second-check-clears-result", artifact: "../../../../../src/benchmarks/authorization-dsl/inquiry-native.test.ts", provenance: "deterministic regression; no historical paid occurrence established" },
-  ] })
+  await save(path.join(root, "historical-failures.json"), {
+    "schemaVersion": "authorization-ar-historical-failures/v2",
+    "historicalRoot": "../authorization-domain-execution-v1",
+    "actualHistoricalCases": 6,
+    "deterministicCases": 1,
+    "evidence": [
+      {
+        "category": "schema/wire",
+        "kind": "wrong-schema-type",
+        "artifact": "shared-revision.json",
+        "rawArtifact": "runs/quality-memos-share-M-E/sessions/2026-10-01T123634031Z-fdb122d2/run.json",
+        "provenance": "actual-retained-response",
+        "pointers": [
+          "/requests/1/params/tools/0/inputSchema/anyOf/0/properties/controlDelta/properties/rules/items/properties/key/type",
+          "/attempts/1/response/toolCalls/0/arguments/controlDelta/rules/0/key",
+          "/attempts/3/response/toolCalls/0/arguments/controlDelta/rules/0/key",
+          "/error"
+        ],
+        "interpretation": "Advertised refined string key was an object in request 2; the response used object keys. A later response used string keys but resource/bindingKey types were still invalid. Attempt numbers refer to raw provider attempts, not logical fallbacks."
+      },
+      {
+        "category": "schema/wire",
+        "kind": "delta-controlDelta",
+        "artifact": "evaluator/packets/packet-ca9b6db6c09a.json",
+        "rawArtifact": "runs/ablation-owui-ingestion-checks-off/sessions/2026-10-01T141707005Z-754f2ed2/run.json",
+        "provenance": "actual-retained-response",
+        "pointers": [
+          "/requests/6/params/tools/0/inputSchema/anyOf/2/properties",
+          "/attempts/6/response/toolCalls/0/arguments",
+          "/error"
+        ],
+        "interpretation": "Provider attempt 7 submitted kind:control with controlDelta while that control branch advertised delta; retained error includes missing delta and unrecognized fields."
+      },
+      {
+        "category": "schema/wire",
+        "kind": "source-premise-binding-confusion",
+        "artifact": "runs/native-cloudflare-security-audit-changed/native-trace/tools.jsonl",
+        "line": 22,
+        "provenance": "actual-retained-response",
+        "pointers": [
+          "/call/arguments/controlDelta/bindings/0"
+        ],
+        "interpretation": "Source-derived addressed-document owner and owner-null premise were submitted in the user bindings group without its required origin/user text contract."
+      },
+      {
+        "category": "semantic-extraction",
+        "kind": "owner-null-formal-condition-gap",
+        "legacyKind": "owner-null-and-not-given",
+        "artifact": "runs/revision-paperless-notes-M-E/report.json",
+        "rawArtifact": "runs/revision-paperless-notes-M-E/sessions/2026-10-01T152246125Z-16805345/run.json",
+        "source": "model/public-source/paperless/src/documents/permissions.py:624-635",
+        "provenance": "actual-retained-response",
+        "pointers": [
+          "/domain/proposals/1/delta/rules",
+          "/domain/proposals/2/delta/rules"
+        ],
+        "interpretation": "Original prose already preserves null/self/object-permission alternatives. Corresponding owner-aware and bypass rule proposals omit typed condition; this is not evidence of wrong prose or treating not-given as null."
+      },
+      {
+        "category": "source-location",
+        "kind": "unread-decisive-helper",
+        "artifact": "evaluator/packets/packet-e253a7ea408c.json",
+        "provenance": "actual-retained-response",
+        "pointers": [
+          "/final/questions/0/missing/0"
+        ],
+        "sourceRun": "revision-owui-ingestion-D-E",
+        "interpretation": "Final explicitly leaves get_verified_user and both Files lookup implementations unread. process_file was checked and save_docs_to_vectordb was read but not incorporated; those two are not both unread."
+      },
+      {
+        "category": "context/budget",
+        "kind": "structured-source-display-budget",
+        "legacyKind": "native-budget-delivery",
+        "artifact": "evaluator/packets/packet-df35983b306b.json",
+        "provenance": "actual-retained-response",
+        "pointers": [
+          "/status",
+          "/error"
+        ],
+        "sourceRun": "quality-owui-ingestion-M-E-repeat",
+        "providerCalls": 9,
+        "interpretation": "Structured cumulative model source display budget exhausted; not a native final-delivery reservation case."
+      },
+      {
+        "category": "state/checker",
+        "kind": "invalid-second-check-clears-result",
+        "artifact": "../../../../../src/benchmarks/authorization-dsl/inquiry-native.test.ts",
+        "line": 107,
+        "symbol": "a failed second check clears an earlier checked result instead of exposing stale validity",
+        "provenance": "deterministic-regression-only",
+        "historicalPaidOccurrence": "not-established",
+        "boundedHistoricalCheck": {
+          "nativeTraces": 4,
+          "totalChecks": 8,
+          "validChecks": 0
+        },
+        "interpretation": "All eight inspected original/changed native checks were invalid; no actual first-valid/second-invalid paid occurrence was established. Preserve the deterministic counterexample without fabricating a seventh historical response."
+      }
+    ]
+  })
   return manifest
 }
 if (import.meta.main) {

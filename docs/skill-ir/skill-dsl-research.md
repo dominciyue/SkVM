@@ -1330,6 +1330,8 @@ AR `evaluate`现接严格语义评审及另存裁定，20项70断言、研究类
 
 过程反馈的共享缺口是typed身份声明不一致到final才提示。2项红例后抽出同一对象检查，按revision在final前反馈，保留partial草稿和最终验收，不自动alias或增加调用；134测试744断言、主/研究类型及独立只读复核通过。11原提议零provider回放保持accepted state及最终6对象诊断，第6提议revision46即可提示身份问题，原首次final revision88；回放无新答案、不升级原失败。下一步同原作者字节具名early-object-feedback复验，Notes/Memos未知请求与主面板暂停继续保留。
 
+**历史失败语料裁定完成（2026-10-04）。** 六类真实坏响应已由具体原request/response、native工具行、typed-condition及终止状态指针核对；登记器同步使用新标注。Memos错误类型的实际provider attempt2及4与逻辑fallback编号分开；controlDelta/delta为OWUI attempt7。owner-null原文字本已保留，只缺形式条件；OWUI helper未读与已读未关联分开；预算为structured源码展示终止。四native轨迹八check全部invalid，未建立付费先valid后invalid；第七类按任务书方法修订保留确定性回归和有限负面结果，非真实历史发生。零provider点验及14测试37断言、研究类型通过；原AQ字节不改，不为补类别再启动付费或全量历史审计。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
