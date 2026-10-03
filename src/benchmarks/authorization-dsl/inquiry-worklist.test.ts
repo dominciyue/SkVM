@@ -50,6 +50,13 @@ test("an explicitly declared operation supplies an entry location lead without d
   expect(f.work.snapshot().find((w: any) => w.kind === "entry")).toMatchObject({ state: "awaiting-interpretation", semanticSupport: "unreviewed" })
   expect(f.tools.evidence[0]?.text).toContain("return false")
 })
+test("a paraphrased operation retains the original user task's lexical entry lead", async () => {
+  const f = await fixture({ "entry.ts": "export function entry() { return false; }\n" }, [{ id: "q", request: "Can the caller remove a member?", operation: "remove member", premises: [] }] as any)
+  const work = api.createInquiryWorklist({ program: f.program, tools: f.tools, entryContext: "Check entry against the supplied independent policy." })
+  await work.run(createControlSlice(), 2)
+  expect(work.snapshot().find((w: any) => w.kind === "entry")).toMatchObject({ state: "awaiting-interpretation", semanticSupport: "unreviewed" })
+  expect(f.tools.evidence[0]?.text).toContain("return false")
+})
 test("ambiguous entries stay local and explicit candidate selection cannot borrow another question", async () => {
   const f = await fixture({ "a.ts": "export function entry() { return true; }\n", "b.ts": "export function entry() { return false; }\n", "other.ts": "export function other() { return true; }\n" }, [{ id: "q", request: "Investigate entry", entryHint: "entry", premises: [] }, { id: "other", request: "Investigate other", entryHint: "other", premises: [] }])
   await f.work.run(createControlSlice(), 2)

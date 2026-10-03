@@ -7,6 +7,11 @@ test("guided native accepts an otherwise valid unwrapped declaration without cha
   expect(api.inquiryNativeSchemas("guided-evidence-v2", true).authorization_compile.parse(inquiry)).toEqual({ inquiry })
   expect(api.inquiryNativeSchemas("guided-evidence-v2").authorization_compile.safeParse(inquiry).success).toBe(false)
   expect(api.inquiryNativeSchemas("guided-evidence-v2", true).authorization_compile.safeParse({ ...inquiry, inquiry }).success).toBe(false)
+  const { schemaVersion, ...body } = inquiry
+  expect(api.inquiryNativeSchemas("guided-evidence-v2", true).authorization_compile.parse({ schemaVersion, inquiry: body })).toEqual({ inquiry })
+  expect(api.inquiryNativeSchemas("guided-evidence-v2", true).authorization_compile.parse({ inquiry: body })).toEqual({ inquiry })
+  expect(api.inquiryNativeSchemas("guided-evidence-v2", true).authorization_compile.safeParse({ schemaVersion: "wrong", inquiry: body }).success).toBe(false)
+  expect(api.inquiryNativeSchemas("guided-evidence-v2", true).authorization_compile.safeParse({ schemaVersion, inquiry: { ...body, schemaVersion: "wrong" } }).success).toBe(false)
 })
 test("guided result moves explicitly owned nested observations without guessing or merging conflicts", () => {
   const observation = { questionId: "q", kind: "entry", subject: "entry", claim: "Read source", state: "observed", evidenceIds: ["e"] }

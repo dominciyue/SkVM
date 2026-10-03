@@ -239,6 +239,7 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 - 完整GitHub skill的Memos普通CLI已真实10调用，读取源码并做两次检查/文字交付，但关键批次三次读取中入口不是最后两项，原文从展示被漏掉；编译有operation而无entryHint也未启动定位。两项针对红测确认，修为展示上次上下文以来所有实际新读窗口、operation可作词法候选线索。原坏答案/引用失败保持，修后同题与政策变化消费继续。
 - [ ] 保持 skill 其它职责和原回答格式，领域能力只服务明确授权问题。用户不手填 trace、正确 helper 名、控制图或 oracle。
 - 同题ordinary/native-memos-repaired真实11响应，窗口缺失已消除、局部图有接受项，终图前驱/对象/依赖未闭合、checked未达。原bare inquiry及same-question嵌套observations被格式拒绝，新增无损归一并用21项156断言核查；继续预先声明的policy-change消费，原始失败和语义待评保持。
+- 首policy-change真实11响应、没有完成编译：schemaVersion三次放到inquiry外层，最终正确包装时探索预算用尽。修复已知版本常量的无歧义移位/补省，显式冲突仍拒绝（8项70断言）；若自然问题改写丢失符号且无候选，恢复原用户brief的词法入口线索（24项138断言），不填源码事实。按原输入同预算复验，原失败保留。
 - [ ] 真实使用 Cloudflare security-audit 与 GitHub security-review 的已归档正文，各覆盖原任务及一个前提/政策变化；四次都从普通入口启动。
 - [ ] 每次检查 trace 中补读、局部解释、分支计算、最终检查、文字交付五步是否真实发生。没有适用自动读取/排除时明确说明，不用无关动作刷采用率；失败现场修复并单列复测。
 

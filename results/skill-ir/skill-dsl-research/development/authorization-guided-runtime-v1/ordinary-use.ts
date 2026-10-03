@@ -4,13 +4,13 @@ import { execFileSync } from "node:child_process"
 
 const root = import.meta.dir, repo = path.resolve(root, "../../../../.."), historical = path.join(path.dirname(root), "authorization-domain-execution-v1")
 const model = "xty/gpt-5.6-sol", action = process.argv[2]
-if (!["native-memos", "native-memos-repaired", "native-memos-policy-change", "author-workflows", "author-workflows-repaired"].includes(action ?? "")) throw new Error("Unknown ordinary action")
+if (!["native-memos", "native-memos-repaired", "native-memos-policy-change", "native-memos-policy-change-repaired", "author-workflows", "author-workflows-repaired"].includes(action ?? "")) throw new Error("Unknown ordinary action")
 const output = path.join(root, "ordinary", action!), workDir = path.join(output, "workdir")
 await mkdir(workDir, { recursive: true })
 const skill = path.join(historical, "model/source-skills/github-security-review/SKILL.md")
 let prompt: string, extras: string[]
 if (action!.startsWith("native-memos")) {
-  const inputFile = path.join(historical, `model/inputs/${action === "native-memos-policy-change" ? "memos-remove-policy-change" : "memos-remove"}.json`), input = JSON.parse(await readFile(inputFile, "utf8"))
+  const inputFile = path.join(historical, `model/inputs/${action!.includes("policy-change") ? "memos-remove-policy-change" : "memos-remove"}.json`), input = JSON.parse(await readFile(inputFile, "utf8"))
   prompt = `${input.brief}\nIndependent current policy: ${input.policy.text}\nUse the complete original security-review skill for this bounded source-visible authorization question. Whole audits, target execution, network calls and patch application are outside this task. Preserve its normal reporting format, cite original lines, separate source behavior from policy and explicitly retain unresolved facts.`
   extras = [`--authorization-scope=${inputFile}`, "--authorization-domain-tools", "--authorization-strategy=guided-evidence-v2", `--authorization-trace=${path.join(output, "native-trace.json")}`]
 } else {

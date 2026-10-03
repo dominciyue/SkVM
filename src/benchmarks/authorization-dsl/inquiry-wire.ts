@@ -51,6 +51,15 @@ function guidedResult(input: unknown) {
   return { ...value, questions, observations }
 }
 const GuidedResultSchema = z.preprocess(guidedResult, AuthorizationInquiryResultSchema)
+function guidedCompile(input: unknown) {
+  if (AuthorizationInquirySchema.safeParse(input).success) return { inquiry: input }
+  if (!input || typeof input !== "object" || Array.isArray(input)) return input
+  const value = input as Record<string, unknown>
+  if (Object.keys(value).some(key => !["schemaVersion", "inquiry"].includes(key)) || ("schemaVersion" in value && value.schemaVersion !== "authorization-inquiry/v1")) return input
+  if (!value.inquiry || typeof value.inquiry !== "object" || Array.isArray(value.inquiry)) return input
+  const inquiry = { schemaVersion: "authorization-inquiry/v1", ...value.inquiry }
+  return AuthorizationInquirySchema.safeParse(inquiry).success ? { inquiry } : input
+}
 const localSteps = (delta: typeof LocalControlDeltaSchema | typeof LocalControlEnvelopeSchema, result: typeof AuthorizationInquiryResultSchema | typeof GuidedResultSchema = AuthorizationInquiryResultSchema) => z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("tool"), calls, controlDelta: delta.optional() }).strict(),
   z.object({ kind: z.literal("observe"), observations, controlDelta: delta.optional() }).strict(),
@@ -96,7 +105,7 @@ export function inquiryNativeSchemas(strategy: InquiryStrategy, parsing = false)
   const result = guidedParsing ? GuidedResultSchema : AuthorizationInquiryResultSchema
   const delta = strategy === "guided-evidence-v2" ? parsing ? z.preprocess(guidedDeltaWithContextVersion, LocalControlEnvelopeSchema) : LocalControlDeltaSchema : ControlSliceDeltaSchema
   return {
-    authorization_compile: guidedParsing ? z.preprocess(input => AuthorizationInquirySchema.safeParse(input).success ? { inquiry: input } : input, compile) : compile,
+    authorization_compile: guidedParsing ? z.preprocess(guidedCompile, compile) : compile,
     authorization_observe: domain ? z.object({ observations: observations.min(0).optional(), controlDelta: delta.optional() }).strict() : z.object({ observations: observations.min(0) }).strict(),
     authorization_check_result: domain ? z.object({ result, controlDelta: delta.optional() }).strict() : z.object({ result: AuthorizationInquiryResultSchema }).strict(),
   }
