@@ -33,13 +33,31 @@ export const ControlStepSchema = z.preprocess((input, context) => {
   return { ...rest, controlDelta: value.controlDelta ?? delta }
 }, canonicalStep)
 export type InquiryControlStep = z.infer<typeof ControlStepSchema>
-const localSteps = (delta: typeof LocalControlDeltaSchema | typeof LocalControlEnvelopeSchema) => z.discriminatedUnion("kind", [
+/** Relocate only already explicit same-question observations; mixed roots stay invalid. */
+function guidedResult(input: unknown) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return input
+  const value = input as Record<string, unknown>
+  if ("observations" in value || !Array.isArray(value.questions) || !value.questions.some(q => q && typeof q === "object" && "observations" in q)) return input
+  const observations: unknown[] = [], questions: unknown[] = []
+  for (const q of value.questions) {
+    if (!q || typeof q !== "object" || Array.isArray(q)) return input
+    const { observations: nested, ...question } = q
+    if (nested !== undefined) {
+      if (!Array.isArray(nested) || nested.some(o => !AuthorizationObservationSchema.safeParse(o).success || o.questionId !== question.questionId)) return input
+      observations.push(...nested)
+    }
+    questions.push(question)
+  }
+  return { ...value, questions, observations }
+}
+const GuidedResultSchema = z.preprocess(guidedResult, AuthorizationInquiryResultSchema)
+const localSteps = (delta: typeof LocalControlDeltaSchema | typeof LocalControlEnvelopeSchema, result: typeof AuthorizationInquiryResultSchema | typeof GuidedResultSchema = AuthorizationInquiryResultSchema) => z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("tool"), calls, controlDelta: delta.optional() }).strict(),
   z.object({ kind: z.literal("observe"), observations, controlDelta: delta.optional() }).strict(),
   z.object({ kind: z.literal("control"), controlDelta: delta }).strict(),
-  z.object({ kind: z.literal("final"), result: AuthorizationInquiryResultSchema, controlDelta: delta.optional() }).strict(),
+  z.object({ kind: z.literal("final"), result, controlDelta: delta.optional() }).strict(),
 ])
-const localModelSteps = localSteps(LocalControlDeltaSchema), localParserSteps = localSteps(LocalControlEnvelopeSchema)
+const localModelSteps = localSteps(LocalControlDeltaSchema), localParserSteps = localSteps(LocalControlEnvelopeSchema, GuidedResultSchema)
 function guidedDeltaWithContextVersion(input: unknown) {
   if (!input || typeof input !== "object" || Array.isArray(input) || "schemaVersion" in input) return input
   const candidate = { ...input, schemaVersion: "authorization-control-update/v1" }
@@ -73,11 +91,14 @@ export function inquiryStepSchemas(strategy: InquiryStrategy, finalOnly = false,
 
 export function inquiryNativeSchemas(strategy: InquiryStrategy, parsing = false) {
   const domain = strategy !== "legacy"
+  const guidedParsing = parsing && strategy === "guided-evidence-v2"
+  const compile = z.object({ inquiry: AuthorizationInquirySchema }).strict()
+  const result = guidedParsing ? GuidedResultSchema : AuthorizationInquiryResultSchema
   const delta = strategy === "guided-evidence-v2" ? parsing ? z.preprocess(guidedDeltaWithContextVersion, LocalControlEnvelopeSchema) : LocalControlDeltaSchema : ControlSliceDeltaSchema
   return {
-    authorization_compile: z.object({ inquiry: AuthorizationInquirySchema }).strict(),
+    authorization_compile: guidedParsing ? z.preprocess(input => AuthorizationInquirySchema.safeParse(input).success ? { inquiry: input } : input, compile) : compile,
     authorization_observe: domain ? z.object({ observations: observations.min(0).optional(), controlDelta: delta.optional() }).strict() : z.object({ observations: observations.min(0) }).strict(),
-    authorization_check_result: domain ? z.object({ result: AuthorizationInquiryResultSchema, controlDelta: delta.optional() }).strict() : z.object({ result: AuthorizationInquiryResultSchema }).strict(),
+    authorization_check_result: domain ? z.object({ result, controlDelta: delta.optional() }).strict() : z.object({ result: AuthorizationInquiryResultSchema }).strict(),
   }
 }
 export function inquiryNativeDefinitions(strategy: InquiryStrategy, mode?: "behavior" | "conformance"): LLMTool[] {

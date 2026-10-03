@@ -2,6 +2,25 @@ import { expect, test } from "bun:test"
 import { extractStructured } from "../../providers/structured.ts"
 const api = await import("./inquiry-wire.ts").catch(() => ({} as any))
 const delta = { schemaVersion: "authorization-control-slice/v1", rules: [], dependencies: [], bindings: [], policyRules: [] }
+test("guided native accepts an otherwise valid unwrapped declaration without changing the model contract", () => {
+  const inquiry = { schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Can entry run?", premises: [] }] }
+  expect(api.inquiryNativeSchemas("guided-evidence-v2", true).authorization_compile.parse(inquiry)).toEqual({ inquiry })
+  expect(api.inquiryNativeSchemas("guided-evidence-v2").authorization_compile.safeParse(inquiry).success).toBe(false)
+  expect(api.inquiryNativeSchemas("guided-evidence-v2", true).authorization_compile.safeParse({ ...inquiry, inquiry }).success).toBe(false)
+})
+test("guided result moves explicitly owned nested observations without guessing or merging conflicts", () => {
+  const observation = { questionId: "q", kind: "entry", subject: "entry", claim: "Read source", state: "observed", evidenceIds: ["e"] }
+  const q = { questionId: "q", behavior: { disposition: "unknown", explanation: "Missing helper" }, branches: [], evidenceIds: ["e"], missing: [{ kind: "source-gap", detail: "helper" }], observations: [observation] }
+  const raw = { schemaVersion: "authorization-inquiry-result/v1", questions: [q], scope: "source" }
+  const schema = api.inquiryNativeSchemas("guided-evidence-v2", true).authorization_check_result
+  const parsed = schema.parse({ result: raw }).result
+  expect(parsed.observations).toEqual([observation])
+  expect(parsed.questions[0]).not.toHaveProperty("observations")
+  expect(raw.questions[0].observations).toEqual([observation])
+  for (const result of [{ ...raw, observations: [] }, { ...raw, questions: [{ ...q, observations: [{ ...observation, questionId: "other" }] }] }]) expect(schema.safeParse({ result }).success).toBe(false)
+  expect(api.inquiryStepSchemas("guided-evidence-v2", true).schema.parse({ kind: "final", result: raw }).result).toEqual(parsed)
+  expect(api.inquiryNativeSchemas("legacy", true).authorization_check_result.safeParse({ result: raw }).success).toBe(false)
+})
 test("structured control steps expose one canonical field and accept the lossless legacy alias", async () => {
   expect(api.ControlStepSchema).toBeDefined()
   const current = { kind: "control", controlDelta: delta }

@@ -238,6 +238,7 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 - 两项预期红测成立后接通共享enum及非legacy策略校验；32项141断言、主类型检查通过。原skill四次真实运行尚未执行，不以入口测试代替消费证据。
 - 完整GitHub skill的Memos普通CLI已真实10调用，读取源码并做两次检查/文字交付，但关键批次三次读取中入口不是最后两项，原文从展示被漏掉；编译有operation而无entryHint也未启动定位。两项针对红测确认，修为展示上次上下文以来所有实际新读窗口、operation可作词法候选线索。原坏答案/引用失败保持，修后同题与政策变化消费继续。
 - [ ] 保持 skill 其它职责和原回答格式，领域能力只服务明确授权问题。用户不手填 trace、正确 helper 名、控制图或 oracle。
+- 同题ordinary/native-memos-repaired真实11响应，窗口缺失已消除、局部图有接受项，终图前驱/对象/依赖未闭合、checked未达。原bare inquiry及same-question嵌套observations被格式拒绝，新增无损归一并用21项156断言核查；继续预先声明的policy-change消费，原始失败和语义待评保持。
 - [ ] 真实使用 Cloudflare security-audit 与 GitHub security-review 的已归档正文，各覆盖原任务及一个前提/政策变化；四次都从普通入口启动。
 - [ ] 每次检查 trace 中补读、局部解释、分支计算、最终检查、文字交付五步是否真实发生。没有适用自动读取/排除时明确说明，不用无关动作刷采用率；失败现场修复并单列复测。
 
@@ -268,6 +269,8 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 文件：authoring-assist.ts/既有编辑入口、inquiry-local.ts、examples/authorization-assessment/reusable-skill/。
 
 2026-10-03提速执行：原skill的Memos普通native使用与独立非API作者链并进；非API链用完整GitHub security-review skill和当前仓库原始workflow文件，自然任务为离线权限/action引用清单及安全评阅，经普通run --optimize捕获/proposal/export，再对同一新包做原任务及范围变化消费。不给作者目标程序或评分答案，保留人工语义评阅、其它skill职责与原源文件；no-change或文档包仍不算新程序成功。用户要求每个问题一次针对性检查，不新增重复哈希或审批门；未知请求不重发、原证据和质量分母照实保留。
+
+首原任务未交付、首包只有文档。共享agent历史原来丢调用参数和静默截断2,000字符；红绿8项后保留身份、16,000字符及明确截断，原任务复验实际写出两项请求产物。该复验正在当前proposal/export中，不以源运行改善代替新程序验收。
 
 - [ ] 使用两个已归档 source skill 的自然任务，实际生成两份可运行输入/包配置；不给作者完整目标声明。
 - [ ] 分别做一次政策修改和前提修改，运行 AR12；检查相同包是否正确携带新任务说明、旧证据失效和剩余职责。
