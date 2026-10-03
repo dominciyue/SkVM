@@ -113,6 +113,19 @@ test("model repair feedback deduplicates and bounds diagnostics without dropping
   expect(runtime.modelFeedback().diagnostics).toHaveLength(16)
   expect(runtime.report().proposals[0].rejected).toHaveLength(20)
 })
+test("model queue projection retains every task and action while avoiding duplicate candidate metadata", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-queue-view-"))
+  for (const file of ["a.ts", "b.ts"]) await writeFile(path.join(sourceRoot, file), "export function entry() { return false; }\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["."] })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: ["q", "other"].map(id => ({ id, request: "Inspect entry", entryHint: "entry", premises: [] })) })
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "guided-evidence-v2" })
+  await runtime.sync()
+  const full = runtime.feedback().worklist!, projected = runtime.modelFeedback().worklist!
+  expect(projected.map(w => [w.id, w.questionId, w.state, w.code, w.nextAction, w.callsiteEvidenceIds, w.evidenceIds])).toEqual(full.map(w => [w.id, w.questionId, w.state, w.code, w.nextAction, w.callsiteEvidenceIds, w.evidenceIds]))
+  expect(Buffer.byteLength(JSON.stringify(projected))).toBeLessThan(Buffer.byteLength(JSON.stringify(full)) * 0.75)
+  expect(runtime.report().worklist!.items).toEqual(full)
+  expect(runtime.modelContext().locationTasks[0]!.candidates).toEqual(full[0]!.candidates)
+})
 test("runtime rejection joins only its own question's layered check", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-question-check-")); await writeFile(path.join(sourceRoot, "entry.ts"), "export const entry = true\n")
   const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["."] })

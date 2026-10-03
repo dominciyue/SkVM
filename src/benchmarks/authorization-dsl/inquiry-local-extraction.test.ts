@@ -17,6 +17,53 @@ async function fixture(questions = [{ id: "q", request: "Investigate entry. Owne
 }
 const entry = (extra = {}) => ({ op: "add", targetKey: "entry", pathKey: "p", kind: "entry", after: [], claim: "Tests the supplied owner before effects", ...extra })
 
+test("an interpreted parent's lexical leads are offered for explicit read intent without automatically reading unrelated helpers", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-reference-focus-"))
+  await writeFile(path.join(sourceRoot, "entry.ts"), "export function entry() { logEvent(); return decision(); }\n")
+  await writeFile(path.join(sourceRoot, "helpers.ts"), "export function logEvent() { return true; }\nexport function decision() { return false; }\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["."] })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect entry", entryHint: "entry", premises: [] }] })
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "guided-evidence-v2" })
+  await runtime.sync(); runtime.modelContext()
+  await runtime.propose({ schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: "q::entry", rules: [entry()] }] })
+  const context = runtime.modelContext()
+  const lead = context.locationTasks.find(t => t.duty.symbol === "decision")
+  expect(lead).toMatchObject({ code: "reference-relevance-unconfirmed", nextAction: { kind: "select-candidate" }, callsiteEvidenceIds: [tools.evidence[0]!.id], semanticSupport: "unreviewed" })
+  expect(context.tasks.map(t => t.itemId)).not.toContain(lead!.itemId)
+  expect(tools.toolCalls).toBe(1)
+  await runtime.propose({ schemaVersion: "authorization-control-update/v1", workSelections: [{ questionId: "q", itemId: lead!.itemId, candidateId: lead!.candidates[0]!.id }] })
+  expect(tools.toolCalls).toBe(2)
+  expect(runtime.modelContext().tasks.some(t => t.itemId === lead!.itemId)).toBe(true)
+  expect(runtime.report().worklist!.items.find(w => w.symbol === "logEvent")!.code).toBe("reference-relevance-unconfirmed")
+  expect(runtime.report().slice.rules).toHaveLength(1)
+})
+
+test("source catalog references retain all original IDs and ranges with bounded repeated metadata", async () => {
+  const f = await fixture()
+  await f.tools.execute("source_search", { text: "return" })
+  const context: ReturnType<ReturnType<typeof createInquiryDomainRuntime>["modelContext"]> = f.runtime.modelContext()
+  const fullMetadata = f.tools.evidence.map(({ quote, text, ...metadata }) => metadata)
+  expect(context.evidenceCatalog.map(e => [e.id, e.path, e.startLine, e.endLine])).toEqual(fullMetadata.map(e => [e.id, e.path, e.startLine, e.endLine]))
+  expect(Buffer.byteLength(JSON.stringify(context.evidenceCatalog))).toBeLessThan(Buffer.byteLength(JSON.stringify(fullMetadata)) * 0.6)
+  for (const window of context.sourceWindows) expect(window).toMatchObject({ sha256: f.tools.evidence.find(e => e.id === window.id)!.sha256, text: f.tools.evidence.find(e => e.id === window.id)!.text })
+})
+
+test("unchanged optional lexical leads rotate through the bounded context without consuming reads", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-reference-fair-"))
+  await writeFile(path.join(sourceRoot, "entry.ts"), "export function entry() { first(); second(); return third(); }\n")
+  await writeFile(path.join(sourceRoot, "helpers.ts"), ["first", "second", "third"].map(name => `export function ${name}() { return false; }`).join("\n") + "\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["."] })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect entry", entryHint: "entry", premises: [] }] })
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "guided-evidence-v2" })
+  await runtime.sync(); runtime.modelContext()
+  await runtime.propose({ schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: "q::entry", rules: [entry()] }] })
+  const contexts = [runtime.modelContext(), runtime.modelContext(), runtime.modelContext()]
+  expect(contexts.every(c => c.locationTasks.length === 2)).toBe(true)
+  expect([...new Set(contexts.flatMap(c => c.locationTasks.map(t => t.duty.symbol)))].sort()).toEqual(["first", "second", "third"])
+  expect(tools.toolCalls).toBe(1)
+  expect(runtime.report().slice.rules).toHaveLength(1)
+})
+
 test("bounded location tasks expose ambiguous entries and missing locations before any source interpretation", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-locate-"))
   await writeFile(path.join(sourceRoot, "a.py"), "def entry():\n    return True\n")

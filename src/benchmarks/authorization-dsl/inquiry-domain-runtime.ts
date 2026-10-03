@@ -6,7 +6,7 @@ import { AuthorizationInquiryResultSchema } from "../../task-dsl/authorization/i
 import type { InquiryTools } from "./inquiry-tools.ts"
 import { createInquiryDomainScheduler } from "./inquiry-domain-scheduler.ts"
 import { applyControlUpdates, LOCAL_CONTROL_GUIDE, LocalControlEnvelopeSchema, WorkSelectionSchema, type UpdateAcceptance, type UpdateRejection, type UpdateWithdrawal } from "./inquiry-control-updates.ts"
-import { createInquiryWorklist } from "./inquiry-worklist.ts"
+import { createInquiryWorklist, worklistModelView } from "./inquiry-worklist.ts"
 import { expandLocalExtractions, localExplanationContext, LOCAL_EXTRACTION_GUIDE, type LocalExplanationTask, type LocalUpdateGroup } from "./inquiry-local-extraction.ts"
 
 export type DomainAblation = "scheduler-off" | "checks-off"
@@ -123,7 +123,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     rules: slice.rules.map(({ key, questionId, pathKey, kind, after, condition, bindingKey, bindingKind, principal, resource, digest }) => ({ key, questionId, pathKey, kind, after, condition, bindingKey, bindingKind, principal, resource, digest })),
     bindings: slice.bindings, policyRules: slice.policyRules, dependencies: scheduler.snapshot(), paths: lastPaths,
     diagnostics: [...issues.values()].flat().concat(check?.diagnostics ?? []), ...(worklist ? { worklist: worklist.snapshot(), automaticActionsRemaining } : {}), semanticSupport: "unreviewed", ...(options.ablation ? { mechanismDisabled: options.ablation } : {}) })
-  let contextHistoryPosition = 0
+  let contextHistoryPosition = 0, locationContextPosition = 0
   const modelContext = () => {
     if (closed) throw new Error("session-closed")
     worklist?.sync(slice, check)
@@ -131,13 +131,13 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     const currentReads = options.tools.history.slice(contextHistoryPosition)
     const recent = (currentReads.length ? currentReads : options.tools.history.slice(-2)).flatMap(h => h.result.evidence.map(e => e.id))
     contextHistoryPosition = options.tools.history.length
-    const context = localExplanationContext(options.program, worklist?.snapshot() ?? [], options.tools.evidence, slice, diagnosed, recent)
+    const context = localExplanationContext(options.program, worklist?.snapshot() ?? [], options.tools.evidence, slice, diagnosed, recent, locationContextPosition++)
     offeredTasks = context.tasks
     return context
   }
   const modelFeedback = () => {
-    const state = feedback(), diagnostics = state.diagnostics.filter((d, i, all) => all.findIndex(v => v.code === d.code && v.path === d.path && v.message === d.message && v.questionId === d.questionId) === i)
-    return { ...state, diagnostics: diagnostics.slice(0, 16), diagnosticCount: diagnostics.length }
+    const { worklist: fullWorklist, ...state } = feedback(), diagnostics = state.diagnostics.filter((d, i, all) => all.findIndex(v => v.code === d.code && v.path === d.path && v.message === d.message && v.questionId === d.questionId) === i)
+    return { ...state, ...(fullWorklist ? { worklist: worklistModelView(fullWorklist) } : {}), diagnostics: diagnostics.slice(0, 16), diagnosticCount: diagnostics.length }
   }
   return { propose, sync, validate, feedback, modelContext, modelFeedback, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { closed = true },
     report: () => ({ slice: structuredClone(slice), proposals: structuredClone(proposals), currentRejections: structuredClone(currentRejections), localExtractions: structuredClone(localExtractions), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions) } } : {}), check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed }) }

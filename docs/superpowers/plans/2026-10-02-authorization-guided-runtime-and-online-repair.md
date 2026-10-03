@@ -202,6 +202,14 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 
 上述四项预期红例成立后，共享入口/局部上下文已修；84项449断言及主/研究类型通过。独立接线核验未发现跨题、未读证据授权、预算或语义闭合绕过；bindingKind完整枚举措辞已补。实际Download原字节零调用重放候选2/2/3/1/1、共享原窗口读取1次、0推断规则/用户值，前三题显式候选选择后仍只待解释。下一步具名location-routing-v1普通消费复验，记录同原作者字节、修前/修后和checked/语义分层，未知请求与主面板暂停不解除。
 
+location-routing-v1真实8/8返回，三题已显式定位但五题仍rejected，累计306、费用unknown。原request-6仍余7调用且非reserved，首次final是模型选择；独立评语中把预留收口当原因的推断不成立，原评语仍保存。模型所有已请求读取均执行，却读permissions头部而非可读helper，并没有versioning读取；本范围source gap仍可避免。下一工作计划：红绿验证已由父源码显示的unconfirmed lexical reference进入有界locationTasks，供模型显式选择读取/声明相关性；不自动读取logging等未确认引用、不推断语义。收紧guided modelFeedback的机械队列投影并压缩已读工具历史，保留完整report、当前新工具结果、所有问题/缺口身份和实际窗口；用原request逐项对比字节及候选/关键字段保留，不称token下降为因果质量收益。先实际trace零provider重放和联合检查，再决定复验。
+
+主线程原请求分段实测：request-8证据目录约70k字符在外层shown及localContext中重复，完整worklist约94k；工具实用24次（8search、16read，其中4host自动），并非没有host补读。优先修目录轻量引用和单次展示、队列机械投影以及parent已解释的可选择lexical leads；现阶段不改工具history或抬24/12预算。Q5其实在request1/2/8 offered，不能写成从未展示；未解释/未闭合的原结果保持。
+
+集成点验补充：structured普通入口虽保留brief作用户文本，却未将其传给已存在的entryContext定位fallback。新增作者把问题概括后丢失词法入口的确定性反例，先红后绿接通原任务；只在入口候选为空时提供词法线索，不把自然任务当源码事实，也不覆盖已有歧义候选。机械回放须覆盖同队列全部可选线索的完整轮转周期（包含其它未定位任务），保持原窗口和原失败。
+
+本阶段6项红例后91测试507断言及主/研究类型通过。独立点验确认显式读取边界；原8次请求仅机械重序列化后消息2,471,023→1,455,275字节，原窗口/任务不变，11可选线索全覆盖；不是完整新prompt模拟、实际token/费用节省或质量提升。图审稿初/终快照分开，最终Q3复合对象身份未绑定、Q4以路径名作前驱和开放依赖均保留。下一步同原作者字节、同预算具名复验，Memos/Notes未知末请求不重发。
+
 ### AR7 — 补读后的局部解释与条件提取
 
 文件：新建 `inquiry-local-extraction.ts`、测试；接 inquiry-domain-runtime.ts 和现有 provider/telemetry。

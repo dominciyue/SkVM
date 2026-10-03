@@ -1,0 +1,1022 @@
+{
+  "at": "2026-10-03T20:56:21.104Z",
+  "stage": "consume-authorization-cloudflare-download-repair-location-routing-v1",
+  "author": "author-authorization-cloudflare-download",
+  "exitCode": 1,
+  "workDir": "D:\\skill优化\\project-maintenance\\runs\\portable-consume-authorization-cloudflare-download-repair-location-routing-v1-eKb9Sk",
+  "sessionPath": "D:\\skill优化\\project-maintenance\\runs\\portable-consume-authorization-cloudflare-download-repair-location-routing-v1-eKb9Sk\\runs\\sessions\\2026-10-03T204919159Z-f7ed597e",
+  "status": "completed-with-diagnostics",
+  "validation": {
+    "valid": false,
+    "diagnostics": [
+      {
+        "code": "object-binding-missing",
+        "path": "representation-request-root-binding",
+        "message": "Typed resource request_doc and root_doc is not bound in this question.",
+        "severity": "error",
+        "questionId": "download-original-archive"
+      },
+      {
+        "code": "path-not-closed",
+        "path": "download-request-document",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      },
+      {
+        "code": "path-not-closed",
+        "path": "download-version-selection",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      },
+      {
+        "code": "decisive-dependency-open",
+        "path": "download-original-archive",
+        "message": "Decisive source dependencies remain without a corresponding source gap: dep-serve-file:read, dep-representation-effective-selection:read. An unspecified user premise or deployment fact cannot conceal them.",
+        "severity": "error"
+      },
+      {
+        "code": "path-not-closed",
+        "path": "download-original-archive",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      },
+      {
+        "code": "decisive-dependency-open",
+        "path": "download-authorization-root-version",
+        "message": "Decisive source dependencies remain without a corresponding source gap: dep-auth-viewset-permissions:blocked, dep-auth-upstream-permissions:blocked. An unspecified user premise or deployment fact cannot conceal them.",
+        "severity": "error"
+      },
+      {
+        "code": "path-not-closed",
+        "path": "download-authorization-root-version",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      },
+      {
+        "code": "path-not-closed",
+        "path": "download-version-authorization-invariant",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      }
+    ],
+    "semanticSupport": "unreviewed",
+    "questionChecks": [
+      {
+        "questionId": "download-request-document",
+        "transportValid": true,
+        "referenceValid": true,
+        "ruleConsistent": false,
+        "evidenceCoverage": "unresolved",
+        "semanticReview": "unreviewed",
+        "deliveryStatus": "rejected",
+        "answer": {
+          "questionId": "download-request-document",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The path parameter identifies request_doc, but the returned object is file_doc, not necessarily request_doc. If the path identifies a version and no version parameter is supplied, file_doc is request_doc. If the path identifies a root, or any version parameter is supplied, the code resolves a file document from root_doc. Permission failure prevents file selection; missing documents or files produce HTTP 404."
+          },
+          "branches": [
+            {
+              "id": "version-path-without-version",
+              "condition": "The path resolves to a version document and no version parameter is present.",
+              "disposition": "conditional",
+              "explanation": "After the root permission check succeeds, request_doc becomes file_doc and its selected source/archive representation is served.",
+              "evidenceIds": [
+                "ev-f8c818a3d64c28f3ff2e",
+                "ev-dc6ac419a9783bdca7d7"
+              ]
+            },
+            {
+              "id": "root-path-or-explicit-version",
+              "condition": "The path identifies a root document, or a version parameter is present.",
+              "disposition": "conditional",
+              "explanation": "The effective file document is obtained by resolving against root_doc. The selected document, rather than the path object by itself, supplies the file.",
+              "evidenceIds": [
+                "ev-f8c818a3d64c28f3ff2e",
+                "ev-3fcd0809142c64355ac6"
+              ]
+            },
+            {
+              "id": "lookup-or-file-failure",
+              "condition": "The path document is unavailable or the selected file cannot be opened.",
+              "disposition": "deny",
+              "explanation": "The download action raises HTTP 404 for Document.DoesNotExist or FileNotFoundError.",
+              "evidenceIds": [
+                "ev-aa429a725d3092cdd115",
+                "ev-f4881ab12d35a15218e5"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-aa429a725d3092cdd115",
+            "ev-2464aff6073f538730d0",
+            "ev-f8c818a3d64c28f3ff2e"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The shown URL lines establish neighboring document routes but not the router registration that materializes the concrete DocumentViewSet download URL or its deployed prefix.",
+              "nextRead": "Read the router registration around src/paperless/urls.py lines 300-315 and any referenced document router declaration."
+            }
+          ]
+        },
+        "diagnostics": [
+          {
+            "code": "path-not-closed",
+            "path": "download-request-document",
+            "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+            "severity": "error"
+          }
+        ],
+        "trace": {
+          "rules": [
+            {
+              "key": "download-request-entry",
+              "kind": "entry",
+              "after": [],
+              "pathKey": "download-request-entry",
+              "evidenceIds": [
+                "ev-aa429a725d3092cdd115"
+              ]
+            }
+          ],
+          "paths": [
+            {
+              "questionId": "download-request-document",
+              "pathKey": "download-request-entry",
+              "state": "blocked",
+              "disposition": "unknown",
+              "complete": false,
+              "predicate": {
+                "truth": "true",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "all",
+                    "truth": "true"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "all",
+                "args": []
+              },
+              "nodeKeys": [
+                "download-request-entry"
+              ],
+              "terminalKeys": [
+                "download-request-entry"
+              ],
+              "gaps": [
+                "closure-not-proposed"
+              ],
+              "sourceBound": true
+            }
+          ],
+          "uncovered": [
+            "closure-not-proposed"
+          ]
+        }
+      },
+      {
+        "questionId": "download-version-selection",
+        "transportValid": true,
+        "referenceValid": true,
+        "ruleConsistent": false,
+        "evidenceCoverage": "unresolved",
+        "semanticReview": "unreviewed",
+        "deliveryStatus": "rejected",
+        "answer": {
+          "questionId": "download-version-selection",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "Omitted and supplied version inputs follow different caller branches. With no version parameter, a path version is used directly; otherwise root_doc is passed to the version resolver. INVALID resolution raises NotFound; a non-invalid resolution with no document raises HTTP 404. Exact related-versus-unrelated identifier acceptance and default root selection are not established because the versioning helper body is outside the shown source."
+          },
+          "branches": [
+            {
+              "id": "omitted-version-on-version-path",
+              "condition": "No version parameter is supplied and request_doc.root_document_id is not null.",
+              "disposition": "conditional",
+              "explanation": "The path-identified version is file_doc and its stored file is returned, subject to root authorization and file availability.",
+              "evidenceIds": [
+                "ev-f8c818a3d64c28f3ff2e"
+              ]
+            },
+            {
+              "id": "omitted-version-on-root-path",
+              "condition": "No version parameter is supplied and request_doc is a root document.",
+              "disposition": "conditional",
+              "explanation": "The source calls resolve_requested_version_for_root(root_doc, request, include_deleted=False); the returned resolution.document supplies the file. The shown caller does not reveal which document the helper selects by default.",
+              "evidenceIds": [
+                "ev-f8c818a3d64c28f3ff2e"
+              ]
+            },
+            {
+              "id": "explicit-version",
+              "condition": "A version parameter is present.",
+              "disposition": "conditional",
+              "explanation": "The source calls resolve_requested_version_for_root(root_doc, request, include_deleted=True); the returned resolution.document supplies the file. The shown caller does not prove whether an unrelated document/version identifier is accepted or rejected.",
+              "evidenceIds": [
+                "ev-f8c818a3d64c28f3ff2e",
+                "ev-3fcd0809142c64355ac6"
+              ]
+            },
+            {
+              "id": "invalid-input",
+              "condition": "The version resolver returns VersionResolutionError.INVALID.",
+              "disposition": "deny",
+              "explanation": "The operation raises NotFound(\"Invalid version parameter\") and serves no file.",
+              "evidenceIds": [
+                "ev-f8c818a3d64c28f3ff2e"
+              ]
+            },
+            {
+              "id": "unavailable-input",
+              "condition": "The resolution has no document and is not classified INVALID.",
+              "disposition": "deny",
+              "explanation": "The operation raises HTTP 404 and serves no file.",
+              "evidenceIds": [
+                "ev-f8c818a3d64c28f3ff2e"
+              ]
+            },
+            {
+              "id": "deleted-or-trash-input",
+              "condition": "A deleted path or explicit version remains discoverable through the managers used by this flow.",
+              "disposition": "conditional",
+              "explanation": "The path lookup uses Document.global_objects and explicit version resolution is called with include_deleted=True. Actual service still depends on resolver output, root permission, and file availability.",
+              "evidenceIds": [
+                "ev-2464aff6073f538730d0",
+                "ev-f8c818a3d64c28f3ff2e"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-f8c818a3d64c28f3ff2e",
+            "ev-2464aff6073f538730d0"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The body of get_request_version_param is not shown, so exact parameter syntax and coercion are unresolved.",
+              "nextRead": "Read get_request_version_param in src/documents/versioning.py."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The body of resolve_requested_version_for_root is not shown, so related-version membership, unrelated identifiers, default selection, and deleted-version filtering cannot be decided from the shown source.",
+              "nextRead": "Read resolve_requested_version_for_root and its directly used managers/query helpers in src/documents/versioning.py."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "No database state was inspected; existence of roots, versions, deleted rows, archive files, or cross-root identifiers is unresolved."
+            }
+          ]
+        },
+        "diagnostics": [
+          {
+            "code": "path-not-closed",
+            "path": "download-version-selection",
+            "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+            "severity": "error"
+          }
+        ],
+        "trace": {
+          "rules": [
+            {
+              "key": "download-version-entry",
+              "kind": "entry",
+              "after": [],
+              "pathKey": "download-version-entry",
+              "evidenceIds": [
+                "ev-aa429a725d3092cdd115"
+              ]
+            }
+          ],
+          "paths": [
+            {
+              "questionId": "download-version-selection",
+              "pathKey": "download-version-entry",
+              "state": "blocked",
+              "disposition": "unknown",
+              "complete": false,
+              "predicate": {
+                "truth": "true",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "all",
+                    "truth": "true"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "all",
+                "args": []
+              },
+              "nodeKeys": [
+                "download-version-entry"
+              ],
+              "terminalKeys": [
+                "download-version-entry"
+              ],
+              "gaps": [
+                "closure-not-proposed"
+              ],
+              "sourceBound": true
+            }
+          ],
+          "uncovered": [
+            "closure-not-proposed"
+          ]
+        }
+      },
+      {
+        "questionId": "download-original-archive",
+        "transportValid": true,
+        "referenceValid": true,
+        "ruleConsistent": false,
+        "evidenceCoverage": "unresolved",
+        "semanticReview": "unreviewed",
+        "deliveryStatus": "rejected",
+        "answer": {
+          "questionId": "download-original-archive",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "Representation selection occurs after file_doc selection. original is recognized only when the query parameter exists and equals the exact string \"true\". Otherwise an archive is selected when file_doc.has_archive_version is true; if not, source mode is used. The selected file document supplies the concrete handle and metadata."
+          },
+          "branches": [
+            {
+              "id": "original",
+              "condition": "request.query_params contains original with value \"true\".",
+              "disposition": "allow",
+              "explanation": "serve_file uses file_doc.source_file, file_doc.mime_type, and either file_doc.filename or file_doc.get_public_filename(), depending on follow_formatting.",
+              "evidenceIds": [
+                "ev-f8c818a3d64c28f3ff2e",
+                "ev-ca6ea1cce1822f6ce320"
+              ]
+            },
+            {
+              "id": "archive",
+              "condition": "original is not exactly \"true\" and file_doc.has_archive_version is true.",
+              "disposition": "allow",
+              "explanation": "serve_file uses file_doc.archive_file, content type application/pdf, and either file_doc.archive_filename or file_doc.get_public_filename(archive=True).",
+              "evidenceIds": [
+                "ev-3fcd0809142c64355ac6",
+                "ev-ca6ea1cce1822f6ce320"
+              ]
+            },
+            {
+              "id": "source-fallback",
+              "condition": "original is not exactly \"true\" and file_doc.has_archive_version is false.",
+              "disposition": "allow",
+              "explanation": "The code falls back to source mode, using file_doc.source_file, file_doc.mime_type, and source filename rules.",
+              "evidenceIds": [
+                "ev-3fcd0809142c64355ac6",
+                "ev-ca6ea1cce1822f6ce320"
+              ]
+            },
+            {
+              "id": "follow-formatting",
+              "condition": "request.query_params.get(\"follow_formatting\", False) is truthy.",
+              "disposition": "allow",
+              "explanation": "Only the download filename source changes to stored filename metadata. It does not change the file handle or media type. The response then normalizes and encodes the chosen filename in Content-Disposition.",
+              "evidenceIds": [
+                "ev-3fcd0809142c64355ac6"
+              ]
+            },
+            {
+              "id": "different-selected-version",
+              "condition": "Version selection yields file_doc different from request_doc or root_doc.",
+              "disposition": "allow",
+              "explanation": "Both source and archive branches use properties of that selected file_doc, so changing versions can change the bytes, archive availability, source MIME metadata, and stored filename metadata. Public filename generation may use root metadata for a version, but that does not change which handle is opened.",
+              "evidenceIds": [
+                "ev-3fcd0809142c64355ac6",
+                "ev-3e2d5e59be9463609a59"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-f8c818a3d64c28f3ff2e",
+            "ev-3fcd0809142c64355ac6",
+            "ev-ca6ea1cce1822f6ce320",
+            "ev-3e2d5e59be9463609a59"
+          ],
+          "missing": [
+            {
+              "kind": "deployment-unverified",
+              "detail": "No filesystem or database validation was performed to confirm that any referenced source or archive path exists and is readable."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "Framework-level query-parameter construction was not separately traced. The source comparison is exact for original, while follow_formatting is passed through request.query_params.get directly.",
+              "nextRead": "Inspect the allowed request integration or tests only if exact query coercion is required."
+            }
+          ]
+        },
+        "diagnostics": [
+          {
+            "code": "object-binding-missing",
+            "path": "representation-request-root-binding",
+            "message": "Typed resource request_doc and root_doc is not bound in this question.",
+            "severity": "error",
+            "questionId": "download-original-archive"
+          },
+          {
+            "code": "decisive-dependency-open",
+            "path": "download-original-archive",
+            "message": "Decisive source dependencies remain without a corresponding source gap: dep-serve-file:read, dep-representation-effective-selection:read. An unspecified user premise or deployment fact cannot conceal them.",
+            "severity": "error"
+          },
+          {
+            "code": "path-not-closed",
+            "path": "download-original-archive",
+            "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+            "severity": "error"
+          }
+        ],
+        "trace": {
+          "rules": [
+            {
+              "key": "download-representation-entry",
+              "kind": "entry",
+              "after": [],
+              "pathKey": "download-representation-entry",
+              "evidenceIds": [
+                "ev-c08cae9eb581161e6364",
+                "ev-59248c07150e49329d20",
+                "ev-3fcd0809142c64355ac6",
+                "ev-e5800064e2faf3c02037"
+              ]
+            },
+            {
+              "key": "representation-resolution-success",
+              "kind": "continue",
+              "after": [
+                "download-representation-entry",
+                "representation-request-root-binding"
+              ],
+              "pathKey": "download-representation-resolved",
+              "evidenceIds": [
+                "ev-f8c818a3d64c28f3ff2e",
+                "ev-ae6aa44b069802dcc472",
+                "ev-2464aff6073f538730d0",
+                "ev-dc6ac419a9783bdca7d7",
+                "ev-c08cae9eb581161e6364",
+                "ev-59248c07150e49329d20",
+                "ev-3fcd0809142c64355ac6"
+              ]
+            },
+            {
+              "key": "representation-resolution-forbidden",
+              "kind": "reject",
+              "after": [
+                "download-representation-entry",
+                "representation-request-root-binding"
+              ],
+              "pathKey": "download-representation-denied",
+              "evidenceIds": [
+                "ev-f8c818a3d64c28f3ff2e",
+                "ev-ae6aa44b069802dcc472",
+                "ev-2464aff6073f538730d0",
+                "ev-dc6ac419a9783bdca7d7",
+                "ev-c08cae9eb581161e6364",
+                "ev-59248c07150e49329d20",
+                "ev-3fcd0809142c64355ac6"
+              ]
+            },
+            {
+              "key": "representation-request-root-binding",
+              "kind": "binding",
+              "after": [
+                "download-representation-entry"
+              ],
+              "pathKey": "download-representation-entry",
+              "resource": "request_doc and root_doc",
+              "evidenceIds": [
+                "ev-f8c818a3d64c28f3ff2e",
+                "ev-ae6aa44b069802dcc472",
+                "ev-2464aff6073f538730d0",
+                "ev-dc6ac419a9783bdca7d7",
+                "ev-c08cae9eb581161e6364",
+                "ev-59248c07150e49329d20",
+                "ev-3fcd0809142c64355ac6"
+              ]
+            }
+          ],
+          "paths": [
+            {
+              "questionId": "download-original-archive",
+              "pathKey": "download-representation-denied",
+              "state": "blocked",
+              "disposition": "unknown",
+              "complete": false,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "eq",
+                  "left": {
+                    "binding": "root_permission_allowed"
+                  },
+                  "right": {
+                    "literal": false
+                  }
+                },
+                "missingBindings": [
+                  "root_permission_allowed"
+                ],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "root_permission_allowed"
+                    },
+                    "right": {
+                      "literal": false
+                    }
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "download-representation-entry",
+                "representation-request-root-binding",
+                "representation-resolution-forbidden"
+              ],
+              "terminalKeys": [
+                "representation-resolution-forbidden"
+              ],
+              "gaps": [
+                "closure-not-proposed"
+              ],
+              "sourceBound": true
+            }
+          ],
+          "uncovered": [
+            "closure-not-proposed",
+            "dep-serve-file:read",
+            "dep-representation-effective-selection:read"
+          ]
+        }
+      },
+      {
+        "questionId": "download-authorization-root-version",
+        "transportValid": true,
+        "referenceValid": true,
+        "ruleConsistent": false,
+        "evidenceCoverage": "unresolved",
+        "semanticReview": "unreviewed",
+        "deliveryStatus": "rejected",
+        "answer": {
+          "questionId": "download-authorization-root-version",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The source configures IsAuthenticated and PaperlessObjectPermissions on the viewset, while the custom download chain explicitly checks has_perms_owner_aware(request.user, \"view_document\", root_doc). That explicit check is against root_doc, before file_doc selection and file opening; no explicit check against request_doc or the selected version is shown."
+          },
+          "branches": [
+            {
+              "id": "authentication-rejected",
+              "condition": "The configured IsAuthenticated permission rejects the request.",
+              "disposition": "deny",
+              "explanation": "The action does not proceed. The source does not establish the deployed authentication backend or resulting response details.",
+              "evidenceIds": [
+                "ev-d1db0a278cfc58b5b2ef"
+              ]
+            },
+            {
+              "id": "root-check-fails",
+              "condition": "request.user is not null and has_perms_owner_aware returns false for view_document on root_doc.",
+              "disposition": "deny",
+              "explanation": "_resolve_request_and_root_doc returns HttpResponseForbidden before effective file selection or serve_file.",
+              "evidenceIds": [
+                "ev-2464aff6073f538730d0",
+                "ev-ae6aa44b069802dcc472"
+              ]
+            },
+            {
+              "id": "root-check-succeeds",
+              "condition": "Authentication/upstream permission handling permits the request, the explicit root check succeeds, and resolution/file opening succeeds.",
+              "disposition": "allow",
+              "explanation": "The flow selects file_doc and opens its source or archive file. The helper visibly skips the explicit check only when request.user is None, although the configured IsAuthenticated permission is intended to prevent that route branch.",
+              "evidenceIds": [
+                "ev-d1db0a278cfc58b5b2ef",
+                "ev-2464aff6073f538730d0",
+                "ev-3fcd0809142c64355ac6"
+              ]
+            },
+            {
+              "id": "object-permission-semantics",
+              "condition": "DRF invokes PaperlessObjectPermissions.has_object_permission on an object.",
+              "disposition": "conditional",
+              "explanation": "The shown permission class grants an owned object to its owner and otherwise delegates to DjangoObjectPermissions; it returns true for an object with no owner. However, the shown custom download path does not call get_object, so these semantics do not establish a separate check on request_doc, root_doc, or file_doc for this action.",
+              "evidenceIds": [
+                "ev-ac7c49bf3a99c5c9c9dd",
+                "ev-f4881ab12d35a15218e5",
+                "ev-dc6ac419a9783bdca7d7"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-d1db0a278cfc58b5b2ef",
+            "ev-2464aff6073f538730d0",
+            "ev-ac7c49bf3a99c5c9c9dd"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The exact body of has_perms_owner_aware at indexed lines 624-637 was not shown, so global permissions, ownership, owner-null behavior, and user/group object-grant branches of the decisive explicit check cannot be stated here.",
+              "nextRead": "Read src/documents/permissions.py around lines 624-637 and directly called helpers."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "DRF dispatch internals and any deployment-specific override of initial, get_permissions, get_object, or check_object_permissions were not shown.",
+              "nextRead": "Inspect allowed local overrides or mixins only if upstream object-permission dispatch is material."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "The caller's actual global permissions, ownership, object grants, group grants, active state, and authentication result were not inspected."
+            }
+          ]
+        },
+        "diagnostics": [
+          {
+            "code": "decisive-dependency-open",
+            "path": "download-authorization-root-version",
+            "message": "Decisive source dependencies remain without a corresponding source gap: dep-auth-viewset-permissions:blocked, dep-auth-upstream-permissions:blocked. An unspecified user premise or deployment fact cannot conceal them.",
+            "severity": "error"
+          },
+          {
+            "code": "path-not-closed",
+            "path": "download-authorization-root-version",
+            "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+            "severity": "error"
+          }
+        ],
+        "trace": {
+          "rules": [
+            {
+              "key": "download-auth-entry",
+              "kind": "entry",
+              "after": [],
+              "pathKey": "download-auth-entry",
+              "evidenceIds": [
+                "ev-aa429a725d3092cdd115"
+              ]
+            },
+            {
+              "key": "auth-root-view-allowed",
+              "kind": "guard",
+              "after": [
+                "download-auth-entry",
+                "auth-request-user-binding",
+                "auth-root-resource-binding"
+              ],
+              "pathKey": "download-auth-allowed",
+              "evidenceIds": [
+                "ev-c08cae9eb581161e6364",
+                "ev-59248c07150e49329d20",
+                "ev-3fcd0809142c64355ac6",
+                "ev-e5800064e2faf3c02037",
+                "ev-dc6ac419a9783bdca7d7",
+                "ev-aa429a725d3092cdd115"
+              ]
+            },
+            {
+              "key": "auth-root-view-denied",
+              "kind": "reject",
+              "after": [
+                "download-auth-entry",
+                "auth-request-user-binding",
+                "auth-root-resource-binding"
+              ],
+              "pathKey": "download-auth-denied",
+              "evidenceIds": [
+                "ev-c08cae9eb581161e6364",
+                "ev-59248c07150e49329d20",
+                "ev-3fcd0809142c64355ac6",
+                "ev-e5800064e2faf3c02037",
+                "ev-dc6ac419a9783bdca7d7",
+                "ev-aa429a725d3092cdd115"
+              ]
+            },
+            {
+              "key": "auth-file-effect",
+              "kind": "effect",
+              "after": [
+                "download-auth-allowed",
+                "auth-root-view-allowed"
+              ],
+              "pathKey": "download-auth-allowed",
+              "evidenceIds": [
+                "ev-c08cae9eb581161e6364",
+                "ev-59248c07150e49329d20",
+                "ev-3fcd0809142c64355ac6",
+                "ev-e5800064e2faf3c02037",
+                "ev-dc6ac419a9783bdca7d7",
+                "ev-aa429a725d3092cdd115"
+              ]
+            },
+            {
+              "key": "auth-request-user-binding",
+              "kind": "binding",
+              "after": [
+                "download-auth-entry"
+              ],
+              "pathKey": "download-auth-entry",
+              "principal": "request.user",
+              "evidenceIds": [
+                "ev-c08cae9eb581161e6364",
+                "ev-59248c07150e49329d20",
+                "ev-3fcd0809142c64355ac6",
+                "ev-e5800064e2faf3c02037",
+                "ev-dc6ac419a9783bdca7d7",
+                "ev-aa429a725d3092cdd115"
+              ]
+            },
+            {
+              "key": "auth-root-resource-binding",
+              "kind": "binding",
+              "after": [
+                "download-auth-entry"
+              ],
+              "pathKey": "download-auth-entry",
+              "resource": "root_doc",
+              "evidenceIds": [
+                "ev-c08cae9eb581161e6364",
+                "ev-59248c07150e49329d20",
+                "ev-3fcd0809142c64355ac6",
+                "ev-e5800064e2faf3c02037",
+                "ev-dc6ac419a9783bdca7d7",
+                "ev-aa429a725d3092cdd115"
+              ]
+            }
+          ],
+          "paths": [
+            {
+              "questionId": "download-authorization-root-version",
+              "pathKey": "download-auth-denied",
+              "state": "blocked",
+              "disposition": "unknown",
+              "complete": false,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "eq",
+                  "left": {
+                    "binding": "root_view_permission_allowed"
+                  },
+                  "right": {
+                    "literal": false
+                  }
+                },
+                "missingBindings": [
+                  "root_view_permission_allowed"
+                ],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "root_view_permission_allowed"
+                    },
+                    "right": {
+                      "literal": false
+                    }
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "download-auth-entry",
+                "auth-request-user-binding",
+                "auth-root-resource-binding",
+                "auth-root-view-denied"
+              ],
+              "terminalKeys": [
+                "auth-root-view-denied"
+              ],
+              "gaps": [
+                "closure-not-proposed"
+              ],
+              "sourceBound": true
+            },
+            {
+              "questionId": "download-authorization-root-version",
+              "pathKey": "download-auth-allowed",
+              "state": "blocked",
+              "disposition": "unknown",
+              "complete": false,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "eq",
+                  "left": {
+                    "binding": "root_view_permission_allowed"
+                  },
+                  "right": {
+                    "literal": true
+                  }
+                },
+                "missingBindings": [
+                  "root_view_permission_allowed"
+                ],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "true"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "root_view_permission_allowed"
+                    },
+                    "right": {
+                      "literal": true
+                    }
+                  },
+                  {
+                    "op": "all",
+                    "args": []
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "download-auth-entry",
+                "auth-request-user-binding",
+                "auth-root-resource-binding",
+                "auth-root-view-allowed",
+                "auth-file-effect"
+              ],
+              "terminalKeys": [
+                "auth-file-effect"
+              ],
+              "gaps": [
+                "predecessor-missing:download-auth-allowed",
+                "closure-not-proposed"
+              ],
+              "sourceBound": true
+            }
+          ],
+          "uncovered": [
+            "closure-not-proposed",
+            "predecessor-missing:download-auth-allowed",
+            "dep-auth-viewset-permissions:blocked",
+            "dep-auth-helper-semantics:located",
+            "dep-auth-upstream-permissions:blocked"
+          ]
+        }
+      },
+      {
+        "questionId": "download-version-authorization-invariant",
+        "transportValid": true,
+        "referenceValid": true,
+        "ruleConsistent": false,
+        "evidenceCoverage": "unresolved",
+        "semanticReview": "unreviewed",
+        "deliveryStatus": "rejected",
+        "answer": {
+          "questionId": "download-version-authorization-invariant",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The source establishes an object-identity mismatch in reachable behavior: authorization checks root_doc, while the file effect uses file_doc. This is definite for a version-document path with no version parameter. For explicit or root-based selection, a distinct file_doc is possible, but whether an unrelated identifier can produce one is unresolved because the version resolver body is not shown. Therefore source proves the mismatch pattern, not a complete conclusion about cross-root acceptance or deployment exposure."
+          },
+          "branches": [
+            {
+              "id": "definite-version-path-mismatch",
+              "condition": "The path identifies a version, no version parameter is supplied, root authorization succeeds, and the selected representation exists.",
+              "disposition": "allow",
+              "explanation": "root_doc is the object checked by has_perms_owner_aware, while _get_effective_file_doc returns request_doc and serve_file opens that version document's source/archive handle. No later version-object permission check is visible.",
+              "evidenceIds": [
+                "ev-2464aff6073f538730d0",
+                "ev-f8c818a3d64c28f3ff2e",
+                "ev-ca6ea1cce1822f6ce320"
+              ]
+            },
+            {
+              "id": "explicit-version-mismatch-possible",
+              "condition": "A version parameter is supplied and the resolver returns a document distinct from root_doc.",
+              "disposition": "conditional",
+              "explanation": "The root remains the checked object and resolution.document becomes file_doc; the shown caller performs no later check on file_doc. Reachability for related versus unrelated identifiers is unresolved.",
+              "evidenceIds": [
+                "ev-f8c818a3d64c28f3ff2e",
+                "ev-2464aff6073f538730d0"
+              ]
+            },
+            {
+              "id": "unrelated-resource",
+              "condition": "The explicit version parameter names a document/version outside the authorized root's version set.",
+              "disposition": "unknown",
+              "explanation": "Passing root_doc to the resolver suggests root-relative resolution, but the shown caller does not prove membership enforcement. The resolver implementation is required to decide whether such an identifier is rejected or accepted.",
+              "evidenceIds": [
+                "ev-f8c818a3d64c28f3ff2e"
+              ]
+            },
+            {
+              "id": "root-metadata-signal",
+              "condition": "file_doc is a version and a public filename is generated.",
+              "disposition": "conditional",
+              "explanation": "The model's filename logic uses root metadata for versions, indicating a root/version grouping model, but filename behavior is not an authorization rule and does not prove resolver membership enforcement.",
+              "evidenceIds": [
+                "ev-3e2d5e59be9463609a59"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-2464aff6073f538730d0",
+            "ev-f8c818a3d64c28f3ff2e",
+            "ev-ca6ea1cce1822f6ce320"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "A conclusion about cross-root or unrelated version selection requires resolve_requested_version_for_root, including its identifier query and root/version membership constraints.",
+              "nextRead": "Read resolve_requested_version_for_root in src/documents/versioning.py and directly invoked query helpers."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "A conclusion about whether root permission grants all versions requires has_perms_owner_aware and any version/root permission propagation logic.",
+              "nextRead": "Read src/documents/permissions.py around has_perms_owner_aware and search allowed source for root/version permission propagation."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "No database validation was performed for distinct versions, deleted rows, malformed root relationships, cross-root identifiers, inconsistent permissions, or file existence."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "No live routing or middleware validation was performed; additional deployment-specific upstream controls are neither asserted nor excluded."
+            }
+          ]
+        },
+        "diagnostics": [
+          {
+            "code": "path-not-closed",
+            "path": "download-version-authorization-invariant",
+            "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+            "severity": "error"
+          }
+        ],
+        "trace": {
+          "rules": [],
+          "paths": [],
+          "uncovered": []
+        }
+      }
+    ],
+    "usableQuestions": []
+  },
+  "reuse": null,
+  "providerCalls": 8,
+  "respondedCalls": 8,
+  "knownTokens": {
+    "input": 795794,
+    "output": 14269,
+    "cacheRead": 37760,
+    "cacheWrite": 0
+  },
+  "actualUSD": null,
+  "targetExecutions": 0,
+  "semanticReview": "pending",
+  "sourceConfigBytesUnchanged": true,
+  "noAutomaticResend": true
+}

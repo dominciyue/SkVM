@@ -21,6 +21,18 @@ function scripted(fn: (params: CompletionParams, n: number) => unknown): { provi
   }, async completeWithToolResults() { throw new Error("Use structured inquiry actions") } } }
 }
 const final = (id: string) => ({ kind: "final", result: { schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q1", behavior: { disposition: "deny", explanation: "The called guard returns false." }, evidenceIds: [id], branches: [], missing: [] }], observations: [], scope: "Read source only" } })
+test("structured natural inquiry retains the original lexical entry when the author omits it", async () => {
+  const input = await setup(), mock = scripted((params, n) => {
+    if (n === 0) return { schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q1", request: "Investigate access controls for record updates.", premises: [] }] }
+    const prompt = params.messages[0]!.content
+    if (n === 1) expect(prompt.includes("return guard()")).toBe(true)
+    return final([...prompt.matchAll(/"id":"(ev-[a-f0-9]+)"/g)].at(-1)![1]!)
+  })
+  const run = await runAuthorizationInquiry({ ...input, inquiry: undefined, brief: "Inspect access controls in entry for record updates.", method: "D1", strategy: "guided-evidence-v2", provider: mock.provider, maxDispatches: 4 })
+  expect(run.inquiry?.questions[0]!.entryHint).toBeUndefined()
+  expect(run.evidence.some(e => e.path === "src/entry.ts" && e.text.includes("return guard()"))).toBe(true)
+  expect(run.toolHistory.filter(t => t.name === "source_read")).toHaveLength(1)
+})
 test("one analysis genuinely reads entry then requests helper and answers from actual returned bytes", async () => {
   const input = await setup(), mock = scripted((params, n) => {
     const prompt = params.messages[0]!.content
@@ -268,6 +280,7 @@ test("all newly read original windows reach the next guided call and are counted
     if (!n) return { kind: "tool", calls: ["one", "two", "three", "four"].map(name => ({ name: "source_read", arguments: { path: `src/${name}.ts`, startLine: 1, endLine: 1 } })) }
     const context = JSON.parse(prompt.split("Current local explanation context: ")[1]!.split("\n\nRemaining dispatches:")[0]!)
     expect(context.sourceWindows.map((e: any) => e.path)).toEqual(["src/one.ts", "src/two.ts", "src/three.ts", "src/four.ts"])
+    for (const window of context.sourceWindows) expect(prompt.split(window.sha256)).toHaveLength(2)
     for (const name of ["one", "two", "three", "four"]) expect(prompt).toContain(`${name}-original`)
     return { kind: "final", result: { schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q1", behavior: { disposition: "unknown", explanation: "These four original constant declarations do not identify the requested operation." }, evidenceIds: context.sourceWindows.map((e: any) => e.id), branches: [], missing: [{ kind: "source-gap", detail: "The requested operation is not identified by these declarations", nextRead: "Locate its operation entry" }] }], observations: [], scope: "The four displayed original windows" } }
   })

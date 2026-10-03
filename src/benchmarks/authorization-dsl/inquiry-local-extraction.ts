@@ -38,7 +38,7 @@ function localSchemaMessage(issue: z.ZodIssue) {
 }
 const extractionEnvelope = z.object({ itemId: InquiryText, rules: z.array(z.unknown()).max(64).default([]), sourceBindings: z.array(z.unknown()).max(64).default([]), dependencies: z.array(z.unknown()).max(64).default([]), premiseValues: z.array(z.unknown()).max(64).default([]), policyRules: z.array(z.unknown()).max(64).default([]) }).strict()
 export const LOCAL_EXTRACTION_GUIDE = [
-  "Current locationTasks contain unlocated WorkItems and indexed candidates, not source interpretations. For select-candidate submit controlDelta.workSelections:[{questionId,itemId,candidateId}] using the exact same-question shown IDs. For locate use ordinary source_search/source_symbol/source_read to establish an original location. A location task does not authorize localExtractions until its actual read window is offered as an explanation task. Resolve these tasks alongside already-read explanation tasks; unresolved locations cannot be skipped as completed questions.",
+  "Current locationTasks contain unlocated WorkItems or optional unconfirmed lexical references from interpreted parent source, not source interpretations. For select-candidate submit controlDelta.workSelections:[{questionId,itemId,candidateId}] using the exact same-question shown IDs; this is a read intent, not a claim that the helper is relevant. For locate use ordinary source_search/source_symbol/source_read to establish an original location. A location task does not authorize localExtractions until its actual read window is offered as an explanation task. Resolve decisive locations alongside already-read explanation tasks; unresolved decisive locations cannot be skipped as completed questions. Optional lexical leads need not apply.",
   "Current local explanation tasks are executable duties: interpret the offered WorkItem using its original sourceWindows and current question/premises. A read/citation alone does not settle its meaning.",
   "Submit controlDelta.localExtractions:[{itemId,rules?,sourceBindings?,dependencies?,premiseValues?,policyRules?}]. Use op:add|replace,targetKey and the semantic fields of the corresponding local group, but OMIT questionId and evidenceIds inside these items: the host binds them to this offered WorkItem and actual current windows. It also supplies binding kind, origins and replacement digest. Keep after/from/parent as explicit current target keys; they express your proposed execution relationship, never lexical equality.",
   "WorkItem.kind names a duty, not a rules.kind value. Principal-binding and resource-binding duties belong in sourceBindings with bindingKey and the appropriate bindingKind:principal or resource. The complete sourceBindings bindingKind enum is principal|resource|permission|configuration|value; rules.kind is entry|guard|reject|continue|effect. Use distinct targetKey values for distinct nodes across rules/sourceBindings. Reuse one typed principal/resource identity string for the same actual source object across bindings, guards and effects; use distinct identities for distinct objects. The host does not infer object aliases from prose or convert objects into identity strings.",
@@ -58,23 +58,25 @@ export interface LocalExplanationTask {
 }
 export interface LocalLocationTask {
   itemId: string; question: LocalExplanationTask["question"]; duty: LocalExplanationTask["duty"];
-  code?: string; candidates: WorkItem["candidates"]; callsiteEvidenceIds: string[];
+  code?: string; candidates: WorkItem["candidates"]; callsiteEvidenceIds: string[]; optionalLocationLead?: true;
   nextAction: { kind: "locate" | "select-candidate"; itemId: string }; semanticSupport: "unreviewed"
 }
 /** Mechanically select whole already-read windows; no semantic source compression or provider call. */
-export function localExplanationContext(program: AuthorizationInquiryProgram, items: WorkItem[], evidence: InquiryEvidence[], slice: ControlSlice, diagnosticEvidenceIds: string[] = [], recentEvidenceIds = evidence.slice(-2).map(e => e.id)) {
+export function localExplanationContext(program: AuthorizationInquiryProgram, items: WorkItem[], evidence: InquiryEvidence[], slice: ControlSlice, diagnosticEvidenceIds: string[] = [], recentEvidenceIds = evidence.slice(-2).map(e => e.id), locationOffset = 0) {
   const tasks: LocalExplanationTask[] = [], seen = new Set<string>(), byQuestion = new Map<string, WorkItem[]>()
   const locationTasks: LocalLocationTask[] = [], locations = new Map<string, WorkItem[]>()
-  for (const q of program.questions) locations.set(q.id, items.filter(i => i.questionId === q.id && i.state === "unlocated" && ["locate", "select-candidate"].includes(i.nextAction.kind)).sort((a, b) => Number(b.decisive) - Number(a.decisive)))
-  for (let offset = 0; locationTasks.length < 2 && offset < items.length; offset++) {
-    let found = false
-    for (const q of program.questions) {
-      const item = locations.get(q.id)?.[offset]
-      if (!item || locationTasks.length >= 2) continue
-      found = true
-      locationTasks.push({ itemId: item.id, question: structuredClone(q), duty: { kind: item.kind, question: item.question, symbol: item.symbol, parentId: item.parentId, reason: item.reason }, code: item.code, candidates: structuredClone(item.candidates.slice(0, 16)), callsiteEvidenceIds: item.callsiteEvidenceIds.filter(id => evidence.some(e => e.id === id)), nextAction: { kind: item.nextAction.kind === "select-candidate" ? "select-candidate" : "locate", itemId: item.id }, semanticSupport: "unreviewed" })
-    }
-    if (!found) break
+  const optionalLead = (i: WorkItem) => i.origin === "source-reference" && i.state === "awaiting-binding" && i.code === "reference-relevance-unconfirmed" && i.candidates.length > 0 && i.callsiteEvidenceIds.some(id => evidence.some(e => e.id === id))
+  for (const q of program.questions) locations.set(q.id, items.filter(i => i.questionId === q.id && (i.state === "unlocated" && ["locate", "select-candidate"].includes(i.nextAction.kind) || optionalLead(i))).sort((a, b) => Number(b.decisive) - Number(a.decisive)))
+  const ordered: WorkItem[] = []
+  for (let offset = 0; offset < items.length; offset++) {
+    const layer = program.questions.flatMap(q => locations.get(q.id)?.[offset] ?? [])
+    if (!layer.length) break
+    ordered.push(...layer)
+  }
+  const decisive = ordered.filter(i => i.decisive), optional = ordered.filter(i => !i.decisive), position = locationOffset % Math.max(1, optional.length)
+  for (const item of [...decisive, ...optional.slice(position), ...optional.slice(0, position)].slice(0, 2)) {
+    const q = program.questions.find(q => q.id === item.questionId)!
+    locationTasks.push({ itemId: item.id, question: structuredClone(q), duty: { kind: item.kind, question: item.question, symbol: item.symbol, parentId: item.parentId, reason: item.reason }, code: item.code, candidates: structuredClone(item.candidates.slice(0, 16)), callsiteEvidenceIds: item.callsiteEvidenceIds.filter(id => evidence.some(e => e.id === id)), ...(optionalLead(item) ? { optionalLocationLead: true as const } : {}), nextAction: { kind: item.nextAction.kind === "select-candidate" || optionalLead(item) ? "select-candidate" : "locate", itemId: item.id }, semanticSupport: "unreviewed" })
   }
   const priority = (i: WorkItem) => i.evidenceIds.some(id => diagnosticEvidenceIds.includes(id)) ? 0 : i.state === "awaiting-interpretation" ? 1 : i.state === "awaiting-binding" ? 2 : 3
   for (const q of program.questions) byQuestion.set(q.id, items.filter(i => i.questionId === q.id && i.evidenceIds.length > 0 && ["awaiting-interpretation", "awaiting-binding", "awaiting-verification"].includes(i.state) && (i.origin !== "question-duty" || i.kind === "entry")).sort((a, b) => priority(a) - priority(b)))
@@ -92,7 +94,7 @@ export function localExplanationContext(program: AuthorizationInquiryProgram, it
     if (!found && ![...byQuestion.values()].some(group => group.length > offset + 1)) break
   }
   const ids = new Set([...tasks.flatMap(t => [...t.evidenceIds, ...t.callsiteEvidenceIds]), ...locationTasks.flatMap(t => t.callsiteEvidenceIds), ...diagnosticEvidenceIds, ...recentEvidenceIds])
-  return { tasks, locationTasks, sourceWindows: structuredClone(evidence.filter(e => ids.has(e.id)).map(({ quote: _quote, ...e }) => e)), evidenceCatalog: evidence.map(({ quote: _quote, text: _text, ...e }) => e), instruction: LOCAL_EXTRACTION_GUIDE }
+  return { tasks, locationTasks, sourceWindows: structuredClone(evidence.filter(e => ids.has(e.id)).map(({ quote: _quote, ...e }) => e)), evidenceCatalog: evidence.map(({ id, path, startLine, endLine, bytes }) => ({ id, path, startLine, endLine, bytes })), instruction: LOCAL_EXTRACTION_GUIDE }
 }
 
 export function expandLocalExtractions(input: unknown[], offered: LocalExplanationTask[], items: WorkItem[]) {

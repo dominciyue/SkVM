@@ -23,6 +23,15 @@ const stableId = (value: unknown) => "work-" + createHash("sha256").update(JSON.
 const syntax = new Set(["if", "for", "while", "switch", "catch", "function", "func", "def", "class", "with", "match", "typeof", "sizeof", "return"])
 const priority: Record<InquiryRelation, number> = { entry: 0, "principal-binding": 1, "resource-binding": 2, guard: 3, effect: 4, exception: 5 }
 
+/** Keep every current duty addressable; focused location tasks carry full candidate metadata. */
+export function worklistModelView(items: WorkItem[]) {
+  return items.map(({ id, questionId, kind, origin, state, decisive, code, reason, symbol, parentId, dependencyId, nextAction, callsiteEvidenceIds, evidenceIds, candidates, selected, selectedBy, semanticSupport }) => ({
+    id, questionId, kind, origin, state, decisive, code, reason, symbol, parentId, dependencyId,
+    nextAction: structuredClone(nextAction), callsiteEvidenceIds: [...callsiteEvidenceIds], evidenceIds: [...evidenceIds], candidateCount: candidates.length,
+    ...(selected ? { selected: { id: selected.id, path: selected.path, startLine: selected.startLine, endLine: selected.endLine }, selectedBy } : {}), semanticSupport,
+  }))
+}
+
 /** Source candidates are lexical work, never an inferred call graph or authorization fact. */
 export function createInquiryWorklist(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; entryContext?: string; remainingActions?: () => number; dependencyStates?: () => ScheduledDependency[] }) {
   const items = new Map<string, WorkItem>(), choices = new Map<string, string>(), invalidFiles = new Set<string>(), failedReads = new Map<string, string>()
