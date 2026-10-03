@@ -2,6 +2,7 @@ import { expect, test } from "bun:test"
 import { mkdtemp, readFile, mkdir, writeFile } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
+import { createHash } from "node:crypto"
 const api = await import("./study.ts").catch(() => ({} as any))
 const { executeLocalInquiryRun } = await import("../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts")
 const row = (id: string) => ({ id, task: "memos-remove", method: "D1", strategy: "guided-evidence-v2", components: ["wire", "checker"] })
@@ -60,6 +61,7 @@ test("repair references must name an existing same-row completed claim before di
   for (const [id, repairOf] of [["other", "first/attempt-1"], ["first", "first/attempt-99"], ["first", "../first/attempt-1"]] as const) {
     await expect(api.developRows(root, [row(id)], { ...run, repairId: "repair-test", repairOf })).rejects.toThrow(/original attempt/)
   }
+  await expect(api.developRows(root, [{ ...row("first"), task: "renamed-original" }], { ...run, repairId: "repair-test", repairOf: "first/attempt-1" })).rejects.toThrow(/original attempt identity/)
   expect(started).toEqual(["first"])
 })
 test("a response of unknown completion is retained without another paid repair dispatch", async () => {
@@ -81,4 +83,24 @@ test("a misclassified outer failure can recover only from an inspected zero-disp
   expect(repaired.rows[0].status).toBe("completed")
   expect((await api.replay(root)).rows[0]).toMatchObject({ providerCalls: 2, classificationCorrections: [{ artifact: "runs/pre-dispatch/attempt-1/report.json", verifiedStatus: "provider-unavailable", providerCalls: 0 }] })
   expect((await json(path.join(root, "runs/pre-dispatch/attempt-1/report.json"))).report.status).toBe("completion-unknown")
+})
+
+test("a verified scoped adjudication releases only its distinct mechanism row and seals the failed task", async () => {
+  const root = await temp(), started: string[] = []
+  await api.developRows(root, [row("unknown")], options({ execute: async () => ({ status: "timeout-unknown", providerDispatches: 1 }), evaluate: async () => ({ failure: { category: "infrastructure", rootCause: "Unknown final request", components: ["wire"] } }) }))
+  const artifact = "runs/unknown/attempt-1/report.json", proof = "offline.json"
+  await writeFile(path.join(root, proof), JSON.stringify({ providerCalls: 0, fixed: "pure envelope" }))
+  const hash = async (file: string) => createHash("sha256").update(await readFile(path.join(root, file))).digest("hex")
+  const release = { failureId: "unknown-attempt-1", originalArtifactSha256: await hash(artifact), releasedComponents: ["wire"], eligibleRows: ["probe", "renamed"], retainTaskPause: true, rationale: "Shared envelope repair verified offline; source task and main panel stay unresolved", verificationArtifacts: [{ path: proof, sha256: await hash(proof) }] }
+  await writeFile(path.join(root, "scope-adjudications.jsonl"), JSON.stringify(release) + "\n")
+  const rows = [{ ...row("probe"), task: "different-source", kind: "source-window-mechanism" }, { ...row("panel"), task: "different-source", kind: "quality" }, { ...row("renamed"), kind: "source-window-mechanism" }]
+  const run = options({ concurrency: 1, execute: async (r: any) => { started.push(r.id); return { status: "completed" } }, evaluate: async () => ({}) })
+  const result = await api.developRows(root, rows, run)
+  expect(started).toEqual(["probe"])
+  expect(result.rows.find((r: any) => r.id === "renamed")).toMatchObject({ status: "not-run-after-defect", failureId: "unknown-attempt-1" })
+  expect(result.rows.find((r: any) => r.id === "panel").status).toBe("not-run-after-defect")
+  expect((await json(path.join(root, artifact))).report.status).toBe("timeout-unknown")
+  await writeFile(path.join(root, proof), "changed verification")
+  await expect(api.developRows(root, rows, run)).rejects.toThrow(/adjudication evidence/)
+  expect(started).toEqual(["probe"])
 })

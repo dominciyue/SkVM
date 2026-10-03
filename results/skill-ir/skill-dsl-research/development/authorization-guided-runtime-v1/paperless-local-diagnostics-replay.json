@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "authorization-ar-local-diagnostics-replay/v1",
+  "eventFile": "runs/probe-paperless-notes-Mg/attempt-3/sessions/2026-10-02T153146088Z-3cf9886f/events.jsonl",
+  "eventSha256": "93768bafe2f4064be9ec2cecf5834841e0e6d25b880db922dd107841aff254b8",
+  "diagnostics": [
+    {
+      "sequence": 4,
+      "pointer": "/attempt/response/toolCalls/0/arguments/controlDelta/localExtractions/0/dependencies/0",
+      "itemId": "work-2ae0ee2daed133017aaa",
+      "item": {
+        "op": "add",
+        "targetKey": "dep.owner-aware.view",
+        "pathKey": "notes.view-check",
+        "from": "notes.view.guard",
+        "symbol": "has_perms_owner_aware",
+        "kind": "control",
+        "decisive": true,
+        "evidenceIds": [
+          "ev-458142315ae76eda187c",
+          "ev-d015e2bc71f827d8c1e4"
+        ],
+        "reason": "The helper implements the endpoint's view_document check as owner-null OR owner-equals-user OR object permission.",
+        "after": [
+          "notes.entry",
+          "notes.principal.current-user",
+          "notes.resource.document"
+        ]
+      },
+      "diagnostics": [
+        {
+          "code": "local-extraction-schema",
+          "path": "dependencies.q1.dep.owner-aware.view.",
+          "message": "Unrecognized key(s) in object: 'evidenceIds'. Omit questionId and evidenceIds in local extractions; the host binds this offered task to its original source windows. Other unsupported fields must also be removed.",
+          "severity": "error"
+        }
+      ]
+    },
+    {
+      "sequence": 4,
+      "pointer": "/attempt/response/toolCalls/0/arguments/controlDelta/localExtractions/0/dependencies/1",
+      "itemId": "work-2ae0ee2daed133017aaa",
+      "item": {
+        "op": "add",
+        "targetKey": "dep.owner-aware.change",
+        "pathKey": "notes.post-change-check",
+        "from": "notes.post.change.guard",
+        "symbol": "has_perms_owner_aware",
+        "kind": "control",
+        "decisive": true,
+        "evidenceIds": [
+          "ev-458142315ae76eda187c",
+          "ev-d015e2bc71f827d8c1e4"
+        ],
+        "reason": "The helper implements the endpoint's change_document check as owner-null OR owner-equals-user OR object permission.",
+        "after": [
+          "notes.entry",
+          "notes.principal.current-user",
+          "notes.resource.document",
+          "notes.view.guard"
+        ]
+      },
+      "diagnostics": [
+        {
+          "code": "local-extraction-schema",
+          "path": "dependencies.q1.dep.owner-aware.change.",
+          "message": "Unrecognized key(s) in object: 'evidenceIds'. Omit questionId and evidenceIds in local extractions; the host binds this offered task to its original source windows. Other unsupported fields must also be removed.",
+          "severity": "error"
+        }
+      ]
+    },
+    {
+      "sequence": 8,
+      "pointer": "/attempt/response/toolCalls/0/arguments/controlDelta/localExtractions/0/dependencies/0",
+      "itemId": "q1::entry",
+      "item": {
+        "targetKey": "dep.notes.endpoint-permission",
+        "from": "notes.entry",
+        "symbol": "PaperlessNotePermissions",
+        "kind": "control",
+        "decisive": true,
+        "pathKey": "notes",
+        "reason": "The endpoint declares PaperlessNotePermissions in its action metadata, but the helper's actual behavior is outside the shown source window and must not be inferred.",
+        "after": [
+          "notes.entry"
+        ]
+      },
+      "diagnostics": [
+        {
+          "code": "local-extraction-schema",
+          "path": "dependencies.q1.dep.notes.endpoint-permission.op",
+          "message": "Required. Supply op:add for a new target or op:replace for an existing target, with a reason. The host cannot choose the intended operation.",
+          "severity": "error"
+        }
+      ]
+    }
+  ],
+  "correction": {
+    "responseSequence": 10,
+    "targetKeys": [
+      "dep.owner-aware.view",
+      "dep.owner-aware.change",
+      "dep.notes.upstream"
+    ],
+    "schemaValid": true,
+    "envelopeNormalization": {
+      "code": "control-tool-without-calls",
+      "originalKind": "tool"
+    },
+    "limitation": "Dependency parent names a rule, not a dependency; schema validity is not graph closure or semantic correctness."
+  },
+  "reviewerCorrection": "Request-context diagnostics are persistent feedback. Exact response sequence 4 introduced forbidden evidenceIds; sequence 8 omitted op. Sequence 10 did attempt schema repairs, blocked historically by the pure tool/control envelope. Do not count the retained feedback as repeated identical submissions.",
+  "providerCallsDuringReplay": 0,
+  "targetExecutions": 0,
+  "originalStatus": "timeout-unknown",
+  "overallFailureOutcome": "unresolved",
+  "limitations": [
+    "No source interpretation is accepted or changed by this schema-only replay",
+    "Replacement reasons were supplied in subsequent response sequence 6",
+    "No final response or completed task is inferred",
+    "Paperless request and task remain sealed; only distinct-task mechanism verification may be separately adjudicated"
+  ]
+}

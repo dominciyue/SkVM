@@ -96,3 +96,13 @@ test("explicitly rerequested old evidence reenters the current windows even when
   expect(f.tools.evidence).toHaveLength(4)
   expect(f.runtime.modelContext().sourceWindows.some((e: any) => e.startLine === 1)).toBe(true)
 })
+
+test("local schema feedback names the mechanical repair without inventing a dependency operation", async () => {
+  const f = await fixture(); f.runtime.modelContext()
+  const dependency = { targetKey: "helper", pathKey: "p", from: "entry", symbol: "entry", kind: "control", decisive: true, reason: "Inspect the called control" }
+  const result = await f.runtime.propose({ schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: "q::entry", rules: [entry()], dependencies: [dependency, { ...dependency, targetKey: "cited", op: "add", evidenceIds: ["invented"] }] }] })
+  expect(result.diagnostics.find((d: any) => d.path.endsWith("helper.op")).message).toContain("add for a new target")
+  expect(result.diagnostics.find((d: any) => d.path.includes("cited")).message).toContain("host binds")
+  expect(f.runtime.report().slice.dependencies).toEqual([])
+  expect(f.runtime.report().slice.rules).toHaveLength(1)
+})

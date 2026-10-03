@@ -24,6 +24,11 @@ export const LocalExtractionItemSchemas = {
   policyRules: policyRule.omit({ questionId: true }),
 }
 export const LocalExtractionSchema = z.object({ itemId: InquiryText, rules: z.array(LocalExtractionItemSchemas.rules).max(64).default([]), sourceBindings: z.array(LocalExtractionItemSchemas.sourceBindings).max(64).default([]), dependencies: z.array(LocalExtractionItemSchemas.dependencies).max(64).default([]), premiseValues: z.array(LocalExtractionItemSchemas.premiseValues).max(64).default([]), policyRules: z.array(LocalExtractionItemSchemas.policyRules).max(64).default([]) }).strict()
+function localSchemaMessage(issue: z.ZodIssue) {
+  if (issue.path.length === 1 && issue.path[0] === "op") return `${issue.message}. Supply op:add for a new target or op:replace for an existing target, with a reason. The host cannot choose the intended operation.`
+  if (issue.code === "unrecognized_keys" && issue.keys.some(key => ["questionId", "evidenceIds"].includes(key))) return `${issue.message}. Omit questionId and evidenceIds in local extractions; the host binds this offered task to its original source windows. Other unsupported fields must also be removed.`
+  return issue.message
+}
 const extractionEnvelope = z.object({ itemId: InquiryText, rules: z.array(z.unknown()).max(64).default([]), sourceBindings: z.array(z.unknown()).max(64).default([]), dependencies: z.array(z.unknown()).max(64).default([]), premiseValues: z.array(z.unknown()).max(64).default([]), policyRules: z.array(z.unknown()).max(64).default([]) }).strict()
 export const LOCAL_EXTRACTION_GUIDE = [
   "Current local explanation tasks are executable duties: interpret the offered WorkItem using its original sourceWindows and current question/premises. A read/citation alone does not settle its meaning.",
@@ -73,7 +78,7 @@ export function expandLocalExtractions(input: unknown[], offered: LocalExplanati
     else if (!parsed.success) for (const d of parsed.error.issues) fail("rules", "$local", "local-extraction-schema", d.message, `.${d.path.join(".")}`)
     else for (const group of Object.keys(LocalExtractionItemSchemas) as LocalUpdateGroup[]) for (const [index, candidate] of parsed.data[group].entries()) {
       const checked = LocalExtractionItemSchemas[group].safeParse(candidate), key = String(candidate && typeof candidate === "object" ? (candidate as Record<string, unknown>).targetKey ?? `invalid-${index}` : `invalid-${index}`)
-      if (!checked.success) { for (const d of checked.error.issues) fail(group, key, "local-extraction-schema", d.message, `.${d.path.join(".")}`); continue }
+      if (!checked.success) { for (const d of checked.error.issues) fail(group, key, "local-extraction-schema", localSchemaMessage(d), `.${d.path.join(".")}`); continue }
       const normalized = { ...checked.data, questionId: task.question.id, ...(["rules", "sourceBindings", "dependencies"].includes(group) ? { evidenceIds: [...new Set([...task.evidenceIds, ...task.callsiteEvidenceIds])] } : {}) }
       groups[group].push(normalized); (expanded[group] ??= []).push(normalized)
     }

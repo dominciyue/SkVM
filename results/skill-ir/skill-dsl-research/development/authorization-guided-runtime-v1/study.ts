@@ -1,6 +1,8 @@
 import path from "node:path"
 import { readFile, writeFile, appendFile, mkdir, readdir, stat } from "node:fs/promises"
 import { execFileSync } from "node:child_process"
+import { createHash } from "node:crypto"
+import { isDeepStrictEqual } from "node:util"
 import { z } from "zod"
 import { checkAuthorizationInquiry, executeLocalInquiryRun, inspectLocalInquiry } from "../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts"
 
@@ -19,6 +21,27 @@ const json = async (file: string) => JSON.parse(await readFile(file, "utf8"))
 const save = async (file: string, value: unknown, exclusive = true) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, JSON.stringify(value, null, 2) + "\n", { encoding: "utf8", flag: exclusive ? "wx" : "w" }) }
 const append = (file: string, value: unknown) => appendFile(file, JSON.stringify(value) + "\n", "utf8")
 const lines = async (file: string): Promise<any[]> => (await readFile(file, "utf8").catch(() => "")).split(/\r?\n/).filter(Boolean).map(s => JSON.parse(s))
+const ScopedAdjudicationSchema = z.object({ failureId: z.string().min(1), originalArtifactSha256: z.string().regex(/^[a-f0-9]{64}$/), releasedComponents: z.array(z.string().min(1)).min(1), eligibleRows: z.array(z.string().min(1)).min(1), retainTaskPause: z.literal(true), rationale: z.string().min(1), verificationArtifacts: z.array(z.object({ path: z.string().min(1), sha256: z.string().regex(/^[a-f0-9]{64}$/) }).strict()).min(1) }).strict()
+/** A scoped release is evidence about repaired shared machinery, never completion of its failed task. */
+async function scopedAdjudications(base: string, failures: any[]) {
+  const readBound = async (relative: string, expected: string) => {
+    const file = path.resolve(base, relative), relation = path.relative(path.resolve(base), file)
+    if (!relation || relation === ".." || relation.startsWith(`..${path.sep}`) || path.isAbsolute(relation)) throw new Error("Invalid adjudication evidence path")
+    const bytes = await readFile(file)
+    if (createHash("sha256").update(bytes).digest("hex") !== expected) throw new Error("Changed adjudication evidence")
+    return bytes
+  }
+  const output = []
+  for (const raw of await lines(path.join(base, "scope-adjudications.jsonl"))) {
+    const entry = ScopedAdjudicationSchema.parse(raw), failure = failures.find(f => f.id === entry.failureId)
+    if (!failure || entry.releasedComponents.some(c => !failure.components?.includes(c))) throw new Error("Adjudication requires a retained failure and its affected components")
+    const retained = JSON.parse((await readBound(failure.originalArtifact, entry.originalArtifactSha256)).toString("utf8"))
+    if (retained.identity?.row?.id !== failure.runId || !retained.identity.row.task) throw new Error("Adjudication original identity mismatch")
+    for (const proof of entry.verificationArtifacts) await readBound(proof.path, proof.sha256)
+    output.push({ ...entry, retainedTask: retained.identity.row.task as string })
+  }
+  return output
+}
 export function plannedRows(): Row[] {
   return taskIds.flatMap((task, i) => (i % 2 ? ["D1", "M"] : ["M", "D1"]).map(method => ({ id: `quality-${task}-${method}`, task, method: method as "M" | "D1", strategy: method === "M" ? "legacy" : "guided-evidence-v2", components: method === "M" ? ["wire", "source", "delivery"] : ["wire", "source", "checker", "worklist", "delivery"], kind: "quality" })))
 }
@@ -48,20 +71,22 @@ export async function developRows(base: string, rows: Row[], options: DevelopOpt
     const original = path.join(base, "runs", options.repairOf!)
     if (!(await exists(path.join(original, "claim.json"))) || !(await exists(path.join(original, "report.json")))) throw new Error("Missing retained original attempt")
     const claim = await json(path.join(original, "claim.json")), retained = await json(path.join(original, "report.json"))
-    if (claim.row.id !== rows[0]!.id || claim.attempt !== Number(match[2]) || JSON.stringify(claim) !== JSON.stringify(retained.identity)) throw new Error("Invalid original attempt identity")
+    if (!isDeepStrictEqual(claim.row, rows[0]) || claim.attempt !== Number(match[2]) || JSON.stringify(claim) !== JSON.stringify(retained.identity)) throw new Error("Invalid original attempt identity")
     if (/unknown/.test(String(retained.report.status)) && !(await inspectedZeroDispatch(original))) throw new Error("An original attempt of unknown completion cannot be redispatched")
     originalFailureId = `${match[1]}-attempt-${match[2]}`
   }
   await mkdir(base, { recursive: true })
   const pauses: Array<{ components: string[]; failureId: string }> = [], completed: any[] = []
   const unresolved = (await lines(path.join(base, "failures.jsonl"))).filter(f => f.outcome === "unresolved")
+  const adjudications = await scopedAdjudications(base, unresolved)
   const repaired = new Set((await lines(path.join(base, "repairs.jsonl"))).filter(r => r.outcome === "improved").map(r => r.failureId))
   for (const failure of unresolved) if (!repaired.has(failure.id)) pauses.push({ components: failure.components ?? ["wire", "source", "checker", "delivery", "worklist"], failureId: failure.id })
   const width = Math.min(2, Math.max(1, options.concurrency ?? 1))
   for (let cursor = 0; cursor < rows.length; cursor += width) {
     await Promise.all(rows.slice(cursor, cursor + width).map(async row => {
       const runDir = path.join(base, "runs", row.id)
-      const paused = pauses.find(p => p.failureId !== originalFailureId && p.components.some(c => row.components.includes(c)))
+      const sealed = adjudications.find(a => a.retainedTask === row.task)
+      const paused = sealed ?? pauses.find(p => p.failureId !== originalFailureId && p.components.some(c => row.components.includes(c) && !adjudications.some(a => a.failureId === p.failureId && a.retainedTask !== row.task && row.kind === "source-window-mechanism" && a.eligibleRows.includes(row.id) && a.releasedComponents.includes(c))))
       if (paused) { completed.push({ id: row.id, status: "not-run-after-defect", failureId: paused.failureId }); return }
       const attempts = (await readdir(runDir).catch(() => [])).filter(s => /^attempt-\d+$/.test(s))
       if (attempts.length && !options.repairId) { completed.push({ id: row.id, status: "already-retained" }); return }
