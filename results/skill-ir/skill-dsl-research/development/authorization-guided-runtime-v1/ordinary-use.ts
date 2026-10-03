@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process"
 
 const root = import.meta.dir, repo = path.resolve(root, "../../../../.."), historical = path.join(path.dirname(root), "authorization-domain-execution-v1")
 const model = "xty/gpt-5.6-sol", action = process.argv[2]
-if (!["native-memos", "native-memos-repaired", "native-memos-policy-change", "native-memos-policy-change-repaired", "native-memos-policy-change-eof-repaired", "author-workflows", "author-workflows-repaired", "author-workflow-program"].includes(action ?? "")) throw new Error("Unknown ordinary action")
+if (!["native-memos", "native-memos-repaired", "native-memos-policy-change", "native-memos-policy-change-repaired", "native-memos-policy-change-eof-repaired", "native-memos-policy-change-compact-repaired", "author-workflows", "author-workflows-repaired", "author-workflow-program"].includes(action ?? "")) throw new Error("Unknown ordinary action")
 const output = path.join(root, "ordinary", action!), workDir = path.join(output, "workdir")
 await mkdir(workDir, { recursive: true })
 const skill = path.join(historical, "model/source-skills/github-security-review/SKILL.md")

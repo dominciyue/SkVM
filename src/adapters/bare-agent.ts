@@ -198,7 +198,7 @@ Available skills:
 - **${skillName}**: ${task.skill!.meta.description}`
     }
     const restricted = typeof this.providerOptions.authorizationScope === "string"
-      ? await (await import("../benchmarks/authorization-dsl/inquiry-native.ts")).createNativeInquiryRuntime({ inputFile: this.providerOptions.authorizationScope, workDir: task.workDir, domainTools: this.providerOptions.authorizationDomainTools === true, strategy: (await import("../task-dsl/authorization/control-slice.ts")).parseInquiryStrategy(this.providerOptions.authorizationStrategy), skillContent: task.skill?.content, traceDir: typeof this.providerOptions.authorizationTraceDir === "string" ? this.providerOptions.authorizationTraceDir : undefined })
+      ? await (await import("../benchmarks/authorization-dsl/inquiry-native.ts")).createNativeInquiryRuntime({ inputFile: this.providerOptions.authorizationScope, workDir: task.workDir, domainTools: this.providerOptions.authorizationDomainTools === true, strategy: (await import("../task-dsl/authorization/control-slice.ts")).parseInquiryStrategy(this.providerOptions.authorizationStrategy), skillContent: task.skill?.content, maxProviderCalls: Math.min(12, this.maxSteps), traceDir: typeof this.providerOptions.authorizationTraceDir === "string" ? this.providerOptions.authorizationTraceDir : undefined })
       : undefined
     const telemetry = restricted ? (await import("../benchmarks/authorization-dsl/telemetry.ts")).createTelemetryProvider(activeProvider, { executableToolNames: restricted.definitions.map(t => t.name), maxDispatches: 12, perCallTimeoutMs: 300000, unitTimeoutMs: Math.min(task.timeoutMs ?? this.timeoutMs, 1200000), beforeDispatch: restricted.beforeDispatch, onEvent: restricted.onEvent }) : undefined
     if (restricted && telemetry) { activeProvider = telemetry.provider; system += `\n\n${restricted.system}` }
@@ -209,6 +209,14 @@ Available skills:
     // For afterLLM/afterTool, we use the loop's callbacks.
     const beforeLLMHooks = this.hooks.beforeLLM
     const allToolCalls: ToolCall[] = []
+    let providerDispatches = 0, providerResponses = 0, assistantMessages = 0, requestedTools = 0
+    let lastResponse: LLMResponse | undefined
+    const observeProvider = async (complete: () => Promise<LLMResponse>) => {
+      providerDispatches++
+      const response = await complete()
+      providerResponses++
+      return response
+    }
 
     // Discover-mode state that needs to be maintained across iterations
     let discoverSkillLoaded = skillLoaded
@@ -240,7 +248,7 @@ Available skills:
             }
           }
         }
-        return activeProvider.complete(params)
+        return observeProvider(() => activeProvider.complete(params))
       },
 
       completeWithToolResults: async (params, toolResults, prevResponse) => {
@@ -264,7 +272,7 @@ Available skills:
             }
           }
         }
-        return activeProvider.completeWithToolResults(params, toolResults, prevResponse)
+        return observeProvider(() => activeProvider.completeWithToolResults(params, toolResults, prevResponse))
       },
     }
 
@@ -288,6 +296,7 @@ Available skills:
         parallelToolExecution: !restricted,
         ...(restricted ? { toolHistoryCharacterLimit: Number.MAX_SAFE_INTEGER, stopBeforeIterationLimit: true } : {}),
         onAfterLLM: async (response, iteration) => {
+          assistantMessages++; requestedTools += response.toolCalls.length; lastResponse = response
           if (task.skill?.mode === "discover" && !discoverSkillLoaded) {
             const skillMatch = response.text.match(LOAD_SKILL_RE)
             if (skillMatch) {
@@ -353,6 +362,14 @@ Available skills:
       llmDurationMs: loopResult.llmDurationMs,
       workDir: task.workDir,
       skillLoaded: task.skill ? skillLoaded : undefined,
+      executionObservation: {
+        schemaVersion: "skvm-run-execution-observation/v1",
+        process: { exitCode: runStatus === "ok" ? 0 : 1, termination: loopResult.timedOut ? "absolute-timeout" : loopResult.error?.message === "Agent iteration budget exhausted before continuation" ? "step-limit" : loopResult.error ? "crash" : "natural", durationMs },
+        activity: { requestDispatched: telemetry ? telemetry.summary().providerCalls > 0 : providerDispatches > 0, providerResponses: telemetry ? telemetry.summary().respondedCalls : providerResponses, assistantMessages, toolCalls: requestedTools, toolResults: allToolCalls.length },
+        terminal: { present: runStatus === "ok" && !!lastResponse && (lastResponse.toolCalls.length === 0 || lastResponse.stopReason === "end_turn"), ...(lastResponse?.stopReason ? { stopReason: lastResponse.stopReason } : {}) },
+        usage: { available: providerResponses > 0, ...loopResult.tokens },
+        parser: { outcome: assistantMessages > 0 ? "ok" : "empty", unknownTypes: [] },
+      },
       ...(restricted && telemetry ? { authorizationInquiry: { ...restricted.report(), telemetry: telemetry.summary(), attempts: telemetry.attempts, events: telemetry.events } } : {}),
       runStatus,
       ...(statusDetail ? { statusDetail } : {}),

@@ -17,7 +17,13 @@ import { ZodError } from "zod"
 class NativeToolRejection extends Error {
   constructor(readonly code: string, message: string) { super(`${code}: ${message}`) }
 }
-export async function createNativeInquiryRuntime(options: { inputFile: string; workDir: string; domainTools: boolean; strategy?: InquiryStrategy; skillContent?: string; maxToolCalls?: number; maxDisplayBytes?: number; traceDir?: string }) {
+/** Retain action results; the current full domain state is supplied once per request. */
+export function nativeInquiryToolModelView(output: unknown) {
+  if (!output || typeof output !== "object" || Array.isArray(output)) return output
+  const { domain, domainCheck, questionChecks, ...rest } = output as Record<string, unknown>
+  return { ...rest, ...(Array.isArray(questionChecks) ? { questionChecks: questionChecks.map(({ trace, ...question }) => question) } : {}), ...(domain || domainCheck ? { stateLocation: "Current local explanation context.state; full trace retained in native report" } : {}) }
+}
+export async function createNativeInquiryRuntime(options: { inputFile: string; workDir: string; domainTools: boolean; strategy?: InquiryStrategy; skillContent?: string; maxToolCalls?: number; maxProviderCalls?: number; maxDisplayBytes?: number; traceDir?: string }) {
   const strategy = parseInquiryStrategy(options.strategy)
   if (strategy !== "legacy" && !options.domainTools) throw new Error("strategy-requires-domain-tools: native domain strategy requires explicit domain tools")
   const loaded = await loadInquiryInput(options.inputFile), tools = await createInquiryTools({ ...loaded.context, maxToolCalls: options.maxToolCalls ?? 24, maxDisplayBytes: options.maxDisplayBytes ?? 262144 })
@@ -121,15 +127,22 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
     output = { ...(output as Record<string, unknown>), toolBudget: toolBudget() }
     const record = { call, output, exitCode, executed }; history.push(record)
     if (traceDir) await appendFile(path.join(traceDir, "tools.jsonl"), JSON.stringify(record) + "\n")
-    return { output: JSON.stringify(output), exitCode, durationMs: performance.now() - started }
+    return { output: JSON.stringify(strategy === "guided-evidence-v2" ? nativeInquiryToolModelView(output) : output), exitCode, durationMs: performance.now() - started }
   }
   const beforeDispatch = async (params: CompletionParams, toolResults?: LLMToolResult[], previousResponse?: LLMResponse) => {
     if (closed) throw new NativeToolRejection("session-closed", "This native source session is closed")
+    const providerRemaining = (options.maxProviderCalls ?? 12) - requests.length
+    const proseOnly = providerRemaining <= 1 || (options.domainTools && !!result)
+    const checkOnly = options.domainTools && !!program && providerRemaining <= 3
+    params.tools = proseOnly ? [] : checkOnly ? definitions.filter(t => t.name === "authorization_check_result") : definitions
+    delete params.toolChoice
+    params.messages = params.messages.filter(m => !m.content.startsWith("Current native delivery budget: "))
+    params.messages.push({ role: "user", content: `Current native delivery budget: ${providerRemaining} provider calls including this one. ${proseOnly ? `${result ? "A checked result is recorded." : "No checked result is recorded; label raw conclusions and unresolved gaps honestly."} Deliver the final answer now in the original skill prose format. No more tools.` : checkOnly ? "Use the remaining check opportunity, including controlDelta corrections inside authorization_check_result. The last call is reserved for the final prose answer." : "Finish source work before the last three calls, which are reserved for checking and final prose."}` })
     domain?.beginStep()
     if (strategy === "guided-evidence-v2" && domain) {
-      await domain.sync(checks === 0 && toolBudget().explorationRemaining > 0)
+      await domain.sync(!proseOnly && !checkOnly && checks === 0 && toolBudget().explorationRemaining > 0)
       params.messages = params.messages.filter(m => !m.content.startsWith("Current local explanation context: "))
-      params.messages.push({ role: "user", content: `Current local explanation context: ${JSON.stringify(domain.modelContext())}` })
+      params.messages.push({ role: "user", content: `Current local explanation context: ${JSON.stringify({ ...domain.modelContext(), state: domain.modelFeedback() })}` })
     }
     const text = params.messages.map(m => m.content).join("\n") + (toolResults?.map(r => r.content).join("\n") ?? ""), display = modelSourceDisplay(tools.evidence, text, displayed)
     const current = display.bytes, resent = display.resentBytes

@@ -129,6 +129,21 @@ describe("BareAgentAdapter", () => {
     // Verify token accumulation
     expect(result.tokens.input).toBe(30)
     expect(result.tokens.output).toBe(25)
+    expect(result.executionObservation).toMatchObject({
+      schemaVersion: "skvm-run-execution-observation/v1",
+      process: { exitCode: 0, termination: "natural" },
+      activity: { requestDispatched: true, providerResponses: 2, assistantMessages: 2, toolCalls: 1, toolResults: 1 },
+      terminal: { present: true, stopReason: "end_turn" },
+      usage: { available: true, input: 30, output: 25 },
+    })
+  })
+
+  test("execution observation does not count a hook replacement as a provider response", async () => {
+    const provider = createSequenceProvider([])
+    const adapter = new BareAgentAdapter(() => provider, { beforeLLM: [async () => ({ action: "replace", text: "Local result", toolResults: [] })] })
+    await adapter.setup({ model: "test", maxSteps: 2, timeoutMs: 1000 })
+    const result = await adapter.run({ prompt: "local", workDir })
+    expect(result.executionObservation).toMatchObject({ activity: { requestDispatched: false, providerResponses: 0, assistantMessages: 1 }, usage: { available: false }, terminal: { present: true } })
   })
 
   test("executes read_file tool call", async () => {

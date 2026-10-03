@@ -231,8 +231,8 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 
 文件：inquiry-run.ts、inquiry-native.ts、inquiry-local.ts、src/cli/authorization-inquiry.ts、src/adapters/bare-agent.ts；示例后续在 AR19 同步。
 
-- [ ] `--strategy=guided-evidence-v2` 两入口共用合同、队列、状态和检查。不要创建研究专用的成功分支。
-- [ ] 原 skill 仍通过 loader 加载完整原文与 references；宿主能从已有 task 编译已知声明，减少无意义的重复编译调用，模型 authored 声明的成本另计。
+- [x] `--strategy=guided-evidence-v2` 两入口共用合同、队列、状态和检查。不要创建研究专用的成功分支。
+- [x] 原 skill 仍通过 loader 加载完整原文与 references；宿主能从已有 task 编译已知声明，减少无意义的重复编译调用，模型 authored 声明的成本另计。
 - 2026-10-03接线细节：guided native收到完整input.inquiry时初始化同一program/runtime，compile工具不再重复暴露，记录host-input来源及0编译工具调用；仅brief仍由模型声明且计入原预算。原skill/reference loader与旧策略接线不改；实际四消费另验。
 - 2026-10-03普通入口检查发现run CLI枚举仍缺guided-evidence-v2，且adapter setup只为旧domain策略检查domain-tools。先补CLI与provider创建前校验的红测，再用同一策略解析器接通，避免把直接调用内部native API当成普通CLI验收。
 - 两项预期红测成立后接通共享enum及非legacy策略校验；32项141断言、主类型检查通过。原skill四次真实运行尚未执行，不以入口测试代替消费证据。
@@ -283,6 +283,8 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 
 2026-10-03实际程序作者已生成并运行Python命令；优化器也产生脚本，但因宿主cwd变化用例的投影路径错误回滚为no-change。原首稿/模型修稿/失败验证保留。红测后共用材料化修复45项200断言通过；下一步从保留的模型候选原字节，经当前validation/proposal/export API做零模型恢复，另列host-recovery，不主代理修改实验程序、不伪称原自动运行成功。随后同一个导出包在原任务及变化任务实际消费。
 
+该零模型恢复已导出draft（2程序case通过、0独立语义case）；同一新包在仓外原/变化任务各8次真实调用，实际执行包内脚本并交付清单和正常格式报告。变化目录含两个嵌套工作流、输出位置改变、权限省略/显式空差异均被识别。原两次CLI因adapter缺少可选execution observation在完成后报错，任务最终响应和原文件保留、不重发；共用adapter补齐记录并用27项66断言核查。至少一个新非API程序的当前生产/两次自然消费要求已有证据，但两个授权作者和真实previous验收仍未完成。
+
 政策变化修复尝试已编译但无checked交付；独立源码核验指出self-removal绕过管理员校验，原答案对此错误。真实EOF越界读取已作共用修复，19项80断言通过；语义错误保留，后续针对分支解释处理。
 
 ### AR14 — 分组质量对照，边运行边修
@@ -317,6 +319,8 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 ### AR17 — 预算调整与稳定退化处理
 
 文件：inquiry-run/native、provider lifecycle 仅按已确认问题修改；AR root accounting。
+
+2026-10-03针对真实EOF复验：12次请求均响应，源码self/nonself解释改善，但首atomic漏pathKey/前提映射错误、后续改名未退休旧目标，最终图不闭合；第12次仅check而无prose。末次messageCharacters=345669，旧native工具反复携带完整worklist/检查trace。下一步使用同一当前状态快照、工具返回保留本次诊断/接受项/真实读取，完整历史仍归档；在原12provider内预留末两次check机会及最后prose，不扩大预算。没有图闭合不能借最终文字宣称checked。
 
 - [ ] 比较每个已解决问题的模型调用、完整prompt、输出、重复证据、耗时和修复次数；先减少反复填图和重发，再考虑增加配对预算。
 - [ ] 超时、provider 不可用、预算耗尽有明确状态和可恢复输入，已得的 raw/局部结果保留；无效结果不透传成功标志。

@@ -204,10 +204,34 @@ test("native guided dispatch offers actual original windows and accepts the same
   const controlDelta = { schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: context.tasks[0].itemId, rules: [{ op: "add", targetKey: "entry", pathKey: "p", kind: "entry", after: [], claim: "Entry returns false" }, { op: "add", targetKey: "stop", pathKey: "p", kind: "reject", after: ["entry"], claim: "Rejects", complete: true }] }] }
   const checked = JSON.parse((await runtime.execute({ id: "check", name: "authorization_check_result", arguments: { result: result(context.sourceWindows[0].id), controlDelta } })).output)
   expect(checked.valid).toBe(true)
+  expect(checked).not.toHaveProperty("domainCheck")
+  expect(checked.questionChecks[0]).not.toHaveProperty("trace")
+  expect(runtime.report().history.at(-1)!.output).toHaveProperty("domainCheck")
   await runtime.beforeDispatch(params)
   expect(params.messages.filter((m: any) => m.content.startsWith("Current local explanation context: "))).toHaveLength(1)
   expect(runtime.report().domain!.localExtractions).toHaveLength(1)
+  const current = JSON.parse(params.messages.at(-1).content.split("Current local explanation context: ")[1])
+  expect(current.state.rules.map((r: any) => r.key)).toEqual(["entry", "stop"])
   expect(runtime.report().sourceAccounting.cumulativeModelSourceBytes).toBe(context.sourceWindows[0].bytes * 2)
+})
+
+test("native reserves checking and prose within the existing provider budget", async () => {
+  const { root, inquiry } = await budgetFixture()
+  const runtime = await createNativeInquiryRuntime({ inputFile: path.join(root, "input.json"), workDir: root, domainTools: true, strategy: "guided-evidence-v2", maxProviderCalls: 5 } as any)
+  await runtime.execute({ id: "compile", name: "authorization_compile", arguments: { inquiry } })
+  const params: any = { messages: [{ role: "user", content: "Can anyone call entry?" }] }
+  for (let turn = 1; turn <= 5; turn++) {
+    await runtime.beforeDispatch(params)
+    if (turn < 3) expect(params.tools.map((t: any) => t.name)).toContain("source_read")
+    else if (turn < 5) expect(params.tools.map((t: any) => t.name)).toEqual(["authorization_check_result"])
+    else {
+      expect(params.tools).toEqual([])
+      expect(params.toolChoice).toBeUndefined()
+      expect(params.messages.some((m: any) => m.content.includes("No checked result"))).toBe(true)
+    }
+  }
+  expect(runtime.report().requests).toHaveLength(5)
+  expect(runtime.report().toolBudget.checksUsed).toBe(0)
 })
 
 test("guided native compiles the supplied inquiry before the first dispatch without spending a tool call", async () => {
