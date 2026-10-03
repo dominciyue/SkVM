@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "authorization-ar-explanation-focus-verification/v1",
+  "date": "2026-10-04",
+  "providerCalls": 0,
+  "targetExecutions": 0,
+  "redCounterexamples": [
+    "unchanged shared-source explanation queue only offered first two of five questions",
+    "third-question object error was absent from explanation focus before final",
+    "explicit diagnostic question was broadened when its rule key equalled another question ID"
+  ],
+  "green": {
+    "command": "bun test ./src/benchmarks/authorization-dsl/inquiry-domain-runtime.test.ts ./src/benchmarks/authorization-dsl/inquiry-local-extraction.test.ts ./src/benchmarks/authorization-dsl/inquiry-run.test.ts ./src/benchmarks/authorization-dsl/inquiry-native.test.ts ./src/benchmarks/authorization-dsl/inquiry-worklist.test.ts ./src/benchmarks/authorization-dsl/inquiry-reuse-local.test.ts ./src/benchmarks/authorization-dsl/inquiry-tools.test.ts ./src/benchmarks/authorization-dsl/inquiry-control-updates.test.ts ./src/task-dsl/authorization/control-conclusion.test.ts ./src/task-dsl/authorization/control-slice.test.ts ./src/task-dsl/authorization/control-evaluation.test.ts",
+    "passed": 137,
+    "failed": 0,
+    "assertions": 757
+  },
+  "typechecks": [
+    {
+      "command": "bunx tsc --noEmit",
+      "exitCode": 0
+    },
+    {
+      "command": "bunx tsc --noEmit -p ./results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/tsconfig.json",
+      "exitCode": 0
+    }
+  ],
+  "independentReview": {
+    "task": "explanation_focus_code_review",
+    "verbatim": false,
+    "focusedTests": 20,
+    "assertions": 94,
+    "mainAdjudication": [
+      "Review's diagnostic path ambiguity concern led to an additional failing collision test and explicit question precedence repair.",
+      "Named diagnostic repair priority above new-read priority is intended; new reads retain priority over other unchanged work.",
+      "All actual recent read windows deliberately stay in shared context; offered extraction IDs remain bound to their own question/window.",
+      "An unscoped key with multiple matching rules does not select all of them.",
+      "Replay is limited to explanation selection and original source text, not location selection or complete prompt semantics."
+    ]
+  },
+  "replay": "explanation-focus-replay.json",
+  "replayCorrection": "Initial assertion required Q3 first even when multiple questions were diagnosed; corrected to single-question focus contract without changing original evidence.",
+  "realEffect": "pending",
+  "checkedDeliveryPromoted": false,
+  "qualityBenefit": "not-established"
+}

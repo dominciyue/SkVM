@@ -1,0 +1,63 @@
+{
+  "schemaVersion": "authorization-ar-independent-source-review/v1",
+  "task": "early_object_answer_source_review",
+  "verbatim": false,
+  "stage": "consume-authorization-cloudflare-download-repair-early-object-feedback-v1",
+  "initialRatings": [
+    "partial",
+    "incorrect-major-partial",
+    "partial",
+    "incorrect-major-partial",
+    "partial"
+  ],
+  "finalRatings": [
+    "partial",
+    "incorrect-major-partial",
+    "partial",
+    "incorrect-major-partial",
+    "partial"
+  ],
+  "answerPointers": [
+    "/final/questions/0",
+    "/final/questions/1",
+    "/final/questions/2",
+    "/final/questions/3",
+    "/final/questions/4"
+  ],
+  "findings": [
+    {
+      "questionId": "download-request-document",
+      "claim": "Root/version relationship remains unresolved",
+      "source": "src/documents/views.py:1388-1427",
+      "assessment": "Object roles are separated correctly; allowed resolver source establishes more of the relationship."
+    },
+    {
+      "questionId": "download-version-selection",
+      "claim": "Omitted, related, unrelated and invalid selectors remain unknown",
+      "source": "src/documents/versioning.py:140-195",
+      "assessment": "Available source establishes these branches; concrete rows/deletion/storage remain deployment facts."
+    },
+    {
+      "questionId": "download-original-archive",
+      "claim": "File handle, MIME and filename remain unresolved despite read serve_file window",
+      "source": "src/documents/views.py:4941-4995",
+      "assessment": "serve_file explicitly chooses archive_file/source_file, media type and Content-Disposition."
+    },
+    {
+      "questionId": "download-authorization-root-version",
+      "claim": "Checked object and owner/object-grant logic remain unresolved",
+      "source": "src/documents/views.py:1401-1427;src/documents/permissions.py:624-635",
+      "assessment": "Allowed resolver checks root_doc through the owner-aware helper. The source helper explicitly permits owner-null/self/object-grant alternatives."
+    },
+    {
+      "questionId": "download-version-authorization-invariant",
+      "claim": "Root and selected file relationship remains unknown",
+      "source": "src/documents/views.py:1388-1427;src/documents/versioning.py:140-195",
+      "assessment": "Caution about bypass is sound; available source establishes more of the relation and rejects unrelated selectors."
+    }
+  ],
+  "limits": [
+    "No concrete deployment grants/rows or external guardian internals are established.",
+    "Natural answer meaning is reviewed separately from formal graph validation."
+  ]
+}

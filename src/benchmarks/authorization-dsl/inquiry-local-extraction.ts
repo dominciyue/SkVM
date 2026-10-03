@@ -62,7 +62,7 @@ export interface LocalLocationTask {
   nextAction: { kind: "locate" | "select-candidate"; itemId: string }; semanticSupport: "unreviewed"
 }
 /** Mechanically select whole already-read windows; no semantic source compression or provider call. */
-export function localExplanationContext(program: AuthorizationInquiryProgram, items: WorkItem[], evidence: InquiryEvidence[], slice: ControlSlice, diagnosticEvidenceIds: string[] = [], recentEvidenceIds = evidence.slice(-2).map(e => e.id), locationOffset = 0) {
+export function localExplanationContext(program: AuthorizationInquiryProgram, items: WorkItem[], evidence: InquiryEvidence[], slice: ControlSlice, diagnosticEvidenceIds: string[] = [], recentEvidenceIds = evidence.slice(-2).map(e => e.id), locationOffset = 0, explanationFocus: { offset?: number; questionIds?: string[] } = {}) {
   const tasks: LocalExplanationTask[] = [], seen = new Set<string>(), byQuestion = new Map<string, WorkItem[]>()
   const locationTasks: LocalLocationTask[] = [], locations = new Map<string, WorkItem[]>()
   const optionalLead = (i: WorkItem) => i.origin === "source-reference" && i.state === "awaiting-binding" && i.code === "reference-relevance-unconfirmed" && i.candidates.length > 0 && i.callsiteEvidenceIds.some(id => evidence.some(e => e.id === id))
@@ -78,20 +78,25 @@ export function localExplanationContext(program: AuthorizationInquiryProgram, it
     const q = program.questions.find(q => q.id === item.questionId)!
     locationTasks.push({ itemId: item.id, question: structuredClone(q), duty: { kind: item.kind, question: item.question, symbol: item.symbol, parentId: item.parentId, reason: item.reason }, code: item.code, candidates: structuredClone(item.candidates.slice(0, 16)), callsiteEvidenceIds: item.callsiteEvidenceIds.filter(id => evidence.some(e => e.id === id)), ...(optionalLead(item) ? { optionalLocationLead: true as const } : {}), nextAction: { kind: item.nextAction.kind === "select-candidate" || optionalLead(item) ? "select-candidate" : "locate", itemId: item.id }, semanticSupport: "unreviewed" })
   }
-  const priority = (i: WorkItem) => i.evidenceIds.some(id => diagnosticEvidenceIds.includes(id)) ? 0 : i.state === "awaiting-interpretation" ? 1 : i.state === "awaiting-binding" ? 2 : 3
+  const focused = new Set(explanationFocus.questionIds)
+  const priority = (i: WorkItem) => focused.has(i.questionId) || (!focused.size && i.evidenceIds.some(id => diagnosticEvidenceIds.includes(id))) ? 0 : i.state === "awaiting-interpretation" ? 1 : i.state === "awaiting-binding" ? 2 : 3
   for (const q of program.questions) byQuestion.set(q.id, items.filter(i => i.questionId === q.id && i.evidenceIds.length > 0 && ["awaiting-interpretation", "awaiting-binding", "awaiting-verification"].includes(i.state) && (i.origin !== "question-duty" || i.kind === "entry")).sort((a, b) => priority(a) - priority(b)))
-  const questions = [...program.questions].sort((a, b) => (byQuestion.get(a.id)?.[0] ? priority(byQuestion.get(a.id)![0]!) : 4) - (byQuestion.get(b.id)?.[0] ? priority(byQuestion.get(b.id)![0]!) : 4))
-  for (let offset = 0; tasks.length < 2 && offset < items.length; offset++) {
-    let found = false
-    for (const q of questions) {
-      const item = byQuestion.get(q.id)?.[offset]
-      if (!item || tasks.length >= 2) continue
+  const explanationOrder: WorkItem[] = []
+  for (let offset = 0; offset < items.length; offset++) {
+    const layer = program.questions.flatMap(q => byQuestion.get(q.id)?.[offset] ?? [])
+    if (!layer.length) break
+    explanationOrder.push(...layer)
+  }
+  for (let rank = 0; rank <= 3 && tasks.length < 2; rank++) {
+    const group = explanationOrder.filter(i => priority(i) === rank), position = (explanationFocus.offset ?? 0) % Math.max(1, group.length)
+    for (const item of [...group.slice(position), ...group.slice(0, position)]) {
+      if (tasks.length >= 2) break
+      const q = program.questions.find(q => q.id === item.questionId)!
       const sourceIds = item.evidenceIds.filter(id => evidence.some(e => e.id === id)), key = JSON.stringify([q.id, sourceIds])
       if (!sourceIds.length || seen.has(key)) continue
-      seen.add(key); found = true
+      seen.add(key)
       tasks.push({ itemId: item.id, question: structuredClone(q), duty: { kind: item.kind, question: item.question, symbol: item.symbol, parentId: item.parentId, reason: item.reason }, evidenceIds: sourceIds, callsiteEvidenceIds: item.callsiteEvidenceIds.filter(id => evidence.some(e => e.id === id)), existingTargets: slice.rules.filter(r => r.questionId === q.id).map(({ key, kind, pathKey, after }) => ({ key, kind, pathKey, after })), relatedDuties: items.filter(i => i.questionId === q.id && i.origin === "question-duty").map(({ id, kind, question }) => ({ id, kind, question })), ...(program.policy ? { policy: structuredClone(program.policy) } : {}), semanticSupport: "unreviewed" })
     }
-    if (!found && ![...byQuestion.values()].some(group => group.length > offset + 1)) break
   }
   const ids = new Set([...tasks.flatMap(t => [...t.evidenceIds, ...t.callsiteEvidenceIds]), ...locationTasks.flatMap(t => t.callsiteEvidenceIds), ...diagnosticEvidenceIds, ...recentEvidenceIds])
   return { tasks, locationTasks, sourceWindows: structuredClone(evidence.filter(e => ids.has(e.id)).map(({ quote: _quote, ...e }) => e)), evidenceCatalog: evidence.map(({ id, path, startLine, endLine, bytes }) => ({ id, path, startLine, endLine, bytes })), instruction: LOCAL_EXTRACTION_GUIDE }

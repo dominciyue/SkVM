@@ -17,6 +17,46 @@ async function fixture(questions = [{ id: "q", request: "Investigate entry. Owne
 }
 const entry = (extra = {}) => ({ op: "add", targetKey: "entry", pathKey: "p", kind: "entry", after: [], claim: "Tests the supplied owner before effects", ...extra })
 
+test("unchanged read explanation work rotates across all questions without repeating source actions", async () => {
+  const f = await fixture(["a", "b", "c", "d", "e"].map(id => ({ id, request: "Investigate entry", entryHint: "entry", premises: [] })))
+  const evidenceIds = [f.tools.evidence[0]!.id]
+  await f.runtime.propose({ schemaVersion: "authorization-control-update/v1", rules: f.program.questions.map((q: any) => entry({ questionId: q.id, evidenceIds })) })
+  const before = f.runtime.report().slice
+  const contexts = [f.runtime.modelContext(), f.runtime.modelContext(), f.runtime.modelContext()]
+  expect(contexts.every(c => c.tasks.length <= 2)).toBe(true)
+  expect([...new Set(contexts.flatMap(c => c.tasks.map((t: any) => t.question.id)))].sort()).toEqual(["a", "b", "c", "d", "e"])
+  expect(contexts.flatMap(c => c.sourceWindows).every(w => w.text === f.tools.evidence[0]!.text)).toBe(true)
+  expect(f.runtime.report().slice).toEqual(before)
+  expect(f.tools.toolCalls).toBe(1)
+})
+
+test("a third-question object diagnostic focuses its own shared-window explanation before final", async () => {
+  const f = await fixture(["a", "b", "c"].map(id => ({ id, request: "Investigate entry", entryHint: "entry", premises: [] })))
+  const evidenceIds = [f.tools.evidence[0]!.id]
+  await f.runtime.propose({ schemaVersion: "authorization-control-update/v1", rules: [
+    ...f.program.questions.map((q: any) => entry({ questionId: q.id, evidenceIds })),
+    entry({ questionId: "c", targetKey: "write", kind: "effect", after: ["entry"], principal: "visitor", evidenceIds }),
+  ] })
+  expect(f.runtime.modelFeedback().diagnostics).toContainEqual(expect.objectContaining({ code: "object-binding-missing", questionId: "c" }))
+  const context = f.runtime.modelContext()
+  expect(context.tasks[0].question.id).toBe("c")
+  expect(context.tasks[0].evidenceIds).toEqual(evidenceIds)
+  expect(f.runtime.report().check).toBeUndefined()
+  expect(f.tools.toolCalls).toBe(1)
+})
+
+test("an explicit diagnostic question takes precedence when its rule key names another question", async () => {
+  const f = await fixture(["a", "b"].map(id => ({ id, request: "Investigate entry", entryHint: "entry", premises: [] })))
+  const evidenceIds = [f.tools.evidence[0]!.id]
+  await f.runtime.propose({ schemaVersion: "authorization-control-update/v1", rules: [
+    ...f.program.questions.map((q: any) => entry({ questionId: q.id, evidenceIds })),
+    entry({ questionId: "b", targetKey: "a", kind: "effect", after: ["entry"], principal: "visitor", evidenceIds }),
+  ] })
+  expect(f.runtime.modelFeedback().diagnostics).toContainEqual(expect.objectContaining({ path: "a", questionId: "b" }))
+  expect(f.runtime.modelContext().tasks[0].question.id).toBe("b")
+  expect(f.runtime.report().check).toBeUndefined()
+})
+
 test("an interpreted parent's lexical leads are offered for explicit read intent without automatically reading unrelated helpers", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-reference-focus-"))
   await writeFile(path.join(sourceRoot, "entry.ts"), "export function entry() { logEvent(); return decision(); }\n")

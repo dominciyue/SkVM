@@ -2651,3 +2651,5 @@ AR过程对象反馈沿用最终对象检查合同：bindingKey声明同题typed
 AR派发前计量只从匹配原身份的provider-unavailable报告推导明确整数providerDispatches:0；原外层null、报告字节、token及费用不改。缺报告、hash/model不符、bool/null和completion-unknown均不推零。
 
 AR历史失败语料的类别必须对应原响应和入口：owner-null原文字保留而typed condition缺失，应记形式提取缺口；structured源码显示budget终止不得记native收口失败。若历史付费首次valid/第二次invalid未建立，明确保留deterministic-only反例及有限负面点验，不能为满足七类清单虚构第七次历史发生。修正登记数据及原件指针，不改原AQ结果。
+
+AR已读解释队列在同优先级内有界轮转，每次至多2项；具名诊断修复优先于新读解释，新读优先于重复核验。过程和最终错误均按明确question归属安排下一次局部任务；显式question优先于碰巧相等的规则/path名称，无归属同名规则不全选。轮转与focus只选已存在工作项及实际原窗口，不增加读取/provider请求、改图或放宽checked。当前实际early-object运行的Q3绑定错误在最终修复清除，但两题路径及可避免source unknown仍未解决。

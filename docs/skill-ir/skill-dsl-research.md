@@ -1332,6 +1332,10 @@ AR `evaluate`现接严格语义评审及另存裁定，20项70断言、研究类
 
 **历史失败语料裁定完成（2026-10-04）。** 六类真实坏响应已由具体原request/response、native工具行、typed-condition及终止状态指针核对；登记器同步使用新标注。Memos错误类型的实际provider attempt2及4与逻辑fallback编号分开；controlDelta/delta为OWUI attempt7。owner-null原文字本已保留，只缺形式条件；OWUI helper未读与已读未关联分开；预算为structured源码展示终止。四native轨迹八check全部invalid，未建立付费先valid后invalid；第七类按任务书方法修订保留确定性回归和有限负面结果，非真实历史发生。零provider点验及14测试37断言、研究类型通过；原AQ字节不改，不为补类别再启动付费或全量历史审计。
 
+**提前反馈实际效果与解释轮转（2026-10-04）。** 具名原字节复验11/11，Q3对象诊断从request7提示，末次显式source binding使revision21的对象/局部Schema错误在revision23清除；最终仍Q1/Q3路径不闭合。旧六principal诊断消失但同等principal图未建立，不能记该语义修复；3题形式usable只是unknown/unresolved，独立原答/终答仍partial和major-partial。input447103/output13953/cacheRead55168，累计329、USD/人力unknown。31工具尝试中24计预算（10read/14search）、20成功、4其它错误、7预算拒绝；其中1host自动read，request子串出现次数不作执行计数。原初/终快照与审稿错误裁定均保留。
+
+request8–11反复offered前两入口，过程对象诊断未进入解释focus。3项红例后同优先级已读解释轮转，诊断按题归属聚焦；审稿指出的名称碰撞另补红测，显式question优先、无归属同名规则不全选。137测试757断言及主/研究类型通过，11实际prefix的解释选择零provider重放不改原source/结果，不模拟完整prompt或location候选。下一步同作者/同预算具名explanation-focus复验；语义收益、完整checked和previous仍待验，主16行与未知任务封存保持。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

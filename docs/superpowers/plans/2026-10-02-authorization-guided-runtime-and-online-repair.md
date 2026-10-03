@@ -220,6 +220,12 @@ location-routing-v1真实8/8返回，三题已显式定位但五题仍rejected�
 
 ### AR7 — 补读后的局部解释与条件提取
 
+2026-10-04具名early-object-feedback实际11/11：request7已有对象反馈，最后proposal7/revision23补Q3 resource binding，原revision21对象/Schema诊断清除，最终仍Q1/Q3 path-not-closed。旧六principal错误未再出现，但同等principal图未建立，不能算语义修复。独立源码复核initial/final仍partial与major-partial；全部原答、修订、错误保持。24计费源码调用中10read/14search，20成功、4其它错误，另7tool-budget拒绝；只有1host自动read，不使用request子串计数当调用。累计329、USD/人力unknown。
+
+本段工作计划：当前已读任务在同优先级下始终先列固定题序，request8–11只offered同两入口；早期对象diagnostics也未进入局部任务focus。先写五题共享原窗口的等待核验任务必须有界轮转、第三题对象错误定向第三题而不被共享ID抢占的红例，再按既有两个任务上限轮转同优先级解释，并用全部当前诊断绑定其所属题目。仍保留新读/具名修复优先、同题local绑定、完整原窗口、0额外读取或调用；无语义归纳或checked自动升格。修后确定性重放实际context，主/研究类型和相关回归通过后再具名复验；未知Notes/Memos及主面板封存不变。
+
+3项预期红例后137测试757断言及主/研究类型通过；独立代码复核的显式题名/规则名碰撞已补红绿修复，其余新读优先级与recent窗口保留按既有合同裁定。11实际prefix的零provider解释选择重放通过，5次涉及Q3诊断focus，候选未重放、无完整新prompt/答案或语义升格。原初/终对象快照审稿错误已按revision21/23另存裁定。下一步explanation-focus-v1同字节同预算普通复验，完整checked/语义previous仍未达。
+
 文件：新建 `inquiry-local-extraction.ts`、测试；接 inquiry-domain-runtime.ts 和现有 provider/telemetry。
 
 - [x] 给模型的局部任务包含一个 WorkItem、当前源码窗口、必要调用点/问题、明确前提；输出窄语义增量和未决依赖。
