@@ -1,0 +1,272 @@
+{
+  "attempt": 1,
+  "actionIds": [
+    "generate-github-actions-inventory"
+  ],
+  "feedback": [
+    {
+      "actionId": "generate-github-actions-inventory",
+      "failureKind": "script-execution-error",
+      "diagnostics": [
+        "expected exit 0, received 2",
+        "expected output file is missing or outside cwd: inventory.json"
+      ],
+      "relevantFiles": [
+        ".optimize/tasks/natural-ca095aca27e7/run-0-pre-run-inputs/source/release.yml",
+        ".optimize/tasks/natural-ca095aca27e7/run-0-workdir/workflow-inventory.json",
+        ".optimize/tasks/natural-ca095aca27e7/run-0-workdir/workflow-inventory.py",
+        ".optimize/tasks/natural-ca095aca27e7/run-0.md",
+        "SKILL.md",
+        "references/workflow-inventory.md",
+        "scripts/workflow_inventory.py"
+      ],
+      "baselineAction": {
+        "id": "generate-github-actions-inventory",
+        "kind": "generate-script",
+        "evidenceIds": [
+          "0"
+        ],
+        "sourceRefs": [
+          "SKILL.md#Step 1 — Scope Resolution",
+          "references/workflow-inventory.md",
+          ".optimize/tasks/natural-ca095aca27e7/run-0.md#Task",
+          ".optimize/tasks/natural-ca095aca27e7/run-0-pre-run-inputs/source/release.yml",
+          ".optimize/tasks/natural-ca095aca27e7/run-0-workdir/workflow-inventory.py",
+          ".optimize/tasks/natural-ca095aca27e7/run-0-workdir/workflow-inventory.json"
+        ],
+        "dependsOn": [],
+        "inputs": [
+          "workflow directory supplied as argv[1]",
+          "output JSON path supplied as argv[2]"
+        ],
+        "outputs": [
+          "caller-selected JSON inventory containing workflow/job permission states and uses references with source evidence"
+        ],
+        "preconditions": [
+          "Python 3 is available",
+          "the workflow directory is readable",
+          "workflow YAML is within the documented line-oriented subset or unsupported syntax is handled by the agent"
+        ],
+        "constraints": [
+          {
+            "description": "The collector is evidence-only; security assessment and self-verification remain part of the skill workflow.",
+            "scope": "skill",
+            "sourceRef": "SKILL.md#Step 4 — Vulnerability Deep Scan"
+          },
+          {
+            "description": "Do not execute workflows, access the network, alter source inputs, or hard-code captured workflow findings.",
+            "scope": "task",
+            "sourceRef": ".optimize/tasks/natural-ca095aca27e7/run-0.md#Task"
+          },
+          {
+            "description": "Python 3 was available in the observed environment, but availability is checked conditionally rather than assumed for every deployment.",
+            "scope": "environment",
+            "sourceRef": ".optimize/IMPLEMENTATION_CONTEXT.json#evidence/0/operations/operation-38"
+          }
+        ],
+        "validation": {
+          "help": {
+            "args": [
+              "--help"
+            ],
+            "stdoutIncludes": [
+              "workflow_directory",
+              "output_json"
+            ]
+          },
+          "cases": [
+            {
+              "args": [
+                ".optimize/tasks/natural-ca095aca27e7/run-0-pre-run-inputs/source",
+                "inventory.json"
+              ],
+              "id": "captured-release-workflow",
+              "evidenceId": "0",
+              "inputSource": "pre-run-input-snapshot",
+              "inputFiles": [
+                ".optimize/tasks/natural-ca095aca27e7/run-0-pre-run-inputs/source/release.yml"
+              ],
+              "expectedFiles": [
+                {
+                  "path": "inventory.json"
+                }
+              ],
+              "applicability": "supported",
+              "basis": "task-contract",
+              "sourceRefs": [
+                ".optimize/tasks/natural-ca095aca27e7/run-0.md#Task",
+                ".optimize/tasks/natural-ca095aca27e7/run-0-pre-run-inputs/source/release.yml",
+                ".optimize/tasks/natural-ca095aca27e7/run-0-workdir/workflow-inventory.json"
+              ]
+            }
+          ]
+        },
+        "changedPaths": [
+          "scripts/workflow_inventory.py",
+          "references/workflow-inventory.md",
+          "SKILL.md"
+        ],
+        "residualDuties": [
+          "select the authorized workflow scope",
+          "inspect unsupported YAML constructs directly",
+          "perform semantic security assessment and self-verification",
+          "write the scoped report and decide whether patches are warranted"
+        ],
+        "verification": [
+          "python scripts/workflow_inventory.py --help",
+          "run on the digest-bound pre-run source directory and parse the resulting JSON",
+          "assert captured workflow permissions, three job permission states, eight uses references, and job associations",
+          "run a changed-value temporary case covering explicit_empty, declared_null, action, and reusable_workflow states",
+          "python -m py_compile scripts/workflow_inventory.py"
+        ]
+      },
+      "candidateAction": {
+        "id": "generate-github-actions-inventory",
+        "kind": "generate-script",
+        "evidenceIds": [
+          "0"
+        ],
+        "sourceRefs": [
+          "SKILL.md#Step 1 — Scope Resolution",
+          "references/workflow-inventory.md",
+          ".optimize/tasks/natural-ca095aca27e7/run-0.md#Task",
+          ".optimize/tasks/natural-ca095aca27e7/run-0-pre-run-inputs/source/release.yml",
+          ".optimize/tasks/natural-ca095aca27e7/run-0-workdir/workflow-inventory.py",
+          ".optimize/tasks/natural-ca095aca27e7/run-0-workdir/workflow-inventory.json"
+        ],
+        "dependsOn": [],
+        "inputs": [
+          "workflow directory supplied as argv[1]",
+          "output JSON path supplied as argv[2]"
+        ],
+        "outputs": [
+          "caller-selected JSON inventory containing workflow/job permission states and uses references with source evidence"
+        ],
+        "preconditions": [
+          "Python 3 is available",
+          "the workflow directory is readable",
+          "workflow YAML is within the documented line-oriented subset or unsupported syntax is handled by the agent"
+        ],
+        "constraints": [
+          {
+            "description": "The collector is evidence-only; security assessment and self-verification remain part of the skill workflow.",
+            "scope": "skill",
+            "sourceRef": "SKILL.md#Step 4 — Vulnerability Deep Scan"
+          },
+          {
+            "description": "Do not execute workflows, access the network, alter source inputs, or hard-code captured workflow findings.",
+            "scope": "task",
+            "sourceRef": ".optimize/tasks/natural-ca095aca27e7/run-0.md#Task"
+          },
+          {
+            "description": "Python 3 was available in the observed environment, but availability is checked conditionally rather than assumed for every deployment.",
+            "scope": "environment",
+            "sourceRef": ".optimize/IMPLEMENTATION_CONTEXT.json#evidence/0/operations/operation-38"
+          }
+        ],
+        "validation": {
+          "help": {
+            "args": [
+              "--help"
+            ],
+            "stdoutIncludes": [
+              "workflow_directory",
+              "output_json"
+            ]
+          },
+          "cases": [
+            {
+              "args": [
+                ".optimize/tasks/natural-ca095aca27e7/run-0-pre-run-inputs/source",
+                "inventory.json"
+              ],
+              "id": "captured-release-workflow",
+              "evidenceId": "0",
+              "inputSource": "pre-run-input-snapshot",
+              "inputFiles": [
+                ".optimize/tasks/natural-ca095aca27e7/run-0-pre-run-inputs/source/release.yml"
+              ],
+              "expectedFiles": [
+                {
+                  "path": "inventory.json"
+                }
+              ],
+              "applicability": "supported",
+              "basis": "task-contract",
+              "sourceRefs": [
+                ".optimize/tasks/natural-ca095aca27e7/run-0.md#Task",
+                ".optimize/tasks/natural-ca095aca27e7/run-0-pre-run-inputs/source/release.yml",
+                ".optimize/tasks/natural-ca095aca27e7/run-0-workdir/workflow-inventory.json"
+              ]
+            }
+          ]
+        },
+        "changedPaths": [
+          "scripts/workflow_inventory.py",
+          "references/workflow-inventory.md",
+          "SKILL.md"
+        ],
+        "residualDuties": [
+          "select the authorized workflow scope",
+          "inspect unsupported YAML constructs directly",
+          "perform semantic security assessment and self-verification",
+          "write the scoped report and decide whether patches are warranted"
+        ],
+        "verification": [
+          "python scripts/workflow_inventory.py --help",
+          "run on the digest-bound pre-run source directory and parse the resulting JSON",
+          "assert captured workflow permissions, three job permission states, eight uses references, and job associations",
+          "run a changed-value temporary case covering explicit_empty, declared_null, action, and reusable_workflow states",
+          "python -m py_compile scripts/workflow_inventory.py"
+        ]
+      },
+      "candidateDiff": [
+        "SKILL.md",
+        "references/workflow-inventory.md",
+        "scripts/workflow_inventory.py"
+      ],
+      "originalIntent": {
+        "kind": "generate-script",
+        "sourceRefs": [
+          "SKILL.md#Step 1 — Scope Resolution",
+          "references/workflow-inventory.md",
+          ".optimize/tasks/natural-ca095aca27e7/run-0.md#Task",
+          ".optimize/tasks/natural-ca095aca27e7/run-0-pre-run-inputs/source/release.yml",
+          ".optimize/tasks/natural-ca095aca27e7/run-0-workdir/workflow-inventory.py",
+          ".optimize/tasks/natural-ca095aca27e7/run-0-workdir/workflow-inventory.json"
+        ],
+        "inputs": [
+          "workflow directory supplied as argv[1]",
+          "output JSON path supplied as argv[2]"
+        ],
+        "outputs": [
+          "caller-selected JSON inventory containing workflow/job permission states and uses references with source evidence"
+        ],
+        "preconditions": [
+          "Python 3 is available",
+          "the workflow directory is readable",
+          "workflow YAML is within the documented line-oriented subset or unsupported syntax is handled by the agent"
+        ],
+        "changedPaths": [
+          "scripts/workflow_inventory.py",
+          "references/workflow-inventory.md",
+          "SKILL.md"
+        ],
+        "residualDuties": [
+          "select the authorized workflow scope",
+          "inspect unsupported YAML constructs directly",
+          "perform semantic security assessment and self-verification",
+          "write the scoped report and decide whether patches are warranted"
+        ],
+        "verification": [
+          "python scripts/workflow_inventory.py --help",
+          "run on the digest-bound pre-run source directory and parse the resulting JSON",
+          "assert captured workflow permissions, three job permission states, eight uses references, and job associations",
+          "run a changed-value temporary case covering explicit_empty, declared_null, action, and reusable_workflow states",
+          "python -m py_compile scripts/workflow_inventory.py"
+        ]
+      }
+    }
+  ],
+  "rule": "repair-only-listed-files-and-preserve-validation-expectations"
+}

@@ -1,0 +1,179 @@
+{
+  "rootCause": "The skill identifies CI/CD files as security-review inputs but provides no reusable, bounded way to extract GitHub Actions permission and action-reference evidence, so agents must rediscover a runtime, author and debug a one-off parser, and manually establish its syntax boundary during each workflow review before they can perform the semantic assessment the skill actually requires.",
+  "reasoning": "Evidence 0 is a clean, unassessed run, not a failure claim: runStatus is ok, and the trace visibly spent repeated tool calls creating, rereading, repairing, and executing workflow-inventory.py before producing the requested JSON and report. The pre-run release.yml, observed script, inventory, and successful command assertions establish a narrow mechanical boundary: recursively read workflow YAML, distinguish permission declaration states, collect uses references with line evidence, and serialize JSON. The observed report also establishes the boundary that security conclusions, deployment assumptions, inherited-permission interpretation, and patches remain agent duties. The candidate therefore bundles and documents only that evidence collector and routes applicable GitHub Actions scope through it without changing the skill's broader ordered review. Expected impact is reduced tool discovery, repeated code generation, and parsing mistakes; the evidence has no quality score, so no independent overall score improvement is claimed.\n\nPre-edit checklist: (a) Generality: another plausible task reviewing a repository's .github/workflows directory for least privilege or third-party action provenance benefits from the same parameterized collector, as does a review containing several workflow files rather than the captured release workflow. No workflow names, findings, or captured paths are embedded. (b) Rewrite-in-place: the applicability rule is inserted into the existing Scope Resolution step and the reference navigation list rather than appended as a competing workflow; the detailed command contract is kept in an on-demand reference. (c) Coherent scope: the smallest complete implementation is one standard-library Python command plus one reference page and the existing-workflow routing sentence. It performs consecutive read/parse/serialize/write steps, emits concise structured completion output, and leaves semantic assessment untouched. (d) No-trade-off: PER_TASK_SUMMARY.md contains no PASSING tasks, so there is no passing contract to enumerate or regress. The sole UNASSESSED task's stated contract is preserved: offline operation, variable input/output paths, no workflow execution or source modification, honest YAML limits, and residual semantic review. The collector is conditional on applicable GitHub Actions scope and Python 3 availability, so unsupported formats and all other security-review capabilities retain the original workflow as fallback.",
+  "confidence": 0.91,
+  "changedFiles": [
+    "SKILL.md",
+    "scripts/workflow_inventory.py",
+    "references/workflow-inventory.md"
+  ],
+  "changes": [
+    {
+      "file": "SKILL.md",
+      "section": "Step 1 — Scope Resolution and Reference Files",
+      "description": "Route applicable GitHub Actions reviews through the bounded inventory command while explicitly preserving direct inspection and semantic review duties.",
+      "generality": "A future review of any repository's .github/workflows directory, including a multi-workflow least-privilege audit, benefits from the same routing without depending on the captured release workflow.",
+      "linesDelta": 3
+    },
+    {
+      "file": "scripts/workflow_inventory.py",
+      "section": "new bundled command",
+      "description": "Add a parameterized standard-library command that recursively reads workflow YAML, records permission states and uses evidence, and writes a JSON inventory with structured status output.",
+      "generality": "Any offline GitHub Actions review with block-style YAML can reuse the command with different workflow and output paths, such as auditing pull-request workflows or reusable-workflow callers.",
+      "linesDelta": 239
+    },
+    {
+      "file": "references/workflow-inventory.md",
+      "section": "new command contract",
+      "description": "Document a copy-ready invocation, required parameters, supported YAML boundary, dependencies, outputs, and the semantic duties that remain with the reviewing agent.",
+      "generality": "A reviewer inventorying several CI workflows or a single deployment workflow needs the same portable invocation and syntax limitations before relying on the evidence.",
+      "linesDelta": 23
+    }
+  ],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "Delegated steps: run the inventory only for applicable GitHub Actions scope, then continue the ordered security review; variable parameters: workflow directory and output JSON; required resources: Python 3, bundled script, and workflow files; check source: the task contract and captured run boundary; implemented because the applicability and evidence-only status are now explicit in Step 1.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent inspects unsupported YAML and performs all semantic security reasoning and reporting."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "Delegated steps: recursively discover YAML beneath an arbitrary input directory and write to an arbitrary output path; variable parameters: two positional paths; required resources: readable local files and writable destination; check source: observed task required both arguments and the current help/validation runs exercise them; implemented in scripts/workflow_inventory.py.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent selects the task-authorized scope and destination."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "Delegated steps: read, classify permission declarations, associate uses references with jobs, retain line evidence, serialize, and write JSON in one command; variable parameters: workflow content and paths; required resources: Python standard library; check source: the captured release.yml and observed successful inventory assertions; implemented because the trace's one-off creation/debug cycle is now reusable.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent decides what the mechanically collected declarations mean for the repository's trust model."
+    },
+    {
+      "category": "artifact-production",
+      "summary": "Produced file: caller-selected JSON inventory; consecutive mechanical steps: recursively read YAML, extract permission/uses evidence, serialize JSON, create parent directories, and write output; consumer-supplied semantic values: none, only paths; check source: captured workflow plus task-contract assertions; implemented by the new command rather than by a checker-only route.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent creates the security report and any findings or patch proposals; the program does not produce a verdict."
+    },
+    {
+      "category": "verification",
+      "summary": "Delegated checks: parse generated JSON and assert captured permission states, job association, and uses count, plus exercise changed explicit-empty, bare-null, step-action, reusable-workflow, help, and bytecode cases; variable parameters: temporary paths; required resources: captured pre-run workflow and Python 3; check source: task contract and source bytes; implemented and locally executed.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "These deterministic checks establish collector behavior, not correctness of any security conclusion."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "Delegated behavior: use the command only when Python 3 is available; variable dependency: local Python executable; required resources: standard library only, with no network or YAML package; check source: Python succeeded in Evidence 0 and current validation; implemented with an explicit conditional and documented fallback rather than promoted as a universal environment fact.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "When Python 3 is unavailable or YAML exceeds the documented subset, the agent uses direct inspection or another task-permitted local parser."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "Retained duties: assess least privilege, inherited/default permissions, action trust, exploitability, deployment assumptions, secrets, dependencies, broader code/data flow, finding confidence, and patch decisions; variable context: repository and deployment model; required resources: original skill references and source; check source: original skill workflow plus explicit task restriction; retained because these are semantic judgments not established by the inventory.",
+      "evidenceIds": ["0"],
+      "disposition": "retained",
+      "residualDuty": "The reviewing agent owns all security conclusions, report content, and human-reviewable patch proposals."
+    }
+  ],
+  "actions": [
+    {
+      "id": "generate-github-actions-inventory",
+      "kind": "generate-script",
+      "evidenceIds": ["0"],
+      "sourceRefs": [
+        "SKILL.md#Step 1 — Scope Resolution",
+        "references/workflow-inventory.md",
+        ".optimize/tasks/natural-ca095aca27e7/run-0.md#Task",
+        ".optimize/tasks/natural-ca095aca27e7/run-0-pre-run-inputs/source/release.yml",
+        ".optimize/tasks/natural-ca095aca27e7/run-0-workdir/workflow-inventory.py",
+        ".optimize/tasks/natural-ca095aca27e7/run-0-workdir/workflow-inventory.json"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "workflow directory supplied as argv[1]",
+        "output JSON path supplied as argv[2]"
+      ],
+      "outputs": [
+        "caller-selected JSON inventory containing workflow/job permission states and uses references with source evidence"
+      ],
+      "preconditions": [
+        "Python 3 is available",
+        "the workflow directory is readable",
+        "workflow YAML is within the documented line-oriented subset or unsupported syntax is handled by the agent"
+      ],
+      "constraints": [
+        {
+          "description": "The collector is evidence-only; security assessment and self-verification remain part of the skill workflow.",
+          "scope": "skill",
+          "sourceRef": "SKILL.md#Step 4 — Vulnerability Deep Scan"
+        },
+        {
+          "description": "Do not execute workflows, access the network, alter source inputs, or hard-code captured workflow findings.",
+          "scope": "task",
+          "sourceRef": ".optimize/tasks/natural-ca095aca27e7/run-0.md#Task"
+        },
+        {
+          "description": "Python 3 was available in the observed environment, but availability is checked conditionally rather than assumed for every deployment.",
+          "scope": "environment",
+          "sourceRef": ".optimize/IMPLEMENTATION_CONTEXT.json#evidence/0/operations/operation-38"
+        }
+      ],
+      "validation": {
+        "help": {
+          "args": ["--help"],
+          "stdoutIncludes": ["workflow_directory", "output_json"]
+        },
+        "cases": [
+          {
+            "id": "captured-release-workflow",
+            "evidenceId": "0",
+            "inputSource": "pre-run-input-snapshot",
+            "inputFiles": [
+              ".optimize/tasks/natural-ca095aca27e7/run-0-pre-run-inputs/source/release.yml"
+            ],
+            "args": [
+              ".optimize/tasks/natural-ca095aca27e7/run-0-pre-run-inputs/source",
+              "inventory.json"
+            ],
+            "expectedFiles": [
+              {
+                "path": "inventory.json"
+              }
+            ],
+            "applicability": "supported",
+            "basis": "task-contract",
+            "sourceRefs": [
+              ".optimize/tasks/natural-ca095aca27e7/run-0.md#Task",
+              ".optimize/tasks/natural-ca095aca27e7/run-0-pre-run-inputs/source/release.yml",
+              ".optimize/tasks/natural-ca095aca27e7/run-0-workdir/workflow-inventory.json"
+            ]
+          }
+        ]
+      },
+      "changedPaths": [
+        "scripts/workflow_inventory.py",
+        "references/workflow-inventory.md",
+        "SKILL.md"
+      ],
+      "residualDuties": [
+        "select the authorized workflow scope",
+        "inspect unsupported YAML constructs directly",
+        "perform semantic security assessment and self-verification",
+        "write the scoped report and decide whether patches are warranted"
+      ],
+      "verification": [
+        "python scripts/workflow_inventory.py --help",
+        "run on the digest-bound pre-run source directory and parse the resulting JSON",
+        "assert captured workflow permissions, three job permission states, eight uses references, and job associations",
+        "run a changed-value temporary case covering explicit_empty, declared_null, action, and reusable_workflow states",
+        "python -m py_compile scripts/workflow_inventory.py"
+      ]
+    }
+  ]
+}

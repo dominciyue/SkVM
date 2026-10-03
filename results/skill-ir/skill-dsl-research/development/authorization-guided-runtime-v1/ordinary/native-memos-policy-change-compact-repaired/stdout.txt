@@ -1,0 +1,210 @@
+
+skvm run v0.1.4
+  Adapter  bare-agent (built-in)
+  Model    xty/gpt-5.6-sol via openai-compatible (https://svip.xty.app/v1)
+  Task     natural prompt
+  Skill    D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\github-security-review\SKILL.md
+  WorkDir  D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-guided-runtime-v1\ordinary\native-memos-policy-change-compact-repaired\workdir
+  Cache    D:\skill优化\SkVM\.skvm
+
+23:39:12.295 [INFO ] [run] Run task natural-fbd3ff52d8bf: adapter=bare-agent model=xty/gpt-5.6-sol workDir=D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-guided-runtime-v1\ordinary\native-memos-policy-change-compact-repaired\workdir
+23:39:12.299 [INFO ] [conv-log] Conversation logging enabled: D:\skill优化\SkVM\.skvm\log\20261003-233912-run
+✓ Task natural-fbd3ff52d8bf complete  (12m 36s)
+
+=== Run Complete ===
+Task: natural-fbd3ff52d8bf
+Skill: D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\github-security-review\SKILL.md
+Model: xty/gpt-5.6-sol
+Adapter: bare-agent
+WorkDir: D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-guided-runtime-v1\ordinary\native-memos-policy-change-compact-repaired\workdir
+Duration: 756.7s
+Tokens: in=130349 out=17105
+
+Final output:
+# Security Review: `DeleteSpaceMember`
+
+## Findings Summary
+
+| Severity | Count | Finding |
+|---|---:|---|
+| 🔴 **CRITICAL** | 0 | — |
+| 🟠 **HIGH** | 1 | Ordinary members cannot remove a different member, contrary to the supplied policy |
+| 🟡 **MEDIUM** | 0 | — |
+| 🔵 **LOW** | 0 | — |
+| ⚪ **INFO** | 1 | Self-removal and administrative removal use materially different authorization paths |
+
+**Scope:** Source-visible authorization review of `DeleteSpaceMember` in Memos revision `cb42e326ba9cc266a6a9570c53e0fe04c62793f4`.
+
+**Policy under review:** “Any current member of a space may remove a different member from that space; self-removal is also allowed.”
+
+---
+
+## Finding 1 — Ordinary members cannot remove another member
+
+**Severity:** 🟠 HIGH  
+**Confidence:** High  
+**Category:** Authorization / policy non-conformance  
+**Policy status:** Violated for the different-member path
+
+### Affected source
+
+`server/api/v1/space_service.go:741-764`
+
+```go
+741 | func (s *APIV1Service) DeleteSpaceMember(ctx context.Context, request *v1pb.DeleteSpaceMemberRequest) (*emptypb.Empty, error) {
+742 |     currentUser, err := s.requireCurrentSpaceUser(ctx)
+...
+746 |     _, targetUser, callerMembership, targetMembership, err := s.resolveSpaceMemberResource(ctx, request.Name, currentUser)
+...
+750 |     isSelf := targetUser.ID == currentUser.ID
+751 |     if !isSelf {
+752 |         if err := requireSpaceAdministrator(callerMembership); err != nil {
+753 |             return nil, err
+754 |         }
+755 |     }
+756 |     if err := s.Store.DeleteSpaceMember(ctx, &store.DeleteSpaceMember{
+757 |         SpaceID: targetMembership.SpaceID,
+758 |         UserID:  targetMembership.UserID,
+759 |     }, currentUser.ID); err != nil {
+```
+
+The visible service path explicitly requires `requireSpaceAdministrator(callerMembership)` whenever the target is not the caller.
+
+The database implementations independently enforce the same restriction:
+
+- **MySQL:** `store/db/mysql/space.go:419-427`
+  ```go
+  419 | if actorUserID != delete.UserID {
+  420 |     var role store.SpaceMemberRole
+  421 |     if err := tx.QueryRowContext(...).Scan(&role); ... {
+  422 |         return store.ErrSpacePermissionDenied
+  423 |     } else if err != nil {
+  424 |         return err
+  425 |     } else if role != store.SpaceMemberRoleAdmin {
+  426 |         return store.ErrSpacePermissionDenied
+  427 |     }
+  ```
+- **SQLite:** `store/db/sqlite/space.go:424-432`
+  ```go
+  424 | if actorUserID != delete.UserID {
+  425 |     var actorRole store.SpaceMemberRole
+  426 |     if err := tx.QueryRowContext(...).Scan(&actorRole); ... {
+  427 |         return store.ErrSpacePermissionDenied
+  428 |     } else if err != nil {
+  429 |         return err
+  430 |     } else if actorRole != store.SpaceMemberRoleAdmin {
+  431 |         return store.ErrSpacePermissionDenied
+  432 |     }
+  ```
+- **PostgreSQL:** `store/db/postgres/space.go:457-465`, as shown in the reviewed source evidence, applies the corresponding non-self administrator check.
+
+### Actual behavior
+
+For a request where:
+
+```text
+actorUserID != targetUserID
+```
+
+the operation is denied unless the caller has an administrator membership in the space.
+
+Therefore:
+
+| Caller | Target | Source-visible result |
+|---|---|---|
+| Ordinary current member | Different member | **Denied** |
+| Administrator | Different member | **May proceed**, subject to target and last-admin checks |
+| Current member | Self | Uses a separate path; see below |
+
+### Policy comparison
+
+The supplied policy allows:
+
+> “Any current member of a space may remove a different member from that space”
+
+The implementation instead requires an administrator role for that operation. This is a direct authorization mismatch.
+
+### Risk
+
+If the intended policy is authoritative, ordinary members cannot perform an operation they are explicitly meant to be permitted to perform. This is an authorization **under-grant** relative to policy and may cause functional or access-control failures for non-admin members.
+
+---
+
+## Finding 2 — Self-removal and removal of another member differ
+
+**Severity:** ⚪ INFO  
+**Confidence:** High  
+**Category:** Authorization-path distinction
+
+### Self-removal path
+
+At `server/api/v1/space_service.go:750-755`:
+
+```go
+750 | isSelf := targetUser.ID == currentUser.ID
+751 | if !isSelf {
+752 |     if err := requireSpaceAdministrator(callerMembership); err != nil {
+753 |         return nil, err
+754 |     }
+755 | }
+```
+
+The administrator check is inside `if !isSelf`. Consequently, self-removal does not pass through the visible `requireSpaceAdministrator` check.
+
+The database implementations preserve that distinction:
+
+- MySQL only performs the actor-role check under `actorUserID != delete.UserID` at `store/db/mysql/space.go:419-427`.
+- SQLite does the same at `store/db/sqlite/space.go:424-432`.
+- PostgreSQL has the corresponding conditional path at `store/db/postgres/space.go:457-465`.
+
+### Different-member path
+
+Removing another member requires:
+
+1. A resolved target membership.
+2. The caller and target to be different users.
+3. An active administrator membership for the caller.
+4. The target and space to exist.
+5. No last-administrator protection to block deletion.
+
+### Shared effect and residual checks
+
+Both paths ultimately invoke the same store operation from `space_service.go:756-760`.
+
+The shown database implementations then:
+
+- Look up the target membership.
+- Delete the active membership.
+- Prevent deletion of the last normal active administrator.
+
+For example, MySQL checks the last-admin condition at `store/db/mysql/space.go:436-445`, and SQLite performs the corresponding check at `store/db/sqlite/space.go:442-451`.
+
+Thus, self-removal is not an unconditional “always allowed” operation in source-visible behavior. It bypasses the separate administrator-role check, but it can still fail because of target lookup, membership state, or last-administrator protection.
+
+---
+
+## Policy Conformance
+
+| Policy requirement | Source-visible behavior | Assessment |
+|---|---|---|
+| Any current member may remove a different member | Non-self removal requires administrator role | **Violated** |
+| Self-removal is allowed | Self-removal bypasses the separate admin-role check, but remains subject to target and last-admin checks | **Conditionally aligned** |
+
+---
+
+## Decisive unresolved facts
+
+The conclusion above is based on the shown service and MySQL, SQLite, and PostgreSQL source paths. The following facts were not established within this bounded review:
+
+1. **Deployment backend is unverified.** The source view does not establish whether the deployed instance uses MySQL, SQLite, PostgreSQL, or another implementation.
+2. **Upstream middleware is unverified.** No assumption is made that deployment middleware adds or removes authorization controls.
+3. **Undocumented role grants are not assumed.** The source-visible requirement is administrator role for non-self deletion; no undocumented grant is inferred.
+4. **Concrete membership state is not supplied.** The result is path-based. Actual success still depends on the caller being current/authenticated, the target membership resolving, and the last-admin invariant.
+
+## Final assessment
+
+**An ordinary current space member may not remove a different member on the reviewed source-visible paths.** The operation is restricted to administrators when the target differs from the caller, so the different-member portion of the supplied policy is not satisfied.
+
+**Yes, the visible admin-removal and self-removal paths differ.** Non-self removal requires administrator authorization; self-removal skips that particular check but remains subject to the shared membership and last-administrator safeguards.
+
+**Review any remediation before applying. Nothing has been changed.**

@@ -1,0 +1,237 @@
+{
+  "schemaVersion": "jit-optimize-validation-lifecycle/v1",
+  "createdAt": "2026-10-03T15:05:19.985Z",
+  "round": 1,
+  "sourceMode": "execution-log-local-validation",
+  "sourceTaskReplayed": false,
+  "actions": [
+    {
+      "actionId": "generate-github-actions-inventory",
+      "kind": "generate-script",
+      "implementation": {
+        "actionId": "generate-github-actions-inventory",
+        "kind": "generate-script",
+        "inputs": [
+          "workflow directory supplied as argv[1]",
+          "output JSON path supplied as argv[2]"
+        ],
+        "outputs": [
+          "caller-selected JSON inventory containing workflow/job permission states and uses references with source evidence"
+        ],
+        "preconditions": [
+          "Python 3 is available",
+          "the workflow directory is readable",
+          "workflow YAML is within the documented line-oriented subset or unsupported syntax is handled by the agent"
+        ],
+        "residualDuties": [
+          "select the authorized workflow scope",
+          "inspect unsupported YAML constructs directly",
+          "perform semantic security assessment and self-verification",
+          "write the scoped report and decide whether patches are warranted"
+        ],
+        "verification": [
+          "python scripts/workflow_inventory.py --help",
+          "run on the projected source directory and parse the resulting JSON",
+          "exercise changed permission states and uses references",
+          "python -m py_compile scripts/workflow_inventory.py"
+        ],
+        "status": "selected",
+        "entry": "scripts/workflow_inventory.py",
+        "runtime": "python",
+        "commandTemplate": "python -B scripts/workflow_inventory.py <arg-1> <output>",
+        "parameterSources": [
+          "workflow directory supplied as argv[1]",
+          "output JSON path supplied as argv[2]",
+          "caller-selected JSON inventory containing workflow/job permission states and uses references with source evidence",
+          "skill: The collector is evidence-only; security assessment and self-verification remain part of the skill workflow.",
+          "task: Do not execute workflows, access the network, alter source inputs, or hard-code workflow findings.",
+          "environment: Python 3 was observed in the source run; availability remains conditional for other deployments."
+        ]
+      },
+      "planStatus": "ready",
+      "planDiagnostics": [],
+      "independentCaseIds": [],
+      "selfCheckCaseIds": [
+        "captured-release-workflow",
+        "variation-cwd-captured-release-workflow"
+      ],
+      "programStatus": "passed",
+      "program": {
+        "status": "passed",
+        "actionId": "generate-github-actions-inventory",
+        "entry": "scripts/workflow_inventory.py",
+        "help": {
+          "id": "help",
+          "status": "passed",
+          "command": [
+            "python",
+            "D:\\skill优化\\SkVM\\.skvm\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\github-security-review\\20261003T150519717Z\\round-1\\scripts\\workflow_inventory.py",
+            "--help"
+          ],
+          "cwd": "D:\\skill优化\\SkVM\\.skvm\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\github-security-review\\20261003T150519717Z\\round-1",
+          "exitCode": 0,
+          "stdout": "usage: workflow_inventory.py [-h] workflow_directory output_json\r\n\r\nInventory GitHub Actions permissions and uses references without executing\r\nworkflows.\r\n\r\npositional arguments:\r\n  workflow_directory  directory recursively containing .yml/.yaml workflows\r\n  output_json         JSON file to create\r\n\r\noptions:\r\n  -h, --help          show this help message and exit\r\n",
+          "stderr": "",
+          "outputFiles": [],
+          "assertions": [],
+          "diagnostics": []
+        },
+        "cases": [
+          {
+            "id": "captured-release-workflow",
+            "status": "passed",
+            "command": [
+              "python",
+              "D:\\skill优化\\SkVM\\.skvm\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\github-security-review\\20261003T150519717Z\\round-1\\scripts\\workflow_inventory.py",
+              "source",
+              "inventory.json"
+            ],
+            "cwd": "D:\\skill优化\\SkVM\\.skvm\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\github-security-review\\20261003T150519717Z\\round-1-validation\\cases\\generate-github-actions-inventory\\01-captured-release-workflow",
+            "exitCode": 0,
+            "stdout": "{\"status\": \"ok\", \"output\": \"inventory.json\", \"files\": 1, \"next_step\": \"Review the inventory semantically; it is evidence, not a security verdict.\"}\r\n",
+            "stderr": "",
+            "outputFiles": [
+              {
+                "path": "inventory.json",
+                "bytes": 3381,
+                "sha256": "79d49db7098dbce433c4ff4030d8cf7c5cbf22d83acddd5d406bec10f0f6330a"
+              }
+            ],
+            "assertions": [],
+            "diagnostics": []
+          },
+          {
+            "id": "variation-cwd-captured-release-workflow",
+            "status": "passed",
+            "command": [
+              "python",
+              "D:\\skill优化\\SkVM\\.skvm\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\github-security-review\\20261003T150519717Z\\round-1\\scripts\\workflow_inventory.py",
+              "source",
+              "inventory.json"
+            ],
+            "cwd": "D:\\skill优化\\SkVM\\.skvm\\proposals\\jit-optimize\\bare-agent\\xty--gpt-5.6-sol\\github-security-review\\20261003T150519717Z\\round-1-validation\\cases\\generate-github-actions-inventory\\02-variation-cwd-captured-release-workflow\\__skvm_variations\\captured-release-workflow\\cwd",
+            "exitCode": 0,
+            "stdout": "{\"status\": \"ok\", \"output\": \"inventory.json\", \"files\": 1, \"next_step\": \"Review the inventory semantically; it is evidence, not a security verdict.\"}\r\n",
+            "stderr": "",
+            "outputFiles": [
+              {
+                "path": "inventory.json",
+                "bytes": 3446,
+                "sha256": "67b7d90598b40382f7a07dd6f7ca2e90e5591db8802ea97fb2d8bfd6a7a4281f"
+              }
+            ],
+            "assertions": [],
+            "diagnostics": [],
+            "executionCwd": "C:\\Users\\14182\\AppData\\Local\\Temp\\skvm-validation-lUzcTV\\cwd"
+          }
+        ],
+        "diagnostics": []
+      },
+      "variationChecks": {
+        "generated": [
+          {
+            "id": "variation-cwd-captured-release-workflow",
+            "parentCaseId": "captured-release-workflow",
+            "kind": "cwd",
+            "changedBindings": [
+              "cwd->__skvm_variations/captured-release-workflow/cwd"
+            ],
+            "sourceRefs": [
+              ".optimize/tasks/natural-ca095aca27e7/run-0.md#Task",
+              ".optimize/tasks/natural-ca095aca27e7/run-0-pre-run-inputs/source/release.yml",
+              ".optimize/tasks/natural-ca095aca27e7/run-0-workdir/workflow-inventory.json",
+              "variation:cwd:parent=captured-release-workflow",
+              "validation-case:captured-release-workflow#args"
+            ],
+            "rationale": "Run the same relative interface from a fresh nested working directory."
+          }
+        ],
+        "covered": [],
+        "skipped": [
+          {
+            "parentCaseId": "captured-release-workflow",
+            "kind": "path",
+            "reason": "input or output path is not an explicit argv binding; refusing to rewrite implicit behavior",
+            "sourceRefs": [
+              ".optimize/tasks/natural-ca095aca27e7/run-0.md#Task",
+              ".optimize/tasks/natural-ca095aca27e7/run-0-pre-run-inputs/source/release.yml",
+              ".optimize/tasks/natural-ca095aca27e7/run-0-workdir/workflow-inventory.json",
+              "variation:path:parent=captured-release-workflow",
+              "validation-case:captured-release-workflow#args"
+            ]
+          },
+          {
+            "parentCaseId": "captured-release-workflow",
+            "kind": "parameter",
+            "reason": "only one observed value is available or no independently checkable relation exists",
+            "sourceRefs": [
+              ".optimize/tasks/natural-ca095aca27e7/run-0.md#Task",
+              ".optimize/tasks/natural-ca095aca27e7/run-0-pre-run-inputs/source/release.yml",
+              ".optimize/tasks/natural-ca095aca27e7/run-0-workdir/workflow-inventory.json",
+              "variation:parameter:parent=captured-release-workflow",
+              "validation-case:captured-release-workflow#args"
+            ]
+          }
+        ]
+      },
+      "capabilityBoundary": {
+        "selectionMeaning": "entry-found-only",
+        "supportedCaseIds": [
+          "captured-release-workflow",
+          "variation-cwd-captured-release-workflow"
+        ],
+        "notApplicableCaseIds": [],
+        "inputVariationAffectsOutput": false,
+        "parameterVariationAffectsOutput": false,
+        "rejectedBeforeWriteCaseIds": [],
+        "unverifiedInputs": [
+          "workflow directory supplied as argv[1]",
+          "output JSON path supplied as argv[2]"
+        ],
+        "unverifiedPreconditions": [
+          "Python 3 is available",
+          "the workflow directory is readable",
+          "workflow YAML is within the documented line-oriented subset or unsupported syntax is handled by the agent"
+        ],
+        "residualAgentDuty": "Declared inputs and preconditions outside the executed cases remain unverified and must be handled by the agent."
+      },
+      "validationBinding": {
+        "sha256": "00e3253873cf0a0b02271eb67cafd580a46746592d997bb7076af3c2de969a92",
+        "dependencyAnalysis": "complete-static",
+        "candidateFiles": [
+          {
+            "path": "references/workflow-inventory.md",
+            "sha256": "29986adbeae1d64903ead0405491a46389be978f0522fc0a768437b8c1f9f7e2"
+          },
+          {
+            "path": "scripts/workflow_inventory.py",
+            "sha256": "fc70a0676aa133648cf1f26ad9c784351d890a8651114c1683fc731b6fdbb017"
+          },
+          {
+            "path": "SKILL.md",
+            "sha256": "8b82967c7a918e3dace014c2a96cf86ca941bc706bf849b1b14c4b3940636fa4"
+          }
+        ],
+        "evidenceSha256": "89372b77bdc3173388c5b06d3e26eff29c33801cf2bbe88395e5d62da10cb5df"
+      },
+      "validationSource": "executed"
+    }
+  ],
+  "resolution": {
+    "status": "passed",
+    "retainedActionIds": [
+      "generate-github-actions-inventory"
+    ],
+    "unvalidatedActionIds": [],
+    "rejected": [],
+    "feedback": [],
+    "rollbackGroups": []
+  },
+  "execution": {
+    "programRuns": 1,
+    "helpRuns": 1,
+    "caseRuns": 2,
+    "independentCaseRuns": 0,
+    "reusedActionObservations": 0
+  }
+}

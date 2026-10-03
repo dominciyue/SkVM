@@ -1,0 +1,173 @@
+{
+  "rootCause": "The bounded inventory implementation was usable, but its validation action passed the digest-bound pre-run locator as a runtime argument instead of the projected relative input path. The validator therefore ran from a directory where that workflow directory did not exist, causing the script's intentional directory check to return exit 2 before it could create inventory.json; this is an action-metadata binding defect, not a parsing or inventory defect.",
+  "reasoning": "Evidence 0 is clean (runStatus=ok) and shows Python 3 was available, the source workflow was captured, and the agent produced and locally exercised the inventory program and JSON. REPAIR_FEEDBACK reports the candidate action received exit 2 and no inventory.json, which is consistent with the script's `not a directory` branch when the full `.optimize/...` locator is used as argv[1] in the validator projection. The repair keeps the existing candidate program, documentation, and validation expectations intact and reconnects only the validation case's argv to the projected `source` directory while retaining the exact pre-run file as its input binding. This is the smallest repair and does not alter reference outputs or independent expectations.\n\nPre-edit checklist: (a) Generality: any bundled command validated against a projected pre-run directory—such as a dependency inventory or locale checker—benefits from separating evidence locators from runtime argv. (b) Rewrite-in-place: no overlapping prose or implementation rule needs rewriting; this repair is confined to the listed action metadata because the failure is in the validation binding. (c) Coherent scope: retain the existing three-file bounded workflow and change only the failing case arguments from the source locator to the projected relative directory; no new executable is needed. (d) No-trade-off: PER_TASK_SUMMARY lists no PASSING tasks; the sole UNASSESSED task requires the same reusable command, JSON output, offline behavior, and residual semantic review, all preserved. Expected impact is to make the already-observed artifact-producing workflow runnable by the validator; it does not claim semantic security correctness.\n\nThe candidate retains the complete original security-review workflow. The inventory remains evidence-only, supports caller-selected paths, and leaves unsupported YAML interpretation, dependency/secrets/deep scanning, semantic assessment, deployment assumptions, self-verification, reporting, and patch decisions to the reviewing agent.",
+  "confidence": 0.96,
+  "changedFiles": [
+    "SKILL.md",
+    "references/workflow-inventory.md",
+    "scripts/workflow_inventory.py"
+  ],
+  "changes": [
+    {
+      "file": "SKILL.md",
+      "section": "Execution Workflow / Step 1 — Scope Resolution",
+      "description": "Route GitHub Actions scopes through the bounded offline inventory while preserving direct inspection and all semantic review duties.",
+      "generality": "A repository audit for dependency manifests or infrastructure configuration can likewise benefit from an optional evidence-only prepass without replacing the analyst's broader review duties.",
+      "linesDelta": 1
+    },
+    {
+      "file": "references/workflow-inventory.md",
+      "section": "Offline GitHub Actions workflow inventory",
+      "description": "Document the reusable command, permission-state distinctions, supported YAML boundary, and residual semantic responsibilities.",
+      "generality": "A repeated review of multiple workflow directories benefits from the same caller-selected command contract and explicit unsupported-syntax boundary.",
+      "linesDelta": 22
+    },
+    {
+      "file": "scripts/workflow_inventory.py",
+      "section": "CLI and inventory generation",
+      "description": "Provide the standard-library Python command that parameterizes the workflow directory and JSON output and records line-level permission and uses evidence.",
+      "generality": "Any offline GitHub Actions review with different workflow names, nesting, permissions, or output locations can reuse the same parameterized collector.",
+      "linesDelta": 258
+    }
+  ],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "The skill now names the bounded inventory as an optional first step and explicitly separates evidence collection from semantic assessment.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent must still select scope, read the applicable references, and complete the full security-review workflow and report."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "The collector accepts a caller-supplied workflow directory and output JSON path; the repaired validation action uses the projected relative directory rather than an evidence locator.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The consumer supplies the authorized scope and destination and must avoid treating captured paths as universal deployment paths."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "Recursive YAML discovery and line-oriented extraction of workflow/job permissions and uses references are delegated to one reusable standard-library command.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent must inspect constructs outside the documented subset and interpret security meaning."
+    },
+    {
+      "category": "artifact-production",
+      "summary": "The command reads the selected workflow directory and writes a caller-selected JSON inventory, while the reviewing agent consumes it for the report.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent supplies report content, findings, deployment assumptions, and any patch decisions; the inventory is not a verdict."
+    },
+    {
+      "category": "verification",
+      "summary": "The documented checks cover help, compilation, execution, JSON parsing, and changed permission/reference cases; the validation case now projects its input consistently with its argv.",
+      "evidenceIds": ["0"],
+      "disposition": "implemented",
+      "residualDuty": "The agent must independently review unsupported syntax and semantically verify findings rather than relying only on the collector."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "The workflow declares Python 3 standard-library use and conditionally invokes the inventory only when Python 3 is available.",
+      "evidenceIds": ["0"],
+      "disposition": "retained",
+      "residualDuty": "If Python 3 is unavailable, the agent follows the original manual workflow or another permitted local parser without assuming network access."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "The bounded tool deliberately leaves semantic security assessment, unsupported YAML interpretation, inherited permissions, trust analysis, self-verification, reporting, and patch decisions with the agent.",
+      "evidenceIds": ["0"],
+      "disposition": "retained",
+      "residualDuty": "Those judgment-heavy duties remain mandatory and are not replaced by the generated JSON."
+    }
+  ],
+  "actions": [
+    {
+      "id": "generate-github-actions-inventory",
+      "kind": "generate-script",
+      "evidenceIds": ["0"],
+      "sourceRefs": [
+        "SKILL.md#Step 1 — Scope Resolution",
+        "references/workflow-inventory.md",
+        "scripts/workflow_inventory.py",
+        ".optimize/tasks/natural-ca095aca27e7/run-0.md#Task"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "workflow directory supplied as argv[1]",
+        "output JSON path supplied as argv[2]"
+      ],
+      "outputs": [
+        "caller-selected JSON inventory containing workflow/job permission states and uses references with source evidence"
+      ],
+      "preconditions": [
+        "Python 3 is available",
+        "the workflow directory is readable",
+        "workflow YAML is within the documented line-oriented subset or unsupported syntax is handled by the agent"
+      ],
+      "constraints": [
+        {
+          "description": "The collector is evidence-only; security assessment and self-verification remain part of the skill workflow.",
+          "scope": "skill",
+          "sourceRef": "SKILL.md#Step 4 — Vulnerability Deep Scan"
+        },
+        {
+          "description": "Do not execute workflows, access the network, alter source inputs, or hard-code workflow findings.",
+          "scope": "task",
+          "sourceRef": ".optimize/tasks/natural-ca095aca27e7/run-0.md#Task"
+        },
+        {
+          "description": "Python 3 was observed in the source run; availability remains conditional for other deployments.",
+          "scope": "environment",
+          "sourceRef": ".optimize/IMPLEMENTATION_CONTEXT.json#evidence/0/operations/operation-38"
+        }
+      ],
+      "changedPaths": [
+        "scripts/workflow_inventory.py",
+        "references/workflow-inventory.md",
+        "SKILL.md"
+      ],
+      "residualDuties": [
+        "select the authorized workflow scope",
+        "inspect unsupported YAML constructs directly",
+        "perform semantic security assessment and self-verification",
+        "write the scoped report and decide whether patches are warranted"
+      ],
+      "verification": [
+        "python scripts/workflow_inventory.py --help",
+        "run on the projected source directory and parse the resulting JSON",
+        "exercise changed permission states and uses references",
+        "python -m py_compile scripts/workflow_inventory.py"
+      ],
+      "validation": {
+        "help": {
+          "args": ["--help"],
+          "stdoutIncludes": ["workflow_directory", "output_json"]
+        },
+        "cases": [
+          {
+            "id": "captured-release-workflow",
+            "evidenceId": "0",
+            "inputSource": "pre-run-input-snapshot",
+            "inputFiles": [
+              ".optimize/tasks/natural-ca095aca27e7/run-0-pre-run-inputs/source/release.yml"
+            ],
+            "args": ["source", "inventory.json"],
+            "expectedFiles": [
+              {
+                "path": "inventory.json"
+              }
+            ],
+            "applicability": "supported",
+            "basis": "task-contract",
+            "sourceRefs": [
+              ".optimize/tasks/natural-ca095aca27e7/run-0.md#Task",
+              ".optimize/tasks/natural-ca095aca27e7/run-0-pre-run-inputs/source/release.yml",
+              ".optimize/tasks/natural-ca095aca27e7/run-0-workdir/workflow-inventory.json"
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "schema": "github-actions-workflow-inventory/v1",
+  "offline": true,
+  "yaml_parser": "line-oriented subset documented in references/workflow-inventory.md",
+  "workflow_directory": "D:\\ar-ordinary-use\\program-consume-original\\source",
+  "files": [
+    {
+      "path": "release.yml",
+      "workflow_permissions": {
+        "state": "declared",
+        "values": {
+          "contents": "write",
+          "id-token": "write"
+        },
+        "line": 8,
+        "evidence": "permissions:"
+      },
+      "jobs": [
+        {
+          "name": "build",
+          "line": 13,
+          "evidence": "build:",
+          "permissions": {
+            "state": "omitted",
+            "values": {},
+            "line": null,
+            "evidence": null
+          }
+        },
+        {
+          "name": "release",
+          "line": 71,
+          "evidence": "release:",
+          "permissions": {
+            "state": "omitted",
+            "values": {},
+            "line": null,
+            "evidence": null
+          }
+        },
+        {
+          "name": "npm-publish",
+          "line": 96,
+          "evidence": "npm-publish:",
+          "permissions": {
+            "state": "declared",
+            "values": {
+              "contents": "read",
+              "id-token": "write"
+            },
+            "line": 99,
+            "evidence": "permissions:"
+          }
+        }
+      ],
+      "action_uses": [
+        {
+          "job": "build",
+          "kind": "action",
+          "reference": "actions/checkout@v4",
+          "line": 23,
+          "evidence": "uses: actions/checkout@v4"
+        },
+        {
+          "job": "build",
+          "kind": "action",
+          "reference": "oven-sh/setup-bun@v2",
+          "line": 28,
+          "evidence": "uses: oven-sh/setup-bun@v2"
+        },
+        {
+          "job": "build",
+          "kind": "action",
+          "reference": "actions/upload-artifact@v4",
+          "line": 63,
+          "evidence": "uses: actions/upload-artifact@v4"
+        },
+        {
+          "job": "release",
+          "kind": "action",
+          "reference": "actions/checkout@v4",
+          "line": 76,
+          "evidence": "uses: actions/checkout@v4"
+        },
+        {
+          "job": "release",
+          "kind": "action",
+          "reference": "actions/download-artifact@v4",
+          "line": 81,
+          "evidence": "uses: actions/download-artifact@v4"
+        },
+        {
+          "job": "release",
+          "kind": "action",
+          "reference": "softprops/action-gh-release@v2",
+          "line": 87,
+          "evidence": "uses: softprops/action-gh-release@v2"
+        },
+        {
+          "job": "npm-publish",
+          "kind": "action",
+          "reference": "actions/checkout@v4",
+          "line": 112,
+          "evidence": "uses: actions/checkout@v4"
+        },
+        {
+          "job": "npm-publish",
+          "kind": "action",
+          "reference": "actions/setup-node@v4",
+          "line": 117,
+          "evidence": "uses: actions/setup-node@v4"
+        }
+      ],
+      "line_count": 135
+    }
+  ]
+}

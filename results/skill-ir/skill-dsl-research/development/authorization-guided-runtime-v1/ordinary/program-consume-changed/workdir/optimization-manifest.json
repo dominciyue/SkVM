@@ -1,0 +1,165 @@
+{
+  "schemaVersion": "skvm-optimized-skill-package/v2",
+  "identity": "github-security-review:20261003T150519717Z:round-1",
+  "exposure": "development",
+  "proposal": {
+    "dirName": "20261003T150519717Z",
+    "bestRound": 1,
+    "meta": {
+      "path": "meta.json",
+      "bytes": 715,
+      "sha256": "b1237746eb8325e9b682c02de7d846bd364337d27fafb3962bbcf7dee594aa4c"
+    },
+    "submission": {
+      "path": "round-1-optimizer/submission.json",
+      "bytes": 13569,
+      "sha256": "e2f2de652c6c2d3c37c894fb18745862f5a014708c878c757b0f790777e0cc1f"
+    }
+  },
+  "snapshots": {
+    "originalClosureSha256": "d8722d93e11820dd1693a8fa3a8c10128e2bc622c957b5aa94222febd2ee0078",
+    "selectedClosureSha256": "115a3ebc5b8424f5718db97c8c2259d8fdb868d20185982c956f440133e1af54"
+  },
+  "actualDiff": {
+    "added": [
+      "references/workflow-inventory.md",
+      "scripts/workflow_inventory.py"
+    ],
+    "modified": [
+      "SKILL.md"
+    ],
+    "deleted": [],
+    "moved": []
+  },
+  "files": [
+    {
+      "path": "LICENSE",
+      "bytes": 1059,
+      "sha256": "e32449d23085399adc1222f7a17408b730550258e51627c153cb108ca9955823"
+    },
+    {
+      "path": "OPTIMIZATION-USAGE.md",
+      "bytes": 2281,
+      "sha256": "1caf2e75248d4a73d5778fd43a41db348f0c81ee671d24f7c20b56a1d52d3a46"
+    },
+    {
+      "path": "optimization-validation-report.json",
+      "bytes": 10857,
+      "sha256": "cd442392a7aa5c8720d8e6d0084423743cc9106243c67420edf4ff951b73a6d6"
+    },
+    {
+      "path": "references/language-patterns.md",
+      "bytes": 5341,
+      "sha256": "ddfbcbb68b9d605789c85a168a274219f0ad86f5fc76b46b5332eb42f0c042b3"
+    },
+    {
+      "path": "references/report-format.md",
+      "bytes": 6780,
+      "sha256": "688ef9f2862303527314eb17a090a72d512b907a685f5d1f122d6ebd5ae66db1"
+    },
+    {
+      "path": "references/secret-patterns.md",
+      "bytes": 3524,
+      "sha256": "38f84f60021490d785f33fc70f2ce784888d2a751781a881372e6862e7e11288"
+    },
+    {
+      "path": "references/vuln-categories.md",
+      "bytes": 7913,
+      "sha256": "d06159479bd92b9dcf3a2842e09f7712f1fd297c0bc9792fe20bc3cb69188df5"
+    },
+    {
+      "path": "references/vulnerable-packages.md",
+      "bytes": 3979,
+      "sha256": "8693a6a258bad18a8a1d0925bc1eae9c744071ff37a36b8f1da83adca93608af"
+    },
+    {
+      "path": "references/workflow-inventory.md",
+      "bytes": 1981,
+      "sha256": "29986adbeae1d64903ead0405491a46389be978f0522fc0a768437b8c1f9f7e2"
+    },
+    {
+      "path": "scripts/workflow_inventory.py",
+      "bytes": 8860,
+      "sha256": "fc70a0676aa133648cf1f26ad9c784351d890a8651114c1683fc731b6fdbb017"
+    },
+    {
+      "path": "SKILL.md",
+      "bytes": 9678,
+      "sha256": "8b82967c7a918e3dace014c2a96cf86ca941bc706bf849b1b14c4b3940636fa4"
+    },
+    {
+      "path": "source.json",
+      "bytes": 1275,
+      "sha256": "f133254b803158612d12104a5d8be4c0f3a97fd8e7d06ac9d8aa2b285a5ef314"
+    }
+  ],
+  "implementations": [
+    {
+      "actionId": "generate-github-actions-inventory",
+      "kind": "generate-script",
+      "status": "selected",
+      "entry": "scripts/workflow_inventory.py",
+      "runtime": "python",
+      "inputs": [
+        "workflow directory supplied as argv[1]",
+        "output JSON path supplied as argv[2]"
+      ],
+      "outputs": [
+        "caller-selected JSON inventory containing workflow/job permission states and uses references with source evidence"
+      ],
+      "preconditions": [
+        "Python 3 is available",
+        "the workflow directory is readable",
+        "workflow YAML is within the documented line-oriented subset or unsupported syntax is handled by the agent"
+      ],
+      "residualDuties": [
+        "select the authorized workflow scope",
+        "inspect unsupported YAML constructs directly",
+        "perform semantic security assessment and self-verification",
+        "write the scoped report and decide whether patches are warranted"
+      ],
+      "verification": [
+        "python scripts/workflow_inventory.py --help",
+        "run on the projected source directory and parse the resulting JSON",
+        "exercise changed permission states and uses references",
+        "python -m py_compile scripts/workflow_inventory.py"
+      ],
+      "commandTemplate": "python -B scripts/workflow_inventory.py <arg-1> <output>",
+      "parameterSources": [
+        "workflow directory supplied as argv[1]",
+        "output JSON path supplied as argv[2]",
+        "caller-selected JSON inventory containing workflow/job permission states and uses references with source evidence",
+        "skill: The collector is evidence-only; security assessment and self-verification remain part of the skill workflow.",
+        "task: Do not execute workflows, access the network, alter source inputs, or hard-code workflow findings.",
+        "environment: Python 3 was observed in the source run; availability remains conditional for other deployments."
+      ]
+    }
+  ],
+  "runtime": {
+    "runtimes": [
+      "python"
+    ],
+    "dependencyFiles": []
+  },
+  "claimBoundary": "Development package export. Package file closure passed. Behavior status covers only the listed action-local program cases; whole-skill correctness, source-task replay, agent consumption and optimization effect require separate evidence.",
+  "validation": {
+    "status": "passed",
+    "scope": "package-file-closure",
+    "behaviorStatus": "passed",
+    "behaviorScope": "action-local-program-cases",
+    "deliveryStatus": "draft",
+    "report": {
+      "path": "optimization-validation-report.json",
+      "bytes": 10857,
+      "sha256": "cd442392a7aa5c8720d8e6d0084423743cc9106243c67420edf4ff951b73a6d6"
+    },
+    "retainedActionIds": [
+      "generate-github-actions-inventory"
+    ],
+    "unvalidatedActionIds": [],
+    "rejectedActionIds": [],
+    "programRuns": 1,
+    "caseRuns": 2,
+    "independentCaseRuns": 0
+  }
+}

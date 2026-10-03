@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "jit-optimize-workflow-scaffold/v1",
+  "id": "model-processor-multi-input",
+  "kind": "multi-input",
+  "runtime": "node",
+  "entry": ".optimize/workflow-scaffolds/02-model-processor-multi-input/workflow.mjs",
+  "packageRootRelative": "../../..",
+  "processor": {
+    "runtime": "node",
+    "entry": "scripts/process-input.mjs",
+    "args": [
+      "--input",
+      "{input}",
+      "--output",
+      "{output}"
+    ]
+  },
+  "cli": {
+    "inputFlag": "--input",
+    "outputFlag": "--output-dir"
+  },
+  "steps": [
+    {
+      "id": "read-inputs",
+      "reads": [
+        "--input"
+      ],
+      "writes": [],
+      "dependsOn": [],
+      "contributor": "framework"
+    },
+    {
+      "id": "invoke-source",
+      "reads": [
+        "each input"
+      ],
+      "writes": [
+        "each item output"
+      ],
+      "dependsOn": [
+        "read-inputs"
+      ],
+      "contributor": "model"
+    },
+    {
+      "id": "aggregate",
+      "reads": [
+        "each item output"
+      ],
+      "writes": [
+        "--output-dir",
+        "workflow-manifest.json"
+      ],
+      "dependsOn": [
+        "invoke-source"
+      ],
+      "contributor": "framework"
+    },
+    {
+      "id": "verify-output",
+      "reads": [
+        "--output-dir"
+      ],
+      "writes": [],
+      "dependsOn": [
+        "aggregate"
+      ],
+      "contributor": "framework"
+    }
+  ],
+  "contributions": {
+    "frameworkFiles": [
+      ".optimize/workflow-scaffolds/02-model-processor-multi-input/workflow.mjs",
+      ".optimize/workflow-scaffolds/02-model-processor-multi-input/workflow.manifest.json"
+    ],
+    "sourceFiles": [],
+    "modelFiles": []
+  },
+  "sourceRefs": [
+    "conversation:11#tool-call/call_SyiggZ7Rob7HGdW6iOq87aLo",
+    "conversation:13#tool-call/call_WZKu4qi9kjsopA4StO1h0k3K",
+    "conversation:17#tool-call/call_lpHVqYneYIRDbEqEoKwx4qN1",
+    "conversation:19#tool-call/call_7pgEGfc6oBIOHB2DPkNHKMsL",
+    "conversation:23#tool-call/call_kj4aOXtk4JeFKYc47U88f1jf",
+    "conversation:25#tool-call/call_avc1yaD6LhfagRrKJXXmRif0",
+    "conversation:27#tool-call/call_GTYllgXZAGvRa7EDojeU1lfX",
+    "conversation:3#tool-call/call_yIed5WXFWGZMdDhAzxPl8Qr1",
+    "conversation:3#tool-call/call_ZuTMkNsbERWoQ8JqBMZAYM3b",
+    "conversation:5#tool-call/call_5vAUYsJQsmIfL3net91U3jaz",
+    "conversation:5#tool-call/call_O960C2pH14QJz7miCvu8GWmC",
+    "conversation:5#tool-call/call_Op26rcspPE6r4Z5TIWGJnFNY",
+    "conversation:5#tool-call/call_QmFrVYDwdDpGgV8dtsAhfs5e",
+    "conversation:7#tool-call/call_5u90bMP5mmD6s2rbUIOANOBA",
+    "conversation:9#tool-call/call_9ZmilDExMDJcPRzNKWrxf7CJ",
+    "conversation:9#tool-call/call_KjFOVOIhuMurWMhVZVpMngS9",
+    "run-result:steps#tool-call/call_5u90bMP5mmD6s2rbUIOANOBA",
+    "run-result:steps#tool-call/call_5vAUYsJQsmIfL3net91U3jaz",
+    "run-result:steps#tool-call/call_7pgEGfc6oBIOHB2DPkNHKMsL",
+    "run-result:steps#tool-call/call_9ZmilDExMDJcPRzNKWrxf7CJ",
+    "run-result:steps#tool-call/call_avc1yaD6LhfagRrKJXXmRif0",
+    "run-result:steps#tool-call/call_GTYllgXZAGvRa7EDojeU1lfX",
+    "run-result:steps#tool-call/call_kj4aOXtk4JeFKYc47U88f1jf",
+    "run-result:steps#tool-call/call_KjFOVOIhuMurWMhVZVpMngS9",
+    "run-result:steps#tool-call/call_lpHVqYneYIRDbEqEoKwx4qN1",
+    "run-result:steps#tool-call/call_O960C2pH14QJz7miCvu8GWmC",
+    "run-result:steps#tool-call/call_Op26rcspPE6r4Z5TIWGJnFNY",
+    "run-result:steps#tool-call/call_QmFrVYDwdDpGgV8dtsAhfs5e",
+    "run-result:steps#tool-call/call_SyiggZ7Rob7HGdW6iOq87aLo",
+    "run-result:steps#tool-call/call_WZKu4qi9kjsopA4StO1h0k3K",
+    "run-result:steps#tool-call/call_yIed5WXFWGZMdDhAzxPl8Qr1",
+    "run-result:steps#tool-call/call_ZuTMkNsbERWoQ8JqBMZAYM3b"
+  ],
+  "residualDuties": [
+    "Select a source-supported mechanical boundary and implement the missing processor before use.",
+    "Keep classification, translation and other unresolved semantic decisions with the agent.",
+    "This is optional framework plumbing, not an observed source interface or a working program."
+  ]
+}

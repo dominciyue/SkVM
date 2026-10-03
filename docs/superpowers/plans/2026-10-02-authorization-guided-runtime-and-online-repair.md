@@ -30,7 +30,7 @@ AQ 同轮旧策略有可评价答案 19/20、新策略 7/20，两组合计 full 
 
 ## 2. 执行上下文与文件所有权
 
-2026-10-03 用户要求整理后交给新进程，由 `gpt-6-astra / xhigh` 继续。原启动身份和历史调用保持，接手者不从AR0重跑；先读 [AR恢复记录](../../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/handoff.json) 与机器状态。AR9分层结果工程已通过新鲜回归，独立复核因中断未完成；Paperless attempt-3为完成未知，不重发。新进程启动后由其独占本任务书及相关代码写入，原进程停止开发。约12小时安排不重置为另一轮计时，不等待凑时长。
+2026-10-04 用户再次要求总结并转交新进程，下一主执行者使用 `gpt-6.1-sol / max`，沿用当前checkout与skill-ir-aot。上一恢复的AR9独立核验已完成，真实native和非API链有新证据；最新状态见[AR恢复记录](../../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/handoff.json)。原启动身份、229次实际调用及未完成验收保持，不从AR0重跑、不重开12小时计时。唯一在写WIP为撤回未接受草稿的规范与2项预期红测，生产实现未开始；接手者亲读后继续。Paperless原未知请求及逻辑任务继续封存。新进程启动后独占相关写入，原进程停止。
 
 主执行者亲自阅读：
 
@@ -140,6 +140,8 @@ type FailureRecord = {
 - [x] 新局部接口逐项返回 accepted/rejected 及原因；拒绝项不消失，引用拒绝项的后续节点保持 unresolved。跨项原子变更必须整组校验，不能留下半条授权边。只读核验定位的跨组替换、回滚旧缺口及 dependency parent 已补红绿回归。
 - [ ] 在 run 报告保留结构化错误的 phase/path/code/rawResponse 引用和计量，而非只有 error 字符串；从诊断生成最小修复请求，仅发送相关项。
 - [x] 测试无损归一、不同问题隔离、过时替换、混合有效无效项、冲突后修复、旧有效结果失效，保留旧入口行为。
+
+当前增量计划（compact真实结果后，用户交接时仅规范及2项红测，未实现）：先允许模型具名撤回尚未接受的错误草稿，原proposal及撤回理由保留，已接受事实、其它问题和仍引用旧key的缺口不删除；用一个聚焦反例组验证。随后完成调用/上下文/读取进度汇总，再推进真实previous与作者配置消费。compact运行10派发已交付原skill文字、仍无checked图；撤回是纠正工作接口，不是提升旧结果资格，主面板仍暂停。
 
 AR3 run/report 已保留 phase/sequence/path/code/rawResponse/usage，Schema 重试不再丢工具约束；最小修复上下文与证据窗口在 AR7/AR8 一起完成，故上一项仍未勾完成。
 
