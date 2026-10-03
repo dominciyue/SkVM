@@ -7,14 +7,16 @@ import type { InquiryEvidenceContext } from "../../task-dsl/authorization/inquir
 import { LocalUpdateItemSchemas as itemSchemas, LocalExtractionSchema, normalizeNewEntry } from "./inquiry-local-extraction.ts"
 const { rules: rule, sourceBindings: sourceBinding, dependencies: dependency, premiseValues: premiseValue, policyRules: policyRule } = itemSchemas
 type Group = keyof typeof itemSchemas
+export const ControlWithdrawalSchema = z.object({ group: z.enum(["rules", "sourceBindings", "dependencies", "premiseValues", "policyRules"]), questionId: InquiryText, targetKey: rule.shape.targetKey, reason: InquiryText }).strict()
 export const WorkSelectionSchema = z.object({ questionId: InquiryText, itemId: InquiryText, candidateId: InquiryText }).strict()
 const metadata = { schemaVersion: z.literal("authorization-control-update/v1"), baseRevision: z.number().int().nonnegative().optional(), atomic: z.boolean().default(false) }
 /** The full advertised contract; each item is checked by the host so one malformed item cannot erase unrelated valid work. */
-export const LocalControlDeltaSchema = z.object({ ...metadata, rules: z.array(rule).max(1024).default([]), sourceBindings: z.array(sourceBinding).max(1024).default([]), dependencies: z.array(dependency).max(1024).default([]), premiseValues: z.array(premiseValue).max(1024).default([]), policyRules: z.array(policyRule).max(256).default([]), workSelections: z.array(WorkSelectionSchema).max(64).default([]), localExtractions: z.array(LocalExtractionSchema).max(16).default([]) }).strict()
-export const LocalControlEnvelopeSchema = z.object({ ...metadata, rules: z.array(z.unknown()).max(1024).default([]), sourceBindings: z.array(z.unknown()).max(1024).default([]), dependencies: z.array(z.unknown()).max(1024).default([]), premiseValues: z.array(z.unknown()).max(1024).default([]), policyRules: z.array(z.unknown()).max(256).default([]), workSelections: z.array(z.unknown()).max(64).default([]), localExtractions: z.array(z.unknown()).max(16).default([]) }).strict()
+export const LocalControlDeltaSchema = z.object({ ...metadata, rules: z.array(rule).max(1024).default([]), sourceBindings: z.array(sourceBinding).max(1024).default([]), dependencies: z.array(dependency).max(1024).default([]), premiseValues: z.array(premiseValue).max(1024).default([]), policyRules: z.array(policyRule).max(256).default([]), withdrawals: z.array(ControlWithdrawalSchema).max(64).default([]), workSelections: z.array(WorkSelectionSchema).max(64).default([]), localExtractions: z.array(LocalExtractionSchema).max(16).default([]) }).strict()
+export const LocalControlEnvelopeSchema = z.object({ ...metadata, rules: z.array(z.unknown()).max(1024).default([]), sourceBindings: z.array(z.unknown()).max(1024).default([]), dependencies: z.array(z.unknown()).max(1024).default([]), premiseValues: z.array(z.unknown()).max(1024).default([]), policyRules: z.array(z.unknown()).max(256).default([]), withdrawals: z.array(z.unknown()).max(64).default([]), workSelections: z.array(z.unknown()).max(64).default([]), localExtractions: z.array(z.unknown()).max(16).default([]) }).strict()
 export const LOCAL_CONTROL_GUIDE = [
   'guided-evidence-v2 local interface: controlDelta is {schemaVersion:"authorization-control-update/v1",rules:[],sourceBindings:[],dependencies:[],premiseValues:[],policyRules:[],atomic?:false,baseRevision?:current revision}. Submit just changed items, not the entire graph.',
   "Each item has op:add|replace, questionId, targetKey. Replace names the current same-question target; a model reason is optional for ordinary items, and the host records explicit replacement provenance and revisionOf. Dependency reason remains required to explain source relevance. baseRevision detects a stale view. atomic:true applies the whole group or none. Rejected items and their dependent gaps remain visible; correct only diagnosed items.",
+  "To abandon a malformed UNACCEPTED draft, submit withdrawals:[{group:rules|sourceBindings|dependencies|premiseValues|policyRules,questionId,targetKey,reason}]. This retires only that exact draft's current rejection, preserving its original proposal and the withdrawal reason. It never deletes an accepted target, another group's error, source invalidation or missing predecessor/dependency gaps. Failed atomic updates apply no withdrawals. Renaming a draft alone does not withdraw it.",
   "rules are entry/guard/reject/continue/effect with pathKey,after,evidenceIds,claim and optional finite condition/principal/resource/operation/authorizedBy/complete. sourceBindings are source identities with pathKey,after,evidenceIds,claim,bindingKey,bindingKind; the host sets kind:binding. A source identity is never a user value.",
   "A new entry with omitted after declares a root (after:[]). Explicit entry predecessors stay unchanged. Replacements and all other rule kinds require after; a missing predecessor must never be guessed. Final observations may be omitted when there are no additional observations.",
   "premiseValues are explicit user facts: {op,questionId,targetKey,status:known,value,text:<exact original user span>} or {op,questionId,targetKey,status:unspecified,text}. Unspecified has NO value field; it does not mean null or false. Omit unspecified items if no update is needed. Policy mappings stay in policyRules, with expected,text,location and optional condition; the host sets origin:policy.",
@@ -24,6 +26,8 @@ const diagnostic = (code: string, at: string, message: string): InquiryDiagnosti
 type Identity = { group: Group; questionId: string; targetKey: string }
 export interface UpdateAcceptance extends Identity { status: "changed" | "unchanged" | "kept-unknown" }
 export interface UpdateRejection extends Identity { diagnostics: InquiryDiagnostic[]; localEnvelope?: true }
+export interface UpdateWithdrawal extends Identity { reason: string; diagnostics: InquiryDiagnostic[] }
+const sameTarget = (a: Identity, b: Identity) => a.group === b.group && a.questionId === b.questionId && a.targetKey === b.targetKey
 function unresolvedLinks(state: ControlSlice, rejected: UpdateRejection[]) {
   const output: Array<{ group: "rules" | "dependencies"; questionId: string; targetKey: string; rejectedTarget: string; code: string }> = []
   const ruleMissing = (q: string, key: string) => !state.rules.some(r => r.questionId === q && r.key === key) || rejected.some(p => p.questionId === q && p.targetKey === key && ["rules", "sourceBindings"].includes(p.group))
@@ -35,10 +39,10 @@ function unresolvedLinks(state: ControlSlice, rejected: UpdateRejection[]) {
   }
   return output
 }
-export function applyControlUpdates(previous: ControlSlice, input: unknown, program: AuthorizationInquiryProgram, context: InquiryEvidenceContext & { suppliedUserText?: string[] }, priorRejections: UpdateRejection[] = []) {
-  const parsed = LocalControlEnvelopeSchema.safeParse(input), accepted: UpdateAcceptance[] = [], rejected: UpdateRejection[] = [...priorRejections]
+export function applyControlUpdates(previous: ControlSlice, input: unknown, program: AuthorizationInquiryProgram, context: InquiryEvidenceContext & { suppliedUserText?: string[] }, initialRejections: UpdateRejection[] = [], priorRejections: UpdateRejection[] = []) {
+  const parsed = LocalControlEnvelopeSchema.safeParse(input), accepted: UpdateAcceptance[] = [], rejected: UpdateRejection[] = [...initialRejections], withdrawn: UpdateWithdrawal[] = [], withdrawalRejected: UpdateRejection[] = []
   let state = structuredClone(previous)
-  if (!parsed.success) return { state, accepted, envelopeValid: false, rejected: [{ group: "rules" as const, questionId: "", targetKey: "$", diagnostics: parsed.error.issues.map(i => diagnostic("control-update-schema", i.path.join("."), i.message)) }], unresolved: [] }
+  if (!parsed.success) return { state, accepted, withdrawn, withdrawalRejected, currentRejections: [...priorRejections], envelopeValid: false, rejected: [{ group: "rules" as const, questionId: "", targetKey: "$", diagnostics: parsed.error.issues.map(i => diagnostic("control-update-schema", i.path.join("."), i.message)) }], unresolved: [] }
   for (const group of Object.keys(itemSchemas) as Group[]) for (const [index, raw] of parsed.data[group].entries()) {
     const value = raw && typeof raw === "object" ? raw as Record<string, unknown> : {}, identity = { group, questionId: String(value.questionId ?? ""), targetKey: String(value.targetKey ?? `invalid-${index}`) }
     const at = `${group}.${identity.questionId}.${identity.targetKey}`, checked = itemSchemas[group].safeParse(group === "rules" ? normalizeNewEntry(raw) : raw), errors: InquiryDiagnostic[] = []
@@ -68,11 +72,31 @@ export function applyControlUpdates(previous: ControlSlice, input: unknown, prog
     const changed = merged.state.revision !== state.revision; state = merged.state
     accepted.push({ ...identity, status: changed ? "changed" : "unchanged" })
   }
-  let unresolved = unresolvedLinks(state, rejected), attemptUnresolved: typeof unresolved = []
-  if (parsed.data.atomic && (rejected.length || unresolved.length)) {
+  const reconcile = () => priorRejections.filter(p => !accepted.some(a => sameTarget(a, p)) && !rejected.some(r => sameTarget(r, p))).concat(rejected)
+  let currentRejections = reconcile()
+  for (const [index, raw] of parsed.data.withdrawals.entries()) {
+    const parsedWithdrawal = ControlWithdrawalSchema.safeParse(raw)
+    if (!parsedWithdrawal.success) {
+      const value = raw && typeof raw === "object" ? raw as Record<string, unknown> : {}
+      withdrawalRejected.push({ group: "rules", questionId: String(value.questionId ?? ""), targetKey: String(value.targetKey ?? `invalid-${index}`), diagnostics: parsedWithdrawal.error.issues.map(i => diagnostic("withdrawal-schema", `withdrawals.${index}.${i.path.join(".")}`, i.message)) }); continue
+    }
+    const item = parsedWithdrawal.data, at = `withdrawals.${item.group}.${item.questionId}.${item.targetKey}`, errors: InquiryDiagnostic[] = []
+    const targetGroup = item.group === "sourceBindings" ? "rules" : item.group === "premiseValues" ? "bindings" : item.group
+    if (!context.questionIds.includes(item.questionId) || !program.questions.some(q => q.id === item.questionId)) errors.push(diagnostic("unknown-question", at, "Withdrawal must name a current question."))
+    if (parsed.data.baseRevision !== undefined && parsed.data.baseRevision !== previous.revision) errors.push(diagnostic("stale-control-revision", at, "Inspect current targets before withdrawing from a stale revision."))
+    if ([previous, state].some(s => s[targetGroup].some(v => v.questionId === item.questionId && v.key === item.targetKey))) errors.push(diagnostic("withdrawal-target-accepted", at, "An accepted target cannot be withdrawn. Correct it with an explicit replacement."))
+    const drafts = currentRejections.filter(p => sameTarget(p, item) && !p.localEnvelope)
+    if (!drafts.length) errors.push(diagnostic("withdrawal-target-missing", at, "No current unaccepted draft rejection exists in this question and group."))
+    if (errors.length) { withdrawalRejected.push({ ...item, diagnostics: errors }); continue }
+    withdrawn.push({ ...item, diagnostics: drafts.flatMap(p => p.diagnostics) })
+    currentRejections = currentRejections.filter(p => !drafts.includes(p))
+  }
+  let unresolved = unresolvedLinks(state, currentRejections), attemptUnresolved: typeof unresolved = []
+  if (parsed.data.atomic && (rejected.length || withdrawalRejected.length || unresolved.length)) {
     const cause = diagnostic("atomic-control-rejected", "$", "One or more local items or predecessor links were rejected; the entire atomic update was rolled back.")
-    rejected.push(...accepted.map(a => ({ group: a.group, questionId: a.questionId, targetKey: a.targetKey, diagnostics: [cause] }))); accepted.length = 0; state = structuredClone(previous)
+    rejected.push(...accepted.map(a => ({ group: a.group, questionId: a.questionId, targetKey: a.targetKey, diagnostics: [cause] }))); accepted.length = 0; withdrawn.length = 0; state = structuredClone(previous)
+    currentRejections = reconcile()
     attemptUnresolved = unresolved; unresolved = unresolvedLinks(state, [])
   }
-  return { state, accepted, rejected, unresolved, attemptUnresolved, pendingSelections: parsed.data.workSelections, envelopeValid: true }
+  return { state, accepted, rejected, withdrawn, withdrawalRejected, currentRejections, unresolved, attemptUnresolved, pendingSelections: parsed.data.workSelections, envelopeValid: true }
 }

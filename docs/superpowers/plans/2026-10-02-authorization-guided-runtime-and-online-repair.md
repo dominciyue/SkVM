@@ -141,7 +141,7 @@ type FailureRecord = {
 - [ ] 在 run 报告保留结构化错误的 phase/path/code/rawResponse 引用和计量，而非只有 error 字符串；从诊断生成最小修复请求，仅发送相关项。
 - [x] 测试无损归一、不同问题隔离、过时替换、混合有效无效项、冲突后修复、旧有效结果失效，保留旧入口行为。
 
-当前增量计划（compact真实结果后，用户交接时仅规范及2项红测，未实现）：先允许模型具名撤回尚未接受的错误草稿，原proposal及撤回理由保留，已接受事实、其它问题和仍引用旧key的缺口不删除；用一个聚焦反例组验证。随后完成调用/上下文/读取进度汇总，再推进真实previous与作者配置消费。compact运行10派发已交付原skill文字、仍无checked图；撤回是纠正工作接口，不是提升旧结果资格，主面板仍暂停。
+2026-10-04续作已实现具名撤回尚未接受的错误草稿：question/group/targetKey定位当前拒绝，保存原proposal、withdrawal理由和被撤回诊断；已接受目标、其它组/题目、来源失效和悬空前驱不删除，失败原子更新不应用撤回。普通native observe/check返回同一操作结果。58项相关回归329断言及新增native返回反例的5项26断言通过；主类型修正后检查记录见withdrawal-verification.json。随后完成调用/上下文/读取进度汇总，再推进真实previous与作者配置消费。compact运行10派发已交付原skill文字、仍无checked图；撤回不提升旧结果资格，主面板仍暂停。
 
 AR3 run/report 已保留 phase/sequence/path/code/rawResponse/usage，Schema 重试不再丢工具约束；最小修复上下文与证据窗口在 AR7/AR8 一起完成，故上一项仍未勾完成。
 

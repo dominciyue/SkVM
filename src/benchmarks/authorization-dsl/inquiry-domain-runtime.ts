@@ -5,7 +5,7 @@ import type { InquiryDiagnostic } from "../../task-dsl/authorization/inquiry.ts"
 import { AuthorizationInquiryResultSchema } from "../../task-dsl/authorization/inquiry-result.ts"
 import type { InquiryTools } from "./inquiry-tools.ts"
 import { createInquiryDomainScheduler } from "./inquiry-domain-scheduler.ts"
-import { applyControlUpdates, LOCAL_CONTROL_GUIDE, LocalControlEnvelopeSchema, WorkSelectionSchema, type UpdateAcceptance, type UpdateRejection } from "./inquiry-control-updates.ts"
+import { applyControlUpdates, LOCAL_CONTROL_GUIDE, LocalControlEnvelopeSchema, WorkSelectionSchema, type UpdateAcceptance, type UpdateRejection, type UpdateWithdrawal } from "./inquiry-control-updates.ts"
 import { createInquiryWorklist } from "./inquiry-worklist.ts"
 import { expandLocalExtractions, localExplanationContext, LOCAL_EXTRACTION_GUIDE, type LocalExplanationTask, type LocalUpdateGroup } from "./inquiry-local-extraction.ts"
 
@@ -25,7 +25,8 @@ export const GUIDED_EXECUTION_GUIDE = [LOCAL_CONTROL_GUIDE, LOCAL_EXTRACTION_GUI
 /** One shared state machine used by structured inquiry and ordinary native tools. */
 export function createInquiryDomainRuntime(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; strategy?: InquiryStrategy; entryContext?: string; remainingActions?: () => number; ablation?: DomainAblation; suppliedUserText?: string[]; shownEvidenceIds?: () => string[]; initialDelta?: unknown }) {
   let slice: ControlSlice = createControlSlice(), check: RuntimeDomainCheck | undefined, closed = false
-  const scheduler = createInquiryDomainScheduler({ ...options, evaluateConditions: options.ablation !== "checks-off" }), proposals: Array<{ delta: unknown; diagnostics: InquiryDiagnostic[]; revision: number; accepted?: UpdateAcceptance[]; rejected?: UpdateRejection[]; unresolved?: unknown[] }> = []
+  const scheduler = createInquiryDomainScheduler({ ...options, evaluateConditions: options.ablation !== "checks-off" }), proposals: Array<{ delta: unknown; diagnostics: InquiryDiagnostic[]; revision: number; accepted?: UpdateAcceptance[]; rejected?: UpdateRejection[]; withdrawn?: UpdateWithdrawal[]; withdrawalRejected?: UpdateRejection[]; unresolved?: unknown[] }> = []
+  let currentRejections: UpdateRejection[] = []
   const worklist = options.strategy === "guided-evidence-v2" ? createInquiryWorklist({ ...options, dependencyStates: () => scheduler.snapshot() }) : undefined
   let automaticActionsRemaining = 2
   let offeredTasks: LocalExplanationTask[] = []
@@ -59,7 +60,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
       const expanded = expandLocalExtractions(envelope.success ? envelope.data.localExtractions : [], offeredTasks, worklist?.snapshot() ?? [])
       localExtractions.push(...expanded.records)
       const normalized = envelope.success ? { ...envelope.data, ...Object.fromEntries((Object.keys(expanded.groups) as LocalUpdateGroup[]).map(group => [group, [...envelope.data[group], ...expanded.groups[group]]])), localExtractions: [] } : delta
-      const merged = calculate(() => applyControlUpdates(slice, normalized, options.program, evidenceContext(), expanded.rejected)); computation.merges++
+      const merged = calculate(() => applyControlUpdates(slice, normalized, options.program, evidenceContext(), expanded.rejected, currentRejections)); computation.merges++
       slice = merged.state; check = undefined
       const selectionDiagnostics: InquiryDiagnostic[] = []
       for (const raw of "pendingSelections" in merged ? merged.pendingSelections ?? [] : []) {
@@ -75,9 +76,19 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
       // A later accepted submission supersedes routing/container errors only in its own question.
       // Rejected semantic targets and source invalidation retain their existing independent lifetimes.
       for (const p of merged.accepted) { issues.delete(identity(p)); issues.delete(`$local-envelope.${p.questionId}`); issues.delete("$local-envelope.") }
-      for (const p of merged.rejected) issues.set(merged.envelopeValid ? "localEnvelope" in p && p.localEnvelope ? `$local-envelope.${p.questionId}` : identity(p) : "$schema", p.diagnostics)
-      const diagnostics = selectionDiagnostics.concat(merged.rejected.flatMap(p => p.diagnostics), merged.unresolved.map(p => ({ code: p.code, path: `${p.group}.${p.questionId}.${p.targetKey}`, message: `Referenced item ${p.rejectedTarget} is missing or rejected; this work is not closed.`, severity: "error" as const })))
-      proposals.push({ delta: structuredClone(delta), diagnostics, revision: slice.revision, accepted: merged.accepted, rejected: merged.rejected, unresolved: merged.unresolved })
+      if (merged.envelopeValid) {
+        for (const p of currentRejections) if (!p.localEnvelope) issues.delete(identity(p))
+        currentRejections = merged.currentRejections.filter(p => !p.localEnvelope)
+        const targetIssues = new Map<string, InquiryDiagnostic[]>()
+        for (const p of currentRejections) targetIssues.set(identity(p), [...(targetIssues.get(identity(p)) ?? []), ...p.diagnostics])
+        for (const [key, diagnostics] of targetIssues) issues.set(key, diagnostics)
+        for (const p of merged.rejected.filter(p => "localEnvelope" in p && p.localEnvelope)) issues.set(`$local-envelope.${p.questionId}`, p.diagnostics)
+      } else issues.set("$schema", merged.rejected.flatMap(p => p.diagnostics))
+      const withdrawalKey = (p: UpdateRejection | UpdateWithdrawal | UpdateAcceptance) => `$withdrawal.${p.group}.${p.questionId}.${p.targetKey}`
+      for (const p of [...merged.withdrawn, ...merged.accepted]) issues.delete(withdrawalKey(p))
+      for (const p of merged.withdrawalRejected) issues.set(withdrawalKey(p), p.diagnostics)
+      const diagnostics = selectionDiagnostics.concat(merged.rejected.flatMap(p => p.diagnostics), merged.withdrawalRejected.flatMap(p => p.diagnostics), merged.unresolved.map(p => ({ code: p.code, path: `${p.group}.${p.questionId}.${p.targetKey}`, message: `Referenced item ${p.rejectedTarget} is missing or rejected; this work is not closed.`, severity: "error" as const })))
+      proposals.push({ delta: structuredClone(delta), diagnostics, revision: slice.revision, accepted: merged.accepted, rejected: merged.rejected, withdrawn: merged.withdrawn, withdrawalRejected: merged.withdrawalRejected, unresolved: merged.unresolved })
       const { actions, evaluated } = await sync()
       return { ...merged, diagnostics, actions, evaluated }
     }
@@ -129,5 +140,5 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     return { ...state, diagnostics: diagnostics.slice(0, 16), diagnosticCount: diagnostics.length }
   }
   return { propose, sync, validate, feedback, modelContext, modelFeedback, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { closed = true },
-    report: () => ({ slice: structuredClone(slice), proposals: structuredClone(proposals), localExtractions: structuredClone(localExtractions), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions) } } : {}), check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed }) }
+    report: () => ({ slice: structuredClone(slice), proposals: structuredClone(proposals), currentRejections: structuredClone(currentRejections), localExtractions: structuredClone(localExtractions), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions) } } : {}), check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed }) }
 }
