@@ -1286,6 +1286,8 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 **Paperless共享调度/格式修复（2026-10-03）。** 主线程原响应点检确认四次错误分别是纯controlDelta漏kind和无calls的纯tool/controlDelta；引导探索parser仅对这两种无含混输入作无损归一，完整模型合同、混合字段拒绝及final专用阶段保持，原response与归一序号单列。词法调度反例确认唯一同名定义会触发无关读取，宽窗口带入邻函数，同一位置多入口重复待办；现只在selected确切范围发现、按原位置去重，未确认引用先等dependency关联或明确候选选择。独立只读核验未发现阻塞，跨模块与真实语义仍由主线程负责。40项/231断言后44项/254断言聚焦验证通过；原首稿18接受及四错误在原源码上零provider重放成功，仅入口/helper两读。该重放没有模型延续和final，不改原timeout-unknown、不解除真实运行的未决恢复限制，也不推断实际费用或收益。
 
+**普通native已知声明编译（2026-10-03）。** 完整input.inquiry在guided模式由宿主零provider初始化已有program/runtime，移除重复compile工具，首个普通调用即看到真实源窗口；natural brief仍由模型声明并单列编译工具次数，原skill全文与reference通路保持。失败用例先确认未编译/未计来源，修后native、ordinary CLI和bare-agent 19项/126断言通过，包括一读一check的完整局部链。这是AR10工程接线，未代替两个真实source skill的四次消费，也未记为模型或费用节省。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

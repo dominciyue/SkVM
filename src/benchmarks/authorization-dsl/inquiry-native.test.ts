@@ -209,3 +209,35 @@ test("native guided dispatch offers actual original windows and accepts the same
   expect(runtime.report().domain!.localExtractions).toHaveLength(1)
   expect(runtime.report().sourceAccounting.cumulativeModelSourceBytes).toBe(context.sourceWindows[0].bytes * 2)
 })
+
+test("guided native compiles the supplied inquiry before the first dispatch without spending a tool call", async () => {
+  const { root, inquiry, result } = await budgetFixture()
+  const inputFile = path.join(root, "input.json"), input = JSON.parse(await readFile(inputFile, "utf8"))
+  delete input.brief; input.inquiry = { ...inquiry, questions: [{ ...inquiry.questions[0], entryHint: "entry" }] }
+  await writeFile(inputFile, JSON.stringify(input))
+  const runtime = await createNativeInquiryRuntime({ inputFile, workDir: root, domainTools: true, strategy: "guided-evidence-v2", skillContent: "<runtime-resource-root>.skvm/skills/sample</runtime-resource-root>" })
+  expect(runtime.report().program?.questions[0]?.request).toBe(inquiry.questions[0]!.request)
+  expect(runtime.report()).toMatchObject({ compilationOrigin: "host-input", compilationToolCalls: 0, domainCalls: 0 })
+  expect(runtime.definitions.map(d => d.name)).not.toContain("authorization_compile")
+  expect(runtime.definitions.map(d => d.name)).toContain("skill_reference_read")
+  expect(runtime.system).toContain("already compiled by the host")
+  const params: any = { messages: [{ role: "user", content: inquiry.questions[0]!.request }] }
+  await runtime.beforeDispatch(params)
+  const context = JSON.parse(params.messages.at(-1).content.split("Current local explanation context: ")[1]), task = context.tasks[0]
+  expect(context.sourceWindows[0].text).toContain("return false")
+  const controlDelta = { schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: task.itemId, rules: [{ op: "add", targetKey: "entry", kind: "entry", pathKey: "p", after: [], claim: "Entry" }, { op: "add", targetKey: "stop", kind: "reject", pathKey: "p", after: ["entry"], complete: true, claim: "Entry rejects" }] }] }
+  const checked = JSON.parse((await runtime.execute({ id: "check", name: "authorization_check_result", arguments: { result: result(task.evidenceIds[0]), controlDelta } })).output)
+  expect(checked.valid).toBe(true)
+  expect(runtime.report().toolBudget).toMatchObject({ totalUsed: 2, explorationUsed: 1, checksUsed: 1 })
+  runtime.close()
+})
+
+test("a natural guided brief still requires a counted model declaration without inventing source facts", async () => {
+  const { root, inquiry } = await budgetFixture()
+  const runtime = await createNativeInquiryRuntime({ inputFile: path.join(root, "input.json"), workDir: root, domainTools: true, strategy: "guided-evidence-v2" })
+  expect(runtime.report().program).toBeUndefined()
+  expect(runtime.definitions.map(d => d.name)).toContain("authorization_compile")
+  await runtime.execute({ id: "compile", name: "authorization_compile", arguments: { inquiry } })
+  expect(runtime.report()).toMatchObject({ compilationOrigin: "model-tool", compilationToolCalls: 1, domainCalls: 1 })
+  runtime.close()
+})
