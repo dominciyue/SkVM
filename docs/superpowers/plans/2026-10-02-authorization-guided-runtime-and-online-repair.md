@@ -209,6 +209,7 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 - [x] 预留检查与最终交付机会，检查不能被编译/反复observe耗尽。真实同一根因诊断去重后再修，不把完整错误清单重复灌回模型。
 - [ ] 量化每个解决缺口的调用/读取/重发字节；出现“调用增加却无状态进展”立即登记并修调度，不只抬预算。
 - 2026-10-04本阶段工作计划：先保存compact原报告的独立源码语义复核及主代理裁定；再以归档request、dispatch事件attemptId和response tool-call ID构造零provider进度汇总，测试UTF-8/重复窗口、归档关联缺失及跨题工作项隔离。分别记录序列化messages、system、tools和续接toolResults字节，不能称为SDK网络载荷；调用物理读取缺少逐项记录时保留unknown。工作队列状态、实际accepted/rejected及新诊断分别计量，不能以接受项数代替闭合或把同一错误反复累计为新错误。按六个原native归档生成结果，不重发原任务；随后针对实际停滞原因修宿主关联，并推进真实previous和两个授权作者配置。
+- 归档计量与独立复核已完成（5项29断言/研究类型通过，零新增provider）。下一修复的具体边界：同题已接受且sourceBound的entry规则引用原窗口，该窗口包含唯一已索引候选的声明行且path/sha一致时，宿主将这个已由模型明确声明的入口位置关联回entry工作项。显式workSelections优先；其它题、非entry规则、未接受/未读窗口或多个候选均不消歧。关联只推进取证/解释队列，不新增规则、值、依赖或语义closed；按当前图重新计算，来源变化继续阻断。先红绿验证上述反例，再零provider重放compact真实提议，保留原失败；之后才运行具名同题复验。
 - 2026-10-03 probe-3修复方案：发现词法引用时只读selected定义确切行范围，同题同原位置去重；未被明确关联dependency或局部candidate选择的引用只保留线索，不自动读。仅guided探索阶段将根部纯controlDelta及无calls的纯tool/controlDelta无损归一为control，保留原文与归一记录；含混字段/无效delta/最后final专用阶段仍拒绝。不提高原预算、不重发attempt-3未知请求。
 - 2026-10-03 Memos首探针2派发失败：原稿提供明确calls却漏kind；修稿补kind但controlDelta漏当前策略常量schemaVersion。计划以真实原件作红绿回归：仅guided已选合同补缺失的版本常量，明确非空合法calls且没有其它分支字段时补tool种类，记录归一；显式错误版本/含混结果/空calls仍拒绝。原模型Schema仍要求完整字段，不改语义项或自动选择candidate，原失败与成本单列，修后同题复验。
 - [ ] 回归中确认首答、检查失败后修订、总限额、关闭后无续发、不同问题的局部结果保存。
@@ -271,6 +272,8 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 ### AR13 — 编写、修改与可搬移使用
 
 文件：authoring-assist.ts/既有编辑入口、inquiry-local.ts、examples/authorization-assessment/reusable-skill/。
+
+2026-10-04具体续作：入口引用关联已由56项275断言、主/研究类型及compact原控制slice零调用重放验证，两题unlocated均推进待核验、没有新增读取/规则或升级旧失败。普通Memos原/政策输入的worklist具名复验只释放这两个普通修复用途，主面板与Paperless Notes原未知逻辑身份不释放。授权作者使用完整GitHub security-review + Memos自然请求，以及完整Cloudflare security-audit + Paperless Download自然请求（独立于封存Notes）。普通run在仓外目录从自然任务/源身份/范围和公开格式Schema生成完整inquiry.json及USAGE，不提供目标声明、图、helper答案、旧日志或oracle。保留作者首字节，宿主只做公开格式/源范围/独立政策检查；后续通过普通inquiry run消费同一配置，并用edit变政策/前提和previous检验，不私改作者实验字段。至少一项政策、一项前提变化继续，最多两个真实实验进程并行，运行时不修改共用核心。
 
 2026-10-03提速执行：原skill的Memos普通native使用与独立非API作者链并进；非API链用完整GitHub security-review skill和当前仓库原始workflow文件，自然任务为离线权限/action引用清单及安全评阅，经普通run --optimize捕获/proposal/export，再对同一新包做原任务及范围变化消费。不给作者目标程序或评分答案，保留人工语义评阅、其它skill职责与原源文件；no-change或文档包仍不算新程序成功。用户要求每个问题一次针对性检查，不新增重复哈希或审批门；未知请求不重发、原证据和质量分母照实保留。
 

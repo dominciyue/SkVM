@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process"
 
 const root = import.meta.dir, repo = path.resolve(root, "../../../../.."), historical = path.join(path.dirname(root), "authorization-domain-execution-v1")
 const model = "xty/gpt-5.6-sol", action = process.argv[2]
-if (!["native-memos", "native-memos-repaired", "native-memos-policy-change", "native-memos-policy-change-repaired", "native-memos-policy-change-eof-repaired", "native-memos-policy-change-compact-repaired", "author-workflows", "author-workflows-repaired", "author-workflow-program"].includes(action ?? "")) throw new Error("Unknown ordinary action")
+if (!["native-memos", "native-memos-repaired", "native-memos-worklist-repaired", "native-memos-policy-change", "native-memos-policy-change-repaired", "native-memos-policy-change-eof-repaired", "native-memos-policy-change-compact-repaired", "native-memos-policy-change-worklist-repaired", "author-workflows", "author-workflows-repaired", "author-workflow-program"].includes(action ?? "")) throw new Error("Unknown ordinary action")
 const output = path.join(root, "ordinary", action!), workDir = path.join(output, "workdir")
 await mkdir(workDir, { recursive: true })
 const skill = path.join(historical, "model/source-skills/github-security-review/SKILL.md")
@@ -23,7 +23,8 @@ if (action!.startsWith("native-memos")) {
   extras = ["--optimize", `--package-out=${path.join(output, "exported-package")}`]
 }
 const args = ["run", `--prompt=${prompt}`, `--skill=${skill}`, `--model=${model}`, "--adapter=bare-agent", `--workdir=${workDir}`, `--max-steps=${action === "author-workflow-program" ? 24 : 12}`, "--timeout-ms=1200000", ...extras]
-await writeFile(path.join(output, "claim.json"), JSON.stringify({ at: new Date().toISOString(), revision: execFileSync("git", ["rev-parse", "HEAD"], { cwd: repo, encoding: "utf8" }).trim(), action, model, args, originalSkill: skill, purpose: action!.startsWith("native-memos") ? "AR10/AR13 ordinary full-skill use and targeted shared-repair verification; main quality panel remains paused" : "New non-API original-skill run/capture/proposal/export chain", sourceSkillUnmodified: true, noAutomaticResend: true }, null, 2) + "\n", { flag: "wx" })
+const repairOf = action === "native-memos-worklist-repaired" ? "ordinary/native-memos-repaired/native-trace.json" : action === "native-memos-policy-change-worklist-repaired" ? "ordinary/native-memos-policy-change-compact-repaired/native-trace.json" : undefined
+await writeFile(path.join(output, "claim.json"), JSON.stringify({ at: new Date().toISOString(), revision: execFileSync("git", ["rev-parse", "HEAD"], { cwd: repo, encoding: "utf8" }).trim(), action, model, args, originalSkill: skill, purpose: action!.startsWith("native-memos") ? "AR10/AR13 ordinary full-skill use and targeted shared-repair verification; main quality panel remains paused" : "New non-API original-skill run/capture/proposal/export chain", ...(repairOf ? { repairOf, repairVerification: "entry-worklist-verification.json", sameOriginalInput: true, changedScope: false } : {}), sourceSkillUnmodified: true, noAutomaticResend: true }, null, 2) + "\n", { flag: "wx" })
 const child = Bun.spawn([process.execPath, path.join(repo, "src/index.ts"), ...args], { cwd: repo, env: process.env, stdout: "pipe", stderr: "pipe" })
 const [stdout, stderr, exitCode] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited])
 await writeFile(path.join(output, "stdout.txt"), stdout)

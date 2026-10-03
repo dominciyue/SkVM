@@ -1308,6 +1308,8 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 **compact源码语义与真实归档计量（2026-10-04）。** 独立只读复核及主代理按出处点验支持最新原skill文字的nonself普通成员undergrant、self绕过管理员检查但共享目标/最后管理员限制；源码可见问题full/conditional，部署状态和作者HIGH评级不由此证明。原checked=false保留。六份native trace零provider派生进度，全部request/attempt/tool ID关联完整；UTF-8 messages累计EOF轨迹1,396,519 bytes、compact566,404 bytes，system/tools/toolResults另计，与交接时字符口径分开、不同生成轨迹仍非因果对照。compact实际19accepted/37rejected、37种诊断，9份队列快照0状态变化/最长连续8次停滞/0closed，不能用accepted数替代闭合。逐调用物理I/O和SDK载荷unknown；旧无request-worklist轨迹进度unknown。5项29断言及研究类型通过，独立统计核验未发现实质问题但只抽查compact；下一步针对已接受入口与队列关联缺口修复，不提高预算。累计229派发及未知USD/人力不变。
 
+AR继续修入口队列停滞：原slice中同题已接受entry的原引用机械关联唯一索引声明，selectedBy保留定位方式，显式workSelections优先。4个反例覆盖手动读取、题/角色隔离、多位置/显式优先、修订和source失效；56项275断言及主/研究类型通过。compact实际原slice零provider重放使两题unlocated改为awaiting-verification，0新增读取，旧坏图未重验/提升。下一步Memos普通具名复验及两完整原skill的仓外授权配置作者；Download新作者不替换Paperless Notes封存身份，质量面板继续暂停。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

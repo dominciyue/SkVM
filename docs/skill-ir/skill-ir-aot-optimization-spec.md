@@ -2631,3 +2631,5 @@ AR轻量接口恢复：guided新add entry省略after表示根节点，已有前�
 AR错误草稿撤回（2026-10-04实现）：模型可用withdrawals具名指出questionId/group/targetKey及reason，仅撤回未接受目标的当前拒绝诊断；原proposal、被撤回诊断及withdrawal共同归档。不得删除已接受事实、其它组/题目或全局来源错误；过时revision和无当前草稿的目标拒绝。悬空前驱、缺少行为路径及必要证据仍由同一检查器保留，撤回本身不产生规则或checked结果。原子更新失败时撤回亦不生效，普通inquiry/native共用相同结果。
 
 AR归档进度计量（2026-10-04）：已有普通native归档的request、dispatch attemptId与response tool-call ID可关联调用、提议反馈和工作队列快照。UTF-8序列化messages/content、system、tools和toolResults分别计量，不充当SDK请求载荷；源码/重发复用既有原窗口验证。无逐调用物理I/O时仅保存原聚合值；每工作项闭合前共享session成本不能声称因果归属。无队列快照的旧轨迹进度unknown，重复诊断不重复算新错误，接受更新不等于队列闭合。compact轨迹原文字的源码语义复核full/conditional与checked图缺失分别记录，不升级原结果或释放暂停面板。
+
+AR入口队列关联：同题已接受sourceBound entry规则引用的原窗口若包含唯一索引声明行且path/sha一致，可以机械定位这个entry工作项；selectedBy记录accepted-entry-citation，显式候选选择优先。非entry、别题、未接受/未读证据和多候选不能消歧；当前规则修订会重新定位，来源变化仍阻断。不添加授权条件、已知用户值、依赖或源码语义；解释及最终闭合保持原检查合同。真实原slice重放仅验证位置与待核验状态，不重算/升级旧失败。

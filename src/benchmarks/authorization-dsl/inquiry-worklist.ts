@@ -11,6 +11,7 @@ export interface WorkItem {
   id: string; questionId: string; kind: InquiryRelation; question: string; entryHint?: string; symbol?: string;
   origin: "question-duty" | "source-reference" | "explicit-dependency"; parentId?: string; dependencyId?: string;
   state: WorkState; decisive: boolean; code?: string; reason: string; candidates: DiscoverySymbol[]; selected?: DiscoverySymbol;
+  selectedBy?: "explicit-selection" | "unique-index-candidate" | "accepted-entry-citation";
   callsiteEvidenceIds: string[]; evidenceIds: string[]; semanticSupport: "unreviewed";
   nextAction: { kind: "locate" | "select-candidate" | "read" | "interpret" | "bind" | "check" | "none"; itemId: string }
 }
@@ -43,6 +44,13 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
   const evidenceFor = (c: DiscoverySymbol) => options.tools.evidence.filter(e => e.path === c.path && e.sha256 === c.sha256 && e.startLine <= c.endLine && e.endLine >= c.startLine)
   const transition = (item: WorkItem, state: WorkState, action: WorkItem["nextAction"]["kind"], reason: string, code?: string) => Object.assign(item, { state, nextAction: { kind: action, itemId: item.id }, reason, code })
   const represented = (item: WorkItem, slice: ControlSlice) => slice.rules.filter(r => r.questionId === item.questionId && r.evidenceIds.some(id => item.evidenceIds.includes(id)))
+  const declaredEntryLocation = (item: WorkItem, slice: ControlSlice) => {
+    if (item.origin !== "question-duty" || item.kind !== "entry") return undefined
+    const ids = new Set(slice.rules.filter(r => r.questionId === item.questionId && r.kind === "entry" && r.sourceBound).flatMap(r => r.evidenceIds))
+    const windows = options.tools.evidence.filter(e => ids.has(e.id))
+    const candidates = item.candidates.filter(c => windows.some(e => e.path === c.path && e.sha256 === c.sha256 && e.startLine <= c.startLine && e.endLine >= c.startLine))
+    return candidates.length === 1 ? candidates[0] : undefined
+  }
   const discoverReferences = (parent: WorkItem) => {
     if (!parent.selected) return
     const names = new Set<string>(); let skippedDeclaration = false
@@ -84,13 +92,14 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
       if (item.origin === "explicit-dependency" && ["closed", "external-unknown", "blocked"].includes(item.state)) continue
       const root = rootFor(item.questionId)
       if (item.origin === "question-duty" && item.kind !== "entry") {
-        item.selected = root.selected; item.evidenceIds = [...root.evidenceIds]
+        item.selected = root.selected; item.selectedBy = root.selectedBy; item.evidenceIds = [...root.evidenceIds]
         if (root.selected && invalidFiles.has(root.selected.path)) { transition(item, "blocked", "none", "Entry source changed; this related duty cannot be promoted.", "source-invalidated"); continue }
         transition(item, check?.ruleConsistency && check.taskResolution === "bounded" ? "closed" : represented(item, slice).length ? "awaiting-verification" : root.state === "awaiting-interpretation" ? "awaiting-interpretation" : "awaiting-binding", check?.ruleConsistency && check.taskResolution === "bounded" ? "none" : represented(item, slice).length ? "check" : "interpret", "Question duty follows actual entry evidence; optional roles are not invented. A closed duty is only coverage of proposed bounded paths.")
         continue
       }
-      const candidate = choices.has(item.id) ? item.candidates.find(c => c.id === choices.get(item.id)) : item.candidates.length === 1 ? item.candidates[0] : undefined
+      const candidate = choices.has(item.id) ? item.candidates.find(c => c.id === choices.get(item.id)) : item.candidates.length === 1 ? item.candidates[0] : declaredEntryLocation(item, slice)
       item.selected = candidate
+      item.selectedBy = candidate ? choices.has(item.id) ? "explicit-selection" : item.candidates.length === 1 ? "unique-index-candidate" : "accepted-entry-citation" : undefined
       if (candidate && invalidFiles.has(candidate.path)) { transition(item, "blocked", "none", "Original source changed; start a fresh session before promoting extraction.", "source-invalidated"); continue }
       if (failedReads.has(item.id)) { transition(item, "blocked", "none", "The prior actual read failed; preserve the gap without spinning.", failedReads.get(item.id)); continue }
       if (!candidate) { transition(item, "unlocated", item.candidates.length > 1 ? "select-candidate" : "locate", "Choose an original indexed candidate; no semantic location is inferred.", item.candidates.length > 1 ? "location-ambiguous" : "location-missing"); continue }

@@ -136,3 +136,52 @@ test("one recursive candidate cannot block a distinct ambiguous definition befor
   await f.work.run(slice, 2)
   expect(f.tools.evidence.some(e => e.path === "b.ts")).toBe(true)
 })
+
+test("a manually read accepted entry anchors its own ambiguous queue without inventing helper relevance", async () => {
+  const f = await fixture({ "a.ts": "export function entry() { return gate(); }\n", "b.ts": "export function entry() { return false; }\n", "helper.ts": "export function gate() { return true; }\n" })
+  const read = await f.tools.execute("source_read", { path: "a.ts", startLine: 1, endLine: 1 }), ev = read.evidence[0]!.id
+  const slice = mergeControlSlice(createControlSlice(), { schemaVersion: "authorization-control-slice/v1", rules: [{ key: "entry", questionId: "q", pathKey: "p", kind: "entry", after: [], evidenceIds: [ev], claim: "The model declares this entry" }] }, f.program, { questionIds: ["q"], shownEvidenceIds: [ev] }).state
+  await f.work.run(slice, 2)
+  f.work.sync(slice)
+  const root = f.work.snapshot().find((w: any) => w.kind === "entry" && w.origin === "question-duty")
+  expect(root).toMatchObject({ state: "awaiting-verification", selected: { path: "a.ts" }, evidenceIds: [ev], semanticSupport: "unreviewed" })
+  expect(f.work.snapshot().find((w: any) => w.symbol === "gate")).toMatchObject({ state: "awaiting-binding", code: "reference-relevance-unconfirmed" })
+  expect(f.tools.toolCalls).toBe(1)
+})
+
+test("entry evidence cannot select another question or a non-entry proposal", async () => {
+  const f = await fixture({ "a.ts": "export function entry() { return true; }\n", "b.ts": "export function entry() { return false; }\n" }, ["q1", "q2"].map(id => ({ id, request: "Investigate entry", entryHint: "entry", premises: [] })))
+  const read = await f.tools.execute("source_read", { path: "a.ts", startLine: 1, endLine: 1 }), ev = read.evidence[0]!.id
+  const slice = mergeControlSlice(createControlSlice(), { schemaVersion: "authorization-control-slice/v1", rules: [{ key: "entry", questionId: "q1", pathKey: "p", kind: "entry", after: [], evidenceIds: [ev], claim: "Entry in q1" }, { key: "guard", questionId: "q2", pathKey: "p", kind: "guard", after: [], evidenceIds: [ev], claim: "Guard in q2 is not its declared entry" }] }, f.program, { questionIds: ["q1", "q2"], shownEvidenceIds: [ev] }).state
+  f.work.sync(slice)
+  expect(f.work.snapshot().find((w: any) => w.questionId === "q1" && w.kind === "entry")).toMatchObject({ state: "awaiting-verification", selected: { path: "a.ts" } })
+  expect(f.work.snapshot().find((w: any) => w.questionId === "q2" && w.kind === "entry")).toMatchObject({ state: "unlocated", code: "location-ambiguous" })
+})
+
+test("multiple accepted entry locations remain ambiguous and explicit selection retains priority", async () => {
+  const f = await fixture({ "a.ts": "export function entry() { return true; }\n", "b.ts": "export function entry() { return false; }\n" })
+  const a = (await f.tools.execute("source_read", { path: "a.ts", startLine: 1, endLine: 1 })).evidence[0]!, b = (await f.tools.execute("source_read", { path: "b.ts", startLine: 1, endLine: 1 })).evidence[0]!
+  const slice = mergeControlSlice(createControlSlice(), { schemaVersion: "authorization-control-slice/v1", rules: [{ key: "entry", questionId: "q", pathKey: "p", kind: "entry", after: [], evidenceIds: [a.id, b.id], claim: "Two proposed entry locations" }] }, f.program, { questionIds: ["q"], shownEvidenceIds: [a.id, b.id] }).state
+  f.work.sync(slice)
+  const root = f.work.snapshot().find((w: any) => w.kind === "entry")
+  expect(root).toMatchObject({ state: "unlocated", code: "location-ambiguous" })
+  f.work.selectCandidate({ questionId: "q", itemId: root.id, candidateId: root.candidates.find((c: any) => c.path === "b.ts").id })
+  const onlyA = { ...slice, rules: slice.rules.map(r => ({ ...r, evidenceIds: [a.id] })) }
+  f.work.sync(onlyA)
+  expect(f.work.snapshot().find((w: any) => w.kind === "entry")).toMatchObject({ state: "awaiting-interpretation", selected: { path: "b.ts" } })
+})
+
+test("accepted entry association is recomputed and source invalidation remains blocking", async () => {
+  const f = await fixture({ "a.ts": "export function entry() { return true; }\n", "b.ts": "export function entry() { return false; }\n" })
+  const a = (await f.tools.execute("source_read", { path: "a.ts", startLine: 1, endLine: 1 })).evidence[0]!, b = (await f.tools.execute("source_read", { path: "b.ts", startLine: 1, endLine: 1 })).evidence[0]!
+  const slice = mergeControlSlice(createControlSlice(), { schemaVersion: "authorization-control-slice/v1", rules: [{ key: "entry", questionId: "q", pathKey: "p", kind: "entry", after: [], evidenceIds: [a.id], claim: "First location" }] }, f.program, { questionIds: ["q"], shownEvidenceIds: [a.id, b.id] }).state
+  f.work.sync(slice)
+  expect(f.work.snapshot().find((w: any) => w.kind === "entry").selected.path).toBe("a.ts")
+  const corrected = { ...slice, rules: slice.rules.map(r => ({ ...r, evidenceIds: [b.id] })) }
+  f.work.sync(corrected)
+  expect(f.work.snapshot().find((w: any) => w.kind === "entry").selected.path).toBe("b.ts")
+  await writeFile(path.join(f.sourceRoot, "b.ts"), "export function entry() { return true; }\n")
+  await f.tools.execute("source_read", { path: "b.ts", startLine: 1, endLine: 1 })
+  f.work.sync(corrected)
+  expect(f.work.snapshot().find((w: any) => w.kind === "entry")).toMatchObject({ state: "blocked", code: "source-invalidated" })
+})
