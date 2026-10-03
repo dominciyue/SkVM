@@ -118,6 +118,8 @@ type FailureRecord = {
 
 - [x] 登记八个已有任务：memos-share/remove、paperless-download/notes/share-create、owui-ingestion、gitea-self-query/create-issue。输入只有自然请求、允许范围、固定源码和独立政策。
 - [ ] 从 AQ 点取真实坏响应，覆盖 wrong schema type、delta/controlDelta、bindings 混用、owner-null 漏分支、未读 helper、无效第二次检查和预算终止。
+- 原证据点验修正：六类已有实际坏响应；owner-null案例的原文字已保留分支，缺的是typed condition提取；预算案例是structured累计source display终止。四个native原始/changed轨迹的八次check均invalid，没有建立先valid后invalid的付费实例。第七类保留确定性状态清除反例和这次有限负面点验，不能为满足计划将测试改称真实历史失败。
+- 计量小修计划：ordinary消费的provider创建失败原report明确记录providerDispatches:0，外层结果却没有telemetry而写null。派生汇总只在原report状态、输入hash、model与claim一致且明确整数0时恢复两项计数为0；原报告、原null字段及费用不改，缺报告/不同身份/未知完成均保持未知。先写确定性反例再修汇总，不增模型请求。
 - [x] 写驱动失败测试：共享缺陷触发后剩余相关任务不得派发；已在途记录不丢；每个失败关联修复；旧原答不覆盖；同题新尝试成本累加；合法 unknown 不触发强制改答案。
 - [x] 实现 `check/develop/evaluate/replay` 四个脚本动作。`develop` 每完成一小块即可评价和修复，代码修复由开发主线程执行，研究 runner 不自行改生产文件。先用 mock 验证，再运行真实任务。
 
@@ -154,6 +156,10 @@ AR3 run/report 已保留 phase/sequence/path/code/rawResponse/usage，Schema 重
 现场工程复验：58项303断言及主/研究类型通过；独立核验补出同步provider throw遗留pending的红例，接入同一结算后转绿。真实Memos旧档案inspect保持transport-failed原状态，派生completionUnknown:true并保留11/10调用；原文/用量不改，未知请求不重发。Download现仅进入一次具名已知响应复验，语义判定与checked交付另验，见sdk-final-repair-verification.json。
 
 ### AR4 — 补可达绑定及分支级结论检查
+
+2026-10-04实际复验补充：compact普通消费12/12、21源码动作、0wire失败，最终规则22/22/7/6/1仍全不checked。前两题principal字段为authenticated_request_user，声明bindingKey为request_user；现合同将bindingKey视作身份声明，principal/resource视作引用，不支持用字段改名。当前过程反馈直到首次final才有object-binding诊断。先写未final就显示该错误、显式改key后消除且partial草稿仍接受的反例，再把现有对象/authorization边检查抽成共享纯函数，按slice revision更新下一次model反馈；保留最终原验收、checks-off、跨题/可达性和未知值约束。过程提示不创建额外请求、拒绝层或自动别名；计量过程计算次数，GUIDE和诊断明确字段合同。
+
+本次2项预期红例后134测试744断言、主/研究类型及独立只读复核通过。纯对象检查在两策略下一次反馈出现，显式bindingKey修订可清除，partial接受、checks-off及原最终规则不变。11原提议零provider回放accepted state完全不变，身份诊断从第6提议revision46即可获得，早于原首次final revision88；原最终6对象诊断/全图失败保持。计量小修3项反例通过，只恢复匹配原身份的明确0派发，累计318、USD/人力unknown。下一步同原作者字节/同12与24预算early-object-feedback-v1具名普通复验；未证明真实语义收益，不释放未知Memos/Notes或主面板。
 
 文件：control-conclusion.ts、control-conclusion.test.ts、control-evaluation.test.ts。
 

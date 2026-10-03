@@ -1,6 +1,6 @@
 import type { AuthorizationInquiryProgram } from "../../task-dsl/authorization/inquiry-program.ts"
 import { ControlSliceDeltaSchema, createControlSlice, mergeControlSlice, type ControlSlice, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
-import { evaluateControlPaths, checkControlConclusions, summarizeControlQuestions } from "../../task-dsl/authorization/control-conclusion.ts"
+import { evaluateControlPaths, checkControlConclusions, controlObjectDiagnostics, summarizeControlQuestions } from "../../task-dsl/authorization/control-conclusion.ts"
 import type { InquiryDiagnostic } from "../../task-dsl/authorization/inquiry.ts"
 import { AuthorizationInquiryResultSchema } from "../../task-dsl/authorization/inquiry-result.ts"
 import type { InquiryTools } from "./inquiry-tools.ts"
@@ -14,7 +14,7 @@ type RuntimeDomainCheck = Omit<ReturnType<typeof checkControlConclusions>, "rule
 export const DOMAIN_EXECUTION_GUIDE = [
   "domain-evidence-v1 runtime: propose local control deltas from ACTUALLY SHOWN original source, never from task expectations. Host binds citations, executes at most two uniquely located dependency reads per response, evaluates finite predicates and checks formal conclusion consistency. Extraction meaning stays unreviewed.",
   'Delta is {schemaVersion:"authorization-control-slice/v1",rules:[],dependencies:[],bindings:[],policyRules:[]}. Arrays may be omitted when unchanged. Local rules: {key,questionId,pathKey,kind:entry|binding|guard|reject|continue|effect,after:[predecessor keys],evidenceIds:[shown source IDs],claim,condition?,principal?,resource?,operation?,bindingKey?,bindingKind:principal|resource|permission|configuration|value,authorizedBy?:[guard keys],complete?:boolean}. Only binding nodes need bindingKey/bindingKind. Reject is terminating deny, effect is protected allow. after is explicit execution precedence, never array order. Each terminal represents one proposed path, complete only when all relevant entry/upstream/binding/control/effect dependencies have actually been examined. Related alternative outcomes use distinct pathKeys matching final branch IDs. condition is node reachability, NOT the proposition that a guard passes. Shared entry/binding nodes can precede multiple paths.',
-  "Use different typed identity keys for different objects even if labels/IDs match. authorizedBy asserts that a particular guard controls THIS effect on the same principal/resource; omit the assertion if no such linkage is established, and explain source-visible missing control rather than inventing a guard. Do not assume a checked input object also authorizes an output object.",
+  "A source binding's bindingKey declares its typed identity; principal/resource fields reference that bindingKey. For example bindingKind:principal,bindingKey:visitor declares visitor, and a downstream principal:visitor references it. On that binding node omit its own principal or repeat principal:visitor; principal:anotherName does not declare an alias. Use different typed identity keys for different objects even if labels/IDs match. authorizedBy asserts that a particular guard controls THIS effect on the same principal/resource; omit the assertion if no such linkage is established, and explain source-visible missing control rather than inventing a guard. Do not assume a checked input object also authorizes an output object.",
   'Predicates support only {op:eq|neq,left:{binding:name}|{literal:scalar},right:{binding:name}|{literal:scalar}}, {op:is-null,value:{binding:name}|{literal:scalar}}, {op:all|any,args:[predicates]}, {op:not,arg:predicate}; scalar is string/number/boolean/null. BOTH operands must be wrapped, for example {op:"eq",left:{binding:"flag"},right:{literal:false}}; bare right:false is invalid. Max depth12/nodes64. No target code, arbitrary operator or natural text is evaluated. Known bindings are only explicit USER premises: {questionId,key,value,origin:user,text:<exact span of current request/premise>}. This mapping is a model interpretation, not source truth. For an unspecified/unknown/not-given value OMIT the binding completely and refer to its key only in predicates; NEVER use value:null or value:false as an unknown placeholder. null is valid only when the current user explicitly supplies a null premise. Represent source outcomes with rules/conditions, do not invent user binding values from source.',
   "Dependencies: {key,questionId,pathKey,from:<accepted source rule key>,symbol:<name appearing in cited source>,kind:principal-binding|resource-binding|control|effect|exception,decisive:boolean,evidenceIds:[source reference IDs],reason,condition?,after?:[preceding control keys],parent?:dependency key,pathHint?:exact indexed path,candidateId?:shown candidate id}. Host uses a lexical location index, not a semantic call graph. Ambiguous candidates require an explicit pathHint/candidateId revision; missing/outside/dynamic facts stay local gaps. Place a dependency after a reject only if source order actually makes it unreachable. After an automatic read, incorporate the returned original evidence into a linked rule before calling a decisive dependency checked.",
   "Policy mappings are separate candidates: {key,questionId,pathKey,expected:allow|deny,origin:policy,text:<exact policy span>,location:<current independent location>,condition?}. Map only the supplied policy, do not derive it from implementation. Each live path needs a mapping for a determined policy assessment; incomplete mappings remain undetermined while behavior is deliverable. Formal policy mapping is still unreviewed.",
@@ -32,7 +32,8 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   let offeredTasks: LocalExplanationTask[] = []
   const localExtractions: ReturnType<typeof expandLocalExtractions>["records"] = []
   let lastPaths: ReturnType<typeof evaluateControlPaths>["paths"] = []
-  const issues = new Map<string, InquiryDiagnostic[]>(), computation = { merges: 0, pathEvaluations: 0, conclusionChecks: 0, predicateEvaluations: 0, durationMs: 0 }
+  let objectRevision = -1, objectDiagnostics: InquiryDiagnostic[] = []
+  const issues = new Map<string, InquiryDiagnostic[]>(), computation = { merges: 0, pathEvaluations: 0, conclusionChecks: 0, predicateEvaluations: 0, objectFeedbackPasses: 0, durationMs: 0 }
   const checkHistory: Array<{ revision: number; slice: ControlSlice; result: unknown; check: RuntimeDomainCheck }> = []
   const evidenceContext = () => ({ questionIds: options.program.questions.map(q => q.id), shownEvidenceIds: options.shownEvidenceIds?.() ?? options.tools.evidence.map(e => e.id), suppliedUserText: options.suppliedUserText })
   const calculate = <T>(fn: () => T): T => { const started = performance.now(); try { return fn() } finally { computation.durationMs += performance.now() - started } }
@@ -50,6 +51,9 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     const evaluated = options.ablation === "checks-off" ? { paths: [], diagnostics: [], calculationCount: 0 } : calculate(() => evaluateControlPaths(slice))
     lastPaths = evaluated.paths
     if (options.ablation !== "checks-off") { computation.pathEvaluations++; computation.predicateEvaluations += evaluated.calculationCount }
+    if (options.ablation !== "checks-off" && objectRevision !== slice.revision) {
+      objectDiagnostics = calculate(() => controlObjectDiagnostics(slice)); objectRevision = slice.revision; computation.objectFeedbackPasses++
+    }
     return { actions, evaluated }
   }
   const propose = async (delta: unknown) => {
@@ -122,7 +126,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const feedback = () => ({ revision: slice.revision,
     rules: slice.rules.map(({ key, questionId, pathKey, kind, after, condition, bindingKey, bindingKind, principal, resource, digest }) => ({ key, questionId, pathKey, kind, after, condition, bindingKey, bindingKind, principal, resource, digest })),
     bindings: slice.bindings, policyRules: slice.policyRules, dependencies: scheduler.snapshot(), paths: lastPaths,
-    diagnostics: [...issues.values()].flat().concat(check?.diagnostics ?? []), ...(worklist ? { worklist: worklist.snapshot(), automaticActionsRemaining } : {}), semanticSupport: "unreviewed", ...(options.ablation ? { mechanismDisabled: options.ablation } : {}) })
+    diagnostics: [...issues.values()].flat().concat(check?.diagnostics ?? objectDiagnostics), ...(worklist ? { worklist: worklist.snapshot(), automaticActionsRemaining } : {}), semanticSupport: "unreviewed", ...(options.ablation ? { mechanismDisabled: options.ablation } : {}) })
   let contextHistoryPosition = 0, locationContextPosition = 0
   const modelContext = () => {
     if (closed) throw new Error("session-closed")
@@ -140,5 +144,5 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     return { ...state, ...(fullWorklist ? { worklist: worklistModelView(fullWorklist) } : {}), diagnostics: diagnostics.slice(0, 16), diagnosticCount: diagnostics.length }
   }
   return { propose, sync, validate, feedback, modelContext, modelFeedback, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { closed = true },
-    report: () => ({ slice: structuredClone(slice), proposals: structuredClone(proposals), currentRejections: structuredClone(currentRejections), localExtractions: structuredClone(localExtractions), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions) } } : {}), check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed }) }
+    report: () => ({ slice: structuredClone(slice), proposals: structuredClone(proposals), currentRejections: structuredClone(currentRejections), localExtractions: structuredClone(localExtractions), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions) } } : {}), objectFeedback: { revision: objectRevision, diagnostics: structuredClone(objectDiagnostics) }, check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed }) }
 }

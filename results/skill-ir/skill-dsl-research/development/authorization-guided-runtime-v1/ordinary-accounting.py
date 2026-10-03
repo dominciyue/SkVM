@@ -4,6 +4,7 @@ import json
 import shutil
 from datetime import datetime, timezone
 from pathlib import Path
+from ordinary_accounting_support import observed_consumption_counts
 
 root = Path(__file__).resolve().parent
 repo = root.parents[4]
@@ -45,7 +46,10 @@ for directory in sorted((root / 'ordinary').glob('consume-authorization-*')):
     result = json.loads(result_file.read_text(encoding='utf8'))
     claim_file = directory / 'claim.json'
     claim = json.loads(claim_file.read_text(encoding='utf8')) if claim_file.exists() else {}
-    stages.append({'stage': directory.name, 'kind': 'ordinary-authored-inquiry-consumption', 'providerCalls': result['providerCalls'], 'respondedCalls': result['respondedCalls'], 'tokens': result['knownTokens'], 'actualUSD': result['actualUSD'], 'artifact': str(result_file.relative_to(root)), 'author': result['author'], 'status': result['status'], 'checkedDelivery': bool((result.get('validation') or {}).get('valid')), 'sourceConfigBytesUnchanged': result['sourceConfigBytesUnchanged'], 'repairOf': claim.get('repairOf'), 'repairId': claim.get('repairId'), 'resend': bool(claim.get('repairOf')), 'noAutomaticResend': result['noAutomaticResend']})
+    preflight_files = list((directory / 'run-archive/sessions').glob('*/report.json')) if result['status'] == 'provider-unavailable' else []
+    preflight = json.loads(preflight_files[0].read_text(encoding='utf8')) if len(preflight_files) == 1 else None
+    calls, responses, recovered_zero = observed_consumption_counts(result, claim, preflight)
+    stages.append({'stage': directory.name, 'kind': 'ordinary-authored-inquiry-consumption', 'providerCalls': calls, 'respondedCalls': responses, 'originalProviderCalls': result['providerCalls'], 'originalRespondedCalls': result['respondedCalls'], 'preDispatchZeroRecovered': recovered_zero, **({'preDispatchReport': str(preflight_files[0].relative_to(root))} if recovered_zero else {}), 'tokens': result['knownTokens'], 'actualUSD': result['actualUSD'], 'artifact': str(result_file.relative_to(root)), 'author': result['author'], 'status': result['status'], 'checkedDelivery': bool((result.get('validation') or {}).get('valid')), 'sourceConfigBytesUnchanged': result['sourceConfigBytesUnchanged'], 'repairOf': claim.get('repairOf'), 'repairId': claim.get('repairId'), 'resend': bool(claim.get('repairOf')), 'noAutomaticResend': result['noAutomaticResend']})
 
 capture_root = repo / '.skvm/log/runtime/bare-agent/xty--gpt-5.6-sol'
 for name, directory in [('author-workflows', 'natural-702d1a1a6869/20261003-213711-run-bar-e79f95b3'), ('author-workflows-repaired', 'natural-702d1a1a6869/20261003-220531-run-bar-0f87e0f2'), ('author-workflow-program', 'natural-ca095aca27e7/20261003-223255-run-bar-b6db8cd9')]:

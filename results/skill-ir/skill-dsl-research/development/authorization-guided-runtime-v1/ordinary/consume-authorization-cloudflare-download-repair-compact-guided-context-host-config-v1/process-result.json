@@ -1,0 +1,3273 @@
+{
+  "at": "2026-10-03T22:03:42.930Z",
+  "stage": "consume-authorization-cloudflare-download-repair-compact-guided-context-host-config-v1",
+  "author": "author-authorization-cloudflare-download",
+  "exitCode": 1,
+  "workDir": "D:\\skill优化\\project-maintenance\\runs\\portable-consume-authorization-cloudflare-download-repair-compact-guided-context-host-config-v1-mQKpKe",
+  "sessionPath": "D:\\skill优化\\project-maintenance\\runs\\portable-consume-authorization-cloudflare-download-repair-compact-guided-context-host-config-v1-mQKpKe\\runs\\sessions\\2026-10-03T215422611Z-d65f0e5c",
+  "status": "completed-with-diagnostics",
+  "validation": {
+    "valid": false,
+    "diagnostics": [
+      {
+        "code": "object-binding-missing",
+        "path": "request-root-view-permission-guard",
+        "message": "Typed principal authenticated_request_user is not bound in this question.",
+        "severity": "error",
+        "questionId": "download-request-document"
+      },
+      {
+        "code": "object-binding-missing",
+        "path": "request-root-view-permission-deny",
+        "message": "Typed principal authenticated_request_user is not bound in this question.",
+        "severity": "error",
+        "questionId": "download-request-document"
+      },
+      {
+        "code": "object-binding-missing",
+        "path": "version-root-view-permission-guard",
+        "message": "Typed principal authenticated_request_user is not bound in this question.",
+        "severity": "error",
+        "questionId": "download-version-selection"
+      },
+      {
+        "code": "object-binding-missing",
+        "path": "version-root-view-permission-deny",
+        "message": "Typed principal authenticated_request_user is not bound in this question.",
+        "severity": "error",
+        "questionId": "download-version-selection"
+      },
+      {
+        "code": "object-binding-missing",
+        "path": "request-authenticated-user",
+        "message": "Typed principal authenticated_request_user is not bound in this question.",
+        "severity": "error",
+        "questionId": "download-request-document"
+      },
+      {
+        "code": "object-binding-missing",
+        "path": "version-authenticated-user",
+        "message": "Typed principal authenticated_request_user is not bound in this question.",
+        "severity": "error",
+        "questionId": "download-version-selection"
+      },
+      {
+        "code": "decisive-dependency-open",
+        "path": "download-original-archive",
+        "message": "Decisive source dependencies remain without a corresponding source gap: representation-original-requested-dependency:read, representation-serve-file-dependency:read. An unspecified user premise or deployment fact cannot conceal them.",
+        "severity": "error"
+      },
+      {
+        "code": "path-not-closed",
+        "path": "download-original-archive",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      },
+      {
+        "code": "decisive-dependency-open",
+        "path": "download-authorization-root-version",
+        "message": "Decisive source dependencies remain without a corresponding source gap: auth-effective-file-dependency:read, auth-resolve-request-root-dependency:read, auth-serve-file-dependency:read. An unspecified user premise or deployment fact cannot conceal them.",
+        "severity": "error"
+      },
+      {
+        "code": "path-not-closed",
+        "path": "download-authorization-root-version",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      },
+      {
+        "code": "decisive-dependency-open",
+        "path": "download-version-authorization-invariant",
+        "message": "Decisive source dependencies remain without a corresponding source gap: invariant-file-response-dependency:read. An unspecified user premise or deployment fact cannot conceal them.",
+        "severity": "error"
+      },
+      {
+        "code": "path-not-closed",
+        "path": "download-version-authorization-invariant",
+        "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+        "severity": "error"
+      }
+    ],
+    "semanticSupport": "unreviewed",
+    "questionChecks": [
+      {
+        "questionId": "download-request-document",
+        "transportValid": true,
+        "referenceValid": true,
+        "ruleConsistent": false,
+        "evidenceCoverage": "unresolved",
+        "semanticReview": "unreviewed",
+        "deliveryStatus": "rejected",
+        "answer": {
+          "questionId": "download-request-document",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The path parameter first selects request_doc. The code separately derives root_doc for authorization and file_doc for the returned representation. A path-selected version with no version selector is itself file_doc; otherwise file_doc is resolved relative to root_doc. Thus the requested row, authorization row, and row supplying the file can differ."
+          },
+          "branches": [
+            {
+              "id": "download-forbidden",
+              "condition": "request.user is non-null and the owner-aware view_document check on root_doc fails.",
+              "disposition": "deny",
+              "explanation": "The function returns HttpResponseForbidden before effective file selection or file opening.",
+              "evidenceIds": [
+                "ev-990997ca1d3a5267e20b",
+                "ev-c860c951e454ac2deecf",
+                "ev-02e44f6c9deb225b1857"
+              ]
+            },
+            {
+              "id": "download-serve-source",
+              "condition": "The root check does not reject, effective version selection succeeds, and archive use is false.",
+              "disposition": "allow",
+              "explanation": "The source/original handle belonging to file_doc is returned. If the path selected a version and no version parameter was supplied, file_doc is that requested version; otherwise it is the root-relative resolved document.",
+              "evidenceIds": [
+                "ev-a174e487981ce68cae7f",
+                "ev-02e44f6c9deb225b1857",
+                "ev-ca6ea1cce1822f6ce320"
+              ]
+            },
+            {
+              "id": "download-serve-archive",
+              "condition": "The root check does not reject, effective version selection succeeds, original is not requested, and file_doc has an archive version.",
+              "disposition": "allow",
+              "explanation": "The archive handle belonging to file_doc is returned, so the bytes can belong to a version row distinct from both the path-selected row and root_doc.",
+              "evidenceIds": [
+                "ev-a174e487981ce68cae7f",
+                "ev-02e44f6c9deb225b1857",
+                "ev-ca6ea1cce1822f6ce320"
+              ]
+            },
+            {
+              "id": "download-version-invalid",
+              "condition": "The branch requiring root-relative resolution receives syntactically invalid version input.",
+              "disposition": "deny",
+              "explanation": "Version resolution fails and the download action ultimately returns no file; the shown action translates Document.DoesNotExist to Http404.",
+              "evidenceIds": [
+                "ev-17d9a0f76dbc89df4c48",
+                "ev-305fd771ccf8280afd6c",
+                "ev-200af0311493363e910b"
+              ]
+            },
+            {
+              "id": "download-version-unavailable",
+              "condition": "The requested root-relative version is unrelated, missing, deleted/unavailable under the selected manager behavior, or otherwise has no matching resolved document.",
+              "disposition": "deny",
+              "explanation": "No file document is served; relevant lookup failures are translated by the action to Http404.",
+              "evidenceIds": [
+                "ev-305fd771ccf8280afd6c",
+                "ev-200af0311493363e910b"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-200af0311493363e910b",
+            "ev-02e44f6c9deb225b1857",
+            "ev-990997ca1d3a5267e20b",
+            "ev-a174e487981ce68cae7f"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The decisive helper reads for _get_effective_file_doc, _resolve_file_doc, get_request_version_param, and serve_file were supplied and support this result, but their structured semantic checks remained open at delivery time.",
+              "nextRead": "Re-validate the already supplied helper windows if formal graph closure, rather than this bounded behavior result, is required."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "Actual route deployment, database version relationships, deletion state, and storage-file availability were not executed or validated."
+            }
+          ]
+        },
+        "diagnostics": [
+          {
+            "code": "object-binding-missing",
+            "path": "request-root-view-permission-guard",
+            "message": "Typed principal authenticated_request_user is not bound in this question.",
+            "severity": "error",
+            "questionId": "download-request-document"
+          },
+          {
+            "code": "object-binding-missing",
+            "path": "request-root-view-permission-deny",
+            "message": "Typed principal authenticated_request_user is not bound in this question.",
+            "severity": "error",
+            "questionId": "download-request-document"
+          },
+          {
+            "code": "object-binding-missing",
+            "path": "request-authenticated-user",
+            "message": "Typed principal authenticated_request_user is not bound in this question.",
+            "severity": "error",
+            "questionId": "download-request-document"
+          }
+        ],
+        "trace": {
+          "rules": [
+            {
+              "key": "request-download-entry",
+              "kind": "entry",
+              "after": [],
+              "pathKey": "download",
+              "evidenceIds": [
+                "ev-aa429a725d3092cdd115"
+              ]
+            },
+            {
+              "key": "request-file-response-forbidden",
+              "kind": "reject",
+              "after": [
+                "request-download-entry",
+                "request-file-response-request-doc",
+                "request-file-response-root-doc"
+              ],
+              "pathKey": "download-forbidden",
+              "evidenceIds": [
+                "ev-02e44f6c9deb225b1857",
+                "ev-aa429a725d3092cdd115"
+              ]
+            },
+            {
+              "key": "request-file-response-serve",
+              "kind": "effect",
+              "after": [
+                "request-download-entry",
+                "request-file-response-request-doc",
+                "request-file-response-root-doc",
+                "request-file-response-file-doc"
+              ],
+              "pathKey": "download-serve-source",
+              "resource": "file_doc",
+              "evidenceIds": [
+                "ev-ca6ea1cce1822f6ce320",
+                "ev-02e44f6c9deb225b1857"
+              ]
+            },
+            {
+              "key": "request-file-response-request-doc",
+              "kind": "binding",
+              "after": [
+                "request-download-entry"
+              ],
+              "pathKey": "download",
+              "resource": "request_doc",
+              "evidenceIds": [
+                "ev-990997ca1d3a5267e20b"
+              ]
+            },
+            {
+              "key": "request-file-response-root-doc",
+              "kind": "binding",
+              "after": [
+                "request-download-entry",
+                "request-file-response-request-doc"
+              ],
+              "pathKey": "download",
+              "resource": "root_doc",
+              "evidenceIds": [
+                "ev-990997ca1d3a5267e20b"
+              ]
+            },
+            {
+              "key": "request-file-response-file-doc",
+              "kind": "binding",
+              "after": [
+                "request-file-response-request-doc",
+                "request-file-response-root-doc"
+              ],
+              "pathKey": "download",
+              "resource": "file_doc",
+              "evidenceIds": [
+                "ev-17d9a0f76dbc89df4c48",
+                "ev-1e39e2bf56086fafb283",
+                "ev-a174e487981ce68cae7f"
+              ]
+            },
+            {
+              "key": "request-file-response-serve-archive",
+              "kind": "effect",
+              "after": [
+                "request-download-entry",
+                "request-file-response-request-doc",
+                "request-file-response-root-doc",
+                "request-file-response-file-doc"
+              ],
+              "pathKey": "download-serve-archive",
+              "resource": "file_doc",
+              "evidenceIds": [
+                "ev-ca6ea1cce1822f6ce320",
+                "ev-02e44f6c9deb225b1857"
+              ]
+            },
+            {
+              "key": "request-serve-source-handle",
+              "kind": "binding",
+              "after": [
+                "request-file-response-file-doc"
+              ],
+              "pathKey": "download-serve-source",
+              "resource": "file_doc",
+              "evidenceIds": [
+                "ev-ca6ea1cce1822f6ce320",
+                "ev-02e44f6c9deb225b1857"
+              ]
+            },
+            {
+              "key": "request-serve-archive-handle",
+              "kind": "binding",
+              "after": [
+                "request-file-response-file-doc"
+              ],
+              "pathKey": "download-serve-archive",
+              "resource": "file_doc",
+              "evidenceIds": [
+                "ev-ca6ea1cce1822f6ce320",
+                "ev-02e44f6c9deb225b1857"
+              ]
+            },
+            {
+              "key": "request-root-view-permission-guard",
+              "kind": "guard",
+              "after": [
+                "request-download-entry",
+                "request-authenticated-user",
+                "request-file-response-request-doc",
+                "request-file-response-root-doc"
+              ],
+              "pathKey": "download",
+              "principal": "authenticated_request_user",
+              "resource": "root_doc",
+              "evidenceIds": [
+                "ev-990997ca1d3a5267e20b"
+              ]
+            },
+            {
+              "key": "request-root-view-permission-deny",
+              "kind": "reject",
+              "after": [
+                "request-download-entry",
+                "request-authenticated-user",
+                "request-file-response-request-doc",
+                "request-file-response-root-doc",
+                "request-root-view-permission-guard"
+              ],
+              "pathKey": "download-forbidden",
+              "principal": "authenticated_request_user",
+              "resource": "root_doc",
+              "evidenceIds": [
+                "ev-990997ca1d3a5267e20b"
+              ]
+            },
+            {
+              "key": "request-version-omitted-version-path-doc",
+              "kind": "continue",
+              "after": [
+                "request-download-entry",
+                "request-file-response-request-doc",
+                "request-file-response-root-doc",
+                "request-version-param-binding"
+              ],
+              "pathKey": "download-version-omitted-requested-version",
+              "evidenceIds": [
+                "ev-e4fb51de8841a66eada2",
+                "ev-9f81c56ef3afc13d4b91",
+                "ev-a174e487981ce68cae7f"
+              ]
+            },
+            {
+              "key": "request-version-resolution-needed",
+              "kind": "continue",
+              "after": [
+                "request-download-entry",
+                "request-file-response-request-doc",
+                "request-file-response-root-doc",
+                "request-version-param-binding"
+              ],
+              "pathKey": "download-version-resolve-from-root",
+              "evidenceIds": [
+                "ev-e4fb51de8841a66eada2",
+                "ev-9f81c56ef3afc13d4b91",
+                "ev-a174e487981ce68cae7f"
+              ]
+            },
+            {
+              "key": "request-version-param-binding",
+              "kind": "binding",
+              "after": [
+                "request-file-response-request-doc",
+                "request-file-response-root-doc"
+              ],
+              "pathKey": "download-serve",
+              "evidenceIds": [
+                "ev-e4fb51de8841a66eada2",
+                "ev-9f81c56ef3afc13d4b91",
+                "ev-a174e487981ce68cae7f"
+              ]
+            },
+            {
+              "key": "request-resolve-file-invalid",
+              "kind": "reject",
+              "after": [
+                "request-version-resolution-needed"
+              ],
+              "pathKey": "download-version-invalid",
+              "evidenceIds": [
+                "ev-17d9a0f76dbc89df4c48",
+                "ev-1e39e2bf56086fafb283",
+                "ev-a174e487981ce68cae7f"
+              ]
+            },
+            {
+              "key": "request-resolve-file-unavailable",
+              "kind": "reject",
+              "after": [
+                "request-version-resolution-needed"
+              ],
+              "pathKey": "download-version-unavailable",
+              "evidenceIds": [
+                "ev-17d9a0f76dbc89df4c48",
+                "ev-1e39e2bf56086fafb283",
+                "ev-a174e487981ce68cae7f"
+              ]
+            },
+            {
+              "key": "request-resolve-file-success",
+              "kind": "continue",
+              "after": [
+                "request-version-resolution-needed"
+              ],
+              "pathKey": "download-version-resolved",
+              "evidenceIds": [
+                "ev-17d9a0f76dbc89df4c48",
+                "ev-1e39e2bf56086fafb283",
+                "ev-a174e487981ce68cae7f"
+              ]
+            },
+            {
+              "key": "request-version-default-latest",
+              "kind": "continue",
+              "after": [
+                "request-version-resolution-needed"
+              ],
+              "pathKey": "download-version-resolved",
+              "resource": "root_doc",
+              "evidenceIds": [
+                "ev-305fd771ccf8280afd6c"
+              ]
+            },
+            {
+              "key": "request-version-explicit-related",
+              "kind": "continue",
+              "after": [
+                "request-version-resolution-needed",
+                "request-resolve-file-success",
+                "request-resolved-version-document"
+              ],
+              "pathKey": "download-version-resolved",
+              "resource": "resolved_version_document",
+              "evidenceIds": [
+                "ev-305fd771ccf8280afd6c"
+              ]
+            },
+            {
+              "key": "request-version-explicit-unrelated",
+              "kind": "reject",
+              "after": [
+                "request-version-resolution-needed"
+              ],
+              "pathKey": "download-version-unavailable",
+              "evidenceIds": [
+                "ev-305fd771ccf8280afd6c"
+              ]
+            },
+            {
+              "key": "request-resolved-version-document",
+              "kind": "binding",
+              "after": [
+                "request-resolve-file-success"
+              ],
+              "pathKey": "download-version-resolved",
+              "resource": "resolved_version_document",
+              "evidenceIds": [
+                "ev-305fd771ccf8280afd6c"
+              ]
+            },
+            {
+              "key": "request-authenticated-user",
+              "kind": "binding",
+              "after": [
+                "request-download-entry"
+              ],
+              "pathKey": "download",
+              "principal": "authenticated_request_user",
+              "evidenceIds": [
+                "ev-990997ca1d3a5267e20b"
+              ]
+            }
+          ],
+          "paths": [
+            {
+              "questionId": "download-request-document",
+              "pathKey": "download-forbidden",
+              "state": "checked",
+              "disposition": "deny",
+              "complete": true,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "any",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "resolved_is_forbidden"
+                      },
+                      "right": {
+                        "literal": true
+                      }
+                    },
+                    {
+                      "op": "all",
+                      "args": [
+                        {
+                          "op": "neq",
+                          "left": {
+                            "binding": "request_user"
+                          },
+                          "right": {
+                            "literal": null
+                          }
+                        },
+                        {
+                          "op": "all",
+                          "args": [
+                            {
+                              "op": "neq",
+                              "left": {
+                                "binding": "request_user"
+                              },
+                              "right": {
+                                "literal": null
+                              }
+                            },
+                            {
+                              "op": "eq",
+                              "left": {
+                                "binding": "root_view_allowed"
+                              },
+                              "right": {
+                                "literal": false
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "missingBindings": [
+                  "request_user",
+                  "resolved_is_forbidden",
+                  "root_view_allowed"
+                ],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "neq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "neq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "any",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "any",
+                "args": [
+                  {
+                    "op": "all",
+                    "args": [
+                      {
+                        "op": "eq",
+                        "left": {
+                          "binding": "resolved_is_forbidden"
+                        },
+                        "right": {
+                          "literal": true
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "all",
+                    "args": [
+                      {
+                        "op": "neq",
+                        "left": {
+                          "binding": "request_user"
+                        },
+                        "right": {
+                          "literal": null
+                        }
+                      },
+                      {
+                        "op": "all",
+                        "args": [
+                          {
+                            "op": "neq",
+                            "left": {
+                              "binding": "request_user"
+                            },
+                            "right": {
+                              "literal": null
+                            }
+                          },
+                          {
+                            "op": "eq",
+                            "left": {
+                              "binding": "root_view_allowed"
+                            },
+                            "right": {
+                              "literal": false
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "request-download-entry",
+                "request-file-response-request-doc",
+                "request-file-response-root-doc",
+                "request-file-response-forbidden",
+                "request-authenticated-user",
+                "request-root-view-permission-guard",
+                "request-root-view-permission-deny"
+              ],
+              "terminalKeys": [
+                "request-file-response-forbidden",
+                "request-root-view-permission-deny"
+              ],
+              "gaps": [],
+              "sourceBound": true
+            },
+            {
+              "questionId": "download-request-document",
+              "pathKey": "download-serve-source",
+              "state": "checked",
+              "disposition": "allow",
+              "complete": true,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "eq",
+                  "left": {
+                    "binding": "use_archive"
+                  },
+                  "right": {
+                    "literal": false
+                  }
+                },
+                "missingBindings": [
+                  "use_archive"
+                ],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "use_archive"
+                    },
+                    "right": {
+                      "literal": false
+                    }
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "request-download-entry",
+                "request-file-response-request-doc",
+                "request-file-response-root-doc",
+                "request-file-response-file-doc",
+                "request-file-response-serve"
+              ],
+              "terminalKeys": [
+                "request-file-response-serve"
+              ],
+              "gaps": [],
+              "sourceBound": true
+            },
+            {
+              "questionId": "download-request-document",
+              "pathKey": "download-serve-archive",
+              "state": "checked",
+              "disposition": "allow",
+              "complete": true,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "eq",
+                  "left": {
+                    "binding": "use_archive"
+                  },
+                  "right": {
+                    "literal": true
+                  }
+                },
+                "missingBindings": [
+                  "use_archive"
+                ],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "use_archive"
+                    },
+                    "right": {
+                      "literal": true
+                    }
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "request-download-entry",
+                "request-file-response-request-doc",
+                "request-file-response-root-doc",
+                "request-file-response-file-doc",
+                "request-file-response-serve-archive"
+              ],
+              "terminalKeys": [
+                "request-file-response-serve-archive"
+              ],
+              "gaps": [],
+              "sourceBound": true
+            },
+            {
+              "questionId": "download-request-document",
+              "pathKey": "download-version-invalid",
+              "state": "checked",
+              "disposition": "deny",
+              "complete": true,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "not",
+                      "arg": {
+                        "op": "all",
+                        "args": [
+                          {
+                            "op": "neq",
+                            "left": {
+                              "binding": "request_doc_root_document_id"
+                            },
+                            "right": {
+                              "literal": null
+                            }
+                          },
+                          {
+                            "op": "is-null",
+                            "value": {
+                              "binding": "version_param"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "version_resolution_error"
+                      },
+                      "right": {
+                        "literal": "INVALID"
+                      }
+                    }
+                  ]
+                },
+                "missingBindings": [
+                  "request_doc_root_document_id",
+                  "version_param",
+                  "version_resolution_error"
+                ],
+                "trace": [
+                  {
+                    "op": "neq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "is-null",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "not",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "all",
+                      "args": [
+                        {
+                          "op": "neq",
+                          "left": {
+                            "binding": "request_doc_root_document_id"
+                          },
+                          "right": {
+                            "literal": null
+                          }
+                        },
+                        {
+                          "op": "is-null",
+                          "value": {
+                            "binding": "version_param"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "version_resolution_error"
+                    },
+                    "right": {
+                      "literal": "INVALID"
+                    }
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "request-download-entry",
+                "request-file-response-request-doc",
+                "request-file-response-root-doc",
+                "request-version-param-binding",
+                "request-version-resolution-needed",
+                "request-resolve-file-invalid"
+              ],
+              "terminalKeys": [
+                "request-resolve-file-invalid"
+              ],
+              "gaps": [],
+              "sourceBound": true
+            },
+            {
+              "questionId": "download-request-document",
+              "pathKey": "download-version-unavailable",
+              "state": "checked",
+              "disposition": "deny",
+              "complete": true,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "any",
+                  "args": [
+                    {
+                      "op": "all",
+                      "args": [
+                        {
+                          "op": "not",
+                          "arg": {
+                            "op": "all",
+                            "args": [
+                              {
+                                "op": "neq",
+                                "left": {
+                                  "binding": "request_doc_root_document_id"
+                                },
+                                "right": {
+                                  "literal": null
+                                }
+                              },
+                              {
+                                "op": "is-null",
+                                "value": {
+                                  "binding": "version_param"
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "op": "is-null",
+                          "value": {
+                            "binding": "resolved_version_document"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "op": "all",
+                      "args": [
+                        {
+                          "op": "not",
+                          "arg": {
+                            "op": "all",
+                            "args": [
+                              {
+                                "op": "neq",
+                                "left": {
+                                  "binding": "request_doc_root_document_id"
+                                },
+                                "right": {
+                                  "literal": null
+                                }
+                              },
+                              {
+                                "op": "is-null",
+                                "value": {
+                                  "binding": "version_param"
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "op": "all",
+                          "args": [
+                            {
+                              "op": "neq",
+                              "left": {
+                                "binding": "version_param"
+                              },
+                              "right": {
+                                "literal": null
+                              }
+                            },
+                            {
+                              "op": "eq",
+                              "left": {
+                                "binding": "explicit_candidate_related_to_root"
+                              },
+                              "right": {
+                                "literal": false
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "missingBindings": [
+                  "explicit_candidate_related_to_root",
+                  "request_doc_root_document_id",
+                  "resolved_version_document",
+                  "version_param"
+                ],
+                "trace": [
+                  {
+                    "op": "neq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "is-null",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "not",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "is-null",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "neq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "is-null",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "not",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "neq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "any",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "any",
+                "args": [
+                  {
+                    "op": "all",
+                    "args": [
+                      {
+                        "op": "not",
+                        "arg": {
+                          "op": "all",
+                          "args": [
+                            {
+                              "op": "neq",
+                              "left": {
+                                "binding": "request_doc_root_document_id"
+                              },
+                              "right": {
+                                "literal": null
+                              }
+                            },
+                            {
+                              "op": "is-null",
+                              "value": {
+                                "binding": "version_param"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "is-null",
+                        "value": {
+                          "binding": "resolved_version_document"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "all",
+                    "args": [
+                      {
+                        "op": "not",
+                        "arg": {
+                          "op": "all",
+                          "args": [
+                            {
+                              "op": "neq",
+                              "left": {
+                                "binding": "request_doc_root_document_id"
+                              },
+                              "right": {
+                                "literal": null
+                              }
+                            },
+                            {
+                              "op": "is-null",
+                              "value": {
+                                "binding": "version_param"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "all",
+                        "args": [
+                          {
+                            "op": "neq",
+                            "left": {
+                              "binding": "version_param"
+                            },
+                            "right": {
+                              "literal": null
+                            }
+                          },
+                          {
+                            "op": "eq",
+                            "left": {
+                              "binding": "explicit_candidate_related_to_root"
+                            },
+                            "right": {
+                              "literal": false
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "request-download-entry",
+                "request-file-response-request-doc",
+                "request-file-response-root-doc",
+                "request-version-param-binding",
+                "request-version-resolution-needed",
+                "request-resolve-file-unavailable",
+                "request-version-explicit-unrelated"
+              ],
+              "terminalKeys": [
+                "request-resolve-file-unavailable",
+                "request-version-explicit-unrelated"
+              ],
+              "gaps": [],
+              "sourceBound": true
+            }
+          ],
+          "uncovered": [
+            "request-effective-file-helper:read",
+            "request-serve-file-helper:read",
+            "request-resolve-file-doc-dependency:read",
+            "request-version-param-dependency:read"
+          ]
+        }
+      },
+      {
+        "questionId": "download-version-selection",
+        "transportValid": true,
+        "referenceValid": true,
+        "ruleConsistent": false,
+        "evidenceCoverage": "unresolved",
+        "semanticReview": "unreviewed",
+        "deliveryStatus": "rejected",
+        "answer": {
+          "questionId": "download-version-selection",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "Selection is constrained to the requested root family. Omission preserves a path-selected version but causes a path-selected root to resolve the latest available root-family document. Explicit input may select the root or a related version; unrelated, invalid, or unavailable input returns no file."
+          },
+          "branches": [
+            {
+              "id": "download-forbidden",
+              "condition": "The explicit owner-aware view_document check on root_doc fails.",
+              "disposition": "deny",
+              "explanation": "Version resolution and file opening are short-circuited.",
+              "evidenceIds": [
+                "ev-990997ca1d3a5267e20b",
+                "ev-c860c951e454ac2deecf"
+              ]
+            },
+            {
+              "id": "download-serve-source",
+              "condition": "Selection succeeds and source/original representation is selected.",
+              "disposition": "allow",
+              "explanation": "With no selector on a path-selected version, that version's source file is returned. With no selector on a root path, the latest root-family document's source is returned. With an explicit related selector, the selected root/version document's source is returned.",
+              "evidenceIds": [
+                "ev-a174e487981ce68cae7f",
+                "ev-305fd771ccf8280afd6c",
+                "ev-ca6ea1cce1822f6ce320"
+              ]
+            },
+            {
+              "id": "download-serve-archive",
+              "condition": "Selection succeeds, original is not requested, and the selected file document has an archive.",
+              "disposition": "allow",
+              "explanation": "The selected root/version document's archive file is returned; changing the version changes the row and archive handle supplying bytes.",
+              "evidenceIds": [
+                "ev-02e44f6c9deb225b1857",
+                "ev-ca6ea1cce1822f6ce320"
+              ]
+            },
+            {
+              "id": "download-version-invalid",
+              "condition": "The explicit version value cannot be parsed as accepted version input.",
+              "disposition": "deny",
+              "explanation": "No selected file document reaches serve_file; the action maps relevant lookup failure to Http404.",
+              "evidenceIds": [
+                "ev-e4fb51de8841a66eada2",
+                "ev-17d9a0f76dbc89df4c48",
+                "ev-200af0311493363e910b"
+              ]
+            },
+            {
+              "id": "download-version-unavailable",
+              "condition": "The explicit identifier is unrelated to root_doc or no root-scoped matching document is available.",
+              "disposition": "deny",
+              "explanation": "The root-scoped resolver does not return the unrelated or unavailable candidate, so its file is not served.",
+              "evidenceIds": [
+                "ev-305fd771ccf8280afd6c"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-a174e487981ce68cae7f",
+            "ev-17d9a0f76dbc89df4c48",
+            "ev-e4fb51de8841a66eada2",
+            "ev-305fd771ccf8280afd6c",
+            "ev-200af0311493363e910b"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The decisive helper reads for _get_effective_file_doc, _resolve_file_doc, get_request_version_param, and serve_file were supplied and support these branches, but their structured semantic checks remained open at delivery time.",
+              "nextRead": "Re-validate the already supplied helper windows if formal graph closure is required."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "The concrete latest version, existence and deletion state of requested rows, and backing-file availability require database/storage validation."
+            }
+          ]
+        },
+        "diagnostics": [
+          {
+            "code": "object-binding-missing",
+            "path": "version-root-view-permission-guard",
+            "message": "Typed principal authenticated_request_user is not bound in this question.",
+            "severity": "error",
+            "questionId": "download-version-selection"
+          },
+          {
+            "code": "object-binding-missing",
+            "path": "version-root-view-permission-deny",
+            "message": "Typed principal authenticated_request_user is not bound in this question.",
+            "severity": "error",
+            "questionId": "download-version-selection"
+          },
+          {
+            "code": "object-binding-missing",
+            "path": "version-authenticated-user",
+            "message": "Typed principal authenticated_request_user is not bound in this question.",
+            "severity": "error",
+            "questionId": "download-version-selection"
+          }
+        ],
+        "trace": {
+          "rules": [
+            {
+              "key": "version-download-entry",
+              "kind": "entry",
+              "after": [],
+              "pathKey": "download",
+              "evidenceIds": [
+                "ev-aa429a725d3092cdd115"
+              ]
+            },
+            {
+              "key": "version-file-response-forbidden",
+              "kind": "reject",
+              "after": [
+                "version-download-entry",
+                "version-file-response-request-doc",
+                "version-file-response-root-doc"
+              ],
+              "pathKey": "download-forbidden",
+              "evidenceIds": [
+                "ev-02e44f6c9deb225b1857",
+                "ev-aa429a725d3092cdd115"
+              ]
+            },
+            {
+              "key": "version-file-response-serve",
+              "kind": "effect",
+              "after": [
+                "version-download-entry",
+                "version-file-response-request-doc",
+                "version-file-response-root-doc",
+                "version-file-response-file-doc"
+              ],
+              "pathKey": "download-serve-source",
+              "resource": "file_doc",
+              "evidenceIds": [
+                "ev-ca6ea1cce1822f6ce320",
+                "ev-02e44f6c9deb225b1857"
+              ]
+            },
+            {
+              "key": "version-file-response-request-doc",
+              "kind": "binding",
+              "after": [
+                "version-download-entry"
+              ],
+              "pathKey": "download",
+              "resource": "request_doc",
+              "evidenceIds": [
+                "ev-990997ca1d3a5267e20b"
+              ]
+            },
+            {
+              "key": "version-file-response-root-doc",
+              "kind": "binding",
+              "after": [
+                "version-download-entry",
+                "version-file-response-request-doc"
+              ],
+              "pathKey": "download",
+              "resource": "root_doc",
+              "evidenceIds": [
+                "ev-990997ca1d3a5267e20b"
+              ]
+            },
+            {
+              "key": "version-file-response-file-doc",
+              "kind": "binding",
+              "after": [
+                "version-file-response-request-doc",
+                "version-file-response-root-doc"
+              ],
+              "pathKey": "download",
+              "resource": "file_doc",
+              "evidenceIds": [
+                "ev-17d9a0f76dbc89df4c48",
+                "ev-1e39e2bf56086fafb283",
+                "ev-a174e487981ce68cae7f"
+              ]
+            },
+            {
+              "key": "version-file-response-serve-archive",
+              "kind": "effect",
+              "after": [
+                "version-download-entry",
+                "version-file-response-request-doc",
+                "version-file-response-root-doc",
+                "version-file-response-file-doc"
+              ],
+              "pathKey": "download-serve-archive",
+              "resource": "file_doc",
+              "evidenceIds": [
+                "ev-ca6ea1cce1822f6ce320",
+                "ev-02e44f6c9deb225b1857"
+              ]
+            },
+            {
+              "key": "version-serve-source-handle",
+              "kind": "binding",
+              "after": [
+                "version-file-response-file-doc"
+              ],
+              "pathKey": "download-serve-source",
+              "resource": "file_doc",
+              "evidenceIds": [
+                "ev-ca6ea1cce1822f6ce320",
+                "ev-02e44f6c9deb225b1857"
+              ]
+            },
+            {
+              "key": "version-serve-archive-handle",
+              "kind": "binding",
+              "after": [
+                "version-file-response-file-doc"
+              ],
+              "pathKey": "download-serve-archive",
+              "resource": "file_doc",
+              "evidenceIds": [
+                "ev-ca6ea1cce1822f6ce320",
+                "ev-02e44f6c9deb225b1857"
+              ]
+            },
+            {
+              "key": "version-root-view-permission-guard",
+              "kind": "guard",
+              "after": [
+                "version-download-entry",
+                "version-authenticated-user",
+                "version-file-response-request-doc",
+                "version-file-response-root-doc"
+              ],
+              "pathKey": "download",
+              "principal": "authenticated_request_user",
+              "resource": "root_doc",
+              "evidenceIds": [
+                "ev-990997ca1d3a5267e20b"
+              ]
+            },
+            {
+              "key": "version-root-view-permission-deny",
+              "kind": "reject",
+              "after": [
+                "version-download-entry",
+                "version-authenticated-user",
+                "version-file-response-request-doc",
+                "version-file-response-root-doc",
+                "version-root-view-permission-guard"
+              ],
+              "pathKey": "download-forbidden",
+              "principal": "authenticated_request_user",
+              "resource": "root_doc",
+              "evidenceIds": [
+                "ev-990997ca1d3a5267e20b"
+              ]
+            },
+            {
+              "key": "version-omitted-requested-version-path",
+              "kind": "continue",
+              "after": [
+                "version-download-entry",
+                "version-file-response-request-doc",
+                "version-file-response-root-doc",
+                "version-version-param-binding"
+              ],
+              "pathKey": "download-version-omitted-requested-version",
+              "evidenceIds": [
+                "ev-e4fb51de8841a66eada2",
+                "ev-9f81c56ef3afc13d4b91",
+                "ev-a174e487981ce68cae7f"
+              ]
+            },
+            {
+              "key": "version-param-or-root-resolution-path",
+              "kind": "continue",
+              "after": [
+                "version-download-entry",
+                "version-file-response-request-doc",
+                "version-file-response-root-doc",
+                "version-version-param-binding"
+              ],
+              "pathKey": "download-version-resolve-from-root",
+              "evidenceIds": [
+                "ev-e4fb51de8841a66eada2",
+                "ev-9f81c56ef3afc13d4b91",
+                "ev-a174e487981ce68cae7f"
+              ]
+            },
+            {
+              "key": "version-version-param-binding",
+              "kind": "binding",
+              "after": [
+                "version-file-response-request-doc",
+                "version-file-response-root-doc"
+              ],
+              "pathKey": "download-serve",
+              "evidenceIds": [
+                "ev-e4fb51de8841a66eada2",
+                "ev-9f81c56ef3afc13d4b91",
+                "ev-a174e487981ce68cae7f"
+              ]
+            },
+            {
+              "key": "version-resolve-file-invalid",
+              "kind": "reject",
+              "after": [
+                "version-param-or-root-resolution-path"
+              ],
+              "pathKey": "download-version-invalid",
+              "evidenceIds": [
+                "ev-17d9a0f76dbc89df4c48",
+                "ev-1e39e2bf56086fafb283",
+                "ev-a174e487981ce68cae7f"
+              ]
+            },
+            {
+              "key": "version-resolve-file-unavailable",
+              "kind": "reject",
+              "after": [
+                "version-param-or-root-resolution-path"
+              ],
+              "pathKey": "download-version-unavailable",
+              "evidenceIds": [
+                "ev-17d9a0f76dbc89df4c48",
+                "ev-1e39e2bf56086fafb283",
+                "ev-a174e487981ce68cae7f"
+              ]
+            },
+            {
+              "key": "version-resolve-file-success",
+              "kind": "continue",
+              "after": [
+                "version-param-or-root-resolution-path"
+              ],
+              "pathKey": "download-version-resolved",
+              "evidenceIds": [
+                "ev-17d9a0f76dbc89df4c48",
+                "ev-1e39e2bf56086fafb283",
+                "ev-a174e487981ce68cae7f"
+              ]
+            },
+            {
+              "key": "version-default-latest",
+              "kind": "continue",
+              "after": [
+                "version-param-or-root-resolution-path"
+              ],
+              "pathKey": "download-version-resolved",
+              "resource": "root_doc",
+              "evidenceIds": [
+                "ev-305fd771ccf8280afd6c"
+              ]
+            },
+            {
+              "key": "version-explicit-related",
+              "kind": "continue",
+              "after": [
+                "version-param-or-root-resolution-path",
+                "version-resolve-file-success",
+                "version-resolved-version-document"
+              ],
+              "pathKey": "download-version-resolved",
+              "resource": "resolved_version_document",
+              "evidenceIds": [
+                "ev-305fd771ccf8280afd6c"
+              ]
+            },
+            {
+              "key": "version-explicit-unrelated",
+              "kind": "reject",
+              "after": [
+                "version-param-or-root-resolution-path"
+              ],
+              "pathKey": "download-version-unavailable",
+              "evidenceIds": [
+                "ev-305fd771ccf8280afd6c"
+              ]
+            },
+            {
+              "key": "version-resolved-version-document",
+              "kind": "binding",
+              "after": [
+                "version-resolve-file-success"
+              ],
+              "pathKey": "download-version-resolved",
+              "resource": "resolved_version_document",
+              "evidenceIds": [
+                "ev-305fd771ccf8280afd6c"
+              ]
+            },
+            {
+              "key": "version-authenticated-user",
+              "kind": "binding",
+              "after": [
+                "version-download-entry"
+              ],
+              "pathKey": "download",
+              "principal": "authenticated_request_user",
+              "evidenceIds": [
+                "ev-990997ca1d3a5267e20b"
+              ]
+            }
+          ],
+          "paths": [
+            {
+              "questionId": "download-version-selection",
+              "pathKey": "download-forbidden",
+              "state": "checked",
+              "disposition": "deny",
+              "complete": true,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "any",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "resolved_is_forbidden"
+                      },
+                      "right": {
+                        "literal": true
+                      }
+                    },
+                    {
+                      "op": "all",
+                      "args": [
+                        {
+                          "op": "neq",
+                          "left": {
+                            "binding": "request_user"
+                          },
+                          "right": {
+                            "literal": null
+                          }
+                        },
+                        {
+                          "op": "all",
+                          "args": [
+                            {
+                              "op": "neq",
+                              "left": {
+                                "binding": "request_user"
+                              },
+                              "right": {
+                                "literal": null
+                              }
+                            },
+                            {
+                              "op": "eq",
+                              "left": {
+                                "binding": "root_view_allowed"
+                              },
+                              "right": {
+                                "literal": false
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "missingBindings": [
+                  "request_user",
+                  "resolved_is_forbidden",
+                  "root_view_allowed"
+                ],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "neq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "neq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "any",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "any",
+                "args": [
+                  {
+                    "op": "all",
+                    "args": [
+                      {
+                        "op": "eq",
+                        "left": {
+                          "binding": "resolved_is_forbidden"
+                        },
+                        "right": {
+                          "literal": true
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "all",
+                    "args": [
+                      {
+                        "op": "neq",
+                        "left": {
+                          "binding": "request_user"
+                        },
+                        "right": {
+                          "literal": null
+                        }
+                      },
+                      {
+                        "op": "all",
+                        "args": [
+                          {
+                            "op": "neq",
+                            "left": {
+                              "binding": "request_user"
+                            },
+                            "right": {
+                              "literal": null
+                            }
+                          },
+                          {
+                            "op": "eq",
+                            "left": {
+                              "binding": "root_view_allowed"
+                            },
+                            "right": {
+                              "literal": false
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "version-download-entry",
+                "version-file-response-request-doc",
+                "version-file-response-root-doc",
+                "version-file-response-forbidden",
+                "version-authenticated-user",
+                "version-root-view-permission-guard",
+                "version-root-view-permission-deny"
+              ],
+              "terminalKeys": [
+                "version-file-response-forbidden",
+                "version-root-view-permission-deny"
+              ],
+              "gaps": [],
+              "sourceBound": true
+            },
+            {
+              "questionId": "download-version-selection",
+              "pathKey": "download-serve-source",
+              "state": "checked",
+              "disposition": "allow",
+              "complete": true,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "eq",
+                  "left": {
+                    "binding": "use_archive"
+                  },
+                  "right": {
+                    "literal": false
+                  }
+                },
+                "missingBindings": [
+                  "use_archive"
+                ],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "use_archive"
+                    },
+                    "right": {
+                      "literal": false
+                    }
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "version-download-entry",
+                "version-file-response-request-doc",
+                "version-file-response-root-doc",
+                "version-file-response-file-doc",
+                "version-file-response-serve"
+              ],
+              "terminalKeys": [
+                "version-file-response-serve"
+              ],
+              "gaps": [],
+              "sourceBound": true
+            },
+            {
+              "questionId": "download-version-selection",
+              "pathKey": "download-serve-archive",
+              "state": "checked",
+              "disposition": "allow",
+              "complete": true,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "eq",
+                  "left": {
+                    "binding": "use_archive"
+                  },
+                  "right": {
+                    "literal": true
+                  }
+                },
+                "missingBindings": [
+                  "use_archive"
+                ],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "use_archive"
+                    },
+                    "right": {
+                      "literal": true
+                    }
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "version-download-entry",
+                "version-file-response-request-doc",
+                "version-file-response-root-doc",
+                "version-file-response-file-doc",
+                "version-file-response-serve-archive"
+              ],
+              "terminalKeys": [
+                "version-file-response-serve-archive"
+              ],
+              "gaps": [],
+              "sourceBound": true
+            },
+            {
+              "questionId": "download-version-selection",
+              "pathKey": "download-version-invalid",
+              "state": "checked",
+              "disposition": "deny",
+              "complete": true,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "not",
+                      "arg": {
+                        "op": "all",
+                        "args": [
+                          {
+                            "op": "neq",
+                            "left": {
+                              "binding": "request_doc_root_document_id"
+                            },
+                            "right": {
+                              "literal": null
+                            }
+                          },
+                          {
+                            "op": "is-null",
+                            "value": {
+                              "binding": "version_param"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "version_resolution_error"
+                      },
+                      "right": {
+                        "literal": "INVALID"
+                      }
+                    }
+                  ]
+                },
+                "missingBindings": [
+                  "request_doc_root_document_id",
+                  "version_param",
+                  "version_resolution_error"
+                ],
+                "trace": [
+                  {
+                    "op": "neq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "is-null",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "not",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "all",
+                      "args": [
+                        {
+                          "op": "neq",
+                          "left": {
+                            "binding": "request_doc_root_document_id"
+                          },
+                          "right": {
+                            "literal": null
+                          }
+                        },
+                        {
+                          "op": "is-null",
+                          "value": {
+                            "binding": "version_param"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "version_resolution_error"
+                    },
+                    "right": {
+                      "literal": "INVALID"
+                    }
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "version-download-entry",
+                "version-file-response-request-doc",
+                "version-file-response-root-doc",
+                "version-version-param-binding",
+                "version-param-or-root-resolution-path",
+                "version-resolve-file-invalid"
+              ],
+              "terminalKeys": [
+                "version-resolve-file-invalid"
+              ],
+              "gaps": [],
+              "sourceBound": true
+            },
+            {
+              "questionId": "download-version-selection",
+              "pathKey": "download-version-unavailable",
+              "state": "checked",
+              "disposition": "deny",
+              "complete": true,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "any",
+                  "args": [
+                    {
+                      "op": "all",
+                      "args": [
+                        {
+                          "op": "not",
+                          "arg": {
+                            "op": "all",
+                            "args": [
+                              {
+                                "op": "neq",
+                                "left": {
+                                  "binding": "request_doc_root_document_id"
+                                },
+                                "right": {
+                                  "literal": null
+                                }
+                              },
+                              {
+                                "op": "is-null",
+                                "value": {
+                                  "binding": "version_param"
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "op": "is-null",
+                          "value": {
+                            "binding": "resolved_version_document"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "op": "all",
+                      "args": [
+                        {
+                          "op": "not",
+                          "arg": {
+                            "op": "all",
+                            "args": [
+                              {
+                                "op": "neq",
+                                "left": {
+                                  "binding": "request_doc_root_document_id"
+                                },
+                                "right": {
+                                  "literal": null
+                                }
+                              },
+                              {
+                                "op": "is-null",
+                                "value": {
+                                  "binding": "version_param"
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "op": "all",
+                          "args": [
+                            {
+                              "op": "neq",
+                              "left": {
+                                "binding": "version_param"
+                              },
+                              "right": {
+                                "literal": null
+                              }
+                            },
+                            {
+                              "op": "eq",
+                              "left": {
+                                "binding": "explicit_candidate_related_to_root"
+                              },
+                              "right": {
+                                "literal": false
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "missingBindings": [
+                  "explicit_candidate_related_to_root",
+                  "request_doc_root_document_id",
+                  "resolved_version_document",
+                  "version_param"
+                ],
+                "trace": [
+                  {
+                    "op": "neq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "is-null",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "not",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "is-null",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "neq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "is-null",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "not",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "neq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "any",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "any",
+                "args": [
+                  {
+                    "op": "all",
+                    "args": [
+                      {
+                        "op": "not",
+                        "arg": {
+                          "op": "all",
+                          "args": [
+                            {
+                              "op": "neq",
+                              "left": {
+                                "binding": "request_doc_root_document_id"
+                              },
+                              "right": {
+                                "literal": null
+                              }
+                            },
+                            {
+                              "op": "is-null",
+                              "value": {
+                                "binding": "version_param"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "is-null",
+                        "value": {
+                          "binding": "resolved_version_document"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "op": "all",
+                    "args": [
+                      {
+                        "op": "not",
+                        "arg": {
+                          "op": "all",
+                          "args": [
+                            {
+                              "op": "neq",
+                              "left": {
+                                "binding": "request_doc_root_document_id"
+                              },
+                              "right": {
+                                "literal": null
+                              }
+                            },
+                            {
+                              "op": "is-null",
+                              "value": {
+                                "binding": "version_param"
+                              }
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "all",
+                        "args": [
+                          {
+                            "op": "neq",
+                            "left": {
+                              "binding": "version_param"
+                            },
+                            "right": {
+                              "literal": null
+                            }
+                          },
+                          {
+                            "op": "eq",
+                            "left": {
+                              "binding": "explicit_candidate_related_to_root"
+                            },
+                            "right": {
+                              "literal": false
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "version-download-entry",
+                "version-file-response-request-doc",
+                "version-file-response-root-doc",
+                "version-version-param-binding",
+                "version-param-or-root-resolution-path",
+                "version-resolve-file-unavailable",
+                "version-explicit-unrelated"
+              ],
+              "terminalKeys": [
+                "version-resolve-file-unavailable",
+                "version-explicit-unrelated"
+              ],
+              "gaps": [],
+              "sourceBound": true
+            }
+          ],
+          "uncovered": [
+            "version-effective-file-helper:read",
+            "version-serve-file-helper:read",
+            "version-resolve-file-doc-dependency:read",
+            "version-version-param-dependency:read"
+          ]
+        }
+      },
+      {
+        "questionId": "download-original-archive",
+        "transportValid": true,
+        "referenceValid": true,
+        "ruleConsistent": false,
+        "evidenceCoverage": "unresolved",
+        "semanticReview": "unreviewed",
+        "deliveryStatus": "rejected",
+        "answer": {
+          "questionId": "download-original-archive",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "Representation selection occurs after file_doc is chosen. Archive is used only when original_requested is false and that selected document reports an archive version. Otherwise its source/original representation is used. follow_formatting affects the download filename, not the file handle supplying bytes."
+          },
+          "branches": [
+            {
+              "id": "download-representation-archive",
+              "condition": "original_requested is false and selected_file_doc.has_archive_version is true.",
+              "disposition": "allow",
+              "explanation": "serve_file uses selected_file_doc.archive_file for bytes, archive/PDF media metadata, and an archive-oriented public filename derived from that selected document. Selecting another version changes the archive handle and document metadata used.",
+              "evidenceIds": [
+                "ev-02e44f6c9deb225b1857",
+                "ev-ca6ea1cce1822f6ce320",
+                "ev-a68a3bb86c67a96c7cba"
+              ]
+            },
+            {
+              "id": "download-representation-source",
+              "condition": "Original/source is requested, or the selected document has no archive version.",
+              "disposition": "allow",
+              "explanation": "serve_file uses selected_file_doc.source_file for bytes, that document's MIME metadata for the media type, and its public source filename. Selecting another version changes the source handle and metadata used.",
+              "evidenceIds": [
+                "ev-1e39e2bf56086fafb283",
+                "ev-02e44f6c9deb225b1857",
+                "ev-ca6ea1cce1822f6ce320",
+                "ev-a68a3bb86c67a96c7cba"
+              ]
+            },
+            {
+              "id": "download-representation",
+              "condition": "follow_formatting is supplied or omitted.",
+              "disposition": "conditional",
+              "explanation": "The value is passed to filename generation; it can alter the download name but does not alter whether source_file or archive_file supplies bytes.",
+              "evidenceIds": [
+                "ev-02e44f6c9deb225b1857",
+                "ev-ca6ea1cce1822f6ce320",
+                "ev-a68a3bb86c67a96c7cba"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-02e44f6c9deb225b1857",
+            "ev-1e39e2bf56086fafb283",
+            "ev-ca6ea1cce1822f6ce320",
+            "ev-a68a3bb86c67a96c7cba"
+          ],
+          "missing": [
+            {
+              "kind": "deployment-unverified",
+              "detail": "Whether the selected document's source/archive path exists and what bytes are stored there requires storage validation."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "Exact framework truth-value/coercion behavior for arbitrary query-string values was not independently established.",
+              "nextRead": "Read request parsing or focused tests if exact string coercion is material."
+            }
+          ]
+        },
+        "diagnostics": [
+          {
+            "code": "decisive-dependency-open",
+            "path": "download-original-archive",
+            "message": "Decisive source dependencies remain without a corresponding source gap: representation-original-requested-dependency:read, representation-serve-file-dependency:read. An unspecified user premise or deployment fact cannot conceal them.",
+            "severity": "error"
+          },
+          {
+            "code": "path-not-closed",
+            "path": "download-original-archive",
+            "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+            "severity": "error"
+          }
+        ],
+        "trace": {
+          "rules": [
+            {
+              "key": "representation-file-response-entry",
+              "kind": "entry",
+              "after": [],
+              "pathKey": "download-representation",
+              "evidenceIds": [
+                "ev-02e44f6c9deb225b1857"
+              ]
+            },
+            {
+              "key": "representation-select-archive",
+              "kind": "continue",
+              "after": [
+                "representation-file-response-entry",
+                "representation-selected-file-doc",
+                "representation-original-selector",
+                "representation-archive-availability"
+              ],
+              "pathKey": "download-representation-archive",
+              "resource": "selected_file_doc",
+              "evidenceIds": [
+                "ev-02e44f6c9deb225b1857"
+              ]
+            },
+            {
+              "key": "representation-select-source",
+              "kind": "continue",
+              "after": [
+                "representation-file-response-entry",
+                "representation-selected-file-doc",
+                "representation-original-selector",
+                "representation-archive-availability"
+              ],
+              "pathKey": "download-representation-source",
+              "resource": "selected_file_doc",
+              "evidenceIds": [
+                "ev-02e44f6c9deb225b1857"
+              ]
+            },
+            {
+              "key": "representation-selected-file-doc",
+              "kind": "binding",
+              "after": [
+                "representation-file-response-entry"
+              ],
+              "pathKey": "download-representation",
+              "resource": "selected_file_doc",
+              "evidenceIds": [
+                "ev-a174e487981ce68cae7f",
+                "ev-02e44f6c9deb225b1857"
+              ]
+            },
+            {
+              "key": "representation-original-selector",
+              "kind": "binding",
+              "after": [
+                "representation-file-response-entry"
+              ],
+              "pathKey": "download-representation",
+              "evidenceIds": [
+                "ev-02e44f6c9deb225b1857"
+              ]
+            },
+            {
+              "key": "representation-archive-availability",
+              "kind": "binding",
+              "after": [
+                "representation-selected-file-doc"
+              ],
+              "pathKey": "download-representation",
+              "evidenceIds": [
+                "ev-02e44f6c9deb225b1857"
+              ]
+            },
+            {
+              "key": "representation-format-selector",
+              "kind": "binding",
+              "after": [
+                "representation-file-response-entry"
+              ],
+              "pathKey": "download-representation",
+              "evidenceIds": [
+                "ev-02e44f6c9deb225b1857"
+              ]
+            }
+          ],
+          "paths": [
+            {
+              "questionId": "download-original-archive",
+              "pathKey": "download-representation",
+              "state": "blocked",
+              "disposition": "unknown",
+              "complete": false,
+              "predicate": {
+                "truth": "true",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "all",
+                    "truth": "true"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "true"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "true"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "true"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "true"
+                  },
+                  {
+                    "op": "any",
+                    "truth": "true"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "any",
+                "args": [
+                  {
+                    "op": "all",
+                    "args": []
+                  },
+                  {
+                    "op": "all",
+                    "args": []
+                  },
+                  {
+                    "op": "all",
+                    "args": []
+                  },
+                  {
+                    "op": "all",
+                    "args": []
+                  },
+                  {
+                    "op": "all",
+                    "args": []
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "representation-file-response-entry",
+                "representation-selected-file-doc",
+                "representation-original-selector",
+                "representation-archive-availability",
+                "representation-format-selector"
+              ],
+              "terminalKeys": [
+                "representation-file-response-entry",
+                "representation-selected-file-doc",
+                "representation-original-selector",
+                "representation-archive-availability",
+                "representation-format-selector"
+              ],
+              "gaps": [
+                "closure-not-proposed"
+              ],
+              "sourceBound": true
+            },
+            {
+              "questionId": "download-original-archive",
+              "pathKey": "download-representation-archive",
+              "state": "blocked",
+              "disposition": "unknown",
+              "complete": false,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "original_requested"
+                      },
+                      "right": {
+                        "literal": false
+                      }
+                    },
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "selected_file_has_archive"
+                      },
+                      "right": {
+                        "literal": true
+                      }
+                    }
+                  ]
+                },
+                "missingBindings": [
+                  "original_requested",
+                  "selected_file_has_archive"
+                ],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "all",
+                    "args": [
+                      {
+                        "op": "eq",
+                        "left": {
+                          "binding": "original_requested"
+                        },
+                        "right": {
+                          "literal": false
+                        }
+                      },
+                      {
+                        "op": "eq",
+                        "left": {
+                          "binding": "selected_file_has_archive"
+                        },
+                        "right": {
+                          "literal": true
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "representation-file-response-entry",
+                "representation-selected-file-doc",
+                "representation-original-selector",
+                "representation-archive-availability",
+                "representation-select-archive"
+              ],
+              "terminalKeys": [
+                "representation-select-archive"
+              ],
+              "gaps": [
+                "closure-not-proposed"
+              ],
+              "sourceBound": true
+            },
+            {
+              "questionId": "download-original-archive",
+              "pathKey": "download-representation-source",
+              "state": "blocked",
+              "disposition": "unknown",
+              "complete": false,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "not",
+                  "arg": {
+                    "op": "all",
+                    "args": [
+                      {
+                        "op": "eq",
+                        "left": {
+                          "binding": "original_requested"
+                        },
+                        "right": {
+                          "literal": false
+                        }
+                      },
+                      {
+                        "op": "eq",
+                        "left": {
+                          "binding": "selected_file_has_archive"
+                        },
+                        "right": {
+                          "literal": true
+                        }
+                      }
+                    ]
+                  }
+                },
+                "missingBindings": [
+                  "original_requested",
+                  "selected_file_has_archive"
+                ],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "not",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "all",
+                      "args": [
+                        {
+                          "op": "eq",
+                          "left": {
+                            "binding": "original_requested"
+                          },
+                          "right": {
+                            "literal": false
+                          }
+                        },
+                        {
+                          "op": "eq",
+                          "left": {
+                            "binding": "selected_file_has_archive"
+                          },
+                          "right": {
+                            "literal": true
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "representation-file-response-entry",
+                "representation-selected-file-doc",
+                "representation-original-selector",
+                "representation-archive-availability",
+                "representation-select-source"
+              ],
+              "terminalKeys": [
+                "representation-select-source"
+              ],
+              "gaps": [
+                "closure-not-proposed"
+              ],
+              "sourceBound": true
+            }
+          ],
+          "uncovered": [
+            "closure-not-proposed",
+            "representation-original-requested-dependency:read",
+            "representation-serve-file-dependency:read"
+          ]
+        }
+      },
+      {
+        "questionId": "download-authorization-root-version",
+        "transportValid": true,
+        "referenceValid": true,
+        "ruleConsistent": false,
+        "evidenceCoverage": "unresolved",
+        "semanticReview": "unreviewed",
+        "deliveryStatus": "rejected",
+        "answer": {
+          "questionId": "download-authorization-root-version",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The explicit source-visible decision is has_perms_owner_aware(request.user, view_document, root_doc), executed during request/root resolution before file_doc selection and before a source/archive handle is opened. It checks root_doc, not a child request_doc or subsequently selected file_doc. The helper allows an unowned root, a root owned by the user, or a root for which ObjectPermissionChecker grants the permission."
+          },
+          "branches": [
+            {
+              "id": "unowned-root",
+              "condition": "root_doc.owner is null.",
+              "disposition": "allow",
+              "explanation": "The owner-aware helper returns true and file selection may proceed.",
+              "evidenceIds": [
+                "ev-c860c951e454ac2deecf",
+                "ev-990997ca1d3a5267e20b"
+              ]
+            },
+            {
+              "id": "owned-root",
+              "condition": "root_doc.owner equals request.user.",
+              "disposition": "allow",
+              "explanation": "Owner status satisfies the explicit root check.",
+              "evidenceIds": [
+                "ev-c860c951e454ac2deecf",
+                "ev-990997ca1d3a5267e20b"
+              ]
+            },
+            {
+              "id": "checker-allows-root",
+              "condition": "The root is owned by another principal and ObjectPermissionChecker.has_perm allows view_document.",
+              "disposition": "allow",
+              "explanation": "The explicit check succeeds; the shown helper does not expose whether that result derives from a global or object-specific basis.",
+              "evidenceIds": [
+                "ev-c860c951e454ac2deecf",
+                "ev-990997ca1d3a5267e20b"
+              ]
+            },
+            {
+              "id": "checker-denies-root",
+              "condition": "The root is owned by another principal and the checker does not grant view_document.",
+              "disposition": "deny",
+              "explanation": "HttpResponseForbidden is returned before effective file selection and file opening.",
+              "evidenceIds": [
+                "ev-c860c951e454ac2deecf",
+                "ev-990997ca1d3a5267e20b",
+                "ev-02e44f6c9deb225b1857"
+              ]
+            },
+            {
+              "id": "upstream-authentication",
+              "condition": "An upstream DRF authentication or permission class rejects the request.",
+              "disposition": "deny",
+              "explanation": "That would short-circuit the action, but the exact configured upstream classes were not established by the bounded reads.",
+              "evidenceIds": [
+                "ev-200af0311493363e910b"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-990997ca1d3a5267e20b",
+            "ev-c860c951e454ac2deecf",
+            "ev-02e44f6c9deb225b1857",
+            "ev-ca6ea1cce1822f6ce320"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The exact DocumentViewSet/default authentication and upstream permission configuration was not fully established.",
+              "nextRead": "Read the viewset declaration and project REST framework settings if brought into scope."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "ObjectPermissionChecker internals were not in the supplied bounded source, so global-versus-object grant origin cannot be separated."
+            },
+            {
+              "kind": "premise-unspecified",
+              "detail": "The requester's ownership, global permissions, and object-level grants are intentionally unspecified."
+            }
+          ]
+        },
+        "diagnostics": [
+          {
+            "code": "decisive-dependency-open",
+            "path": "download-authorization-root-version",
+            "message": "Decisive source dependencies remain without a corresponding source gap: auth-effective-file-dependency:read, auth-resolve-request-root-dependency:read, auth-serve-file-dependency:read. An unspecified user premise or deployment fact cannot conceal them.",
+            "severity": "error"
+          },
+          {
+            "code": "path-not-closed",
+            "path": "download-authorization-root-version",
+            "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+            "severity": "error"
+          }
+        ],
+        "trace": {
+          "rules": [
+            {
+              "key": "auth-download-entry",
+              "kind": "entry",
+              "after": [],
+              "pathKey": "download",
+              "evidenceIds": [
+                "ev-aa429a725d3092cdd115"
+              ]
+            },
+            {
+              "key": "auth-file-response-forbidden",
+              "kind": "reject",
+              "after": [
+                "auth-download-entry",
+                "auth-file-response-request-doc",
+                "auth-file-response-root-doc"
+              ],
+              "pathKey": "download-forbidden",
+              "evidenceIds": [
+                "ev-02e44f6c9deb225b1857",
+                "ev-aa429a725d3092cdd115"
+              ]
+            },
+            {
+              "key": "auth-file-response-effect",
+              "kind": "effect",
+              "after": [
+                "auth-download-entry",
+                "auth-file-response-request-doc",
+                "auth-file-response-root-doc",
+                "auth-file-response-file-doc"
+              ],
+              "pathKey": "download-served",
+              "resource": "file_doc",
+              "evidenceIds": [
+                "ev-02e44f6c9deb225b1857",
+                "ev-aa429a725d3092cdd115"
+              ]
+            },
+            {
+              "key": "auth-file-response-request-doc",
+              "kind": "binding",
+              "after": [
+                "auth-download-entry"
+              ],
+              "pathKey": "download",
+              "resource": "request_doc",
+              "evidenceIds": [
+                "ev-02e44f6c9deb225b1857",
+                "ev-aa429a725d3092cdd115"
+              ]
+            },
+            {
+              "key": "auth-file-response-root-doc",
+              "kind": "binding",
+              "after": [
+                "auth-download-entry",
+                "auth-file-response-request-doc"
+              ],
+              "pathKey": "download",
+              "resource": "root_doc",
+              "evidenceIds": [
+                "ev-02e44f6c9deb225b1857",
+                "ev-aa429a725d3092cdd115"
+              ]
+            },
+            {
+              "key": "auth-file-response-file-doc",
+              "kind": "binding",
+              "after": [
+                "auth-download-entry",
+                "auth-file-response-request-doc",
+                "auth-file-response-root-doc"
+              ],
+              "pathKey": "download",
+              "resource": "file_doc",
+              "evidenceIds": [
+                "ev-a174e487981ce68cae7f",
+                "ev-02e44f6c9deb225b1857"
+              ]
+            }
+          ],
+          "paths": [
+            {
+              "questionId": "download-authorization-root-version",
+              "pathKey": "download-forbidden",
+              "state": "blocked",
+              "disposition": "unknown",
+              "complete": false,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "eq",
+                  "left": {
+                    "binding": "resolved_is_forbidden"
+                  },
+                  "right": {
+                    "literal": true
+                  }
+                },
+                "missingBindings": [
+                  "resolved_is_forbidden"
+                ],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "resolved_is_forbidden"
+                    },
+                    "right": {
+                      "literal": true
+                    }
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "auth-download-entry",
+                "auth-file-response-request-doc",
+                "auth-file-response-root-doc",
+                "auth-file-response-forbidden"
+              ],
+              "terminalKeys": [
+                "auth-file-response-forbidden"
+              ],
+              "gaps": [
+                "closure-not-proposed"
+              ],
+              "sourceBound": true
+            },
+            {
+              "questionId": "download-authorization-root-version",
+              "pathKey": "download-served",
+              "state": "blocked",
+              "disposition": "unknown",
+              "complete": false,
+              "predicate": {
+                "truth": "unknown",
+                "residual": {
+                  "op": "eq",
+                  "left": {
+                    "binding": "resolved_is_forbidden"
+                  },
+                  "right": {
+                    "literal": false
+                  }
+                },
+                "missingBindings": [
+                  "resolved_is_forbidden"
+                ],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "unknown"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "unknown"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "all",
+                "args": [
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "resolved_is_forbidden"
+                    },
+                    "right": {
+                      "literal": false
+                    }
+                  }
+                ]
+              },
+              "nodeKeys": [
+                "auth-download-entry",
+                "auth-file-response-request-doc",
+                "auth-file-response-root-doc",
+                "auth-file-response-file-doc",
+                "auth-file-response-effect"
+              ],
+              "terminalKeys": [
+                "auth-file-response-effect"
+              ],
+              "gaps": [
+                "closure-not-proposed"
+              ],
+              "sourceBound": true
+            }
+          ],
+          "uncovered": [
+            "closure-not-proposed",
+            "auth-effective-file-dependency:read",
+            "auth-resolve-request-root-dependency:read",
+            "auth-serve-file-dependency:read"
+          ]
+        }
+      },
+      {
+        "questionId": "download-version-authorization-invariant",
+        "transportValid": true,
+        "referenceValid": true,
+        "ruleConsistent": false,
+        "evidenceCoverage": "unresolved",
+        "semanticReview": "unreviewed",
+        "deliveryStatus": "rejected",
+        "answer": {
+          "questionId": "download-version-authorization-invariant",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The source-visible object identity is not invariant: authorization is against root_doc, while bytes may be opened from a distinct related file_doc selected afterward. No second owner-aware permission check on file_doc is shown. Explicit selection is root-family constrained, so the shown code does not establish substitution of an unrelated document."
+          },
+          "branches": [
+            {
+              "id": "same-object",
+              "condition": "file_doc is root_doc.",
+              "disposition": "allow",
+              "explanation": "The explicit authorization object and the document row supplying the representation coincide.",
+              "evidenceIds": [
+                "ev-990997ca1d3a5267e20b",
+                "ev-02e44f6c9deb225b1857"
+              ]
+            },
+            {
+              "id": "distinct-related-version",
+              "condition": "The root check succeeds and selection yields a related version document distinct from root_doc.",
+              "disposition": "conditional",
+              "explanation": "That version's source/archive handle is served without a shown second permission check on the version row. This proves a control/effect object mismatch, not by itself an unauthorized disclosure.",
+              "evidenceIds": [
+                "ev-990997ca1d3a5267e20b",
+                "ev-a174e487981ce68cae7f",
+                "ev-305fd771ccf8280afd6c",
+                "ev-02e44f6c9deb225b1857"
+              ]
+            },
+            {
+              "id": "authorization-divergence",
+              "condition": "The root check succeeds; file_doc is a distinct related version; root and version rows can have materially different owner/object-grant authorization; and the requester lacks the permission that a direct file_doc check would require.",
+              "disposition": "allow",
+              "explanation": "Under exactly those external conditions, Download returns bytes from a row that was not independently authorized by the shown control. Whether those conditions can occur or violate intended inheritance requires deployment/database and policy validation.",
+              "evidenceIds": [
+                "ev-c860c951e454ac2deecf",
+                "ev-990997ca1d3a5267e20b",
+                "ev-02e44f6c9deb225b1857"
+              ]
+            },
+            {
+              "id": "unrelated-selector",
+              "condition": "The explicit selector identifies a document outside root_doc's root/version family.",
+              "disposition": "deny",
+              "explanation": "The resolver does not select that document, so the shown chain does not serve its file.",
+              "evidenceIds": [
+                "ev-305fd771ccf8280afd6c"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-990997ca1d3a5267e20b",
+            "ev-a174e487981ce68cae7f",
+            "ev-305fd771ccf8280afd6c",
+            "ev-02e44f6c9deb225b1857",
+            "ev-c860c951e454ac2deecf"
+          ],
+          "missing": [
+            {
+              "kind": "deployment-unverified",
+              "detail": "It is not established whether deployed root/version rows can have divergent owners or object grants, whether authorization is intentionally inherited from the root, or whether such divergent rows exist."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "The selected version and backing source/archive file for any concrete request were not validated."
+            },
+            {
+              "kind": "dependency-out-of-scope",
+              "detail": "No independent policy was supplied defining whether root authorization is intended to authorize every related version; this is behavior and object-mismatch analysis, not a normative vulnerability conclusion."
+            }
+          ]
+        },
+        "diagnostics": [
+          {
+            "code": "decisive-dependency-open",
+            "path": "download-version-authorization-invariant",
+            "message": "Decisive source dependencies remain without a corresponding source gap: invariant-file-response-dependency:read. An unspecified user premise or deployment fact cannot conceal them.",
+            "severity": "error"
+          },
+          {
+            "code": "path-not-closed",
+            "path": "download-version-authorization-invariant",
+            "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+            "severity": "error"
+          }
+        ],
+        "trace": {
+          "rules": [
+            {
+              "key": "invariant-download-entry",
+              "kind": "entry",
+              "after": [],
+              "pathKey": "download",
+              "evidenceIds": [
+                "ev-aa429a725d3092cdd115"
+              ]
+            }
+          ],
+          "paths": [
+            {
+              "questionId": "download-version-authorization-invariant",
+              "pathKey": "download",
+              "state": "blocked",
+              "disposition": "unknown",
+              "complete": false,
+              "predicate": {
+                "truth": "true",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "all",
+                    "truth": "true"
+                  }
+                ],
+                "diagnostics": []
+              },
+              "condition": {
+                "op": "all",
+                "args": []
+              },
+              "nodeKeys": [
+                "invariant-download-entry"
+              ],
+              "terminalKeys": [
+                "invariant-download-entry"
+              ],
+              "gaps": [
+                "closure-not-proposed"
+              ],
+              "sourceBound": true
+            }
+          ],
+          "uncovered": [
+            "closure-not-proposed",
+            "invariant-file-response-dependency:read"
+          ]
+        }
+      }
+    ],
+    "usableQuestions": []
+  },
+  "reuse": null,
+  "providerCalls": 12,
+  "respondedCalls": 12,
+  "knownTokens": {
+    "input": 546074,
+    "output": 21510,
+    "cacheRead": 41600,
+    "cacheWrite": 0
+  },
+  "actualUSD": null,
+  "targetExecutions": 0,
+  "semanticReview": "pending",
+  "sourceConfigBytesUnchanged": true,
+  "noAutomaticResend": true
+}

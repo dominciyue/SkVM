@@ -1326,6 +1326,10 @@ AR `evaluate`现接严格语义评审及另存裁定，20项70断言、研究类
 
 原request8约70k证据目录重复且worklist约94k字符。共享修复仅轻量目录单次展示、保留全部状态/动作/引用的队列投影、显式可选helper线索及其轮转；结构化自然入口接通原brief零候选fallback。六项确定性红例后91项507断言及主/研究类型通过，独立核验未发现语义/来源/题域边界绕过。[机械上下文回放](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/compact-context-replay.json)保留同八次原请求窗口/任务，序列化消息2,471,023降到1,455,275字节，11条可选线索完整轮转；没有新model响应或完整当前prompt模拟，不能称实际token/费用或语义收益。累计306派发、无在途、USD/人力unknown、目标0；下一步具名复验当前共享修复，未知Memos/Notes及16行主面板保持原状态。
 
+**compact真实复验与提前对象反馈（2026-10-04）。** 原作者字节和12/24预算的具名普通消费12派发/12响应，21源码动作（18read/3search，其中7host自动），0wire失败；Q1/Q2各22规则，Q3/Q4/Q5为7/6/1，仍无checked题。versioning真实补读发生，但permissions helper和认证声明未读；Q3/Q4还存在已读未关联依赖，不能把所有缺口缩成未读helper。input546074/output21510/cacheRead41600，美元与人力unknown，累计318调用。另一次原配置路径未传递的provider-unavailable原report明确0派发，派生汇总仅在同input/model身份匹配时恢复零，原null和费用不改，3项反例通过。当前实际结果不是质量收益。
+
+过程反馈的共享缺口是typed身份声明不一致到final才提示。2项红例后抽出同一对象检查，按revision在final前反馈，保留partial草稿和最终验收，不自动alias或增加调用；134测试744断言、主/研究类型及独立只读复核通过。11原提议零provider回放保持accepted state及最终6对象诊断，第6提议revision46即可提示身份问题，原首次final revision88；回放无新答案、不升级原失败。下一步同原作者字节具名early-object-feedback复验，Notes/Memos未知请求与主面板暂停继续保留。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

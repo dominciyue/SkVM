@@ -6,6 +6,31 @@ import { createInquiryTools } from "./inquiry-tools.ts"
 import { createInquiryDomainRuntime } from "./inquiry-domain-runtime.ts"
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
 import { validateAuthorizationInquiryResult } from "../../task-dsl/authorization/inquiry-result.ts"
+for (const strategy of ["domain-evidence-v1", "guided-evidence-v2"] as const) test(`${strategy} reports typed identity references before final without rejecting partial updates or inventing aliases`, async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-object-feedback-")); await writeFile(path.join(sourceRoot, "entry.ts"), "export const entry = true\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["entry.ts"] })
+  const evidence = (await tools.execute("source_read", { path: "entry.ts", startLine: 1, endLine: 1 })).evidence[0]!.id
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect entry", premises: [] }] })
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy })
+  const entry = { op: "add", questionId: "q", targetKey: "entry", pathKey: "p", kind: "entry", after: [], evidenceIds: [evidence], claim: "Entry" }
+  const binding = { op: "add", questionId: "q", targetKey: "user", pathKey: "p", after: ["entry"], evidenceIds: [evidence], claim: "Request principal", bindingKind: "principal", bindingKey: "request_user", principal: "authenticated_request_user" }
+  const effect = { ...entry, targetKey: "effect", kind: "effect", after: ["user"], principal: "authenticated_request_user", complete: true }
+  const proposed = await runtime.propose({ schemaVersion: "authorization-control-update/v1", rules: [entry, effect], sourceBindings: [binding] })
+  expect("accepted" in proposed && proposed.accepted).toHaveLength(3)
+  expect("rejected" in proposed && proposed.rejected).toEqual([])
+  const feedback = runtime.modelFeedback()
+  expect(feedback.diagnostics.filter(d => d.code === "object-binding-missing").map(d => d.path).sort()).toEqual(["effect", "user"])
+  expect(feedback.diagnostics[0]!.message).toContain("bindingKey")
+  expect(runtime.report().checkHistory).toEqual([])
+  expect(runtime.report().slice.bindings).toEqual([])
+  const computation = runtime.report().computation as any
+  await runtime.sync(false); runtime.modelFeedback()
+  expect((runtime.report().computation as any).objectFeedbackPasses).toBe(computation.objectFeedbackPasses)
+  await runtime.propose({ schemaVersion: "authorization-control-update/v1", sourceBindings: [{ ...binding, op: "replace", bindingKey: "authenticated_request_user" }] })
+  expect(runtime.modelFeedback().diagnostics).toEqual([])
+  expect(runtime.report().check).toBeUndefined()
+  expect(tools.toolCalls).toBe(1)
+})
 test("rejected extraction diagnostics cannot coexist with a reported consistent complete result", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-runtime-")); await writeFile(path.join(sourceRoot, "entry.ts"), "export const entry = true\n")
   const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["entry.ts"] })

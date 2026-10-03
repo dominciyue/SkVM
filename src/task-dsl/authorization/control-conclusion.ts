@@ -56,13 +56,9 @@ export function evaluateControlPaths(slice: ControlSlice): { paths: ControlPathE
   }
   return { paths, diagnostics, calculationCount }
 }
-export function checkControlConclusions(program: AuthorizationInquiryProgram, slice: ControlSlice, input: unknown, dependencies: DependencyCheckState[]) {
-  const parsed = AuthorizationInquiryResultSchema.safeParse(input), evaluated = evaluateControlPaths(slice), diagnostics = [...evaluated.diagnostics]
-  const policyComparisons: Array<{ questionId: string; status: "satisfied" | "violated" | "undetermined"; origin: "host-derived-from-proposed-policy"; semanticSupport: "unreviewed" }> = []
-  const rawQuestions = input && typeof input === "object" && Array.isArray((input as any).questions) ? (input as any).questions as unknown[] : []
-  const answers = parsed.success ? parsed.data.questions : rawQuestions.flatMap(q => { const p = InquiryQuestionResultSchema.safeParse(q); return p.success ? [p.data] : [] })
-  if (!parsed.success) diagnostics.push(diag("control-result-schema", "$", "Result has no valid complete structured envelope; usable question candidates are checked separately."))
-  for (const conflict of slice.conflicts.filter(c => !c.resolved)) diagnostics.push(diag("control-conflict", conflict.id, "Unresolved conflicting extraction remains; explicit correction is needed.", (conflict.previous as { questionId?: string })?.questionId))
+/** Formal object checks on the current proposed slice; no answer or source interpretation is supplied. */
+export function controlObjectDiagnostics(slice: ControlSlice): InquiryDiagnostic[] {
+  const diagnostics: InquiryDiagnostic[] = []
   for (const rule of slice.rules) {
     const reach = controlRuleReach(slice, rule)
     if (reach.predicate.truth === "false" || reach.stoppedBy.length) continue
@@ -70,7 +66,7 @@ export function checkControlConclusions(program: AuthorizationInquiryProgram, sl
       if (!rule[field] || (rule.kind === "binding" && rule.bindingKind === field && rule.bindingKey === rule[field])) continue
       const declared = slice.rules.filter(r => r.questionId === rule.questionId && r.kind === "binding" && r.bindingKey === rule[field] && r.bindingKind === field)
       const preceding = declared.filter(r => r.key !== rule.key && reach.ancestors.some(a => a.id === r.id))
-      if (!declared.length) diagnostics.push(diag("object-binding-missing", rule.key, `Typed ${field} ${rule[field]} is not bound in this question.`, rule.questionId))
+      if (!declared.length) diagnostics.push(diag("object-binding-missing", rule.key, `Typed ${field} ${rule[field]} is not bound in this question. ${field} references the bindingKey of a same-question ${field} binding; the binding node's own ${field} field is also a reference, not an alias declaration.`, rule.questionId))
       else if (!preceding.length) diagnostics.push(diag("object-binding-unreachable", rule.key, `Typed ${field} ${rule[field]} has no binding among this rule's reachable explicit predecessors.`, rule.questionId))
       else if (preceding.length > 1) diagnostics.push(diag("object-binding-conflict", rule.key, `Typed ${field} ${rule[field]} resolves to multiple distinct predecessor bindings (${preceding.map(r => r.key).join(", ")}); use separate identity keys or explicitly revise the mistaken binding.`, rule.questionId))
     }
@@ -83,6 +79,16 @@ export function checkControlConclusions(program: AuthorizationInquiryProgram, sl
       }
     }
   }
+  return diagnostics
+}
+export function checkControlConclusions(program: AuthorizationInquiryProgram, slice: ControlSlice, input: unknown, dependencies: DependencyCheckState[]) {
+  const parsed = AuthorizationInquiryResultSchema.safeParse(input), evaluated = evaluateControlPaths(slice), diagnostics = [...evaluated.diagnostics]
+  const policyComparisons: Array<{ questionId: string; status: "satisfied" | "violated" | "undetermined"; origin: "host-derived-from-proposed-policy"; semanticSupport: "unreviewed" }> = []
+  const rawQuestions = input && typeof input === "object" && Array.isArray((input as any).questions) ? (input as any).questions as unknown[] : []
+  const answers = parsed.success ? parsed.data.questions : rawQuestions.flatMap(q => { const p = InquiryQuestionResultSchema.safeParse(q); return p.success ? [p.data] : [] })
+  if (!parsed.success) diagnostics.push(diag("control-result-schema", "$", "Result has no valid complete structured envelope; usable question candidates are checked separately."))
+  for (const conflict of slice.conflicts.filter(c => !c.resolved)) diagnostics.push(diag("control-conflict", conflict.id, "Unresolved conflicting extraction remains; explicit correction is needed.", (conflict.previous as { questionId?: string })?.questionId))
+  diagnostics.push(...controlObjectDiagnostics(slice))
   for (const answer of answers) {
     const paths = evaluated.paths.filter(p => p.questionId === answer.questionId), live = paths.filter(p => p.state !== "inapplicable")
     const relevant = dependencies.filter(d => d.questionId === answer.questionId && d.state !== "inapplicable")

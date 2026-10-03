@@ -1,0 +1,98 @@
+{
+  "schemaVersion": "authorization-ar-advisory-review/v1",
+  "date": "2026-10-04",
+  "runSha256": "08c012199531cc0a860f8c16a13aa7724b29d904ed2eec1bbb9e017f82f274ba",
+  "reportSha256": "0e190e21765a9b2ee56ebdd4ff743fb1f6b468b3ab14fb06e2ffbc31824c21bf",
+  "task": "compact_actual_trace_review",
+  "verbatim": false,
+  "observed": [
+    "Versioning helper windows 140-145 and 169-197 were actually read.",
+    "permissions.py:624-637 helper body and views.py:1008-1022 authentication declaration were not read.",
+    "All five question graphs remained invalid."
+  ],
+  "mainAdjudication": [
+    "Final raw check is authoritative: Q3/Q4 also have read dependencies not incorporated into linked rules; their remaining gaps are not limited to unread permissions/authentication.",
+    "Actual source calls are 18 source_read plus 3 source_search, including 7 host automatic actions.",
+    "No semantic rating or quality benefit is derived from accepted rule counts."
+  ],
+  "finalDiagnostics": [
+    {
+      "code": "object-binding-missing",
+      "path": "request-root-view-permission-guard",
+      "message": "Typed principal authenticated_request_user is not bound in this question.",
+      "severity": "error",
+      "questionId": "download-request-document"
+    },
+    {
+      "code": "object-binding-missing",
+      "path": "request-root-view-permission-deny",
+      "message": "Typed principal authenticated_request_user is not bound in this question.",
+      "severity": "error",
+      "questionId": "download-request-document"
+    },
+    {
+      "code": "object-binding-missing",
+      "path": "version-root-view-permission-guard",
+      "message": "Typed principal authenticated_request_user is not bound in this question.",
+      "severity": "error",
+      "questionId": "download-version-selection"
+    },
+    {
+      "code": "object-binding-missing",
+      "path": "version-root-view-permission-deny",
+      "message": "Typed principal authenticated_request_user is not bound in this question.",
+      "severity": "error",
+      "questionId": "download-version-selection"
+    },
+    {
+      "code": "object-binding-missing",
+      "path": "request-authenticated-user",
+      "message": "Typed principal authenticated_request_user is not bound in this question.",
+      "severity": "error",
+      "questionId": "download-request-document"
+    },
+    {
+      "code": "object-binding-missing",
+      "path": "version-authenticated-user",
+      "message": "Typed principal authenticated_request_user is not bound in this question.",
+      "severity": "error",
+      "questionId": "download-version-selection"
+    },
+    {
+      "code": "decisive-dependency-open",
+      "path": "download-original-archive",
+      "message": "Decisive source dependencies remain without a corresponding source gap: representation-original-requested-dependency:read, representation-serve-file-dependency:read. An unspecified user premise or deployment fact cannot conceal them.",
+      "severity": "error"
+    },
+    {
+      "code": "path-not-closed",
+      "path": "download-original-archive",
+      "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+      "severity": "error"
+    },
+    {
+      "code": "decisive-dependency-open",
+      "path": "download-authorization-root-version",
+      "message": "Decisive source dependencies remain without a corresponding source gap: auth-effective-file-dependency:read, auth-resolve-request-root-dependency:read, auth-serve-file-dependency:read. An unspecified user premise or deployment fact cannot conceal them.",
+      "severity": "error"
+    },
+    {
+      "code": "path-not-closed",
+      "path": "download-authorization-root-version",
+      "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+      "severity": "error"
+    },
+    {
+      "code": "decisive-dependency-open",
+      "path": "download-version-authorization-invariant",
+      "message": "Decisive source dependencies remain without a corresponding source gap: invariant-file-response-dependency:read. An unspecified user premise or deployment fact cannot conceal them.",
+      "severity": "error"
+    },
+    {
+      "code": "path-not-closed",
+      "path": "download-version-authorization-invariant",
+      "message": "Current rule slice has no fully linked entry-to-terminal description of every proposed active path; preserve a local gap.",
+      "severity": "error"
+    }
+  ]
+}
