@@ -60,3 +60,15 @@ test("actual mode-specific model contracts omit behavior policy and require conf
   const behavior = api.inquiryStepSchemas("domain-evidence-v1", true, "behavior").modelSchema
   expect(behavior.shape.result.shape.questions.element.shape.policyAssessment).toBeUndefined()
 })
+
+test("guided exploration accepts only unambiguous lossless control envelopes and keeps final-only strict", () => {
+  const controlDelta = { schemaVersion: "authorization-control-update/v1", rules: [] }
+  const { schema, modelSchema } = api.inquiryStepSchemas("guided-evidence-v2")
+  for (const raw of [{ controlDelta }, { kind: "tool", controlDelta }]) {
+    expect(schema.parse(raw)).toMatchObject({ kind: "control", controlDelta })
+    expect(modelSchema.safeParse(raw).success).toBe(false)
+    expect(api.inquiryStepSchemas("guided-evidence-v2", true).schema.safeParse(raw).success).toBe(false)
+  }
+  for (const raw of [{ controlDelta, result: {} }, { controlDelta, observations: [] }, { kind: "tool", controlDelta, calls: [] }, { kind: "invented", controlDelta }, { controlDelta: { schemaVersion: "invented" } }, { controlDelta, extra: true }]) expect(schema.safeParse(raw).success).toBe(false)
+  expect(api.inquiryStepSchemas("legacy").schema.safeParse({ controlDelta }).success).toBe(false)
+})

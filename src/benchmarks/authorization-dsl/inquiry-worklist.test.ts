@@ -28,6 +28,10 @@ test("a zero-graph worklist reads a unique original entry and schedules explicit
   expect(f.tools.toolCalls).toBe(1)
   const ev = f.tools.evidence[0]!.id, slice = mergeControlSlice(empty, { schemaVersion: "authorization-control-slice/v1", rules: [{ key: "entry", questionId: "q", pathKey: "p", kind: "entry", after: [], evidenceIds: [ev], claim: "Calls gate" }] }, f.program, { questionIds: ["q"], shownEvidenceIds: [ev] }).state
   await f.work.run(slice, 2)
+  expect(f.tools.toolCalls).toBe(1)
+  expect(f.work.snapshot().find((w: any) => w.symbol === "gate")).toMatchObject({ state: "awaiting-binding", code: "reference-relevance-unconfirmed" })
+  const linked = mergeControlSlice(slice, { schemaVersion: "authorization-control-slice/v1", dependencies: [{ key: "gate", questionId: "q", pathKey: "p", from: "entry", symbol: "gate", kind: "control", decisive: true, evidenceIds: [ev], reason: "The entry delegates its current authorization decision" }] }, f.program, { questionIds: ["q"], shownEvidenceIds: [ev] }).state
+  await f.work.run(linked, 2)
   expect(f.tools.toolCalls).toBe(2)
   expect(f.tools.evidence.some(e => e.quote.includes("return false"))).toBe(true)
   expect(f.work.snapshot().find((w: any) => w.symbol === "gate").state).toBe("awaiting-interpretation")
@@ -67,10 +71,42 @@ test("a recursive lexical reference becomes a named local gap and never creates 
   await f.work.run(empty, 2)
   const ev = f.tools.evidence[0]!.id
   const slice = mergeControlSlice(empty, { schemaVersion: "authorization-control-slice/v1", rules: [{ key: "entry", questionId: "q", pathKey: "p", kind: "entry", after: [], evidenceIds: [ev], claim: "Calls follow" }] }, f.program, { questionIds: ["q"], shownEvidenceIds: [ev] }).state
+  const follow = f.work.snapshot().find((w: any) => w.symbol === "follow")
+  f.work.selectCandidate({ questionId: "q", itemId: follow.id, candidateId: follow.candidates[0].id })
   await f.work.run(slice, 2)
   await f.work.run(slice, 2)
   expect(f.work.snapshot().some((w: any) => w.state === "blocked" && w.code === "reference-cycle")).toBe(true)
   expect(f.tools.toolCalls).toBe(2)
+})
+
+test("unconfirmed logging and storage references consume no reads or recursive work", async () => {
+  const f = await fixture({ "entry.ts": "export function entry() { logEvent(); return decision(); }\n", "logging.ts": "export function logEvent() { return unrelated(); }\nexport function unrelated() { return true; }\n", "helper.ts": "export function decision() { return false; }\n" })
+  const empty = createControlSlice(); await f.work.run(empty, 2)
+  const ev = f.tools.evidence[0]!.id
+  const slice = mergeControlSlice(empty, { schemaVersion: "authorization-control-slice/v1", rules: [{ key: "entry", questionId: "q", pathKey: "p", kind: "entry", after: [], evidenceIds: [ev], claim: "Calls decision" }], dependencies: [{ key: "decision", questionId: "q", pathKey: "p", from: "entry", symbol: "decision", kind: "control", decisive: true, evidenceIds: [ev], reason: "Determine the requested outcome" }] }, f.program, { questionIds: ["q"], shownEvidenceIds: [ev] }).state
+  await f.work.run(slice, 2)
+  expect(f.tools.evidence.map(e => e.path)).toEqual(["entry.ts", "helper.ts"])
+  expect(f.work.snapshot().find((w: any) => w.symbol === "logEvent")).toMatchObject({ state: "awaiting-binding", code: "reference-relevance-unconfirmed" })
+  expect(f.work.snapshot().some((w: any) => w.symbol === "unrelated")).toBe(false)
+  await f.work.run(slice, 2)
+  expect(f.tools.toolCalls).toBe(2)
+})
+
+test("reference discovery stays inside the selected definition despite an overlapping wider read", async () => {
+  const f = await fixture({ "entry.ts": "export function entry() {\n  return gate();\n}\nexport function neighbor() { return misleading(); }\n", "helper.ts": "export function gate() { return false; }\nexport function misleading() { return true; }\n" })
+  await f.tools.execute("source_read", { path: "entry.ts", startLine: 1, endLine: 4 })
+  f.work.sync(createControlSlice())
+  expect(f.work.snapshot().filter((w: any) => w.origin === "source-reference").map((w: any) => w.symbol)).toEqual(["gate"])
+})
+
+test("the same original definition reached through a dependency does not duplicate lexical duties", async () => {
+  const f = await fixture({ "entry.ts": "export function entry() { return gate(); }\n", "helper.ts": "export function gate() { return false; }\n" })
+  await f.work.run(createControlSlice(), 2)
+  const root = f.work.snapshot().find((w: any) => w.kind === "entry")
+  const work = api.createInquiryWorklist({ program: f.program, tools: f.tools, dependencyStates: () => [{ id: "dep", questionId: "q", symbol: "entry", reason: "The same original definition", state: "read", decisive: true, candidates: [root.selected], evidenceIds: root.evidenceIds }] })
+  work.sync(createControlSlice())
+  work.sync(createControlSlice())
+  expect(work.snapshot().filter((w: any) => w.origin === "source-reference" && w.symbol === "gate")).toHaveLength(1)
 })
 
 test("one recursive candidate cannot block a distinct ambiguous definition before selection", async () => {

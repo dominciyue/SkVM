@@ -1284,6 +1284,8 @@ AM作者original prompt同时含原政策、未来政策、两组expectations及
 
 **恢复后的AR9复核（2026-10-03）。** 独立只读复核发现整体校验失败仍有canonical result，主线程失败用例确认并修复；外层run原已检查valid，但嵌套validation/native工具输出存在误用风险。逐题checks-off原本正确标unverified，复核所指true实际在汇总字段，现改为null并保留基础schema验证。主线程全局源失效注入又确认referenceValid误保留true，已修正；相邻题observation错误、重复答案、全局结构错误与局部可用输出都有确定性覆盖。65项相关回归/338断言通过，新增provider及目标调用0。独立发现与主裁定见`ar9-review-adjudication.json`，不代替语义变形、普通使用与收益验收；继续处理Paperless已保留的共享调度和step格式缺陷。
 
+**Paperless共享调度/格式修复（2026-10-03）。** 主线程原响应点检确认四次错误分别是纯controlDelta漏kind和无calls的纯tool/controlDelta；引导探索parser仅对这两种无含混输入作无损归一，完整模型合同、混合字段拒绝及final专用阶段保持，原response与归一序号单列。词法调度反例确认唯一同名定义会触发无关读取，宽窗口带入邻函数，同一位置多入口重复待办；现只在selected确切范围发现、按原位置去重，未确认引用先等dependency关联或明确候选选择。独立只读核验未发现阻塞，跨模块与真实语义仍由主线程负责。40项/231断言后44项/254断言聚焦验证通过；原首稿18接受及四错误在原源码上零provider重放成功，仅入口/helper两读。该重放没有模型延续和final，不改原timeout-unknown、不解除真实运行的未决恢复限制，也不推断实际费用或收益。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

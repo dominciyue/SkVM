@@ -40,13 +40,21 @@ const localSteps = (delta: typeof LocalControlDeltaSchema | typeof LocalControlE
   z.object({ kind: z.literal("final"), result: AuthorizationInquiryResultSchema, controlDelta: delta.optional() }).strict(),
 ])
 const localModelSteps = localSteps(LocalControlDeltaSchema), localParserSteps = localSteps(LocalControlEnvelopeSchema)
+/** Normalize only pure local-control envelopes; do not infer a tool action or a final answer. */
+export function normalizeGuidedControlEnvelope(input: unknown) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return { value: input }
+  const value = input as Record<string, unknown>, keys = Object.keys(value)
+  if (!("controlDelta" in value) || !keys.every(key => ["kind", "controlDelta"].includes(key))) return { value: input }
+  const code = !("kind" in value) ? "control-kind-omitted" : value.kind === "tool" ? "control-tool-without-calls" : undefined
+  return code ? { value: { ...value, kind: "control" }, normalization: { code, originalKind: value.kind ?? null } } : { value: input }
+}
 export type InquiryStep = InquiryControlStep | z.infer<typeof localParserSteps>
 const resultModelSchema = (mode?: "behavior" | "conformance") => mode ? AuthorizationInquiryResultSchema.extend({ questions: z.array(mode === "behavior" ? InquiryQuestionResultSchema.omit({ policyAssessment: true }) : InquiryQuestionResultSchema.extend({ policyAssessment: InquiryQuestionResultSchema.shape.policyAssessment.unwrap() })) }) : AuthorizationInquiryResultSchema
 export function inquiryStepSchemas(strategy: InquiryStrategy, finalOnly = false, mode?: "behavior" | "conformance") {
   const fullModel = strategy === "guided-evidence-v2" ? localModelSteps : strategy === "legacy" ? LegacyStepSchema : canonicalStep
   const modelOptions: [z.ZodDiscriminatedUnionOption<"kind">, ...z.ZodDiscriminatedUnionOption<"kind">[]] = [fullModel.options[0], ...fullModel.options.slice(1).map(option => "result" in option.shape ? option.extend({ result: resultModelSchema(mode) }) : option)]
   const modelSchema = finalOnly ? modelOptions.at(-1)! : z.discriminatedUnion("kind", modelOptions)
-  if (strategy === "guided-evidence-v2") return { schema: finalOnly ? localParserSteps.options[3] : localParserSteps, modelSchema }
+  if (strategy === "guided-evidence-v2") return { schema: finalOnly ? localParserSteps.options[3] : z.preprocess(input => normalizeGuidedControlEnvelope(input).value, localParserSteps), modelSchema }
   const schema = strategy === "legacy" ? LegacyStepSchema : finalOnly ? ControlFinalStepSchema : ControlStepSchema
   return { schema, modelSchema }
 }

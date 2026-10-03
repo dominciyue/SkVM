@@ -269,3 +269,26 @@ test("guided source accounting counts selected raw windows and does not cite cat
   expect(run.sourceAccounting.cumulativeModelSourceBytes).toBe(selectedBytes * 2)
   expect(run.sourceAccounting.resentSourceBytes).toBe(selectedBytes)
 })
+
+test("lossless guided control normalization retains raw responses and uses no repair dispatch", async () => {
+  const input = await setup(), mock = scripted((params, n) => {
+    const prompt = params.messages[0]!.content, context = JSON.parse(prompt.split("Current local explanation context: ")[1]!.split("\n\nRemaining dispatches:")[0]!)
+    const task = context.tasks[0]
+    if (n === 0) return { controlDelta: { schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: task.itemId, rules: [{ op: "add", targetKey: "entry", pathKey: "p", kind: "entry", after: [], claim: "Calls guard" }], dependencies: [{ op: "add", targetKey: "guard", pathKey: "p", from: "entry", symbol: "guard", kind: "control", decisive: true, reason: "The requested decision depends on this call" }] }] } }
+    if (n === 1) {
+      expect(context.sourceWindows.some((e: any) => e.text.includes("return false"))).toBe(true)
+      return { kind: "tool", controlDelta: { schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: task.itemId, rules: [{ op: "add", targetKey: "stop", pathKey: "p", kind: "reject", after: ["entry"], claim: "Rejects the operation", complete: true }] }] } }
+    }
+    const helper = context.evidenceCatalog.find((e: any) => e.path === "src/helper.ts")
+    return final(helper.id)
+  })
+  const run = await runAuthorizationInquiry({ ...input, method: "M", strategy: "guided-evidence-v2", provider: mock.provider, maxDispatches: 4 })
+  expect(run.status).toBe("completed")
+  expect(mock.count()).toBe(3)
+  expect(run.wireFailures).toEqual([])
+  expect(run.wireNormalizations.map(n => [n.sequence, n.code])).toEqual([[1, "control-kind-omitted"], [2, "control-tool-without-calls"]])
+  expect(JSON.parse(run.wireNormalizations[0]!.rawResponse).kind).toBeUndefined()
+  expect(JSON.parse(run.wireNormalizations[1]!.rawResponse).kind).toBe("tool")
+  expect(run.domain!.dependencies[0]!.state).toBe("checked")
+  expect(run.toolHistory).toHaveLength(2)
+})

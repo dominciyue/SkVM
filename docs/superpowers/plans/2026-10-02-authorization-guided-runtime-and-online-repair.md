@@ -205,6 +205,7 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 - [x] 禁止对决定性源码做未经核验的语义压缩来节省 token。可以机械选窗、去重、显示范围和已保存证据索引。
 - [x] 预留检查与最终交付机会，检查不能被编译/反复observe耗尽。真实同一根因诊断去重后再修，不把完整错误清单重复灌回模型。
 - [ ] 量化每个解决缺口的调用/读取/重发字节；出现“调用增加却无状态进展”立即登记并修调度，不只抬预算。
+- 2026-10-03 probe-3修复方案：发现词法引用时只读selected定义确切行范围，同题同原位置去重；未被明确关联dependency或局部candidate选择的引用只保留线索，不自动读。仅guided探索阶段将根部纯controlDelta及无calls的纯tool/controlDelta无损归一为control，保留原文与归一记录；含混字段/无效delta/最后final专用阶段仍拒绝。不提高原预算、不重发attempt-3未知请求。
 - [ ] 回归中确认首答、检查失败后修订、总限额、关闭后无续发、不同问题的局部结果保存。
 
 ### AR9 — 从局部规则到分层答案检查
@@ -224,6 +225,7 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 
 - [ ] `--strategy=guided-evidence-v2` 两入口共用合同、队列、状态和检查。不要创建研究专用的成功分支。
 - [ ] 原 skill 仍通过 loader 加载完整原文与 references；宿主能从已有 task 编译已知声明，减少无意义的重复编译调用，模型 authored 声明的成本另计。
+- 2026-10-03接线细节：guided native收到完整input.inquiry时初始化同一program/runtime，compile工具不再重复暴露，记录host-input来源及0编译工具调用；仅brief仍由模型声明且计入原预算。原skill/reference loader与旧策略接线不改；实际四消费另验。
 - [ ] 保持 skill 其它职责和原回答格式，领域能力只服务明确授权问题。用户不手填 trace、正确 helper 名、控制图或 oracle。
 - [ ] 真实使用 Cloudflare security-audit 与 GitHub security-review 的已归档正文，各覆盖原任务及一个前提/政策变化；四次都从普通入口启动。
 - [ ] 每次检查 trace 中补读、局部解释、分支计算、最终检查、文字交付五步是否真实发生。没有适用自动读取/排除时明确说明，不用无关动作刷采用率；失败现场修复并单列复测。

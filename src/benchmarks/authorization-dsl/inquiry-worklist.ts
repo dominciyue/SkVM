@@ -44,15 +44,19 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
   const discoverReferences = (parent: WorkItem) => {
     if (!parent.selected) return
     const names = new Set<string>(); let skippedDeclaration = false
-    for (const e of evidenceFor(parent.selected)) for (const [offset, line] of e.quote.split(/\r?\n/).entries()) for (const match of line.matchAll(/\b([A-Za-z_$][\w$]*)\s*\(/g)) {
-      const name = match[1]!
-      if (name === parent.selected.name && !skippedDeclaration && e.startLine + offset === parent.selected.startLine) { skippedDeclaration = true; continue }
-      if (!syntax.has(name)) names.add(name)
+    for (const e of evidenceFor(parent.selected)) for (const [offset, line] of e.quote.split(/\r?\n/).entries()) {
+      const lineNumber = e.startLine + offset
+      if (lineNumber < parent.selected.startLine || lineNumber > parent.selected.endLine) continue
+      for (const match of line.matchAll(/\b([A-Za-z_$][\w$]*)\s*\(/g)) {
+        const name = match[1]!
+        if (name === parent.selected.name && !skippedDeclaration && lineNumber === parent.selected.startLine) { skippedDeclaration = true; continue }
+        if (!syntax.has(name)) names.add(name)
+      }
     }
     for (const name of names) {
       const candidates = options.tools.locateSymbols(name)
       if (!candidates.length) continue
-      const id = stableId([parent.questionId, parent.id, name])
+      const id = stableId([parent.questionId, parent.selected.id, name])
       if (items.has(id)) continue
       if ([...items.values()].filter(i => i.questionId === parent.questionId && i.origin === "source-reference").length >= 32) { parent.code = "work-reference-limit"; break }
       items.set(id, make(id, parent.questionId, "guard", "source-reference", `Interpret the lexical reference ${name} in relation to this current question; its role is not established.`, { symbol: name, parentId: parent.id, candidates: candidates.slice(0, 16), callsiteEvidenceIds: [...parent.evidenceIds] }))
@@ -95,6 +99,7 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
       const parentRules = item.parentId ? represented(items.get(item.parentId)!, slice) : []
       if (item.parentId && !parentRules.length) { transition(item, "awaiting-binding", "bind", "Interpret and link the parent source window before reading this lexical candidate.", "parent-interpretation-pending"); continue }
       const declared = item.origin === "source-reference" ? slice.dependencies.filter(d => d.questionId === item.questionId && d.symbol === item.symbol && parentRules.some(r => r.key === d.from)).map(d => dependencies.find(s => s.id === d.id)) : []
+      if (item.origin === "source-reference" && !declared.length && !choices.has(item.id)) { item.evidenceIds = []; transition(item, "awaiting-binding", "bind", "This lexical name is only a lead. Link a relevant source dependency or explicitly choose its candidate before reading it.", "reference-relevance-unconfirmed"); continue }
       if (declared.length && declared.every(d => d?.state === "inapplicable")) { transition(item, "closed", "none", "All explicitly linked occurrences are unreachable under the current proposed controls; a later correction can reopen this candidate.", "dependency-unreachable"); continue }
       if (candidate.boundary === "uncertain") { transition(item, "blocked", "interpret", "The indexed declaration boundary is uncertain. Request an explicit original range and explain its coverage before promotion.", "source-boundary-uncertain"); continue }
       if (coveredThrough(candidate) < candidate.endLine) { transition(item, "awaiting-read", "read", "A unique allowed candidate still has original lines not shown.", "source-range-unread"); continue }
