@@ -210,6 +210,9 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 - 2026-10-03 Memos首探针2派发失败：原稿提供明确calls却漏kind；修稿补kind但controlDelta漏当前策略常量schemaVersion。计划以真实原件作红绿回归：仅guided已选合同补缺失的版本常量，明确非空合法calls且没有其它分支字段时补tool种类，记录归一；显式错误版本/含混结果/空calls仍拒绝。原模型Schema仍要求完整字段，不改语义项或自动选择candidate，原失败与成本单列，修后同题复验。
 - [ ] 回归中确认首答、检查失败后修订、总限额、关闭后无续发、不同问题的局部结果保存。
 
+- 2026-10-03 Memos修后12响应仍无checked交付：入口首次局部解释后转awaiting-verification，却在闭合前不再offered；后续两个入口增量被拒，$local包装诊断无法通过有效同题更新清除。计划先红绿验证未闭合已读工作项继续可解释、待解释项优先，以及包装错误的同题恢复；具体字段错误、别题错误和源码失效继续保留。原语义回答与图缺陷分层评价，原attempt不覆盖。
+- 上述生命周期红绿修复已通过62项334断言，真实前四步离线重放保留原10接受、下一增量从整体拒绝转10接受/3项Schema拒绝；没有生成新final。原12次响应wire失败为0，证明先前协议根因改善；当前图仍未闭合，语义评阅partial与主源码裁定分存。累计46派发，下一步仅同题具名修复，Paperless未知请求与主质量面板仍封存。
+
 ### AR9 — 从局部规则到分层答案检查
 
 文件：control-conclusion.ts、inquiry-result.ts、inquiry-domain-runtime.ts、各自测试。

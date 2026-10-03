@@ -22,7 +22,7 @@ export const LOCAL_CONTROL_GUIDE = [
 const diagnostic = (code: string, at: string, message: string): InquiryDiagnostic => ({ code, path: at, message, severity: "error" })
 type Identity = { group: Group; questionId: string; targetKey: string }
 export interface UpdateAcceptance extends Identity { status: "changed" | "unchanged" | "kept-unknown" }
-export interface UpdateRejection extends Identity { diagnostics: InquiryDiagnostic[] }
+export interface UpdateRejection extends Identity { diagnostics: InquiryDiagnostic[]; localEnvelope?: true }
 function unresolvedLinks(state: ControlSlice, rejected: UpdateRejection[]) {
   const output: Array<{ group: "rules" | "dependencies"; questionId: string; targetKey: string; rejectedTarget: string; code: string }> = []
   const ruleMissing = (q: string, key: string) => !state.rules.some(r => r.questionId === q && r.key === key) || rejected.some(p => p.questionId === q && p.targetKey === key && ["rules", "sourceBindings"].includes(p.group))

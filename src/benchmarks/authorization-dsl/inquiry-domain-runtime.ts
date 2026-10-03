@@ -72,8 +72,10 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
       }
       const identity = (p: UpdateAcceptance | UpdateRejection) => `${p.group === "sourceBindings" ? "rules" : p.group === "premiseValues" ? "bindings" : p.group}.${p.questionId}.${p.targetKey}`
       if (merged.envelopeValid) issues.delete("$schema")
-      for (const p of merged.accepted) issues.delete(identity(p))
-      for (const p of merged.rejected) issues.set(merged.envelopeValid ? identity(p) : "$schema", p.diagnostics)
+      // A later accepted submission supersedes routing/container errors only in its own question.
+      // Rejected semantic targets and source invalidation retain their existing independent lifetimes.
+      for (const p of merged.accepted) { issues.delete(identity(p)); issues.delete(`$local-envelope.${p.questionId}`); issues.delete("$local-envelope.") }
+      for (const p of merged.rejected) issues.set(merged.envelopeValid ? "localEnvelope" in p && p.localEnvelope ? `$local-envelope.${p.questionId}` : identity(p) : "$schema", p.diagnostics)
       const diagnostics = selectionDiagnostics.concat(merged.rejected.flatMap(p => p.diagnostics), merged.unresolved.map(p => ({ code: p.code, path: `${p.group}.${p.questionId}.${p.targetKey}`, message: `Referenced item ${p.rejectedTarget} is missing or rejected; this work is not closed.`, severity: "error" as const })))
       proposals.push({ delta: structuredClone(delta), diagnostics, revision: slice.revision, accepted: merged.accepted, rejected: merged.rejected, unresolved: merged.unresolved })
       const { actions, evaluated } = await sync()

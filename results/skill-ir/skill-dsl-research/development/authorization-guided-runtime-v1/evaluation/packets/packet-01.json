@@ -1,0 +1,251 @@
+{
+  "schemaVersion": "authorization-ar-source-review-packet/v1",
+  "naturalTask": "Check DeleteSpaceMember in this Memos revision against the independently supplied current policy. May an ordinary space member remove a different member, and do visible admin and self-removal paths differ? Do not assume deployment middleware or undocumented role grants. Explain actual behavior, compare it with the policy, cite the controlling source and preserve any decisive missing facts.",
+  "mode": "conformance",
+  "independentPolicy": {
+    "text": "Only a space administrator may remove another member from that space. This policy does not prohibit a member leaving the space themselves.",
+    "origin": "user",
+    "location": "experimental-user-brief:memos-member-policy/v1"
+  },
+  "sourceRoot": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-domain-execution-v1\\model\\public-source\\memos",
+  "repository": "usememos/memos",
+  "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4",
+  "allowedPaths": [
+    "server/api/v1",
+    "core/access",
+    "store",
+    "proto/api/v1",
+    "internal/ratelimit"
+  ],
+  "answers": {
+    "A": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "No: on the source-visible service path, an ordinary space member may not remove a different member. DeleteSpaceMember resolves the authenticated caller and the selected target membership, compares caller and target, and requires requireSpaceAdministrator when they differ; that helper accepts only an exact SpaceMemberRoleAdmin membership and otherwise returns PermissionDenied. When caller and target are the same user, the administrator check is skipped and the deletion is attempted, so the visible self-removal path differs from the different-member path."
+          },
+          "branches": [
+            {
+              "id": "q1/different-member/ordinary-member",
+              "condition": "The authenticated caller is an active member of the selected space, the target is a different active member, and the caller's membership role is not SpaceMemberRoleAdmin.",
+              "disposition": "deny",
+              "explanation": "The different-user branch invokes requireSpaceAdministrator on the caller membership. That helper rejects a nil membership or any role other than SpaceMemberRoleAdmin with PermissionDenied, before the delete effect. Therefore an ordinary member cannot remove a different member on this service path.",
+              "evidenceIds": [
+                "ev-3ab3a4498be30e923f85",
+                "ev-2ffb20e72c767923a83d",
+                "ev-7a80e5045e5259c2eebb"
+              ]
+            },
+            {
+              "id": "q1/different-member/administrator",
+              "condition": "The authenticated caller is a SpaceMemberRoleAdmin in the selected space and the target is a different active member.",
+              "disposition": "allow",
+              "explanation": "For a different target, the same administrator helper succeeds only for the exact administrator role; execution then reaches Store.DeleteSpaceMember for the resolved space and target user. This is the visible administrative removal path.",
+              "evidenceIds": [
+                "ev-3ab3a4498be30e923f85",
+                "ev-2ffb20e72c767923a83d",
+                "ev-7a80e5045e5259c2eebb",
+                "ev-066cd917e5475e400f0a"
+              ]
+            },
+            {
+              "id": "q1/self-removal",
+              "condition": "The authenticated caller and resolved active target member are the same user.",
+              "disposition": "allow",
+              "explanation": "The service's administrator requirement applies only when caller and target differ. A same-user request skips that check and reaches Store.DeleteSpaceMember for the resolved membership. The caller still must satisfy the visible current-user and space/member resolution requirements; this is not an unauthenticated removal path.",
+              "evidenceIds": [
+                "ev-3ab3a4498be30e923f85",
+                "ev-6bfdcf8382f33bcc314f",
+                "ev-2ffb20e72c767923a83d",
+                "ev-066cd917e5475e400f0a"
+              ]
+            },
+            {
+              "id": "q1/invalid-or-inactive-target",
+              "condition": "The selected target user does not exist, is not normal, lacks a membership in the selected space, or has a non-active membership role.",
+              "disposition": "deny",
+              "explanation": "resolveSpaceMemberResource returns NotFound rather than allowing the delete path when the target user or active target membership cannot be resolved.",
+              "evidenceIds": [
+                "ev-2ffb20e72c767923a83d"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-3ab3a4498be30e923f85",
+            "ev-6bfdcf8382f33bcc314f",
+            "ev-2ffb20e72c767923a83d",
+            "ev-7a80e5045e5259c2eebb",
+            "ev-066cd917e5475e400f0a",
+            "ev-2e58b04da3035688ff4e"
+          ],
+          "missing": [
+            {
+              "kind": "deployment-unverified",
+              "detail": "Deployment middleware, runtime routing configuration, and undocumented role grants were not verified and were not assumed. The conclusion describes the source-visible APIV1Service path."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The concrete database backend implementation was not needed to decide the authorization branches. The visible service invokes the store deletion operation, but backend-specific mutation details were not traced; read the selected store/db backend's DeleteSpaceMember implementation if physical deletion semantics are required.",
+              "nextRead": "Read DeleteSpaceMember in the concrete selected backend under store/db/{mysql,postgres,sqlite}/space.go."
+            }
+          ],
+          "policyAssessment": {
+            "status": "satisfied",
+            "explanation": "The actual source-visible branches conform to the independently supplied policy: removing a different member is denied unless the caller is a space administrator, while self-removal bypasses the administrator-only check and is not prohibited. This assessment does not rely on deployment middleware or undocumented grants."
+          }
+        }
+      ],
+      "observations": [],
+      "scope": "usememos/memos@cb42e326ba9cc266a6a9570c53e0fe04c62793f4; reviewed the source-visible DeleteSpaceMember service path and cited helpers within allowed paths server/api/v1 and store. No claim of all-repository or deployed-runtime coverage."
+    },
+    "B": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "unknown",
+            "explanation": "The available source evidence identifies the DeleteSpaceMember entry and shows relevant helper bodies, but the entry body and the complete effect path are not source-visible in the current windows. Therefore I cannot safely claim whether the ordinary-member/different-member branch is rejected, whether self-removal bypasses administration, or whether any upstream endpoint control applies. The existing proposed predicates are not independently established source semantics."
+          },
+          "branches": [
+            {
+              "id": "q1/different-member/ordinary-member",
+              "condition": "The caller is a space member and the target is a different active member; caller is not a space administrator.",
+              "disposition": "unknown",
+              "explanation": "resolveSpaceMemberResource binds the caller membership and target membership, and rejects a missing or inactive target, but the shown resolver does not itself establish the delete authorization decision. The shown administrator helper denies when the caller membership is nil or its role is not exactly SpaceMemberRoleAdmin, but the DeleteSpaceMember entry's call and branch conditions are not visible here. Thus an ordinary member's ability to remove another member is unresolved.",
+              "evidenceIds": [
+                "ev-3ab3a4498be30e923f85",
+                "ev-2ffb20e72c767923a83d",
+                "ev-7a80e5045e5259c2eebb"
+              ]
+            },
+            {
+              "id": "q1/different-member/administrator",
+              "condition": "The caller is a space administrator and the target is a different active member.",
+              "disposition": "unknown",
+              "explanation": "The source-visible helper requireSpaceAdministrator permits only a non-nil membership whose role equals SpaceMemberRoleAdmin, otherwise returning PermissionDenied. It is not yet established from the visible entry body that this helper controls the different-member delete effect.",
+              "evidenceIds": [
+                "ev-3ab3a4498be30e923f85",
+                "ev-2ffb20e72c767923a83d",
+                "ev-7a80e5045e5259c2eebb"
+              ]
+            },
+            {
+              "id": "q1/self-removal",
+              "condition": "The caller is the same member as the target and is an active space member.",
+              "disposition": "unknown",
+              "explanation": "The resolver binds caller and target memberships and requires the target membership role to be active. The shown store interface declares DeleteSpaceMember, but the actual entry branch that would distinguish self-removal from removal of another member is not visible. Consequently the apparent self-removal exception cannot be confirmed.",
+              "evidenceIds": [
+                "ev-3ab3a4498be30e923f85",
+                "ev-2ffb20e72c767923a83d",
+                "ev-066cd917e5475e400f0a"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-3ab3a4498be30e923f85",
+            "ev-2ffb20e72c767923a83d",
+            "ev-7a80e5045e5259c2eebb",
+            "ev-066cd917e5475e400f0a"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "Read the complete original body of server/api/v1/space_service.go DeleteSpaceMember at lines 741-764, including all conditionals, helper calls, and the Store.DeleteSpaceMember invocation, because the currently returned evidence ID does not include its source text in the current source windows.",
+              "nextRead": "source_read server/api/v1/space_service.go lines 741-764"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "Read the complete relevant store implementation(s) reached by the service, or establish which store implementation is in scope, to confirm the target effect and whether it has any additional authorization or self-removal behavior.",
+              "nextRead": "source_read store/space.go lines 250-290, then the selected concrete store implementation if the service delegates through that interface"
+            },
+            {
+              "kind": "source-gap",
+              "detail": "Confirm whether an upstream endpoint/router control invokes authentication or space-membership checks before DeleteSpaceMember. No deployment middleware or undocumented role grant may be assumed.",
+              "nextRead": "Read the in-scope endpoint registration/callsite in allowed server/api/v1 source if present"
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "Deployment middleware, routing configuration, and runtime role grants were not verified and are not used to infer authorization."
+            }
+          ],
+          "policyAssessment": {
+            "status": "undetermined",
+            "explanation": "The independent policy requires administrator authorization for removing another member and does not prohibit self-removal. Those policy mappings are clear, but conformance cannot be determined until the source-visible DeleteSpaceMember branch and relevant upstream controls are read and linked. The decisive missing fact is whether the different-member effect is guarded by requireSpaceAdministrator and whether the self-removal path is separately allowed."
+          }
+        }
+      ],
+      "observations": [],
+      "scope": "usememos/memos@cb42e326ba9cc266a6a9570c53e0fe04c62793f4; allowed source paths limited to server/api/v1, core/access, store, proto/api/v1, internal/ratelimit; this is not a claim of all-repository coverage"
+    }
+  },
+  "citedSource": [
+    {
+      "id": "ev-3ab3a4498be30e923f85",
+      "path": "server/api/v1/space_service.go",
+      "startLine": 741,
+      "endLine": 764,
+      "text": "741 | func (s *APIV1Service) DeleteSpaceMember(ctx context.Context, request *v1pb.DeleteSpaceMemberRequest) (*emptypb.Empty, error) {\n742 | \tcurrentUser, err := s.requireCurrentSpaceUser(ctx)\n743 | \tif err != nil {\n744 | \t\treturn nil, err\n745 | \t}\n746 | \t_, targetUser, callerMembership, targetMembership, err := s.resolveSpaceMemberResource(ctx, request.Name, currentUser)\n747 | \tif err != nil {\n748 | \t\treturn nil, err\n749 | \t}\n750 | \tisSelf := targetUser.ID == currentUser.ID\n751 | \tif !isSelf {\n752 | \t\tif err := requireSpaceAdministrator(callerMembership); err != nil {\n753 | \t\t\treturn nil, err\n754 | \t\t}\n755 | \t}\n756 | \tif err := s.Store.DeleteSpaceMember(ctx, &store.DeleteSpaceMember{\n757 | \t\tSpaceID: targetMembership.SpaceID,\n758 | \t\tUserID:  targetMembership.UserID,\n759 | \t}, currentUser.ID); err != nil {\n760 | \t\treturn nil, mapSpaceMutationError(err, \"failed to delete space member\")\n761 | \t}\n762 | \ts.SSEHub.publishSpaceChanged()\n763 | \treturn &emptypb.Empty{}, nil\n764 | }\n"
+    },
+    {
+      "id": "ev-2e58b04da3035688ff4e",
+      "path": "server/api/v1/connect_services.go",
+      "startLine": 650,
+      "endLine": 656,
+      "text": "650 | func (s *ConnectServiceHandler) DeleteSpaceMember(ctx context.Context, req *connect.Request[v1pb.DeleteSpaceMemberRequest]) (*connect.Response[emptypb.Empty], error) {\n651 | \tresp, err := s.APIV1Service.DeleteSpaceMember(ctx, req.Msg)\n652 | \tif err != nil {\n653 | \t\treturn nil, convertGRPCError(err)\n654 | \t}\n655 | \treturn connect.NewResponse(resp), nil\n656 | }\n"
+    },
+    {
+      "id": "ev-244b38cf5550f496ad46",
+      "path": "server/api/v1/space_service.go",
+      "startLine": 1,
+      "endLine": 90,
+      "text": "1 | package v1\n2 | \n3 | import (\n4 | \t\"context\"\n5 | \t\"database/sql\"\n6 | \t\"strings\"\n7 | \n8 | \t\"github.com/pkg/errors\"\n9 | \t\"google.golang.org/grpc/codes\"\n10 | \t\"google.golang.org/grpc/status\"\n11 | \t\"google.golang.org/protobuf/proto\"\n12 | \t\"google.golang.org/protobuf/types/known/emptypb\"\n13 | \n14 | \tv1pb \"github.com/usememos/memos/proto/gen/api/v1\"\n15 | \tstorepb \"github.com/usememos/memos/proto/gen/store\"\n16 | \t\"github.com/usememos/memos/store\"\n17 | )\n18 | \n19 | func (s *APIV1Service) requireCurrentSpaceUser(ctx context.Context) (*store.User, error) {\n20 | \tuser, err := s.fetchCurrentUser(ctx)\n21 | \tif err != nil {\n22 | \t\treturn nil, status.Errorf(codes.Internal, \"failed to get current user: %v\", err)\n23 | \t}\n24 | \tif user == nil {\n25 | \t\treturn nil, status.Error(codes.Unauthenticated, \"user not authenticated\")\n26 | \t}\n27 | \treturn user, nil\n28 | }\n29 | \n30 | func (s *APIV1Service) resolveMemberSpace(ctx context.Context, name string, currentUser *store.User) (*store.Space, *store.SpaceMember, error) {\n31 | \tuid, err := ExtractSpaceUIDFromName(name)\n32 | \tif err != nil {\n33 | \t\treturn nil, nil, status.Errorf(codes.InvalidArgument, \"invalid space name: %v\", err)\n34 | \t}\n35 | \tspace, err := s.Store.GetSpace(ctx, &store.FindSpace{UID: &uid, MemberUserID: &currentUser.ID})\n36 | \tif err != nil {\n37 | \t\treturn nil, nil, status.Errorf(codes.Internal, \"failed to get space: %v\", err)\n38 | \t}\n39 | \tif space == nil {\n40 | \t\treturn nil, nil, status.Error(codes.NotFound, \"space not found\")\n41 | \t}\n42 | \tmember, err := s.Store.GetSpaceMember(ctx, &store.FindSpaceMember{SpaceID: &space.ID, UserID: &currentUser.ID})\n43 | \tif err != nil {\n44 | \t\treturn nil, nil, status.Errorf(codes.Internal, \"failed to get space membership: %v\", err)\n45 | \t}\n46 | \tif member == nil || !member.Role.IsActiveMember() {\n47 | \t\t// A non-member must not be able to distinguish an existing private\n48 | \t\t// collaboration boundary from a missing resource.\n49 | \t\treturn nil, nil, status.Error(codes.NotFound, \"space not found\")\n50 | \t}\n51 | \treturn space, member, nil\n52 | }\n53 | \n54 | func requireSpaceAdministrator(member *store.SpaceMember) error {\n55 | \tif member == nil || member.Role != store.SpaceMemberRoleAdmin {\n56 | \t\treturn status.Error(codes.PermissionDenied, \"space administrator permission required\")\n57 | \t}\n58 | \treturn nil\n59 | }\n60 | \n61 | func mapSpaceMutationError(err error, operation string) error {\n62 | \tswitch {\n63 | \tcase err == nil:\n64 | \t\treturn nil\n65 | \tcase errors.Is(err, store.ErrLastSpaceAdmin):\n66 | \t\treturn status.Error(codes.FailedPrecondition, \"a space must retain an active administrator\")\n67 | \tcase errors.Is(err, store.ErrSpacePermissionDenied):\n68 | \t\treturn status.Error(codes.NotFound, \"space not found\")\n69 | \tcase errors.Is(err, store.ErrSpaceMemberNotActive):\n70 | \t\treturn status.Error(codes.FailedPrecondition, \"space members must be active users\")\n71 | \tcase errors.Is(err, store.ErrSpaceAlreadyExists):\n72 | \t\treturn status.Error(codes.AlreadyExists, \"space already exists\")\n73 | \tcase errors.Is(err, store.ErrSpaceMemberAlreadyExists):\n74 | \t\treturn status.Error(codes.AlreadyExists, \"space membership or invitation already exists\")\n75 | \tcase errors.Is(err, store.ErrSpaceInvitationNotFound):\n76 | \t\treturn status.Error(codes.NotFound, \"space invitation not found\")\n77 | \tcase errors.Is(err, store.ErrSpaceNotFound), errors.Is(err, store.ErrSpaceMemberNotFound):\n78 | \t\treturn status.Error(codes.NotFound, \"space or membership not found\")\n79 | \tcase errors.Is(err, sql.ErrNoRows):\n80 | \t\treturn status.Error(codes.NotFound, \"space or membership not found\")\n81 | \tdefault:\n82 | \t\treturn status.Errorf(codes.Internal, \"%s: %v\", operation, err)\n83 | \t}\n84 | }\n85 | \n86 | // CreateSpace creates a space with the caller as its first administrator.\n87 | func (s *APIV1Service) CreateSpace(ctx context.Context, request *v1pb.CreateSpaceRequest) (*v1pb.Space, error) {\n88 | \tcurrentUser, err := s.requireCurrentSpaceUser(ctx)\n89 | \tif err != nil {\n90 | \t\treturn nil, err\n"
+    },
+    {
+      "id": "ev-1a837121eec25036d34f",
+      "path": "server/api/v1/space_service.go",
+      "startLine": 620,
+      "endLine": 670,
+      "text": "620 | \t}\n621 | \tfor _, member := range members {\n622 | \t\tuser := usersByID[member.UserID]\n623 | \t\tif user == nil || user.RowStatus != store.Normal || convertSpaceMemberRoleFromStore(member.Role) == v1pb.SpaceMember_ROLE_UNSPECIFIED {\n624 | \t\t\t// Malformed/dangling memberships are never exposed as active access.\n625 | \t\t\tcontinue\n626 | \t\t}\n627 | \t\tresponse.SpaceMembers = append(response.SpaceMembers, convertSpaceMemberFromStore(space, user, member))\n628 | \t}\n629 | \treturn response, nil\n630 | }\n631 | \n632 | func (s *APIV1Service) resolveSpaceMemberResource(ctx context.Context, name string, currentUser *store.User) (*store.Space, *store.User, *store.SpaceMember, *store.SpaceMember, error) {\n633 | \tspaceUID, username, err := ExtractSpaceMemberTokensFromName(name)\n634 | \tif err != nil {\n635 | \t\treturn nil, nil, nil, nil, status.Errorf(codes.InvalidArgument, \"invalid space member name: %v\", err)\n636 | \t}\n637 | \tspace, callerMembership, err := s.resolveMemberSpace(ctx, buildSpaceName(spaceUID), currentUser)\n638 | \tif err != nil {\n639 | \t\treturn nil, nil, nil, nil, err\n640 | \t}\n641 | \ttargetUser, err := ResolveUserByName(ctx, s.Store, BuildUserName(username))\n642 | \tif err != nil {\n643 | \t\treturn nil, nil, nil, nil, status.Errorf(codes.Internal, \"failed to resolve member user: %v\", err)\n644 | \t}\n645 | \tif targetUser == nil {\n646 | \t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n647 | \t}\n648 | \tif targetUser.RowStatus != store.Normal {\n649 | \t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n650 | \t}\n651 | \ttargetMembership, err := s.Store.GetSpaceMember(ctx, &store.FindSpaceMember{\n652 | \t\tSpaceID:      &space.ID,\n653 | \t\tUserID:       &targetUser.ID,\n654 | \t\tViewerUserID: &currentUser.ID,\n655 | \t})\n656 | \tif err != nil {\n657 | \t\treturn nil, nil, nil, nil, status.Errorf(codes.Internal, \"failed to get space membership: %v\", err)\n658 | \t}\n659 | \tif targetMembership == nil || !targetMembership.Role.IsActiveMember() {\n660 | \t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n661 | \t}\n662 | \treturn space, targetUser, callerMembership, targetMembership, nil\n663 | }\n664 | \n665 | // GetSpaceMember gets one membership visible to another member of the space.\n666 | func (s *APIV1Service) GetSpaceMember(ctx context.Context, request *v1pb.GetSpaceMemberRequest) (*v1pb.SpaceMember, error) {\n667 | \tcurrentUser, err := s.requireCurrentSpaceUser(ctx)\n668 | \tif err != nil {\n669 | \t\treturn nil, err\n670 | \t}\n"
+    },
+    {
+      "id": "ev-f44137263542e65dc30e",
+      "path": "store/space.go",
+      "startLine": 250,
+      "endLine": 290,
+      "text": "250 | \tmembers, err := s.ListSpaceMembers(ctx, find)\n251 | \tif err != nil {\n252 | \t\treturn nil, err\n253 | \t}\n254 | \tif len(members) == 0 {\n255 | \t\treturn nil, nil\n256 | \t}\n257 | \treturn members[0], nil\n258 | }\n259 | \n260 | // UpdateSpaceMember updates and returns a membership after checking that the\n261 | // change keeps an active ADMIN.\n262 | func (s *Store) UpdateSpaceMember(ctx context.Context, update *UpdateSpaceMember, actorUserID int32) (*SpaceMember, error) {\n263 | \tif update == nil || update.Role == nil {\n264 | \t\treturn nil, errors.New(\"space member role is required\")\n265 | \t}\n266 | \tif update.Role != nil && !update.Role.IsActiveMember() {\n267 | \t\treturn nil, errors.New(\"invalid space member role\")\n268 | \t}\n269 | \treturn s.driver.UpdateSpaceMember(ctx, update, actorUserID)\n270 | }\n271 | \n272 | // DeleteSpaceMember deletes a membership after checking that the change keeps\n273 | // an active ADMIN.\n274 | func (s *Store) DeleteSpaceMember(ctx context.Context, delete *DeleteSpaceMember, actorUserID int32) error {\n275 | \tif delete == nil || delete.SpaceID <= 0 || delete.UserID <= 0 || actorUserID <= 0 {\n276 | \t\treturn errors.New(\"space member deletion requires space, user, and actor\")\n277 | \t}\n278 | \treturn s.driver.DeleteSpaceMember(ctx, delete, actorUserID)\n279 | }\n280 | \n281 | // CreateSpaceInvitation creates a pending invitation. It never creates an\n282 | // active membership; only the invitee can do that by accepting it.\n283 | func (s *Store) CreateSpaceInvitation(ctx context.Context, create *SpaceInvitation, actorUserID int32) (*SpaceInvitation, error) {\n284 | \tif create == nil || create.SpaceID <= 0 || create.UserID <= 0 || actorUserID <= 0 {\n285 | \t\treturn nil, errors.New(\"space invitation requires space, user, and actor\")\n286 | \t}\n287 | \tif !create.Role.IsActiveMember() {\n288 | \t\treturn nil, errors.New(\"invalid space invitation role\")\n289 | \t}\n290 | \treturn s.driver.CreateSpaceInvitation(ctx, create, actorUserID)\n"
+    },
+    {
+      "id": "ev-2ffb20e72c767923a83d",
+      "path": "server/api/v1/space_service.go",
+      "startLine": 632,
+      "endLine": 663,
+      "text": "632 | func (s *APIV1Service) resolveSpaceMemberResource(ctx context.Context, name string, currentUser *store.User) (*store.Space, *store.User, *store.SpaceMember, *store.SpaceMember, error) {\n633 | \tspaceUID, username, err := ExtractSpaceMemberTokensFromName(name)\n634 | \tif err != nil {\n635 | \t\treturn nil, nil, nil, nil, status.Errorf(codes.InvalidArgument, \"invalid space member name: %v\", err)\n636 | \t}\n637 | \tspace, callerMembership, err := s.resolveMemberSpace(ctx, buildSpaceName(spaceUID), currentUser)\n638 | \tif err != nil {\n639 | \t\treturn nil, nil, nil, nil, err\n640 | \t}\n641 | \ttargetUser, err := ResolveUserByName(ctx, s.Store, BuildUserName(username))\n642 | \tif err != nil {\n643 | \t\treturn nil, nil, nil, nil, status.Errorf(codes.Internal, \"failed to resolve member user: %v\", err)\n644 | \t}\n645 | \tif targetUser == nil {\n646 | \t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n647 | \t}\n648 | \tif targetUser.RowStatus != store.Normal {\n649 | \t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n650 | \t}\n651 | \ttargetMembership, err := s.Store.GetSpaceMember(ctx, &store.FindSpaceMember{\n652 | \t\tSpaceID:      &space.ID,\n653 | \t\tUserID:       &targetUser.ID,\n654 | \t\tViewerUserID: &currentUser.ID,\n655 | \t})\n656 | \tif err != nil {\n657 | \t\treturn nil, nil, nil, nil, status.Errorf(codes.Internal, \"failed to get space membership: %v\", err)\n658 | \t}\n659 | \tif targetMembership == nil || !targetMembership.Role.IsActiveMember() {\n660 | \t\treturn nil, nil, nil, nil, status.Error(codes.NotFound, \"space member not found\")\n661 | \t}\n662 | \treturn space, targetUser, callerMembership, targetMembership, nil\n663 | }\n"
+    },
+    {
+      "id": "ev-066cd917e5475e400f0a",
+      "path": "store/space.go",
+      "startLine": 272,
+      "endLine": 279,
+      "text": "272 | // DeleteSpaceMember deletes a membership after checking that the change keeps\n273 | // an active ADMIN.\n274 | func (s *Store) DeleteSpaceMember(ctx context.Context, delete *DeleteSpaceMember, actorUserID int32) error {\n275 | \tif delete == nil || delete.SpaceID <= 0 || delete.UserID <= 0 || actorUserID <= 0 {\n276 | \t\treturn errors.New(\"space member deletion requires space, user, and actor\")\n277 | \t}\n278 | \treturn s.driver.DeleteSpaceMember(ctx, delete, actorUserID)\n279 | }\n"
+    },
+    {
+      "id": "ev-6bfdcf8382f33bcc314f",
+      "path": "server/api/v1/space_service.go",
+      "startLine": 19,
+      "endLine": 28,
+      "text": "19 | func (s *APIV1Service) requireCurrentSpaceUser(ctx context.Context) (*store.User, error) {\n20 | \tuser, err := s.fetchCurrentUser(ctx)\n21 | \tif err != nil {\n22 | \t\treturn nil, status.Errorf(codes.Internal, \"failed to get current user: %v\", err)\n23 | \t}\n24 | \tif user == nil {\n25 | \t\treturn nil, status.Error(codes.Unauthenticated, \"user not authenticated\")\n26 | \t}\n27 | \treturn user, nil\n28 | }\n"
+    },
+    {
+      "id": "ev-7a80e5045e5259c2eebb",
+      "path": "server/api/v1/space_service.go",
+      "startLine": 54,
+      "endLine": 59,
+      "text": "54 | func requireSpaceAdministrator(member *store.SpaceMember) error {\n55 | \tif member == nil || member.Role != store.SpaceMemberRoleAdmin {\n56 | \t\treturn status.Error(codes.PermissionDenied, \"space administrator permission required\")\n57 | \t}\n58 | \treturn nil\n59 | }\n"
+    }
+  ],
+  "instructions": "Assess each answer independently against original source and the task. Separate correct source behavior, requested scenario completeness, justified limits and citation support. Review source beyond a quote when decisive. Do not assume deployment controls. Report file:line evidence; no method or mechanical score is provided."
+}

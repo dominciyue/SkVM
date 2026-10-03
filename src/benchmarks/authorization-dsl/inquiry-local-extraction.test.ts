@@ -97,6 +97,40 @@ test("explicitly rerequested old evidence reenters the current windows even when
   expect(f.runtime.modelContext().sourceWindows.some((e: any) => e.startLine === 1)).toBe(true)
 })
 
+test("an interpreted entry remains available for local completion until its graph is checked", async () => {
+  const f = await fixture(); f.runtime.modelContext()
+  await f.runtime.propose({ schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: "q::entry", rules: [entry()] }] })
+  const context = f.runtime.modelContext()
+  expect(context.tasks.map((t: any) => t.itemId)).toContain("q::entry")
+  expect(context.sourceWindows[0].text).toBe(f.tools.evidence[0]!.text)
+  const completed = await f.runtime.propose({ schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: "q::entry", rules: [entry({ targetKey: "stop", kind: "reject", after: ["entry"], complete: true })] }] })
+  expect(completed.diagnostics).toEqual([])
+  const checked = await f.runtime.validate({ schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q", behavior: { disposition: "deny", explanation: "Proposed complete rejection" }, evidenceIds: [f.tools.evidence[0]!.id], branches: [], missing: [] }], observations: [], scope: "local" })
+  expect(checked.ruleConsistency).toBe(true)
+  expect(f.runtime.modelContext().tasks.map((t: any) => t.itemId)).not.toContain("q::entry")
+})
+
+test("an accepted same-question correction clears a prior local envelope failure but not item errors or another question", async () => {
+  const f = await fixture(["a", "b", "c"].map(id => ({ id, request: "Investigate entry", entryHint: "entry", premises: [] })))
+  expect(f.runtime.modelContext().tasks.map((t: any) => t.itemId)).not.toContain("c::entry")
+  const failed = await f.runtime.propose({ schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: "c::entry", rules: [entry()] }] })
+  expect(failed.diagnostics.some((d: any) => d.code === "local-work-not-offered")).toBe(true)
+  const evidenceIds = [f.tools.evidence[0]!.id]
+  await f.runtime.propose({ schemaVersion: "authorization-control-update/v1", rules: [entry({ questionId: "a", evidenceIds }), entry({ questionId: "c", targetKey: "bad", evidenceIds: ["invented"] })] })
+  expect(f.runtime.feedback().diagnostics.some((d: any) => d.code === "local-work-not-offered")).toBe(true)
+  await f.runtime.propose({ schemaVersion: "authorization-control-update/v1", rules: [entry({ questionId: "c", evidenceIds })] })
+  expect(f.runtime.feedback().diagnostics.some((d: any) => d.code === "local-work-not-offered")).toBe(false)
+  expect(f.runtime.feedback().diagnostics.some((d: any) => d.code === "evidence-not-shown")).toBe(true)
+  expect(f.runtime.report().localExtractions[0].diagnostics[0].code).toBe("local-work-not-offered")
+})
+
+test("new source interpretation precedes revisiting already interpreted questions", async () => {
+  const f = await fixture(["a", "b", "c"].map(id => ({ id, request: "Investigate entry", entryHint: "entry", premises: [] })))
+  const tasks = f.runtime.modelContext().tasks
+  await f.runtime.propose({ schemaVersion: "authorization-control-update/v1", localExtractions: tasks.map((t: any) => ({ itemId: t.itemId, rules: [entry()] })) })
+  expect(f.runtime.modelContext().tasks[0].itemId).toBe("c::entry")
+})
+
 test("local schema feedback names the mechanical repair without inventing a dependency operation", async () => {
   const f = await fixture(); f.runtime.modelContext()
   const dependency = { targetKey: "helper", pathKey: "p", from: "entry", symbol: "entry", kind: "control", decisive: true, reason: "Inspect the called control" }

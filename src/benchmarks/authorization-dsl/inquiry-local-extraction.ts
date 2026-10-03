@@ -39,6 +39,7 @@ export const LOCAL_EXTRACTION_GUIDE = [
   'An entry read does not close its called authorization helpers or upstream endpoint controls. Interpret the entry first, name decisive source dependencies, then interpret their actual windows and link the resulting conditions. Mark a terminal complete only after its relevant reachable controls and dependencies are examined. Policy pathKey must match the actual proposed behavior path, with expected outcome mapped from independent policy rather than source.',
   "Unconfirmed lexical references are optional location leads, not compulsory explanation tasks. Link a dependency from the actual source rule when relevant to this question, or choose a shown candidate to inspect it. A unique same-name definition alone does not establish relevance or receiver identity.",
   "Local explanation joins the next ordinary structured/native step. It does not create an extra provider request. You may still use ordinary changed control groups for already shown source outside an offered fragment. Invalid local items remain diagnosed while good siblings are retained, subject to the requested atomic update.",
+  "An interpreted source item remains editable until its question is checked. Amend existingTargets with op:replace and a reason when correcting the same source rule; renaming a mistaken rule does not withdraw it. After a stale local envelope rejection, use a currently offered task or a valid same-question ordinary update; specific rejected target diagnostics still require correction of those targets.",
 ].join("\n")
 
 export interface LocalExplanationTask {
@@ -49,10 +50,12 @@ export interface LocalExplanationTask {
 /** Mechanically select whole already-read windows; no semantic source compression or provider call. */
 export function localExplanationContext(program: AuthorizationInquiryProgram, items: WorkItem[], evidence: InquiryEvidence[], slice: ControlSlice, diagnosticEvidenceIds: string[] = [], recentEvidenceIds = evidence.slice(-2).map(e => e.id)) {
   const tasks: LocalExplanationTask[] = [], seen = new Set<string>(), byQuestion = new Map<string, WorkItem[]>()
-  for (const q of program.questions) byQuestion.set(q.id, items.filter(i => i.questionId === q.id && i.evidenceIds.length > 0 && (["awaiting-interpretation", "awaiting-binding"].includes(i.state) || i.state === "awaiting-verification" && i.evidenceIds.some(id => diagnosticEvidenceIds.includes(id))) && (i.origin !== "question-duty" || i.kind === "entry")))
+  const priority = (i: WorkItem) => i.evidenceIds.some(id => diagnosticEvidenceIds.includes(id)) ? 0 : i.state === "awaiting-interpretation" ? 1 : i.state === "awaiting-binding" ? 2 : 3
+  for (const q of program.questions) byQuestion.set(q.id, items.filter(i => i.questionId === q.id && i.evidenceIds.length > 0 && ["awaiting-interpretation", "awaiting-binding", "awaiting-verification"].includes(i.state) && (i.origin !== "question-duty" || i.kind === "entry")).sort((a, b) => priority(a) - priority(b)))
+  const questions = [...program.questions].sort((a, b) => (byQuestion.get(a.id)?.[0] ? priority(byQuestion.get(a.id)![0]!) : 4) - (byQuestion.get(b.id)?.[0] ? priority(byQuestion.get(b.id)![0]!) : 4))
   for (let offset = 0; tasks.length < 2 && offset < items.length; offset++) {
     let found = false
-    for (const q of program.questions) {
+    for (const q of questions) {
       const item = byQuestion.get(q.id)?.[offset]
       if (!item || tasks.length >= 2) continue
       const sourceIds = item.evidenceIds.filter(id => evidence.some(e => e.id === id)), key = JSON.stringify([q.id, sourceIds])
@@ -72,10 +75,10 @@ export function expandLocalExtractions(input: unknown[], offered: LocalExplanati
   for (const raw of input) {
     const value = raw && typeof raw === "object" ? raw as Record<string, unknown> : {}, itemId = String(value.itemId ?? ""), task = offered.find(t => t.itemId === itemId), item = items.find(i => i.id === itemId)
     const expanded: Record<string, unknown[]> = {}, diagnostics: InquiryDiagnostic[] = [], parsed = extractionEnvelope.safeParse(raw)
-    const fail = (group: LocalUpdateGroup, targetKey: string, code: string, message: string, suffix = "") => { const d: InquiryDiagnostic = { code, path: `${group}.${task?.question.id ?? item?.questionId ?? ""}.${targetKey}${suffix}`, message, severity: "error" }; diagnostics.push(d); rejected.push({ group, questionId: task?.question.id ?? item?.questionId ?? "", targetKey, diagnostics: [d] }) }
-    if (!task) fail("rules", "$local", "local-work-not-offered", "Use an offered current WorkItem; the host cannot bind an invented or stale task.")
+    const fail = (group: LocalUpdateGroup, targetKey: string, code: string, message: string, suffix = "", localEnvelope = false) => { const d: InquiryDiagnostic = { code, path: `${group}.${task?.question.id ?? item?.questionId ?? ""}.${targetKey}${suffix}`, message, severity: "error" }; diagnostics.push(d); rejected.push({ group, questionId: task?.question.id ?? item?.questionId ?? "", targetKey, diagnostics: [d], ...(localEnvelope ? { localEnvelope: true as const } : {}) }) }
+    if (!task) fail("rules", "$local", "local-work-not-offered", "Use an offered current WorkItem or an ordinary same-question update with already shown evidence. The host cannot bind this stale or invented local envelope.", "", true)
     else if (!item || item.code === "source-invalidated") fail("rules", "$local", "local-source-invalidated", "This original window changed or its WorkItem is absent; start a fresh source session.")
-    else if (!parsed.success) for (const d of parsed.error.issues) fail("rules", "$local", "local-extraction-schema", d.message, `.${d.path.join(".")}`)
+    else if (!parsed.success) for (const d of parsed.error.issues) fail("rules", "$local", "local-extraction-schema", d.message, `.${d.path.join(".")}`, true)
     else for (const group of Object.keys(LocalExtractionItemSchemas) as LocalUpdateGroup[]) for (const [index, candidate] of parsed.data[group].entries()) {
       const checked = LocalExtractionItemSchemas[group].safeParse(candidate), key = String(candidate && typeof candidate === "object" ? (candidate as Record<string, unknown>).targetKey ?? `invalid-${index}` : `invalid-${index}`)
       if (!checked.success) { for (const d of checked.error.issues) fail(group, key, "local-extraction-schema", localSchemaMessage(d), `.${d.path.join(".")}`); continue }
