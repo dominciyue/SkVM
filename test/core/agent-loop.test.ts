@@ -38,6 +38,26 @@ test("ordinary iteration budget prevents an unaccounted continuation and reports
   expect(result.allToolCalls).toHaveLength(1)
 })
 
+test("deferred tool history retains source identity and complete ordinary file windows", async () => {
+  const body = "a".repeat(2500) + "decisive tail"
+  let turn = 0, history: CompletionParams["messages"] = []
+  const response = (): LLMResponse => ({ text: "", toolCalls: ++turn < 3 ? [{ id: `r${turn}`, name: "read_file", arguments: { path: `source/file-${turn}.yml` } }] : [], tokens: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 }, durationMs: 0, stopReason: turn < 3 ? "tool_use" : "end_turn" })
+  const provider: LLMProvider = { name: "history", complete: async () => response(), completeWithToolResults: async params => { history = structuredClone(params.messages); return response() } }
+  await runAgentLoop({ provider, model: "mock", tools: [], executeTool: async () => ({ output: body, durationMs: 0 }), system: "", maxIterations: 3, timeoutMs: 5000 }, [])
+  expect(JSON.stringify(history)).toContain("source/file-1.yml")
+  expect(JSON.stringify(history)).toContain("decisive tail")
+})
+
+test("explicit history clipping is visible and keeps the tool argument identity", async () => {
+  let turn = 0, history: CompletionParams["messages"] = []
+  const response = (): LLMResponse => ({ text: "", toolCalls: ++turn < 3 ? [{ id: `r${turn}`, name: "read_file", arguments: { path: `file-${turn}` } }] : [], tokens: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 }, durationMs: 0, stopReason: turn < 3 ? "tool_use" : "end_turn" })
+  const provider: LLMProvider = { name: "history", complete: async () => response(), completeWithToolResults: async params => { history = structuredClone(params.messages); return response() } }
+  await runAgentLoop({ provider, model: "mock", tools: [], executeTool: async () => ({ output: "abcdefghijk", durationMs: 0 }), system: "", maxIterations: 3, timeoutMs: 5000, toolHistoryCharacterLimit: 8 }, [])
+  expect(JSON.stringify(history)).toContain("file-1")
+  expect(JSON.stringify(history)).toContain("[history truncated: 8/11 characters]")
+  expect(JSON.stringify(history)).not.toContain("ijk")
+})
+
 describe("runAgentLoop deadline detection", () => {
   test("post-loop check catches over-time await that returned end_turn", async () => {
     // Regression for round-6 / sweep G6: the in-loop deadline check only

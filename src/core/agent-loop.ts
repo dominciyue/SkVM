@@ -51,6 +51,7 @@ export interface AgentLoopConfig {
    * should opt in.
    */
   parallelToolExecution?: boolean
+  /** Per-result history window; clipping is explicit. Default 16,000 characters. */
   toolHistoryCharacterLimit?: number
   /** @deprecated The dispatch boundary is now enforced for every run. */
   stopBeforeIterationLimit?: boolean
@@ -252,8 +253,11 @@ export async function runAgentLoop(
       // Stage current exchange for next iteration
       const actionSig = response.toolCalls.map(tc => `${tc.name}(${JSON.stringify(tc.arguments)})`).sort().join("|")
       pendingHistory = [
-        { role: "assistant", content: response.text || `[Called: ${response.toolCalls.map(tc => tc.name).join(", ")}]` },
-        { role: "user", content: toolResults.map(tr => tr.content.slice(0, config.toolHistoryCharacterLimit ?? 2000)).join("\n---\n") },
+        { role: "assistant", content: [response.text, `[Called: ${response.toolCalls.map(tc => `${tc.name}(${JSON.stringify(tc.arguments)})`).join(", ")}]`].filter(Boolean).join("\n") },
+        { role: "user", content: toolResults.map(tr => {
+          const limit = config.toolHistoryCharacterLimit ?? 16000
+          return `[Tool result ${tr.toolCallId}]\n${tr.content.slice(0, limit)}${tr.content.length > limit ? `\n[history truncated: ${limit}/${tr.content.length} characters]` : ""}`
+        }).join("\n---\n") },
       ]
       runtimeTrace?.turnEnd(iteration)
 
