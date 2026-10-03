@@ -1,0 +1,22 @@
+# Skill Resource Index
+
+Configured skill root: `C:\Users\14182\AppData\Local\Temp\jit-optimize-GpLop7`
+
+This is a navigation index of the complete configured skill copy. A file or rule not observed in the trace remains readable here; absence from one run is not evidence that the rule is unused or safe to remove.
+
+| Path | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `LICENSE` | 1059 | `e32449d23085399adc1222f7a17408b730550258e51627c153cb108ca9955823` |
+| `references/language-patterns.md` | 5341 | `ddfbcbb68b9d605789c85a168a274219f0ad86f5fc76b46b5332eb42f0c042b3` |
+| `references/report-format.md` | 6780 | `688ef9f2862303527314eb17a090a72d512b907a685f5d1f122d6ebd5ae66db1` |
+| `references/secret-patterns.md` | 3524 | `38f84f60021490d785f33fc70f2ce784888d2a751781a881372e6862e7e11288` |
+| `references/vuln-categories.md` | 7913 | `d06159479bd92b9dcf3a2842e09f7712f1fd297c0bc9792fe20bc3cb69188df5` |
+| `references/vulnerable-packages.md` | 3979 | `8693a6a258bad18a8a1d0925bc1eae9c744071ff37a36b8f1da83adca93608af` |
+| `SKILL.md` | 9094 | `002392d88637b89e4cbc409a0531834970937f3b57c0b448a17e04b5ca6d356c` |
+| `source.json` | 1275 | `f133254b803158612d12104a5d8be4c0f3a97fd8e7d06ac9d8aa2b285a5ef314` |
+
+## Explicit Trace Bindings
+
+- Evidence 0: `D:\skill优化\SkVM\.skvm\log\runtime\bare-agent\xty--gpt-5.6-sol\natural-702d1a1a6869\20261003-220531-run-bar-0f87e0f2\optimization-evidence.json` at `run:20261003-220531-run-bare-agent-gpt-5.6-sol-natural-702d1a1a6869-1a6334a7`
+  - trace-declared skill: `D:\skill优化\SkVM\.skvm\log\runtime\bare-agent\xty--gpt-5.6-sol\natural-702d1a1a6869\20261003-220531-run-bar-0f87e0f2\skill\SKILL.md`
+  - configured optimization skill: `C:\Users\14182\AppData\Local\Temp\jit-optimize-GpLop7`

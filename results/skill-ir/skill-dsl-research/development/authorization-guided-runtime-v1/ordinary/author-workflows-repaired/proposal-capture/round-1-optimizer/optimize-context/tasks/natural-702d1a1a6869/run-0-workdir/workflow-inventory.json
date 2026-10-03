@@ -1,0 +1,215 @@
+{
+  "schema_version": "1.0",
+  "generated_date": "2026-10-03",
+  "review_mode": "offline-static",
+  "scope": {
+    "requested_path": "./source",
+    "workflow_files_found": 1,
+    "note": "The supplied scope contains one YAML workflow file directly under source/ rather than under a .github/workflows directory. It was inventoried as supplied."
+  },
+  "permission_state_definitions": {
+    "explicit_map": "A permissions mapping is declared at this level. Scopes not listed in the mapping are treated as none by GitHub Actions permission semantics.",
+    "explicit_empty": "permissions is explicitly empty (for example, permissions: {}), disabling all GITHUB_TOKEN scopes at this level.",
+    "omitted_inherits": "No permissions key is declared at the job level; the job inherits the workflow-level declaration.",
+    "omitted_platform_default": "No permissions key is declared at either workflow or job level; effective access depends on repository/organization defaults."
+  },
+  "workflows": [
+    {
+      "file": "source/release.yml",
+      "name": "release",
+      "name_evidence": {
+        "line": 1,
+        "snippet": "name: release"
+      },
+      "trigger_evidence": {
+        "start_line": 3,
+        "end_line": 6,
+        "snippet": "on:\n  push:\n    tags:\n      - \"v*\""
+      },
+      "declared_token_permissions": {
+        "state": "explicit_map",
+        "evidence": {
+          "start_line": 8,
+          "end_line": 10,
+          "snippet": "permissions:\n  contents: write\n  id-token:[REDACTED]
+        },
+        "scopes": {
+          "contents": "write",
+          "id-token": "write"
+        },
+        "unlisted_scopes": "none"
+      },
+      "jobs": [
+        {
+          "id": "build",
+          "job_evidence": {
+            "line": 13,
+            "snippet": "build:"
+          },
+          "declared_token_permissions": {
+            "state": "omitted_inherits",
+            "permissions_key_present": false,
+            "evidence": {
+              "start_line": 13,
+              "end_line": 21,
+              "snippet": "build:\n  runs-on: macos-latest\n  outputs:\n    version: ${{ steps.version.outputs.version }}\n  steps:"
+            },
+            "inherited_from": "workflow",
+            "effective_static_permissions": {
+              "contents": "write",
+              "id-token": "write"
+            },
+            "unlisted_scopes": "none"
+          },
+          "action_uses": [
+            {
+              "reference": "actions/checkout@v4",
+              "owner": "actions",
+              "repository": "checkout",
+              "ref": "v4",
+              "ref_kind": "mutable_tag",
+              "evidence": {
+                "line": 23,
+                "snippet": "uses: actions/checkout@v4"
+              }
+            },
+            {
+              "reference": "oven-sh/setup-bun@v2",
+              "owner": "oven-sh",
+              "repository": "setup-bun",
+              "ref": "v2",
+              "ref_kind": "mutable_tag",
+              "evidence": {
+                "line": 28,
+                "snippet": "uses: oven-sh/setup-bun@v2"
+              }
+            },
+            {
+              "reference": "actions/upload-artifact@v4",
+              "owner": "actions",
+              "repository": "upload-artifact",
+              "ref": "v4",
+              "ref_kind": "mutable_tag",
+              "evidence": {
+                "line": 63,
+                "snippet": "uses: actions/upload-artifact@v4"
+              }
+            }
+          ]
+        },
+        {
+          "id": "release",
+          "job_evidence": {
+            "line": 71,
+            "snippet": "release:"
+          },
+          "declared_token_permissions": {
+            "state": "omitted_inherits",
+            "permissions_key_present": false,
+            "evidence": {
+              "start_line": 71,
+              "end_line": 74,
+              "snippet": "release:\n  needs: build\n  runs-on: ubuntu-latest\n  steps:"
+            },
+            "inherited_from": "workflow",
+            "effective_static_permissions": {
+              "contents": "write",
+              "id-token": "write"
+            },
+            "unlisted_scopes": "none"
+          },
+          "action_uses": [
+            {
+              "reference": "actions/checkout@v4",
+              "owner": "actions",
+              "repository": "checkout",
+              "ref": "v4",
+              "ref_kind": "mutable_tag",
+              "evidence": {
+                "line": 76,
+                "snippet": "uses: actions/checkout@v4"
+              }
+            },
+            {
+              "reference": "actions/download-artifact@v4",
+              "owner": "actions",
+              "repository": "download-artifact",
+              "ref": "v4",
+              "ref_kind": "mutable_tag",
+              "evidence": {
+                "line": 81,
+                "snippet": "uses: actions/download-artifact@v4"
+              }
+            },
+            {
+              "reference": "softprops/action-gh-release@v2",
+              "owner": "softprops",
+              "repository": "action-gh-release",
+              "ref": "v2",
+              "ref_kind": "mutable_tag",
+              "evidence": {
+                "line": 87,
+                "snippet": "uses: softprops/action-gh-release@v2"
+              }
+            }
+          ]
+        },
+        {
+          "id": "npm-publish",
+          "job_evidence": {
+            "line": 96,
+            "snippet": "npm-publish:"
+          },
+          "declared_token_permissions": {
+            "state": "explicit_map",
+            "permissions_key_present": true,
+            "evidence": {
+              "start_line": 99,
+              "end_line": 101,
+              "snippet": "permissions:\n  contents: read\n  id-token:[REDACTED]
+            },
+            "scopes": {
+              "contents": "read",
+              "id-token": "write"
+            },
+            "unlisted_scopes": "none",
+            "overrides_workflow_permissions": true
+          },
+          "action_uses": [
+            {
+              "reference": "actions/checkout@v4",
+              "owner": "actions",
+              "repository": "checkout",
+              "ref": "v4",
+              "ref_kind": "mutable_tag",
+              "evidence": {
+                "line": 112,
+                "snippet": "uses: actions/checkout@v4"
+              }
+            },
+            {
+              "reference": "actions/setup-node@v4",
+              "owner": "actions",
+              "repository": "setup-node",
+              "ref": "v4",
+              "ref_kind": "mutable_tag",
+              "evidence": {
+                "line": 117,
+                "snippet": "uses: actions/setup-node@v4"
+              }
+            }
+          ]
+        }
+      ],
+      "inventory_totals": {
+        "jobs": 3,
+        "action_uses_occurrences": 8,
+        "unique_action_references": 6,
+        "jobs_with_explicit_permission_map": 1,
+        "jobs_with_explicit_empty_permissions": 0,
+        "jobs_with_omitted_permissions_inheriting_workflow": 2,
+        "jobs_with_omitted_permissions_using_platform_default": 0
+      }
+    }
+  ]
+}

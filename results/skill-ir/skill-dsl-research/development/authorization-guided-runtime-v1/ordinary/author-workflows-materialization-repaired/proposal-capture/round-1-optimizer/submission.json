@@ -1,0 +1,143 @@
+{
+  "rootCause": "The skill describes a broad security-review sequence but does not define a CI/workflow-specific scope contract: it neither tells the agent to inventory workflow files found outside conventional directories nor specifies how to preserve the distinction between explicit, empty, inherited, and platform-default token permissions or how to capture action-reference evidence. As a result, a workflow-focused request can be handled as an incomplete generic audit unless the agent invents those reporting rules.",
+  "reasoning": "Evidence 0 is a clean, runStatus=ok execution with concrete artifacts but no structured score. The task required an offline GitHub Actions inventory and a scoped review. The agent successfully produced useful outputs, yet the trace shows an initial attempt to enumerate only source/.github/workflows even though the supplied workflow was source/release.yml, and the skill itself had no explicit rule for this boundary, for permission-state semantics, or for action ref mutability. The observed output had to invent those distinctions and the nonstandard-path explanation. I therefore tightened the existing Scope Resolution section in place and added a bounded requirement to the existing report-generation step, rather than adding a parallel workflow or changing the broad security-review scope.\n\nPre-edit checklist: (a) Generality: the same clarification benefits a task reviewing CI workflows, deployment manifests, reusable workflows, or IaC files supplied outside conventional directories, not only this release workflow. (b) Rewrite-in-place: the missing scope and reporting contract belongs directly in Step 1 and Step 7, so those sections were edited in place. (c) Coherent scope: the smallest complete fix is instructional; no executable is justified because the evidence contains one task-specific YAML input, no source interface, and no independent validator. (d) No-trade-off: there are no PASSING tasks in PER_TASK_SUMMARY.md. The change preserves generic code, dependency, secrets, data-flow, self-verification, severity, and patch-review requirements, while adding workflow-specific behavior only when that scope is requested. Expected impact is better completeness and less path/semantic guessing on workflow reviews, with no restriction on ordinary repository audits.\n\nOpportunity audit: instruction-clarity is implemented because the skill now states the missing workflow scope, permission-state distinctions, ref classification, and offline boundaries. Input-parameterization is retained: the requested root and discovered workflow paths remain agent/task inputs, and no task-specific path is hard-coded. Repeated-transformation is not-applicable: the evidence shows no repeated mechanical transformation that can be generalized into a bundled command. Artifact-production is retained rather than falsely marked implemented: the skill now specifies the inventory contents, but no independent artifact-producing program is supported by the source interface evidence. Verification is implemented at the reporting-contract level by requiring file/line evidence and explicit unverified live facts; semantic security judgment remains with the agent. Environment-dependency is retained: repository defaults, remote action contents, CVEs, and deployment behavior remain environment-dependent and must not be claimed offline. Residual-duty remains: the agent must locate all supplied files, interpret YAML accurately, assess least privilege and supply-chain risk, and avoid inventing runtime or live advisory facts.",
+  "confidence": 0.9,
+  "changedFiles": [
+    "SKILL.md"
+  ],
+  "changes": [
+    {
+      "file": "SKILL.md",
+      "section": "Step 1 — Scope Resolution",
+      "description": "Add a bounded CI/IaC scope rule and explicit GitHub Actions permission and action-reference inventory semantics so agents do not assume a conventional directory or collapse omitted and empty permissions.",
+      "generality": "A review of a workflow supplied directly under a project root, a reusable workflow in a custom directory, or a deployment manifest outside its conventional folder would benefit from the same path and evidence rules.",
+      "linesDelta": 7
+    },
+    {
+      "file": "SKILL.md",
+      "section": "Step 7 — Generate Security Report",
+      "description": "Require workflow-focused reports to include the structured inventory, evidence boundary, and explicit offline limitations without weakening the ordinary report format.",
+      "generality": "Any CI/CD review involving multiple jobs, token scopes, mutable action references, or unavailable live repository state benefits from this reporting contract.",
+      "linesDelta": 5
+    }
+  ],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "Delegate workflow-specific scope resolution and reporting structure: identify supplied workflow files wherever they occur, classify permission declarations and action refs, and preserve file/line evidence; parameters are the requested root and discovered files; resources are the workflow YAML and report-format reference; the check source is the task's required inventory and offline-review boundary.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must still interpret YAML, assess security impact, and make context-dependent findings and recommendations."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "Keep the requested scope and discovered workflow paths variable rather than assuming a fixed .github/workflows location; no new executable parameters are supported by the evidence.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent must enumerate the actual supplied scope and must not infer missing files or repository-wide coverage."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "No general repeated mechanical transformation is exposed: the run contains one workflow input and two authored outputs, so generating a reusable transformer would exceed the supported evidence boundary.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "not-applicable",
+      "residualDuty": "The agent performs the inventory and report writing for each requested review."
+    },
+    {
+      "category": "artifact-production",
+      "summary": "The skill now specifies the contents of a workflow inventory but does not claim an executable artifact producer; no source interface or independent checker supports generating one safely from this evidence.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent must produce the requested inventory and review artifacts when the user asks for them."
+    },
+    {
+      "category": "verification",
+      "summary": "Require exact file/line evidence for declarations and uses references and require explicit disclosure of unavailable live facts; this strengthens the existing self-verification/reporting workflow without claiming live correctness.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must independently re-read evidence and distinguish static observations from repository settings, remote action contents, CVEs, and deployment behavior."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "Preserve offline limitations as residual environment facts rather than hard-coding platform defaults, current CVEs, action SHAs, or deployment state into the skill.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent must state when live GitHub, marketplace, advisory, repository-policy, or deployment verification was not performed."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "Keep semantic security judgment, least-privilege assessment, supply-chain risk assessment, and decisions about unverified runtime behavior with the reviewing agent.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent remains responsible for accurate interpretation, confidence, scoped findings, and human-review-only patch proposals."
+    }
+  ],
+  "actions": [
+    {
+      "id": "clarify-workflow-review-contract",
+      "kind": "restructure-docs",
+      "evidenceIds": [
+        "0"
+      ],
+      "sourceRefs": [
+        "SKILL.md#Step 1 — Scope Resolution",
+        "SKILL.md#Step 7 — Generate Security Report"
+      ],
+      "dependsOn": [],
+      "inputs": [
+        "user-requested scan scope",
+        "workflow or CI configuration files found within that scope"
+      ],
+      "outputs": [
+        "workflow/job permission inventory with file/line evidence",
+        "action uses inventory with ref classification",
+        "scoped security report with offline limitations"
+      ],
+      "preconditions": [
+        "the request is focused on workflow or CI configuration",
+        "the relevant files are available locally"
+      ],
+      "constraints": [
+        {
+          "description": "The review remains offline/static unless the user explicitly requests execution and the environment permits it.",
+          "scope": "skill",
+          "sourceRef": "SKILL.md#Step 7 — Generate Security Report"
+        },
+        {
+          "description": "Repository defaults, remote action contents, live CVEs, and deployment state are not established by this evidence.",
+          "scope": "environment",
+          "sourceRef": ".optimize/CONSTRAINT_SOURCES.json#tasks[0]/evidenceIndex=0"
+        }
+      ],
+      "changedPaths": [
+        "SKILL.md"
+      ],
+      "residualDuties": [
+        "interpret YAML and inheritance accurately",
+        "assess security impact",
+        "avoid claiming unavailable live facts"
+      ],
+      "verification": [
+        "confirm the report records explicit map, explicit empty, and omitted permission states separately",
+        "confirm every uses occurrence has file/line evidence and ref classification",
+        "confirm unavailable live checks are listed as limitations"
+      ]
+    }
+  ],
+  "actionDiagnostics": [],
+  "noChanges": false
+}

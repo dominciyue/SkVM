@@ -1,0 +1,189 @@
+┌────────────────────────────────────────────────┐
+│           FINDINGS SUMMARY                     │
+├──────────────┬─────────────────────────────────┤
+│ 🔴 CRITICAL  │  0 findings                     │
+│ 🟠 HIGH      │  0 findings                     │
+│ 🟡 MEDIUM    │  0 findings                     │
+│ 🔵 LOW       │  0 findings                     │
+│ ⚪ INFO      │  1 unresolved authorization path│
+├──────────────┼─────────────────────────────────┤
+│ TOTAL        │  1 unresolved item              │
+└──────────────┴─────────────────────────────────┘
+
+Dependency Audit: Not performed; outside this bounded question  
+Secrets Scan: Not performed; outside this bounded question  
+Scope: `DeleteSpaceMember` authorization path in Memos revision `cb42e326ba9cc266a6a9570c53e0fe04c62793f4`, using the visible Connect handler, service range, store wrapper, and driver boundary.
+
+# 🔐 Bounded Security Review — DeleteSpaceMember
+
+## Executive conclusion
+
+**The decisive authorization behavior cannot be established from the source text retained in this investigation.**
+
+What is visible is:
+
+1. The Connect transport handler delegates directly to `APIV1Service.DeleteSpaceMember`; it contains no authorization check in its shown body.
+2. The store wrapper validates only that the space ID, target-user ID, and actor-user ID are positive, then delegates to the driver.
+3. The decisive service-layer implementation at `server/api/v1/space_service.go:730-764`—including any administrator check, self-removal exception, or target/actor comparison—is not available as readable source evidence in the retained analysis context.
+
+Accordingly:
+
+- **Ordinary member removing a different member:** **Unknown from the available source evidence.**
+- **Administrator removing a different member:** **Unknown from the available source evidence.**
+- **Self-removal versus removing another member:** The visible lower layers accept separate target and actor IDs, but **the source does not establish whether equal IDs take a distinct permitted path.**
+- **Policy conformance:** **Undetermined**, not established as either satisfied or violated.
+
+This conclusion does **not** assume deployment middleware, undocumented role grants, or behavior outside the shown source.
+
+---
+
+## Authorization path observed
+
+### 1. Transport entry point
+
+`ConnectServiceHandler.DeleteSpaceMember` calls the API service and merely converts errors:
+
+```go
+func (s *ConnectServiceHandler) DeleteSpaceMember(ctx context.Context, req *connect.Request[v1pb.DeleteSpaceMemberRequest]) (*connect.Response[emptypb.Empty], error) {
+    resp, err := s.APIV1Service.DeleteSpaceMember(ctx, req.Msg)
+    if err != nil {
+        return nil, convertGRPCError(err)
+    }
+    return connect.NewResponse(resp), nil
+}
+```
+
+**Location:** `server/api/v1/connect_services.go:650-656`  
+**Evidence:** `ev-2a0af31796a9155f1c8b`
+
+No caller-role or target-resource authorization is visible in this handler.
+
+### 2. Store boundary
+
+The store wrapper performs input validity checks:
+
+```go
+func (s *Store) DeleteSpaceMember(ctx context.Context, delete *DeleteSpaceMember, actorUserID int32) error {
+    if delete == nil || delete.SpaceID <= 0 || delete.UserID <= 0 || actorUserID <= 0 {
+        return errors.New("space member deletion requires space, user, and actor")
+    }
+    return s.driver.DeleteSpaceMember(ctx, delete, actorUserID)
+}
+```
+
+**Location:** `store/space.go:272-278`  
+**Evidence:** `ev-5ef153acf32b4cf0b44c`
+
+This establishes that the store receives:
+
+- a space identifier,
+- a target membership/user identifier, and
+- an actor user identifier.
+
+However, the shown wrapper does **not** compare `delete.UserID` with `actorUserID`, check the actor’s role, or enforce that the actor is an administrator.
+
+The positive-ID checks are validation only; they are not an authorization decision.
+
+---
+
+## Findings grouped by category
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  
+⚪ **INFO — Decisive DeleteSpaceMember authorization branch unresolved**  
+**Confidence: Medium**  
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+### Location
+
+`server/api/v1/space_service.go:730-764`
+
+### Visible evidence
+
+The retained evidence identifies this range as the relevant service implementation, but the actual source text needed to inspect its control flow was not available in the final evidence window.
+
+**Evidence reference:** `ev-8eb9844f369dbc71d24a`
+
+### Risk / significance
+
+The service implementation is the controlling source-visible point for determining whether:
+
+- only administrators may remove another member,
+- ordinary members are denied,
+- members may remove themselves, and
+- self-removal is treated differently from removal of another member.
+
+Without that branch, it is not possible to distinguish:
+
+```text
+target user == actor user
+```
+
+from:
+
+```text
+target user != actor user
+```
+
+or determine whether the actor’s space role is checked before the store/driver effect.
+
+### Current determination
+
+| Requested path | Source-visible result | Policy comparison |
+|---|---|---|
+| Ordinary member removes another member | **Unknown** | Policy requires **deny**; conformance undetermined |
+| Administrator removes another member | **Unknown** | Policy requires **allow**; conformance undetermined |
+| Member removes themselves | **Unknown** | Policy does not prohibit it; conformance undetermined |
+| Self-removal versus other-member removal | **Not established** | Equality-specific exception not visible |
+
+### Decisive missing fact
+
+The exact body of:
+
+```text
+server/api/v1/space_service.go:730-764
+```
+
+must be read to determine:
+
+1. how the authenticated actor is obtained,
+2. how the target space member is resolved,
+3. whether the actor’s role is checked,
+4. whether `actorUserID == targetUserID` creates a self-removal exception, and
+5. which branch reaches `Store.DeleteSpaceMember`.
+
+---
+
+## Policy comparison
+
+### Independently supplied policy
+
+> “Only a space administrator may remove another member from that space. This policy does not prohibit a member leaving the space themselves.”
+
+### Policy-required outcomes
+
+- **Ordinary member → different member:** deny.
+- **Space administrator → different member:** allow.
+- **Member → self:** allowed by this policy, or at least not prohibited by it.
+
+### Assessment
+
+The policy mapping itself is clear, but the implementation result is not. The visible transport and store layers do not prove either compliance or noncompliance because the service-layer authorization branch is missing from the retained source evidence.
+
+Therefore the correct conformance status is:
+
+> **Undetermined due to a decisive source gap.**
+
+It would be incorrect to conclude either that an ordinary member **can** remove another member or that the operation is safely restricted to administrators based only on the shown transport and store wrappers.
+
+---
+
+## Missing facts and limits
+
+- Deployment middleware was not assumed.
+- Undocumented role grants were not assumed.
+- The driver’s deletion capability was not treated as proof of authorization.
+- The visible positive-ID checks were not treated as role checks.
+- No runtime execution, network call, patch application, dependency audit, or whole-repository scan was performed.
+- The service-layer source range identified as decisive was not available in readable retained evidence, so the result remains unresolved.
+
+**No patch is proposed because the controlling authorization branch has not been established. Nothing has been changed.**

@@ -1,0 +1,99 @@
+{
+  "rootCause": "The skill's workflow is optimized for narrative vulnerability reports and generic source-code scanning, but it does not tell the agent how to handle configuration-focused reviews that require a bounded inventory artifact. As a result, a workflow request that explicitly requires per-job permissions, action references, exact line evidence, omission-versus-empty semantics, and separate JSON and Markdown outputs is left to ad hoc interpretation rather than being mapped to a concrete execution and reporting contract.",
+  "reasoning": "Evidence 0 is a clean, runStatus=ok but UNASSESSED run. The agent repeatedly read the same references and source file, used ambiguous shell commands for line numbering, and never produced the requested workflow-inventory.json or REVIEW.md. The source skill does mention CI/CD secrets and asks for a report, but it has no workflow-specific inventory procedure, no explicit distinction between omitted and empty permissions, and no instruction to create named machine-readable artifacts; these are skill-level gaps because the task is a normal security-review request over a supported CI/CD configuration, not a fixture-specific semantic choice. The fix rewrites the existing scope, deep-scan, and report steps in place, preserving the broad security audit behavior while adding a bounded configuration-review branch, source-line evidence requirements, and multi-artifact output rule. Generality test: the same procedure benefits an audit of GitHub Actions, GitLab CI, Terraform, Kubernetes, or other configuration where declarations and execution units must be inventoried without expanding scope. Rewrite-in-place test: all changes tighten existing workflow steps rather than appending an overlapping standalone tutorial. Coherent scope: only SKILL.md changed, and the candidate is concise and testable through the named artifact and evidence requirements; no new executable is justified because the evidence exposes no existing parser, source interface, or independent checker. No-trade-off test: there are no PASSING tasks in PER_TASK_SUMMARY.md; the sole clean task is UNASSESSED, and the change preserves the original generic scan, severity, self-verification, and patch-review requirements while improving its explicitly requested offline workflow path. Expected impact is better completion of configuration-review tasks and less repeated reference/tool discovery, while semantic vulnerability judgment remains with the agent.",
+  "confidence": 0.93,
+  "changedFiles": [
+    "SKILL.md"
+  ],
+  "changes": [
+    {
+      "file": "SKILL.md",
+      "section": "Step 1 — Scope Resolution",
+      "description": "Add an explicit bounded branch for CI/CD, IaC, and workflow configuration reviews so the agent inventories the requested security model without expanding into unrelated repository work.",
+      "generality": "A Terraform or Kubernetes security review that requests resource-level evidence would benefit from the same scope-preserving rule.",
+      "linesDelta": 2
+    },
+    {
+      "file": "SKILL.md",
+      "section": "Step 4 — Vulnerability Deep Scan",
+      "description": "Define workflow-specific enumeration of workflows, jobs, permissions, action uses, line evidence, omitted versus empty declarations, and offline verification limits, including the requested machine-readable artifact boundary.",
+      "generality": "A GitLab CI or reusable workflow review requiring per-job permissions and exact source evidence would benefit from this same inventory contract.",
+      "linesDelta": 12
+    },
+    {
+      "file": "SKILL.md",
+      "section": "Step 7 — Generate Security Report",
+      "description": "Require separately named JSON, Markdown, or other user-requested output artifacts instead of substituting an unstructured chat response for them.",
+      "generality": "A dependency audit requesting both a JSON findings export and a human-readable report would benefit from this output-artifact rule.",
+      "linesDelta": 3
+    }
+  ],
+  "opportunities": [
+    {
+      "category": "instruction-clarity",
+      "summary": "Clarify how configuration-focused security reviews differ from whole-codebase scans and how the requested evidence must be represented.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent still decides which configuration semantics are security-relevant and must explain context-dependent risk."
+    },
+    {
+      "category": "input-parameterization",
+      "summary": "Keep the user-supplied scope, workflow/job identifiers, declaration kinds, action references, and output formats as variables in the bounded review procedure.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must resolve the actual input paths and supported configuration syntax for each task."
+    },
+    {
+      "category": "repeated-transformation",
+      "summary": "Avoid repeated ad hoc rereading by establishing one enumeration pass that captures each workflow/job declaration and action reference before narrative synthesis.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent must still perform independent re-reading and self-verification for security findings."
+    },
+    {
+      "category": "artifact-production",
+      "summary": "Require each explicitly requested machine-readable inventory and narrative review artifact, with the inventory produced before the report and both kept consistent.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "The agent supplies the actual semantic findings, exact paths/lines, and any task-required schema details."
+    },
+    {
+      "category": "verification",
+      "summary": "Retain offline source-based evidence and self-verification while explicitly preventing unsupported claims about live CVEs, registries, deployments, or runtime behavior.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "implemented",
+      "residualDuty": "No independent parser or external oracle is available; the agent must disclose remaining syntax and runtime limits."
+    },
+    {
+      "category": "environment-dependency",
+      "summary": "Do not promote the observed PowerShell environment or bundled deployment prefix into a permanent requirement; use the supplied resources and available local tools without assuming live access.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "The agent must adapt to the actual runtime and report unavailable checks rather than claiming them."
+    },
+    {
+      "category": "residual-duty",
+      "summary": "Keep vulnerability severity, exploitability, platform semantics, and review-limit judgments with the agent rather than pretending the inventory procedure proves them.",
+      "evidenceIds": [
+        "0"
+      ],
+      "disposition": "retained",
+      "residualDuty": "Human review remains required for contextual security conclusions and any proposed patches."
+    }
+  ],
+  "actions": [],
+  "actionDiagnostics": [],
+  "noChanges": false
+}

@@ -1,0 +1,92 @@
+{
+  "schemaVersion": "jit-optimize-workflow-scaffold/v1",
+  "id": "model-processor-single-input",
+  "kind": "single-input",
+  "runtime": "node",
+  "entry": ".optimize/workflow-scaffolds/01-model-processor-single-input/workflow.mjs",
+  "packageRootRelative": "../../..",
+  "processor": {
+    "runtime": "node",
+    "entry": "scripts/process-input.mjs",
+    "args": [
+      "--input",
+      "{input}",
+      "--output",
+      "{output}"
+    ]
+  },
+  "cli": {
+    "inputFlag": "--input",
+    "outputFlag": "--output"
+  },
+  "steps": [
+    {
+      "id": "read-input",
+      "reads": [
+        "--input"
+      ],
+      "writes": [],
+      "dependsOn": [],
+      "contributor": "framework"
+    },
+    {
+      "id": "invoke-source",
+      "reads": [
+        "input"
+      ],
+      "writes": [
+        "output"
+      ],
+      "dependsOn": [
+        "read-input"
+      ],
+      "contributor": "model"
+    },
+    {
+      "id": "verify-output",
+      "reads": [
+        "output"
+      ],
+      "writes": [],
+      "dependsOn": [
+        "invoke-source"
+      ],
+      "contributor": "framework"
+    }
+  ],
+  "contributions": {
+    "frameworkFiles": [
+      ".optimize/workflow-scaffolds/01-model-processor-single-input/workflow.mjs",
+      ".optimize/workflow-scaffolds/01-model-processor-single-input/workflow.manifest.json"
+    ],
+    "sourceFiles": [],
+    "modelFiles": []
+  },
+  "sourceRefs": [
+    "conversation:15#tool-call/call_OMdE6XF8fhoxQy1wBzE8yzXw",
+    "conversation:15#tool-call/call_zAG6iCT4mMb7IlpInFsTVWb0",
+    "conversation:17#tool-call/call_gFa8AEbFkP0V5X1sT6x8kehV",
+    "conversation:17#tool-call/call_Se9A0Wxhyb3gWJBcjwsQdhP9",
+    "conversation:3#tool-call/call_LanPb1IhqGEba0GeE3Q4bW9c",
+    "conversation:3#tool-call/call_lvsVr8rsz26rKjCKfSm2iLWE",
+    "conversation:3#tool-call/call_NNzK1t7FlnmKknufLapqI7L9",
+    "conversation:3#tool-call/call_WEBbnT3N85qk9gnHLlSQFjWK",
+    "conversation:3#tool-call/call_xNeo5m9pquPhOaJ7wSLfkrZq",
+    "conversation:9#tool-call/call_LYtDRMn6rI9j2V5T08mKh0zk",
+    "run-result:steps#tool-call/call_gFa8AEbFkP0V5X1sT6x8kehV",
+    "run-result:steps#tool-call/call_LanPb1IhqGEba0GeE3Q4bW9c",
+    "run-result:steps#tool-call/call_lvsVr8rsz26rKjCKfSm2iLWE",
+    "run-result:steps#tool-call/call_LYtDRMn6rI9j2V5T08mKh0zk",
+    "run-result:steps#tool-call/call_NNzK1t7FlnmKknufLapqI7L9",
+    "run-result:steps#tool-call/call_OMdE6XF8fhoxQy1wBzE8yzXw",
+    "run-result:steps#tool-call/call_Se9A0Wxhyb3gWJBcjwsQdhP9",
+    "run-result:steps#tool-call/call_WEBbnT3N85qk9gnHLlSQFjWK",
+    "run-result:steps#tool-call/call_xNeo5m9pquPhOaJ7wSLfkrZq",
+    "run-result:steps#tool-call/call_zAG6iCT4mMb7IlpInFsTVWb0"
+  ],
+  "residualDuties": [
+    "Select a source-supported mechanical boundary and implement the missing processor before use.",
+    "Keep classification, translation and other unresolved semantic decisions with the agent.",
+    "This is optional framework plumbing, not an observed source interface or a working program."
+  ]
+}

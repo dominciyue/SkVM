@@ -1,0 +1,192 @@
+{
+  "entries": [
+    {
+      "timestamp": "2026-10-03T14:30:47.623Z",
+      "round": 1,
+      "rootCause": "The skill describes a broad security-review sequence but does not define a CI/workflow-specific scope contract: it neither tells the agent to inventory workflow files found outside conventional directories nor specifies how to preserve the distinction between explicit, empty, inherited, and platform-default token permissions or how to capture action-reference evidence. As a result, a workflow-focused request can be handled as an incomplete generic audit unless the agent invents those reporting rules.",
+      "reasoning": "Evidence 0 is a clean, runStatus=ok execution with concrete artifacts but no structured score. The task required an offline GitHub Actions inventory and a scoped review. The agent successfully produced useful outputs, yet the trace shows an initial attempt to enumerate only source/.github/workflows even though the supplied workflow was source/release.yml, and the skill itself had no explicit rule for this boundary, for permission-state semantics, or for action ref mutability. The observed output had to invent those distinctions and the nonstandard-path explanation. I therefore tightened the existing Scope Resolution section in place and added a bounded requirement to the existing report-generation step, rather than adding a parallel workflow or changing the broad security-review scope.\n\nPre-edit checklist: (a) Generality: the same clarification benefits a task reviewing CI workflows, deployment manifests, reusable workflows, or IaC files supplied outside conventional directories, not only this release workflow. (b) Rewrite-in-place: the missing scope and reporting contract belongs directly in Step 1 and Step 7, so those sections were edited in place. (c) Coherent scope: the smallest complete fix is instructional; no executable is justified because the evidence contains one task-specific YAML input, no source interface, and no independent validator. (d) No-trade-off: there are no PASSING tasks in PER_TASK_SUMMARY.md. The change preserves generic code, dependency, secrets, data-flow, self-verification, severity, and patch-review requirements, while adding workflow-specific behavior only when that scope is requested. Expected impact is better completeness and less path/semantic guessing on workflow reviews, with no restriction on ordinary repository audits.\n\nOpportunity audit: instruction-clarity is implemented because the skill now states the missing workflow scope, permission-state distinctions, ref classification, and offline boundaries. Input-parameterization is retained: the requested root and discovered workflow paths remain agent/task inputs, and no task-specific path is hard-coded. Repeated-transformation is not-applicable: the evidence shows no repeated mechanical transformation that can be generalized into a bundled command. Artifact-production is retained rather than falsely marked implemented: the skill now specifies the inventory contents, but no independent artifact-producing program is supported by the source interface evidence. Verification is implemented at the reporting-contract level by requiring file/line evidence and explicit unverified live facts; semantic security judgment remains with the agent. Environment-dependency is retained: repository defaults, remote action contents, CVEs, and deployment behavior remain environment-dependent and must not be claimed offline. Residual-duty remains: the agent must locate all supplied files, interpret YAML accurately, assess least privilege and supply-chain risk, and avoid inventing runtime or live advisory facts.",
+      "changes": [
+        {
+          "file": "SKILL.md",
+          "section": "Step 1 — Scope Resolution",
+          "description": "Add a bounded CI/IaC scope rule and explicit GitHub Actions permission and action-reference inventory semantics so agents do not assume a conventional directory or collapse omitted and empty permissions.",
+          "generality": "A review of a workflow supplied directly under a project root, a reusable workflow in a custom directory, or a deployment manifest outside its conventional folder would benefit from the same path and evidence rules.",
+          "linesDelta": 7
+        },
+        {
+          "file": "SKILL.md",
+          "section": "Step 7 — Generate Security Report",
+          "description": "Require workflow-focused reports to include the structured inventory, evidence boundary, and explicit offline limitations without weakening the ordinary report format.",
+          "generality": "Any CI/CD review involving multiple jobs, token scopes, mutable action references, or unavailable live repository state benefits from this reporting contract.",
+          "linesDelta": 5
+        }
+      ],
+      "changedFiles": [
+        "SKILL.md"
+      ],
+      "actions": [
+        {
+          "id": "clarify-workflow-review-contract",
+          "kind": "restructure-docs",
+          "evidenceIds": [
+            "0"
+          ],
+          "sourceRefs": [
+            "SKILL.md#Step 1 — Scope Resolution",
+            "SKILL.md#Step 7 — Generate Security Report"
+          ],
+          "dependsOn": [],
+          "inputs": [
+            "user-requested scan scope",
+            "workflow or CI configuration files found within that scope"
+          ],
+          "outputs": [
+            "workflow/job permission inventory with file/line evidence",
+            "action uses inventory with ref classification",
+            "scoped security report with offline limitations"
+          ],
+          "preconditions": [
+            "the request is focused on workflow or CI configuration",
+            "the relevant files are available locally"
+          ],
+          "constraints": [
+            {
+              "description": "The review remains offline/static unless the user explicitly requests execution and the environment permits it.",
+              "scope": "skill",
+              "sourceRef": "SKILL.md#Step 7 — Generate Security Report"
+            },
+            {
+              "description": "Repository defaults, remote action contents, live CVEs, and deployment state are not established by this evidence.",
+              "scope": "environment",
+              "sourceRef": ".optimize/CONSTRAINT_SOURCES.json#tasks[0]/evidenceIndex=0"
+            }
+          ],
+          "changedPaths": [
+            "SKILL.md"
+          ],
+          "residualDuties": [
+            "interpret YAML and inheritance accurately",
+            "assess security impact",
+            "avoid claiming unavailable live facts"
+          ],
+          "verification": [
+            "confirm the report records explicit map, explicit empty, and omitted permission states separately",
+            "confirm every uses occurrence has file/line evidence and ref classification",
+            "confirm unavailable live checks are listed as limitations"
+          ]
+        }
+      ],
+      "actionDiagnostics": [],
+      "validation": {
+        "status": "not-run",
+        "reportPath": "round-1-validation/report.json",
+        "retainedActionIds": [],
+        "unvalidatedActionIds": [
+          "clarify-workflow-review-contract"
+        ],
+        "rejectedActionIds": [],
+        "programRuns": 0,
+        "caseRuns": 0,
+        "independentCaseRuns": 0
+      },
+      "confidence": 0.9,
+      "trainScore": null,
+      "testScore": null,
+      "improved": null
+    }
+  ],
+  "bestRound": 1,
+  "bestRoundReason": "optimized draft has no concrete local program failure but remains partially or wholly unvalidated",
+  "rounds": [
+    {
+      "round": 0,
+      "isBaseline": true,
+      "trainScore": null,
+      "testScore": null,
+      "trainPassed": 0,
+      "trainTotal": 0,
+      "testPassed": 0,
+      "testTotal": 0,
+      "perTaskTrainScores": {},
+      "perTaskTestScores": {},
+      "targetAgent": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "runs": 0,
+        "durationMs": 0
+      },
+      "evalJudge": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "calls": 0
+      },
+      "optimizer": null,
+      "historyEntry": null
+    },
+    {
+      "round": 1,
+      "isBaseline": false,
+      "trainScore": null,
+      "testScore": null,
+      "trainPassed": 0,
+      "trainTotal": 0,
+      "testPassed": 0,
+      "testTotal": 0,
+      "perTaskTrainScores": {},
+      "perTaskTestScores": {},
+      "targetAgent": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "runs": 0,
+        "durationMs": 0
+      },
+      "evalJudge": {
+        "tokens": {
+          "input": 0,
+          "output": 0,
+          "cacheRead": 0,
+          "cacheWrite": 0
+        },
+        "costUsd": 0,
+        "calls": 0
+      },
+      "optimizer": {
+        "tokens": {
+          "input": 52861,
+          "output": 4643,
+          "cacheRead": 281600,
+          "cacheWrite": 0
+        },
+        "costUsd": 0
+      },
+      "historyEntry": null,
+      "validation": {
+        "status": "not-run",
+        "reportPath": "round-1-validation/report.json",
+        "retainedActionIds": [],
+        "unvalidatedActionIds": [
+          "clarify-workflow-review-contract"
+        ],
+        "rejectedActionIds": [],
+        "programRuns": 0,
+        "caseRuns": 0,
+        "independentCaseRuns": 0
+      }
+    }
+  ]
+}
