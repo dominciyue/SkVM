@@ -146,3 +146,29 @@ test("a complete conditional answer preserves an unresolved premise without inve
   expect(checked.paths[0].predicate).toMatchObject({ truth: "unknown", missingBindings: ["enabled"] })
   expect(api.checkControlConclusions(plan, slice, answer("unknown", { missing: conditional.questions[0]!.missing }), []).ruleConsistency).toBe(true)
 })
+
+test("a null branch omitted from the answer or the proposed active graph cannot support allow", () => {
+  const rules = [rule("entry", "entry", []), rule("set", "effect", ["entry"], { pathKey: "set", complete: true, condition: { op: "not", arg: { op: "is-null", value: { binding: "owner" } } } }), rule("unset", "reject", ["entry"], { pathKey: "unset", complete: true, condition: { op: "is-null", value: { binding: "owner" } } })]
+  const bindings = [{ questionId: "q", key: "owner", value: null, origin: "user", text: "Owner is null." }]
+  const omittedAnswer = api.checkControlConclusions(plan, state(rules, { bindings }), answer("conditional"), [])
+  expect(codes(omittedAnswer)).toContain("active-branch-missing")
+  const omittedGraph = api.checkControlConclusions(plan, state(rules.slice(0, 2), { bindings }), answer("allow"), [])
+  expect(codes(omittedGraph)).toContain("path-not-closed")
+  expect(omittedGraph.paths[0].state).toBe("inapplicable")
+  expect(api.checkControlConclusions(plan, state(rules, { bindings }), answer("deny"), []).ruleConsistency).toBe(true)
+})
+
+test("known absent grants deny while not-given grants cannot be treated as absent", () => {
+  const input = (request: string) => compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request, premises: [] }] })
+  const condition = (value: boolean) => ({ op: "eq", left: { binding: "grant" }, right: { literal: value } })
+  const rules = [rule("entry", "entry", []), rule("deny", "reject", ["entry"], { pathKey: "absent", complete: true, condition: condition(false) }), rule("allow", "effect", ["entry"], { pathKey: "present", complete: true, condition: condition(true) })]
+  const known = input("Grants are absent."), unspecified = input("Grants are not given.")
+  const absent = state(rules, { bindings: [{ questionId: "q", key: "grant", value: false, origin: "user", text: "Grants are absent." }] }, known)
+  expect(api.checkControlConclusions(known, absent, answer("deny"), []).ruleConsistency).toBe(true)
+  expect(api.evaluateControlPaths(absent).paths.map((p: any) => p.predicate.truth)).toEqual(["true", "false"])
+  const unknown = state(rules, {}, unspecified), wrong = api.checkControlConclusions(unspecified, unknown, answer("deny"), [])
+  expect(codes(wrong)).toContain("unresolved-path-condition")
+  expect(wrong.paths.map((p: any) => p.predicate.truth)).toEqual(["unknown", "unknown"])
+  const preserved = answer("conditional", { branches: [false, true].map(grant => ({ id: grant ? "present" : "absent", condition: `grant is ${grant}`, disposition: grant ? "allow" : "deny", explanation: "Retained unresolved branch", evidenceIds: ["ev"] })), missing: [{ kind: "premise-unspecified", detail: "Grants are not given." }] })
+  expect(api.checkControlConclusions(unspecified, unknown, preserved, []).ruleConsistency).toBe(true)
+})

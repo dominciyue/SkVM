@@ -223,7 +223,8 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 - [x] 保留好的局部答案并明确其 checked/unverified 状态。检查失败不得伪造 checked success，也不得因一个无关项丢掉全部可用输出。
 - 2026-10-03恢复复核：独立核验指出无效整体仍返回result，主线程红绿修复；checks-off逐题本已unverified，但汇总true改为null。补全局结构/源失效、逐题observation及重复答案反例，源失效同时清除referenceValid。65项聚焦回归通过；未以这些工程检查代替下项语义变形验收。
 - 2026-10-03定向独立复核补记：unknown条件不能支持无条件allow/deny的反例红绿修复；结构闭合的条件回答保持合法，不把所有unknown路径机械改为失败。33项结果/运行时回归通过。逐题/全局/重复/observation归属核验无新增问题；源码遗漏和自然语义污染保持下项独立评价责任。
-- [ ] 通过变形/错误注入检测 wrong-object、dead binding、null遗漏、grant absent/not-given 混淆和政策反推源码；拒绝错误答案的证据单独报告。
+- [x] 通过变形/错误注入检测 wrong-object、dead binding、null遗漏、grant absent/not-given 混淆和政策反推源码；拒绝错误答案的证据单独报告。
+- 2026-10-03 AR9变形核验：41项179断言通过，独立只读核验确认新增null遗漏与grant known-false/unknown对照没有错误绿色断言。验收仅覆盖已提出的控制图、绑定及政策映射机械合同；图/答案遗漏当前已知null路径可拒绝，不证明任意未提出源码分支完整，也不解释自然文本真假、alias或政策语义。原证据与边界见ar9-mutation-verification.json；真实质量仍单列。
 
 ### AR10 — 普通 inquiry 与原 skill 统一使用新核心
 
