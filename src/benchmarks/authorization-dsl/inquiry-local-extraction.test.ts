@@ -17,6 +17,53 @@ async function fixture(questions = [{ id: "q", request: "Investigate entry. Owne
 }
 const entry = (extra = {}) => ({ op: "add", targetKey: "entry", pathKey: "p", kind: "entry", after: [], claim: "Tests the supplied owner before effects", ...extra })
 
+test("bounded location tasks expose ambiguous entries and missing locations before any source interpretation", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-locate-"))
+  await writeFile(path.join(sourceRoot, "a.py"), "def entry():\n    return True\n")
+  await writeFile(path.join(sourceRoot, "b.py"), "def entry():\n    return False\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["."] })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [
+    ...["a", "b"].map(id => ({ id, request: "Inspect entry", entryHint: "entry", premises: [] })),
+    { id: "missing", request: "Inspect an unavailable endpoint", entryHint: "unindexed", premises: [] },
+  ] })
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "guided-evidence-v2" })
+  await runtime.sync()
+  const context: any = runtime.modelContext()
+  expect(context.tasks).toEqual([])
+  expect(context.locationTasks.map((t: any) => t.question.id)).toEqual(["a", "b"])
+  expect(context.locationTasks[0]).toMatchObject({ itemId: "a::entry", code: "location-ambiguous", nextAction: { kind: "select-candidate" }, semanticSupport: "unreviewed" })
+  expect(context.locationTasks[0].candidates).toHaveLength(2)
+  expect(context.sourceWindows).toEqual([])
+  expect(tools.toolCalls).toBe(0)
+  const candidateId = context.locationTasks[0].candidates[0].id
+  const rejected = await runtime.propose({ schemaVersion: "authorization-control-update/v1", workSelections: [{ questionId: "b", itemId: "a::entry", candidateId }], localExtractions: [{ itemId: "a::entry", rules: [entry()] }] })
+  expect(rejected.diagnostics.some(d => d.code === "work-question-mismatch")).toBe(true)
+  expect(rejected.diagnostics.some(d => d.code === "local-work-not-offered")).toBe(true)
+  expect(tools.toolCalls).toBe(0)
+  expect(runtime.report().slice.rules).toEqual([])
+  const selected = await runtime.propose({ schemaVersion: "authorization-control-update/v1", workSelections: [{ questionId: "a", itemId: "a::entry", candidateId }] })
+  expect(selected.diagnostics).toEqual([])
+  expect(tools.toolCalls).toBe(1)
+  const next: any = runtime.modelContext()
+  expect(next.tasks[0]).toMatchObject({ itemId: "a::entry", question: { id: "a" }, semanticSupport: "unreviewed" })
+  expect(next.locationTasks.map((t: any) => t.question.id)).toEqual(["b", "missing"])
+  expect(next.locationTasks[1]).toMatchObject({ code: "location-missing", nextAction: { kind: "locate" }, candidates: [] })
+  expect(next.sourceWindows[0].text).toBe(tools.evidence[0]!.text)
+  await runtime.propose({ schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: "a::entry", rules: [entry()] }] })
+  expect(runtime.report().slice.rules.map(r => r.questionId)).toEqual(["a"])
+  expect(runtime.report().check).toBeUndefined()
+  expect(runtime.report().worklist!.items.find(w => w.id === "a::entry")!.state).toBe("awaiting-verification")
+})
+
+test("a binding duty misfiled as a rule receives group guidance and remains rejected", async () => {
+  const f = await fixture(); f.runtime.modelContext()
+  const rejected = await f.runtime.propose({ schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: "q::entry", rules: [entry({ targetKey: "doc", kind: "resource-binding" })] }] })
+  expect(rejected.diagnostics.find((d: any) => d.path.endsWith("doc.kind")).message).toContain("sourceBindings")
+  expect(f.runtime.report().slice.rules).toEqual([])
+  await f.runtime.propose({ schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: "q::entry", sourceBindings: [{ op: "add", targetKey: "doc", pathKey: "p", after: [], claim: "Addressed original resource", bindingKey: "document", bindingKind: "resource" }] }] })
+  expect(f.runtime.report().slice.rules[0]).toMatchObject({ kind: "binding", bindingKey: "document", bindingKind: "resource" })
+})
+
 test("current local explanation carries original windows and the host binds question and citations", async () => {
   const f = await fixture(), context = f.runtime.modelContext()
   expect(context.tasks).toHaveLength(1)

@@ -57,6 +57,24 @@ test("a paraphrased operation retains the original user task's lexical entry lea
   expect(work.snapshot().find((w: any) => w.kind === "entry")).toMatchObject({ state: "awaiting-interpretation", semanticSupport: "unreviewed" })
   expect(f.tools.evidence[0]?.text).toContain("return false")
 })
+test("an unindexed prose entry hint falls back to the declared operation without inventing semantics", async () => {
+  const f = await fixture({ "entry.ts": "export function entry() { return false; }\n" }, [{ id: "q", request: "Can the caller remove a member?", operation: "entry", entryHint: "Removal endpoint and object invariant", premises: [] }] as any)
+  await f.work.run(createControlSlice(), 2)
+  expect(f.work.snapshot().find((w: any) => w.kind === "entry")).toMatchObject({ state: "awaiting-interpretation", selected: { name: "entry" }, semanticSupport: "unreviewed" })
+  expect(f.tools.toolCalls).toBe(1)
+})
+test("an unindexed hint and paraphrased operation retain the original task's lexical location", async () => {
+  const f = await fixture({ "entry.ts": "export function entry() { return false; }\n" }, [{ id: "q", request: "Can the caller remove a member?", operation: "remove member", entryHint: "Removal endpoint", premises: [] }] as any)
+  const work = api.createInquiryWorklist({ program: f.program, tools: f.tools, entryContext: "Check entry under the supplied premises." })
+  await work.run(createControlSlice(), 2)
+  expect(work.snapshot().find((w: any) => w.kind === "entry")).toMatchObject({ state: "awaiting-interpretation", selected: { name: "entry" } })
+})
+test("a unique fallback operation cannot override genuine ambiguity in the supplied hint", async () => {
+  const f = await fixture({ "a.ts": "export function entry() { return true; }\n", "b.ts": "export function entry() { return false; }\n", "unique.ts": "export function unique() { return true; }\n" }, [{ id: "q", request: "Investigate removal", operation: "unique", entryHint: "entry", premises: [] }] as any)
+  await f.work.run(createControlSlice(), 2)
+  expect(f.work.snapshot().find((w: any) => w.kind === "entry")).toMatchObject({ state: "unlocated", code: "location-ambiguous", selected: undefined })
+  expect(f.tools.toolCalls).toBe(0)
+})
 test("ambiguous entries stay local and explicit candidate selection cannot borrow another question", async () => {
   const f = await fixture({ "a.ts": "export function entry() { return true; }\n", "b.ts": "export function entry() { return false; }\n", "other.ts": "export function other() { return true; }\n" }, [{ id: "q", request: "Investigate entry", entryHint: "entry", premises: [] }, { id: "other", request: "Investigate other", entryHint: "other", premises: [] }])
   await f.work.run(createControlSlice(), 2)

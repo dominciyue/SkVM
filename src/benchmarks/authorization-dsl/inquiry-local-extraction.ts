@@ -32,13 +32,16 @@ export const LocalExtractionItemSchemas = {
 export const LocalExtractionSchema = z.object({ itemId: InquiryText, rules: z.array(LocalExtractionItemSchemas.rules).max(64).default([]), sourceBindings: z.array(LocalExtractionItemSchemas.sourceBindings).max(64).default([]), dependencies: z.array(LocalExtractionItemSchemas.dependencies).max(64).default([]), premiseValues: z.array(LocalExtractionItemSchemas.premiseValues).max(64).default([]), policyRules: z.array(LocalExtractionItemSchemas.policyRules).max(64).default([]) }).strict()
 function localSchemaMessage(issue: z.ZodIssue) {
   if (issue.path.length === 1 && issue.path[0] === "op") return `${issue.message}. Supply op:add for a new target or op:replace for an existing target. The host cannot choose the intended operation. Dependency reason must still explain relevance.`
+  if (issue.code === "invalid_enum_value" && issue.path.length === 1 && issue.path[0] === "kind") return `${issue.message}. WorkItem principal-binding/resource-binding duties use sourceBindings with bindingKey and bindingKind, not rules.kind. Rules use entry/guard/reject/continue/effect. The rejected item is not automatically moved or interpreted.`
   if (issue.code === "unrecognized_keys" && issue.keys.some(key => ["questionId", "evidenceIds"].includes(key))) return `${issue.message}. Omit questionId and evidenceIds in local extractions; the host binds this offered task to its original source windows. Other unsupported fields must also be removed.`
   return issue.message
 }
 const extractionEnvelope = z.object({ itemId: InquiryText, rules: z.array(z.unknown()).max(64).default([]), sourceBindings: z.array(z.unknown()).max(64).default([]), dependencies: z.array(z.unknown()).max(64).default([]), premiseValues: z.array(z.unknown()).max(64).default([]), policyRules: z.array(z.unknown()).max(64).default([]) }).strict()
 export const LOCAL_EXTRACTION_GUIDE = [
+  "Current locationTasks contain unlocated WorkItems and indexed candidates, not source interpretations. For select-candidate submit controlDelta.workSelections:[{questionId,itemId,candidateId}] using the exact same-question shown IDs. For locate use ordinary source_search/source_symbol/source_read to establish an original location. A location task does not authorize localExtractions until its actual read window is offered as an explanation task. Resolve these tasks alongside already-read explanation tasks; unresolved locations cannot be skipped as completed questions.",
   "Current local explanation tasks are executable duties: interpret the offered WorkItem using its original sourceWindows and current question/premises. A read/citation alone does not settle its meaning.",
   "Submit controlDelta.localExtractions:[{itemId,rules?,sourceBindings?,dependencies?,premiseValues?,policyRules?}]. Use op:add|replace,targetKey and the semantic fields of the corresponding local group, but OMIT questionId and evidenceIds inside these items: the host binds them to this offered WorkItem and actual current windows. It also supplies binding kind, origins and replacement digest. Keep after/from/parent as explicit current target keys; they express your proposed execution relationship, never lexical equality.",
+  "WorkItem.kind names a duty, not a rules.kind value. Principal-binding and resource-binding duties belong in sourceBindings with bindingKey and the appropriate bindingKind:principal or resource. The complete sourceBindings bindingKind enum is principal|resource|permission|configuration|value; rules.kind is entry|guard|reject|continue|effect. Use distinct targetKey values for distinct nodes across rules/sourceBindings. Reuse one typed principal/resource identity string for the same actual source object across bindings, guards and effects; use distinct identities for distinct objects. The host does not infer object aliases from prose or convert objects into identity strings.",
   "Explain source conditions with the finite typed predicate algebra. Preserve owner=null separately from owner unspecified, missing grants separately from known false, and role exceptions. Check that claim text and typed predicate describe the same source branch before submitting. Source code does not supply a user premise. If a related source cannot be read, declare the dependency and its concrete gap rather than guessing.",
   'Unknown premise entries are optional: normally omit them and keep the corresponding predicate binding unresolved. If submitting status:unspecified, text must be a verbatim span of the current question/premises, including its actual punctuation; do not paraphrase it. Prefer the default per-item update so an unrelated invalid span does not discard useful source interpretation. Request atomic:true only for a change that must succeed as one transaction.',
   'A condition means THIS NODE IS REACHED. For source "if (!allowed) return deny; performEffect()", propose a reject terminal with condition allowed==false and an effect terminal with condition allowed==true on distinct pathKeys. Both conditions use wrapped operands. The effect follows the entry/bindings and any successful control, never the terminating reject. A guard reached on a failing condition cannot authorize its succeeding effect. Include explicit principal/resource binding nodes among the control/effect predecessors; identifying the same object in prose is insufficient.',
@@ -53,9 +56,26 @@ export interface LocalExplanationTask {
   evidenceIds: string[]; callsiteEvidenceIds: string[]; existingTargets: Array<{ key: string; kind: string; pathKey: string; after: string[] }>;
   relatedDuties: Array<{ id: string; kind: string; question: string }>; policy?: AuthorizationInquiryProgram["policy"]; semanticSupport: "unreviewed"
 }
+export interface LocalLocationTask {
+  itemId: string; question: LocalExplanationTask["question"]; duty: LocalExplanationTask["duty"];
+  code?: string; candidates: WorkItem["candidates"]; callsiteEvidenceIds: string[];
+  nextAction: { kind: "locate" | "select-candidate"; itemId: string }; semanticSupport: "unreviewed"
+}
 /** Mechanically select whole already-read windows; no semantic source compression or provider call. */
 export function localExplanationContext(program: AuthorizationInquiryProgram, items: WorkItem[], evidence: InquiryEvidence[], slice: ControlSlice, diagnosticEvidenceIds: string[] = [], recentEvidenceIds = evidence.slice(-2).map(e => e.id)) {
   const tasks: LocalExplanationTask[] = [], seen = new Set<string>(), byQuestion = new Map<string, WorkItem[]>()
+  const locationTasks: LocalLocationTask[] = [], locations = new Map<string, WorkItem[]>()
+  for (const q of program.questions) locations.set(q.id, items.filter(i => i.questionId === q.id && i.state === "unlocated" && ["locate", "select-candidate"].includes(i.nextAction.kind)).sort((a, b) => Number(b.decisive) - Number(a.decisive)))
+  for (let offset = 0; locationTasks.length < 2 && offset < items.length; offset++) {
+    let found = false
+    for (const q of program.questions) {
+      const item = locations.get(q.id)?.[offset]
+      if (!item || locationTasks.length >= 2) continue
+      found = true
+      locationTasks.push({ itemId: item.id, question: structuredClone(q), duty: { kind: item.kind, question: item.question, symbol: item.symbol, parentId: item.parentId, reason: item.reason }, code: item.code, candidates: structuredClone(item.candidates.slice(0, 16)), callsiteEvidenceIds: item.callsiteEvidenceIds.filter(id => evidence.some(e => e.id === id)), nextAction: { kind: item.nextAction.kind === "select-candidate" ? "select-candidate" : "locate", itemId: item.id }, semanticSupport: "unreviewed" })
+    }
+    if (!found) break
+  }
   const priority = (i: WorkItem) => i.evidenceIds.some(id => diagnosticEvidenceIds.includes(id)) ? 0 : i.state === "awaiting-interpretation" ? 1 : i.state === "awaiting-binding" ? 2 : 3
   for (const q of program.questions) byQuestion.set(q.id, items.filter(i => i.questionId === q.id && i.evidenceIds.length > 0 && ["awaiting-interpretation", "awaiting-binding", "awaiting-verification"].includes(i.state) && (i.origin !== "question-duty" || i.kind === "entry")).sort((a, b) => priority(a) - priority(b)))
   const questions = [...program.questions].sort((a, b) => (byQuestion.get(a.id)?.[0] ? priority(byQuestion.get(a.id)![0]!) : 4) - (byQuestion.get(b.id)?.[0] ? priority(byQuestion.get(b.id)![0]!) : 4))
@@ -71,8 +91,8 @@ export function localExplanationContext(program: AuthorizationInquiryProgram, it
     }
     if (!found && ![...byQuestion.values()].some(group => group.length > offset + 1)) break
   }
-  const ids = new Set([...tasks.flatMap(t => [...t.evidenceIds, ...t.callsiteEvidenceIds]), ...diagnosticEvidenceIds, ...recentEvidenceIds])
-  return { tasks, sourceWindows: structuredClone(evidence.filter(e => ids.has(e.id)).map(({ quote: _quote, ...e }) => e)), evidenceCatalog: evidence.map(({ quote: _quote, text: _text, ...e }) => e), instruction: LOCAL_EXTRACTION_GUIDE }
+  const ids = new Set([...tasks.flatMap(t => [...t.evidenceIds, ...t.callsiteEvidenceIds]), ...locationTasks.flatMap(t => t.callsiteEvidenceIds), ...diagnosticEvidenceIds, ...recentEvidenceIds])
+  return { tasks, locationTasks, sourceWindows: structuredClone(evidence.filter(e => ids.has(e.id)).map(({ quote: _quote, ...e }) => e)), evidenceCatalog: evidence.map(({ quote: _quote, text: _text, ...e }) => e), instruction: LOCAL_EXTRACTION_GUIDE }
 }
 
 export function expandLocalExtractions(input: unknown[], offered: LocalExplanationTask[], items: WorkItem[]) {

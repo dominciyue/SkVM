@@ -198,6 +198,10 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 - [x] 对入口条件、身份来源、资源解析和效果调用的关联只提出候选，语义仍由局部解释步骤确认。
 - [ ] 用已有 Memos/Paperless 两种结构各做真实补读探针，当场修复共同遗漏；验证改名/目录搬移后仍走同一代码，不把研究 evaluator 的正确 helper 列表交给生成器。
 
+2026-10-04 Download具名复验12/12返回五题首答/终答，中途一次same-tool修复成功处理control中的额外observations；最终仍completed-with-diagnostics，四题空图及授权题绑定/目标组/依赖未闭合。累计298调用、USD/人力unknown。独立源码复核支持四题条件解释，授权题缺少允许范围内可读的认证声明并过强概括全局权限分支；原评语及主裁定另存。现场工作计划：先补有prose entryHint但无索引候选时不回退operation/request的红例；仅零候选时回退，歧义不自动选。给既有下一次局部解释上下文增加有界定位/候选选择任务，使用原workItem/candidate身份及已有workSelections，无新模型调用、不复制别题图或猜源码含义。补明binding duty走sourceBindings且规则kind按原Schema；先聚焦反例再复核不同结构，未知Memos/Notes不重发。
+
+上述四项预期红例成立后，共享入口/局部上下文已修；84项449断言及主/研究类型通过。独立接线核验未发现跨题、未读证据授权、预算或语义闭合绕过；bindingKind完整枚举措辞已补。实际Download原字节零调用重放候选2/2/3/1/1、共享原窗口读取1次、0推断规则/用户值，前三题显式候选选择后仍只待解释。下一步具名location-routing-v1普通消费复验，记录同原作者字节、修前/修后和checked/语义分层，未知请求与主面板暂停不解除。
+
 ### AR7 — 补读后的局部解释与条件提取
 
 文件：新建 `inquiry-local-extraction.ts`、测试；接 inquiry-domain-runtime.ts 和现有 provider/telemetry。

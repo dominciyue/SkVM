@@ -43,7 +43,9 @@ for directory in sorted((root / 'ordinary').glob('consume-authorization-*')):
     if not result_file.exists():
         continue
     result = json.loads(result_file.read_text(encoding='utf8'))
-    stages.append({'stage': directory.name, 'kind': 'ordinary-authored-inquiry-consumption', 'providerCalls': result['providerCalls'], 'respondedCalls': result['respondedCalls'], 'tokens': result['knownTokens'], 'actualUSD': result['actualUSD'], 'artifact': str(result_file.relative_to(root)), 'author': result['author'], 'status': result['status'], 'checkedDelivery': bool((result.get('validation') or {}).get('valid')), 'sourceConfigBytesUnchanged': result['sourceConfigBytesUnchanged'], 'resend': False})
+    claim_file = directory / 'claim.json'
+    claim = json.loads(claim_file.read_text(encoding='utf8')) if claim_file.exists() else {}
+    stages.append({'stage': directory.name, 'kind': 'ordinary-authored-inquiry-consumption', 'providerCalls': result['providerCalls'], 'respondedCalls': result['respondedCalls'], 'tokens': result['knownTokens'], 'actualUSD': result['actualUSD'], 'artifact': str(result_file.relative_to(root)), 'author': result['author'], 'status': result['status'], 'checkedDelivery': bool((result.get('validation') or {}).get('valid')), 'sourceConfigBytesUnchanged': result['sourceConfigBytesUnchanged'], 'repairOf': claim.get('repairOf'), 'repairId': claim.get('repairId'), 'resend': bool(claim.get('repairOf')), 'noAutomaticResend': result['noAutomaticResend']})
 
 capture_root = repo / '.skvm/log/runtime/bare-agent/xty--gpt-5.6-sol'
 for name, directory in [('author-workflows', 'natural-702d1a1a6869/20261003-213711-run-bar-e79f95b3'), ('author-workflows-repaired', 'natural-702d1a1a6869/20261003-220531-run-bar-0f87e0f2'), ('author-workflow-program', 'natural-ca095aca27e7/20261003-223255-run-bar-b6db8cd9')]:

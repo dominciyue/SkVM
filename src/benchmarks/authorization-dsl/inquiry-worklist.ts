@@ -31,8 +31,9 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
   const make = (id: string, questionId: string, kind: InquiryRelation, origin: WorkItem["origin"], question: string, extra: Partial<WorkItem> = {}): WorkItem => ({ id, questionId, kind, origin, question, state: "unlocated", decisive: false, reason: "Locate original source or an explicit question relation.", candidates: [], callsiteEvidenceIds: [], evidenceIds: [], semanticSupport: "unreviewed", nextAction: { kind: "locate", itemId: id }, ...extra })
   for (const duty of options.program.queue) {
     const q = options.program.questions.find(q => q.id === duty.questionId)!
-    let candidates = duty.kind === "entry" ? options.tools.symbolHints(q.entryHint ?? [q.operation, q.request].filter(Boolean).join(" ")) : []
-    if (duty.kind === "entry" && !q.entryHint && !candidates.length && options.entryContext) candidates = options.tools.symbolHints(options.entryContext)
+    let candidates = duty.kind === "entry" ? options.tools.symbolHints(q.entryHint ?? "") : []
+    if (duty.kind === "entry" && !candidates.length) candidates = options.tools.symbolHints([q.operation, q.request].filter(Boolean).join(" "))
+    if (duty.kind === "entry" && !candidates.length && options.entryContext) candidates = options.tools.symbolHints(options.entryContext)
     items.set(duty.id, make(duty.id, duty.questionId, duty.kind, "question-duty", duty.question, { entryHint: q.entryHint, ...(duty.kind === "entry" ? { candidates: candidates.slice(0, 16), decisive: true } : {}) }))
   }
   const rootFor = (questionId: string) => [...items.values()].find(i => i.questionId === questionId && i.origin === "question-duty" && i.kind === "entry")!

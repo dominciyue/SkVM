@@ -1320,6 +1320,8 @@ AR `evaluate`现接严格语义评审及另存裁定，20项70断言、研究类
 
 **SDK超时与最终格式修复（2026-10-04）。** 实际Memos SDK先于300秒宿主timer抛出network timeout，旧终态只识别宿主超时；共享telemetry现按有界typed网络cause关闭请求，普通run、旧inspect和同题repair复用未知完成判据。原档案inspect仍为transport-failed，但派生completionUnknown:true，11派发10响应不改。独立核验另复现同步throw遗留pending，先红后绿接入同一结算。Download request-11/12本已有完整final Schema，修复提示却要求必要时请求源码且没有坏候选；既有一次同工具修复现明确当前常量，携最多32KiB编码UTF-8的原candidate为数据，不自动删答案或加第三次请求。58项303断言、主/研究类型通过，坏响应/原评审与裁定保留于[聚焦验证](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/sdk-final-repair-verification.json)。累计调用仍286；下一步仅具名复验已知全响应Download，Memos/Notes未知请求及主面板继续封存，resolver语义遗漏不因格式修正消失。
 
+**Download真实具名复验与定位修复（2026-10-04）。** SDK/final修后普通CLI12派发12响应，五题首答/终答均保留；中途control额外observations由既有一次同工具修复成功，final未再污染，但全部问题图仍未checked。独立源码复核支持四题条件解释，授权题仍漏读允许范围内认证声明且过强概括全局权限；原评语与主限界另存。三题歧义未选、一题零候选prose提示阻断operation回退是下一共享根因。四项红例后仅零候选回退并在既有两入口上下文提供最多2个locationTasks/16候选，未读任务仍不能做局部提取，绑定组诊断不替模型迁移或解释。84项449断言、主/研究类型通过；实际同原input/source零provider重放候选2/2/3/1/1，只发生1个共享入口读、0新规则/前提，五题都待解释，非checked成功。累计298派发、USD/人力unknown、目标0；下一步以原作者字节具名复验定位修复，未知Memos/Notes和16行主面板保持暂停。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

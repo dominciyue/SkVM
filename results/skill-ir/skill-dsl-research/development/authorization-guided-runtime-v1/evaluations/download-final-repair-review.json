@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "authorization-ar-download-repair-review/v1",
+  "stage": "consume-authorization-cloudflare-download-repair-sdk-final-wire-v1",
+  "reviewNotAnonymous": true,
+  "independent": {
+    "source": {
+      "verbatim": true,
+      "originalFinalMessage": "SOURCE-SEMANTIC REVIEW\n\n- Q1/Q2/Q3/Q5: supported/conditional. The source confirms the request document, root document, effective `file_doc`, version filtering, archive/source selection, and root-vs-file authorization split:\n  - `views.py:1368-1448`\n  - `versioning.py:146-195`\n  - `views.py:4941-4973`\n- Q4: partial due one decisive avoidable omission. `DocumentViewSet` declares inherited authentication/permissions at `views.py:1008-1022`:  \n  `\"permission_classes = (IsAuthenticated, PaperlessObjectPermissions)\"`.  \n  The download action has no override (`views.py:1834-1839`). Therefore unauthenticated reachability is source-established as denied by DRF `IsAuthenticated`; the final answer’s “user-none” conditional branch and missing claim that upstream DRF configuration was not closed (`report.json:2553-2557`, `2576-2585`, final `3176`, `3200-3204`) are too weak.\n- Q4 also overstates “owner/global/object branches” (`report.json:3210-3215`). The shown helper is only:\n  `permissions.py:624-635`: `return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)`.\n  No explicit global branch is shown; exact `ObjectPermissionChecker` global semantics remain outside the supplied helper.\n- Q5’s authorization/effect object mismatch is correctly source-established without asserting a policy violation.\n- Deleted handling nuance is accurate only for request/root loading and explicit version resolution: `_resolve_file_doc` passes `include_deleted=version_requested` (`views.py:1375-1381`), so omitted root latest lookup uses the default manager.\n- Validation rejection diagnostics are structural/schema/path-closure failures, not evidence that the prose is semantically wrong (`report.json:2747-2872`)."
+    },
+    "worklist": {
+      "verbatim": true,
+      "claimedSeparateMessageNotAvailable": true,
+      "originalFinalMessage": "已将核验结果发送给主代理，核心证据包括：\n\n- 三个空规则问题分别因 `location-ambiguous`，入口候选未选择；并非宿主拒绝。\n- invariant 问题因 `location-missing`，复合比较型 `entryHint` 未命中索引。\n- root-version 因唯一候选 `download` 被接受，故出现控制图。\n- root 中的 `resource-binding` 枚举、跨组同名 key、缺失对象绑定等是模型提交错误；宿主保留诊断和局部状态，没有发现可复现绕过。\n- `_resolve_file_doc`、`get_request_version_param` 等依赖的原始读取和 WorkItem 状态仍被保留，未被静默关闭。"
+    }
+  },
+  "mainAdjudication": {
+    "sourceSummary": "Four conditional source explanations supported; authorization remains partial due allowed but unread upstream declaration and an unsupported explicit global-permission branch.",
+    "pointChecks": [
+      "source/src/documents/views.py:1008-1022 declares permission_classes",
+      "source/src/documents/permissions.py:624-635 permits null owner, same owner or checker.has_perm; no explicit global branch in this body"
+    ],
+    "limit": "The authentication declaration is concrete source evidence; deployed behavior and uninspected framework/helper implementations are not certified. Preserve those external limits without treating an allowed but unread declaration as unavailable.",
+    "qualityBenefit": "not-established",
+    "checkedDelivery": false,
+    "previousReuseEligible": false,
+    "unknownRequests": "Memos-and-Notes-remain-sealed"
+  },
+  "nextEngineering": {
+    "confirmed": "A supplied prose hint with zero indexed matches suppresses operation/request lexical fallback; ambiguous location work is retained but absent from focused local explanation tasks.",
+    "plan": "Test fallback only when the hint has no candidates; keep ambiguity. Expose bounded candidate-selection/locate work in the existing next provider context without another model call; preserve per-question ownership and validators."
+  }
+}
