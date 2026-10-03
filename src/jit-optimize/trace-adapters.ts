@@ -188,7 +188,10 @@ function redactString(value: string): string {
   return value
     .replace(/\bBearer\s+[A-Za-z0-9._~+\/-]+=*/gi, "Bearer [REDACTED]")
     .replace(/\bsk-[A-Za-z0-9_-]{6,}\b/g, "[REDACTED]")
-    .replace(/\b(api[_-]?key|access[_-]?token|token|password|secret)\s*([:=])\s*([^\s,;]+)/gi, "$1$2[REDACTED]")
+    .replace(/(?<![\w-])(api[_-]?key|access[_-]?token|token|password|secret)(\s*[:=]\s*)(?:"[^"\r\n]*"|'[^'\r\n]*'|[^\s,;"'\\}\]]+)/gi, (match, key, separator) => {
+      const value = match.slice(key.length + separator.length), quote = value.startsWith('"') ? '"' : value.startsWith("'") ? "'" : ""
+      return `${key}${separator}${quote}[REDACTED]${quote}`
+    })
 }
 
 function redactValue(value: unknown): unknown {

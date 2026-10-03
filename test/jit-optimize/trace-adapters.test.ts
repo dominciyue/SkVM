@@ -498,6 +498,8 @@ describe("loadEvidencesFromLogs adapter integration", () => {
     })}\n`
     const initialText = `${JSON.stringify({ schemaVersion: "skvm-initial-workdir-manifest/v1", workDir: path.join(dir, "work"), entries: [] })}\n`
     const outputSecret = "token=output-secret"
+    const inventory = JSON.stringify({ snippet: "permissions:\n  contents: write\n  id-token: write" }, null, 2)
+    const secretJson = JSON.stringify({ note: "token=output-secret" }, null, 2)
     const inputBytes = Uint8Array.from([0xff, 0x00, 0x01])
     const inputSha = new Bun.CryptoHasher("sha256").update(inputBytes).digest("hex")
     const inputManifest = `${JSON.stringify({
@@ -520,7 +522,7 @@ describe("loadEvidencesFromLogs adapter integration", () => {
         sha256: new Bun.CryptoHasher("sha256").update(outputSecret).digest("hex"),
         bytes: Buffer.byteLength(outputSecret),
         content: outputSecret,
-      }],
+      }, ...[["inventory.json", inventory], ["secret.json", secretJson]].map(([name, content]) => ({ path: name, content, bytes: Buffer.byteLength(content!), sha256: new Bun.CryptoHasher("sha256").update(content!).digest("hex") }))],
       deleted: [],
       contentOmissions: [],
     })}\n`
@@ -598,6 +600,8 @@ describe("loadEvidencesFromLogs adapter integration", () => {
     expect(adapted.records[0]!.source).toMatchObject({ adapter: "bare-agent", model: "x/source", runStatus: "ok" })
     expect(adapted.records[0]!.source.usage).toMatchObject({ inputTokens: 5, outputTokens: 2 })
     expect(adapted.records[0]!.workDirSnapshot?.files.get("artifact.txt")).toContain("REDACTED")
+    expect(adapted.records[0]!.workDirSnapshot?.files.get("inventory.json")).toBe(inventory)
+    expect(JSON.parse(adapted.records[0]!.workDirSnapshot!.files.get("secret.json")!)).toEqual({ note: "token=[REDACTED]" })
     expect(adapted.records[0]!.criteria).toMatchObject([{ id: "artifact", passed: true, score: 1 }])
     expect(adapted.records[0]!).toMatchObject({
       inputResources: {
