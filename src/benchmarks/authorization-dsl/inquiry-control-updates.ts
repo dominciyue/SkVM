@@ -14,7 +14,7 @@ export const LocalControlDeltaSchema = z.object({ ...metadata, rules: z.array(ru
 export const LocalControlEnvelopeSchema = z.object({ ...metadata, rules: z.array(z.unknown()).max(1024).default([]), sourceBindings: z.array(z.unknown()).max(1024).default([]), dependencies: z.array(z.unknown()).max(1024).default([]), premiseValues: z.array(z.unknown()).max(1024).default([]), policyRules: z.array(z.unknown()).max(256).default([]), workSelections: z.array(z.unknown()).max(64).default([]), localExtractions: z.array(z.unknown()).max(16).default([]) }).strict()
 export const LOCAL_CONTROL_GUIDE = [
   'guided-evidence-v2 local interface: controlDelta is {schemaVersion:"authorization-control-update/v1",rules:[],sourceBindings:[],dependencies:[],premiseValues:[],policyRules:[],atomic?:false,baseRevision?:current revision}. Submit just changed items, not the entire graph.',
-  "Each item has op:add|replace, questionId, targetKey. Replace names the current same-question target and supplies reason; the host fills revisionOf. baseRevision detects a stale view. atomic:true applies the whole group or none. Rejected items and their dependent gaps remain visible; correct only diagnosed items.",
+  "Each item has op:add|replace, questionId, targetKey. Replace names the current same-question target; a model reason is optional for ordinary items, and the host records explicit replacement provenance and revisionOf. Dependency reason remains required to explain source relevance. baseRevision detects a stale view. atomic:true applies the whole group or none. Rejected items and their dependent gaps remain visible; correct only diagnosed items.",
   "rules are entry/guard/reject/continue/effect with pathKey,after,evidenceIds,claim and optional finite condition/principal/resource/operation/authorizedBy/complete. sourceBindings are source identities with pathKey,after,evidenceIds,claim,bindingKey,bindingKind; the host sets kind:binding. A source identity is never a user value.",
   "premiseValues are explicit user facts: {op,questionId,targetKey,status:known,value,text:<exact original user span>} or {op,questionId,targetKey,status:unspecified,text}. Unspecified has NO value field; it does not mean null or false. Omit unspecified items if no update is needed. Policy mappings stay in policyRules, with expected,text,location and optional condition; the host sets origin:policy.",
   "For a shown ambiguous WorkItem submit workSelections:[{questionId,itemId,candidateId}] using its shown candidate ID. This is a lexical read choice, not an authorization fact or a closed-state declaration. Atomic applies to the control update groups; location choices are separate read intents.",
@@ -49,19 +49,19 @@ export function applyControlUpdates(previous: ControlSlice, input: unknown, prog
     if (!sameGroup) errors.push(diagnostic("control-target-group", at, "This same-named target belongs to another local group; use a distinct key or its actual group."))
     if (parsed.data.baseRevision !== undefined && parsed.data.baseRevision !== previous.revision) errors.push(diagnostic("stale-control-revision", at, `Expected revision ${parsed.data.baseRevision}; current revision is ${previous.revision}. Inspect current targets before replacing.`))
     if (item.op === "replace" && !old) errors.push(diagnostic("control-target-missing", at, "Replacement requires an existing target in this question and group."))
-    if (item.op === "replace" && !item.reason) errors.push(diagnostic("control-replacement-reason", at, "Explain this local replacement; no digest transcription is needed."))
+    const revisionReason = item.reason ?? "host:explicit-local-replacement"
     if (group === "premiseValues" && item.status === "unspecified") {
       const q = program.questions.find(q => q.id === item.questionId), supplied = context.suppliedUserText ?? (q ? [q.request, ...q.premises.map(p => p.text)] : [])
       if (!q || !context.questionIds.includes(item.questionId)) errors.push(diagnostic("unknown-question", at, "Question is not declared."))
       if (!supplied.some(t => t.includes(item.text))) errors.push(diagnostic("premise-not-supplied", at, "Unspecified values must also quote the original user task."))
       if (old && item.op !== "replace") errors.push(diagnostic("control-target-exists", at, "An existing known value needs an explicit replacement to become unspecified."))
       if (errors.length) { rejected.push({ ...identity, diagnostics: errors }); continue }
-      if (old) { state.bindings = state.bindings.filter(v => v.id !== old.id); state.revision++; state.revisions.push({ id: old.id, previous: old, accepted: { status: "unspecified", text: item.text }, reason: item.reason }) }
+      if (old) { state.bindings = state.bindings.filter(v => v.id !== old.id); state.revision++; state.revisions.push({ id: old.id, previous: old, accepted: { status: "unspecified", text: item.text }, reason: revisionReason }) }
       accepted.push({ ...identity, status: "kept-unknown" }); continue
     }
     if (errors.length) { rejected.push({ ...identity, diagnostics: errors }); continue }
     const { op, targetKey, reason, status: _status, ...content } = item
-    const normalized = { ...content, key: targetKey, ...(group === "dependencies" ? { reason } : {}), ...(group === "sourceBindings" ? { kind: "binding" } : {}), ...(group === "premiseValues" ? { origin: "user" } : {}), ...(group === "policyRules" ? { origin: "policy" } : {}), ...(op === "replace" ? { revisionOf: old!.digest, revisionReason: reason } : {}) }
+    const normalized = { ...content, key: targetKey, ...(group === "dependencies" ? { reason } : {}), ...(group === "sourceBindings" ? { kind: "binding" } : {}), ...(group === "premiseValues" ? { origin: "user" } : {}), ...(group === "policyRules" ? { origin: "policy" } : {}), ...(op === "replace" ? { revisionOf: old!.digest, revisionReason } : {}) }
     const merged = mergeControlSlice(state, { schemaVersion: "authorization-control-slice/v1", [targetGroup]: [normalized] }, program, context)
     if (merged.diagnostics.length) { rejected.push({ ...identity, diagnostics: merged.diagnostics.map(d => ({ ...d, path: at + "." + d.path })) }); continue }
     const changed = merged.state.revision !== state.revision; state = merged.state

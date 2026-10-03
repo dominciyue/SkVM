@@ -79,3 +79,16 @@ test("atomic rollback exposes current gaps rather than the rolled-back candidate
   expect(result.unresolved).toEqual([])
   expect(result.attemptUnresolved).toMatchObject([{ targetKey: "effect", rejectedTarget: "not-accepted" }])
 })
+
+test("explicit local replacement records host provenance without requiring invented model rationale", () => {
+  const first = api.applyControlUpdates(createControlSlice(), envelope({ rules: [update("entry")] }), program, context)
+  const next = api.applyControlUpdates(first.state, envelope({ rules: [update("entry", "reject", { op: "replace", complete: true })] }), program, context)
+  expect(next.rejected).toEqual([])
+  expect(next.state.rules[0].kind).toBe("reject")
+  expect(next.state.revisions[0]).toMatchObject({ previous: first.state.rules[0], reason: "host:explicit-local-replacement" })
+  const invalid = api.applyControlUpdates(next.state, envelope({ rules: [update("entry", "effect", { op: "replace", evidenceIds: ["not-shown"] })] }), program, context)
+  expect(invalid.rejected[0].diagnostics.map((d: any) => d.code)).toContain("evidence-not-shown")
+  expect(invalid.state).toEqual(next.state)
+  const dependency = api.applyControlUpdates(next.state, envelope({ dependencies: [{ op: "add", targetKey: "dep", questionId: "q", pathKey: "p", from: "entry", symbol: "helper", kind: "control", evidenceIds: ["ev"] }] }), program, context)
+  expect(dependency.rejected[0].diagnostics.some((d: any) => d.path.endsWith("reason"))).toBe(true)
+})

@@ -212,6 +212,7 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 
 - 2026-10-03 Memos修后12响应仍无checked交付：入口首次局部解释后转awaiting-verification，却在闭合前不再offered；后续两个入口增量被拒，$local包装诊断无法通过有效同题更新清除。计划先红绿验证未闭合已读工作项继续可解释、待解释项优先，以及包装错误的同题恢复；具体字段错误、别题错误和源码失效继续保留。原语义回答与图缺陷分层评价，原attempt不覆盖。
 - 上述生命周期红绿修复已通过62项334断言，真实前四步离线重放保留原10接受、下一增量从整体拒绝转10接受/3项Schema拒绝；没有生成新final。原12次响应wire失败为0，证明先前协议根因改善；当前图仍未闭合，语义评阅partial与主源码裁定分存。累计46派发，下一步仅同题具名修复，Paperless未知请求与主质量面板仍封存。
+- Memos attempt-3在af0110c4取得12响应和raw final，预算耗尽、无checked交付；入口及helper能多次局部修订，生命周期根因改善。新主阻力是大量显式replace因省略机械reason被拒（Schema却将其标可选）。按最少必要护栏修订：非dependency的局部显式替换允许省略reason，宿主保存“显式局部替换”的来源标签及前后版本，不虚构模型语义理由；dependency.reason仍是必需的相关性说明。先红绿与真实原增量离线核验，再评估是否释放下一真实用途；原失败/58累计派发及未知费用保留。
 
 ### AR9 — 从局部规则到分层答案检查
 
@@ -264,6 +265,8 @@ test("an unreachable unrelated binding cannot satisfy the live effect", () => {
 ### AR13 — 编写、修改与可搬移使用
 
 文件：authoring-assist.ts/既有编辑入口、inquiry-local.ts、examples/authorization-assessment/reusable-skill/。
+
+2026-10-03提速执行：原skill的Memos普通native使用与独立非API作者链并进；非API链用完整GitHub security-review skill和当前仓库原始workflow文件，自然任务为离线权限/action引用清单及安全评阅，经普通run --optimize捕获/proposal/export，再对同一新包做原任务及范围变化消费。不给作者目标程序或评分答案，保留人工语义评阅、其它skill职责与原源文件；no-change或文档包仍不算新程序成功。用户要求每个问题一次针对性检查，不新增重复哈希或审批门；未知请求不重发、原证据和质量分母照实保留。
 
 - [ ] 使用两个已归档 source skill 的自然任务，实际生成两份可运行输入/包配置；不给作者完整目标声明。
 - [ ] 分别做一次政策修改和前提修改，运行 AR12；检查相同包是否正确携带新任务说明、旧证据失效和剩余职责。

@@ -25,7 +25,7 @@ export const LocalExtractionItemSchemas = {
 }
 export const LocalExtractionSchema = z.object({ itemId: InquiryText, rules: z.array(LocalExtractionItemSchemas.rules).max(64).default([]), sourceBindings: z.array(LocalExtractionItemSchemas.sourceBindings).max(64).default([]), dependencies: z.array(LocalExtractionItemSchemas.dependencies).max(64).default([]), premiseValues: z.array(LocalExtractionItemSchemas.premiseValues).max(64).default([]), policyRules: z.array(LocalExtractionItemSchemas.policyRules).max(64).default([]) }).strict()
 function localSchemaMessage(issue: z.ZodIssue) {
-  if (issue.path.length === 1 && issue.path[0] === "op") return `${issue.message}. Supply op:add for a new target or op:replace for an existing target, with a reason. The host cannot choose the intended operation.`
+  if (issue.path.length === 1 && issue.path[0] === "op") return `${issue.message}. Supply op:add for a new target or op:replace for an existing target. The host cannot choose the intended operation. Dependency reason must still explain relevance.`
   if (issue.code === "unrecognized_keys" && issue.keys.some(key => ["questionId", "evidenceIds"].includes(key))) return `${issue.message}. Omit questionId and evidenceIds in local extractions; the host binds this offered task to its original source windows. Other unsupported fields must also be removed.`
   return issue.message
 }
@@ -39,7 +39,7 @@ export const LOCAL_EXTRACTION_GUIDE = [
   'An entry read does not close its called authorization helpers or upstream endpoint controls. Interpret the entry first, name decisive source dependencies, then interpret their actual windows and link the resulting conditions. Mark a terminal complete only after its relevant reachable controls and dependencies are examined. Policy pathKey must match the actual proposed behavior path, with expected outcome mapped from independent policy rather than source.',
   "Unconfirmed lexical references are optional location leads, not compulsory explanation tasks. Link a dependency from the actual source rule when relevant to this question, or choose a shown candidate to inspect it. A unique same-name definition alone does not establish relevance or receiver identity.",
   "Local explanation joins the next ordinary structured/native step. It does not create an extra provider request. You may still use ordinary changed control groups for already shown source outside an offered fragment. Invalid local items remain diagnosed while good siblings are retained, subject to the requested atomic update.",
-  "An interpreted source item remains editable until its question is checked. Amend existingTargets with op:replace and a reason when correcting the same source rule; renaming a mistaken rule does not withdraw it. After a stale local envelope rejection, use a currently offered task or a valid same-question ordinary update; specific rejected target diagnostics still require correction of those targets.",
+  "An interpreted source item remains editable until its question is checked. Amend existingTargets with op:replace when correcting the same source rule; a model reason may explain the change, otherwise the host records explicit local replacement provenance. Dependency relevance reasons remain required. Renaming a mistaken rule does not withdraw it. After a stale local envelope rejection, use a currently offered task or a valid same-question ordinary update; specific rejected target diagnostics still require correction of those targets.",
 ].join("\n")
 
 export interface LocalExplanationTask {
