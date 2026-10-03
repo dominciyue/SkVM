@@ -1,5 +1,5 @@
 import { addTokenUsage, emptyTokenUsage, type TokenUsage } from "../../core/types.ts"
-import { ProviderError } from "../../providers/errors.ts"
+import { ProviderError, ProviderNetworkError } from "../../providers/errors.ts"
 import type { ZodType } from "zod"
 import type {
   CompletionParams,
@@ -120,6 +120,34 @@ export class AuthorizationDispatchLimitError extends ProviderError {
     super(`Authorization provider dispatch limit of ${limit} has been reached.`, provider, undefined, false)
     this.name = "AuthorizationDispatchLimitError"
   }
+}
+
+function hasTimeoutCause(value: unknown): boolean {
+  const seen = new Set<object>()
+  for (let depth = 0; depth < 8 && value !== undefined; depth++) {
+    if (typeof value === "string") return /\btimed?\s+out\b|\btimeout\b|ETIMEDOUT|TimeoutError/i.test(value)
+    if (!value || typeof value !== "object" || seen.has(value)) return false
+    seen.add(value)
+    const cause = value as { name?: unknown; message?: unknown; code?: unknown; cause?: unknown }
+    const signal = [cause.name, cause.message, cause.code].filter(v => typeof v === "string").join(" ")
+    if (/\btimed?\s+out\b|\btimeout\b|ETIMEDOUT|TimeoutError/i.test(signal)) return true
+    value = cause.cause
+  }
+  return false
+}
+
+/** Derives unresolved completion from retained transport facts without rewriting old reports. */
+export function hasUnknownAuthorizationCompletion(record: unknown): boolean {
+  if (!record || typeof record !== "object") return false
+  const run = record as { status?: unknown; attempts?: unknown }
+  if (run.status === "completion-unknown" || run.status === "timeout-unknown") return true
+  if (!Array.isArray(run.attempts)) return false
+  return run.attempts.some(value => {
+    if (!value || typeof value !== "object") return false
+    const attempt = value as { status?: unknown; response?: unknown; error?: { name?: unknown; message?: unknown } }
+    return attempt.status === "pending" || attempt.status === "timeout" ||
+      (attempt.status === "error" && !attempt.response && attempt.error?.name === "ProviderNetworkError" && hasTimeoutCause(attempt.error))
+  })
 }
 
 function redactSensitiveText(value: string): string {
@@ -322,7 +350,7 @@ export function createTelemetryProvider(
       const timeoutKind: "per-call" | "unit" = remainingUnitMs <= perCallTimeoutMs ? "unit" : "per-call"
       let timedOut = false
       let timer: ReturnType<typeof setTimeout> | undefined
-      const delegatePromise = toolResults && previousResponse ? delegate.completeWithToolResults(params, toolResults, previousResponse) : delegate.complete(params)
+      const delegatePromise = Promise.resolve().then(() => toolResults && previousResponse ? delegate.completeWithToolResults(params, toolResults, previousResponse) : delegate.complete(params))
       const settlement = delegatePromise.then(async response => {
         attempt.response = sanitizeResponse(response)
         attempt.usage = { ...response.tokens }
@@ -393,20 +421,23 @@ export function createTelemetryProvider(
           })
           throw error
         }
-        attempt.status = "error"
+        const providerTimeout = error instanceof ProviderNetworkError && hasTimeoutCause(error)
+        if (providerTimeout && timer !== undefined) clearTimeout(timer)
+        attempt.status = providerTimeout ? "timeout" : "error"
         attempt.endedAt = new Date().toISOString()
         attempt.error = {
           name: error instanceof Error ? error.name : "UnknownError",
           message: redactSensitiveText(error instanceof Error ? error.message : String(error)),
         }
         await emit({
-          kind: "error",
+          kind: providerTimeout ? "timeout" : "error",
           attemptId: attempt.id,
           phase: attempt.phase,
           transport: attempt.transport,
           reason: attempt.error.message,
           attempt: structuredClone(attempt),
         })
+        if (providerTimeout) await close(`provider-timeout:${attempt.id}`)
         throw error
       })
 

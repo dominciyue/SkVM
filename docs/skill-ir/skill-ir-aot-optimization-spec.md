@@ -2639,3 +2639,5 @@ AR完整作者格式：公开模式专用authoring Schema只表达完整inquiry�
 AR政策条件等价：条件政策和路径在同一问题的当前binding下部分求值，再仅用有限all/any的结合、交换、幂等及单元素折叠比较unknown residual；非法/循环/超限表达式不等价，不同算子、严格值类型及多个映射仍留undetermined。不作任意逻辑蕴涵，不赋未知值，不把conditional升为无条件allow。原canonicalControl/digest及源/用户/政策provenance保持。当前纯检查可以消除真实A且A与A的误拒，但原模型交付/旧检查状态不改，helper未闭合仍partial，语义unreviewed。
 
 AR自适应语义评价：独立评审严格绑定row、真实attempt编号和原report字节，开发主线程裁定另存并绑定原评审，不覆盖原评分。initial/final、抽取语义、helper/分支/合理与可避免unknown、checker事件分别记录；completed/valid/accepted均不能代替语义评审。固定保留16主面板行，未运行与未评审明示，探针及普通使用不混入质量分母；只有原输入摘要、源码索引、实现版本、模型与预算都匹配的主面板首次尝试可配对。已知小计与未知费用分开；缺首次report不把repair改称首次，目录/claim/report编号必须一致。评价可在每一小块后零provider运行，不要求全生成闭合，不由局部工程或配对描述自动声称质量收益。实际作者配置必须以模型原字节在仓外普通入口消费，失败/超时及首稿分别留账；未知末请求保持封存，不用改名修复重发。
+
+AR SDK超时与final修复合同：typed ProviderNetworkError的有界timeout cause即使早于宿主timer也按未知完成关闭生命周期，原错误保留、不fallback；同步throw进入同一结算。ordinary run、旧档案inspect和同题repair共享保留事实判据，旧transport-failed原字节不改，未知费用不补零，未保存的cause不推造。既有一次same-tool格式修复从当前广告Schema提取通用顶层常量，最多携32KiB编码UTF-8的坏candidate为数据，超限省略上下文但完整原响应保留；final-only不再要求源码动作，不删除污染数组元素或补造答案。union没有通用常量时不猜分支，完整原工具合同仍约束修复。格式恢复不成立语义成功，未知Memos/Notes不可具名重发。

@@ -5,7 +5,7 @@ import { AuthorizationInquirySchema, type AuthorizationInquiry } from "../../tas
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
 import { validateAuthorizationInquiryResult, validateInquiryObservations, inquiryObservationFeedback, type AuthorizationObservation } from "../../task-dsl/authorization/inquiry-result.ts"
 import { createInquiryTools, modelSourceDisplay, type InquiryToolsOptions, type InquiryToolOutput } from "./inquiry-tools.ts"
-import { createTelemetryProvider, AuthorizationCallTimeoutError, AuthorizationDispatchLimitError, type AuthorizationLifecycleEvent } from "./telemetry.ts"
+import { createTelemetryProvider, hasUnknownAuthorizationCompletion, AuthorizationCallTimeoutError, AuthorizationDispatchLimitError, type AuthorizationLifecycleEvent } from "./telemetry.ts"
 import { parseInquiryStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { createInquiryDomainRuntime, DOMAIN_EXECUTION_GUIDE, GUIDED_EXECUTION_GUIDE, type DomainAblation } from "./inquiry-domain-runtime.ts"
 import { inquiryStepSchemas, normalizeGuidedControlEnvelope, type InquiryStep } from "./inquiry-wire.ts"
@@ -157,7 +157,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
   } catch (cause) {
     if (cause instanceof StructuredExtractionError) for (const [index, failure] of cause.failures.entries()) wireFailures.push({ ...failure, phase, sequence: telemetry.attempts.length - cause.failures.length + index + 1 })
     error = cause instanceof Error ? cause.message : String(cause)
-    status = cause instanceof AuthorizationCallTimeoutError ? "timeout-unknown" : cause instanceof AuthorizationDispatchLimitError ? "budget-exhausted" : inquiry ? "transport-failed" : telemetry.attempts.length ? "completed-with-diagnostics" : "needs-input"
+    status = cause instanceof AuthorizationCallTimeoutError || hasUnknownAuthorizationCompletion({ attempts: telemetry.attempts }) ? "timeout-unknown" : cause instanceof AuthorizationDispatchLimitError ? "budget-exhausted" : inquiry ? "transport-failed" : telemetry.attempts.length ? "completed-with-diagnostics" : "needs-input"
   } finally { await telemetry.close(`inquiry-${status}`); domain?.close() }
   return { schemaVersion: "authorization-inquiry-run/v1" as const, status, method: options.method, inquiry,
     program: inquiry ? compileAuthorizationInquiry(inquiry) : undefined, result: validation?.valid ? validation.result : undefined,

@@ -95,3 +95,20 @@ test("modified archived evidence cannot reach provider creation even with matchi
   expect(f.factories()).toBe(1)
   expect(f.calls()).toBe(1)
 })
+
+test("an old transport-failed SDK timeout returns inspection rather than a fresh resend command", async () => {
+  const f = await fixture()
+  for (const name of ["run.json", "report.json"]) {
+    const file = path.join(f.old.sessionPath, name), value = JSON.parse(await readFile(file, "utf8"))
+    value.status = "transport-failed"
+    if (name === "run.json") value.attempts = [{ status: "error", error: { name: "ProviderNetworkError", message: "The operation timed out." } }]
+    await writeFile(file, JSON.stringify(value))
+  }
+  const old = await inspectLocalInquiry(f.old.sessionPath)
+  expect(old.status).toBe("transport-failed")
+  expect(old.completionUnknown).toBe(true)
+  const current: any = await executeLocalInquiryRun({ ...f.options, inputFile: f.changedFile, previous: f.old.sessionPath, providerFactory: () => f.factory(true) })
+  expect(current).toMatchObject({ providerCalls: 0, noAutomaticResend: true, recovery: { kind: "inspect-previous" } })
+  expect(current.recovery.arguments).toContain("inspect")
+  expect(f.factories()).toBe(1)
+})

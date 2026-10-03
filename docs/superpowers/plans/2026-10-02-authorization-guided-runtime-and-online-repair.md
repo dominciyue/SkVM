@@ -149,6 +149,10 @@ type FailureRecord = {
 
 AR3 run/report 已保留 phase/sequence/path/code/rawResponse/usage，Schema 重试不再丢工具约束；最小修复上下文与证据窗口在 AR7/AR8 一起完成，故上一项仍未勾完成。
 
+2026-10-04现场修复计划：以已归档Memos SDK timeout和Download final污染为依据，先补timer之前的ProviderNetworkError超时、旧transport-failed档案的previous/同题repair保护及final-only同工具修复反例。共享telemetry识别有界网络timeout cause并关闭生命周期，原错误/请求/用量保留；普通run和旧档案复用同一未知完成判据，不把已知schema坏响应归为unknown。既有一次same-tool修复明确当前顶层常量，取消与final-only冲突的源码动作指令，最多携带32KiB原坏candidate为数据，不删除/补造实验答案或增加修复次数。完成聚焦红绿与主类型后，只对已知返回的Download失败作一次具名真实复验；未知Memos和Notes保持封存，后续语义遗漏仍需独立检查。
+
+现场工程复验：58项303断言及主/研究类型通过；独立核验补出同步provider throw遗留pending的红例，接入同一结算后转绿。真实Memos旧档案inspect保持transport-failed原状态，派生completionUnknown:true并保留11/10调用；原文/用量不改，未知请求不重发。Download现仅进入一次具名已知响应复验，语义判定与checked交付另验，见sdk-final-repair-verification.json。
+
 ### AR4 — 补可达绑定及分支级结论检查
 
 文件：control-conclusion.ts、control-conclusion.test.ts、control-evaluation.test.ts。

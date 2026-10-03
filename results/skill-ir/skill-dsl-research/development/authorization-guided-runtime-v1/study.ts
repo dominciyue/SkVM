@@ -5,6 +5,7 @@ import { createHash } from "node:crypto"
 import { isDeepStrictEqual } from "node:util"
 import { z } from "zod"
 import { checkAuthorizationInquiry, executeLocalInquiryRun, inspectLocalInquiry } from "../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts"
+import { hasUnknownAuthorizationCompletion } from "../../../../../src/benchmarks/authorization-dsl/telemetry.ts"
 
 export const root = import.meta.dir, repo = path.resolve(root, "../../../../..")
 export const historical = path.join(path.dirname(root), "authorization-domain-execution-v1")
@@ -72,7 +73,7 @@ export async function developRows(base: string, rows: Row[], options: DevelopOpt
     if (!(await exists(path.join(original, "claim.json"))) || !(await exists(path.join(original, "report.json")))) throw new Error("Missing retained original attempt")
     const claim = await json(path.join(original, "claim.json")), retained = await json(path.join(original, "report.json"))
     if (!isDeepStrictEqual(claim.row, rows[0]) || claim.attempt !== Number(match[2]) || JSON.stringify(claim) !== JSON.stringify(retained.identity)) throw new Error("Invalid original attempt identity")
-    if (/unknown/.test(String(retained.report.status)) && !(await inspectedZeroDispatch(original))) throw new Error("An original attempt of unknown completion cannot be redispatched")
+    if (hasUnknownAuthorizationCompletion(retained.report) && !(await inspectedZeroDispatch(original))) throw new Error("An original attempt of unknown completion cannot be redispatched")
     originalFailureId = `${match[1]}-attempt-${match[2]}`
   }
   await mkdir(base, { recursive: true })

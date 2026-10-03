@@ -5,6 +5,7 @@ import path from "node:path"
 import type { LLMProvider, CompletionParams } from "../../providers/types.ts"
 import { emptyTokenUsage } from "../../core/types.ts"
 import { runAuthorizationInquiry } from "./inquiry-run.ts"
+import { ProviderNetworkError } from "../../providers/errors.ts"
 
 async function setup() {
   const root = await mkdtemp(path.join(os.tmpdir(), "ao-loop-")); await mkdir(path.join(root, "src"))
@@ -58,6 +59,17 @@ test("per-call timeout leaves unknown completion and never dispatches fallback",
   expect(result.status).toBe("timeout-unknown")
   expect(count).toBe(1)
   expect(result.telemetry.unknownUsageCalls).toBe(1)
+})
+test("an SDK timeout is unknown completion even when it settles before the configured host deadline", async () => {
+  const input = await setup(); let count = 0
+  const provider: LLMProvider = { name: "sdk-timeout", async complete() { count++; throw new ProviderNetworkError("The operation timed out.", "sdk-timeout") }, async completeWithToolResults() { throw new Error("Unused") } }
+  const run = await runAuthorizationInquiry({ ...input, method: "D1", provider, perCallTimeoutMs: 1000 })
+  expect(run.status).toBe("timeout-unknown")
+  expect(run.attempts[0]?.status).toBe("timeout")
+  expect(run.events.some(event => event.kind === "closed" && event.reason?.startsWith("provider-timeout:"))).toBe(true)
+  expect(count).toBe(1)
+  expect(run.wireFailures).toEqual([])
+  expect(run.error).toBe("The operation timed out.")
 })
 test("source resend budget applies before fallback dispatch and counts failed responses", async () => {
   const input = await setup(), mock = scripted((_p, n) => n === 0 ? { kind: "tool", calls: [{ name: "source_read", arguments: { path: "src/helper.ts", startLine: 1, endLine: 1 } }] } : {})
@@ -248,26 +260,24 @@ test("guided inquiry explains actual entry and helper windows in two ordinary ca
   expect(run.toolHistory.map(h => h.actionOrigin)).toEqual(["domain-worklist", "domain-worklist"])
 })
 
-test("guided source accounting counts selected raw windows and does not cite catalog-only unseen source", async () => {
+test("all newly read original windows reach the next guided call and are counted as actual source display", async () => {
   const input = await setup()
   for (const name of ["one", "two", "three", "four"]) await writeFile(path.join(input.sourceRoot, `src/${name}.ts`), `export const ${name} = '${name}-original';\n`)
   const mock = scripted((params, n) => {
     const prompt = params.messages[0]!.content
     if (!n) return { kind: "tool", calls: ["one", "two", "three", "four"].map(name => ({ name: "source_read", arguments: { path: `src/${name}.ts`, startLine: 1, endLine: 1 } })) }
     const context = JSON.parse(prompt.split("Current local explanation context: ")[1]!.split("\n\nRemaining dispatches:")[0]!)
-    expect(context.sourceWindows.map((e: any) => e.path)).toEqual(["src/three.ts", "src/four.ts"])
-    expect(prompt).not.toContain("one-original")
-    const unseen = context.evidenceCatalog.find((e: any) => e.path === "src/one.ts").id
-    if (n === 1) return final(unseen)
-    expect(prompt).toContain("evidence-not-shown")
-    return final(context.sourceWindows[0].id)
+    expect(context.sourceWindows.map((e: any) => e.path)).toEqual(["src/one.ts", "src/two.ts", "src/three.ts", "src/four.ts"])
+    for (const name of ["one", "two", "three", "four"]) expect(prompt).toContain(`${name}-original`)
+    return { kind: "final", result: { schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q1", behavior: { disposition: "unknown", explanation: "These four original constant declarations do not identify the requested operation." }, evidenceIds: context.sourceWindows.map((e: any) => e.id), branches: [], missing: [{ kind: "source-gap", detail: "The requested operation is not identified by these declarations", nextRead: "Locate its operation entry" }] }], observations: [], scope: "The four displayed original windows" } }
   })
   const run = await runAuthorizationInquiry({ ...input, inquiry: { ...input.inquiry, questions: [{ id: "q1", request: "Inspect these provided sources", premises: [] }] }, method: "M", strategy: "guided-evidence-v2", provider: mock.provider, maxDispatches: 4 })
-  expect(run.initialValidation?.valid).toBe(false)
-  expect(run.requests).toHaveLength(3)
-  const selectedBytes = run.evidence.filter(e => ["src/three.ts", "src/four.ts"].includes(e.path)).reduce((sum, e) => sum + e.bytes, 0)
-  expect(run.sourceAccounting.cumulativeModelSourceBytes).toBe(selectedBytes * 2)
-  expect(run.sourceAccounting.resentSourceBytes).toBe(selectedBytes)
+  expect(run.initialValidation?.valid).toBe(true)
+  expect(run.status).toBe("completed")
+  expect(run.requests).toHaveLength(2)
+  const selectedBytes = run.evidence.filter(e => ["src/one.ts", "src/two.ts", "src/three.ts", "src/four.ts"].includes(e.path)).reduce((sum, e) => sum + e.bytes, 0)
+  expect(run.sourceAccounting.cumulativeModelSourceBytes).toBe(selectedBytes)
+  expect(run.sourceAccounting.resentSourceBytes).toBe(0)
 })
 
 test("lossless guided control normalization retains raw responses and uses no repair dispatch", async () => {

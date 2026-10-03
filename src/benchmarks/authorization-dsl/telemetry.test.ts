@@ -7,6 +7,7 @@ import {
   createTelemetryProvider,
   reconcileAuthorizationAttemptsFromEvents,
   summarizeAuthorizationAttempts,
+  hasUnknownAuthorizationCompletion,
 } from "./telemetry.ts"
 
 const TinySchema = z.object({ ok: z.boolean() })
@@ -238,4 +239,42 @@ describe("createTelemetryProvider", () => {
     expect(telemetry.attempts).toHaveLength(4)
     expect(telemetry.events.at(-1)?.kind).toBe("dispatch-rejected")
   })
+})
+
+it("an SDK network timeout before the host timer closes the lifecycle and preserves its original error", async () => {
+  const failure = new ProviderNetworkError("The operation timed out.", "sdk-mock")
+  let calls = 0
+  const delegate: LLMProvider = { name: "sdk-mock", async complete() { calls++; throw failure }, async completeWithToolResults() { throw new Error("Unused") } }
+  const telemetry = createTelemetryProvider(delegate, { perCallTimeoutMs: 1000 })
+  let thrown: unknown
+  try { await telemetry.provider.complete({ messages: [] }) } catch (error) { thrown = error }
+  expect(thrown).toBe(failure)
+  expect(telemetry.attempts[0]).toMatchObject({ status: "timeout", error: { name: "ProviderNetworkError", message: "The operation timed out." }, usage: null })
+  expect(telemetry.isClosed()).toBe(true)
+  await expect(telemetry.provider.complete({ messages: [] })).rejects.toThrow(/closed/)
+  expect(calls).toBe(1)
+  expect(telemetry.summary()).toMatchObject({ providerCalls: 1, respondedCalls: 0, totalActualUsd: null })
+})
+it("legacy timeout error records stay unresolved while known malformed responses remain retryable", () => {
+  expect(hasUnknownAuthorizationCompletion({ status: "transport-failed", attempts: [{ status: "error", error: { name: "ProviderNetworkError", message: "network error: The operation timed out." } }] })).toBe(true)
+  expect(hasUnknownAuthorizationCompletion({ status: "transport-failed", attempts: [{ status: "response", response: {}, error: { name: "StructuredExtractionError", message: "schema-validation timeout literal in model data" } }] })).toBe(false)
+  expect(hasUnknownAuthorizationCompletion({ status: "transport-failed", attempts: [{ status: "error", error: { name: "ProviderNetworkError", message: "Unable to connect" } }] })).toBe(false)
+  expect(hasUnknownAuthorizationCompletion({ status: "timeout-unknown", attempts: [{ status: "timeout", response: {} }] })).toBe(true)
+})
+it("an SDK timeout wrapped in a network cause retains the original error and an unknown fee", async () => {
+  const cause = { code: "ETIMEDOUT", message: "Socket deadline" }, failure = new ProviderNetworkError("Request failed", "sdk-mock", cause)
+  const telemetry = createTelemetryProvider({ name: "sdk-mock", async complete() { throw failure }, async completeWithToolResults() { throw new Error("Unused") } })
+  await expect(telemetry.provider.complete({ messages: [] })).rejects.toBe(failure)
+  expect(failure.cause).toBe(cause)
+  expect(hasUnknownAuthorizationCompletion({ attempts: telemetry.attempts })).toBe(true)
+  expect(telemetry.summary().totalActualUsd).toBeNull()
+  expect(telemetry.isClosed()).toBe(true)
+})
+it("a synchronous provider rejection settles its attempt instead of leaving a false pending request", async () => {
+  const failure = new ProviderNetworkError("Unable to connect", "sync-mock")
+  const telemetry = createTelemetryProvider({ name: "sync-mock", complete() { throw failure }, async completeWithToolResults() { throw new Error("Unused") } })
+  await expect(telemetry.provider.complete({ messages: [] })).rejects.toBe(failure)
+  expect(telemetry.attempts[0]?.status).toBe("error")
+  expect(hasUnknownAuthorizationCompletion({ attempts: telemetry.attempts })).toBe(false)
+  expect(telemetry.events.map(event => event.kind)).toEqual(["dispatch", "error"])
 })

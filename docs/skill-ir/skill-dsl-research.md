@@ -1318,6 +1318,8 @@ AR真实条件误拒补充：原政策Memos admin路径的guard/effect重复相�
 
 AR `evaluate`现接严格语义评审及另存裁定，20项70断言、研究类型通过；独立核验发现attempt编号未绑目录、缺首报告标签漂移和非法数值计量，三项红例复现后修正。原评审与report字节绑定，first/repair与host/语义分开，输入/源码/revision/model/budget不符不配对。实际零调用评价仍列16未运行主行、2描述性探针、0已评主首次、0配对，未导入自由格式旧评审，效果not-established。普通消费原失败与独立核验均归档，下一步针对已知Download wire修复及普通SDK timeout状态边界，不能重复未知Memos请求。
 
+**SDK超时与最终格式修复（2026-10-04）。** 实际Memos SDK先于300秒宿主timer抛出network timeout，旧终态只识别宿主超时；共享telemetry现按有界typed网络cause关闭请求，普通run、旧inspect和同题repair复用未知完成判据。原档案inspect仍为transport-failed，但派生completionUnknown:true，11派发10响应不改。独立核验另复现同步throw遗留pending，先红后绿接入同一结算。Download request-11/12本已有完整final Schema，修复提示却要求必要时请求源码且没有坏候选；既有一次同工具修复现明确当前常量，携最多32KiB编码UTF-8的原candidate为数据，不自动删答案或加第三次请求。58项303断言、主/研究类型通过，坏响应/原评审与裁定保留于[聚焦验证](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/sdk-final-repair-verification.json)。累计调用仍286；下一步仅具名复验已知全响应Download，Memos/Notes未知请求及主面板继续封存，resolver语义遗漏不因格式修正消失。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

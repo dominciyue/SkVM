@@ -10,6 +10,7 @@ import { runAuthorizationInquiry, type InquiryMethod, type RunAuthorizationInqui
 import type { LocalAuthorizationCliDependencies } from "./local-run.ts"
 import { parseInquiryStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { planInquiryReuse } from "./inquiry-reuse.ts"
+import { hasUnknownAuthorizationCompletion } from "./telemetry.ts"
 
 export const AuthorizationInquiryInputSchema = z.object({
   schemaVersion: z.literal("authorization-inquiry-input/v1"), taskId: InquiryText, repository: InquiryText, sourceRef: InquiryText,
@@ -67,7 +68,7 @@ export async function executeLocalInquiryRun(options: { inputFile: string; outDi
   if (check.status !== "valid") return check
   const prior = options.previous ? await preparePreviousInquiry(options.inputFile, options.previous, options.model, method, strategy) : undefined
   if (prior && prior.plan.status !== "reusable") {
-    const unknown = ["completion-unknown", "timeout-unknown", "initialized"].includes(prior.report.status)
+    const unknown = prior.report.completionUnknown === true || ["completion-unknown", "timeout-unknown", "initialized"].includes(prior.report.status)
     const args = unknown ? ["authorization", "inquiry", "inspect", `--out=${prior.report.sessionPath}`] : ["authorization", "inquiry", "run", `--input=${path.resolve(options.inputFile)}`, `--out=${path.resolve(options.outDir)}`, `--model=${options.model}`, `--method=${method}`, `--strategy=${strategy}`]
     return { status: "needs-fresh-analysis" as const, providerCalls: 0, noAutomaticResend: true, reuseEligibility: prior.plan, recovery: { kind: unknown ? "inspect-previous" : "fresh-analysis", command: `skvm ${args.map(a => `'${a.replace(/'/g, "''")}'`).join(" ")}`, arguments: args, instruction: unknown ? "Inspect and adjudicate the unresolved previous request. Do not resend it or bypass its identity." : "Run fresh analysis without --previous; the old session remains unchanged." } }
   }
@@ -114,11 +115,13 @@ export async function inspectLocalInquiry(outDir: string) {
   try { report = JSON.parse(await readFile(path.join(root, "report.json"), "utf8")) }
   catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; return { ...identity, status: await stat(path.join(root, "dispatch.json")).then(() => "completion-unknown", () => "initialized") } }
   if (report.sessionId !== identity.sessionId || report.model !== identity.model || report.method !== identity.method || (report.strategy ?? "legacy") !== (identity.strategy ?? "legacy") || report.inputSha256 !== identity.inputSha256 || !isDeepStrictEqual(report.sourceFiles, identity.sourceFiles) || !isDeepStrictEqual(report.reuseOrigin, identity.reuseOrigin)) throw new Error("Inquiry report/session identity mismatch")
+  let completionUnknown = hasUnknownAuthorizationCompletion(report)
   if (report.status !== "provider-unavailable") {
     const run = JSON.parse(await readFile(path.join(root, "run.json"), "utf8"))
     if (run.status !== report.status || run.method !== identity.method || (run.strategy ?? "legacy") !== (identity.strategy ?? "legacy") || ["sourceFiles", "result", "initial", "initialValidation", "final", "validation", "wireFailures", "wireNormalizations", "domain", "reuse", "sourceAccounting", "telemetry"].some(key => !isDeepStrictEqual(run[key], report[key]))) throw new Error("Inquiry report/run identity mismatch")
+    completionUnknown ||= hasUnknownAuthorizationCompletion(run)
   }
-  return { ...report, sessionPath: root }
+  return { ...report, sessionPath: root, ...(completionUnknown ? { completionUnknown: true } : {}) }
 }
 export async function compareLocalInquiry(inputFile: string, previous: string, requestedStrategy?: InquiryStrategy) {
   const report = await inspectLocalInquiry(previous), old = AuthorizationInquiryInputSchema.parse(JSON.parse(await readFile(path.join(report.sessionPath, "input.json"), "utf8")))

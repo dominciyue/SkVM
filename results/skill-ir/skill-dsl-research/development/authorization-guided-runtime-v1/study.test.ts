@@ -69,6 +69,11 @@ test("a response of unknown completion is retained without another paid repair d
   await api.developRows(root, [row("unknown")], run)
   await expect(api.developRows(root, [row("unknown")], { ...run, repairId: "repair-test", repairOf: "unknown/attempt-1" })).rejects.toThrow(/unknown completion/)
 })
+test("a dispatched SDK timeout cannot bypass repair sealing under an old transport-failed status", async () => {
+  const root = await temp(), run = options({ execute: async () => ({ status: "transport-failed", providerDispatches: 1, attempts: [{ status: "error", error: { name: "ProviderNetworkError", message: "The operation timed out." } }] }), evaluate: async () => ({}) })
+  await api.developRows(root, [row("sdk-unknown")], run)
+  await expect(api.developRows(root, [row("sdk-unknown")], { ...run, repairId: "must-not-resend", repairOf: "sdk-unknown/attempt-1" })).rejects.toThrow(/unknown completion/)
+})
 test("pre-dispatch provider failure is retained with zero calls without reading a nonexistent run", async () => {
   const report = { status: "provider-unavailable", providerDispatches: 0, sessionPath: "nonexistent-pre-dispatch-session" }
   expect(await api.retainLocalRun(report)).toEqual(report)
