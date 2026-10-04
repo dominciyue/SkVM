@@ -362,10 +362,11 @@ function zodDefToJsonSchema(def: any): Record<string, unknown> {
       }
 
     case "ZodUnion":
-    case "ZodDiscriminatedUnion":
-      return {
-        anyOf: def.options.map((opt: ZodTypeAny) => zodToJsonSchema(opt)),
-      }
+    case "ZodDiscriminatedUnion": {
+      const anyOf = def.options.map((opt: ZodTypeAny) => zodToJsonSchema(opt))
+      // Tool APIs require an explicit object root; only assert it when every alternative is an object.
+      return { ...(anyOf.every((option: Record<string, unknown>) => option.type === "object") ? { type: "object" } : {}), anyOf }
+    }
 
     default:
       return { type: "object" }
