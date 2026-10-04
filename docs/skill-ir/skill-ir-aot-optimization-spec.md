@@ -2479,6 +2479,8 @@ AS 延续单 repo/ref、源码可见授权任务。窄局部语义前端表达�
 
 AS 单独登记已暴露 development 分母与 AR 未达责任。M/legacy、M/同新核心、D1/同新核心共用源码、公共任务、模型、预算、评价与修复机会；用共同核心比较识别执行支持，用同核心表示比较识别表达贡献。首轮、修后、raw、checked、独立语义和所有费用分列。已封存未知按逻辑任务继承，不因新 identity 解封。发现共享缺陷立即修复再继续受影响工作，日常修改不增加审批或重复历史审计。
 
+AS结果仍遵守这一分层：形式checked/bounded且semanticSupport=unreviewed不能提升为源码完整；调用未解释却声明effect/complete、把允许且已读内容称范围外，须由原件与源码点验裁定。同版本首轮块只能按实际结果比较，异版本OWUI及适应性修订另列。本轮真实变化因封存或无合格原材料零调用阻塞，失效测试及作者格式有效不替代真实复用/人力收益。具体结果见 [AS summary](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/summary.json)。
+
 具体顺序和验收见 [AS0–AS19](../superpowers/plans/2026-10-04-authorization-semantic-lowering-and-delivery.md)，设计与复盘见[研究 §7.48](skill-dsl-research.md#748-as-局部语义展开与真实交付)。以下折叠内容是旧版本合同，保留原章节和文字用于兼容定位；其中的“当前”“下一轮”只对应原日期。
 
 <details>

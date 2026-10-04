@@ -3,7 +3,9 @@
 > 执行配置：gpt-6.1-sol / max。用户已授权本轮连续开发、必要联网与模型调用、提交并推送用户 origin；常规阶段不停下来重新询问。
 > 使用 writing-plans 编制。实施时使用 TDD、systematic-debugging 和必要验证；用户现有授权覆盖常规设计细化及可逆实现，不再等待重复设计批准。
 
-更新于 2026-10-05。状态：**in-progress；AS14可运行12个首轮已留档，完整质量收益未建立；AS10四个native位置均交付诊断原文，仍未checked；AS13四份原稿格式/范围有效，最后一份原字节消费待办；AS17按实际首轮诊断修订**。实际接管基线 `c90787f09087b3c79ac1d73b47f970ab928894e0`，当时工作区干净且用户远端同 SHA。分支始终 `skill-ir-aot`，只推用户 `origin/skill-ir-aot`。AR 进程结束，研究及真实使用验收仍有未达项；AS 承接责任，不回写旧结果。机器状态见 [AS status](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)。
+更新于 2026-10-05。执行结果：**completed-with-unmet-criteria；共享实现和744项联合回归通过，12个可运行质量首轮及所有修订已评阅，4个native原/变位置与4份作者原字节均实际消费；完整源码质量、真实变化复用和净收益未建立**。发布收尾见 [AS status](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)。实际接管基线 `c90787f09087b3c79ac1d73b47f970ab928894e0`，当时工作区干净且用户远端同 SHA。始终在 `skill-ir-aot`，只推用户 origin；AR原结果与未知封存不回写。
+
+本轮收束：29位置中12质量首轮与4native有实际分析；8位置继承封存、Paperless另5个变化位置无合格base而零调用阻塞，全部分母保留。native最后1/4形式checked/bounded，但该稿有projects源码错误及效果断言过强，源码完整仍0/4；作者4稿格式有效，4个原字节消费者均部分失败。39份已关闭原件累计300派发/298响应，已知fresh input 6,485,876、cache-read 1,221,145、output 296,467，2次usage缺报；美元/开发用量/真人分钟未知。必要机制修复、首答/修后分列、准入与费用见 [summary](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/summary.json)、[accounting](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/accounting.json)和[最终联合核验](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/verification/final-joint-code.json)。下文保留执行时设计与阶段记录；“待办/当前”属于各段当时状态，本段及机器状态为最终入口。
 
 ## 一、目标与完成标准
 
@@ -237,6 +239,10 @@ AS11 薄入口采用现有 public initialize/edit/compare/run。只从本轮原�
 ### AS17 — 有依据的深化
 
 2026-10-05 当前工作计划：首轮三个完整同版本块（Download/ShareLink/Gitea）及OWUI异版本块已保留。针对共用瓶颈做两项窄修订，仍为12/24原预算：①只有保留的显式result整体满足当前final解析、根键仅result/controlDelta且kind完全省略时，从已进入final-only阶段补唯一机械kind；有声明kind、未知根字段、缺result或坏result仍拒绝，原响应及normalization分列；同时终答指引明确完整容器、当前revision与optional policy不得null。②允许文件内的错误range locator保持blocked并显示实际候选及边界，不再称范围外，不裁剪/猜读/取消候选身份边界。匿名红绿、公共实际mock、主/局部类型检查后，具名复验Download D-S与ShareLink D-S，分别检验终答入口和真实可读依赖；未闭合源码义务仍部分失败。新源语义/对象政策不从评价注入提示。相同根因不继续原样复抽。
+
+上述两轮复验均已交付部分结果：Download D-S 从无接受单元推进到三个未闭合单元，ShareLink D-S 仍为一个未闭合入口，完整授权义务均未通过。新增一次适用复验为 GitHub/Gitea 原 native：原 trace 中 CanAccess 的 pathHint 为允许文件 models/perm/access/repo_permission.go 的 152–155 调用点，旧宿主将非函数边界误归为 external-unknown。以当前 532cdb09 代码、同一完整原 skill/原问题/12 provider 与24 source-action预算，沿该位置 attempt-1 做一次 as-final-envelope-and-locator-v1 修订，检验新候选反馈的实际采用。只提供通用诊断，不加入正确函数位置或授权答案；新的原件和成本另列，不覆盖首答，不据此重开封存或增加同根因复抽。
+
+AS17结果：三轮共30/30响应。两个quality修订没有实际wireNormalization，分别为协议交付改善/仍部分失败及同样未闭合入口；Gitea native修订实际收到错range候选反馈并调用source_symbol，三单元及终检通过，但主线程源码点验纠正“非writer忽略projects”错误，并保留模型层调用未充分解释却typed performed的质量缺口。原首答与全部raw/形式结果不改。独立只读复核和主裁定见 [AS17 source reviews](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/evaluations/as17-repair-source-reviews.json)。本轮不继续同根因原样复抽；未达责任是源码解释闭合及合格变化基线。
 
 核心工程和适用真实链已经完成后，依实际瓶颈依次选择：
 

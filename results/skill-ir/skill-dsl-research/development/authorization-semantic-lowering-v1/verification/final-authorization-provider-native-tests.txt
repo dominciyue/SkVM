@@ -1,0 +1,979 @@
+bun test v1.3.14 (0d9b296a)
+20:11:38.455 [INFO ] [conv-log] Conversation logging enabled: C:\Users\14182\AppData\Local\Temp\skvm-test-Ysm4OW\log\20261004-201138-all
+20:11:38.535 [INFO ] [run] Run task manifest-task: adapter=bare-agent model=test/model workDir=C:\Users\14182\AppData\Local\Temp\skvm-execute-manifest-uIaD8x\run\workdir
+20:11:38.570 [INFO ] [run] Run task natural-1396cae893c2: adapter=bare-agent model=test/model workDir=C:\Users\14182\AppData\Local\Temp\skvm-execute-input-snapshot-VpQcaO\ordinary workdir
+20:11:38.618 [INFO ] [run] Run task natural-1bd64a03502d: adapter=bare-agent model=test/model workDir=C:\Users\14182\AppData\Local\Temp\skvm-execute-input-shapes-lZbiEX\work
+
+src\task-dsl\authorization\assessment-contract.test.ts:
+(pass) absent optional contract preserves old v2 normalized bytes [83.60ms]
+(pass) author names lower to canonical obligation, entry and condition IDs without answers [2.05ms]
+(pass) author contract diagnoses unknown scenario, cross-entry premise and condition [1.09ms]
+(pass) duplicate IDs and contradictory or duplicate branch assignments are rejected [0.83ms]
+
+src\task-dsl\authorization\assessment-program.test.ts:
+(pass) program expands locally to each entry without copying one entry premise to the other [1.52ms]
+(pass) unknown or blocked obligation never becomes a runnable program entry [0.23ms]
+(pass) empty premise and branch lists are valid for an explicit bounded task [0.18ms]
+(pass) normalized input cannot bypass duplicate branch and premise checks [1.28ms]
+
+src\task-dsl\authorization\compact-transport.test.ts:
+(pass) binds compact facts by scoped ID independent of order and fills only mechanical metadata [13.08ms]
+(pass) rejects duplicate, missing and foreign fact IDs, bad sources/ranges, unknown gaps and omitted/conflicting conditions [9.98ms]
+(pass) sends the method-specific compact schema through the actual provider extraction path [15.52ms]
+(pass) v5 plain uses policyStatus through schema, host and sidecars [7.07ms]
+(pass) v5 ledger uses policyStatus through schema, host and sidecars [4.56ms]
+(pass) v5 conditions uses policyStatus through schema, host and sidecars [5.31ms]
+
+src\task-dsl\authorization\conditions.test.ts:
+(pass) compileConditionAnalysisRequest > maps explicit condition IDs to authored names and expanded obligations without pre-filling effects [0.63ms]
+(pass) compileConditionAnalysisRequest > diagnoses duplicate authored condition names instead of binding by array position [0.24ms]
+(pass) compileConditionAnalysisRequest > does not require a fabricated branch when condition analysis is not requested [0.09ms]
+(pass) validateConditionAnalysisResult > accepts bounded branches and a contentful external unknown [0.45ms]
+(pass) validateConditionAnalysisResult > diagnoses true and false assignments to the same condition in one branch [0.45ms]
+(pass) validateConditionAnalysisResult > diagnoses a condition ID that belongs to another obligation [0.48ms]
+(pass) validateConditionAnalysisResult > diagnoses an unknown condition ID [0.37ms]
+(pass) validateConditionAnalysisResult > rejects duplicate branches with the same normalized assumptions [0.37ms]
+(pass) validateConditionAnalysisResult > accepts a decisive known effect despite an irrelevant unknown assumption [0.35ms]
+(pass) validateConditionAnalysisResult > requires a decisive missing fact for an unknown effect [0.50ms]
+(pass) validateConditionAnalysisResult > enforces the authored branch bound without requiring an exponential truth table [0.40ms]
+(pass) validateConditionAnalysisResult > accepts explicit unexamined conditions as incomplete instead of inventing branches [0.36ms]
+
+src\task-dsl\authorization\control-conclusion.test.ts:
+(pass) explicit ordered rejection conflicts with allow and does not certify model semantics [3.91ms]
+(pass) homonymous objects do not authorize one another and authorization edges need precedence [1.76ms]
+(pass) null owner excludes a non-null branch, while unspecified owner keeps its residual [1.92ms]
+(pass) self other null owner and explicit object grant select distinct proposed authorization branches [3.64ms]
+(pass) terminal conflict and effect after early rejection are detected without guessing array order [0.80ms]
+(pass) readable decisive dependency prevents false completeness but early rejection makes later grant irrelevant [0.82ms]
+(pass) independent deny policy checks allow as violated; policy changes never change computed behavior [1.82ms]
+(pass) cycles, missing predecessor, missing entry and branch limit stay explicit gaps [1.84ms]
+(pass) an unreachable unrelated binding cannot satisfy the live effect [0.67ms]
+(pass) live bindings on another branch are still not predecessors of this effect [0.50ms]
+(pass) a guard and effect cannot conflate distinct source bindings with the same identity key [0.76ms]
+(pass) question-local binding scope and a legitimate common predecessor are preserved [1.11ms]
+(pass) a missing user premise cannot conceal a distinct decisive source dependency [0.46ms]
+(pass) question-level control trace isolates a wrong object and retains the other checked path [0.52ms]
+(pass) identical same-key binding errors in different questions are never deduplicated together [0.50ms]
+(pass) an unresolved reachable condition cannot certify an unconditional outcome [0.91ms]
+(pass) a complete conditional answer preserves an unresolved premise without inventing its value [0.69ms]
+(pass) a null branch omitted from the answer or the proposed active graph cannot support allow [1.27ms]
+(pass) known absent grants deny while not-given grants cannot be treated as absent [1.15ms]
+(pass) repeated nested path conjunctions match the same conditional policy without inventing current values [1.99ms]
+(pass) policy condition matching reduces both sides under the same actual current bindings [1.20ms]
+(pass) different boolean conditions and duplicate mappings remain undetermined [2.68ms]
+
+src\task-dsl\authorization\control-evaluation.test.ts:
+(pass) finite evaluator implements the complete three-valued all/any/not truth tables [0.37ms]
+(pass) explicit null excludes non-null owner while missing, scalar types and residuals remain precise [0.17ms]
+(pass) short circuits drop irrelevant unknowns, unsupported or over-limit expressions stay unknown [0.13ms]
+(pass) condition equivalence handles only bounded associative commutative idempotent boolean groups [0.31ms]
+(pass) condition equivalence does not certify invalid cyclic or over-limit expressions [0.13ms]
+
+src\task-dsl\authorization\control-slice.test.ts:
+(pass) guided execution is an explicit opt-in and legacy remains the default [0.27ms]
+(pass) control contract binds original source per question and separates policy and semantics [0.62ms]
+(pass) idempotent proposals keep IDs; contradictory same-key rules are archived instead of silently overwritten [0.71ms]
+(pass) typed identities and explicit user mappings keep null distinct from absent or homonymous objects [0.95ms]
+(pass) control contract reports version, expression and per-question limits without discarding existing proposals [5.05ms]
+(pass) explicitly unspecified user values cannot be fabricated as null or false [0.38ms]
+
+src\task-dsl\authorization\inquiry-result.test.ts:
+(pass) unread, unbound, missing evidence and unknown question observations are rejected [0.57ms]
+(pass) behavior result never fabricates a policy comparison and unknown names its gap [1.22ms]
+(pass) duplicate/conflicting branch conditions diagnose without declaring semantic safety [0.28ms]
+(pass) a malformed or unshown neighboring answer does not erase a valid local answer [0.56ms]
+(pass) rejected evidence never exports a canonical result while retaining the raw local candidate [0.18ms]
+(pass) global structure or source invalidation rejects every local delivery [0.53ms]
+(pass) observation errors remain owned and duplicate answers cannot become usable [0.52ms]
+(pass) formal consistency and unresolved evidence are separate layers for a valid local unknown [0.14ms]
+
+src\task-dsl\authorization\inquiry.test.ts:
+(pass) behavior compiles without policy, expectation or inferred actors and conditions [0.40ms]
+(pass) conformance requires an independent normative policy with a named diagnostic [0.65ms]
+(pass) strict inquiry rejects source-derived policy, duplicate questions and future fields [0.29ms]
+
+src\task-dsl\authorization\outcome-result.test.ts:
+(pass) compares an observed effect with the authored expectation [0.12ms]
+(pass) current policy summary covers four known comparisons and an unknown without changing model evidence [0.15ms]
+(pass) v6 uses observed decision for unconditional expectation and preserves its evidence [7.02ms]
+(pass) current contract records an explicit opposite model label while compatibility retains historical behavior [4.18ms]
+(pass) v6 strict decision union rejects old conclusion and wrong kind for authored expectation [3.39ms]
+(pass) conditional expectation keeps policyStatus mapping separate [5.38ms]
+(pass) requested branches require exact IDs, assumptions and source-backed effects [6.75ms]
+(pass) bad citations and uninformative current unknown cannot leak a canonical success [4.02ms]
+
+src\task-dsl\authorization\policy-result.test.ts:
+(pass) v5 maps the three policy states without interpreting expectation or explanation [9.81ms]
+(pass) v5 strictly replaces conclusion and v4 retains its old contract [3.86ms]
+(pass) v5 keeps informative unknown, obligation and citation validation with no invalid canonical result [5.30ms]
+
+src\task-dsl\authorization\reasoning-plan.test.ts:
+(pass) authorization reasoning plan > adds no prompt text for standard and binds focused questions only to runnable obligations [0.99ms]
+(pass) authorization reasoning plan > keeps each target separate, handles no conditions, and is stable under author array reordering [0.35ms]
+
+src\task-dsl\authorization\relation-result.test.ts:
+(pass) validateRelationCoverage > accepts complete coverage while keeping semantic support unreviewed [1.03ms]
+(pass) validateRelationCoverage > diagnoses missing, duplicate, and foreign requirement coverage independently [0.55ms]
+(pass) validateRelationCoverage > rejects coverage for the wrong expanded obligation instead of matching by authored ID [0.28ms]
+(pass) validateRelationCoverage > rejects dangling fact pointers and pointers into another obligation [0.57ms]
+(pass) validateRelationCoverage > requires addressed and not-applicable claims to point to facts [0.34ms]
+(pass) validateRelationCoverage > forbids not-applicable on required questions and requires a reason for unknown [0.68ms]
+(pass) validateRelationCoverage > keeps diagnostic paths tied to original coverage positions and explains a partial plan [0.66ms]
+
+src\task-dsl\authorization\relations.test.ts:
+(pass) AnalysisRequirementSchema > is strict and rejects an empty when-present item instead of silently dropping it [0.62ms]
+(pass) compileAnalysisRequirements > diagnoses duplicate requirement IDs and does not choose one implicitly [0.49ms]
+(pass) compileAnalysisRequirements > diagnoses an unknown authored obligation without inventing a mapping [0.18ms]
+(pass) compileAnalysisRequirements > diagnoses an unknown prerequisite and omits only the affected entries [0.26ms]
+(pass) compileAnalysisRequirements > diagnoses dependency cycles while retaining an independent obligation [0.32ms]
+(pass) compileAnalysisRequirements > keeps a when-present question pending without pre-filling applicability truth [0.07ms]
+(pass) compileAnalysisRequirements > expands one declared mapping across only its authored obligations and entries [0.11ms]
+(pass) compileAnalysisRequirements > is stable when task and requirement arrays are reordered [0.33ms]
+(pass) compileAnalysisRequirements > does not form a Cartesian product across two authored obligations [0.16ms]
+(pass) compileAnalysisRequirements > keeps structurally distinct mappings separate when valid IDs contain NUL [0.16ms]
+(pass) compileAnalysisRequirements > requires each prerequisite to apply to the same expanded obligation [0.15ms]
+(pass) compileAnalysisRequirements > emits only pending questions and structural state, never source or policy answers [0.12ms]
+
+src\task-dsl\authorization\render.test.ts:
+(pass) renders one shared public paragraph and a bounded explicit program for DSL and independent Markdown [0.61ms]
+(pass) renderAuthorizationTask > adds the same bounded reasoning questions to DSL and independent Markdown only when selected [0.32ms]
+(pass) renderAuthorizationTask > keeps one fact object for N, B, and D while changing visible organization [0.49ms]
+(pass) renderAuthorizationTask > renders N explicitly instead of falling through the old B-or-D branch [0.13ms]
+(pass) renderAuthorizationTask > puts every comparison-critical fact into both model-visible prompts [0.28ms]
+(pass) renderAuthorizationTask > makes the exact expanded output IDs an arm-neutral closed contract [0.23ms]
+(pass) renderAuthorizationTask > defines every conclusion label relative to the declared policy expectation for all arms [0.17ms]
+(pass) renderAuthorizationTask > renders source attachment once rather than duplicating it per obligation [0.22ms]
+(pass) renderAuthorizationTask > shares one canonical declaration and output contract while isolating the method instructions [0.23ms]
+(pass) renderAuthorizationTask > keeps the public analysis questions and coverage contract identical across N, B, and D [0.57ms]
+(pass) renderAuthorizationTask > shares one answer-free condition plan across arms and marks assumptions as hypotheses [0.87ms]
+(pass) renderAuthorizationTask > reports character sections without treating characters as measured tokens [0.16ms]
+
+src\task-dsl\authorization\result.test.ts:
+(pass) validateAuthorizationResult > keeps deterministic evidence presence separate from semantic support [0.74ms]
+(pass) validateAuthorizationResult > reports missing, duplicate, and foreign obligation results independently [0.90ms]
+(pass) validateAuthorizationResult > rejects a mismatched source ref without discarding the historical result bytes [0.52ms]
+(pass) validateAuthorizationResult > detects out-of-range locations and quotations absent from the cited range [0.68ms]
+(pass) validateAuthorizationResult > validates canonical quotations against a non-one crop start [0.46ms]
+(pass) validateAuthorizationResult > lets a sink-only citation be present but never upgrades support [0.25ms]
+(pass) validateAuthorizationResult > rejects repository completeness while retaining a valid declared result [0.23ms]
+(pass) validateAuthorizationResult > requires useful unknown details without treating unknown itself as failure [0.19ms]
+(pass) validateAuthorizationResult > does not report 100 percent completion for an empty declared set [0.16ms]
+(pass) assessAuthorizationResultChange > detects attributes, locations and public task requirements missing from the old snapshot [2.47ms]
+(pass) assessAuthorizationResultChange > marks relevant source and policy changes for review [1.02ms]
+(pass) assessAuthorizationResultChange > requires and records a bounded reuse basis for a new ref with unchanged dependencies [0.54ms]
+
+src\task-dsl\authorization\schema.test.ts:
+(pass) parseAuthorizationTask > accepts a strict non-case-specific task and empty optional arrays [2.16ms]
+(pass) parseAuthorizationTask > reports a missing version at its field path [0.46ms]
+(pass) parseAuthorizationTask > reports nested type errors with a useful path [0.15ms]
+(pass) parseAuthorizationTask > rejects unknown fields instead of silently carrying ad hoc semantics [0.07ms]
+
+src\task-dsl\authorization\semantic-flow.test.ts:
+(pass) explicit alternatives clone their common continuation instead of ANDing mutually exclusive guards [3.85ms]
+(pass) independent sequential guards remain a conjunction and unspecified premises keep both alternatives [2.94ms]
+(pass) a missing alternative is an explicit gap, not an invented complement or completed outcome [1.33ms]
+(pass) helper early success returns to caller without claiming its skipped protected mutation [2.12ms]
+(pass) same local name in caller and helper is a different object unless an argument alias is explicit [1.60ms]
+(pass) explicit entry parameters supply typed identities to mapped helper parameters without known values [0.99ms]
+(pass) unbound helper arguments name the missing mapping and the actual type mismatch [0.84ms]
+(pass) an entry return without a permission outcome names its local source step without guessing from its scalar [0.60ms]
+(pass) unread call, block cycle and expansion limits remain named unresolved terminals [13.99ms]
+
+src\task-dsl\authorization\semantics.test.ts:
+(pass) compileAuthorizationTask > expands a valid explicit obligation into one runnable entry task [2.74ms]
+(pass) compileAuthorizationTask > diagnoses dangling references and does not run the affected obligation [0.42ms]
+(pass) compileAuthorizationTask > diagnoses duplicate entity IDs instead of choosing one implicitly [0.15ms]
+(pass) compileAuthorizationTask > blocks only obligations whose policy remains conflicted [0.20ms]
+(pass) compileAuthorizationTask > returns needs-input rather than vacuous completion for an empty obligation set [0.12ms]
+(pass) compileAuthorizationTask > deduplicates repeated entry references within one authored obligation [0.14ms]
+(pass) compileAuthorizationTask > keeps expanded obligation IDs stable when entry arrays are reordered [0.27ms]
+(pass) compileAuthorizationTask > encodes expanded ID parts so authored delimiters cannot collide [0.15ms]
+(pass) compileAuthorizationTask > adds only the explicit write-grantee obligation when that relation is declared [0.13ms]
+(pass) compileAuthorizationTask > blocks obligations when the referenced principal lacks role information [0.10ms]
+(pass) compileAuthorizationTask > records source and policy revisions as explicit dependencies [0.07ms]
+
+src\task-dsl\authorization\task-contract.test.ts:
+(pass) current contract migrates only the known old output instruction and records its source [0.28ms]
+(pass) unknown output instruction receives a path diagnostic while quoted task data remains unchanged [0.10ms]
+(pass) renderer current-v1 gives DSL and Markdown the same v6 result contract without old return labels [0.30ms]
+(pass) renderer rejects current-v1 without the v6 result contract [0.08ms]
+
+src\task-dsl\authorization\transport.test.ts:
+(pass) AuthorizationWireResultV1 > binds and validates original segment quotes while refusing a cross-gap wire citation [3.34ms]
+(pass) AuthorizationWireResultV1 > lets the host bind canonical metadata and exact source quotations [0.56ms]
+(pass) AuthorizationWireResultV1 > rejects missing semantic fields and malformed array items without guessing [0.58ms]
+(pass) AuthorizationWireResultV1 > refuses canonical results for duplicate, foreign, and missing obligation IDs [0.67ms]
+(pass) AuthorizationWireResultV1 > rejects stale source IDs, cross-source ranges, and a bundle from another ref [1.05ms]
+(pass) AuthorizationWireResultV1 > requires decisive missing facts and observations only for unknown [0.30ms]
+(pass) AuthorizationWireResultV1 > keeps request metadata, canonical paths, and quotes out of the model wire [0.22ms]
+(pass) AuthorizationWireResultV2 > normalizes the same canonical v0 result and retains a versioned coverage sidecar [0.61ms]
+(pass) AuthorizationWireResultV2 > keeps coverage strict and leaves the v1 schema unchanged [0.48ms]
+(pass) AuthorizationWireResultV3 > retains a versioned condition sidecar while preserving canonical v0 and coverage [0.55ms]
+(pass) AuthorizationWireResultV3 > keeps the old wire schemas strict when the condition sidecar is present [0.41ms]
+
+src\benchmarks\authorization-dsl\authoring-assist.test.ts:
+(pass) host draft copies only known metadata and leaves policy, expectation and request missing [1.95ms]
+(pass) the same author contract survives revision even when the original envelope was required [0.30ms]
+(pass) unsafe context entries and duplicate positions are rejected without fabricated facts [0.57ms]
+
+src\benchmarks\authorization-dsl\authoring-compose.test.ts:
+(pass) composition replaces whole fields, preserves input, and records origins [1.05ms]
+(pass) composition rejects conflicts, unknown fields and malformed replacements [1.30ms]
+
+src\benchmarks\authorization-dsl\authoring-draft-repair.test.ts:
+(pass) draft repair changes only diagnosed reference leaves and reaches ordinary ready [5.27ms]
+(pass) draft repair refuses attached policy, expectation, unknown and repeated paths [0.72ms]
+
+src\benchmarks\authorization-dsl\authoring-example.test.ts:
+(pass) authorization authoring example > loads the self-contained example through the ordinary input path [5.45ms]
+(pass) authorization authoring example > reproduces two bounded authoring mistakes before a changed task becomes valid [19.02ms]
+(pass) authorization authoring example > keeps two independent source skills, their mapped slice, and their residual duties distinct [0.64ms]
+
+src\benchmarks\authorization-dsl\authoring-task.test.ts:
+(pass) current task compiles case-local entry and condition references through existing v2 [4.24ms]
+(pass) legal renamed condition preserves semantics without a hidden fixed key [2.17ms]
+(pass) rejects duplicate cases, foreign entry and cross-case condition with field paths [1.64ms]
+(pass) missing policy and unrequested branches remain explicit [1.80ms]
+(pass) current snapshot rejects future fields and named change preserves the original [0.93ms]
+
+src\benchmarks\authorization-dsl\authoring-v2-local.test.ts:
+(pass) init v2, direct check/run and inspect retain raw/normalized/provenance with original source base [227.73ms]
+
+src\benchmarks\authorization-dsl\authoring-v2.test.ts:
+(pass) v2 lowers a complete author declaration without internal IDs, deterministically and without mutation [1.32ms]
+(pass) v2 diagnoses author paths without guessing policy or expectations or cascading absent parents [1.63ms]
+(pass) v2 shares entities across scenarios and derives explicit condition bindings with collision-free names [1.24ms]
+(pass) v2 reports ill-formed Unicode names rather than throwing during ID encoding [0.32ms]
+(pass) v2 carries a public sidecar into normalized input and provenance without changing canonical v0 task [1.09ms]
+
+src\benchmarks\authorization-dsl\authoring.test.ts:
+(pass) normalizeAuthorizationAuthoringInput > derives one deterministic source identity and the shared default profile without mutating author input [1.59ms]
+(pass) normalizeAuthorizationAuthoringInput > returns all missing policy and expectation fields as needs-input instead of inventing them [0.43ms]
+(pass) normalizeAuthorizationAuthoringInput > preserves explicit analysis requirements instead of replacing them with the default six [0.40ms]
+(pass) normalizeAuthorizationAuthoringInput > reports stale relationship references once without cascading default-profile diagnostics [0.45ms]
+(pass) normalizeAuthorizationAuthoringInput > produces a separate strict input that uses the ordinary path checks and a ready condition plan [10.62ms]
+(pass) normalizeAuthorizationAuthoringInput > replays the recorded agent-assisted principal/resource/relation/entry/condition change [2.15ms]
+
+src\benchmarks\authorization-dsl\capability-evaluate.test.ts:
+(pass) authorization capability evaluation > binds v2 reviews, reports first-response/coverage/operations, and replays without model calls [39.57ms]
+
+src\benchmarks\authorization-dsl\capability-offline.test.ts:
+(pass) authorization capability offline panel > passes five cross-project tasks through parser, ledger, source, host, coverage, and evaluator entry [66.82ms]
+(pass) authorization capability offline panel > makes four synthetic structural changes visible without treating them as new project evidence [3.29ms]
+(pass) authorization capability offline panel > copies the ordinary example to a temporary directory and completes check, mock run, and offline inspect [49.81ms]
+
+src\benchmarks\authorization-dsl\capability-run.test.ts:
+(pass) authorization capability experiment runner > checks, executes ordered fresh-context units, and resumes without resending [200.68ms]
+(pass) authorization capability experiment runner > keeps help and check provider-free [14.36ms]
+(pass) authorization capability experiment runner > does not resend a unit that already has a matching pre-dispatch claim [114.23ms]
+(pass) authorization capability experiment runner > safely retries an initialized session that has no dispatch artifact [117.18ms]
+(pass) authorization capability experiment runner > rejects a wrong declared denominator and path-unsafe experiment IDs [16.96ms]
+
+src\benchmarks\authorization-dsl\evaluate.test.ts:
+(pass) authorization semantic evaluation > scores six hand-written semantic shapes from explicit reviews rather than keywords [2.78ms]
+(pass) authorization semantic evaluation > turns a supported critical fact into needs-review when the bound review changes to uncertain [0.39ms]
+(pass) authorization semantic evaluation > keeps a supported semantic decision separate from broken citation delivery [0.24ms]
+(pass) authorization semantic evaluation > keeps legal citation transport separate from a contradicted claim [0.19ms]
+(pass) authorization semantic evaluation > separates an exaggerated scope and a missing decisive condition from transport [0.37ms]
+(pass) authorization semantic evaluation > accepts four review-supported equivalent expressions of the authorization condition [0.66ms]
+(pass) authorization semantic evaluation > rejects incomplete or stale review bindings without inventing a semantic verdict [0.27ms]
+(pass) authorization semantic evaluation > reports initial/final quality and operation totals without converting unknown cost into zero [0.61ms]
+(pass) authorization semantic evaluation > parses the three evaluator-only real-case rubrics including the revised trusted-header facts [0.63ms]
+(pass) authorization semantic evaluation v2 > v3 separates response details from authorization control without excusing causal contradictions [1.74ms]
+(pass) authorization semantic evaluation v2 > separates necessary semantics, explanation completeness, and optional detail [1.23ms]
+(pass) authorization semantic evaluation v2 > parses the calibrated evaluator-only v2 rubric [3.50ms]
+(pass) authorization semantic evaluation v2 > reassesses the archived trusted-header B/D answers without changing their generation identity [3.54ms]
+
+src\benchmarks\authorization-dsl\host.test.ts:
+(pass) v6 sends observed decision and requested branches through the provider and repairs a missing branch once [2.87ms]
+(pass) runAuthorizationTask > uses only the non-executed result schema tool [1.73ms]
+(pass) runAuthorizationTask > uses wire v2 with a mechanically validated coverage sidecar when requirements are supplied [0.96ms]
+(pass) runAuthorizationTask > repairs invalid coverage once using only mechanical diagnostics [1.34ms]
+(pass) runAuthorizationTask > uses wire v3 and repairs cross-obligation condition IDs and fact pointers once [2.97ms]
+(pass) runAuthorizationTask > does not report complete delivery when coverage remains invalid after repair [1.95ms]
+(pass) runAuthorizationTask > preserves initial diagnostics and performs at most one oracle-free domain repair [2.44ms]
+20:11:28.913 [WARN ] [structured] tool_use extraction failed; falling back to prompt+parse: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"missing-tool-call","diagnostics":[{"path":"$","code":"missing-tool-call"}]}]
+(pass) runAuthorizationTask > uses the same narrow wire contract for schema-tool fallback parsing [6.06ms]
+(pass) runAuthorizationTask > stops after one repair even when actionable diagnostics remain [1.96ms]
+(pass) runAuthorizationTask > does not deliver a canonical artifact when wire normalization remains invalid [1.70ms]
+(pass) runAuthorizationTask > treats an unknown returned tool name as a protocol failure [1.42ms]
+(pass) runAuthorizationTask > returns timeout-unknown without retrying a request whose completion is unknown [14.30ms]
+(pass) runAuthorizationTask > does not start a late prompt fallback after the unit has timed out [74.32ms]
+(pass) runAuthorizationTask > records a valid late response without adopting it as the experimental answer [61.57ms]
+(pass) runAuthorizationTask > preserves the initial result when the single repair call times out [14.55ms]
+(pass) runAuthorizationTask > records a provider rejection without starting prompt fallback [1.32ms]
+
+src\benchmarks\authorization-dsl\inputs.test.ts:
+(pass) loadExactSourceBundle > reads exactly the allowlisted input files and leaves oracle bytes out of the prompt [8.43ms]
+(pass) loadExactSourceBundle > loads all three real declarations from exact inputs without oracle hints [11.88ms]
+(pass) loadExactSourceBundle > rejects parent traversal and absolute paths before reading [3.78ms]
+(pass) loadExactSourceBundle > rejects a symlink or junction that resolves outside the case root [4.76ms]
+(pass) loadExactSourceBundle > returns a missing-input diagnostic instead of widening the search [3.56ms]
+(pass) loadExactSourceBundle > keeps crop-local line numbers distinct from original source locations [5.97ms]
+(pass) authorization source catalog > renders explicit original segments and rejects citations crossing an omitted interval [0.67ms]
+(pass) authorization source catalog > keeps source IDs stable across array order while distinguishing equal bytes at different paths [0.32ms]
+(pass) authorization source catalog > rejects duplicate source files instead of making array position part of identity [0.11ms]
+(pass) authorization source catalog > uses the displayed crop line numbers for LF or CRLF and excludes a terminal empty line [0.20ms]
+(pass) authorization source catalog > rejects unknown, out-of-range, cross-source, and stale-ref citations [0.22ms]
+
+src\benchmarks\authorization-dsl\inquiry-authoring-format.test.ts:
+(pass) complete authoring format does not advertise the conflicting natural-input branch [0.63ms]
+(pass) conformance authoring format publishes its mode and required independent policy [0.41ms]
+(pass) behavior authoring format omits policy and retains the runtime inquiry refinements [0.30ms]
+(pass) authoring and ordinary input keep the same relative source boundary [0.21ms]
+
+src\benchmarks\authorization-dsl\inquiry-authoring.test.ts:
+(pass) natural author input has only current brief and supplied policy, provenance preserves authored questions [4.32ms]
+
+src\benchmarks\authorization-dsl\inquiry-control-updates.test.ts:
+(pass) an unrelated retained gap does not roll back a valid atomic transaction in another or the same question [3.19ms]
+(pass) an atomic resubmission of its own unresolved rule or binding still rolls back [1.48ms]
+(pass) a new unresolved dependency and valid sibling are rolled back without erasing older failures [0.70ms]
+(pass) an omitted root entry predecessor list does not roll back valid atomic siblings [0.51ms]
+(pass) local add and replace use a current human target and host-generated revision digest [0.51ms]
+(pass) mixed invalid updates keep good local work and leave dependants explicitly unresolved [0.88ms]
+(pass) source identities and known versus unspecified user values have separate model fields [0.76ms]
+(pass) replacement scope never borrows another question's same-named target [0.60ms]
+(pass) local groups cannot replace another group's target in the same question [0.33ms]
+(pass) a child dependency on a rejected parent remains an explicit unresolved item [0.51ms]
+(pass) atomic rollback exposes current gaps rather than the rolled-back candidate's nodes [0.33ms]
+(pass) explicit local replacement records host provenance without requiring invented model rationale [0.65ms]
+
+src\benchmarks\authorization-dsl\inquiry-domain-local.test.ts:
+(pass) policy/premise/source/rename changes have distinct ordinary applicability and never reuse an answer [134.94ms]
+
+src\benchmarks\authorization-dsl\inquiry-domain-runtime.test.ts:
+(pass) atomic progress in a healthy question keeps another question's old rejection and missing predecessor [9.03ms]
+(pass) a complete source-bound effect cannot conceal an actual unread decisive helper [14.99ms]
+(pass) domain-evidence-v1 reports typed identity references before final without rejecting partial updates or inventing aliases [9.31ms]
+(pass) guided-evidence-v2 reports typed identity references before final without rejecting partial updates or inventing aliases [7.57ms]
+(pass) rejected extraction diagnostics cannot coexist with a reported consistent complete result [6.86ms]
+(pass) local corrections retain accepted work and clear only their own question's rejected target [5.64ms]
+(pass) guided shared runtime can advance real source work before any control proposal [7.86ms]
+(pass) local guided candidate choice reads a shown ambiguous candidate without rewriting a dependency graph [8.89ms]
+(pass) multiple synchronizations share two automatic reads until a new model step begins [16.61ms]
+(pass) a dependency reopens when a corrected preceding reject no longer makes it unreachable [17.39ms]
+(pass) model repair feedback deduplicates and bounds diagnostics without dropping the complete retained failures [7.35ms]
+(pass) model queue projection retains every task and action while avoiding duplicate candidate metadata [11.97ms]
+(pass) runtime rejection joins only its own question's layered check [9.15ms]
+(pass) checks-off reports unverified local answers and no aggregate consistency claim [5.43ms]
+
+src\benchmarks\authorization-dsl\inquiry-domain-scheduler.test.ts:
+(pass) scheduler genuinely reads a callsite-proposed uniquely located helper, records origin, and shares tool budget [11.65ms]
+(pass) ambiguous symbols stay located until an explicit candidate selection, unrelated lexical name is blocked [14.36ms]
+(pass) no budget, outside scope, source changes and dependency cycles remain separate local gaps [17.99ms]
+(pass) current false conditions and dependencies explicitly after early rejection are inapplicable [6.32ms]
+(pass) renaming source and repository prefixes preserves mechanism and host performs at most two actions per round [14.72ms]
+(pass) an exact displayed path-and-range locator is normalized without inventing a candidate [22.52ms]
+(pass) an allowed-file range mismatch shows real candidates but never reads until explicitly corrected [6.48ms]
+
+src\benchmarks\authorization-dsl\inquiry-local-extraction.test.ts:
+(pass) local conflict model feedback names an explicit replacement while preserving the rejected add [13.28ms]
+(pass) local source-binding conflicts retain exact question and group replacement scope [13.60ms]
+(pass) a persistent multi-window error retains a repair slot without starving other ready questions [24.13ms]
+(pass) persistent decisive location work rotates across all questions without reading or selecting candidates [11.39ms]
+(pass) an incompletely read broad entry exposes existing alternatives for explicit refinement [15.58ms]
+(pass) a bounded explanation uses a whole original covering window instead of its larger duplicate [13.15ms]
+(pass) zero remaining window budget withdraws local offers while retaining prior evidence references [8.00ms]
+(pass) inconsistent candidate or callsite coverage cannot authorize a local explanation [10.88ms]
+(pass) unchanged read explanation work rotates across all questions without repeating source actions [11.13ms]
+(pass) a third-question object diagnostic focuses its own shared-window explanation before final [11.10ms]
+(pass) an explicit diagnostic question takes precedence when its rule key names another question [6.99ms]
+(pass) an interpreted parent's lexical leads are offered for explicit read intent without automatically reading unrelated helpers [13.35ms]
+(pass) source catalog references retain all original IDs and ranges with bounded repeated metadata [10.11ms]
+(pass) unchanged optional lexical leads rotate through the bounded context without consuming reads [9.64ms]
+(pass) bounded location tasks expose ambiguous entries and missing locations before any source interpretation [13.66ms]
+(pass) a binding duty misfiled as a rule receives group guidance and remains rejected [9.11ms]
+(pass) current local explanation carries original windows and the host binds question and citations [5.81ms]
+(pass) a malformed local item cannot override host scope or erase a valid sibling [8.29ms]
+(pass) source null branches do not supply an unknown user value and malformed known null remains local [7.28ms]
+(pass) local interpretation only admits an offered current WorkItem and cannot target another question [5.60ms]
+(pass) two questions sharing a source window retain separate host extraction scope [9.11ms]
+(pass) an actual source change invalidates an offered extraction rather than accepting its old window [10.59ms]
+(pass) atomic local extraction rolls back valid siblings when another item fails its host-bound schema [7.17ms]
+(pass) explicit user null and absent grants remain known values independently of source identity nodes [7.33ms]
+(pass) explicitly rerequested old evidence reenters the current windows even when its stable ID is reused [12.35ms]
+(pass) an interpreted entry remains available for local completion until its graph is checked [8.28ms]
+(pass) an accepted same-question correction clears a prior local envelope failure but not item errors or another question [8.52ms]
+(pass) new source interpretation precedes revisiting already interpreted questions [10.68ms]
+(pass) local schema feedback names the mechanical repair without inventing a dependency operation [7.04ms]
+(pass) rejected target feedback retains the exact local draft and host scope until same-key correction [11.30ms]
+(pass) bounded rejected target feedback rotates question and group identities without erasing failures [11.42ms]
+(pass) oversized rejected submissions keep an archive pointer instead of truncating semantic content [9.59ms]
+(pass) missing path and predecessor feedback explains required semantics without supplying values [6.79ms]
+
+src\benchmarks\authorization-dsl\inquiry-native.test.ts:
+(pass) ordinary skill receives the current declaration and independent policy from its input [7.36ms]
+(pass) ordinary skill runtime restricts common tools and actually executes domain checks [18.36ms]
+(pass) guided native window allocation reaches reserved prose without exhausting repeated source display [19.32ms]
+(pass) domain runtime reserves two checks inside the total 24 calls after mixed exploration reaches 22 [13.76ms]
+(pass) missing compilation and two invalid checks never yield a result or allow a third repair [9.96ms]
+(pass) a failed second check clears an earlier checked result instead of exposing stale validity [8.22ms]
+(pass) domain tiny budgets fail explicitly while common-only tools retain their original budget [20.72ms]
+(pass) reserved checks still reject unshown source and isolated reference paths [7.34ms]
+(pass) native domain strategy uses shared scheduler/evaluator, preserves two checks and invalidates old success on rule revision [12.98ms]
+(pass) invalid strategy/native tools combinations are rejected before any dispatch [9.51ms]
+(pass) native guided inquiry uses the same partial local updates without digest transcription [21.20ms]
+(pass) native guided dispatch offers actual original windows and accepts the same narrow extraction [21.36ms]
+(pass) native reserves checking and prose within the existing provider budget [18.49ms]
+(pass) guided native compiles the supplied inquiry before the first dispatch without spending a tool call [18.84ms]
+(pass) a natural guided brief still requires a counted model declaration without inventing source facts [11.95ms]
+
+src\benchmarks\authorization-dsl\inquiry-reuse-local.test.ts:
+(pass) ordinary CLI --previous recomputes policy and archives verified reuse provenance [99.75ms]
+(pass) source changes and unknown prior completion refuse reuse before provider creation [70.18ms]
+(pass) ordinary reuse agrees with fresh policy analysis while avoiding the old source read [103.35ms]
+(pass) modified archived evidence cannot reach provider creation even with matching report flags [46.43ms]
+(pass) an old transport-failed SDK timeout returns inspection rather than a fresh resend command [39.98ms]
+
+src\benchmarks\authorization-dsl\inquiry-reuse.test.ts:
+(pass) policy-only reuse retains bounded behavior extraction and invalidates all old policy conclusions [15.48ms]
+(pass) source changes, missing footprints and incompatible strategy cannot promote old partial output [13.60ms]
+(pass) recorded checked flags cannot hide a currently invalid control extraction [18.71ms]
+(pass) imported evidence matches the complete current original window atomically and does not spend a read call [24.92ms]
+(pass) a policy-only new run checks the current mapping with no source read and no old answer reuse [31.16ms]
+(pass) premise reuse removes the old value and reads a newly reachable helper before current delivery [55.00ms]
+
+src\benchmarks\authorization-dsl\inquiry-run.test.ts:
+(pass) semantic delivery archives omitted-kind normalization without inventing a source answer or a wire repair [8.38ms]
+20:11:30.699 [WARN ] [structured] tool_use extraction failed; using one constrained tool repair: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"$","code":"unrecognized_keys","keys":["observations"]}]}]
+20:11:30.708 [WARN ] [structured] tool_use extraction failed; using one constrained tool repair: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"$","code":"unrecognized_keys","keys":["observations"]}]}]
+(pass) domain delivery keeps both bounded wire repairs and one diagnosed result repair inside the original cap [39.07ms]
+20:11:30.729 [WARN ] [structured] tool_use extraction failed; using one constrained tool repair: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"$","code":"unrecognized_keys","keys":["observations"]}]}]
+20:11:30.735 [WARN ] [structured] tool_use extraction failed; using one constrained tool repair: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"$","code":"unrecognized_keys","keys":["observations"]}]}]
+20:11:30.740 [WARN ] [structured] tool_use extraction failed; using one constrained tool repair: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"$","code":"unrecognized_keys","keys":["observations"]}]}]
+(pass) exploration and declared-input wire retries preserve combined delivery inside 8 calls [31.18ms]
+20:11:30.756 [WARN ] [structured] tool_use extraction failed; falling back to prompt+parse: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"$","code":"unrecognized_keys","keys":["unexpected"]}]}]
+20:11:30.773 [WARN ] [structured] tool_use extraction failed; using one constrained tool repair: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"$","code":"unrecognized_keys","keys":["observations"]}]}]
+20:11:30.777 [WARN ] [structured] tool_use extraction failed; using one constrained tool repair: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"$","code":"unrecognized_keys","keys":["observations"]}]}]
+20:11:30.782 [WARN ] [structured] tool_use extraction failed; using one constrained tool repair: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"$","code":"unrecognized_keys","keys":["observations"]}]}]
+(pass) exploration and natural-author wire retries preserve combined delivery inside 12 calls [41.40ms]
+(pass) guided source allocation preserves a final repair within the original cumulative display limit [34.62ms]
+(pass) legacy redisplay exhaustion reserves a grounded partial delivery inside the remaining source budget [22.21ms]
+(pass) limited final delivery cannot cite a newly read body that only reached its metadata catalog [17.12ms]
+(pass) exhausting source tools reserves final delivery without another read or an extra provider allowance [6.04ms]
+(pass) guided host read that consumes the last source tool reserves the current dispatch for final delivery [10.83ms]
+(pass) legacy last dispatch is an actual final opportunity [7.92ms]
+(pass) structured natural inquiry retains the original lexical entry when the author omits it [15.73ms]
+(pass) one analysis genuinely reads entry then requests helper and answers from actual returned bytes [12.59ms]
+(pass) missing helper can finish as explicit source-gap without a fake allow or policy [7.81ms]
+20:11:30.927 [WARN ] [structured] tool_use extraction failed; falling back to prompt+parse: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"kind","code":"invalid_literal","expected":"final"},{"path":"result","code":"invalid_type","expected":"object","received":"undefined"},{"path":"$","code":"unrecognized_keys","keys":["calls"]}]}]
+(pass) session dispatch bound stops instead of making a hidden extra call [11.21ms]
+(pass) per-call timeout leaves unknown completion and never dispatches fallback [20.44ms]
+(pass) an SDK timeout is unknown completion even when it settles before the configured host deadline [7.92ms]
+20:11:30.968 [WARN ] [structured] tool_use extraction failed; falling back to prompt+parse: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"kind","code":"invalid_union_discriminator","expected":["tool","observe","final"]}]}]
+(pass) source resend budget applies before fallback dispatch and counts failed responses [9.94ms]
+(pass) first delivery validation stays separate when one diagnosed repair succeeds [9.81ms]
+20:11:30.985 [WARN ] [structured] tool_use extraction failed; falling back to prompt+parse: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"calls","code":"too_big","maximum":8,"actualItems":9}]}]
+(pass) an over-limit 9-action proposal recovers through one diagnosed fallback without truncation [8.07ms]
+20:11:30.994 [WARN ] [structured] tool_use extraction failed; falling back to prompt+parse: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"calls","code":"too_big","maximum":8,"actualItems":10}]}]
+(pass) an over-limit 10-action proposal recovers through one diagnosed fallback without truncation [9.08ms]
+20:11:31.001 [WARN ] [structured] tool_use extraction failed; falling back to prompt+parse: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"kind","code":"invalid_literal","expected":"final"},{"path":"result","code":"invalid_type","expected":"object","received":"undefined"},{"path":"$","code":"unrecognized_keys","keys":["calls"]}]}]
+(pass) an over-limit proposal cannot use fallback after the actual dispatch budget is exhausted [5.37ms]
+(pass) domain strategy actually schedules a reported helper and diagnoses contradictory allow before one repair [19.99ms]
+(pass) domain ablation disables auto reads and preserves a decisive gap under the same budget [12.50ms]
+(pass) partial-evaluation/check ablation leaves the same contradictory answer uncorrected and records no evaluation [12.99ms]
+(pass) domain execution reserves its final dispatch for delivery and describes both literal operands [16.17ms]
+20:11:31.077 [WARN ] [structured] tool_use extraction failed; falling back to prompt+parse: TypeError: undefined is not an object (evaluating 'schema.anyOf.find')
+(pass) guided ordinary inquiry retains good extraction during a local item repair [24.70ms]
+20:11:31.100 [WARN ] [structured] tool_use extraction failed; using one constrained tool repair: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"$","code":"unrecognized_keys","keys":["observations"]}]}]
+(pass) exhausted structured tool repair retains phase, concrete fields and both raw attempts [14.05ms]
+(pass) guided inquiry explains actual entry and helper windows in two ordinary calls with host-bound fields [26.79ms]
+(pass) all newly read original windows reach the next guided call and are counted as actual source display [28.13ms]
+(pass) lossless guided control normalization retains raw responses and uses no repair dispatch [22.56ms]
+
+src\benchmarks\authorization-dsl\inquiry-semantic.test.ts:
+(pass) both public wire schemas expose the same source-local semantic contract [0.95ms]
+(pass) bad semantic sibling cannot discard another question; raw failure and accepted blocks are retained [11.41ms]
+(pass) a corrected indexed discovery reaches the shared semantic offer without editing the task declaration [21.02ms]
+(pass) current accepted rejection supplies result branches and diagnoses renamed unknown and stale final [11.56ms]
+(pass) effect assertion cannot turn a successful no-op return into a protected write [7.55ms]
+(pass) semantic feedback links an unresolved return to its original handle block and step [8.99ms]
+(pass) requested counterfactual cites the retained excluded source without reviving it as a current branch [10.78ms]
+(pass) ordinary inquiry uses semantic source work and current assembly within existing calls [26.16ms]
+(pass) native original-skill tools share host compilation, semantic source work and assembly [22.08ms]
+(pass) same-strategy previous retains source semantic units but never answers; source change still blocks before dispatch [25.45ms]
+(pass) a newly interpreted helper replaces its residual dependency rather than leaving an obsolete open queue entry [15.93ms]
+(pass) retiring an interpreted dependency removes its lexical descendants and retains actual reads [18.82ms]
+(pass) an unowned malformed semantic draft has an explicit source-bound repair without losing its raw history [17.57ms]
+(pass) bad or cross-question draft repairs cannot clear another scoped semantic failure [13.06ms]
+
+src\benchmarks\authorization-dsl\inquiry-source-display.test.ts:
+(pass) identical original text in another path cannot acquire an unseen evidence identity from a catalog [0.40ms]
+(pass) an evidence ID paired with altered source metadata is not a shown original window [0.15ms]
+
+src\benchmarks\authorization-dsl\inquiry-tools.test.ts:
+(pass) list/search/symbol/read exposes numbered original bytes and independent same-name candidates [20.13ms]
+(pass) directory selectors search only indexed descendants with original evidence and no prefix collision [24.62ms]
+(pass) directory selectors preserve scope safety and source identity checks [16.80ms]
+(pass) a read extending past EOF retains the available original window and exact requested range [14.91ms]
+(pass) canonical directory cycle is bounded and an escaping junction is rejected [15.51ms]
+(pass) execution denies oracle, secret, path escape, shell and writes [10.82ms]
+(pass) source change stops affected reads and preserves already shown evidence [11.74ms]
+(pass) file, source display and tool budgets retain concrete gaps and partial reads [5.78ms]
+
+src\benchmarks\authorization-dsl\inquiry-wire.test.ts:
+(pass) legacy final-only parser matches the advertised delivery schema and rejects further tool or observation steps [0.39ms]
+(pass) guided native accepts an otherwise valid unwrapped declaration without changing the model contract [0.70ms]
+(pass) guided result moves explicitly owned nested observations without guessing or merging conflicts [0.40ms]
+(pass) guided final omission means no additional observations, not a missing answer [0.18ms]
+(pass) structured control steps expose one canonical field and accept the lossless legacy alias [0.61ms]
+(pass) native schemas use the same complete nested types, strict objects and bounded arrays [0.34ms]
+(pass) guided local schemas advertise full item contracts while the host can retain a malformed item for partial feedback [0.52ms]
+(pass) actual mode-specific model contracts omit behavior policy and require conformance policy [0.51ms]
+(pass) guided exploration accepts only unambiguous lossless control envelopes and keeps final-only strict [0.54ms]
+(pass) guided metadata omission preserves explicit source calls and current local content without inferring semantics [0.56ms]
+(pass) semantic final-only recovers an omitted routing kind only for an explicit valid result [0.35ms]
+
+src\benchmarks\authorization-dsl\inquiry-withdrawal.test.ts:
+(pass) explicit draft withdrawal preserves history, other-question errors and dangling predecessors [8.61ms]
+(pass) withdrawal cannot delete an accepted target or clear a failed atomic correction [5.85ms]
+(pass) withdrawal is group-scoped and cannot mask global source invalidation [9.54ms]
+(pass) a stale or malformed withdrawal cannot erase a draft and valid siblings survive [6.53ms]
+(pass) ordinary native tools return and archive explicit draft withdrawal outcomes [12.52ms]
+
+src\benchmarks\authorization-dsl\inquiry-worklist.test.ts:
+(pass) a zero-graph worklist reads a unique original entry and schedules explicit interpretation rather than semantic closure [12.96ms]
+(pass) question fairness gives a second entry a turn before reading more of a long first entry [13.43ms]
+(pass) an explicitly declared operation supplies an entry location lead without duplicate entryHint [9.72ms]
+(pass) a paraphrased operation retains the original user task's lexical entry lead [5.75ms]
+(pass) an unindexed prose entry hint falls back to the declared operation without inventing semantics [4.37ms]
+(pass) an unindexed hint and paraphrased operation retain the original task's lexical location [8.57ms]
+(pass) a unique fallback operation cannot override genuine ambiguity in the supplied hint [6.93ms]
+(pass) ambiguous entries stay local and explicit candidate selection cannot borrow another question [12.08ms]
+(pass) a shown lexical discovery can correct a misleading entry hint without borrowing unseen locations [6.56ms]
+(pass) source changes invalidate its work items without repeated failed reads [6.70ms]
+(pass) changed source discovered with selector omitted blocks a previously shown location [9.32ms]
+(pass) changed source discovered with selector . blocks a previously shown location [11.75ms]
+(pass) changed source discovered with selector nested blocks a previously shown location [11.50ms]
+(pass) a recursive lexical reference becomes a named local gap and never creates repeated reads [13.27ms]
+(pass) unconfirmed logging and storage references consume no reads or recursive work [9.45ms]
+(pass) reference discovery stays inside the selected definition despite an overlapping wider read [8.35ms]
+(pass) the same original definition reached through a dependency does not duplicate lexical duties [6.45ms]
+(pass) one recursive candidate cannot block a distinct ambiguous definition before selection [9.89ms]
+(pass) a manually read accepted entry anchors its own ambiguous queue without inventing helper relevance [6.43ms]
+(pass) entry evidence cannot select another question or a non-entry proposal [7.88ms]
+(pass) multiple accepted entry locations remain ambiguous and explicit selection retains priority [6.87ms]
+(pass) accepted entry association is recomputed and source invalidation remains blocking [10.48ms]
+
+src\benchmarks\authorization-dsl\local-input.test.ts:
+(pass) loadLocalAuthorizationInput > loads portable multi-segment evidence and refuses declarations inside a gap or ambiguous coordinates [21.05ms]
+(pass) loadLocalAuthorizationInput > checks a value at a future output coordinate without writing an input file [7.53ms]
+(pass) loadLocalAuthorizationInput > loads an explicit sibling source root without allowing listed sources to escape it [8.17ms]
+(pass) loadLocalAuthorizationInput > loads ordinary source paths without a manifest or oracle and instantiates the common profile [7.24ms]
+(pass) loadLocalAuthorizationInput > keeps explicit requirements and records their profile origin [4.35ms]
+(pass) loadLocalAuthorizationInput > rejects source identity drift and invalid locations before a host can run [10.55ms]
+(pass) loadLocalAuthorizationInput > reports missing, escaping, and duplicate-normalized source paths without widening the read [11.26ms]
+(pass) loadLocalAuthorizationInput > rejects a source symlink that resolves outside sourceRoot [7.93ms]
+(pass) loadLocalAuthorizationInput > rejects a sourceRoot junction that resolves outside the input directory [4.63ms]
+(pass) loadLocalAuthorizationInput > loads prepared excerpts with original line coordinates and exposes preparation gaps in source context [9.42ms]
+(pass) loadLocalAuthorizationInput > rejects prepared report identity and crop mismatches before dispatch [7.68ms]
+
+src\benchmarks\authorization-dsl\local-run.test.ts:
+(pass) sidecar selects explicit v6 by default while an explicit legacy selection keeps the same public paragraph [11.27ms]
+(pass) carries the same preparation report through preview, provider prompt, session, and inspect [39.49ms]
+(pass) explicit v6 survives run and inspect; changing a premise requires review [48.74ms]
+(pass) ordinary v6 retains original segments through run inspect and all-input compare [53.13ms]
+(pass) AN current task contract reaches the provider prompt, session and compare without legacy return instructions [68.59ms]
+(pass) AN explicit model-label contradiction uses the existing single repair and retains the first answer [25.60ms]
+(pass) local authorization runner > rejects unknown reasoning before provider creation and persists focused prompt identity [32.12ms]
+(pass) local authorization runner > defaults the public check function to B while preserving explicit D [5.37ms]
+(pass) local authorization runner > defaults the public run function to B while preserving explicit D [32.03ms]
+(pass) local authorization runner > checks arbitrary input without creating a provider and rejects bad input before provider creation [9.61ms]
+(pass) local authorization runner > creates immutable sessions, writes JSON/JSONL/text artifacts, and inspects without a provider [32.40ms]
+(pass) local authorization runner > rejects a terminal session whose persisted identity or run status was tampered [23.36ms]
+(pass) local authorization runner > reports an interrupted dispatched session as completion-unknown without resending [6.65ms]
+(pass) local authorization runner > keeps provider-unavailable artifacts truthful and does not claim a dispatch [9.87ms]
+
+src\benchmarks\authorization-dsl\markdown-study.test.ts:
+(pass) MD replaces declaration exactly once, shares source and output contract, and persists origin [47.75ms]
+(pass) repair preserves independent MD and diagnostics without recovering the manifest declaration [24.51ms]
+(pass) focused Markdown and DSL receive the same public questions, repair keeps them, and resume rejects strategy changes [56.71ms]
+(pass) unknown origin and empty Markdown fail before provider creation; missing semantic information is not filled [28.18ms]
+(pass) timeout closes MD lifecycle and inspection does not redispatch [105.98ms]
+(pass) v5 MD repair retains protocol and resume refuses a wire change or redispatch after timeout [168.56ms]
+
+src\benchmarks\authorization-dsl\owner-premise.test.ts:
+(pass) existing conditions and premises represent unspecified, absent, other-present and self without inferred state [5.38ms]
+(pass) premise-only edits change ordinary preview/program/compare dependencies while source stays identical [22.08ms]
+(pass) only explicit branches expand and contradictory structured assignments have concrete paths [3.71ms]
+
+src\benchmarks\authorization-dsl\protocol-audit.test.ts:
+20:11:32.774 [WARN ] [structured] tool_use extraction failed; falling back to prompt+parse: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"missing-tool-call","diagnostics":[{"path":"$","code":"missing-tool-call"}]}]
+(pass) replays all six retained C first answers under the unchanged v3 schema and captures the real extraction schema [22.77ms]
+
+src\benchmarks\authorization-dsl\run.test.ts:
+(pass) authorization comparison development runner > loads the frozen comparison order and checks all previews without initializing a provider [15.57ms]
+(pass) authorization comparison development runner > runs six mock units once, resumes without resending, and evaluates three pairs offline [186.32ms]
+(pass) authorization comparison development runner > shows help and parameter diagnostics without touching provider configuration [3.66ms]
+(pass) authorization comparison development runner > replays the archived V initial run read-only without initializing a provider [36.32ms]
+
+src\benchmarks\authorization-dsl\source-location.test.ts:
+(pass) locates literal zero/unique/multiple matches with current-file CRLF line numbers and context [3.48ms]
+(pass) truncates without selecting the first match and handles empty source [4.71ms]
+(pass) rejects escaped paths, NUL, invalid match/limit, missing files and junction escapes [2.83ms]
+(pass) public locate is provider-free with literal help and stable argument diagnostics [2.44ms]
+
+src\benchmarks\authorization-dsl\telemetry-continuation.test.ts:
+(pass) native read-only continuation is opt-in, accounted and bounded [0.54ms]
+
+src\benchmarks\authorization-dsl\telemetry.test.ts:
+20:11:33.066 [WARN ] [structured] tool_use extraction failed; falling back to prompt+parse: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"missing-tool-call","diagnostics":[{"path":"$","code":"missing-tool-call"}]}]
+(pass) createTelemetryProvider > counts a failed schema response and successful prompt fallback separately [1.10ms]
+20:11:33.067 [WARN ] [structured] tool_use extraction failed; falling back to prompt+parse: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"missing-tool-call","diagnostics":[{"path":"$","code":"missing-tool-call"}]}]
+(pass) createTelemetryProvider > keeps known USD as a subtotal when one response has no provider cost [0.52ms]
+(pass) createTelemetryProvider > records a no-response error with unknown usage and rethrows the same error [0.31ms]
+(pass) createTelemetryProvider > refuses tool-result continuation instead of exposing an executor [0.15ms]
+(pass) createTelemetryProvider > closes on a per-call timeout, records a late settlement, and rejects new dispatch [61.17ms]
+(pass) createTelemetryProvider > rejects a fifth provider dispatch before calling the delegate [0.87ms]
+(pass) an SDK network timeout before the host timer closes the lifecycle and preserves its original error [0.56ms]
+(pass) legacy timeout error records stay unresolved while known malformed responses remain retryable [0.09ms]
+(pass) an SDK timeout wrapped in a network cause retains the original error and an unknown fee [0.20ms]
+(pass) a synchronous provider rejection settles its attempt instead of leaving a false pending request [0.18ms]
+
+src\benchmarks\authorization-dsl\value-evaluate.test.ts:
+(pass) authorization value-study evaluation > binds final reviews, treats P coverage as not applicable, selects the simpler tied candidate, and replays offline [146.80ms]
+
+src\benchmarks\authorization-dsl\value-study-config.test.ts:
+(pass) frozen authorization value-study config > runs all 15 rotated units mechanically without evaluator exposure or target execution [379.55ms]
+
+src\benchmarks\authorization-dsl\value-study.test.ts:
+(pass) authorization P/L/C value study > keeps public facts and questions equal while applying three real interventions on render arm B [1.05ms]
+(pass) authorization P/L/C value study > does not expose evaluator or oracle paths in any model prompt [0.42ms]
+(pass) authorization P/L/C value study > requires one P/L/C unit per case in its frozen rotation and keeps study arm separate [0.39ms]
+(pass) authorization P/L/C value study > accepts normalized-input P/C repetitions only in the frozen reversed second order [100.17ms]
+(pass) authorization P/L/C value study > lets semantic review credit P text and never lets a C field replace missing semantics [2.35ms]
+(pass) authorization P/L/C value study > completes and resumes a three-method mock dry-run without mixing study and render arms [86.11ms]
+
+src\benchmarks\authorization-dsl\authoring-workspace\changes.test.ts:
+(pass) common policy change reaches inherited variants and flags an explicit override without pretending it changed [32.94ms]
+(pass) same value whole-field replacement is still explicit, and path relocation with equal source bytes is not an effective source change [17.22ms]
+(pass) an invalid plan cannot produce usable change judgments [9.86ms]
+(pass) source byte changes require review even when declaration paths stay the same [13.47ms]
+
+src\benchmarks\authorization-dsl\authoring-workspace\example.test.ts:
+(pass) three explicit example variants lower identically to independent expected v2 inputs [12.82ms]
+(pass) ordinary external copy generates/checks all three and a shared policy edit leaves old outputs intact [57.54ms]
+
+src\benchmarks\authorization-dsl\authoring-workspace\local-edit-text.test.ts:
+(pass) text edits preserve unassigned text and supply affected field paths without requiring approval [1.12ms]
+(pass) text edits reject out-of-range indices, absent instructions, unknown fields and conflicts [0.57ms]
+
+src\benchmarks\authorization-dsl\authoring-workspace\local-edit.test.ts:
+(pass) request edit changes the effective question only and marks every scenario for review [2.95ms]
+(pass) policy text needs expectation acknowledgment for every referencing scenario [0.83ms]
+(pass) edits one premise and relation without changing unrelated declarations [0.58ms]
+(pass) rejects duplicate assignments, unknown keys and forbidden fields without mutation [0.33ms]
+
+src\benchmarks\authorization-dsl\authoring-workspace\materialize.test.ts:
+(pass) bad second variant leaves no output or staging directory [10.80ms]
+(pass) existing empty output directory is never replaced or removed [10.99ms]
+(pass) successful publication contains complete ordinary inputs and provenance [24.25ms]
+(pass) concurrent creation publishes exactly one complete directory [27.49ms]
+(pass) a competing empty directory created after planning is preserved [25.51ms]
+(skip) unsupported platforms fail closed without writes
+
+src\benchmarks\authorization-dsl\authoring-workspace\plan.test.ts:
+(pass) plan relocates the base coordinate, retains policy text and omissions, and writes nothing [6.64ms]
+(pass) replacement sourceRoot is workspace-relative, independent of invocation cwd [54.97ms]
+(pass) plan diagnoses variant and exact field for {"field":"unknown","value":1,"origin":"author"} [3.94ms]
+(pass) plan diagnoses variant and exact field for [{"field":"taskId","value":"a","origin":"a"},{"field":"taskId","value":"b","origin":"b"}] [2.68ms]
+(pass) plan diagnoses variant and exact field for {"field":"sources","value":"wrong","origin":"author"} [3.72ms]
+(pass) plan diagnoses variant and exact field for {"field":"scenarios","value":{"archive":{"principal":"missing","resource":"record","policy":"archive","entries":["archive"],"relation":"owner","operation":"archive","expectation":"allow"}},"origin":"author"} [8.06ms]
+(pass) plan diagnoses variant and exact field for {"field":"entries","value":{"archive":{"name":"archiveRecord","locations":[{"path":"src/records.ts","startLine":1,"endLine":999}]}},"origin":"author"} [7.22ms]
+(pass) missing base and missing source have actionable file/variant diagnostics [8.50ms]
+(pass) relocation cannot legitimize a sourceRoot junction outside the authored boundary [5.67ms]
+
+src\benchmarks\authorization-dsl\authoring-workspace\schema.test.ts:
+(pass) workspace accepts explicit portable ids and rejects extra semantics [0.17ms]
+(pass) workspace requires exact version: v2 [0.04ms]
+(pass) workspace requires exact version:  [0.02ms]
+(pass) workspace requires exact version: %s [0.01ms]
+(pass) workspace requires base:  [0.07ms]
+(pass) workspace requires base: %s [0.01ms]
+(pass) workspace requires base: %s
+(pass) workspace rejects unsafe filename id ../out [0.05ms]
+(pass) workspace rejects unsafe filename id a/b
+(pass) workspace rejects unsafe filename id a\b [0.06ms]
+(pass) workspace rejects unsafe filename id .
+(pass) workspace rejects unsafe filename id .. [0.01ms]
+(pass) workspace rejects unsafe filename id a.
+(pass) workspace rejects unsafe filename id a  [0.07ms]
+(pass) workspace rejects unsafe filename id CON [0.04ms]
+(pass) workspace rejects unsafe filename id con.txt [0.02ms]
+(pass) workspace rejects unsafe filename id PRN [0.02ms]
+(pass) workspace rejects unsafe filename id aux [0.02ms]
+(pass) workspace rejects unsafe filename id NUL [0.03ms]
+(pass) workspace rejects unsafe filename id COM1 [0.02ms]
+(pass) workspace rejects unsafe filename id LPT9 [0.03ms]
+(pass) workspace rejects unsafe filename id A:B [0.02ms]
+(pass) workspace rejects unsafe filename id a* [0.02ms]
+(pass) workspace rejects unsafe filename id a? [0.02ms]
+(pass) workspace rejects unsafe filename id a  [0.02ms]
+(pass) workspace rejects unsafe filename id a| [0.03ms]
+(pass) workspace rejects unsafe filename id a< [0.02ms]
+(pass) workspace rejects unsafe filename id a> [0.03ms]
+(pass) workspace rejects unsafe filename id a" [0.02ms]
+(pass) workspace prevents case-insensitive filename collisions and caps explicit variants [0.96ms]
+(pass) replacement files require exact records with nonempty origin: {"value":{}} [0.08ms]
+(pass) replacement files require exact records with nonempty origin: {"value":null} [0.02ms]
+(pass) replacement files require exact records with nonempty origin: {"value":"oops"}
+(pass) replacement files require exact records with nonempty origin: {"value":[{"field":"taskId","value":"x"}]} [0.04ms]
+(pass) replacement files require exact records with nonempty origin: {"value":[{"field":"taskId","origin":"author"}]} [0.04ms]
+(pass) replacement files require exact records with nonempty origin: {"value":[{"field":"taskId","value":"x","origin":" "}]} [0.03ms]
+(pass) replacement files require exact records with nonempty origin: {"value":[{"field":"taskId","value":"x","origin":"author","guessed":true}]} [0.03ms]
+(pass) empty replacement list is explicit identity composition [0.05ms]
+
+src\benchmarks\authorization-dsl\editor-support\schema.test.ts:
+(pass) the draft-07 editor schema is available as a local asset [0.11ms]
+(pass) load returns a draft-07 schema copy without exposing mutable validator state [0.30ms]
+(pass) finite structural fixtures agree with the real v2 parser [8.05ms]
+(pass) diagnostics identify missing and unknown fields including escaped dictionary names [1.99ms]
+(pass) ordinary author normalization gives shared structure advice for a recognizable v2 draft without accepting a version [1.80ms]
+(pass) init, check and prepare surface the same concrete structural gaps before any provider [16.93ms]
+(pass) field coverage follows nested runtime objects, required keys and structure [4.54ms]
+(pass) editor structure covers optional task premises and bounded counterfactuals [2.34ms]
+(pass) explicit runtime-only cases remain editor-valid but fail the authoritative runtime [1.38ms]
+(pass) verification reports parity and rejects schema drift [73.62ms]
+(pass) the private editor association targets authoring.json and resolves from the example workspace [5.66ms]
+(pass) a copied ordinary directory checks source locations without providers or rewriting inputs [17.41ms]
+
+src\benchmarks\authorization-dsl\evidence-preparation\control-context.test.ts:
+(pass) callable context fills a renamed multiline Python helper instead of keeping only head and tail [1.60ms]
+(pass) one selected class method does not pack unrelated methods or choose a same-name peer [0.22ms]
+(pass) budget exhaustion preserves exact selected Unicode lines and reports the omitted unit [0.26ms]
+(pass) incomplete declaration and conflicting bounds stay range-uncertain [0.08ms]
+(pass) source digest drift and escaping allowlists fail before context can be used [0.26ms]
+(pass) Python strings and dedented continuation closers cannot invent a peer boundary [0.28ms]
+(pass) a selected single-line decorator belongs to its callable without expanding a peer [0.21ms]
+
+src\benchmarks\authorization-dsl\evidence-preparation\discovery.test.ts:
+(pass) entry seed finds a helper after line 120 and nested dependencies without researcher coordinates [13.07ms]
+(pass) duplicate symbols, cycles, dynamic dispatch and read exhaustion remain explicit [15.81ms]
+(pass) definition names do not create support and generated IDs cannot shadow authored support [6.12ms]
+(pass) safe supplementary failures are individual outcomes and do not discard later valid reads [8.88ms]
+(pass) display exhaustion retains affordable windows with named budget outcomes [6.11ms]
+(pass) host context rejects public discovery snapshot tampering [7.18ms]
+(pass) Python multiline signatures include their bodies before the next peer declaration [7.03ms]
+(pass) read identities distinguish duplicate explicit, generated and later-batch IDs [9.00ms]
+(pass) callable discovery keeps referenced class members without enumerating unrelated methods [9.58ms]
+
+src\benchmarks\authorization-dsl\evidence-preparation\location-selection.test.ts:
+(pass) a shown range disambiguates a literal repeated outside that fragment [0.33ms]
+(pass) a reason containing ellipsis cannot become a literal source location [0.09ms]
+(pass) unknown IDs and range envelopes across omitted lines fail closed [0.07ms]
+(pass) an indexed body is a read candidate until every line has been displayed [0.09ms]
+(pass) scoped literals retain range conflicts and repeated in-range candidates [0.17ms]
+(pass) IDs are bound to repository, ref, digest and the actual fragment [0.19ms]
+
+src\benchmarks\authorization-dsl\evidence-preparation\material-reuse.test.ts:
+(pass) reuse retains exact report gaps and source bytes and refuses changed ref or missing legacy binding [29.59ms]
+(pass) a changed raw byte outside the retained crop invalidates reuse and preserves the pending record [17.82ms]
+(pass) portable input relocation verifies the newly selected raw root and retains all gaps [23.90ms]
+(pass) clearing a gap requires new included evidence; current evidence and explanation alone cannot resolve it [1.49ms]
+(pass) not-relevant needs an explicit scope or premise change plus reason and keeps gap history [0.64ms]
+
+src\benchmarks\authorization-dsl\evidence-preparation\prepare.test.ts:
+(pass) keeps complete files when budget permits and deduplicates a repeated helper [9.17ms]
+(pass) crops only whole source lines with original coordinates and CRLF Unicode bytes [4.96ms]
+(pass) a missing named dependency is partial with an explicit gap and a runnable entry snapshot [7.85ms]
+(pass) rejects path escape before creating any runnable input [4.79ms]
+(pass) a literal locator is only accepted with a unique hit inside an explicit range [15.91ms]
+(pass) a dependency keeps its whole file when the shared byte budget permits [10.50ms]
+(pass) merges overlapping ranges and keeps a budget-excluded dependency as a named gap [6.46ms]
+(pass) records unresolved parent, cycle, depth and explicit-range gaps without inventing source [8.45ms]
+(pass) v2 includes distant slices within budget without expanding support into task entries [16.10ms]
+(pass) v2 auxiliary byte overflow remains partial with only the mandatory entry retained [5.83ms]
+(pass) v2 literal matching scopes to the exact range while v1 keeps its historical global contract [17.33ms]
+(pass) a rejected parent leaves a named child gap and independent valid support survives [9.75ms]
+(pass) a changed indexed source digest invalidates the preparation rather than publishing new bytes [4.79ms]
+
+src\benchmarks\authorization-dsl\evidence-preparation\proposal.test.ts:
+(pass) final-round read gaps cannot reuse a completed read identity [14.21ms]
+(pass) proposal retains returned usage before invalid JSON [11.20ms]
+(pass) proposal retains returned usage before schema rejection [7.31ms]
+(pass) proposal retains returned usage before position rejection [8.85ms]
+(pass) proposal retains returned usage before path rejection [5.51ms]
+(pass) proposal records timeout as unknown and does not resend [22.89ms]
+(pass) cancellation before dispatch records zero calls [8.29ms]
+(pass) bounded proposal reads a hidden literal window then accepts only displayed coordinates [11.98ms]
+(pass) bounded JSON repair is diagnostics-only, bounded once, and all failed responses remain accounted [9.20ms]
+(pass) legacy proposal display counts Unicode UTF-8 bytes rather than characters [8.57ms]
+(pass) bounded proposal leaves an indexed but unseen body as a named gap and retains usage [8.56ms]
+(pass) the second fresh call retains task, policy, verified support and bounded old source with charged resends [13.38ms]
+(pass) no new source information stops after one call and a failed parent cannot admit its child [11.62ms]
+(pass) unsafe selector paths reject the job with the returned cost retained [12.08ms]
+(pass) cancellation after a response stops dispatch and counts only source sent to the provider [7.70ms]
+(pass) cancellation while returning final response retains usage without completion or repair [11.89ms]
+(pass) cancellation while returning invalid response retains usage without completion or repair [7.57ms]
+(pass) duplicate JSON reads are diagnosed before last-wins can discard an indexed body request [13.18ms]
+(pass) duplicate nested JSON properties stay rejected after the single format revision [13.02ms]
+
+src\benchmarks\authorization-dsl\evidence-preparation\scope.test.ts:
+(pass) three supports preserve two scenarios while explicit analysis entries still expand [1.30ms]
+
+src\benchmarks\authorization-dsl\evidence-preparation\segments.test.ts:
+(pass) merges overlapping and adjacent ranges in stable original order with deduplicated origins [1.41ms]
+(pass) packs distant 10-12 and 900-902 without any intervening bytes and maps original lines [0.38ms]
+(pass) duplicate slices are charged once and the final line without a newline is preserved [0.11ms]
+
+src\cli\authorization.test.ts:
+(pass) authorization CLI > routes a read-only scenario workspace preview without creating output or a provider [11.38ms]
+(pass) authorization CLI > runs and inspects explicit v5 and compares with the same protocol by default [35.44ms]
+(pass) authorization CLI > keeps requested condition questions public in plain, ledger and conditions on the same v4 base [11.66ms]
+(pass) authorization CLI > selects public methods before provider creation and preserves input-request compatibility [23.42ms]
+(pass) authorization CLI > persists explicit ledger selection through run, session, text and inspect [23.55ms]
+(pass) authorization CLI > resolves the real Bun binary behind a Windows npm shim for source checkout routing [0.46ms]
+(pass) authorization CLI > initializes a clearly synthetic editable assessment and never overwrites it [8.30ms]
+(pass) authorization CLI > normalizes --from beside the authoring file while preserving the original [3.50ms]
+(pass) authorization CLI > keeps check and condition preview provider-free and returns stable argument exit codes [4.09ms]
+(pass) authorization CLI > runs with default B into a new session each time and inspects without another provider [36.38ms]
+
+src\cli\authorization-compose.test.ts:
+(pass) invalid arguments return 2: {"args":[]} [0.23ms]
+(pass) invalid arguments return 2: {"args":["--workspace=x"]} [0.03ms]
+(pass) invalid arguments return 2: {"args":["--out=x"]}
+(pass) invalid arguments return 2: {"args":["--workspace=x","--out=y","--provider=x"]}
+(pass) invalid arguments return 2: {"args":["--workspace=x","--out=y","--check-only=true"]}
+(pass) invalid arguments return 2: {"args":["--workspace=x","--workspace=y","--out=z"]}
+(pass) invalid arguments return 2: {"args":["--workspace=x","--out=y","--check-only","--check-only"]}
+(pass) check-only returns the complete plan without writes or provider setup [8.20ms]
+(pass) check-only compare reports a common policy override without writing either workspace [14.98ms]
+(pass) workspace tracks analysisContract inheritance, whole-field override and a current scenario summary [29.33ms]
+(pass) CLI prints exact variant/field semantic diagnostics and returns 1 [5.16ms]
+(pass) CLI publishes ordinary v2 and refuses a second publication [16.36ms]
+(pass) standalone runtime import graph has no provider or execution host [9.33ms]
+
+src\cli\authorization-prepare.test.ts:
+(pass) prepare checks without writing, then publishes a runnable ordinary input and report exactly once [26.32ms]
+(pass) paid prepare archives invalid proposal usage and preflights output before dispatch [49.60ms]
+(pass) prepare accepts one optional model dependency proposal through the same bounded validator [36.98ms]
+(pass) publication failure keeps the already returned response and cost outside output [29.98ms]
+(pass) ordinary discover v2 starts with entry seeds, preserves scene count, and check-only calls no provider [43.97ms]
+(pass) ordinary discovered preparation publishes a valid partial input with individual read diagnostics [46.63ms]
+(pass) source changed during a paid proposal is rejected and returned usage is archived [78.00ms]
+(pass) duplicate model read IDs retain each partial gap's own selector [96.02ms]
+
+src\cli\authorization-ao.test.ts:
+(pass) ordinary inquiry check compiles complete DSL without a provider; natural conformance needs policy [77.30ms]
+(pass) inquiry strategy is a zero-call explicit option, persisted and checked in archived domain state [140.01ms]
+(pass) ordinary run domain strategy is explicit and cannot bypass native tools/scope [2.15ms]
+(pass) ordinary inquiry run persists actual reads, inspect is offline and request edit invalidates compare [79.49ms]
+
+src\cli\authorization-inquiry-init.test.ts:
+(pass) init exports a retained authored declaration and rebases from original input provenance [166.77ms]
+(pass) missing retained source provenance requires an explicit source root rather than a session-relative guess [127.67ms]
+(pass) an exported declaration can reuse a checked natural-brief session without reauthoring questions [151.00ms]
+(pass) session declaration export rejects an altered independent policy or declaration program [85.15ms]
+(pass) exported questions do not make an unknown previous completion reusable [106.39ms]
+(pass) a completed archive label cannot hide a pending previous provider attempt [111.61ms]
+(pass) file init preserves natural input fields and rebases into an exclusively created output [9.55ms]
+
+src\cli\authorization-an.test.ts:
+(pass) AN scoped task init publishes ordinary v2, entry seed and field provenance without a provider [50.63ms]
+
+src\cli\authorization-edit.test.ts:
+(pass) edit publishes a bounded v2 variant and keeps the base and source untouched [91.49ms]
+
+src\cli\authorization-am.test.ts:
+(pass) AM callable packing retains the helper middle through ordinary prepare without adding entries [35.27ms]
+(pass) AM init generates known metadata and entry seed, leaves missing domain fields explicit, and preflights every output [22.93ms]
+(pass) AM policy and linked expectations can update reason, instruction and one response detail in one edit [3.07ms]
+(pass) AM reuse keeps pending gaps and source bytes after a pure premise or policy change [69.38ms]
+
+src\providers\structured.test.ts:
+20:11:38.415 [WARN ] [structured] tool_use extraction failed; falling back to prompt+parse: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"missing-tool-call","diagnostics":[{"path":"$","code":"missing-tool-call"}]}]
+(pass) preserves strict object rejection in the actual tool and fallback JSON schemas [2.05ms]
+(pass) encloses alternative tool values in a plain object root without weakening branch or mixed-value contracts [1.69ms]
+20:11:38.419 [WARN ] [structured] tool_use extraction failed; falling back to prompt+parse: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"missing-tool-call","diagnostics":[{"path":"$","code":"missing-tool-call"}]}]
+(pass) preserves nested, exact, optional and union array limits in both structured transports [2.74ms]
+20:11:38.422 [WARN ] [structured] tool_use extraction failed; falling back to prompt+parse: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"calls","code":"too_big","maximum":8,"actualItems":10}]}]
+(pass) uses bounded field diagnostics in the existing fallback and retains the failed response and usage [1.96ms]
+20:11:38.423 [WARN ] [structured] tool_use extraction failed; falling back to prompt+parse: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"calls","code":"too_big","maximum":8,"actualItems":10}]}]
+20:11:38.424 [WARN ] [structured] Attempt 1/1 parse failed: {"transport":"prompt-parse","category":"schema-validation","diagnostics":[{"path":"calls","code":"too_big","maximum":8,"actualItems":9}]}
+(pass) retains both over-limit responses and diagnostics when the single fallback is still invalid [2.23ms]
+(pass) propagates a provider network error without a fallback dispatch [0.64ms]
+20:11:38.427 [WARN ] [structured] tool_use extraction failed; falling back to prompt+parse: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"missing-tool-call","diagnostics":[{"path":"$","code":"missing-tool-call"}]}]
+(pass) exposes refined string identities, free predicate values and explicit null in both real extraction schemas [2.13ms]
+20:11:38.428 [WARN ] [structured] tool_use extraction failed; using one constrained tool repair: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"$","code":"unrecognized_keys","keys":["observations"]}]}]
+(pass) can use its single repair opportunity on the supported tool with actionable unknown-key diagnostics [1.81ms]
+(pass) advertises complete item schemas while a local-update envelope retains invalid items for host diagnostics [1.04ms]
+20:11:38.431 [WARN ] [structured] tool_use extraction failed; using one constrained tool repair: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"result.questions.1","code":"invalid_type","expected":"object","received":"string"}]}]
+(pass) the sole final-only tool repair carries its actual candidate and branch contract without requesting an excluded action [1.74ms]
+20:11:38.433 [WARN ] [structured] tool_use extraction failed; using one constrained tool repair: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"count","code":"invalid_type","expected":"number","received":"string"}]}]
+(pass) a tool repair uses the advertised contract and omits oversized candidate data while retaining the complete raw failure [2.17ms]
+20:11:38.436 [WARN ] [structured] tool_use extraction failed; using one constrained tool repair: StructuredExtractionError: Structured extraction failed: [{"transport":"schema-tool","category":"schema-validation","diagnostics":[{"path":"value","code":"unrecognized_keys","keys":["selections"]}]}]
+(pass) one tool repair locates a misplaced field in the selected advertised branch without moving the raw candidate [2.02ms]
+
+src\adapters\bare-authorization.test.ts:
+(pass) ordinary bare-agent injects whole skill and uses real restricted continuation [44.31ms]
+(pass) adapter rejects illegal strategy before provider creation and passes the shared domain runtime into ordinary use [1.02ms]
+
+src\run\index.test.ts:
+(pass) executeRun captures source inputs before namespaced skill deployment [39.28ms]
+(pass) executeRun preserves natural-task bytes before the source agent changes them [32.78ms]
+(pass) pre-run snapshot keeps unchanged deleted empty unicode and binary inputs while reporting bounded omissions [52.60ms]
+
+results\skill-ir\skill-dsl-research\development\authorization-semantic-lowering-v1\accounting.test.ts:
+(pass) provider fresh input and cache read form full prompt without treating unknown dollars as zero [0.67ms]
+(pass) proved zero dispatch and a known paid attempt do not erase unknown reported cost [0.28ms]
+
+results\skill-ir\skill-dsl-research\development\authorization-semantic-lowering-v1\study.test.ts:
+(pass) AS admission preserves logical seals despite row names and refuses arm/core asymmetry [0.45ms]
+(pass) ordinary skill admission requires the registered native scope and full original skill contract [6.07ms]
+(pass) variation admission binds a registered semantic base and cannot bypass an inherited seal [3.46ms]
+(pass) native delivery requires the actual final response and a bounded current check [0.67ms]
+(pass) derived native scope resolves the exact original source through the public relative-root contract [7.68ms]
+(pass) a native zero-dispatch inspection needs the exact loader failure and bound independent order proof [49.92ms]
+(pass) authors bind their unchanged original skill and the registered variant policy without filling model questions [7.06ms]
+(pass) author consumption rejects edited drafts and changed original skill identities before provider dispatch [1.02ms]
+(pass) source change requires the entire current source index to match its one declared byte edit [8.12ms]
+(pass) source change admission requires its registered semantic base and edits one source-local clause only [1.48ms]
+
+results\skill-ir\skill-dsl-research\development\authorization-guided-runtime-v1\study.test.ts:
+(pass) a shared defect pauses affected dispatch while retaining the other in-flight answer [14.01ms]
+(pass) repair attempts never overwrite the first answer and accumulate calls with unknown cost [22.64ms]
+(pass) a valid justified unknown is a boundary, not a mandatory repair [8.87ms]
+(pass) a network transport failure is infrastructure rather than a model schema defect [0.26ms]
+(pass) known native final checks rejected by their advertised schema remain model draft failures [0.64ms]
+(pass) a known closed native answer with a source-bound checked candidate retains model extraction failures [0.73ms]
+(pass) a delivered source-bound inconsistent model draft remains a failed row without pausing unrelated shared machinery [14.07ms]
+(pass) archived rejected semantic candidates are row failures even when no source-bound entry was accepted [0.58ms]
+(pass) a repair identity only reopens its own retained attempt and cannot bypass another shared defect [12.19ms]
+(pass) a named repair reopens its verified known ancestry without rewriting retained failures [28.22ms]
+(pass) verified repair ancestry cannot bypass another failure outside the named chain [18.24ms]
+(pass) a orphan retained repair ancestor is refused before dispatch [16.54ms]
+(pass) a cross-row retained repair ancestor is refused before dispatch [16.25ms]
+(pass) a escaping retained repair ancestor is refused before dispatch [14.26ms]
+(pass) a self-cycle retained repair ancestor is refused before dispatch [14.88ms]
+(pass) a changed ancestor claim and an unknown ancestor remain sealed under a known child [40.91ms]
+(pass) an ancestor failure ID cannot exempt a different artifact or row [16.93ms]
+(pass) repair references must name an existing same-row completed claim before dispatch [10.18ms]
+(pass) a response of unknown completion is retained without another paid repair dispatch [10.15ms]
+(pass) a dispatched SDK timeout cannot bypass repair sealing under an old transport-failed status [6.72ms]
+(pass) pre-dispatch provider failure is retained with zero calls without reading a nonexistent run [0.40ms]
+(pass) a misclassified outer failure can recover only from an inspected zero-dispatch session [43.02ms]
+(pass) a verified scoped adjudication releases only its distinct mechanism row and seals the failed task [19.57ms]
+(pass) replay rejects a claim attempt number that differs from its directory before review binding [3.55ms]
+(pass) an explicit hash-bound row release permits a quality row while unlisted rows and the unknown task stay paused [15.75ms]
+(pass) a missing first report is never relabeled as the next repair report [9.00ms]
+(pass) invalid numeric accounting remains unknown rather than creating negative known savings [5.10ms]
+(pass) native pre-dispatch inspection reopens only hash-bound zero-call originals and preserves their unknown report [44.17ms]
+
+results\skill-ir\skill-dsl-research\development\authorization-guided-runtime-v1\evaluate.test.ts:
+(pass) completed/valid stays semantically unreviewed and unknown cost stays unknown [16.03ms]
+(pass) an incorrect first answer and a full repair remain separate in the planned denominator [22.97ms]
+(pass) a raw full answer can coexist with a failed host check and retained partial extraction [7.83ms]
+(pass) changed report bytes and duplicate attempt reviews cannot inherit old semantic credit [23.06ms]
+(pass) developer adjudication retains its independent original and cannot target another attempt [25.26ms]
+(pass) pairing requires the same retained input, source, revision, model and budget [86.76ms]
+(pass) all sixteen planned rows remain visible when generation is paused or not started [2.81ms]
+
+1 tests skipped:
+(skip) unsupported platforms fail closed without writes
+
+ 744 pass
+ 1 skip
+ 0 fail
+ 4867 expect() calls
+Ran 745 tests across 95 files. [11.98s]

@@ -1,0 +1,297 @@
+
+skvm run v0.1.4
+  Adapter  bare-agent (built-in)
+  Model    xty/gpt-5.6-sol via openai-compatible (https://svip.xty.app/v1)
+  Task     natural prompt
+  Skill    D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\github-security-review\SKILL.md
+  WorkDir  D:\skill优化\project-maintenance\runs\authorization-semantic-lowering-v1\native-github-security-review-gitea-create-issue-original\attempt-2
+  Cache    D:\skill优化\SkVM\.skvm
+
+03:52:53.795 [INFO ] [run] Run task natural-d5159eaf6807: adapter=bare-agent model=xty/gpt-5.6-sol workDir=D:\skill优化\project-maintenance\runs\authorization-semantic-lowering-v1\native-github-security-review-gitea-create-issue-original\attempt-2
+03:52:53.799 [INFO ] [conv-log] Conversation logging enabled: D:\skill优化\SkVM\.skvm\log\20261005-035253-run
+✓ Task natural-d5159eaf6807 complete  (2m 50s)
+
+=== Run Complete ===
+Task: natural-d5159eaf6807
+Skill: D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\github-security-review\SKILL.md
+Model: xty/gpt-5.6-sol
+Adapter: bare-agent
+WorkDir: D:\skill优化\project-maintenance\runs\authorization-semantic-lowering-v1\native-github-security-review-gitea-create-issue-original\attempt-2
+Duration: 170.3s
+Tokens: in=272906 out=7619
+
+Final output:
+# 🔐 Security Review Report
+
+**Project:** go-gitea/gitea  
+**Revision:** `fc28937a8d772fe9e4025c9b5f24d5db4d86610b`  
+**Scope:** `CreateIssue`, its API route/middleware, repository permission checks, and the issue-creation service path  
+**Review type:** Bounded, source-only authorization conformance review  
+**Independent policy:** “Creating an issue requires write permission to the repository's issues unit. Read permission to the repository alone does not authorize this write.”
+
+## Findings Summary
+
+| Severity | Findings |
+|---|---:|
+| 🔴 CRITICAL | 0 |
+| 🟠 HIGH | 1 |
+| 🟡 MEDIUM | 0 |
+| 🔵 LOW | 0 |
+| ⚪ INFO | 0 |
+| **Total** | **1** |
+
+**Policy assessment:** **VIOLATED**  
+**Confidence:** **High**
+
+Dependency auditing and secrets scanning were not performed because they are outside this focused authorization question.
+
+---
+
+## Executive Conclusion
+
+An authenticated principal who passes the API route’s **issues-unit read** check can create a basic issue even when:
+
+```go
+ctx.Repo.Permission.CanWrite(unit.TypeIssues)
+```
+
+is false.
+
+The route does not require issues-unit write permission. Inside `CreateIssue`, write permission only determines whether the caller may supply privileged metadata such as deadline, milestone, labels, assignees, and projects. The non-writer branch removes or ignores those fields but still calls `issue_service.NewIssue`.
+
+Therefore:
+
+| Principal condition | Source behavior | Independent policy |
+|---|---|---|
+| Issues-unit write permission | Can create, including privileged metadata | Allow |
+| Issues-unit read but not write | Can create a basic issue | Deny |
+| Repository/site administrator admitted by reader middleware | Can reach creation path; effective write status determines metadata | Policy still requires issues-unit write |
+| Unauthenticated | Rejected by token middleware | Deny |
+| Archived repository | Rejected before handler | Deny |
+
+The successful reader-without-write path is a direct policy violation.
+
+---
+
+# Findings by Category
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  
+## 🟠 HIGH — Missing issues-unit write authorization for issue creation
+
+**Confidence:** HIGH  
+**Category:** Broken access control / insufficient operation-level authorization
+
+### Locations
+
+- `routers/api/v1/api.go:360-485` — authentication and repository-reader middleware definitions
+- `routers/api/v1/api.go:1635-1740` — issue route registration and middleware
+- `routers/api/v1/repo/issue.go:533-653` — `CreateIssue`
+- `services/issue/issue.go:25-84` — issue creation service
+- `models/perm/access/repo_permission.go:140-165` — unit permission access checks
+
+### Route-level controls
+
+The issue route is protected by authentication, archived-repository rejection, and an issues-unit reader check. The relevant middleware is `reqRepoReader(unit.TypeIssues)`, not an issues-unit writer requirement.
+
+`reqRepoReader` admits a caller when the resolved repository permission can **read** the requested unit. Repository administrators and site administrators are relevant exceptions to the ordinary reader test.
+
+Consequently, this is narrower than “any person who can read any part of the repository”: the caller must pass the route’s issues-unit reader/admin control. But it is still weaker than the independent policy’s required issues-unit write permission.
+
+### Handler behavior
+
+The handler initially creates an issue object for the selected repository and binds the authenticated caller as its poster:
+
+```go
+issue := &issues_model.Issue{
+    RepoID:       ctx.Repo.Repository.ID,
+    Repo:         ctx.Repo.Repository,
+    Title:        form.Title,
+    PosterID:     ctx.Doer.ID,
+    Poster:       ctx.Doer,
+    Content:      form.Body,
+    Ref:          form.Ref,
+    DeadlineUnix: deadlineUnix,
+}
+```
+
+`routers/api/v1/repo/issue.go:576-585`
+
+Write permission is checked when processing optional metadata:
+
+```go
+if form.Deadline != nil && ctx.Repo.Permission.CanWrite(unit.TypeIssues) {
+    deadlineUnix = timeutil.TimeStamp(form.Deadline.Unix())
+}
+```
+
+`routers/api/v1/repo/issue.go:571-574`
+
+The main metadata branch similarly tests write permission:
+
+```go
+if ctx.Repo.Permission.CanWrite(unit.TypeIssues) {
+    issue.MilestoneID = form.Milestone
+    assigneeIDs, err = issues_model.MakeIDsFromAPIAssigneesToAdd(
+        ctx, form.Assignee, form.Assignees,
+    )
+    // ...
+} else {
+    // setting labels is not allowed if user is not a writer
+    form.Labels = make([]int64, 0)
+}
+```
+
+`routers/api/v1/repo/issue.go:587-622`
+
+Crucially, the non-writer branch does not reject the request. Both writers and non-writers proceed to the same creation call:
+
+```go
+if err := issue_service.NewIssue(
+    ctx,
+    ctx.Repo.Repository,
+    issue,
+    form.Labels,
+    nil,
+    assigneeIDs,
+    form.Projects,
+); err != nil {
+    // ...
+    return
+}
+```
+
+`routers/api/v1/repo/issue.go:624-633`
+
+Thus, `CanWrite(unit.TypeIssues)` acts as a **privileged metadata control**, not as authorization for the issue-creation operation itself.
+
+### Creation effect
+
+The reviewed `issue_service.NewIssue` path:
+
+1. Loads the poster.
+2. Checks whether the poster is blocked by the repository owner or requested assignees.
+3. Opens a transaction.
+4. Calls the model issue-creation operation.
+5. Processes assignees and projects.
+6. Processes mentions and notifications.
+
+No issues-unit write-permission check was visible in that reviewed service function before the model creation call.
+
+The protected effect is therefore performed for the repository selected by the route and for the authenticated caller supplied as `ctx.Doer`, provided the reader/admin route controls and operational checks succeed.
+
+### Risk
+
+Against the independently supplied policy, an authenticated principal with issues-unit read access but without issues-unit write access can perform a write operation: creating an issue.
+
+The caller cannot use this path to set all writer-only metadata, but restricting metadata does not satisfy a policy that requires write permission for the creation itself.
+
+### Policy comparison
+
+#### Principal with issues-unit write permission
+
+**Actual behavior:** Allowed to create and may submit writer-only metadata.  
+**Required behavior:** Allowed.  
+**Result:** Compliant for this principal class.
+
+#### Authenticated issues-unit reader without write permission
+
+**Actual behavior:** Allowed to create a basic issue. Labels are cleared, and deadline, milestone, assignees, and projects are not accepted through the writer branch.  
+**Required behavior:** Denied.  
+**Result:** **Non-compliant.**
+
+### Relevant exceptions and non-authorization failures
+
+The following conditions can stop or modify the path, but none supplies the missing write authorization:
+
+- **Authentication:** `reqToken` rejects callers who are not signed in.
+- **Archived repository:** `mustNotBeArchived` rejects creation before the handler.
+- **Repository/site administrators:** `reqRepoReader` contains administrator alternatives to the normal unit-read test. This broadens route admission but is not itself the independent policy’s required issues-unit write check.
+- **Blocked users:** the service rejects a poster blocked by the repository owner or a requested assignee.
+- **Invalid assignee data:** writer-only assignee validation may terminate the request.
+- **Transaction or database error:** creation may fail operationally.
+- **Mention processing:** this occurs after transactional creation; a later error may produce an API error even though the issue has already been created.
+- **Optional immediate closure:** when `form.Closed` is set, `CloseIssue` runs after creation. An open-dependency or other close error can therefore produce an error response after the issue already exists.
+- **Refetch/serialization:** the handler refetches the issue after creation. A refetch failure can also occur after the protected effect.
+
+These later failures are important because an error response does not necessarily mean that issue creation was rolled back.
+
+---
+
+## Recommended Fix
+
+Enforce the issues-unit write requirement before constructing or creating the issue. This can be done through route middleware or an explicit handler check. The authorization should apply to the creation operation itself, not merely to optional metadata.
+
+### Patch proposal
+
+⚠️ **Review each patch before applying. Nothing has been changed yet.**
+
+**Before:**
+
+```go
+func CreateIssue(ctx *context.APIContext) {
+    form := web.GetForm[*api.CreateIssueOption](ctx)
+    var deadlineUnix timeutil.TimeStamp
+    if form.Deadline != nil && ctx.Repo.Permission.CanWrite(unit.TypeIssues) {
+        deadlineUnix = timeutil.TimeStamp(form.Deadline.Unix())
+    }
+```
+
+**After:**
+
+```go
+func CreateIssue(ctx *context.APIContext) {
+    // Creating an issue is a write to the issues unit.
+    if !ctx.Repo.Permission.CanWrite(unit.TypeIssues) {
+        ctx.APIError(http.StatusForbidden, "write permission to the issues unit is required")
+        return
+    }
+
+    form := web.GetForm[*api.CreateIssueOption](ctx)
+    var deadlineUnix timeutil.TimeStamp
+    if form.Deadline != nil {
+        deadlineUnix = timeutil.TimeStamp(form.Deadline.Unix())
+    }
+```
+
+After adding the mandatory check, the later `CanWrite` branches could be simplified because all continuing callers have already passed the required permission check. Alternatively, replace the route’s reader middleware with an existing, verified issues-unit writer middleware if this revision provides one with the intended administrator and unit-availability semantics.
+
+Tests should cover at least:
+
+1. Authenticated issues reader without write permission → `403`, no issue persisted.
+2. Issues writer → issue created.
+3. Repository/site administrator → behavior explicitly established according to effective issues-unit permission.
+4. Archived repository → still rejected.
+5. Failed close or refetch after creation → test whether the API response accurately represents the already-committed effect.
+
+---
+
+## Self-Verification
+
+The finding was rechecked against the route, handler, permission helper, and service path:
+
+- The route requires an issues-unit **reader**, not a writer.
+- `CanWrite(unit.TypeIssues)` is present, but its failure selects a reduced-metadata branch rather than terminating the request.
+- The `NewIssue` call is outside the writer-only branch.
+- The reviewed service function contains blocked-user and operational checks but no visible issues-unit write authorization before creation.
+- Later `CloseIssue` and `GetIssueByID` calls do not retroactively authorize or roll back the already-created issue.
+- The conclusion is specifically about a caller who passes `reqRepoReader(unit.TypeIssues)`; it does not assume that arbitrary repository visibility alone necessarily passes that unit-specific route control.
+
+No upstream source-visible control in the reviewed path repaired the policy mismatch.
+
+---
+
+## Scope and Remaining Limits
+
+- This is a static, source-only review of revision  
+  `fc28937a8d772fe9e4025c9b5f24d5db4d86610b`.
+- No code was executed, and no live deployment was inspected.
+- Active reverse-proxy authorization, custom middleware, local patches, feature flags, configuration, or a different deployed revision could change runtime behavior.
+- The complete model-layer body of `issues_model.NewIssue`, database triggers, hooks, and all runtime transaction behavior were not independently interpreted as separate semantic units. The reviewed service nevertheless shows the model creation call being reached without a service-level issues-write check.
+- No assertion is made about any particular deployment’s users, ownership, team membership, or effective permission assignments.
+- Dependency, secret, injection, and unrelated security categories were outside this focused review.
+
+## Final Assessment
+
+**Policy conformance: VIOLATED**
+
+The source permits an authenticated issues-unit reader to create a basic issue without issues-unit write permission. Write permission only expands which metadata the caller may set. That is incompatible with the independently supplied rule that issue creation itself requires write permission to the repository’s issues unit.

@@ -1,14 +1,16 @@
 # Skill IR 当前状态
 
-更新于 2026-10-04。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；机器状态和原始结果保存具体进度，历史任务书保存当时的执行记录。
+更新于 2026-10-05。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；机器状态和原始结果保存具体进度，历史任务书保存当时的执行记录。
 
 ## 当前工作
 
 研究主线是 **按 skill/task 范围设计领域表达**。当前任务类为单 repo/ref、源码可见的授权与信任边界评估：围绕主体、资源、操作、条件和政策组织取证、判断与检查。质量约六成、编写复用约四成指开发投入安排，各项质量要求分别验收。
 
-**AS0–AS7 共享实现已接通；OWUI D-S 第五次已无参数缺口，仍有模型未知返回与终答矛盾，完整交付未通过。当前补齐原步骤定位反馈，并进入首份原 skill 的普通使用。** 唯一活动任务书为 [AS0–AS19 局部语义展开与真实交付](../superpowers/plans/2026-10-04-authorization-semantic-lowering-and-delivery.md)。本轮从干净且远端对齐的 `c90787f0` 继续，当前机器状态见 [AS status](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)。重点是显式选择/合流、同一状态生成结果、原 skill 实际消费和真实授权变化复用。旧 `guided-evidence-v2` 保留，新 `semantic-flow-v1` 显式选择；真实使用和质量收益尚未验证，失败即时定位并具名修后复验。
+**AS0–AS19 的实现、可运行登记位置、评阅和必要回归已处理；整体结果为 `completed-with-unmet-criteria`，完整源码质量与净收益未建立。** 最近任务书为 [AS0–AS19 局部语义展开与真实交付](../superpowers/plans/2026-10-04-authorization-semantic-lowering-and-delivery.md)。本轮从干净且远端对齐的 `c90787f0` 继续；[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/summary.json)和 [AS status](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)区分工程、实际消费与质量。`semantic-flow-v1` 已接入 inquiry/native，旧默认与 `guided-evidence-v2` 保留。
 
-AS 固定 15 质量、4 native、8 变化、2 源码变化位置，作者 4 稿另列。原作者 Memos 未知消费与预选 remove 原任务的源码、v1 政策及三种角色问题一致，原 remove 三臂和依赖它的五个变化位置保留 blocked（8/29），不以换表示或 AS 身份解封。Notes 和 Memos share 仍封存；其它预选任务继续。精确指针见 [AS manifest](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/manifest.json) 与 [继承封存](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/inherited-seals.json)。
+AS 固定 15 质量、4 native、8 变化、2 源码变化位置，作者4稿与原字节消费另列。12个可运行质量首轮均保留并评阅，源码语义完整为0；两份完整原 skill 的4个原/变 native位置均实际消费，最后1/4形式checked/bounded、0/4完整源码质量。4份作者稿格式有效并按原字节消费，下游仍部分失败。Memos remove三臂和五个依赖位置保持封存（8/29）；Paperless五个变化位置因无合格原基线零调用阻塞。Notes/Memos share封存不动。身份见 [manifest](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/manifest.json)、[继承封存](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/inherited-seals.json)及[依赖准入](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/verification/dependent-admissions.json)。
+
+局部修复实际消除了协议、参数身份、坏稿恢复及候选定位的具体障碍，但已读helper未进入解释、current-offer/handle错误、源码条件遗漏和效果断言过强仍阻止完整交付。最终联合验证744 pass/1 skip/4867断言，主/AS类型和离线重放通过。39份已关闭原件共300派发/298响应，无活动实验；已知完整prompt 7,707,021、output 296,467，另有2次usage缺报，美元/真人/开发成本未知。发布状态以机器记录和实际远端核验为准。
 
 ## AR 停止快照与继承事项
 
@@ -19,7 +21,7 @@ AS 固定 15 质量、4 native、8 变化、2 源码变化位置，作者 4 稿�
 
 | 恢复所需信息 | 权威入口 |
 |---|---|
-| 当前队列 | [AS 任务书](../superpowers/plans/2026-10-04-authorization-semantic-lowering-and-delivery.md)；[AS status](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json) |
+| 最新执行及未达责任 | [AS 任务书](../superpowers/plans/2026-10-04-authorization-semantic-lowering-and-delivery.md)；[AS summary](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/summary.json) |
 | AR 停止前状态 | [status.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/status.json)、[handoff.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/handoff.json) |
 | 普通使用的失败与裁定 | [ordinary-adjudication.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary-adjudication.json) |
 | 真实派发、响应与未知费用 | [ordinary-accounting.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary-accounting.json) |
@@ -34,7 +36,7 @@ AS 固定 15 质量、4 native、8 变化、2 源码变化位置，作者 4 稿�
 | Trace 驱动 skill 包优化 | bare-agent 自动捕获、模型修改说明和脚本、局部验证修复、原子导出、自然消费 | 已有真实生成与消费记录；收益 mixed/negative，按各包证据判断 |
 | 确定性基础 | IR parser/validator、lowering、API Tester/Env 后端、artifact 和 recipe import | 保留原支持合同及有界案例 |
 
-AQ 旧/新策略 full 均为 2/20，原 skill checked 交付为 0/4；具体分母见[研究 §7.35](skill-dsl-research.md#735-aq-授权领域执行设计)。AR 已有局部改进，整体效果仍未建立。美元费用、真人耗时仍缺测；readiness、历史 `0/6`、Q1 与保护输入保持原有状态。
+AQ 旧/新策略 full均为2/20，原 skill checked交付为0/4；具体分母见[研究 §7.35](skill-dsl-research.md#735-aq-授权领域执行设计)。AS有形式交付与局部机制进展，完整质量仍未建立；下一责任是把可读/已读决定性依赖变成正确的接受解释，再取得原/变完整回答和合格复用基线。费用和人力缺测、readiness、历史 `0/6`、Q1 与保护输入保持原有状态。
 
 ## 开发与维护入口
 
