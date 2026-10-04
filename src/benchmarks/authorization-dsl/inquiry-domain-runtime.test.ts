@@ -6,6 +6,27 @@ import { createInquiryTools } from "./inquiry-tools.ts"
 import { createInquiryDomainRuntime } from "./inquiry-domain-runtime.ts"
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
 import { validateAuthorizationInquiryResult } from "../../task-dsl/authorization/inquiry-result.ts"
+test("atomic progress in a healthy question keeps another question's old rejection and missing predecessor", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-atomic-local-"))
+  await writeFile(path.join(sourceRoot, "entry.ts"), "export function entry() { return true; }\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["entry.ts"] })
+  const evidenceIds = [(await tools.execute("source_read", { path: "entry.ts", startLine: 1, endLine: 1 })).evidence[0]!.id]
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: ["q", "other"].map(id => ({ id, request: "Inspect entry", premises: [] })) })
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "guided-evidence-v2", remainingActions: () => 0 })
+  const rule = (questionId: string, targetKey: string, extra = {}) => ({ op: "add", questionId, targetKey, pathKey: "p", kind: "entry", after: [], evidenceIds, claim: "Original source", ...extra })
+  await runtime.propose({ schemaVersion: "authorization-control-update/v1", rules: [rule("other", "unfinished", { kind: "effect", after: ["missing"], complete: true }), rule("other", "draft", { evidenceIds: ["unshown"] })] })
+  const originalProposal = runtime.report().proposals[0]
+  const applied: any = await runtime.propose({ schemaVersion: "authorization-control-update/v1", atomic: true, rules: [rule("q", "entry"), rule("q", "effect", { kind: "effect", after: ["entry"], complete: true })] })
+  expect(applied.accepted).toHaveLength(2)
+  expect(applied.rejected).toEqual([])
+  expect(runtime.feedback().diagnostics.some(d => d.code === "evidence-not-shown" && d.path.includes("other.draft"))).toBe(true)
+  expect(applied.unresolved).toContainEqual(expect.objectContaining({ questionId: "other", rejectedTarget: "missing" }))
+  const checked = await runtime.validate({ schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q", behavior: { disposition: "allow", explanation: "Source-grounded local effect" }, evidenceIds, branches: [], missing: [] }, { questionId: "other", behavior: { disposition: "unknown", explanation: "Unresolved original work" }, evidenceIds, branches: [], missing: [{ kind: "source-gap", detail: "Original predecessor is missing" }] }], observations: [], scope: "local" })
+  expect(checked.questionChecks.map(q => q.ruleConsistent)).toEqual([true, false])
+  expect(checked.ruleConsistency).toBe(false)
+  expect(runtime.report().proposals[0]).toEqual(originalProposal)
+  expect(tools.toolCalls).toBe(1)
+})
 test("a complete source-bound effect cannot conceal an actual unread decisive helper", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-unread-complete-"))
   await writeFile(path.join(sourceRoot, "entry.ts"), "export function entry() { if (!gate()) return false; return true; }\n")

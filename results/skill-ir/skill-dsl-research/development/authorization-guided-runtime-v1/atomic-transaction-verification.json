@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "authorization-ar-atomic-transaction-verification/v1",
+  "date": "2026-10-04",
+  "providerCalls": 0,
+  "targetExecutions": 0,
+  "red": {
+    "command": "bun test ./src/benchmarks/authorization-dsl/inquiry-control-updates.test.ts ./src/benchmarks/authorization-dsl/inquiry-withdrawal.test.ts ./src/benchmarks/authorization-dsl/inquiry-domain-runtime.test.ts",
+    "passed": 29,
+    "failedAsExpected": 2,
+    "assertions": 155,
+    "exitCode": 1
+  },
+  "green": {
+    "command": "bun test ./src/benchmarks/authorization-dsl/inquiry-control-updates.test.ts ./src/benchmarks/authorization-dsl/inquiry-withdrawal.test.ts ./src/benchmarks/authorization-dsl/inquiry-domain-runtime.test.ts",
+    "passed": 31,
+    "failed": 0,
+    "assertions": 173,
+    "exitCode": 0
+  },
+  "joint": {
+    "command": "bun test ./src/benchmarks/authorization-dsl/inquiry-domain-runtime.test.ts ./src/benchmarks/authorization-dsl/inquiry-local-extraction.test.ts ./src/benchmarks/authorization-dsl/inquiry-run.test.ts ./src/benchmarks/authorization-dsl/inquiry-native.test.ts ./src/benchmarks/authorization-dsl/inquiry-worklist.test.ts ./src/benchmarks/authorization-dsl/inquiry-reuse-local.test.ts ./src/benchmarks/authorization-dsl/inquiry-tools.test.ts ./src/benchmarks/authorization-dsl/inquiry-control-updates.test.ts ./src/benchmarks/authorization-dsl/inquiry-withdrawal.test.ts ./src/benchmarks/authorization-dsl/inquiry-source-display.test.ts ./src/task-dsl/authorization/control-conclusion.test.ts ./src/task-dsl/authorization/control-slice.test.ts ./src/task-dsl/authorization/control-evaluation.test.ts",
+    "passed": 164,
+    "failed": 0,
+    "assertions": 964,
+    "files": 13,
+    "exitCode": 0
+  },
+  "typechecks": [
+    {
+      "command": "bunx tsc --noEmit",
+      "exitCode": 0
+    },
+    {
+      "command": "bunx tsc -p ./results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/tsconfig.json --noEmit",
+      "exitCode": 0
+    }
+  ],
+  "counterexamples": [
+    "Untouched same-question or other-question old unresolved links must not roll back a valid new atomic group.",
+    "Submitted ordinary rules and sourceBindings with their own unresolved predecessors still roll back.",
+    "New unresolved dependency rolls back its valid sibling and preserves old failures.",
+    "Runtime can accept healthy-question atomic work while the retained old question and overall final check stay invalid."
+  ],
+  "implementation": "Atomic rollback compares canonical question/group/target link identities before and after the attempted transaction. Unresolved links owned by submitted accepted targets, newly broken links, rejected items and invalid withdrawals trigger rollback. SourceBindings share the canonical rules group. Unrelated unchanged unresolved links remain reported and block their own final checks.",
+  "independentReviews": [
+    {
+      "task": "atomic_update_scope_boundary",
+      "verbatim": false,
+      "result": "No material reachable regression found in group/question isolation, old/new link comparison, submitted binding identity or rollback/withdrawal behavior; focused31tests173assertions passed."
+    },
+    {
+      "task": "atomic_prefix_replay_bounds",
+      "verbatim": false,
+      "result": "Original hash, four unchanged prefix proposals and only proposal5revision13to15 agree; retained errors and other questions unchanged.",
+      "adjudication": "The replay reads retained files and writes derived JSON. Wording now says no source read action; it does not claim no filesystem I/O. Retained rejection equality compares the pre-transaction live rejections, excluding the original two atomic rejections intentionally accepted by this repair; original raw failure remains unchanged."
+    }
+  ],
+  "replayCommand": "bun ./results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/atomic-transaction-replay.ts",
+  "replay": "atomic-transaction-replay.json",
+  "scopedDiffCheckExitCode": 0,
+  "limits": [
+    "Only transaction acceptance is replayed. Later proposals, worklist/candidate/routing/dependency execution, new prompts/answers, source semantics and actual previous eligibility are unverified by this replay.",
+    "Final conclusions, source binding checks, malformed drafts and retained unknown requests are unchanged."
+  ],
+  "actualRelatedUse": "pending different-project Gitea ordinary natural-input run",
+  "checkedDeliveryPromoted": false,
+  "qualityBenefit": "not-established"
+}

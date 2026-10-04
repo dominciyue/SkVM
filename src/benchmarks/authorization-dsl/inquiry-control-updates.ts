@@ -15,7 +15,7 @@ export const LocalControlDeltaSchema = z.object({ ...metadata, rules: z.array(ru
 export const LocalControlEnvelopeSchema = z.object({ ...metadata, rules: z.array(z.unknown()).max(1024).default([]), sourceBindings: z.array(z.unknown()).max(1024).default([]), dependencies: z.array(z.unknown()).max(1024).default([]), premiseValues: z.array(z.unknown()).max(1024).default([]), policyRules: z.array(z.unknown()).max(256).default([]), withdrawals: z.array(z.unknown()).max(64).default([]), workSelections: z.array(z.unknown()).max(64).default([]), localExtractions: z.array(z.unknown()).max(16).default([]) }).strict()
 export const LOCAL_CONTROL_GUIDE = [
   'guided-evidence-v2 local interface: controlDelta is {schemaVersion:"authorization-control-update/v1",rules:[],sourceBindings:[],dependencies:[],premiseValues:[],policyRules:[],atomic?:false,baseRevision?:current revision}. Submit just changed items, not the entire graph.',
-  "Each item has op:add|replace, questionId, targetKey. Replace names the current same-question target; a model reason is optional for ordinary items, and the host records explicit replacement provenance and revisionOf. Dependency reason remains required to explain source relevance. baseRevision detects a stale view. atomic:true applies the whole group or none. Rejected items and their dependent gaps remain visible; correct only diagnosed items.",
+  "Each item has op:add|replace, questionId, targetKey. Replace names the current same-question target; a model reason is optional for ordinary items, and the host records explicit replacement provenance and revisionOf. Dependency reason remains required to explain source relevance. baseRevision detects a stale view. atomic:true applies the submitted group or none: its own or newly broken predecessor/dependency links cause rollback; unrelated unchanged gaps remain visible without rolling back this transaction. Rejected items and their dependent gaps remain visible; correct only diagnosed items.",
   "To abandon a malformed UNACCEPTED draft, submit withdrawals:[{group:rules|sourceBindings|dependencies|premiseValues|policyRules,questionId,targetKey,reason}]. This retires only that exact draft's current rejection, preserving its original proposal and the withdrawal reason. It never deletes an accepted target, another group's error, source invalidation or missing predecessor/dependency gaps. Failed atomic updates apply no withdrawals. Renaming a draft alone does not withdraw it.",
   "rules are entry/guard/reject/continue/effect with pathKey,after,evidenceIds,claim and optional finite condition/principal/resource/operation/authorizedBy/complete. sourceBindings are source identities with pathKey,after,evidenceIds,claim,bindingKey,bindingKind; the host sets kind:binding. A source identity is never a user value.",
   "A new entry with omitted after declares a root (after:[]). Explicit entry predecessors stay unchanged. Replacements and all other rule kinds require after; a missing predecessor must never be guessed. Final observations may be omitted when there are no additional observations.",
@@ -92,7 +92,15 @@ export function applyControlUpdates(previous: ControlSlice, input: unknown, prog
     currentRejections = currentRejections.filter(p => !drafts.includes(p))
   }
   let unresolved = unresolvedLinks(state, currentRejections), attemptUnresolved: typeof unresolved = []
-  if (parsed.data.atomic && (rejected.length || withdrawalRejected.length || unresolved.length)) {
+  let atomicUnresolved = false
+  if (parsed.data.atomic && unresolved.length) {
+    const targetIdentity = (group: string, questionId: string, targetKey: string) => JSON.stringify([group === "sourceBindings" ? "rules" : group, questionId, targetKey])
+    const linkIdentity = (link: (typeof unresolved)[number]) => JSON.stringify([link.group, link.questionId, link.targetKey, link.rejectedTarget, link.code])
+    const previousLinks = new Set(unresolvedLinks(previous, priorRejections).map(linkIdentity))
+    const submitted = new Set(accepted.map(a => targetIdentity(a.group, a.questionId, a.targetKey)))
+    atomicUnresolved = unresolved.some(link => submitted.has(targetIdentity(link.group, link.questionId, link.targetKey)) || !previousLinks.has(linkIdentity(link)))
+  }
+  if (parsed.data.atomic && (rejected.length || withdrawalRejected.length || atomicUnresolved)) {
     const cause = diagnostic("atomic-control-rejected", "$", "One or more local items or predecessor links were rejected; the entire atomic update was rolled back.")
     rejected.push(...accepted.map(a => ({ group: a.group, questionId: a.questionId, targetKey: a.targetKey, diagnostics: [cause] }))); accepted.length = 0; withdrawn.length = 0; state = structuredClone(previous)
     currentRejections = reconcile()

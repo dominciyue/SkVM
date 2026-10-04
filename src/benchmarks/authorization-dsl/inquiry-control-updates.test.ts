@@ -7,6 +7,39 @@ const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inqu
 const context = { questionIds: ["q", "other"], shownEvidenceIds: ["ev"], suppliedUserText: [program.questions[0]!.request, program.questions[1]!.request] }
 const update = (targetKey: string, kind = "entry", extra = {}) => ({ op: "add", targetKey, questionId: "q", pathKey: "p", kind, after: [], evidenceIds: ["ev"], claim: targetKey, ...extra })
 const envelope = (extra = {}) => ({ schemaVersion: "authorization-control-update/v1", ...extra })
+test("an unrelated retained gap does not roll back a valid atomic transaction in another or the same question", () => {
+  for (const questionId of ["other", "q"]) {
+    const previous = api.applyControlUpdates(createControlSlice(), envelope({ rules: [update("unfinished", "guard", { after: ["missing"] }), update("draft", "guard", { evidenceIds: ["unshown"] })] }), program, context)
+    const before = structuredClone(previous.state)
+    const result = api.applyControlUpdates(previous.state, envelope({ atomic: true, rules: [update("entry", "entry", { questionId }), update("effect", "effect", { questionId, after: ["entry"] })], dependencies: [{ op: "add", targetKey: "helper", questionId, pathKey: "p", from: "entry", after: ["entry"], symbol: "helper", kind: "control", decisive: true, evidenceIds: ["ev"], reason: "Entry calls the original helper" }] }), program, context, [], previous.currentRejections)
+    expect(result.accepted.map((a: any) => a.targetKey)).toEqual(["entry", "effect", "helper"])
+    expect(result.rejected).toEqual([])
+    expect(result.unresolved).toEqual(previous.unresolved)
+    expect(result.currentRejections).toEqual(previous.currentRejections)
+    expect(result.state.rules[0]).toEqual(previous.state.rules[0])
+    expect(previous.state).toEqual(before)
+  }
+})
+test("an atomic resubmission of its own unresolved rule or binding still rolls back", () => {
+  const { kind: _kind, ...binding } = update("unfinished", "entry", { after: ["missing"], bindingKey: "doc", bindingKind: "resource" })
+  for (const [group, item] of [["rules", update("unfinished", "guard", { after: ["missing"] })], ["sourceBindings", binding]] as const) {
+    const previous = api.applyControlUpdates(createControlSlice(), envelope({ [group]: [item] }), program, context)
+    const result = api.applyControlUpdates(previous.state, envelope({ atomic: true, [group]: [{ ...item, op: "replace", claim: "Revised but still unresolved" }], ...(group === "rules" ? { sourceBindings: [] } : { rules: [update("sibling")] }) }), program, context, [], previous.currentRejections)
+    expect(result.state).toEqual(previous.state)
+    expect(result.accepted).toEqual([])
+    expect(result.rejected.some((r: any) => r.targetKey === "unfinished" && r.diagnostics[0].code === "atomic-control-rejected")).toBe(true)
+    expect(result.attemptUnresolved).toContainEqual(expect.objectContaining({ targetKey: "unfinished", rejectedTarget: "missing" }))
+  }
+})
+test("a new unresolved dependency and valid sibling are rolled back without erasing older failures", () => {
+  const previous = api.applyControlUpdates(createControlSlice(), envelope({ rules: [update("entry"), update("old-draft", "guard", { evidenceIds: ["unshown"] })] }), program, context)
+  const result = api.applyControlUpdates(previous.state, envelope({ atomic: true, rules: [update("sibling")], dependencies: [{ op: "add", targetKey: "helper", questionId: "q", pathKey: "p", from: "missing", symbol: "helper", kind: "control", decisive: true, evidenceIds: ["ev"], reason: "An unresolved new dependency" }] }), program, context, [], previous.currentRejections)
+  expect(result.state).toEqual(previous.state)
+  expect(result.accepted).toEqual([])
+  expect(result.unresolved).toEqual(previous.unresolved)
+  expect(result.currentRejections).toContainEqual(previous.currentRejections[0])
+  expect(result.attemptUnresolved).toContainEqual(expect.objectContaining({ group: "dependencies", targetKey: "helper", rejectedTarget: "missing" }))
+})
 test("an omitted root entry predecessor list does not roll back valid atomic siblings", () => {
   const { after, ...root } = update("entry")
   const result = api.applyControlUpdates(createControlSlice(), envelope({ atomic: true, rules: [root, update("effect", "effect", { after: ["entry"] })] }), program, context)

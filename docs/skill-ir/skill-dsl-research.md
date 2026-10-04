@@ -1356,6 +1356,10 @@ rejected-target-directory普通复验11/11、24/24源码动作成功，17read/7s
 
 同原作者/源/模型/预算source-window-budget普通11/11，14成功源码动作（5read/9search/2host），0wire失败，31664display/20708resent，已到两次revision22完整check且final slice22；并未因展示预算终止。4ready题轮转，original/archive未定位无解释offer，refinement/deferred实际分支未发生。5题仍rejected/0usable/无previous；两个绑定仍缺pathKey/after，typed身份和前驱未闭合，最后只改prose不改图。独立全partial评语保留；主点验纠正“version helper范围外”的误读，versioning140-195属允许源，且views1368-1450身份body实际已读/展示却仍被原答称source gap；router/class/models可读遗漏与部署unknown分列。proposal5版本题合法atomic两项被另两题旧悬空前驱整体回滚，明确共享局部隔离缺陷，下一先红绿收紧atomic作用域，旧错误继续阻断各自结论。累计360/USD与人力unknown，不把不同轨迹字节/token减少称质量因果收益，不释放封存请求或主16面板；见source-window-budget-outcome及review/adjudication。
 
+### 7.42 2026-10-04：局部原子事务与旧缺口隔离
+
+依据7.41真实proposal5，先29pass/2预期fail/155断言，再31聚焦173与164联合964断言、主/研究类型通过；两项独立只读边界与回放核验未见实质可达回归。atomic按submitted canonical target及新增断链回滚，sourceBindings按rules身份，同题未触碰/其它题旧悬空不回滚当前合法项；新/被修改自身悬空、拒绝或withdrawal失败仍整体回滚，旧拒绝和最终validator保持。实际原件前4提议状态相同，第5事务单独13→15、2合法项接受、另2题旧缺口不变；0provider/source action/target，读取保留档案并写派生回放，不重放后续调度、prompt或答案。工程修复与checked/语义收益分列，累计360与费用unknown不变；下一不同项目Gitea原自然任务普通CLI相关验证，再推进配对块。见atomic-transaction-verification.json及replay。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

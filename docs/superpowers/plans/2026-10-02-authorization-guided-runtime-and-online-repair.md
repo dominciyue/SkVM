@@ -244,6 +244,8 @@ location-routing-v1真实8/8返回，三题已显式定位但五题仍rejected�
 
 2026-10-04source-window-budget实际复验11/11、14成功源码动作，31664/20708且无budget/wire终止，两个完整check/final slice均22；5题仍rejected、final只改prose。4ready题轮转，original/archive未定位，不把未ready叫公平饥饿；refinement/deferred未实际发生。原source binding缺pathKey/after/身份链接与可避免source gap继续保留；views1368-1450body已展示，versioning/urls/class/models仍可读，不从原unknown写source unavailable。独立评语与主纠正分存，累计360/USDunknown，无previous/main panel。下一共享工作计划（实施前）：写已有其它题悬空前驱不能回滚当前合法atomic entry/dependency的红例，连同same-question untouched gap、当前新/被修改节点自身悬空仍回滚、新增downstream断链仍回滚及旧拒绝不清除；用previous/current unresolved身份差及submitted target范围控制事务回滚，不放宽最终结论/源码/依赖check，不填语义字段。原proposal5另题干扰已点验，零provider复算应只改变该原子事务接受与后续对应状态，旧失败/原源/raw answers不改。聚焦红绿/相关类型后做窄独立边界复核及不同项目普通相关例子，再推进成对块。
 
+2026-10-04atomic事务隔离红绿完成：29pass/2预期fail/155断言→31/173，联合164/964、主/研究类型通过；same/other旧缺口不回滚当前合法项，submitted自身/new link/rejected/withdrawal错误仍回滚，旧诊断与最终check不放宽。独立边界/回放核验无实质可达回归；原4prefix不变，第5单事务13→15两项接受/另2题旧悬空与旧拒绝保持，0provider/source action，无后续调度或质量资格推论。下一不同项目相关检验：用Gitea GetRepoPermissions原自然brief、相同原源范围/model/12-24-262144限额在仓外普通CLI guided D1运行，不提供旧答案/图/正确helper，原件保留并匿名源码评阅；此为描述性修后迁移，不占主16行，不释放Notes/Memos未知身份。返回后检查实际atomic/局部链与原答，再推进两题轮换配对块及真实previous。
+
 文件：新建 `inquiry-local-extraction.ts`、测试；接 inquiry-domain-runtime.ts 和现有 provider/telemetry。
 
 - [x] 给模型的局部任务包含一个 WorkItem、当前源码窗口、必要调用点/问题、明确前提；输出窄语义增量和未决依赖。
