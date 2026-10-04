@@ -19,18 +19,22 @@ it("preserves strict object rejection in the actual tool and fallback JSON schem
   expect(requests[1]!.messages[0]!.content).toContain('"additionalProperties": false')
 })
 
-it("advertises object-only tool alternatives as an object without narrowing mixed value unions", async () => {
+it("encloses alternative tool values in a plain object root without weakening branch or mixed-value contracts", async () => {
   const schema = z.discriminatedUnion("kind", [z.object({ kind: z.literal("read"), value: z.union([z.object({ id: z.string() }).strict(), z.string()]) }).strict(), z.object({ kind: z.literal("final"), answer: z.string() }).strict()])
   let visible: any
   const provider: LLMProvider = { name: "object-tool-contract", async complete(params) {
     visible = params.tools![0]!.inputSchema
-    return { text: "", toolCalls: [{ id: "c", name: "answer", arguments: { kind: "read", value: "explicit scalar alternative" } }], tokens: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 }, durationMs: 0, stopReason: "tool_use" }
+    const value = { kind: "read", value: "explicit scalar alternative" }
+    return { text: "", toolCalls: [{ id: "c", name: "answer", arguments: visible.properties?.value ? { value } : value }], tokens: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 }, durationMs: 0, stopReason: "tool_use" }
   }, async completeWithToolResults() { throw new Error("Unused") } }
   const result = await extractStructured({ provider, schema, schemaName: "answer", schemaDescription: "Object alternatives", prompt: "One step", maxRetries: 1 })
   expect(visible.type).toBe("object")
-  expect(visible.anyOf).toHaveLength(2)
-  expect(visible.anyOf.every((option: any) => option.additionalProperties === false)).toBe(true)
-  const mixed = visible.anyOf[0].properties.value
+  expect(["anyOf", "oneOf", "allOf", "enum", "const", "not"].some(key => key in visible)).toBe(false)
+  expect(visible.additionalProperties).toBe(false)
+  const alternative = visible.properties.value
+  expect(alternative.anyOf).toHaveLength(2)
+  expect(alternative.anyOf.every((option: any) => option.additionalProperties === false)).toBe(true)
+  const mixed = alternative.anyOf[0].properties.value
   expect(mixed.type).toBeUndefined()
   expect(mixed.anyOf.map((option: any) => option.type)).toEqual(["object", "string"])
   expect(result.result).toEqual({ kind: "read", value: "explicit scalar alternative" })

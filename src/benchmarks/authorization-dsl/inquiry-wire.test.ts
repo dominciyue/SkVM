@@ -51,9 +51,9 @@ test("structured control steps expose one canonical field and accept the lossles
   expect(conflict.success).toBe(false)
   expect(conflict.error.issues.some((d: any) => d.message.includes("control-alias-conflict"))).toBe(true)
   let actual: any
-  const provider: any = { name: "capture", complete: async (params: any) => { actual = params.tools[0].inputSchema; return { text: "", toolCalls: [{ name: "submit", arguments: current }], tokens: { input: 1, output: 1 }, durationMs: 0 } } }
+  const provider: any = { name: "capture", complete: async (params: any) => { actual = params.tools[0].inputSchema; return { text: "", toolCalls: [{ name: "submit", arguments: { value: current } }], tokens: { input: 1, output: 1 }, durationMs: 0 } } }
   await extractStructured({ provider, schema: api.ControlStepSchema, schemaName: "submit", schemaDescription: "contract capture", prompt: "contract capture", maxRetries: 1 })
-  const control = actual.anyOf.find((v: any) => v.properties.kind.const === "control")
+  const control = actual.properties.value.anyOf.find((v: any) => v.properties.kind.const === "control")
   expect(control.required).toEqual(["kind", "controlDelta"])
   expect(control.properties.delta).toBeUndefined()
 })

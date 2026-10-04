@@ -171,14 +171,16 @@ async function extractViaToolUse<T>(opts: {
 
   // Convert Zod schema to JSON Schema for tool definition
   const jsonSchema = zodToJsonSchema(opts.modelSchema ?? schema)
+  const wrapped = jsonSchema.type !== "object" || ["anyOf", "oneOf", "allOf", "enum", "const", "not"].some(key => key in jsonSchema)
+  const inputSchema = wrapped ? { type: "object", properties: { value: jsonSchema }, required: ["value"], additionalProperties: false } : jsonSchema
 
   const response = await provider.complete({
     messages: [{ role: "user", content: prompt }],
     system,
     tools: [{
       name: schemaName,
-      description: schemaDescription,
-      inputSchema: jsonSchema,
+      description: schemaDescription + (wrapped ? " Submit the complete typed value in this tool's sole value field." : ""),
+      inputSchema,
     }],
     // Force the model to call our schema container — without this, models
     // are free to respond with prose ("I cannot use tools", etc.) and we'd
@@ -194,7 +196,12 @@ async function extractViaToolUse<T>(opts: {
   }
 
   let result: T
-  try { result = schema.parse(toolCall.arguments) } catch (error) {
+  try {
+    // Unwrap only explicit transport metadata. Historical direct object steps remain parseable.
+    result = wrapped && toolCall.arguments && typeof toolCall.arguments === "object" && Object.keys(toolCall.arguments).length === 1 && Object.hasOwn(toolCall.arguments, "value")
+      ? z.object({ value: schema }).strict().parse(toolCall.arguments).value as T
+      : schema.parse(toolCall.arguments)
+  } catch (error) {
     throw new StructuredExtractionError([{ transport: "schema-tool", category: "schema-validation", diagnostics: validationDiagnostics(error, toolCall.arguments), rawResponse: JSON.stringify(toolCall.arguments), tokens: response.tokens, costUsd: response.costUsd }])
   }
   return { result, rawResponse: JSON.stringify(toolCall.arguments), tokens: response.tokens, costUsd: response.costUsd }
