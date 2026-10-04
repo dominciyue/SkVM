@@ -149,3 +149,24 @@ test("a newly interpreted helper replaces its residual dependency rather than le
   const result = runtime.assembleResult({ schemaVersion: "authorization-semantic-result/v1", revision: runtime.feedback().revision, questions: [{ questionId: "q", explanation: "Shown source returns success without a protected effect" }], scope: "local" })
   expect((await runtime.validate(result.result)).ruleConsistency).toBe(true)
 })
+test("retiring an interpreted dependency removes its lexical descendants and retains actual reads", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "as-helper-descendants-"))
+  await writeFile(path.join(sourceRoot, "entry.ts"), 'import * as helper from "./helper";\nexport function entry() { return helper["gate"](); }\n')
+  await writeFile(path.join(sourceRoot, "helper.ts"), "export function gate() { note(); return true; }\n")
+  await writeFile(path.join(sourceRoot, "note.ts"), "export function note() { return 0; }\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["."] })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect entry", entryHint: "entry", premises: [] }] })
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "semantic-flow-v1" })
+  await runtime.sync(); const offered = runtime.modelContext().tasks[0]!
+  await runtime.propose({ schemaVersion: "authorization-semantic-update/v1", semanticBlocks: [{ itemId: offered.itemId, handle: "entry", op: "add", role: "entry", start: "main", complete: true, fallthrough: "allow", blocks: [{ name: "main", steps: [{ kind: "call", name: "gate", symbol: "gate", callee: "gate", claim: "Helper property call" }] }] }] })
+  const helper = runtime.modelContext().tasks.find(t => t.duty.symbol === "gate")!
+  const child = runtime.report().worklist!.items.find(item => item.symbol === "note")!
+  expect(child.parentId).toBe(helper.itemId)
+  const reads = [...tools.history]
+  await runtime.propose({ schemaVersion: "authorization-semantic-update/v1", semanticBlocks: [{ itemId: helper.itemId, handle: "gate", op: "add", role: "helper", start: "main", complete: true, blocks: [{ name: "main", steps: [{ kind: "return", name: "ok", value: true, claim: "Returns success" }] }] }] })
+  const report = runtime.report()
+  expect(report.dependencies).toEqual([])
+  expect(report.worklist!.items.some(item => item.id === helper.itemId || item.id === child.id)).toBe(false)
+  expect(report.worklist!.items.every(item => !item.parentId || report.worklist!.items.some(parent => parent.id === item.parentId))).toBe(true)
+  expect(tools.history).toEqual(reads)
+})

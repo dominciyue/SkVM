@@ -3,7 +3,7 @@
 > 执行配置：gpt-6.1-sol / max。用户已授权本轮连续开发、必要联网与模型调用、提交并推送用户 origin；常规阶段不停下来重新询问。
 > 使用 writing-plans 编制。实施时使用 TDD、systematic-debugging 和必要验证；用户现有授权覆盖常规设计细化及可逆实现，不再等待重复设计批准。
 
-更新于 2026-10-04。状态：**in-progress；AS0–AS7 共享实现和确定性检查已完成，AS8/AS9 处理两次有明确响应的 Schema 拒绝，具名传输修订待复验**。实际接管基线 `c90787f09087b3c79ac1d73b47f970ab928894e0`，当时工作区干净且用户远端同 SHA。分支始终 `skill-ir-aot`，只推用户 `origin/skill-ir-aot`。AR 进程结束，研究及真实使用验收仍有未达项；AS 承接责任，不回写旧结果。机器状态见 [AS status](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)。
+更新于 2026-10-04。状态：**in-progress；AS0–AS7 共享实现和确定性检查已完成，AS8/AS9 两次 Schema 拒绝后第三次已获 5/5 响应，但待办同步崩溃；子树退役修复已通过回归，待真实复验**。实际接管基线 `c90787f09087b3c79ac1d73b47f970ab928894e0`，当时工作区干净且用户远端同 SHA。分支始终 `skill-ir-aot`，只推用户 `origin/skill-ir-aot`。AR 进程结束，研究及真实使用验收仍有未达项；AS 承接责任，不回写旧结果。机器状态见 [AS status](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)。
 
 ## 一、目标与完成标准
 
@@ -161,6 +161,8 @@ AR 保留 8/16 已留首行的历史分母和所有修订。六个未运行主�
 - 实际错误反馈提供原窗口、当前局部提议、关联节点与具体诊断；只修有关块，成功与旧失败有明确映射。
 - 若同根因两次修订无实质进展，审查前端/状态来源/调度，不继续原样增加提示；记录新的实现假设再验证。
 - 路由/传输、解析、图解释、结论一致性、源码语义各自有结果。合理外部 unknown 保留。
+
+当前修复假设：第三次 `as-plain-object-wrapper-v1` 已实际通过协议。语义重算退役 explicit dependency 后，其词法子待办仍引用旧父项，触发 `item.questionId` 崩溃；这不是服务端或完成状态未知。匿名实际读取/解释回归已先红后绿。共享 worklist 清理退役依赖的整棵词法子树及选择/失败状态，保留原提议与读取历史；同位置下一次为 `as-dependency-subtree-v1`，沿 attempt-3 复验，不覆盖三份原件。
 
 ### AS10 — 两份原 skill 的普通使用
 

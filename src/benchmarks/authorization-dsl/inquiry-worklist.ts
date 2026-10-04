@@ -89,7 +89,10 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
     }
     const dependencies = options.dependencyStates?.() ?? []
     const activeDependencies = new Set(dependencies.map(d => d.id))
-    for (const [key, item] of items) if (item.origin === "explicit-dependency" && item.dependencyId && !activeDependencies.has(item.dependencyId)) { items.delete(key); choices.delete(key) }
+    const retired = new Set([...items.values()].filter(item => item.origin === "explicit-dependency" && item.dependencyId && !activeDependencies.has(item.dependencyId)).map(item => item.id))
+    // Lexical leads belong to their current parent; archived reads and proposals retain their own history.
+    for (const id of retired) for (const item of items.values()) if (item.parentId === id) retired.add(item.id)
+    for (const id of retired) { items.delete(id); choices.delete(id); failedReads.delete(id) }
     for (const d of dependencies) {
       const id = stableId(["dependency", d.id]), kind = slice.dependencies.find(p => p.id === d.id)?.kind
       const relation: InquiryRelation = kind === "principal-binding" || kind === "resource-binding" || kind === "effect" || kind === "exception" ? kind : "guard"
