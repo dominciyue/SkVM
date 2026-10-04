@@ -17,11 +17,77 @@ async function setup() {
 function scripted(fn: (params: CompletionParams, n: number) => unknown): { provider: LLMProvider; count: () => number } {
   let count = 0
   return { count: () => count, provider: { name: "mock", async complete(params) {
-    const value = fn(params, count++)
-    return { text: "", toolCalls: [{ id: `c${count}`, name: params.tools![0]!.name, arguments: value as Record<string, unknown> }], stopReason: "tool_use", tokens: emptyTokenUsage(), durationMs: 0 }
+    const value = fn(params, count++), tool = params.tools?.[0]
+    return { text: tool ? "" : JSON.stringify(value), toolCalls: tool ? [{ id: `c${count}`, name: tool.name, arguments: value as Record<string, unknown> }] : [], stopReason: tool ? "tool_use" : "end_turn", tokens: emptyTokenUsage(), durationMs: 0 }
   }, async completeWithToolResults() { throw new Error("Use structured inquiry actions") } } }
 }
 const final = (id: string) => ({ kind: "final", result: { schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q1", behavior: { disposition: "deny", explanation: "The called guard returns false." }, evidenceIds: [id], branches: [], missing: [] }], observations: [], scope: "Read source only" } })
+test("domain delivery keeps both bounded wire repairs and one diagnosed result repair inside the original cap", async () => {
+  const input = await setup()
+  await writeFile(path.join(input.sourceRoot, "src/entry.ts"), "export function entry() { return false; }\n")
+  let finalCalls = 0
+  const mock = scripted(params => {
+    if ((params.tools![0]!.inputSchema as any).properties?.kind?.const !== "final") return { kind: "control", controlDelta: { schemaVersion: "authorization-control-update/v1" } }
+    const prompt = params.messages[0]!.content, id = /"id":"(ev-[a-f0-9]+)"/.exec(prompt)![1]!
+    const call = finalCalls++
+    const answer = final(call < 2 ? "not-shown" : id)
+    answer.result.questions[0]!.behavior.explanation = "The shown entry returns false."
+    const candidate = { ...answer, ...(call < 2 ? { controlDelta: { schemaVersion: "authorization-control-update/v1", rules: [
+      { op: "add", questionId: "q1", targetKey: "entry", pathKey: "p", kind: "entry", after: [], evidenceIds: [id], claim: "Entry returns false" },
+      { op: "add", questionId: "q1", targetKey: "stop", pathKey: "p", kind: "reject", after: ["entry"], evidenceIds: [id], claim: "Entry denies", complete: true },
+    ] } } : {}) }
+    if (call === 0 || call === 2) return { ...candidate, observations: [] }
+    if (call === 3) expect(prompt).toContain("evidence-not-shown")
+    return candidate
+  })
+  const run = await runAuthorizationInquiry({ ...input, method: "D1", strategy: "guided-evidence-v2", provider: mock.provider, maxDispatches: 8 })
+  expect(run.status).toBe("completed")
+  expect(mock.count()).toBeLessThanOrEqual(8)
+  expect(finalCalls).toBe(4)
+  expect(run.initialValidation?.valid).toBe(false)
+  expect(run.validation?.valid).toBe(true)
+  expect(run.initial).not.toEqual(run.final)
+  expect(run.wireFailures).toHaveLength(2)
+  expect(run.attempts.slice(-2).every(a => a.phase === "domain-repair")).toBe(true)
+  expect(run.toolHistory).toHaveLength(1)
+})
+for (const [maxDispatches, natural] of [[8, false], [12, true]] as const) test(`exploration and ${natural ? "natural-author" : "declared-input"} wire retries preserve combined delivery inside ${maxDispatches} calls`, async () => {
+  const input = await setup()
+  await writeFile(path.join(input.sourceRoot, "src/entry.ts"), "export function entry() { return false; }\n")
+  let authorCalls = 0, finalCalls = 0
+  const retriedExploration = new Set<number>()
+  const mock = scripted(params => {
+    if (!params.tools?.length || params.tools[0]!.name === "submit_inquiry_declaration") return authorCalls++ === 0 ? { ...input.inquiry, unexpected: true } : input.inquiry
+    const prompt = params.messages[0]!.content
+    if ((params.tools![0]!.inputSchema as any).properties?.kind?.const !== "final") {
+      const remaining = Number(/Remaining dispatches: (\d+)/.exec(prompt)![1])
+      const control = { kind: "control", controlDelta: { schemaVersion: "authorization-control-update/v1" } }
+      if ([7, 5].includes(remaining) && !retriedExploration.has(remaining)) {
+        retriedExploration.add(remaining)
+        return { ...control, observations: [] }
+      }
+      return control
+    }
+    const id = /"id":"(ev-[a-f0-9]+)"/.exec(prompt)![1]!, call = finalCalls++
+    const answer = final(call < 2 ? "not-shown" : id)
+    answer.result.questions[0]!.behavior.explanation = "The shown entry returns false."
+    const candidate = { ...answer, ...(call < 2 ? { controlDelta: { schemaVersion: "authorization-control-update/v1", rules: [
+      { op: "add", questionId: "q1", targetKey: "entry", pathKey: "p", kind: "entry", after: [], evidenceIds: [id], claim: "Entry returns false" },
+      { op: "add", questionId: "q1", targetKey: "stop", pathKey: "p", kind: "reject", after: ["entry"], evidenceIds: [id], claim: "Entry denies", complete: true },
+    ] } } : {}) }
+    return call === 0 || call === 2 ? { ...candidate, observations: [] } : candidate
+  })
+  const run = await runAuthorizationInquiry({ ...input, ...(natural ? { inquiry: undefined, brief: "Inspect entry for record updates." } : {}), method: "D1", strategy: "guided-evidence-v2", provider: mock.provider, maxDispatches })
+  expect(run.status).toBe("completed")
+  expect(mock.count()).toBeLessThanOrEqual(maxDispatches)
+  expect(authorCalls).toBe(natural ? 2 : 0)
+  expect(retriedExploration.has(7)).toBe(true)
+  expect(finalCalls).toBe(4)
+  expect(run.initialValidation?.valid).toBe(false)
+  expect(run.validation?.valid).toBe(true)
+  expect(run.initial).not.toEqual(run.final)
+  expect(run.wireFailures.filter(f => f.phase === "repair")).toHaveLength(1)
+})
 test("guided source allocation preserves a final repair within the original cumulative display limit", async () => {
   const input = await setup()
   await writeFile(path.join(input.sourceRoot, "src/entry.ts"), "export function entry() { return false; }\n")

@@ -9,6 +9,12 @@ const row = (id: string) => ({ id, task: "memos-remove", method: "D1", strategy:
 const options = (extra = {}) => ({ revision: "test-revision", model: "mock", budgets: { maxDispatches: 12 }, concurrency: 2, ...extra })
 const temp = () => mkdtemp(path.join(os.tmpdir(), "authorization-ar-driver-"))
 const json = async (file: string) => JSON.parse(await readFile(file, "utf8"))
+async function knownRepairChain(root: string) {
+  const rows = [row("chain")], run = options({ concurrency: 1, execute: async () => ({ status: "completed", telemetry: { providerCalls: 1 } }), evaluate: async () => ({ failure: { category: "schema/wire", rootCause: "known responded failure", components: ["wire"] } }) })
+  await api.developRows(root, rows, run)
+  await api.developRows(root, rows, { ...run, repairId: "first-repair", repairOf: "chain/attempt-1" })
+  return { rows, run }
+}
 test("a shared defect pauses affected dispatch while retaining the other in-flight answer", async () => {
   expect(typeof api.developRows).toBe("function")
   const root = await temp(), started: string[] = []
@@ -67,6 +73,60 @@ test("a repair identity only reopens its own retained attempt and cannot bypass 
   const result = await api.developRows(root, [row("first")], options({ repairId: "repair-first", repairOf: "first/attempt-1", execute: async (r: any) => { started.push(r.id); return execute() }, evaluate: async () => ({}) }))
   expect(started).toEqual([])
   expect(result.rows[0]).toMatchObject({ status: "not-run-after-defect", failureId: "other-attempt-1" })
+})
+test("a named repair reopens its verified known ancestry without rewriting retained failures", async () => {
+  const root = await temp(), { rows, run } = await knownRepairChain(root)
+  const files = ["failures.jsonl", "runs/chain/attempt-1/report.json", "runs/chain/attempt-2/report.json"]
+  const before = await Promise.all(files.map(file => readFile(path.join(root, file), "utf8")))
+  let dispatches = 0
+  const result = await api.developRows(root, rows, { ...run, repairId: "second-repair", repairOf: "chain/attempt-2", execute: async () => { dispatches++; return { status: "completed", telemetry: { providerCalls: 1 } } }, evaluate: async () => ({}) })
+  expect(dispatches).toBe(1)
+  expect(result.rows[0]).toMatchObject({ status: "completed", attempt: 3 })
+  expect(await Promise.all(files.map(file => readFile(path.join(root, file), "utf8")))).toEqual(before)
+  expect((await api.replay(root)).rows[0]).toMatchObject({ providerCalls: 3, repairAttempts: ["runs/chain/attempt-2/report.json", "runs/chain/attempt-3/report.json"] })
+})
+test("verified repair ancestry cannot bypass another failure outside the named chain", async () => {
+  const root = await temp(), { rows, run } = await knownRepairChain(root)
+  const unrelated = { id: "other-attempt-1", runId: "other", outcome: "unresolved", originalArtifact: "runs/other/attempt-1/report.json", components: ["wire"] }
+  await writeFile(path.join(root, "failures.jsonl"), JSON.stringify(unrelated) + "\n", { flag: "a" })
+  let dispatches = 0
+  const result = await api.developRows(root, rows, { ...run, repairId: "next", repairOf: "chain/attempt-2", execute: async () => { dispatches++; return { status: "completed" } } })
+  expect(dispatches).toBe(0)
+  expect(result.rows[0]).toMatchObject({ status: "not-run-after-defect", failureId: "other-attempt-1" })
+})
+for (const [label, reference] of [["orphan", "chain/attempt-99"], ["cross-row", "other/attempt-1"], ["escaping", "../chain/attempt-1"], ["self-cycle", "chain/attempt-2"]] as const) test(`a ${label} retained repair ancestor is refused before dispatch`, async () => {
+  const root = await temp(), { rows, run } = await knownRepairChain(root), directory = path.join(root, "runs/chain/attempt-2")
+  const retained = await json(path.join(directory, "report.json"))
+  retained.identity.repairOf = reference
+  await writeFile(path.join(directory, "claim.json"), JSON.stringify(retained.identity))
+  await writeFile(path.join(directory, "report.json"), JSON.stringify(retained))
+  let dispatches = 0
+  await expect(api.developRows(root, rows, { ...run, repairId: "next", repairOf: "chain/attempt-2", execute: async () => { dispatches++; return { status: "completed" } } })).rejects.toThrow(/original attempt|repair ancestry/)
+  expect(dispatches).toBe(0)
+})
+test("a changed ancestor claim and an unknown ancestor remain sealed under a known child", async () => {
+  for (const shape of ["identity-mismatch", "unknown-status", "pending-attempt"] as const) {
+    const root = await temp(), { rows, run } = await knownRepairChain(root), directory = path.join(root, "runs/chain/attempt-1")
+    const retained = await json(path.join(directory, "report.json"))
+    if (shape === "identity-mismatch") await writeFile(path.join(directory, "claim.json"), JSON.stringify({ ...retained.identity, model: "different" }))
+    else {
+      retained.report = shape === "unknown-status" ? { status: "completion-unknown", providerDispatches: 1 } : { status: "completed", attempts: [{ status: "pending" }], telemetry: { providerCalls: 1 } }
+      await writeFile(path.join(directory, "report.json"), JSON.stringify(retained))
+    }
+    let dispatches = 0
+    await expect(api.developRows(root, rows, { ...run, repairId: "next", repairOf: "chain/attempt-2", execute: async () => { dispatches++; return { status: "completed" } } })).rejects.toThrow(/original attempt identity|unknown completion/)
+    expect(dispatches).toBe(0)
+  }
+})
+test("an ancestor failure ID cannot exempt a different artifact or row", async () => {
+  const root = await temp(), { rows, run } = await knownRepairChain(root)
+  const failures = (await readFile(path.join(root, "failures.jsonl"), "utf8")).trim().split("\n").map(s => JSON.parse(s))
+  failures[0].originalArtifact = "runs/other/attempt-1/report.json"
+  failures[0].runId = "other"
+  await writeFile(path.join(root, "failures.jsonl"), failures.map(f => JSON.stringify(f)).join("\n") + "\n")
+  let dispatches = 0
+  await expect(api.developRows(root, rows, { ...run, repairId: "next", repairOf: "chain/attempt-2", execute: async () => { dispatches++; return { status: "completed" } } })).rejects.toThrow(/ancestor failure identity/)
+  expect(dispatches).toBe(0)
 })
 test("repair references must name an existing same-row completed claim before dispatch", async () => {
   const root = await temp(), started: string[] = []

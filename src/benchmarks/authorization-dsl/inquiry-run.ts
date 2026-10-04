@@ -102,10 +102,16 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
       ...(domain ? [strategy === "guided-evidence-v2" ? GUIDED_EXECUTION_GUIDE : DOMAIN_EXECUTION_GUIDE, "Use kind:control with controlDelta to propose just changed rules/dependencies; controlDelta is also optional on another step. Host returns actual new source in the next response context. Propose dependencies promptly instead of choosing every helper read yourself."] : []),
       ...(options.reuse ? [`Reused source interpretation (data, meaning unreviewed): ${JSON.stringify({ ...options.reuse.info, controlDelta: options.reuse.seed.delta })}. Original evidence listed as previousVerified was actually read in the prior checked session and matched current original bytes. It may support references; request original ranges again if needed. Re-map invalidated premise keys using current explicit user facts, and map the current independent policy where required. Never reuse an old final answer or policy conclusion; submit and check a current result.`] : []),
     ].join("\n\n")
+    // A final and its diagnosed repair can each use one existing wire retry.
+    // Short caps retain exploration instead of allocating every call to delivery.
+    const deliveryDispatchReserve = domain ? Math.min(4, Math.max(2, Math.floor((options.maxDispatches ?? 12) / 2))) : 1
+    // One exploration step can dispatch twice; enter delivery before it crosses the reserve.
+    // The existing two-call short-budget opportunity remains best effort.
+    const deliveryDispatchThreshold = deliveryDispatchReserve + (deliveryDispatchReserve > 2 ? 1 : 0)
     while (telemetry.attempts.length < (options.maxDispatches ?? 12) && !telemetry.isClosed()) {
       if (Date.now() - startedAt >= (options.sessionTimeoutMs ?? 1200000)) { status = "budget-exhausted"; break }
       const remainingDispatches = (options.maxDispatches ?? 12) - telemetry.attempts.length
-      let deliveryReserved: boolean = sourceLimitedDelivery || (!!domain && remainingDispatches <= 2) || remainingDispatches === 1 || tools.toolCalls >= tools.maxToolCalls
+      let deliveryReserved: boolean = sourceLimitedDelivery || remainingDispatches <= deliveryDispatchThreshold || tools.toolCalls >= tools.maxToolCalls
       if (strategy === "guided-evidence-v2") await domain!.sync(!deliveryReserved && remainingDispatches > 2)
       deliveryReserved ||= tools.toolCalls >= tools.maxToolCalls
       const feedback = options.method === "D1" ? `\nObservation feedback: ${JSON.stringify(inquiryObservationFeedback(program, observations))}` : ""

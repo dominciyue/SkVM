@@ -67,29 +67,41 @@ async function inspectedZeroDispatch(output: string) {
 /** Dispatch at most two rows, evaluate each completion immediately, then pause affected new work. In-flight results are always retained. */
 export async function developRows(base: string, rows: Row[], options: DevelopOptions) {
   for (const row of rows) if (!/^[a-zA-Z0-9_-]+$/.test(row.id)) throw new Error("Unsafe row identity")
-  let originalFailureId: string | undefined
+  const originalFailureArtifacts = new Map<string, string>()
   if (options.repairId) {
-    const match = options.repairOf?.match(/^([a-zA-Z0-9_-]+)\/attempt-([1-9]\d*)$/)
-    if (!match || rows.length !== 1 || rows[0]!.id !== match[1]) throw new Error("A repair requires an existing same-row original attempt")
-    const original = path.join(base, "runs", options.repairOf!)
-    if (!(await exists(path.join(original, "claim.json"))) || !(await exists(path.join(original, "report.json")))) throw new Error("Missing retained original attempt")
-    const claim = await json(path.join(original, "claim.json")), retained = await json(path.join(original, "report.json"))
-    if (!isDeepStrictEqual(claim.row, rows[0]) || claim.attempt !== Number(match[2]) || JSON.stringify(claim) !== JSON.stringify(retained.identity)) throw new Error("Invalid original attempt identity")
-    if (hasUnknownAuthorizationCompletion(retained.report) && !(await inspectedZeroDispatch(original))) throw new Error("An original attempt of unknown completion cannot be redispatched")
-    originalFailureId = `${match[1]}-attempt-${match[2]}`
+    let reference = options.repairOf, childAttempt = Infinity
+    do {
+      const match = reference?.match(/^([a-zA-Z0-9_-]+)\/attempt-([1-9]\d*)$/), attempt = Number(match?.[2])
+      if (!match || rows.length !== 1 || rows[0]!.id !== match[1]) throw new Error("A repair requires an existing same-row original attempt")
+      if (!Number.isSafeInteger(attempt) || attempt >= childAttempt) throw new Error("Invalid repair ancestry: attempts must strictly decrease")
+      const original = path.join(base, "runs", reference!)
+      if (!(await exists(path.join(original, "claim.json"))) || !(await exists(path.join(original, "report.json")))) throw new Error("Missing retained original attempt")
+      const claim = await json(path.join(original, "claim.json")), retained = await json(path.join(original, "report.json"))
+      if (!isDeepStrictEqual(claim.row, rows[0]) || claim.attempt !== attempt || JSON.stringify(claim) !== JSON.stringify(retained.identity)) throw new Error("Invalid original attempt identity")
+      if (hasUnknownAuthorizationCompletion(retained.report) && !(await inspectedZeroDispatch(original))) throw new Error("An original attempt of unknown completion cannot be redispatched")
+      originalFailureArtifacts.set(`${match[1]}-attempt-${match[2]}`, `runs/${reference}/report.json`)
+      if (claim.repairOf != null && (typeof claim.repairOf !== "string" || typeof claim.repairId !== "string" || !claim.repairId)) throw new Error("Invalid repair ancestry: predecessor requires a named repair")
+      if (claim.repairOf == null && claim.repairId != null) throw new Error("Invalid repair ancestry: named repair is missing its predecessor")
+      reference = claim.repairOf ?? undefined
+      childAttempt = attempt
+    } while (reference !== undefined)
   }
   await mkdir(base, { recursive: true })
   const pauses: Array<{ components: string[]; failureId: string }> = [], completed: any[] = []
   const unresolved = (await lines(path.join(base, "failures.jsonl"))).filter(f => f.outcome === "unresolved")
   const adjudications = await scopedAdjudications(base, unresolved)
   const repaired = new Set((await lines(path.join(base, "repairs.jsonl"))).filter(r => r.outcome === "improved").map(r => r.failureId))
-  for (const failure of unresolved) if (!repaired.has(failure.id)) pauses.push({ components: failure.components ?? ["wire", "source", "checker", "delivery", "worklist"], failureId: failure.id })
+  for (const failure of unresolved) {
+    const ancestorArtifact = originalFailureArtifacts.get(failure.id)
+    if (ancestorArtifact && (failure.runId !== rows[0]!.id || failure.originalArtifact !== ancestorArtifact)) throw new Error("Invalid ancestor failure identity")
+    if (!repaired.has(failure.id)) pauses.push({ components: failure.components ?? ["wire", "source", "checker", "delivery", "worklist"], failureId: failure.id })
+  }
   const width = Math.min(2, Math.max(1, options.concurrency ?? 1))
   for (let cursor = 0; cursor < rows.length; cursor += width) {
     await Promise.all(rows.slice(cursor, cursor + width).map(async row => {
       const runDir = path.join(base, "runs", row.id)
       const sealed = adjudications.find(a => a.retainedTask === row.task)
-      const paused = sealed ?? pauses.find(p => p.failureId !== originalFailureId && p.components.some(c => row.components.includes(c) && !adjudications.some(a => a.failureId === p.failureId && a.retainedTask !== row.task && a.eligibleRows.includes(row.id) && a.releasedComponents.includes(c))))
+      const paused = sealed ?? pauses.find(p => !originalFailureArtifacts.has(p.failureId) && p.components.some(c => row.components.includes(c) && !adjudications.some(a => a.failureId === p.failureId && a.retainedTask !== row.task && a.eligibleRows.includes(row.id) && a.releasedComponents.includes(c))))
       if (paused) { completed.push({ id: row.id, status: "not-run-after-defect", failureId: paused.failureId }); return }
       const attempts = (await readdir(runDir).catch(() => [])).filter(s => /^attempt-\d+$/.test(s))
       if (attempts.length && !options.repairId) { completed.push({ id: row.id, status: "already-retained" }); return }
