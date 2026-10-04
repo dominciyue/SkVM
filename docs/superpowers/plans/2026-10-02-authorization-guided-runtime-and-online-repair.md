@@ -484,3 +484,9 @@ bun ./results/skill-ir/skill-dsl-research/development/authorization-guided-runti
 | 发布 | scoped commits、用户origin同步、可复验命令、研究正文和状态一致 | 发布故障与工程结果分开，保留恢复点 |
 
 不提前承诺 DSL 质量一定胜出。本轮必须交付的是实际运行的共享机制、当场修复链和可信的使用结果；质量结果决定下一轮优化方向，而不是决定是否保留本轮失败。
+
+2026-10-04 首配对块现场裁定：冻结 f190870b 后，Memos/M 首答及终答均 full；Paperless/D1 首答及终答均 partial、over-unknown，显式控制图为空。两个匿名独立源码评审与主裁定已分别按原报告 hash 保存。主代理核对第 7 次原请求，确认 views.py:1380–1505 的 5208 字节正文已经完整展示，未建立共享补读或展示缺陷；最后权限正文请求因 24 次工具预算拒绝。该行机械 checked 同时 evidenceCoverage=unresolved、sourceBound=false，不满足现有 previous bounded 合同，不能计为完整授权交付或复用成功。保留负例，下一步在同一版本执行 Memos/D1 与 Paperless/M；本块完成前不提交或改动生产实现，不拼接不同版本的配对结果。
+
+同版本另外两臂已关闭：Paperless/M 5/5 响应、工具预算已尽，累计原文展示197950字节；下一次全量重发将越过262144限额而在派发前退出，provider尚余7次、没有首答/终答。Memos/D1 7请求/6响应、最后请求未知，16条规则与6依赖仅为未完成prefix，不重发memos-share逻辑任务。四行均独立评阅/裁定，原始配对为Memos full/not-delivered、Paperless not-delivered/partial；总分母16，四行已评、12未运行，Notes两行仍封存。关闭原块后允许修生产实现，新旧版本不能拼配对。
+
+下一小阶段的明确实现计划：先用中性fixture写红例，覆盖legacy累计重发将超限但尚有派发额度、源码工具耗尽后仍有最终机会，以及legacy final-only模型Schema与parser一致；再最小修改公共inquiry loop，在原provider/源码预算内转为只允许final的交付机会。仅选能容纳的完整已读原窗口、其余保留metadata并具名说明未再展示，不截断/改写正文、不执行或补读目标、不重放未知请求、不伪造sourceBound/语义结果。最后一provider机会也用于final，保留现有一次具名格式/交付修复上限；预算无法容纳正文时可交付明确缺口，不能放宽引用来源。引导D1说明仅澄清legacy observations不更新canonical控制图、不满足已提供的局部解释职责；unknown/partial仍可原样交付，不强制凑图或按source-specific答案填图。聚焦red/green、相关wire/telemetry/ordinary reuse及主/研究类型后，原已知Paperless失败可具名修后重测，另做不同项目相关检验；封存任务不释放。实际质量改善由新的独立源码复核决定。

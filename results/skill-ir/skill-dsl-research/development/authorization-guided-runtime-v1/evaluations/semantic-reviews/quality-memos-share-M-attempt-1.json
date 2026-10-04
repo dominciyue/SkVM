@@ -1,0 +1,80 @@
+{
+  "schemaVersion": "authorization-ar-semantic-review/v1",
+  "id": "quality-memos-share-M-attempt-1-independent",
+  "binding": {
+    "rowId": "quality-memos-share-M",
+    "attempt": 1,
+    "report": {
+      "path": "runs/quality-memos-share-M/attempt-1/report.json",
+      "sha256": "248903406a2eef463776379bf9cb90120e309294cf697614f3ab9eb921aa3eca"
+    }
+  },
+  "reviewer": {
+    "kind": "independent",
+    "mainContextExposed": false,
+    "representationMayRevealMethod": true
+  },
+  "assessment": {
+    "initial": {
+      "rating": "full",
+      "decisiveError": false,
+      "overUnknown": false,
+      "falseComplete": false,
+      "evidence": [
+        "server/api/v1/memo_share_service.go:170-188 resolves an opaque share UID to exactly ms.MemoID, rejects missing/non-NORMAL/SPACE memos and checks the memo read context.",
+        "server/api/v1/memo_share_service.go:216-229 rejects absent or strictly expired shares; a null expiration does not expire.",
+        "core/access/memo.go:87-153 checks structural validity and exact shared memo binding; the matching share branch precedes the ordinary audience switch.",
+        "server/api/v1/memo_share_service.go:191-213 returns memo reactions and attachments, clears Parent and does not grant access to a conversation or relation graph."
+      ]
+    },
+    "final": {
+      "rating": "full",
+      "decisiveError": false,
+      "overUnknown": false,
+      "falseComplete": false,
+      "evidence": [
+        "server/api/v1/memo_share_service.go:170-188 resolves an opaque share UID to exactly ms.MemoID, rejects missing/non-NORMAL/SPACE memos and checks the memo read context.",
+        "server/api/v1/memo_share_service.go:216-229 rejects absent or strictly expired shares; a null expiration does not expire.",
+        "core/access/memo.go:87-153 checks structural validity and exact shared memo binding; the matching share branch precedes the ordinary audience switch.",
+        "server/api/v1/memo_share_service.go:191-213 returns memo reactions and attachments, clears Parent and does not grant access to a conversation or relation graph."
+      ]
+    },
+    "extraction": {
+      "initial": "none",
+      "final": "none",
+      "incorrectRules": [],
+      "wrongPremiseMappings": [],
+      "amplifiedError": false,
+      "evidence": [
+        "Anonymous packet contains no explicit extracted control graph."
+      ]
+    },
+    "mechanism": {
+      "decisiveHelperHits": [],
+      "irrelevantOrInvalidReads": [],
+      "correctExcludedBranches": [
+        "Archived/non-NORMAL and SPACE memo share rejection.",
+        "A matching share does not require the ordinary audience allow branch.",
+        "Memo relations do not inherit the share authorization."
+      ],
+      "wrongExcludedBranches": [],
+      "justifiedResiduals": [
+        "Deployment route/interceptor/database selection.",
+        "Nested conversion and separate attachment/reaction endpoint access."
+      ],
+      "avoidableResiduals": [],
+      "checkerDetections": [],
+      "checkerFalseRejections": [],
+      "checkerMisses": [],
+      "evidence": [
+        "server/api/v1/memo_share_service.go:170-188 resolves an opaque share UID to exactly ms.MemoID, rejects missing/non-NORMAL/SPACE memos and checks the memo read context.",
+        "server/api/v1/memo_share_service.go:216-229 rejects absent or strictly expired shares; a null expiration does not expire."
+      ]
+    },
+    "causes": [
+      "not-located",
+      "infrastructure"
+    ],
+    "notes": "Independent source-only assessment from block1_memos_share_source_review. Reviewer was not given model identity, host status or scores; no host checker judgment is inferred. Its cause labels accompany justified residuals and are separately adjudicated."
+  }
+}

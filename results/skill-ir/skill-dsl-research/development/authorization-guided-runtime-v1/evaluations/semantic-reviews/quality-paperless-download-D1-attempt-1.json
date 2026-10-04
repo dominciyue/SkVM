@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "authorization-ar-semantic-review/v1",
+  "id": "quality-paperless-download-D1-attempt-1-independent",
+  "binding": {
+    "rowId": "quality-paperless-download-D1",
+    "attempt": 1,
+    "report": {
+      "path": "runs/quality-paperless-download-D1/attempt-1/report.json",
+      "sha256": "28bfafc7a5b4a9d5dd123634e697418862125813a417405d57b2872ae5278a29"
+    }
+  },
+  "reviewer": {
+    "kind": "independent",
+    "mainContextExposed": false,
+    "representationMayRevealMethod": true
+  },
+  "assessment": {
+    "initial": {
+      "rating": "partial",
+      "decisiveError": true,
+      "overUnknown": true,
+      "falseComplete": false,
+      "evidence": [
+        "Raw initial and final answers identify the download delegate but treat the file_response, root authorization, requested version and archive/original decisions as an unread decisive gap.",
+        "Allowed src/documents/views.py:1388-1448 shows request/root document resolution, owner-aware root view permission, effective file selection and archive/original dispatch.",
+        "Allowed src/documents/versioning.py:140-195 shows version parameter handling; src/documents/views.py:4941-4995 shows file serving."
+      ]
+    },
+    "final": {
+      "rating": "partial",
+      "decisiveError": true,
+      "overUnknown": true,
+      "falseComplete": false,
+      "evidence": [
+        "Raw initial and final answers identify the download delegate but treat the file_response, root authorization, requested version and archive/original decisions as an unread decisive gap.",
+        "Allowed src/documents/views.py:1388-1448 shows request/root document resolution, owner-aware root view permission, effective file selection and archive/original dispatch.",
+        "Allowed src/documents/versioning.py:140-195 shows version parameter handling; src/documents/views.py:4941-4995 shows file serving."
+      ]
+    },
+    "extraction": {
+      "initial": "none",
+      "final": "none",
+      "incorrectRules": [],
+      "wrongPremiseMappings": [],
+      "amplifiedError": false,
+      "evidence": [
+        "Anonymous packet sourceExtraction initial/final arrays are empty."
+      ]
+    },
+    "mechanism": {
+      "decisiveHelperHits": [
+        "_resolve_request_and_root_doc",
+        "_get_effective_file_doc",
+        "_resolve_file_doc",
+        "serve_file",
+        "get_request_version_param",
+        "resolve_requested_version_for_root"
+      ],
+      "irrelevantOrInvalidReads": [
+        "Only identifying the entry/URL is insufficient."
+      ],
+      "correctExcludedBranches": [
+        "Missing file/document returns 404.",
+        "Unspecified concrete grants remain unspecified."
+      ],
+      "wrongExcludedBranches": [
+        "Source-visible root authorization, version and archive behavior treated as unestablished."
+      ],
+      "justifiedResiduals": [
+        "Deployment authentication backend/proxy and actual ownership/grants."
+      ],
+      "avoidableResiduals": [
+        "Requested versus root document.",
+        "Version missing/empty/explicit/invalid.",
+        "Root permission guard.",
+        "Original/archive selection.",
+        "Version selection does not replace the root authorization resource."
+      ],
+      "checkerDetections": [],
+      "checkerFalseRejections": [],
+      "checkerMisses": [],
+      "evidence": [
+        "The anonymous packet supplies no checker statuses; independent source review cannot infer checker detection."
+      ]
+    },
+    "causes": [
+      "not-read",
+      "extraction-error",
+      "checker-missed"
+    ],
+    "notes": "Independent source-only assessment from block1_paperless_download_source_review. Helper list describes source-review discoveries; actual model reads and checker behavior require separate retained-request adjudication."
+  }
+}

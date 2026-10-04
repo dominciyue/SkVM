@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "authorization-ar-semantic-adjudication/v1",
+  "id": "quality-paperless-download-D1-attempt-1-main",
+  "binding": {
+    "rowId": "quality-paperless-download-D1",
+    "attempt": 1,
+    "report": {
+      "path": "runs/quality-paperless-download-D1/attempt-1/report.json",
+      "sha256": "28bfafc7a5b4a9d5dd123634e697418862125813a417405d57b2872ae5278a29"
+    }
+  },
+  "independentReview": {
+    "path": "evaluations/semantic-reviews/quality-paperless-download-D1-attempt-1.json",
+    "sha256": "8d8249725b35235445f0df559c078baeb23de93444387d1aab05d73b3ef6b71d"
+  },
+  "assessment": {
+    "initial": {
+      "rating": "partial",
+      "decisiveError": true,
+      "overUnknown": true,
+      "falseComplete": false,
+      "evidence": [
+        "Raw initial and final answers identify the download delegate but treat the file_response, root authorization, requested version and archive/original decisions as an unread decisive gap.",
+        "Allowed src/documents/views.py:1388-1448 shows request/root document resolution, owner-aware root view permission, effective file selection and archive/original dispatch.",
+        "Allowed src/documents/versioning.py:140-195 shows version parameter handling; src/documents/views.py:4941-4995 shows file serving."
+      ]
+    },
+    "final": {
+      "rating": "partial",
+      "decisiveError": true,
+      "overUnknown": true,
+      "falseComplete": false,
+      "evidence": [
+        "Raw initial and final answers identify the download delegate but treat the file_response, root authorization, requested version and archive/original decisions as an unread decisive gap.",
+        "Allowed src/documents/views.py:1388-1448 shows request/root document resolution, owner-aware root view permission, effective file selection and archive/original dispatch.",
+        "Allowed src/documents/versioning.py:140-195 shows version parameter handling; src/documents/views.py:4941-4995 shows file serving."
+      ]
+    },
+    "extraction": {
+      "initial": "none",
+      "final": "none",
+      "incorrectRules": [],
+      "wrongPremiseMappings": [],
+      "amplifiedError": false,
+      "evidence": [
+        "Anonymous packet sourceExtraction initial/final arrays are empty."
+      ]
+    },
+    "mechanism": {
+      "decisiveHelperHits": [
+        "file_response",
+        "_resolve_request_and_root_doc",
+        "_get_effective_file_doc"
+      ],
+      "irrelevantOrInvalidReads": [
+        "Repeated download and router reads consume source-tool capacity; the permissions body request is refused after 24 charged calls."
+      ],
+      "correctExcludedBranches": [
+        "Missing file/document returns 404.",
+        "Unspecified concrete grants remain unspecified."
+      ],
+      "wrongExcludedBranches": [
+        "Source-visible root authorization, version and archive behavior treated as unestablished."
+      ],
+      "justifiedResiduals": [
+        "Deployment authentication backend/proxy and actual ownership/grants."
+      ],
+      "avoidableResiduals": [
+        "Requested versus root document.",
+        "Version missing/empty/explicit/invalid.",
+        "Root permission guard.",
+        "Original/archive selection.",
+        "Version selection does not replace the root authorization resource."
+      ],
+      "checkerDetections": [],
+      "checkerFalseRejections": [],
+      "checkerMisses": [],
+      "evidence": [
+        "The anonymous packet supplies no checker statuses; independent source review cannot infer checker detection.",
+        "Request 7 sourceWindows includes the full original src/documents/views.py:1380-1505 body, 5208 bytes. The final answer does not incorporate it."
+      ]
+    },
+    "causes": [
+      "extraction-error",
+      "not-read"
+    ],
+    "notes": "The model read and was shown the decisive resolver/file_response body but omitted its semantics. The separate permission/version/serve bodies were not fully read. An empty graph has unresolved coverage and is ineligible for --previous; checked here records mechanical consistency, not bounded coverage or semantic correctness."
+  },
+  "rationale": "Keep the independent partial/over-unknown ratings and original review. Correct read provenance and helper-hit attribution with the saved request. Do not infer checker-missed from a reviewer packet that intentionally hid checker outputs, nor treat mechanical checked as source completeness.",
+  "evidence": [
+    "Retained request-7.json local sourceWindows exactly matches original evidence ev-7a12354775c2b18ac258.",
+    "Retained run.json domain.slice revision0 has no rules/dependencies and final check has sourceBound=false, evidenceCoverage=unresolved.",
+    "src/benchmarks/authorization-dsl/inquiry-reuse.ts:36 requires checked bounded footprints before restoring previous extraction.",
+    "src/task-dsl/authorization/inquiry-result.test.ts:81-83 explicitly permits mechanically checked unresolved coverage."
+  ]
+}
