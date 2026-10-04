@@ -242,6 +242,8 @@ location-routing-v1真实8/8返回，三题已显式定位但五题仍rejected�
 
 2026-10-04 source-window-budget共享修复已按上一计划完成工程验证：7预期红例及独立覆盖缺口1红例，155相关测试905断言/主与研究类型通过；首选focus+其它ready题轮转，超过2项decisive定位轮转，原候选显式refinement，整窗覆盖缺失不回退，无fit无local授权，未展示read后续可offer。structured/native按剩余累计display/剩余dispatch规划，不改实际12/24/262144边界。11冻结snapshot选窗投影118228/43532，6proposal canonical acceptance不变，0provider/source/target；只选择回放，非新prompt/答案/依赖/语义或资格。详见source-window-budget-verification.json及replay；下一立即同原作者字节普通source-window-budget-v1具名复验。
 
+2026-10-04source-window-budget实际复验11/11、14成功源码动作，31664/20708且无budget/wire终止，两个完整check/final slice均22；5题仍rejected、final只改prose。4ready题轮转，original/archive未定位，不把未ready叫公平饥饿；refinement/deferred未实际发生。原source binding缺pathKey/after/身份链接与可避免source gap继续保留；views1368-1450body已展示，versioning/urls/class/models仍可读，不从原unknown写source unavailable。独立评语与主纠正分存，累计360/USDunknown，无previous/main panel。下一共享工作计划（实施前）：写已有其它题悬空前驱不能回滚当前合法atomic entry/dependency的红例，连同same-question untouched gap、当前新/被修改节点自身悬空仍回滚、新增downstream断链仍回滚及旧拒绝不清除；用previous/current unresolved身份差及submitted target范围控制事务回滚，不放宽最终结论/源码/依赖check，不填语义字段。原proposal5另题干扰已点验，零provider复算应只改变该原子事务接受与后续对应状态，旧失败/原源/raw answers不改。聚焦红绿/相关类型后做窄独立边界复核及不同项目普通相关例子，再推进成对块。
+
 文件：新建 `inquiry-local-extraction.ts`、测试；接 inquiry-domain-runtime.ts 和现有 provider/telemetry。
 
 - [x] 给模型的局部任务包含一个 WorkItem、当前源码窗口、必要调用点/问题、明确前提；输出窄语义增量和未决依赖。

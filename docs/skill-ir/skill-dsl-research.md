@@ -1352,6 +1352,10 @@ rejected-target-directory普通复验11/11、24/24源码动作成功，17read/7s
 
 7项预期红例后共享structured/native接入剩余展示字节/剩余dispatch的整窗分配；focus保留首选修复机会，另一首选机会轮转其它ready题，超过两项decisive定位有界轮转。粗入口仍未读完且有原索引其它候选时提供显式再选择；不自动换成正确函数。完整候选及源码id/path/sha/text不改，未fit局部任务不得绑定，近期未展示窗口可在后轮展示，目录身份与普通已展示引用保留；原有自动last-two回灌由此替代。独立审查指出纯helper覆盖失败退回全部窗口，主代理按路径/hash/范围及parent-callsite补红绿后收紧为无offer；不把不一致内部fixture冒充已证模型跨文件漏洞。两项decisive同时fit无饥饿，未额外换序。155测试905断言、主/研究类型与Bun回放通过。6录制proposal accepted状态不变，11冻结snapshot整窗投影118228/重送43532，比原256089/181393少；这不是新完整prompt、模型答、依赖状态或因果质量收益，Node/tsx未宣称可运行。0新增provider，累计349；下一同原作者字节/xty模型/12provider、24tool、262144display普通source-window-budget-v1复验，unknown封存与主面板不变。
 
+### 7.41 2026-10-04：整窗普通运行收口与跨题原子回滚
+
+同原作者/源/模型/预算source-window-budget普通11/11，14成功源码动作（5read/9search/2host），0wire失败，31664display/20708resent，已到两次revision22完整check且final slice22；并未因展示预算终止。4ready题轮转，original/archive未定位无解释offer，refinement/deferred实际分支未发生。5题仍rejected/0usable/无previous；两个绑定仍缺pathKey/after，typed身份和前驱未闭合，最后只改prose不改图。独立全partial评语保留；主点验纠正“version helper范围外”的误读，versioning140-195属允许源，且views1368-1450身份body实际已读/展示却仍被原答称source gap；router/class/models可读遗漏与部署unknown分列。proposal5版本题合法atomic两项被另两题旧悬空前驱整体回滚，明确共享局部隔离缺陷，下一先红绿收紧atomic作用域，旧错误继续阻断各自结论。累计360/USD与人力unknown，不把不同轨迹字节/token减少称质量因果收益，不释放封存请求或主16面板；见source-window-budget-outcome及review/adjudication。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

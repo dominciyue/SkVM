@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "authorization-ar-independent-source-review/v1",
+  "stage": "consume-authorization-cloudflare-download-repair-source-window-budget-v1",
+  "task": "source_budget_raw_semantics",
+  "verbatim": false,
+  "answerPointers": [
+    "/initial",
+    "/final"
+  ],
+  "ratingsInitial": [
+    "partial",
+    "partial",
+    "partial",
+    "partial",
+    "partial"
+  ],
+  "ratingsFinal": [
+    "partial",
+    "partial",
+    "partial",
+    "partial",
+    "partial"
+  ],
+  "findings": [
+    {
+      "source": "src/documents/views.py:1394-1399",
+      "finding": "Omitted-version path distinguishes a version request document (returned itself) from a root request document (resolver/latest path); both answers omit exact identity behavior."
+    },
+    {
+      "source": "src/documents/views.py:1421-1426",
+      "finding": "Conditional explicit permission call skips request.user=None; reviewer notes omission, while authenticated inquiry scope must be respected."
+    },
+    {
+      "source": "src/documents/views.py:1368-1373;1429-1448",
+      "finding": "Source/archive selection and file_doc relation are partially supported; concrete byte/MIME/name logic not explained."
+    },
+    {
+      "source": "src/documents/versioning.py:140-195",
+      "finding": "Reviewer classifies absent/empty/noninteger omission as reasonable because helper is outside supplied readable range; main point-check correction below retains the disagreement."
+    }
+  ],
+  "limits": [
+    "Anonymous review receives source identity/task/raw answers/actual reads, not model/strategy/checker status.",
+    "Advisory ordinary review, not main-panel score; raw answers remain unchanged."
+  ]
+}
