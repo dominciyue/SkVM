@@ -3,7 +3,7 @@
 > 执行配置：gpt-6.1-sol / max。用户已授权本轮连续开发、必要联网与模型调用、提交并推送用户 origin；常规阶段不停下来重新询问。
 > 使用 writing-plans 编制。实施时使用 TDD、systematic-debugging 和必要验证；用户现有授权覆盖常规设计细化及可逆实现，不再等待重复设计批准。
 
-更新于 2026-10-04。状态：**in-progress；AS8/AS9 第七次读源及选择嵌套通过，外壳多字段诊断误报已修复；AS10 原失败零派发已证明，AS11–AS13 薄入口及边界检查已准备，仍待实际使用**。实际接管基线 `c90787f09087b3c79ac1d73b47f970ab928894e0`，当时工作区干净且用户远端同 SHA。分支始终 `skill-ir-aot`，只推用户 `origin/skill-ir-aot`。AR 进程结束，研究及真实使用验收仍有未达项；AS 承接责任，不回写旧结果。机器状态见 [AS status](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)。
+更新于 2026-10-05。状态：**in-progress；AS8/AS9 第九次坏稿关联实际采用但入口仍拒绝；AS10 Cloudflare普通原回答已交付且语义不完整，定位指引待复验；AS13 四份首稿已独立复核，原字节消费待办**。实际接管基线 `c90787f09087b3c79ac1d73b47f970ab928894e0`，当时工作区干净且用户远端同 SHA。分支始终 `skill-ir-aot`，只推用户 `origin/skill-ir-aot`。AR 进程结束，研究及真实使用验收仍有未达项；AS 承接责任，不回写旧结果。机器状态见 [AS status](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)。
 
 ## 一、目标与完成标准
 
@@ -173,6 +173,10 @@ AR 保留 8/16 已留首行的历史分母和所有修订。六个未运行主�
 第七次在 c16cbc62 获 8/8 响应，已正确采用嵌套选择并实际读源；新候选的外层 value 之外另有 controlDelta。原解析器只在外壳恰好一个 key 时检查 value，因而退回旧直传格式、误报根 kind，唯一修复又重犯。只读核验及主线程原响应点验后，匿名红例确认该遮蔽：只要显式外壳 value 存在即按严格外壳检查，多字段正常拒绝、给同一 Schema 位置；嵌套 discriminator 另保留允许字面值和收到值。宿主不改候选，下一次 as-wrapper-diagnostics-v1 沿 attempt-7。38 派发/36 响应、733951 已知 input+output token，美元未知；终答与源码完整性仍未通过。
 
 第八次获得11/11响应，外壳遮蔽消失但完成检查拒绝。独立核验确认两个模型错误：block 被直接放进 unit 数组；helper 使用非 current-offer 的自造 itemId。主线程另发现诊断恢复缺口：未绑定 question/handle 的错误仅以空身份保留，合法后稿无法指出它所修的旧坏稿。下一修订为每条拒绝保留 host draftId，合法 unit 可显式 repairsDraftId；只有经原 source-offer/同题与句柄检查接受的新稿才消除该编号的当前错误。坏稿与修订关联永久归档；无引用、空更新、坏修稿、跨题或伪造编号不能清错。模型反馈保留有界坏稿编号/原文及当前实际 itemId，不搬字段或凭名字补图。先匿名红绿，再沿 attempt-8 实际复验；其它独立作者工作仍推进。
+
+第九次10/10响应，坏稿编号实际反馈并被修订引用；helper被接受，入口因重复名、未接受句柄使用replace及格式外字段仍拒绝。独立点验确认诊断正确。实验helper将sourceBound=false的这种已留档模型拒绝误分为共享checker故障：仅当已交付、当前结构有效、全部semantic诊断逐项对应原拒绝记录/结果装配且完成状态已知时，将失败限于model-draft；未知请求、无法对应的诊断、运行异常仍暂停共享机制。先匿名红例，原报告/评审不改，只追加具名归类修正；不把局部机制采用写成整题成功。
+
+Cloudflare原native第二次12/12响应并交付未checked原文，模型转向bundle端点、未完成原entry候选选择。源码read提供证据但不替模型选择当前工作项；没有证据证明宿主丢失窗口。共用semantic guide补明locationTasks与tasks的区别、选后等待当前原窗口、read证据不自动成为offer，以及native workSelections必须在controlDelta内。此项按定位流程修订，禁止加入具体项目答案；沿该已知native原件再做一次具名实际复验。原task没有具体caller事实，不采纳评审中擅自添加的他人文档/无对象权限前提。
 
 ### AS10 — 两份原 skill 的普通使用
 

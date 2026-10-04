@@ -1,0 +1,184 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "gitea-create-issue",
+  "repository": "go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "sourceRoot": "source",
+  "allowedPaths": [
+    "routers/api/v1/repo",
+    "routers/api/v1/api.go",
+    "routers/api/v1/utils",
+    "modules/structs",
+    "modules/setting",
+    "modules/web",
+    "models/unit",
+    "models/perm",
+    "models/auth",
+    "models/user",
+    "models/repo",
+    "models/issues",
+    "models/organization",
+    "services/convert",
+    "services/issue",
+    "services/context"
+  ],
+  "inquiry": {
+    "schemaVersion": "authorization-inquiry/v1",
+    "mode": "conformance",
+    "questions": [
+      {
+        "id": "route-entry-authentication",
+        "request": "Locate the CreateIssue API route and trace its route-level middleware, authentication, session or token handling, and repository resolution. Determine whether an unauthenticated caller can reach the issue-creation operation and identify the exact source locations and any relevant route-registration exceptions.",
+        "principal": "Unauthenticated caller versus an authenticated API principal",
+        "resource": "The repository selected by the CreateIssue API route",
+        "operation": "Reach the issue-creation route and begin creation of an issue",
+        "entryHint": "routers/api/v1/api.go and routers/api/v1/repo; follow route registration and applicable API context or authentication middleware",
+        "premises": [
+          {
+            "text": "The requested review is limited to the supplied Gitea revision fc28937a8d772fe9e4025c9b5f24d5db4d86610b.",
+            "origin": "user"
+          },
+          {
+            "text": "The inquiry must compare authenticated repository readers with principals that have issue-unit write permission, rather than treating authentication alone as proof of authorization.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "repository-reader-qualification",
+        "request": "Determine how the source defines or establishes an authenticated repository reader for the target repository, including repository visibility, membership, permission calculation, organization or team paths, and any API-specific repository access checks. State whether the reader qualification is sufficient to satisfy the supplied policy when the issues unit is enabled.",
+        "principal": "Authenticated repository reader without issue-unit write permission",
+        "resource": "The target repository and its repository-read access decision",
+        "operation": "Read or otherwise qualify for access to the repository as a reader before creating an issue",
+        "entryHint": "models/perm, models/repo, models/user, models/organization, models/auth, routers/api/v1/utils, services/context, and route callers",
+        "premises": [
+          {
+            "text": "Under the independently supplied current policy, any authenticated repository reader may create an issue when the issues unit is enabled.",
+            "origin": "user"
+          },
+          {
+            "text": "Issue-unit write permission is not required by the independently supplied current policy.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "issue-write-comparison",
+        "request": "Trace every check that distinguishes a repository reader from a principal with issue write permission or a higher repository permission. Identify whether CreateIssue requires, infers, bypasses, or accidentally substitutes issue-unit write permission, and compare that behavior with the supplied policy.",
+        "principal": "Authenticated repository reader; authenticated principal with issue-unit write permission; authenticated principal with neither issue-unit write permission nor another elevated permission",
+        "resource": "The repository's issue unit and issue-creation authorization decision",
+        "operation": "Create a new issue",
+        "entryHint": "models/perm, models/unit, models/repo, routers/api/v1/repo, and any shared permission helpers reached by the route",
+        "premises": [
+          {
+            "text": "The conformance comparison must explicitly include both ordinary authenticated repository readers and principals who possess issue-unit write permission.",
+            "origin": "user"
+          },
+          {
+            "text": "A source check that requires issue-unit write permission would be stricter than the supplied policy unless an applicable exception is established.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "issues-unit-enabled",
+        "request": "Identify how the issues unit is represented, enabled, disabled, inherited, or checked for the target repository, and determine where that unit state participates in the CreateIssue authorization path and creation flow. Distinguish a disabled issue unit from a permission denial and identify behavior when unit configuration is absent or changed by deployment settings.",
+        "principal": "Authenticated repository reader and authenticated principal with issue-unit write permission",
+        "resource": "The repository's issues unit configuration",
+        "operation": "Create an issue when the issues unit is enabled or disabled",
+        "entryHint": "models/unit, models/repo, modules/setting, routers/api/v1/repo, and issue service/model callers",
+        "premises": [
+          {
+            "text": "The supplied policy conditions permission to create an issue on the issues unit being enabled.",
+            "origin": "user"
+          },
+          {
+            "text": "The review must not conflate an unavailable or disabled issues unit with a requirement for issue-unit write permission.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "repository-and-issue-unit-checks",
+        "request": "Trace repository-level, unit-level, organization-level, and issue-level checks between route entry and the authorization decision. Include checks implemented in shared context, permission, unit, repository, or issue helpers rather than stopping at endpoint-local code. Identify any ordering or short-circuit behavior that changes which principals can proceed.",
+        "principal": "Authenticated repository reader and authenticated principal with issue-unit write permission",
+        "resource": "The target repository, its issues unit, and the prospective issue resource",
+        "operation": "Pass all authorization and eligibility checks for issue creation",
+        "entryHint": "Follow the complete reachable call path across routers/api/v1, services/context, models/perm, models/unit, models/repo, models/issues, and related helpers in allowedPaths",
+        "premises": [
+          {
+            "text": "Relevant exceptions must be identified instead of assuming endpoint-local checks are the whole authorization path.",
+            "origin": "user"
+          },
+          {
+            "text": "The requested result concerns effective behavior across the reachable source path, including shared helpers and alternate checks within the supplied scope.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "creation-effect-data-flow",
+        "request": "Trace the successful issue-creation effect from the CreateIssue handler through conversion, service, model, or repository calls. Establish which authorization decision gates persistence, what repository and actor identity are used, and whether any later check can reject or permit the effect. Record the exact source locations for the effect and its gate.",
+        "principal": "Authenticated repository reader attempting creation, including one without issue-unit write permission",
+        "resource": "The newly created issue and the repository in which it is persisted",
+        "operation": "Persist a new issue and associated metadata after the API request",
+        "entryHint": "routers/api/v1/repo, services/convert, services/issue, models/issues, models/repo, and related context or permission callers",
+        "premises": [
+          {
+            "text": "The review must trace the issue creation effect, not only the HTTP response or an endpoint-local authorization predicate.",
+            "origin": "user"
+          },
+          {
+            "text": "A principal satisfying the supplied policy should be evaluated through to the persistence effect when the issues unit is enabled.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "exceptions-and-alternate-paths",
+        "request": "Identify relevant exceptions or alternate paths that could alter conformance, including administrators, repository owners, bots or API tokens, organization-owned repositories, private versus public repositories, disabled units, imported or converted issues, endpoint variants, shared middleware, and deployment configuration. For each, state whether it is in scope, source-supported, or outside the supplied source limits.",
+        "principal": "Authenticated human user, administrator, repository owner, organization or team principal, bot or token principal, and unauthenticated caller where relevant",
+        "resource": "The target repository, issues unit, and issue-creation endpoint or equivalent creation path",
+        "operation": "Obtain authorization to create an issue or cause an issue-creation effect",
+        "entryHint": "Search only the supplied allowedPaths and distinguish direct CreateIssue reachability from alternate issue creation paths",
+        "premises": [
+          {
+            "text": "The natural request expressly asks for relevant exceptions and does not permit assuming the endpoint-local checks are the whole path.",
+            "origin": "user"
+          },
+          {
+            "text": "The conclusion must state precise source or deployment limits where behavior depends on code outside allowedPaths, runtime configuration, database state, or an unexamined entry point.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "policy-conformance-and-limits",
+        "request": "Give a conformance determination for the supplied policy separately for an authenticated repository reader without issue-unit write permission and for a principal with issue-unit write permission. Explain whether the source behavior is compliant, stricter, broader, or indeterminate; cite the controlling checks and creation effect; and state precise source, configuration, deployment, and alternate-entry-point limits without inventing source-derived facts.",
+        "principal": "Authenticated repository reader without issue-unit write permission versus authenticated principal with issue-unit write permission",
+        "resource": "The target repository's issues unit and CreateIssue authorization/creation behavior",
+        "operation": "Create an issue under the independently supplied policy",
+        "entryHint": "Synthesize the traced route, shared checks, unit state, exceptions, and persistence effect from the allowed source scope",
+        "premises": [
+          {
+            "text": "The independent current policy is authoritative for this conformance inquiry and must be preserved exactly as supplied.",
+            "origin": "user"
+          },
+          {
+            "text": "The answer must compare reader access and issue-unit write permission rather than report only whether the route returns success for one principal.",
+            "origin": "user"
+          },
+          {
+            "text": "No source-derived known values, complete answer, control graph, or expected source behavior is supplied by the host; those must be established from the permitted source during inquiry execution.",
+            "origin": "user"
+          }
+        ]
+      }
+    ],
+    "policy": {
+      "text": "Any authenticated repository reader may create an issue when the issues unit is enabled. Issue-unit write permission is not required by this policy.",
+      "origin": "user",
+      "location": "experimental-user-brief:gitea-issue-policy/as-reader-v2"
+    }
+  }
+}

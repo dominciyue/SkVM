@@ -1583,6 +1583,12 @@ OWUI新臂三次wire坏稿均在12响应内处理；只读三个原窗口，admi
 
 **AS13 作者的初步实际证据。** 同一完整Cloudflare原skill产出原/变两稿，共7+5次已知响应；独立只读核验确认自然任务与当前政策义务覆盖、无预填答案/图、真实工具仅目录/读取及作者文件写入，可按原字节消费。GitHub原稿又获5/5响应并通过公开格式/scope/policy检查，变化稿和下游消费待办。作者完成只代表声明产物，不是授权回答。至此49分析派发/47响应加17作者调用，共66/64，1060964已知input+output token，美元及真人分钟未知；原首答、修订和作者成本分列。
 
+**AS9 第九次及暂停归类。** 4fec382c获10/10响应；host坏稿ID实际反馈且被repairsDraftId引用，helper接受，入口仍因重复步骤名、未接受句柄使用replace、call上格式外authorizedBy拒绝。独立原件核验与主裁定确认拒绝正确，未提升完整交付。实验helper误把没有source-bound entry的这种已归档模型拒绝算作共享checker故障。匿名红绿后，仅对已知、已交付、结构有效且全部当前semantic诊断逐项对应拒绝稿/装配的情况限于model-draft；不对应的诊断、异常和unknown仍暂停共享机制。49focused pass/196断言，主及AS类型检查通过，两原报告零调用重判，原评审保留。
+
+**AS10 原ordinary交付与定位流程。** 同版本Cloudflare原任务12/12响应并最终交付raw prose；模型未完成原entry候选选择，又用replace提交未接受handle，检查拒绝。原答错误转向bundle endpoint而遗漏指定ShareLinkViewSet/ShareLinkSerializer。主线程读原输入及serializer/helper纠正独立评审中自加caller事实，原用户未给具体权限前提。取证成功不等于有当前解释offer；没有证据证明宿主丢窗。共享guide补明locationTasks→嵌套workSelections→下一当前原窗口tasks，不自动猜入口、不提供项目答案；沿已知native原件再做一次具名复验。源码语义与整题完整仍未通过。
+
+**AS13 四稿及原件字节。** GitHub变化稿7/7，四份作者首稿共24/24均格式valid，独立复核确认问题/政策覆盖与剩余原skill职责，原字节消费待办。累计95派发/93响应、1385557 input/103864 output/401817 cache-read，美元与人力未知，targetexec0。4fec382c修正本轮结果树Git属性，恢复被text转换损坏的原gzip；202 tracked文件与local原字节一致，3gzip均有效。只修本轮原件保留，不改历史protected结果或将首答覆盖成修后结果。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

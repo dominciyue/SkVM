@@ -1,0 +1,232 @@
+
+skvm run v0.1.4
+  Adapter  bare-agent (built-in)
+  Model    xty/gpt-5.6-sol via openai-compatible (https://svip.xty.app/v1)
+  Task     natural prompt
+  Skill    D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\cloudflare-security-audit\SKILL.md
+  WorkDir  D:\skill优化\project-maintenance\runs\authorization-semantic-lowering-v1\native-cloudflare-security-audit-paperless-share-create-original\attempt-2
+  Cache    D:\skill优化\SkVM\.skvm
+
+01:03:15.984 [INFO ] [run] Run task natural-2a08ba88a975: adapter=bare-agent model=xty/gpt-5.6-sol workDir=D:\skill优化\project-maintenance\runs\authorization-semantic-lowering-v1\native-cloudflare-security-audit-paperless-share-create-original\attempt-2
+01:03:15.989 [INFO ] [conv-log] Conversation logging enabled: D:\skill优化\SkVM\.skvm\log\20261005-010315-run
+✓ Task natural-2a08ba88a975 complete  (10m 2s)
+
+=== Run Complete ===
+Task: natural-2a08ba88a975
+Skill: D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\cloudflare-security-audit\SKILL.md
+Model: xty/gpt-5.6-sol
+Adapter: bare-agent
+WorkDir: D:\skill优化\project-maintenance\runs\authorization-semantic-lowering-v1\native-cloudflare-security-audit-paperless-share-create-original\attempt-2
+Duration: 601.9s
+Tokens: in=171132 out=10226
+
+Final output:
+## Bounded authorization review
+
+**Target:** `paperless-ngx/paperless-ngx`  
+**Source ref:** `126ec414a8b65158368653a2604ae58415e43103`  
+**Scope:** Source-visible share creation only. No target execution, live-service probing, network calls, deployment inspection, or patching was performed.  
+**Confidence:** High for the directly shown entrypoint behavior; unresolved for the inherited permission implementation and concrete caller/document facts.
+
+### Policy under review
+
+> A caller creating a document share must have `view_document` permission for the exact shared document. A global `add_sharelink` permission or knowing a document ID alone is insufficient.
+
+---
+
+## Source behavior
+
+### 1. The relevant create endpoint is the bundle endpoint
+
+The source contains two related viewsets:
+
+- `ShareLinkViewSet`, for individual `ShareLink` objects, with `ShareLinkSerializer`.
+- `ShareLinkBundleViewSet`, for creating a share containing one or more documents, with `ShareLinkBundleSerializer`.
+
+The individual `ShareLinkViewSet` declares:
+
+```python
+permission_classes = (IsAuthenticated, PaperlessObjectPermissions)
+```
+
+and uses `ShareLinkSerializer` (`src/documents/views.py:4696–4716`, evidence `ev-0bc3587a54412d97d992`).
+
+For the requested operation—creating a share for an existing document—the decisive creation path is the `create()` method of `ShareLinkBundleViewSet`, not merely the class declaration of `ShareLinkViewSet`.
+
+### 2. Upstream endpoint permissions
+
+`ShareLinkBundleViewSet` also declares:
+
+```python
+permission_classes = (IsAuthenticated, PaperlessObjectPermissions)
+```
+
+For the `create` action, it additionally appends:
+
+```python
+ViewDocumentsPermissions()
+```
+
+This is shown in `get_permissions()` at `src/documents/views.py:4742–4757` (evidence `ev-0bc3587a54412d97d992`).
+
+Therefore, the source-visible upstream controls are:
+
+1. authentication;
+2. the inherited/object-permission control;
+3. `ViewDocumentsPermissions` specifically for bundle creation.
+
+The exact semantics of the inherited permission classes are not fully available in the bounded source evidence, so their complete role/group/object-permission behavior remains unresolved.
+
+### 3. The requested document IDs are resolved to actual `Document` objects
+
+The create method:
+
+1. obtains the serializer;
+2. calls `serializer.is_valid(raise_exception=True)`;
+3. reads `serializer.validated_data["document_ids"]`;
+4. queries `Document.objects.filter(pk__in=document_ids)`;
+5. computes the IDs actually found;
+6. rejects any requested IDs that do not correspond to a `Document`.
+
+This occurs at `src/documents/views.py:4767–4786` (evidence `ev-0bc3587a54412d97d992`).
+
+Thus, document-ID knowledge alone does not create a share. The IDs are resolved to concrete `Document` objects, and nonexistent IDs are rejected before persistence.
+
+### 4. The exact-document authorization check occurs before save
+
+After resolving the documents, the endpoint computes:
+
+```python
+permitted_ids = set(permitted_document_ids(request.user))
+```
+
+It then checks every resolved document:
+
+```python
+for document in documents:
+    if document.pk not in permitted_ids:
+        raise ValidationError(...)
+```
+
+The check is at `src/documents/views.py:4787–4797` (evidence `ev-0bc3587a54412d97d992`).
+
+This is a per-document membership check. If any requested document is not in the permitted set, the request is rejected before `serializer.save()`.
+
+The wrapper is defined at `src/documents/permissions.py:460–474` (evidence `ev-a8405ec080d804ba125d`). Its documented default is:
+
+```python
+perm: str = "view_document"
+```
+
+and it delegates to:
+
+```python
+permitted_object_ids(user, Document, perm, ...)
+```
+
+The shown wrapper therefore aligns with the supplied policy: the relevant permission is `view_document`, applied to `Document` objects, rather than merely a global share-link permission.
+
+However, the complete implementation of `permitted_object_ids()` and its inherited permission expansion was not established in the available source window. That prevents independently confirming all underlying group, role, object-permission, unrestricted-user, and superuser cases.
+
+### 5. The protected effect uses the same resolved documents
+
+Only after all per-document checks pass does the endpoint construct the ordered document list and call:
+
+```python
+bundle = serializer.save(
+    owner=request.user,
+    documents=ordered_documents,
+)
+```
+
+This is at `src/documents/views.py:4799–4805` (evidence `ev-0bc3587a54412d97d992`).
+
+The bundle is then put into pending state, queued for processing, and returned with HTTP 201 (`src/documents/views.py:4806–4832`).
+
+The object being authorized—the resolved `Document` objects—is the object subsequently placed into the created `ShareLinkBundle`. The source does not show a check only on the new bundle or only on a global `add_sharelink` model permission.
+
+---
+
+## Policy assessment
+
+### Directly shown source conclusion
+
+**The source behavior is materially aligned with the supplied policy.**
+
+Specifically, the source shows that:
+
+- the request must be authenticated;
+- bundle creation has an additional `ViewDocumentsPermissions` control;
+- requested IDs are resolved to actual `Document` objects;
+- nonexistent documents are rejected;
+- every resolved document must be present in `permitted_document_ids(request.user)`;
+- the permission wrapper documents `view_document` as its default permission;
+- the bundle is saved only after those document-level checks pass.
+
+Therefore, **document existence, knowing a document ID, or a global share-link permission is not shown as sufficient**.
+
+### Concrete conformance remains unresolved
+
+For a particular caller and document, the final authorization result cannot be determined from the supplied facts because no concrete caller identity, document ID, or permission assignment was provided.
+
+Full conformance also remains unresolved because:
+
+1. the complete inherited implementation of `permitted_object_ids()` was not independently traced;
+2. the concrete caller’s `view_document` permission on the exact document is unknown;
+3. deployed routing and permission configuration were not verified;
+4. the complete `ShareLinkBundleSerializer` implementation was not fully interpreted.
+
+Accordingly, this review should not claim that every deployment and every caller is definitively compliant. The supported conclusion is:
+
+> **The shown create path enforces an exact-document permission-set check whose documented default is `view_document`, and it rejects unauthorized documents before creating the share bundle. The policy is source-aligned, but concrete and inherited-permission conformance remains unresolved.**
+
+---
+
+## Relevant serializer path
+
+The endpoint uses `ShareLinkBundleSerializer` for both input validation and the final response:
+
+- `self.get_serializer(data=request.data)`
+- `serializer.is_valid(raise_exception=True)`
+- `serializer.validated_data["document_ids"]`
+- `serializer.save(owner=request.user, documents=ordered_documents)`
+- `self.get_serializer(bundle)` for the response
+
+The relevant serializer source window is `src/documents/serialisers.py:2770–2985` (evidence `ev-a2c0fc3305634ab41d3f`; related evidence `ev-a21bc3436d1f3ed1270c` and `ev-093c1dcb91fbd3b40776`).
+
+The entrypoint evidence establishes that authorization is performed by the view **before** the serializer save receives the resolved documents. The full serializer-side validation and creation semantics—such as duplicate-ID handling, empty-list behavior, or any serializer-side mutation—were not fully established here and should not be inferred.
+
+---
+
+## Result by source-visible path
+
+### Missing document ID
+
+- **Source result:** Deny.
+- **Behavior:** A requested ID absent from the `Document` query causes a validation error before save.
+- **Policy relationship:** Consistent with the policy; existence alone would not establish permission.
+
+### Resolved document not in `permitted_document_ids(request.user)`
+
+- **Source result:** Deny.
+- **Behavior:** The loop raises a validation error before `serializer.save()`.
+- **Policy relationship:** Consistent with the policy’s exact-document requirement.
+- **Remaining uncertainty:** The complete inherited construction of `permitted_document_ids` was not fully traced.
+
+### All resolved documents in the permitted set
+
+- **Source result:** Allow.
+- **Behavior:** The bundle is saved with the exact ordered documents and `request.user` as owner, then queued and returned with HTTP 201.
+- **Policy relationship:** Allowed only insofar as the permitted set represents `view_document` permission for each exact document, as documented by the wrapper.
+
+---
+
+## Missing facts and remaining duties
+
+1. **Inherited permission resolver:** Read and verify the full `permitted_object_ids()` implementation and its permission helpers, including group, role, object-permission, unrestricted-user, and superuser branches.
+2. **Concrete authorization facts:** Establish whether the actual caller has `view_document` on every exact requested `Document`.
+3. **Routing and deployment:** Verify that the deployed route for document-share creation reaches this viewset and that authentication and permission configuration are not overridden.
+4. **Serializer details:** Read the complete `ShareLinkBundleSerializer` implementation if duplicate IDs, empty document lists, or serializer-side object changes affect the decision.
+5. **No live validation performed:** No deployed endpoint or real principal was contacted.
+
+The authorization tool’s final semantic check was rejected and no checked result was recorded. The conclusions above are therefore explicitly **raw, source-derived conclusions**, not a tool-certified final authorization result.

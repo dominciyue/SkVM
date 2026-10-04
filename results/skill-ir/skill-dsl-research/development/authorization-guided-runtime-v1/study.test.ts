@@ -66,6 +66,22 @@ test("a delivered source-bound inconsistent model draft remains a failed row wit
     expect(api.mechanicalReview(report).failure.components).toEqual(["checker", "delivery"])
   }
 })
+test("archived rejected semantic candidates are row failures even when no source-bound entry was accepted", () => {
+  const diagnostic = { code: "semantic-duplicate", path: "semanticBlocks.q.entry.steps", message: "Semantic names must be unique in this local scope.", severity: "error" }
+  const failed = { status: "completed-with-diagnostics", final: { questions: [{ questionId: "q" }] }, validation: { valid: false, diagnostics: [diagnostic] }, domain: { check: { structureValid: true, sourceBound: false, ruleConsistency: false, diagnostics: [diagnostic] }, semantic: { records: [{ accepted: false, diagnostics: [diagnostic] }], assemblies: [] } } }
+  expect(api.mechanicalReview(failed).failure).toMatchObject({ category: "semantic-extraction", components: ["model-draft"] })
+  const resultDiagnostic = { code: "semantic-path-missing", path: "q.invented-path", message: "Use a CURRENT feasible host path id", severity: "error" }
+  const native = { ...failed, final: undefined, finalProse: "Partial source answer; check was rejected.", domain: { ...failed.domain, closed: true, check: { ...failed.domain.check, diagnostics: [diagnostic, resultDiagnostic] }, semantic: { ...failed.domain.semantic, assemblies: [{ derived: { questions: [{ questionId: "q" }] }, diagnostics: [resultDiagnostic] }] } } }
+  expect(api.mechanicalReview(native).failure.components).toEqual(["model-draft"])
+  for (const report of [
+    { ...failed, domain: { ...failed.domain, semantic: { records: [], assemblies: [] } } },
+    { ...failed, validation: { ...failed.validation, diagnostics: [{ ...diagnostic, message: "Unmatched runtime failure" }] } },
+    { ...failed, error: "Unexpected execution failure" },
+    { ...failed, final: undefined },
+    { ...native, finalProse: "" },
+    { ...failed, domain: { ...failed.domain, check: { ...failed.domain.check, structureValid: false } } },
+  ]) expect(api.mechanicalReview(report).failure.components).toEqual(["checker", "delivery"])
+})
 test("a repair identity only reopens its own retained attempt and cannot bypass another shared defect", async () => {
   const root = await temp(), execute = async () => ({ status: "completed", telemetry: { providerCalls: 1 } })
   await api.developRows(root, [row("first"), row("other")], options({ execute, evaluate: async () => ({ failure: { category: "schema/wire", rootCause: "separate retained defect", components: ["wire"] } }) }))

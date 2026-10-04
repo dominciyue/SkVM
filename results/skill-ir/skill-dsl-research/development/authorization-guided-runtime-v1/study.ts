@@ -52,7 +52,13 @@ export function plannedRows(): Row[] {
 export function mechanicalReview(report: any): Review {
   if (["completed", "valid"].includes(report.status) && report.validation?.valid !== false) return {}
   const status = String(report.status ?? "missing-report"), diagnostic = report.error ?? report.validation?.diagnostics?.[0]?.code ?? status
-  if (status === "completed-with-diagnostics" && !report.error && Array.isArray(report.final?.questions) && report.final.questions.length && report.validation?.valid === false && report.domain?.check?.structureValid === true && report.domain.check.sourceBound === true && report.domain.check.ruleConsistency === false)
+  const semantic = report.domain?.semantic, check = report.domain?.check
+  const archivedDiagnostics = [...(semantic?.records ?? []).filter((r: any) => r.accepted === false).flatMap((r: any) => r.diagnostics ?? []), ...(semantic?.assemblies ?? []).flatMap((a: any) => a.diagnostics ?? [])]
+  const currentDiagnostics = [...(report.validation?.diagnostics ?? []), ...(check?.diagnostics ?? [])]
+  const rejectedCandidates = currentDiagnostics.length > 0 && currentDiagnostics.every((d: any) => String(d.code).startsWith("semantic-") && archivedDiagnostics.some((a: any) => isDeepStrictEqual(a, d))) && !hasUnknownAuthorizationCompletion(report)
+  const inquiryDelivered = Array.isArray(report.final?.questions) && report.final.questions.length > 0
+  const nativeDelivered = typeof report.finalProse === "string" && report.finalProse.trim().length > 0 && report.domain?.closed === true && (semantic?.assemblies ?? []).some((a: any) => Array.isArray(a.derived?.questions) && a.derived.questions.length > 0)
+  if (status === "completed-with-diagnostics" && !report.error && report.validation?.valid === false && check?.structureValid === true && check.ruleConsistency === false && (inquiryDelivered && check.sourceBound === true || rejectedCandidates && (inquiryDelivered || nativeDelivered)))
     return { failure: { category: "semantic-extraction", rootCause: `${status}: ${diagnostic}`, components: ["model-draft"] } }
   const category = /timeout|unavailable|unknown/.test(status) || /ProviderNetworkError|network error|Unable to connect/.test(String(diagnostic)) ? "infrastructure" : /budget/.test(status) ? "context/budget" : /transport|schema/.test(status + diagnostic) ? "schema/wire" : "state/checker"
   return { failure: { category, rootCause: `${status}: ${diagnostic}`, components: category === "state/checker" ? ["checker", "delivery"] : ["wire", "source", "delivery"] } }
