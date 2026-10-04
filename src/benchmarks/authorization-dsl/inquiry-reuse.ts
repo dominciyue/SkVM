@@ -1,5 +1,5 @@
 import { isDeepStrictEqual } from "node:util"
-import { ControlSliceDeltaSchema, createControlSlice, mergeControlSlice, isGuidedInquiryStrategy, canonicalControl, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
+import { ControlSliceDeltaSchema, createControlSlice, mergeControlSlice, isGuidedInquiryStrategy, isSemanticInquiryStrategy, canonicalControl, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
 import { checkControlConclusions } from "../../task-dsl/authorization/control-conclusion.ts"
 import { validateAuthorizationInquiryResult } from "../../task-dsl/authorization/inquiry-result.ts"
@@ -48,10 +48,10 @@ export function planInquiryReuse(options: {
     const previousProgram = compileAuthorizationInquiry(old.inquiry!)
     const context = { questionIds: previousProgram.questions.map(q => q.id), shownEvidenceIds: (prior.evidence ?? []).map(e => e.id) }
     const semanticUnits = prior.domain?.semantic?.units
-    if (options.currentStrategy === "semantic-flow-v1") {
+    if (isSemanticInquiryStrategy(options.currentStrategy)) {
       if (!semanticUnits?.length) throw new Error("Missing semantic units")
-      for (const { questionId, evidenceIds, ...unit } of semanticUnits) { SemanticBlockSchema.parse(unit); if (!old.inquiry!.questions.some(q => q.id === questionId) || !evidenceIds.length) throw new Error("Unbound semantic unit") }
-      const lowered = lowerSemanticFlow(semanticUnits)
+      for (const { questionId, evidenceIds, source: _source, ...unit } of semanticUnits) { SemanticBlockSchema.parse(unit); if (!old.inquiry!.questions.some(q => q.id === questionId) || !evidenceIds.length) throw new Error("Unbound semantic unit") }
+      const lowered = lowerSemanticFlow(semanticUnits, { compositional: options.currentStrategy === "focused-closure-v1" })
       if (lowered.diagnostics.length || canonicalControl(lowered.delta.rules) !== canonicalControl(slice.rules.filter(r => r.sourceOrigin).map(content))) throw new Error("Semantic/canonical footprint mismatch")
     }
     const original = ControlSliceDeltaSchema.parse({ schemaVersion: slice.schemaVersion, rules: slice.rules.map(content), dependencies: slice.dependencies.map(content), bindings: slice.bindings.map(content), policyRules: slice.policyRules.map(content) })

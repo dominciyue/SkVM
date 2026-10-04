@@ -60,8 +60,8 @@ export function applySemanticBlocks(previous: BoundSemanticBlock[], raw: unknown
   return { units, records, diagnostics }
 }
 
-export function lowerIntoControlSlice(previous: ControlSlice, units: BoundSemanticBlock[], program: AuthorizationInquiryProgram, context: Parameters<typeof mergeControlSlice>[3]) {
-  const lowered = lowerSemanticFlow(units), base = structuredClone(previous)
+export function lowerIntoControlSlice(previous: ControlSlice, units: BoundSemanticBlock[], program: AuthorizationInquiryProgram, context: Parameters<typeof mergeControlSlice>[3], compositional = false) {
+  const lowered = lowerSemanticFlow(units, { compositional }), base = structuredClone(previous)
   // Replace only host-owned semantic expansions. Raw canonical/other question facts stay intact.
   base.rules = base.rules.filter(r => !r.sourceOrigin)
   base.dependencies = base.dependencies.filter(d => !d.key.startsWith("sem-"))

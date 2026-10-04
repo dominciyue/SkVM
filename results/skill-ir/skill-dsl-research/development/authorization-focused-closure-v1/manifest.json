@@ -1,0 +1,545 @@
+{
+  "schemaVersion": "authorization-at-manifest/v1",
+  "development": "adaptive-exposed",
+  "testedModel": "xty/gpt-5.6-sol",
+  "cachePath": "D:\\skill优化\\SkVM\\.skvm",
+  "baselineRevision": "9c86e9eb510b929da139eb128273ba4442e0ec58",
+  "budgets": {
+    "perCallTimeoutMs": 300000,
+    "sessionTimeoutMs": 1200000,
+    "maxDispatches": 24,
+    "maxToolCalls": 48,
+    "maxDisplayBytes": 524288,
+    "maxFiles": 512,
+    "maxReadBytes": 8388608,
+    "maxTokens": 6000
+  },
+  "authorConsumerBudgets": {
+    "perCallTimeoutMs": 300000,
+    "sessionTimeoutMs": 1200000,
+    "maxDispatches": 32,
+    "maxToolCalls": 48,
+    "maxDisplayBytes": 524288,
+    "maxFiles": 512,
+    "maxReadBytes": 8388608,
+    "maxTokens": 6000
+  },
+  "tasks": [
+    {
+      "id": "owui-ingestion",
+      "admission": "eligible",
+      "inputFile": "model/inputs/owui-ingestion.json",
+      "inputSha256": "43dcfc2762912ab7ab68f56a52b832086971ca886a5b976952a514e21d12136d",
+      "originalInput": "../authorization-domain-execution-v1/model/inputs/owui-ingestion.json",
+      "originalInputSha256": "bc8342544f96f6d2ef2563f634552893cc4595c51348a03ae64c37ca598a26bf",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "allowedPaths": [
+        "backend/open_webui"
+      ],
+      "inputChanges": [
+        "sourceRoot mechanical rebasing only"
+      ],
+      "originalQuestionsAndPolicyPreserved": true
+    },
+    {
+      "id": "paperless-download",
+      "admission": "eligible",
+      "inputFile": "model/inputs/paperless-download.json",
+      "inputSha256": "faae62b376b15b2b6cb67b1f50d08891548be9841ff3befbf2e9ae996f9a4829",
+      "originalInput": "../authorization-domain-execution-v1/model/inputs/paperless-download.json",
+      "originalInputSha256": "fa503cc956bbf5444433ca72dbfbb94a5433d7a4c7436be36b3346406f85b757",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "allowedPaths": [
+        "src/documents",
+        "src/paperless/urls.py"
+      ],
+      "inputChanges": [
+        "sourceRoot mechanical rebasing only"
+      ],
+      "originalQuestionsAndPolicyPreserved": true
+    },
+    {
+      "id": "paperless-share-create",
+      "admission": "eligible",
+      "inputFile": "model/inputs/paperless-share-create.json",
+      "inputSha256": "a5292e5c47959fb793ae687ef0f4a850c4a0d2d2f4a5c2c19c38e21c2f80ddff",
+      "originalInput": "../authorization-domain-execution-v1/model/inputs/paperless-share-create.json",
+      "originalInputSha256": "2afc6e760bf07fee92b43e0cca3e655da506a9ab31dc25054d3c6b1eb83fb8c2",
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "allowedPaths": [
+        "src/documents",
+        "src/paperless/urls.py"
+      ],
+      "inputChanges": [
+        "sourceRoot mechanical rebasing only"
+      ],
+      "originalQuestionsAndPolicyPreserved": true
+    },
+    {
+      "id": "gitea-create-issue",
+      "admission": "eligible",
+      "inputFile": "model/inputs/gitea-create-issue.json",
+      "inputSha256": "2166cd5aa75719efd1829e64598bb9688bae72a46206251c742a645ac7db2a3a",
+      "originalInput": "../authorization-domain-execution-v1/model/inputs/gitea-create-issue.json",
+      "originalInputSha256": "1f57aac7fcc197e33c0f071f99cba911579665d09f5975c94e626dd0542d0e87",
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "allowedPaths": [
+        "routers/api/v1/repo",
+        "routers/api/v1/api.go",
+        "routers/api/v1/utils",
+        "modules/structs",
+        "modules/setting",
+        "modules/web",
+        "models/unit",
+        "models/perm",
+        "models/auth",
+        "models/user",
+        "models/repo",
+        "models/issues",
+        "models/organization",
+        "services/convert",
+        "services/issue",
+        "services/context"
+      ],
+      "inputChanges": [
+        "sourceRoot mechanical rebasing only"
+      ],
+      "originalQuestionsAndPolicyPreserved": true
+    }
+  ],
+  "arms": [
+    {
+      "studyArm": "M-L",
+      "method": "M",
+      "strategy": "legacy"
+    },
+    {
+      "studyArm": "M-F",
+      "method": "M",
+      "strategy": "focused-closure-v1"
+    },
+    {
+      "studyArm": "D-F",
+      "method": "D1",
+      "strategy": "focused-closure-v1"
+    }
+  ],
+  "rows": [
+    {
+      "id": "quality-owui-ingestion-M-L",
+      "task": "owui-ingestion",
+      "kind": "quality",
+      "studyArm": "M-L",
+      "method": "M",
+      "strategy": "legacy",
+      "inputFile": "model/inputs/owui-ingestion.json",
+      "admission": "eligible",
+      "components": [
+        "wire",
+        "source",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-owui-ingestion-M-F",
+      "task": "owui-ingestion",
+      "kind": "quality",
+      "studyArm": "M-F",
+      "method": "M",
+      "strategy": "focused-closure-v1",
+      "inputFile": "model/inputs/owui-ingestion.json",
+      "admission": "eligible",
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "focus",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-owui-ingestion-D-F",
+      "task": "owui-ingestion",
+      "kind": "quality",
+      "studyArm": "D-F",
+      "method": "D1",
+      "strategy": "focused-closure-v1",
+      "inputFile": "model/inputs/owui-ingestion.json",
+      "admission": "eligible",
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "focus",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-paperless-download-D-F",
+      "task": "paperless-download",
+      "kind": "quality",
+      "studyArm": "D-F",
+      "method": "D1",
+      "strategy": "focused-closure-v1",
+      "inputFile": "model/inputs/paperless-download.json",
+      "admission": "eligible",
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "focus",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-paperless-download-M-F",
+      "task": "paperless-download",
+      "kind": "quality",
+      "studyArm": "M-F",
+      "method": "M",
+      "strategy": "focused-closure-v1",
+      "inputFile": "model/inputs/paperless-download.json",
+      "admission": "eligible",
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "focus",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-paperless-download-M-L",
+      "task": "paperless-download",
+      "kind": "quality",
+      "studyArm": "M-L",
+      "method": "M",
+      "strategy": "legacy",
+      "inputFile": "model/inputs/paperless-download.json",
+      "admission": "eligible",
+      "components": [
+        "wire",
+        "source",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-paperless-share-create-M-L",
+      "task": "paperless-share-create",
+      "kind": "quality",
+      "studyArm": "M-L",
+      "method": "M",
+      "strategy": "legacy",
+      "inputFile": "model/inputs/paperless-share-create.json",
+      "admission": "eligible",
+      "components": [
+        "wire",
+        "source",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-paperless-share-create-M-F",
+      "task": "paperless-share-create",
+      "kind": "quality",
+      "studyArm": "M-F",
+      "method": "M",
+      "strategy": "focused-closure-v1",
+      "inputFile": "model/inputs/paperless-share-create.json",
+      "admission": "eligible",
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "focus",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-paperless-share-create-D-F",
+      "task": "paperless-share-create",
+      "kind": "quality",
+      "studyArm": "D-F",
+      "method": "D1",
+      "strategy": "focused-closure-v1",
+      "inputFile": "model/inputs/paperless-share-create.json",
+      "admission": "eligible",
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "focus",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-gitea-create-issue-D-F",
+      "task": "gitea-create-issue",
+      "kind": "quality",
+      "studyArm": "D-F",
+      "method": "D1",
+      "strategy": "focused-closure-v1",
+      "inputFile": "model/inputs/gitea-create-issue.json",
+      "admission": "eligible",
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "focus",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-gitea-create-issue-M-F",
+      "task": "gitea-create-issue",
+      "kind": "quality",
+      "studyArm": "M-F",
+      "method": "M",
+      "strategy": "focused-closure-v1",
+      "inputFile": "model/inputs/gitea-create-issue.json",
+      "admission": "eligible",
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "focus",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-gitea-create-issue-M-L",
+      "task": "gitea-create-issue",
+      "kind": "quality",
+      "studyArm": "M-L",
+      "method": "M",
+      "strategy": "legacy",
+      "inputFile": "model/inputs/gitea-create-issue.json",
+      "admission": "eligible",
+      "components": [
+        "wire",
+        "source",
+        "delivery"
+      ]
+    },
+    {
+      "id": "debug-paperless-share-create-D-F",
+      "task": "paperless-share-create",
+      "kind": "debug",
+      "studyArm": "D-F",
+      "method": "D1",
+      "strategy": "focused-closure-v1",
+      "inputFile": "model/inputs/paperless-share-create.json",
+      "admission": "eligible",
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "focus",
+        "delivery"
+      ]
+    },
+    {
+      "id": "debug-gitea-create-issue-D-F",
+      "task": "gitea-create-issue",
+      "kind": "debug",
+      "studyArm": "D-F",
+      "method": "D1",
+      "strategy": "focused-closure-v1",
+      "inputFile": "model/inputs/gitea-create-issue.json",
+      "admission": "eligible",
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "focus",
+        "delivery"
+      ]
+    },
+    {
+      "id": "native-cloudflare-security-audit-paperless-share-create-original",
+      "kind": "native",
+      "task": "paperless-share-create",
+      "skill": "cloudflare-security-audit",
+      "sourceSkill": "../authorization-domain-execution-v1/model/source-skills/cloudflare-security-audit/SKILL.md",
+      "method": "D1",
+      "strategy": "focused-closure-v1",
+      "variant": "original",
+      "policyOverride": null,
+      "admission": "eligible",
+      "completeSkillAndReferencesRequired": true,
+      "originalBriefAndOtherDutiesPreserved": true,
+      "totalProviderBudget": 24,
+      "totalToolBudget": 48,
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "focus",
+        "delivery"
+      ]
+    },
+    {
+      "id": "native-cloudflare-security-audit-paperless-share-create-changed",
+      "kind": "native",
+      "task": "paperless-share-create",
+      "skill": "cloudflare-security-audit",
+      "sourceSkill": "../authorization-domain-execution-v1/model/source-skills/cloudflare-security-audit/SKILL.md",
+      "method": "D1",
+      "strategy": "focused-closure-v1",
+      "variant": "changed",
+      "policyOverride": {
+        "text": "Only the owner of the exact document may create a share. Object-level view_document grants without ownership are insufficient.",
+        "origin": "user",
+        "location": "experimental-user-brief:paperless-share-policy/as-owner-v2"
+      },
+      "admission": "eligible",
+      "completeSkillAndReferencesRequired": true,
+      "originalBriefAndOtherDutiesPreserved": true,
+      "totalProviderBudget": 24,
+      "totalToolBudget": 48,
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "focus",
+        "delivery"
+      ]
+    },
+    {
+      "id": "native-github-security-review-gitea-create-issue-original",
+      "kind": "native",
+      "task": "gitea-create-issue",
+      "skill": "github-security-review",
+      "sourceSkill": "../authorization-domain-execution-v1/model/source-skills/github-security-review/SKILL.md",
+      "method": "D1",
+      "strategy": "focused-closure-v1",
+      "variant": "original",
+      "policyOverride": null,
+      "admission": "eligible",
+      "completeSkillAndReferencesRequired": true,
+      "originalBriefAndOtherDutiesPreserved": true,
+      "totalProviderBudget": 24,
+      "totalToolBudget": 48,
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "focus",
+        "delivery"
+      ]
+    },
+    {
+      "id": "native-github-security-review-gitea-create-issue-changed",
+      "kind": "native",
+      "task": "gitea-create-issue",
+      "skill": "github-security-review",
+      "sourceSkill": "../authorization-domain-execution-v1/model/source-skills/github-security-review/SKILL.md",
+      "method": "D1",
+      "strategy": "focused-closure-v1",
+      "variant": "changed",
+      "policyOverride": {
+        "text": "Any authenticated repository reader may create an issue when the issues unit is enabled. Issue-unit write permission is not required by this policy.",
+        "origin": "user",
+        "location": "experimental-user-brief:gitea-issue-policy/as-reader-v2"
+      },
+      "admission": "eligible",
+      "completeSkillAndReferencesRequired": true,
+      "originalBriefAndOtherDutiesPreserved": true,
+      "totalProviderBudget": 24,
+      "totalToolBudget": 48,
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "focus",
+        "delivery"
+      ]
+    }
+  ],
+  "authors": [
+    {
+      "id": "author-cloudflare-security-audit-original",
+      "task": "paperless-share-create",
+      "skill": "cloudflare-security-audit",
+      "variant": "original",
+      "sourceSkill": "../authorization-domain-execution-v1/model/source-skills/cloudflare-security-audit/SKILL.md",
+      "fieldOrigin": "model-authored",
+      "hostFillsOnlyMechanicalMetadata": true,
+      "humanMinutes": null,
+      "strategy": "focused-closure-v1"
+    },
+    {
+      "id": "author-cloudflare-security-audit-changed",
+      "task": "paperless-share-create",
+      "skill": "cloudflare-security-audit",
+      "variant": "changed",
+      "sourceSkill": "../authorization-domain-execution-v1/model/source-skills/cloudflare-security-audit/SKILL.md",
+      "fieldOrigin": "model-authored",
+      "hostFillsOnlyMechanicalMetadata": true,
+      "humanMinutes": null,
+      "strategy": "focused-closure-v1"
+    },
+    {
+      "id": "author-github-security-review-original",
+      "task": "gitea-create-issue",
+      "skill": "github-security-review",
+      "variant": "original",
+      "sourceSkill": "../authorization-domain-execution-v1/model/source-skills/github-security-review/SKILL.md",
+      "fieldOrigin": "model-authored",
+      "hostFillsOnlyMechanicalMetadata": true,
+      "humanMinutes": null,
+      "strategy": "focused-closure-v1"
+    },
+    {
+      "id": "author-github-security-review-changed",
+      "task": "gitea-create-issue",
+      "skill": "github-security-review",
+      "variant": "changed",
+      "sourceSkill": "../authorization-domain-execution-v1/model/source-skills/github-security-review/SKILL.md",
+      "fieldOrigin": "model-authored",
+      "hostFillsOnlyMechanicalMetadata": true,
+      "humanMinutes": null,
+      "strategy": "focused-closure-v1"
+    }
+  ],
+  "modelInputAllowlist": [
+    "model/inputs/owui-ingestion.json",
+    "model/inputs/paperless-download.json",
+    "model/inputs/paperless-share-create.json",
+    "model/inputs/gitea-create-issue.json"
+  ],
+  "evaluatorNeverModelVisible": true,
+  "denominators": {
+    "debugging": 2,
+    "quality": 12,
+    "native": 4,
+    "authors": 4,
+    "authorConsumers": 4,
+    "qualifiedPolicyPremise": 4,
+    "sourceChangeFresh": 2,
+    "conditionalAblationsMaximum": 4
+  },
+  "costs": {
+    "dollars": null,
+    "humanMinutes": null,
+    "developerUsage": null
+  }
+}

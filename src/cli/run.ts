@@ -78,6 +78,10 @@ export const RUN_FLAGS = defineFlags(
     "authorization-domain-tools": { kind: "bool", help: "Enable inquiry compilation, relation observations and result checking in the restricted source run." },
     "authorization-strategy": { kind: "enum", values: InquiryStrategySchema.options, placeholder: "<v>", help: "Optional domain dependency scheduling, finite branch evaluation and conclusion checks; requires source scope and domain tools." },
     "authorization-trace": { kind: "string", placeholder: "<path>", help: "Save the restricted authorization tool and provider trace outside target source." },
+    "authorization-max-provider-calls": { kind: "int", min: 1, help: "Restricted authorization provider dispatch cap, including retries (default: 12)." },
+    "authorization-max-tool-calls": { kind: "int", min: 1, help: "Restricted authorization shared source/domain tool cap (default: 24)." },
+    "authorization-max-display-bytes": { kind: "int", min: 1, help: "Restricted authorization cumulative original source display cap (default: 262144)." },
+    "authorization-max-read-bytes": { kind: "int", min: 1, help: "Restricted authorization physical/index source read cap (default: 8388608)." },
     "timeout-ms": {
       kind: "int",
       min: 1,
@@ -150,7 +154,7 @@ export type ValidatedRunConfig = {
 }
 
 export function validateRunConfig(config: RunConfig): ValidatedRunConfig {
-  if ((config["authorization-domain-tools"] || config["authorization-trace"] || config["authorization-strategy"]) && !config["authorization-scope"]) throw new UsageError("run: authorization tools/trace/strategy require --authorization-scope", RUN_FLAGS.help)
+  if ((config["authorization-domain-tools"] || config["authorization-trace"] || config["authorization-strategy"] || config["authorization-max-provider-calls"] || config["authorization-max-tool-calls"] || config["authorization-max-display-bytes"] || config["authorization-max-read-bytes"]) && !config["authorization-scope"]) throw new UsageError("run: authorization tools/trace/strategy/budgets require --authorization-scope", RUN_FLAGS.help)
   if (config["authorization-strategy"] && config["authorization-strategy"] !== "legacy" && !config["authorization-domain-tools"]) throw new UsageError(`run: ${config["authorization-strategy"]} requires --authorization-domain-tools`, RUN_FLAGS.help)
   if (config["authorization-scope"] && (config.adapter !== "bare-agent" || config.optimize || config["resume-optimization"])) throw new UsageError("run: authorization source scope requires bare-agent source execution", RUN_FLAGS.help)
   const hasTask = config.task !== undefined
@@ -401,7 +405,7 @@ export async function runRun(config: RunConfig): Promise<void> {
     timeoutMs: runRuntime.timeoutMs,
     idleTimeoutMs: config["idle-timeout-ms"],
     mode: adapterModeRun,
-    ...(config["authorization-scope"] ? { providerOptions: { authorizationScope: path.resolve(config["authorization-scope"]), authorizationDomainTools: config["authorization-domain-tools"] === true, ...(config["authorization-strategy"] ? { authorizationStrategy: config["authorization-strategy"] } : {}), ...(config["authorization-trace"] ? { authorizationTraceDir: path.resolve(config["authorization-trace"] + ".events") } : {}) } } : {}),
+    ...(config["authorization-scope"] ? { providerOptions: { authorizationScope: path.resolve(config["authorization-scope"]), authorizationDomainTools: config["authorization-domain-tools"] === true, authorizationMaxProviderCalls: config["authorization-max-provider-calls"], authorizationMaxToolCalls: config["authorization-max-tool-calls"], authorizationMaxDisplayBytes: config["authorization-max-display-bytes"], authorizationMaxReadBytes: config["authorization-max-read-bytes"], ...(config["authorization-strategy"] ? { authorizationStrategy: config["authorization-strategy"] } : {}), ...(config["authorization-trace"] ? { authorizationTraceDir: path.resolve(config["authorization-trace"] + ".events") } : {}) } } : {}),
   }
 
   const adapter = createAdapter(harness)

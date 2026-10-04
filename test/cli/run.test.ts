@@ -32,6 +32,10 @@ describe("RUN_FLAGS.parse — typed config", () => {
       "authorization-domain-tools": false,
       "authorization-strategy": undefined,
       "authorization-trace": undefined,
+      "authorization-max-provider-calls": undefined,
+      "authorization-max-tool-calls": undefined,
+      "authorization-max-display-bytes": undefined,
+      "authorization-max-read-bytes": undefined,
       "timeout-ms": undefined,
       "idle-timeout-ms": undefined,
       "max-steps": undefined,
@@ -71,6 +75,10 @@ describe("RUN_FLAGS.parse — typed config", () => {
       "authorization-domain-tools": false,
       "authorization-strategy": undefined,
       "authorization-trace": undefined,
+      "authorization-max-provider-calls": undefined,
+      "authorization-max-tool-calls": undefined,
+      "authorization-max-display-bytes": undefined,
+      "authorization-max-read-bytes": undefined,
       "timeout-ms": 90000,
       "idle-timeout-ms": 30000,
       "max-steps": 12,
@@ -184,6 +192,10 @@ Options:
   --authorization-domain-tools                Enable inquiry compilation, relation observations and result checking in the restricted source run.
   --authorization-strategy=<v>                Optional domain dependency scheduling, finite branch evaluation and conclusion checks; requires source scope and domain tools.
   --authorization-trace=<path>                Save the restricted authorization tool and provider trace outside target source.
+  --authorization-max-provider-calls=<n>      Restricted authorization provider dispatch cap, including retries (default: 12).
+  --authorization-max-tool-calls=<n>          Restricted authorization shared source/domain tool cap (default: 24).
+  --authorization-max-display-bytes=<n>       Restricted authorization cumulative original source display cap (default: 262144).
+  --authorization-max-read-bytes=<n>          Restricted authorization physical/index source read cap (default: 8388608).
   --timeout-ms=<n>                            Override the per-task agent execution timeout (ms).
                                               This caps how long the target adapter spends solving
                                               one task. Falls back to task.json's \`timeoutMs\`,

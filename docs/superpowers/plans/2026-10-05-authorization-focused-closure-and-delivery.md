@@ -2,7 +2,7 @@
 
 > **For the executing agent:** use the executing-plans, systematic-debugging, test-driven-development and verification-before-completion workflows. The user has authorized continuous execution, purposeful paid calls and publication to their origin. Routine checkpoints do not require confirmation. Apply the latest AGENTS subagent rules: bounded read-only scouts, default role, fork_turns=none, main-agent implementation and final decisions.
 
-日期：2026-10-05。状态：`planned-and-authorized`。开发模型：`gpt-6.1-sol / max`。工作目录：`D:/skill优化/SkVM`；分支：`skill-ir-aot`。仅发布用户 `origin`，不建分支或 worktree。
+日期：2026-10-05。状态：`in-progress / AT0`。开发模型：`gpt-6.1-sol / max`。工作目录：`D:/skill优化/SkVM`；分支：`skill-ir-aot`。仅发布用户 `origin`，不建分支或 worktree。
 
 被测模型默认沿用AS的 `xty/gpt-5.6-sol` 与现有配置路由；开发代理模型和被测模型分开。若路由实际不可用，先登记替代模型与原因，再让同一配对块使用相同模型；不能仅为新方法换强模型后归因方法收益。凭据不进入日志或报告。
 
@@ -255,6 +255,8 @@ AT0为新结果目录准备本轮薄runner及其typecheck/replay真实命令，�
 
 ## 六、执行记录
 
+- 2026-10-05：执行线程从 `9c86e9eb510b929da139eb128273ba4442e0ec58` 接管，实际工作区干净；本人阅读当前任务书、spec §14.34、研究 §1/§7.48–7.49/§11、组件指南及交接。当前先建立 AT0 输入/评价隔离和失败台账，之后顺序推进 AT2 红例、AT3–AT7 共享实现及真实纵向调试；旧 AS 不追加调用或修改原件。
+- 2026-10-05：AT0输入/封存/义务台账已锁定；AT2红绿覆盖持久拒绝恢复、helper解释、对象返回、labels字段范围、操作错误、延期重访、答案路径及双入口阶段。AT3–AT7复用semantic unit，共享focus管理事务；只有纯有限标量helper摘要组合，复杂对象/效果继续精确展开。预算公开传到ordinary入口，默认保持。领域/CLI联合653 pass/1 skip/4347断言；新增研究allowlist测试1/1。主typecheck发现CLI测试期望对象需补4个新可选字段，已据原测试修正，复验后进入AT8。新薄runner命令：`bun results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/study.ts develop debug-paperless-share-create-D-F`；`replay`零调用。当前真实完整质量/费用仍未知。
 - 2026-10-05：主线程完成AS原件/核心代码复核及78项聚焦回归；编写AT任务书并同步当前入口。此时AT生产开发和真实实验尚未开始。下一线程按实际提交接管。
 - 发布前只读可执行性复核后，明确了每位置预算、evaluator输入隔离、focus失效范围、局部依赖阻断、fresh变化独立运行和作者/消费分层。原始只读工具公平与执行器干预分开；无需新增审批门槛。
 - 文档验证发现AS归档的两份检查日志复述已撤下文档路径，扫描新增5条历史引用误报；按现有retired-reference机制登记精确source/target，原始AS日志及793份证据未改。

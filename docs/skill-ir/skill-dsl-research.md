@@ -1632,6 +1632,8 @@ AS17窄修订只恢复完全省略且显式结果整体可解析的final kind，
 
 发布前只读复核明确：24次provider预算按单个任务×臂会话计量；M-L共享原始读取工具但保留legacy执行器，F才携带新的执行支持；evaluator台账与模型输入隔离。focus的源码变更失效与政策/前提重算分开，独立已解决主张保留。4个native原/变位置均可fresh运行，previous复用质量另验；作者字段修订与有效稿的runtime修复分别留账。
 
+**AT0–AT7当前工程。** 从实际`9c86e9eb`接管，四原任务只作sourceRoot机械重定位，brief/policy不改；[AT manifest](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/manifest.json)锁定12质量、2调试、4native和4作者责任。模型输入明确allowlist，义务及历史错误放evaluator。共享focused核心已实现持久身份/延期重访、阶段Schema、来源保留、纯helper返回组合、返回对象、字段变换、操作错误和当前答案绑定。复杂对象/效果仍由现有展开器处理。模拟双入口和匿名反例通过，相关653 pass/1 skip/4347断言；真实采用、完整任务与净收益此时待跑。新主预算24/48/512KiB共用于三臂，旧默认不变；所有修订和自查计入成本。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

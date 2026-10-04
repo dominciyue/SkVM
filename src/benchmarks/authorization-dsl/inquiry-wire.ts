@@ -6,6 +6,7 @@ import { zodToJsonSchema } from "../../providers/structured.ts"
 import type { LLMTool } from "../../providers/types.ts"
 import { LocalControlDeltaSchema, LocalControlEnvelopeSchema } from "./inquiry-control-updates.ts"
 import { SemanticUpdateSchema, SemanticUpdateEnvelopeSchema, SemanticResultSchema } from "./inquiry-semantic.ts"
+import { FocusedResultSchema, focusedUpdateSchema, type FocusStage } from "./inquiry-focus.ts"
 
 const calls = z.array(z.object({ name: z.enum(["source_list", "source_search", "source_symbol", "source_read"]), arguments: z.record(z.unknown()) }).strict()).min(1).max(8)
 const observations = z.array(AuthorizationObservationSchema).min(1).max(32)
@@ -103,9 +104,15 @@ export function normalizeGuidedControlEnvelope(input: unknown) {
   if (controlDelta !== value.controlDelta) { value = { ...value, controlDelta }; filled.push("controlDelta.schemaVersion"); code = "guided-envelope-metadata-omitted" }
   return code ? { value, normalization: { code, originalKind: original.kind ?? null, ...(code === "guided-envelope-metadata-omitted" ? { filled } : {}) } } : { value: input }
 }
-export type InquiryStep = InquiryControlStep | z.infer<typeof localParserSteps> | z.infer<typeof semanticParserSteps>
+const focusedSteps = (stage?: FocusStage) => z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("tool"), calls, controlDelta: focusedUpdateSchema(stage).optional() }).strict(),
+  z.object({ kind: z.literal("control"), controlDelta: focusedUpdateSchema(stage) }).strict(),
+  z.object({ kind: z.literal("final"), result: FocusedResultSchema }).strict(),
+])
+export type InquiryStep = InquiryControlStep | z.infer<typeof localParserSteps> | z.infer<typeof semanticParserSteps> | z.infer<ReturnType<typeof focusedSteps>>
 const resultModelSchema = (mode?: "behavior" | "conformance") => mode ? AuthorizationInquiryResultSchema.extend({ questions: z.array(mode === "behavior" ? InquiryQuestionResultSchema.omit({ policyAssessment: true }) : InquiryQuestionResultSchema.extend({ policyAssessment: InquiryQuestionResultSchema.shape.policyAssessment.unwrap() })) }) : AuthorizationInquiryResultSchema
-export function inquiryStepSchemas(strategy: InquiryStrategy, finalOnly = false, mode?: "behavior" | "conformance") {
+export function inquiryStepSchemas(strategy: InquiryStrategy, finalOnly = false, mode?: "behavior" | "conformance", stage?: FocusStage) {
+  if (strategy === "focused-closure-v1") { const schemas = focusedSteps(stage); const selected = finalOnly ? schemas.options[2] : stage === "answer" ? schemas : z.discriminatedUnion("kind", [schemas.options[0], schemas.options[1]]); return { schema: selected, modelSchema: selected } }
   if (strategy === "semantic-flow-v1") return { schema: finalOnly ? z.preprocess(input => normalizeSemanticFinalEnvelope(input).value, semanticParserSteps.options[3]) : semanticParserSteps, modelSchema: finalOnly ? semanticModelSteps.options[3] : semanticModelSteps }
   const fullModel = strategy === "guided-evidence-v2" ? localModelSteps : strategy === "legacy" ? LegacyStepSchema : canonicalStep
   const modelOptions: [z.ZodDiscriminatedUnionOption<"kind">, ...z.ZodDiscriminatedUnionOption<"kind">[]] = [fullModel.options[0], ...fullModel.options.slice(1).map(option => "result" in option.shape ? option.extend({ result: resultModelSchema(mode) }) : option)]
@@ -115,20 +122,20 @@ export function inquiryStepSchemas(strategy: InquiryStrategy, finalOnly = false,
   return { schema, modelSchema }
 }
 
-export function inquiryNativeSchemas(strategy: InquiryStrategy, parsing = false) {
+export function inquiryNativeSchemas(strategy: InquiryStrategy, parsing = false, stage?: FocusStage) {
   const domain = strategy !== "legacy"
   const guidedParsing = parsing && strategy === "guided-evidence-v2"
   const compile = z.object({ inquiry: AuthorizationInquirySchema }).strict()
-  const result = strategy === "semantic-flow-v1" ? SemanticResultSchema : guidedParsing ? GuidedResultSchema : AuthorizationInquiryResultSchema
-  const delta = strategy === "semantic-flow-v1" ? parsing ? SemanticUpdateEnvelopeSchema : SemanticUpdateSchema : strategy === "guided-evidence-v2" ? parsing ? z.preprocess(guidedDeltaWithContextVersion, LocalControlEnvelopeSchema) : LocalControlDeltaSchema : ControlSliceDeltaSchema
+  const result = strategy === "focused-closure-v1" ? FocusedResultSchema : strategy === "semantic-flow-v1" ? SemanticResultSchema : guidedParsing ? GuidedResultSchema : AuthorizationInquiryResultSchema
+  const delta = strategy === "focused-closure-v1" ? focusedUpdateSchema(stage) : strategy === "semantic-flow-v1" ? parsing ? SemanticUpdateEnvelopeSchema : SemanticUpdateSchema : strategy === "guided-evidence-v2" ? parsing ? z.preprocess(guidedDeltaWithContextVersion, LocalControlEnvelopeSchema) : LocalControlDeltaSchema : ControlSliceDeltaSchema
   return {
     authorization_compile: guidedParsing ? z.preprocess(guidedCompile, compile) : compile,
     authorization_observe: domain ? z.object({ observations: observations.min(0).optional(), controlDelta: delta.optional() }).strict() : z.object({ observations: observations.min(0) }).strict(),
     authorization_check_result: domain ? z.object({ result, controlDelta: delta.optional() }).strict() : z.object({ result: AuthorizationInquiryResultSchema }).strict(),
   }
 }
-export function inquiryNativeDefinitions(strategy: InquiryStrategy, mode?: "behavior" | "conformance"): LLMTool[] {
-  const original = inquiryNativeSchemas(strategy), schemas = { ...original, authorization_check_result: original.authorization_check_result.extend({ result: strategy === "semantic-flow-v1" ? SemanticResultSchema : resultModelSchema(mode) }) }, descriptions = {
+export function inquiryNativeDefinitions(strategy: InquiryStrategy, mode?: "behavior" | "conformance", stage?: FocusStage): LLMTool[] {
+  const original = inquiryNativeSchemas(strategy, false, stage), schemas = { ...original, authorization_check_result: original.authorization_check_result.extend({ result: strategy === "focused-closure-v1" ? FocusedResultSchema : strategy === "semantic-flow-v1" ? SemanticResultSchema : resultModelSchema(mode) }) }, descriptions = {
     authorization_compile: "Compile current user questions without inferring source behavior; returns the pending relation queue.",
     authorization_observe: "Record evidence-bound observations and local controlDelta. The host returns actual dependency reads and diagnostics; semantic support remains unreviewed.",
     authorization_check_result: "Check the final result against current questions, shown source and proposed controls; preserve diagnostics and finish in the original skill prose format.",

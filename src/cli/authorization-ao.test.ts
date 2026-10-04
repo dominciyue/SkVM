@@ -57,6 +57,16 @@ test("ordinary run domain strategy is explicit and cannot bypass native tools/sc
   expect(() => validate([...base, "--authorization-scope=scope.json", "--authorization-strategy=domain-evidence-v1"])).toThrow("domain-tools")
   expect(validate([...base, "--authorization-scope=scope.json", "--authorization-domain-tools", "--authorization-strategy=domain-evidence-v1"]).mode).toBe("source")
 })
+test("ordinary authorization budgets are explicit public flags and require a source scope", () => {
+  const base = ["--prompt=Inspect access", "--model=mock/test", "--adapter=bare-agent"]
+  const budget = ["--authorization-max-provider-calls=24", "--authorization-max-tool-calls=48", "--authorization-max-display-bytes=524288", "--authorization-max-read-bytes=8388608"]
+  const parsed = RUN_FLAGS.parse([...base, ...budget, "--authorization-scope=scope.json"])
+  if (parsed.help) throw new Error("Unexpected help")
+  expect(parsed["authorization-max-provider-calls"]).toBe(24)
+  expect(parsed["authorization-max-tool-calls"]).toBe(48)
+  expect(validateRunConfig(parsed).mode).toBe("source")
+  expect(() => { const unscoped = RUN_FLAGS.parse([...base, ...budget]); if (!unscoped.help) validateRunConfig(unscoped) }).toThrow("scope")
+})
 test("ordinary inquiry run persists actual reads, inspect is offline and request edit invalidates compare", async () => {
   const { input, root } = await fixture(); let output = "", calls = 0
   const deps = { stdout: (s: string) => output = s, stderr: (s: string) => { throw new Error(s) }, providerFactory: () => ({ name: "mock", async complete(params: any) {

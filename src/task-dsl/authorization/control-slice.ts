@@ -5,9 +5,10 @@ import type { AuthorizationInquiryProgram } from "./inquiry-program.ts"
 import type { InquiryEvidenceContext } from "./inquiry-result.ts"
 import { predicateDiagnostics, type Scalar } from "./control-evaluation.ts"
 
-export type InquiryStrategy = "legacy" | "domain-evidence-v1" | "guided-evidence-v2" | "semantic-flow-v1"
-export const InquiryStrategySchema = z.enum(["legacy", "domain-evidence-v1", "guided-evidence-v2", "semantic-flow-v1"])
-export const isGuidedInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "guided-evidence-v2" || strategy === "semantic-flow-v1"
+export type InquiryStrategy = "legacy" | "domain-evidence-v1" | "guided-evidence-v2" | "semantic-flow-v1" | "focused-closure-v1"
+export const InquiryStrategySchema = z.enum(["legacy", "domain-evidence-v1", "guided-evidence-v2", "semantic-flow-v1", "focused-closure-v1"])
+export const isSemanticInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "semantic-flow-v1" || strategy === "focused-closure-v1"
+export const isGuidedInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "guided-evidence-v2" || isSemanticInquiryStrategy(strategy)
 export function parseInquiryStrategy(input: unknown): InquiryStrategy {
   const parsed = InquiryStrategySchema.safeParse(input ?? "legacy")
   if (!parsed.success) throw new Error(`inquiry-strategy: strategy must be ${InquiryStrategySchema.options.join(", ")}`)
@@ -40,6 +41,7 @@ export const SemanticControlRuleSchema = ControlRuleSchema.extend({
   kind: z.enum(["entry", "binding", "guard", "reject", "continue", "effect", "call", "return", "unresolved"]),
   terminal: z.boolean().optional(), outcome: z.enum(["allow", "deny", "unknown"]).optional(),
   returnValue: z.union([z.string(), z.number().finite(), z.boolean(), z.null()]).optional(), gap: InquiryText.optional(),
+  failureKind: z.enum(["authorization", "operation"]).optional(),
   sourceOrigin: z.object({ handle: key, block: key, step: key, instance: key }).strict().optional(),
 }).strict()
 export const ControlSliceV2DeltaSchema = ControlSliceV1DeltaSchema.extend({ schemaVersion: z.literal("authorization-control-slice/v2"), rules: z.array(SemanticControlRuleSchema).max(1024).default([]) }).strict()
