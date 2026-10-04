@@ -70,6 +70,14 @@ test("unbound helper arguments name the missing mapping and the actual type mism
   expect(message).toContain("target")
   expect(r.paths[0].complete).toBe(false)
 })
+test("an entry return without a permission outcome names its local source step without guessing from its scalar", () => {
+  const r = lower([unit([block("main", [{ kind: "return", name: "response", claim: "Scalar result only", value: true, outcome: "unknown" }])])])
+  const diagnostic = r.diagnostics.find((d: any) => d.code === "entry-return-outcome-unspecified")
+  expect(diagnostic).toBeDefined()
+  expect(diagnostic.message).toContain("main.response")
+  expect(r.paths[0].disposition).toBe("unknown")
+  expect(r.paths[0].complete).toBe(false)
+})
 test("unread call, block cycle and expansion limits remain named unresolved terminals", () => {
   const call = lower([unit([block("main", [{ kind: "call", name: "gate", claim: "decisive callee", symbol: "gate", callee: "unread", arguments: [] }])])])
   expect(call.delta.dependencies).toHaveLength(1)

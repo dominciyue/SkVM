@@ -3,7 +3,7 @@
 > 执行配置：gpt-6.1-sol / max。用户已授权本轮连续开发、必要联网与模型调用、提交并推送用户 origin；常规阶段不停下来重新询问。
 > 使用 writing-plans 编制。实施时使用 TDD、systematic-debugging 和必要验证；用户现有授权覆盖常规设计细化及可逆实现，不再等待重复设计批准。
 
-更新于 2026-10-04。状态：**in-progress；AS0–AS7 共享实现已完成，AS8/AS9 第四次实际回答仍有参数缺口；入口参数红绿修复通过，待具名复验，路径上限另有重放证据**。实际接管基线 `c90787f09087b3c79ac1d73b47f970ab928894e0`，当时工作区干净且用户远端同 SHA。分支始终 `skill-ir-aot`，只推用户 `origin/skill-ir-aot`。AR 进程结束，研究及真实使用验收仍有未达项；AS 承接责任，不回写旧结果。机器状态见 [AS status](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)。
+更新于 2026-10-04。状态：**in-progress；AS8/AS9 第五次参数缺口消失但完整交付未过，原步骤定位反馈已确定性验证；AS10 即将首份原 skill 普通使用，AS11 配对入口已准备**。实际接管基线 `c90787f09087b3c79ac1d73b47f970ab928894e0`，当时工作区干净且用户远端同 SHA。分支始终 `skill-ir-aot`，只推用户 `origin/skill-ir-aot`。AR 进程结束，研究及真实使用验收仍有未达项；AS 承接责任，不回写旧结果。机器状态见 [AS status](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)。
 
 ## 一、目标与完成标准
 
@@ -166,6 +166,8 @@ AR 保留 8/16 已留首行的历史分母和所有修订。六个未运行主�
 
 第四次已获 9/9 响应并交付保留的诊断回答，旧崩溃消失。当前缺口为 entry 明确声明的 `configuration` 参数未进入对象表，传给已解释 helper 时留下 argument-unbound，且反馈不指明参数。接口细节修订：模型声明的 entry parameters 与显式 bind 一样产生有类型、按入口实例隔离的身份，不填值或权限；helper 仍只接收显式映射且类型相符的对象。缺映射、对象未绑定、类型不符分别给参数名/实参/类型诊断。先用匿名参数→helper 红例验证，再改共享 lowering 和双入口 guide，沿 attempt-4 具名复验。源码已知的早退/错误分支遗漏另记，不让宿主补答案。
 
+第五次获 9/9 响应，参数缺口消失，最终 62 节点/10 路径；四条入口返回仍由模型声明 outcome:unknown，终答却断言 conditional，检查正确拒绝。当前新策略模型反馈没有终点到原局部步骤的对应表，且入口 unknown return 未产生指向步骤的 lowering 诊断，削弱了局部修复定位。下一修订增加窄 `sourceTerminals` 反馈，只保留现有终点的 outcome/gap/sourceOrigin 与路径/原证据对应，并具名诊断原返回步骤；不重复整张 canonical 图，不从 scalar 推断许可、不改模型提议。先匿名红例，再共享接线、具名实际复验；预算与路径上限不增加。
+
 ### AS10 — 两份原 skill 的普通使用
 
 - 从 Cloudflare 与 GitHub 的已有原件和未填答案的自然任务出发；普通 run 加载完整 skill，实际调用新共享工具，最后向用户交付答案。
@@ -178,6 +180,8 @@ AR 保留 8/16 已留首行的历史分母和所有修订。六个未运行主�
 - 对 manifest 中两项合格真实授权材料做各一次前提与独立政策变化，fresh/previous 同输入配对。
 - 前提变化重算可行路径、重新激活必要解释；政策变化清旧映射并重新判断，源码行为不被政策期待重写。
 - 原材料不合格时明确阻塞复用，继续其它工程；不能导入人工补图。计量实际重解释、读源/显示字节和全部调用。
+
+AS11 薄入口采用现有 public initialize/edit/compare/run。只从本轮原位置的实际 completed/checked/bounded 同策略记录导出原模型声明；每个 change 锁定同一 base、同一变化输入字节，fresh/previous 只切换 previous 参数。政策/前提来自 manifest 已登记用户输入，来源/题目保持；先用 public compare 验证旧图与来源的当前资格，不用历史包或手工图补位。无合格 base 时保留零调用阻塞，原分母不缩减。此入口准备不启动受当前缺陷影响的新派发。
 
 ### AS12 — 源码变化与失效
 

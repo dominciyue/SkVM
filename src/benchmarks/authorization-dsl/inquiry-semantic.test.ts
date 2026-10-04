@@ -63,6 +63,15 @@ test("effect assertion cannot turn a successful no-op return into a protected wr
   expect(assembled.diagnostics.map((d: any) => d.code)).toContain("semantic-effect-conflict")
   expect(assembled.paths.find((p: any) => p.questionId === "q").protectedEffect).toBe("none")
 })
+test("semantic feedback links an unresolved return to its original handle block and step", async () => {
+  const { runtime, u } = await fixture()
+  await runtime.propose({ schemaVersion: "authorization-semantic-update/v1", semanticBlocks: [u("q", { blocks: [{ name: "main", steps: [{ kind: "return", name: "response", claim: "Return outcome not yet interpreted", value: true, outcome: "unknown" }] }] })] })
+  const feedback = runtime.modelFeedback()
+  if (!("sourceTerminals" in feedback)) throw new Error("Expected semantic source terminal feedback")
+  const rule = feedback.sourceTerminals.find(r => r.kind === "unresolved")!
+  expect(rule).toMatchObject({ terminal: true, gap: "entry-return-outcome-unspecified", sourceOrigin: { handle: "entry", block: "main", step: "response", instance: "entry" } })
+  expect(feedback.diagnostics.some(d => d.code === "entry-return-outcome-unspecified" && d.message.includes("main.response"))).toBe(true)
+})
 test("requested counterfactual cites the retained excluded source without reviving it as a current branch", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "as-counterfactual-"))
   await writeFile(path.join(sourceRoot, "entry.ts"), "export function entry(flag: boolean) { if (flag) return false; return true; }\n")

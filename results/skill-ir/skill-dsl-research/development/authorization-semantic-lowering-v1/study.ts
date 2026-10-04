@@ -38,8 +38,8 @@ export async function develop(id: string, repairId?: string, repairOf?: string) 
     evaluate: async (_row, report) => mechanicalReview(report) })
 }
 export async function replay() {
-  const manifest: Manifest = await json(path.join(root, "manifest.json")), retained = await replayRetained(root)
-  return { schemaVersion: "authorization-as-replay/v1", denominator: manifest.rows.length, rows: manifest.rows.map(row => ({ id: row.id, admission: row.admission, ...(retained.rows.find(r => r.id === row.id) ?? { firstAttempt: null, repairAttempts: [], knownProviderCalls: 0 }) })), providerCallsDuringReplay: 0, targetExecutions: 0 }
+  const manifest: Manifest = await json(path.join(root, "manifest.json")), retained = await replayRetained(root), admissions = (await readFile(path.join(root, "admissions.jsonl"), "utf8").catch(error => { if (error.code !== "ENOENT") throw error; return "" })).trim().split(/\r?\n/).filter(Boolean).map(line => JSON.parse(line))
+  return { schemaVersion: "authorization-as-replay/v1", denominator: manifest.rows.length, rows: manifest.rows.map(row => ({ id: row.id, admission: row.admission, ...(admissions.some(a => a.id === row.id) ? { admissionRecords: admissions.filter(a => a.id === row.id) } : {}), ...(retained.rows.find(r => r.id === row.id) ?? { firstAttempt: null, repairAttempts: [], knownProviderCalls: 0 }) })), providerCallsDuringReplay: 0, targetExecutions: 0 }
 }
 if (import.meta.main) {
   const action = process.argv[2]

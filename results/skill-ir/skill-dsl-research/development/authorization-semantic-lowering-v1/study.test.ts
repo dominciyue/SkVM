@@ -19,3 +19,22 @@ test("ordinary skill admission requires the registered native scope and full ori
   expect(() => native.selectNativeRow({ ...registered, rows: [{ ...entry, completeSkillAndReferencesRequired: false }] }, entry.id)).toThrow("original skill")
   expect(() => native.selectNativeRow(registered, "renamed")).toThrow("registered")
 })
+test("variation admission binds a registered semantic base and cannot bypass an inherited seal", async () => {
+  const variations = await import("./variations.ts").catch(() => ({} as any))
+  const base = { ...row, id: "quality-a-D-S" }, changed = { id: "variation-a-policy-previous", task: "a", kind: "variation", method: "D1", strategy: "semantic-flow-v1", admission: "depends-on-checked-bounded-base", blockedBy: null, baseRow: base.id, change: "policy", route: "previous" }
+  const registered = { rows: [base, changed], tasks: [{ id: "a", admission: "eligible" }] }
+  expect(typeof variations.selectVariationRow).toBe("function")
+  expect(variations.selectVariationRow(registered, changed.id)).toEqual(changed)
+  expect(() => variations.selectVariationRow({ ...registered, rows: [base, { ...changed, blockedBy: "inherited-unknown" }] }, changed.id)).toThrow("sealed")
+  expect(() => variations.selectVariationRow({ ...registered, rows: [{ ...base, strategy: "legacy" }, changed] }, changed.id)).toThrow("base")
+  expect(() => variations.selectVariationRow(registered, "renamed")).toThrow("registered")
+})
+test("native delivery requires the actual final response and a bounded current check", async () => {
+  const native = await import("./native.ts").catch(() => ({} as any))
+  const trace = { status: "completed", domain: { check: { structureValid: true, sourceBound: true, ruleConsistency: true, taskResolution: "bounded" } }, attempts: [{ state: "responded", response: { text: "Earlier explanation", toolCalls: [] } }, { state: "responded", response: { text: "Now checking", toolCalls: [{ name: "authorization_check_result" }] } }] }
+  expect(typeof native.nativeDelivery).toBe("function")
+  expect(native.nativeDelivery(trace, 0).status).toBe("completed-with-diagnostics")
+  const final = { ...trace, attempts: [...trace.attempts, { state: "responded", response: { text: "Final user-facing answer", toolCalls: [] } }] }
+  expect(native.nativeDelivery(final, 0)).toMatchObject({ status: "completed", finalProse: "Final user-facing answer" })
+  expect(native.nativeDelivery({ ...final, domain: { check: { ...trace.domain.check, taskResolution: "partial" } } }, 0).status).toBe("completed-with-diagnostics")
+})

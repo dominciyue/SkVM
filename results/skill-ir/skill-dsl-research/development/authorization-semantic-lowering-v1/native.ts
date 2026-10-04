@@ -19,6 +19,12 @@ export function selectNativeRow(manifest: Manifest, id: string): NativeRow {
   if (!row.sourceSkill || !row.completeSkillAndReferencesRequired || !row.originalBriefAndOtherDutiesPreserved || row.method !== "D1" || row.strategy !== "semantic-flow-v1" || row.totalProviderBudget !== 12 || row.totalToolBudget !== 24) throw new Error("Preserve the registered original skill, scope and shared native budget contract")
   return row
 }
+export function nativeDelivery(trace: any, exitCode: number) {
+  const response = trace.attempts?.at(-1)?.response, finalProse = response?.text?.trim() ?? "", check = trace.domain?.check
+  const delivered = finalProse.length > 0 && !(response?.toolCalls?.length)
+  const bounded = check?.structureValid && check?.sourceBound && check?.ruleConsistency && check?.taskResolution === "bounded"
+  return { status: hasUnknownAuthorizationCompletion(trace) ? "completion-unknown" : exitCode === 0 && delivered && bounded ? "completed" : "completed-with-diagnostics", finalProse }
+}
 export async function developNative(id: string, repairId?: string, repairOf?: string) {
   const manifest: Manifest = await json(path.join(root, "manifest.json")), registered = selectNativeRow(manifest, id)
   await assertNoUnknownTask(root, registered.task)
@@ -44,9 +50,8 @@ export async function developNative(id: string, repairId?: string, repairOf?: st
       const trace = await json(traceFile).catch(() => undefined)
       if (!trace) return { status: "completion-unknown", exitCode, error: "Native trace absent; inspect process before another dispatch", totalActualUsd: null }
       const progress = nativeProgress(trace); await save(path.join(output, "progress.json"), progress)
-      const lastText = [...(trace.attempts ?? [])].reverse().find(a => a.response?.text)?.response.text ?? ""
-      const status = hasUnknownAuthorizationCompletion(trace) ? "completion-unknown" : exitCode === 0 && lastText && trace.domain?.check?.ruleConsistency ? "completed" : "completed-with-diagnostics"
-      return { ...trace, status, exitCode, finalProse: lastText, ordinaryEntry: "skvm run", originalSkillSha256: sha(skillBytes), sourceSkillUnmodified: sha(await readFile(skill)) === sha(skillBytes), validation: { valid: status === "completed" }, targetExecutions: 0 }
+      const delivery = nativeDelivery(trace, exitCode)
+      return { ...trace, ...delivery, exitCode, ordinaryEntry: "skvm run", originalSkillSha256: sha(skillBytes), sourceSkillUnmodified: sha(await readFile(skill)) === sha(skillBytes), validation: { valid: delivery.status === "completed" }, targetExecutions: 0 }
     }, evaluate: async (_row, report) => mechanicalReview(report) })
 }
 if (import.meta.main) console.log(JSON.stringify(await developNative(process.argv[2]!, process.argv[3], process.argv[4])))

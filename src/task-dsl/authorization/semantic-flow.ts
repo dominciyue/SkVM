@@ -90,7 +90,11 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[]) {
           else if (step.kind === "reject") terminal(u, c, instance, body, step.name, "reject", { ...fields, outcome: "deny" })
           else if (step.kind === "unresolved") gap(u, c, instance, body, step.name, step.reason)
           else if (step.kind === "return") {
-            if (u.role === "entry") terminal(u, c, instance, body, step.name, step.outcome && step.outcome !== "unknown" ? "return" : "unresolved", { ...fields, outcome: step.outcome, returnValue: step.value, ...(!step.outcome || step.outcome === "unknown" ? { gap: "entry-return-outcome-unspecified" } : {}) })
+            if (u.role === "entry") {
+              const unspecified = !step.outcome || step.outcome === "unknown"
+              if (unspecified) fault(questionId, u.handle, "entry-return-outcome-unspecified", `Entry return ${body}.${step.name} has no interpreted permission outcome. Explain its source-visible allow/deny outcome or retain a named source gap; scalar return values never establish permission.`)
+              terminal(u, c, instance, body, step.name, unspecified ? "unresolved" : "return", { ...fields, outcome: step.outcome, returnValue: step.value, ...(unspecified ? { gap: "entry-return-outcome-unspecified" } : {}) })
+            }
             else { append(u, c, instance, body, step.name, "continue", { ...fields, returnValue: step.value }); c.returned = true; if ("value" in step) c.returnValue = step.value }
           } else if (step.kind === "call") {
             const call = append(u, c, instance, body, step.name, "call", fields), callee = local.find(unit => unit.handle === step.callee && unit.role === "helper")

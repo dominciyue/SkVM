@@ -1569,6 +1569,8 @@ OWUI新臂三次wire坏稿均在12响应内处理；只读三个原窗口，admi
 
 **AS9 入口参数与展开边界。** `as-dependency-subtree-v1` 在 `e3c50a15` 得到 9/9 响应，交付 `completed-with-diagnostics` 原答及修答，旧崩溃消失；累计 18 派发/16 响应。当前检查明确拒绝未绑定 helper 参数，源解释有可用内容但不等于完整通过。只读定位与主线程代码核对确认：entry 已声明 `request:configuration`，宿主却未建立其身份，且只给泛化诊断。修订为显式入口参数建立按入口隔离的 typed binding，不供给值/权限；helper 映射仍严格检查，并指明缺映射、实参未绑定或类型差异。两匿名红例转绿，联合 622 pass/1 skip/4173 assertions、主与 AS 局部类型检查通过。用第四次原 accepted units 零调用重放，参数缺口消失但达到既有 16 路径上限；原图和提议不改写，下一次模型复验必须面对这一具名 residual。源码评阅提示已有集合早退等遗漏，尚待绑定原稿的完整评阅；美元未知、质量收益未建立。
 
+**AS9 第五次与局部反馈。** `as-entry-parameter-v1` 在 `3179ffa3` 再获 9/9 响应；累计 27 派发/25 响应，525284 已知 input+output token，美元仍未知。当前 62 节点/10 路径，无参数缺口；模型将四条入口返回保留为 unknown，却在终答断言 conditional，检查拒绝。新反馈原先没有终点到局部步骤的对应，且该 unknown return 只藏在路径 gap 中。共享修订补窄 sourceTerminals 和具名返回步骤诊断，不推断许可、不给参考答案、不增加调用/上限。两匿名红例已绿；联合 625 pass/1 skip/4186 assertions，随后原 skill 最后响应/有界交付与变化登记检查共 24 focused pass/123 assertions。AS11 薄入口已准备，同输入配对与当前 base 资格由 public 接口核验，尚无变化实际派发。接下来同位置具名复验与登记的 Cloudflare/Paperless 普通 native 首次使用；首次失败、逐次修订及未达的源码完整性仍分列。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
