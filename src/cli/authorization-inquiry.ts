@@ -1,14 +1,14 @@
 import path from "node:path"
 import { readFile, writeFile } from "node:fs/promises"
-import { checkAuthorizationInquiry, executeLocalInquiryRun, inspectLocalInquiry, compareLocalInquiry, editAuthorizationInquiry, AuthorizationInquiryInputSchema } from "../benchmarks/authorization-dsl/inquiry-local.ts"
+import { checkAuthorizationInquiry, executeLocalInquiryRun, inspectLocalInquiry, compareLocalInquiry, editAuthorizationInquiry, initializeLocalInquiry, AuthorizationInquiryInputSchema } from "../benchmarks/authorization-dsl/inquiry-local.ts"
 import type { LocalAuthorizationCliDependencies } from "../benchmarks/authorization-dsl/local-run.ts"
 import type { InquiryMethod } from "../benchmarks/authorization-dsl/inquiry-run.ts"
 import { parseInquiryStrategy } from "../task-dsl/authorization/control-slice.ts"
 
 export async function runAuthorizationInquiryCli(argv: string[], dependencies: LocalAuthorizationCliDependencies): Promise<number> {
   const command = argv[0], options: Record<string, string> = {}
-  const allowed: Record<string, string[]> = { init: ["from", "out"], check: ["input", "method", "strategy"], run: ["input", "out", "model", "method", "strategy", "previous"], inspect: ["out"], compare: ["input", "previous", "strategy"], edit: ["input", "edit", "out"] }
-  if (!command || command === "--help") { dependencies.stdout("skvm authorization inquiry init/check/run/inspect/edit/compare. Input: authorization-inquiry-input/v1; complete inquiry compiles without a model, natural brief is authored during D0/D1 run. --method=M|D0|D1, default D1; --strategy=legacy|domain-evidence-v1|guided-evidence-v2, default legacy. Guided run --previous=<session> reuses eligible source extraction and checks a new answer; compare previews eligibility without provider calls. Changed source or incompatible/missing footprints require fresh analysis. Unknown completion requires inspection, never automatic resend. Domain strategy schedules reads and checks finite proposed rules; semantic support stays unreviewed. Read-only bounded source actions."); return 0 }
+  const allowed: Record<string, string[]> = { init: ["from", "out", "source-root"], check: ["input", "method", "strategy"], run: ["input", "out", "model", "method", "strategy", "previous"], inspect: ["out"], compare: ["input", "previous", "strategy"], edit: ["input", "edit", "out"] }
+  if (!command || command === "--help") { dependencies.stdout("skvm authorization inquiry init/check/run/inspect/edit/compare. init --from=<input-file|session-directory|archive-root> --out=<new-file> copies a public declaration without answers or graphs; --source-root=<directory> recovers a missing original source location. Input: authorization-inquiry-input/v1; complete inquiry compiles without a model, natural brief is authored during D0/D1 run. --method=M|D0|D1, default D1; --strategy=legacy|domain-evidence-v1|guided-evidence-v2, default legacy. Guided run --previous=<session> reuses eligible source extraction and checks a new answer; compare previews eligibility without provider calls. Changed source or incompatible/missing footprints require fresh analysis. Unknown completion requires inspection, never automatic resend. Domain strategy schedules reads and checks finite proposed rules; semantic support stays unreviewed. Read-only bounded source actions."); return 0 }
   if (!allowed[command]) throw new Error("Unknown inquiry command")
   for (const arg of argv.slice(1)) {
     const match = /^--([^=]+)=(.+)$/.exec(arg)
@@ -20,13 +20,14 @@ export async function runAuthorizationInquiryCli(argv: string[], dependencies: L
   const strategy = options.strategy ? parseInquiryStrategy(options.strategy) : undefined
   let result: any
   if (command === "check") result = await checkAuthorizationInquiry(need("input"), options.method as InquiryMethod | undefined, strategy)
+  else if (command === "init") result = await initializeLocalInquiry(need("from"), need("out"), options["source-root"])
   else if (command === "run") result = await executeLocalInquiryRun({ inputFile: need("input"), outDir: need("out"), model: need("model"), method: options.method as InquiryMethod | undefined, strategy, previous: options.previous, providerFactory: dependencies.providerFactory })
   else if (command === "inspect") result = await inspectLocalInquiry(need("out"))
   else if (command === "compare") result = await compareLocalInquiry(need("input"), need("previous"), strategy)
   else {
-    const output = path.resolve(need("out")), source = path.resolve(need(command === "init" ? "from" : "input"))
+    const output = path.resolve(need("out")), source = path.resolve(need("input"))
     const original = JSON.parse(await readFile(source, "utf8"))
-    const value = command === "init" ? AuthorizationInquiryInputSchema.parse(original) : editAuthorizationInquiry(original, JSON.parse(await readFile(need("edit"), "utf8")))
+    const value = editAuthorizationInquiry(original, JSON.parse(await readFile(need("edit"), "utf8")))
     value.sourceRoot = path.relative(path.dirname(output), path.resolve(path.dirname(source), value.sourceRoot)).split(path.sep).join("/") || "."
     AuthorizationInquiryInputSchema.parse(value)
     await writeFile(output, JSON.stringify(value, null, 2) + "\n", { encoding: "utf8", flag: "wx" })

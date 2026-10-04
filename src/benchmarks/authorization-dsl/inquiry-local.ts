@@ -11,6 +11,7 @@ import type { LocalAuthorizationCliDependencies } from "./local-run.ts"
 import { parseInquiryStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { planInquiryReuse } from "./inquiry-reuse.ts"
 import { hasUnknownAuthorizationCompletion } from "./telemetry.ts"
+import { acceptAuthoredInquiry } from "./authoring-assist.ts"
 
 export const AuthorizationInquiryInputSchema = z.object({
   schemaVersion: z.literal("authorization-inquiry-input/v1"), taskId: InquiryText, repository: InquiryText, sourceRef: InquiryText,
@@ -51,17 +52,51 @@ export async function checkAuthorizationInquiry(inputFile: string, method: Inqui
   } catch (error) { return { schemaVersion: "authorization-inquiry-check/v1", status: "invalid" as const, providerCalls: 0, diagnostics: [{ code: "inquiry-input-invalid", message: String(error) }] } }
 }
 
+async function retainedInquiryDeclaration(sessionPath: string) {
+  const original = AuthorizationInquiryInputSchema.parse(JSON.parse(await readFile(path.join(sessionPath, "input.json"), "utf8")))
+  const prior = await readFile(path.join(sessionPath, "run.json"), "utf8").then(text => JSON.parse(text), error => { if ((error as NodeJS.ErrnoException).code === "ENOENT") return {}; throw error })
+  let input = original
+  if (original.brief && prior.inquiry) {
+    const { inquiry } = acceptAuthoredInquiry(prior.inquiry, { brief: original.brief, mode: original.mode ?? "behavior", policy: original.policy })
+    if (!isDeepStrictEqual(compileAuthorizationInquiry(inquiry), prior.program)) throw new Error("Retained inquiry declaration/program mismatch")
+    const { brief: _brief, mode: _mode, policy: _policy, ...metadata } = original
+    input = AuthorizationInquiryInputSchema.parse({ ...metadata, inquiry })
+  }
+  return { original, input, prior }
+}
+/** Export only the public declaration, using the original input location rather than its archive location. */
+export async function initializeLocalInquiry(from: string, outFile: string, explicitSourceRoot?: string) {
+  const source = path.resolve(from), outputPath = path.resolve(outFile)
+  let input: AuthorizationInquiryInput, sourceRoot: string, declarationSource: string | undefined
+  if ((await stat(source)).isDirectory()) {
+    const report = await inspectLocalInquiry(source), retained = await retainedInquiryDeclaration(report.sessionPath)
+    if (!retained.input.inquiry) throw new Error("No retained complete inquiry declaration; run authoring before exporting")
+    input = retained.input
+    declarationSource = retained.original.brief ? report.method === "M" ? "retained-host-declared" : "retained-model-authored" : "retained-input"
+    if (explicitSourceRoot) sourceRoot = path.resolve(explicitSourceRoot)
+    else {
+      const check = await readFile(path.join(report.sessionPath, "check.json"), "utf8").then(text => JSON.parse(text), error => { if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined; throw error })
+      if (!check || typeof check.inputPath !== "string" || !path.isAbsolute(check.inputPath) || !isDeepStrictEqual(check.input, retained.original) || !isDeepStrictEqual(check.sourceFiles, report.sourceFiles)) throw new Error("Retained source location is unavailable; supply --source-root=<current source directory>")
+      sourceRoot = path.resolve(path.dirname(check.inputPath), retained.original.sourceRoot)
+    }
+  } else {
+    const loaded = await loadInquiryInput(source)
+    input = loaded.value; sourceRoot = explicitSourceRoot ? path.resolve(explicitSourceRoot) : loaded.context.sourceRoot
+  }
+  const value = AuthorizationInquiryInputSchema.parse({ ...input, sourceRoot: path.relative(path.dirname(outputPath), sourceRoot).split(path.sep).join("/") || "." })
+  await writeFile(outputPath, JSON.stringify(value, null, 2) + "\n", { encoding: "utf8", flag: "wx" })
+  return { status: "created" as const, outputPath, sourceRefVerification: "authored", providerCalls: 0, ...(declarationSource ? { declarationSource, semanticEquivalence: "unreviewed" } : {}) }
+}
+
 async function preparePreviousInquiry(inputFile: string, previous: string, model: string | undefined, method: InquiryMethod | undefined, strategy: InquiryStrategy | undefined) {
-  const report = await inspectLocalInquiry(previous)
-  const old = AuthorizationInquiryInputSchema.parse(JSON.parse(await readFile(path.join(report.sessionPath, "input.json"), "utf8")))
+  const report = await inspectLocalInquiry(previous), retained = await retainedInquiryDeclaration(report.sessionPath), old = retained.input, prior = retained.prior
   const loaded = await loadInquiryInput(inputFile), tools = await createInquiryTools(loaded.context)
-  const prior = await readFile(path.join(report.sessionPath, "run.json"), "utf8").then(text => JSON.parse(text), error => { if ((error as NodeJS.ErrnoException).code === "ENOENT") return {}; throw error })
   const plan = planInquiryReuse({ currentInput: loaded.value, previousInput: old, previousRun: prior, previousSessionId: report.sessionId, currentFiles: tools.files, currentMethod: method ?? report.method, previousMethod: report.method, currentStrategy: strategy ?? report.strategy ?? "legacy", previousStrategy: report.strategy ?? "legacy", currentModel: model ?? report.model, previousModel: report.model })
   if (plan.status === "reusable") {
     const imported = tools.restoreEvidence(plan.seed.evidence)
-    if (imported.diagnostics.length) return { report, plan: { status: "needs-fresh-analysis" as const, info: plan.info, reasons: imported.diagnostics.map(d => `${d.code}: ${d.message}`) } }
+    if (imported.diagnostics.length) return { report, previousInput: old, plan: { status: "needs-fresh-analysis" as const, info: plan.info, reasons: imported.diagnostics.map(d => `${d.code}: ${d.message}`) } }
   }
-  return { report, plan }
+  return { report, previousInput: old, plan }
 }
 export async function executeLocalInquiryRun(options: { inputFile: string; outDir: string; model: string; method?: InquiryMethod; strategy?: InquiryStrategy; previous?: string; providerFactory?: LocalAuthorizationCliDependencies["providerFactory"]; execution?: Partial<RunAuthorizationInquiryOptions> }) {
   const method = options.method ?? "D1", strategy = options.strategy ?? options.execution?.strategy ?? "legacy", check = await checkAuthorizationInquiry(options.inputFile, method, strategy)
@@ -124,9 +159,10 @@ export async function inspectLocalInquiry(outDir: string) {
   return { ...report, sessionPath: root, ...(completionUnknown ? { completionUnknown: true } : {}) }
 }
 export async function compareLocalInquiry(inputFile: string, previous: string, requestedStrategy?: InquiryStrategy) {
-  const report = await inspectLocalInquiry(previous), old = AuthorizationInquiryInputSchema.parse(JSON.parse(await readFile(path.join(report.sessionPath, "input.json"), "utf8")))
+  const report = await inspectLocalInquiry(previous)
   const strategy = requestedStrategy ?? report.strategy ?? "legacy", check = await checkAuthorizationInquiry(inputFile, report.method, strategy)
   if (check.status !== "valid") return check
+  const reuse = await preparePreviousInquiry(inputFile, previous, undefined, report.method, strategy), old = reuse.previousInput
   const current = check.input!, omitRoot = (v: AuthorizationInquiryInput) => ({ ...v, sourceRoot: undefined })
   const taskChanged = !isDeepStrictEqual(omitRoot(old), omitRoot(current)), sourceChanged = !isDeepStrictEqual(report.sourceFiles, check.sourceFiles)
   const withoutPolicy = (v: AuthorizationInquiryInput) => ({ ...omitRoot(v), policy: undefined, inquiry: v.inquiry ? { ...v.inquiry, policy: undefined } : undefined })
@@ -134,7 +170,6 @@ export async function compareLocalInquiry(inputFile: string, previous: string, r
   const policyOnly = taskChanged && !sourceChanged && isDeepStrictEqual(withoutPolicy(old), withoutPolicy(current))
   const premiseOnly = taskChanged && !sourceChanged && isDeepStrictEqual(withoutPremises(old), withoutPremises(current))
   const strategyChanged = strategy !== (report.strategy ?? "legacy")
-  const reuse = await preparePreviousInquiry(inputFile, previous, undefined, report.method, strategy)
   const { seed: _seed, ...reuseEligibility } = reuse.plan
   return { schemaVersion: "authorization-inquiry-compare/v1", status: taskChanged || sourceChanged || strategyChanged ? "needs-review" : "current", taskChanged, sourceChanged, strategy, strategyChanged, policyOnly, premiseOnly,
     reuseEligibility, providerCalls: 0,

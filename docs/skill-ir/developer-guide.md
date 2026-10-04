@@ -461,6 +461,12 @@ Named self/other/null owner and explicit-grant counterfactuals exercise the prop
 
 The ordinary explanation-focus run completed nine responses, but all five questions remain rejected. See `explanation-focus-outcome.json` and its separate source-review/adjudication records: rotation occurred, old malformed targets were never corrected or withdrawn, and four directory searches were rejected by the former exact-file contract. The allowed permission-helper body remained unread; available-source omission is not deployment uncertainty. No prior-reuse or main-panel eligibility follows from raw prose.
 
+### Session declaration export for ordinary reuse
+
+`initializeLocalInquiry(from,out,sourceRoot?)` backs the existing inquiry `init` command. Files retain the copy/rebase behavior. A session or archive root is inspected through the normal archive consistency checks; only archived input metadata and `run.inquiry` are exported. For a natural brief, `acceptAuthoredInquiry` preserves its mode/independent policy and the declaration must match the retained compiled program. `check.json.inputPath` supplies the original source location only when archived input/source identities match; an older missing location requires explicit `--source-root`. Output is exclusive UTF-8 JSON with a relative sourceRoot. There is no source read, provider call, answer or graph seed in this export.
+
+Previous planning uses this same retained declaration as the effective old complete input; current source/window, model/method/strategy, checked/bounded and unknown-completion rules still apply. A completed status cannot override a pending provider attempt. Natural question equivalence remains unreviewed. Verify `authorization-inquiry-init.test.ts` for original-location rebasing, missing provenance recovery, exclusive output, program/policy mismatch, file-copy compatibility, mock checked reuse and unknown refusal. Real positive reuse is recorded separately from these deterministic tests.
+
 ### Indexed directory selection and rejected-target repair feedback
 
 `source_search` and `source_symbol` accept an optional relative file or directory selector. A directory matches existing indexed descendants at a slash boundary; `.` selects the existing index. No query expands scope or enumerates new files. `source_read` still requires an exact indexed file. Original source/root identity, excluded paths and tool/display budgets continue to apply.

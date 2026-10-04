@@ -7,6 +7,7 @@ import type { AuthorizationInquiryInput } from "./inquiry-local.ts"
 import type { AuthorizationInquiryRun, InquiryMethod } from "./inquiry-run.ts"
 import type { InquiryEvidence, InquiryTools } from "./inquiry-tools.ts"
 import type { z } from "zod"
+import { hasUnknownAuthorizationCompletion } from "./telemetry.ts"
 
 export interface InquiryReuseSeed { delta: z.infer<typeof ControlSliceDeltaSchema>; evidence: InquiryEvidence[] }
 export interface InquiryReuseInfo {
@@ -33,7 +34,7 @@ export function planInquiryReuse(options: {
   if (options.currentStrategy !== "guided-evidence-v2" || options.previousStrategy !== "guided-evidence-v2" || options.currentMethod !== options.previousMethod || options.currentModel !== options.previousModel) reasons.push("Model, method or guided strategy is incompatible with the previous extraction.")
   if (!current.inquiry || !old.inquiry || change === "incompatible") reasons.push("Reuse requires compatible complete questions; changed natural briefs require fresh declaration and analysis.")
   const checks = prior.validation?.questionChecks
-  if (prior.status !== "completed" || !prior.validation?.valid || !prior.domain?.slice || !Array.isArray(prior.domain?.dependencies) || !Array.isArray(checks) || !old.inquiry?.questions.every(q => checks.some(c => c.questionId === q.id && c.deliveryStatus === "checked" && c.transportValid && c.referenceValid && c.ruleConsistent === true && c.evidenceCoverage === "bounded" && c.trace))) reasons.push("Previous session lacks checked bounded question/dependency footprints; old partial output cannot be promoted.")
+  if (prior.status !== "completed" || hasUnknownAuthorizationCompletion(prior) || !prior.validation?.valid || !prior.domain?.slice || !Array.isArray(prior.domain?.dependencies) || !Array.isArray(checks) || !old.inquiry?.questions.every(q => checks.some(c => c.questionId === q.id && c.deliveryStatus === "checked" && c.transportValid && c.referenceValid && c.ruleConsistent === true && c.evidenceCoverage === "bounded" && c.trace))) reasons.push("Previous session lacks checked bounded question/dependency footprints or has unknown completion; old partial output cannot be promoted.")
   if (reasons.length) return { status: "needs-fresh-analysis" as const, info, reasons }
   const slice = prior.domain!.slice
   const content = ({ id: _id, digest: _digest, sourceBound: _bound, semanticSupport: _semantic, ...item }: any) => item
