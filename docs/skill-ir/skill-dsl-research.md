@@ -1371,6 +1371,13 @@ c236b383同原自然brief/源字节仓外D1/guided12/12、7成功host reads，48
 
 Paperless/M暴露另一种可修共享边界：累计重发预算在provider额度尚余时退出，没有最终机会。公共loop现于源码工具耗尽或重发将超限时在原预算内预留final，选择完整窗口与其余metadata，未展示正文仍不能作引用。最后provider机会及model/parser final-only合同也已一致。此工程修复与guided观察/局部图说明的澄清不保证源码解释正确；实际修后交付、不同项目效果与语义质量另列。验证及独立只读边界核查见`delivery-budget-verification.json`，不把修复倒写到四个首行。
 
+
+### 7.45 预算修后的普通交付与源码缺口
+
+同一已提交修复版本下，原自然Paperless下载与不同项目OWUI入库均在仓外普通CLI各5/5响应。Paperless在源码工具额度用完后实际触发final预留，避免旧版已有5次响应却没有答案的交付失败；OWUI自行进入回答并修正一次引用编号。这证明实际预算内交付接线，不能证明语义收益，也没有实际触发累计重发overflow的完整窗口子集分支。两份匿名源码评审和主裁定均为partial：下载仍缺owner-null与完整版本/helper，入库仍缺输入lookup/save helper并漏已展示的bypass不写入分支。首块原四行及不同版本关系保持，后续ordinary不拼入主配对。
+
+两次公开previous命令也实际拒绝旧partial和未知完成session，没有provider或新session；这验证负路径，正向政策/前提复用仍未建立。未知MemosShare与Notes逻辑任务继续封存，只凭哈希绑定的共享工程/实际响应证据限定放行其它主行。详见`delivery-budget-outcome.json`、独立原评语/主裁定及`previous-first-block-refusals.json`。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

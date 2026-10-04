@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "authorization-ar-ordinary-source-adjudication/v1",
+  "report": {
+    "path": "ordinary/consume-authorization-paperless-download-final-budget-v1/run-archive/sessions/2026-10-04T032016005Z-1d8b85a9/run.json",
+    "sha256": "a1b883589e1874021bcffaa9b69a3716cf039b7d16a405098298ee1cf509fcc5"
+  },
+  "independentReview": {
+    "path": "evaluations/ordinary-paperless-delivery-independent.json",
+    "sha256": "5a6ec068492e94e178ab1dd42548f4af382fbff9f531b46efc44d5ba6a906cdf"
+  },
+  "assessment": {
+    "initial": "partial",
+    "final": "partial",
+    "sourceExtraction": "partial",
+    "decisiveError": false,
+    "overUnknown": true,
+    "falseComplete": false,
+    "causes": [
+      "not-read"
+    ],
+    "actualMechanism": [
+      "Root document guard and effective file/version/representation are correctly distinguished in the raw answer.",
+      "views.py:1360-1468 was actually read, including file_response and root authorization; it is not reviewer-only.",
+      "Owner-null branch at permissions.py:635, explicit version parse/root membership at versioning.py:184-195, and serve_file body at views.py:4941-4995 were not body-read. These readable decisive branches remain avoidable gaps.",
+      "No source error in the observed answer branches was established. Omitted owner-null is a completeness gap rather than a fabricated opposite rule."
+    ],
+    "justifiedResiduals": [
+      "Actual request user/grants and deployment authentication are unspecified.",
+      "Guardian internals outside the allowed index are not inferred."
+    ],
+    "reviewCorrections": [
+      "Correct helper-hit provenance: views.py:1368-1448 falls inside actual ev-d7cbcfce54b3a087ae78 1360-1468.",
+      "Remove unsupported extraction-error cause; raw answer correctly preserves the displayed decisive source mechanism.",
+      "Mark avoidable unknowns for the unexpanded readable helper/version/file bodies; this is source completeness, not a transport/checker finding."
+    ]
+  },
+  "actualBodyWindows": [
+    {
+      "id": "ev-f7a002a0e372ce8b96d8",
+      "path": "src/documents/views.py",
+      "startLine": 740,
+      "endLine": 790,
+      "bytes": 2085
+    },
+    {
+      "id": "ev-dea2440bc0471fff4693",
+      "path": "src/documents/views.py",
+      "startLine": 1810,
+      "endLine": 1885,
+      "bytes": 3180
+    },
+    {
+      "id": "ev-30fd8877c3fc78f4b43e",
+      "path": "src/documents/views.py",
+      "startLine": 1000,
+      "endLine": 1040,
+      "bytes": 1334
+    },
+    {
+      "id": "ev-d7cbcfce54b3a087ae78",
+      "path": "src/documents/views.py",
+      "startLine": 1360,
+      "endLine": 1468,
+      "bytes": 4526
+    },
+    {
+      "id": "ev-0514493676f9c99e89d3",
+      "path": "src/documents/views.py",
+      "startLine": 1140,
+      "endLine": 1195,
+      "bytes": 3123
+    },
+    {
+      "id": "ev-c1deb5113e47f98810bf",
+      "path": "src/documents/permissions.py",
+      "startLine": 1,
+      "endLine": 220,
+      "bytes": 9226
+    },
+    {
+      "id": "ev-17629d1346b4c44d045e",
+      "path": "src/documents/versioning.py",
+      "startLine": 1,
+      "endLine": 180,
+      "bytes": 7196
+    },
+    {
+      "id": "ev-1a1075e7a69b44462e71",
+      "path": "src/paperless/urls.py",
+      "startLine": 60,
+      "endLine": 90,
+      "bytes": 1704
+    },
+    {
+      "id": "ev-3fbec108bd9b62b92738",
+      "path": "src/documents/models.py",
+      "startLine": 280,
+      "endLine": 430,
+      "bytes": 5757
+    }
+  ],
+  "pointChecks": [
+    {
+      "claim": "Download authorization is against root_doc before file selection.",
+      "evidence": "src/documents/views.py:1401-1427: \"root_doc = get_root_document(...)\" then \"has_perms_owner_aware(..., root_doc)\" and forbidden return."
+    },
+    {
+      "claim": "Owner-aware helper allows unowned objects, owner, or guardian object permission.",
+      "evidence": "src/documents/permissions.py:624-635: \"return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)\"."
+    },
+    {
+      "claim": "Version selection is constrained to root or a child version.",
+      "evidence": "src/documents/versioning.py:184-195: parse int; candidate lookup; outside-root candidate returns NOT_FOUND."
+    },
+    {
+      "claim": "No version parameter on a root request resolves newest version, while a version pk without version parameter returns that requested version.",
+      "evidence": "src/documents/versioning.py:159-166 and src/documents/views.py:1388-1399."
+    },
+    {
+      "claim": "Archive/original representation follows selected file_doc; original=true disables archive.",
+      "evidence": "src/documents/views.py:1368-1373 and 1437-1448: \"use_archive=not self.original_requested(request) and file_doc.has_archive_version\"."
+    },
+    {
+      "claim": "serve_file uses archive_file when archive is selected and source_file otherwise.",
+      "evidence": "src/documents/views.py:4948-4965."
+    },
+    {
+      "claim": "Initial and final are substantively identical and correctly preserve conditional authorization and listed source gaps.",
+      "evidence": "packet initial/final sections lines 171-320 repeat the same behavior, branches, and missing items."
+    }
+  ],
+  "providerCallsDuringAdjudication": 0,
+  "targetExecutions": 0
+}

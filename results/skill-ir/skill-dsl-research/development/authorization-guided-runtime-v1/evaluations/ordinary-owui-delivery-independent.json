@@ -1,0 +1,69 @@
+{
+  "schemaVersion": "authorization-ar-ordinary-source-review/v1",
+  "report": {
+    "path": "ordinary/consume-authorization-owui-ingestion-final-budget-v1/run-archive/sessions/2026-10-04T032016481Z-d99e5e99/run.json",
+    "sha256": "2d9985289453b46e7ad05b1bc0f2e395d0a2758faba71bdb8041a708f2ef68b5"
+  },
+  "reviewer": {
+    "kind": "independent",
+    "mainContextExposed": false
+  },
+  "assessment": {
+    "initialCompleteness": "partial",
+    "finalCompleteness": "partial",
+    "sourceExtractionCompleteness": "partial",
+    "decisiveError": "Both answers incorrectly state that the missing-file HTTP result was unread. The complete source explicitly returns 404 at backend/open_webui/routers/retrieval.py:1761-1762: raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=ERROR_MESSAGES.NOT_FOUND). They also did not extract the full save_docs_to_vector_db body.",
+    "overUnknown": [
+      "Exact non-owner/nonexistent-file result is established as HTTP 404.",
+      "Helper behavior was not fully read: hash duplicate checks (retrieval.py:1368-1387), existing-collection/add/overwrite handling (1458-1467), embedding and insertion (1469-1531).",
+      "Deployment provider remains unknown."
+    ],
+    "falseComplete": false,
+    "causes": [
+      "not-read"
+    ],
+    "expectedMechanism": "Non-admin input lookup is exact id + user_id; admin lookup is unfiltered. Missing file returns 404. collection_name defaults to file-{file.id} but explicit names pass through to vector saving. Supplied-content processing deletes only file-{file.id} and inserts into the selected collection. No visible collection ownership check appears in the endpoint or helper.",
+    "helperHits": {
+      "actualBodyWindows": [
+        "backend/open_webui/routers/retrieval.py:1540-1762",
+        "backend/open_webui/routers/files.py:136-160"
+      ],
+      "reviewerOnlyFullSourceFindings": [
+        "backend/open_webui/models/files.py:172-184: select(File).filter_by(id=id, user_id=user_id)",
+        "backend/open_webui/routers/retrieval.py:1340-1537: full save helper"
+      ]
+    },
+    "missingDecisiveBranches": [
+      "File-none branch and exact 404 (retrieval.py:1761-1762)",
+      "Full save helper semantics (retrieval.py:1368-1387, 1458-1467, 1527-1531)",
+      "Exact owner query semantics (models/files.py:172-184)"
+    ],
+    "importantClaims": [
+      {
+        "claim": "Non-admin lookup is owner-bound; another user's file returns 404.",
+        "evidence": "models/files.py:172-184; routers/retrieval.py:1761-1762"
+      },
+      {
+        "claim": "Admin lookup is unfiltered.",
+        "evidence": "routers/retrieval.py:1559-1562"
+      },
+      {
+        "claim": "Explicit destination is accepted; default is file-{file.id}.",
+        "evidence": "routers/retrieval.py:1566-1569, 1694-1705"
+      },
+      {
+        "claim": "Input and output objects can differ.",
+        "evidence": "routers/retrieval.py:1577; 1527-1531"
+      },
+      {
+        "claim": "No visible helper-level collection ownership check.",
+        "evidence": "routers/retrieval.py:1340-1349, 1368-1387, 1458-1467, 1527-1531"
+      },
+      {
+        "claim": "Uploaded-file caller passes file_item.id with optional transcribed content.",
+        "evidence": "routers/files.py:136-160"
+      }
+    ]
+  },
+  "source": "JSON-compatible transcription of final agent assessment retained separately from main adjudication; source quotations normalized for JSON."
+}

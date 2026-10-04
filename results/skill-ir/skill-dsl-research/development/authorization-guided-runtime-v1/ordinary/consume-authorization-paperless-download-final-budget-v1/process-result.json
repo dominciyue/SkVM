@@ -1,0 +1,493 @@
+{
+  "at": "2026-10-04T03:22:34.604Z",
+  "stage": "consume-authorization-paperless-download-final-budget-v1",
+  "author": null,
+  "accountingKind": "ordinary-natural-inquiry-consumption",
+  "exitCode": 0,
+  "workDir": "D:\\skill优化\\project-maintenance\\runs\\portable-consume-authorization-paperless-download-final-budget-v1-xfYIk0\\inputs",
+  "sessionPath": "D:\\skill优化\\project-maintenance\\runs\\portable-consume-authorization-paperless-download-final-budget-v1-xfYIk0\\inputs\\runs\\sessions\\2026-10-04T032016005Z-1d8b85a9",
+  "status": "completed",
+  "validation": {
+    "valid": true,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The Download action calls file_response. The request is first resolved from pk to a requested document and its root document, and authorization is checked against the root document before file selection. If that check fails, the response is forbidden and no file is served. If it passes, version and representation controls select the file object and whether its archive or original file is returned. Because ownership and object grants are unspecified, the final allow/deny outcome for a particular user/document is conditional."
+          },
+          "branches": [
+            {
+              "id": "q1-b1",
+              "condition": "The request is unauthenticated or fails the viewset's authentication/permission gate.",
+              "disposition": "deny",
+              "explanation": "DocumentViewSet declares IsAuthenticated and PaperlessObjectPermissions. The exact authentication configuration and runtime outcome are deployment facts not supplied here.",
+              "evidenceIds": [
+                "ev-30fd8877c3fc78f4b43e",
+                "ev-21b5572da99e58424afa"
+              ]
+            },
+            {
+              "id": "q1-b2",
+              "condition": "pk does not identify a document in the manager used by the download path.",
+              "disposition": "deny",
+              "explanation": "file_response resolves pk with include_deleted=True; a missing document raises Http404, which the download action converts to Http404 handling.",
+              "evidenceIds": [
+                "ev-d7cbcfce54b3a087ae78",
+                "ev-4b5429afb274b06ee6c6"
+              ]
+            },
+            {
+              "id": "q1-b3",
+              "condition": "The authenticated user lacks the owner-aware view_document permission on the resolved root document.",
+              "disposition": "deny",
+              "explanation": "_resolve_request_and_root_doc computes root_doc and checks has_perms_owner_aware(request.user, \"view_document\", root_doc); failure returns HttpResponseForbidden before effective file selection or serve_file.",
+              "evidenceIds": [
+                "ev-d7cbcfce54b3a087ae78",
+                "ev-6d1ef921420a36646b67"
+              ]
+            },
+            {
+              "id": "q1-b4",
+              "condition": "The authenticated user is the root owner, has an applicable object-level view grant, or otherwise satisfies the owner-aware helper for the root document.",
+              "disposition": "conditional",
+              "explanation": "The source binds the decisive download check to the root document. The permission implementation documents owner-or-object-permission behavior for PaperlessObjectPermissions, but the complete has_perms_owner_aware helper and actual grants are not supplied; therefore this is a conditional branch, not an observed allow for the unspecified user.",
+              "evidenceIds": [
+                "ev-d7cbcfce54b3a087ae78",
+                "ev-c1deb5113e47f98810bf"
+              ]
+            },
+            {
+              "id": "q1-b5",
+              "condition": "pk identifies a version document and no version query parameter is supplied.",
+              "disposition": "allow",
+              "explanation": "After root authorization, _get_effective_file_doc returns request_doc when it is a version and no version parameter is present. Thus the requested version is the file_doc whose file is passed to serve_file, subject to the preceding root authorization and file existence.",
+              "evidenceIds": [
+                "ev-d7cbcfce54b3a087ae78",
+                "ev-17629d1346b4c44d045e",
+                "ev-3624a7fd0a2795cd735f"
+              ]
+            },
+            {
+              "id": "q1-b6",
+              "condition": "No version parameter is supplied and pk identifies the root document.",
+              "disposition": "conditional",
+              "explanation": "The effective-file path calls _resolve_file_doc for a root request; the shown versioning source states that a missing version parameter resolves the newest version for the root, falling back to the root when no version exists. The selected resource can therefore be the latest version rather than the root's own file.",
+              "evidenceIds": [
+                "ev-d7cbcfce54b3a087ae78",
+                "ev-17629d1346b4c44d045e"
+              ]
+            },
+            {
+              "id": "q1-b7",
+              "condition": "A valid explicit version parameter is supplied for the authorized root.",
+              "disposition": "conditional",
+              "explanation": "A version parameter causes _get_effective_file_doc to call _resolve_file_doc, which resolves the requested version for the already-authorized root; an invalid parameter raises NotFound and an unresolved document produces Http404. Selecting another version changes the file_doc/resource passed to serve_file, but does not cause a separate authorization check on that version in the shown download path.",
+              "evidenceIds": [
+                "ev-d7cbcfce54b3a087ae78",
+                "ev-4ad28805ba62cdb09a70",
+                "ev-17629d1346b4c44d045e"
+              ]
+            },
+            {
+              "id": "q1-b8",
+              "condition": "The selected file_doc has an archive version and original=true is absent or not exactly the literal string true.",
+              "disposition": "conditional",
+              "explanation": "file_response passes use_archive=(not original_requested(request) and file_doc.has_archive_version). original_requested recognizes only query parameter original=true. In this branch the returned representation is the selected file_doc's archive representation when available.",
+              "evidenceIds": [
+                "ev-d7cbcfce54b3a087ae78",
+                "ev-f3176ef202cffc7a3c63"
+              ]
+            },
+            {
+              "id": "q1-b9",
+              "condition": "original=true is supplied, or the selected file_doc has no archive version.",
+              "disposition": "conditional",
+              "explanation": "The archive flag is false when original=true, and is also false when file_doc.has_archive_version is false; serve_file therefore receives the selected file_doc with archive use disabled. The exact storage-path and missing-file behavior of serve_file is not shown in the available source windows.",
+              "evidenceIds": [
+                "ev-d7cbcfce54b3a087ae78",
+                "ev-f3176ef202cffc7a3c63"
+              ]
+            },
+            {
+              "id": "q1-b10",
+              "condition": "The selected file or archive representation is missing.",
+              "disposition": "deny",
+              "explanation": "The download action catches FileNotFoundError from file_response and raises Http404. This is a target/file-availability effect after authorization, not an authorization grant.",
+              "evidenceIds": [
+                "ev-4b5429afb274b06ee6c6",
+                "ev-d7cbcfce54b3a087ae78"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-4b5429afb274b06ee6c6",
+            "ev-d7cbcfce54b3a087ae78",
+            "ev-30fd8877c3fc78f4b43e",
+            "ev-21b5572da99e58424afa",
+            "ev-6d1ef921420a36646b67",
+            "ev-c1deb5113e47f98810bf",
+            "ev-17629d1346b4c44d045e",
+            "ev-3624a7fd0a2795cd735f",
+            "ev-f3176ef202cffc7a3c63",
+            "ev-4ad28805ba62cdb09a70"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The complete implementation of has_perms_owner_aware is not in the supplied source windows, so the exact combination of ownership, user object grants, group grants, global permissions, and inactive-user handling for the decisive root check cannot be fully resolved.",
+              "nextRead": "Read the remaining src/documents/permissions.py lines containing has_perms_owner_aware and any callers or related permission helpers."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The remainder of resolve_requested_version_for_root is not in the supplied source window, so the exact syntax and lookup branches for explicit version values, deleted versions, and not-found versus invalid outcomes are unresolved.",
+              "nextRead": "Read src/documents/versioning.py lines 169-258."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The implementation of serve_file is not in the supplied source windows, so exact archive/original storage-path selection, response headers, content type, and any file-level fallback or error branches are unresolved.",
+              "nextRead": "Search and read the definition of serve_file within the allowed src/documents index."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "The runtime authentication backend, token/session validity, request.user state, deployed routing/middleware, and actual ownership/object/group grants are not provided; source declarations alone do not establish a concrete user's authorization result."
+            },
+            {
+              "kind": "dependency-out-of-scope",
+              "detail": "This result covers the shown DocumentViewSet detail Download path only. It does not establish behavior for bulk downloads, share-link downloads, direct storage access, reverse proxies, or all repository routes."
+            }
+          ]
+        }
+      ],
+      "observations": [],
+      "scope": "Paperless revision paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103; source-visible document detail Download operation in allowed indexed paths, without claiming repository-wide coverage."
+    },
+    "diagnostics": [],
+    "semanticSupport": "unreviewed",
+    "questionChecks": [
+      {
+        "questionId": "q1",
+        "transportValid": true,
+        "referenceValid": true,
+        "ruleConsistent": null,
+        "evidenceCoverage": "unreviewed",
+        "semanticReview": "unreviewed",
+        "deliveryStatus": "unverified",
+        "answer": {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "The Download action calls file_response. The request is first resolved from pk to a requested document and its root document, and authorization is checked against the root document before file selection. If that check fails, the response is forbidden and no file is served. If it passes, version and representation controls select the file object and whether its archive or original file is returned. Because ownership and object grants are unspecified, the final allow/deny outcome for a particular user/document is conditional."
+          },
+          "branches": [
+            {
+              "id": "q1-b1",
+              "condition": "The request is unauthenticated or fails the viewset's authentication/permission gate.",
+              "disposition": "deny",
+              "explanation": "DocumentViewSet declares IsAuthenticated and PaperlessObjectPermissions. The exact authentication configuration and runtime outcome are deployment facts not supplied here.",
+              "evidenceIds": [
+                "ev-30fd8877c3fc78f4b43e",
+                "ev-21b5572da99e58424afa"
+              ]
+            },
+            {
+              "id": "q1-b2",
+              "condition": "pk does not identify a document in the manager used by the download path.",
+              "disposition": "deny",
+              "explanation": "file_response resolves pk with include_deleted=True; a missing document raises Http404, which the download action converts to Http404 handling.",
+              "evidenceIds": [
+                "ev-d7cbcfce54b3a087ae78",
+                "ev-4b5429afb274b06ee6c6"
+              ]
+            },
+            {
+              "id": "q1-b3",
+              "condition": "The authenticated user lacks the owner-aware view_document permission on the resolved root document.",
+              "disposition": "deny",
+              "explanation": "_resolve_request_and_root_doc computes root_doc and checks has_perms_owner_aware(request.user, \"view_document\", root_doc); failure returns HttpResponseForbidden before effective file selection or serve_file.",
+              "evidenceIds": [
+                "ev-d7cbcfce54b3a087ae78",
+                "ev-6d1ef921420a36646b67"
+              ]
+            },
+            {
+              "id": "q1-b4",
+              "condition": "The authenticated user is the root owner, has an applicable object-level view grant, or otherwise satisfies the owner-aware helper for the root document.",
+              "disposition": "conditional",
+              "explanation": "The source binds the decisive download check to the root document. The permission implementation documents owner-or-object-permission behavior for PaperlessObjectPermissions, but the complete has_perms_owner_aware helper and actual grants are not supplied; therefore this is a conditional branch, not an observed allow for the unspecified user.",
+              "evidenceIds": [
+                "ev-d7cbcfce54b3a087ae78",
+                "ev-c1deb5113e47f98810bf"
+              ]
+            },
+            {
+              "id": "q1-b5",
+              "condition": "pk identifies a version document and no version query parameter is supplied.",
+              "disposition": "allow",
+              "explanation": "After root authorization, _get_effective_file_doc returns request_doc when it is a version and no version parameter is present. Thus the requested version is the file_doc whose file is passed to serve_file, subject to the preceding root authorization and file existence.",
+              "evidenceIds": [
+                "ev-d7cbcfce54b3a087ae78",
+                "ev-17629d1346b4c44d045e",
+                "ev-3624a7fd0a2795cd735f"
+              ]
+            },
+            {
+              "id": "q1-b6",
+              "condition": "No version parameter is supplied and pk identifies the root document.",
+              "disposition": "conditional",
+              "explanation": "The effective-file path calls _resolve_file_doc for a root request; the shown versioning source states that a missing version parameter resolves the newest version for the root, falling back to the root when no version exists. The selected resource can therefore be the latest version rather than the root's own file.",
+              "evidenceIds": [
+                "ev-d7cbcfce54b3a087ae78",
+                "ev-17629d1346b4c44d045e"
+              ]
+            },
+            {
+              "id": "q1-b7",
+              "condition": "A valid explicit version parameter is supplied for the authorized root.",
+              "disposition": "conditional",
+              "explanation": "A version parameter causes _get_effective_file_doc to call _resolve_file_doc, which resolves the requested version for the already-authorized root; an invalid parameter raises NotFound and an unresolved document produces Http404. Selecting another version changes the file_doc/resource passed to serve_file, but does not cause a separate authorization check on that version in the shown download path.",
+              "evidenceIds": [
+                "ev-d7cbcfce54b3a087ae78",
+                "ev-4ad28805ba62cdb09a70",
+                "ev-17629d1346b4c44d045e"
+              ]
+            },
+            {
+              "id": "q1-b8",
+              "condition": "The selected file_doc has an archive version and original=true is absent or not exactly the literal string true.",
+              "disposition": "conditional",
+              "explanation": "file_response passes use_archive=(not original_requested(request) and file_doc.has_archive_version). original_requested recognizes only query parameter original=true. In this branch the returned representation is the selected file_doc's archive representation when available.",
+              "evidenceIds": [
+                "ev-d7cbcfce54b3a087ae78",
+                "ev-f3176ef202cffc7a3c63"
+              ]
+            },
+            {
+              "id": "q1-b9",
+              "condition": "original=true is supplied, or the selected file_doc has no archive version.",
+              "disposition": "conditional",
+              "explanation": "The archive flag is false when original=true, and is also false when file_doc.has_archive_version is false; serve_file therefore receives the selected file_doc with archive use disabled. The exact storage-path and missing-file behavior of serve_file is not shown in the available source windows.",
+              "evidenceIds": [
+                "ev-d7cbcfce54b3a087ae78",
+                "ev-f3176ef202cffc7a3c63"
+              ]
+            },
+            {
+              "id": "q1-b10",
+              "condition": "The selected file or archive representation is missing.",
+              "disposition": "deny",
+              "explanation": "The download action catches FileNotFoundError from file_response and raises Http404. This is a target/file-availability effect after authorization, not an authorization grant.",
+              "evidenceIds": [
+                "ev-4b5429afb274b06ee6c6",
+                "ev-d7cbcfce54b3a087ae78"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-4b5429afb274b06ee6c6",
+            "ev-d7cbcfce54b3a087ae78",
+            "ev-30fd8877c3fc78f4b43e",
+            "ev-21b5572da99e58424afa",
+            "ev-6d1ef921420a36646b67",
+            "ev-c1deb5113e47f98810bf",
+            "ev-17629d1346b4c44d045e",
+            "ev-3624a7fd0a2795cd735f",
+            "ev-f3176ef202cffc7a3c63",
+            "ev-4ad28805ba62cdb09a70"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The complete implementation of has_perms_owner_aware is not in the supplied source windows, so the exact combination of ownership, user object grants, group grants, global permissions, and inactive-user handling for the decisive root check cannot be fully resolved.",
+              "nextRead": "Read the remaining src/documents/permissions.py lines containing has_perms_owner_aware and any callers or related permission helpers."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The remainder of resolve_requested_version_for_root is not in the supplied source window, so the exact syntax and lookup branches for explicit version values, deleted versions, and not-found versus invalid outcomes are unresolved.",
+              "nextRead": "Read src/documents/versioning.py lines 169-258."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The implementation of serve_file is not in the supplied source windows, so exact archive/original storage-path selection, response headers, content type, and any file-level fallback or error branches are unresolved.",
+              "nextRead": "Search and read the definition of serve_file within the allowed src/documents index."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "The runtime authentication backend, token/session validity, request.user state, deployed routing/middleware, and actual ownership/object/group grants are not provided; source declarations alone do not establish a concrete user's authorization result."
+            },
+            {
+              "kind": "dependency-out-of-scope",
+              "detail": "This result covers the shown DocumentViewSet detail Download path only. It does not establish behavior for bulk downloads, share-link downloads, direct storage access, reverse proxies, or all repository routes."
+            }
+          ]
+        },
+        "diagnostics": []
+      }
+    ],
+    "usableQuestions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "The Download action calls file_response. The request is first resolved from pk to a requested document and its root document, and authorization is checked against the root document before file selection. If that check fails, the response is forbidden and no file is served. If it passes, version and representation controls select the file object and whether its archive or original file is returned. Because ownership and object grants are unspecified, the final allow/deny outcome for a particular user/document is conditional."
+        },
+        "branches": [
+          {
+            "id": "q1-b1",
+            "condition": "The request is unauthenticated or fails the viewset's authentication/permission gate.",
+            "disposition": "deny",
+            "explanation": "DocumentViewSet declares IsAuthenticated and PaperlessObjectPermissions. The exact authentication configuration and runtime outcome are deployment facts not supplied here.",
+            "evidenceIds": [
+              "ev-30fd8877c3fc78f4b43e",
+              "ev-21b5572da99e58424afa"
+            ]
+          },
+          {
+            "id": "q1-b2",
+            "condition": "pk does not identify a document in the manager used by the download path.",
+            "disposition": "deny",
+            "explanation": "file_response resolves pk with include_deleted=True; a missing document raises Http404, which the download action converts to Http404 handling.",
+            "evidenceIds": [
+              "ev-d7cbcfce54b3a087ae78",
+              "ev-4b5429afb274b06ee6c6"
+            ]
+          },
+          {
+            "id": "q1-b3",
+            "condition": "The authenticated user lacks the owner-aware view_document permission on the resolved root document.",
+            "disposition": "deny",
+            "explanation": "_resolve_request_and_root_doc computes root_doc and checks has_perms_owner_aware(request.user, \"view_document\", root_doc); failure returns HttpResponseForbidden before effective file selection or serve_file.",
+            "evidenceIds": [
+              "ev-d7cbcfce54b3a087ae78",
+              "ev-6d1ef921420a36646b67"
+            ]
+          },
+          {
+            "id": "q1-b4",
+            "condition": "The authenticated user is the root owner, has an applicable object-level view grant, or otherwise satisfies the owner-aware helper for the root document.",
+            "disposition": "conditional",
+            "explanation": "The source binds the decisive download check to the root document. The permission implementation documents owner-or-object-permission behavior for PaperlessObjectPermissions, but the complete has_perms_owner_aware helper and actual grants are not supplied; therefore this is a conditional branch, not an observed allow for the unspecified user.",
+            "evidenceIds": [
+              "ev-d7cbcfce54b3a087ae78",
+              "ev-c1deb5113e47f98810bf"
+            ]
+          },
+          {
+            "id": "q1-b5",
+            "condition": "pk identifies a version document and no version query parameter is supplied.",
+            "disposition": "allow",
+            "explanation": "After root authorization, _get_effective_file_doc returns request_doc when it is a version and no version parameter is present. Thus the requested version is the file_doc whose file is passed to serve_file, subject to the preceding root authorization and file existence.",
+            "evidenceIds": [
+              "ev-d7cbcfce54b3a087ae78",
+              "ev-17629d1346b4c44d045e",
+              "ev-3624a7fd0a2795cd735f"
+            ]
+          },
+          {
+            "id": "q1-b6",
+            "condition": "No version parameter is supplied and pk identifies the root document.",
+            "disposition": "conditional",
+            "explanation": "The effective-file path calls _resolve_file_doc for a root request; the shown versioning source states that a missing version parameter resolves the newest version for the root, falling back to the root when no version exists. The selected resource can therefore be the latest version rather than the root's own file.",
+            "evidenceIds": [
+              "ev-d7cbcfce54b3a087ae78",
+              "ev-17629d1346b4c44d045e"
+            ]
+          },
+          {
+            "id": "q1-b7",
+            "condition": "A valid explicit version parameter is supplied for the authorized root.",
+            "disposition": "conditional",
+            "explanation": "A version parameter causes _get_effective_file_doc to call _resolve_file_doc, which resolves the requested version for the already-authorized root; an invalid parameter raises NotFound and an unresolved document produces Http404. Selecting another version changes the file_doc/resource passed to serve_file, but does not cause a separate authorization check on that version in the shown download path.",
+            "evidenceIds": [
+              "ev-d7cbcfce54b3a087ae78",
+              "ev-4ad28805ba62cdb09a70",
+              "ev-17629d1346b4c44d045e"
+            ]
+          },
+          {
+            "id": "q1-b8",
+            "condition": "The selected file_doc has an archive version and original=true is absent or not exactly the literal string true.",
+            "disposition": "conditional",
+            "explanation": "file_response passes use_archive=(not original_requested(request) and file_doc.has_archive_version). original_requested recognizes only query parameter original=true. In this branch the returned representation is the selected file_doc's archive representation when available.",
+            "evidenceIds": [
+              "ev-d7cbcfce54b3a087ae78",
+              "ev-f3176ef202cffc7a3c63"
+            ]
+          },
+          {
+            "id": "q1-b9",
+            "condition": "original=true is supplied, or the selected file_doc has no archive version.",
+            "disposition": "conditional",
+            "explanation": "The archive flag is false when original=true, and is also false when file_doc.has_archive_version is false; serve_file therefore receives the selected file_doc with archive use disabled. The exact storage-path and missing-file behavior of serve_file is not shown in the available source windows.",
+            "evidenceIds": [
+              "ev-d7cbcfce54b3a087ae78",
+              "ev-f3176ef202cffc7a3c63"
+            ]
+          },
+          {
+            "id": "q1-b10",
+            "condition": "The selected file or archive representation is missing.",
+            "disposition": "deny",
+            "explanation": "The download action catches FileNotFoundError from file_response and raises Http404. This is a target/file-availability effect after authorization, not an authorization grant.",
+            "evidenceIds": [
+              "ev-4b5429afb274b06ee6c6",
+              "ev-d7cbcfce54b3a087ae78"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-4b5429afb274b06ee6c6",
+          "ev-d7cbcfce54b3a087ae78",
+          "ev-30fd8877c3fc78f4b43e",
+          "ev-21b5572da99e58424afa",
+          "ev-6d1ef921420a36646b67",
+          "ev-c1deb5113e47f98810bf",
+          "ev-17629d1346b4c44d045e",
+          "ev-3624a7fd0a2795cd735f",
+          "ev-f3176ef202cffc7a3c63",
+          "ev-4ad28805ba62cdb09a70"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The complete implementation of has_perms_owner_aware is not in the supplied source windows, so the exact combination of ownership, user object grants, group grants, global permissions, and inactive-user handling for the decisive root check cannot be fully resolved.",
+            "nextRead": "Read the remaining src/documents/permissions.py lines containing has_perms_owner_aware and any callers or related permission helpers."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The remainder of resolve_requested_version_for_root is not in the supplied source window, so the exact syntax and lookup branches for explicit version values, deleted versions, and not-found versus invalid outcomes are unresolved.",
+            "nextRead": "Read src/documents/versioning.py lines 169-258."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The implementation of serve_file is not in the supplied source windows, so exact archive/original storage-path selection, response headers, content type, and any file-level fallback or error branches are unresolved.",
+            "nextRead": "Search and read the definition of serve_file within the allowed src/documents index."
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "The runtime authentication backend, token/session validity, request.user state, deployed routing/middleware, and actual ownership/object/group grants are not provided; source declarations alone do not establish a concrete user's authorization result."
+          },
+          {
+            "kind": "dependency-out-of-scope",
+            "detail": "This result covers the shown DocumentViewSet detail Download path only. It does not establish behavior for bulk downloads, share-link downloads, direct storage access, reverse proxies, or all repository routes."
+          }
+        ]
+      }
+    ]
+  },
+  "providerCalls": 5,
+  "respondedCalls": 5,
+  "knownTokens": {
+    "input": 185666,
+    "output": 3010,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "actualUSD": null,
+  "targetExecutions": 0,
+  "semanticReview": "pending",
+  "sourceConfigBytesUnchanged": true,
+  "noAutomaticResend": true
+}

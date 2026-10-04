@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "authorization-ar-ordinary-source-adjudication/v1",
+  "report": {
+    "path": "ordinary/consume-authorization-owui-ingestion-final-budget-v1/run-archive/sessions/2026-10-04T032016481Z-d99e5e99/run.json",
+    "sha256": "2d9985289453b46e7ad05b1bc0f2e395d0a2758faba71bdb8041a708f2ef68b5"
+  },
+  "independentReview": {
+    "path": "evaluations/ordinary-owui-delivery-independent.json",
+    "sha256": "bc396e7aa72e3f9d27208a0d95158cc173cdbbf901a61396d8a0a4c1ed1a816f"
+  },
+  "assessment": {
+    "initial": "partial",
+    "final": "partial",
+    "sourceExtraction": "partial",
+    "decisiveError": false,
+    "overUnknown": true,
+    "falseComplete": false,
+    "causes": [
+      "not-read",
+      "extraction-error"
+    ],
+    "actualMechanism": [
+      "Endpoint input lookup and explicit output collection are correctly distinguished in both answers.",
+      "Actual ev-a3fcdc1a77c6b985e2e4 spans retrieval.py:1520-1740, not through 1762. The 404 branch is genuinely unread, so unknown HTTP status is not a source contradiction.",
+      "Full owner lookup at models/files.py:172-184 was only located, not body-read. Full vector save helper was only located with its tail supplied at 1520-1537.",
+      "Source-visible BYPASS_EMBEDDING_AND_RETRIEVAL at retrieval.py:1673-1681 was read but neither answer explains its no-vector-write/collection_name:null branch.",
+      "Full source helper has hash-duplicate checks, existing collection add/overwrite handling, and insertion without a visible destination ownership check. These are unexpanded readable branches."
+    ],
+    "justifiedResiduals": [
+      "Deployment vector backend, request configuration and caller facts remain unspecified."
+    ],
+    "reviewCorrections": [
+      "Correct actual-body range from reviewer claimed 1540-1762 to retained 1520-1740.",
+      "A readable but unread 404 branch is an avoidable missing branch, not a decisive incorrect claim that it was unread.",
+      "Keep not-read and separately add omitted already-shown bypass branch as extraction-error. No checker miss is inferred from the anonymous packet."
+    ]
+  },
+  "actualBodyWindows": [
+    {
+      "id": "ev-a3fcdc1a77c6b985e2e4",
+      "path": "backend/open_webui/routers/retrieval.py",
+      "startLine": 1520,
+      "endLine": 1740,
+      "bytes": 10572
+    },
+    {
+      "id": "ev-3d362660a7deac3e2b8c",
+      "path": "backend/open_webui/routers/files.py",
+      "startLine": 90,
+      "endLine": 175,
+      "bytes": 3731
+    },
+    {
+      "id": "ev-ccd1cb99fb82530f3097",
+      "path": "backend/open_webui/utils/access_control/files.py",
+      "startLine": 1,
+      "endLine": 89,
+      "bytes": 3835
+    }
+  ],
+  "pointChecks": [
+    {
+      "claim": "Non-admin lookup is owner-bound; another user's file returns 404.",
+      "evidence": "models/files.py:172-184; routers/retrieval.py:1761-1762"
+    },
+    {
+      "claim": "Admin lookup is unfiltered.",
+      "evidence": "routers/retrieval.py:1559-1562"
+    },
+    {
+      "claim": "Explicit destination is accepted; default is file-{file.id}.",
+      "evidence": "routers/retrieval.py:1566-1569, 1694-1705"
+    },
+    {
+      "claim": "Input and output objects can differ.",
+      "evidence": "routers/retrieval.py:1577; 1527-1531"
+    },
+    {
+      "claim": "No visible helper-level collection ownership check.",
+      "evidence": "routers/retrieval.py:1340-1349, 1368-1387, 1458-1467, 1527-1531"
+    },
+    {
+      "claim": "Uploaded-file caller passes file_item.id with optional transcribed content.",
+      "evidence": "routers/files.py:136-160"
+    }
+  ],
+  "providerCallsDuringAdjudication": 0,
+  "targetExecutions": 0
+}

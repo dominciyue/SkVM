@@ -1,0 +1,469 @@
+{
+  "at": "2026-10-04T03:24:28.361Z",
+  "stage": "consume-authorization-owui-ingestion-final-budget-v1",
+  "author": null,
+  "accountingKind": "ordinary-natural-inquiry-consumption",
+  "exitCode": 0,
+  "workDir": "D:\\skill优化\\project-maintenance\\runs\\portable-consume-authorization-owui-ingestion-final-budget-v1-k1hFSt\\inputs",
+  "sessionPath": "D:\\skill优化\\project-maintenance\\runs\\portable-consume-authorization-owui-ingestion-final-budget-v1-k1hFSt\\inputs\\runs\\sessions\\2026-10-04T032016481Z-d99e5e99",
+  "status": "completed",
+  "validation": {
+    "valid": true,
+    "result": {
+      "schemaVersion": "authorization-inquiry-result/v1",
+      "questions": [
+        {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "POST /process/file authorizes the input file by caller identity: admins use an unfiltered file lookup, while non-admins use a file_id-plus-user_id lookup. It accepts form_data.collection_name and passes that name to the vector-save path without a visible destination ownership or access check in the endpoint. Therefore the input object (the File identified by file_id) and the output object (the vector collection named by collection_name) are not inherently the same authorization object. With collection_name omitted, the destination defaults to file-{file.id}; with an explicit name, output can target a different named collection subject to uninspected helper/provider behavior."
+          },
+          "branches": [
+            {
+              "id": "q1-owner-default-collection",
+              "condition": "A verified non-admin caller supplies a file_id for a file owned by that caller and omits collection_name.",
+              "disposition": "allow",
+              "explanation": "The route uses the owner-bound lookup for non-admins. When a file is found, collection_name defaults to file-{file.id}. The endpoint constructs documents whose metadata includes the source file's file_id and user_id, then invokes the vector-save path with the derived collection name.",
+              "evidenceIds": [
+                "ev-015b023e80fcb0d5c38c",
+                "ev-474c2286da3f3d8be63a",
+                "ev-581492611d75e628f394",
+                "ev-eee69083d90fb09e032c",
+                "ev-ff9a709fd4414479dc91",
+                "ev-a3fcdc1a77c6b985e2e4"
+              ]
+            },
+            {
+              "id": "q1-owner-explicit-collection",
+              "condition": "A verified non-admin caller owns the input file and supplies an explicit collection_name, regardless of whether the caller owns that collection.",
+              "disposition": "conditional",
+              "explanation": "The endpoint accepts the supplied collection_name and passes it to save_docs_to_vector_db. No collection ownership/access check is visible in the inspected endpoint. The lower-level Chroma insert/upsert paths use the supplied name and get_or_create_collection, but the full save helper and deployed vector backend are not established.",
+              "evidenceIds": [
+                "ev-015b023e80fcb0d5c38c",
+                "ev-474c2286da3f3d8be63a",
+                "ev-8b43cac5a91230954128",
+                "ev-a3fcdc1a77c6b985e2e4",
+                "ev-8288b3d1f933fa6dccd3",
+                "ev-4de1c245e5ca5eb366bb"
+              ]
+            },
+            {
+              "id": "q1-other-user-nonadmin",
+              "condition": "A verified non-admin caller supplies another user's file_id, with or without collection_name.",
+              "disposition": "deny",
+              "explanation": "The endpoint calls get_file_by_id_and_user_id(form_data.file_id, user.id), so a file not owned by the caller is not loaded through this path and the processing/vector-write block is not entered. This is a processing authorization short-circuit; the exact HTTP status/body after the file lookup fails was not read.",
+              "evidenceIds": [
+                "ev-015b023e80fcb0d5c38c",
+                "ev-474c2286da3f3d8be63a",
+                "ev-c71fa50d0126f016b038"
+              ]
+            },
+            {
+              "id": "q1-other-user-shared-access",
+              "condition": "A non-admin caller has a knowledge-base, channel, shared-chat, or shared-model relationship that may grant access to another user's file, but does not own that file.",
+              "disposition": "deny",
+              "explanation": "The visible /process/file path does not call has_access_to_file; it uses the owner-bound file lookup for non-admins. The broader helper supports several shared-access relationships, but that helper is not shown as an input authorization control for this endpoint. Thus such relationships do not make the file pass the inspected endpoint path.",
+              "evidenceIds": [
+                "ev-474c2286da3f3d8be63a",
+                "ev-ccd1cb99fb82530f3097"
+              ]
+            },
+            {
+              "id": "q1-admin-any-file",
+              "condition": "A verified caller has role admin and supplies an existing file_id, including a file owned by another user.",
+              "disposition": "allow",
+              "explanation": "Admins use Files.get_file_by_id(form_data.file_id) rather than the owner-filtered lookup. If the file exists, the same content-selection, file-record update, and vector-save flow is available, including an explicit collection_name if supplied.",
+              "evidenceIds": [
+                "ev-a3fcdc1a77c6b985e2e4"
+              ]
+            },
+            {
+              "id": "q1-supplied-content",
+              "condition": "The authorized request supplies non-empty content.",
+              "disposition": "conditional",
+              "explanation": "The endpoint deletes file-{file.id}, builds a document from the supplied content with metadata including created_by=file.user_id and file_id=file.id, updates the stored file content, and sends the document to the selected collection. If an explicit collection_name differs from file-{file.id}, the deletion target and output target are visibly different objects.",
+              "evidenceIds": [
+                "ev-a3fcdc1a77c6b985e2e4"
+              ]
+            },
+            {
+              "id": "q1-existing-vector-reuse",
+              "condition": "The authorized request supplies no content but does supply collection_name.",
+              "disposition": "conditional",
+              "explanation": "The endpoint first queries file-{file.id}, filtered by that file_id, to reuse existing vectors; if none are found, it builds a document from the file's stored content. It then saves the resulting documents to the explicitly supplied collection_name. This is a direct visible separation between the source/read collection and the output collection.",
+              "evidenceIds": [
+                "ev-a3fcdc1a77c6b985e2e4"
+              ]
+            },
+            {
+              "id": "q1-extraction-default",
+              "condition": "The authorized request supplies neither content nor collection_name.",
+              "disposition": "conditional",
+              "explanation": "The endpoint loads the file from storage through the configured loader when file.path exists, otherwise uses file.data.content, adds metadata containing the source file_id and file.user_id, and writes to the default file-{file.id} collection. It then updates the file record with content/status/hash and, on success, collection_name.",
+              "evidenceIds": [
+                "ev-a3fcdc1a77c6b985e2e4"
+              ]
+            },
+            {
+              "id": "q1-visible-caller",
+              "condition": "The request arrives through the visible process_uploaded_file caller.",
+              "disposition": "allow",
+              "explanation": "process_uploaded_file invokes process_file with ProcessFileForm(file_id=file_item.id), optionally adding transcribed content, and passes the same user and database session. The endpoint's owner/admin lookup is therefore the decisive visible upstream control on this caller path.",
+              "evidenceIds": [
+                "ev-3d362660a7deac3e2b8c",
+                "ev-9065e3c8717d9e5aa38e",
+                "ev-114cb1c97027b640554e",
+                "ev-1492fd9b2b867c20ca20"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-50b742ce38a9b7029b5b",
+            "ev-a3fcdc1a77c6b985e2e4",
+            "ev-3d362660a7deac3e2b8c",
+            "ev-ccd1cb99fb82530f3097",
+            "ev-3d49e2bd1c40d9fe70e8",
+            "ev-64d76d2ceb132073165c",
+            "ev-a077a1490132ef632611"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The inspected endpoint body ends at line 1740. The continuation handling file=None and the final error/status update was not read, so the exact HTTP result for a non-admin another-user file and for a nonexistent file is not established.",
+              "nextRead": "Read backend/open_webui/routers/retrieval.py lines 1738-1774."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "save_docs_to_vector_db was located but its full body was not read. The endpoint passes collection_name and user to it, and the visible lower-level insert evidence shows the collection argument, but helper-level collection authorization or provider-specific filtering cannot be determined from the inspected lines.",
+              "nextRead": "Read backend/open_webui/routers/retrieval.py lines 1340-1538."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The implementation of Files.get_file_by_id_and_user_id was located but not read beyond its symbol location. The endpoint's owner-bound call is established, but the exact query and missing-result behavior remain unexpanded.",
+              "nextRead": "Read backend/open_webui/models/files.py around lines 150-190."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "The configured vector backend is not established. Chroma evidence shows name-based get_or_create_collection, while other providers may implement different collection semantics; deployment configuration was not inspected."
+            },
+            {
+              "kind": "dependency-out-of-scope",
+              "detail": "Embedding service behavior, storage provider behavior, loader implementations, and database transaction/error behavior were not investigated because they are not needed to establish the decisive owner/admin input short-circuit and the visible destination-name flow."
+            }
+          ]
+        }
+      ],
+      "observations": [],
+      "scope": "Open WebUI revision open-webui/open-webui@841c9045d789005145274955e7ef60b1b11a9be9; allowed source scope backend/open_webui; investigated POST /process/file, its visible uploaded-file caller, and the visible vector-write path only."
+    },
+    "diagnostics": [],
+    "semanticSupport": "unreviewed",
+    "questionChecks": [
+      {
+        "questionId": "q1",
+        "transportValid": true,
+        "referenceValid": true,
+        "ruleConsistent": null,
+        "evidenceCoverage": "unreviewed",
+        "semanticReview": "unreviewed",
+        "deliveryStatus": "unverified",
+        "answer": {
+          "questionId": "q1",
+          "behavior": {
+            "disposition": "conditional",
+            "explanation": "POST /process/file authorizes the input file by caller identity: admins use an unfiltered file lookup, while non-admins use a file_id-plus-user_id lookup. It accepts form_data.collection_name and passes that name to the vector-save path without a visible destination ownership or access check in the endpoint. Therefore the input object (the File identified by file_id) and the output object (the vector collection named by collection_name) are not inherently the same authorization object. With collection_name omitted, the destination defaults to file-{file.id}; with an explicit name, output can target a different named collection subject to uninspected helper/provider behavior."
+          },
+          "branches": [
+            {
+              "id": "q1-owner-default-collection",
+              "condition": "A verified non-admin caller supplies a file_id for a file owned by that caller and omits collection_name.",
+              "disposition": "allow",
+              "explanation": "The route uses the owner-bound lookup for non-admins. When a file is found, collection_name defaults to file-{file.id}. The endpoint constructs documents whose metadata includes the source file's file_id and user_id, then invokes the vector-save path with the derived collection name.",
+              "evidenceIds": [
+                "ev-015b023e80fcb0d5c38c",
+                "ev-474c2286da3f3d8be63a",
+                "ev-581492611d75e628f394",
+                "ev-eee69083d90fb09e032c",
+                "ev-ff9a709fd4414479dc91",
+                "ev-a3fcdc1a77c6b985e2e4"
+              ]
+            },
+            {
+              "id": "q1-owner-explicit-collection",
+              "condition": "A verified non-admin caller owns the input file and supplies an explicit collection_name, regardless of whether the caller owns that collection.",
+              "disposition": "conditional",
+              "explanation": "The endpoint accepts the supplied collection_name and passes it to save_docs_to_vector_db. No collection ownership/access check is visible in the inspected endpoint. The lower-level Chroma insert/upsert paths use the supplied name and get_or_create_collection, but the full save helper and deployed vector backend are not established.",
+              "evidenceIds": [
+                "ev-015b023e80fcb0d5c38c",
+                "ev-474c2286da3f3d8be63a",
+                "ev-8b43cac5a91230954128",
+                "ev-a3fcdc1a77c6b985e2e4",
+                "ev-8288b3d1f933fa6dccd3",
+                "ev-4de1c245e5ca5eb366bb"
+              ]
+            },
+            {
+              "id": "q1-other-user-nonadmin",
+              "condition": "A verified non-admin caller supplies another user's file_id, with or without collection_name.",
+              "disposition": "deny",
+              "explanation": "The endpoint calls get_file_by_id_and_user_id(form_data.file_id, user.id), so a file not owned by the caller is not loaded through this path and the processing/vector-write block is not entered. This is a processing authorization short-circuit; the exact HTTP status/body after the file lookup fails was not read.",
+              "evidenceIds": [
+                "ev-015b023e80fcb0d5c38c",
+                "ev-474c2286da3f3d8be63a",
+                "ev-c71fa50d0126f016b038"
+              ]
+            },
+            {
+              "id": "q1-other-user-shared-access",
+              "condition": "A non-admin caller has a knowledge-base, channel, shared-chat, or shared-model relationship that may grant access to another user's file, but does not own that file.",
+              "disposition": "deny",
+              "explanation": "The visible /process/file path does not call has_access_to_file; it uses the owner-bound file lookup for non-admins. The broader helper supports several shared-access relationships, but that helper is not shown as an input authorization control for this endpoint. Thus such relationships do not make the file pass the inspected endpoint path.",
+              "evidenceIds": [
+                "ev-474c2286da3f3d8be63a",
+                "ev-ccd1cb99fb82530f3097"
+              ]
+            },
+            {
+              "id": "q1-admin-any-file",
+              "condition": "A verified caller has role admin and supplies an existing file_id, including a file owned by another user.",
+              "disposition": "allow",
+              "explanation": "Admins use Files.get_file_by_id(form_data.file_id) rather than the owner-filtered lookup. If the file exists, the same content-selection, file-record update, and vector-save flow is available, including an explicit collection_name if supplied.",
+              "evidenceIds": [
+                "ev-a3fcdc1a77c6b985e2e4"
+              ]
+            },
+            {
+              "id": "q1-supplied-content",
+              "condition": "The authorized request supplies non-empty content.",
+              "disposition": "conditional",
+              "explanation": "The endpoint deletes file-{file.id}, builds a document from the supplied content with metadata including created_by=file.user_id and file_id=file.id, updates the stored file content, and sends the document to the selected collection. If an explicit collection_name differs from file-{file.id}, the deletion target and output target are visibly different objects.",
+              "evidenceIds": [
+                "ev-a3fcdc1a77c6b985e2e4"
+              ]
+            },
+            {
+              "id": "q1-existing-vector-reuse",
+              "condition": "The authorized request supplies no content but does supply collection_name.",
+              "disposition": "conditional",
+              "explanation": "The endpoint first queries file-{file.id}, filtered by that file_id, to reuse existing vectors; if none are found, it builds a document from the file's stored content. It then saves the resulting documents to the explicitly supplied collection_name. This is a direct visible separation between the source/read collection and the output collection.",
+              "evidenceIds": [
+                "ev-a3fcdc1a77c6b985e2e4"
+              ]
+            },
+            {
+              "id": "q1-extraction-default",
+              "condition": "The authorized request supplies neither content nor collection_name.",
+              "disposition": "conditional",
+              "explanation": "The endpoint loads the file from storage through the configured loader when file.path exists, otherwise uses file.data.content, adds metadata containing the source file_id and file.user_id, and writes to the default file-{file.id} collection. It then updates the file record with content/status/hash and, on success, collection_name.",
+              "evidenceIds": [
+                "ev-a3fcdc1a77c6b985e2e4"
+              ]
+            },
+            {
+              "id": "q1-visible-caller",
+              "condition": "The request arrives through the visible process_uploaded_file caller.",
+              "disposition": "allow",
+              "explanation": "process_uploaded_file invokes process_file with ProcessFileForm(file_id=file_item.id), optionally adding transcribed content, and passes the same user and database session. The endpoint's owner/admin lookup is therefore the decisive visible upstream control on this caller path.",
+              "evidenceIds": [
+                "ev-3d362660a7deac3e2b8c",
+                "ev-9065e3c8717d9e5aa38e",
+                "ev-114cb1c97027b640554e",
+                "ev-1492fd9b2b867c20ca20"
+              ]
+            }
+          ],
+          "evidenceIds": [
+            "ev-50b742ce38a9b7029b5b",
+            "ev-a3fcdc1a77c6b985e2e4",
+            "ev-3d362660a7deac3e2b8c",
+            "ev-ccd1cb99fb82530f3097",
+            "ev-3d49e2bd1c40d9fe70e8",
+            "ev-64d76d2ceb132073165c",
+            "ev-a077a1490132ef632611"
+          ],
+          "missing": [
+            {
+              "kind": "source-gap",
+              "detail": "The inspected endpoint body ends at line 1740. The continuation handling file=None and the final error/status update was not read, so the exact HTTP result for a non-admin another-user file and for a nonexistent file is not established.",
+              "nextRead": "Read backend/open_webui/routers/retrieval.py lines 1738-1774."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "save_docs_to_vector_db was located but its full body was not read. The endpoint passes collection_name and user to it, and the visible lower-level insert evidence shows the collection argument, but helper-level collection authorization or provider-specific filtering cannot be determined from the inspected lines.",
+              "nextRead": "Read backend/open_webui/routers/retrieval.py lines 1340-1538."
+            },
+            {
+              "kind": "source-gap",
+              "detail": "The implementation of Files.get_file_by_id_and_user_id was located but not read beyond its symbol location. The endpoint's owner-bound call is established, but the exact query and missing-result behavior remain unexpanded.",
+              "nextRead": "Read backend/open_webui/models/files.py around lines 150-190."
+            },
+            {
+              "kind": "deployment-unverified",
+              "detail": "The configured vector backend is not established. Chroma evidence shows name-based get_or_create_collection, while other providers may implement different collection semantics; deployment configuration was not inspected."
+            },
+            {
+              "kind": "dependency-out-of-scope",
+              "detail": "Embedding service behavior, storage provider behavior, loader implementations, and database transaction/error behavior were not investigated because they are not needed to establish the decisive owner/admin input short-circuit and the visible destination-name flow."
+            }
+          ]
+        },
+        "diagnostics": []
+      }
+    ],
+    "usableQuestions": [
+      {
+        "questionId": "q1",
+        "behavior": {
+          "disposition": "conditional",
+          "explanation": "POST /process/file authorizes the input file by caller identity: admins use an unfiltered file lookup, while non-admins use a file_id-plus-user_id lookup. It accepts form_data.collection_name and passes that name to the vector-save path without a visible destination ownership or access check in the endpoint. Therefore the input object (the File identified by file_id) and the output object (the vector collection named by collection_name) are not inherently the same authorization object. With collection_name omitted, the destination defaults to file-{file.id}; with an explicit name, output can target a different named collection subject to uninspected helper/provider behavior."
+        },
+        "branches": [
+          {
+            "id": "q1-owner-default-collection",
+            "condition": "A verified non-admin caller supplies a file_id for a file owned by that caller and omits collection_name.",
+            "disposition": "allow",
+            "explanation": "The route uses the owner-bound lookup for non-admins. When a file is found, collection_name defaults to file-{file.id}. The endpoint constructs documents whose metadata includes the source file's file_id and user_id, then invokes the vector-save path with the derived collection name.",
+            "evidenceIds": [
+              "ev-015b023e80fcb0d5c38c",
+              "ev-474c2286da3f3d8be63a",
+              "ev-581492611d75e628f394",
+              "ev-eee69083d90fb09e032c",
+              "ev-ff9a709fd4414479dc91",
+              "ev-a3fcdc1a77c6b985e2e4"
+            ]
+          },
+          {
+            "id": "q1-owner-explicit-collection",
+            "condition": "A verified non-admin caller owns the input file and supplies an explicit collection_name, regardless of whether the caller owns that collection.",
+            "disposition": "conditional",
+            "explanation": "The endpoint accepts the supplied collection_name and passes it to save_docs_to_vector_db. No collection ownership/access check is visible in the inspected endpoint. The lower-level Chroma insert/upsert paths use the supplied name and get_or_create_collection, but the full save helper and deployed vector backend are not established.",
+            "evidenceIds": [
+              "ev-015b023e80fcb0d5c38c",
+              "ev-474c2286da3f3d8be63a",
+              "ev-8b43cac5a91230954128",
+              "ev-a3fcdc1a77c6b985e2e4",
+              "ev-8288b3d1f933fa6dccd3",
+              "ev-4de1c245e5ca5eb366bb"
+            ]
+          },
+          {
+            "id": "q1-other-user-nonadmin",
+            "condition": "A verified non-admin caller supplies another user's file_id, with or without collection_name.",
+            "disposition": "deny",
+            "explanation": "The endpoint calls get_file_by_id_and_user_id(form_data.file_id, user.id), so a file not owned by the caller is not loaded through this path and the processing/vector-write block is not entered. This is a processing authorization short-circuit; the exact HTTP status/body after the file lookup fails was not read.",
+            "evidenceIds": [
+              "ev-015b023e80fcb0d5c38c",
+              "ev-474c2286da3f3d8be63a",
+              "ev-c71fa50d0126f016b038"
+            ]
+          },
+          {
+            "id": "q1-other-user-shared-access",
+            "condition": "A non-admin caller has a knowledge-base, channel, shared-chat, or shared-model relationship that may grant access to another user's file, but does not own that file.",
+            "disposition": "deny",
+            "explanation": "The visible /process/file path does not call has_access_to_file; it uses the owner-bound file lookup for non-admins. The broader helper supports several shared-access relationships, but that helper is not shown as an input authorization control for this endpoint. Thus such relationships do not make the file pass the inspected endpoint path.",
+            "evidenceIds": [
+              "ev-474c2286da3f3d8be63a",
+              "ev-ccd1cb99fb82530f3097"
+            ]
+          },
+          {
+            "id": "q1-admin-any-file",
+            "condition": "A verified caller has role admin and supplies an existing file_id, including a file owned by another user.",
+            "disposition": "allow",
+            "explanation": "Admins use Files.get_file_by_id(form_data.file_id) rather than the owner-filtered lookup. If the file exists, the same content-selection, file-record update, and vector-save flow is available, including an explicit collection_name if supplied.",
+            "evidenceIds": [
+              "ev-a3fcdc1a77c6b985e2e4"
+            ]
+          },
+          {
+            "id": "q1-supplied-content",
+            "condition": "The authorized request supplies non-empty content.",
+            "disposition": "conditional",
+            "explanation": "The endpoint deletes file-{file.id}, builds a document from the supplied content with metadata including created_by=file.user_id and file_id=file.id, updates the stored file content, and sends the document to the selected collection. If an explicit collection_name differs from file-{file.id}, the deletion target and output target are visibly different objects.",
+            "evidenceIds": [
+              "ev-a3fcdc1a77c6b985e2e4"
+            ]
+          },
+          {
+            "id": "q1-existing-vector-reuse",
+            "condition": "The authorized request supplies no content but does supply collection_name.",
+            "disposition": "conditional",
+            "explanation": "The endpoint first queries file-{file.id}, filtered by that file_id, to reuse existing vectors; if none are found, it builds a document from the file's stored content. It then saves the resulting documents to the explicitly supplied collection_name. This is a direct visible separation between the source/read collection and the output collection.",
+            "evidenceIds": [
+              "ev-a3fcdc1a77c6b985e2e4"
+            ]
+          },
+          {
+            "id": "q1-extraction-default",
+            "condition": "The authorized request supplies neither content nor collection_name.",
+            "disposition": "conditional",
+            "explanation": "The endpoint loads the file from storage through the configured loader when file.path exists, otherwise uses file.data.content, adds metadata containing the source file_id and file.user_id, and writes to the default file-{file.id} collection. It then updates the file record with content/status/hash and, on success, collection_name.",
+            "evidenceIds": [
+              "ev-a3fcdc1a77c6b985e2e4"
+            ]
+          },
+          {
+            "id": "q1-visible-caller",
+            "condition": "The request arrives through the visible process_uploaded_file caller.",
+            "disposition": "allow",
+            "explanation": "process_uploaded_file invokes process_file with ProcessFileForm(file_id=file_item.id), optionally adding transcribed content, and passes the same user and database session. The endpoint's owner/admin lookup is therefore the decisive visible upstream control on this caller path.",
+            "evidenceIds": [
+              "ev-3d362660a7deac3e2b8c",
+              "ev-9065e3c8717d9e5aa38e",
+              "ev-114cb1c97027b640554e",
+              "ev-1492fd9b2b867c20ca20"
+            ]
+          }
+        ],
+        "evidenceIds": [
+          "ev-50b742ce38a9b7029b5b",
+          "ev-a3fcdc1a77c6b985e2e4",
+          "ev-3d362660a7deac3e2b8c",
+          "ev-ccd1cb99fb82530f3097",
+          "ev-3d49e2bd1c40d9fe70e8",
+          "ev-64d76d2ceb132073165c",
+          "ev-a077a1490132ef632611"
+        ],
+        "missing": [
+          {
+            "kind": "source-gap",
+            "detail": "The inspected endpoint body ends at line 1740. The continuation handling file=None and the final error/status update was not read, so the exact HTTP result for a non-admin another-user file and for a nonexistent file is not established.",
+            "nextRead": "Read backend/open_webui/routers/retrieval.py lines 1738-1774."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "save_docs_to_vector_db was located but its full body was not read. The endpoint passes collection_name and user to it, and the visible lower-level insert evidence shows the collection argument, but helper-level collection authorization or provider-specific filtering cannot be determined from the inspected lines.",
+            "nextRead": "Read backend/open_webui/routers/retrieval.py lines 1340-1538."
+          },
+          {
+            "kind": "source-gap",
+            "detail": "The implementation of Files.get_file_by_id_and_user_id was located but not read beyond its symbol location. The endpoint's owner-bound call is established, but the exact query and missing-result behavior remain unexpanded.",
+            "nextRead": "Read backend/open_webui/models/files.py around lines 150-190."
+          },
+          {
+            "kind": "deployment-unverified",
+            "detail": "The configured vector backend is not established. Chroma evidence shows name-based get_or_create_collection, while other providers may implement different collection semantics; deployment configuration was not inspected."
+          },
+          {
+            "kind": "dependency-out-of-scope",
+            "detail": "Embedding service behavior, storage provider behavior, loader implementations, and database transaction/error behavior were not investigated because they are not needed to establish the decisive owner/admin input short-circuit and the visible destination-name flow."
+          }
+        ]
+      }
+    ]
+  },
+  "providerCalls": 5,
+  "respondedCalls": 5,
+  "knownTokens": {
+    "input": 178887,
+    "output": 4964,
+    "cacheRead": 63872,
+    "cacheWrite": 0
+  },
+  "actualUSD": null,
+  "targetExecutions": 0,
+  "semanticReview": "pending",
+  "sourceConfigBytesUnchanged": true,
+  "noAutomaticResend": true
+}

@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "authorization-ar-ordinary-source-review/v1",
+  "report": {
+    "path": "ordinary/consume-authorization-paperless-download-final-budget-v1/run-archive/sessions/2026-10-04T032016005Z-1d8b85a9/run.json",
+    "sha256": "a1b883589e1874021bcffaa9b69a3716cf039b7d16a405098298ee1cf509fcc5"
+  },
+  "reviewer": {
+    "kind": "independent",
+    "mainContextExposed": false
+  },
+  "assessment": {
+    "initialCompleteness": "partial",
+    "finalCompleteness": "partial",
+    "sourceExtractionCompleteness": "partial",
+    "decisiveError": null,
+    "overUnknown": false,
+    "falseComplete": false,
+    "causes": [
+      "extraction-error",
+      "not-read"
+    ],
+    "expectedMechanism": "DocumentViewSet.download delegates to file_response. file_response resolves pk via global_objects with include_deleted=True, derives root_doc, checks has_perms_owner_aware(user, \"view_document\", root_doc), then resolves effective file document and calls serve_file. A version query changes selected file_doc but authorization remains checked on root_doc. Archive/original selection is per selected file_doc.",
+    "helperHits": {
+      "actualBodyWindows": [
+        {
+          "path": "src/documents/views.py",
+          "lines": "1834-1839",
+          "quote": "def download(self, request, pk=None): ... return self.file_response(pk, request, \"attachment\") ... except (FileNotFoundError, Document.DoesNotExist): raise Http404"
+        },
+        {
+          "path": "src/documents/views.py",
+          "lines": "1810-1825",
+          "quote": "resolved = self._resolve_request_and_root_doc(...); file_doc = self._get_effective_file_doc(...)"
+        }
+      ],
+      "reviewerOnlyFullSourceFindings": [
+        {
+          "path": "src/documents/views.py",
+          "lines": "1368-1448",
+          "quote": "if request.user is not None and not has_perms_owner_aware(... root_doc): return HttpResponseForbidden(...) ... return serve_file(doc=file_doc, use_archive=not self.original_requested(request) and file_doc.has_archive_version, ...)"
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "lines": "624-635",
+          "quote": "return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)"
+        },
+        {
+          "path": "src/documents/versioning.py",
+          "lines": "169-195",
+          "quote": "version_param ... int(version_param) ... candidate ... if candidate.id != root_doc.id and candidate.root_document_id != root_doc.id: ... NOT_FOUND"
+        },
+        {
+          "path": "src/documents/views.py",
+          "lines": "4941-4995",
+          "quote": "if use_archive: file_handle = doc.archive_file ... else: file_handle = doc.source_file ... response = FileResponse(...)"
+        }
+      ]
+    },
+    "missingDecisiveBranches": [
+      "Actual packet windows omit the complete has_perms_owner_aware body; full source shows owner-or-object-permission semantics, but group/global/inactive-user details are not established by this helper.",
+      "Actual packet windows omit complete explicit version resolution: non-integer version is INVALID; missing candidate or candidate outside root is NOT_FOUND (src/documents/versioning.py:175-195).",
+      "Actual packet windows omit serve_file body, including archive_file versus source_file and filename/MIME behavior (src/documents/views.py:4941-4995).",
+      "URLs only establish router registration of documents at api_router line 77; exact generated detail-download route is router-derived rather than explicitly shown (src/paperless/urls.py:74-78)."
+    ],
+    "importantClaims": [
+      {
+        "claim": "Download authorization is against root_doc before file selection.",
+        "evidence": "src/documents/views.py:1401-1427: \"root_doc = get_root_document(...)\" then \"has_perms_owner_aware(..., root_doc)\" and forbidden return."
+      },
+      {
+        "claim": "Owner-aware helper allows unowned objects, owner, or guardian object permission.",
+        "evidence": "src/documents/permissions.py:624-635: \"return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)\"."
+      },
+      {
+        "claim": "Version selection is constrained to root or a child version.",
+        "evidence": "src/documents/versioning.py:184-195: parse int; candidate lookup; outside-root candidate returns NOT_FOUND."
+      },
+      {
+        "claim": "No version parameter on a root request resolves newest version, while a version pk without version parameter returns that requested version.",
+        "evidence": "src/documents/versioning.py:159-166 and src/documents/views.py:1388-1399."
+      },
+      {
+        "claim": "Archive/original representation follows selected file_doc; original=true disables archive.",
+        "evidence": "src/documents/views.py:1368-1373 and 1437-1448: \"use_archive=not self.original_requested(request) and file_doc.has_archive_version\"."
+      },
+      {
+        "claim": "serve_file uses archive_file when archive is selected and source_file otherwise.",
+        "evidence": "src/documents/views.py:4948-4965."
+      },
+      {
+        "claim": "Initial and final are substantively identical and correctly preserve conditional authorization and listed source gaps.",
+        "evidence": "packet initial/final sections lines 171-320 repeat the same behavior, branches, and missing items."
+      }
+    ]
+  },
+  "source": "JSON-compatible transcription of final agent assessment retained separately from main adjudication; source quotations normalized for JSON."
+}
