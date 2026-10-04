@@ -21,6 +21,22 @@ function scripted(fn: (params: CompletionParams, n: number) => unknown): { provi
     return { text: tool ? "" : JSON.stringify(value), toolCalls: tool ? [{ id: `c${count}`, name: tool.name, arguments: value as Record<string, unknown> }] : [], stopReason: tool ? "tool_use" : "end_turn", tokens: emptyTokenUsage(), durationMs: 0 }
   }, async completeWithToolResults() { throw new Error("Use structured inquiry actions") } } }
 }
+test("semantic delivery archives omitted-kind normalization without inventing a source answer or a wire repair", async () => {
+  const input = await setup(), mock = scripted(() => ({ result: { schemaVersion: "authorization-semantic-result/v1", revision: 0, questions: [{ questionId: "q1", explanation: "The decisive source has not been interpreted.", missing: [{ kind: "source-gap", detail: "entry and helper" }] }], scope: "bounded source" } }))
+  const run = await runAuthorizationInquiry({ ...input, method: "D1", strategy: "semantic-flow-v1", provider: mock.provider, maxDispatches: 2 })
+  expect(run.status).toBe("completed")
+  expect(run.validation?.valid).toBe(true)
+  expect(run.domain?.check).toMatchObject({ sourceBound: false, taskResolution: "partial" })
+  expect(run.domain?.semantic?.units).toHaveLength(0)
+  expect(run.wireFailures).toHaveLength(0)
+  expect(run.wireNormalizations).toHaveLength(1)
+  expect(run.wireNormalizations[0]).toMatchObject({ code: "semantic-final-kind-omitted", originalKind: null })
+  expect(JSON.parse(run.wireNormalizations[0]!.rawResponse)).not.toHaveProperty("kind")
+  expect(run.attempts[0]!.response!.toolCalls![0]!.arguments).not.toHaveProperty("kind")
+  expect((run.final as any).questions[0].behavior.disposition).toBe("unknown")
+  expect(mock.count()).toBe(1)
+  expect(run.toolHistory).toHaveLength(0)
+})
 const final = (id: string) => ({ kind: "final", result: { schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q1", behavior: { disposition: "deny", explanation: "The called guard returns false." }, evidenceIds: [id], branches: [], missing: [] }], observations: [], scope: "Read source only" } })
 test("domain delivery keeps both bounded wire repairs and one diagnosed result repair inside the original cap", async () => {
   const input = await setup()

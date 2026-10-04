@@ -128,3 +128,16 @@ test("guided metadata omission preserves explicit source calls and current local
   expect(api.inquiryNativeSchemas("guided-evidence-v2", true).authorization_observe.parse({ controlDelta: raw.controlDelta }).controlDelta.schemaVersion).toBe("authorization-control-update/v1")
   expect(api.inquiryNativeSchemas("guided-evidence-v2").authorization_observe.safeParse({ controlDelta: raw.controlDelta }).success).toBe(false)
 })
+
+test("semantic final-only recovers an omitted routing kind only for an explicit valid result", () => {
+  const result = { schemaVersion: "authorization-semantic-result/v1", revision: 0, questions: [{ questionId: "q", explanation: "No source interpretation yet; preserve the gap." }], scope: "bounded source" }
+  const raw = { result }, final = api.inquiryStepSchemas("semantic-flow-v1", true)
+  expect(final.schema.safeParse(raw).success).toBe(true)
+  expect(final.schema.parse(raw)).toMatchObject({ kind: "final", result })
+  expect(raw).not.toHaveProperty("kind")
+  expect(final.modelSchema.safeParse(raw).success).toBe(false)
+  expect(api.normalizeSemanticFinalEnvelope(raw)).toMatchObject({ value: { ...raw, kind: "final" }, normalization: { code: "semantic-final-kind-omitted", originalKind: null } })
+  for (const invalid of [{ kind: "control", result }, { result, calls: [] }, { controlDelta: { schemaVersion: "authorization-semantic-update/v1" } }, { result: { ...result, revision: undefined } }, { result, workSelections: [] }, { result: { ...result, questions: [{ questionId: "q", explanation: "Gap", paths: [{ pathId: "p", explanation: "Gap", policy: null }] }] } }]) expect(final.schema.safeParse(invalid).success).toBe(false)
+  expect(api.inquiryStepSchemas("semantic-flow-v1").schema.safeParse(raw).success).toBe(false)
+  expect(api.inquiryStepSchemas("guided-evidence-v2", true).schema.safeParse(raw).success).toBe(false)
+})

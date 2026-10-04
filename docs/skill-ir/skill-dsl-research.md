@@ -1707,3 +1707,5 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 原件中的 nextAction、frozen、proceed-narrow 代表当时阶段；当前选择以本文件第 1 节及 current-status 为准，不因保留原件而重新启动旧任务。
 
 AS9/AS10定位与终检实际采用：GitHub exact-author 第二消费采用实际发现候选纠正原词法位置，仍因 helper gap 和 stale revision 部分拒绝；Cloudflare native 第四次完整终检产生结构/来源有效、规则不一致结果，未解释关系和 helper 坏稿仍留原记录。两次共18/18响应，累计133/131，完整 prompt 与 cache 分列，USD未知，未建立质量/成本收益。独立核验另外发现目录/省略路径源码变更失效问题，三项匿名反例红绿修正索引范围失效，无新增读取或模型调用；既有 runtime全局来源变更检查仍负责阻止最终提升，因此不宣称原机制可绕过最终来源检查。
+
+**AS14–AS17 首轮瓶颈。** 12个可运行首轮已留档，Memos三臂继续封存；Download/ShareLink/Gitea三完整块同027eb024、同模型/预算，OWUI D-S首轮异版本分列。旧流程均交付但必要源码解释不完整，Download漏全局GET view条件；新核心首轮遇到语义稿/字段位置、helper未解释和终答版本关联，未建立质量收益。独立只读复核与主裁定保存实际SHA及分歧：已读未解释不可称未读，格式完成不等于false-complete，不能加单独Guardian授予等未供政策。AS17两项匿名红绿：只在final-only上下文且显式结果整体可解析时补省略的kind，原响应/normalization保留；允许文件内错range保持blocked并显示实际候选，仍不自动裁剪或取消边界。原Download D-S/M-S零调用重放复现两项机械改善，77 focused/517断言与主/AS类型检查通过；真实采用仍待具名消费。成本由离线accounting分首轮/修订/native/作者/消费，fresh+cacheRead是完整prompt；USD与真人/开发成本未知。

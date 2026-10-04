@@ -75,6 +75,14 @@ const semanticSteps = (delta: typeof SemanticUpdateSchema | typeof SemanticUpdat
   z.object({ kind: z.literal("final"), result: SemanticResultSchema, controlDelta: delta.optional() }).strict(),
 ])
 const semanticModelSteps = semanticSteps(SemanticUpdateSchema), semanticParserSteps = semanticSteps(SemanticUpdateEnvelopeSchema)
+/** Final-only context supplies the unique omitted routing kind, never a result or its meaning. */
+export function normalizeSemanticFinalEnvelope(input: unknown) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) return { value: input }
+  const raw = input as Record<string, unknown>
+  if ("kind" in raw || !("result" in raw) || Object.keys(raw).some(key => !["result", "controlDelta"].includes(key))) return { value: input }
+  const value = { ...raw, kind: "final" as const }
+  return semanticParserSteps.options[3].safeParse(value).success ? { value, normalization: { code: "semantic-final-kind-omitted", originalKind: null } } : { value: input }
+}
 function guidedDeltaWithContextVersion(input: unknown) {
   if (!input || typeof input !== "object" || Array.isArray(input) || "schemaVersion" in input) return input
   const candidate = { ...input, schemaVersion: "authorization-control-update/v1" }
@@ -98,7 +106,7 @@ export function normalizeGuidedControlEnvelope(input: unknown) {
 export type InquiryStep = InquiryControlStep | z.infer<typeof localParserSteps> | z.infer<typeof semanticParserSteps>
 const resultModelSchema = (mode?: "behavior" | "conformance") => mode ? AuthorizationInquiryResultSchema.extend({ questions: z.array(mode === "behavior" ? InquiryQuestionResultSchema.omit({ policyAssessment: true }) : InquiryQuestionResultSchema.extend({ policyAssessment: InquiryQuestionResultSchema.shape.policyAssessment.unwrap() })) }) : AuthorizationInquiryResultSchema
 export function inquiryStepSchemas(strategy: InquiryStrategy, finalOnly = false, mode?: "behavior" | "conformance") {
-  if (strategy === "semantic-flow-v1") return { schema: finalOnly ? semanticParserSteps.options[3] : semanticParserSteps, modelSchema: finalOnly ? semanticModelSteps.options[3] : semanticModelSteps }
+  if (strategy === "semantic-flow-v1") return { schema: finalOnly ? z.preprocess(input => normalizeSemanticFinalEnvelope(input).value, semanticParserSteps.options[3]) : semanticParserSteps, modelSchema: finalOnly ? semanticModelSteps.options[3] : semanticModelSteps }
   const fullModel = strategy === "guided-evidence-v2" ? localModelSteps : strategy === "legacy" ? LegacyStepSchema : canonicalStep
   const modelOptions: [z.ZodDiscriminatedUnionOption<"kind">, ...z.ZodDiscriminatedUnionOption<"kind">[]] = [fullModel.options[0], ...fullModel.options.slice(1).map(option => "result" in option.shape ? option.extend({ result: resultModelSchema(mode) }) : option)]
   const modelSchema = finalOnly ? modelOptions.at(-1)! : z.discriminatedUnion("kind", modelOptions)

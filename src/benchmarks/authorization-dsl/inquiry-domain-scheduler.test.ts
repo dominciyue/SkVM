@@ -85,5 +85,21 @@ test("an exact displayed path-and-range locator is normalized without inventing 
   expect(scheduler.actions[0].arguments.path).toBe("src/helper.ts")
   const invalid = api.createInquiryDomainScheduler({ tools: f.tools })
   await invalid.run(f.merge(createControlSlice(), [{ ...dependency, pathHint: "src/helper.ts:90-99" }]).state)
-  expect(invalid.snapshot()[0].state).toBe("external-unknown")
+  expect(invalid.snapshot()[0]).toMatchObject({ state: "blocked", code: "dependency-locator-range-mismatch" })
+})
+
+test("an allowed-file range mismatch shows real candidates but never reads until explicitly corrected", async () => {
+  const f = await fixture(), scheduler = api.createInquiryDomainScheduler({ tools: f.tools })
+  const bad = f.merge(createControlSlice(), [{ ...f.dep, pathHint: "src/helper.ts:1-2" }]).state
+  await scheduler.run(bad)
+  expect(scheduler.snapshot()[0]).toMatchObject({ state: "blocked", code: "dependency-locator-range-mismatch", candidates: [{ path: "src/helper.ts", startLine: 1, endLine: 1 }] })
+  expect(f.tools.toolCalls).toBe(1)
+  expect(scheduler.actions).toHaveLength(0)
+  const corrected = f.merge(bad, [{ ...f.dep, pathHint: "src/helper.ts", revisionOf: bad.dependencies[0]!.digest, revisionReason: "Use the actual indexed file rather than the incorrect range" }]).state
+  await scheduler.run(corrected)
+  expect(scheduler.snapshot()[0].state).toBe("read")
+  expect(f.tools.toolCalls).toBe(2)
+  const outside = api.createInquiryDomainScheduler({ tools: f.tools })
+  await outside.run(f.merge(createControlSlice(), [{ ...f.dep, pathHint: "private/helper.ts:1-1" }]).state)
+  expect(outside.snapshot()[0]).toMatchObject({ state: "external-unknown", code: "dependency-out-of-scope" })
 })

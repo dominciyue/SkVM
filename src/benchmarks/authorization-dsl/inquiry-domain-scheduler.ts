@@ -54,6 +54,9 @@ export function createInquiryDomainScheduler(options: { tools: InquiryTools; rem
       const range = /^(.+):(\d+)-(\d+)$/.exec(pathHint)
       if (range && all.some(c => c.path === range[1] && c.startLine === Number(range[2]) && c.endLine === Number(range[3]) && (!d.candidateId || c.id === d.candidateId))) {
         entry.locatorNormalization = { from: pathHint, to: range[1]! }; pathHint = range[1]
+      } else if (range && options.tools.files.some(f => f.path === range[1])) {
+        entry.candidates = all.filter(c => c.path === range[1])
+        return stop("blocked", "dependency-locator-range-mismatch", "The file is allowed, but the requested range/candidate does not match an indexed definition. Revise using its exact file or a displayed complete candidate range and ID; no read was dispatched from this mismatched locator.")
       } else return stop("external-unknown", "dependency-out-of-scope", "Requested dependency file is outside the allowed indexed scope; use an exact indexed path or displayed candidate range.")
     }
     entry.candidates = all.filter(c => (!pathHint || c.path === pathHint) && (!d.candidateId || c.id === d.candidateId))

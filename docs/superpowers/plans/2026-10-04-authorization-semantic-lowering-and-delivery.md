@@ -3,7 +3,7 @@
 > 执行配置：gpt-6.1-sol / max。用户已授权本轮连续开发、必要联网与模型调用、提交并推送用户 origin；常规阶段不停下来重新询问。
 > 使用 writing-plans 编制。实施时使用 TDD、systematic-debugging 和必要验证；用户现有授权覆盖常规设计细化及可逆实现，不再等待重复设计批准。
 
-更新于 2026-10-05。状态：**in-progress；AS8/AS9 第九次坏稿关联实际采用但入口仍拒绝；AS10 Cloudflare普通原回答已交付且语义不完整，定位指引待复验；AS13 四份首稿已独立复核，原字节消费待办**。实际接管基线 `c90787f09087b3c79ac1d73b47f970ab928894e0`，当时工作区干净且用户远端同 SHA。分支始终 `skill-ir-aot`，只推用户 `origin/skill-ir-aot`。AR 进程结束，研究及真实使用验收仍有未达项；AS 承接责任，不回写旧结果。机器状态见 [AS status](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)。
+更新于 2026-10-05。状态：**in-progress；AS14可运行12个首轮已留档，完整质量收益未建立；AS10四个native位置均交付诊断原文，仍未checked；AS13四份原稿格式/范围有效，最后一份原字节消费待办；AS17按实际首轮诊断修订**。实际接管基线 `c90787f09087b3c79ac1d73b47f970ab928894e0`，当时工作区干净且用户远端同 SHA。分支始终 `skill-ir-aot`，只推用户 `origin/skill-ir-aot`。AR 进程结束，研究及真实使用验收仍有未达项；AS 承接责任，不回写旧结果。机器状态见 [AS status](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)。
 
 ## 一、目标与完成标准
 
@@ -235,6 +235,8 @@ AS11 薄入口采用现有 public initialize/edit/compare/run。只从本轮原�
 - 生成简短结论：哪些机制确实发生、哪些改善有原件、哪些需要继续研究，不把测试总数当质量效果。
 
 ### AS17 — 有依据的深化
+
+2026-10-05 当前工作计划：首轮三个完整同版本块（Download/ShareLink/Gitea）及OWUI异版本块已保留。针对共用瓶颈做两项窄修订，仍为12/24原预算：①只有保留的显式result整体满足当前final解析、根键仅result/controlDelta且kind完全省略时，从已进入final-only阶段补唯一机械kind；有声明kind、未知根字段、缺result或坏result仍拒绝，原响应及normalization分列；同时终答指引明确完整容器、当前revision与optional policy不得null。②允许文件内的错误range locator保持blocked并显示实际候选及边界，不再称范围外，不裁剪/猜读/取消候选身份边界。匿名红绿、公共实际mock、主/局部类型检查后，具名复验Download D-S与ShareLink D-S，分别检验终答入口和真实可读依赖；未闭合源码义务仍部分失败。新源语义/对象政策不从评价注入提示。相同根因不继续原样复抽。
 
 核心工程和适用真实链已经完成后，依实际瓶颈依次选择：
 
