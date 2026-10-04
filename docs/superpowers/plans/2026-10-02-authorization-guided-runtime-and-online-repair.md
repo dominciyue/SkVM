@@ -359,6 +359,8 @@ location-routing-v1真实8/8返回，三题已显式定位但五题仍rejected�
 
 Gitea相关原件12/12已关闭，7/7源码调用成功（全部host），两check与final slice24一致但typed binding/可达性/开放依赖/complete:false仍拒绝；全部atomic:false，不算原子实际使用。独立源码full终答评语与原final自称未纳入已展示body不符，主点验APIContext.IsUserRepoAdmin实际调用Permission.IsAdmin，不是同名库函数，initial/final均partial，原评语另存。未发现可证明共同runtime缺陷。追加行级失败调度计划：只在已交付raw final、validation:false、无run error且当前domain check明确structureValid/sourceBound:true而ruleConsistency:false时，把机械失败记semantic-extraction/model-draft，继续保留invalid和needsRepair，不能据此暂停无关公共checker；其它transport/budget/结构/源错误保留原公共暂停。先写该模型草稿仍保留而下一不同任务行可执行的红例，缺交付/非sourceBound不放行的负例，再最小分类修改、聚焦联合/研究类型及独立边界复核。不会放宽结论检查或原previous资格，也不会把模型错误记成功；新共享故障一经证实仍逐组件暂停。
 
+2026-10-04记录精确14非Notes主行共享组件范围，旧scope字节不改、Notes原task及2主行封存/16分母保持。Memos旧普通replacement metadata由已知同源native10/10、42accept/0reject及15无reason显式replace点验，仅shared engineering improved；原图/语义/作者未知不升格。block1先Memos share M与Paperless download D1，两任务臂序M→D1与D1→M不变；原/source/model/budgets与当次revision写claim，返回即匿名源码评阅，不拿ordinary旧run拼配对。生产修改使旧块中止，新revision需重建两臂；详细json quality-block-1/main-row-metadata-release-proof。
+
 - [ ] 主比较使用八个已暴露任务，每题旧流程 M/legacy 与新流程 D1/guided-evidence-v2 两臂，共16个逻辑任务身份。每两题一块，轮换臂顺序；开始块前记录共享 revision/模型/预算。
 - [ ] 每行返回即检查传输、交付及源码质量，块结束聚合独立评价；错误按第3节修复，修后同题记录新 attempt，再进入后续相关行。中止旧块/未运行项照实保留，禁止继续执行已知坏公共实现。
 - [ ] 主比较检验整套流程效果。另在 Notes、Memos remove、OWUI ingestion、Gitea self-query 四题上加入 M/guided-evidence-v2 辅助臂，复用同 revision 的 D1/new；若版本不同必须重建配对，不能拼接。
