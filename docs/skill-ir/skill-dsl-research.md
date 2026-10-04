@@ -1364,6 +1364,13 @@ rejected-target-directory普通复验11/11、24/24源码动作成功，17read/7s
 
 c236b383同原自然brief/源字节仓外D1/guided12/12、7成功host reads，48004display/39282resent，一次顶层atomic/baseRevision坏稿由既有same-tool修复；两check/final slice24，5诊断/0usable/无previous，全部atomic:false，不能称原子实际效应。初/终主裁定partial；独立final full及“末修图变”评语原样另存，主点验final仍未纳入已读admin body，APIContext同名方法实际调用Permission.IsAdmin而非库函数，最后delivery repair只prose，早先22/24提议并非末修。实际source-gap/候选错联与部署unknown分开，未证共同runtime缺陷。调度却把合法来源的负模型草稿当共享checker故障，同时硬编码kind阻挡有精确allowlist的quality行；两红例后31联合130、研究类型/3计量测试、两独立边界核验通过。精确failure/row/component/hash及原task封存保持，source-bound/结构有效/无error/raw final且ruleConsistency:false仅记行级model-draft失败，不改validator、分数或previous资格；尚未追加主行release。累计372/USD及人力unknown，下一按现修复证据记录不同任务范围，Notes封存与16分母保持，再启动成对块。
 
+
+### 7.44 首配对块与预算内交付边界
+
+同一冻结版本的首两题四主行已按原输入/源码/模型/预算成对保留并独立评阅：Memos分享为M full、D1 not-delivered（末请求未知）；Paperless下载为M not-delivered、D1 partial/over-unknown。它们不能证明质量收益。D1的下载决定性正文实际已展示，缺口在解释；机械checked同时证据unresolved，不能计为完整授权交付或previous复用。未完成的Memos控制prefix只获partial提取评价，既不是回答也不是checked结论。Notes仍保留在原分母，未知逻辑任务不重发。原件、配对与裁定见`quality-block-1.json`和`evaluation-summary.json`。
+
+Paperless/M暴露另一种可修共享边界：累计重发预算在provider额度尚余时退出，没有最终机会。公共loop现于源码工具耗尽或重发将超限时在原预算内预留final，选择完整窗口与其余metadata，未展示正文仍不能作引用。最后provider机会及model/parser final-only合同也已一致。此工程修复与guided观察/局部图说明的澄清不保证源码解释正确；实际修后交付、不同项目效果与语义质量另列。验证及独立只读边界核查见`delivery-budget-verification.json`，不把修复倒写到四个首行。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

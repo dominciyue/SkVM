@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "authorization-ar-engineering-review/v1",
+  "kind": "independent-read-only",
+  "semanticReview": false,
+  "reviews": [
+    {
+      "reviewer": "delivery_budget_window_provenance_review",
+      "scope": [
+        "limitedSourceCatalog",
+        "modelSourceDisplay",
+        "unshown metadata citations",
+        "original source/provider budgets"
+      ],
+      "materialDefects": [],
+      "evidence": [
+        "inquiry-tools.ts:177-203 counts complete matching original objects only.",
+        "inquiry-run.ts:117-129 selects whole windows; metadata-only IDs remain unshown.",
+        "inquiry-run.test.ts:49-126 covers limited display, never-shown references, final/tool reservation."
+      ],
+      "executedTests": false
+    },
+    {
+      "reviewer": "delivery_reservation_protocol_review",
+      "scope": [
+        "legacy/domain/guided final-only",
+        "post-sync source exhaustion",
+        "timeout lifecycle",
+        "partial versus bounded reuse"
+      ],
+      "materialDefects": [],
+      "evidence": [
+        "inquiry-run.ts:108-110 rechecks tools after guided sync.",
+        "inquiry-wire.ts:92-98 agrees on final-only parser/model contract.",
+        "telemetry closed/timeout/max limit guard remains unchanged; original unknown attempts cannot trigger new provider dispatch.",
+        "Guided observation wording does not synthesize rules or upgrade partial footprints."
+      ],
+      "executedTests": false
+    }
+  ],
+  "summaryIsDerivedFromAgentMessages": true
+}

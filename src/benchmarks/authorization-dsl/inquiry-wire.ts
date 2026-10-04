@@ -94,7 +94,7 @@ export function inquiryStepSchemas(strategy: InquiryStrategy, finalOnly = false,
   const modelOptions: [z.ZodDiscriminatedUnionOption<"kind">, ...z.ZodDiscriminatedUnionOption<"kind">[]] = [fullModel.options[0], ...fullModel.options.slice(1).map(option => "result" in option.shape ? option.extend({ result: resultModelSchema(mode) }) : option)]
   const modelSchema = finalOnly ? modelOptions.at(-1)! : z.discriminatedUnion("kind", modelOptions)
   if (strategy === "guided-evidence-v2") return { schema: finalOnly ? localParserSteps.options[3] : z.preprocess(input => normalizeGuidedControlEnvelope(input).value, localParserSteps), modelSchema }
-  const schema = strategy === "legacy" ? LegacyStepSchema : finalOnly ? ControlFinalStepSchema : ControlStepSchema
+  const schema = strategy === "legacy" ? finalOnly ? LegacyStepSchema.options[2] : LegacyStepSchema : finalOnly ? ControlFinalStepSchema : ControlStepSchema
   return { schema, modelSchema }
 }
 

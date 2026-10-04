@@ -2,6 +2,14 @@ import { expect, test } from "bun:test"
 import { extractStructured } from "../../providers/structured.ts"
 const api = await import("./inquiry-wire.ts").catch(() => ({} as any))
 const delta = { schemaVersion: "authorization-control-slice/v1", rules: [], dependencies: [], bindings: [], policyRules: [] }
+test("legacy final-only parser matches the advertised delivery schema and rejects further tool or observation steps", () => {
+  const schemas = api.inquiryStepSchemas("legacy", true)
+  for (const step of [{ kind: "tool", calls: [{ name: "source_list", arguments: {} }] }, { kind: "observe", observations: [{ questionId: "q", kind: "entry", subject: "entry", claim: "Index", state: "observed", evidenceIds: ["e"] }] }]) {
+    expect(schemas.modelSchema.safeParse(step).success).toBe(false)
+    expect(schemas.schema.safeParse(step).success).toBe(false)
+    expect(api.inquiryStepSchemas("legacy").schema.safeParse(step).success).toBe(true)
+  }
+})
 test("guided native accepts an otherwise valid unwrapped declaration without changing the model contract", () => {
   const inquiry = { schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Can entry run?", premises: [] }] }
   expect(api.inquiryNativeSchemas("guided-evidence-v2", true).authorization_compile.parse(inquiry)).toEqual({ inquiry })

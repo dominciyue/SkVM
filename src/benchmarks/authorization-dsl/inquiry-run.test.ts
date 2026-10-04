@@ -46,6 +46,86 @@ test("guided source allocation preserves a final repair within the original cumu
   expect(run.toolHistory).toHaveLength(1)
   expect(run.requests[0]!.params.messages[0]!.content).toContain('"reason":"source-window-budget"')
 })
+test("legacy redisplay exhaustion reserves a grounded partial delivery inside the remaining source budget", async () => {
+  const input = await setup(), probe = await createInquiryTools(input)
+  const read = await probe.execute("source_read", { path: "src/helper.ts", startLine: 1, endLine: 1 }), bytes = read.evidence[0]!.bytes
+  const mock = scripted((params, n) => {
+    if (n === 0) return { kind: "tool", calls: [{ name: "source_read", arguments: { path: "src/helper.ts", startLine: 1, endLine: 1 } }] }
+    const prompt = params.messages[0]!.content, id = /"id":"(ev-[a-f0-9]+)"/.exec(prompt)![1]!
+    if (n === 1) { expect(prompt).toContain("return false"); return { kind: "tool", calls: [{ name: "source_list", arguments: {} }] } }
+    expect((params.tools![0]!.inputSchema as any).properties.kind.const).toBe("final")
+    expect(prompt).not.toContain("export function guard() { return false; }")
+    return { kind: "final", result: { schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q1", behavior: { disposition: "unknown", explanation: "One guard was read; the requested entry remains unresolved." }, branches: [], evidenceIds: [id], missing: [{ kind: "source-gap", detail: "Entry remains unread", nextRead: "src/entry.ts" }] }], observations: [], scope: "Retained guard reference; limited source delivery" } }
+  })
+  const run = await runAuthorizationInquiry({ ...input, method: "M", provider: mock.provider, maxDispatches: 6, maxDisplayBytes: bytes * 2 - 1 })
+  expect(run.status).toBe("completed")
+  expect(mock.count()).toBe(3)
+  expect(run.sourceAccounting.cumulativeModelSourceBytes).toBe(bytes)
+  expect(run.sourceAccounting.resentSourceBytes).toBe(0)
+  expect(run.toolHistory).toHaveLength(2)
+  expect(run.validation!.questionChecks[0]).toMatchObject({ referenceValid: true, deliveryStatus: "unverified", evidenceCoverage: "unreviewed" })
+  expect(run.steps.some(s => s.kind === "delivery-budget")).toBe(true)
+})
+test("limited final delivery cannot cite a newly read body that only reached its metadata catalog", async () => {
+  const input = await setup(), probe = await createInquiryTools(input)
+  const a = (await probe.execute("source_read", { path: "src/entry.ts", startLine: 1, endLine: 1 })).evidence[0]!.bytes
+  const b = (await probe.execute("source_read", { path: "src/helper.ts", startLine: 1, endLine: 1 })).evidence[0]!.bytes
+  const mock = scripted((params, n) => {
+    if (!n) return { kind: "tool", calls: [{ name: "source_read", arguments: { path: "src/entry.ts", startLine: 1, endLine: 1 } }] }
+    if (n === 1) return { kind: "tool", calls: [{ name: "source_list", arguments: {} }] }
+    if (n === 2) return { kind: "tool", calls: [{ name: "source_read", arguments: { path: "src/helper.ts", startLine: 1, endLine: 1 } }] }
+    const prompt = params.messages[0]!.content
+    const catalog = JSON.parse(prompt.split("Already shown original source: ")[1]!.split("\n\nAction history:")[0]!)
+    expect(catalog.every((e: any) => e.text === undefined)).toBe(true)
+    const entry = catalog.find((e: any) => e.path === "src/entry.ts"), helper = catalog.find((e: any) => e.path === "src/helper.ts")
+    expect(entry.shown).toBe(true)
+    expect(helper.shown).toBe(false)
+    return { kind: "final", result: { schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q1", behavior: { disposition: "unknown", explanation: "Entry calls a guard whose body was not displayed." }, branches: [], evidenceIds: [n === 3 ? helper.id : entry.id], missing: [{ kind: "source-gap", detail: "Guard body was not shown in the available model context" }] }], observations: [], scope: "Actually displayed entry only" } }
+  })
+  const run = await runAuthorizationInquiry({ ...input, method: "M", provider: mock.provider, maxDispatches: 6, maxDisplayBytes: a * 2 + b - 1 })
+  expect(run.status).toBe("completed")
+  expect(run.initialValidation!.questionChecks[0]!.referenceValid).toBe(false)
+  expect(run.validation!.questionChecks[0]!.referenceValid).toBe(true)
+  expect(mock.count()).toBe(5)
+  expect(run.sourceAccounting.cumulativeModelSourceBytes).toBe(a * 2)
+  expect(run.sourceAccounting.resentSourceBytes).toBe(a)
+  expect(run.toolHistory).toHaveLength(3)
+})
+test("exhausting source tools reserves final delivery without another read or an extra provider allowance", async () => {
+  const input = await setup(), mock = scripted((params, n) => {
+    if (!n) return { kind: "tool", calls: [{ name: "source_read", arguments: { path: "src/helper.ts", startLine: 1, endLine: 1 } }] }
+    expect((params.tools![0]!.inputSchema as any).properties.kind.const).toBe("final")
+    expect(params.messages[0]!.content).toContain("return false")
+    return final(/"id":"(ev-[a-f0-9]+)"/.exec(params.messages[0]!.content)![1]!)
+  })
+  const run = await runAuthorizationInquiry({ ...input, method: "M", provider: mock.provider, maxDispatches: 6, maxToolCalls: 1 })
+  expect(run.status).toBe("completed")
+  expect(mock.count()).toBe(2)
+  expect(run.toolHistory).toHaveLength(1)
+  expect(run.evidence).toHaveLength(1)
+})
+test("guided host read that consumes the last source tool reserves the current dispatch for final delivery", async () => {
+  const input = await setup(), mock = scripted(params => {
+    expect((params.tools![0]!.inputSchema as any).properties.kind.const).toBe("final")
+    const context = JSON.parse(params.messages[0]!.content.split("Current local explanation context: ")[1]!.split("\n\nRemaining dispatches:")[0]!)
+    return { kind: "final", result: { schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q1", behavior: { disposition: "unknown", explanation: "Entry calls a guard; its body still requires source reading." }, branches: [], evidenceIds: [context.sourceWindows[0].id], missing: [{ kind: "source-gap", detail: "Guard body not read" }] }], observations: [], scope: "Original entry only" } }
+  })
+  const run = await runAuthorizationInquiry({ ...input, method: "D1", strategy: "guided-evidence-v2", provider: mock.provider, maxDispatches: 4, maxToolCalls: 1 })
+  expect(run.status).toBe("completed")
+  expect(mock.count()).toBe(1)
+  expect(run.toolHistory).toHaveLength(1)
+})
+test("legacy last dispatch is an actual final opportunity", async () => {
+  const input = await setup(), mock = scripted((params, n) => {
+    if (!n) return { kind: "tool", calls: [{ name: "source_list", arguments: {} }] }
+    expect((params.tools![0]!.inputSchema as any).properties.kind.const).toBe("final")
+    return { kind: "final", result: { schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q1", behavior: { disposition: "unknown", explanation: "Only the source index was examined." }, branches: [], evidenceIds: [], missing: [{ kind: "source-gap", detail: "Operation body not read" }] }], observations: [], scope: "Source index" } }
+  })
+  const run = await runAuthorizationInquiry({ ...input, method: "M", provider: mock.provider, maxDispatches: 2 })
+  expect(run.status).toBe("completed")
+  expect(mock.count()).toBe(2)
+  expect(run.toolHistory).toHaveLength(1)
+})
 test("structured natural inquiry retains the original lexical entry when the author omits it", async () => {
   const input = await setup(), mock = scripted((params, n) => {
     if (n === 0) return { schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q1", request: "Investigate access controls for record updates.", premises: [] }] }

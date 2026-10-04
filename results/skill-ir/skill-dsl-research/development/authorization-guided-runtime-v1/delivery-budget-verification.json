@@ -1,0 +1,80 @@
+{
+  "schemaVersion": "authorization-ar-delivery-budget-verification/v1",
+  "at": "2026-10-04T03:19:15.085292+00:00",
+  "beforeImplementationRevision": "d684d38f2608cbbb5b66db98b49cffbb3d64c1fc",
+  "productionFiles": [
+    {
+      "path": "src/benchmarks/authorization-dsl/inquiry-run.ts",
+      "sha256": "8bbcf9130d3031f765ff678e99d7d998e40b51972e1c9f92509ccba298466e9b"
+    },
+    {
+      "path": "src/benchmarks/authorization-dsl/inquiry-wire.ts",
+      "sha256": "1cd751bfaedf0a033829ae1742b3383fabed117ccc52e9f7f337527447a3fdf9"
+    }
+  ],
+  "red": {
+    "command": "bun test inquiry-run.test.ts inquiry-wire.test.ts",
+    "passed": 30,
+    "failed": 4,
+    "assertions": 220,
+    "expectedFailureReasons": [
+      "legacy full redisplay exits before final",
+      "tool exhaustion has no final-only contract",
+      "legacy last dispatch still advertises exploration",
+      "legacy final-only parser still accepts tool/observe"
+    ]
+  },
+  "guidedSyncRed": {
+    "command": "bun test inquiry-run.test.ts -t 'guided host read'",
+    "passed": 0,
+    "failed": 1,
+    "reason": "Host sync exhausts source tools after the initial reservation snapshot."
+  },
+  "focusedGreen": {
+    "passed": 34,
+    "failed": 0,
+    "assertions": 240,
+    "files": 2
+  },
+  "freshJointGreen": {
+    "command": "bun test ./src/benchmarks/authorization-dsl/{inquiry-run,inquiry-wire,telemetry,inquiry-reuse,inquiry-reuse-local,inquiry-native}.test.ts",
+    "passed": 72,
+    "failed": 0,
+    "assertions": 524,
+    "files": 6
+  },
+  "types": {
+    "initialMainAndResearch": "failed TS7022 implicit deliveryReserved inference",
+    "repair": "Explicit boolean annotation; no runtime contract change.",
+    "main": "passed",
+    "research": "passed again after portable research-driver parameterization"
+  },
+  "independentReview": {
+    "path": "evaluations/delivery-budget-engineering-review.json",
+    "sha256": "e5f606dc646d330241014e893ae3f13527d4bcbabc4237d3cc4836b016c0657d"
+  },
+  "rawFirstAttemptsUnchanged": [
+    {
+      "path": "runs/quality-memos-share-M/attempt-1/report.json",
+      "sha256": "248903406a2eef463776379bf9cb90120e309294cf697614f3ab9eb921aa3eca"
+    },
+    {
+      "path": "runs/quality-memos-share-D1/attempt-1/report.json",
+      "sha256": "a78aecd554cc61cabcc922de5c1ce23822f07dc13b1b0e594aab5bd3fdf31da2"
+    },
+    {
+      "path": "runs/quality-paperless-download-M/attempt-1/report.json",
+      "sha256": "5ab79f4cc754009b23dbd489cb739ee14041a8f8dcb0144f79b887b9ee4712d1"
+    },
+    {
+      "path": "runs/quality-paperless-download-D1/attempt-1/report.json",
+      "sha256": "28bfafc7a5b4a9d5dd123634e697418862125813a417405d57b2872ae5278a29"
+    }
+  ],
+  "targetExecutions": 0,
+  "providerCallsDuringVerification": 0,
+  "actualOrdinaryEffect": "pending-known-Paperless-and-related-different-project-use",
+  "semanticQualityBenefit": "not-established",
+  "unknownTasksResent": false,
+  "publicBudgetsIncreased": false
+}
