@@ -1,6 +1,9 @@
 # Skill IR 评估系统
 
-本文只说明当前通用评估组件。单个 skill 的 task、lock、命令和结果放在 pilot 或 evidence ledger 中。
+**适用范围：** §1–§13 主要保留既有 IR/AOT benchmark、确定性 scorer 和冻结实验的接口。其 `retries=0`、阶段准入及 scorer 权威适用于对应实验合同，不能直接作为 AR 现场修复流程的默认规则。当前授权研究按[研究 §7.35–§7.36](skill-dsl-research.md#735-aq-授权领域执行设计)与[AR 任务书](../superpowers/plans/2026-10-02-authorization-guided-runtime-and-online-repair.md)执行：语义按源码独立复核，程序校验与真实交付分列，首答/具名修订/未运行及全部费用保留。共用原则是材料与评价答案隔离、原始结果不覆盖、分母和成本明确。
+
+
+下列章节说明既有 IR/AOT 评估组件；单个 skill 的 task、lock、命令和结果从对应 pilot 与 evidence ledger 查找。当前授权研究的执行与评价入口见上方适用范围。
 
 ## 1. 评估原则
 
@@ -746,35 +749,15 @@ Successor selection policy 必须在新合同开发前冻结，并为 registry �
 assessment。Compact report 公开 phenotype coverage、合同/基线状态、artifact mechanism、信息互补性、下一阶段
 和排除原因；这防止运行后删除失败候选或只挑最容易产生正例的案例。
 
-Env Manager v2 是首个按这一路径启动的 successor。它不再把逐 fixture 预期集合放进 evaluator payload；
-`env-audit-interface/v2` 公开分类语义、变量名推导政策和输出路径，scorer 从初始 workspace 动态重建 oracle。
-Benchmark contract 首版用 alternative-valid、canonical-valid 与 invalid-control 共 8 个 canary 验证等价表达和
-安全边界；真实 baseline 随后证明该集合仍不足：它未覆盖 original arm 的 source-resource materialization，也未
-覆盖标准 JSON Schema 的 `properties + required` 表示。该身份必须冻结 measurement-invalid；后续 contract audit
-必须加入真实 resource materialization canary，并显式声明标准 JSON Schema 与自定义 wrapper 的语义等价。
-Env Manager v3 已按此建立新 evaluator/task/interface/audit identity：payload 不再携带 arm-dependent
-`protectedPaths`，`assessWorkdirDelta` 直接以 frozen initial manifest 保护全部初始条目；schema matcher 将
-`variables + per-rule required/sensitive` 与标准 JSON Schema `properties + top-level required/writeOnly` 归一为
-同一公开语义。Node canary 将 `LICENSE.upstream` 放入 initial manifest，Node/Vite 分别覆盖标准 JSON Schema 与
-wrapper，另保留 secret 泄漏 invalid control；本地 contract audit 为 8/8 matched。该结果仍不是模型成功证据。
-Development-only freeze 与 v4 lock 随后绑定同一 task/scorer/runner identity。Qualification 87613ms
-`semantic-complete`；唯一矩阵 8/8 rows、4/4 pairs、0 replacement 或 execution blocker，original 4/4、mean
-1.0，no-skill 3/4、mean 0.9125，1 positive、0 regression。逐失败复核确认 no-skill 把无公开类型依据的
-`UNUSED_FLAG` 声明为 boolean，属于语义错误而非 false reject，因此 admission 通过并只开放 base IR/static。
-调用层 shell timeout 必须大于 frozen outer watchdog；1/10 秒的工具硬终止只能登记为 operator failure，不能归入
-项目内部 idle/absolute timeout 或 skill 语义。
+Env successor 保留三层独立身份，详细尝试和资格数值从原报告读取：
 
-Env Manager v3 的 static-fidelity identity 继续复用同一 v2 lock/selector/envelope，没有新增 skill-specific
-harness。Qualification 114853ms、`semantic-complete`；唯一矩阵 12/12 rows、4/4 triplets、0 reserve 和 0
-execution blocker。No-skill、original、ir-static 均 4/4、mean 1.0，static 对 original 无 score/hard-gate
-regression。由于 original 在锁定前已饱和，`minimumImprovedPairs=0` 是预注册设计而不是后验放宽。
+| 阶段 | 结果与保留的问题 | 记录 |
+|---|---|---|
+| v2 contract/baseline | 8 个 canary 未覆盖 source-resource materialization 与标准 JSON Schema；真实 baseline 暴露 false reject，身份冻结为 measurement-invalid | [v3 baseline 前的合同演进](real-skill-pilots.md#9-portfolio-readiness) |
+| v3 baseline | initial manifest 保护全部初始资源；wrapper 与标准 JSON Schema 的 required/writeOnly 语义等价。唯一 8-row 矩阵 original 4/4、no-skill 3/4，admission passed | [baseline v4](../../results/skill-ir/env-manager-v3-scorer-authority-baseline-v4/) |
+| v3 static/artifact | static 12/12 行、三臂各 4/4；artifact 16-row 矩阵中 4/4、0 regression，复用公共 assembly/catalog/runtime | [static](../../results/skill-ir/env-manager-v3-static-fidelity-v1/)、[artifact](../../results/skill-ir/env-manager-v3-validated-artifact-development-v1/) |
 
-Env Manager v3 artifact development 继续复用公共 assembly/catalog/runtime 与通用 artifact gate，只新增声明式
-Env adapter、领域 compiler 和实验 planner/runner。冻结矩阵为同一 2 tasks x 2 repetitions 的
-`no-skill | original | ir-static | validated-artifact`，模型行采用 600 秒 absolute、120 秒 idle、30 steps、
-660 秒 outer，artifact 行直接确定性执行。Qualification 与唯一 16-row 矩阵均通过，0 infrastructure；artifact
-4/4、mean 1.0、0 hard-gate/paired regression。这证明当前 execution contract 可用于第二种 phenotype，但仍不
-构成跨模型、held-out 或完整 readiness 证据。
+上述 artifact 结果当时为 fidelity-preserving。后续 reviewed-AOT 的新构造成本与效率身份见 §11.4；旧成本 missing 没有回填。共享执行器的外部 shell timeout 应大于冻结 watchdog，操作者硬终止与项目自身 timeout 分列。
 
 ### 9.1 多模型族 development 面板合同
 
@@ -831,73 +814,18 @@ entry 与 evaluator import/path/source-digest projection 未变，独占 task/sc
 base lock 的共享 registry digest 与当前版本一致。该 projection 规则只适用于 append-only 共享 registry，不适用
 于独占 scorer、task、source、IR、package 或 runtime 实现。
 
-首个 `three-family-development-v1` qualification 已冻结失败，矩阵未启动。Pi/local resource 均通过；GPT
-在 120072ms 内 semantic-complete 且三个声明输出齐全。Claude 路线遇到 provider 5xx，Pi 发出标准
-`auto_retry_end`，但 v1 allowlist 漏识别该事件而报告 `parser-incompatible`；DeepSeek 在 4887ms 以
-`stopReason=error`、0 usage、0 tool、无输出结束，v1 classifier 因计入一个无 payload assistant 占位事件而
-误写 `semantic-complete`，但 qualification 仍由精确输出检查正确阻断。该结果不重跑、不覆盖；观测合同修复
-必须使用新 panel identity，v1 只保留为 route/harness qualification failure。
+#### 历史面板与已解决的共享缺陷
 
-`three-family-development-v2` 是上述公共观测修正后的继任 identity。除继续冻结 panel、selector、scorer 与 Pi
-adapter 外，v2 还直接冻结 `src/core/pi-runtime.ts`，避免事件 allowlist 或空 terminal 解析在资格后漂移。v1
-结果不迁移到 v2；v2 必须重新生成 plan、重新资格，且只有资格通过才允许启动唯一矩阵。
+| 身份 | 实际终态 | 对后续实现的作用 |
+|---|---|---|
+| [v1](../../results/skill-ir/three-family-development-panel-v1/qualification.json) | 资格失败，矩阵未启动；GPT 完成，Claude/DeepSeek 的事件及空终态分类有缺口 | 补 auto_retry_end 与零活动终态识别 |
+| [v2](../../results/skill-ir/three-family-development-panel-v2/qualification.json) | GPT 完成；Claude 语义前 5xx、DeepSeek empty terminal，reserve 耗尽 | 独立 route 诊断定位到 Pi 未知模型继承了不匹配 API |
+| [v3](../../results/skill-ir/three-family-development-panel-v3/qualification.json) | 通用 adapter 修复后 parser/usage 可用；Claude 缺输出、DeepSeek 活跃超时，资格仍失败 | 资格随后只考察可测性，任务失败进入固定质量分母，避免按表现预筛模型 |
+| [v4](../../results/skill-ir/three-family-development-panel-v4/panel-report.json) | 36 首块模型尝试、4 artifact 行；11/12 selected triplets、33/36 selected rows，report=blocked | 补齐标准 compaction 事件，但不反事实补齐已冻结行。方向 mixed，不能用作跨模型稳定性主表 |
 
-v2 资格也已冻结失败，矩阵未启动。本地 Pi 0.67.68 与两个 resource contract 均通过；GPT target 在
-145127ms 内 `semantic-complete` 且输出齐全。Claude target/reserve 分别在 28071/29267ms 返回语义前
-`provider-5xx`，均归类 `transport-transient`；DeepSeek target/reserve 分别在 4967/5069ms 返回自然结束的
-`stopReason=error`、0 usage、0 tool、空 parser，均归类 `empty-terminal`。因此这不是 120 秒 idle timeout，也
-不是单次偶发失败：有界 reserve 已耗尽。该 identity 不补跑；下一步只能在新 identity 前做 route/provider/Pi
-兼容性诊断或选择有证据的新 route，不能用放宽分类器来把失败改成通过。
+共享 adapter 对 Pi 已收录模型只覆盖 baseUrl；未收录模型显式注册 `openai-completions`，不按模型家族特判。v4 中 GPT/Claude 执行兼容、DeepSeek 仍有长任务风险；artifact 4/4 也不能覆盖缺失的比较单元。
 
-后续 route-only 诊断没有读取 benchmark task、skill 或 scorer。xty 模型目录仍精确包含三条冻结 route；对
-Claude/DeepSeek 的 `/chat/completions` 纯文本与强制单工具请求均为 HTTP 200、usage 可用且 tool call 正常。
-Pi 0.67.68 自身目录则不包含这些新模型。源码核对确认：subprocess managed adapter 对未知
-`openai/<model>` 只写 baseUrl，Pi CLI fallback 会复制默认 `gpt-5.4` 模型对象，因而继承
-`openai-responses`；同仓库 headless Pi driver 已对未知模型显式注册 `api: openai-completions`。这解释了同一
-错误为何表现为 GPT 成功、Claude 5xx、DeepSeek empty terminal。
-
-公共 adapter 已改为与 headless driver 相同的目录判定：Pi 已收录的模型只覆盖 baseUrl，未收录模型显式注册
-到 `openai-completions`，不硬编码任何模型族。修复后的 route-only Pi 文本请求中 Claude/DeepSeek 均
-`parser=ok` 且有 usage；Claude 两轮 write 工具回路完整成功。DeepSeek 一次完成 write/tool result 后等待终答
-超过 90 秒，另一次在正式 120 秒 idle 内无首个 response，说明其 route 仍有独立延迟波动。新 identity 可以
-保留既有 120 秒与单次 bounded reserve，但不能把该波动解释为已消失，也不能加无限重试。
-
-`three-family-development-v3` 绑定修复后的 Pi adapter，资格仍冻结失败且矩阵未启动。GPT 在 123418ms
-`semantic-complete` 且输出齐全；Claude 在 200158ms 自然结束，3 次 provider response、3 次 tool call/result、
-parser/usage 正常，但没有生成三个声明输出；DeepSeek 持续活跃至 600034ms absolute timeout，期间 16 次
-provider response、30 次 tool call/result、parser/usage 正常。与 v2 相比，Claude 的 provider 5xx 和 DeepSeek
-的 empty terminal 均已消失，证明 API 选择修复生效；v3 的剩余失败是任务履约/活跃超时，不是预语义
-基础设施故障。
-
-这也暴露 v1--v3 qualification gate 过度绑定任务结果：若用输出齐全或 semantic-complete 淘汰 route，再运行
-矩阵会按 development task 表现预筛模型。继任资格应只回答“该 route 是否能形成可信固定分母”：预语义
-transient/empty/idle 仍允许一次 reserve；parser/runtime/measurement/qualification blocker 仍阻断；已有语义
-活动的 `semantic-complete`、active timeout 与 step-limit 都准入矩阵，输出是否齐全只披露、不参与资格通过。
-这些 active/缺失输出随后在模型矩阵中按原 fixed denominator 计为失败，质量门槛没有放宽。
-
-v4 infrastructure-only qualification 已通过且未消耗 reserve：GPT target 为 `semantic-complete + outputsPresent`，
-Claude target 为 `semantic-complete + outputsMissing`，DeepSeek target 为 `semantic-complete + outputsPresent`。这只
-开放同 lock digest 的唯一 development matrix；Claude 的缺失输出仍是已披露的任务负结果，不被资格通过改写，
-矩阵也不得删除该模型族或按资格行结果调整 scorer/task。
-
-唯一 v4 matrix 已执行全部 36 个首块 model attempts 和 4 个 shared artifact anchors，但 selector 只完成
-11/12 triplets、33/36 selected model rows，因此 compact report 冻结为 `blocked`。GPT 与 Claude 各 12/12
-`semantic-complete`，说明两条 route 在本 Pi/Windows/clean/task identity 下 execution-compatible；DeepSeek 为
-8 个 semantic-complete、2 个 pre-semantic idle timeout、1 个 active absolute timeout，另有 1 行在完成 18 次
-provider response、22 次工具调用并自然结束后，被当时的 parser 以未知 `event:compaction_start` 阻断。Pi
-0.67.68 官方 NDJSON 合同包含 `compaction_start | compaction_end`，公共 allowlist 已用 TDD 补齐；由于 blocker
-当时使整格立即停止且未运行 reserve，新代码不能反事实补全该冻结 identity，v4 仍保持 blocked。
-
-已评分行显示逐族方向并不一致：GPT 的 original/no-skill 为 2 gain、1 equal、1 regression，static/original 为
-0/3/1；Claude 分别为 1/3/0 与 2/1/1；DeepSeek 的不完整分母分别为 2/0/1 与 1/1/1。共同 artifact 4/4
-success、mean 1.0、0 hard-gate failure，但缺失 DeepSeek API Tester selected triplet 按预注册下界比较计 1 次
-regression，故 artifact gate false。面板结论只能是 `methodDirection=mixed` 与 DeepSeek 长任务执行稳定性风险，
-不能用于模型排名、跨模型泛化、held-out 或 promotion。
-
-冻结 `panel-report.json` 的 `aggregateTokens` 对 GPT/Claude 等于全部尝试，但 DeepSeek 只含 9 个 selected scored
-rows 的 304506，遗漏了 3 个执行失败尝试。Digest-bound `supplemental-audit.json` 不改原报告，按 envelope 恢复
-全口径：GPT input+output 414889 / 1597427ms，Claude 325639 / 1001389ms，DeepSeek 2348966 /
-3330245ms；DeepSeek 两个方向都明确为 3 observed + 1 missing。未来 report v2 原生输出相同结构。
+v4 的旧 aggregateTokens 漏掉 DeepSeek 三次执行失败。追加的[全尝试审计](../../results/skill-ir/three-family-development-panel-v4/supplemental-audit.json)保留原报告，恢复 GPT 414889、Claude 325639、DeepSeek 2348966 input+output tokens，并把 DeepSeek 每方向的 3 observed + 1 missing 分列。具体逐行分数、时长和失败仍从上述冻结报告查询，不在组件文档重复维护。
 
 `selected-scored-runs.jsonl` 是可提交 compact evidence：runner 移除本机 manifest path，仅保留
 `initialWorkdirManifestSha256`。原始 stdout/stderr、workdir 和完整 manifest reference 继续只保存在本地

@@ -248,6 +248,54 @@ class SkillIrDocLinkCheckTest(unittest.TestCase):
             ],
         )
 
+    def test_governance_reports_missing_current_section_without_rewriting_history(self):
+        self.write("docs/skill-ir/current.md", "# Current\n[old](component.md#removed)\n[self](#gone)\n[old evidence](frozen.md#historical)\n")
+        self.write("docs/skill-ir/component.md", "# Component\n## Existing\n")
+        self.write("docs/skill-ir/frozen.md", "# Frozen\n[retained](component.md#old-heading)\n")
+        manifest = {
+            "currentDocuments": [
+                {"path": "docs/skill-ir/current.md", "softMaxLines": 50},
+                {"path": "docs/skill-ir/component.md", "softMaxLines": 50},
+            ],
+            "versionedMaterials": ["docs/skill-ir/frozen.md"],
+        }
+        result = check_governance(self.root, manifest, set())
+        self.assertCountEqual(result["errors"], [
+            "missing current anchor: docs/skill-ir/current.md -> docs/skill-ir/component.md#removed",
+            "missing current anchor: docs/skill-ir/current.md -> docs/skill-ir/current.md#gone",
+        ])
+
+    def test_governance_accepts_current_heading_and_preserved_explicit_anchors(self):
+        self.write("docs/skill-ir/current.md", """# Current
+## 7.36 AR：源码与 `tool` / 复用
+[unicode](#736-ar源码与-tool--复用)
+## Repeat
+## Repeat
+[duplicate](#repeat-1)
+<a id="retired-heading"></a>
+[alias](#retired-heading)
+```markdown
+[illustration](#not-an-actual-link)
+## Fake
+```
+[fake](#fake)
+""")
+        manifest = {"currentDocuments": [{"path": "docs/skill-ir/current.md", "softMaxLines": 50}]}
+        result = check_governance(self.root, manifest, set())
+        self.assertEqual(result["errors"], [
+            "missing current anchor: docs/skill-ir/current.md -> docs/skill-ir/current.md#fake",
+        ])
+
+    def test_governance_rejects_competing_current_status_roles(self):
+        for name in ["current-status", "second-status"]:
+            self.write(f"docs/skill-ir/{name}.md", "# State\n")
+        manifest = {"currentDocuments": [
+            {"path": "docs/skill-ir/current-status.md", "role": "current-status", "softMaxLines": 20},
+            {"path": "docs/skill-ir/second-status.md", "role": "current-status", "softMaxLines": 20},
+        ]}
+        result = check_governance(self.root, manifest, set())
+        self.assertEqual(result["errors"], ["expected one current-status entry, found 2"])
+
 
 if __name__ == "__main__":
     unittest.main()

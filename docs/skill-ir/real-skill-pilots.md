@@ -1,6 +1,9 @@
 # 真实 Skill Corpus 与 Method Portfolio
 
-本文是现实来源、证据角色、intake 和 pilot 生命周期的权威说明。实验数值见 `experiment-results.md`。
+**本文范围：** 以下 portfolio、intake 顺序和阶段结果是既有 IR/AOT pilot 的组件记录。当前 DSL 的外部 skill 来源、成员职责和类别依据统一见[研究 §4](skill-dsl-research.md#4-语料结构与分类已有发现)；活动开发从[当前状态](current-status.md)进入，不因这里保留旧 intake 而重新启动实验。
+
+
+本文记录 IR/AOT 阶段的现实来源、证据角色、intake 和 pilot 生命周期。实验入口统一见 [evidence-index](evidence-index.md) 与 [experiment catalog](../../results/skill-ir/experiment-catalog.json)。下列历史选择顺序不构成当前开发队列。
 
 ## 1. 为什么使用真实 Skill
 
@@ -129,37 +132,18 @@ humanMinutes + adapterLoc + coreBranchDelta
 artifactKinds + reusedArtifactKinds + unautomatedSteps
 ```
 
-`method-portfolio-readiness/v3` 五条件以 spec 为准。当前报告为 7 registered、7 studied、7 qualified、
-2 static-fidelity passed、0 replication；API Tester 为 1 个 quality-positive，Env Manager 为 1 个
-fidelity-preserving，0 efficiency-positive，因此 readiness-eligible phenotype 为 1，readiness 仍 failed。
-Readiness report 必须显示真实不足，不能把 studied、benchmark version、baseline/static pass 或 audit-failed case
-填充为 optimized/contract-qualified。`method-successor-selection-report/v1` 已在 Env Manager successor 合同开发前
-冻结全部 7 个候选，Env Manager 因填补 environment-schema-repair、已有确定性 repair/package 机制且信息互补性
-高而入选；旧 benchmark 和 V4 结果只作诊断，不自动取得任何新阶段资格。
+`method-portfolio-readiness/v3` 的五条件按当时 spec 解释。历史 v3 的 7 案例中，API Tester 为 quality-positive、Env artifact 为 fidelity-preserving，readiness 未过；studied、audit/baseline/static pass 与 benchmark 版本数都不能充当优化正例。
 
-Env Manager successor v2 已完成新的 source-derived contract：两个 development task 只公开统一 interface 与
-推导政策，不公开逐 fixture 的 gold 集合；scorer 从 `.env` 与源码引用动态重建 oracle，接受 string/object finding、
-任意顺序和不矛盾的额外说明。2 task、3 criterion、8 个 alternative/safety canary 全部 matched，但真实 baseline
-发现 audit 未覆盖的 source-resource arm asymmetry 与标准 JSON Schema 表示 false reject；因此 contract 与 baseline
-均回退为 scorer-authority invalidated。执行基础设施本身完成 8/8、4/4、0 replacement/active/parser/runtime failure。
-下一 identity 必须先公开两种 schema 表示等价并用真实 resource materialization canary 验证。
+Env 的演进分为以下独立身份：
 
-Env Manager v3 已完成上述修复并通过 baseline/static/artifact 全链路。Artifact 使用公共 assembly、catalog、
-runtime 与 gate，领域差异进入 25 行声明式 adapter 和 compiler；前瞻记录为 214 分钟、`coreBranchDelta=0`，
-checks/schemas/scripts 三种 artifact kind 均复用公共 package envelope。冻结 development 为 16/16、0 infra，
-artifact 4/4、mean 1.0、0 regression；该结果证明第二 phenotype 的 artifact fidelity，但一次性编译成本和
-break-even 尚未测，因此不计第二个 readiness 优化正例，也不开放 held-out。Task 18.14 的只读全成本审计随后
-证明这不是简单漏算：artifact runtime 确为 0 tokens，但自动 compiler token 没有前瞻记录，若干旧 qualification/
-cache/scorer duration 也不可恢复；报告保持 missing 与 `not-computable`，没有用 0 填充或晋级分类。
-该修复已由 successor v3 完成：公开 interface 明确 wrapper/标准 JSON Schema/敏感标记等价规则；scorer 以 frozen
-initial manifest 保护每个 arm 实际存在的全部初始资源，8/8 contract canary matched。v2 measurement-invalid
-保持不变；v3 已冻结 development-only task/source identity，held-out 保持 `not-authored` 且未来须重新隔离。
-当前只恢复 contract qualification；该句描述 v3 contract 刚完成时的阶段边界，后续证据见下段。
-v4 paired baseline 随后以 8/8 rows、4/4 pairs、0 infrastructure、original 4/4 vs no-skill 3/4 通过 admission；
-profile-empty base IR 与逐节点 source audit 只绑定 exact source、development prompt 与 public interface，排除
-runtime/profile/evaluator/held-out，corpus 已晋升 runnable。Static-fidelity 唯一矩阵完成 12/12 rows、4/4
-triplets、0 infrastructure，三臂均 4/4、mean 1.0，static 对 original 0 regression；当前开放 optimized artifact
-development，held-out 仍关闭。
+| 身份 | 实际结论 | 原记录 |
+|---|---|---|
+| successor v2 | 真实 baseline 暴露 source-resource arm asymmetry 与标准 JSON Schema false reject；measurement-invalid | [评估中的合同演进](evaluation-system.md#9-gate-顺序) |
+| successor v3 baseline/static | initial manifest 保护真实初始资源，wrapper/标准 JSON Schema 等价；baseline original 4/4 vs no-skill 3/4，static 三臂各 4/4 | [baseline v4](../../results/skill-ir/env-manager-v3-scorer-authority-baseline-v4/)、[static](../../results/skill-ir/env-manager-v3-static-fidelity-v1/) |
+| v3 artifact + 历史成本审计 | artifact 4/4、0 regression；旧 automatic compiler cost 未测，保留 fidelity-preserving | [artifact](../../results/skill-ir/env-manager-v3-validated-artifact-development-v1/)、[cost](../../results/skill-ir/env-manager-v3-cost-accounting.json) |
+| reviewed-AOT 新身份 | 四对质量等价、one-time 9358 model tokens、break-even=1；review 人工单列 | [readonly-serial cost](../../results/skill-ir/env-manager-reviewed-aot-efficiency-readonly-serial-001/cost-accounting.json) |
+
+前后证据通过版本化 authority 与 supersededEvidence 区分。Reviewed-AOT 的效率结论不回填旧成本，也不替代 automatic qualification；完整 readiness 的各门仍从[自动化 authority 报告](../../results/skill-ir/method-portfolio-authoritative-automation-readiness.json)读取。当前授权 DSL 的研究状态独立见 [current-status](current-status.md)。
 
 ## 10. Intake 顺序
 
@@ -172,220 +156,20 @@ development，held-out 仍关闭。
 5. 复用已有 artifact kind 的同时能检验通用 core；
 6. 预计人工适配可被声明式 contract 表达。
 
-2026-08-14 的 prospective selector 在 7 个既有 method cases 与新候选之间完成机器可核验比较，并冻结
-`statistical-power` 为下一案例。候选来源是
-`K-Dense-AI/claude-scientific-skills` commit `fc0b9f692459ea7d9e5a5c64948a5878e1bce274` 下的 exact
-`skills/statistical-power`，
-许可证为 MIT；checked-in runtime source closure 包含 `SKILL.md`、3 个 references 与 2 个 scripts，逐文件 digest
-及整体 closure digest 由选择合同重算。其 phenotype 是此前未覆盖的 statistical-design/tool-use，规则可映射到
-通用 source-audited base IR，而无需为该 skill 增加 core branch。
+#### 历史案例选择与方法发现
 
-权威 selection input/report 分别是 `benchmarks/skill-ir/corpus/prospective-dynamic-candidate.json` 与
-`results/skill-ir/prospective-dynamic-candidate.json`。其中 2 task x 2 repetitions x `original | ir-static` 的 8-call
-intent 是 static residual slice，不足以授权整条实验链：项目 gate 仍要求先做 `no-skill | original`。Task 18.11
-因此以新的 development authorization 依次冻结 calibration 8 calls、static residual 8 calls，以及仅在 residual
-admission eligible 时的 dynamic 4 calls；各段 `retries=0`，前段失败即停止。选择阶段本身仍未运行付费调用、未
-编写或读取 held-out、未生成 profile/overlay/Final IR，也不把候选登记为 contract-qualified、studied 或
-readiness 正例；selection input/report 保持不可变，现有 7/7 method portfolio 分母保持不变。
+| 案例/身份 | 观察与结论 | 恢复入口 |
+|---|---|---|
+| Statistical Power（18.11） | `K-Dense-AI/claude-scientific-skills` 固定来源，两个闭式设计任务；1 次资格+8 行 baseline 均正常完成，但 23 个 scorer pointer 未公开，measurement-invalid | [selection](../../results/skill-ir/prospective-dynamic-candidate.json)、[baseline](../../results/skill-ir/statistical-power-development-baseline-v1/) |
+| BIDS v1（18.17–18.19） | 17-pointer audit 未覆盖值语义；12 模型行完成，11 行因合理路径表示被拒，artifact 4/4 仅为手写机制证据 | [development](../../results/skill-ir/bids-prospective-development-v1/)、[value-semantics preflight](../../results/skill-ir/bids-value-semantics-preflight-v1.json) |
+| BIDS successor（18.20–18.25） | 公开 source-derived value semantics、21 scorer canary，先资格后唯一矩阵；no-skill/original/static 3/4、3/4、2/4，artifact 4/4。贡献未识别，static 有回归 | [contract audit](../../results/skill-ir/bids-successor-contract-audit-v1.json)、[development](../../results/skill-ir/bids-successor-development-v1/) |
+| i18n contribution-v2 → static | placeholder/plural 公开后 baseline 有区分度；static 首轮含基础设施失败，v4 完整执行后仍为 0 improved、1 regression。token 减少没有覆盖质量回归 | [初轮](../../results/skill-ir/ihc-static-v1/)、[v4](../../results/skill-ir/ihc-static-v4/) |
+| Zh Code Reviewer v2 | 公开 summary/精确输出/证据行合同修复后，baseline 通过；static 12 行、0 infra，1 positive/3 equal/0 negative，但多 4280 tokens，仅支持保真 | [baseline](../../results/skill-ir/zcr-pi-v2/)、[static](../../results/skill-ir/zcr-static-fidelity-v1/) |
+| Zh README v1/v2 | 两轮均正常执行，但合法命令/许可证/路径等价与断链检查存在测量缺陷；都保留 measurement-invalid，不用于效果判断 | [v1](../../results/skill-ir/zrm-pi-v1/)、[v2](../../results/skill-ir/zrm-pi-v2/) |
 
-Task 18.11 的两条 development task 都是纯闭式设计：一条两独立均值、一条两独立比例，同时覆盖 unequal
-allocation、Bonferroni multiplicity、SESOI、attrition 与 sensitivity。领域差异只进入 study adapter、数值 oracle
-和 source anchor；输出 ABI、workdir manifest、贡献审计、runner、gate 与报告复用公共组件。该 skill 完成后
-暂停新增候选，复盘各案例的 adapter LOC、core branch delta、人工步骤和证据增量，再确定统一封装与目标校准。
-Public interface、2-task development set 与 8+8+conditional-4 authorization 可确定性重建；pre-run contract
-audit 5/5，贡献审计为 `eligible-for-baseline`，4 条独立 skill claim、逐 task skill-derived weight 0.80、0
-answer-bearing duplication。但 2026-08-15 真实 baseline 证伪了该 audit 的充分性：canonical fixture 由 scorer
-隐藏 schema 自己生成，而公开 interface 没有展开 scorer 所需的嵌套字段。
-Development-only freeze 绑定 contract commit `7e383c8a2436f48f9d6921b4f11b959486b72837`、完整 source closure 和
-`heldout=not-authored`。Resilient v3 baseline lock 已通过 path/digest/dependency/corpus/8-row plan 校验；它复用
-Pi 0.67.68 和 progress-aware execution sidecar，reserve 固定为 0。Qualification 1 行和 matrix 8 行全部
-自然结束，matrix 8/8 semantic-complete、0 infrastructure；真实总付费口径是 1+8=9，原授权中的 8 只覆盖
-paired matrix。Numeric gate 的两臂 mean 均为 0.1，但 8/8 报告满足公开顶层合同、0/8 满足隐藏 strict schema，
-且 disclosure audit 找到 23 个未公开 evaluator pointer。因此该 identity 冻结为 scorer-authority
-`measurement-invalid`，不进入 base IR/static/dynamic/held-out，也不改变 7-case portfolio 分母。新的通用
-public JSON disclosure preflight 已加入未来合同流程；旧结果保持不可变。
+共同经验进入共享合同：公开完整输出 ABI 与值语义；scorer 接受来源允许的多种合法表示；完整 materialization 后检查资源；基础设施失败与质量失败分开。贡献饱和、隐藏 schema 或路径表示 false reject 会阻止该身份的效果解释，原始行与分母继续保留。
 
-2026-08-23 的第二质量正例选择不再以“预期存在 dynamic residual”为目标，而以可完成的公开合同、确定性 scorer
-与 artifact solidification 为目标。冻结候选为同一上游 commit 的 `bids`，phenotype 是
-`bids-dataset-repair`。Exact source closure 包含 `SKILL.md` 直接引用的全部 6 个 `references/`/`scripts/` 本地
-资源及仓库 `LICENSE.md` 副本，共 8 个逐文件 digest；skill frontmatter 的 CC-BY-4.0 与仓库 MIT 分开保存，并要求
-attribution。选择输入与 compact
-报告分别为 `benchmarks/skill-ir/corpus/prospective-quality-candidate.json` 和
-`results/skill-ir/prospective-quality-candidate.json`。
-
-新 policy 把 Statistical Power 暴露出的缺口变成付费前硬条件：public JSON contract audit、evaluator pointer
-closure、contribution audit、scorer canary、prospective construction cost identity 和 qualification lock 全部完成
-前，`paidExecution=false`。同一冻结 lock 的三条模型 arm 只向前复用，2 tasks x 2 repetitions x
-`no-skill | original | ir-static` 最多 12 次付费；artifact 为确定性 4 行，dynamic 仅在合法 residual 后追加 4 次。
-Task 18.17 已继续完成前四项 gate：两条 development prompt 不披露修复动作、entity order、具体必填字段或预期
-issue；公开 contract 完整列出 17 个 scorer-visible pointer 和 set-like semantics。确定性 evaluator 从冻结
-`bids_schema.json` 与 `metadata_fields.md` 重算 oracle，六角色 contract canary 全通过。贡献 audit 为
-`eligible-for-baseline`：entity ordering、metadata inheritance、required BOLD metadata 三个独立 skill-derived
-失败模式，逐 task skill-derived weight 0.80，0 answer-bearing duplication，五类贡献 canary 全通过。
-
-Task 18.18 随后完成 10 human minutes、23 adapter LOC、0 core delta 的前瞻 construction；手写 compiler 的一次
-package capture 为 0 model tokens、217697 bytes，仍是 mechanism-only。Development lock 与资格四门通过后，唯一
-12-call 分母完成 12/12 semantic-complete/scored、0 infrastructure blocker；本地 validated artifact 为 4/4。
-预注册数值投影 no-skill/original/ir-static/artifact mean `0.2/0.2/0.4/1.0`。
-
-这些数值最终不能作为质量证据。Residual audit 证明 12/12 model 输出的 issue/repair/summary 语义相同，11 行只因
-`affectedPath`/`evidencePaths` 采用公开合同未区分的合理表示而被 exact oracle 拒绝。因此 BIDS v1 冻结为
-`measurement-invalid / underspecified-issue-path-value-semantics`；基础设施完整性与手写 artifact 机制证据保留，
-paired improvement、dynamic、held-out、readiness 与 portfolio 晋升全部关闭。任何修复必须使用新的 successor
-measurement identity，不原地改 scorer 或重评分。
-
-Task 18.19 用旧 public/scorer/development 与冻结 audit 作只读 preflight，未读取模型输出或 held-out。旧 17-pointer
-closure 保持 passed；新通用 value-semantics 层在 17 个真实 scorer canary 全部一致的情况下，识别 2/7 已公开、
-5/7 未公开，状态为 `blocked-before-paid`。这把后验 residual 结论前移成未来候选的预付费门禁，但不反事实改变
-BIDS v1。下一步只有在 5 项语义可用 non-answer-bearing contract 公开、且 source-derived canary 能区分合法多表示
-与真实语义错误时，才值得创建 successor measurement identity。
-
-Task 18.20 已完成这项评审并得到 `feasible-with-evaluator-redesign`。五项都可由 source closure 推导且不泄露逐
-task 答案，但只保留 path normalization 与 summary relationship；affected path 泛化为 repair-related data/
-sidecar role，evidence 改为唯一 repair-related manifest entries，issue identity 改为 code + severity + semantic
-repair。15/15 source-derived canary 通过。BIDS 继续作为第二质量正例候选，但当前仍不进入 readiness/portfolio
-分母；下一阶段只冻结 successor contract/scorer identity，不执行模型或 held-out。
-
-Task 18.21 已完成该 identity freeze。`bids-successor-semantic-scorer-v2` 复用同两条 development problem 的公开
-语义，但使用新的 interface/report/payload/evaluator 与 task-set digest；17/17 pointer closure、7/7 value-semantics
-descriptor 和 21/21 scorer canary 全绿。新 scorer 接受 repair target/data 两种 manifest 关联表示，拒绝无关
-manifest evidence、重复 semantic repair、非规范 path、summary drift 与语义遗漏。Freeze 显式绑定 BIDS v1
-predecessor digest，并声明 v1 不重评分、历史 claim 不变。该阶段仍是 0 paid/0 held-out，只开放后续另行设计
-qualification identity，不把 BIDS 加入现有七案例 portfolio 或 readiness 正例。
-
-Task 18.22 已进一步冻结首版 successor qualification/development identity，但没有执行付费资格或矩阵。新 lock
-固定 Pi 0.67.68、Windows/clean、`xty/gpt-5.6-sol`、`retries=0` 与 2 task x 2 repetition x 3 system 的唯一
-12-row forward-only 分母；0 reserve，不允许 v1 row reuse。12-row dry-run 全部物化 successor evaluator/payload，
-scorer 只从 lock 绑定的 source path 直载，共享 registry 文件不作为 authority。Compact freeze 为 passed、
-0 paid、0 model output、0 held-out，并逐项绑定 BIDS v1 predecessor digest 为 preserved/not-rescored。它只开放以后
-一次 infrastructure qualification；资格不以 task success、semantic success 或 exact output 预筛模型，通过后才
-允许同一 lock 的一份 12-row matrix，dynamic/held-out/readiness 继续关闭。
-
-Task 18.23 随后只执行了这一次资格。Resource、route、observability、lock-local scorer 四门全过；真实行
-`semantic-complete`，33,632ms、exit 0、4 provider responses，deterministic scorer row 可用且 semantic success
-为 true，总付费调用 1。全 workdir exact-set disclosure 为 false，但预注册为 `usedAsGate=false`，没有触发换候选、
-重试或 gate 修改。Qualification 与 resource compact 分别绑定 lock/resource digest，API credential、raw response、
-scored row 与 workdir 不提交。当前 BIDS 仍不是第二质量正例；下一阶段先冻结 successor analysis/matrix runner
-identity，再执行同一 lock 的唯一 12 rows，dynamic/held-out/readiness 继续关闭。
-
-Task 18.24 已在 0 新 API 调用下完成该 runner identity。新 analysis policy 绑定当前 lock、唯一 qualification、
-successor task/scorer 和四个 execution/analysis implementation digest，固定三组 estimand、12 model rows、4
-deterministic controls、task -> repetition -> system 顺序与 0 retry/reserve。独立薄 runner 用原子 raw+envelope
-prefix checkpoint 支持中断恢复，只接受完全匹配的连续前缀；12 行齐全后才评分。Compact freeze 为 passed、matrix
-0/12，BIDS v1 仍 preserved/not-rescored。当前仍不是第二质量正例；下一步只运行该唯一 development 分母。
-
-Task 18.25 已先补齐 successor 专属 artifact controls，避免把 v1 report/evidence 直接交给 v2 scorer 产生假负
-结果。新薄层只 import 被 prospective construction 证据冻结的旧 compiler/runtime/public artifact 模块，生成
-report v2 与 repair-related evidence；4 条确定性行全部 success、0 model call/token、0 held-out，并在模型输出被
-读取前冻结 implementation/package/raw/scored closure。该结果只证明 hand-authored artifact arm 可合法计量，
-不是 automatic optimizer 证据。随后唯一矩阵从真实 0/12 完成：12/12 semantic-complete/scored、0 retry/infra；
-no-skill/original/ir-static 为 3/4、3/4、2/4，mean 0.8/0.8/0.6。Original 相对 no-skill 为 1 positive、2
-equal、1 regression，贡献未识别；static 相对 original 为 0/3/1、delta -0.2。Artifact 4/4、mean 1.0、相对
-original 1/3/0，但 construction 保持 manual/mechanism-only。因此 BIDS 是合法的 artifact 机制证据和可信负结果，
-不是第二个 automatic/readiness 正例；dynamic、held-out 与 replication 继续关闭。
-
-共享 `public-output-abi/v2` 与 i18n v3 新身份已完成，ordered/set-like array semantics 与 scorer dependency
-closure 均已验证。旧 v3 两臂 4/4 饱和后，没有创建 benchmark v4；新的 contribution task-set 用于修复
-answer-bearing task 造成的贡献不可识别。`contribution-v1` 的真实输出暴露 placeholder/plural 私有语义并冻结为
-measurement-invalid；`contribution-v2` 公开这些语义后完成唯一 8-row baseline：0 infra、4/4 differing、
-3 positive，original/no-skill mean 0.925/0.525，gate passed。Source-audited base IR 已完成并通过 validator、
-lowering 与 leak canary；`ir-static`、optimized artifact 与 held-out 均尚未运行。
-
-`zh-code-reviewer` 当前可复建命令：
-
-```powershell
-bun ./src/benchmarks/skill-ir/zh-code-reviewer-contract-run.ts
-bun ./src/benchmarks/skill-ir/zh-code-reviewer-contract-audit-run.ts
-```
-
-第一条由冻结 builder 重建 development/heldout task JSON；第二条只读 development，生成
-`results/skill-ir/benchmark-contract-audit/zh-code-reviewer-v2.json`。v2 audit 为 20/20；旧 v1 calibration
-因结构化 summary 的私有 string 约束冻结为 invalid。修复后的 v2 校准为 8/8、0 infra，original 4/4、
-no-skill 3/4；唯一失败来自额外 `NUL` 文件违反公开 exact-output contract，因此允许进入 base IR/source
-audit。当前已提交逐节点 source audit 并晋升为 runnable；静态阶段使用同一 Pi/强模型身份运行
-`no-skill | original | ir-static` 12 行保真矩阵。唯一执行为 12/12、4/4 triplets、0 infra：no-skill
-4/4、original 3/4、ir-static 4/4，static 相对 original 为 1 positive、3 equal、0 negative。正向 pair 来自
-original 将主要证据行各锚早一行，而 static 按公开 line contract 定位正确；该 residual 已由 base IR 解决，
-不生成 overlay。Static 比 original 多 4,280 tokens，故没有 Token 收益。该 gate 只开放 typed residual
-audit，仍不开放 artifact、held-out、跨模型或优化 claim。
-
-```powershell
-bun ./src/benchmarks/skill-ir/static-development-run.ts `
-  --phase=plan `
-  --lock=benchmarks/skill-ir/pilots/zh-code-reviewer/static-fidelity-lock.json `
-  --out-dir=results/skill-ir/zcr-static-fidelity-v1
-```
-
-后续将 `--phase` 依次改为 `route-probe`、`execute`。execute 后仍由冻结 deterministic scorer 与
-`static-development-gate-run.ts` 生成 compact gate；不得把静态保真通过解释为 skill 已优化。
-
-`i18n-helper-contribution-v2` 的静态预注册复用同一入口：
-
-```powershell
-bun ./src/benchmarks/skill-ir/static-development-run.ts `
-  --phase=plan `
-  --lock=benchmarks/skill-ir/pilots/i18n-helper/contribution-v2/static-development-lock.json `
-  --out-dir=results/skill-ir/ihc-static-v1
-```
-
-该 lock 冻结 12 rows/4 triplets、Pi managed short-path、`retries=0` 和 improvement gate；`route-probe`、
-`execute` 只能在 lock 提交后按顺序运行。即使 development gate 通过，也只允许 residual audit/artifact
-eligibility，held-out 仍关闭。
-
-该 identity 的 qualification 通过，唯一 execute 也完整落盘 12 rows/4 triplets；但 1 个 static timeout 和
-同一 partial-plural run-index 横跨三臂的 3 个 zero-usage `parse-failed` 使 infrastructure gate failed。
-有效 pair 中 1 positive、1 equal、0 regression 不能覆盖 4 个 infra，故 artifact eligibility 与 held-out
-继续关闭，且不允许用同一 lock 补行。
-
-后续并列 v2 runner 使用 value-free streaming envelope、idle/absolute/step/outer 四层终止语义、预注册整组
-replacement 与 selected/all-attempt 双口径。v2/v3 qualification 分别冻结“完整任务误用 180 秒 probe budget”
-和“标准 Pi thinking 未被 allowlist 识别”，修复后才创建 v4。v4 qualification 与唯一 12 行矩阵均自然完成，
-12/12 selected、0 replacement、0 infrastructure sensitivity。质量 gate 仍 failed：original 3/4、mean
-0.9625；ir-static 3/4、mean 0.875；0 improved、1 regressed。Static 非缓存 token 少 24.64% 不能抵消质量
-回归，故 i18n artifact candidate、held-out 与 optimized/efficiency claim 均关闭；下一步改选另一个已合格案例。
-
-`zh-readme` 的 task 与 contract audit 可复建命令：
-
-```powershell
-bun ./src/benchmarks/skill-ir/zh-readme-contract-run.ts
-bun ./src/benchmarks/skill-ir/zh-readme-contract-audit-v2-run.ts
-```
-
-首条重建冻结的 development/heldout task JSON；第二条只消费 development，生成 24/24 v2 compact audit。
-该案例的付费校准使用技能无关的 `method-case-calibration-run.ts`，而不是再复制一个 `zh-readme` runtime：
-
-```powershell
-bun ./src/benchmarks/skill-ir/method-case-calibration-run.ts `
-  --phase=plan `
-  --lock=benchmarks/skill-ir/pilots/zh-readme/pi-direct-cli-short-path-calibration-lock-v2.json `
-  --out-dir=results/skill-ir/zrm-pi-v2
-```
-
-随后只在同一冻结目录把 `--phase` 改为 `qualification`、`execute`。Runner 会验证全部 digest、source
-closure、split/provenance/audit guards、Pi/Node/Bun 身份、8 行成对矩阵、Windows 短路径预算、唯一公开
-输出和 harness residue；执行结束后调用确定性 scorer 与通用 pre-IR gate。该合同可供后续方法案例复用，
-但既有 reviewer lock/result 保持不可变。
-
-v1 dry-run 为 8 rows/4 pairs、最长 workdir 145；qualification 的 Pi/resource/route/唯一 README/residue
-全部通过。唯一付费矩阵也是 8/8、0 infra，但 v1 scorer 把公开允许的保守安装说明、标准命令别名和许可证
-等价写法误判，同时漏检指向 skill-package `LICENSE.upstream` 的 task-repository 断链。因此 v1
-`measurement-validity.json` 标为 invalidated，不开放 base IR，也不把 original mean 0.7 与 no-skill 0.8
-解释为真实回归。下一次必须使用新 identity，先补 equivalence/broken-link canary 与新 audit/lock。
-
-v2 已完成上述修复并通过 24/24 audit；通用 runner 会按 lock 的 path+digest 动态加载 v2 scorer，仍没有
-`zh-readme` skill-id 分支。唯一 development 执行是 8/8、0 infra；no-skill 3/4、mean 0.95，original
-2/4、mean 0.90，且 original token 为 120021、no-skill 为 40204。两个 original failure 确认是 task
-repository 中不存在的 `LICENSE.upstream` 链接；一个 no-skill failure 则暴露 existing local path 参数等价
-仍未建模。故 v2 同样标记 measurement-invalid，数值不用于 skill 效果，base IR/held-out 继续关闭。
-
-Env Manager 目前是第二 readiness phenotype 的首选 efficiency 候选，而不是新的质量正例候选。其冻结 artifact
-已建立 original/artifact 4/4 质量等价；历史 original 为 197606 total tokens、499006ms，artifact direct runtime
-为 0 model token、541ms。这组差距只证明 recurring-cost 可行性：旧身份缺 automatic construction、package duration
-和 research all-attempt 成本，不能回填成 break-even。下一身份必须从本次 synthesis 和人工 review/patch 开始前瞻
-采集完整成本，并由 digest-bound cost report 派生 classification。人工步骤意味着它只能是 reviewed-AOT efficiency，
-不能提升 automatic construction eligibility。若完整核算后 break-even 不为正或质量门失败，退回第二个独立
-quality-positive 候选；Zh Code Reviewer 因 contract/baseline/static 已通过，可优先做零付费身份可行性审计，但不得
-用其 measurement-invalid README 旧结果凑正例。
+上述 selection/lock 固定了各自的来源、development 任务、预注册顺序及调用数。它们不是新实验授权。修改旧组件时先读相应报告和测试；复现需回到对应提交及锁定依赖，不能对旧 freeze 目录重新运行 writer。通用 runner 与 envelope/selector 规则见 [evaluation-system](evaluation-system.md)，当前任务从 [current-status](current-status.md) 进入。
 
 ## 11. Phase E2 package-inventory 受控产品探针
 
@@ -396,81 +180,39 @@ IR/validation candidate，deterministic gate passed，但 semantic parity 仍 no
 要走完产品链，人工 review 仍补了 53 LOC restricted plan 与 58 LOC patch；缺少的通用能力是 JSON object-key 枚举、
 字符串排序/去重与跨字段 count。两次 B-mode 完整链的 artifact/output digest 相同、protected input 未变，0 paid、0
 held-out、0 evaluator/taskSet/scorer、core delta 0。由于没有 original recurring token baseline，产品报告诚实给出
-token break-even not-computable；因此它是工程可运行性/适配鸿沟证据，不是 token-saving 正例或项目外泛化证据。
+token break-even not-computable；因此它是工程可运行性/适配鸿沟证据，不是 token-saving 正例或项目外泛化证据。原始两次记录为 [E2](../../results/skill-ir/verified-artifact-product-e2-package-inventory-2026-08-29/) 与 [E2 r2](../../results/skill-ir/verified-artifact-product-e2-package-inventory-2026-08-29-r2/)。
 
 ## 12. Task 18.41 项目外候选选择（未执行）
 
-只读筛选选择 Apache Magpie 的 `magpie-release-audit-report`：仓库 `apache/magpie`，选择时 main HEAD
-`453dd9f20bdebe9d4458d84682bd707be1414f80`，路径 `skills/release-audit-report/SKILL.md`，Apache-2.0。该 skill 对每个
-release 运行，也明确允许周期刷新；其 hand-back 被上游称为 AI-driven。固定核心包含公开 release surface 字段抽取、
-MISSING/REDACTED 分账、结构化 JSON、Markdown 模板与 required-field schema validation；自然语言 planning/vote/announce
-解析、privacy/injection 判断和 RM review 又使它不是一个纯脚本。
+本节标题的“未执行”仅描述 Task 18.41 的选择阶段。后继 Step 2、003、P1 已执行，按下列身份查询；不再把各阶段的“下一步”当作当前待办。
 
-若用户授权下一阶段，第一身份只允许 public fixture 上的 Step 0--2 development slice：不访问私有 tracker、不读 held-out、
-不开 PR、不自动 merge，先前瞻冻结 original repeated-LLM baseline、人工分钟与适配 LOC。Task 18.41 只完成选择，没有克隆、
-导入、执行或建立 baseline。
+来源为 `apache/magpie`，固定 commit `453dd9f20bdebe9d4458d84682bd707be1414f80` 的 `skills/release-audit-report/SKILL.md`，Apache-2.0。限定 public fixture 的 Step 0–2：公开 release 字段、MISSING/REDACTED 分账、JSON/Markdown/schema 检查；隐私、自然语言判断及 RM review 继续有独立边界。
 
 ### 12.1 Task 18.42 零执行 feasibility
 
-固定 commit 的 public SKILL、eval README、schema 与 harness runner 足以冻结 Step 0--2 的确切 prompt/case closure；但上游
-harness 只捕获 stdout、stderr 与 exit code，不捕获 model token。因而 original baseline 不是已有数据，必须在后续新 identity
-中用项目 Pi runtime 绑定 model/provider/adapter/temperature/timeout 并前瞻采集，当前 baseline rows=0。
-
-初始公开 slice 可由已实现的对象键枚举、字符串排序/去重、既有 JSON pointer/write 原语加一个预计 240--360 LOC 的领域 patch
-固化；patch 负责公开 fixture parsing、MISSING/REDACTED/voter、固定 injection 与 template/schema violation，不把这些语义塞进
-core。上游 judge predicate 不能直接作为 machine authority；独立 deterministic checker 预计 260--420 LOC、4--8 human-hours，
-需覆盖 exact schema/type、sentinel consistency、violation set equality、隐私标记缺失与 mutation fail。该结论只支持 Step 2
-conditional-go；Task 18.42 为 0 clone/import/execution/model/API/paid/held-out，并停下等待用户确认。
+固定 SKILL/schema/harness 足以复现 prompt，但上游只采集 stdout/stderr/exit code，没有 model-token baseline。领域 patch 与独立 checker 的工作量仅是当时估计，没有作为已测人工时间。原始依据见 [feasibility](../../results/skill-ir/magpie-release-audit-feasibility-v1/)；本阶段没有 clone/import/执行/付费。
 
 ### 12.2 Task 18.43 固定公开 Step 0--2 slice
 
-Step 2 精确导入固定提交的 31 个 Git blob：19 个 public input、12 个 checker-only oracle。Windows checkout 的首次 LF/CRLF
-翻译被 digest 拒绝，最终从本地 Git archive 取 raw blob。Artifact/compiler 从未读取 checker-only 目录。独立 checker 在 9 个
-reference 上全过，并拒绝 extra key、sentinel 漏账、personal email、violation 缺失、injection flag 与 forged instruction 六类
-突变。Reviewed artifact 在 9 个真实 workdir 全过，protected report 不变；适配 287 LOC、checker 351 LOC，human review 未实测。
+导入 31 个原始 Git blob：19 public input、12 checker-only oracle，物理隔离。Reviewed artifact 在 9 个 workdir 通过，checker 接受 9 个 reference 并检出 6 类突变；适配 287 LOC、checker 351 LOC，人工 review 未实测。[Step 2 qualification](../../results/skill-ir/magpie-release-audit-public-step2-v1/qualification.json)保留这些证据。
 
-项目 Pi original baseline 没有成功创建模型进程。001 为 path ABI pre-dispatch failure；002 为 Windows literal `bun` executable
-resolution pre-dispatch failure。两者均 0 completed/prefix/model/API/paid，不能支持 original-vs-artifact、token-saving、break-even、
-live-release 或项目外泛化。按 stop-loss 不继续 003；未来若恢复，必须先处理共享 runner 的 executable identity 与旧 freeze 影响。
+两个 baseline 身份都在创建模型进程前失败：[001](../../results/skill-ir/magpie-release-audit-public-efficiency-001/) 为 row-path ABI，[002](../../results/skill-ir/magpie-release-audit-public-efficiency-002/) 为 Windows 字面 bun 解析。二者各为零 completed row、零模型调用；后继成功没有覆盖这两次失败。
 
 ### 12.3 Task 18.44 有界 executable 治理与条件式 003
 
-用户另行授权先治理共享 executable identity。通用实现从 `process.execPath` 取得当前 Bun，检查 absolute regular
-non-symlink、绑定字节摘要并真实运行 `--version`；Magpie 只在最终 spawn command 处消费该通用身份，`real-agent.ts`、001/002
-和所有旧 freeze 不改，`coreBranchDelta=0`。零付费资格对全 36 行真实物化目录执行 12 次并发 status，前后 39 个文件逐字节一致，
-并显式绑定两份失败摘要、`reusedRows=0`、0 model/API/paid。新的 003 policy 仍只覆盖固定 public Step 0--2 的 9 case、2 次重复、
-original/reviewed-artifact 双臂；pre-model push 和 fresh 0/36 检查前不得执行，失败后不得创建 004。
+共享 executable identity 使用当前 `process.execPath`，验证实际可执行文件版本与身份，最终 spawn 消费绝对路径；原 001/002 与被冻结的旧 runner 不改。零调用资格检查了真实 materialized tree 的并发只读观察。
 
-Pre-model commit `67835f2` 推送后，003 唯一执行完整得到 18 对：original 6/18、reviewed artifact 18/18、0 pairwise
-regression、0 infrastructure/retry。Original input/output/cache-read 为 73537/14038/40960；artifact model token 为 0，
-平均节省 4865.2778 input+output token/run。Production API construction token 在该固定 artifact 路径上为 0，因此条件式
-break-even=0 calls、首个 recurring run 净正。它只证明这 9 个固定公开 fixture 的 machine-checked non-regression 与 token
-经济性，不证明 live Magpie release、未见输入、跨项目或 research efficiency-positive。
+[003 报告](../../results/skill-ir/magpie-release-audit-public-efficiency-003/report.json)完成固定 9 case×2 repetition 的 18 对：original 6/18、artifact 18/18、0 regression、0 infrastructure/retry。Original input/output/cache-read 为 73537/14038/40960，artifact runtime model token 0；明确的 production API construction token 为 0，条件式 break-even=0。结论限定这些公开 fixture；开发代理与真人投入未知，不能从本表补成总成本或 live-release 收益。
 
 ### 12.4 Stage P1 产品主链接入
 
-P1 停止 measurement 扩张，将上述固定证据接到既有 Env product v1。新增薄 task declaration（77 行）、26 LOC patch adapter
-与 75 LOC checker adapter；前两者通过 digest-bound bundle 复用既有 170 LOC domain patch，checker adapter 则验
-qualification/component digest 后复用 351 LOC 独立 checker。九个真实 workdir 全部经 standalone CLI 的五阶段主链，九份
-artifact closure 相同，输出 digest 与 Task 18.43 qualification 逐例相等。
-
-历史 adapter 287 LOC 与 checker 351 LOC 继续作为冻结 construction evidence；historical humanMinutes 仍为 null。新 task
-declaration 只前瞻记录 3 分钟，其余开发代理 token/工程时间不可观测，所以 total cost 和 research efficiency 仍不可计算。
-当前阶段 0 model/API/paid、original rerun=0；不访问 live GitHub/mail，不晋级 portfolio/readiness，也未启动 P2。
+九个案例通过同一 `compile → review-or-accept → package → run → cost` 产品链。77 行 task declaration、26 LOC patch adapter 和 75 LOC checker adapter 复用已绑定的领域 patch/checker，不复制通用 runtime。Original 003 行只导入，不重跑。[P1 报告](../../results/skill-ir/verified-artifact-product-magpie-machine-checked-2026-09-01/report.json)记录相同 artifact closure、固定切片 machine-check 与 0 项目模型调用；historical humanMinutes 仍为 null，只有新 task declaration 的 3 分钟单独记录。
 
 ### 12.5 Stage P2 与 Stage M 边界
 
-P2 importer 已完成显式 8-file closure、路径安全、可搬 staging bundle 与单案例 shadow。这里的 bundle 仍要求现有 SkVM runtime，
-不包含 `report.md` 等 workdir fixture；Magpie shadow checker 只做固定 output digest regression，不是 P1 semantic checker 搬迁，
-静态 import audit 也不是通用 JavaScript 模块图。
+P2 的 8-file bundle 依赖现有 SkVM runtime，用户 fixture 不打进包；shadow checker 仅检查固定输出摘要，静态 import audit 也不是通用模块图。
 
-Stage M 只复用上述冻结 product/artifact，不扩 Magpie。其 lock 固定三族各 9 个 qualification rows；但评审后该 identity 仅作为预注册
-合同冻结，禁止真实 qualification/matrix。原设计会先付费 27 个 qualification original，再重复付费 27 个 matrix original，最多 54 次
-Magpie original；`matrixRequiresAllFamilies=true` 还会在 DeepSeek 末端失败时浪费前两族调用。runner 现会在读取 API key 或 dispatch 前拒绝
-两种付费 phase；不改 P1/package/DSL，不晋级 readiness、held-out 或 live release。
-
-若未来获单独授权，需新建 identity：每族 1 次 smoke，矩阵只做一次 27 original + 9 artifact；GPT 能绑定 Magpie 003 就绑定，DeepSeek
-smoke 失败则不进入主表。跨模型稳定性主证据应回到 Env 与 API Tester，Magpie 仅作附录。
+Stage M 只保留预注册合同，runner 在 key/dispatch 前拒绝真实 qualification/matrix。旧设计重复安排 27 次资格 original 与 27 次矩阵 original，且全家族通过条件会浪费已发生调用，因此没有执行该身份。将来跨模型工作需要新的明确设计；本节不构成恢复执行许可。实现合同见 [评估 §11.14](evaluation-system.md#1114-stage-m-qualification-与唯一矩阵-authority)。
 
 ## 13. 修改与验证
 

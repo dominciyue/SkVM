@@ -80,3 +80,22 @@ git log -- <old-path>
 [governance manifest](../../scripts/skill_ir_doc_governance.json)列出，不进入上表，也不能因“历史”标签而改字节。
 
 日期化 taskbook/spec 保留在 `docs/superpowers/`，是决策与执行记录，不与当前状态页竞争。
+
+## 2026-10-04 工作区与入口治理
+
+- 22 个旧复现工作树已退出；Git 中的原 HEAD 保留。七处非 Git 差异先保存为本地 ZIP，并完成 CRC 核对。
+- C8/C9 原始 trace、外部来源快照、旧复现输出、报告中间稿和恢复补丁集中收存到仓外 `project-maintenance/archives/20261004/`。用户根目录的报告版本继续保留；运行原件未上传。
+- 本地逐路径清单与恢复说明在 `project-maintenance/20261004-governance/README.md` 和 `archive-index.json`。部分原目录在批量删除被策略拒绝后改为可恢复迁移，ZIP 和原目录同时保留；该索引说明实际处置。
+- 当前状态与计划的历史长流水改为结果链接，研究首屏与问题表更新到 AR。研究 §12 的重复步骤记录可从治理前提交 `23f0f976` 恢复，§7 阶段记录及原始实验未改分数。
+- 2026-09-27 的本地排除清单是当时快照；其“仍在原位”描述已由本次逐路径迁移记录补充，不据旧清单判断文件遗失。版本化材料保持原路径和原字节。
+- 第二批补齐三个 C9 原始/变化目录与 review_artifacts 的 ZIP、清单及可恢复迁移；两个旧 Python 环境集中收存。Q1 草稿因历史路径绑定保留，CSV 试用目录保留启动器、输入与失败记录。
+- 已结束 F 阶段的 16 个大日志在原路径作 NTFS 透明压缩，长度及首尾抽查不变；没有删除失败响应或修改 Git 中的实验结果。空 research-checkouts/.worktree/.worktrees 的删除被自动审批拒绝，仍保留为空目录。
+- evaluation-system 的旧资格演变、optimization-and-artifacts 的 18.18–18.38C 构造/成本流水、real-skill-pilots 的案例进展合并为版本表及原报告链接。原提交版本可由 Git `5afd4481` 恢复，第二批修改前的工作区副本保存在本地 before-docs-second-pass；原章节锚点保留，当前 AR 方法正文未由治理改写。
+
+维护规则和剩余事项见[治理任务书](../superpowers/plans/2026-10-04-workspace-and-document-governance.md)。
+
+### AR 退出后的文档收口
+
+2026-10-04 用户确认 AR 进程已结束。其最后工程提交为 cc88bfb2，机器状态保留退出前的 in-progress 快照；验收未达责任转入 AS，原运行、评价、未知请求及未运行分母保持。研究 §7.36–§7.46 和 spec 的旧阶段合同折叠保留，当前根因与 AS 合同在各自主文档中可直接找到，没有再开研究总文档。
+
+本地 project_handoff 的旧 H 阶段首页与追加流水已归并为当前恢复说明；完整旧稿在 project-maintenance/20261004-governance/before-finalization/。五份可再生成的 Python 字节码清除，源脚本和原始结果未动；Python 缓存加入忽略规则。AS 接管后的新结果与 AR 分开登记。

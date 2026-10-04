@@ -1,5 +1,8 @@
 # Skill 优化、Final IR 与 Artifact Runtime
 
+**按需阅读：** 本文对应 trace 优化与 IR/AOT 产物路线。普通生成先读 §3.0 的动作、程序验证、导出与自然消费；修改旧 artifact runtime 再读 §4–§14。当前授权 DSL 的宿主取证与控制图由[开发指南](developer-guide.md)、[研究 §7.36](skill-dsl-research.md#736-ar-宿主引导运行与现场修复)及 spec §14.34 说明，不要求经过本文全部层级。阶段名称表示当时实现/证据，实时状态只看 [current-status](current-status.md)。
+
+
 本文说明优化动作、局部验证和产物封装的实现。当前进度见[状态页](current-status.md)，实验结果及其适用范围见[证据索引](evidence-index.md)。
 
 ## 1. 优化分层
@@ -622,11 +625,7 @@ Held-out 使用冻结 package，不调 compiler、adapter、validator、scorer �
   两个同 catalog package 变体。冻结 development 为 4/4、mean 1.0、0 regression；模型三臂均 0/4。
   这证明公开 OpenAPI 约束可以编译成稳定的 0-runtime-model-token artifact，不证明 held-out 或跨模型泛化。
 
-因此下一工作不是新增 runtime 版本。i18n contribution-v2 已提供有区分度的 source-transformation baseline，
-其 source-audited profile-empty base IR 也已通过；但首个 static development identity 因 1 timeout 和 3 个
-跨三臂同位 `parse-failed` 冻结失败，不能进入 artifact candidate。下一步先把 current regression、
-frozen-history compatibility 与 provider/execution observability 分层，再决定新预注册身份或替代方法案例；
-不得在同一 lock 下补跑筛正例。
+本节是早期 artifact development 的机制快照。i18n 首轮 static identity 的 timeout/parse-failed 与后继 v4 的质量回归分开保留，演进见 [pilot 结果](real-skill-pilots.md#10-intake-顺序)。Env 后续 reviewed-AOT 的效率结果见 §14；当前开发任务仍以 [current-status](current-status.md) 为准。
 
 API Tester 的本地编译与冻结实验命令：
 
@@ -695,230 +694,47 @@ Tester 两包实测 133.46ms、725430 bytes，Env Manager v3 两包实测 63.16m
 零未自动化步骤、完整 optimizer/compiler/package stages、非矛盾 usage 与有效 package，才可提供 automatic
 production compile cost。本结果不反事实闭合 Env Manager 的历史 break-even。
 
-Task 18.18 将该 capture 用到 BIDS 新候选：10 human minutes、23 adapter LOC、0 core branch delta；一次 package
-construction 为 0 calls/tokens、217697 bytes、catalog validation passed。由于 base IR、adapter、compiler 和 tests
-仍由人手写，automatic eligible 保持 false。确定性 artifact 在两任务两重复上为 4/4、mean 1.0，但同期 12-call
-模型矩阵的 residual audit 发现公开 issue-path value semantics 不完整，故 artifact 只证明 source-derived compiler/
-runtime 机制，不是 automatic optimized 或 quality-positive 正例。Dynamic 未授权；必须先修复通用 disclosure
-preflight 对 canonical value/representation equivalence 的覆盖。
+### 14.1 构造实现与证据层次
 
-Task 18.26 第一次把公开 source 到四类 candidate 的公共路径实际串起。`automatic-construction-shadow-v1` 对
-method portfolio 7 个案例先冻结候选、后读取人工 oracle；7/7 contract、7/7 schema-valid base IR、7/7
-construction validation plan、7/7 non-executable package candidate 均生成，0 API/model call、0 held-out、0
-evaluator payload。公共 core 不含 7 个 case id，case-specific transformation adapter LOC 与激活人工分钟均为 0；
-共享核心从前瞻起点到最终实跑记录 28 human minutes，二者分账，不能把共享开发成本说成 0。
+以下是旧 AOT 构造链的组件演进。版本化报告保留全部分母、失败、人工字段和未观测项；本文只保留职责、结果边界及恢复入口。
 
-Shadow gap 是实质结果而不是失败美化：6 个存在 manual base IR 的案例全部为 schema-valid oracle，但自动/手工规则
-精确重合为 0；Zh README 没有冻结 manual base IR，Reviewer/README/i18n 没有 validated package oracle。自动
-contract 仍缺 benchmark task ABI/value semantics，自动 IR 缺领域实体、tool binding、runtime invariant，validation
-plan 没有独立 domain scorer/runtime oracle，package 刻意保持 non-executable。因此四类 portfolio eligibility 均
-为 0/7，`automationAndAdaptationConverging` 与 readiness 保持 failed。权威差距报告为
-`results/skill-ir/automatic-construction-shadow-v1/report.json`；下一刀应自动融合公开 task contract 与 source audit，
-而不是继续优化 Markdown 结构抽取或把 candidate skeleton 记作已自动化。
+| 组件/阶段 | 已实现的职责 | 该阶段的结果入口 |
+|---|---|---|
+| BIDS construction（18.18） | 手写 compiler + 声明式 adapter 进入相同成本 capture；10 human minutes、23 adapter LOC、core delta 0 | [construction](../../results/skill-ir/bids-prospective-construction-v1/)；后续 measurement-invalid 见 [pilot](real-skill-pilots.md#10-intake-顺序) |
+| source-only candidate（18.26） | 从 source 生成 contract、IR、validation plan 和 non-executable package | [shadow](../../results/skill-ir/automatic-construction-shadow-v1/report.json)：7/7 candidate，0/7 eligibility，缺 task ABI 与领域执行语义 |
+| 薄 task declaration（18.27） | 输入/输出路径、形状及封闭 pass predicate 接入构造；source audit 与独立 verifier 验绑定 | [domain construction](../../results/skill-ir/automatic-domain-construction-shadow-v1/report.json)：19 条结构 predicate、21 条领域 predicate，7/7 semantic parity 未建立 |
+| structural execution（18.28） | initial manifest、精确输出集合、JSON shape 和 bundled checker 经公共 runtime 执行 | [structural shadow](../../results/skill-ir/automatic-structural-execution-shadow-v1/report.json)：33 隔离场景；仅 2 个 exact projection 建立局部 parity，包只检查、不生成任务产物 |
+| source-field projection（18.29） | 唯一同名 public JSON 字段 → 声明输出 pointer；其它项留 unresolved | [output shadow](../../results/skill-ir/automatic-output-construction-shadow-v1/report.json)：3 files/3 fields，15 unresolved，2/2 package validation-failure |
+| copy-json-value（18.30） | additive pointer operation 读取真实 workdir；继续检查结构与 relation | [pointer shadow](../../results/skill-ir/automatic-json-pointer-construction-shadow-v1/report.json)：unresolved 15→12；领域 runtime floor 仍为 10，eligibility 0/2 |
+| Restricted Domain Plan（18.31–18.36） | 模型写有界数据流 plan，静态类型/namespace/output 检查后交确定性解释器 | 诊断演进见下表；结构正确与完整领域产物分别记录 |
 
-Task 18.27 完成了这层输入桥，但没有把它夸成 runtime 自动化。`skill-ir-task-description/v1` 的 7 个声明只写
-input/output path、artifact shape 和封闭 pass predicate，均为 20--27 LOC、13--20 semantic entries；总前瞻
-authoring 15 human minutes，case adapter LOC 与 core branch delta 都为 0。生成器把这些声明和 source-only 结果编成
-domain contract、task-ABI IR、cross-artifact validation plan 与 package candidate，并由独立 verifier 重验绑定。
-Shadow 共记录 19 个可进入通用确定性 plan 的结构 predicate，以及 21 个仍需领域 runtime 的 source/content/cross-
-artifact/behavior predicate；后者逐案形成不同 gap，另有对应 output compiler gap。因为本阶段没有执行 task output、
-没有 qualified domain runtime，7/7 semantic parity 均为 `not-established`，package 仍 non-executable，eligibility
-仍为 0/7。下一阶段应实现封闭 predicate 到公共 checker/runtime 的 lowering 和至少一个 0-paid execution parity，
-而不是扩充声明去模拟手工 scorer。
+这些模块遵守同一边界：声明与 package 不包含 evaluator/gold/held-out 或逐例答案；源文件值在运行时读取；通用 core 不按 skill/case 名特判。手工 evaluator 的 `exact`、`manual-stricter`、`domain-bundled` projection 分开，只有 exact 的同一 predicate 可用于局部 parity。人工分钟和 LOC 按各阶段口径分列，不能把重叠片段相加成完整自动化成本。
 
-Task 18.28 完成结构 execution bridge。`automatic-structural-execution.ts` 将四类封闭 predicate 编成 strict
-`skill-ir-structural-execution-plan/v1`，并在真实 workdir 上使用 initial manifest 检查输入完整性、输出存在/
-精确集合和 JSON object shape。`automatic-structural-execution-runtime.ts` 把 source、base IR、construction audit、
-domain contract、plan、initial manifest 与 bundled checker 组装为真实 `validated-skill-artifact/v1` package，再交给
-既有 `runValidatedArtifactPlan`；没有修改共享/冻结 runtime，也没有 skill-id 分支。
+### 14.2 Plan 生成的故障与修复
 
-7-case shadow 先重建全部 18.27 candidate 并核验 digest，再加载 development task 和手工 evaluator。33 个隔离场景
-得到 7/7 structural baseline pass，所有 input tamper、missing/extra output 与 5 个 JSON shape drift 均命中预期
-错误；7 份声明内共 19 个实际结构 predicate。`output-presence` 虽由 focused test 与 runtime package test 覆盖，
-但 7 份冻结声明没有该实例，不能计入 19 条 case evidence。Parity catalog 为 297 physical LOC，其中多数是
-path binding 与 manual projection 评估配置；前瞻 authoring 3 human minutes、13 个 binding paths、9 个 manual
-oracle mappings，core branch delta 0。每个手工 evaluator 模块的 path+sha256 也由 catalog 声明，通用 checker
-在候选 freeze 之后校验并隔离加载，不包含任何 skill-id/module-name 分支。
+| 阶段 | 原始发现与后继验证 | 结果 |
+|---|---|---|
+| 18.31 | Env/Law 均在 strict plan 形成前 provider-or-parse；0/2 synthesis、0/4 workdir，失败 usage 不可用 | [原失败](../../results/skill-ir/automatic-domain-plan-shadow-v1/) |
+| transport qualification | 单次 canonical forced-tool exact-match，632 input/134 output tokens；只排除持续 transport blocker | [transport](../../results/skill-ir/automatic-domain-plan-transport-qualification-v1/) |
+| 18.33–18.35 | task-bound Env plan 触发 template-binding-type，仅部分输出；旧 evaluator 从 0/6 到 1/6。Law 单次新生成仍无合法 plan | [attribution](../../results/skill-ir/automatic-domain-plan-attribution-v1/)、[inspection](../../results/skill-ir/automatic-domain-plan-semantic-inspection-v1/)、[parity](../../results/skill-ir/automatic-domain-plan-manual-parity-v1/)、[Law](../../results/skill-ir/automatic-domain-plan-single-generation-v1/) |
+| 18.36 | typed tool/static/namespace 修复后，两 workdir 均完整执行且各有 3/3 输出；领域检查仍只有 3/6，schema 与 .env.example 内容不完整 | [generic repair](../../results/skill-ir/automatic-domain-plan-generic-repair-env-2026-08-25/report.json) |
+| 18.37 | 保留原 plan，独立 125 LOC review patch 将 auto-only 3/6 补至 6/6；8 human minutes 单列 | [reviewed closure](../../results/skill-ir/review-required-env-2026-08-26/) |
 
-手工 checker 通常把结构条件与领域条件绑在一个 criterion 内，所以 runner 不以总 checker pass/fail 冒充同一
-predicate。手工 evaluator 按案例在隔离 Bun 子进程中批量执行，避免其注册副作用或模块缓存污染公共测试进程；
-临时 evaluator input 随 shadow workdir 删除，不进入 compact evidence。9 个 projection 被分为 `exact`、
-`manual-stricter`、`domain-bundled`；只有两条 exact projection 的
-全部观察一致并建立 execution parity。其余观察保留 agreement/difference 计数，但固定 `not-claimable`。
-`cross-artifact-consistency` 只完成一条 i18n 探针：通用 JSON pointer relation 接声明参数后 baseline pass、mismatch
-fail，额外声明 1 human minute，仍是 `productionGeneralization=not-established`、`semanticParity=not-established`。
-再往下需要 pointer/normalization/runtime-command/source-oracle 参数；若只能靠 skill 特判，不应进入 core。
+Generic repair 解决的是必错类型流与缺输出；review patch 解决的是领域内容。二者分别计量。Review patch 只读公开 source/workdir/task/contract，写已声明输出并保留 protected inputs；review 成功没有改变自动构造的资格。
 
-本阶段 package 是 validation-only checker，不会生成 task artifacts。因此它证明 structure enforcement 已从 plan
-落到 execution，没有证明 optimizer/compiler 自动产物路径收敛，7/7 automation eligibility 与 readiness 保持不变。
-权威报告为 `results/skill-ir/automatic-structural-execution-shadow-v1/report.json`。
+### 14.3 Reviewed-AOT 成本与中断恢复
 
-Task 18.29 增加真实 process node，但刻意限制能力而不伪造成功。公共 compiler 只为 JSON-object required field 寻找
-唯一同名的 public read-only JSON 顶层字段；匹配时生成带 source/target JSON pointer 的
-`source-field-projection`，否则把具体原因留在 unresolved。Runner 真正在 workdir 写文件，checker 复用 structural
-validation 并增加 relation validation；未知 operation 和任何 skill-specific branch 都 fail closed。
+效率实验沿用同一 reviewed artifact，production 与 research 两账独立。新 construction authority 实测 one-time `compile/profile/package=9358/0/0` tokens；人工 review 的 8 分钟/125 LOC 另列，旧 `manual-existing` 的 missing 不回填。
 
-Experimental Design 生成 replication/analysis 两个 partial plan，i18n 生成 partial report，共 3 files/3 fields；两案
-relation 均 baseline pass、人工注入 mismatch fail，protected inputs preserved。Reuse gate 因同一 primitive 在两个
-不同案例成立且 core branch delta 0 而 passed，但 15 unresolved、2/2 package validation-failure、manual checker
-各 1/5，故 complete construction、semantic parity、automatic eligibility 都是 0。报告还明确将 catalog freeze 后
-8 human minutes/30 LOC 与 pre-measurement core work `not-measured` 分开。权威报告为
-`results/skill-ir/automatic-output-construction-shadow-v1/report.json`。
+| 身份 | 实际终态 | 保留的工程要求 |
+|---|---|---|
+| [v1](../../results/skill-ir/env-manager-reviewed-aot-efficiency-v1/) | 6/8 prefix；第 7 行外部中断，usage 不可恢复，invalid-for-efficiency | 在副作用前记录 dispatch；未知完成保留，不能重发补齐成本 |
+| [v2](../../results/skill-ir/env-manager-reviewed-aot-efficiency-v2/) | detached worker 的 qualification 通过，但 status 调 materializer 删除活动输入，prefix 1/8 | 观察必须只读；身份校验与 materialization 分离 |
+| [readonly-serial-001](../../results/skill-ir/env-manager-reviewed-aot-efficiency-readonly-serial-001/) | 8/8 records、4/4 pairs，quality equivalent，0 regression；original 202010 tokens、reviewed runtime 0 | 单一 foreground writer；prepared/dispatched/terminal/prefix 顺序保留；仅恢复已确定完成的窗口 |
 
-Task 18.30 以 additive package 增加 `copy-json-value`，不改 18.29 冻结件。声明只保存 source/target
-targetRef、path、JSON Pointer 和 operation 名；literal、gold、scorer、held-out 与运行时值都不进入声明或 package。
-Process 先执行旧 base projection，再从 workdir 读取 source pointer 并覆盖 target pointer；checker 依次执行 structural、
-base source-field relation 和 pointer relation。Experimental Design 两条、i18n 一条 operation 在两个真实 workdir 均
-baseline pass，注入 target mismatch 后均 fail，protected inputs preserved，reuse gate 以双案例/core branch 0 通过。
+Read-only control 由 `reviewed-aot-efficiency-readonly-control*.ts` 暴露 status/collect；生产 materialization 与写入由 `reviewed-aot-efficiency-readonly-serial-run.ts` 管理。Prepare 在派发前物化，execute 只消费冻结计划，观察入口不调用 plan builder。资格使用真实 materialized case 和并发读核对，单纯静态 import 检查不足以证明只读。
 
-该局部成功没有伪装成完整构造：unresolved 15 -> 12，两个 package 继续 validation-failure、manual checker 各 1/5、
-automatic eligibility 0/2。全部剩余项的冻结分类为 pointer 1、selector/lookup 1、domain runtime 10，因此即使纯
-projection/query 未来全部实现，理论 unresolved floor 仍为 10；本阶段没有实现 selector/lookup。合并 task + pointer
-声明在两案分别为 53 LOC/22 semantic entries 与 46/19，均小于 80/40；pointer declaration 3 human minutes，core
-绿灯后的声明/shadow 20 human minutes，pre-measurement core work 不追溯。权威报告为
-`results/skill-ir/automatic-json-pointer-construction-shadow-v1/report.json`。
-
-Task 18.31 不再扩 projection/query，而是让强模型把公开 source、薄声明和一个 development construction task 编译为
-strict Restricted Domain Plan，再由确定性解释器执行。模型只有每案一次 forced-tool completion、0 retry、无工具；
-request 显式剥离 evaluator/gold/held-out。计划只能使用有界通用数据流原语，不能携带 task1-only secret、变量名、
-文档标题或长原文，也不能通过 case/skill 分支进入 core。
-
-执行前 freeze 已绑定 Env Manager/Law 的 2 个 request、7 个实现文件、父证据、route/backend 和 2-call 上限，摘要为
-0 paid/held-out/evaluator payload/retry、`coreBranchDelta=0`。Execute 先复核所有 digest 与 provider identity；随后先
-持久化全部成功 plan，再执行 4 个真实 workdir，最后才加载 manual evaluator。Focused 的注入计划只证明编排与
-runtime 链可执行，不是模型自动化结果；package/manual parity、跨任务 transfer 和 automatic eligibility 在付费结果
-冻结前继续 `not-established`。
-
-真实 Task 18.31 execute 没有到达 artifact runtime：Env/Law 各一次逻辑 paid attempt 均在 strict plan 形成前进入
-`provider-or-parse`，因此 0/2 synthesis、0/4 workdir、0 manual evaluator load、0/2 transfer/eligibility。零重试、
-held-out/evaluator payload 隔离与 core branch 0 保持，但 token/duration 在失败路径不可用。该分类粒度不足以判断
-是 provider transport 还是模型生成的 arguments/plan 不合 schema；两案不同 failure digest 也不能弥补这个缺口。
-历史请求冻结且不得重跑，artifact 层的自动化主张仍为未建立。
-
-独立 transport qualification 不运行 artifact/task。它只要求同 route/backend 把显式 canonical plan 作为 forced-tool
-arguments 返回并通过同一 strict parser；六段 typed failure 和 duration/digest 用来区分持续 transport contract
-blocker。0-paid freeze 固定 1 authorized call、0 retry/task/held-out/evaluator payload 及 4-file implementation closure。
-即使 qualification 通过，也只排除当前持续工具合同不兼容，不会把历史 18.31 的 0/2 追溯改成 plan-schema failure。
-
-唯一 qualification 实际为 canonical exact-match pass：632 input、134 output tokens、5,023.5 ms、0 retry，因而当前
-没有持续 forced-tool transport blocker。Artifact 自动构造仍没有改善：18.31 没有 plan，四个预注册 workdir 均未
-执行，full package/manual parity 与 eligibility 仍为 0。产品阶段在此收口为“自动候选/结构/局部投影 + 人工
-domain-runtime 审核”，不把 transport 正例冒充 optimizer 正例。
-
-Task 18.33 不新增 artifact primitive，而是在实际 artifact execution 前定位 plan synthesis 边界。三个阶段逐级加入
-真实 context、完整 strict tool schema 和 task binding；只有 task-bound 阶段产生安全计划时，后续才允许评审计划
-是否值得进入现有 deterministic runtime/package。预模型 freeze 为 3 authorized calls、0 retry/held-out/evaluator
-payload；在执行前没有 package、workdir、manual parity 或 semantic parity 新证据，因此冻结本身不改变 18.31。
-
-真实 attribution 后确有一个通过 leakage/binding 的计划，但 Task 18.34 的两个临时真实 workdir 执行均在
-`.env.example` 写入前发生 `template-binding-type`：解释器已先写 `env-report.json`，其余两个声明输出不存在，
-protected inputs 均保持摘要一致。计划还读取但未消费 3 个 public-interface 派生值，并漏掉 2 个 Vite 引用，因此
-18.34 没有建立 full package/semantic parity；这不意味着 partial workdir 不能进入 manual evaluator。Additive static
-dataflow type gate 已能在 runtime 前识别该必错流；它没有修改冻结 artifact/runtime，也不构成 automatic package
-正例。
-
-Task 18.35 的独立 parity runner 已在同两个 partial workdir 上实际调用冻结 Env evaluator：baseline 0/6、post-plan
-1/6、distance-to-full=5，只有 Node 的 environment-analysis 一项通过，hard gate 与 threshold 均未过。新的 Law
-single-generation freeze 只授权一次 strict task-bound call；只有 leakage、双 task binding 与 static type audit 全过
-才持久化计划并进入相同 parity。唯一调用的 tool arguments 在 strict plan schema 被拒，因此没有 Law 计划、
-workdir 或 package；跨 skill 聚合明确 failed。Go/no-go 已触发停止：不为该失败增加 DSL primitive 或 skill 分支，
-自动化产物路径继续以人工 domain-runtime 审核/补齐为产品边界，也不开放 held-out 或 eligibility。
-
-Task 18.36 纠正上述收口的归因边界：Env 旧 parity 来自 0/2 runtime complete、每案 1/3 output 的同一静态类型错，
-Law 又没有 schema-valid plan，因此尚未得到“可完整执行但 domain semantic 失败”的干净证据。新的 additive attempt
-不扩 artifact/DSL，也不修改旧 freeze；它用 typed tool schema、local namespace/static audit 和 declared-output
-完整性 gate 清除这两类通用工程污染。
-
-只有安全 plan 能在两个真实 Env workdir 均 runtime complete、生成全部三项 required output 并保持 protected input，
-结果才标记 `engineeringContaminationRemoved=true`；之后冻结 evaluator 的 6 项总分母才用于解释 domain semantic gap。
-即使执行完整但 parity 失败，也只是一个干净的 Env 单案例负结果，不开放跨 skill reuse、eligibility 或 held-out。
-
-唯一执行正好落在该分支：2/2 runtime complete、每案 3/3 required output、2/2 protected input preserved，且两层
-类型 issue 均为 0，所以旧 partial-output/static-type 污染已经排除。Artifact integrity 两案都通过，但一致性两案都
-失败：`.env.example` 只包含数组注释而没有逐变量 `NAME=` 行，`.env.schema.json` 的 `variables` 是字符串数组而不是
-逐变量 rule object。该差距不能通过“文件存在”门抹平，也不能事后改 evaluator；它是当前自动 package 的真实
-domain artifact gap。
-
-下一步只允许一个半天、零付费、非阻塞的 `review-required` 竖切来固定人工边界。它不得修改自动生成 plan；独立的
-case-local patch 只读取公开 source/workdir/task/contract，写已声明 outputs，不读取 scorer/gold/held-out。Runner
-必须记录 patch path+digest、LOC、起止时间、humanMinutes、`coreBranchDelta=0`，并在新的 pristine Node/Vite
-workdir 上先执行原计划、再执行 patch、最后调用同一冻结 evaluator。报告同时保留 auto-only 3/6 与 reviewed
-结果；即使 reviewed 未达 6/6 也冻结，不扩 DSL、不补模型调用、不改变 portfolio/readiness。
-
-这种 reviewed artifact 明确不是 automatic construction，但若从 synthesis 开始前瞻记录完整 review、compile、
-profile、package、runtime、repair 与 research all-attempt 成本，它可以进入单独的 reviewed-AOT efficiency 评估。
-这条产品化证据与“全自动 optimizer 是否收敛”是两个轴，不能用人工 patch 的成功把
-`automationAndAdaptationConverging` 写成 true。
-
-Reviewed-AOT 的付费矩阵还有一道更早的硬前置：零付费 construction-source audit 必须先证明 synthesis、人工
-review/patch、实际 compile、profile 适用性与 package assembly 都有新 identity 下的 path/digest 和完整计量，且
-三个 one-time model-token bucket 无 `missing`。历史 `manual-existing` Env compiler 即使重跑为 0 token，也不能
-补写当时未观测的构造成本。审计只回答“是否值得冻结 recurring 实验”；quality、research all-attempt 与 runtime
-成本仍须由后续固定分母产生，humanMinutes/LOC 单列且不进入 token break-even 分母。
-
-Task 18.37 已把该边界做成真实运行薄层：自动 plan 在两个 fresh workdir 重现 3/6，独立 125 LOC patch 后为
-6/6；两阶段都经过 protected/exact-delta 与冻结 evaluator，且自动 plan digest 未变化。构造成本 authority 随后
-重算 synthesis/review/compile/profile/package，得到公共 builder 的 one-time token mapping `9358/0/0`、无 missing；
-8 humanMinutes 单列。Task 18.38 freeze 又重新编译并核对 patch bundle digest，在两个 fresh workdir dry-run 2/2
-full pass，固定 8-row exact-prefix identity。本阶段均为 0 paid；quality/recurring/all-attempt/efficiency 仍待唯一
-4-call original matrix，不能从 dry-run 推断。
-
-该唯一矩阵后来只形成 6/8 原子 prefix。第 7 行 original 在目标 workdir 写出产物后，外部任务终止 runner；由于
-execution observation、usage、score 与 envelope 尚未落盘，且 provider 采用无 session 模式，成本权威不可恢复。
-同一 identity 重跑会成为冻结预算外的额外 paid attempt，忽略该行则会伪造 all-attempt 完整性，因此两者都禁止。
-v1 状态固定为 `interrupted-invalid-for-efficiency`，不生成 cost report、不更新 portfolio/readiness。
-
-用户选择的 successor 不复用 v1 row，而以新 0/8 identity 重跑完整分母。新的耐中断薄层只改变执行所有权和
-attempt authority：detached worker 独占 8 行；controller 退出后只允许观察同一 worker，不得重发。每行在副作用前
-原子写 `prepared/dispatched`，完成后先写 terminal usage/score/envelope，再推进 prefix；已 dispatched 且 terminal
-缺失时整个 identity fail closed。该机制须先用 fake executor 在真实 Windows detached process 上零付费验证，随后
-才绑定原有 reviewed package 与 `9358/0/0` production construction authority 冻结新实验身份。
-
-该 qualification 已在真实 Windows detached process 上完成：foreground controller 被强制终止后，同一 worker pid
-完成 2 个 fake rows；重复 start 未增加 dispatch。Journal 的 terminal-before-prefix 窗口可确定性 reconcile，
-dispatched-without-terminal 则 fail closed；并发首次创建使用 O_EXCL。新 policy/freeze 从 0/8 开始并显式禁止 v1
-row reuse/orphan backfill；当前 plan 为 8 rows、0 paid、matrix 未执行。
-
-真实 v2 唯一执行没有形成 recurring 分母。Row 1 original process 正常结束且 usage 完整，但并发 `status` 为验证
-identity 在生产目录重新 materialize 全部 original rows，删除了 active row 的 task/skill/initial manifest。Row 1
-因此无法得到可用质量 score；紧随其后的 deterministic row 又因 task 缺失失败，prefix 固定 1/8。该事故不否定
-reviewed artifact 机制，也不允许从单行 usage 计算 break-even。未来 identity 的 control plane 必须只读 frozen bytes、
-journal/state 和已冻结 plan；任何 plan builder/materializer 只能在 worker 启动前的隔离 staging directory 运行。
-
-Task 18.38C 采用 additive read-only/serial successor，而不修改上述冻结文件。`prepare` 是唯一允许调用 original
-plan builder 和 materializer 的阶段；它在 key 检查与付费执行前一次性生成新 active root 的 plan/case artifacts 和
-deterministic bundle。随后 `status/collect` 只读取并核对冻结字节，且资格测试须在独立进程持有真实 case 文件时证明
-重复并发读取前后全树 byte-identical。Production 不再启动 observer 或 detached controller，而由单一 foreground
-runner 串行执行 `dispatched -> row -> atomic prefix`。该简化保留 0 retry/fail-closed：只有 prefix 已完整提交的窗口
-可以确定恢复，dispatched 但无完整证据不得重发。若资格通过后的新 0/8 身份仍发生基础设施失败，efficiency 修复
-立即止损并进入 Phase 2。
-
-正式命令分权如下。Qualification/freeze 全程 0 paid；`prepare` 只物化 plan/bundle/state/prefix，不检查或消费
-credential；只有 pre-model closure 推送后才允许运行 `execute`：
-
-```powershell
-bun run ./src/benchmarks/skill-ir/reviewed-aot-efficiency-readonly-serial-run.ts --phase=qualify
-bun run ./src/benchmarks/skill-ir/reviewed-aot-efficiency-readonly-serial-run.ts `
-  --phase=freeze --frozen-at=<ISO-8601>
-bun run ./src/benchmarks/skill-ir/reviewed-aot-efficiency-readonly-serial-run.ts --phase=prepare
-bun run ./src/benchmarks/skill-ir/reviewed-aot-efficiency-readonly-control-run.ts --phase=status
-bun run ./src/benchmarks/skill-ir/reviewed-aot-efficiency-readonly-control-run.ts --phase=collect
-bun run ./src/benchmarks/skill-ir/reviewed-aot-efficiency-readonly-serial-run.ts --phase=execute
-```
-
-生产期间禁止调用 status/collect，虽然这两个入口已被证明只读；它们只用于付费前 0/8 复核或异常后的取证。
-`execute` 消费 prepare 落盘的 4-row original plan 与 digest-bound bundle，顺序执行 8 行并直接落完整 raw/scored/
-envelope、paired quality 与 cost report。Plan builder 不在 execute 或 observer 的 import/call path。恢复只允许
-prefix 已提交而 state 未推进的确定窗口；in-flight 但无完整 prefix 时不会再次调用 executor。
-
-正式执行从 fresh 0/8 一次完成 8/8，生产期间没有启动 status/collect 或任何 observer。四个 original 和四个
-reviewed-AOT 全部 scorer success=1，四组 paired regression 均 false；reviewed runtime 合计 276.9631ms、0 model
-tokens，original 合计 814603ms、202010 model tokens。Production AOT one-time 是 compile/profile/package
-`9358/0/0` tokens，package 13131 bytes；human review 8 minutes/125 LOC 与 research attempts 单列。
-
-公共 cost builder 对 N=1/2/5/10 均可计算，break-even=1 call、production/all-attempt/break-even completeness 全 true，
-因此本切片为 `efficiency-positive`。这个结论只支持 reviewed-AOT 产品轴；case-local review patch 仍是明确的
-unautomated step，不能用于提升 automatic-construction gate。
+Readonly-serial 的公共 cost builder 得到 break-even=1 call、production/all-attempt 完整，支持该切片的 `efficiency-positive`。其中的 case-local review 仍是明确人工步骤，automation gate 不因效率正例提升。各身份的资格和执行命令保留在当时 Git/报告中；日常检查不向旧目录再次运行 freeze/prepare/execute。只读恢复规则与质量 authority 见 [评估 §11.4](evaluation-system.md#114-只读-control-plane-资格)。
 
 ### 14.5 Automation reachability 决策薄层
 

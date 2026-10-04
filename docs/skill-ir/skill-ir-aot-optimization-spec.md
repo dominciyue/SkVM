@@ -1,8 +1,11 @@
 # Skill IR AOT 优化研究契约
 
-**最后更新：** 2026-10-02
+**阅读路径：** 当前授权 DSL 合同直接读 [§14.34](#1434-按-skilltask-范围设计领域-dsl)；通用 trace 包生成读 §14.29–§14.33。其余章节保留各时期 IR/AOT 方法及兼容约束，按涉及的组件查阅。这里不记录逐次调用、测试数量或当前队列；它们分别在结果、当前状态和任务书中。
 
-**当前已确认路线：** 第14.34节“按skill/task范围设计领域表达并验证实际价值”。AQ有限研究已关闭，完整运行验收未达；AR已授权以现场修复推进宿主取证、局部解释、分支检查和变化复用，状态见[当前状态](current-status.md)。authoring/v2、analysisContract/v1、wire/v6及inquiry旧默认继续兼容；Markdown与DSL共用原始源码和规范事实，分开检验表示、执行支持与实际回答收益。研究与问题复盘见[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。14.32–14.33及更早合同保持历史，I1保留后备。
+
+**最后更新：** 2026-10-04
+
+**当前已确认路线：** 第14.34节“按skill/task范围设计领域表达并验证实际价值”。AR 进程已结束，完整验收仍有未达项；当前授权队列为 [AS 局部语义展开与真实交付](../superpowers/plans/2026-10-04-authorization-semantic-lowering-and-delivery.md)，第14.34节的当前 AS 合同维护本轮方法。authoring/v2、analysisContract/v1、wire/v6及inquiry旧默认继续兼容；Markdown与DSL共用原始源码和规范事实，分开检验表示、执行支持与实际回答收益。研究与问题复盘见[研究总文档](skill-dsl-research.md)，当前顺序见[执行计划](skill-ir-aot-optimization-plan.md)。14.32–14.33及更早合同保持历史，I1保留后备。
 
 本文保留旧研究阶段的标题与章节定位。下文有关统一 IR、AOT 优先、“不新建 DSL”和旧队列先后关系的限定，适用于各自阶段；新工作以第 14.34 节为准。已有 IR、接口、冻结结果和版本化材料不因路线变化而删除或改写。
 
@@ -2462,6 +2465,23 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 
 **已有基础。** 复用现有捕获、资源与参数索引、验证、局部修复、执行和包导出能力，但不强制新 DSL 先经过旧统一 IR 或既有 action 格式才能成立。保留通用基础设施与领域语义的区别；不预设新 CLI、文件扩展名、完整编译器或大规模框架迁移。旧 IR 和已发布接口继续兼容，历史研究结果不回写。
 
+### 当前 AS 方法合同（2026-10-04，设计已授权，实现待验证）
+
+AS 延续单 repo/ref、源码可见授权任务。窄局部语义前端表达显式选择、分支条件、主体/资源绑定、调用结果、提前返回和受保护效果；宿主生成机械身份、原窗口关联及有界路径。模型负责源码关系和别名含义，用户提供真实前提与独立规范政策，evaluator 仅用于离线评价。不得按 skill/仓库名生成成功分支。
+
+旧 `after` 继续表示共同前驱。替代分支只能从模型显式的选择结构展开，不能对现有数组整体改 OR。选择、合流、跨 helper 继续和返回有独立语义；不明选择关系、循环、展开超限和未解释 helper 保留有位置的缺口。调用到达、成功返回和目标效果发生分开记录，未知绑定不猜值。
+
+同题当前版本是路径、结果身份和证据关系的唯一机械来源。宿主可以输出派生事实及检查轨迹，模型继续负责解释和未决语义；原回答和矛盾保留。规则变更使旧结果失效，局部诊断回到原窗口修订；已读待解释与未读证据使用不同下一动作。形式覆盖、源码解释质量和普通用户实际交付分别评价。
+
+新能力复用既有 inquiry/native 核心、预算、provider 生命周期和 CLI，显式选择并保留旧策略/协议。源码变化先严格失效后 fresh，政策/前提变化仅复用合格材料并重算当前判断；依赖信息不足继续 fresh。原 skill 完整加载，原其它职责保留，原任务和变化任务使用同一包。
+
+AS 单独登记已暴露 development 分母与 AR 未达责任。M/legacy、M/同新核心、D1/同新核心共用源码、公共任务、模型、预算、评价与修复机会；用共同核心比较识别执行支持，用同核心表示比较识别表达贡献。首轮、修后、raw、checked、独立语义和所有费用分列。已封存未知按逻辑任务继承，不因新 identity 解封。发现共享缺陷立即修复再继续受影响工作，日常修改不增加审批或重复历史审计。
+
+具体顺序和验收见 [AS0–AS19](../superpowers/plans/2026-10-04-authorization-semantic-lowering-and-delivery.md)，设计与复盘见[研究 §7.48](skill-dsl-research.md#748-as-局部语义展开与真实交付)。以下折叠内容是旧版本合同，保留原章节和文字用于兼容定位；其中的“当前”“下一轮”只对应原日期。
+
+<details>
+<summary>X 至 AQ 的历史合同、接口与结果（保留兼容和来源）</summary>
+
 **X阶段合同（历史）。** T/V/W 已完成。用户随后确认按 [X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)推进完整能力阶段，合并评价、关系支持、普通输入、第二项目及对照；X0–X7 已完成，当前进入 X8。跨任务合同保留六类 requirement，共同 profile 前五类 required、external-assumption when-present；pure compiler 只展开显式 requirement-obligation 对，在同一 expanded obligation 内检查依赖与环并输出 pending ledger，不预填源码真值。wire/v2 以 sidecar 携带 coverage，canonical v0 不变；宿主只做同义务关联、状态和理由等机械验证，语义支持仍是 review 责任。普通输入已可在 provider 前封闭 path/ref/ledger 并产生不可覆盖 session；N/B/D 都显式走同一 host 与计量，只有可见组织按预先记录的干预变化。单任务仍为 fixed-context，历史 held-out、冻结身份和 readiness 保持各自记录。
 
 **已有研究。** S0–S11 方法准备、D0–D11 语义深化/探针与 E0–E10 外部类别研究已完成；分类、标准比较、候选设计、45 项旧探针边界、外部任务/反例、方法对照、消费设计、范围决定与复核发现统一维护在[研究总文档](skill-dsl-research.md)，旧来源和结果保持原件。D 阶段的 `proceed-narrow` 只表示当时对技术文档本地化候选的有界可实施性建议，未证明真实模型消费和效果。
@@ -2602,7 +2622,9 @@ AQ计划40四臂质量session、4消融和4普通原skill消费，全部已暴�
 
 **AQ实测边界。** 48首轮与8共享Schema修订均终结，434次provider调用、0目标执行。四质量臂首/终full1/1/1/1（各10），修订另列full1/8；协议失败和原始回答全部保留。真实自动补读11次/7会话，未证明host不适用分支排除收益。四原skill消费加载完整原文、compile/check均实际调用，raw语义full3/4但checked交付0/4、自动补读0；AQ13完整机制链未满足，工程接线不等于普通自动采用。当前compare报告变化及机械索引适用性，变化任务fresh分析，未实现政策单独重算的复用节省。独立评语与已暴露主开发者的具体源码裁定分列，最终分数不声称完全独立盲评。保留可选能力、旧默认与readiness；有限研究结论negative/benefit-not-established，不自动扩大样本。
 
-**AR现场修复与引导运行合同（2026-10-02，已授权待实现）。** [AR0–AR23](../superpowers/plans/2026-10-02-authorization-guided-runtime-and-online-repair.md)继续相同任务类别，在`guided-evidence-v2`中统一inquiry/native模型合同，让宿主管理领域工作队列、证据窗口、机械身份与局部修订；模型解释带原行出处的局部源码关系，宿主计算条件与检查可达前驱、对象及政策。已读证据必须进入待解释工作项，引用和形式有效不自动确认语义。checked交付、raw回答质量和源码覆盖分别报告，未检查的可用输出须明确标注。
+</details>
+
+**AR现场修复与引导运行合同（2026-10-02；2026-10-04进程结束，验收有未达项）。** [AR0–AR23](../superpowers/plans/2026-10-02-authorization-guided-runtime-and-online-repair.md)在`guided-evidence-v2`中统一inquiry/native模型合同，让宿主管理领域工作队列、证据窗口、机械身份与局部修订；模型解释带原行出处的局部源码关系，宿主计算条件与检查可达前驱、对象及政策。以下保留已实现兼容合同与当时观察，后续执行按 AS 任务书。已读证据必须进入待解释工作项，引用和形式有效不自动确认语义。checked交付、raw回答质量和源码覆盖分别报告，未检查的可用输出须明确标注。
 
 AR用户授权每个真实错误/非预期不良表现在同一工作进程中定位、针对性修复并核验效果。共享缺陷立刻暂停相关派发，不沿用AQ的primaryMustCloseBeforeRepair或仅一次全局修订约束。原失败、修订与未启动行保留；同根因可共用修复，但每项失败必须绑定复验。实验按小块进行即时评价，修改后版本分列，配对的共享组件/模型/预算一致；不通过替换答案、换题或给模型oracle取得正结果。合理边界unknown不是强制改为确定答案的失败。
 
@@ -2698,8 +2720,8 @@ A named repair may exempt its explicit same-row predecessor chain, including ear
 
 The public inquiry init operation may export a retained question declaration from an inspected session, without exporting its answers or control graph into current input. A natural-brief declaration preserves the independently supplied mode/policy and matches the retained compiled program; its semantic equivalence remains unreviewed. Source root rebasing uses matching original input-location provenance rather than the archive directory, or an explicit current source directory when that provenance is missing. Previous planning may use this verified retained declaration as the old complete input, but all current source/footprint/method/model/strategy/unknown checks remain mandatory. A completed label cannot override unknown request lifecycle evidence. No partial graph, missing footprint or unknown request becomes reusable merely through export.
 
+Final domain result branches are current feasible paths, keyed by canonical pathKey. Explicitly requested counterfactuals excluded by the current premise or a preceding rejection remain in cited behavior.explanation, while their source rules are retained for later premise changes. Unknown premises preserve all feasible alternatives and their named missing fact. The public guides and inapplicable-branch diagnostic explain these roles; the host does not delete submitted branches or change the checker predicate. Source-semantic completeness and formal delivery validity are independent judgements.
+
 ### 14.34 final delivery within exploration budgets
 
 A structured inquiry reserves a final step when the source tool limit is reached, after any current host read, or when only the last provider dispatch remains. Domain modes allocate up to four dispatches for an initial final and one diagnosed result repair with their existing single wire retries; delivery starts before another two-dispatch exploration step could cross a reserve larger than two. Short budgets allocate at most half with the existing two-call minimum; four/five-call runs preserve their earlier exploration and only a best-effort opportunity. Authoring and retries share the original total cap, and no successful delivery is guaranteed under unknown completion or insufficient source/dispatch capacity. A prospective cumulative source redisplay overflow switches to final delivery using fitted whole original windows and catalog metadata; it does not raise budgets, reread source, truncate bodies or create semantic summaries. Never-shown metadata cannot authorize citations. Final-only parser and model contracts must both reject exploration, while the existing bounded wire/delivery repair and timeout closure remain authoritative. Guided supplemental observations do not update canonical controls or fulfill local explanation duties; partial/unknown delivery is still allowed and cannot substitute for bounded previous footprints or independent semantic review.
-
-Final domain result branches are current feasible paths, keyed by canonical pathKey. Explicitly requested counterfactuals excluded by the current premise or a preceding rejection remain in cited behavior.explanation, while their source rules are retained for later premise changes. Unknown premises preserve all feasible alternatives and their named missing fact. The public guides and inapplicable-branch diagnostic explain these roles; the host does not delete submitted branches or change the checker predicate. Source-semantic completeness and formal delivery validity are independent judgements.

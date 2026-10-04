@@ -1,131 +1,45 @@
 # Skill IR 当前状态
 
-更新于 2026-10-04。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；历史任务书保存当时的执行记录。
+更新于 2026-10-04。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；机器状态和原始结果保存具体进度，历史任务书保存当时的执行记录。
 
-## 当前方向与任务
+## 当前工作
 
-2026-10-04最新续作：GitHub/Memos授权作者具名修稿6请求/6响应、独立Cloudflare/Download首作者7/7，两份原配置格式valid并以原字节在仓外普通CLI消费。Memos11派发/10响应、末SDK timeout无最终答案；原transport-failed保留，未知末请求封存不重发。Download12/12，final混入无关字符串及唯一修复返回错误类型，交付失败；已读resolver仍被模型称缺口，语义遗漏保留。语义评价接独立评审与另存裁定，20项70断言、研究类型通过；16主行仍未运行，2探针描述性保留，0已评主首次/0配对，效果未建立。此前有限政策条件等价修复53项310断言通过，旧Memos图仍有helper缺口、不升级原checked。累计286派发、无在途、USD/人力unknown、目标执行0；主面板与Paperless Notes attempt-3继续封存。证据见[普通计量](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary-accounting.json)、[语义评价](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/evaluation-summary.json)及[当前研究记录](skill-dsl-research.md#736-ar-宿主引导运行与现场修复)。下一步处理已知Download wire及普通SDK timeout状态边界，再推进合格previous和剩余队列。
+研究主线是 **按 skill/task 范围设计领域表达**。当前任务类为单 repo/ref、源码可见的授权与信任边界评估：围绕主体、资源、操作、条件和政策组织取证、判断与检查。质量约六成、编写复用约四成指开发投入安排，各项质量要求分别验收。
 
-用户于2026-10-04要求总结并转交 **gpt-6.1-sol / max**，原进程整理后停止写入。AR9独立机械核验及AR12 previous工程已完成；真实复用待验。新非API程序从原skill实际生成，经宿主验证投影修复后，以未改模型候选通过当前proposal/export恢复导出draft；同一包已在仓外原/变化任务各8调用自然执行并交付，原自动回滚和外层观察错误均保留。最新Memos compact复验10调用完成原skill文字并读到三种数据库实现，仍无checked图。累计229次provider派发，无在途实验，目标执行0，USD/人力未知。2026-10-04续作已实现具名撤回未接受草稿，58项相关回归及5项撤回/native返回测试、主类型检查通过；原proposal与撤回理由保留，accepted目标/来源失效/别题和悬空边不删除，atomic失败不撤回。未宣称当前全套绿色。两份授权作者配置、真实previous、两个原skill完整竖链、主质量/变化面板及发布仍未完成；Paperless原未知逻辑任务不重发，主面板暂停。恢复以[最新handoff](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/handoff.json)、[机器状态](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/status.json)、[普通裁定](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary-adjudication.json)和[计量](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary-accounting.json)为准。每个具体问题一次针对核查，不反复全套验证或新增审批/哈希门。
+**AR 进程已结束，验收未完成；下一轮 AS 已获用户授权，待开发线程启动。** 唯一活动任务书改为 [AS0–AS19 局部语义展开与真实交付](../superpowers/plans/2026-10-04-authorization-semantic-lowering-and-delivery.md)。AS 从现有实现继续，重点是显式选择/合流、同一状态生成结果、原 skill 实际消费和真实授权变化复用。旧 `guided-evidence-v2` 保留，新增方法显式选择；失败即时定位并具名修后复验。
 
-**AR长开发队列执行中（2026-10-02）：** [AR0–AR23任务书](../superpowers/plans/2026-10-02-authorization-guided-runtime-and-online-repair.md)承接AQ复核，以`9b085ee0`为规划基线，由`gpt-6.1-sol / max`在本分支连续开发。约12小时主动工作，AR0–AR20必做，核心提前完成后按序深化AR21–AR23。先统一模型合同、补可达绑定漏检，再实现宿主工作队列、局部源码解释、原skill实际交付和政策/前提变化重算。每个真实不良结果当场定位、针对性修复并验证；共享缺陷暂停受影响派发，不再把已知坏实现跑满。首答、修订、未运行和成本分列；允许在本轮继续修新发现的问题，不沿用AQ的一次全局修订限制。新策略`guided-evidence-v2`已接通局部更新opt-in，完整引导运行继续实现，尚无AR效果证据；生产执行状态仅在AR0启动后建立。方法取舍与复核归纳统一见[研究§7.36](skill-dsl-research.md#736-ar-宿主引导运行与现场修复)。AQ历史、旧默认、保护输入和readiness保持。
+## AR 停止快照与继承事项
 
-**AQ研究已关闭并发布，验收缺口保留（2026-10-02）：** [授权领域执行任务书](../superpowers/plans/2026-10-01-authorization-domain-execution.md)从干净`c0cd32d2`启动，AP已包含。可选`domain-evidence-v1`接入普通inquiry/native共用核心，实际调度读取、有限三值求值和对象/路径/政策检查均有确定性证据。首轮48行绑定`3d4ba681`，唯一预登记共享Schema修订8行绑定`04b1b220`；全部终态保留，共434次provider调用、目标执行0，不追加采样。40质量行M-L/D-L/M-E/D-E首/终full为1/1/1/1（各10），交付9/10/3/4；原任务块3/32full、预选重复1/8。修订另列full1/8，消融与原skill不混入质量分母。11次成功自动读取涉及7会话，未观察到host排除不适用路径。四原skill普通消费均加载完整原文、调用compile/check，raw语义full3/4，但自动补读0、checked delivery0/4；因此AQ13完整机制链和AQ8政策单独重算复用尚未满足。结论negative/benefit-not-established，不能把工程验证或raw质量替代未达验收。481 pass/1平台skip、3208断言、主类型通过；研究8测试/52断言、研究类型和56行study/evaluation零调用重放通过。6首评+3定向二审+2图审+2定向源码核验原文与已暴露主开发者的源码裁定分别保存，最终分数不是完全独立盲评。已知完整prompt8,282,973/output388,229 tokens，4次usage未知、actualUSD/真人分钟/开发代理用量未知。完整证据提交`8e69ec5df2f29937d177b82b7fafc9f412877d33`已与用户origin核对、当时工作区干净；完成状态随本页同步。最终文档检查和发布证明由[AQ状态](../../results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/status.json)记录；逐行结果见[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/evaluation-summary.json)、[结果说明](../../results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/README.md)与[研究§7.35](skill-dsl-research.md#735-aq-授权领域执行设计)。本轮停止，旧默认、AO/AP和readiness保持。
+- 最后工程提交 `cc88bfb2`；已观察调用下界 507。AR 机器状态仍保存退出前的 `in-progress` 快照，不代表进程继续运行。八个主首行已留档并评阅，16 行分母及修订分别保留；六个未运行位置可按新计划承接，两个 Notes 位置及其它未知请求继续封存。
+- 两份原 skill 生成的授权配置已经格式有效；随后独立 inquiry 消费中，Memos 最后请求未知，Download 已知修订仍有图和语义缺口。原 skill 的 native 完整授权链仍待验收。
+- 新非 API 程序已从原 skill 生成，经保留候选的 host-recovery 导出 draft；同包原/变任务实际执行并交付。中性前提变化 previous 已 checked/bounded，8 次请求、零新源码工具动作；真实授权变化复用与净收益仍待检验。
+- 复核发现互斥 admin/non-admin 路径被当作共同前驱，以及已接受角色拒绝事实在终答重新写成 unknown。AS 将模型的语义选择与宿主的身份、路径展开和结果关联分开，先以真实反例检验共享修复。
 
-**AP0–AP4共享运行器修复已完成（2026-10-01）：** [任务书](../superpowers/plans/2026-10-01-authorization-runtime-contract-repair.md)交付数组Schema界限同步、带字段诊断的既有fallback和native总24内的22探索/2最终check预算；无效第二次check会清除旧有效结果。工程提交`ef9f1e57`已推送并与用户origin核对，当时工作区干净；本页和[紧凑验证记录](../../results/skill-ir/authorization-runtime-contract-repair-20261001/verification.json)同步收尾。44 pass/0 fail、201断言/8文件，主typecheck、AO 56行/104映射零调用重放、文档12测试及diff检查通过；独立只读核验无阻塞。旧AO 32质量/8作者/8消费/8源skill、原请求/响应及统计保持，项目model/API/paid调用0。仅确定性工程结果，不声称真实模型必然服从或语义质量收益；领域取证调度、分支处理与结论检查由父线程另行讨论，本小任务停止。
+| 恢复所需信息 | 权威入口 |
+|---|---|
+| 当前队列 | [AS 任务书](../superpowers/plans/2026-10-04-authorization-semantic-lowering-and-delivery.md)；AS0 启动时建立新机器状态 |
+| AR 停止前状态 | [status.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/status.json)、[handoff.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/handoff.json) |
+| 普通使用的失败与裁定 | [ordinary-adjudication.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary-adjudication.json) |
+| 真实派发、响应与未知费用 | [ordinary-accounting.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary-accounting.json) |
+| 语义评价及未运行分母 | [evaluation-summary.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/evaluation-summary.json) |
+| 根因与方法 | [研究 §7.47](skill-dsl-research.md#747-2026-10-04-主线程复核优先修分支合流与图答案同步)、[§7.48](skill-dsl-research.md#748-as-局部语义展开与真实交付) |
 
-当前研究范围是单 repo/ref、源码可见的授权与信任边界评估。领域声明表达主体、资源关系、操作、条件、政策来源和入口；程序展开检查义务，模型分析控制路径，宿主检查引用与覆盖，评价者复核语义。
+## 已有能力与待解决问题
 
-**AO0–AO16已完成并发布（2026-10-01）：** [真实授权任务、领域 DSL 与有界取证工具](../superpowers/plans/2026-09-30-authorization-inquiry-and-evidence-tools.md)的工程、56/56真实终态行、319次provider请求、61匿名packet独立评阅和有限验证已关闭。首次完整发布头`47942ac33f1eda0f9140d449e496fc2230aff4f3`与用户origin一致、当时工作区干净；完成状态随本页同步。491 pass/1平台skip、主/研究类型、四项零provider重放、文档和目录检查通过，2,529实验文件暂存字节与原文件一致。行为/政策inquiry、同次分析只读补证、自然作者、普通bare-agent源skill接线及scope-only政策传递已实现。质量首答8/终答9完整（32计划），主M/D0/D1终答2/1/1（各8），变化M/D1为3/2（各4）；未建立稳定DSL质量优势。8作者稿语义有效，8消费6交付/2严格完整；8源skill均加载原文，领域四包均实际调用，但checked domain result仅3/4。四个配置失败均调用0、两消费协议失败保留、共享修订0。完整prompt4,726,375/output196,444 tokens，actualUSD/真人分钟/开发代理用量unknown，目标执行0。首次工程绑定`218f5bbf`和原始输出不改。[AO机器状态](../../results/skill-ir/skill-dsl-research/development/authorization-inquiry-tools-v1/status.json)保存验证与发布证据；结果与方法见[§7.34](skill-dsl-research.md#734-ao-真实授权任务与领域取证工具)。本队列停止，不自动追加研究调用。
-
-**当前用户要求（2026-09-30）：** 质量约60%、编写复用约40%只表示开发精力分配，项目要求与评价不按该比例划分。保留真实任务难度，明确规范要求与待查源码行为，禁止预供答案；DSL语义、编译器、脚手架及工具支持按共性缺口继续完善。新分析循环显式启用，旧fixed-context路径保持。
-
-**2026-09-30 AN交付后复核：** `0decb0ef`与origin一致，复跑480 pass/1平台skip、主/研究类型及零调用评价重放通过。作者原协议存在Markdown大小写/标点误拒、旧v2变更接口无法修改评价所要求的request；新前端两份原稿直接复制已给定的完整声明。原5/12、10/24和全部归档保持，作者路线优势及失败归因按[研究§7.33](skill-dsl-research.md#733-an-当前任务合同与领域声明展开)更正。后续实现与真实验证由AO承接，旧AN身份关闭。
-
-**AN0–AN16已完成并发布：** [当前任务合同、领域声明展开与一致回答](../superpowers/plans/2026-09-30-authorization-task-contract-and-authoring.md)，启动HEAD`3251ff0c`，[机器状态](../../results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/status.json)与[评价摘要](../../results/skill-ir/skill-dsl-research/development/authorization-task-contract-v1/evaluation-summary.json)保存逐行结果。可选当前任务前端编译到既有v2，具名变更/定向修订接入普通入口；可选current-v1在v6实际prompt迁移确切旧返回要求，政策摘要和原模型解释分别保留。16/16质量fresh session终答均有据且解决（12确定、4条件完整），compatibility/current-v1各8/8、配对无终答质量增益；首答11/16有效交付。12计划作者稿终稿5有效（Markdown 0/4、完整v2 1/4、新前端4/4），5/12消费完成且终答均有据，24计划义务10交付、14因作者无效阻塞。两次研究runner消费前恢复修订单列，原质量/作者冻结不改。40次真实provider请求、完整prompt195,420/output48,813 tokens，actualUSD/真人分钟未知，目标执行0。独立只读复核和两项定向修正后，相关回归480 pass/1平台skip、3146断言/67文件，主/研究类型、四项零provider重放、文档及实验目录检查通过。普通仓外复制的当前任务→编译→准备/复用→变更检查零provider通过。首次完整发布头`d028fe97a0485bb753de8b6dc1b50acd0cde4ff8`与用户origin一致、当时工作区干净；最终状态记录另行同步。新选项保持opt-in，固定AM材料、历史证据和默认不改；方法、成本和限制见[研究§7.33](skill-dsl-research.md#733-an-当前任务合同与领域声明展开)。
-
-**AM0–AM16已完成并发布：** [控制上下文、作者编写与证据复用任务书](../superpowers/plans/2026-09-29-authorization-control-context-and-reuse.md)的工程、43次真实调用、独立评价和有限验证已关闭，首次完整交付头`f7e0b2050f7d452320554d485b4128ad941e7070`已与用户origin核对；最终完成记录随本页同步。开发任务为`gpt-6-sol / max`，被测模型为`xty/gpt-5.6-sol`。普通prepare/init/edit/reuse已接通；四项准备均partial，OWUI完整helper实际保留。16主质量行首答8、终答9同时有据且解决（终答4确定/5条件），3行政策解释错误、4行入口阻塞均保留；唯一修订另列4/4终答有据且解决。作者首/终有效均4/8，8计划消费4完成，16声明义务终答8有据且解决、8因作者失败阻塞。4次有效消费继承同源和全部pending gaps，两组变化compare需复查。全部43调用响应、完整prompt331,789/output60,919 tokens，actualUSD/宿主成本/真人分钟未知，目标执行0。相关回归459 pass/1平台skip、3013断言及两项typecheck通过；新策略仍opt-in，普通默认和旧结果保持。设计、裁定及限制见[研究§7.32](skill-dsl-research.md#732-am-控制上下文与作者复用)、[机器状态](../../results/skill-ir/skill-dsl-research/development/authorization-control-context-v1/status.json)与[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-control-context-v1/summary.json)。
-
-**AL0–AL16已完成并发布。** 工程、真实生成、评价、有限验证与独立复核已关闭，首次完整发布头`bc59120026ecd8035068ba26cdc76813971cf65f`已核对用户origin且工作区干净；最终状态随本页同步。最终回归433 pass/1平台skip、2903断言，主/研究类型、七项零provider重放及文档/目录检查通过。开发任务为`gpt-6-sol / max`，被测模型为`xty/gpt-5.6-sol`。位置选择、逐项恢复、二轮上下文和普通作者诊断已接通；唯一共享修订补Python多行正文及重复JSON属性拒绝。八项准备全部发布，20质量行18完成/2历史阻塞，首答6/20、最终8/20完整（6确定、2条件完整）；另列修订4行中Download两份完整、OWUI两份仍缺允许范围内的helper中段。作者结构有效5/8→6/8，严格语义有效4/8→5/8；8计划消费6完成/2阻塞，16声明义务首答7、最终9完整，4义务因作者失败阻塞。64次调用均响应，完整prompt439,772/output78,113 tokens、实际USD与人力未知，目标执行0。同材料MD/DSL没有稳定质量优势，不改默认或追加采样。[机器状态](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/status.json)、[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-location-recovery-v3/summary.json)与[研究§7.31](skill-dsl-research.md#731-al-源码定位恢复与普通作者闭环)保存实际结果与限制。
-
-**AK0–AK16已完成并发布：** [有界依赖准备、源码片段与普通任务闭环](../superpowers/plans/2026-09-29-authorization-bounded-dependency-preparation.md)工程、真实运行、匿名评审及有限验证完成，首次发布头`a9aa3d9eb693fbdbb27a136e7f39a629a02b4a0b`已与用户origin核对一致、工作区干净；最终状态随本页再同步。工程提交`a9f80284`，402 pass/1平台skip、2735断言及主typecheck通过。同请求显式v2八项ready；真实自动准备8job/14调用，7发布、1位置歧义失败。40质量单元36完成/4阻塞，首答33/40、最终36/40full含12合理unknown；同材料M/D最终一致。8fresh消费保持16义务，主口径12/16full、附加非空owner假设14/16敏感性，4compare需复查。作者首稿5有效、正常修订后6，两次另记的额外格式纠正后8；原稿/首修保留。74次provider调用，完整prompt450,124/output74,252 tokens，实际USD、代理开销及真人分钟未知，目标执行0。自动定位尚不能替代显式决定性依赖，旧默认兼容。设计、前提裁定及成本见[研究§7.30](skill-dsl-research.md#730-ak-有界依赖准备与源码片段)、[AK摘要](../../results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2/summary.json)和[状态](../../results/skill-ir/skill-dsl-research/development/authorization-bounded-preparation-v2/status.json)。
-
-**AJ已完成：** [AJ0–AJ16 证据准备与局部修改](../superpowers/plans/2026-09-27-authorization-evidence-preparation-and-local-editing.md)已发布，最终`b0cfbc10`与origin一致、工作区干净。父任务新鲜复核376 pass/1平台skip、2597断言、typecheck及两份评价重放通过。发现invalid proposal响应丢usage的模拟反例、多段源码合并造成预算浪费，以及helper误列入口扩大义务，已列入AK；AJ真实proposal调用为0，旧69次调用统计不受影响。[AJ status](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/status.json)与[研究§7.29](skill-dsl-research.md#729-aj-证据准备与局部修改)保存完成结果。旧临时副本删除被自动策略拒绝，未绕过处理，不影响仓库。
-
-**AJ实际进展：** 普通`authorization prepare/edit`及其报告、源码快照、变更依赖已接通；[可搬移示例](../../examples/authorization-assessment/evidence-editing/README.md)在临时目录得到具名`partial`→`ready`及编辑后`ready`，零provider。冻结40个质量单元全部完成，43次分析调用含3次诊断修复、最终26/40 full；初轮原材料Markdown/DSL各4/8 full，准备材料后各7/8，同材料表示未显示稳定额外质量收益。两包作者8首稿中6份语义有效，两次针对性修订后8份有效；8个原/变fresh消费session和16个预先声明场景经独立源码复核均full，4次旧结果compare均`needs-review`。Paperless DSL作者多声明helper入口，使义务展开总数从16增至28。全部研究69次模型调用，已知input 373,105/output 77,981/cache-read 37,120 tokens；实际USD与真人分钟未知，目标执行0。逐案与成本见[质量汇总](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/panel-summary.json)、[作者消费汇总](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/author-use-summary.json)。当前普通默认不改；有确切入口和可限定依赖时显式使用prepare，已声明政策/场景小改动时使用edit并重新运行。公开development与fixed-context结果不证明一般可靠性或部署安全。
-
-**AJ新鲜验证：** 授权相关376 pass/1平台skip、2597断言，主typecheck和研究脚本typecheck通过；四项AJ离线重放零provider，文档12测试、链接检查及实验目录检查通过。定向凭据扫描零命中，结果根1059 JSON和117 JSONL/361条记录均可解析。[验证记录](../../results/skill-ir/skill-dsl-research/development/authorization-evidence-editing-v1/verification.json)保留旧AI面板runner因`local-run.ts`冻结实现哈希变化而拒绝重放的限制；旧AI面板/作者消费评价与作者消费runner重放通过，原始冻结身份未被改写。
-
-**AI已完成并复核：** [AI0–AI16 任务语义、答案合成与变化后复用](../superpowers/plans/2026-09-27-authorization-task-semantics-and-reuse.md)已发布`47c08965`，父任务新鲜复核359 pass/1平台skip、typecheck及两份零调用评价重放通过；本地和origin一致、工作区干净。历史执行状态为[AI status](../../results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/status.json)。AI0–AI8已完成sidecar、义务局部程序、wire/v6行为/政策对照、普通运行与workspace/editor接线，以及8状态54单元冻结面板；共同公开要求在各prompt逐字出现一次。AI9–AI10已运行全部54单元并完成盲评：40 completed、9 timeout-unknown、5 transport-failed，55次provider调用、已知input 75,463/output 43,204/cache-read 48,256 tokens，实际USD未知；主口径39/54最终语义完整，固定crop争议敏感性为40/54。首轮配对未显示稳定质量增益，重复区块受网关失联限制；独立逐案核验与离线replay见[AI summary](../../results/skill-ir/skill-dsl-research/development/authorization-task-semantics-v1/panel-summary.json)。AI11两包独立作者原/变稿完成，作者有效交付7/8，另1份Gitea结构化变稿在唯一诊断修订后仍JSON无效，下游仅以记录的单字符机械恢复稿消费；12次外层请求中3次传输失败，真人时间未知。AI12已按冻结输入完成8个真实session、16个场景；独立源码复核16/16 full，9次分析provider调用，4份变化输入对原session均需复查。作者直接有效7/8，另1份仅机械恢复后消费；作者加分析已知input 42,111/output 24,404/cache-read 4,992 tokens，实际USD和真人分钟未知。AI13普通示例及临时目录搬移检查通过。AI15相关回归359 pass/1 skip、typecheck、离线replay及文档链接检查通过；AI16已将工程、证据、示例和结论发布到用户`origin/skill-ir-aot`；首次发布头`b45926f6`与远端核对一致，最终状态记录随本页再发布。旧默认兼容，AH历史结果保持。按质量约60%/编写复用约40%安排开发精力，各项要求按任务单独验收，方法设计及逐步证据见[研究§7.28](skill-dsl-research.md#728-ai-任务语义答案合成与变化后复用)。
-
-[V0–V10](../superpowers/plans/2026-09-20-authorization-dsl-prototype-development.md)、[W0–W9](../superpowers/plans/2026-09-21-authorization-dsl-transport-and-evaluation.md)、[X0–X13](../superpowers/plans/2026-09-21-authorization-dsl-capability-delivery.md)和[Y0–Y14](../superpowers/plans/2026-09-22-authorization-dsl-transfer-and-value.md)均已结束发布，Y最终提交`70906261`。后续复核确认Y主体工程可用，但公共`--method`选择曾有漏项，已在Z补齐；历史机器summary保留。
-
-**前轮已完成：** [AB0–AB13 外部复用与普通说明对照](../superpowers/plans/2026-09-22-authorization-external-reuse-and-baseline.md)及独立AC/AD已验证并发布到用户origin，最终提交`2525d387`已核对远端。Markdown 8/8 full，DSL 6/8 full；两条linkding变化任务标签错误，实际授权推理与必要控制/解释均正确，原始答案保留。16次调用全部响应、0 completion-unknown、0目标执行、0追加研究单元，actualUSD未知。DSL非缓存input+output多12.0%；加回单列cache-read后，完整prompt+output多3.279%，累计响应耗时少8.5%。这是本轮源码复核的口径澄清，旧AB机器报告保留；作者准备/修改未证明一致节省；同包/schema/核心的有界复用成立，整体DSL收益未建立。详见[AB汇总](../../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/summary.json)、[状态](../../results/skill-ir/skill-dsl-research/development/authorization-external-reuse-v1/status.json)及[研究§7.25](skill-dsl-research.md#725-ab-外部复用与普通说明对照)。AB已结束；新任务使用新的结果身份，见下方队列。
-
-**独立工程已集成：** [AC编辑支持](../superpowers/plans/2026-09-26-authorization-authoring-editor-support.md)交付本地draft-07 schema、结构检查与完整示例，105结构用例/12个runtime-only反例通过，提交`8f27afb3`。[AD实验目录工具](../superpowers/plans/2026-09-26-experiment-catalog-maintenance.md)交付离线check/show/export，24测试/147断言及脚本类型检查通过，提交`ffc6578e`。整合授权测试202/202、1,919断言，全仓typecheck通过；两项工程不增加AB研究分母或收益证据。三个任务实际model/effort为Astra ultra，宿主默认priority；逐请求tier未暴露，不宣称实测1.5倍。原始323项证据按原字节归档，七项原源码修改与历史untracked保留。
-
-**最近完成队列（2026-09-27）：** AE/AF/AG已完成并发布到用户`origin/skill-ir-aot`；AF、AG和AE证据提交分别为`e1ac9893`、`6f3df889`、`c4e17838`，已核对远端头。AE显式wire/v5已接通；24个冻结development单元全部completed、26次provider dispatch，Markdown/DSL×v4/v5四组各6/6 full，实际授权推理和必要语义24/24正确。v5没有本轮质量增量，兼容默认不改；6例12份仓外普通输入/记录回放通过，零新模型调用。AF的三场景工作区与主CLI compose已接通，AG的计量模块及AB缓存口径澄清已接入AE报告；两项均无业务模型调用。授权回归266 pass/1 skip、2132断言，全仓typecheck通过。开发模型为`gpt-6-astra / ultra`，宿主Fast/priority配置；用户请求1.5倍速度，工具未暴露逐任务倍率，实际倍率未测。见[AE汇总](../../results/skill-ir/skill-dsl-research/development/authorization-explicit-policy-v1/panel-summary.json)、[AF ready](../../results/skill-ir/authorization-scenario-workspace-20260927/ready.json)、[AG澄清](../../results/skill-ir/token-accounting-semantics-20260927/ab-accounting-clarification.json)。
-
-| 任务 | 独立目标 | 协作边界 |
+| 路线 | 已有实现 | 当前使用边界 |
 |---|---|---|
-| [AE0–AE11](../superpowers/plans/2026-09-27-authorization-explicit-policy-result.md) | 明确policyStatus的可选wire/v5及MD/DSL同材料对照 | 唯一真实模型面板、核心接线、共享文档和Git发布者 |
-| [AF0–AF8](../superpowers/plans/2026-09-27-authorization-scenario-workspace.md) | 共同声明加显式场景变化，生成普通v2输入 | 新工作区模块/独立handler/示例；离线完成后交ready |
-| [AG0–AG8](../superpowers/plans/2026-09-27-token-accounting-semantics.md) | 明确缓存口径、计量模块与AB独立澄清 | 新纯模块/脚本/结果；旧provider和报告只读 |
+| 授权任务 DSL | 领域声明、authoring/prepare/edit/run/compare、只读源码工具、局部图、三值求值及引用/结论检查 | 有界 development 能力；决定性依赖、条件提取、协议服从及完整交付仍需完善，新增策略显式启用 |
+| Trace 驱动 skill 包优化 | bare-agent 自动捕获、模型修改说明和脚本、局部验证修复、原子导出、自然消费 | 已有真实生成与消费记录；收益 mixed/negative，按各包证据判断 |
+| 确定性基础 | IR parser/validator、lowering、API Tester/Env 后端、artifact 和 recipe import | 保留原支持合同及有界案例 |
 
-AE实际执行24首轮、0追加；AF/AG不调用业务模型，也不增加AE研究分母。普通默认保持兼容，v5和场景组合均显式选择。三份任务的文件归属、失败处理和验收分别写在各自任务书；开发结果与计量澄清统一见[研究§7.26](skill-dsl-research.md#726-aeafag-结果表达场景复用与计量)。
+AQ 旧/新策略 full 均为 2/20，原 skill checked 交付为 0/4；具体分母见[研究 §7.35](skill-dsl-research.md#735-aq-授权领域执行设计)。AR 已有局部改进，整体效果仍未建立。美元费用、真人耗时仍缺测；readiness、历史 `0/6`、Q1 与保护输入保持原有状态。
 
-**交付后复核与工作区整理（2026-09-27）：** 在`b4a9e83e`上重新验证352 tests/1 platform skip、2440断言，typecheck通过，AE离线摘要一致。四组最终均6/6；MD首答均6/6，DSL首答均5/6，回退/修复计入26次调用。AF/AG各23项交接文件摘要与当前文件一致，全部已跟踪。七项旧源码状态中六项是注释整理，语法树相同，已独立提交`ac230e90`；另一项仅EOL/index状态已归一，无功能逻辑变化。233项历史未跟踪路径保留原位，按明确清单写入本机`.git/info/exclude`，未删除或上传原始trace/cache；恢复清单位于仓库外`project-maintenance/20260927-020008/`。旧AB扫描日志四条退役引用登记到已有精确引用清单，原日志字节不改。
+## 开发与维护入口
 
-**AH0–AH14已完成并发布：** [语义质量与真实编写复用](../superpowers/plans/2026-09-27-authorization-semantic-quality-and-reuse.md)由一个`gpt-6-sol / max`开发任务在`skill-ir-aot`连续完成。工程交付可选`control-binding-v1`义务局部问题计划、普通check/run/inspect/compare接线和工作区只读继承/override/源码字节变化反馈，保留旧默认。公开development材料为两个正例skill家族、三个目标代码项目、8个任务状态及3个预定重复；44个四臂单元全部真实completed、44次模型调用、0 fallback/repair/目标执行、0追加修订。独立匿名语义评审及9条二审后，Markdown标准/新策略各8/11 full，DSL标准5/11、新策略7/11；新增策略未显示跨表示的稳定完整性收益，token增加。两包独立模型辅助作者的4原/4变交付完成，工作区变化可定位，但Gitea变稿有一处旧taskId说明未同步；真人时间未知，不能声称省时。逐条质量、用量及裁定见[AH汇总](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/panel-summary.json)、[机器状态](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-quality-v1/status.json)和[研究§7.27](skill-dsl-research.md#727-ah-语义质量与真实编写复用)。证据提交`834310e5`已推至用户origin并核对远端同SHA；无自动后续调用。旧受保护材料和历史本地排除项不动。
+- 普通命令和模型配置：[使用说明](../usage.md)。代码定位和检查：[开发指南](developer-guide.md)。
+- 当前队列：[当前计划](skill-ir-aot-optimization-plan.md)；方法合同：[spec §14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)。
+- 分类、方法、复盘：[唯一研究正文](skill-dsl-research.md)；旧结果：[证据索引](evidence-index.md)、[历史](history.md)、[实验目录](../../results/skill-ir/experiment-catalog.json)。
 
-旧远端功能分支另有6条补丁已等效纳入、3条保留不同补丁（5–6月的CLI、Docker sandbox和旧evidence实验），均非AE/AF/AG遗漏，本轮未把这些旧方案合并入主线。维护后的干净基线为`08ac8b93`，历史原始材料仍按明确本地清单保留。
+[本轮治理](../superpowers/plans/2026-10-04-workspace-and-document-governance.md)已完成材料收存、旧日志压缩、正文归并和停止后的入口校正。当前阅读集 15 份，版本化材料 14 份；研究仍统一在一个正文中。原件及恢复索引在 `project-maintenance/20261004-governance/`，AR 结果及 `.skvm` 保留。五份可再生成的 Python 字节码已清除；三个此前删除被拒绝的空目录保留。治理发布完成后 AS 取得共享文件和 Git 的唯一写入权；Git 实时状态以实际检查为准。
 
-**文档治理：** 日常阅读集中到本页、[文档入口](README.md)、[证据索引](evidence-index.md)和[实验目录](../../results/skill-ir/experiment-catalog.json)；版本化验证材料继续按治理清单保留原路径和原字节。历史长文档不再复制实验流水，结果只在最窄证据位置链接。
-
-**前轮结果：** [AA0–AA13 作者声明、修改复用与领域价值](../superpowers/plans/2026-09-22-authorization-authoring-reuse-and-value.md)已完成并发布到origin/skill-ir-aot，代码与证据提交`529cf0b3`已核对远端。authoring/v2、完整执行依赖、只读compare与作者定位诊断已交付；183测试/1337断言及typecheck通过。独立模型作者首稿1/2 valid，一次行号修订后2/2完成，原/变4次运行均源码支持deny→allow。五组plain/ledger均5/5 full，ledger开销更高；header conditions解释更完整但初轮需一次修复，过严unknown检查已离线修正，历史成本保留。16分析单元/17调用，actualUSD未知，追加单元0。普通任务建议显式plain/v4，ledger/conditions按覆盖或分支需求选择，兼容默认不改。见[AA状态](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-reuse-v1/status.json)、[AA汇总](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-reuse-v1/summary.json)与[研究§7.24](skill-dsl-research.md#724-aa-作者声明修改复用与领域价值)。只用已暴露development材料，保留七项已有源码修改。
-
-**前轮结果：** [Z0–Z12 输出减负与实际使用](../superpowers/plans/2026-09-22-authorization-dsl-protocol-and-usability.md)已完成并发布到用户origin，交付提交`e48db7de`，远端已核对。公共plain/ledger/conditions、紧凑v4与响应细节分层评价已接通；首轮legacy/v4首答完整交付1/4与3/4，最终均3/4，已交付决策与必要控制全正确，full为1/4与3/4。legacy结构失败与v4 header超时均保留。一次共享strict-schema修订配对均full，旧协议仍需fallback。作者plain原/变任务实际得到deny/allow，各一次调用。全轮12单元/16调用，actualUSD未知；175测试/1229断言和typecheck通过。legacy保持默认，v4显式选择，省略method兼容；研究价值mixed，不追加调用。见[Z状态](../../results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/status.json)、[Z汇总](../../results/skill-ir/skill-dsl-research/development/authorization-protocol-usability-v1/summary.json)及[研究§7.23](skill-dsl-research.md#723-z-输出减负与实际使用)。
-
-Y 同轮推进：条件wire/v3、authoring/v1与顶层`skvm authorization init/check/run/inspect`均已接通；init不覆盖，check/inspect零provider，run默认B/新session，条件请求显式opt-in。Y7把P/L/C与历史N/B/D分开：三者均固定render B，P没有ledger/coverage，L增加ledger，C再增加condition sidecar；实现revision `4524bfe`后冻结五任务15单元配置（SHA `b0aa6278...7140b`）。Y8完成15/15，25次provider调用与已知input 122,593/output 56,192/cache-read 10,368 tokens完整保留，实际USD均未报告。Y9的hash-bound评价得到15/15结论、必要语义和task decision正确，12 full/3 partial；匿名独立复核确认只有C在trusted-header案例补齐四类条件结果。解释criterion缺口P/L/C为2/2/1，因此按预定规则选择C用于迁移比较，但C的11次调用/101,151 known tokens高于L的8次/59,952；未发现共享生成缺陷，追加单元0，默认仍为B/L、C保持opt-in。Y10按冻结候选顺序纳入首个合格项目`go-gitea/gitea@fc28937`：MIT、公开、非fork/归档；三任务分别覆盖跨用户自查例外、repository issue-write、route-level repo/site admin。三个普通authoring输入只用派生`authorization-core-v1`六类要求，同一泛化requiredAnalysis文本，CLI check均valid；七个模型可见source snapshot与evaluator-only的18项criterion物理分开，六个代码范围逐行一致。assessment仍诚实写`sourceRefVerification=authored`，固定git ref证据另存；选择含开发代理专业判断，目标执行和保护集读取均为0。离线replay重现Y9 summary SHA `41fd0b9...b45c`。新设计与结果见[研究 §7.22](skill-dsl-research.md#722-y-条件表达默认迁移与价值验证)。继续当前任务类别与fixed-context范围；CLI是opt-in development能力，不声称npm已发布或生产安全决策。开发模型为`gpt-5.6-sol / max`，被测provider配置单列。旧受保护held-out/Q1 reserve不读。
-
-Y11用向后兼容experiment/v2把三份普通normalized assessment接到同一local invocation；冻结配置SHA为`b5477832...88bfa`，12个P/C fresh-context单元全部completed。冻结评价为12/12决策正确、8 full/4 partial；lock四答均漏答案级HTTP 403。P/C各4 full、2 partial且解释缺口相同；C为12次调用、109,743 known tokens、919,329ms，P为8次、37,489、388,763ms。变化输入从different-user/deny到self-query/allow后，声明与P/C prompt SHA都确定性变化且固定代码字节不变。Y12总体判定`mixed`：C仅在Y9一个development任务上补一项条件枚举，未形成迁移质量增益且运行负担更高；ordinary继续默认B/L，C只在明确需要有界条件分支时opt-in。共同helper建立工程价值但未隔离模型正确率因果；专业编写与human time/savings仍未测。两个面板共45次provider调用，actual USD全部unknown，目标执行0。
-
-Y13新鲜验证为授权/benchmark/CLI 167/167、1137 assertions，typecheck与三个真实入口通过；迁移check为3 cases/12 units/0 diagnostics，离线replay重现SHA`66dfb36...946`且无provider/目标调用。文档测试12/12，治理扫描10,628文件无broken/legacy/governance error；Y结果树416个JSON与54个JSONL中的171条记录全部解析，定向敏感信息扫描0命中。Y14只发布这些已冻结结果，不追加研究单元或默认扩展。
-
-用户在 W 复核后确认按完整能力阶段推进：评价要求校准、可选/分支关系、普通自备输入、第二项目 development 与小型对照放入同一轮。第二项目提前检验共性，旧三例不必先全部满分；内部仍小步测试和提交。研究与开发复盘统一维护在[研究总文档 §7.21](skill-dsl-research.md#721-x-完整能力阶段设计)。
-
-X1 已冻结 evaluator-only v2：必要语义、解释完整性、可选细节分别报告，接受逻辑等价表述但不以代码引用替代未陈述因果。旧 W B/D 只读重评后均保持结论正确；共同缺完整条件枚举而为 partial，可选 signup/default 不再改写结论正确性。X2 选择 `fastapi/full-stack-fastapi-template@cb740b6`，以普通用户更新他人 item 的 deny 与 superuser 读取他人 item 的 allow 作为两项新义务；官方源码、测试、MIT 许可证及 development 暴露状态已分账归档，目标未执行。
-
-X5 的 wire/v2 只在显式 analysis requirements 时加入 coverage sidecar，canonical result 继续是 v0。宿主机械核对 requirement、expanded obligation、状态、理由和同义务 fact pointer，并把语义支持保留为 `unreviewed`；无效 coverage 只沿用一次修复，持续失败不会成为完整交付。旧 wire/v1 与 replay 保持兼容。
-
-X6 的 `authorization-assessment-input/v1` 接受任意 taskId/repository、相对 sourceRoot、普通 `src/...` 文件及默认或显式 profile，不需要 manifest/oracle。check/inspect 零 provider；run 每次创建新的不可覆盖 session，并保存 JSON、事件 JSONL 与文本摘要。sourceRoot/path、junction/symlink、task/ref、声明位置及 ledger 都在 provider factory 前 fail closed；未知完成不自动重发。
-
-X7 增加显式 N/B/D renderer 与本地 `--arm`。三臂共用事实、公开 requirements、源码、wire/v2 和输出合同；N 自然化全部 canonical facts，B/D 共用 JSON declaration，D 增加领域因果方法。字符分项与 provider-reported token 分开保存。仓内 synthetic 例子已通过三臂 provider-free check；两份固定外部 skill 的授权职责映射与剩余职责分开记录，作者变化 trace 实际得到两项 pre-provider 诊断，不含真人耗时或节省主张。
-
-X8 已让五个任务、四种 synthetic 变化和临时普通目录通过共同 parser/ledger/source/mock-host/coverage/evaluator-template 路径。experiment-only runner 的实现固定为 `dccd830`；配置 SHA-256 `23e22d8...57fec` 在 provider-free check 中得到 5 cases、23 units、0 diagnostics。终态或已 dispatch 的未知完成单元不自动重发；仅 initialized 且无 dispatch 的 session 可安全继续，恢复时交叉核验 unit/session/dispatch/run/result。授权回归 129/129、813 assertions 和 typecheck 通过；截至 X8 真实 provider 与目标执行仍为 0。
-
-X9 按冻结顺序完成 23/23 fresh-context 单元，全部为 `completed`，没有 completion-unknown、timeout 或 domain repair，也没有目标执行。共 30 次 provider 调用：23 次 schema-tool 与 7 次 schema-tool 失败后的 prompt-parse transport fallback；fallback 按原任务重新请求模型，不是离线格式转换。已知 token 为 input 102,579、output 61,942、cache-read 45,824，30 次费用均未由 provider 报告，实际 USD 保持 unknown。全部生成结束后才开始 evaluator-only X10；原始生成字节与初轮身份保持不变。
-
-X10 的 hash-bound v2 评价得到 14 full、5 partial、4 incorrect；23/23 necessary semantics supported、coverage valid、scope accepted、transport valid、delivery complete。四个 incorrect 都是解释正确描述 deny control、却把 `source_refuted` 写成相反的 `source_supported_failure`：text B 一次、FastAPI update D 两次及 N 一次。B 汇总为 7/2/1，D 为 6/2/2；两臂 necessary/coverage 都是 10/10，D 未显示额外关系收益，且观察到更多调用和 token。三个 N 单元无重复，只说明当前自然说明形状下的机制表现，不能作稳定性或整个 SkVM 对原始 agent 的因果比较。离线 replay 摘要哈希一致；独立只读复核确认上述结论。X11 只修共同输出合同中未解释 conclusion enum 的缺陷，不改初轮身份。
-
-X11 先以失败测试固定三臂共同缺少标签方向定义，再只在 result contract 说明：结论相对 declared policy expectation，`source_supported_failure` 表示期待失败，`source_refuted` 表示期待被执行，`unknown` 表示固定上下文不足；事实、requirements、源码、rubric 与 B/D 方法差异均未改。预先冻结的 text B/D 与 FastAPI update D/B 四单元各一次，全部为 `source_refuted`、full-success、necessary supported、coverage valid；3/4 first response accepted，FastAPI B 另有一次 prompt-parse，无 domain repair。共 5 次调用、input 25,674、output 9,836，实际 USD 仍 unknown。一次 `SKVM_CACHE` 未传入导致的 provider-unavailable 发生在创建 provider/dispatch 前，原 session 保留后安全继续。revision 与初轮分开，支持共享合同诊断但不替代初轮失败或证明一般可靠性；不再追加调用。
-
-X12 复用同一 ordinary entry 与 X11 同 revision 的既有 session，离线 inspect Open WebUI controlled-text B 和 FastAPI foreign-update B；两者均 completed、`source_refuted`、coverage valid，新增 provider 与目标执行为零，且 inspection 不依赖 evaluator。省略 arm 的 synthetic check 返回 B、六项默认要求和零诊断；作者四步 trace 的两项错误继续得到精确字段/路径诊断。普通入口默认已从 D 改为 B，N/D 显式模式和旧接口仍保留：冻结初轮中 B/D necessary semantics 与 coverage 都为 10/10，而 D 没有额外收益并观察到更多调用/token。当前能力判定为 bounded development capability，只推荐单 repo/ref、显式源码、声明义务的 source-visible 评估；不包含仓库发现、目标执行、部署验证、patch 或生产默认安全决策。
-
-X13 新鲜验证为授权测试 131/131、836 assertions，typecheck 通过；初轮离线 replay 重现相同 summary digest。文档单测 12/12，10,074 文件链接/治理扫描无 broken、legacy 或 governance error，X 结果根 409 JSON 与 56 JSONL/166 records 全部可解析。精确归属与敏感信息检查通过；交付提交 `5297071` 已推送，状态提交为 `abe470f`。Y0 已建立恢复状态并重现同一 131/836 基线；Y1 已用红绿测试把公开 check/run 省略 arm 从 D 统一为 B，显式 D 与历史接口不变。X 当时建议薄命令加新项目；2026-09-22 用户确认扩大为上述 Y 完整方法与使用阶段，X 历史结果保留。
-
-## W 阶段实际结果
-
-- 工程闭环稳定运行：窄 wire、宿主引用归一化、schema/fallback/repair 计量、关闭与迟到事件、分层评价、恢复和离线 replay 均有确定性测试；任一 error 级 wire 归一化诊断都不会产生 canonical result。
-- 三个既有 Open WebUI development 案例共六个 fresh-context 单元全部 completed。`transportValid`、`deliveryComplete` 和 `semanticDecisionCorrect` 均为 6/6；没有 completion-unknown。
-- file 与 controlled-text 的 B/D 四单元均为 full-success。trusted-header 两臂都正确返回 `unknown`，但严格 review 均为 partial：两臂都没有明确列出四种条件结果，D 还漏掉可选 signup 路径，B 的密码认证关闭分支也没有明确写出 403。
-- B 共 5 次 provider dispatch、15,866 input、6,116 output、3,456 cache-read tokens；D 共 3 次 dispatch、7,013 input、3,302 output、3,456 cache-read tokens。总计 8 次调用，实际 USD 全部未报告，保持 unknown。
-- D 在本小样本中少两次调用、少 8,853 input 和 2,814 output tokens，没有比 B 更高的语义或证据完整性。W 当时决定先研究关系缺口；后续复核还发现评价的显式表达要求需要校准，关系层是待验证解释。X 保留这一正向开销观察并增加第二项目检查。W9 的 invalid wire 交付缺陷已以红绿回归修复，六个存档最终结果不变。
-
-证据：[W status](../../results/skill-ir/skill-dsl-research/development/authorization-transport-v1/status.json)、[W summary](../../results/skill-ir/skill-dsl-research/development/authorization-transport-v1/summary.json)、[W evaluation](../../results/skill-ir/skill-dsl-research/development/authorization-transport-v1/runs/initial-wire-v1/evaluation-summary.json)、[V replay](../../results/skill-ir/skill-dsl-research/development/authorization-transport-v1/v-replay-initial.json)。V 原始结果继续保存在 `authorization-v0`。
-
-## 已有工程能力
-
-| 路线 | 当前可用能力 | 当前效果记录 |
-|---|---|---|
-| 授权领域 DSL 有界开发能力 | canonical JSON、显式义务、关系/coverage、可选condition sidecar、authoring、顶层init/check/run/inspect、编号源码、窄wire、宿主引用绑定、关闭/迟到计量、分层评价与可恢复研究入口 | Z补齐三method与v4，初轮首答交付legacy/v4为1/4与3/4，最终均3/4；作者原/变任务真实deny/allow。mixed，legacy默认、v4与conditions显式选择；省略method保持兼容，仍非生产安全默认 |
-| Trace 驱动 skill 包优化 | bare-agent 自动捕获、日志导入、模型修改说明和脚本、局部验证与修复、原子包导出、自然消费记录 | F 后继包三次实际消费通过；配对工具调用 62→64、输入 token 58,828→190,516，效果 negative |
-| 既有确定性基础 | IR parser/validator、lowering、API Tester/Env 后端、artifact 与显式 recipe import | 保留各自有界案例及原评价口径 |
-
-普通使用入口：
-
-```powershell
-skvm run --prompt="<task>" --skill=./skill --workdir=./project --model=<id> --optimize
-```
-
-优化模型默认沿用 `--model`；具体选项、已有日志与恢复见[使用说明](../usage.md)。授权能力的opt-in顶层命令见同一使用说明，研究复现与类型见[开发指南](developer-guide.md)。
-
-## 文档与历史入口
-
-- [当前计划](skill-ir-aot-optimization-plan.md)：近期队列与验收。
-- [研究总文档](skill-dsl-research.md)：分类依据、当前设计、开发问题及方法变化。
-- [spec 14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)：持续适用的方法合同。
-- [证据索引](evidence-index.md)与[历史](history.md)：旧阶段结果、限制和恢复路径。
-- [F 完成记录](../../results/skill-ir/general-generation-reinforcement-20260914/completion-audit.json)：既有通用生成路线的详细交付。
-
-S/D/E/T 的来源、分类和设计保留在研究正文与原始证据中；本地化 I1 暂缓。新 development 工作沿用各历史身份的原始结果，不修改 Q1、held-out、prospective 或 readiness。工作树中的无关源码与本地实验材料由各自任务处理。
+更新本页时替换过时段落，不把逐次测试与派发日志不断追加为新的“当前状态”。

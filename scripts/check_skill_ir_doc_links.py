@@ -3,8 +3,10 @@ import json
 import posixpath
 import re
 import subprocess
+import unicodedata
 from pathlib import Path
 from typing import Iterable
+from urllib.parse import unquote
 
 
 EXPLICIT_DOC_RE = re.compile(r"docs/(?:skill-ir|superpowers)/[A-Za-z0-9_./-]+\.md")
@@ -84,12 +86,52 @@ def check_references(
     }
 
 
+def prose_lines(text: str) -> list[str]:
+    """Ignore fenced examples when checking the maintained navigation."""
+    lines = []
+    fence = None
+    for line in text.splitlines():
+        marker = re.match(r"^ {0,3}(`{3,}|~{3,})(.*)$", line)
+        if fence is None and marker:
+            fence = marker.group(1)
+        elif fence is not None:
+            if marker and marker.group(1)[0] == fence[0] and len(marker.group(1)) >= len(fence) and not marker.group(2).strip():
+                fence = None
+        else:
+            lines.append(line)
+    return lines
+
+
+def current_markdown_anchors(text: str) -> set[str]:
+    """ATX headings and explicit HTML IDs used by the current reading set."""
+    lines = prose_lines(text)
+    anchors = set(re.findall(r'''\bid=["']([^"']+)["']''', "\n".join(lines)))
+    generated: set[str] = set()
+    for line in lines:
+        heading = re.match(r"^ {0,3}#{1,6}\s+(.+?)\s*#*\s*$", line)
+        if not heading:
+            continue
+        title = re.sub(r"<[^>]*>", "", heading.group(1)).lower()
+        title = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", title)
+        slug = "".join(c for c in title if unicodedata.category(c)[0] in "LNM" or c in " _-").replace(" ", "-")
+        candidate, suffix = slug, 0
+        while candidate in generated:
+            suffix += 1
+            candidate = f"{slug}-{suffix}"
+        generated.add(candidate)
+    return anchors | generated
+
+
 def check_governance(root: Path, manifest: dict, legacy_paths: set[str]) -> dict:
     errors: list[str] = []
     warnings: list[str] = []
     current_rows = manifest.get("currentDocuments", [])
     versioned = manifest.get("versionedMaterials", [])
     current = [row["path"] for row in current_rows]
+    if any("role" in row for row in current_rows):
+        status_count = sum(row.get("role") == "current-status" for row in current_rows)
+        if status_count != 1:
+            errors.append(f"expected one current-status entry, found {status_count}")
 
     for path in current:
         if not (root / path).is_file():
@@ -119,6 +161,18 @@ def check_governance(root: Path, manifest: dict, legacy_paths: set[str]) -> dict
             warnings.append(
                 f"soft line limit exceeded: {row['path']} ({line_count} > {soft_max})"
             )
+
+    # Historical and versioned documents keep their original references.
+    texts = {path: (root / path).read_text(encoding="utf-8") for path in current if (root / path).is_file()}
+    anchors = {path: current_markdown_anchors(text) for path, text in texts.items()}
+    for source, text in texts.items():
+        for match in MARKDOWN_LINK_RE.finditer("\n".join(prose_lines(text))):
+            raw_path, separator, fragment = match.group(1).strip().strip("<>").partition("#")
+            if not separator or not fragment:
+                continue
+            target = source if not raw_path else normalize_target(source, raw_path)
+            if target in anchors and unquote(fragment) not in anchors[target]:
+                errors.append(f"missing current anchor: {source} -> {target}#{fragment}")
 
     return {"errors": errors, "warnings": warnings}
 
