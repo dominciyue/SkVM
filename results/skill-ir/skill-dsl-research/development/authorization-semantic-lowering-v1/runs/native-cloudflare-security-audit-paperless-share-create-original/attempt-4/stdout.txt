@@ -1,0 +1,168 @@
+
+skvm run v0.1.4
+  Adapter  bare-agent (built-in)
+  Model    xty/gpt-5.6-sol via openai-compatible (https://svip.xty.app/v1)
+  Task     natural prompt
+  Skill    D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\cloudflare-security-audit\SKILL.md
+  WorkDir  D:\skill优化\project-maintenance\runs\authorization-semantic-lowering-v1\native-cloudflare-security-audit-paperless-share-create-original\attempt-4
+  Cache    D:\skill优化\SkVM\.skvm
+
+02:00:12.010 [INFO ] [run] Run task natural-2a08ba88a975: adapter=bare-agent model=xty/gpt-5.6-sol workDir=D:\skill优化\project-maintenance\runs\authorization-semantic-lowering-v1\native-cloudflare-security-audit-paperless-share-create-original\attempt-4
+02:00:12.014 [INFO ] [conv-log] Conversation logging enabled: D:\skill优化\SkVM\.skvm\log\20261005-020012-run
+✓ Task natural-2a08ba88a975 complete  (2m 34s)
+
+=== Run Complete ===
+Task: natural-2a08ba88a975
+Skill: D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\cloudflare-security-audit\SKILL.md
+Model: xty/gpt-5.6-sol
+Adapter: bare-agent
+WorkDir: D:\skill优化\project-maintenance\runs\authorization-semantic-lowering-v1\native-cloudflare-security-audit-paperless-share-create-original\attempt-4
+Duration: 154.7s
+Tokens: in=104507 out=5943
+
+Final output:
+## Authorization review: `ShareLinkViewSet` create
+
+**Source ref:** `126ec414a8b65158368653a2604ae58415e43103`  
+**Scope:** Source-only review; no execution, network access, deployment assumptions, or patching.
+
+### Conclusion
+
+**The source does not establish unconditional compliance with the supplied policy.**
+
+Creating a share is not authorized merely by knowing a document ID or having `add_sharelink`. The request passes through several controls:
+
+1. The caller must be authenticated.
+2. The caller must have the endpoint-level/model-level `documents.add_sharelink` permission.
+3. The serializer resolves the submitted document ID to a particular `Document`.
+4. Before creation, serializer validation applies `view_document` and owner-aware checks to that resolved document.
+
+However, `has_perms_owner_aware` includes ownership/ownerless shortcuts rather than universally requiring an explicit object-level `view_document` grant on that document. Under the policy’s strict statement that a global permission is insufficient and the caller must have permission **for the exact document**, those shortcut branches prevent a blanket compliance conclusion.
+
+### Source behavior
+
+#### 1. Endpoint and routing
+
+The API router registers `ShareLinkViewSet` under `share_links`, and that router is included under the API URL configuration. The create operation is therefore the collection POST route, conventionally:
+
+```text
+POST /api/share_links/
+```
+
+Relevant registration and inclusion are in:
+
+- `src/paperless/urls.py:35-95`
+- `src/paperless/urls.py:297`
+
+The exact externally visible prefix could still be changed by deployment-level URL mounting outside the reviewed source.
+
+#### 2. View-level controls
+
+`ShareLinkViewSet` inherits `CreateModelMixin`, so POST creation follows DRF’s inherited create path. It declares:
+
+```python
+permission_classes = (IsAuthenticated, PaperlessObjectPermissions)
+```
+
+and uses `ShareLinkSerializer`:
+
+- `src/documents/views.py:4696-4710`
+
+Consequently, the endpoint has two distinct preliminary controls:
+
+- `IsAuthenticated` binds the request to an authenticated caller.
+- `PaperlessObjectPermissions` applies its POST model-permission mapping, requiring the global `documents.add_sharelink` permission for creation.
+
+The latter controls creation of a `ShareLink`; it is **not** an object check on the submitted document:
+
+- `src/documents/permissions.py:1-95`
+- `src/documents/views.py:4696-4715`
+
+The view’s `PermittedObjectsFilter` is also not the decisive create authorization control. Filter backends constrain queryset operations; a collection POST does not obtain the submitted document through `ShareLinkViewSet.get_object()`.
+
+#### 3. Inherited caller-to-serializer path
+
+`ShareLinkViewSet` inherits `PassUserMixin`. That mixin’s serializer construction path supplies the current `request.user` to serializers that participate in the repository’s permission-aware serializer scheme:
+
+- `src/documents/views.py:406-430`
+
+This matters because the document authorization is implemented in serializer validation, not solely in the viewset permission class.
+
+#### 4. Exact document resolution and validation
+
+`ShareLinkSerializer` accepts a document relation. DRF’s related-field validation resolves the submitted primary key against the document queryset, producing the particular `Document` instance named by the request. Its `validate_document` path then checks the caller against that resolved object before serializer creation proceeds:
+
+- `src/documents/serialisers.py:2851-2915`
+
+Thus:
+
+- A nonexistent/inaccessible-to-the-field ID cannot itself create a share.
+- Existence alone is not treated as authorization.
+- `add_sharelink` alone is insufficient.
+- The permission helper receives the **resolved exact document**, rather than checking only the `Document` model generally.
+
+The serializer also performs a global `documents.view_document` check. Passing that global check alone is not the whole serializer path: it additionally calls the owner-aware helper with the exact resolved document.
+
+#### 5. Owner-aware object control
+
+`has_perms_owner_aware` evaluates access based on the same caller and document, with branches for ownership/ownerless state and object permissions:
+
+- `src/documents/permissions.py:624-637`
+
+The relevant distinction is:
+
+- For a document owned by another principal, the helper’s object-permission path requires the applicable permission on that object.
+- Ownership and ownerless-document branches can authorize through the repository’s owner-aware shortcuts rather than requiring a separately assigned Guardian-style object permission.
+
+Therefore, the source performs an exact-document-aware decision, but that is not necessarily identical to “the caller has an explicit `view_document` object permission grant on this document.”
+
+### Policy comparison
+
+Independent policy:
+
+> A caller creating a document share must have view_document permission for the exact shared document. A global add_sharelink permission or knowing a document ID alone is insufficient.
+
+| Requirement | Source behavior | Assessment |
+|---|---|---|
+| Authentication is required | `IsAuthenticated` is declared | Satisfied |
+| `add_sharelink` alone must not suffice | Serializer performs additional document validation | Satisfied |
+| Knowing an existing document ID alone must not suffice | ID is resolved and then permission-validated | Satisfied |
+| The control must concern the exact shared document | `validate_document` and `has_perms_owner_aware` receive the resolved document | Satisfied structurally |
+| Every allowed path must require `view_document` for that exact document, not merely a global permission | Owner-aware ownership/ownerless shortcuts may authorize without a separate object-level grant | **Not established; violated under a strict explicit-object-permission reading** |
+
+The source is therefore **stronger than a bare `add_sharelink` check**, but it does not prove that every successful creation has an independently assigned object-level `view_document` permission. If the policy treats repository-defined ownership as conferring `view_document` on that exact object, the owner branch may comply. The policy does not state that exception, so it should not be assumed.
+
+The clearest policy mismatch is the ownerless-document branch: if global `view_document` is sufficient there, that conflicts with the policy’s statement that a global permission alone is insufficient.
+
+### Feasible outcomes
+
+- **Unauthenticated caller:** denied before serializer creation.
+- **Authenticated caller without `add_sharelink`:** denied by endpoint permission control.
+- **Caller with `add_sharelink` but without global `view_document`:** denied during document validation.
+- **Unknown document ID:** rejected during relation resolution; existence is not inferred.
+- **Other-owned document without the required object permission:** denied by the owner-aware object check.
+- **Other-owned document with the relevant object permission:** may proceed to share creation.
+- **Caller-owned or ownerless document:** may pass through an ownership/ownerless shortcut, subject to the other checks; this is the policy-sensitive case.
+
+### Missing facts and limits
+
+The following cannot be inferred from source alone:
+
+1. Whether the actual caller has `documents.add_sharelink`.
+2. Whether the caller has global `documents.view_document`.
+3. Which exact document ID is submitted and whether it exists.
+4. The document’s `owner` value and its relationship to the caller.
+5. Whether the caller has a Guardian/object-level `view_document` assignment for that document.
+6. Whether the policy intends document ownership itself to constitute `view_document` permission on the exact object.
+7. Whether an outer deployment changes the externally visible API URL prefix.
+
+### Confidence and self-verification
+
+**Confidence: medium-high** in the source-path analysis and the distinction between endpoint permission and exact-document serializer validation.
+
+The authorization result checker did **not** accept the formal semantic result as fully closed. It identified two modeling gaps:
+
+- the inherited `PassUserMixin.get_serializer` caller-binding path was not closed in the formal graph; and
+- the submitted semantic model for `has_perms_owner_aware` was rejected because of a schema error.
+
+Those are verification/modeling limitations, not evidence that the source lacks the controls described above. They mean the result should not be represented as a formally verified end-to-end proof. A remaining verification pass should formally encode `PassUserMixin.get_serializer` and each branch of `has_perms_owner_aware`, then re-run the conformance checker.

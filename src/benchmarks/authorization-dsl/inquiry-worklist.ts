@@ -84,7 +84,9 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
   }
   const sync = (slice: ControlSlice, check?: { ruleConsistency: boolean | null; taskResolution: string }): WorkItem[] => {
     for (const h of options.tools.history) if (["source-changed", "source-root-changed", "symlink-escape"].includes(h.result.code ?? "")) {
-      const paths = h.result.code === "source-root-changed" ? options.tools.files.map(f => f.path) : [String((h.arguments as Record<string, unknown>).path ?? "")]
+      const selector = (h.arguments as Record<string, unknown>).path
+      // A symbol/search selector may name a directory or omit its path entirely.
+      const paths = options.tools.files.filter(f => h.result.code === "source-root-changed" || selector === undefined || selector === "." || f.path === selector || typeof selector === "string" && f.path.startsWith(`${selector}/`)).map(f => f.path)
       for (const p of paths) invalidFiles.add(p)
     }
     const dependencies = options.dependencyStates?.() ?? []

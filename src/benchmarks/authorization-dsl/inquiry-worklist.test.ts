@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { mkdtemp, writeFile } from "node:fs/promises"
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises"
 import path from "node:path"
 import os from "node:os"
 import { createInquiryTools } from "./inquiry-tools.ts"
@@ -8,7 +8,7 @@ import { createControlSlice, mergeControlSlice } from "../../task-dsl/authorizat
 const api = await import("./inquiry-worklist.ts").catch(() => ({} as any))
 async function fixture(sources: Record<string, string>, questions = [{ id: "q", request: "Investigate entry", entryHint: "entry", premises: [] }]) {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-work-"))
-  for (const [file, content] of Object.entries(sources)) await writeFile(path.join(sourceRoot, file), content)
+  for (const [file, content] of Object.entries(sources)) { await mkdir(path.dirname(path.join(sourceRoot, file)), { recursive: true }); await writeFile(path.join(sourceRoot, file), content) }
   const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["."], maxToolCalls: 12 })
   const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions })
   expect(typeof api.createInquiryWorklist).toBe("function")
@@ -114,6 +114,23 @@ test("source changes invalidate its work items without repeated failed reads", a
   await f.work.run(createControlSlice(), 2)
   expect(f.tools.toolCalls).toBe(1)
   expect(f.work.snapshot().filter((w: any) => w.selected?.path === "entry.ts").every((w: any) => w.state === "blocked")).toBe(true)
+})
+
+for (const selector of [undefined, ".", "nested"]) test(`changed source discovered with selector ${selector ?? "omitted"} blocks a previously shown location`, async () => {
+  const f = await fixture({ "entry.ts": "export function entry() { return true; }\n", "nested/actual.ts": "export function actual() { return false; }\n" }), empty = createControlSlice()
+  await f.work.run(empty, 2)
+  const root = f.work.snapshot().find((w: any) => w.kind === "entry")
+  const args = { name: "actual", ...(selector === undefined ? {} : { path: selector }) }
+  const shown = await f.tools.execute("source_symbol", args), candidate = shown.candidates[0]!
+  expect(f.work.selectCandidate({ questionId: "q", itemId: root.id, candidateId: candidate.id }).status).toBe("accepted")
+  await f.work.run(empty, 2)
+  const evidence = structuredClone(f.tools.evidence)
+  await writeFile(path.join(f.sourceRoot, "nested/actual.ts"), "export function actual() { return true; }\n")
+  expect(await f.tools.execute("source_symbol", args)).toMatchObject({ status: "error", code: "source-changed" })
+  await f.work.run(empty, 2)
+  expect(f.work.snapshot().find((w: any) => w.id === root.id)).toMatchObject({ state: "blocked", code: "source-invalidated" })
+  expect(f.tools.evidence).toEqual(evidence)
+  expect(f.tools.toolCalls).toBe(4)
 })
 
 test("a recursive lexical reference becomes a named local gap and never creates repeated reads", async () => {

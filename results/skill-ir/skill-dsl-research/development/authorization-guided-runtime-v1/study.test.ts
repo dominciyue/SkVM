@@ -59,6 +59,12 @@ test("known native final checks rejected by their advertised schema remain model
   for (const invalid of [{ ...report, history: [{ ...rejected, output: { status: "error", message: "Unexpected runtime crash" } }] }, { ...report, finalProse: "" }, { ...report, attempts: [{ status: "pending" }] }]) expect(api.mechanicalReview(invalid).failure.components).not.toEqual(["model-draft"])
 })
 
+test("a known closed native answer with a source-bound checked candidate retains model extraction failures", () => {
+  const report = { status: "completed-with-diagnostics", ordinaryEntry: "skvm run", finalProse: "Source relations remain unresolved.", validation: { valid: false }, domain: { closed: true, check: { structureValid: true, sourceBound: true, ruleConsistency: false, diagnostics: [{ code: "semantic-callee-uninterpreted" }] }, semantic: { assemblies: [{ derived: { questions: [{ questionId: "q" }] }, diagnostics: [] }] } } }
+  expect(api.mechanicalReview(report).failure.components).toEqual(["model-draft"])
+  for (const invalid of [{ ...report, finalProse: "" }, { ...report, domain: { ...report.domain, closed: false } }, { ...report, attempts: [{ status: "pending" }] }, { ...report, error: "Unexpected execution failure" }, { ...report, domain: { ...report.domain, check: { ...report.domain.check, sourceBound: false } } }]) expect(api.mechanicalReview(invalid).failure.components).not.toEqual(["model-draft"])
+})
+
 test("a delivered source-bound inconsistent model draft remains a failed row without pausing unrelated shared machinery", async () => {
   const root = await temp(), started: string[] = []
   const failed = { status: "completed-with-diagnostics", final: { questions: [{ questionId: "draft", behavior: { disposition: "conditional" } }] }, validation: { valid: false, diagnostics: [{ code: "object-binding-missing" }] }, domain: { check: { structureValid: true, sourceBound: true, ruleConsistency: false } } }
