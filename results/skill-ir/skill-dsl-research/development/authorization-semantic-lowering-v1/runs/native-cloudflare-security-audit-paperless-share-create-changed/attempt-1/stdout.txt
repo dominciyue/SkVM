@@ -1,0 +1,121 @@
+
+skvm run v0.1.4
+  Adapter  bare-agent (built-in)
+  Model    xty/gpt-5.6-sol via openai-compatible (https://svip.xty.app/v1)
+  Task     natural prompt
+  Skill    D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\cloudflare-security-audit\SKILL.md
+  WorkDir  D:\skill优化\project-maintenance\runs\authorization-semantic-lowering-v1\native-cloudflare-security-audit-paperless-share-create-changed\attempt-1
+  Cache    D:\skill优化\SkVM\.skvm
+
+03:08:03.026 [INFO ] [run] Run task natural-0321a0dbfdcb: adapter=bare-agent model=xty/gpt-5.6-sol workDir=D:\skill优化\project-maintenance\runs\authorization-semantic-lowering-v1\native-cloudflare-security-audit-paperless-share-create-changed\attempt-1
+03:08:03.029 [INFO ] [conv-log] Conversation logging enabled: D:\skill优化\SkVM\.skvm\log\20261005-030803-run
+✓ Task natural-0321a0dbfdcb complete  (3m 10s)
+
+=== Run Complete ===
+Task: natural-0321a0dbfdcb
+Skill: D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\cloudflare-security-audit\SKILL.md
+Model: xty/gpt-5.6-sol
+Adapter: bare-agent
+WorkDir: D:\skill优化\project-maintenance\runs\authorization-semantic-lowering-v1\native-cloudflare-security-audit-paperless-share-create-changed\attempt-1
+Duration: 190.5s
+Tokens: in=151050 out=7772
+
+Final output:
+## Authorization conformance result
+
+**Disposition: Undetermined for the concrete request**  
+**Policy assessment: Undetermined**  
+**Confidence: Moderate for the endpoint and configured control path; low for the final authorization outcome because decisive inherited and serializer behavior is not fully source-visible in the accepted semantic trace.**
+
+### Applicable endpoint and upstream controls
+
+The requested operation is handled by `ShareLinkViewSet`, registered through the project URL configuration for the share-link API route. The viewset:
+
+- uses `ShareLink` as its model;
+- queries `ShareLink` objects with their related `document`;
+- uses `ShareLinkSerializer`;
+- requires both `IsAuthenticated` and `PaperlessObjectPermissions`;
+- includes `PermittedObjectsFilter` among its filter backends; and
+- inherits `CreateModelMixin`, so creation proceeds through inherited DRF create behavior rather than a viewset-local `create()` implementation.
+
+**Source:** `src/documents/views.py:4696-4719` (`ev-df8d7a9ddcfcfe4dbad6`); route evidence in `src/paperless/urls.py:76-94` and `292-306` (`ev-56672541afc5eaeb50c4`, `ev-fe07b6684fb0ff03957a`).
+
+The relevant control sequence is therefore:
+
+1. authentication through `IsAuthenticated`;
+2. the configured `PaperlessObjectPermissions` check;
+3. serializer validation through `ShareLinkSerializer`;
+4. inherited DRF serializer/viewset creation; and
+5. persistence of a `ShareLink` associated with the submitted document, if all preceding controls succeed.
+
+### Exact-document and serializer behavior
+
+The reviewed serializer and permission paths show that document authorization is not established merely by the document existing or by a global model permission alone.
+
+The serializer path includes a global `documents.view_document` permission requirement and an exact-document permission check through `has_perms_owner_aware`. The relevant helper path treats ownership and object-level permission as alternative ways to satisfy the check. As observed in the reviewed source, the helper can accept:
+
+- a document owned by the caller;
+- an unowned document; or
+- a document for which the caller has the requested object-level permission, such as `view_document`.
+
+**Sources:** `src/documents/serialisers.py:2790-2885`, including the document-validation path at line 2851 (`ev-beca58c4bd2e9a0f41a3` and `ev-130cae1b8d9db6c8a05c`); `src/documents/permissions.py:590-650`, including `has_perms_owner_aware` around line 624 (`ev-68bf2f6972c1187be8d4`, `ev-1c8abc47f43fb9e488ad`).
+
+That is broader than the independently supplied policy:
+
+> Only the owner of the exact document may create a share. Object-level `view_document` grants without ownership are insufficient.
+
+Accordingly, **if this serializer/helper path is the path actually used before persistence, a non-owner with only object-level `view_document` access could pass the document check, which would not comply with the owner-only policy**. This is a source-level policy mismatch in the authorization predicate, not a confirmed successful share creation for a particular request.
+
+### Policy mapping
+
+| Path | Source behavior | Policy result |
+|---|---|---|
+| Caller is authenticated, owns the exact document, and all create-time controls allow the request | Potentially permitted by the reviewed document check | Consistent with policy, subject to the remaining permission and persistence checks |
+| Caller is authenticated and has object-level `view_document` on the exact document but is not its owner | The reviewed owner-aware helper accepts object-level permission as an alternative to ownership | **Would violate policy** |
+| Caller lacks the required global or exact-document permission | Serializer validation rejects with insufficient permissions according to the reviewed path | Consistent with denial |
+| Document identity, ownership, effective permission object, or inherited create result is unknown | Cannot determine whether the request reaches or performs the protected effect | **Undetermined** |
+
+### Why the concrete request remains undetermined
+
+The supplied facts do not identify:
+
+- the caller;
+- the exact document or whether it exists;
+- the document owner;
+- whether the caller owns that exact document;
+- whether the caller has object-level `view_document`;
+- which object `PaperlessObjectPermissions` checks for `ShareLinkViewSet` creation;
+- whether the create-time object permission is evaluated against the new `ShareLink`, the related document, or another object; or
+- the final inherited `CreateModelMixin`/serializer save result.
+
+The accepted entry source establishes the endpoint and configured controls, but does not by itself prove that a `ShareLink` is persisted for the requested document. No document existence, global permission, ownership, or successful mutation has been assumed.
+
+### Specific missing source facts and validation duties
+
+1. **Complete `PaperlessObjectPermissions` behavior**  
+   Confirm the POST/create mapping and the object supplied to its object-level check for `ShareLinkViewSet`.
+
+2. **Complete serializer path**  
+   Confirm the exact document field resolution, `validate_document` behavior, `ShareLinkSerializer.create`, and inherited `OwnedObjectSerializer` save behavior.
+
+3. **Inherited create path**  
+   Confirm the applicable DRF `CreateModelMixin.create` sequence and whether permission checks occur before serializer validation and persistence.
+
+4. **Request premises**  
+   Supply a bounded fixture identifying:
+   - the caller;
+   - the exact document;
+   - document existence;
+   - document owner; and
+   - any object-level `view_document` grant.
+
+5. **Owner-only enforcement**  
+   Verify whether a share-specific check requires `caller == document.owner`. The reviewed helper’s acceptance of object-level `view_document` is not sufficient under the supplied policy.
+
+### Conclusion
+
+The source-visible route is `ShareLinkViewSet` creation, protected by `IsAuthenticated`, `PaperlessObjectPermissions`, `ShareLinkSerializer`, and inherited create/save logic. The reviewed serializer permission path appears broader than the current policy because it can treat exact-document `view_document` access as sufficient without proving ownership.
+
+However, because the effective create-time object control, complete inherited path, concrete request facts, and final persistence result are not all established, the correct conformance result for this particular request is:
+
+**Undetermined — with a qualified source-level policy mismatch: a non-owner object-level `view_document` grant must not be accepted as sufficient under the owner-only policy.**

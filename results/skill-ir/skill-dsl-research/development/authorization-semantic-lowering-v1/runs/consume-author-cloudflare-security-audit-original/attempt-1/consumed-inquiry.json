@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "paperless-share-create",
+  "repository": "paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "sourceRoot": "source",
+  "allowedPaths": [
+    "src/documents",
+    "src/paperless/urls.py"
+  ],
+  "inquiry": {
+    "schemaVersion": "authorization-inquiry/v1",
+    "mode": "conformance",
+    "questions": [
+      {
+        "id": "share-create-entrypoint",
+        "request": "Identify the endpoint, route, HTTP action, and ShareLinkViewSet operation that accepts creation of a share for an existing document. Trace the request into the viewset and identify any inherited endpoint-level authentication, permission, queryset, or object-resolution controls that apply before share creation.",
+        "principal": "The authenticated caller requesting creation of a share for an existing document.",
+        "resource": "The share-creation operation and the existing document selected as the document to be shared.",
+        "operation": "Invoke the share-creation endpoint and begin creating a ShareLink associated with the selected document.",
+        "entryHint": "Search src/documents views, serializers, permissions, and src/paperless/urls.py for ShareLinkViewSet, its create action, routing, and inherited framework controls.",
+        "premises": [
+          {
+            "text": "A principal asks to share an existing document.",
+            "origin": "user"
+          },
+          {
+            "text": "The review must determine which endpoint and object controls apply to that exact document before the share is created.",
+            "origin": "user"
+          },
+          {
+            "text": "Do not assume that document existence or a global model permission grants access to this document.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "exact-document-authorization",
+        "request": "Determine how the exact document named by the share-create request is resolved and whether authorization is checked against that document object before the ShareLink is created. Identify the trusted decision point and whether the check is object-specific rather than based only on an identifier or document existence.",
+        "principal": "The authenticated caller, treated as lower trust than the document authorization boundary.",
+        "resource": "The exact existing document referenced by the request and its document-level access policy.",
+        "operation": "Authorize sharing of that document as part of creating a ShareLink.",
+        "entryHint": "Trace the document identifier from ShareLinkViewSet input through lookup, queryset filtering, object retrieval, permission checks, and the create/save path in src/documents.",
+        "premises": [
+          {
+            "text": "The caller must be authorized for the exact shared document, not merely for a document identifier supplied in the request.",
+            "origin": "user"
+          },
+          {
+            "text": "Knowing a document ID alone is insufficient.",
+            "origin": "user"
+          },
+          {
+            "text": "A global add_sharelink permission is insufficient unless the exact-document view requirement is also enforced.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "inherited-permission-path",
+        "request": "Trace all inherited permission paths relevant to ShareLinkViewSet creation, including framework permission classes, viewset base classes, action-specific permission selection, queryset restrictions, and any document/object permission helpers. State which controls are endpoint-wide and which, if any, bind the caller to the exact document.",
+        "principal": "The authenticated caller attempting the share creation action.",
+        "resource": "The ShareLink creation endpoint, the ShareLink object being created, and the exact source document.",
+        "operation": "Pass all inherited and explicit authorization gates for the create action.",
+        "entryHint": "Inspect ShareLinkViewSet inheritance and permission-related methods, then follow referenced permission and document-access code under src/documents.",
+        "premises": [
+          {
+            "text": "Relevant inherited permission paths must be included in the determination.",
+            "origin": "user"
+          },
+          {
+            "text": "A global model permission must not be treated as proof of access to the exact document.",
+            "origin": "user"
+          },
+          {
+            "text": "The current policy requires view_document permission for the exact shared document.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "serializer-enforcement",
+        "request": "Trace the serializer path used by ShareLinkViewSet creation, including field definitions, document relation handling, validation, create or update methods, and any serializer-context or request-aware authorization logic. Determine whether the serializer merely accepts or resolves the document, or enforces view_document permission for that exact document before persistence.",
+        "principal": "The authenticated caller supplying share-creation input through the API.",
+        "resource": "The serializer input and the exact document relation on the ShareLink that will be persisted.",
+        "operation": "Validate and serialize request data for creation of a document share.",
+        "entryHint": "Follow ShareLinkViewSet serializer selection and the relevant serializer/serialiser classes, relation fields, validate methods, and create methods under src/documents.",
+        "premises": [
+          {
+            "text": "The serializer path is relevant to whether the exact-document authorization requirement is enforced before the share is created.",
+            "origin": "user"
+          },
+          {
+            "text": "Document existence, relation resolution, and serializer acceptance are not by themselves proof of document-level authorization.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "policy-conformance",
+        "request": "Compare the traced source behavior with the independently supplied current policy. Decide whether the create flow requires view_document permission for the exact shared document, whether any add_sharelink or equivalent global permission is only supplemental, and whether an unauthorized caller could create a share based only on document existence or a supplied document ID. Explain the compliance result using source evidence without inventing deployment behavior.",
+        "principal": "A caller requesting to create a share, including a caller who may have global share-link creation permission but lacks view_document permission for the target document.",
+        "resource": "The exact document and the newly created share link associated with it.",
+        "operation": "Create a share for the document under the current authorization policy.",
+        "entryHint": "Reconcile the endpoint, inherited permission, object-resolution, and serializer traces from src/documents and src/paperless/urls.py with the supplied policy.",
+        "premises": [
+          {
+            "text": "A caller creating a document share must have view_document permission for the exact shared document.",
+            "origin": "user"
+          },
+          {
+            "text": "A global add_sharelink permission or knowing a document ID alone is insufficient.",
+            "origin": "user"
+          },
+          {
+            "text": "The result must explain source behavior and policy compliance, not assume undocumented provider, proxy, deployment, or identity controls.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "missing-facts",
+        "request": "List the specific unresolved facts needed to complete the conformance determination, distinguishing source-visible facts from facts absent from the supplied source or dependent on runtime configuration. For each missing fact, state why it matters and give a narrow owner-observable or local source-validation plan; do not turn an unverified hypothesis into a confirmed conclusion.",
+        "principal": "The reviewer and system owner responsible for confirming the caller's effective permissions and the deployed request path.",
+        "resource": "The exact target document, caller identity and permissions, route configuration, inherited controls, serializer behavior, and share-creation transaction.",
+        "operation": "Close or document the remaining authorization-conformance gaps for share creation.",
+        "entryHint": "Use the source trace to identify concrete unknowns, especially effective caller permissions, object-level permission implementation/configuration, route inclusion, and any runtime controls not represented under the allowed paths.",
+        "premises": [
+          {
+            "text": "The inquiry must explain specific missing facts.",
+            "origin": "user"
+          },
+          {
+            "text": "Do not assume document existence or a global model permission grants access to the exact document.",
+            "origin": "user"
+          },
+          {
+            "text": "Facts not present in the supplied source must remain explicitly unresolved rather than guessed.",
+            "origin": "user"
+          }
+        ]
+      }
+    ],
+    "policy": {
+      "text": "A caller creating a document share must have view_document permission for the exact shared document. A global add_sharelink permission or knowing a document ID alone is insufficient.",
+      "origin": "user",
+      "location": "experimental-user-brief:paperless-share-policy/v1"
+    }
+  }
+}

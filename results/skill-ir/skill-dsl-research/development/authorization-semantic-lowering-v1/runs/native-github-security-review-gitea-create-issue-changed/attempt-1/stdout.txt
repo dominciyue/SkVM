@@ -1,0 +1,152 @@
+
+skvm run v0.1.4
+  Adapter  bare-agent (built-in)
+  Model    xty/gpt-5.6-sol via openai-compatible (https://svip.xty.app/v1)
+  Task     natural prompt
+  Skill    D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\github-security-review\SKILL.md
+  WorkDir  D:\skill优化\project-maintenance\runs\authorization-semantic-lowering-v1\native-github-security-review-gitea-create-issue-changed\attempt-1
+  Cache    D:\skill优化\SkVM\.skvm
+
+03:23:21.630 [INFO ] [run] Run task natural-5976b5128d64: adapter=bare-agent model=xty/gpt-5.6-sol workDir=D:\skill优化\project-maintenance\runs\authorization-semantic-lowering-v1\native-github-security-review-gitea-create-issue-changed\attempt-1
+03:23:21.634 [INFO ] [conv-log] Conversation logging enabled: D:\skill优化\SkVM\.skvm\log\20261005-032321-run
+✓ Task natural-5976b5128d64 complete  (3m 20s)
+
+=== Run Complete ===
+Task: natural-5976b5128d64
+Skill: D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\github-security-review\SKILL.md
+Model: xty/gpt-5.6-sol
+Adapter: bare-agent
+WorkDir: D:\skill优化\project-maintenance\runs\authorization-semantic-lowering-v1\native-github-security-review-gitea-create-issue-changed\attempt-1
+Duration: 200.3s
+Tokens: in=324196 out=8250
+
+Final output:
+## Findings Summary
+
+| Severity | Findings |
+|---|---:|
+| 🔴 Critical | 0 |
+| 🟠 High | 0 |
+| 🟡 Medium | 0 |
+| 🔵 Low | 0 |
+| ⚪ Info | 1 |
+| **Total** | **1** |
+
+**Assessment:** Source-visible behavior appears consistent with the supplied policy on the normal path, but the final authorization check remains **undetermined** because the bounded source evidence does not fully establish all upstream helper and deployment conditions.
+
+---
+
+# Focused Authorization Review
+
+**Project:** `go-gitea/gitea`  
+**Revision:** `fc28937a8d772fe9e4025c9b5f24d5db4d86610b`  
+**Scope:** CreateIssue API route, route-level repository controls, issue-unit permissions, `NewIssue`, and relevant creation exceptions  
+**Confidence:** **Medium** — the decisive route and service code are shown, but some upstream helper implementations and deployment facts remain outside the completed evidence.
+
+## ⚪ INFO — CreateIssue uses issue-unit read access for entry, not issue-unit write access
+
+### Source locations
+
+- `routers/api/v1/api.go:1638–1740` — API route registration and route controls
+- `routers/api/v1/repo/issue.go:533–653` — `CreateIssue`
+- `services/issue/issue.go:25–84` — `NewIssue`
+- `models/perm/access/repo_permission.go:152–155` — `CanWrite`
+
+### Actual source behavior
+
+The API route is registered with token authentication and repository-level controls, including the issue-unit reader gate. The observed route path applies `reqRepoReader(unit.TypeIssues)` before dispatching to `CreateIssue` (`routers/api/v1/api.go:1638–1740`).
+
+Inside `CreateIssue`:
+
+- The selected repository is `ctx.Repo.Repository`.
+- The authenticated caller is bound to the issue through `ctx.Doer.ID` and `ctx.Doer`.
+- The handler invokes `issue_service.NewIssue(...)` at `routers/api/v1/repo/issue.go:624`.
+- The handler does **not** require `ctx.Repo.Permission.CanWrite(unit.TypeIssues)` before creating the issue.
+
+The `CanWrite(unit.TypeIssues)` checks in `CreateIssue` are conditional handling checks:
+
+```go
+if form.Deadline != nil && ctx.Repo.Permission.CanWrite(unit.TypeIssues) {
+    ...
+}
+```
+
+and:
+
+```go
+if ctx.Repo.Permission.CanWrite(unit.TypeIssues) {
+    issue.MilestoneID = form.Milestone
+    ...
+} else {
+    form.Labels = make([]int64, 0)
+}
+```
+
+These checks control optional fields such as deadlines, milestones, assignees, and labels. They are not the entry authorization for issue creation. `CanWrite` itself means write access to the specified unit (`models/perm/access/repo_permission.go:152–155`).
+
+The creation service then loads the poster, checks blocked-user relationships, and persists the issue inside a transaction:
+
+```go
+if err := issues_model.NewIssue(ctx, repo, issue, labelIDs, uuids); err != nil {
+    return err
+}
+```
+
+(`services/issue/issue.go:25–84`). The shown `NewIssue` path contains no issue-unit `CanWrite` check.
+
+### Policy comparison
+
+**Independent policy:**
+
+> Any authenticated repository reader may create an issue when the issues unit is enabled. Issue-unit write permission is not required by this policy.
+
+**Comparison with source behavior:**
+
+- Authentication is required through the route’s token control.
+- The route-level repository control is an issue-unit **reader** check.
+- The creation effect is reached through `NewIssue`.
+- Issue-unit write permission is not required for the creation entry path.
+- Non-writers may lose access to optional metadata, such as labels or assignees, but are not rejected solely because they lack issue-unit write permission.
+
+Therefore, the **normal source-visible path is consistent with the policy**: an authenticated repository reader can reach issue creation without issue-unit write permission, assuming the issues unit is enabled and the reader check succeeds.
+
+## Relevant exceptions
+
+These exceptions affect whether a particular request succeeds, but they are not equivalent to requiring issue-unit write permission:
+
+1. **Archived repository**  
+   The route applies an archived-repository rejection control before creation. The available route evidence identifies `mustNotBeArchived` as part of the route controls.
+
+2. **Blocked poster**  
+   `NewIssue` rejects creation when the poster is blocked by the repository owner or an assignee (`services/issue/issue.go:30–32`).
+
+3. **Invalid optional metadata**  
+   Assignee lookup, assignability checks, project handling, and related validation can fail. These are input or secondary-operation failures, not a general issue-unit write gate.
+
+4. **Creating an initially closed issue**  
+   If `form.Closed` is requested, the handler invokes `issue_service.CloseIssue` after creation (`routers/api/v1/repo/issue.go:635–644`). That introduces additional close/dependency behavior. The source-visible conclusion for ordinary open issue creation should not automatically be extended to every closed-issue variant.
+
+5. **Persistence or refetch failures**  
+   Database errors, notification-related failures, or the final issue refetch can prevent a successful `201` response even after the creation path has begun.
+
+## Source and deployment limits
+
+The final semantic authorization check could not certify the result as fully satisfied because the bounded review did not complete all of the following:
+
+- Full implementation and route-group placement of `reqToken`.
+- Full implementation of `reqRepoReader`, including every repository/site-administrator exception.
+- Complete transitive analysis of all `NewIssue` dependencies.
+- Runtime authentication configuration.
+- The concrete identity represented by a deployed token.
+- The target repository’s actual issues-unit state and reader permission.
+- Any deployment-specific middleware or reverse-proxy authorization controls.
+
+The supplied premise that the issues unit is enabled was treated as an independent policy premise; it was not independently verified from the source evidence.
+
+## Conclusion
+
+**Source behavior:** The CreateIssue route appears to authorize entry using authenticated repository-reader access to the issues unit, while using issue-unit write permission only for optional issue metadata. The underlying `NewIssue` path performs the issue persistence effect without a shown issue-unit write check.
+
+**Policy conformance:** **Conditionally consistent / not deployment-certified.** For an authenticated principal who has repository issue-unit read access, targeting an enabled issues unit, and who is not blocked or otherwise rejected by the listed exceptions, the source behavior matches the policy that issue-unit write permission is not required.
+
+**No confirmed security vulnerability was established within this bounded review.** The remaining uncertainty concerns incomplete helper/deployment verification rather than evidence of a write-permission bypass contrary to the supplied policy.
