@@ -1,0 +1,758 @@
+{
+  "schemaVersion": "authorization-as-study/v1",
+  "createdAt": "2026-10-04T11:10:11.458Z",
+  "baseline": "c90787f09087b3c79ac1d73b47f970ab928894e0",
+  "branch": "skill-ir-aot",
+  "publishTarget": "origin/skill-ir-aot",
+  "developer": {
+    "model": "gpt-6.1-sol",
+    "reasoningEffort": "max",
+    "usage": null
+  },
+  "testedModel": "xty/gpt-5.6-sol",
+  "cachePath": "D:\\skill优化\\SkVM\\.skvm",
+  "route": {
+    "match": "xty/*",
+    "kind": "openai-compatible",
+    "credentialsAvailable": true,
+    "providerCalls": 0
+  },
+  "budgets": {
+    "perCallTimeoutMs": 300000,
+    "sessionTimeoutMs": 1200000,
+    "maxDispatches": 12,
+    "maxToolCalls": 24,
+    "maxDisplayBytes": 262144,
+    "maxFiles": 512,
+    "maxReadBytes": 8388608,
+    "maxTokens": 6000
+  },
+  "arms": [
+    {
+      "studyArm": "M-L",
+      "method": "M",
+      "strategy": "legacy"
+    },
+    {
+      "studyArm": "M-S",
+      "method": "M",
+      "strategy": "semantic-flow-v1"
+    },
+    {
+      "studyArm": "D-S",
+      "method": "D1",
+      "strategy": "semantic-flow-v1"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "owui-ingestion",
+      "inputFile": "../authorization-domain-execution-v1/model/inputs/owui-ingestion.json",
+      "inputSha256": "bc8342544f96f6d2ef2563f634552893cc4595c51348a03ae64c37ca598a26bf",
+      "sourceIdentity": {
+        "repository": "open-webui/open-webui",
+        "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9"
+      },
+      "sourceIndex": "input-checks/owui-ingestion.json#/sourceFiles",
+      "mode": "behavior",
+      "originalBrief": "Investigate process_file at /process/file in this Open WebUI revision. Trace the caller, the supplied file_id and the destination collection_name through authorization and the eventual processing or vector write. Explain whether the object authorized for input and the object affected by output are the same, and what happens for caller-owned versus another user's file. Do not assume the caller owns the destination collection. Give visible conditions and specific remaining limits; this is behavior investigation.",
+      "policy": null,
+      "authorProviderRequiredForD1": true,
+      "exposedDevelopment": true,
+      "admission": "eligible",
+      "blockedBy": null
+    },
+    {
+      "id": "paperless-download",
+      "inputFile": "../authorization-domain-execution-v1/model/inputs/paperless-download.json",
+      "inputSha256": "fa503cc956bbf5444433ca72dbfbb94a5433d7a4c7436be36b3346406f85b757",
+      "sourceIdentity": {
+        "repository": "paperless-ngx/paperless-ngx",
+        "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+      },
+      "sourceIndex": "input-checks/paperless-download.json#/sourceFiles",
+      "mode": "behavior",
+      "originalBrief": "Investigate the document Download operation in this Paperless revision. Explain how the requested document, selected version or original/archive representation, and authenticated user's authorization relate to the file returned. Identify relevant control branches and whether selecting another version changes the resource that is authorized. Ownership and object grants are unspecified: analyze relevant source branches rather than assuming a grant. State missing source or deployment facts precisely.",
+      "policy": null,
+      "authorProviderRequiredForD1": true,
+      "exposedDevelopment": true,
+      "admission": "eligible",
+      "blockedBy": null
+    },
+    {
+      "id": "memos-remove",
+      "inputFile": "../authorization-domain-execution-v1/model/inputs/memos-remove.json",
+      "inputSha256": "6a299a54208f8253099d4e2c99506c5f76022c67a60969edb9cf1fead9a50b01",
+      "sourceIdentity": {
+        "repository": "usememos/memos",
+        "sourceRef": "cb42e326ba9cc266a6a9570c53e0fe04c62793f4"
+      },
+      "sourceIndex": "input-checks/memos-remove.json#/sourceFiles",
+      "mode": "conformance",
+      "originalBrief": "Check DeleteSpaceMember in this Memos revision against the independently supplied current policy. May an ordinary space member remove a different member, and do visible admin and self-removal paths differ? Do not assume deployment middleware or undocumented role grants. Explain actual behavior, compare it with the policy, cite the controlling source and preserve any decisive missing facts.",
+      "policy": {
+        "text": "Only a space administrator may remove another member from that space. This policy does not prohibit a member leaving the space themselves.",
+        "origin": "user",
+        "location": "experimental-user-brief:memos-member-policy/v1"
+      },
+      "authorProviderRequiredForD1": true,
+      "exposedDevelopment": true,
+      "admission": "blocked-sealed-logical-task",
+      "blockedBy": "ar-authored-memos-remove-unknown"
+    },
+    {
+      "id": "paperless-share-create",
+      "inputFile": "../authorization-domain-execution-v1/model/inputs/paperless-share-create.json",
+      "inputSha256": "2afc6e760bf07fee92b43e0cca3e655da506a9ab31dc25054d3c6b1eb83fb8c2",
+      "sourceIdentity": {
+        "repository": "paperless-ngx/paperless-ngx",
+        "sourceRef": "126ec414a8b65158368653a2604ae58415e43103"
+      },
+      "sourceIndex": "input-checks/paperless-share-create.json#/sourceFiles",
+      "mode": "conformance",
+      "originalBrief": "Check creating a share through ShareLinkViewSet against the current independently supplied policy. A principal asks to share an existing document; determine which endpoint and object controls apply to that exact document before the share is created. Include relevant inherited permission and serializer paths. Do not assume that document existence or a global model permission grants access to this document. Explain source behavior, policy compliance and specific missing facts.",
+      "policy": {
+        "text": "A caller creating a document share must have view_document permission for the exact shared document. A global add_sharelink permission or knowing a document ID alone is insufficient.",
+        "origin": "user",
+        "location": "experimental-user-brief:paperless-share-policy/v1"
+      },
+      "authorProviderRequiredForD1": true,
+      "exposedDevelopment": true,
+      "admission": "eligible",
+      "blockedBy": null
+    },
+    {
+      "id": "gitea-create-issue",
+      "inputFile": "../authorization-domain-execution-v1/model/inputs/gitea-create-issue.json",
+      "inputSha256": "1f57aac7fcc197e33c0f071f99cba911579665d09f5975c94e626dd0542d0e87",
+      "sourceIdentity": {
+        "repository": "go-gitea/gitea",
+        "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b"
+      },
+      "sourceIndex": "input-checks/gitea-create-issue.json#/sourceFiles",
+      "mode": "conformance",
+      "originalBrief": "Check CreateIssue and its API route in this Gitea revision against the independently supplied current policy. Compare authenticated repository readers and principals with issue write permission. Trace route-level controls, repository or issue-unit checks and the issue creation effect; identify any relevant exceptions instead of assuming endpoint-local checks are the whole path. Explain policy compliance and precise source or deployment limits.",
+      "policy": {
+        "text": "Creating an issue requires write permission to the repository's issues unit. Read permission to the repository alone does not authorize this write.",
+        "origin": "user",
+        "location": "experimental-user-brief:gitea-issue-policy/v1"
+      },
+      "authorProviderRequiredForD1": true,
+      "exposedDevelopment": true,
+      "admission": "eligible",
+      "blockedBy": null
+    }
+  ],
+  "rows": [
+    {
+      "id": "quality-owui-ingestion-D-S",
+      "task": "owui-ingestion",
+      "kind": "quality",
+      "studyArm": "D-S",
+      "method": "D1",
+      "strategy": "semantic-flow-v1",
+      "inputFile": "../authorization-domain-execution-v1/model/inputs/owui-ingestion.json",
+      "admission": "eligible",
+      "blockedBy": null,
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-owui-ingestion-M-L",
+      "task": "owui-ingestion",
+      "kind": "quality",
+      "studyArm": "M-L",
+      "method": "M",
+      "strategy": "legacy",
+      "inputFile": "../authorization-domain-execution-v1/model/inputs/owui-ingestion.json",
+      "admission": "eligible",
+      "blockedBy": null,
+      "components": [
+        "wire",
+        "source",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-owui-ingestion-M-S",
+      "task": "owui-ingestion",
+      "kind": "quality",
+      "studyArm": "M-S",
+      "method": "M",
+      "strategy": "semantic-flow-v1",
+      "inputFile": "../authorization-domain-execution-v1/model/inputs/owui-ingestion.json",
+      "admission": "eligible",
+      "blockedBy": null,
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-paperless-download-M-L",
+      "task": "paperless-download",
+      "kind": "quality",
+      "studyArm": "M-L",
+      "method": "M",
+      "strategy": "legacy",
+      "inputFile": "../authorization-domain-execution-v1/model/inputs/paperless-download.json",
+      "admission": "eligible",
+      "blockedBy": null,
+      "components": [
+        "wire",
+        "source",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-paperless-download-M-S",
+      "task": "paperless-download",
+      "kind": "quality",
+      "studyArm": "M-S",
+      "method": "M",
+      "strategy": "semantic-flow-v1",
+      "inputFile": "../authorization-domain-execution-v1/model/inputs/paperless-download.json",
+      "admission": "eligible",
+      "blockedBy": null,
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-paperless-download-D-S",
+      "task": "paperless-download",
+      "kind": "quality",
+      "studyArm": "D-S",
+      "method": "D1",
+      "strategy": "semantic-flow-v1",
+      "inputFile": "../authorization-domain-execution-v1/model/inputs/paperless-download.json",
+      "admission": "eligible",
+      "blockedBy": null,
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-memos-remove-M-S",
+      "task": "memos-remove",
+      "kind": "quality",
+      "studyArm": "M-S",
+      "method": "M",
+      "strategy": "semantic-flow-v1",
+      "inputFile": "../authorization-domain-execution-v1/model/inputs/memos-remove.json",
+      "admission": "blocked-sealed-logical-task",
+      "blockedBy": "ar-authored-memos-remove-unknown",
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-memos-remove-D-S",
+      "task": "memos-remove",
+      "kind": "quality",
+      "studyArm": "D-S",
+      "method": "D1",
+      "strategy": "semantic-flow-v1",
+      "inputFile": "../authorization-domain-execution-v1/model/inputs/memos-remove.json",
+      "admission": "blocked-sealed-logical-task",
+      "blockedBy": "ar-authored-memos-remove-unknown",
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-memos-remove-M-L",
+      "task": "memos-remove",
+      "kind": "quality",
+      "studyArm": "M-L",
+      "method": "M",
+      "strategy": "legacy",
+      "inputFile": "../authorization-domain-execution-v1/model/inputs/memos-remove.json",
+      "admission": "blocked-sealed-logical-task",
+      "blockedBy": "ar-authored-memos-remove-unknown",
+      "components": [
+        "wire",
+        "source",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-paperless-share-create-D-S",
+      "task": "paperless-share-create",
+      "kind": "quality",
+      "studyArm": "D-S",
+      "method": "D1",
+      "strategy": "semantic-flow-v1",
+      "inputFile": "../authorization-domain-execution-v1/model/inputs/paperless-share-create.json",
+      "admission": "eligible",
+      "blockedBy": null,
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-paperless-share-create-M-L",
+      "task": "paperless-share-create",
+      "kind": "quality",
+      "studyArm": "M-L",
+      "method": "M",
+      "strategy": "legacy",
+      "inputFile": "../authorization-domain-execution-v1/model/inputs/paperless-share-create.json",
+      "admission": "eligible",
+      "blockedBy": null,
+      "components": [
+        "wire",
+        "source",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-paperless-share-create-M-S",
+      "task": "paperless-share-create",
+      "kind": "quality",
+      "studyArm": "M-S",
+      "method": "M",
+      "strategy": "semantic-flow-v1",
+      "inputFile": "../authorization-domain-execution-v1/model/inputs/paperless-share-create.json",
+      "admission": "eligible",
+      "blockedBy": null,
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-gitea-create-issue-M-L",
+      "task": "gitea-create-issue",
+      "kind": "quality",
+      "studyArm": "M-L",
+      "method": "M",
+      "strategy": "legacy",
+      "inputFile": "../authorization-domain-execution-v1/model/inputs/gitea-create-issue.json",
+      "admission": "eligible",
+      "blockedBy": null,
+      "components": [
+        "wire",
+        "source",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-gitea-create-issue-M-S",
+      "task": "gitea-create-issue",
+      "kind": "quality",
+      "studyArm": "M-S",
+      "method": "M",
+      "strategy": "semantic-flow-v1",
+      "inputFile": "../authorization-domain-execution-v1/model/inputs/gitea-create-issue.json",
+      "admission": "eligible",
+      "blockedBy": null,
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "delivery"
+      ]
+    },
+    {
+      "id": "quality-gitea-create-issue-D-S",
+      "task": "gitea-create-issue",
+      "kind": "quality",
+      "studyArm": "D-S",
+      "method": "D1",
+      "strategy": "semantic-flow-v1",
+      "inputFile": "../authorization-domain-execution-v1/model/inputs/gitea-create-issue.json",
+      "admission": "eligible",
+      "blockedBy": null,
+      "components": [
+        "wire",
+        "source",
+        "checker",
+        "worklist",
+        "delivery"
+      ]
+    },
+    {
+      "id": "variation-memos-remove-policy-fresh",
+      "task": "memos-remove",
+      "kind": "variation",
+      "method": "D1",
+      "strategy": "semantic-flow-v1",
+      "change": "policy",
+      "route": "fresh",
+      "baseRow": "quality-memos-remove-D-S",
+      "admission": "blocked-sealed-base",
+      "blockedBy": "ar-authored-memos-remove-unknown",
+      "pairedOrder": 0
+    },
+    {
+      "id": "variation-memos-remove-policy-previous",
+      "task": "memos-remove",
+      "kind": "variation",
+      "method": "D1",
+      "strategy": "semantic-flow-v1",
+      "change": "policy",
+      "route": "previous",
+      "baseRow": "quality-memos-remove-D-S",
+      "admission": "blocked-sealed-base",
+      "blockedBy": "ar-authored-memos-remove-unknown",
+      "pairedOrder": 1
+    },
+    {
+      "id": "variation-memos-remove-premise-fresh",
+      "task": "memos-remove",
+      "kind": "variation",
+      "method": "D1",
+      "strategy": "semantic-flow-v1",
+      "change": "premise",
+      "route": "fresh",
+      "baseRow": "quality-memos-remove-D-S",
+      "admission": "blocked-sealed-base",
+      "blockedBy": "ar-authored-memos-remove-unknown",
+      "pairedOrder": 0
+    },
+    {
+      "id": "variation-memos-remove-premise-previous",
+      "task": "memos-remove",
+      "kind": "variation",
+      "method": "D1",
+      "strategy": "semantic-flow-v1",
+      "change": "premise",
+      "route": "previous",
+      "baseRow": "quality-memos-remove-D-S",
+      "admission": "blocked-sealed-base",
+      "blockedBy": "ar-authored-memos-remove-unknown",
+      "pairedOrder": 1
+    },
+    {
+      "id": "source-change-memos-remove-fresh",
+      "task": "memos-remove",
+      "kind": "source-change",
+      "method": "D1",
+      "strategy": "semantic-flow-v1",
+      "baseRow": "quality-memos-remove-D-S",
+      "admission": "blocked-sealed-base",
+      "sourceIntent": "Suppress the non-self administrator check in DeleteSpaceMember while retaining membership lookup and deletion. Base/previous dependency remains blocked by the unknown original remove task.",
+      "blockedBy": "ar-authored-memos-remove-unknown"
+    },
+    {
+      "id": "variation-paperless-share-create-policy-fresh",
+      "task": "paperless-share-create",
+      "kind": "variation",
+      "method": "D1",
+      "strategy": "semantic-flow-v1",
+      "change": "policy",
+      "route": "fresh",
+      "baseRow": "quality-paperless-share-create-D-S",
+      "admission": "depends-on-checked-bounded-base",
+      "blockedBy": null,
+      "pairedOrder": 0
+    },
+    {
+      "id": "variation-paperless-share-create-policy-previous",
+      "task": "paperless-share-create",
+      "kind": "variation",
+      "method": "D1",
+      "strategy": "semantic-flow-v1",
+      "change": "policy",
+      "route": "previous",
+      "baseRow": "quality-paperless-share-create-D-S",
+      "admission": "depends-on-checked-bounded-base",
+      "blockedBy": null,
+      "pairedOrder": 1
+    },
+    {
+      "id": "variation-paperless-share-create-premise-fresh",
+      "task": "paperless-share-create",
+      "kind": "variation",
+      "method": "D1",
+      "strategy": "semantic-flow-v1",
+      "change": "premise",
+      "route": "fresh",
+      "baseRow": "quality-paperless-share-create-D-S",
+      "admission": "depends-on-checked-bounded-base",
+      "blockedBy": null,
+      "pairedOrder": 0
+    },
+    {
+      "id": "variation-paperless-share-create-premise-previous",
+      "task": "paperless-share-create",
+      "kind": "variation",
+      "method": "D1",
+      "strategy": "semantic-flow-v1",
+      "change": "premise",
+      "route": "previous",
+      "baseRow": "quality-paperless-share-create-D-S",
+      "admission": "depends-on-checked-bounded-base",
+      "blockedBy": null,
+      "pairedOrder": 1
+    },
+    {
+      "id": "source-change-paperless-share-create-fresh",
+      "task": "paperless-share-create",
+      "kind": "source-change",
+      "method": "D1",
+      "strategy": "semantic-flow-v1",
+      "baseRow": "quality-paperless-share-create-D-S",
+      "admission": "depends-on-checked-bounded-base",
+      "sourceIntent": "Remove the exact-document view permission rejection from ShareLinkSerializer validation while retaining document resolution and endpoint/global permission checks.",
+      "blockedBy": null
+    },
+    {
+      "id": "native-cloudflare-security-audit-paperless-share-create-original",
+      "kind": "native",
+      "task": "paperless-share-create",
+      "skill": "cloudflare-security-audit",
+      "sourceSkill": "../authorization-domain-execution-v1/model/source-skills/cloudflare-security-audit/SKILL.md",
+      "method": "D1",
+      "strategy": "semantic-flow-v1",
+      "variant": "original",
+      "policyOverride": null,
+      "admission": "eligible",
+      "completeSkillAndReferencesRequired": true,
+      "originalBriefAndOtherDutiesPreserved": true,
+      "totalProviderBudget": 12,
+      "totalToolBudget": 24
+    },
+    {
+      "id": "native-cloudflare-security-audit-paperless-share-create-changed",
+      "kind": "native",
+      "task": "paperless-share-create",
+      "skill": "cloudflare-security-audit",
+      "sourceSkill": "../authorization-domain-execution-v1/model/source-skills/cloudflare-security-audit/SKILL.md",
+      "method": "D1",
+      "strategy": "semantic-flow-v1",
+      "variant": "changed",
+      "policyOverride": {
+        "text": "Only the owner of the exact document may create a share. Object-level view_document grants without ownership are insufficient.",
+        "origin": "user",
+        "location": "experimental-user-brief:paperless-share-policy/as-owner-v2"
+      },
+      "admission": "eligible",
+      "completeSkillAndReferencesRequired": true,
+      "originalBriefAndOtherDutiesPreserved": true,
+      "totalProviderBudget": 12,
+      "totalToolBudget": 24
+    },
+    {
+      "id": "native-github-security-review-gitea-create-issue-original",
+      "kind": "native",
+      "task": "gitea-create-issue",
+      "skill": "github-security-review",
+      "sourceSkill": "../authorization-domain-execution-v1/model/source-skills/github-security-review/SKILL.md",
+      "method": "D1",
+      "strategy": "semantic-flow-v1",
+      "variant": "original",
+      "policyOverride": null,
+      "admission": "eligible",
+      "completeSkillAndReferencesRequired": true,
+      "originalBriefAndOtherDutiesPreserved": true,
+      "totalProviderBudget": 12,
+      "totalToolBudget": 24
+    },
+    {
+      "id": "native-github-security-review-gitea-create-issue-changed",
+      "kind": "native",
+      "task": "gitea-create-issue",
+      "skill": "github-security-review",
+      "sourceSkill": "../authorization-domain-execution-v1/model/source-skills/github-security-review/SKILL.md",
+      "method": "D1",
+      "strategy": "semantic-flow-v1",
+      "variant": "changed",
+      "policyOverride": {
+        "text": "Any authenticated repository reader may create an issue when the issues unit is enabled. Issue-unit write permission is not required by this policy.",
+        "origin": "user",
+        "location": "experimental-user-brief:gitea-issue-policy/as-reader-v2"
+      },
+      "admission": "eligible",
+      "completeSkillAndReferencesRequired": true,
+      "originalBriefAndOtherDutiesPreserved": true,
+      "totalProviderBudget": 12,
+      "totalToolBudget": 24
+    }
+  ],
+  "denominator": {
+    "quality": 15,
+    "native": 4,
+    "variation": 8,
+    "sourceChange": 2,
+    "total": 29,
+    "authorDraftsSeparate": 4
+  },
+  "authors": [
+    {
+      "id": "author-cloudflare-security-audit-original",
+      "task": "paperless-share-create",
+      "skill": "cloudflare-security-audit",
+      "variant": "original",
+      "sourceSkill": "../authorization-domain-execution-v1/model/source-skills/cloudflare-security-audit/SKILL.md",
+      "fieldOrigin": "model-authored",
+      "hostFillsOnlyMechanicalMetadata": true,
+      "humanMinutes": null
+    },
+    {
+      "id": "author-cloudflare-security-audit-changed",
+      "task": "paperless-share-create",
+      "skill": "cloudflare-security-audit",
+      "variant": "changed",
+      "sourceSkill": "../authorization-domain-execution-v1/model/source-skills/cloudflare-security-audit/SKILL.md",
+      "fieldOrigin": "model-authored",
+      "hostFillsOnlyMechanicalMetadata": true,
+      "humanMinutes": null
+    },
+    {
+      "id": "author-github-security-review-original",
+      "task": "gitea-create-issue",
+      "skill": "github-security-review",
+      "variant": "original",
+      "sourceSkill": "../authorization-domain-execution-v1/model/source-skills/github-security-review/SKILL.md",
+      "fieldOrigin": "model-authored",
+      "hostFillsOnlyMechanicalMetadata": true,
+      "humanMinutes": null
+    },
+    {
+      "id": "author-github-security-review-changed",
+      "task": "gitea-create-issue",
+      "skill": "github-security-review",
+      "variant": "changed",
+      "sourceSkill": "../authorization-domain-execution-v1/model/source-skills/github-security-review/SKILL.md",
+      "fieldOrigin": "model-authored",
+      "hostFillsOnlyMechanicalMetadata": true,
+      "humanMinutes": null
+    }
+  ],
+  "variationIntents": [
+    {
+      "task": "memos-remove",
+      "policy": {
+        "text": "Any current member of a space may remove a different member from that space; self-removal is also allowed.",
+        "origin": "user",
+        "location": "experimental-user-brief:memos-member-policy/v2"
+      },
+      "premise": "The caller and target member are the same user, and the caller is a current member of the affected space; administrator status is not supplied.",
+      "source": "Suppress the non-self administrator check in DeleteSpaceMember while retaining membership lookup and deletion. Base/previous dependency remains blocked by the unknown original remove task."
+    },
+    {
+      "task": "paperless-share-create",
+      "policy": {
+        "text": "Only the owner of the exact document may create a share. Object-level view_document grants without ownership are insufficient.",
+        "origin": "user",
+        "location": "experimental-user-brief:paperless-share-policy/as-owner-v2"
+      },
+      "premise": "The authenticated caller owns the exact requested document. Global model permissions and deployment configuration are not supplied; retain any requested counterfactual explanation separately from current paths.",
+      "source": "Remove the exact-document view permission rejection from ShareLinkSerializer validation while retaining document resolution and endpoint/global permission checks."
+    }
+  ],
+  "inheritedAR": {
+    "root": "../authorization-guided-runtime-v1",
+    "summary": "evaluation-summary.json#/primarySummary",
+    "primarySummary": {
+      "denominator": 16,
+      "attempted": 8,
+      "notRun": 8,
+      "reviewedFirst": 8,
+      "unreviewedFirst": 0,
+      "firstFull": 1,
+      "firstFinalFull": 1,
+      "firstDecisiveErrors": 1,
+      "firstOverUnknown": 3,
+      "firstFalseComplete": 0,
+      "finalDecisiveErrors": 1,
+      "finalOverUnknown": 3,
+      "finalFalseComplete": 0,
+      "repairAttempts": 2,
+      "reviewedRepairAttempts": 2,
+      "repairedFinalFull": 1
+    },
+    "notRunResponsibility": [
+      {
+        "id": "quality-memos-remove-M",
+        "task": "memos-remove",
+        "inherited": true,
+        "status": "blocked"
+      },
+      {
+        "id": "quality-memos-remove-D1",
+        "task": "memos-remove",
+        "inherited": true,
+        "status": "blocked"
+      },
+      {
+        "id": "quality-paperless-notes-D1",
+        "task": "paperless-notes",
+        "inherited": false,
+        "status": "blocked"
+      },
+      {
+        "id": "quality-paperless-notes-M",
+        "task": "paperless-notes",
+        "inherited": false,
+        "status": "blocked"
+      },
+      {
+        "id": "quality-paperless-share-create-M",
+        "task": "paperless-share-create",
+        "inherited": true,
+        "status": "pending"
+      },
+      {
+        "id": "quality-paperless-share-create-D1",
+        "task": "paperless-share-create",
+        "inherited": true,
+        "status": "pending"
+      },
+      {
+        "id": "quality-gitea-create-issue-D1",
+        "task": "gitea-create-issue",
+        "inherited": true,
+        "status": "pending"
+      },
+      {
+        "id": "quality-gitea-create-issue-M",
+        "task": "gitea-create-issue",
+        "inherited": true,
+        "status": "pending"
+      }
+    ],
+    "historicalStatusMeaning": "stopped snapshot; do not rewrite"
+  },
+  "generationExcludes": [
+    "AR raw/final answers",
+    "evaluations/reviews",
+    "oracle",
+    "manual correct graphs"
+  ],
+  "targetExecutions": 0
+}

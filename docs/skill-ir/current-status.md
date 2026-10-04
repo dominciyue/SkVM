@@ -6,7 +6,9 @@
 
 研究主线是 **按 skill/task 范围设计领域表达**。当前任务类为单 repo/ref、源码可见的授权与信任边界评估：围绕主体、资源、操作、条件和政策组织取证、判断与检查。质量约六成、编写复用约四成指开发投入安排，各项质量要求分别验收。
 
-**AR 进程已结束，验收未完成；下一轮 AS 已获用户授权，待开发线程启动。** 唯一活动任务书改为 [AS0–AS19 局部语义展开与真实交付](../superpowers/plans/2026-10-04-authorization-semantic-lowering-and-delivery.md)。AS 从现有实现继续，重点是显式选择/合流、同一状态生成结果、原 skill 实际消费和真实授权变化复用。旧 `guided-evidence-v2` 保留，新增方法显式选择；失败即时定位并具名修后复验。
+**AS 已启动，AS0 接管和一次相关基线核对完成，AS1 设计进行中。** 唯一活动任务书为 [AS0–AS19 局部语义展开与真实交付](../superpowers/plans/2026-10-04-authorization-semantic-lowering-and-delivery.md)。本轮从干净且远端对齐的 `c90787f0` 继续，当前机器状态见 [AS status](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)。重点是显式选择/合流、同一状态生成结果、原 skill 实际消费和真实授权变化复用。旧 `guided-evidence-v2` 保留，新 `semantic-flow-v1` 显式选择；失败即时定位并具名修后复验。
+
+AS 固定 15 质量、4 native、8 变化、2 源码变化位置，作者 4 稿另列。原作者 Memos 未知消费与预选 remove 原任务的源码、v1 政策及三种角色问题一致，原 remove 三臂和依赖它的五个变化位置保留 blocked（8/29），不以换表示或 AS 身份解封。Notes 和 Memos share 仍封存；其它预选任务继续。精确指针见 [AS manifest](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/manifest.json) 与 [继承封存](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/inherited-seals.json)。
 
 ## AR 停止快照与继承事项
 
@@ -17,7 +19,7 @@
 
 | 恢复所需信息 | 权威入口 |
 |---|---|
-| 当前队列 | [AS 任务书](../superpowers/plans/2026-10-04-authorization-semantic-lowering-and-delivery.md)；AS0 启动时建立新机器状态 |
+| 当前队列 | [AS 任务书](../superpowers/plans/2026-10-04-authorization-semantic-lowering-and-delivery.md)；[AS status](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json) |
 | AR 停止前状态 | [status.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/status.json)、[handoff.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/handoff.json) |
 | 普通使用的失败与裁定 | [ordinary-adjudication.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary-adjudication.json) |
 | 真实派发、响应与未知费用 | [ordinary-accounting.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary-accounting.json) |

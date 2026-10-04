@@ -3,7 +3,7 @@
 > 执行配置：gpt-6.1-sol / max。用户已授权本轮连续开发、必要联网与模型调用、提交并推送用户 origin；常规阶段不停下来重新询问。
 > 使用 writing-plans 编制。实施时使用 TDD、systematic-debugging 和必要验证；用户现有授权覆盖常规设计细化及可逆实现，不再等待重复设计批准。
 
-更新于 2026-10-04。状态：**已授权待启动**。基线为 AR 最后工程提交 `cc88bfb2785734c9c5eef822b0adb82867f420d2` 加本轮治理发布提交；AS0 记录实际 HEAD。分支始终 `skill-ir-aot`，只推用户 `origin/skill-ir-aot`。AR 进程结束，研究及真实使用验收仍有未达项；AS 承接责任，不回写旧结果。
+更新于 2026-10-04。状态：**in-progress；AS0 完成，AS1 进行中**。实际接管基线 `c90787f09087b3c79ac1d73b47f970ab928894e0`，工作区干净且用户远端同 SHA。分支始终 `skill-ir-aot`，只推用户 `origin/skill-ir-aot`。AR 进程结束，研究及真实使用验收仍有未达项；AS 承接责任，不回写旧结果。机器状态见 [AS status](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)。
 
 ## 一、目标与完成标准
 
@@ -96,6 +96,8 @@ AR 保留 8/16 已留首行的历史分母和所有修订。六个未运行主�
 ## 五、AS0–AS19 执行队列
 
 ### AS0 — 接管与一次基线核对
+
+已完成：固定 [manifest](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/manifest.json) 的 29 位置及 4 作者稿；一次现有输入/source index 校验和零派发路由/认证检查；相关基线 602 pass/1 skip/4068 assertions、主 typecheck 通过。旧 AR 8/16 首行保持。点验未知作者 Memos 配置后，原 remove 三臂及依赖原基线的 4 变化比较/1 源码位置合计 8/29 blocked；这修正“六个未运行旧位置均可运行”的先验安排，不改变分母或替换任务。其它预选格未发现同逻辑未知。封存报告和指纹见 inherited-seals.json；旧 release 不作为未运行证据。AS 原件根已建立，临时注册代码在仓外 runs 下，旧 AR 不写。
 
 - 确认治理已提交、远端对齐且无其它活动写者；记实际 HEAD 与已有差异，不重建 worktree。
 - 建立新状态、AR 未达责任映射、精确封存清单和上述计划格。逐行核对 retained claim/report/attempt 与 evaluation，release allowlist 只证明可释放，不能代替“从未运行”的证据。AR 原状态的 in-progress 作为历史快照解释，不改原结果字节。

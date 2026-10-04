@@ -1531,7 +1531,7 @@ OWUI新臂三次wire坏稿均在12响应内处理；只读三个原窗口，admi
 
 ### 7.48 AS 局部语义展开与真实交付
 
-2026-10-04，用户授权治理收尾后，以 `gpt-6.1-sol / max` 在主开发分支继续。执行见 [AS0–AS19](../superpowers/plans/2026-10-04-authorization-semantic-lowering-and-delivery.md)。本节记录设计，尚无 AS 实现或效果结果；后续问题和解决过程仍追加在本研究正文，并同步本节当前方法。
+2026-10-04，用户授权治理收尾后，以 `gpt-6.1-sol / max` 在主开发分支继续。执行见 [AS0–AS19](../superpowers/plans/2026-10-04-authorization-semantic-lowering-and-delivery.md)。AS0 已从 `c90787f0` 接管；本节当前记录设计和启动裁定，尚无 AS 真实效果结果。后续问题和解决过程仍追加在本研究正文，并同步本节当前方法。
 
 **方法调整。** 保留现有领域对象、只读取证、三值代数和最终检查。新增窄的局部语义前端，让模型显式描述条件选择、每支的主体/资源绑定、继续或提前返回以及目标效果；宿主负责稳定身份、有限路径展开、出处关联和当前版本。旧 `after` 的共同前驱含义保持，局部合流不能用全局改成 OR 来补救。模型负责源码含义和别名关系，宿主不根据项目名、词法相似或 evaluator 答案推断它们。
 
@@ -1540,6 +1540,8 @@ OWUI新臂三次wire坏稿均在12响应内处理；只读三个原窗口，admi
 **使用与比较。** 先在已知完成、未封存的真实任务验证端到端，再按小块推进三臂比较：M/legacy、M/同新核心、D1/同新核心。两种原 skill 都经普通 native 入口实际加载；作者配置与独立 inquiry 消费另记。政策/前提变化比较 fresh 与 previous，源码变化先验证失效后 fresh 正确，再决定是否有充分依赖信息支持局部复用。AS 结果新建身份，旧 AR 的首答、未运行位置和封存任务保持原状；不以新身份绕过未知请求。
 
 **开发与交付。** 每种真实不良表现当场分类并尝试一次针对性修复及复验，同根因共用修复；任何继续迭代须有新的诊断依据。优先完成机制和真实使用，随后才汇总工程、行为与收益。研究原件、实际费用未知及模型辅助作者成本如实保留，开发精力约六成质量、四成编写复用。
+
+**AS0 原件核对。** 新清单固定五任务三臂、两原 skill 原/变、两任务政策/前提 fresh/previous 和源码变化共 29 位置，作者 4 稿另列。未知作者 Memos 消费的原配置 taskId、源码 ref、v1 政策及普通/admin/self 问题与预选原 remove 是同逻辑任务；按未知完成优先的合同，原 remove 三臂及五个依赖位置 blocked，仍保留 29 分母。旧 Notes/Memos share 封存不动。基线 602 pass/1 skip、typecheck 通过，配置路由和认证仅零调用确认；没有新的分析或质量成功。原件及精确来源见 [AS manifest](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/manifest.json)、[封存](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/inherited-seals.json) 和 [verification](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/verification.json)。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
