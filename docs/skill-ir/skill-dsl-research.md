@@ -1638,9 +1638,9 @@ AS17窄修订只恢复完全省略且显式结果整体可解析的final kind，
 
 **AT8第三轮与接口回修。** 第二项具名修订8/8响应，input102,124/output5,831/cacheRead1,408；模型源码展示34,760字节，原文漏显已消除，final补出了global view与exact-document owner-aware条件。accepted unit却把自然语言写在start，找不到块导致路径在首call之前终止、没有依赖。主点验与只读核验一致；callee不存在本身会生成open dependency，不能另称为本例已经证明的调度bug。当前返回共享接口：块起点未声明则当场拒绝，focused模型schema去掉宿主callee；2红例修复后相关677 pass/1 skip/4505断言和双typecheck通过。原始任务仍partial，继承/用户传播及直接/组权限尚未充分解释；40次真实请求的费用未知。
 
-## 8. 技术文档本地化候选：已设计到哪里
+**AT8外壳修复与AT11原稿。** ShareLink第四轮2/2响应因作者漏空premises停住；Gitea首轮5/5响应因明确control/tool路由外壳停住，没有接受解释或final。修复只归一唯一明确的外壳，空premises不引入事实；语义正文仍由当前focus严格检查。7份原始响应零provider重放全部可进入本地检查，其中1份正文错误仍被拒绝。相关679 pass/1 skip/4516断言和双typecheck通过，真实具名修订另验。两份完整原skill原任务作者各5次响应，交付10/8问题的有效配置与便携usage；独立只读核验确认任务/用户策略保留、无目标/网络/安装/额外模型调用。Cloudflare范围由已登记activeInput提供4条路径，非作者擅扩原始2路径。累计57/57响应，known input/output/cacheRead为384,337/37,039/48,128，美元与真人/开发成本未知；作者忠实与下游完整质量分开。
 
-<!-- AT current evidence is maintained in section7.49 above; the following section remains deferred. -->
+## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
 

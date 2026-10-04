@@ -266,3 +266,5 @@ AT0为新结果目录准备本轮薄runner及其typecheck/replay真实命令，�
 - 文档验证发现AS归档的两份检查日志复述已撤下文档路径，扫描新增5条历史引用误报；按现有retired-reference机制登记精确source/target，原始AS日志及793份证据未改。
 
 AT8/AT9执行记录（2026-10-05）：ShareLink调试首轮完成但未达质量，21派发/21响应，实际美元未知；首轮原件固定。独立轨迹/合同复核发现工具字段、谓词说明、link参数和错误values生命周期缺陷，匿名TDD修复后相关668 pass/1 skip，4367断言，两项typecheck通过。新增输入修订locked-framework-v1仅扩充锁文件哈希匹配的DRF3.18.1源码，所有Paperless臂共享；原始输入/政策不改。具名修订at8-source-contract-and-typed-link-v1待同题复验，暂停受影响派发到该修订验证。
+
+AT8/AT11执行记录（2026-10-05）：ShareLink第四轮和Gitea首轮共7次已知响应未交付，被空premises/明确路由外壳阻断。具名at8-focused-envelope-v1经2项匿名红绿及7份原响应零调用重放修通外壳；1份错误正文仍由本地focus拒绝。相关679 pass/1 skip/4516断言、main/AT类型检查通过；此记录只释放外壳风险，同题真实采用待验证。两份原任务作者均有效，10/8问题、各5次模型响应，独立核验任务、策略、remaining duties与实际工具；Cloudflare来源扩展来自共同activeInput。累计57/57响应，USD/真人/开发未知。下一步提交该阶段后重跑两个调试行的具名修订，再推进4native、变稿及原字节消费、变化和12主位置。

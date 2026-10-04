@@ -24,6 +24,40 @@ async function setup(count = 3) {
 const body = { start: "main", complete: true, blocks: [{ name: "main", steps: [{ kind: "return", name: "ok", claim: "Source returns successfully without a mutation", outcome: "allow", value: true }] }] }
 const interpret = (focusId: string, unit: unknown = body) => ({ schemaVersion: "authorization-focused-update/v1", focusId, kind: "interpret", unit })
 
+test("focused transport preserves a malformed local body for current-focus diagnostics", async () => {
+  const { runtime } = await setup(1), current: any = runtime.modelContext()
+  const schemas = inquiryStepSchemas("focused-closure-v1", false, "behavior", "interpret")
+  const malformed = { ...body, blocks: [{ name: "main", steps: [{ kind: "transform", name: "set", claim: "Incomplete field transformation" }] }] }
+  const payload = { kind: "tool", controlDelta: interpret(current.focus.id, malformed) }
+  expect(schemas.modelSchema.safeParse(payload).success).toBe(false)
+  const parsed = schemas.schema.safeParse(payload)
+  expect(parsed.success).toBe(true)
+  if (!parsed.success || !("controlDelta" in parsed.data)) throw new Error("Expected local payload")
+  const result = await runtime.propose(parsed.data.controlDelta)
+  expect(result.diagnostics.some(d => d.code === "focus-schema")).toBe(true)
+  expect((runtime.modelContext() as any).focus.id).toBe(current.focus.id)
+  expect(runtime.report().semantic?.units).toHaveLength(0)
+})
+test("natural author empty-premise and focused routing omissions use no extra model calls", async () => {
+  const { sourceRoot } = await setup(1); let calls = 0
+  const provider: any = { name: "mock", async complete(params: any) {
+    const prompt = params.messages[0].content; let value: any
+    if (calls++ === 0) value = { schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect entry", entryHint: "entry" }] }
+    else {
+      const context = JSON.parse(prompt.split("Current local explanation context: ")[1].split("\n\nRemaining dispatches:")[0])
+      value = context.focus.stage === "interpret" ? { controlDelta: interpret(context.focus.id) } : { result: { schemaVersion: "authorization-focused-result/v1", focusId: context.focus.id, answers: [{ explanation: "The shown entry returns successfully without mutation." }], scope: "bounded" } }
+    }
+    return { text: "", toolCalls: [{ id: `c${calls}`, name: params.tools[0].name, arguments: params.tools[0].name === "submit_inquiry_declaration" ? value : { value } }], tokens: emptyTokenUsage(), durationMs: 0, stopReason: "tool_use" }
+  }, async completeWithToolResults() { throw new Error("Unused") } }
+  const run = await runAuthorizationInquiry({ provider, method: "D1", strategy: "focused-closure-v1", brief: "Inspect entry", sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["."], maxDispatches: 12 })
+  expect(run.status).toBe("completed")
+  expect(calls).toBe(3)
+  expect(run.inquiry?.questions[0]?.premises).toEqual([])
+  expect(run.wireFailures).toHaveLength(0)
+  expect(run.wireNormalizations.map(n => n.code)).toEqual(["author-empty-premises-omitted", "focused-control-kind-omitted", "focused-final-kind-omitted"])
+  expect(run.domain?.semantic?.units).toHaveLength(1)
+})
+
 test("an undeclared block start stays repairable before accepting or reviewing a unit", async () => {
   const { runtime } = await setup(1), first: any = runtime.modelContext()
   const invalid = await runtime.propose(interpret(first.focus.id, { ...body, start: "A prose description of this procedure" }))

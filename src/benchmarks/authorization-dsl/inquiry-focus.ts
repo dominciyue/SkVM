@@ -28,10 +28,11 @@ const actions = {
 }
 const defer = z.object({ ...common, kind: z.literal("defer"), reason: InquiryText, revisit: InquiryText.optional() }).strict()
 export const FocusedUpdateSchema = z.discriminatedUnion("kind", [actions.interpret, actions.locate, actions.link, actions.review, defer])
-export function focusedUpdateSchema(stage?: FocusStage) {
+export const FocusedUpdateEnvelopeSchema = z.discriminatedUnion("kind", [actions.interpret.extend({ unit: z.unknown() }), actions.locate, actions.link, actions.review, defer])
+export function focusedUpdateSchema(stage?: FocusStage, parsing = false) {
   if (stage === "answer") return defer
-  if (stage === "interpret") return z.union([actions.interpret, actions.locate, defer])
-  return stage ? z.union([actions[stage], defer]) : FocusedUpdateSchema
+  if (stage === "interpret") return z.union([parsing ? actions.interpret.extend({ unit: z.unknown() }) : actions.interpret, actions.locate, defer])
+  return stage ? z.union([actions[stage], defer]) : parsing ? FocusedUpdateEnvelopeSchema : FocusedUpdateSchema
 }
 const answer = SemanticResultSchema.shape.questions.element.omit({ questionId: true }).extend({
   paths: z.array(z.object({ path: z.number().int().nonnegative(), explanation: InquiryText, disposition: z.enum(["allow", "deny", "unknown"]).optional(), protectedEffect: z.enum(["none", "performed", "unresolved"]).optional(), policy: z.object({ expected: z.enum(["allow", "deny"]), text: InquiryText }).strict().optional() }).strict()).max(16).default([]),
