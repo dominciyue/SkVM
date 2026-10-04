@@ -8,7 +8,7 @@
 
 **Tech Stack:** Git worktree、PowerShell、Python 标准库、现有文档与实验目录检查工具。
 
-**状态：** governance-verified / publication-pending。2026-10-04。两批累计退出22个旧工作树、收存39个材料目录和2个旧环境；另压缩16个关闭实验日志并归并开发自有正文。AR 进程结束后，用户授权本线程完成治理及发布，再派发 [AS 开发任务书](2026-10-04-authorization-semantic-lowering-and-delivery.md)。三个此前删除被拒绝的空目录保留。下面 G0–G10 为当时执行记录，关于“AR 仍在运行/暂缓发布”的描述由 G11–G12 接管。
+**状态：** completed-published-with-retained-empty-directories。2026-10-04。两批累计退出22个旧工作树、收存39个材料目录和2个旧环境；另压缩16个关闭实验日志并归并开发自有正文。AR 进程结束后，用户授权本线程完成治理及发布，再派发 [AS 开发任务书](2026-10-04-authorization-semantic-lowering-and-delivery.md)。三个此前删除被拒绝的空目录保留。下面 G0–G10 为当时执行记录，关于“AR 仍在运行/暂缓发布”的描述由 G11–G12 接管。
 
 ## 1. 已核实的问题
 
@@ -210,5 +210,6 @@ git worktree list --porcelain
 ### G12 — 验证、发布和唯一写者移交
 
 - [x] 文档单测15/15；27,275文件扫描 broken/legacy/governance error 全为0，5条篇幅软提醒保留；catalog 18条、0诊断；主 typecheck 和 staged diff 检查通过。14份版本化材料、AR原件及生产源码无本轮差异，凭据模式扫描0命中。两项定向只读复核完成，AS任务映射/封存/native及预选变化任务说明已补齐；无模型业务实验。
-- [ ] 按精确路径提交本轮治理和 AS 计划，推送用户 origin，核对远端与本地。AR 的63个历史checkpoint一并发布保存，仍明确验收未完成。
-- [ ] 更新本地治理记录和conversation log，将 AS 任务书派发到 gpt-6.1-sol/max 新线程；派发后本线程不再修改共享文件或Git。
+- [x] 治理与 AS 计划提交 `b1a8d6aabe313b9260fd1f3427eb0088af3b8333` 已推送用户 origin，并通过 ls-remote 核对；当时工作区干净。AR 的63个历史checkpoint一并发布保存，仍明确验收未完成。本次状态收口提交继续同一发布流程。
+
+AS 派发使用 gpt-6.1-sol/max，创建回执保存在本地维护目录。状态收口推送后再创建线程；新线程接管共享文档和 Git，治理线程只保存自己的本地派发回执，不再修改仓库。当前状态页与 AS0 负责记录启动后的真实进度。
