@@ -73,3 +73,39 @@ test("a native zero-dispatch inspection needs the exact loader failure and bound
   await writeFile(path.join(output, "zero-dispatch-inspection.json"), JSON.stringify(proof))
   await expect(inspectNativeZeroDispatch(output)).rejects.toThrow(/pre-provider failure/)
 })
+test("authors bind their unchanged original skill and the registered variant policy without filling model questions", async () => {
+  const author = await import("./authors.ts").catch(() => ({} as any)), entry = { id: "author-original", task: "a", skill: "original", variant: "original", sourceSkill: "original/SKILL.md", fieldOrigin: "model-authored", hostFillsOnlyMechanicalMetadata: true }, native = { id: "native-original", kind: "native", task: "a", skill: "original", variant: "original", sourceSkill: entry.sourceSkill, policyOverride: null, admission: "eligible", method: "D1", strategy: "semantic-flow-v1", completeSkillAndReferencesRequired: true, originalBriefAndOtherDutiesPreserved: true, totalProviderBudget: 12, totalToolBudget: 24 }, manifest = { authors: [entry], rows: [native], tasks: [{ id: "a", admission: "eligible" }] }
+  expect(typeof author.selectAuthor).toBe("function")
+  expect(author.selectAuthor(manifest, entry.id)).toMatchObject({ author: entry, native })
+  expect(() => author.selectAuthor({ ...manifest, tasks: [{ id: "a", admission: "blocked-sealed-logical-task" }] }, entry.id)).toThrow("sealed")
+  expect(() => author.selectAuthor({ ...manifest, rows: [{ ...native, sourceSkill: "replacement/SKILL.md" }] }, entry.id)).toThrow("original")
+  expect(() => author.selectAuthor({ ...manifest, authors: [{ ...entry, hostFillsOnlyMechanicalMetadata: false }] }, entry.id)).toThrow("model")
+  expect(() => author.selectAuthor({ ...manifest, rows: [{ ...native, completeSkillAndReferencesRequired: false }] }, entry.id)).toThrow("original skill")
+  expect(() => author.selectAuthor({ ...manifest, rows: [{ ...native, strategy: "legacy" }] }, entry.id)).toThrow("original skill")
+})
+test("author consumption rejects edited drafts and changed original skill identities before provider dispatch", async () => {
+  const api = await import("./authors.ts").catch(() => ({} as any)), author = { id: "author-anonymous", task: "anonymous", sourceSkill: "original/SKILL.md", variant: "original" }, claim = { row: { ...author, kind: "author", method: "D1", strategy: "semantic-flow-v1" }, originalSkill: "original/SKILL.md", originalSkillSha256: "original-sha", originalInputSha256: "task-sha" }, report = { sourceSkillUnmodified: true, originalSkillSha256: "original-sha", authoredArtifacts: { inputSha256: "draft-sha", usageSha256: "usage-sha" } }, actual = { originalSkill: "original/SKILL.md", originalSkillSha256: "original-sha", originalInputSha256: "task-sha", inputSha256: "draft-sha", usageSha256: "usage-sha" }
+  expect(typeof api.assertAuthorConsumeIdentity).toBe("function")
+  expect(() => api.assertAuthorConsumeIdentity(author, claim, report, actual)).not.toThrow()
+  expect(() => api.assertAuthorConsumeIdentity(author, claim, { ...report, sourceSkillUnmodified: false }, actual)).toThrow("identity")
+  expect(() => api.assertAuthorConsumeIdentity(author, claim, report, { ...actual, inputSha256: "host-edited" })).toThrow("identity")
+  expect(() => api.assertAuthorConsumeIdentity(author, claim, report, { ...actual, originalSkillSha256: "replacement" })).toThrow("identity")
+})
+test("source change requires the entire current source index to match its one declared byte edit", async () => {
+  const api = await import("./source-changes.ts").catch(() => ({} as any)), original = [{ path: "selected.py", sha256: "before", bytes: 100 }, { path: "route.py", sha256: "unchanged", bytes: 200 }], edit = { path: "selected.py", beforeSha256: "before", afterSha256: "after", afterBytes: 80 }
+  expect(typeof api.assertOneSourceEdit).toBe("function")
+  expect(() => api.assertOneSourceEdit(original, [{ ...original[0], sha256: "after", bytes: 80 }, original[1]], edit)).not.toThrow()
+  expect(() => api.assertOneSourceEdit(original, [{ ...original[0], sha256: "after", bytes: 80 }, { ...original[1], sha256: "stale-unregistered-edit" }], edit)).toThrow("source")
+  expect(() => api.assertOneSourceEdit(original, [{ ...original[0], sha256: "after", bytes: 80 }], edit)).toThrow("source")
+  expect(() => api.assertOneSourceEdit(original, [...original, { path: "new.py", sha256: "extra", bytes: 1 }], edit)).toThrow("source")
+})
+test("source change admission requires its registered semantic base and edits one source-local clause only", async () => {
+  const source = await import("./source-changes.ts").catch(() => ({} as any)), base = { ...row, id: "quality-a-D-S" }, changed = { id: "source-change-a-fresh", kind: "source-change", task: "a", method: "D1", strategy: "semantic-flow-v1", baseRow: base.id, sourceIntent: "Remove the exact object clause", admission: "depends-on-checked-bounded-base", blockedBy: null }, manifest = { rows: [base, changed], tasks: [{ id: "a", admission: "eligible" }] }
+  expect(typeof source.selectSourceChangeRow).toBe("function")
+  expect(source.selectSourceChangeRow(manifest, changed.id)).toEqual(changed)
+  expect(() => source.selectSourceChangeRow({ ...manifest, rows: [base, { ...changed, blockedBy: "unknown-base" }] }, changed.id)).toThrow("sealed")
+  const clause = "            and exact_object_check(\n                caller,\n                object,\n            )\n", original = `class Other:\n${clause}\nclass Selected:\n    def validate(self, object):\n        if caller is not None and global_permission:\n${clause}            return object\n        raise Rejected()\n\nclass After:\n    pass\n`
+  expect(source.removeOneScopedClause(original, "Selected", clause)).toBe(original.replace(`global_permission:\n${clause}`, "global_permission:\n"))
+  expect(() => source.removeOneScopedClause(original, "Selected", "missing")).toThrow("unique")
+  expect(() => source.removeOneScopedClause(original.replace("class After:", `class Selected:\n${clause}\nclass After:`), "Selected", clause)).toThrow("unique")
+})

@@ -96,6 +96,7 @@ function validationDiagnostics(error: unknown, value?: unknown): StructuredExtra
       ...(issue.code === "unrecognized_keys" ? { keys: issue.keys.slice(0, 16).map(k => k.slice(0, 128)) } : {}),
       ...(issue.code === "invalid_type" ? { expected: issue.expected, received: issue.received } : {}),
       ...(issue.code === "invalid_literal" ? { expected: typeof issue.expected === "string" ? issue.expected.slice(0, 128) : issue.expected } : {}),
+      ...(issue.code === "invalid_union_discriminator" ? { expected: issue.options.slice(0, 16).map(option => typeof option === "string" ? option.slice(0, 128) : option), ...(typeof actual === "string" ? { received: actual.slice(0, 128) } : {}) } : {}),
     }
   })
 }
@@ -228,7 +229,7 @@ async function extractViaToolUse<T>(opts: {
   let result: T
   try {
     // Unwrap only explicit transport metadata. Historical direct object steps remain parseable.
-    result = wrapped && toolCall.arguments && typeof toolCall.arguments === "object" && Object.keys(toolCall.arguments).length === 1 && Object.hasOwn(toolCall.arguments, "value")
+    result = wrapped && toolCall.arguments && typeof toolCall.arguments === "object" && Object.hasOwn(toolCall.arguments, "value")
       ? z.object({ value: schema }).strict().parse(toolCall.arguments).value as T
       : schema.parse(toolCall.arguments)
   } catch (error) {

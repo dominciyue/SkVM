@@ -1575,6 +1575,10 @@ OWUI新臂三次wire坏稿均在12响应内处理；只读三个原窗口，admi
 
 **AS10 首次普通入口的零派发故障。** 登记的 Cloudflare/Paperless 原位置在同版本初始化失败：薄 driver 写入绝对 sourceRoot，public loader 拒绝；缺 native trace 的原报告保守保留 unknown。日志只证明无可见请求，另一独立代码顺序核验及主线程点验确认确切 loader 异常先于 complete/agent loop。原 claim/report/CLI session/stdout/stderr/scope 与原版本代码片段以哈希绑定为零派发证明，原报告不改。匿名相对 scope、未知调用拒绝、证明缺失及篡改红绿测试通过；共享 claim/replay 可调用严格零派发 inspector，已有调用或额外请求证据不能解封。路径生成改为相对于新 scope 并 public-loader 验证。该次 provider/cost 为 0；其它封存不动，不计为 native 使用成功。接下来原行具名普通复验，作者及变化工作继续依其原合同推进。
 
+**AS9 第七次与严格外壳诊断。** c16cbc62 的具名修订获 8/8 响应，controlDelta.workSelections 已采用且实际读源；新候选在 value 之外另放 controlDelta。原解析器的“外壳必须恰好单 key 才 unwrap”启发式退回旧格式，遮蔽了真实多字段错误，唯一修复也重复。主线程点验完整 root keys 后纠正只读核验对“嵌套 kind”的初步推断；匿名红例验证改为存在显式 value 即严格检查外壳，同时保留 discriminator 的实际路径和允许值。没有代搬/删候选或增加调用。累计38派发/36响应、733951已知input+output token；美元未知，仍无完整授权交付。联合770 pass/1 skip/4514 assertions、主与AS局部typecheck通过，下一步同位置 as-wrapper-diagnostics-v1 实际复验。
+
+**AS12/AS13 入口准备及边界核验。** 三项独立只读核验定位两个真实身份缺口：源码变化旧锁只核对被改文件，作者消费没有绑定原 skill 未改及原稿字节。匿名红绿后，源码入口检查整个允许索引等于唯一登记编辑，并绑定当前 base/previous/意图和零-provider失效证据；作者入口共享 native 登记约束、绑定原 skill/task/claim/report/原 inquiry 与USAGE字节，再经普通CLI消费。原 skill完整加载，宿主不供给完整问题/答案/图；作者实际输出预算与质量分析分列。此处只证明工程准备，四稿/消费及真实变化尚未运行，没有人力或质量收益主张。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

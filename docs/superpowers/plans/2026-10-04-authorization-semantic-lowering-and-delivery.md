@@ -3,7 +3,7 @@
 > 执行配置：gpt-6.1-sol / max。用户已授权本轮连续开发、必要联网与模型调用、提交并推送用户 origin；常规阶段不停下来重新询问。
 > 使用 writing-plans 编制。实施时使用 TDD、systematic-debugging 和必要验证；用户现有授权覆盖常规设计细化及可逆实现，不再等待重复设计批准。
 
-更新于 2026-10-04。状态：**in-progress；AS8/AS9 第五次参数缺口消失但完整交付未过，原步骤定位反馈已确定性验证；AS10 即将首份原 skill 普通使用，AS11 配对入口已准备**。实际接管基线 `c90787f09087b3c79ac1d73b47f970ab928894e0`，当时工作区干净且用户远端同 SHA。分支始终 `skill-ir-aot`，只推用户 `origin/skill-ir-aot`。AR 进程结束，研究及真实使用验收仍有未达项；AS 承接责任，不回写旧结果。机器状态见 [AS status](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)。
+更新于 2026-10-04。状态：**in-progress；AS8/AS9 第七次读源及选择嵌套通过，外壳多字段诊断误报已修复；AS10 原失败零派发已证明，AS11–AS13 薄入口及边界检查已准备，仍待实际使用**。实际接管基线 `c90787f09087b3c79ac1d73b47f970ab928894e0`，当时工作区干净且用户远端同 SHA。分支始终 `skill-ir-aot`，只推用户 `origin/skill-ir-aot`。AR 进程结束，研究及真实使用验收仍有未达项；AS 承接责任，不回写旧结果。机器状态见 [AS status](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)。
 
 ## 一、目标与完成标准
 
@@ -170,6 +170,8 @@ AR 保留 8/16 已留首行的历史分母和所有修订。六个未运行主�
 
 第六次获 3/3 响应，模型把 `workSelections` 放在 step 顶层，唯一格式修复仍返回相同候选；未读源，不能判断终点反馈的采用效果。两路只读核对确认公开 Schema 和实际修复请求一致，但 guide 一处只说字段名，反馈只给 unknown key，没有指出当前 Schema 中的允许位置。当前计划：匿名错误嵌套红例先复现；现有一次修复增加从同一广告 Schema 派生的有界字段位置，保留原候选，不自动搬字段；guide 明写 `controlDelta.workSelections`，沿 attempt-6 具名复验。
 
+第七次在 c16cbc62 获 8/8 响应，已正确采用嵌套选择并实际读源；新候选的外层 value 之外另有 controlDelta。原解析器只在外壳恰好一个 key 时检查 value，因而退回旧直传格式、误报根 kind，唯一修复又重犯。只读核验及主线程原响应点验后，匿名红例确认该遮蔽：只要显式外壳 value 存在即按严格外壳检查，多字段正常拒绝、给同一 Schema 位置；嵌套 discriminator 另保留允许字面值和收到值。宿主不改候选，下一次 as-wrapper-diagnostics-v1 沿 attempt-7。38 派发/36 响应、733951 已知 input+output token，美元未知；终答与源码完整性仍未通过。
+
 ### AS10 — 两份原 skill 的普通使用
 
 首个 Cloudflare/Paperless 原任务在普通入口初始化时失败：AS 薄 driver 写入绝对 `sourceRoot`，违反 public input 的相对路径合同；原报告缺 trace，保守记 unknown。两路核验分别点验原 CLI 日志和调用顺序，确认路径校验先于 provider.complete；日志缺失本身不是零派发证明。当前计划：先匿名相对 scope 红绿测试，再保存绑定 claim/report/stdout/stderr/scope/实际 CLI session 与原代码顺序的独立零派发证明。只有该证明通过哈希和身份校验、且没有实际请求证据，才允许具名 repair；原 unknown 报告字节和其它任务封存不改。后续 scope 在派生路径后通过 public loader 再进入普通入口。
@@ -193,11 +195,15 @@ AS11 薄入口采用现有 public initialize/edit/compare/run。只从本轮原�
 - 第一目标是正确失效与重新分析。仅当依赖记录能覆盖当前决定性引用、调用和对象关系时，再做未受影响局部解释保留；否则保守 fresh，明确局部复用未实现。
 - 缺来源、变化窗口之外的原依赖及新激活路径有反例，不以 citation 子集冒充全部依赖。
 
+薄入口 source-changes.ts 仅在当前 AS 同策略合格 base 上运行：按原允许范围逐字复制源码，移除预登记 ShareLinkSerializer 内唯一 object-view 子句，保留全局及 endpoint 检查。完整索引必须等于原索引加该一处字节编辑；锁定当前 base/report/previous/model/method/strategy/意图，旧锁或其它源码改变在 provider 前拒绝。public previous 必须返回 needs-fresh-analysis 且 providerFactory 未构造，失效证据绑定该锁；随后同一声明与变化源码 fresh。未有合格 base 时零调用阻塞，不填手工正确图。
+
 ### AS13 — 编写与修改的真实工作量
 
 - 两份来源 skill 各一份模型辅助作者原稿和变化稿，共四稿；输入为原正文、自然任务、允许范围与必要政策/前提。
 - 程序只填机械信息；保存作者首稿、诊断、修改后稿，真实消费用原输出字节。不能由主代理偷偷修字段替代作者成绩。
 - 记录用户要提供哪些信息、多少字段由宿主派生、作者调用/修订次数和下游阻塞。未做真人计时则 humanMinutes=null，模型辅助流程本身可有工程价值。
+
+薄入口 authors.ts 使用完整原 skill 的普通 run，公开格式、自然请求、同范围源码及必要政策；宿主只写机械 task 元数据，不供给完整问题集合或原答案。四稿使用普通 adapter 输出预算，与质量 6000-token 单调用预算分列；全部真实请求保留。check 与 scope/policy 检查后保留原 inquiry/USAGE 字节及 SHA，消费绑定作者 claim/report、未修改原 skill 与原任务身份，复制原稿原字节后经普通 inquiry CLI。无合格作者稿只记依赖阻塞；格式修订仍由作者模型完成，主代理不补字段。
 
 ### AS14 — 三臂分块质量比较
 
