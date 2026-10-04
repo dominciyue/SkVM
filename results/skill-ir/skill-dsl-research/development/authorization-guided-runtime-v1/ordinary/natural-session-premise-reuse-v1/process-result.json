@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "authorization-ar-natural-session-use-result/v1",
+  "at": "2026-10-04T05:28:52.280659+00:00",
+  "exitCode": 1,
+  "workDir": "D:\\skill优化\\project-maintenance\\runs\\portable-natural-session-init-wly3a4te",
+  "sessionPath": null,
+  "status": "needs-fresh-analysis",
+  "validation": null,
+  "reuse": null,
+  "providerCalls": 0,
+  "respondedCalls": 0,
+  "knownTokens": null,
+  "actualUSD": null,
+  "targetExecutions": 0,
+  "semanticReview": "pending",
+  "steps": [
+    {
+      "action": "init",
+      "args": [
+        "init",
+        "--from=D:\\skill优化\\project-maintenance\\runs\\portable-natural-session-init-wly3a4te\\runs\\sessions\\2026-10-04T051403172Z-2da2fbb6",
+        "--out=./declared.json"
+      ],
+      "exitCode": 0,
+      "result": {
+        "status": "created",
+        "outputPath": "D:\\skill优化\\project-maintenance\\runs\\portable-natural-session-init-wly3a4te\\declared.json",
+        "sourceRefVerification": "authored",
+        "providerCalls": 0,
+        "declarationSource": "retained-model-authored",
+        "semanticEquivalence": "unreviewed"
+      }
+    },
+    {
+      "action": "edit",
+      "args": [
+        "edit",
+        "--input=./declared.json",
+        "--edit=./premise-edit.json",
+        "--out=./changed.json"
+      ],
+      "exitCode": 0,
+      "result": {
+        "status": "created",
+        "outputPath": "D:\\skill优化\\project-maintenance\\runs\\portable-natural-session-init-wly3a4te\\changed.json",
+        "sourceRefVerification": "authored",
+        "providerCalls": 0
+      }
+    },
+    {
+      "action": "compare",
+      "args": [
+        "compare",
+        "--input=./changed.json",
+        "--previous=D:\\skill优化\\project-maintenance\\runs\\portable-natural-session-init-wly3a4te\\runs\\sessions\\2026-10-04T051403172Z-2da2fbb6",
+        "--strategy=guided-evidence-v2"
+      ],
+      "exitCode": 0,
+      "result": {
+        "schemaVersion": "authorization-inquiry-compare/v1",
+        "status": "needs-review",
+        "taskChanged": true,
+        "sourceChanged": false,
+        "strategy": "guided-evidence-v2",
+        "strategyChanged": false,
+        "policyOnly": false,
+        "premiseOnly": true,
+        "reuseEligibility": {
+          "status": "needs-fresh-analysis",
+          "info": {
+            "previousSessionId": "2026-10-04T051403172Z-2da2fbb6",
+            "change": "premise-only",
+            "answerReused": false,
+            "semanticSupport": "unreviewed",
+            "reusedRuleKeys": [],
+            "invalidatedPolicyKeys": [],
+            "invalidatedPremiseKeys": []
+          },
+          "reasons": [
+            "Previous session lacks checked bounded question/dependency footprints or has unknown completion; old partial output cannot be promoted."
+          ]
+        },
+        "providerCalls": 0,
+        "affectedComputation": [
+          "premise-mapping",
+          "path-evaluation",
+          "policy-comparison"
+        ],
+        "mechanicalIndexReusable": true,
+        "controlRulesReused": false,
+        "reviewReasons": [
+          "Current request, premises, policy or scope changed; recheck affected questions and paths in a fresh session."
+        ],
+        "answerReused": false
+      }
+    },
+    {
+      "action": "previous-run",
+      "args": [
+        "run",
+        "--input=./changed.json",
+        "--out=./reuse-runs",
+        "--previous=D:\\skill优化\\project-maintenance\\runs\\portable-natural-session-init-wly3a4te\\runs\\sessions\\2026-10-04T051403172Z-2da2fbb6",
+        "--model=xty/gpt-5.6-sol",
+        "--method=D1",
+        "--strategy=guided-evidence-v2"
+      ],
+      "exitCode": 1,
+      "result": {
+        "status": "needs-fresh-analysis",
+        "providerCalls": 0,
+        "noAutomaticResend": true,
+        "reuseEligibility": {
+          "status": "needs-fresh-analysis",
+          "info": {
+            "previousSessionId": "2026-10-04T051403172Z-2da2fbb6",
+            "change": "premise-only",
+            "answerReused": false,
+            "semanticSupport": "unreviewed",
+            "reusedRuleKeys": [],
+            "invalidatedPolicyKeys": [],
+            "invalidatedPremiseKeys": []
+          },
+          "reasons": [
+            "Previous session lacks checked bounded question/dependency footprints or has unknown completion; old partial output cannot be promoted."
+          ]
+        },
+        "recovery": {
+          "kind": "fresh-analysis",
+          "command": "skvm 'authorization' 'inquiry' 'run' '--input=D:\\skill优化\\project-maintenance\\runs\\portable-natural-session-init-wly3a4te\\changed.json' '--out=D:\\skill优化\\project-maintenance\\runs\\portable-natural-session-init-wly3a4te\\reuse-runs' '--model=xty/gpt-5.6-sol' '--method=D1' '--strategy=guided-evidence-v2'",
+          "arguments": [
+            "authorization",
+            "inquiry",
+            "run",
+            "--input=D:\\skill优化\\project-maintenance\\runs\\portable-natural-session-init-wly3a4te\\changed.json",
+            "--out=D:\\skill优化\\project-maintenance\\runs\\portable-natural-session-init-wly3a4te\\reuse-runs",
+            "--model=xty/gpt-5.6-sol",
+            "--method=D1",
+            "--strategy=guided-evidence-v2"
+          ],
+          "instruction": "Run fresh analysis without --previous; the old session remains unchanged."
+        }
+      }
+    }
+  ],
+  "positivePreviousVerified": false,
+  "noAutomaticResend": true
+}

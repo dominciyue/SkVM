@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "authorization-ar-neutral-natural-session-review/v1",
+  "at": "2026-10-04T05:56:21.902510+00:00",
+  "report": "ordinary/natural-session-init-v1/process-result.json",
+  "reportSha256": "0ed9882fb6e754aea5229f495c7161ed914813e03ffc2f32458b6956ff3a590c",
+  "independentReviews": [
+    {
+      "reviewer": "neutral_natural_session_source_review",
+      "kind": "compressed-independent-review",
+      "initialRating": "full",
+      "finalRating": "full",
+      "sourceAnchors": [
+        "probes/wire-1/source/entry.ts:1-4"
+      ],
+      "findings": [
+        "False when disabled, true when enabled, unspecified actual input remains unknown.",
+        "Raw branch IDs differ from graph pathKeys."
+      ],
+      "incompleteInferencePreserved": "Described the proposed control rules as source-consistent and the failure as only structural IDs."
+    },
+    {
+      "reviewer": "neutral_natural_session_trace_review",
+      "kind": "compressed-independent-review",
+      "findings": [
+        "12/12 initial-phase dispatch/response; final result rejected.",
+        "One reported wire failure: top-level observations in a final envelope.",
+        "Checker requires branch IDs equal pathKeys, while generic result parser accepts arbitrary IDs."
+      ],
+      "incorrectInferencePreserved": "Inferred that active-branch diagnostics reached final opportunities from the final report, and called the identity mismatch a host/runtime defect."
+    }
+  ],
+  "mainAdjudication": {
+    "initialRating": "full",
+    "finalRating": "full",
+    "overUnknown": false,
+    "mechanicalDelivery": "rejected",
+    "graphMeaning": "incorrect typed terminal for the disabled return",
+    "pointChecks": [
+      "Actual requests10/11/12 each contain zero active-branch-missing occurrences. Request11 final wire failure consumes request12; only after that response can final validation diagnose IDs.",
+      "Matching IDs is an existing mechanical contract, not evidence that the checker implementation is wrong.",
+      "The offline identifier-only counterfactual still derives branch-rule-conflict: graph says allow while source-grounded disabled branch says deny. ID repair alone would not establish correct extraction.",
+      "Both final raw host responses are retained in attempt.response; the exhausted next wire repair does not erase them."
+    ],
+    "actualPrevious": "Public init/edit/compare/run --previous performed; 0 provider calls, no new session, needs-fresh-analysis.",
+    "semanticOrPreviousPromotion": false
+  }
+}

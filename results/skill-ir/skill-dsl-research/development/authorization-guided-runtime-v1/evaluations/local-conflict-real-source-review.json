@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "authorization-ar-local-conflict-real-review/v1",
+  "at": "2026-10-04T05:56:21.902510+00:00",
+  "report": "runs/quality-owui-ingestion-D1/attempt-2/report.json",
+  "reportSha256": "760e691922f26355e063e6c9a5c8078c44cf1d6c912e395a8a4b6f7d97275811",
+  "independentReviews": [
+    {
+      "reviewer": "owui_local_conflict_repair_source_review",
+      "kind": "compressed-independent-review",
+      "initialRating": "partial",
+      "finalRating": "partial",
+      "findings": [
+        "File helper caller-bound vs admin id-only distinction is correct.",
+        "Input file and destination collection are distinct; endpoint has no destination owner comparison.",
+        "Allowed save helper contains hash and add/existing-collection branches, not an ownership comparison; downstream ownership is overstated as unresolved."
+      ],
+      "sourceAnchors": [
+        "models/files.py:161-184",
+        "routers/retrieval.py:1368-1387",
+        "routers/retrieval.py:1458-1537",
+        "routers/retrieval.py:1559-1570",
+        "retrieval/utils.py:1061-1109"
+      ]
+    },
+    {
+      "reviewer": "owui_local_conflict_repair_trace_review",
+      "kind": "compressed-independent-review",
+      "findings": [
+        "Explicit replacements accepted for eight targets; no remaining control-conflict.",
+        "Auth, both file lookup bodies and save helper were read.",
+        "Final path closure and pathKey/branch-ID errors persist."
+      ],
+      "incorrectInferencePreserved": "Reported ev-8f5d0c2ae1e518372ce1 as a real host ID and attributed evidence-not-shown to bookkeeping/visibility."
+    }
+  ],
+  "mainAdjudication": {
+    "initialRating": "partial",
+    "finalRating": "partial",
+    "overUnknown": true,
+    "causes": [
+      "semantic-extraction",
+      "model-protocol",
+      "delivery-budget"
+    ],
+    "pointChecks": [
+      "models/files.py:172-184 visibly proves id+user_id filtering; its extracted-meaning gap is avoidable.",
+      "Save helper:1368-1387 checks hash/file identity;1458-1467 returns True without insertion for existing collection with overwrite/add false;1527-1534 inserts by supplied name. These visible conditions remain under-explained.",
+      "Runtime/backend facts remain unknown; visible helper authorization omissions do not prove every deployed backend behavior.",
+      "Actual source ID is ev-8f5d0c2ae1a518372ce1. Both shortened ev-8f5d0c2ae1 and e518 typo are model errors; no host reference defect established.",
+      "Actual request12 phase repair contains active-branch-missing four times. Its retained response nests branches/evidenceIds/missing inside behavior and fails final schema. The next wire repair was refused by the existing cap."
+    ],
+    "semanticOrPreviousPromotion": false
+  }
+}

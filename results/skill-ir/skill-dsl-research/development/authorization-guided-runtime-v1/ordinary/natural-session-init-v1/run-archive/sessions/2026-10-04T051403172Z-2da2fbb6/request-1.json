@@ -1,0 +1,131 @@
+{
+  "phase": "author",
+  "params": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Write authorization-inquiry/v1 from this CURRENT natural brief. Do not answer the source question, infer code behavior, add an expectation, future policy or unprovided premises.\nFields: schemaVersion, mode behavior|conformance, questions:[{id,request,principal?,resource?,operation?,entryHint?,premises:[{text,origin:user}]}], optional policy:{text,origin:user|external-policy,location} only for conformance.\nKeep every requested scenario in question.request or a separate question. Optional principal/resource/operation are task wording, never invented code facts. Unspecified facts remain unspecified. Conformance copies the independently supplied policy verbatim.\nUnrelated synthetic example: {schemaVersion:'authorization-inquiry/v1',mode:'behavior',questions:[{id:'museum',request:'Can a visitor reserve an exhibit?',premises:[]}]}. This is a structural example with no source answer.\n\nCurrent mode: behavior\nCurrent user policy: null\nCurrent natural brief:\nInvestigate inspect in the provided source. Does it return true for both enabled and disabled inputs? Give the relevant source branches with citations; enabled is unspecified."
+      }
+    ],
+    "tools": [
+      {
+        "name": "submit_inquiry_declaration",
+        "description": "Declare current questions and explicit user facts without source answers.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "schemaVersion": {
+              "type": "string",
+              "const": "authorization-inquiry/v1"
+            },
+            "mode": {
+              "type": "string",
+              "enum": [
+                "behavior",
+                "conformance"
+              ]
+            },
+            "questions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "request": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "principal": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "resource": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "operation": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "entryHint": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "premises": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "text": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "origin": {
+                          "type": "string",
+                          "const": "user"
+                        }
+                      },
+                      "required": [
+                        "text",
+                        "origin"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "id",
+                  "request",
+                  "premises"
+                ],
+                "additionalProperties": false
+              },
+              "minItems": 1,
+              "maxItems": 16
+            },
+            "policy": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "origin": {
+                  "type": "string",
+                  "enum": [
+                    "user",
+                    "external-policy"
+                  ]
+                },
+                "location": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "text",
+                "origin",
+                "location"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "schemaVersion",
+            "mode",
+            "questions"
+          ],
+          "additionalProperties": false
+        }
+      }
+    ],
+    "toolChoice": {
+      "name": "submit_inquiry_declaration"
+    },
+    "temperature": 0,
+    "maxTokens": 6000
+  }
+}
