@@ -218,3 +218,24 @@ test("invalid numeric accounting remains unknown rather than creating negative k
     expect((await api.replay(root)).rows[0]).toMatchObject({ providerCalls: null, knownProviderCalls: 0, knownUsdSubtotal: 0, totalActualUsd: null })
   }
 })
+test("native pre-dispatch inspection reopens only hash-bound zero-call originals and preserves their unknown report", async () => {
+  for (const actualCalls of [null, 1]) {
+    const root = await temp(), original = [row("native-zero")], run = options({ execute: async () => ({ status: "completion-unknown", providerDispatches: actualCalls }), evaluate: async () => ({}) })
+    await api.developRows(root, original, run)
+    const directory = path.join(root, "runs/native-zero/attempt-1"), hash = async (name: string) => createHash("sha256").update(await readFile(path.join(directory, name))).digest("hex")
+    await writeFile(path.join(directory, "proof.json"), JSON.stringify({ phase: "input-validation", inspected: true }))
+    const inspection = { status: "input-invalid-before-dispatch", providerDispatches: 0, claimSha256: await hash("claim.json"), reportSha256: await hash("report.json"), evidence: [{ path: "proof.json", sha256: await hash("proof.json") }] }, inspectZeroDispatch = async () => inspection
+    let dispatches = 0
+    const repair = { ...run, repairId: "relative-root", repairOf: "native-zero/attempt-1", inspectZeroDispatch, execute: async () => { dispatches++; return { status: "completed", providerDispatches: 2 } } }
+    if (actualCalls === 1) { await expect(api.developRows(root, original, repair)).rejects.toThrow(/unknown completion/); expect(dispatches).toBe(0) }
+    else {
+      const before = await readFile(path.join(directory, "report.json"), "utf8")
+      expect((await api.replay(root, { inspectZeroDispatch })).rows[0]).toMatchObject({ providerCalls: 0, totalActualUsd: 0 })
+      expect((await api.developRows(root, original, repair)).rows[0].status).toBe("completed")
+      expect((await api.replay(root, { inspectZeroDispatch })).rows[0]).toMatchObject({ providerCalls: 2, classificationCorrections: [{ artifact: "runs/native-zero/attempt-1/report.json", verifiedStatus: "input-invalid-before-dispatch", providerCalls: 0 }] })
+      expect(await readFile(path.join(directory, "report.json"), "utf8")).toBe(before)
+      await writeFile(path.join(directory, "proof.json"), "tampered")
+      await expect(api.developRows(root, original, repair)).rejects.toThrow(/inspection evidence/)
+    }
+  }
+})

@@ -168,7 +168,11 @@ AR 保留 8/16 已留首行的历史分母和所有修订。六个未运行主�
 
 第五次获 9/9 响应，参数缺口消失，最终 62 节点/10 路径；四条入口返回仍由模型声明 outcome:unknown，终答却断言 conditional，检查正确拒绝。当前新策略模型反馈没有终点到原局部步骤的对应表，且入口 unknown return 未产生指向步骤的 lowering 诊断，削弱了局部修复定位。下一修订增加窄 `sourceTerminals` 反馈，只保留现有终点的 outcome/gap/sourceOrigin 与路径/原证据对应，并具名诊断原返回步骤；不重复整张 canonical 图，不从 scalar 推断许可、不改模型提议。先匿名红例，再共享接线、具名实际复验；预算与路径上限不增加。
 
+第六次获 3/3 响应，模型把 `workSelections` 放在 step 顶层，唯一格式修复仍返回相同候选；未读源，不能判断终点反馈的采用效果。两路只读核对确认公开 Schema 和实际修复请求一致，但 guide 一处只说字段名，反馈只给 unknown key，没有指出当前 Schema 中的允许位置。当前计划：匿名错误嵌套红例先复现；现有一次修复增加从同一广告 Schema 派生的有界字段位置，保留原候选，不自动搬字段；guide 明写 `controlDelta.workSelections`，沿 attempt-6 具名复验。
+
 ### AS10 — 两份原 skill 的普通使用
+
+首个 Cloudflare/Paperless 原任务在普通入口初始化时失败：AS 薄 driver 写入绝对 `sourceRoot`，违反 public input 的相对路径合同；原报告缺 trace，保守记 unknown。两路核验分别点验原 CLI 日志和调用顺序，确认路径校验先于 provider.complete；日志缺失本身不是零派发证明。当前计划：先匿名相对 scope 红绿测试，再保存绑定 claim/report/stdout/stderr/scope/实际 CLI session 与原代码顺序的独立零派发证明。只有该证明通过哈希和身份校验、且没有实际请求证据，才允许具名 repair；原 unknown 报告字节和其它任务封存不改。后续 scope 在派生路径后通过 public loader 再进入普通入口。
 
 - 从 Cloudflare 与 GitHub 的已有原件和未填答案的自然任务出发；普通 run 加载完整 skill，实际调用新共享工具，最后向用户交付答案。
 - 每份原/变任务使用同一 skill 包；不能用独立 inquiry CLI 跑通替代 native 完成。

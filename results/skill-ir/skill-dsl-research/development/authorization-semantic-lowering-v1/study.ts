@@ -5,6 +5,7 @@ import { execFileSync } from "node:child_process"
 import { developRows, mechanicalReview, retainLocalRun, replay as replayRetained, type Row } from "../authorization-guided-runtime-v1/study.ts"
 import { executeLocalInquiryRun } from "../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts"
 import { hasUnknownAuthorizationCompletion } from "../../../../../src/benchmarks/authorization-dsl/telemetry.ts"
+import { inspectNativeZeroDispatch } from "./zero-dispatch.ts"
 export const root = import.meta.dir, repo = path.resolve(root, "../../../../..")
 export interface ASRow extends Row { studyArm: string; inputFile: string; admission: string; blockedBy?: string | null }
 interface Manifest { testedModel: string; cachePath: string; budgets: Record<string, number>; rows: ASRow[]; tasks: Array<{ id: string; admission: string; inputSha256: string }>; arms: Array<{ studyArm: string; method: string; strategy: string }> }
@@ -23,7 +24,7 @@ export async function assertNoUnknownTask(base: string, task: string) {
     const directory = path.join(base, "runs", id, attempt), claim = await json(path.join(directory, "claim.json"))
     if (claim.row?.task !== task) continue
     const retained = await json(path.join(directory, "report.json")).catch(() => undefined)
-    if (!retained || hasUnknownAuthorizationCompletion(retained.report)) throw new Error(`Logical task sealed by unknown completion: ${id}/${attempt}`)
+    if (!retained || hasUnknownAuthorizationCompletion(retained.report) && !await inspectNativeZeroDispatch(directory)) throw new Error(`Logical task sealed by unknown completion: ${id}/${attempt}`)
   }
 }
 export async function develop(id: string, repairId?: string, repairOf?: string) {
@@ -38,7 +39,7 @@ export async function develop(id: string, repairId?: string, repairOf?: string) 
     evaluate: async (_row, report) => mechanicalReview(report) })
 }
 export async function replay() {
-  const manifest: Manifest = await json(path.join(root, "manifest.json")), retained = await replayRetained(root), admissions = (await readFile(path.join(root, "admissions.jsonl"), "utf8").catch(error => { if (error.code !== "ENOENT") throw error; return "" })).trim().split(/\r?\n/).filter(Boolean).map(line => JSON.parse(line))
+  const manifest: Manifest = await json(path.join(root, "manifest.json")), retained = await replayRetained(root, { inspectZeroDispatch: inspectNativeZeroDispatch }), admissions = (await readFile(path.join(root, "admissions.jsonl"), "utf8").catch(error => { if (error.code !== "ENOENT") throw error; return "" })).trim().split(/\r?\n/).filter(Boolean).map(line => JSON.parse(line))
   return { schemaVersion: "authorization-as-replay/v1", denominator: manifest.rows.length, rows: manifest.rows.map(row => ({ id: row.id, admission: row.admission, ...(admissions.some(a => a.id === row.id) ? { admissionRecords: admissions.filter(a => a.id === row.id) } : {}), ...(retained.rows.find(r => r.id === row.id) ?? { firstAttempt: null, repairAttempts: [], knownProviderCalls: 0 }) })), providerCallsDuringReplay: 0, targetExecutions: 0 }
 }
 if (import.meta.main) {

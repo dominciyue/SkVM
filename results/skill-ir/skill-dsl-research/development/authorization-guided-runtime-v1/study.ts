@@ -16,7 +16,9 @@ const categories = ["schema/wire", "state/checker", "source-location", "semantic
 export const FailureSchema = z.object({ id: z.string(), runId: z.string(), implementationRevision: z.string(), category: z.enum(categories), rootCause: z.string().min(1), originalArtifact: z.string(), repairId: z.string().nullable(), changedFiles: z.array(z.string()), verificationArtifacts: z.array(z.string()), outcome: z.enum(["improved", "unchanged", "regressed", "unresolved"]) }).strict()
 export type Row = { id: string; task: string; method: "M" | "D1"; strategy: string; components: string[]; kind?: string; sourceSkill?: string }
 type Review = { failure?: { category: typeof categories[number]; rootCause: string; components: string[] }; rating?: string; evidence?: string[] }
-type DevelopOptions = { revision: string; model: string; budgets: unknown; concurrency?: number; repairId?: string; repairOf?: string; execute(row: Row, output: string): Promise<any>; evaluate(row: Row, report: any): Promise<Review> }
+export type ZeroDispatchInspection = { status: "input-invalid-before-dispatch"; providerDispatches: 0; claimSha256: string; reportSha256: string; evidence: Array<{ path: string; sha256: string }> }
+type InspectionOptions = { inspectZeroDispatch?: (output: string) => Promise<ZeroDispatchInspection | undefined> }
+type DevelopOptions = InspectionOptions & { revision: string; model: string; budgets: unknown; concurrency?: number; repairId?: string; repairOf?: string; execute(row: Row, output: string): Promise<any>; evaluate(row: Row, report: any): Promise<Review> }
 const exists = (file: string) => stat(file).then(() => true, () => false)
 const json = async (file: string) => JSON.parse(await readFile(file, "utf8"))
 const save = async (file: string, value: unknown, exclusive = true) => { await mkdir(path.dirname(file), { recursive: true }); await writeFile(file, JSON.stringify(value, null, 2) + "\n", { encoding: "utf8", flag: exclusive ? "wx" : "w" }) }
@@ -60,9 +62,22 @@ export async function retainLocalRun(report: any) {
   const run = await json(path.join(report.sessionPath, "run.json"))
   return { ...report, telemetry: run.telemetry, initial: run.initial, final: run.final, validation: run.validation, attempts: run.attempts }
 }
-async function inspectedZeroDispatch(output: string) {
+async function inspectedZeroDispatch(output: string, inspect?: InspectionOptions["inspectZeroDispatch"]) {
+  const retained = await json(path.join(output, "report.json")), report = retained.report
+  if (report.providerDispatches != null && report.providerDispatches !== 0 || report.telemetry?.providerCalls != null && report.telemetry.providerCalls !== 0 || (report.attempts ?? report.native?.attempts ?? []).length) return undefined
   const local = await inspectLocalInquiry(output).catch(() => undefined)
-  return local?.status === "provider-unavailable" && local.providerDispatches === 0 && !(await exists(path.join(local.sessionPath, "dispatch.json"))) ? local : undefined
+  if (local?.status === "provider-unavailable" && local.providerDispatches === 0 && !(await exists(path.join(local.sessionPath, "dispatch.json")))) return local
+  const proof = await inspect?.(output)
+  if (!proof) return undefined
+  const parsed = z.object({ status: z.literal("input-invalid-before-dispatch"), providerDispatches: z.literal(0), claimSha256: z.string().regex(/^[a-f0-9]{64}$/), reportSha256: z.string().regex(/^[a-f0-9]{64}$/), evidence: z.array(z.object({ path: z.string().min(1), sha256: z.string().regex(/^[a-f0-9]{64}$/) }).strict()).min(1) }).strict().parse(proof)
+  const check = async (relative: string, expected: string) => {
+    const file = path.resolve(output, relative), relation = path.relative(path.resolve(output), file)
+    if (!relation || relation === ".." || relation.startsWith(`..${path.sep}`) || path.isAbsolute(relation) || createHash("sha256").update(await readFile(file)).digest("hex") !== expected) throw new Error("Changed or invalid zero-dispatch inspection evidence")
+  }
+  await check("claim.json", parsed.claimSha256); await check("report.json", parsed.reportSha256)
+  if (!isDeepStrictEqual(await json(path.join(output, "claim.json")), retained.identity)) throw new Error("Zero-dispatch inspection identity mismatch")
+  for (const evidence of parsed.evidence) await check(evidence.path, evidence.sha256)
+  return parsed
 }
 /** Dispatch at most two rows, evaluate each completion immediately, then pause affected new work. In-flight results are always retained. */
 export async function developRows(base: string, rows: Row[], options: DevelopOptions) {
@@ -78,7 +93,7 @@ export async function developRows(base: string, rows: Row[], options: DevelopOpt
       if (!(await exists(path.join(original, "claim.json"))) || !(await exists(path.join(original, "report.json")))) throw new Error("Missing retained original attempt")
       const claim = await json(path.join(original, "claim.json")), retained = await json(path.join(original, "report.json"))
       if (!isDeepStrictEqual(claim.row, rows[0]) || claim.attempt !== attempt || JSON.stringify(claim) !== JSON.stringify(retained.identity)) throw new Error("Invalid original attempt identity")
-      if (hasUnknownAuthorizationCompletion(retained.report) && !(await inspectedZeroDispatch(original))) throw new Error("An original attempt of unknown completion cannot be redispatched")
+      if (hasUnknownAuthorizationCompletion(retained.report) && !(await inspectedZeroDispatch(original, options.inspectZeroDispatch))) throw new Error("An original attempt of unknown completion cannot be redispatched")
       originalFailureArtifacts.set(`${match[1]}-attempt-${match[2]}`, `runs/${reference}/report.json`)
       if (claim.repairOf != null && (typeof claim.repairOf !== "string" || typeof claim.repairId !== "string" || !claim.repairId)) throw new Error("Invalid repair ancestry: predecessor requires a named repair")
       if (claim.repairOf == null && claim.repairId != null) throw new Error("Invalid repair ancestry: named repair is missing its predecessor")
@@ -130,7 +145,7 @@ export async function developRows(base: string, rows: Row[], options: DevelopOpt
   return { rows: completed, paused: pauses }
 }
 /** No provider is constructed by replay; all attempts, including uncompleted claims, contribute to accounting. */
-export async function replay(base = root) {
+export async function replay(base = root, options: InspectionOptions = {}) {
   const rows: any[] = []
   for (const id of await readdir(path.join(base, "runs")).catch(() => [])) {
     const run = path.join(base, "runs", id), attempts = (await readdir(run)).filter(a => /^attempt-\d+$/.test(a)).sort((a, b) => Number(a.split("-")[1]) - Number(b.split("-")[1]))
@@ -142,11 +157,11 @@ export async function replay(base = root) {
       if (!(await exists(file))) { unknownCalls = unknownUsd = true; continue }
       const retained = await json(file)
       if (JSON.stringify(retained.identity) !== JSON.stringify(claim) || claim.row.id !== id) throw new Error(`Identity mismatch: ${id}/${attempt}`)
-      const report = retained.report, zero = /unknown/.test(String(report.status)) ? await inspectedZeroDispatch(path.join(run, attempt)) : undefined
+      const report = retained.report, zero = /unknown/.test(String(report.status)) ? await inspectedZeroDispatch(path.join(run, attempt), options.inspectZeroDispatch) : undefined
       if (zero) classificationCorrections.push({ artifact: `runs/${id}/${attempt}/report.json`, verifiedStatus: zero.status, providerCalls: 0 })
       const calls = zero ? 0 : report.telemetry?.providerCalls ?? report.providerDispatches
       if (typeof calls === "number" && Number.isFinite(calls) && Number.isInteger(calls) && calls >= 0) providerCalls += calls; else unknownCalls = true
-      const usd = report.telemetry?.totalActualUsd ?? report.telemetry?.costUsd ?? report.totalActualUsd
+      const usd = zero ? 0 : report.telemetry?.totalActualUsd ?? report.telemetry?.costUsd ?? report.totalActualUsd
       if (typeof usd === "number" && Number.isFinite(usd) && usd >= 0) knownUsd += usd; else unknownUsd = true
       if (await exists(path.join(run, attempt, "sessions.jsonl"))) await inspectLocalInquiry(path.join(run, attempt))
       artifacts.push({ attempt: claim.attempt, path: `runs/${id}/${attempt}/report.json` })

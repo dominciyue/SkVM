@@ -1571,6 +1571,10 @@ OWUI新臂三次wire坏稿均在12响应内处理；只读三个原窗口，admi
 
 **AS9 第五次与局部反馈。** `as-entry-parameter-v1` 在 `3179ffa3` 再获 9/9 响应；累计 27 派发/25 响应，525284 已知 input+output token，美元仍未知。当前 62 节点/10 路径，无参数缺口；模型将四条入口返回保留为 unknown，却在终答断言 conditional，检查拒绝。新反馈原先没有终点到局部步骤的对应，且该 unknown return 只藏在路径 gap 中。共享修订补窄 sourceTerminals 和具名返回步骤诊断，不推断许可、不给参考答案、不增加调用/上限。两匿名红例已绿；联合 625 pass/1 skip/4186 assertions，随后原 skill 最后响应/有界交付与变化登记检查共 24 focused pass/123 assertions。AS11 薄入口已准备，同输入配对与当前 base 资格由 public 接口核验，尚无变化实际派发。接下来同位置具名复验与登记的 Cloudflare/Paperless 普通 native 首次使用；首次失败、逐次修订及未达的源码完整性仍分列。
 
+**AS9 第六次与字段定位。** `as-source-terminal-feedback-v1` 在 `0793f04f` 获 3/3 响应，但 step 把候选选择置于顶层，唯一格式修复重复同候选；没有读源，不能判断终点反馈采用。累计 30 派发/28 响应，538111 已知 input+output token，美元未知。两独立只读核验确认 Schema 正确且修复请求含原候选/诊断；补充从同一广告 Schema 派生的允许字段位置，按显式 discriminator 保留相容分支，guide 明写 parent。宿主不搬字段、不删除候选、不增加修复调用。匿名红例转绿；相关联合 669 pass/1 skip/4361 assertions，主与 AS 局部类型检查通过，真实采用尚待具名复验。
+
+**AS10 首次普通入口的零派发故障。** 登记的 Cloudflare/Paperless 原位置在同版本初始化失败：薄 driver 写入绝对 sourceRoot，public loader 拒绝；缺 native trace 的原报告保守保留 unknown。日志只证明无可见请求，另一独立代码顺序核验及主线程点验确认确切 loader 异常先于 complete/agent loop。原 claim/report/CLI session/stdout/stderr/scope 与原版本代码片段以哈希绑定为零派发证明，原报告不改。匿名相对 scope、未知调用拒绝、证明缺失及篡改红绿测试通过；共享 claim/replay 可调用严格零派发 inspector，已有调用或额外请求证据不能解封。路径生成改为相对于新 scope 并 public-loader 验证。该次 provider/cost 为 0；其它封存不动，不计为 native 使用成功。接下来原行具名普通复验，作者及变化工作继续依其原合同推进。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

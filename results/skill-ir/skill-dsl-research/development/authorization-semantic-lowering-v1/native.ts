@@ -7,6 +7,7 @@ import { developRows, mechanicalReview, type Row } from "../authorization-guided
 import { nativeProgress } from "../authorization-guided-runtime-v1/ordinary-native-progress.ts"
 import { loadInquiryInput } from "../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts"
 import { hasUnknownAuthorizationCompletion } from "../../../../../src/benchmarks/authorization-dsl/telemetry.ts"
+import { inspectNativeZeroDispatch } from "./zero-dispatch.ts"
 type NativeRow = Row & { kind: "native"; admission: string; sourceSkill: string; policyOverride?: unknown; completeSkillAndReferencesRequired: boolean; originalBriefAndOtherDutiesPreserved: boolean; totalProviderBudget: number; totalToolBudget: number }
 type Manifest = { rows: NativeRow[]; tasks: Array<{ id: string; admission: string; inputFile: string; inputSha256: string }>; testedModel: string; cachePath: string; budgets: Record<string, number> }
 const json = async (file: string) => JSON.parse(await readFile(file, "utf8")), sha = (bytes: Buffer) => createHash("sha256").update(bytes).digest("hex")
@@ -25,6 +26,11 @@ export function nativeDelivery(trace: any, exitCode: number) {
   const bounded = check?.structureValid && check?.sourceBound && check?.ruleConsistency && check?.taskResolution === "bounded"
   return { status: hasUnknownAuthorizationCompletion(trace) ? "completion-unknown" : exitCode === 0 && delivered && bounded ? "completed" : "completed-with-diagnostics", finalProse }
 }
+export function makeNativeScope(value: any, sourceRoot: string, scopeFile: string, policyOverride?: unknown) {
+  const scope = { ...structuredClone(value), sourceRoot: path.relative(path.dirname(scopeFile), sourceRoot).split(path.sep).join("/") || "." }
+  if (policyOverride) { if (scope.inquiry) scope.inquiry.policy = policyOverride; else scope.policy = policyOverride }
+  return scope
+}
 export async function developNative(id: string, repairId?: string, repairOf?: string) {
   const manifest: Manifest = await json(path.join(root, "manifest.json")), registered = selectNativeRow(manifest, id)
   await assertNoUnknownTask(root, registered.task)
@@ -33,13 +39,13 @@ export async function developNative(id: string, repairId?: string, repairOf?: st
   const loaded = await loadInquiryInput(inputFile), skill = path.resolve(root, registered.sourceSkill), skillBytes = await readFile(skill)
   process.env.SKVM_CACHE = manifest.cachePath; process.env.SKVM_AUTO_PROBE = "0"
   const row = { ...registered, components: ["wire", "source", "checker", "delivery", "worklist"] }, revision = execFileSync("git", ["rev-parse", "HEAD"], { cwd: repo, encoding: "utf8" }).trim()
-  return developRows(root, [row], { revision, model: manifest.testedModel, budgets: manifest.budgets, repairId, repairOf,
+  return developRows(root, [row], { revision, model: manifest.testedModel, budgets: manifest.budgets, repairId, repairOf, inspectZeroDispatch: inspectNativeZeroDispatch,
     execute: async (_row, output) => {
       const workDir = path.resolve(repo, "../project-maintenance/runs/authorization-semantic-lowering-v1", id, path.basename(output)), scopeFile = path.join(output, "scope.json"), traceFile = path.join(output, "native-trace.json")
       await mkdir(workDir, { recursive: true })
-      const scope: any = { ...structuredClone(loaded.value), sourceRoot: loaded.context.sourceRoot }
-      if (registered.policyOverride) { if (scope.inquiry) scope.inquiry.policy = registered.policyOverride; else scope.policy = registered.policyOverride }
+      const scope = makeNativeScope(loaded.value, loaded.context.sourceRoot, scopeFile, registered.policyOverride)
       await save(scopeFile, scope)
+      await loadInquiryInput(scopeFile)
       const policy = scope.inquiry?.policy ?? scope.policy, brief = loaded.value.brief ?? JSON.stringify(loaded.value.inquiry)
       const prompt = `${brief}\n${policy ? `Independent CURRENT policy: ${policy.text}\n` : ""}Use the complete supplied original security skill for this bounded source-visible authorization question. Preserve the original requested distinctions and normal reporting format, source citations, confidence, self-verification and remaining duties/limits. Explain requested policy differences separately from actual source behavior. This is a focused question; unrelated whole audits, target execution, network calls and patch application are outside its scope. Do not invent deployment or ownership facts. Finish the user-facing answer after using the shared authorization tools.`
       const args = ["run", `--prompt=${prompt}`, `--skill=${skill}`, `--model=${manifest.testedModel}`, "--adapter=bare-agent", `--workdir=${workDir}`, "--max-steps=12", "--timeout-ms=1200000", `--authorization-scope=${scopeFile}`, "--authorization-domain-tools", "--authorization-strategy=semantic-flow-v1", `--authorization-trace=${traceFile}`]

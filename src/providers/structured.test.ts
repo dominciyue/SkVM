@@ -221,3 +221,19 @@ it("a tool repair uses the advertised contract and omits oversized candidate dat
   expect(result.failures?.[0]?.rawResponse).toBe(JSON.stringify(invalid))
   expect(result.result).toEqual({ kind: "final", count: 1 })
 })
+it("one tool repair locates a misplaced field in the selected advertised branch without moving the raw candidate", async () => {
+  const selection = [{ itemId: "q::entry", candidateId: "shown" }], calls = [{ name: "read", arguments: {} }], bad = { value: { kind: "tool", calls, selections: selection } }, requests: CompletionParams[] = []
+  const schema = z.discriminatedUnion("kind", [z.object({ kind: z.literal("tool"), calls: z.array(z.unknown()), update: z.object({ schemaVersion: z.literal("update/v1"), selections: z.array(z.unknown()) }).strict().optional() }).strict(), z.object({ kind: z.literal("final"), result: z.object({ selections: z.array(z.unknown()) }).strict() }).strict()])
+  const provider: LLMProvider = { name: "field-location", async complete(params) {
+    requests.push(params)
+    if (requests.length === 2) {
+      expect(params.messages[0]!.content).toContain('"paths":["value.update.selections"]')
+      expect(params.messages[0]!.content).not.toContain("value.result.selections")
+    }
+    return { text: "", toolCalls: [{ id: String(requests.length), name: "answer", arguments: requests.length === 1 ? bad : { value: { kind: "tool", calls, update: { schemaVersion: "update/v1", selections: selection } } } }], tokens: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 }, durationMs: 0, stopReason: "tool_use" }
+  }, async completeWithToolResults() { throw new Error("Unused") } }
+  const result = await extractStructured({ provider, schema, schemaName: "answer", schemaDescription: "Step", prompt: "Task", maxRetries: 1, schemaRepair: "same-tool" })
+  expect(result.failures?.[0]?.rawResponse).toBe(JSON.stringify(bad))
+  expect(requests).toHaveLength(2)
+  expect(bad.value).not.toHaveProperty("update")
+})
