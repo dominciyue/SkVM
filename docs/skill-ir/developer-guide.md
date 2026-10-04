@@ -9,7 +9,7 @@
 3. 需要整体背景时阅读 [架构](../architecture.md)、[使用说明](../usage.md)和[JIT Boost](../jit-boost.md)。
 4. 检查工作树，保留其他线程的未提交修改。
 
-项目保留两条实现路径：真实 trace → 模型优化 → 新 skill 包 → agent 消费；以及授权任务声明 → 只读取证与局部解释 → 领域检查与回答。AR 已完成一批工程接线，完整使用验收仍有缺口；AS 接续处理语义展开与真实交付。旧 fixed-context 和 artifact 路径继续兼容。方法见 [spec §14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)，活动工作从[当前计划](skill-ir-aot-optimization-plan.md)进入。
+项目保留两条实现路径：真实 trace → 模型优化 → 新 skill 包 → agent 消费；以及授权任务声明 → 只读取证与局部解释 → 领域检查与回答。AS已有局部语义展开与实际使用，完整源码质量仍有缺口；AT计划改善持久解释任务、函数摘要和源码主张核对，尚未实现。旧fixed-context和artifact路径继续兼容。方法见[spec §14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)，活动工作从[当前计划](skill-ir-aot-optimization-plan.md)进入。
 
 ### 当前授权开发定位
 
@@ -21,7 +21,7 @@
 | 分支和结论 | `src/task-dsl/authorization/control-evaluation.ts`、`control-conclusion.ts` | 三值求值、可达前驱、对象绑定、独立政策 |
 | 普通运行与旧材料复用 | `src/benchmarks/authorization-dsl/inquiry-run.ts`、`inquiry-native.ts`、`inquiry-local.ts`；`src/benchmarks/authorization-dsl/inquiry-reuse.ts` | inquiry/native 共用核心、真实 skill 加载、旧结果适用性 |
 | 共享模型合同 | `src/benchmarks/authorization-dsl/inquiry-wire.ts`、`src/providers/structured.ts` | 实际发出的 Schema、坏响应诊断、修复留账 |
-| 研究驱动与语义评价 | AS 新身份见活动任务书；已结束 AR 的 `results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/` 为历史参考 | 分块运行、原答/修订、独立源码裁定、未知费用；旧退出快照不当作新队列 |
+| 研究驱动与语义评价 | AT新身份见活动任务书；AS `results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/` 为最近结果 | 分块运行、原答/修订、独立源码裁定、未知费用；旧退出快照不当作新队列 |
 
 本文件[后半部的组件参考](#authorization-authoring-and-input-applicability)保留当前输入、工作队列、局部图、结果和复用的详细合同。修改时读对应模块及同名测试，运行一次必要回归；无需为文档导航变更重跑这些研究。用户命令集中在[使用说明](../usage.md)，原始实验从[实验目录](../../results/skill-ir/experiment-catalog.json)进入。
 
