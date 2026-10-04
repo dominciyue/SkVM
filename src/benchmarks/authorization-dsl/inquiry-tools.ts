@@ -30,8 +30,8 @@ const toolSchema = (name: string, description: string, properties: Record<string
 const str = { type: "string" }, int = { type: "integer", minimum: 1 }
 export const INQUIRY_SOURCE_TOOLS: LLMTool[] = [
   toolSchema("source_list", "List allowed original source paths, sizes and line counts. No source is implicitly read into analysis.", { offset: { type: "integer", minimum: 0 }, limit: int }),
-  toolSchema("source_search", "Search literal text in allowed source, returning numbered source lines and evidence IDs; optional exact path.", { text: str, path: str, limit: int }, ["text"]),
-  toolSchema("source_symbol", "Locate lexical symbol candidates with paths and original ranges. All ambiguous candidates are returned; read bodies explicitly. This is not a call graph.", { name: str, path: str }, ["name"]),
+  toolSchema("source_search", "Search literal text in allowed indexed source, returning numbered source lines and evidence IDs; optional relative file or directory path ('.' means all indexed files). A directory filters the existing index only.", { text: str, path: str, limit: int }, ["text"]),
+  toolSchema("source_symbol", "Locate lexical symbol candidates with paths and original ranges; optional relative file or directory path filters the existing allowed index only. All ambiguous candidates are returned; read bodies explicitly. This is not a call graph.", { name: str, path: str }, ["name"]),
   toolSchema("source_read", "Read an original source line range; an end beyond EOF returns the available lines with actual evidence bounds. No shell, writes, network or target execution.", { path: str, startLine: int, endLine: int }, ["path", "startLine", "endLine"]),
 ]
 const schemas = {
@@ -93,6 +93,7 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
     return { diagnostics, importedEvidenceIds: diagnostics.length ? [] : verified.map(e => e.id) }
   }
   const blank = (status: InquiryToolOutput["status"], code?: string, message?: string): InquiryToolOutput => ({ status, ...(code ? { code } : {}), ...(message ? { message } : {}), evidence: [], matches: [], candidates: [] })
+  const selectedFiles = (selector?: string) => selector === undefined || selector === "." ? [...files.keys()] : !safePath(selector) ? [] : [...files.keys()].filter(p => p === selector || p.startsWith(`${selector}/`))
   const current = async (relative: string): Promise<SourceBundleFile | InquiryToolOutput> => {
     if (!safePath(relative) || !files.has(relative)) return blank("error", "source-out-of-scope", "Path is outside the allowed and indexed original source.")
     if (await realpath(options.sourceRoot) !== root) return blank("error", "source-root-changed", "Source root changed identity.")
@@ -135,19 +136,19 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
           const a = schemas.source_read.parse(args), file = await current(a.path)
           result = "status" in file ? file : show(file, a.startLine, a.endLine)
         } else if (name === "source_symbol") {
-          const a = schemas.source_symbol.parse(args)
-          if (a.path && (!safePath(a.path) || !files.has(a.path))) result = blank("error", "source-out-of-scope")
+          const a = schemas.source_symbol.parse(args), selected = selectedFiles(a.path)
+          if (a.path !== undefined && !selected.length) result = blank("error", "source-out-of-scope", "Selector must be an allowed indexed file or directory containing indexed files.")
           else {
-            const candidates = symbols.filter(s => s.name === a.name && (!a.path || s.path === a.path))
+            const candidates = symbols.filter(s => s.name === a.name && selected.includes(s.path))
             result = { ...blank(candidates.length > 1 ? "ambiguous" : "ok"), candidates }
             for (const p of new Set(candidates.map(s => s.path))) { const file = await current(p); if ("status" in file) { result = file; break } }
           }
         } else {
-          const a = schemas.source_search.parse(args)
-          if (a.path && (!safePath(a.path) || !files.has(a.path))) result = blank("error", "source-out-of-scope")
+          const a = schemas.source_search.parse(args), selected = selectedFiles(a.path)
+          if (a.path !== undefined && !selected.length) result = blank("error", "source-out-of-scope", "Selector must be an allowed indexed file or directory containing indexed files.")
           else {
             result = blank("ok"); let totalMatches = 0
-            for (const p of a.path ? [a.path] : files.keys()) {
+            for (const p of selected) {
               const source = await current(p)
               if ("status" in source) { result = source; break }
               for (const [i, line] of linesOf(source.content).entries()) if (line.includes(a.text)) {

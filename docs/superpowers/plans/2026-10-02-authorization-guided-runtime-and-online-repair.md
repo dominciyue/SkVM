@@ -232,7 +232,9 @@ location-routing-v1真实8/8返回，三题已显式定位但五题仍rejected�
 
 2026-10-04 explanation-focus普通复验9/9，5题全rejected，0usable；初/终revision38/39，原4缺pathKey+7缺after草稿没有原键纠正/撤回，9个typed identity缺口及开放路径/依赖仍在。解释任务实际轮转到5题，不等于修复；目录search四次source-out-of-scope占24工具预算中的4次，总26尝试/24计费/20成功/5hostread。版本与返回文件关系文字已展开，权限助手仅搜索声明未读body；独立window-only correct评语经允许范围/任务前提点验降为遗漏，不能把缺展示当缺源码。累计338调用，费用/人力unknown，unknown Notes/Memos和主面板保持封存。
 
-下一现场共享修复工作计划：先写目录selector必须只筛既有索引文件且防前缀碰撞/越界/未索引路径的红例，再支持source_search文件或目录（source_read仍精确文件）。第二组红例要求当前拒绝目标在模型反馈有有界原稿及精确question/group/key、原证据、所有自身诊断和是否已有accepted目标；最多4项/16KiB整项轮转，完整report不裁剪，超限仅给明确定位和省略原因。普通和局部原稿分别保留引用来源，局部补question/evidence仅复用原host绑定，不授权未读窗口。指令明确：从未接受的草稿纠正用add，已接受目标修订用replace；弃稿仅已存在的eligible withdrawal，不自动清除旧错误。pathKey/after/binding identity/条件/完整性由模型显式填写，缺字段不推断、不增加provider。对真实9prefix离线验证状态不变与修复可见性，相关红绿/类型/独立边界点验后再同作者字节同12/24预算具名ordinary复验。
+下一现场共享修复工作计划：先写目录selector必须只筛既有索引文件且防前缀碰撞/越界/未索引路径的红例，再让source_search/source_symbol共用文件或目录索引筛选（source_read仍精确文件）。第二组红例要求当前拒绝目标在模型反馈有有界原稿及精确question/group/key、原证据、所有自身诊断和是否已有accepted目标；最多4项/16KiB整项轮转，完整report不裁剪，超限仅给明确定位和省略原因。普通和局部原稿分别保留引用来源，局部补question/evidence仅复用原host绑定，不授权未读窗口。指令明确：从未接受的草稿纠正用add，已接受目标修订用replace；弃稿仅已存在的eligible withdrawal，不自动清除旧错误。pathKey/after/binding identity/条件/完整性由模型显式填写，缺字段不推断、不增加provider。用已记录host展开和原拒绝片段对真实proposal离线验证接受状态不变与修复可见性；不声称完整9prompt或局部路由重放，相关红绿/类型/独立边界点验后再同作者字节同12/24预算具名ordinary复验。
+
+上述6项预期红例后145测试845断言、主/研究类型通过。目录查询/符号定位仅原索引过滤，路径/源身份约束及已有预算保持；拒绝目标4项/16KiB整项轮转、原稿/host scope/指针可见，add/replace/withdraw资格明确且不推断缺字段。独立点验未见可达绕过；非JSON Symbol clone问题已在旧raw retention存在，不增门。实际7提议saved expansion+invalid fragment的ordinary重放accepted state完整相同，11拒绝保持，不覆盖9完整prompt/路由/依赖状态；4旧目录查询恢复，其中2空匹配。下一同字节同12/24预算rejected-target-directory-v1具名普通复验，0新provider阶段累计338，无质量/previous升格。
 
 文件：新建 `inquiry-local-extraction.ts`、测试；接 inquiry-domain-runtime.ts 和现有 provider/telemetry。
 

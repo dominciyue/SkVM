@@ -35,6 +35,40 @@ test("list/search/symbol/read exposes numbered original bytes and independent sa
   expect(again.evidence[0]!.id).toBe(read.evidence[0]!.id)
   expect(tools.evidence.filter(item => item.id === read.evidence[0]!.id).length).toBe(1)
 })
+test("directory selectors search only indexed descendants with original evidence and no prefix collision", async () => {
+  const { root } = await fixture()
+  await mkdir(path.join(root, "src-other"))
+  await writeFile(path.join(root, "src-other/helper.ts"), "export function authorizeRecord() { return 'sibling'; }\n")
+  const tools = await createInquiryTools({ sourceRoot: root, allowedPaths: ["src/entry.ts", "src/helper.ts", "src-other/helper.ts"], repository: "synthetic", sourceRef: "fixed" })
+  const search = await tools.execute("source_search", { text: "authorizeRecord", path: "src" })
+  expect(search.status).toBe("ok")
+  expect(search.matches.map(m => m.path)).toEqual(["src/entry.ts", "src/helper.ts"])
+  expect(search.evidence.map(e => e.path)).toEqual(["src/entry.ts", "src/helper.ts"])
+  expect(search.evidence.every(e => e.sourceRef === "fixed" && e.text.includes("authorizeRecord"))).toBe(true)
+  const file = await tools.execute("source_search", { text: "authorizeRecord", path: "src/helper.ts" })
+  expect(file.evidence[0]!.id).toBe(search.evidence[1]!.id)
+  const symbol = await tools.execute("source_symbol", { name: "authorizeRecord", path: "src" })
+  expect(symbol.candidates.map(c => c.path)).toEqual(["src/helper.ts"])
+  expect((await tools.execute("source_search", { text: "authorizeRecord", path: "." })).matches).toHaveLength(3)
+  expect((await tools.execute("source_read", { path: "src", startLine: 1, endLine: 1 })).code).toBe("source-out-of-scope")
+  expect(tools.files.map(f => f.path)).not.toContain("src/other.ts")
+})
+test("directory selectors preserve scope safety and source identity checks", async () => {
+  const { tools, root } = await fixture()
+  for (const selector of ["oracle", ".env", "../src", "C:/src", "src//", "src/missing"]) {
+    for (const name of ["source_search", "source_symbol"]) {
+      const result = await tools.execute(name, { path: selector, ...(name === "source_search" ? { text: "authorizeRecord" } : { name: "authorizeRecord" }) })
+      expect(result.code).toBe("source-out-of-scope")
+      expect(result.evidence).toEqual([])
+    }
+  }
+  const read = await tools.execute("source_search", { text: "authorizeRecord", path: "src" })
+  expect(read.status).toBe("ok")
+  await writeFile(path.join(root, "src/helper.ts"), "export function authorizeRecord() { return 'changed'; }\n")
+  expect((await tools.execute("source_search", { text: "authorizeRecord", path: "src" })).code).toBe("source-changed")
+  expect((await tools.execute("source_symbol", { name: "authorizeRecord", path: "src" })).code).toBe("source-changed")
+  expect(tools.evidence).toContainEqual(read.evidence[1]!)
+})
 test("a read extending past EOF retains the available original window and exact requested range", async () => {
   const { tools } = await fixture()
   const read = await tools.execute("source_read", { path: "src/entry.ts", startLine: 1, endLine: 4 })

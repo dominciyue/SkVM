@@ -2659,3 +2659,11 @@ AR已读解释队列在同优先级内有界轮转，每次至多2项；具名�
 Explicit self/other/null owner and known object-grant inputs now have named mechanical counterfactual coverage; an actually unread declared decisive helper still blocks a complete-source claim. This establishes the proposed graph contract only. Arbitrary natural claim/predicate/source agreement and unknown undeclared branches remain outside the deterministic completeness claim.
 
 The nine-response explanation-focus ordinary verification retains five rejected questions and no usable result. Current malformed target identities must remain repairable and visible until corrected or eligible withdrawal, with original payloads preserved as data. Extending search to directory selectors must select only existing indexed allowed source files, without enumerating new scope or interpreting lexical location as semantic relevance. All final acceptance and previous-reuse evidence contracts remain applicable.
+
+### 14.34 staged interface repair: indexed scope and rejected draft visibility
+
+A relative directory selector on source_search/source_symbol filters only existing allowed indexed source files at path-component boundaries. It cannot add a source file, reinterpret a location as relevance, or change exact-file source_read.
+
+The model feedback may expose original current rejected-target submissions as data, with exact group/question/key, own diagnostics, original local citation scope and archive provenance. A bounded projection must rotate targets, cap its total bytes, and explicitly mark whole omitted submissions rather than silently truncating semantic text. Rejected targets remain failures until the existing correction/withdrawal contract resolves them. No rejected raw field becomes an accepted semantic value merely by appearing in feedback.
+
+Six expected counterexamples now pass within145tests/845assertions and both typechecks. Saved seven-proposal ordinary normalization preserves the entire accepted graph while11rejected identities remain; it does not establish local-task routing, source dependency closure, real quality or previous eligibility. Actual same-byte ordinary verification remains separately required.

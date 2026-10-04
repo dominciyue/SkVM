@@ -1340,6 +1340,10 @@ request8–11反复offered前两入口，过程对象诊断未进入解释focus�
 
 35项163断言/主类型补齐具名self/other/null/explicit grant和临时原源未读helper+complete:true联合反例；仅显式提取机械合同，任意自然语义与未声明分支仍未核验。explanation-focus实际9/9，5题全rejected，revision38/39；4个缺pathKey及7个缺after草稿未按原身份纠正/撤回，typed对象/前驱/路径与依赖未闭合。解释轮转覆盖5题，有进展但无checked或previous资格。26源码尝试中24计费、20成功、5hostread，4个目录搜索越域错误并非目录源码不可用；旧工具合同只承诺精确文件。权限助手只搜声明，body可读但未读；独立window-only full评语与主任务完整性裁定分存，版本/文件说明改善不代替权限分支。累计338调用、实际USD/人力unknown，主16面板和封存请求未释放。下一修复限定已索引目录搜索及有界拒绝目标原稿反馈，不猜条件或填前驱；见active taskbook与explanation-focus-outcome.json。
 
+### 7.38 2026-10-04：索引目录筛选与拒绝草稿可修反馈
+
+6项预期红例后145测试845断言/主与研究类型通过；初主类型仅新增测试的可能空evidence标注，经已非空断言修正。source_search/source_symbol共用已有索引内文件或目录筛选，slash边界隔离相似前缀，source_read仍精确文件。当前拒绝target按完整题/组/key缓存原稿及原host引用/档案指针；反馈最多4项/16KiB轮转，大项整项省略并明确指针，不填pathKey/after/条件/对象，不自动撤回。独立边界核验无新的可达问题；审稿提出Symbol/function clone异常是既有非JSON内部边界，JSON实际wire不能提供，原raw retention早已clone，不额外加门。真实7proposal归档expanded+拒绝fragment的ordinary重放保持完整accepted graph，11拒绝仍在；不覆盖完整9prompt/局部路由/依赖状态。4旧目录查询在相同索引可执行，2仍空匹配，helper定义有定位不等于body解释。0新增provider，累计338，USD/人力unknown；下一同原作者字节同12/24预算具名rejected-target-directory-v1普通复验，未知Notes/Memos和主面板未释放。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

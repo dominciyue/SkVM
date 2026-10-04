@@ -11,6 +11,11 @@ import { expandLocalExtractions, localExplanationContext, LOCAL_EXTRACTION_GUIDE
 
 export type DomainAblation = "scheduler-off" | "checks-off"
 type RuntimeDomainCheck = Omit<ReturnType<typeof checkControlConclusions>, "ruleConsistency"> & { ruleConsistency: boolean | null }
+interface RejectedDraft {
+  group: LocalUpdateGroup; questionId: string; targetKey: string; submitted: unknown;
+  localScope?: { itemId: string; evidenceIds: string[] };
+  archive: { proposalIndex: number; group: LocalUpdateGroup; itemIndex: number; localExtractionIndex?: number }
+}
 export const DOMAIN_EXECUTION_GUIDE = [
   "domain-evidence-v1 runtime: propose local control deltas from ACTUALLY SHOWN original source, never from task expectations. Host binds citations, executes at most two uniquely located dependency reads per response, evaluates finite predicates and checks formal conclusion consistency. Extraction meaning stays unreviewed.",
   'Delta is {schemaVersion:"authorization-control-slice/v1",rules:[],dependencies:[],bindings:[],policyRules:[]}. Arrays may be omitted when unchanged. Local rules: {key,questionId,pathKey,kind:entry|binding|guard|reject|continue|effect,after:[predecessor keys],evidenceIds:[shown source IDs],claim,condition?,principal?,resource?,operation?,bindingKey?,bindingKind:principal|resource|permission|configuration|value,authorizedBy?:[guard keys],complete?:boolean}. Only binding nodes need bindingKey/bindingKind. Reject is terminating deny, effect is protected allow. after is explicit execution precedence, never array order. Each terminal represents one proposed path, complete only when all relevant entry/upstream/binding/control/effect dependencies have actually been examined. Related alternative outcomes use distinct pathKeys matching final branch IDs. condition is node reachability, NOT the proposition that a guard passes. Shared entry/binding nodes can precede multiple paths.',
@@ -27,6 +32,8 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   let slice: ControlSlice = createControlSlice(), check: RuntimeDomainCheck | undefined, closed = false
   const scheduler = createInquiryDomainScheduler({ ...options, evaluateConditions: options.ablation !== "checks-off" }), proposals: Array<{ delta: unknown; diagnostics: InquiryDiagnostic[]; revision: number; accepted?: UpdateAcceptance[]; rejected?: UpdateRejection[]; withdrawn?: UpdateWithdrawal[]; withdrawalRejected?: UpdateRejection[]; unresolved?: unknown[] }> = []
   let currentRejections: UpdateRejection[] = []
+  const rejectedDrafts = new Map<string, RejectedDraft>()
+  const draftIdentity = (p: Pick<UpdateRejection, "group" | "questionId" | "targetKey">) => JSON.stringify([p.group, p.questionId, p.targetKey])
   const worklist = options.strategy === "guided-evidence-v2" ? createInquiryWorklist({ ...options, dependencyStates: () => scheduler.snapshot() }) : undefined
   let automaticActionsRemaining = 2
   let offeredTasks: LocalExplanationTask[] = []
@@ -62,6 +69,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
       worklist?.sync(slice, check)
       const envelope = LocalControlEnvelopeSchema.safeParse(delta)
       const expanded = expandLocalExtractions(envelope.success ? envelope.data.localExtractions : [], offeredTasks, worklist?.snapshot() ?? [])
+      const localRecordOffset = localExtractions.length
       localExtractions.push(...expanded.records)
       const normalized = envelope.success ? { ...envelope.data, ...Object.fromEntries((Object.keys(expanded.groups) as LocalUpdateGroup[]).map(group => [group, [...envelope.data[group], ...expanded.groups[group]]])), localExtractions: [] } : delta
       const merged = calculate(() => applyControlUpdates(slice, normalized, options.program, evidenceContext(), expanded.rejected, currentRejections)); computation.merges++
@@ -83,6 +91,21 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
       if (merged.envelopeValid) {
         for (const p of currentRejections) if (!p.localEnvelope) issues.delete(identity(p))
         currentRejections = merged.currentRejections.filter(p => !p.localEnvelope)
+        const submitted = new Map<string, RejectedDraft>()
+        const remember = (group: LocalUpdateGroup, raw: unknown, itemIndex: number, local?: typeof expanded.records[number], localExtractionIndex?: number) => {
+          const value = raw && typeof raw === "object" ? raw as Record<string, unknown> : {}
+          const item = { group, questionId: local?.questionId ?? String(value.questionId ?? ""), targetKey: String(value.targetKey ?? `invalid-${itemIndex}`), submitted: structuredClone(raw), archive: { proposalIndex: proposals.length, group, itemIndex, ...(localExtractionIndex !== undefined ? { localExtractionIndex } : {}) } }
+          const task = local && offeredTasks.find(t => t.itemId === local.itemId)
+          submitted.set(draftIdentity(item), { ...item, ...(task ? { localScope: { itemId: task.itemId, evidenceIds: [...new Set([...task.evidenceIds, ...task.callsiteEvidenceIds])] } } : {}) })
+        }
+        if (envelope.success) for (const group of Object.keys(expanded.groups) as LocalUpdateGroup[]) for (const [index, raw] of envelope.data[group].entries()) remember(group, raw, index)
+        for (const [index, record] of expanded.records.entries()) if (record.questionId) {
+          const raw = record.raw as Record<string, unknown>
+          for (const group of Object.keys(expanded.groups) as LocalUpdateGroup[]) if (Array.isArray(raw[group])) for (const [itemIndex, value] of raw[group].entries()) remember(group, value, itemIndex, record, localRecordOffset + index)
+        }
+        const live = new Set(currentRejections.map(draftIdentity))
+        for (const id of rejectedDrafts.keys()) if (!live.has(id)) rejectedDrafts.delete(id)
+        for (const p of merged.rejected) { const id = draftIdentity(p), draft = submitted.get(id); if (live.has(id) && draft) rejectedDrafts.set(id, draft) }
         const targetIssues = new Map<string, InquiryDiagnostic[]>()
         for (const p of currentRejections) targetIssues.set(identity(p), [...(targetIssues.get(identity(p)) ?? []), ...p.diagnostics])
         for (const [key, diagnostics] of targetIssues) issues.set(key, diagnostics)
@@ -143,9 +166,26 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     offeredTasks = context.tasks
     return context
   }
+  let rejectedFeedbackPosition = 0
   const modelFeedback = () => {
     const { worklist: fullWorklist, ...state } = feedback(), diagnostics = state.diagnostics.filter((d, i, all) => all.findIndex(v => v.code === d.code && v.path === d.path && v.message === d.message && v.questionId === d.questionId) === i)
-    return { ...state, ...(fullWorklist ? { worklist: worklistModelView(fullWorklist) } : {}), diagnostics: diagnostics.slice(0, 16), diagnosticCount: diagnostics.length }
+    const rejections = [...new Map(currentRejections.map(p => [draftIdentity(p), p])).values()]
+    const position = rejectedFeedbackPosition % Math.max(1, rejections.length)
+    rejectedFeedbackPosition += 4
+    const rejectedTargets: Array<Record<string, unknown>> = []
+    for (const p of [...rejections.slice(position), ...rejections.slice(0, position)].slice(0, 4)) {
+      const draft = rejectedDrafts.get(draftIdentity(p)), group = p.group === "sourceBindings" ? "rules" : p.group === "premiseValues" ? "bindings" : p.group
+      const existing = slice[group].find(r => r.questionId === p.questionId && r.key === p.targetKey)
+      const targetGroupConflict = !!existing && group === "rules" && (p.group === "sourceBindings") !== ((existing as { kind?: string }).kind === "binding")
+      const acceptedTarget = !!existing && !targetGroupConflict
+      const ownDiagnostics = currentRejections.filter(r => draftIdentity(r) === draftIdentity(p)).flatMap(r => r.diagnostics)
+      let view: Record<string, unknown> = { group: p.group, questionId: p.questionId, targetKey: p.targetKey, diagnostics: ownDiagnostics, acceptedTarget, targetGroupConflict, ...(!targetGroupConflict ? { correctionOp: acceptedTarget ? "replace" : "add" } : {}), withdrawalEligible: !existing, ...(draft ? { submitted: draft.submitted, localScope: draft.localScope, archive: draft.archive } : { submittedOmitted: "draft-not-retained" }) }
+      const fits = (item: Record<string, unknown>) => Buffer.byteLength(JSON.stringify([...rejectedTargets, item])) <= 16384
+      if (!fits(view)) { const { submitted: _submitted, ...metadata } = view; view = { ...metadata, submittedOmitted: "feedback-byte-limit" } }
+      if (!fits(view)) view = { archive: draft?.archive, submittedOmitted: "feedback-byte-limit", identityAndDiagnosticsOmitted: true, diagnosticCount: ownDiagnostics.length }
+      if (fits(view)) rejectedTargets.push(structuredClone(view))
+    }
+    return { ...state, ...(fullWorklist ? { worklist: worklistModelView(fullWorklist) } : {}), diagnostics: diagnostics.slice(0, 16), diagnosticCount: diagnostics.length, rejectedTargets, rejectedTargetCount: rejections.length }
   }
   return { propose, sync, validate, feedback, modelContext, modelFeedback, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { closed = true },
     report: () => ({ slice: structuredClone(slice), proposals: structuredClone(proposals), currentRejections: structuredClone(currentRejections), localExtractions: structuredClone(localExtractions), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions) } } : {}), objectFeedback: { revision: objectRevision, diagnostics: structuredClone(objectDiagnostics) }, check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed }) }
