@@ -50,6 +50,8 @@ export function plannedRows(): Row[] {
 export function mechanicalReview(report: any): Review {
   if (["completed", "valid"].includes(report.status) && report.validation?.valid !== false) return {}
   const status = String(report.status ?? "missing-report"), diagnostic = report.error ?? report.validation?.diagnostics?.[0]?.code ?? status
+  if (status === "completed-with-diagnostics" && !report.error && Array.isArray(report.final?.questions) && report.final.questions.length && report.validation?.valid === false && report.domain?.check?.structureValid === true && report.domain.check.sourceBound === true && report.domain.check.ruleConsistency === false)
+    return { failure: { category: "semantic-extraction", rootCause: `${status}: ${diagnostic}`, components: ["model-draft"] } }
   const category = /timeout|unavailable|unknown/.test(status) || /ProviderNetworkError|network error|Unable to connect/.test(String(diagnostic)) ? "infrastructure" : /budget/.test(status) ? "context/budget" : /transport|schema/.test(status + diagnostic) ? "schema/wire" : "state/checker"
   return { failure: { category, rootCause: `${status}: ${diagnostic}`, components: category === "state/checker" ? ["checker", "delivery"] : ["wire", "source", "delivery"] } }
 }
@@ -87,7 +89,7 @@ export async function developRows(base: string, rows: Row[], options: DevelopOpt
     await Promise.all(rows.slice(cursor, cursor + width).map(async row => {
       const runDir = path.join(base, "runs", row.id)
       const sealed = adjudications.find(a => a.retainedTask === row.task)
-      const paused = sealed ?? pauses.find(p => p.failureId !== originalFailureId && p.components.some(c => row.components.includes(c) && !adjudications.some(a => a.failureId === p.failureId && a.retainedTask !== row.task && row.kind === "source-window-mechanism" && a.eligibleRows.includes(row.id) && a.releasedComponents.includes(c))))
+      const paused = sealed ?? pauses.find(p => p.failureId !== originalFailureId && p.components.some(c => row.components.includes(c) && !adjudications.some(a => a.failureId === p.failureId && a.retainedTask !== row.task && a.eligibleRows.includes(row.id) && a.releasedComponents.includes(c))))
       if (paused) { completed.push({ id: row.id, status: "not-run-after-defect", failureId: paused.failureId }); return }
       const attempts = (await readdir(runDir).catch(() => [])).filter(s => /^attempt-\d+$/.test(s))
       if (attempts.length && !options.repairId) { completed.push({ id: row.id, status: "already-retained" }); return }

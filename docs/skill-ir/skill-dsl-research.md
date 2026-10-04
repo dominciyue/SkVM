@@ -1360,6 +1360,10 @@ rejected-target-directory普通复验11/11、24/24源码动作成功，17read/7s
 
 依据7.41真实proposal5，先29pass/2预期fail/155断言，再31聚焦173与164联合964断言、主/研究类型通过；两项独立只读边界与回放核验未见实质可达回归。atomic按submitted canonical target及新增断链回滚，sourceBindings按rules身份，同题未触碰/其它题旧悬空不回滚当前合法项；新/被修改自身悬空、拒绝或withdrawal失败仍整体回滚，旧拒绝和最终validator保持。实际原件前4提议状态相同，第5事务单独13→15、2合法项接受、另2题旧缺口不变；0provider/source action/target，读取保留档案并写派生回放，不重放后续调度、prompt或答案。工程修复与checked/语义收益分列，累计360与费用unknown不变；下一不同项目Gitea原自然任务普通CLI相关验证，再推进配对块。见atomic-transaction-verification.json及replay。
 
+### 7.43 2026-10-04：Gitea迁移原件与质量行调度边界
+
+c236b383同原自然brief/源字节仓外D1/guided12/12、7成功host reads，48004display/39282resent，一次顶层atomic/baseRevision坏稿由既有same-tool修复；两check/final slice24，5诊断/0usable/无previous，全部atomic:false，不能称原子实际效应。初/终主裁定partial；独立final full及“末修图变”评语原样另存，主点验final仍未纳入已读admin body，APIContext同名方法实际调用Permission.IsAdmin而非库函数，最后delivery repair只prose，早先22/24提议并非末修。实际source-gap/候选错联与部署unknown分开，未证共同runtime缺陷。调度却把合法来源的负模型草稿当共享checker故障，同时硬编码kind阻挡有精确allowlist的quality行；两红例后31联合130、研究类型/3计量测试、两独立边界核验通过。精确failure/row/component/hash及原task封存保持，source-bound/结构有效/无error/raw final且ruleConsistency:false仅记行级model-draft失败，不改validator、分数或previous资格；尚未追加主行release。累计372/USD及人力unknown，下一按现修复证据记录不同任务范围，Notes封存与16分母保持，再启动成对块。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

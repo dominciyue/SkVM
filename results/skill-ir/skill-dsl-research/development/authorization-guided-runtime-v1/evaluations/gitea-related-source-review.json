@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "authorization-ar-independent-source-review/v1",
+  "stage": "consume-authorization-gitea-self-query-atomic-transaction-v1",
+  "task": "gitea_self_query_raw_semantics",
+  "verbatim": false,
+  "anonymousPacket": "outside-maintenance/gitea-self-query-anonymous-answer-packet.json",
+  "initialRating": "partial",
+  "finalRating": "full",
+  "qualification": "Reviewer says final could be partial if all downstream AccessMode details must be expanded. Main adjudication separately corrects an unsupported claim that final incorporates the repository-admin implementation.",
+  "findings": [
+    {
+      "source": "routers/api/v1/repo/collaborators.go:278-300",
+      "finding": "Self/other guard and later requested-user resolution/permission result supported."
+    },
+    {
+      "source": "models/user/user.go:1085-1102;models/perm/access/repo_permission.go:426-527",
+      "finding": "Lower-name lookup and permission helper use the resolved requested user."
+    },
+    {
+      "source": "models/perm/access/repo_permission.go:529-558",
+      "finding": "Reviewer treats this library function as the repository-admin exception implementation and says final incorporates it; receiver point-check disagrees."
+    }
+  ],
+  "limits": [
+    "Advisory descriptive ordinary review, not main-panel score. Source scope includes complete allowed files/directories, not only displayed windows. Original answers unchanged."
+  ]
+}

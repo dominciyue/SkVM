@@ -355,6 +355,10 @@ location-routing-v1真实8/8返回，三题已显式定位但五题仍rejected�
 
 文件：AR root/study.ts、evaluate.ts、failure records、evaluation-summary.json。
 
+2026-10-04成对块恢复的实现计划：现scope-adjudication已用原failure和verification哈希绑定精确eligibleRows，但study又硬编码只接受source-window-mechanism kind，无法表达经证据限定的独立quality行。先写新quality行在显式allowlist内可执行、未列quality行继续暂停、同unknown原task即使列名仍封存的红例，再让现有精确eligibleRows承担范围限制，删除重复kind限制；不改旧adjudication字节，不自动放行任何主行，不改原failure outcome或未知请求。实际记录只能在不同项目普通检验与独立源码复核后，引用当前确定性/真实共享修复证据追加；保留Notes逻辑任务暂停及原16分母。Memos已知响应的旧replacement metadata缺陷可凭已存在修复/真实接受证据记录engineering improved，原图失败另留，不能用raw文字替代checked。
+
+Gitea相关原件12/12已关闭，7/7源码调用成功（全部host），两check与final slice24一致但typed binding/可达性/开放依赖/complete:false仍拒绝；全部atomic:false，不算原子实际使用。独立源码full终答评语与原final自称未纳入已展示body不符，主点验APIContext.IsUserRepoAdmin实际调用Permission.IsAdmin，不是同名库函数，initial/final均partial，原评语另存。未发现可证明共同runtime缺陷。追加行级失败调度计划：只在已交付raw final、validation:false、无run error且当前domain check明确structureValid/sourceBound:true而ruleConsistency:false时，把机械失败记semantic-extraction/model-draft，继续保留invalid和needsRepair，不能据此暂停无关公共checker；其它transport/budget/结构/源错误保留原公共暂停。先写该模型草稿仍保留而下一不同任务行可执行的红例，缺交付/非sourceBound不放行的负例，再最小分类修改、聚焦联合/研究类型及独立边界复核。不会放宽结论检查或原previous资格，也不会把模型错误记成功；新共享故障一经证实仍逐组件暂停。
+
 - [ ] 主比较使用八个已暴露任务，每题旧流程 M/legacy 与新流程 D1/guided-evidence-v2 两臂，共16个逻辑任务身份。每两题一块，轮换臂顺序；开始块前记录共享 revision/模型/预算。
 - [ ] 每行返回即检查传输、交付及源码质量，块结束聚合独立评价；错误按第3节修复，修后同题记录新 attempt，再进入后续相关行。中止旧块/未运行项照实保留，禁止继续执行已知坏公共实现。
 - [ ] 主比较检验整套流程效果。另在 Notes、Memos remove、OWUI ingestion、Gitea self-query 四题上加入 M/guided-evidence-v2 辅助臂，复用同 revision 的 D1/new；若版本不同必须重建配对，不能拼接。

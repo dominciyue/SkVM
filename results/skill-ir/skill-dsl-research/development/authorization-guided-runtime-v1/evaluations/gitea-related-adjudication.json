@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "authorization-ar-related-source-adjudication/v1",
+  "stage": "consume-authorization-gitea-self-query-atomic-transaction-v1",
+  "verbatim": false,
+  "reviews": [
+    "gitea_self_query_raw_semantics",
+    "gitea_self_query_retained_failure"
+  ],
+  "initialRating": "partial",
+  "finalRating": "partial",
+  "pointChecks": [
+    {
+      "source": "run.json:/final/questions/0/branches(repository-admin-exception);/missing/0",
+      "finding": "Final explicitly says detailed real-repository-admin implementation is not incorporated; it does not support advisory final full rating. Original534-558body was read/shown and remains a read/unincorporated dependency."
+    },
+    {
+      "source": "services/context/api.go:329-331;models/perm/access/repo_permission.go:47-49;routers/api/v1/repo/collaborators.go:279",
+      "finding": "GetRepoPermissions receives APIContext, whose IsUserRepoAdmin method calls ctx.Repo.Permission.IsAdmin (AccessMode>=Admin). The same-named library function529-531 calls IsUserRealRepoAdmin and is a different symbol, not the shown direct API callee. Actual wrapper is within allowed scope but unread. Candidate ambiguity correctly remains open; no source-specific choice is supplied to the generator."
+    },
+    {
+      "source": "routers/api/v1/api.go:1364-1372;374-382",
+      "finding": "Original route registration and reqToken are source-visible; reqToken allows IsSigned and otherwise401. Current answers may retain real authentication/deployment facts unknown but cannot call all visible upstream middleware unavailable. Authenticated caller premise still applies."
+    },
+    {
+      "source": "run.json:/domain/slice/rules(grp-requested-collaborator);/validation/diagnostics",
+      "finding": "requestedCollaborator is declared as bindingKind:resource, not principal. The effect principal reference is therefore missing even though the bindingKey string matches. Repo-admin guard after entry lacks caller/repository binding predecessors; complete:false paths remain unclosed."
+    },
+    {
+      "source": "run.json:/steps/9;domain/proposals/6-7;domain/checkHistory;events.jsonl",
+      "finding": "Proposals at revision22and24 are pre-initial-final graph changes. The last domain-repair has candidate/diagnostics/instruction only and both checks remain24; latest delivery repair changes prose without graph. Advisory trace inference that latest repair changed graph confuses earlier proposals with final repair. Events contain24dispatch/response entries plus the25th closed event, not24total."
+    }
+  ],
+  "remaining": [
+    "Both raw answers partially support self/other distinction and requested-user identity but omit or mislink source-visible upstream admin checks.",
+    "Final has5diagnostics,0usable; all atomic:false, no actual atomic repair effect or previous eligibility.",
+    "One schema/wire failure repaired; seven real reads successful and shown. Do not classify read/unincorporated as missing source bytes."
+  ],
+  "formalStatus": {
+    "validation": false,
+    "usableQuestions": [],
+    "previousEligible": false
+  },
+  "mainPanelReleased": false,
+  "qualityBenefit": "not-established"
+}

@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "authorization-ar-quality-row-scope-verification/v1",
+  "date": "2026-10-04",
+  "providerCalls": 0,
+  "targetExecutions": 0,
+  "redCases": [
+    {
+      "name": "Explicitly listed distinct-task quality row still blocked by redundant kind filter",
+      "command": "bun test ./results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/study.test.ts",
+      "passed": 14,
+      "failedAsExpected": 1,
+      "assertions": 38,
+      "exitCode": 1
+    },
+    {
+      "name": "Delivered source-bound negative model graph incorrectly pauses unrelated shared checker",
+      "command": "bun test ./results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/study.test.ts",
+      "passed": 15,
+      "failedAsExpected": 1,
+      "assertions": 42,
+      "exitCode": 1
+    }
+  ],
+  "green": {
+    "command": "bun test ./results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/study.test.ts ./results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/evaluate.test.ts ./results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary-authored-use.test.ts ./src/benchmarks/authorization-dsl/inquiry-reuse-local.test.ts",
+    "passed": 31,
+    "failed": 0,
+    "assertions": 130,
+    "exitCode": 0
+  },
+  "typecheck": {
+    "command": "bunx tsc -p ./results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/tsconfig.json --noEmit",
+    "exitCode": 0
+  },
+  "accountingSupport": {
+    "command": "python ./results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary_accounting_support_test.py",
+    "passed": 3,
+    "exitCode": 0
+  },
+  "independentReviews": [
+    {
+      "task": "explicit_quality_row_scope_review",
+      "verbatim": false,
+      "focusedTests": 15,
+      "assertions": 41,
+      "result": "Exact failureId/rowId/component/hash checks remain; unlisted rows, unrelated failures, unreleased components and original retained task stay paused. Old eligibleRows still only permit Memos mechanism, so no actual main row is released."
+    },
+    {
+      "task": "model_draft_pause_boundary_review",
+      "verbatim": false,
+      "focusedTests": 16,
+      "assertions": 50,
+      "result": "No material new regression found. Nonempty raw final plus explicit failed/source-bound/structurally-valid/inconsistent graph is retained as row failure; missing/empty final, error, source or structure failure retains original shared pause. Unknown redispatch/task seal unaffected."
+    }
+  ],
+  "implementation": {
+    "release": "Use the existing exact hash-bound eligibleRows/components list without an additional row-kind restriction. Original-task pause wins before row release.",
+    "negativeDraft": "Only completed-with-diagnostics, no error, nonempty raw final, validation:false and current domain structureValid/sourceBound:true, ruleConsistency:false becomes semantic-extraction/model-draft. It remains failure/needsRepair and never validation or semantic success.",
+    "otherFailures": "Original transport, budget, runtime, structural and source failure handling unchanged.",
+    "ordinaryAccounting": "Explicit accountingKind distinguishes natural-input consumption from an authored-package consumption; original author records default unchanged."
+  },
+  "actualRelatedRun": "gitea-related-outcome.json",
+  "mainRowsReleased": false,
+  "originalUnknownTaskReleased": false,
+  "previousEligibilityPromoted": false,
+  "qualityBenefit": "not-established"
+}

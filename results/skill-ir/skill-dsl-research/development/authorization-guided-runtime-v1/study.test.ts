@@ -46,6 +46,20 @@ test("a valid justified unknown is a boundary, not a mandatory repair", async ()
 test("a network transport failure is infrastructure rather than a model schema defect", () => {
   expect(api.mechanicalReview({ status: "transport-failed", error: "ProviderNetworkError: network error: Unable to connect" }).failure.category).toBe("infrastructure")
 })
+
+test("a delivered source-bound inconsistent model draft remains a failed row without pausing unrelated shared machinery", async () => {
+  const root = await temp(), started: string[] = []
+  const failed = { status: "completed-with-diagnostics", final: { questions: [{ questionId: "draft", behavior: { disposition: "conditional" } }] }, validation: { valid: false, diagnostics: [{ code: "object-binding-missing" }] }, domain: { check: { structureValid: true, sourceBound: true, ruleConsistency: false } } }
+  const review = api.mechanicalReview(failed)
+  expect(review.failure).toMatchObject({ category: "semantic-extraction", components: ["model-draft"] })
+  const result = await api.developRows(root, [row("draft"), { ...row("different"), task: "different-source" }], options({ concurrency: 1, execute: async (r: any) => { started.push(r.id); return r.id === "draft" ? failed : { status: "completed", validation: { valid: true } } }, evaluate: async (_r: any, report: any) => api.mechanicalReview(report) }))
+  expect(started).toEqual(["draft", "different"])
+  expect(result.rows[0].review.failure.category).toBe("semantic-extraction")
+  expect((await json(path.join(root, "runs/draft/attempt-1/report.json"))).report.validation.valid).toBe(false)
+  for (const report of [{ ...failed, final: undefined }, { ...failed, final: { questions: [] } }, { ...failed, error: "unexpected runtime error" }, { ...failed, domain: { check: { structureValid: true, sourceBound: false, ruleConsistency: false } } }, { ...failed, domain: { check: { structureValid: false, sourceBound: true, ruleConsistency: false } } }]) {
+    expect(api.mechanicalReview(report).failure.components).toEqual(["checker", "delivery"])
+  }
+})
 test("a repair identity only reopens its own retained attempt and cannot bypass another shared defect", async () => {
   const root = await temp(), execute = async () => ({ status: "completed", telemetry: { providerCalls: 1 } })
   await api.developRows(root, [row("first"), row("other")], options({ execute, evaluate: async () => ({ failure: { category: "schema/wire", rootCause: "separate retained defect", components: ["wire"] } }) }))
@@ -114,6 +128,21 @@ test("replay rejects a claim attempt number that differs from its directory befo
   const root = await temp(), identity = { row: row("mismatched"), attempt: 2 }, dir = path.join(root, "runs/mismatched/attempt-1")
   await mkdir(dir, { recursive: true }); await writeFile(path.join(dir, "claim.json"), JSON.stringify(identity)); await writeFile(path.join(dir, "report.json"), JSON.stringify({ identity, report: { providerDispatches: 1 } }))
   await expect(api.replay(root)).rejects.toThrow(/attempt identity/)
+})
+
+test("an explicit hash-bound row release permits a quality row while unlisted rows and the unknown task stay paused", async () => {
+  const root = await temp(), started: string[] = []
+  await api.developRows(root, [row("unknown")], options({ execute: async () => ({ status: "timeout-unknown", providerDispatches: 1 }), evaluate: async () => ({ failure: { category: "infrastructure", rootCause: "Unknown request remains sealed", components: ["wire"] } }) }))
+  const artifact = "runs/unknown/attempt-1/report.json", proof = "shared-repair.json"
+  await writeFile(path.join(root, proof), JSON.stringify({ providerCalls: 0, sharedEngineeringVerified: true, taskCompleted: false }))
+  const hash = async (file: string) => createHash("sha256").update(await readFile(path.join(root, file))).digest("hex")
+  await writeFile(path.join(root, "scope-adjudications.jsonl"), JSON.stringify({ failureId: "unknown-attempt-1", originalArtifactSha256: await hash(artifact), releasedComponents: ["wire"], eligibleRows: ["quality-explicit", "quality-original-task"], retainTaskPause: true, rationale: "Only the named different-task quality row uses repaired shared machinery; original task stays sealed", verificationArtifacts: [{ path: proof, sha256: await hash(proof) }] }) + "\n")
+  const rows = [{ ...row("quality-explicit"), task: "different-source", kind: "quality" }, { ...row("quality-unlisted"), task: "different-source", kind: "quality" }, { ...row("quality-original-task"), kind: "quality" }]
+  const result = await api.developRows(root, rows, options({ concurrency: 1, execute: async (r: any) => { started.push(r.id); return { status: "completed" } }, evaluate: async () => ({}) }))
+  expect(started).toEqual(["quality-explicit"])
+  expect(result.rows.find((r: any) => r.id === "quality-unlisted")).toMatchObject({ status: "not-run-after-defect", failureId: "unknown-attempt-1" })
+  expect(result.rows.find((r: any) => r.id === "quality-original-task")).toMatchObject({ status: "not-run-after-defect", failureId: "unknown-attempt-1" })
+  expect((await json(path.join(root, artifact))).report.status).toBe("timeout-unknown")
 })
 test("a missing first report is never relabeled as the next repair report", async () => {
   const root = await temp(), identity = (attempt: number) => ({ row: row("missing"), attempt })
