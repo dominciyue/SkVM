@@ -240,6 +240,8 @@ location-routing-v1真实8/8返回，三题已显式定位但五题仍rejected�
 
 下一现场共享修复工作计划：先写持续具名错误不能占满两个解释槽、其它ready题与decisive定位候选必须有界轮转的红例；保留一个定向修复机会，另一机会公平推进其它题，不把规则复制给其它题。已选择但仍未读完且有其它原索引候选的入口，提供当前候选再选择任务，供模型缩小粗入口；不自动取消原选择/换函数/断言语义。第二组红例要求每次展示只选原证据整窗，保留原id/path/sha/text，按剩余累计展示预算与剩余dispatch分配窗口；未放入当前整窗的local任务不得获得绑定，超大/暂未展示的身份仍在完整证据目录及有界deferred记录中，模型可普通已展示增量或请求确切读取。近期和diagnostic证据不再无界灌入每轮，保留原报告、当前缺口/提议/预算计量、unknown隔离和最终validator；不剪源码行、不生成语义摘要、不抬12/24/262144限额或增调用。先聚焦红绿/相关类型，再对实际11prompt离线选窗/覆盖与字节计量，明确不是新答案或完整运行因果重放；独立范围点验后才同原作者字节具名实际复验。
 
+2026-10-04 source-window-budget共享修复已按上一计划完成工程验证：7预期红例及独立覆盖缺口1红例，155相关测试905断言/主与研究类型通过；首选focus+其它ready题轮转，超过2项decisive定位轮转，原候选显式refinement，整窗覆盖缺失不回退，无fit无local授权，未展示read后续可offer。structured/native按剩余累计display/剩余dispatch规划，不改实际12/24/262144边界。11冻结snapshot选窗投影118228/43532，6proposal canonical acceptance不变，0provider/source/target；只选择回放，非新prompt/答案/依赖/语义或资格。详见source-window-budget-verification.json及replay；下一立即同原作者字节普通source-window-budget-v1具名复验。
+
 文件：新建 `inquiry-local-extraction.ts`、测试；接 inquiry-domain-runtime.ts 和现有 provider/telemetry。
 
 - [x] 给模型的局部任务包含一个 WorkItem、当前源码窗口、必要调用点/问题、明确前提；输出窄语义增量和未决依赖。

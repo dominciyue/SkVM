@@ -142,7 +142,9 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
     if (strategy === "guided-evidence-v2" && domain) {
       await domain.sync(!proseOnly && !checkOnly && checks === 0 && toolBudget().explorationRemaining > 0)
       params.messages = params.messages.filter(m => !m.content.startsWith("Current local explanation context: "))
-      params.messages.push({ role: "user", content: `Current local explanation context: ${JSON.stringify({ ...domain.modelContext(), state: domain.modelFeedback() })}` })
+      const existing = modelSourceDisplay(tools.evidence, params.messages.map(m => m.content).join("\n") + (toolResults?.map(r => r.content).join("\n") ?? ""), displayed).bytes
+      const maxSourceBytes = Math.max(0, Math.floor(((options.maxDisplayBytes ?? 262144) - modelSourceBytes) / Math.max(1, providerRemaining)) - existing)
+      params.messages.push({ role: "user", content: `Current local explanation context: ${JSON.stringify({ ...domain.modelContext({ maxSourceBytes }), state: domain.modelFeedback() })}` })
     }
     const text = params.messages.map(m => m.content).join("\n") + (toolResults?.map(r => r.content).join("\n") ?? ""), display = modelSourceDisplay(tools.evidence, text, displayed)
     const current = display.bytes, resent = display.resentBytes

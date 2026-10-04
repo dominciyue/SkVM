@@ -5,6 +5,7 @@ import os from "node:os"
 import { createInquiryTools } from "./inquiry-tools.ts"
 import { createInquiryDomainRuntime } from "./inquiry-domain-runtime.ts"
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
+import { expandLocalExtractions, localExplanationContext } from "./inquiry-local-extraction.ts"
 
 async function fixture(questions = [{ id: "q", request: "Investigate entry. Owner is unspecified. Grants are not given.", entryHint: "entry", premises: [] }]) {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-extract-"))
@@ -16,6 +17,118 @@ async function fixture(questions = [{ id: "q", request: "Investigate entry. Owne
   return { sourceRoot, tools, program, runtime }
 }
 const entry = (extra = {}) => ({ op: "add", targetKey: "entry", pathKey: "p", kind: "entry", after: [], claim: "Tests the supplied owner before effects", ...extra })
+
+test("a persistent multi-window error retains a repair slot without starving other ready questions", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-focused-fair-"))
+  await writeFile(path.join(sourceRoot, "entry.ts"), "export function entry() { return helper(); }\n")
+  await writeFile(path.join(sourceRoot, "helper.ts"), "export function helper() { return false; }\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["."] })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: ["a", "b", "c", "d", "e"].map(id => ({ id, request: "Inspect entry", entryHint: "entry", premises: [] })) })
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "guided-evidence-v2" })
+  await runtime.sync()
+  const evidenceIds = [tools.evidence[0]!.id]
+  await runtime.propose({ schemaVersion: "authorization-control-update/v1", rules: [
+    ...program.questions.map(q => entry({ questionId: q.id, evidenceIds })),
+    entry({ questionId: "e", targetKey: "write", kind: "effect", after: ["entry"], principal: "unbound", evidenceIds }),
+  ], dependencies: [{ op: "add", questionId: "e", targetKey: "helper", pathKey: "p", from: "entry", symbol: "helper", kind: "control", decisive: true, evidenceIds, reason: "Entry calls the decision helper" }] })
+  const before = runtime.report().slice
+  const contexts = Array.from({ length: 4 }, () => runtime.modelContext())
+  expect(contexts.every(c => c.tasks.length === 2 && c.tasks[0]!.question.id === "e" && c.tasks[1]!.question.id !== "e")).toBe(true)
+  expect([...new Set(contexts.map(c => c.tasks[1]!.question.id))].sort()).toEqual(["a", "b", "c", "d"])
+  expect(runtime.report().slice).toEqual(before)
+  expect(tools.toolCalls).toBe(2)
+})
+
+test("persistent decisive location work rotates across all questions without reading or selecting candidates", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-decisive-fair-"))
+  for (const file of ["a.py", "b.py"]) await writeFile(path.join(sourceRoot, file), "def entry():\n    return False\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["."] })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: ["a", "b", "c", "d", "e"].map(id => ({ id, request: "Inspect entry", entryHint: "entry", premises: [] })) })
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "guided-evidence-v2" })
+  await runtime.sync()
+  const contexts = Array.from({ length: 3 }, () => runtime.modelContext())
+  expect(contexts.every(c => c.locationTasks.length === 2 && c.tasks.length === 0)).toBe(true)
+  expect([...new Set(contexts.flatMap(c => c.locationTasks.map(t => t.question.id)))].sort()).toEqual(["a", "b", "c", "d", "e"])
+  expect(runtime.report().worklist!.items.every(w => !w.selected)).toBe(true)
+  expect(tools.toolCalls).toBe(0)
+})
+
+test("an incompletely read broad entry exposes existing alternatives for explicit refinement", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-refine-entry-"))
+  await writeFile(path.join(sourceRoot, "entry.py"), ["class Container:", "    def entry(self):", "        return False", "    def other(self):", "        return True", ...Array.from({ length: 400 }, (_, n) => `    value_${n} = ${n}`)].join("\n") + "\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["."] })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect entry in Container", entryHint: "Container entry", premises: [] }] })
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "guided-evidence-v2" })
+  await runtime.sync()
+  const initial = runtime.modelContext().locationTasks[0]!
+  const broad = initial.candidates.find(c => c.name === "Container")!, narrow = initial.candidates.find(c => c.name === "entry")!
+  await runtime.propose({ schemaVersion: "authorization-control-update/v1", workSelections: [{ questionId: "q", itemId: initial.itemId, candidateId: broad.id }] })
+  const context: any = runtime.modelContext(), refinement = context.locationTasks.find((t: any) => t.itemId === initial.itemId)
+  expect(refinement).toMatchObject({ nextAction: { kind: "select-candidate" }, candidateRefinement: { selectedCandidateId: broad.id } })
+  expect(refinement.candidates.map((c: any) => c.id)).toEqual(initial.candidates.map(c => c.id))
+  expect(context.tasks).toEqual([])
+  expect(runtime.report().worklist!.items.find(w => w.id === initial.itemId)!.selected!.id).toBe(broad.id)
+  expect(runtime.report().slice.rules).toEqual([])
+  const calls = tools.toolCalls
+  await runtime.propose({ schemaVersion: "authorization-control-update/v1", workSelections: [{ questionId: "q", itemId: initial.itemId, candidateId: narrow.id }] })
+  expect(runtime.modelContext().tasks[0]!.itemId).toBe(initial.itemId)
+  expect(tools.toolCalls).toBe(calls)
+})
+
+test("a bounded explanation uses a whole original covering window instead of its larger duplicate", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-window-fit-"))
+  await writeFile(path.join(sourceRoot, "entry.ts"), [...Array.from({ length: 40 }, () => "// 汉字 original padding"), "export function entry() {", "  return false;", "}", ...Array.from({ length: 40 }, () => "// more original padding")].join("\n") + "\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["."] })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect entry", entryHint: "entry", premises: [] }] })
+  const runtime: any = createInquiryDomainRuntime({ program, tools, strategy: "guided-evidence-v2" })
+  await runtime.sync()
+  const original = structuredClone(tools.evidence[0]!)
+  await tools.execute("source_read", { path: "entry.ts", startLine: 1, endLine: 83 })
+  const before = runtime.report().slice, context = runtime.modelContext({ maxSourceBytes: original.bytes })
+  expect(context.sourceWindows).toEqual([(({ quote, ...window }) => window)(original)])
+  expect(context.tasks[0].evidenceIds).toEqual([original.id])
+  expect(context.evidenceCatalog.map((e: any) => e.id)).toEqual(tools.evidence.map(e => e.id))
+  expect(context.sourceBudget).toMatchObject({ limitBytes: original.bytes, shownBytes: original.bytes, deferredWindowCount: 1 })
+  await runtime.propose({ schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: "q::entry", rules: [entry()] }] })
+  expect(runtime.report().slice.rules[0].evidenceIds).toEqual([original.id])
+  expect(before.rules).toEqual([])
+  expect(tools.evidence[0]).toEqual(original)
+  expect(tools.toolCalls).toBe(2)
+})
+
+test("zero remaining window budget withdraws local offers while retaining prior evidence references", async () => {
+  const f = await fixture(), offered = f.runtime.modelContext().tasks[0]
+  const context = f.runtime.modelContext({ maxSourceBytes: 0 })
+  expect(context.tasks).toEqual([])
+  expect(context.sourceWindows).toEqual([])
+  expect(context.evidenceCatalog.map((e: any) => e.id)).toEqual(f.tools.evidence.map(e => e.id))
+  expect(context.deferredTasks).toContainEqual(expect.objectContaining({ itemId: offered.itemId, questionId: "q", reason: "source-window-budget" }))
+  const rejected = await f.runtime.propose({ schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: offered.itemId, rules: [entry()] }] })
+  expect(rejected.diagnostics.some((d: any) => d.code === "local-work-not-offered")).toBe(true)
+  expect(f.runtime.report().slice.rules).toEqual([])
+  const accepted = await f.runtime.propose({ schemaVersion: "authorization-control-update/v1", rules: [entry({ questionId: "q", evidenceIds: [f.tools.evidence[0]!.id] })] })
+  expect(accepted.accepted).toHaveLength(1)
+  expect(f.tools.toolCalls).toBe(1)
+})
+
+test("inconsistent candidate or callsite coverage cannot authorize a local explanation", async () => {
+  const f = await fixture(), items = f.runtime.report().worklist.items
+  const original = structuredClone(items.find((i: any) => i.id === "q::entry")), slice = f.runtime.report().slice
+  const selected = original.selected
+  for (const changed of [{ ...selected, path: "other.ts" }, { ...selected, sha256: "different-source" }, { ...selected, endLine: selected.endLine + 1 }]) {
+    const item = { ...original, selected: changed }
+    const context = localExplanationContext(f.program, [item], f.tools.evidence, slice, [], [])
+    expect(context.tasks).toEqual([])
+    expect(context.evidenceCatalog.map(e => e.id)).toEqual(f.tools.evidence.map(e => e.id))
+    expect(expandLocalExtractions([{ itemId: item.id, rules: [entry()] }], context.tasks, [item]).rejected[0]!.diagnostics[0]!.code).toBe("local-work-not-offered")
+  }
+  const parent = { ...original, id: "parent", state: "closed", selected: { ...selected, path: "other.ts" } }
+  const helper = { ...original, origin: "source-reference", parentId: parent.id, callsiteEvidenceIds: [...original.evidenceIds] }
+  const context = localExplanationContext(f.program, [parent, helper], f.tools.evidence, slice, [], [])
+  expect(context.tasks).toEqual([])
+  expect(f.runtime.report().worklist.items).toEqual(items)
+  expect(f.tools.toolCalls).toBe(1)
+})
 
 test("unchanged read explanation work rotates across all questions without repeating source actions", async () => {
   const f = await fixture(["a", "b", "c", "d", "e"].map(id => ({ id, request: "Investigate entry", entryHint: "entry", premises: [] })))

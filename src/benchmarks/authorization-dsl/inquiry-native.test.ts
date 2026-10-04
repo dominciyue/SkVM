@@ -62,6 +62,24 @@ async function budgetFixture(domainTools = true, maxToolCalls?: number) {
   return { root, runtime, execute, inquiry, result }
 }
 
+test("guided native window allocation reaches reserved prose without exhausting repeated source display", async () => {
+  const { root, execute, inquiry } = await budgetFixture()
+  const read = await execute("source_read", { path: "entry.ts", startLine: 1, endLine: 1 }), limit = read.value.evidence[0].bytes * 3
+  const inputFile = path.join(root, "input.json"), input = JSON.parse(await readFile(inputFile, "utf8"))
+  delete input.brief; input.inquiry = { ...inquiry, questions: [{ ...inquiry.questions[0], entryHint: "entry" }] }
+  await writeFile(inputFile, JSON.stringify(input))
+  const runtime = await createNativeInquiryRuntime({ inputFile, workDir: root, domainTools: true, strategy: "guided-evidence-v2", maxProviderCalls: 4, maxDisplayBytes: limit })
+  const params: any = { messages: [{ role: "user", content: "Inspect entry" }] }
+  for (let turn = 0; turn < 4; turn++) await runtime.beforeDispatch(params)
+  expect(runtime.report().requests).toHaveLength(4)
+  expect(runtime.report().sourceAccounting.cumulativeModelSourceBytes).toBeLessThanOrEqual(limit)
+  expect(runtime.report().toolBudget.checksUsed).toBe(0)
+  expect(params.tools).toEqual([])
+  expect(runtime.report().requests[0]).toMatchObject({ params: { messages: expect.arrayContaining([expect.objectContaining({ content: expect.stringContaining('"reason":"source-window-budget"') })]) } })
+  runtime.close()
+  await expect(runtime.beforeDispatch(params)).rejects.toThrow("session-closed")
+})
+
 test("domain runtime reserves two checks inside the total 24 calls after mixed exploration reaches 22", async () => {
   const { runtime, execute, inquiry, result } = await budgetFixture()
   const compiled = await execute("authorization_compile", { inquiry })
@@ -212,7 +230,8 @@ test("native guided dispatch offers actual original windows and accepts the same
   expect(runtime.report().domain!.localExtractions).toHaveLength(1)
   const current = JSON.parse(params.messages.at(-1).content.split("Current local explanation context: ")[1])
   expect(current.state.rules.map((r: any) => r.key)).toEqual(["entry", "stop"])
-  expect(runtime.report().sourceAccounting.cumulativeModelSourceBytes).toBe(context.sourceWindows[0].bytes * 2)
+  expect(current.sourceWindows).toEqual([])
+  expect(runtime.report().sourceAccounting.cumulativeModelSourceBytes).toBe(context.sourceWindows[0].bytes)
 })
 
 test("native reserves checking and prose within the existing provider budget", async () => {

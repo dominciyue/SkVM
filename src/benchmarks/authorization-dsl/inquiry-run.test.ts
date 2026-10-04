@@ -6,6 +6,7 @@ import type { LLMProvider, CompletionParams } from "../../providers/types.ts"
 import { emptyTokenUsage } from "../../core/types.ts"
 import { runAuthorizationInquiry } from "./inquiry-run.ts"
 import { ProviderNetworkError } from "../../providers/errors.ts"
+import { createInquiryTools } from "./inquiry-tools.ts"
 
 async function setup() {
   const root = await mkdtemp(path.join(os.tmpdir(), "ao-loop-")); await mkdir(path.join(root, "src"))
@@ -21,6 +22,30 @@ function scripted(fn: (params: CompletionParams, n: number) => unknown): { provi
   }, async completeWithToolResults() { throw new Error("Use structured inquiry actions") } } }
 }
 const final = (id: string) => ({ kind: "final", result: { schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q1", behavior: { disposition: "deny", explanation: "The called guard returns false." }, evidenceIds: [id], branches: [], missing: [] }], observations: [], scope: "Read source only" } })
+test("guided source allocation preserves a final repair within the original cumulative display limit", async () => {
+  const input = await setup()
+  await writeFile(path.join(input.sourceRoot, "src/entry.ts"), "export function entry() { return false; }\n")
+  const probe = await createInquiryTools(input), read = await probe.execute("source_read", { path: "src/entry.ts", startLine: 1, endLine: 1 })
+  const limit = read.evidence[0]!.bytes * 3
+  const mock = scripted((params, n) => {
+    const context = JSON.parse(params.messages[0]!.content.split("Current local explanation context: ")[1]!.split("\n\nRemaining dispatches:")[0]!)
+    if (n < 2) return { kind: "control", controlDelta: { schemaVersion: "authorization-control-update/v1" } }
+    const id = context.evidenceCatalog[0].id, answer = final(n === 2 ? "not-shown" : id)
+    answer.result.questions[0]!.behavior.explanation = "The original entry returns false."
+    return { ...answer, ...(n === 2 ? { controlDelta: { schemaVersion: "authorization-control-update/v1", rules: [
+      { op: "add", questionId: "q1", targetKey: "entry", pathKey: "p", kind: "entry", after: [], evidenceIds: [id], claim: "Entry returns false" },
+      { op: "add", questionId: "q1", targetKey: "stop", pathKey: "p", kind: "reject", after: ["entry"], evidenceIds: [id], claim: "Entry denies", complete: true },
+    ] } } : {}) }
+  })
+  const run = await runAuthorizationInquiry({ ...input, method: "M", strategy: "guided-evidence-v2", provider: mock.provider, maxDispatches: 4, maxDisplayBytes: limit })
+  expect(run.status).toBe("completed")
+  expect(mock.count()).toBe(4)
+  expect(run.initialValidation?.valid).toBe(false)
+  expect(run.validation?.valid).toBe(true)
+  expect(run.sourceAccounting.cumulativeModelSourceBytes).toBeLessThanOrEqual(limit)
+  expect(run.toolHistory).toHaveLength(1)
+  expect(run.requests[0]!.params.messages[0]!.content).toContain('"reason":"source-window-budget"')
+})
 test("structured natural inquiry retains the original lexical entry when the author omits it", async () => {
   const input = await setup(), mock = scripted((params, n) => {
     if (n === 0) return { schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q1", request: "Investigate access controls for record updates.", premises: [] }] }

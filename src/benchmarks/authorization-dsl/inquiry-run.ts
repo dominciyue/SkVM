@@ -108,7 +108,8 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
       const feedback = options.method === "D1" ? `\nObservation feedback: ${JSON.stringify(inquiryObservationFeedback(program, observations))}` : ""
       const history = domain ? steps.slice(-4).map(s => s.kind === "control" ? { kind: s.kind, value: { revision: (s.value as any).revision, ...(strategy === "guided-evidence-v2" ? {} : { diagnostics: (s.value as any).diagnostics }) } } : s.kind === "delivery-repair" && strategy === "guided-evidence-v2" ? { ...s, value: { ...(s.value as any), diagnostics: (s.value as any).diagnostics.slice(0, 16) } } : s) : steps
       const remainingDispatches = (options.maxDispatches ?? 12) - telemetry.attempts.length, deliveryReserved = !!domain && remainingDispatches <= 2
-      const localContext = strategy === "guided-evidence-v2" ? domain!.modelContext() : undefined
+      const maxSourceBytes = Math.max(0, Math.floor(((options.maxDisplayBytes ?? 262144) - cumulativeModelSourceBytes) / Math.max(1, remainingDispatches)))
+      const localContext = strategy === "guided-evidence-v2" ? domain!.modelContext({ maxSourceBytes }) : undefined
       const shown = localContext ? localContext.evidenceCatalog.map(e => ({ ...e, shown: previouslyShown.has(e.id), ...(importedReferences.has(e.id) ? { previousVerified: true } : {}) })) : tools.evidence.map(({ quote: _q, ...e }) => e)
       const renderedContext = localContext ? { ...localContext, evidenceCatalog: shown } : undefined
       const sourceCatalog = localContext ? "Use evidenceCatalog in the current local explanation context; original source text is in sourceWindows." : JSON.stringify(shown)

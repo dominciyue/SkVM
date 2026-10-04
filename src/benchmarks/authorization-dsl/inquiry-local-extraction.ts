@@ -52,6 +52,7 @@ export const LOCAL_EXTRACTION_GUIDE = [
   "Local explanation joins the next ordinary structured/native step. It does not create an extra provider request. You may still use ordinary changed control groups for already shown source outside an offered fragment. Invalid local items remain diagnosed while good siblings are retained, subject to the requested atomic update.",
   "An interpreted source item remains editable until its question is checked. Amend existingTargets with op:replace when correcting the same source rule; a model reason may explain the change, otherwise the host records explicit local replacement provenance. Dependency relevance reasons remain required. Renaming a mistaken rule does not withdraw it. For an abandoned unaccepted draft, use root controlDelta.withdrawals with its exact group,questionId,targetKey and reason; accepted targets and missing links cannot be erased. After a stale local envelope rejection, use a currently offered task or a valid same-question ordinary update; specific rejected target diagnostics require correction or an explicit eligible withdrawal.",
   "Domain feedback rejectedTargets shows at most four current rejected drafts with their exact group/question/target, submitted data, original local scope, diagnostics and archive pointer. Unaccepted targets require a corrected op:add under the same key; op:replace requires an accepted same-group target. A group conflict requires correcting the group or choosing a distinct key. Correct the fields named by diagnostics; pathKey, after, binding identity, conditions and completeness remain your explicit source interpretation. For local submission use only a CURRENTLY offered itemId and omit questionId/evidenceIds. Otherwise use the ordinary group with the recorded questionId and actually shown evidenceIds. If abandoning an eligible unaccepted draft, explicitly withdraw its exact identity with a reason. Renaming alone leaves the failure active. Large drafts are omitted as a whole with an archive pointer, never silently truncated or filled.",
+  "Deferred tasks are not current local offers. Whole original windows are selected within sourceBudget; no source lines or semantic fields are summarized. Previously shown evidence remains referenceable through the catalog and ordinary updates. A candidateRefinement location task offers the SAME indexed alternatives for an incompletely read entry; choose a narrower candidate only when it identifies this requested entry. The host does not change that choice or infer relevance.",
 ].join("\n")
 
 export interface LocalExplanationTask {
@@ -63,23 +64,39 @@ export interface LocalLocationTask {
   itemId: string; question: LocalExplanationTask["question"]; duty: LocalExplanationTask["duty"];
   code?: string; candidates: WorkItem["candidates"]; callsiteEvidenceIds: string[]; optionalLocationLead?: true;
   nextAction: { kind: "locate" | "select-candidate"; itemId: string }; semanticSupport: "unreviewed"
+  candidateRefinement?: { selectedCandidateId: string; startLine: number; endLine: number }
+}
+/** Cover only the indexed range using whole original reads; extra enclosing text is not reinterpreted. */
+function coveringWindows(ids: string[], evidence: InquiryEvidence[], candidate?: WorkItem["selected"]) {
+  const originals = evidence.filter(e => ids.includes(e.id))
+  if (!candidate) return originals.map(e => e.id)
+  let through = candidate.startLine - 1
+  const selected: string[] = []
+  while (through < candidate.endLine) {
+    const next = originals.filter(e => e.path === candidate.path && e.sha256 === candidate.sha256 && e.startLine <= through + 1 && e.endLine > through)
+      .sort((a, b) => Math.min(b.endLine, candidate.endLine) - Math.min(a.endLine, candidate.endLine) || a.bytes - b.bytes || a.id.localeCompare(b.id))[0]
+    if (!next) return []
+    selected.push(next.id); through = next.endLine
+  }
+  return selected
 }
 /** Mechanically select whole already-read windows; no semantic source compression or provider call. */
-export function localExplanationContext(program: AuthorizationInquiryProgram, items: WorkItem[], evidence: InquiryEvidence[], slice: ControlSlice, diagnosticEvidenceIds: string[] = [], recentEvidenceIds = evidence.slice(-2).map(e => e.id), locationOffset = 0, explanationFocus: { offset?: number; questionIds?: string[] } = {}) {
+export function localExplanationContext(program: AuthorizationInquiryProgram, items: WorkItem[], evidence: InquiryEvidence[], slice: ControlSlice, diagnosticEvidenceIds: string[] = [], recentEvidenceIds = evidence.slice(-2).map(e => e.id), locationOffset = 0, explanationFocus: { offset?: number; fairOffset?: number; questionIds?: string[]; maxSourceBytes?: number } = {}) {
   const tasks: LocalExplanationTask[] = [], seen = new Set<string>(), byQuestion = new Map<string, WorkItem[]>()
   const locationTasks: LocalLocationTask[] = [], locations = new Map<string, WorkItem[]>()
   const optionalLead = (i: WorkItem) => i.origin === "source-reference" && i.state === "awaiting-binding" && i.code === "reference-relevance-unconfirmed" && i.candidates.length > 0 && i.callsiteEvidenceIds.some(id => evidence.some(e => e.id === id))
-  for (const q of program.questions) locations.set(q.id, items.filter(i => i.questionId === q.id && (i.state === "unlocated" && ["locate", "select-candidate"].includes(i.nextAction.kind) || optionalLead(i))).sort((a, b) => Number(b.decisive) - Number(a.decisive)))
+  const refinement = (i: WorkItem) => i.origin === "question-duty" && i.kind === "entry" && i.state === "awaiting-read" && !!i.selected && i.candidates.length > 1 && i.evidenceIds.length > 0
+  for (const q of program.questions) locations.set(q.id, items.filter(i => i.questionId === q.id && (i.state === "unlocated" && ["locate", "select-candidate"].includes(i.nextAction.kind) || optionalLead(i) || refinement(i))).sort((a, b) => Number(b.decisive) - Number(a.decisive)))
   const ordered: WorkItem[] = []
   for (let offset = 0; offset < items.length; offset++) {
     const layer = program.questions.flatMap(q => locations.get(q.id)?.[offset] ?? [])
     if (!layer.length) break
     ordered.push(...layer)
   }
-  const decisive = ordered.filter(i => i.decisive), optional = ordered.filter(i => !i.decisive), position = locationOffset % Math.max(1, optional.length)
-  for (const item of [...decisive, ...optional.slice(position), ...optional.slice(0, position)].slice(0, 2)) {
+  const decisive = ordered.filter(i => i.decisive), optional = ordered.filter(i => !i.decisive), position = locationOffset % Math.max(1, optional.length), decisivePosition = decisive.length > 2 ? locationOffset * 2 % decisive.length : 0
+  for (const item of [...decisive.slice(decisivePosition), ...decisive.slice(0, decisivePosition), ...optional.slice(position), ...optional.slice(0, position)].slice(0, 2)) {
     const q = program.questions.find(q => q.id === item.questionId)!
-    locationTasks.push({ itemId: item.id, question: structuredClone(q), duty: { kind: item.kind, question: item.question, symbol: item.symbol, parentId: item.parentId, reason: item.reason }, code: item.code, candidates: structuredClone(item.candidates.slice(0, 16)), callsiteEvidenceIds: item.callsiteEvidenceIds.filter(id => evidence.some(e => e.id === id)), ...(optionalLead(item) ? { optionalLocationLead: true as const } : {}), nextAction: { kind: item.nextAction.kind === "select-candidate" || optionalLead(item) ? "select-candidate" : "locate", itemId: item.id }, semanticSupport: "unreviewed" })
+    locationTasks.push({ itemId: item.id, question: structuredClone(q), duty: { kind: item.kind, question: item.question, symbol: item.symbol, parentId: item.parentId, reason: item.reason }, code: item.code, candidates: structuredClone(item.candidates.slice(0, 16)), callsiteEvidenceIds: item.callsiteEvidenceIds.filter(id => evidence.some(e => e.id === id)), ...(optionalLead(item) ? { optionalLocationLead: true as const } : {}), ...(refinement(item) ? { candidateRefinement: { selectedCandidateId: item.selected!.id, startLine: item.selected!.startLine, endLine: item.selected!.endLine } } : {}), nextAction: { kind: item.nextAction.kind === "select-candidate" || optionalLead(item) || refinement(item) ? "select-candidate" : "locate", itemId: item.id }, semanticSupport: "unreviewed" })
   }
   const focused = new Set(explanationFocus.questionIds)
   const priority = (i: WorkItem) => focused.has(i.questionId) || (!focused.size && i.evidenceIds.some(id => diagnosticEvidenceIds.includes(id))) ? 0 : i.state === "awaiting-interpretation" ? 1 : i.state === "awaiting-binding" ? 2 : 3
@@ -90,19 +107,39 @@ export function localExplanationContext(program: AuthorizationInquiryProgram, it
     if (!layer.length) break
     explanationOrder.push(...layer)
   }
-  for (let rank = 0; rank <= 3 && tasks.length < 2; rank++) {
+  const candidates: WorkItem[] = []
+  for (let rank = 0; rank <= 3; rank++) {
     const group = explanationOrder.filter(i => priority(i) === rank), position = (explanationFocus.offset ?? 0) % Math.max(1, group.length)
-    for (const item of [...group.slice(position), ...group.slice(0, position)]) {
+    candidates.push(...group.slice(position), ...group.slice(0, position))
+  }
+  const first = candidates[0], fairPosition = (focused.size ? explanationFocus.fairOffset ?? 0 : (explanationFocus.offset ?? 0) + 1) % Math.max(1, program.questions.length)
+  const fairQuestions = [...program.questions.slice(fairPosition), ...program.questions.slice(0, fairPosition)]
+  const other = first && fairQuestions.filter(q => q.id !== first.questionId).map(q => candidates.find(i => i.questionId === q.id)).find(Boolean)
+  const preferred = [first, other, ...candidates].filter((i): i is WorkItem => !!i)
+  const ids = new Set<string>(), deferredTasks: Array<{ itemId: string; questionId: string; reason: "source-window-budget"; evidenceIds: string[] }> = [], deferredEvidence = new Set<string>()
+  const limit = Math.max(0, explanationFocus.maxSourceBytes ?? Infinity)
+  let shownBytes = 0
+  const include = (sourceIds: string[]) => {
+    const additions = evidence.filter(e => sourceIds.includes(e.id) && !ids.has(e.id)), bytes = additions.reduce((sum, e) => sum + e.bytes, 0)
+    if (shownBytes + bytes > limit) return false
+    for (const e of additions) ids.add(e.id)
+    shownBytes += bytes
+    return true
+  }
+  for (const item of preferred) {
       if (tasks.length >= 2) break
       const q = program.questions.find(q => q.id === item.questionId)!
-      const sourceIds = item.evidenceIds.filter(id => evidence.some(e => e.id === id)), key = JSON.stringify([q.id, sourceIds])
-      if (!sourceIds.length || seen.has(key)) continue
+      const sourceIds = coveringWindows(item.evidenceIds, evidence, item.selected), callsiteEvidenceIds = coveringWindows(item.callsiteEvidenceIds, evidence, items.find(i => i.id === item.parentId)?.selected), key = JSON.stringify([q.id, sourceIds])
+      if (!sourceIds.length || item.callsiteEvidenceIds.length > 0 && !callsiteEvidenceIds.length || seen.has(key)) continue
       seen.add(key)
-      tasks.push({ itemId: item.id, question: structuredClone(q), duty: { kind: item.kind, question: item.question, symbol: item.symbol, parentId: item.parentId, reason: item.reason }, evidenceIds: sourceIds, callsiteEvidenceIds: item.callsiteEvidenceIds.filter(id => evidence.some(e => e.id === id)), existingTargets: slice.rules.filter(r => r.questionId === q.id).map(({ key, kind, pathKey, after }) => ({ key, kind, pathKey, after })), relatedDuties: items.filter(i => i.questionId === q.id && i.origin === "question-duty").map(({ id, kind, question }) => ({ id, kind, question })), ...(program.policy ? { policy: structuredClone(program.policy) } : {}), semanticSupport: "unreviewed" })
-    }
+      const scope = [...new Set([...sourceIds, ...callsiteEvidenceIds])]
+      if (!include(scope)) { deferredTasks.push({ itemId: item.id, questionId: q.id, reason: "source-window-budget", evidenceIds: scope }); for (const id of scope) deferredEvidence.add(id); continue }
+      tasks.push({ itemId: item.id, question: structuredClone(q), duty: { kind: item.kind, question: item.question, symbol: item.symbol, parentId: item.parentId, reason: item.reason }, evidenceIds: sourceIds, callsiteEvidenceIds, existingTargets: slice.rules.filter(r => r.questionId === q.id).map(({ key, kind, pathKey, after }) => ({ key, kind, pathKey, after })), relatedDuties: items.filter(i => i.questionId === q.id && i.origin === "question-duty").map(({ id, kind, question }) => ({ id, kind, question })), ...(program.policy ? { policy: structuredClone(program.policy) } : {}), semanticSupport: "unreviewed" })
   }
-  const ids = new Set([...tasks.flatMap(t => [...t.evidenceIds, ...t.callsiteEvidenceIds]), ...locationTasks.flatMap(t => t.callsiteEvidenceIds), ...diagnosticEvidenceIds, ...recentEvidenceIds])
-  return { tasks, locationTasks, sourceWindows: structuredClone(evidence.filter(e => ids.has(e.id)).map(({ quote: _quote, ...e }) => e)), evidenceCatalog: evidence.map(({ id, path, startLine, endLine, bytes }) => ({ id, path, startLine, endLine, bytes })), instruction: LOCAL_EXTRACTION_GUIDE }
+  const diagnosticWindows = evidence.filter(e => diagnosticEvidenceIds.includes(e.id)).sort((a, b) => a.bytes - b.bytes).slice(0, 2).map(e => e.id)
+  for (const id of new Set([...recentEvidenceIds, ...locationTasks.flatMap(t => t.callsiteEvidenceIds), ...diagnosticWindows])) if (!include([id])) deferredEvidence.add(id)
+  for (const id of ids) deferredEvidence.delete(id)
+  return { tasks, locationTasks, sourceWindows: structuredClone(evidence.filter(e => ids.has(e.id)).map(({ quote: _quote, ...e }) => e)), evidenceCatalog: evidence.map(({ id, path, startLine, endLine, bytes }) => ({ id, path, startLine, endLine, bytes })), deferredTasks: deferredTasks.slice(0, 4), sourceBudget: { limitBytes: Number.isFinite(limit) ? limit : null, shownBytes, deferredTaskCount: deferredTasks.length, deferredWindowCount: deferredEvidence.size, deferredEvidenceIds: [...deferredEvidence].slice(0, 8) }, instruction: LOCAL_EXTRACTION_GUIDE }
 }
 
 export function expandLocalExtractions(input: unknown[], offered: LocalExplanationTask[], items: WorkItem[]) {

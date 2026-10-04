@@ -150,8 +150,8 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     rules: slice.rules.map(({ key, questionId, pathKey, kind, after, condition, bindingKey, bindingKind, principal, resource, digest }) => ({ key, questionId, pathKey, kind, after, condition, bindingKey, bindingKind, principal, resource, digest })),
     bindings: slice.bindings, policyRules: slice.policyRules, dependencies: scheduler.snapshot(), paths: lastPaths,
     diagnostics: [...issues.values()].flat().concat(check?.diagnostics ?? objectDiagnostics), ...(worklist ? { worklist: worklist.snapshot(), automaticActionsRemaining } : {}), semanticSupport: "unreviewed", ...(options.ablation ? { mechanismDisabled: options.ablation } : {}) })
-  let contextHistoryPosition = 0, locationContextPosition = 0, explanationContextPosition = 0
-  const modelContext = () => {
+  let contextHistoryPosition = 0, locationContextPosition = 0, explanationContextPosition = 0, fairContextPosition = 0
+  const modelContext = (limits: { maxSourceBytes?: number } = {}) => {
     if (closed) throw new Error("session-closed")
     worklist?.sync(slice, check)
     const diagnostics = feedback().diagnostics.filter(d => d.severity === "error")
@@ -159,9 +159,10 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     const diagnosed = targets.flatMap(r => r.evidenceIds)
     const questionIds = options.program.questions.filter(q => targets.some(r => r.questionId === q.id) || diagnostics.some(d => d.questionId ? d.questionId === q.id : d.path === q.id || d.path.startsWith(`${q.id}.`) || d.path.includes(`.${q.id}.`))).map(q => q.id)
     const currentReads = options.tools.history.slice(contextHistoryPosition)
-    const recent = (currentReads.length ? currentReads : options.tools.history.slice(-2)).flatMap(h => h.result.evidence.map(e => e.id))
+    const shown = new Set(evidenceContext().shownEvidenceIds)
+    const recent = [...new Set([...currentReads.flatMap(h => h.result.evidence.map(e => e.id)), ...options.tools.evidence.filter(e => !shown.has(e.id)).map(e => e.id)])]
     contextHistoryPosition = options.tools.history.length
-    const context = localExplanationContext(options.program, worklist?.snapshot() ?? [], options.tools.evidence, slice, diagnosed, recent, locationContextPosition++, { offset: explanationContextPosition, questionIds })
+    const context = localExplanationContext(options.program, worklist?.snapshot() ?? [], options.tools.evidence, slice, diagnosed, recent, locationContextPosition++, { offset: explanationContextPosition, fairOffset: fairContextPosition++, questionIds, ...limits })
     explanationContextPosition += 2
     offeredTasks = context.tasks
     return context

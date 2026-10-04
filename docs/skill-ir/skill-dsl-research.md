@@ -1348,6 +1348,10 @@ request8–11反复offered前两入口，过程对象诊断未进入解释focus�
 
 rejected-target-directory普通复验11/11、24/24源码动作成功，17read/7search/9host，helper body与版本resolver已读；本轮无拒绝目标，不能声明原稿反馈实际收益。首次全check revision25仍invalid，slice35只有过程对象反馈，final仍原首答，5题rejected/0usable。累计模型源码256089、重送181393，余6055不能容纳下一request而未派发；整窗计数与runtime两数逐项相同。Q5持续占两解释槽，Q1粗类入口未读完，Q3/Q4虽可解释仍等待；wire失败、未incorporate和exact dependency hint分别保留。独立源码评审经点验router继承、上游权限class及model路径属性仍可用未读；源缺口与真实部署unknown分离。累计349、费用/人力unknown，无previous/主面板释放；下一计划仅有界公平推进、显式粗候选细化及剩余预算整窗选择，见active taskbook与rejected-target-directory-outcome.json。
 
+### 7.40 2026-10-04：两槽公平推进与整窗预算修复
+
+7项预期红例后共享structured/native接入剩余展示字节/剩余dispatch的整窗分配；focus保留首选修复机会，另一首选机会轮转其它ready题，超过两项decisive定位有界轮转。粗入口仍未读完且有原索引其它候选时提供显式再选择；不自动换成正确函数。完整候选及源码id/path/sha/text不改，未fit局部任务不得绑定，近期未展示窗口可在后轮展示，目录身份与普通已展示引用保留；原有自动last-two回灌由此替代。独立审查指出纯helper覆盖失败退回全部窗口，主代理按路径/hash/范围及parent-callsite补红绿后收紧为无offer；不把不一致内部fixture冒充已证模型跨文件漏洞。两项decisive同时fit无饥饿，未额外换序。155测试905断言、主/研究类型与Bun回放通过。6录制proposal accepted状态不变，11冻结snapshot整窗投影118228/重送43532，比原256089/181393少；这不是新完整prompt、模型答、依赖状态或因果质量收益，Node/tsx未宣称可运行。0新增provider，累计349；下一同原作者字节/xty模型/12provider、24tool、262144display普通source-window-budget-v1复验，unknown封存与主面板不变。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
