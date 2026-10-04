@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "authorization-inquiry-check/v1",
+  "status": "valid",
+  "inputPath": "D:\\skill优化\\project-maintenance\\runs\\portable-combined-delivery-neutral-ymi0coek\\reuse-current.json",
+  "method": "D1",
+  "strategy": "guided-evidence-v2",
+  "input": {
+    "schemaVersion": "authorization-inquiry-input/v1",
+    "taskId": "wire-probe",
+    "repository": "neutral-wire-probe",
+    "sourceRef": "probe-v1",
+    "sourceRoot": "source",
+    "allowedPaths": [
+      "entry.ts"
+    ],
+    "inquiry": {
+      "schemaVersion": "authorization-inquiry/v1",
+      "mode": "behavior",
+      "questions": [
+        {
+          "id": "inspect-enabled-disabled",
+          "request": "Does inspect return true for both enabled and disabled inputs? Give the relevant source branches with citations.",
+          "premises": [
+            {
+              "text": "For this run, the inspect input enabled is true.",
+              "origin": "user"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "sourceFiles": [
+    {
+      "path": "entry.ts",
+      "sha256": "371365d678b092bb69364a13ac84447c6b83e9a97ea75c05c3541f696c683fa2",
+      "bytes": 89
+    }
+  ],
+  "scopeGaps": [],
+  "sourceRefVerification": "authored",
+  "providerCalls": 0,
+  "program": {
+    "schemaVersion": "authorization-inquiry-program/v1",
+    "status": "ready",
+    "mode": "behavior",
+    "questions": [
+      {
+        "id": "inspect-enabled-disabled",
+        "request": "Does inspect return true for both enabled and disabled inputs? Give the relevant source branches with citations.",
+        "premises": [
+          {
+            "text": "For this run, the inspect input enabled is true.",
+            "origin": "user"
+          }
+        ]
+      }
+    ],
+    "queue": [
+      {
+        "id": "inspect-enabled-disabled::entry",
+        "questionId": "inspect-enabled-disabled",
+        "kind": "entry",
+        "question": "Which entry and applicable upstream controls govern this requested path?",
+        "state": "pending"
+      },
+      {
+        "id": "inspect-enabled-disabled::principal-binding",
+        "questionId": "inspect-enabled-disabled",
+        "kind": "principal-binding",
+        "question": "How is the caller identity bound on this path? Do not invent an unspecified identity.",
+        "state": "pending"
+      },
+      {
+        "id": "inspect-enabled-disabled::resource-binding",
+        "questionId": "inspect-enabled-disabled",
+        "kind": "resource-binding",
+        "question": "Which resource does the request select and what resource does each control check?",
+        "state": "pending"
+      },
+      {
+        "id": "inspect-enabled-disabled::guard",
+        "questionId": "inspect-enabled-disabled",
+        "kind": "guard",
+        "question": "Which applicable control decides this operation and under which conditions? Not finding a guard is not proof of absence.",
+        "state": "pending"
+      },
+      {
+        "id": "inspect-enabled-disabled::effect",
+        "questionId": "inspect-enabled-disabled",
+        "kind": "effect",
+        "question": "Which object receives the protected effect? Does it match the control object? A decisive rejection may suffice without tracing unreachable effects.",
+        "state": "pending"
+      },
+      {
+        "id": "inspect-enabled-disabled::exception",
+        "questionId": "inspect-enabled-disabled",
+        "kind": "exception",
+        "question": "Which relevant role, relation or condition exceptions change this answer? Separate source gaps from external facts.",
+        "state": "pending"
+      }
+    ],
+    "diagnostics": []
+  },
+  "authorProviderRequired": false,
+  "diagnostics": []
+}
