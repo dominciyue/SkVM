@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "authorization-ar-independent-source-review/v1",
+  "stage": "consume-authorization-cloudflare-download-repair-rejected-target-directory-v1",
+  "task": "rejected_directory_source_semantics",
+  "verbatim": false,
+  "answerPointer": "/initial",
+  "lastDeliveredEqualsInitial": true,
+  "ratings": [
+    "partial",
+    "partial",
+    "partial",
+    "incorrect-major-partial",
+    "incorrect-major-partial"
+  ],
+  "findings": [
+    {
+      "questionId": "download-request-document",
+      "source": "src/paperless/urls.py:74-78;src/documents/views.py:2503-2504",
+      "finding": "Actual registered documents view is UnifiedSearchViewSet inheriting DocumentViewSet; raw answer leaves route registration unknown although source is available."
+    },
+    {
+      "questionId": "download-version-selection",
+      "source": "src/documents/views.py:1375-1386;src/documents/versioning.py:136-195",
+      "finding": "Omitted and supplied version selection affect the manager/include_deleted choice; runtime row state remains unknown."
+    },
+    {
+      "questionId": "download-original-archive",
+      "source": "src/documents/models.py:452-498;src/documents/views.py:1442-1448",
+      "finding": "Source/archive paths and public filename metadata were available but unread. follow_formatting passes the raw query value without boolean parsing."
+    },
+    {
+      "questionId": "download-authorization-root-version",
+      "source": "src/documents/permissions.py:30-53",
+      "finding": "PaperlessObjectPermissions is within allowed source; raw source-gap statement omits its available ownership override."
+    },
+    {
+      "questionId": "download-version-authorization-invariant",
+      "source": "src/documents/permissions.py:30-53;src/documents/views.py:1401-1448",
+      "finding": "Root/file distinction is described, but available upstream permission semantics are left as source-gap."
+    }
+  ],
+  "limits": [
+    "No strategy, checker outcome or model identity supplied to this source reviewer.",
+    "The review is advisory and not a main-panel score; final check and reuse eligibility are separate."
+  ]
+}

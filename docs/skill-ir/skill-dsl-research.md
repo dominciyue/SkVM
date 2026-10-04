@@ -1344,6 +1344,10 @@ request8–11反复offered前两入口，过程对象诊断未进入解释focus�
 
 6项预期红例后145测试845断言/主与研究类型通过；初主类型仅新增测试的可能空evidence标注，经已非空断言修正。source_search/source_symbol共用已有索引内文件或目录筛选，slash边界隔离相似前缀，source_read仍精确文件。当前拒绝target按完整题/组/key缓存原稿及原host引用/档案指针；反馈最多4项/16KiB轮转，大项整项省略并明确指针，不填pathKey/after/条件/对象，不自动撤回。独立边界核验无新的可达问题；审稿提出Symbol/function clone异常是既有非JSON内部边界，JSON实际wire不能提供，原raw retention早已clone，不额外加门。真实7proposal归档expanded+拒绝fragment的ordinary重放保持完整accepted graph，11拒绝仍在；不覆盖完整9prompt/局部路由/依赖状态。4旧目录查询在相同索引可执行，2仍空匹配，helper定义有定位不等于body解释。0新增provider，累计338，USD/人力unknown；下一同原作者字节同12/24预算具名rejected-target-directory-v1普通复验，未知Notes/Memos和主面板未释放。
 
+### 7.39 2026-10-04：目录实用进展与源码重送终止
+
+rejected-target-directory普通复验11/11、24/24源码动作成功，17read/7search/9host，helper body与版本resolver已读；本轮无拒绝目标，不能声明原稿反馈实际收益。首次全check revision25仍invalid，slice35只有过程对象反馈，final仍原首答，5题rejected/0usable。累计模型源码256089、重送181393，余6055不能容纳下一request而未派发；整窗计数与runtime两数逐项相同。Q5持续占两解释槽，Q1粗类入口未读完，Q3/Q4虽可解释仍等待；wire失败、未incorporate和exact dependency hint分别保留。独立源码评审经点验router继承、上游权限class及model路径属性仍可用未读；源缺口与真实部署unknown分离。累计349、费用/人力unknown，无previous/主面板释放；下一计划仅有界公平推进、显式粗候选细化及剩余预算整窗选择，见active taskbook与rejected-target-directory-outcome.json。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

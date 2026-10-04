@@ -1,0 +1,111 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "paperless-download",
+  "repository": "paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "sourceRoot": "./source",
+  "allowedPaths": [
+    "src/documents",
+    "src/paperless/urls.py"
+  ],
+  "inquiry": {
+    "schemaVersion": "authorization-inquiry/v1",
+    "mode": "behavior",
+    "questions": [
+      {
+        "id": "download-request-document",
+        "request": "For the document Download operation, determine how the document identified by the request path parameter is related to the document or file object ultimately returned, including requests that identify a root document versus a version document.",
+        "principal": "the authenticated user making the document download request",
+        "resource": "the requested Paperless document and the file representation selected for download",
+        "operation": "download the requested document as an attachment",
+        "entryHint": "Trace the download route registration and the DocumentViewSet download/file-response path in the supplied source.",
+        "premises": [
+          {
+            "text": "The inquiry concerns the document Download operation in the supplied Paperless revision.",
+            "origin": "user"
+          },
+          {
+            "text": "The requested document, the file returned, and any version relationship must be analyzed separately rather than treated as automatically identical.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "download-version-selection",
+        "request": "Determine how the Download operation resolves the selected version: no version parameter, an explicit version parameter identifying a version of the requested root, an explicit version parameter identifying an unrelated document or version, and invalid or unavailable version input. State which document's stored file is returned in each relevant branch.",
+        "principal": "the authenticated user making a download request with optional version selection input",
+        "resource": "the root document, its historical/current version documents, and their original and archive file representations",
+        "operation": "select a document version and download its file",
+        "entryHint": "Trace version-parameter extraction and version/root resolution helpers reachable from the download operation, including deleted/trash handling where reachable.",
+        "premises": [
+          {
+            "text": "The inquiry must distinguish the requested document from a selected version and must cover both omitted and supplied version selection.",
+            "origin": "user"
+          },
+          {
+            "text": "Selecting another version must be analyzed for whether it changes only the returned file representation, the authorized resource, or both.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "download-original-archive",
+        "request": "Determine how the Download operation chooses between the selected document version's original/source file and archive representation, including the original selector, archive availability, and filename-formatting selector, and explain which metadata and file handle determine the bytes, media type, and download name returned.",
+        "principal": "the authenticated user making a download request",
+        "resource": "the selected version's original/source representation or archive representation",
+        "operation": "download one selected representation of a document version",
+        "entryHint": "Trace the download representation branches through file_response and the file-serving helper, and inspect the Document file/path properties needed to identify the returned resource.",
+        "premises": [
+          {
+            "text": "The requested distinction is between an original/source representation and an archive representation, not merely between display filenames.",
+            "origin": "user"
+          },
+          {
+            "text": "The answer must identify the effect of selecting another version on the representation that supplies the returned bytes.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "download-authorization-root-version",
+        "request": "Determine the authenticated user's authorization decision point for Download, including authentication requirements, the object used for the view-permission check, and whether that check is performed against the requested document, its root document, the selected version, or another object before the file is opened.",
+        "principal": "the authenticated user, including a user with global permissions, owner status, object-level grants, or no applicable document grant",
+        "resource": "the document resource whose file may be opened and returned, including a root and its versions",
+        "operation": "authorize and perform a document download",
+        "entryHint": "Trace DRF route/view permission handling and the explicit permission checks in the download call chain; inspect the relevant permission helpers and document managers in the allowed source paths.",
+        "premises": [
+          {
+            "text": "Ownership and object grants are unspecified; analyze the source branches for those conditions without assuming that any particular grant exists.",
+            "origin": "user"
+          },
+          {
+            "text": "The inquiry must explain how the authenticated user's authorization relates to the file actually returned, including when a selected version differs from the path-identified document.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "download-version-authorization-invariant",
+        "request": "Assess whether choosing another version can cause Download to return a file from a resource that is not the resource authorized by the relevant control, and state the exact source conditions needed for that conclusion. Separate source-established behavior from facts that require deployment or database validation.",
+        "principal": "an authenticated requester attempting to download a document or one of its versions",
+        "resource": "the authorized document resource and the concrete source/archive file returned by the Download response",
+        "operation": "download after changing the selected version",
+        "entryHint": "Compare the authorization object and the effective file document across all reachable Download branches; consult only the supplied source and identify unresolved external conditions explicitly.",
+        "premises": [
+          {
+            "text": "Do not pre-assume that ownership, object grants, global permissions, authentication configuration, soft-deletion state, or deployment routing has a particular value.",
+            "origin": "user"
+          },
+          {
+            "text": "The result must state missing source or deployment facts precisely rather than infer them from conventions or from unspecified grants.",
+            "origin": "user"
+          },
+          {
+            "text": "This is a bounded behavior inquiry: provide source-visible authorization analysis and do not perform live probing, target execution, patching, or a full audit.",
+            "origin": "user"
+          }
+        ]
+      }
+    ]
+  }
+}

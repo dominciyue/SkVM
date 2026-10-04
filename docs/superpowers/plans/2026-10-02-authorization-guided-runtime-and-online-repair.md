@@ -236,6 +236,10 @@ location-routing-v1真实8/8返回，三题已显式定位但五题仍rejected�
 
 上述6项预期红例后145测试845断言、主/研究类型通过。目录查询/符号定位仅原索引过滤，路径/源身份约束及已有预算保持；拒绝目标4项/16KiB整项轮转、原稿/host scope/指针可见，add/replace/withdraw资格明确且不推断缺字段。独立点验未见可达绕过；非JSON Symbol clone问题已在旧raw retention存在，不增门。实际7提议saved expansion+invalid fragment的ordinary重放accepted state完整相同，11拒绝保持，不覆盖9完整prompt/路由/依赖状态；4旧目录查询恢复，其中2空匹配。下一同字节同12/24预算rejected-target-directory-v1具名普通复验，0新provider阶段累计338，无质量/previous升格。
 
+2026-10-04 rejected-target-directory实际11/11、24/24源码动作成功（17read/7search/9host），权限helper body及version resolver已读；本轮6提议无拒绝目标，原稿反馈未获得实际效应证据。首次完整check在revision25，之后slice35仅剩2object-unreachable，没有新的final check；final仍原initial，5题rejected/0usable/无previous。累计展示256089，其中重送181393，下一请求超过余6055字节而未派发；11次响应均已返回，终止并非工具失败，费用仍unknown。窗口逐项和计量精确对上；Q5长期占两个解释槽，Q1显式选择1008–2396类候选等待全范围，Q3/Q4短入口可解释仍等待。两个wire坏稿及未incorporate/目录dependency hint问题另列。源码评审点验实际router继承、权限class及model属性可用但未读；policy/部署unknown不抹除这些遗漏，累计349/USD与人力unknown，主面板及封存请求不变。见rejected-target-directory-outcome.json及独立review/主裁定。
+
+下一现场共享修复工作计划：先写持续具名错误不能占满两个解释槽、其它ready题与decisive定位候选必须有界轮转的红例；保留一个定向修复机会，另一机会公平推进其它题，不把规则复制给其它题。已选择但仍未读完且有其它原索引候选的入口，提供当前候选再选择任务，供模型缩小粗入口；不自动取消原选择/换函数/断言语义。第二组红例要求每次展示只选原证据整窗，保留原id/path/sha/text，按剩余累计展示预算与剩余dispatch分配窗口；未放入当前整窗的local任务不得获得绑定，超大/暂未展示的身份仍在完整证据目录及有界deferred记录中，模型可普通已展示增量或请求确切读取。近期和diagnostic证据不再无界灌入每轮，保留原报告、当前缺口/提议/预算计量、unknown隔离和最终validator；不剪源码行、不生成语义摘要、不抬12/24/262144限额或增调用。先聚焦红绿/相关类型，再对实际11prompt离线选窗/覆盖与字节计量，明确不是新答案或完整运行因果重放；独立范围点验后才同原作者字节具名实际复验。
+
 文件：新建 `inquiry-local-extraction.ts`、测试；接 inquiry-domain-runtime.ts 和现有 provider/telemetry。
 
 - [x] 给模型的局部任务包含一个 WorkItem、当前源码窗口、必要调用点/问题、明确前提；输出窄语义增量和未决依赖。
