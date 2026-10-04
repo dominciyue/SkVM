@@ -194,3 +194,39 @@ test("native dispatch advertises the same narrow phase and supplies checked sour
   expect(params.tools).toEqual([])
   expect(params.messages.some((m: any) => m.content.includes("Current source permits return without a protected mutation"))).toBe(true)
 })
+
+test("focused source actions expose their actual argument schemas before spending source calls", () => {
+  const schemas = inquiryStepSchemas("focused-closure-v1", false, "behavior", "locate")
+  expect(schemas.modelSchema.safeParse({ kind: "tool", calls: [{ name: "source_search", arguments: { query: "entry" } }] }).success).toBe(false)
+  expect(schemas.modelSchema.safeParse({ kind: "tool", calls: [{ name: "source_symbol", arguments: { symbol: "entry" } }] }).success).toBe(false)
+  expect(schemas.modelSchema.safeParse({ kind: "tool", calls: [{ name: "source_read", arguments: { path: "entry.ts", start: 1, end: 1 } }] }).success).toBe(false)
+  expect(schemas.modelSchema.safeParse({ kind: "tool", calls: [{ name: "source_search", arguments: { text: "entry", path: "entry.ts" } }] }).success).toBe(true)
+})
+test("link can repair missing typed arguments without rereading or regenerating a helper", async () => {
+  const { runtime, tools } = await setup(1)
+  const entry: any = runtime.modelContext()
+  await runtime.propose(interpret(entry.focus.id, { ...body, fallthrough: "allow", parameters: [{ name: "actor", type: "principal" }], blocks: [{ name: "main", steps: [{ kind: "call", name: "check", symbol: "gate", claim: "The helper receives this actor", arguments: [] }] }] }))
+  const helper: any = runtime.modelContext()
+  await runtime.propose(interpret(helper.focus.id, { ...body, parameters: [{ name: "actor", type: "principal" }] }))
+  const linking: any = runtime.modelContext(), link = linking.links[0], target = link.targets[0].handle
+  await runtime.propose({ schemaVersion: "authorization-focused-update/v1", focusId: linking.focus.id, kind: "link", links: [{ caller: link.caller, call: link.call, target }] })
+  const repair: any = runtime.modelContext()
+  expect(repair.focus.stage).toBe("link")
+  const reads = tools.toolCalls
+  const accepted = await runtime.propose({ schemaVersion: "authorization-focused-update/v1", focusId: repair.focus.id, kind: "link", links: [{ caller: link.caller, call: link.call, target, arguments: [{ parameter: "actor", object: "actor" }] }] })
+  expect(accepted.diagnostics).toEqual([])
+  expect(tools.toolCalls).toBe(reads)
+  expect(runtime.report().semantic?.units).toHaveLength(2)
+  expect(runtime.report().slice.rules.some(r => r.gap === "semantic-argument-unbound")).toBe(false)
+})
+test("an invalid source-to-user value can be corrected at the same focus without a lingering rejected premise", async () => {
+  const { runtime } = await setup(1)
+  const current: any = runtime.modelContext()
+  const rejected = await runtime.propose({ ...interpret(current.focus.id), values: [{ key: "permission", value: "add_record", text: "SOURCE_CONSTANT" }] })
+  expect(rejected.diagnostics.some(d => d.code === "premise-not-supplied")).toBe(true)
+  expect((runtime.modelContext() as any).focus.id).toBe(current.focus.id)
+  await runtime.propose(interpret(current.focus.id))
+  const answer: any = runtime.modelContext()
+  const result = runtime.assembleResult({ schemaVersion: "authorization-focused-result/v1", focusId: answer.focus.id, answers: [{ explanation: "The source permits return" }], scope: "Shown original" }).result
+  expect((await runtime.validate(result)).ruleConsistency).toBe(true)
+})

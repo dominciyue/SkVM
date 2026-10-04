@@ -2,7 +2,7 @@
 
 > **For the executing agent:** use the executing-plans, systematic-debugging, test-driven-development and verification-before-completion workflows. The user has authorized continuous execution, purposeful paid calls and publication to their origin. Routine checkpoints do not require confirmation. Apply the latest AGENTS subagent rules: bounded read-only scouts, default role, fork_turns=none, main-agent implementation and final decisions.
 
-日期：2026-10-05。状态：`in-progress / AT0`。开发模型：`gpt-6.1-sol / max`。工作目录：`D:/skill优化/SkVM`；分支：`skill-ir-aot`。仅发布用户 `origin`，不建分支或 worktree。
+日期：2026-10-05。状态：`in-progress / AT8–AT9`。开发模型：`gpt-6.1-sol / max`。工作目录：`D:/skill优化/SkVM`；分支：`skill-ir-aot`。仅发布用户 `origin`，不建分支或 worktree。
 
 被测模型默认沿用AS的 `xty/gpt-5.6-sol` 与现有配置路由；开发代理模型和被测模型分开。若路由实际不可用，先登记替代模型与原因，再让同一配对块使用相同模型；不能仅为新方法换强模型后归因方法收益。凭据不进入日志或报告。
 
@@ -260,3 +260,5 @@ AT0为新结果目录准备本轮薄runner及其typecheck/replay真实命令，�
 - 2026-10-05：主线程完成AS原件/核心代码复核及78项聚焦回归；编写AT任务书并同步当前入口。此时AT生产开发和真实实验尚未开始。下一线程按实际提交接管。
 - 发布前只读可执行性复核后，明确了每位置预算、evaluator输入隔离、focus失效范围、局部依赖阻断、fresh变化独立运行和作者/消费分层。原始只读工具公平与执行器干预分开；无需新增审批门槛。
 - 文档验证发现AS归档的两份检查日志复述已撤下文档路径，扫描新增5条历史引用误报；按现有retired-reference机制登记精确source/target，原始AS日志及793份证据未改。
+
+AT8/AT9执行记录（2026-10-05）：ShareLink调试首轮完成但未达质量，21派发/21响应，实际美元未知；首轮原件固定。独立轨迹/合同复核发现工具字段、谓词说明、link参数和错误values生命周期缺陷，匿名TDD修复后相关668 pass/1 skip，4367断言，两项typecheck通过。新增输入修订locked-framework-v1仅扩充锁文件哈希匹配的DRF3.18.1源码，所有Paperless臂共享；原始输入/政策不改。具名修订at8-source-contract-and-typed-link-v1待同题复验，暂停受影响派发到该修订验证。

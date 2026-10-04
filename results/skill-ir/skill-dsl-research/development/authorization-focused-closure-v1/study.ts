@@ -15,10 +15,17 @@ export function selectRow(manifest: any, id: string) {
   if (!arm || arm.method !== row.method || arm.strategy !== row.strategy || row.inputFile !== task.inputFile || !manifest.modelInputAllowlist.includes(row.inputFile)) throw new Error("Registered model-input/arm identity mismatch")
   return { row, task }
 }
-export async function loadRegisteredInput(manifest: any, task: any) {
+export function registeredInputIdentity(manifest: any, task: any) {
   if (!tasks.includes(task.id) || task.admission !== "eligible" || !manifest.modelInputAllowlist.includes(task.inputFile)) throw new Error("Unregistered model input")
-  const file = path.resolve(root, task.inputFile)
-  if (sha(await readFile(file)) !== task.inputSha256) throw new Error("Registered input bytes changed")
+  const selected = task.activeInput ?? { file: task.inputFile, sha256: task.inputSha256, revision: "original" }
+  if (!manifest.modelInputAllowlist.includes(selected.file) || !selected.file.startsWith("model/inputs/") || !selected.sha256) throw new Error("Unregistered source revision")
+  return selected
+}
+export async function loadRegisteredInput(manifest: any, task: any) {
+  const selected = registeredInputIdentity(manifest, task)
+  if (sha(await readFile(path.resolve(root, task.inputFile))) !== task.inputSha256) throw new Error("Registered original input bytes changed")
+  const file = path.resolve(root, selected.file)
+  if (sha(await readFile(file)) !== selected.sha256) throw new Error("Registered input bytes changed")
   return file
 }
 export async function develop(id: string, repairId?: string, repairOf?: string) {
@@ -26,7 +33,7 @@ export async function develop(id: string, repairId?: string, repairOf?: string) 
   await assertNoUnknownTask(root, row.task)
   process.env.SKVM_CACHE = manifest.cachePath; process.env.SKVM_AUTO_PROBE = "0"
   const revision = execFileSync("git", ["rev-parse", "HEAD"], { cwd: repo, encoding: "utf8" }).trim()
-  return developRows(root, [row as Row], { revision, model: manifest.testedModel, budgets: manifest.budgets, repairId, repairOf,
+  return developRows(root, [row as Row], { revision, model: manifest.testedModel, budgets: { ...manifest.budgets, sourceInput: registeredInputIdentity(manifest, task) }, repairId, repairOf,
     execute: async (registered, output) => retainLocalRun(await executeLocalInquiryRun({ inputFile, outDir: output, model: manifest.testedModel, method: registered.method, strategy: registered.strategy as InquiryStrategy, execution: manifest.budgets })),
     evaluate: async (_row, report) => mechanicalReview(report) })
 }

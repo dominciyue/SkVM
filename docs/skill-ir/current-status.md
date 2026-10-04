@@ -6,7 +6,7 @@
 
 研究主线是 **按 skill/task 范围设计领域表达**。当前任务类为单 repo/ref、源码可见的授权与信任边界评估：围绕主体、资源、操作、条件和政策组织取证、判断与检查。质量约六成、编写复用约四成指开发投入安排，各项质量要求分别验收。
 
-**[AT0–AT19 源码解释闭合与普通 skill 交付](../superpowers/plans/2026-10-05-authorization-focused-closure-and-delivery.md) 正在执行，进入 AT8 纵向试跑准备。** 开发模型为 `gpt-6.1-sol / max`；从 `9c86e9eb` 接管，分支 `skill-ir-aot`，执行线程取得唯一写入权。`focused-closure-v1` 持久事务、宿主身份、纯helper摘要、返回对象/字段变换和双入口答案绑定已有实现和模拟验证；复杂源关系仍受原展开边界。相关653项通过、1 skip，真实完整质量与收益尚未建立。[AT manifest](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/manifest.json)固定共同输入/预算；旧AS原件和封存不变。
+**[AT0–AT19 源码解释闭合与普通 skill 交付](../superpowers/plans/2026-10-05-authorization-focused-closure-and-delivery.md) 正在执行，进入 AT8 首轮失败修复及 AT9 锁定来源复验。** 开发模型为 `gpt-6.1-sol / max`；从 `9c86e9eb` 接管，分支 `skill-ir-aot`，执行线程取得唯一写入权。`focused-closure-v1` 持久事务、宿主身份、纯helper摘要、返回对象/字段变换和双入口答案绑定已有实现和模拟验证；复杂源关系仍受原展开边界。相关668项通过、1 skip；ShareLink首轮21/21响应但完整质量未达。已修复工具参数、谓词说明、link映射和错误前提生命周期，新增锁定DRF3.18.1来源供Paperless各臂共享；真实修订和收益尚未建立。[AT manifest](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/manifest.json)固定共同输入/预算；旧AS原件和封存不变。
 
 最近完成的 [AS0–AS19](../superpowers/plans/2026-10-04-authorization-semantic-lowering-and-delivery.md) 以 `completed-with-unmet-criteria` 收束，完整源码质量与净收益未建立。[AS汇总](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/summary.json)和 [AS status](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)继续保存其原结果。`semantic-flow-v1` 已接入 inquiry/native，旧默认与 `guided-evidence-v2` 保留。
 

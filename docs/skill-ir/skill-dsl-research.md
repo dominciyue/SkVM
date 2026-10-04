@@ -1750,3 +1750,5 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 | X 授权完整能力、初轮评价、合同 revision 与普通使用复验 | [status](../../results/skill-ir/skill-dsl-research/development/authorization-capability-v1/status.json)、[initial evaluation](../../results/skill-ir/skill-dsl-research/development/authorization-capability-v1/runs/x9-initial-v1/evaluation-summary-v2.json)、[revision evaluation](../../results/skill-ir/skill-dsl-research/development/authorization-capability-v1/runs/x11-conclusion-contract-v1/revision-evaluation-v1.json)、[usage verification](../../results/skill-ir/skill-dsl-research/development/authorization-capability-v1/usage-verification-v1.json) |
 
 原件中的 nextAction、frozen、proceed-narrow 代表当时阶段；当前选择以本文件第 1 节及 current-status 为准，不因保留原件而重新启动旧任务。
+
+**AT8首轮失败与修订。** ShareLink首轮21次派发均有响应，input134,632/output11,630/cacheRead9,728；美元未知。source_search/symbol参数全部无效，重复读耗尽48次实际工具预算，serializer未取到；最终还存在条件代数、调用参数与源码冒充用户前提的错误，完整质量未达。通用合同修复补齐实际工具参数和条件格式，link允许显式映射参数，错误values可在同一focus纠正；累计物理读预算按登记值执行。四个匿名反例先失败后通过，相关668 pass/1 skip/4367断言、两项类型检查通过。应用锁文件实际锁定DRF3.18.1，新增来源修订单列并共用于Paperless所有臂，首轮输入和来源原件不改；同题真实修订仍待验收。

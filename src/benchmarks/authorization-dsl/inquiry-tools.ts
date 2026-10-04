@@ -40,6 +40,13 @@ const schemas = {
   source_symbol: z.object({ name: z.string().min(1).max(200), path: z.string().optional() }).strict(),
   source_read: z.object({ path: z.string(), startLine: z.number().int().positive(), endLine: z.number().int().positive() }).strict(),
 }
+/** The structured entrance advertises the executor's exact source argument contract. */
+export const InquirySourceCallSchema = z.discriminatedUnion("name", [
+  z.object({ name: z.literal("source_list"), arguments: schemas.source_list }).strict(),
+  z.object({ name: z.literal("source_search"), arguments: schemas.source_search }).strict(),
+  z.object({ name: z.literal("source_symbol"), arguments: schemas.source_symbol }).strict(),
+  z.object({ name: z.literal("source_read"), arguments: schemas.source_read }).strict(),
+])
 
 /** One bounded executor for Markdown, DSL and the opt-in ordinary adapter. */
 export async function createInquiryTools(options: InquiryToolsOptions) {
@@ -97,7 +104,9 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
   const current = async (relative: string): Promise<SourceBundleFile | InquiryToolOutput> => {
     if (!safePath(relative) || !files.has(relative)) return blank("error", "source-out-of-scope", "Path is outside the allowed and indexed original source.")
     if (await realpath(options.sourceRoot) !== root) return blank("error", "source-root-changed", "Source root changed identity.")
-    const loaded = await loadPortableSourceBundle({ sourceRoot: root, sourceFiles: [relative], repository: options.repository, sourceRef: options.sourceRef, maxBytes: maxReadBytes })
+    const remainingReadBytes = maxReadBytes - ioReadBytes
+    if (remainingReadBytes < Buffer.byteLength(files.get(relative)!.content)) return blank("error", "read-budget", "Cumulative physical source read/index budget exhausted; retained evidence remains available.")
+    const loaded = await loadPortableSourceBundle({ sourceRoot: root, sourceFiles: [relative], repository: options.repository, sourceRef: options.sourceRef, maxBytes: remainingReadBytes })
     if (!loaded.success) return blank("error", loaded.diagnostics[0]!.code, loaded.diagnostics[0]!.message)
     const source = loaded.bundle.files[0]!; ioReadBytes += Buffer.byteLength(source.content)
     if (source.sha256 !== files.get(relative)!.sha256) return blank("error", "source-changed", "Source bytes changed during this session; earlier evidence remains archived.")

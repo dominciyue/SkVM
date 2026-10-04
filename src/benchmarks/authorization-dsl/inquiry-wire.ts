@@ -7,6 +7,7 @@ import type { LLMTool } from "../../providers/types.ts"
 import { LocalControlDeltaSchema, LocalControlEnvelopeSchema } from "./inquiry-control-updates.ts"
 import { SemanticUpdateSchema, SemanticUpdateEnvelopeSchema, SemanticResultSchema } from "./inquiry-semantic.ts"
 import { FocusedResultSchema, focusedUpdateSchema, type FocusStage } from "./inquiry-focus.ts"
+import { InquirySourceCallSchema } from "./inquiry-tools.ts"
 
 const calls = z.array(z.object({ name: z.enum(["source_list", "source_search", "source_symbol", "source_read"]), arguments: z.record(z.unknown()) }).strict()).min(1).max(8)
 const observations = z.array(AuthorizationObservationSchema).min(1).max(32)
@@ -105,7 +106,7 @@ export function normalizeGuidedControlEnvelope(input: unknown) {
   return code ? { value, normalization: { code, originalKind: original.kind ?? null, ...(code === "guided-envelope-metadata-omitted" ? { filled } : {}) } } : { value: input }
 }
 const focusedSteps = (stage?: FocusStage) => z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("tool"), calls, controlDelta: focusedUpdateSchema(stage).optional() }).strict(),
+  z.object({ kind: z.literal("tool"), calls: z.array(InquirySourceCallSchema).min(1).max(8), controlDelta: focusedUpdateSchema(stage).optional() }).strict(),
   z.object({ kind: z.literal("control"), controlDelta: focusedUpdateSchema(stage) }).strict(),
   z.object({ kind: z.literal("final"), result: FocusedResultSchema }).strict(),
 ])

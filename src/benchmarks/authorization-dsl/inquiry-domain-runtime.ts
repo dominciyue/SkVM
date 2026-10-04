@@ -80,8 +80,17 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
       if (prepared.duplicate) return { diagnostics: [], actions: [], evaluated: { paths: lastPaths } }
       if (prepared.diagnostics.length) { issues.set(`$focus.${currentId}`, prepared.diagnostics); proposals.push({ delta: structuredClone(delta), diagnostics: prepared.diagnostics, revision: slice.revision }); if (!prepared.proceed) return { diagnostics: prepared.diagnostics, actions: [], evaluated: { paths: lastPaths } } }
       if (prepared.deferred) { focus.sync(); return { diagnostics: [], actions: [], evaluated: { paths: lastPaths } } }
+      // A rejected focus is replaced as one transaction. Validate user values once
+      // through the shared updater before accepting a body or retaining bindings.
+      const premiseValues = prepared.delta?.premiseValues
+      if (Array.isArray(premiseValues) && premiseValues.length) {
+        const merged = calculate(() => applyControlUpdates(slice, { schemaVersion: "authorization-control-update/v1", premiseValues }, options.program, evidenceContext())); computation.merges++
+        const diagnostics = merged.rejected.flatMap(r => r.diagnostics)
+        if (diagnostics.length) { issues.set(`$focus.${currentId}`, diagnostics); focus.accepted(prepared.raw, diagnostics); proposals.push({ delta: structuredClone(delta), diagnostics, revision: slice.revision }); return { diagnostics, actions: [], evaluated: { paths: lastPaths } } }
+        slice = merged.state; prepared.delta!.premiseValues = []
+      }
       const recordStart = semanticRecords.length, result = await propose(prepared.delta)
-      const localDiagnostics = semanticRecords.slice(recordStart).filter(r => !r.accepted).flatMap(r => r.diagnostics).concat(result.diagnostics.filter(d => /^(?:premise-|work-selection-)/.test(d.code)))
+      const localDiagnostics = semanticRecords.slice(recordStart).filter(r => !r.accepted).flatMap(r => r.diagnostics).concat(result.diagnostics.filter(d => /^(?:premise-|work-selection-|semantic-update-schema)/.test(d.code) || (prepared.raw as { kind?: string })?.kind === "link" && d.code === "semantic-argument-unbound"))
       if (!localDiagnostics.length && !prepared.diagnostics.length) issues.delete(`$focus.${currentId}`)
       focus.accepted(prepared.raw, localDiagnostics); focus.sync()
       proposals.push({ delta: structuredClone(delta), diagnostics: result.diagnostics, revision: slice.revision })

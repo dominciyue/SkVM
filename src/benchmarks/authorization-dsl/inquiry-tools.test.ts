@@ -110,3 +110,13 @@ test("file, source display and tool budgets retain concrete gaps and partial rea
   await tools.execute("source_list", {})
   expect((await tools.execute("source_list", {})).code).toBe("tool-budget")
 })
+test("physical source budget includes indexing and every identity-checked reread", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "ao-read-budget-")), source = "export function entry() { return true; }\n", size = Buffer.byteLength(source)
+  await writeFile(path.join(root, "entry.ts"), source)
+  const tools = await createInquiryTools({ sourceRoot: root, allowedPaths: ["entry.ts"], repository: "neutral", sourceRef: "fixed", maxReadBytes: size * 2 })
+  expect((await tools.execute("source_read", { path: "entry.ts", startLine: 1, endLine: 1 })).status).toBe("ok")
+  const retained = [...tools.evidence]
+  expect((await tools.execute("source_read", { path: "entry.ts", startLine: 1, endLine: 1 })).code).toBe("read-budget")
+  expect(tools.ioReadBytes).toBe(size * 2)
+  expect(tools.evidence).toEqual(retained)
+})
