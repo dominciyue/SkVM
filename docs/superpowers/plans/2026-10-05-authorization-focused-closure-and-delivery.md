@@ -139,6 +139,8 @@ AS 的 blocks/choose/call/return/effect 继续表达局部源码。新增的组�
 
 ### AT8 两个真实纵向调试案例
 
+第二项具名修订有解释进展：第三轮8/8响应，源码正文展示与serializer条件已进入final，但错误start导致链无法降低。已按AT8返回共享接口，补起点校验及宿主callee合同，677 pass/1 skip/4505断言及双typecheck通过。保留partial评阅和第三轮原件；下一步复验本合同与Gitea纵向首轮。
+
 当前执行：前两轮ShareLink共32/32响应，完整质量仍未达。首项合同修订消除工具字段障碍，但第二轮已读继承/serializer正文未进入focus窗口。第二项具名修复接通有界supporting窗口和caller重访；相关675 pass/1 skip/4499断言及主/ATtypecheck通过。作者原字节消费runner与公开预算已备。下一步第二项具名修订；若仍无解释进展，回到共享接口，不直接派主面板。实际费用未知。
 
 - 按原始请求跑 Paperless ShareLink create 与 Gitea CreateIssue，新策略各1次作为调试首轮；完整保留。

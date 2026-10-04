@@ -24,6 +24,23 @@ async function setup(count = 3) {
 const body = { start: "main", complete: true, blocks: [{ name: "main", steps: [{ kind: "return", name: "ok", claim: "Source returns successfully without a mutation", outcome: "allow", value: true }] }] }
 const interpret = (focusId: string, unit: unknown = body) => ({ schemaVersion: "authorization-focused-update/v1", focusId, kind: "interpret", unit })
 
+test("an undeclared block start stays repairable before accepting or reviewing a unit", async () => {
+  const { runtime } = await setup(1), first: any = runtime.modelContext()
+  const invalid = await runtime.propose(interpret(first.focus.id, { ...body, start: "A prose description of this procedure" }))
+  expect(invalid.diagnostics.some(d => d.code === "semantic-start-missing")).toBe(true)
+  expect(runtime.report().semantic?.units).toHaveLength(0)
+  expect((runtime.modelContext() as any).focus.id).toBe(first.focus.id)
+  await runtime.propose(interpret(first.focus.id))
+  expect(runtime.report().semantic?.units).toHaveLength(1)
+})
+test("focused calls expose source leads while reserving callee handles to host links", () => {
+  const schema = inquiryStepSchemas("focused-closure-v1", false, "behavior", "interpret").modelSchema
+  const unit = { ...body, blocks: [{ name: "main", steps: [{ kind: "call", name: "check", symbol: "gate", claim: "Actual source helper", callee: "a_lexical_name" }] }] }
+  expect(schema.safeParse({ kind: "control", controlDelta: interpret("focus-test", unit) }).success).toBe(false)
+  delete (unit.blocks[0]!.steps[0]! as any).callee
+  expect(schema.safeParse({ kind: "control", controlDelta: interpret("focus-test", unit) }).success).toBe(true)
+})
+
 test("rendering keeps one source/version focus; rejected interpretation remains repairable at the same focus", async () => {
   const { runtime } = await setup()
   const first: any = runtime.modelContext()

@@ -185,6 +185,7 @@ export function semanticBlockDiagnostics(unit: SemanticBlock): InquiryDiagnostic
   const ds: InquiryDiagnostic[] = [], duplicate = (names: string[], at: string) => { if (new Set(names).size !== names.length) ds.push({ code: "semantic-duplicate", path: at, message: "Semantic names must be unique in this local scope.", severity: "error" }) }
   duplicate(unit.blocks.map(b => b.name), "blocks"); duplicate(unit.parameters.map(p => p.name), "parameters")
   duplicate(unit.blocks.flatMap(b => b.steps.map(s => s.name)), "steps")
+  if (!unit.blocks.some(b => b.name === unit.start)) ds.push({ code: "semantic-start-missing", path: "start", message: `start must name one of the declared blocks: ${JSON.stringify(unit.blocks.map(b => b.name))}. Use the exact block name, never a prose description.`, severity: "error" })
   for (const b of unit.blocks) for (const s of b.steps) for (const expr of s.kind === "choose" ? s.cases.map(c => c.condition) : s.kind === "guard" && s.condition ? [s.condition] : []) for (const code of predicateDiagnostics(expr)) ds.push({ code, path: `blocks.${b.name}.${s.name}`, message: "Only the bounded predicate algebra is executable.", severity: "error" })
   return ds
 }

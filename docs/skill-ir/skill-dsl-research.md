@@ -1636,7 +1636,11 @@ AS17窄修订只恢复完全省略且显式结果整体可解析的final kind，
 
 **AT8第二轮证据。** 首项合同修订后11/11请求响应，input89,161/output5,847/cacheRead4,224，费用未知。工具显示163,416字节却只有6,304字节源码进入模型：普通工具历史删掉正文，而focus只显示当前任务窗口。继承/serializer原文虽已读取，仍未成为解释链。当前第二项具名修复将未显示与近期普通读取作为有界supporting窗口；窗口本身不生成调用关系，模型须重访原caller、声明实际call，再解释真实helper。针对性红例修通，相关675 pass/1 skip/4499断言及主/AT类型检查通过；真实复验待跑。作者原稿与消费者保持原字节绑定，公开CLI现可传32次消费预算；格式有效与原任务充分性仍分别评价。
 
+**AT8第三轮与接口回修。** 第二项具名修订8/8响应，input102,124/output5,831/cacheRead1,408；模型源码展示34,760字节，原文漏显已消除，final补出了global view与exact-document owner-aware条件。accepted unit却把自然语言写在start，找不到块导致路径在首call之前终止、没有依赖。主点验与只读核验一致；callee不存在本身会生成open dependency，不能另称为本例已经证明的调度bug。当前返回共享接口：块起点未声明则当场拒绝，focused模型schema去掉宿主callee；2红例修复后相关677 pass/1 skip/4505断言和双typecheck通过。原始任务仍partial，继承/用户传播及直接/组权限尚未充分解释；40次真实请求的费用未知。
+
 ## 8. 技术文档本地化候选：已设计到哪里
+
+<!-- AT current evidence is maintained in section7.49 above; the following section remains deferred. -->
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
 
