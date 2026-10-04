@@ -6,7 +6,7 @@
 
 研究主线是 **按 skill/task 范围设计领域表达**。当前任务类为单 repo/ref、源码可见的授权与信任边界评估：围绕主体、资源、操作、条件和政策组织取证、判断与检查。质量约六成、编写复用约四成指开发投入安排，各项质量要求分别验收。
 
-**AS0–AS7 共享实现已接通；OWUI D-S 前两次遭明确的 Schema 协议拒绝，第三次协议已通过，但触发本地待办同步缺陷。当前已复现并修复，正在同位置具名复验。** 唯一活动任务书为 [AS0–AS19 局部语义展开与真实交付](../superpowers/plans/2026-10-04-authorization-semantic-lowering-and-delivery.md)。本轮从干净且远端对齐的 `c90787f0` 继续，当前机器状态见 [AS status](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)。重点是显式选择/合流、同一状态生成结果、原 skill 实际消费和真实授权变化复用。旧 `guided-evidence-v2` 保留，新 `semantic-flow-v1` 显式选择；真实使用和质量收益尚未验证，失败即时定位并具名修后复验。
+**AS0–AS7 共享实现已接通；OWUI D-S 第四次已实际交付保留的诊断回答，旧同步崩溃消失，但 helper 参数缺口使检查未通过。入口参数修复已通过回归，零调用重放另暴露路径上限，正在同位置具名复验。** 唯一活动任务书为 [AS0–AS19 局部语义展开与真实交付](../superpowers/plans/2026-10-04-authorization-semantic-lowering-and-delivery.md)。本轮从干净且远端对齐的 `c90787f0` 继续，当前机器状态见 [AS status](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)。重点是显式选择/合流、同一状态生成结果、原 skill 实际消费和真实授权变化复用。旧 `guided-evidence-v2` 保留，新 `semantic-flow-v1` 显式选择；真实使用和质量收益尚未验证，失败即时定位并具名修后复验。
 
 AS 固定 15 质量、4 native、8 变化、2 源码变化位置，作者 4 稿另列。原作者 Memos 未知消费与预选 remove 原任务的源码、v1 政策及三种角色问题一致，原 remove 三臂和依赖它的五个变化位置保留 blocked（8/29），不以换表示或 AS 身份解封。Notes 和 Memos share 仍封存；其它预选任务继续。精确指针见 [AS manifest](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/manifest.json) 与 [继承封存](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/inherited-seals.json)。
 

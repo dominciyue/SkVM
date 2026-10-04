@@ -44,7 +44,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[]) {
       if (++pathCount > 16) throw new Error("semantic-path-limit")
       append(u, c, instance, block, step, kind, { terminal: true, complete: u.complete && kind !== "unresolved", ...fields }); c.stopped = true
     }
-    const gap = (u: BoundSemanticBlock, c: Cursor, instance: string, block: string, step: string, code: string) => { fault(questionId, u.handle, code, `Unresolved local source relation at ${block}.${step}; no alternative or call meaning was inferred.`); terminal(u, c, instance, block, step, "unresolved", { gap: code, claim: code, complete: false }) }
+    const gap = (u: BoundSemanticBlock, c: Cursor, instance: string, block: string, step: string, code: string, detail?: string) => { fault(questionId, u.handle, code, `Unresolved local source relation at ${block}.${step}; ${detail ?? "no alternative or call meaning was inferred."}`); terminal(u, c, instance, block, step, "unresolved", { gap: code, claim: code, complete: false }) }
     const predicate = (input: unknown, c: Cursor): any => {
       if (Array.isArray(input)) return input.map(v => predicate(v, c))
       if (!input || typeof input !== "object") return input
@@ -99,13 +99,16 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[]) {
               gap(u, c, instance, body, step.name, "semantic-callee-uninterpreted"); next.push(c); continue
             }
             const child: Cursor = { ...structuredClone(c), objects: Object.fromEntries(Object.entries(c.objects).filter(([key]) => key.includes("."))), values: {}, returned: false }
-            let invalidArgument = false
+            const invalidArguments: string[] = []
             for (const parameter of callee.parameters) {
               const arg = step.arguments.find(arg => arg.parameter === parameter.name), object = arg && c.objects[arg.object]
-              if (!object || object.type !== parameter.type) invalidArgument = true
+              const expected = `helper "${callee.handle}" parameter "${parameter.name}" (${parameter.type})`
+              if (!arg) invalidArguments.push(`Missing argument mapping for ${expected}.`)
+              else if (!object) invalidArguments.push(`Object "${arg.object}" mapped to ${expected} is not bound in this invocation; declare an entry parameter or a typed bind.`)
+              else if (object.type !== parameter.type) invalidArguments.push(`Object "${arg.object}" has type ${object.type}, but ${expected} requires ${parameter.type}.`)
               else child.objects[parameter.name] = object
             }
-            if (invalidArgument) { gap(u, c, instance, body, step.name, "semantic-argument-unbound"); next.push(c); continue }
+            if (invalidArguments.length) { gap(u, c, instance, body, step.name, "semantic-argument-unbound", invalidArguments.join(" ")); next.push(c); continue }
             const calleeInstance = `${instance}.${step.name}`, expanded = walk(callee, callee.start, [child], calleeInstance, [...stack, marker])
             for (const returned of expanded) {
               if (!callee.complete && !returned.stopped) gap(callee, returned, calleeInstance, callee.start, "$closure", "semantic-helper-incomplete")
@@ -125,6 +128,11 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[]) {
       for (const root of roots) {
         const cursor: Cursor = { tail: "", route: [root.handle], objects: {}, guards: {}, values: {} }
         append(root, cursor, root.handle, root.start, "$entry", "entry", { claim: `Source entry ${root.handle}` })
+        for (const parameter of root.parameters) {
+          const identity = id([questionId, root.handle, "parameter", parameter.name])
+          cursor.objects[parameter.name] = { identity, type: parameter.type }; cursor.objects[`${root.handle}.${parameter.name}`] = cursor.objects[parameter.name]!
+          append(root, cursor, root.handle, root.start, `$parameter.${parameter.name}`, "binding", { claim: `Explicit entry parameter ${parameter.name} (${parameter.type})`, bindingKey: identity, bindingKind: parameter.type })
+        }
         for (const c of walk(root, root.start, [cursor], root.handle, [])) if (!c.stopped) {
           if (!root.complete || !root.fallthrough || root.fallthrough === "unresolved") gap(root, c, root.handle, root.start, "$end", "semantic-entry-incomplete")
           else terminal(root, c, root.handle, root.start, "$end", "return", { outcome: root.fallthrough, claim: "Explicit normal fallthrough outcome" })

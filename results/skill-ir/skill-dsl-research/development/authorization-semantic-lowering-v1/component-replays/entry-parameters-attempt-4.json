@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "authorization-as-component-replay/v1",
+  "implementationRevision": "working-tree-after-e3c50a15",
+  "sourceRun": "runs/quality-owui-ingestion-D-S/attempt-4/sessions/2026-10-04T130717301Z-89354648/run.json",
+  "sourceRunSha256": "f357d3e7ca7eee9484136d17174f2a985871f1849040e634ba6267255500f3fd",
+  "input": "Unmodified final accepted semantic units",
+  "providerCalls": 0,
+  "targetExecutions": 0,
+  "delta": {
+    "schemaVersion": "authorization-control-slice/v2",
+    "rules": [
+      {
+        "key": "sem-41cb04be5ccee8868c367f5c",
+        "questionId": "process-file-authorization-flow",
+        "pathKey": "sem-5f20cfd2db3b8e22efa8c587",
+        "kind": "entry",
+        "after": [],
+        "evidenceIds": [
+          "ev-733b9ae07c509445f248"
+        ],
+        "claim": "process_file_endpoint",
+        "terminal": false,
+        "sourceOrigin": {
+          "handle": "process_file_endpoint",
+          "block": "entry",
+          "step": "$entry",
+          "instance": "process_file_endpoint"
+        }
+      },
+      {
+        "key": "sem-69d18fd61de4ceb4feec4590",
+        "questionId": "process-file-authorization-flow",
+        "pathKey": "sem-5f20cfd2db3b8e22efa8c587",
+        "kind": "unresolved",
+        "after": [
+          "sem-41cb04be5ccee8868c367f5c"
+        ],
+        "evidenceIds": [
+          "ev-733b9ae07c509445f248"
+        ],
+        "claim": "semantic-path-limit",
+        "terminal": true,
+        "sourceOrigin": {
+          "handle": "process_file_endpoint",
+          "block": "entry",
+          "step": "$limit",
+          "instance": "process_file_endpoint"
+        },
+        "complete": false,
+        "gap": "semantic-path-limit"
+      }
+    ],
+    "dependencies": [],
+    "bindings": [],
+    "policyRules": []
+  },
+  "diagnostics": [
+    {
+      "code": "semantic-path-limit",
+      "path": "semanticBlocks.process-file-authorization-flow.process_file_endpoint",
+      "questionId": "process-file-authorization-flow",
+      "message": "Bounded expansion exhausted. This question remains unresolved; other questions are retained.",
+      "severity": "error"
+    }
+  ],
+  "owned": [
+    {
+      "questionId": "process-file-authorization-flow",
+      "handle": "process_file_endpoint",
+      "ruleKeys": [
+        "sem-41cb04be5ccee8868c367f5c",
+        "sem-69d18fd61de4ceb4feec4590"
+      ]
+    },
+    {
+      "questionId": "process-file-authorization-flow",
+      "handle": "get_file_by_id_and_user_id_helper",
+      "ruleKeys": []
+    },
+    {
+      "questionId": "process-file-authorization-flow",
+      "handle": "save_docs_to_vector_db_helper",
+      "ruleKeys": []
+    },
+    {
+      "questionId": "process-file-authorization-flow",
+      "handle": "get_file_by_id_helper",
+      "ruleKeys": []
+    }
+  ]
+}
