@@ -168,6 +168,17 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     return context
   }
   let rejectedFeedbackPosition = 0
+  // Keep canonical/archive diagnostics intact; describe the public local operation in model feedback.
+  const modelDiagnostic = (d: InquiryDiagnostic): InquiryDiagnostic => {
+    if (options.strategy !== "guided-evidence-v2" || d.code !== "control-conflict") return d
+    const rejected = currentRejections.find(p => p.diagnostics.some(original => original.code === d.code && original.path === d.path && original.message === d.message))
+    if (!rejected) return d
+    const group = rejected.group === "sourceBindings" ? "rules" : rejected.group === "premiseValues" ? "bindings" : rejected.group
+    const existing = slice[group].find(r => r.questionId === rejected.questionId && r.key === rejected.targetKey)
+    if (!existing || group === "rules" && (rejected.group === "sourceBindings") !== ((existing as { kind?: string }).kind === "binding")) return d
+    const replacement = { op: "replace", questionId: rejected.questionId, targetKey: rejected.targetKey }
+    return { ...d, message: `A changed add for this accepted target was rejected. Submit a ${rejected.group} item ${JSON.stringify(replacement)} with the corrected source fields. The host supplies revisionOf and records replacement provenance; dependency relevance reason remains required. The accepted target has not been overwritten.` }
+  }
   const modelFeedback = () => {
     const { worklist: fullWorklist, ...state } = feedback(), diagnostics = state.diagnostics.filter((d, i, all) => all.findIndex(v => v.code === d.code && v.path === d.path && v.message === d.message && v.questionId === d.questionId) === i)
     const rejections = [...new Map(currentRejections.map(p => [draftIdentity(p), p])).values()]
@@ -179,14 +190,14 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
       const existing = slice[group].find(r => r.questionId === p.questionId && r.key === p.targetKey)
       const targetGroupConflict = !!existing && group === "rules" && (p.group === "sourceBindings") !== ((existing as { kind?: string }).kind === "binding")
       const acceptedTarget = !!existing && !targetGroupConflict
-      const ownDiagnostics = currentRejections.filter(r => draftIdentity(r) === draftIdentity(p)).flatMap(r => r.diagnostics)
+      const ownDiagnostics = currentRejections.filter(r => draftIdentity(r) === draftIdentity(p)).flatMap(r => r.diagnostics).map(modelDiagnostic)
       let view: Record<string, unknown> = { group: p.group, questionId: p.questionId, targetKey: p.targetKey, diagnostics: ownDiagnostics, acceptedTarget, targetGroupConflict, ...(!targetGroupConflict ? { correctionOp: acceptedTarget ? "replace" : "add" } : {}), withdrawalEligible: !existing, ...(draft ? { submitted: draft.submitted, localScope: draft.localScope, archive: draft.archive } : { submittedOmitted: "draft-not-retained" }) }
       const fits = (item: Record<string, unknown>) => Buffer.byteLength(JSON.stringify([...rejectedTargets, item])) <= 16384
       if (!fits(view)) { const { submitted: _submitted, ...metadata } = view; view = { ...metadata, submittedOmitted: "feedback-byte-limit" } }
       if (!fits(view)) view = { archive: draft?.archive, submittedOmitted: "feedback-byte-limit", identityAndDiagnosticsOmitted: true, diagnosticCount: ownDiagnostics.length }
       if (fits(view)) rejectedTargets.push(structuredClone(view))
     }
-    return { ...state, ...(fullWorklist ? { worklist: worklistModelView(fullWorklist) } : {}), diagnostics: diagnostics.slice(0, 16), diagnosticCount: diagnostics.length, rejectedTargets, rejectedTargetCount: rejections.length }
+    return { ...state, ...(fullWorklist ? { worklist: worklistModelView(fullWorklist) } : {}), diagnostics: diagnostics.slice(0, 16).map(modelDiagnostic), diagnosticCount: diagnostics.length, rejectedTargets, rejectedTargetCount: rejections.length }
   }
   return { propose, sync, validate, feedback, modelContext, modelFeedback, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { closed = true },
     report: () => ({ slice: structuredClone(slice), proposals: structuredClone(proposals), currentRejections: structuredClone(currentRejections), localExtractions: structuredClone(localExtractions), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions) } } : {}), objectFeedback: { revision: objectRevision, diagnostics: structuredClone(objectDiagnostics) }, check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed }) }

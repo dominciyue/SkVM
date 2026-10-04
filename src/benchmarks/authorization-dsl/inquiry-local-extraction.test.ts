@@ -18,6 +18,48 @@ async function fixture(questions = [{ id: "q", request: "Investigate entry. Owne
 }
 const entry = (extra = {}) => ({ op: "add", targetKey: "entry", pathKey: "p", kind: "entry", after: [], claim: "Tests the supplied owner before effects", ...extra })
 
+test("local conflict model feedback names an explicit replacement while preserving the rejected add", async () => {
+  const f = await fixture(); f.runtime.modelContext()
+  await f.runtime.propose({ schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: "q::entry", rules: [entry()] }] })
+  const accepted = structuredClone(f.runtime.report().slice)
+  f.runtime.modelContext()
+  const changed = entry({ claim: "A revised source interpretation" })
+  const rejection = await f.runtime.propose({ schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: "q::entry", rules: [changed] }] })
+  expect(rejection.rejected).toHaveLength(1)
+  const before = f.runtime.report(), feedback = f.runtime.modelFeedback()
+  for (const diagnostic of [feedback.diagnostics[0], feedback.rejectedTargets[0].diagnostics[0]]) {
+    expect(diagnostic.code).toBe("control-conflict")
+    expect(diagnostic.message).toContain('"op":"replace"')
+    expect(diagnostic.message).toContain('"questionId":"q","targetKey":"entry"')
+    expect(diagnostic.message).not.toContain("Explicit revisionOf digest and revisionReason are required")
+  }
+  expect(feedback.rejectedTargets[0]).toMatchObject({ correctionOp: "replace", submitted: changed, withdrawalEligible: false })
+  expect(f.runtime.report().slice).toEqual(accepted)
+  expect(f.runtime.report()).toEqual(before)
+  expect(before.currentRejections[0].diagnostics[0].message).toContain("Explicit revisionOf digest")
+  await f.runtime.propose({ schemaVersion: "authorization-control-update/v1", localExtractions: [{ itemId: "q::entry", rules: [{ ...changed, op: "replace" }] }] })
+  expect(f.runtime.report().currentRejections).toEqual([])
+  expect(f.runtime.report().slice.rules[0].claim).toBe(changed.claim)
+  expect(f.tools.toolCalls).toBe(1)
+})
+
+test("local source-binding conflicts retain exact question and group replacement scope", async () => {
+  const f = await fixture(["a", "b"].map(id => ({ id, request: "Inspect entry", entryHint: "entry", premises: [] })))
+  const evidenceIds = [f.tools.evidence[0]!.id]
+  const binding = { op: "add", targetKey: "same", pathKey: "p", after: [], evidenceIds, claim: "Addressed input", bindingKey: "doc", bindingKind: "resource" }
+  await f.runtime.propose({ schemaVersion: "authorization-control-update/v1", sourceBindings: ["a", "b"].map(questionId => ({ ...binding, questionId })) })
+  const before = f.runtime.report().slice
+  await f.runtime.propose({ schemaVersion: "authorization-control-update/v1", sourceBindings: [{ ...binding, questionId: "a", claim: "Revised input" }], rules: [entry({ questionId: "b", targetKey: "same", evidenceIds })] })
+  const feedback = f.runtime.modelFeedback()
+  const conflict = feedback.rejectedTargets.find((t: any) => t.group === "sourceBindings")
+  expect(conflict.diagnostics[0].message).toContain('sourceBindings item {"op":"replace","questionId":"a","targetKey":"same"}')
+  const wrongGroup = feedback.rejectedTargets.find((t: any) => t.group === "rules")
+  expect(wrongGroup).toMatchObject({ targetGroupConflict: true, acceptedTarget: false })
+  expect(wrongGroup).not.toHaveProperty("correctionOp")
+  expect(wrongGroup.diagnostics[0].code).toBe("control-target-group")
+  expect(f.runtime.report().slice).toEqual(before)
+})
+
 test("a persistent multi-window error retains a repair slot without starving other ready questions", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-focused-fair-"))
   await writeFile(path.join(sourceRoot, "entry.ts"), "export function entry() { return helper(); }\n")

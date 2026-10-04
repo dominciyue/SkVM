@@ -2666,6 +2666,8 @@ A relative directory selector on source_search/source_symbol filters only existi
 
 The model feedback may expose original current rejected-target submissions as data, with exact group/question/key, own diagnostics, original local citation scope and archive provenance. A bounded projection must rotate targets, cap its total bytes, and explicitly mark whole omitted submissions rather than silently truncating semantic text. Rejected targets remain failures until the existing correction/withdrawal contract resolves them. No rejected raw field becomes an accepted semantic value merely by appearing in feedback.
 
+When a guided local add conflicts with a currently accepted same-group target, the model-facing diagnostic must describe the existing explicit replacement operation using its exact question/group/key. Host revision metadata remains host-owned. This projection does not rewrite raw canonical diagnostics, change add acceptance, infer missing fields, or authorize a replacement of an absent or differently grouped target.
+
 Six expected counterexamples now pass within145tests/845assertions and both typechecks. Saved seven-proposal ordinary normalization preserves the entire accepted graph while11rejected identities remain; it does not establish local-task routing, source dependency closure, real quality or previous eligibility. Actual same-byte ordinary verification remains separately required.
 
 ### 14.34 ordinary verification: source display and question coverage
