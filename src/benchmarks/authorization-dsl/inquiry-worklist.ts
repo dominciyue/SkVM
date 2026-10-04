@@ -11,7 +11,7 @@ export interface WorkItem {
   id: string; questionId: string; kind: InquiryRelation; question: string; entryHint?: string; symbol?: string;
   origin: "question-duty" | "source-reference" | "explicit-dependency"; parentId?: string; dependencyId?: string;
   state: WorkState; decisive: boolean; code?: string; reason: string; candidates: DiscoverySymbol[]; selected?: DiscoverySymbol;
-  selectedBy?: "explicit-selection" | "unique-index-candidate" | "accepted-entry-citation";
+  selectedBy?: "explicit-selection" | "explicit-discovery-selection" | "unique-index-candidate" | "accepted-entry-citation";
   callsiteEvidenceIds: string[]; evidenceIds: string[]; semanticSupport: "unreviewed";
   nextAction: { kind: "locate" | "select-candidate" | "read" | "interpret" | "bind" | "check" | "none"; itemId: string }
 }
@@ -34,7 +34,7 @@ export function worklistModelView(items: WorkItem[]) {
 
 /** Source candidates are lexical work, never an inferred call graph or authorization fact. */
 export function createInquiryWorklist(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; entryContext?: string; remainingActions?: () => number; dependencyStates?: () => ScheduledDependency[] }) {
-  const items = new Map<string, WorkItem>(), choices = new Map<string, string>(), invalidFiles = new Set<string>(), failedReads = new Map<string, string>()
+  const items = new Map<string, WorkItem>(), choices = new Map<string, { candidate: DiscoverySymbol; origin: "explicit-selection" | "explicit-discovery-selection" }>(), invalidFiles = new Set<string>(), failedReads = new Map<string, string>()
   const actions: WorklistAction[] = [], questionIds = options.program.questions.map(q => q.id)
   let lastQuestion = -1
   const make = (id: string, questionId: string, kind: InquiryRelation, origin: WorkItem["origin"], question: string, extra: Partial<WorkItem> = {}): WorkItem => ({ id, questionId, kind, origin, question, state: "unlocated", decisive: false, reason: "Locate original source or an explicit question relation.", candidates: [], callsiteEvidenceIds: [], evidenceIds: [], semanticSupport: "unreviewed", nextAction: { kind: "locate", itemId: id }, ...extra })
@@ -112,9 +112,9 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
         transition(item, check?.ruleConsistency && check.taskResolution === "bounded" ? "closed" : represented(item, slice).length ? "awaiting-verification" : root.state === "awaiting-interpretation" ? "awaiting-interpretation" : "awaiting-binding", check?.ruleConsistency && check.taskResolution === "bounded" ? "none" : represented(item, slice).length ? "check" : "interpret", "Question duty follows actual entry evidence; optional roles are not invented. A closed duty is only coverage of proposed bounded paths.")
         continue
       }
-      const candidate = choices.has(item.id) ? item.candidates.find(c => c.id === choices.get(item.id)) : item.candidates.length === 1 ? item.candidates[0] : declaredEntryLocation(item, slice)
+      const choice = choices.get(item.id), candidate = choice?.candidate ?? (item.candidates.length === 1 ? item.candidates[0] : declaredEntryLocation(item, slice))
       item.selected = candidate
-      item.selectedBy = candidate ? choices.has(item.id) ? "explicit-selection" : item.candidates.length === 1 ? "unique-index-candidate" : "accepted-entry-citation" : undefined
+      item.selectedBy = candidate ? choice?.origin ?? (item.candidates.length === 1 ? "unique-index-candidate" : "accepted-entry-citation") : undefined
       if (candidate && invalidFiles.has(candidate.path)) { transition(item, "blocked", "none", "Original source changed; start a fresh session before promoting extraction.", "source-invalidated"); continue }
       if (failedReads.has(item.id)) { transition(item, "blocked", "none", "The prior actual read failed; preserve the gap without spinning.", failedReads.get(item.id)); continue }
       if (!candidate) { transition(item, "unlocated", item.candidates.length > 1 ? "select-candidate" : "locate", "Choose an original indexed candidate; no semantic location is inferred.", item.candidates.length > 1 ? "location-ambiguous" : "location-missing"); continue }
@@ -142,9 +142,18 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
     const item = items.get(selection.itemId)
     if (!item) return { status: "rejected", code: "work-item-missing" }
     if (item.questionId !== selection.questionId) return { status: "rejected", code: "work-question-mismatch" }
-    if (!item.candidates.some(c => c.id === selection.candidateId)) return { status: "rejected", code: "work-candidate-missing" }
-    choices.set(item.id, selection.candidateId); failedReads.delete(item.id)
-    return { status: "accepted", itemId: item.id, candidateId: selection.candidateId }
+    const local = item.candidates.find(c => c.id === selection.candidateId)
+    const discovered = options.tools.history.filter(h => h.name === "source_symbol" && ["ok", "ambiguous"].includes(h.result.status)).flatMap(h => h.result.candidates).find(c => c.id === selection.candidateId)
+    const candidate = local ?? discovered
+    if (!candidate) return { status: "rejected", code: "work-candidate-missing" }
+    if (item.selected && item.selected.id !== candidate.id) {
+      const retired = new Set([item.id])
+      for (const id of retired) for (const child of items.values()) if (child.parentId === id) retired.add(child.id)
+      for (const id of retired) if (id !== item.id) { items.delete(id); choices.delete(id); failedReads.delete(id) }
+    }
+    const origin = local ? "explicit-selection" as const : "explicit-discovery-selection" as const
+    choices.set(item.id, { candidate: structuredClone(candidate), origin }); failedReads.delete(item.id)
+    return { status: "accepted", itemId: item.id, candidateId: selection.candidateId, origin }
   }
   const run = async (slice: ControlSlice, maxActions = 2) => {
     const start = actions.length, limit = Math.min(2, Math.max(0, maxActions))

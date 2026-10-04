@@ -118,7 +118,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
         const owned = worklist?.snapshot().find(w => w.id === parsed.data.itemId), key = `workSelections.${owned?.questionId ?? parsed.data.questionId}.${parsed.data.itemId}`
         const selection = worklist?.selectCandidate(parsed.data) ?? { status: "rejected", code: "worklist-not-enabled" }
         if (selection.status === "accepted") { issues.delete(key); issues.delete("$selection-schema") }
-        else { const ds = [{ code: selection.code!, path: key, message: "Choose a candidate shown for this same question and WorkItem; unrelated locations cannot be substituted.", severity: "error" as const }]; issues.set(owned ? key : "$selection-schema", ds); selectionDiagnostics.push(...ds) }
+        else { const ds = [{ code: selection.code!, path: key, message: "Choose a candidate shown for this same question and WorkItem, or actually returned by source_symbol for a corrected source location. Unseen IDs and another question's item cannot be substituted.", severity: "error" as const }]; issues.set(owned ? key : "$selection-schema", ds); selectionDiagnostics.push(...ds) }
       }
       const identity = (p: UpdateAcceptance | UpdateRejection) => `${p.group === "sourceBindings" ? "rules" : p.group === "premiseValues" ? "bindings" : p.group}.${p.questionId}.${p.targetKey}`
       if (merged.envelopeValid) issues.delete("$schema")

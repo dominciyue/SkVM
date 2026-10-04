@@ -178,6 +178,8 @@ AR 保留 8/16 已留首行的历史分母和所有修订。六个未运行主�
 
 Cloudflare原native第二次12/12响应并交付未checked原文，模型转向bundle端点、未完成原entry候选选择。源码read提供证据但不替模型选择当前工作项；没有证据证明宿主丢失窗口。共用semantic guide补明locationTasks与tasks的区别、选后等待当前原窗口、read证据不自动成为offer，以及native workSelections必须在controlDelta内。此项按定位流程修订，禁止加入具体项目答案；沿该已知native原件再做一次具名实际复验。原task没有具体caller事实，不采纳评审中擅自添加的他人文档/无对象权限前提。
 
+上述具名native第三次11/11响应，已成功编译而非未编译；两次终检分别因policyAssessment.status及缺result拒绝，当前没有domain.check不能推断没有program。明确完整终检payload的公共指引，不增加检查机会。GitHub原作者消费9/9响应、原字节未改；实际读到API/handler，却因初始唯一词法候选锁到funcinfo而无法让当前offer覆盖正确源。接口不新增项目知识：沿现有workSelections.candidateId允许显式选择实际source_symbol返回的同范围候选，宿主只检验当前工作项/题及原索引候选来源，读取后仍由模型解释。没有显示的候选或伪造ID拒绝；切换位置清退旧词法子树并留原取证/提议。不凭manual range假造完整函数边界。匿名红绿后沿原作者字节具名复验，原稿字段不改。
+
 ### AS10 — 两份原 skill 的普通使用
 
 首个 Cloudflare/Paperless 原任务在普通入口初始化时失败：AS 薄 driver 写入绝对 `sourceRoot`，违反 public input 的相对路径合同；原报告缺 trace，保守记 unknown。两路核验分别点验原 CLI 日志和调用顺序，确认路径校验先于 provider.complete；日志缺失本身不是零派发证明。当前计划：先匿名相对 scope 红绿测试，再保存绑定 claim/report/stdout/stderr/scope/实际 CLI session 与原代码顺序的独立零派发证明。只有该证明通过哈希和身份校验、且没有实际请求证据，才允许具名 repair；原 unknown 报告字节和其它任务封存不改。后续 scope 在派生路径后通过 public loader 再进入普通入口。

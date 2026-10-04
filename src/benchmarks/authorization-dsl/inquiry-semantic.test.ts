@@ -37,6 +37,25 @@ test("bad semantic sibling cannot discard another question; raw failure and acce
   expect((runtime.report() as any).semantic.units).toHaveLength(1)
   expect(runtime.report().proposals[0]!.delta).toMatchObject({ semanticBlocks: expect.any(Array) })
 })
+test("a corrected indexed discovery reaches the shared semantic offer without editing the task declaration", async () => {
+  const { sourceRoot, tools } = await fixture()
+  await writeFile(path.join(sourceRoot, "actual.ts"), "export function actual() { return false; }\n")
+  const currentTools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["entry.ts", "actual.ts"] })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect the requested operation", entryHint: "entry", premises: [] }] })
+  const runtime = createInquiryDomainRuntime({ program, tools: currentTools, strategy: "semantic-flow-v1" })
+  await runtime.sync(); const old = runtime.modelContext().tasks[0]!
+  const symbols = await currentTools.execute("source_symbol", { name: "actual", path: "actual.ts" })
+  await runtime.propose({ schemaVersion: "authorization-semantic-update/v1", workSelections: [{ questionId: "q", itemId: old.itemId, candidateId: symbols.candidates[0]!.id }] })
+  const offered = runtime.modelContext().tasks[0]!
+  expect(offered.itemId).toBe(old.itemId)
+  expect(offered.evidenceIds.every(id => currentTools.evidence.find(e => e.id === id)?.path === "actual.ts")).toBe(true)
+  await runtime.propose({ schemaVersion: "authorization-semantic-update/v1", semanticBlocks: [{ itemId: offered.itemId, handle: "requested_entry", op: "add", role: "entry", start: "main", complete: true, blocks: [{ name: "main", steps: [{ kind: "reject", name: "stop", claim: "The actual original declaration returns rejection" }] }] }] })
+  const assembled = runtime.assembleResult({ schemaVersion: "authorization-semantic-result/v1", revision: runtime.feedback().revision, questions: [{ questionId: "q", explanation: "The explicitly corrected original source rejects." }], scope: "local" })
+  expect((await runtime.validate(assembled.result)).taskResolution).toBe("bounded")
+  expect((assembled.result as any).questions[0].behavior.disposition).toBe("deny")
+  expect(program.questions[0]!.entryHint).toBe("entry")
+  expect(currentTools.evidence.some(e => e.path === "entry.ts")).toBe(true)
+})
 test("current accepted rejection supplies result branches and diagnoses renamed unknown and stale final", async () => {
   const { runtime, u } = await fixture()
   await runtime.propose({ schemaVersion: "authorization-semantic-update/v1", semanticBlocks: [u("q"), u("other")] })

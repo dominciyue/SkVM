@@ -52,6 +52,12 @@ test("a valid justified unknown is a boundary, not a mandatory repair", async ()
 test("a network transport failure is infrastructure rather than a model schema defect", () => {
   expect(api.mechanicalReview({ status: "transport-failed", error: "ProviderNetworkError: network error: Unable to connect" }).failure.category).toBe("infrastructure")
 })
+test("known native final checks rejected by their advertised schema remain model draft failures", () => {
+  const rejected = { call: { name: "authorization_check_result" }, exitCode: 1, output: { phase: "authorization_check_result", status: "error", diagnostics: [{ code: "invalid_enum_value", path: "result.questions.0.policyAssessment.status", message: "Invalid enum value" }] } }
+  const report = { status: "completed-with-diagnostics", ordinaryEntry: "skvm run", finalProse: "Raw answer, no checked result.", validation: { valid: false }, history: [rejected], domain: { closed: true } }
+  expect(api.mechanicalReview(report).failure.components).toEqual(["model-draft"])
+  for (const invalid of [{ ...report, history: [{ ...rejected, output: { status: "error", message: "Unexpected runtime crash" } }] }, { ...report, finalProse: "" }, { ...report, attempts: [{ status: "pending" }] }]) expect(api.mechanicalReview(invalid).failure.components).not.toEqual(["model-draft"])
+})
 
 test("a delivered source-bound inconsistent model draft remains a failed row without pausing unrelated shared machinery", async () => {
   const root = await temp(), started: string[] = []

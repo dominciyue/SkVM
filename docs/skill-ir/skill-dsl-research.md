@@ -1589,6 +1589,8 @@ OWUI新臂三次wire坏稿均在12响应内处理；只读三个原窗口，admi
 
 **AS13 四稿及原件字节。** GitHub变化稿7/7，四份作者首稿共24/24均格式valid，独立复核确认问题/政策覆盖与剩余原skill职责，原字节消费待办。累计95派发/93响应、1385557 input/103864 output/401817 cache-read，美元与人力未知，targetexec0。4fec382c修正本轮结果树Git属性，恢复被text转换损坏的原gzip；202 tracked文件与local原字节一致，3gzip均有效。只修本轮原件保留，不改历史protected结果或将首答覆盖成修后结果。
 
+**AS10/AS13 定位恢复。** a7a09687的Cloudflare原复验11/11，声明成功且两unit接受；两次终检仍因conformance status/缺result字段失败。没有domain.check不能推断没有program，主线程已纠正该初步判断，原件明确model-tool编译。GitHub原作者按原字节普通CLI消费9/9，实际读到API注册/handler，当前offer却被初始唯一词法候选锁在无关funcinfo，无法用新发现替换。共享workSelections仍用原candidateId，现允许实际source_symbol返回的同范围候选，记录explicit-discovery-selection；未显示ID/跨题拒绝，换位置退役旧词法子树，原证据/提议保留，完整索引边界不由任意read范围假造。匿名两红例转绿，联合776 pass/1 skip/4554断言、main/AS types通过，实际恢复待同原稿复验。native终检补完整payload指引、已知Zod拒绝限model-draft，原失败不提升。累计115/113，1934939 input/119635 output/505241 cache-read；费用/人力未知，无质量收益主张。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
