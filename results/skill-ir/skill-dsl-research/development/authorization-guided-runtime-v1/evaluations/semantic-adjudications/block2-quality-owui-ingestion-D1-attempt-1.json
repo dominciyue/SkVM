@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "authorization-ar-semantic-adjudication/v1",
+  "id": "block2-quality-owui-ingestion-D1-1-main",
+  "binding": {
+    "rowId": "quality-owui-ingestion-D1",
+    "attempt": 1,
+    "report": {
+      "path": "runs/quality-owui-ingestion-D1/attempt-1/report.json",
+      "sha256": "842dde114c929e8f38a8bfaaa2e253bfa3973134915d52fddd6fc552492285b8"
+    }
+  },
+  "independentReview": {
+    "path": "evaluations/semantic-reviews/block2-quality-owui-ingestion-D1-attempt-1.json",
+    "sha256": "740f583f26a11543d8eb61472fbdcf8afb764e95fcec5fe6dabdab847c828d5a"
+  },
+  "assessment": {
+    "initial": {
+      "rating": "partial",
+      "decisiveError": false,
+      "overUnknown": true,
+      "falseComplete": false,
+      "evidence": [
+        "retrieval.py:1559-1564 and models/files.py:172-185 select a non-admin file by both id and caller user_id.",
+        "retrieval.py:1566-1569 takes supplied destination or defaults only on None.",
+        "retrieval.py:1673-1681 bypass returns without vector save;1694-1732 non-bypass save and truthy result metadata continuation."
+      ]
+    },
+    "final": {
+      "rating": "partial",
+      "decisiveError": false,
+      "overUnknown": true,
+      "falseComplete": false,
+      "evidence": [
+        "retrieval.py:1559-1564 and models/files.py:172-185 select a non-admin file by both id and caller user_id.",
+        "retrieval.py:1566-1569 takes supplied destination or defaults only on None.",
+        "retrieval.py:1673-1681 bypass returns without vector save;1694-1732 non-bypass save and truthy result metadata continuation."
+      ]
+    },
+    "extraction": {
+      "initial": "partial",
+      "final": "partial",
+      "incorrectRules": [
+        "effect:vector-write and effect:file-metadata-update use selected_file != null but omit the non-bypass condition; sourceExtraction.final rules disagree with retrieval.py:1673-1681 early return."
+      ],
+      "wrongPremiseMappings": [],
+      "amplifiedError": false,
+      "evidence": [
+        "retrieval.py:1559-1564 and models/files.py:172-185 select a non-admin file by both id and caller user_id.",
+        "retrieval.py:1566-1569 takes supplied destination or defaults only on None.",
+        "retrieval.py:1673-1681 bypass returns without vector save;1694-1732 non-bypass save and truthy result metadata continuation."
+      ]
+    },
+    "mechanism": {
+      "decisiveHelperHits": [
+        "Actual endpoint windows1546-1705,1706-1764; actual owner helper172-185."
+      ],
+      "irrelevantOrInvalidReads": [],
+      "correctExcludedBranches": [
+        "Another user file is not selected and returns404 without processing/vector path."
+      ],
+      "wrongExcludedBranches": [],
+      "justifiedResiduals": [
+        "Deployment, role assignment and database/backend state remain unspecified."
+      ],
+      "avoidableResiduals": [
+        "Admin and save helper bodies were not read.",
+        "Readable get_file_by_id161-170 and save helper1340-1534 can narrow admin/destination effects, including existing collection/add false no-insert branch. These are central to the original task, not external deployment unknowns."
+      ],
+      "checkerDetections": [
+        "Actual current graph revision16 has seven control-conflict rejections and path-not-closed; existing targets were resubmitted with op:add in proposal6."
+      ],
+      "checkerFalseRejections": [],
+      "checkerMisses": [],
+      "evidence": [
+        "retrieval.py:1559-1564 and models/files.py:172-185 select a non-admin file by both id and caller user_id.",
+        "retrieval.py:1566-1569 takes supplied destination or defaults only on None.",
+        "retrieval.py:1673-1681 bypass returns without vector save;1694-1732 non-bypass save and truthy result metadata continuation."
+      ]
+    },
+    "causes": [
+      "not-read",
+      "extraction-error",
+      "protocol"
+    ],
+    "notes": "Main corrects raw full to partial because original task explicitly requests eventual vector effect and visible destination conditions; decisive permitted helper bodies were not read. Prose correctly distinguishes bypass but canonical effect conditions omit it. All12requests responded; actual requests11/12 contain Reserved delivery opportunity despite no finalReservation report field. Final-only request11 required one schema-tool repair on request12; there is no extra delivery repair call left. Original response, graph and independent opinion stay unchanged."
+  },
+  "rationale": "Personally point-read raw task/answer, original three windows, allowed admin/save helper and proposal6. Bounded window truth does not establish task completeness. No proved source delivery/checker defect; actionable conflicting add/replace interface diagnosis is a separate engineering repair candidate.",
+  "evidence": [
+    "retrieval.py:1559-1564 and models/files.py:172-185 select a non-admin file by both id and caller user_id.",
+    "retrieval.py:1566-1569 takes supplied destination or defaults only on None.",
+    "retrieval.py:1673-1681 bypass returns without vector save;1694-1732 non-bypass save and truthy result metadata continuation.",
+    "retrieval.py:1559-1564 and models/files.py:172-185 select a non-admin file by both id and caller user_id.",
+    "retrieval.py:1566-1569 takes supplied destination or defaults only on None.",
+    "retrieval.py:1673-1681 bypass returns without vector save;1694-1732 non-bypass save and truthy result metadata continuation."
+  ]
+}

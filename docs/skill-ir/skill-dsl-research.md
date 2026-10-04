@@ -1378,6 +1378,12 @@ Paperless/M暴露另一种可修共享边界：累计重发预算在provider额�
 
 两次公开previous命令也实际拒绝旧partial和未知完成session，没有provider或新session；这验证负路径，正向政策/前提复用仍未建立。未知MemosShare与Notes逻辑任务继续封存，只凭哈希绑定的共享工程/实际响应证据限定放行其它主行。详见`delivery-budget-outcome.json`、独立原评语/主裁定及`previous-first-block-refusals.json`。
 
+### 7.46 第二配对块：首失败、修后原答与控制图分列
+
+第二块冻结d940，OWUI/Gitea self两题继续轮换臂序。两首臂因未显式选择已有provider cache而0派发失败，原first保留；启动修复后OWUI/M原/终full、Gitea/D1原/终partial。同版对照OWUI/D1与Gitea/M均partial。累计446实际派发，八主首次评审、四同版配对、16分母，未运行和未知身份不变；修后full不取代首次失败，也未建立质量收益。
+
+OWUI新臂三次wire坏稿均在12响应内处理；只读三个原窗口，admin/save helper仍未读。文字bypass分支正确，图effect条件遗漏；七个旧目标再次add造成冲突，不计每轮为七次新错误。实际最后两请求包含交付预留，独立轨迹评审的缺字段推断已另存纠正。Gitea旧臂核心self/other正确，但context repo-admin与converter可读未读；同名库helper不能替代。独立评语、主裁定、实际调用和图失败分别保留于`quality-block-2-second-arms.json`及绑定报告hash的记录。下一修模型可见的local冲突操作提示，不放宽add冲突或checked/previous资格。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

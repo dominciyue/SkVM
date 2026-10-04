@@ -1,0 +1,240 @@
+{
+  "schemaVersion": "authorization-ar-authored-variants-preparation/v1",
+  "at": "2026-10-04T04:04:26.489092+00:00",
+  "rows": [
+    {
+      "author": "author-authorization-github-memos-repaired",
+      "kind": "policy",
+      "workDir": "D:\\skill优化\\project-maintenance\\runs\\portable-authored-policy-change-mqq1n1yo",
+      "originalAuthoredConfigSha256": "093dfb93bd85d4ad7efcab255d960d7408888b03c2d3dab8c892eee2e894cf05",
+      "changedInputSha256": "a7cfb2e70657e6ca91591e08b9d41d60468c2e18525448a8fe12fb1454ba39f3",
+      "edit": {
+        "schemaVersion": "authorization-inquiry-edit/v1",
+        "reason": "AR12/AR13 independent policy-only variant: behavior source and user facts stay fixed; add a target-role restriction without changing source behavior.",
+        "operations": [
+          {
+            "kind": "policy",
+            "policy": {
+              "text": "Only a space administrator may remove another member from that space. This policy does not prohibit a member leaving the space themselves. In addition, an administrator removing another member must not remove a target who is a space administrator.",
+              "origin": "user",
+              "location": "development-user-variant:memos-target-role-policy/v2"
+            }
+          }
+        ]
+      },
+      "publicEdit": {
+        "arguments": [
+          "edit",
+          "--input=./inquiry.json",
+          "--edit=./edit.json",
+          "--out=./changed-inquiry.json"
+        ],
+        "exitCode": 0,
+        "output": {
+          "status": "created",
+          "outputPath": "D:\\skill优化\\project-maintenance\\runs\\portable-authored-policy-change-mqq1n1yo\\changed-inquiry.json",
+          "sourceRefVerification": "authored",
+          "providerCalls": 0
+        },
+        "providerCalls": 0
+      },
+      "publicCheck": {
+        "arguments": [
+          "check",
+          "--input=./changed-inquiry.json",
+          "--method=D1",
+          "--strategy=guided-evidence-v2"
+        ],
+        "exitCode": 0,
+        "status": "valid",
+        "providerCalls": 0
+      },
+      "previousStage": "consume-authorization-github-memos",
+      "previousSession": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-guided-runtime-v1\\ordinary\\consume-authorization-github-memos\\run-archive\\sessions\\2026-10-03T184428154Z-5961ac18",
+      "publicCompare": {
+        "arguments": [
+          "compare",
+          "--input=./changed-inquiry.json",
+          "--previous=D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-guided-runtime-v1\\ordinary\\consume-authorization-github-memos\\run-archive\\sessions\\2026-10-03T184428154Z-5961ac18",
+          "--strategy=guided-evidence-v2"
+        ],
+        "exitCode": 0,
+        "output": {
+          "schemaVersion": "authorization-inquiry-compare/v1",
+          "status": "needs-review",
+          "taskChanged": true,
+          "sourceChanged": false,
+          "strategy": "guided-evidence-v2",
+          "strategyChanged": false,
+          "policyOnly": true,
+          "premiseOnly": false,
+          "reuseEligibility": {
+            "status": "needs-fresh-analysis",
+            "info": {
+              "previousSessionId": "2026-10-03T184428154Z-5961ac18",
+              "change": "policy-only",
+              "answerReused": false,
+              "semanticSupport": "unreviewed",
+              "reusedRuleKeys": [],
+              "invalidatedPolicyKeys": [],
+              "invalidatedPremiseKeys": []
+            },
+            "reasons": [
+              "Previous session lacks checked bounded question/dependency footprints; old partial output cannot be promoted."
+            ]
+          },
+          "providerCalls": 0,
+          "affectedComputation": [
+            "policy-mapping",
+            "policy-comparison"
+          ],
+          "mechanicalIndexReusable": true,
+          "controlRulesReused": false,
+          "reviewReasons": [
+            "Independent policy changed; source behavior dependencies are unchanged, map and check the new policy in a fresh session."
+          ],
+          "answerReused": false
+        },
+        "providerCalls": 0
+      },
+      "sourceFilesMatchOriginal": true,
+      "modelGraphSeeded": false,
+      "sourceAnswersSupplied": false,
+      "sourceSkillBytesCopiedUnchanged": true,
+      "sourceConfigOriginalRetained": true,
+      "providerCallsDuringPreparation": 0
+    },
+    {
+      "author": "author-authorization-cloudflare-download",
+      "kind": "premises",
+      "workDir": "D:\\skill优化\\project-maintenance\\runs\\portable-authored-premises-change-st17n4lb",
+      "originalAuthoredConfigSha256": "cae2c07b1e6f3a6e825155edeed0e11ac611a16026dd83f85ab1c909c43bbbd4",
+      "changedInputSha256": "ff2a664422bc088bcb3af615d5c9ea95883e2468dd3f14cbb48aae2a23b34a5a",
+      "edit": {
+        "schemaVersion": "authorization-inquiry-edit/v1",
+        "reason": "AR12/AR13 explicit premise-only variant: owner=null is supplied as a scenario fact; unspecified grants are not treated as absent. No source rule or expected result is supplied.",
+        "operations": [
+          {
+            "kind": "premises",
+            "questionId": "download-authorization-root-version",
+            "premises": [
+              {
+                "text": "The root document has no owner: its owner field is explicitly null. Object grants, global permissions, authentication configuration, the requester state, and all other deployment facts remain unspecified.",
+                "origin": "user"
+              },
+              {
+                "text": "The inquiry must explain how the authenticated user's authorization relates to the file actually returned, including when a selected version differs from the path-identified document.",
+                "origin": "user"
+              }
+            ]
+          },
+          {
+            "kind": "premises",
+            "questionId": "download-version-authorization-invariant",
+            "premises": [
+              {
+                "text": "The root document has no owner: its owner field is explicitly null. Do not assume values for object grants, global permissions, authentication configuration, soft-deletion state, deployed routing, or other unspecified facts.",
+                "origin": "user"
+              },
+              {
+                "text": "The result must state missing source or deployment facts precisely rather than infer them from conventions or from unspecified grants.",
+                "origin": "user"
+              },
+              {
+                "text": "This is a bounded behavior inquiry: provide source-visible authorization analysis and do not perform live probing, target execution, patching, or a full audit.",
+                "origin": "user"
+              }
+            ]
+          }
+        ]
+      },
+      "publicEdit": {
+        "arguments": [
+          "edit",
+          "--input=./inquiry.json",
+          "--edit=./edit.json",
+          "--out=./changed-inquiry.json"
+        ],
+        "exitCode": 0,
+        "output": {
+          "status": "created",
+          "outputPath": "D:\\skill优化\\project-maintenance\\runs\\portable-authored-premises-change-st17n4lb\\changed-inquiry.json",
+          "sourceRefVerification": "authored",
+          "providerCalls": 0
+        },
+        "providerCalls": 0
+      },
+      "publicCheck": {
+        "arguments": [
+          "check",
+          "--input=./changed-inquiry.json",
+          "--method=D1",
+          "--strategy=guided-evidence-v2"
+        ],
+        "exitCode": 0,
+        "status": "valid",
+        "providerCalls": 0
+      },
+      "previousStage": "consume-authorization-cloudflare-download-repair-source-window-budget-v1",
+      "previousSession": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-guided-runtime-v1\\ordinary\\consume-authorization-cloudflare-download-repair-source-window-budget-v1\\run-archive\\sessions\\2026-10-04T005950929Z-5d49e654",
+      "publicCompare": {
+        "arguments": [
+          "compare",
+          "--input=./changed-inquiry.json",
+          "--previous=D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-guided-runtime-v1\\ordinary\\consume-authorization-cloudflare-download-repair-source-window-budget-v1\\run-archive\\sessions\\2026-10-04T005950929Z-5d49e654",
+          "--strategy=guided-evidence-v2"
+        ],
+        "exitCode": 0,
+        "output": {
+          "schemaVersion": "authorization-inquiry-compare/v1",
+          "status": "needs-review",
+          "taskChanged": true,
+          "sourceChanged": false,
+          "strategy": "guided-evidence-v2",
+          "strategyChanged": false,
+          "policyOnly": false,
+          "premiseOnly": true,
+          "reuseEligibility": {
+            "status": "needs-fresh-analysis",
+            "info": {
+              "previousSessionId": "2026-10-04T005950929Z-5d49e654",
+              "change": "premise-only",
+              "answerReused": false,
+              "semanticSupport": "unreviewed",
+              "reusedRuleKeys": [],
+              "invalidatedPolicyKeys": [],
+              "invalidatedPremiseKeys": []
+            },
+            "reasons": [
+              "Previous session lacks checked bounded question/dependency footprints; old partial output cannot be promoted."
+            ]
+          },
+          "providerCalls": 0,
+          "affectedComputation": [
+            "premise-mapping",
+            "path-evaluation",
+            "policy-comparison"
+          ],
+          "mechanicalIndexReusable": true,
+          "controlRulesReused": false,
+          "reviewReasons": [
+            "Current request, premises, policy or scope changed; recheck affected questions and paths in a fresh session."
+          ],
+          "answerReused": false
+        },
+        "providerCalls": 0
+      },
+      "sourceFilesMatchOriginal": true,
+      "modelGraphSeeded": false,
+      "sourceAnswersSupplied": false,
+      "sourceSkillBytesCopiedUnchanged": true,
+      "sourceConfigOriginalRetained": true,
+      "providerCallsDuringPreparation": 0
+    }
+  ],
+  "providerCalls": 0,
+  "targetExecutions": 0,
+  "actualUSD": null,
+  "positiveReuseEstablished": false,
+  "note": "Prepared public edits/checks/compare only. No paid generation, no original unknown resend. Original author and consumption archives untouched. Positive previous eligibility is reported from compare, not assumed."
+}

@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "authorization-ar-semantic-adjudication/v1",
+  "id": "block2-quality-owui-ingestion-M-2-main",
+  "binding": {
+    "rowId": "quality-owui-ingestion-M",
+    "attempt": 2,
+    "report": {
+      "path": "runs/quality-owui-ingestion-M/attempt-2/report.json",
+      "sha256": "676c9f4932e56ab799c10988d3c1544bdb3cd51516b62ba7068dd010b6063e3e"
+    }
+  },
+  "independentReview": {
+    "path": "evaluations/semantic-reviews/block2-quality-owui-ingestion-M-attempt-2.json",
+    "sha256": "736efed012b5e36ce4e94eca8a1512c1da41d66b5ef809f1476df6c54f5a2c0e"
+  },
+  "assessment": {
+    "initial": {
+      "rating": "full",
+      "decisiveError": false,
+      "overUnknown": false,
+      "falseComplete": false,
+      "evidence": [
+        "retrieval.py:1559-1562 plus models/files.py:172-184: exact non-admin id/user_id lookup; admin lookup without user predicate.",
+        "retrieval.py:1566-1569,1694-1705: independent collection name and add mode passed to helper.",
+        "retrieval.py:1462-1467,1527-1531: helper existence/add guard and eventual vector insert; no destination ACL shown."
+      ]
+    },
+    "final": {
+      "rating": "full",
+      "decisiveError": false,
+      "overUnknown": false,
+      "falseComplete": false,
+      "evidence": [
+        "retrieval.py:1559-1562 plus models/files.py:172-184: exact non-admin id/user_id lookup; admin lookup without user predicate.",
+        "retrieval.py:1566-1569,1694-1705: independent collection name and add mode passed to helper.",
+        "retrieval.py:1462-1467,1527-1531: helper existence/add guard and eventual vector insert; no destination ACL shown."
+      ]
+    },
+    "extraction": {
+      "initial": "supported",
+      "final": "supported",
+      "incorrectRules": [],
+      "wrongPremiseMappings": [],
+      "amplifiedError": false,
+      "evidence": [
+        "retrieval.py:1559-1562 plus models/files.py:172-184: exact non-admin id/user_id lookup; admin lookup without user predicate.",
+        "retrieval.py:1566-1569,1694-1705: independent collection name and add mode passed to helper.",
+        "retrieval.py:1462-1467,1527-1531: helper existence/add guard and eventual vector insert; no destination ACL shown."
+      ]
+    },
+    "mechanism": {
+      "decisiveHelperHits": [
+        "Actual body windows retrieval.py:1535-1715,1340-1532,1708-1798; models/files.py:155-190; files.py:95-175,535-610; knowledge.py:620-755."
+      ],
+      "irrelevantOrInvalidReads": [],
+      "correctExcludedBranches": [
+        "Route prefix, get_verified_user and grant helper internals not read; concrete vector provider and deployment/runtime facts remain unspecified."
+      ],
+      "wrongExcludedBranches": [],
+      "justifiedResiduals": [
+        "Absence of destination ACL does not guarantee successful vector insertion; hash duplicate, existence, embedding and backend outcomes remain conditional."
+      ],
+      "avoidableResiduals": [],
+      "checkerDetections": [],
+      "checkerFalseRejections": [],
+      "checkerMisses": [],
+      "evidence": [
+        "files.py:136-146 shows upstream process_file call; knowledge/files grants are independently followed by nested input owner check."
+      ]
+    },
+    "causes": [],
+    "notes": "Source mechanism full for the requested bounded input/output authorization task. Initial allow label is application-level admission, with helper/deployment outcomes separately preserved; final uses conditional for writes. Independent overUnknown flag described overstatement rather than missing uncertainty and is corrected. Explicit verified caller conditions justify remaining authentication/provider unknowns. Transport had one fabricated/stale evidence ID, fixed by existing delivery repair; this is separate from source rating."
+  },
+  "rationale": "Main personally inspected initial/final branch strings, exact owner query, full source save helper and bypass branch. Preserve independent full/full source rating; correct mismatched uncertainty/cause categories. Final source fullness does not supply checked bounded footprints.",
+  "evidence": [
+    "retrieval.py:1559-1562 plus models/files.py:172-184: exact non-admin id/user_id lookup; admin lookup without user predicate.",
+    "retrieval.py:1566-1569,1694-1705: independent collection name and add mode passed to helper.",
+    "retrieval.py:1462-1467,1527-1531: helper existence/add guard and eventual vector insert; no destination ACL shown.",
+    "retrieval.py:1559-1562 plus models/files.py:172-184: exact non-admin id/user_id lookup; admin lookup without user predicate.",
+    "retrieval.py:1566-1569,1694-1705: independent collection name and add mode passed to helper.",
+    "retrieval.py:1462-1467,1527-1531: helper existence/add guard and eventual vector insert; no destination ACL shown."
+  ]
+}

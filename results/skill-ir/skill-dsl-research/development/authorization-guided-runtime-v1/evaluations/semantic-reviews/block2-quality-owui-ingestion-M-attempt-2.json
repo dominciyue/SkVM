@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "authorization-ar-semantic-review/v1",
+  "id": "block2-quality-owui-ingestion-M-2-independent",
+  "binding": {
+    "rowId": "quality-owui-ingestion-M",
+    "attempt": 2,
+    "report": {
+      "path": "runs/quality-owui-ingestion-M/attempt-2/report.json",
+      "sha256": "676c9f4932e56ab799c10988d3c1544bdb3cd51516b62ba7068dd010b6063e3e"
+    }
+  },
+  "reviewer": {
+    "kind": "independent",
+    "mainContextExposed": false,
+    "representationMayRevealMethod": true
+  },
+  "assessment": {
+    "initial": {
+      "rating": "full",
+      "decisiveError": false,
+      "overUnknown": true,
+      "falseComplete": false,
+      "evidence": [
+        "retrieval.py:1559-1562 plus models/files.py:172-184: exact non-admin id/user_id lookup; admin lookup without user predicate.",
+        "retrieval.py:1566-1569,1694-1705: independent collection name and add mode passed to helper.",
+        "retrieval.py:1462-1467,1527-1531: helper existence/add guard and eventual vector insert; no destination ACL shown."
+      ]
+    },
+    "final": {
+      "rating": "full",
+      "decisiveError": false,
+      "overUnknown": false,
+      "falseComplete": false,
+      "evidence": [
+        "retrieval.py:1559-1562 plus models/files.py:172-184: exact non-admin id/user_id lookup; admin lookup without user predicate.",
+        "retrieval.py:1566-1569,1694-1705: independent collection name and add mode passed to helper.",
+        "retrieval.py:1462-1467,1527-1531: helper existence/add guard and eventual vector insert; no destination ACL shown."
+      ]
+    },
+    "extraction": {
+      "initial": "supported",
+      "final": "supported",
+      "incorrectRules": [],
+      "wrongPremiseMappings": [],
+      "amplifiedError": false,
+      "evidence": [
+        "retrieval.py:1559-1562 plus models/files.py:172-184: exact non-admin id/user_id lookup; admin lookup without user predicate.",
+        "retrieval.py:1566-1569,1694-1705: independent collection name and add mode passed to helper.",
+        "retrieval.py:1462-1467,1527-1531: helper existence/add guard and eventual vector insert; no destination ACL shown."
+      ]
+    },
+    "mechanism": {
+      "decisiveHelperHits": [
+        "Actual body windows retrieval.py:1535-1715,1340-1532,1708-1798; models/files.py:155-190; files.py:95-175,535-610; knowledge.py:620-755."
+      ],
+      "irrelevantOrInvalidReads": [],
+      "correctExcludedBranches": [
+        "Route prefix, get_verified_user and grant helper internals not read; concrete vector provider and deployment/runtime facts remain unspecified."
+      ],
+      "wrongExcludedBranches": [],
+      "justifiedResiduals": [
+        "Absence of destination ACL does not guarantee successful vector insertion; hash duplicate, existence, embedding and backend outcomes remain conditional."
+      ],
+      "avoidableResiduals": [],
+      "checkerDetections": [],
+      "checkerFalseRejections": [],
+      "checkerMisses": [],
+      "evidence": [
+        "files.py:136-146 shows upstream process_file call; knowledge/files grants are independently followed by nested input owner check."
+      ]
+    },
+    "causes": [
+      "not-read",
+      "not-located"
+    ],
+    "notes": "Independent candidate B full/full; initial allow label for supplied destination is described as a mild overstatement, final conditional corrects it. Original evaluator records overUnknown=true for that initial overstatement and not-read/not-located causes despite full ratings; main adjudication separately corrects these categories. No checker fault inferred."
+  }
+}

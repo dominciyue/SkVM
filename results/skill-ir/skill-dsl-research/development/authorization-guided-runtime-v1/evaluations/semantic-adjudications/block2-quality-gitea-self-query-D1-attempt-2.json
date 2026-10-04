@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "authorization-ar-semantic-adjudication/v1",
+  "id": "block2-quality-gitea-self-query-D1-2-main",
+  "binding": {
+    "rowId": "quality-gitea-self-query-D1",
+    "attempt": 2,
+    "report": {
+      "path": "runs/quality-gitea-self-query-D1/attempt-2/report.json",
+      "sha256": "f41318e822bd402ca92f90f5257418490e06619f5903282fe50f62d159abd5e6"
+    }
+  },
+  "independentReview": {
+    "path": "evaluations/semantic-reviews/block2-quality-gitea-self-query-D1-attempt-2.json",
+    "sha256": "b94bdf3ed371687dc356eb9c0708df32f11414ef4f84212b41e5bdef32ecbdb9"
+  },
+  "assessment": {
+    "initial": {
+      "rating": "partial",
+      "decisiveError": false,
+      "overUnknown": true,
+      "falseComplete": false,
+      "evidence": [
+        "collaborators.go:278-300: path username; !instance-admin && !EqualFold(caller,queried-name) && !selected-repo-admin reject guard; queried user/repo passed to helper and AccessMode returned.",
+        "services/context/api.go:329-331: APIContext.IsUserRepoAdmin calls ctx.Repo.Permission.IsAdmin.",
+        "repo_permission.go:426-527 actual complete helper window contains owner/admin, visibility/collaborator, ordinary access and organization/team cases."
+      ]
+    },
+    "final": {
+      "rating": "partial",
+      "decisiveError": false,
+      "overUnknown": true,
+      "falseComplete": false,
+      "evidence": [
+        "collaborators.go:278-300: path username; !instance-admin && !EqualFold(caller,queried-name) && !selected-repo-admin reject guard; queried user/repo passed to helper and AccessMode returned.",
+        "services/context/api.go:329-331: APIContext.IsUserRepoAdmin calls ctx.Repo.Permission.IsAdmin.",
+        "repo_permission.go:426-527 actual complete helper window contains owner/admin, visibility/collaborator, ordinary access and organization/team cases."
+      ]
+    },
+    "extraction": {
+      "initial": "partial",
+      "final": "partial",
+      "incorrectRules": [],
+      "wrongPremiseMappings": [],
+      "amplifiedError": false,
+      "evidence": [
+        "collaborators.go:278-300: path username; !instance-admin && !EqualFold(caller,queried-name) && !selected-repo-admin reject guard; queried user/repo passed to helper and AccessMode returned.",
+        "services/context/api.go:329-331: APIContext.IsUserRepoAdmin calls ctx.Repo.Permission.IsAdmin.",
+        "repo_permission.go:426-527 actual complete helper window contains owner/admin, visibility/collaborator, ordinary access and organization/team cases."
+      ]
+    },
+    "mechanism": {
+      "decisiveHelperHits": [
+        "GetIndividualUserRepoPermission receives selected repo and resolved queried user; its full body was actually read at 426-527.",
+        "API context IsUserRepoAdmin actual window329-331; do not substitute the same-named library helper."
+      ],
+      "irrelevantOrInvalidReads": [],
+      "correctExcludedBranches": [
+        "Unauthorized query stops before username lookup/permission calculation.",
+        "User-not-found and permission error prevent successful response."
+      ],
+      "wrongExcludedBranches": [],
+      "justifiedResiduals": [
+        "Runtime username existence and database errors remain conditional.",
+        "Normal caller administration of the selected repository was not supplied."
+      ],
+      "avoidableResiduals": [
+        "Already-read GetIndividualUserRepoPermission body was not fully extracted; current-context visibility with queried user and output AccessMode branches remain unnamed."
+      ],
+      "checkerDetections": [
+        "Actual final diagnostics path-not-closed on get-repo-permissions-another-user; retained graph/check revision54."
+      ],
+      "checkerFalseRejections": [],
+      "checkerMisses": [],
+      "evidence": [
+        "collaborators.go:278-300: path username; !instance-admin && !EqualFold(caller,queried-name) && !selected-repo-admin reject guard; queried user/repo passed to helper and AccessMode returned.",
+        "services/context/api.go:329-331: APIContext.IsUserRepoAdmin calls ctx.Repo.Permission.IsAdmin.",
+        "repo_permission.go:426-527 actual complete helper window contains owner/admin, visibility/collaborator, ordinary access and organization/team cases."
+      ]
+    },
+    "causes": [
+      "extraction-error"
+    ],
+    "notes": "Root gate and returned queried-user AccessMode are correctly distinguished. Actual full helper body426-527 was read but not fully interpreted. The final says not independently extracted rather than falsely claiming never read; this remains an extraction completeness gap. Actual ruleConsistency:false/sourceBound:true/structureValid:true is retained; one question path is unclosed and no previous/full checked promotion follows."
+  },
+  "rationale": "Main point-read exact helper426-527 and actual context-method evidence329-331; confirms partial source extraction and honest runtime residuals. Mechanical model-draft failure does not prove shared checker error.",
+  "evidence": [
+    "collaborators.go:278-300: path username; !instance-admin && !EqualFold(caller,queried-name) && !selected-repo-admin reject guard; queried user/repo passed to helper and AccessMode returned.",
+    "services/context/api.go:329-331: APIContext.IsUserRepoAdmin calls ctx.Repo.Permission.IsAdmin.",
+    "repo_permission.go:426-527 actual complete helper window contains owner/admin, visibility/collaborator, ordinary access and organization/team cases.",
+    "collaborators.go:278-300: path username; !instance-admin && !EqualFold(caller,queried-name) && !selected-repo-admin reject guard; queried user/repo passed to helper and AccessMode returned.",
+    "services/context/api.go:329-331: APIContext.IsUserRepoAdmin calls ctx.Repo.Permission.IsAdmin.",
+    "repo_permission.go:426-527 actual complete helper window contains owner/admin, visibility/collaborator, ordinary access and organization/team cases."
+  ]
+}

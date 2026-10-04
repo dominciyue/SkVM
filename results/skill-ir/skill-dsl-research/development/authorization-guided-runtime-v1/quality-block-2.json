@@ -1,0 +1,72 @@
+{
+  "schemaVersion": "authorization-ar-quality-block/v1",
+  "id": "quality-block-2",
+  "at": "2026-10-04T03:47:30.944533+00:00",
+  "implementationRevision": "d94045b62bedc48efd38be7a7bfe5a2add83477f",
+  "model": "xty/gpt-5.6-sol",
+  "budgets": {
+    "perCallTimeoutMs": 300000,
+    "sessionTimeoutMs": 1200000,
+    "maxDispatches": 12,
+    "maxToolCalls": 24,
+    "maxDisplayBytes": 262144,
+    "maxFiles": 512,
+    "maxReadBytes": 8388608,
+    "maxTokens": 6000
+  },
+  "tasks": [
+    "owui-ingestion",
+    "gitea-self-query"
+  ],
+  "orderedRows": [
+    "quality-owui-ingestion-M",
+    "quality-gitea-self-query-D1",
+    "quality-owui-ingestion-D1",
+    "quality-gitea-self-query-M"
+  ],
+  "firstDispatchRows": [
+    "quality-owui-ingestion-M",
+    "quality-gitea-self-query-D1"
+  ],
+  "rowOrderMeaning": "Keep registered rotating per-task arm order; evaluate each returned first arm before its counterpart. Production repair closes this version and requires a new paired block. No ordinary-run substitution.",
+  "status": "closed-first-startup-failures-and-partial-counterparts",
+  "sealedTasks": [
+    "paperless-notes",
+    "memos-share"
+  ],
+  "primaryDenominator": 16,
+  "priorOrdinaryRunsArePrimaryRows": false,
+  "sourceAnswerSeedsSupplied": false,
+  "frozenTaskInputs": [
+    {
+      "task": "owui-ingestion",
+      "input": "../authorization-domain-execution-v1/model/inputs/owui-ingestion.json",
+      "sha256": "bc8342544f96f6d2ef2563f634552893cc4595c51348a03ae64c37ca598a26bf"
+    },
+    {
+      "task": "gitea-self-query",
+      "input": "../authorization-domain-execution-v1/model/inputs/gitea-self-query.json",
+      "sha256": "d861239a55cb8b6d44508507e058d050ff988bdc7ddeb4ef2819a9c81a2da350"
+    }
+  ],
+  "actualUSD": null,
+  "firstStartupFailure": "quality-block-2-provider-startup-verification.json",
+  "paidFirstArmsAreRepairAttempts": true,
+  "firstArmsAdjudication": "quality-block-2-first-arms.json",
+  "productionRepairRequiredByFirstArms": false,
+  "secondArmsStartedAt": "2026-10-04T04:13:26.509574+00:00",
+  "closedAt": "2026-10-04T04:37:00.466867+00:00",
+  "secondArms": "quality-block-2-second-arms.json",
+  "pairedRevisionUnchanged": true,
+  "primaryFirstRatings": {
+    "quality-owui-ingestion-M": "not-delivered",
+    "quality-owui-ingestion-D1": "partial",
+    "quality-gitea-self-query-D1": "not-delivered",
+    "quality-gitea-self-query-M": "partial"
+  },
+  "startupRepairRatings": {
+    "quality-owui-ingestion-M": "full",
+    "quality-gitea-self-query-D1": "partial"
+  },
+  "productionRepairRequiredBySecondArms": "Improve existing conflict diagnostic to describe explicit local replace without asking model-authored digest; preserve old add rejection and final checker."
+}

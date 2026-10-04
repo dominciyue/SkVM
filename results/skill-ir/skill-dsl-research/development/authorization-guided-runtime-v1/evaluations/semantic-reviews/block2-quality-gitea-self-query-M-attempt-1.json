@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "authorization-ar-semantic-review/v1",
+  "id": "block2-quality-gitea-self-query-M-1-independent",
+  "binding": {
+    "rowId": "quality-gitea-self-query-M",
+    "attempt": 1,
+    "report": {
+      "path": "runs/quality-gitea-self-query-M/attempt-1/report.json",
+      "sha256": "25b93534c812e120d16a2d1bdbf2c8982f418afe9f115507fa1e8b9f7382e385"
+    }
+  },
+  "reviewer": {
+    "kind": "independent",
+    "mainContextExposed": false,
+    "representationMayRevealMethod": true
+  },
+  "assessment": {
+    "initial": {
+      "rating": "partial",
+      "decisiveError": false,
+      "overUnknown": true,
+      "falseComplete": false,
+      "evidence": [
+        "collaborators.go:278-301 supports case-insensitive self match, site/repository admin alternatives,403 before lookup, queried-user permission and200conversion.",
+        "services/context/api.go:329-331 exact API context repo-admin method delegates to selected repository Permission.IsAdmin.",
+        "services/convert/user.go:128-134 returns User, Permission and RoleName."
+      ]
+    },
+    "final": {
+      "rating": "partial",
+      "decisiveError": false,
+      "overUnknown": true,
+      "falseComplete": false,
+      "evidence": [
+        "collaborators.go:278-301 supports case-insensitive self match, site/repository admin alternatives,403 before lookup, queried-user permission and200conversion.",
+        "services/context/api.go:329-331 exact API context repo-admin method delegates to selected repository Permission.IsAdmin.",
+        "services/convert/user.go:128-134 returns User, Permission and RoleName."
+      ]
+    },
+    "extraction": {
+      "initial": "partial",
+      "final": "partial",
+      "incorrectRules": [],
+      "wrongPremiseMappings": [],
+      "amplifiedError": false,
+      "evidence": [
+        "collaborators.go:278-301 supports case-insensitive self match, site/repository admin alternatives,403 before lookup, queried-user permission and200conversion.",
+        "services/context/api.go:329-331 exact API context repo-admin method delegates to selected repository Permission.IsAdmin.",
+        "services/convert/user.go:128-134 returns User, Permission and RoleName."
+      ]
+    },
+    "mechanism": {
+      "decisiveHelperHits": [
+        "Reviewer inspected actual context method and distinct library IsUserRepoAdmin529-557; they are different symbols."
+      ],
+      "irrelevantOrInvalidReads": [
+        "Reviewer notes many unrelated IsAdmin and TokenCanAccessRepo occurrences."
+      ],
+      "correctExcludedBranches": [
+        "Unauthorized ordinary other-user request returns403 before user lookup.",
+        "Unknown target or permission error prevents successful return."
+      ],
+      "wrongExcludedBranches": [],
+      "justifiedResiduals": [
+        "Runtime token/authentication and username/database outcomes are not supplied."
+      ],
+      "avoidableResiduals": [
+        "Exact context repo-admin and output converter bodies remain unextracted."
+      ],
+      "checkerDetections": [],
+      "checkerFalseRejections": [],
+      "checkerMisses": [
+        "No checker evidence is available in the anonymous packet."
+      ],
+      "evidence": [
+        "collaborators.go:278-301 supports case-insensitive self match, site/repository admin alternatives,403 before lookup, queried-user permission and200conversion.",
+        "services/context/api.go:329-331 exact API context repo-admin method delegates to selected repository Permission.IsAdmin.",
+        "services/convert/user.go:128-134 returns User, Permission and RoleName."
+      ]
+    },
+    "causes": [
+      "not-read",
+      "extraction-error"
+    ],
+    "notes": "Independent partial/partial; no incorrect guard or premise mapping. Exact allowed source bodies remain unread/unextracted, causing avoidable uncertainty. Null graph alone is not a prose error."
+  }
+}
