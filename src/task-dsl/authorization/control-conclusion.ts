@@ -99,7 +99,7 @@ export function checkControlConclusions(program: AuthorizationInquiryProgram, sl
     if (["allow", "deny"].includes(answer.behavior.disposition) && live.length && !live.some(p => p.complete && p.predicate.truth === "true")) diagnostics.push(diag("unresolved-path-condition", answer.questionId, "No complete proposed path is known reachable under the current premises. Preserve its residual conditions in a conditional answer or the missing premise in an unknown answer; a structurally complete path does not establish an unconditional outcome."))
     for (const branch of answer.branches) {
       const path = paths.find(p => p.pathKey === branch.id)
-      if (path?.state === "inapplicable") diagnostics.push(diag("inapplicable-branch", `${answer.questionId}.${branch.id}`, "Explicit current premises or an earlier rejection exclude this branch."))
+      if (path?.state === "inapplicable") diagnostics.push(diag("inapplicable-branch", `${answer.questionId}.${branch.id}`, "Explicit current premises or an earlier rejection exclude this branch from result.branches. Preserve requested counterfactuals in behavior.explanation with citations; result.branches lists only current feasible paths."))
       else if (path?.complete && branch.disposition !== path.disposition) diagnostics.push(diag("branch-rule-conflict", `${answer.questionId}.${branch.id}`, `Proposed rules derive ${path.disposition}, raw branch claims ${branch.disposition}.`))
     }
     const outcomes = new Set(live.filter(p => p.complete).map(p => p.disposition))
