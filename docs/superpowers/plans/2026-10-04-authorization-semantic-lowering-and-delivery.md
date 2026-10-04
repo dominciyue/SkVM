@@ -172,6 +172,8 @@ AR 保留 8/16 已留首行的历史分母和所有修订。六个未运行主�
 
 第七次在 c16cbc62 获 8/8 响应，已正确采用嵌套选择并实际读源；新候选的外层 value 之外另有 controlDelta。原解析器只在外壳恰好一个 key 时检查 value，因而退回旧直传格式、误报根 kind，唯一修复又重犯。只读核验及主线程原响应点验后，匿名红例确认该遮蔽：只要显式外壳 value 存在即按严格外壳检查，多字段正常拒绝、给同一 Schema 位置；嵌套 discriminator 另保留允许字面值和收到值。宿主不改候选，下一次 as-wrapper-diagnostics-v1 沿 attempt-7。38 派发/36 响应、733951 已知 input+output token，美元未知；终答与源码完整性仍未通过。
 
+第八次获得11/11响应，外壳遮蔽消失但完成检查拒绝。独立核验确认两个模型错误：block 被直接放进 unit 数组；helper 使用非 current-offer 的自造 itemId。主线程另发现诊断恢复缺口：未绑定 question/handle 的错误仅以空身份保留，合法后稿无法指出它所修的旧坏稿。下一修订为每条拒绝保留 host draftId，合法 unit 可显式 repairsDraftId；只有经原 source-offer/同题与句柄检查接受的新稿才消除该编号的当前错误。坏稿与修订关联永久归档；无引用、空更新、坏修稿、跨题或伪造编号不能清错。模型反馈保留有界坏稿编号/原文及当前实际 itemId，不搬字段或凭名字补图。先匿名红绿，再沿 attempt-8 实际复验；其它独立作者工作仍推进。
+
 ### AS10 — 两份原 skill 的普通使用
 
 首个 Cloudflare/Paperless 原任务在普通入口初始化时失败：AS 薄 driver 写入绝对 `sourceRoot`，违反 public input 的相对路径合同；原报告缺 trace，保守记 unknown。两路核验分别点验原 CLI 日志和调用顺序，确认路径校验先于 provider.complete；日志缺失本身不是零派发证明。当前计划：先匿名相对 scope 红绿测试，再保存绑定 claim/report/stdout/stderr/scope/实际 CLI session 与原代码顺序的独立零派发证明。只有该证明通过哈希和身份校验、且没有实际请求证据，才允许具名 repair；原 unknown 报告字节和其它任务封存不改。后续 scope 在派生路径后通过 public loader 再进入普通入口。

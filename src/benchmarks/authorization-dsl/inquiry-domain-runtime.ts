@@ -78,9 +78,14 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
         issues.set("$semantic-envelope", diagnostics); proposals.push({ delta: structuredClone(delta), diagnostics, revision: slice.revision }); return { diagnostics, actions: [], evaluated: { paths: lastPaths } }
       }
       issues.delete("$semantic-envelope"); check = undefined; issues.delete("$semantic-result")
-      const applied = applySemanticBlocks(semanticUnits, envelope.data.semanticBlocks, offeredTasks)
+      const pendingDrafts = semanticRecords.filter(r => !r.accepted && issues.has(`$semantic-draft.${r.draftId}`))
+      const applied = applySemanticBlocks(semanticUnits, envelope.data.semanticBlocks, offeredTasks, pendingDrafts)
       semanticUnits = applied.units; semanticRecords.push(...applied.records)
-      for (const record of applied.records) { const key = `$semantic-block.${record.questionId ?? ""}.${record.handle}`; if (record.accepted) issues.delete(key); else issues.set(key, record.diagnostics) }
+      for (const record of applied.records) {
+        if (record.accepted) {
+          for (const old of pendingDrafts) if (old.questionId === record.questionId && old.handle === record.handle || old.draftId === record.repairedDraftId) issues.delete(`$semantic-draft.${old.draftId}`)
+        } else issues.set(`$semantic-draft.${record.draftId}`, record.diagnostics)
+      }
       let diagnostics = [...applied.diagnostics]
       if (applied.records.some(r => r.accepted)) {
         const changed = new Set(applied.records.filter(r => r.accepted).map(r => r.questionId))
@@ -226,7 +231,13 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const modelFeedback = () => {
     if (options.strategy === "semantic-flow-v1") {
       const state = feedback(), diagnostics = state.diagnostics.filter((d, i, all) => all.findIndex(v => v.code === d.code && v.path === d.path && v.questionId === d.questionId && v.message === d.message) === i)
-      return { revision: slice.revision, semanticUnits: semanticUnits.map(({ questionId, handle, role, itemId, parameters, complete }) => ({ questionId, handle, role, itemId, parameters, complete })), sourceTerminals: slice.rules.filter(r => r.terminal === true).map(({ key, questionId, pathKey, kind, outcome, returnValue, gap, complete, sourceOrigin, evidenceIds }) => ({ key, questionId, pathId: pathKey, kind, terminal: true, outcome, returnValue, gap, complete, sourceOrigin, evidenceIds })), bindings: slice.bindings, dependencies: scheduler.snapshot(), resultSkeleton: semanticResultSkeleton(slice, scheduler.snapshot()), diagnostics: diagnostics.slice(0, 16), diagnosticCount: diagnostics.length, rejectedBlocks: semanticRecords.filter(r => !r.accepted && diagnostics.some(d => d.path.startsWith(`semanticBlocks.${r.questionId ?? ""}.${r.handle}`))).slice(-4), ...(state.worklist ? { worklist: worklistModelView(state.worklist) } : {}), semanticSupport: "unreviewed" }
+      const pending = [...new Map(semanticRecords.filter(r => !r.accepted && issues.has(`$semantic-draft.${r.draftId}`)).map(r => [r.draftId, r])).values()], rejectedBlocks: Array<Record<string, unknown>> = []
+      for (const record of pending.slice(-4)) {
+        let view: Record<string, unknown> = { ...record }
+        if (Buffer.byteLength(JSON.stringify([...rejectedBlocks, view])) > 16384) { const { raw: _raw, ...metadata } = record; view = { ...metadata, rawOmitted: "feedback-byte-limit" } }
+        if (Buffer.byteLength(JSON.stringify([...rejectedBlocks, view])) <= 16384) rejectedBlocks.push(view)
+      }
+      return { revision: slice.revision, semanticUnits: semanticUnits.map(({ questionId, handle, role, itemId, parameters, complete }) => ({ questionId, handle, role, itemId, parameters, complete })), sourceTerminals: slice.rules.filter(r => r.terminal === true).map(({ key, questionId, pathKey, kind, outcome, returnValue, gap, complete, sourceOrigin, evidenceIds }) => ({ key, questionId, pathId: pathKey, kind, terminal: true, outcome, returnValue, gap, complete, sourceOrigin, evidenceIds })), bindings: slice.bindings, dependencies: scheduler.snapshot(), resultSkeleton: semanticResultSkeleton(slice, scheduler.snapshot()), diagnostics: diagnostics.slice(0, 16), diagnosticCount: diagnostics.length, rejectedBlocks, rejectedBlockCount: pending.length, ...(state.worklist ? { worklist: worklistModelView(state.worklist) } : {}), semanticSupport: "unreviewed" }
     }
     const { worklist: fullWorklist, ...state } = feedback(), diagnostics = state.diagnostics.filter((d, i, all) => all.findIndex(v => v.code === d.code && v.path === d.path && v.message === d.message && v.questionId === d.questionId) === i)
     const rejections = [...new Map(currentRejections.map(p => [draftIdentity(p), p])).values()]

@@ -179,3 +179,37 @@ test("retiring an interpreted dependency removes its lexical descendants and ret
   expect(report.worklist!.items.every(item => !item.parentId || report.worklist!.items.some(parent => parent.id === item.parentId))).toBe(true)
   expect(tools.history).toEqual(reads)
 })
+test("an unowned malformed semantic draft has an explicit source-bound repair without losing its raw history", async () => {
+  const { runtime, u } = await fixture(), malformed = { name: "main", steps: [{ kind: "reject", name: "stop", claim: "Shown source rejects" }] }
+  await runtime.propose({ schemaVersion: "authorization-semantic-update/v1", semanticBlocks: [malformed, u("other")] })
+  const rejected: any = (runtime.modelFeedback() as any).rejectedBlocks[0]
+  expect(rejected.draftId).toMatch(/^semantic-draft-/)
+  runtime.modelContext()
+  await runtime.propose({ schemaVersion: "authorization-semantic-update/v1", semanticBlocks: [u("q")] })
+  expect(runtime.feedback().diagnostics.some(d => d.code === "semantic-block-schema")).toBe(true)
+  runtime.modelContext()
+  await runtime.propose({ schemaVersion: "authorization-semantic-update/v1", semanticBlocks: [u("q", { op: "replace", repairsDraftId: rejected.draftId })] })
+  expect(runtime.feedback().diagnostics.some(d => d.code === "semantic-block-schema")).toBe(false)
+  const records: any[] = runtime.report().semantic!.records
+  expect(records[0].raw).toEqual(malformed)
+  expect(records.at(-1)).toMatchObject({ accepted: true, repairedDraftId: rejected.draftId })
+  expect(runtime.report().semantic!.units.some(u => "repairsDraftId" in u)).toBe(false)
+  const result = runtime.assembleResult(supplement(runtime.feedback().revision))
+  expect((await runtime.validate(result.result)).ruleConsistency).toBe(true)
+})
+test("bad or cross-question draft repairs cannot clear another scoped semantic failure", async () => {
+  const { runtime, u } = await fixture()
+  await runtime.propose({ schemaVersion: "authorization-semantic-update/v1", semanticBlocks: [u("q", { unexpected: true })] })
+  const draft: any = (runtime.modelFeedback() as any).rejectedBlocks[0]
+  runtime.modelContext()
+  const cross = await runtime.propose({ schemaVersion: "authorization-semantic-update/v1", semanticBlocks: [u("other", { repairsDraftId: draft.draftId })] })
+  expect(cross.diagnostics.map(d => d.code)).toContain("semantic-draft-repair-scope")
+  expect(runtime.report().semantic!.units).toHaveLength(0)
+  runtime.modelContext()
+  const unknown = await runtime.propose({ schemaVersion: "authorization-semantic-update/v1", semanticBlocks: [u("q", { repairsDraftId: "semantic-draft-missing" })] })
+  expect(unknown.diagnostics.map(d => d.code)).toContain("semantic-draft-repair-not-live")
+  expect(runtime.feedback().diagnostics.some(d => d.code === "semantic-block-schema")).toBe(true)
+  runtime.modelContext()
+  await runtime.propose({ schemaVersion: "authorization-semantic-update/v1", semanticBlocks: [] })
+  expect(runtime.feedback().diagnostics.some(d => d.code === "semantic-block-schema")).toBe(true)
+})

@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { createHash } from "node:crypto"
 import { InquiryText, type InquiryDiagnostic } from "../../task-dsl/authorization/inquiry.ts"
 import type { AuthorizationInquiryProgram } from "../../task-dsl/authorization/inquiry-program.ts"
 import { InquiryQuestionResultSchema } from "../../task-dsl/authorization/inquiry-result.ts"
@@ -25,26 +26,33 @@ export const SEMANTIC_EXECUTION_GUIDE = [
   'Predicates use wrapped operands {op:eq|neq,left:{binding:name}|{literal:scalar},right:{binding:name}|{literal:scalar}}, {op:is-null,value:operand}, {op:all|any,args:[predicates]}, {op:not,arg:predicate}. scalar:string/number/boolean/null. No arbitrary operators, target evaluation or source-to-user values. Only premiseValues {op:add|replace,questionId,targetKey:<predicate binding>,status:known,value,text:<EXACT original current user span>} supply known user facts. Omit unspecified values (null never means unknown). Mapping meaning remains unreviewed. Bounds: depth12,16 paths,128 canonical nodes/question; unsupported relations remain explicit partial answers.',
   'Final result uses authorization-semantic-result/v1: {schemaVersion,revision:<CURRENT resultSkeleton revision>,questions:[{questionId,explanation,paths?:[{pathId:<CURRENT host path id>,explanation,disposition?,protectedEffect?:none|performed|unresolved,policy?:{expected:allow|deny,text:<EXACT supplied independent policy span>}}],missing?,policyAssessment?,counterfactuals?:[{pathId:<host excluded path id>,explanation}]}],scope}. Host derives all CURRENT branches, conditions/citations and outcomes from the SAME graph; you explain source and map independent policy to each feasible path. Optional disposition/effect assertions are checked, never silently changed. Missing known source is source-gap; unspecified premise remains conditional when alternatives are fully described. Source gaps and missing callees cannot be concealed by premise/deployment uncertainty. Only counterfactuals REQUESTED by the original user belong separately; do not add arbitrary alternatives as new duties. Do not attach a changing block to final before seeing its new skeleton. Free text and policy meaning still require source review.',
   'Feedback preserves accepted units and rejected drafts. sourceTerminals maps each host pathId to its exact sourceOrigin handle/block/step, outcome, gap and original evidence. Repair only that named handle using its original source. An entry-return-outcome-unspecified diagnosis means that return permission outcome was not interpreted; do not hide it by asserting conditional in final or by inferring permission from its scalar value. Keep a genuine source gap and name its decisive helper instead. Current sourceWindows are whole original windows. No extra extraction call is introduced; use the next ordinary model/native step. A read original helper with no accepted semantic body is awaiting-interpretation, not an unread external gap. An unchanged repeated diagnostic is not a repair.',
+  'A semanticBlocks[] item is a COMPLETE source unit; a {name,steps} block belongs inside its blocks array. Never invent itemId: copy it from the current source-window task, or reuse an accepted unit itemId for op:replace. rejectedBlocks carries host draftId plus the exact rejected raw proposal/diagnostics. A corrected unit may add repairsDraftId:<that live draftId> to identify an unbound bad draft. Only an accepted source-bound unit clears that draft; known question/handle scope must match. Original raw and the repair link remain archived. Empty updates, nonexistent draft IDs and invalid repairs never clear errors.',
 ].join("\n")
 
-export function applySemanticBlocks(previous: BoundSemanticBlock[], raw: unknown[], offered: LocalExplanationTask[]) {
-  const units = structuredClone(previous), diagnostics: InquiryDiagnostic[] = [], records: Array<{ raw: unknown; questionId?: string; handle: string; accepted: boolean; diagnostics: InquiryDiagnostic[] }> = []
+export interface SemanticDraftRecord { raw: unknown; questionId?: string; handle: string; draftId: string; accepted: boolean; repairedDraftId?: string; diagnostics: InquiryDiagnostic[] }
+export function applySemanticBlocks(previous: BoundSemanticBlock[], raw: unknown[], offered: LocalExplanationTask[], rejectedDrafts: SemanticDraftRecord[] = []) {
+  const units = structuredClone(previous), diagnostics: InquiryDiagnostic[] = [], records: SemanticDraftRecord[] = []
   for (const input of raw) {
     const value = input && typeof input === "object" ? input as Record<string, unknown> : {}, handle = String(value.handle ?? ""), itemId = String(value.itemId ?? "")
     const task = offered.find(t => t.itemId === itemId), retained = units.find(u => u.itemId === itemId && u.handle === handle), questionId = task?.question.id ?? retained?.questionId
-    const local: InquiryDiagnostic[] = [], fail = (code: string, message: string, suffix = "") => local.push({ code, path: `semanticBlocks.${questionId ?? ""}.${handle}${suffix}`, ...(questionId ? { questionId } : {}), message, severity: "error" })
+    const draftId = "semantic-draft-" + createHash("sha256").update(canonicalControl({ input, questionId, handle })).digest("hex").slice(0, 24)
+    const local: InquiryDiagnostic[] = [], fail = (code: string, message: string, suffix = "") => local.push({ code, path: `${questionId ? `semanticBlocks.${questionId}.${handle}` : `semanticDrafts.${draftId}`}${suffix}`, ...(questionId ? { questionId } : {}), message, severity: "error" })
     const parsed = SemanticBlockSchema.safeParse(input)
     if (!parsed.success) for (const issue of parsed.error.issues) fail("semantic-block-schema", issue.message, `.${issue.path.join(".")}`)
-    else if (!task && !(parsed.data.op === "replace" && retained)) fail("semantic-work-not-offered", "A new semantic unit must bind a current original-window offer. A replacement may reference its own retained itemId.")
+    else if (!task && !(parsed.data.op === "replace" && retained)) fail("semantic-work-not-offered", `A new semantic unit must bind a current original-window offer. A replacement may reference its own retained itemId. Current offered itemIds: ${JSON.stringify(offered.map(t => t.itemId))}. Choose by its shown source, never by a new name.`)
     else {
+      const repair = parsed.data.repairsDraftId && rejectedDrafts.find(d => d.draftId === parsed.data.repairsDraftId)
+      if (parsed.data.repairsDraftId && !repair) fail("semantic-draft-repair-not-live", "Use an exact currently rejected host draftId; accepted or missing drafts cannot be cleared.")
+      else if (repair && (repair.questionId && repair.questionId !== questionId || repair.handle && repair.handle !== handle)) fail("semantic-draft-repair-scope", "A repair must preserve the rejected draft's known question and handle.")
       const old = units.find(u => u.questionId === questionId && u.handle === handle)
-      const candidate: BoundSemanticBlock = { ...parsed.data, questionId: questionId!, evidenceIds: [...new Set([...(task?.evidenceIds ?? retained!.evidenceIds), ...(task?.callsiteEvidenceIds ?? [])])] }
+      const { repairsDraftId: _repair, ...sourceData } = parsed.data
+      const candidate: BoundSemanticBlock = { ...sourceData, questionId: questionId!, evidenceIds: [...new Set([...(task?.evidenceIds ?? retained!.evidenceIds), ...(task?.callsiteEvidenceIds ?? [])])] }
       local.push(...semanticBlockDiagnostics(parsed.data).map(d => ({ ...d, questionId, path: `semanticBlocks.${questionId}.${handle}.${d.path}` })))
       if (old && parsed.data.op === "add" && canonicalControl({ ...candidate, itemId: old.itemId, op: "add" }) !== canonicalControl({ ...old, op: "add" })) fail("semantic-handle-conflict", "Changed accepted handle requires op:replace; accepted source interpretation was preserved.")
       if (!old && parsed.data.op === "replace") fail("semantic-handle-missing", "Use op:add for an unaccepted handle.")
       if (!local.length) { if (old) units[units.indexOf(old)] = candidate; else units.push(candidate) }
     }
-    records.push({ raw: structuredClone(input), questionId, handle, accepted: !local.length, diagnostics: local }); diagnostics.push(...local)
+    records.push({ raw: structuredClone(input), questionId, handle, draftId, accepted: !local.length, ...(parsed.success && parsed.data.repairsDraftId ? { repairedDraftId: parsed.data.repairsDraftId } : {}), diagnostics: local }); diagnostics.push(...local)
   }
   return { units, records, diagnostics }
 }
