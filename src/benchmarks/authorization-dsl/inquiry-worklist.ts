@@ -88,6 +88,8 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
       for (const p of paths) invalidFiles.add(p)
     }
     const dependencies = options.dependencyStates?.() ?? []
+    const activeDependencies = new Set(dependencies.map(d => d.id))
+    for (const [key, item] of items) if (item.origin === "explicit-dependency" && item.dependencyId && !activeDependencies.has(item.dependencyId)) { items.delete(key); choices.delete(key) }
     for (const d of dependencies) {
       const id = stableId(["dependency", d.id]), kind = slice.dependencies.find(p => p.id === d.id)?.kind
       const relation: InquiryRelation = kind === "principal-binding" || kind === "resource-binding" || kind === "effect" || kind === "exception" ? kind : "guard"

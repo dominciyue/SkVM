@@ -69,6 +69,8 @@ export function createInquiryDomainScheduler(options: { tools: InquiryTools; rem
     return stop("located", candidate.boundary === "uncertain" ? "dependency-boundary-uncertain" : "dependency-read-pending", "Live binding/control/effect dependency is uniquely located and still needs original source.")
   }
   const run = async (slice: ControlSlice, maxActions = 2) => {
+    const currentIds = new Set(slice.dependencies.map(d => d.id))
+    for (const key of entries.keys()) if (!currentIds.has(key)) entries.delete(key)
     const start = actions.length, ordered = [...slice.dependencies].sort((a, b) => priority[a.kind] - priority[b.kind] || Number(b.decisive) - Number(a.decisive) || a.id.localeCompare(b.id))
     for (const dep of ordered) update(slice, dep)
     let progressed = true

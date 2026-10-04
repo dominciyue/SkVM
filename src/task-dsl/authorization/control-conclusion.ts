@@ -30,13 +30,14 @@ export function controlRuleReach(slice: ControlSlice, rule: BoundControlRule, ev
 }
 export interface ControlPathEvaluation {
   questionId: string; pathKey: string; state: "checked" | "inapplicable" | "blocked"; disposition: "allow" | "deny" | "unknown";
-  complete: boolean; predicate: PartialPredicate; condition: unknown; nodeKeys: string[]; terminalKeys: string[]; gaps: string[]; sourceBound: boolean
+  complete: boolean; predicate: PartialPredicate; condition: unknown; nodeKeys: string[]; terminalKeys: string[]; gaps: string[]; sourceBound: boolean;
+  protectedEffect?: "none" | "performed" | "unresolved"; returnValues?: unknown[]
 }
 export function evaluateControlPaths(slice: ControlSlice): { paths: ControlPathEvaluation[]; diagnostics: InquiryDiagnostic[]; calculationCount: number } {
   const paths: ControlPathEvaluation[] = [], diagnostics: InquiryDiagnostic[] = []
   let calculationCount = 0
   for (const questionId of new Set(slice.rules.map(r => r.questionId))) {
-    const rules = slice.rules.filter(r => r.questionId === questionId), terminals = rules.filter(r => r.kind === "effect" || r.kind === "reject")
+    const rules = slice.rules.filter(r => r.questionId === questionId), terminals = rules.filter(r => r.terminal === true || r.terminal !== false && (r.kind === "effect" || r.kind === "reject"))
     const groups = new Map<string, BoundControlRule[]>()
     for (const terminal of terminals.length ? terminals : rules) groups.set(terminal.pathKey, [...(groups.get(terminal.pathKey) ?? []), terminal])
     if (groups.size > 16) diagnostics.push(diag("control-path-limit", questionId, `${groups.size} proposed paths exceed 16; additional paths remain explicit residuals, task is not closed.`))
@@ -44,14 +45,14 @@ export function evaluateControlPaths(slice: ControlSlice): { paths: ControlPathE
       const reaches = nodes.map(n => { calculationCount++; return { node: n, ...controlRuleReach(slice, n) } })
       const live = reaches.filter(r => r.predicate.truth !== "false" && !r.stoppedBy.length)
       for (const r of reaches) if (r.node.kind === "effect" && r.stoppedBy.length && r.predicate.truth !== "false") diagnostics.push(diag("effect-after-reject", `${questionId}.${pathKey}.${r.node.key}`, `Effect follows terminating rejection ${r.stoppedBy.join(", ")}.`))
-      const outcomes = new Set(live.filter(r => r.node.kind === "effect" || r.node.kind === "reject").map(r => r.node.kind === "reject" ? "deny" : "allow"))
+      const outcomes = new Set(live.flatMap(r => r.node.kind === "unresolved" ? [] : r.node.kind === "return" ? r.node.outcome && r.node.outcome !== "unknown" ? [r.node.outcome] : [] : r.node.kind === "reject" ? ["deny"] : r.node.kind === "effect" ? ["allow"] : []))
       if (outcomes.size > 1) diagnostics.push(diag("path-outcome-conflict", `${questionId}.${pathKey}`, "The same proposed feasible path has conflicting terminal outcomes. Split genuine alternatives with explicit predicates and distinct path keys."))
-      const gaps = [...new Set(live.flatMap(r => [...r.gaps, ...(!r.ancestors.some(n => n.kind === "entry") ? ["entry-missing"] : []), ...(!r.node.complete ? ["closure-not-proposed"] : []), ...r.predicate.diagnostics]))]
+      const gaps = [...new Set(live.flatMap(r => [...r.gaps, ...r.ancestors.filter(n => n.kind === "unresolved").map(n => n.gap ?? "semantic-unresolved"), ...(!r.ancestors.some(n => n.kind === "entry") ? ["entry-missing"] : []), ...(!r.node.complete ? ["closure-not-proposed"] : []), ...r.predicate.diagnostics]))]
       const complete = live.length > 0 && outcomes.size === 1 && !gaps.length && groups.size <= 16
       const predicates = live.map(r => r.condition)
       const condition = predicates.length === 1 ? predicates[0] : { op: "any", args: predicates }
       const predicate = partialEvaluate(condition, controlBindings(slice, questionId)); calculationCount++
-      paths.push({ questionId, pathKey, state: !live.length ? "inapplicable" : complete ? "checked" : "blocked", disposition: complete ? [...outcomes][0]! as "allow" | "deny" : "unknown", complete, predicate, condition, nodeKeys: [...new Set(live.flatMap(r => r.ancestors.map(n => n.key)))], terminalKeys: live.map(r => r.node.key), gaps, sourceBound: reaches.every(r => r.ancestors.every(n => n.sourceBound)) })
+      paths.push({ questionId, pathKey, state: !live.length ? "inapplicable" : complete ? "checked" : "blocked", disposition: complete ? [...outcomes][0]! as "allow" | "deny" : "unknown", complete, predicate, condition, nodeKeys: [...new Set(live.flatMap(r => r.ancestors.map(n => n.key)))], terminalKeys: live.map(r => r.node.key), gaps, sourceBound: reaches.every(r => r.ancestors.every(n => n.sourceBound)), ...(slice.schemaVersion === "authorization-control-slice/v2" ? { protectedEffect: live.some(r => r.ancestors.some(n => n.kind === "unresolved")) ? "unresolved" as const : live.some(r => r.ancestors.some(n => n.kind === "effect")) ? "performed" as const : "none" as const, returnValues: live.flatMap(r => "returnValue" in r.node ? [r.node.returnValue] : []) } : {}) })
     }
   }
   return { paths, diagnostics, calculationCount }

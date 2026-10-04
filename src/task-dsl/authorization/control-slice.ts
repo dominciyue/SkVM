@@ -5,11 +5,12 @@ import type { AuthorizationInquiryProgram } from "./inquiry-program.ts"
 import type { InquiryEvidenceContext } from "./inquiry-result.ts"
 import { predicateDiagnostics, type Scalar } from "./control-evaluation.ts"
 
-export type InquiryStrategy = "legacy" | "domain-evidence-v1" | "guided-evidence-v2"
-export const InquiryStrategySchema = z.enum(["legacy", "domain-evidence-v1", "guided-evidence-v2"])
+export type InquiryStrategy = "legacy" | "domain-evidence-v1" | "guided-evidence-v2" | "semantic-flow-v1"
+export const InquiryStrategySchema = z.enum(["legacy", "domain-evidence-v1", "guided-evidence-v2", "semantic-flow-v1"])
+export const isGuidedInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "guided-evidence-v2" || strategy === "semantic-flow-v1"
 export function parseInquiryStrategy(input: unknown): InquiryStrategy {
   const parsed = InquiryStrategySchema.safeParse(input ?? "legacy")
-  if (!parsed.success) throw new Error("inquiry-strategy: strategy must be legacy, domain-evidence-v1 or guided-evidence-v2")
+  if (!parsed.success) throw new Error(`inquiry-strategy: strategy must be ${InquiryStrategySchema.options.join(", ")}`)
   return parsed.data
 }
 const key = InquiryText.refine(s => !["__proto__", "constructor", "prototype"].includes(s), "Reserved binding key")
@@ -30,17 +31,26 @@ export const ControlDependencySchema = z.object({
 export const UserBindingSchema = z.object({ questionId: InquiryText, key, value: z.union([z.string(), z.number().finite(), z.boolean(), z.null()]), origin: z.literal("user"), text: InquiryText, ...revision }).strict()
 export const PolicyRuleSchema = z.object({ questionId: InquiryText, key, pathKey: key, condition: expression.optional(), expected: z.enum(["allow", "deny"]), text: InquiryText, location: InquiryText, origin: z.literal("policy"), ...revision }).strict()
 /** Predicates have a separately enforced finite algebra, avoiding an unbounded recursive model schema. */
-export const ControlSliceDeltaSchema = z.object({
+export const ControlSliceV1DeltaSchema = z.object({
   schemaVersion: z.literal("authorization-control-slice/v1"), rules: z.array(ControlRuleSchema).max(1024).default([]),
   dependencies: z.array(ControlDependencySchema).max(1024).default([]), bindings: z.array(UserBindingSchema).max(1024).default([]), policyRules: z.array(PolicyRuleSchema).max(256).default([]),
 }).strict()
-export type ControlRule = z.infer<typeof ControlRuleSchema>
+/** Strict v1 is retained. v2 can distinguish a return from an actual protected operation. */
+export const SemanticControlRuleSchema = ControlRuleSchema.extend({
+  kind: z.enum(["entry", "binding", "guard", "reject", "continue", "effect", "call", "return", "unresolved"]),
+  terminal: z.boolean().optional(), outcome: z.enum(["allow", "deny", "unknown"]).optional(),
+  returnValue: z.union([z.string(), z.number().finite(), z.boolean(), z.null()]).optional(), gap: InquiryText.optional(),
+  sourceOrigin: z.object({ handle: key, block: key, step: key, instance: key }).strict().optional(),
+}).strict()
+export const ControlSliceV2DeltaSchema = ControlSliceV1DeltaSchema.extend({ schemaVersion: z.literal("authorization-control-slice/v2"), rules: z.array(SemanticControlRuleSchema).max(1024).default([]) }).strict()
+export const ControlSliceDeltaSchema = z.discriminatedUnion("schemaVersion", [ControlSliceV1DeltaSchema, ControlSliceV2DeltaSchema])
+export type ControlRule = z.infer<typeof SemanticControlRuleSchema>
 export type ControlDependency = z.infer<typeof ControlDependencySchema>
 type Bound<T> = T & { id: string; digest: string; sourceBound: boolean; semanticSupport: "unreviewed" }
 export type BoundControlRule = Bound<ControlRule>
 export type BoundControlDependency = Bound<ControlDependency>
 export interface ControlSlice {
-  schemaVersion: "authorization-control-slice/v1"; revision: number; rules: BoundControlRule[]; dependencies: BoundControlDependency[];
+  schemaVersion: "authorization-control-slice/v1" | "authorization-control-slice/v2"; revision: number; rules: BoundControlRule[]; dependencies: BoundControlDependency[];
   bindings: Bound<z.infer<typeof UserBindingSchema>>[]; policyRules: Bound<z.infer<typeof PolicyRuleSchema>>[];
   conflicts: Array<{ id: string; proposed: unknown; previous: unknown; resolved: boolean }>;
   revisions: Array<{ id: string; previous: unknown; accepted: unknown; reason: string }>
@@ -54,6 +64,7 @@ const diagnostic = (code: string, path: string, message: string): InquiryDiagnos
 export function mergeControlSlice(previous: ControlSlice, input: unknown, program: AuthorizationInquiryProgram, context: InquiryEvidenceContext & { suppliedUserText?: string[] }): { state: ControlSlice; diagnostics: InquiryDiagnostic[] } {
   const state = structuredClone(previous), diagnostics: InquiryDiagnostic[] = [], parsed = ControlSliceDeltaSchema.safeParse(input)
   if (!parsed.success) return { state, diagnostics: parsed.error.issues.map(i => diagnostic("control-schema", i.path.join("."), i.message)) }
+  if (parsed.data.schemaVersion === "authorization-control-slice/v2") state.schemaVersion = parsed.data.schemaVersion
   const accept = (group: "rules" | "dependencies" | "bindings" | "policyRules", proposed: any, sourceBound: boolean) => {
     const list: any[] = state[group], id = `ctrl-${digest([group, proposed.questionId, proposed.key]).slice(0, 20)}`
     const { revisionOf, revisionReason, ...content } = proposed, hash = digest(content), old = list.find(i => i.id === id)
@@ -71,7 +82,8 @@ export function mergeControlSlice(previous: ControlSlice, input: unknown, progra
     const over = new Set<string>()
     for (const q of program.questions) {
       const combined = new Set([...state.rules, ...parsed.data.rules].filter(r => r.questionId === q.id).map(r => r.key))
-      if (combined.size > 64 && group === "rules") { over.add(q.id); diagnostics.push(diagnostic("control-node-limit", group, `Question ${q.id} exceeds 64 local nodes; proposals for this question remain residual.`)) }
+      const nodeLimit = state.schemaVersion === "authorization-control-slice/v2" ? 128 : 64
+      if (combined.size > nodeLimit && group === "rules") { over.add(q.id); diagnostics.push(diagnostic("control-node-limit", group, `Question ${q.id} exceeds ${nodeLimit} local nodes; proposals for this question remain residual.`)) }
       if (group === "dependencies" && new Set([...state.dependencies, ...parsed.data.dependencies].filter(d => d.questionId === q.id).map(d => d.key)).size > 64) { over.add(q.id); diagnostics.push(diagnostic("control-dependency-limit", group, `Question ${q.id} exceeds 64 dependencies.`)) }
     }
     for (const item of parsed.data[group]) {

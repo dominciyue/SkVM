@@ -1,5 +1,5 @@
 import type { AuthorizationInquiryProgram } from "../../task-dsl/authorization/inquiry-program.ts"
-import { ControlSliceDeltaSchema, createControlSlice, mergeControlSlice, type ControlSlice, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
+import { ControlSliceDeltaSchema, createControlSlice, mergeControlSlice, isGuidedInquiryStrategy, type ControlSlice, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { evaluateControlPaths, checkControlConclusions, controlObjectDiagnostics, summarizeControlQuestions } from "../../task-dsl/authorization/control-conclusion.ts"
 import type { InquiryDiagnostic } from "../../task-dsl/authorization/inquiry.ts"
 import { AuthorizationInquiryResultSchema } from "../../task-dsl/authorization/inquiry-result.ts"
@@ -8,6 +8,8 @@ import { createInquiryDomainScheduler } from "./inquiry-domain-scheduler.ts"
 import { applyControlUpdates, LOCAL_CONTROL_GUIDE, LocalControlEnvelopeSchema, WorkSelectionSchema, type UpdateAcceptance, type UpdateRejection, type UpdateWithdrawal } from "./inquiry-control-updates.ts"
 import { createInquiryWorklist, worklistModelView } from "./inquiry-worklist.ts"
 import { expandLocalExtractions, localExplanationContext, LOCAL_EXTRACTION_GUIDE, type LocalExplanationTask, type LocalUpdateGroup } from "./inquiry-local-extraction.ts"
+import { applySemanticBlocks, lowerIntoControlSlice, assembleSemanticResult, semanticResultSkeleton, SemanticUpdateEnvelopeSchema, SEMANTIC_EXECUTION_GUIDE } from "./inquiry-semantic.ts"
+import type { BoundSemanticBlock } from "../../task-dsl/authorization/semantic-flow.ts"
 
 export type DomainAblation = "scheduler-off" | "checks-off"
 type RuntimeDomainCheck = Omit<ReturnType<typeof checkControlConclusions>, "ruleConsistency"> & { ruleConsistency: boolean | null }
@@ -30,13 +32,15 @@ export const DOMAIN_EXECUTION_GUIDE = [
 export const GUIDED_EXECUTION_GUIDE = [LOCAL_CONTROL_GUIDE, LOCAL_EXTRACTION_GUIDE, ...DOMAIN_EXECUTION_GUIDE.split("\n").slice(2, 6).map(line => line.replace(/Known bindings are only explicit USER premises:.*?This mapping is a model interpretation, not source truth\./, "Only known premiseValues from exact current user spans enter evaluation; mapping meaning remains unreviewed.").replace(/\{key,questionId/g, "{op,targetKey,questionId")), RESULT_BRANCH_GUIDE, "For unspecified values, retain alternative feasible outcomes and name the missing fact. Local extraction and mapping meaning remain unreviewed."].join("\n")
 
 /** One shared state machine used by structured inquiry and ordinary native tools. */
-export function createInquiryDomainRuntime(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; strategy?: InquiryStrategy; entryContext?: string; remainingActions?: () => number; ablation?: DomainAblation; suppliedUserText?: string[]; shownEvidenceIds?: () => string[]; initialDelta?: unknown }) {
+export function createInquiryDomainRuntime(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; strategy?: InquiryStrategy; entryContext?: string; remainingActions?: () => number; ablation?: DomainAblation; suppliedUserText?: string[]; shownEvidenceIds?: () => string[]; initialDelta?: unknown; initialSemanticUnits?: BoundSemanticBlock[] }) {
   let slice: ControlSlice = createControlSlice(), check: RuntimeDomainCheck | undefined, closed = false
   const scheduler = createInquiryDomainScheduler({ ...options, evaluateConditions: options.ablation !== "checks-off" }), proposals: Array<{ delta: unknown; diagnostics: InquiryDiagnostic[]; revision: number; accepted?: UpdateAcceptance[]; rejected?: UpdateRejection[]; withdrawn?: UpdateWithdrawal[]; withdrawalRejected?: UpdateRejection[]; unresolved?: unknown[] }> = []
   let currentRejections: UpdateRejection[] = []
   const rejectedDrafts = new Map<string, RejectedDraft>()
   const draftIdentity = (p: Pick<UpdateRejection, "group" | "questionId" | "targetKey">) => JSON.stringify([p.group, p.questionId, p.targetKey])
-  const worklist = options.strategy === "guided-evidence-v2" ? createInquiryWorklist({ ...options, dependencyStates: () => scheduler.snapshot() }) : undefined
+  const worklist = isGuidedInquiryStrategy(options.strategy) ? createInquiryWorklist({ ...options, dependencyStates: () => scheduler.snapshot() }) : undefined
+  let semanticUnits: BoundSemanticBlock[] = structuredClone(options.initialSemanticUnits ?? [])
+  const semanticRecords: ReturnType<typeof applySemanticBlocks>["records"] = [], assemblies: Array<{ raw: unknown; revision: number; derived: unknown; diagnostics: InquiryDiagnostic[] }> = []
   let automaticActionsRemaining = 2
   let offeredTasks: LocalExplanationTask[] = []
   const localExtractions: ReturnType<typeof expandLocalExtractions>["records"] = []
@@ -67,6 +71,32 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   }
   const propose = async (delta: unknown) => {
     if (closed) throw new Error("session-closed: domain runtime cannot continue")
+    if (options.strategy === "semantic-flow-v1" && delta && typeof delta === "object" && (delta as Record<string, unknown>).schemaVersion === "authorization-semantic-update/v1") {
+      const envelope = SemanticUpdateEnvelopeSchema.safeParse(delta)
+      if (!envelope.success) {
+        const diagnostics = envelope.error.issues.map(i => ({ code: "semantic-update-schema", path: i.path.join("."), message: i.message, severity: "error" as const }))
+        issues.set("$semantic-envelope", diagnostics); proposals.push({ delta: structuredClone(delta), diagnostics, revision: slice.revision }); return { diagnostics, actions: [], evaluated: { paths: lastPaths } }
+      }
+      issues.delete("$semantic-envelope"); check = undefined; issues.delete("$semantic-result")
+      const applied = applySemanticBlocks(semanticUnits, envelope.data.semanticBlocks, offeredTasks)
+      semanticUnits = applied.units; semanticRecords.push(...applied.records)
+      for (const record of applied.records) { const key = `$semantic-block.${record.questionId ?? ""}.${record.handle}`; if (record.accepted) issues.delete(key); else issues.set(key, record.diagnostics) }
+      let diagnostics = [...applied.diagnostics]
+      if (applied.records.some(r => r.accepted)) {
+        const changed = new Set(applied.records.filter(r => r.accepted).map(r => r.questionId))
+        slice.policyRules = slice.policyRules.filter(p => !changed.has(p.questionId) || !p.key.startsWith("semantic-policy-"))
+        const lowered = calculate(() => lowerIntoControlSlice(slice, semanticUnits, options.program, evidenceContext())); computation.merges++
+        slice = lowered.state; diagnostics.push(...lowered.diagnostics)
+        for (const key of issues.keys()) if (key.startsWith("$semantic-lower.")) issues.delete(key)
+        for (const d of lowered.diagnostics) { const key = `$semantic-lower.${d.questionId ?? ""}`; issues.set(key, [...(issues.get(key) ?? []), d]) }
+      }
+      if (envelope.data.premiseValues.length || envelope.data.workSelections.length) {
+        const local = await propose({ schemaVersion: "authorization-control-update/v1", premiseValues: envelope.data.premiseValues, workSelections: envelope.data.workSelections })
+        diagnostics.push(...local.diagnostics)
+      }
+      proposals.push({ delta: structuredClone(delta), diagnostics, revision: slice.revision })
+      const { actions, evaluated } = await sync(); return { diagnostics, actions, evaluated }
+    }
     if (delta && typeof delta === "object" && (delta as Record<string, unknown>).schemaVersion === "authorization-control-update/v1") {
       worklist?.sync(slice, check)
       const envelope = LocalControlEnvelopeSchema.safeParse(delta)
@@ -148,6 +178,17 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     checkHistory.push({ revision: slice.revision, slice: structuredClone(slice), result: structuredClone(result), check: structuredClone(check) })
     return check
   }
+  const assembleResult = (raw: unknown) => {
+    if (options.strategy !== "semantic-flow-v1") return { result: raw, diagnostics: [] }
+    const assembled = assembleSemanticResult(options.program, slice, scheduler.snapshot(), raw)
+    if (assembled.policyRules.length && !assembled.diagnostics.some(d => d.code === "semantic-result-stale")) {
+      const merged = mergeControlSlice(slice, { schemaVersion: slice.schemaVersion, policyRules: assembled.policyRules }, options.program, evidenceContext())
+      slice = merged.state; assembled.diagnostics.push(...merged.diagnostics); check = undefined
+    }
+    issues.set("$semantic-result", assembled.diagnostics)
+    assemblies.push({ raw: structuredClone(raw), revision: slice.revision, derived: structuredClone(assembled.result), diagnostics: structuredClone(assembled.diagnostics) })
+    return assembled
+  }
   const feedback = () => ({ revision: slice.revision,
     rules: slice.rules.map(({ key, questionId, pathKey, kind, after, condition, bindingKey, bindingKind, principal, resource, digest }) => ({ key, questionId, pathKey, kind, after, condition, bindingKey, bindingKind, principal, resource, digest })),
     bindings: slice.bindings, policyRules: slice.policyRules, dependencies: scheduler.snapshot(), paths: lastPaths,
@@ -167,12 +208,13 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     const context = localExplanationContext(options.program, worklist?.snapshot() ?? [], options.tools.evidence, slice, diagnosed, recent, locationContextPosition++, { offset: explanationContextPosition, fairOffset: fairContextPosition++, questionIds, ...limits })
     explanationContextPosition += 2
     offeredTasks = context.tasks
+    if (options.strategy === "semantic-flow-v1") return { ...context, instruction: SEMANTIC_EXECUTION_GUIDE, tasks: context.tasks.map(task => ({ ...task, existingTargets: [], semanticUnits: semanticUnits.filter(u => u.questionId === task.question.id) })) }
     return context
   }
   let rejectedFeedbackPosition = 0
   // Keep canonical/archive diagnostics intact; describe the public local operation in model feedback.
   const modelDiagnostic = (d: InquiryDiagnostic): InquiryDiagnostic => {
-    if (options.strategy !== "guided-evidence-v2" || d.code !== "control-conflict") return d
+    if (!isGuidedInquiryStrategy(options.strategy) || d.code !== "control-conflict") return d
     const rejected = currentRejections.find(p => p.diagnostics.some(original => original.code === d.code && original.path === d.path && original.message === d.message))
     if (!rejected) return d
     const group = rejected.group === "sourceBindings" ? "rules" : rejected.group === "premiseValues" ? "bindings" : rejected.group
@@ -182,6 +224,10 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     return { ...d, message: `A changed add for this accepted target was rejected. Submit a ${rejected.group} item ${JSON.stringify(replacement)} with the corrected source fields. The host supplies revisionOf and records replacement provenance; dependency relevance reason remains required. The accepted target has not been overwritten.` }
   }
   const modelFeedback = () => {
+    if (options.strategy === "semantic-flow-v1") {
+      const state = feedback(), diagnostics = state.diagnostics.filter((d, i, all) => all.findIndex(v => v.code === d.code && v.path === d.path && v.questionId === d.questionId && v.message === d.message) === i)
+      return { revision: slice.revision, semanticUnits: semanticUnits.map(({ questionId, handle, role, itemId, parameters, complete }) => ({ questionId, handle, role, itemId, parameters, complete })), bindings: slice.bindings, dependencies: scheduler.snapshot(), resultSkeleton: semanticResultSkeleton(slice, scheduler.snapshot()), diagnostics: diagnostics.slice(0, 16), diagnosticCount: diagnostics.length, rejectedBlocks: semanticRecords.filter(r => !r.accepted && diagnostics.some(d => d.path.startsWith(`semanticBlocks.${r.questionId ?? ""}.${r.handle}`))).slice(-4), ...(state.worklist ? { worklist: worklistModelView(state.worklist) } : {}), semanticSupport: "unreviewed" }
+    }
     const { worklist: fullWorklist, ...state } = feedback(), diagnostics = state.diagnostics.filter((d, i, all) => all.findIndex(v => v.code === d.code && v.path === d.path && v.message === d.message && v.questionId === d.questionId) === i)
     const rejections = [...new Map(currentRejections.map(p => [draftIdentity(p), p])).values()]
     const position = rejectedFeedbackPosition % Math.max(1, rejections.length)
@@ -201,6 +247,6 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     }
     return { ...state, ...(fullWorklist ? { worklist: worklistModelView(fullWorklist) } : {}), diagnostics: diagnostics.slice(0, 16).map(modelDiagnostic), diagnosticCount: diagnostics.length, rejectedTargets, rejectedTargetCount: rejections.length }
   }
-  return { propose, sync, validate, feedback, modelContext, modelFeedback, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { closed = true },
-    report: () => ({ slice: structuredClone(slice), proposals: structuredClone(proposals), currentRejections: structuredClone(currentRejections), localExtractions: structuredClone(localExtractions), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions) } } : {}), objectFeedback: { revision: objectRevision, diagnostics: structuredClone(objectDiagnostics) }, check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed }) }
+  return { propose, sync, validate, assembleResult, feedback, modelContext, modelFeedback, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { closed = true },
+    report: () => ({ slice: structuredClone(slice), proposals: structuredClone(proposals), currentRejections: structuredClone(currentRejections), localExtractions: structuredClone(localExtractions), ...(options.strategy === "semantic-flow-v1" ? { semantic: { units: structuredClone(semanticUnits), records: structuredClone(semanticRecords), assemblies: structuredClone(assemblies) } } : {}), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions) } } : {}), objectFeedback: { revision: objectRevision, diagnostics: structuredClone(objectDiagnostics) }, check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed }) }
 }

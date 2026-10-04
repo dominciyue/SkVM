@@ -3,7 +3,7 @@
 > 执行配置：gpt-6.1-sol / max。用户已授权本轮连续开发、必要联网与模型调用、提交并推送用户 origin；常规阶段不停下来重新询问。
 > 使用 writing-plans 编制。实施时使用 TDD、systematic-debugging 和必要验证；用户现有授权覆盖常规设计细化及可逆实现，不再等待重复设计批准。
 
-更新于 2026-10-04。状态：**in-progress；AS0 完成，AS1 进行中**。实际接管基线 `c90787f09087b3c79ac1d73b47f970ab928894e0`，工作区干净且用户远端同 SHA。分支始终 `skill-ir-aot`，只推用户 `origin/skill-ir-aot`。AR 进程结束，研究及真实使用验收仍有未达项；AS 承接责任，不回写旧结果。机器状态见 [AS status](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)。
+更新于 2026-10-04。状态：**in-progress；AS0–AS7 共享实现和确定性检查已完成，AS8 真实纵向待执行**。实际接管基线 `c90787f09087b3c79ac1d73b47f970ab928894e0`，当时工作区干净且用户远端同 SHA。分支始终 `skill-ir-aot`，只推用户 `origin/skill-ir-aot`。AR 进程结束，研究及真实使用验收仍有未达项；AS 承接责任，不回写旧结果。机器状态见 [AS status](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)。
 
 ## 一、目标与完成标准
 
@@ -105,6 +105,8 @@ AR 保留 8/16 已留首行的历史分母和所有修订。六个未运行主�
 - 状态页切换 AS in-progress，研究 §7.48 作为当前设计入口。必要文件均复用现有合同/runner helper，不复制庞大 driver 作为新产品代码。
 
 ### AS1 — 窄语义设计及双入口接线图
+
+已实现接口：semantic-flow-v1；局部 `semanticBlocks`（命名有限 block/choose/顺序/call/return/效果）、当前版本 `semantic-result`；v1 不变，最小 canonical v2 表达非效果终点。细节/匿名例及上限见研究 §7.48。两只读探子核对枚举和双入口，后续两只读探子核对控制流/结果边界；主线程亲读共享实现并负责裁定。匿名红例、真实入口 mock 和兼容回归已绿，618 pass/1 skip/4148 assertions；真实纵向仍未验证。复杂源码变化局部保留暂不实施，失效后 fresh。
 
 - 亲自读现有局部 Schema、after 求值、最终检查与 native/inquiry 调用链。
 - 写清选择、顺序、合流、提前返回、principal/resource 绑定、受保护效果和 unresolved 的含义；决定旧表示可承载的展开方式、可控上限和诊断。
@@ -233,7 +235,7 @@ git diff --check
 ```
 
 - AR helper 可只读参考既有 study/evaluate 测试与 replay；不执行旧 evaluate 重写派生报告，不改冻结摘要去通过历史验证。
-- 新 AS driver 自带局部类型/离线 replay 命令，AS0–AS1 落地后写入实际路径；不复制全部历史 runner 依赖或重复做巨大 clean archive。
+- 新 AS driver 自带局部类型/离线 replay：`bunx tsc --noEmit -p ./results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/tsconfig.json` 与 `bun ./results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/study.ts replay`；不复制全部历史 runner 依赖或重复做巨大 clean archive。
 
 ### AS19 — 文档、发布与交接
 

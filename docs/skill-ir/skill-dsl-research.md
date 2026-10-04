@@ -1543,6 +1543,24 @@ OWUI新臂三次wire坏稿均在12响应内处理；只读三个原窗口，admi
 
 **AS0 原件核对。** 新清单固定五任务三臂、两原 skill 原/变、两任务政策/前提 fresh/previous 和源码变化共 29 位置，作者 4 稿另列。未知作者 Memos 消费的原配置 taskId、源码 ref、v1 政策及普通/admin/self 问题与预选原 remove 是同逻辑任务；按未知完成优先的合同，原 remove 三臂及五个依赖位置 blocked，仍保留 29 分母。旧 Notes/Memos share 封存不动。基线 602 pass/1 skip、typecheck 通过，配置路由和认证仅零调用确认；没有新的分析或质量成功。原件及精确来源见 [AS manifest](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/manifest.json)、[封存](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/inherited-seals.json) 和 [verification](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/verification.json)。
 
+**AS1 接口决定（设计，尚未实用验证）。** `semantic-flow-v1` 同时用于 M-S/D-S、inquiry 和普通 run/native。模型提交 `authorization-semantic-update/v1` 的 `semanticBlocks`，每块引用当前原窗口的 `itemId`，声明稳定语义 `handle`、entry/helper、命名 block 及顺序 steps。宿主填题目、出处、版本和 canonical 身份。以下为匿名设计例，不是原项目的候选答案：
+
+```json
+{"itemId":"<current-offer>","handle":"endpoint","op":"add","role":"entry","start":"main","complete":true,"fallthrough":"allow","blocks":[{"name":"main","steps":[{"kind":"choose","name":"role","claim":"Explicit if/else","cases":[{"condition":{"op":"eq","left":{"binding":"role"},"right":{"literal":"admin"}},"body":"admin"}],"otherwise":"member"},{"kind":"effect","name":"write","claim":"Protected mutation"}]},{"name":"admin","steps":[]},{"name":"member","steps":[]}]}
+```
+
+| 模型明确的语义 | 宿主 lowering / 保留的责任 |
+|---|---|
+| 顺序与 choose 的各 case/body；显式 otherwise | 各替代路径展开共同后续，`after` 仍为 AND；otherwise 才授权补集，无 otherwise 留 `choice-uncovered` |
+| bind 的对象类型、独立身份或明确 alias；call 的参数映射/callee handle | 对象按调用实例作用域编号，只有显式参数/alias 共享；同名不共享。未读/未解释 callee 保留依赖 |
+| return 的值与入口许可结果；effect 的实际操作 | helper return 回到调用点，返回值仅替换明确局部结果名；成功 return 可没有受保护效果，不写成 effect |
+| complete、拒绝、unresolved 及引用关系 | 有限展开（16 路径、128 v2 节点/题、深度12）；循环、缺体、越界和超限保留具名 residual |
+| 当前版本的解释、缺口和独立政策映射 | `authorization-semantic-result/v1` 引用当前 revision/pathId，宿主形成当前分支/引用；旧版本、状态/效果矛盾留诊断；请求的反事实另列 |
+
+必要的最小扩展是严格 `authorization-control-slice/v2`：增加 call/return/unresolved、terminal/outcome/returnValue 与原局部来源，路径另报 protectedEffect。v1 Schema 和求值保持；不把 return True 解释成写入或拒绝。v2 中中间 effect 与调用不是终点。共享 runtime 保存原 block 与展开映射，替换同题 handle 后重算其受影响图、失效旧 final；坏题的更新不丢其它题。previous 只同策略，重新核对原证据、semantic blocks 和当前 checker，绝不复用终答。复杂循环/动态别名及源码变化局部保留暂不实现，按 fresh 合同处理。
+
+**AS2–AS7 工程核验（未建立实际收益）。** 匿名反例先观察预期失败，再实现共享前端/展开/结果、双入口接线及同策略 previous；当前授权联合检查 618 pass/1 skip/4148 assertions。两只读边界核验未发现 helper/互斥展开反例；其中“策略必须全段匹配”的建议与既有精确原文片段合同不一致，主线程保持 span 引用并明确语义映射仍未验证。主线程另复现反事实被排除后引用为空的问题，增加红例并从保留路径的前驱来源链补引用，不恢复为当前分支。原稿/诊断/装配和过期版本均保留。AS 真实派发仍为零，下一步登记的 OWUI D-S 首答；验证记录见 AS verification。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
