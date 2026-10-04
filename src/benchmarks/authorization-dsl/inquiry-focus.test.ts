@@ -230,3 +230,17 @@ test("an invalid source-to-user value can be corrected at the same focus without
   const result = runtime.assembleResult({ schemaVersion: "authorization-focused-result/v1", focusId: answer.focus.id, answers: [{ explanation: "The source permits return" }], scope: "Shown original" }).result
   expect((await runtime.validate(result)).ruleConsistency).toBe(true)
 })
+test("ordinary supporting reads are actually displayed while retaining the current source transaction", async () => {
+  const { runtime, tools } = await setup(1)
+  const entry: any = runtime.modelContext()
+  await runtime.propose(interpret(entry.focus.id, { ...body, complete: false, blocks: [{ name: "main", steps: [{ kind: "unresolved", name: "helper_gap", claim: "Another body must be inspected", reason: "Decisive helper source not interpreted" }] }] }))
+  const before: any = runtime.modelContext()
+  const read = await tools.execute("source_read", { path: "helper.ts", startLine: 1, endLine: 1 })
+  await runtime.sync(false)
+  const after: any = runtime.modelContext()
+  expect(after.sourceWindows.some((e: any) => e.id === read.evidence[0]!.id && e.text.includes("return true"))).toBe(true)
+  expect(after.focus).toEqual(before.focus)
+  expect(after.tasks).toEqual([])
+  expect(runtime.report().semantic?.units).toHaveLength(1)
+  expect((runtime.modelContext() as any).sourceWindows).toEqual(after.sourceWindows)
+})

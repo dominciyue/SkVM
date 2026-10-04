@@ -67,6 +67,19 @@ test("ordinary authorization budgets are explicit public flags and require a sou
   expect(validateRunConfig(parsed).mode).toBe("source")
   expect(() => { const unscoped = RUN_FLAGS.parse([...base, ...budget]); if (!unscoped.help) validateRunConfig(unscoped) }).toThrow("scope")
 })
+test("ordinary inquiry budgets bound actual public execution and reject invalid limits before a provider", async () => {
+  const { input, root } = await fixture(); let output = "", calls = 0, providers = 0
+  const deps = { stdout: (s: string) => output = s, stderr: () => {}, providerFactory: () => { providers++; return { name: "mock", async complete(params: any) {
+    calls++; expect(params.maxTokens).toBe(777)
+    return { text: "", toolCalls: [{ id: "c", name: params.tools[0].name, arguments: { kind: "tool", calls: [{ name: "source_read", arguments: { path: "access.ts", startLine: 1, endLine: 1 } }] } }], tokens: emptyTokenUsage(), durationMs: 0, stopReason: "tool_use" as const }
+  }, async completeWithToolResults() { throw new Error("Unused") } } } }
+  const base = ["inquiry", "run", `--input=${input}`, "--model=mock"]
+  for (const value of ["0", "-1", "1.2", "9007199254740992"]) expect(await runAuthorizationCli([...base, `--out=${root}/invalid`, `--max-provider-calls=${value}`], deps)).toBe(1)
+  expect(providers).toBe(0)
+  expect(await runAuthorizationCli([...base, `--out=${root}/bounded`, "--max-provider-calls=1", "--max-tool-calls=1", "--max-display-bytes=1024", "--max-read-bytes=1024", "--max-output-tokens=777", "--request-timeout-ms=1000", "--session-timeout-ms=5000"], deps)).toBe(1)
+  expect(JSON.parse(output).status).toBe("budget-exhausted")
+  expect(calls).toBe(1)
+})
 test("ordinary inquiry run persists actual reads, inspect is offline and request edit invalidates compare", async () => {
   const { input, root } = await fixture(); let output = "", calls = 0
   const deps = { stdout: (s: string) => output = s, stderr: (s: string) => { throw new Error(s) }, providerFactory: () => ({ name: "mock", async complete(params: any) {

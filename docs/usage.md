@@ -89,6 +89,8 @@ Add `--authorization-strategy=domain-evidence-v1` together with `--authorization
 
 `--strategy=focused-closure-v1` keeps one current source interpretation until accepted or explicitly deferred, and derives its bookkeeping fields in the host. Both natural tasks and declarations use the same locate/interpret/link/review/answer workflow. Source self-review and final checking remain within the session budget; source meaning is still unreviewed. Ordinary skills select `--authorization-strategy=focused-closure-v1 --authorization-domain-tools`. Optional budget flags are `--authorization-max-provider-calls=24 --authorization-max-tool-calls=48 --authorization-max-display-bytes=524288 --authorization-max-read-bytes=8388608`, together with `--max-steps=24`; omit them to keep the existing defaults. This is an opt-in development strategy; its real task quality is being evaluated in [AT](../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/manifest.json).
 
+Inquiry runs also accept explicit positive integer limits: `--max-provider-calls=32 --max-tool-calls=48 --max-display-bytes=524288 --max-read-bytes=8388608 --max-output-tokens=6000 --request-timeout-ms=300000 --session-timeout-ms=1200000`. These flags bound the actual public consumer session; omitted limits keep its defaults. Source read/index bytes are cumulative. Focused supporting source windows show ordinary read bodies within the same source display budget without selecting a callee automatically.
+
 For an existing security skill and a scope file containing your natural question, source identity, relative source folder and independent policy:
 
 ```sh
