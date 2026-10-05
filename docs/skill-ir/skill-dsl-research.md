@@ -1759,6 +1759,8 @@ Python/Go结构索引采用固定MIT许可的`@vscode/tree-sitter-wasm@0.3.1`，
 
 Gitea首轮`bd9348f0`原件11派发/11响应，1操作/3问、4个current source units，transport-failed且三问无终答。源码终检346文件有效仅证明输入身份；accepted caller把form.Deadline/repository错映为CanWrite的unitType，正确源码两处均为unit.TypeIssues。独立source/raw审查与主精确解析确认：direct interpret本来合法，seq10/11额外reason使normalization失败，fallback的tool/control诊断遮住真实原因；内部草稿还有非法fallthrough/步骤/数组值，不能在修路由时接受为正确解释。将reason统一为typed proposal metadata后，两原回复零provider通过canonical routing，原unit/说明保持且内部仍被focus-schema拒绝；两个预期red转通过，804共享pass/1skip/5241断言及双类型通过。下一同题具名复验检验既有定向诊断能否实际带来正确参数与交付；这里未宣称源码质量改善。累计11归档attempt、153/152、1未知完成仍属Share，actual USD/开发AI/真人未知；Share全部16位置封存，其他原任务独立推进。
 
+第二次Gitea在`688463e4`为21/21已知，原件SHA绑定评阅判四问partial：字段级区别有用，创建/上游链仍unknown/rejected，usable0。终答sourceRef追加4的错误保持原文；主纠正探子只检查metadata而遗漏终答，以及把174累计调用错用成153旧合计。实际caller将CanWrite错改为CanAccess且未绑定，模型源码/连接错误独立保留。seq7额外revisit的拒绝被kind fallback掩盖，现准确呈现原envelope错误而仍拒绝。独立表达能力审查和主代码阅读确认源literal/有限array transform缺口；匿名TDD实现type:value source bind、有限字段值、参数/alias身份和unknown覆盖，源值不进入USER。赋值型helper按exact顺序展开，纯摘要仍组合；独立代码探子发现map字段投影遗漏，另先红再补一致性。8新反例转绿，44定向/471断言、788联合/1skip/5155断言、15 provider/native/87断言、双类型通过。新接口的真实采用仍须下一具名运行，不能把零调用证明或源码身份计为研究收益。12归档原件累计174派发/173响应，fresh3012982/cache141952/output155426，1原Share未知与USD/开发/AI/真人未知继续保留。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

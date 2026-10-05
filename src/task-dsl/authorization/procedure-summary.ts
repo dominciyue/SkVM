@@ -9,6 +9,8 @@ const any = (args: Record<string, unknown>[]) => args.length === 0 ? undefined :
 /** Finite parameterized helper summaries. Calls/dynamic bodies retain exact expansion. */
 export function summarizeProcedure(unit: BoundSemanticBlock) {
   const variants: ProcedureVariant[] = [], gaps: string[] = []
+  // Summary conditions precede retained steps. Assignments must keep their source order.
+  const requiresExactOrder = unit.blocks.some(b => b.steps.some(s => s.kind === "bind" || s.kind === "transform"))
   const walk = (block: string, conditions: Record<string, unknown>[], claims: string[], stack: string[], retained: Step[] = [], suffix: Step[] = []) => {
     if (stack.includes(block) || stack.length >= 12) { gaps.push("summary-cycle"); return }
     const body = unit.blocks.find(b => b.name === block)
@@ -43,5 +45,5 @@ export function summarizeProcedure(unit: BoundSemanticBlock) {
   const groups = new Map<string, ProcedureVariant[]>()
   for (const v of variants) { const key = canonicalControl([v.kind, Object.hasOwn(v, "value"), v.value, v.object, v.steps, v.failureKind]); groups.set(key, [...(groups.get(key) ?? []), v]) }
   const joined = [...groups.values()].map(list => ({ ...list[0]!, ...(list.every(v => v.condition) ? { condition: any(list.map(v => v.condition!)) } : { condition: undefined }), claims: [...new Set(list.flatMap(v => v.claims))] }))
-  return { handle: unit.handle, source: unit.source, parameters: unit.parameters, evidenceIds: [...unit.evidenceIds], complete: unit.complete, composable: gaps.length === 0 && joined.length > 0 && joined.length <= 16, variants: joined, gaps: [...new Set(gaps)], semanticSupport: "unreviewed" as const }
+  return { handle: unit.handle, source: unit.source, parameters: unit.parameters, evidenceIds: [...unit.evidenceIds], complete: unit.complete, composable: !requiresExactOrder && gaps.length === 0 && joined.length > 0 && joined.length <= 16, requiresExactOrder, variants: joined, gaps: [...new Set(gaps)], semanticSupport: "unreviewed" as const }
 }

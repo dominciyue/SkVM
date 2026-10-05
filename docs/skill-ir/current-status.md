@@ -8,9 +8,9 @@
 
 **当前授权队列为 [AU0–AU21 操作级取证与授权 DSL 贯通](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md)，状态 `in-progress`，开发线程拥有共享代码、方法文档、状态与 Git 的唯一写入责任。** 开发模型 `gpt-6.1-sol / max`，研究基线 `ba277160`；启动HEAD/origin为`dfe7ec32`。继续本地`skill-ir-aot`，仅发布用户origin。AU1–AU9原型、32位置登记、完整原skill22/8文件清单、作者/原字节消费者、变化配对与计量薄接线已实现并做反例验证，实际研究目标未达。
 
-Share第十轮request16网络超时，16派发/15响应；同一Share逻辑任务16位置全部封存，其余15位置零调用blocked。原件SHA `dbae38f7bc29d4df99e30234aefaaca76a38d3376cfcb6ada4a5c95a5ae0cf24`，不重发或换身份。已有`retainTaskPause:true`范围裁定仅允许另三个独立原任务的显式16位置。Gitea首轮版本`bd9348f0`为11/11已知、transport-failed；1操作/3问、4个来源单元，三问均无终答。主精确解析纠正独立审查的kind归因：额外reason挡住interpret，内部解释亦有格式与参数错误。现将typed reason统一为focused proposal说明，模型/parser/native共用，内容不选择focus或补语义；两原回复零调用解析后内部错误仍拒绝。804 pass/1平台skip/5241断言与主/AU双类型通过，下一步为提交后具名Gitea复验`focused-action-explanation-v1`，随后按实际共享缺陷处理其余ordinary/author/consumer/quality。
+Share第十轮request16网络超时，16派发/15响应；同一Share逻辑任务16位置全部封存，其余15位置零调用blocked。原件SHA `dbae38f7bc29d4df99e30234aefaaca76a38d3376cfcb6ada4a5c95a5ae0cf24`，不重发或换身份。已有`retainTaskPause:true`范围裁定仅允许另三个独立原任务的显式16位置。Gitea第二轮在`688463e4`为21/21已知、四问终答partial且全unknown/rejected，sourceRef多出字符4；10来源单元不算任务交付。主原文裁定保留caller误改CanWrite为CanAccess及额外revisit拒绝；源码常量/数组表达缺口另行修复。现在带来源的有限literal、字段与显式参数身份相通，摘要保持赋值顺序，错误动作保留精确envelope诊断；8个TDD反例及独立map投影发现均已处理。788联合pass/1平台skip/5155断言、15 provider/native pass/87断言与主/AU双类型通过。下一步为封版后的唯一具名Gitea复验`source-finite-values-and-envelope-diagnostics-v1`，再依当前实际结果推进其余ordinary/author/consumer/quality。
 
-最新原件重算11归档尝试、153派发/152响应、1项完成与usage未知；known fresh2580301/cache127360/output125295，USD/developer/AI/human均未知。首答、修订、封存和未派位置分别保留；工程通过不能代替实际完整链或质量收益。恢复见AU results `status.json`，旧结果与保护输入保持。
+最新原件重算12归档尝试、174派发/173响应、1项完成与usage未知；known fresh3012982/cache141952/output155426，USD/developer/AI/human均未知。首答、修订、封存和未派位置分别保留；工程通过不能代替实际完整链或质量收益。恢复见AU results `status.json`，旧结果与保护输入保持。
 
 最近的 [AT0–AT19](../superpowers/plans/2026-10-05-authorization-focused-closure-and-delivery.md) 有限队列已以 `completed-with-unmet-criteria` 收束。持久focus、宿主身份、纯有限helper摘要、字段/返回对象、源码终检和双入口已实现。[AT summary](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/summary.json)分别记录工程、实际使用、比较和成本结论；原件和封存保留。
 

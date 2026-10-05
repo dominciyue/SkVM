@@ -6,7 +6,7 @@ const api = await import("./semantic-flow.ts").catch(() => ({} as any))
 const plan = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Role is admin. Flag is true.", premises: [] }] })
 const eq = (binding: string, value: unknown) => ({ op: "eq", left: { binding }, right: { literal: value } })
 const block = (name: string, steps: unknown[]) => ({ name, steps })
-const unit = (blocks: unknown[], extra = {}) => ({ questionId: "q", evidenceIds: ["ev"], itemId: "work", handle: "entry", op: "add", role: "entry", start: "main", complete: true, fallthrough: "allow", parameters: [], blocks, ...extra })
+const unit = (blocks: any[], extra = {}) => ({ questionId: "q", evidenceIds: ["ev"], itemId: "work", handle: "entry", op: "add", role: "entry", start: "main", complete: true, fallthrough: "allow", parameters: [], blocks, ...extra })
 function lower(units: unknown[], bindings: unknown[] = []) {
   expect(typeof api.lowerSemanticFlow).toBe("function")
   const lowered = api.lowerSemanticFlow(units)
@@ -97,4 +97,66 @@ test("static source relations are retained without creating calls, permissions o
   expect(r.slice.rules.filter((r: any) => ["call", "guard", "effect"].includes(r.kind))).toEqual([])
   expect(r.slice.rules.some((r: any) => r.kind === "continue" && r.claim === step.claim)).toBe(true)
   expect(r.paths[0].protectedEffect).toBe("none")
+})
+
+test("source finite values follow explicit value arguments and aliases without becoming user premises", () => {
+  const helper = unit([block("main", [{ kind: "choose", name: "constant", claim: "Source compares the explicit argument", cases: [{ condition: eq("requested", "edit"), body: "yes" }], otherwise: "no" }]), block("yes", [{ kind: "return", name: "yes", claim: "Matched", value: true }]), block("no", [{ kind: "return", name: "no", claim: "Unmatched", value: false }])], { handle: "gate", role: "helper", parameters: [{ name: "requested", type: "value" }] })
+  const root = unit([block("main", [{ kind: "bind", name: "source_mode", type: "value", value: "edit", claim: "Literal visible in the original source" }, { kind: "bind", name: "alias", type: "value", aliasOf: "source_mode", claim: "Explicit source alias" }, { kind: "call", name: "gate", symbol: "gate", callee: "gate", arguments: [{ parameter: "requested", object: "alias" }], result: "permitted", claim: "Pass this literal" }, { kind: "guard", name: "required", condition: eq("permitted", true), claim: "Only true continues" }])])
+  expect(api.SemanticStepSchema.safeParse(root.blocks[0].steps[0]).success).toBe(true)
+  const r = lower([root, helper])
+  expect(r.diagnostics).toEqual([])
+  expect(r.paths.map((p: any) => p.predicate.truth).sort()).toEqual(["false", "true"])
+  expect(r.slice.bindings).toEqual([])
+  expect(r.delta.rules.find((n: any) => n.bindingName === "source_mode").sourceOrigin.step).toBe("source_mode")
+  const unknown = lower([unit([block("main", [{ kind: "call", name: "gate", symbol: "gate", callee: "gate", arguments: [{ parameter: "requested", object: "source_mode" }], claim: "Unknown entry argument" }])], { parameters: [{ name: "source_mode", type: "value" }] }), helper])
+  expect(unknown.paths.every((p: any) => p.predicate.truth === "unknown")).toBe(true)
+})
+
+test("finite field writes survive helper aliases, distinguish empty arrays from null, and preserve unrelated unknown fields", () => {
+  const helper = unit([block("main", [{ kind: "transform", name: "clear", object: "input", field: "labels", value: [], claim: "Source writes an empty array" }, { kind: "return", name: "done", claim: "Return to caller" }])], { handle: "clear", role: "helper", parameters: [{ name: "input", type: "configuration" }] })
+  expect(api.SemanticStepSchema.safeParse(helper.blocks[0].steps[0]).success).toBe(true)
+  const root = unit([block("main", [{ kind: "bind", name: "alias", type: "configuration", aliasOf: "form", claim: "Same form" }, { kind: "call", name: "clear", symbol: "clear", callee: "clear", arguments: [{ parameter: "input", object: "alias" }], claim: "Clear only labels" }, { kind: "guard", name: "array", condition: { op: "not", arg: { op: "is-null", value: { binding: "form.labels" } } }, claim: "Empty array is not null" }, { kind: "guard", name: "project", condition: eq("form.projects", "unknown"), claim: "Project input still unspecified" }])], { parameters: [{ name: "form", type: "configuration" }] })
+  const r = lower([root, helper])
+  expect(r.diagnostics).toEqual([])
+  expect(r.fieldChanges).toEqual([expect.objectContaining({ field: "labels", value: [], evidenceIds: ["ev"] })])
+  expect(r.paths[0].predicate.truth).toBe("unknown")
+  expect(r.paths[0].predicate.missingBindings).toEqual([expect.stringContaining(".projects")])
+})
+
+test("source values cannot attach to principals, conflict with aliases, nest unbounded data, or leak into a same-named helper local", () => {
+  for (const step of [{ kind: "bind", name: "actor", type: "principal", value: true, claim: "Invalid literal actor" }, { kind: "bind", name: "alias", type: "value", aliasOf: "other", value: true, claim: "Two conflicting origins" }]) expect(api.semanticBlockDiagnostics(unit([block("main", [step])])).map((d: any) => d.code)).toContain("semantic-source-value-invalid")
+  for (const value of [Array.from({ length: 65 }, () => 1), { nested: [] }, [[1]]]) expect(api.SemanticStepSchema.safeParse({ kind: "bind", name: "constant", type: "value", value, claim: "Bounded source value" }).success).toBe(false)
+  const helper = unit([block("main", [{ kind: "bind", name: "constant", type: "value", claim: "Different unknown local" }, { kind: "guard", name: "check", condition: eq("constant", true), claim: "No caller name alias" }, { kind: "return", name: "end", claim: "Return" }])], { handle: "helper", role: "helper" })
+  const root = unit([block("main", [{ kind: "bind", name: "constant", type: "value", value: true, claim: "Caller literal" }, { kind: "call", name: "invoke", symbol: "helper", callee: "helper", arguments: [], claim: "No mapping" }])])
+  expect(lower([root, helper]).paths[0].predicate.truth).toBe("unknown")
+})
+
+test("finite maps copied from explicit values and later unknown writes never retain a stale literal", () => {
+  const root = unit([block("main", [{ kind: "bind", name: "settings", type: "value", value: { mode: "edit" }, claim: "Source finite map" }, { kind: "transform", name: "copy", object: "form", field: "settings", source: "settings", claim: "Copy this explicit value" }, { kind: "guard", name: "copied", condition: eq("mode", "edit"), claim: "Source lookup", }, { kind: "transform", name: "forget", object: "form", field: "settings", source: "unknown", claim: "Source overwrites with unknown input" }, { kind: "guard", name: "missing", condition: { op: "has-key", map: { binding: "form.settings" }, key: { literal: "mode" } }, claim: "Overwritten value remains unknown" }])], { parameters: [{ name: "form", type: "configuration" }, { name: "unknown", type: "value" }] })
+  root.blocks[0].steps[2].condition = { op: "eq", left: { lookup: { map: { binding: "form.settings" }, key: { literal: "mode" } } }, right: { literal: "edit" } }
+  const r = lower([root])
+  expect(r.diagnostics).toEqual([])
+  expect(r.delta.rules.find((n: any) => n.sourceOrigin.step === "copied").condition.left.lookup.map).toEqual({ literal: { mode: "edit" } })
+  expect(r.paths[0].predicate.truth).toBe("unknown")
+  expect(r.paths[0].predicate.missingBindings).toEqual([expect.stringContaining(".settings")])
+})
+
+test("explicit object fields can be value arguments but cannot acquire an inferred resource type", () => {
+  const root = unit([block("main", [{ kind: "transform", name: "set", object: "form", field: "labels", value: ["edit"], claim: "Source writes a finite field" }, { kind: "call", name: "pass", symbol: "helper", callee: "helper", arguments: [{ parameter: "labels", object: "form.labels" }], claim: "Pass precisely that field" }])], { parameters: [{ name: "form", type: "configuration" }] })
+  const helper = unit([block("main", [{ kind: "guard", name: "member", condition: { op: "member", value: { literal: "edit" }, set: { binding: "labels" } }, claim: "Examine the supplied list" }, { kind: "return", name: "end", claim: "Return" }])], { handle: "helper", role: "helper", parameters: [{ name: "labels", type: "value" }] })
+  const r = lower([root, helper])
+  expect(r.diagnostics).toEqual([])
+  expect(r.paths[0].predicate.truth).toBe("true")
+  const invalid = lower([root, { ...helper, parameters: [{ name: "labels", type: "resource" }] }])
+  expect(invalid.diagnostics.map((d: any) => d.code)).toContain("semantic-argument-unbound")
+})
+
+test("finite map field projections agree with whole-map lookup and unknown overwrites preserve only other fields", () => {
+  const root = unit([block("main", [{ kind: "bind", name: "settings", type: "value", value: { mode: "read", other: "keep" }, claim: "Finite source map" }, { kind: "guard", name: "initial", condition: eq("settings.mode", "read"), claim: "Project the source key" }, { kind: "transform", name: "write", object: "settings", field: "mode", value: "edit", claim: "Change one known source field" }, { kind: "guard", name: "updated", condition: { op: "eq", left: { lookup: { map: { binding: "settings" }, key: { literal: "mode" } } }, right: { literal: "edit" } }, claim: "Whole-map lookup sees the new field" }, { kind: "transform", name: "unknown", object: "settings", field: "mode", source: "input", claim: "Unknown input overwrites the field" }, { kind: "guard", name: "other", condition: eq("settings.other", "keep"), claim: "Unrelated field survives" }, { kind: "guard", name: "unknown-value", condition: eq("settings.mode", "edit"), claim: "Do not reuse stale source literal" }])], { parameters: [{ name: "input", type: "value" }] })
+  const r = lower([root])
+  expect(r.delta.rules.find((n: any) => n.sourceOrigin.step === "initial").condition.left).toEqual({ literal: "read" })
+  expect(r.delta.rules.find((n: any) => n.sourceOrigin.step === "updated").condition.left.lookup.map).toEqual({ literal: { mode: "edit", other: "keep" } })
+  expect(r.delta.rules.find((n: any) => n.sourceOrigin.step === "other").condition.left).toEqual({ literal: "keep" })
+  expect(r.paths[0].predicate.truth).toBe("unknown")
+  expect(r.paths[0].predicate.missingBindings).toEqual([expect.stringContaining(".mode")])
 })

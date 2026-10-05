@@ -141,3 +141,17 @@ test("semantic final-only recovers an omitted routing kind only for an explicit 
   expect(api.inquiryStepSchemas("semantic-flow-v1").schema.safeParse(raw).success).toBe(false)
   expect(api.inquiryStepSchemas("guided-evidence-v2", true).schema.safeParse(raw).success).toBe(false)
 })
+
+test("invalid direct focused envelopes report their actual fields instead of a misleading routing discriminator", () => {
+  const schema = api.inquiryStepSchemas("operation-evidence-v1", false, "behavior", "interpret").schema
+  const base = { schemaVersion: "authorization-focused-update/v1", kind: "interpret", focusId: "current", unit: { start: "main", complete: false, blocks: [] } }
+  const { unit: _unit, ...withoutUnit } = base
+  for (const raw of [{ ...base, revisit: "old" }, { ...base, schemaVersion: "wrong" }, withoutUnit]) {
+    const r = schema.safeParse(raw)
+    expect(r.success).toBe(false)
+    expect(r.error.issues.some((i: any) => i.code === "invalid_union_discriminator" && i.path.join(".") === "kind")).toBe(false)
+  }
+  const invalid = schema.safeParse({ ...base, revisit: "old" })
+  expect(invalid.error.issues).toEqual([expect.objectContaining({ code: "unrecognized_keys", keys: ["revisit"] })])
+  expect(base).not.toHaveProperty("revisit")
+})

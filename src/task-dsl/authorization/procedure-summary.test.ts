@@ -48,3 +48,11 @@ test("an operation failure has separate provenance from an authorization rejecti
   const terminal = lowerSemanticFlow([entry]).delta.rules.find(r => r.terminal)
   expect((terminal as any).failureKind).toBe("operation")
 })
+
+test("compositional execution preserves the order of source literals, field writes and dependent alternatives", () => {
+  const helper = unit("helper", "helper", [{ name: "main", steps: [{ kind: "bind", name: "constant", type: "value", value: "edit", claim: "Source literal before comparison" }, { kind: "transform", name: "clear", object: "input", field: "labels", value: [], claim: "Empty array before branch" }, { kind: "choose", name: "check", claim: "Depends on earlier writes", cases: [{ condition: { op: "all", args: [eq("constant", "edit"), { op: "not", arg: { op: "is-null", value: { binding: "input.labels" } } }] }, body: "yes" }], otherwise: "no" }] }, { name: "yes", steps: [{ kind: "effect", name: "insert", resource: "input", claim: "Actual effect only in yes" }, { kind: "return", name: "yes", value: true, claim: "Return true" }] }, { name: "no", steps: [{ kind: "return", name: "no", value: false, claim: "Return false" }] }], { parameters: [{ name: "input", type: "configuration" }] })
+  const entry = unit("entry", "entry", [{ name: "main", steps: [{ kind: "call", name: "invoke", symbol: "helper", callee: "helper", arguments: [{ parameter: "input", object: "form" }], claim: "Pass same form" }, { kind: "return", name: "end", outcome: "allow", claim: "Endpoint outcome" }] }], { parameters: [{ name: "form", type: "configuration" }] })
+  const compare = (compositional: boolean) => paths(lowerSemanticFlow([entry, helper], { compositional })).map(p => ({ truth: p.predicate.truth, state: p.state, effect: p.protectedEffect, disposition: p.disposition }))
+  expect(compare(true)).toEqual(compare(false))
+  expect(compare(true).filter(p => p.state === "checked")).toEqual([expect.objectContaining({ effect: "performed", truth: "true" })])
+})
