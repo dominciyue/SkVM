@@ -54,3 +54,44 @@ test("unreviewed or unfaithful authors cannot become qualified consumers, and ze
     expect(assess(invalid, "report-sha").providerCalls).toBe(0)
   }
 })
+
+test("author delivery distinguishes root files, the inquiry JSON member and consumer checks from temporary author restrictions", () => {
+  const invocation = authors.authorInvocation({ metadata: authors.authorMetadata(original), model: "fixture/model", skill: "original/SKILL.md", workDir: "work", repair: true })
+  expect(invocation.prompt).toContain("work-directory root")
+  expect(invocation.prompt).toContain("JSON member named inquiry")
+  expect(invocation.prompt).toContain("consumer may use the published source-reading and deterministic authorization-check tools")
+  expect(invocation.prompt).toContain("restrictions apply only to this authoring session")
+  expect(invocation.prompt).toContain("prior-draft/inquiry.json")
+})
+
+async function retainedDraftFixture(options: { nested?: boolean; results?: boolean; changed?: boolean; ambiguous?: boolean; escaped?: boolean; unknown?: boolean } = {}) {
+  const base = await mkdtemp(path.join(os.tmpdir(), "au-author-field-repair-")), previous = path.join(base, "previous"), oldWork = path.join(base, "old-work"), workDir = path.join(base, "repair"), raw = Buffer.from(JSON.stringify(draft, null, 3) + "\n"), usage = Buffer.from("# Usage\r\nOriginal model wording.\r\n")
+  await mkdir(previous, { recursive: true }); await mkdir(path.join(oldWork, "inquiry"), { recursive: true }); await mkdir(workDir)
+  const names = ["inquiry.json", "USAGE.md"], bytes = [raw, usage]
+  const calls = names.map((name, i) => ({ id: `write-${i}`, name: "write_file", arguments: { path: options.escaped ? `../${name}` : `inquiry/${name}`, content: bytes[i]!.toString("utf8") } }))
+  const results = options.results === false ? [] : calls.map(c => ({ toolCallId: c.id, content: `File written: ${c.arguments.path}` }))
+  for (let i = 0; i < names.length; i++) await writeFile(path.join(oldWork, "inquiry", names[i]!), options.changed ? Buffer.from("changed") : bytes[i]!)
+  if (options.ambiguous) { calls.push({ ...calls[0]!, id: "other-write", arguments: { ...calls[0]!.arguments, path: "other/inquiry.json" } }); results.push({ toolCallId: "other-write", content: "File written: other/inquiry.json" }) }
+  const authoredArtifacts: Record<string, string> = {}
+  if (!options.nested) for (let i = 0; i < names.length; i++) { await writeFile(path.join(previous, `authored-${names[i]}`), bytes[i]!); authoredArtifacts[i === 0 ? "inputSha256" : "usageSha256"] = sha(bytes[i]!) }
+  await writeFile(path.join(previous, "report.json"), JSON.stringify({ report: { status: options.unknown ? "completion-unknown" : "completed-with-diagnostics", telemetry: { providerCalls: 1, respondedCalls: options.unknown ? 0 : 1 }, workDir: oldWork, rawToolCalls: calls, rawToolResults: results, authoredArtifacts } }))
+  return { previous, workDir, raw, usage }
+}
+
+test("one field repair receives exact known original draft bytes without host root promotion", async () => {
+  for (const nested of [false, true]) {
+    const f = await retainedDraftFixture({ nested }), prepared = await (authors as any).prepareAuthorRepairDrafts(f)
+    expect(await readFile(path.join(f.workDir, "prior-draft/inquiry.json"))).toEqual(f.raw)
+    expect(await readFile(path.join(f.workDir, "prior-draft/USAGE.md"))).toEqual(f.usage)
+    expect(await Bun.file(path.join(f.workDir, "inquiry.json")).exists()).toBe(false)
+    expect(prepared.map((p: any) => p.sha256)).toEqual([sha(f.raw), sha(f.usage)])
+    expect(prepared[0].originalPath).toBe(nested ? "inquiry/inquiry.json" : "inquiry.json")
+  }
+})
+
+test("repair cannot synthesize a missing, changed, ambiguous, escaped or unknown original draft", async () => {
+  for (const condition of [{ results: false }, { changed: true }, { ambiguous: true }, { escaped: true }, { unknown: true }]) {
+    const f = await retainedDraftFixture({ nested: true, ...condition })
+    await expect((authors as any).prepareAuthorRepairDrafts(f)).rejects.toThrow()
+  }
+})

@@ -2491,6 +2491,8 @@ Operation声明以用户实际请求的动作分组，endpoint/object/inherited/
 
 纯operation来源step可携带typed focused schemaVersion/focusId作为无语义路由元数据，降低时仅保持原calls；它不选择focus或创建解释，额外unit等action payload仍拒绝。AU作者仅从原自然任务/独立policy/机械metadata以完整原skill编写v2配置及使用说明，最多一次字段修复；消费者需原报告SHA绑定的任务忠实性及raw工具审查准入，再复制配置与USAGE原字节、保持sourceRoot和完整skill through ordinary run。完整声明不重复author调用，旧答案/check不进入消费者。
 
+作者交付路径与JSON成员分开：根目录`inquiry.json`内含`inquiry`声明，`USAGE.md`同处根目录。作者阶段的临时analysis/check限制不得成为消费者禁令。唯一字段/交付修订必须从原实际稿开始；有效retained字节核SHA，误投目录稿核唯一成功raw write与实字节，再放`prior-draft`供模型修订，不由宿主提升根交付或补任务内容。未知完成、缺稿、变化或多义稿拒绝；修订公开路径/格式/阶段职责诊断不含源码答案。
+
 普通完整skill、Markdown加同核心、DSL加同核心分别观察，用真实源码和原始任务检验质量、编写及变化使用。评阅oracle、正确答案和人工正确图留在评价侧；程序自行提取候选的过程与成本可查。原答/修订分列，共享缺陷即停受影响派发、当场修复并同题复验，不要求故障首轮跑满。确定性测试、真实采用、独立源码质量与比较收益分别报告；保护输入及未知封存不因新identity绕过。
 
 AU执行失败分类须区分校验器拒绝模型草稿与共享宿主故障。source-valid、已知闭合普通报告的结果检查正常返回拒绝时，具名focus-next不可用和显式参数类型不匹配属于待审草稿责任；未知完成、无效source、宿主异常及未知诊断继续阻断。只允许用原件SHA、确定性重放证明和显式eligibleRows裁定纠正共享误分类，原失败状态/语义/终答不改，Share任务级unknown封存保持。

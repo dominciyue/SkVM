@@ -1767,6 +1767,8 @@ Gitea首轮`bd9348f0`原件11派发/11响应，1操作/3问、4个current source
 
 同HEAD native-changed亦24/24已知，3units、自然终答、形式not-checked-bounded；报告正确解释写权限仅控制字段，但把独立政策的any repo reader收窄为issues-unit reader，conditional SATISFIED缺org/team独立unit权限及admin例外支撑。主未采用探子的自然充分建议；enabled when条件不擅改iff。原源码条件审计与完整final/末check裁定在results；partial、0参考读取及未说明的原skill剩余职责保持。实际正常check返回草稿拒绝，被旧mechanicalReview因遗漏focus-next-item-unavailable/semantic-argument-unbound误标state/checker；inquiry/observation schema代码早已支持，主纠正探子关于这两项遗漏的说法。1匿名组合预期red转绿，52相关pass/235断言、双类型通过；精确原report0provider重放归model-draft，原review/失败不改，既有SHA限定范围裁定释放显式非Share行，不提升原任务。15原件/32位置243/242，fresh5309354/cache443008/output233727、USD/开发AI/真人及1Share原请求未知，目标执行0。接续原/变作者及合格原字节消费，原/变native不再付费重抽。
 
+原政策作者首稿在`e458fa6f`5/5已知、11工具动作、目标执行0；完整原/安装skill及源输入保持。实际配置/说明误投`inquiry/`，原报告根交付ENOENT保留，nested字节单列入档。独立raw和忠实性审查支持配置覆盖原任务、政策原文且无source答案，但USAGE将作者临时禁止analysis/check命令及model调用变为消费者约束，整体partial不准入。主纠正先前12工具计数与探子的根路径/哈希转述。共享提示明确根文件和JSON成员、作者消费者职责，原稿修订准备只复刻实际字节到prior-draft而不由宿主提升为根交付；3预期red转绿，55相关pass/255断言、主/AU类型通过，独立代码核验未发现已证实错误。当前16原件248/247，fresh5328519/cache458368/output236395，原Share未知及USD/开发AI/真人未知保持；唯一具名字段/交付修订尚待实际运行，不能把提示或确定性修复当成真实消费收益。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

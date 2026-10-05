@@ -1,0 +1,109 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "gitea-create-issue",
+  "repository": "go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "sourceRoot": "source",
+  "allowedPaths": [
+    "routers/api/v1/repo",
+    "routers/api/v1/api.go",
+    "routers/api/v1/utils",
+    "modules/structs",
+    "modules/setting",
+    "modules/web",
+    "models/unit",
+    "models/perm",
+    "models/auth",
+    "models/user",
+    "models/repo",
+    "models/issues",
+    "models/organization",
+    "services/convert",
+    "services/issue",
+    "services/context"
+  ],
+  "inquiry": {
+    "schemaVersion": "authorization-inquiry/v2",
+    "mode": "conformance",
+    "operations": [
+      {
+        "id": "create-issue",
+        "request": "Check CreateIssue and its API route in this Gitea revision against the independently supplied current policy, including the authorization path and issue-creation effect.",
+        "entryHint": "CreateIssue and its API route"
+      }
+    ],
+    "questions": [
+      {
+        "id": "create-issue-route-and-effect",
+        "operationId": "create-issue",
+        "intent": "behavior",
+        "request": "Trace CreateIssue from its API route through route-level controls, repository and issue-unit or issue-object checks, validation or serialization controls, inherited permission paths and the issue creation effect. Identify relevant exceptions rather than treating endpoint-local checks as the whole authorization path.",
+        "premises": [
+          {
+            "text": "The requested target is CreateIssue and its API route in the supplied Gitea revision.",
+            "origin": "user"
+          },
+          {
+            "text": "The authorization path must be traced beyond endpoint-local checks, including inherited permission paths and relevant exceptions.",
+            "origin": "user"
+          }
+        ],
+        "entryHint": "CreateIssue and its API route"
+      },
+      {
+        "id": "create-issue-principal-permission-comparison",
+        "operationId": "create-issue",
+        "intent": "policy-comparison",
+        "request": "Compare authenticated repository readers and other relevant principals with principals having write permission to the repository's issues unit, and determine whether each can reach the issue creation effect under the traced controls.",
+        "premises": [
+          {
+            "text": "The comparison must distinguish authenticated repository readers from principals with issue write permission.",
+            "origin": "user"
+          }
+        ],
+        "principal": "Authenticated repository readers and principals with write permission to the repository's issues unit",
+        "resource": "The target repository and its issues unit",
+        "operation": "Creating an issue"
+      },
+      {
+        "id": "create-issue-policy-compliance",
+        "operationId": "create-issue",
+        "intent": "policy-comparison",
+        "request": "Determine whether the traced CreateIssue authorization behavior complies with the independently supplied current policy: Creating an issue requires write permission to the repository's issues unit. Read permission to the repository alone does not authorize this write.",
+        "premises": [
+          {
+            "text": "The independently supplied current policy is authoritative for this comparison and must be copied verbatim rather than derived from source code.",
+            "origin": "user"
+          }
+        ],
+        "resource": "The repository's issues unit",
+        "operation": "Creating an issue"
+      },
+      {
+        "id": "create-issue-scope-and-limits",
+        "operationId": "create-issue",
+        "intent": "scope",
+        "request": "State the precise source and deployment limits of the conclusion, including facts that remain unavailable from the supplied source snapshot and allowed paths, and identify any relevant exceptions or missing deployment configuration affecting the authorization assessment.",
+        "premises": [
+          {
+            "text": "The source is an ordinary copied snapshot at source for the supplied revision.",
+            "origin": "user"
+          },
+          {
+            "text": "The review is limited to the supplied allowed paths and must explain source-only and deployment limits.",
+            "origin": "user"
+          },
+          {
+            "text": "The host supplies no target question set, source answers, control graph or source-derived known values.",
+            "origin": "user"
+          }
+        ]
+      }
+    ],
+    "policy": {
+      "text": "Creating an issue requires write permission to the repository's issues unit. Read permission to the repository alone does not authorize this write.",
+      "origin": "user",
+      "location": "experimental-user-brief:gitea-issue-policy/v1"
+    }
+  }
+}
