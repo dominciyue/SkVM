@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "au-independent-source-condition-audit/v1",
+  "reviewer": "au_gitea_enabled_unit_source_audit",
+  "repository": "go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "sourceFiles": [
+    {
+      "file": "routers/api/v1/api.go",
+      "sha256": "357d62fcf964f4df8ce9aa1b7d22409c27a571ed8a0f2a9ce077d1c3b4c446f6"
+    },
+    {
+      "file": "routers/api/v1/repo/issue.go",
+      "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f"
+    },
+    {
+      "file": "models/perm/access/repo_permission.go",
+      "sha256": "6bceb09169ac9a7f037889f14dfb422afbe0aaf87a99aa40e57863cb22becf58"
+    },
+    {
+      "file": "services/issue/issue.go",
+      "sha256": "632232e16929c6fa0a4b5c6e17aed3f52d4e5e372d8801793d2461ae42ee3c43"
+    },
+    {
+      "file": "models/issues/issue_update.go",
+      "sha256": "9ca2f53fa9285d96f8ccebdf4b4d3c112c1172a4f003a4da752d9ccb0fc9b988"
+    },
+    {
+      "file": "models/repo/repo.go",
+      "sha256": "8b1f97f5bb94b3a3de9654f1228fdb8ebdb558e97a0eb846d1997980e49be2af"
+    },
+    {
+      "file": "services/context/api.go",
+      "sha256": "182aa57ba15df1e71a39b775f8520617d6d56a43d3239a2bb4ca5ea11598a665"
+    }
+  ],
+  "sourceAnchors": [
+    {
+      "file": "routers/api/v1/api.go",
+      "lines": "471-478;736-757;1646-1650"
+    },
+    {
+      "file": "routers/api/v1/repo/issue.go",
+      "lines": "570-653"
+    },
+    {
+      "file": "models/perm/access/repo_permission.go",
+      "lines": "97-107;119-121;133-136;217-261;426-527"
+    },
+    {
+      "file": "services/issue/issue.go",
+      "lines": "24-84"
+    },
+    {
+      "file": "models/issues/issue_update.go",
+      "lines": "360-475",
+      "mainRead": true
+    },
+    {
+      "file": "models/repo/repo.go",
+      "lines": "367-442",
+      "mainRead": true
+    },
+    {
+      "file": "services/context/api.go",
+      "lines": "323-331",
+      "mainRead": true
+    }
+  ],
+  "mainAdjudication": [
+    "The actual POST route requires reqToken and issues-unit reader/admin alternatives, but does not invoke mustEnableIssues. The named mustEnableIssues body itself checks CanRead(TypeIssues), not a separate raw UnitEnabled fact.",
+    "UnitAccessMode uses explicit per-unit modes, then repository/default/public modes only for a present unit. Ordinary missing-unit read is denied in the standard reconstructed permission case; repo/site admin alternatives can bypass the reader check.",
+    "CreateIssue and inspected NewIssue/NewIssueWithIndex bodies have no independent issues enable/write guard before e.Insert. Admin bypass can therefore reach the insert path even without that unit, if remaining operation and transaction dependencies succeed. This is conditional source reachability, not proof of a committed runtime write.",
+    "Main extends the audit with the actual permission construction: GetIndividualUserRepoPermission loads enabled units, retains repository AccessMode, and separately builds organization/team unitsMode. Repository read does not universally entail issues-unit read: private/restricted org team modes can differ per unit. The changed policy says any authenticated repository reader when issues are enabled; conflating that with CanRead(TypeIssues) loses a relevant conditional case.",
+    "The changed public text is retained exactly. Its enabled-unit permission condition is not silently expanded into an iff rule requiring denial in every disabled-unit case. Admin disabled-unit behavior is an exception/coverage issue; its policy label needs the explicit policy meaning.",
+    "Unexamined full middleware and nested operation-error dependencies remain named gaps. No source behavior is inferred from deployment facts or a model draft."
+  ],
+  "providerCallsThisAudit": 0,
+  "targetExecutions": 0,
+  "modelInput": false,
+  "originalsPreserved": true,
+  "researchAcceptance": false
+}

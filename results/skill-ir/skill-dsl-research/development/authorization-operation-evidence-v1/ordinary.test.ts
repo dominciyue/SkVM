@@ -6,6 +6,7 @@ import { plannedPositions } from "./study.ts"
 import { naturalRunTaskId } from "../../../../../src/run/index.ts"
 import * as ordinary from "./ordinary.ts"
 import { skillBundleIdentity, verifySkillBundle, selectOrdinaryRow, ordinaryInvocation, classifyOrdinary } from "./ordinary.ts"
+import { mechanicalReview } from "../authorization-guided-runtime-v1/study.ts"
 
 test("complete skill identity includes the original SKILL and every deployed companion", async () => {
   const dir = await mkdtemp(path.join(os.tmpdir(), "au-skill-"))
@@ -62,4 +63,19 @@ test("raw ordinary conversation only matches known positive integral counts and 
   for (const invalid of [{}, { providerCalls: null, respondedCalls: null }, { providerCalls: 0, respondedCalls: 0 }, { providerCalls: 1.5, respondedCalls: 1.5 }, { providerCalls: 3, respondedCalls: 2 }]) expect(matches(invalid, { telemetry: invalid })).toBe(false)
   expect(matches(valid, {})).toBe(false)
   expect(matches(valid, { telemetry: { ...valid, providerCalls: 4 } })).toBe(false)
+})
+
+test("known native draft rejections do not pause the shared checker, while real or unknown failures retain their pause", () => {
+  const diagnostics = [{ code: "inquiry-result-schema" }, { code: "observation-schema" }, { code: "focus-next-item-unavailable" }, { code: "semantic-argument-unbound" }, { code: "focus-result-stale" }]
+  const report: any = { status: "completed-with-diagnostics", ordinaryEntry: "skvm run", finalProse: "Partial source answer", sourceVerification: { valid: true }, validation: { valid: false, diagnostics: [] }, domain: { closed: true, check: { diagnostics } }, telemetry: { providerCalls: 1, respondedCalls: 1 }, attempts: [{ status: "response", response: {} }], history: [{ call: { name: "authorization_check_result" }, exitCode: 0, output: { valid: false, diagnostics } }] }
+  expect(mechanicalReview(report).failure?.category).toBe("semantic-extraction")
+  expect(mechanicalReview(report).failure?.components).toEqual(["model-draft"])
+  const withCheck = (extra: any) => ({ ...report, history: [{ ...report.history[0], ...extra }] })
+  for (const broken of [
+    { ...report, sourceVerification: { valid: false } },
+    { ...report, error: "Internal checker exception" },
+    { ...report, telemetry: { providerCalls: 1, respondedCalls: 0 }, attempts: [{ status: "pending" }] },
+    withCheck({ output: { valid: false, diagnostics: [...diagnostics, { code: "control-structure-missing" }] } }),
+    withCheck({ exitCode: 1, output: { phase: "unexpected-host-phase", diagnostics } }),
+  ]) expect(mechanicalReview(broken).failure?.components).not.toEqual(["model-draft"])
 })

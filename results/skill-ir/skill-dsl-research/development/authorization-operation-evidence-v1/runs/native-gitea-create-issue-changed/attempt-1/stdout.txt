@@ -1,0 +1,437 @@
+
+skvm run v0.1.4
+  Adapter  bare-agent (built-in)
+  Model    xty/gpt-5.6-sol via openai-compatible (https://svip.xty.app/v1)
+  Task     natural prompt
+  Skill    D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\github-security-review\SKILL.md
+  WorkDir  D:\skill优化\project-maintenance\runs\authorization-operation-evidence-v1\native-gitea-create-issue-changed\attempt-1
+  Cache    D:\skill优化\SkVM\.skvm
+
+07:00:27.173 [INFO ] [run] Run task natural-3c0a1f4e10eb: adapter=bare-agent model=xty/gpt-5.6-sol workDir=D:\skill优化\project-maintenance\runs\authorization-operation-evidence-v1\native-gitea-create-issue-changed\attempt-1
+07:00:27.176 [INFO ] [conv-log] Conversation logging enabled: D:\skill优化\SkVM\.skvm\log\20261006-070027-run
+✓ Task natural-3c0a1f4e10eb complete  (6m 58s)
+
+=== Run Complete ===
+Task: natural-3c0a1f4e10eb
+Skill: D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\github-security-review\SKILL.md
+Model: xty/gpt-5.6-sol
+Adapter: bare-agent
+WorkDir: D:\skill优化\project-maintenance\runs\authorization-operation-evidence-v1\native-gitea-create-issue-changed\attempt-1
+Duration: 418.2s
+Tokens: in=907541 out=18513
+
+Final output:
+# Authorization Conformance Review
+
+**Target:** `go-gitea/gitea@fc28937a8d772fe9e4025c9b5f24d5db4d86610b`  
+**Scope:** API route and `CreateIssue` path only, using the supplied source windows  
+**Independent policy:** Any authenticated repository reader may create an issue when the issues unit is enabled. Issue-unit write permission is not required.
+
+## Findings Summary
+
+| Severity / status | Count | Conclusion |
+|---|---:|---|
+| 🔴 Policy violation | 0 observed | No source-visible issue-write requirement was found on the creation effect |
+| 🟠 High authorization concern | 0 observed | No source-visible bypass beyond the stated policy was established |
+| 🟡 Conditional conformance | 1 | Route behavior matches the policy, subject to authentication, reader-gate, unit configuration, and operation-success conditions |
+| ⚪ Unresolved source/deployment limits | 4 | Several upstream and deployment facts remain outside the accepted source windows |
+| ⚪ Tool-validation limitation | 1 | The native structured result was rejected by the host schema; the conclusions below are raw source-review conclusions, not a recorded checked result |
+
+## Executive Conclusion
+
+**Conditional policy assessment: SATISFIED.**
+
+The source-visible route requires an authenticated request and repository reader access for the issues unit:
+
+```go
+Post(reqToken(), mustNotBeArchived, bind(api.CreateIssueOption{}),
+    reqRepoReader(unit.TypeIssues), repo.CreateIssue)
+```
+
+`routers/api/v1/api.go:1642-1649`  
+Evidence: `ev-03867ac33a3f973d68a8`
+
+Inside `CreateIssue`, `ctx.Repo.Permission.CanWrite(unit.TypeIssues)` is used to control optional fields and related processing. It is **not** used as a rejection guard around `issue_service.NewIssue`:
+
+```go
+if ctx.Repo.Permission.CanWrite(unit.TypeIssues) {
+    // milestone, assignees, and assignment validation
+} else {
+    // setting labels is not allowed if user is not a writer
+    form.Labels = make([]int64, 0)
+}
+
+if err := issue_service.NewIssue(
+    ctx, ctx.Repo.Repository, issue, form.Labels, nil,
+    assigneeIDs, form.Projects,
+); err != nil {
+    ...
+}
+```
+
+`routers/api/v1/repo/issue.go:589-632`  
+Evidence: `ev-98a96680dff3cfd848cf`
+
+Therefore, on the source-visible path:
+
+- an authenticated principal who passes `reqToken()`;
+- who passes `reqRepoReader(unit.TypeIssues)`;
+- for a non-archived repository; and
+- whose creation operation succeeds;
+
+can reach the issue-creation effect even if `CanWrite(unit.TypeIssues)` is false.
+
+That behavior matches the supplied policy: **repository-reader access is required, but issue-unit write permission is not required.**
+
+**Confidence:** Medium. The decisive handler behavior and route registration are directly visible, but some upstream middleware and deployment facts were not fully traced.
+
+---
+
+## 1. Entry and Upstream Controls
+
+### Route
+
+The issue-creation endpoint is registered under the repository issue route:
+
+```go
+m.Combo("").Get(repo.ListIssues).
+    Post(reqToken(), mustNotBeArchived,
+        bind(api.CreateIssueOption{}),
+        reqRepoReader(unit.TypeIssues),
+        repo.CreateIssue)
+```
+
+`routers/api/v1/api.go:1646-1649`  
+Evidence: `ev-03867ac33a3f973d68a8`
+
+The applicable source-visible controls are:
+
+1. `reqToken()` — authentication/token requirement.
+2. `mustNotBeArchived` — archived repositories are rejected.
+3. `bind(api.CreateIssueOption{})` — request-body binding.
+4. `reqRepoReader(unit.TypeIssues)` — repository reader authorization for the issues unit.
+5. `repo.CreateIssue` — operation handler.
+
+The route-level reader check is upstream of `CreateIssue`. Consequently, the handler should not be analyzed as though it were the complete authorization path.
+
+### Source limitation
+
+The exact bodies and complete composition/order of `reqToken()`, `reqRepoReader()`, `mustNotBeArchived`, and repository assignment were not all present in the accepted source windows. The route registration establishes that these controls are attached to the route, but this review does not independently verify every detail of their implementations.
+
+---
+
+## 2. Principal Binding
+
+`CreateIssue` constructs the issue using the request context’s authenticated actor:
+
+```go
+PosterID: ctx.Doer.ID,
+Poster:   ctx.Doer,
+```
+
+`routers/api/v1/repo/issue.go:576-585`  
+Evidence: `ev-98a96680dff3cfd848cf`
+
+The creation service subsequently uses `issue.Poster`:
+
+```go
+if err := issue.LoadPoster(ctx); err != nil {
+    return err
+}
+
+if user_model.IsUserBlockedBy(ctx, issue.Poster, repo.OwnerID) ||
+   user_model.IsUserBlockedBy(ctx, issue.Poster, assigneeIDs...) {
+    return user_model.ErrBlockedUser
+}
+```
+
+`services/issue/issue.go:25-32`  
+Evidence: `ev-24711ef670bd00bfa7b8`
+
+Thus, the source-visible principal used for issue creation is `ctx.Doer`, carried into `issue.Poster`.
+
+### Principal limitation
+
+The exact token-to-user binding performed by `reqToken()` and the deployed identity/token configuration were not fully examined. The conclusion assumes `ctx.Doer` is correctly populated by the route’s authentication middleware.
+
+---
+
+## 3. Resource and Unit Binding
+
+The handler selects and uses the repository from `ctx.Repo.Repository`:
+
+```go
+RepoID: ctx.Repo.Repository.ID,
+Repo:   ctx.Repo.Repository,
+```
+
+and passes the same repository to the creation service:
+
+```go
+issue_service.NewIssue(
+    ctx,
+    ctx.Repo.Repository,
+    issue,
+    form.Labels,
+    nil,
+    assigneeIDs,
+    form.Projects,
+)
+```
+
+`routers/api/v1/repo/issue.go:576-585, 624`  
+Evidence: `ev-98a96680dff3cfd848cf`
+
+The relevant permission unit is explicitly `unit.TypeIssues`.
+
+`CanWrite` is defined as:
+
+```go
+func (p *Permission) CanWrite(unitType unit.Type) bool {
+    return p.CanAccess(perm_model.AccessModeWrite, unitType)
+}
+```
+
+`models/perm/access/repo_permission.go:152-155`  
+Evidence: `ev-10eed2f5cbd7ca303231`
+
+`CanAccess` compares the effective access mode for the requested unit with the required mode:
+
+```go
+func (p *Permission) CanAccess(
+    mode perm_model.AccessMode,
+    unitType unit.Type,
+) bool {
+    return p.UnitAccessMode(unitType) >= mode
+}
+```
+
+`models/perm/access/repo_permission.go:118-121`  
+Evidence: `ev-1b19c7559deb316005bc`
+
+`UnitAccessMode` derives the effective unit mode from the permission structure and whether the unit exists:
+
+```go
+if m, ok := p.unitsMode[unitType]; ok {
+    return util.Iif(p.AccessMode >= perm_model.AccessModeAdmin,
+        p.AccessMode, m)
+}
+...
+hasUnit := slices.ContainsFunc(p.units,
+    func(u *repo_model.RepoUnit) bool {
+        return u.Type == unitType
+    })
+return util.Iif(hasUnit, unitDefaultAccessMode,
+    perm_model.AccessModeNone)
+```
+
+`models/perm/access/repo_permission.go:97-108`  
+Evidence: `ev-1b19c7559deb316005bc`
+
+The route reader control and the handler write checks therefore concern the same repository context and the issues unit.
+
+---
+
+## 4. Authorization Guard Behavior
+
+### Route-level reader guard
+
+The route applies:
+
+```go
+reqRepoReader(unit.TypeIssues)
+```
+
+This is the source-visible control that determines whether a caller may enter the handler as an issues-unit reader.
+
+The supplied policy requires exactly this class of access: an authenticated repository reader, provided the issues unit is enabled.
+
+### Handler-level write check
+
+The handler checks write access in two places:
+
+```go
+if form.Deadline != nil &&
+   ctx.Repo.Permission.CanWrite(unit.TypeIssues) {
+    deadlineUnix = ...
+}
+```
+
+`routers/api/v1/repo/issue.go:570-574`
+
+and:
+
+```go
+if ctx.Repo.Permission.CanWrite(unit.TypeIssues) {
+    issue.MilestoneID = form.Milestone
+    ...
+} else {
+    form.Labels = make([]int64, 0)
+}
+```
+
+`routers/api/v1/repo/issue.go:587-622`  
+Evidence: `ev-98a96680dff3cfd848cf`
+
+The false branch does not return an authorization error. It clears labels and then falls through to:
+
+```go
+issue_service.NewIssue(...)
+```
+
+`routers/api/v1/repo/issue.go:619-624`
+
+Accordingly:
+
+- **Write access true:** additional issue fields and assignee-related processing are permitted.
+- **Write access false:** some optional fields are restricted or cleared.
+- **Write access false does not, in the shown handler, deny issue creation itself.**
+
+This is consistent with the independent policy.
+
+### Important distinction
+
+A `CanWrite` result of false is not equivalent to an endpoint-level denial here. It is a conditional field-processing result. The protected creation operation remains reachable.
+
+---
+
+## 5. Issue Creation Effect
+
+The handler constructs an issue tied to the selected repository and authenticated poster:
+
+```go
+issue := &issues_model.Issue{
+    RepoID:   ctx.Repo.Repository.ID,
+    Repo:     ctx.Repo.Repository,
+    ...
+    PosterID: ctx.Doer.ID,
+    Poster:   ctx.Doer,
+}
+```
+
+`routers/api/v1/repo/issue.go:576-585`
+
+It then calls:
+
+```go
+issue_service.NewIssue(
+    ctx,
+    ctx.Repo.Repository,
+    issue,
+    form.Labels,
+    nil,
+    assigneeIDs,
+    form.Projects,
+)
+```
+
+`routers/api/v1/repo/issue.go:624`
+
+The service performs blocked-user checks and invokes the transactional issue model operation:
+
+```go
+if user_model.IsUserBlockedBy(...) {
+    return user_model.ErrBlockedUser
+}
+
+if err := db.WithTx(ctx, func(ctx context.Context) error {
+    if err := issues_model.NewIssue(
+        ctx, repo, issue, labelIDs, uuids,
+    ); err != nil {
+        return err
+    }
+    ...
+}); err != nil {
+    return err
+}
+```
+
+`services/issue/issue.go:25-61`  
+Evidence: `ev-24711ef670bd00bfa7b8`
+
+The model-layer operation creates the issue within a transaction:
+
+```go
+return db.WithTx(ctx, func(ctx context.Context) error {
+    idx, err := db.GetNextResourceIndex(ctx, "issue_index", repo.ID)
+    ...
+    if err = NewIssueWithIndex(ctx, issue.Poster, NewIssueOptions{
+        Repo:        repo,
+        Issue:       issue,
+        LabelIDs:    labelIDs,
+        Attachments: uuids,
+    }); err != nil {
+        ...
+    }
+    return nil
+})
+```
+
+`models/issues/issue_update.go:454-477`  
+Evidence: `ev-7c039de2ef44559b67ae`
+
+The resource receiving the effect is therefore the same repository selected by the route context and placed in the issue object.
+
+---
+
+## 6. Relevant Exceptions
+
+The policy comparison is conditional. The following exceptions can prevent a successful response without contradicting the policy:
+
+### Route and repository exceptions
+
+- Missing or invalid authentication/token handling through `reqToken()`.
+- Failure of the repository reader check.
+- Archived repository rejection through `mustNotBeArchived`.
+- Issues unit not enabled or not present in the effective permission/repository-unit configuration.
+
+### Handler validation and operation exceptions
+
+- Invalid assignee input.
+- Assignee lookup or assignability failures for callers with issue write access.
+- Blocked-user relationships:
+
+```go
+return user_model.ErrBlockedUser
+```
+
+`services/issue/issue.go:30-32`
+
+- Permission/not-found errors returned from the creation workflow.
+- Database or transaction failures.
+- Project, assignee, mention, label, or related issue operation failures.
+- Optional close operation failure when `form.Closed` is true.
+- Refetch or response-conversion failure after creation.
+
+These are operation or validation outcomes, not evidence that issue-unit write permission is required to create the issue.
+
+---
+
+## Policy Assessment
+
+**Policy status: Satisfied conditionally.**
+
+| Policy requirement | Source-visible result |
+|---|---|
+| Caller must be authenticated | Route includes `reqToken()`; exact middleware implementation not fully reviewed |
+| Caller must be a repository reader | Route includes `reqRepoReader(unit.TypeIssues)` |
+| Issues unit must be enabled | Reader/unit checks reference `unit.TypeIssues`; deployed configuration not verified |
+| Issue-unit write permission must not be required | `CanWrite(unit.TypeIssues)` does not guard `NewIssue`; false branch continues to creation |
+| Creation must affect the selected repository | `ctx.Repo.Repository` is used for issue construction and `NewIssue` |
+
+**Raw conclusion:** The examined route and handler conform to the supplied policy. A repository reader without issue-unit write permission is not denied by the shown `CreateIssue` handler solely because write permission is absent.
+
+**Confidence:** Medium.
+
+The confidence is reduced because the native authorization result was not successfully recorded or checked: the host rejected the attempted structured result due to schema/focus errors, and the final local state retained an unresolved helper metadata diagnostic. The direct source evidence above remains available, but this answer should be treated as a bounded source review rather than a validated native authorization result.
+
+## Remaining Source and Deployment Limits
+
+1. The complete implementations of `reqToken`, `reqRepoReader`, `mustNotBeArchived`, and repository assignment were not all in the accepted windows.
+2. The deployed issues-unit configuration and effective permission map were not verified.
+3. The actual token identity and `ctx.Doer` population were not independently confirmed.
+4. Database persistence and runtime success were not tested.
+5. Several non-decisive downstream helpers remained unexamined, including optional close, refetch, conversion, and related issue operations.
+6. The `CanAccess` helper metadata contained a type mismatch for the access-mode argument. The source body itself clearly compares `UnitAccessMode(unitType)` against the requested access mode, but the native semantic validation retained this as unresolved.
+
+**No code or configuration was changed.**

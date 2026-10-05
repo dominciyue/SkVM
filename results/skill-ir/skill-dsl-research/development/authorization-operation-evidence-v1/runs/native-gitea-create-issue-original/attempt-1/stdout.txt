@@ -1,0 +1,267 @@
+
+skvm run v0.1.4
+  Adapter  bare-agent (built-in)
+  Model    xty/gpt-5.6-sol via openai-compatible (https://svip.xty.app/v1)
+  Task     natural prompt
+  Skill    D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\github-security-review\SKILL.md
+  WorkDir  D:\skill优化\project-maintenance\runs\authorization-operation-evidence-v1\native-gitea-create-issue-original\attempt-1
+  Cache    D:\skill优化\SkVM\.skvm
+
+06:41:46.711 [INFO ] [run] Run task natural-1cba90d24fd9: adapter=bare-agent model=xty/gpt-5.6-sol workDir=D:\skill优化\project-maintenance\runs\authorization-operation-evidence-v1\native-gitea-create-issue-original\attempt-1
+06:41:46.714 [INFO ] [conv-log] Conversation logging enabled: D:\skill优化\SkVM\.skvm\log\20261006-064146-run
+✓ Task natural-1cba90d24fd9 complete  (8m 37s)
+
+=== Run Complete ===
+Task: natural-1cba90d24fd9
+Skill: D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\github-security-review\SKILL.md
+Model: xty/gpt-5.6-sol
+Adapter: bare-agent
+WorkDir: D:\skill优化\project-maintenance\runs\authorization-operation-evidence-v1\native-gitea-create-issue-original\attempt-1
+Duration: 517.3s
+Tokens: in=998891 out=24500
+
+Final output:
+# Security Review Report
+
+## Findings Summary
+
+| Severity | Count | Finding |
+|---|---:|---|
+| 🔴 CRITICAL | 0 | — |
+| 🟠 HIGH | 1 | Issue creation is reached after a repository **reader** gate, without a demonstrated issues-unit **write** guard |
+| 🟡 MEDIUM | 0 | — |
+| 🔵 LOW | 0 | — |
+| ⚪ INFO | 2 | Authentication/permission construction and complete middleware chain are not established by the available source |
+
+**Overall assessment:** **Policy non-compliance is indicated by the source-visible path, but final deployed behavior is not fully determinable from the bounded source evidence.**
+
+---
+
+## Finding H-01 — CreateIssue can reach issue creation with read permission only
+
+**Severity:** 🟠 HIGH  
+**Confidence:** Medium  
+**Category:** Authorization / missing function-level access control  
+**Policy status:** **Violated by the source-visible path; deployment qualification remains unresolved**
+
+### Policy
+
+> Creating an issue requires write permission to the repository’s issues unit. Read permission to the repository alone does not authorize this write.
+
+### Relevant source path
+
+The API route is registered as:
+
+```text
+routers/api/v1/api.go:1649
+POST(reqToken(), mustNotBeArchived,
+     bind(api.CreateIssueOption{}),
+     reqRepoReader(unit.TypeIssues),
+     repo.CreateIssue)
+```
+
+The handler is:
+
+```text
+routers/api/v1/repo/issue.go:533-653
+func CreateIssue(ctx *context.APIContext)
+```
+
+The handler constructs the issue using the selected repository and `ctx.Doer`, then calls the creation service:
+
+```text
+routers/api/v1/repo/issue.go:576-585
+```
+
+The creation call occurs at:
+
+```text
+routers/api/v1/repo/issue.go:624
+```
+
+and delegates to:
+
+```text
+services/issue/issue.go:25-84
+```
+
+### Source behavior
+
+The route-level control shown in the registration is:
+
+```text
+reqRepoReader(unit.TypeIssues)
+```
+
+That is a repository **reader** control for the issues unit.
+
+Inside `CreateIssue`, `CanWrite(unit.TypeIssues)` is used for optional deadline handling and writer-only metadata processing. The relevant permission implementation is:
+
+```go
+func (p *Permission) CanWrite(unitType unit.Type) bool {
+    return p.CanAccess(perm_model.AccessModeWrite, unitType)
+}
+```
+
+`CanAccess` compares the effective unit access mode against the requested mode:
+
+```go
+func (p *Permission) CanAccess(mode perm_model.AccessMode, unitType unit.Type) bool {
+    return p.UnitAccessMode(unitType) >= mode
+}
+```
+
+`UnitAccessMode` derives access from configured unit permissions, administrative/owner access, or repository/anonymous/everyone defaults:
+
+```text
+models/perm/access/repo_permission.go:97-108
+models/perm/access/repo_permission.go:119-121
+models/perm/access/repo_permission.go:153-155
+```
+
+However, based on the reviewed `CreateIssue` path:
+
+1. The route admits a caller through `reqRepoReader(unit.TypeIssues)`.
+2. `CanWrite(unit.TypeIssues)` is consulted for deadline and metadata behavior.
+3. A caller failing the metadata write check is not necessarily rejected; the non-writer branch clears labels and continues.
+4. `NewIssue` is then called at `routers/api/v1/repo/issue.go:624`.
+5. The reviewed `services/issue/issue.go:25-84` path performs poster loading, blocked-user handling, persistence, and related issue work, but no issues-unit write authorization check was shown before persistence.
+
+Accordingly, the source-visible control flow permits this conditional path:
+
+```text
+authenticated caller
+  -> passes issues-unit reader middleware
+  -> lacks issues-unit write permission
+  -> reaches CreateIssue
+  -> metadata is restricted or cleared as applicable
+  -> NewIssue is called
+  -> issue may be persisted if validation and operation succeed
+```
+
+### Risk
+
+If the route shown at `api.go:1649` is the effective deployed route and no upstream control adds a writer check, a principal with only repository/issues read permission could create an issue.
+
+That would violate the independent policy because:
+
+- **Read access** is used to enter the route.
+- **Write access** is not demonstrated as a prerequisite for the `NewIssue` effect.
+- The handler’s `CanWrite` checks appear to control optional fields and metadata, not whether issue creation itself occurs.
+
+### Relevant exceptions and rejection paths
+
+These conditions can still prevent creation, but they are not substitutes for the required issues-unit write authorization:
+
+- The caller may fail authentication or route middleware.
+- The repository may be archived.
+- Assignee validation or other request validation may fail.
+- A poster blocked by the repository owner or assignees may be rejected.
+- Persistence or related-data operations may fail.
+- Unshown middleware may add a writer check.
+- Deployment-specific permission construction may differ from the source assumptions.
+
+These are operational or separate authorization exceptions; none of the reviewed `CreateIssue`/`NewIssue` source establishes the policy-required write check around the creation effect.
+
+### Recommended remediation
+
+Add an explicit issues-unit write guard to the effective route or immediately before the creation service is invoked. The guard must deny callers who have only read access.
+
+Conceptually:
+
+```go
+// Require issues-unit write permission before performing the creation effect.
+if !ctx.Repo.Permission.CanWrite(unit.TypeIssues) {
+    ctx.Error(http.StatusForbidden, "issue creation requires write permission", nil)
+    return
+}
+
+err := issue_service.NewIssue(ctx, ctx.Repo.Repository, issue, ...)
+```
+
+Alternatively, replace the route-level reader middleware with the corresponding repository issues-unit writer middleware, provided that middleware is the authoritative control for this operation.
+
+**Review each patch before applying. Nothing has been changed.**
+
+---
+
+## Principal and resource binding
+
+### Caller identity
+
+The handler assigns the issue poster from `ctx.Doer`:
+
+```text
+routers/api/v1/repo/issue.go:580-581
+```
+
+The bounded source evidence does **not** establish:
+
+- how `reqToken()` authenticates the request;
+- how `ctx.Doer` is populated;
+- whether anonymous callers can reach this handler;
+- whether the effective permission object is computed for `ctx.Doer` or another principal.
+
+Therefore, the identity is source-bound to `ctx.Doer` in the handler, but its authentication provenance remains unresolved.
+
+### Resource identity
+
+The issue is constructed for `ctx.Repo.Repository`:
+
+```text
+routers/api/v1/repo/issue.go:576-579
+```
+
+The route-level reader control and the handler’s `CanWrite` checks refer to the issues unit of the repository selected in the request context.
+
+The reviewed creation service receives the repository and issue object and persists the issue through the issue model path:
+
+```text
+services/issue/issue.go:25-84
+models/issues/issue_update.go:361-477
+```
+
+The protected effect and the permission unit therefore appear to concern the same repository, subject to the unresolved context/middleware construction limits below.
+
+---
+
+## Source self-verification
+
+### Confirmed from the available evidence
+
+- The issue-create API route uses `reqRepoReader(unit.TypeIssues)` at `routers/api/v1/api.go:1649`.
+- `CreateIssue` is the route handler at `routers/api/v1/repo/issue.go:533`.
+- `CreateIssue` calls `NewIssue` at line 624.
+- `CanWrite` delegates to `CanAccess(AccessModeWrite, unitType)`.
+- `CanAccess` compares effective access against the requested mode.
+- The reviewed handler-level write checks are associated with deadline and metadata processing.
+- The reviewed creation service performs persistence-related work without a demonstrated issues-unit writer guard.
+- Post-creation conversion/refetch behavior does not authorize the already-performed write.
+
+### Unresolved or limited
+
+- The final tool-side authorization result was not successfully recorded; the attempted result envelope did not match the current native schema.
+- The source review retains an unresolved local relation for one `CanWrite` call in the handler.
+- The complete implementations of `reqToken()` and `reqRepoReader()` were not available within the remaining bounded source budget.
+- The complete deployed middleware chain and any global authorization wrapper were not established.
+- The construction and runtime contents of `ctx.Repo.Permission` were not independently verified.
+- No runtime execution, integration test, deployment inspection, or persistence verification was performed.
+
+These limits prevent an unconditional claim about every deployment. They do not remove the source-visible policy concern: **the reviewed route advertises reader-level entry while the shown creation path does not demonstrate a write-permission prerequisite for the issue creation effect.**
+
+---
+
+## Final conclusion
+
+**Policy assessment: violated on the reviewed source path, conditionally.**
+
+For an authenticated principal who can pass the route’s issues-unit reader requirement but lacks issues-unit write permission, the reviewed `CreateIssue` path can proceed to `NewIssue`, unless an unexamined upstream or deployment-specific control denies it.
+
+Thus:
+
+- **Source-visible behavior:** inconsistent with the supplied policy.
+- **Reader-only caller:** not shown to be denied before issue creation.
+- **Issue write effect:** reachable after the reader gate and separate validation/operation checks.
+- **Deployment certainty:** unresolved because authentication, middleware implementation, permission construction, and global controls were not fully inspected.
+
+No changes were made.
