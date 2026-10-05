@@ -6,7 +6,7 @@
 
 **授权任务的局部语义、持久源码解释和双入口支持已有实现及真实消费；AT有限队列以 `completed-with-unmet-criteria` 收束，完整源码质量与整体净收益仍未建立。** AS与AR原件保持。任务范围仍是单repo/ref、源码可见的授权与信任边界评估；质量、编写修改、复用和运行开销分别评价，形式检查不能代替源码语义。
 
-日常先读本节与[当前状态](current-status.md)。方法形成过程见 §4–§7.18；旧阶段分别折叠保存在 §7.19–§7.46，AR根因见[§7.47](#747-2026-10-04-主线程复核优先修分支合流与图答案同步)，AS结果见[§7.48](#748-as-局部语义展开与真实交付)，本次复核及已授权AT设计见[§7.49](#749-as-复核与-at-源码解释闭合计划)。本地化候选保留在§8–§9，暂缓实施。
+日常先读本节与[当前状态](current-status.md)。方法形成过程见 §4–§7.18；旧阶段分别折叠保存在 §7.19–§7.46，AR根因见[§7.47](#747-2026-10-04-主线程复核优先修分支合流与图答案同步)，AS结果见[§7.48](#748-as-局部语义展开与真实交付)，AT设计与结果见[§7.49](#749-as-复核与-at-源码解释闭合计划)，发布后复核及后续建议见[§7.50](#750-at-复核任务拆分与领域表达的衔接)。本地化候选保留在§8–§9，暂缓实施。
 
 ### 当前方法怎样分工
 
@@ -1674,6 +1674,20 @@ AS六个断点在本轮的实际状态如下：
 **变化和复用。** owner-only政策fresh 7调用；非owner、global add/view和exact-document group view前提fresh 11调用，两项partial且政策undetermined。两previous实际admission因没有full源码且checked/bounded的当前base阻断，0调用，无实际复用收益。源码副本只删除serializer中139字节owner-aware conjunction，其它94文件、输入/政策、sourceRef标签与原源码不改；compare/previous在provider构造前拒绝旧答。相同副本和同输入的两fresh为21/11调用、均partial：第二次终答正确指出剩余global view不满足exact-document政策，第一终答仍将serializer关系列unknown。主纠正独立审计“两个终答都注意改变”的判断，不把中间/审计事实补成最终回答。完整endpoint/inheritance/object/save链仍缺。最新五条SHA绑定评阅见[final reviews](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/evaluations/at15-final-change-and-consumer-source-reviews.json)。
 
 **成本、验证与最终判断。** 37已关闭尝试=8调试+12质量首轮+4native+4作者+5消费者（含具名修订）+4fresh变化；556请求/556响应，无活动或未知完成。fresh input 8,635,306、cacheRead 765,568、完整prompt 9,400,874、output 403,256，合计9,804,130；USD、开发代理用量、真人分钟仍unknown，known USD subtotal 0不是免费。目标执行0依据受限只读运行时及精确作者raw-tool审计；不把叙述字符串相加或未知填零。原件和逐调用证据见[accounting](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/accounting.json)、[call index](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/call-index.json)。共享回归718 pass/1 skip/4639断言，最终provider/研究40 pass/192断言（重叠集合不相加），主/AT类型通过；37原件[零调用replay](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/verification/at17-final-replay.json)通过且原字节未改。工程和有限实际使用交付，完整质量、变化复用、表示优势及摊销净收益未达。后续应修问题相关定位、可读caller/helper与继承对象关系、有序权限表达，再建立合格base；不再原样重抽。
+
+### 7.50 AT 复核：任务拆分与领域表达的衔接
+
+**复核依据。** 2026-10-05核对本地及用户origin均为`c375c8b5`、工作区干净后，点验原始native终答、作者原稿、消费者存储的semantic units、质量评阅及共享实现。三项独立只读探索提供定位，主线程核实关键原件与代码。新鲜运行五个相关测试文件，62通过、319断言；没有新增模型、业务API或付费调用。以下诊断不改变AT分母或旧评分。
+
+**更靠前的任务拆分问题。** [compileAuthorizationInquiry](../../src/task-dsl/authorization/inquiry-program.ts)对每个question无差别展开entry、principal、resource、guard、effect、exception六类工作。[GitHub原稿](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/runs/author-github-security-review-original/attempt-1/authored-inquiry.json)把同一CreateIssue审查拆成8题，其中包括政策比较和source/deployment limits；这些题各自重新定位入口。具名修订后的[原字节消费者](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/runs/consume-author-github-security-review-original/attempt-2/report.json)共7个存储unit：1个来自`repo/issue.go`的CreateIssue，另外6个来自`repo/repo.go`两处仓库创建函数，同一原文还在不同问题下重复存储。worklist的候选来自词法提示，唯一候选可以自动选择；focus按问题轮换，尚未用共同操作身份及实际调用关系充分约束选取。上述事实支持优先调查“问题拆分—入口重选—重复解释”的影响，具体质量和成本因果量仍需后续修订验证。
+
+**表达能力与真实任务不匹配。** [procedure-summary](../../src/task-dsl/authorization/procedure-summary.ts)仅对完整、纯有限标量return/reject生成可组合摘要；带principal/resource的guard、对象返回、effect、call等继续精确展开。[条件计算](../../src/task-dsl/authorization/control-evaluation.ts)直接支持eq/neq/null及all/any/not，尚无原生有序权限比较、map lookup或集合成员运算。实际任务的难点恰好集中在CanWrite/CanAccess、对象权限、继承方法、serializer与保存对象的关联。已有逐步展开和返回对象支持应保留，但当前摘要尚未覆盖这些主要路径，继续加长guide没有补足这些语义。
+
+**把失败分为两类。** Gitea original [native终答](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/runs/native-github-security-review-gitea-create-issue-original/attempt-1/stdout.txt)已解释reader可创建基本issue、writer控制部分metadata，并追到保存代码；形式图仍缺CanWrite/CanAccess及effect关联。Cloudflare original也读出了精确Document、owner-aware分支和继承create，但图未闭合。两条属于自然说明充分、机器关系仍缺的样本。相对地，[质量终评](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/evaluations/at14-final-quality-first-source-reviews.json)保留了未读决定性helper、Projects遗漏、NewIssueWithIndex未读等实际分析不足。前一类应修解释到程序的转换；后一类应修取证与语义遗漏。现有checker拒绝尚未关联的图有其依据，本次未证明只需放宽checker即可解决问题。
+
+**成熟度和比较。** 领域声明、只读取证、状态管理、有限求值和失败留账已有可运行底座；真实源码到完整可检查程序的转换仍处于研究原型阶段。四份作者稿的忠实有效说明前端可用，下游消费均partial说明端到端可靠性仍低。主面板M-L/M-F/D-F实际调用为24/73/71；这些记录没有建立净收益，且修订版本影响解释，不能据此作严格因果估计。M-L仍走共享inquiry/checker，并非独立普通agent基线。
+
+**供下一任务书取舍的建议，尚未实施。** 保持授权任务类，先建立同一操作可共享的来源解释，把行为、政策比较和范围说明作为不同义务；只在principal/resource/调用关系等确有差异时重新分析，政策及用户前提不可被共享源码事实覆盖。再设计源码支持的有限权限与对象关系摘要，使任务DSL表达授权问题，内部局部程序负责必要计算。先用隔离的确定性fixture检验足够表达和错误检出，再让运行模型自行读取原始源码，完成一条真实原/变链后做第二种结构与完整原skill。主要评价继续核对源码正确性、任务充分性及机器检查，保留独立普通skill加相同源码工具的参考运行；不把evaluator答案或人工正确图交给被测模型。真实复用放在合格基础上，成本按取证、解释、修复和交付分账。下一轮应检验上述结构修订，避免继续用大批调用代替方法调整。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

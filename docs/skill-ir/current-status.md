@@ -30,7 +30,7 @@ AS 固定 15 质量、4 native、8 变化、2 源码变化位置，作者4稿与
 | 普通使用的失败与裁定 | [ordinary-adjudication.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary-adjudication.json) |
 | 真实派发、响应与未知费用 | [ordinary-accounting.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary-accounting.json) |
 | 语义评价及未运行分母 | [evaluation-summary.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/evaluation-summary.json) |
-| 根因与方法 | [研究 §7.49](skill-dsl-research.md#749-as-复核与-at-源码解释闭合计划)；AS原设计与结果见[§7.48](skill-dsl-research.md#748-as-局部语义展开与真实交付) |
+| 根因与方法 | [AT结果 §7.49](skill-dsl-research.md#749-as-复核与-at-源码解释闭合计划)、[AT复核 §7.50](skill-dsl-research.md#750-at-复核任务拆分与领域表达的衔接)；AS原设计与结果见[§7.48](skill-dsl-research.md#748-as-局部语义展开与真实交付) |
 
 ## 已有能力与待解决问题
 
@@ -40,7 +40,7 @@ AS 固定 15 质量、4 native、8 变化、2 源码变化位置，作者4稿与
 | Trace 驱动 skill 包优化 | bare-agent 自动捕获、模型修改说明和脚本、局部验证修复、原子导出、自然消费 | 已有真实生成与消费记录；收益 mixed/negative，按各包证据判断 |
 | 确定性基础 | IR parser/validator、lowering、API Tester/Env 后端、artifact 和 recipe import | 保留原支持合同及有界案例 |
 
-AQ 旧/新策略 full均为2/20，原 skill checked交付为0/4；具体分母见[研究 §7.35](skill-dsl-research.md#735-aq-授权领域执行设计)。AT消除了具体合同/定位/读取缺陷，完整质量仍未建立。下一责任是修focus与问题的相关性、决定性caller/helper及继承对象关系闭合、有序权限比较/映射表达，取得完整checked当前base后再验证复用。费用和人力缺测、readiness、历史 `0/6`、Q1 与保护输入保持原有状态。
+AQ 旧/新策略 full均为2/20，原 skill checked交付为0/4；具体分母见[研究 §7.35](skill-dsl-research.md#735-aq-授权领域执行设计)。AT消除了具体合同/定位/读取缺陷，完整质量仍未建立。发布后复核新增定位：每个作者问题都会展开六类源码工作，同一操作的解释、政策比较和范围说明缺少共享任务身份；GitHub消费者修订中7个已存unit仅1个落在CreateIssue，其余6个在无关repo创建函数。下一轮建议先修任务拆分与源码相关性，再补领域摘要和继承对象/权限表达，以完整checked当前base检验变化复用；具体设计仍待新任务书。费用和人力缺测、readiness、历史 `0/6`、Q1 与保护输入保持原有状态。
 
 ## 开发与维护入口
 
@@ -48,6 +48,6 @@ AQ 旧/新策略 full均为2/20，原 skill checked交付为0/4；具体分母�
 - 当前队列：[当前计划](skill-ir-aot-optimization-plan.md)；方法合同：[spec §14.34](skill-ir-aot-optimization-spec.md#1434-at-focused-source-transactions)。
 - 分类、方法、复盘：[唯一研究正文](skill-dsl-research.md)；旧结果：[证据索引](evidence-index.md)、[历史](history.md)、[实验目录](../../results/skill-ir/experiment-catalog.json)。
 
-[治理](../superpowers/plans/2026-10-04-workspace-and-document-governance.md)已完成材料收存、旧日志压缩、正文归并和停止后的入口校正。当前阅读集 15 份，版本化材料 14 份；研究仍统一在一个正文中。原件及恢复索引在 `project-maintenance/20261004-governance/`，AR/AS 结果及 `.skvm` 保留。五份可再生成的 Python 字节码已清除；三个此前删除被拒绝的空目录保留。AS进程已结束，AT派发后取得共享文件和 Git 的唯一写入权；Git实时状态以实际检查为准。
+[治理](../superpowers/plans/2026-10-04-workspace-and-document-governance.md)已完成材料收存、旧日志压缩、正文归并和停止后的入口校正。当前阅读集 15 份，版本化材料 14 份；研究仍统一在一个正文中。原件及恢复索引在 `project-maintenance/20261004-governance/`，AR/AS 结果及 `.skvm` 保留。五份可再生成的 Python 字节码已清除；三个此前删除被拒绝的空目录保留。AS、AT执行均已结束；本次只复核并同步研究与状态，没有启动新开发队列或实验。Git实时状态以实际检查为准。
 
 更新本页时替换过时段落，不把逐次测试与派发日志不断追加为新的“当前状态”。
