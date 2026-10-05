@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "authorization-au-source-review/v1",
+  "rowId": "debug-paperless-share-create",
+  "attempt": "attempt-2",
+  "report": "runs/debug-paperless-share-create/attempt-2/report.json",
+  "reportSha256": "42e2cb0f6587a76ce73ded30ca0d6b2891d82aac56c05932a778575c8f0f4e93",
+  "codeRevision": "6246be3ae4a5356cafa21e15fb2a5cd00c33fe0c",
+  "repairId": "source-context-receiver-v1",
+  "repairOf": "debug-paperless-share-create/attempt-1",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "reviewers": [
+    {"agent": "au_share_second_quality", "role": "independent-source-review", "readOnly": true, "record": "compressed findings retained from independent agent response"},
+    {"agent": "au_share_second_runtime", "role": "independent-runtime-review", "readOnly": true, "record": "compressed findings retained from independent agent response"}
+  ],
+  "sourceAnchors": [
+    {"path": "src/documents/views.py", "lines": "4696-4717", "fact": "View combines CreateModelMixin, PassUserMixin, ShareLinkSerializer, IsAuthenticated and PaperlessObjectPermissions."},
+    {"path": "src/documents/views.py", "lines": "406-428", "fact": "Request user is passed to the serializer; actual zero-argument super calls the next get_serializer in the effective MRO, not the same override."},
+    {"path": "framework/rest_framework-3.18.1/rest_framework/mixins.py", "lines": "12-24", "fact": "Create obtains the serializer, validates then saves; permission failure precedes save."},
+    {"path": "src/documents/serialisers.py", "lines": "2851-2886", "fact": "Document validator requires non-null user, global documents.view_document and exact-document owner-aware view_document; create adds slug then delegates."},
+    {"path": "src/documents/permissions.py", "lines": "624-635", "fact": "Ownerless and own objects are accepted; remaining exact-object check uses ObjectPermissionChecker, with applicable direct/group grant semantics."},
+    {"path": "src/documents/permissions.py", "lines": "30-53", "fact": "POST global add-model permission and object-permission method are separate; adding a share alone does not authorize a document."}
+  ],
+  "independentFindings": {
+    "overall": "partial",
+    "progress": "Critical document guard now appears in final prose; source summaries remain unlinked. Source-only policy assessment is unnecessarily limited by deployment uncertainty; ownerless/owner/direct/group alternatives are not fully expanded.",
+    "runtime": {"requests": 21, "responses": 21, "acceptedUnitsMainCount": 9, "allAcceptedCallCalleesEmpty": true, "terminalCause": "semantic-callee-uninterpreted at entry.initial_call", "additionalDiagnostic": "focus-schema: unit.blocks.0.steps.5.claim required", "targetExecutions": 0},
+    "reviewLimit": "Independent runtime reviewer did not infer unit counts from repeated accepted-event snapshots. Main counted the actual domain.semantic.units array."
+  },
+  "mainAdjudication": {
+    "overall": "partial",
+    "questions": [
+      {"id": "q-endpoint-object-controls", "rating": "partial", "reason": "Endpoint add and separate exact-document guard are correct; effective source relation remains incomplete."},
+      {"id": "q-inherited-permission-path", "rating": "partial", "reason": "Model-level versus referenced-document object check is correctly separated; accepted inherited path is incomplete."},
+      {"id": "q-serializer-path", "rating": "partial", "reason": "Validator conditions are correct but owner-aware alternatives and save/create chain are not fully explained and linked."},
+      {"id": "q-source-behavior", "rating": "partial", "reason": "Conditional deny-before-save is stated; deployment verification is not necessary to explain locked source behavior and should not be a source-gap."},
+      {"id": "q-policy-compliance", "rating": "partial", "reason": "Validator consistency is identified but source-policy conformance is conflated with deployment identity. No full operation claim is earned by the retained incomplete summary."},
+      {"id": "q-missing-facts", "rating": "partial", "reason": "Specific caller/document premises are named, but deployment/persistence uncertainties expand the source-only authorization question and ownerless branch is not explicit."}
+    ],
+    "formal": {"sourceBound": true, "ruleConsistency": false, "taskResolution": "partial"},
+    "sourceSnapshotValid": true,
+    "sourceCheckedFiles": 95,
+    "deploymentClaim": false,
+    "evaluatorNeverModelVisible": true
+  },
+  "accounting": {"input": 352325, "output": 19126, "cacheRead": 24320, "cacheWrite": 0, "cacheCountedSeparatelyNotAddedAgain": true, "totalActualUsd": null, "unknownCostCalls": 21, "transportAttempts": "unknown", "developerUsage": null, "humanMinutes": null}
+}

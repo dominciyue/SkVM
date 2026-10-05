@@ -369,9 +369,13 @@ AU0/1创建薄runner后登记其真实typecheck、单位置运行和replay命令
 
 ## 九、执行记录
 
+- 2026-10-06 第二轮共享修复完成匿名验证：唯一源码callee自动绑定及旧关系撤回，模糊/未解析同名receiver不提升为唯一；按实际C3解析零参数super，宽引文不替代具体source unit解释，退役work项的参数修订保留receiver。首批8个失败反例及独立核验后的4个失败反例已转通过；最新定向63 pass/326断言（与86项旧定向集合重叠，不相加），新字节联合761 pass/1skip/4824断言、主/AU双类型与diff检查通过。普通native显式M/D1选项3失败例转通过，独立入口核验无问题。旧help ancestry文字已改为实际row-id；source-only说明不要求未请求部署验证。下一动作：提交origin、同题`source-link-c3-v1`修订，不使用评价侧结论做模型输入。
+
+- 2026-10-06 AU10第二次ShareLink具名修订`source-context-receiver-v1`已关闭：21派发/21响应，实际接受9个source units（首次3个），6问终答均partial；完整语义链仍因入口callee未链接而失败，另保留一次缺claim格式诊断。原件SHA与独立评阅存入本轮results。下一共享修复计划：匿名反例覆盖唯一源码关系的自动callee身份绑定与模糊关系拒绝、按实际C3上下文解析零参数super；仅绑定模型已声明调用，不推断参数/guard/permission/effect。已有helper的参数链接优先于继续展开候选。完成定向与较广回归/类型检查、同步文档和提交后再同题具名修订。普通原技能入口增显式`--authorization-method=M|D1`，M整段自然任务机械归一化且声明调用0，D1模型声明计入同一会话预算；3个预期失败已转通过，尚需较广验证。累计研究provider35请求/35响应，费用未知；quality/普通使用/作者/变化面板尚未派发。
+
 - 2026-10-06 AU10首次ShareLink调试已关闭：14派发/14响应、64工具动作、3个source units，最终partial，首件与raw保留。源码已读的文档校验尚未被解释；根入口把静态register写成运行时call，继承方法重复展开占用取证预算。当前修复计划依次为：匿名反例验证raw-string路由与继承接收者；只在类入口展开DRF配置义务、方法沿实际AST调用推进；显示/选择已有来源工作；增加静态关系步骤而不赋予权限含义；跑定向回归后同题具名修订。AU11材料级复用正在实现，保留有效未评阅source模板，重新生成规则与政策判断，不继承旧终答/check。独立源码评阅与主代理裁定写到本轮results，不进入model目录。
 
-- 2026-10-06 AU10派发准备：714联合pass/1skip/4588断言，主类型与AU类型通过；薄runner 3检查/16断言通过。实际命令`study.ts develop <debug-id> [repair-id original/attempt-n] | replay`，通过旧generic claim/repair/replay和生产`executeLocalInquiryRun`接入；32原位置不重写，未知跨arm封存，先逐调试位置核验/修复再面板。优化后结构探针另存`structure-probes-optimized-v1.json`；此处仍无研究provider结果。
+- 2026-10-06 AU10派发准备：714联合pass/1skip/4588断言，主类型与AU类型通过；薄runner 3检查/16断言通过。实际命令`study.ts develop <debug-id> [repair-id <exact-row-id>/attempt-n] | replay`，通过旧generic claim/repair/replay和生产`executeLocalInquiryRun`接入；32原位置不重写，未知跨arm封存，先逐调试位置核验/修复再面板。优化后结构探针另存`structure-probes-optimized-v1.json`；此处仍无研究provider结果。第二次准备时照旧help传literal original/attempt-1，在claim/provider前被拒，provider调用0；随后使用实际row ancestry。
 
 - AU9诊断动作共用focus的revisit/link/条件回答；独立只读核验后先写三个失败反例，再修Go最长模块绑定、首次候选选择阶段更新及失效依赖旧版本重激活。错误入口重新定位立即撤回旧facts/投影/helper，原始记录保留；42项针对性检查通过。结构metadata仍是固定原索引候选，无源码读证据，最终快照终检负责拒绝运行中变化，不重复全库读取。
 

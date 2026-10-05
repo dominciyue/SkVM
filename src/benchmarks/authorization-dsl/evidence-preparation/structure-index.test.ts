@@ -72,3 +72,13 @@ test("inherited self calls retain the actual receiver for downstream overrides",
   expect(call.receiverClass).toBe("view.View")
   expect(call.candidateIds).toEqual([index.lookupMethod("view.View", "check")[0]!.id])
 })
+
+test("zero-argument super follows the actual C3 receiver after the defining class", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "class First:\n    def create(self):\n        return super().create()\nclass Base:\n    def create(self):\n        return self.check()\nclass Other:\n    def create(self):\n        return False\nclass View(First, Base):\n    def check(self):\n        return True\nclass Alternate(First, Other):\n    pass\nclass Dynamic(First):\n    def create(self):\n        return super(unknown, self).create()\n" }], { repository: "fixture", sourceRef: "r" })
+  const first = index.lookupMethod("app.View", "create")[0]!
+  const call = index.relatedCalls(first.id, "app.View").find(c => c.expression === "super().create")!
+  expect(call.candidateIds).toEqual([index.symbols.find(s => s.qualifiedName === "app.Base.create")!.id])
+  expect(call.receiverClass).toBe("app.View")
+  expect(index.relatedCalls(first.id, "app.Alternate").find(c => c.expression === "super().create")!.candidateIds).toEqual([index.symbols.find(s => s.qualifiedName === "app.Other.create")!.id])
+  expect(index.relatedCalls(index.lookupMethod("app.Dynamic", "create")[0]!.id, "app.Dynamic").find(c => c.expression === "super(unknown, self).create")!.resolution).toBe("unresolved")
+})

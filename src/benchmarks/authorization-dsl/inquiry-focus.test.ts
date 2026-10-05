@@ -316,3 +316,80 @@ test("operation focus exposes actual pending source work and selects a read help
   expect(bad.diagnostics.some(d => d.code === "focus-next-item-unavailable")).toBe(true)
   expect((runtime.modelContext() as any).focus.id).toBe(next.focus.id)
 })
+
+async function operationLinkFixture(missingArguments: boolean) {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "au-link-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def entry(actor):\n    gate(actor)\n    return audit(actor)\ndef gate(actor):\n    return True\ndef audit(actor):\n    return True\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "fixture", sourceRef: "r", allowedPaths: ["."], structure: true })
+  await tools.execute("source_read", { path: "app.py", startLine: 1, endLine: 7 })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "Inspect entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect entry", premises: [] }] })
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "operation-evidence-v1" })
+  await runtime.sync()
+  const current: any = runtime.modelContext()
+  await runtime.propose(interpret(current.focus.id, { ...body, parameters: [{ name: "actor", type: "principal" }], blocks: [{ name: "main", steps: [{ kind: "call", name: "check", symbol: "gate", claim: "This exact helper receives the actor", arguments: missingArguments ? [] : [{ parameter: "actor", object: "actor" }] }, ...body.blocks[0]!.steps] }] }))
+  let helper: any = runtime.modelContext()
+  if (helper.tasks[0]?.duty.symbol !== "gate") {
+    const candidate = helper.pendingSourceWork.find((i: any) => i.symbol === "gate" && i.state === "awaiting-interpretation")
+    await runtime.propose({ schemaVersion: "authorization-focused-update/v1", focusId: helper.focus.id, kind: "defer", reason: "Inspect the decisive shown helper first", nextItemId: candidate.id })
+    helper = runtime.modelContext()
+  }
+  expect(helper.tasks[0].duty.symbol).toBe("gate")
+  await runtime.propose(interpret(helper.focus.id, { ...body, parameters: [{ name: "actor", type: "principal" }] }))
+  return { runtime, tools }
+}
+
+test("operation runtime binds an accepted unique source helper before further source interpretation", async () => {
+  const { runtime } = await operationLinkFixture(false)
+  const report = runtime.report(), entry = report.semantic!.units.find(u => u.role === "entry")!, helper = report.semantic!.units.find(u => u.role === "helper")!
+  expect((entry.blocks[0]!.steps[0] as any).callee).toBe(helper.handle)
+  expect((report as any).sourceLinks).toHaveLength(1)
+  expect(report.slice.rules.some(r => r.gap === "semantic-callee-uninterpreted")).toBe(false)
+})
+
+test("operation missing-argument link takes priority and offers only the actual accepted source target", async () => {
+  const { runtime, tools } = await operationLinkFixture(true), current: any = runtime.modelContext()
+  expect(current.focus.stage).toBe("link")
+  const link = current.links[0]
+  expect(link.targets).toHaveLength(1)
+  const reads = tools.toolCalls
+  await runtime.propose({ schemaVersion: "authorization-focused-update/v1", focusId: current.focus.id, kind: "link", links: [{ caller: link.caller, call: link.call, target: link.targets[0].handle, arguments: [{ parameter: "actor", object: "actor" }] }] })
+  expect(runtime.report().slice.rules.some(r => r.gap === "semantic-argument-unbound")).toBe(false)
+  expect(tools.toolCalls).toBe(reads)
+})
+
+test("a broad shared source window cannot mark an unaccepted focused helper as interpreted", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "au-wide-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def entry(actor):\n    return gate(actor)\ndef gate(actor):\n    return True\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "fixture", sourceRef: "r", allowedPaths: ["."] })
+  await tools.execute("source_read", { path: "app.py", startLine: 1, endLine: 4 })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect entry", entryHint: "entry", premises: [] }] })
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "focused-closure-v1" })
+  await runtime.sync()
+  const entry: any = runtime.modelContext()
+  await runtime.propose(interpret(entry.focus.id, { ...body, parameters: [{ name: "actor", type: "principal" }], blocks: [{ name: "main", steps: [{ kind: "call", name: "check", symbol: "gate", claim: "Source calls this helper", arguments: [{ parameter: "actor", object: "actor" }] }] }] }))
+  const helper: any = runtime.modelContext()
+  expect(helper.focus.stage).toBe("interpret")
+  expect(helper.tasks[0].duty.symbol).toBe("gate")
+})
+
+test("a retained inherited caller keeps its receiver after argument-link replacement", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "au-retained-receiver-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "class Base:\n    def gate(self, actor):\n        return True\n    def helper(self, actor):\n        return self.gate(actor)\nclass View(Base):\n    pass\ndef entry(view: View, actor):\n    return view.helper(actor)\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "fixture", sourceRef: "r", allowedPaths: ["."], structure: true })
+  await tools.execute("source_read", { path: "app.py", startLine: 1, endLine: 9 })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "Inspect entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect entry", premises: [] }] })
+  const unit = (name: string, handle: string, receiverClass?: string): any => {
+    const s = tools.structure!.symbols.find(s => s.qualifiedName === name)!
+    return { ...body, op: "add", itemId: `retained-${handle}`, handle, questionId: "q", role: handle === "entry" ? "entry" : "helper", source: { id: s.id, path: s.path, sha256: s.sha256, startLine: s.startLine, endLine: s.endLine }, receiverClass, evidenceIds: tools.evidence.map(e => e.id), parameters: [{ name: handle === "entry" ? "view" : "self", type: "configuration" }, { name: "actor", type: "principal" }] }
+  }
+  const entry = unit("app.entry", "entry"), helper = unit("app.Base.helper", "helper", "app.View"), gate = unit("app.Base.gate", "gate", "app.View")
+  entry.blocks = [{ name: "main", steps: [{ kind: "call", name: "invoke", symbol: "view.helper", claim: "Actual helper", arguments: [{ parameter: "self", object: "view" }, { parameter: "actor", object: "actor" }] }, ...body.blocks[0]!.steps] }]
+  helper.blocks = [{ name: "main", steps: [{ kind: "call", name: "check", symbol: "self.gate", claim: "Actual inherited call", arguments: [] }, ...body.blocks[0]!.steps] }]
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "operation-evidence-v1", initialSemanticUnits: [entry, helper, gate] })
+  await runtime.sync()
+  const current: any = runtime.modelContext(), link = current.links.find((l: any) => l.caller === "helper")
+  expect(current.focus.stage).toBe("link")
+  await runtime.propose({ schemaVersion: "authorization-focused-update/v1", focusId: current.focus.id, kind: "link", links: [{ caller: link.caller, call: link.call, target: "gate", arguments: [{ parameter: "self", object: "self" }, { parameter: "actor", object: "actor" }] }] })
+  expect(runtime.report().semantic!.units.find(u => u.handle === "helper")!.receiverClass).toBe("app.View")
+  expect(runtime.report().slice.rules.some(r => r.gap === "semantic-callee-uninterpreted" || r.gap === "semantic-argument-unbound")).toBe(false)
+})

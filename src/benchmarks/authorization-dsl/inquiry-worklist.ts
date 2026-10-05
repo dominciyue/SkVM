@@ -7,6 +7,7 @@ import type { InquiryTools, InquiryToolOutput } from "./inquiry-tools.ts"
 import type { ScheduledDependency } from "./inquiry-domain-scheduler.ts"
 import { operationWork } from "./operation-work.ts"
 import type { SourceFactDependency } from "../../task-dsl/authorization/operation-facts.ts"
+import type { BoundSemanticBlock } from "../../task-dsl/authorization/semantic-flow.ts"
 
 export type WorkState = "unlocated" | "awaiting-read" | "awaiting-interpretation" | "awaiting-binding" | "awaiting-verification" | "closed" | "external-unknown" | "blocked"
 export interface WorkItem {
@@ -35,7 +36,7 @@ export function worklistModelView(items: WorkItem[]) {
 }
 
 /** Source candidates are lexical work, never an inferred call graph or authorization fact. */
-export function createInquiryWorklist(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; entryContext?: string; remainingActions?: () => number; dependencyStates?: () => ScheduledDependency[]; structural?: boolean }) {
+export function createInquiryWorklist(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; entryContext?: string; remainingActions?: () => number; dependencyStates?: () => ScheduledDependency[]; structural?: boolean; semanticUnits?: () => BoundSemanticBlock[] }) {
   const items = new Map<string, WorkItem>(), choices = new Map<string, { candidate: DiscoverySymbol; origin: "explicit-selection" | "explicit-discovery-selection" }>(), invalidFiles = new Set<string>(), failedReads = new Map<string, string>()
   const actions: WorklistAction[] = [], questionIds = options.program.questions.map(q => q.id)
   const relations = new Map<string, { id: string; questionId: string; sourceId: string; candidateId?: string; reason: string; state: string; gap?: string }>(), frameworkDependencies = new Map<string, SourceFactDependency>()
@@ -59,7 +60,11 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
   }
   const evidenceFor = (c: DiscoverySymbol) => options.tools.evidence.filter(e => e.path === c.path && e.sha256 === c.sha256 && e.startLine <= c.endLine && e.endLine >= c.startLine)
   const transition = (item: WorkItem, state: WorkState, action: WorkItem["nextAction"]["kind"], reason: string, code?: string) => Object.assign(item, { state, nextAction: { kind: action, itemId: item.id }, reason, code })
-  const represented = (item: WorkItem, slice: ControlSlice) => slice.rules.filter(r => r.questionId === item.questionId && r.evidenceIds.some(id => item.evidenceIds.includes(id)))
+  const represented = (item: WorkItem, slice: ControlSlice) => {
+    const accepted = options.semanticUnits?.()
+    const units = accepted && (options.structural || accepted.some(u => u.source)) ? accepted.filter(u => u.questionId === item.questionId && u.source?.id === item.selected?.id && u.receiverClass === item.receiverClass) : undefined
+    return slice.rules.filter(r => r.questionId === item.questionId && (units ? units.some(u => u.handle === r.sourceOrigin?.handle) : r.evidenceIds.some(id => item.evidenceIds.includes(id))))
+  }
   const declaredEntryLocation = (item: WorkItem, slice: ControlSlice) => {
     if (item.origin !== "question-duty" || item.kind !== "entry") return undefined
     const ids = new Set(slice.rules.filter(r => r.questionId === item.questionId && r.kind === "entry" && r.sourceBound).flatMap(r => r.evidenceIds))
@@ -70,7 +75,7 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
   const discoverReferences = (parent: WorkItem) => {
     if (!parent.selected) return
     if (options.structural && options.tools.structure) {
-      const index = options.tools.structure, interpreted = [...items.values()].filter(i => represented(i, currentSlice).length).flatMap(i => i.selected?.id ?? [])
+      const index = options.tools.structure, interpreted = options.semanticUnits ? options.semanticUnits().filter(u => u.questionId === parent.questionId && u.source).map(u => ({ id: u.source!.id, receiverClass: u.receiverClass })) : [...items.values()].filter(i => represented(i, currentSlice).length).flatMap(i => i.selected?.id ?? [])
       const work = operationWork(index, parent.selected.id, [...items.values()].filter(i => i.selected && coveredThrough(i.selected) >= i.selected.endLine).map(i => i.selected!.id), interpreted, parent.receiverClass)
       for (const d of work.frameworkDependencies) frameworkDependencies.set(d.key, d)
       for (const gap of work.gaps) relations.set(`${parent.questionId}:${gap.id}`, { id: gap.id, questionId: parent.questionId, sourceId: parent.selected.id, reason: `Inspect ${gap.expression} at ${gap.path}:${gap.startLine}`, state: gap.resolution, gap: gap.gap })

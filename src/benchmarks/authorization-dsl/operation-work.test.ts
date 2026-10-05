@@ -67,3 +67,9 @@ test("framework configuration is expanded at the class entry once and method wor
   expect(method.actions.map(a => index.symbols.find(s => s.id === a.candidateId)!.qualifiedName)).toEqual(["app.View.perform_create"])
   expect(method.actions[0]?.receiverClass).toBe("app.View")
 })
+
+test("the same inherited body keeps separate actual receiver candidates", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "class Base:\n    def check(self):\n        return True\nclass A(Base):\n    pass\nclass B(Base):\n    pass\ndef create(a: A, b: B):\n    return a.check() and b.check()\n" }], { repository: "fixture", sourceRef: "r" })
+  const work = operationWork(index, index.symbols.find(s => s.qualifiedName === "app.create")!.id, [], [])
+  expect(work.actions.map(a => a.receiverClass)).toEqual(["app.A", "app.B"])
+})

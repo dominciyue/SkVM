@@ -1,5 +1,12 @@
 import { AuthorizationInquiryV2Schema, type AuthorizationInquiry, type InquiryQuestion, type ObligationIntent } from "./inquiry.ts"
 
+export const NativeInquiryMethods = ["M", "D1"] as const
+export function parseNativeInquiryMethod(value: unknown): typeof NativeInquiryMethods[number] | undefined {
+  if (value === undefined) return undefined
+  if (value === "M" || value === "D1") return value
+  throw new Error("authorization-method must be M or D1")
+}
+
 export interface InquiryOperation { id: string; request: string; entryHint?: string; sourceQuestionId: string; explicit: boolean }
 export interface OperationQuestion { questionId: string; operationId: string; intent: ObligationIntent }
 /** The ordinary natural frontend preserves one full task, without source hints or model answers. */

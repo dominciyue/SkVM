@@ -2,7 +2,7 @@ import { z } from "zod"
 import { createHash } from "node:crypto"
 import { InquiryText, type InquiryDiagnostic } from "../../task-dsl/authorization/inquiry.ts"
 import { canonicalControl, FiniteValueSchema, type ControlSlice } from "../../task-dsl/authorization/control-slice.ts"
-import { SemanticBlockSchema, SemanticStepSchema, type BoundSemanticBlock } from "../../task-dsl/authorization/semantic-flow.ts"
+import { SemanticBlockSchema, SemanticStepSchema, type BoundSemanticBlock, type SemanticBlock } from "../../task-dsl/authorization/semantic-flow.ts"
 import { summarizeProcedure } from "../../task-dsl/authorization/procedure-summary.ts"
 import type { AuthorizationInquiryProgram } from "../../task-dsl/authorization/inquiry-program.ts"
 import type { InquiryTools } from "./inquiry-tools.ts"
@@ -51,22 +51,26 @@ export const FOCUSED_EXECUTION_GUIDE = [
   'Final uses {schemaVersion:"authorization-focused-result/v1",focusId:<current answer focus.id>,answers:[{explanation,disposition?,paths?:[{path:<current per-question numeric index>,explanation,policy?}],missing?,policyAssessment?}],scope}. Answers follow ALL original questions in order. Host supplies question identity/current revision/path IDs/citations; optional typed claims must agree with the same summary. In conformance, map exact current independent policy to relevant paths and give satisfied|violated|undetermined separately from behavior. Correct complete conditional explanations are allowed; available unexamined source is a specific source-gap. Preserve independent resolved parts when budget ends. Native final prose is rendered from this same accepted answer in the original skill format.',
   FINITE_PERMISSION_GUIDE,
   'Static source relations use {kind:"context",name,relationship:"route-registration"|"class-configuration"|"dispatch-binding",claim}. They retain source context only: no call, guard, permission, object identity or effect is inferred. A registration or serializer/permission class assignment is not a per-request function call. Actual inherited request methods remain call steps with their source candidate. Interpret only decisive source behavior; routine formatting and response construction do not need invented callees. Context meaning remains unreviewed.',
+  'operation-evidence-v1 binds a declared call to an accepted helper automatically only when the actual source candidate and receiver are unique. Typed arguments and control meaning remain exactly your interpretation; missing/mismatched parameters need the offered link repair. A broad source read does not interpret every function in that window. In source-only tasks, explain complete conditional source behavior and compare the independent policy without requiring deployment or persistence evidence. Separate unspecified caller/object premises from available unexamined source; preserve ownerless, owner, direct/group and exceptional alternatives only when supported by the shown source.',
 ].join("\n")
 interface Focus { id: string; stage: FocusStage; questionId?: string; itemId?: string; handle?: string; source?: BoundSemanticBlock["source"]; snapshot: string }
 const hash = (value: unknown) => createHash("sha256").update(canonicalControl(value)).digest("hex").slice(0, 24)
 const unitHandle = (item: WorkItem) => `unit-${hash([item.questionId, item.origin === "question-duty" && item.kind === "entry" ? item.id : item.selected ? [item.selected.path, item.selected.sha256, item.selected.startLine, item.selected.endLine, item.receiverClass] : item.id])}`
-export function createInquiryFocus(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; items: () => WorkItem[]; units: () => BoundSemanticBlock[]; slice: () => ControlSlice; dependencies: () => DependencyCheckState[]; diagnostics: () => InquiryDiagnostic[]; shownEvidenceIds?: () => string[]; structural?: boolean }) {
+export function createInquiryFocus(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; items: () => WorkItem[]; units: () => BoundSemanticBlock[]; slice: () => ControlSlice; dependencies: () => DependencyCheckState[]; diagnostics: () => InquiryDiagnostic[]; shownEvidenceIds?: () => string[]; structural?: boolean; linkTargets?: (caller: BoundSemanticBlock, step: Extract<SemanticBlock["blocks"][number]["steps"][number], { kind: "call" }>) => BoundSemanticBlock[] }) {
   let current: Focus | undefined, serial = 0, lastQuestion = -1, reviewedSnapshot: string | undefined
   const finished = new Set<string>(), deferred = new Set<string>(), submissions = new Map<string, string>()
   const retainedItems = new Map<string, WorkItem>()
   const history: Array<{ focus: Focus; event: string; reason?: string; raw?: unknown; diagnostics?: InquiryDiagnostic[] }> = []
   const basis = () => hash([options.program.questions, options.program.policy, options.units(), options.slice().bindings])
   const sourceItem = (id?: string) => options.items().find(i => i.id === id) ?? (id ? retainedItems.get(id) : undefined)
-  const pendingLinks = () => options.units().flatMap(u => u.blocks.flatMap(b => b.steps.filter(s => {
-    if (s.kind !== "call") return false
+  const pendingLinks = () => options.units().flatMap(u => u.blocks.flatMap(b => b.steps.flatMap(s => {
+    if (s.kind !== "call") return []
     const target = options.units().find(t => t.questionId === u.questionId && t.handle === s.callee && t.role === "helper")
-    return !target || target.parameters.some(p => !s.arguments.some(a => a.parameter === p.name)) || options.diagnostics().some(d => d.code === "semantic-argument-unbound" && d.questionId === u.questionId && d.path.endsWith(`.${u.handle}`) && d.message.includes(`at ${b.name}.${s.name};`))
-  }).map(s => ({ caller: u.handle, questionId: u.questionId, call: s.name, symbol: s.kind === "call" ? s.symbol : "", arguments: s.kind === "call" ? s.arguments : [], pathHint: s.kind === "call" ? s.pathHint : undefined, targets: options.units().filter(t => t.questionId === u.questionId && t.role === "helper").map(t => ({ handle: t.handle, source: t.source, parameters: t.parameters })) }))))
+    const missing = !target || target.parameters.some(p => !s.arguments.some(a => a.parameter === p.name)) || options.diagnostics().some(d => d.code === "semantic-argument-unbound" && d.questionId === u.questionId && d.path.endsWith(`.${u.handle}`) && d.message.includes(`at ${b.name}.${s.name};`))
+    if (!missing) return []
+    const targets = options.linkTargets ? options.linkTargets(u, s) : options.units().filter(t => t.questionId === u.questionId && t.role === "helper")
+    return [{ caller: u.handle, questionId: u.questionId, call: s.name, symbol: s.symbol, arguments: s.arguments, pathHint: s.pathHint, targets: targets.map(t => ({ handle: t.handle, source: t.source, parameters: t.parameters })) }]
+  })))
   const claims = () => options.units().flatMap(u => u.blocks.flatMap(b => b.steps.filter(s => ["transform", "effect", "call", "guard", "reject"].includes(s.kind)).map(s => ({ id: hash([u.questionId, u.handle, b.name, s.name]), questionId: u.questionId, handle: u.handle, block: b.name, step: s, source: u.source, evidenceIds: u.evidenceIds })))).slice(0, 32)
   const start = (stage: FocusStage, item?: WorkItem) => {
     const snapshot = basis(), source = item?.selected ? { id: item.selected.id, path: item.selected.path, sha256: item.selected.sha256, startLine: item.selected.startLine, endLine: item.selected.endLine } : undefined
@@ -88,6 +92,7 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
     }))) { finish("source-invalidated"); return }
     if (forceAnswer) { if (current?.stage !== "answer") { finish("budget-delivery"); start("answer") }; return }
     if (current) return
+    if (options.structural && pendingLinks().some(p => p.targets.length)) { start("link"); return }
     const unaccepted = (i: WorkItem) => !options.units().some(u => u.questionId === i.questionId && u.source?.id === i.selected?.id && u.receiverClass === i.receiverClass)
     const eligible = items.filter(i => (i.origin !== "question-duty" || i.kind === "entry") && i.code !== "source-invalidated" && !finished.has(`${i.id}:${i.selected?.id}`) && (i.state === "awaiting-interpretation" || i.state === "awaiting-binding" && i.evidenceIds.length > 0 && i.code !== "reference-relevance-unconfirmed") && unaccepted(i))
     const rotate = (a: WorkItem, b: WorkItem) => (options.program.questions.findIndex(q => q.id === a.questionId) - lastQuestion - 1 + options.program.questions.length) % options.program.questions.length - (options.program.questions.findIndex(q => q.id === b.questionId) - lastQuestion - 1 + options.program.questions.length) % options.program.questions.length

@@ -8,11 +8,11 @@ import type { InquiryDiagnostic } from "../../task-dsl/authorization/inquiry.ts"
 export interface OperationWorkAction { id: string; obligation: "entry" | "principal-binding" | "resource-binding" | "guard" | "effect" | "exception"; kind: "read" | "interpret" | "link"; candidateId: string; relationId: string; reason: string; receiverClass?: string }
 const hash = (v: unknown) => createHash("sha256").update(JSON.stringify(v)).digest("hex")
 /** Structural candidates satisfy a need to inspect a relationship, never its authorization meaning. */
-export function operationWork(index: StructureIndex, entryId: string, readSymbols: string[], interpretedSymbols: string[], receiverClass?: string) {
+export function operationWork(index: StructureIndex, entryId: string, readSymbols: string[], interpretedSymbols: Array<string | { id: string; receiverClass?: string }>, receiverClass?: string) {
   const entry = index.symbols.find(s => s.id === entryId), actions: OperationWorkAction[] = [], gaps: StructureCall[] = [], frameworkDependencies: SourceFactDependency[] = []
   if (!entry) return { actions, gaps, frameworkDependencies }
   const add = (candidateId: string, relationId: string, reason: string, obligation: OperationWorkAction["obligation"] = "guard", context?: string) => {
-    if (interpretedSymbols.includes(candidateId) || actions.some(a => a.candidateId === candidateId)) return
+    if (interpretedSymbols.some(s => typeof s === "string" ? s === candidateId : s.id === candidateId && s.receiverClass === context) || actions.some(a => a.candidateId === candidateId && a.receiverClass === context)) return
     actions.push({ id: `opwork-${hash([entry.id, candidateId, relationId, context]).slice(0, 24)}`, obligation, kind: readSymbols.includes(candidateId) ? "interpret" : "read", candidateId, relationId, reason, ...(context ? { receiverClass: context } : {}) })
   }
   for (const call of index.relatedCalls(entry.id, receiverClass)) {

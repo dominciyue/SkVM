@@ -14,6 +14,7 @@ import { createInquiryFocus } from "./inquiry-focus.ts"
 import { createOperationFacts, projectOperationUnits } from "../../task-dsl/authorization/operation-facts.ts"
 import { FINITE_PERMISSION_GUIDE } from "../../task-dsl/authorization/control-evaluation.ts"
 import { diagnosticWork, sourceRelationRevision } from "./operation-work.ts"
+import { bindOperationCalls, operationCallTargets, type OperationSourceLink } from "./operation-links.ts"
 
 export type DomainAblation = "scheduler-off" | "checks-off"
 type RuntimeDomainCheck = Omit<ReturnType<typeof checkControlConclusions>, "ruleConsistency"> & { ruleConsistency: boolean | null }
@@ -44,9 +45,15 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const rejectedDrafts = new Map<string, RejectedDraft>()
   const draftIdentity = (p: Pick<UpdateRejection, "group" | "questionId" | "targetKey">) => JSON.stringify([p.group, p.questionId, p.targetKey])
   const operationEvidence = options.strategy === "operation-evidence-v1"
-  const worklist = isGuidedInquiryStrategy(options.strategy) ? createInquiryWorklist({ ...options, structural: operationEvidence, dependencyStates: () => scheduler.snapshot() }) : undefined
+  const worklist = isGuidedInquiryStrategy(options.strategy) ? createInquiryWorklist({ ...options, structural: operationEvidence, semanticUnits: () => semanticUnits, dependencyStates: () => scheduler.snapshot() }) : undefined
   const facts = operationEvidence ? createOperationFacts(options.program, options.tools.identity) : undefined
   let semanticUnits: BoundSemanticBlock[] = structuredClone(options.initialSemanticUnits ?? [])
+  const sourceLinks: OperationSourceLink[] = []
+  const bindSourceCalls = () => {
+    if (!operationEvidence || !options.tools.structure) return
+    const linked = bindOperationCalls(options.tools.structure, semanticUnits)
+    semanticUnits = linked.units; sourceLinks.push(...linked.records)
+  }
   const semanticRecords: ReturnType<typeof applySemanticBlocks>["records"] = [], assemblies: Array<{ raw: unknown; revision: number; derived: unknown; diagnostics: InquiryDiagnostic[] }> = []
   let automaticActionsRemaining = 2
   let offeredTasks: LocalExplanationTask[] = []
@@ -54,7 +61,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   let lastPaths: ReturnType<typeof evaluateControlPaths>["paths"] = []
   let objectRevision = -1, objectDiagnostics: InquiryDiagnostic[] = []
   const issues = new Map<string, InquiryDiagnostic[]>(), computation = { merges: 0, pathEvaluations: 0, conclusionChecks: 0, predicateEvaluations: 0, objectFeedbackPasses: 0, durationMs: 0 }
-  const focus = isFocusedInquiryStrategy(options.strategy) ? createInquiryFocus({ program: options.program, tools: options.tools, items: () => worklist?.snapshot() ?? [], units: () => semanticUnits, slice: () => slice, dependencies: () => scheduler.snapshot(), diagnostics: () => [...issues.values()].flat().concat(check?.diagnostics ?? objectDiagnostics), shownEvidenceIds: options.shownEvidenceIds, structural: operationEvidence }) : undefined
+  const focus = isFocusedInquiryStrategy(options.strategy) ? createInquiryFocus({ program: options.program, tools: options.tools, items: () => worklist?.snapshot() ?? [], units: () => semanticUnits, slice: () => slice, dependencies: () => scheduler.snapshot(), diagnostics: () => [...issues.values()].flat().concat(check?.diagnostics ?? objectDiagnostics), shownEvidenceIds: options.shownEvidenceIds, structural: operationEvidence, ...(operationEvidence ? { linkTargets: (caller, step) => options.tools.structure ? operationCallTargets(options.tools.structure, caller, step, semanticUnits).map(t => t.unit) : [] } : {}) }) : undefined
   const checkHistory: Array<{ revision: number; slice: ControlSlice; result: unknown; check: RuntimeDomainCheck }> = []
   const evidenceContext = () => ({ questionIds: options.program.questions.map(q => q.id), shownEvidenceIds: options.shownEvidenceIds?.() ?? options.tools.evidence.map(e => e.id), suppliedUserText: options.suppliedUserText })
   const calculate = <T>(fn: () => T): T => { const started = performance.now(); try { return fn() } finally { computation.durationMs += performance.now() - started } }
@@ -79,6 +86,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     slice = restored.state
   }
   if (facts && semanticUnits.length) {
+    bindSourceCalls()
     retainFacts()
     const rebuilt = calculate(() => lowerIntoControlSlice(slice, sourceUnits(), options.program, evidenceContext(), true)); computation.merges++; slice = rebuilt.state
     for (const d of rebuilt.diagnostics) { const key = `$semantic-lower.${d.questionId ?? ""}`; issues.set(key, [...(issues.get(key) ?? []), d]) }
@@ -130,13 +138,13 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
       }
       issues.delete("$semantic-envelope"); check = undefined; issues.delete("$semantic-result")
       const pendingDrafts = semanticRecords.filter(r => !r.accepted && issues.has(`$semantic-draft.${r.draftId}`))
-      const previousSources = new Map(semanticUnits.map(u => [`${u.questionId}:${u.handle}`, u.source]))
+      const previousSources = new Map(semanticUnits.map(u => [`${u.questionId}:${u.handle}`, { source: u.source, receiverClass: u.receiverClass }]))
       const applied = applySemanticBlocks(semanticUnits, envelope.data.semanticBlocks, offeredTasks, pendingDrafts)
       semanticUnits = applied.units; semanticRecords.push(...applied.records)
       if (focus) for (const record of applied.records.filter(r => r.accepted)) {
         const unit = semanticUnits.find(u => u.handle === record.handle && u.questionId === record.questionId), selected = worklist?.snapshot().find(i => i.id === unit?.itemId)?.selected
         if (unit && selected) { unit.source = { id: selected.id, path: selected.path, sha256: selected.sha256, startLine: selected.startLine, endLine: selected.endLine }; unit.receiverClass = worklist?.snapshot().find(i => i.id === unit.itemId)?.receiverClass }
-        else if (unit) unit.source = previousSources.get(`${unit.questionId}:${unit.handle}`)
+        else if (unit) Object.assign(unit, previousSources.get(`${unit.questionId}:${unit.handle}`))
       }
       for (const record of applied.records) {
         if (record.accepted) {
@@ -147,7 +155,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
       if (applied.records.some(r => r.accepted)) {
         const changed = new Set(applied.records.filter(r => r.accepted).map(r => r.questionId))
         slice.policyRules = slice.policyRules.filter(p => !changed.has(p.questionId) || !p.key.startsWith("semantic-policy-"))
-        retainFacts()
+        bindSourceCalls(); retainFacts()
         const lowered = calculate(() => lowerIntoControlSlice(slice, sourceUnits(), options.program, evidenceContext(), !!focus)); computation.merges++
         slice = lowered.state; diagnostics.push(...lowered.diagnostics)
         for (const key of issues.keys()) if (key.startsWith("$semantic-lower.")) issues.delete(key)
@@ -338,5 +346,5 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     return { ...state, ...(fullWorklist ? { worklist: worklistModelView(fullWorklist) } : {}), diagnostics: diagnostics.slice(0, 16).map(modelDiagnostic), diagnosticCount: diagnostics.length, rejectedTargets, rejectedTargetCount: rejections.length }
   }
   return { propose, sync, validate, assembleResult, feedback, modelContext, modelFeedback, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { closed = true },
-    report: () => ({ slice: structuredClone(slice), proposals: structuredClone(proposals), currentRejections: structuredClone(currentRejections), localExtractions: structuredClone(localExtractions), ...(facts ? { operationFacts: facts.snapshot(), structure: options.tools.structure ? { schemaVersion: options.tools.structure.schemaVersion, revision: options.tools.structure.revision, parser: options.tools.structure.parser, preparation: options.tools.structure.preparation, diagnostics: options.tools.structure.diagnostics } : undefined } : {}), ...(isSemanticInquiryStrategy(options.strategy) ? { semantic: { units: structuredClone(semanticUnits), records: structuredClone(semanticRecords), assemblies: structuredClone(assemblies) } } : {}), ...(focus ? { focus: focus.report() } : {}), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions), ...worklist.report() } } : {}), objectFeedback: { revision: objectRevision, diagnostics: structuredClone(objectDiagnostics) }, check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed }) }
+    report: () => ({ slice: structuredClone(slice), proposals: structuredClone(proposals), currentRejections: structuredClone(currentRejections), localExtractions: structuredClone(localExtractions), ...(facts ? { operationFacts: facts.snapshot(), sourceLinks: structuredClone(sourceLinks), structure: options.tools.structure ? { schemaVersion: options.tools.structure.schemaVersion, revision: options.tools.structure.revision, parser: options.tools.structure.parser, preparation: options.tools.structure.preparation, diagnostics: options.tools.structure.diagnostics } : undefined } : {}), ...(isSemanticInquiryStrategy(options.strategy) ? { semantic: { units: structuredClone(semanticUnits), records: structuredClone(semanticRecords), assemblies: structuredClone(assemblies) } } : {}), ...(focus ? { focus: focus.report() } : {}), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions), ...worklist.report() } } : {}), objectFeedback: { revision: objectRevision, diagnostics: structuredClone(objectDiagnostics) }, check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed }) }
 }

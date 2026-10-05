@@ -1743,7 +1743,9 @@ Python/Go结构索引采用固定MIT许可的`@vscode/tree-sitter-wasm@0.3.1`，
 
 首次零provider结构探针：Paperless允许95文件，1717符号、9763调用、1365可绑定，准备2430.8264ms、索引1412762bytes；Gitea允许346文件，3418符号、18305调用、5050可绑定，准备39660.2224ms、索引2314050bytes。原件在AU `evaluations/structure-probes.json`，后续优化探针另存。该计数不代表决定性关系完整、独立源码正确或任务完成。首轮完整回归暴露旧schema广告不含顶层null的兼容问题，已修正。目标源码执行0，开发/探子及真人费用未知，不能记为零。
 
-首次ShareLink调试14请求/14响应、64工具动作、3接受单元，完整源码质量仍partial。独立源码与运行轨迹核验确认：决定性`validate_document`源码已读，但尚未进入解释；原入口把静态router.register写成call，raw-string注册又未进入结构模型，继承方法失去接收者并重复配置展开。共享修复先用五个匿名失败例定位，再支持静态context关系、实际receiver贯穿及已读结构work选择；74定向检查、727联合检查/1skip与双类型通过。首答、评阅裁定与修复事件保存于AU results；同题具名复验与最终效果仍待观察。材料级partial恢复另有三个匿名例：保留有效模板、源码override失效、政策/前提独立重算，不继承旧终答/check。
+首次ShareLink调试14请求/14响应、64工具动作、3接受单元，完整源码质量仍partial。独立源码与运行轨迹核验确认：决定性`validate_document`源码已读，但尚未进入解释；原入口把静态router.register写成call，raw-string注册又未进入结构模型，继承方法失去接收者并重复配置展开。共享修复先用五个匿名失败例定位，再支持静态context关系、实际receiver贯穿及已读结构work选择；74定向检查、727联合检查/1skip与双类型通过。首答、评阅裁定与修复事件保存于AU results。材料级partial恢复另有三个匿名例：保留有效模板、源码override失效、政策/前提独立重算，不继承旧终答/check。
+
+同题具名修订`source-context-receiver-v1`21请求/21响应，接受单元增至9个，终答正确指出关键文档guard，但6问独立裁定仍partial：所有callee为空，入口initial仍阻断；ownerless/owner/direct/group未充分展开，源码政策比较又被未请求的部署信息限制。累计35请求/35响应；第二轮完整input352325/output19126/cacheRead24320（cache不重复加总），实际USD未知。下一共享修复以匿名失败例检验自动唯一来源身份绑定、实际C3的super、宽引文解释状态及保留receiver；旧callee在关系不唯一时撤回，参数/权限语义不由宿主补齐。独立代码核验发现的旧callee漏洞已补反例；普通M/D1入口核验无接线问题，完整原技能实用仍待派发。工程验证与源码质量/实际收益继续分列。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

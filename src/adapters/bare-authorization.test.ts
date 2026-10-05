@@ -27,3 +27,11 @@ test("adapter rejects illegal strategy before provider creation and passes the s
   for (const authorizationStrategy of ["domain-evidence-v1", "guided-evidence-v2"]) await expect(adapter.setup({ model: "mock/test", maxSteps: 12, timeoutMs: 10000, providerOptions: { authorizationScope: "input.json", authorizationStrategy } })).rejects.toThrow("domain-tools")
   expect(providers).toBe(0)
 })
+
+test("adapter validates native operation method before creating a provider", async () => {
+  let providers = 0
+  const adapter = new BareAgentAdapter(() => { providers++; throw new Error("Provider should not be created") })
+  await expect(adapter.setup({ model: "mock/test", maxSteps: 12, timeoutMs: 10000, providerOptions: { authorizationScope: "input.json", authorizationMethod: "D1" } })).rejects.toThrow("operation-evidence-v1")
+  await expect(adapter.setup({ model: "mock/test", maxSteps: 12, timeoutMs: 10000, providerOptions: { authorizationScope: "input.json", authorizationDomainTools: true, authorizationStrategy: "operation-evidence-v1", authorizationMethod: "wrong" } })).rejects.toThrow("authorization-method")
+  expect(providers).toBe(0)
+})

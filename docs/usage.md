@@ -91,6 +91,8 @@ Add `--authorization-strategy=domain-evidence-v1` together with `--authorization
 
 Inquiry runs also accept explicit positive integer limits: `--max-provider-calls=32 --max-tool-calls=48 --max-display-bytes=524288 --max-read-bytes=8388608 --max-output-tokens=6000 --request-timeout-ms=300000 --session-timeout-ms=1200000`. These flags bound the actual public consumer session; omitted limits keep its defaults. Source read/index bytes are cumulative. Focused supporting source windows show ordinary read bodies within the same source display budget without selecting a callee automatically.
 
+`operation-evidence-v1` adds source structure candidates and shared operation interpretations to the same runtime. Ordinary use selects `--authorization-strategy=operation-evidence-v1 --authorization-domain-tools --authorization-method=M`; M keeps the entire natural brief and compiles it without a declaration call. Use `--authorization-method=D1` to let the model author a v2 operation declaration from that brief within the same provider/tool budget. A complete supplied v1/v2 declaration compiles without another author call. These flags require a source scope. The original skill and its companion files remain available. Unique source relationships can bind accepted helpers automatically; missing typed arguments still require correction. Source interpretation and current checks remain separate from independent source quality. AU's two ShareLink debug attempts are partial, with 35 actual requests/responses; full original-skill use is still pending.
+
 For an existing security skill and a scope file containing your natural question, source identity, relative source folder and independent policy:
 
 ```sh

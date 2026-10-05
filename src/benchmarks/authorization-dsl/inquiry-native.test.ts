@@ -294,3 +294,20 @@ test("a natural guided brief still requires a counted model declaration without 
   expect(runtime.report()).toMatchObject({ compilationOrigin: "model-tool", compilationToolCalls: 1, domainCalls: 1 })
   runtime.close()
 })
+
+test("ordinary operation D1 authoring is selected explicitly and counted in the same native tool budget", async () => {
+  const { root } = await budgetFixture(), inputFile = path.join(root, "input.json")
+  const runtime = await createNativeInquiryRuntime({ inputFile, workDir: root, domainTools: true, strategy: "operation-evidence-v1", method: "D1" } as any)
+  expect(runtime.report().program).toBeUndefined()
+  expect(runtime.definitions.map(d => d.name)).toContain("authorization_compile")
+  const inquiry = { schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "Can anyone call entry?", entryHint: "entry" }], questions: [{ id: "behavior", operationId: "op", intent: "behavior", request: "Can anyone call entry?", premises: [] }, { id: "scope", operationId: "op", intent: "scope", request: "What source limits remain?", premises: [] }] }
+  expect((await runtime.execute({ id: "compile", name: "authorization_compile", arguments: { inquiry } })).exitCode).toBe(0)
+  expect(runtime.report()).toMatchObject({ compilationOrigin: "model-tool", compilationToolCalls: 1, domainCalls: 1 })
+  expect(runtime.report().program?.operations).toHaveLength(1)
+  expect(runtime.report().program?.questions).toHaveLength(2)
+  const params: any = { messages: [{ role: "user", content: "Whole original task" }] }
+  await runtime.beforeDispatch(params)
+  expect(params.tools.map((t: any) => t.name)).not.toContain("authorization_compile")
+  expect(params.messages.some((m: any) => m.content.startsWith("Current local explanation context:"))).toBe(true)
+  await runtime.close()
+})

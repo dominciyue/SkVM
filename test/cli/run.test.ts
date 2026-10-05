@@ -31,6 +31,7 @@ describe("RUN_FLAGS.parse — typed config", () => {
       "authorization-scope": undefined,
       "authorization-domain-tools": false,
       "authorization-strategy": undefined,
+      "authorization-method": undefined,
       "authorization-trace": undefined,
       "authorization-max-provider-calls": undefined,
       "authorization-max-tool-calls": undefined,
@@ -74,6 +75,7 @@ describe("RUN_FLAGS.parse — typed config", () => {
       "authorization-scope": undefined,
       "authorization-domain-tools": false,
       "authorization-strategy": undefined,
+      "authorization-method": undefined,
       "authorization-trace": undefined,
       "authorization-max-provider-calls": undefined,
       "authorization-max-tool-calls": undefined,
@@ -191,6 +193,7 @@ Options:
   --authorization-scope=<path>                Opt into bounded read-only authorization source tools using an inquiry input file (bare-agent).
   --authorization-domain-tools                Enable inquiry compilation, relation observations and result checking in the restricted source run.
   --authorization-strategy=<v>                Optional domain dependency scheduling, finite branch evaluation and conclusion checks; requires source scope and domain tools.
+  --authorization-method=<m>                  operation-evidence-v1 frontend: M preserves the whole natural task (default); D1 counts a model-authored declaration in the same run.
   --authorization-trace=<path>                Save the restricted authorization tool and provider trace outside target source.
   --authorization-max-provider-calls=<n>      Restricted authorization provider dispatch cap, including retries (default: 12).
   --authorization-max-tool-calls=<n>          Restricted authorization shared source/domain tool cap (default: 24).

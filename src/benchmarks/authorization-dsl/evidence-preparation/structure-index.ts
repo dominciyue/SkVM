@@ -160,7 +160,16 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
   function resolveCall(raw: FileScope["rawCalls"][number], scope: FileScope, receiverClass?: string): StructureCall {
     const call = structuredClone(raw.call), parts = call.expression.split("."), name = parts.pop()!, root = parts[0], owner = symbols.find(s => s.id === call.ownerId)
     let candidates: StructureSymbol[] = [], basis: string[] = []
-    if (!parts.length) { candidates = matching(qualified(name, scope)).filter(s => !s.className); basis = ["AST unqualified name in module/import scope"] }
+    if (scope.language === "python" && /^super\(\)\.[A-Za-z_]\w*$/.test(call.expression) && owner?.className) {
+      const mro = linearize(receiverClass ?? owner.className), position = mro?.indexOf(owner.className) ?? -1
+      if (mro && position >= 0) for (const cls of mro.slice(position + 1)) {
+        candidates = symbols.filter(s => s.className === cls && s.name === name)
+        if (candidates.length) break
+      }
+      basis = ["AST zero-argument super after defining class in actual C3 receiver"]
+      if (candidates.length && mro) call.receiverClass = mro[0]
+    }
+    else if (!parts.length) { candidates = matching(qualified(name, scope)).filter(s => !s.className); basis = ["AST unqualified name in module/import scope"] }
     else if (root && scope.aliases[root]) { candidates = matching(qualified(call.expression, scope)); basis = ["AST import/alias binding"] }
     else if (root && (raw.types[root] || root === "self" && receiverClass)) {
       let type = root === "self" && receiverClass ? receiverClass : qualified(raw.types[root]!, scope)
