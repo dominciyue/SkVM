@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { InquiryText } from "../../task-dsl/authorization/inquiry.ts"
 import { AuthorizationInquirySchema, AuthorizationInquiryV1Schema, AuthorizationInquiryV2Schema } from "../../task-dsl/authorization/inquiry.ts"
 import { AuthorizationInquiryResultSchema, AuthorizationObservationSchema, InquiryQuestionResultSchema } from "../../task-dsl/authorization/inquiry-result.ts"
 import { ControlSliceV1DeltaSchema as ControlSliceDeltaSchema, canonicalControl, isFocusedInquiryStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
@@ -114,15 +115,17 @@ export const inquiryAuthorModelSchema = (strategy?: InquiryStrategy) => strategy
 /** Recover explicit routing containers losslessly; local source meaning is validated by the active focus. */
 export function normalizeFocusedControlEnvelope(input: unknown) {
   if (!input || typeof input !== "object" || Array.isArray(input)) return { value: input }
-  const raw = input as Record<string, unknown>, keys = Object.keys(raw)
+  const original = input as Record<string, unknown>
+  const versionOmitted = !("schemaVersion" in original) && ["select", "interpret", "link", "review", "defer"].includes(String(original.kind))
+  const raw = versionOmitted ? { ...original, schemaVersion: "authorization-focused-update/v1" } : original, keys = Object.keys(raw)
   const sourceCalls = z.array(OperationSourceCallSchema).min(1).max(8)
   let value: unknown = input, code: string | undefined
   if (keys.every(k => ["kind", "value"].includes(k)) && raw.value && typeof raw.value === "object" && !Array.isArray(raw.value)) {
     const nested = raw.value as Record<string, unknown>, nestedKeys = Object.keys(nested)
     const delta = !("controlDelta" in nested) || FocusedUpdateEnvelopeSchema.safeParse(nested.controlDelta).success
     if (raw.kind === nested.kind && ((raw.kind === "tool" && nestedKeys.every(k => ["kind", "calls", "controlDelta"].includes(k)) && sourceCalls.safeParse(nested.calls).success && delta) || (raw.kind === "control" && nestedKeys.every(k => ["kind", "controlDelta"].includes(k)) && FocusedUpdateEnvelopeSchema.safeParse(nested.controlDelta).success))) { value = nested; code = "focused-step-matching-wrapper" }
-  } else if (raw.kind === "tool" && ("schemaVersion" in raw || "focusId" in raw) && z.object({ kind: z.literal("tool"), calls: sourceCalls, schemaVersion: z.literal("authorization-focused-update/v1").optional(), focusId: z.string().min(1).optional() }).strict().safeParse(raw).success) {
-    value = { kind: "tool", calls: raw.calls }; code = "focused-source-routing-metadata"
+  } else if (raw.kind === "tool" && ("schemaVersion" in raw || "focusId" in raw || "reason" in raw) && z.object({ kind: z.literal("tool"), calls: sourceCalls, schemaVersion: z.literal("authorization-focused-update/v1").optional(), focusId: z.string().min(1).optional(), reason: InquiryText.optional() }).strict().safeParse(raw).success) {
+    value = { kind: "tool", calls: raw.calls, ...("reason" in raw ? { reason: raw.reason } : {}) }; code = "focused-source-routing-metadata"
   } else if (raw.schemaVersion === "authorization-focused-update/v1") {
     const { calls: explicitCalls, controlDelta: misplaced, ...focused } = raw
     const hasCalls = "calls" in raw, hasDelta = "controlDelta" in raw
@@ -134,10 +137,10 @@ export function normalizeFocusedControlEnvelope(input: unknown) {
   else if (raw.kind === undefined && keys.every(k => ["calls", "controlDelta"].includes(k)) && z.array(InquirySourceCallSchema).min(1).max(8).safeParse(raw.calls).success) { value = { ...raw, kind: "tool" }; code = "focused-tool-kind-omitted" }
   else if (raw.kind === undefined && keys.every(k => k === "result") && FocusedResultSchema.safeParse(raw.result).success) { value = { ...raw, kind: "final" }; code = "focused-final-kind-omitted" }
   else if ((raw.kind === "final" || raw.kind === undefined) && raw.schemaVersion === "authorization-focused-result/v1") { const { kind: _kind, ...result } = raw; if (FocusedResultSchema.safeParse(result).success) { value = { kind: "final", result }; code = "focused-final-result-root" } }
-  return code ? { value, normalization: { code, originalKind: raw.kind ?? null } } : { value: input }
+  return code ? { value, normalization: { code: versionOmitted ? "focused-action-version-omitted" : code, originalKind: original.kind ?? null, ...(versionOmitted ? { filled: ["schemaVersion"] } : {}) } } : { value: input }
 }
 const focusedSteps = (stage?: FocusStage, parsing = false, operation = false) => z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("tool"), calls: z.array(operation ? OperationSourceCallSchema : InquirySourceCallSchema).min(1).max(8), controlDelta: focusedUpdateSchema(stage, parsing, operation).optional() }).strict(),
+  z.object({ kind: z.literal("tool"), calls: z.array(operation ? OperationSourceCallSchema : InquirySourceCallSchema).min(1).max(8), controlDelta: focusedUpdateSchema(stage, parsing, operation).optional(), reason: InquiryText.optional() }).strict(),
   z.object({ kind: z.literal("control"), controlDelta: focusedUpdateSchema(stage, parsing, operation) }).strict(),
   z.object({ kind: z.literal("final"), result: FocusedResultSchema }).strict(),
 ])
@@ -146,8 +149,8 @@ function operationStepModelSchema(stage?: FocusStage, finalOnly = false) {
   const final = FocusedResultSchema.extend({ kind: z.literal("final") })
   if (finalOnly) return final
   const actions = focusedUpdateSchema(stage, false, true), options = "options" in actions ? actions.options : [actions]
-  const direct = options.map(action => action.extend({ calls: z.array(OperationSourceCallSchema).max(8).optional() }))
-  const variants = [z.object({ kind: z.literal("tool"), calls: z.array(OperationSourceCallSchema).min(1).max(8), schemaVersion: z.literal("authorization-focused-update/v1").optional(), focusId: z.string().min(1).optional() }).strict(), ...direct, ...(stage === "answer" ? [final] : [])]
+  const direct = options.map(action => action.extend({ schemaVersion: action.shape.schemaVersion.optional(), calls: z.array(OperationSourceCallSchema).max(8).optional() }))
+  const variants = [z.object({ kind: z.literal("tool"), calls: z.array(OperationSourceCallSchema).min(1).max(8), schemaVersion: z.literal("authorization-focused-update/v1").optional(), focusId: z.string().min(1).optional(), reason: InquiryText.optional() }).strict(), ...direct, ...(stage === "answer" ? [final] : [])]
   const exact = z.union([variants[0]!, variants[1]!, ...variants.slice(2)])
   // A root union forces the generic tool transport to add a second `value` container.
   // Publish one object; action-specific required/forbidden fields remain strictly parsed.

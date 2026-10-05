@@ -2,7 +2,7 @@ import { expect, test } from "bun:test"
 import { mkdtemp, writeFile } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
-import { inquiryStepSchemas, inquiryNativeSchemas } from "./inquiry-wire.ts"
+import { inquiryStepSchemas, inquiryNativeSchemas, normalizeFocusedControlEnvelope } from "./inquiry-wire.ts"
 import { runAuthorizationInquiry } from "./inquiry-run.ts"
 import { emptyTokenUsage } from "../../core/types.ts"
 import type { FocusStage } from "./inquiry-focus.ts"
@@ -70,6 +70,24 @@ test("link explanation remains original data while exact links and typed source 
   expect(schemas.schema.parse(action)).toEqual({ kind: "control", controlDelta: action })
   expect(inquiryNativeSchemas("operation-evidence-v1", true, "link").authorization_observe.parse({ controlDelta: action })).toEqual({ controlDelta: action })
   for (const invalid of [{ ...action, reason: 3 }, { ...action, calls: [{ name: "get_serializer", arguments: [] }] }, { ...action, kind: "tool" }]) expect(schemas.schema.safeParse(invalid).success).toBe(false)
+})
+test("selected operation context supplies only an omitted fixed version for every direct focused action", () => {
+  const actions: Array<[FocusStage, any]> = [["locate", { kind: "select", focusId: "current", candidateId: "real-candidate" }], ["interpret", { kind: "interpret", focusId: "current", unit }], ["link", { kind: "link", focusId: "current", links: [{ caller: "a", call: "b", target: "c" }] }], ["review", { kind: "review", focusId: "current", claims: [{ claim: "real", verdict: "gap", explanation: "Source gap" }] }], ["answer", { kind: "defer", focusId: "current", reason: "Named gap", revisit: "existing-unit" }]]
+  for (const [stage, raw] of actions) {
+    const schemas = inquiryStepSchemas("operation-evidence-v1", false, "behavior", stage), normalized = normalizeFocusedControlEnvelope(raw)
+    expect(schemas.modelSchema.safeParse(raw).success).toBe(true)
+    expect(schemas.schema.parse(raw)).toMatchObject({ kind: "control", controlDelta: { ...raw, schemaVersion: common.schemaVersion } })
+    expect(normalized.normalization).toMatchObject({ code: "focused-action-version-omitted", filled: ["schemaVersion"] })
+    expect(schemas.schema.safeParse({ ...raw, schemaVersion: "wrong" }).success).toBe(false)
+    const { focusId: _focus, ...missingFocus } = raw
+    expect(schemas.schema.safeParse(missingFocus).success).toBe(false)
+  }
+})
+test("source-tool explanation and metadata preserve the original source call without selecting a focus", () => {
+  const raw = { kind: "tool", calls: [{ name: "source_read" as const, arguments: { path: "anonymous.py", startLine: 1, endLine: 2 } }], reason: "Read the named original body before revisiting its interpretation", ...common }, schemas = inquiryStepSchemas("operation-evidence-v1", false, "behavior", "interpret")
+  expect(schemas.modelSchema.safeParse(raw).success).toBe(true)
+  expect(schemas.schema.parse(raw)).toEqual({ kind: "tool", calls: raw.calls, reason: raw.reason })
+  for (const invalid of [{ ...raw, reason: 4 }, { ...raw, schemaVersion: "wrong" }, { ...raw, revisit: "invented-action" }, { ...raw, calls: [{ name: "get_serializer", arguments: [] }] }]) expect(schemas.schema.safeParse(invalid).success).toBe(false)
 })
 test("actual structured provider receives the direct operation schema and its original bodies reach the shared runtime", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "au-step-"))
