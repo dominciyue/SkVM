@@ -2485,6 +2485,8 @@ AU1 内部接口（实施中）：strict v2的operations为`{id,request,entryHin
 
 focused输入可无损恢复明确的传输容器：完整显式focused identity/action/payload移入canonical controlDelta，已有合法calls保持原样；误置容器只含唯一also且根无同名字段时可原样迁移。同kind的tool/control重复value容器仅在内层完整合法、外层无其它字段时展开一次。冲突、缺失身份、额外字段及非法调用仍拒绝；不补语义单元、答案或源码事实，模型广告合同不变，raw与normalization并存。
 
+连续实际容器失败后，operation structured前端广告改为单层focused action：`kind,schemaVersion,focusId`及本阶段payload直接在根，可附带来源calls；final亦直接包含focused result字段。解析器无损lower到原canonical step与同一domain核心，显式空calls仅表示零来源动作。结构入口使用匹配指南，不再广告两层kind；旧canonical输入兼容，旧focused及普通native工具合同保持。普通source run可显式设置每实际请求输出token限额，沿用较小的调用方限额和旧默认。完整原skill清单与实际companion读取分列，零读取不等于已经履行原skill相关职责；自然N无formal check标作not-applicable。
+
 普通完整skill、Markdown加同核心、DSL加同核心分别观察，用真实源码和原始任务检验质量、编写及变化使用。评阅oracle、正确答案和人工正确图留在评价侧；程序自行提取候选的过程与成本可查。原答/修订分列，共享缺陷即停受影响派发、当场修复并同题复验，不要求故障首轮跑满。确定性测试、真实采用、独立源码质量与比较收益分别报告；保护输入及未知封存不因新identity绕过。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）

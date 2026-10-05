@@ -8,9 +8,10 @@ import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquir
 import { inquiryStepSchemas, inquiryNativeSchemas } from "./inquiry-wire.ts"
 import { zodToJsonSchema } from "../../providers/structured.ts"
 
-test("operation strategy uses the same focused contracts and v2 compile advertisement", () => {
+test("operation structured result is direct while native keeps the same focused result and v2 declaration core", () => {
   const schemas = inquiryStepSchemas("operation-evidence-v1", true, "behavior", "answer")
-  expect((zodToJsonSchema(schemas.modelSchema) as any).properties.result.properties.schemaVersion.const).toBe("authorization-focused-result/v1")
+  expect((zodToJsonSchema(schemas.modelSchema) as any).properties.schemaVersion.const).toBe("authorization-focused-result/v1")
+  expect((zodToJsonSchema(inquiryNativeSchemas("operation-evidence-v1").authorization_check_result) as any).properties.result.properties.schemaVersion.const).toBe("authorization-focused-result/v1")
   expect((zodToJsonSchema(inquiryNativeSchemas("operation-evidence-v1").authorization_compile) as any).properties.inquiry.properties.schemaVersion.const).toBe("authorization-inquiry/v2")
 })
 test("one accepted current source body projects to every original question without sharing premise values", async () => {

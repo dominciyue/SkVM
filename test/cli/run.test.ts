@@ -37,6 +37,7 @@ describe("RUN_FLAGS.parse — typed config", () => {
       "authorization-max-tool-calls": undefined,
       "authorization-max-display-bytes": undefined,
       "authorization-max-read-bytes": undefined,
+      "authorization-max-output-tokens": undefined,
       "timeout-ms": undefined,
       "idle-timeout-ms": undefined,
       "max-steps": undefined,
@@ -81,6 +82,7 @@ describe("RUN_FLAGS.parse — typed config", () => {
       "authorization-max-tool-calls": undefined,
       "authorization-max-display-bytes": undefined,
       "authorization-max-read-bytes": undefined,
+      "authorization-max-output-tokens": undefined,
       "timeout-ms": 90000,
       "idle-timeout-ms": 30000,
       "max-steps": 12,
@@ -199,6 +201,7 @@ Options:
   --authorization-max-tool-calls=<n>          Restricted authorization shared source/domain tool cap (default: 24).
   --authorization-max-display-bytes=<n>       Restricted authorization cumulative original source display cap (default: 262144).
   --authorization-max-read-bytes=<n>          Restricted authorization physical/index source read cap (default: 8388608).
+  --authorization-max-output-tokens=<n>       Optional restricted authorization output token cap per actual provider request.
   --timeout-ms=<n>                            Override the per-task agent execution timeout (ms).
                                               This caps how long the target adapter spends solving
                                               one task. Falls back to task.json's \`timeoutMs\`,

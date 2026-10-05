@@ -12,9 +12,9 @@ test("ordinary bare-agent injects whole skill and uses real restricted continuat
   await writeFile(input, JSON.stringify({ schemaVersion: "authorization-inquiry-input/v1", taskId: "x", repository: "synthetic", sourceRef: "fixed", sourceRoot: "source", allowedPaths: ["."], brief: "Can anyone call entry?" }))
   let calls = 0
   const response = (text: string, toolCalls: any[] = []) => ({ text, toolCalls, tokens: emptyTokenUsage(), durationMs: 0, stopReason: toolCalls.length ? "tool_use" as const : "end_turn" as const })
-  const provider: LLMProvider = { name: "mock", complete: async p => { calls++; expect(p.system).toContain("FULL_ORIGINAL_TAIL"); expect(p.tools?.map(t => t.name)).not.toContain("execute_command"); return response("", [{ id: "r", name: "source_read", arguments: { path: "entry.ts", startLine: 1, endLine: 1 } }]) }, completeWithToolResults: async (_p, results) => { calls++; expect(results[0]!.content).toContain("return false"); return response("Entry denies; original source only.") } }
+  const provider: LLMProvider = { name: "mock", complete: async p => { calls++; expect(p.maxTokens).toBe(777); expect(p.system).toContain("FULL_ORIGINAL_TAIL"); expect(p.tools?.map(t => t.name)).not.toContain("execute_command"); return response("", [{ id: "r", name: "source_read", arguments: { path: "entry.ts", startLine: 1, endLine: 1 } }]) }, completeWithToolResults: async (p, results) => { calls++; expect(p.maxTokens).toBe(777); expect(results[0]!.content).toContain("return false"); return response("Entry denies; original source only.") } }
   const adapter = new BareAgentAdapter(() => provider)
-  await adapter.setup({ model: "mock/model", maxSteps: 12, timeoutMs: 10000, providerOptions: { authorizationScope: input } })
+  await adapter.setup({ model: "mock/model", maxSteps: 12, timeoutMs: 10000, providerOptions: { authorizationScope: input, authorizationMaxOutputTokens: 777 } })
   const run = await adapter.run({ prompt: "Can anyone call entry?", workDir: root, skill: { content: "Read source. FULL_ORIGINAL_TAIL", meta: { name: "original", description: "Original skill" }, mode: "inject" } })
   expect(run.runStatus).toBe("ok")
   expect(calls).toBe(2)

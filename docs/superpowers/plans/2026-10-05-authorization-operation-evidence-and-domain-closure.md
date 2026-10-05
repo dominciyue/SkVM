@@ -369,6 +369,9 @@ AU0/1创建薄runner后登记其真实typecheck、单位置运行和replay命令
 
 ## 九、执行记录
 
+- 第五轮`focused-envelope-routing-v1`仍transport-failed，20派发/20响应、无终答，累计79/79；独立轨迹核验指出7次容器格式拒绝、normalization为0，接收中间解释不等于交付。连续两轮同因失败，下一调整公开operation structured step接口：将当前focused action及identity/unit直接放到一个根容器，来源calls仅可选附带；final亦直接使用focused result字段。宿主仍无损转成既有核心step，普通native工具和旧focused广告合同保留。同步结构入口指南消除tool/control与action两层kind的矛盾，匿名TDD覆盖每阶段/批量/empty-no-op calls/实际provider广告与解析；不猜已冲突的kind、不填源码语义。验证后同题具名修订，再以真实改善记录解除共同容器故障，质量责任继续独立。
+- 此调整与ordinary/cap接线已完成TDD：4个接口预期red转通过；预算3失败例转通过；薄runner4 red转通过，中央任务身份额外red/green。fresh联合782 pass/1skip/4944断言、主/AU双类型通过。独立interface代码核验未发现证实缺陷。普通审查的原brief-hash疑点经实际CLI整段输入定位未成立；改用中央naturalRunTaskId，actualreference reads按实际空/非空完整记账，不强制读所有安装文件代替原skill质量评阅。immutable supplementary registration保留4输入、两完整skill 22/8文件与publicchangedpolicy；尚无普通provider调用。
+
 - 第四轮`source-transaction-batch-v1`在首次解释时transport-failed，3派发/3响应、0接受source units，累计59/59；没有终答，不能以历史partial替代本轮。原始解释把完整focus元数据/unit/calls放在step根，`controlDelta`仅含also；一次受限修复又重复套同kind/value容器。独立评阅与主SHA/原始响应抽查确认属于容器协议问题，尚无批量质量进展。下一修复只对明确完整的focused payload及同kind重复容器作无损归一化；不补unit、focus、调用、权限或答案，冲突/多义字段拒绝。匿名TDD/共享回归与主类型后同题具名修订，affected wire/source/delivery派发继续暂停。
 - 无损格式修复已完成：2个预期red断言转通过，含冲突拒绝的3新反例与旧focused/wire共23 pass/125断言；共享750 pass/1skip/4677断言、主/AU双类型通过。原第四轮两个失败payload在当前解析器零provider/零工具重放均可解析；尚未接受其语义或交付答案。实际4个声明问题逐项not-delivered已存SHA绑定评阅，独立轨迹核验中第三轮单元数的误报已按原件7个校正。下一实际用例为`focused-envelope-routing-v1`修订attempt-4。
 

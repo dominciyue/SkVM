@@ -79,6 +79,15 @@ test("ordinary operation frontend selection is public and validates before execu
   expect(() => validateRunConfig(parse([...base, "--authorization-method=D1"]) as any)).toThrow("scope")
   expect(() => validateRunConfig(parse([...base, "--authorization-scope=scope.json", "--authorization-method=D1"]) as any)).toThrow("operation-evidence-v1")
 })
+test("ordinary output token cap is public, positive and requires a source scope", () => {
+  const base = ["--prompt=Inspect access", "--model=mock/test", "--adapter=bare-agent"]
+  const parse = (args: string[]) => { const parsed = RUN_FLAGS.parse(args); if (parsed.help) throw new Error("Unexpected help"); return parsed }
+  const bounded: any = parse([...base, "--authorization-scope=scope.json", "--authorization-max-output-tokens=6000"])
+  expect(bounded["authorization-max-output-tokens"]).toBe(6000)
+  expect(validateRunConfig(bounded).mode).toBe("source")
+  expect(() => validateRunConfig(parse([...base, "--authorization-max-output-tokens=6000"]))).toThrow("scope")
+  for (const value of ["0", "-1", "1.5", "9007199254740992"]) expect(() => parse([...base, "--authorization-scope=scope.json", `--authorization-max-output-tokens=${value}`])).toThrow()
+})
 test("ordinary inquiry budgets bound actual public execution and reject invalid limits before a provider", async () => {
   const { input, root } = await fixture(); let output = "", calls = 0, providers = 0
   const deps = { stdout: (s: string) => output = s, stderr: () => {}, providerFactory: () => { providers++; return { name: "mock", async complete(params: any) {

@@ -1751,6 +1751,8 @@ Python/Go结构索引采用固定MIT许可的`@vscode/tree-sitter-wasm@0.3.1`，
 
 第四次`source-transaction-batch-v1`3请求/3响应，transport-failed、0接受source units、无终答；四个实际声明问题均not-delivered，不能复用前三轮partial作本轮交付。完整input26644/output2866、USD未知，累计59/59。主SHA/原始响应与独立评阅确认是focused payload错层及同kind容器重复；三个匿名反例验证无损路由恢复、冲突/缺identity拒绝，两个原失败payload零调用重放已可解析。格式修复与批量源码质量/成本收益仍分列，下一同题具名修订不携带评阅结论。
 
+第五次`focused-envelope-routing-v1`20请求/20响应，仍transport-failed、无终答，五个问题均not-delivered；10次接受事件含替换，主原件确认6个current source units，不能记成10个现存单元。完整input362414/output13392/cacheRead31104，USD未知；累计79/79。两探子核验7次格式拒绝、normalization=0，类配置与继承create正文还存在错误归属；serializer/object-permission窗口可得而未接受。连续同因后改operation structured广告为单层action/result，仍lower到同一核心；三新匿名接口测试、公开output cap和薄ordinary runner已通过联合782 pass/1skip与AU类型。完整原技能22/8文件SHA及公开changed policy补充登记，真实普通使用/完整质量/净收益尚未验证。独立代码核验的日志身份疑点经CLI整段prompt锚点裁定未成立，中央身份函数复用避免后续约定漂移；零参考读取如实记录，由原skill职责的独立评阅判断充分性。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

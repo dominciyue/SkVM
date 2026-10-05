@@ -26,7 +26,8 @@ export function nativeInquiryToolModelView(output: unknown) {
   const { domain, domainCheck, questionChecks, ...rest } = output as Record<string, unknown>
   return { ...rest, ...(Array.isArray(questionChecks) ? { questionChecks: questionChecks.map(({ trace, ...question }) => question) } : {}), ...(domain || domainCheck ? { stateLocation: "Current local explanation context.state; full trace retained in native report" } : {}) }
 }
-export async function createNativeInquiryRuntime(options: { inputFile: string; workDir: string; domainTools: boolean; strategy?: InquiryStrategy; method?: typeof NativeInquiryMethods[number]; skillContent?: string; maxToolCalls?: number; maxProviderCalls?: number; maxDisplayBytes?: number; maxReadBytes?: number; traceDir?: string }) {
+export async function createNativeInquiryRuntime(options: { inputFile: string; workDir: string; domainTools: boolean; strategy?: InquiryStrategy; method?: typeof NativeInquiryMethods[number]; skillContent?: string; maxToolCalls?: number; maxProviderCalls?: number; maxDisplayBytes?: number; maxReadBytes?: number; maxOutputTokens?: number; traceDir?: string }) {
+  if (options.maxOutputTokens !== undefined && (!Number.isSafeInteger(options.maxOutputTokens) || options.maxOutputTokens < 1)) throw new Error("Authorization output token limit must be a positive safe integer")
   const strategy = parseInquiryStrategy(options.strategy)
   const method = parseNativeInquiryMethod(options.method)
   if (method && (strategy !== "operation-evidence-v1" || !options.domainTools)) throw new Error("authorization-method requires operation-evidence-v1 and domain-tools")
@@ -139,6 +140,7 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
   }
   const beforeDispatch = async (params: CompletionParams, toolResults?: LLMToolResult[], previousResponse?: LLMResponse) => {
     if (closed) throw new NativeToolRejection("session-closed", "This native source session is closed")
+    if (options.maxOutputTokens !== undefined) params.maxTokens = Math.min(params.maxTokens ?? options.maxOutputTokens, options.maxOutputTokens)
     const providerRemaining = (options.maxProviderCalls ?? 12) - requests.length
     const proseOnly = providerRemaining <= 1 || (options.domainTools && !!result)
     const checkOnly = options.domainTools && !!program && providerRemaining <= 3

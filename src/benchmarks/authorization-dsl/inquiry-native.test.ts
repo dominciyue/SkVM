@@ -61,6 +61,20 @@ async function budgetFixture(domainTools = true, maxToolCalls?: number) {
   const result = (id: string) => ({ schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q1", behavior: { disposition: "deny", explanation: "Entry returns false." }, branches: [], missing: [], evidenceIds: [id] }], observations: [], scope: "entry only" })
   return { root, runtime, execute, inquiry, result }
 }
+test("native output limit bounds every actual request while preserving a stricter caller limit and the old default", async () => {
+  const { root } = await budgetFixture(false), base = { inputFile: path.join(root, "input.json"), workDir: root, domainTools: false }
+  const runtime = await createNativeInquiryRuntime({ ...base, maxOutputTokens: 777 } as any)
+  for (const maxTokens of [32768, 100, undefined]) {
+    const params: any = { messages: [{ role: "user", content: "Original task" }], ...(maxTokens === undefined ? {} : { maxTokens }) }
+    await runtime.beforeDispatch(params)
+    expect(params.maxTokens).toBe(maxTokens === 100 ? 100 : 777)
+  }
+  expect(runtime.report().requests.map((r: any) => r.params.maxTokens)).toEqual([777, 100, 777])
+  const legacy = await createNativeInquiryRuntime(base), params = { messages: [{ role: "user" as const, content: "Original task" }], maxTokens: 32768 }
+  await legacy.beforeDispatch(params)
+  expect(params.maxTokens).toBe(32768)
+  for (const maxOutputTokens of [0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1]) await expect(createNativeInquiryRuntime({ ...base, maxOutputTokens } as any)).rejects.toThrow("positive safe integer")
+})
 test("native closing source snapshot withdraws an earlier checked result after source changes", async () => {
   const { root, runtime, execute, inquiry, result } = await budgetFixture()
   await execute("authorization_compile", { inquiry })

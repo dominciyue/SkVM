@@ -34,7 +34,8 @@ test("routing recovery does not merge conflicting focused payloads or fabricate 
 test("batch contract is advertised only by the opt-in operation strategy", () => {
   const step = { kind: "control", controlDelta: { schemaVersion: "authorization-focused-update/v1", focusId: "focus", kind: "interpret", unit: body, also: [{ itemId: "peer", unit: body }] } }
   expect(inquiryStepSchemas("focused-closure-v1", false, "behavior", "interpret").modelSchema.safeParse(step).success).toBe(false)
-  expect(inquiryStepSchemas("operation-evidence-v1", false, "behavior", "interpret").modelSchema.safeParse(step).success).toBe(true)
+  expect(inquiryStepSchemas("operation-evidence-v1", false, "behavior", "interpret").modelSchema.safeParse(step.controlDelta).success).toBe(true)
+  expect(inquiryStepSchemas("operation-evidence-v1", false, "behavior", "interpret").schema.safeParse(step).success).toBe(true)
 })
 const declaration = (two = false) => compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "Inspect entry", entryHint: "entry" }, ...(two ? [{ id: "other", request: "Inspect foreign", entryHint: "foreign" }] : [])], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect entry", premises: [] }, ...(two ? [{ id: "f", operationId: "other", intent: "behavior", request: "Inspect foreign", premises: [] }] : [])] })
 async function toolsFor(source: string) {

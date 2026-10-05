@@ -124,9 +124,10 @@ export function normalizeFocusedControlEnvelope(input: unknown) {
   } else if (raw.schemaVersion === "authorization-focused-update/v1") {
     const { calls: explicitCalls, controlDelta: misplaced, ...focused } = raw
     const hasCalls = "calls" in raw, hasDelta = "controlDelta" in raw
+    const emptyCalls = hasCalls && Array.isArray(explicitCalls) && explicitCalls.length === 0
     const onlyAlso = hasDelta && raw.kind === "interpret" && !("also" in focused) && misplaced && typeof misplaced === "object" && !Array.isArray(misplaced) && Object.keys(misplaced).length === 1 && Object.keys(misplaced)[0] === "also"
     const candidate = onlyAlso ? { ...focused, also: (misplaced as Record<string, unknown>).also } : focused
-    if ((!hasDelta || onlyAlso) && (!hasCalls || sourceCalls.safeParse(explicitCalls).success) && (raw.kind !== "interpret" || "unit" in focused) && FocusedUpdateEnvelopeSchema.safeParse(candidate).success) { value = hasCalls ? { kind: "tool", calls: explicitCalls, controlDelta: candidate } : { kind: "control", controlDelta: candidate }; code = "focused-update-at-step-root" }
+    if ((!hasDelta || onlyAlso) && (!hasCalls || emptyCalls || sourceCalls.safeParse(explicitCalls).success) && (raw.kind !== "interpret" || "unit" in focused) && FocusedUpdateEnvelopeSchema.safeParse(candidate).success) { value = hasCalls && !emptyCalls ? { kind: "tool", calls: explicitCalls, controlDelta: candidate } : { kind: "control", controlDelta: candidate }; code = "focused-update-at-step-root" }
   } else if (keys.every(k => ["kind", "controlDelta"].includes(k)) && FocusedUpdateEnvelopeSchema.safeParse(raw.controlDelta).success && (raw.kind === undefined || raw.kind === "tool")) { value = { ...raw, kind: "control" }; code = raw.kind === undefined ? "focused-control-kind-omitted" : "focused-control-tool-without-calls" }
   else if (raw.kind === undefined && keys.every(k => ["calls", "controlDelta"].includes(k)) && z.array(InquirySourceCallSchema).min(1).max(8).safeParse(raw.calls).success) { value = { ...raw, kind: "tool" }; code = "focused-tool-kind-omitted" }
   else if (raw.kind === undefined && keys.every(k => k === "result") && FocusedResultSchema.safeParse(raw.result).success) { value = { ...raw, kind: "final" }; code = "focused-final-kind-omitted" }
@@ -138,13 +139,21 @@ const focusedSteps = (stage?: FocusStage, parsing = false, operation = false) =>
   z.object({ kind: z.literal("control"), controlDelta: focusedUpdateSchema(stage, parsing, operation) }).strict(),
   z.object({ kind: z.literal("final"), result: FocusedResultSchema }).strict(),
 ])
+/** One advertised routing kind; all actions still parse into the existing focused core. */
+function operationStepModelSchema(stage?: FocusStage, finalOnly = false) {
+  const final = FocusedResultSchema.extend({ kind: z.literal("final") })
+  if (finalOnly) return final
+  const actions = focusedUpdateSchema(stage, false, true), options = "options" in actions ? actions.options : [actions]
+  const direct = options.map(action => action.extend({ calls: z.array(OperationSourceCallSchema).max(8).optional() }))
+  return z.union([z.object({ kind: z.literal("tool"), calls: z.array(OperationSourceCallSchema).min(1).max(8) }).strict(), direct[0]!, ...direct.slice(1), ...(stage === "answer" ? [final] : [])])
+}
 export type InquiryStep = InquiryControlStep | z.infer<typeof localParserSteps> | z.infer<typeof semanticParserSteps> | z.infer<ReturnType<typeof focusedSteps>>
 const resultModelSchema = (mode?: "behavior" | "conformance") => mode ? AuthorizationInquiryResultSchema.extend({ questions: z.array(mode === "behavior" ? InquiryQuestionResultSchema.omit({ policyAssessment: true }) : InquiryQuestionResultSchema.extend({ policyAssessment: InquiryQuestionResultSchema.shape.policyAssessment.unwrap() })) }) : AuthorizationInquiryResultSchema
 export function inquiryStepSchemas(strategy: InquiryStrategy, finalOnly = false, mode?: "behavior" | "conformance", stage?: FocusStage) {
   if (isFocusedInquiryStrategy(strategy)) {
     const parser = focusedSteps(stage, true, strategy === "operation-evidence-v1"), model = focusedSteps(stage, false, strategy === "operation-evidence-v1")
     const select = (schemas: typeof parser) => finalOnly ? schemas.options[2] : stage === "answer" ? schemas : z.discriminatedUnion("kind", [schemas.options[0], schemas.options[1]])
-    return { schema: z.preprocess(input => normalizeFocusedControlEnvelope(input).value, select(parser)), modelSchema: select(model) }
+    return { schema: z.preprocess(input => normalizeFocusedControlEnvelope(input).value, select(parser)), modelSchema: strategy === "operation-evidence-v1" ? operationStepModelSchema(stage, finalOnly) : select(model) }
   }
   if (strategy === "semantic-flow-v1") return { schema: finalOnly ? z.preprocess(input => normalizeSemanticFinalEnvelope(input).value, semanticParserSteps.options[3]) : semanticParserSteps, modelSchema: finalOnly ? semanticModelSteps.options[3] : semanticModelSteps }
   const fullModel = strategy === "guided-evidence-v2" ? localModelSteps : strategy === "legacy" ? LegacyStepSchema : canonicalStep
