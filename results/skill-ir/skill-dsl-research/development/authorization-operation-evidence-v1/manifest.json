@@ -1,0 +1,312 @@
+{
+  "schemaVersion": "authorization-au-manifest/v1",
+  "development": "adaptive-exposed",
+  "baselineRevision": "dfe7ec3235771c1fcc885b5cc627512233d32250",
+  "researchBaseline": "ba27716041d4e6e5f6f8f3a51e694e25c49323d4",
+  "developerModel": "gpt-6.1-sol / max",
+  "testedModel": "xty/gpt-5.6-sol",
+  "cachePath": "D:\\skill优化\\SkVM\\.skvm",
+  "budgets": {
+    "maxDispatches": 24,
+    "maxToolCalls": 64,
+    "maxDisplayBytes": 786432,
+    "maxReadBytes": 33554432,
+    "maxFiles": 512,
+    "maxTokens": 6000,
+    "perCallTimeoutMs": 300000,
+    "sessionTimeoutMs": 1200000
+  },
+  "inputs": [
+    {
+      "id": "owui-ingestion",
+      "file": "model/inputs/owui-ingestion.json",
+      "sha256": "43dcfc2762912ab7ab68f56a52b832086971ca886a5b976952a514e21d12136d",
+      "inheritedFrom": "../authorization-focused-closure-v1/model/inputs/owui-ingestion.json",
+      "inheritedSha256": "43dcfc2762912ab7ab68f56a52b832086971ca886a5b976952a514e21d12136d",
+      "changes": [
+        "sourceRoot mechanical rebasing only"
+      ],
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "skill": "../authorization-domain-execution-v1/model/source-skills/cloudflare-security-audit/SKILL.md"
+    },
+    {
+      "id": "paperless-download",
+      "file": "model/inputs/paperless-download.json",
+      "sha256": "351e98469db38adf77b52be538475f58cc36033dad04f43211bccb8039abe0e1",
+      "inheritedFrom": "../authorization-focused-closure-v1/model/inputs/paperless-download--framework-v1.json",
+      "inheritedSha256": "b78720578c5ccf4ec37b33e445bad0bfa1db561bf408dbdd5e99b47a6fec8993",
+      "changes": [
+        "sourceRoot mechanical rebasing only"
+      ],
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "skill": "../authorization-domain-execution-v1/model/source-skills/cloudflare-security-audit/SKILL.md"
+    },
+    {
+      "id": "paperless-share-create",
+      "file": "model/inputs/paperless-share-create.json",
+      "sha256": "fdc71945b27f8a423372c0f322d126a7f07a9220356a06a0d9ab8afe5d70ca54",
+      "inheritedFrom": "../authorization-focused-closure-v1/model/inputs/paperless-share-create--framework-v1.json",
+      "inheritedSha256": "f60b4b11e48d1823b06dd7a16a249c4930fd55f7efceeea2f37698d0c53018c1",
+      "changes": [
+        "sourceRoot mechanical rebasing only"
+      ],
+      "repository": "paperless-ngx/paperless-ngx",
+      "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+      "skill": "../authorization-domain-execution-v1/model/source-skills/cloudflare-security-audit/SKILL.md"
+    },
+    {
+      "id": "gitea-create-issue",
+      "file": "model/inputs/gitea-create-issue.json",
+      "sha256": "2166cd5aa75719efd1829e64598bb9688bae72a46206251c742a645ac7db2a3a",
+      "inheritedFrom": "../authorization-focused-closure-v1/model/inputs/gitea-create-issue.json",
+      "inheritedSha256": "2166cd5aa75719efd1829e64598bb9688bae72a46206251c742a645ac7db2a3a",
+      "changes": [
+        "sourceRoot mechanical rebasing only"
+      ],
+      "repository": "go-gitea/gitea",
+      "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+      "skill": "../authorization-domain-execution-v1/model/source-skills/github-security-review/SKILL.md"
+    }
+  ],
+  "rows": [
+    {
+      "id": "debug-paperless-share-create",
+      "task": "paperless-share-create",
+      "kind": "debug",
+      "arm": "D-O"
+    },
+    {
+      "id": "debug-gitea-create-issue",
+      "task": "gitea-create-issue",
+      "kind": "debug",
+      "arm": "D-O"
+    },
+    {
+      "id": "native-paperless-share-create-original",
+      "task": "paperless-share-create",
+      "kind": "native",
+      "arm": "M-O",
+      "variant": "original"
+    },
+    {
+      "id": "native-paperless-share-create-changed",
+      "task": "paperless-share-create",
+      "kind": "native",
+      "arm": "M-O",
+      "variant": "changed"
+    },
+    {
+      "id": "native-gitea-create-issue-original",
+      "task": "gitea-create-issue",
+      "kind": "native",
+      "arm": "M-O",
+      "variant": "original"
+    },
+    {
+      "id": "native-gitea-create-issue-changed",
+      "task": "gitea-create-issue",
+      "kind": "native",
+      "arm": "M-O",
+      "variant": "changed"
+    },
+    {
+      "id": "author-paperless-share-create-original",
+      "task": "paperless-share-create",
+      "kind": "author",
+      "arm": "D-O",
+      "variant": "original"
+    },
+    {
+      "id": "author-paperless-share-create-changed",
+      "task": "paperless-share-create",
+      "kind": "author",
+      "arm": "D-O",
+      "variant": "changed"
+    },
+    {
+      "id": "author-gitea-create-issue-original",
+      "task": "gitea-create-issue",
+      "kind": "author",
+      "arm": "D-O",
+      "variant": "original"
+    },
+    {
+      "id": "author-gitea-create-issue-changed",
+      "task": "gitea-create-issue",
+      "kind": "author",
+      "arm": "D-O",
+      "variant": "changed"
+    },
+    {
+      "id": "consume-paperless-share-create-original",
+      "task": "paperless-share-create",
+      "kind": "consumer",
+      "arm": "D-O",
+      "variant": "original"
+    },
+    {
+      "id": "consume-paperless-share-create-changed",
+      "task": "paperless-share-create",
+      "kind": "consumer",
+      "arm": "D-O",
+      "variant": "changed"
+    },
+    {
+      "id": "consume-gitea-create-issue-original",
+      "task": "gitea-create-issue",
+      "kind": "consumer",
+      "arm": "D-O",
+      "variant": "original"
+    },
+    {
+      "id": "consume-gitea-create-issue-changed",
+      "task": "gitea-create-issue",
+      "kind": "consumer",
+      "arm": "D-O",
+      "variant": "changed"
+    },
+    {
+      "id": "change-policy-fresh",
+      "task": "paperless-share-create",
+      "kind": "variation",
+      "arm": "D-O",
+      "change": "policy",
+      "route": "fresh"
+    },
+    {
+      "id": "change-policy-materials-previous",
+      "task": "paperless-share-create",
+      "kind": "variation",
+      "arm": "D-O",
+      "change": "policy",
+      "route": "materials-previous"
+    },
+    {
+      "id": "change-premise-fresh",
+      "task": "paperless-share-create",
+      "kind": "variation",
+      "arm": "D-O",
+      "change": "premise",
+      "route": "fresh"
+    },
+    {
+      "id": "change-premise-materials-previous",
+      "task": "paperless-share-create",
+      "kind": "variation",
+      "arm": "D-O",
+      "change": "premise",
+      "route": "materials-previous"
+    },
+    {
+      "id": "change-source-fresh",
+      "task": "paperless-share-create",
+      "kind": "variation",
+      "arm": "D-O",
+      "change": "source",
+      "route": "fresh"
+    },
+    {
+      "id": "change-source-materials-previous",
+      "task": "paperless-share-create",
+      "kind": "variation",
+      "arm": "D-O",
+      "change": "source",
+      "route": "materials-previous"
+    },
+    {
+      "id": "quality-owui-ingestion-N",
+      "task": "owui-ingestion",
+      "kind": "quality",
+      "arm": "N"
+    },
+    {
+      "id": "quality-owui-ingestion-M-O",
+      "task": "owui-ingestion",
+      "kind": "quality",
+      "arm": "M-O"
+    },
+    {
+      "id": "quality-owui-ingestion-D-O",
+      "task": "owui-ingestion",
+      "kind": "quality",
+      "arm": "D-O"
+    },
+    {
+      "id": "quality-paperless-download-N",
+      "task": "paperless-download",
+      "kind": "quality",
+      "arm": "N"
+    },
+    {
+      "id": "quality-paperless-download-M-O",
+      "task": "paperless-download",
+      "kind": "quality",
+      "arm": "M-O"
+    },
+    {
+      "id": "quality-paperless-download-D-O",
+      "task": "paperless-download",
+      "kind": "quality",
+      "arm": "D-O"
+    },
+    {
+      "id": "quality-paperless-share-create-N",
+      "task": "paperless-share-create",
+      "kind": "quality",
+      "arm": "N"
+    },
+    {
+      "id": "quality-paperless-share-create-M-O",
+      "task": "paperless-share-create",
+      "kind": "quality",
+      "arm": "M-O"
+    },
+    {
+      "id": "quality-paperless-share-create-D-O",
+      "task": "paperless-share-create",
+      "kind": "quality",
+      "arm": "D-O"
+    },
+    {
+      "id": "quality-gitea-create-issue-N",
+      "task": "gitea-create-issue",
+      "kind": "quality",
+      "arm": "N"
+    },
+    {
+      "id": "quality-gitea-create-issue-M-O",
+      "task": "gitea-create-issue",
+      "kind": "quality",
+      "arm": "M-O"
+    },
+    {
+      "id": "quality-gitea-create-issue-D-O",
+      "task": "gitea-create-issue",
+      "kind": "quality",
+      "arm": "D-O"
+    }
+  ],
+  "ablationsMaximum": 4,
+  "inheritedSeals": {
+    "file": "../authorization-focused-closure-v1/inherited-seals.json",
+    "sha256": "74ab013193083b93feebce74db9eb1cbbcff332cb0a2fe83f2d809976455b0f7",
+    "sealedTasks": [
+      "paperless-notes",
+      "memos-share",
+      "memos-remove"
+    ]
+  },
+  "modelInputAllowlist": [
+    "model/inputs/owui-ingestion.json",
+    "model/inputs/paperless-download.json",
+    "model/inputs/paperless-share-create.json",
+    "model/inputs/gitea-create-issue.json"
+  ],
+  "evaluatorNeverModelVisible": true,
+  "authorFieldRepairMaximum": 1,
+  "actualUSD": null,
+  "developerUsage": null,
+  "humanMinutes": null
+}

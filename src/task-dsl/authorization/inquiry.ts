@@ -7,7 +7,7 @@ export const InquiryQuestionSchema = z.object({
   premises: z.array(z.object({ text: InquiryText, origin: z.literal("user") }).strict()),
 }).strict()
 export const InquiryPolicySchema = z.object({ text: InquiryText, origin: z.enum(["user", "external-policy"]), location: InquiryText }).strict()
-export const AuthorizationInquirySchema = z.object({
+export const AuthorizationInquiryV1Schema = z.object({
   schemaVersion: z.literal("authorization-inquiry/v1"), mode: z.enum(["behavior", "conformance"]),
   questions: z.array(InquiryQuestionSchema).min(1).max(16), policy: InquiryPolicySchema.optional(),
 }).strict().superRefine((value, context) => {
@@ -19,8 +19,28 @@ export const AuthorizationInquirySchema = z.object({
     seen.add(question.id)
   })
 })
+export const ObligationIntentSchema = z.enum(["behavior", "policy-comparison", "scope"])
+export const InquiryOperationSchema = z.object({ id: InquiryText, request: InquiryText, entryHint: InquiryText.optional() }).strict()
+export const InquiryOperationQuestionSchema = InquiryQuestionSchema.extend({ operationId: InquiryText, intent: ObligationIntentSchema }).strict()
+export const AuthorizationInquiryV2Schema = z.object({
+  schemaVersion: z.literal("authorization-inquiry/v2"), mode: z.enum(["behavior", "conformance"]),
+  operations: z.array(InquiryOperationSchema).min(1).max(16), questions: z.array(InquiryOperationQuestionSchema).min(1).max(16), policy: InquiryPolicySchema.optional(),
+}).strict().superRefine((value, context) => {
+  if (value.mode === "conformance" && !value.policy) context.addIssue({ code: z.ZodIssueCode.custom, path: ["policy"], message: "policy-required: conformance needs an independently supplied normative policy." })
+  if (value.mode === "behavior" && value.policy) context.addIssue({ code: z.ZodIssueCode.custom, path: ["policy"], message: "behavior-policy: use conformance for a policy comparison." })
+  const operations = new Set<string>(), questions = new Set<string>()
+  value.operations.forEach((o, i) => { if (operations.has(o.id)) context.addIssue({ code: z.ZodIssueCode.custom, path: ["operations", i, "id"], message: "duplicate-operation: operation ids must be unique." }); operations.add(o.id) })
+  value.questions.forEach((q, i) => {
+    if (questions.has(q.id)) context.addIssue({ code: z.ZodIssueCode.custom, path: ["questions", i, "id"], message: "duplicate-question: question ids must be unique." })
+    if (!operations.has(q.operationId)) context.addIssue({ code: z.ZodIssueCode.custom, path: ["questions", i, "operationId"], message: "operation-missing: question references an absent operation." })
+    questions.add(q.id)
+  })
+  value.operations.forEach((o, i) => { if (!value.questions.some(q => q.operationId === o.id)) context.addIssue({ code: z.ZodIssueCode.custom, path: ["operations", i], message: "operation-unused: each operation needs a question." }) })
+})
+export const AuthorizationInquirySchema = z.union([AuthorizationInquiryV1Schema, AuthorizationInquiryV2Schema])
 export type AuthorizationInquiry = z.infer<typeof AuthorizationInquirySchema>
-export type InquiryQuestion = z.infer<typeof InquiryQuestionSchema>
+export type ObligationIntent = z.infer<typeof ObligationIntentSchema>
+export type InquiryQuestion = z.infer<typeof InquiryQuestionSchema> & { operationId?: string; intent?: ObligationIntent }
 export interface InquiryDiagnostic { code: string; path: string; message: string; severity: "error" | "warning"; questionId?: string }
 export function questionIdForDiagnostic(questionIds: string[], d: InquiryDiagnostic) {
   return d.questionId ?? questionIds.find(id => d.path === id || d.path.startsWith(`${id}.`) || ["rules", "bindings", "dependencies", "policyRules", "sourceBindings", "premiseValues", "workSelections"].some(g => d.path.startsWith(`${g}.${id}.`)))

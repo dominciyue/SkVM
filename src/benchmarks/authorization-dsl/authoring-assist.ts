@@ -8,7 +8,7 @@ import { AuthorizationInquirySchema, type AuthorizationInquiry } from "../../tas
 export function acceptAuthoredInquiry(value: unknown, supplied: { brief: string; mode: "behavior" | "conformance"; policy?: AuthorizationInquiry["policy"] }) {
   const inquiry = AuthorizationInquirySchema.parse(value)
   if (inquiry.mode !== supplied.mode || JSON.stringify(inquiry.policy) !== JSON.stringify(supplied.policy)) throw new Error("Author changed supplied task mode or independent policy")
-  return { inquiry, provenance: { schemaVersion: "authorization-inquiry-provenance/v1", userExplicit: ["naturalBrief", "mode", ...(supplied.policy ? ["policy"] : [])], modelAuthored: ["questions"], hostDerived: ["program queue and stable relation IDs"], naturalBrief: supplied.brief, semanticEquivalence: "unreviewed" } }
+  return { inquiry, provenance: { schemaVersion: "authorization-inquiry-provenance/v1", userExplicit: ["naturalBrief", "mode", ...(supplied.policy ? ["policy"] : [])], modelAuthored: inquiry.schemaVersion === "authorization-inquiry/v2" ? ["operations", "questions"] : ["questions"], hostDerived: ["program queue and stable relation IDs"], naturalBrief: supplied.brief, semanticEquivalence: "unreviewed" } }
 }
 
 const fields = AuthorizationAuthoringInputV2Schema.shape

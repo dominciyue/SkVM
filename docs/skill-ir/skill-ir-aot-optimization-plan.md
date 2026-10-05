@@ -3,7 +3,7 @@
 更新于 2026-10-05。本页维护未达责任与长期边界；阶段原件通过[研究正文](skill-dsl-research.md)、[历史](history.md)和[实验目录](../../results/skill-ir/experiment-catalog.json)查阅。
 
 - 唯一实时入口：[current-status](current-status.md)。
-- 当前任务书：[AU0–AU21 操作级取证与授权 DSL 贯通](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md)，用户已授权，待新线程接管，开发模型`gpt-6.1-sol / max`。
+- 当前任务书：[AU0–AU21 操作级取证与授权 DSL 贯通](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md)，开发线程已接管，AU0进行中，开发模型`gpt-6.1-sol / max`。启动提交`dfe7ec32`，工作区干净；旧结果与封存不变。
 - 方法合同：[spec AU](skill-ir-aot-optimization-spec.md#1434-au-operation-evidence-contract)。
 - 根因复核与设计：[研究 §7.50–7.52](skill-dsl-research.md#750-at-复核任务拆分与领域表达的衔接)。
 

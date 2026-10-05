@@ -2471,6 +2471,8 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 
 v2任务声明把operation与question分开，同一操作的行为、政策比较和范围义务引用共同来源解释。绑定真实入口后才共享语义，主体/资源/实参及用户前提按调用/问题隔离，政策独立计算；原问题不删减。新增源码事实空间记录结构来源、模型解释和机械检查层次，sourceBound/checked不提升为独立源码真值。
 
+AU1 内部接口（实施中）：strict v2的operations为`{id,request,entryHint?}`，questions保留原字段并必需`operationId,intent:behavior|policy-comparison|scope`。program保留originalDeclaration，operations记录宿主sourceQuestionId，operationQuestions保留逐题义务；每operation编译一套来源队列，绑定当前真实入口后将参数化source units投影到旧question级checker。v1逐题独立归一化，不按文字猜共享。`OperationIdentity`绑定repository/sourceRef/entrySymbolId/sourceRevision；facts记录level、evidenceIds与source-span/symbol-resolution/candidate-set/framework-model依赖。事实与投影不复制用户known值、policy映射或旧check/final。新增策略采用同一focused循环，结构动作进入既有worklist；错入口撤回后清除其关联投影，原草稿留档。
+
 有界语言与版本化框架适配产生符号/import/继承/caller及对象传递候选；结构关系和模型解释分别留依据。未满足义务编译为补读、解释、关系核对或明确缺口动作，模型漏报helper时仍可由宿主结构候选发现。语法树与同名唯一性不自行决定业务语义。有限权限/map/集合/对象摘要保留来源、分支、错误及未知；角色顺序不得按名称猜测。复用已有semantic-flow/求值器和局部恢复，禁止按仓库/skill名称写成功分支。
 
 材料复用与完整任务复用分别验收。partial会话可恢复依赖仍有效的结构材料或待复核解释，原等级与缺口保持，旧结论/checked标志不继承。当前源码快照不在运行中替换；新会话按源码片段、名称解析、候选集合、框架版本/配置失效，无法确认的关系重新分析。政策/前提变化按自身依赖重算。源码变化、新增override与路由/alias修改必须有相应负例。

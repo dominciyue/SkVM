@@ -3,11 +3,12 @@ import { createHash } from "node:crypto"
 import { InquiryText, type InquiryDiagnostic } from "./inquiry.ts"
 import type { AuthorizationInquiryProgram } from "./inquiry-program.ts"
 import type { InquiryEvidenceContext } from "./inquiry-result.ts"
-import { predicateDiagnostics, type Scalar } from "./control-evaluation.ts"
+import { predicateDiagnostics, type FiniteValue } from "./control-evaluation.ts"
 
-export type InquiryStrategy = "legacy" | "domain-evidence-v1" | "guided-evidence-v2" | "semantic-flow-v1" | "focused-closure-v1"
-export const InquiryStrategySchema = z.enum(["legacy", "domain-evidence-v1", "guided-evidence-v2", "semantic-flow-v1", "focused-closure-v1"])
-export const isSemanticInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "semantic-flow-v1" || strategy === "focused-closure-v1"
+export type InquiryStrategy = "legacy" | "domain-evidence-v1" | "guided-evidence-v2" | "semantic-flow-v1" | "focused-closure-v1" | "operation-evidence-v1"
+export const InquiryStrategySchema = z.enum(["legacy", "domain-evidence-v1", "guided-evidence-v2", "semantic-flow-v1", "focused-closure-v1", "operation-evidence-v1"])
+export const isFocusedInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "focused-closure-v1" || strategy === "operation-evidence-v1"
+export const isSemanticInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "semantic-flow-v1" || isFocusedInquiryStrategy(strategy)
 export const isGuidedInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "guided-evidence-v2" || isSemanticInquiryStrategy(strategy)
 export function parseInquiryStrategy(input: unknown): InquiryStrategy {
   const parsed = InquiryStrategySchema.safeParse(input ?? "legacy")
@@ -29,7 +30,9 @@ export const ControlDependencySchema = z.object({
   reason: InquiryText, kind: z.enum(["principal-binding", "resource-binding", "control", "effect", "exception"]), decisive: z.boolean(),
   condition: expression.optional(), after: z.array(key).max(64).optional(), parent: key.optional(), pathHint: InquiryText.optional(), candidateId: InquiryText.optional(), ...revision,
 }).strict()
-export const UserBindingSchema = z.object({ questionId: InquiryText, key, value: z.union([z.string(), z.number().finite(), z.boolean(), z.null()]), origin: z.literal("user"), text: InquiryText, ...revision }).strict()
+const scalarValueSchema = z.union([z.string(), z.number().finite(), z.boolean(), z.null()])
+export const FiniteValueSchema = z.union([...scalarValueSchema.options, z.array(scalarValueSchema).max(64), z.record(scalarValueSchema).refine(v => Object.keys(v).length <= 64, "Finite map limit")])
+export const UserBindingSchema = z.object({ questionId: InquiryText, key, value: FiniteValueSchema, origin: z.literal("user"), text: InquiryText, ...revision }).strict()
 export const PolicyRuleSchema = z.object({ questionId: InquiryText, key, pathKey: key, condition: expression.optional(), expected: z.enum(["allow", "deny"]), text: InquiryText, location: InquiryText, origin: z.literal("policy"), ...revision }).strict()
 /** Predicates have a separately enforced finite algebra, avoiding an unbounded recursive model schema. */
 export const ControlSliceV1DeltaSchema = z.object({
@@ -43,6 +46,7 @@ export const SemanticControlRuleSchema = ControlRuleSchema.extend({
   returnValue: z.union([z.string(), z.number().finite(), z.boolean(), z.null()]).optional(), gap: InquiryText.optional(),
   failureKind: z.enum(["authorization", "operation"]).optional(),
   sourceOrigin: z.object({ handle: key, block: key, step: key, instance: key }).strict().optional(),
+  bindingName: key.optional(),
 }).strict()
 export const ControlSliceV2DeltaSchema = ControlSliceV1DeltaSchema.extend({ schemaVersion: z.literal("authorization-control-slice/v2"), rules: z.array(SemanticControlRuleSchema).max(1024).default([]) }).strict()
 export const ControlSliceDeltaSchema = z.discriminatedUnion("schemaVersion", [ControlSliceV1DeltaSchema, ControlSliceV2DeltaSchema])
@@ -92,7 +96,7 @@ export function mergeControlSlice(previous: ControlSlice, input: unknown, progra
       if (over.has(item.questionId)) continue
       const at = `${group}.${item.key}`, start = diagnostics.length, q = program.questions.find(q => q.id === item.questionId)
       if (!q || !context.questionIds.includes(item.questionId)) diagnostics.push(diagnostic("unknown-question", at, "Question is not declared."))
-      if ("condition" in item && item.condition) for (const code of predicateDiagnostics(item.condition)) diagnostics.push(diagnostic(code, at, "Only the bounded eq/neq/is-null/all/any/not algebra is executable; unsupported expression retained in proposal."))
+      if ("condition" in item && item.condition) for (const code of predicateDiagnostics(item.condition)) diagnostics.push(diagnostic(code, at, "Only the bounded finite permission algebra is executable; unsupported expression retained in proposal."))
       if (group === "rules" || group === "dependencies") {
         for (const e of (item as ControlRule).evidenceIds) {
           if (e.startsWith("policy") || e === program.policy?.location) diagnostics.push(diagnostic("policy-as-source", at, "Normative policy cannot serve as source evidence."))
@@ -114,6 +118,14 @@ export function mergeControlSlice(previous: ControlSlice, input: unknown, progra
   }
   return { state, diagnostics }
 }
-export function controlBindings(state: ControlSlice, questionId: string): Record<string, Scalar> {
-  return Object.fromEntries(state.bindings.filter(b => b.questionId === questionId).map(b => [b.key, b.value]))
+export function controlBindings(state: ControlSlice, questionId: string): Record<string, FiniteValue> {
+  const values = Object.fromEntries(state.bindings.filter(b => b.questionId === questionId).map(b => [b.key, b.value]))
+  for (const b of state.bindings.filter(b => b.questionId === questionId)) {
+    const candidates = state.rules.filter(r => r.questionId === questionId && r.kind === "binding" && r.bindingName && (b.key === r.bindingName || b.key.startsWith(`${r.bindingName}.`) || r.sourceOrigin && (b.key === `${r.sourceOrigin.handle}.${r.bindingName}` || b.key.startsWith(`${r.sourceOrigin.handle}.${r.bindingName}.`))))
+    const identities = new Set(candidates.map(c => c.bindingKey))
+    if (identities.size !== 1) continue
+    const node = candidates[0]!, prefix = b.key.startsWith(`${node.sourceOrigin?.handle}.${node.bindingName}`) ? `${node.sourceOrigin!.handle}.${node.bindingName}` : node.bindingName!
+    values[node.bindingKey! + b.key.slice(prefix.length)] = b.value
+  }
+  return values
 }

@@ -5,6 +5,7 @@ import { z } from "zod"
 import type { LLMTool } from "../../providers/types.ts"
 import { loadPortableSourceBundle, type SourceBundleFile } from "./inputs.ts"
 import { indexAuthorizationSymbols, type DiscoverySymbol } from "./evidence-preparation/discovery.ts"
+import { buildStructureIndex, type StructureCall } from "./evidence-preparation/structure-index.ts"
 
 export interface InquiryEvidence {
   id: string; repository: string; sourceRef: string; path: string; sha256: string;
@@ -15,11 +16,12 @@ export interface InquiryToolOutput {
   evidence: InquiryEvidence[]; matches: Array<{ path: string; line: number; evidenceId?: string }>;
   candidates: DiscoverySymbol[]; files?: Array<{ path: string; bytes: number; lineCount: number }>;
   truncated?: boolean; requested?: unknown; nextOffset?: number; totalMatches?: number
+  structure?: { symbolId: string; receiverClass?: string; calls: StructureCall[]; revision: string; truncated: boolean }
 }
 export interface InquiryToolsOptions {
   sourceRoot: string; allowedPaths: string[]; repository: string; sourceRef: string;
   maxFiles?: number; maxReadBytes?: number; maxDisplayBytes?: number; maxToolCalls?: number;
-  reserveFinalRead?: boolean
+  reserveFinalRead?: boolean; structure?: boolean
 }
 export interface InquirySourceVerification { valid: boolean; code?: string; message?: string; checkedFiles: number; physicalReadBytes: number }
 const excluded = new Set([".git", "node_modules", ".skvm", ".aws", ".codex", ".agents", "__pycache__", ".venv", "venv", "oracle", "oracles", "evaluator", "results", "held-out", "prospective", "tests", "__tests__"])
@@ -41,6 +43,7 @@ const schemas = {
   source_search: z.object({ text: z.string().min(1).max(500), path: z.string().optional(), limit: z.number().int().min(1).max(100).default(20) }).strict(),
   source_symbol: z.object({ name: z.string().min(1).max(200), path: z.string().optional() }).strict(),
   source_read: z.object({ path: z.string(), startLine: z.number().int().positive(), endLine: z.number().int().positive() }).strict(),
+  source_structure: z.object({ symbolId: z.string().min(1).max(200), receiverClass: z.string().min(1).max(300).optional() }).strict(),
 }
 /** The structured entrance advertises the executor's exact source argument contract. */
 export const InquirySourceCallSchema = z.discriminatedUnion("name", [
@@ -49,6 +52,11 @@ export const InquirySourceCallSchema = z.discriminatedUnion("name", [
   z.object({ name: z.literal("source_symbol"), arguments: schemas.source_symbol }).strict(),
   z.object({ name: z.literal("source_read"), arguments: schemas.source_read }).strict(),
 ])
+export const OperationSourceCallSchema = z.discriminatedUnion("name", [
+  ...InquirySourceCallSchema.options,
+  z.object({ name: z.literal("source_structure"), arguments: schemas.source_structure }).strict(),
+])
+const structureTool = toolSchema("source_structure", "Inspect AST-bound calls and inherited receiver relations for a shown symbolId. Metadata is a source-location candidate, not body evidence or authorization semantics. Unknown/dynamic bindings remain gaps.", { symbolId: str, receiverClass: str }, ["symbolId"])
 
 /** One bounded executor for Markdown, DSL and the opt-in ordinary adapter. */
 export async function createInquiryTools(options: InquiryToolsOptions) {
@@ -83,6 +91,13 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
     const source = loaded.bundle.files[0]!
     files.set(relative, source); indexBytes += Buffer.byteLength(source.content); ioReadBytes += Buffer.byteLength(source.content)
     symbols.push(...indexAuthorizationSymbols(relative, source.content, options))
+  }
+  const structure = options.structure ? await buildStructureIndex([...files].map(([p, f]) => ({ path: p, content: f.content })), options) : undefined
+  if (structure) {
+    // Parser boundaries replace lexical candidates only for supported languages.
+    const supported = new Set(structure.symbols.map(s => s.path))
+    symbols.splice(0, symbols.length, ...symbols.filter(s => !supported.has(s.path)), ...structure.symbols)
+    scopeGaps.push(...structure.diagnostics.map(d => ({ ...d, detail: "AST relation coverage is partial; this diagnostic is not a permission fact." })))
   }
   const evidence: InquiryEvidence[] = [], history: Array<{ name: string; arguments: unknown; result: InquiryToolOutput; actionOrigin?: string; questionId?: string; dependencyId?: string; reason?: string }> = []
   const originalWindow = (source: SourceBundleFile, start: number, end: number): InquiryEvidence => {
@@ -161,11 +176,19 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
       toolCalls++
       try {
         const schema = schemas[name as keyof typeof schemas]
-        if (!schema) result = blank("error", "tool-not-registered", "This executor has no shell, mutation, network or target execution tool.")
+        if (!schema || name === "source_structure" && !structure) result = blank("error", "tool-not-registered", "This executor has no shell, mutation, network or target execution tool.")
         else if (!schema.safeParse(args).success) result = blank("error", "tool-arguments", "Arguments do not match the registered tool schema.")
         else if (name === "source_list") {
           const a = schemas.source_list.parse(args), all = [...files].map(([p, f]) => ({ path: p, bytes: Buffer.byteLength(f.content), lineCount: linesOf(f.content).length }))
           result = { ...blank(scopeGaps.length ? "partial" : "ok"), files: all.slice(a.offset, a.offset + a.limit), truncated: a.offset + a.limit < all.length, ...(a.offset + a.limit < all.length ? { nextOffset: a.offset + a.limit } : {}) }
+        } else if (name === "source_structure" && structure) {
+          const a = schemas.source_structure.parse(args), symbol = structure.symbols.find(s => s.id === a.symbolId)
+          if (!symbol) result = blank("error", "structure-symbol-missing", "Choose a current indexed AST symbol ID.")
+          else {
+            const file = await current(symbol.path)
+            const calls = structure.relatedCalls(symbol.id, a.receiverClass)
+            result = "status" in file ? file : { ...blank("ok"), structure: { ...a, calls: calls.slice(0, 64), revision: structure.revision, truncated: calls.length > 64 } }
+          }
         } else if (name === "source_read") {
           const a = schemas.source_read.parse(args), file = await current(a.path)
           result = "status" in file ? file : show(file, a.startLine, a.endLine)
@@ -204,9 +227,10 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
     }
     history.push({ name, arguments: structuredClone(args), result: structuredClone(result), ...origin }); return result
   }
-  return { definitions: INQUIRY_SOURCE_TOOLS, execute, restoreEvidence, verifySnapshot, get snapshotVerification() { return snapshotVerification }, evidence, history, scopeGaps,
+  return { definitions: structure ? [...INQUIRY_SOURCE_TOOLS, structureTool] : INQUIRY_SOURCE_TOOLS, execute, restoreEvidence, verifySnapshot, get snapshotVerification() { return snapshotVerification }, evidence, history, scopeGaps, structure, identity: { repository: options.repository, sourceRef: options.sourceRef },
     files: [...files].map(([p, f]) => ({ path: p, sha256: f.sha256, bytes: Buffer.byteLength(f.content) })),
     locateSymbols: (name: string) => structuredClone(symbols.filter(s => s.name === name)),
+    symbolById: (id: string) => structuredClone(symbols.find(s => s.id === id)),
     symbolHints: (text: string) => { const names = new Set(text.match(/[A-Za-z_$][\w$]*/g) ?? []); return structuredClone(symbols.filter(s => s.name.length >= 3 && names.has(s.name))) },
     get displayBytes() { return displayBytes }, get importedEvidenceBytes() { return importedEvidenceBytes }, get indexBytes() { return indexBytes }, get ioReadBytes() { return ioReadBytes }, get toolCalls() { return toolCalls }, maxToolCalls, maxDisplayBytes }
 }

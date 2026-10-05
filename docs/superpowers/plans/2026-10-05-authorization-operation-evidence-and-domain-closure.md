@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有源码/模型运行工具；为 Python/Go 选择有真实语法树和名称解析能力的薄适配器，复用可获得的解析器。CodeQL 是待测适配选项，Cedar/RepoAudit/IRIS 是实现参考，不默认安装完整新平台。
 
-日期：2026-10-05。状态：`authorized-not-started`。执行模型：`gpt-6.1-sol / max`。实际 Git 仓库 `D:/skill优化/SkVM`，分支 `skill-ir-aot`；不创建分支/worktree，仅发布用户 `origin`。研究基线 `ba27716041d4e6e5f6f8f3a51e694e25c49323d4`，执行时保留其后本任务书发布提交。
+日期：2026-10-05。状态：`in-progress`。执行模型：`gpt-6.1-sol / max`。实际 Git 仓库 `D:/skill优化/SkVM`，分支 `skill-ir-aot`；不创建分支/worktree，仅发布用户 `origin`。研究基线 `ba27716041d4e6e5f6f8f3a51e694e25c49323d4`，执行时保留其后本任务书发布提交。
 
 本轮按一轮约 8–12 小时主动工作安排，约六成投入质量、四成投入编写与复用。按有效产物推进，完成即收口，不等待或重复调用凑时长。开发模型与被测模型分开；实验默认 `xty/gpt-5.6-sol`，沿用现有配置。替换不可用路由须记录并作用于整个配对块。
 
@@ -368,5 +368,14 @@ AU0/1创建薄runner后登记其真实typecheck、单位置运行和replay命令
 恢复点只需记录stage、实际代码版本、当前失败/修订、最后已知请求、下一未派发动作、相关文件。进程中断后读取它和当前Git，不重新开始全套审计。原件完整保留，临时副本集中在 `D:/skill优化/project-maintenance/runs/authorization-operation-evidence-v1/`。
 
 ## 九、执行记录
+
+- 2026-10-06 AU10派发准备：714联合pass/1skip/4588断言，主类型与AU类型通过；薄runner 3检查/16断言通过。实际命令`study.ts develop <debug-id> [repair-id original/attempt-n] | replay`，通过旧generic claim/repair/replay和生产`executeLocalInquiryRun`接入；32原位置不重写，未知跨arm封存，先逐调试位置核验/修复再面板。优化后结构探针另存`structure-probes-optimized-v1.json`；此处仍无研究provider结果。
+
+- AU9诊断动作共用focus的revisit/link/条件回答；独立只读核验后先写三个失败反例，再修Go最长模块绑定、首次候选选择阶段更新及失效依赖旧版本重激活。错误入口重新定位立即撤回旧facts/投影/helper，原始记录保留；42项针对性检查通过。结构metadata仍是固定原索引候选，无源码读证据，最终快照终检负责拒绝运行中变化，不重复全库读取。
+
+- AU2–AU8生产原型与匿名反例已落地：operation facts、Python/Go AST名称与继承候选、路由/DRF义务、有限权限求值和对象摘要共用旧focused循环。首次结构探针原件保留；普通自然入口整段任务机械归一化，无额外声明调用。工程原型不等于阶段验收，诊断动作、材料失效、真实调试/双入口/面板与独立评价仍未完成，研究provider调用0。
+
+- AU0 已接管，启动 Git 为 `dfe7ec32`、干净。`authorization-operation-evidence-v1/study.ts init|check` 登记32首位置、重定位四原输入（Paperless使用locked-framework）及seal SHA；model只读取显式白名单，2个接口检查通过，无provider调用。
+- AU1 实际接口：`AuthorizationInquirySchema` 分发 strict v1/v2；v2 operations `{id,request,entryHint?}`，question 增加必需 `operationId,intent`，其余原字段保留。program新增 `operations`（sourceQuestionId为宿主选取的首个behavior题，否则首题）、`operationQuestions`及 `originalDeclaration`；每操作只编译一套六类来源工作，旧checker消费每题的独立投影。v1每题保留独立操作，绝不凭问法自动合并。运行先接受当前完整source入口绑定，再从其参数化source units投影，question级premiseValues/policyRules不共享。来源身份包含repo/ref、入口symbol与源码修订；调用身份仍由semantic-flow的显式arguments与invocation管理。结构/解释/机械checked分别存储，semanticSupport均unreviewed；入口撤回与依赖revision变化撤回关联投影，旧草稿保留。新增策略沿用focused循环，结构取证插入同一worklist，不另建provider循环。
 
 - 2026-10-05：根据研究§7.50–7.51与当前接口核验制定AU0–AU21。用户明确要求派发 `gpt-6.1-sol / max` 开发。此时仅任务书/方法合同与导航同步，生产实现和本轮实验尚未开始。派发后的新线程负责连续推进和更新状态。

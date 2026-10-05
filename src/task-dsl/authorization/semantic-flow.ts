@@ -53,6 +53,10 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
       if (!input || typeof input !== "object") return input
       const object = input as Record<string, unknown>
       if (typeof object.binding === "string" && Object.hasOwn(c.values, object.binding)) return { literal: c.values[object.binding] }
+      if (typeof object.binding === "string") {
+        const reference = object.binding, name = Object.keys(c.objects).sort((a, b) => b.length - a.length).find(name => reference.startsWith(`${name}.`) || reference === name && c.objects[name]!.type === "value")
+        if (name) return { binding: c.objects[name]!.identity + reference.slice(name.length) }
+      }
       return Object.fromEntries(Object.entries(object).map(([key, value]) => [key, predicate(value, c)]))
     }
     const resolveObject = (c: Cursor, ref?: string) => ref ? c.objects[ref]?.identity ?? id([questionId, "unbound-object", ref]) : undefined
@@ -85,7 +89,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
             if (alias) { c.objects[step.name] = alias; append(u, c, instance, body, step.name, "continue", fields) }
             else {
               const identity = id([questionId, instance, "object", step.name]); c.objects[step.name] = { identity, type: step.type }; c.objects[`${u.handle}.${step.name}`] = c.objects[step.name]!
-              append(u, c, instance, body, step.name, "binding", { ...fields, bindingKey: identity, bindingKind: step.type })
+              append(u, c, instance, body, step.name, "binding", { ...fields, bindingKey: identity, bindingKind: step.type, bindingName: step.name })
             }
           } else if (step.kind === "guard") {
             const r = append(u, c, instance, body, step.name, "guard", { ...fields, ...(step.condition ? { condition: predicate(step.condition, c) } : {}), principal: resolveObject(c, step.principal), resource: resolveObject(c, step.resource) }); c.guards[step.name] = r.key; c.guards[`${u.handle}.${step.name}`] = r.key
@@ -127,7 +131,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
             }
             if (invalidArguments.length) { gap(u, c, instance, body, step.name, "semantic-argument-unbound", invalidArguments.join(" ")); next.push(c); continue }
             const summary = options.compositional ? summarizeProcedure(callee) : undefined
-            if (summary?.composable) {
+            if (summary?.composable && summary.variants.every(v => !v.steps?.length && !v.object)) {
               for (const [index, variant] of summary.variants.entries()) {
                 const resumed = structuredClone(c); resumed.route.push(`${instance}.${step.name}.summary:${index}`)
                 append(callee, resumed, `${instance}.${step.name}`, callee.start, `$summary.${index}`, "continue", { claim: `Source-supported helper summary: ${variant.claims.join("; ")}`, ...(variant.condition ? { condition: predicate(variant.condition, child) } : {}) })
@@ -137,7 +141,14 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
               }
               continue
             }
-            const calleeInstance = `${instance}.${step.name}`, expanded = walk(callee, callee.start, [child], calleeInstance, [...stack, marker])
+            const calleeInstance = `${instance}.${step.name}`
+            const expanded = summary?.composable ? summary.variants.flatMap((variant, index) => {
+              const start = structuredClone(child); start.route.push(`${instance}.${step.name}.summary:${index}`)
+              if (variant.condition) append(callee, start, calleeInstance, callee.start, `$summary.${index}`, "continue", { claim: variant.claims.join("; "), condition: predicate(variant.condition, child) })
+              const end: Step = variant.kind === "reject" ? { kind: "reject", name: `$summary-reject-${index}`, claim: variant.claims.at(-1)!, ...(variant.failureKind ? { failureKind: variant.failureKind } : {}) } : { kind: "return", name: `$summary-return-${index}`, claim: variant.claims.at(-1)!, ...(Object.hasOwn(variant, "value") ? { value: variant.value } : {}), ...(variant.object ? { object: variant.object } : {}) }
+              const virtual = { ...callee, blocks: [{ name: callee.start, steps: [...(variant.steps ?? []), end] }] }
+              return walk(virtual, virtual.start, [start], calleeInstance, [...stack, marker])
+            }) : walk(callee, callee.start, [child], calleeInstance, [...stack, marker])
             for (const returned of expanded) {
               if (!callee.complete && !returned.stopped) gap(callee, returned, calleeInstance, callee.start, "$closure", "semantic-helper-incomplete")
               const resumed: Cursor = { ...returned, objects: structuredClone(c.objects), values: structuredClone(c.values), returned: false }
@@ -161,7 +172,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
         for (const parameter of root.parameters) {
           const identity = id([questionId, root.handle, "parameter", parameter.name])
           cursor.objects[parameter.name] = { identity, type: parameter.type }; cursor.objects[`${root.handle}.${parameter.name}`] = cursor.objects[parameter.name]!
-          append(root, cursor, root.handle, root.start, `$parameter.${parameter.name}`, "binding", { claim: `Explicit entry parameter ${parameter.name} (${parameter.type})`, bindingKey: identity, bindingKind: parameter.type })
+          append(root, cursor, root.handle, root.start, `$parameter.${parameter.name}`, "binding", { claim: `Explicit entry parameter ${parameter.name} (${parameter.type})`, bindingKey: identity, bindingKind: parameter.type, bindingName: parameter.name })
         }
         for (const c of walk(root, root.start, [cursor], root.handle, [])) if (!c.stopped) {
           if (!root.complete || !root.fallthrough || root.fallthrough === "unresolved") gap(root, c, root.handle, root.start, "$end", "semantic-entry-incomplete")

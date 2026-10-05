@@ -1,4 +1,5 @@
 import { AuthorizationInquirySchema, type AuthorizationInquiry, type InquiryQuestion, type InquiryDiagnostic } from "./inquiry.ts"
+import { normalizeInquiryOperations, type InquiryOperation, type OperationQuestion } from "./operation-program.ts"
 
 export const INQUIRY_RELATIONS = ["entry", "principal-binding", "resource-binding", "guard", "effect", "exception"] as const
 export type InquiryRelation = typeof INQUIRY_RELATIONS[number]
@@ -6,7 +7,8 @@ export interface InquiryQueueItem { id: string; questionId: string; kind: Inquir
 export interface AuthorizationInquiryProgram {
   schemaVersion: "authorization-inquiry-program/v1"; status: "ready" | "needs-input";
   mode?: AuthorizationInquiry["mode"]; questions: InquiryQuestion[]; policy?: AuthorizationInquiry["policy"];
-  queue: InquiryQueueItem[]; diagnostics: InquiryDiagnostic[]
+  queue: InquiryQueueItem[]; diagnostics: InquiryDiagnostic[];
+  operations?: InquiryOperation[]; operationQuestions?: OperationQuestion[]; originalDeclaration?: AuthorizationInquiry
 }
 const questions: Record<InquiryRelation, string> = {
   entry: "Which entry and applicable upstream controls govern this requested path?",
@@ -22,7 +24,8 @@ export function compileAuthorizationInquiry(input: unknown): AuthorizationInquir
   if (!parsed.success) return { schemaVersion: "authorization-inquiry-program/v1", status: "needs-input", questions: [], queue: [],
     diagnostics: parsed.error.issues.map(issue => ({ code: issue.message.startsWith("policy-required:") ? "policy-required" : issue.message.startsWith("duplicate-question:") ? "duplicate-question" : "inquiry-schema", path: issue.path.join(".") || "$", message: issue.message, severity: "error" })) }
   const value = parsed.data
+  const normalized = normalizeInquiryOperations(value)
   return { schemaVersion: "authorization-inquiry-program/v1", status: "ready", mode: value.mode,
-    questions: structuredClone(value.questions), ...(value.policy ? { policy: structuredClone(value.policy) } : {}),
-    queue: value.questions.flatMap(q => INQUIRY_RELATIONS.map(kind => ({ id: `${encodeURIComponent(q.id)}::${kind}`, questionId: q.id, kind, question: questions[kind], state: "pending" as const }))), diagnostics: [] }
+    ...normalized, originalDeclaration: structuredClone(value), ...(value.policy ? { policy: structuredClone(value.policy) } : {}),
+    queue: normalized.operations.flatMap(o => INQUIRY_RELATIONS.map(kind => ({ id: `${encodeURIComponent(o.sourceQuestionId)}::${kind}`, questionId: o.sourceQuestionId, kind, question: questions[kind], state: "pending" as const }))), diagnostics: [] }
 }

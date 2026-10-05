@@ -1,12 +1,12 @@
 # Skill IR 当前状态
 
-更新于 2026-10-05。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；机器状态和原始结果保存具体进度，历史任务书保存当时的执行记录。
+更新于 2026-10-06。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；机器状态和原始结果保存具体进度，历史任务书保存当时的执行记录。
 
 ## 当前工作
 
 研究主线是 **按 skill/task 范围设计领域表达**。当前任务类为单 repo/ref、源码可见的授权与信任边界评估：围绕主体、资源、操作、条件和政策组织取证、判断与检查。质量约六成、编写复用约四成指开发投入安排，各项质量要求分别验收。
 
-**当前授权队列为 [AU0–AU21 操作级取证与授权 DSL 贯通](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md)，状态 `authorized-not-started`，待新线程接管。** 开发模型 `gpt-6.1-sol / max`，研究基线 `ba277160`；继续本地 `skill-ir-aot`、仅发布用户 origin。四个工作包为操作级共享事实、结构取证、有限领域执行、完整原skill及变化使用；新增策略显式启用。工程尚未开始，旧结果不变。
+**当前授权队列为 [AU0–AU21 操作级取证与授权 DSL 贯通](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md)，状态 `in-progress`，开发线程拥有共享代码、方法文档、状态与 Git 的唯一写入责任。** 开发模型 `gpt-6.1-sol / max`，研究基线 `ba277160`；启动 HEAD/origin为`dfe7ec32`。继续本地`skill-ir-aot`，仅发布用户origin。AU1–AU9工程原型及32位置隔离登记已实现：operation投影、Python/Go结构候选、DRF/路由义务、有限权限/对象摘要、诊断恢复共用旧focused循环；714项联合回归与两类型通过。当前进入AU10真实调试，材料复用/完整使用/独立源码质量/收益尚未验收。恢复入口为本轮results下`status.json`；旧结果与封存不变。
 
 最近的 [AT0–AT19](../superpowers/plans/2026-10-05-authorization-focused-closure-and-delivery.md) 有限队列已以 `completed-with-unmet-criteria` 收束。持久focus、宿主身份、纯有限helper摘要、字段/返回对象、源码终检和双入口已实现。[AT summary](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/summary.json)分别记录工程、实际使用、比较和成本结论；原件和封存保留。
 

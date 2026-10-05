@@ -3,7 +3,7 @@ import path from "node:path"
 import { createHash, randomUUID } from "node:crypto"
 import { isDeepStrictEqual } from "node:util"
 import { readFile, writeFile, appendFile, mkdir, stat } from "node:fs/promises"
-import { AuthorizationInquirySchema, InquiryText, InquiryPolicySchema } from "../../task-dsl/authorization/inquiry.ts"
+import { AuthorizationInquirySchema, AuthorizationInquiryV1Schema, AuthorizationInquiryV2Schema, InquiryText, InquiryPolicySchema } from "../../task-dsl/authorization/inquiry.ts"
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
 import { createInquiryTools } from "./inquiry-tools.ts"
 import { runAuthorizationInquiry, type InquiryMethod, type RunAuthorizationInquiryOptions } from "./inquiry-run.ts"
@@ -26,8 +26,8 @@ export const AuthorizationInquiryInputSchema = z.object({
 })
 export type AuthorizationInquiryInput = z.infer<typeof AuthorizationInquiryInputSchema>
 /** Publish the requested complete-declaration branch; Zod refinements alone do not express its mutually exclusive wire fields. */
-export function authorizationInquiryAuthoringSchema(mode: "behavior" | "conformance") {
-  const declaration = AuthorizationInquirySchema.innerType()
+export function authorizationInquiryAuthoringSchema(mode: "behavior" | "conformance", version: "v1" | "v2" = "v1") {
+  const declaration: z.AnyZodObject = version === "v2" ? AuthorizationInquiryV2Schema.innerType() : AuthorizationInquiryV1Schema.innerType()
   const refine = (value: unknown, context: z.RefinementCtx) => {
     const checked = AuthorizationInquirySchema.safeParse(value)
     if (!checked.success) for (const issue of checked.error.issues) context.addIssue(issue)
