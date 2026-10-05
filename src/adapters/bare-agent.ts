@@ -331,7 +331,7 @@ Available skills:
       loopResult = { text: telemetry.attempts.at(-1)?.response?.text ?? "", steps: [], tokens: summary.knownTokens, llmDurationMs: telemetry.attempts.reduce((n, a) => n + (a.response?.durationMs ?? 0), 0), iterations: telemetry.attempts.length, allToolCalls, error, timedOut: error.name === "AuthorizationCallTimeoutError" }
     } finally {
       await telemetry?.close("ordinary-skill-run-ended")
-      restricted?.close()
+      await restricted?.close()
       if (convLog) {
         try {
           await convLog.finalize()

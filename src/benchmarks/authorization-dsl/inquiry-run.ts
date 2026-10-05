@@ -44,7 +44,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
   if (!["M", "D0", "D1"].includes(options.method)) throw new Error("Invalid inquiry method")
   const strategy = parseInquiryStrategy(options.strategy)
   if (options.domainAblation && (strategy !== "domain-evidence-v1" || !["scheduler-off", "checks-off"].includes(options.domainAblation))) throw new Error("Invalid domain ablation/strategy combination")
-  const startedAt = Date.now(), tools = await createInquiryTools(options), requests: Array<{ phase: "author" | "analysis" | "repair"; params: CompletionParams }> = []
+  const startedAt = Date.now(), tools = await createInquiryTools({ ...options, reserveFinalRead: true }), requests: Array<{ phase: "author" | "analysis" | "repair"; params: CompletionParams }> = []
   let phase: "author" | "analysis" | "repair" = "analysis"
   let cumulativeModelSourceBytes = 0, resentSourceBytes = 0
   const previouslyShown = new Set<string>()
@@ -202,9 +202,15 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
     error = cause instanceof Error ? cause.message : String(cause)
     status = cause instanceof AuthorizationCallTimeoutError || hasUnknownAuthorizationCompletion({ attempts: telemetry.attempts }) ? "timeout-unknown" : cause instanceof AuthorizationDispatchLimitError ? "budget-exhausted" : inquiry ? "transport-failed" : telemetry.attempts.length ? "completed-with-diagnostics" : "needs-input"
   } finally { await telemetry.close(`inquiry-${status}`); domain?.close() }
+  const sourceVerification = await tools.verifySnapshot()
+  if (!sourceVerification.valid && validation) {
+    const diagnostic = { code: "source-invalidated", path: "$source", message: sourceVerification.message!, severity: "error" as const }
+    validation = { ...validation, valid: false, diagnostics: [...validation.diagnostics, diagnostic] }
+    if (status === "completed") status = "completed-with-diagnostics"
+  }
   return { schemaVersion: "authorization-inquiry-run/v1" as const, status, method: options.method, inquiry,
     program: inquiry ? compileAuthorizationInquiry(inquiry) : undefined, result: validation?.valid ? validation.result : undefined,
-    initial, initialValidation, final, validation, observations, steps, requests, wireFailures, wireNormalizations, evidence: tools.evidence, toolHistory: tools.history, scopeGaps: tools.scopeGaps, sourceFiles: tools.files,
+    initial, initialValidation, final, validation, sourceVerification, observations, steps, requests, wireFailures, wireNormalizations, evidence: tools.evidence, toolHistory: tools.history, scopeGaps: tools.scopeGaps, sourceFiles: tools.files,
     sourceAccounting: { indexBytes: tools.indexBytes, physicalReadBytes: tools.ioReadBytes, toolDisplayBytes: tools.displayBytes, importedEvidenceBytes: tools.importedEvidenceBytes, cumulativeModelSourceBytes, resentSourceBytes },
     ...(options.reuse ? { reuse: { ...options.reuse.info, importedEvidenceIds: [...importedReferences] } } : {}),
     ...(domain ? { strategy, domain: domain.report() } : {}), attempts: telemetry.attempts, events: telemetry.events, telemetry: telemetry.summary(), durationMs: Date.now() - startedAt, ...(error ? { error } : {}) }

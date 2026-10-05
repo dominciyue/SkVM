@@ -132,3 +132,11 @@ test("indexed search spends physical rereads on matching files and preserves bud
   expect((await tools.execute("source_read", { path: "src/helper.ts", startLine: 1, endLine: 3 })).status).toBe("ok")
   expect(tools.ioReadBytes).toBe(indexBytes + helperBytes * 2)
 })
+test("final snapshot detects an unmatched file edit and a new indexed path without a live search", async () => {
+  for (const added of [false, true]) {
+    const { root, tools } = await fixture()
+    expect((await tools.execute("source_search", { text: "newMatch" })).matches).toEqual([])
+    await writeFile(path.join(root, added ? "src/added.ts" : "src/entry.ts"), "export function newMatch() { return true; }\n")
+    expect(await (tools as any).verifySnapshot()).toMatchObject({ valid: false, code: "source-changed" })
+  }
+})

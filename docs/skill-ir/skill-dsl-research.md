@@ -1760,3 +1760,5 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 原件中的 nextAction、frozen、proceed-narrow 代表当时阶段；当前选择以本文件第 1 节及 current-status 为准，不因保留原件而重新启动旧任务。
 
 **AT8首轮失败与修订。** ShareLink首轮21次派发均有响应，input134,632/output11,630/cacheRead9,728；美元未知。source_search/symbol参数全部无效，重复读耗尽48次实际工具预算，serializer未取到；最终还存在条件代数、调用参数与源码冒充用户前提的错误，完整质量未达。通用合同修复补齐实际工具参数和条件格式，link允许显式映射参数，错误values可在同一focus纠正；累计物理读预算按登记值执行。四个匿名反例先失败后通过，相关668 pass/1 skip/4367断言、两项类型检查通过。应用锁文件实际锁定DRF3.18.1，新增来源修订单列并共用于Paperless所有臂，首轮输入和来源原件不改；同题真实修订仍待验收。
+
+2026-10-05 AT10/AT16/source-final-snapshot：两原skill native已真实消费，自然源码说明充分但形式化仍未checked；ShareLink第6轮8响应、native GitHub原24响应，累计152响应，无未知完成，USD未知。ShareLink索引搜索物理读取降至2039548字节仍partial。独立审查发现final全来源校验缺失；三个匿名红例验证后实现预算内一次路径/字节校验及失效结果撤回，native等待close，local身份包含校验证明。生产704 pass/1 skip/4654断言、AT6 pass/23断言、主/AT类型检查通过。改动inquiry-tools/run/native/local、bare-agent及测试；evaluations/repair-events/status、current-status/spec/developer-guide同步。待改任务native、原字节消费者、变化及主质量队列。

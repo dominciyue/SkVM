@@ -61,6 +61,16 @@ async function budgetFixture(domainTools = true, maxToolCalls?: number) {
   const result = (id: string) => ({ schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q1", behavior: { disposition: "deny", explanation: "Entry returns false." }, branches: [], missing: [], evidenceIds: [id] }], observations: [], scope: "entry only" })
   return { root, runtime, execute, inquiry, result }
 }
+test("native closing source snapshot withdraws an earlier checked result after source changes", async () => {
+  const { root, runtime, execute, inquiry, result } = await budgetFixture()
+  await execute("authorization_compile", { inquiry })
+  const read = await execute("source_read", { path: "entry.ts", startLine: 1, endLine: 1 })
+  expect((await execute("authorization_check_result", { result: result(read.value.evidence[0].id) })).value.valid).toBe(true)
+  await writeFile(path.join(root, "source/entry.ts"), "export function entry() { return true; }\n")
+  await runtime.close()
+  expect(runtime.report().result).toBeUndefined()
+  expect((runtime.report() as any).sourceVerification).toMatchObject({ valid: false, code: "source-changed" })
+})
 
 test("guided native window allocation reaches reserved prose without exhausting repeated source display", async () => {
   const { root, execute, inquiry } = await budgetFixture()

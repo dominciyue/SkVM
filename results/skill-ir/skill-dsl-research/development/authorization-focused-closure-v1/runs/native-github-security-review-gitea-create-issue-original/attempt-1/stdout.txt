@@ -1,0 +1,348 @@
+
+skvm run v0.1.4
+  Adapter  bare-agent (built-in)
+  Model    xty/gpt-5.6-sol via openai-compatible (https://svip.xty.app/v1)
+  Task     natural prompt
+  Skill    D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\github-security-review\SKILL.md
+  WorkDir  D:\skill优化\project-maintenance\runs\authorization-focused-closure-v1\native-github-security-review-gitea-create-issue-original\attempt-1
+  Cache    D:\skill优化\SkVM\.skvm
+
+08:06:09.526 [INFO ] [run] Run task natural-ed4b528f4b52: adapter=bare-agent model=xty/gpt-5.6-sol workDir=D:\skill优化\project-maintenance\runs\authorization-focused-closure-v1\native-github-security-review-gitea-create-issue-original\attempt-1
+08:06:09.529 [INFO ] [conv-log] Conversation logging enabled: D:\skill优化\SkVM\.skvm\log\20261005-080609-run
+✓ Task natural-ed4b528f4b52 complete  (7m 19s)
+
+=== Run Complete ===
+Task: natural-ed4b528f4b52
+Skill: D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\github-security-review\SKILL.md
+Model: xty/gpt-5.6-sol
+Adapter: bare-agent
+WorkDir: D:\skill优化\project-maintenance\runs\authorization-focused-closure-v1\native-github-security-review-gitea-create-issue-original\attempt-1
+Duration: 439.6s
+Tokens: in=981956 out=16105
+
+Final output:
+╔══════════════════════════════════════════════════════════╗  
+║              🔐 SECURITY REVIEW REPORT                  ║  
+║              Bounded authorization review               ║  
+╚══════════════════════════════════════════════════════════╝
+
+**Project:** `go-gitea/gitea`  
+**Revision:** `fc28937a8d772fe9e4025c9b5f24d5db4d86610b`  
+**Scope:** `CreateIssue`, its API route/middleware, permission helpers, and directly invoked issue-creation service/model path  
+**Review type:** Source-only policy conformance review  
+**Validation status:** **Raw source conclusion — not accepted by the authorization semantic checker.** The checker retained an unresolved helper linkage/effect-closure gap, so the formal result remains **undetermined**, as detailed below.
+
+## Findings Summary
+
+| Severity | Count |
+|---|---:|
+| 🔴 Critical | 0 |
+| 🟠 High | 1 |
+| 🟡 Medium | 0 |
+| 🔵 Low | 0 |
+| ⚪ Info | 0 |
+| **Total** | **1** |
+
+**Dependency audit:** Not performed; outside the bounded question.  
+**Secrets scan:** Not performed; outside the bounded question.
+
+---
+
+## Executive Conclusion
+
+### Source behavior — raw conclusion
+
+The reviewed source appears to allow an authenticated principal with **read permission to the repository’s issues unit, but without write permission**, to create a basic issue.
+
+The route requires an authenticated token, an unarchived and accessible repository, valid request binding, and `reqRepoReader(unit.TypeIssues)`. It does **not** use an issues-unit writer guard. Within `CreateIssue`, the explicit `CanWrite(unit.TypeIssues)` checks restrict issue metadata, but the non-writer branch still calls `issue_service.NewIssue`.
+
+A principal with issues-unit write permission can also create an issue and can additionally provide the metadata reserved to writers.
+
+### Independent policy assessment
+
+> **Current policy:** Creating an issue requires write permission to the repository's issues unit. Read permission to the repository alone does not authorize this write.
+
+**Raw source-based assessment: VIOLATED.**
+
+The route admits issues-unit readers, and the source-visible non-writer branch still reaches issue insertion. Thus the behavior visible in this revision conflicts with the policy.
+
+**Formal checker status: UNDETERMINED.** The authorization checker rejected the stronger “violated/allow/effect performed” result because its machine-semantic trace did not close the `CanWrite → CanAccess` relationship or independently represent the eventual insertion as a protected effect. This is a tool-proof limitation that must be preserved; it is not affirmative evidence that a hidden write guard exists.
+
+---
+
+## Findings — Authorization and Access Control
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━  
+🟠 **HIGH — Issue creation is reader-gated rather than writer-gated**  
+**Confidence: MEDIUM**  
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+### Location
+
+- `routers/api/v1/api.go:1642-1649`
+- `routers/api/v1/api.go:472-479`
+- `routers/api/v1/repo/issue.go:533-653`
+- `models/perm/access/repo_permission.go:153-155`
+- `services/issue/issue.go:25-84`
+- `models/issues/issue_update.go:361-477`
+
+### Route-level control
+
+The POST route is registered as:
+
+```go
+m.Combo("").Get(repo.ListIssues).
+    Post(
+        reqToken(),
+        mustNotBeArchived,
+        bind(api.CreateIssueOption{}),
+        reqRepoReader(unit.TypeIssues),
+        repo.CreateIssue,
+    )
+```
+
+`routers/api/v1/api.go:1646-1649`
+
+The relevant route permission middleware is explicitly a reader check:
+
+```go
+func reqRepoReader(unitType unit.Type) func(ctx *context.APIContext) {
+    return func(ctx *context.APIContext) {
+        if !ctx.Repo.Permission.CanRead(unitType) &&
+            !ctx.IsUserRepoAdmin() &&
+            !ctx.IsUserSiteAdmin() {
+            ctx.APIError(http.StatusForbidden,
+                "user should have specific read permission or be a repo admin or a site admin")
+            return
+        }
+    }
+}
+```
+
+`routers/api/v1/api.go:472-479`
+
+Therefore, route admission is satisfied by any of:
+
+1. Read access to the issues unit;
+2. Repository-admin status; or
+3. Site-admin status.
+
+Repository and site administrators are relevant exceptions and should not be described as ordinary read-only principals. Nevertheless, the first route branch expressly admits non-admin issues-unit readers.
+
+### Principal and repository binding
+
+`repoAssignment` obtains `{username}/{reponame}`, loads that repository, and stores it in:
+
+```go
+ctx.Repo.Repository = repo
+```
+
+It then computes the effective repository permission for `ctx.Doer`:
+
+```go
+ctx.Repo.Permission, err =
+    access_model.GetDoerRepoPermission(ctx, repo, ctx.Doer)
+```
+
+`routers/api/v1/api.go:180-214`
+
+If enforced two-factor authentication is required but unmet, the code substitutes no access. The middleware also requires some unit/public access and checks whether the token may access the repository:
+
+```go
+if !ctx.Repo.Permission.HasAnyUnitAccessOrPublicAccess() {
+    ctx.APIErrorNotFound()
+    return
+}
+
+if !ctx.TokenCanAccessRepo(repo) {
+    ctx.APIErrorNotFound()
+    return
+}
+```
+
+`routers/api/v1/api.go:217-225`
+
+Thus “authenticated reader” alone is not the entire path: token access, repository selection and visibility, applicable scope middleware, two-factor state, archive state, and request binding also matter.
+
+### Endpoint-local write checks
+
+`CreateIssue` does perform issues-unit write checks. The helper is genuinely a write-level unit check:
+
+```go
+func (p *Permission) CanWrite(unitType unit.Type) bool {
+    return p.CanAccess(perm_model.AccessModeWrite, unitType)
+}
+```
+
+`models/perm/access/repo_permission.go:153-155`
+
+However, the reviewed `CreateIssue` body uses those checks to restrict metadata rather than to reject basic creation:
+
+- Deadline is accepted only for an issues-unit writer.
+- Milestone and assignee processing is restricted to writers.
+- Requested labels are cleared for a non-writer.
+- Both the writer and non-writer paths can proceed to `issue_service.NewIssue`.
+
+In other words, failure of `CanWrite(unit.TypeIssues)` reduces what the caller can attach to the issue; it is not an endpoint-local creation denial.
+
+### Creation effect
+
+The handler delegates creation to:
+
+```go
+issue_service.NewIssue(...)
+```
+
+The service performs blocked-user checks and opens a transaction that calls the model creation function:
+
+```go
+if user_model.IsUserBlockedBy(ctx, issue.Poster, repo.OwnerID) ||
+    user_model.IsUserBlockedBy(ctx, issue.Poster, assigneeIDs...) {
+    return user_model.ErrBlockedUser
+}
+
+if err := db.WithTx(ctx, func(ctx context.Context) error {
+    if err := issues_model.NewIssue(ctx, repo, issue, labelIDs, uuids); err != nil {
+        return err
+    }
+    // ...
+    return nil
+}); err != nil {
+    return err
+}
+```
+
+`services/issue/issue.go:25-62`
+
+The model path allocates the repository-specific issue index:
+
+```go
+idx, err := db.GetNextResourceIndex(ctx, "issue_index", repo.ID)
+// ...
+issue.Index = idx
+```
+
+It then reaches `NewIssueWithIndex`, which inserts the issue:
+
+```go
+if _, err := e.Insert(opts.Issue); err != nil {
+    return err
+}
+```
+
+`models/issues/issue_update.go:454-469` and `361-388`
+
+No compensating issues-unit write check is visible in this reviewed service/model chain before insertion.
+
+### Comparison of principals
+
+| Principal | Route admission | Basic issue creation, per raw source trace | Additional metadata |
+|---|---|---|---|
+| Authenticated non-admin with issues-unit **read**, not write | Yes, subject to all other middleware and runtime conditions | Appears allowed; non-writer path still calls `NewIssue` | Restricted: deadline/milestone/assignees omitted and labels cleared |
+| Principal with issues-unit **write** | Yes, because write ordinarily satisfies the relevant access hierarchy | Appears allowed | May provide the guarded metadata, subject to validation |
+| Repository administrator without ordinary unit read | Explicit route exception | Can be admitted through admin exception | Endpoint metadata still depends on effective `CanWrite` result |
+| Site administrator without ordinary unit read | Explicit route exception | Can be admitted through admin exception | Endpoint metadata still depends on effective `CanWrite` result |
+
+The last two rows preserve the distinction between direct/unit permission and role-based route exceptions. The source reviewed does not justify assuming any particular caller is an administrator.
+
+### Risk
+
+An authenticated reader may be able to modify repository state by creating issues despite lacking write permission to the issues unit. Under the supplied policy, this is an authorization boundary violation: repository read permission alone must not authorize the write.
+
+### Relevant failure and post-effect exceptions
+
+Creation is not unconditional. It can be prevented by, among other things:
+
+- Missing or unacceptable authentication/token;
+- Repository lookup or visibility failure;
+- Token inability to access the repository;
+- Applicable token-scope restrictions;
+- Enforced two-factor authentication producing no repository access;
+- An archived repository;
+- Request-binding or metadata-validation errors;
+- Blocked-user relationships;
+- Assignee resolution or assignability failure on the writer path;
+- Database or other operational errors.
+
+There is also an important post-effect distinction: if the request asks for the issue to be initially closed, `CloseIssue` runs after `NewIssue`. Refetch or close processing can fail after creation. An API error response therefore does not necessarily establish that no issue was inserted.
+
+### Recommended remediation
+
+Require issues-unit write permission before invoking the creation service—for example, by applying the repository writer middleware for `unit.TypeIssues` at the POST route or by returning a denial from `CreateIssue` when:
+
+```go
+!ctx.Repo.Permission.CanWrite(unit.TypeIssues)
+```
+
+The check should protect the creation operation itself rather than only optional metadata.
+
+No patch was generated or applied because source modification and patch proposals were outside the requested scope.
+
+---
+
+## Policy vs. Source Behavior
+
+### Independent policy
+
+Creating an issue is a write operation and requires write permission to the repository’s issues unit. Repository read permission is insufficient.
+
+### Reviewed source behavior
+
+The route requires issues-unit read permission, with repository-admin and site-admin alternatives. The endpoint’s issues-unit write checks govern selected metadata, while the non-writer path still appears to invoke the same issue-creation service and model insertion path.
+
+### Conformance determination
+
+- **Raw source conclusion:** **Violated**
+- **Machine-checked authorization result:** **Undetermined / rejected**
+- **Reason for the distinction:** The checker retained an unresolved semantic link around `CanWrite`/`CanAccess` and did not accept the traced service/model call as a formally closed protected effect. The actual displayed helper nevertheless says `CanWrite` calls `CanAccess(AccessModeWrite, unitType)`, and the displayed model code contains the database insertion.
+
+---
+
+## Source Self-Check and Limitations
+
+### Self-check observations
+
+- The route was checked rather than inferring authorization solely from `CreateIssue`.
+- Repository selection and effective permission loading were traced through `repoAssignment`.
+- The apparent `CanWrite` checks were inspected to determine whether they deny creation or only govern metadata.
+- The service and model chain were inspected through the database insertion.
+- Admin exceptions, enforced 2FA, token access, archived repositories, blocked users, and post-creation failures were retained.
+- Read permission was not conflated with repository ownership or administrator status.
+
+### Unresolved formal gap
+
+The authorization-domain checker did **not** accept a complete result. Its retained diagnostics include:
+
+- Unclosed semantic relationship from `CanWrite` to `CanAccess`;
+- Unresolved formal protected-effect representation;
+- Resulting behavior disposition of `unknown`;
+- Resulting policy status of `undetermined`.
+
+Accordingly, the finding above is labeled as a **raw source conclusion** with **Medium confidence**, not as a checked authorization proof.
+
+### Deployment limits
+
+This review does not establish:
+
+- That a live Gitea deployment uses this exact commit;
+- That routing or middleware has not been changed downstream;
+- Any particular repository’s visibility or archive state;
+- Any caller’s ownership, administrator role, direct grant, team grant, or token scopes;
+- The effective two-factor configuration;
+- Blocked-user relationships;
+- That any specific request would pass validation and database operations.
+
+The decisive deployment verification would be to confirm the deployed revision and effective middleware, then test using a non-admin authenticated account that has issues-unit read permission but not issues-unit write permission.
+
+---
+
+## Scan Coverage
+
+- **Repository revision:** `fc28937a8d772fe9e4025c9b5f24d5db4d86610b`
+- **Primary route:** `POST /repos/{username}/{reponame}/issues`
+- **Primary source areas:** API routing, repository assignment, reader middleware, `CreateIssue`, permission helper, issue service, issue model insertion
+- **Method:** Static, bounded, source-only analysis
+- **Runtime execution:** Not performed
+- **Source changes:** None
+
+**Review each remediation before applying. Nothing has been changed.**

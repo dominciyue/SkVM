@@ -18,8 +18,10 @@ export interface InquiryToolOutput {
 }
 export interface InquiryToolsOptions {
   sourceRoot: string; allowedPaths: string[]; repository: string; sourceRef: string;
-  maxFiles?: number; maxReadBytes?: number; maxDisplayBytes?: number; maxToolCalls?: number
+  maxFiles?: number; maxReadBytes?: number; maxDisplayBytes?: number; maxToolCalls?: number;
+  reserveFinalRead?: boolean
 }
+export interface InquirySourceVerification { valid: boolean; code?: string; message?: string; checkedFiles: number; physicalReadBytes: number }
 const excluded = new Set([".git", "node_modules", ".skvm", ".aws", ".codex", ".agents", "__pycache__", ".venv", "venv", "oracle", "oracles", "evaluator", "results", "held-out", "prospective", "tests", "__tests__"])
 const sourceExtension = /\.(?:[cm]?jsx?|tsx?|py|go|rs|java|c|h|cpp|hpp|cs|rb|php|proto|sh)$/i
 const safePath = (value: string, dot = false) => (dot && value === ".") || (!!value && !/[\\\0:]/.test(value) && !value.startsWith("/") && value.split("/").every(s => s && s !== "." && s !== ".." && !excluded.has(s.toLowerCase()) && !/^(?:\.env|credentials|secrets?)(?:\.|$)/i.test(s)))
@@ -71,6 +73,7 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
   }
   for (const scope of options.allowedPaths) await walk(scope)
   paths.sort()
+  const snapshotPaths = [...paths]
   const files = new Map<string, SourceBundleFile>(), symbols: DiscoverySymbol[] = []
   let indexBytes = 0, displayBytes = 0, toolCalls = 0, ioReadBytes = 0, importedEvidenceBytes = 0
   for (const relative of paths) {
@@ -104,7 +107,7 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
   const current = async (relative: string): Promise<SourceBundleFile | InquiryToolOutput> => {
     if (!safePath(relative) || !files.has(relative)) return blank("error", "source-out-of-scope", "Path is outside the allowed and indexed original source.")
     if (await realpath(options.sourceRoot) !== root) return blank("error", "source-root-changed", "Source root changed identity.")
-    const remainingReadBytes = maxReadBytes - ioReadBytes
+    const remainingReadBytes = maxReadBytes - ioReadBytes - (options.reserveFinalRead ? indexBytes : 0)
     if (remainingReadBytes < Buffer.byteLength(files.get(relative)!.content)) return blank("error", "read-budget", "Cumulative physical source read/index budget exhausted; retained evidence remains available.")
     const loaded = await loadPortableSourceBundle({ sourceRoot: root, sourceFiles: [relative], repository: options.repository, sourceRef: options.sourceRef, maxBytes: remainingReadBytes })
     if (!loaded.success) return blank("error", loaded.diagnostics[0]!.code, loaded.diagnostics[0]!.message)
@@ -129,9 +132,31 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
     if (!evidence.some(e => e.id === item.id)) evidence.push(item)
     return { ...blank(last === end ? "ok" : "partial", requestedEnd > end ? "source-end-clamped" : undefined, requestedEnd > end ? `Requested end ${requestedEnd} exceeds EOF ${end}; returning available original lines.` : undefined), evidence: [item], requested: { path: source.relativePath, startLine: start, endLine: requestedEnd }, truncated: last !== end }
   }
+  let snapshotVerification: InquirySourceVerification | undefined, snapshotPromise: Promise<InquirySourceVerification> | undefined
+  const verifySnapshot = () => snapshotPromise ??= (async () => {
+    const started = ioReadBytes; let checkedFiles = 0
+    const finish = (valid: boolean, code?: string, message?: string) => snapshotVerification = { valid, ...(code ? { code, message } : {}), checkedFiles, physicalReadBytes: ioReadBytes - started }
+    try {
+      if (await realpath(options.sourceRoot) !== root) return finish(false, "source-root-changed", "Source root changed identity before final delivery.")
+      paths.length = 0; visited.clear()
+      for (const scope of options.allowedPaths) await walk(scope)
+      paths.sort()
+      if (JSON.stringify(paths) !== JSON.stringify(snapshotPaths)) return finish(false, "source-changed", "Allowed source paths changed after indexing; use a fresh session.")
+      for (const [relative, expected] of files) {
+        const remaining = maxReadBytes - ioReadBytes
+        if (remaining < Buffer.byteLength(expected.content)) return finish(false, "read-budget", "Final source snapshot does not fit the remaining cumulative physical read budget.")
+        const loaded = await loadPortableSourceBundle({ sourceRoot: root, sourceFiles: [relative], repository: options.repository, sourceRef: options.sourceRef, maxBytes: remaining })
+        if (!loaded.success) return finish(false, "source-changed", `Final source snapshot could not verify ${relative}: ${loaded.diagnostics[0]!.code}`)
+        const actual = loaded.bundle.files[0]!; ioReadBytes += Buffer.byteLength(actual.content); checkedFiles++
+        if (actual.sha256 !== expected.sha256) return finish(false, "source-changed", "Indexed source bytes changed before final delivery; earlier evidence remains archived.")
+      }
+      return finish(true)
+    } catch (error) { return finish(false, "source-changed", `Final source identity check failed: ${String(error)}`) }
+  })()
   const execute = async (name: string, args: Record<string, unknown>, origin?: { actionOrigin: string; questionId: string; dependencyId: string; reason: string }): Promise<InquiryToolOutput> => {
     let result: InquiryToolOutput
-    if (toolCalls >= maxToolCalls) result = blank("error", "tool-budget", "Session tool budget exhausted.")
+    if (snapshotPromise) result = blank("error", "source-session-closed", "Final source verification has frozen this session; use a fresh session.")
+    else if (toolCalls >= maxToolCalls) result = blank("error", "tool-budget", "Session tool budget exhausted.")
     else {
       toolCalls++
       try {
@@ -179,7 +204,7 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
     }
     history.push({ name, arguments: structuredClone(args), result: structuredClone(result), ...origin }); return result
   }
-  return { definitions: INQUIRY_SOURCE_TOOLS, execute, restoreEvidence, evidence, history, scopeGaps,
+  return { definitions: INQUIRY_SOURCE_TOOLS, execute, restoreEvidence, verifySnapshot, get snapshotVerification() { return snapshotVerification }, evidence, history, scopeGaps,
     files: [...files].map(([p, f]) => ({ path: p, sha256: f.sha256, bytes: Buffer.byteLength(f.content) })),
     locateSymbols: (name: string) => structuredClone(symbols.filter(s => s.name === name)),
     symbolHints: (text: string) => { const names = new Set(text.match(/[A-Za-z_$][\w$]*/g) ?? []); return structuredClone(symbols.filter(s => s.name.length >= 3 && names.has(s.name))) },

@@ -38,6 +38,21 @@ test("semantic delivery archives omitted-kind normalization without inventing a 
   expect(run.toolHistory).toHaveLength(0)
 })
 const final = (id: string) => ({ kind: "final", result: { schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q1", behavior: { disposition: "deny", explanation: "The called guard returns false." }, evidenceIds: [id], branches: [], missing: [] }], observations: [], scope: "Read source only" } })
+test("closing source snapshot rejects a final after an unread indexed file changes without another provider call", async () => {
+  const input = await setup(); let calls = 0
+  const provider: LLMProvider = { name: "snapshot-mock", async complete(params) {
+    const n = calls++, value = n === 0 ? { kind: "tool", calls: [{ name: "source_read", arguments: { path: "src/helper.ts", startLine: 1, endLine: 1 } }] } : final(/ev-[a-f0-9]+/.exec(params.messages[0]!.content)![0])
+    if (n > 0) await writeFile(path.join(input.sourceRoot, "src/entry.ts"), "export function changedEntry() { return true; }\n")
+    const tool = params.tools![0]!
+    return { text: "", toolCalls: [{ id: `c${calls}`, name: tool.name, arguments: value }], stopReason: "tool_use", tokens: emptyTokenUsage(), durationMs: 0 }
+  }, async completeWithToolResults() { throw new Error("No extra calls") } }
+  const run = await runAuthorizationInquiry({ ...input, method: "M", provider, maxDispatches: 4 })
+  expect(run.status).toBe("completed-with-diagnostics")
+  expect(run.validation?.valid).toBe(false)
+  expect(run.result).toBeUndefined()
+  expect((run as any).sourceVerification).toMatchObject({ valid: false, code: "source-changed" })
+  expect(calls).toBe(2)
+})
 test("domain delivery keeps both bounded wire repairs and one diagnosed result repair inside the original cap", async () => {
   const input = await setup()
   await writeFile(path.join(input.sourceRoot, "src/entry.ts"), "export function entry() { return false; }\n")

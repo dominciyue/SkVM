@@ -6,9 +6,9 @@
 
 研究主线是 **按 skill/task 范围设计领域表达**。当前任务类为单 repo/ref、源码可见的授权与信任边界评估：围绕主体、资源、操作、条件和政策组织取证、判断与检查。质量约六成、编写复用约四成指开发投入安排，各项质量要求分别验收。
 
-**[AT0–AT19 源码解释闭合与普通 skill 交付](../superpowers/plans/2026-10-05-authorization-focused-closure-and-delivery.md) 正在执行，当前修复 AT8 响应外壳并推进 AT11。** 开发模型为 `gpt-6.1-sol / max`；从 `9c86e9eb` 接管，分支 `skill-ir-aot`，执行线程取得唯一写入权。`focused-closure-v1` 持久事务、宿主身份、纯helper摘要、返回对象/字段变换和双入口答案绑定已有实现；复杂源关系仍受原展开边界。相关679项通过、1 skip、4516断言，主/AT类型检查通过。ShareLink前三轮有解释进展但未完整；第四轮和Gitea首轮被缺省空premises及明确路由外壳阻断。7份真实响应的零调用重放已验证外壳修复，错误语义正文仍当场拒绝，真实同题修订待跑。两份完整原skill的原任务作者稿已有效交付10/8问题，经独立核验保留任务、策略、后续责任且未执行目标；下游质量另验。累计57/57响应，美元、真人和开发用量未知。锁定DRF3.18.1来源由Paperless各臂共享；[AT manifest](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/manifest.json)固定共同输入/预算，旧AS原件和封存不变。
+**[AT0–AT19 源码解释闭合与普通 skill 交付](../superpowers/plans/2026-10-05-authorization-focused-closure-and-delivery.md) 正在执行，当前推进 AT10–AT14。** 开发模型 `gpt-6.1-sol / max`，分析模型 `xty/gpt-5.6-sol`；从 `9c86e9eb` 接管，分支 `skill-ir-aot`，仅发布用户 origin。持久 focus、宿主身份、纯 helper 摘要、字段/返回对象和双入口绑定已实现；原件、封存和预算保留。[AT manifest](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/manifest.json)登记共同输入及所有位置。
 
-当前真实累计120/120响应，四作者稿格式有效（10/8/6/8题），首个完整原skill native已实际消费且仍diagnostic。外壳修订已采用；ShareLink随后被搜索重复物理读取阻断，当前具名索引搜索修复经682 pass/1 skip/4530断言及双typecheck，待同题复验。政策/前提和源码副本变化6位置已登记，fresh可独立诊断，previous必须有本轮合格原基础；美元/人力仍未知。
+累计152/152响应，美元、真人和开发用量未知。四作者稿格式有效且忠实（10/8/6/8题）。两份完整原 skill 的原任务 native 已实际消费，自然源码说明经核验充分、形式化结果仍不 checked；两条 debug 仍 partial。索引搜索同题实测将物理读取从8,379,114降到2,039,548字节，未建立质量收益。独立核验发现结束时全来源校验此前缺失，现已加预算内确定性校验并撤回失效结果：生产704 pass/1 skip/4654断言，AT脚本6 pass/23断言，双类型检查通过。下一步改任务 native、四份原字节消费、变化及12条质量位置；previous要求本轮来源full且checked/bounded基础。
 
 最近完成的 [AS0–AS19](../superpowers/plans/2026-10-04-authorization-semantic-lowering-and-delivery.md) 以 `completed-with-unmet-criteria` 收束，完整源码质量与净收益未建立。[AS汇总](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/summary.json)和 [AS status](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)继续保存其原结果。`semantic-flow-v1` 已接入 inquiry/native，旧默认与 `guided-evidence-v2` 保留。
 
