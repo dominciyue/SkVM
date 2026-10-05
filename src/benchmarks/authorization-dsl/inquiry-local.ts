@@ -150,13 +150,16 @@ export async function inspectLocalInquiry(outDir: string) {
   try { report = JSON.parse(await readFile(path.join(root, "report.json"), "utf8")) }
   catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; return { ...identity, status: await stat(path.join(root, "dispatch.json")).then(() => "completion-unknown", () => "initialized") } }
   if (report.sessionId !== identity.sessionId || report.model !== identity.model || report.method !== identity.method || (report.strategy ?? "legacy") !== (identity.strategy ?? "legacy") || report.inputSha256 !== identity.inputSha256 || !isDeepStrictEqual(report.sourceFiles, identity.sourceFiles) || !isDeepStrictEqual(report.reuseOrigin, identity.reuseOrigin)) throw new Error("Inquiry report/session identity mismatch")
-  let completionUnknown = hasUnknownAuthorizationCompletion(report)
+  let completionUnknown = hasUnknownAuthorizationCompletion(report), strategyMetadataOrigin: string | undefined
   if (report.status !== "provider-unavailable") {
     const run = JSON.parse(await readFile(path.join(root, "run.json"), "utf8"))
-    if (run.status !== report.status || run.method !== identity.method || (run.strategy ?? "legacy") !== (identity.strategy ?? "legacy") || ["sourceFiles", "result", "initial", "initialValidation", "final", "validation", "wireFailures", "wireNormalizations", "domain", "reuse", "sourceAccounting", "sourceVerification", "telemetry"].some(key => !isDeepStrictEqual(run[key], report[key]))) throw new Error("Inquiry report/run identity mismatch")
+    const legacyAuthorMetadata = run.strategy === undefined && identity.method === "D1" && ["completed-with-diagnostics", "budget-exhausted"].includes(run.status) && !run.inquiry && !run.program && !run.domain && !run.result && run.requests?.length > 0 && run.requests.every((r: any) => r.phase === "author") && run.wireFailures?.some((r: any) => r.phase === "author") && !hasUnknownAuthorizationCompletion(run)
+    const runStrategy = legacyAuthorMetadata ? identity.strategy ?? "legacy" : run.strategy ?? "legacy"
+    if (run.status !== report.status || run.method !== identity.method || runStrategy !== (identity.strategy ?? "legacy") || ["sourceFiles", "result", "initial", "initialValidation", "final", "validation", "wireFailures", "wireNormalizations", "domain", "reuse", "sourceAccounting", "sourceVerification", "telemetry"].some(key => !isDeepStrictEqual(run[key], report[key]))) throw new Error("Inquiry report/run identity mismatch")
+    if (legacyAuthorMetadata) strategyMetadataOrigin = "precompile-session-identity"
     completionUnknown ||= hasUnknownAuthorizationCompletion(run)
   }
-  return { ...report, sessionPath: root, ...(completionUnknown ? { completionUnknown: true } : {}) }
+  return { ...report, sessionPath: root, ...(completionUnknown ? { completionUnknown: true } : {}), ...(strategyMetadataOrigin ? { strategyMetadataOrigin } : {}) }
 }
 export async function compareLocalInquiry(inputFile: string, previous: string, requestedStrategy?: InquiryStrategy) {
   const report = await inspectLocalInquiry(previous)

@@ -6,6 +6,21 @@ import { executeLocalInquiryRun, inspectLocalInquiry, compareLocalInquiry } from
 import { runAuthorizationCli } from "../../cli/authorization.ts"
 import { emptyTokenUsage } from "../../core/types.ts"
 
+test("legacy precompile author failure derives only missing strategy metadata from its session", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "ar-precompile-")); await mkdir(path.join(root, "source"))
+  await writeFile(path.join(root, "source/entry.ts"), "export function entry() { return false; }\n")
+  const inputFile = path.join(root, "input.json")
+  await writeFile(inputFile, JSON.stringify({ schemaVersion: "authorization-inquiry-input/v1", taskId: "anonymous", repository: "neutral", sourceRef: "fixed", sourceRoot: "source", allowedPaths: ["."], brief: "Trace entry authorization", mode: "behavior" }))
+  const report: any = await executeLocalInquiryRun({ inputFile, outDir: path.join(root, "runs"), model: "mock", method: "D1", strategy: "focused-closure-v1", execution: { maxDispatches: 2 }, providerFactory: () => ({ name: "mock", async complete() { return { text: "{}", toolCalls: [], tokens: emptyTokenUsage(), durationMs: 0, stopReason: "end_turn" } }, async completeWithToolResults() { throw new Error("unused") } }) })
+  const runFile = path.join(report.sessionPath, "run.json"), run = JSON.parse(await readFile(runFile, "utf8"))
+  delete run.strategy; await writeFile(runFile, JSON.stringify(run))
+  expect((await inspectLocalInquiry(report.sessionPath)).strategy).toBe("focused-closure-v1")
+  expect((await inspectLocalInquiry(report.sessionPath)).strategyMetadataOrigin).toBe("precompile-session-identity")
+  expect((await inspectLocalInquiry(report.sessionPath)).result).toBeUndefined()
+  run.inquiry = {}; await writeFile(runFile, JSON.stringify(run))
+  await expect(inspectLocalInquiry(report.sessionPath)).rejects.toThrow("identity")
+})
+
 async function fixture() {
   const root = await mkdtemp(path.join(os.tmpdir(), "ar-reuse-local-")); await mkdir(path.join(root, "source"))
   const source = "export function entry() { return true; }\n"

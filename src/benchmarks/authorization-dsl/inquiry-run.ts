@@ -208,11 +208,11 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
     validation = { ...validation, valid: false, diagnostics: [...validation.diagnostics, diagnostic] }
     if (status === "completed") status = "completed-with-diagnostics"
   }
-  return { schemaVersion: "authorization-inquiry-run/v1" as const, status, method: options.method, inquiry,
+  return { schemaVersion: "authorization-inquiry-run/v1" as const, status, method: options.method, strategy, inquiry,
     program: inquiry ? compileAuthorizationInquiry(inquiry) : undefined, result: validation?.valid ? validation.result : undefined,
     initial, initialValidation, final, validation, sourceVerification, observations, steps, requests, wireFailures, wireNormalizations, evidence: tools.evidence, toolHistory: tools.history, scopeGaps: tools.scopeGaps, sourceFiles: tools.files,
     sourceAccounting: { indexBytes: tools.indexBytes, physicalReadBytes: tools.ioReadBytes, toolDisplayBytes: tools.displayBytes, importedEvidenceBytes: tools.importedEvidenceBytes, cumulativeModelSourceBytes, resentSourceBytes },
     ...(options.reuse ? { reuse: { ...options.reuse.info, importedEvidenceIds: [...importedReferences] } } : {}),
-    ...(domain ? { strategy, domain: domain.report() } : {}), attempts: telemetry.attempts, events: telemetry.events, telemetry: telemetry.summary(), durationMs: Date.now() - startedAt, ...(error ? { error } : {}) }
+    ...(domain ? { domain: domain.report() } : {}), attempts: telemetry.attempts, events: telemetry.events, telemetry: telemetry.summary(), durationMs: Date.now() - startedAt, ...(error ? { error } : {}) }
 }
 export type AuthorizationInquiryRun = Awaited<ReturnType<typeof runAuthorizationInquiry>>

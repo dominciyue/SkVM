@@ -276,3 +276,5 @@ AT8/AT12–AT16执行记录（2026-10-05）：外壳真实修订ShareLink8/8、G
 AT17/19工作计划：薄账本复用既有sumUsage，按精确report哈希枚举首轮/修订、实际provider telemetry、sourceVerification与evaluator-only评阅。匿名先红例覆盖费用未知、首轮/修订分离及评阅hash拒绝；不推断美元、不将作者离线validator零调用代替真实作者调用。生成call-index/accounting/summary，同步固定分母、blocked admission、未达验收及主文档。
 
 2026-10-05 AT17账本/真实候选分类：新增AT accounting.ts复用sumUsage，匿名费用未知/首修分离/评阅SHA红绿验证；2份changed native共48响应已关闭，源码最终校验均valid，但check候选仍失败。原机械分类过宽阻断队列；实际CF在check中defer/revisit后用旧focus，GH提交矛盾allow/performed并超check预算。新增已知source-verified候选分类与hash绑定的listed-row裁决；未知完成和未列位置仍阻断，原件/失败不改。48相关driver/AT测试、185断言通过，AT类型通过。待原字节消费、各任务剩余质量位置和变化。
+
+2026-10-05 AT11/14/17阶段：四份作者原字节消费均已实跑，source版本valid但尚无full checked链；独立评阅按实际final纠正source真值补答、checked调用混同和acceptedunit漏计。新增captureProviderRecords由gzip作者请求原件逐调用计量，与既存telemetry核对，费用/缺usage保持unknown。零调用replay定位debug第4轮缺strategy的precompile元数据；原件不改，新run始终保存strategy，旧已知author-only失败由session补元数据，不能推广成功。两匿名先红后绿，联合755 pass/1 skip/4854断言、AT类型与本轮replay通过。改动inquiry-run/local及测试、ATaccounting/评阅/repair proof/状态。主位置继续，严禁把自然full的两个original native当checked或获益证据。

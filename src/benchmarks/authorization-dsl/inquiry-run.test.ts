@@ -21,6 +21,14 @@ function scripted(fn: (params: CompletionParams, n: number) => unknown): { provi
     return { text: tool ? "" : JSON.stringify(value), toolCalls: tool ? [{ id: `c${count}`, name: tool.name, arguments: value as Record<string, unknown> }] : [], stopReason: tool ? "tool_use" : "end_turn", tokens: emptyTokenUsage(), durationMs: 0 }
   }, async completeWithToolResults() { throw new Error("Use structured inquiry actions") } } }
 }
+test("an author failure retains the requested strategy before any domain is compiled", async () => {
+  const { inquiry: _inquiry, ...input } = await setup(), mock = scripted(() => ({ invalid: "not an inquiry" }))
+  const run = await runAuthorizationInquiry({ ...input, brief: "Trace caller authorization", method: "D1", strategy: "focused-closure-v1", provider: mock.provider, maxDispatches: 2 })
+  expect(run.inquiry).toBeUndefined()
+  expect(run.domain).toBeUndefined()
+  expect(run.strategy).toBe("focused-closure-v1")
+  expect(run.result).toBeUndefined()
+})
 test("semantic delivery archives omitted-kind normalization without inventing a source answer or a wire repair", async () => {
   const input = await setup(), mock = scripted(() => ({ result: { schemaVersion: "authorization-semantic-result/v1", revision: 0, questions: [{ questionId: "q1", explanation: "The decisive source has not been interpreted.", missing: [{ kind: "source-gap", detail: "entry and helper" }] }], scope: "bounded source" } }))
   const run = await runAuthorizationInquiry({ ...input, method: "D1", strategy: "semantic-flow-v1", provider: mock.provider, maxDispatches: 2 })

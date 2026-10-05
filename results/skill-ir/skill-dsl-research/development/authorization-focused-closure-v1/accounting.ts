@@ -1,5 +1,6 @@
 import path from "node:path"
 import { readFile, readdir, writeFile } from "node:fs/promises"
+import { gunzipSync } from "node:zlib"
 import { root, sha } from "./prepare.ts"
 import { sumUsage } from "../authorization-semantic-lowering-v1/accounting.ts"
 import { hasUnknownAuthorizationCompletion } from "../../../../../src/benchmarks/authorization-dsl/telemetry.ts"
@@ -7,6 +8,21 @@ import { hasUnknownAuthorizationCompletion } from "../../../../../src/benchmarks
 type RecordValue = Record<string, any>
 const json = async (file: string) => JSON.parse(await readFile(file, "utf8"))
 const lines = async (file: string) => (await readFile(file, "utf8").catch(() => "")).split(/\r?\n/).filter(Boolean).map(s => JSON.parse(s))
+export function capturedProviderRecords(records: RecordValue[]) {
+  const calls: RecordValue[] = []
+  for (const [index, record] of records.entries()) {
+    if (record.type === "request") calls.push({ call: calls.length + 1, id: "capture-attempt-" + (calls.length + 1), phase: "ordinary-author", status: "pending", requestRecordIndex: index, usage: null, actualUSD: null })
+    else if (record.type === "response") {
+      const call = calls.find(c => c.status === "pending")
+      if (!call) throw new Error("Author capture response without request")
+      Object.assign(call, { status: "response", responseRecordIndex: index, usage: record.tokens ?? null })
+    }
+  }
+  const fields = ["input", "output", "cacheRead", "cacheWrite"], valid = (v: unknown): v is number => typeof v === "number" && Number.isSafeInteger(v) && v >= 0
+  const missing = calls.filter(c => c.status !== "response" || fields.some(k => !valid(c.usage?.[k]))).length
+  const knownTokens = Object.fromEntries(fields.map(k => [k, calls.reduce((n, c) => n + (valid(c.usage?.[k]) ? c.usage[k] : 0), 0)]))
+  return { calls, account: { providerCalls: calls.length, respondedCalls: calls.filter(c => c.status === "response").length, unknownUsageCalls: missing, unknownCostCalls: calls.length, knownTokens, tokensStatus: missing ? "partial" : "complete", knownActualUsdSubtotal: 0, totalActualUsd: null, actualUsdStatus: "unknown", transportAttempts: "unknown", accountingBasis: "Actual archived ordinary author request/response records; no price estimate" } }
+}
 export function makePanel(manifest: RecordValue, attempts: RecordValue[], reviews: RecordValue[], admissions: RecordValue[]) {
   for (const review of reviews) {
     const retained = attempts.find(a => a.originalArtifact === review.report)
@@ -26,7 +42,21 @@ export async function collectAccounting() {
     for (const name of (await readdir(path.join(root, "runs", id))).filter(n => /^attempt-\d+$/.test(n)).sort((a, b) => Number(a.slice(8)) - Number(b.slice(8)))) {
       const directory = path.join(root, "runs", id, name), claim = await json(path.join(directory, "claim.json")), relative = `runs/${id}/${name}/report.json`, bytes = await readFile(path.join(root, relative)).catch(() => undefined)
       if (!bytes) { active.push({ id, attempt: claim.attempt, startedAt: claim.startedAt, noAutomaticResend: true }); continue }
-      const r = JSON.parse(bytes.toString("utf8")).report, account = r.telemetry ?? {}
+      const r = JSON.parse(bytes.toString("utf8")).report
+      let account = r.telemetry ?? {}
+      if (r.capture?.sourceCaptureFiles?.length) {
+        const captured: RecordValue[] = []
+        for (const capture of r.capture.sourceCaptureFiles) {
+          const file = path.resolve(directory, capture.archive), relation = path.relative(directory, file)
+          if (!relation || relation === ".." || relation.startsWith(".." + path.sep) || path.isAbsolute(relation)) throw new Error("Invalid author capture archive")
+          const captureBytes = await readFile(file), records = gunzipSync(captureBytes).toString("utf8").split(/\r?\n/).filter(Boolean).map(s => JSON.parse(s)), measured = capturedProviderRecords(records)
+          for (const call of measured.calls) calls.push({ artifact: relative, artifactSha256: sha(bytes), capture: path.relative(root, file).split(path.sep).join("/"), captureSha256: sha(captureBytes), ...call })
+          captured.push(measured.account)
+        }
+        const measured = sumUsage(captured)
+        if (measured.providerCalls !== account.providerCalls || measured.respondedCalls !== account.respondedCalls || measured.knownFreshInput !== account.knownTokens?.input || measured.knownOutput !== account.knownTokens?.output || measured.knownCacheRead !== account.knownTokens?.cacheRead || measured.knownCacheWrite !== account.knownTokens?.cacheWrite) throw new Error("Author capture differs from retained telemetry")
+        account = { ...captured[0], providerCalls: measured.providerCalls, respondedCalls: measured.respondedCalls, unknownUsageCalls: measured.unknownUsageCalls, unknownCostCalls: measured.knownProviderCalls, tokensStatus: measured.tokensStatus, knownTokens: { input: measured.knownFreshInput, output: measured.knownOutput, cacheRead: measured.knownCacheRead, cacheWrite: measured.knownCacheWrite } }
+      }
       let requests = r.requests, providerAttempts = r.attempts
       if ((!requests || !providerAttempts) && r.sessionPath) {
         const run = await json(path.join(r.sessionPath, "run.json"))

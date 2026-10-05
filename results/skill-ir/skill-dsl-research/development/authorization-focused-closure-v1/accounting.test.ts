@@ -1,5 +1,16 @@
 import { test, expect } from "bun:test"
-import { makePanel } from "./accounting.ts"
+import { makePanel, capturedProviderRecords } from "./accounting.ts"
+
+test("actual author capture indexes requests and preserves missing usage and price", () => {
+  const { account, calls } = capturedProviderRecords([{ type: "request" }, { type: "response", tokens: { input: 10, output: 5, cacheRead: 4, cacheWrite: 0 } }, { type: "request" }, { type: "response", tokens: { output: 2, cacheRead: 0, cacheWrite: 0 } }])
+  expect(account.providerCalls).toBe(2)
+  expect(account.respondedCalls).toBe(2)
+  expect(account.unknownUsageCalls).toBe(1)
+  expect(account.tokensStatus).toBe("partial")
+  expect(account.totalActualUsd).toBeNull()
+  expect(calls[0]!.requestRecordIndex).toBe(0)
+  expect(calls[0]!.responseRecordIndex).toBe(1)
+})
 
 test("AT accounting keeps firsts, repairs and source adequacy independent of formal closure", () => {
   const manifest = { rows: [{ id: "anonymous", kind: "quality", task: "example", studyArm: "D-F" }], authors: [] }
