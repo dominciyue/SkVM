@@ -369,6 +369,9 @@ AU0/1创建薄runner后登记其真实typecheck、单位置运行和replay命令
 
 ## 九、执行记录
 
+- 2026-10-06 第三轮ShareLink `source-link-c3-v1`已关闭：21派发/21响应，4个源码绑定、7个source units，3问仍partial；累计研究provider56请求/56响应，USD未知。独立源码/轨迹核验与主代理抽查确认：前两轮解释相同认证体的重复上下文以及revisit句柄漂移仍占用会话；可得serializer/object-permission源不能列作不可得事实。下一共享修复计划：匿名反例验证依赖的actual caller receiver、revisit稳定替换、同操作read候选与格式错误退役；新策略允许单次解释至多4个明确已读且当前完整窗口已展示的source units，沿用同一provider/runtime/budget，不推断控制意义。旧单体接口兼容。完成TDD、回归/双类型和文档同步后提交并同题修订；完整技能登记/普通入口接线随后推进。
+- 同阶段9个预期失败反例已转通过（第一例的缺parameters测试fixture先修正，再确认receiver断言的预期失败）。独立只读代码核验未发现已证实缺陷；主代理另补source-review correction的receiver漂移反例并修复。最新联合770 pass/1skip/4845断言与主/AU双typecheck通过。第五个附带单元受schema max3限制，模型unit不能提交宿主source字段；本轮真实质量/费用仍未宣称改善。
+
 - 2026-10-06 第二轮共享修复完成匿名验证：唯一源码callee自动绑定及旧关系撤回，模糊/未解析同名receiver不提升为唯一；按实际C3解析零参数super，宽引文不替代具体source unit解释，退役work项的参数修订保留receiver。首批8个失败反例及独立核验后的4个失败反例已转通过；最新定向63 pass/326断言（与86项旧定向集合重叠，不相加），新字节联合761 pass/1skip/4824断言、主/AU双类型与diff检查通过。普通native显式M/D1选项3失败例转通过，独立入口核验无问题。旧help ancestry文字已改为实际row-id；source-only说明不要求未请求部署验证。下一动作：提交origin、同题`source-link-c3-v1`修订，不使用评价侧结论做模型输入。
 
 - 2026-10-06 AU10第二次ShareLink具名修订`source-context-receiver-v1`已关闭：21派发/21响应，实际接受9个source units（首次3个），6问终答均partial；完整语义链仍因入口callee未链接而失败，另保留一次缺claim格式诊断。原件SHA与独立评阅存入本轮results。下一共享修复计划：匿名反例覆盖唯一源码关系的自动callee身份绑定与模糊关系拒绝、按实际C3上下文解析零参数super；仅绑定模型已声明调用，不推断参数/guard/permission/effect。已有helper的参数链接优先于继续展开候选。完成定向与较广回归/类型检查、同步文档和提交后再同题具名修订。普通原技能入口增显式`--authorization-method=M|D1`，M整段自然任务机械归一化且声明调用0，D1模型声明计入同一会话预算；3个预期失败已转通过，尚需较广验证。累计研究provider35请求/35响应，费用未知；quality/普通使用/作者/变化面板尚未派发。

@@ -4,7 +4,7 @@ import { operationWork } from "./operation-work.ts"
 type CallStep = Extract<BoundSemanticBlock["blocks"][number]["steps"][number], { kind: "call" }>
 export interface OperationSourceLink { action: "bind" | "unbind"; caller: string; call: string; target?: string; previousTarget?: string; receiverClass?: string; relationId?: string; structureRevision: string }
 /** Bind source identity only. Model-authored control meaning and typed arguments are unchanged. */
-function sourceActions(index: StructureIndex, caller: BoundSemanticBlock, step: CallStep) {
+export function operationCallSources(index: StructureIndex, caller: BoundSemanticBlock, step: CallStep) {
   const source = caller.source, owner = source && index.symbols.find(s => s.id === source.id && s.sha256 === source.sha256)
   if (!owner) return []
   const calls = index.relatedCalls(owner.id, caller.receiverClass)
@@ -16,7 +16,7 @@ function sourceActions(index: StructureIndex, caller: BoundSemanticBlock, step: 
   })
 }
 export function operationCallTargets(index: StructureIndex, caller: BoundSemanticBlock, step: CallStep, units: BoundSemanticBlock[]) {
-  const actions = sourceActions(index, caller, step)
+  const actions = operationCallSources(index, caller, step)
   return units.filter(u => u.questionId === caller.questionId && u.role === "helper").flatMap(unit => {
     const target = unit.source && index.symbols.find(s => s.id === unit.source!.id && s.sha256 === unit.source!.sha256)
     const action = target && actions.find(a => a.candidateId === target.id && a.receiverClass === unit.receiverClass)
@@ -28,7 +28,7 @@ export function bindOperationCalls(index: StructureIndex, original: BoundSemanti
   for (const caller of units) for (const block of caller.blocks) for (const step of block.steps) {
     if (step.kind !== "call") continue
     const targets = operationCallTargets(index, caller, step, units)
-    if (sourceActions(index, caller, step).length !== 1 || targets.length !== 1) {
+    if (operationCallSources(index, caller, step).length !== 1 || targets.length !== 1) {
       if (step.callee) {
         records.push({ action: "unbind", caller: caller.handle, call: step.name, previousTarget: step.callee, structureRevision: index.revision })
         delete step.callee

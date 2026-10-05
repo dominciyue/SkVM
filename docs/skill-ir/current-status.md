@@ -6,7 +6,7 @@
 
 研究主线是 **按 skill/task 范围设计领域表达**。当前任务类为单 repo/ref、源码可见的授权与信任边界评估：围绕主体、资源、操作、条件和政策组织取证、判断与检查。质量约六成、编写复用约四成指开发投入安排，各项质量要求分别验收。
 
-**当前授权队列为 [AU0–AU21 操作级取证与授权 DSL 贯通](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md)，状态 `in-progress`，开发线程拥有共享代码、方法文档、状态与 Git 的唯一写入责任。** 开发模型 `gpt-6.1-sol / max`，研究基线 `ba277160`；启动HEAD/origin为`dfe7ec32`。继续本地`skill-ir-aot`，仅发布用户origin。AU1–AU9原型与32位置登记已实现。AU10两次ShareLink共35请求/35响应，接受单元3→9，源码仍partial；原件与独立逐问评阅已留档。已继续修唯一来源callee绑定/撤回、super C3、宽引文解释状态、保留receiver和普通M/D1选项；确定性验证通过，待提交后同题具名复验。AU11材料恢复已有匿名验证；完整原技能使用、实际变化复用与收益仍未验收。恢复见AU results `status.json`，旧结果与封存保持。
+**当前授权队列为 [AU0–AU21 操作级取证与授权 DSL 贯通](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md)，状态 `in-progress`，开发线程拥有共享代码、方法文档、状态与 Git 的唯一写入责任。** 开发模型 `gpt-6.1-sol / max`，研究基线 `ba277160`；启动HEAD/origin为`dfe7ec32`。继续本地`skill-ir-aot`，仅发布用户origin。AU1–AU9原型与32位置登记已实现。AU10三次ShareLink共56请求/56响应，第三轮4个来源绑定、7个source units、3问仍partial；原件和独立逐问评阅已留档。唯一来源callee/C3与普通M/D1选项已发布；继续修实际caller receiver、稳定revisit/复查替换、问题投影的重复来源事务与同操作至多4个已展示原文的批量解释。九个失败反例已转通过，最新联合770 pass/1skip与主/AU双类型通过，待提交及同题复验。AU11材料恢复已有匿名验证；完整原技能使用、实际变化复用与收益仍未验收。恢复见AU results `status.json`，旧结果与封存保持。
 
 最近的 [AT0–AT19](../superpowers/plans/2026-10-05-authorization-focused-closure-and-delivery.md) 有限队列已以 `completed-with-unmet-criteria` 收束。持久focus、宿主身份、纯有限helper摘要、字段/返回对象、源码终检和双入口已实现。[AT summary](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/summary.json)分别记录工程、实际使用、比较和成本结论；原件和封存保留。
 

@@ -8,6 +8,7 @@ import type { ScheduledDependency } from "./inquiry-domain-scheduler.ts"
 import { operationWork } from "./operation-work.ts"
 import type { SourceFactDependency } from "../../task-dsl/authorization/operation-facts.ts"
 import type { BoundSemanticBlock } from "../../task-dsl/authorization/semantic-flow.ts"
+import { operationCallSources } from "./operation-links.ts"
 
 export type WorkState = "unlocated" | "awaiting-read" | "awaiting-interpretation" | "awaiting-binding" | "awaiting-verification" | "closed" | "external-unknown" | "blocked"
 export interface WorkItem {
@@ -118,7 +119,7 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
       const paths = options.tools.files.filter(f => h.result.code === "source-root-changed" || selector === undefined || selector === "." || f.path === selector || typeof selector === "string" && f.path.startsWith(`${selector}/`)).map(f => f.path)
       for (const p of paths) invalidFiles.add(p)
     }
-    const dependencies = options.dependencyStates?.() ?? []
+    const dependencies = (options.dependencyStates?.() ?? []).filter(d => !options.structural || (options.program.operations?.find(o => options.program.operationQuestions?.some(q => q.questionId === d.questionId && q.operationId === o.id))?.sourceQuestionId ?? d.questionId) === d.questionId)
     const activeDependencies = new Set(dependencies.map(d => d.id))
     const retired = new Set([...items.values()].filter(item => item.origin === "explicit-dependency" && item.dependencyId && !activeDependencies.has(item.dependencyId)).map(item => item.id))
     // Lexical leads belong to their current parent; archived reads and proposals retain their own history.
@@ -130,8 +131,14 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
       const item = items.get(id) ?? make(id, d.questionId, relation, "explicit-dependency", d.reason, { dependencyId: d.id, symbol: d.symbol, decisive: d.decisive })
       item.candidates = d.candidates; item.evidenceIds = d.evidenceIds; item.reason = d.reason
       if (options.structural && d.candidates.length === 1) {
-        const contexts = [...new Set([...items.values()].filter(i => i.questionId === d.questionId && i.origin === "structure-relation" && i.selected?.id === d.candidates[0]!.id).map(i => i.receiverClass))]
-        if (contexts.length === 1) item.receiverClass = contexts[0]
+        const dependency = slice.dependencies.find(p => p.id === d.id), origin = slice.rules.find(r => r.questionId === d.questionId && r.key === dependency?.from)?.sourceOrigin
+        const caller = options.semanticUnits?.().find(u => u.questionId === d.questionId && u.handle === origin?.handle)
+        const step = caller?.blocks.find(b => b.name === origin?.block)?.steps.find(s => s.name === origin?.step)
+        const sources = caller && step?.kind === "call" && options.tools.structure ? operationCallSources(options.tools.structure, caller, step).filter(a => a.candidateId === d.candidates[0]!.id) : []
+        // Resolve this occurrence from its actual caller, before discovery order can
+        // create an unrelated or receiver-free copy of the same inherited body.
+        const contexts = [...new Set(sources.map(a => a.receiverClass))]
+        item.receiverClass = contexts.length === 1 ? contexts[0] : undefined
       }
       if (d.state === "inapplicable") transition(item, "closed", "none", d.reason, d.code)
       else if (d.state === "external-unknown" || d.state === "blocked") transition(item, d.state, "none", d.reason, d.code)

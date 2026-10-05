@@ -1747,6 +1747,8 @@ Python/Go结构索引采用固定MIT许可的`@vscode/tree-sitter-wasm@0.3.1`，
 
 同题具名修订`source-context-receiver-v1`21请求/21响应，接受单元增至9个，终答正确指出关键文档guard，但6问独立裁定仍partial：所有callee为空，入口initial仍阻断；ownerless/owner/direct/group未充分展开，源码政策比较又被未请求的部署信息限制。累计35请求/35响应；第二轮完整input352325/output19126/cacheRead24320（cache不重复加总），实际USD未知。下一共享修复以匿名失败例检验自动唯一来源身份绑定、实际C3的super、宽引文解释状态及保留receiver；旧callee在关系不唯一时撤回，参数/权限语义不由宿主补齐。独立代码核验发现的旧callee漏洞已补反例；普通M/D1入口核验无接线问题，完整原技能实用仍待派发。工程验证与源码质量/实际收益继续分列。
 
+第三次`source-link-c3-v1`21请求/21响应、4个来源绑定、7个source units，3问仍partial，报告SHA与独立源码/轨迹裁定已存AU evaluations。完整input361682/output13225/cacheRead21888，USD未知；累计56请求/56响应。实际绑定有进展，但认证体重复上下文、revisit新handle及多问题投影重复来源事务消耗预算，最终把可得create/serializer/权限源码留作提取缺口。下一修复改为按actual caller确定receiver并保留原事务身份，新策略一次可解释至多4个同操作、已读且当前完整原文已展示的独立source units；九个匿名失败反例转通过，联合770 pass/1skip。该粒度调整沿用同一runtime/预算，不增加oracle或另建provider循环；真实质量、表示贡献与成本收益仍待同题及面板验证。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

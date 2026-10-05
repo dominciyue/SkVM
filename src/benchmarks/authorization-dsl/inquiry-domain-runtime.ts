@@ -113,7 +113,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
       const currentId = focus.current()?.id ?? "absent", prepared = focus.prepare(delta, offeredTasks)
       if (prepared.duplicate) return { diagnostics: [], actions: [], evaluated: { paths: lastPaths } }
       if (prepared.diagnostics.length) { issues.set(`$focus.${currentId}`, prepared.diagnostics); proposals.push({ delta: structuredClone(delta), diagnostics: prepared.diagnostics, revision: slice.revision }); if (!prepared.proceed) return { diagnostics: prepared.diagnostics, actions: [], evaluated: { paths: lastPaths } } }
-      if (prepared.deferred) { focus.sync(); return { diagnostics: [], actions: [], evaluated: { paths: lastPaths } } }
+      if (prepared.deferred) { issues.delete(`$focus.${currentId}`); focus.sync(); return { diagnostics: [], actions: [], evaluated: { paths: lastPaths } } }
       // A rejected focus is replaced as one transaction. Validate user values once
       // through the shared updater before accepting a body or retaining bindings.
       const premiseValues = prepared.delta?.premiseValues
@@ -143,7 +143,8 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
       semanticUnits = applied.units; semanticRecords.push(...applied.records)
       if (focus) for (const record of applied.records.filter(r => r.accepted)) {
         const unit = semanticUnits.find(u => u.handle === record.handle && u.questionId === record.questionId), selected = worklist?.snapshot().find(i => i.id === unit?.itemId)?.selected
-        if (unit && selected) { unit.source = { id: selected.id, path: selected.path, sha256: selected.sha256, startLine: selected.startLine, endLine: selected.endLine }; unit.receiverClass = worklist?.snapshot().find(i => i.id === unit.itemId)?.receiverClass }
+        if (unit && unit.handle === focus.current()?.handle && focus.current()?.source) { unit.source = focus.current()!.source; unit.receiverClass = focus.current()!.receiverClass }
+        else if (unit && selected) { unit.source = { id: selected.id, path: selected.path, sha256: selected.sha256, startLine: selected.startLine, endLine: selected.endLine }; unit.receiverClass = worklist?.snapshot().find(i => i.id === unit.itemId)?.receiverClass }
         else if (unit) Object.assign(unit, previousSources.get(`${unit.questionId}:${unit.handle}`))
       }
       for (const record of applied.records) {

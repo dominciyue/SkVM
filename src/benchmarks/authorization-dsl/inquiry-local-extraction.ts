@@ -81,7 +81,7 @@ function coveringWindows(ids: string[], evidence: InquiryEvidence[], candidate?:
   return selected
 }
 /** Mechanically select whole already-read windows; no semantic source compression or provider call. */
-export function localExplanationContext(program: AuthorizationInquiryProgram, items: WorkItem[], evidence: InquiryEvidence[], slice: ControlSlice, diagnosticEvidenceIds: string[] = [], recentEvidenceIds = evidence.slice(-2).map(e => e.id), locationOffset = 0, explanationFocus: { offset?: number; fairOffset?: number; questionIds?: string[]; maxSourceBytes?: number } = {}) {
+export function localExplanationContext(program: AuthorizationInquiryProgram, items: WorkItem[], evidence: InquiryEvidence[], slice: ControlSlice, diagnosticEvidenceIds: string[] = [], recentEvidenceIds = evidence.slice(-2).map(e => e.id), locationOffset = 0, explanationFocus: { offset?: number; fairOffset?: number; questionIds?: string[]; maxSourceBytes?: number; maxTasks?: number; distinctSourceItems?: boolean } = {}) {
   const tasks: LocalExplanationTask[] = [], seen = new Set<string>(), byQuestion = new Map<string, WorkItem[]>()
   const locationTasks: LocalLocationTask[] = [], locations = new Map<string, WorkItem[]>()
   const optionalLead = (i: WorkItem) => i.origin === "source-reference" && i.state === "awaiting-binding" && i.code === "reference-relevance-unconfirmed" && i.candidates.length > 0 && i.callsiteEvidenceIds.some(id => evidence.some(e => e.id === id))
@@ -127,9 +127,9 @@ export function localExplanationContext(program: AuthorizationInquiryProgram, it
     return true
   }
   for (const item of preferred) {
-      if (tasks.length >= 2) break
+      if (tasks.length >= (explanationFocus.maxTasks ?? 2)) break
       const q = program.questions.find(q => q.id === item.questionId)!
-      const sourceIds = coveringWindows(item.evidenceIds, evidence, item.selected), callsiteEvidenceIds = coveringWindows(item.callsiteEvidenceIds, evidence, items.find(i => i.id === item.parentId)?.selected), key = JSON.stringify([q.id, sourceIds])
+      const sourceIds = coveringWindows(item.evidenceIds, evidence, item.selected), callsiteEvidenceIds = coveringWindows(item.callsiteEvidenceIds, evidence, items.find(i => i.id === item.parentId)?.selected), key = JSON.stringify([q.id, explanationFocus.distinctSourceItems ? [item.selected?.id, item.receiverClass] : sourceIds])
       if (!sourceIds.length || item.callsiteEvidenceIds.length > 0 && !callsiteEvidenceIds.length || seen.has(key)) continue
       seen.add(key)
       const scope = [...new Set([...sourceIds, ...callsiteEvidenceIds])]

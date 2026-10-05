@@ -123,8 +123,8 @@ export function normalizeFocusedControlEnvelope(input: unknown) {
   return code ? { value, normalization: { code, originalKind: raw.kind ?? null } } : { value: input }
 }
 const focusedSteps = (stage?: FocusStage, parsing = false, operation = false) => z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("tool"), calls: z.array(operation ? OperationSourceCallSchema : InquirySourceCallSchema).min(1).max(8), controlDelta: focusedUpdateSchema(stage, parsing).optional() }).strict(),
-  z.object({ kind: z.literal("control"), controlDelta: focusedUpdateSchema(stage, parsing) }).strict(),
+  z.object({ kind: z.literal("tool"), calls: z.array(operation ? OperationSourceCallSchema : InquirySourceCallSchema).min(1).max(8), controlDelta: focusedUpdateSchema(stage, parsing, operation).optional() }).strict(),
+  z.object({ kind: z.literal("control"), controlDelta: focusedUpdateSchema(stage, parsing, operation) }).strict(),
   z.object({ kind: z.literal("final"), result: FocusedResultSchema }).strict(),
 ])
 export type InquiryStep = InquiryControlStep | z.infer<typeof localParserSteps> | z.infer<typeof semanticParserSteps> | z.infer<ReturnType<typeof focusedSteps>>
@@ -149,7 +149,7 @@ export function inquiryNativeSchemas(strategy: InquiryStrategy, parsing = false,
   const guidedParsing = parsing && strategy === "guided-evidence-v2"
   const compile = z.object({ inquiry: parsing ? InquiryAuthorTransportSchema : inquiryAuthorModelSchema(strategy) }).strict()
   const result = isFocusedInquiryStrategy(strategy) ? FocusedResultSchema : strategy === "semantic-flow-v1" ? SemanticResultSchema : guidedParsing ? GuidedResultSchema : AuthorizationInquiryResultSchema
-  const delta = isFocusedInquiryStrategy(strategy) ? focusedUpdateSchema(stage, parsing) : strategy === "semantic-flow-v1" ? parsing ? SemanticUpdateEnvelopeSchema : SemanticUpdateSchema : strategy === "guided-evidence-v2" ? parsing ? z.preprocess(guidedDeltaWithContextVersion, LocalControlEnvelopeSchema) : LocalControlDeltaSchema : ControlSliceDeltaSchema
+  const delta = isFocusedInquiryStrategy(strategy) ? focusedUpdateSchema(stage, parsing, strategy === "operation-evidence-v1") : strategy === "semantic-flow-v1" ? parsing ? SemanticUpdateEnvelopeSchema : SemanticUpdateSchema : strategy === "guided-evidence-v2" ? parsing ? z.preprocess(guidedDeltaWithContextVersion, LocalControlEnvelopeSchema) : LocalControlDeltaSchema : ControlSliceDeltaSchema
   return {
     authorization_compile: guidedParsing ? z.preprocess(guidedCompile, compile) : compile,
     authorization_observe: domain ? z.object({ observations: observations.min(0).optional(), controlDelta: delta.optional() }).strict() : z.object({ observations: observations.min(0) }).strict(),
