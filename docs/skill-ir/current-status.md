@@ -53,3 +53,5 @@ AQ 旧/新策略 full均为2/20，原 skill checked交付为0/4；具体分母�
 [治理](../superpowers/plans/2026-10-04-workspace-and-document-governance.md)已完成材料收存、旧日志压缩、正文归并和停止后的入口校正。当前阅读集 15 份，版本化材料 14 份；研究仍统一在一个正文中。原件及恢复索引在 `project-maintenance/20261004-governance/`，AR/AS 结果及 `.skvm` 保留。五份可再生成的 Python 字节码已清除；三个此前删除被拒绝的空目录保留。AS、AT执行均已结束；AU已授权，派发后由新线程成为共享代码/方法文档/Git唯一写者。Git实时状态以实际检查为准。
 
 更新本页时替换过时段落，不把逐次测试与派发日志不断追加为新的“当前状态”。
+
+2026-10-06最新恢复：Share第十轮`278bc5cd`在request16网络超时，16派发/15响应；累计142/141，1项usage及完成未知。当前Share逻辑任务16个登记位置全部封存，15个未派位置写明blocked-sealed-unknown-completion；不重发、换模型或改身份。原件SHA `dbae38f7bc29d4df99e30234aefaaca76a38d3376cfcb6ada4a5c95a5ae0cf24`；独立AI与主范围guard点验见tenth evaluation/proof。`scope-adjudications.jsonl`只释放另三个独立逻辑任务的显式16位置共享调度暂停，retainTaskPause保持。下一项Gitea debug首次执行；工程802回归不等于Share实际完成或质量收益。最新accounting fresh2365846/cache119680/output107365为已知响应subtotal，USD未知。
