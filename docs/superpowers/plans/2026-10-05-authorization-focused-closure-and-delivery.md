@@ -272,3 +272,7 @@ AT8/AT11执行记录（2026-10-05）：ShareLink第四轮和Gitea首轮共7次�
 AT8/AT12–AT16执行记录（2026-10-05）：外壳真实修订ShareLink8/8、Gitea21/21响应，无wire阻断而语义仍partial。主按原件裁决：ShareLink已调度permission read，source_search全索引重读先耗尽物理预算；Gitea服务/model源码ground truth不等于已接受helper，final仍遗漏字段且误用writer路由。AT16据此修搜索命中文件验证，匿名红例修通且不增预算。AT12/13在付费变化前登记6位置、owner政策/非owner组view前提及单子句副本源码修改；previous要求精确源码full及checked/bounded结果，fresh不依赖合格base。联合682 pass/1 skip/4530断言、main/AT类型通过。四作者均已格式有效（10/8/6/8题），首个native实际24响应仍diagnostic；累计120/120响应、USD未知。下一步具名搜索修复同题复验，继续完整原/变消费和主位置。
 
 2026-10-05 AT10/AT16/source-final-snapshot：两原skill native已真实消费，自然源码说明充分但形式化仍未checked；ShareLink第6轮8响应、native GitHub原24响应，累计152响应，无未知完成，USD未知。ShareLink索引搜索物理读取降至2039548字节仍partial。独立审查发现final全来源校验缺失；三个匿名红例验证后实现预算内一次路径/字节校验及失效结果撤回，native等待close，local身份包含校验证明。生产704 pass/1 skip/4654断言、AT6 pass/23断言、主/AT类型检查通过。改动inquiry-tools/run/native/local、bare-agent及测试；evaluations/repair-events/status、current-status/spec/developer-guide同步。待改任务native、原字节消费者、变化及主质量队列。
+
+AT17/19工作计划：薄账本复用既有sumUsage，按精确report哈希枚举首轮/修订、实际provider telemetry、sourceVerification与evaluator-only评阅。匿名先红例覆盖费用未知、首轮/修订分离及评阅hash拒绝；不推断美元、不将作者离线validator零调用代替真实作者调用。生成call-index/accounting/summary，同步固定分母、blocked admission、未达验收及主文档。
+
+2026-10-05 AT17账本/真实候选分类：新增AT accounting.ts复用sumUsage，匿名费用未知/首修分离/评阅SHA红绿验证；2份changed native共48响应已关闭，源码最终校验均valid，但check候选仍失败。原机械分类过宽阻断队列；实际CF在check中defer/revisit后用旧focus，GH提交矛盾allow/performed并超check预算。新增已知source-verified候选分类与hash绑定的listed-row裁决；未知完成和未列位置仍阻断，原件/失败不改。48相关driver/AT测试、185断言通过，AT类型通过。待原字节消费、各任务剩余质量位置和变化。

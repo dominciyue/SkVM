@@ -8,6 +8,30 @@ const { executeLocalInquiryRun } = await import("../../../../../src/benchmarks/a
 const row = (id: string) => ({ id, task: "memos-remove", method: "D1", strategy: "guided-evidence-v2", components: ["wire", "checker"] })
 const options = (extra = {}) => ({ revision: "test-revision", model: "mock", budgets: { maxDispatches: 12 }, concurrency: 2, ...extra })
 const temp = () => mkdtemp(path.join(os.tmpdir(), "authorization-ar-driver-"))
+const focusedCandidateFailure = () => ({ status: "completed-with-diagnostics", ordinaryEntry: "skvm run", validation: { valid: false }, sourceVerification: { valid: true }, finalProse: "Source explanation preserves its unresolved dependency.", domain: { closed: true, check: { structureValid: false, sourceBound: true, diagnostics: [{ code: "focus-result-stale" }] } }, history: [{ call: { name: "authorization_check_result" }, exitCode: 0, output: { valid: false, diagnostics: [{ code: "focus-result-stale" }, { code: "semantic-result-schema" }] } }] })
+
+test("known focused native candidate rejection is not a shared checker failure", () => {
+  expect(api.mechanicalReview(focusedCandidateFailure()).failure.components).toEqual(["model-draft"])
+  for (const invalid of [{ ...focusedCandidateFailure(), attempts: [{ status: "pending" }] }, { ...focusedCandidateFailure(), error: "Runtime crashed" }, { ...focusedCandidateFailure(), history: [{ call: { name: "authorization_check_result" }, exitCode: 1, output: { status: "error", message: "Unexpected runtime crash" } }] }]) expect(api.mechanicalReview(invalid).failure.components).not.toEqual(["model-draft"])
+})
+
+test("a hash-bound model candidate reclassification permits listed same-task work but retains the original failure", async () => {
+  const root = await temp(), report = focusedCandidateFailure()
+  await api.developRows(root, [row("candidate")], options({ execute: async () => report, evaluate: async () => ({ failure: { category: "state/checker", rootCause: "Old broad classification", components: ["checker"] } }) }))
+  const artifact = "runs/candidate/attempt-1/report.json", proof = "candidate-review.json"
+  await writeFile(path.join(root, proof), JSON.stringify({ providerCalls: 0, checkerCorrectlyRejectedCandidate: true }))
+  const hash = async (file: string) => createHash("sha256").update(await readFile(path.join(root, file))).digest("hex")
+  const release = { failureId: "candidate-attempt-1", originalArtifactSha256: await hash(artifact), releasedComponents: ["checker"], eligibleRows: ["next"], retainTaskPause: false, classification: "model-candidate", rationale: "Exact known response violated current focus; no shared failure or unknown completion", verificationArtifacts: [{ path: proof, sha256: await hash(proof) }] }
+  await writeFile(path.join(root, "scope-adjudications.jsonl"), JSON.stringify(release) + "\n")
+  const result = await api.developRows(root, [row("next"), row("unlisted")], options({ concurrency: 1, execute: async () => ({ status: "completed" }), evaluate: async () => ({}) }))
+  expect(result.rows[0].status).toBe("completed")
+  expect(result.rows[1].status).toBe("not-run-after-defect")
+  expect((await json(path.join(root, artifact))).report.status).toBe("completed-with-diagnostics")
+  await writeFile(path.join(root, artifact), JSON.stringify({ identity: { row: row("candidate") }, report: { ...report, attempts: [{ status: "pending" }] } }))
+  release.originalArtifactSha256 = await hash(artifact)
+  await writeFile(path.join(root, "scope-adjudications.jsonl"), JSON.stringify(release) + "\n")
+  await expect(api.developRows(root, [row("another")], options({ execute: async () => ({ status: "completed" }), evaluate: async () => ({}) }))).rejects.toThrow("known model candidate")
+})
 const json = async (file: string) => JSON.parse(await readFile(file, "utf8"))
 async function knownRepairChain(root: string) {
   const rows = [row("chain")], run = options({ concurrency: 1, execute: async () => ({ status: "completed", telemetry: { providerCalls: 1 } }), evaluate: async () => ({ failure: { category: "schema/wire", rootCause: "known responded failure", components: ["wire"] } }) })

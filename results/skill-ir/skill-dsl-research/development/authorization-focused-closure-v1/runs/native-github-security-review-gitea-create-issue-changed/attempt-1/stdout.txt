@@ -1,0 +1,182 @@
+
+skvm run v0.1.4
+  Adapter  bare-agent (built-in)
+  Model    xty/gpt-5.6-sol via openai-compatible (https://svip.xty.app/v1)
+  Task     natural prompt
+  Skill    D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\github-security-review\SKILL.md
+  WorkDir  D:\skill优化\project-maintenance\runs\authorization-focused-closure-v1\native-github-security-review-gitea-create-issue-changed\attempt-1
+  Cache    D:\skill优化\SkVM\.skvm
+
+08:35:17.071 [INFO ] [run] Run task natural-50af86d00613: adapter=bare-agent model=xty/gpt-5.6-sol workDir=D:\skill优化\project-maintenance\runs\authorization-focused-closure-v1\native-github-security-review-gitea-create-issue-changed\attempt-1
+08:35:17.074 [INFO ] [conv-log] Conversation logging enabled: D:\skill优化\SkVM\.skvm\log\20261005-083517-run
+✓ Task natural-50af86d00613 complete  (7m 32s)
+
+=== Run Complete ===
+Task: natural-50af86d00613
+Skill: D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\github-security-review\SKILL.md
+Model: xty/gpt-5.6-sol
+Adapter: bare-agent
+WorkDir: D:\skill优化\project-maintenance\runs\authorization-focused-closure-v1\native-github-security-review-gitea-create-issue-changed\attempt-1
+Duration: 452.9s
+Tokens: in=674346 out=17380
+
+Final output:
+# Authorization Conformance Review
+
+## Findings summary
+
+| Item | Result | Confidence |
+|---|---|---|
+| Route requires repository issue-unit **read** access or admin exception | Confirmed from source | High |
+| Route requires issue-unit **write** permission to enter `CreateIssue` | Not shown; source indicates no | Medium |
+| `CreateIssue` directly guards `NewIssue` with issue-unit write permission | Not shown in the reviewed handler | Medium |
+| Issue creation persistence is attempted by `services/issue.NewIssue` | Confirmed in helper source, but caller linkage remained unresolved in the native check | Medium |
+| Supplied policy is satisfied for the evaluated deployment | **Undetermined** | Medium |
+| Issues unit is enabled in the deployment | Not established | N/A |
+
+## Policy under review
+
+> Any authenticated repository reader may create an issue when the issues unit is enabled. Issue-unit write permission is not required by this policy.
+
+## Source behavior
+
+### 1. API route and upstream controls
+
+The API route for creating an issue is:
+
+```go
+Post(
+    reqToken(),
+    mustNotBeArchived,
+    bind(api.CreateIssueOption{}),
+    reqRepoReader(unit.TypeIssues),
+    repo.CreateIssue,
+)
+```
+
+Source: `routers/api/v1/api.go:1646-1649`.
+
+The route therefore applies:
+
+1. `reqToken()`
+2. archived-repository protection
+3. request binding
+4. `reqRepoReader(unit.TypeIssues)`
+5. `CreateIssue`
+
+The reviewed `reqRepoReader` implementation rejects only when all of these are false:
+
+```go
+if !ctx.Repo.Permission.CanRead(unitType) &&
+    !ctx.IsUserRepoAdmin() &&
+    !ctx.IsUserSiteAdmin() {
+    ctx.APIError(http.StatusForbidden, ...)
+    return
+}
+```
+
+Source: `routers/api/v1/api.go:472-479`.
+
+Accordingly, the visible route-level authorization condition is **reader access to the issues unit**, with repository-admin and site-admin exceptions. It is not a `CanWrite(unit.TypeIssues)` check.
+
+### 2. Caller and repository binding
+
+`CreateIssue` uses the authenticated context actor as the issue poster and uses the route-selected repository from `ctx.Repo.Repository`.
+
+Source: `routers/api/v1/repo/issue.go:533-653`.
+
+The exact implementation and semantics of `reqToken()` were not included in the reviewed source windows. Thus, the route visibly requires that middleware, but this review does not independently prove all details of how authentication binds the caller.
+
+### 3. Issue-unit write permission inside `CreateIssue`
+
+The handler contains issue-unit write checks such as:
+
+```go
+if form.Deadline != nil && ctx.Repo.Permission.CanWrite(unit.TypeIssues) {
+```
+
+Source: `routers/api/v1/repo/issue.go:572`.
+
+It also has a broader branch:
+
+```go
+if ctx.Repo.Permission.CanWrite(unit.TypeIssues) {
+```
+
+Source: `routers/api/v1/repo/issue.go:589`.
+
+In the reviewed handler, these checks control optional issue fields and related processing. The issue creation service call is not visibly enclosed by an issue-unit write-permission guard. The relevant source evidence therefore supports the distinction required by the policy:
+
+- `CanRead(TypeIssues)` is used by the route to admit the request.
+- `CanWrite(TypeIssues)` is used for optional field handling.
+- A direct `CanWrite(TypeIssues)` requirement for creating the issue is not shown.
+
+### 4. Creation effect
+
+The service helper is:
+
+```go
+func NewIssue(
+    ctx context.Context,
+    repo *repo_model.Repository,
+    issue *issues_model.Issue,
+    ...
+) error
+```
+
+Source: `services/issue/issue.go:25-84`.
+
+It:
+
+- loads the issue poster;
+- rejects blocked-user cases;
+- calls `issues_model.NewIssue` inside a transaction;
+- processes assignees and projects;
+- updates mentions;
+- sends notifications.
+
+The persistence call is at `services/issue/issue.go:36-39`:
+
+```go
+if err := issues_model.NewIssue(ctx, repo, issue, labelIDs, uuids); err != nil {
+    return err
+}
+```
+
+This is an attempted creation effect for the supplied repository and issue, subject to service, transaction, validation, and database errors. Source code alone does not prove that a particular deployment successfully executed the transaction.
+
+## Relevant exceptions
+
+The reader-level policy path is not unconditional. Relevant exceptions include:
+
+- **Archived repository:** rejected by `mustNotBeArchived` before `CreateIssue`.
+- **Insufficient reader access:** `reqRepoReader` returns forbidden when the caller lacks issue-unit read permission and is neither a repository nor site administrator.
+- **Administrator alternatives:** repository and site administrators can pass the reader helper without ordinary unit-reader permission.
+- **Blocked poster:** `services/issue.NewIssue` returns `ErrBlockedUser`.
+- **Operational or persistence errors:** poster loading, transaction, issue persistence, assignee/project processing, or mention processing may fail.
+- **Deployment state:** the reviewed source does not establish that the issues unit is enabled for the deployment being evaluated.
+- **Authentication implementation:** the complete `reqToken()` path was not reviewed.
+
+## Policy assessment
+
+### Raw source conclusion
+
+**The reviewed source is directionally consistent with the policy.** The route checks repository reader access for `unit.TypeIssues`, and the reviewed `CreateIssue` handler does not visibly require issue-unit write permission before invoking the issue creation service. This supports allowing an authenticated repository reader to create an issue when the issues unit is enabled.
+
+### Checked-result limitation
+
+The native authorization check could not be delivered as a valid checked result. Its semantic closure still reported an unresolved relation connecting the `CreateIssue` handler’s `NewIssue` call to the separately interpreted `services/issue.NewIssue` helper. Therefore:
+
+- behavior must remain **unknown**, not asserted as a closed `allow`;
+- the persistence effect must remain **unresolved**, not asserted as performed;
+- policy conformance must remain **undetermined**, not asserted as satisfied.
+
+This is a limitation of the bounded source-review linkage, not evidence that the policy is violated.
+
+## Final determination
+
+**Policy status: Undetermined, with source behavior directionally compliant.**
+
+Based on the displayed route and handler, an authenticated repository reader appears able to reach issue creation without issue-unit write permission, matching the independent policy. However, the review cannot make a checked conformance determination because the `CreateIssue` → `NewIssue` semantic linkage remained unresolved, and the reviewed source does not establish the deployment’s issues-unit enablement or the complete `reqToken()` authentication behavior.
+
+**Confidence: Medium.**

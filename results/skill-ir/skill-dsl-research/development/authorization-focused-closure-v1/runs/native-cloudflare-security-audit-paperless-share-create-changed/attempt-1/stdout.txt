@@ -1,0 +1,95 @@
+
+skvm run v0.1.4
+  Adapter  bare-agent (built-in)
+  Model    xty/gpt-5.6-sol via openai-compatible (https://svip.xty.app/v1)
+  Task     natural prompt
+  Skill    D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\cloudflare-security-audit\SKILL.md
+  WorkDir  D:\skill优化\project-maintenance\runs\authorization-focused-closure-v1\native-cloudflare-security-audit-paperless-share-create-changed\attempt-1
+  Cache    D:\skill优化\SkVM\.skvm
+
+08:35:17.085 [INFO ] [run] Run task natural-334ff537cfb8: adapter=bare-agent model=xty/gpt-5.6-sol workDir=D:\skill优化\project-maintenance\runs\authorization-focused-closure-v1\native-cloudflare-security-audit-paperless-share-create-changed\attempt-1
+08:35:17.088 [INFO ] [conv-log] Conversation logging enabled: D:\skill优化\SkVM\.skvm\log\20261005-083517-run
+✓ Task natural-334ff537cfb8 complete  (4m 53s)
+
+=== Run Complete ===
+Task: natural-334ff537cfb8
+Skill: D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\cloudflare-security-audit\SKILL.md
+Model: xty/gpt-5.6-sol
+Adapter: bare-agent
+WorkDir: D:\skill优化\project-maintenance\runs\authorization-focused-closure-v1\native-cloudflare-security-audit-paperless-share-create-changed\attempt-1
+Duration: 293.2s
+Tokens: in=590848 out=11913
+
+Final output:
+## Authorization conformance result
+
+**Disposition: Undetermined — raw source conclusion, not successfully checked by the authorization result validator.**
+
+### Policy
+
+The independently supplied policy is:
+
+> Only the owner of the exact document may create a share. Object-level `view_document` grants without ownership are insufficient.
+
+### Source behavior
+
+The relevant creation path is `ShareLinkViewSet`. The viewset is registered in the application URL configuration, and its source declares the share-link model, `ShareLinkSerializer`, authentication/object-permission classes, and `PermittedObjectsFilter` (`src/documents/views.py:4696–4719`; `src/paperless/urls.py:43, 88`).
+
+Creation then follows the inherited DRF `CreateModelMixin` path:
+
+1. Build the serializer from request data.
+2. Call `serializer.is_valid(raise_exception=True)`.
+3. Call `serializer.save()`.
+4. Return the created object.
+
+This is the inherited behavior in `framework/rest_framework-3.18.1/rest_framework/mixins.py:16–24`.
+
+`PassUserMixin.get_serializer()` supplies `self.request.user` as the serializer’s `user` argument when the selected serializer is a `SerializerWithPerms` subclass (`src/documents/views.py:411–428`). Thus, the relevant principal is the authenticated request user, subject to that serializer-subclass branch.
+
+`ShareLinkSerializer` inherits from `OwnedObjectSerializer` and exposes the `document` field (`src/documents/serialisers.py:2851–2867`). Before creation, its `validate_document()` method accepts the submitted document only when all of the following are true:
+
+- `self.user` is non-null;
+- the user has the global `documents.view_document` permission; and
+- `has_perms_owner_aware(self.user, "view_document", document)` returns true.
+
+Otherwise it raises `PermissionDenied` (`src/documents/serialisers.py:2873–2886`).
+
+If validation succeeds, `ShareLinkSerializer.create()` generates a slug and delegates to model creation (`src/documents/serialisers.py:2869–2871`). The resulting `ShareLink` stores the validated exact document in its `document` foreign key (`src/documents/models.py:1000–1006`).
+
+### Other inherited or upstream controls
+
+The endpoint also declares:
+
+- `IsAuthenticated`;
+- `PaperlessObjectPermissions`; and
+- `PermittedObjectsFilter`.
+
+The available source shows these as upstream controls, but they do not, on the evidence reviewed, establish ownership of the linked `Document`:
+
+- `PaperlessObjectPermissions` is an object-permission control on the `ShareLink` object. Its owner/delegation behavior therefore concerns the share-link object, not necessarily the document selected in the request (`src/documents/permissions.py:1–90`).
+- `PermittedObjectsFilter` filters permitted querysets. The reviewed evidence does not establish that it performs a create-time ownership check against the submitted document (`src/documents/filters.py:1060–1096`).
+- The inherited create flow does not itself perform an object lookup or owner comparison for the submitted document; the decisive document check is in `ShareLinkSerializer.validate_document()`.
+
+### Policy assessment
+
+**Undetermined.**
+
+The source does **not** rely merely on document existence or the global `documents.view_document` permission. It passes the exact submitted document to `has_perms_owner_aware()` before creating the share, which is the relevant document-level decision point.
+
+However, the decisive implementation semantics of `has_perms_owner_aware()` were not successfully completed and independently checked in this run. Therefore, the available evidence does not establish whether that helper:
+
+- requires the principal to be the exact document owner; or
+- also permits a non-owner with a direct object-level `view_document` grant, group grant, or inherited permission.
+
+Accordingly, the source cannot presently demonstrate compliance with the owner-only policy, but it also does not establish a policy violation without resolving that helper’s behavior.
+
+### Missing fact required for a final determination
+
+Read and interpret `src/documents/permissions.py:624–637` for `has_perms_owner_aware()` and every helper it calls, specifically for the selected `Document`. The required question is:
+
+> Can a non-owner who has object-level, group-based, or inherited `view_document` access satisfy this helper?
+
+- If **yes**, the implementation violates the supplied policy because the share is created for a non-owner.
+- If **no**, and only exact ownership can satisfy it, the document-level policy control is compliant.
+
+No deployment, authentication-provider, or external ownership assumptions were made. The final authorization check itself was attempted but rejected due to the structured-result/semantic-review errors; the conclusion above is therefore explicitly **unverified raw source analysis**, not a confirmed authorization result.
