@@ -4,6 +4,7 @@ import os from "node:os"
 import path from "node:path"
 import { plannedPositions } from "./study.ts"
 import { naturalRunTaskId } from "../../../../../src/run/index.ts"
+import * as ordinary from "./ordinary.ts"
 import { skillBundleIdentity, verifySkillBundle, selectOrdinaryRow, ordinaryInvocation, classifyOrdinary } from "./ordinary.ts"
 
 test("complete skill identity includes the original SKILL and every deployed companion", async () => {
@@ -54,4 +55,11 @@ test("N completion means closed source-valid prose and never a fabricated formal
   expect(n.formalCheck).toBe("not-applicable")
   expect(classifyOrdinary({ ...trace, sourceVerification: { valid: false } }, 0, "N").status).toBe("completed-with-diagnostics")
   expect(classifyOrdinary(trace, 0, "M-O").status).toBe("completed-with-diagnostics")
+})
+test("raw ordinary conversation only matches known positive integral counts and fully responded native telemetry", () => {
+  const matches = (ordinary as any).ordinaryAccountingMatches, valid = { providerCalls: 3, respondedCalls: 3 }
+  expect(matches(valid, { telemetry: valid })).toBe(true)
+  for (const invalid of [{}, { providerCalls: null, respondedCalls: null }, { providerCalls: 0, respondedCalls: 0 }, { providerCalls: 1.5, respondedCalls: 1.5 }, { providerCalls: 3, respondedCalls: 2 }]) expect(matches(invalid, { telemetry: invalid })).toBe(false)
+  expect(matches(valid, {})).toBe(false)
+  expect(matches(valid, { telemetry: { ...valid, providerCalls: 4 } })).toBe(false)
 })

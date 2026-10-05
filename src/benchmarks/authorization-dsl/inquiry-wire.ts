@@ -121,6 +121,8 @@ export function normalizeFocusedControlEnvelope(input: unknown) {
     const nested = raw.value as Record<string, unknown>, nestedKeys = Object.keys(nested)
     const delta = !("controlDelta" in nested) || FocusedUpdateEnvelopeSchema.safeParse(nested.controlDelta).success
     if (raw.kind === nested.kind && ((raw.kind === "tool" && nestedKeys.every(k => ["kind", "calls", "controlDelta"].includes(k)) && sourceCalls.safeParse(nested.calls).success && delta) || (raw.kind === "control" && nestedKeys.every(k => ["kind", "controlDelta"].includes(k)) && FocusedUpdateEnvelopeSchema.safeParse(nested.controlDelta).success))) { value = nested; code = "focused-step-matching-wrapper" }
+  } else if (raw.kind === "tool" && ("schemaVersion" in raw || "focusId" in raw) && z.object({ kind: z.literal("tool"), calls: sourceCalls, schemaVersion: z.literal("authorization-focused-update/v1").optional(), focusId: z.string().min(1).optional() }).strict().safeParse(raw).success) {
+    value = { kind: "tool", calls: raw.calls }; code = "focused-source-routing-metadata"
   } else if (raw.schemaVersion === "authorization-focused-update/v1") {
     const { calls: explicitCalls, controlDelta: misplaced, ...focused } = raw
     const hasCalls = "calls" in raw, hasDelta = "controlDelta" in raw
@@ -145,7 +147,7 @@ function operationStepModelSchema(stage?: FocusStage, finalOnly = false) {
   if (finalOnly) return final
   const actions = focusedUpdateSchema(stage, false, true), options = "options" in actions ? actions.options : [actions]
   const direct = options.map(action => action.extend({ calls: z.array(OperationSourceCallSchema).max(8).optional() }))
-  const variants = [z.object({ kind: z.literal("tool"), calls: z.array(OperationSourceCallSchema).min(1).max(8) }).strict(), ...direct, ...(stage === "answer" ? [final] : [])]
+  const variants = [z.object({ kind: z.literal("tool"), calls: z.array(OperationSourceCallSchema).min(1).max(8), schemaVersion: z.literal("authorization-focused-update/v1").optional(), focusId: z.string().min(1).optional() }).strict(), ...direct, ...(stage === "answer" ? [final] : [])]
   const exact = z.union([variants[0]!, variants[1]!, ...variants.slice(2)])
   // A root union forces the generic tool transport to add a second `value` container.
   // Publish one object; action-specific required/forbidden fields remain strictly parsed.

@@ -369,6 +369,11 @@ AU0/1创建薄runner后登记其真实typecheck、单位置运行和replay命令
 
 ## 九、执行记录
 
+- 第七轮`operation-duty-granularity-v1`5/5响应即transport-failed，累计105/105；1 operation保留3问及原责任，2个current units，无终答。原始两拒绝payload均为合法typed source calls加广告中可见的focused schemaVersion/focusId；strict pure-tool分支禁止这两个路由字段，形成广告/解析不一致。下一小型TDD允许pure source step的显式typed路由元数据并无损降低为原tool calls，元数据不选择focus、不接受语义；缺calls、invalid metadata/调用及多余action payload拒绝。模型广告精确分支同步，原件零调用重放后同题`source-step-metadata-v1`复验，不扩预算。
+- 本阶段该red及AU13四个red、portable/admission两red、ordinary对账red均转green，联合791 pass/1skip/5093断言与主/AU双类型通过。独立wire核验确认calls原样且无解释；作者/消费核验的undefined对账案例在实际capture（number/null）未成立，但补正整数/全响应约束及null/undefined/零/fraction/缺报反例。作者预算原/变12步、最多一次字段修复；消费者在实际原报告SHA绑定的忠实性/raw工具评阅后才准入。两原失败source payload零调用重放通过；语义、实际采用和效益未验收。
+
+- AU13薄接线计划：作者仍通过完整原skill的ordinary run，从原brief、public current policy和机械source/scope metadata写v2配置及USAGE，不提供目标问题集、答案或控制图；两variant统一12步作者预算，原始完整bundle、actual conversation和source index前后身份保留。最多一次字段修复，未知完成跨arm封存。消费者必须匹配登记作者/variant/input/完整skill及draft/USAGE SHA；复制配置原字节与允许的source快照，不重写相对sourceRoot，再以ordinary完整原skill+同operation核心消费，原自然brief保持、完整声明零重复author调用。匿名TDD覆盖metadata-only输入、policy/source身份拒绝、原字节消费和无有效稿零调用准入；source/tool副作用由raw独立核验，未核验target执行记unknown。仅results薄接线，当前第七轮不改变共享运行核心。
+
 - 第六轮`direct-focused-step-v1`已关闭：21派发/21响应、六问终答均unknown且检查拒绝；14个current source units主要重复同一class/route/framework体，没有accepted serializer/exact-object单元。累计100/100、美元未知。独立SHA/source/轨迹核验及主抽查确认：容器恢复形成终答（2 wire failures、16无损格式归位），但D1把同一创建动作拆成5个operations，反复取证而未闭合授权。下一针对性修复先用匿名反例：明确operation为用户实际动作，同一动作的endpoint/inheritance/serializer/policy/scope责任共享operation；多动作仍分别声明，宿主不猜测合并、不改模型问题。主读actual structured contract发现union仍自动套value，引发calls外壳错位；改广告为单一根object及kind枚举，保留每动作严格union解析和旧输入合同，不增加猜测归位。仅调整共享作者指南与operation模型广告，回归/双类型/文档后同题`operation-duty-granularity-v1`修订，不扩预算、不投喂评价结论。作者/消费者/变化薄接线待此阶段后继续；语义未达与格式改善分列。
 - 此修复4个预期red转通过，focused24 pass/223断言、联合784 pass/1skip/4994断言，主/AU双类型及独立只读接口核验通过。16个实际归位payload零provider复核逐一保持完整显式内容，原件SHA未变；第四/五轮旧wire故障通过真实六问交付与此证据具名解除，所有model-draft语义失败保留。独立评阅的无条件policy-satisfied及normalization序号误述由主原文裁定纠正。尚未证明新粒度实际改善。
 

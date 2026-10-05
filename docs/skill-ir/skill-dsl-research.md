@@ -1755,6 +1755,8 @@ Python/Go结构索引采用固定MIT许可的`@vscode/tree-sitter-wasm@0.3.1`，
 
 第六次`direct-focused-step-v1`21请求/21响应形成六问终答，但全部unknown/rejected、usable0；源码终检95文件有效。14个current units主要是同一class/route/framework体的重复，5个声明operations把同一创建动作按职责分开；serializer与exact-object权限无accepted单元。完整input418085/output16586/cacheRead17024，USD未知，累计100/100。独立SHA/轨迹/源码核验及主原始payload抽查确认：2 wire failures、16格式归位，实际终答改善只支持容器恢复，不支持语义授权/完整政策合规或净收益。下一修复以同一共享指南明确动作与职责粒度，保留多动作任务；模型广告从仍被自动套value的union改为单root object，严格action union校验继续。四个预期red转通过，联合784 pass/1skip/4994断言、主/AU类型及独立接口核验通过。评价侧的无条件policy-satisfied主张未采用，源中的ownerless/owner/direct/group分支需实际解释并比较。
 
+第七次`operation-duty-granularity-v1`5请求/5响应，实际声明已为1操作/3问题，2current units，但纯source step携带广告中的schemaVersion/focusId被旧tool分支拒绝，transport-failed且全题not-delivered。完整input45225/output2690/cacheRead0、USD未知，累计105/105。两原payload在修复后零调用解析并保留各8个来源调用，仅解除具名路由风险；任务粒度改善不等于源码质量。AU13完整skill作者/原字节ordinary消费者薄接线及忠实性/raw审查准入已做匿名red/green，联合791 pass/1skip/5093断言与双类型通过；实际作者/消费者仍待派发。ordinary raw/native对账要求已知正整数且全响应，缺失值不能互相证明。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

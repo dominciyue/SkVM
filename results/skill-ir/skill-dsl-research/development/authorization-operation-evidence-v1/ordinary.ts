@@ -38,8 +38,8 @@ export function selectOrdinaryRow(manifest: any, id: string, registration: any) 
   if (position.variant === "changed" && !policyOverride) throw new Error("Changed policy is not registered")
   return { row, input, policyOverride, bundleSha256: retained.bundleSha256 }
 }
-export function ordinaryInvocation(options: { row: Row & Position; manifest: any; value: any; policyOverride?: unknown; scopeFile: string; skill: string; traceFile: string; workDir: string }) {
-  const { row, manifest, value } = options, policy: any = options.policyOverride ?? value.inquiry?.policy ?? value.policy, brief = value.brief ?? JSON.stringify(value.inquiry)
+export function ordinaryInvocation(options: { row: Row & Position; manifest: any; value: any; naturalBrief?: string; policyOverride?: unknown; scopeFile: string; skill: string; traceFile: string; workDir: string }) {
+  const { row, manifest, value } = options, policy: any = options.policyOverride ?? value.inquiry?.policy ?? value.policy, brief = options.naturalBrief ?? value.brief ?? JSON.stringify(value.inquiry)
   const prompt = `${brief}\n${policy ? `Independent CURRENT policy: ${policy.text}\n` : ""}Use the complete supplied original security skill for this bounded source-visible authorization question. Preserve every requested distinction and the original normal reporting format, source citations, confidence, source self-verification and remaining duties/limits. Explain conditional source behavior and independent policy separately. Keep unspecified user premises separate from available unexamined source. The current scope supplies read-only source tools; conclude in the original skill prose format from the evidence actually available.`
   const b = manifest.budgets, args = ["run", `--prompt=${prompt}`, `--skill=${options.skill}`, `--model=${manifest.testedModel}`, "--adapter=bare-agent", `--workdir=${options.workDir}`, `--max-steps=${b.maxDispatches}`, `--timeout-ms=${b.sessionTimeoutMs}`, `--authorization-scope=${options.scopeFile}`, `--authorization-trace=${options.traceFile}`, `--authorization-max-provider-calls=${b.maxDispatches}`, `--authorization-max-tool-calls=${b.maxToolCalls}`, `--authorization-max-display-bytes=${b.maxDisplayBytes}`, `--authorization-max-read-bytes=${b.maxReadBytes}`, `--authorization-max-output-tokens=${b.maxTokens}`]
   if (row.arm !== "N") args.push("--authorization-domain-tools", "--authorization-strategy=operation-evidence-v1", `--authorization-method=${row.method}`)
@@ -51,6 +51,9 @@ export function classifyOrdinary(trace: any, exitCode: number, arm: string) {
   if (arm === "N") return { status: exitCode === 0 && delivered && trace.sourceVerification?.valid === true ? "completed" : "completed-with-diagnostics", finalProse, formalCheck: "not-applicable" }
   const delivery = nativeDelivery(trace, exitCode), checked = delivery.status === "completed" && trace.sourceVerification?.valid === true && !!trace.result
   return { ...delivery, status: checked ? "completed" : "completed-with-diagnostics", formalCheck: checked ? "checked-bounded" : "not-checked-bounded" }
+}
+export function ordinaryAccountingMatches(capture: any, trace: any) {
+  return Number.isSafeInteger(capture.providerCalls) && capture.providerCalls > 0 && capture.respondedCalls === capture.providerCalls && capture.providerCalls === trace.telemetry?.providerCalls && capture.respondedCalls === trace.telemetry?.respondedCalls
 }
 
 /** Supplemental immutable public-input registration; original AU/AT manifests stay unchanged. */
@@ -86,15 +89,17 @@ export async function verifyOrdinaryRegistration(registration: any) {
   }
 }
 
-async function executeOrdinary(selected: ReturnType<typeof selectOrdinaryRow>, manifest: any, registration: any, revision: string, output: string) {
+export interface ExactOrdinaryScope { scopeFile: string; sha256: string; naturalBrief: string; provenance: unknown }
+export async function executeOrdinary(selected: ReturnType<typeof selectOrdinaryRow>, manifest: any, registration: any, revision: string, output: string, exactScope?: ExactOrdinaryScope) {
   const { row, input } = selected, inputFile = modelInputPath(input.file), loaded = await loadInquiryInput(inputFile), skill = path.resolve(root, input.skill), bundle = registration.bundles.find((b: any) => b.sourceSkill === input.skill)
   await verifySkillBundle(skill, bundle)
-  const workDir = path.resolve(repo, "../project-maintenance/runs/authorization-operation-evidence-v1", row.id, path.basename(output)), scopeFile = path.join(output, "scope.json"), traceFile = path.join(output, "native-trace.json")
+  const workDir = path.resolve(repo, "../project-maintenance/runs/authorization-operation-evidence-v1", row.id, path.basename(output)), scopeFile = exactScope?.scopeFile ?? path.join(output, "scope.json"), traceFile = path.join(output, "native-trace.json")
   await mkdir(workDir, { recursive: true })
-  const scope = makeNativeScope(loaded.value, loaded.context.sourceRoot, scopeFile, selected.policyOverride)
-  await save(scopeFile, scope); await loadInquiryInput(scopeFile)
-  const invocation = ordinaryInvocation({ ...selected, manifest, value: scope, skill, scopeFile, traceFile, workDir })
-  await save(path.join(output, "ordinary-claim.json"), { row, revision, originalInput: input.file, originalInputSha256: input.sha256, originalSkill: input.skill, completeSkillBundle: bundle, ordinaryRegistrationSha256: sha(await readFile(path.join(root, "ordinary-registration.json"))), ...invocation, workDir, scopeFile, priorAnswersModelVisible: false, controlGraphSeeded: false, noAutomaticResend: true })
+  if (exactScope && sha(await readFile(scopeFile)) !== exactScope.sha256) throw new Error("Exact authored scope changed before dispatch")
+  const scope = exactScope ? (await loadInquiryInput(scopeFile)).value : makeNativeScope(loaded.value, loaded.context.sourceRoot, scopeFile, selected.policyOverride)
+  if (!exactScope) { await save(scopeFile, scope); await loadInquiryInput(scopeFile) }
+  const invocation = ordinaryInvocation({ ...selected, manifest, value: scope, ...(exactScope ? { naturalBrief: exactScope.naturalBrief } : {}), skill, scopeFile, traceFile, workDir })
+  await save(path.join(output, "ordinary-claim.json"), { row, revision, originalInput: input.file, originalInputSha256: input.sha256, originalSkill: input.skill, completeSkillBundle: bundle, ordinaryRegistrationSha256: sha(await readFile(path.join(root, "ordinary-registration.json"))), ...invocation, workDir, scopeFile, ...(exactScope ? { exactAuthoredScope: exactScope, modelConfigBytesEdited: false } : {}), priorAnswersModelVisible: false, controlGraphSeeded: false, noAutomaticResend: true })
   const child = Bun.spawn([process.execPath, path.join(repo, "src/index.ts"), ...invocation.args], { cwd: repo, env: process.env, stdout: "pipe", stderr: "pipe" })
   const [stdout, stderr, exitCode] = await Promise.all([new Response(child.stdout).text(), new Response(child.stderr).text(), child.exited])
   await writeFile(path.join(output, "stdout.txt"), stdout, { flag: "wx" }); await writeFile(path.join(output, "stderr.txt"), stderr, { flag: "wx" })
@@ -111,14 +116,16 @@ async function executeOrdinary(selected: ReturnType<typeof selectOrdinaryRow>, m
   const installedWithinWork = !!installed && !!installedRelation && !installedRelation.startsWith("..") && !path.isAbsolute(installedRelation)
   const installedSkillVerified = installedWithinWork && await verifyBundle(installed!, "installed-skill-changed")
   if (!installedWithinWork) verificationErrors.push({ code: "installed-skill-unbound", message: "Actual complete skill installation is not trace-bound", severity: "error" })
-  const inputUnmodified = sha(await readFile(inputFile)) === input.sha256, captureMatchesTrace = capture.providerCalls === trace.telemetry?.providerCalls && capture.respondedCalls === trace.telemetry?.respondedCalls
+  const inputUnmodified = sha(await readFile(inputFile)) === input.sha256, captureMatchesTrace = ordinaryAccountingMatches(capture, trace)
   const unexpectedExecutedTools = trace.history?.filter((h: any) => h.executed && !/^(source_(?:list|search|symbol|read|structure)|skill_reference_read|authorization_(?:compile|observe|check_result))$/.test(h.call?.name ?? "")) ?? []
   if (!inputUnmodified) verificationErrors.push({ code: "original-input-changed", message: "Registered original input changed", severity: "error" })
+  const exactScopeUnmodified = !exactScope || sha(await readFile(scopeFile).catch(() => Buffer.from(""))) === exactScope.sha256
+  if (!exactScopeUnmodified) verificationErrors.push({ code: "authored-scope-changed", message: "Consumed model configuration bytes changed", severity: "error" })
   if (!captureMatchesTrace) verificationErrors.push({ code: "conversation-accounting-unbound", message: "Task-hash-bound raw conversation and native telemetry disagree or are unavailable", severity: "error" })
   if (unexpectedExecutedTools.length) verificationErrors.push({ code: "unexpected-executed-tool", message: "Unexpected executed tool in the read-only runtime", severity: "error" })
   const delivery = classifyOrdinary(trace, exitCode, row.arm), valid = delivery.status === "completed" && !verificationErrors.length
   return { ...trace, ...delivery, ...(delivery.status === "completed" && !valid ? { status: "completed-with-diagnostics" } : {}), exitCode, ordinaryEntry: "skvm run", completeSkillBundleSha256: bundle.bundleSha256, sourceSkillUnmodified, installedSkillVerified, originalInputUnmodified: inputUnmodified,
-    actualReferenceReads: trace.history?.filter((h: any) => h.call?.name === "skill_reference_read") ?? [], conversationCapture: { ...capture, matchesNativeTrace: captureMatchesTrace }, unexpectedExecutedTools, validation: { valid, diagnostics: verificationErrors }, targetExecutions: unexpectedExecutedTools.length ? null : 0 }
+    ...(exactScope ? { exactAuthoredScope: exactScope, exactScopeUnmodified, modelConfigBytesEdited: false } : {}), actualReferenceReads: trace.history?.filter((h: any) => h.call?.name === "skill_reference_read") ?? [], conversationCapture: { ...capture, matchesNativeTrace: captureMatchesTrace }, unexpectedExecutedTools, validation: { valid, diagnostics: verificationErrors }, targetExecutions: unexpectedExecutedTools.length ? null : 0 }
 }
 export async function developOrdinary(id: string, repairId?: string, repairOf?: string) {
   const registration = await registerOrdinary(), manifest = await json(path.join(root, "manifest.json")), selected = selectOrdinaryRow(manifest, id, registration), status = await json(path.join(root, "status.json"))

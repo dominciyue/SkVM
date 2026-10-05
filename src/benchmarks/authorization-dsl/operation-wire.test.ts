@@ -52,6 +52,18 @@ test("operation advertisement is one root object so source calls cannot spill be
   const schemas = inquiryStepSchemas("operation-evidence-v1", false, "behavior", "interpret")
   expect(schemas.modelSchema.safeParse({ ...common, kind: "interpret", unit, reason: "Field from a different action" }).success).toBe(false)
 })
+test("pure operation source steps may retain explicit routing metadata without making it a semantic action", () => {
+  const calls = [{ name: "source_read" as const, arguments: { path: "anonymous.py", startLine: 1, endLine: 2 } }], tool = { ...common, kind: "tool", calls }
+  for (const stage of ["locate", "interpret", "link", "review", "answer"] as FocusStage[]) {
+    const schemas = inquiryStepSchemas("operation-evidence-v1", false, "behavior", stage)
+    expect(schemas.modelSchema.safeParse(tool).success).toBe(true)
+    expect(schemas.schema.parse(tool)).toEqual({ kind: "tool", calls })
+    for (const invalid of [{ ...tool, schemaVersion: "wrong" }, { ...tool, focusId: "" }, { ...tool, calls: [] }, { ...tool, unit }, { ...tool, calls: [{ name: "read_initial", arguments: {} }] }]) {
+      expect(schemas.modelSchema.safeParse(invalid).success).toBe(false)
+      expect(schemas.schema.safeParse(invalid).success).toBe(false)
+    }
+  }
+})
 test("actual structured provider receives the direct operation schema and its original bodies reach the shared runtime", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "au-step-"))
   await writeFile(path.join(sourceRoot, "entry.py"), "def entry():\n    return False\n")
