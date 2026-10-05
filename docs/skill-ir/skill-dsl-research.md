@@ -1705,6 +1705,30 @@ AS六个断点在本轮的实际状态如下：
 
 **自然说明成果的准确范围。** AT两份original native按原始任务获得full conditional source explanation，四native各24调用；两份changed为partial。Paperless说明精确document、全局权限与owner-aware三分支、继承保存及严格policy关系；Gitea说明reader路由、writer控制部分附加字段、仍到达保存及所给policy冲突。[SHA绑定评阅](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/evaluations/at10-original-and-search-source-reviews.json)采用独立只读AI审查和主代理点验，非真人盲评。Gitea final未逐项列出Projects，原任务未要求该可选字段清单，主面板的字段义务评分仍保留。两条自然充分样本证明已有有内容的源码分析；重复稳定性、变化任务完整性、机器checked基础和净收益继续待验。关于给定严格policy的冲突仅针对该policy，不构成对项目部署漏洞的认定。
 
+### 7.51 系统修改的接入点、源码参考与可检验贡献
+
+2026-10-05继续做只读源码核验及公开实现调研；本节是下一设计的依据与建议，尚未实施或启动新实验。当前底座可沿用：inquiry/native共用的[运行时](../../src/benchmarks/authorization-dsl/inquiry-domain-runtime.ts)、只读源码工具、来源身份、局部解释、有限求值和结果检查。需要重点调整任务/事实边界、结构定位与领域摘要；无需新建CLI或重写整个SkVM。
+
+| 当前缺口 | 已核实接入点 | 需要设计的变化及验证方式 |
+|---|---|---|
+| 同一操作拆成多题后反复定位、解释，甚至选入无关函数 | `compileAuthorizationInquiry`为每题展开六类义务；worklist、control rules和bindings都按question隔离；evidence已有源码身份 | 增加operation级来源事实与依赖身份，各question引用同一行为解释，政策和用户前提分别计算。重复提问/换问法应复用同一正确入口；不同主体或资源不得误合并 |
+| 未提交的决定性依赖容易漏掉，继承/别名/helper对象链靠模型补齐 | source_symbol、worklist候选、scheduler和focus显式caller/target/参数映射 | 接入语言符号与版本化框架关系，产生带来源的候选边；调度由未满足的授权义务选择补读对象。以继承覆盖、同名干扰、间接调用、模型漏报依赖等反例核验 |
+| 自然说明已有内容，机器程序仍需大量低层展开 | [procedure-summary](../../src/task-dsl/authorization/procedure-summary.ts)已有纯有限返回摘要；对象guard等退回exact expansion | 扩展源码支持的主体/资源/权限摘要及有限操作，保留分支、对象身份、前提与缺口。先验证相同对象、owner分支、权限映射和被拒绝路径，不能按角色名称预设权限顺序 |
+| 整体partial导致previous阻断，任意源码集变化也整体重做 | [planInquiryReuse](../../src/benchmarks/authorization-dsl/inquiry-reuse.ts)已有政策/前提区分，但要求完整checked基础；源码变化统一拒绝 | 区分可复用结构事实、待复核语义解释和完整结论；后续设计按事实依赖局部失效，结论重新计算。部分事实的保留不得继承旧checked标志。当前会话快照仍保持不变，源码变化进入新的会话 |
+
+**公开实现阅读所得。** 本次读取相关源文件和测试片段，没有安装或运行这些项目，也没有完成全仓评估。
+
+- [CodeQL RestFramework模型](https://github.com/github/codeql/blob/main/python/ql/lib/semmle/python/frameworks/RestFramework.qll)：`ModeledApiViewClasses`通过模块/成员关系定位框架类，`RestFrameworkApiViewClass`沿子类关系识别handler；`Request`模型跟踪实例和属性传播。[测试](https://github.com/github/codeql/blob/main/python/ql/test/library-tests/frameworks/rest_framework/taint_test.py)覆盖函数视图、类视图及request属性链。这为继承与对象链提供可执行的结构依据；代码也明确记录类属性赋值等遗漏。采用前需评估数据库准备、框架覆盖和查询成本，不能只复制几条QL规则而省掉其依赖的语义基础。
+- [Cedar evaluator](https://github.com/cedar-policy/cedar/blob/main/cedar-policy-core/src/evaluator.rs)：`partial_evaluate`区分确定结果、求值错误和residual表达式，逻辑运算保留短路与类型检查；`partial_entity_stores_getattr`测试分别验证已知属性值与未知实体的残余表达式。可借鉴有限语义与具体未决条件的表示，尤其应区分“信息缺失”和“解释程序错误”。事实提取仍需我们解决；现有三值求值器可扩展，无需立刻更换语言。
+- [IRIS实现](https://github.com/iris-sast/iris/blob/main/src/iris.py)先用CodeQL收集候选API，再由模型标注source/sink/传播规则，生成查询并运行分析；[论文](https://arxiv.org/abs/2405.17238)研究的是LLM与静态分析的结合。对本项目的直接启发是让结构提取提供候选范围，模型承担局部语义判断，避免让同一次自由生成同时决定候选是否存在和结论是否成立。
+- [RepoAudit工作队列](https://github.com/PurCL/RepoAudit/blob/main/src/agent/dfbscan.py)以value/function/call-context组织按需探索，局部数据流分析结果推动后续调用；[路径验证器](https://github.com/PurCL/RepoAudit/blob/main/src/llmtool/dfbscan/path_validator.py)本身属于LLM工具。[论文](https://arxiv.org/abs/2501.18160)已研究按需探索、记忆和路径验证。这些构件已有先例；引用时需区分确定性检查与模型判断，不能仅凭validator名称推定独立正确性。
+
+**拟验证的贡献。** 主假设是把授权任务中的主体、资源、操作和审查义务编译为可执行的取证需求：每个缺口能落到具体需要补查的调用、对象关系或分支，检查结果再驱动局部补充，而非仅向模型返回一串诊断。次假设是将源码行为、独立政策和用户前提分开，使同一操作的多个问题共享来源解释，并在变化后只重算受影响部分。需求驱动分析、程序摘要、缓存、部分求值本身均已有研究基础；本项目的增量要通过授权领域的义务到执行映射、漏项检出与变化一致性证明。本次调研尚不足以宣称首创。
+
+**下一轮的研究与实现次序建议。** 先把AT的无关入口、继承遗漏、对象混淆、权限条件表达和整体失效分别落实为可复现机制案例；再为一个操作贯通声明、结构定位、局部解释、检查和原skill自然交付，并在不同结构上验证共享实现。失败暴露共享实现缺陷时暂停受影响调用，先保留失败、针对性修复并复验；不要求明知有缺陷仍跑完面板。已知开发案例用于修机制，新成员用于后续检验迁移，两个用途分账。结构提取器可以比较轻量语言/框架索引与CodeQL适配的实际成本后选择，不把实现一整套静态分析器设为前置任务。
+
+评价同时记录源码正确性、义务充分性、漏读/错误绑定、首答与修复后交付，以及取证/解释/修复的实际调用开销。普通skill、同工具的Markdown方案和完整DSL方案分别保留，运行输入只包含真实源码、任务和明确政策，oracle留在评价侧。方法收益应进一步区分结构工具收益与DSL执行语义收益。变化复用的依赖索引还需覆盖名称解析、候选集合、框架版本及配置；只记录已读文件会漏掉新增override或路由改变。动态关系无法解析时返回具体缺口，未知条件不得自动填成允许、拒绝或零值。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
