@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**授权任务的局部语义和执行支持已有实现及真实消费；AS以 `completed-with-unmet-criteria` 收束，完整源码质量与整体净收益未建立。** AR停止原件保持。任务范围仍是单repo/ref、源码可见的授权与信任边界评估；质量、编写修改、复用和运行开销分别评价，形式检查不能代替源码语义。
+**授权任务的局部语义、持久源码解释和双入口支持已有实现及真实消费；AT有限队列以 `completed-with-unmet-criteria` 收束，完整源码质量与整体净收益仍未建立。** AS与AR原件保持。任务范围仍是单repo/ref、源码可见的授权与信任边界评估；质量、编写修改、复用和运行开销分别评价，形式检查不能代替源码语义。
 
 日常先读本节与[当前状态](current-status.md)。方法形成过程见 §4–§7.18；旧阶段分别折叠保存在 §7.19–§7.46，AR根因见[§7.47](#747-2026-10-04-主线程复核优先修分支合流与图答案同步)，AS结果见[§7.48](#748-as-局部语义展开与真实交付)，本次复核及已授权AT设计见[§7.49](#749-as-复核与-at-源码解释闭合计划)。本地化候选保留在§8–§9，暂缓实施。
 
@@ -26,10 +26,11 @@
 - **自主取证后的问题：** AO 的 32 项质量任务终答严格完整 9 项；AQ 旧/新执行策略各 2/20 full，新策略交付更少。AQ 有 11 次自动补读，四次原 skill 消费 checked 交付仍为 0/4。决定性源码漏读、提取不全、协议和预算共同造成失败，详见 §7.34–§7.35。
 - **AR 已取得的局部证据：** 工作队列、局部窗口、更新和预算交付已有实现；非 API 程序同包原/变消费与中性前提 previous 已实际发生。真实授权完整链、真实授权变化复用和主面板仍有未达项。AR 的旧机器状态保留停止前快照，具体原答、失败和修订见 §7.36–§7.47。
 - **AS实际结果：** 12个可运行质量首轮均评阅，源码语义完整0/12；4个完整原skill原/变native均实际消费，最后1/4形式checked/bounded、0/4完整源码质量。4份模型作者稿格式有效并按原字节消费，下游仍部分失败。局部机制消除了具体协议、参数和定位障碍；三同版本首轮块未显示新核心/DSL完整质量增益。10个变化位置因封存或无合格base零调用阻塞。结果、成本和精确边界见§7.48。
+- **AT实际结果：** 12质量首位置全部partial，checked/bounded为0；两份完整原skill原/变4native均运行，original的两份自然条件说明充分，changed及formal完整链未达。4作者稿有效忠实且原字节消费均partial；政策/前提fresh和同输入源码副本fresh共4次partial，两previous无合格base阻断0调用。具名修复消除注释假入口，仍未闭合语义。37原件、556/556调用响应、完整token计量，USD/开发/真人未知；只证明部分机械减负。详见§7.49与[AT summary](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/summary.json)。
 
 当前关键问题是：**把可读/已读的决定性源码变成正确接受解释，闭合对象、控制、效果与政策，并在预算内交付完整原/变回答。** AS证明宿主可承担部分机械展开和恢复，但模型仍有current-offer/handle错稿、helper未解释和过强效果声明。后续真实复用须先有合格原材料；本轮不以无依据重抽增加证据。费用、人力缺报保持unknown，历史 `0/6`、Q1、readiness 与保护输入不改变。
 
-用户已授权AT接续开发：持久的解释事务、阶段窄合同、有界函数摘要及原文主张复查，继而验证普通skill、作者原稿和变化使用。此时只完成复核与任务书；新策略尚无实现或效果结果。
+AT已实际实现持久解释事务、阶段窄合同、有界纯函数摘要及原文主张复查，并完成有限普通skill、作者原稿、变化和主面板队列。当前边界是相关源码选择、继承/对象/调用关系和有限权限表达仍不充分；下一改动应针对这些接口，取得full源码且checked/bounded的当前base后再验证复用，不能以重复抽取替代方法改进。
 
 ## 2. 研究目标与术语
 
@@ -1628,11 +1629,13 @@ AS17窄修订只恢复完全省略且显式结果整体可解析的final kind，
 
 **设计与工作。** [AT0–AT19任务书](../superpowers/plans/2026-10-05-authorization-focused-closure-and-delivery.md)采用既有语义展开器上的显式focused-closure-v1：宿主持久保持当前解释，派生路由身份；模型提出来源支持的函数摘要，宿主组合参数/对象、条件与依赖。窄阶段合同减少无关字段，定向原文复查处理决定性语义矛盾，同源最终结果保留原skill格式。自查与独立源码评价分开计量，不把固定正确答案或人工图交给运行模型。
 
-先做两个失败纵向案例并当场修共享缺陷，再做两原skill原/变与4稿实际消费、合格基础上的变化配对。主面板4任务三臂M-L/M-F/D-F共12位置，运行前固定共同输入/资源，失败和修订版本各自保留；源码范围修订在各臂同时使用。若合格原基线未取得，fresh变化诊断仍可推进，复用收益保持未达。此段是已授权设计，具体采用与效果待AT记录。
+设计安排先做两个失败纵向案例并当场修共享缺陷，再做两原skill原/变与4稿实际消费、合格基础上的变化配对。主面板4任务三臂M-L/M-F/D-F共12位置，运行前固定共同输入/资源，失败和修订版本各自保留；源码范围修订在各臂同时使用。若合格原基线未取得，fresh变化诊断仍可推进，复用收益保持未达。下面保留实现与实际采用记录。
 
 发布前只读复核明确：24次provider预算按单个任务×臂会话计量；M-L共享原始读取工具但保留legacy执行器，F才携带新的执行支持；evaluator台账与模型输入隔离。focus的源码变更失效与政策/前提重算分开，独立已解决主张保留。4个native原/变位置均可fresh运行，previous复用质量另验；作者字段修订与有效稿的runtime修复分别留账。
 
 **AT0–AT7当前工程。** 从实际`9c86e9eb`接管，四原任务只作sourceRoot机械重定位，brief/policy不改；[AT manifest](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/manifest.json)锁定12质量、2调试、4native和4作者责任。模型输入明确allowlist，义务及历史错误放evaluator。共享focused核心已实现持久身份/延期重访、阶段Schema、来源保留、纯helper返回组合、返回对象、字段变换、操作错误和当前答案绑定。复杂对象/效果仍由现有展开器处理。模拟双入口和匿名反例通过，相关653 pass/1 skip/4347断言；真实采用、完整任务与净收益此时待跑。新主预算24/48/512KiB共用于三臂，旧默认不变；所有修订和自查计入成本。
+
+**AT8首轮失败与修订。** ShareLink首轮21次派发均有响应，input134,632/output11,630/cacheRead9,728；美元未知。source_search/symbol参数全部无效，重复读耗尽48次实际工具预算，serializer未取到；最终还存在条件代数、调用参数与源码冒充用户前提的错误，完整质量未达。通用合同修复补齐实际工具参数和条件格式，link允许显式映射参数，错误values可在同一focus纠正；累计物理读预算按登记值执行。四个匿名反例先失败后通过，相关668 pass/1 skip/4367断言、两项类型检查通过。应用锁文件实际锁定DRF3.18.1，新增来源修订单列并共用于Paperless所有臂，首轮输入和来源原件不改；同题真实修订另验。
 
 **AT8第二轮证据。** 首项合同修订后11/11请求响应，input89,161/output5,847/cacheRead4,224，费用未知。工具显示163,416字节却只有6,304字节源码进入模型：普通工具历史删掉正文，而focus只显示当前任务窗口。继承/serializer原文虽已读取，仍未成为解释链。当前第二项具名修复将未显示与近期普通读取作为有界supporting窗口；窗口本身不生成调用关系，模型须重访原caller、声明实际call，再解释真实helper。针对性红例修通，相关675 pass/1 skip/4499断言及主/AT类型检查通过；真实复验待跑。作者原稿与消费者保持原字节绑定，公开CLI现可传32次消费预算；格式有效与原任务充分性仍分别评价。
 
@@ -1641,6 +1644,36 @@ AS17窄修订只恢复完全省略且显式结果整体可解析的final kind，
 **AT8外壳修复与AT11原稿。** ShareLink第四轮2/2响应因作者漏空premises停住；Gitea首轮5/5响应因明确control/tool路由外壳停住，没有接受解释或final。修复只归一唯一明确的外壳，空premises不引入事实；语义正文仍由当前focus严格检查。7份原始响应零provider重放全部可进入本地检查，其中1份正文错误仍被拒绝。相关679 pass/1 skip/4516断言和双typecheck通过，真实具名修订另验。两份完整原skill原任务作者各5次响应，交付10/8问题的有效配置与便携usage；独立只读核验确认任务/用户策略保留、无目标/网络/安装/额外模型调用。Cloudflare范围由已登记activeInput提供4条路径，非作者擅扩原始2路径。累计57/57响应，known input/output/cacheRead为384,337/37,039/48,128，美元与真人/开发成本未知；作者忠实与下游完整质量分开。
 
 **真实外壳修订与AT16读取浪费。** ShareLink第五轮8/8响应，实际call已声明、helper已定位且调度过read；物理读取8,379,114字节后被8MiB预算阻断。不能把它说成未派出callee；当前修复source_search用既有索引筛出命中文件，再验证命中原件，预算不增加。Gitea第二轮21/21响应，接受handler与3个权限helper及实际link，但map/集合/有序比较保持unresolved，NewIssue尚未解释；final误把reqRepoWriter用于实际reader路由，不能判政策合规。两条仍partial。匿名搜索/正文预算先红后绿；新变化runner2项准入测试及联合682 pass/1 skip/4530断言和双typecheck通过。AT12登记ShareLink owner政策和非owner组授权前提，previous仅准入本轮SHA绑定源码full且checked/bounded结果；无合格基础时fresh诊断仍跑。AT13登记独立源码副本删除单一owner-aware子句、两次fresh，旧来源不改。实际采用/下游质量另验。
+
+**最终方法与实际采用。** `focused-closure-v1`复用既有worklist/semantic lowering：宿主固定focus及question/source/version身份，处理add/replace、callee、当前path ID；模型只提出可定位源码解释。纯有限标量返回摘要可组合并保留条件析取，复杂对象、效果、循环、映射/集合和有序比较保留精确展开或缺口。普通supporting read只显示原文，实际caller仍须声明调用并连接helper。AT还修了局部start、wire外壳、累计读取、来源终检、已知坏候选分类及账本口径。模拟通过之外，真实记录观察到持久解释、typed helper link和当前答案路径；尚无完整checked闭合链。
+
+AS六个断点在本轮的实际状态如下：
+
+| AS断点 | AT实现与采用记录 | 最终边界 |
+|---|---|---|
+| 已读helper待解释、offer轮换 | 持久focus、显式延期重访、bounded supporting windows；Gitea接受handler和权限helper、ShareLink真实调度helper read | 已读原文仍未全部变成相关接受解释；继承对象关系未闭合 |
+| 模型维护多重身份 | 宿主派生focus/item/unit/add-replace/callee/path，窄阶段合同与错误正文原位修复已使用 | 语义块/参数映射仍可错误；身份简化未建立完整质量收益 |
+| 旧队列/拒稿反复带入 | 当前阶段合同、当前窗口与诊断为主，原历史归档；索引命中读取同题降至2,039,548字节 | 质量仍partial；源码终检修订使前后条件不同，只报告机械读取变化 |
+| nonwriter Projects被误说忽略 | 主独立点验reader路由、Labels清空、Projects仍传到service；最终评阅纠正探子过高/过低评分 | 主表仍有Projects遗漏或未闭合，不宣称普遍解决 |
+| 到达调用即performed/complete | 纯helper return、protected effect及operation error分层；无目标执行，未解释callee产生gap | final与source claim仍可能冲突；model插入及opaque effect未通 |
+| 四有效作者稿消费不完整 | 四稿保持原问题和剩余skill职责，原字节输入/usage在外部便携目录实际消费 | 作者忠实4/4；下游四消费者均partial，编写完成不是分析完成 |
+
+**12位置首轮。** M-L为整理Markdown加legacy，M-F为相同Markdown加focused支持，D-F为领域声明加focused支持。共同原始来源/模型/预算固定；实际实现修订分别记录，不把跨版本首轮当因果比较。每格为源码评分/实际provider请求数，所有格均unchecked/unbounded。
+
+| 任务 | M-L | M-F | D-F |
+|---|---|---|---|
+| OWUI ingestion | partial / 4 | partial / 22 | partial / 11 |
+| Paperless download | partial / 4 | partial / 21 | partial / 23 |
+| Paperless ShareLink create | partial / 6 | partial / 9 | partial / 16 |
+| Gitea CreateIssue | partial / 10 | partial / 21 | partial / 21 |
+
+首轮共168调用，完整源码质量0/12，形式checked/bounded也为0。九个session实际进入一次diagnostics-only交付修复；ShareLink M-F的四次domain-repair请求含fallback/continuation，不能称四个独立修复机会。保留首/末诊断和逐行共享修复适用性见[repair applicability](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/repair-events/at-quality-repair-applicability-v1.json)。其余质量问题保持source-partial；底层仍未通，依AT15未追加填表消融。全任务完整为零保留了正确局部判断：reader/write、exact-document guard、GET/root关系和源file/输出collection区别。
+
+**普通完整skill及作者稿。** 两份完整原skill均在同包原/变任务fresh使用，各24调用，共96；original Cloudflare ShareLink和GitHub CreateIssue的自然条件说明源码充分，changed两项partial。四项native形式均失败，不能将自然full作previous基础。作者Cloudflare原/变为10/6题、5/4调用；GitHub原/变为8/8题、5/6调用，20次总调用，四稿格式有效且独立忠实评阅通过。原字节消费者首轮分别30/28/30/19调用，均partial。注释`function and`曾被Go词法索引当唯一声明并宿主自动读取；通用注释/字符串屏蔽后，GitHub原稿具名consumer attempt-2用31调用消除了假入口，接受真实CreateIssue，但六个其它stored unit仍落在无关repo创建handler，总体仍partial。来源字节身份有效不等于问题相关性；所有原答和修订分别保留。下游消费共138调用，不能据作者稿有效宣称工具实用性成功。
+
+**变化和复用。** owner-only政策fresh 7调用；非owner、global add/view和exact-document group view前提fresh 11调用，两项partial且政策undetermined。两previous实际admission因没有full源码且checked/bounded的当前base阻断，0调用，无实际复用收益。源码副本只删除serializer中139字节owner-aware conjunction，其它94文件、输入/政策、sourceRef标签与原源码不改；compare/previous在provider构造前拒绝旧答。相同副本和同输入的两fresh为21/11调用、均partial：第二次终答正确指出剩余global view不满足exact-document政策，第一终答仍将serializer关系列unknown。主纠正独立审计“两个终答都注意改变”的判断，不把中间/审计事实补成最终回答。完整endpoint/inheritance/object/save链仍缺。最新五条SHA绑定评阅见[final reviews](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/evaluations/at15-final-change-and-consumer-source-reviews.json)。
+
+**成本、验证与最终判断。** 37已关闭尝试=8调试+12质量首轮+4native+4作者+5消费者（含具名修订）+4fresh变化；556请求/556响应，无活动或未知完成。fresh input 8,635,306、cacheRead 765,568、完整prompt 9,400,874、output 403,256，合计9,804,130；USD、开发代理用量、真人分钟仍unknown，known USD subtotal 0不是免费。目标执行0依据受限只读运行时及精确作者raw-tool审计；不把叙述字符串相加或未知填零。原件和逐调用证据见[accounting](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/accounting.json)、[call index](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/call-index.json)。共享回归718 pass/1 skip/4639断言，最终provider/研究40 pass/192断言（重叠集合不相加），主/AT类型通过；37原件[零调用replay](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/verification/at17-final-replay.json)通过且原字节未改。工程和有限实际使用交付，完整质量、变化复用、表示优势及摊销净收益未达。后续应修问题相关定位、可读caller/helper与继承对象关系、有序权限表达，再建立合格base；不再原样重抽。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
@@ -1705,12 +1738,12 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 | ID | 问题 | 当前依据 | 接下来的判断 |
 |---|---|---|---|
 | Q1 | 哪个任务范围共享领域语义？ | 固定来源的授权职责支持 principal/resource/operation/control/evidence；混合职责单列，见 §4–§7.10 | 保持单 repo/ref、源码可见的授权切片 |
-| Q2 | 声明如何带来实际行为？ | AS两入口实际局部语义/路径/修复及4native消费；1形式完成但源码质量0/4 | AT持久解释事务与函数摘要组合，保留旧核心 |
-| Q3 | 为什么仍漏决定性源码或分支？ | AS已读helper未接受、offer/handle反复；Projects原答错误和model调用未闭合已有源码点验 | 阶段窄合同、当前源码主张核对；调度身份由宿主管理 |
-| Q4 | 领域方法相对好说明的增量是什么？ | AS三同版本三臂块全partial，旧流程更轻；未建立完整质量/净增益 | AT同事实M-L/M-F/D-F分离执行支持和表达；首轮/修后分列 |
-| Q5 | 作者和变化复用是否可用？ | AS四稿有效且原字节消费，分析均partial；10变化格封存/依赖阻塞 | 改善共同下游链；fresh变化可诊断，复用收益仍需合格base；人力缺测 |
+| Q2 | 声明如何带来实际行为？ | AT持久focus/宿主身份/纯helper摘要与双入口实际采用；original native自然充分2/4、formal0/4 | 保留旧核心，闭合当前caller/helper/继承对象链 |
+| Q3 | 为什么仍漏决定性源码或分支？ | AT消除多种合同/显示/读取/注释定位缺陷；相关性、Projects、model效果仍有partial | 改相关定位与对象/调用关系，不靠持续加guide或重抽 |
+| Q4 | 领域方法相对好说明的增量是什么？ | AT 12三臂首位置源码full0/12、checked0；跨实现版本，未建立表示或净增益 | 建立合格同版本任务质量后再比较；机械节省独立报告 |
+| Q5 | 作者和变化复用是否可用？ | AT4稿有效忠实/原字节消费均partial；4fresh partial、2previous无base阻断0调用 | 改善共用分析链，先取得full且checked/bounded base；真人成本未知 |
 | Q6 | 本地化路线如何处理？ | 保留 §8–§9 设计及结构回填反例 | 暂缓；重新选择该类时再处理，不混入授权验收 |
-| Q7 | 如何评价和计量？ | AS39原件300/298，fresh/cache/output分列、2usage缺报；USD与人力未知 | 来源/形式分层，未知封存不重发，真实可比块与修订各自计量 |
+| Q7 | 如何评价和计量？ | AT37原件556/556、完整token、USD/开发/人力未知、目标执行0、SHA绑定独立评阅及零调用重放 | source质量/形式/工程/实际使用分层；保持首修分列及unknown |
 
 决策沿革：
 
@@ -1722,7 +1755,7 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-02 / AQ：** 调度、三值分支求值和结论检查已有实现，真实交付退化与完整链缺口保留；继续加图字段不足以让模型顺利使用。
 - **2026-10-02 起 / AR：** 宿主工作队列、局部解释和机械减负连同现场修复一起推进；每个真实失败及时处理，不再把已知坏实现跑满。当前记录见 §7.36。
 - **2026-10-05 / AS：** 局部选择/效果与同源结果已共用，两原skill及作者原稿实际消费；机制改善有原件，完整质量/变化复用/净收益未达，以completed-with-unmet-criteria收束，责任见§7.48。
-- **2026-10-05 / AT准备：** 用户授权复核后继续开发；采用持久解释事务、按需摘要组合与源码主张复查，先完成真实纵向链再进行普通消费和配对。78项聚焦回归通过，尚无AT实现/模型结果，见§7.49。
+- **2026-10-05 / AT：** 持久解释事务、宿主身份、纯有限摘要、显示/读取/源码终检与通用词法修复已经实现及实际使用。12质量首位置0完整；4native原始自然说明充分2但formal0；4忠实稿消费均partial；fresh变化4partial、previous2阻断，37原件556/556。有限队列以completed-with-unmet-criteria收束；当前限制、真实修复和计量见§7.49。
 
 ## 12. 后续追加规则
 
@@ -1758,7 +1791,3 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 | X 授权完整能力、初轮评价、合同 revision 与普通使用复验 | [status](../../results/skill-ir/skill-dsl-research/development/authorization-capability-v1/status.json)、[initial evaluation](../../results/skill-ir/skill-dsl-research/development/authorization-capability-v1/runs/x9-initial-v1/evaluation-summary-v2.json)、[revision evaluation](../../results/skill-ir/skill-dsl-research/development/authorization-capability-v1/runs/x11-conclusion-contract-v1/revision-evaluation-v1.json)、[usage verification](../../results/skill-ir/skill-dsl-research/development/authorization-capability-v1/usage-verification-v1.json) |
 
 原件中的 nextAction、frozen、proceed-narrow 代表当时阶段；当前选择以本文件第 1 节及 current-status 为准，不因保留原件而重新启动旧任务。
-
-**AT8首轮失败与修订。** ShareLink首轮21次派发均有响应，input134,632/output11,630/cacheRead9,728；美元未知。source_search/symbol参数全部无效，重复读耗尽48次实际工具预算，serializer未取到；最终还存在条件代数、调用参数与源码冒充用户前提的错误，完整质量未达。通用合同修复补齐实际工具参数和条件格式，link允许显式映射参数，错误values可在同一focus纠正；累计物理读预算按登记值执行。四个匿名反例先失败后通过，相关668 pass/1 skip/4367断言、两项类型检查通过。应用锁文件实际锁定DRF3.18.1，新增来源修订单列并共用于Paperless所有臂，首轮输入和来源原件不改；同题真实修订仍待验收。
-
-2026-10-05 AT10/AT16/source-final-snapshot：两原skill native已真实消费，自然源码说明充分但形式化仍未checked；ShareLink第6轮8响应、native GitHub原24响应，累计152响应，无未知完成，USD未知。ShareLink索引搜索物理读取降至2039548字节仍partial。独立审查发现final全来源校验缺失；三个匿名红例验证后实现预算内一次路径/字节校验及失效结果撤回，native等待close，local身份包含校验证明。生产704 pass/1 skip/4654断言、AT6 pass/23断言、主/AT类型检查通过。改动inquiry-tools/run/native/local、bare-agent及测试；evaluations/repair-events/status、current-status/spec/developer-guide同步。待改任务native、原字节消费者、变化及主质量队列。

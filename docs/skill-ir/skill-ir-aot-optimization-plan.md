@@ -3,8 +3,8 @@
 更新于 2026-10-05。本页维护未达责任与长期边界；阶段原件通过[研究正文](skill-dsl-research.md)、[历史](history.md)和[实验目录](../../results/skill-ir/experiment-catalog.json)查阅。
 
 - 唯一实时入口：[current-status](current-status.md)。
-- 活动任务书：[AT0–AT19 源码解释闭合与普通 skill 交付](../superpowers/plans/2026-10-05-authorization-focused-closure-and-delivery.md)，用户已授权，待新线程接管。AS以 `completed-with-unmet-criteria` 收束，原件保留。
-- 方法合同：[spec §14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)。
+- 最近任务书：[AT0–AT19 源码解释闭合与普通 skill 交付](../superpowers/plans/2026-10-05-authorization-focused-closure-and-delivery.md)，有限队列已收束，完整质量与净收益未达；[AT summary](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/summary.json)为实际结论。AS原件保留。
+- 方法合同：[spec §14.34](skill-ir-aot-optimization-spec.md#1434-at-focused-source-transactions)。
 - 根因复核与设计：[研究 §7.49](skill-dsl-research.md#749-as-复核与-at-源码解释闭合计划)。
 
 ## 当前目标
@@ -17,14 +17,16 @@ AR原始结果和停止快照保持。AS已实现共享局部语义与修复、�
 
 | 阶段 | 本轮工作 | 当前状态 |
 |---|---|---|
-| AT0–AT2 | 接管、义务与完成边界、失败测试 | 计划已授权；开发未开始 |
-| AT3–AT7 | 持久focus、摘要组合、来源检查、阶段上下文与双入口 | 未开始；不提前宣传新策略可用 |
-| AT8–AT9 | 两个真实纵向案例、即时修复及框架/多问题缺口 | 未运行 |
-| AT10–AT13 | 两原skill原/变、4作者稿消费、真实变化与适用性 | 未运行 |
-| AT14–AT16 | 4任务三臂12位置、逐条评阅/小消融、实际减负 | 未运行；先解决已知共享故障再发相关行 |
-| AT17–AT19 | 联合验证、唯一研究正文和发布 | 未开始 |
+| AT0–AT2 | 接管、义务与完成边界、失败测试 | 完成 |
+| AT3–AT7 | 持久focus、摘要组合、来源检查、阶段上下文与双入口 | 工程实现完成；未建立完整质量收益 |
+| AT8–AT9 | 两个真实纵向案例、即时修复及框架/多问题缺口 | 8个调试尝试已评阅；最终仍partial |
+| AT10–AT13 | 两原skill原/变、4作者稿消费、真实变化与适用性 | 全部适用位置完成；native自然充分2/4、formal0/4；作者4有效、消费者均partial；4fresh partial、2previous阻断0调用 |
+| AT14–AT16 | 4任务三臂12位置、逐条评阅/小消融、实际减负 | 首轮12/12运行、0完整；具名定位回修消除假入口仍partial；只有机械減负，底层未通不填消融 |
+| AT17–AT19 | 联合验证、唯一研究正文和发布 | 37原件零调用重放、相关回归/provider及双类型通过；工程与证据交付，origin发布回执以Git为准 |
 
 AS保留12个首轮0完整、4native最后1形式通过/0完整、4作者稿有效但消费均partial的原结果。新队列对接这些缺口，原始问题不删减、评价答案不进入模型输入。具体分母在AT0登记；原结果见[AS summary](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/summary.json)。
+
+本轮不再重抽。后续代码责任是 `inquiry-focus.ts` / `inquiry-worklist.ts` 的问题相关定位和继承关系闭合，`inquiry-semantic.ts` / `semantic-flow.ts` 的真实callee参数/对象连接与有序权限谓词边界。先取得full源码且checked/bounded的当前base，再作政策/前提previous和同版本质量/成本比较；不得借新identity复跑旧失败来替代接口改进。
 
 ## 失败处理
 

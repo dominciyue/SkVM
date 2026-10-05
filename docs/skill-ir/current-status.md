@@ -6,9 +6,9 @@
 
 研究主线是 **按 skill/task 范围设计领域表达**。当前任务类为单 repo/ref、源码可见的授权与信任边界评估：围绕主体、资源、操作、条件和政策组织取证、判断与检查。质量约六成、编写复用约四成指开发投入安排，各项质量要求分别验收。
 
-**[AT0–AT19 源码解释闭合与普通 skill 交付](../superpowers/plans/2026-10-05-authorization-focused-closure-and-delivery.md) 正在执行，当前推进 AT10–AT14。** 开发模型 `gpt-6.1-sol / max`，分析模型 `xty/gpt-5.6-sol`；从 `9c86e9eb` 接管，分支 `skill-ir-aot`，仅发布用户 origin。持久 focus、宿主身份、纯 helper 摘要、字段/返回对象和双入口绑定已实现；原件、封存和预算保留。[AT manifest](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/manifest.json)登记共同输入及所有位置。
+**[AT0–AT19 源码解释闭合与普通 skill 交付](../superpowers/plans/2026-10-05-authorization-focused-closure-and-delivery.md) 的有限执行队列已以 `completed-with-unmet-criteria` 收束。** 开发模型 `gpt-6.1-sol / max`，分析模型 `xty/gpt-5.6-sol`；从 `9c86e9eb` 接管，分支 `skill-ir-aot`，仅发布用户 origin。持久 focus、宿主身份、纯有限 helper 摘要、字段/返回对象、源码终检和双入口已实现。[AT summary](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/summary.json)分别记录工程、实际使用、比较和成本结论；原件和封存保留。
 
-累计152/152响应，美元、真人和开发用量未知。四作者稿格式有效且忠实（10/8/6/8题）。两份完整原 skill 的原任务 native 已实际消费，自然源码说明经核验充分、形式化结果仍不 checked；两条 debug 仍 partial。索引搜索同题实测将物理读取从8,379,114降到2,039,548字节，未建立质量收益。独立核验发现结束时全来源校验此前缺失，现已加预算内确定性校验并撤回失效结果：生产704 pass/1 skip/4654断言，AT脚本6 pass/23断言，双类型检查通过。下一步改任务 native、四份原字节消费、变化及12条质量位置；previous要求本轮来源full且checked/bounded基础。
+12质量首位置均实跑、源码partial、checked/bounded为0；4完整原skill原/变native和4有效忠实作者稿的原字节消费均已完成。两个original native的自然条件说明充分，formal仍失败；changed native及消费者均partial。政策/前提fresh各一次，两previous因无full checked/bounded基础实际阻断、0调用。相同源码副本/输入的两次fresh均partial，第二次终答正确说明移除exact-document guard，第一次仍unknown。Go注释误定位具名消费者修订消除了假入口，但仍partial。37原件关闭、556派发/556响应，无活动或未知完成；[accounting](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/accounting.json)记录完整prompt 9,400,874、output 403,256，美元/真人/开发未知、目标执行0。718项共享回归及40项provider/研究检查通过（集合有重叠，不相加），双类型通过；[37原件零调用重放](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/verification/at17-final-replay.json)通过且原字节未改。搜索读取8,379,114→2,039,548字节仅证明机械减负；质量/净收益未建立，底层未闭合而未追加消融。
 
 最近完成的 [AS0–AS19](../superpowers/plans/2026-10-04-authorization-semantic-lowering-and-delivery.md) 以 `completed-with-unmet-criteria` 收束，完整源码质量与净收益未建立。[AS汇总](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/summary.json)和 [AS status](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/status.json)继续保存其原结果。`semantic-flow-v1` 已接入 inquiry/native，旧默认与 `guided-evidence-v2` 保留。
 
@@ -25,7 +25,7 @@ AS 固定 15 质量、4 native、8 变化、2 源码变化位置，作者4稿与
 
 | 恢复所需信息 | 权威入口 |
 |---|---|
-| 最新执行及未达责任 | [AT任务书](../superpowers/plans/2026-10-05-authorization-focused-closure-and-delivery.md)；最近结果仍为[AS summary](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-lowering-v1/summary.json) |
+| 最新执行及未达责任 | [AT任务书](../superpowers/plans/2026-10-05-authorization-focused-closure-and-delivery.md)、[AT summary](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/summary.json)；AS原件保持 |
 | AR 停止前状态 | [status.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/status.json)、[handoff.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/handoff.json) |
 | 普通使用的失败与裁定 | [ordinary-adjudication.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary-adjudication.json) |
 | 真实派发、响应与未知费用 | [ordinary-accounting.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary-accounting.json) |
@@ -40,12 +40,12 @@ AS 固定 15 质量、4 native、8 变化、2 源码变化位置，作者4稿与
 | Trace 驱动 skill 包优化 | bare-agent 自动捕获、模型修改说明和脚本、局部验证修复、原子导出、自然消费 | 已有真实生成与消费记录；收益 mixed/negative，按各包证据判断 |
 | 确定性基础 | IR parser/validator、lowering、API Tester/Env 后端、artifact 和 recipe import | 保留原支持合同及有界案例 |
 
-AQ 旧/新策略 full均为2/20，原 skill checked交付为0/4；具体分母见[研究 §7.35](skill-dsl-research.md#735-aq-授权领域执行设计)。AS有形式交付与局部机制进展，完整质量仍未建立；下一责任是把可读/已读决定性依赖变成正确的接受解释，再取得原/变完整回答和合格复用基线。费用和人力缺测、readiness、历史 `0/6`、Q1 与保护输入保持原有状态。
+AQ 旧/新策略 full均为2/20，原 skill checked交付为0/4；具体分母见[研究 §7.35](skill-dsl-research.md#735-aq-授权领域执行设计)。AT消除了具体合同/定位/读取缺陷，完整质量仍未建立。下一责任是修focus与问题的相关性、决定性caller/helper及继承对象关系闭合、有序权限比较/映射表达，取得完整checked当前base后再验证复用。费用和人力缺测、readiness、历史 `0/6`、Q1 与保护输入保持原有状态。
 
 ## 开发与维护入口
 
 - 普通命令和模型配置：[使用说明](../usage.md)。代码定位和检查：[开发指南](developer-guide.md)。
-- 当前队列：[当前计划](skill-ir-aot-optimization-plan.md)；方法合同：[spec §14.34](skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)。
+- 当前队列：[当前计划](skill-ir-aot-optimization-plan.md)；方法合同：[spec §14.34](skill-ir-aot-optimization-spec.md#1434-at-focused-source-transactions)。
 - 分类、方法、复盘：[唯一研究正文](skill-dsl-research.md)；旧结果：[证据索引](evidence-index.md)、[历史](history.md)、[实验目录](../../results/skill-ir/experiment-catalog.json)。
 
 [治理](../superpowers/plans/2026-10-04-workspace-and-document-governance.md)已完成材料收存、旧日志压缩、正文归并和停止后的入口校正。当前阅读集 15 份，版本化材料 14 份；研究仍统一在一个正文中。原件及恢复索引在 `project-maintenance/20261004-governance/`，AR/AS 结果及 `.skvm` 保留。五份可再生成的 Python 字节码已清除；三个此前删除被拒绝的空目录保留。AS进程已结束，AT派发后取得共享文件和 Git 的唯一写入权；Git实时状态以实际检查为准。
