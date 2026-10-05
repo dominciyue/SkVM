@@ -6,7 +6,11 @@
 
 研究主线是 **按 skill/task 范围设计领域表达**。当前任务类为单 repo/ref、源码可见的授权与信任边界评估：围绕主体、资源、操作、条件和政策组织取证、判断与检查。质量约六成、编写复用约四成指开发投入安排，各项质量要求分别验收。
 
-**当前授权队列为 [AU0–AU21 操作级取证与授权 DSL 贯通](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md)，状态 `in-progress`，开发线程拥有共享代码、方法文档、状态与 Git 的唯一写入责任。** 开发模型 `gpt-6.1-sol / max`，研究基线 `ba277160`；启动HEAD/origin为`dfe7ec32`。继续本地`skill-ir-aot`，仅发布用户origin。AU1–AU9原型与32位置登记已实现。AU10九次ShareLink共126请求/126响应；第九轮1操作/4问、10个current来源单元含owner-aware helper，但没有终答。缺固定version的defer及带typed reason的来源步骤被拒绝，现统一只派生省略的固定version、保留原source说明；错误version/focus/工具/payload及对象连接边界保持。两原payload零调用重放、802pass/1平台skip/5170断言，等价类型修正后定向11pass/193断言与主/AU类型通过；待提交/同题`focused-context-routing-v1`实际复验。AU13作者/原字节ordinary消费者、AU14同输入fresh/materials-previous薄接线已TDD，实际位置未派发。AU accounting/call-index/summary已从原件重算9闭合尝试，首答/修订分列；fresh input2103261/cache107008/output93847，USD/developer/AI/human均保留未知，研究目标未达。完整原skill22/8文件清单、独立changed policy及实际6000预算保持。恢复见AU results `status.json`，旧结果与封存保持。
+**当前授权队列为 [AU0–AU21 操作级取证与授权 DSL 贯通](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md)，状态 `in-progress`，开发线程拥有共享代码、方法文档、状态与 Git 的唯一写入责任。** 开发模型 `gpt-6.1-sol / max`，研究基线 `ba277160`；启动HEAD/origin为`dfe7ec32`。继续本地`skill-ir-aot`，仅发布用户origin。AU1–AU9原型、32位置登记、完整原skill22/8文件清单、作者/原字节消费者、变化配对与计量薄接线已实现并做反例验证，实际研究目标未达。
+
+Share第十轮request16网络超时，16派发/15响应；同一Share逻辑任务16位置全部封存，其余15位置零调用blocked。原件SHA `dbae38f7bc29d4df99e30234aefaaca76a38d3376cfcb6ada4a5c95a5ae0cf24`，不重发或换身份。已有`retainTaskPause:true`范围裁定仅允许另三个独立原任务的显式16位置。Gitea首轮版本`bd9348f0`为11/11已知、transport-failed；1操作/3问、4个来源单元，三问均无终答。主精确解析纠正独立审查的kind归因：额外reason挡住interpret，内部解释亦有格式与参数错误。现将typed reason统一为focused proposal说明，模型/parser/native共用，内容不选择focus或补语义；两原回复零调用解析后内部错误仍拒绝。804 pass/1平台skip/5241断言与主/AU双类型通过，下一步为提交后具名Gitea复验`focused-action-explanation-v1`，随后按实际共享缺陷处理其余ordinary/author/consumer/quality。
+
+最新原件重算11归档尝试、153派发/152响应、1项完成与usage未知；known fresh2580301/cache127360/output125295，USD/developer/AI/human均未知。首答、修订、封存和未派位置分别保留；工程通过不能代替实际完整链或质量收益。恢复见AU results `status.json`，旧结果与保护输入保持。
 
 最近的 [AT0–AT19](../superpowers/plans/2026-10-05-authorization-focused-closure-and-delivery.md) 有限队列已以 `completed-with-unmet-criteria` 收束。持久focus、宿主身份、纯有限helper摘要、字段/返回对象、源码终检和双入口已实现。[AT summary](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/summary.json)分别记录工程、实际使用、比较和成本结论；原件和封存保留。
 
@@ -53,5 +57,3 @@ AQ 旧/新策略 full均为2/20，原 skill checked交付为0/4；具体分母�
 [治理](../superpowers/plans/2026-10-04-workspace-and-document-governance.md)已完成材料收存、旧日志压缩、正文归并和停止后的入口校正。当前阅读集 15 份，版本化材料 14 份；研究仍统一在一个正文中。原件及恢复索引在 `project-maintenance/20261004-governance/`，AR/AS 结果及 `.skvm` 保留。五份可再生成的 Python 字节码已清除；三个此前删除被拒绝的空目录保留。AS、AT执行均已结束；AU已授权，派发后由新线程成为共享代码/方法文档/Git唯一写者。Git实时状态以实际检查为准。
 
 更新本页时替换过时段落，不把逐次测试与派发日志不断追加为新的“当前状态”。
-
-2026-10-06最新恢复：Share第十轮`278bc5cd`在request16网络超时，16派发/15响应；累计142/141，1项usage及完成未知。当前Share逻辑任务16个登记位置全部封存，15个未派位置写明blocked-sealed-unknown-completion；不重发、换模型或改身份。原件SHA `dbae38f7bc29d4df99e30234aefaaca76a38d3376cfcb6ada4a5c95a5ae0cf24`；独立AI与主范围guard点验见tenth evaluation/proof。`scope-adjudications.jsonl`只释放另三个独立逻辑任务的显式16位置共享调度暂停，retainTaskPause保持。下一项Gitea debug首次执行；工程802回归不等于Share实际完成或质量收益。最新accounting fresh2365846/cache119680/output107365为已知响应subtotal，USD未知。

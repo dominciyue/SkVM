@@ -5,7 +5,7 @@ import path from "node:path"
 import { inquiryStepSchemas, inquiryNativeSchemas, normalizeFocusedControlEnvelope } from "./inquiry-wire.ts"
 import { runAuthorizationInquiry } from "./inquiry-run.ts"
 import { emptyTokenUsage } from "../../core/types.ts"
-import type { FocusStage } from "./inquiry-focus.ts"
+import { FocusedUpdateSchema, type FocusStage } from "./inquiry-focus.ts"
 import { zodToJsonSchema } from "../../providers/structured.ts"
 
 const common = { schemaVersion: "authorization-focused-update/v1", focusId: "current" } as const
@@ -50,7 +50,7 @@ test("operation advertisement is one root object so source calls cannot spill be
     expect(schemas.modelSchema.safeParse({ kind: "defer", reason: "Identity missing" }).success).toBe(false)
   }
   const schemas = inquiryStepSchemas("operation-evidence-v1", false, "behavior", "interpret")
-  expect(schemas.modelSchema.safeParse({ ...common, kind: "interpret", unit, reason: "Field from a different action" }).success).toBe(false)
+  expect(schemas.modelSchema.safeParse({ ...common, kind: "interpret", unit, revisit: "Field from a different action" }).success).toBe(false)
 })
 test("pure operation source steps may retain explicit routing metadata without making it a semantic action", () => {
   const calls = [{ name: "source_read" as const, arguments: { path: "anonymous.py", startLine: 1, endLine: 2 } }], tool = { ...common, kind: "tool", calls }
@@ -88,6 +88,31 @@ test("source-tool explanation and metadata preserve the original source call wit
   expect(schemas.modelSchema.safeParse(raw).success).toBe(true)
   expect(schemas.schema.parse(raw)).toEqual({ kind: "tool", calls: raw.calls, reason: raw.reason })
   for (const invalid of [{ ...raw, reason: 4 }, { ...raw, schemaVersion: "wrong" }, { ...raw, revisit: "invented-action" }, { ...raw, calls: [{ name: "get_serializer", arguments: [] }] }]) expect(schemas.schema.safeParse(invalid).success).toBe(false)
+})
+test("focused explanations are typed proposal metadata for every action without relaxing action fields", () => {
+  const actions: Array<[FocusStage, any]> = [["locate", { ...common, kind: "select", candidateId: "candidate" }], ["interpret", { ...common, kind: "interpret", unit }], ["link", { ...common, kind: "link", links: [{ caller: "a", call: "b", target: "c" }] }], ["review", { ...common, kind: "review", claims: [{ claim: "a", verdict: "confirmed", explanation: "Original agrees" }] }], ["answer", { ...common, kind: "defer" }]]
+  for (const [stage, action] of actions) {
+    const explained = { ...action, reason: "This is a proposal explanation, not a source or permission fact." }, schemas = inquiryStepSchemas("operation-evidence-v1", false, "behavior", stage)
+    expect(schemas.modelSchema.safeParse(explained).success).toBe(true)
+    expect(schemas.schema.parse(explained)).toMatchObject({ kind: "control", controlDelta: explained })
+    for (const parsing of [false, true]) expect(inquiryNativeSchemas("operation-evidence-v1", parsing, stage).authorization_observe.parse({ controlDelta: explained })).toMatchObject({ controlDelta: explained })
+    for (const invalid of [{ ...explained, reason: 4 }, { ...explained, reason: "" }, { ...explained, schemaVersion: "wrong" }, { ...explained, inventedFact: true }]) {
+      expect(schemas.modelSchema.safeParse(invalid).success).toBe(false)
+      expect(schemas.schema.safeParse(invalid).success).toBe(false)
+    }
+    expect(FocusedUpdateSchema.safeParse(explained).success).toBe(true)
+  }
+  expect(FocusedUpdateSchema.safeParse({ ...common, kind: "defer" }).success).toBe(false)
+})
+test("an explained interpretation reaches the existing semantic validator with its malformed body unchanged", () => {
+  const malformed = { ...unit, fallthrough: "unknown" }, raw = { ...common, kind: "interpret", unit: malformed, reason: "Revise the original body without inventing its meaning" }, schemas = inquiryStepSchemas("operation-evidence-v1", false, "behavior", "interpret")
+  const parsed: any = schemas.schema.parse(raw)
+  expect(parsed.controlDelta.unit).toEqual(malformed)
+  expect(parsed.controlDelta.reason).toBe(raw.reason)
+  const semantic = FocusedUpdateSchema.safeParse(parsed.controlDelta)
+  expect(semantic.success).toBe(false)
+  if (!semantic.success) expect(semantic.error.issues.map(issue => issue.path.join("."))).toEqual(["unit.fallthrough"])
+  expect(schemas.modelSchema.safeParse(raw).success).toBe(false)
 })
 test("actual structured provider receives the direct operation schema and its original bodies reach the shared runtime", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "au-step-"))

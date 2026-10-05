@@ -1757,6 +1757,8 @@ Python/Go结构索引采用固定MIT许可的`@vscode/tree-sitter-wasm@0.3.1`，
 
 第七次`operation-duty-granularity-v1`5请求/5响应，实际声明已为1操作/3问题，2current units，但纯source step携带广告中的schemaVersion/focusId被旧tool分支拒绝，transport-failed且全题not-delivered。完整input45225/output2690/cacheRead0、USD未知，累计105/105。两原payload在修复后零调用解析并保留各8个来源调用，仅解除具名路由风险；任务粒度改善不等于源码质量。AU13完整skill作者/原字节ordinary消费者薄接线及忠实性/raw审查准入已做匿名red/green，联合791 pass/1skip/5093断言与双类型通过；实际作者/消费者仍待派发。ordinary raw/native对账要求已知正整数且全响应，缺失值不能互相证明。
 
+Gitea首轮`bd9348f0`原件11派发/11响应，1操作/3问、4个current source units，transport-failed且三问无终答。源码终检346文件有效仅证明输入身份；accepted caller把form.Deadline/repository错映为CanWrite的unitType，正确源码两处均为unit.TypeIssues。独立source/raw审查与主精确解析确认：direct interpret本来合法，seq10/11额外reason使normalization失败，fallback的tool/control诊断遮住真实原因；内部草稿还有非法fallthrough/步骤/数组值，不能在修路由时接受为正确解释。将reason统一为typed proposal metadata后，两原回复零provider通过canonical routing，原unit/说明保持且内部仍被focus-schema拒绝；两个预期red转通过，804共享pass/1skip/5241断言及双类型通过。下一同题具名复验检验既有定向诊断能否实际带来正确参数与交付；这里未宣称源码质量改善。累计11归档attempt、153/152、1未知完成仍属Share，actual USD/开发AI/真人未知；Share全部16位置封存，其他原任务独立推进。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
