@@ -110,7 +110,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
           else if (step.kind === "bind") {
             if (Object.hasOwn(step, "value") && (step.type !== "value" || step.aliasOf)) { gap(u, c, instance, body, step.name, "semantic-source-value-invalid"); next.push(c); continue }
             const alias = step.aliasOf ? valueObject(c, step.aliasOf) : undefined
-            if (step.aliasOf && (!alias || alias.type !== step.type)) { gap(u, c, instance, body, step.name, "semantic-alias-missing"); next.push(c); continue }
+            if (step.aliasOf && (!alias || alias.type !== step.type)) { gap(u, c, instance, body, step.name, "semantic-alias-missing", `Alias "${step.name}" (${step.type}) references "${step.aliasOf}" (${alias?.type ?? "unbound"}). aliasOf requires an existing same-type identity; declare a source-supported typed field bind before its alias, without inventing user values.`); next.push(c); continue }
             if (alias) { c.objects[step.name] = alias; append(u, c, instance, body, step.name, "continue", fields) }
             else {
               const identity = id([questionId, instance, "object", step.name]); c.objects[step.name] = { identity, type: step.type }; c.objects[`${u.handle}.${step.name}`] = c.objects[step.name]!

@@ -2801,3 +2801,5 @@ AT evidence accounting keeps formal validity, checked delivery, bounded coverage
 14.34未知完成范围：实际请求未知时，同一logical task的全部arm、入口、政策/前提/source版本和作者/消费者链保持sealed。已知中间source解释不能使其重发或消费。已有retainTaskPause:true范围裁定可用原report/proof SHA只解除显式列出的不同原始logical task的共享调度pause；不解除原task，也不将timeout写improved或zero-dispatch。原件和未知账必须完整保留。
 
 14.34局部源码值：源解释可用type:value的bind附着有限literal，transform可保留scalar/有限array/map，空数组不等于null。值以当前invocation对象身份存储，只通过显式同类型alias/参数或源对象字段传递；不填USER/policy namespace，也不使model意义自动verified。字段投影只具有value类型，resource/principal必须显式有来源绑定。未知覆盖撤掉该字段旧literal，其他字段不受影响。赋值依赖的helper必须保持源顺序，当前条件前置的摘要退回exact展开，并以匿名exact/compositional结果等价检验；无赋值纯摘要继续组合。direct focused格式失败保留原动作字段的精确诊断，跨动作revisit/错误版本/缺unit仍拒绝。源码值表达及错误反馈的工程证明与实际授权链交付/成本收益分别评价。
+
+14.34 typed alias诊断保留alias声明/引用与具体类型或unbound状态。模型可用有来源的qualified-field typed bind再声明同类型alias；宿主不因字段名推断resource/principal/permission，也不重写实际caller symbol为内部helper。原参数在helper invocation已绑定，重新bind会是新身份。该匿名表达例和拒绝例证明接口可用，不能代替实际模型正确使用。

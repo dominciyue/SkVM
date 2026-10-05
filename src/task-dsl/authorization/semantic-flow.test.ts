@@ -160,3 +160,16 @@ test("finite map field projections agree with whole-map lookup and unknown overw
   expect(r.paths[0].predicate.truth).toBe("unknown")
   expect(r.paths[0].predicate.missingBindings).toEqual([expect.stringContaining(".mode")])
 })
+
+test("typed field aliases name their mismatch and an explicit source field bind preserves resource identity", () => {
+  const broken = unit([block("main", [{ kind: "bind", name: "target", type: "resource", aliasOf: "ctx.target", claim: "Invalid inferred resource alias" }])], { parameters: [{ name: "ctx", type: "configuration" }] })
+  const d = lower([broken]).diagnostics.find((d: any) => d.code === "semantic-alias-missing")
+  expect(d.message).toContain('"target" (resource)')
+  expect(d.message).toContain('"ctx.target" (value)')
+  const root = unit([block("main", [{ kind: "bind", name: "ctx.target", type: "resource", claim: "Shown source identifies the target field as this resource" }, { kind: "bind", name: "target", type: "resource", aliasOf: "ctx.target", claim: "Explicit same-type alias" }, { kind: "guard", name: "check", resource: "target", principal: "actor", claim: "Check this target" }, { kind: "call", name: "invoke", symbol: "helper", callee: "helper", arguments: [{ parameter: "target", object: "target" }, { parameter: "actor", object: "actor" }], claim: "Pass this checked resource" }])], { parameters: [{ name: "ctx", type: "configuration" }, { name: "actor", type: "principal" }] })
+  const helper = unit([block("main", [{ kind: "effect", name: "write", resource: "target", principal: "actor", authorizedBy: ["entry.check"], claim: "Use the exact mapped resource" }, { kind: "return", name: "done", claim: "Return" }])], { handle: "helper", role: "helper", parameters: [{ name: "target", type: "resource" }, { name: "actor", type: "principal" }] })
+  const r = lower([root, helper])
+  expect(r.diagnostics).toEqual([])
+  expect(controlObjectDiagnostics(r.slice)).toEqual([])
+  expect(r.slice.rules.find((n: any) => n.kind === "effect").resource).toBe(r.slice.rules.find((n: any) => n.kind === "guard").resource)
+})

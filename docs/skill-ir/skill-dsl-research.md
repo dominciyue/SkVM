@@ -1761,6 +1761,8 @@ Gitea首轮`bd9348f0`原件11派发/11响应，1操作/3问、4个current source
 
 第二次Gitea在`688463e4`为21/21已知，原件SHA绑定评阅判四问partial：字段级区别有用，创建/上游链仍unknown/rejected，usable0。终答sourceRef追加4的错误保持原文；主纠正探子只检查metadata而遗漏终答，以及把174累计调用错用成153旧合计。实际caller将CanWrite错改为CanAccess且未绑定，模型源码/连接错误独立保留。seq7额外revisit的拒绝被kind fallback掩盖，现准确呈现原envelope错误而仍拒绝。独立表达能力审查和主代码阅读确认源literal/有限array transform缺口；匿名TDD实现type:value source bind、有限字段值、参数/alias身份和unknown覆盖，源值不进入USER。赋值型helper按exact顺序展开，纯摘要仍组合；独立代码探子发现map字段投影遗漏，另先红再补一致性。8新反例转绿，44定向/471断言、788联合/1skip/5155断言、15 provider/native/87断言、双类型通过。新接口的真实采用仍须下一具名运行，不能把零调用证明或源码身份计为研究收益。12归档原件累计174派发/173响应，fresh3012982/cache141952/output155426，1原Share未知与USD/开发/AI/真人未知继续保留。
 
+第三次Gitea在`272390cc`21/21已知响应，4current units、四问partial/unknown/rejected、usable0；sourceRef已正确。独立评阅与主精确payload裁定区分诚实unknown和任务覆盖不足，并纠正把event行号32/34/36当成实际派发序号的评阅；仅seq18有wireFailures，seq19为内部修订的core schema错误。新source值/清空Labels数组已实际提交，部分permission/resource附value或enum符号字符串仍无效，不能以采用次数宣称正确映射或净收益。当前首个阻断是resource别名引用仅有value投影的ctx字段；caller仍误写CanAccess，helper重bind已映射参数，局部名字又被声明为虚构formal。现有语法的qualified typed bind可表达源身份，增加匿名例与具体两端类型诊断，不自动提升字段、补目标图或放宽同对象检查。1新预期red转绿，73定向pass/560断言、双类型通过；现有reusable例和原Gitea输入离线check有效、0provider。旧reason路由仅由原payload保持proof与两次同题已知partial终答裁定improved，源码质量不提升。13原件/32位置零provider重放195/194，fresh3402922/cache176768/output190714；1Share原请求及实际USD/开发AI/真人继续未知、目标执行0。下一诊断转已登记完整原skill native-original普通入口，作者/忠实性/原字节消费者独立推进，不用第四次structured重抽或主面板替代调试。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

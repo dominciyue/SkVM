@@ -53,4 +53,17 @@ Compare is read-only applicability analysis, not answer reuse. A shared context 
 
 For scripted preparation, the optional `composeAuthorizationAuthoring` export in the checkout's `src/benchmarks/authorization-dsl/authoring-compose.ts` accepts a complete v2 base and `{field,value,origin}[]` replacements. It replaces whole top-level fields and records provenance; it does not merge nested objects or infer policy. Run ordinary `check` afterwards for references and source bounds.
 
+For the current operation strategy, the same natural input needs no source graph or expected answer. From this directory use:
+
+```sh
+skvm authorization inquiry check --input=./inquiry.json --method=M --strategy=operation-evidence-v1
+skvm authorization inquiry run --input=./inquiry.json --out=./operation-runs --method=M --strategy=operation-evidence-v1 --model=<provider/model>
+skvm authorization inquiry inspect --out=./operation-runs
+skvm authorization inquiry edit --input=./inquiry.json --edit=./inquiry-edit.json --out=./current-premise.json
+skvm authorization inquiry compare --input=./current-premise.json --previous=./operation-runs/sessions/<returned-id> --strategy=operation-evidence-v1
+skvm authorization inquiry run --input=./current-premise.json --out=./changed-operation-runs --method=M --strategy=operation-evidence-v1 --model=<provider/model> --previous=./operation-runs/sessions/<returned-id>
+```
+
+M preserves the entire natural brief and compiles it without a declaration call. D1 lets the model author operation/questions from that same request within the session budget; a complete supplied v2 declaration compiles without reauthoring. Questions about the same action share source work while policy and premise conclusions remain separate. Source structure candidates are leads, not answers. Source literals/finite field writes belong to shown source interpretations, whereas known user values require exact current user spans. Partial materials retain their unreviewed grade and never reuse the final answer. Use the last run only after compare confirms compatible known completion and valid dependencies; an unknown request stays sealed. These commands illustrate the interface, not measured security quality or cost savings. For ordinary full-skill use add `--authorization-method=M --authorization-strategy=operation-evidence-v1 --authorization-domain-tools` to the scope-bound `skvm run` above and keep the original report duties.
+
 Read the explanation: `source_refuted` means policy failure is refuted, consistent with enforced allow or deny. `unknown` must name decisive missing facts and needed observations. Inspect citations and reasoning; host checks prove structure and source ranges, not semantic correctness. Use ledger for explicit coverage and conditions for requested bounded branches; defaults remain compatible. Repository discovery, deployment verification, dependency/secret scanning, patching and whole security reviews remain outside this skill.
