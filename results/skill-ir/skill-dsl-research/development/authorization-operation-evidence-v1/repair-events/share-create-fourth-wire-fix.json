@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "au-shared-repair/v1",
+  "causeAttempt": "debug-paperless-share-create/attempt-4",
+  "causeReportSha256": "de0ab0079a926b9fd4ebd0e97558f25cebe4e67d26b20218e80c838cce88f9e0",
+  "repairId": "focused-envelope-routing-v1",
+  "baseRevision": "ad8f7a7af6f2b0d90e7876fb4813c2f71347d765",
+  "rootCauses": ["Explicit focused payload was placed at the transport step root.", "A matching kind/value container was repeated around one valid source tool step."],
+  "changes": ["Relocate only complete explicit focus payload and calls into the canonical step. A sole non-conflicting also field may move from its misplaced container verbatim.", "Unwrap one matching tool/control container only when the complete inner envelope is valid and the outer container has no additional fields.", "Reject conflicting payloads, missing identity, invalid calls and unsupported fields. Never synthesize unit meaning, calls or answers."],
+  "verification": {
+    "anonymousRegressions": "Two expected red assertions confirmed before implementation; all three new tests now pass, including conflicting/missing-identity rejection.",
+    "focusedAndWire": "23 pass, 0 fail, 125 assertions",
+    "shared": "750 pass, 1 platform skip, 0 fail, 4677 assertions",
+    "sharedCommand": "bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl ./src/adapters/bare-agent.test.ts ./test/cli/run.test.ts",
+    "mainTypecheck": "pass: bun run typecheck",
+    "auTypecheck": "pass: bunx tsc --noEmit -p ./results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/tsconfig.json",
+    "retainedPayloadReplay": "Both failed fourth-attempt step payloads now parse without invoking a provider or source tool. This does not produce a source interpretation or answer.",
+    "researchProviderCallsDuringFix": 0, "targetExecution": 0
+  },
+  "originalsPreserved": true, "modelInput": false,
+  "nextActualUse": "Same-task focused-envelope-routing-v1 repair of attempt-4",
+  "sourceQualityImproved": "unverified", "netBenefit": "unverified"
+}

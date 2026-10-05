@@ -369,6 +369,11 @@ AU0/1创建薄runner后登记其真实typecheck、单位置运行和replay命令
 
 ## 九、执行记录
 
+- 第四轮`source-transaction-batch-v1`在首次解释时transport-failed，3派发/3响应、0接受source units，累计59/59；没有终答，不能以历史partial替代本轮。原始解释把完整focus元数据/unit/calls放在step根，`controlDelta`仅含also；一次受限修复又重复套同kind/value容器。独立评阅与主SHA/原始响应抽查确认属于容器协议问题，尚无批量质量进展。下一修复只对明确完整的focused payload及同kind重复容器作无损归一化；不补unit、focus、调用、权限或答案，冲突/多义字段拒绝。匿名TDD/共享回归与主类型后同题具名修订，affected wire/source/delivery派发继续暂停。
+- 无损格式修复已完成：2个预期red断言转通过，含冲突拒绝的3新反例与旧focused/wire共23 pass/125断言；共享750 pass/1skip/4677断言、主/AU双类型通过。原第四轮两个失败payload在当前解析器零provider/零工具重放均可解析；尚未接受其语义或交付答案。实际4个声明问题逐项not-delivered已存SHA绑定评阅，独立轨迹核验中第三轮单元数的误报已按原件7个校正。下一实际用例为`focused-envelope-routing-v1`修订attempt-4。
+
+- AU12/AU15接线计划：新增results侧薄ordinary runner，调用真实`skvm run`，N/M-O/D-O均保留同一完整原skill、公共自然任务/当前policy/来源及预算；补充不可覆盖的skill bundle SHA清单和公开changed-policy身份，不重写32位置原manifest。记录实际reference读取、完整trace与任务hash绑定raw conversation，作者/原字节消费者随后复用同一入口。N无形式检查标作not-applicable，不能伪造checked。公开native尚无6000输出token限额选项，需小型TDD补齐实际dispatch cap后才能派发普通比较，不能只在研究manifest写预算而不执行。准备接线不修改正在运行的结构调试核心。
+
 - 2026-10-06 第三轮ShareLink `source-link-c3-v1`已关闭：21派发/21响应，4个源码绑定、7个source units，3问仍partial；累计研究provider56请求/56响应，USD未知。独立源码/轨迹核验与主代理抽查确认：前两轮解释相同认证体的重复上下文以及revisit句柄漂移仍占用会话；可得serializer/object-permission源不能列作不可得事实。下一共享修复计划：匿名反例验证依赖的actual caller receiver、revisit稳定替换、同操作read候选与格式错误退役；新策略允许单次解释至多4个明确已读且当前完整窗口已展示的source units，沿用同一provider/runtime/budget，不推断控制意义。旧单体接口兼容。完成TDD、回归/双类型和文档同步后提交并同题修订；完整技能登记/普通入口接线随后推进。
 - 同阶段9个预期失败反例已转通过（第一例的缺parameters测试fixture先修正，再确认receiver断言的预期失败）。独立只读代码核验未发现已证实缺陷；主代理另补source-review correction的receiver漂移反例并修复。最新联合770 pass/1skip/4845断言与主/AU双typecheck通过。第五个附带单元受schema max3限制，模型unit不能提交宿主source字段；本轮真实质量/费用仍未宣称改善。
 

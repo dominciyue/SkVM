@@ -111,12 +111,23 @@ export const InquiryAuthorTransportSchema = z.union([
   v2Author.extend({ questions: z.array(v2Author.shape.questions.element.extend({ premises: v2Author.shape.questions.element.shape.premises.default([]) })).min(1).max(16) }),
 ])
 export const inquiryAuthorModelSchema = (strategy?: InquiryStrategy) => strategy === "operation-evidence-v1" ? v2Author : v1Author
-/** Fill unique envelope metadata only; local source meaning is validated by the active focus. */
+/** Recover explicit routing containers losslessly; local source meaning is validated by the active focus. */
 export function normalizeFocusedControlEnvelope(input: unknown) {
   if (!input || typeof input !== "object" || Array.isArray(input)) return { value: input }
   const raw = input as Record<string, unknown>, keys = Object.keys(raw)
+  const sourceCalls = z.array(OperationSourceCallSchema).min(1).max(8)
   let value: unknown = input, code: string | undefined
-  if (keys.every(k => ["kind", "controlDelta"].includes(k)) && FocusedUpdateEnvelopeSchema.safeParse(raw.controlDelta).success && (raw.kind === undefined || raw.kind === "tool")) { value = { ...raw, kind: "control" }; code = raw.kind === undefined ? "focused-control-kind-omitted" : "focused-control-tool-without-calls" }
+  if (keys.every(k => ["kind", "value"].includes(k)) && raw.value && typeof raw.value === "object" && !Array.isArray(raw.value)) {
+    const nested = raw.value as Record<string, unknown>, nestedKeys = Object.keys(nested)
+    const delta = !("controlDelta" in nested) || FocusedUpdateEnvelopeSchema.safeParse(nested.controlDelta).success
+    if (raw.kind === nested.kind && ((raw.kind === "tool" && nestedKeys.every(k => ["kind", "calls", "controlDelta"].includes(k)) && sourceCalls.safeParse(nested.calls).success && delta) || (raw.kind === "control" && nestedKeys.every(k => ["kind", "controlDelta"].includes(k)) && FocusedUpdateEnvelopeSchema.safeParse(nested.controlDelta).success))) { value = nested; code = "focused-step-matching-wrapper" }
+  } else if (raw.schemaVersion === "authorization-focused-update/v1") {
+    const { calls: explicitCalls, controlDelta: misplaced, ...focused } = raw
+    const hasCalls = "calls" in raw, hasDelta = "controlDelta" in raw
+    const onlyAlso = hasDelta && raw.kind === "interpret" && !("also" in focused) && misplaced && typeof misplaced === "object" && !Array.isArray(misplaced) && Object.keys(misplaced).length === 1 && Object.keys(misplaced)[0] === "also"
+    const candidate = onlyAlso ? { ...focused, also: (misplaced as Record<string, unknown>).also } : focused
+    if ((!hasDelta || onlyAlso) && (!hasCalls || sourceCalls.safeParse(explicitCalls).success) && (raw.kind !== "interpret" || "unit" in focused) && FocusedUpdateEnvelopeSchema.safeParse(candidate).success) { value = hasCalls ? { kind: "tool", calls: explicitCalls, controlDelta: candidate } : { kind: "control", controlDelta: candidate }; code = "focused-update-at-step-root" }
+  } else if (keys.every(k => ["kind", "controlDelta"].includes(k)) && FocusedUpdateEnvelopeSchema.safeParse(raw.controlDelta).success && (raw.kind === undefined || raw.kind === "tool")) { value = { ...raw, kind: "control" }; code = raw.kind === undefined ? "focused-control-kind-omitted" : "focused-control-tool-without-calls" }
   else if (raw.kind === undefined && keys.every(k => ["calls", "controlDelta"].includes(k)) && z.array(InquirySourceCallSchema).min(1).max(8).safeParse(raw.calls).success) { value = { ...raw, kind: "tool" }; code = "focused-tool-kind-omitted" }
   else if (raw.kind === undefined && keys.every(k => k === "result") && FocusedResultSchema.safeParse(raw.result).success) { value = { ...raw, kind: "final" }; code = "focused-final-kind-omitted" }
   else if ((raw.kind === "final" || raw.kind === undefined) && raw.schemaVersion === "authorization-focused-result/v1") { const { kind: _kind, ...result } = raw; if (FocusedResultSchema.safeParse(result).success) { value = { kind: "final", result }; code = "focused-final-result-root" } }

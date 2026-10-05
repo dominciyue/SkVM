@@ -1749,6 +1749,8 @@ Python/Go结构索引采用固定MIT许可的`@vscode/tree-sitter-wasm@0.3.1`，
 
 第三次`source-link-c3-v1`21请求/21响应、4个来源绑定、7个source units，3问仍partial，报告SHA与独立源码/轨迹裁定已存AU evaluations。完整input361682/output13225/cacheRead21888，USD未知；累计56请求/56响应。实际绑定有进展，但认证体重复上下文、revisit新handle及多问题投影重复来源事务消耗预算，最终把可得create/serializer/权限源码留作提取缺口。下一修复改为按actual caller确定receiver并保留原事务身份，新策略一次可解释至多4个同操作、已读且当前完整原文已展示的独立source units；九个匿名失败反例转通过，联合770 pass/1skip。该粒度调整沿用同一runtime/预算，不增加oracle或另建provider循环；真实质量、表示贡献与成本收益仍待同题及面板验证。
 
+第四次`source-transaction-batch-v1`3请求/3响应，transport-failed、0接受source units、无终答；四个实际声明问题均not-delivered，不能复用前三轮partial作本轮交付。完整input26644/output2866、USD未知，累计59/59。主SHA/原始响应与独立评阅确认是focused payload错层及同kind容器重复；三个匿名反例验证无损路由恢复、冲突/缺identity拒绝，两个原失败payload零调用重放已可解析。格式修复与批量源码质量/成本收益仍分列，下一同题具名修订不携带评阅结论。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

@@ -9,9 +9,28 @@ import { createInquiryDomainRuntime } from "./inquiry-domain-runtime.ts"
 import { createInquiryWorklist } from "./inquiry-worklist.ts"
 import { createInquiryFocus } from "./inquiry-focus.ts"
 import { lowerIntoControlSlice } from "./inquiry-semantic.ts"
-import { inquiryStepSchemas } from "./inquiry-wire.ts"
+import { inquiryStepSchemas, normalizeFocusedControlEnvelope } from "./inquiry-wire.ts"
 
 const body = { start: "body", complete: true, fallthrough: "allow", parameters: [], blocks: [{ name: "body", steps: [{ kind: "return", name: "done", claim: "Original return", value: true, outcome: "allow" }] }] }
+test("direct focused payload with explicit calls and also is losslessly routed through the current step", () => {
+  const calls = [{ name: "source_read", arguments: { path: "anonymous.py", startLine: 1, endLine: 2 } }]
+  const focused = { kind: "interpret", schemaVersion: "authorization-focused-update/v1", focusId: "focus", unit: body }
+  const raw = { ...focused, calls, controlDelta: { also: [] } }, expected = { kind: "tool", calls, controlDelta: { ...focused, also: [] } }
+  const normalized = normalizeFocusedControlEnvelope(raw)
+  expect(normalized.value).toEqual(expected)
+  expect(normalized.normalization?.code).toBe("focused-update-at-step-root")
+  expect(inquiryStepSchemas("operation-evidence-v1", false, "behavior", "interpret").schema.safeParse(raw).success).toBe(true)
+})
+test("matching duplicate step container is unwrapped without inventing calls or discarding meaning", () => {
+  const value = { kind: "tool", calls: [{ name: "source_read", arguments: { path: "anonymous.py", startLine: 1, endLine: 2 } }] }, raw = { kind: "tool", value }
+  expect(normalizeFocusedControlEnvelope(raw).value).toEqual(value)
+  expect(inquiryStepSchemas("operation-evidence-v1", false, "behavior", "interpret").schema.safeParse(raw).success).toBe(true)
+  for (const conflict of [{ ...raw, kind: "control" }, { ...raw, calls: value.calls }, { ...raw, value: { ...value, answer: "Unsupported answer" } }]) expect(normalizeFocusedControlEnvelope(conflict).value).toEqual(conflict)
+})
+test("routing recovery does not merge conflicting focused payloads or fabricate missing focus identity", () => {
+  const focused = { kind: "interpret", schemaVersion: "authorization-focused-update/v1", focusId: "focus", unit: body }
+  for (const raw of [{ ...focused, controlDelta: { unit: body } }, { ...focused, also: [], controlDelta: { also: [] } }, { kind: "interpret", unit: body }]) expect(normalizeFocusedControlEnvelope(raw).value).toEqual(raw)
+})
 test("batch contract is advertised only by the opt-in operation strategy", () => {
   const step = { kind: "control", controlDelta: { schemaVersion: "authorization-focused-update/v1", focusId: "focus", kind: "interpret", unit: body, also: [{ itemId: "peer", unit: body }] } }
   expect(inquiryStepSchemas("focused-closure-v1", false, "behavior", "interpret").modelSchema.safeParse(step).success).toBe(false)
