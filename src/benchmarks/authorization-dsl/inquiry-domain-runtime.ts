@@ -13,7 +13,7 @@ import type { BoundSemanticBlock } from "../../task-dsl/authorization/semantic-f
 import { createInquiryFocus } from "./inquiry-focus.ts"
 import { createOperationFacts, projectOperationUnits } from "../../task-dsl/authorization/operation-facts.ts"
 import { FINITE_PERMISSION_GUIDE } from "../../task-dsl/authorization/control-evaluation.ts"
-import { diagnosticWork } from "./operation-work.ts"
+import { diagnosticWork, sourceRelationRevision } from "./operation-work.ts"
 
 export type DomainAblation = "scheduler-off" | "checks-off"
 type RuntimeDomainCheck = Omit<ReturnType<typeof checkControlConclusions>, "ruleConsistency"> & { ruleConsistency: boolean | null }
@@ -54,7 +54,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   let lastPaths: ReturnType<typeof evaluateControlPaths>["paths"] = []
   let objectRevision = -1, objectDiagnostics: InquiryDiagnostic[] = []
   const issues = new Map<string, InquiryDiagnostic[]>(), computation = { merges: 0, pathEvaluations: 0, conclusionChecks: 0, predicateEvaluations: 0, objectFeedbackPasses: 0, durationMs: 0 }
-  const focus = isFocusedInquiryStrategy(options.strategy) ? createInquiryFocus({ program: options.program, tools: options.tools, items: () => worklist?.snapshot() ?? [], units: () => semanticUnits, slice: () => slice, dependencies: () => scheduler.snapshot(), diagnostics: () => [...issues.values()].flat().concat(check?.diagnostics ?? objectDiagnostics), shownEvidenceIds: options.shownEvidenceIds }) : undefined
+  const focus = isFocusedInquiryStrategy(options.strategy) ? createInquiryFocus({ program: options.program, tools: options.tools, items: () => worklist?.snapshot() ?? [], units: () => semanticUnits, slice: () => slice, dependencies: () => scheduler.snapshot(), diagnostics: () => [...issues.values()].flat().concat(check?.diagnostics ?? objectDiagnostics), shownEvidenceIds: options.shownEvidenceIds, structural: operationEvidence }) : undefined
   const checkHistory: Array<{ revision: number; slice: ControlSlice; result: unknown; check: RuntimeDomainCheck }> = []
   const evidenceContext = () => ({ questionIds: options.program.questions.map(q => q.id), shownEvidenceIds: options.shownEvidenceIds?.() ?? options.tools.evidence.map(e => e.id), suppliedUserText: options.suppliedUserText })
   const calculate = <T>(fn: () => T): T => { const started = performance.now(); try { return fn() } finally { computation.durationMs += performance.now() - started } }
@@ -67,7 +67,8 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
       facts.bind(operation.id, entry.source)
       for (const unit of semanticUnits.filter(u => u.questionId === operation.sourceQuestionId && u.source)) {
         const index = options.tools.structure, symbol = index?.symbols.find(s => s.id === unit.source!.id)
-        const dependencies = [{ kind: "source-span" as const, key: unit.source!.path, revision: unit.source!.sha256 }, { kind: "symbol-resolution" as const, key: unit.source!.id, revision: unit.source!.sha256 }, ...(symbol?.className && index ? [{ kind: "candidate-set" as const, key: `${symbol.className}:${symbol.name}`, revision: index.candidateRevision(symbol.className, symbol.name) }] : []), ...(worklist?.report().frameworkDependencies ?? [])]
+        const receiverClass = worklist?.snapshot().find(i => i.id === unit.itemId)?.receiverClass ?? unit.receiverClass
+        const dependencies = [{ kind: "source-span" as const, key: unit.source!.path, revision: unit.source!.sha256 }, { kind: "symbol-resolution" as const, key: unit.source!.id, revision: unit.source!.sha256 }, ...(symbol && index ? [{ kind: "candidate-set" as const, key: `relations:${symbol.id}:${receiverClass ?? ""}`, revision: sourceRelationRevision(index, symbol.id, receiverClass)! }] : []), ...(symbol?.className && index ? [{ kind: "candidate-set" as const, key: `${symbol.className}:${symbol.name}`, revision: index.candidateRevision(symbol.className, symbol.name) }] : []), ...(worklist?.report().frameworkDependencies ?? [])]
         facts.accept(operation.id, unit, dependencies)
       }
     }
@@ -76,6 +77,11 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     const restored = calculate(() => mergeControlSlice(slice, options.initialDelta, options.program, evidenceContext())); computation.merges++
     if (restored.diagnostics.length) throw new Error(`reuse-control-invalid: ${JSON.stringify(restored.diagnostics)}`)
     slice = restored.state
+  }
+  if (facts && semanticUnits.length) {
+    retainFacts()
+    const rebuilt = calculate(() => lowerIntoControlSlice(slice, sourceUnits(), options.program, evidenceContext(), true)); computation.merges++; slice = rebuilt.state
+    for (const d of rebuilt.diagnostics) { const key = `$semantic-lower.${d.questionId ?? ""}`; issues.set(key, [...(issues.get(key) ?? []), d]) }
   }
   const sync = async (execute = true) => {
     if (closed) throw new Error("session-closed: domain runtime cannot continue")
@@ -129,7 +135,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
       semanticUnits = applied.units; semanticRecords.push(...applied.records)
       if (focus) for (const record of applied.records.filter(r => r.accepted)) {
         const unit = semanticUnits.find(u => u.handle === record.handle && u.questionId === record.questionId), selected = worklist?.snapshot().find(i => i.id === unit?.itemId)?.selected
-        if (unit && selected) unit.source = { id: selected.id, path: selected.path, sha256: selected.sha256, startLine: selected.startLine, endLine: selected.endLine }
+        if (unit && selected) { unit.source = { id: selected.id, path: selected.path, sha256: selected.sha256, startLine: selected.startLine, endLine: selected.endLine }; unit.receiverClass = worklist?.snapshot().find(i => i.id === unit.itemId)?.receiverClass }
         else if (unit) unit.source = previousSources.get(`${unit.questionId}:${unit.handle}`)
       }
       for (const record of applied.records) {

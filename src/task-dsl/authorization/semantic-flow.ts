@@ -20,10 +20,11 @@ export const SemanticStepSchema = z.discriminatedUnion("kind", [
   z.object({ ...common, kind: z.literal("reject"), failureKind: z.enum(["authorization", "operation"]).optional() }).strict(),
   z.object({ ...common, kind: z.literal("transform"), object: name, field: name, value: scalar.optional(), source: name.optional() }).strict(),
   z.object({ ...common, kind: z.literal("unresolved"), reason: InquiryText }).strict(),
+  z.object({ ...common, kind: z.literal("context"), relationship: z.enum(["route-registration", "class-configuration", "dispatch-binding"]) }).strict(),
 ])
 export const SemanticBlockSchema = z.object({ itemId: name, handle: name, op: z.enum(["add", "replace"]), role: z.enum(["entry", "helper"]), start: name, complete: z.boolean(), repairsDraftId: name.optional(), fallthrough: z.enum(["allow", "deny", "unresolved"]).optional(), parameters: z.array(z.object({ name, type: z.enum(["principal", "resource", "permission", "configuration", "value"]) }).strict()).max(16).default([]), blocks: z.array(z.object({ name, steps: z.array(SemanticStepSchema).max(160) }).strict()).min(1).max(32) }).strict()
 export type SemanticBlock = z.infer<typeof SemanticBlockSchema>
-export type BoundSemanticBlock = SemanticBlock & { questionId: string; evidenceIds: string[]; source?: { id: string; path: string; sha256: string; startLine: number; endLine: number } }
+export type BoundSemanticBlock = SemanticBlock & { questionId: string; evidenceIds: string[]; receiverClass?: string; source?: { id: string; path: string; sha256: string; startLine: number; endLine: number } }
 type Step = z.infer<typeof SemanticStepSchema>
 interface Cursor { tail: string; route: string[]; objects: Record<string, { identity: string; type: string }>; guards: Record<string, string>; values: Record<string, Scalar>; stopped?: boolean; returned?: boolean; returnValue?: Scalar; returnObject?: { identity: string; type: string } }
 const id = (parts: unknown[]) => "sem-" + createHash("sha256").update(canonicalControl(parts)).digest("hex").slice(0, 24)
@@ -83,7 +84,8 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
             else { gap(u, other, instance, body, step.name, "choice-uncovered"); next.push(other) }
             continue
           }
-          if (step.kind === "bind") {
+          if (step.kind === "context") append(u, c, instance, body, step.name, "continue", fields)
+          else if (step.kind === "bind") {
             const alias = step.aliasOf ? c.objects[step.aliasOf] : undefined
             if (step.aliasOf && (!alias || alias.type !== step.type)) { gap(u, c, instance, body, step.name, "semantic-alias-missing"); next.push(c); continue }
             if (alias) { c.objects[step.name] = alias; append(u, c, instance, body, step.name, "continue", fields) }

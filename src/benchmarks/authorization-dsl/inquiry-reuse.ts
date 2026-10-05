@@ -9,17 +9,21 @@ import type { InquiryEvidence, InquiryTools } from "./inquiry-tools.ts"
 import type { z } from "zod"
 import { hasUnknownAuthorizationCompletion } from "./telemetry.ts"
 import { SemanticBlockSchema, lowerSemanticFlow, type BoundSemanticBlock } from "../../task-dsl/authorization/semantic-flow.ts"
+import type { StructureIndex } from "./evidence-preparation/structure-index.ts"
+import { structuralDependencyRevision } from "./operation-work.ts"
 
 export interface InquiryReuseSeed { delta: z.infer<typeof ControlSliceDeltaSchema>; evidence: InquiryEvidence[]; semanticUnits?: BoundSemanticBlock[] }
 export interface InquiryReuseInfo {
-  previousSessionId: string; change: "unchanged" | "policy-only" | "premise-only" | "source-changed" | "incompatible";
+  previousSessionId: string; change: "unchanged" | "policy-only" | "premise-only" | "policy-and-premise" | "source-changed" | "incompatible";
   answerReused: false; semanticSupport: "unreviewed"; reusedRuleKeys: string[]; invalidatedPolicyKeys: string[]; invalidatedPremiseKeys: string[]
+  reuseLevel?: "materials"; reusedMaterials?: string[]; invalidatedMaterials?: Array<{ handle: string; reasons: string[] }>
 }
 /** Plan reuse of bounded source interpretation; never reuse answers, check results or dependency state. */
 export function planInquiryReuse(options: {
   currentInput: AuthorizationInquiryInput; previousInput: AuthorizationInquiryInput; previousRun: Partial<AuthorizationInquiryRun>;
   previousSessionId: string; currentFiles: InquiryTools["files"]; currentMethod: InquiryMethod; previousMethod: InquiryMethod;
   currentStrategy: InquiryStrategy; previousStrategy: InquiryStrategy; currentModel: string; previousModel: string;
+  currentStructure?: StructureIndex;
 }) {
   const current = options.currentInput, old = options.previousInput, prior = options.previousRun, reasons: string[] = []
   const omitRoot = (v: AuthorizationInquiryInput) => ({ ...v, sourceRoot: undefined })
@@ -31,6 +35,7 @@ export function planInquiryReuse(options: {
   const premiseOnly = taskChanged && isDeepStrictEqual(withoutPremises(current), withoutPremises(old))
   const change: InquiryReuseInfo["change"] = sourceChanged ? "source-changed" : !taskChanged ? "unchanged" : policyOnly ? "policy-only" : premiseOnly ? "premise-only" : "incompatible"
   const info: InquiryReuseInfo = { previousSessionId: options.previousSessionId, change, answerReused: false, semanticSupport: "unreviewed", reusedRuleKeys: [], invalidatedPolicyKeys: [], invalidatedPremiseKeys: [] }
+  if (options.currentStrategy === "operation-evidence-v1") return planOperationMaterials(options, info)
   if (sourceChanged) reasons.push("Allowed source bytes or indexed file set changed; dependency closure cannot prove unaffected interpretation.")
   if (!isGuidedInquiryStrategy(options.currentStrategy) || options.currentStrategy !== options.previousStrategy || options.currentMethod !== options.previousMethod || options.currentModel !== options.previousModel) reasons.push("Model, method or exact guided strategy is incompatible with the previous extraction.")
   if (!current.inquiry || !old.inquiry || change === "incompatible") reasons.push("Reuse requires compatible complete questions; changed natural briefs require fresh declaration and analysis.")
@@ -68,4 +73,37 @@ export function planInquiryReuse(options: {
   } catch {
     return { status: "needs-fresh-analysis" as const, info, reasons: ["Previous extraction no longer matches the current bounded control schema."] }
   }
+}
+
+function planOperationMaterials(options: Parameters<typeof planInquiryReuse>[0], info: InquiryReuseInfo) {
+  const current = options.currentInput, old = options.previousInput, prior = options.previousRun, index = options.currentStructure, reasons: string[] = []
+  const stable = (v: AuthorizationInquiryInput) => ({ ...v, sourceRoot: undefined, policy: undefined, inquiry: v.inquiry ? { ...v.inquiry, policy: undefined, questions: v.inquiry.questions.map(q => ({ ...q, premises: [] })) } : undefined })
+  if (!current.inquiry || !old.inquiry || !isDeepStrictEqual(stable(current), stable(old))) reasons.push("Materials require the same original operation/questions/source scope; policy and explicit premises may change.")
+  if (!index || options.previousStrategy !== "operation-evidence-v1" || options.currentMethod !== options.previousMethod || options.currentModel !== options.previousModel) reasons.push("Current structure, model, method and exact operation strategy must match.")
+  if (hasUnknownAuthorizationCompletion(prior) || !prior.domain?.operationFacts || !prior.domain.semantic?.units) reasons.push("Known retained operation materials are required; unknown completion stays sealed.")
+  if (reasons.length) return { status: "needs-fresh-analysis" as const, info, reasons }
+  info.reuseLevel = "materials"; info.reusedMaterials = []; info.invalidatedMaterials = []
+  if (info.change === "incompatible") info.change = "policy-and-premise"
+  const files = new Map(options.currentFiles.map(f => [f.path, f.sha256])), sourceFacts = prior.domain!.operationFacts!, retained: BoundSemanticBlock[] = [], evidence = prior.evidence ?? []
+  for (const unit of prior.domain!.semantic!.units) {
+    const failures: string[] = [], fact = sourceFacts.facts.find(f => f.current && f.unit && isDeepStrictEqual(f.unit, unit))
+    try { const { questionId: _q, evidenceIds: _e, source: _s, receiverClass: _r, ...raw } = unit; SemanticBlockSchema.parse(raw) } catch { failures.push("semantic-schema") }
+    if (!fact || !unit.source || !fact.dependencies.length) failures.push("missing source/fact dependency footprint")
+    for (const d of fact?.dependencies ?? []) {
+      const revision = d.kind === "source-span" ? files.get(d.key) : structuralDependencyRevision(index!, d)
+      if (!revision || revision !== d.revision) failures.push(`${d.kind}:${d.key}:changed-or-unavailable`)
+    }
+    if (!unit.evidenceIds.length || unit.evidenceIds.some(id => { const e = evidence.find(e => e.id === id); return !e || e.repository !== current.repository || e.sourceRef !== current.sourceRef || files.get(e.path) !== e.sha256 })) failures.push("original evidence changed-or-unavailable")
+    if (failures.length) info.invalidatedMaterials.push({ handle: unit.handle, reasons: [...new Set(failures)] })
+    else { retained.push(structuredClone(unit)); info.reusedMaterials.push(unit.handle) }
+  }
+  // Rebuild all rules/relations from retained source templates in the new runtime.
+  // Known values require the entire same-question user context to remain unchanged.
+  const content = ({ id: _id, digest: _digest, sourceBound: _b, semanticSupport: _s, ...item }: any) => item
+  const bindings = prior.domain!.slice.bindings.filter(b => isDeepStrictEqual(current.inquiry!.questions.find(q => q.id === b.questionId), old.inquiry!.questions.find(q => q.id === b.questionId)))
+  info.invalidatedPremiseKeys = prior.domain!.slice.bindings.filter(b => !bindings.includes(b)).map(b => `${b.questionId}.${b.key}`)
+  info.invalidatedPolicyKeys = prior.domain!.slice.policyRules.map(p => `${p.questionId}.${p.key}`)
+  const needed = new Set(retained.flatMap(u => u.evidenceIds)), parsed = ControlSliceDeltaSchema.safeParse({ schemaVersion: "authorization-control-slice/v1", rules: [], dependencies: [], bindings: bindings.map(content), policyRules: [] })
+  if (!parsed.success) return { status: "needs-fresh-analysis" as const, info, reasons: ["Retained premise values no longer match the bounded schema."] }
+  return { status: "reusable" as const, info, reasons, seed: { delta: parsed.data, evidence: structuredClone(evidence.filter(e => needed.has(e.id))), semanticUnits: retained } }
 }

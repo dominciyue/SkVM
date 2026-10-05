@@ -25,7 +25,7 @@ export function summarizeProcedure(unit: BoundSemanticBlock) {
       else if (step.kind === "guard") {
         if (step.principal || step.resource || !step.condition) visit(index + 1, tests, text, [...trail, step])
         else visit(index + 1, [...tests, step.condition], text, trail)
-      } else if (["bind", "effect", "transform"].includes(step.kind)) visit(index + 1, tests, text, [...trail, step])
+      } else if (["bind", "effect", "transform", "context"].includes(step.kind)) visit(index + 1, tests, text, [...trail, step])
       else if (step.kind === "choose") {
         const prior: Record<string, unknown>[] = []
         for (const branch of step.cases) {

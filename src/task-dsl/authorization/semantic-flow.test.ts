@@ -88,3 +88,13 @@ test("unread call, block cycle and expansion limits remain named unresolved term
   expect(large.diagnostics.map((d: any) => d.code)).toContain("semantic-node-limit")
   expect(large.paths.every((p: any) => !p.complete)).toBe(true)
 })
+
+test("static source relations are retained without creating calls, permissions or effects", () => {
+  const step = { kind: "context", name: "route", relationship: "route-registration", claim: "The original router registers this handler" }
+  expect(api.SemanticStepSchema.safeParse(step).success).toBe(true)
+  const r = lower([unit([block("main", [step, { kind: "return", name: "done", claim: "Registration only", outcome: "allow" }])])])
+  expect(r.delta.dependencies).toEqual([])
+  expect(r.slice.rules.filter((r: any) => ["call", "guard", "effect"].includes(r.kind))).toEqual([])
+  expect(r.slice.rules.some((r: any) => r.kind === "continue" && r.claim === step.claim)).toBe(true)
+  expect(r.paths[0].protectedEffect).toBe("none")
+})

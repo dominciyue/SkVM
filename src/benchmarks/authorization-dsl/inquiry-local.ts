@@ -90,8 +90,8 @@ export async function initializeLocalInquiry(from: string, outFile: string, expl
 
 async function preparePreviousInquiry(inputFile: string, previous: string, model: string | undefined, method: InquiryMethod | undefined, strategy: InquiryStrategy | undefined) {
   const report = await inspectLocalInquiry(previous), retained = await retainedInquiryDeclaration(report.sessionPath), old = retained.input, prior = retained.prior
-  const loaded = await loadInquiryInput(inputFile), tools = await createInquiryTools(loaded.context)
-  const plan = planInquiryReuse({ currentInput: loaded.value, previousInput: old, previousRun: prior, previousSessionId: report.sessionId, currentFiles: tools.files, currentMethod: method ?? report.method, previousMethod: report.method, currentStrategy: strategy ?? report.strategy ?? "legacy", previousStrategy: report.strategy ?? "legacy", currentModel: model ?? report.model, previousModel: report.model })
+  const loaded = await loadInquiryInput(inputFile), currentStrategy = strategy ?? report.strategy ?? "legacy", tools = await createInquiryTools({ ...loaded.context, structure: currentStrategy === "operation-evidence-v1" })
+  const plan = planInquiryReuse({ currentInput: loaded.value, previousInput: old, previousRun: prior, previousSessionId: report.sessionId, currentFiles: tools.files, currentStructure: tools.structure, currentMethod: method ?? report.method, previousMethod: report.method, currentStrategy, previousStrategy: report.strategy ?? "legacy", currentModel: model ?? report.model, previousModel: report.model })
   if (plan.status === "reusable") {
     const imported = tools.restoreEvidence(plan.seed.evidence)
     if (imported.diagnostics.length) return { report, previousInput: old, plan: { status: "needs-fresh-analysis" as const, info: plan.info, reasons: imported.diagnostics.map(d => `${d.code}: ${d.message}`) } }

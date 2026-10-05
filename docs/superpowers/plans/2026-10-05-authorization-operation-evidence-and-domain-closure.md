@@ -369,6 +369,8 @@ AU0/1创建薄runner后登记其真实typecheck、单位置运行和replay命令
 
 ## 九、执行记录
 
+- 2026-10-06 AU10首次ShareLink调试已关闭：14派发/14响应、64工具动作、3个source units，最终partial，首件与raw保留。源码已读的文档校验尚未被解释；根入口把静态register写成运行时call，继承方法重复展开占用取证预算。当前修复计划依次为：匿名反例验证raw-string路由与继承接收者；只在类入口展开DRF配置义务、方法沿实际AST调用推进；显示/选择已有来源工作；增加静态关系步骤而不赋予权限含义；跑定向回归后同题具名修订。AU11材料级复用正在实现，保留有效未评阅source模板，重新生成规则与政策判断，不继承旧终答/check。独立源码评阅与主代理裁定写到本轮results，不进入model目录。
+
 - 2026-10-06 AU10派发准备：714联合pass/1skip/4588断言，主类型与AU类型通过；薄runner 3检查/16断言通过。实际命令`study.ts develop <debug-id> [repair-id original/attempt-n] | replay`，通过旧generic claim/repair/replay和生产`executeLocalInquiryRun`接入；32原位置不重写，未知跨arm封存，先逐调试位置核验/修复再面板。优化后结构探针另存`structure-probes-optimized-v1.json`；此处仍无研究provider结果。
 
 - AU9诊断动作共用focus的revisit/link/条件回答；独立只读核验后先写三个失败反例，再修Go最长模块绑定、首次候选选择阶段更新及失效依赖旧版本重激活。错误入口重新定位立即撤回旧facts/投影/helper，原始记录保留；42项针对性检查通过。结构metadata仍是固定原索引候选，无源码读证据，最终快照终检负责拒绝运行中变化，不重复全库读取。

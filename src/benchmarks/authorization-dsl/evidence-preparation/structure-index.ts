@@ -9,7 +9,7 @@ export interface StructureSymbol extends DiscoverySymbol {
 }
 export interface StructureCall {
   id: string; ownerId?: string; path: string; sha256: string; startLine: number; endLine: number;
-  expression: string; receiver?: string; arguments: string[]; candidateIds: string[]; resolution: "resolved" | "ambiguous" | "unresolved";
+  expression: string; receiver?: string; receiverClass?: string; arguments: string[]; candidateIds: string[]; resolution: "resolved" | "ambiguous" | "unresolved";
   basis: string[]; gap?: string; resultNames: string[]
 }
 export interface StructureRoute { id: string; sourceCallId: string; sourcePath: string; startLine: number; endLine: number; method: string; path: string; handlerExpression: string; candidateIds: string[]; middlewareExpressions: string[]; model: string }
@@ -165,7 +165,10 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     else if (root && (raw.types[root] || root === "self" && receiverClass)) {
       let type = root === "self" && receiverClass ? receiverClass : qualified(raw.types[root]!, scope)
       for (const p of parts.slice(1)) { const a = attribute(type, p); type = a ? qualified(a.value, a.scope) : "" }
+      const classes = matching(type).filter(s => s.kind === "class")
+      if (classes.length === 1) type = classes[0]!.qualifiedName
       candidates = type ? lookupMethod(type, name) : []; basis = ["AST parameter/receiver type and explicit field chain", ...(owner?.className ? ["C3 inheritance/override lookup"] : [])]
+      if (candidates.length && type) call.receiverClass = type
     } else { candidates = matching(qualified(call.expression, scope)); basis = ["AST qualified source binding"] }
     call.candidateIds = candidates.map(c => c.id); call.resolution = candidates.length === 1 ? "resolved" : candidates.length > 1 ? "ambiguous" : "unresolved"; call.basis = basis
     if (!candidates.length) call.gap = "receiver/import/value binding unavailable; unique lexical name is not a call edge"
@@ -186,12 +189,15 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
   const calls = scopes.flatMap(f => f.rawCalls.map(r => resolveCall(r, f))), routes: StructureRoute[] = []
   for (const scope of scopes) for (const raw of scope.rawCalls) {
     const c = raw.call, verb = c.expression.split(".").at(-1)!, goRoute = scope.language === "go" && ["Get", "Post", "Put", "Patch", "Delete", "Head", "Options"].includes(verb), drf = scope.language === "python" && verb === "register"
-    const hasLiteral = /^['"][^'"\n]*['"]$/.test(c.arguments[0] ?? "")
+    // Only static string tokens, including Python raw/unicode prefixes. A
+    // formatted, concatenated or escaped unknown value remains a route gap.
+    const token = /^(?:([rRuU]))?(['"])([^'"\r\n]*)\2$/.exec(c.arguments[0] ?? "")
+    const hasLiteral = !!token && (!token[3]!.includes("\\") || !!token[1])
     if (!goRoute && !drf || !hasLiteral && (!goRoute || !raw.groupPaths.length)) continue
     const handler = drf ? c.arguments[1] : c.arguments.at(-1); if (!handler || !/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(handler)) continue
     const candidates = matching(qualified(handler, scope)).filter(s => drf ? s.kind === "class" && linearize(s.qualifiedName)?.some(n => n.startsWith("rest_framework.")) : s.kind === "function" && !s.className)
     if (!candidates.length) continue
-    const literal = hasLiteral ? c.arguments[0]!.slice(1, -1) : "", route: StructureRoute = { id: `route-${hash([c.id, handler]).slice(0, 24)}`, sourceCallId: c.id, sourcePath: c.path, startLine: c.startLine, endLine: c.endLine, method: drf ? "DRF-actions" : verb.toUpperCase(), path: [...raw.groupPaths, literal].join(""), handlerExpression: handler, candidateIds: candidates.map(s => s.id), middlewareExpressions: drf ? [] : c.arguments.slice(hasLiteral ? 1 : 0, -1), model: drf ? "drf-source-router/v1" : "go-route-registration/v1" }
+    const literal = hasLiteral ? token![3]! : "", route: StructureRoute = { id: `route-${hash([c.id, handler]).slice(0, 24)}`, sourceCallId: c.id, sourcePath: c.path, startLine: c.startLine, endLine: c.endLine, method: drf ? "DRF-actions" : verb.toUpperCase(), path: [...raw.groupPaths, literal].join(""), handlerExpression: handler, candidateIds: candidates.map(s => s.id), middlewareExpressions: drf ? [] : c.arguments.slice(hasLiteral ? 1 : 0, -1), model: drf ? "drf-source-router/v1" : "go-route-registration/v1" }
     routes.push(route)
     symbols.push({ id: route.id, path: c.path, sha256: c.sha256, name: `${route.method} ${route.path}`, qualifiedName: `${scope.module}.route@${c.startLine}`, module: scope.module, language: scope.language, kind: "function", startLine: c.startLine, endLine: c.endLine, boundary: "complete", parameters: [], returns: [], bases: [], attributes: { routeModel: route.model, handlerExpression: handler } })
   }

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "authorization-au-source-review/v1",
+  "rowId": "debug-paperless-share-create",
+  "attempt": "attempt-1",
+  "report": "runs/debug-paperless-share-create/attempt-1/report.json",
+  "reportSha256": "592aa85b6e75024ad9bde8ea8adffbdab39c43ae3d6585898e04ed26c8268a15",
+  "codeRevision": "f57fb34adc7227bc5fc66a1357bf3437ada38feb",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "reviewers": [
+    {"agent": "au_share_first_quality", "role": "independent-source-review", "readOnly": true, "record": "compressed findings retained from the independent agent response"},
+    {"agent": "au_share_first_runtime", "role": "independent-runtime-review", "readOnly": true, "record": "compressed findings retained from the independent agent response"}
+  ],
+  "sourceAnchors": [
+    {"path": "src/paperless/urls.py", "lines": "74-88", "fact": "Source router registers ShareLinkViewSet at the static raw-string share_links prefix."},
+    {"path": "src/documents/views.py", "lines": "4696-4717", "fact": "CreateModelMixin, ShareLinkSerializer, IsAuthenticated and PaperlessObjectPermissions configure the share view."},
+    {"path": "framework/rest_framework-3.18.1/rest_framework/views.py", "lines": "404-421", "fact": "Initial authenticates and invokes has_permission through check_permissions before the action."},
+    {"path": "framework/rest_framework-3.18.1/rest_framework/mixins.py", "lines": "16-24", "fact": "Create obtains the serializer, validates, then performs save; response success is distinct from permission."},
+    {"path": "src/documents/views.py", "lines": "406-428", "fact": "PassUserMixin passes the request user to the serializer."},
+    {"path": "src/documents/serialisers.py", "lines": "2873-2886", "fact": "validate_document requires a non-null user, global documents.view_document and has_perms_owner_aware on this exact document, otherwise PermissionDenied."},
+    {"path": "src/documents/permissions.py", "lines": "624-635", "fact": "Owner-aware check accepts ownerless or self-owned objects, otherwise delegates exact-object permission to ObjectPermissionChecker."},
+    {"path": "src/documents/permissions.py", "lines": "30-53", "fact": "POST global mapping is add_<model>; object permission override is a separate method. Create does not thereby fetch/check an existing share object."}
+  ],
+  "independentFindings": {
+    "sourceBehavior": "partial: correct entry/configuration, missing effective exact-document serializer guard and pre-create chain",
+    "policyReview": "The source reviewer described the owner-aware exact-document path as compliant, while the retained answer remains undetermined. This source-path observation is not a full rating for the retained answer.",
+    "missingFacts": "partial: available unexamined source and caller-specific unspecified premises are partly conflated",
+    "runtime": {"requests": 14, "responses": 14, "toolCalls": 64, "reads": 40, "searches": 12, "symbols": 12, "automaticReads": 23, "acceptedUnits": 3, "rejectedUnits": 0, "terminalCause": "tool-budget delivery with semantic-callee-uninterpreted"}
+  },
+  "mainAdjudication": {
+    "overall": "partial",
+    "questions": [
+      {"id": "q-source-behavior", "rating": "partial", "reason": "Entry/configuration is grounded, but the exact-document validation already available/read is omitted from the effective source chain."},
+      {"id": "q-policy-compliance", "rating": "partial", "reason": "Undetermined is an honest limit of the retained interpretation, but does not answer the source-visible independent policy obligation. Owner-aware owner/ownerless/guardian alternatives must be explained explicitly; model-level permission alone is not sufficient."},
+      {"id": "q-missing-facts", "rating": "partial", "reason": "Specific source gaps are retained, but caller-specific effective grants/ownership are unspecified premises rather than unavailable implementation source."}
+    ],
+    "formal": {"sourceBound": true, "ruleConsistency": false, "taskResolution": "partial"},
+    "sourceSnapshotValid": true,
+    "deploymentClaim": false,
+    "evaluatorNeverModelVisible": true
+  }
+}

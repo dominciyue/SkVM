@@ -59,3 +59,16 @@ test("a qualified Go import keeps its longest actual module match instead of a s
   const index = await buildStructureIndex([{ path: "api/api.go", content: 'package api\nimport h "example/a/handler"\nfunc Entry() { h.Create() }\n' }, { path: "a/handler/create.go", content: "package handler\nfunc Create() {}\n" }, { path: "handler/create.go", content: "package handler\nfunc Create() {}\n" }], { repository: "fixture", sourceRef: "r" })
   expect(index.calls.find(c => c.expression === "h.Create")!.candidateIds).toEqual([index.symbols.find(s => s.qualifiedName === "a/handler.Create")!.id])
 })
+
+test("Python literal prefixes preserve source router registrations and dynamic formatted paths stay gaps", async () => {
+  const index = await buildStructureIndex([{ path: "rest_framework/views.py", content: "class APIView:\n    pass\n" }, { path: "app.py", content: 'from rest_framework.views import APIView\nclass View(APIView):\n    pass\nrouter.register(r"items", View)\nrouter.register(u\'other\', View)\nrouter.register(f"{name}", View)\n' }], { repository: "fixture", sourceRef: "r" })
+  expect(index.routes.map(r => r.path)).toEqual(["items", "other"])
+})
+
+test("inherited self calls retain the actual receiver for downstream overrides", async () => {
+  const index = await buildStructureIndex([{ path: "base.py", content: "class Base:\n    def create(self):\n        return self.check()\n    def check(self):\n        return True\n" }, { path: "view.py", content: "from base import Base\nclass View(Base):\n    def check(self):\n        return False\n" }], { repository: "fixture", sourceRef: "r" })
+  const create = index.lookupMethod("view.View", "create")[0]!
+  const call: any = index.relatedCalls(create.id, "view.View")[0]!
+  expect(call.receiverClass).toBe("view.View")
+  expect(call.candidateIds).toEqual([index.lookupMethod("view.View", "check")[0]!.id])
+})

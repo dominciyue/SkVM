@@ -27,8 +27,8 @@ const priority: Record<InquiryRelation, number> = { entry: 0, "principal-binding
 
 /** Keep every current duty addressable; focused location tasks carry full candidate metadata. */
 export function worklistModelView(items: WorkItem[]) {
-  return items.map(({ id, questionId, kind, origin, state, decisive, code, reason, symbol, parentId, dependencyId, nextAction, callsiteEvidenceIds, evidenceIds, candidates, selected, selectedBy, semanticSupport }) => ({
-    id, questionId, kind, origin, state, decisive, code, reason, symbol, parentId, dependencyId,
+  return items.map(({ id, questionId, kind, origin, state, decisive, code, reason, symbol, parentId, dependencyId, receiverClass, nextAction, callsiteEvidenceIds, evidenceIds, candidates, selected, selectedBy, semanticSupport }) => ({
+    id, questionId, kind, origin, state, decisive, code, reason, symbol, parentId, dependencyId, receiverClass,
     nextAction: structuredClone(nextAction), callsiteEvidenceIds: [...callsiteEvidenceIds], evidenceIds: [...evidenceIds], candidateCount: candidates.length,
     ...(selected ? { selected: { id: selected.id, path: selected.path, startLine: selected.startLine, endLine: selected.endLine }, selectedBy } : {}), semanticSupport,
   }))
@@ -124,6 +124,10 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
       const relation: InquiryRelation = kind === "principal-binding" || kind === "resource-binding" || kind === "effect" || kind === "exception" ? kind : "guard"
       const item = items.get(id) ?? make(id, d.questionId, relation, "explicit-dependency", d.reason, { dependencyId: d.id, symbol: d.symbol, decisive: d.decisive })
       item.candidates = d.candidates; item.evidenceIds = d.evidenceIds; item.reason = d.reason
+      if (options.structural && d.candidates.length === 1) {
+        const contexts = [...new Set([...items.values()].filter(i => i.questionId === d.questionId && i.origin === "structure-relation" && i.selected?.id === d.candidates[0]!.id).map(i => i.receiverClass))]
+        if (contexts.length === 1) item.receiverClass = contexts[0]
+      }
       if (d.state === "inapplicable") transition(item, "closed", "none", d.reason, d.code)
       else if (d.state === "external-unknown" || d.state === "blocked") transition(item, d.state, "none", d.reason, d.code)
       else transition(item, "unlocated", "locate", d.reason, d.code)
@@ -145,7 +149,7 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
       if (failedReads.has(item.id)) { transition(item, "blocked", "none", "The prior actual read failed; preserve the gap without spinning.", failedReads.get(item.id)); continue }
       if (!candidate) { transition(item, "unlocated", item.candidates.length > 1 ? "select-candidate" : "locate", "Choose an original indexed candidate; no semantic location is inferred.", item.candidates.length > 1 ? "location-ambiguous" : "location-missing"); continue }
       let ancestor = item.parentId ? items.get(item.parentId) : undefined, cyclic = false
-      while (ancestor) { if (candidate.id === ancestor.selected?.id) cyclic = true; ancestor = ancestor.parentId ? items.get(ancestor.parentId) : undefined }
+      while (ancestor) { if (candidate.id === ancestor.selected?.id && (!options.structural || item.receiverClass === ancestor.receiverClass)) cyclic = true; ancestor = ancestor.parentId ? items.get(ancestor.parentId) : undefined }
       if (cyclic) { transition(item, "blocked", "none", "The selected reference returns to an ancestor candidate; no automatic recursive read.", "reference-cycle"); continue }
       item.evidenceIds = evidenceFor(candidate).map(e => e.id)
       const parentRules = item.parentId ? represented(items.get(item.parentId)!, slice) : []

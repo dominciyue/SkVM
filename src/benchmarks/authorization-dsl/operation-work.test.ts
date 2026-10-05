@@ -56,3 +56,14 @@ test("missing source and conditional premises have distinct actions and no fabri
   expect(work.map(a => a.kind)).toEqual(["inspect-dependency", "conditional-answer"])
   expect(work.every(a => !a.handle && !a.source)).toBe(true)
 })
+
+test("framework configuration is expanded at the class entry once and method work preserves its actual receiver", async () => {
+  const index = await buildStructureIndex([{ path: "rest_framework/base.py", content: "class Base:\n    def initial(self):\n        return self.check_permissions()\n    def check_permissions(self):\n        return True\n    def create(self):\n        return self.perform_create()\n    def perform_create(self):\n        return True\n" }, { path: "app.py", content: "from rest_framework.base import Base\nclass Serializer:\n    def is_valid(self):\n        return self.validate()\n    def validate(self):\n        return True\nclass Permission:\n    def has_permission(self):\n        return True\nclass View(Base):\n    serializer_class = Serializer\n    permission_classes = (Permission,)\n    def perform_create(self):\n        return False\n" }], { repository: "fixture", sourceRef: "r" })
+  const root = index.symbols.find(s => s.qualifiedName === "app.View")!, work = operationWork(index, root.id, [], [])
+  const selected = (name: string) => work.actions.find(a => index.symbols.find(s => s.id === a.candidateId)?.qualifiedName === name)
+  expect(selected("app.Serializer.is_valid")?.receiverClass).toBe("app.Serializer")
+  expect(selected("app.Permission.has_permission")?.receiverClass).toBe("app.Permission")
+  const create = index.lookupMethod("app.View", "create")[0]!, method = operationWork(index, create.id, [], [], "app.View")
+  expect(method.actions.map(a => index.symbols.find(s => s.id === a.candidateId)!.qualifiedName)).toEqual(["app.View.perform_create"])
+  expect(method.actions[0]?.receiverClass).toBe("app.View")
+})

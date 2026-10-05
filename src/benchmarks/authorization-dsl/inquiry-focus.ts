@@ -17,7 +17,7 @@ const binding = z.object({ key: InquiryText, value: FiniteValueSchema, text: Inq
 const focusedStepSchema = z.discriminatedUnion("kind", [
   SemanticStepSchema.options[0], SemanticStepSchema.options[1], SemanticStepSchema.options[2],
   SemanticStepSchema.options[3].omit({ callee: true }), SemanticStepSchema.options[4],
-  SemanticStepSchema.options[5], SemanticStepSchema.options[6], SemanticStepSchema.options[7], SemanticStepSchema.options[8],
+  SemanticStepSchema.options[5], SemanticStepSchema.options[6], SemanticStepSchema.options[7], SemanticStepSchema.options[8], SemanticStepSchema.options[9],
 ])
 export const FocusedUnitSchema = SemanticBlockSchema.omit({ itemId: true, handle: true, op: true, role: true, repairsDraftId: true }).extend({ blocks: z.array(SemanticBlockSchema.shape.blocks.element.extend({ steps: z.array(focusedStepSchema).max(160) })).min(1).max(32) })
 const common = { schemaVersion: z.literal("authorization-focused-update/v1"), focusId: InquiryText }
@@ -27,7 +27,7 @@ const actions = {
   link: z.object({ ...common, kind: z.literal("link"), links: z.array(z.object({ caller: InquiryText, call: InquiryText, target: InquiryText, arguments: z.array(z.object({ parameter: InquiryText, object: InquiryText }).strict()).max(16).optional() }).strict()).min(1).max(8) }).strict(),
   review: z.object({ ...common, kind: z.literal("review"), claims: z.array(z.object({ claim: InquiryText, verdict: z.enum(["confirmed", "gap", "correct"]), explanation: InquiryText }).strict()).min(1).max(32) }).strict(),
 }
-const defer = z.object({ ...common, kind: z.literal("defer"), reason: InquiryText, revisit: InquiryText.optional() }).strict()
+const defer = z.object({ ...common, kind: z.literal("defer"), reason: InquiryText, revisit: InquiryText.optional(), nextItemId: InquiryText.optional() }).strict()
 export const FocusedUpdateSchema = z.discriminatedUnion("kind", [actions.interpret, actions.locate, actions.link, actions.review, defer])
 export const FocusedUpdateEnvelopeSchema = z.discriminatedUnion("kind", [actions.interpret.extend({ unit: z.unknown() }), actions.locate, actions.link, actions.review, defer])
 export function focusedUpdateSchema(stage?: FocusStage, parsing = false) {
@@ -50,11 +50,12 @@ export const FOCUSED_EXECUTION_GUIDE = [
   'Review is one targeted source self-check, charged within this session. For each offered claim submit its id, verdict:confirmed|gap|correct and explanation grounded in the displayed original and current summary. Check exact fields passed/cleared, object relationships, exceptions and effect over opaque calls. correct returns to source interpretation; gap keeps a precise limitation. This is not independent semantic verification.',
   'Final uses {schemaVersion:"authorization-focused-result/v1",focusId:<current answer focus.id>,answers:[{explanation,disposition?,paths?:[{path:<current per-question numeric index>,explanation,policy?}],missing?,policyAssessment?}],scope}. Answers follow ALL original questions in order. Host supplies question identity/current revision/path IDs/citations; optional typed claims must agree with the same summary. In conformance, map exact current independent policy to relevant paths and give satisfied|violated|undetermined separately from behavior. Correct complete conditional explanations are allowed; available unexamined source is a specific source-gap. Preserve independent resolved parts when budget ends. Native final prose is rendered from this same accepted answer in the original skill format.',
   FINITE_PERMISSION_GUIDE,
+  'Static source relations use {kind:"context",name,relationship:"route-registration"|"class-configuration"|"dispatch-binding",claim}. They retain source context only: no call, guard, permission, object identity or effect is inferred. A registration or serializer/permission class assignment is not a per-request function call. Actual inherited request methods remain call steps with their source candidate. Interpret only decisive source behavior; routine formatting and response construction do not need invented callees. Context meaning remains unreviewed.',
 ].join("\n")
 interface Focus { id: string; stage: FocusStage; questionId?: string; itemId?: string; handle?: string; source?: BoundSemanticBlock["source"]; snapshot: string }
 const hash = (value: unknown) => createHash("sha256").update(canonicalControl(value)).digest("hex").slice(0, 24)
-const unitHandle = (item: WorkItem) => `unit-${hash([item.questionId, item.origin === "question-duty" && item.kind === "entry" ? item.id : item.selected ? [item.selected.path, item.selected.sha256, item.selected.startLine, item.selected.endLine] : item.id])}`
-export function createInquiryFocus(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; items: () => WorkItem[]; units: () => BoundSemanticBlock[]; slice: () => ControlSlice; dependencies: () => DependencyCheckState[]; diagnostics: () => InquiryDiagnostic[]; shownEvidenceIds?: () => string[] }) {
+const unitHandle = (item: WorkItem) => `unit-${hash([item.questionId, item.origin === "question-duty" && item.kind === "entry" ? item.id : item.selected ? [item.selected.path, item.selected.sha256, item.selected.startLine, item.selected.endLine, item.receiverClass] : item.id])}`
+export function createInquiryFocus(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; items: () => WorkItem[]; units: () => BoundSemanticBlock[]; slice: () => ControlSlice; dependencies: () => DependencyCheckState[]; diagnostics: () => InquiryDiagnostic[]; shownEvidenceIds?: () => string[]; structural?: boolean }) {
   let current: Focus | undefined, serial = 0, lastQuestion = -1, reviewedSnapshot: string | undefined
   const finished = new Set<string>(), deferred = new Set<string>(), submissions = new Map<string, string>()
   const retainedItems = new Map<string, WorkItem>()
@@ -87,7 +88,7 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
     }))) { finish("source-invalidated"); return }
     if (forceAnswer) { if (current?.stage !== "answer") { finish("budget-delivery"); start("answer") }; return }
     if (current) return
-    const unaccepted = (i: WorkItem) => !options.units().some(u => u.questionId === i.questionId && u.source?.id === i.selected?.id)
+    const unaccepted = (i: WorkItem) => !options.units().some(u => u.questionId === i.questionId && u.source?.id === i.selected?.id && u.receiverClass === i.receiverClass)
     const eligible = items.filter(i => (i.origin !== "question-duty" || i.kind === "entry") && i.code !== "source-invalidated" && !finished.has(`${i.id}:${i.selected?.id}`) && (i.state === "awaiting-interpretation" || i.state === "awaiting-binding" && i.evidenceIds.length > 0 && i.code !== "reference-relevance-unconfirmed") && unaccepted(i))
     const rotate = (a: WorkItem, b: WorkItem) => (options.program.questions.findIndex(q => q.id === a.questionId) - lastQuestion - 1 + options.program.questions.length) % options.program.questions.length - (options.program.questions.findIndex(q => q.id === b.questionId) - lastQuestion - 1 + options.program.questions.length) % options.program.questions.length
     eligible.sort((a, b) => Number(deferred.has(a.id)) - Number(deferred.has(b.id)) || Number(b.origin === "explicit-dependency") - Number(a.origin === "explicit-dependency") || rotate(a, b))
@@ -123,10 +124,11 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
     }
     const skeleton = semanticResultSkeleton(options.slice(), options.dependencies()), pathIndexes = new Map<string, number>()
     const answerSnapshot = skeleton.paths.map(p => { const index = pathIndexes.get(p.questionId) ?? 0; pathIndexes.set(p.questionId, index + 1); return { ...p, path: index } })
-    return { ...local, supportingEvidenceIds, focus: structuredClone(current), instruction: FOCUSED_EXECUTION_GUIDE,
-      summaries: options.units().map(u => ({ handle: u.handle, questionId: u.questionId, role: u.role, source: u.source, parameters: u.parameters, complete: u.complete, summary: summarizeProcedure(u), ...(current?.stage === "link" || current?.stage === "review" ? { blocks: u.blocks } : {}) })),
+    return { ...local, supportingEvidenceIds, focus: structuredClone(current), receiverClass: item?.receiverClass, instruction: FOCUSED_EXECUTION_GUIDE,
+      summaries: options.units().map(u => ({ handle: u.handle, questionId: u.questionId, role: u.role, source: u.source, receiverClass: u.receiverClass, parameters: u.parameters, complete: u.complete, summary: summarizeProcedure(u), ...(current?.stage === "link" || current?.stage === "review" ? { blocks: u.blocks } : {}) })),
       ...(current?.stage === "link" ? { links: pendingLinks() } : {}), ...(current?.stage === "review" ? { claims: claims() } : {}),
       ...(current?.stage === "answer" ? { answerSnapshot } : {}),
+      ...(options.structural ? { pendingSourceWork: items.filter(i => i.selected && ["structure-relation", "explicit-dependency"].includes(i.origin) && ["awaiting-read", "awaiting-interpretation"].includes(i.state) && !options.units().some(u => u.questionId === i.questionId && u.source?.id === i.selected!.id && u.receiverClass === i.receiverClass)).slice(0, 48).map(i => ({ id: i.id, questionId: i.questionId, kind: i.kind, symbol: i.symbol, state: i.state, receiverClass: i.receiverClass, source: { id: i.selected!.id, path: i.selected!.path, startLine: i.selected!.startLine, endLine: i.selected!.endLine }, reason: i.question })), sourceWorkInstruction: 'These are source candidates, not accepted facts. A read candidate may be chosen with kind:"defer",reason,nextItemId:<shown id> in the current focus; the next dispatch offers its whole original window. For awaiting-read first request its exact source range. No unseen item or different operation may be substituted. Revisit an accepted handle to correct it.' } : {}),
       questions: options.program.questions.map(q => ({ id: q.id, request: q.request, premises: q.premises })), diagnostics: options.diagnostics().filter(d => !current?.questionId || !d.questionId || d.questionId === current.questionId).slice(0, 12) }
   }
   const prepare = (raw: unknown, offered: LocalExplanationTask[]) => {
@@ -137,6 +139,12 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
     if (submissions.get(value.focusId) === digest) return { diagnostics, duplicate: true }
     if (!current || current.id !== value.focusId || current.source && options.items().find(i => i.id === current!.itemId)?.code === "source-invalidated") { fail("focus-stale", "Reply belongs to an expired source/task transaction; use the current focus."); return { diagnostics } }
     if (value.kind === "defer") {
+      if (value.nextItemId) {
+        const item = options.items().find(i => i.id === value.nextItemId), operation = (q?: string) => options.program.operationQuestions?.find(v => v.questionId === q)?.operationId ?? q
+        if (!options.structural || value.revisit || !item?.selected || item.state !== "awaiting-interpretation" || !["structure-relation", "explicit-dependency"].includes(item.origin) || options.units().some(u => u.questionId === item.questionId && u.source?.id === item.selected!.id && u.receiverClass === item.receiverClass) || current.questionId && operation(current.questionId) !== operation(item.questionId)) { fail("focus-next-item-unavailable", "Choose an actually read, pending source item in this operation; unseen, accepted, unread or foreign work cannot be offered by this action."); return { diagnostics } }
+        if (current.itemId) deferred.add(current.itemId)
+        finish("source-work-selected", value.reason); start("interpret", item); return { diagnostics, deferred: true }
+      }
       if (current.itemId) deferred.add(current.itemId)
       if (value.revisit) { const u = options.units().find(u => u.handle === value.revisit); if (!u) { fail("focus-revisit-missing", "Choose an existing source unit to revise."); return { diagnostics } }; const i = sourceItem(u.itemId); if (!i) { fail("focus-revisit-source-missing", "The retained original source transaction is unavailable; request its source again."); return { diagnostics } }; finished.delete(`${i.id}:${i.selected?.id}`); finish("deferred", value.reason); start("interpret", i); return { diagnostics, deferred: true } }
       finish("deferred", value.reason); return { diagnostics, deferred: true }
@@ -160,7 +168,7 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
         const step = caller.blocks.flatMap(b => b.steps).find(s => s.kind === "call" && s.name === link.call)
         if (step?.kind === "call") { step.callee = target.handle; if (link.arguments) step.arguments = link.arguments; changed.add(caller.handle) }
       }
-      delta.semanticBlocks = units.filter(u => changed.has(u.handle)).map(({ questionId: _q, evidenceIds: _e, source: _s, ...u }) => ({ ...u, op: "replace" }))
+      delta.semanticBlocks = units.filter(u => changed.has(u.handle)).map(({ questionId: _q, evidenceIds: _e, source: _s, receiverClass: _r, ...u }) => ({ ...u, op: "replace" }))
     } else if (value.kind === "review") {
       const required = claims()
       if (value.claims.length !== required.length || required.some(c => !value.claims.some(r => r.claim === c.id)) || new Set(value.claims.map(c => c.claim)).size !== value.claims.length) fail("focus-review-coverage", "Review each current offered decisive claim once; unrelated claim IDs cannot substitute.")
