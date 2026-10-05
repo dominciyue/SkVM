@@ -41,7 +41,30 @@ interface RetainedDiscovery {
 }
 const retainedSources = new WeakMap<AuthorizationDiscovery, RetainedDiscovery>()
 const portable = (file: string) => !!file && !file.includes("\\") && !file.includes("\0") && !/^(?:[A-Za-z]:|\/)/.test(file) && file.split("/").every(p => p && p !== "." && p !== "..")
-const cleanLine = (line: string) => line.replace(/"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`[^`]*`/g, "\"\"").replace(/\/\/.*$/, "")
+
+function braceCodeLines(lines: string[], goRawStrings: boolean): { code: string[]; uncertainFrom?: number } {
+  let quote = "", blockComment = false, openedAt = 0
+  const code = lines.map((line, lineIndex) => {
+    let output = ""
+    for (let i = 0; i < line.length; i++) {
+      if (blockComment) {
+        if (line.startsWith("*/", i)) { blockComment = false; i++ }
+        continue
+      }
+      if (quote) {
+        if (line[i] === "\\" && !(goRawStrings && quote === "`")) { i++; continue }
+        if (line[i] === quote) quote = ""
+        continue
+      }
+      if (line.startsWith("//", i)) break
+      if (line.startsWith("/*", i)) { blockComment = true; openedAt = lineIndex; output += " "; i++; continue }
+      if (line[i] === '"' || line[i] === "'" || line[i] === "`") { quote = line[i]!; openedAt = lineIndex; output += '""'; continue }
+      output += line[i]
+    }
+    return output
+  })
+  return { code, ...(quote || blockComment ? { uncertainFrom: openedAt } : {}) }
+}
 
 function pythonCodeLines(lines: string[]): { code: string[]; uncertainFrom?: number } {
   let quote = "", openedAt = 0
@@ -68,9 +91,9 @@ function pythonCodeLines(lines: string[]): { code: string[]; uncertainFrom?: num
 function indexSymbols(file: string, physical: string[]): Array<Omit<DiscoverySymbol, "sha256">> {
   const lines = physical.map(line => line.replace(/\r?\n$/, "")), output: Array<Omit<DiscoverySymbol, "sha256">> = []
   const python = file.endsWith(".py")
-  const lexical = python ? pythonCodeLines(lines) : undefined
+  const lexical = python ? pythonCodeLines(lines) : braceCodeLines(lines, file.endsWith(".go"))
   for (let i = 0; i < lines.length; i++) {
-    const line = lexical?.code[i] ?? lines[i]!
+    const line = lexical.code[i]!
     const py = /^([ \t]*)(?:async\s+)?(def|class)\s+(\w+)/.exec(line)
     const other = /\b(?:function|class)\s+(\w+)|^\s*func\s+(?:\([^)]*\)\s*)?(\w+)\s*\(/.exec(line)
     if (!(python ? py : other)) continue
@@ -101,13 +124,14 @@ function indexSymbols(file: string, physical: string[]): Array<Omit<DiscoverySym
     } else {
       let depth = 0, began = false
       for (let j = i; j < lines.length; j++) {
-        const text = cleanLine(lines[j]!)
+        const text = lexical.code[j]!
         const opens = (text.match(/\{/g) ?? []).length, closes = (text.match(/\}/g) ?? []).length
         if (opens) began = true
         depth += opens - closes; end = j
         if (began && depth === 0) { boundary = "complete"; break }
         if (j - i > 1000) break
       }
+      if (lexical.uncertainFrom !== undefined && lexical.uncertainFrom <= end) boundary = "uncertain"
     }
     output.push({ id: `symbol:${file}:${i + 1}:${name}`, path: file, name, kind, startLine: i + 1, endLine: end + 1, boundary })
   }

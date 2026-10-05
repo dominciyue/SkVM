@@ -2,7 +2,7 @@ import { expect, test } from "bun:test"
 import { mkdtemp, mkdir, writeFile, rm } from "node:fs/promises"
 import path from "node:path"
 import os from "node:os"
-import { discoverAuthorizationEvidence, readDiscoveryWindows } from "./discovery.ts"
+import { discoverAuthorizationEvidence, readDiscoveryWindows, indexAuthorizationSymbols } from "./discovery.ts"
 import type { AuthorizationEvidenceRequest } from "./schema.ts"
 
 async function fixture(files: Record<string, string>) {
@@ -14,6 +14,27 @@ async function fixture(files: Record<string, string>) {
   const request: AuthorizationEvidenceRequest = { schemaVersion: "authorization-evidence-request/v2", sourceRoot: "project", allowedFiles: Object.keys(files), entries: [{ entryKey: "update", path: "entry.ts", startLine: 1, endLine: 3 }], dependencies: [], limits: { maxFiles: 12, maxBytes: 65536, maxDepth: 3 } }
   return { root, inputFile, request }
 }
+
+test("Go declaration candidates exclude comment words, strings and raw literals", () => {
+  const source = ["// A function and its metadata.", "/*", " * class Ghost", " * function False", " */", "func Resolve() {", " note := \"class StringName\"", " /*", " } // function Another", " */", " return note", "}", "var raw = `", "function TemplateName", "`"].join("\n")
+  const symbols = indexAuthorizationSymbols("lookup.go", source, { repository: "example", sourceRef: "r1" })
+  expect(symbols.map(s => s.name)).toEqual(["Resolve"])
+  expect(symbols[0]).toMatchObject({ startLine: 6, endLine: 12, boundary: "complete" })
+})
+
+test("JavaScript comments cannot add declarations or terminate an actual body", () => {
+  const source = ["/* function Fabricated() {} */", "export function real() {", " const text = \"function Hidden() {}\";", " /* }", " class Phantom", " */", " return text;", "}", "// class Spurious"].join("\n")
+  const symbols = indexAuthorizationSymbols("lookup.ts", source, { repository: "example", sourceRef: "r1" })
+  expect(symbols.map(s => s.name)).toEqual(["real"])
+  expect(symbols[0]).toMatchObject({ startLine: 2, endLine: 8, boundary: "complete" })
+})
+
+test("Go raw-string backslashes do not hide later declarations", () => {
+  const source = "var note = `function Hidden \\`\nfunc Visible() {}\n"
+  const symbols = indexAuthorizationSymbols("lookup.go", source, { repository: "example", sourceRef: "r1" })
+  expect(symbols.map(s => s.name)).toEqual(["Visible"])
+  expect(symbols[0]).toMatchObject({ startLine: 2, endLine: 2, boundary: "complete" })
+})
 
 test("entry seed finds a helper after line 120 and nested dependencies without researcher coordinates", async () => {
   const f = await fixture({ "entry.ts": "function update() {\n return authorize()\n}\n", "helper.ts": `${"// padding\n".repeat(150)}function authorize() {\n return binding()\n}\nfunction binding() {\n return true\n}\n` })

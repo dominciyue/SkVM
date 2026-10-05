@@ -8,6 +8,17 @@ import { hasUnknownAuthorizationCompletion } from "../../../../../src/benchmarks
 type RecordValue = Record<string, any>
 const json = async (file: string) => JSON.parse(await readFile(file, "utf8"))
 const lines = async (file: string) => (await readFile(file, "utf8").catch(() => "")).split(/\r?\n/).filter(Boolean).map(s => JSON.parse(s))
+export function proofStatus(report: RecordValue) {
+  const questions = report.validation?.questionChecks
+  const delivered = Array.isArray(questions) && questions.length > 0
+    ? questions.every((q: RecordValue) => q.deliveryStatus === "checked")
+    : report.domain?.check?.ruleConsistency === true
+  const checked = report.validation?.valid === true && !!report.result && delivered && !hasUnknownAuthorizationCompletion(report) && report.sourceVerification?.valid !== false
+  const bounded = checked && (Array.isArray(questions) && questions.length > 0
+    ? questions.every((q: RecordValue) => q.evidenceCoverage === "bounded")
+    : report.domain?.check?.evidenceCoverage === "bounded")
+  return { checked, bounded }
+}
 export function capturedProviderRecords(records: RecordValue[]) {
   const calls: RecordValue[] = []
   for (const [index, record] of records.entries()) {
@@ -62,9 +73,7 @@ export async function collectAccounting() {
         const run = await json(path.join(r.sessionPath, "run.json"))
         requests ??= run.requests; providerAttempts ??= run.attempts
       }
-      const checked = r.validation?.valid === true && !!r.result && !hasUnknownAuthorizationCompletion(r) && r.sourceVerification?.valid !== false
-      const questionChecks = r.validation?.questionChecks
-      const bounded = checked && (Array.isArray(questionChecks) && questionChecks.length > 0 ? questionChecks.every((q: RecordValue) => q.evidenceCoverage === "bounded") : r.domain?.check?.evidenceCoverage === "bounded")
+      const { checked, bounded } = proofStatus(r)
       attempts.push({ id, attempt: claim.attempt, row: claim.row, revision: claim.revision, model: claim.model, budgets: claim.budgets, repairId: claim.repairId, repairOf: claim.repairOf, originalArtifact: relative, originalArtifactSha256: sha(bytes), originalStatus: r.status, completionUnknown: hasUnknownAuthorizationCompletion(r), account, sourceAccounting: r.sourceAccounting ?? null, sourceVerification: r.sourceVerification ?? null, checked, bounded, acceptedUnits: r.domain?.semantic?.units?.length ?? null, observedSerializedRequestBytes: Array.isArray(requests) ? requests.reduce((n: number, x: unknown) => n + Buffer.byteLength(JSON.stringify(x)), 0) : null, requestMeasure: "UTF-8 retained JSON; not HTTP bytes or token count", targetExecutions: r.targetExecutions ?? 0 })
       if (Array.isArray(providerAttempts)) for (const [index, a] of providerAttempts.entries()) calls.push({ artifact: relative, artifactSha256: sha(bytes), call: index + 1, id: a.id, phase: requests?.[index]?.phase ?? "ordinary", status: a.status, usage: a.response?.tokens ?? a.usage ?? null, actualUSD: a.actualUsd ?? null })
     }

@@ -1,5 +1,16 @@
 import { test, expect } from "bun:test"
-import { makePanel, capturedProviderRecords } from "./accounting.ts"
+import { makePanel, capturedProviderRecords, proofStatus } from "./accounting.ts"
+
+test("AT proof accounting requires checked delivery rather than valid unreviewed format", () => {
+  const report = { status: "completed", result: {}, validation: { valid: true, questionChecks: [{ deliveryStatus: "unverified", evidenceCoverage: "unreviewed" }] } }
+  expect(proofStatus(report)).toEqual({ checked: false, bounded: false })
+  report.validation.questionChecks[0] = { deliveryStatus: "checked", evidenceCoverage: "unresolved" }
+  expect(proofStatus(report)).toEqual({ checked: true, bounded: false })
+  report.validation.questionChecks[0].evidenceCoverage = "bounded"
+  expect(proofStatus(report)).toEqual({ checked: true, bounded: true })
+  expect(proofStatus({ ...report, sourceVerification: { valid: false } })).toEqual({ checked: false, bounded: false })
+  expect(proofStatus({ ...report, status: "completion-unknown" })).toEqual({ checked: false, bounded: false })
+})
 
 test("actual author capture indexes requests and preserves missing usage and price", () => {
   const { account, calls } = capturedProviderRecords([{ type: "request" }, { type: "response", tokens: { input: 10, output: 5, cacheRead: 4, cacheWrite: 0 } }, { type: "request" }, { type: "response", tokens: { output: 2, cacheRead: 0, cacheWrite: 0 } }])
