@@ -1,0 +1,372 @@
+# AU0–AU21：操作级取证与授权 DSL 贯通实施任务书
+
+> **For agentic workers:** use superpowers:executing-plans, systematic-debugging, test-driven-development and verification-before-completion. 用户已授权本任务书的连续开发、必要联网/付费调用与用户 origin 发布，常规检查点不等待确认。主开发线程负责设计、实现及最终验证；只读探子遵循本次用户指令：default、fork_turns=none、任务自包含、同时派发后等待全部返回、不让探子改文件或决定方案。
+
+**Goal:** 将授权任务声明落实为操作级共享取证、有限领域解释和可检查结论，修复 AT 的错入口、继承/helper漏读、对象与权限表达不足，并交付完整原 skill 的原任务与变化使用。
+
+**Architecture:** 沿用 SkVM inquiry/native、provider、trace、只读工具和有限求值基础。新增操作级来源空间与义务执行计划，结构适配器提供可核对的符号/调用/继承候选，模型解释局部业务含义，宿主组合与计算；政策和用户前提作为独立输入。新策略显式启用，旧默认与旧实验合同保留。
+
+**Tech Stack:** TypeScript、Bun、Zod、现有源码/模型运行工具；为 Python/Go 选择有真实语法树和名称解析能力的薄适配器，复用可获得的解析器。CodeQL 是待测适配选项，Cedar/RepoAudit/IRIS 是实现参考，不默认安装完整新平台。
+
+日期：2026-10-05。状态：`authorized-not-started`。执行模型：`gpt-6.1-sol / max`。实际 Git 仓库 `D:/skill优化/SkVM`，分支 `skill-ir-aot`；不创建分支/worktree，仅发布用户 `origin`。研究基线 `ba27716041d4e6e5f6f8f3a51e694e25c49323d4`，执行时保留其后本任务书发布提交。
+
+本轮按一轮约 8–12 小时主动工作安排，约六成投入质量、四成投入编写与复用。按有效产物推进，完成即收口，不等待或重复调用凑时长。开发模型与被测模型分开；实验默认 `xty/gpt-5.6-sol`，沿用现有配置。替换不可用路由须记录并作用于整个配对块。
+
+## 一、启动上下文与边界
+
+主开发者本人按顺序阅读：
+
+1. `D:/skill优化/AGENTS.md`、仓库 `AGENTS.md`，本线程收到的最新用户子代理规则优先。
+2. [current-status](../../skill-ir/current-status.md)、本任务书、[当前计划](../../skill-ir/skill-ir-aot-optimization-plan.md)。
+3. [spec §14.34](../../skill-ir/skill-ir-aot-optimization-spec.md#1434-按-skilltask-范围设计领域-dsl)的研究定位、输入边界与 AU 合同；[研究正文 §1、§7.50–7.51](../../skill-ir/skill-dsl-research.md)。
+4. [开发指南](../../skill-ir/developer-guide.md)的 inquiry/native、semantic source blocks、focused transactions、reuse 部分；[普通使用](../../usage.md)。
+5. AT [summary](../../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/summary.json)、[manifest](../../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/manifest.json)、[最终评阅](../../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/evaluations/at15-final-change-and-consumer-source-reviews.json)。按具体失败点验原件，不重读全部旧任务书和九月全史。
+
+运行 `git status --short --branch`、查看最近提交，保留其他修改。本轮取得共享方法文档与 Git 的唯一写入责任；派发主线程此后只读观察。交接/通信记录仅在发生恢复歧义时读取；阶段进展追加 `D:/skill优化/conversation_log.md`。
+
+授权任务类仍为单 repository/ref、源码可见的授权与信任边界评估。源码只读，不执行目标应用、依赖安装脚本、部署或业务 patch。允许执行我们自己的解析器、求值器、fixture 与测试。获取依赖源码只按真实锁定版本；源码缺失和动态解析缺口显式记录。保护输入、Q1、readiness 和旧 prospective 不动。
+
+继承 AT 的 [inherited-seals](../../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/inherited-seals.json)：paperless-notes、memos-share、memos-remove 的未知请求不因改 identity/模型而重发。已响应但费用缺报保持 unknown，不影响独立开发。
+
+## 二、需要解决的真实断点
+
+| 断点 | 当前代码/证据 | 本轮必须观察的变化 |
+|---|---|---|
+| 同一 CreateIssue 八题分别展开六类源码工作，七个 stored units 中六个落在 repo 创建函数 | `inquiry-program.ts`；AT GitHub author original/consumer attempt-2 | 一次正确操作定位，多问题引用共同来源解释；错误同名操作不进入当前关系链 |
+| 词法索引和模型提交依赖不足以发现继承/helper对象链 | `evidence-preparation/discovery.ts`、`inquiry-domain-scheduler.ts` | 结构候选独立于模型的依赖清单；漏报依赖时能产生具体补查动作 |
+| `procedure-summary.ts`遇到对象guard、对象返回、effect和call退回精确展开；权限计算缺有限map/集合/顺序表达 | `semantic-flow.ts`、`control-evaluation.ts` | 有来源的对象/权限摘要可组合，条件和异常保留，不再要求模型反复重建整张图 |
+| 结论检查发现问题但下一步仍靠模型自由摸索 | `inquiry-focus.ts`、`control-conclusion.ts` | 诊断指向当前缺失的关系和可执行读取/解释动作，且轨迹记录实际执行 |
+| 整体partial或任何源码变化均拒绝previous | `inquiry-reuse.ts` | 结构事实、待复核解释、完整结论各自管理；只保留依赖有效的材料，重新计算结论 |
+| 两条original native自然条件说明充分，机器交付仍失败；changed与作者消费者仍partial | AT native/author/consumer原件 | 同一生产链同时交付有据的自然答案和一致的检查结果，变化任务实际可用 |
+
+外部实现阅读结论已在研究 §7.51；本轮带着上述断点读对应实现与测试，避免只重复文献摘要。重点为 CodeQL RestFramework 的 qualified API/继承/实例模型、Cedar partial evaluation、RepoAudit 按 value/function/context 推进队列、IRIS 结构候选与模型语义分工。
+
+## 三、开发合同
+
+### 3.1 操作、问题与事实
+
+新增显式策略 `operation-evidence-v1`，通过现有 `--strategy` 和 `--authorization-strategy` 选择；沿用同一共享核心，不复制 provider 或另一套 CLI。
+
+引入 `authorization-inquiry/v2` 内层声明：增加 operations，每项含id、request及可选entryHint；每题保留原 request/premises 等内容，以operationId引用操作，以intent区分behavior、policy-comparison、scope义务。声明中的operation还需绑定源码入口才能成为下述OperationIdentity。`authorization-inquiry/v1` 保持严格兼容。v1归一化需保留所有问题与原字节，证据不足时不自动合并操作；明确候选后再绑定共同操作。一次模糊grouping不能让后续所有问题共享错入口。
+
+以下是 AU1 要落实的内部责任合同，字段可随实际类型整合，但四个层次必须保留；接口变化在开始实现前同步任务书/spec，日常细节不用再问用户：
+
+```ts
+type ObligationIntent = "behavior" | "policy-comparison" | "scope";
+type FactLevel = "structure" | "interpreted" | "checked";
+interface OperationIdentity {
+  id: string; repository: string; sourceRef: string;
+  entrySymbolId: string; sourceRevision: string;
+}
+interface OperationQuestion {
+  questionId: string; operationId: string; intent: ObligationIntent;
+}
+interface SourceFactDependency {
+  kind: "source-span" | "symbol-resolution" | "candidate-set" | "framework-model";
+  key: string; revision: string;
+}
+interface OperationSourceFact {
+  id: string; operationId: string; level: FactLevel;
+  evidenceIds: string[]; dependencies: SourceFactDependency[];
+  semanticSupport: "unreviewed";
+}
+```
+
+模型解释来源与宿主结构事实分开保存。`checked`仅表示已执行对应机械检查，语义等级另存。相同函数的参数化解释可共享；每个调用位置的实参、主体/资源身份、政策和用户前提分别实例化。不同仓库/ref/源码、同名函数、不同调用对象不能误合并。跨问题投影由宿主分配 ID 与引用，旧 question-level checker 可先消费投影，不要求模型重复生成同一函数。
+
+普通用户继续提供 skill、任务、工作区和模型配置；conformance 另需独立政策。operation metadata、trace和索引由系统生成或模型辅助声明。作者不用填写正确答案、调用图或期望路径。
+
+### 3.2 结构定位与领域解释
+
+结构适配器至少覆盖两条真实链所需的 Python/DRF 与 Go 调用模式：定义边界、限定名称/import/alias、类与继承方法、receiver或调用位置、实参/形参来源及返回对象候选。框架模型绑定可获得的版本与具体源码关系；项目名称不得决定成功或允许/拒绝。
+
+语法树提供结构定位，名称绑定与框架规则补充关系。不能仅换一个 parser 而继续把唯一同名候选视为调用关系。候选边要说明依据和不确定性；动态分派/反射/外部缺源码给出 unresolved，不靠函数名字写行为摘要。
+
+由未满足的授权义务反向查询结构候选并生成动作，例如定位调用对象、读取override、核对被检查资源与效果对象。调度优先解决能影响当前结论的缺口，已解释相同来源不重复生成；独立问题可继续。有限索引、排除理由和剩余覆盖范围可查，不追遍数据库驱动与所有框架内部。
+
+领域摘要表达参数化主体/资源、前置条件、正常/拒绝/操作错误返回、授权控制和相关效果。扩展实际所需的有限集合成员、map lookup及显式有序比较；权限顺序来自当前源码/独立声明。缺键、未知、null、错误解释分别保留，禁止补零、默认allow或按reader/writer名称猜顺序。优先扩展现有谓词/semantic flow，而非重新建设统一IR。
+
+组合必须保留调用对象、条件和来源范围。摘要与精确展开做等价fixture检查；无源依据的摘要不能补进生产运行。对可见源码的模型解释仍需独立语义评价。
+
+### 3.3 失效、交付与作用归因
+
+当前运行保持固定源码快照；变化后进入新会话。结构事实可按依赖复用，模型解释保留原审查等级并重新绑定，旧 final/check flags 不复用。索引变化、新增override、import解析、候选集合与框架版本也是失效因素；不能只比较已读文件。
+
+允许从partial会话恢复仍有效的材料，但必须分别报告材料复用与完整任务复用。关系不能证明不受影响时清除相关解释，保留可重查的原材料，不把整份历史partial提升为checked。
+
+答案由当前事实与条件产生。宿主稳定渲染可确定的结论/条件/来源骨架，模型提供说明；说明与结构矛盾要留诊断并修复。未知前提下覆盖完整的条件答案可以充分；尚未找对源码的泛泛unknown仍是未解决。
+
+## 四、文件责任与成果位置
+
+| 责任 | 主要文件 |
+|---|---|
+| 声明、操作身份、问题归一化 | `src/task-dsl/authorization/inquiry.ts`、`inquiry-program.ts`；新增 `operation-program.ts` / `.test.ts` |
+| 共享来源事实与依赖投影 | 新增 `src/task-dsl/authorization/operation-facts.ts` / `.test.ts`；现有 `control-slice.ts`、`inquiry-semantic.ts` |
+| 结构索引与框架适配 | 现有 `src/benchmarks/authorization-dsl/evidence-preparation/discovery.ts`；新增同目录 `structure-index.ts` / `.test.ts`，解析器适配按职责置于 `structure/` |
+| 义务到动作 | 现有 `inquiry-worklist.ts`、`inquiry-domain-scheduler.ts`、`inquiry-focus.ts`、`inquiry-domain-runtime.ts`；新增 `operation-work.ts` / `.test.ts` 承载共享计划生成，不承载第二个运行循环 |
+| 有限领域摘要及条件 | 现有 `procedure-summary.ts`、`semantic-flow.ts`、`control-evaluation.ts`、`control-conclusion.ts` 与对应测试 |
+| 两入口、消费与复用 | `inquiry-run.ts`、`inquiry-native.ts`、`inquiry-local.ts`、`inquiry-reuse.ts`、`inquiry-wire.ts`、`src/cli/authorization-inquiry.ts`、`src/cli/run.ts` 与对应测试 |
+| 本轮薄runner和记录 | `results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/`，生产逻辑禁止复制进runner |
+
+新模块名称是职责划分；能用已有模块清晰承载时优先复用，在AU1记录实际路径。生产fixture放相邻测试或测试专属目录，领域真值仅供测试。结果根只放本轮 `status.json`、`manifest.json`、`study.ts`及测试/类型配置、`runs/`、`evaluations/`、`repair-events/`、`summary.json`、`accounting.json`，不额外建十几份说明文档。研究过程追加现有研究正文；实现说明同步现有开发指南/usage。
+
+## 五、AU0–AU21 工作队列
+
+每个实现任务都拆成：写指定反例 → 确认按预期失败 → 实现 → 同一测试通过 → 适用回归 → 记录/提交。新文件先有可失败的接口测试，不写镜像实现的凑数测试。
+
+### AU0 接管及失败映射
+
+- [ ] 登记基线和本轮状态，核对四个已暴露任务及封存；只点验与六类断点有关的AT原件。
+- [ ] 建立 `model/` 与 `evaluator/` 路径隔离；model仅承载用户原请求/政策/前提和原始源码选择。评阅、预期结果、正确行号清单、repair-event不进入运行上下文。
+- [ ] 为每个断点登记触发案例、共享模块、可观察修复现象；保留原始问题及全部义务。
+- [ ] 创建薄runner状态和中断恢复入口，恢复时只接续已知未派发工作，不重发未知完成请求。
+
+### AU1 设计内部合同与输入兼容
+
+- [ ] 在本任务书和spec写出v2 operations/questions、共享事实、调用实例、义务动作、失效规则的实际接口；解释如何投影到旧checker。
+- [ ] 写v1兼容、v2多问题同操作、不同操作不能误合并、policy/scope问题不重复找入口四组失败测试。
+- [ ] 定义 `operation-evidence-v1` 的实际策略枚举、两入口参数和日志字段；旧默认保持。
+- [ ] 编写从原始自然任务到声明的普通使用流程，机械信息由宿主派生；完成设计自检后连续实现。
+
+### AU2 外部实现到本地结构原型
+
+- [ ] 阅读CodeQL RestFramework相关模型和测试、Cedar求值分支、RepoAudit工作队列；只摘录具体机制和限制到研究正文。
+- [ ] 对Python/DRF和Go各做一个零模型结构探针：别名/继承/receiver/实际调用位置；比较薄AST适配与可用CodeQL查询的定位覆盖、准备成本和来源可追溯性。
+- [ ] 当前环境已发现Bun/Python，Go未在PATH中。允许为只读解析器增加明确依赖或使用成熟语法树库；不把安装失败变成回退纯正则后宣称完成。禁止执行目标仓库build/install脚本。
+- [ ] 选择可维护的实现路径，记录确切依赖版本及来源许可；完成后进入实现，不将整仓静态分析平台设为前置。
+
+### AU3 操作归一化与共享事实
+
+- [ ] 实现operation-program/operation-facts及schema分发；operation先绑定真实入口，再让相关问题引用。
+- [ ] 解释模板与调用实例分开，宿主管理source/operation/question投影身份，保留原问题和精确前提/政策来源。
+- [ ] 测试重复问法共用来源、不同对象调用隔离、错入口撤回后依赖失效、原问题仍全部交付。
+- [ ] 将失败草稿与接受材料分开，结构无效不能覆盖现有正确事实。
+
+### AU4 结构索引、名称和调用绑定
+
+- [ ] 在structure-index实现源码位置、限定名称、import/alias、类/receiver和调用候选；source_read仍展示原字节/行号。
+- [ ] 匿名反例包含两个模块同名create、注释假函数、alias调用、继承override及对象返回；唯一词法名称不得通过结构绑定。
+- [ ] 对没有唯一解析的调用输出候选与解析缺口，保留模型进一步取证渠道。
+- [ ] 所有索引/读取成本进入已有统计，复用来源校验，避免另建重复哈希/审批链。
+
+### AU5 框架模型与对象传递
+
+- [ ] Python/DRF连接route/view/mixin/serializer/save中的相关调用与对象，Go连接route/handler/receiver/service及参数传递。
+- [ ] 模型描述框架关系与适用版本，项目函数名仅作为解析得到的绑定；禁止Paperless/Gitea专用成功分支。
+- [ ] 对被检查对象A而实际返回/创建绑定对象B、绕过基类的override、错误receiver各写负例。
+- [ ] 真实源码结构探针输出实际关系和剩余缺口，不预填授权答案。
+
+### AU6 义务驱动补读与解释调度
+
+- [ ] 将未满足的entry/principal/resource/guard/effect/exception义务编译为可执行动作，候选来自结构索引和明确模型解释两条来源。
+- [ ] 模型故意漏报决定性helper时，结构候选仍能触发补读；读过未解释则进入解释而非重复读取。
+- [ ] 共享操作的policy-comparison与scope问题复用来源解释，独立问题不因一个缺口停摆。
+- [ ] 记录每次动作的触发义务、关系、读取/解释结果及关闭理由；无进展时切换到缺失关系或明确边界。
+
+### AU7 有限授权语义与未决条件
+
+- [ ] 扩展实际需要的map lookup、集合成员、显式有序值比较，以及参数化主体/资源条件；保留原谓词兼容。
+- [ ] 测试缺键与null区分、未知前提残余条件、不同权限顺序、类型错误、短路与互斥分支。
+- [ ] 保留源码中实际表达的权限关系；模型不得用角色名字自动补层级。
+- [ ] 求值结果给出值/残余条件/解释错误及来源，分别驱动回答、补证和修复。
+
+### AU8 领域摘要与关系组合
+
+- [ ] 在现有semantic-flow/procedure-summary上支持参数化对象guard、返回对象及有限相关效果摘要，保留正常/拒绝/操作错误路径。
+- [ ] helper摘要与caller实例按显式参数和对象关系组合；绑定失败只影响相关义务。
+- [ ] 同一fixture做精确展开与摘要求值配对，覆盖条件、返回、被保护对象和结果；故意删分支或换对象时必须发现差异。
+- [ ] 环/动态/超界保留具体未决项；不能通过删原义务或提高complete标志达到通过。
+
+### AU9 结论检查到下一动作及同源交付
+
+- [ ] 将缺入口关系、错对象、未解释helper、分支缺口等诊断映射到具体动作，复用现有focus恢复与局部事务。
+- [ ] 宿主产出当前有效的结论/条件/引用骨架；native自然说明使用同一快照，重要结论相冲突时纠正并保留原答。
+- [ ] 测试错误第二次检查清除旧结果、范围说明不触发新业务入口、被拒绝路径无需声称不可达效果成功。
+- [ ] 结果分别报告机械checked、源码语义、任务充分性，保留未解决原因。
+
+### AU10 两入口与第一条真实纵向链
+
+- [ ] inquiry和native接入相同operation核心、结构适配器、预算和日志；修改现有CLI帮助与测试。
+- [ ] 用Gitea CreateIssue、Paperless ShareLink create各一次真实新策略调试，模型从允许原始源码自行定位/解释；首答完整保留。
+- [ ] 按统一失败处理立即修复并复验；同一共享缺陷暂停所有受影响待派发位置。
+- [ ] 至少推进到可明确观察“定位正确—关键依赖展示—对象/条件进入解释—当前结论”的链。若仍失败，回到AU3–AU9修改接口，不能直接跑满主面板代替修复。
+
+### AU11 材料级复用与变化失效
+
+- [ ] 扩展inquiry-reuse区分结构材料、模型解释与结果；partial材料恢复保留原等级，全部结论重新检查。
+- [ ] 建立source/symbol/candidate-set/framework依赖索引，覆盖helper修改、新增override、alias/route变化。
+- [ ] 政策变化不复用旧policy mapping；前提变化不保留受影响binding；相关行为解释按依赖处理。
+- [ ] 测试“无关文件变化保留有效材料”与“旧已读文件不变但解析变化失效”成对案例；不触碰旧会话快照。
+
+### AU12 真实原任务与变化任务普通使用
+
+- [ ] 两份完整原skill分别绑定ShareLink create、CreateIssue；原任务与一个明确政策/前提变化各一次fresh，共4位置。
+- [ ] 通过普通 `skvm run` 原样加载skill与参考资料，新策略实际发挥作用；其余skill职责保留。
+- [ ] 检查自然说明、当前结构结果、实际关键取证和原问题覆盖。生成的声明/工具包不得由主代理手补正确图。
+- [ ] 每个不良位置进入当场针对性修复与复验；原/修结果分别评价，不能只保存最后一版。
+
+### AU13 作者输入与原字节消费
+
+- [ ] 两个原skill各生成原稿/变化稿，共4稿。作者只见原始任务、源码范围、完整skill和独立政策，不见评价答案。
+- [ ] 优先让作者声明operation与义务，机械路径/版本由宿主派生；格式、任务忠实性与消费分别记录。
+- [ ] 每稿最多一次正常字段诊断修订；合格稿按原字节进入普通消费者，共4计划消费位置。
+- [ ] 下游共享实现失败修共享代码，保持作者原稿。未经真人实际操作，不填真人分钟或人力节省。
+
+### AU14 政策、前提、源码变化配对
+
+- [ ] 对同一操作分别做政策变化、前提变化、源码变化；每种fresh与materials-previous各一次，共6位置。
+- [ ] previous可恢复依赖有效材料，旧答案不导入；partial基础的材料复用单列，完整任务复用要求两边实际充分。
+- [ ] 源码变化仅发生于本轮开发副本，原件不改；必须反映被移除的控制或改变的对象绑定。
+- [ ] 比较实际读取/解释/重算次数、最终答案和总成本，记录失效理由；无法安全复用的部分明确fresh处理。
+
+### AU15 四任务三臂质量面板
+
+- [ ] 运行前登记四个原始任务：OWUI ingestion、Paperless Download、ShareLink create、Gitea CreateIssue；原始任务问题/政策不得按结果裁剪。
+- [ ] 三臂各4位置，共12首位置，均经普通native入口并加载同一完整原skill：N为普通允许源码工具、无inquiry编译/检查约束；M-O为Markdown自然任务经生产前端归一化后使用新结构工具与operation核心；D-O为语义等价声明加同核心。三个Python任务使用归档Cloudflare包，Gitea使用归档GitHub包。实验臂名称只放runner配置，不新增平行CLI。
+- [ ] N按自然答案独立评价，无结构输出不判语义失败；M-O/D-O的公开任务信息、完整skill、来源、模型、预算及修复机会一致。自然前端与声明前端各自生成内部计划的差异和成本完整计量；若当前native入口无法表达这两种前端，AU10补生产接线后再比较，不能在runner私造方法。自动声明/准备成本计入，不能给D额外真实答案。
+- [ ] 新核心对照检验执行支持，M-O/D-O检验表达差异。AT旧结果只作历史诊断，不能与新版混成同版本效果。
+- [ ] 逐行评阅后再派受同一路径影响的后续行；已知共同缺陷立即暂停修复，不为完整首轮继续制造失败。不同版本首轮分块展示，不把修后结果覆盖首答。
+
+### AU16 小型机制消融及实际浪费修复
+
+- [ ] 仅对真实轨迹中已使用的机制做诊断：选择不同结构任务，分别取消operation共享或义务驱动补读，最多4个初始位置，其他条件不变。
+- [ ] 未采用或仍被共同缺陷阻挡时，把调用投入共享修复，记录消融不适用原因。
+- [ ] 针对重复源码、重复解释、全历史上下文和冗长工具schema修通用渲染；不删除决定性源码或原始档案制造节省。
+- [ ] 给出“机制实际被用到→哪类错误变化→质量与开销”的逐项结果，避免仅以token下降认定全面成功。
+
+### AU17 独立源码评阅和修复归因
+
+- [ ] 对所有实际运行位置核对终答、真实源码和原始义务，分别列正确、遗漏、错误、条件不足、传输/预算/框架缺口。
+- [ ] 重点核验两任务的主体/资源同一性、owner/权限分支、字段传递和实际效果范围；不得把中间轨迹正确内容补成终答。
+- [ ] 独立只读审查可以定位证据，主开发者点验并裁决；说明是AI审查还是人工，形式校验不替代源码质量。
+- [ ] 每项失败关联repair-event、是否适用、是否实际复验及结果。修订基于共享原因，不能向被测模型透露oracle答案。
+
+### AU18 联合回归与零调用重放
+
+- [ ] 一次运行受改动影响的领域、源码工具、provider、native、CLI测试，主及本轮runner类型检查。
+- [ ] 从本轮raw报告重算汇总/调用/成本，检查首轮、修订、未运行、未知请求均有位置；复用现有原件绑定，不新建多层冻结链。
+- [ ] 验证旧默认与v1输入兼容、新v2及策略显式可用；不重跑所有历史付费面板或全盘审计。
+- [ ] 文档与目录检查一次，只有具体失败才修后复验；不建clean worktree，不做临时目录整盘清理。
+
+### AU19 研究复盘与可使用说明
+
+- [ ] 在唯一研究正文追加本轮“问题—设计—实际采用—效果—未解决”，明确哪些借鉴外部实现、哪些是待证贡献。
+- [ ] 更新developer-guide、usage与一个现有授权示例，提供从原始任务开始、查看结果、修改前提、重新使用的实际命令。
+- [ ] 同步current-status、plan、spec，只保留当前入口；不新增一批阶段Markdown。
+- [ ] 汇总工程、真实使用、方法效果、成本四项结论；涉及的全部旧结果、封存及保护边界保持。
+
+### AU20 发布与工作区责任
+
+- [ ] 按模块提交，仅推用户origin；不触碰upstream、不提交缓存/凭据/他人材料。
+- [ ] 最后核对分支、远端提交与本轮暂存范围；所有源文件与报告路径可由普通入口找到。
+- [ ] 同步短conversation log，提供未达项的具体模块、触发任务、已经尝试的修复及恢复命令。
+
+### AU21 完成判定与停止
+
+- [ ] 清点所有计划位置及适用任务，确保没有将未执行、仅单测通过或被阻断的位置写成成功。
+- [ ] 目标验收看两条结构不同的真实原skill链及变化使用、具体系统缺陷的回归、实际比较与成本；有限队列执行完成与目标达成分别记录。
+- [ ] 若依赖能力仍无法完成，记录明确边界和已做接口修订，收口为未达状态，不无限重抽也不假称完成。
+- [ ] 全部适用工作终结后结束本队列；无新增用户指令不扩展到其他安全任务类、整skill转换或未见样本研究。
+
+## 六、失败测试与验证命令
+
+机制测试矩阵必须同时有成功与反例：
+
+| 输入变化 | 预期现象 |
+|---|---|
+| 一个操作拆为行为/政策/范围三题 | 来源解释共享，三题仍分别交付；政策/范围不查找三个新入口 |
+| 同名create属于另一个模块/资源 | 不被选入当前调用链 |
+| 子类覆盖基类方法、import使用alias | 定位实际方法；不明解析保留候选 |
+| 模型不提交已存在的相关helper | 结构关系触发待核实补读，而非默认为覆盖完整 |
+| guard检查A、effect关联B | 同对象义务失败并定位绑定缺口 |
+| 未知owner、权限缺键、显式null | 三种状态不混同，不填默认成功/失败值 |
+| 摘要删除一个条件分支 | 与展开计算差异被检出 |
+| 政策变更 | 来源解释按依赖保留，政策与结论重算 |
+| 新增override但原已读文件不变 | 解析/candidate-set依赖失效，旧解释不继续当current |
+| partial会话含正确结构材料 | 可恢复材料并重新核验，整体checked不继承 |
+| 同一无效修复连续出现 | 停止原样循环，转具体缺口或共享接口修复 |
+
+测试代码必须断言实际结果而非只检查字段存在。每个新增测试文件首先在缺实现/旧实现上失败，再实现。源码fixture只执行我们自己的分析，不执行业务代码。AU1/3可先在 `operation-program.test.ts` 写入以下接口红例；当前v1编译器对有效v2返回needs-input，首项应据此失败，修复后两个断言组均通过：
+
+```ts
+import { expect, test } from "bun:test";
+import { compileAuthorizationInquiry } from "./inquiry-program.ts";
+
+function declaration() {
+  return {
+    schemaVersion: "authorization-inquiry/v2", mode: "behavior",
+    operations: [{ id: "create-item", request: "Assess item creation", entryHint: "items.create" }],
+    questions: [
+      { id: "behavior", request: "Which caller can create the item?", operationId: "create-item", intent: "behavior", premises: [] },
+      { id: "scope", request: "Which source-visible limits remain?", operationId: "create-item", intent: "scope", premises: [] },
+    ],
+  };
+}
+test("one operation shares entry work while retaining all questions", () => {
+  const input = declaration(), before = structuredClone(input);
+  const program = compileAuthorizationInquiry(input);
+  expect(program.status).toBe("ready");
+  expect(program.questions.map(q => q.id)).toEqual(["behavior", "scope"]);
+  expect(program.queue.filter(item => item.kind === "entry")).toHaveLength(1);
+  expect(input).toEqual(before);
+});
+test("a question cannot silently bind to an absent operation", () => {
+  const input = declaration();
+  input.questions[1]!.operationId = "another-operation";
+  const program = compileAuthorizationInquiry(input);
+  expect(program.status).toBe("needs-input");
+  expect(program.diagnostics.length).toBeGreaterThan(0);
+});
+```
+
+后续queue与旧投影接口若因真实实现需调整，应同步此代码与AU1合同，保留“一份入口工作、两项问题、输入不被改写、缺引用拒绝”的语义，不能只改断言让旧重复展开通过。
+
+从仓库根执行，按阶段选择相应文件，新增文件创建后方执行：
+
+```powershell
+bun test ./src/task-dsl/authorization/operation-program.test.ts ./src/task-dsl/authorization/operation-facts.test.ts
+bun test ./src/benchmarks/authorization-dsl/evidence-preparation/structure-index.test.ts ./src/benchmarks/authorization-dsl/operation-work.test.ts
+bun test ./src/task-dsl/authorization/procedure-summary.test.ts ./src/benchmarks/authorization-dsl/inquiry-reuse.test.ts ./src/benchmarks/authorization-dsl/inquiry-native.test.ts
+bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl
+bun run typecheck
+python -B -m unittest discover -s scripts -p check_skill_ir_doc_links_test.py
+python -B scripts/check_skill_ir_doc_links.py
+bun ./scripts/experiment-catalog/cli.ts check --root=. --catalog=results/skill-ir/experiment-catalog.json
+git diff --check
+```
+
+AU0/1创建薄runner后登记其真实typecheck、单位置运行和replay命令。本文件列出的新接口/路径是要实现的责任，不代表已经存在；执行记录必须保存实际采用路径与命令，避免向用户给未验证命令。
+
+## 七、实验输入、预算与即时修复
+
+四个原始输入位于AT `model/inputs/owui-ingestion.json`、`paperless-download.json`、`paperless-share-create.json`、`gitea-create-issue.json`。Paperless采用AT manifest声明的locked-framework active input，不能误用缺框架旧输入造成假退化。源码范围及原始问题从这些输入机械继承，拷贝到AU时仅重定位sourceRoot并记录来源修订。
+
+完整原skill来自 `results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/model/source-skills/cloudflare-security-audit/` 与 `github-security-review/`；保留整个包和参考加载。AT作者稿/消费者用于定位缺陷，正式AU作者仍从未填目标的原始任务生成。
+
+首轮计划：调试2、native4、作者4、消费者4、变化6、主面板12，共32位置；可适用消融最多4位置。具名修订额外记账。分母用于不漏任务和不藏失败，不是付费总上限或必须耗满的配额。单位置默认24 provider请求、64工具动作、768KiB累计源码展示、32MiB读取/索引、6000输出tokens、300秒单请求超时；作者可单列较小预算，保持原/变一致。AU1用源码大小与确定性探针校准后登记，比较块各臂一致，旧默认不改。所有declaration/fallback/continuation/review计入真实请求，结构计算独立计量。
+
+每次不良表现立即执行：
+
+1. 保留raw、当前版本、原始终答和明确诊断；区分格式/定位/未读/未解释/错误语义/预算/传输/评价争议。
+2. 共享bug暂停受影响后续行，写反例修生产实现，再跑触发任务；不能以“先跑完首轮”为由继续。
+3. 每个可修问题至少尝试一次针对性修复和同题验证；同原因可共用修复，但逐项记录适用和观察结果。独立缺口继续开发。
+4. 两次同根因没有新的解释或交付进展，回到接口/任务粒度/结构模型调整；不原样重抽、不仅增token预算。扩预算诊断另列。
+5. 源码不可得或动态关系无法可靠解析，保留具体边界，推进其他工作；不得臆造摘要。未知完成请求按封存协议处理，已响应但USD未知继续如实计量。
+
+成本记录模型请求、完整input/output/cache（cache只计一次）、各阶段耗时、源码/框架准备成本、可获得USD及unknown。开发代理与项目provider分账；真人时间没有实际观察就不估算。研究模型使用源码和用户条件，评价方独立核对；自动生成结构候选的过程/成本可查。
+
+## 八、验收与恢复
+
+| 验收面 | 应交付的证据 |
+|---|---|
+| 系统修复 | 多问题共享正确入口；独立结构候选发现漏报；对象/权限摘要与展开一致；变化失效具体可查 |
+| 完整实际使用 | 两份原skill原/变真实使用，自然说明充分且检查结果一致；失败与修订逐项保留 |
+| 编写和复用 | 4稿原字节消费；3类变化fresh/materials-previous配对；部分材料与完整任务收益分列 |
+| 方法研究 | 12首位置及修订/未执行原因；结构工具、领域执行和表示方式的收益分别归因 |
+| 可维护性 | 两入口共用核心、旧默认兼容、普通例子可运行；研究集中在一个正文，成本与恢复入口可读 |
+
+恢复点只需记录stage、实际代码版本、当前失败/修订、最后已知请求、下一未派发动作、相关文件。进程中断后读取它和当前Git，不重新开始全套审计。原件完整保留，临时副本集中在 `D:/skill优化/project-maintenance/runs/authorization-operation-evidence-v1/`。
+
+## 九、执行记录
+
+- 2026-10-05：根据研究§7.50–7.51与当前接口核验制定AU0–AU21。用户明确要求派发 `gpt-6.1-sol / max` 开发。此时仅任务书/方法合同与导航同步，生产实现和本轮实验尚未开始。派发后的新线程负责连续推进和更新状态。
