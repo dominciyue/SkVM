@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "paperless-share-create",
+  "repository": "paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "sourceRoot": "source",
+  "allowedPaths": [
+    "src/documents",
+    "src/paperless/urls.py",
+    "framework/rest_framework-3.18.1/rest_framework",
+    "source_identity.py"
+  ],
+  "inquiry": {
+    "schemaVersion": "authorization-inquiry/v1",
+    "mode": "conformance",
+    "questions": [
+      {
+        "id": "share-create-endpoint-dispatch",
+        "request": "Identify the routed endpoint and request-dispatch path used when a principal creates a share through ShareLinkViewSet, including the action selected for the request and the inherited framework methods that determine which permission, queryset, and serializer logic runs before creation.",
+        "principal": "The authenticated principal asking to create a share",
+        "resource": "The requested new share and the existing exact document it would reference",
+        "operation": "Dispatch a share-creation request through ShareLinkViewSet",
+        "entryHint": "ShareLinkViewSet, its URL/router registration, and inherited Django REST Framework viewset create/dispatch paths",
+        "premises": [
+          {
+            "text": "The request is specifically to create a share through ShareLinkViewSet.",
+            "origin": "user"
+          },
+          {
+            "text": "The share concerns an existing document supplied by the request.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "share-create-request-permissions",
+        "request": "Determine every request-level and action-level authorization control applied before ShareLinkViewSet may create a share, including controls inherited from base classes or framework defaults. Explain what each control proves and whether any model-level or global permission is treated as sufficient without checking the exact referenced document.",
+        "principal": "The authenticated principal asking to create a share",
+        "resource": "The share-creation endpoint and proposed share object",
+        "operation": "Obtain request-level authorization to invoke share creation",
+        "entryHint": "ShareLinkViewSet permission configuration, inherited view classes, permission composition, and Django REST Framework permission dispatch",
+        "premises": [
+          {
+            "text": "Document existence must not be assumed to authorize sharing that document.",
+            "origin": "user"
+          },
+          {
+            "text": "A global model permission must not be assumed to grant access to the exact document.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "exact-document-resolution",
+        "request": "Trace how the document identifier or document value in the share-creation input is converted into the exact existing document object before persistence. Identify the queryset, related-field, validation, or lookup path that selects eligible documents, and state whether it is scoped to the requesting principal or otherwise enforces object authorization rather than mere existence.",
+        "principal": "The authenticated principal supplying a document reference",
+        "resource": "The exact existing document referenced by the proposed share",
+        "operation": "Resolve and accept that document as the target of a new share",
+        "entryHint": "ShareLinkViewSet serializer selection and the share serializer's document field, queryset, validation, and create paths",
+        "premises": [
+          {
+            "text": "Authorization must be determined for the exact document requested, not merely for the Document model or an arbitrary document.",
+            "origin": "user"
+          },
+          {
+            "text": "The document already exists before the share is created.",
+            "origin": "user"
+          },
+          {
+            "text": "Successful document lookup or existence alone does not grant permission to share it.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "exact-document-object-controls",
+        "request": "Determine every object-level authorization decision applied to the exact referenced document before share creation, including explicit checks and checks inherited through document querysets, permissions, serializers, helpers, or framework behavior. Distinguish ownership from object-level view_document permission and from global model permission.",
+        "principal": "The authenticated principal asking to share the exact document",
+        "resource": "The exact existing document referenced by the proposed share",
+        "operation": "Authorize creating a share that exposes or grants access to that document",
+        "entryHint": "Document object-permission helpers, owner fields, queryset scoping, ShareLinkViewSet hooks, serializer validation, and inherited Django REST Framework object-permission invocation",
+        "premises": [
+          {
+            "text": "Only the owner of the exact document may create a share.",
+            "origin": "user"
+          },
+          {
+            "text": "Object-level view_document grants without ownership are insufficient.",
+            "origin": "user"
+          },
+          {
+            "text": "A global model permission must not be treated as authorization for this exact document.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "serializer-and-persistence-boundary",
+        "request": "Trace the complete serializer path for share creation from input validation through create/save and identify the last trusted decision point before the new share is persisted. Determine whether client-controlled fields, serializer defaults, view hooks, or model behavior can select or replace the document or principal after an earlier authorization decision.",
+        "principal": "The authenticated principal submitting share data",
+        "resource": "The new share record and its relationship to the exact existing document",
+        "operation": "Validate and persist the new share",
+        "entryHint": "ShareLinkViewSet get_serializer_class/perform_create/create paths, share serializer fields and validation, and relevant model creation behavior",
+        "premises": [
+          {
+            "text": "The exact document must be authorized before the share is created.",
+            "origin": "user"
+          },
+          {
+            "text": "Relevant inherited permission and serializer paths must be included.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "policy-conformance-and-missing-facts",
+        "request": "Compare the established source behavior for ShareLinkViewSet share creation with the independently supplied policy. State whether the source enforces owner-of-the-exact-document authorization before persistence, whether a non-owner holding only object-level view_document permission can create the share, and whether any global model permission or existence-only path can authorize creation. If repository source cannot establish a required fact, identify that specific missing fact, why it is decisive, and what owner-observed or bounded local evidence would resolve it without assuming deployment behavior.",
+        "principal": "The authenticated principal asking to share an existing document, including the distinct cases of owner, non-owner object viewer, and holder of only a global model permission",
+        "resource": "The exact existing document and the new share that would reference it",
+        "operation": "Create a share in conformance with the supplied owner-only policy",
+        "entryHint": "Synthesize the endpoint, inherited permissions, exact-document resolution, object controls, serializer validation, and persistence paths",
+        "premises": [
+          {
+            "text": "Only the owner of the exact document may create a share.",
+            "origin": "user"
+          },
+          {
+            "text": "Object-level view_document grants without ownership are insufficient.",
+            "origin": "user"
+          },
+          {
+            "text": "Do not assume that document existence or a global model permission grants access to this document.",
+            "origin": "user"
+          },
+          {
+            "text": "The result must explain source behavior, policy compliance, and specific missing facts.",
+            "origin": "user"
+          }
+        ]
+      }
+    ],
+    "policy": {
+      "text": "Only the owner of the exact document may create a share. Object-level view_document grants without ownership are insufficient.",
+      "origin": "user",
+      "location": "experimental-user-brief:paperless-share-policy/as-owner-v2"
+    }
+  }
+}

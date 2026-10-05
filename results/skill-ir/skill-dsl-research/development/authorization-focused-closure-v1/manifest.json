@@ -143,6 +143,12 @@
     }
   ],
   "rows": [
+    { "id": "paperless-share-create-policy-fresh", "kind": "variation", "task": "paperless-share-create", "baseRow": "debug-paperless-share-create-D-F", "change": "policy", "route": "fresh", "method": "D1", "strategy": "focused-closure-v1" },
+    { "id": "paperless-share-create-policy-previous", "kind": "variation", "task": "paperless-share-create", "baseRow": "debug-paperless-share-create-D-F", "change": "policy", "route": "previous", "method": "D1", "strategy": "focused-closure-v1" },
+    { "id": "paperless-share-create-premise-fresh", "kind": "variation", "task": "paperless-share-create", "baseRow": "debug-paperless-share-create-D-F", "change": "premise", "route": "fresh", "method": "D1", "strategy": "focused-closure-v1" },
+    { "id": "paperless-share-create-premise-previous", "kind": "variation", "task": "paperless-share-create", "baseRow": "debug-paperless-share-create-D-F", "change": "premise", "route": "previous", "method": "D1", "strategy": "focused-closure-v1" },
+    { "id": "paperless-share-create-source-fresh-1", "kind": "source-change", "task": "paperless-share-create", "baseRow": "debug-paperless-share-create-D-F", "sourceIntent": "remove-exact-document-owner-aware-clause-v1", "method": "D1", "strategy": "focused-closure-v1" },
+    { "id": "paperless-share-create-source-fresh-2", "kind": "source-change", "task": "paperless-share-create", "baseRow": "debug-paperless-share-create-D-F", "sourceIntent": "remove-exact-document-owner-aware-clause-v1", "method": "D1", "strategy": "focused-closure-v1" },
     {
       "id": "quality-owui-ingestion-M-L",
       "task": "owui-ingestion",
@@ -561,6 +567,17 @@
     "sourceChangeFresh": 2,
     "conditionalAblationsMaximum": 4
   },
+  "variationIntents": [
+    {
+      "task": "paperless-share-create",
+      "policy": {
+        "text": "Only the owner of the exact document may create a share. Object-level view_document grants without ownership are insufficient.",
+        "origin": "user",
+        "location": "experimental-user-brief:paperless-share-policy/as-owner-v2"
+      },
+      "premise": "The caller is authenticated and has global add_sharelink and view_document permission. The caller is not the exact document owner and has object-level view_document for that document through a group grant. These are independent current user premises, not observed source behavior."
+    }
+  ],
   "costs": {
     "dollars": null,
     "humanMinutes": null,

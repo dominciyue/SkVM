@@ -1640,6 +1640,8 @@ AS17窄修订只恢复完全省略且显式结果整体可解析的final kind，
 
 **AT8外壳修复与AT11原稿。** ShareLink第四轮2/2响应因作者漏空premises停住；Gitea首轮5/5响应因明确control/tool路由外壳停住，没有接受解释或final。修复只归一唯一明确的外壳，空premises不引入事实；语义正文仍由当前focus严格检查。7份原始响应零provider重放全部可进入本地检查，其中1份正文错误仍被拒绝。相关679 pass/1 skip/4516断言和双typecheck通过，真实具名修订另验。两份完整原skill原任务作者各5次响应，交付10/8问题的有效配置与便携usage；独立只读核验确认任务/用户策略保留、无目标/网络/安装/额外模型调用。Cloudflare范围由已登记activeInput提供4条路径，非作者擅扩原始2路径。累计57/57响应，known input/output/cacheRead为384,337/37,039/48,128，美元与真人/开发成本未知；作者忠实与下游完整质量分开。
 
+**真实外壳修订与AT16读取浪费。** ShareLink第五轮8/8响应，实际call已声明、helper已定位且调度过read；物理读取8,379,114字节后被8MiB预算阻断。不能把它说成未派出callee；当前修复source_search用既有索引筛出命中文件，再验证命中原件，预算不增加。Gitea第二轮21/21响应，接受handler与3个权限helper及实际link，但map/集合/有序比较保持unresolved，NewIssue尚未解释；final误把reqRepoWriter用于实际reader路由，不能判政策合规。两条仍partial。匿名搜索/正文预算先红后绿；新变化runner2项准入测试及联合682 pass/1 skip/4530断言和双typecheck通过。AT12登记ShareLink owner政策和非owner组授权前提，previous仅准入本轮SHA绑定源码full且checked/bounded结果；无合格基础时fresh诊断仍跑。AT13登记独立源码副本删除单一owner-aware子句、两次fresh，旧来源不改。实际采用/下游质量另验。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

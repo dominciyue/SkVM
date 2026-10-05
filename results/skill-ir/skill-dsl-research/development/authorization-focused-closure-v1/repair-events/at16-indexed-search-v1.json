@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "authorization-at-repair-event/v1",
+  "repairId": "at16-indexed-search-v1",
+  "trigger": "debug-paperless-share-create-D-F/attempt-5",
+  "triggerReportSha256": "edee2d9d47c8a62694ba01e3ba1edc61d2caa943cbad985b2d6ebb706f4c537d",
+  "observation": "Located PaperlessObjectPermissions automatic body read failed after physical reads reached 8379114 of 8388608 bytes. The already constructed index was reread file by file for each literal search, including no-hit files.",
+  "classification": "shared-source-efficiency",
+  "change": "Search the session index first; exact-byte reread/validation only on matching originals before publishing source evidence. Root identity, scoped source_read/symbol checks and final snapshot validation remain. This is an indexed snapshot lookup, not a live reindex.",
+  "budgetsChanged": false,
+  "anonymousRegression": "A no-hit search and one matching search leave room for an exact helper-body read under indexBytes+2*helperBytes. Old code fails at no-hit search, repaired code passes. Existing matched-source-change and cumulative-reread tests pass.",
+  "verification": { "pass": 682, "skip": 1, "assertions": 4530, "mainTypecheck": "pass", "atTypecheck": "pass", "providerCalls": 0 },
+  "actualSameRowReplay": "pending",
+  "sourceQualityOrNetEfficiencyClaim": false,
+  "independentReviewAdjudication": "A scout attributed the missing body to absent scheduling. Main verified call steps, located dependency and attempted read; the actual blocking code is read-budget. No scheduler success branch added."
+}

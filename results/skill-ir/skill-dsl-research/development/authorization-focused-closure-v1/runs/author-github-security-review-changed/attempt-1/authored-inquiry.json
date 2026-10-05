@@ -1,0 +1,184 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "gitea-create-issue",
+  "repository": "go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "sourceRoot": "source",
+  "allowedPaths": [
+    "routers/api/v1/repo",
+    "routers/api/v1/api.go",
+    "routers/api/v1/utils",
+    "modules/structs",
+    "modules/setting",
+    "modules/web",
+    "models/unit",
+    "models/perm",
+    "models/auth",
+    "models/user",
+    "models/repo",
+    "models/issues",
+    "models/organization",
+    "services/convert",
+    "services/issue",
+    "services/context"
+  ],
+  "inquiry": {
+    "schemaVersion": "authorization-inquiry/v1",
+    "mode": "conformance",
+    "questions": [
+      {
+        "id": "route-authentication",
+        "request": "Identify the API route(s) that reach CreateIssue in this revision, including route grouping and middleware. Determine whether the route requires an authenticated caller and describe the route-level controls before the handler runs.",
+        "principal": "An authenticated API caller, including a repository reader who does not have issue-unit write permission",
+        "resource": "The repository selected by the CreateIssue request and the route context used to resolve it",
+        "operation": "Reach the CreateIssue handler through the API route",
+        "entryHint": "Start at the API route registration and follow authentication, repository-loading, and permission middleware into the CreateIssue handler.",
+        "premises": [
+          {
+            "text": "The caller must be authenticated; unauthenticated callers are outside the supplied policy's subject set.",
+            "origin": "user"
+          },
+          {
+            "text": "The request asks for route-level controls and does not assume that a check local to CreateIssue is the whole authorization path.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "reader-eligibility",
+        "request": "Determine how an authenticated principal is established as a repository reader for the target repository, and whether that reader status is sufficient to proceed toward issue creation when the issues unit is enabled.",
+        "principal": "Any authenticated principal with repository read access, but without issue-unit write permission",
+        "resource": "The target repository and its repository-read authorization decision",
+        "operation": "Create an issue as a repository reader",
+        "entryHint": "Trace repository visibility, membership, access-mode, and permission helpers used by the route and handler.",
+        "premises": [
+          {
+            "text": "The independent current policy permits any authenticated repository reader to create an issue when the issues unit is enabled.",
+            "origin": "user"
+          },
+          {
+            "text": "Repository-read permission and issue-unit write permission are distinct caller capabilities and must be compared rather than conflated.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "issue-write-comparison",
+        "request": "Find every check that requires issue-unit write permission, issue creation permission, or an equivalent stronger capability on the CreateIssue path. Compare the outcome for principals with that permission against authenticated repository readers who lack it.",
+        "principal": "Two caller classes: (a) authenticated repository readers with issue-unit write permission and (b) authenticated repository readers without issue-unit write permission",
+        "resource": "The repository's issues unit and the issue collection within that repository",
+        "operation": "Authorize issue creation",
+        "entryHint": "Follow permission predicates, access modes, unit checks, and helper calls across the route, repository models, permission models, and issue service.",
+        "premises": [
+          {
+            "text": "Issue-unit write permission is not required by the supplied policy.",
+            "origin": "user"
+          },
+          {
+            "text": "A stronger-than-policy write check may be a conformance failure unless an applicable policy exception is established.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "issues-unit-gate",
+        "request": "Locate how the issues unit is represented and evaluated, including configuration or repository-unit state, and determine whether an enabled issues unit is the operative gate for issue creation.",
+        "principal": "An authenticated repository reader, with or without issue-unit write permission",
+        "resource": "The target repository's issues unit configuration and issue subsystem",
+        "operation": "Pass or fail the issues-enabled prerequisite for creating an issue",
+        "entryHint": "Trace models/unit, repository settings, configuration access, and any handler or service checks that decide whether issues are enabled.",
+        "premises": [
+          {
+            "text": "The supplied policy conditions permission on the issues unit being enabled.",
+            "origin": "user"
+          },
+          {
+            "text": "Disabled-unit behavior is a policy boundary, not evidence that issue-unit write permission is required when the unit is enabled.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "createissue-local-controls",
+        "request": "Explain the authorization and validation checks performed by CreateIssue itself, including repository or issue-unit checks, and distinguish them from authentication and authorization controls performed by callers or middleware.",
+        "principal": "The authenticated principal admitted to CreateIssue by the route",
+        "resource": "The repository and the new issue to be created",
+        "operation": "Execute CreateIssue's issue-creation request",
+        "entryHint": "Read the CreateIssue implementation and its directly used context, repository, unit, permission, and issue-service helpers.",
+        "premises": [
+          {
+            "text": "The review must trace route-level controls, repository or issue-unit checks, and the creation effect separately.",
+            "origin": "user"
+          },
+          {
+            "text": "Endpoint-local checks must not be treated as the complete path without checking upstream and downstream controls.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "creation-effect",
+        "request": "Trace the final issue creation effect from the authorized request through services and models to the persistence operation. Identify whether authorization is rechecked, weakened, or bypassed before the issue is actually created.",
+        "principal": "The caller and repository context propagated from the API route into the issue service",
+        "resource": "The newly persisted issue and the target repository's issue records",
+        "operation": "Persist a new issue and return its API representation",
+        "entryHint": "Follow services/issue, models/issues, conversion code, and context propagation from CreateIssue to the write operation.",
+        "premises": [
+          {
+            "text": "Policy compliance concerns the effective creation capability, not merely whether the HTTP handler returns an apparent success path.",
+            "origin": "user"
+          },
+          {
+            "text": "The analysis must identify the actual issue creation effect and any relevant downstream authorization or trust-boundary behavior.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "exceptions-and-alternate-paths",
+        "request": "Identify relevant exceptions or alternate paths that change the authorization result, such as repository visibility or membership variants, organization or team permissions, administrators, bots or tokens, disabled units, forks, installation or deployment configuration, alternate API routes, or service-level callers. State which are supported by source evidence and which remain conditional.",
+        "principal": "Authenticated repository readers, issue writers, administrators, service identities, and other principals that may reach issue creation",
+        "resource": "Repositories and issue collections across the supported repository, organization, and deployment contexts",
+        "operation": "Reach or perform issue creation through CreateIssue or an alternate path",
+        "entryHint": "Search the allowed route, context, repository, organization, auth, permission, unit, and issue-service scopes for alternate callers and exceptional branches; do not infer unsupported exceptions.",
+        "premises": [
+          {
+            "text": "The request explicitly asks for relevant exceptions rather than assuming endpoint-local checks are the whole path.",
+            "origin": "user"
+          },
+          {
+            "text": "Only source-supported exceptions should be reported as findings; deployment-only or uninspected behavior must be labeled as a limit or condition.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "conformance-and-limits",
+        "request": "Render a conformance conclusion for the supplied policy, separately for authenticated repository readers with and without issue-unit write permission, and state precise source-scope, revision, configuration, deployment, and unexamined-path limits.",
+        "principal": "The two policy-relevant caller classes: authenticated repository readers with issue-unit write permission and authenticated repository readers without it",
+        "resource": "The issues unit and issue creation capability of repositories handled by the examined Gitea revision",
+        "operation": "Determine whether the caller may create an issue under the supplied policy",
+        "entryHint": "Base the conclusion on the traced route-to-effect control graph and distinguish confirmed source behavior from assumptions about runtime deployment or paths outside allowedPaths.",
+        "premises": [
+          {
+            "text": "The policy text and origin are independently supplied by the user and must be evaluated as the current policy, not replaced by source behavior or historical convention.",
+            "origin": "user"
+          },
+          {
+            "text": "The review is limited to sourceRef fc28937a8d772fe9e4025c9b5f24d5db4d86610b and the declared allowedPaths under sourceRoot source.",
+            "origin": "user"
+          },
+          {
+            "text": "No deployment configuration, runtime execution, complete question set, answer, control graph, expected source behavior, or source-derived known values are supplied by the host; these must not be invented.",
+            "origin": "user"
+          }
+        ]
+      }
+    ],
+    "policy": {
+      "text": "Any authenticated repository reader may create an issue when the issues unit is enabled. Issue-unit write permission is not required by this policy.",
+      "origin": "user",
+      "location": "experimental-user-brief:gitea-issue-policy/as-reader-v2"
+    }
+  }
+}

@@ -120,3 +120,15 @@ test("physical source budget includes indexing and every identity-checked reread
   expect(tools.ioReadBytes).toBe(size * 2)
   expect(tools.evidence).toEqual(retained)
 })
+test("indexed search spends physical rereads on matching files and preserves budget for the helper body", async () => {
+  const { root, tools: original } = await fixture(), indexBytes = original.indexBytes, helperBytes = original.files.find(f => f.path === "src/helper.ts")!.bytes
+  const tools = await createInquiryTools({ sourceRoot: root, allowedPaths: ["src"], repository: "synthetic", sourceRef: "fixed", maxReadBytes: indexBytes + helperBytes * 2 })
+  const missing = await tools.execute("source_search", { text: "absentLiteral" })
+  expect(missing.status).toBe("ok")
+  expect(tools.ioReadBytes).toBe(indexBytes)
+  const search = await tools.execute("source_search", { text: "return false" })
+  expect(search.status).toBe("ok")
+  expect(search.matches.map(m => m.path)).toEqual(["src/helper.ts"])
+  expect((await tools.execute("source_read", { path: "src/helper.ts", startLine: 1, endLine: 3 })).status).toBe("ok")
+  expect(tools.ioReadBytes).toBe(indexBytes + helperBytes * 2)
+})

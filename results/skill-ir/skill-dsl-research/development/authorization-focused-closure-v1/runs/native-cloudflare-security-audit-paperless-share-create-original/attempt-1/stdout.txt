@@ -1,0 +1,216 @@
+
+skvm run v0.1.4
+  Adapter  bare-agent (built-in)
+  Model    xty/gpt-5.6-sol via openai-compatible (https://svip.xty.app/v1)
+  Task     natural prompt
+  Skill    D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\cloudflare-security-audit\SKILL.md
+  WorkDir  D:\skill优化\project-maintenance\runs\authorization-focused-closure-v1\native-cloudflare-security-audit-paperless-share-create-original\attempt-1
+  Cache    D:\skill优化\SkVM\.skvm
+
+07:49:44.683 [INFO ] [run] Run task natural-ae038b09a4ee: adapter=bare-agent model=xty/gpt-5.6-sol workDir=D:\skill优化\project-maintenance\runs\authorization-focused-closure-v1\native-cloudflare-security-audit-paperless-share-create-original\attempt-1
+07:49:44.687 [INFO ] [conv-log] Conversation logging enabled: D:\skill优化\SkVM\.skvm\log\20261005-074944-run
+✓ Task natural-ae038b09a4ee complete  (5m 43s)
+
+=== Run Complete ===
+Task: natural-ae038b09a4ee
+Skill: D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\cloudflare-security-audit\SKILL.md
+Model: xty/gpt-5.6-sol
+Adapter: bare-agent
+WorkDir: D:\skill优化\project-maintenance\runs\authorization-focused-closure-v1\native-cloudflare-security-audit-paperless-share-create-original\attempt-1
+Duration: 343.2s
+Tokens: in=511356 out=13285
+
+Final output:
+## Authorization review: `ShareLinkViewSet` create
+
+**Source ref:** `paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103`  
+**Scope:** Bounded, source-only review. No execution or deployment assumptions.
+
+> **Validation status:** These are source-grounded raw conclusions, not a successfully checked authorization result. The final semantic check remained blocked because the inherited calls were inspected but were not formally linked into the retained authorization path before the tool budget expired.
+
+## Conclusion
+
+Creating a share is subject to two distinct layers:
+
+1. **Endpoint/model-level control:** the caller must be authenticated and pass the POST permission for creating a `ShareLink`, namely `add_sharelink`.
+2. **Submitted-document control:** the serializer resolves the submitted `document` and checks that exact `Document` before creating the share.
+
+Therefore, **knowing a valid document ID or possessing only `add_sharelink` is not sufficient**.
+
+The exact-document check, however, is owner-aware:
+
+- an ownerless document passes;
+- a document owned by the caller passes; or
+- otherwise, `ObjectPermissionChecker` must report `view_document` for that exact document.
+
+Because an **ownerless document passes without an exact-object permission lookup**, the implementation appears to violate the supplied strict policy for that branch: global `documents.view_document`, together with the endpoint’s `add_sharelink`, can be sufficient.
+
+## Source behavior
+
+### 1. Endpoint
+
+`ShareLinkViewSet` is registered with the router under `share_links`; the relevant operation is a **POST to the router-generated collection endpoint**. The complete externally mounted URL prefix is not established by the bounded source review.
+
+The viewset:
+
+- inherits the DRF create flow through `CreateModelMixin` and `GenericViewSet`;
+- uses `ShareLinkSerializer`;
+- requires `IsAuthenticated`;
+- uses `PaperlessObjectPermissions`.
+
+Sources:
+
+- `src/paperless/urls.py:88`
+- `src/documents/views.py:4696-4719`
+- `framework/rest_framework-3.18.1/rest_framework/mixins.py:12-32`
+
+### 2. Inherited endpoint permission
+
+`PaperlessObjectPermissions` maps POST to:
+
+```text
+%(app_label)s.add_%(model_name)s
+```
+
+For this viewset, that is the model-level permission to add a `ShareLink`. It does **not**, by itself, establish permission to view the submitted `Document`.
+
+The object-permission method also treats an owned object as allowed for its owner and an ownerless object as allowed. For creation, however, there is not yet a new `ShareLink` object on which the normal DRF object-permission hook could protect the referenced document. The decisive document-specific control is instead in the serializer.
+
+Source: `src/documents/permissions.py:30-53`.
+
+### 3. Caller binding into the serializer
+
+`PassUserMixin.get_serializer()` passes `self.request.user` as the serializer’s `user` argument when the serializer derives from `SerializerWithPerms`.
+
+`SerializerWithPerms.__init__()` stores that supplied value as `self.user`. `ShareLinkSerializer` inherits through `OwnedObjectSerializer`, so its document validator evaluates the request caller rather than an unspecified principal.
+
+Sources:
+
+- `src/documents/views.py:406-428`
+- `src/documents/serialisers.py:260-265`
+- `src/documents/serialisers.py:2851-2888`
+
+### 4. Exact-document serializer check
+
+`ShareLinkSerializer.validate_document(document)` receives the resolved document object associated with the submitted `document` field. Before returning that object into validated data, it requires all of the following:
+
+```python
+self.user is not None
+self.user.has_perm("documents.view_document")
+has_perms_owner_aware(self.user, "view_document", document)
+```
+
+If any condition fails, it raises `PermissionDenied("Insufficient permissions.")`.
+
+This means:
+
+- mere existence of the document is not authorization;
+- knowing its ID is not authorization;
+- `add_sharelink` alone is not authorization;
+- global `documents.view_document` alone does not normally suffice for an owned document belonging to somebody else;
+- the relation/object check is applied to the **exact resolved document**, not merely to the `Document` model generally.
+
+Source: `src/documents/serialisers.py:2873-2886`.
+
+### 5. Owner-aware branches
+
+`has_perms_owner_aware()` is:
+
+```python
+checker = ObjectPermissionChecker(user)
+return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)
+```
+
+Consequently, document validation succeeds when the caller has global `documents.view_document` and any one of these is true:
+
+1. `document.owner is None`;
+2. `document.owner == request.user`; or
+3. `ObjectPermissionChecker(request.user).has_perm("view_document", document)` succeeds for that exact document.
+
+The first two branches short-circuit without consulting `ObjectPermissionChecker`.
+
+Source: `src/documents/permissions.py:624-635`.
+
+### 6. Creation effect
+
+After validation succeeds, the inherited DRF create flow invokes `serializer.save()`. `ShareLinkSerializer.create()` adds a random 50-character slug and delegates model creation using the validated data, including the validated document.
+
+If `validate_document()` raises `PermissionDenied`, creation does not reach that save path.
+
+Sources:
+
+- `framework/rest_framework-3.18.1/rest_framework/mixins.py:12-32`
+- `src/documents/serialisers.py:2869-2886`
+
+## Branch summary
+
+| Caller/document condition | Source result before share creation |
+|---|---|
+| Caller is unauthenticated | Denied by `IsAuthenticated` |
+| Caller lacks `add_sharelink` | Denied at endpoint/model permission layer |
+| Caller knows an existing document ID but lacks global `documents.view_document` | Denied by serializer |
+| Caller has global document view permission, but an owned document belongs to another principal and no exact-object grant exists | Denied by `has_perms_owner_aware` |
+| Caller has global document view permission and an exact-object `view_document` grant | Document validation passes |
+| Caller has global document view permission and owns the document | Passes via ownership short-circuit |
+| Caller has global document view permission and the document is ownerless | Passes via ownerless short-circuit, without exact-object lookup |
+
+Successful creation additionally depends on the endpoint-level authentication and `add_sharelink` checks.
+
+## Policy assessment
+
+**Independent policy:**
+
+> A caller creating a document share must have `view_document` permission for the exact shared document. A global `add_sharelink` permission or knowing a document ID alone is insufficient.
+
+### Source-visible compliance
+
+The implementation satisfies important parts of the policy:
+
+- `add_sharelink` alone is insufficient.
+- Knowing a document ID alone is insufficient.
+- The serializer operates on the exact resolved document.
+- For a document owned by another principal, the fallback asks `ObjectPermissionChecker` about `view_document` on that exact object.
+
+### Source-visible conflict
+
+The ownerless branch permits:
+
+```text
+add_sharelink
+AND global documents.view_document
+AND document.owner is None
+```
+
+without requiring `ObjectPermissionChecker` to grant `view_document` on that exact document.
+
+Under the policy as written—particularly that a global permission is insufficient and with no ownerless exception—this is an **apparent policy violation**.
+
+The caller-owned branch is conditional on policy interpretation. It is document-specific because ownership is checked against the exact document, but the supplied policy does not state whether ownership itself constitutes `view_document` permission.
+
+### Formal conformance status
+
+**Undetermined in the failed checker run.** The raw source assessment above indicates a violation for ownerless documents, but the authorization result could not be formally accepted because the retained semantic model left the inherited create/permission relation unresolved.
+
+## Specific missing facts and limitations
+
+1. **Authentication and permission backend configuration**  
+   The reviewed source does not establish the deployed authentication backends or the full runtime semantics of `user.has_perm()` and Guardian’s `ObjectPermissionChecker.has_perm()`.
+
+2. **Ownership semantics in the independent policy**  
+   The policy does not say whether ownership is intended to confer `view_document` authority for the exact owned document.
+
+3. **Ownerless-document policy**  
+   The policy supplies no ownerless-document exception. Source explicitly treats `owner is None` as sufficient for the owner-aware portion of the check.
+
+4. **Externally mounted URL**  
+   The router registration name `share_links` is source-visible, but the complete deployed URL prefix was not conclusively established in this bounded review.
+
+5. **Formal source-path closure**  
+   The DRF inheritance and application helpers were inspected, but the machine-readable authorization path was not successfully linked and self-checked. No checked result was recorded.
+
+## Confidence
+
+- **High** that `add_sharelink` or document-ID knowledge alone is insufficient.
+- **High** that `validate_document()` checks the exact resolved document.
+- **High** that ownerless and caller-owned documents bypass the `ObjectPermissionChecker` branch.
+- **Medium** on the final conformance label because the strict policy implies a violation for ownerless documents, while the formal authorization checker did not accept the incomplete inherited-call model.
