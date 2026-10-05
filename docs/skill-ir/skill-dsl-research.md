@@ -1689,6 +1689,22 @@ AS六个断点在本轮的实际状态如下：
 
 **供下一任务书取舍的建议，尚未实施。** 保持授权任务类，先建立同一操作可共享的来源解释，把行为、政策比较和范围说明作为不同义务；只在principal/resource/调用关系等确有差异时重新分析，政策及用户前提不可被共享源码事实覆盖。再设计源码支持的有限权限与对象关系摘要，使任务DSL表达授权问题，内部局部程序负责必要计算。先用隔离的确定性fixture检验足够表达和错误检出，再让运行模型自行读取原始源码，完成一条真实原/变链后做第二种结构与完整原skill。主要评价继续核对源码正确性、任务充分性及机器检查，保留独立普通skill加相同源码工具的参考运行；不把evaluator答案或人工正确图交给被测模型。真实复用放在合格基础上，成本按取证、解释、修复和交付分账。下一轮应检验上述结构修订，避免继续用大批调用代替方法调整。
 
+**补充讨论：DSL实际执行什么。** 2026-10-05在`2e8a9da1`上继续核对代码。外层[任务声明](../../src/task-dsl/authorization/inquiry.ts)保存问题、主体、资源、操作、用户前提及独立policy；内层semantic blocks由模型解释源码后提出，TypeScript宿主编译和执行有限控制关系。模型仍负责源码含义、参数关系、分支条件和policy映射，宿主负责身份、状态、有限计算及机械一致性。当前sourceBound说明原文关联，semanticSupport仍保留unreviewed；这套程序检查的是已提交解释的关系。普通native在最后另有模型生成prose：[beforeDispatch](../../src/benchmarks/authorization-dsl/inquiry-native.ts)在有checked result时要求按同答渲染；预算末尾没有checked result时仍允许带缺口的raw自然说明，因此自然full/formal失败有实际执行路径。
+
+**漏读的关键边界。** [词法索引](../../src/benchmarks/authorization-dsl/evidence-preparation/discovery.ts)依靠声明模式、缩进/括号和调用名，不提供完整import、receiver、别名和继承符号解析。[dependency scheduler](../../src/benchmarks/authorization-dsl/inquiry-domain-scheduler.ts)读取和检查已提交的`slice.dependencies`，另有词法lead，但缺少独立的决定性依赖完整清单。系统已经分别计量物理读取与实际provider上下文展示，也区分read、interpreted、linked、checked；应复用这些状态。真正待补的是模型遗漏一个依赖时，宿主怎样从源码结构和领域义务发现它。建议在明确支持的语言/框架内，以结构索引和版本化框架模型产生候选依赖，再以任务的授权义务筛选、追踪及排除；动态分派和外部缺源码保留具体缺口。AST定位本身也需要名称绑定和框架关系，不能只替换正则后宣称解决。缺少证据支持的业务关系仍由模型解释和独立核验。以上是下一设计候选，尚未实施。
+
+**公开参考及适用边界（2026-10-05核对一手资料）。**
+
+| 参考 | 已有能力与依据 | 对本项目的启发 |
+|---|---|---|
+| Cedar | [授权概念](https://docs.cedarpolicy.com/overview/terminology.html)围绕principal/action/resource/context、policy和entity计算决定；[Amazon Verified Permissions](https://docs.aws.amazon.com/verifiedpermissions/latest/userguide/what-is-avp.html)实际采用Cedar | 领域对象和关系要有执行语义；事实获取由调用方负责，我们还需解决源码事实提取 |
+| CodeQL/QL | [源码数据库与查询](https://codeql.github.com/docs/codeql-overview/about-codeql/)及[框架/库模型](https://codeql.github.com/docs/codeql-language-guides/customizing-library-models-for-python/)支持类型、调用及数据流分析；Python数据扩展接口仍标beta | 借鉴结构事实、模型库与规则查询的分工；评估复用现有提取能力，不把语言解析全部交给模型，也不默认引入整套新平台 |
+| LMQL | [PLDI 2023研究](https://arxiv.org/abs/2212.06094)把提示、控制流和输出约束编译成推理过程；[约束文档](https://lmql.ai/docs/latest/language/constraints.html)说明支持后端下的生成期约束 | DSL的约束应实际影响执行；格式约束的实现与源码语义正确性分别检验，论文效果只属于其任务/模型条件 |
+
+**特化的建议尺度。** 以授权任务共同的主体、资源、操作、关系和义务为语义，再区分读取既有对象、在容器中创建、集合返回、跨资源操作等模式；具体应检查什么仍由任务政策和源码确定。[Cedar授权模式](https://docs.cedarpolicy.com/bestpractices/bp-authorization-patterns.html)可作概念参考。语言/框架适配器处理继承、路由、对象传递，项目名称和函数名只作源码绑定，不写死允许/拒绝答案。足够特化的检验是同模式换仓库可复用核心、关键关系可计算、删除/换错控制或资源会被发现、变化时只重做受影响义务。范围外内容应可定位并解释，无需承诺任意动态源码的零漏读。权限顺序和资源关系来自源码/独立声明，不能预设所有项目都有同一角色层级。
+
+**自然说明成果的准确范围。** AT两份original native按原始任务获得full conditional source explanation，四native各24调用；两份changed为partial。Paperless说明精确document、全局权限与owner-aware三分支、继承保存及严格policy关系；Gitea说明reader路由、writer控制部分附加字段、仍到达保存及所给policy冲突。[SHA绑定评阅](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/evaluations/at10-original-and-search-source-reviews.json)采用独立只读AI审查和主代理点验，非真人盲评。Gitea final未逐项列出Projects，原任务未要求该可选字段清单，主面板的字段义务评分仍保留。两条自然充分样本证明已有有内容的源码分析；重复稳定性、变化任务完整性、机器checked基础和净收益继续待验。关于给定严格policy的冲突仅针对该policy，不构成对项目部署漏洞的认定。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
