@@ -1,5 +1,21 @@
 import { test, expect } from "bun:test"
-import { makePanel, capturedProviderRecords, proofStatus } from "./accounting.ts"
+import { makePanel, capturedProviderRecords, proofStatus, targetExecutionCount, summaryStatus } from "./accounting.ts"
+
+test("AT accounting preserves a finite terminal status only with no open or unknown attempts", () => {
+  const closed = { status: "completed-with-unmet-criteria" }
+  expect(summaryStatus(closed, 0, false)).toBe("completed-with-unmet-criteria")
+  expect(summaryStatus(closed, 1, false)).toBe("in-progress")
+  expect(summaryStatus(closed, 0, true)).toBe("in-progress")
+  expect(summaryStatus(undefined, 0, false)).toBe("in-progress")
+})
+
+test("AT target execution totals require measured counts or an exact author tool audit", () => {
+  expect(targetExecutionCount("author", "not requested")).toBeNull()
+  expect(targetExecutionCount("author", "not requested", { rawToolAudit: { targetExecutions: 0 } })).toBe(0)
+  expect(targetExecutionCount("quality", undefined)).toBe(0)
+  expect(targetExecutionCount("quality", "unverified")).toBeNull()
+  expect(targetExecutionCount("native", 2)).toBe(2)
+})
 
 test("AT proof accounting requires checked delivery rather than valid unreviewed format", () => {
   const report = { status: "completed", result: {}, validation: { valid: true, questionChecks: [{ deliveryStatus: "unverified", evidenceCoverage: "unreviewed" }] } }

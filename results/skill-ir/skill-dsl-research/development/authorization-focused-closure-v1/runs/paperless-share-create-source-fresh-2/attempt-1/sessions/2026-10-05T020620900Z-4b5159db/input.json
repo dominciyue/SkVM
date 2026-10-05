@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "paperless-share-create",
+  "repository": "paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "sourceRoot": "../../../../../../../../../project-maintenance/runs/authorization-focused-closure-v1/source-change-copy/paperless-share-create",
+  "allowedPaths": [
+    "src/documents",
+    "src/paperless/urls.py",
+    "framework/rest_framework-3.18.1/rest_framework",
+    "source_identity.py"
+  ],
+  "inquiry": {
+    "schemaVersion": "authorization-inquiry/v1",
+    "mode": "conformance",
+    "questions": [
+      {
+        "id": "sharelinkviewset-exact-document",
+        "request": "Check creating a share through ShareLinkViewSet for an existing document against the supplied policy. Determine which endpoint and object controls apply to that exact document before the share is created, including relevant inherited permission and serializer paths. Describe the source behavior, whether it complies with the supplied policy, and the specific missing facts needed to decide; do not assume that document existence or a global model permission grants access to this document.",
+        "principal": "a principal",
+        "resource": "the exact existing document to be shared",
+        "operation": "creating a share",
+        "entryHint": "ShareLinkViewSet",
+        "premises": []
+      }
+    ],
+    "policy": {
+      "text": "A caller creating a document share must have view_document permission for the exact shared document. A global add_sharelink permission or knowing a document ID alone is insufficient.",
+      "origin": "user",
+      "location": "experimental-user-brief:paperless-share-policy/v1"
+    }
+  }
+}
