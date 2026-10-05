@@ -6,6 +6,7 @@ import { inquiryStepSchemas, inquiryNativeSchemas } from "./inquiry-wire.ts"
 import { runAuthorizationInquiry } from "./inquiry-run.ts"
 import { emptyTokenUsage } from "../../core/types.ts"
 import type { FocusStage } from "./inquiry-focus.ts"
+import { zodToJsonSchema } from "../../providers/structured.ts"
 
 const common = { schemaVersion: "authorization-focused-update/v1", focusId: "current" }
 const unit = { start: "body", complete: true, parameters: [], blocks: [{ name: "body", steps: [{ kind: "return", name: "denied", claim: "Original returns false", value: false, outcome: "deny" }] }] }
@@ -36,6 +37,21 @@ test("direct operation actions preserve real calls and explicit empty calls rema
   expect(schemas.schema.parse({ ...action, calls: [] })).toMatchObject({ kind: "control", controlDelta: action })
   expect(schemas.schema.safeParse({ kind: "tool", calls: [], controlDelta: action }).success).toBe(false)
 })
+test("operation advertisement is one root object so source calls cannot spill beside a generated value wrapper", () => {
+  for (const stage of ["locate", "interpret", "link", "review", "answer"] as FocusStage[]) {
+    const schemas = inquiryStepSchemas("operation-evidence-v1", false, "behavior", stage), advertised: any = zodToJsonSchema(schemas.modelSchema)
+    expect(advertised.type).toBe("object")
+    expect(advertised).not.toHaveProperty("anyOf")
+    expect(advertised).not.toHaveProperty("oneOf")
+    expect(advertised.properties).toHaveProperty("kind")
+    expect(advertised.properties).toHaveProperty("calls")
+    expect(advertised.properties).not.toHaveProperty("value")
+    expect(schemas.modelSchema.safeParse({ kind: "tool", calls: [] }).success).toBe(false)
+    expect(schemas.modelSchema.safeParse({ kind: "defer", reason: "Identity missing" }).success).toBe(false)
+  }
+  const schemas = inquiryStepSchemas("operation-evidence-v1", false, "behavior", "interpret")
+  expect(schemas.modelSchema.safeParse({ ...common, kind: "interpret", unit, reason: "Field from a different action" }).success).toBe(false)
+})
 test("actual structured provider receives the direct operation schema and its original bodies reach the shared runtime", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "au-step-"))
   await writeFile(path.join(sourceRoot, "entry.py"), "def entry():\n    return False\n")
@@ -45,7 +61,7 @@ test("actual structured provider receives the direct operation schema and its or
     provider: { name: "mock", async complete(params) {
       const prompt = params.messages.map(m => m.content).join("\n"), marker = "Current local explanation context: ", start = prompt.lastIndexOf(marker), tail = prompt.slice(start + marker.length), context = JSON.parse(tail.slice(0, tail.indexOf("\n\nRemaining dispatches:")))
       expect(prompt).toContain("Focused action fields are at the step root")
-      if (calls === 0) { expect(JSON.stringify(params.tools![0]!.inputSchema)).not.toContain('"controlDelta"'); expect(prompt).not.toContain("For interpret submit controlDelta:") }
+      if (calls === 0) { expect(JSON.stringify(params.tools![0]!.inputSchema)).not.toContain('"controlDelta"'); expect(prompt).not.toContain("For interpret submit controlDelta:"); expect((params.tools![0]!.inputSchema as any).properties).not.toHaveProperty("value") }
       const value = calls++ === 0 ? { ...common, focusId: context.focus.id, kind: "interpret", unit, calls: [] } : calls < 3 ? { ...common, focusId: context.focus.id, kind: "defer", reason: "Preserve this source-only answer" } : { ...result, focusId: context.focus.id }
       const tool = params.tools![0]!, wrapped = (tool.inputSchema as any).properties?.value !== undefined
       return { text: "", toolCalls: [{ id: `r-${calls}`, name: tool.name, arguments: wrapped ? { value } : value }], tokens: emptyTokenUsage(), durationMs: 0, stopReason: "tool_use" as const }

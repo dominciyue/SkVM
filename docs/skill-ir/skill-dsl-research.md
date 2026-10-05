@@ -1753,6 +1753,8 @@ Python/Go结构索引采用固定MIT许可的`@vscode/tree-sitter-wasm@0.3.1`，
 
 第五次`focused-envelope-routing-v1`20请求/20响应，仍transport-failed、无终答，五个问题均not-delivered；10次接受事件含替换，主原件确认6个current source units，不能记成10个现存单元。完整input362414/output13392/cacheRead31104，USD未知；累计79/79。两探子核验7次格式拒绝、normalization=0，类配置与继承create正文还存在错误归属；serializer/object-permission窗口可得而未接受。连续同因后改operation structured广告为单层action/result，仍lower到同一核心；三新匿名接口测试、公开output cap和薄ordinary runner已通过联合782 pass/1skip与AU类型。完整原技能22/8文件SHA及公开changed policy补充登记，真实普通使用/完整质量/净收益尚未验证。独立代码核验的日志身份疑点经CLI整段prompt锚点裁定未成立，中央身份函数复用避免后续约定漂移；零参考读取如实记录，由原skill职责的独立评阅判断充分性。
 
+第六次`direct-focused-step-v1`21请求/21响应形成六问终答，但全部unknown/rejected、usable0；源码终检95文件有效。14个current units主要是同一class/route/framework体的重复，5个声明operations把同一创建动作按职责分开；serializer与exact-object权限无accepted单元。完整input418085/output16586/cacheRead17024，USD未知，累计100/100。独立SHA/轨迹/源码核验及主原始payload抽查确认：2 wire failures、16格式归位，实际终答改善只支持容器恢复，不支持语义授权/完整政策合规或净收益。下一修复以同一共享指南明确动作与职责粒度，保留多动作任务；模型广告从仍被自动套value的union改为单root object，严格action union校验继续。四个预期red转通过，联合784 pass/1skip/4994断言、主/AU类型及独立接口核验通过。评价侧的无条件policy-satisfied主张未采用，源中的ownerless/owner/direct/group分支需实际解释并比较。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

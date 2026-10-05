@@ -2487,6 +2487,8 @@ focused输入可无损恢复明确的传输容器：完整显式focused identity
 
 连续实际容器失败后，operation structured前端广告改为单层focused action：`kind,schemaVersion,focusId`及本阶段payload直接在根，可附带来源calls；final亦直接包含focused result字段。解析器无损lower到原canonical step与同一domain核心，显式空calls仅表示零来源动作。结构入口使用匹配指南，不再广告两层kind；旧canonical输入兼容，旧focused及普通native工具合同保持。普通source run可显式设置每实际请求输出token限额，沿用较小的调用方限额和旧默认。完整原skill清单与实际companion读取分列，零读取不等于已经履行原skill相关职责；自然N无formal check标作not-applicable。
 
+Operation声明以用户实际请求的动作分组，endpoint/object/inherited/serializer/policy/scope是同一动作的责任，不是独立操作；多个真实动作仍独立，宿主不按题面猜合并。两入口共用`OPERATION_DECLARATION_GUIDE`与无答案的无关示例。Operation模型广告为单一root object，kind枚举及当前阶段字段避免structured transport再次加value外壳；精确action union继续校验各动作必需/禁止字段、身份、阶段和typed calls。广告字段可选不能绕过严格解析，也不自行解释源码。
+
 普通完整skill、Markdown加同核心、DSL加同核心分别观察，用真实源码和原始任务检验质量、编写及变化使用。评阅oracle、正确答案和人工正确图留在评价侧；程序自行提取候选的过程与成本可查。原答/修订分列，共享缺陷即停受影响派发、当场修复并同题复验，不要求故障首轮跑满。确定性测试、真实采用、独立源码质量与比较收益分别报告；保护输入及未知封存不因新identity绕过。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）

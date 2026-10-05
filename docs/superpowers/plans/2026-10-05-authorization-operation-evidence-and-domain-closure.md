@@ -369,6 +369,9 @@ AU0/1创建薄runner后登记其真实typecheck、单位置运行和replay命令
 
 ## 九、执行记录
 
+- 第六轮`direct-focused-step-v1`已关闭：21派发/21响应、六问终答均unknown且检查拒绝；14个current source units主要重复同一class/route/framework体，没有accepted serializer/exact-object单元。累计100/100、美元未知。独立SHA/source/轨迹核验及主抽查确认：容器恢复形成终答（2 wire failures、16无损格式归位），但D1把同一创建动作拆成5个operations，反复取证而未闭合授权。下一针对性修复先用匿名反例：明确operation为用户实际动作，同一动作的endpoint/inheritance/serializer/policy/scope责任共享operation；多动作仍分别声明，宿主不猜测合并、不改模型问题。主读actual structured contract发现union仍自动套value，引发calls外壳错位；改广告为单一根object及kind枚举，保留每动作严格union解析和旧输入合同，不增加猜测归位。仅调整共享作者指南与operation模型广告，回归/双类型/文档后同题`operation-duty-granularity-v1`修订，不扩预算、不投喂评价结论。作者/消费者/变化薄接线待此阶段后继续；语义未达与格式改善分列。
+- 此修复4个预期red转通过，focused24 pass/223断言、联合784 pass/1skip/4994断言，主/AU双类型及独立只读接口核验通过。16个实际归位payload零provider复核逐一保持完整显式内容，原件SHA未变；第四/五轮旧wire故障通过真实六问交付与此证据具名解除，所有model-draft语义失败保留。独立评阅的无条件policy-satisfied及normalization序号误述由主原文裁定纠正。尚未证明新粒度实际改善。
+
 - 第五轮`focused-envelope-routing-v1`仍transport-failed，20派发/20响应、无终答，累计79/79；独立轨迹核验指出7次容器格式拒绝、normalization为0，接收中间解释不等于交付。连续两轮同因失败，下一调整公开operation structured step接口：将当前focused action及identity/unit直接放到一个根容器，来源calls仅可选附带；final亦直接使用focused result字段。宿主仍无损转成既有核心step，普通native工具和旧focused广告合同保留。同步结构入口指南消除tool/control与action两层kind的矛盾，匿名TDD覆盖每阶段/批量/empty-no-op calls/实际provider广告与解析；不猜已冲突的kind、不填源码语义。验证后同题具名修订，再以真实改善记录解除共同容器故障，质量责任继续独立。
 - 此调整与ordinary/cap接线已完成TDD：4个接口预期red转通过；预算3失败例转通过；薄runner4 red转通过，中央任务身份额外red/green。fresh联合782 pass/1skip/4944断言、主/AU双类型通过。独立interface代码核验未发现证实缺陷。普通审查的原brief-hash疑点经实际CLI整段输入定位未成立；改用中央naturalRunTaskId，actualreference reads按实际空/非空完整记账，不强制读所有安装文件代替原skill质量评阅。immutable supplementary registration保留4输入、两完整skill 22/8文件与publicchangedpolicy；尚无普通provider调用。
 

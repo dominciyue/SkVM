@@ -145,7 +145,25 @@ function operationStepModelSchema(stage?: FocusStage, finalOnly = false) {
   if (finalOnly) return final
   const actions = focusedUpdateSchema(stage, false, true), options = "options" in actions ? actions.options : [actions]
   const direct = options.map(action => action.extend({ calls: z.array(OperationSourceCallSchema).max(8).optional() }))
-  return z.union([z.object({ kind: z.literal("tool"), calls: z.array(OperationSourceCallSchema).min(1).max(8) }).strict(), direct[0]!, ...direct.slice(1), ...(stage === "answer" ? [final] : [])])
+  const variants = [z.object({ kind: z.literal("tool"), calls: z.array(OperationSourceCallSchema).min(1).max(8) }).strict(), ...direct, ...(stage === "answer" ? [final] : [])]
+  const exact = z.union([variants[0]!, variants[1]!, ...variants.slice(2)])
+  // A root union forces the generic tool transport to add a second `value` container.
+  // Publish one object; action-specific required/forbidden fields remain strictly parsed.
+  const shape: z.ZodRawShape = { kind: z.enum(variants.map(v => v.shape.kind.value) as [string, ...string[]]), calls: z.array(OperationSourceCallSchema).max(8).optional() }
+  const fields = new Map<string, Map<string, z.ZodTypeAny>>()
+  for (const variant of variants) for (const [key, field] of Object.entries(variant.shape) as Array<[string, z.ZodTypeAny]>) {
+    if (key === "kind" || key === "calls") continue
+    const alternatives = fields.get(key) ?? new Map<string, z.ZodTypeAny>()
+    alternatives.set(JSON.stringify(zodToJsonSchema(field)), field); fields.set(key, alternatives)
+  }
+  for (const [key, alternatives] of fields) {
+    const schemas = [...alternatives.values()]
+    shape[key] = (schemas.length === 1 ? schemas[0]! : z.union([schemas[0]!, schemas[1]!, ...schemas.slice(2)])).optional()
+  }
+  return z.object(shape).strict().superRefine((value, context) => {
+    const parsed = exact.safeParse(value)
+    if (!parsed.success) for (const issue of parsed.error.issues) context.addIssue(issue)
+  })
 }
 export type InquiryStep = InquiryControlStep | z.infer<typeof localParserSteps> | z.infer<typeof semanticParserSteps> | z.infer<ReturnType<typeof focusedSteps>>
 const resultModelSchema = (mode?: "behavior" | "conformance") => mode ? AuthorizationInquiryResultSchema.extend({ questions: z.array(mode === "behavior" ? InquiryQuestionResultSchema.omit({ policyAssessment: true }) : InquiryQuestionResultSchema.extend({ policyAssessment: InquiryQuestionResultSchema.shape.policyAssessment.unwrap() })) }) : AuthorizationInquiryResultSchema
