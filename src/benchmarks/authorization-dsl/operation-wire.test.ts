@@ -8,7 +8,7 @@ import { emptyTokenUsage } from "../../core/types.ts"
 import type { FocusStage } from "./inquiry-focus.ts"
 import { zodToJsonSchema } from "../../providers/structured.ts"
 
-const common = { schemaVersion: "authorization-focused-update/v1", focusId: "current" }
+const common = { schemaVersion: "authorization-focused-update/v1", focusId: "current" } as const
 const unit = { start: "body", complete: true, parameters: [], blocks: [{ name: "body", steps: [{ kind: "return", name: "denied", claim: "Original returns false", value: false, outcome: "deny" }] }] }
 const result = { kind: "final", schemaVersion: "authorization-focused-result/v1", focusId: "current", answers: [{ explanation: "The displayed source returns false." }], scope: "Current source only" }
 test("operation advertises one direct action container at every phase and lowers to the same canonical core", () => {
@@ -63,6 +63,13 @@ test("pure operation source steps may retain explicit routing metadata without m
       expect(schemas.schema.safeParse(invalid).success).toBe(false)
     }
   }
+})
+test("link explanation remains original data while exact links and typed source calls retain their contracts", () => {
+  const action = { ...common, kind: "link" as const, links: [{ caller: "caller", call: "exact-call", target: "offered-helper", arguments: [{ parameter: "object", object: "exact-resource" }] }], reason: "Proposed relation; the host must still check the actual source candidate." }, schemas = inquiryStepSchemas("operation-evidence-v1", false, "behavior", "link")
+  expect(schemas.modelSchema.safeParse(action).success).toBe(true)
+  expect(schemas.schema.parse(action)).toEqual({ kind: "control", controlDelta: action })
+  expect(inquiryNativeSchemas("operation-evidence-v1", true, "link").authorization_observe.parse({ controlDelta: action })).toEqual({ controlDelta: action })
+  for (const invalid of [{ ...action, reason: 3 }, { ...action, calls: [{ name: "get_serializer", arguments: [] }] }, { ...action, kind: "tool" }]) expect(schemas.schema.safeParse(invalid).success).toBe(false)
 })
 test("actual structured provider receives the direct operation schema and its original bodies reach the shared runtime", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "au-step-"))

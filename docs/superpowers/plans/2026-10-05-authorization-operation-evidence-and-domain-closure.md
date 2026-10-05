@@ -404,3 +404,7 @@ AU0/1创建薄runner后登记其真实typecheck、单位置运行和replay命令
 - AU1 实际接口：`AuthorizationInquirySchema` 分发 strict v1/v2；v2 operations `{id,request,entryHint?}`，question 增加必需 `operationId,intent`，其余原字段保留。program新增 `operations`（sourceQuestionId为宿主选取的首个behavior题，否则首题）、`operationQuestions`及 `originalDeclaration`；每操作只编译一套六类来源工作，旧checker消费每题的独立投影。v1每题保留独立操作，绝不凭问法自动合并。运行先接受当前完整source入口绑定，再从其参数化source units投影，question级premiseValues/policyRules不共享。来源身份包含repo/ref、入口symbol与源码修订；调用身份仍由semantic-flow的显式arguments与invocation管理。结构/解释/机械checked分别存储，semanticSupport均unreviewed；入口撤回与依赖revision变化撤回关联投影，旧草稿保留。新增策略沿用focused循环，结构取证插入同一worklist，不另建provider循环。
 
 - 2026-10-05：根据研究§7.50–7.51与当前接口核验制定AU0–AU21。用户明确要求派发 `gpt-6.1-sol / max` 开发。此时仅任务书/方法合同与导航同步，生产实现和本轮实验尚未开始。派发后的新线程负责连续推进和更新状态。
+
+- 2026-10-06 AU10第八轮/AU14阶段：同题第八轮13/13known、transport-failed，累计118/118；来源metadata实际三步通过，7单元含initial/精确文档validator，无final。独立只读`au_share_eighth_wire`/`au_share_eighth_quality`与主SHA原件核对完成；主纠正phase-mismatch推断、遗漏单元/来源及只计末请求token。named `link-explanation-v1`仅保留typed原说明，精确helper/参数反例继续拒绝，原seq12无损零调用proof；seq5/13不重写。
+- AU14显式实现计划已按TDD落实：先写6位置/任务identity、公开policy/premise只改对应字段、known partial与unknown反例、per-material source变化和单文件唯一条款测试；再复用initialize/compare/executeLocalInquiryRun与source-copy/edit helpers，完成原输入同SHA配对、partial-only lock、旧答案不导入、previous拒绝不自动fresh。未使用AT full-base准入，也未派变化provider。缺实现及completionUnknown反例先红，修后focused/联合通过。
+- 新鲜联合797pass/1skip/5123断言，AU类型通过；测试literal修正后主类型复核。先提交/推origin，再同题第九轮验证link-explanation-v1；若仍有相同语义或阶段缺口，按实际原因调整接口或有限未达归因，不原样无限重抽。尚未执行的Gitea、ordinary/author/consumer/changes/quality保持未运行。

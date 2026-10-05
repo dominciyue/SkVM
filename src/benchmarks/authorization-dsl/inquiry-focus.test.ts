@@ -352,6 +352,9 @@ test("operation missing-argument link takes priority and offers only the actual 
   const link = current.links[0]
   expect(link.targets).toHaveLength(1)
   const reads = tools.toolCalls
+  const rejected = await runtime.propose({ schemaVersion: "authorization-focused-update/v1", focusId: current.focus.id, kind: "link", reason: "The explanation does not prove this invented source relation", links: [{ caller: link.caller, call: link.call, target: "wrong-helper", arguments: [{ parameter: "actor", object: "actor" }] }] })
+  expect(rejected.diagnostics.some(d => d.code === "focus-link-target")).toBe(true)
+  expect((runtime.modelContext() as any).focus.id).toBe(current.focus.id)
   await runtime.propose({ schemaVersion: "authorization-focused-update/v1", focusId: current.focus.id, kind: "link", links: [{ caller: link.caller, call: link.call, target: link.targets[0].handle, arguments: [{ parameter: "actor", object: "actor" }] }] })
   expect(runtime.report().slice.rules.some(r => r.gap === "semantic-argument-unbound")).toBe(false)
   expect(tools.toolCalls).toBe(reads)

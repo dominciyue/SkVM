@@ -24,7 +24,7 @@ const common = { schemaVersion: z.literal("authorization-focused-update/v1"), fo
 const actions = {
   interpret: z.object({ ...common, kind: z.literal("interpret"), unit: FocusedUnitSchema, also: z.array(z.object({ itemId: InquiryText, unit: FocusedUnitSchema }).strict()).max(3).default([]), values: z.array(binding).max(32).default([]) }).strict(),
   locate: z.object({ ...common, kind: z.literal("select"), candidateId: InquiryText }).strict(),
-  link: z.object({ ...common, kind: z.literal("link"), links: z.array(z.object({ caller: InquiryText, call: InquiryText, target: InquiryText, arguments: z.array(z.object({ parameter: InquiryText, object: InquiryText }).strict()).max(16).optional() }).strict()).min(1).max(8) }).strict(),
+  link: z.object({ ...common, kind: z.literal("link"), links: z.array(z.object({ caller: InquiryText, call: InquiryText, target: InquiryText, arguments: z.array(z.object({ parameter: InquiryText, object: InquiryText }).strict()).max(16).optional() }).strict()).min(1).max(8), reason: InquiryText.optional() }).strict(),
   review: z.object({ ...common, kind: z.literal("review"), claims: z.array(z.object({ claim: InquiryText, verdict: z.enum(["confirmed", "gap", "correct"]), explanation: InquiryText }).strict()).min(1).max(32) }).strict(),
 }
 const defer = z.object({ ...common, kind: z.literal("defer"), reason: InquiryText, revisit: InquiryText.optional(), nextItemId: InquiryText.optional() }).strict()
