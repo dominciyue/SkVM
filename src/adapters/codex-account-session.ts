@@ -64,7 +64,7 @@ function controls(config: unknown = {}, skills: unknown = {}): Record<string, un
     web_search: "disabled", default_permissions: "skvm-account", project_doc_max_bytes: 0, project_doc_fallback_filenames: [], instructions: "", developer_instructions: "",
     mcp_servers: Object.fromEntries(Object.keys(object(installed.mcp_servers)).map(k => [k, { enabled: false }])),
     plugins: Object.fromEntries(Object.keys(object(installed.plugins)).map(k => [k, { enabled: false }])),
-    skills: { config: [...new Set(skillPaths)].map(p => ({ path: p, enabled: false })) },
+    skills: { config: [...new Set(skillPaths)].map(p => ({ path: p, enabled: false })), bundled: { enabled: false }, include_instructions: false },
     permissions: { "skvm-account": { filesystem: { ":root": "deny", ":minimal": "read", ":workspace_roots": { ".": "read" } }, network: { enabled: false } } } }
 }
 function safeConfig(value: unknown): Record<string, unknown> {
@@ -73,6 +73,7 @@ function safeConfig(value: unknown): Record<string, unknown> {
     web_search: c.web_search, project_doc_max_bytes: c.project_doc_max_bytes, project_doc_fallback_filenames: c.project_doc_fallback_filenames, instructions: c.instructions, developer_instructions: c.developer_instructions, default_permissions: c.default_permissions,
     mcp_servers: Object.fromEntries(Object.entries(object(c.mcp_servers)).map(([k, v]) => [k, { enabled: object(v).enabled }])),
     plugins: Object.fromEntries(Object.entries(object(c.plugins)).map(([k, v]) => [k, { enabled: object(v).enabled }])),
+    skills: { config: Array.isArray(object(c.skills).config) ? (object(c.skills).config as unknown[]).map(v => ({ path: object(v).path, name: object(v).name, enabled: object(v).enabled })) : undefined, bundled: { enabled: object(object(c.skills).bundled).enabled }, include_instructions: object(c.skills).include_instructions },
     permissions: { "skvm-account": { extends: profile.extends, workspace_roots: profile.workspace_roots, filesystem: profile.filesystem, network: { enabled: object(profile.network).enabled } } } }
 }
 function configFailure(config: unknown, skills: unknown): string | undefined {
@@ -84,6 +85,8 @@ function configFailure(config: unknown, skills: unknown): string | undefined {
       object(fs[":workspace_roots"])["."] !== "read" || Object.keys(fs).some(k => ![":root", ":minimal", ":workspace_roots", "glob_scan_max_depth"].includes(k)) ||
       Object.keys(object(fs[":workspace_roots"])).some(k => k !== ".") || object(profile.network).enabled !== false) return "account-controlled-permissions-not-effective"
   const entries = object(skills).data
+  const configuredSkills = object(c.skills)
+  if (object(configuredSkills.bundled).enabled !== false || configuredSkills.include_instructions !== false || !Array.isArray(configuredSkills.config) || configuredSkills.config.some(s => object(s).enabled !== false)) return "account-extra-skills-enabled"
   if (!Array.isArray(entries) || entries.some(entry => {
     const e = object(entry)
     return !Array.isArray(e.skills) || e.skills.some(skill => object(skill).enabled !== false) || !Array.isArray(e.errors) || e.errors.length
@@ -185,7 +188,9 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
         void execution.then(output => { if (active) transport!.send({ id: message.id, result: output }) }); return
       }
       if (!active || params.threadId !== threadId || turnId && (params.turnId ?? params.turn?.id) !== turnId) return
-      if (message.method === "item/started" && ["commandExecution", "fileChange", "mcpToolCall", "webSearch", "collabAgentToolCall", "imageGeneration", "browserToolCall", "computerUseToolCall"].includes(params.item?.type)) { failure = "unexpected-native-account-tool:" + params.item.type; finish("unavailable"); return }
+      const nativeTypes = ["commandExecution", "fileChange", "mcpToolCall", "webSearch", "collabAgentToolCall", "imageGeneration", "browserToolCall", "computerUseToolCall"]
+      const nativeItem = message.method?.startsWith("item/") && nativeTypes.includes(params.item?.type) ? params.item : message.method === "turn/completed" ? params.turn?.items?.find((i: { type: string }) => nativeTypes.includes(i.type)) : undefined
+      if (nativeItem) { failure = "unexpected-native-account-tool:" + nativeItem.type; finish("unavailable"); return }
       if (message.method === "model/rerouted") { failure = "account-model-rerouted"; finish("unavailable") }
       if (message.method === "item/completed" && params.item?.type === "agentMessage" && [null, undefined, "final_answer"].includes(params.item.phase)) text = params.item.text ?? ""
       if (message.method === "turn/completed") {

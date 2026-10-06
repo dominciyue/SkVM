@@ -1943,6 +1943,8 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 首件`account-anonymous-tool-smoke/original`返回“code-mode host is disabled”，0宿主回调；不能记成源码失败或账号不可推理。官方[工具模式源码](https://github.com/openai/codex/blob/main/codex-rs/core/src/tools/mod.rs)表明远端model tool_mode可优先于本地开关；[受限globals](https://github.com/openai/codex/blob/main/codex-rs/code-mode-runtime/src/runtime/globals.rs)及[拒绝模块导入的resolver](https://github.com/openai/codex/blob/main/codex-rs/code-mode-runtime/src/runtime/module_loader.rs)支持约束Code Mode而非将其当Node执行器。主代理修复生产配置并恢复DynamicToolSpec的type:function，唯一具名`bounded-code-mode`修订完成一次真实宿主lookup及精确消费。首件可见input/output/cacheRead为26649/549/20352；修订为10361/105/4992，cacheRead是input内的明细，不能相加为总prompt。内部请求数和USD均null，CLI重试也未被伪记为已知请求。当前验证只证明账号工具链；性质四个红测仍失败，完整原skill/变化/作者/对照尚未派发。结果身份：[AX原件](../../results/skill-ir/skill-dsl-research/development/authorization-property-execution-v1/manifest.json)。官方源码为当时main的实现依据，安装版本兑现以有效元数据及当前真实回调为证。
 
+独立账号复核后，新增“仅完成事件/仅terminal items含原生执行”红测并修复，避免漏掉没有started事件的执行记录；配置同时显式关闭并核验`skills.bundled.enabled`和`skills.include_instructions`，不单靠skills/list。新字段经本机无推理配置探测确认为false；不追加第三次smoke或改写既有首件/修订。空实际instructionSources不强制生成额外准入文件；非空来源仍逐项核验当前SHA。当前31项账号/CLI回归、131断言通过。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
