@@ -22,6 +22,9 @@ const focusedStepSchema = z.discriminatedUnion("kind", [
   SemanticStepSchema.options[0], SemanticStepSchema.options[1], SemanticStepSchema.options[2],
   SemanticStepSchema.options[3].omit({ callee: true }), SemanticStepSchema.options[4],
   SemanticStepSchema.options[5], SemanticStepSchema.options[6], SemanticStepSchema.options[7], SemanticStepSchema.options[8], SemanticStepSchema.options[9],
+  // Host source lowering emits the same finite value/exception/loop/context
+  // controls as the shared semantic core. Only call.callee is host-owned.
+  ...SemanticStepSchema.options.slice(10),
 ])
 export const FocusedUnitSchema = SemanticBlockSchema.omit({ itemId: true, handle: true, op: true, role: true, repairsDraftId: true }).extend({ blocks: z.array(SemanticBlockSchema.shape.blocks.element.extend({ steps: z.array(focusedStepSchema).max(160) })).min(1).max(32) })
 const common = { schemaVersion: z.literal("authorization-focused-update/v1"), focusId: InquiryText, reason: InquiryText.optional() }

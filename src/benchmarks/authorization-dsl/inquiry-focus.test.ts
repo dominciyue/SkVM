@@ -10,6 +10,7 @@ import { zodToJsonSchema } from "../../providers/structured.ts"
 import { runAuthorizationInquiry } from "./inquiry-run.ts"
 import { createNativeInquiryRuntime } from "./inquiry-native.ts"
 import { emptyTokenUsage } from "../../core/types.ts"
+import { FocusedUnitSchema } from "./inquiry-focus.ts"
 
 async function setup(count = 3) {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "at-focus-"))
@@ -23,6 +24,20 @@ async function setup(count = 3) {
 }
 const body = { start: "main", complete: true, blocks: [{ name: "main", steps: [{ kind: "return", name: "ok", claim: "Source returns successfully without a mutation", outcome: "allow", value: true }] }] }
 const interpret = (focusId: string, unit: unknown = body) => ({ schemaVersion: "authorization-focused-update/v1", focusId, kind: "interpret", unit })
+
+test("focused source units accept finite exception/loop/context-manager and value control steps", () => {
+  const steps = [
+    { kind: "assign-value", name: "value", claim: "Source assignment", result: "x", value: { literal: true } },
+    { kind: "short-circuit", name: "short", claim: "Source short circuit", operator: "and", language: "python", left: { literal: true }, right: { literal: false }, body: "other", result: "x" },
+    { kind: "try", name: "protected", claim: "Source try", body: "other", handlers: [], finally: "other" },
+    { kind: "raise", name: "failure", claim: "Source operation failure", exceptionType: "LookupError", failureKind: "operation" },
+    { kind: "with", name: "context", claim: "Source context manager", enter: "other", body: "other", exitUnknown: true },
+    { kind: "loop", name: "loop", claim: "Source finite loop", iterable: [], body: "other" },
+    { kind: "break", name: "stop", claim: "Source loop exit" },
+    { kind: "continue", name: "next", claim: "Source iteration exit" },
+  ]
+  for (const step of steps) expect(FocusedUnitSchema.safeParse({ ...body, blocks: [{ name: "main", steps: [step] }, { name: "other", steps: [] }] }).success).toBe(true)
+})
 
 test("focused transport preserves a malformed local body for current-focus diagnostics", async () => {
   const { runtime } = await setup(1), current: any = runtime.modelContext()
