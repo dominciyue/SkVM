@@ -16,6 +16,8 @@ Share 第十轮 request16 和 Gitea 原字节消费者 request22 的完成与 us
 
 最终联合验证 844 pass/1 平台 skip/5472 断言，主/AU 类型通过；[零模型回放](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/verification/au18-final-replay.json)验证 87 个原件文件字节保持。累计 386 派发/384 响应，已知 fresh 10,326,651、cacheRead 1,663,488、完整 prompt 11,990,139、output 349,570；2 项 usage 未知，美元、开发/探子用量和真人时间未知，目标执行 0。有限队列结束与研究达标分别记录。
 
+**收束后复核新增三项待修责任：** 唯一词法候选把OWUI任务中的write选为audit入口；带行号pathHint导致Download已有helper无法连接；结构ID混入预算/绝对目录造成同源码身份变化。[研究§7.54](skill-dsl-research.md#754-au-收束后复核入口来源连接和身份稳定性)保存零调用复现及后续建议。77项定向测试/509断言通过；生产代码和旧AU原件未改。下一轮宜先修这三项，再减轻模型构造低层程序的负担，并调整纯只读请求超时的整任务封存规则。新开发尚未派发。
+
 最近的 [AT0–AT19](../superpowers/plans/2026-10-05-authorization-focused-closure-and-delivery.md) 有限队列已以 `completed-with-unmet-criteria` 收束。持久focus、宿主身份、纯有限helper摘要、字段/返回对象、源码终检和双入口已实现。[AT summary](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/summary.json)分别记录工程、实际使用、比较和成本结论；原件和封存保留。
 
 12质量首位置均实跑、源码partial、checked/bounded为0；4完整原skill原/变native和4有效忠实作者稿的原字节消费均已完成。两个original native的自然条件说明充分，formal仍失败；changed native及消费者均partial。政策/前提fresh各一次，两previous因无full checked/bounded基础实际阻断、0调用。相同源码副本/输入的两次fresh均partial，第二次终答正确说明移除exact-document guard，第一次仍unknown。Go注释误定位具名消费者修订消除了假入口，但仍partial。37原件关闭、556派发/556响应，无活动或未知完成；[accounting](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/accounting.json)记录完整prompt 9,400,874、output 403,256，美元/真人/开发未知、目标执行0。718项共享回归及40项provider/研究检查通过（集合有重叠，不相加），双类型通过；[37原件零调用重放](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/verification/at17-final-replay.json)通过且原字节未改。搜索读取8,379,114→2,039,548字节仅证明机械减负；质量/净收益未建立，底层未闭合而未追加消融。
@@ -58,6 +60,6 @@ AQ 旧/新策略 full均为2/20，原 skill checked交付为0/4；具体分母�
 - 当前队列：[当前计划](skill-ir-aot-optimization-plan.md)；方法合同：[spec AU](skill-ir-aot-optimization-spec.md#1434-au-operation-evidence-contract)。
 - 分类、方法、复盘：[唯一研究正文](skill-dsl-research.md)；旧结果：[证据索引](evidence-index.md)、[历史](history.md)、[实验目录](../../results/skill-ir/experiment-catalog.json)。
 
-[治理](../superpowers/plans/2026-10-04-workspace-and-document-governance.md)已完成材料收存、旧日志压缩、正文归并和停止后的入口校正。当前阅读集 15 份，版本化材料 14 份；研究仍统一在一个正文中。原件及恢复索引在 `project-maintenance/20261004-governance/`，AR/AS 结果及 `.skvm` 保留。五份可再生成的 Python 字节码已清除；三个此前删除被拒绝的空目录保留。AS、AT、AU 有限执行均已结束；AU 开发线程在本轮拥有共享代码、方法文档、状态与 Git 的唯一写入责任。Git 实时状态以实际检查为准。
+[治理](../superpowers/plans/2026-10-04-workspace-and-document-governance.md)已完成材料收存、旧日志压缩、正文归并和停止后的入口校正。当前阅读集 15 份，版本化材料 14 份；研究仍统一在一个正文中。原件及恢复索引在 `project-maintenance/20261004-governance/`，AR/AS 结果及 `.skvm` 保留。五份可再生成的 Python 字节码已清除；三个此前删除被拒绝的空目录保留。AS、AT、AU 有限执行均已结束，AU开发线程已停止；本次仅补充收束后的复核证据和下一步建议。Git 实时状态以实际检查为准。
 
 更新本页时替换过时段落，不把逐次测试与派发日志不断追加为新的“当前状态”。

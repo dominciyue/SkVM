@@ -1812,6 +1812,24 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 **未达责任与已尝试修订。** Share决定性serializer/object/permission链经十轮接口、来源和关系修订仍未完整交付，原未知request16封存；Gitea经三轮structured、原/变native、作者唯一字段修订和原消费者仍无充分创建/权限链，原未知request22封存。OWUI外层caller、认证与truthiness/content分支未完整交付，D没有实际选择已找到的正确入口；Download N充分，M无accepted来源、D root/callee未闭合且遗漏已可见前置权限与版本分支。未证明新的共享binder或日志故障，不追加原样重抽、别名身份、消融或另一个任务；作者忠实性、机械减负和有限队列结束均不能替代研究验收。
 
+### 7.54 AU 收束后复核：入口、来源连接和身份稳定性
+
+2026-10-06，复核 `7f5bab6c`。登记、原件和质量分母与§7.53一致；重新读取 Download N/D 与 OWUI D 的自然终答，并点验运行核心。77项针对性测试、509断言通过，未重复844项历史联合验证。三项零模型探针发现以下共享机制缺口，证据见[复核结果](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/verification/post-au-review-20261006.json)和[可重复探针](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/verification/post-au-review-20261006.ts)。本次没有修改生产实现、调用模型或改写旧报告。
+
+| 问题 | 复核所得 | 下一步代码责任 |
+|---|---|---|
+| 无关词语成为操作入口 | `inquiry-tools.ts` 的 symbolHints按词匹配函数名；`inquiry-worklist.ts`在entryHint无候选时转用整段任务，并自动选择唯一候选。真实`/process/file`提示候选为0，任务中的`write`却恰好命中AuditLogger.write，原报告selectedBy为unique-index-candidate。当前结构索引只建DRF register/Go route关系，没有Python decorator route模型 | 按显式route/限定符号和源码连接生成入口候选；普通动词命中只能是待确认线索。补Python装饰器路由及相关性反例。已有select工具仍应保留，但不能将自动错选完全归于模型未纠正 |
+| 已有helper因位置格式连接失败 | Download原解释的pathHint为`src/documents/views.py:1429-1448`，`operationCallSources`只比较文件/目录路径，匹配数为0。只在内存副本将其改成纯文件路径，匹配变为1，entry立即绑定到已接受的DocumentViewSet receiver helper | 将文件、范围和候选ID做成统一来源选择器；接收时明确校验或无损解析有行号的位置，错误格式返回对应诊断，不能沉默地变成缺失源码。仍须检查实参、控制分支及实际授权对象 |
+| 源码身份混入运行选项 | `createInquiryTools`把整个options传给buildStructureIndex，后者把identity对象整体加入符号/调用ID。匿名同源码、repo/ref探针只变maxToolCalls或sourceRoot，symbol ID和index revision均改变 | 来源身份显式选取repo/ref、相对路径、源码内容与语法位置；运行预算/绝对目录另存。增加同源码搬移、预算变化、真实源码修改三类回归；旧ID的恢复须按确切来源核验，不能盲认旧缓存 |
+
+第二项探针为适配本次索引，仅按文件、SHA和精确范围在内存中重绑定三个单元的source ID；没有改它们的含义、实参或旧原件。恢复一个callee连接尚未完成整个Download分析；原草稿仍有参数、条件和返回分支缺口。第三项验证了身份不稳定这一机制，实际复用损失还需通过生产恢复入口测量。旧评阅“未证明新的共享binder缺陷”保留为当时的结论；上述定位格式问题补充了此前漏掉的直接原因。
+
+**任务负担仍需调整。** focused入口已经由宿主管理item/handle等身份，不能再说所有机械ID都由模型填写。但模型仍需写blocks/choose、typed bind/alias、call arguments、return/effect及多阶段修订，见`inquiry-focus.ts`执行指南与`semantic-flow.ts`。现阶段运行更像要求模型边审源码、边编写一份低层解释程序。下一版应继续复用现有核心，将源码可直接确定的调用名称、实参位置、来源选择器及有限条件骨架交给解析器；模型集中标注主体、资源、授权作用及难以静态解释的局部条件。只从实际源码生成骨架，评价答案仍隔离。超出支持范围时保留具体局部解释缺口，避免重新扩成通用IR。
+
+**交付与流程也有两个问题。** Download D终答把未通过内部callee检查写成来源缺失，还把未给独立policy列入behavior分析的不完整原因；同源N答案已说明前置权限、root与版本对象、空version和文件选择。后续需要分别输出“源码未读/不可得”“内部映射尚未建立”“用户前提未知”“独立政策未提供”，保存已经有据的自然说明。两次只读模型请求超时又经旧assertNoUnknownTask扩散到同一逻辑任务的全部变体，导致19个首位零调用封存。AU当时遵守了任务书，但该规则过宽；下一轮应重新定义请求生命周期和有界恢复，仅把有副作用或仍由活动执行器处理的请求作为整任务暂停依据。旧未知请求、费用、失败分母及本轮封存原件保持，未来重试要明记，不能挑成功结果替换失败。
+
+**建议的后续顺序。** 先将三项复现转为生产失败测试并修共享实现，再做来源事实到领域结论的接口减负及精确缺口反馈。用Download作为已有充分自然答案的开发对照，随后检验OWUI的入口与跨对象分支；在两条真实链实际交付后再扩展原skill作者/变化消费与配对面板。同一源码、模型、预算下分别记录自然答案质量、机器检查和开销。该建议尚未派发开发，也未解封或重跑旧任务；无需先再开一轮宽泛调研。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
