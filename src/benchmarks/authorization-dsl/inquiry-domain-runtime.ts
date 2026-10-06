@@ -16,6 +16,8 @@ import { FINITE_PERMISSION_GUIDE } from "../../task-dsl/authorization/control-ev
 import { diagnosticWork, sourceRelationRevision } from "./operation-work.ts"
 import { bindOperationCalls, operationCallTargets, type OperationSourceLink } from "./operation-links.ts"
 import type { SourceSkeleton } from "./evidence-preparation/source-skeleton.ts"
+import { createSourceMaterials, sourceMaterialId, type SourceMaterialSnapshot } from "../../task-dsl/authorization/source-materials.ts"
+import { projectSourceMaterials, type SourceMaterialUse } from "./source-material-projection.ts"
 
 export type DomainAblation = "scheduler-off" | "checks-off"
 type RuntimeDomainCheck = Omit<ReturnType<typeof checkControlConclusions>, "ruleConsistency"> & { ruleConsistency: boolean | null }
@@ -43,7 +45,7 @@ export const DOMAIN_EXECUTION_GUIDE = [
 export const GUIDED_EXECUTION_GUIDE = [LOCAL_CONTROL_GUIDE, LOCAL_EXTRACTION_GUIDE, ...DOMAIN_EXECUTION_GUIDE.split("\n").slice(2, 6).map(line => line.replace(/Known bindings are only explicit USER premises:.*?This mapping is a model interpretation, not source truth\./, "Only known premiseValues from exact current user spans enter evaluation; mapping meaning remains unreviewed.").replace(/\{key,questionId/g, "{op,targetKey,questionId")), RESULT_BRANCH_GUIDE, "For unspecified values, retain alternative feasible outcomes and name the missing fact. Local extraction and mapping meaning remain unreviewed."].join("\n")
 
 /** One shared state machine used by structured inquiry and ordinary native tools. */
-export function createInquiryDomainRuntime(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; strategy?: InquiryStrategy; sourceAssisted?: boolean; entryContext?: string; remainingActions?: () => number; ablation?: DomainAblation; suppliedUserText?: string[]; shownEvidenceIds?: () => string[]; initialDelta?: unknown; initialSemanticUnits?: BoundSemanticBlock[] }) {
+export function createInquiryDomainRuntime(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; strategy?: InquiryStrategy; sourceAssisted?: boolean; entryContext?: string; remainingActions?: () => number; ablation?: DomainAblation; suppliedUserText?: string[]; shownEvidenceIds?: () => string[]; initialDelta?: unknown; initialSemanticUnits?: BoundSemanticBlock[]; initialSourceMaterials?: SourceMaterialSnapshot }) {
   let slice: ControlSlice = createControlSlice(), check: RuntimeDomainCheck | undefined, closed = false
   const scheduler = createInquiryDomainScheduler({ ...options, evaluateConditions: options.ablation !== "checks-off" }), proposals: Array<{ delta: unknown; diagnostics: InquiryDiagnostic[]; revision: number; accepted?: UpdateAcceptance[]; rejected?: UpdateRejection[]; withdrawn?: UpdateWithdrawal[]; withdrawalRejected?: UpdateRejection[]; unresolved?: unknown[] }> = []
   let currentRejections: UpdateRejection[] = []
@@ -52,6 +54,8 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const operationEvidence = isOperationInquiryStrategy(options.strategy)
   const worklist = isGuidedInquiryStrategy(options.strategy) ? createInquiryWorklist({ ...options, structural: operationEvidence, requireEntryBasis: options.sourceAssisted, semanticUnits: () => semanticUnits, dependencyStates: () => scheduler.snapshot(), skeletonState: (id, receiver) => sourceSkeletons.get(skeletonKey(id, receiver)) }) : undefined
   const facts = operationEvidence ? createOperationFacts(options.program, options.tools.identity) : undefined
+  const materials = options.strategy === "operation-evidence-v3" ? createSourceMaterials({ ...options.tools.identity, semanticVersion: "finite-control/v1" }, options.initialSourceMaterials) : undefined
+  let materialUses: SourceMaterialUse[] = []
   let semanticUnits: BoundSemanticBlock[] = structuredClone(options.initialSemanticUnits ?? [])
   const sourceLinks: OperationSourceLink[] = []
   const sourceSkeletons = new Map<string, SourceSkeleton>(), skeletonKey = (id: string, receiver?: string) => `${id}:${receiver ?? ""}`
@@ -76,18 +80,28 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const invalidateDelivery = () => { if (options.sourceAssisted) { currentAnswer = undefined; check = undefined } }
   const evidenceContext = () => ({ questionIds: options.program.questions.map(q => q.id), shownEvidenceIds: options.shownEvidenceIds?.() ?? options.tools.evidence.map(e => e.id), suppliedUserText: options.suppliedUserText, globalUserText: options.entryContext ? [options.entryContext] : [] })
   const calculate = <T>(fn: () => T): T => { const started = performance.now(); try { return fn() } finally { computation.durationMs += performance.now() - started } }
-  const sourceUnits = () => facts ? projectOperationUnits(options.program, semanticUnits, facts.snapshot()) : semanticUnits
+  const sourceUnits = () => {
+    if (materials && options.tools.structure) { const projected = projectSourceMaterials(options.program, semanticUnits, materials.snapshot(), options.tools.structure); materialUses = projected.uses; return projected.units }
+    return facts ? projectOperationUnits(options.program, semanticUnits, facts.snapshot()) : semanticUnits
+  }
+  const sourceDependencies = (unit: BoundSemanticBlock) => {
+    const index = options.tools.structure, symbol = index?.symbols.find(s => s.id === unit.source!.id)
+    const receiverClass = worklist?.snapshot().find(i => i.id === unit.itemId)?.receiverClass ?? unit.receiverClass
+    return [{ kind: "source-span" as const, key: unit.source!.path, revision: unit.source!.sha256 }, { kind: "symbol-resolution" as const, key: unit.source!.id, revision: unit.source!.sha256 }, ...(symbol && index ? [{ kind: "candidate-set" as const, key: `relations:${symbol.id}:${receiverClass ?? ""}`, revision: sourceRelationRevision(index, symbol.id, receiverClass)! }] : []), ...(symbol?.className && index ? [{ kind: "candidate-set" as const, key: `${symbol.className}:${symbol.name}`, revision: index.candidateRevision(symbol.className, symbol.name) }] : []), ...(worklist?.report().frameworkDependencies ?? [])]
+  }
   const retainFacts = () => {
     if (!facts) return
+    for (const unit of semanticUnits.filter(u => u.source)) if (materials) {
+      const identity = { ...options.tools.identity, semanticVersion: "finite-control/v1" }
+      const retained = materials.snapshot().materials.find(m => m.current && sourceMaterialId(identity, m.unit, []) === sourceMaterialId(identity, unit, []))
+      materials.accept(unit, sourceDependencies(unit), retained?.interpretationSource ?? "model")
+    }
     for (const operation of options.program.operations ?? []) {
       const entry = semanticUnits.find(u => u.questionId === operation.sourceQuestionId && u.role === "entry" && u.source)
       if (!entry?.source) continue
       facts.bind(operation.id, entry.source)
       for (const unit of semanticUnits.filter(u => u.questionId === operation.sourceQuestionId && u.source)) {
-        const index = options.tools.structure, symbol = index?.symbols.find(s => s.id === unit.source!.id)
-        const receiverClass = worklist?.snapshot().find(i => i.id === unit.itemId)?.receiverClass ?? unit.receiverClass
-        const dependencies = [{ kind: "source-span" as const, key: unit.source!.path, revision: unit.source!.sha256 }, { kind: "symbol-resolution" as const, key: unit.source!.id, revision: unit.source!.sha256 }, ...(symbol && index ? [{ kind: "candidate-set" as const, key: `relations:${symbol.id}:${receiverClass ?? ""}`, revision: sourceRelationRevision(index, symbol.id, receiverClass)! }] : []), ...(symbol?.className && index ? [{ kind: "candidate-set" as const, key: `${symbol.className}:${symbol.name}`, revision: index.candidateRevision(symbol.className, symbol.name) }] : []), ...(worklist?.report().frameworkDependencies ?? [])]
-        facts.accept(operation.id, unit, dependencies)
+        facts.accept(operation.id, unit, sourceDependencies(unit))
       }
     }
   }
@@ -219,7 +233,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
           if (operation && owned?.selected?.id !== parsed.data.candidateId) focus?.sourceRelocated()
           if (facts && operation && identity && identity.entrySymbolId !== parsed.data.candidateId) {
             facts.unbind(operation.id, "entry-selection-changed")
-            semanticUnits = semanticUnits.filter(u => u.questionId !== operation.sourceQuestionId)
+            semanticUnits = semanticUnits.filter(u => u.questionId !== operation.sourceQuestionId || !!materials && u.role === "helper")
             slice.policyRules = slice.policyRules.filter(p => !options.program.operationQuestions?.some(q => q.operationId === operation.id && q.questionId === p.questionId))
             const lowered = calculate(() => lowerIntoControlSlice(slice, sourceUnits(), options.program, evidenceContext(), true)); computation.merges++; slice = lowered.state
             for (const k of issues.keys()) if (k.startsWith("$semantic-lower.")) issues.delete(k)
@@ -383,7 +397,18 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const promptContext = (limits: { maxSourceBytes?: number; finalOnly?: boolean } = {}) => {
     const context = modelContext(limits)
     if (!options.sourceAssisted || !focus || !("questions" in context)) return context
-    const taskView = ({ question, policy: _policy, existingTargets: _targets, relatedDuties, duty, ...task }: LocalExplanationTask & { sourceSkeleton?: SourceSkeleton }) => ({ ...task, questionId: question.id, duty: { kind: duty.kind, symbol: duty.symbol, parentId: duty.parentId, reason: duty.reason }, relatedDuties: relatedDuties.map(({ id, kind }) => ({ id, kind })), ...(task.sourceSkeleton ? { sourceSkeleton: { ...task.sourceSkeleton, anchors: task.sourceSkeleton.anchors.map(({ text, ...anchor }) => text.length > 256 ? { ...anchor, textReference: anchor.selector } : { ...anchor, text }) } } : {}) })
+    const skeletonView = (s: SourceSkeleton) => {
+      const finite = options.strategy === "operation-evidence-v3", { edges, ...body } = s
+      // Flow is the canonical nested execution order. Edges and per-anchor
+      // shared source metadata remain in the host/raw skeleton, not repeated in
+      // every model envelope. Full source windows and every anchor ID survive.
+      return { ...body, ...(finite ? { anchorLocation: "selector/textReference ranges inherit path, candidateId and SHA from source; flow supplies execution order" } : { edges }), anchors: s.anchors.map(({ text, sourceSha256, selector, ...anchor }) => {
+        const { path: _path, candidateId: _candidate, ...range } = selector
+        const location = finite ? range : selector
+        return { ...anchor, selector: location, ...(!finite ? { sourceSha256 } : {}), ...(text.length > 256 ? { textReference: location } : { text }) }
+      }) }
+    }
+    const taskView = ({ question, policy: _policy, existingTargets: _targets, relatedDuties, duty, ...task }: LocalExplanationTask & { sourceSkeleton?: SourceSkeleton }) => ({ ...task, questionId: question.id, duty: { kind: duty.kind, symbol: duty.symbol, parentId: duty.parentId, reason: duty.reason }, relatedDuties: relatedDuties.map(({ id, kind }) => ({ id, kind })), ...(task.sourceSkeleton ? { sourceSkeleton: skeletonView(task.sourceSkeleton) } : {}) })
     const delivery = deliverySnapshot()
     return { ...context, tasks: context.tasks.map(taskView), locationTasks: context.locationTasks.map(({ question, ...task }) => ({ ...task, questionId: question.id })), mode: options.program.mode, policy: options.program.policy, gaps: delivery.gaps.slice(0, 24), gapCount: delivery.gaps.length, obligations: delivery.obligations, deliveryRevision: delivery.revision }
   }
@@ -435,7 +460,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     }
     return { ...state, ...(fullWorklist ? { worklist: worklistModelView(fullWorklist) } : {}), diagnostics: diagnostics.slice(0, 16).map(modelDiagnostic), diagnosticCount: diagnostics.length, rejectedTargets, rejectedTargetCount: rejections.length }
   }
-  const liveReport = () => ({ slice: structuredClone(slice), proposals: structuredClone(proposals), sourceWorkMetrics: options.sourceAssisted ? sourceWorkMetrics() : undefined, delivery: options.sourceAssisted ? deliverySnapshot() : undefined, currentRejections: structuredClone(currentRejections), localExtractions: structuredClone(localExtractions), ...(facts ? { operationFacts: facts.snapshot(), sourceLinks: structuredClone(sourceLinks), structure: options.tools.structure ? { schemaVersion: options.tools.structure.schemaVersion, revision: options.tools.structure.revision, parser: options.tools.structure.parser, relationshipVersion: options.tools.structure.relationshipVersion, preparation: options.tools.structure.preparation, diagnostics: options.tools.structure.diagnostics } : undefined } : {}), ...(isSemanticInquiryStrategy(options.strategy) ? { semantic: { units: structuredClone(semanticUnits), records: structuredClone(semanticRecords), assemblies: structuredClone(assemblies) } } : {}), ...(focus ? { focus: focus.report() } : {}), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions), ...worklist.report() } } : {}), objectFeedback: { revision: objectRevision, diagnostics: structuredClone(objectDiagnostics) }, check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed })
+  const liveReport = () => ({ slice: structuredClone(slice), proposals: structuredClone(proposals), sourceWorkMetrics: options.sourceAssisted ? sourceWorkMetrics() : undefined, delivery: options.sourceAssisted ? deliverySnapshot() : undefined, currentRejections: structuredClone(currentRejections), localExtractions: structuredClone(localExtractions), ...(materials ? { sourceMaterials: materials.snapshot(), materialUses: structuredClone(materialUses) } : {}), ...(facts ? { operationFacts: facts.snapshot(), sourceLinks: structuredClone(sourceLinks), structure: options.tools.structure ? { schemaVersion: options.tools.structure.schemaVersion, revision: options.tools.structure.revision, parser: options.tools.structure.parser, relationshipVersion: options.tools.structure.relationshipVersion, preparation: options.tools.structure.preparation, diagnostics: options.tools.structure.diagnostics } : undefined } : {}), ...(isSemanticInquiryStrategy(options.strategy) ? { semantic: { units: structuredClone(semanticUnits), records: structuredClone(semanticRecords), assemblies: structuredClone(assemblies) } } : {}), ...(focus ? { focus: focus.report() } : {}), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions), ...worklist.report() } } : {}), objectFeedback: { revision: objectRevision, diagnostics: structuredClone(objectDiagnostics) }, check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed })
   let closedReport: ReturnType<typeof liveReport> | undefined
   const report = () => {
     const result = structuredClone(closedReport ?? liveReport())

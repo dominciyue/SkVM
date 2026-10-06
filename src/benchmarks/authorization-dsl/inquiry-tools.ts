@@ -22,7 +22,7 @@ export interface InquiryToolOutput {
 export interface InquiryToolsOptions {
   sourceRoot: string; allowedPaths: string[]; repository: string; sourceRef: string;
   maxFiles?: number; maxReadBytes?: number; maxDisplayBytes?: number; maxToolCalls?: number;
-  reserveFinalRead?: boolean; structure?: boolean
+  reserveFinalRead?: boolean; structure?: boolean; controlSemantics?: "finite-control/v1"
 }
 export interface InquirySourceVerification { valid: boolean; code?: string; message?: string; checkedFiles: number; physicalReadBytes: number }
 const excluded = new Set([".git", "node_modules", ".skvm", ".aws", ".codex", ".agents", "__pycache__", ".venv", "venv", "oracle", "oracles", "evaluator", "results", "held-out", "prospective", "tests", "__tests__"])
@@ -107,7 +107,7 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
     const symbol = structure?.symbols.find(s => s.id === symbolId)
     if (!structure || !symbol) return undefined
     const key = `${symbolId}:${receiverClass ?? ""}:${evidence.filter(e => e.path === symbol.path).map(e => e.id).join(",")}`
-    if (!skeletons.has(key)) skeletons.set(key, await buildSourceSkeleton(structure, symbol, evidence, receiverClass))
+    if (!skeletons.has(key)) skeletons.set(key, await buildSourceSkeleton(structure, symbol, evidence, receiverClass, options.controlSemantics))
     return skeletons.get(key)
   }
   const originalWindow = (source: SourceBundleFile, start: number, end: number): InquiryEvidence => {

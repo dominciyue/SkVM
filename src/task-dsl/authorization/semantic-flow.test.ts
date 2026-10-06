@@ -173,3 +173,81 @@ test("typed field aliases name their mismatch and an explicit source field bind 
   expect(controlObjectDiagnostics(r.slice)).toEqual([])
   expect(r.slice.rules.find((n: any) => n.kind === "effect").resource).toBe(r.slice.rules.find((n: any) => n.kind === "guard").resource)
 })
+
+const finiteUnit = (blocks: any[], extra = {}) => unit(blocks, { coverage: "path", ...extra })
+const parseFinite = ({ questionId, evidenceIds, ...semantic }: any) => api.SemanticBlockSchema.safeParse(semantic)
+test("finite try matches an explicit exception and finally runs before handler return", () => {
+  const root = finiteUnit([
+    block("main", [{ kind: "try", name: "protected", claim: "try except else finally", body: "attempt", handlers: [{ exceptionTypes: ["Denied"], catchesAll: false, body: "denied" }], otherwise: "normal", finally: "cleanup" }, { kind: "effect", name: "after", claim: "after protected region" }]),
+    block("attempt", [{ kind: "raise", name: "raise", claim: "Explicit rejection", exceptionType: "Denied", failureKind: "authorization" }]),
+    block("denied", [{ kind: "return", name: "denied", claim: "Forbidden response", outcome: "deny" }]),
+    block("normal", [{ kind: "effect", name: "normal", claim: "else only on normal completion" }]),
+    block("cleanup", [{ kind: "effect", name: "cleanup", claim: "finally always runs" }]),
+  ])
+  expect(parseFinite(root).success).toBe(true)
+  const r = lower([root])
+  expect(r.paths).toHaveLength(1)
+  expect(r.paths[0].disposition).toBe("deny")
+  expect(r.delta.rules.filter((r: any) => r.kind === "effect").map((r: any) => r.sourceOrigin.step)).toEqual(["cleanup"])
+  expect(r.delta.rules.at(-1).terminal).toBe(true)
+})
+
+test("finally overrides a pending return and normal try alone reaches else", () => {
+  const root = finiteUnit([block("main", [{ kind: "try", name: "protected", claim: "try finally", body: "attempt", handlers: [], otherwise: "normal", finally: "cleanup" }]), block("attempt", [{ kind: "return", name: "allowed", claim: "Pending success", outcome: "allow" }]), block("normal", [{ kind: "effect", name: "normal", claim: "Not reached after a return" }]), block("cleanup", [{ kind: "raise", name: "cleanup-fails", claim: "Finally overrides success", exceptionType: "Fault", failureKind: "operation" }])])
+  const r = lower([root])
+  expect(r.delta.rules.at(-1).failureKind).toBe("operation")
+  expect(r.paths[0].disposition).not.toBe("allow")
+  expect(r.delta.rules.filter((r: any) => r.kind === "effect")).toEqual([])
+})
+
+test("Python short circuit skips RHS and retains a false scalar without boolean coercion", () => {
+  const root = finiteUnit([block("main", [{ kind: "short-circuit", name: "and", claim: "0 and RHS", operator: "and", language: "python", left: { literal: 0 }, right: { literal: true }, body: "rhs", result: "answer" }, { kind: "guard", name: "raw-zero", claim: "Raw source value", condition: eq("answer", 0) }, { kind: "return", name: "done", claim: "Endpoint outcome", outcome: "allow" }]), block("rhs", [{ kind: "effect", name: "rhs-effect", claim: "Only if left is true" }])])
+  const r = lower([root])
+  expect(r.paths.filter((p: any) => p.state === "checked")).toHaveLength(1)
+  expect(r.paths.find((p: any) => p.state === "checked").protectedEffect).toBe("none")
+  expect(r.delta.rules.find((r: any) => r.sourceOrigin.step === "raw-zero" && r.condition.left.literal === 0)).toBeDefined()
+})
+
+test("literal loop honors continue, break and else without executing later iterations", () => {
+  const root = finiteUnit([block("main", [{ kind: "loop", name: "loop", claim: "for value in [0,1,2]", target: "value", iterable: [0, 1, 2], body: "iteration", otherwise: "exhausted" }, { kind: "return", name: "done", claim: "Complete endpoint", outcome: "allow" }]), block("iteration", [{ kind: "choose", name: "exit", claim: "Source loop exits", cases: [{ condition: eq("value", 0), body: "skip" }, { condition: eq("value", 1), body: "break" }], otherwise: "write" }]), block("skip", [{ kind: "continue", name: "continue", claim: "Next iteration" }]), block("break", [{ kind: "break", name: "break", claim: "Leave loop" }]), block("write", [{ kind: "effect", name: "write", claim: "Never reached for this source list" }]), block("exhausted", [{ kind: "effect", name: "else", claim: "Only on exhaustion" }])])
+  expect(parseFinite(root).success).toBe(true)
+  const r = lower([root])
+  const checked = r.paths.filter((p: any) => p.state === "checked")
+  expect(checked).toHaveLength(1)
+  expect(checked[0].protectedEffect).toBe("none")
+})
+
+test("a reached context exit is unknown while an earlier independent return stays complete", () => {
+  const root = finiteUnit([block("main", [{ kind: "choose", name: "choice", claim: "Optional context", cases: [{ condition: eq("flag", true), body: "early" }], otherwise: "context" }]), block("early", [{ kind: "return", name: "done", claim: "Before unsupported context", outcome: "allow" }]), block("context", [{ kind: "with", name: "with", claim: "Context protocol not interpreted", enter: "enter", body: "body", exitUnknown: true }]), block("enter", []), block("body", [{ kind: "effect", name: "write", claim: "Body effect" }])], { complete: false })
+  const r = lower([root], [known("flag", true, "Flag is true.")])
+  expect(r.paths.find((p: any) => p.state === "checked").complete).toBe(true)
+  expect(r.paths.find((p: any) => p.state === "checked").disposition).toBe("allow")
+  expect(r.delta.rules.some((r: any) => r.gap === "semantic-context-exit-unknown")).toBe(true)
+})
+
+test("a short-circuit raw value maps into a helper parameter and its explicit raise reaches caller finally", () => {
+  const helper = finiteUnit([block("main", [{ kind: "choose", name: "zero", claim: "Raw value is zero", cases: [{ condition: eq("value", 0), body: "denied" }], otherwise: "ok" }]), block("denied", [{ kind: "raise", name: "denied", claim: "Explicit exception", exceptionType: "Denied", failureKind: "authorization" }]), block("ok", [{ kind: "return", name: "ok", claim: "Return value", value: true }])], { handle: "helper", role: "helper", parameters: [{ name: "value", type: "value" }] })
+  const root = finiteUnit([block("main", [{ kind: "short-circuit", name: "raw", claim: "0 and unknown", operator: "and", language: "python", left: { literal: 0 }, right: { binding: "unknown" }, body: "rhs", result: "raw" }, { kind: "try", name: "protected", claim: "Catch helper", body: "invoke", handlers: [{ exceptionTypes: ["Denied"], catchesAll: false, body: "caught" }], finally: "cleanup" }]), block("rhs", []), block("invoke", [{ kind: "call", name: "helper", symbol: "helper", callee: "helper", arguments: [{ parameter: "value", object: "raw" }], claim: "Pass raw value" }]), block("caught", [{ kind: "return", name: "denied", claim: "Denied response", outcome: "deny" }]), block("cleanup", [{ kind: "effect", name: "cleanup", claim: "Cleanup caller" }])])
+  const r = lower([root, helper])
+  expect(r.diagnostics).toEqual([])
+  expect(r.paths).toHaveLength(1)
+  expect(r.paths[0].disposition).toBe("deny")
+  expect(r.delta.rules.filter((r: any) => r.kind === "effect").map((r: any) => r.sourceOrigin.step)).toEqual(["cleanup"])
+})
+
+test("an unknown call exception can enter a typed handler or propagate without claiming a completed effect", () => {
+  const root = finiteUnit([block("main", [{ kind: "try", name: "protected", claim: "Unknown call failure", body: "invoke", handlers: [{ exceptionTypes: ["Denied"], catchesAll: false, body: "caught" }], otherwise: "normal" }]), block("invoke", [{ kind: "effect", name: "write", claim: "May fail before effect", mayRaise: true }]), block("caught", [{ kind: "return", name: "denied", claim: "Denied response", outcome: "deny" }]), block("normal", [{ kind: "return", name: "allowed", claim: "Normal response", outcome: "allow" }])])
+  const r = lower([root])
+  expect(r.paths.map((p: any) => p.disposition).sort()).toEqual(["allow", "deny", "unknown"])
+  expect(r.paths.find((p: any) => p.disposition === "deny").protectedEffect).toBe("none")
+  expect(r.paths.find((p: any) => p.disposition === "unknown").gaps).toContain("semantic-exception-type-unknown")
+})
+
+test("an uncertain earlier handler is considered before a later exact or catch-all handler", () => {
+  const root = finiteUnit([block("main", [{ kind: "try", name: "ordered", claim: "Source handler order", body: "raise", handlers: [{ exceptionTypes: ["dynamic_type"], unknownType: true, catchesAll: false, body: "early" }, { exceptionTypes: ["Denied"], catchesAll: false, body: "late" }] }]), block("raise", [{ kind: "raise", name: "raised", claim: "Known exception", exceptionType: "Denied", failureKind: "authorization" }]), block("early", [{ kind: "return", name: "early", claim: "Earlier handler", outcome: "allow" }]), block("late", [{ kind: "return", name: "late", claim: "Later exact handler", outcome: "deny" }])])
+  const r = lower([root])
+  expect(r.paths.map((p: any) => p.disposition).sort()).toEqual(["allow", "deny"])
+  const unknown = structuredClone(root); (unknown.blocks[1]!.steps[0] as any).exceptionType = undefined
+  ;(unknown.blocks[0]!.steps[0] as any).handlers = [{ exceptionTypes: ["Denied"], catchesAll: false, body: "early" }, { exceptionTypes: [], catchesAll: true, body: "late" }]
+  expect(lower([unknown]).paths.map((p: any) => p.disposition).sort()).toEqual(["allow", "deny"])
+})

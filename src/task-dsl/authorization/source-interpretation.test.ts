@@ -10,6 +10,18 @@ import { lowerSemanticFlow, semanticBlockDiagnostics } from "./semantic-flow.ts"
 import { evaluateControlPaths, controlObjectDiagnostics } from "./control-conclusion.ts"
 const api = await import("./source-interpretation.ts").catch(() => ({} as any))
 
+test("source staticmethod arguments retain the supplied request rather than the instance receiver", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "aw-static-call-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "class View:\n    @staticmethod\n    def helper(request):\n        return request\n    def entry(self, request):\n        return self.helper(request)\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1" })
+  const source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id))!
+  const r = api.lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations: skeleton.anchors.filter(a => a.kind === "call" || a.kind === "return").map(a => ({ anchorId: a.id, role: a.kind === "call" ? "permission" : "context", explanation: "Test-authored source call", ...(a.kind === "return" ? { returnOutcome: "allow" } : {}) })), unresolved: [] }, { index: tools.structure, itemId: "entry", handle: "entry", questionId: "q", role: "entry" })
+  expect(r.diagnostics).toEqual([])
+  expect(r.unit.blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call").arguments).toEqual([{ parameter: "request", object: "request" }])
+})
+
 async function fixture() {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "av-interpret-"))
   await writeFile(path.join(sourceRoot, "app.py"), "def entry(actor, a, b, flag):\n    if not flag:\n        return False\n    b.write(actor=actor)\n    return True\n")
@@ -72,6 +84,36 @@ test("host branches preserve deny/effect alternatives and an explicitly claimed 
   const wrongFlow = lowerSemanticFlow([{ ...annotated.unit, questionId: "q", source: f.skeleton.source, evidenceIds: f.skeleton.evidenceIds }])
   const wrongState = mergeControlSlice(createControlSlice(), wrongFlow.delta, f.program, { questionIds: ["q"], shownEvidenceIds: f.skeleton.evidenceIds }).state
   expect(controlObjectDiagnostics(wrongState).some(d => d.code === "control-object-mismatch")).toBe(true)
+})
+
+test("a malformed changed field retains other valid annotations and never overwrites an accepted anchor", async () => {
+  const f = await fixture(), accepted = api.lowerSourceInterpretation(f.skeleton, f.proposal, f.options)
+  const changed = { ...f.proposal, annotations: [{ ...f.annotations[0], explanation: "Valid local clarification" }, { ...f.annotations.at(-1), returnOutcome: "success" }] }
+  const r = api.lowerSourceInterpretation(f.skeleton, changed, { ...f.options, previous: accepted.interpretation })
+  expect(r.unit).toBeUndefined()
+  expect(r.diagnostics.map((d: any) => d.code)).toContain("source-interpretation-schema")
+  expect(r.interpretation.annotations.find((a: any) => a.anchorId === f.annotations[0]!.anchorId).explanation).toBe("Valid local clarification")
+  expect(r.interpretation.annotations.find((a: any) => a.anchorId === f.annotations.at(-1)!.anchorId).returnOutcome).toBe("allow")
+  const stale = api.lowerSourceInterpretation(f.skeleton, { ...changed, revision: "old" }, { ...f.options, previous: accepted.interpretation })
+  expect(stale.interpretation).toEqual(accepted.interpretation)
+})
+
+test("finite source regions lower through the shared semantic checker with conditional RHS and typed handlers", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "aw-interpret-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def entry(actor):\n    answer = 0 and actor.check()\n    try:\n        raise Denied\n    except Denied:\n        return False\n    finally:\n        actor.cleanup()\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1" })
+  const source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id))!
+  const annotations = skeleton.anchors.filter(a => a.interpretationRequired).map(a => ({ anchorId: a.id, role: "context", explanation: "Test-authored source role", ...(a.kind === "return" ? { returnOutcome: "deny" } : a.kind === "raise" ? { failureKind: "authorization" } : {}) }))
+  const r = api.lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index: tools.structure, itemId: "entry", handle: "entry", questionId: "q", role: "entry" })
+  expect(r.diagnostics).toEqual([])
+  expect(r.unit.coverage).toBe("path")
+  expect(r.unit.blocks.flatMap((b: any) => b.steps).map((s: any) => s.kind)).toEqual(expect.arrayContaining(["short-circuit", "try", "raise"]))
+  expect(semanticBlockDiagnostics(r.unit)).toEqual([])
+  const flow = lowerSemanticFlow([{ ...r.unit, questionId: "q", evidenceIds: skeleton.evidenceIds, source: skeleton.source }])
+  expect(flow.delta.rules.some(r => r.sourceOrigin?.step.includes(skeleton.anchors.find(a => a.call?.expression === "actor.check")!.id))).toBe(false)
+  expect(flow.delta.rules.filter(r => r.terminal).some(r => r.outcome === "deny")).toBe(true)
 })
 
 test("unshown anchors, stale revisions, invalid roles and explanation without a predicate stay local repairs", async () => {

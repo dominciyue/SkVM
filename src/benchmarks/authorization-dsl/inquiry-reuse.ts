@@ -11,13 +11,15 @@ import { hasUnknownAuthorizationCompletion } from "./telemetry.ts"
 import { SemanticBlockSchema, lowerSemanticFlow, type BoundSemanticBlock } from "../../task-dsl/authorization/semantic-flow.ts"
 import type { StructureIndex } from "./evidence-preparation/structure-index.ts"
 import { structuralDependencyRevision } from "./operation-work.ts"
+import { createSourceMaterials, sourceMaterialId, type SourceMaterialSnapshot } from "../../task-dsl/authorization/source-materials.ts"
 
-export interface InquiryReuseSeed { delta: z.infer<typeof ControlSliceDeltaSchema>; evidence: InquiryEvidence[]; semanticUnits?: BoundSemanticBlock[] }
+export interface InquiryReuseSeed { delta: z.infer<typeof ControlSliceDeltaSchema>; evidence: InquiryEvidence[]; semanticUnits?: BoundSemanticBlock[]; sourceMaterials?: SourceMaterialSnapshot }
 export interface InquiryReuseInfo {
   previousSessionId: string; change: "unchanged" | "policy-only" | "premise-only" | "policy-and-premise" | "source-changed" | "incompatible";
   answerReused: false; semanticSupport: "unreviewed"; reusedRuleKeys: string[]; invalidatedPolicyKeys: string[]; invalidatedPremiseKeys: string[]
   reuseLevel?: "materials"; reusedMaterials?: string[]; invalidatedMaterials?: Array<{ handle: string; reasons: string[] }>
   legacyRebindings?: Array<{ handle: string; previousId: string; currentId: string }>
+  eligible?: boolean; materialsAvailable?: number; materialsRestored?: number; materialsUsed?: number
 }
 /** Plan reuse of bounded source interpretation; never reuse answers, check results or dependency state. */
 export function planInquiryReuse(options: {
@@ -36,6 +38,7 @@ export function planInquiryReuse(options: {
   const premiseOnly = taskChanged && isDeepStrictEqual(withoutPremises(current), withoutPremises(old))
   const change: InquiryReuseInfo["change"] = sourceChanged ? "source-changed" : !taskChanged ? "unchanged" : policyOnly ? "policy-only" : premiseOnly ? "premise-only" : "incompatible"
   const info: InquiryReuseInfo = { previousSessionId: options.previousSessionId, change, answerReused: false, semanticSupport: "unreviewed", reusedRuleKeys: [], invalidatedPolicyKeys: [], invalidatedPremiseKeys: [] }
+  if (options.currentStrategy === "operation-evidence-v3") return planSourceMaterials(options, info)
   if (isOperationInquiryStrategy(options.currentStrategy)) return planOperationMaterials(options, info)
   if (sourceChanged) reasons.push("Allowed source bytes or indexed file set changed; dependency closure cannot prove unaffected interpretation.")
   if (!isGuidedInquiryStrategy(options.currentStrategy) || options.currentStrategy !== options.previousStrategy || options.currentMethod !== options.previousMethod || options.currentModel !== options.previousModel) reasons.push("Model, method or exact guided strategy is incompatible with the previous extraction.")
@@ -74,6 +77,41 @@ export function planInquiryReuse(options: {
   } catch {
     return { status: "needs-fresh-analysis" as const, info, reasons: ["Previous extraction no longer matches the current bounded control schema."] }
   }
+}
+
+function planSourceMaterials(options: Parameters<typeof planInquiryReuse>[0], info: InquiryReuseInfo) {
+  const current = options.currentInput, old = options.previousInput, prior = options.previousRun, index = options.currentStructure
+  const snapshot = prior.domain?.sourceMaterials, evidence = prior.evidence ?? [], files = new Map(options.currentFiles.map(f => [f.path, f.sha256]))
+  Object.assign(info, { reuseLevel: "materials", eligible: false, materialsAvailable: snapshot?.materials.filter(m => m.current).length ?? 0, materialsRestored: 0, materialsUsed: 0, reusedMaterials: [], invalidatedMaterials: [] })
+  const stable = (v: AuthorizationInquiryInput) => ({ ...v, sourceRoot: undefined, mode: undefined, policy: undefined, inquiry: v.inquiry ? { ...v.inquiry, mode: undefined, policy: undefined, questions: v.inquiry.questions.map(q => ({ ...q, premises: [] })) } : undefined })
+  const reasons: string[] = []
+  if (!current.inquiry || !old.inquiry || !isDeepStrictEqual(stable(current), stable(old))) reasons.push("Materials require the same original operation/questions/source scope.")
+  if (!index || options.currentStrategy !== options.previousStrategy || options.currentMethod !== options.previousMethod || options.currentModel !== options.previousModel) reasons.push("Current structure, method, model and exact strategy must match.")
+  if (!snapshot || snapshot.schemaVersion !== "authorization-source-materials/v1" || prior.domain?.closed !== true || prior.sourceVerification?.valid === false || prior.attempts?.some(a => a.status === "pending")) reasons.push("Missing source-material footprint or unclosed local consumer; historical reports are never reconstructed.")
+  if (reasons.length) return { status: "needs-fresh-analysis" as const, info, reasons }
+  info.eligible = true
+  if (info.change === "incompatible") info.change = "policy-and-premise"
+  const identity = { repository: current.repository, sourceRef: current.sourceRef, semanticVersion: "finite-control/v1" }, store = createSourceMaterials(identity)
+  for (const material of snapshot!.materials.filter(m => m.current)) {
+    const failures: string[] = []
+    try {
+      if (canonicalControl(material.identity) !== canonicalControl(identity) || material.id !== sourceMaterialId(identity, material.unit, material.dependencies)) throw new Error("material-identity")
+      if (!index!.symbols.some(s => s.id === material.source.id && s.sha256 === material.source.sha256)) failures.push("source-symbol:changed-or-unavailable")
+      for (const d of material.dependencies) if ((d.kind === "source-span" ? files.get(d.key) : structuralDependencyRevision(index!, d)) !== d.revision) failures.push(`${d.kind}:${d.key}:changed-or-unavailable`)
+      if (material.evidenceIds.some(id => { const e = evidence.find(e => e.id === id); return !e || e.repository !== current.repository || e.sourceRef !== current.sourceRef || files.get(e.path) !== e.sha256 })) failures.push("original-evidence:changed-or-unavailable")
+      if (!failures.length) store.accept(material.unit, material.dependencies, material.interpretationSource)
+    } catch (error) { failures.push(String(error)) }
+    if (failures.length) info.invalidatedMaterials!.push({ handle: material.id, reasons: [...new Set(failures)] })
+    else info.reusedMaterials!.push(material.id)
+  }
+  const sourceMaterials = store.snapshot(), semanticUnits = sourceMaterials.materials.map(m => structuredClone(m.unit)), needed = new Set(sourceMaterials.materials.flatMap(m => m.evidenceIds))
+  const content = ({ id: _id, digest: _d, sourceBound: _b, semanticSupport: _s, ...item }: any) => item
+  const bindings = (prior.domain?.slice.bindings ?? []).filter(b => isDeepStrictEqual(current.inquiry!.questions.find(q => q.id === b.questionId), old.inquiry!.questions.find(q => q.id === b.questionId)))
+  info.invalidatedPremiseKeys = (prior.domain?.slice.bindings ?? []).filter(b => !bindings.includes(b)).map(b => `${b.questionId}.${b.key}`)
+  info.invalidatedPolicyKeys = (prior.domain?.slice.policyRules ?? []).map(p => `${p.questionId}.${p.key}`)
+  info.materialsRestored = sourceMaterials.materials.length
+  const delta = ControlSliceDeltaSchema.parse({ schemaVersion: "authorization-control-slice/v1", rules: [], dependencies: [], bindings: bindings.map(content), policyRules: [] })
+  return { status: "reusable" as const, info, reasons: sourceMaterials.materials.length ? [] : ["No current material passed its original dependency/evidence footprint; restored and used counts are zero."], seed: { delta, evidence: structuredClone(evidence.filter(e => needed.has(e.id))), sourceMaterials, semanticUnits } }
 }
 
 function planOperationMaterials(options: Parameters<typeof planInquiryReuse>[0], info: InquiryReuseInfo) {

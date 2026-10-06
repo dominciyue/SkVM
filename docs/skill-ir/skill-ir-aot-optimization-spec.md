@@ -2564,7 +2564,7 @@ Go机械来源覆盖包含multiline链式route及if initializer的实际调用/�
 
 ### 14.36 AW control materials and account runtime contract
 
-2026-10-07，用户要求根据 AV 复核书写下一轮任务书并派发 gpt-6.1-sol / max。[AW0–AW22](../superpowers/plans/2026-10-07-authorization-control-materials-and-account-runtime.md)以真实控制语义、局部材料和执行成本为开发责任。代码基线 85379549，当前为设计/派发阶段，尚未实现新行为。新策略规划 operation-evidence-v3，旧默认与旧数据读取保持兼容。
+2026-10-07，用户要求根据AV复核书派发gpt-6.1-sol/max连续开发。[AW0–AW22](../superpowers/plans/2026-10-07-authorization-control-materials-and-account-runtime.md)现已完成适用离线工程，状态completed-with-unmet-criteria；工程基线85379549。显式operation-evidence-v3已实现，旧默认与旧数据读取兼容；真实账号实验受工具边界能力限制而未派发，研究目标未达。
 
 **控制语义。** 来源骨架须区分正常/异常退出、try/handler/else/finally、短路 RHS 到达、with 的异常抑制及有限循环。语法结构由源码提供，授权角色/条件仍由模型解释；异常类型与授权拒绝/操作失败分开。无法解释的控制只在真正依赖路径上保留缺口；不能将整块无条件展开、凭函数名推授权或因一个无关 gap 抹去所有独立结果。函数摘要与调用实例保持真实参数、receiver、返回对象及来源依赖。
 
@@ -2575,6 +2575,10 @@ Go机械来源覆盖包含multiline链式route及if initializer的实际调用/�
 **账号运行。** 当前本机 Codex CLI 已以 ChatGPT 登录，元数据目录包含 gpt-5.6-sol；实际推理与工具能力尚未验证。AW 通过官方 app-server、CLI 自管登录和明确 codex-account adapter 接入同一领域工具，避免套成普通 provider 而漏掉 Codex 内部循环。SDK/CLI 不能兑现工具边界时只交付工程诊断，不让内置读写/网络工具绕过来源范围和 evaluator 隔离。账号凭据不进入项目或日志。旧第三方付费 API 和 AV 十二旧位置继续暂停；用户已明确回复允许使用当前账号做实验；通道验证通过后可连续执行，不再重复询问。
 
 **比较。** 新账号运行单独身份，记录模型、effort、CLI/harness、实际可见事件和用量；旧 xty 同名模型不作为同通道基线。普通原 skill、自然前端加核心、声明前端加核心在同条件下分别评价。账号开销不能写成零，内部调用或 USD 不可见保持 unknown。所有失败和针对性修订留账，原结果不覆盖；工程、真实完整链、材料级复用和整体收益分别验收。
+
+**实施边界。** v3有限Python列表至多8项，路径/递归上限不扩大；未知异常子类型、上下文退出、动态循环后续及复杂实参仍为具体缺口。材料快照采用authorization-source-materials/v1，语义身份包含finite-control/v1，并记录model/test-authored/revalidated-original来源；同一store已retired的身份不重新激活，当前重新核验应建立新store记录。投影额外校验精确sourceCallId与实际参数顺序/keyword/default，静态方法不注入self。v3恢复只带当前有效材料、原证据及仍相同的显式前提，不带旧policy/rules/final/check。模型载荷合并共享来源元数据，完整骨架保留在宿主/raw中，原窗口/锚点/嵌套flow保留。
+
+账号公开入口是普通`run --adapter=codex-account`和`authorization inquiry run --harness=codex-account`，模型限定gpt-5.6-sol/high，M/D1及N普通只读工具共用native核心；D0和无法兑现的provider请求/token/请求超时/自动恢复限额明确拒绝。宿主工具/read/display/session限额继续生效。当前官方stdio transport只核实initialize；缺排他工具能力时不创建thread、不推理，内部请求数不可见本身不作为阻断理由。已知凭据字段/格式和账号标识在归档副本脱敏；不是通用秘密检测器，脱敏改动过的材料仍按原身份校验失效。原始用户输入是保留的任务声明，不读取账号凭据文件。五项结果与具体未达见[AW summary](../../results/skill-ir/skill-dsl-research/development/authorization-control-materials-v1/summary.json)。
 
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）

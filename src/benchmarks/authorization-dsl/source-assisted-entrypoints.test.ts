@@ -170,3 +170,35 @@ test("ordinary source-assisted natural-session export retains its declaration an
   expect(compared.providerCalls).toBe(0)
   expect(dispatches).toBe(before)
 })
+
+for (const native of [false, true]) test(`v3 ${native ? "native" : "inquiry"} enables finite control and saves material through the production entrance`, async () => {
+  const { root, sourceRoot, inputFile } = await fixture(), stages: string[] = []
+  const complete = async (params: CompletionParams) => {
+    if (!params.tools?.length) return response("The original entry denies this source path.")
+    const context = currentContext(params), value = action(context, stages)
+    if (context.focus.stage === "interpret") {
+      const shown = context.tasks[0]!.sourceSkeleton
+      expect(shown.controlSemantics).toBe("finite-control/v1")
+      // The whole original window and annotatable identities remain available,
+      // while one common source digest replaces its repetition at every anchor.
+      expect((context as any).sourceWindows.some((w: any) => w.text === "1 | def entry():\n2 |     return False\n")).toBe(true)
+      expect(shown.anchors.some(a => a.kind === "return" && a.id === shown.flow[0]!.anchorId)).toBe(true)
+      expect(JSON.stringify(shown).split(shown.source.sha256).length - 1).toBe(1)
+    }
+    if (!native) return response("", [{ id: "step", name: "submit_inquiry_step", arguments: value }])
+    if (value.kind === "final") { const { kind: _kind, ...result } = value; return response("", [{ id: "check", name: "authorization_check_result", arguments: { result } }]) }
+    return response("", [{ id: "observe", name: "authorization_observe", arguments: { controlDelta: value } }])
+  }
+  const provider: LLMProvider = { name: "mock", complete, completeWithToolResults: params => complete(params) }
+  let report: any
+  if (native) {
+    const adapter = new BareAgentAdapter(() => provider)
+    await adapter.setup({ model: "mock/model", maxSteps: 12, timeoutMs: 10000, providerOptions: { authorizationScope: inputFile, authorizationDomainTools: true, authorizationStrategy: "operation-evidence-v3", authorizationMethod: "M" } })
+    const run = await adapter.run({ prompt: brief, workDir: root }); expect(run.runStatus).toBe("ok"); report = (run.authorizationInquiry as any).domain
+  } else {
+    const run = await runAuthorizationInquiry({ sourceRoot, repository: "anonymous", sourceRef: "fixed", allowedPaths: ["app.py"], brief, provider, method: "M", strategy: "operation-evidence-v3", maxDispatches: 12 })
+    expect(run.status).toBe("completed"); report = run.domain
+  }
+  expect(report.sourceMaterials.materials).toHaveLength(1)
+  expect(report.materialUses).toHaveLength(1)
+})

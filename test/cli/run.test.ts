@@ -198,10 +198,10 @@ Options:
   --workdir=<path>                            Use this directory instead of a temp work directory
   --initial-workdir-manifest=<path>           Write a pre-agent workdir manifest outside the work directory
   --execution-observation=<path>              Write a value-free execution observation JSON sidecar
-  --authorization-scope=<path>                Opt into bounded read-only authorization source tools using an inquiry input file (bare-agent).
+  --authorization-scope=<path>                Opt into bounded read-only authorization source tools using an inquiry input file (bare-agent or codex-account).
   --authorization-domain-tools                Enable inquiry compilation, relation observations and result checking in the restricted source run.
   --authorization-strategy=<v>                Optional domain dependency scheduling, finite branch evaluation and conclusion checks; requires source scope and domain tools.
-  --authorization-method=<m>                  operation-evidence-v1/v2 frontend: M preserves the whole natural task (default); D1 counts a model-authored declaration in the same run.
+  --authorization-method=<m>                  operation-evidence-v1/v2/v3 frontend: M preserves the whole natural task (default); D1 counts a model-authored declaration in the same run.
   --authorization-trace=<path>                Save the restricted authorization tool and provider trace outside target source.
   --authorization-max-provider-calls=<n>      Restricted authorization provider dispatch cap, including retries (default: 12).
   --authorization-max-tool-calls=<n>          Restricted authorization shared source/domain tool cap (default: 24).

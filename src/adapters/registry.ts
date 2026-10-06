@@ -17,8 +17,9 @@ import { JiuwenClawAdapter } from "./jiuwenclaw.ts"
 import { PiAdapter } from "./pi.ts"
 import { ClaudeCodeAdapter } from "./claude-code.ts"
 import { createProviderForModel } from "../providers/registry.ts"
+import { CodexAccountAdapter } from "./codex-account.ts"
 
-export const ALL_ADAPTERS = ["bare-agent", "openclaw", "opencode", "hermes", "jiuwenclaw", "pi", "claude-code"] as const
+export const ALL_ADAPTERS = ["bare-agent", "openclaw", "opencode", "hermes", "jiuwenclaw", "pi", "claude-code", "codex-account"] as const
 
 export type AdapterName = typeof ALL_ADAPTERS[number]
 
@@ -39,6 +40,7 @@ export function createAdapter(
   providerFactory?: (cfg: AdapterConfig) => LLMProvider,
 ): AgentAdapter {
   switch (name) {
+    case "codex-account": return new CodexAccountAdapter()
     case "openclaw": return new OpenClawAdapter()
     case "opencode": return new OpenCodeAdapter()
     case "hermes": return new HermesAdapter()

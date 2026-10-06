@@ -97,7 +97,7 @@ interface ConfigDraft {
   paths?: { tmpDir?: string }
 }
 
-type ConfigurableAdapter = Exclude<AdapterName, "bare-agent">
+type ConfigurableAdapter = Exclude<AdapterName, "bare-agent" | "codex-account">
 
 // ---------------------------------------------------------------------------
 // Entry point
@@ -242,7 +242,7 @@ async function runShow(): Promise<void> {
   console.log(c.bold("\nAdapters"))
   const labelW = Math.max(...ALL_ADAPTERS.map(a => a.length))
   for (const a of ALL_ADAPTERS) {
-    if (a === "bare-agent") {
+    if (a === "bare-agent" || a === "codex-account") {
       console.log(`  ${a.padEnd(labelW)}  ${c.dim("built-in (no checkout needed)")}`)
       continue
     }
@@ -900,7 +900,7 @@ async function stepAdapters(draft: ConfigDraft): Promise<void> {
     console.log(c.dim("Point one at a local git clone if you want skvm to build/run the agent"))
     console.log(c.dim("from source. Otherwise skvm tries `which <name>` on your PATH.\n"))
 
-    const configurable = ALL_ADAPTERS.filter((a): a is ConfigurableAdapter => a !== "bare-agent")
+    const configurable = ALL_ADAPTERS.filter((a): a is ConfigurableAdapter => a !== "bare-agent" && a !== "codex-account")
     const picked = await checkbox<ConfigurableAdapter>({
       message: "Which adapters do you want to configure?",
       choices: numbered(configurable.map(a => ({
@@ -1316,7 +1316,7 @@ async function runDoctor(): Promise<void> {
 
   // Adapter checkouts + native-mode readiness
   for (const a of ALL_ADAPTERS) {
-    if (a === "bare-agent") continue
+    if (a === "bare-agent" || a === "codex-account") continue
     const dir = getAdapterRepoDir(a as ConfigurableAdapter)
     const settings = getAdapterSettings(a as ConfigurableAdapter)
     const adapterHasConfig = !!dir

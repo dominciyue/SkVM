@@ -15,7 +15,7 @@ Flags use `--key=value` format (no space-separated form). `bun run skvm ...` wor
 
 For multi-step tasks, set an appropriate execution budget, for example `run --timeout-ms=900000` (15 minutes). This budget covers the source task, not subsequent optimization. A timed-out source task may have complete logs but incomplete outputs; `run --optimize` does not enter optimization in that case. Failed optimization handoffs return a nonzero process exit code, including through the top-level CLI. Increasing the budget starts a new attempt; package-export recovery does not resume a timed-out source task.
 
-Model-id placeholders. `<id>` below is shorthand for `<provider>/<model-id>` — every CLI model id must carry a `<provider>/` prefix that matches a route in `providers.routes`. OpenRouter targets use three segments (e.g. `openrouter/qwen/qwen3.5-35b-a3b`); native-SDK targets use two (e.g. `anthropic/claude-sonnet-4.6`). See [providers.md](providers.md) for the full rule.
+Model-id placeholders. Provider-backed `<id>` is shorthand for `<provider>/<model-id>` and must match a route in `providers.routes`. OpenRouter targets use three segments (e.g. `openrouter/qwen/qwen3.5-35b-a3b`); native SDK targets use two (e.g. `anthropic/claude-sonnet-4.6`). The bounded `codex-account` entrance uses the authorized bare id `gpt-5.6-sol` and CLI-owned login. See [providers.md](providers.md) for provider routes.
 
 Top-level commands:
 
@@ -34,7 +34,7 @@ Top-level commands:
 
 ## Adapters & providers
 
-Seven agent harness adapters, all registered in `src/adapters/registry.ts`:
+Eight agent harness adapters, all registered in `src/adapters/registry.ts`:
 
 - `bare-agent` — minimal built-in agent loop. Primary adapter for profiling and testing.
 - `opencode` — wraps the [OpenCode](https://github.com/sst/opencode) CLI.
@@ -43,8 +43,9 @@ Seven agent harness adapters, all registered in `src/adapters/registry.ts`:
 - `jiuwenclaw` — wraps `jiuwenclaw-cli` over JSON-RPC. Token/cost are **not** persisted upstream, so bench/profile aggregators report `$0` for jiuwenclaw runs.
 - `pi` — wraps the [pi](https://shittycodingagent.ai/) CLI (`@mariozechner/pi-coding-agent`). Populates full token/cost usage via JSON mode.
 - `claude-code` — drives the `claude -p` CLI in a sandbox. Populates token/cost usage. Heavy headless use may hit account rate limits / usage-terms.
+- `codex-account` — bounded authorization source runtime through the official Codex app-server and existing login. Requires an explicit source scope; current public tool isolation is unverified, so it stops unavailable before inference.
 
-All commands (`profile`, `aot-compile`, `run`, `bench`, `jit-optimize`) accept any of these seven via `--adapter=<name>`.
+The registry accepts `--adapter=<name>` across harness commands. `codex-account` requires bounded source configuration and is currently intended for the two authorization entrances below; it is not a general profile/compiler provider.
 
 Three LLM provider route kinds under `src/providers/`, selected per model id via `providers.routes` in `skvm.config.json` — the `<provider>/` prefix on every model id picks the matching route (first glob match wins):
 
@@ -100,6 +101,17 @@ The explicit development strategy `operation-evidence-v2` uses original source a
 For explicitly bounded ordinary runs, use `--authorization-request-timeout-ms=300000 --authorization-session-timeout-ms=7500000 --timeout-ms=7500000` together with provider/action/read/display/output caps. v2 closes timed-out local consumers before at most one recovery per request and two per position within the same total budget; remote completion and fees may stay unknown. Source-only ordinary N may opt into the same policy with `--authorization-readonly-recovery`. Writers do not receive automatic recovery. `--previous` in v2 restores only known source materials from frozen local state, recomputes answers and policy/premise mappings, and reports specific invalidated dependencies; legacy unknown sessions remain sealed. A final source verification failure withdraws current conclusions while retaining history. [AV status](../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/status.json) separates engineering verification from actual use and research effect.
 
 Three consecutive identical tool actions end an ordinary agent run with an unfinished-work error. Inspect the retained trace and specific gap before starting a new run; intermediate tool-round text is not a final report. A source-analysis report also needs a natural terminal response and nonempty final text. A blank end-turn or a source read alone does not establish delivery. Artifact-writing tasks still use their artifact contract, so they may finish without additional prose.
+
+`operation-evidence-v3` explicitly adds finite try/handler/else/finally, Python short circuit values, bounded loops and path-specific gaps. Helper source materials can be saved before an entry is accepted. Current accepted entries use helpers only through verified source calls, receivers and actual arguments. Compatible `--previous` restores dependency-valid unreviewed materials and original evidence, then computes a new policy/premise answer; it never restores an old final/check. Inspect `eligible/materialsAvailable/materialsRestored/materialsUsed` separately. Zero restored materials is `no-materials-restored`, not a reuse gain. Missing historical footprints require fresh validation. Unknown subtype/context-exit/dynamic-loop relations remain named limits.
+
+For the account entrance, use the existing CLI login and an explicit scope. The following commands are supported and currently return a specific unavailable result before inference because the installed public tool inventory cannot prove exclusive bounded tools. Login and catalog presence do not establish inference or tools verification. Full original skill text/companions remain available in ordinary run.
+
+```sh
+skvm authorization inquiry run --input=./inquiry.json --out=./account-runs --method=M --strategy=operation-evidence-v3 --harness=codex-account --model=gpt-5.6-sol --max-tool-calls=64 --max-display-bytes=786432 --max-read-bytes=33554432 --session-timeout-ms=7500000
+skvm run --skill=./security-review/SKILL.md --prompt="Review the complete task in the supplied scope." --authorization-scope=./inquiry.json --authorization-domain-tools --authorization-method=M --authorization-strategy=operation-evidence-v3 --adapter=codex-account --model=gpt-5.6-sol --authorization-max-tool-calls=64 --authorization-max-display-bytes=786432 --authorization-max-read-bytes=33554432 --authorization-session-timeout-ms=7500000 --authorization-trace=./account-trace.json
+```
+
+Account effort is fixed to high. M and D1 share the source core; a supplied complete inquiry avoids authoring. D0, external credentials/CLI overrides and provider-specific request-count/output-token/per-request-timeout/automatic-recovery limits are explicitly unsupported. Use host tool/read/display/session limits. Internal account requests and actual USD stay unknown; observed cumulative tokens, if available, are separate from cost availability. No private endpoint or paid provider fallback is used. Known credential formats and account identifiers are masked in account trace/report copies; this is not a general secret detector. The retained input file remains the original user task. [AW results](../results/skill-ir/skill-dsl-research/development/authorization-control-materials-v1/summary.json) separate engineering tests and metadata reduction from undispatched real quality/reuse experiments.
 
 For an existing security skill and a scope file containing your natural question, source identity, relative source folder and independent policy:
 

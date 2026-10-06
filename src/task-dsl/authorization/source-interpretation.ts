@@ -33,8 +33,15 @@ export const SOURCE_INTERPRETATION_GUIDE = [
 export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown, options: { index?: StructureIndex; itemId: string; handle: string; questionId: string; role: "entry" | "helper"; previous?: SourceInterpretation }) {
   const diagnostics: InquiryDiagnostic[] = []
   const fault = (code: string, path: string, message: string) => diagnostics.push({ code: `source-interpretation-${code}`, path, message, questionId: options.questionId, severity: "error" })
-  const parsed = SourceInterpretationSchema.safeParse(raw)
-  if (!parsed.success) { for (const i of parsed.error.issues) fault("schema", i.path.join("."), i.message); return { diagnostics, interpretation: options.previous } }
+  let parsed = SourceInterpretationSchema.safeParse(raw)
+  if (!parsed.success) {
+    for (const i of parsed.error.issues) fault("schema", i.path.join("."), i.message)
+    const input = raw && typeof raw === "object" ? raw as Record<string, unknown> : undefined
+    if (!input || input.revision !== skeleton.revision || !Array.isArray(input.annotations)) return { diagnostics, interpretation: options.previous }
+    // Retain schema-valid local changes, but do not compile this failed transaction.
+    parsed = SourceInterpretationSchema.safeParse({ ...input, annotations: input.annotations.filter(a => SourceAnnotationSchema.safeParse(a).success) })
+    if (!parsed.success) return { diagnostics, interpretation: options.previous }
+  }
   if (!skeleton.modelCovered) fault("source-unread", skeleton.sourceId, "The whole current original function must be shown before annotations are accepted.")
   if (parsed.data.revision !== skeleton.revision) fault("stale", "revision", "Use the current source skeleton revision; old roles cannot be rebound by position.")
   const previous = options.previous?.revision === skeleton.revision ? options.previous : undefined
@@ -46,7 +53,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
   const anchors = new Map(skeleton.anchors.map(a => [a.id, a])), at = (id?: string) => id ? anchors.get(id) : undefined
   const objectName = (id?: string) => { const a = at(id); return a?.name ?? a?.call?.resultNames[0] ?? (a ? `object-${a.id}` : undefined) }
   const bindingType = (a?: Annotation) => a && ["principal", "resource", "permission"].includes(a.role) ? a.role as "principal" | "resource" | "permission" : a?.role === "context" ? "configuration" : "value"
-  const allFlowIds = new Set<string>(), collect = (flow: SourceFlow[]) => { for (const f of flow) { allFlowIds.add(f.anchorId); collect(f.then ?? []); collect(f.otherwise ?? []) } }; collect(skeleton.flow)
+  const allFlowIds = new Set<string>(), collect = (flow: SourceFlow[]) => { for (const f of flow) { allFlowIds.add(f.anchorId); for (const part of [f.then, f.otherwise, f.body, f.enter, f.finally]) collect(part ?? []); for (const h of f.handlers ?? []) collect(h.body) } }; collect(skeleton.flow)
   for (const a of interpretation.annotations) {
     const anchor = at(a.anchorId)
     if (!anchor) { fault("anchor-unshown", a.anchorId, "Anchor is absent from this complete displayed source skeleton."); annotations.delete(a.anchorId); continue }
@@ -66,10 +73,16 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
     if (a.kind === "call" && !annotation) fault("role-required", a.id, "Interpret this actual call as decisive/context/effect, or retain it unresolved.")
   }
   if (diagnostics.length) return { diagnostics, interpretation: parsed.data.revision === skeleton.revision ? { ...interpretation, annotations: [...annotations.values()], unresolved: [...unresolved.values()] } : previous }
-  const unit: SemanticBlock = { itemId: options.itemId, handle: options.handle, op: previous ? "replace" : "add", role: options.role, start: "source-main", complete: skeleton.modelCovered && !skeleton.gaps.length && !unresolved.size, fallthrough: interpretation.fallthroughOutcome === "unknown" ? "unresolved" : interpretation.fallthroughOutcome ?? "unresolved", parameters: skeleton.anchors.filter(a => a.kind === "parameter" && a.name).map(a => ({ name: a.name!, type: bindingType(annotations.get(a.id)) })), blocks: [] }
+  const finite = skeleton.controlSemantics === "finite-control/v1"
+  const unit: SemanticBlock = { itemId: options.itemId, handle: options.handle, op: previous ? "replace" : "add", role: options.role, start: "source-main", ...(finite ? { coverage: "path" } : {}), complete: skeleton.modelCovered && !skeleton.gaps.length && !unresolved.size, fallthrough: interpretation.fallthroughOutcome === "unknown" ? "unresolved" : interpretation.fallthroughOutcome ?? "unresolved", parameters: skeleton.anchors.filter(a => a.kind === "parameter" && a.name).map(a => ({ name: a.name!, type: bindingType(annotations.get(a.id)) })), blocks: [] }
   const bind = (a: SourceAnchor): Step => ({ kind: "bind", name: `bind-${a.id}`, bindingName: objectName(a.id)!, claim: annotations.get(a.id)?.explanation ?? "Source assignment fact", type: a.literalKnown ? "value" : bindingType(annotations.get(a.id)), ...(a.literalKnown ? { value: a.literalValue! } : annotations.get(a.id)?.aliasAnchorId ? { aliasOf: objectName(annotations.get(a.id)!.aliasAnchorId)! } : {}) })
   const prologue = skeleton.anchors.filter(a => a.kind === "assignment" && !allFlowIds.has(a.id) && annotations.has(a.id) && ["principal", "resource", "permission"].includes(annotations.get(a.id)!.role)).map(bind)
   let serial = 0
+  const sourceValue = (expression?: string, literal?: { value: unknown }): Record<string, unknown> => {
+    if (literal) return { literal: literal.value }
+    const generated = skeleton.anchors.find(a => a.kind === "control" && a.valueExpression === expression)?.name ?? skeleton.anchors.find(a => a.kind === "call" && a.text === expression)?.call?.resultBinding
+    return { binding: generated ?? expression ?? "$source-value-unknown" }
+  }
   const compile = (flow: SourceFlow[], name: string, prefix: Step[] = []) => {
     const block: SemanticBlock["blocks"][number] = { name, steps: [...prefix] }; unit.blocks.push(block)
     for (const node of flow) {
@@ -81,32 +94,57 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
         block.steps.push({ kind: "choose", name: `choose-${a.id}`, claim, cases: [{ condition, body: yes }], otherwise: no })
         compile(node.then ?? [], yes, guard("true")); compile(node.otherwise ?? [], no, guard("false")); continue
       }
-      if (a.kind === "return") block.steps.push({ kind: "return", name: `return-${a.id}`, claim, ...(a.literalKnown && (a.literalValue === null || typeof a.literalValue !== "object") ? { value: a.literalValue } : {}), ...(annotation?.returnOutcome ? { outcome: annotation.returnOutcome } : {}), ...(a.valueExpression && skeleton.anchors.some(s => s.name === a.valueExpression && ["resource", "principal", "permission"].includes(annotations.get(s.id)?.role ?? "")) ? { object: a.valueExpression } : {}) })
-      else if (a.kind === "raise") block.steps.push({ kind: "reject", name: `raise-${a.id}`, claim, failureKind: annotation!.failureKind })
+      if (node.kind === "try") {
+        const region = serial++, body = `source-try-${region}`, otherwise = `source-else-${region}`, final = `source-finally-${region}`
+        const handlers = (node.handlers ?? []).map((h, i) => ({ exceptionTypes: h.exceptionTypes, catchesAll: h.catchesAll, body: `source-handler-${region}-${i}`, ...(h.unknownType ? { unknownType: true } : {}) }))
+        block.steps.push({ kind: "try", name: `try-${a.id}`, claim, body, handlers, otherwise, finally: final })
+        compile(node.body ?? [], body); compile(node.otherwise ?? [], otherwise); compile(node.finally ?? [], final)
+        for (const [i, h] of (node.handlers ?? []).entries()) compile(h.body, handlers[i]!.body)
+        continue
+      }
+      if (node.kind === "short-circuit") {
+        const body = `source-rhs-${serial++}`
+        block.steps.push({ kind: "short-circuit", name: `short-${a.id}`, claim, operator: node.operator!, language: node.language!, left: sourceValue(node.leftExpression, Object.hasOwn(node, "leftLiteral") ? { value: node.leftLiteral } : undefined), right: sourceValue(node.rightExpression, Object.hasOwn(node, "rightLiteral") ? { value: node.rightLiteral } : undefined), result: node.resultBinding!, body })
+        compile(node.body ?? [], body); continue
+      }
+      if (node.kind === "with") {
+        const region = serial++, enter = `source-enter-${region}`, body = `source-with-${region}`
+        block.steps.push({ kind: "with", name: `with-${a.id}`, claim, enter, body, exitUnknown: node.exitUnknown !== false })
+        compile(node.enter ?? [], enter); compile(node.body ?? [], body); continue
+      }
+      if (node.kind === "loop") {
+        const region = serial++, body = `source-loop-${region}`, otherwise = `source-exhausted-${region}`
+        block.steps.push({ kind: "loop", name: `loop-${a.id}`, claim, ...(node.targetName ? { target: node.targetName } : {}), ...(Object.hasOwn(node, "iterableValue") ? { iterable: node.iterableValue } : node.iterableExpression ? { iterableFrom: sourceValue(node.iterableExpression) } : {}), ...(node.conditionExpression ? { condition: { op: "truthy", language: "python", value: sourceValue(node.conditionExpression) } } : {}), body, otherwise })
+        compile(node.body ?? [], body); compile(node.otherwise ?? [], otherwise); continue
+      }
+      if (node.kind === "break" || node.kind === "continue") { block.steps.push({ kind: node.kind, name: `${node.kind}-${a.id}`, claim }); continue }
+      if (a.kind === "return") block.steps.push({ kind: "return", name: `return-${a.id}`, claim, ...(a.literalKnown && (a.literalValue === null || typeof a.literalValue !== "object") ? { value: a.literalValue } : finite && a.valueExpression ? { valueFrom: sourceValue(a.valueExpression).binding as string } : {}), ...(annotation?.returnOutcome ? { outcome: annotation.returnOutcome } : {}), ...(a.valueExpression && skeleton.anchors.some(s => s.name === a.valueExpression && ["resource", "principal", "permission"].includes(annotations.get(s.id)?.role ?? "")) ? { object: a.valueExpression } : {}) })
+      else if (a.kind === "raise") block.steps.push(finite ? { kind: "raise", name: `raise-${a.id}`, claim, exceptionType: a.exceptionType, failureKind: annotation!.failureKind, ...(!a.valueExpression ? { rethrow: true } : {}) } : { kind: "reject", name: `raise-${a.id}`, claim, failureKind: annotation!.failureKind })
       else if (a.kind === "call") {
-        if (annotation?.role === "effect") block.steps.push({ kind: "effect", name: `effect-${a.id}`, claim, operation: a.call!.expression, ...objects, ...(annotation.authorizedByAnchorIds ? { authorizedBy: annotation.authorizedByAnchorIds.map(id => `guard-${id}`) } : {}) })
-        else if (annotation?.role === "context") block.steps.push({ kind: "context", name: `context-${a.id}`, claim, relationship: "dispatch-binding" })
+        if (annotation?.role === "effect") block.steps.push({ kind: "effect", name: `effect-${a.id}`, claim, operation: a.call!.expression, ...objects, ...(finite ? { mayRaise: true } : {}), ...(annotation.authorizedByAnchorIds ? { authorizedBy: annotation.authorizedByAnchorIds.map(id => `guard-${id}`) } : {}) })
+        else if (annotation?.role === "context") block.steps.push({ kind: "context", name: `context-${a.id}`, claim, relationship: "dispatch-binding", ...(finite ? { mayRaise: true } : {}) })
         else {
           const target = a.call!.candidateIds.length === 1 ? options.index?.symbols.find(s => s.id === a.call!.candidateIds[0] && s.kind === "function") : undefined
           const args = a.call!.arguments, positional = args.filter(arg => !arg.parameterName), mapped: Array<{ parameter: string; object: string }> = []
           let position = 0
           for (const [i, parameter] of (target?.parameters ?? []).entries()) {
-            const receiver = i === 0 && target?.className && a.call!.receiver
+            const receiver = i === 0 && target?.className && target.attributes.methodBinding !== "static" && a.call!.receiver
             const supplied = receiver ? undefined : args.find(arg => arg.parameterName === parameter.name) ?? positional[position++], value = (receiver || supplied?.expression) ?? parameter.defaultExpression
             if (value) {
               const literalKnown = supplied?.literalKnown || !supplied && !receiver && parameter.defaultLiteralKnown
               if (!supplied && !receiver && !literalKnown) continue
               const nestedResult = supplied && skeleton.anchors.find(c => c.kind === "call" && c.id !== a.id && c.text === supplied.expression)?.call?.resultBinding
-              const object = literalKnown ? `literal-${a.id}-${parameter.name}` : nestedResult ?? value
+              const object = literalKnown ? `literal-${a.id}-${parameter.name}` : nestedResult ?? sourceValue(value).binding as string
               if (literalKnown) block.steps.push({ kind: "bind", name: object, claim: supplied ? "Actual literal source argument" : "Actual literal source default", type: "value", value: supplied ? supplied.literalValue! : parameter.defaultLiteralValue! })
               mapped.push({ parameter: parameter.name, object })
             }
           }
-          block.steps.push({ kind: "call", name: `call-${a.id}`, claim, symbol: a.call!.expression, arguments: mapped, result: a.call!.resultBinding, ...objects, ...(target ? { pathHint: `${target.path}:${target.startLine}-${target.endLine}`, candidateId: target.id } : {}) })
+          block.steps.push({ kind: "call", name: `call-${a.id}`, claim, symbol: a.call!.expression, ...(finite && a.call!.sourceCallId ? { sourceCallId: a.call!.sourceCallId } : {}), arguments: mapped, result: a.call!.resultBinding, ...objects, ...(target ? { pathHint: `${target.path}:${target.startLine}-${target.endLine}`, candidateId: target.id } : {}) })
         }
       } else if (a.kind === "assignment" && a.name) {
+        if (finite && flow.some(n => n.kind === "short-circuit" && n.resultBinding === a.name)) continue
         const fromCall = skeleton.anchors.some(c => c.call?.resultNames.includes(a.name!) && c.call.expression + "(" === a.valueExpression?.slice(0, c.call.expression.length + 1))
-        if (!fromCall || annotation?.aliasAnchorId) block.steps.push(bind(a))
+        if (!fromCall || annotation?.aliasAnchorId) block.steps.push(finite && !annotation?.aliasAnchorId && bindingType(annotation) === "value" && !a.literalKnown ? { kind: "assign-value", name: `assign-${a.id}`, claim, result: a.name, value: sourceValue(a.valueExpression) } : bind(a))
       }
     }
   }

@@ -2,7 +2,7 @@ import { z } from "zod"
 import { createHash } from "node:crypto"
 import { InquiryText, type InquiryDiagnostic } from "./inquiry.ts"
 import { canonicalControl, FiniteValueSchema, type ControlRule, type ControlDependency } from "./control-slice.ts"
-import { predicateDiagnostics, type Scalar, type FiniteValue } from "./control-evaluation.ts"
+import { predicateDiagnostics, partialEvaluate, scalar as isScalar, type Scalar, type FiniteValue } from "./control-evaluation.ts"
 import { summarizeProcedure } from "./procedure-summary.ts"
 
 const name = InquiryText.refine(s => !["__proto__", "constructor", "prototype"].includes(s), "Reserved semantic name")
@@ -10,23 +10,33 @@ const condition = z.record(z.unknown())
 const scalar = z.union([z.string(), z.number().finite(), z.boolean(), z.null()])
 const common = { name, claim: InquiryText }
 const objects = { principal: name.optional(), resource: name.optional() }
+const operand = z.record(z.unknown()).refine(v => !predicateDiagnostics({ op: "truthy", language: "python", value: v }).length, "Finite source operand required")
 export const SemanticStepSchema = z.discriminatedUnion("kind", [
   z.object({ ...common, kind: z.literal("bind"), type: z.enum(["principal", "resource", "permission", "configuration", "value"]), bindingName: name.optional(), aliasOf: name.optional(), value: FiniteValueSchema.optional() }).strict(),
   z.object({ ...common, ...objects, kind: z.literal("guard"), condition: condition.optional() }).strict(),
   z.object({ ...common, kind: z.literal("choose"), cases: z.array(z.object({ condition, body: name }).strict()).min(1).max(16), otherwise: name.optional() }).strict(),
-  z.object({ ...common, ...objects, kind: z.literal("call"), symbol: name, callee: name.optional(), result: name.optional(), arguments: z.array(z.object({ parameter: name, object: name }).strict()).max(16).default([]), pathHint: InquiryText.optional(), candidateId: InquiryText.optional() }).strict(),
-  z.object({ ...common, ...objects, kind: z.literal("effect"), operation: InquiryText.optional(), authorizedBy: z.array(name).max(16).optional() }).strict(),
-  z.object({ ...common, kind: z.literal("return"), value: scalar.optional(), object: name.optional(), outcome: z.enum(["allow", "deny", "unknown"]).optional() }).strict(),
+  z.object({ ...common, ...objects, kind: z.literal("call"), symbol: name, sourceCallId: name.optional(), callee: name.optional(), result: name.optional(), arguments: z.array(z.object({ parameter: name, object: name }).strict()).max(16).default([]), pathHint: InquiryText.optional(), candidateId: InquiryText.optional() }).strict(),
+  z.object({ ...common, ...objects, kind: z.literal("effect"), operation: InquiryText.optional(), authorizedBy: z.array(name).max(16).optional(), mayRaise: z.boolean().optional() }).strict(),
+  z.object({ ...common, kind: z.literal("return"), value: scalar.optional(), valueFrom: name.optional(), object: name.optional(), outcome: z.enum(["allow", "deny", "unknown"]).optional() }).strict(),
   z.object({ ...common, kind: z.literal("reject"), failureKind: z.enum(["authorization", "operation"]).optional() }).strict(),
   z.object({ ...common, kind: z.literal("transform"), object: name, field: name, value: FiniteValueSchema.optional(), source: name.optional() }).strict(),
   z.object({ ...common, kind: z.literal("unresolved"), reason: InquiryText }).strict(),
-  z.object({ ...common, kind: z.literal("context"), relationship: z.enum(["route-registration", "class-configuration", "dispatch-binding"]) }).strict(),
+  z.object({ ...common, kind: z.literal("context"), relationship: z.enum(["route-registration", "class-configuration", "dispatch-binding"]), mayRaise: z.boolean().optional() }).strict(),
+  z.object({ ...common, kind: z.literal("assign-value"), result: name, value: operand }).strict(),
+  z.object({ ...common, kind: z.literal("short-circuit"), operator: z.enum(["and", "or"]), language: z.enum(["python", "go"]), left: operand, right: operand, body: name, result: name }).strict(),
+  z.object({ ...common, kind: z.literal("try"), body: name, handlers: z.array(z.object({ exceptionTypes: z.array(name).max(16), catchesAll: z.boolean(), body: name, unknownType: z.boolean().optional() }).strict()).max(16), otherwise: name.optional(), finally: name.optional() }).strict(),
+  z.object({ ...common, kind: z.literal("raise"), exceptionType: name.optional(), failureKind: z.enum(["authorization", "operation"]).optional(), rethrow: z.boolean().optional() }).strict(),
+  z.object({ ...common, kind: z.literal("with"), enter: name, body: name, exitUnknown: z.boolean() }).strict(),
+  z.object({ ...common, kind: z.literal("loop"), target: name.optional(), iterable: FiniteValueSchema.optional(), iterableFrom: operand.optional(), condition: condition.optional(), body: name, otherwise: name.optional() }).strict(),
+  z.object({ ...common, kind: z.literal("break") }).strict(),
+  z.object({ ...common, kind: z.literal("continue") }).strict(),
 ])
-export const SemanticBlockSchema = z.object({ itemId: name, handle: name, op: z.enum(["add", "replace"]), role: z.enum(["entry", "helper"]), start: name, complete: z.boolean(), repairsDraftId: name.optional(), fallthrough: z.enum(["allow", "deny", "unresolved"]).optional(), parameters: z.array(z.object({ name, type: z.enum(["principal", "resource", "permission", "configuration", "value"]) }).strict()).max(16).default([]), blocks: z.array(z.object({ name, steps: z.array(SemanticStepSchema).max(160) }).strict()).min(1).max(32) }).strict()
+export const SemanticBlockSchema = z.object({ itemId: name, handle: name, op: z.enum(["add", "replace"]), role: z.enum(["entry", "helper"]), start: name, complete: z.boolean(), coverage: z.literal("path").optional(), repairsDraftId: name.optional(), fallthrough: z.enum(["allow", "deny", "unresolved"]).optional(), parameters: z.array(z.object({ name, type: z.enum(["principal", "resource", "permission", "configuration", "value"]) }).strict()).max(16).default([]), blocks: z.array(z.object({ name, steps: z.array(SemanticStepSchema).max(160) }).strict()).min(1).max(32) }).strict()
 export type SemanticBlock = z.infer<typeof SemanticBlockSchema>
 export type BoundSemanticBlock = SemanticBlock & { questionId: string; evidenceIds: string[]; receiverClass?: string; source?: { id: string; path: string; sha256: string; startLine: number; endLine: number } }
 type Step = z.infer<typeof SemanticStepSchema>
-interface Cursor { tail: string; route: string[]; objects: Record<string, { identity: string; type: string }>; guards: Record<string, string>; values: Record<string, Scalar>; objectValues: Record<string, FiniteValue>; stopped?: boolean; returned?: boolean; returnValue?: Scalar; returnObject?: { identity: string; type: string } }
+interface Exit { kind: "return" | "raise" | "break" | "continue"; claim: string; outcome?: "allow" | "deny" | "unknown"; exceptionType?: string; failureKind?: "authorization" | "operation" }
+interface Cursor { tail: string; route: string[]; objects: Record<string, { identity: string; type: string }>; guards: Record<string, string>; values: Record<string, FiniteValue>; objectValues: Record<string, FiniteValue>; operands?: Record<string, Record<string, unknown>>; stopped?: boolean; returned?: boolean; returnValue?: FiniteValue; returnObject?: { identity: string; type: string }; pending?: Exit; handledException?: Exit }
 const id = (parts: unknown[]) => "sem-" + createHash("sha256").update(canonicalControl(parts)).digest("hex").slice(0, 24)
 
 /** The host compiles only explicit source interpretations; it never parses target code into an answer. */
@@ -46,11 +56,20 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
     }
     const terminal = (u: BoundSemanticBlock, c: Cursor, instance: string, block: string, step: string, kind: "return" | "reject" | "unresolved", fields: Partial<ControlRule>) => {
       if (++pathCount > 16) throw new Error("semantic-path-limit")
-      append(u, c, instance, block, step, kind, { terminal: true, complete: u.complete && kind !== "unresolved", ...fields }); c.stopped = true
+      append(u, c, instance, block, step, kind, { terminal: true, complete: (u.complete || u.coverage === "path") && kind !== "unresolved", ...fields }); c.stopped = true
     }
     const gap = (u: BoundSemanticBlock, c: Cursor, instance: string, block: string, step: string, code: string, detail?: string) => { fault(questionId, u.handle, code, `Unresolved local source relation at ${block}.${step}; ${detail ?? "no alternative or call meaning was inferred."}`); terminal(u, c, instance, block, step, "unresolved", { gap: code, claim: code, complete: false }) }
-    const valueObject = (c: Cursor, ref: string) => {
+    const valueObject = (c: Cursor, ref: string): { identity: string; type: string } | undefined => {
       if (c.objects[ref]) return c.objects[ref]
+      if (Object.hasOwn(c.values, ref)) {
+        const identity = id([questionId, "source-value", c.route, ref, c.values[ref]])
+        setSourceValue(c, identity, { value: c.values[ref]! }); return { identity, type: "value" }
+      }
+      const source = c.operands?.[ref]?.binding
+      if (typeof source === "string" && source !== ref) {
+        const mapped = valueObject(c, source)
+        if (mapped) return { identity: mapped.identity, type: "value" }
+      }
       const base = Object.keys(c.objects).sort((a, b) => b.length - a.length).find(key => ref.startsWith(`${key}.`))
       return base ? { identity: c.objects[base]!.identity + ref.slice(base.length), type: "value" } : undefined
     }
@@ -73,6 +92,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
       const object = input as Record<string, unknown>
       if (Object.hasOwn(object, "literal")) return structuredClone(input)
       if (typeof object.binding === "string" && Object.hasOwn(c.values, object.binding)) return { literal: c.values[object.binding] }
+      if (typeof object.binding === "string" && c.operands?.[object.binding]) return structuredClone(c.operands[object.binding])
       if (typeof object.binding === "string") {
         const reference = object.binding, name = Object.keys(c.objects).sort((a, b) => b.length - a.length).find(name => reference.startsWith(`${name}.`) || reference === name && c.objects[name]!.type === "value")
         if (name) {
@@ -83,6 +103,23 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
       return Object.fromEntries(Object.entries(object).map(([key, value]) => [key, predicate(value, c)]))
     }
     const resolveObject = (c: Cursor, ref?: string) => ref ? c.objects[ref]?.identity ?? id([questionId, "unbound-object", ref]) : undefined
+    const assignValue = (c: Cursor, result: string, value: Record<string, unknown>) => {
+      const actual = predicate(value, c)
+      delete c.values[result]; delete c.objects[result]; c.operands ??= {}; delete c.operands[result]
+      if (Object.hasOwn(actual, "literal")) c.values[result] = structuredClone(actual.literal)
+      else c.operands[result] = actual
+    }
+    const finish = (u: BoundSemanticBlock, c: Cursor, instance: string, body: string, step: string) => {
+      const exit = c.pending
+      if (!exit) return
+      if (exit.kind === "raise") {
+        if (!exit.exceptionType || !exit.failureKind) gap(u, c, instance, body, step, "semantic-exception-type-unknown")
+        else terminal(u, c, instance, body, step, "reject", { claim: exit.claim, outcome: "deny", failureKind: exit.failureKind })
+      } else if (exit.kind === "return") {
+        if (!exit.outcome || exit.outcome === "unknown") gap(u, c, instance, body, step, "entry-return-outcome-unspecified")
+        else terminal(u, c, instance, body, step, "return", { claim: exit.claim, outcome: exit.outcome, ...(isScalar(c.returnValue) ? { returnValue: c.returnValue } : {}) })
+      } else gap(u, c, instance, body, step, "semantic-loop-exit-outside-loop")
+    }
     const walk = (u: BoundSemanticBlock, body: string, cursors: Cursor[], instance: string, stack: string[]): Cursor[] => {
       const marker = `${u.handle}:${body}`
       if (stack.includes(marker) || stack.length >= 12) { for (const c of cursors.filter(c => !c.stopped && !c.returned)) gap(u, c, instance, body, "$cycle", "semantic-cycle"); return cursors }
@@ -92,21 +129,126 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
       for (const step of b.steps) {
         const next: Cursor[] = []
         for (const cursor of current) {
-          if (cursor.stopped || cursor.returned) { next.push(cursor); continue }
+          if (cursor.stopped || cursor.returned || cursor.pending) { next.push(cursor); continue }
           const c = structuredClone(cursor), fields = { claim: step.claim }
+          if (u.coverage === "path" && (step.kind === "effect" || step.kind === "context") && step.mayRaise) {
+            const outcome = `${instance}.${body}.${step.name}:call-outcome`, thrown = structuredClone(cursor)
+            thrown.route.push(`${outcome}:exception`); thrown.pending = { kind: "raise", claim: `Unknown source call exception: ${step.claim}` }
+            append(u, thrown, instance, body, step.name, "continue", { ...fields, condition: { op: "eq", left: { binding: outcome }, right: { literal: "exception" } } }); next.push(thrown)
+            c.route.push(`${outcome}:normal`); append(u, c, instance, body, step.name, "continue", { ...fields, condition: { op: "eq", left: { binding: outcome }, right: { literal: "normal" } } })
+          }
           if (step.kind === "choose") {
             const prior: unknown[] = []
             for (const [index, branch] of step.cases.entries()) {
               const alternative = structuredClone(c); alternative.route.push(`${instance}.${body}.${step.name}:${index}`)
               const test = predicate(branch.condition, c), reach = prior.length ? { op: "all", args: [test, { op: "not", arg: { op: "any", args: [...prior] } }] } : test
+              if (u.coverage === "path" && partialEvaluate(reach, {}).truth === "false") { prior.push(test); continue }
               append(u, alternative, instance, body, step.name, "continue", { ...fields, condition: reach }); next.push(...walk(u, branch.body, [alternative], instance, [...stack, marker])); prior.push(test)
             }
             const other = structuredClone(c); other.route.push(`${instance}.${body}.${step.name}:else`)
-            if (step.otherwise) { append(u, other, instance, body, step.name, "continue", { ...fields, condition: { op: "not", arg: { op: "any", args: prior } } }); next.push(...walk(u, step.otherwise, [other], instance, [...stack, marker])) }
+            const otherwiseCondition = { op: "not", arg: { op: "any", args: prior } }
+            if (u.coverage === "path" && partialEvaluate(otherwiseCondition, {}).truth === "false") continue
+            if (step.otherwise) { append(u, other, instance, body, step.name, "continue", { ...fields, condition: otherwiseCondition }); next.push(...walk(u, step.otherwise, [other], instance, [...stack, marker])) }
             else { gap(u, other, instance, body, step.name, "choice-uncovered"); next.push(other) }
             continue
           }
-          if (step.kind === "context") append(u, c, instance, body, step.name, "continue", fields)
+          if (step.kind === "try") {
+            const scope = [...stack, marker], attempted = walk(u, step.body, [c], instance, scope), handled: Cursor[] = []
+            for (const attemptedCursor of attempted) {
+              if (attemptedCursor.stopped) { handled.push(attemptedCursor); continue }
+              if (attemptedCursor.pending?.kind !== "raise") { handled.push(...(!attemptedCursor.pending && step.otherwise ? walk(u, step.otherwise, [attemptedCursor], instance, scope) : [attemptedCursor])); continue }
+              const exception = attemptedCursor.pending
+              // Match in source order. A later exact handler cannot bypass an
+              // earlier uncertain subtype or dynamic match; bare except consumes
+              // only the exceptions left by all preceding handlers.
+              const prior: unknown[] = []; let exhaustive = false
+              for (const [i, handler] of step.handlers.entries()) {
+                const possible = structuredClone(attemptedCursor); delete possible.pending; possible.handledException = exception; possible.route.push(`${instance}.${step.name}:handler${i}`)
+                const guaranteed = handler.catchesAll || !handler.unknownType && !!exception.exceptionType && handler.exceptionTypes.includes(exception.exceptionType)
+                const test = guaranteed ? { op: "eq", left: { literal: true }, right: { literal: true } } : { op: "eq", left: { binding: `${instance}.${step.name}:exception-match` }, right: { literal: i } }, condition = prior.length ? { op: "all", args: [test, { op: "not", arg: { op: "any", args: [...prior] } }] } : test
+                append(u, possible, instance, body, step.name, "continue", { ...fields, condition }); handled.push(...walk(u, handler.body, [possible], instance, scope)); prior.push(test)
+                if (guaranteed) { exhaustive = true; break }
+              }
+              if (!exhaustive) {
+                const unmatched = structuredClone(attemptedCursor)
+                if (step.handlers.length) { unmatched.route.push(`${instance}.${step.name}:unmatched`); append(u, unmatched, instance, body, step.name, "continue", { ...fields, condition: { op: "not", arg: { op: "any", args: prior } } }); unmatched.pending = { ...exception, exceptionType: undefined } }
+                handled.push(unmatched)
+              }
+            }
+            for (const handledCursor of handled) {
+              if (!step.finally || handledCursor.stopped) { next.push(handledCursor); continue }
+              const saved = handledCursor.pending, savedValue = handledCursor.returnValue, savedObject = handledCursor.returnObject, finalCursor = structuredClone(handledCursor)
+              delete finalCursor.pending; finalCursor.returned = false; delete finalCursor.returnValue; delete finalCursor.returnObject
+              for (const done of walk(u, step.finally, [finalCursor], instance, scope)) {
+                if (!done.pending && !done.stopped) { done.pending = saved; done.returnValue = savedValue; done.returnObject = savedObject }
+                next.push(done)
+              }
+            }
+            continue
+          }
+          if (step.kind === "with") {
+            const entered = walk(u, step.enter, [c], instance, [...stack, marker])
+            for (const entering of entered) {
+              if (entering.stopped || entering.pending) { next.push(entering); continue }
+              for (const done of walk(u, step.body, [entering], instance, [...stack, marker])) { if (!done.stopped && step.exitUnknown) gap(u, done, instance, body, step.name, "semantic-context-exit-unknown"); next.push(done) }
+            }
+            continue
+          }
+          if (step.kind === "short-circuit") {
+            const test = { op: "truthy", language: step.language, value: predicate(step.left, c) }, truth = partialEvaluate(test, {})
+            if (truth.diagnostics.length) { gap(u, c, instance, body, step.name, "semantic-short-circuit-type-error"); next.push(c); continue }
+            for (const executeRight of [false, true]) {
+              const condition = executeRight === (step.operator === "and") ? test : { op: "not", arg: test }
+              if (partialEvaluate(condition, {}).truth === "false") continue
+              const selected = structuredClone(c); selected.route.push(`${instance}.${step.name}:${executeRight ? "rhs" : "left"}`)
+              append(u, selected, instance, body, step.name, "continue", { ...fields, condition })
+              if (!executeRight) { assignValue(selected, step.result, step.left); next.push(selected) }
+              else for (const done of walk(u, step.body, [selected], instance, [...stack, marker])) { if (!done.pending && !done.stopped) assignValue(done, step.result, step.right); next.push(done) }
+            }
+            continue
+          }
+          if (step.kind === "loop") {
+            const input = Object.hasOwn(step, "iterable") ? { literal: step.iterable } : step.iterableFrom ? predicate(step.iterableFrom, c) : undefined
+            const literal = input && Object.hasOwn(input, "literal") ? input.literal : undefined
+            if (Array.isArray(literal) && literal.length <= 8) {
+              let active = [c]; const exited: Cursor[] = []
+              for (const [i, value] of literal.entries()) {
+                const upcoming: Cursor[] = []
+                for (const current of active) {
+                  if (step.target) assignValue(current, step.target, { literal: value }); current.route.push(`${instance}.${step.name}:iteration${i}`)
+                  for (const done of walk(u, step.body, [current], `${instance}.${step.name}.${i}`, [...stack, marker])) {
+                    if (done.pending?.kind === "break") { delete done.pending; exited.push(done) }
+                    else if (done.stopped || done.pending && done.pending.kind !== "continue") exited.push(done)
+                    else { delete done.pending; upcoming.push(done) }
+                  }
+                }
+                active = upcoming
+              }
+              next.push(...exited, ...(step.otherwise ? walk(u, step.otherwise, active, instance, [...stack, marker]) : active))
+            } else if (literal !== undefined) { gap(u, c, instance, body, step.name, "semantic-loop-finite-limit"); next.push(c) }
+            else {
+              const condition = step.condition ? predicate(step.condition, c) : { op: "truthy", language: "python", value: { binding: `${instance}.${step.name}:has-first` } }
+              for (const first of [false, true]) {
+                const reach = first ? condition : { op: "not", arg: condition }
+                if (partialEvaluate(reach, {}).truth === "false") continue
+                const selected = structuredClone(c); selected.route.push(`${instance}.${step.name}:${first ? "first" : "empty"}`); append(u, selected, instance, body, step.name, "continue", { ...fields, condition: reach })
+                if (!first) next.push(...(step.otherwise ? walk(u, step.otherwise, [selected], instance, [...stack, marker]) : [selected]))
+                else {
+                  if (step.target) { delete selected.values[step.target]; delete selected.objects[step.target]; if (selected.operands) delete selected.operands[step.target] }
+                  for (const done of walk(u, step.body, [selected], `${instance}.${step.name}.first`, [...stack, marker])) {
+                    if (done.pending?.kind === "break") delete done.pending
+                    else if (!done.stopped && (!done.pending || done.pending.kind === "continue")) { delete done.pending; gap(u, done, instance, body, step.name, "semantic-loop-subsequent-unknown") }
+                    next.push(done)
+                  }
+                }
+              }
+            }
+            continue
+          }
+          if (step.kind === "assign-value") { assignValue(c, step.result, step.value); append(u, c, instance, body, step.name, "continue", fields) }
+          else if (step.kind === "raise") { append(u, c, instance, body, step.name, "continue", fields); c.pending = step.rethrow ? c.handledException ?? { kind: "raise", claim: step.claim } : { kind: "raise", claim: step.claim, exceptionType: step.exceptionType, failureKind: step.failureKind } }
+          else if (step.kind === "break" || step.kind === "continue") { append(u, c, instance, body, step.name, "continue", fields); c.pending = { kind: step.kind, claim: step.claim } }
+          else if (step.kind === "context") append(u, c, instance, body, step.name, "continue", fields)
           else if (step.kind === "bind") {
             if (Object.hasOwn(step, "value") && (step.type !== "value" || step.aliasOf)) { gap(u, c, instance, body, step.name, "semantic-source-value-invalid"); next.push(c); continue }
             const alias = step.aliasOf ? valueObject(c, step.aliasOf) : undefined
@@ -138,7 +280,13 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
           }
           else if (step.kind === "unresolved") gap(u, c, instance, body, step.name, step.reason)
           else if (step.kind === "return") {
-            if (u.role === "entry") {
+            if (u.coverage === "path") {
+              if (step.object && !c.objects[step.object]) { gap(u, c, instance, body, step.name, "semantic-return-object-unbound"); next.push(c); continue }
+              append(u, c, instance, body, step.name, "continue", fields); c.pending = { kind: "return", claim: step.claim, outcome: step.outcome }
+              if (Object.hasOwn(step, "value")) c.returnValue = step.value
+              else if (step.valueFrom) { const value = predicate({ binding: step.valueFrom }, c); if (Object.hasOwn(value, "literal")) c.returnValue = value.literal; else c.returnObject = valueObject(c, step.valueFrom) }
+              if (step.object) c.returnObject = c.objects[step.object]
+            } else if (u.role === "entry") {
               const unspecified = !step.outcome || step.outcome === "unknown"
               if (unspecified) fault(questionId, u.handle, "entry-return-outcome-unspecified", `Entry return ${body}.${step.name} has no interpreted permission outcome. Explain its source-visible allow/deny outcome or retain a named source gap; scalar return values never establish permission.`)
               terminal(u, c, instance, body, step.name, unspecified ? "unresolved" : "return", { ...fields, outcome: step.outcome, returnValue: step.value, ...(unspecified ? { gap: "entry-return-outcome-unspecified" } : {}) })
@@ -163,10 +311,13 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
               if (!arg) invalidArguments.push(`Missing argument mapping for ${expected}.`)
               else if (!object) invalidArguments.push(`Object "${arg.object}" mapped to ${expected} is not bound in this invocation; declare an entry parameter or a typed bind.`)
               else if (object.type !== parameter.type) invalidArguments.push(`Object "${arg.object}" has type ${object.type}, but ${expected} requires ${parameter.type}.`)
-              else child.objects[parameter.name] = object
+              else {
+                child.objects[parameter.name] = object
+                for (const [key, value] of Object.entries(c.objectValues)) if (key === object.identity || key.startsWith(`${object.identity}.`)) child.objectValues[key] = structuredClone(value)
+              }
             }
             if (invalidArguments.length) { gap(u, c, instance, body, step.name, "semantic-argument-unbound", invalidArguments.join(" ")); next.push(c); continue }
-            const summary = options.compositional ? summarizeProcedure(callee) : undefined
+            const summary = options.compositional && callee.coverage !== "path" ? summarizeProcedure(callee) : undefined
             if (summary?.composable && summary.variants.every(v => !v.steps?.length && !v.object)) {
               for (const [index, variant] of summary.variants.entries()) {
                 const resumed = structuredClone(c); resumed.route.push(`${instance}.${step.name}.summary:${index}`)
@@ -186,8 +337,10 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
               return walk(virtual, virtual.start, [start], calleeInstance, [...stack, marker])
             }) : walk(callee, callee.start, [child], calleeInstance, [...stack, marker])
             for (const returned of expanded) {
-              if (!callee.complete && !returned.stopped) gap(callee, returned, calleeInstance, callee.start, "$closure", "semantic-helper-incomplete")
+              if (!callee.complete && callee.coverage !== "path" && !returned.stopped) gap(callee, returned, calleeInstance, callee.start, "$closure", "semantic-helper-incomplete")
               const resumed: Cursor = { ...returned, objects: structuredClone(c.objects), values: structuredClone(c.values), returned: false }
+              resumed.operands = structuredClone(c.operands)
+              if (resumed.pending?.kind === "return") delete resumed.pending
               if (step.result && Object.hasOwn(returned, "returnValue")) resumed.values[step.result] = returned.returnValue!
               if (step.result && returned.returnObject) resumed.objects[step.result] = returned.returnObject
               delete resumed.returnValue; delete resumed.returnObject
@@ -211,7 +364,8 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
           append(root, cursor, root.handle, root.start, `$parameter.${parameter.name}`, "binding", { claim: `Explicit entry parameter ${parameter.name} (${parameter.type})`, bindingKey: identity, bindingKind: parameter.type, bindingName: parameter.name })
         }
         for (const c of walk(root, root.start, [cursor], root.handle, [])) if (!c.stopped) {
-          if (!root.complete || !root.fallthrough || root.fallthrough === "unresolved") gap(root, c, root.handle, root.start, "$end", "semantic-entry-incomplete")
+          if (c.pending) finish(root, c, root.handle, root.start, "$exit")
+          else if ((!root.complete && root.coverage !== "path") || !root.fallthrough || root.fallthrough === "unresolved") gap(root, c, root.handle, root.start, "$end", "semantic-entry-incomplete")
           else terminal(root, c, root.handle, root.start, "$end", "return", { outcome: root.fallthrough, claim: "Explicit normal fallthrough outcome" })
         }
       }

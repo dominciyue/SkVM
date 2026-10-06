@@ -8,15 +8,25 @@ import type { FiniteValue } from "../../../task-dsl/authorization/control-evalua
 
 export interface SourceAnchor {
   id: string; selector: SourceSelector; sourceSha256: string;
-  kind: "parameter" | "assignment" | "condition" | "call" | "return" | "raise";
+  kind: "parameter" | "assignment" | "condition" | "call" | "return" | "raise" | "control";
   text: string; syntax: string; name?: string; valueExpression?: string; defaultExpression?: string;
   literalKnown?: boolean; literalValue?: FiniteValue;
   interpretationRequired?: boolean;
+  exceptionType?: string;
   call?: { sourceCallId?: string; expression: string; receiver?: string; receiverClass?: string; arguments: Array<{ expression: string; parameterName?: string; spread?: boolean; literalKnown?: boolean; literalValue?: FiniteValue }>; candidateIds: string[]; resultNames: string[]; resultBinding: string }
 }
-export interface SourceFlow { kind: "step" | "branch" | "gap"; anchorId: string; then?: SourceFlow[]; otherwise?: SourceFlow[] }
+export interface SourceFlow {
+  kind: "step" | "branch" | "gap" | "try" | "with" | "loop" | "break" | "continue" | "short-circuit";
+  anchorId: string; then?: SourceFlow[]; otherwise?: SourceFlow[]; body?: SourceFlow[]; finally?: SourceFlow[];
+  handlers?: Array<{ anchorId: string; exceptionTypes: string[]; catchesAll: boolean; body: SourceFlow[]; bindingName?: string; unknownType?: boolean }>;
+  targetName?: string; iterableExpression?: string; iterableValue?: FiniteValue; conditionExpression?: string;
+  enter?: SourceFlow[]; exitUnknown?: boolean;
+  operator?: "and" | "or"; language?: "python" | "go"; leftExpression?: string; rightExpression?: string;
+  leftLiteral?: FiniteValue; rightLiteral?: FiniteValue; resultBinding?: string;
+}
 export interface SourceSkeleton {
-  schemaVersion: "authorization-source-skeleton/v1"; sourceId: string; revision: string;
+  schemaVersion: "authorization-source-skeleton/v1" | "authorization-source-skeleton/v2"; sourceId: string; revision: string;
+  controlSemantics?: "finite-control/v1";
   context?: "route-registration";
   source: { id: string; path: string; sha256: string; startLine: number; endLine: number }; modelCovered: boolean; evidenceIds: string[];
   anchors: SourceAnchor[]; flow: SourceFlow[]; edges: Array<{ from: string; to: string; branch: "next" | "true" | "false" }>;
@@ -27,12 +37,12 @@ const kids = (n?: Node | null) => (n?.namedChildren ?? []).filter((c): c is Node
 const field = (n: Node, name: string) => n.childForFieldName(name)
 const descendants = (n: Node, types: string[]) => n.descendantsOfType(types).filter((c): c is Node => !!c)
 /** Read coverage is independent of AST indexing. No source meaning is inferred. */
-export async function buildSourceSkeleton(index: StructureIndex, source: StructureSymbol, windows: readonly InquiryEvidence[], receiverClass?: string): Promise<SourceSkeleton> {
+export async function buildSourceSkeleton(index: StructureIndex, source: StructureSymbol, windows: readonly InquiryEvidence[], receiverClass?: string, controlSemantics?: "finite-control/v1"): Promise<SourceSkeleton> {
   const selected = windows.filter(e => e.path === source.path && e.sha256 === source.sha256 && e.startLine <= source.endLine && e.endLine >= source.startLine)
   let through = source.startLine - 1
   for (const e of [...selected].sort((a, b) => a.startLine - b.startLine)) if (e.startLine <= through + 1) through = Math.max(through, e.endLine)
   const selector = { path: source.path, startLine: source.startLine, endLine: source.endLine, candidateId: source.id }
-  const skeleton: SourceSkeleton = { schemaVersion: "authorization-source-skeleton/v1", sourceId: source.id, source: { id: source.id, path: source.path, sha256: source.sha256, startLine: source.startLine, endLine: source.endLine }, revision: "", modelCovered: through >= source.endLine, evidenceIds: selected.map(e => e.id), anchors: [], flow: [], edges: [], gaps: [] }
+  const skeleton: SourceSkeleton = { schemaVersion: controlSemantics ? "authorization-source-skeleton/v2" : "authorization-source-skeleton/v1", ...(controlSemantics ? { controlSemantics } : {}), sourceId: source.id, source: { id: source.id, path: source.path, sha256: source.sha256, startLine: source.startLine, endLine: source.endLine }, revision: "", modelCovered: through >= source.endLine, evidenceIds: selected.map(e => e.id), anchors: [], flow: [], edges: [], gaps: [] }
   if (!skeleton.modelCovered) skeleton.gaps.push({ code: "skeleton-source-unread", selector, reason: "The complete current function is not available in shown original windows; indexing is not model interpretation." })
   else await index.withSymbolSyntax(source.id, root => {
     const registration = index.routes.find(r => r.id === source.id)
@@ -72,13 +82,29 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     const receiver = field(fn, "receiver")
     if (receiver) for (const p of descendants(receiver, ["parameter_declaration"])) for (const name of kids(p).filter(n => n.type === "identifier")) add(p, "parameter", { name: name.text })
     const stepsForCalls = (n: Node) => callsIn(n).map(c => ({ kind: "step" as const, anchorId: callAnchor(c).id }))
+    const expressionFlow = (n: Node, resultBinding?: string): SourceFlow[] => {
+      const left = field(n, "left"), right = field(n, "right"), op = field(n, "operator")?.text
+      if (controlSemantics && left && right && ["and", "or", "&&", "||"].includes(op ?? "")) {
+        const leftLiteral = sourceLiteral(left), rightLiteral = sourceLiteral(right)
+        const anchor = add(n, "control", { name: resultBinding ?? `expression-${hash([source.id, n.startIndex]).slice(0, 16)}`, valueExpression: n.text })
+        return [...expressionFlow(left), { kind: "short-circuit", anchorId: anchor.id, operator: op === "and" || op === "&&" ? "and" : "or", language: source.language, leftExpression: left.text, rightExpression: right.text, ...(leftLiteral.literalKnown ? { leftLiteral: leftLiteral.literalValue } : {}), ...(rightLiteral.literalKnown ? { rightLiteral: rightLiteral.literalValue } : {}), resultBinding: anchor.name, body: expressionFlow(right) }]
+      }
+      // Nested booleans in a call argument also execute before the outer call.
+      if (controlSemantics) {
+        const nested = descendants(n, ["boolean_operator", "binary_expression"]).filter(c => c.id !== n.id && ["and", "or", "&&", "||"].includes(field(c, "operator")?.text ?? ""))
+        const booleans = nested.filter(c => !nested.some(parent => parent.id !== c.id && parent.startIndex <= c.startIndex && parent.endIndex >= c.endIndex))
+        if (booleans.length) return [...booleans.flatMap(c => expressionFlow(c)), ...callsIn(n).filter(c => !booleans.some(b => c.startIndex >= b.startIndex && c.endIndex <= b.endIndex)).map(c => ({ kind: "step" as const, anchorId: callAnchor(c).id }))]
+      }
+      return stepsForCalls(n)
+    }
     const visitList = (n?: Node | null): SourceFlow[] => kids(n).flatMap(visit)
     const branchFor = (n: Node, alternatives: Node[]): SourceFlow[] => {
       const condition = field(n, "condition")!, anchor = add(condition, "condition"), alternative = alternatives[0]
       const other = alternative ? ["if_statement", "elif_clause"].includes(alternative.type) ? branchFor(alternative, alternatives.slice(1)) : visitList(field(alternative, "body") ?? alternative) : []
       const shortCircuit = descendants(condition, ["boolean_operator", "binary_expression"]).some(c => /^(and|or|&&|\|\|)$/.test(field(c, "operator")?.text ?? kids(c).find(k => k.type === "operator")?.text ?? c.children.find(k => k && ["and", "or", "&&", "||"].includes(k.type))?.text ?? "")) && callsIn(condition).length > 0
       let calls: SourceFlow[]
-      if (shortCircuit) { gap(condition, "skeleton-short-circuit-call", "Short-circuit call execution needs a local interpretation; right-hand calls were not made unconditional."); for (const c of callsIn(condition)) callAnchor(c); calls = [] }
+      if (controlSemantics) calls = expressionFlow(condition)
+      else if (shortCircuit) { gap(condition, "skeleton-short-circuit-call", "Short-circuit call execution needs a local interpretation; right-hand calls were not made unconditional."); for (const c of callsIn(condition)) callAnchor(c); calls = [] }
       else calls = stepsForCalls(condition)
       const initializer = field(n, "initializer")
       return [...(initializer ? visit(initializer) : []), ...calls, { kind: "branch", anchorId: anchor.id, then: visitList(field(n, "consequence")), otherwise: other }]
@@ -91,7 +117,35 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
         const alternatives = kids(n).filter(c => ["elif_clause", "else_clause"].includes(c.type) || c.id === field(n, "alternative")?.id)
         return branchFor(n, alternatives)
       }
-      if (["return_statement", "raise_statement"].includes(n.type)) return [...stepsForCalls(n), { kind: "step", anchorId: add(n, n.type === "return_statement" ? "return" : "raise", { valueExpression: kids(n)[0]?.text, ...sourceLiteral(kids(n)[0]) }).id }]
+      if (["return_statement", "raise_statement"].includes(n.type)) {
+        const value = kids(n)[0], raised = value?.type === "call" ? field(value, "function")?.text : value?.text
+        return [...(value ? expressionFlow(value) : []), { kind: "step", anchorId: add(n, n.type === "return_statement" ? "return" : "raise", { valueExpression: value?.text, ...sourceLiteral(value), ...(controlSemantics && n.type === "raise_statement" && raised && /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(raised) ? { exceptionType: raised } : {}) }).id }]
+      }
+      if (controlSemantics && n.type === "try_statement") {
+        const handlers = kids(n).filter(c => c.type === "except_clause").map(c => {
+          const value = field(c, "value"), type = value?.type === "as_pattern" ? kids(value)[0] : value
+          const types = type?.type === "tuple" ? kids(type).map(t => t.text) : type ? [type.text] : []
+          const unknownType = types.some(t => !/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(t))
+          if (unknownType) gap(c, "skeleton-exception-type-unknown", "The exception handler type is not a finite named type; subtype and dynamic matching are not inferred.")
+          return { anchorId: add(c, "control").id, exceptionTypes: types, catchesAll: !value, ...(value?.type === "as_pattern" ? { bindingName: kids(value)[1]?.text } : {}), ...(unknownType ? { unknownType } : {}), body: visitList(kids(c).find(k => k.type === "block")) }
+        })
+        const otherwise = kids(n).find(c => c.type === "else_clause"), final = kids(n).find(c => c.type === "finally_clause")
+        return [{ kind: "try", anchorId: add(n, "control").id, body: visitList(field(n, "body")), handlers, otherwise: visitList(otherwise ? field(otherwise, "body") : null), finally: visitList(final ? kids(final).find(c => c.type === "block") : null) }]
+      }
+      if (controlSemantics && n.type === "with_statement") {
+        gap(n, "skeleton-context-exit-unknown", "Context entry/exit may raise or suppress an exception; no runtime context protocol behavior is inferred.")
+        let body = visitList(field(n, "body"))
+        for (const manager of [...descendants(n, ["with_item"]).filter(c => c.parent?.parent?.id === n.id)].reverse()) {
+          const value = field(manager, "value"), expr = value?.type === "as_pattern" ? kids(value)[0] : value
+          body = [{ kind: "with", anchorId: add(manager, "control").id, enter: expr ? expressionFlow(expr) : [], ...(value?.type === "as_pattern" ? { targetName: kids(value)[1]?.text } : {}), body, exitUnknown: true }]
+        }
+        return body
+      }
+      if (controlSemantics && ["for_statement", "while_statement"].includes(n.type) && source.language === "python") {
+        const iterable = field(n, "right"), literal = sourceLiteral(iterable), alternative = field(n, "alternative")
+        return [...(iterable ? expressionFlow(iterable) : []), { kind: "loop", anchorId: add(n, "control").id, targetName: field(n, "left")?.text, iterableExpression: iterable?.text, ...(literal.literalKnown ? { iterableValue: literal.literalValue } : {}), conditionExpression: field(n, "condition")?.text, body: visitList(field(n, "body")), otherwise: visitList(alternative ? field(alternative, "body") : null) }]
+      }
+      if (controlSemantics && ["break_statement", "continue_statement"].includes(n.type)) return [{ kind: n.type === "break_statement" ? "break" : "continue", anchorId: add(n, "control").id }]
       if (["for_statement", "while_statement", "try_statement", "with_statement", "switch_statement", "expression_switch_statement", "type_switch_statement", "select_statement", "defer_statement", "go_statement", "break_statement", "continue_statement", "match_statement"].includes(n.type)) {
         gap(n, "skeleton-control-unsupported", `The ${n.type} control structure needs a local interpretation; its body was not flattened into unconditional execution.`)
         for (const c of callsIn(n)) callAnchor(c)
@@ -99,7 +153,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       }
       if (["expression_statement", "assignment", "short_var_declaration", "assignment_statement", "augmented_assignment", "inc_statement", "dec_statement"].includes(n.type)) {
         const assignment = n.type === "expression_statement" ? kids(n).find(c => c.type === "assignment" || c.type === "augmented_assignment") : n
-        const calls = stepsForCalls(n)
+        const calls = expressionFlow(assignment ? field(assignment, "right") ?? n : n, assignment ? field(assignment, "left")?.text : undefined)
         return assignment && field(assignment, "left") ? [...calls, { kind: "step", anchorId: add(assignment, "assignment", { name: field(assignment, "left")!.text, valueExpression: field(assignment, "right")?.text, ...sourceLiteral(field(assignment, "right")) }).id }] : calls
       }
       gap(n, "skeleton-statement-unsupported", `The ${n.type} statement remains explicit rather than being silently deleted.`)
@@ -113,12 +167,14 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
         if (node.kind !== "gap" && ["condition", "call", "return", "raise"].includes(anchor.kind)) anchor.interpretationRequired = true
         const edge = (to: string | undefined, branch: "next" | "true" | "false") => { if (to) skeleton.edges.push({ from: node.anchorId, to, branch }) }
         if (node.kind === "branch") { edge(node.then?.[0]?.anchorId ?? following, "true"); edge(node.otherwise?.[0]?.anchorId ?? following, "false"); connect(node.then ?? [], following); connect(node.otherwise ?? [], following) }
+        else if (node.kind === "try") { edge(node.body?.[0]?.anchorId, "next"); connect(node.body ?? [], node.otherwise?.[0]?.anchorId ?? node.finally?.[0]?.anchorId ?? following); for (const handler of node.handlers ?? []) connect(handler.body, node.finally?.[0]?.anchorId ?? following); connect(node.otherwise ?? [], node.finally?.[0]?.anchorId ?? following); connect(node.finally ?? [], following) }
+        else if (node.kind === "with" || node.kind === "loop" || node.kind === "short-circuit") { connect(node.enter ?? [], node.body?.[0]?.anchorId); connect(node.body ?? [], following); connect(node.otherwise ?? [], following) }
         else if (node.kind !== "gap" && anchor.kind !== "return" && anchor.kind !== "raise") edge(following, "next")
       }
     }
     connect(skeleton.flow)
     skeleton.anchors.sort((a, b) => positions.get(a.id)! - positions.get(b.id)! || a.id.localeCompare(b.id))
   })
-  skeleton.revision = hash([index.parser, index.relationshipVersion, skeleton.source, skeleton.context, skeleton.modelCovered, skeleton.anchors, skeleton.flow, skeleton.edges, skeleton.gaps])
+  skeleton.revision = hash([index.parser, index.relationshipVersion, ...(controlSemantics ? [controlSemantics] : []), skeleton.source, skeleton.context, skeleton.modelCovered, skeleton.anchors, skeleton.flow, skeleton.edges, skeleton.gaps])
   return skeleton
 }

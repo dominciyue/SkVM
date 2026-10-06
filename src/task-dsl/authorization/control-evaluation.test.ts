@@ -58,3 +58,12 @@ test("condition equivalence does not certify invalid cyclic or over-limit expres
   const wide = { op: "all", args: Array.from({ length: 65 }, () => u) }
   for (const value of [null, cyclic, wide, { op: "custom", code: "true" }]) expect(api.equivalentPredicateConditions(value, value)).toBe(false)
 })
+
+test("source truth tests retain Python finite truth and reject non-boolean Go operands", () => {
+  const truth = (value: unknown, language = "python") => api.partialEvaluate({ op: "truthy", language, value: { literal: value } }, {})
+  for (const value of [0, false, "", null, [], {}]) expect(truth(value).truth).toBe("false")
+  for (const value of [1, "x", [0], { a: false }]) expect(truth(value).truth).toBe("true")
+  expect(truth(false, "go").truth).toBe("false")
+  expect(truth(0, "go")).toMatchObject({ truth: "unknown", diagnostics: ["predicate-type-error"] })
+  expect(api.partialEvaluate({ op: "truthy", language: "python", value: { binding: "unspecified" } }, {}).missingBindings).toEqual(["unspecified"])
+})

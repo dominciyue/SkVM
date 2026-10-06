@@ -75,10 +75,10 @@ export const RUN_FLAGS = defineFlags(
       placeholder: "<path>",
       help: "Write a value-free execution observation JSON sidecar",
     },
-    "authorization-scope": { kind: "string", placeholder: "<path>", help: "Opt into bounded read-only authorization source tools using an inquiry input file (bare-agent)." },
+    "authorization-scope": { kind: "string", placeholder: "<path>", help: "Opt into bounded read-only authorization source tools using an inquiry input file (bare-agent or codex-account)." },
     "authorization-domain-tools": { kind: "bool", help: "Enable inquiry compilation, relation observations and result checking in the restricted source run." },
     "authorization-strategy": { kind: "enum", values: InquiryStrategySchema.options, placeholder: "<v>", help: "Optional domain dependency scheduling, finite branch evaluation and conclusion checks; requires source scope and domain tools." },
-    "authorization-method": { kind: "enum", values: NativeInquiryMethods, placeholder: "<m>", help: "operation-evidence-v1/v2 frontend: M preserves the whole natural task (default); D1 counts a model-authored declaration in the same run." },
+    "authorization-method": { kind: "enum", values: NativeInquiryMethods, placeholder: "<m>", help: "operation-evidence-v1/v2/v3 frontend: M preserves the whole natural task (default); D1 counts a model-authored declaration in the same run." },
     "authorization-trace": { kind: "string", placeholder: "<path>", help: "Save the restricted authorization tool and provider trace outside target source." },
     "authorization-max-provider-calls": { kind: "int", min: 1, help: "Restricted authorization provider dispatch cap, including retries (default: 12)." },
     "authorization-max-tool-calls": { kind: "int", min: 1, help: "Restricted authorization shared source/domain tool cap (default: 24)." },
@@ -163,7 +163,7 @@ export function validateRunConfig(config: RunConfig): ValidatedRunConfig {
   if ((config["authorization-domain-tools"] || config["authorization-trace"] || config["authorization-strategy"] || config["authorization-method"] || config["authorization-max-provider-calls"] || config["authorization-max-tool-calls"] || config["authorization-max-display-bytes"] || config["authorization-max-read-bytes"] || config["authorization-max-output-tokens"] || config["authorization-request-timeout-ms"] || config["authorization-session-timeout-ms"] || config["authorization-readonly-recovery"]) && !config["authorization-scope"]) throw new UsageError("run: authorization tools/trace/strategy/method/budgets require --authorization-scope", RUN_FLAGS.help)
   if (config["authorization-method"] && (!isOperationInquiryStrategy(config["authorization-strategy"]) || !config["authorization-domain-tools"])) throw new UsageError("run: authorization-method requires operation-evidence-v1 or operation-evidence-v2 and --authorization-domain-tools", RUN_FLAGS.help)
   if (config["authorization-strategy"] && config["authorization-strategy"] !== "legacy" && !config["authorization-domain-tools"]) throw new UsageError(`run: ${config["authorization-strategy"]} requires --authorization-domain-tools`, RUN_FLAGS.help)
-  if (config["authorization-scope"] && (config.adapter !== "bare-agent" || config.optimize || config["resume-optimization"])) throw new UsageError("run: authorization source scope requires bare-agent source execution", RUN_FLAGS.help)
+  if (config["authorization-scope"] && (!["bare-agent", "codex-account"].includes(config.adapter) || config.optimize || config["resume-optimization"])) throw new UsageError("run: authorization source scope requires bare-agent or codex-account source execution", RUN_FLAGS.help)
   const hasTask = config.task !== undefined
   const hasPrompt = config.prompt !== undefined
   if (config["resume-optimization"] !== undefined) {

@@ -141,7 +141,7 @@ export class BareAgentAdapter implements AgentAdapter {
   async setup(config: AdapterConfig): Promise<void> {
     if (config.providerOptions?.authorizationMethod !== undefined) {
       ;(await import("../task-dsl/authorization/operation-program.ts")).parseNativeInquiryMethod(config.providerOptions.authorizationMethod)
-      if (!config.providerOptions.authorizationScope || !["operation-evidence-v1", "operation-evidence-v2"].includes(String(config.providerOptions.authorizationStrategy)) || config.providerOptions.authorizationDomainTools !== true) throw new Error("authorization-method requires source scope, operation-evidence-v1 or operation-evidence-v2 and domain-tools")
+      if (!config.providerOptions.authorizationScope || !["operation-evidence-v1", "operation-evidence-v2", "operation-evidence-v3"].includes(String(config.providerOptions.authorizationStrategy)) || config.providerOptions.authorizationDomainTools !== true) throw new Error("authorization-method requires source scope, operation-evidence strategy and domain-tools")
     }
     if (config.providerOptions?.authorizationStrategy !== undefined) {
       const strategy = (await import("../task-dsl/authorization/control-slice.ts")).parseInquiryStrategy(config.providerOptions.authorizationStrategy)
@@ -202,7 +202,7 @@ Available skills:
 - **${skillName}**: ${task.skill!.meta.description}`
     }
     const authorizationProviderLimit = Math.min(typeof this.providerOptions.authorizationMaxProviderCalls === "number" ? this.providerOptions.authorizationMaxProviderCalls : 12, this.maxSteps)
-    const authorizationIsolated = this.providerOptions.authorizationStrategy === "operation-evidence-v2" || this.providerOptions.authorizationReadonlyRecovery === true
+    const authorizationIsolated = ["operation-evidence-v2", "operation-evidence-v3"].includes(String(this.providerOptions.authorizationStrategy)) || this.providerOptions.authorizationReadonlyRecovery === true
     const authorizationSessionMs = typeof this.providerOptions.authorizationSessionTimeoutMs === "number" ? this.providerOptions.authorizationSessionTimeoutMs : task.timeoutMs ?? this.timeoutMs
     const restricted = typeof this.providerOptions.authorizationScope === "string"
       ? await (await import("../benchmarks/authorization-dsl/inquiry-native.ts")).createNativeInquiryRuntime({ inputFile: this.providerOptions.authorizationScope, workDir: task.workDir, domainTools: this.providerOptions.authorizationDomainTools === true, method: (await import("../task-dsl/authorization/operation-program.ts")).parseNativeInquiryMethod(this.providerOptions.authorizationMethod), strategy: (await import("../task-dsl/authorization/control-slice.ts")).parseInquiryStrategy(this.providerOptions.authorizationStrategy), skillContent: task.skill?.content, maxProviderCalls: authorizationProviderLimit, maxToolCalls: typeof this.providerOptions.authorizationMaxToolCalls === "number" ? this.providerOptions.authorizationMaxToolCalls : undefined, maxDisplayBytes: typeof this.providerOptions.authorizationMaxDisplayBytes === "number" ? this.providerOptions.authorizationMaxDisplayBytes : undefined, maxReadBytes: typeof this.providerOptions.authorizationMaxReadBytes === "number" ? this.providerOptions.authorizationMaxReadBytes : undefined, maxOutputTokens: typeof this.providerOptions.authorizationMaxOutputTokens === "number" ? this.providerOptions.authorizationMaxOutputTokens : undefined, traceDir: typeof this.providerOptions.authorizationTraceDir === "string" ? this.providerOptions.authorizationTraceDir : undefined })

@@ -91,7 +91,7 @@ export async function initializeLocalInquiry(from: string, outFile: string, expl
 
 async function preparePreviousInquiry(inputFile: string, previous: string, model: string | undefined, method: InquiryMethod | undefined, strategy: InquiryStrategy | undefined) {
   const report = await inspectLocalInquiry(previous), retained = await retainedInquiryDeclaration(report.sessionPath), old = retained.input, prior = retained.prior
-  const currentStrategy = strategy ?? report.strategy ?? "legacy", loaded = await loadInquiryInput(inputFile, { allowMissingPolicy: isSourceAssistedInquiryStrategy(currentStrategy) }), tools = await createInquiryTools({ ...loaded.context, structure: isOperationInquiryStrategy(currentStrategy) })
+  const currentStrategy = strategy ?? report.strategy ?? "legacy", loaded = await loadInquiryInput(inputFile, { allowMissingPolicy: isSourceAssistedInquiryStrategy(currentStrategy) }), tools = await createInquiryTools({ ...loaded.context, structure: isOperationInquiryStrategy(currentStrategy), ...(currentStrategy === "operation-evidence-v3" ? { controlSemantics: "finite-control/v1" as const } : {}) })
   const plan = planInquiryReuse({ currentInput: loaded.value, previousInput: old, previousRun: prior, previousSessionId: report.sessionId, currentFiles: tools.files, currentStructure: tools.structure, currentMethod: method ?? report.method, previousMethod: report.method, currentStrategy, previousStrategy: report.strategy ?? "legacy", currentModel: model ?? report.model, previousModel: report.model })
   if (plan.status === "reusable") {
     const imported = tools.restoreEvidence(plan.seed.evidence)
@@ -99,7 +99,7 @@ async function preparePreviousInquiry(inputFile: string, previous: string, model
   }
   return { report, previousInput: old, plan }
 }
-export async function executeLocalInquiryRun(options: { inputFile: string; outDir: string; model: string; method?: InquiryMethod; strategy?: InquiryStrategy; previous?: string; providerFactory?: LocalAuthorizationCliDependencies["providerFactory"]; execution?: Partial<RunAuthorizationInquiryOptions> }) {
+export async function executeLocalInquiryRun(options: { inputFile: string; outDir: string; model: string; method?: InquiryMethod; strategy?: InquiryStrategy; previous?: string; harness?: "provider" | "codex-account"; providerFactory?: LocalAuthorizationCliDependencies["providerFactory"]; execution?: Partial<RunAuthorizationInquiryOptions> }) {
   const method = options.method ?? "D1", strategy = options.strategy ?? options.execution?.strategy ?? "legacy", check = await checkAuthorizationInquiry(options.inputFile, method, strategy)
   if (check.status !== "valid") return check
   const prior = options.previous ? await preparePreviousInquiry(options.inputFile, options.previous, options.model, method, strategy) : undefined
@@ -118,6 +118,16 @@ export async function executeLocalInquiryRun(options: { inputFile: string; outDi
   const save = (name: string, value: unknown) => writeFile(path.join(sessionPath, name), JSON.stringify(value, null, 2) + "\n", { encoding: "utf8", flag: "wx" })
   const identity = { schemaVersion: "authorization-inquiry-session/v1", sessionId: id, sessionPath, createdAt: new Date().toISOString(), inputSha256: loaded.inputSha256, model: options.model, method, strategy, sourceFiles: check.sourceFiles, noAutomaticResend: true, ...(reuseOrigin ? { reuseOrigin } : {}) }
   await save("session.json", identity); await writeFile(path.join(sessionPath, "input.json"), loaded.original, { encoding: "utf8", flag: "wx" }); await save("check.json", check)
+  if (options.harness === "codex-account") {
+    const { runCodexAccountInquiry } = await import("../../adapters/codex-account.ts")
+    const accountRun = await runCodexAccountInquiry({ inputFile: options.inputFile, workDir: sessionPath, model: options.model, method, strategy, reuse, timeoutMs: options.execution?.sessionTimeoutMs, maxToolCalls: options.execution?.maxToolCalls, maxDisplayBytes: options.execution?.maxDisplayBytes, maxReadBytes: options.execution?.maxReadBytes, traceDir: path.join(sessionPath, "raw") })
+    const { native, account } = accountRun
+    const fields = { status: account.status, method, strategy, inquiry: native.program?.originalDeclaration, program: native.program, result: native.result, final: native.result, domain: native.domain, reuse: accountRun.reuse, sourceFiles: native.sourceFiles, sourceVerification: native.sourceVerification, sourceAccounting: native.sourceAccounting, telemetry: { account, providerCalls: account.providerRequests, totalActualUsd: null }, durationMs: account.durationMs, error: account.reason, evidence: native.evidence }
+    const { redactCodexEvent } = await import("../../adapters/codex-account-session.ts")
+    await save("run.json", redactCodexEvent({ ...fields, native })); const report = { ...identity, ...fields, harness: "codex-account" }
+    await save("report.json", redactCodexEvent(report)); await appendFile(path.join(out, "sessions.jsonl"), JSON.stringify({ relativePath: `sessions/${id}`, status: report.status }) + "\n")
+    return report
+  }
   let provider
   try {
     process.env.SKVM_AUTO_PROBE = "0"

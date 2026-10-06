@@ -19,11 +19,12 @@ export function operationCallSourceSelection(index: StructureIndex, caller: Boun
     return { actions: [], diagnostics, location }
   }
   const calls = index.relatedCalls(owner.id, caller.receiverClass)
+  if (step.sourceCallId && !calls.some(c => c.id === step.sourceCallId && c.expression === step.symbol)) return { actions: [], diagnostics, location }
   if (calls.some(c => c.resolution === "unresolved" && (c.expression === step.symbol || c.expression.split(".").at(-1) === step.symbol))) return { actions: [], diagnostics, location }
   const actions = operationWork(index, owner.id, [], [], caller.receiverClass).actions.filter(a => {
     const candidate = index.symbols.find(s => s.id === a.candidateId)!, call = calls.find(c => c.id === a.relationId)
     const named = step.symbol === call?.expression || step.symbol === candidate.qualifiedName || step.symbol === candidate.name
-    return named && (!location || location.candidates.some(c => c.id === candidate.id))
+    return named && (!step.sourceCallId || call?.id === step.sourceCallId) && (!location || location.candidates.some(c => c.id === candidate.id))
   })
   return { actions, diagnostics, location }
 }

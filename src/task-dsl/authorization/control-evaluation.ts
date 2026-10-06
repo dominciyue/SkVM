@@ -3,7 +3,7 @@ export type Truth = "true" | "false" | "unknown"
 export type Scalar = string | number | boolean | null
 export type FiniteValue = Scalar | Scalar[] | Record<string, Scalar>
 export type Value = { literal: FiniteValue } | { binding: string } | { lookup: { map: Value; key: Value } }
-export type Predicate = { op: "eq" | "neq" | "gt" | "gte" | "lt" | "lte"; left: Value; right: Value; order?: Scalar[] } | { op: "is-null"; value: Value } | { op: "has-key"; map: Value; key: Value } | { op: "member"; value: Value; set: Value } | { op: "all" | "any"; args: Predicate[] } | { op: "not"; arg: Predicate }
+export type Predicate = { op: "eq" | "neq" | "gt" | "gte" | "lt" | "lte"; left: Value; right: Value; order?: Scalar[] } | { op: "is-null"; value: Value } | { op: "truthy"; language: "python" | "go"; value: Value } | { op: "has-key"; map: Value; key: Value } | { op: "member"; value: Value; set: Value } | { op: "all" | "any"; args: Predicate[] } | { op: "not"; arg: Predicate }
 export const FINITE_PREDICATE_GUIDE = 'Basic finite predicates: {op:"eq"|"neq",left:<operand>,right:<operand>}, {op:"is-null",value:<operand>}, {op:"all"|"any",args:[<predicate>,...]}, {op:"not",arg:<predicate>}. Use all/any rather than and/or. An operand is {literal:<finite value>}, {binding:<source name or field>}, or {lookup:{map:<operand>,key:<operand>}}. These exact fields are required; free-text or unsupported operators are rejected, never coerced into a condition.'
 export interface ValueEvaluation { known: boolean; value?: FiniteValue; residual: Value; missingBindings: string[]; diagnostics: string[]; origin: "literal" | "binding" | "lookup" }
 export interface PartialPredicate { truth: Truth; residual: unknown | null; missingBindings: string[]; trace: Array<{ op: string; truth: Truth }>; diagnostics: string[]; valueTrace?: ValueEvaluation[] }
@@ -30,6 +30,7 @@ export function predicateDiagnostics(input: unknown, maxDepth = 12, maxNodes = 6
     if (p.op === "eq" || p.op === "neq") { if (!keys(p, ["op", "left", "right"]) || !value(p.left) || !value(p.right)) diagnostics.push("predicate-invalid") }
     else if (["gt", "gte", "lt", "lte"].includes(p.op)) { if (!keys(p, p.order === undefined ? ["op", "left", "right"] : ["op", "left", "right", "order"]) || !value(p.left) || !value(p.right) || p.order !== undefined && (!Array.isArray(p.order) || !p.order.length || p.order.length > 64 || !p.order.every(scalar) || new Set(p.order).size !== p.order.length)) diagnostics.push("predicate-invalid") }
     else if (p.op === "is-null") { if (!keys(p, ["op", "value"]) || !value(p.value)) diagnostics.push("predicate-invalid") }
+    else if (p.op === "truthy") { if (!keys(p, ["op", "language", "value"]) || !["python", "go"].includes(p.language) || !value(p.value)) diagnostics.push("predicate-invalid") }
     else if (p.op === "member") { if (!keys(p, ["op", "value", "set"]) || !value(p.value) || !value(p.set)) diagnostics.push("predicate-invalid") }
     else if (p.op === "has-key") { if (!keys(p, ["op", "map", "key"]) || !value(p.map) || !value(p.key)) diagnostics.push("predicate-invalid") }
     else if (p.op === "not" && keys(p, ["op", "arg"])) visit(p.arg, depth + 1)
@@ -81,6 +82,13 @@ export function partialEvaluate(input: unknown, knownBindings: Record<string, Fi
     } else if (p.op === "is-null") {
       const v = resolve(p.value)
       result = v.known ? done(v.value === null) : unknown([v], { op: p.op, value: v.residual })
+    } else if (p.op === "truthy") {
+      const v = resolve(p.value)
+      result = unknown([v], { ...p, value: v.residual })
+      if (v.known) {
+        if (p.language === "go" && typeof v.value !== "boolean") diagnostics.push("predicate-type-error")
+        else result = done(v.value !== null && (typeof v.value === "object" ? Object.keys(v.value).length > 0 : !!v.value))
+      }
     } else if (p.op === "member" || p.op === "has-key") {
       const a = resolve(p.op === "member" ? p.value : p.map), b = resolve(p.op === "member" ? p.set : p.key)
       result = unknown([a, b], p.op === "member" ? { op: p.op, value: a.residual, set: b.residual } : { op: p.op, map: a.residual, key: b.residual })

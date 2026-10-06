@@ -4,10 +4,10 @@ import path from "node:path"
 import os from "node:os"
 import { createInquiryTools } from "../inquiry-tools.ts"
 
-async function fixture(content: string, extension = "py") {
+async function fixture(content: string, extension = "py", finiteControl = false) {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "av-skeleton-"))
   await writeFile(path.join(sourceRoot, `app.${extension}`), content)
-  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true })
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, ...(finiteControl ? { controlSemantics: "finite-control/v1" } : {}) } as any)
   const source = tools.structure!.symbols.find(s => s.name === "entry")!
   return { tools, source, read: () => tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine }) }
 }
@@ -27,6 +27,57 @@ test("the production source view separates early return and effect branches with
   expect(skeleton.edges.some((e: any) => e.from === returned.id && e.to === effect.id)).toBe(false)
   expect(effect.call.arguments).toEqual([{ expression: "actor", parameterName: "actor" }, { expression: "None", parameterName: "value", literalKnown: true, literalValue: null }])
   expect(skeleton.anchors.every((a: any) => !Object.hasOwn(a, "permissionOutcome"))).toBe(true)
+})
+
+test("finite source try keeps normal, typed handler, else and finally in distinct regions", async () => {
+  const f = await fixture("def entry(actor, item):\n    try:\n        item.write(actor)\n    except Denied:\n        return False\n    else:\n        actor.audit()\n    finally:\n        actor.cleanup()\n    return True\n", "py", true)
+  await f.read()
+  const skeleton = (await f.tools.sourceSkeleton(f.source.id))! as any
+  const region = skeleton.flow.find((n: any) => n.kind === "try")
+  expect(region).toBeDefined()
+  expect(region.handlers[0].exceptionTypes).toEqual(["Denied"])
+  const calls = (flow: any[]) => flow.map(n => skeleton.anchors.find((a: any) => a.id === n.anchorId)?.call?.expression).filter(Boolean)
+  expect(calls(region.body)).toEqual(["item.write"])
+  expect(calls(region.otherwise)).toEqual(["actor.audit"])
+  expect(calls(region.finally)).toEqual(["actor.cleanup"])
+  expect(skeleton.gaps.some((g: any) => g.code === "skeleton-control-unsupported")).toBe(false)
+  expect(skeleton.anchors.find((a: any) => a.call?.expression === "item.write").interpretationRequired).toBe(true)
+})
+
+test("finite source with, literal loop and early loop exits retain execution regions", async () => {
+  const f = await fixture("def entry(actor):\n    with context(actor) as item:\n        for value in [0, 1]:\n            if value:\n                break\n            item.write(value)\n        else:\n            actor.done()\n    return True\n", "py", true)
+  await f.read()
+  const skeleton = (await f.tools.sourceSkeleton(f.source.id))! as any
+  const withRegion = skeleton.flow.find((n: any) => n.kind === "with")
+  expect(withRegion).toBeDefined()
+  const loop = withRegion.body.find((n: any) => n.kind === "loop")
+  expect(loop.iterableValue).toEqual([0, 1])
+  expect(loop.targetName).toBe("value")
+  expect(loop.body[0].then[0].kind).toBe("break")
+  expect(loop.otherwise.length).toBeGreaterThan(0)
+  expect(skeleton.gaps.map((g: any) => g.code)).toContain("skeleton-context-exit-unknown")
+})
+
+test("finite short circuit stores RHS reachability and Python value semantics", async () => {
+  const f = await fixture("def entry(flag, actor):\n    answer = flag and actor.check()\n    return answer\n", "py", true)
+  await f.read()
+  const skeleton = (await f.tools.sourceSkeleton(f.source.id))! as any
+  const region = skeleton.flow.find((n: any) => n.kind === "short-circuit")
+  expect(region).toMatchObject({ operator: "and", language: "python", leftExpression: "flag" })
+  expect(region.body).toHaveLength(1)
+  expect(skeleton.anchors.find((a: any) => a.id === region.body[0].anchorId).call.expression).toBe("actor.check")
+  expect(skeleton.gaps.some((g: any) => g.code === "skeleton-short-circuit-call")).toBe(false)
+})
+
+test("nested short-circuit call arguments occur once in their own conditional region", async () => {
+  const f = await fixture("def entry(flag, actor):\n    return consume(flag and (actor.ready() or actor.fallback()))\n", "py", true)
+  await f.read()
+  const skeleton = (await f.tools.sourceSkeleton(f.source.id))!
+  const all: any[] = []
+  const collect = (flow: any[]) => { for (const n of flow) { all.push(n); for (const key of ["body", "then", "otherwise", "enter", "finally"]) if (n[key]) collect(n[key]) } }
+  collect(skeleton.flow)
+  expect(all.filter(n => n.kind === "short-circuit")).toHaveLength(2)
+  for (const name of ["actor.ready", "actor.fallback", "consume"]) expect(all.filter(n => skeleton.anchors.find(a => a.id === n.anchorId)?.call?.expression === name)).toHaveLength(1)
 })
 
 test("unread source is not a shown skeleton and unsupported control nodes retain located gaps", async () => {

@@ -13,6 +13,7 @@ import { inquiryStepSchemas, InquiryAuthorTransportSchema, inquiryAuthorModelSch
 import type { InquiryReuseInfo, InquiryReuseSeed } from "./inquiry-reuse.ts"
 import { SEMANTIC_EXECUTION_GUIDE } from "./inquiry-semantic.ts"
 import { FOCUSED_EXECUTION_GUIDE, OPERATION_STEP_EXECUTION_GUIDE, type FocusStage } from "./inquiry-focus.ts"
+import { createInquiryProgress, inquiryProgressState } from "./inquiry-progress.ts"
 
 export type InquiryMethod = "M" | "D0" | "D1"
 class SourceDisplayLimitError extends AuthorizationDispatchLimitError {
@@ -53,7 +54,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
   const strategy = parseInquiryStrategy(options.strategy)
   const sourceAssisted = isSourceAssistedInquiryStrategy(strategy)
   if (options.domainAblation && (strategy !== "domain-evidence-v1" || !["scheduler-off", "checks-off"].includes(options.domainAblation))) throw new Error("Invalid domain ablation/strategy combination")
-  const startedAt = Date.now(), tools = await createInquiryTools({ ...options, structure: isOperationInquiryStrategy(strategy), reserveFinalRead: true }), requests: Array<{ phase: "author" | "analysis" | "repair"; params: CompletionParams }> = []
+  const startedAt = Date.now(), tools = await createInquiryTools({ ...options, structure: isOperationInquiryStrategy(strategy), ...(strategy === "operation-evidence-v3" ? { controlSemantics: "finite-control/v1" as const } : {}), reserveFinalRead: true }), requests: Array<{ phase: "author" | "analysis" | "repair"; params: CompletionParams }> = []
   let phase: "author" | "analysis" | "repair" = "analysis"
   let cumulativeModelSourceBytes = 0, resentSourceBytes = 0
   const previouslyShown = new Set<string>()
@@ -79,6 +80,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
   const wireFailures: Array<StructuredExtractionFailure & { phase: string; sequence: number }> = []
   const wireNormalizations: Array<{ sequence: number; code: string; originalKind: unknown; rawResponse: string }> = []
   let domain: ReturnType<typeof createInquiryDomainRuntime> | undefined
+  const progress = createInquiryProgress(); let progressAdvice: unknown
   try {
     if (options.inquiry) inquiry = (sourceAssisted ? AuthorizationSourceInquirySchema : AuthorizationInquirySchema).parse(options.inquiry)
     else if (options.brief?.trim()) {
@@ -102,7 +104,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
       if (imported.diagnostics.length) throw new Error(JSON.stringify(imported.diagnostics))
       for (const id of imported.importedEvidenceIds) importedReferences.add(id)
     }
-    if (strategy !== "legacy") domain = createInquiryDomainRuntime({ program, tools, strategy, sourceAssisted, ablation: options.domainAblation, shownEvidenceIds: availableEvidence, ...(options.reuse ? { initialDelta: options.reuse.seed.delta, initialSemanticUnits: options.reuse.seed.semanticUnits } : {}), ...(options.brief ? { suppliedUserText: [options.brief], entryContext: options.brief } : {}) })
+    if (strategy !== "legacy") domain = createInquiryDomainRuntime({ program, tools, strategy, sourceAssisted, ablation: options.domainAblation, shownEvidenceIds: availableEvidence, ...(options.reuse ? { initialDelta: options.reuse.seed.delta, initialSemanticUnits: options.reuse.seed.semanticUnits, initialSourceMaterials: options.reuse.seed.sourceMaterials } : {}), ...(options.brief ? { suppliedUserText: [options.brief], entryContext: options.brief } : {}) })
     const context = () => ({ questionIds: inquiry!.questions.map(q => q.id), shownEvidenceIds: availableEvidence() })
     const focused = isFocusedInquiryStrategy(strategy)
     const base = focused ? [
@@ -156,7 +158,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
         }
       }
       const shown = localContext ? localContext.evidenceCatalog.map(e => ({ ...e, shown: previouslyShown.has(e.id), ...(importedReferences.has(e.id) ? { previousVerified: true } : {}) })) : tools.evidence.map(({ quote: _q, ...e }) => e)
-      const renderedContext = localContext ? { ...localContext, ...(focused && !sourceAssisted ? { instruction: undefined } : {}), ...(sourceAssisted ? { mode: undefined, policy: undefined } : {}), evidenceCatalog: shown } : undefined
+      const renderedContext = localContext ? { ...localContext, ...(focused && !sourceAssisted ? { instruction: undefined } : {}), ...(sourceAssisted ? { mode: undefined, policy: undefined } : {}), evidenceCatalog: shown, ...(progressAdvice ? { progress: progressAdvice } : {}) } : undefined
       const sourceCatalog = localContext ? "Use evidenceCatalog in the current local explanation context; original source text is in sourceWindows." : limitedSourceCatalog ?? JSON.stringify(shown)
       const budgetNote = sourceLimitedDelivery ? "\n\nSource display budget requires bounded final delivery. Catalog metadata without text is not a fresh body display. Use only actually shown original evidence and preserve unresolved gaps; no further source actions are available." : tools.toolCalls >= tools.maxToolCalls ? "\n\nSource tool budget is exhausted. Deliver from the original windows already available and preserve precise gaps; no further source actions are available." : ""
       const deliveryNote = deliveryReserved ? `Reserved delivery opportunity: submit kind:final now${isOperationInquiryStrategy(strategy) ? ' as {kind:"final",schemaVersion:"authorization-focused-result/v1",focusId:<current focus.id>,answers:[...],scope:<source limits>} with every original question in order' : strategy === "semantic-flow-v1" ? ' as {kind:"final",result:<COMPLETE authorization-semantic-result/v1 from the CURRENT resultSkeleton>,controlDelta?:<update>}. revision belongs inside result. A controlDelta-only step has no answer; preserve explicit incomplete source relations. Omit an optional path policy when absent; never supply policy:null' : domain ? ", include any necessary controlDelta in that same step" : " using the final result schema"}. Preserve precise unresolved gaps if evidence is insufficient.${remainingDispatches > 1 ? " A remaining call may diagnose and repair delivery within the original limits." : ""}` : "Submit a grounded final answer when ready."
@@ -205,6 +207,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
         if (repaired) { status = "completed-with-diagnostics"; break }
         repaired = true; steps.push({ kind: "delivery-repair", value: { candidate: answer, diagnostics: validation.diagnostics, instruction: "One diagnostics-only repair; preserve source judgments unless a diagnosed contradiction requires correction." } })
       }
+      if (strategy === "operation-evidence-v3") progressAdvice = progress.record({ unit: domain?.report().focus?.current?.id ?? step.kind, input: step, state: inquiryProgressState(domain?.report()), diagnostics: (steps.at(-1)?.value as any)?.diagnostics ?? [] })
     }
     if (status === "needs-input") status = "budget-exhausted"
   } catch (cause) {
@@ -222,7 +225,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
     program: inquiry ? compileAuthorizationInquiry(inquiry) : undefined, result: validation?.valid ? validation.result : undefined,
     initial, initialValidation, final, validation, sourceVerification, observations, steps, requests, wireFailures, wireNormalizations, evidence: tools.evidence, toolHistory: tools.history, scopeGaps: tools.scopeGaps, sourceFiles: tools.files,
     sourceAccounting: { indexBytes: tools.indexBytes, physicalReadBytes: tools.ioReadBytes, toolDisplayBytes: tools.displayBytes, importedEvidenceBytes: tools.importedEvidenceBytes, cumulativeModelSourceBytes, resentSourceBytes },
-    ...(options.reuse ? { reuse: { ...options.reuse.info, importedEvidenceIds: [...importedReferences] } } : {}),
+    ...(options.reuse ? { reuse: { ...options.reuse.info, ...(strategy === "operation-evidence-v3" ? { materialsUsed: new Set(domain?.report().materialUses?.map(u => u.materialId)).size } : {}), importedEvidenceIds: [...importedReferences] } } : {}),
     ...(domain ? { domain: domain.report() } : {}), attempts: telemetry.attempts, events: telemetry.events, telemetry: telemetry.summary(), durationMs: Date.now() - startedAt, ...(error ? { error } : {}) }
 }
 export type AuthorizationInquiryRun = Awaited<ReturnType<typeof runAuthorizationInquiry>>
