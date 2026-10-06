@@ -1,0 +1,132 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "gitea-create-issue",
+  "repository": "go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "sourceRoot": "source",
+  "allowedPaths": [
+    "routers/api/v1/repo",
+    "routers/api/v1/api.go",
+    "routers/api/v1/utils",
+    "modules/structs",
+    "modules/setting",
+    "modules/web",
+    "models/unit",
+    "models/perm",
+    "models/auth",
+    "models/user",
+    "models/repo",
+    "models/issues",
+    "models/organization",
+    "services/convert",
+    "services/issue",
+    "services/context"
+  ],
+  "inquiry": {
+    "schemaVersion": "authorization-inquiry/v2",
+    "mode": "conformance",
+    "operations": [
+      {
+        "id": "create-issue",
+        "request": "Check CreateIssue and its API route in this Gitea revision against the independently supplied current policy; compare authenticated repository readers with principals having issue write permission, trace the controls and issue creation effect, identify relevant exceptions, and explain compliance and source or deployment limits.",
+        "entryHint": "CreateIssue and its API route"
+      }
+    ],
+    "questions": [
+      {
+        "id": "create-issue-route-controls",
+        "operationId": "create-issue",
+        "intent": "behavior",
+        "request": "Which API route reaches CreateIssue, and which route-level and inherited authentication or authorization controls govern this requested issue-creation action?",
+        "premises": [
+          {
+            "text": "The requested review concerns CreateIssue and its API route in the supplied Gitea revision.",
+            "origin": "user"
+          },
+          {
+            "text": "The supplied source revision is fc28937a8d772fe9e4025c9b5f24d5db4d86610b.",
+            "origin": "user"
+          }
+        ],
+        "entryHint": "CreateIssue and its API route"
+      },
+      {
+        "id": "create-issue-principal-comparison",
+        "operationId": "create-issue",
+        "intent": "behavior",
+        "request": "How does the effective authorization path distinguish an authenticated repository reader from a principal with issue write permission for creating an issue, including any inherited permission path or object-level check?",
+        "principal": "authenticated repository reader; principal with issue write permission",
+        "resource": "repository issue creation",
+        "operation": "create an issue",
+        "premises": [
+          {
+            "text": "The review must compare authenticated repository readers and principals with issue write permission.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "create-issue-repository-unit-effect",
+        "operationId": "create-issue",
+        "intent": "behavior",
+        "request": "What repository and issues-unit checks, request or serializer validation, and downstream issue-creation calls govern the exact issue-creation effect, and where is the effect committed or otherwise materialized?",
+        "resource": "repository and its issues unit; newly created issue",
+        "operation": "create an issue",
+        "premises": [
+          {
+            "text": "The review must trace repository or issue-unit checks and the issue creation effect rather than assuming endpoint-local checks are the whole path.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "create-issue-policy-comparison",
+        "operationId": "create-issue",
+        "intent": "policy-comparison",
+        "request": "Compared with the independently supplied current policy, does the effective behavior permit every authenticated repository reader to create an issue when the issues unit is enabled without requiring issue-unit write permission, and where does it differ or conform?",
+        "principal": "authenticated repository reader; principal with issue write permission",
+        "resource": "repository issue creation when the issues unit is enabled",
+        "operation": "create an issue",
+        "premises": [
+          {
+            "text": "Any authenticated repository reader may create an issue when the issues unit is enabled. Issue-unit write permission is not required by this policy.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "create-issue-exceptions",
+        "operationId": "create-issue",
+        "intent": "policy-comparison",
+        "request": "What relevant exceptions, alternate entry paths, route or middleware behavior, repository settings, unit state, administrator or organization cases, or other conditions affect the policy comparison for this same issue-creation action?",
+        "premises": [
+          {
+            "text": "The review must identify relevant exceptions instead of treating endpoint-local checks as the whole path.",
+            "origin": "user"
+          }
+        ]
+      },
+      {
+        "id": "create-issue-scope-limits",
+        "operationId": "create-issue",
+        "intent": "scope",
+        "request": "Which facts remain unavailable or require deployment verification before concluding whether this issue-creation behavior is policy-compliant in a running deployment, and what are the precise limits of the supplied source scope?",
+        "premises": [
+          {
+            "text": "The source is the supplied snapshot at sourceRef fc28937a8d772fe9e4025c9b5f24d5db4d86610b.",
+            "origin": "user"
+          },
+          {
+            "text": "The review is limited to the supplied allowed source paths under sourceRoot source.",
+            "origin": "user"
+          }
+        ]
+      }
+    ],
+    "policy": {
+      "text": "Any authenticated repository reader may create an issue when the issues unit is enabled. Issue-unit write permission is not required by this policy.",
+      "origin": "user",
+      "location": "experimental-user-brief:gitea-issue-policy/as-reader-v2"
+    }
+  }
+}
