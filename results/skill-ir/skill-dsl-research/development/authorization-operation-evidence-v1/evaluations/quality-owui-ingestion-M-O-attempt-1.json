@@ -1,0 +1,80 @@
+{
+  "schemaVersion": "au-independent-source-evaluation/v1",
+  "artifact": "runs/quality-owui-ingestion-M-O/attempt-1/report.json",
+  "sha256": "036a6b7ff3e9bf56fbbb8a80498a4de2481e627f41507a304faafd779e6b1614",
+  "reviewedAt": "2026-10-06T00:56:02.673Z",
+  "reviewers": [
+    "au_owui_m_raw_classification_audit",
+    "au_owui_m_source_review",
+    "main"
+  ],
+  "grade": "partial",
+  "originalTaskSufficient": false,
+  "naturalOutputAdequate": false,
+  "checked": false,
+  "bounded": false,
+  "formalCheck": "not-checked-bounded",
+  "completionUnknown": false,
+  "currentSourceUnits": 6,
+  "sourceVerification": {
+    "valid": true,
+    "checkedFiles": 173,
+    "physicalReadBytes": 3149729
+  },
+  "sourceSkillUnmodified": true,
+  "installedSkillVerified": true,
+  "originalInputUnmodified": true,
+  "actualReferenceReads": [],
+  "questionAssessments": [
+    {
+      "id": "caller-and-file-authorization",
+      "grade": "partial",
+      "reason": "Owner/admin file predicates delivered, but upstream get_current_user source is available at utils/auth.py:297-405 and unexamined; external file/knowledge callers are absent from final"
+    },
+    {
+      "id": "input-output-resource-identity",
+      "grade": "full",
+      "reason": "Correctly separates input file and collection selector without assuming destination ownership"
+    },
+    {
+      "id": "processing-and-write-conditions",
+      "grade": "partial",
+      "reason": "Final includes bypass, hash rejection and existing-collection add/no-op, but omits explicit add mapping to collection truthiness, empty collection and content deletion; intermediate templates cannot complete the prose"
+    },
+    {
+      "id": "limits-and-policy",
+      "grade": "partial",
+      "reason": "Backend success is properly conditional; a missing policy is not needed to establish the requested source behavior and the unexamined upstream source is not a deployment blocker"
+    }
+  ],
+  "targetExecutionAudit": {
+    "verified": true,
+    "targetExecutions": 0,
+    "rawToolCalls": 39,
+    "allowedRawTools": [
+      "source_read",
+      "source_search",
+      "source_structure",
+      "source_symbol",
+      "authorization_observe",
+      "authorization_check_result"
+    ],
+    "capture": {
+      "archive": "source-capture/20261006-083438-run.conv-001-natural-46ea87740b02.jsonl.gz",
+      "sha256": "3d40469e9a909311a659d703ae4a640b72f7ad8ea4a27666a3d5f19d3a1a3751",
+      "rawSha256": "b5ba7f1e2ffc616d7b21b0f9407408b8f98a8d43c4b47c0639b77cadbe0eee79",
+      "rawBytes": 5614725,
+      "records": 48,
+      "requests": 24,
+      "responses": 24
+    }
+  },
+  "mainAdjudications": [
+    "The source scout relied on report intermediate interpretations as final coverage and tied natural sufficiency to checked/bounded; main judged final prose separately and kept partial for omitted requested source/caller distinctions",
+    "Main checked source auth.py:297-405 and retrieval.py:1367-1387,1458-1467,1540-1598,1665-1736 plus files.py:558-598",
+    "Raw audit did not locate the diagnostic generator; main located semantic-flow.ts:37,51,135 and confirmed current unit.handle plus block/step/reason provenance",
+    "Mechanical classification correction has zero provider calls, no report edits, no quality or check promotion, and does not justify a paid M-O redraw"
+  ],
+  "actualUSD": null,
+  "humanMinutes": null
+}

@@ -3,6 +3,7 @@ import { mkdtemp, readFile, mkdir, writeFile } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import { createHash } from "node:crypto"
+import { lowerSemanticFlow, type BoundSemanticBlock } from "../../../../../src/task-dsl/authorization/semantic-flow.ts"
 const api = await import("./study.ts").catch(() => ({} as any))
 const { executeLocalInquiryRun } = await import("../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts")
 const row = (id: string) => ({ id, task: "memos-remove", method: "D1", strategy: "guided-evidence-v2", components: ["wire", "checker"] })
@@ -13,6 +14,25 @@ const focusedCandidateFailure = () => ({ status: "completed-with-diagnostics", o
 test("known focused native candidate rejection is not a shared checker failure", () => {
   expect(api.mechanicalReview(focusedCandidateFailure()).failure.components).toEqual(["model-draft"])
   for (const invalid of [{ ...focusedCandidateFailure(), attempts: [{ status: "pending" }] }, { ...focusedCandidateFailure(), error: "Runtime crashed" }, { ...focusedCandidateFailure(), history: [{ call: { name: "authorization_check_result" }, exitCode: 1, output: { status: "error", message: "Unexpected runtime crash" } }] }]) expect(api.mechanicalReview(invalid).failure.components).not.toEqual(["model-draft"])
+})
+
+test("native source gaps retain their model provenance without accepting unrelated diagnostics", () => {
+  const unit: BoundSemanticBlock = { itemId: "work", handle: "entry", questionId: "q", evidenceIds: ["ev"], op: "add", role: "entry", start: "main", complete: false, parameters: [], blocks: [{ name: "main", steps: [{ kind: "unresolved", name: "identity", claim: "Source identity remains unexamined", reason: "The caller provenance was not interpreted." }] }] }
+  const gap = lowerSemanticFlow([unit]).diagnostics.find(d => d.code === "The caller provenance was not interpreted.")!
+  expect(gap).toBeDefined()
+  const report = focusedCandidateFailure(), check = report.history[0]!
+  const failed = { ...report, domain: { ...report.domain, semantic: { units: [unit] } }, history: [{ ...check, output: { valid: false, diagnostics: [...check.output.diagnostics, gap] } }] }
+  expect(api.mechanicalReview(failed).failure.components).toEqual(["model-draft"])
+  for (const invalid of [
+    { ...failed, domain: { ...failed.domain, semantic: { units: [] } } },
+    { ...failed, domain: { ...failed.domain, semantic: { units: [{ ...unit, handle: "different" }] } } },
+    { ...failed, history: [{ ...failed.history[0], output: { valid: false, diagnostics: [{ ...gap, questionId: "different" }] } }] },
+    { ...failed, history: [{ ...failed.history[0], output: { valid: false, diagnostics: [{ ...gap, message: "Unexpected internal failure" }] } }] },
+    { ...failed, history: [{ ...failed.history[0], output: { valid: false, diagnostics: [{ code: "internal-invariant", path: "runtime" }] } }] },
+    { ...failed, attempts: [{ status: "pending" }] },
+    { ...failed, sourceVerification: { valid: false } },
+    { ...failed, error: "Unexpected host exception" },
+  ]) expect(api.mechanicalReview(invalid).failure.components).not.toEqual(["model-draft"])
 })
 
 test("a hash-bound model candidate reclassification permits listed same-task work but retains the original failure", async () => {

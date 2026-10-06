@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "au-independent-source-evaluation/v1",
+  "artifact": "runs/quality-owui-ingestion-N/attempt-1/report.json",
+  "sha256": "7e692d702ef9cbd2b5bd7f579b36bf2b85c2b693186dc5a7b797cd7393508212",
+  "reviewedAt": "2026-10-06T00:34:36.685Z",
+  "reviewers": [
+    "au_owui_n_raw_audit",
+    "au_owui_n_source_review",
+    "main"
+  ],
+  "grade": "partial",
+  "originalTaskSufficient": false,
+  "naturalOutputAdequate": false,
+  "checked": false,
+  "bounded": false,
+  "formalCheck": "not-applicable",
+  "completionUnknown": false,
+  "questionAssessments": [
+    {
+      "id": "caller-input-authorization",
+      "grade": "full",
+      "reason": "Admin/non-admin file lookup, owner predicate, direct and knowledge/file caller distinctions correctly described"
+    },
+    {
+      "id": "input-output-resource-identity",
+      "grade": "full",
+      "reason": "Separates file selected by file_id from supplied collection_name and does not assume destination ownership"
+    },
+    {
+      "id": "processing-and-write-controls",
+      "grade": "partial",
+      "reason": "Omits source-visible bypass, content/collection truthiness and empty collection, duplicate hash rejection, existing collection add=False no-op and content-path deletion; embedding/insert sequence is too strong for these branches"
+    },
+    {
+      "id": "visible-conditions-and-limits",
+      "grade": "partial",
+      "reason": "Backend/cross-user effects are conditional, but available source branches affecting whether insertion occurs are omitted"
+    }
+  ],
+  "sourceAnchors": [
+    {
+      "file": "backend/open_webui/routers/retrieval.py",
+      "symbol": "process_file",
+      "lines": [
+        1559,
+        1568,
+        1571,
+        1577,
+        1596,
+        1673,
+        1694,
+        1704
+      ],
+      "role": "File ownership, None/truthy selectors, deletion, bypass and add control"
+    },
+    {
+      "file": "backend/open_webui/routers/retrieval.py",
+      "symbol": "save_docs_to_vector_db",
+      "lines": [
+        1369,
+        1385,
+        1459,
+        1465,
+        1467
+      ],
+      "role": "Hash rejection and already-existing collection no-op"
+    },
+    {
+      "file": "backend/open_webui/routers/files.py",
+      "symbol": "update_file_data_content_by_id",
+      "lines": [
+        567,
+        576,
+        583,
+        587,
+        589
+      ],
+      "role": "Outer write grant, caught inner failure and knowledge deletion/reprocessing"
+    }
+  ],
+  "sourceVerification": {
+    "valid": true,
+    "checkedFiles": 173,
+    "physicalReadBytes": 3149729
+  },
+  "sourceSkillUnmodified": true,
+  "installedSkillVerified": true,
+  "originalInputUnmodified": true,
+  "actualReferenceReads": [],
+  "targetExecutionAudit": {
+    "verified": true,
+    "targetExecutions": 0,
+    "rawToolCalls": 26,
+    "allowedRawTools": [
+      "source_list",
+      "source_search",
+      "source_read"
+    ],
+    "capture": {
+      "archive": "source-capture/20261006-082754-run.conv-001-natural-46ea87740b02.jsonl.gz",
+      "sha256": "3f7d334f6a98aff061beedc65c624d450a6c3e7a86b55f00f590a220c6d640db",
+      "rawSha256": "6d19f970fffe22c02beb98e762eba4a8975ca9bd0754ba9f1ede7d074480014d",
+      "rawBytes": 780870,
+      "records": 14,
+      "requests": 7,
+      "responses": 7
+    }
+  },
+  "mainAdjudications": [
+    "Source anchors for bypass, hash rejection, None/truthiness and add=False no-op personally checked; partial concerns actual final, not absent formal output",
+    "Guidance mode applies to this bounded behavior investigation; unrequested full audit phases are not a quality failure",
+    "The source scout referred to dedup coverage vaguely; final does not explain the dedup branch, rather than explaining it incorrectly",
+    "No shared implementation defect proved; do not redraw the N first position or promote intermediate source to a final"
+  ],
+  "actualUSD": null,
+  "humanMinutes": null
+}

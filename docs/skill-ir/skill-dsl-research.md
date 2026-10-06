@@ -1773,6 +1773,8 @@ Gitea首轮`bd9348f0`原件11派发/11响应，1操作/3问、4个current source
 
 原字节Gitea消费者在`187d2195`派发22/响应21，request22仅广告结果检查工具后300秒网络超时，实际完成/usage未知、无终答、formal unknown。源终检346文件有效、16current units，完整原/安装skill、作者配置/USAGE原字节保持；raw与native均23工具、22/21请求响应，目标执行0、参考读取0。主纠正探子把工具侧车尾空行算成第24动作及allowedPaths的17条转述，实际分别23/16。原unbound诊断来自ordinary全响应守卫，不能据此猜日志身份错误或补发已未知请求。原件SHA与gzip压缩/解压SHA绑定评阅留档，source草稿不能提升为交付。Gitea剩余4位置零调用封存，原/变作者合格事实保持但变化消费者不得绕过同任务未知；沿用retainTaskPause机制仅放行其它两原Python任务的6质量位置。19归档原件累计280/278，fresh6302917/cache647040/output267336，2项Share/Gitea完成及USD/开发AI/真人未知保持；现有共享实现缺陷未证明，不增加修复或同题重抽。下一依次OWUI N/M-O/D-O、Paperless download N/M-O/D-O。
 
+OWUI质量N/M-O在同`5ac2d651`分别7/7和24/24已知，26/39工具，完整Cloudflare原/安装bundle与输入保持、source173文件有效、参考读取0、target0。N终答交付owner/admin与file/collection分离，漏bypass、hash拒绝、已有collection no-op、truthiness及删除控制，natural partial、formal按N不适用。M-O终答补述bypass/去重/add-no-op，但外层files/knowledge caller和可得的get_current_user认证来源未完整交付，6current units、1operation/1question不能补终答；natural仍partial、形式not-checked-bounded。主纠正源码探子引用中间解释、将自然充分性与formal混判及raw探子未定位诊断生成点：semantic-flow.ts:37/51/135将原unit的unresolved reason原样变为code。分类白名单漏此来源而误标checker/delivery，非真实宿主异常；生产lower生成匿名red转绿，56相关pass/265断言、主/AU类型和独立代码核验通过。只精确匹配current unit/宿主诊断出处，身份不符、unknown/internal/pending/source-invalid保持暂停；原M-O SHA零provider重放归model-draft，原review/check/质量不改，不增加M-O修订。新的显式SHA范围裁定允许OWUI D-O和Download三臂，Gitea/Share未知封存保持。21归档attempt311/309、fresh7582951/cache968192/output299738、2未知与实际USD/开发AI/真人未知，净收益未建立；后续首位属修后版本，不能混作同revision效果。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

@@ -1,0 +1,253 @@
+
+skvm run v0.1.4
+  Adapter  bare-agent (built-in)
+  Model    xty/gpt-5.6-sol via openai-compatible (https://svip.xty.app/v1)
+  Task     natural prompt
+  Skill    D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\cloudflare-security-audit\SKILL.md
+  WorkDir  D:\skill优化\project-maintenance\runs\authorization-operation-evidence-v1\quality-owui-ingestion-M-O\attempt-1
+  Cache    D:\skill优化\SkVM\.skvm
+
+08:34:38.824 [INFO ] [run] Run task natural-46ea87740b02: adapter=bare-agent model=xty/gpt-5.6-sol workDir=D:\skill优化\project-maintenance\runs\authorization-operation-evidence-v1\quality-owui-ingestion-M-O\attempt-1
+08:34:38.828 [INFO ] [conv-log] Conversation logging enabled: D:\skill优化\SkVM\.skvm\log\20261006-083438-run
+✓ Task natural-46ea87740b02 complete  (10m 0s)
+
+=== Run Complete ===
+Task: natural-46ea87740b02
+Skill: D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\cloudflare-security-audit\SKILL.md
+Model: xty/gpt-5.6-sol
+Adapter: bare-agent
+WorkDir: D:\skill优化\project-maintenance\runs\authorization-operation-evidence-v1\quality-owui-ingestion-M-O\attempt-1
+Duration: 600.6s
+Tokens: in=1182678 out=26797
+
+Final output:
+# Behavior Investigation: `POST /process/file`
+
+**Repository:** `open-webui/open-webui`  
+**Source revision:** `841c9045d789005145274955e7ef60b1b11a9be9`  
+**Scope:** Read-only source investigation of `process_file`, the `file_id` authorization path, `collection_name` propagation, and the vector-write path.
+
+**Confidence:** High for the visible role-dependent file lookup and the direct propagation of `collection_name` into the vector helper. Conditional for the eventual backend effect because vector-backend ACLs, deployment topology, and upstream identity construction are not fully visible. No live execution or deployment probing was performed.
+
+## Executive conclusion
+
+The input object and output object are **not necessarily the same resource**.
+
+- The input authorization decision selects a **file** using `file_id`.
+- For a non-admin caller, the lookup also requires `file.user_id == user.id`.
+- For an admin caller, the lookup is by `file_id` alone.
+- Once a file is selected, `process_file` passes the request's `collection_name` to `save_docs_to_vector_db`.
+- The vector helper eventually calls `VECTOR_DB_CLIENT.insert(collection_name=collection_name, items=items)` without a visible application-level check that the caller owns, or is authorized to write to, that collection.
+- The inserted item metadata includes the selected file's `file_id`, but that metadata does not make the collection the same object as the file and does not itself enforce collection ownership.
+
+Accordingly, a caller can be authorized to process one file while the eventual vector effect is directed at a separately named collection. Whether an external vector backend rejects or permits that write is not established by this source.
+
+This is a **source-visible authorization mismatch/behavior**, not a confirmed vulnerability without an independent policy requiring collection ownership and evidence that backend ACLs do not provide the missing control.
+
+## Source trace
+
+### 1. Caller binding
+
+The route uses `get_verified_user` as its dependency. The visible dependency accepts only principals whose role is `user` or `admin`; otherwise it raises `401 ACCESS_PROHIBITED` and otherwise returns the dependency-provided principal:
+
+- `backend/open_webui/utils/auth.py:458-464`
+
+The implementation of the upstream `get_current_user` dependency is not included in the accepted source evidence. Therefore, this investigation does **not** independently establish how the principal's identity, `id`, or `role` is authenticated or populated.
+
+### 2. File selection
+
+The handler has two visible lookup paths:
+
+#### Admin path
+
+For `user.role == "admin"`, the handler calls:
+
+```python
+Files.get_file_by_id(form_data.file_id, db=db)
+```
+
+This lookup uses the supplied `file_id` and does not pass `user.id`.
+
+The model helper performs a direct lookup by file ID and returns the matching file or `None`:
+
+- `backend/open_webui/models/files.py:161-170`
+
+#### Non-admin path
+
+For the non-admin branch, the handler calls:
+
+```python
+Files.get_file_by_id_and_user_id(
+    form_data.file_id,
+    user.id,
+    db=db,
+)
+```
+
+The helper queries with both predicates:
+
+```python
+select(File).filter_by(id=id, user_id=user_id)
+```
+
+- `backend/open_webui/models/files.py:172-184`
+
+If the lookup returns no file, the handler raises `404 NOT_FOUND` and does not reach the processing or vector-save path.
+
+### 3. Processing the selected file
+
+After a file is selected, the downstream processing uses that returned file object. The visible behavior includes:
+
+- reading or extracting content associated with `file`;
+- constructing document metadata containing values such as `file.id`, `file.user_id`, filename, and source;
+- updating the selected file's content, status, hash, and collection metadata;
+- invoking `save_docs_to_vector_db`.
+
+The source also contains branches for:
+
+- supplied request content;
+- reuse of content from the selected file's per-file collection;
+- normal loader-based processing;
+- bypassing embedding and retrieval according to configuration.
+
+These branches change how content is obtained, but they do not introduce a visible ownership check for a separately supplied destination collection.
+
+### 4. Destination propagation
+
+When the request supplies `collection_name`, `process_file` passes that value to `save_docs_to_vector_db`.
+
+The helper receives:
+
+```python
+collection_name
+```
+
+as an independent parameter:
+
+- `backend/open_webui/routers/retrieval.py:1340-1348`
+
+The helper uses the supplied value to:
+
+1. query for duplicate hashes;
+2. check whether the collection exists;
+3. optionally delete the collection if `overwrite` is true;
+4. generate embeddings;
+5. insert vector items into that exact collection.
+
+The decisive write is:
+
+```python
+VECTOR_DB_CLIENT.insert(
+    collection_name=collection_name,
+    items=items,
+)
+```
+
+- `backend/open_webui/routers/retrieval.py:1458-1534`
+
+The items' metadata contains document metadata plus the processing metadata, including the selected file's `file_id`. The file identifier is therefore carried *inside* the inserted item metadata, while the destination collection is selected separately through `collection_name`.
+
+No caller-to-collection ownership or permission check is visible in this helper.
+
+## Caller-owned versus another user's file
+
+### Ordinary non-admin caller
+
+If the caller is non-admin and supplies a file belonging to another user:
+
+1. the lookup includes both the supplied `file_id` and the caller's `user.id`;
+2. the other user's file does not satisfy the query;
+3. the helper returns `None`;
+4. `process_file` returns `404`;
+5. no content processing, vector insertion, or later file update is reached on the normal path.
+
+This is the visible owner-scoped behavior.
+
+### Admin caller
+
+If the caller is admin and supplies another user's `file_id`:
+
+1. the admin branch performs a file-ID-only lookup;
+2. the file may be returned regardless of its `user_id`;
+3. the returned file is processed using the same downstream path;
+4. the selected file's metadata and status/hash fields may be updated;
+5. if a `collection_name` was supplied and the vector path is enabled, the documents may be directed to that supplied collection, subject to duplicate, existence, embedding, and backend-operation conditions.
+
+Thus, the file's original owner is not a visible barrier to an admin caller in this route.
+
+## Are the authorized input and affected output the same object?
+
+### Default per-file path
+
+When no separate `collection_name` is supplied, the normal processing path uses a per-file collection derived from the selected file, described in the source flow as:
+
+```text
+file-{file.id}
+```
+
+In that branch, the destination is coupled to the selected file ID by convention. That coupling is visible, but it is not equivalent to an independently verified ownership policy for the vector collection.
+
+### Explicit collection path
+
+When `collection_name` is supplied, the relationship changes:
+
+```text
+authorized input:  File selected by file_id and, for non-admins, user.id
+affected output:  Vector collection named by request.collection_name
+```
+
+The two identifiers are not compared, and the helper does not visibly resolve the collection to an owner or permission record.
+
+The selected file's `file_id` is included in vector metadata, but metadata labeling is not an authorization check.
+
+### Bypass path
+
+If embedding/retrieval bypass is enabled, the handler updates the selected file but does not call the vector-save helper. In that case, there is no vector write to the destination collection.
+
+### Existing collection and `add` behavior
+
+The helper's operational result also depends on collection state:
+
+- If a collection already exists and `overwrite` is false and `add` is false, the helper returns successfully without inserting.
+- If `add` is true, it proceeds toward embedding and insertion.
+- Duplicate content with a different `file_id` raises a duplicate-content error.
+- Embedding or vector-backend failures propagate as processing failures.
+
+These are operational conditions, not collection ownership controls.
+
+## Independent policy assessment
+
+**Policy status: Undetermined.**
+
+The source demonstrates that:
+
+- file authorization and collection selection are separate;
+- an explicit `collection_name` is accepted and used as a vector destination;
+- no application-level destination-owner check is visible in the examined path.
+
+However, the request does not specify the intended policy for collections. It is therefore not possible to conclude from source alone that every caller must own the destination collection.
+
+Additionally, the source does not establish whether the vector backend itself enforces collection ACLs. A deployment-level ACL could provide a control not visible in this repository.
+
+## Remaining limits and validation duties
+
+1. **Upstream identity construction is incomplete.**  
+   `get_verified_user` is visible, but `get_current_user` is not. The source does not independently prove how `user.id` and `user.role` are bound to the authenticated caller.
+
+2. **No collection-owner model was established.**  
+   The examined path does not visibly load a collection owner or permission record. Other repository code or deployment policy could define collection permissions elsewhere, but that was not established as an effective control for this route.
+
+3. **Vector backend behavior is unresolved.**  
+   `VECTOR_DB_CLIENT.insert` is visibly called with the request-derived collection name, but backend ACLs, client credentials, and deployment topology are not shown.
+
+4. **Runtime success is conditional.**  
+   Actual insertion depends on the selected file existing, configuration, bypass status, duplicate-hash checks, collection existence, `add`/`overwrite`, embedding success, and vector-backend availability.
+
+5. **No live or shared-system validation was performed.**  
+   A safe follow-up would use a local isolated fixture with dummy users, files, collections, and vector-backend credentials to determine whether a non-owner collection write is rejected or accepted. It should not probe a deployed or shared service.
+
+## Final disposition
+
+**Raw source conclusion:** The route authorizes the input file and separately accepts a request-selected vector destination. For non-admin callers, another user's file normally fails the owner-scoped lookup with `404`; admins can select another user's file by ID. Once selected, downstream processing is substantially the same. With an explicit `collection_name`, the vector write targets that collection directly, without a visible application-level collection ownership check.
+
+**Security finding status:** **Needs validation / policy-dependent**, not a confirmed vulnerability from the available evidence alone. The decisive missing facts are the intended collection authorization policy, upstream identity binding, and any vector-backend ACL enforcement.
