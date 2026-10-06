@@ -74,15 +74,15 @@ test("direct first selection advances an ambiguous operation location to its act
   expect((domain.modelContext() as any).focus.stage).toBe("interpret")
 })
 
-async function sourcePremiseFixture() {
+async function sourcePremiseFixture(globalBrief = false) {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "av-source-premise-"))
   await writeFile(path.join(sourceRoot, "app.py"), "def entry(flag):\n    if flag:\n        return True\n    return False\n")
   const tools = await createInquiryTools({ sourceRoot, repository: "anonymous", sourceRef: "fixed", allowedPaths: ["app.py"], structure: true })
   const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "Inspect entry", entryHint: "entry" }], questions: [
     { id: "known", operationId: "op", intent: "behavior", request: "Explain the current entry with flag true.", premises: [] },
-    { id: "unknown", operationId: "op", intent: "scope", request: "Explain the alternatives with flag unspecified.", premises: [] },
+    { id: "unknown", operationId: "op", intent: "scope", request: globalBrief ? "Explain the source limits." : "Explain the alternatives with flag unspecified.", premises: [] },
   ] })
-  const domain = createInquiryDomainRuntime({ program, tools, strategy: "operation-evidence-v2", sourceAssisted: true, suppliedUserText: program.questions.map(q => q.request) })
+  const domain = createInquiryDomainRuntime({ program, tools, strategy: "operation-evidence-v2", sourceAssisted: true, suppliedUserText: program.questions.map(q => q.request), ...(globalBrief ? { entryContext: program.questions[0]!.request } : {}) })
   await domain.sync()
   let context: any = domain.modelContext()
   if (context.focus.stage === "locate") {
@@ -129,4 +129,11 @@ test("flattened native user context cannot lend another question's known span to
   expect((domain.modelContext() as any).focus.id).toBe(context.focus.id)
   expect(domain.report().slice.bindings).toEqual([])
   expect(domain.report().semantic?.units).toHaveLength(0)
+})
+
+test("an original global natural brief remains supplied when one declared question repeats that whole brief", async () => {
+  const { domain, proposal } = await sourcePremiseFixture(true)
+  const accepted = await domain.propose({ ...proposal, values: [{ key: "flag", value: true, text: "flag true.", questionId: "unknown" }] })
+  expect(accepted.diagnostics).toEqual([])
+  expect(domain.report().slice.bindings.map(b => [b.questionId, b.key, b.value])).toEqual([["unknown", "flag", true]])
 })

@@ -69,7 +69,7 @@ export function canonicalControl(value: unknown): string {
 }
 const digest = (value: unknown) => createHash("sha256").update(canonicalControl(value)).digest("hex")
 const diagnostic = (code: string, path: string, message: string): InquiryDiagnostic => ({ code, path, message, severity: "error" })
-export function mergeControlSlice(previous: ControlSlice, input: unknown, program: AuthorizationInquiryProgram, context: InquiryEvidenceContext & { suppliedUserText?: string[] }): { state: ControlSlice; diagnostics: InquiryDiagnostic[] } {
+export function mergeControlSlice(previous: ControlSlice, input: unknown, program: AuthorizationInquiryProgram, context: InquiryEvidenceContext & { suppliedUserText?: string[]; globalUserText?: string[] }): { state: ControlSlice; diagnostics: InquiryDiagnostic[] } {
   const state = structuredClone(previous), diagnostics: InquiryDiagnostic[] = [], parsed = ControlSliceDeltaSchema.safeParse(input)
   if (!parsed.success) return { state, diagnostics: parsed.error.issues.map(i => diagnostic("control-schema", i.path.join("."), i.message)) }
   if (parsed.data.schemaVersion === "authorization-control-slice/v2") state.schemaVersion = parsed.data.schemaVersion
@@ -111,7 +111,7 @@ export function mergeControlSlice(previous: ControlSlice, input: unknown, progra
         const own = q ? [q.request, ...q.premises.map(p => p.text)] : []
         // Native contexts may flatten all declaration questions. Such entries
         // keep their original question scope; a separate natural brief is global.
-        const supplied = context.suppliedUserText?.filter(t => own.includes(t) || !program.questions.some(other => other.id !== item.questionId && [other.request, ...other.premises.map(p => p.text)].includes(t))) ?? own
+        const supplied = context.suppliedUserText?.filter(t => context.globalUserText?.includes(t) || own.includes(t) || !program.questions.some(other => other.id !== item.questionId && [other.request, ...other.premises.map(p => p.text)].includes(t))) ?? own
         if (!q || !supplied.some(t => t.includes(binding.text))) diagnostics.push(diagnostic("premise-not-supplied", at, "Known values require an exact span of an original supplied statement for this question or a global user brief, not another question or a model-authored premise; mapping meaning remains unreviewed."))
         if (/\b(?:unspecified|unknown|not (?:given|supplied|specified|provided|known))\b|未(?:给定|指定|提供)|未知/i.test(binding.text)) diagnostics.push(diagnostic("premise-value-unspecified", at, "This quoted user span explicitly leaves the value unspecified. Omit this known-value binding; null means a supplied null value, never an unknown placeholder. Other mapping meaning remains unreviewed."))
       } else {

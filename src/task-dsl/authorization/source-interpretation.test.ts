@@ -234,3 +234,26 @@ test("a malformed source predicate receives the complete finite operator contrac
   const repaired = api.lowerSourceInterpretation(f.skeleton, { ...raw, annotations: [{ ...annotation, condition: { ...annotation.condition, op: "all" } }] }, { ...f.options, previous: failed.interpretation })
   expect(repaired.diagnostics).toEqual([])
 })
+
+for (const structure of ["try", "loop"] as const) test(`supported outer flow can be interpreted while ${structure} child calls stay in a located opaque gap`, async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "av-opaque-requirements-"))
+  const body = structure === "try" ? "    try:\n        actor.write()\n    except Error:\n        actor.on_error()\n" : "    for item in actor.items:\n        item.write()\n"
+  await writeFile(path.join(sourceRoot, "app.py"), "def entry(actor, flag):\n    if flag:\n        return False\n" + body + "    return True\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["app.py"], repository: "anonymous", sourceRef: "fixed", structure: true }), source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id))!
+  const raw = { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations: skeleton.anchors.filter(a => a.kind === "condition" || a.kind === "return").map(a => ({ anchorId: a.id, role: a.kind === "condition" ? "condition" : "context", explanation: "Actual supported outer source branch", ...(a.kind === "condition" ? { condition: { op: "eq", left: { binding: "flag" }, right: { literal: true } } } : { returnOutcome: a.literalValue === false ? "deny" : "allow" }) })), unresolved: [] }
+  const result = api.lowerSourceInterpretation(skeleton, raw, { index: tools.structure, itemId: "q::entry", handle: "u", questionId: "q", role: "entry" })
+  expect(result.diagnostics).toEqual([])
+  expect(result.unit.complete).toBe(false)
+  const steps = result.unit.blocks.flatMap((b: any) => b.steps)
+  expect(steps.some((s: any) => s.kind === "unresolved" && s.reason === "skeleton-control-unsupported")).toBe(true)
+  expect(steps.some((s: any) => s.kind === "call" || s.kind === "effect")).toBe(false)
+  expect(steps.some((s: any) => s.kind === "return" && s.outcome === "deny")).toBe(true)
+  expect(skeleton.anchors.some(a => a.kind === "call")).toBe(true)
+})
+
+test("an omitted executable source call still requires a role or an explicit unresolved entry", async () => {
+  const f = await fixture(), raw = { ...f.proposal, annotations: f.annotations.filter(a => a.anchorId !== f.anchor("call").id) }
+  expect(api.lowerSourceInterpretation(f.skeleton, raw, f.options).diagnostics).toContainEqual(expect.objectContaining({ code: "source-interpretation-role-required", path: f.anchor("call").id }))
+})

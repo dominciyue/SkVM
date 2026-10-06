@@ -11,6 +11,7 @@ export interface SourceAnchor {
   kind: "parameter" | "assignment" | "condition" | "call" | "return" | "raise";
   text: string; syntax: string; name?: string; valueExpression?: string; defaultExpression?: string;
   literalKnown?: boolean; literalValue?: FiniteValue;
+  interpretationRequired?: boolean;
   call?: { sourceCallId?: string; expression: string; receiver?: string; receiverClass?: string; arguments: Array<{ expression: string; parameterName?: string; spread?: boolean; literalKnown?: boolean; literalValue?: FiniteValue }>; candidateIds: string[]; resultNames: string[]; resultBinding: string }
 }
 export interface SourceFlow { kind: "step" | "branch" | "gap"; anchorId: string; then?: SourceFlow[]; otherwise?: SourceFlow[] }
@@ -44,7 +45,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       const id = `anchor-${hash([source.id, n.startIndex, n.endIndex, kind, extra.name]).slice(0, 24)}`
       const existing = skeleton.anchors.find(a => a.id === id)
       if (existing) return existing
-      const anchor: SourceAnchor = { id, selector: located(n), sourceSha256: source.sha256, kind, text: n.text, syntax: n.type, ...extra }
+      const anchor: SourceAnchor = { id, selector: located(n), sourceSha256: source.sha256, kind, text: n.text, syntax: n.type, interpretationRequired: false, ...extra }
       skeleton.anchors.push(anchor); positions.set(id, n.startIndex); return anchor
     }
     const gap = (n: Node, code: string, reason: string) => { if (!skeleton.gaps.some(g => g.code === code && g.selector.startLine === n.startPosition.row + 1)) skeleton.gaps.push({ code, selector: located(n), reason }) }
@@ -109,6 +110,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     const connect = (flow: SourceFlow[], next?: string) => {
       for (const [i, node] of flow.entries()) {
         const following = flow[i + 1]?.anchorId ?? next, anchor = skeleton.anchors.find(a => a.id === node.anchorId)!
+        if (node.kind !== "gap" && ["condition", "call", "return", "raise"].includes(anchor.kind)) anchor.interpretationRequired = true
         const edge = (to: string | undefined, branch: "next" | "true" | "false") => { if (to) skeleton.edges.push({ from: node.anchorId, to, branch }) }
         if (node.kind === "branch") { edge(node.then?.[0]?.anchorId ?? following, "true"); edge(node.otherwise?.[0]?.anchorId ?? following, "false"); connect(node.then ?? [], following); connect(node.otherwise ?? [], following) }
         else if (node.kind !== "gap" && anchor.kind !== "return" && anchor.kind !== "raise") edge(following, "next")

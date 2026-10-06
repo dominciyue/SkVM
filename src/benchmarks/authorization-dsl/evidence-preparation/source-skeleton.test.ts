@@ -94,3 +94,14 @@ test("registration source is a bounded context skeleton and nested definition fi
   expect(registration.anchors.map(a => a.kind)).toContain("call")
   expect(registration.anchors.some(a => a.kind === "return" || a.kind === "parameter")).toBe(false)
 })
+
+test("opaque control retains child call facts without advertising them as executable flow requirements", async () => {
+  const f = await fixture("def entry(actor):\n    actor.before()\n    try:\n        actor.write()\n    except Error:\n        actor.after_error()\n    return None\n")
+  await f.read()
+  const skeleton = (await f.tools.sourceSkeleton(f.source.id))!
+  expect(skeleton.anchors.find(a => a.call?.expression === "actor.before")).toMatchObject({ interpretationRequired: true })
+  for (const expression of ["actor.write", "actor.after_error"]) expect(skeleton.anchors.find(a => a.call?.expression === expression)).toMatchObject({ interpretationRequired: false })
+  expect(skeleton.gaps).toContainEqual(expect.objectContaining({ code: "skeleton-control-unsupported" }))
+  const flowIds = skeleton.flow.map(n => n.anchorId)
+  expect(flowIds).not.toContain(skeleton.anchors.find(a => a.call?.expression === "actor.write")!.id)
+})

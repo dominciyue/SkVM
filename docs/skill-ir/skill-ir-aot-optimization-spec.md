@@ -2550,6 +2550,10 @@ operation材料层允许behavior/conformance随独立policy变化；mode不属�
 
 shared premise校验在汇总用户上下文中排除仅属于另一题的完整request/premise条目，不能以另一题的已知span把当前未知值变为known。该题实际文字及独立全局自然brief仍是原文来源；同一显式文字确实供多题时各题可显式映射。此检查验证原文与题目归属，不推断自然语言映射的业务真值。
 
+宿主以已有entryContext原始自然brief标明globalUserText，避免一题重复完整brief时误排除这份全局用户输入；它仍须在suppliedUserText原件中匹配，模型提案不能设置这个标记。完整声明的聚合题目文字没有此标记。两个相反归属反例均需通过。
+
+AV11共享修复决定：锚点interpretationRequired只表示该条件/call/return/raise进入当前生成flow，需要对应领域字段；opaque控制gap内的子调用保留源码事实，但不先要求逐一角色才接受外层局部解释。降低按实际flow确定强制字段，完整gap及其范围保持，不能把opaque调用编译为效果或提升complete。显式提交的任何角色/引用仍严格验证。匿名异常/循环和实际flow遗漏调用反例后做同题真实验证，质量改善待原件确认。
+
 Go机械来源覆盖包含multiline链式route及if initializer的实际调用/实参/结果；initializer在其条件前执行，嵌套else-if仍受外层分支约束。只规范verb识别的空白，来源表达式/行范围保持。unsupported loop/short-circuit/dynamic-call不无条件展平；零调用probe仅证明语法覆盖，不判定授权语义。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）

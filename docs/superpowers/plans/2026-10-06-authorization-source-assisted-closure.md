@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 `@vscode/tree-sitter-wasm` Python/Go 解析器、现有 provider/telemetry 和确定性测试。按实际依赖版本查官方实现，不另建 CLI、统一 IR 或整仓安全平台。
 
-日期：2026-10-06。状态：`in-progress`，AV0–AV9完成工程验证，继续AV10。开发模型：`gpt-6.1-sol / max`；用户另要求 Flash，当前派发接口没有该设置字段，不能写成已经启用。工作目录 `D:/skill优化/SkVM`，分支 `skill-ir-aot`，仅推用户 `origin`。设计基线 `9d7db8e87c1484e119e7b8d1adece2fc6ba5079f`，启动时保留本任务书后续发布提交。
+日期：2026-10-06。状态：`in-progress`，AV0–AV9完成工程验证，AV10/AV11首次均已交付partial，继续共享修复的具名真实复验和完整skill队列。开发模型：`gpt-6.1-sol / max`；用户另要求 Flash，当前派发接口没有该设置字段，不能写成已经启用。工作目录 `D:/skill优化/SkVM`，分支 `skill-ir-aot`，仅推用户 `origin`。设计基线 `9d7db8e87c1484e119e7b8d1adece2fc6ba5079f`，启动时保留本任务书后续发布提交。
 
 本轮约 8–12 小时是主动工作安排，约六成精力用于质量、四成用于编写与复用。完成适用工作即收口；不等待、重复全量验证或增加无目的调用凑时间。实验模型沿用 `xty/gpt-5.6-sol`，与开发线程模型分账；可用路由改变时记录并统一同一比较块。
 
@@ -254,6 +254,8 @@ final-diagnostics已22响应/22派发，实际nested路径诊断触发一次修�
 
 OWUI首次在8872acd9完成21响应/21派发，18来源提案/15局修、0接受单元/0fallback，2次check仍sourceBound=false/ruleConsistency=false；部分终答保留正确入口与输入/输出资源区别，却没有交付source-visible admin/owner分支及默认目的地。独立AI与主代理源码点验见evaluations/av11-owui-first.json。当前需要一次共享修复：source lowering对opaque控制gap内根本不执行的子调用也强制逐一role，阻止外层已支持flow的局部解释；缩小机械解释要求到当前实际flow，opaque块仍完整有位置gap，不默默展平或宣称full。先匿名try/loop及外层早退反例，再同一OWUI具名真实验证。
 
+source-flow修复3反例先失败，71项/488断言和主/AV类型通过；独立AI复跑24项/133断言。原件零调用probe确认OWUI153anchors/44calls中41calls在opaque gap，当前flow仅6 required锚点；Download入口7anchors/1opaque call，0 required。精确源码及gap均保留，不把数字下降当质量/净收益。下一普通命令：`study.ts run debug-owui-ingestion-D1 --revision=flow-requirements --parent=first`。verification/av11-flow-repair.json记录工程证据及前提归属相反反例的44项/373断言；集合重叠不相加。
+
 ### AV12 两份完整原 skill 的原/变实际使用
 
 - [ ] Cloudflare security audit 对应 Download，GitHub security review 对应 Gitea CreateIssue；保留完整 SKILL.md 和 companions，普通 native 原任务/政策变化各一次，共四位置。
@@ -277,6 +279,8 @@ OWUI首次在8872acd9完成21响应/21派发，18来源提案/15局修、0接受
 独立代码复核未发现边界问题，但主代理点验shared premise validator发现native把各题文字汇总后可借另一题的已知span绑定未知题；新增行为反例实际失败。共享校验排除仅属于另一题的完整request/premise条目，保留该题文字和实际全局自然brief；相同声明中共享显式文字仍可逐题指定，映射语义保持unreviewed。该补充与普通原件导出一并验证，不把初始复核的“跨题通过”当最终结论。
 
 上述修复已通过73项/547断言和主类型；真实普通init+compare零provider通过，原final-diagnostics基线保留严格身份并恢复两份unreviewed材料，答案/check未复用。v1相同own-undefined问题也先失败后同形修正。verification/av14-retained-baseline-export.json保留实际命令结果；三种输入登记和六个付费变化位置仍待执行。
+
+后续独立归属核验通过，但主代理补充“全局brief恰好等于其中一题request”的相反反例发现误拒；先失败后由已有host entryContext标明globalUserText，仍只保留实际supplied原件，模型无法标记全局文字。跨题泄漏与全局brief可用两个方向一起回归，不以第一次通过代替后续修订验证。
 
 - [ ] 在 Download 同一包上各登记政策、前提、源码变化，每种 fresh/materials-previous 各一位置，共六位置，完整原任务保持。
 - [ ] 政策/前提变化只修改独立输入；源码变化只改开发副本的一个真实相关控制或对象绑定，变化代码对两臂相同。

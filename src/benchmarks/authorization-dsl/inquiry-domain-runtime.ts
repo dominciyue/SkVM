@@ -74,7 +74,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const checkHistory: Array<{ revision: number; slice: ControlSlice; result: unknown; check: RuntimeDomainCheck }> = []
   let currentAnswer: unknown
   const invalidateDelivery = () => { if (options.sourceAssisted) { currentAnswer = undefined; check = undefined } }
-  const evidenceContext = () => ({ questionIds: options.program.questions.map(q => q.id), shownEvidenceIds: options.shownEvidenceIds?.() ?? options.tools.evidence.map(e => e.id), suppliedUserText: options.suppliedUserText })
+  const evidenceContext = () => ({ questionIds: options.program.questions.map(q => q.id), shownEvidenceIds: options.shownEvidenceIds?.() ?? options.tools.evidence.map(e => e.id), suppliedUserText: options.suppliedUserText, globalUserText: options.entryContext ? [options.entryContext] : [] })
   const calculate = <T>(fn: () => T): T => { const started = performance.now(); try { return fn() } finally { computation.durationMs += performance.now() - started } }
   const sourceUnits = () => facts ? projectOperationUnits(options.program, semanticUnits, facts.snapshot()) : semanticUnits
   const retainFacts = () => {
