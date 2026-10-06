@@ -1,12 +1,12 @@
 # Skill IR 当前状态
 
-更新于 2026-10-07。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；机器状态和原始结果保存具体进度，历史任务书保存当时的执行记录。
+更新于 2026-10-07。工作分支为 `skill-ir-aot`，仅发布到用户 origin。AW实现提交`19ee007a`已推送并核对远端SHA；证据与收束状态另行提交，最终发布SHA记录在conversation_log和交付消息。本页是唯一实时状态入口；机器状态和原始结果保存具体进度，历史任务书保存当时的执行记录。
 
 ## 当前工作
 
 研究主线是 **按 skill/task 范围设计领域表达**。当前任务类为单 repo/ref、源码可见的授权与信任边界评估：围绕主体、资源、操作、条件和政策组织取证、判断与检查。质量约六成、编写复用约四成指开发投入安排，各项质量要求分别验收。
 
-**当前队列：[AW0–AW22 控制语义、局部材料与账号运行](../superpowers/plans/2026-10-07-authorization-control-materials-and-account-runtime.md)，planned-not-started，已授权派发 gpt-6.1-sol / max。** 基线85379549。优先补真实正常/异常/短路控制、拆分来源材料保存与操作绑定、收敛局部修复上下文；沿用现有领域核心及两入口。用户已明确允许使用当前ChatGPT/Codex账号的gpt-5.6-sol做实验，第三方付费API仍暂停。本机登录和模型目录已核实，推理/工具通道尚未验证；AW先接官方app-server适配，验证后在新身份下执行，同通道公平比较。方法合同见[spec AW](skill-ir-aot-optimization-spec.md#1436-aw-control-materials-and-account-runtime-contract)，研究统一追加[§7.56](skill-dsl-research.md#756-aw-控制语义局部材料与账号运行开发决定)。当前尚未实施AW生产代码或模型实验。
+**当前队列：[AW0–AW22 控制语义、局部材料与账号运行](../superpowers/plans/2026-10-07-authorization-control-materials-and-account-runtime.md)，`completed-with-unmet-criteria`。** 适用离线队列已收束，`finiteQueueComplete:true`、`researchGoalAchieved:false`。显式`operation-evidence-v3`接入有限控制、独立unreviewed材料、实际调用/receiver/实参投影、选择性恢复及共享进度反馈；两个原入口和账号mock链通过。Download当前源码重新核验保存1份helper，测试作者入口接线采用2份材料/6条问题使用关系，仍有3条callee缺口；OWUI旧标注在扩展控制上保留55项具体缺项，不能称模型成功。相同v3历史响应重放的元数据合并使实际请求字节下降7.7%/18.3%，原文展示与原问题保留；OWUI总字节仍高于v2，真实token/质量/净收益未测。官方账号driver/双入口已实现，当前CLI无法核实动态工具的排他性，因此在thread/start和推理前返回unavailable；24个逻辑真实位置均未派发。用户账号授权有效，第三方API与AV十二旧位置继续暂停。937pass/1平台skip/5909断言、主/AW类型和8份离线归档及11份旧原件哈希核对通过。恢复责任与证据见[AW summary](../../results/skill-ir/skill-dsl-research/development/authorization-control-materials-v1/summary.json)、[status](../../results/skill-ir/skill-dsl-research/development/authorization-control-materials-v1/status.json)、[§7.56](skill-dsl-research.md#756-aw-控制语义局部材料与账号运行开发决定)及[spec AW](skill-ir-aot-optimization-spec.md#1436-aw-control-materials-and-account-runtime-contract)。
 
 **上一队列：[AV0–AV20 源码辅助解释与授权任务真实闭合](../superpowers/plans/2026-10-06-authorization-source-assisted-closure.md)，`in-progress-paid-deferred-by-user`。** 用户暂缓付费实验；26个初始位置中14个已有29份尝试归档，六变化/六质量共12个尚未派发。v4模块实例定位真实采用：OWUI wire22/22读到两查询方法，仍1单元/9步骤、终答partial；普通Download v4基线22/22接受1单元但无保留依赖footprint，三种变化零compare均0恢复/1失效。四份完整原skill作者稿独立准入并按原字节消费，已有自然报告仍partial；额度拒绝、网关524、防循环无terminal与空end_turn均记未交付。防循环误记正常和空final误计交付两项反例先红绿，focused23项/155断言、联合894 pass/1平台skip/5789断言、主/AV严格类型及独立只读审查通过；零调用重判保留旧状态原件。全量raw重算为397派发/385响应、2只读恢复、1晚结算，修正先前少计2次的汇总；12项usage未知，全部实际USD未知，14份受保护旧证据字节不变。新配置端点`https://yes.hubniconico.com/v1`尚未调用、可用性未核实；逻辑模型仍`xty/gpt-5.6-sol`，后台身份和跨端点效应限制单列。目标执行0，`finiteQueueComplete:false`、`researchGoalAchieved:false`。开发模型`gpt-6.1-sol / max`，Flash未核实。恢复入口见[AV status](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/status.json)、[当前摘要](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/summary.json)与[原件分账](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/accounting.json)。
 
@@ -64,6 +64,6 @@ AQ 旧/新策略 full均为2/20，原 skill checked交付为0/4；具体分母�
 - 当前队列：[当前计划](skill-ir-aot-optimization-plan.md)；新执行合同：[spec AW](skill-ir-aot-optimization-spec.md#1436-aw-control-materials-and-account-runtime-contract)，历史兼容见 AU 章节。
 - 分类、方法、复盘：[唯一研究正文](skill-dsl-research.md)；旧结果：[证据索引](evidence-index.md)、[历史](history.md)、[实验目录](../../results/skill-ir/experiment-catalog.json)。
 
-[治理](../superpowers/plans/2026-10-04-workspace-and-document-governance.md)已完成材料收存、旧日志压缩、正文归并和停止后的入口校正。当前阅读集 15 份，版本化材料 14 份；研究仍统一在一个正文中。原件及恢复索引在 `project-maintenance/20261004-governance/`，AR/AS 结果及 `.skvm` 保留。五份可再生成的 Python 字节码已清除；三个此前删除被拒绝的空目录保留。AS、AT、AU 有限执行均已结束，AV 付费队列暂停；AW 派发后由新开发线程独占本轮共享方法文档与 Git 写入责任。Git 实时状态以实际检查为准。
+[治理](../superpowers/plans/2026-10-04-workspace-and-document-governance.md)已完成材料收存、旧日志压缩、正文归并和停止后的入口校正。当前阅读集15份、版本化材料14份，本轮未新增长期阅读文档；研究继续统一在一个正文中。原件及恢复索引在`project-maintenance/20261004-governance/`，AR/AS结果及`.skvm`保留。AS、AT、AU、AW适用有限队列已结束，AV付费队列暂停。AW未来真实运行先落实官方工具隔离，再执行具名smoke/debug；Git实时状态和用户origin发布以实际检查为准。
 
 更新本页时替换过时段落，不把逐次测试与派发日志不断追加为新的“当前状态”。

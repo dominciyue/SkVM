@@ -3,7 +3,7 @@
 更新于 2026-10-07。本页维护当前目标和未达责任，原件由研究正文与实验目录导航。
 
 - 唯一实时入口：[current-status](current-status.md)。
-- 当前任务书：[AW0–AW22 控制语义、局部材料与账号运行](../superpowers/plans/2026-10-07-authorization-control-materials-and-account-runtime.md)，planned-not-started，待新线程接管。开发模型 gpt-6.1-sol / max。
+- 当前任务书：[AW0–AW22 控制语义、局部材料与账号运行](../superpowers/plans/2026-10-07-authorization-control-materials-and-account-runtime.md)，completed-with-unmet-criteria，适用离线队列结束，研究目标未达。开发模型gpt-6.1-sol/max。
 - 方法合同：[spec AW](skill-ir-aot-optimization-spec.md#1436-aw-control-materials-and-account-runtime-contract)；开发决定：[研究 §7.56](skill-dsl-research.md#756-aw-控制语义局部材料与账号运行开发决定)。
 - 代码基线 853795491c78ccf24a2387bb4ea5b65ea0ebf44a；启动时保留任务书后续提交。质量/编写复用约60/40是精力分配。
 
@@ -11,19 +11,21 @@
 
 补齐真实授权源码中的有限正常/异常/短路关系，让来源材料在入口尚未完成时也能可靠保存、在连接成立后被实际使用。局部修复保留已有进展，减少真实上下文重复，完成原skill任务与变化使用。复用现有领域核心和CLI，新增行为显式启用。
 
-账号运行作为一条有界接入责任：本机已通过ChatGPT登录，模型目录列出gpt-5.6-sol，尚未推理验证。通过官方Codex app-server/适配器接入同一领域工具，单列harness与用量。用户已明确授权使用当前账号做实验；通道验证通过后可执行，第三方付费API继续暂停。
+账号driver和双入口已共用native领域核心，匿名JSON-RPC全链通过。实际官方CLI元数据初始化成功，但当前版本的公开工具清单不能证明仅暴露受限动态工具，故在thread/start/turn/start前返回具体unavailable，未派发推理。24个逻辑位置已登记未满足前提；内部请求数/USD保持unknown，不能以一个turn或numeric兼容槽写成零费用。用户账号授权有效，第三方付费API继续暂停。
 
 ## AW 队列
 
-| 阶段 | 工作 | 初始状态 |
+| 阶段 | 工作 | 当前结果 |
 |---|---|---|
-| AW0–AW2 | 接管、账号元数据/授权、真实失败测试 | 待执行 |
-| AW3–AW5 | 有限控制、helper摘要与局部覆盖 | 待执行 |
-| AW6–AW8 | 来源材料、操作连接、变化恢复 | 待执行 |
-| AW9–AW10 | 局部上下文、进度与最终交付 | 待执行 |
-| AW11–AW13 | 官方账号驱动/同核心接入、真实源码离线集成 | 待执行 |
-| AW14–AW18 | 账号真实纵向链、完整skill/作者消费、变化及质量对照 | 账号实验已授权，待通道验证；离线工作继续 |
-| AW19–AW22 | 独立复核、必要回归、文档发布、逐项收束 | 待执行 |
+| AW0–AW2 | 接管、账号元数据/授权、真实失败测试 | 基线与三个真实原件点验、行为反例红绿及零推理协议核验完成 |
+| AW3–AW5 | 有限控制、helper摘要与局部覆盖 | 有界控制/调用展开通过；Download测试作者接线成立；OWUI旧标注55项缺项保留 |
+| AW6–AW8 | 来源材料、操作连接、变化恢复 | helper独立保存、精确实参/receiver、变化选择性失效和available/restored/used分离通过；无真实净收益 |
+| AW9–AW10 | 局部上下文、进度与最终交付 | 坏字段保留、共享进度通过；同v3元数据合并实际字节降低7.7%/18.3%，真实token未测 |
+| AW11–AW13 | 官方账号驱动/同核心接入、真实源码离线集成 | mock双入口与真实源码离线完成；官方账号工具排他性未验证，推理0 |
+| AW14–AW18 | 账号真实纵向链、完整skill/作者消费、变化及质量对照 | 条件不满足，24逻辑位置未派发；确定性机制证据另列，未替代真实效果 |
+| AW19–AW22 | 独立复核、必要回归、文档发布、逐项收束 | 独立只读复核、937pass/1skip、双类型和原件重放通过；实现19ee007a已推用户origin且SHA一致，证据收束单独提交 |
+
+下一恢复责任：`codex-account-session.ts`核实官方排他工具清单与输入隔离后先跑匿名smoke，再进入debug；`source-interpretation/inquiry-focus`需新模型解释OWUI扩展控制及Download缺失callee。重放、test-authored接线和已读源码均不能代替这两份完整自然交付。[AW summary](../../results/skill-ir/skill-dsl-research/development/authorization-control-materials-v1/summary.json)保存五项结果及当前证据。
 
 ## 继承状态
 
