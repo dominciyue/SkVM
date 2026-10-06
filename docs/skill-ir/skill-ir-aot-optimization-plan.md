@@ -1,11 +1,11 @@
 # Skill IR AOT 当前执行计划
 
-更新于 2026-10-05。本页维护未达责任与长期边界；阶段原件通过[研究正文](skill-dsl-research.md)、[历史](history.md)和[实验目录](../../results/skill-ir/experiment-catalog.json)查阅。
+更新于 2026-10-06。本页维护未达责任与长期边界；阶段原件通过[研究正文](skill-dsl-research.md)、[历史](history.md)和[实验目录](../../results/skill-ir/experiment-catalog.json)查阅。
 
 - 唯一实时入口：[current-status](current-status.md)。
-- 当前任务书：[AU0–AU21 操作级取证与授权 DSL 贯通](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md)，开发线程已接管，AU0进行中，开发模型`gpt-6.1-sol / max`。启动提交`dfe7ec32`，工作区干净；旧结果与封存不变。
+- 最近任务书：[AU0–AU21 操作级取证与授权 DSL 贯通](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md)，有限队列以 `completed-with-unmet-criteria` 收束，研究未达。开发模型 `gpt-6.1-sol / max`，启动提交 `dfe7ec32`；原件与任务级未知封存保留。
 - 方法合同：[spec AU](skill-ir-aot-optimization-spec.md#1434-au-operation-evidence-contract)。
-- 根因复核与设计：[研究 §7.50–7.52](skill-dsl-research.md#750-at-复核任务拆分与领域表达的衔接)。
+- 根因复核与设计：[研究 §7.50–7.52](skill-dsl-research.md#750-at-复核任务拆分与领域表达的衔接)；最新实际采用与未达结论：[§7.53](skill-dsl-research.md#753-au-操作事实与结构取证原型有限队列已收束)。
 
 ## 当前目标
 
@@ -17,12 +17,14 @@
 
 | 阶段 | 本轮工作 | 当前状态 |
 |---|---|---|
-| AU0–AU2 | 接管、内部合同与兼容、外部代码到结构探针 | 已授权待执行 |
-| AU3–AU6 | 操作事实、结构索引、框架对象关系、义务调度 | 已授权待执行 |
-| AU7–AU10 | 有限语义、领域摘要、检查到动作、两入口真实贯通 | 已授权待执行 |
-| AU11–AU14 | 材料复用、原skill原/变、4稿消费、三类变化配对 | 已授权待执行 |
-| AU15–AU17 | 四任务三臂12位置、适用消融、源码评阅与即时修复 | 已授权待执行 |
-| AU18–AU21 | 联合验证、研究整合、发布与完成判定 | 已授权待执行 |
+| AU0–AU2 | 接管、内部合同与兼容、外部代码到结构探针 | 已实现并验证，结构候选不代表业务事实 |
+| AU3–AU6 | 操作事实、结构索引、框架对象关系、义务调度 | 已实现；真实共享/自动补读发生，决定性链仍未闭合 |
+| AU7–AU10 | 有限语义、领域摘要、检查到动作、两入口真实贯通 | 工程及纵向调试完成，源码任务质量未达，Share未知封存 |
+| AU11–AU14 | 材料复用、原skill原/变、作者及原字节消费、三类变化配对 | 两作者稿合格，原消费者未知，其余消费/变化封存；真实复用收益未达 |
+| AU15–AU17 | 四任务三臂12位置、适用消融、源码评阅与即时修复 | 六实跑一full/五partial、六封存；域臂闭合0，消融不适用，25原件均评阅 |
+| AU18–AU21 | 联合验证、研究整合、发布与完成判定 | 844pass/1skip、双类型及零模型回放通过；有限队列完成、研究未达 |
+
+32登记首位置为13实跑/19有效零调用封存，共25归档尝试、0活动和0缺位置。Share/Gitea两个原请求完成与usage仍未知；原件和所有同任务表示封存保持，不自动重发或新增比较。准确分母、首答/修订与版本见[AU summary](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/summary.json)和[accounting](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/accounting.json)。
 
 最近[AT任务书](../superpowers/plans/2026-10-05-authorization-focused-closure-and-delivery.md)以`completed-with-unmet-criteria`结束：12质量首位置partial、checked/bounded为0，两个original native自然说明充分而formal未通，changed及作者消费均partial。原件及准确分母见[AT summary](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/summary.json)。AS和AR记录继续保留。
 

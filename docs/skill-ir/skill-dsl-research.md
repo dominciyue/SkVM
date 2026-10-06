@@ -1735,7 +1735,7 @@ AS六个断点在本轮的实际状态如下：
 
 真实验证保留四个AT已暴露任务、两份完整原skill与作者原字节消费；政策、前提和源码变化分别比较fresh与材料复用。独立普通skill参考、Markdown加同核心与DSL加同核心分开归因；首答与针对性修订、未派发和未知分别记录。共享缺陷立即停受影响调用，先修实现再复验；不再用大批已知受损调用代替接口调整。完整任务收益须依据真实充分答案；partial材料恢复保留原等级并重算结论。此处只登记已授权工作，方法创新和效果仍待本轮实际证据。
 
-### 7.53 AU 操作事实与结构取证原型（开发中）
+### 7.53 AU 操作事实与结构取证原型（有限队列已收束）
 
 AU2–AU8已形成生产原型，AU10首次ShareLink调试已派发并保留partial结果。v2把operation和question分开，宿主每操作编译一份来源工作；同入口解释按原问题投影，政策和用户前提仍独立求值。操作事实保留repo/ref、入口、源码与候选/框架依赖，解释等级保持unreviewed。AU11材料恢复已做匿名验证，真实采用、源码质量和实际收益尚待验证。
 
@@ -1778,6 +1778,39 @@ OWUI质量N/M-O在同`5ac2d651`分别7/7和24/24已知，26/39工具，完整Clo
 OWUI D-O在`d50388db`24/24已知、1声明调用/1operation/5questions、42raw/native工具，source173有效、完整skill/input及reference/target0保持。自然终答仍partial，formal未闭合。当前1单元是无关AuditLogger.write；source_symbol已找到真实process_file，但raw没有select/workSelections。公开接口允许按同工作项重新选discovered候选，模型的defer及两次exit0解释不构成替换（后两次实际controlDiagnostics为focus-schema/focus-stage）。三独立核验后主纠正“same-name”、双block和4次check误述，实际5次check含3budget拒绝；未证明新宿主缺陷，不扩大语法、不付费重抽。正确prose与错误graph分别记录。
 
 Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另18自动source动作）、source95有效、完整Cloudflare原/安装bundle与原输入保持，reference/target0。N终答root授权、版本族/空参数/软删除及原件/归档选择充分，独立source/raw核验与主源码点验评natural full、formal按N不适用；M-O有正确root链和owner/grant条件表，但缺GET model permission、空version与具体文件打开的充分说明，自然partial。M的0accepted units不能形成source-bound graph；第二次check valid仅证明transport/reference/rule一致，current sourceBound:false/taskResolution:partial。旧研究分类误归共享checker；针对实际无单位/末检查与current精确一致的anonymous red转绿，只允许明确生产path/policy草稿拒绝，独立code审查的伪空数组反例亦先红后修。57相关pass/284断言、原report零调用SHA证明只放行最后D-O，不提升quality/check，不重抽M。24归档原件362/360、fresh9263844/cache1495552/output331088，2未知及USD/开发AI/真人未知，尚未建立新核心/表达净收益。
+
+最后 Download D-O 在 `c7f201ba` 为24/24已知、1模型声明/1操作/4问题、51显式raw/native工具和5个自动source动作（预算56），source95有效、完整原/安装skill与input保持，reference/target0。当前3单位为download入口和两个同范围、不同receiver/work item的helper，不能据同范围推断共享binder缺陷；callee仍未连，typed literal及revisit拒绝继续阻断。实际4次observe格式拒绝、两次check正常返回valid:false；独立raw探子关于没有失败/自动补读/共享的判断由主原件纠正。终答有root owner/Guardian授权、版本族及实际source/archive文件依据，但遗漏DRF/GET前置认证权限、直接version pk与空version分支，并将形式未闭合扩大成已可得helper源码缺失；自然partial、formal未checked/bounded。原件、压缩/解压SHA和独立source/raw裁定在 [Download D评阅](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/evaluations/quality-paperless-download-D-O-attempt-1.json)，不重抽末位。
+
+**AU21最终结论（2026-10-06）。** [summary](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/summary.json)为`completed-with-unmet-criteria`，finiteQueueComplete为true、researchGoalAchieved为false。工程实现、真实采用、独立源码质量和比较收益分别验收：操作声明/事实、结构候选、有限值与权限摘要、补读/关系修复、材料恢复、双入口及作者原字节消费接线已验证，完整任务质量与净收益未建立。当前证据由独立AI评阅及主AI源码裁定构成，没有测得真人评审时间或开发/探子用量。
+
+| 登记类别 | 首位置 | 实跑首位 / 零调用封存 | 归档尝试 | 实际交付与边界 |
+|---|---:|---:|---:|---|
+| 纵向调试 | 2 | 2 / 0 | 13 | Share十轮/Gitea三轮；源码链未完整交付，Share第十轮未知 |
+| 完整原skill native原/变 | 4 | 2 / 2 | 2 | Gitea两稿partial，Share封存，形式闭合0 |
+| 原/变作者 | 4 | 2 / 2 | 3 | Gitea两份最终稿忠实合格，原政策只修订一次；不证明下游收益 |
+| 原字节消费者 | 4 | 1 / 3 | 1 | Gitea原位未知无终答，其余封存；原稿字节保持 |
+| 政策/前提/源码变化配对 | 6 | 0 / 6 | 0 | 零调用封存准入，不算实跑fresh/previous或复用收益 |
+| N/M-O/D-O质量 | 12 | 6 / 6 | 6 | 一自然full、五partial；N formal不适用，域臂checked/bounded0 |
+| 合计 | 32 | 13 / 19 | 25 | 12次修订另计，所有实际尝试均有报告SHA绑定评阅 |
+
+**真实采用与机制边界。** OWUI D的1operation/5questions、Download D的1operation/4questions已机械共享来源工作；Download M另18自动source动作、D另5个，补读机制确有执行。OWUI D只接受无关audit入口，Download D虽接受同操作单位仍未闭合决定性root/helper，实际采用不等于充分源码解释。AU16最多四个位置不是调用配额：Share/Gitea分别在原request16/22未知后保持所有16/10种登记表示封存，另两任务没有计划所需两个不同结构的可信完整链，故机制比较不适用、provider0；[适用性记录](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/verification/mechanism-applicability.json)保留未适用理由及已发生的机械采用。实际容器、receiver、批量、来源值和定向诊断修复只证明各自工程障碍变化，不提升为整体方法收益。
+
+| 质量首位 | 执行Git版本 | 派发/响应 | 自然源码质量 | 形式 | 已知完整prompt | output |
+|---|---|---:|---|---|---:|---:|
+| OWUI N | `5ac2d651` | 7/7 | partial | not-applicable | 200,268 | 5,605 |
+| OWUI M-O | `5ac2d651` | 24/24 | partial | 未checked/bounded | 1,400,918 | 26,797 |
+| OWUI D-O | `d50388db` | 24/24 | partial | 未checked/bounded | 1,199,143 | 17,060 |
+| Download N | `d50388db` | 11/11 | full | not-applicable | 420,504 | 6,217 |
+| Download M-O | `d50388db` | 16/16 | partial | 未checked/bounded | 588,606 | 8,073 |
+| Download D-O | `c7f201ba` | 24/24 | partial | 未checked/bounded | 1,230,743 | 18,482 |
+
+四原任务的其余六质量首位置封存，保留在十二位置分母。同模型/源码/完整skill/预算/版本首答才可比较；OWUI与Download的N/M配对各在同版本，D均经局部分类修复后执行，不能混为三臂同版本总体效果。Download N/M的单次实际配对中，N充分且调用/prompt少于M；这只描述该配对，不证明普遍优劣。声明和准备成本留在原会话，author首答及唯一修订另计；完整skill安装与实际companion读取分别记录，不能以reference读取0称职责都已履行。
+
+**计量与验证。** [accounting](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/accounting.json)和call-index从25原件重新计算，386派发/384响应：首稿211/210、具名修订175/174；两个请求完成与usage仍未知。已知fresh10,326,651/cacheRead1,663,488/cacheWrite0，完整prompt11,990,139、output349,570，prompt加output12,339,709；cache不重复加总。实际USD、开发模型/独立AI用量和真人时间未知，目标执行0。封存准入必须匹配登记task/status、providerCalls0和同任务cause report SHA；无缺件/活动且有显式结束声明才标有限执行完成，未知原请求继续强制研究未达。根级program计数与早期review schema内存投影消除汇总遗漏，原报告/评阅不重写。
+
+三个计量反例先红后绿，6定向pass/34断言，独立代码核验未发现具体缺陷。最终联合844pass/1平台skip/5472断言/105文件，主/AU类型通过；[零provider回放](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/verification/au18-final-replay.json)验证32位置及87个claim/report/review/archive原件前后SHA一致。平台skip保留不支持平台下拒绝且不写入的边界。使用说明和既有reusable skill同步显式入口选择、valid与source闭合差别，并用未封存Download输入做离线check，provider0。保护输入、Q1/readiness及历史证据保持。
+
+**未达责任与已尝试修订。** Share决定性serializer/object/permission链经十轮接口、来源和关系修订仍未完整交付，原未知request16封存；Gitea经三轮structured、原/变native、作者唯一字段修订和原消费者仍无充分创建/权限链，原未知request22封存。OWUI外层caller、认证与truthiness/content分支未完整交付，D没有实际选择已找到的正确入口；Download N充分，M无accepted来源、D root/callee未闭合且遗漏已可见前置权限与版本分支。未证明新的共享binder或日志故障，不追加原样重抽、别名身份、消融或另一个任务；作者忠实性、机械减负和有限队列结束均不能替代研究验收。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

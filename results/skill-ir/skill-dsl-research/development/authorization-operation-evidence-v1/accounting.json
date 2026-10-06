@@ -1,22 +1,22 @@
 {
   "schemaVersion": "authorization-au-accounting/v1",
-  "collectedAt": "2026-10-06T01:48:40.956Z",
+  "collectedAt": "2026-10-06T02:14:08.139Z",
   "registeredPositions": 32,
-  "closedAttempts": 24,
+  "closedAttempts": 25,
   "active": [],
   "allAttempts": {
-    "providerCalls": 362,
-    "knownProviderCalls": 362,
-    "respondedCalls": 360,
-    "knownRespondedCalls": 360,
+    "providerCalls": 386,
+    "knownProviderCalls": 386,
+    "respondedCalls": 384,
+    "knownRespondedCalls": 384,
     "unknownUsageCalls": 2,
     "tokensStatus": "partial",
-    "knownFreshInput": 9263844,
-    "knownCacheRead": 1495552,
+    "knownFreshInput": 10326651,
+    "knownCacheRead": 1663488,
     "knownCacheWrite": 0,
-    "knownFullPrompt": 10759396,
-    "knownOutput": 331088,
-    "knownPromptAndOutput": 11090484,
+    "knownFullPrompt": 11990139,
+    "knownOutput": 349570,
+    "knownPromptAndOutput": 12339709,
     "knownActualUsdSubtotal": 0,
     "totalActualUsd": null,
     "actualUsdStatus": "unknown"
@@ -289,18 +289,18 @@
     },
     "quality": {
       "firsts": {
-        "providerCalls": 82,
-        "knownProviderCalls": 82,
-        "respondedCalls": 82,
-        "knownRespondedCalls": 82,
+        "providerCalls": 106,
+        "knownProviderCalls": 106,
+        "respondedCalls": 106,
+        "knownRespondedCalls": 106,
         "unknownUsageCalls": 0,
         "tokensStatus": "complete",
-        "knownFreshInput": 2960927,
-        "knownCacheRead": 848512,
+        "knownFreshInput": 4023734,
+        "knownCacheRead": 1016448,
         "knownCacheWrite": 0,
-        "knownFullPrompt": 3809439,
-        "knownOutput": 63752,
-        "knownPromptAndOutput": 3873191,
+        "knownFullPrompt": 5040182,
+        "knownOutput": 82234,
+        "knownPromptAndOutput": 5122416,
         "knownActualUsdSubtotal": 0,
         "totalActualUsd": null,
         "actualUsdStatus": "unknown"
@@ -323,18 +323,18 @@
         "actualUsdStatus": "complete"
       },
       "all": {
-        "providerCalls": 82,
-        "knownProviderCalls": 82,
-        "respondedCalls": 82,
-        "knownRespondedCalls": 82,
+        "providerCalls": 106,
+        "knownProviderCalls": 106,
+        "respondedCalls": 106,
+        "knownRespondedCalls": 106,
         "unknownUsageCalls": 0,
         "tokensStatus": "complete",
-        "knownFreshInput": 2960927,
-        "knownCacheRead": 848512,
+        "knownFreshInput": 4023734,
+        "knownCacheRead": 1016448,
         "knownCacheWrite": 0,
-        "knownFullPrompt": 3809439,
-        "knownOutput": 63752,
-        "knownPromptAndOutput": 3873191,
+        "knownFullPrompt": 5040182,
+        "knownOutput": 82234,
+        "knownPromptAndOutput": 5122416,
         "knownActualUsdSubtotal": 0,
         "totalActualUsd": null,
         "actualUsdStatus": "unknown"
@@ -378,7 +378,120 @@
           "checkedFiles": 95,
           "physicalReadBytes": 1412762
         },
-        "review": null
+        "review": {
+          "schemaVersion": "authorization-au-source-review/v1",
+          "rowId": "debug-paperless-share-create",
+          "attempt": "attempt-1",
+          "report": "runs/debug-paperless-share-create/attempt-1/report.json",
+          "reportSha256": "592aa85b6e75024ad9bde8ea8adffbdab39c43ae3d6585898e04ed26c8268a15",
+          "codeRevision": "f57fb34adc7227bc5fc66a1357bf3437ada38feb",
+          "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+          "reviewers": [
+            {
+              "agent": "au_share_first_quality",
+              "role": "independent-source-review",
+              "readOnly": true,
+              "record": "compressed findings retained from the independent agent response"
+            },
+            {
+              "agent": "au_share_first_runtime",
+              "role": "independent-runtime-review",
+              "readOnly": true,
+              "record": "compressed findings retained from the independent agent response"
+            }
+          ],
+          "sourceAnchors": [
+            {
+              "path": "src/paperless/urls.py",
+              "lines": "74-88",
+              "fact": "Source router registers ShareLinkViewSet at the static raw-string share_links prefix."
+            },
+            {
+              "path": "src/documents/views.py",
+              "lines": "4696-4717",
+              "fact": "CreateModelMixin, ShareLinkSerializer, IsAuthenticated and PaperlessObjectPermissions configure the share view."
+            },
+            {
+              "path": "framework/rest_framework-3.18.1/rest_framework/views.py",
+              "lines": "404-421",
+              "fact": "Initial authenticates and invokes has_permission through check_permissions before the action."
+            },
+            {
+              "path": "framework/rest_framework-3.18.1/rest_framework/mixins.py",
+              "lines": "16-24",
+              "fact": "Create obtains the serializer, validates, then performs save; response success is distinct from permission."
+            },
+            {
+              "path": "src/documents/views.py",
+              "lines": "406-428",
+              "fact": "PassUserMixin passes the request user to the serializer."
+            },
+            {
+              "path": "src/documents/serialisers.py",
+              "lines": "2873-2886",
+              "fact": "validate_document requires a non-null user, global documents.view_document and has_perms_owner_aware on this exact document, otherwise PermissionDenied."
+            },
+            {
+              "path": "src/documents/permissions.py",
+              "lines": "624-635",
+              "fact": "Owner-aware check accepts ownerless or self-owned objects, otherwise delegates exact-object permission to ObjectPermissionChecker."
+            },
+            {
+              "path": "src/documents/permissions.py",
+              "lines": "30-53",
+              "fact": "POST global mapping is add_<model>; object permission override is a separate method. Create does not thereby fetch/check an existing share object."
+            }
+          ],
+          "independentFindings": {
+            "sourceBehavior": "partial: correct entry/configuration, missing effective exact-document serializer guard and pre-create chain",
+            "policyReview": "The source reviewer described the owner-aware exact-document path as compliant, while the retained answer remains undetermined. This source-path observation is not a full rating for the retained answer.",
+            "missingFacts": "partial: available unexamined source and caller-specific unspecified premises are partly conflated",
+            "runtime": {
+              "requests": 14,
+              "responses": 14,
+              "toolCalls": 64,
+              "reads": 40,
+              "searches": 12,
+              "symbols": 12,
+              "automaticReads": 23,
+              "acceptedUnits": 3,
+              "rejectedUnits": 0,
+              "terminalCause": "tool-budget delivery with semantic-callee-uninterpreted"
+            }
+          },
+          "mainAdjudication": {
+            "overall": "partial",
+            "questions": [
+              {
+                "id": "q-source-behavior",
+                "rating": "partial",
+                "reason": "Entry/configuration is grounded, but the exact-document validation already available/read is omitted from the effective source chain."
+              },
+              {
+                "id": "q-policy-compliance",
+                "rating": "partial",
+                "reason": "Undetermined is an honest limit of the retained interpretation, but does not answer the source-visible independent policy obligation. Owner-aware owner/ownerless/guardian alternatives must be explained explicitly; model-level permission alone is not sufficient."
+              },
+              {
+                "id": "q-missing-facts",
+                "rating": "partial",
+                "reason": "Specific source gaps are retained, but caller-specific effective grants/ownership are unspecified premises rather than unavailable implementation source."
+              }
+            ],
+            "formal": {
+              "sourceBound": true,
+              "ruleConsistency": false,
+              "taskResolution": "partial"
+            },
+            "sourceSnapshotValid": true,
+            "deploymentClaim": false,
+            "evaluatorNeverModelVisible": true
+          },
+          "artifact": "runs/debug-paperless-share-create/attempt-1/report.json",
+          "sha256": "592aa85b6e75024ad9bde8ea8adffbdab39c43ae3d6585898e04ed26c8268a15",
+          "grade": "partial",
+          "evaluationFile": "evaluations/debug-paperless-share-create-attempt-1.json"
+        }
       },
       "lastKnown": {
         "artifact": "runs/debug-paperless-share-create/attempt-10/report.json",
@@ -4882,27 +4995,435 @@
       "task": "paperless-download",
       "kind": "quality",
       "arm": "D-O",
-      "first": null,
-      "lastKnown": null,
+      "first": {
+        "artifact": "runs/quality-paperless-download-D-O/attempt-1/report.json",
+        "sha256": "2092f487ef39518946e0f72505e86c85ec5cc9543d1b8b336f4085a4c9b27f98",
+        "status": "completed-with-diagnostics",
+        "revision": "c7f201ba0c8aa12c4c67c8110e6bd80f68661c09",
+        "model": "xty/gpt-5.6-sol",
+        "account": {
+          "providerCalls": 24,
+          "respondedCalls": 24,
+          "unknownUsageCalls": 0,
+          "unknownCostCalls": 24,
+          "knownTokens": {
+            "input": 1062807,
+            "output": 18482,
+            "cacheRead": 167936,
+            "cacheWrite": 0
+          },
+          "tokensStatus": "complete",
+          "knownActualUsdSubtotal": 0,
+          "totalActualUsd": null,
+          "actualUsdStatus": "unknown",
+          "transportAttempts": "unknown",
+          "accountingBasis": "Actual archived ordinary author request/response records; no price estimate"
+        },
+        "checked": false,
+        "bounded": false,
+        "completionUnknown": false,
+        "sourceVerification": {
+          "valid": true,
+          "checkedFiles": 95,
+          "physicalReadBytes": 1412762
+        },
+        "review": {
+          "schemaVersion": "au-independent-source-evaluation/v1",
+          "artifact": "runs/quality-paperless-download-D-O/attempt-1/report.json",
+          "sha256": "2092f487ef39518946e0f72505e86c85ec5cc9543d1b8b336f4085a4c9b27f98",
+          "reviewedAt": "2026-10-06T02:05:36.984Z",
+          "reviewers": [
+            "au_download_d_raw_mechanism_audit",
+            "au_download_d_source_review",
+            "main"
+          ],
+          "grade": "partial",
+          "originalTaskSufficient": false,
+          "naturalOutputAdequate": false,
+          "checked": false,
+          "bounded": false,
+          "formalCheck": "not-checked-bounded",
+          "completionUnknown": false,
+          "originalOperationCount": 1,
+          "originalQuestionCount": 4,
+          "compilationOrigin": "model-tool",
+          "compilationToolCalls": 1,
+          "currentSourceUnits": 3,
+          "sourceVerification": {
+            "valid": true,
+            "checkedFiles": 95,
+            "physicalReadBytes": 1412762
+          },
+          "sourceSkillUnmodified": true,
+          "installedSkillVerified": true,
+          "originalInputUnmodified": true,
+          "actualReferenceReads": [],
+          "questionAssessments": [
+            {
+              "id": "download-flow",
+              "grade": "partial",
+              "reason": "Final correctly traces root authorization to source/archive file, but treats source-visible direct download delegation as a missing link because its formal model did not close"
+            },
+            {
+              "id": "download-authorization",
+              "grade": "partial",
+              "reason": "Root owner/unowned/Guardian and forbidden branches are correct; IsAuthenticated/current DRF dispatch and GET model permission are available but not delivered"
+            },
+            {
+              "id": "download-version-resource",
+              "grade": "partial",
+              "reason": "Family-constrained selection leaves authorization on root; final omits directly requested version without query and empty version latest/deleted-inclusive behavior"
+            },
+            {
+              "id": "download-missing-facts",
+              "grade": "partial",
+              "reason": "Concrete grants/deployment/storage remain unspecified, but available unaccepted helper and authentication source are not unavailable facts; independent policy is unnecessary for behavior explanation"
+            }
+          ],
+          "mechanismAudit": {
+            "originalSourceQueueItems": 6,
+            "currentOperationIdentities": 1,
+            "projectedQuestionDiagnostics": 4,
+            "automaticSourceActions": [
+              {
+                "actionOrigin": "domain-worklist",
+                "name": "source_read",
+                "arguments": {
+                  "path": "src/documents/views.py",
+                  "startLine": 4942,
+                  "endLine": 4995
+                },
+                "budgetConsumed": 1
+              },
+              {
+                "actionOrigin": "domain-worklist",
+                "name": "source_read",
+                "arguments": {
+                  "path": "src/documents/views.py",
+                  "startLine": 361,
+                  "endLine": 363
+                },
+                "budgetConsumed": 1
+              },
+              {
+                "actionOrigin": "domain-worklist",
+                "name": "source_read",
+                "arguments": {
+                  "path": "src/documents/permissions.py",
+                  "startLine": 624,
+                  "endLine": 635
+                },
+                "budgetConsumed": 1
+              },
+              {
+                "actionOrigin": "domain-worklist",
+                "name": "source_read",
+                "arguments": {
+                  "path": "src/documents/models.py",
+                  "startLine": 477,
+                  "endLine": 498
+                },
+                "budgetConsumed": 1
+              },
+              {
+                "actionOrigin": "domain-worklist",
+                "name": "source_read",
+                "arguments": {
+                  "path": "src/documents/versioning.py",
+                  "startLine": 23,
+                  "endLine": 28
+                },
+                "budgetConsumed": 1
+              }
+            ],
+            "duplicateHelpers": [
+              {
+                "handle": "unit-91dc7cef11653711a6300111",
+                "receiverClass": null
+              },
+              {
+                "handle": "unit-6dd0230a20acf0bcd2011436",
+                "receiverClass": "documents.views.DocumentViewSet"
+              }
+            ],
+            "sharedIdentityDefectProved": false,
+            "interpretation": "Mechanical operation sharing and five scheduler source actions actually occurred, but incomplete callee linkage and rejected decisive source units prevent a valid mechanism-effect baseline"
+          },
+          "targetExecutionAudit": {
+            "verified": true,
+            "targetExecutions": 0,
+            "rawToolCalls": 51,
+            "nativeHistoryCalls": 51,
+            "automaticSourceActions": 5,
+            "totalBudgetActions": 56,
+            "toolSchemaRejections": 4,
+            "resultCheckActions": 2,
+            "allowedRawTools": [
+              "authorization_compile",
+              "source_list",
+              "source_search",
+              "source_symbol",
+              "source_read",
+              "authorization_observe",
+              "authorization_check_result"
+            ],
+            "toolCounts": {
+              "authorization_compile": 1,
+              "source_list": 1,
+              "source_search": 8,
+              "source_symbol": 15,
+              "source_read": 13,
+              "authorization_observe": 11,
+              "authorization_check_result": 2
+            },
+            "capture": {
+              "archive": "source-capture/20261006-095139-run.conv-001-natural-f7d3a519c329.jsonl.gz",
+              "sha256": "a8c2d72d16cdc1eb62790e99d4c7ecd2e4df3f1961748db49d2d8b5efd2238a7",
+              "rawSha256": "2d5c786928c4512140ca18adf00bbb4a2a7c35c6225be6e174e09393edd28b39",
+              "rawBytes": 4502194,
+              "records": 48,
+              "requests": 24,
+              "responses": 24
+            }
+          },
+          "mainAdjudications": [
+            "Main verified raw/native ordered IDs and names51/51 plus48records,report/gzip/raw hashes",
+            "Raw scout claim no tool failure is rejected: four observe schema rejections have exit1; no target side effect was evidenced",
+            "Raw scout claim no automatic actions/sharing is rejected: schedulerActions5,tool budget56 versus51explicit,one6item source queue andoperation identity acrossfour questions are retained",
+            "Progress acceptedUpdates0 does not count current semantic units and cannot prove mechanism non-adoption",
+            "Two helper source ranges match but receiver scope differs (one unspecified/oneDocumentViewSet); neither repeated range nor model retries proves a shared binder/identity defect",
+            "Main source point checks direct entry/views1834-1839, permissions30-54 andDRF203-246,serve_file4941-4973 plus earlier root/version windows; correct prose remainspartial independentlyofcheck",
+            "Formal source/callee failures do not make available source unavailable; no new production defect or same-position redraw is justified"
+          ],
+          "actualUSD": null,
+          "humanMinutes": null,
+          "evaluationFile": "evaluations/quality-paperless-download-D-O-attempt-1.json"
+        }
+      },
+      "lastKnown": {
+        "artifact": "runs/quality-paperless-download-D-O/attempt-1/report.json",
+        "sha256": "2092f487ef39518946e0f72505e86c85ec5cc9543d1b8b336f4085a4c9b27f98",
+        "status": "completed-with-diagnostics",
+        "revision": "c7f201ba0c8aa12c4c67c8110e6bd80f68661c09",
+        "model": "xty/gpt-5.6-sol",
+        "account": {
+          "providerCalls": 24,
+          "respondedCalls": 24,
+          "unknownUsageCalls": 0,
+          "unknownCostCalls": 24,
+          "knownTokens": {
+            "input": 1062807,
+            "output": 18482,
+            "cacheRead": 167936,
+            "cacheWrite": 0
+          },
+          "tokensStatus": "complete",
+          "knownActualUsdSubtotal": 0,
+          "totalActualUsd": null,
+          "actualUsdStatus": "unknown",
+          "transportAttempts": "unknown",
+          "accountingBasis": "Actual archived ordinary author request/response records; no price estimate"
+        },
+        "checked": false,
+        "bounded": false,
+        "completionUnknown": false,
+        "sourceVerification": {
+          "valid": true,
+          "checkedFiles": 95,
+          "physicalReadBytes": 1412762
+        },
+        "review": {
+          "schemaVersion": "au-independent-source-evaluation/v1",
+          "artifact": "runs/quality-paperless-download-D-O/attempt-1/report.json",
+          "sha256": "2092f487ef39518946e0f72505e86c85ec5cc9543d1b8b336f4085a4c9b27f98",
+          "reviewedAt": "2026-10-06T02:05:36.984Z",
+          "reviewers": [
+            "au_download_d_raw_mechanism_audit",
+            "au_download_d_source_review",
+            "main"
+          ],
+          "grade": "partial",
+          "originalTaskSufficient": false,
+          "naturalOutputAdequate": false,
+          "checked": false,
+          "bounded": false,
+          "formalCheck": "not-checked-bounded",
+          "completionUnknown": false,
+          "originalOperationCount": 1,
+          "originalQuestionCount": 4,
+          "compilationOrigin": "model-tool",
+          "compilationToolCalls": 1,
+          "currentSourceUnits": 3,
+          "sourceVerification": {
+            "valid": true,
+            "checkedFiles": 95,
+            "physicalReadBytes": 1412762
+          },
+          "sourceSkillUnmodified": true,
+          "installedSkillVerified": true,
+          "originalInputUnmodified": true,
+          "actualReferenceReads": [],
+          "questionAssessments": [
+            {
+              "id": "download-flow",
+              "grade": "partial",
+              "reason": "Final correctly traces root authorization to source/archive file, but treats source-visible direct download delegation as a missing link because its formal model did not close"
+            },
+            {
+              "id": "download-authorization",
+              "grade": "partial",
+              "reason": "Root owner/unowned/Guardian and forbidden branches are correct; IsAuthenticated/current DRF dispatch and GET model permission are available but not delivered"
+            },
+            {
+              "id": "download-version-resource",
+              "grade": "partial",
+              "reason": "Family-constrained selection leaves authorization on root; final omits directly requested version without query and empty version latest/deleted-inclusive behavior"
+            },
+            {
+              "id": "download-missing-facts",
+              "grade": "partial",
+              "reason": "Concrete grants/deployment/storage remain unspecified, but available unaccepted helper and authentication source are not unavailable facts; independent policy is unnecessary for behavior explanation"
+            }
+          ],
+          "mechanismAudit": {
+            "originalSourceQueueItems": 6,
+            "currentOperationIdentities": 1,
+            "projectedQuestionDiagnostics": 4,
+            "automaticSourceActions": [
+              {
+                "actionOrigin": "domain-worklist",
+                "name": "source_read",
+                "arguments": {
+                  "path": "src/documents/views.py",
+                  "startLine": 4942,
+                  "endLine": 4995
+                },
+                "budgetConsumed": 1
+              },
+              {
+                "actionOrigin": "domain-worklist",
+                "name": "source_read",
+                "arguments": {
+                  "path": "src/documents/views.py",
+                  "startLine": 361,
+                  "endLine": 363
+                },
+                "budgetConsumed": 1
+              },
+              {
+                "actionOrigin": "domain-worklist",
+                "name": "source_read",
+                "arguments": {
+                  "path": "src/documents/permissions.py",
+                  "startLine": 624,
+                  "endLine": 635
+                },
+                "budgetConsumed": 1
+              },
+              {
+                "actionOrigin": "domain-worklist",
+                "name": "source_read",
+                "arguments": {
+                  "path": "src/documents/models.py",
+                  "startLine": 477,
+                  "endLine": 498
+                },
+                "budgetConsumed": 1
+              },
+              {
+                "actionOrigin": "domain-worklist",
+                "name": "source_read",
+                "arguments": {
+                  "path": "src/documents/versioning.py",
+                  "startLine": 23,
+                  "endLine": 28
+                },
+                "budgetConsumed": 1
+              }
+            ],
+            "duplicateHelpers": [
+              {
+                "handle": "unit-91dc7cef11653711a6300111",
+                "receiverClass": null
+              },
+              {
+                "handle": "unit-6dd0230a20acf0bcd2011436",
+                "receiverClass": "documents.views.DocumentViewSet"
+              }
+            ],
+            "sharedIdentityDefectProved": false,
+            "interpretation": "Mechanical operation sharing and five scheduler source actions actually occurred, but incomplete callee linkage and rejected decisive source units prevent a valid mechanism-effect baseline"
+          },
+          "targetExecutionAudit": {
+            "verified": true,
+            "targetExecutions": 0,
+            "rawToolCalls": 51,
+            "nativeHistoryCalls": 51,
+            "automaticSourceActions": 5,
+            "totalBudgetActions": 56,
+            "toolSchemaRejections": 4,
+            "resultCheckActions": 2,
+            "allowedRawTools": [
+              "authorization_compile",
+              "source_list",
+              "source_search",
+              "source_symbol",
+              "source_read",
+              "authorization_observe",
+              "authorization_check_result"
+            ],
+            "toolCounts": {
+              "authorization_compile": 1,
+              "source_list": 1,
+              "source_search": 8,
+              "source_symbol": 15,
+              "source_read": 13,
+              "authorization_observe": 11,
+              "authorization_check_result": 2
+            },
+            "capture": {
+              "archive": "source-capture/20261006-095139-run.conv-001-natural-f7d3a519c329.jsonl.gz",
+              "sha256": "a8c2d72d16cdc1eb62790e99d4c7ecd2e4df3f1961748db49d2d8b5efd2238a7",
+              "rawSha256": "2d5c786928c4512140ca18adf00bbb4a2a7c35c6225be6e174e09393edd28b39",
+              "rawBytes": 4502194,
+              "records": 48,
+              "requests": 24,
+              "responses": 24
+            }
+          },
+          "mainAdjudications": [
+            "Main verified raw/native ordered IDs and names51/51 plus48records,report/gzip/raw hashes",
+            "Raw scout claim no tool failure is rejected: four observe schema rejections have exit1; no target side effect was evidenced",
+            "Raw scout claim no automatic actions/sharing is rejected: schedulerActions5,tool budget56 versus51explicit,one6item source queue andoperation identity acrossfour questions are retained",
+            "Progress acceptedUpdates0 does not count current semantic units and cannot prove mechanism non-adoption",
+            "Two helper source ranges match but receiver scope differs (one unspecified/oneDocumentViewSet); neither repeated range nor model retries proves a shared binder/identity defect",
+            "Main source point checks direct entry/views1834-1839, permissions30-54 andDRF203-246,serve_file4941-4973 plus earlier root/version windows; correct prose remainspartial independentlyofcheck",
+            "Formal source/callee failures do not make available source unavailable; no new production defect or same-position redraw is justified"
+          ],
+          "actualUSD": null,
+          "humanMinutes": null,
+          "evaluationFile": "evaluations/quality-paperless-download-D-O-attempt-1.json"
+        }
+      },
       "repairs": [],
       "admission": null,
-      "status": "not-dispatched",
+      "status": "completed-with-diagnostics",
       "allAttempts": {
-        "providerCalls": 0,
-        "knownProviderCalls": 0,
-        "respondedCalls": 0,
-        "knownRespondedCalls": 0,
+        "providerCalls": 24,
+        "knownProviderCalls": 24,
+        "respondedCalls": 24,
+        "knownRespondedCalls": 24,
         "unknownUsageCalls": 0,
         "tokensStatus": "complete",
-        "knownFreshInput": 0,
-        "knownCacheRead": 0,
+        "knownFreshInput": 1062807,
+        "knownCacheRead": 167936,
         "knownCacheWrite": 0,
-        "knownFullPrompt": 0,
-        "knownOutput": 0,
-        "knownPromptAndOutput": 0,
+        "knownFullPrompt": 1230743,
+        "knownOutput": 18482,
+        "knownPromptAndOutput": 1249225,
         "knownActualUsdSubtotal": 0,
-        "totalActualUsd": 0,
-        "actualUsdStatus": "complete"
+        "totalActualUsd": null,
+        "actualUsdStatus": "unknown"
       }
     },
     {

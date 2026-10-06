@@ -8,9 +8,26 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有源码/模型运行工具；为 Python/Go 选择有真实语法树和名称解析能力的薄适配器，复用可获得的解析器。CodeQL 是待测适配选项，Cedar/RepoAudit/IRIS 是实现参考，不默认安装完整新平台。
 
-日期：2026-10-05。状态：`in-progress`。执行模型：`gpt-6.1-sol / max`。实际 Git 仓库 `D:/skill优化/SkVM`，分支 `skill-ir-aot`；不创建分支/worktree，仅发布用户 `origin`。研究基线 `ba27716041d4e6e5f6f8f3a51e694e25c49323d4`，执行时保留其后本任务书发布提交。
+日期：2026-10-05；收束于 2026-10-06。状态：`completed-with-unmet-criteria`，`finiteQueueComplete:true`、`researchGoalAchieved:false`。执行模型：`gpt-6.1-sol / max`。实际 Git 仓库 `D:/skill优化/SkVM`，分支 `skill-ir-aot`；不创建分支/worktree，仅发布用户 `origin`。研究基线 `ba27716041d4e6e5f6f8f3a51e694e25c49323d4`，执行时保留其后本任务书发布提交。
 
 本轮按一轮约 8–12 小时主动工作安排，约六成投入质量、四成投入编写与复用。按有效产物推进，完成即收口，不等待或重复调用凑时长。开发模型与被测模型分开；实验默认 `xty/gpt-5.6-sol`，沿用现有配置。替换不可用路由须记录并作用于整个配对块。
+
+有限队列已关闭，研究验收未达；以下收束表是阶段处置，不把未达要求改写为成功勾选。最终证据见 [AU summary](../../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/summary.json)、[accounting](../../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/accounting.json) 与 [研究 §7.53](../../skill-ir/skill-dsl-research.md#753-au-操作事实与结构取证原型有限队列已收束)。
+
+| 阶段 | 最终处置与未达责任 |
+|---|---|
+| AU0–AU9 | 输入/操作事实、结构候选、权限与有限值、调度、双入口和登记已实现；确定性反例通过，完整任务质量未建立 |
+| AU10–AU11 | Share 10 次、Gitea 3 次调试原件保留；Share 第十轮未知后封存。材料恢复/依赖失效有匿名工程证据，实际复用收益未达 |
+| AU12 | 完整原 skill 的 Gitea 原/变 native 首稿实际执行，均 partial、未 checked/bounded；Share 两位置封存 |
+| AU13 | Gitea 原/变最终作者稿忠实合格，原稿仅一次字段修订；原字节消费者未知、变化消费者及 Share 四位置封存，下游收益未达 |
+| AU14 | 六个政策/前提/源码变化位置全部有零调用封存准入；不能称作已运行的 fresh/previous 比较 |
+| AU15 | 十二质量首位置保留分母：六实跑，一 full/五 partial；六封存，域臂 checked/bounded 为零，无付费重抽 |
+| AU16 | 真实机械共享与自动补读已发生；两种可信完整源码链缺失，预定比较不适用，消融零调用并保存理由 |
+| AU17 | 25 次实际尝试全部独立 source/raw 或 author/raw 评阅并核报告 SHA，主裁定保留探子纠错；未测真人评审 |
+| AU18 | 三项计量反例先红后绿、联合 844 pass/1 skip、双类型及 25 原件零模型回放通过；未知费用/完成不抹零 |
+| AU19 | 在既有 spec、研究、开发指南、usage/reusable 例和 current-status 同步实现、实际采用、未达和恢复边界 |
+| AU20 | 聚焦原件与收束提交，仅发布用户 origin；提交/推送凭据由 Git 历史及外部 conversation_log 保存 |
+| AU21 | 32 首位置为 13 实跑/19 零调用封存，25 归档尝试、0 活动/0 缺位置；有限执行完成、研究未达，保持两任务 unknown 封存 |
 
 ## 一、启动上下文与边界
 
@@ -443,3 +460,14 @@ AU0/1创建薄runner后登记其真实typecheck、单位置运行和replay命令
 - AU15 Download M-O分类修复实施计划：d503首位16/16、44raw/native工具（另18自动source动作使budget62）、source95有效、0accepted units，终答natural partial。首次check正常拒绝invented path/policy，第二次valid:true但sourceBound:false/taskResolution:partial/evidence unresolved，源覆盖未完成；nativeDelivery据此未checked/bounded，而AR分类误落共享checker。匿名TDD覆盖已知闭合/source-valid/无accepted单位、末valid检查与current check精确一致且无diagnostic的部分交付；此前只允许生产具名semantic-path-missing/behavior-policy-assessment正常拒绝，未知诊断/host错误/未响应/invalid source/非空单位及冲突check保持暂停。不改checker、真实原件或quality，不付费重抽M；测试/双类型/零调用report SHA证明与eligible仅Download D-O范围裁定、发布后再最后首位。主纠正源码探子遗漏终答已有owner/grant表，保留实际GET model permission/空version/deleted来源与file-opening缺口。
 
 - AU15本阶段2个预期red转绿：无单位有效unknown归因及独立code审查的伪空数组反例；57相关pass/284断言、AU类型通过，主类型按实际exit记录。原M报告SHA零调用重放归model-draft，原review不改；范围裁定仅放行最后Download D-O，Share/Gitea保持封存。24原件零调用对账362/360、fresh9263844/cache1495552/output331088，USD/开发AI/真人及2完成未知保留。usage改用未封存Download例、既有reusable skill补显式入口选择与valid/source覆盖区别；无新模型调用。发布后最后D-O首位，再AU18既定计量修复与AU16–21有限未达收口。
+
+- AU18计量小细节补充：当前24份attempt中最早Share1/2的独立评阅已存在并SHA绑定，schema为authorization-au-source-review/v1，使用report/reportSha256/mainAdjudication；collector仅识别后来的两个evaluation schema，导致面板漏展示这两份评阅，并非实际未评。与既定终态/root program修复同阶段用匿名red验证明确旧schema的内存投影（保留原字段/原件、映射artifact/sha256/grade）；不修改两份旧评阅、不从formal字段提升natural质量。最终所有实际attempt逐项对齐当前与旧格式评阅。
+
+- AU15最后Download D-O在c7f201ba为24/24已知、1声明/1operation/4questions、51raw/native工具及5自动source动作（budget56），source95valid、target/reference0。自然partial/形式未闭合：有root及实际source/archive文件依据，遗漏DRF/GET前置认证权限、直接version pk/空参数，形式callee缺口被扩大为已可得源码缺口。主纠正raw探子“无失败/无automatic/sharing”：实际4observe格式拒绝、一套6队列/1identity投影四问。两个同范围helper的receiver身份不同，未证明新binder缺陷，不重抽最后首位。
+- AU16适用性按真实证据收口：共享/补读机械上确已采用，但OWUI D仅无关入口，Download D决定性callee/root helper仍未闭合，M各1问且Download无accepted单位；另两结构task均unknown封存。没有计划所需不同结构的可信链基础来隔离quality effect，不新增消融provider（最多4不是配额）。verification/mechanism-applicability.json保留actual adoption与未适用理由；此前通用容器/上下文/批量/typed链接修复及真实尝试不提升为净收益。
+- AU18实施细化：queueConclusion复用已收集原report/claim/admission身份；显式结束标志、所有注册位置有归档首件或同task且cause SHA有效的zero-callblocked、无缺报告/active才是finiteComplete。unknown attempts保留并强制researchGoalAchieved:false；非零/无效admission或缺位置继续in-progress。原program只按显式root或domain metadata数组计数，structured缺字段继续null，不从questions/facts猜数；早期source-review仅内存映射原report/reportSha/overall并核原件SHA。匿名三类red后最小修复、联合回归/双类型及全25原件0provider重算，再文档/发布最终未达。
+
+- 2026-10-06 AU18最终核验：三项匿名计量反例预期 red 后最小实现，6 定向 pass/34 断言；独立只读代码核验未发现具体缺陷。联合 844 pass/1 平台 skip/5472 断言/105 文件，主/AU 类型 exit0。原件重算 25 尝试、386 派发/384 响应，13 登记首位实跑、19 同任务 cause SHA 有效零调用封存，无 active/缺位置；两份早期评阅经内存投影后全部 25 次评阅对齐。零 provider 回放验证 87 个 claim/report/review/archive 原件 SHA 前后相同，proof 在 verification/au18-final-replay.json；不把其机械 not-dispatched 行误计为缺失准入。已知 fresh10,326,651/cacheRead1,663,488/full prompt11,990,139/output349,570，两个请求完成与 usage 未知，实际美元/开发与探子用量/真人时间未知、目标执行0。
+- AU19–AU21最终收束沿现有文档更新：最后 Download D-O partial、机械采用与未闭合分别记录；OWUI 和 Download 的修前/修后版本分列，没有同版本总体收益或作者下游收益结论。使用说明改用未封存 Download 入口，最新离线 check valid/0 provider；可复用 skill 保留显式入口选择、工具 exit0/valid 与源码闭合的区别。最终状态为 completed-with-unmet-criteria，sealedTasks 为 Share/Gitea；未达责任及已做修订已列出，后续不自动新增首位、消融或重发。文档链接/目录、原件 Git blob 一致性与 origin 发布在本收束提交中留证。
+- 最终独立文档核验无实质矛盾，已点验登记/质量/成本表、修前后版本及封存处置。python -B 文档链接单测15pass、全库链接检查exit0且broken/governance errors0；实验目录18条/0诊断有效，git diff --check exit0。验证汇总与各原件身份在verification/au18-final-checks.json，当前计划的过时“待执行”指针亦已同步。Git暂存原件完整性和实际origin发布由本阶段proof/Git历史及外部conversation_log保存。
+- AU20首次暂存差异检查发现原始regression输出两处行尾空格（空version和不安全filename反例的名称），主未处理exit1即完成未发布本地提交。保留原日志SHA，只对精确verification/au18-regression.txt添加字节/行尾格式例外；重新核暂存日志字节及相对最后已发布版本的完整差异后修正该本地提交，再推origin。此修复不改变测试、原件、源码质量或执行分母；修复凭据另存verification/au20-publish-checks.json。

@@ -6,21 +6,15 @@
 
 研究主线是 **按 skill/task 范围设计领域表达**。当前任务类为单 repo/ref、源码可见的授权与信任边界评估：围绕主体、资源、操作、条件和政策组织取证、判断与检查。质量约六成、编写复用约四成指开发投入安排，各项质量要求分别验收。
 
-**当前授权队列为 [AU0–AU21 操作级取证与授权 DSL 贯通](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md)，状态 `in-progress`，开发线程拥有共享代码、方法文档、状态与 Git 的唯一写入责任。** 开发模型 `gpt-6.1-sol / max`，研究基线 `ba277160`；启动HEAD/origin为`dfe7ec32`。继续本地`skill-ir-aot`，仅发布用户origin。AU1–AU9原型、32位置登记、完整原skill22/8文件清单、作者/原字节消费者、变化配对与计量薄接线已实现并做反例验证，实际研究目标未达。
+**[AU0–AU21 操作级取证与授权 DSL 贯通](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md) 已以 `completed-with-unmet-criteria` 收束：`finiteQueueComplete:true`，`researchGoalAchieved:false`。** 开发模型 `gpt-6.1-sol / max`，研究基线 `ba277160`，启动 HEAD/origin `dfe7ec32`；继续本地 `skill-ir-aot`，仅发布用户 origin。操作事实、结构候选、有限源码值、义务补读、材料恢复、双入口和完整原 skill 作者/消费者接线均已实现并验证；完整质量和净收益未建立。
 
-Share第十轮request16网络超时，16派发/15响应；同一Share逻辑任务16位置全部封存，其余15位置零调用blocked。原件SHA `dbae38f7bc29d4df99e30234aefaaca76a38d3376cfcb6ada4a5c95a5ae0cf24`，不重发或换身份。已有`retainTaskPause:true`范围裁定仅允许另三个独立原任务的显式16位置。Gitea第三轮在`272390cc`为21/21已知、四问终答partial且全unknown/rejected，4个current source units、sourceRef正确。源码常量和空数组已实际提交，但root仍错写调用关系，typed字段alias和helper参数重bind继续阻断；不把可得未解释源码归为部署前提。现有显式typed bind已能表达字段身份，新增精确别名类型提示和匿名指南而不扩大自动类型接受；1个预期red转绿，73定向pass/560断言与主/AU双类型通过。此前788联合pass/1平台skip、15 provider/native pass保持。旧reason失败经原payload无损proof和同题已知终答，仅裁定路由改善。该修复后已进行下面的完整原skill普通入口纵向诊断（AU10/AU12）；其结果、下一登记位置与未达责任分列。不再重抽第四轮structured debug。
+32 登记首位置中 13 个实跑、19 个零调用封存，共 25 份归档尝试，全部有原件 SHA 绑定的独立 AI 评阅和主 AI 裁定。12 个质量位置中实跑 6 个：Download N 自然终答 full，其余 5 个 partial；另 6 个封存。N 形式检查不适用，实跑 M-O/D-O 均未 checked/bounded。完整原 skill 的 Gitea 原/变 native 各一份，均 partial；原/变作者最终两稿忠实合格，但原字节消费者无终答，变化消费者封存。6 个变化位置均零调用封存，不能算实际复用收益。
 
-完整原skill的Gitea native原/变在同`d2ba9490`各24/24已知；原/安装bundle与输入保持、raw/native一致，参考读取均0、目标执行0。两自然报告有字段限制及创建服务依据，形式均未checked/bounded。原位12current units、认证/admin/异常partial，末focus过时与helper类型错误；变化位3units，将any repo reader等同issues-unit reader的conditional SATISFIED未由org/team权限与admin例外支撑，原任务仍partial。日志根缺陷猜测不成立。旧分类器漏了两类正常草稿拒绝，1预期red转绿、52相关pass/235断言、双类型通过；精确原report重放归model-draft，原review保持，SHA范围裁定仅解除显式非Share行的误分类暂停。原/变native及structured debug不再重抽。
+Share 第十轮 request16 和 Gitea 原字节消费者 request22 的完成与 usage 仍未知，两任务全部 16/10 种表示保持封存。没有活动尝试或缺失登记位置，未知原请求不因队列收束而清除、重发或换身份。恢复入口是 [AU status](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/status.json)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/summary.json) 与 [accounting](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/accounting.json)。
 
-原政策作者首稿在`e458fa6f`5/5已知、11工具动作、目标执行0，nested误投及USAGE消费者check禁令使原稿partial；原件保持。`9a4c76f6`唯一修订5/5已知，实际读取首稿后root交付/格式/任务忠实性通过，四职责与原policy保持，消费者工具禁令修正。变化政策作者首稿同代码5/5已知、7工具动作，单一操作/六职责、any authenticated repository reader政策原文与完整skill适用职责保持，无字段修订。两稿源/原安装bundle保持、raw目标执行0，SHA绑定独立评阅合格；它们仍未证明源码结论质量或编写收益。合同3预期red、55相关检查和双类型通过。
+操作共享和自动补读确已使用，但 OWUI D 仍停在无关 AuditLogger.write 入口，Download D 的决定性 root/helper 关系未闭合；没有两个不同结构的可信完整链来做预定机制比较，消融 0 调用并保留适用性理由。OWUI N/M-O 在 `5ac2d651`、D-O 在 `d50388db`；Download N/M-O 在 `d50388db`、D-O 在 `c7f201ba`。首答、修订和版本分列，不混作同版本效果；具体设计、失败责任和成本见 [研究 §7.53](skill-dsl-research.md#753-au-操作事实与结构取证原型有限队列已收束)。
 
-原字节Gitea消费者在`187d2195`的request22结果检查派发后网络超时，22/21、无终答、formal unknown；source346文件有效、16current units、原稿/完整skill保持，不能用草稿单元代替交付。原件SHA `7e27e22bc5954516a8a4e22bf77cdff6af8d966cf7c2bdd7a178f271f8132dad`，raw/native计数一致；ordinary全响应守卫导致unbound诊断，不是已证明日志绑定缺陷。Gitea任务全部10种登记表示封存，剩余消费者变化位及3质量位零调用blocked，不换身份重发。SHA范围裁定保持Gitea/Share任务暂停，仅允许两个独立Python原任务的6质量首位置。
-
-OWUI三臂自然终答均partial：N/M-O在`5ac2d651`为7/7、24/24，D-O在`d50388db`24/24、1声明调用/1operation/5questions。完整Cloudflare原/安装包、输入与173source文件有效，reference/target0。D-O错误入口保留AuditLogger.write，虽定位了真实process_file却未提交公开root selection，当前仅1audit-write单元；两exit0解释实际含格式/阶段拒绝。主纠正独立评阅的成功替换和遗漏计数。N formal不适用，M/D未checked/bounded；原件保留，不重抽。
-
-Download N/M-O在`d50388db`分别11/11、16/16，61/44显式raw/native工具、95source有效、完整skill/input保持、reference/target0。N自然调查full（root授权、版本族/软删除及original/archive），formal不适用。M-O自然partial，缺GET model permission、空version与具体文件打开分支；终答已有owner/grant表，主纠正探子的遗漏判断。M-O没有accepted source units，第二次check valid但sourceBound:false/taskResolution:partial，不能作为闭合。分类器误暂停checker，匿名red与独立数组反例red已修，57相关pass/284断言；精确原report零调用证明仅解除最后Download D-O的分类暂停，原check/quality不提升。剩余一个D-O首位，修前后版本分列。
-
-最新原件重算24归档尝试、362派发/360响应、2项完成与usage未知；known fresh9263844/cache1495552/output331088，USD/developer/AI/human均未知，目标执行0。实际ordinary与作者原件按SHA绑定独立评阅，首答、修订、封存和未派位置分别保留。最后首位后实施任务书的AU专属终态/根program计量TDD收口；有限执行和研究验收分开，旧结果与保护输入保持。恢复见AU results `status.json`。
+最终联合验证 844 pass/1 平台 skip/5472 断言，主/AU 类型通过；[零模型回放](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/verification/au18-final-replay.json)验证 87 个原件文件字节保持。累计 386 派发/384 响应，已知 fresh 10,326,651、cacheRead 1,663,488、完整 prompt 11,990,139、output 349,570；2 项 usage 未知，美元、开发/探子用量和真人时间未知，目标执行 0。有限队列结束与研究达标分别记录。
 
 最近的 [AT0–AT19](../superpowers/plans/2026-10-05-authorization-focused-closure-and-delivery.md) 有限队列已以 `completed-with-unmet-criteria` 收束。持久focus、宿主身份、纯有限helper摘要、字段/返回对象、源码终检和双入口已实现。[AT summary](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/summary.json)分别记录工程、实际使用、比较和成本结论；原件和封存保留。
 
@@ -41,7 +35,7 @@ AS 固定 15 质量、4 native、8 变化、2 源码变化位置，作者4稿与
 
 | 恢复所需信息 | 权威入口 |
 |---|---|
-| 最新执行及未达责任 | [AU任务书](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md)；已结束的[AT summary](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/summary.json)及AS原件保持 |
+| 最新执行及未达责任 | [AU任务书](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md)、[AU summary](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/summary.json)；已结束的 AT/AS 原件保持 |
 | AR 停止前状态 | [status.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/status.json)、[handoff.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/handoff.json) |
 | 普通使用的失败与裁定 | [ordinary-adjudication.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary-adjudication.json) |
 | 真实派发、响应与未知费用 | [ordinary-accounting.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary-accounting.json) |
@@ -64,6 +58,6 @@ AQ 旧/新策略 full均为2/20，原 skill checked交付为0/4；具体分母�
 - 当前队列：[当前计划](skill-ir-aot-optimization-plan.md)；方法合同：[spec AU](skill-ir-aot-optimization-spec.md#1434-au-operation-evidence-contract)。
 - 分类、方法、复盘：[唯一研究正文](skill-dsl-research.md)；旧结果：[证据索引](evidence-index.md)、[历史](history.md)、[实验目录](../../results/skill-ir/experiment-catalog.json)。
 
-[治理](../superpowers/plans/2026-10-04-workspace-and-document-governance.md)已完成材料收存、旧日志压缩、正文归并和停止后的入口校正。当前阅读集 15 份，版本化材料 14 份；研究仍统一在一个正文中。原件及恢复索引在 `project-maintenance/20261004-governance/`，AR/AS 结果及 `.skvm` 保留。五份可再生成的 Python 字节码已清除；三个此前删除被拒绝的空目录保留。AS、AT执行均已结束；AU已授权，派发后由新线程成为共享代码/方法文档/Git唯一写者。Git实时状态以实际检查为准。
+[治理](../superpowers/plans/2026-10-04-workspace-and-document-governance.md)已完成材料收存、旧日志压缩、正文归并和停止后的入口校正。当前阅读集 15 份，版本化材料 14 份；研究仍统一在一个正文中。原件及恢复索引在 `project-maintenance/20261004-governance/`，AR/AS 结果及 `.skvm` 保留。五份可再生成的 Python 字节码已清除；三个此前删除被拒绝的空目录保留。AS、AT、AU 有限执行均已结束；AU 开发线程在本轮拥有共享代码、方法文档、状态与 Git 的唯一写入责任。Git 实时状态以实际检查为准。
 
 更新本页时替换过时段落，不把逐次测试与派发日志不断追加为新的“当前状态”。

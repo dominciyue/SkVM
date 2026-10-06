@@ -2467,11 +2467,11 @@ F9 实施补充（2026-09-14）：来源操作既包括脚本执行，也包括 
 
 ### 14.34 AU operation evidence contract
 
-2026-10-05，用户授权 [AU0–AU21](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md)，执行模型为`gpt-6.1-sol / max`。本节为开发合同，实施与效果尚待验证。沿用inquiry/native与现有CLI，新增显式`operation-evidence-v1`策略；旧默认、v1声明、旧策略及原件兼容。
+2026-10-05，用户授权 [AU0–AU21](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md)，执行模型为`gpt-6.1-sol / max`。2026-10-06 有限执行以 `completed-with-unmet-criteria` 收束，工程已验证，完整源码质量和净收益未建立；实际采用、分母与成本见 [研究 §7.53](skill-dsl-research.md#753-au-操作事实与结构取证原型有限队列已收束)。沿用inquiry/native与现有CLI，新增显式`operation-evidence-v1`策略；旧默认、v1声明、旧策略及原件兼容。
 
 v2任务声明把operation与question分开，同一操作的行为、政策比较和范围义务引用共同来源解释。绑定真实入口后才共享语义，主体/资源/实参及用户前提按调用/问题隔离，政策独立计算；原问题不删减。新增源码事实空间记录结构来源、模型解释和机械检查层次，sourceBound/checked不提升为独立源码真值。
 
-AU1 内部接口（实施中）：strict v2的operations为`{id,request,entryHint?}`，questions保留原字段并必需`operationId,intent:behavior|policy-comparison|scope`。program保留originalDeclaration，operations记录宿主sourceQuestionId，operationQuestions保留逐题义务；每operation编译一套来源队列，绑定当前真实入口后将参数化source units投影到旧question级checker。v1逐题独立归一化，不按文字猜共享。`OperationIdentity`绑定repository/sourceRef/entrySymbolId/sourceRevision；facts记录level、evidenceIds与source-span/symbol-resolution/candidate-set/framework-model依赖。事实与投影不复制用户known值、policy映射或旧check/final。新增策略采用同一focused循环，结构动作进入既有worklist；错入口撤回后清除其关联投影，原草稿留档。
+AU1 内部接口（已实现）：strict v2的operations为`{id,request,entryHint?}`，questions保留原字段并必需`operationId,intent:behavior|policy-comparison|scope`。program保留originalDeclaration，operations记录宿主sourceQuestionId，operationQuestions保留逐题义务；每operation编译一套来源队列，绑定当前真实入口后将参数化source units投影到旧question级checker。v1逐题独立归一化，不按文字猜共享。`OperationIdentity`绑定repository/sourceRef/entrySymbolId/sourceRevision；facts记录level、evidenceIds与source-span/symbol-resolution/candidate-set/framework-model依赖。事实与投影不复制用户known值、policy映射或旧check/final。新增策略采用同一focused循环，结构动作进入既有worklist；错入口撤回后清除其关联投影，原草稿留档。
 
 有界语言与版本化框架适配产生符号/import/继承/caller及对象传递候选；结构关系和模型解释分别留依据。未满足义务编译为补读、解释、关系核对或明确缺口动作，模型漏报helper时仍可由宿主结构候选发现。语法树与同名唯一性不自行决定业务语义。有限权限/map/集合/对象摘要保留来源、分支、错误及未知；角色顺序不得按名称猜测。复用已有semantic-flow/求值器和局部恢复，禁止按仓库/skill名称写成功分支。
 
@@ -2497,6 +2497,8 @@ Operation声明以用户实际请求的动作分组，endpoint/object/inherited/
 
 AU执行失败分类须区分校验器拒绝模型草稿与共享宿主故障。source-valid、已知闭合普通报告的结果检查正常返回拒绝时，具名focus-next不可用和显式参数类型不匹配属于待审草稿责任；模型unresolved reason诊断须与current accepted unit的question/handle/block/step/reason和宿主生成path/message/severity精确对应，方可作同类归因。未知完成、无效source、宿主异常及未知诊断继续阻断。只允许用原件SHA、确定性重放证明和显式eligibleRows裁定纠正共享误分类，原失败状态/语义/终答不改，Share及Gitea任务级unknown封存保持。原件native/raw派发与响应一致但有实际未响应请求时，全响应计量守卫的拒绝不自行证明共享日志缺陷；独立任务可经retainTaskPause范围裁定继续，未知任务的其它登记表示仍零调用封存。
 结果校验的valid与source-bound/bounded分列。已知闭合且source-valid的native答复即使末检查valid，若没有accepted units且精确匹配的current check仍sourceBound:false/taskResolution:partial，也只属于未完成的模型源码交付；路径及诊断必须是真实空数组，未知前序诊断/宿主异常/冲突状态不走此归因。允许的生产具名path/policy草稿拒绝和格式修订不证明源码质量，不为同位增加重抽。
+
+AU 计量只按原件显式 program metadata 计操作数，根级与 domain 级兼容，缺失保持 null；早期独立评阅只在内存映射字段并核原报告 SHA，不回写原件。有限队列结束必须有显式结束声明、全部登记位置的归档首件或同任务 cause SHA 有效的零调用封存准入、无缺报告及活动进程。归档未知请求不清除并阻止 researchGoalAchieved；封存不能作为实际执行、交付或比较收益。研究验收与工程验证、真实采用分别记录，跨版本首答和修订不合并为同版本效果。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
