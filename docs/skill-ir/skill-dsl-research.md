@@ -1886,6 +1886,16 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 **用户暂缓与当前交付。** 用户明确先不急做实验，最新账户余额仅为其报告的0.7元；新接口`https://yes.hubniconico.com/v1`只存于忽略的本地配置，未调用，可用性及后台模型未核实。六变化/六质量共12位置保留未派发，`finiteQueueComplete:false`、`researchGoalAchieved:false`；当前收口确定性修复、已结束原件评估、分账和发布。当前两结构没有完整可比链，机制对照零调用记录原因，不为数量追加消融。[当前摘要](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/summary.json)与[分账](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/accounting.json)提供下一恢复入口；以后用户选择继续时，同条件比较和全部准备成本合同仍有效。
 
+### 7.56 AW 控制语义、局部材料与账号运行开发决定
+
+2026-10-07，AV 暂缓后只读复核进一步明确三个责任。第一，source-skeleton 将 try/with/loop 等实际控制保留为 opaque gap，子调用定位成功仍不能参与有限求值。第二，inquiry-domain-runtime 的 retainFacts 必须先有 accepted entry 才保存 helper，projectOperationUnits 又只取已存事实；最新 Download 接受 helper 后 identities/facts 仍为零，因此三种变化准备均零恢复。第三，最新 Download 和 OWUI 各22/22响应却各只接受一个单元，分别有8/5和18/12次解释提交/局修；重复上下文仍重。109项针对性测试/538断言与主类型检查通过，说明这些缺口仍需改变实现与验收目标，而非重复跑同一验证。
+
+本轮采用[AW0–AW22](../superpowers/plans/2026-10-07-authorization-control-materials-and-account-runtime.md)：扩展任务必要的有限正常/异常/短路语义；把来源材料、操作连接、当前前提/政策/结论分开；局部修复保留进展；两入口共用核心。材料允许先保存，任务结论仍须真实连接与当前核查；不通过改旧 footprint、降低完整标准或按仓库写成功分支取得结果。该方案仍服务单 repo/ref 的源码可见授权任务，完整原 skill 的其他职责保留。
+
+用户询问能否用当前 GPT 账号的5.6 Sol实验。只读检查确认本机codex-cli 0.159.0-alpha.12.1、ChatGPT登录及model/list含gpt-5.6-sol；推理调用0，账号模型实际访问待验证。现有SkVM无Codex adapter，LLMProvider的apiKey/baseUrl不能承接登录态；计划通过官方app-server动态工具桥接同一领域工具，单列Codex harness和真实可见计量。开发模型gpt-6.1-sol/max，被测模型拟gpt-5.6-sol/high。旧付费API仍暂停；用户已明确回复“允许使用当前账号做实验”，新线程完成官方通道验证后即可执行，无需再询问，不自动切付费接口。
+
+官方资料：[认证](https://learn.chatgpt.com/docs/auth)、[App Server](https://learn.chatgpt.com/docs/app-server)、[模型说明](https://developers.openai.com/api/docs/models/gpt-5.6-sol)。本轮优先复用CLI自身认证，不开展额外OAuth产品建设。不同harness/端点实验分别归档，旧AV十二位置保持原暂停状态。当前仅制定任务书、方法合同和导航；AW工程、真实实验与收益均未预记完成。后续实际问题与修复继续追加本节。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
