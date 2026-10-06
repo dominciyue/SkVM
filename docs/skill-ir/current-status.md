@@ -1,12 +1,12 @@
 # Skill IR 当前状态
 
-更新于 2026-10-06。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；机器状态和原始结果保存具体进度，历史任务书保存当时的执行记录。
+更新于 2026-10-07。工作分支为 `skill-ir-aot`，仅发布到用户 origin。本页是唯一实时状态入口；机器状态和原始结果保存具体进度，历史任务书保存当时的执行记录。
 
 ## 当前工作
 
 研究主线是 **按 skill/task 范围设计领域表达**。当前任务类为单 repo/ref、源码可见的授权与信任边界评估：围绕主体、资源、操作、条件和政策组织取证、判断与检查。质量约六成、编写复用约四成指开发投入安排，各项质量要求分别验收。
 
-**当前队列：[AV0–AV20 源码辅助解释与授权任务真实闭合](../superpowers/plans/2026-10-06-authorization-source-assisted-closure.md)，`in-progress`。** AV0–AV9共享工程与双入口已验证，26个初始位置继续执行。Download三次真实尝试18/21/22派发，末次接受partial终答；OWUI首跑21派发仍0单元，flow-requirements具名复验22派发/21响应后接受1单元/13步骤，形式rule仍false、终答partial。源码可见Files方法被误称不可得，已定位为跨文件模块实例receiver绑定缺口。`source-bindings/v4`以唯一直接构造、实际import和C3补齐机械候选，shadow/动态/重赋值保持gap；52项/185断言、主/AV类型和独立AI核验通过，173文件零probe定位两实际方法。旧Download v3材料因此失效，保留原件，下一步并行同题OWUI复验与当前Download基线，再运行六个变化位置。runner跨进程锁/原子status合并10项/107断言通过。普通完整声明与前提编辑示例零调用通过；质量/实际复用待验证。本轮已结束104派发/102响应、2恢复，2项原timeout/usage未知及全部实际USD未知保留；目标执行0。模型为`gpt-6.1-sol / max`，Flash未核实；实验沿用`xty/gpt-5.6-sol`。具体进度和恢复动作见[AV status](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/status.json)。
+**当前队列：[AV0–AV20 源码辅助解释与授权任务真实闭合](../superpowers/plans/2026-10-06-authorization-source-assisted-closure.md)，`in-progress-paid-deferred-by-user`。** 用户暂缓付费实验；26个初始位置中14个已有29份尝试归档，六变化/六质量共12个尚未派发。v4模块实例定位真实采用：OWUI wire22/22读到两查询方法，仍1单元/9步骤、终答partial；普通Download v4基线22/22接受1单元但无保留依赖footprint，三种变化零compare均0恢复/1失效。四份完整原skill作者稿独立准入并按原字节消费，已有自然报告仍partial；额度拒绝、网关524、防循环无terminal与空end_turn均记未交付。防循环误记正常和空final误计交付两项反例先红绿，focused23项/155断言、联合894 pass/1平台skip/5789断言、主/AV严格类型及独立只读审查通过；零调用重判保留旧状态原件。全量raw重算为397派发/385响应、2只读恢复、1晚结算，修正先前少计2次的汇总；12项usage未知，全部实际USD未知，14份受保护旧证据字节不变。新配置端点`https://yes.hubniconico.com/v1`尚未调用、可用性未核实；逻辑模型仍`xty/gpt-5.6-sol`，后台身份和跨端点效应限制单列。目标执行0，`finiteQueueComplete:false`、`researchGoalAchieved:false`。开发模型`gpt-6.1-sol / max`，Flash未核实。恢复入口见[AV status](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/status.json)、[当前摘要](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/summary.json)与[原件分账](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/accounting.json)。
 
 最新已结束的 [AU0–AU21](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md) 状态为 `completed-with-unmet-criteria`：`finiteQueueComplete:true`，`researchGoalAchieved:false`。操作事实、结构候选、有限源码值、义务补读、材料恢复、双入口和完整原 skill 作者/消费者接线已有实现；完整质量和净收益未建立。
 

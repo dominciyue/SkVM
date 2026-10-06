@@ -1,0 +1,90 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "paperless-download",
+  "repository": "paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "sourceRoot": "source",
+  "allowedPaths": [
+    "src/documents",
+    "src/paperless/urls.py",
+    "framework/rest_framework-3.18.1/rest_framework",
+    "source_identity.py"
+  ],
+  "inquiry": {
+    "schemaVersion": "authorization-inquiry/v2",
+    "mode": "behavior",
+    "operations": [
+      {
+        "id": "document-download",
+        "request": "Investigate the document Download operation in this Paperless revision. Trace how the requested document, any selected version or original/archive representation, and the authenticated user's authorization relate to the file returned.",
+        "entryHint": "Locate the Download operation and follow its request, serializer/view, URL, permission, version/original/archive, and file-response branches within the allowed source paths."
+      }
+    ],
+    "questions": [
+      {
+        "id": "requested-document-to-returned-file",
+        "request": "For the document Download operation, identify the relevant control branches from the requested document to the file returned, including how the requested document identity is resolved and how the returned representation is selected.",
+        "principal": "the authenticated user making the Download request",
+        "resource": "the requested document and the file representation returned by the Download operation",
+        "operation": "Download",
+        "entryHint": "Trace the operation's source entry point and all branches that resolve the document and construct the file response.",
+        "premises": [
+          {
+            "text": "Ownership and object grants are unspecified; analyze relevant source branches rather than assuming a grant.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "document-download",
+        "intent": "behavior"
+      },
+      {
+        "id": "version-and-archive-selection",
+        "request": "Determine how selecting another version, or selecting an original/archive representation, changes the resource or file representation returned by Download, and identify the source branches that implement those choices.",
+        "principal": "the authenticated user making the Download request",
+        "resource": "the selected document version, original/archive representation, and returned file",
+        "operation": "Download with a version or original/archive selection",
+        "entryHint": "Follow version-selection and original/archive conditionals from request parsing through the final file response; distinguish document identity from representation identity.",
+        "premises": [
+          {
+            "text": "Ownership and object grants are unspecified; analyze relevant source branches rather than assuming a grant.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "document-download",
+        "intent": "behavior"
+      },
+      {
+        "id": "authorization-resource-relation",
+        "request": "Explain which authorization or permission checks are applied to the authenticated user and what resource each check authorizes. Determine from source whether selecting another version or original/archive representation changes the resource that is authorized, or whether authorization remains attached to the requested document.",
+        "principal": "the authenticated user",
+        "resource": "the requested document and, if separately represented in source, the selected version or original/archive file",
+        "operation": "authorization for Download",
+        "entryHint": "Trace permission, authentication, object-level authorization, and any lookup/filter branches, then compare their checked object with the object used to obtain the returned file.",
+        "premises": [
+          {
+            "text": "Ownership and object grants are unspecified; analyze relevant source branches rather than assuming a grant.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "document-download",
+        "intent": "policy-comparison"
+      },
+      {
+        "id": "missing-facts",
+        "request": "State precisely which source or deployment facts are missing for a complete conclusion about authenticated-user authorization, ownership, object grants, routing, or other controls relevant to Download. Do not infer unspecified facts.",
+        "principal": "the authenticated user and any owner or grant holder affected by Download",
+        "resource": "the requested document and returned file representation",
+        "operation": "Download",
+        "entryHint": "Separate facts established by the allowed source from facts that would require unavailable source, configuration, deployment, identity, or object-grant information.",
+        "premises": [
+          {
+            "text": "Ownership and object grants are unspecified; analyze relevant source branches rather than assuming a grant.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "document-download",
+        "intent": "scope"
+      }
+    ]
+  }
+}

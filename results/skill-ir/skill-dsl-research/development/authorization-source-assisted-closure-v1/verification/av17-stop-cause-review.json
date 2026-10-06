@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "authorization-av-independent-review/v1",
+  "stage": "native-no-terminal-stop-cause",
+  "reviewer": "independent-readonly-AI-av17_native_no_terminal_stop_cause",
+  "positionId": "native-gitea-create-issue-changed",
+  "attemptId": "revision-endpoint",
+  "implementationRevision": "8461bd34dbfdc4a1ed00d47726509aa52753042c",
+  "status": "main-confirmed-shared-loop-completion-bug",
+  "actual": { "providerCalls": 20, "responses": 20, "providerLimit": 24, "toolLimit": 64, "toolsUsed": 62, "explorationUsed": 62, "explorationLimit": 62, "checksUsed": 0, "processExitCode": 0, "terminalPresent": false, "terminalStopReason": "tool_use", "finalBytes": 0 },
+  "cause": "The last three identical authorization_observe actions with observations:[] reached the shared three-action loop detector. It broke without loopError, causing an unfinished loop to look completed to the adapter. The provider/session budget did not trigger this stop.",
+  "anchors": [
+    { "file": "src/cli/run.ts", "line": 405, "result": "maxSteps wiring" },
+    { "file": "src/adapters/bare-agent.ts", "line": 204, "result": "min(configured provider limit, maxSteps) = 24" },
+    { "file": "src/core/agent-loop.ts", "line": 297, "result": "actual repeated-action break branch" },
+    { "file": "src/core/agent-loop.ts", "line": 348, "result": "old no-error path finalized as completed" }
+  ],
+  "rawBindingsFrom": "evaluations/av12-av13-new-endpoint-incomplete.json",
+  "correction": "verification/av18-original-replay.json records native-terminal-absent; old report/raw/final bytes remain unchanged",
+  "reviewNature": "independent AI source/raw verification plus main targeted adjudication; not human review",
+  "providerCallsDuringReview": 0,
+  "targetExecutions": 0
+}

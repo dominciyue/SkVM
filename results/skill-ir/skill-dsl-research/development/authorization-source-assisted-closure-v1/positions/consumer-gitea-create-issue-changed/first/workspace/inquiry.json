@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "gitea-create-issue",
+  "repository": "go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "sourceRoot": "source",
+  "allowedPaths": [
+    "routers/api/v1/repo",
+    "routers/api/v1/api.go",
+    "routers/api/v1/utils",
+    "modules/structs",
+    "modules/setting",
+    "modules/web",
+    "models/unit",
+    "models/perm",
+    "models/auth",
+    "models/user",
+    "models/repo",
+    "models/issues",
+    "models/organization",
+    "services/convert",
+    "services/issue",
+    "services/context"
+  ],
+  "inquiry": {
+    "schemaVersion": "authorization-inquiry/v2",
+    "mode": "conformance",
+    "operations": [
+      {
+        "id": "create-issue-route",
+        "request": "Analyze the CreateIssue API route in the supplied Gitea revision: identify its route registration, authentication and middleware controls, request decoding, and the complete path to the issue-creation effect.",
+        "entryHint": "Start with routers/api/v1/repo and routers/api/v1/api.go; follow relevant helpers and service calls within allowedPaths."
+      },
+      {
+        "id": "reader-versus-issue-writer",
+        "request": "Determine which authenticated principals can reach issue creation as repository readers and which repository, unit, or issue permissions the implementation actually requires; compare those effective controls with the supplied policy.",
+        "entryHint": "Trace repository and unit permission checks through models/perm, models/unit, models/repo, models/user, models/organization, and related route helpers."
+      },
+      {
+        "id": "authorization-control-trace",
+        "request": "Trace authorization across the route-level controls, repository checks, issue-unit checks, issue-unit write checks, and any downstream issue-creation checks. Distinguish controls that are enforced from controls that are merely inferred or absent.",
+        "entryHint": "Follow calls from the API entry point through routers/api/v1/utils, services/context, services/issue, models/issues, and relevant permission models."
+      },
+      {
+        "id": "issue-creation-effect",
+        "request": "Identify the issue creation effect and every authorization-relevant condition that must hold before it occurs, including repository state, enabled units, authentication, and any principal or resource-specific checks visible in the allowed source.",
+        "entryHint": "Follow the request data into the issue service/model effect and inspect conversion and settings code where it changes the authorization-relevant path."
+      },
+      {
+        "id": "exceptions-and-limits",
+        "request": "Identify relevant exceptions and alternate paths rather than treating endpoint-local checks as the whole authorization path, and state precise source or deployment limits that affect the conformance conclusion.",
+        "entryHint": "Check route registration, shared middleware, helper behavior, organization/repository distinctions, configuration and unit enablement, and any visible alternate entry points within allowedPaths."
+      }
+    ],
+    "questions": [
+      {
+        "id": "q-route-entry-and-effect",
+        "request": "What is the complete source-trace from the CreateIssue API route entry to the issue creation effect, and where are authentication, repository, unit, and issue-specific controls applied?",
+        "entryHint": "Use the registered route and its called handlers/helpers, then continue into the issue creation service or model.",
+        "premises": [],
+        "operationId": "create-issue-route",
+        "intent": "behavior"
+      },
+      {
+        "id": "q-reader-principal-set",
+        "request": "Which authenticated repository readers and other principals can create an issue through this path under the implementation, and what exact checks determine that set?",
+        "entryHint": "Compare route middleware and permission predicates, including organization-owned or otherwise exceptional repository paths if present.",
+        "premises": [],
+        "operationId": "reader-versus-issue-writer",
+        "intent": "behavior"
+      },
+      {
+        "id": "q-policy-comparison",
+        "request": "Does the implementation conform to the independently supplied policy that any authenticated repository reader may create an issue when the issues unit is enabled, without requiring issue-unit write permission? Explain any overrestriction or underrestriction precisely.",
+        "entryHint": "Compare the effective source-derived authorization predicate with the policy; do not assume an endpoint-local check is the complete predicate.",
+        "premises": [
+          {
+            "text": "Any authenticated repository reader may create an issue when the issues unit is enabled. Issue-unit write permission is not required by this policy.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "reader-versus-issue-writer",
+        "intent": "policy-comparison"
+      },
+      {
+        "id": "q-control-separation",
+        "request": "Which controls are route-level, repository-level, issue-unit-level, or issue-resource-level, and does any downstream check add, remove, or change the effective authorization requirement before creation?",
+        "entryHint": "Name the relevant predicates and their call order, distinguishing enforcement from data validation or unrelated state checks.",
+        "premises": [],
+        "operationId": "authorization-control-trace",
+        "intent": "behavior"
+      },
+      {
+        "id": "q-creation-preconditions",
+        "request": "What exact preconditions and side effects govern creation of an issue, and which of them are authorization conditions versus repository or configuration conditions?",
+        "entryHint": "Inspect the final create operation and its inputs, including issue-unit enablement and repository state.",
+        "premises": [],
+        "operationId": "issue-creation-effect",
+        "intent": "behavior"
+      },
+      {
+        "id": "q-exceptions",
+        "request": "What relevant exceptions, alternate route or middleware behavior, deployment configuration, or out-of-scope entry points could change the conformance result?",
+        "entryHint": "Report only exceptions supported by the allowed source or clearly identify them as source/deployment limits.",
+        "premises": [],
+        "operationId": "exceptions-and-limits",
+        "intent": "scope"
+      },
+      {
+        "id": "q-final-conformance",
+        "request": "Give a precise conformance conclusion for the supplied policy, including the effective principal/resource/operation predicate, relevant exceptions, and source or deployment limits.",
+        "entryHint": "Synthesize the traced route, shared controls, downstream effect, and policy comparison without expanding beyond the allowed source scope.",
+        "premises": [
+          {
+            "text": "Any authenticated repository reader may create an issue when the issues unit is enabled. Issue-unit write permission is not required by this policy.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "exceptions-and-limits",
+        "intent": "policy-comparison"
+      }
+    ],
+    "policy": {
+      "text": "Any authenticated repository reader may create an issue when the issues unit is enabled. Issue-unit write permission is not required by this policy.",
+      "origin": "user",
+      "location": "experimental-user-brief:gitea-issue-policy/as-reader-v2"
+    }
+  }
+}

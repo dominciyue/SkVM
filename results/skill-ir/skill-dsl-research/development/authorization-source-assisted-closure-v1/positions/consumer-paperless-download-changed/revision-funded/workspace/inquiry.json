@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "paperless-download",
+  "repository": "paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "sourceRoot": "source",
+  "allowedPaths": [
+    "src/documents",
+    "src/paperless/urls.py",
+    "framework/rest_framework-3.18.1/rest_framework",
+    "source_identity.py"
+  ],
+  "inquiry": {
+    "schemaVersion": "authorization-inquiry/v2",
+    "mode": "conformance",
+    "operations": [
+      {
+        "id": "download-document",
+        "request": "Investigate the document Download operation in this Paperless revision. Trace how the requested document, a selected version or original/archive representation, and the authenticated user's authorization relate to the file returned. Identify relevant authorization and representation control branches, including whether selecting another version changes the resource whose authorization is checked.",
+        "entryHint": "src/documents; src/paperless/urls.py"
+      }
+    ],
+    "questions": [
+      {
+        "id": "returned-file-authorization",
+        "request": "Explain the source-established relationship among the requested document, the selected version or original/archive representation, the authenticated user, the authorization decision, and the file returned by the Download operation. Identify each relevant control branch and state missing source or deployment facts precisely.",
+        "premises": [
+          {
+            "text": "Ownership and object grants are unspecified; analyze relevant source branches rather than assuming a grant.",
+            "origin": "user"
+          },
+          {
+            "text": "The requested investigation concerns the document Download operation in the specified Paperless revision.",
+            "origin": "user"
+          },
+          {
+            "text": "The result must state missing source or deployment facts precisely.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "download-document",
+        "intent": "behavior"
+      },
+      {
+        "id": "exact-object-policy-comparison",
+        "request": "Compare the source-established authorization behavior for downloading the requested document, any selected version, and any original/archive representation with the supplied policy requiring object-view authorization for the exact document whose file is returned. Determine whether selecting another version changes the resource that is authorized, without assuming ownership or object grants.",
+        "premises": [
+          {
+            "text": "Ownership and object grants are unspecified; analyze relevant source branches rather than assuming a grant.",
+            "origin": "user"
+          },
+          {
+            "text": "Selecting another version must be analyzed as a source branch and must not be treated as proof that the authorized resource changes.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "download-document",
+        "intent": "policy-comparison"
+      },
+      {
+        "id": "source-and-deployment-scope",
+        "request": "Identify which facts needed to determine the Download authorization and returned-file behavior are present in the allowed source paths and which remain unavailable because they depend on omitted source, deployment, identity, ownership, object-grant, routing, or provider behavior. Report those gaps exactly rather than inferring them.",
+        "premises": [
+          {
+            "text": "Ownership and object grants are unspecified; do not assume either their presence or absence.",
+            "origin": "user"
+          },
+          {
+            "text": "Missing source or deployment facts must be stated precisely.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "download-document",
+        "intent": "scope"
+      }
+    ],
+    "policy": {
+      "text": "Downloading any version or representation requires object-view authorization for the exact document whose file is returned; permission on a related root document alone is insufficient.",
+      "origin": "external-policy",
+      "location": "independent-development-policy:download-exact-object/av-v1"
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": "authorization-av19-documentation-checks/v1",
+  "at": "2026-10-06T18:05:09.937Z",
+  "docTests": {
+    "command": "python -B -m unittest discover -s scripts -p check_skill_ir_doc_links_test.py",
+    "passed": 15,
+    "failed": 0
+  },
+  "docLinks": {
+    "command": "python -B scripts/check_skill_ir_doc_links.py",
+    "exitCode": 0,
+    "brokenReferences": 0,
+    "legacyReferences": 0,
+    "governanceErrors": 0,
+    "governanceWarnings": [
+      "soft line limit exceeded: docs/skill-ir/developer-guide.md (551 > 350)",
+      "soft line limit exceeded: docs/skill-ir/skill-ir-aot-optimization-spec.md (2874 > 900)",
+      "soft line limit exceeded: docs/skill-ir/skill-dsl-research.md (2008 > 600)",
+      "soft line limit exceeded: docs/skill-ir/optimization-and-artifacts.md (951 > 600)",
+      "soft line limit exceeded: docs/skill-ir/evaluation-system.md (1217 > 700)"
+    ],
+    "record": "verification/av19-doc-links.json"
+  },
+  "catalog": {
+    "command": "bun ./scripts/experiment-catalog/cli.ts check --root=. --catalog=results/skill-ir/experiment-catalog.json",
+    "valid": true,
+    "entries": 18,
+    "diagnostics": 0
+  },
+  "diffCheck": {
+    "exitCode": 0
+  },
+  "providerCalls": 0,
+  "targetExecutions": 0,
+  "stagedDiffCheck": {
+    "exitCode": 0,
+    "scope": "authored engineering/docs/metadata; original positions excluded from style normalization; CRLF recognized with cr-at-eol",
+    "command": "git -c core.whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol diff --cached --check -- . :(exclude)results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/positions/**",
+    "fullDefaultCheck": {
+      "exitCode": 2,
+      "reason": "Protected position copies retain original whitespace; generated doc-links JSON uses CRLF under exact-byte attributes",
+      "originalFormattingRetained": true
+    },
+    "archiveBytesProof": "verification/av19-staged-byte-integrity.json"
+  }
+}

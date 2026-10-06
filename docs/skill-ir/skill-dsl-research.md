@@ -1832,7 +1832,7 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 ### 7.55 AV 源码辅助解释与局部恢复开发决定
 
-2026-10-06，用户要求书写下一轮任务书并派发 GPT‑6.1 Sol / max / Flash。已制定 [AV0–AV20](../superpowers/plans/2026-10-06-authorization-source-assisted-closure.md)，当前为已授权待开发。模型/推理强度可经派发接口指定，Flash 状态尚未核实。本节记录设计决定，后续开发问题和实测结果继续写在本节，避免另建一份研究正文。
+2026-10-06，用户要求书写下一轮任务书并派发 GPT‑6.1 Sol / max / Flash，随后授权执行全部适用工作。[AV0–AV20](../superpowers/plans/2026-10-06-authorization-source-assisted-closure.md)当前in-progress。开发模型/推理强度已指定，Flash状态尚未核实；实验为xty/gpt-5.6-sol。本节统一记录设计、开发问题与实测，不另建研究正文。
 
 **承接的具体责任。** §7.54 的三项缺陷进入首批失败测试：运行选项污染结构身份、文件行号位置与 helper 连接不一致、普通词 singleton 误作入口。进一步点验发现 scheduler 已有一部分行号归一化，operation links 却未复用；本轮要统一这项机械责任。现有 AST 索引已经保存调用表达式、参数文本、receiver 和候选，但没有有限分支骨架。已有 focus 管理身份，下一步减负主要针对模型反复生成调用/分支结构，而非另做一套身份包装。
 
@@ -1867,6 +1867,24 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 **AV10局部修订实际结果与终答诊断。** local-envelope派发21/响应20，原首次超时1次、显式只读恢复1次；原unknown留账。14个source提案、11次局修、2个接受单元，图fallback0、check0。草稿两份均partial，仍遗漏已可见的框架前置、根对象检查与文件选择关系；严格终答未接受，不能以trace补答。根终答内的路径conditional非法却误报外层result缺失，使一次wire修订无效。行为反例先失败，改为无损包装后严格nested诊断；53项/420断言、主类型通过。两名独立只读AI与主源码裁定见evaluations/av10-local-envelope.json，非真人评阅。完整prompt/费用有1项usage未知、21项USD未知；下一具名final-diagnostics复验同输入/预算，源语义重复局修尚未解决，工程修复不代表质量达标。
 
 **AV10接受交付与AV11前局部机械修复。** final-diagnostics实际22/22、15提案/11局修/2单元、2次check；nested诊断实际促成一次字段修订并接受终答，原check仍ruleConsistency=false/partial。独立AI评阅的checked/bounded及完整version默认分支判断由主原件/源码纠正；root/file关系说明正确，owner/grant条件遗漏，available configuration和deployment仍混合，整体partial。原始空annotation修订仍触发重复名，主匿名反例和真实旧标注重放确认是宿主赋值身份缺陷。bind步骤身份与bindingName分开，分支变量及重赋值当前值保持；同时补基础有限谓词合同，不改非法算子。三项反例先失败，42项/212断言和58项/407断言、主类型通过；真实serve_file零调用重放消除三个重复名，原异常等gap保持。OWUI零调用探针的153/263 anchors说明实际输入/目标调用被定位，外层try仍gap；下一原OWUI实跑，不将这些工程结果视为充分语义。
+
+**AV11真实采用与来源gap责任。** OWUI首跑21/21、18来源提案/15局修却0接受单元；正确route及输入/输出对象区别进入终答，owner/admin和默认目的地仍不充分。flow要求对opaque异常/循环内不执行的子调用错误地强制角色；匿名反例先失败后，按当前生成flow收窄机械必填，opaque原件与gap保持。71项/488断言与独立核验通过，同题flow-requirements真实22派发/21响应、1恢复及1usage未知，接受1单元/13步骤，rule仍false/终答partial。独立核验把“来源能回答”误作“终答complete”，主代理保留原判并纠正；实际终答称Files查询方法不可得，而注册源码中存在。两名只读探子与主点验定位`Files = FilesTable()`模块值没有进入跨文件receiver查找，不能把宿主未定位称源码缺失。
+
+**AV11模块来源身份。** v4仅对唯一无重赋值的模块直接constructor，经实际import、唯一class与既有C3形成方法候选；参数/局部import或class/loop shadow、global写、条件/重复赋值、动态factory及来源歧义保持gap。声明文件SHA与class SHA进入依赖；匿名正反例先红绿，52项/185断言、独立24项/66断言和主/AV类型通过（集合重叠不相加）。173文件零probe定位实际Files两查询方法，未判业务意义。旧Download两份v3材料均正确失效，原件与原恢复证明保留；当前原任务具名基线及新输入准备成本全部进入后续变化分账。module-instances真实3/3尚未解释来源便因两次工具动作结构不符终止；现有单次结构修订并非宿主默改语义。独立核验确认发布合同与诊断一致，绑定实际采用尚未发生，同版本具名wire修订保留，不加新容器容错。
+
+**AV14普通入口与版本化变化。** 可选entryHint注入own undefined破坏JSON保留声明/program严格相等；v1/v2反例先失败再保持省略，没有绕过归档身份。source values共用既有有限用户原文校验，跨题borrow被反例阻止，原全局brief则由host标记保留；行为→conformance只在材料层随独立policy允许，旧答案/check/政策映射全重算。73项/547断言及真实普通init/compare证明旧v3两材料可恢复，grade仍unreviewed。三个原v3变化输入完整原问题/范围保持，仅独立policy+mode、requested-document ownership前提，或95文件副本一guard实参root_doc→request_doc；原件不改。v4依赖变化后全部旧材料失效，所以六个未派发位置将从当前版本实际完整声明重新登记，严禁手改旧依赖制造收益。
+
+**AV9并发与AV19普通示例。** 真实跨进程JSON EOF及延迟调用总数降低反例后，runner以owner锁串行读合并、同目录临时原子替换、providerCalls取max；10项/107断言及独立复跑通过。30秒残留锁明确失败，不自动删除；成本仍按每attempt原件重放。既有reusable-skill增加完整声明导出及q1前提编辑，零provider检验完整原brief/operation/question保留，未伪造session或实际复用收益。当前共享联合872 pass/1平台skip/5647断言，另provider10项/24断言通过；主类型、AV严格类型、15文档单测/链接/目录通过。真实完整skill native、作者原字节消费、变化、同版本质量及最终分账继续执行；这些检查不建立完整质量或净收益。
+
+**AV12/AV13原件与源码裁定（2026-10-07接续）。** 四份完整原skill作者稿结构有效且独立准入，source/ref/key/tool界限保持，消费者直接使用原字节。三个已结束native与Download原消费者各24/24，但全部仍partial；Gitea普通issues-reader可达基础creation的原write-policy mismatch有直接源码依据，下游NewIssueWithIndex与HIGH分类仍partial。Download changed在可见root_doc授权后选file_doc的条件下没有明确给出独立exact-object政策缺口，不能用部署未知遮蔽源码已确定关系。两份初始复核误用了仅AV14存在的request_doc副本，OWUI复核又混旧attempt计数；主代理以原views SHA、当前raw及完整final纠正，并保留原判与核验限度。六份评估的原始report/final/raw绑定、计数和unknown USD语义经独立复算通过；源码可读、形式检查和完整终答分别评分。
+
+**AV14当前实际准备。** 当前v4完整原声明普通init后，policy/premise/source三输入每对共享同字节/来源/预算，主源码保持、developer副本仅views.py:1424 root_doc→request_doc。三组零compare都实际0恢复/1失效；接受的一个helper单元没有保留source/fact dependency footprint，原始operationFacts identities/facts/retired全空。原脚本“接受1即恢复1”的预期被实际失败纠正，不把缺失材料手补或解释成已证明的retirement，也不将previous换fresh。此基础不能证明材料收益，仍完成六实际对照。
+
+**AV恢复端点与停止事实。** 原账户三个运行在额度403结束；更换key但旧地址三次401各0响应。用户指定新端点后native Gitea changed20/20在第三次相同空observe触发防循环，两个consumer各15/14末次额度403。用户补充余额后，Download23响应/24派发末次再额度403，Gitea changed23/24末次网关524、usage及上游完成缺证；Gitea original12/12自然空end_turn仍无报告。29份report/raw逐条重算为397派发/385响应，修正先前395/383的少计汇总；12usage缺报及全部实际USD未知，预扣/余额不是费用。已知fresh input 23,407,558、cache-read 1,753,216、完整prompt 25,160,774、output 334,163 tokens；缺报量不估造。两次只读恢复、一次晚结算和两个原timeout/pending保留，网关上游未知另列。后台模型身份未核实，跨端点不能隔离方法效果。全部失败/无交付原件保留，十四首位置归档与研究达标不等。
+
+**AV9完成状态修订。** 泛型循环曾在20<24且有工具预算时将防循环break记completed，并把中间text当final；native归档又只检查end_turn，空文本被计partial-delivered。具名实际证据定位停止分支后，匿名反例先失败：保留三次阈值但设明确error且不提升中间text；native分类分别要求自然terminal和非空原始final，artifact-only作者合同不变，不增加生成调用或预算。focused23项/155断言、联合894 pass/1平台skip/5789断言、主/AV严格类型与独立只读审查通过。零调用原件重判把空消费者记native-empty-final、无terminal运行记native-terminal-absent；29份原final/raw/report与14份受保护证据保持。旧状态原件不重写、旧准备成本单列，没有付费修复后语义复验，完整质量与净收益尚未建立。
+
+**用户暂缓与当前交付。** 用户明确先不急做实验，最新账户余额仅为其报告的0.7元；新接口`https://yes.hubniconico.com/v1`只存于忽略的本地配置，未调用，可用性及后台模型未核实。六变化/六质量共12位置保留未派发，`finiteQueueComplete:false`、`researchGoalAchieved:false`；当前收口确定性修复、已结束原件评估、分账和发布。当前两结构没有完整可比链，机制对照零调用记录原因，不为数量追加消融。[当前摘要](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/summary.json)与[分账](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/accounting.json)提供下一恢复入口；以后用户选择继续时，同条件比较和全部准备成本合同仍有效。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

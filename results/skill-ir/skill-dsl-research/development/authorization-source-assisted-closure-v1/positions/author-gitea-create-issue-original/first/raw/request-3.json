@@ -1,0 +1,147 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Create a reusable inquiry package from the full original skill and the current natural task. Preserve EVERY original task distinction, original skill duty and independent policy; do not answer the code question or generate a correct control graph. Write exactly root inquiry.json and root USAGE.md. inquiry.json is a complete authorization-inquiry-input/v1 with inquiry authorization-inquiry/v2 operations/questions, sourceRoot:\"source\", the supplied mechanical metadata, unchanged mode/policy and explicit user premises only. No brief/mode/policy duplicated at the input root. USAGE.md explains normal source-assisted use, changes, limits and remaining original skill responsibilities. Other paths are read-only. Never execute target code or network calls.\n\nOriginal natural task:\nCheck CreateIssue and its API route in this Gitea revision against the independently supplied current policy. Compare authenticated repository readers and principals with issue write permission. Trace route-level controls, repository or issue-unit checks and the issue creation effect; identify any relevant exceptions instead of assuming endpoint-local checks are the whole path. Explain policy compliance and precise source or deployment limits.\n\nMechanical metadata and independently supplied policy:\n{\"taskId\":\"gitea-create-issue\",\"repository\":\"go-gitea/gitea\",\"sourceRef\":\"fc28937a8d772fe9e4025c9b5f24d5db4d86610b\",\"sourceRoot\":\"source\",\"allowedPaths\":[\"routers/api/v1/repo\",\"routers/api/v1/api.go\",\"routers/api/v1/utils\",\"modules/structs\",\"modules/setting\",\"modules/web\",\"models/unit\",\"models/perm\",\"models/auth\",\"models/user\",\"models/repo\",\"models/issues\",\"models/organization\",\"services/convert\",\"services/issue\",\"services/context\"],\"mode\":\"conformance\",\"policy\":{\"text\":\"Creating an issue requires write permission to the repository's issues unit. Read permission to the repository alone does not authorize this write.\",\"origin\":\"user\",\"location\":\"experimental-user-brief:gitea-issue-policy/v1\"}}\n\nComplete output field schema (structural, no source answers):\n{\"type\":\"object\",\"properties\":{\"schemaVersion\":{\"type\":\"string\",\"const\":\"authorization-inquiry-input/v1\"},\"taskId\":{\"type\":\"string\",\"minLength\":1},\"repository\":{\"type\":\"string\",\"minLength\":1},\"sourceRef\":{\"type\":\"string\",\"minLength\":1},\"sourceRoot\":{\"type\":\"string\",\"minLength\":1},\"allowedPaths\":{\"type\":\"array\",\"items\":{\"type\":\"string\",\"minLength\":1},\"minItems\":1},\"inquiry\":{\"type\":\"object\",\"properties\":{\"schemaVersion\":{\"type\":\"string\",\"const\":\"authorization-inquiry/v2\"},\"mode\":{\"type\":\"string\",\"const\":\"conformance\"},\"operations\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\",\"minLength\":1},\"request\":{\"type\":\"string\",\"minLength\":1},\"entryHint\":{\"type\":\"string\",\"minLength\":1}},\"required\":[\"id\",\"request\"],\"additionalProperties\":false},\"minItems\":1,\"maxItems\":16},\"questions\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"id\":{\"type\":\"string\",\"minLength\":1},\"request\":{\"type\":\"string\",\"minLength\":1},\"principal\":{\"type\":\"string\",\"minLength\":1},\"resource\":{\"type\":\"string\",\"minLength\":1},\"operation\":{\"type\":\"string\",\"minLength\":1},\"entryHint\":{\"type\":\"string\",\"minLength\":1},\"premises\":{\"type\":\"array\",\"items\":{\"type\":\"object\",\"properties\":{\"text\":{\"type\":\"string\",\"minLength\":1},\"origin\":{\"type\":\"string\",\"const\":\"user\"}},\"required\":[\"text\",\"origin\"],\"additionalProperties\":false}},\"operationId\":{\"type\":\"string\",\"minLength\":1},\"intent\":{\"type\":\"string\",\"enum\":[\"behavior\",\"policy-comparison\",\"scope\"]}},\"required\":[\"id\",\"request\",\"premises\",\"operationId\",\"intent\"],\"additionalProperties\":false},\"minItems\":1,\"maxItems\":16},\"policy\":{\"type\":\"object\",\"properties\":{\"text\":{\"type\":\"string\",\"minLength\":1},\"origin\":{\"type\":\"string\",\"enum\":[\"user\",\"external-policy\"]},\"location\":{\"type\":\"string\",\"minLength\":1}},\"required\":[\"text\",\"origin\",\"location\"],\"additionalProperties\":false}},\"required\":[\"schemaVersion\",\"mode\",\"operations\",\"questions\",\"policy\"],\"additionalProperties\":false}},\"required\":[\"schemaVersion\",\"taskId\",\"repository\",\"sourceRef\",\"sourceRoot\",\"allowedPaths\",\"inquiry\"],\"additionalProperties\":false}"
+    },
+    {
+      "role": "assistant",
+      "content": "[Called: write_package_file({\"path\":\"inquiry.json\",\"content\":\"{\\n  \\\"schemaVersion\\\": \\\"authorization-inquiry-input/v1\\\",\\n  \\\"taskId\\\": \\\"gitea-create-issue\\\",\\n  \\\"repository\\\": \\\"go-gitea/gitea\\\",\\n  \\\"sourceRef\\\": \\\"fc28937a8d772fe9e4025c9b5f24d5db4d86610b\\\",\\n  \\\"sourceRoot\\\": \\\"source\\\",\\n  \\\"allowedPaths\\\": [\\n    \\\"routers/api/v1/repo\\\",\\n    \\\"routers/api/v1/api.go\\\",\\n    \\\"routers/api/v1/utils\\\",\\n    \\\"modules/structs\\\",\\n    \\\"modules/setting\\\",\\n    \\\"modules/web\\\",\\n    \\\"models/unit\\\",\\n    \\\"models/perm\\\",\\n    \\\"models/auth\\\",\\n    \\\"models/user\\\",\\n    \\\"models/repo\\\",\\n    \\\"models/issues\\\",\\n    \\\"models/organization\\\",\\n    \\\"services/convert\\\",\\n    \\\"services/issue\\\",\\n    \\\"services/context\\\"\\n  ],\\n  \\\"inquiry\\\": {\\n    \\\"schemaVersion\\\": \\\"authorization-inquiry/v2\\\",\\n    \\\"mode\\\": \\\"conformance\\\",\\n    \\\"operations\\\": [\\n      {\\n        \\\"id\\\": \\\"create-issue\\\",\\n        \\\"request\\\": \\\"Analyze the CreateIssue operation in this Gitea revision, including its authorization-relevant behavior and issue creation effect.\\\",\\n        \\\"entryHint\\\": \\\"Locate the CreateIssue implementation and follow its relevant callers and authorization helpers within the allowed source paths.\\\"\\n      },\\n      {\\n        \\\"id\\\": \\\"api-route\\\",\\n        \\\"request\\\": \\\"Trace the API route for creating an issue from route registration through dispatch, middleware, handlers, and the CreateIssue operation; identify every route-level control that affects authorization.\\\",\\n        \\\"entryHint\\\": \\\"Start with API route registration and the repository issue route in the allowed router and API files.\\\"\\n      },\\n      {\\n        \\\"id\\\": \\\"principal-permission-comparison\\\",\\n        \\\"request\\\": \\\"Compare authenticated repository readers and other relevant principals with principals that have write permission to the repository's issues unit, using the actual permission and repository checks in the source.\\\",\\n        \\\"entryHint\\\": \\\"Follow authentication, repository lookup, unit lookup, permission, organization, and user-related helpers as needed.\\\"\\n      },\\n      {\\n        \\\"id\\\": \\\"authorization-path\\\",\\n        \\\"request\\\": \\\"Trace repository-level checks, issue-unit checks, and any other authorization checks that govern the issue creation request, rather than treating endpoint-local checks as the complete path.\\\",\\n        \\\"entryHint\\\": \\\"Inspect shared context, permission, unit, repository, organization, and issue-service code that participates in the path.\\\"\\n      },\\n      {\\n        \\\"id\\\": \\\"exceptions\\\",\\n        \\\"request\\\": \\\"Identify relevant exceptions, alternate paths, inherited or elevated permissions, configuration-dependent behavior, and deployment assumptions that could change who may create an issue.\\\",\\n        \\\"entryHint\\\": \\\"Check the allowed settings, authentication, organization, repository, service, and context sources for alternate authorization behavior.\\\"\\n      },\\n      {\\n        \\\"id\\\": \\\"policy-conformance\\\",\\n        \\\"request\\\": \\\"Assess whether the traced behavior conforms to the independently supplied policy: creating an issue requires write permission to the repository's issues unit, and read permission to the repository alone does not authorize this write. State precise source and deployment limits.\\\",\\n        \\\"entryHint\\\": \\\"Compare the complete traced path and relevant exceptions with the inquiry policy; do not infer behavior outside the supplied revision and allowed paths.\\\"\\n      }\\n    ],\\n    \\\"questions\\\": [\\n      {\\n        \\\"id\\\": \\\"q-create-issue-behavior\\\",\\n        \\\"request\\\": \\\"What does CreateIssue do on the issue-creation path, and where is the issue creation effect reached after authorization-relevant processing?\\\",\\n        \\\"entryHint\\\": \\\"Read the CreateIssue implementation and directly relevant service, conversion, model, and context code.\\\",\\n        \\\"premises\\\": [],\\n        \\\"operationId\\\": \\\"create-issue\\\",\\n        \\\"intent\\\": \\\"behavior\\\"\\n      },\\n      {\\n        \\\"id\\\": \\\"q-route-controls\\\",\\n        \\\"request\\\": \\\"What route registration, middleware, authentication, repository lookup, and handler controls apply before CreateIssue, and how do they affect authorization?\\\",\\n        \\\"entryHint\\\": \\\"Trace from API registration and the route through the handler and shared route utilities.\\\",\\n        \\\"premises\\\": [],\\n        \\\"operationId\\\": \\\"api-route\\\",\\n        \\\"intent\\\": \\\"behavior\\\"\\n      },\\n      {\\n        \\\"id\\\": \\\"q-reader-vs-issue-writer\\\",\\n        \\\"request\\\": \\\"Can an authenticated principal with repository read permission but without write permission to the repository's issues unit create an issue, and which source checks establish the answer?\\\",\\n        \\\"entryHint\\\": \\\"Compare the effective checks for repository readers with the checks for issue-unit writers.\\\",\\n        \\\"premises\\\": [],\\n        \\\"operationId\\\": \\\"principal-permission-comparison\\\",\\n        \\\"intent\\\": \\\"policy-comparison\\\"\\n      },\\n      {\\n        \\\"id\\\": \\\"q-complete-authorization-path\\\",\\n        \\\"request\\\": \\\"Which repository-level, issue-unit, issue-resource, or shared-context checks participate in the authorization path, including checks outside the endpoint-local handler?\\\",\\n        \\\"entryHint\\\": \\\"Follow cross-file calls and shared authorization helpers in the allowed paths.\\\",\\n        \\\"premises\\\": [],\\n        \\\"operationId\\\": \\\"authorization-path\\\",\\n        \\\"intent\\\": \\\"behavior\\\"\\n      },\\n      {\\n        \\\"id\\\": \\\"q-exceptions-and-alternate-paths\\\",\\n        \\\"request\\\": \\\"What relevant exceptions or alternate authorization paths could permit or deny issue creation, including elevated principals, organization or repository rules, configuration, authentication mode, and deployment-dependent behavior?\\\",\\n        \\\"entryHint\\\": \\\"Distinguish source-confirmed behavior from conditions that cannot be resolved within the allowed revision and paths.\\\",\\n        \\\"premises\\\": [],\\n        \\\"operationId\\\": \\\"exceptions\\\",\\n        \\\"intent\\\": \\\"scope\\\"\\n      },\\n      {\\n        \\\"id\\\": \\\"q-policy-result\\\",\\n        \\\"request\\\": \\\"Does the complete traced CreateIssue API path comply with the supplied policy that issue creation requires write permission to the repository's issues unit and that repository read permission alone is insufficient? Explain any gaps, exceptions, and precise source or deployment limits.\\\",\\n        \\\"entryHint\\\": \\\"Use only evidence from the supplied source revision and allowed paths, and separate confirmed findings from unresolved limits.\\\",\\n        \\\"premises\\\": [],\\n        \\\"operationId\\\": \\\"policy-conformance\\\",\\n        \\\"intent\\\": \\\"policy-comparison\\\"\\n      }\\n    ],\\n    \\\"policy\\\": {\\n      \\\"text\\\": \\\"Creating an issue requires write permission to the repository's issues unit. Read permission to the repository alone does not authorize this write.\\\",\\n      \\\"origin\\\": \\\"user\\\",\\n      \\\"location\\\": \\\"experimental-user-brief:gitea-issue-policy/v1\\\"\\n    }\\n  }\\n}\\n\"})]"
+    },
+    {
+      "role": "user",
+      "content": "[Tool result call_X6PMOHyxufTUmhrhSSQwpqc0]\nWrote inquiry.json; this preserves raw author bytes, semantic equivalence remains unreviewed"
+    }
+  ],
+  "system": "Use this complete original skill as guidance. The CURRENT author task determines the output artifact.\n<skill>\n<runtime-resource-root>.skvm/skills/github-security-review</runtime-resource-root>\n---\nname: security-review\ndescription: 'AI-powered codebase security scanner that reasons about code like a security researcher — tracing data flows, understanding component interactions, and catching vulnerabilities that pattern-matching tools miss. Use this skill when asked to scan code for security vulnerabilities, find bugs, check for SQL injection, XSS, command injection, exposed API keys, hardcoded secrets, insecure dependencies, access control issues, or any request like \"is my code secure?\", \"review for security issues\", \"audit this codebase\", or \"check for vulnerabilities\". Covers injection flaws, authentication and access control bugs, secrets exposure, weak cryptography, insecure dependencies, and business logic issues across JavaScript, TypeScript, Python, Java, PHP, Go, Ruby, and Rust.'\n---\n\n# Security Review\n\nAn AI-powered security scanner that reasons about your codebase the way a human security\nresearcher would — tracing data flows, understanding component interactions, and catching\nvulnerabilities that pattern-matching tools miss.\n\n## When to Use This Skill\n\nUse this skill when the request involves:\n\n- Scanning a codebase or file for security vulnerabilities\n- Running a security review or vulnerability check\n- Checking for SQL injection, XSS, command injection, or other injection flaws\n- Finding exposed API keys, hardcoded secrets, or credentials in code\n- Auditing dependencies for known CVEs\n- Reviewing authentication, authorization, or access control logic\n- Detecting insecure cryptography or weak randomness\n- Performing a data flow analysis to trace user input to dangerous sinks\n- Any request phrasing like \"is my code secure?\", \"scan this file\", or \"check my repo for vulnerabilities\"\n- Running `/security-review` or `/security-review <path>`\n\n## How This Skill Works\n\nUnlike traditional static analysis tools that match patterns, this skill:\n1. **Reads code like a security researcher** — understanding context, intent, and data flow\n2. **Traces across files** — following how user input moves through your application\n3. **Self-verifies findings** — re-examines each result to filter false positives\n4. **Assigns severity ratings** — CRITICAL / HIGH / MEDIUM / LOW / INFO\n5. **Proposes targeted patches** — every finding includes a concrete fix\n6. **Requires human approval** — nothing is auto-applied; you always review first\n\n## Execution Workflow\n\nFollow these steps **in order** every time:\n\n### Step 1 — Scope Resolution\nDetermine what to scan:\n- If a path was provided (`/security-review src/auth/`), scan only that scope\n- If no path given, scan the **entire project** starting from the root\n- Identify the language(s) and framework(s) in use (check package.json, requirements.txt,\n  go.mod, Cargo.toml, pom.xml, Gemfile, composer.json, etc.)\n- Read `references/language-patterns.md` to load language-specific vulnerability patterns\n\n### Step 2 — Dependency Audit\nBefore scanning source code, audit dependencies first (fast wins):\n- **Node.js**: Check `package.json` + `package-lock.json` for known vulnerable packages\n- **Python**: Check `requirements.txt` / `pyproject.toml` / `Pipfile`\n- **Java**: Check `pom.xml` / `build.gradle`\n- **Ruby**: Check `Gemfile.lock`\n- **Rust**: Check `Cargo.toml`\n- **Go**: Check `go.sum`\n- Flag packages with known CVEs, deprecated crypto libs, or suspiciously old pinned versions\n- Read `references/vulnerable-packages.md` for a curated watchlist\n\n### Step 3 — Secrets & Exposure Scan\nScan ALL files (including config, env, CI/CD, Dockerfiles, IaC) for:\n- Hardcoded API keys, tokens, passwords, private keys\n- `.env` files accidentally committed\n- Secrets in comments or debug logs\n- Cloud credentials (AWS, GCP, Azure, Stripe, Twilio, etc.)\n- Database connection strings with credentials embedded\n- Read `references/secret-patterns.md` for regex patterns and entropy heuristics to apply\n\n### Step 4 — Vulnerability Deep Scan\nThis is the core scan. Reason about the code — don't just pattern-match.\nRead `references/vuln-categories.md` for full details on each category.\n\n**Injection Flaws**\n- SQL Injection: raw queries with string interpolation, ORM misuse, second-order SQLi\n- XSS: unescaped output, dangerouslySetInnerHTML, innerHTML, template injection\n- Command Injection: exec/spawn/system with user input\n- LDAP, XPath, Header, Log injection\n\n**Authentication & Access Control**\n- Missing authentication on sensitive endpoints\n- Broken object-level authorization (BOLA/IDOR)\n- JWT weaknesses (alg:none, weak secrets, no expiry validation)\n- Session fixation, missing CSRF protection\n- Privilege escalation paths\n- Mass assignment / parameter pollution\n\n**Data Handling**\n- Sensitive data in logs, error messages, or API responses\n- Missing encryption at rest or in transit\n- Insecure deserialization\n- Path traversal / directory traversal\n- XXE (XML External Entity) processing\n- SSRF (Server-Side Request Forgery)\n\n**Cryptography**\n- Use of MD5, SHA1, DES for security purposes\n- Hardcoded IVs or salts\n- Weak random number generation (Math.random() for tokens)\n- Missing TLS certificate validation\n\n**Business Logic**\n- Race conditions (TOCTOU)\n- Integer overflow in financial calculations\n- Missing rate limiting on sensitive endpoints\n- Predictable resource identifiers\n\n### Step 5 — Cross-File Data Flow Analysis\nAfter the per-file scan, perform a **holistic review**:\n- Trace user-controlled input from entry points (HTTP params, headers, body, file uploads)\n  all the way to sinks (DB queries, exec calls, HTML output, file writes)\n- Identify vulnerabilities that only appear when looking at multiple files together\n- Check for insecure trust boundaries between services or modules\n\n### Step 6 — Self-Verification Pass\nFor EACH finding:\n1. Re-read the relevant code with fresh eyes\n2. Ask: \"Is this actually exploitable, or is there sanitization I missed?\"\n3. Check if a framework or middleware already handles this upstream\n4. Downgrade or discard findings that aren't genuine vulnerabilities\n5. Assign final severity: CRITICAL / HIGH / MEDIUM / LOW / INFO\n\n### Step 7 — Generate Security Report\nOutput the full report in the format defined in `references/report-format.md`.\n\n### Step 8 — Propose Patches\nFor every CRITICAL and HIGH finding, generate a concrete patch:\n- Show the vulnerable code (before)\n- Show the fixed code (after)\n- Explain what changed and why\n- Preserve the original code style, variable names, and structure\n- Add a comment explaining the fix inline\n\nExplicitly state: **\"Review each patch before applying. Nothing has been changed yet.\"**\n\n## Severity Guide\n\n| Severity | Meaning | Example |\n|----------|---------|---------|\n| 🔴 CRITICAL | Immediate exploitation risk, data breach likely | SQLi, RCE, auth bypass |\n| 🟠 HIGH | Serious vulnerability, exploit path exists | XSS, IDOR, hardcoded secrets |\n| 🟡 MEDIUM | Exploitable with conditions or chaining | CSRF, open redirect, weak crypto |\n| 🔵 LOW | Best practice violation, low direct risk | Verbose errors, missing headers |\n| ⚪ INFO | Observation worth noting, not a vulnerability | Outdated dependency (no CVE) |\n\n## Output Rules\n\n- **Always** produce a findings summary table first (counts by severity)\n- **Never** auto-apply any patch — present patches for human review only\n- **Always** include a confidence rating per finding (High / Medium / Low)\n- **Group findings** by category, not by file\n- **Be specific** — include file path, line number, and the exact vulnerable code snippet\n- **Explain the risk** in plain English — what could an attacker do with this?\n- If the codebase is clean, say so clearly: \"No vulnerabilities found\" with what was scanned\n\n## Reference Files\n\nFor detailed detection guidance, load the following reference files as needed:\n\n- `references/vuln-categories.md` — Deep reference for every vulnerability category with detection signals, safe patterns, and escalation checkers\n  - Search patterns: `SQL injection`, `XSS`, `command injection`, `SSRF`, `BOLA`, `IDOR`, `JWT`, `CSRF`, `secrets`, `cryptography`, `race condition`, `path traversal`\n- `references/secret-patterns.md` — Regex patterns, entropy-based detection, and CI/CD secret risks\n  - Search patterns: `API key`, `token`, `private key`, `connection string`, `entropy`, `.env`, `GitHub Actions`, `Docker`, `Terraform`\n- `references/language-patterns.md` — Framework-specific vulnerability patterns for JavaScript, Python, Java, PHP, Go, Ruby, and Rust\n  - Search patterns: `Express`, `React`, `Next.js`, `Django`, `Flask`, `FastAPI`, `Spring Boot`, `PHP`, `Go`, `Rails`, `Rust`\n- `references/vulnerable-packages.md` — Curated CVE watchlist for npm, pip, Maven, Rubygems, Cargo, and Go modules\n  - Search patterns: `lodash`, `axios`, `jsonwebtoken`, `Pillow`, `log4j`, `nokogiri`, `CVE`\n- `references/report-format.md` — Structured output template for security reports with finding cards, dependency audit, secrets scan, and patch proposal formatting\n  - Search patterns: `report`, `format`, `template`, `finding`, `patch`, `summary`, `confidence`\n\n</skill>",
+  "tools": [
+    {
+      "name": "source_list",
+      "description": "List allowed original source paths, sizes and line counts. No source is implicitly read into analysis.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "offset": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "source_search",
+      "description": "Search literal text in the session's allowed source index, returning numbered source lines and evidence IDs after revalidating each matching original. Source changes require fresh analysis; this does not rebuild the index. Optional relative file or directory path ('.' means all indexed files) filters the existing index only.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "source_symbol",
+      "description": "Locate lexical symbol candidates with paths and original ranges; optional relative file or directory path filters the existing allowed index only. All ambiguous candidates are returned; read bodies explicitly. This is not a call graph.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "source_read",
+      "description": "Read an original source line range; an end beyond EOF returns the available lines with actual evidence bounds. No shell, writes, network or target execution.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "startLine": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "endLine": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "path",
+          "startLine",
+          "endLine"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "skill_reference_read",
+      "description": "Read installed original skill companions as data: references/language-patterns.md, references/report-format.md, references/secret-patterns.md, references/vuln-categories.md, references/vulnerable-packages.md, source.json",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "write_package_file",
+      "description": "Write one requested root artifact. Only inquiry.json and USAGE.md are writable.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "enum": [
+              "inquiry.json",
+              "USAGE.md"
+            ]
+          },
+          "content": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "content"
+        ],
+        "additionalProperties": false
+      }
+    }
+  ],
+  "maxTokens": 6000
+}

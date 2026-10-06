@@ -1,0 +1,238 @@
+## Bounded source-only security investigation
+
+**Target:** `paperless-ngx/paperless-ngx`  
+**Revision:** `126ec414a8b65158368653a2604ae58415e43103`  
+**Scope:** Document Download operation, selected versions, original/archive representations, and authorization-object binding.  
+**Execution:** No target code was executed; no live endpoint, database, deployment, or storage configuration was inspected.  
+**Result status:** **Partial / unresolved.** The provider-side structured check did not produce a valid checked result, so the conclusions below are raw source conclusions and are not presented as independently verified findings.
+
+### Independent policy
+
+> Downloading any version or representation requires object-view authorization for the exact document whose file is returned; permission on a related root document alone is insufficient.
+
+---
+
+## 1. Download entry and authenticated principal
+
+The detail Download action receives the route `pk` and the request, then calls:
+
+```python
+self.file_response(pk, request, "attachment")
+```
+
+`FileNotFoundError` and `Document.DoesNotExist` are converted to HTTP 404 responses.  
+**Citation:** `src/documents/views.py:1835-1839` (`ev-cda20225dcf9e7b31234`, `ev-4b5429afb274b06ee6c6`).
+
+`DocumentViewSet` declares `IsAuthenticated` and `PaperlessObjectPermissions` in its permission configuration. The DRF authentication gate checks `request.user` and `request.user.is_authenticated`.  
+**Citations:** `src/documents/views.py:1008-...`; `framework/rest_framework-3.18.1/rest_framework/permissions.py:150-151` (`ev-0559cdd043b582fa92c5`).
+
+Therefore, at the framework level, the relevant principal is the authenticated `request.user`. The particular user, document owner, object grants, and requested `pk` were not supplied and must not be assumed.
+
+Paperless-specific object permission handling contains these branches:
+
+```python
+if hasattr(obj, "owner") and obj.owner is not None:
+    if request.user == obj.owner:
+        return True
+    else:
+        return super().has_object_permission(request, view, obj)
+else:
+    return True  # no owner
+```
+
+Thus, for an object with a non-null owner:
+
+- the owner is allowed by the owner fast path;
+- a non-owner is delegated to the superclass object-permission check.
+
+For an object with no owner, this method returns `True` without the superclass object-permission check.  
+**Citation:** `src/documents/permissions.py:46-53` (`ev-e05573fde0373121a944`).
+
+The source also contains a legacy owner-aware helper:
+
+```python
+return obj.owner is None or obj.owner == user or checker.has_perm(perms, obj)
+```
+
+That helper permits ownerless objects, the owner, or a user with the specified object grant.  
+**Citation:** `src/documents/permissions.py:624-635` (`ev-3e41c97aa281aa7def4e`).
+
+These are relevant authorization branches, but the exact superclass and helper call relationships for this Download path were not fully validated in the available run.
+
+---
+
+## 2. Resource resolution before the file is returned
+
+`file_response` first performs request/root-document resolution:
+
+```python
+resolved = self._resolve_request_and_root_doc(
+    pk,
+    request,
+    include_deleted=True,
+)
+```
+
+If the result is an `HttpResponseForbidden`, it returns that response. Otherwise it computes:
+
+```python
+file_doc = self._get_effective_file_doc(
+    resolved.request_doc,
+    resolved.root_doc,
+    request,
+)
+```
+
+The final file response is then generated from `file_doc`:
+
+```python
+return serve_file(
+    doc=file_doc,
+    use_archive=not self.original_requested(request)
+    and file_doc.has_archive_version,
+    disposition=disposition,
+    follow_formatting=request.query_params.get("follow_formatting", False),
+)
+```
+
+**Citation:** `src/documents/views.py:1429-1448` (`ev-2a863fd7066847e3f147`).
+
+This establishes an important distinction:
+
+- `pk` identifies the requested route object;
+- resolution produces both `resolved.request_doc` and `resolved.root_doc`;
+- `_get_effective_file_doc(...)` chooses the document object used for file serving;
+- `serve_file` receives that effective `file_doc`, not necessarily the root document.
+
+The decisive unresolved question is whether the authorization check performed during `_resolve_request_and_root_doc` is against the same object ultimately assigned to `file_doc`, or only against `root_doc`.
+
+The available source evidence shows that the resolver has an owner-aware permission path involving `root_doc`, but the complete helper linkage was not successfully checked. Accordingly, this report does **not** treat the root-versus-effective-document relationship as independently verified.
+
+---
+
+## 3. Original versus archive representation
+
+The `original` query parameter is recognized only when it is present and exactly equal to the string `"true"`:
+
+```python
+return (
+    "original" in request.query_params
+    and request.query_params["original"] == "true"
+)
+```
+
+**Citation:** `src/documents/views.py:1369-1373` (`ev-4bb148b0520489d8b522`).
+
+The `use_archive` branch is:
+
+```python
+not self.original_requested(request)
+and file_doc.has_archive_version
+```
+
+Accordingly:
+
+- `original=true` selects the non-archive/source representation;
+- absent or non-`"true"` `original`, together with `file_doc.has_archive_version`, selects the archive representation;
+- the representation decision is made using `file_doc`.
+
+`serve_file` then reads:
+
+- `doc.archive_file` when `use_archive` is true;
+- `doc.source_file` otherwise.
+
+It also derives the filename and MIME type from that same `doc`.  
+**Citation:** `src/documents/views.py:4941-4995` (`ev-6615baeb7046b775f306`).
+
+This means that selecting “original” versus archive changes the file representation returned from `file_doc`, but it does not, in the shown `serve_file` code, create a separate authorization object. Authorization must therefore already have been correctly bound to `file_doc` before `serve_file` is called.
+
+---
+
+## 4. Does selecting another version change the authorized resource?
+
+The source path passes both the resolved request document and root document into `_get_effective_file_doc`. The surrounding versioning code includes request-version parsing and resolution helpers, including:
+
+- `get_request_version_param`;
+- `_resolve_file_doc`;
+- `resolve_requested_version_for_root`;
+- `get_latest_version_for_root`.
+
+**Citations:**  
+`src/documents/views.py:1375-1399` (`ev-50883c6996aea52f5c56`, related evidence in the catalog);  
+`src/documents/versioning.py:140-195` (`ev-02d9453b5151ec60f2ce`);  
+`src/documents/versioning.py:169-195` (`resolve_requested_version_for_root`, `ev-...` / structural result).
+
+The source shape therefore supports the following behavior:
+
+1. Resolve the requested document and its root.
+2. Interpret any requested version.
+3. Select an effective document for file serving.
+4. Read the source or archive file belonging to that effective document.
+
+So, **yes, selecting another version can change the document object whose file is returned**, because the effective `file_doc` is selected after version/root resolution and is the object passed to `serve_file`.
+
+What remains unresolved is whether the authorization decision is repeated or applied to that selected version object. The source evidence available in this run does not establish that exact-object invariant.
+
+---
+
+## 5. Policy comparison
+
+### Source behavior established
+
+The source establishes:
+
+- an authenticated-user entry gate;
+- Paperless-specific owner/object-permission branches;
+- request/root-document resolution;
+- a separate effective-file-document selection step;
+- original/archive selection based on the effective file document;
+- file reading from `file_doc.source_file` or `file_doc.archive_file`.
+
+### Policy-required invariant
+
+The policy requires:
+
+> The exact document whose file is returned must itself receive object-view authorization. Authorization on a related root document alone is insufficient.
+
+### Current conclusion
+
+**Conformance: undetermined; potential source-level mismatch requiring validation.**
+
+The relevant risk condition is:
+
+```text
+authorized object = root_doc
+returned file object = file_doc
+file_doc != root_doc
+```
+
+If that condition occurs and no separate object-view authorization is applied to `file_doc`, the Download operation would violate the independent policy. A user authorized only on the root document could receive a version or representation belonging to another document object.
+
+Conversely, if `_get_effective_file_doc` is guaranteed to return the same object that was authorized, or if the selected version is independently checked before `serve_file`, the path could conform.
+
+The examined evidence does not prove either branch conclusively. Therefore this is **not recorded as a confirmed vulnerability**. It is a source-grounded **needs-validation condition**.
+
+---
+
+## 6. Missing source and deployment facts
+
+The following facts remain unresolved or unspecified:
+
+1. **Exact authorization target:** whether `_resolve_request_and_root_doc` checks `root_doc`, `request_doc`, or another object.
+2. **Version transformation:** whether `_get_effective_file_doc` returns `root_doc`, `request_doc`, a selected historical version, or another related `Document`.
+3. **Reauthorization:** whether a selected version is independently passed through object-view authorization.
+4. **Permission mapping:** the exact superclass object-permission mapping for the Download request and the model involved.
+5. **Ownerless-object behavior in this path:** whether the ownerless-object fast path is reachable for the resolved object used by Download.
+6. **Runtime inputs:** authenticated identity, requested document ID, ownership, object grants, version parameter, archive availability, and `original` value.
+7. **Deployment controls:** route registration details, middleware, proxy authorization, storage ACLs, and any external control not represented in the examined source.
+8. **Exception flow:** the source skeleton did not fully model the `try/except` in the Download entry, so exact success and exception flow was not independently checked.
+
+No ownership, grant, or deployment behavior has been inferred from absence of source evidence.
+
+---
+
+## Bottom line
+
+The Download operation does not simply return the route-selected document blindly. It resolves request/root documents, derives an effective `file_doc`, and returns either that document’s archive file or source file. `original=true` selects the source representation; otherwise an available archive version is selected. Selecting another version can therefore change the object whose file is returned.
+
+The security-critical unresolved question is whether authorization is applied to that exact effective `file_doc`, or only to a related/root document. The independent policy requires the former. Based on the source examined, this relationship is a credible source-level concern, but the run ended without a valid checked result and without enough verified helper linkage to classify it as a confirmed vulnerability.

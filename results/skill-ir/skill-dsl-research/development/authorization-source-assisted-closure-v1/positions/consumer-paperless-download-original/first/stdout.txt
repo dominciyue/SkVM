@@ -1,0 +1,432 @@
+
+skvm run v0.1.4
+  Adapter  bare-agent (built-in)
+  Model    xty/gpt-5.6-sol via openai-compatible (https://svip.xty.app/v1)
+  Task     natural prompt
+  Skill    D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\cloudflare-security-audit\SKILL.md
+  WorkDir  D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-source-assisted-closure-v1\positions\consumer-paperless-download-original\first\workspace
+  Cache    D:\skill优化\SkVM\.skvm
+
+22:54:53.709 [INFO ] [run] Run task natural-eeab5cc6a520: adapter=bare-agent model=xty/gpt-5.6-sol workDir=D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-source-assisted-closure-v1\positions\consumer-paperless-download-original\first\workspace
+22:54:53.713 [INFO ] [conv-log] Conversation logging enabled: D:\skill优化\SkVM\.skvm\log\20261006-225453-run
+✓ Task natural-eeab5cc6a520 complete  (10m 35s)
+
+=== Run Complete ===
+Task: natural-eeab5cc6a520
+Skill: D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\cloudflare-security-audit\SKILL.md
+Model: xty/gpt-5.6-sol
+Adapter: bare-agent
+WorkDir: D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-source-assisted-closure-v1\positions\consumer-paperless-download-original\first\workspace
+Duration: 635.0s
+Tokens: in=2392066 out=20171
+
+Final output:
+# Bounded Security Source Review: Document Download
+
+**Target:** `paperless-ngx/paperless-ngx`  
+**Revision:** `126ec414a8b65158368653a2604ae58415e43103`  
+**Scope:** Document Download operation, version selection, original/archive selection, and authorization-to-file relationship.  
+**Method:** Source-visible review only. No target execution, live requests, deployment probing, or fixture testing was performed.  
+**Status:** **Partial / unresolved.** The available source establishes several important behavior branches, but the complete authorization-to-file control flow was not independently closed. No confirmed vulnerability is reported.
+
+## Executive conclusion
+
+The Download action is a detail `GET` operation receiving the route-selected document identifier `pk`. It delegates to:
+
+```python
+self.file_response(pk, request, "attachment")
+```
+
+and converts `FileNotFoundError` and `Document.DoesNotExist` into `Http404` responses (`src/documents/views.py:1835-1839`, `ev-6bf90a7ed9abe525376c`).
+
+The examined implementation separates three concepts:
+
+1. **Requested document identity** — initially selected by `pk`.
+2. **Effective file document** — potentially changed by version-selection logic.
+3. **File representation** — the selected document's source/original file or archive file.
+
+The source also shows an authorization lookup associated with the **root document** and a later file response that may use a different **selected version document**. Thus:
+
+> Selecting another version changes the document object used to obtain the returned file. The source examined does not establish a separate permission check on that selected version; the visible authorization lookup is associated with `root_doc`.
+
+That is an important source relation, but it is **not a confirmed authorization bypass** from the available evidence. The decisive resolver and caller linkage remained partially uninterpreted, and ownership, object grants, configured permission backends, and the actual user's permissions were unspecified.
+
+---
+
+## 1. Requested document to returned file
+
+### Entry point
+
+`DocumentViewSet.download(self, request, pk=None)` is the Download action. It passes the route identifier and request to `file_response`, with response disposition `"attachment"`:
+
+- `src/documents/views.py:1835-1839`
+- Evidence: `ev-6bf90a7ed9abe525376c`
+
+The action catches:
+
+- `FileNotFoundError`
+- `Document.DoesNotExist`
+
+and raises `Http404`.
+
+The complete try/except-to-file-response relation was not fully closed by the source interpretation, so the following represents the source branches that were examined, not a fully independently verified end-to-end execution trace.
+
+### Resolution sequence established by source
+
+The indexed `file_response` path contains these logical stages:
+
+1. Resolve the requested document and its root document from `pk` and `request`.
+2. If resolution produces a forbidden response, return that response without constructing a file response.
+3. Select an effective file document from the resolved requested document, root document, and request parameters.
+4. Pass the effective file document to `serve_file`.
+5. Construct a `FileResponse` from either:
+   - `doc.source_file`, or
+   - `doc.archive_file`.
+
+The source type `ResolvedRequestDocs` explicitly contains:
+
+```python
+request_doc: Document
+root_doc: Document
+```
+
+at `src/documents/views.py:361-363` (`ev-b711e191840b2e53a2b1`).
+
+### Returned representation
+
+`serve_file` receives a `Document` object and selects the file handle based on the archive flag:
+
+- Archive branch: `doc.archive_file`
+- Non-archive branch: `doc.source_file`
+
+The function then constructs a `FileResponse` and sets `Content-Disposition`. The filename helper uses root-owned metadata for versioned documents:
+
+```python
+context_document = (
+    self.root_document if self.root_document_id is not None else self
+)
+```
+
+at `src/documents/models.py:481-484` (`ev-fbeb7e96b13e346ba42d`).
+
+This affects naming, not the authorization decision or file-handle selection.
+
+**Behavior disposition:** `unknown` for a complete end-to-end authorization conclusion.  
+**Confidence:** Moderate for the individual source branches; low-to-moderate for their complete linkage because the resolver/file-response chain was not fully interpreted.
+
+---
+
+## 2. Version selection
+
+### Request parameter
+
+`get_request_version_param` reads the `version` query parameter:
+
+```python
+return request.query_params.get("version")
+```
+
+at `src/documents/versioning.py:140-143` (`ev-05262099ebb69a92b05c`).
+
+### No explicit version
+
+When no `version` parameter is supplied, `resolve_requested_version_for_root` selects the newest version associated with the root document:
+
+```python
+return VersionResolution(
+    document=get_latest_version_for_root(root_doc, ...)
+)
+```
+
+The latest-version helper filters by `root_document=root_doc` and selects the newest result (`src/documents/versioning.py:159-166`, `169-182`; `ev-05262099ebb69a92b05c`).
+
+### Explicit version
+
+When `version` is supplied:
+
+1. It is parsed as an integer.
+2. The corresponding document is looked up.
+3. The candidate is accepted only if:
+   - `candidate.id == root_doc.id`, or
+   - `candidate.root_document_id == root_doc.id`.
+
+Otherwise the resolution returns a not-found error:
+
+```python
+if candidate.id != root_doc.id and candidate.root_document_id != root_doc.id:
+    return VersionResolution(
+        document=None,
+        error=VersionResolutionError.NOT_FOUND,
+    )
+```
+
+at `src/documents/versioning.py:184-195` (`ev-05262099ebb69a92b05c`).
+
+### Does selecting another version change the authorized resource?
+
+**Yes, at the representation/resource-selection level.**
+
+The selected version can become the `Document` passed to `serve_file`, and therefore can determine which `source_file` or `archive_file` is returned.
+
+**No separate selected-version authorization check was established in the examined source.**
+
+The visible resolver authorization call is associated with `root_doc`:
+
+```text
+has_perms_owner_aware(request.user, "view_document", root_doc)
+```
+
+The available source trace therefore distinguishes:
+
+- **Authorization object shown in the resolver:** `root_doc`
+- **Object used for the returned file:** selected `file_doc`
+
+This means version selection changes the returned resource while the visible authorization relation remains attached to the root document. Whether that is intended policy or a vulnerability cannot be concluded without completing the resolver trace and knowing the application's intended authorization model.
+
+**Behavior disposition:** `allow` for the root-lineage constraint itself; `unknown` for authorization equivalence between root and selected version.  
+**Confidence:** High for the root-lineage validation; low-to-moderate for the authorization relation because the full caller and resolver linkage remains unresolved.
+
+---
+
+## 3. Original versus archive representation
+
+The source separates representation selection from version selection.
+
+### `original=true`
+
+The `original_requested` helper returns true only when:
+
+- the `original` query key exists, and
+- its value is exactly the string `"true"`.
+
+This is a representation-selection condition, not an authorization check.
+
+### Archive branch
+
+`serve_file` uses the archive path when archive selection is enabled and the selected document has an archive version. The archive branch opens:
+
+```text
+doc.archive_file
+```
+
+and uses archive naming logic.
+
+### Non-archive branch
+
+Otherwise it opens:
+
+```text
+doc.source_file
+```
+
+and uses the source document's MIME type.
+
+`follow_formatting` changes filename selection only. It does not select a different authorization object or file resource.
+
+### Does original/archive selection change the authorized resource?
+
+The source shows it changes the **file representation** of the already-selected document:
+
+- `archive_file` versus
+- `source_file`
+
+It does not show a separate authorization check for the archive file. The authorization object visible in the upstream resolver remains the document object, specifically `root_doc` in the indexed trace.
+
+**Behavior disposition:** `allow` for the representation-selection branches as source behavior; `unknown` for whether the deployment's intended policy permits the authenticated user to retrieve every representation once root-document authorization succeeds.
+
+---
+
+## 4. Authentication and permission controls
+
+### Authentication
+
+`DocumentViewSet` declares `IsAuthenticated` and `PaperlessObjectPermissions` in its class configuration (`src/documents/views.py:1008`, `ev-84f687d430f4a8de2b7d`).
+
+DRF's `IsAuthenticated` checks:
+
+```python
+bool(request.user and request.user.is_authenticated)
+```
+
+at `framework/rest_framework-3.18.1/rest_framework/permissions.py:145-151` (`ev-5d9e4d294d244c1f1312`).
+
+Therefore the source-level control requires an authenticated request user before the normal view permission flow proceeds.
+
+### DRF object permission behavior
+
+For `GET`, DRF's `DjangoObjectPermissions` permission map contains an empty list:
+
+```python
+'GET': []
+```
+
+at `framework/rest_framework-3.18.1/rest_framework/permissions.py:257-287` (`ev-28e827ac49e585c14cde`).
+
+Its object-permission path calls `user.has_perms(perms, obj)`. If a safe-method object check fails, the framework can raise `Http404` rather than exposing the object through a `403` response (`framework/rest_framework-3.18.1/rest_framework/permissions.py:289-314`, same evidence).
+
+### Paperless owner shortcut
+
+`PaperlessObjectPermissions` has an owner-specific branch:
+
+- if the object has a non-null `owner`, and
+- `request.user == obj.owner`,
+
+it returns true; otherwise it delegates to the superclass (`src/documents/permissions.py:46-53`, structure `struct-f450dec0595917dda5b26296`).
+
+This source behavior must not be read as establishing that the user in the inquiry is the owner. Ownership and grants were expressly unspecified and were not assumed.
+
+### Resolver-specific check
+
+The indexed resolver path invokes:
+
+```text
+has_perms_owner_aware(request.user, "view_document", root_doc)
+```
+
+and returns a forbidden result when that check denies access. The source interpretation did not fully close:
+
+- the implementation-to-caller relation,
+- the exact permission backend behavior,
+- the relationship between this resolver check and DRF's view/object permission lifecycle, or
+- whether the selected version is independently authorized.
+
+Accordingly, no cross-tenant or unauthorized-download vulnerability is confirmed.
+
+---
+
+## 5. Authorization/resource relation
+
+The source-visible relation is:
+
+```text
+request.user
+    -> authorization check associated with root_doc
+    -> effective file document selected from request_doc/root_doc/version parameters
+    -> source_file or archive_file returned
+```
+
+The important distinction is:
+
+| Stage | Source resource |
+|---|---|
+| Route selection | `pk` / requested document |
+| Root resolution | `root_doc` |
+| Version selection | A root-lineage `Document`, potentially another version |
+| File effect | `file_doc.source_file` or `file_doc.archive_file` |
+| Filename metadata | Root-owned metadata for versioned documents |
+
+### Does selecting another version change the resource authorized?
+
+The strongest source-grounded answer available is:
+
+- **It changes the resource used to obtain the returned file.**
+- **The visible authorization check is attached to `root_doc`.**
+- **The examined source does not establish a separate authorization check on the selected version.**
+- **This is not sufficient to call the behavior a vulnerability without the intended policy and complete resolver linkage.**
+
+A confirmed finding would require evidence that a lower-trust authenticated user can pass the root-document check and retrieve a version or representation that the application's actual policy forbids. No such runtime or fixture result was obtained, and no ownership/grant facts were supplied.
+
+---
+
+## 6. Missing facts and unresolved source gaps
+
+### Source interpretation gaps
+
+The following source relations were read or indexed but not fully closed:
+
+1. Complete `Download -> file_response` execution and exception linkage:
+   - `src/documents/views.py:1835-1839`
+   - `src/documents/views.py:1429-1448`
+
+2. Resolver implementation and exact authorization relation:
+   - `src/documents/views.py:1401-1427`
+
+3. Effective file-document selection:
+   - `src/documents/views.py:1375-1399`
+
+4. Complete `serve_file` linkage and archive predicate:
+   - `src/documents/views.py:4941-4995`
+
+5. `has_perms_owner_aware` behavior and backend relation:
+   - `src/documents/permissions.py:624-635`
+
+6. Whether DRF's generic object-permission machinery is actually the decisive control for this custom file path, as opposed to the resolver-specific permission check.
+
+These are **interpretation gaps**, not facts about the user's permissions.
+
+### Unspecified user/runtime facts
+
+The inquiry does not specify:
+
+- the authenticated user's identity;
+- whether the user is authenticated at runtime;
+- ownership of the requested document;
+- group permissions or object grants;
+- `documents.view_document` permission state;
+- whether the requested `pk` identifies a root document or a version;
+- the requested `version` value, if any;
+- whether the selected version exists;
+- whether an archive version exists;
+- whether `source_file` or `archive_file` exists.
+
+No conclusion was drawn from any of these missing facts.
+
+### Deployment and integration facts
+
+The reviewed source windows do not establish:
+
+- router registration and effective URL prefix;
+- authentication middleware and token/session configuration;
+- configured object-permission backend;
+- queryset filtering applied before or during dispatch;
+- reverse-proxy or web-server controls;
+- storage-provider access controls;
+- whether file storage paths are independently exposed;
+- deployment-specific overrides to permission behavior.
+
+These facts require separate deployment review and were not inferred.
+
+---
+
+## Findings
+
+### Confirmed vulnerabilities
+
+**None confirmed.**
+
+The root-document-versus-selected-file distinction is a source-grounded authorization concern requiring validation, but the available evidence does not establish an actual unauthorized principal, unauthorized resource access, or concrete security impact.
+
+### Needs validation
+
+**Potential authorization-resource mismatch — unresolved**
+
+- **Hypothesis:** authorization is checked against `root_doc`, while a selected version's `source_file` or `archive_file` may be returned.
+- **Source evidence:** version resolution in `src/documents/versioning.py:140-195`; root-document type and file-response branches in `src/documents/views.py`; resolver call indexed with `root_doc`; representation branches in `serve_file`.
+- **Why unresolved:** the complete resolver/file-response linkage was not independently closed; ownership, object grants, and intended policy are unspecified; no local controlled execution was performed.
+- **Safe validation plan:** in an authorized isolated fixture, create a root document and multiple versions with deliberately different access metadata, use a dummy authenticated principal, and observe only whether the Download response is allowed or denied and which dummy file representation is selected. Do not test a deployed service or real user data.
+- **No severity assigned:** this remains `needs_validation`, not a confirmed vulnerability.
+
+---
+
+## Final coverage statement
+
+This was a **partial, source-visible investigation**, not a complete end-to-end audit. It established:
+
+- the Download entry and `pk` flow;
+- the `Http404` exception branches;
+- root-lineage version validation;
+- the distinction between requested document, root document, and effective file document;
+- exact `original=true` handling;
+- archive versus source file selection;
+- authentication and permission mechanisms present in the source;
+- the visible distinction between root-document authorization and selected-file effect.
+
+It did not establish:
+
+- the complete authenticated-principal-to-file-response control path;
+- actual ownership or object grants;
+- the deployment's permission backend or routing controls;
+- whether the root-document authorization is intentionally sufficient for all versions and representations;
+- a concrete unauthorized download result.
+
+Accordingly, the correct conclusion is **conditional source behavior with unresolved authorization linkage**, not a confirmed security vulnerability.

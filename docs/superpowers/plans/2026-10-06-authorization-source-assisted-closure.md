@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 `@vscode/tree-sitter-wasm` Python/Go 解析器、现有 provider/telemetry 和确定性测试。按实际依赖版本查官方实现，不另建 CLI、统一 IR 或整仓安全平台。
 
-日期：2026-10-06。状态：`in-progress`，AV0–AV9完成工程验证，AV10/AV11首次均已交付partial，继续共享修复的具名真实复验和完整skill队列。开发模型：`gpt-6.1-sol / max`；用户另要求 Flash，当前派发接口没有该设置字段，不能写成已经启用。工作目录 `D:/skill优化/SkVM`，分支 `skill-ir-aot`，仅推用户 `origin`。设计基线 `9d7db8e87c1484e119e7b8d1adece2fc6ba5079f`，启动时保留本任务书后续发布提交。
+日期：2026-10-06，当前更新2026-10-07。状态：`in-progress-paid-deferred-by-user`，14初始位置已有29份实际归档，剩余六变化/六质量由用户暂缓。当前完成状态修复及零调用验证已完成，实际完整质量/复用收益未达，收口已有原件、文档和用户origin发布；`finiteQueueComplete:false`、`researchGoalAchieved:false`。开发模型：`gpt-6.1-sol / max`；用户另要求 Flash，当前派发接口没有该设置字段，不能写成已经启用。工作目录 `D:/skill优化/SkVM`，分支 `skill-ir-aot`，仅推用户 `origin`。设计基线 `9d7db8e87c1484e119e7b8d1adece2fc6ba5079f`，启动时保留本任务书后续发布提交。
 
 本轮约 8–12 小时是主动工作安排，约六成精力用于质量、四成用于编写与复用。完成适用工作即收口；不等待、重复全量验证或增加无目的调用凑时间。实验模型沿用 `xty/gpt-5.6-sol`，与开发线程模型分账；可用路由改变时记录并统一同一比较块。
 
@@ -232,6 +232,8 @@ export interface SourceInterpretation {
 
 并发JSON EOF与延迟providerCalls降低两项实际行为反例先失败；独占文件锁、同目录临时文件原子替换和计数max后10项/107断言通过，独立AI复跑同集合通过。锁含owner与时间，30秒未释放明确失败，不自动删锁。后续少量独立位置并行，原件与费用仍从各attempt重放，status.lastKnownRequest只表达最近更新。
 
+2026-10-07 真实接续暴露两项完成状态缺陷：generic agent-loop 连续三次相同tool action会break但不设error，20/24即被记completed/exit0；native归档仅检查end_turn而忽略最终文本为空，使一个空消费者被记partial-delivered。全部实际请求结束后，匿名反例先失败再修复：重复tool停滞明确error且不把中间text当final，native分类要求自然terminal及非空原始final。focused23项/155断言、联合894 pass/1平台skip/5789断言、主/AV严格类型与独立只读核验通过。保留三次防循环阈值、请求/工具预算和纯artifact作者合同，没有追加生成调用；零重判分别记录terminal-absent/empty-final，原report/raw/final保持。用户随后暂缓十二未派发位置，未做付费修复后语义复验；以后同版本/端点比较仍保留跨版本/端点准备成本与限制。
+
 ### AV10 Download 第一条真实纵向链
 
 首次登记在provider派发前失败：runner误用`SKVM_CACHE_PATH`，未载入项目route；随后误读不存在的run.json。原始provider-unavailable报告证明0派发，已完整归档，不算模型质量失败或unknown completion。两项真实失败测试后改为`SKVM_CACHE`并失效配置缓存、按零派发报告归档；8项/66断言及runner类型通过，配置provider可创建且未调用。下一次为`--revision=runtime-config --parent=first`，保留原首次记录。证据见results的verification/av10-pre-dispatch.json。
@@ -243,16 +245,18 @@ runtime-config具名首次真实尝试为18派发/18响应，4次来源解释提
 local-envelope实际21派发/20响应，1原timeout与1只读恢复、14提案/11局修/2单元、0fallback/check，终答未交付。独立源码核验判两份草稿partial，不能把已可见根授权/文件选择关系泛化为部署未知。终答严格拒绝的真实字段是paths[].disposition=conditional，旧root归一化误报result缺失；先失败后无损包装并保留严格nested校验，53项/420断言及主类型通过。具名`--revision=final-diagnostics --parent=revision-local-envelope`同输入/预算复验后推进原OWUI；两Python若同因停滞，再按AV11做一次共享来源接口修复，不增加容器或预算。评阅与分账在evaluations/av10-local-envelope.json。
 
 final-diagnostics已22响应/22派发，实际nested路径诊断触发一次修订并接受partial终答；15提案/11局修/2单元、2次check仍ruleConsistency=false/taskResolution=partial。AI复核的“check-valid/bounded”误判由当前原件纠正；原任务的owner/grant分支和requested-version默认分支仍不充分。下一小阶段先红绿修已定位宿主重复绑定：匿名同变量分支赋值及顺序覆盖→bind的唯一step name与实际bindingName分离→保持当前分支对象/值→有关回归及一次真实使用。补齐解释阶段遗漏的基础有限谓词写法，非法算子仍由原validator拒绝并指出可用合同。随后原OWUI；这两项是已证机械/说明缺陷，不推断能解决异常、复合return或全部质量。
-- [ ] 逐项检查正确入口、框架前置约束、helper 实参/对象、条件分支和最终自然说明是否经过共享机制；首次结果完整保留。
-- [ ] 每个可定位缺陷立即走第七节修复循环。若仍反复要求模型生成整张低层图，回到 AV5 修接口，不继续堆提示或扩预算。
+- [x] 逐项检查正确入口、框架前置约束、helper 实参/对象、条件分支和最终自然说明是否经过共享机制；首次结果完整保留。
+- [x] 每个可定位缺陷立即走第七节修复循环。若仍反复要求模型生成整张低层图，回到 AV5 修接口，不继续堆提示或扩预算。
 - [ ] evaluator 以完整原任务核对终答；已读到但未进入终答的内容仍记遗漏，不能借轨迹补答。得到真实完整链后保存可用于后续变化的基线。
+
+当前module-instances原任务22/22、8来源提案/5局修、1单元/11步骤，无低层fallback；独立源码评阅与主代理原件点验判partial。其三份完整问题可用于材料层准备，但不能称完整质量基线；operationFacts identities/facts/retired为空，接受单元缺source/fact footprint。证据在evaluations/av10-module-instances-final.json、verification/av17-final-binding-review.json。
 
 ### AV11 OWUI 第二结构与 Go 使用准备
 
 只读Go复核发现multiline链式Post未入route；匿名反例先失败，末段verb仅trim空白后真实POST /repos/{username}/{reponame}/issues及middleware绑定。主代理点验又发现if initializer中的真实NewIssue未入skeleton；匿名前置调用/else分支反例先失败，initializer保持在其条件前且仍受外层分支约束。真实CreateIssue现141 anchors、NewIssue实参/result保留，loop/short-circuit/动态表达式六个有位置gap保持。33项相关测试/147断言、实际零调用probe通过，证据在verification/av11-go-probe.json；尚未派发Go模型。
 
 - [x] 原始 OWUI ingestion 请求首跑新策略，检验 decorator 入口和跨对象检查/效果，保留全部原义务及真实前提。
-- [ ] 同样即时修复；只在生产机制能解释改进时计为修复有效，不修改模型输入到直接给出正确分支。
+- [x] 同样即时修复；只在生产机制能解释改进时计为修复有效，不修改模型输入到直接给出正确分支。
 - [x] 用已暴露 Gitea 做零调用路由/receiver/骨架兼容核对，为完整 GitHub skill 使用准备；不预填授权语义。
 - [ ] 如 Python 两任务仍同因失败，优先做一次共享接口重构及真实验证，再处置受影响比较；不把“已写单测”当成真实闭合。
 
@@ -264,19 +268,31 @@ OWUI flow-requirements具名复验在55f892fa结束：22派发/21响应、1恢�
 
 v4模块实例绑定完成：匿名import alias/同模块/typed-local正例先红，loop/local import/嵌套class/global-write/条件import及声明文件SHA反例保持边界；52项/185断言和主/AV严格类型通过。独立AI复跑24项/66断言并点验actual Files两方法probe，未发现有证据P1/P2。下一冻结版本普通run为OWUI `--revision=module-instances --parent=revision-flow-requirements` 与Download `--revision=module-instances --parent=revision-final-diagnostics`，原任务/模型/预算保持。Download额外修订是当前方法材料基线准备，其所有author成本留账，不能混成旧修订质量收益。
 
+8461bd34的OWUI module-instances在3派发/3响应后transport-failed：模型两次提交非广告根字段，缺calls，现有一次约束修订仍失败；0来源解释/0单元，未测到新方法绑定的实际语义效果。原件保留，先独立核验其实际schema/返回与失败责任；同版本、同输入/预算登记`module-instances-wire` parent=revision-module-instances，用于尚未发生的真实绑定采用验证，不加新容器容错或业务答案。若仍同因失败据实际边界处置，不无限重抽。
+
+其后wire具名复验22/22、18来源提案/12局修、1单元/9步骤，沿真实Files模块实例读到两个查询方法，来源定位的实际采用成立；semantic/source-links仍未充分、终答partial。独立评阅混用旧attempt计数的原判保留并按当前raw纠正；没有把“源码能回答”提升为当前终答full。evaluations/av11-module-instances-wire-final.json与verification/av17-final-binding-review.json保存当前裁定。
+
 ### AV12 两份完整原 skill 的原/变实际使用
 
-- [ ] Cloudflare security audit 对应 Download，GitHub security review 对应 Gitea CreateIssue；保留完整 SKILL.md 和 companions，普通 native 原任务/政策变化各一次，共四位置。
-- [ ] 使用原始公开请求与独立政策。Gitea 新位置须已满足 AV8 新恢复合同；旧消费者未知及旧封存不删除。
-- [ ] 检查 remaining skill duties、自然交付、结构检查和真实源码解释，参考文件未读如实记录，不凭包里存在就声称消费。
+- [x] Cloudflare security audit 对应 Download，GitHub security review 对应 Gitea CreateIssue；保留完整 SKILL.md 和 companions，普通 native 原任务/政策变化各一次，共四位置。
+- [x] 使用原始公开请求与独立政策。Gitea 新位置须已满足 AV8 新恢复合同；旧消费者未知及旧封存不删除。
+- [x] 检查 remaining skill duties、自然交付、结构检查和真实源码解释，参考文件未读如实记录，不凭包里存在就声称消费。
 - [ ] 检验声明辅助的新策略实际被调用；每个失败做针对性共享修复/复验，原/变主位置与修订分别留账。
 
 ### AV13 作者稿与原字节消费者
 
-- [ ] 上述两完整 skill 各原/变两稿，共四稿；只从原任务、源码范围、政策和 skill 开始，作者无需手写正确控制图。
-- [ ] 作者阶段与消费者阶段职责分开；根目录 inquiry.json/USAGE.md 约定明确。正常字段修订至多一次，原稿与修订分别保留。
-- [ ] 独立核对任务忠实性和原字节后消费四稿；无效稿记具体阻塞，不能主代理代写字段后计作者成功。
-- [ ] 消费者复用同一核心和真实完整 skill，费用包含准备/声明/解释/修复。作者效度、下游完整质量和真人工时分别报告。
+- [x] 上述两完整 skill 各原/变两稿，共四稿；只从原任务、源码范围、政策和 skill 开始，作者无需手写正确控制图。
+- [x] 作者阶段与消费者阶段职责分开；根目录 inquiry.json/USAGE.md 约定明确。正常字段修订至多一次，原稿与修订分别保留。
+- [x] 独立核对任务忠实性和原字节后消费四稿；无效稿记具体阻塞，不能主代理代写字段后计作者成功。
+- [x] 消费者复用同一核心和真实完整 skill，费用包含准备/声明/解释/修复。作者效度、下游完整质量和真人工时分别报告。
+
+2026-10-07 接续：native Gitea changed、consumer Download changed、consumer Gitea original 首次实际运行分别派发11/10/6次，在最后一次收到 provider 403 `insufficient_user_quota` 后结束，均无最终回答。保留三个 first 的原始记录；额度预扣提示不作为实际费用。用户已授权更换本地凭据，模型/端点/实现/输入/预算不变；按各自 first 为父件登记 `revision-credential`，不覆盖失败件、不把补跑混入初次质量或隐去准备费用。其余有限位置继续执行。
+
+随后三个 `revision-credential` 各1次派发收到旧端点401 Invalid token、0模型响应。用户明确给出新接口 `https://codexcn.ccwu.cc/v1`，按实际账户和端点接续；逻辑模型仍为xty/gpt-5.6-sol，但供应端点已变，不声称后台模型身份或跨端点差异仅由方法造成。登记 `revision-endpoint` 父件为revision-credential，先恢复一个实际位置，成功返回后继续并行；余下fresh/previous每对及六位置质量矩阵统一新端点。既有作者/基线的旧端点准备成本与局限单列，全部失败件保留。
+
+新端点接续实际结果：native Gitea changed 20/20、进程自然退出0但terminal absent；两个消费者各15/14、末请求为新端点额度403，均无final。两类未交付分别记录，不能把进程exit0算任务完成，也不能把中间工具/模型解释计为最终质量。当前全部实际请求已结束，13位置仍未派发；等待可用账户额度时继续零调用归档和独立复核native无终答原因，再决定具名修复/补跑。见evaluations/av12-av13-new-endpoint-incomplete.json。
+
+补充余额后的实际原件全部结束：consumer Download changed revision-funded为24/23，末次额度拒绝；Gitea original revision-funded为12/12自然空end_turn；Gitea changed first为24/23，末次网关524且上游完成/usage未核实。三者均无final，原字节作者绑定及完整skill/source provenance通过；空消费者的原partial-delivered在单独零调用评估中纠正，原件不重写。最新用户明确暂缓实验；仅配置`https://yes.hubniconico.com/v1`，可用性未验证、该端点调用0。余下12位置保持未派发，见evaluations/av13-funded-and-gateway-outcomes.json与av-paid-deferral.json。
 
 ### AV14 政策、前提和源码变化复用
 
@@ -290,6 +306,10 @@ v4模块实例绑定完成：匿名import alias/同模块/typed-local正例先�
 
 当前v4实际probe使两份v3材料全部因关系/候选依赖失效；av14-input-registration.json的原v3恢复结果保持历史原件。先以原自然请求普通D1生成当前版本具名基线，再普通init导出其实际完整声明，为六个未派发位置登记新的v4输入ID。保持每个原operation、完整question request/intent；政策仅独立policy+分析mode，前提仅实际用户事实，源码仍唯一guard参数副本。fresh/previous每对同输入、同方法版本/预算；0材料如实记0，严禁手改旧footprint或静默previous→fresh。
 
+当前v4普通Download基线22/22、8提案/5局修、1单元/11步骤，check sourceBound:false/rule:false/partial；普通init严格导出其三份完整问题。零compare发现该接受单元缺source/fact dependency footprint，政策实际0恢复/1失效，纠正准备脚本“接受1单元必恢复1”的错误预期。保持原件/缺口，三组都记录实际恢复量；六个previous不换fresh、不手补footprint。由这份基线不能证明来源材料收益或隔离单个源码变化的复用效果，仍完成实际变化对照及成本分账。
+
+当前三份v4输入均已登记，完整原operation/question request/intent和范围保持；三组实际均0恢复/1失效、answerReused:false/unreviewed，原v3输入及其两单元历史恢复不覆盖。独立输入归属核验通过。六个实际位置由用户暂缓，不把零compare算实际变化使用；后续须如实使用当前0材料previous，而非静默fresh。
+
 后续独立归属核验通过，但主代理补充“全局brief恰好等于其中一题request”的相反反例发现误拒；先失败后由已有host entryContext标明globalUserText，仍只保留实际supplied原件，模型无法标记全局文字。跨题泄漏与全局brief可用两个方向一起回归，不以第一次通过代替后续修订验证。
 
 - [ ] 在 Download 同一包上各登记政策、前提、源码变化，每种 fresh/materials-previous 各一位置，共六位置，完整原任务保持。
@@ -297,7 +317,7 @@ v4模块实例绑定完成：匿名import alias/同模块/typed-local正例先�
 AV14输入准备决定：以普通init导出的final-diagnostics完整原声明为共同父件，保留operation、所有question request/intent和来源范围。政策组仅behavior→conformance及已登记独立exact-object政策；前提组在各题显式记录调用者拥有requested document，而相关root/version文档的ownership/grants仍未给，不从此推导root授权。源码组仅复制当前95文件来源后，把`_resolve_request_and_root_doc`中owner-aware guard的单个对象实参`root_doc`改为`request_doc`，不改原件；base sourceRef保留，patch由实际文件SHA标明。两臂共享逐字相同输入和来源；先零调用compare记录两份材料恢复或因真实文件依赖失效，零恢复也不自动改fresh。原始自然任务另保留为父输入身份，声明本身不添加答案或控制图。
 
 三输入已登记，ordinary check pending/diagnostics均空、AV严格类型通过。零compare政策/前提各恢复2份，源码0恢复/2失效；answerReused:false、unreviewed。独立只读核验确认题意、前提隔离和唯一源码差异；其mode范围疑虑按既有schema及事先登记裁定为无缺陷，保留原判与限度。六个实际位置尚未派发，见verification/av14-input-registration.json及av14-input-independent-review.json。
-- [ ] 政策/前提变化只修改独立输入；源码变化只改开发副本的一个真实相关控制或对象绑定，变化代码对两臂相同。
+- [x] 政策/前提变化只修改独立输入；源码变化只改开发副本的一个真实相关控制或对象绑定，变化代码对两臂相同。
 - [ ] previous 恢复有效材料、重算全部答案；失效依赖具体可查。partial 基础可测材料级恢复，完整任务收益须原/变真实完整。
 - [ ] 对比实际新读取/解释/调用/终答/总成本，失败不能自动换 fresh 冒充 previous 成功；环境搬移与预算不再造成伪失效。
 
@@ -311,37 +331,45 @@ AV14输入准备决定：以普通init导出的final-diagnostics完整原声明�
 ### AV16 机制归因与实际浪费修复
 
 - [ ] 仅当来源骨架/自动参数/局部上下文在真实链被采用，选两种结构做最多两个诊断对照：分别关闭来源辅助提案，保留同一来源工具、模型、预算。
-- [ ] 未形成可比较链则零调用记原因，把开发时间用于已定位瓶颈，不强跑消融数量。
+- [x] 未形成可比较链则零调用记原因，把开发时间用于已定位瓶颈，不强跑消融数量。
 - [ ] 找出最高频的无效结构回合与重复展示，做共享渲染/局部更新修复；实际采用、语义质量、调用、token 和耗时并列。
-- [ ] 无稳定 DSL 表示优势时明确报告；执行工具的作用和声明方式的作用分别归因，保留有价值的工程交付。
+- [x] 无稳定 DSL 表示优势时明确报告；执行工具的作用和声明方式的作用分别归因，保留有价值的工程交付。
+
+当前两结构终答仍partial，六质量位置未跑且由用户暂缓；不具备完整可比较链，机制诊断实际0调用。来源定位采用、窄解释实际提案和工程错误修正可分别报告，不能据此声称声明优势、材料收益或净节省。
 
 ### AV17 独立源码复核与错误归因
 
-- [ ] 每份实际终答按原任务逐条查正确、遗漏、错误、条件覆盖、未交付；保留原终答摘录与源码出处，不用指标替代内容。
-- [ ] 独立只读 AI 探子可作 source/raw 核验，主代理沿精确出处抽查裁定；不要称作真人评阅。
-- [ ] 区分共享实现、模型领域解释、预算/传输、输入条件和评价争议。纠正评价误判时保存原判和理由，不把它计作模型改善。
-- [ ] 汇总每个失败关联的修复、同题复验、是否实际改变及残留原因；明确哪些为不可得来源或当前方法边界。
+- [x] 每份实际终答按原任务逐条查正确、遗漏、错误、条件覆盖、未交付；保留原终答摘录与源码出处，不用指标替代内容。
+- [x] 独立只读 AI 探子可作 source/raw 核验，主代理沿精确出处抽查裁定；不要称作真人评阅。
+- [x] 区分共享实现、模型领域解释、预算/传输、输入条件和评价争议。纠正评价误判时保存原判和理由，不把它计作模型改善。
+- [x] 汇总每个失败关联的修复、同题复验、是否实际改变及残留原因；明确哪些为不可得来源或当前方法边界。
+
+本次勾选只覆盖已结束的14初始位置/29原件；后续12位置若恢复，仍须按同一评阅合同检查其真实终答。六当前final绑定和native无terminal停止原因各经独立只读核验；三份末次consumer单列未交付，不借中间图或工具输出补答。
 
 ### AV18 必要回归与零调用重放
 
-- [ ] 跑改动涉及的结构/领域/focus/provider/native/CLI 集合、主类型及本轮 runner 严格类型；与原策略兼容测试一起核验。
-- [ ] 从 raw 重算派发/响应/未知/恢复/晚答/首答/修订，确保一个实际请求只计一次，完整 prompt 的 cache-read 只计一次。
-- [ ] 新结果和旧 AU 点验原件保持可读且字节未改；新 binary 归档通过现有 Git 属性，无需新建一套冻结链或 clean worktree。
-- [ ] 文档单测、链接/目录检查和 diff 一次通过；只有实际修改或失败才重跑对应集合。
+- [x] 跑改动涉及的结构/领域/focus/provider/native/CLI 集合、主类型及本轮 runner 严格类型；与原策略兼容测试一起核验。
+- [x] 从 raw 重算派发/响应/未知/恢复/晚答/首答/修订，确保一个实际请求只计一次，完整 prompt 的 cache-read 只计一次。
+- [x] 新结果和旧 AU 点验原件保持可读且字节未改；新 binary 归档通过现有 Git 属性，无需新建一套冻结链或 clean worktree。
+- [x] 文档单测、链接/目录检查和 diff 一次通过；只有实际修改或失败才重跑对应集合。
+
+本次联合894 pass/1平台skip/5789断言，主/AV严格类型和独立完成合同审查通过；29份原件计数与final字节一致、14保护原件SHA不变。397派发/385响应修正旧395/383汇总，2恢复/1晚结算、12usage未知和全部actual USD未知；完整prompt仅按fresh+cache一次汇总。15文档单测、链接/legacy/治理错误0、实验目录18项valid/0诊断及diff通过；5项既有软长度警告保留。verification/av18-stop-classification.json、av18-original-replay.json、av19-documentation-checks.json和accounting.json留证，执行这些核验provider/目标执行均0。
 
 ### AV19 文档整合、可使用例子与发布
 
-- [ ] 研究统一追加 §7.55 的设计、实际采用、修复效果、未达及下一步；同步 spec、developer-guide、usage 和一个既有 reusable-skill 例子。
-- [ ] current-status/current plan 更新为真实当前状态，提供从普通输入开始、查看具体缺口、改条件、恢复执行的已验证命令。
+- [x] 研究统一追加 §7.55 的设计、实际采用、修复效果、未达及下一步；同步 spec、developer-guide、usage 和一个既有 reusable-skill 例子。
+- [x] current-status/current plan 更新为真实当前状态，提供从普通输入开始、查看具体缺口、改条件、恢复执行的已验证命令。
 - [ ] 按模块提交并推用户 origin，保留他人变更与历史材料；记录实际远端 SHA 和工作区状态。
-- [ ] conversation_log 保存阶段结论及恢复入口，开发成本和项目 provider 成本分列。
+- [x] conversation_log 保存阶段结论及恢复入口，开发成本和项目 provider 成本分列。
 
 ### AV20 完成判定与交接
 
-- [ ] 逐项清点工程、真实使用、作者消费、变化和比较；未运行/失败/修订不混算成功。
-- [ ] 三项共享缺陷修复、源码辅助实际采用、两种不同结构真实充分交付、两完整 skill 使用及变化复用分别给结论。
+- [x] 逐项清点工程、真实使用、作者消费、变化和比较；未运行/失败/修订不混算成功。
+- [x] 三项共享缺陷修复、源码辅助实际采用、两种不同结构真实充分交付、两完整 skill 使用及变化复用分别给结论。
 - [ ] 所有适用工作终结可记 `finiteQueueComplete:true`；存在完整质量/实际使用等未达时用 `completed-with-unmet-criteria`，不得将研究目标标为达成。
 - [ ] 提供仍失败的精确问题、最后一次修复及结果、下一具体代码责任。队列完成后停止，不无限重抽或无目的扩任务类。
+
+当前是用户暂缓阶段的交付而非AV全队列结束：共享来源身份/定位/骨架与完成状态工程已验证，实际两结构与原skill报告仍partial或未交付；四稿有效原字节消费，当前v4材料恢复量0，变化/质量12位置未运行。下一代码核验责任是已有inquiry-reuse/operation材料依赖：定位为什么接受source单元未形成可恢复source/fact footprint，不能先手补历史依赖或宣布复用改进。现有completion修复不声称解决此语义/材料问题；付费接续由用户以后选择。
 
 ## 六、可直接落地的首批失败测试
 

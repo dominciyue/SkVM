@@ -99,6 +99,8 @@ The explicit development strategy `operation-evidence-v2` uses original source a
 
 For explicitly bounded ordinary runs, use `--authorization-request-timeout-ms=300000 --authorization-session-timeout-ms=7500000 --timeout-ms=7500000` together with provider/action/read/display/output caps. v2 closes timed-out local consumers before at most one recovery per request and two per position within the same total budget; remote completion and fees may stay unknown. Source-only ordinary N may opt into the same policy with `--authorization-readonly-recovery`. Writers do not receive automatic recovery. `--previous` in v2 restores only known source materials from frozen local state, recomputes answers and policy/premise mappings, and reports specific invalidated dependencies; legacy unknown sessions remain sealed. A final source verification failure withdraws current conclusions while retaining history. [AV status](../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/status.json) separates engineering verification from actual use and research effect.
 
+Three consecutive identical tool actions end an ordinary agent run with an unfinished-work error. Inspect the retained trace and specific gap before starting a new run; intermediate tool-round text is not a final report. A source-analysis report also needs a natural terminal response and nonempty final text. A blank end-turn or a source read alone does not establish delivery. Artifact-writing tasks still use their artifact contract, so they may finish without additional prose.
+
 For an existing security skill and a scope file containing your natural question, source identity, relative source folder and independent policy:
 
 ```sh

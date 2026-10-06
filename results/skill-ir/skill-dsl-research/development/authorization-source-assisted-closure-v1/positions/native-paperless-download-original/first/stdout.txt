@@ -1,0 +1,330 @@
+
+skvm run v0.1.4
+  Adapter  bare-agent (built-in)
+  Model    xty/gpt-5.6-sol via openai-compatible (https://svip.xty.app/v1)
+  Task     natural prompt
+  Skill    D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\cloudflare-security-audit\SKILL.md
+  WorkDir  D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-source-assisted-closure-v1\positions\native-paperless-download-original\first\workspace
+  Cache    D:\skill优化\SkVM\.skvm
+
+23:02:35.069 [INFO ] [run] Run task natural-f44e6fd022ab: adapter=bare-agent model=xty/gpt-5.6-sol workDir=D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-source-assisted-closure-v1\positions\native-paperless-download-original\first\workspace
+23:02:35.073 [INFO ] [conv-log] Conversation logging enabled: D:\skill优化\SkVM\.skvm\log\20261006-230235-run
+✓ Task natural-f44e6fd022ab complete  (18m 59s)
+
+=== Run Complete ===
+Task: natural-f44e6fd022ab
+Skill: D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\cloudflare-security-audit\SKILL.md
+Model: xty/gpt-5.6-sol
+Adapter: bare-agent
+WorkDir: D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-source-assisted-closure-v1\positions\native-paperless-download-original\first\workspace
+Duration: 1139.1s
+Tokens: in=1836340 out=22552
+
+Final output:
+# Bounded source-visible security assessment
+
+**Target:** `paperless-ngx/paperless-ngx`  
+**Revision:** `126ec414a8b65158368653a2604ae58415e43103`  
+**Scope:** Document Download behavior, document/version selection, file representation, and authorization relationship.  
+**Execution:** None. No target code, tests, deployment, or live service was executed or probed.  
+**Status:** **Partial and unverified.** The source windows were read, but the native authorization check was rejected and no checked result was recorded. The conclusions below therefore distinguish directly observed source behavior from unresolved interpretation and runtime facts.
+
+## Executive conclusion
+
+The examined source separates two concepts:
+
+1. **Authorization is visibly evaluated against the root document.**
+2. **The file returned may be selected from a different `Document` object within that root document’s version family.**
+
+In `_resolve_request_and_root_doc`, the requested `pk` is loaded as `request_doc`; `root_doc` is then derived from it. The source calls `has_perms_owner_aware(request.user, "view_document", root_doc)`. If that check fails, the function returns `HttpResponseForbidden` before effective-file selection. [src/documents/views.py:1401–1427, `ev-b55350fecebab52a88d2`; `ev-df2bb4efa0f58fecab6b`]
+
+If authorization succeeds, `_get_effective_file_doc` chooses the document whose file is subsequently served. The visible source therefore indicates that **the selected version can affect the file returned without changing the object visibly passed to the root-level authorization check**. [src/documents/views.py:1388–1399, `ev-b55350fecebab52a88d2`]
+
+That is the key security relationship. It is not, on the evidence accepted here, a confirmed authorization bypass: the end-to-end linkage from the public `download` action through all helper calls was incomplete, and the actual owner/object-grant state was unspecified.
+
+---
+
+## 1. Download entry and returned resource
+
+The relevant action is:
+
+- `DocumentViewSet.download`
+- `src/documents/views.py:1835–1839`
+- Evidence: `ev-4b5429afb274b06ee6c6`, `ev-7c67b561daa3c86e0b20`
+
+The action delegates to `file_response` for the requested primary key. The examined `file_response` source performs the following high-level sequence:
+
+1. Resolve the requested document and its root document.
+2. Return a forbidden response if root-document authorization fails.
+3. Select an effective file document.
+4. Pass that document to file-serving logic.
+5. Return the resulting file response.
+
+The exact complete linkage between the public action and the full `file_response` implementation was not accepted by the source-trace checker. This is an **interpretation/source-link gap**, not evidence that the code lacks those calls.
+
+### Source behavior established
+
+The visible resolver loads the requested document using the requested `pk`, derives its root document, and applies the owner-aware `view_document` check to that root document. [src/documents/views.py:1401–1427, `ev-b55350fecebab52a88d2`; `ev-df2bb4efa0f58fecab6b`]
+
+When the check returns false, the source returns:
+
+```text
+HttpResponseForbidden("Insufficient permissions")
+```
+
+The file-selection stage is therefore not reached on that branch.
+
+---
+
+## 2. How authorization relates to the authenticated user
+
+The relevant source binds the caller as `request.user` at the root-document check:
+
+```text
+has_perms_owner_aware(
+    request.user,
+    "view_document",
+    root_doc,
+)
+```
+
+[src/documents/views.py:1421–1426, `ev-b55350fecebab52a88d2`; `ev-df2bb4efa0f58fecab6b`]
+
+The examined owner-aware permission helper has these source branches:
+
+- an object with no owner;
+- an object owned by the supplied user;
+- a guardian-backed object permission check for the supplied permission and object.
+
+Evidence: `src/documents/permissions.py:624–635`, `ev-3e41c97aa281aa7def4e`.
+
+The repository’s `PaperlessObjectPermissions` class also explicitly treats ownership as an authorization branch:
+
+- if the object has an owner and the request user is that owner, it returns `True`;
+- otherwise it delegates to the framework object-permission implementation;
+- if there is no owner, it returns `True`.
+
+[src/documents/permissions.py:30–53, `ev-01e214a137e228080fa9`]
+
+The framework implementation maps the HTTP method to model permissions. For `GET`, `OPTIONS`, and `HEAD`, the required permission is the model’s `view_*` permission. [framework/rest_framework-3.18.1/rest_framework/permissions.py:278–287, `ev-a8c0fb0b6c1bf74bb1f0`; `src/documents/permissions.py:36–43, `ev-01e214a137e228080fa9`]
+
+For object permission failure, the framework source:
+
+- raises `Http404` for failed safe-method reads;
+- for non-safe methods, checks read permission separately;
+- raises `Http404` if read permission is also absent;
+- otherwise returns `False`;
+- returns `True` when the requested object permission succeeds.
+
+[framework/rest_framework-3.18.1/rest_framework/permissions.py:289–314, `ev-26c4b174b61ca559b72a`]
+
+### Important limitation
+
+The following are **not supplied and must not be assumed**:
+
+- the authenticated user’s identity;
+- whether the root document is owned;
+- whether the authenticated user is the owner;
+- whether a guardian user or group object grant exists;
+- whether the relevant permission-class dispatch is applied to this particular Download action in the deployed routing configuration.
+
+Accordingly, the source shows the authorization branches, but it does not establish a concrete allow or deny for a particular user/document pair.
+
+---
+
+## 3. Does choosing another version change the authorized resource?
+
+### Version-family selection
+
+The version resolver accepts an explicit version identifier only if:
+
+- it parses as an integer;
+- the candidate exists;
+- the candidate is the requested root document itself, or its `root_document_id` points to that root.
+
+[src/documents/versioning.py:169–195, `ev-102f8b0754d25f90f094`; manager selection at lines 136–137, `ev-502c2ef27e090c2a8bdc`]
+
+An invalid, missing, malformed, or unrelated version is rejected by the resolver. Without an explicit version parameter, the resolver selects the latest version for the root. The version ordering uses `version_index` descending, followed by descending id. [src/documents/versioning.py:23–28, `ev-0a3e2110490f204c7a6a`; `ev-102f8b0754d25f90f094`]
+
+### Effective file document
+
+The visible `_get_effective_file_doc` branch is:
+
+- if `request_doc` is already a version and no version parameter is present, return `request_doc`;
+- otherwise resolve a file document from `root_doc` and the request.
+
+[src/documents/views.py:1388–1399, `ev-b55350fecebab52a88d2`]
+
+Thus, based on the source examined:
+
+- the requested `pk` identifies the initial `request_doc`;
+- `root_doc` is the object used by the visible authorization check;
+- a selected version can become the effective file document;
+- the effective file document is the object whose stored file or archive representation is passed to file serving.
+
+### Security implication
+
+Selecting another permitted version appears to change **the file resource returned within the same root-document family**, while the visible authorization decision remains attached to `root_doc`.
+
+The examined source does **not** show a second owner/grant authorization check on the selected version immediately before serving it. However, this is not a confirmed vulnerability because:
+
+- `_resolve_file_doc` was not fully accepted or linked;
+- `file_response` and `serve_file` were not fully linked in the accepted trace;
+- permission-class applicability to the Download action was not fully established;
+- no runtime fixture was executed.
+
+The precise source conclusion is therefore:
+
+> **A requested version can change the `Document` object used for file selection, while the visible authorization check is performed on the root document. Whether any additional downstream authorization check exists remains unresolved.**
+
+---
+
+## 4. Original/archive representation
+
+The source helper `original_requested` returns true only when the request contains:
+
+```text
+original=true
+```
+
+with the value treated as the exact string `"true"`.
+
+[src/documents/views.py:1369–1373, `ev-b363fef07c79b21c5e0f`; helper evidence `ev-7a1e4ccd98e7c5af39d745ee`]
+
+The available `serve_file` source distinguishes:
+
+- the archive representation when `use_archive` is true;
+- the ordinary source representation otherwise;
+- filename and MIME-type handling after that choice.
+
+[src/documents/views.py:4941–4995, `ev-6615baeb7046b775f306`]
+
+The source summary indicates that the selected effective `Document` supplies the file handle. The archive/original choice changes which representation of that selected document is served; it does not, in the examined caller, visibly change the root document used for authorization.
+
+The exact linkage from `original_requested`, the effective-file resolver, and `serve_file` remains incomplete. Archive availability and fallback behavior are therefore not fully established.
+
+---
+
+## 5. Relevant control branches
+
+### Denial before file selection
+
+**Condition:** root-document owner-aware permission check fails.
+
+**Source result:** `HttpResponseForbidden("Insufficient permissions")`.
+
+**Effect:** no effective file document is selected by the visible resolver.
+
+Citation: `src/documents/views.py:1421–1427`, `ev-b55350fecebab52a88d2`; `ev-df2bb4efa0f58fecab6b`.
+
+### Owner/no-owner/object-grant authorization
+
+The owner-aware helper’s available branches are:
+
+- no owner;
+- caller is owner;
+- guardian-backed permission succeeds.
+
+Citation: `src/documents/permissions.py:624–635`, `ev-3e41c97aa281aa7def4e`.
+
+The separate `PaperlessObjectPermissions` implementation has corresponding owner/no-owner behavior and delegates non-owner cases to object permissions. Citation: `src/documents/permissions.py:30–53`, `ev-01e214a137e228080fa9`.
+
+### Version validation
+
+**Condition:** explicit version id is malformed, absent, missing, or outside the root family.
+
+**Source result:** version resolution produces no document and an error for invalid/not-found cases.
+
+Citation: `src/documents/versioning.py:169–195`, `ev-102f8b0754d25f90f094`.
+
+### Original/archive selection
+
+**Condition:** `original=true` affects the original/archive representation path.
+
+**Source result:** representation selection changes the file/representation passed to file serving, subject to the incomplete `serve_file` linkage.
+
+Citation: `src/documents/views.py:1369–1373`, `ev-b363fef07c79b21c5e0f`; `src/documents/views.py:4941–4995`, `ev-6615baeb7046b775f306`.
+
+---
+
+## 6. Independent policy assessment
+
+No independent authorization policy, security requirement, or tenant/grant specification was supplied.
+
+Therefore:
+
+- **Source behavior:** partially described above.
+- **Policy conformance:** **undetermined**.
+- It is not possible to conclude from this repository alone whether authorizing at the root-document level while serving a selected version is intended policy or a policy violation.
+- Ownership and guardian grants were explicitly unspecified and were not assumed.
+
+---
+
+## 7. Findings
+
+### Confirmed vulnerabilities
+
+**None confirmed.**
+
+The examined source establishes a potentially important authorization/resource distinction, but the evidence is insufficient to confirm an exploitable cross-boundary result. No severity is assigned.
+
+### Unresolved security question
+
+**Root-authorized, version-selected file serving — needs validation**
+
+**Hypothesis:** authorization is checked on `root_doc`, while the returned file may come from a selected version/effective `Document`.
+
+**Source evidence:**
+
+- root authorization: `src/documents/views.py:1421–1426`, `ev-b55350fecebab52a88d2`;
+- effective document selection: `src/documents/views.py:1388–1399`, `ev-b55350fecebab52a88d2`;
+- root-family version restriction: `src/documents/versioning.py:169–195`, `ev-102f8b0754d25f90f094`;
+- original flag: `src/documents/views.py:1369–1373`, `ev-b363fef07c79b21c5e0f`;
+- file serving: `src/documents/views.py:4941–4995`, `ev-6615baeb7046b775f306`.
+
+**Why unresolved:**
+
+1. The public `download` to `file_response` linkage was not fully accepted.
+2. `_resolve_file_doc` was not fully interpreted.
+3. The complete `serve_file` linkage was not accepted.
+4. The deployed permission-class applicability was not established.
+5. No controlled runtime fixture was executed.
+6. The actual owner and object-grant state was not supplied.
+
+**Safe validation plan:** in an isolated, non-networked fixture with dummy documents, create a root document and at least two versions with distinguishable file contents; vary ownership and guardian grants; request the root and a permitted version; record only whether the request is denied and which dummy file representation is selected. Do not use live identities, production files, or a deployed endpoint.
+
+---
+
+## 8. Missing facts
+
+### Source/interpretation gaps
+
+- Complete source linkage from `DocumentViewSet.download` through `file_response`.
+- Complete linkage from `file_response` to `_get_effective_file_doc`, `_resolve_file_doc`, and `serve_file`.
+- Whether any authorization check is applied to the selected version after root authorization.
+- Exact archive fallback behavior when the requested original/archive representation is unavailable.
+- Exact permission-class dispatch for this Download action.
+
+### Unspecified request/runtime facts
+
+- Authenticated principal.
+- Requested document id.
+- Whether the requested document is a root document or a version.
+- Version parameter, if any.
+- `original` parameter, if any.
+- Whether the root document has an owner.
+- Whether the caller is the owner.
+- User or group guardian grants.
+- Archive availability.
+
+### Deployment facts not established
+
+- Authentication middleware and authentication configuration.
+- Router exposure and action routing.
+- Effective DRF permission-class dispatch.
+- Storage backend behavior and file existence.
+- Reverse proxy or provider-level authorization controls.
+
+**Confidence:**  
+- Directly read source branches: **moderate confidence**.  
+- End-to-end Download behavior: **low confidence / unresolved** because the native source linkage and final authorization check were not successfully verified.
