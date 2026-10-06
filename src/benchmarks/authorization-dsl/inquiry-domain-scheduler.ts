@@ -3,10 +3,11 @@ import { controlRuleReach, type DependencyCheckState } from "../../task-dsl/auth
 import { partialEvaluate } from "../../task-dsl/authorization/control-evaluation.ts"
 import type { DiscoverySymbol } from "./evidence-preparation/discovery.ts"
 import type { InquiryTools, InquiryToolOutput } from "./inquiry-tools.ts"
+import { selectSourceCandidates, type SourceSelector } from "./evidence-preparation/source-selector.ts"
 
 export type DependencyState = "pending" | "located" | "read" | "proposed" | "checked" | "inapplicable" | "external-unknown" | "blocked"
 export interface ScheduledDependency extends DependencyCheckState {
-  id: string; digest: string; state: DependencyState; code?: string; reason: string; candidates: DiscoverySymbol[]; evidenceIds: string[]; semanticSupport: "unreviewed"; locatorNormalization?: { from: string; to: string }
+  id: string; digest: string; state: DependencyState; code?: string; reason: string; candidates: DiscoverySymbol[]; evidenceIds: string[]; semanticSupport: "unreviewed"; locatorNormalization?: { from: string; to: string }; sourceSelector?: SourceSelector
 }
 export interface SchedulerAction {
   actionOrigin: "domain-scheduler"; questionId: string; dependencyId: string; name: "source_read"; arguments: { path: string; startLine: number; endLine: number };
@@ -49,17 +50,11 @@ export function createInquiryDomainScheduler(options: { tools: InquiryTools; rem
     const escaped = d.symbol.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
     if (!d.evidenceIds.some(id => options.tools.evidence.some(e => e.id === id && new RegExp(`(?:^|[^A-Za-z0-9_])${escaped}(?:$|[^A-Za-z0-9_])`).test(e.quote)))) return stop("blocked", "dependency-callsite-missing", "Named dependency is not present in its shown source reference.")
     const all = options.tools.locateSymbols(d.symbol)
-    let pathHint = d.pathHint
-    if (pathHint && !options.tools.files.some(f => f.path === pathHint)) {
-      const range = /^(.+):(\d+)-(\d+)$/.exec(pathHint)
-      if (range && all.some(c => c.path === range[1] && c.startLine === Number(range[2]) && c.endLine === Number(range[3]) && (!d.candidateId || c.id === d.candidateId))) {
-        entry.locatorNormalization = { from: pathHint, to: range[1]! }; pathHint = range[1]
-      } else if (range && options.tools.files.some(f => f.path === range[1])) {
-        entry.candidates = all.filter(c => c.path === range[1])
-        return stop("blocked", "dependency-locator-range-mismatch", "The file is allowed, but the requested range/candidate does not match an indexed definition. Revise using its exact file or a displayed complete candidate range and ID; no read was dispatched from this mismatched locator.")
-      } else return stop("external-unknown", "dependency-out-of-scope", "Requested dependency file is outside the allowed indexed scope; use an exact indexed path or displayed candidate range.")
-    }
-    entry.candidates = all.filter(c => (!pathHint || c.path === pathHint) && (!d.candidateId || c.id === d.candidateId))
+    const selected = selectSourceCandidates({ path: d.pathHint ?? ".", candidateId: d.candidateId }, { candidates: all, paths: options.tools.files.map(f => f.path) })
+    entry.sourceSelector = selected.selector
+    entry.candidates = selected.candidates
+    if (selected.status === "unresolved") return stop(selected.code === "source-selector-out-of-scope" ? "external-unknown" : "blocked", selected.code === "source-selector-out-of-scope" ? "dependency-out-of-scope" : selected.code === "source-selector-range-mismatch" ? "dependency-locator-range-mismatch" : selected.code, selected.message)
+    if (d.pathHint && selected.selector.path !== d.pathHint) entry.locatorNormalization = { from: d.pathHint, to: selected.selector.path }
     if (!entry.candidates.length) return stop("blocked", "dependency-not-located", "No allowed lexical candidate was located; this is not proof of absent authorization.")
     if (entry.candidates.length !== 1) return stop("located", "dependency-ambiguous", "Select a shown candidate using pathHint/candidateId in an explicit revision; host cannot infer the correct helper.")
     const candidate = entry.candidates[0]!

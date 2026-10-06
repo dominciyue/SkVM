@@ -103,3 +103,12 @@ test("an allowed-file range mismatch shows real candidates but never reads until
   await outside.run(f.merge(createControlSlice(), [{ ...f.dep, pathHint: "private/helper.ts:1-1" }]).state)
   expect(outside.snapshot()[0]).toMatchObject({ state: "external-unknown", code: "dependency-out-of-scope" })
 })
+
+test("single-line legacy locators use the same candidate validation and unknown IDs have precise diagnostics", async () => {
+  const f = await fixture(), scheduler = api.createInquiryDomainScheduler({ tools: f.tools })
+  await scheduler.run(f.merge(createControlSlice(), [{ ...f.dep, pathHint: "src/helper.ts:1" }]).state)
+  expect(scheduler.snapshot()[0]).toMatchObject({ state: "read", sourceSelector: { path: "src/helper.ts", startLine: 1, endLine: 1 } })
+  const unknown = api.createInquiryDomainScheduler({ tools: f.tools })
+  await unknown.run(f.merge(createControlSlice(), [{ ...f.dep, pathHint: "src/helper.ts", candidateId: "not-an-indexed-id" }]).state)
+  expect(unknown.snapshot()[0]).toMatchObject({ state: "blocked", code: "source-selector-candidate-unknown" })
+})

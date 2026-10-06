@@ -11,6 +11,7 @@ import { localExplanationContext, type LocalExplanationTask } from "./inquiry-lo
 import { SemanticResultSchema, semanticResultSkeleton } from "./inquiry-semantic.ts"
 import type { DependencyCheckState } from "../../task-dsl/authorization/control-conclusion.ts"
 import { FINITE_PERMISSION_GUIDE } from "../../task-dsl/authorization/control-evaluation.ts"
+import { selectSourceCandidates } from "./evidence-preparation/source-selector.ts"
 
 export type FocusStage = "locate" | "interpret" | "link" | "review" | "answer"
 const binding = z.object({ key: InquiryText, value: FiniteValueSchema, text: InquiryText, questionId: InquiryText.optional() }).strict()
@@ -78,6 +79,7 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
   const retainedUnitItem = (unit: BoundSemanticBlock) => {
     const item = sourceItem(unit.itemId), source = unit.source && options.tools.symbolById(unit.source.id)
     if (!item || unit.source && (!source || source.sha256 !== unit.source.sha256)) return undefined
+    if (unit.source && selectSourceCandidates({ path: unit.source.path, startLine: unit.source.startLine, endLine: unit.source.endLine, candidateId: unit.source.id }, { candidates: source ? [source] : [], paths: options.tools.files.map(f => f.path) }).status !== "resolved") return undefined
     return { ...item, ...(source ? { selected: source } : {}), receiverClass: unit.receiverClass }
   }
   const operation = (q?: string) => options.program.operationQuestions?.find(v => v.questionId === q)?.operationId ?? q
@@ -90,7 +92,8 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
     const missing = !target || target.parameters.some(p => !s.arguments.some(a => a.parameter === p.name)) || options.diagnostics().some(d => d.code === "semantic-argument-unbound" && d.questionId === u.questionId && d.path.endsWith(`.${u.handle}`) && d.message.includes(`at ${b.name}.${s.name};`))
     if (!missing) return []
     const targets = options.linkTargets ? options.linkTargets(u, s) : options.units().filter(t => t.questionId === u.questionId && t.role === "helper")
-    return [{ caller: u.handle, questionId: u.questionId, call: s.name, symbol: s.symbol, arguments: s.arguments, pathHint: s.pathHint, targets: targets.map(t => ({ handle: t.handle, source: t.source, parameters: t.parameters })) }]
+    const sourceSelector = s.pathHint && selectSourceCandidates({ path: s.pathHint, candidateId: s.candidateId }, { candidates: options.tools.structure?.symbols ?? targets.flatMap(t => t.source ? [t.source] : []), paths: options.tools.files.map(f => f.path) })
+    return [{ caller: u.handle, questionId: u.questionId, call: s.name, symbol: s.symbol, arguments: s.arguments, pathHint: s.pathHint, ...(sourceSelector ? { sourceSelector } : {}), targets: targets.map(t => ({ handle: t.handle, source: t.source, parameters: t.parameters })) }]
   })))
   const claims = () => options.units().flatMap(u => u.blocks.flatMap(b => b.steps.filter(s => ["transform", "effect", "call", "guard", "reject"].includes(s.kind)).map(s => ({ id: hash([u.questionId, u.handle, b.name, s.name]), questionId: u.questionId, handle: u.handle, block: b.name, step: s, source: u.source, evidenceIds: u.evidenceIds })))).slice(0, 32)
   const start = (stage: FocusStage, item?: WorkItem, handle?: string) => {

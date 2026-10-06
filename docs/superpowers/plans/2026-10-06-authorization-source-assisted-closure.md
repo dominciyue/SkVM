@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 `@vscode/tree-sitter-wasm` Python/Go 解析器、现有 provider/telemetry 和确定性测试。按实际依赖版本查官方实现，不另建 CLI、统一 IR 或整仓安全平台。
 
-日期：2026-10-06。状态：`authorized-not-started`。开发模型：`gpt-6.1-sol / max`；用户另要求 Flash，当前派发接口没有该设置字段，不能写成已经启用。工作目录 `D:/skill优化/SkVM`，分支 `skill-ir-aot`，仅推用户 `origin`。设计基线 `9d7db8e87c1484e119e7b8d1adece2fc6ba5079f`，启动时保留本任务书后续发布提交。
+日期：2026-10-06。状态：`in-progress`，AV0–AV2完成，继续AV3。开发模型：`gpt-6.1-sol / max`；用户另要求 Flash，当前派发接口没有该设置字段，不能写成已经启用。工作目录 `D:/skill优化/SkVM`，分支 `skill-ir-aot`，仅推用户 `origin`。设计基线 `9d7db8e87c1484e119e7b8d1adece2fc6ba5079f`，启动时保留本任务书后续发布提交。
 
 本轮约 8–12 小时是主动工作安排，约六成精力用于质量、四成用于编写与复用。完成适用工作即收口；不等待、重复全量验证或增加无目的调用凑时间。实验模型沿用 `xty/gpt-5.6-sol`，与开发线程模型分账；可用路由改变时记录并统一同一比较块。
 
@@ -147,24 +147,24 @@ export interface SourceInterpretation {
 
 ### AV0 接管、原件定位与恢复入口
 
-- [ ] 保存当前分支/提交/已有修改，核对 AU 已停止；建立本轮 status 和研究输入清单，状态区分工程、真实使用、研究效果。
-- [ ] 点验三个零调用复现、Download N/D 和 OWUI D 终答、Gitea native/作者/超时消费者；把责任关联到本轮任务，原件只读。
-- [ ] model 目录只含原任务、独立政策/前提、完整 skill 和允许源码；evaluator 保存历史答案/正确性判定，runner 不读取它构造 prompt。
-- [ ] 记录恢复命令、当前阶段、最后已知请求、下一未派发动作。中断后接续该位置，不重新做所有审计。
+- [x] 保存当前分支/提交/已有修改，核对 AU 已停止；建立本轮 status 和研究输入清单，状态区分工程、真实使用、研究效果。
+- [x] 点验三个零调用复现、Download N/D 和 OWUI D 终答、Gitea native/作者/超时消费者；把责任关联到本轮任务，原件只读。
+- [x] model 目录只含原任务、独立政策/前提、完整 skill 和允许源码；evaluator 保存历史答案/正确性判定，runner 不读取它构造 prompt。
+- [x] 记录恢复命令、当前阶段、最后已知请求、下一未派发动作。中断后接续该位置，不重新做所有审计。
 
 ### AV1 来源身份稳定与材料兼容
 
-- [ ] 在 structure-index 测试中加入预算/目录/输入排序不变、内容/ref/override变化失效反例；production createInquiryTools 再覆盖一次真实搬移和预算变化。
-- [ ] 显式选择 source identity 字段并稳定排序，检查 legacy 与新索引两处透传；解析器修订保留独立版本。
-- [ ] 旧 source ID 只按确切来源唯一匹配在内存重绑定，候选歧义/字节变化拒绝复用；不更新 AU 原文件。
-- [ ] 验证 operation identity、candidateRevision 与实际恢复入口，保存零调用旧/新对照。
+- [x] 在 structure-index 测试中加入预算/目录/输入排序不变、内容/ref/override变化失效反例；production createInquiryTools 再覆盖一次真实搬移和预算变化。
+- [x] 显式选择 source identity 字段并稳定排序，检查 legacy 与新索引两处透传；解析器修订保留独立版本。
+- [x] 旧 source ID 只按确切来源唯一匹配在内存重绑定，候选歧义/字节变化拒绝复用；不更新 AU 原文件。
+- [x] 验证 operation identity、candidateRevision 与实际恢复入口，保存零调用旧/新对照。
 
 ### AV2 来源选择器归一化与 helper 连接
 
-- [ ] 给现有 operation-links fixture 添加合法 `app.py:3-4` 定位，旧实现应无法绑定；加错误范围、错误候选、不同 receiver 和越界路径反例。
-- [ ] 提取 scheduler 已有无损范围核验为共享 source-selector；operation links、focus 展示和 scheduler 统一使用。
-- [ ] 合法定位绑定正确 helper，保持原参数/条件原样；非法范围返回 interpretation/location 诊断，不能伪报文件不存在。
-- [ ] 零模型重放 AU Download 的三单元副本，只验证连接变化；保留其他语义失败，不宣称整题 full。
+- [x] 给现有 operation-links fixture 添加合法 `app.py:3-4` 定位，旧实现应无法绑定；加错误范围、错误候选、不同 receiver 和越界路径反例。
+- [x] 提取 scheduler 已有无损范围核验为共享 source-selector；operation links、focus 展示和 scheduler 统一使用。
+- [x] 合法定位绑定正确 helper，保持原参数/条件原样；非法范围返回 interpretation/location 诊断，不能伪报文件不存在。
+- [x] 零模型重放 AU Download 的三单元副本，只验证连接变化；保留其他语义失败，不宣称整题 full。
 
 ### AV3 来源确认的入口与框架路由
 
@@ -407,3 +407,4 @@ git diff --check
 ## 九、交接记录
 
 - 2026-10-06：根据 AU 收束复核和两项只读代码定位形成 AV0–AV20。当前仅任务书、spec、研究决定与导航更新；未修生产代码，未启动本轮模型实验。用户指定 GPT‑6.1 Sol / max / Flash；模型和推理强度可派发，Flash 状态未由工具核实。
+- 2026-10-06 AV0–AV2：接管时工作区干净，HEAD `531bc80d`。来源身份及统一选择器已实现；AV1四项、AV2三项行为反例先失败后通过。相关58项测试/267断言、主类型通过；旧Download副本连接1项，仍有1项语义失败。原件SHA保持、provider/目标执行均0。继续AV3，恢复入口为AV `status.json` 和 `verification/av1-av2.json`。

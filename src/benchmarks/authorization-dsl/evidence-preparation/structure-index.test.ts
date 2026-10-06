@@ -1,6 +1,23 @@
 import { expect, test } from "bun:test"
 import { buildStructureIndex } from "./structure-index.ts"
 
+test("runtime settings and traversal order do not change source identities or structural revisions", async () => {
+  const files = [{ path: "app.py", content: "def outer(x):\n    return inner(x)\ndef inner(x):\n    return x\n" }, { path: "other.py", content: "def unrelated():\n    return False\n" }]
+  const first = { repository: "fixture", sourceRef: "r", sourceRoot: "D:/a", maxToolCalls: 24 }
+  const a = await buildStructureIndex(files, first)
+  const second = { ...first, sourceRoot: "D:/b", maxToolCalls: 64 }
+  const b = await buildStructureIndex([...files].reverse(), second)
+  expect(a.symbols.map(s => s.id)).toEqual(b.symbols.map(s => s.id))
+  expect(a.calls.map(c => c.id)).toEqual(b.calls.map(c => c.id))
+  expect(a.revision).toBe(b.revision)
+  expect(a.candidateRevision("app.outer", "outer")).toBe(b.candidateRevision("app.outer", "outer"))
+  const changedRef = await buildStructureIndex(files, { ...first, sourceRef: "other" })
+  const changedBytes = await buildStructureIndex([{ ...files[0]!, content: files[0]!.content.replace("return x", "return False") }, files[1]!], first)
+  expect(changedRef.symbols[0]!.id).not.toBe(a.symbols[0]!.id)
+  expect(changedRef.revision).not.toBe(a.revision)
+  expect(changedBytes.symbols[0]!.id).not.toBe(a.symbols[0]!.id)
+})
+
 test("Python alias and inheritance bind actual overrides, not unique lexical names", async () => {
   const index = await buildStructureIndex([
     { path: "pkg/base.py", content: "class Base:\n    def create(self, request):\n        return request\n" },

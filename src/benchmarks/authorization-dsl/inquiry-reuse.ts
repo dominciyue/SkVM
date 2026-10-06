@@ -17,6 +17,7 @@ export interface InquiryReuseInfo {
   previousSessionId: string; change: "unchanged" | "policy-only" | "premise-only" | "policy-and-premise" | "source-changed" | "incompatible";
   answerReused: false; semanticSupport: "unreviewed"; reusedRuleKeys: string[]; invalidatedPolicyKeys: string[]; invalidatedPremiseKeys: string[]
   reuseLevel?: "materials"; reusedMaterials?: string[]; invalidatedMaterials?: Array<{ handle: string; reasons: string[] }>
+  legacyRebindings?: Array<{ handle: string; previousId: string; currentId: string }>
 }
 /** Plan reuse of bounded source interpretation; never reuse answers, check results or dependency state. */
 export function planInquiryReuse(options: {
@@ -85,13 +86,32 @@ function planOperationMaterials(options: Parameters<typeof planInquiryReuse>[0],
   info.reuseLevel = "materials"; info.reusedMaterials = []; info.invalidatedMaterials = []
   if (info.change === "incompatible") info.change = "policy-and-premise"
   const files = new Map(options.currentFiles.map(f => [f.path, f.sha256])), sourceFacts = prior.domain!.operationFacts!, retained: BoundSemanticBlock[] = [], evidence = prior.evidence ?? []
-  for (const unit of prior.domain!.semantic!.units) {
-    const failures: string[] = [], fact = sourceFacts.facts.find(f => f.current && f.unit && isDeepStrictEqual(f.unit, unit))
+  for (const original of prior.domain!.semantic!.units) {
+    const unit = structuredClone(original)
+    const failures: string[] = [], fact = sourceFacts.facts.find(f => f.current && f.unit && isDeepStrictEqual(f.unit, original))
+    let rebound = false
+    if (unit.source && !index!.symbols.some(s => s.id === unit.source!.id && s.sha256 === unit.source!.sha256)) {
+      const exact = index!.symbols.filter(s => s.path === unit.source!.path && s.sha256 === unit.source!.sha256 && s.startLine === unit.source!.startLine && s.endLine === unit.source!.endLine)
+      const priorStructure = prior.domain!.structure
+      const sameStructure = isDeepStrictEqual(options.currentFiles, prior.sourceFiles) && priorStructure?.parser === index!.parser && (priorStructure.relationshipVersion ?? "source-bindings/v1") === index!.relationshipVersion
+      if (exact.length !== 1) failures.push(exact.length > 1 ? "legacy-source-ambiguous" : "legacy-source-unavailable")
+      else if (!sameStructure || unit.receiverClass && !index!.symbols.some(s => s.kind === "class" && s.qualifiedName === unit.receiverClass)) failures.push("legacy-structural-dependencies-unverified")
+      else {
+        const previousId = unit.source.id
+        unit.source.id = exact[0]!.id; rebound = true
+        ;(info.legacyRebindings ??= []).push({ handle: unit.handle, previousId, currentId: unit.source.id })
+      }
+    }
     try { const { questionId: _q, evidenceIds: _e, source: _s, receiverClass: _r, ...raw } = unit; SemanticBlockSchema.parse(raw) } catch { failures.push("semantic-schema") }
     if (!fact || !unit.source || !fact.dependencies.length) failures.push("missing source/fact dependency footprint")
     for (const d of fact?.dependencies ?? []) {
-      const revision = d.kind === "source-span" ? files.get(d.key) : structuralDependencyRevision(index!, d)
-      if (!revision || revision !== d.revision) failures.push(`${d.kind}:${d.key}:changed-or-unavailable`)
+      const dependency = rebound && d.kind === "symbol-resolution" && d.key === original.source!.id ? { ...d, key: unit.source!.id }
+        : rebound && d.kind === "candidate-set" && d.key.startsWith(`relations:${original.source!.id}:`) ? { ...d, key: d.key.replace(`relations:${original.source!.id}:`, `relations:${unit.source!.id}:`) } : d
+      const revision = dependency.kind === "source-span" ? files.get(dependency.key) : structuralDependencyRevision(index!, dependency)
+      // Legacy runtime identity salts can only be retired when all indexed
+      // originals and the parser/relation version are unchanged. No old
+      // framework binding or absent dependency is silently reconstructed.
+      if (!revision || revision !== d.revision && !(rebound && d.kind === "candidate-set")) failures.push(`${d.kind}:${d.key}:changed-or-unavailable`)
     }
     if (!unit.evidenceIds.length || unit.evidenceIds.some(id => { const e = evidence.find(e => e.id === id); return !e || e.repository !== current.repository || e.sourceRef !== current.sourceRef || files.get(e.path) !== e.sha256 })) failures.push("original evidence changed-or-unavailable")
     if (failures.length) info.invalidatedMaterials.push({ handle: unit.handle, reasons: [...new Set(failures)] })

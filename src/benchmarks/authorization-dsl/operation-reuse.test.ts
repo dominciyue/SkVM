@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { mkdtemp, writeFile } from "node:fs/promises"
+import { mkdtemp, writeFile, cp } from "node:fs/promises"
 import path from "node:path"
 import os from "node:os"
 import { createInquiryTools } from "./inquiry-tools.ts"
@@ -42,6 +42,37 @@ test("partial operation materials restore unreviewed source templates and recomp
   expect(domain.report().slice.rules.some(r => r.kind === "entry")).toBe(true)
   expect(domain.report().check).toBeUndefined()
   expect(domain.report().operationFacts!.facts.every(f => f.semanticSupport === "unreviewed")).toBe(true)
+})
+
+test("production material reuse survives moving unchanged source and changing runtime budgets", async () => {
+  const f = await fixture(), moved = await mkdtemp(path.join(os.tmpdir(), "av-material-move-"))
+  await cp(f.sourceRoot, moved, { recursive: true })
+  const tools = await createInquiryTools({ sourceRoot: moved, allowedPaths: ["."], repository: "fixture", sourceRef: "r", structure: true, maxToolCalls: 64, maxDisplayBytes: 786432 })
+  const plan: any = planInquiryReuse({ ...f.args, currentInput: { ...f.input, sourceRoot: moved }, currentFiles: tools.files, currentStructure: tools.structure })
+  expect(plan.status).toBe("reusable")
+  expect(plan.seed.semanticUnits).toHaveLength(2)
+  expect(plan.info.invalidatedMaterials).toEqual([])
+  expect(tools.restoreEvidence(plan.seed.evidence).diagnostics).toEqual([])
+})
+
+test("legacy source IDs rebind only from unique exact originals and unchanged structural dependencies", async () => {
+  const f = await fixture(), prior = structuredClone(f.prior), before = JSON.stringify(prior)
+  for (const unit of prior.domain.semantic.units) {
+    const originalId = unit.source.id
+    unit.source.id = `legacy-${originalId}`
+    const fact = prior.domain.operationFacts.facts.find((f: any) => f.unit.handle === unit.handle)
+    fact.unit.source.id = unit.source.id
+    fact.dependencies.push({ kind: "symbol-resolution", key: unit.source.id, revision: unit.source.sha256 })
+  }
+  prior.domain.structure = { parser: f.tools.structure!.parser, relationshipVersion: "source-bindings/v1" }
+  const retained: any = planInquiryReuse({ ...f.args, previousRun: prior })
+  expect(retained.seed.semanticUnits).toHaveLength(2)
+  expect(retained.seed.semanticUnits.map((u: any) => u.source.id)).toEqual(f.prior.domain.semantic.units.map((u: any) => u.source.id))
+  expect(retained.info.legacyRebindings).toHaveLength(2)
+  expect(JSON.stringify(f.prior)).toBe(before)
+  const ambiguous = { ...f.tools.structure!, symbols: [...f.tools.structure!.symbols, { ...f.tools.structure!.symbols.find(s => s.id === f.prior.domain.semantic.units[0].source.id)!, id: "ambiguous" }] }
+  const rejected: any = planInquiryReuse({ ...f.args, previousRun: prior, currentStructure: ambiguous })
+  expect(rejected.info.invalidatedMaterials.some((m: any) => m.reasons.includes("legacy-source-ambiguous"))).toBe(true)
 })
 
 test("an unrelated file change preserves materials but an added override invalidates old MRO while read base bytes stay identical", async () => {

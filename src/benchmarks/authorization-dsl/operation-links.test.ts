@@ -24,6 +24,26 @@ test("unique actual source call binds an accepted helper without inventing argum
   expect(bindOperationCalls(index, result.units).records).toEqual([])
 })
 
+test("an exact candidate range in pathHint preserves the real source link and caller arguments", async () => {
+  const { index, units } = await fixture(), caller = units[0]!, helper = units[1]!.source!
+  caller.blocks[0]!.steps = [{ kind: "call", name: "gate", symbol: "a.check", claim: "Actual source call", pathHint: `${helper.path}:${helper.startLine}-${helper.endLine}`, arguments: [{ parameter: "actor", object: "actor" }] }]
+  const linked = bindOperationCalls(index, units)
+  expect((linked.units[0]!.blocks[0]!.steps[0] as any).callee).toBe("a")
+  expect((linked.units[0]!.blocks[0]!.steps[0] as any).arguments).toEqual([{ parameter: "actor", object: "actor" }])
+  expect(linked.records[0]).toMatchObject({ originalSelector: "app.py:2-3", normalizedSelector: { path: "app.py", startLine: 2, endLine: 3 } })
+  expect((caller.blocks[0]!.steps[0] as any).callee).toBeUndefined()
+})
+
+test("bad ranges, candidate conflicts and escaping paths are location diagnostics, not missing source", async () => {
+  for (const [pathHint, candidateId, code] of [["app.py:90-99", undefined, "source-selector-range-mismatch"], ["app.py:2-3", "unknown", "source-selector-candidate-unknown"], ["../app.py", undefined, "source-selector-unsafe-path"]] as const) {
+    const { index, units } = await fixture()
+    units[0]!.blocks[0]!.steps = [{ kind: "call", name: "gate", symbol: "a.check", claim: "Actual source call", pathHint, candidateId, arguments: [] }]
+    const linked: any = bindOperationCalls(index, units)
+    expect(linked.units[0].blocks[0].steps[0].callee).toBeUndefined()
+    expect(linked.diagnostics).toContainEqual(expect.objectContaining({ code, questionId: "q" }))
+  }
+})
+
 test("homonyms and receiver ambiguity remain unbound; candidate identity alone cannot choose a receiver", async () => {
   const { index, units } = await fixture(), caller = units[0]!
   const step: any = { kind: "call", name: "gate", symbol: "check", claim: "Source call", candidateId: units[1]!.source!.id, arguments: [] }

@@ -1,8 +1,25 @@
 import { expect, test } from "bun:test"
-import { mkdtemp, mkdir, writeFile, symlink } from "node:fs/promises"
+import { mkdtemp, mkdir, writeFile, symlink, cp } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import { createInquiryTools } from "./inquiry-tools.ts"
+
+test("production source identities and restored evidence survive a real directory copy and budget change", async () => {
+  const original = await mkdtemp(path.join(os.tmpdir(), "av-identity-")), moved = await mkdtemp(path.join(os.tmpdir(), "av-moved-"))
+  await writeFile(path.join(original, "app.py"), "def outer(x):\n    return inner(x)\ndef inner(x):\n    return x\n")
+  await writeFile(path.join(original, "extra.ts"), "export function auxiliary() { return true; }\n")
+  await cp(original, moved, { recursive: true })
+  for (const structure of [false, true]) {
+    const base = { sourceRoot: original, allowedPaths: ["."], repository: "fixture", sourceRef: "r", structure, maxToolCalls: 24 }
+    const a = await createInquiryTools(base), b = await createInquiryTools({ ...base, sourceRoot: moved, maxToolCalls: 64 })
+    expect(a.locateSymbols("outer")).toEqual(b.locateSymbols("outer"))
+    expect(a.locateSymbols("auxiliary")).toEqual(b.locateSymbols("auxiliary"))
+    expect(a.structure?.revision).toBe(b.structure?.revision)
+    const read = await a.execute("source_read", { path: "app.py", startLine: 1, endLine: 2 })
+    expect(b.restoreEvidence(read.evidence).diagnostics).toEqual([])
+    expect(b.evidence).toEqual(read.evidence)
+  }
+})
 
 async function fixture(options: Record<string, number> = {}) {
   const root = await mkdtemp(path.join(os.tmpdir(), "ao-source-"))

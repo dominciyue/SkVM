@@ -36,8 +36,9 @@ function moduleName(file: string, language: string) {
 }
 /** Only AST syntax and bounded name binding. No target import, execution or permission inference. */
 export async function buildStructureIndex(files: Array<{ path: string; content: string }>, identity: { repository: string; sourceRef: string }) {
+  const sourceIdentity = { repository: identity.repository, sourceRef: identity.sourceRef }
   const started = performance.now(), loaded = await languages(), scopes: FileScope[] = [], diagnostics: Array<{ path: string; code: string; line?: number }> = []
-  for (const file of files) {
+  for (const file of [...files].sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0)) {
     const language = file.path.endsWith(".py") ? "python" : file.path.endsWith(".go") ? "go" : undefined
     if (!language) { diagnostics.push({ path: file.path, code: "structure-language-unsupported" }); continue }
     const parser = new Parser(); parser.setLanguage(loaded.get(language)!)
@@ -88,7 +89,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           const type = field(declaration, "type")?.text
           for (const key of children(declaration).filter(c => c.type === "field_identifier")) if (type) attributes[key.text] = type
         }
-        const s: StructureSymbol = { id: `struct-${hash([identity, file.path, sha256, n.startIndex, qualifiedName]).slice(0, 24)}`, path: file.path, sha256, name, qualifiedName, module, language, kind: n.type === "class_definition" || n.type === "type_spec" ? "class" : "function", startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, boundary: n.hasError ? "uncertain" : "complete", ...(className ? { parent: className.split(".").at(-1), className } : {}), ...(receiver ? { receiver } : {}), parameters, returns: field(n, "return_type") || field(n, "result") ? [(field(n, "return_type") ?? field(n, "result"))!.text] : [], bases: children(field(n, "superclasses")).map(c => c.text), attributes }
+        const s: StructureSymbol = { id: `struct-${hash([sourceIdentity, file.path, sha256, n.startIndex, qualifiedName]).slice(0, 24)}`, path: file.path, sha256, name, qualifiedName, module, language, kind: n.type === "class_definition" || n.type === "type_spec" ? "class" : "function", startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, boundary: n.hasError ? "uncertain" : "complete", ...(className ? { parent: className.split(".").at(-1), className } : {}), ...(receiver ? { receiver } : {}), parameters, returns: field(n, "return_type") || field(n, "result") ? [(field(n, "return_type") ?? field(n, "result"))!.text] : [], bases: children(field(n, "superclasses")).map(c => c.text), attributes }
         byNode.set(n.id, s); symbols.push(s)
       }
       const rawCalls: FileScope["rawCalls"] = []
@@ -105,7 +106,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         let assignment = n.parent
         while (assignment && !["assignment", "short_var_declaration", "assignment_statement", "function_definition", "function_declaration", "method_declaration"].includes(assignment.type)) assignment = assignment.parent
         if (assignment && ["assignment", "short_var_declaration", "assignment_statement"].includes(assignment.type)) resultNames.push(...(children(field(assignment, "left")).length ? children(field(assignment, "left")).map(c => c.text) : [field(assignment, "left")?.text ?? ""]).filter(Boolean))
-        rawCalls.push({ types, groupPaths, call: { id: `call-${hash([identity, file.path, sha256, n.startIndex]).slice(0, 24)}`, ...(symbol ? { ownerId: symbol.id } : {}), path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, expression, ...(expression.includes(".") ? { receiver: expression.slice(0, expression.lastIndexOf(".")) } : {}), arguments: args, candidateIds: [], resolution: "unresolved", basis: [], resultNames } })
+        rawCalls.push({ types, groupPaths, call: { id: `call-${hash([sourceIdentity, file.path, sha256, n.startIndex]).slice(0, 24)}`, ...(symbol ? { ownerId: symbol.id } : {}), path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, expression, ...(expression.includes(".") ? { receiver: expression.slice(0, expression.lastIndexOf(".")) } : {}), arguments: args, candidateIds: [], resolution: "unresolved", basis: [], resultNames } })
       }
       scopes.push({ path: file.path, module, language, aliases, symbols, rawCalls })
     } finally { tree.delete(); parser.delete() }
@@ -213,7 +214,8 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
   const candidateRevision = (className: string, method: string) => hash([linearize(className), lookupMethod(className, method).map(s => [s.id, s.sha256]), scopes.map(s => [s.path, s.aliases])])
   const relatedCalls = (symbolId: string, receiverClass?: string) => { const route = routes.find(r => r.id === symbolId); return scopes.flatMap(f => f.rawCalls.filter(r => route ? r.call.path === route.sourcePath && r.call.id !== route.sourceCallId && r.call.startLine >= route.startLine && r.call.endLine <= route.endLine : r.call.ownerId === symbolId).map(r => resolveCall(r, f, receiverClass))) }
   const resolveName = (text: string, sourcePath: string) => { const scope = scopes.find(f => f.path === sourcePath); return scope ? matching(qualified(text, scope)) : [] }
-  return { schemaVersion: "authorization-structure-index/v1" as const, parser: "@vscode/tree-sitter-wasm@0.3.1", symbols, calls, routes, diagnostics, lookupMethod, attribute, linearize, candidateRevision, relatedCalls, resolveName,
-    revision: hash([symbols, calls, routes, diagnostics]), preparation: { files: files.length, bytes: files.reduce((s, f) => s + Buffer.byteLength(f.content), 0), durationMs: performance.now() - started, targetExecutions: 0 } }
+  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v1"
+  return { schemaVersion: "authorization-structure-index/v1" as const, parser: parserVersion, relationshipVersion, symbols, calls, routes, diagnostics, lookupMethod, attribute, linearize, candidateRevision, relatedCalls, resolveName,
+    revision: hash([sourceIdentity, parserVersion, relationshipVersion, symbols, calls, routes, diagnostics]), preparation: { files: files.length, bytes: files.reduce((s, f) => s + Buffer.byteLength(f.content), 0), durationMs: performance.now() - started, targetExecutions: 0 } }
 }
 export type StructureIndex = Awaited<ReturnType<typeof buildStructureIndex>>

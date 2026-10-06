@@ -3,7 +3,7 @@
 更新于 2026-10-06。本页维护未达责任与长期边界；阶段原件通过[研究正文](skill-dsl-research.md)、[历史](history.md)和[实验目录](../../results/skill-ir/experiment-catalog.json)查阅。
 
 - 唯一实时入口：[current-status](current-status.md)。
-- 当前任务书：[AV0–AV20 源码辅助解释与授权任务真实闭合](../superpowers/plans/2026-10-06-authorization-source-assisted-closure.md)，`authorized-not-started`。用户授权连续开发，模型 `gpt-6.1-sol / max`，Flash 尚未核实；设计基线 `9d7db8e8`。
+- 当前任务书：[AV0–AV20 源码辅助解释与授权任务真实闭合](../superpowers/plans/2026-10-06-authorization-source-assisted-closure.md)，`in-progress`。AV0–AV2完成，继续AV3；真实实验尚未开始。用户授权连续开发，模型`gpt-6.1-sol / max`，Flash尚未核实；设计基线`9d7db8e8`。
 - 新执行合同：[spec AV](skill-ir-aot-optimization-spec.md#1435-av-source-assisted-closure-contract)。旧默认和 AU 合同继续兼容，历史原件保留。
 - 根因复核：[研究 §7.54](skill-dsl-research.md#754-au-收束后复核入口来源连接和身份稳定性)；本轮设计：[§7.55](skill-dsl-research.md#755-av-源码辅助解释与局部恢复开发决定)。
 
@@ -17,7 +17,7 @@
 
 | 阶段 | 本轮工作 | 当前状态 |
 |---|---|---|
-| AV0–AV3 | 接管及三项共享缺陷的失败测试、实现和真实来源探针 | 已授权，尚未执行 |
+| AV0–AV3 | 接管及三项共享缺陷的失败测试、实现和真实来源探针 | AV0–AV2完成，AV3进行中 |
 | AV4–AV7 | 源码骨架、窄解释提案、义务调度、四类缺口与同源交付 | 已授权，尚未执行 |
 | AV8–AV9 | 只读超时恢复、晚答隔离、双入口与薄 runner | 已授权，尚未执行 |
 | AV10–AV11 | Download、OWUI 纵向链与即时修复，Go 结构兼容 | 已授权，尚未执行 |

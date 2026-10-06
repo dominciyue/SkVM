@@ -60,6 +60,7 @@ const structureTool = toolSchema("source_structure", "Inspect AST-bound calls an
 
 /** One bounded executor for Markdown, DSL and the opt-in ordinary adapter. */
 export async function createInquiryTools(options: InquiryToolsOptions) {
+  const sourceIdentity = { repository: options.repository, sourceRef: options.sourceRef }
   for (const value of [options.maxFiles, options.maxReadBytes, options.maxDisplayBytes, options.maxToolCalls]) if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new Error("Invalid inquiry budget")
   if (!options.allowedPaths.length || options.allowedPaths.some(p => !safePath(p, true))) throw new Error("Unsafe allowed source scope")
   const root = await realpath(options.sourceRoot), maxFiles = options.maxFiles ?? 512, maxReadBytes = options.maxReadBytes ?? 8388608
@@ -90,9 +91,9 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
     if (!loaded.success) { scopeGaps.push(...loaded.diagnostics.map(d => ({ code: d.code, path: relative, detail: d.message }))); continue }
     const source = loaded.bundle.files[0]!
     files.set(relative, source); indexBytes += Buffer.byteLength(source.content); ioReadBytes += Buffer.byteLength(source.content)
-    symbols.push(...indexAuthorizationSymbols(relative, source.content, options))
+    symbols.push(...indexAuthorizationSymbols(relative, source.content, sourceIdentity))
   }
-  const structure = options.structure ? await buildStructureIndex([...files].map(([p, f]) => ({ path: p, content: f.content })), options) : undefined
+  const structure = options.structure ? await buildStructureIndex([...files].map(([p, f]) => ({ path: p, content: f.content })), sourceIdentity) : undefined
   if (structure) {
     // Parser boundaries replace lexical candidates only for supported languages.
     const supported = new Set(structure.symbols.map(s => s.path))

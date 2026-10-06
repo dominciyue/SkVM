@@ -2508,6 +2508,10 @@ AU 计量只按原件显式 program metadata 计操作数，根级与 domain 级
 
 **来源连接。** 结构身份仅由 repository/ref、相对路径、源码内容、语法位置和相应结构版本决定，运行预算与绝对目录不参与。scheduler、operation links 和 focus 共用来源选择器；旧带行号 pathHint 只做可唯一核验的无损归一化，错误范围与 receiver 歧义明确诊断。入口候选区分显式符号、真实路由/调用关系与词法线索；普通词的唯一命中不自动绑定入口。Python decorator route 按实际 import/alias/router/prefix 关系建候选，动态关系保留缺口。
 
+AV1已实现：structure-index显式选取repository/sourceRef，按相对path确定排序；parser与relationshipVersion单独进入结构revision，运行计时/目录/预算不进入ID。生产tools对词法与AST索引均只透传来源身份。legacy材料仅在完整索引字节与解析/关系版本相同、精确来源范围唯一、receiver存在时在内存重绑定，记录legacyRebindings；源码或候选依赖变化仍失效，旧原件保持。
+
+AV2已实现：`selectSourceCandidates(string|SourceSelector,{candidates,paths})`返回resolved或具名unresolved，保留原始值和归一化path/range/candidateId。仅完整候选精确范围可连接，不截断；单行旧`path:line`无损转为同起止范围。未知candidate、范围冲突/错误、跨根/范围外和receiver歧义不混合。scheduler/link/focus使用此函数，链接只填callee身份；实参与语义不变。
+
 **源码辅助解释。** 宿主按需生成原文绑定的参数、调用、赋值、有限分支、return/raise 骨架；模型标注主体、资源、条件与授权含义。模型不再重复手写宿主可确定的位置、调用实参顺序与分支连接。窄提案引用当前已展示锚点，降低到现有 semantic-flow/求值与结论检查；语义不明确时继续请求具体谓词/对象关系，不能从自由说明猜权限事实。旧低层提案保持兼容但显式记录 fallback，结构事实不提升为源码语义真值。
 
 **交付。** `source-gap`、`interpretation-gap`、`premise-unknown`、`policy-unspecified` 分列；缺独立政策只影响请求的合规比较。自然答案和检查使用同一当前快照，可靠部分说明可保留；机械 valid、完整来源覆盖与独立任务质量分别评价。原始任务义务不缩减，条件答案充分性按原任务核查。

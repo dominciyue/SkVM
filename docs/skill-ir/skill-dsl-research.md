@@ -1842,6 +1842,10 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 **评价和使用。** source-gap、interpretation-gap、premise-unknown、policy-unspecified 分开，保留有据的自然说明；behavior 缺独立 policy 不增加无关失败义务。完整原任务质量、机器检查、作者稿忠实性、原字节消费、变化复用和成本各自给结论。26个初始工作位置用于留全首答/失败/依赖处置，实际比较在稳定同版本块进行；每个可定位缺陷当场修共享实现并复验，不让后续调用继续承受已知故障。工程采用与研究增益尚待本轮实际证据。
 
+**AV0–AV1工程记录。** 接管HEAD`531bc80d`、干净工作区；两名只读AI探子点验Download N/D、OWUI D及Gitea native/作者/消费者，14个旧原件SHA在AV评价侧留存，三个原自然输入原字节进入新model目录，未派发模型。身份/遍历顺序、真实目录副本和预算变化、旧ID唯一重绑定四项新行为测试先失败，再由显式repo/ref身份及确定排序修复；32项相关测试、170断言通过。旧ID重绑定只在所有索引文件字节、解析器/关系版本不变且精确path/SHA/范围唯一时成立，receiver必须可核验，框架依赖不盲补；旧报告不改。工程稳定性不代表真实语义或复用收益。
+
+**AV2来源连接。** 合法range连接、精确非法定位诊断和单行旧定位三项行为反例先失败，共用`source-selector.ts`后58项相关测试/267断言通过。scheduler保留旧range/out-of-scope代码兼容，同时保存归一化selector；operation links和focus共用同一范围合同，来源错误进入当前解释诊断而非文件不存在。Download三单元只在内存按原SHA/范围重绑定，原带行号pathHint现在得到一个真实callee绑定；另一个语义诊断仍保留，未重写参数/条件或宣称整题full。证据在[AV阶段验证](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/verification/av1-av2.json)。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
