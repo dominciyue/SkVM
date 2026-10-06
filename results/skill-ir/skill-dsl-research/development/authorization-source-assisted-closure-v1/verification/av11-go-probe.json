@@ -1,0 +1,3279 @@
+{
+  "schemaVersion": "authorization-av-go-source-probe/v1",
+  "repository": "go-gitea/gitea",
+  "sourceRef": "fc28937a8d772fe9e4025c9b5f24d5db4d86610b",
+  "inputSha256": "2166cd5aa75719efd1829e64598bb9688bae72a46206251c742a645ac7db2a3a",
+  "symbol": {
+    "id": "struct-75dafed018fb86ed4817eec0",
+    "path": "routers/api/v1/repo/issue.go",
+    "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+    "name": "CreateIssue",
+    "qualifiedName": "routers/api/v1/repo.CreateIssue",
+    "module": "routers/api/v1/repo",
+    "language": "go",
+    "kind": "function",
+    "startLine": 533,
+    "endLine": 653,
+    "boundary": "complete",
+    "parameters": [
+      {
+        "name": "ctx",
+        "type": "*context.APIContext"
+      }
+    ],
+    "returns": [],
+    "bases": [],
+    "attributes": {}
+  },
+  "routes": [
+    {
+      "id": "route-44e0910b3ff8f7514b187746",
+      "sourceCallId": "call-2298df78ebc656a214a4acbd",
+      "sourcePath": "routers/api/v1/api.go",
+      "startLine": 1648,
+      "endLine": 1649,
+      "method": "POST",
+      "path": "/repos/{username}/{reponame}/issues",
+      "handlerExpression": "repo.CreateIssue",
+      "candidateIds": [
+        "struct-75dafed018fb86ed4817eec0"
+      ],
+      "middlewareExpressions": [
+        "reqToken()",
+        "mustNotBeArchived",
+        "bind(api.CreateIssueOption{})",
+        "reqRepoReader(unit.TypeIssues)"
+      ],
+      "model": "go-route-registration/v1"
+    }
+  ],
+  "skeleton": {
+    "schemaVersion": "authorization-source-skeleton/v1",
+    "sourceId": "struct-75dafed018fb86ed4817eec0",
+    "source": {
+      "id": "struct-75dafed018fb86ed4817eec0",
+      "path": "routers/api/v1/repo/issue.go",
+      "sha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+      "startLine": 533,
+      "endLine": 653
+    },
+    "revision": "7919654a388b499e537d399a3084167a7cae699821ea6836b7646f4b4ad370b9",
+    "modelCovered": true,
+    "evidenceIds": [
+      "ev-98a96680dff3cfd848cf"
+    ],
+    "anchors": [
+      {
+        "id": "anchor-b4018b8c13dfb8b3f83a7ea8",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 533,
+          "endLine": 533,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "parameter",
+        "text": "ctx *context.APIContext",
+        "syntax": "parameter_declaration",
+        "name": "ctx"
+      },
+      {
+        "id": "anchor-abd2a2d966b6f1e8427e26ce",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 570,
+          "endLine": 570,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "form := web.GetForm[*api.CreateIssueOption](ctx)",
+        "syntax": "short_var_declaration",
+        "name": "form",
+        "valueExpression": "web.GetForm[*api.CreateIssueOption](ctx)",
+        "literalKnown": false
+      },
+      {
+        "id": "anchor-b8de28225adb29d233800b98",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 571,
+          "endLine": 571,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "var deadlineUnix timeutil.TimeStamp",
+        "syntax": "var_declaration"
+      },
+      {
+        "id": "anchor-2c387f176ae105d4b6e655a1",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 572,
+          "endLine": 572,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "form.Deadline",
+        "syntax": "selector_expression",
+        "name": "form.Deadline",
+        "valueExpression": "form.Deadline"
+      },
+      {
+        "id": "anchor-5a9d08fc9a6dd6bd2116b915",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 572,
+          "endLine": 572,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "condition",
+        "text": "form.Deadline != nil && ctx.Repo.Permission.CanWrite(unit.TypeIssues)",
+        "syntax": "binary_expression"
+      },
+      {
+        "id": "anchor-00bf2fa672bbe34f2d01e3da",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 572,
+          "endLine": 572,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Repo.Permission",
+        "syntax": "selector_expression",
+        "name": "ctx.Repo.Permission",
+        "valueExpression": "ctx.Repo.Permission"
+      },
+      {
+        "id": "anchor-48d47b5fbafc793839214016",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 572,
+          "endLine": 572,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Repo.Permission.CanWrite",
+        "syntax": "selector_expression",
+        "name": "ctx.Repo.Permission.CanWrite",
+        "valueExpression": "ctx.Repo.Permission.CanWrite"
+      },
+      {
+        "id": "anchor-81650330fc8b881371864951",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 572,
+          "endLine": 572,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Repo",
+        "syntax": "selector_expression",
+        "name": "ctx.Repo",
+        "valueExpression": "ctx.Repo"
+      },
+      {
+        "id": "anchor-ca5aaf21eac11f17466053bb",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 572,
+          "endLine": 572,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "ctx.Repo.Permission.CanWrite(unit.TypeIssues)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-ae1670d13fb89a2057a305de",
+          "expression": "ctx.Repo.Permission.CanWrite",
+          "receiver": "ctx.Repo.Permission",
+          "receiverClass": "models/perm/access.Permission",
+          "arguments": [
+            {
+              "expression": "unit.TypeIssues"
+            }
+          ],
+          "candidateIds": [
+            "struct-f9d56f50f5fc16ecc8617098"
+          ],
+          "resultNames": [],
+          "resultBinding": "result-7a11990bb08bc8a7"
+        }
+      },
+      {
+        "id": "anchor-6599a7b917d62098db541926",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 572,
+          "endLine": 572,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "unit.TypeIssues",
+        "syntax": "selector_expression",
+        "name": "unit.TypeIssues",
+        "valueExpression": "unit.TypeIssues"
+      },
+      {
+        "id": "anchor-3faff205b26ed0d69816822b",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 573,
+          "endLine": 573,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "deadlineUnix = timeutil.TimeStamp(form.Deadline.Unix())",
+        "syntax": "assignment_statement",
+        "name": "deadlineUnix",
+        "valueExpression": "timeutil.TimeStamp(form.Deadline.Unix())",
+        "literalKnown": false
+      },
+      {
+        "id": "anchor-88083121a2342b8bc1e30c6d",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 573,
+          "endLine": 573,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "timeutil.TimeStamp(form.Deadline.Unix())",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-ceb86f3720d2d0832237bdb6",
+          "expression": "timeutil.TimeStamp",
+          "receiver": "timeutil",
+          "arguments": [
+            {
+              "expression": "form.Deadline.Unix()"
+            }
+          ],
+          "candidateIds": [],
+          "resultNames": [
+            "deadlineUnix"
+          ],
+          "resultBinding": "deadlineUnix"
+        }
+      },
+      {
+        "id": "anchor-b87f0ee01d0c2de3eaadb2f7",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 573,
+          "endLine": 573,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "timeutil.TimeStamp",
+        "syntax": "selector_expression",
+        "name": "timeutil.TimeStamp",
+        "valueExpression": "timeutil.TimeStamp"
+      },
+      {
+        "id": "anchor-14e087f6a906d15d870da67f",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 573,
+          "endLine": 573,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "form.Deadline.Unix()",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-aa347a8d0ec61e68c5fdca9c",
+          "expression": "form.Deadline.Unix",
+          "receiver": "form.Deadline",
+          "arguments": [],
+          "candidateIds": [],
+          "resultNames": [],
+          "resultBinding": "result-f95c57e06d19cb8a"
+        }
+      },
+      {
+        "id": "anchor-625541caf5a7f5d787227c66",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 573,
+          "endLine": 573,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "form.Deadline.Unix",
+        "syntax": "selector_expression",
+        "name": "form.Deadline.Unix",
+        "valueExpression": "form.Deadline.Unix"
+      },
+      {
+        "id": "anchor-b988291a424ce9912a0a26f6",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 573,
+          "endLine": 573,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "form.Deadline",
+        "syntax": "selector_expression",
+        "name": "form.Deadline",
+        "valueExpression": "form.Deadline"
+      },
+      {
+        "id": "anchor-ec9b87e83fc0b0fee2ed5c0f",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 576,
+          "endLine": 585,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "issue := &issues_model.Issue{\n\t\tRepoID:       ctx.Repo.Repository.ID,\n\t\tRepo:         ctx.Repo.Repository,\n\t\tTitle:        form.Title,\n\t\tPosterID:     ctx.Doer.ID,\n\t\tPoster:       ctx.Doer,\n\t\tContent:      form.Body,\n\t\tRef:          form.Ref,\n\t\tDeadlineUnix: deadlineUnix,\n\t}",
+        "syntax": "short_var_declaration",
+        "name": "issue",
+        "valueExpression": "&issues_model.Issue{\n\t\tRepoID:       ctx.Repo.Repository.ID,\n\t\tRepo:         ctx.Repo.Repository,\n\t\tTitle:        form.Title,\n\t\tPosterID:     ctx.Doer.ID,\n\t\tPoster:       ctx.Doer,\n\t\tContent:      form.Body,\n\t\tRef:          form.Ref,\n\t\tDeadlineUnix: deadlineUnix,\n\t}",
+        "literalKnown": false
+      },
+      {
+        "id": "anchor-1417495733de9e5453c7f833",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 577,
+          "endLine": 577,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Repo.Repository.ID",
+        "syntax": "selector_expression",
+        "name": "ctx.Repo.Repository.ID",
+        "valueExpression": "ctx.Repo.Repository.ID"
+      },
+      {
+        "id": "anchor-3cbc2515e82c49290bec5725",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 577,
+          "endLine": 577,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Repo",
+        "syntax": "selector_expression",
+        "name": "ctx.Repo",
+        "valueExpression": "ctx.Repo"
+      },
+      {
+        "id": "anchor-5023e28d915e66427ebb58c1",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 577,
+          "endLine": 577,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Repo.Repository",
+        "syntax": "selector_expression",
+        "name": "ctx.Repo.Repository",
+        "valueExpression": "ctx.Repo.Repository"
+      },
+      {
+        "id": "anchor-ac65a665b2cbce9c811ba5b8",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 578,
+          "endLine": 578,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Repo.Repository",
+        "syntax": "selector_expression",
+        "name": "ctx.Repo.Repository",
+        "valueExpression": "ctx.Repo.Repository"
+      },
+      {
+        "id": "anchor-de2739e0012a6154038428c1",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 578,
+          "endLine": 578,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Repo",
+        "syntax": "selector_expression",
+        "name": "ctx.Repo",
+        "valueExpression": "ctx.Repo"
+      },
+      {
+        "id": "anchor-79862dd4568acabd6b9f028f",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 579,
+          "endLine": 579,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "form.Title",
+        "syntax": "selector_expression",
+        "name": "form.Title",
+        "valueExpression": "form.Title"
+      },
+      {
+        "id": "anchor-8383d611b36fe1fe72b86a79",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 580,
+          "endLine": 580,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Doer.ID",
+        "syntax": "selector_expression",
+        "name": "ctx.Doer.ID",
+        "valueExpression": "ctx.Doer.ID"
+      },
+      {
+        "id": "anchor-98831d068ca28cc9b0352c61",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 580,
+          "endLine": 580,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Doer",
+        "syntax": "selector_expression",
+        "name": "ctx.Doer",
+        "valueExpression": "ctx.Doer"
+      },
+      {
+        "id": "anchor-3ec52bce3c24f9b0a0e54096",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 581,
+          "endLine": 581,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Doer",
+        "syntax": "selector_expression",
+        "name": "ctx.Doer",
+        "valueExpression": "ctx.Doer"
+      },
+      {
+        "id": "anchor-5aa91c033fdd3a55b3dea483",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 582,
+          "endLine": 582,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "form.Body",
+        "syntax": "selector_expression",
+        "name": "form.Body",
+        "valueExpression": "form.Body"
+      },
+      {
+        "id": "anchor-9d26ff203cd1787bfbd81765",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 583,
+          "endLine": 583,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "form.Ref",
+        "syntax": "selector_expression",
+        "name": "form.Ref",
+        "valueExpression": "form.Ref"
+      },
+      {
+        "id": "anchor-6279fe0f2ba3608222381090",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 587,
+          "endLine": 587,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "assigneeIDs := make([]int64, 0)",
+        "syntax": "short_var_declaration",
+        "name": "assigneeIDs",
+        "valueExpression": "make([]int64, 0)",
+        "literalKnown": false
+      },
+      {
+        "id": "anchor-15e9923910fb8d2a15a66189",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 587,
+          "endLine": 587,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "make([]int64, 0)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-04eacff62081a7da91fe0773",
+          "expression": "make",
+          "arguments": [
+            {
+              "expression": "[]int64"
+            },
+            {
+              "expression": "0",
+              "literalKnown": true,
+              "literalValue": 0
+            }
+          ],
+          "candidateIds": [],
+          "resultNames": [
+            "assigneeIDs"
+          ],
+          "resultBinding": "assigneeIDs"
+        }
+      },
+      {
+        "id": "anchor-4187c91e0facd49615998a8b",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 588,
+          "endLine": 588,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "var err error",
+        "syntax": "var_declaration"
+      },
+      {
+        "id": "anchor-3aa48e4ac4bc0720bfc3d8c6",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 589,
+          "endLine": 589,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Repo",
+        "syntax": "selector_expression",
+        "name": "ctx.Repo",
+        "valueExpression": "ctx.Repo"
+      },
+      {
+        "id": "anchor-44926c9a6d5e7c8e44067326",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 589,
+          "endLine": 589,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Repo.Permission",
+        "syntax": "selector_expression",
+        "name": "ctx.Repo.Permission",
+        "valueExpression": "ctx.Repo.Permission"
+      },
+      {
+        "id": "anchor-c838e3f5aaf721e72d5ba7c1",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 589,
+          "endLine": 589,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "condition",
+        "text": "ctx.Repo.Permission.CanWrite(unit.TypeIssues)",
+        "syntax": "call_expression"
+      },
+      {
+        "id": "anchor-f3a80b67b19af9e4e9a7579b",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 589,
+          "endLine": 589,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "ctx.Repo.Permission.CanWrite(unit.TypeIssues)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-c9108f373a5f6343d45d1c74",
+          "expression": "ctx.Repo.Permission.CanWrite",
+          "receiver": "ctx.Repo.Permission",
+          "receiverClass": "models/perm/access.Permission",
+          "arguments": [
+            {
+              "expression": "unit.TypeIssues"
+            }
+          ],
+          "candidateIds": [
+            "struct-f9d56f50f5fc16ecc8617098"
+          ],
+          "resultNames": [],
+          "resultBinding": "result-430de19b4b41016b"
+        }
+      },
+      {
+        "id": "anchor-f5e1a45a3a34debbddae8ae8",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 589,
+          "endLine": 589,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Repo.Permission.CanWrite",
+        "syntax": "selector_expression",
+        "name": "ctx.Repo.Permission.CanWrite",
+        "valueExpression": "ctx.Repo.Permission.CanWrite"
+      },
+      {
+        "id": "anchor-3ea76f3d7560efd763acde0e",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 589,
+          "endLine": 589,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "unit.TypeIssues",
+        "syntax": "selector_expression",
+        "name": "unit.TypeIssues",
+        "valueExpression": "unit.TypeIssues"
+      },
+      {
+        "id": "anchor-25f2bb1639883742d1b7427c",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 590,
+          "endLine": 590,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "issue.MilestoneID = form.Milestone",
+        "syntax": "assignment_statement",
+        "name": "issue.MilestoneID",
+        "valueExpression": "form.Milestone",
+        "literalKnown": false
+      },
+      {
+        "id": "anchor-c02ae8811f3592689ddbaee5",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 590,
+          "endLine": 590,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "issue.MilestoneID",
+        "syntax": "selector_expression",
+        "name": "issue.MilestoneID",
+        "valueExpression": "issue.MilestoneID"
+      },
+      {
+        "id": "anchor-620318577ac1c33be4efbdf3",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 590,
+          "endLine": 590,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "form.Milestone",
+        "syntax": "selector_expression",
+        "name": "form.Milestone",
+        "valueExpression": "form.Milestone"
+      },
+      {
+        "id": "anchor-57aae00b4be029d1ece98cc7",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 591,
+          "endLine": 591,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "assigneeIDs, err = issues_model.MakeIDsFromAPIAssigneesToAdd(ctx, form.Assignee, form.Assignees)",
+        "syntax": "assignment_statement",
+        "name": "assigneeIDs, err",
+        "valueExpression": "issues_model.MakeIDsFromAPIAssigneesToAdd(ctx, form.Assignee, form.Assignees)",
+        "literalKnown": false
+      },
+      {
+        "id": "anchor-1f4bf8f3cc96fbc38e9ee16d",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 591,
+          "endLine": 591,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "issues_model.MakeIDsFromAPIAssigneesToAdd",
+        "syntax": "selector_expression",
+        "name": "issues_model.MakeIDsFromAPIAssigneesToAdd",
+        "valueExpression": "issues_model.MakeIDsFromAPIAssigneesToAdd"
+      },
+      {
+        "id": "anchor-bc85d4427087ef9fdf4ea3eb",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 591,
+          "endLine": 591,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "issues_model.MakeIDsFromAPIAssigneesToAdd(ctx, form.Assignee, form.Assignees)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-197373f61e31940f98903ea1",
+          "expression": "issues_model.MakeIDsFromAPIAssigneesToAdd",
+          "receiver": "issues_model",
+          "arguments": [
+            {
+              "expression": "ctx"
+            },
+            {
+              "expression": "form.Assignee"
+            },
+            {
+              "expression": "form.Assignees"
+            }
+          ],
+          "candidateIds": [
+            "struct-8d6a86caf8efb60812ff7ef7"
+          ],
+          "resultNames": [
+            "assigneeIDs",
+            "err"
+          ],
+          "resultBinding": "assigneeIDs"
+        }
+      },
+      {
+        "id": "anchor-56135407312339bad6bf4472",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 591,
+          "endLine": 591,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "form.Assignee",
+        "syntax": "selector_expression",
+        "name": "form.Assignee",
+        "valueExpression": "form.Assignee"
+      },
+      {
+        "id": "anchor-c14bd4c9891b99e1db97a3d1",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 591,
+          "endLine": 591,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "form.Assignees",
+        "syntax": "selector_expression",
+        "name": "form.Assignees",
+        "valueExpression": "form.Assignees"
+      },
+      {
+        "id": "anchor-83cfcec6ae7316f9330480cf",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 592,
+          "endLine": 592,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "condition",
+        "text": "err != nil",
+        "syntax": "binary_expression"
+      },
+      {
+        "id": "anchor-5972168508484a1ba6ed73ff",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 593,
+          "endLine": 593,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "user_model.IsErrUserNotExist",
+        "syntax": "selector_expression",
+        "name": "user_model.IsErrUserNotExist",
+        "valueExpression": "user_model.IsErrUserNotExist"
+      },
+      {
+        "id": "anchor-965e996b443085439d7c1cc7",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 593,
+          "endLine": 593,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "condition",
+        "text": "user_model.IsErrUserNotExist(err)",
+        "syntax": "call_expression"
+      },
+      {
+        "id": "anchor-ee125eb33cc768252f97df53",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 593,
+          "endLine": 593,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "user_model.IsErrUserNotExist(err)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-46c50c9ed7b95c77ede946d0",
+          "expression": "user_model.IsErrUserNotExist",
+          "receiver": "user_model",
+          "arguments": [
+            {
+              "expression": "err"
+            }
+          ],
+          "candidateIds": [
+            "struct-824320ea3d14d46cf1f76c91"
+          ],
+          "resultNames": [],
+          "resultBinding": "result-31c9e80b02624445"
+        }
+      },
+      {
+        "id": "anchor-3a65c665ff370dc3d88212ab",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 594,
+          "endLine": 594,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.APIError",
+        "syntax": "selector_expression",
+        "name": "ctx.APIError",
+        "valueExpression": "ctx.APIError"
+      },
+      {
+        "id": "anchor-d143ba0962d69a19cb14769f",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 594,
+          "endLine": 594,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "ctx.APIError(http.StatusUnprocessableEntity, fmt.Sprintf(\"Assignee does not exist: [name: %s]\", err))",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-3437b6d5f5da24e991782405",
+          "expression": "ctx.APIError",
+          "receiver": "ctx",
+          "receiverClass": "services/context.APIContext",
+          "arguments": [
+            {
+              "expression": "http.StatusUnprocessableEntity"
+            },
+            {
+              "expression": "fmt.Sprintf(\"Assignee does not exist: [name: %s]\", err)"
+            }
+          ],
+          "candidateIds": [
+            "struct-9826d9fee0722a3d2b8fd13c"
+          ],
+          "resultNames": [],
+          "resultBinding": "result-5f34ef133b97ef55"
+        }
+      },
+      {
+        "id": "anchor-779f26cea216f1c70e7ff973",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 594,
+          "endLine": 594,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "http.StatusUnprocessableEntity",
+        "syntax": "selector_expression",
+        "name": "http.StatusUnprocessableEntity",
+        "valueExpression": "http.StatusUnprocessableEntity"
+      },
+      {
+        "id": "anchor-11384c8f1a20345faf12657a",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 594,
+          "endLine": 594,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "fmt.Sprintf(\"Assignee does not exist: [name: %s]\", err)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-75682ccc1e3a221e7e4e8eb3",
+          "expression": "fmt.Sprintf",
+          "receiver": "fmt",
+          "arguments": [
+            {
+              "expression": "\"Assignee does not exist: [name: %s]\"",
+              "literalKnown": true,
+              "literalValue": "Assignee does not exist: [name: %s]"
+            },
+            {
+              "expression": "err"
+            }
+          ],
+          "candidateIds": [],
+          "resultNames": [],
+          "resultBinding": "result-4c1736da938cd24e"
+        }
+      },
+      {
+        "id": "anchor-d5d9985794b6fbde7e8a7187",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 594,
+          "endLine": 594,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "fmt.Sprintf",
+        "syntax": "selector_expression",
+        "name": "fmt.Sprintf",
+        "valueExpression": "fmt.Sprintf"
+      },
+      {
+        "id": "anchor-4ad37709b99bb9402b323454",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 596,
+          "endLine": 596,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "ctx.APIErrorInternal(err)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-54cb675d81bd69e11c569c21",
+          "expression": "ctx.APIErrorInternal",
+          "receiver": "ctx",
+          "receiverClass": "services/context.APIContext",
+          "arguments": [
+            {
+              "expression": "err"
+            }
+          ],
+          "candidateIds": [
+            "struct-3cbe5082fd0a5a047ae7325f"
+          ],
+          "resultNames": [],
+          "resultBinding": "result-8377c66517ca2fd2"
+        }
+      },
+      {
+        "id": "anchor-e27428dddf1be372e23f3bdb",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 596,
+          "endLine": 596,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.APIErrorInternal",
+        "syntax": "selector_expression",
+        "name": "ctx.APIErrorInternal",
+        "valueExpression": "ctx.APIErrorInternal"
+      },
+      {
+        "id": "anchor-9a0182c329485241611d1b69",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 598,
+          "endLine": 598,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "return",
+        "text": "return",
+        "syntax": "return_statement",
+        "literalKnown": false
+      },
+      {
+        "id": "anchor-587bbbd28b17b5f098ffc34b",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 602,
+          "endLine": 618,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "for _, aID := range assigneeIDs {\n\t\t\tassignee, err := user_model.GetUserByID(ctx, aID)\n\t\t\tif err != nil {\n\t\t\t\tctx.APIErrorInternal(err)\n\t\t\t\treturn\n\t\t\t}\n\n\t\t\tvalid, err := access_model.CanBeAssigned(ctx, assignee, ctx.Repo.Repository)\n\t\t\tif err != nil {\n\t\t\t\tctx.APIErrorInternal(err)\n\t\t\t\treturn\n\t\t\t}\n\t\t\tif !valid {\n\t\t\t\tctx.APIError(http.StatusUnprocessableEntity, repo_model.ErrUserDoesNotHaveAccessToRepo{UserID: aID, RepoName: ctx.Repo.Repository.Name}.Error())\n\t\t\t\treturn\n\t\t\t}\n\t\t}",
+        "syntax": "for_statement"
+      },
+      {
+        "id": "anchor-15e3374ff117ee5a56f2831e",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 603,
+          "endLine": 603,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "user_model.GetUserByID(ctx, aID)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-2d02436fe071ae612ee5d882",
+          "expression": "user_model.GetUserByID",
+          "receiver": "user_model",
+          "arguments": [
+            {
+              "expression": "ctx"
+            },
+            {
+              "expression": "aID"
+            }
+          ],
+          "candidateIds": [
+            "struct-932016e1f68ff677afd6032e"
+          ],
+          "resultNames": [
+            "assignee",
+            "err"
+          ],
+          "resultBinding": "assignee"
+        }
+      },
+      {
+        "id": "anchor-cfcdc5cc77badee728ab75ac",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 603,
+          "endLine": 603,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "user_model.GetUserByID",
+        "syntax": "selector_expression",
+        "name": "user_model.GetUserByID",
+        "valueExpression": "user_model.GetUserByID"
+      },
+      {
+        "id": "anchor-4e5f240a471774ecf8aa0f6b",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 605,
+          "endLine": 605,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.APIErrorInternal",
+        "syntax": "selector_expression",
+        "name": "ctx.APIErrorInternal",
+        "valueExpression": "ctx.APIErrorInternal"
+      },
+      {
+        "id": "anchor-5cbd79ea0de755aebd1bd873",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 605,
+          "endLine": 605,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "ctx.APIErrorInternal(err)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-976415020988b3d3169e044a",
+          "expression": "ctx.APIErrorInternal",
+          "receiver": "ctx",
+          "receiverClass": "services/context.APIContext",
+          "arguments": [
+            {
+              "expression": "err"
+            }
+          ],
+          "candidateIds": [
+            "struct-3cbe5082fd0a5a047ae7325f"
+          ],
+          "resultNames": [],
+          "resultBinding": "result-8372ac3f73ed9acb"
+        }
+      },
+      {
+        "id": "anchor-2d1de78e5979e633faddbbcb",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 609,
+          "endLine": 609,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "access_model.CanBeAssigned(ctx, assignee, ctx.Repo.Repository)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-cd4b6c9114062a68514049ce",
+          "expression": "access_model.CanBeAssigned",
+          "receiver": "access_model",
+          "arguments": [
+            {
+              "expression": "ctx"
+            },
+            {
+              "expression": "assignee"
+            },
+            {
+              "expression": "ctx.Repo.Repository"
+            }
+          ],
+          "candidateIds": [
+            "struct-199ff101c5e4a44c150a59b1"
+          ],
+          "resultNames": [
+            "valid",
+            "err"
+          ],
+          "resultBinding": "valid"
+        }
+      },
+      {
+        "id": "anchor-36388e8ab80926a037586e79",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 609,
+          "endLine": 609,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "access_model.CanBeAssigned",
+        "syntax": "selector_expression",
+        "name": "access_model.CanBeAssigned",
+        "valueExpression": "access_model.CanBeAssigned"
+      },
+      {
+        "id": "anchor-22bd59e9c1452032a25e05fd",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 609,
+          "endLine": 609,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Repo",
+        "syntax": "selector_expression",
+        "name": "ctx.Repo",
+        "valueExpression": "ctx.Repo"
+      },
+      {
+        "id": "anchor-605621c3b9faaa624ad177e5",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 609,
+          "endLine": 609,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Repo.Repository",
+        "syntax": "selector_expression",
+        "name": "ctx.Repo.Repository",
+        "valueExpression": "ctx.Repo.Repository"
+      },
+      {
+        "id": "anchor-2fff9de721e3b6566d729059",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 611,
+          "endLine": 611,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.APIErrorInternal",
+        "syntax": "selector_expression",
+        "name": "ctx.APIErrorInternal",
+        "valueExpression": "ctx.APIErrorInternal"
+      },
+      {
+        "id": "anchor-3e4568ed99f51cf7ab3f9433",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 611,
+          "endLine": 611,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "ctx.APIErrorInternal(err)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-1639173acec4070939633de2",
+          "expression": "ctx.APIErrorInternal",
+          "receiver": "ctx",
+          "receiverClass": "services/context.APIContext",
+          "arguments": [
+            {
+              "expression": "err"
+            }
+          ],
+          "candidateIds": [
+            "struct-3cbe5082fd0a5a047ae7325f"
+          ],
+          "resultNames": [],
+          "resultBinding": "result-f11bb52352eb30e0"
+        }
+      },
+      {
+        "id": "anchor-400ce3879b7370f2b1b2593a",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 615,
+          "endLine": 615,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "ctx.APIError(http.StatusUnprocessableEntity, repo_model.ErrUserDoesNotHaveAccessToRepo{UserID: aID, RepoName: ctx.Repo.Repository.Name}.Error())",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-d65d7d92f974691b2944b9d4",
+          "expression": "ctx.APIError",
+          "receiver": "ctx",
+          "receiverClass": "services/context.APIContext",
+          "arguments": [
+            {
+              "expression": "http.StatusUnprocessableEntity"
+            },
+            {
+              "expression": "repo_model.ErrUserDoesNotHaveAccessToRepo{UserID: aID, RepoName: ctx.Repo.Repository.Name}.Error()"
+            }
+          ],
+          "candidateIds": [
+            "struct-9826d9fee0722a3d2b8fd13c"
+          ],
+          "resultNames": [],
+          "resultBinding": "result-a9942ee9e546afcc"
+        }
+      },
+      {
+        "id": "anchor-861d5cc4504f9d19ecc08380",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 615,
+          "endLine": 615,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.APIError",
+        "syntax": "selector_expression",
+        "name": "ctx.APIError",
+        "valueExpression": "ctx.APIError"
+      },
+      {
+        "id": "anchor-e2b67cfe6fa83269f990827e",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 615,
+          "endLine": 615,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "http.StatusUnprocessableEntity",
+        "syntax": "selector_expression",
+        "name": "http.StatusUnprocessableEntity",
+        "valueExpression": "http.StatusUnprocessableEntity"
+      },
+      {
+        "id": "anchor-853f065ebf75b247db8ace35",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 615,
+          "endLine": 615,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "repo_model.ErrUserDoesNotHaveAccessToRepo{UserID: aID, RepoName: ctx.Repo.Repository.Name}.Error()",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-de0a9336689949d2593b5248",
+          "expression": "repo_model.ErrUserDoesNotHaveAccessToRepo{UserID: aID, RepoName: ctx.Repo.Repository.Name}.Error",
+          "receiver": "repo_model.ErrUserDoesNotHaveAccessToRepo{UserID: aID, RepoName: ctx.Repo.Repository.Name}",
+          "arguments": [],
+          "candidateIds": [],
+          "resultNames": [],
+          "resultBinding": "result-a3d72ebd6b65def0"
+        }
+      },
+      {
+        "id": "anchor-daff701cd597a4c3eed418cf",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 615,
+          "endLine": 615,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "repo_model.ErrUserDoesNotHaveAccessToRepo{UserID: aID, RepoName: ctx.Repo.Repository.Name}.Error",
+        "syntax": "selector_expression",
+        "name": "repo_model.ErrUserDoesNotHaveAccessToRepo{UserID: aID, RepoName: ctx.Repo.Repository.Name}.Error",
+        "valueExpression": "repo_model.ErrUserDoesNotHaveAccessToRepo{UserID: aID, RepoName: ctx.Repo.Repository.Name}.Error"
+      },
+      {
+        "id": "anchor-3c66a092ebcf04bc9b06b5ea",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 615,
+          "endLine": 615,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Repo.Repository",
+        "syntax": "selector_expression",
+        "name": "ctx.Repo.Repository",
+        "valueExpression": "ctx.Repo.Repository"
+      },
+      {
+        "id": "anchor-51f6b7ee607e78d35d8d3cd8",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 615,
+          "endLine": 615,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Repo.Repository.Name",
+        "syntax": "selector_expression",
+        "name": "ctx.Repo.Repository.Name",
+        "valueExpression": "ctx.Repo.Repository.Name"
+      },
+      {
+        "id": "anchor-c002ea01ee7ed37c23457993",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 615,
+          "endLine": 615,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Repo",
+        "syntax": "selector_expression",
+        "name": "ctx.Repo",
+        "valueExpression": "ctx.Repo"
+      },
+      {
+        "id": "anchor-2fc34845d84cbe4c8379c999",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 621,
+          "endLine": 621,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "form.Labels",
+        "syntax": "selector_expression",
+        "name": "form.Labels",
+        "valueExpression": "form.Labels"
+      },
+      {
+        "id": "anchor-64786ba7415fb78eca0cef1c",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 621,
+          "endLine": 621,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "form.Labels = make([]int64, 0)",
+        "syntax": "assignment_statement",
+        "name": "form.Labels",
+        "valueExpression": "make([]int64, 0)",
+        "literalKnown": false
+      },
+      {
+        "id": "anchor-7cddb510be4247083eb65038",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 621,
+          "endLine": 621,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "make([]int64, 0)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-bb81e944cc695e7f7d364131",
+          "expression": "make",
+          "arguments": [
+            {
+              "expression": "[]int64"
+            },
+            {
+              "expression": "0",
+              "literalKnown": true,
+              "literalValue": 0
+            }
+          ],
+          "candidateIds": [],
+          "resultNames": [
+            "form.Labels"
+          ],
+          "resultBinding": "form.Labels"
+        }
+      },
+      {
+        "id": "anchor-b7c610b8cb72defee70f342a",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 624,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "err := issue_service.NewIssue(ctx, ctx.Repo.Repository, issue, form.Labels, nil, assigneeIDs, form.Projects)",
+        "syntax": "short_var_declaration",
+        "name": "err",
+        "valueExpression": "issue_service.NewIssue(ctx, ctx.Repo.Repository, issue, form.Labels, nil, assigneeIDs, form.Projects)",
+        "literalKnown": false
+      },
+      {
+        "id": "anchor-3f20d71675fe887e3ee946f9",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 624,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "issue_service.NewIssue",
+        "syntax": "selector_expression",
+        "name": "issue_service.NewIssue",
+        "valueExpression": "issue_service.NewIssue"
+      },
+      {
+        "id": "anchor-7c43ed803195e9b97ee9bc4b",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 624,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "issue_service.NewIssue(ctx, ctx.Repo.Repository, issue, form.Labels, nil, assigneeIDs, form.Projects)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-376a8421943f57371f5aa2bb",
+          "expression": "issue_service.NewIssue",
+          "receiver": "issue_service",
+          "arguments": [
+            {
+              "expression": "ctx"
+            },
+            {
+              "expression": "ctx.Repo.Repository"
+            },
+            {
+              "expression": "issue"
+            },
+            {
+              "expression": "form.Labels"
+            },
+            {
+              "expression": "nil",
+              "literalKnown": true,
+              "literalValue": null
+            },
+            {
+              "expression": "assigneeIDs"
+            },
+            {
+              "expression": "form.Projects"
+            }
+          ],
+          "candidateIds": [
+            "struct-e5e1549d15c3e6d1897641eb"
+          ],
+          "resultNames": [
+            "err"
+          ],
+          "resultBinding": "err"
+        }
+      },
+      {
+        "id": "anchor-8f5a5b29f9ec4579a7e9f499",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 624,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Repo.Repository",
+        "syntax": "selector_expression",
+        "name": "ctx.Repo.Repository",
+        "valueExpression": "ctx.Repo.Repository"
+      },
+      {
+        "id": "anchor-ffdee1ef2e20115a3a47f7d8",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 624,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Repo",
+        "syntax": "selector_expression",
+        "name": "ctx.Repo",
+        "valueExpression": "ctx.Repo"
+      },
+      {
+        "id": "anchor-4407f84d37ae097ec261f633",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 624,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "form.Labels",
+        "syntax": "selector_expression",
+        "name": "form.Labels",
+        "valueExpression": "form.Labels"
+      },
+      {
+        "id": "anchor-e442038f47ebfb980a8f3c47",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 624,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "form.Projects",
+        "syntax": "selector_expression",
+        "name": "form.Projects",
+        "valueExpression": "form.Projects"
+      },
+      {
+        "id": "anchor-061727153cd1470422877544",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 624,
+          "endLine": 624,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "condition",
+        "text": "err != nil",
+        "syntax": "binary_expression"
+      },
+      {
+        "id": "anchor-323400695445cc433d6462d7",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 625,
+          "endLine": 625,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "condition",
+        "text": "errors.Is(err, user_model.ErrBlockedUser)",
+        "syntax": "call_expression"
+      },
+      {
+        "id": "anchor-91d790f5aed9eb8095ce4965",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 625,
+          "endLine": 625,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "errors.Is(err, user_model.ErrBlockedUser)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-939100d8bb8c7836e52e2c17",
+          "expression": "errors.Is",
+          "receiver": "errors",
+          "arguments": [
+            {
+              "expression": "err"
+            },
+            {
+              "expression": "user_model.ErrBlockedUser"
+            }
+          ],
+          "candidateIds": [],
+          "resultNames": [],
+          "resultBinding": "result-f68a2f9bfdeed5ca"
+        }
+      },
+      {
+        "id": "anchor-e09c3d29359ab2f8d181dfb6",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 625,
+          "endLine": 625,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "errors.Is",
+        "syntax": "selector_expression",
+        "name": "errors.Is",
+        "valueExpression": "errors.Is"
+      },
+      {
+        "id": "anchor-d506488b9d4bbc3351ffc739",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 625,
+          "endLine": 625,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "user_model.ErrBlockedUser",
+        "syntax": "selector_expression",
+        "name": "user_model.ErrBlockedUser",
+        "valueExpression": "user_model.ErrBlockedUser"
+      },
+      {
+        "id": "anchor-912853550ca016a6838eecaf",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 626,
+          "endLine": 626,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "ctx.APIError(http.StatusForbidden, err.Error())",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-3f0377747dbc1f25ce2a75b7",
+          "expression": "ctx.APIError",
+          "receiver": "ctx",
+          "receiverClass": "services/context.APIContext",
+          "arguments": [
+            {
+              "expression": "http.StatusForbidden"
+            },
+            {
+              "expression": "err.Error()"
+            }
+          ],
+          "candidateIds": [
+            "struct-9826d9fee0722a3d2b8fd13c"
+          ],
+          "resultNames": [],
+          "resultBinding": "result-e8b96d0516318bd5"
+        }
+      },
+      {
+        "id": "anchor-b8da753d69253d24d644d792",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 626,
+          "endLine": 626,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.APIError",
+        "syntax": "selector_expression",
+        "name": "ctx.APIError",
+        "valueExpression": "ctx.APIError"
+      },
+      {
+        "id": "anchor-3719f36132f5e9c707884e40",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 626,
+          "endLine": 626,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "http.StatusForbidden",
+        "syntax": "selector_expression",
+        "name": "http.StatusForbidden",
+        "valueExpression": "http.StatusForbidden"
+      },
+      {
+        "id": "anchor-2987353df98e53de82bee73e",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 626,
+          "endLine": 626,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "err.Error",
+        "syntax": "selector_expression",
+        "name": "err.Error",
+        "valueExpression": "err.Error"
+      },
+      {
+        "id": "anchor-90a1215f168ecfbec766e1c2",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 626,
+          "endLine": 626,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "err.Error()",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-8c39017802926ff93f6b30c6",
+          "expression": "err.Error",
+          "receiver": "err",
+          "arguments": [],
+          "candidateIds": [],
+          "resultNames": [],
+          "resultBinding": "result-009f8efcfbd3cc0d"
+        }
+      },
+      {
+        "id": "anchor-05237a8eae730bf0f90ba7a1",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 627,
+          "endLine": 627,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "errors.Is(err, util.ErrPermissionDenied)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-c7675c9cbea234860f9b6e23",
+          "expression": "errors.Is",
+          "receiver": "errors",
+          "arguments": [
+            {
+              "expression": "err"
+            },
+            {
+              "expression": "util.ErrPermissionDenied"
+            }
+          ],
+          "candidateIds": [],
+          "resultNames": [],
+          "resultBinding": "result-bf4f28541fd544a8"
+        }
+      },
+      {
+        "id": "anchor-eb9fffcff541d204b632aa9b",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 627,
+          "endLine": 627,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "errors.Is",
+        "syntax": "selector_expression",
+        "name": "errors.Is",
+        "valueExpression": "errors.Is"
+      },
+      {
+        "id": "anchor-ffbf7f346b5b86049891113a",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 627,
+          "endLine": 627,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "condition",
+        "text": "errors.Is(err, util.ErrPermissionDenied) || errors.Is(err, util.ErrNotExist)",
+        "syntax": "binary_expression"
+      },
+      {
+        "id": "anchor-9103447a970ae85a3ef4470c",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 627,
+          "endLine": 627,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "util.ErrPermissionDenied",
+        "syntax": "selector_expression",
+        "name": "util.ErrPermissionDenied",
+        "valueExpression": "util.ErrPermissionDenied"
+      },
+      {
+        "id": "anchor-71782cf4eb38cc557d44e7cc",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 627,
+          "endLine": 627,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "errors.Is(err, util.ErrNotExist)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-c7675c9cbea234860f9b6e23",
+          "expression": "errors.Is",
+          "receiver": "errors",
+          "arguments": [
+            {
+              "expression": "err"
+            },
+            {
+              "expression": "util.ErrNotExist"
+            }
+          ],
+          "candidateIds": [],
+          "resultNames": [],
+          "resultBinding": "result-6bc780dba8544e5b"
+        }
+      },
+      {
+        "id": "anchor-f45d02b98c005f7e6233771e",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 627,
+          "endLine": 627,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "errors.Is",
+        "syntax": "selector_expression",
+        "name": "errors.Is",
+        "valueExpression": "errors.Is"
+      },
+      {
+        "id": "anchor-de7efc8b76424bbe981a944f",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 627,
+          "endLine": 627,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "util.ErrNotExist",
+        "syntax": "selector_expression",
+        "name": "util.ErrNotExist",
+        "valueExpression": "util.ErrNotExist"
+      },
+      {
+        "id": "anchor-763c0c5153b866e3a287a277",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 628,
+          "endLine": 628,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.APIError",
+        "syntax": "selector_expression",
+        "name": "ctx.APIError",
+        "valueExpression": "ctx.APIError"
+      },
+      {
+        "id": "anchor-7a440309b9bdc03412bca87c",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 628,
+          "endLine": 628,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "ctx.APIError(http.StatusBadRequest, err.Error())",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-0ec527b1a21086f95bbcbe5c",
+          "expression": "ctx.APIError",
+          "receiver": "ctx",
+          "receiverClass": "services/context.APIContext",
+          "arguments": [
+            {
+              "expression": "http.StatusBadRequest"
+            },
+            {
+              "expression": "err.Error()"
+            }
+          ],
+          "candidateIds": [
+            "struct-9826d9fee0722a3d2b8fd13c"
+          ],
+          "resultNames": [],
+          "resultBinding": "result-16ba99950c979e57"
+        }
+      },
+      {
+        "id": "anchor-dd04f5c766522f503c52d848",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 628,
+          "endLine": 628,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "http.StatusBadRequest",
+        "syntax": "selector_expression",
+        "name": "http.StatusBadRequest",
+        "valueExpression": "http.StatusBadRequest"
+      },
+      {
+        "id": "anchor-31deb2bc11eb6d835bd57077",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 628,
+          "endLine": 628,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "err.Error()",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-2f10e820ac7a3f210a3336f6",
+          "expression": "err.Error",
+          "receiver": "err",
+          "arguments": [],
+          "candidateIds": [],
+          "resultNames": [],
+          "resultBinding": "result-ea689610365f102b"
+        }
+      },
+      {
+        "id": "anchor-665a102b33df15b1d66d9e42",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 628,
+          "endLine": 628,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "err.Error",
+        "syntax": "selector_expression",
+        "name": "err.Error",
+        "valueExpression": "err.Error"
+      },
+      {
+        "id": "anchor-bca5992cd2a233b0db4efb2a",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 630,
+          "endLine": 630,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.APIErrorInternal",
+        "syntax": "selector_expression",
+        "name": "ctx.APIErrorInternal",
+        "valueExpression": "ctx.APIErrorInternal"
+      },
+      {
+        "id": "anchor-2197c657762942f8b6b8c736",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 632,
+          "endLine": 632,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "return",
+        "text": "return",
+        "syntax": "return_statement",
+        "literalKnown": false
+      },
+      {
+        "id": "anchor-9587495842fe7e30d7585fea",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 635,
+          "endLine": 635,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "form.Closed",
+        "syntax": "selector_expression",
+        "name": "form.Closed",
+        "valueExpression": "form.Closed"
+      },
+      {
+        "id": "anchor-a9757731fa67aba31f66f31c",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 635,
+          "endLine": 635,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "condition",
+        "text": "form.Closed",
+        "syntax": "selector_expression"
+      },
+      {
+        "id": "anchor-8ef2182e854945e29e183d1b",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 636,
+          "endLine": 636,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "err := issue_service.CloseIssue(ctx, issue, ctx.Doer, \"\")",
+        "syntax": "short_var_declaration",
+        "name": "err",
+        "valueExpression": "issue_service.CloseIssue(ctx, issue, ctx.Doer, \"\")",
+        "literalKnown": false
+      },
+      {
+        "id": "anchor-5d710166e6452747536f8997",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 636,
+          "endLine": 636,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "issue_service.CloseIssue(ctx, issue, ctx.Doer, \"\")",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-0909c112f3a2e5b6c93a4826",
+          "expression": "issue_service.CloseIssue",
+          "receiver": "issue_service",
+          "arguments": [
+            {
+              "expression": "ctx"
+            },
+            {
+              "expression": "issue"
+            },
+            {
+              "expression": "ctx.Doer"
+            },
+            {
+              "expression": "\"\"",
+              "literalKnown": true,
+              "literalValue": ""
+            }
+          ],
+          "candidateIds": [
+            "struct-3d06e73488ce63bdf3fdfc42"
+          ],
+          "resultNames": [
+            "err"
+          ],
+          "resultBinding": "err"
+        }
+      },
+      {
+        "id": "anchor-c38d738fb143a579baf8266d",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 636,
+          "endLine": 636,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "issue_service.CloseIssue",
+        "syntax": "selector_expression",
+        "name": "issue_service.CloseIssue",
+        "valueExpression": "issue_service.CloseIssue"
+      },
+      {
+        "id": "anchor-d8afc74767454c5ef9462690",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 636,
+          "endLine": 636,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Doer",
+        "syntax": "selector_expression",
+        "name": "ctx.Doer",
+        "valueExpression": "ctx.Doer"
+      },
+      {
+        "id": "anchor-bba637947a16c6701895e233",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 636,
+          "endLine": 636,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "condition",
+        "text": "err != nil",
+        "syntax": "binary_expression"
+      },
+      {
+        "id": "anchor-184b2f6176e87889fecf7b85",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 637,
+          "endLine": 637,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "condition",
+        "text": "issues_model.IsErrDependenciesLeft(err)",
+        "syntax": "call_expression"
+      },
+      {
+        "id": "anchor-2ca68ea6ba1a2e64701dea47",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 637,
+          "endLine": 637,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "issues_model.IsErrDependenciesLeft",
+        "syntax": "selector_expression",
+        "name": "issues_model.IsErrDependenciesLeft",
+        "valueExpression": "issues_model.IsErrDependenciesLeft"
+      },
+      {
+        "id": "anchor-3641ada031dd7b8400ae1118",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 637,
+          "endLine": 637,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "issues_model.IsErrDependenciesLeft(err)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-3106973faf02fa3a53ab5bbf",
+          "expression": "issues_model.IsErrDependenciesLeft",
+          "receiver": "issues_model",
+          "arguments": [
+            {
+              "expression": "err"
+            }
+          ],
+          "candidateIds": [
+            "struct-c1651dcedf93e64113c7e566"
+          ],
+          "resultNames": [],
+          "resultBinding": "result-1084c5b9b8616da4"
+        }
+      },
+      {
+        "id": "anchor-0ba6c951583cebe27c2994eb",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 638,
+          "endLine": 638,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "ctx.APIError(http.StatusPreconditionFailed, \"cannot close this issue because it still has open dependencies\")",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-fc06d25d6198e64ec83f01aa",
+          "expression": "ctx.APIError",
+          "receiver": "ctx",
+          "receiverClass": "services/context.APIContext",
+          "arguments": [
+            {
+              "expression": "http.StatusPreconditionFailed"
+            },
+            {
+              "expression": "\"cannot close this issue because it still has open dependencies\"",
+              "literalKnown": true,
+              "literalValue": "cannot close this issue because it still has open dependencies"
+            }
+          ],
+          "candidateIds": [
+            "struct-9826d9fee0722a3d2b8fd13c"
+          ],
+          "resultNames": [],
+          "resultBinding": "result-214b5344c31e80eb"
+        }
+      },
+      {
+        "id": "anchor-2b12ca7da149f32ce91228d3",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 638,
+          "endLine": 638,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.APIError",
+        "syntax": "selector_expression",
+        "name": "ctx.APIError",
+        "valueExpression": "ctx.APIError"
+      },
+      {
+        "id": "anchor-bbfe084056d22122e2133bd9",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 638,
+          "endLine": 638,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "http.StatusPreconditionFailed",
+        "syntax": "selector_expression",
+        "name": "http.StatusPreconditionFailed",
+        "valueExpression": "http.StatusPreconditionFailed"
+      },
+      {
+        "id": "anchor-3be5ac088c0ffd8f1a582279",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 639,
+          "endLine": 639,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "return",
+        "text": "return",
+        "syntax": "return_statement",
+        "literalKnown": false
+      },
+      {
+        "id": "anchor-305ee7931f96024053666256",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 641,
+          "endLine": 641,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.APIErrorInternal",
+        "syntax": "selector_expression",
+        "name": "ctx.APIErrorInternal",
+        "valueExpression": "ctx.APIErrorInternal"
+      },
+      {
+        "id": "anchor-b77fc9268173d86a0960f234",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 641,
+          "endLine": 641,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "ctx.APIErrorInternal(err)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-e2ea71b997cf1bfd282242b9",
+          "expression": "ctx.APIErrorInternal",
+          "receiver": "ctx",
+          "receiverClass": "services/context.APIContext",
+          "arguments": [
+            {
+              "expression": "err"
+            }
+          ],
+          "candidateIds": [
+            "struct-3cbe5082fd0a5a047ae7325f"
+          ],
+          "resultNames": [],
+          "resultBinding": "result-9f095287f9cdc922"
+        }
+      },
+      {
+        "id": "anchor-8f3b78b8123dedf84b008ad3",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 642,
+          "endLine": 642,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "return",
+        "text": "return",
+        "syntax": "return_statement",
+        "literalKnown": false
+      },
+      {
+        "id": "anchor-e4ebdd7fb9e8b57e42c5cbb5",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 647,
+          "endLine": 647,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "issue, err = issues_model.GetIssueByID(ctx, issue.ID)",
+        "syntax": "assignment_statement",
+        "name": "issue, err",
+        "valueExpression": "issues_model.GetIssueByID(ctx, issue.ID)",
+        "literalKnown": false
+      },
+      {
+        "id": "anchor-41e21464983d894b597a40d0",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 647,
+          "endLine": 647,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "issues_model.GetIssueByID(ctx, issue.ID)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-c637f1640f717ad752e71b3a",
+          "expression": "issues_model.GetIssueByID",
+          "receiver": "issues_model",
+          "arguments": [
+            {
+              "expression": "ctx"
+            },
+            {
+              "expression": "issue.ID"
+            }
+          ],
+          "candidateIds": [
+            "struct-84eb20ffe5944aaef55a8eb7"
+          ],
+          "resultNames": [
+            "issue",
+            "err"
+          ],
+          "resultBinding": "issue"
+        }
+      },
+      {
+        "id": "anchor-81b9f21f63b1836a41b78874",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 647,
+          "endLine": 647,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "issues_model.GetIssueByID",
+        "syntax": "selector_expression",
+        "name": "issues_model.GetIssueByID",
+        "valueExpression": "issues_model.GetIssueByID"
+      },
+      {
+        "id": "anchor-dc7f4a015c194845ed03d150",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 647,
+          "endLine": 647,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "issue.ID",
+        "syntax": "selector_expression",
+        "name": "issue.ID",
+        "valueExpression": "issue.ID"
+      },
+      {
+        "id": "anchor-ec84c79dfdb6fed15e9005cc",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 648,
+          "endLine": 648,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "condition",
+        "text": "err != nil",
+        "syntax": "binary_expression"
+      },
+      {
+        "id": "anchor-00739092d274840fe8ec821e",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 649,
+          "endLine": 649,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.APIErrorInternal",
+        "syntax": "selector_expression",
+        "name": "ctx.APIErrorInternal",
+        "valueExpression": "ctx.APIErrorInternal"
+      },
+      {
+        "id": "anchor-e4f5a24303606172320158cf",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 649,
+          "endLine": 649,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "ctx.APIErrorInternal(err)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-fc2e1d7925a874ec6bd8bc63",
+          "expression": "ctx.APIErrorInternal",
+          "receiver": "ctx",
+          "receiverClass": "services/context.APIContext",
+          "arguments": [
+            {
+              "expression": "err"
+            }
+          ],
+          "candidateIds": [
+            "struct-3cbe5082fd0a5a047ae7325f"
+          ],
+          "resultNames": [],
+          "resultBinding": "result-876feff9a4ee384e"
+        }
+      },
+      {
+        "id": "anchor-160a49c4988f95784daa92ab",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 650,
+          "endLine": 650,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "return",
+        "text": "return",
+        "syntax": "return_statement",
+        "literalKnown": false
+      },
+      {
+        "id": "anchor-a4bc30a5c3c70142b2a6a0b3",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 652,
+          "endLine": 652,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.JSON",
+        "syntax": "selector_expression",
+        "name": "ctx.JSON",
+        "valueExpression": "ctx.JSON"
+      },
+      {
+        "id": "anchor-ce538685da20ea6a39c20bb3",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 652,
+          "endLine": 652,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "ctx.JSON(http.StatusCreated, convert.ToAPIIssue(ctx, ctx.Doer, issue))",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-0e4a53fd313461dcc4b0a602",
+          "expression": "ctx.JSON",
+          "receiver": "ctx",
+          "arguments": [
+            {
+              "expression": "http.StatusCreated"
+            },
+            {
+              "expression": "convert.ToAPIIssue(ctx, ctx.Doer, issue)"
+            }
+          ],
+          "candidateIds": [],
+          "resultNames": [],
+          "resultBinding": "result-32312d959ff5741c"
+        }
+      },
+      {
+        "id": "anchor-d915131628f0a965656c0e68",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 652,
+          "endLine": 652,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "http.StatusCreated",
+        "syntax": "selector_expression",
+        "name": "http.StatusCreated",
+        "valueExpression": "http.StatusCreated"
+      },
+      {
+        "id": "anchor-73ab197b8dbf37805a18f005",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 652,
+          "endLine": 652,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "convert.ToAPIIssue",
+        "syntax": "selector_expression",
+        "name": "convert.ToAPIIssue",
+        "valueExpression": "convert.ToAPIIssue"
+      },
+      {
+        "id": "anchor-a9dac2ab7876a1b33977c63e",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 652,
+          "endLine": 652,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "call",
+        "text": "convert.ToAPIIssue(ctx, ctx.Doer, issue)",
+        "syntax": "call_expression",
+        "call": {
+          "sourceCallId": "call-764bf3c5479fa31d9ff1768a",
+          "expression": "convert.ToAPIIssue",
+          "receiver": "convert",
+          "arguments": [
+            {
+              "expression": "ctx"
+            },
+            {
+              "expression": "ctx.Doer"
+            },
+            {
+              "expression": "issue"
+            }
+          ],
+          "candidateIds": [
+            "struct-a50077df79a46d8518c8cc45"
+          ],
+          "resultNames": [],
+          "resultBinding": "result-830faa03ebbe7ac0"
+        }
+      },
+      {
+        "id": "anchor-47b7ceda4b54e399a6992382",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 652,
+          "endLine": 652,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "sourceSha256": "44e001ca50ec2b0a73bb0044da995c32c2da6e6438b84f6545d74f766991a27f",
+        "kind": "assignment",
+        "text": "ctx.Doer",
+        "syntax": "selector_expression",
+        "name": "ctx.Doer",
+        "valueExpression": "ctx.Doer"
+      }
+    ],
+    "flow": [
+      {
+        "kind": "step",
+        "anchorId": "anchor-abd2a2d966b6f1e8427e26ce"
+      },
+      {
+        "kind": "gap",
+        "anchorId": "anchor-b8de28225adb29d233800b98"
+      },
+      {
+        "kind": "branch",
+        "anchorId": "anchor-5a9d08fc9a6dd6bd2116b915",
+        "then": [
+          {
+            "kind": "step",
+            "anchorId": "anchor-14e087f6a906d15d870da67f"
+          },
+          {
+            "kind": "step",
+            "anchorId": "anchor-88083121a2342b8bc1e30c6d"
+          },
+          {
+            "kind": "step",
+            "anchorId": "anchor-3faff205b26ed0d69816822b"
+          }
+        ],
+        "otherwise": []
+      },
+      {
+        "kind": "step",
+        "anchorId": "anchor-ec9b87e83fc0b0fee2ed5c0f"
+      },
+      {
+        "kind": "step",
+        "anchorId": "anchor-15e9923910fb8d2a15a66189"
+      },
+      {
+        "kind": "step",
+        "anchorId": "anchor-6279fe0f2ba3608222381090"
+      },
+      {
+        "kind": "gap",
+        "anchorId": "anchor-4187c91e0facd49615998a8b"
+      },
+      {
+        "kind": "step",
+        "anchorId": "anchor-f3a80b67b19af9e4e9a7579b"
+      },
+      {
+        "kind": "branch",
+        "anchorId": "anchor-c838e3f5aaf721e72d5ba7c1",
+        "then": [
+          {
+            "kind": "step",
+            "anchorId": "anchor-25f2bb1639883742d1b7427c"
+          },
+          {
+            "kind": "step",
+            "anchorId": "anchor-bc85d4427087ef9fdf4ea3eb"
+          },
+          {
+            "kind": "step",
+            "anchorId": "anchor-57aae00b4be029d1ece98cc7"
+          },
+          {
+            "kind": "branch",
+            "anchorId": "anchor-83cfcec6ae7316f9330480cf",
+            "then": [
+              {
+                "kind": "step",
+                "anchorId": "anchor-ee125eb33cc768252f97df53"
+              },
+              {
+                "kind": "branch",
+                "anchorId": "anchor-965e996b443085439d7c1cc7",
+                "then": [
+                  {
+                    "kind": "step",
+                    "anchorId": "anchor-11384c8f1a20345faf12657a"
+                  },
+                  {
+                    "kind": "step",
+                    "anchorId": "anchor-d143ba0962d69a19cb14769f"
+                  }
+                ],
+                "otherwise": [
+                  {
+                    "kind": "step",
+                    "anchorId": "anchor-4ad37709b99bb9402b323454"
+                  }
+                ]
+              },
+              {
+                "kind": "step",
+                "anchorId": "anchor-9a0182c329485241611d1b69"
+              }
+            ],
+            "otherwise": []
+          },
+          {
+            "kind": "gap",
+            "anchorId": "anchor-587bbbd28b17b5f098ffc34b"
+          }
+        ],
+        "otherwise": [
+          {
+            "kind": "step",
+            "anchorId": "anchor-7cddb510be4247083eb65038"
+          },
+          {
+            "kind": "step",
+            "anchorId": "anchor-64786ba7415fb78eca0cef1c"
+          }
+        ]
+      },
+      {
+        "kind": "step",
+        "anchorId": "anchor-7c43ed803195e9b97ee9bc4b"
+      },
+      {
+        "kind": "step",
+        "anchorId": "anchor-b7c610b8cb72defee70f342a"
+      },
+      {
+        "kind": "branch",
+        "anchorId": "anchor-061727153cd1470422877544",
+        "then": [
+          {
+            "kind": "step",
+            "anchorId": "anchor-91d790f5aed9eb8095ce4965"
+          },
+          {
+            "kind": "branch",
+            "anchorId": "anchor-323400695445cc433d6462d7",
+            "then": [
+              {
+                "kind": "step",
+                "anchorId": "anchor-90a1215f168ecfbec766e1c2"
+              },
+              {
+                "kind": "step",
+                "anchorId": "anchor-912853550ca016a6838eecaf"
+              }
+            ],
+            "otherwise": [
+              {
+                "kind": "branch",
+                "anchorId": "anchor-ffbf7f346b5b86049891113a",
+                "then": [
+                  {
+                    "kind": "step",
+                    "anchorId": "anchor-31deb2bc11eb6d835bd57077"
+                  },
+                  {
+                    "kind": "step",
+                    "anchorId": "anchor-7a440309b9bdc03412bca87c"
+                  }
+                ],
+                "otherwise": []
+              }
+            ]
+          },
+          {
+            "kind": "step",
+            "anchorId": "anchor-2197c657762942f8b6b8c736"
+          }
+        ],
+        "otherwise": []
+      },
+      {
+        "kind": "branch",
+        "anchorId": "anchor-a9757731fa67aba31f66f31c",
+        "then": [
+          {
+            "kind": "step",
+            "anchorId": "anchor-5d710166e6452747536f8997"
+          },
+          {
+            "kind": "step",
+            "anchorId": "anchor-8ef2182e854945e29e183d1b"
+          },
+          {
+            "kind": "branch",
+            "anchorId": "anchor-bba637947a16c6701895e233",
+            "then": [
+              {
+                "kind": "step",
+                "anchorId": "anchor-3641ada031dd7b8400ae1118"
+              },
+              {
+                "kind": "branch",
+                "anchorId": "anchor-184b2f6176e87889fecf7b85",
+                "then": [
+                  {
+                    "kind": "step",
+                    "anchorId": "anchor-0ba6c951583cebe27c2994eb"
+                  },
+                  {
+                    "kind": "step",
+                    "anchorId": "anchor-3be5ac088c0ffd8f1a582279"
+                  }
+                ],
+                "otherwise": []
+              },
+              {
+                "kind": "step",
+                "anchorId": "anchor-b77fc9268173d86a0960f234"
+              },
+              {
+                "kind": "step",
+                "anchorId": "anchor-8f3b78b8123dedf84b008ad3"
+              }
+            ],
+            "otherwise": []
+          }
+        ],
+        "otherwise": []
+      },
+      {
+        "kind": "step",
+        "anchorId": "anchor-41e21464983d894b597a40d0"
+      },
+      {
+        "kind": "step",
+        "anchorId": "anchor-e4ebdd7fb9e8b57e42c5cbb5"
+      },
+      {
+        "kind": "branch",
+        "anchorId": "anchor-ec84c79dfdb6fed15e9005cc",
+        "then": [
+          {
+            "kind": "step",
+            "anchorId": "anchor-e4f5a24303606172320158cf"
+          },
+          {
+            "kind": "step",
+            "anchorId": "anchor-160a49c4988f95784daa92ab"
+          }
+        ],
+        "otherwise": []
+      },
+      {
+        "kind": "step",
+        "anchorId": "anchor-a9dac2ab7876a1b33977c63e"
+      },
+      {
+        "kind": "step",
+        "anchorId": "anchor-ce538685da20ea6a39c20bb3"
+      }
+    ],
+    "edges": [
+      {
+        "from": "anchor-abd2a2d966b6f1e8427e26ce",
+        "to": "anchor-b8de28225adb29d233800b98",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-5a9d08fc9a6dd6bd2116b915",
+        "to": "anchor-14e087f6a906d15d870da67f",
+        "branch": "true"
+      },
+      {
+        "from": "anchor-5a9d08fc9a6dd6bd2116b915",
+        "to": "anchor-ec9b87e83fc0b0fee2ed5c0f",
+        "branch": "false"
+      },
+      {
+        "from": "anchor-14e087f6a906d15d870da67f",
+        "to": "anchor-88083121a2342b8bc1e30c6d",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-88083121a2342b8bc1e30c6d",
+        "to": "anchor-3faff205b26ed0d69816822b",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-3faff205b26ed0d69816822b",
+        "to": "anchor-ec9b87e83fc0b0fee2ed5c0f",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-ec9b87e83fc0b0fee2ed5c0f",
+        "to": "anchor-15e9923910fb8d2a15a66189",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-15e9923910fb8d2a15a66189",
+        "to": "anchor-6279fe0f2ba3608222381090",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-6279fe0f2ba3608222381090",
+        "to": "anchor-4187c91e0facd49615998a8b",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-f3a80b67b19af9e4e9a7579b",
+        "to": "anchor-c838e3f5aaf721e72d5ba7c1",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-c838e3f5aaf721e72d5ba7c1",
+        "to": "anchor-25f2bb1639883742d1b7427c",
+        "branch": "true"
+      },
+      {
+        "from": "anchor-c838e3f5aaf721e72d5ba7c1",
+        "to": "anchor-7cddb510be4247083eb65038",
+        "branch": "false"
+      },
+      {
+        "from": "anchor-25f2bb1639883742d1b7427c",
+        "to": "anchor-bc85d4427087ef9fdf4ea3eb",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-bc85d4427087ef9fdf4ea3eb",
+        "to": "anchor-57aae00b4be029d1ece98cc7",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-57aae00b4be029d1ece98cc7",
+        "to": "anchor-83cfcec6ae7316f9330480cf",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-83cfcec6ae7316f9330480cf",
+        "to": "anchor-ee125eb33cc768252f97df53",
+        "branch": "true"
+      },
+      {
+        "from": "anchor-83cfcec6ae7316f9330480cf",
+        "to": "anchor-587bbbd28b17b5f098ffc34b",
+        "branch": "false"
+      },
+      {
+        "from": "anchor-ee125eb33cc768252f97df53",
+        "to": "anchor-965e996b443085439d7c1cc7",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-965e996b443085439d7c1cc7",
+        "to": "anchor-11384c8f1a20345faf12657a",
+        "branch": "true"
+      },
+      {
+        "from": "anchor-965e996b443085439d7c1cc7",
+        "to": "anchor-4ad37709b99bb9402b323454",
+        "branch": "false"
+      },
+      {
+        "from": "anchor-11384c8f1a20345faf12657a",
+        "to": "anchor-d143ba0962d69a19cb14769f",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-d143ba0962d69a19cb14769f",
+        "to": "anchor-9a0182c329485241611d1b69",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-4ad37709b99bb9402b323454",
+        "to": "anchor-9a0182c329485241611d1b69",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-7cddb510be4247083eb65038",
+        "to": "anchor-64786ba7415fb78eca0cef1c",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-64786ba7415fb78eca0cef1c",
+        "to": "anchor-7c43ed803195e9b97ee9bc4b",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-7c43ed803195e9b97ee9bc4b",
+        "to": "anchor-b7c610b8cb72defee70f342a",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-b7c610b8cb72defee70f342a",
+        "to": "anchor-061727153cd1470422877544",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-061727153cd1470422877544",
+        "to": "anchor-91d790f5aed9eb8095ce4965",
+        "branch": "true"
+      },
+      {
+        "from": "anchor-061727153cd1470422877544",
+        "to": "anchor-a9757731fa67aba31f66f31c",
+        "branch": "false"
+      },
+      {
+        "from": "anchor-91d790f5aed9eb8095ce4965",
+        "to": "anchor-323400695445cc433d6462d7",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-323400695445cc433d6462d7",
+        "to": "anchor-90a1215f168ecfbec766e1c2",
+        "branch": "true"
+      },
+      {
+        "from": "anchor-323400695445cc433d6462d7",
+        "to": "anchor-ffbf7f346b5b86049891113a",
+        "branch": "false"
+      },
+      {
+        "from": "anchor-90a1215f168ecfbec766e1c2",
+        "to": "anchor-912853550ca016a6838eecaf",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-912853550ca016a6838eecaf",
+        "to": "anchor-2197c657762942f8b6b8c736",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-ffbf7f346b5b86049891113a",
+        "to": "anchor-31deb2bc11eb6d835bd57077",
+        "branch": "true"
+      },
+      {
+        "from": "anchor-ffbf7f346b5b86049891113a",
+        "to": "anchor-2197c657762942f8b6b8c736",
+        "branch": "false"
+      },
+      {
+        "from": "anchor-31deb2bc11eb6d835bd57077",
+        "to": "anchor-7a440309b9bdc03412bca87c",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-7a440309b9bdc03412bca87c",
+        "to": "anchor-2197c657762942f8b6b8c736",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-a9757731fa67aba31f66f31c",
+        "to": "anchor-5d710166e6452747536f8997",
+        "branch": "true"
+      },
+      {
+        "from": "anchor-a9757731fa67aba31f66f31c",
+        "to": "anchor-41e21464983d894b597a40d0",
+        "branch": "false"
+      },
+      {
+        "from": "anchor-5d710166e6452747536f8997",
+        "to": "anchor-8ef2182e854945e29e183d1b",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-8ef2182e854945e29e183d1b",
+        "to": "anchor-bba637947a16c6701895e233",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-bba637947a16c6701895e233",
+        "to": "anchor-3641ada031dd7b8400ae1118",
+        "branch": "true"
+      },
+      {
+        "from": "anchor-bba637947a16c6701895e233",
+        "to": "anchor-41e21464983d894b597a40d0",
+        "branch": "false"
+      },
+      {
+        "from": "anchor-3641ada031dd7b8400ae1118",
+        "to": "anchor-184b2f6176e87889fecf7b85",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-184b2f6176e87889fecf7b85",
+        "to": "anchor-0ba6c951583cebe27c2994eb",
+        "branch": "true"
+      },
+      {
+        "from": "anchor-184b2f6176e87889fecf7b85",
+        "to": "anchor-b77fc9268173d86a0960f234",
+        "branch": "false"
+      },
+      {
+        "from": "anchor-0ba6c951583cebe27c2994eb",
+        "to": "anchor-3be5ac088c0ffd8f1a582279",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-b77fc9268173d86a0960f234",
+        "to": "anchor-8f3b78b8123dedf84b008ad3",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-41e21464983d894b597a40d0",
+        "to": "anchor-e4ebdd7fb9e8b57e42c5cbb5",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-e4ebdd7fb9e8b57e42c5cbb5",
+        "to": "anchor-ec84c79dfdb6fed15e9005cc",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-ec84c79dfdb6fed15e9005cc",
+        "to": "anchor-e4f5a24303606172320158cf",
+        "branch": "true"
+      },
+      {
+        "from": "anchor-ec84c79dfdb6fed15e9005cc",
+        "to": "anchor-a9dac2ab7876a1b33977c63e",
+        "branch": "false"
+      },
+      {
+        "from": "anchor-e4f5a24303606172320158cf",
+        "to": "anchor-160a49c4988f95784daa92ab",
+        "branch": "next"
+      },
+      {
+        "from": "anchor-a9dac2ab7876a1b33977c63e",
+        "to": "anchor-ce538685da20ea6a39c20bb3",
+        "branch": "next"
+      }
+    ],
+    "gaps": [
+      {
+        "code": "skeleton-statement-unsupported",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 571,
+          "endLine": 571,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "reason": "The var_declaration statement remains explicit rather than being silently deleted."
+      },
+      {
+        "code": "skeleton-short-circuit-call",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 572,
+          "endLine": 572,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "reason": "Short-circuit call execution needs a local interpretation; right-hand calls were not made unconditional."
+      },
+      {
+        "code": "skeleton-statement-unsupported",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 588,
+          "endLine": 588,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "reason": "The var_declaration statement remains explicit rather than being silently deleted."
+      },
+      {
+        "code": "skeleton-control-unsupported",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 602,
+          "endLine": 618,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "reason": "The for_statement control structure needs a local interpretation; its body was not flattened into unconditional execution."
+      },
+      {
+        "code": "skeleton-call-dynamic",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 615,
+          "endLine": 615,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "reason": "The actual function expression is dynamic; no unique callee or receiver is invented."
+      },
+      {
+        "code": "skeleton-short-circuit-call",
+        "selector": {
+          "path": "routers/api/v1/repo/issue.go",
+          "startLine": 627,
+          "endLine": 627,
+          "candidateId": "struct-75dafed018fb86ed4817eec0"
+        },
+        "reason": "Short-circuit call execution needs a local interpretation; right-hand calls were not made unconditional."
+      }
+    ]
+  },
+  "sourceVerification": {
+    "valid": true,
+    "checkedFiles": 346,
+    "physicalReadBytes": 2314050
+  },
+  "beforeRepairIndependentFinding": "Multiline chained .Post verb retained leading whitespace and was absent from StructureRoute",
+  "repair": "Trim only final AST verb token; preserve raw source expression, spans, middleware and nested paths",
+  "verification": "Anonymous multiline fixture failed with empty POST routes, then 16 tests / 42 assertions passed",
+  "providerCalls": 0,
+  "targetExecutions": 0,
+  "semanticMeaning": "not interpreted"
+}

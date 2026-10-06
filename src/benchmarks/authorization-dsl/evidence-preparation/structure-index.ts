@@ -304,7 +304,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     }
   }
   for (const scope of scopes) for (const raw of scope.rawCalls) {
-    const c = raw.call, verb = c.expression.split(".").at(-1)!, goRoute = scope.language === "go" && ["Get", "Post", "Put", "Patch", "Delete", "Head", "Options"].includes(verb), drf = scope.language === "python" && verb === "register"
+    const c = raw.call, verb = c.expression.split(".").at(-1)!.trim(), goRoute = scope.language === "go" && ["Get", "Post", "Put", "Patch", "Delete", "Head", "Options"].includes(verb), drf = scope.language === "python" && verb === "register"
     // Only static string tokens, including Python raw/unicode prefixes. A
     // formatted, concatenated or escaped unknown value remains a route gap.
     const token = /^(?:([rRuU]))?(['"])([^'"\r\n]*)\2$/.exec(c.arguments[0] ?? "")

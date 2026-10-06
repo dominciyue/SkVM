@@ -3,7 +3,7 @@
 更新于 2026-10-06。本页维护未达责任与长期边界；阶段原件通过[研究正文](skill-dsl-research.md)、[历史](history.md)和[实验目录](../../results/skill-ir/experiment-catalog.json)查阅。
 
 - 唯一实时入口：[current-status](current-status.md)。
-- 当前任务书：[AV0–AV20 源码辅助解释与授权任务真实闭合](../superpowers/plans/2026-10-06-authorization-source-assisted-closure.md)，`in-progress`。AV0–AV9完成工程验证、双入口和26位置登记，继续AV10 Download真实链；Download首件派发前失败（0调用）已归档，脚本修正后以具名修订继续。用户授权连续开发，模型`gpt-6.1-sol / max`，Flash尚未核实；设计基线`9d7db8e8`。
+- 当前任务书：[AV0–AV20 源码辅助解释与授权任务真实闭合](../superpowers/plans/2026-10-06-authorization-source-assisted-closure.md)，`in-progress`。AV0–AV9完成工程验证、双入口和26位置登记，继续AV10 Download真实链；Download首个真实尝试18调用无终答已归档；局部格式接口及Go语法遗漏修正后具名复验。用户授权连续开发，模型`gpt-6.1-sol / max`，Flash尚未核实；设计基线`9d7db8e8`。
 - 新执行合同：[spec AV](skill-ir-aot-optimization-spec.md#1435-av-source-assisted-closure-contract)。旧默认和 AU 合同继续兼容，历史原件保留。
 - 根因复核：[研究 §7.54](skill-dsl-research.md#754-au-收束后复核入口来源连接和身份稳定性)；本轮设计：[§7.55](skill-dsl-research.md#755-av-源码辅助解释与局部恢复开发决定)。
 

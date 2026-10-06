@@ -2538,6 +2538,10 @@ AV9已实现：inquiry/native的自然M与模型声明D1使用同一v2核心；�
 
 薄runner只调用生产inquiry/native/agent-loop/telemetry；26位置完整ID、初次目录不可覆盖，具名修订关联parent。作者沿同一loop与源码工具，仅可写两个根artifact，不自动恢复写阶段；一次字段修订与原稿分列。消费者准入绑定登记作者/attempt/输入、结构记录及原字节SHA；评阅材料不进入prompt。raw路径限制在attempt内，native从实际首请求、source index和安装bundle核来源；重放按实际attempt一次计usage/cacheRead。check/replay零provider、零目标执行；变化输入须待真实基线登记，previous不能静默换fresh。
 
+v2的可路由源码解释原载荷在transport完整保留（含多余字段），交当前source事务严格诊断；不将多余unit/complete应用为语义。模型合同及来源语义schema仍严格；envelope-rejected原件、当前focus和显式修订保留。错误版本/不可路由动作仍拒绝，旧协议不放宽。身份提示区分candidateId、pending itemId、evidenceId，不能靠拼写替换来源或对象关系。
+
+Go机械来源覆盖包含multiline链式route及if initializer的实际调用/实参/结果；initializer在其条件前执行，嵌套else-if仍受外层分支约束。只规范verb识别的空白，来源表达式/行范围保持。unsupported loop/short-circuit/dynamic-call不无条件展平；零调用probe仅证明语法覆盖，不判定授权语义。
+
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
 AT在已有授权局部语义上引入显式 `focused-closure-v1`：宿主持久管理locate/interpret/link/review/answer阶段，绑定当前来源、单元身份与更新版本；模型解释原始源码中的条件、对象、参数、返回与实际相关效果。上下文渲染不改变活动任务，拒绝修复回到同一单元；多候选与语义关系仍须显式判定。旧默认及协议保持。

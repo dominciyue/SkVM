@@ -155,3 +155,15 @@ test("invalid direct focused envelopes report their actual fields instead of a m
   expect(invalid.error.issues).toEqual([expect.objectContaining({ code: "unrecognized_keys", keys: ["revisit"] })])
   expect(base).not.toHaveProperty("revisit")
 })
+
+test("routable v2 source envelopes retain forbidden raw fields for local diagnosis without advertising them", () => {
+  const raw = { kind: "interpret", focusId: "current", interpretation: { schemaVersion: "source-interpretation/v1", revision: "shown", annotations: [] }, complete: true, unit: { fabricated: true } }
+  const schemas = api.inquiryStepSchemas("operation-evidence-v2", false, "behavior", "interpret")
+  expect(schemas.schema.parse(raw)).toEqual({ kind: "control", controlDelta: { schemaVersion: "authorization-source-update/v1", ...raw } })
+  expect(schemas.modelSchema.safeParse(raw).success).toBe(false)
+  const native = { controlDelta: { schemaVersion: "authorization-source-update/v1", ...raw } }
+  expect(api.inquiryNativeSchemas("operation-evidence-v2", true).authorization_observe.parse(native)).toMatchObject(native)
+  expect(api.inquiryNativeSchemas("operation-evidence-v2").authorization_observe.safeParse(native).success).toBe(false)
+  expect(schemas.schema.safeParse({ ...raw, schemaVersion: "wrong" }).success).toBe(false)
+  expect(api.inquiryStepSchemas("operation-evidence-v1", false, "behavior", "interpret").schema.safeParse(raw).success).toBe(false)
+})

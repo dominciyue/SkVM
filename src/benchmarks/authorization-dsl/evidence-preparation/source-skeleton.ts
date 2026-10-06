@@ -79,7 +79,8 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       let calls: SourceFlow[]
       if (shortCircuit) { gap(condition, "skeleton-short-circuit-call", "Short-circuit call execution needs a local interpretation; right-hand calls were not made unconditional."); for (const c of callsIn(condition)) callAnchor(c); calls = [] }
       else calls = stepsForCalls(condition)
-      return [...calls, { kind: "branch", anchorId: anchor.id, then: visitList(field(n, "consequence")), otherwise: other }]
+      const initializer = field(n, "initializer")
+      return [...(initializer ? visit(initializer) : []), ...calls, { kind: "branch", anchorId: anchor.id, then: visitList(field(n, "consequence")), otherwise: other }]
     }
     const visit = (n: Node): SourceFlow[] => {
       if (n.type === "comment" || n.type === "pass_statement") return []

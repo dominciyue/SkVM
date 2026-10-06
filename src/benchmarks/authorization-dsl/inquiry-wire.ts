@@ -7,7 +7,7 @@ import { zodToJsonSchema } from "../../providers/structured.ts"
 import type { LLMTool } from "../../providers/types.ts"
 import { LocalControlDeltaSchema, LocalControlEnvelopeSchema } from "./inquiry-control-updates.ts"
 import { SemanticUpdateSchema, SemanticUpdateEnvelopeSchema, SemanticResultSchema } from "./inquiry-semantic.ts"
-import { FocusedResultSchema, FocusedUpdateEnvelopeSchema, SourceUpdateSchema, focusedUpdateSchema, type FocusStage } from "./inquiry-focus.ts"
+import { FocusedResultSchema, FocusedUpdateEnvelopeSchema, SourceUpdateEnvelopeSchema, focusedUpdateSchema, type FocusStage } from "./inquiry-focus.ts"
 import { InquirySourceCallSchema, OperationSourceCallSchema } from "./inquiry-tools.ts"
 
 const calls = z.array(z.object({ name: z.enum(["source_list", "source_search", "source_symbol", "source_read"]), arguments: z.record(z.unknown()) }).strict()).min(1).max(8)
@@ -118,7 +118,7 @@ export function normalizeFocusedControlEnvelope(input: unknown, sourceAssisted =
   const original = input as Record<string, unknown>
   if (sourceAssisted && original.kind === "interpret" && "interpretation" in original) {
     const candidate = { schemaVersion: "authorization-source-update/v1", ...original }
-    const checked = SourceUpdateSchema.extend({ interpretation: z.unknown() }).safeParse(candidate)
+    const checked = SourceUpdateEnvelopeSchema.safeParse(candidate)
     if (!checked.success) return { value: input, issues: checked.error.issues }
     return { value: { kind: "control", controlDelta: candidate }, normalization: { code: "source-update-at-step-root", originalKind: original.kind } }
   }

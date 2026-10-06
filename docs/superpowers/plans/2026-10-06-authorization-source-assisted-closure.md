@@ -232,16 +232,20 @@ export interface SourceInterpretation {
 
 首次登记在provider派发前失败：runner误用`SKVM_CACHE_PATH`，未载入项目route；随后误读不存在的run.json。原始provider-unavailable报告证明0派发，已完整归档，不算模型质量失败或unknown completion。两项真实失败测试后改为`SKVM_CACHE`并失效配置缓存、按零派发报告归档；8项/66断言及runner类型通过，配置provider可创建且未调用。下一次为`--revision=runtime-config --parent=first`，保留原首次记录。证据见results的verification/av10-pre-dispatch.json。
 
-- [ ] 从 AU 原始 Download 请求和 locked-framework 源码开始一次 D1 新策略运行；未给答案或正确 helper 清单。
+- [x] 从 AU 原始 Download 请求和 locked-framework 源码开始一次 D1 新策略运行；未给答案或正确 helper 清单。
+
+runtime-config具名首次真实尝试为18派发/18响应，4次来源解释提案、2个来源单元、0低层图fallback；0次check、无终答，因解释根载荷多余complete/unit在transport被拒而结束。usage完整、所有实际USD未知。独立AI核验后主代理纠正“physicalReadBytes=索引字节”和“源码读即图fallback”的复核错误；不以轨迹补终答。修复工作顺序：先复现两个公共入口的额外根字段失败→保留原载荷、局部严格诊断→核相同focus修订和原件→78项/547断言及类型→具名local-envelope真实复验。ID和角色提示仅澄清结构合同，未提供业务答案；try/except、helper和框架语义缺口保留。出处与裁定在evaluations/av10-runtime-config.json。
 - [ ] 逐项检查正确入口、框架前置约束、helper 实参/对象、条件分支和最终自然说明是否经过共享机制；首次结果完整保留。
 - [ ] 每个可定位缺陷立即走第七节修复循环。若仍反复要求模型生成整张低层图，回到 AV5 修接口，不继续堆提示或扩预算。
 - [ ] evaluator 以完整原任务核对终答；已读到但未进入终答的内容仍记遗漏，不能借轨迹补答。得到真实完整链后保存可用于后续变化的基线。
 
 ### AV11 OWUI 第二结构与 Go 使用准备
 
+只读Go复核发现multiline链式Post未入route；匿名反例先失败，末段verb仅trim空白后真实POST /repos/{username}/{reponame}/issues及middleware绑定。主代理点验又发现if initializer中的真实NewIssue未入skeleton；匿名前置调用/else分支反例先失败，initializer保持在其条件前且仍受外层分支约束。真实CreateIssue现141 anchors、NewIssue实参/result保留，loop/short-circuit/动态表达式六个有位置gap保持。33项相关测试/147断言、实际零调用probe通过，证据在verification/av11-go-probe.json；尚未派发Go模型。
+
 - [ ] 原始 OWUI ingestion 请求首跑新策略，检验 decorator 入口和跨对象检查/效果，保留全部原义务及真实前提。
 - [ ] 同样即时修复；只在生产机制能解释改进时计为修复有效，不修改模型输入到直接给出正确分支。
-- [ ] 用已暴露 Gitea 做零调用路由/receiver/骨架兼容核对，为完整 GitHub skill 使用准备；不预填授权语义。
+- [x] 用已暴露 Gitea 做零调用路由/receiver/骨架兼容核对，为完整 GitHub skill 使用准备；不预填授权语义。
 - [ ] 如 Python 两任务仍同因失败，优先做一次共享接口重构及真实验证，再处置受影响比较；不把“已写单测”当成真实闭合。
 
 ### AV12 两份完整原 skill 的原/变实际使用

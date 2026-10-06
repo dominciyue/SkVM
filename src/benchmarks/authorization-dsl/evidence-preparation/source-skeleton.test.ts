@@ -54,6 +54,24 @@ test("Go nested branches, dynamic dispatch and distinct receivers retain exact o
   }
 })
 
+test("Go if initializers execute before their own condition and remain conditional inside an else arm", async () => {
+  const f = await fixture('package app\nfunc entry(a *Item, flag bool) {\n if err := write(a); err != nil { return }\n if flag { done(a) } else if err := update(a); err != nil { return }\n}\n', "go")
+  await f.read()
+  const skeleton = (await f.tools.sourceSkeleton(f.source.id))!
+  const write = skeleton.anchors.find(a => a.call?.expression === "write")!
+  const update = skeleton.anchors.find(a => a.call?.expression === "update")!
+  expect(write).toBeDefined(); expect(update).toBeDefined()
+  expect(write.call!.resultNames).toEqual(["err"])
+  expect(write.call!.arguments).toEqual([{ expression: "a" }])
+  expect(skeleton.flow[0]).toEqual({ kind: "step", anchorId: write.id })
+  const firstCondition = skeleton.anchors.find(a => a.kind === "condition" && a.selector.startLine === 3)!
+  expect(skeleton.edges).toContainEqual({ from: write.id, to: skeleton.flow[1]!.anchorId, branch: "next" })
+  expect(skeleton.flow.find(n => n.anchorId === firstCondition.id)?.kind).toBe("branch")
+  const outer = skeleton.flow.find(n => skeleton.anchors.find(a => a.id === n.anchorId)?.text === "flag")!
+  expect(outer.otherwise?.[0]).toEqual({ kind: "step", anchorId: update.id })
+  expect(skeleton.flow.some(n => n.anchorId === update.id)).toBe(false)
+})
+
 test("short-circuit calls cannot be flattened into unconditional execution and elif alternatives are retained", async () => {
   const f = await fixture("def entry(a, b):\n    if a and b.write():\n        return 1\n    elif b is None:\n        return 2\n    else:\n        return 3\n")
   await f.read()

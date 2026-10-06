@@ -100,6 +100,41 @@ test("ordinary source-only recovery preserves unknown billing while accepting on
   expect(native.telemetry).toMatchObject({ providerCalls: 2, unknownUsageCalls: 1, totalActualUsd: null })
 })
 
+for (const native of [false, true]) test(`v2 ${native ? "native" : "inquiry"} diagnoses extra interpretation fields locally and repairs the same source transaction`, async () => {
+  const { root, inputFile, sourceRoot } = await fixture(), stages: string[] = []; let invalidSent = false, repairedAtSameFocus = false, rejectedFocus: string | undefined, paidWireRepairs = 0
+  const complete = async (params: CompletionParams) => {
+    if (!params.tools?.length) return response("The shown entry returns False and denies this source path.")
+    if (params.messages.some(m => m.content.includes("constrained tool repair"))) paidWireRepairs++
+    const context = currentContext(params), value = action(context, stages)
+    let proposed: Record<string, unknown> = value
+    if (context.focus.stage === "interpret" && !invalidSent) { invalidSent = true; rejectedFocus = context.focus.id; proposed = { ...value, complete: true, unit: { fabricated: true } } }
+    else if (context.focus.stage === "interpret" && invalidSent) {
+      expect(context.focus.id).toBe(rejectedFocus!)
+      expect(JSON.stringify(context)).toContain("source-interpretation-envelope")
+      repairedAtSameFocus = true
+    }
+    if (!native) return response("", [{ id: "step", name: "submit_inquiry_step", arguments: proposed }])
+    if (value.kind === "final") { const { kind: _kind, ...result } = value; return response("", [{ id: "check", name: "authorization_check_result", arguments: { result } }]) }
+    return response("", [{ id: "observe", name: "authorization_observe", arguments: { controlDelta: proposed } }])
+  }
+  const provider: LLMProvider = { name: "mock", complete, completeWithToolResults: (params) => complete(params) }
+  let domain: { sourceWorkMetrics: { sourceInterpretationSubmissions: number; lowLevelFallbacks: number }; focus: { sourceInterpretations: Array<{ event: string; raw: unknown }> } } | undefined
+  if (native) {
+    const adapter = new BareAgentAdapter(() => provider)
+    await adapter.setup({ model: "mock/model", maxSteps: 12, timeoutMs: 10000, providerOptions: { authorizationScope: inputFile, authorizationDomainTools: true, authorizationStrategy: strategy, authorizationMethod: "M" } })
+    const run = await adapter.run({ prompt: brief, workDir: root })
+    expect(run.runStatus).toBe("ok")
+    domain = (run.authorizationInquiry as { domain: NonNullable<typeof domain> }).domain
+  } else {
+    const run = await runAuthorizationInquiry({ sourceRoot, repository: "anonymous", sourceRef: "fixed", allowedPaths: ["app.py"], brief, provider, method: "M", strategy, maxDispatches: 12 })
+    expect(run.status).toBe("completed")
+    domain = run.domain as NonNullable<typeof domain>
+  }
+  expect(repairedAtSameFocus).toBe(true); expect(paidWireRepairs).toBe(0)
+  expect(domain!.sourceWorkMetrics).toMatchObject({ sourceInterpretationSubmissions: 2, lowLevelFallbacks: 0 })
+  expect(domain!.focus.sourceInterpretations).toContainEqual(expect.objectContaining({ event: "envelope-rejected", raw: expect.objectContaining({ complete: true, unit: { fabricated: true } }) }))
+})
+
 for (const method of ["M", "D1"] as const) test(`v2 public ${method} retains source behavior when conformance policy is unspecified`, async () => {
   const { root, sourceRoot } = await fixture(), stages: string[] = []
   const missingPolicy = { ...inquiry, mode: "conformance" }
