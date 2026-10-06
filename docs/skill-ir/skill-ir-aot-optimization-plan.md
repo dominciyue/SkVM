@@ -23,7 +23,7 @@
 | AV10–AV11 | Download、OWUI 纵向链与即时修复，Go 结构兼容 | 实际来源辅助已采用，两终答仍partial |
 | AV12–AV14 | 两完整 skill 原/变使用、四稿原字节消费、三类变化复用 | 四native/四作者/四消费者已有原件；六实际变化由用户暂缓 |
 | AV15–AV17 | 同版本六位置质量比较、适用机制对照与独立源码裁定 | 六质量未派发；当前无完整可比较链，机制诊断零调用；已交付原件独立裁定 |
-| AV18–AV20 | 有关回归、零调用重放、研究整合与 origin 发布 | 当前修复验证/原件重放完成，文档与发布收口；AV全队列未完成 |
+| AV18–AV20 | 有关回归、零调用重放、研究整合与 origin 发布 | 当前修复、验证、原件与文档已发布用户origin；12位置暂缓，AV全队列未完成 |
 
 最近 AU 的32登记首位置为13实跑/19零调用封存，共25归档尝试；六个实跑质量位置为一 full、五 partial。Share/Gitea旧请求完成与usage未知、旧封存和分母保持，见[AU summary](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/summary.json)和[accounting](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/accounting.json)。AV 对未来只读请求显式采用新的有界恢复合同，测试和本地状态核验通过后可执行本轮新 development 位置；不修改旧 guard 或旧原件。
 
