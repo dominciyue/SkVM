@@ -203,10 +203,16 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
   const declaration = loaded.value.inquiry ? { inquiry: loaded.value.inquiry } : { brief: loaded.value.brief, mode: loaded.value.mode ?? "behavior", ...(loaded.value.policy ? { policy: loaded.value.policy } : {}) }
   const accountContext = async (automatic = true) => {
     ensureActive(); domain?.beginStep()
-    if (domain && toolBudget().explorationRemaining > 0) await domain.sync(automatic)
+    // The account owns generation, so its host tool budget replaces the
+    // provider dispatch-count transition into the same partial answer phase.
+    if (domain) await domain.sync(automatic && checks === 0 && !result && toolBudget().explorationRemaining > 0)
     ensureActive()
-    const current = sourceAssisted ? domain?.promptContext({ maxSourceBytes: Math.max(0, (options.maxDisplayBytes ?? 262144) - modelSourceBytes) }) : domain?.modelContext()
-    return current ? { ...current, state: domain!.modelFeedback(), toolBudget: toolBudget(), ...(result ? { currentDelivery: domain!.deliverySnapshot(), instruction: "Deliver the checked answer in the original skill prose format now." } : {}) } : { toolBudget: toolBudget() }
+    const budget = toolBudget(), finalOnly = checks > 0 || budget.explorationRemaining <= 0 || !!result
+    const current = sourceAssisted ? domain?.promptContext({ maxSourceBytes: Math.max(0, (options.maxDisplayBytes ?? 262144) - modelSourceBytes), finalOnly }) : domain?.modelContext({ finalOnly })
+    return current ? { ...current, state: domain!.modelFeedback(), toolBudget: budget,
+      ...(result ? { currentDelivery: domain!.deliverySnapshot(), instruction: "Deliver the checked answer in the original skill prose format now." }
+        : finalOnly ? { currentDelivery: domain!.deliverySnapshot(), instruction: `${current.instruction ?? ""}\n${budget.checksRemaining > 0 ? "Use the current answer focus and exact result contract for the remaining reserved check. Preserve all original questions and current unresolved source gaps." : "Reserved checks are exhausted. Deliver the retained source conclusions and precise gaps in the original skill prose format now; label the failed check and partial/unreviewed claims. No more tools."}` } : {}) }
+      : { toolBudget: budget, ...(budget.totalRemaining <= 0 ? { instruction: "Deliver the original task answer and precise remaining source gaps in the original skill prose format now. No more tools." } : {}) }
   }
   const accountSent = (text: string) => {
     ensureActive(); const display = modelSourceDisplay(tools.evidence, text, displayed)

@@ -169,6 +169,8 @@ Files: `src/cli/run.ts`、现有 authorization inquiry CLI、`src/adapters/codex
 
 `field-context`实际采用锚点解释后定位到生成try/raise被旧焦点schema拒绝；共享焦点同步有限控制，保留原源码异常和宿主callee身份。后续source-controls同原题具名复验，受影响位置在共享修复后继续。AX原件关闭Git文本换行转换，压缩报告重建采用精确原字节，保护归档身份。
 
+`source-controls`完成自然答且接受2单元/15步；两次check失败，账号仍停在interpret导致结果stale。共享accountContext现按宿主预算和已启动check进入已有answer阶段，保留全部问题/缺口，停止自动读；两项红绿反例和48项联合回归通过。下一具名修订为answer-phase；形式及独立语义结果分别验收。field-context独立AI评阅判具体owner/object-grant分支和路由范围为部分，不能用核心下载结论正确替代整题通过。作者/消费者将通过生产会话、公开check/init/edit及来源副本完成，研究driver只做编排、原字节保存和登记，不增加语义算法。
+
 - [ ] 使用下面指定的完整 Download 原任务和完整 Cloudflare 原 skill，读取原始源码，不导入 AW test-authored wrapper、旧正确图或最终答案。
 - [ ] 跑一次普通 native；评阅全部原问题及原 skill 要求。对工具、schema、来源连接、异常合流或语义缺口逐项定位，当场修复共享实现并对同例具名复验。
 - [ ] 另跑一次同原任务的公开 inquiry 入口，确认相同共享核心和当前检查可实际使用；两次各自计量，不能把测试入口证明转写为 native 成功。

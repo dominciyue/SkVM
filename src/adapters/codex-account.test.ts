@@ -7,6 +7,7 @@ import { createAdapter } from "./registry.ts"
 import { runAuthorizationInquiryCli } from "../cli/authorization-inquiry.ts"
 import { executeLocalInquiryRun, initializeLocalInquiry, inspectLocalInquiry } from "../benchmarks/authorization-dsl/inquiry-local.ts"
 import { resolveInquiryContext } from "../benchmarks/authorization-dsl/inquiry-context.ts"
+import { createNativeInquiryRuntime } from "../benchmarks/authorization-dsl/inquiry-native.ts"
 const api = await import("./codex-account.ts").catch(() => ({} as any))
 const sessionApi = await import("./codex-account-session.ts").catch(() => ({} as any))
 async function fixture(source = "def entry():\n    return False\n") {
@@ -73,6 +74,36 @@ test("account v4 accepts host-lowered try/finally source control through the cur
   expect(run.native.domain.semantic.units).toHaveLength(1)
   expect(run.native.domain.semantic.units[0].blocks.flatMap((b: any) => b.steps).some((s: any) => s.kind === "try")).toBe(true)
   expect(run.native.result).toBeDefined()
+})
+
+test("account reserved checks expose the current partial answer contract after an early failed check", async () => {
+  const f = await fixture(), runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, method: "M", strategy: "operation-evidence-v4", maxToolCalls: 12 })
+  try {
+    const first = await runtime.accountContext() as any
+    expect(first.focus.stage).not.toBe("answer")
+    const failed = JSON.parse((await runtime.execute({ id: "early-check", name: "authorization_check_result", arguments: { result: { schemaVersion: "authorization-focused-result/v1", focusId: first.focus.id, answers: [{ explanation: "Original source is still uninterpreted", disposition: "unknown" }], scope: "Only the current source; incomplete interpretation" } } })).output)
+    expect(failed.valid).toBe(false)
+    const delivery = await runtime.accountContext() as any
+    expect(delivery.focus.stage).toBe("answer")
+    expect(delivery.answerSnapshot).toBeDefined()
+    expect(delivery.questions).toHaveLength(1)
+    expect(delivery.toolBudget.checksRemaining).toBe(1)
+    expect(delivery.gaps.some((g: any) => g.kind === "interpretation-gap")).toBe(true)
+    expect(delivery.instruction).toContain("authorization-focused-result/v1")
+  } finally { await runtime.close() }
+})
+test("account exhausted exploration offers all original questions for partial delivery without another read", async () => {
+  const f = await fixture(), runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, method: "M", strategy: "operation-evidence-v4", maxToolCalls: 3 })
+  try {
+    await runtime.execute({ id: "read", name: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 2 } })
+    const delivery = await runtime.accountContext() as any
+    expect(delivery.toolBudget.explorationRemaining).toBe(0)
+    expect(delivery.focus.stage).toBe("answer")
+    expect(delivery.questions).toHaveLength(1)
+    const used = runtime.report().toolBudget.totalUsed
+    await runtime.accountContext()
+    expect(runtime.report().toolBudget.totalUsed).toBe(used)
+  } finally { await runtime.close() }
 })
 
 test("account boundary file admits only exact pinned instructions and is supported by both inquiry entrances", async () => {

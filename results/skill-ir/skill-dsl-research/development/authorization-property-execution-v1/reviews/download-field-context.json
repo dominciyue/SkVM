@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "authorization-ax-source-review/v1",
+  "attemptId": "native-cloudflare-download-original/field-context",
+  "answerSha256": "bc8df75b16905c9c5a28f1fd744a3e3681c2548c38488ab5951cab9e484719a7",
+  "reviewer": "independent-readonly-ai",
+  "mainSpotCheck": true,
+  "taskQuality": "partial",
+  "structuredCheck": "failed",
+  "findings": [
+    {
+      "dimension": "authorization-and-version-binding",
+      "status": "correct",
+      "source": [
+        "src/documents/views.py:1401-1448",
+        "src/documents/versioning.py:169-195"
+      ]
+    },
+    {
+      "dimension": "owner-and-object-grant-alternatives",
+      "status": "incomplete",
+      "finding": "Does not spell out ownerless, caller-owned and non-owner guardian permission alternatives explicitly required by the full original task.",
+      "source": [
+        "src/documents/permissions.py:30-53",
+        "src/documents/permissions.py:624-635"
+      ]
+    },
+    {
+      "dimension": "source-and-deployment-routing-limits",
+      "status": "overstated-unknown",
+      "finding": "Source registers documents to UnifiedSearchViewSet and redirects to the download path template; only deployed BASE_URL and external proxy prefix are unspecified.",
+      "source": [
+        "src/paperless/urls.py:74-78",
+        "src/paperless/urls.py:307-312",
+        "src/documents/views.py:2503-2507"
+      ]
+    }
+  ],
+  "modelExposure": false
+}
