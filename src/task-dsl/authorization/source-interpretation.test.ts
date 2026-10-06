@@ -32,12 +32,27 @@ test("the same production focus offers source anchors and accepts roles without 
   const f = await fixture()
   const runtime = createInquiryDomainRuntime({ program: f.program, tools: f.tools, strategy: "operation-evidence-v1", sourceAssisted: true } as any)
   await runtime.sync()
-  const context: any = runtime.modelContext()
+  const context: any = runtime.promptContext()
   expect(context.tasks[0]?.sourceSkeleton?.sourceId).toBe(f.source.id)
   const accepted = await runtime.propose({ schemaVersion: "authorization-source-update/v1", kind: "interpret", focusId: context.focus.id, interpretation: f.proposal })
   expect(accepted.diagnostics.filter(d => d.code.startsWith("source-interpretation"))).toEqual([])
   expect(runtime.report().semantic?.units).toHaveLength(1)
   expect(runtime.report().semantic?.units[0]!.blocks.some(b => b.steps.some(s => s.kind === "choose"))).toBe(true)
+})
+
+test("source-assisted model context retains the original task once, current phase only and real skeleton progress", async () => {
+  const f = await fixture(), runtime = createInquiryDomainRuntime({ program: f.program, tools: f.tools, strategy: "operation-evidence-v1", sourceAssisted: true })
+  await runtime.sync()
+  const context: any = runtime.promptContext()
+  expect(context.questions[0].request).toBe("Inspect app.entry")
+  expect(context.tasks[0].question).toBeUndefined()
+  expect(context.tasks[0].questionId).toBe("q")
+  expect(runtime.report().worklist?.items.find(w => w.origin === "question-duty" && w.kind === "entry")?.progress).toMatchObject({ found: true, read: true, skeleton: true, interpreted: false })
+  expect(context.instruction).not.toContain("For interpret submit controlDelta:")
+  const final: any = runtime.promptContext({ finalOnly: true })
+  expect(final.instruction).toContain("Final uses")
+  expect(final.instruction).not.toContain("source-interpretation/v1")
+  expect(runtime.report().sourceWorkMetrics).toMatchObject({ lowLevelFallbacks: 0, sourceInterpretationSubmissions: 0, controlSteps: 0 })
 })
 
 test("host branches preserve deny/effect alternatives and an explicitly claimed wrong-object guard is rejected", async () => {
@@ -139,4 +154,20 @@ test("unknown return and operation failure remain equivalent to their explicit o
   expect(outcomes(lowered.unit)).toEqual(outcomes(old))
   expect(lowered.unit.blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "reject")).toMatchObject({ failureKind: "operation" })
   expect(outcomes(lowered.unit).some((p: any) => p.disposition === "unknown")).toBe(true)
+})
+
+test("nested source calls use an intermediate result instead of aliasing both calls to the outer assignment", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "av-nested-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def inner(actor):\n    return actor\ndef outer(resource):\n    return resource\ndef entry(actor):\n    result = outer(inner(actor))\n    return True\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true })
+  const source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id))!
+  const raw = { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations: skeleton.anchors.map(a => ({ anchorId: a.id, role: a.kind === "parameter" ? "principal" : a.kind === "call" ? "resource" : "context", explanation: "Actual source object and call", ...(a.kind === "return" ? { returnOutcome: "allow" } : {}) })), unresolved: [] }
+  const result = api.lowerSourceInterpretation(skeleton, raw, { index: tools.structure, itemId: "w", handle: "u", questionId: "q", role: "entry" })
+  expect(result.diagnostics).toEqual([])
+  const calls = result.unit.blocks[0].steps.filter((s: any) => s.kind === "call")
+  expect(calls.map((s: any) => s.symbol)).toEqual(["inner", "outer"])
+  expect(calls[0].result).not.toBe("result")
+  expect(calls[1]).toMatchObject({ result: "result", arguments: [{ parameter: "resource", object: calls[0].result }] })
 })

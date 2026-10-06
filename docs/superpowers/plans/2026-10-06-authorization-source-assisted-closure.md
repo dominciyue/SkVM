@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 `@vscode/tree-sitter-wasm` Python/Go 解析器、现有 provider/telemetry 和确定性测试。按实际依赖版本查官方实现，不另建 CLI、统一 IR 或整仓安全平台。
 
-日期：2026-10-06。状态：`in-progress`，AV0–AV5完成，继续AV6。开发模型：`gpt-6.1-sol / max`；用户另要求 Flash，当前派发接口没有该设置字段，不能写成已经启用。工作目录 `D:/skill优化/SkVM`，分支 `skill-ir-aot`，仅推用户 `origin`。设计基线 `9d7db8e87c1484e119e7b8d1adece2fc6ba5079f`，启动时保留本任务书后续发布提交。
+日期：2026-10-06。状态：`in-progress`，AV0–AV7完成，继续AV8。开发模型：`gpt-6.1-sol / max`；用户另要求 Flash，当前派发接口没有该设置字段，不能写成已经启用。工作目录 `D:/skill优化/SkVM`，分支 `skill-ir-aot`，仅推用户 `origin`。设计基线 `9d7db8e87c1484e119e7b8d1adece2fc6ba5079f`，启动时保留本任务书后续发布提交。
 
 本轮约 8–12 小时是主动工作安排，约六成精力用于质量、四成用于编写与复用。完成适用工作即收口；不等待、重复全量验证或增加无目的调用凑时间。实验模型沿用 `xty/gpt-5.6-sol`，与开发线程模型分账；可用路由改变时记录并统一同一比较块。
 
@@ -194,17 +194,17 @@ export interface SourceInterpretation {
 
 ### AV6 骨架驱动义务调度与上下文
 
-- [ ] 测试“模型未报告 helper，但实际调用/授权义务可触发补读”“已读未解释只要求解释”“日志/注释同名不抢入口”。
-- [ ] 接入现有 operation/worklist/focus，关键调用/返回关系优先于外围文件；完整框架 dispatch 义务仍保留。
-- [ ] 上下文保留原任务、当前源码、接受摘要和本轮缺口，历史原件存 trace。源码文本和巨大 schema 不在同次 prompt 多处重复。
-- [ ] 记录实际原文展示、重复字节、解释重做、fallback 次数与控制步骤；不能删决定性条件换 token 下降。
+- [x] 测试“模型未报告 helper，但实际调用/授权义务可触发补读”“已读未解释只要求解释”“日志/注释同名不抢入口”。
+- [x] 接入现有 operation/worklist/focus，关键调用/返回关系优先于外围文件；完整框架 dispatch 义务仍保留。
+- [x] 上下文保留原任务、当前源码、接受摘要和本轮缺口，历史原件存 trace。源码文本和巨大 schema 不在同次 prompt 多处重复。
+- [x] 记录实际原文展示、重复字节、解释重做、fallback 次数与控制步骤；不能删决定性条件换 token 下降。
 
 ### AV7 四类缺口与同源回答
 
-- [ ] 写“已读但 callee 未连”“用户条件未知”“behavior 无 policy”“conformance 缺 policy”“检查失败后已有可靠部分说明”五类测试。
-- [ ] 把原始义务逐项映射到当前来源/条件/缺口；源代码未读和映射失败不得共用原因。
-- [ ] 自然终答、机器答案、检查状态使用同一 revision；旧结果失效时撤销，独立充分的条件说明保留。
-- [ ] 保持语义质量独立评价，不用 current check 的 valid 自动生成 full 等级。
+- [x] 写“已读但 callee 未连”“用户条件未知”“behavior 无 policy”“conformance 缺 policy”“检查失败后已有可靠部分说明”五类测试。
+- [x] 把原始义务逐项映射到当前来源/条件/缺口；源代码未读和映射失败不得共用原因。
+- [x] 自然终答、机器答案、检查状态使用同一 revision；旧结果失效时撤销，独立充分的条件说明保留。
+- [x] 保持语义质量独立评价，不用 current check 的 valid 自动生成 full 等级。
 
 ### AV8 只读超时恢复与晚答隔离
 

@@ -62,3 +62,17 @@ test("short-circuit calls cannot be flattened into unconditional execution and e
   expect(skeleton.gaps.some((g: any) => g.code === "skeleton-short-circuit-call")).toBe(true)
   expect(skeleton.anchors.filter((a: any) => a.kind === "return").map((a: any) => a.valueExpression)).toEqual(["1", "2", "3"])
 })
+
+test("registration source is a bounded context skeleton and nested definition fields are outside the surrounding scope", async () => {
+  const f = await fixture("from fastapi import APIRouter\nrouter = APIRouter()\n@router.post('/items')\ndef entry(actor):\n    def local():\n        return actor.hidden\n    return actor\n")
+  await f.read()
+  const body = (await f.tools.sourceSkeleton(f.source.id))!
+  expect(body.anchors.some(a => a.name === "actor.hidden")).toBe(false)
+  expect(body.gaps.some(g => g.code === "skeleton-local-definition")).toBe(true)
+  const route = f.tools.structure!.symbols.find(s => s.attributes.routeModel)!
+  await f.tools.execute("source_read", { path: route.path, startLine: route.startLine, endLine: route.endLine })
+  const registration = (await f.tools.sourceSkeleton(route.id))!
+  expect(registration).toMatchObject({ modelCovered: true, context: "route-registration", gaps: [] })
+  expect(registration.anchors.map(a => a.kind)).toContain("call")
+  expect(registration.anchors.some(a => a.kind === "return" || a.kind === "parameter")).toBe(false)
+})

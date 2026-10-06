@@ -18,6 +18,7 @@ export interface WorkItem {
   selectedBy?: "explicit-selection" | "explicit-discovery-selection" | "unique-index-candidate" | "accepted-entry-citation" | "source-confirmed-candidate";
   callsiteEvidenceIds: string[]; evidenceIds: string[]; semanticSupport: "unreviewed";
   nextAction: { kind: "locate" | "select-candidate" | "read" | "interpret" | "bind" | "check" | "none"; itemId: string }
+  progress?: { found: boolean; read: boolean; skeleton: boolean; interpreted: boolean; linked: boolean; checked: boolean; skeletonRevision?: string }
 }
 export interface WorklistAction {
   actionOrigin: "domain-worklist"; questionId: string; dependencyId: string; name: "source_read";
@@ -29,15 +30,15 @@ const priority: Record<InquiryRelation, number> = { entry: 0, "principal-binding
 
 /** Keep every current duty addressable; focused location tasks carry full candidate metadata. */
 export function worklistModelView(items: WorkItem[]) {
-  return items.map(({ id, questionId, kind, origin, state, decisive, code, reason, symbol, parentId, dependencyId, receiverClass, nextAction, callsiteEvidenceIds, evidenceIds, candidates, selected, selectedBy, semanticSupport }) => ({
+  return items.map(({ id, questionId, kind, origin, state, decisive, code, reason, symbol, parentId, dependencyId, receiverClass, nextAction, callsiteEvidenceIds, evidenceIds, candidates, selected, selectedBy, semanticSupport, progress }) => ({
     id, questionId, kind, origin, state, decisive, code, reason, symbol, parentId, dependencyId, receiverClass,
     nextAction: structuredClone(nextAction), callsiteEvidenceIds: [...callsiteEvidenceIds], evidenceIds: [...evidenceIds], candidateCount: candidates.length,
-    ...(selected ? { selected: { id: selected.id, path: selected.path, startLine: selected.startLine, endLine: selected.endLine }, selectedBy } : {}), semanticSupport,
+    ...(selected ? { selected: { id: selected.id, path: selected.path, startLine: selected.startLine, endLine: selected.endLine }, selectedBy } : {}), semanticSupport, progress,
   }))
 }
 
 /** Source candidates are lexical work, never an inferred call graph or authorization fact. */
-export function createInquiryWorklist(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; entryContext?: string; remainingActions?: () => number; dependencyStates?: () => ScheduledDependency[]; structural?: boolean; requireEntryBasis?: boolean; semanticUnits?: () => BoundSemanticBlock[] }) {
+export function createInquiryWorklist(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; entryContext?: string; remainingActions?: () => number; dependencyStates?: () => ScheduledDependency[]; structural?: boolean; requireEntryBasis?: boolean; semanticUnits?: () => BoundSemanticBlock[]; skeletonState?: (id: string, receiverClass?: string) => { modelCovered: boolean; revision: string } | undefined }) {
   const items = new Map<string, WorkItem>(), choices = new Map<string, { candidate: DiscoverySymbol; origin: "explicit-selection" | "explicit-discovery-selection" }>(), invalidFiles = new Set<string>(), failedReads = new Map<string, string>()
   const actions: WorklistAction[] = [], questionIds = options.program.questions.map(q => q.id)
   const relations = new Map<string, { id: string; questionId: string; sourceId: string; candidateId?: string; reason: string; state: string; gap?: string }>(), frameworkDependencies = new Map<string, SourceFactDependency>()
@@ -81,7 +82,7 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
     if (!parent.selected) return
     if (options.structural && options.tools.structure) {
       const index = options.tools.structure, interpreted = options.semanticUnits ? options.semanticUnits().filter(u => u.questionId === parent.questionId && u.source).map(u => ({ id: u.source!.id, receiverClass: u.receiverClass })) : [...items.values()].filter(i => represented(i, currentSlice).length).flatMap(i => i.selected?.id ?? [])
-      const work = operationWork(index, parent.selected.id, [...items.values()].filter(i => i.selected && coveredThrough(i.selected) >= i.selected.endLine).map(i => i.selected!.id), interpreted, parent.receiverClass)
+      const work = operationWork(index, parent.selected.id, [...items.values()].filter(i => i.selected && coveredThrough(i.selected) >= i.selected.endLine).map(i => i.selected!.id), interpreted, parent.receiverClass, { sourceAssisted: options.requireEntryBasis, operationRoot: parent.origin === "question-duty" && parent.kind === "entry" })
       for (const d of work.frameworkDependencies) frameworkDependencies.set(d.key, d)
       for (const gap of work.gaps) relations.set(`${parent.questionId}:${gap.id}`, { id: gap.id, questionId: parent.questionId, sourceId: parent.selected.id, reason: `Inspect ${gap.expression} at ${gap.path}:${gap.startLine}`, state: gap.resolution, gap: gap.gap })
       for (const a of work.actions) {
@@ -91,7 +92,7 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
         relations.set(`${parent.questionId}:${a.relationId}:${candidate.id}`, { id: a.relationId, questionId: parent.questionId, sourceId: parent.selected.id, candidateId: candidate.id, reason: a.reason, state: a.kind })
         if (candidate.id === parent.selected.id || [...items.values()].some(i => i.questionId === parent.questionId && i.selected?.id === candidate.id && i.receiverClass === a.receiverClass)) continue
         if ([...items.values()].filter(i => i.questionId === parent.questionId && i.origin === "structure-relation").length >= 48) { parent.code = "work-structure-limit"; break }
-        if (!items.has(id)) items.set(id, make(id, parent.questionId, a.obligation, "structure-relation", a.reason, { symbol: candidate.name, parentId: parent.id, candidates: [candidate], selected: candidate, relationId: a.relationId, receiverClass: a.receiverClass, callsiteEvidenceIds: [...parent.evidenceIds], reason: a.reason }))
+        if (!items.has(id)) items.set(id, make(id, parent.questionId, a.obligation, "structure-relation", a.reason, { symbol: candidate.name, parentId: parent.id, candidates: [candidate], selected: candidate, relationId: a.relationId, receiverClass: a.receiverClass, callsiteEvidenceIds: [...parent.evidenceIds], reason: a.reason, decisive: a.decisive }))
       }
       return
     }
@@ -182,6 +183,13 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
       else if (item.parentId && item.origin !== "structure-relation" && !proposed.some(r => controlRuleReach(slice, r).ancestors.some(a => parentRules.some(p => p.id === a.id)))) transition(item, "awaiting-binding", "bind", "Accepted interpretation still needs an explicit link to the parent source rule.", "source-link-missing")
       else transition(item, check?.ruleConsistency && check.taskResolution === "bounded" ? "closed" : "awaiting-verification", check?.ruleConsistency && check.taskResolution === "bounded" ? "none" : "check", "Source is represented by a linked proposal; meaning remains unreviewed.")
       discoverReferences(item)
+    }
+    if (options.structural) for (const item of items.values()) {
+      const units = options.semanticUnits?.() ?? [], unit = units.find(u => u.questionId === item.questionId && u.source?.id === item.selected?.id && u.receiverClass === item.receiverClass)
+      const linked = !!unit && (unit.role === "entry" || units.some(u => u.questionId === item.questionId && u.blocks.some(b => b.steps.some(s => s.kind === "call" && s.callee === unit.handle))))
+      const syntax = item.selected && options.skeletonState?.(item.selected.id, item.receiverClass)
+      const read = !!item.selected && coveredThrough(item.selected) >= item.selected.endLine && item.code !== "source-invalidated"
+      item.progress = { found: !!item.selected, read, skeleton: read && !!syntax?.modelCovered, interpreted: !!unit && item.code !== "source-invalidated", linked: linked && item.code !== "source-invalidated", checked: !!unit && read && !!check?.ruleConsistency && check.taskResolution === "bounded", ...(read && syntax?.modelCovered ? { skeletonRevision: syntax.revision } : {}) }
     }
     return snapshot()
   }

@@ -12,7 +12,7 @@ export const InquiryQuestionResultSchema = z.object({
   behavior: z.object({ disposition, explanation: InquiryText }).strict(),
   branches: z.array(z.object({ id: InquiryText, condition: InquiryText, disposition, explanation: InquiryText, evidenceIds: z.array(InquiryText) }).strict()).max(16),
   evidenceIds: z.array(InquiryText),
-  missing: z.array(z.object({ kind: z.enum(["source-gap", "premise-unspecified", "deployment-unverified", "dependency-out-of-scope"]), detail: InquiryText, nextRead: InquiryText.optional() }).strict()),
+  missing: z.array(z.object({ kind: z.enum(["source-gap", "interpretation-gap", "premise-unknown", "policy-unspecified", "premise-unspecified", "deployment-unverified", "dependency-out-of-scope"]), detail: InquiryText, nextRead: InquiryText.optional() }).strict()),
   policyAssessment: z.object({ status: z.enum(["satisfied", "violated", "undetermined"]), explanation: InquiryText }).strict().optional(),
 }).strict()
 export const AuthorizationInquiryResultSchema = z.object({

@@ -2524,6 +2524,10 @@ AV5已实现：严格`authorization-source-update/v1`只在当前interpret focus
 
 **交付。** `source-gap`、`interpretation-gap`、`premise-unknown`、`policy-unspecified` 分列；缺独立政策只影响请求的合规比较。自然答案和检查使用同一当前快照，可靠部分说明可保留；机械 valid、完整来源覆盖与独立任务质量分别评价。原始任务义务不缩减，条件答案充分性按原任务核查。
 
+AV6已实现：实际call语法角色区分condition/return/argument-default/body/source-context，决定性条件/返回和真实框架依赖先补读；普通默认factory不误当每请求调用。FastAPI实际Depends/Security import alias形成来源依赖候选，registration有可读的context骨架；source-bindings/v3使旧关系材料明确失效。DRF直接方法入口在新策略保留initial/permission义务，不展开无关create serializer集合，也不在后续方法重复注入。worklist记录found/read/skeleton/interpreted/linked/checked，读完待解释不再重读。`promptContext`保留一次原任务/政策、当前完整窗口、接受摘要和当前阶段说明；长anchor原文回指已展示窗口。实际展示/重复由两入口request trace留账，sourceWorkMetrics记录解释提交/局修/fallback/控制步骤。嵌套调用保留独立临时result，局部定义不泄漏字段锚点。
+
+AV7已实现：结果missing兼容旧kind并增加四类精确缺口；当前deliverySnapshot绑定revision、machineAnswer、check、原始六类义务、来源/条件/缺口及保留的原文解释。新提案即撤销旧交付和check；源码失效也删除对应live说明，历史原件仍在report。已读未连接callee是interpretation-gap；实际入口参数的未知运行值是premise-unknown，尚未解释的源码值不是用户前提。显式allowMissingPolicy只供新策略分析conformance的源码行为，独立比较仍undetermined；旧默认拒绝缺政策的合同保持。当前保留的模型说明标为unreviewed，机械检查不生成独立full质量评分。
+
 **未来只读请求恢复。** AV 显式替换旧研究 runner 的全逻辑任务封存政策：本地尝试关闭、晚答与工具执行隔离、只读能力及预算核验成立后，每个超时请求最多一次恢复、每位置最多两次，计入原总派发预算。可取消时传 signal；远端无法确认完成时保留 unknown，晚答仅追加原请求计量，不接受其工具动作或改写当前结果。副作用/仍活动执行器暂停对应动作；费用未知不阻塞独立开发。旧 AU/AT/AS 封存、原请求、评价和分母不变；本轮新的已暴露 development 运行明确记录新政策与历史风险，禁止修改旧 guard 或用新身份掩盖重抽。
 
 **实际使用与研究。** 先修三个确定性缺陷，再以 Download、OWUI 真实纵向链检验新分工，随后做两完整 skill 的原/变 native、作者稿原字节消费及政策/前提/源码变化。稳定版本下 N、自然前端加核心、声明前端加同核心公平比较；所有准备、恢复、修订成本留账。已知共享失败即时停止受影响派发并修复，未解决处保存具体边界，研究目标达成与有限队列终结分开记录。

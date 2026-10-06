@@ -42,6 +42,21 @@ test("qualified symbols can confirm an entry but duplicate routes cannot", async
   expect(ambiguous.work.snapshot().find((w: any) => w.kind === "entry")).toMatchObject({ code: "location-ambiguous" })
   expect(ambiguous.tools.toolCalls).toBe(0)
 })
+
+test("actual condition calls outrank peripheral calls and read progress never triggers a reread", async () => {
+  const { tools, work } = await sourceConfirmedWork("def log():\n    return True\ndef decision(actor):\n    return False\ndef entry(actor):\n    log()\n    if decision(actor):\n        return True\n    return False\n# decision and entry in a comment are not additional calls\n", "Inspect app.entry for the supplied caller")
+  await work.run(createControlSlice(), 2)
+  expect(work.actions.map((a: any) => a.arguments.startLine)).toEqual([5, 3])
+  const decision = work.snapshot().find((w: any) => w.selected?.name === "decision")
+  expect(decision).toMatchObject({ decisive: true, progress: { found: true, read: true, interpreted: false, linked: false, checked: false }, nextAction: { kind: "interpret" } })
+  const before = tools.toolCalls
+  await work.run(createControlSlice(), 2)
+  const after = tools.toolCalls
+  await work.run(createControlSlice(), 2)
+  expect(after).toBe(before + 1)
+  expect(tools.toolCalls).toBe(after)
+  expect(work.snapshot().filter((w: any) => w.origin === "structure-relation").map((w: any) => w.selected?.name).sort()).toEqual(["decision", "log"])
+})
 const api = await import("./inquiry-worklist.ts").catch(() => ({} as any))
 async function fixture(sources: Record<string, string>, questions = [{ id: "q", request: "Investigate entry", entryHint: "entry", premises: [] }]) {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-work-"))

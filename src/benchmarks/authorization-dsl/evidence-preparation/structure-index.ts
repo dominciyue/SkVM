@@ -11,10 +11,10 @@ export interface StructureSymbol extends DiscoverySymbol {
 export interface StructureCall {
   id: string; ownerId?: string; path: string; sha256: string; startLine: number; endLine: number;
   expression: string; receiver?: string; receiverClass?: string; arguments: string[]; candidateIds: string[]; resolution: "resolved" | "ambiguous" | "unresolved";
-  basis: string[]; gap?: string; resultNames: string[]
+  basis: string[]; gap?: string; resultNames: string[]; syntaxRole: "condition" | "return" | "argument-default" | "body" | "source-context"
 }
-export interface StructureRoute { id: string; sourceCallId: string; sourcePath: string; startLine: number; endLine: number; method: string; path: string; handlerExpression: string; candidateIds: string[]; middlewareExpressions: string[]; model: string }
-interface FileScope { path: string; module: string; language: "python" | "go"; aliases: Record<string, string>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; groupPaths: string[] }>; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string }> }
+export interface StructureRoute { id: string; sourceCallId: string; sourcePath: string; startLine: number; endLine: number; method: string; path: string; handlerExpression: string; candidateIds: string[]; middlewareExpressions: string[]; dependencyExpressions?: string[]; model: string }
+interface FileScope { path: string; module: string; language: "python" | "go"; aliases: Record<string, string>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; groupPaths: string[] }>; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; dependencies: Array<{ constructor: string; expression: string }>; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string }> }
 const hash = (v: unknown) => createHash("sha256").update(typeof v === "string" ? v : JSON.stringify(v)).digest("hex")
 let initialized: Promise<Map<string, Language>> | undefined
 function languages() {
@@ -128,8 +128,20 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         while (surrounding) { if (surrounding.type === "call_expression" && field(surrounding, "function")?.text.endsWith(".Group")) { const p = children(field(surrounding, "arguments"))[0]; if (p && /^"[^"\n]*"$/.test(p.text)) groupPaths.unshift(JSON.parse(p.text)) }; surrounding = surrounding.parent }
         let assignment = n.parent
         while (assignment && !["assignment", "short_var_declaration", "assignment_statement", "function_definition", "function_declaration", "method_declaration"].includes(assignment.type)) assignment = assignment.parent
-        if (assignment && ["assignment", "short_var_declaration", "assignment_statement"].includes(assignment.type)) resultNames.push(...(children(field(assignment, "left")).length ? children(field(assignment, "left")).map(c => c.text) : [field(assignment, "left")?.text ?? ""]).filter(Boolean))
-        rawCalls.push({ types, groupPaths, call: { id: `call-${hash([sourceIdentity, file.path, sha256, n.startIndex]).slice(0, 24)}`, ...(symbol ? { ownerId: symbol.id } : {}), path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, expression, ...(expression.includes(".") ? { receiver: expression.slice(0, expression.lastIndexOf(".")) } : {}), arguments: args, candidateIds: [], resolution: "unresolved", basis: [], resultNames } })
+        if (assignment && ["assignment", "short_var_declaration", "assignment_statement"].includes(assignment.type)) {
+          const right = field(assignment, "right"), left = children(field(assignment, "left")).length ? children(field(assignment, "left")).map(c => c.text) : [field(assignment, "left")?.text ?? ""]
+          if (right?.id === n.id || right && children(right).length === 1 && children(right)[0]?.id === n.id) resultNames.push(...left.filter(Boolean))
+          else if (right?.type === "expression_list") { const i = children(right).findIndex(c => c.id === n.id); if (i >= 0 && left[i]) resultNames.push(left[i]!) }
+        }
+        let syntaxRole: StructureCall["syntaxRole"] = symbol ? "body" : "source-context", ancestor = n.parent
+        if (owner && symbol?.kind === "function" && field(owner, "body") && n.startIndex < field(owner, "body")!.startIndex) syntaxRole = "argument-default"
+        else while (ancestor && ancestor.id !== owner?.id) {
+          const condition = field(ancestor, "condition")
+          if (condition && condition.startIndex <= n.startIndex && condition.endIndex >= n.endIndex) { syntaxRole = "condition"; break }
+          if (ancestor.type === "return_statement") { syntaxRole = "return"; break }
+          ancestor = ancestor.parent
+        }
+        rawCalls.push({ types, groupPaths, call: { id: `call-${hash([sourceIdentity, file.path, sha256, n.startIndex]).slice(0, 24)}`, ...(symbol ? { ownerId: symbol.id } : {}), path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, expression, ...(expression.includes(".") ? { receiver: expression.slice(0, expression.lastIndexOf(".")) } : {}), arguments: args, candidateIds: [], resolution: "unresolved", basis: [], resultNames, syntaxRole } })
       }
       const constants: Record<string, string> = {}, routers: FileScope["routers"] = [], decorators: FileScope["decorators"] = [], includes: FileScope["includes"] = []
       if (language === "python") {
@@ -150,7 +162,9 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
             const call = children(d).find(c => c.type === "call"), expression = call && field(call, "function")?.text, verb = expression?.split(".").at(-1)
             if (!call || !expression?.includes(".") || !verb || !verbs.has(verb)) continue
             const args = children(field(call, "arguments")), raw = rawCalls.find(r => r.call.startLine === call.startPosition.row + 1 && r.call.expression === expression)
-            if (raw) decorators.push({ callId: raw.call.id, handlerId: handler.id, receiver: expression.slice(0, expression.lastIndexOf(".")), verb, path: (args.find(a => a.type !== "keyword_argument") ?? args.find(a => field(a, "name")?.text === "path")?.childForFieldName("value"))?.text ?? "", middleware: [...args.filter(a => a.type === "keyword_argument" && field(a, "name")?.text === "dependencies").map(a => a.text), ...children(field(fn!, "parameters")).filter(p => descendants(p, ["call"]).some(c => field(c, "function")?.text.endsWith("Depends"))).map(p => p.text)], wrapped: ds.length !== 1 })
+            const dependencyNodes = [...args.filter(a => a.type === "keyword_argument" && field(a, "name")?.text === "dependencies"), ...children(field(fn!, "parameters"))]
+            const dependencies = dependencyNodes.flatMap(p => descendants(p, ["call"]).map(c => ({ constructor: field(c, "function")?.text ?? "", expression: (children(field(c, "arguments")).find(a => a.type !== "keyword_argument") ?? children(field(c, "arguments")).find(a => field(a, "name")?.text === "dependency")?.childForFieldName("value"))?.text ?? "" })))
+            if (raw) decorators.push({ callId: raw.call.id, handlerId: handler.id, receiver: expression.slice(0, expression.lastIndexOf(".")), verb, path: (args.find(a => a.type !== "keyword_argument") ?? args.find(a => field(a, "name")?.text === "path")?.childForFieldName("value"))?.text ?? "", middleware: dependencyNodes.filter(p => descendants(p, ["call"]).length).map(p => p.text), dependencies, wrapped: ds.length !== 1 })
           }
         }
         for (const n of descendants(root, ["call"])) {
@@ -283,7 +297,11 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     const code = !router ? "route-router-unresolved" : !ps ? "route-prefix-dynamic" : value === undefined ? "route-path-dynamic" : d.wrapped ? "route-wrapper-unresolved" : undefined
     if (code) { diagnostics.push({ path: scope.path, line: c.startLine, code }); continue }
     const handler = symbols.find(s => s.id === d.handlerId)!
-    for (const [mount, prefix] of ps!.entries()) routes.push({ id: `route-${hash([c.id, prefix, mount]).slice(0, 24)}`, sourceCallId: c.id, sourcePath: scope.path, startLine: c.startLine, endLine: c.endLine, method: d.verb.toUpperCase(), path: prefix + value!, handlerExpression: handler.name, candidateIds: [handler.id], middlewareExpressions: d.middleware, model: "fastapi-source-router/v1" })
+    for (const [mount, prefix] of ps!.entries()) {
+      const route: StructureRoute = { id: `route-${hash([c.id, prefix, mount]).slice(0, 24)}`, sourceCallId: c.id, sourcePath: scope.path, startLine: c.startLine, endLine: c.endLine, method: d.verb.toUpperCase(), path: prefix + value!, handlerExpression: handler.name, candidateIds: [handler.id], middlewareExpressions: d.middleware, dependencyExpressions: d.dependencies.filter(dep => ["fastapi.Depends", "fastapi.params.Depends", "fastapi.Security", "fastapi.params.Security"].includes(qualified(dep.constructor, scope)) && /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(dep.expression)).map(dep => dep.expression), model: "fastapi-source-router/v1" }
+      routes.push(route)
+      symbols.push({ id: route.id, path: c.path, sha256: c.sha256, name: `${route.method} ${route.path}`, qualifiedName: `${scope.module}.route@${c.startLine}`, module: scope.module, language: scope.language, kind: "function", startLine: c.startLine, endLine: c.endLine, boundary: "complete", parameters: [], returns: [], bases: [], attributes: { routeModel: route.model, handlerExpression: handler.name } })
+    }
   }
   for (const scope of scopes) for (const raw of scope.rawCalls) {
     const c = raw.call, verb = c.expression.split(".").at(-1)!, goRoute = scope.language === "go" && ["Get", "Post", "Put", "Patch", "Delete", "Head", "Options"].includes(verb), drf = scope.language === "python" && verb === "register"
@@ -302,7 +320,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
   const candidateRevision = (className: string, method: string) => hash([linearize(className), lookupMethod(className, method).map(s => [s.id, s.sha256]), scopes.map(s => [s.path, s.aliases])])
   const relatedCalls = (symbolId: string, receiverClass?: string) => { const route = routes.find(r => r.id === symbolId); return scopes.flatMap(f => f.rawCalls.filter(r => route ? r.call.path === route.sourcePath && r.call.id !== route.sourceCallId && r.call.startLine >= route.startLine && r.call.endLine <= route.endLine : r.call.ownerId === symbolId).map(r => resolveCall(r, f, receiverClass))) }
   const resolveName = (text: string, sourcePath: string) => { const scope = scopes.find(f => f.path === sourcePath); return scope ? matching(qualified(text, scope)) : [] }
-  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v2"
+  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v3"
   const withSymbolSyntax = <T>(symbolId: string, visit: (root: Node, symbol: StructureSymbol) => T): Promise<T> => {
     const symbol = symbols.find(s => s.id === symbolId), file = symbol && files.find(f => f.path === symbol.path)
     if (!symbol || !file || hash(file.content) !== symbol.sha256) throw new Error("structure-source-missing")

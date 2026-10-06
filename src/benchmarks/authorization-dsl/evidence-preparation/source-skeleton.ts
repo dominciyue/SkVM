@@ -16,6 +16,7 @@ export interface SourceAnchor {
 export interface SourceFlow { kind: "step" | "branch" | "gap"; anchorId: string; then?: SourceFlow[]; otherwise?: SourceFlow[] }
 export interface SourceSkeleton {
   schemaVersion: "authorization-source-skeleton/v1"; sourceId: string; revision: string;
+  context?: "route-registration";
   source: { id: string; path: string; sha256: string; startLine: number; endLine: number }; modelCovered: boolean; evidenceIds: string[];
   anchors: SourceAnchor[]; flow: SourceFlow[]; edges: Array<{ from: string; to: string; branch: "next" | "true" | "false" }>;
   gaps: Array<{ code: string; selector: SourceSelector; reason: string }>
@@ -33,8 +34,10 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
   const skeleton: SourceSkeleton = { schemaVersion: "authorization-source-skeleton/v1", sourceId: source.id, source: { id: source.id, path: source.path, sha256: source.sha256, startLine: source.startLine, endLine: source.endLine }, revision: "", modelCovered: through >= source.endLine, evidenceIds: selected.map(e => e.id), anchors: [], flow: [], edges: [], gaps: [] }
   if (!skeleton.modelCovered) skeleton.gaps.push({ code: "skeleton-source-unread", selector, reason: "The complete current function is not available in shown original windows; indexing is not model interpretation." })
   else await index.withSymbolSyntax(source.id, root => {
-    const fn = descendants(root, ["function_definition", "function_declaration", "method_declaration"]).find(n => n.startPosition.row + 1 === source.startLine && n.endPosition.row + 1 === source.endLine)
+    const registration = index.routes.find(r => r.id === source.id)
+    const fn = descendants(root, registration ? ["call", "call_expression"] : ["function_definition", "function_declaration", "method_declaration"]).find(n => n.startPosition.row + 1 === source.startLine && n.endPosition.row + 1 === source.endLine)
     if (!fn) { skeleton.gaps.push({ code: "skeleton-function-unavailable", selector, reason: "This candidate is source context rather than an exact function body." }); return }
+    if (registration) skeleton.context = "route-registration"
     const positions = new Map<string, number>()
     const located = (n: Node): SourceSelector => ({ path: source.path, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, candidateId: source.id })
     const add = (n: Node, kind: SourceAnchor["kind"], extra: Partial<SourceAnchor> = {}) => {
@@ -45,8 +48,14 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       skeleton.anchors.push(anchor); positions.set(id, n.startIndex); return anchor
     }
     const gap = (n: Node, code: string, reason: string) => { if (!skeleton.gaps.some(g => g.code === code && g.selector.startLine === n.startPosition.row + 1)) skeleton.gaps.push({ code, selector: located(n), reason }) }
-    const actualCalls = index.relatedCalls(source.id, receiverClass)
-    for (const n of descendants(fn, ["attribute", "selector_expression", "subscript", "index_expression"])) add(n, "assignment", { name: n.text, valueExpression: n.text })
+    const actualCalls = [...index.relatedCalls(source.id, receiverClass), ...index.calls.filter(c => c.id === registration?.sourceCallId)]
+    const belongsToScope = (n: Node) => {
+      if (n.id === fn.id) return true
+      let owner = n.parent
+      while (owner && owner.id !== fn.id && !["function_definition", "function_declaration", "method_declaration", "function_literal", "lambda"].includes(owner.type)) owner = owner.parent
+      return owner?.id === fn.id
+    }
+    for (const n of descendants(fn, ["attribute", "selector_expression", "subscript", "index_expression"]).filter(belongsToScope)) add(n, "assignment", { name: n.text, valueExpression: n.text })
     const callAnchor = (n: Node) => {
       const expression = field(n, "function")?.text ?? n.text, actual = actualCalls.find(c => c.startLine === n.startPosition.row + 1 && c.endLine === n.endPosition.row + 1 && c.expression === expression)
       const arguments_: NonNullable<SourceAnchor["call"]>["arguments"] = kids(field(n, "arguments")).map(a => { const value = a.type === "keyword_argument" ? field(a, "value")! : a, literal = sourceLiteral(value); return { expression: value.text, ...(a.type === "keyword_argument" ? { parameterName: field(a, "name")!.text } : {}), ...(["list_splat", "dictionary_splat", "variadic_argument"].includes(a.type) ? { spread: true } : {}), ...(literal.literalKnown ? literal : {}) } })
@@ -54,11 +63,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       if (arguments_.some(a => a.spread)) gap(n, "skeleton-arguments-dynamic", "Expanded arguments require a source-supported mapping; positions are not guessed.")
       return add(n, "call", { call: { sourceCallId: actual?.id, expression, receiver: actual?.receiver, receiverClass: actual?.receiverClass, arguments: arguments_, candidateIds: actual?.candidateIds ?? [], resultNames: actual?.resultNames ?? [], resultBinding: actual?.resultNames[0] ?? `result-${hash([source.id, n.startIndex]).slice(0, 16)}` } })
     }
-    const callsIn = (n: Node) => descendants(n, source.language === "python" ? ["call"] : ["call_expression"]).filter(c => {
-      let owner = c.parent
-      while (owner && owner.id !== fn.id && !["function_definition", "function_declaration", "method_declaration", "function_literal", "lambda"].includes(owner.type)) owner = owner.parent
-      return owner?.id === fn.id
-    }).sort((a, b) => a.endIndex - b.endIndex || b.startIndex - a.startIndex)
+    const callsIn = (n: Node) => descendants(n, source.language === "python" ? ["call"] : ["call_expression"]).filter(belongsToScope).sort((a, b) => a.endIndex - b.endIndex || b.startIndex - a.startIndex)
     for (const p of kids(field(fn, "parameters"))) {
       const names = source.language === "go" ? kids(p).filter(n => n.type === "identifier").map(n => n.text) : [field(p, "name")?.text ?? (p.type === "identifier" ? p.text : kids(p)[0]?.text)].filter((n): n is string => !!n)
       for (const name of names) add(p, "parameter", { name, defaultExpression: field(p, "value")?.text })
@@ -98,7 +103,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       gap(n, "skeleton-statement-unsupported", `The ${n.type} statement remains explicit rather than being silently deleted.`)
       return [{ kind: "gap", anchorId: add(n, "assignment").id }]
     }
-    skeleton.flow = visitList(field(fn, "body"))
+    skeleton.flow = registration ? [...callsIn(fn).filter(n => n.id !== fn.id), fn].map(n => ({ kind: "step", anchorId: callAnchor(n).id })) : visitList(field(fn, "body"))
     if (fn.hasError) gap(fn, "skeleton-parse-partial", "The original function has parser errors; coverage is bounded.")
     const connect = (flow: SourceFlow[], next?: string) => {
       for (const [i, node] of flow.entries()) {
@@ -111,6 +116,6 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     connect(skeleton.flow)
     skeleton.anchors.sort((a, b) => positions.get(a.id)! - positions.get(b.id)! || a.id.localeCompare(b.id))
   })
-  skeleton.revision = hash([index.parser, index.relationshipVersion, skeleton.source, skeleton.modelCovered, skeleton.anchors, skeleton.flow, skeleton.edges, skeleton.gaps])
+  skeleton.revision = hash([index.parser, index.relationshipVersion, skeleton.source, skeleton.context, skeleton.modelCovered, skeleton.anchors, skeleton.flow, skeleton.edges, skeleton.gaps])
   return skeleton
 }

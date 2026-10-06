@@ -73,3 +73,27 @@ test("the same inherited body keeps separate actual receiver candidates", async 
   const work = operationWork(index, index.symbols.find(s => s.qualifiedName === "app.create")!.id, [], [])
   expect(work.actions.map(a => a.receiverClass)).toEqual(["app.A", "app.B"])
 })
+
+test("FastAPI dependency aliases and registration context are actual source work without an explicit model call", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "from fastapi import APIRouter, Depends as Dependency\nrouter = APIRouter()\ndef identify():\n    return True\n@router.post('/items')\ndef entry(actor=Dependency(identify)):\n    return True\n" }], { repository: "anonymous", sourceRef: "r" })
+  const entry = index.symbols.find(s => s.name === "entry")!, work = operationWork(index, entry.id, [], [])
+  expect(work.actions.some(a => index.symbols.find(s => s.id === a.candidateId)?.name === "identify" && a.decisive)).toBe(true)
+  const registration = work.actions.find(a => a.relationId === index.routes[0]!.sourceCallId)!
+  expect(index.symbols.find(s => s.id === registration.candidateId)?.attributes.routeModel).toBe("fastapi-source-router/v1")
+  expect(work.actions.every(a => index.symbols.some(s => s.id === a.candidateId))).toBe(true)
+})
+
+test("a same-named local Depends function does not create framework dependency work", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "from fastapi import APIRouter\nrouter = APIRouter()\ndef Depends(x):\n    return x\ndef identify():\n    return True\n@router.post('/items')\ndef entry(actor=Depends(identify)):\n    return True\n" }], { repository: "anonymous", sourceRef: "r" })
+  const work = operationWork(index, index.symbols.find(s => s.name === "entry")!.id, [], [])
+  expect(work.actions.some(a => index.symbols.find(s => s.id === a.candidateId)?.name === "identify")).toBe(false)
+})
+
+test("source-assisted DRF method entry retains dispatch permission duties once without create-only serializer work", async () => {
+  const index = await buildStructureIndex([{ path: "rest_framework/views.py", content: "class Base:\n    def initial(self):\n        return self.check_permissions()\n    def check_permissions(self):\n        return True\n    def get_permissions(self):\n        return []\n    def create(self):\n        return True\n" }, { path: "app.py", content: "from rest_framework.views import Base\nclass View(Base):\n    def download(self, request):\n        return request\n" }], { repository: "anonymous", sourceRef: "r" })
+  const entry = index.symbols.find(s => s.name === "download")!
+  const work = operationWork(index, entry.id, [], [], undefined, { sourceAssisted: true, operationRoot: true })
+  expect(work.actions.map(a => index.symbols.find(s => s.id === a.candidateId)!.name)).toEqual(["initial", "check_permissions", "get_permissions"])
+  expect(work.actions.every(a => a.receiverClass === "app.View")).toBe(true)
+  expect(operationWork(index, entry.id, [], [], "app.View", { sourceAssisted: true, operationRoot: false }).actions).toEqual([])
+})

@@ -19,13 +19,14 @@ const questions: Record<InquiryRelation, string> = {
   exception: "Which relevant role, relation or condition exceptions change this answer? Separate source gaps from external facts.",
 }
 /** Expand analysis duties, never source behavior or normative expectations. */
-export function compileAuthorizationInquiry(input: unknown): AuthorizationInquiryProgram {
-  const parsed = AuthorizationInquirySchema.safeParse(input)
+export function compileAuthorizationInquiry(input: unknown, options: { allowMissingPolicy?: boolean } = {}): AuthorizationInquiryProgram {
+  const absentPolicy = options.allowMissingPolicy && input && typeof input === "object" && !Array.isArray(input) && (input as Record<string, unknown>).mode === "conformance" && (input as Record<string, unknown>).policy === undefined
+  const parsed = AuthorizationInquirySchema.safeParse(absentPolicy ? { ...input, mode: "behavior" } : input)
   if (!parsed.success) return { schemaVersion: "authorization-inquiry-program/v1", status: "needs-input", questions: [], queue: [],
     diagnostics: parsed.error.issues.map(issue => ({ code: issue.message.startsWith("policy-required:") ? "policy-required" : issue.message.startsWith("duplicate-question:") ? "duplicate-question" : "inquiry-schema", path: issue.path.join(".") || "$", message: issue.message, severity: "error" })) }
-  const value = parsed.data
+  const value = absentPolicy ? { ...parsed.data, mode: "conformance" as const } : parsed.data
   const normalized = normalizeInquiryOperations(value)
   return { schemaVersion: "authorization-inquiry-program/v1", status: "ready", mode: value.mode,
     ...normalized, originalDeclaration: structuredClone(value), ...(value.policy ? { policy: structuredClone(value.policy) } : {}),
-    queue: normalized.operations.flatMap(o => INQUIRY_RELATIONS.map(kind => ({ id: `${encodeURIComponent(o.sourceQuestionId)}::${kind}`, questionId: o.sourceQuestionId, kind, question: questions[kind], state: "pending" as const }))), diagnostics: [] }
+    queue: normalized.operations.flatMap(o => INQUIRY_RELATIONS.map(kind => ({ id: `${encodeURIComponent(o.sourceQuestionId)}::${kind}`, questionId: o.sourceQuestionId, kind, question: questions[kind], state: "pending" as const }))), diagnostics: absentPolicy ? [{ code: "policy-unspecified", path: "policy", message: "Source behavior remains analyzable; an independent conformance comparison needs the user's policy.", severity: "warning" }] : [] }
 }

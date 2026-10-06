@@ -81,7 +81,7 @@ export function semanticResultSkeleton(slice: ControlSlice, dependencies: Depend
 }
 
 /** Model prose remains raw; typed supplements are checked against one current skeleton. */
-export function assembleSemanticResult(program: AuthorizationInquiryProgram, slice: ControlSlice, dependencies: DependencyCheckState[], input: unknown) {
+export function assembleSemanticResult(program: AuthorizationInquiryProgram, slice: ControlSlice, dependencies: DependencyCheckState[], input: unknown, options: { sourceAssisted?: boolean; unknownBindingKind?: (questionId: string, binding: string) => "premise-unknown" | "interpretation-gap" } = {}) {
   const parsed = SemanticResultSchema.safeParse(input), skeleton = semanticResultSkeleton(slice, dependencies), diagnostics: InquiryDiagnostic[] = []
   const fail = (code: string, path: string, message: string, questionId?: string) => diagnostics.push({ code, path, message, severity: "error", ...(questionId ? { questionId } : {}) })
   if (!parsed.success) return { result: input, paths: skeleton.paths, diagnostics: parsed.error.issues.map(i => ({ code: "semantic-result-schema", path: i.path.join("."), message: i.message, severity: "error" } as InquiryDiagnostic)), policyRules: [] }
@@ -105,10 +105,13 @@ export function assembleSemanticResult(program: AuthorizationInquiryProgram, sli
       }
     }
     const missing = [...(q?.missing ?? [])]
-    for (const p of live.filter(p => !p.complete)) if (!missing.some(m => m.kind === "source-gap" && m.detail.includes(p.pathKey))) missing.push({ kind: "source-gap", detail: `${p.pathKey}: ${p.gaps.join(", ") || "source interpretation not closed"}` })
-    for (const d of open) if (!missing.some(m => m.detail.includes(d.key) || m.detail.includes(d.symbol))) missing.push({ kind: d.state === "external-unknown" ? "dependency-out-of-scope" : "source-gap", detail: `${d.key}: ${d.symbol} (${d.state})`, nextRead: d.symbol })
+    for (const p of live.filter(p => !p.complete)) if (!missing.some(m => ["source-gap", "interpretation-gap"].includes(m.kind) && m.detail.includes(p.pathKey))) missing.push({ kind: options.sourceAssisted && p.sourceBound ? "interpretation-gap" : "source-gap", detail: `${p.pathKey}: ${p.gaps.join(", ") || "source interpretation not closed"}` })
+    for (const d of open) if (!missing.some(m => m.detail.includes(d.key) || m.detail.includes(d.symbol))) missing.push({ kind: options.sourceAssisted && d.state === "read" ? "interpretation-gap" : d.state === "external-unknown" ? "dependency-out-of-scope" : "source-gap", detail: `${d.key}: ${d.symbol} (${d.state})`, nextRead: d.symbol })
     const unresolved = [...new Set(live.flatMap(p => p.predicate.missingBindings))]
-    if (unresolved.length && !missing.some(m => m.kind === "premise-unspecified")) missing.push({ kind: "premise-unspecified", detail: `Current user values unspecified: ${unresolved.join(", ")}. Source-supported alternatives remain separate.` })
+    if (options.sourceAssisted) {
+      for (const binding of unresolved) { const kind = options.unknownBindingKind?.(question.id, binding) ?? "premise-unknown"; if (!missing.some(m => m.kind === kind && m.detail.includes(binding))) missing.push({ kind, detail: `${binding}: ${kind === "premise-unknown" ? "User runtime value unspecified; retain source alternatives." : "A shown source value or call result still lacks a supported interpretation."}` }) }
+      if (program.mode === "conformance" && !program.policy && !missing.some(m => m.kind === "policy-unspecified")) missing.push({ kind: "policy-unspecified", detail: "Independent policy is absent; source behavior remains separate from the undetermined conformance comparison." })
+    } else if (unresolved.length && !missing.some(m => m.kind === "premise-unspecified")) missing.push({ kind: "premise-unspecified", detail: `Current user values unspecified: ${unresolved.join(", ")}. Source-supported alternatives remain separate.` })
     const evidenceIds = [...new Set(live.flatMap(p => p.evidenceIds))]
     let explanation = q?.explanation ?? "Missing original-question explanation."
     for (const cf of q?.counterfactuals ?? []) {
