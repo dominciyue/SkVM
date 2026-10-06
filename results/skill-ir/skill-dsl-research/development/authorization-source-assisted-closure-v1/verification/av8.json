@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "authorization-av-verification/v1",
+  "stage": "AV8",
+  "recoveryPolicyVersion": "authorization-readonly-recovery/v1",
+  "expectedFailures": [
+    "Late initial/continuation responses were consumed after local deadlines and cancellation",
+    "Provider signal was not forwarded and Node helper continued after cancellation",
+    "Native reference read wrote successful history after close",
+    "Local state verification failure left recovery eligibility open",
+    "Late remote rejection overwrote original host timeout",
+    "A pending domain source read changed closed report and delivery"
+  ],
+  "verification": { "testsPassed": 113, "assertions": 619, "testFiles": 9, "mainTypecheck": "passed" },
+  "contract": { "perRequestRecoveries": 1, "perPositionRecoveries": 2, "recoveriesShareDispatchCap": true, "lateConsumer": "closed; original accounting only", "remoteUnknownPreserved": true, "knownStateAtClosePreserved": true },
+  "historicalRiskMapping": {
+    "AU Gitea consumer request22": { "oldCompletion": "unknown", "oldRepresentationsSealed": 10, "oldFilesAndGuard": "unchanged", "avDevelopment": "Eligible only for new registered read-only positions after capability/idle/known-state validation; no previous request replay" },
+    "AU Share request16": { "oldCompletion": "unknown", "oldRepresentationsSealed": 16, "oldFilesAndGuard": "unchanged", "avDevelopment": "No Share/Notes/Memos position in AV input scope; remains inapplicable" },
+    "AV local authoring": { "avDevelopment": "Authorized local writes; read-only recovery not automatically eligible. Preserve drafts and inspect known write state before any named repair." }
+  },
+  "publicWiring": "AV9 pending",
+  "providerCalls": 0,
+  "targetExecutions": 0
+}

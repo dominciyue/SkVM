@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 `@vscode/tree-sitter-wasm` Python/Go 解析器、现有 provider/telemetry 和确定性测试。按实际依赖版本查官方实现，不另建 CLI、统一 IR 或整仓安全平台。
 
-日期：2026-10-06。状态：`in-progress`，AV0–AV7完成，继续AV8。开发模型：`gpt-6.1-sol / max`；用户另要求 Flash，当前派发接口没有该设置字段，不能写成已经启用。工作目录 `D:/skill优化/SkVM`，分支 `skill-ir-aot`，仅推用户 `origin`。设计基线 `9d7db8e87c1484e119e7b8d1adece2fc6ba5079f`，启动时保留本任务书后续发布提交。
+日期：2026-10-06。状态：`in-progress`，AV0–AV8完成，继续AV9。开发模型：`gpt-6.1-sol / max`；用户另要求 Flash，当前派发接口没有该设置字段，不能写成已经启用。工作目录 `D:/skill优化/SkVM`，分支 `skill-ir-aot`，仅推用户 `origin`。设计基线 `9d7db8e87c1484e119e7b8d1adece2fc6ba5079f`，启动时保留本任务书后续发布提交。
 
 本轮约 8–12 小时是主动工作安排，约六成精力用于质量、四成用于编写与复用。完成适用工作即收口；不等待、重复全量验证或增加无目的调用凑时间。实验模型沿用 `xty/gpt-5.6-sol`，与开发线程模型分账；可用路由改变时记录并统一同一比较块。
 
@@ -208,10 +208,14 @@ export interface SourceInterpretation {
 
 ### AV8 只读超时恢复与晚答隔离
 
-- [ ] 在 telemetry/mock loop 写 timeout 后晚 tool_calls、晚答先于/后于恢复、关闭后写状态、重复计量及未知USD反例；使用可控 promise，不用真实等待五分钟测试。
-- [ ] 实现本地请求终态与执行消费隔离；支持取消时透传 signal，不支持时保留 remote-unknown。修复后旧 native 普通任务默认行为兼容。
-- [ ] AV 恢复只允许记录的只读能力与预算内一次同请求恢复/每位置至多两次；所有 request/continuation 计数，失败仍保存。
-- [ ] 新 runner 独立记录恢复政策版本，不改旧研究 guard；在 AV0 旧风险映射上记录哪些旧任务仅作为新 development 可执行，哪些仍不适用。
+实现细节：telemetry显式`readonlyRecovery`携政策版本、只读工具白名单及本地执行器/状态核验回调；原尝试localConsumer关闭，恢复请求关联parentAttemptId并计共享预算。独立`isolateLateResponses`可仅开启关闭/取消隔离，不赋恢复能力。普通agent-loop显式启用相同晚答隔离，在provider/continuation及回调和工具边界检查本地生命周期；OpenAI-compatible的fetch/Node helper传递signal，取消后不继续内部重试。AV9把这些能力接到新策略，旧默认保持。
+
+- [x] 在 telemetry/mock loop 写 timeout 后晚 tool_calls、晚答先于/后于恢复、关闭后写状态、重复计量及未知USD反例；使用可控 promise，不用真实等待五分钟测试。
+- [x] 实现本地请求终态与执行消费隔离；支持取消时透传 signal，不支持时保留 remote-unknown。修复后旧 native 普通任务默认行为兼容。
+- [x] AV 恢复只允许记录的只读能力与预算内一次同请求恢复/每位置至多两次；所有 request/continuation 计数，失败仍保存。
+- [x] 新 runner 独立记录恢复政策版本，不改旧研究 guard；在 AV0 旧风险映射上记录哪些旧任务仅作为新 development 可执行，哪些仍不适用。
+
+独立AI复核后的两项反例先失败再修复：晚到error写入lateSettlement.error，不覆盖原timeout；domain关闭时保存已知report/delivery快照，后续只读IO结算不会改动交付。联合113项/619断言通过；AV8政策及旧风险映射见verification/av8.json，AV9负责公共策略和runner实际接线。
 
 ### AV9 双入口和可运行薄 runner
 

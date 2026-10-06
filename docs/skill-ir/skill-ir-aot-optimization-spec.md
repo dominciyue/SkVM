@@ -2528,7 +2528,9 @@ AV6已实现：实际call语法角色区分condition/return/argument-default/bod
 
 AV7已实现：结果missing兼容旧kind并增加四类精确缺口；当前deliverySnapshot绑定revision、machineAnswer、check、原始六类义务、来源/条件/缺口及保留的原文解释。新提案即撤销旧交付和check；源码失效也删除对应live说明，历史原件仍在report。已读未连接callee是interpretation-gap；实际入口参数的未知运行值是premise-unknown，尚未解释的源码值不是用户前提。显式allowMissingPolicy只供新策略分析conformance的源码行为，独立比较仍undetermined；旧默认拒绝缺政策的合同保持。当前保留的模型说明标为unreviewed，机械检查不生成独立full质量评分。
 
-**未来只读请求恢复。** AV 显式替换旧研究 runner 的全逻辑任务封存政策：本地尝试关闭、晚答与工具执行隔离、只读能力及预算核验成立后，每个超时请求最多一次恢复、每位置最多两次，计入原总派发预算。可取消时传 signal；远端无法确认完成时保留 unknown，晚答仅追加原请求计量，不接受其工具动作或改写当前结果。副作用/仍活动执行器暂停对应动作；费用未知不阻塞独立开发。旧 AU/AT/AS 封存、原请求、评价和分母不变；本轮新的已暴露 development 运行明确记录新政策与历史风险，禁止修改旧 guard 或用新身份掩盖重抽。
+**只读请求恢复合同。** AV 显式替换旧研究 runner 的全逻辑任务封存政策：本地尝试关闭、晚答与工具执行隔离、只读能力及预算核验成立后，每个超时请求最多一次恢复、每位置最多两次，计入原总派发预算。可取消时传 signal；远端无法确认完成时保留 unknown，晚答仅追加原请求计量，不接受其工具动作或改写当前结果。副作用/仍活动执行器暂停对应动作；费用未知不阻塞独立开发。旧 AU/AT/AS 封存、原请求、评价和分母不变；本轮新的已暴露 development 运行明确记录新政策与历史风险，禁止修改旧 guard 或用新身份掩盖重抽。
+
+AV8当前实现：telemetry的显式readonlyRecovery携固定政策版本、工具白名单和verifyLocalState；本地关闭/远端完成/取消能力分列，恢复记录parentAttemptId。关闭立即拒绝本地消费并冻结已知domain报告/交付，晚答只更新原attempt计量；晚error单列lateSettlement.error而不覆盖原timeout；一次恢复再次超时即关闭，不产生第三请求。active executor或状态核验失败不恢复，恢复与continuation都计共享预算。agent-loop显式isolateLateResponses在请求、continuation、回调及工具边界隔离关闭/过时结果，旧默认保留。OpenAI-compatible支持signal到fetch/Node helper，取消后不重试；注入transport必须明确声明支持，否则能力为未核实。native等待返回后再次核关闭，opaque signal不进入JSON请求原件。公共v2接线仍待AV9，作者写入工具不具只读恢复资格。
 
 **实际使用与研究。** 先修三个确定性缺陷，再以 Download、OWUI 真实纵向链检验新分工，随后做两完整 skill 的原/变 native、作者稿原字节消费及政策/前提/源码变化。稳定版本下 N、自然前端加核心、声明前端加同核心公平比较；所有准备、恢复、修订成本留账。已知共享失败即时停止受影响派发并修复，未解决处保存具体边界，研究目标达成与有限队列终结分开记录。
 

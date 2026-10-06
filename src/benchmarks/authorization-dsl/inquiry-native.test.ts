@@ -326,3 +326,20 @@ test("ordinary operation D1 authoring is selected explicitly and counted in the 
   expect(params.messages.some((m: any) => m.content.startsWith("Current local explanation context:"))).toBe(true)
   await runtime.close()
 })
+
+test("closing during native source preparation prevents a late request or tool-state write", async () => {
+  const { root, inquiry } = await budgetFixture()
+  const inputFile = path.join(root, "input.json"), input = JSON.parse(await readFile(inputFile, "utf8"))
+  delete input.brief; input.inquiry = inquiry
+  await writeFile(inputFile, JSON.stringify(input))
+  const runtime = await createNativeInquiryRuntime({ inputFile, workDir: root, domainTools: true, strategy: "guided-evidence-v2" })
+  const prepared = runtime.beforeDispatch({ messages: [{ role: "user", content: "Original task" }] }).then(() => undefined, error => error)
+  await runtime.close()
+  expect((await prepared)?.message).toContain("session-closed")
+  expect(runtime.report().requests).toHaveLength(0)
+  const references = await createNativeInquiryRuntime({ inputFile, workDir: root, domainTools: false, skillContent: "<runtime-resource-root>.skvm/skills/sample</runtime-resource-root>" })
+  const pending = references.execute({ id: "read", name: "skill_reference_read", arguments: { path: "references/guide.md" } })
+  await references.close()
+  expect((await pending).exitCode).toBe(1)
+  expect(references.report().history).toHaveLength(0)
+})

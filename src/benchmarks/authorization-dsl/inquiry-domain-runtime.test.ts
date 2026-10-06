@@ -221,3 +221,26 @@ test("checks-off reports unverified local answers and no aggregate consistency c
   expect((await runtime.validate({ ...answer, questions: "malformed" })).structureValid).toBe(false)
   runtime.close()
 })
+
+test("closing during a domain source read freezes the last known report and delivery", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-close-domain-"))
+  await writeFile(path.join(sourceRoot, "entry.ts"), "export function entry() { return false; }\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "neutral", sourceRef: "fixed", allowedPaths: ["entry.ts"] })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect entry", entryHint: "entry", premises: [] }] })
+  let release!: () => void, began!: () => void
+  const gate = new Promise<void>(resolve => { release = resolve }), started = new Promise<void>(resolve => { began = resolve })
+  const execute = tools.execute
+  tools.execute = async (...args) => { began(); await gate; return execute(...args) }
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "guided-evidence-v2", sourceAssisted: true })
+  await runtime.sync(false)
+  const item = runtime.feedback().worklist!.find(work => work.kind === "entry")!
+  const pending = runtime.propose({ schemaVersion: "authorization-control-update/v1", workSelections: [{ questionId: "q", itemId: item.id, candidateId: item.candidates[0]!.id }] }).then(() => undefined, error => error)
+  await started
+  runtime.close()
+  const report = runtime.report(), delivery = runtime.deliverySnapshot()
+  release()
+  expect((await pending)?.message).toContain("session-closed")
+  expect(runtime.report()).toEqual(report)
+  expect(runtime.deliverySnapshot()).toEqual(delivery)
+  expect(report.checkHistory).toHaveLength(0)
+})

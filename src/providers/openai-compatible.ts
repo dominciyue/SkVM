@@ -49,6 +49,7 @@ function toOpenAIToolChoice(tc: ToolChoice | undefined): unknown | undefined {
  */
 export class OpenAICompatibleProvider implements LLMProvider {
   readonly name: string
+  readonly supportsAbortSignal: boolean
   private apiKey: string
   private model: string
   private baseUrl: string
@@ -60,12 +61,14 @@ export class OpenAICompatibleProvider implements LLMProvider {
     baseUrl: string
     displayName?: string
     transport?: OpenAICompatibleHttpTransport
+    supportsAbortSignal?: boolean
   }) {
     this.apiKey = opts.apiKey
     this.model = opts.model
     this.baseUrl = opts.baseUrl.replace(/\/+$/, "")
     this.name = opts.displayName ?? deriveName(opts.baseUrl)
     this.transport = opts.transport ?? createOpenAICompatibleHttpTransport() ?? fetchOpenAICompatibleHttp
+    this.supportsAbortSignal = opts.transport ? opts.supportsAbortSignal === true : true
   }
 
   async complete(params: CompletionParams): Promise<LLMResponse> {
@@ -90,7 +93,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
     if (toolChoice !== undefined) body.tool_choice = toolChoice
     if (params.stopSequences?.length) body.stop = params.stopSequences
 
-    return this.doRequest(body)
+    return this.doRequest(body, params.signal)
   }
 
   async completeWithToolResults(
@@ -149,7 +152,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
     const toolChoice = toOpenAIToolChoice(params.toolChoice)
     if (toolChoice !== undefined) body.tool_choice = toolChoice
 
-    return this.doRequest(body)
+    return this.doRequest(body, params.signal)
   }
 
   private buildMessages(params: CompletionParams): OAIMessage[] {
@@ -164,18 +167,20 @@ export class OpenAICompatibleProvider implements LLMProvider {
     return messages
   }
 
-  private async doRequest(body: Record<string, unknown>): Promise<LLMResponse> {
+  private async doRequest(body: Record<string, unknown>, signal?: AbortSignal): Promise<LLMResponse> {
     const maxRetries = 3
     const url = `${this.baseUrl}/chat/completions`
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      signal?.throwIfAborted()
       const startMs = performance.now()
       let res: Awaited<ReturnType<OpenAICompatibleHttpTransport>>
       try {
-        res = await this.transport({ url, apiKey: this.apiKey, body })
+        res = await this.transport({ url, apiKey: this.apiKey, body, ...(signal ? { signal } : {}) })
       } catch (error) {
+        signal?.throwIfAborted()
         const canRetry = attempt < maxRetries && looksLikeNetworkError(error)
         if (canRetry) {
-          await Bun.sleep(this.getRetryDelayMs(attempt))
+          await this.retryDelay(this.getRetryDelayMs(attempt), signal)
           continue
         }
         throw new ProviderNetworkError(
@@ -184,6 +189,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
           error,
         )
       }
+      signal?.throwIfAborted()
 
       if (res.status >= 200 && res.status < 300) {
         const data = JSON.parse(res.body) as Record<string, unknown>
@@ -193,7 +199,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
 
       if (RETRYABLE_HTTP_STATUS.has(res.status) && attempt < maxRetries) {
         const delayMs = this.getRetryDelayMs(attempt, res.headers["retry-after"])
-        await Bun.sleep(delayMs)
+        await this.retryDelay(delayMs, signal)
         continue
       }
 
@@ -212,6 +218,17 @@ export class OpenAICompatibleProvider implements LLMProvider {
       )
     }
     throw new Error("Unreachable")
+  }
+
+  private async retryDelay(ms: number, signal?: AbortSignal): Promise<void> {
+    if (!signal) { await Bun.sleep(ms); return }
+    signal.throwIfAborted()
+    await new Promise<void>((resolve, reject) => {
+      const abort = () => { clearTimeout(timer); reject(signal.reason) }
+      const timer = setTimeout(() => { signal.removeEventListener("abort", abort); resolve() }, ms)
+      signal.addEventListener("abort", abort, { once: true })
+      if (signal.aborted) abort()
+    })
   }
 
   private getRetryDelayMs(attempt: number, retryAfterHeader?: string | null): number {

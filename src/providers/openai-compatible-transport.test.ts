@@ -113,4 +113,24 @@ describe("OpenAI-compatible Node HTTP transport", () => {
       apiKey: "TEST_ONLY_SECRET_KEY",
     })
   })
+
+  test("forwards cancellation to an explicitly capable transport without putting the signal in the HTTP body", async () => {
+    const controller = new AbortController()
+    let observed: AbortSignal | undefined, body: Record<string, unknown> | undefined
+    const provider = new OpenAICompatibleProvider({ apiKey: "TEST_ONLY_SECRET_KEY", model: "test", baseUrl: "http://unused/v1", supportsAbortSignal: true, transport: async request => { observed = request.signal; body = request.body; controller.abort(); throw controller.signal.reason } })
+    await expect(provider.complete({ messages: [], signal: controller.signal })).rejects.toThrow()
+    expect(observed).toBe(controller.signal)
+    expect(body).not.toHaveProperty("signal")
+    expect((provider).supportsAbortSignal).toBe(true)
+  })
+
+  test("cancels an active Node helper and retains cancellation rather than consuming its later output", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "skvm-node-http-abort-")); tempDirs.push(dir)
+    const helperPath = path.join(dir, "late-helper.mjs")
+    await writeFile(helperPath, "process.stdin.resume(); setTimeout(() => { process.stdout.write(JSON.stringify({status:200,headers:{},body:'late'})); process.exit(0) }, 200)\n", "utf8")
+    const controller = new AbortController()
+    const request = requestViaNodeHttpHelper({ nodeExecutable: Bun.which("node")!, helperPath, url: "http://unused", apiKey: "TEST_ONLY_SECRET_KEY", body: {}, timeoutMs: 1000, signal: controller.signal })
+    controller.abort(new Error("local cancellation"))
+    await expect(request).rejects.toThrow("local cancellation")
+  })
 })

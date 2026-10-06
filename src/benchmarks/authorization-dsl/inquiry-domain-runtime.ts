@@ -105,10 +105,13 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const sync = async (execute = true) => {
     if (closed) throw new Error("session-closed: domain runtime cannot continue")
     await scheduler.run(slice, 0)
+    if (closed) throw new Error("session-closed: domain runtime cannot continue")
     const actions = worklist ? await worklist.run(slice, execute && options.ablation !== "scheduler-off" ? automaticActionsRemaining : 0) : await scheduler.run(slice, execute && options.ablation !== "scheduler-off" ? 2 : 0)
-    if (worklist) { automaticActionsRemaining -= actions.length; await scheduler.run(slice, 0); worklist.sync(slice, check) }
+    if (closed) throw new Error("session-closed: domain runtime cannot continue")
+    if (worklist) { automaticActionsRemaining -= actions.length; await scheduler.run(slice, 0); if (closed) throw new Error("session-closed: domain runtime cannot continue"); worklist.sync(slice, check) }
     if (options.sourceAssisted) for (const item of worklist?.snapshot() ?? []) if (item.selected && ["awaiting-interpretation", "awaiting-verification"].includes(item.state)) {
       const skeleton = await options.tools.sourceSkeleton(item.selected.id, item.receiverClass)
+      if (closed) throw new Error("session-closed: domain runtime cannot continue")
       if (skeleton?.modelCovered) sourceSkeletons.set(skeletonKey(item.selected.id, item.receiverClass), skeleton)
     }
     for (const h of options.tools.history) if (["source-changed", "source-root-changed", "symlink-escape"].includes(h.result.code ?? "")) { invalidateDelivery(); issues.set("$source", [{ code: "source-invalidated", path: "$source", message: "Original source changed during this session; current extraction requires a fresh session.", severity: "error" }]) }
@@ -129,7 +132,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
       const prepared = focus.prepareSource(delta), currentId = focus.current()?.id ?? "absent"
       if (prepared.diagnostics.length || !prepared.raw) { issues.set(`$focus.${currentId}`, prepared.diagnostics); proposals.push({ delta: structuredClone(delta), diagnostics: prepared.diagnostics, revision: slice.revision }); return { diagnostics: prepared.diagnostics, actions: [], evaluated: { paths: lastPaths } } }
       generatedSourceDepth++
-      try { const result = await propose(prepared.raw); proposals.push({ delta: structuredClone(delta), diagnostics: result.diagnostics, revision: slice.revision }); return result }
+      try { const result = await propose(prepared.raw); if (closed) throw new Error("session-closed: domain runtime cannot continue"); proposals.push({ delta: structuredClone(delta), diagnostics: result.diagnostics, revision: slice.revision }); return result }
       finally { generatedSourceDepth-- }
     }
     if (focus && delta && typeof delta === "object" && (delta as Record<string, unknown>).schemaVersion === "authorization-focused-update/v1") {
@@ -148,6 +151,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
         slice = merged.state; prepared.delta!.premiseValues = []
       }
       const recordStart = semanticRecords.length, result = await propose(prepared.delta)
+      if (closed) throw new Error("session-closed: domain runtime cannot continue")
       const localDiagnostics = semanticRecords.slice(recordStart).filter(r => !r.accepted).flatMap(r => r.diagnostics).concat(result.diagnostics.filter(d => /^(?:premise-|work-selection-|semantic-update-schema)/.test(d.code) || (prepared.raw as { kind?: string })?.kind === "link" && d.code === "semantic-argument-unbound"))
       if (!localDiagnostics.length && !prepared.diagnostics.length) issues.delete(`$focus.${currentId}`)
       focus.accepted(prepared.raw, localDiagnostics); focus.sync()
@@ -278,6 +282,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   }
   const validate = async (result: unknown) => {
     await sync(false)
+    if (closed) throw new Error("session-closed: domain runtime cannot continue")
     if (options.ablation === "checks-off") check = { structureValid: AuthorizationInquiryResultSchema.safeParse(result).success, sourceBound: slice.rules.length > 0 && slice.rules.every(r => r.sourceBound), semanticSupport: "unreviewed", ruleConsistency: null, taskResolution: "partial", paths: [], diagnostics: [...issues.values()].flat(), policyComparisons: [], calculationCount: 0, questionChecks: [] }
     else { check = calculate(() => checkControlConclusions(options.program, slice, result, scheduler.snapshot())); computation.conclusionChecks++; computation.predicateEvaluations += check.calculationCount; check = { ...check, diagnostics: [...issues.values()].flat().concat(check.diagnostics) } }
     if (options.ablation !== "checks-off" && [...issues.values()].flat().some(d => d.severity === "error")) check = { ...check, ruleConsistency: false, taskResolution: "partial" }
@@ -329,12 +334,14 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     for (const d of [...issues.values()].flat().concat(check?.diagnostics ?? objectDiagnostics).filter(d => d.severity === "error")) add({ kind: d.code === "source-invalidated" ? "source-gap" : "interpretation-gap", code: d.code, detail: d.message, questionId: d.questionId, affects: "behavior" })
     return gaps
   }
-  const deliverySnapshot = () => {
+  const liveDeliverySnapshot = () => {
     const gaps = sourceGaps(), items = worklist?.snapshot() ?? []
     return { schemaVersion: "authorization-current-delivery/v1" as const, revision: slice.revision, machineAnswer: structuredClone(currentAnswer), check: check ? { revision: slice.revision, ruleConsistency: check.ruleConsistency, taskResolution: check.taskResolution, diagnostics: structuredClone(check.diagnostics) } : undefined, gaps,
       obligations: options.program.queue.map(duty => { const item = items.find(i => i.id === duty.id); return { id: duty.id, questionId: duty.questionId, kind: duty.kind, source: item?.selected, progress: item?.progress, conditions: lastPaths.filter(p => p.questionId === duty.questionId).map(p => ({ pathKey: p.pathKey, residual: p.predicate.residual, state: p.state })), gaps: gaps.filter(g => !g.questionId || g.questionId === duty.questionId).map(g => ({ kind: g.kind, code: g.code, itemId: g.itemId })) } }),
       retainedSources: semanticUnits.filter(u => u.source && sourceCurrent(u.source)).map(u => ({ questionId: u.questionId, handle: u.handle, source: u.source, complete: u.complete, explanations: [...new Set(u.blocks.flatMap(b => b.steps.map(s => s.claim)))], semanticSupport: "unreviewed" as const })), semanticSupport: "unreviewed" as const }
   }
+  let closedDelivery: ReturnType<typeof liveDeliverySnapshot> | undefined
+  const deliverySnapshot = () => structuredClone(closedDelivery ?? liveDeliverySnapshot())
   const feedback = () => ({ revision: slice.revision,
     rules: slice.rules.map(({ key, questionId, pathKey, kind, after, condition, bindingKey, bindingKind, principal, resource, digest }) => ({ key, questionId, pathKey, kind, after, condition, bindingKey, bindingKind, principal, resource, digest })),
     bindings: slice.bindings, policyRules: slice.policyRules, dependencies: scheduler.snapshot(), paths: lastPaths,
@@ -418,6 +425,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     }
     return { ...state, ...(fullWorklist ? { worklist: worklistModelView(fullWorklist) } : {}), diagnostics: diagnostics.slice(0, 16).map(modelDiagnostic), diagnosticCount: diagnostics.length, rejectedTargets, rejectedTargetCount: rejections.length }
   }
-  return { propose, sync, validate, assembleResult, feedback, modelContext, promptContext, modelFeedback, deliverySnapshot, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { closed = true },
-    report: () => ({ slice: structuredClone(slice), proposals: structuredClone(proposals), sourceWorkMetrics: options.sourceAssisted ? sourceWorkMetrics() : undefined, delivery: options.sourceAssisted ? deliverySnapshot() : undefined, currentRejections: structuredClone(currentRejections), localExtractions: structuredClone(localExtractions), ...(facts ? { operationFacts: facts.snapshot(), sourceLinks: structuredClone(sourceLinks), structure: options.tools.structure ? { schemaVersion: options.tools.structure.schemaVersion, revision: options.tools.structure.revision, parser: options.tools.structure.parser, relationshipVersion: options.tools.structure.relationshipVersion, preparation: options.tools.structure.preparation, diagnostics: options.tools.structure.diagnostics } : undefined } : {}), ...(isSemanticInquiryStrategy(options.strategy) ? { semantic: { units: structuredClone(semanticUnits), records: structuredClone(semanticRecords), assemblies: structuredClone(assemblies) } } : {}), ...(focus ? { focus: focus.report() } : {}), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions), ...worklist.report() } } : {}), objectFeedback: { revision: objectRevision, diagnostics: structuredClone(objectDiagnostics) }, check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed }) }
+  const liveReport = () => ({ slice: structuredClone(slice), proposals: structuredClone(proposals), sourceWorkMetrics: options.sourceAssisted ? sourceWorkMetrics() : undefined, delivery: options.sourceAssisted ? deliverySnapshot() : undefined, currentRejections: structuredClone(currentRejections), localExtractions: structuredClone(localExtractions), ...(facts ? { operationFacts: facts.snapshot(), sourceLinks: structuredClone(sourceLinks), structure: options.tools.structure ? { schemaVersion: options.tools.structure.schemaVersion, revision: options.tools.structure.revision, parser: options.tools.structure.parser, relationshipVersion: options.tools.structure.relationshipVersion, preparation: options.tools.structure.preparation, diagnostics: options.tools.structure.diagnostics } : undefined } : {}), ...(isSemanticInquiryStrategy(options.strategy) ? { semantic: { units: structuredClone(semanticUnits), records: structuredClone(semanticRecords), assemblies: structuredClone(assemblies) } } : {}), ...(focus ? { focus: focus.report() } : {}), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions), ...worklist.report() } } : {}), objectFeedback: { revision: objectRevision, diagnostics: structuredClone(objectDiagnostics) }, check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed })
+  let closedReport: ReturnType<typeof liveReport> | undefined
+  return { propose, sync, validate, assembleResult, feedback, modelContext, promptContext, modelFeedback, deliverySnapshot, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { if (closed) return; closed = true; closedDelivery = liveDeliverySnapshot(); closedReport = liveReport() }, report: () => structuredClone(closedReport ?? liveReport()) }
 }

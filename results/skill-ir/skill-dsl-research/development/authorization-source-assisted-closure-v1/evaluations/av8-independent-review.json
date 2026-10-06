@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "authorization-av-independent-review/v1",
+  "stage": "AV8",
+  "reviewAuthority": "Two read-only AI scouts; main agent adjudication and final verification; no human review",
+  "reviews": [
+    {
+      "agent": "av8_telemetry_review",
+      "verification": "14 tests / 66 assertions passed",
+      "finding": "Late remote error overwrites original timeout error",
+      "anchors": ["src/benchmarks/authorization-dsl/telemetry.ts:463", "src/benchmarks/authorization-dsl/telemetry.ts:510"],
+      "adjudication": "Confirmed by controlled timeout/recovery/late rejection regression; original error is retained and late error recorded in lateSettlement.error"
+    },
+    {
+      "agent": "av8_loop_close_review",
+      "verification": "11 agent-loop tests / 37 assertions passed",
+      "finding": "Domain updates before async sync are not rolled back and late worklist reads can remain visible",
+      "anchors": ["src/benchmarks/authorization-dsl/inquiry-domain-runtime.ts:200", "src/benchmarks/authorization-dsl/inquiry-domain-runtime.ts:283", "src/benchmarks/authorization-dsl/inquiry-native.ts:135"],
+      "adjudication": "Pre-close accepted updates are known state and need not roll back. A controlled pending read confirms report/delivery changes after close; close now freezes the known report and delivery. Read-only IO accounting may settle separately without changing the closed domain consumer. No confirmed isolated loop callback/tool race."
+    }
+  ],
+  "finalVerification": { "testsPassed": 113, "assertions": 619, "mainTypecheck": "passed" },
+  "providerCalls": 0,
+  "targetExecutions": 0
+}

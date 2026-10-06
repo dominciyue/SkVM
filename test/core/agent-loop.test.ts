@@ -231,3 +231,37 @@ describe("runAgentLoop ILP dispatch", () => {
     ])
   })
 })
+
+for (const continuation of [false, true]) test("isolated loop does not consume late " + (continuation ? "continuation" : "initial") + " tool calls or write callbacks", async () => {
+  let resolve!: (value: LLMResponse) => void, executions = 0, callbacks = 0, signal: AbortSignal | undefined
+  const pending = new Promise<LLMResponse>(r => { resolve = r })
+  const toolResponse: LLMResponse = { text: "late", toolCalls: [{ id: "read", name: "source_read", arguments: {} }], tokens: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 }, durationMs: 0, stopReason: "tool_use" }
+  const provider: LLMProvider = { name: "controlled", complete: async p => { signal = p.signal; return continuation ? toolResponse : pending }, completeWithToolResults: async () => pending }
+  const run = runAgentLoop({ provider, model: "mock", tools: [], executeTool: async () => { executions++; return { output: "read", durationMs: 0 } }, onAfterLLM: () => { callbacks++ }, system: "", maxIterations: 3, timeoutMs: 5, isolateLateResponses: true }, [])
+  const lateTimer = setTimeout(() => resolve(toolResponse), 25)
+  const result = await run
+  expect(result.timedOut).toBe(true)
+  expect(signal?.aborted).toBe(true)
+  expect(result.text).toBe("")
+  expect(executions).toBe(continuation ? 1 : 0)
+  expect(callbacks).toBe(continuation ? 1 : 0)
+  resolve(toolResponse); clearTimeout(lateTimer)
+  await Promise.resolve()
+  expect(executions).toBe(continuation ? 1 : 0)
+  expect(callbacks).toBe(continuation ? 1 : 0)
+})
+
+test("explicit isolated loop cancellation prevents a pending reply from writing tool or answer state", async () => {
+  const controller = new AbortController()
+  let resolve!: (value: LLMResponse) => void, executions = 0, callbacks = 0
+  const pending = new Promise<LLMResponse>(r => { resolve = r })
+  const provider: LLMProvider = { name: "controlled", complete: async () => pending, completeWithToolResults: async () => pending }
+  const run = runAgentLoop({ provider, model: "mock", tools: [], executeTool: async () => { executions++; return { output: "", durationMs: 0 } }, onAfterLLM: () => { callbacks++ }, system: "", maxIterations: 3, timeoutMs: 1000, isolateLateResponses: true, signal: controller.signal }, [])
+  controller.abort()
+  resolve({ text: "old", toolCalls: [], tokens: { input: 1, output: 1, cacheRead: 0, cacheWrite: 0 }, durationMs: 0, stopReason: "end_turn" })
+  const result = await run
+  expect(result.text).toBe("")
+  expect(result.steps).toHaveLength(0)
+  expect(callbacks).toBe(0)
+  expect(executions).toBe(0)
+})

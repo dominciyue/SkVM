@@ -75,6 +75,8 @@ export interface CompletionParams {
   maxTokens?: number
   temperature?: number
   stopSequences?: string[]
+  /** Local cancellation only; it does not prove remote completion or billing. */
+  signal?: AbortSignal
 }
 
 /**
@@ -90,6 +92,8 @@ export interface CompletionParams {
  */
 export interface LLMProvider {
   readonly name: string
+  /** Explicit transport capability; absence means cancellation is unverified. */
+  readonly supportsAbortSignal?: boolean
 
   /** Send a completion request */
   complete(params: CompletionParams): Promise<LLMResponse>

@@ -7,6 +7,7 @@ export type OpenAICompatibleHttpRequest = {
   url: string
   apiKey: string
   body: Record<string, unknown>
+  signal?: AbortSignal
 }
 
 export type OpenAICompatibleHttpResponse = {
@@ -32,7 +33,9 @@ export async function requestViaNodeHttpHelper(opts: {
   apiKey: string
   body: Record<string, unknown>
   timeoutMs: number
+  signal?: AbortSignal
 }): Promise<OpenAICompatibleHttpResponse> {
+  opts.signal?.throwIfAborted()
   const payload = JSON.stringify({
     url: opts.url,
     apiKey: opts.apiKey,
@@ -48,15 +51,19 @@ export async function requestViaNodeHttpHelper(opts: {
   proc.stdin.end()
 
   let timedOut = false
+  const abort = () => proc.kill()
+  opts.signal?.addEventListener("abort", abort, { once: true })
+  if (opts.signal?.aborted) abort()
   const timer = setTimeout(() => {
     timedOut = true
     proc.kill()
   }, opts.timeoutMs + 5_000)
   const [exitCode, stdout, stderr] = await Promise.all([
-    proc.exited.finally(() => clearTimeout(timer)),
+    proc.exited.finally(() => { clearTimeout(timer); opts.signal?.removeEventListener("abort", abort) }),
     new Response(proc.stdout).text(),
     new Response(proc.stderr).text(),
   ])
+  opts.signal?.throwIfAborted()
   if (timedOut) throw new Error("Node HTTP helper network timeout")
   if (exitCode !== 0) {
     const stderrDigestHint = stderr.length > 0 ? " with diagnostic output" : ""
@@ -99,6 +106,7 @@ export const fetchOpenAICompatibleHttp: OpenAICompatibleHttpTransport = async (r
       Authorization: `Bearer ${request.apiKey}`,
     },
     body: JSON.stringify(request.body),
+    signal: request.signal,
   })
   const headers: Record<string, string> = {}
   response.headers.forEach((value, key) => { headers[key.toLowerCase()] = value })

@@ -1854,6 +1854,8 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 **AV5–AV7独立核验。** 两名只读AI探子分别检查源码降低与当前交付。未唯一绑定callee的空形参映射被提出为潜在问题；主代理匿名未知/双候选反例确认实际实参仍在骨架，旧语义降低器建立decisive dependency并在`semantic-callee-uninterpreted`终止，不接受后续allow。未伪造形参映射或改业务逻辑；裁定和出处见[复核原件](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/evaluations/av5-av7-independent-review.json)。17项聚焦测试/80断言通过。交付状态复核未发现合同违例；这仅是工程核验，未进行真人评阅或provider调用，继续AV8。
 
+**AV8请求生命周期。** 显式只读恢复政策`authorization-readonly-recovery/v1`在同一telemetry保留原timeout/unknown，本地消费者与远端状态分账；同请求一次、位置两次恢复共享派发预算。普通agent-loop的显式隔离阻止晚tool_calls/callback/continuation进入状态；fetch与Node helper传signal、取消后停止重试。独立AI复核发现晚error覆盖原timeout和关闭后的worklist读改变报告，两项匿名反例先失败再修复：晚error单列，关闭时冻结已知domain交付。113项联合测试/619断言通过，主类型通过；[复核与裁定](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/evaluations/av8-independent-review.json)及[验证/旧风险映射](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/verification/av8.json)保留责任。旧AU/AT/AS guard、原件与unknown未改；新Gitea development只在实际只读/空闲核验成立时准入，作者写文件不自动获得恢复资格，Notes/Memos仍不适用。provider/目标执行仍0，继续AV9公共接线；工程隔离不代表真实授权质量。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

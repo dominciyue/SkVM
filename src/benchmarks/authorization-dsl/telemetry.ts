@@ -45,15 +45,20 @@ export interface AuthorizationProviderAttempt {
   lateSettlement?: {
     kind: "response" | "error"
     settledAt: string
+    error?: { name: string; message: string }
   }
   usage: TokenUsage | null
   costUsd: number | null
   transportAttempts: "unknown"
+  localConsumer?: "active" | "closed" | "accepted"
+  remoteCompletion?: "unknown" | "response" | "error"
+  cancellation?: "requested" | "unsupported"
+  recovery?: { policyVersion: "authorization-readonly-recovery/v1"; parentAttemptId: string; number: number; reason: string }
 }
 
 export interface AuthorizationLifecycleEvent {
   sequence: number
-  kind: "dispatch" | "response" | "error" | "timeout" | "late-response" | "late-error" | "closed" | "dispatch-rejected"
+  kind: "dispatch" | "response" | "error" | "timeout" | "late-response" | "late-error" | "closed" | "dispatch-rejected" | "consumer-closed" | "recovery"
   at: string
   attemptId?: string
   phase?: AuthorizationAttemptPhase
@@ -70,6 +75,13 @@ export interface AuthorizationTelemetryOptions {
   executableToolNames?: readonly string[]
   beforeDispatch?: (params: CompletionParams, toolResults?: LLMToolResult[], previousResponse?: LLMResponse) => void | Promise<void>
   onEvent?: (event: AuthorizationLifecycleEvent) => void | Promise<void>
+  isolateLateResponses?: boolean
+  readonlyRecovery?: {
+    policyVersion: "authorization-readonly-recovery/v1"
+    toolNames: readonly string[]
+    /** True only while the local executor is idle and its known state is safe. */
+    verifyLocalState: () => boolean | Promise<boolean>
+  }
 }
 
 export interface AuthorizationTelemetrySummary {
@@ -144,7 +156,8 @@ export function hasUnknownAuthorizationCompletion(record: unknown): boolean {
   if (!Array.isArray(run.attempts)) return false
   return run.attempts.some(value => {
     if (!value || typeof value !== "object") return false
-    const attempt = value as { status?: unknown; response?: unknown; error?: { name?: unknown; message?: unknown } }
+    const attempt = value as { status?: unknown; response?: unknown; remoteCompletion?: unknown; error?: { name?: unknown; message?: unknown } }
+    if (attempt.remoteCompletion === "unknown") return true
     return attempt.status === "pending" || attempt.status === "timeout" ||
       (attempt.status === "error" && !attempt.response && attempt.error?.name === "ProviderNetworkError" && hasTimeoutCause(attempt.error))
   })
@@ -265,6 +278,17 @@ export function createTelemetryProvider(
   const unitTimeoutMs = options.unitTimeoutMs ?? Number.POSITIVE_INFINITY
   const maxDispatches = options.maxDispatches ?? Number.POSITIVE_INFINITY
   let eventSinkChain = Promise.resolve()
+  const isolated = options.isolateLateResponses === true || !!options.readonlyRecovery
+  const activeConsumers = new Map<string, (error: Error) => void>()
+  const timeoutAttempts = new WeakMap<object, AuthorizationProviderAttempt>()
+  let recoveryCount = 0
+  const readonlyExecutableNames = new Set(["source_list", "source_search", "source_symbol", "source_read", "source_structure", "skill_reference_read", "authorization_compile", "authorization_observe", "authorization_check_result"])
+  const assertReadonly = (params: CompletionParams) => {
+    if (!options.readonlyRecovery) return
+    if (options.readonlyRecovery.policyVersion !== "authorization-readonly-recovery/v1" ||
+      params.tools?.some(t => !options.readonlyRecovery!.toolNames.includes(t.name)) ||
+      options.executableToolNames?.some(name => !readonlyExecutableNames.has(name))) throw new AuthorizationProtocolError("Readonly recovery requires the registered source-analysis capability whitelist", delegate.name)
+  }
 
   const emit = (event: Omit<AuthorizationLifecycleEvent, "sequence" | "at">): Promise<void> => {
     const recorded: AuthorizationLifecycleEvent = {
@@ -286,6 +310,7 @@ export function createTelemetryProvider(
     if (closed) return
     closed = true
     closeReason = reason
+    for (const stop of activeConsumers.values()) stop(new AuthorizationLifecycleClosedError(reason, delegate.name))
     await emit({ kind: "closed", reason })
   }
 
@@ -294,7 +319,9 @@ export function createTelemetryProvider(
     throw error
   }
 
-  const dispatch = async (params: CompletionParams, toolResults?: LLMToolResult[], previousResponse?: LLMResponse): Promise<LLMResponse> => {
+  const dispatchOnce = async (params: CompletionParams, toolResults?: LLMToolResult[], previousResponse?: LLMResponse, recovery?: AuthorizationProviderAttempt["recovery"]): Promise<LLMResponse> => {
+      assertReadonly(params)
+      if (isolated) params.signal?.throwIfAborted()
       if (options.executableToolNames && params.tools?.some(tool => !options.executableToolNames!.includes(tool.name))) throw new AuthorizationProtocolError("Native request includes an unregistered executable tool", delegate.name)
       if (closed) {
         return rejectDispatch(
@@ -317,6 +344,9 @@ export function createTelemetryProvider(
         )
       }
       await options.beforeDispatch?.(params, toolResults, previousResponse)
+      assertReadonly(params)
+      if (isolated && closed) return rejectDispatch(new AuthorizationLifecycleClosedError(closeReason, delegate.name), "closed-before-delegate")
+      if (isolated) params.signal?.throwIfAborted()
       const attempt: AuthorizationProviderAttempt = {
         id: `provider-attempt-${attempts.length + 1}`,
         phase,
@@ -336,6 +366,8 @@ export function createTelemetryProvider(
         usage: null,
         costUsd: null,
         transportAttempts: "unknown",
+        ...(isolated ? { localConsumer: "active", remoteCompletion: "unknown" } : {}),
+        ...(recovery ? { recovery } : {}),
       }
       attempts.push(attempt)
       await emit({
@@ -349,13 +381,36 @@ export function createTelemetryProvider(
       const effectiveTimeoutMs = Math.max(1, Math.min(perCallTimeoutMs, remainingUnitMs))
       const timeoutKind: "per-call" | "unit" = remainingUnitMs <= perCallTimeoutMs ? "unit" : "per-call"
       let timedOut = false
+      let abandoned = false
       let timer: ReturnType<typeof setTimeout> | undefined
-      const delegatePromise = Promise.resolve().then(() => toolResults && previousResponse ? delegate.completeWithToolResults(params, toolResults, previousResponse) : delegate.complete(params))
+      const controller = isolated ? new AbortController() : undefined
+      let rejectClosed!: (error: Error) => void
+      const localClosed = new Promise<never>((_resolve, reject) => { rejectClosed = reject })
+      const stopConsumer = (error: Error) => {
+        if (abandoned) return
+        abandoned = true
+        if (isolated) {
+          attempt.localConsumer = "closed"
+          attempt.cancellation = delegate.supportsAbortSignal ? "requested" : "unsupported"
+          rejectClosed(error)
+          if (delegate.supportsAbortSignal) controller!.abort(error)
+          void emit({ kind: "consumer-closed", attemptId: attempt.id, reason: error.message, attempt: structuredClone(attempt) })
+        }
+      }
+      const abortConsumer = () => { void close("caller-cancelled") }
+      if (isolated) {
+        activeConsumers.set(attempt.id, stopConsumer)
+        params.signal?.addEventListener("abort", abortConsumer, { once: true })
+        if (closed || params.signal?.aborted) stopConsumer(new AuthorizationLifecycleClosedError(closeReason, delegate.name))
+      }
+      const delegateParams = controller ? { ...params, signal: controller.signal } : params
+      const delegatePromise = Promise.resolve().then(() => toolResults && previousResponse ? delegate.completeWithToolResults(delegateParams, toolResults, previousResponse) : delegate.complete(delegateParams))
       const settlement = delegatePromise.then(async response => {
         attempt.response = sanitizeResponse(response)
         attempt.usage = { ...response.tokens }
         attempt.costUsd = response.costUsd ?? null
-        if (timedOut) {
+        if (isolated) attempt.remoteCompletion = "response"
+        if (timedOut || abandoned) {
           attempt.lateSettlement = { kind: "response", settledAt: new Date().toISOString() }
           await emit({
             kind: "late-response",
@@ -368,6 +423,7 @@ export function createTelemetryProvider(
         }
 
         attempt.status = "response"
+        if (isolated) attempt.localConsumer = "accepted"
         if (options.responseSchema) {
           try {
             const value = params.tools ? response.toolCalls[0]?.arguments : JSON.parse(response.text.trim().replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, ""))
@@ -406,12 +462,11 @@ export function createTelemetryProvider(
         })
         return response
       }, async error => {
-        if (timedOut) {
-          attempt.lateSettlement = { kind: "error", settledAt: new Date().toISOString() }
-          attempt.error = {
+        if (timedOut || abandoned) {
+          attempt.lateSettlement = { kind: "error", settledAt: new Date().toISOString(), error: {
             name: error instanceof Error ? error.name : "UnknownError",
             message: redactSensitiveText(error instanceof Error ? error.message : String(error)),
-          }
+          } }
           await emit({
             kind: "late-error",
             attemptId: attempt.id,
@@ -429,6 +484,11 @@ export function createTelemetryProvider(
           name: error instanceof Error ? error.name : "UnknownError",
           message: redactSensitiveText(error instanceof Error ? error.message : String(error)),
         }
+        if (isolated) {
+          attempt.remoteCompletion = providerTimeout ? "unknown" : "error"
+          if (providerTimeout) { timeoutAttempts.set(error, attempt); stopConsumer(error) }
+          else attempt.localConsumer = "closed"
+        }
         await emit({
           kind: providerTimeout ? "timeout" : "error",
           attemptId: attempt.id,
@@ -437,12 +497,13 @@ export function createTelemetryProvider(
           reason: attempt.error.message,
           attempt: structuredClone(attempt),
         })
-        if (providerTimeout) await close(`provider-timeout:${attempt.id}`)
+        if (providerTimeout && !options.readonlyRecovery) await close(`provider-timeout:${attempt.id}`)
         throw error
       })
 
-      if (!Number.isFinite(effectiveTimeoutMs)) return settlement
+      if (!Number.isFinite(effectiveTimeoutMs) && !isolated) return settlement
       const timeout = new Promise<never>((_resolve, reject) => {
+        if (!Number.isFinite(effectiveTimeoutMs)) return
         timer = setTimeout(() => {
           void (async () => {
             timedOut = true
@@ -450,6 +511,11 @@ export function createTelemetryProvider(
             attempt.status = "timeout"
             attempt.endedAt = new Date().toISOString()
             attempt.error = { name: error.name, message: error.message }
+            if (isolated) {
+              timeoutAttempts.set(error, attempt)
+              stopConsumer(error)
+              reject(error)
+            }
             await emit({
               kind: "timeout",
               attemptId: attempt.id,
@@ -458,19 +524,38 @@ export function createTelemetryProvider(
               reason: error.message,
               attempt: structuredClone(attempt),
             })
-            await close(`${timeoutKind}-timeout:${attempt.id}`)
+            if (!options.readonlyRecovery) await close(`${timeoutKind}-timeout:${attempt.id}`)
             reject(error)
           })()
         }, effectiveTimeoutMs)
       })
       try {
-        return await Promise.race([settlement, timeout])
+        return await Promise.race(isolated ? [settlement, timeout, localClosed] : [settlement, timeout])
       } finally {
+        activeConsumers.delete(attempt.id)
+        params.signal?.removeEventListener("abort", abortConsumer)
         if (!timedOut && timer !== undefined) clearTimeout(timer)
       }
     }
+  const dispatch = async (params: CompletionParams, toolResults?: LLMToolResult[], previousResponse?: LLMResponse): Promise<LLMResponse> => {
+    try { return await dispatchOnce(params, toolResults, previousResponse) }
+    catch (error) {
+      const parent = error && typeof error === "object" ? timeoutAttempts.get(error) : undefined
+      if (!parent || !options.readonlyRecovery) throw error
+      const budgetAvailable = attempts.length < maxDispatches && Date.now() - startedAtMs < unitTimeoutMs
+      let safe = false
+      try { safe = !closed && !params.signal?.aborted && parent.localConsumer === "closed" && !activeConsumers.size && recoveryCount < 2 && budgetAvailable && await options.readonlyRecovery.verifyLocalState() }
+      catch { await close("readonly-recovery-state-unconfirmed:" + parent.id); throw error }
+      if (!safe || closed || params.signal?.aborted || Date.now() - startedAtMs >= unitTimeoutMs) { await close("readonly-recovery-unavailable:" + parent.id); throw error }
+      const recovery: NonNullable<AuthorizationProviderAttempt["recovery"]> = { policyVersion: options.readonlyRecovery.policyVersion, parentAttemptId: parent.id, number: ++recoveryCount, reason: "Timed-out local consumer closed; readonly executor idle and known state verified" }
+      await emit({ kind: "recovery", attemptId: parent.id, reason: recovery.reason, attempt: structuredClone(parent) })
+      try { return await dispatchOnce(params, toolResults, previousResponse, recovery) }
+      catch (recoveryError) { await close("readonly-recovery-ended:" + parent.id); throw recoveryError }
+    }
+  }
   const provider: LLMProvider = {
     name: `${delegate.name}-authorization-telemetry`,
+    ...(isolated ? { supportsAbortSignal: true } : {}),
     complete: params => dispatch(params),
     async completeWithToolResults(
       params: CompletionParams,

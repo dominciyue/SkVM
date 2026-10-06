@@ -25,6 +25,9 @@ export interface AgentLoopConfig {
   system: string
   maxIterations: number
   timeoutMs: number
+  /** Opt-in local lifecycle isolation for restricted source analysis. */
+  isolateLateResponses?: boolean
+  signal?: AbortSignal
   maxTokens?: number
   temperature?: number
   /** Explicit trace owned by one run session; falls back to the legacy env opt-in. */
@@ -100,6 +103,29 @@ export async function runAgentLoop(
   const startMs = performance.now()
   const deadline = startMs + timeoutMs
   const runtimeTrace = config.runtimeTrace ?? createDurableRuntimeTraceFromEnv()
+  const controller = config.isolateLateResponses ? new AbortController() : undefined
+  let lifetimeError: Error | undefined, deadlineTimer: ReturnType<typeof setTimeout> | undefined
+  let endLifetime!: () => void
+  const lifetimeEnded = new Promise<void>(resolve => { endLifetime = resolve })
+  const closeLifetime = (timeout: boolean) => {
+    if (lifetimeError) return
+    lifetimeError = new Error(timeout ? "Agent local deadline expired; late responses are isolated" : "Agent local lifecycle was cancelled")
+    if (timeout) timedOut = true
+    controller?.abort(lifetimeError); endLifetime()
+  }
+  const abortLifetime = () => closeLifetime(false)
+  const ensureActive = () => {
+    if (!controller) return
+    if (performance.now() >= deadline) closeLifetime(true)
+    if (config.signal?.aborted) closeLifetime(false)
+    if (lifetimeError) throw lifetimeError
+  }
+  const withinLifetime = async <T>(operation: () => T | Promise<T>): Promise<T> => {
+    if (!controller) return await operation()
+    ensureActive()
+    const value = await Promise.race([Promise.resolve().then(() => { ensureActive(); return operation() }), lifetimeEnded.then(() => { throw lifetimeError! })])
+    ensureActive(); return value
+  }
 
   const params: CompletionParams = {
     messages: [...initialMessages],
@@ -107,6 +133,7 @@ export async function runAgentLoop(
     tools,
     maxTokens: config.maxTokens ?? 16384,
     temperature: config.temperature,
+    ...(controller ? { signal: controller.signal } : {}),
   }
 
   const steps: AgentStep[] = []
@@ -126,6 +153,10 @@ export async function runAgentLoop(
   let pendingHistory: Array<{ role: "system" | "user" | "assistant"; content: string }> | undefined
   let lastActionSig = ""
   let repeatCount = 0
+  if (controller) {
+    deadlineTimer = setTimeout(() => closeLifetime(true), Math.max(0, timeoutMs))
+    config.signal?.addEventListener("abort", abortLifetime, { once: true })
+  }
 
   try {
     while (iteration < maxIterations) {
@@ -140,7 +171,7 @@ export async function runAgentLoop(
       // --- LLM call ---
       if (!response) {
         runtimeTrace?.providerRequestStart(iteration)
-        response = await provider.complete(params)
+        response = await withinLifetime(() => provider.complete(params))
         runtimeTrace?.providerResponseReceived(iteration, response)
         llmDurationMs += response.durationMs
       }
@@ -155,7 +186,7 @@ export async function runAgentLoop(
 
       // --- After-LLM callback ---
       if (config.onAfterLLM) {
-        await config.onAfterLLM(response, iteration)
+        await withinLifetime(() => config.onAfterLLM!(response!, iteration))
       }
 
       // Record assistant step
@@ -191,8 +222,9 @@ export async function runAgentLoop(
       runtimeTrace?.toolBatchStart(iteration, response.toolCalls)
 
       const dispatchOne = async (tc: LLMToolCall): Promise<{ tr: LLMToolResult; completed: ToolCall }> => {
+        ensureActive()
         log.debug(`Tool: ${tc.name}(${JSON.stringify(tc.arguments).slice(0, 100)})`)
-        const result = await executeTool(tc)
+        const result = await withinLifetime(() => executeTool(tc))
         return {
           tr: { toolCallId: tc.id, content: result.output },
           completed: {
@@ -227,13 +259,14 @@ export async function runAgentLoop(
       )
 
       for (const { tr, completed } of dispatched) {
+        ensureActive()
         toolResults.push(tr)
         toolStepCalls.push(completed)
         allToolCalls.push(completed)
         // After-tool callbacks still run sequentially to preserve ordering
         // guarantees expected by JIT boost / monitoring consumers.
         if (config.onAfterTool) {
-          await config.onAfterTool(completed, iteration)
+          await withinLifetime(() => config.onAfterTool!(completed, iteration))
         }
       }
 
@@ -277,7 +310,7 @@ export async function runAgentLoop(
       // Next LLM call with tool results
       if (iteration >= maxIterations) { loopError = new Error("Agent iteration budget exhausted before continuation"); break }
       runtimeTrace?.providerRequestStart(iteration + 1)
-      response = await provider.completeWithToolResults(params, toolResults, response)
+      response = await withinLifetime(() => provider.completeWithToolResults(params, toolResults, response!))
       runtimeTrace?.providerResponseReceived(iteration + 1, response)
       llmDurationMs += response.durationMs
     }
@@ -293,6 +326,9 @@ export async function runAgentLoop(
     }
     loopError = err instanceof Error ? err : new Error(String(err))
     log.warn(`Agent loop error after ${iteration} iterations: ${loopError.message.slice(0, 200)}`)
+  } finally {
+    if (deadlineTimer !== undefined) clearTimeout(deadlineTimer)
+    config.signal?.removeEventListener("abort", abortLifetime)
   }
 
   // Post-loop deadline check. The in-loop check at the top of each iteration
