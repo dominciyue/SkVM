@@ -1949,6 +1949,8 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 **AX4–AX9性质需求与公开接线。** v4保留所有可能执行的call、predicate、return、raise及显式对象/别名/guard引用，只凭源码固定退出、布尔字面量分支、短路和空循环机械排除。unknown setter和异常清理不按名称去掉。八锚点字段frontier与完整宿主骨架分离，正确草稿增量保留，来源覆盖/提议含义/性质覆盖/整体充分分别报告，整体充分始终false。独立只读AI核验未发现不安全裁剪，指出部分控制仍保守过度需求。v4公开inquiry/native使用同一核心和独立property-control/v1材料版本，政策变更恢复/来源变更失效已测；多个原问题共享的决定性来源优先调度。完整skill在账号系统指令只出现一次，公开inquiry按原字节归档并核验session/report/run一致；篡改run侧skill元数据的反例先红后修。阶段红绿和当前回归记录在AX verification，尚不据此宣称真实完整任务或收益。
 
+**AX10首件与账号边界修订。** 完整Cloudflare Download首件在42fe4a84使用完整原task/skill及伴随资源，官方CLI初期连接重试后自行派生源码探子；生产边界在collab wait事件关闭，0宿主源码回调、无终答，status unavailable，reason unexpected-native-account-tool:collabAgentToolCall。可见父会话input/output/cacheRead为65251/610/51328；内部请求、额外子会话用量和USD未知。不能当作源码质量失败或抹掉首件。官方[配置定义](https://github.com/openai/codex/blob/main/codex-rs/core/config.schema.json)说明agents.enabled独立默认true；只关multi_agent/multi_agent_v2不够。本机无推理probe兑现agents.enabled:false，生产改为同时核验该值，并在第一个subAgentActivity事件即关闭。三个反例先红，40项账号/公开入口回归、406断言及主类型通过；下一次是具名同原题修订，非新首件或第三次smoke。公开inquiry同时复用普通技能部署/包装，原skill字节单独归档，伴随文件可通过现有只读工具取得。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

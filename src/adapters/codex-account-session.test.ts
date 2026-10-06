@@ -60,7 +60,7 @@ function controlled(mode = "normal") {
   f.transport.send = (m: any) => {
     if (m.method === "config/read") {
       f.sent.push(m)
-      return f.transport.emitResponse(m.id, { config: mode === "ignored-config" ? { ...configured, web_search: "live" } : mode === "ignored-instructions" ? { ...configured, developer_instructions: "Load extra answers" } : mode === "ignored-skill-config" ? { ...configured, skills: { ...configured.skills, bundled: { enabled: true } } } : mode === "skill-discovery" ? { ...configured, features: { ...configured.features, skip_host_skill_discovery: false } } : configured })
+      return f.transport.emitResponse(m.id, { config: mode === "ignored-agents" ? { ...configured, agents: { enabled: true } } : mode === "ignored-config" ? { ...configured, web_search: "live" } : mode === "ignored-instructions" ? { ...configured, developer_instructions: "Load extra answers" } : mode === "ignored-skill-config" ? { ...configured, skills: { ...configured.skills, bundled: { enabled: true } } } : mode === "skill-discovery" ? { ...configured, features: { ...configured.features, skip_host_skill_discovery: false } } : configured })
     }
     if (m.method === "skills/list") {
       f.sent.push(m)
@@ -72,8 +72,9 @@ function controlled(mode = "normal") {
         runtimeWorkspaceRoots: mode === "extra-root" ? ["C:/unscoped"] : [], instructionSources: mode === "extra-instruction" ? ["C:/private/AGENTS.md"] : [],
         approvalPolicy: "never", sandbox: { type: "readOnly", networkAccess: false }, activePermissionProfile: { id: "skvm-account", extends: null } })
     }
-    if (m.method === "turn/start" && ["native-execution", "native-completed", "native-terminal-only"].includes(mode)) {
+    if (m.method === "turn/start" && ["native-execution", "native-completed", "native-terminal-only", "native-subagent"].includes(mode)) {
       original(m)
+      if (mode === "native-subagent") { f.transport.emitEvent("item/started", { threadId: "thread", turnId: "turn", item: { type: "subAgentActivity", kind: "started", agentThreadId: "foreign-agent" } }); return }
       if (mode === "native-terminal-only") { f.transport.emitEvent("turn/completed", { threadId: "thread", turn: { id: "turn", status: "completed", items: [{ id: "native", type: "commandExecution", command: "read outside" }, { type: "agentMessage", text: "Incorrect success", phase: "final_answer" }] } }); return }
       f.transport.emitEvent(mode === "native-completed" ? "item/completed" : "item/started", { threadId: "thread", turnId: "turn", item: { id: "native", type: "commandExecution", command: "read outside" } })
       return
@@ -93,15 +94,23 @@ test("controlled official transport verifies effective settings and thread bound
   expect(r.capability?.cliVersion).toBe("0.159.0-alpha.12.1")
   expect(t.config.features.code_mode_host).toEqual({ enabled: true, disable_in_process_fallback: true })
   expect(t.config.skills).toMatchObject({ bundled: { enabled: false }, include_instructions: false })
+  expect(t.config.agents).toEqual({ enabled: false })
 })
 
 test("ignored account settings, extra instruction sources and extra roots refuse inference", async () => {
-  for (const mode of ["ignored-config", "ignored-instructions", "ignored-skill-config", "skill-discovery", "extra-instruction", "extra-root"]) {
+  for (const mode of ["ignored-config", "ignored-instructions", "ignored-skill-config", "ignored-agents", "skill-discovery", "extra-instruction", "extra-root"]) {
     const f = controlled(mode), r = await f.run({ timeoutMs: 100 })
     expect(r.status).toBe("unavailable")
     expect(f.sent.some(m => m.method === "turn/start")).toBe(false)
     expect(f.executed()).toBe(0)
   }
+})
+
+test("a subAgentActivity start alone closes the account boundary before a later collab event", async () => {
+  const f = controlled("native-subagent"), r = await f.run({ timeoutMs: 100 })
+  expect(r.status).toBe("unavailable")
+  expect(r.reason).toBe("unexpected-native-account-tool:subAgentActivity")
+  expect(f.executed()).toBe(0)
 })
 
 test("malformed tool arguments and conflicting duplicate identities cannot execute host tools", async () => {

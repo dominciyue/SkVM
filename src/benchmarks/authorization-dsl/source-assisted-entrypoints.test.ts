@@ -210,14 +210,17 @@ for (const finiteStrategy of ["operation-evidence-v3", "operation-evidence-v4"] 
 })
 
 test("public inquiry consumes and verifies the original skill file bytes", async () => {
-  const { root, inputFile } = await fixture(), original = "Complete original skill.\r\nFULL_ORIGINAL_TAIL\r\n", skillFile = path.join(root, "SKILL.md"), stages: string[] = []
+  const { root, inputFile } = await fixture(), original = "Complete original skill.\r\nFULL_ORIGINAL_TAIL\r\n", skillFile = path.join(root, "source-skill", "SKILL.md"), stages: string[] = []
+  await mkdir(path.dirname(skillFile)); await mkdir(path.join(path.dirname(skillFile), "references"))
+  await writeFile(path.join(path.dirname(skillFile), "references", "guidance.md"), "Original companion guidance")
   await writeFile(skillFile, original)
-  const provider: LLMProvider = { name: "mock", complete: async params => { expect(params.system).toContain(original); return response("", [{ id: "step", name: params.tools![0]!.name, arguments: action(currentContext(params), stages) }]) }, completeWithToolResults: async () => { throw new Error("Unused") } }
+  const provider: LLMProvider = { name: "mock", complete: async params => { expect(params.system).toContain(original); expect(params.system).toContain("<runtime-resource-root>.skvm/skills/source-skill</runtime-resource-root>"); return response("", [{ id: "step", name: params.tools![0]!.name, arguments: action(currentContext(params), stages) }]) }, completeWithToolResults: async () => { throw new Error("Unused") } }
   const run = await executeLocalInquiryRun({ inputFile, outDir: path.join(root, "out"), model: "mock/model", method: "M", strategy: "operation-evidence-v4", skillFile, providerFactory: () => provider, execution: { maxDispatches: 12 } })
   expect(run.status).toBe("completed")
   expect((run as any).skill.bytes).toBe(Buffer.byteLength(original))
   const archived = path.join((run as any).sessionPath, "skill-original.md")
   expect(await readFile(archived, "utf8")).toBe(original)
+  expect(await readFile(path.join((run as any).sessionPath, ".skvm", "skills", "source-skill", "references", "guidance.md"), "utf8")).toBe("Original companion guidance")
   const { inspectLocalInquiry } = await import("./inquiry-local.ts")
   expect((await inspectLocalInquiry((run as any).sessionPath)).skill.sha256).toBe((run as any).skill.sha256)
   const runFile = path.join((run as any).sessionPath, "run.json"), runBytes = await readFile(runFile, "utf8"), archivedRun = JSON.parse(runBytes)

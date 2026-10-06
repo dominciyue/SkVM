@@ -240,7 +240,7 @@ function skillResourceRelativeDir(skill: LoadedSkill): string {
   return `.skvm/skills/${safeSkillResourceName(skill)}`
 }
 
-function buildRunSkillBundle(
+export function buildRunSkillBundle(
   skill: LoadedSkill | undefined,
   mode: SkillMode | undefined,
 ): SkillBundle | undefined {

@@ -65,6 +65,7 @@ function controls(config: unknown = {}, skills: unknown = {}): Record<string, un
     mcp_servers: Object.fromEntries(Object.keys(object(installed.mcp_servers)).map(k => [k, { enabled: false }])),
     plugins: Object.fromEntries(Object.keys(object(installed.plugins)).map(k => [k, { enabled: false }])),
     skills: { config: [...new Set(skillPaths)].map(p => ({ path: p, enabled: false })), bundled: { enabled: false }, include_instructions: false },
+    agents: { enabled: false },
     permissions: { "skvm-account": { filesystem: { ":root": "deny", ":minimal": "read", ":workspace_roots": { ".": "read" } }, network: { enabled: false } } } }
 }
 function safeConfig(value: unknown): Record<string, unknown> {
@@ -74,11 +75,12 @@ function safeConfig(value: unknown): Record<string, unknown> {
     mcp_servers: Object.fromEntries(Object.entries(object(c.mcp_servers)).map(([k, v]) => [k, { enabled: object(v).enabled }])),
     plugins: Object.fromEntries(Object.entries(object(c.plugins)).map(([k, v]) => [k, { enabled: object(v).enabled }])),
     skills: { config: Array.isArray(object(c.skills).config) ? (object(c.skills).config as unknown[]).map(v => ({ path: object(v).path, name: object(v).name, enabled: object(v).enabled })) : undefined, bundled: { enabled: object(object(c.skills).bundled).enabled }, include_instructions: object(c.skills).include_instructions },
+    agents: { enabled: object(c.agents).enabled },
     permissions: { "skvm-account": { extends: profile.extends, workspace_roots: profile.workspace_roots, filesystem: profile.filesystem, network: { enabled: object(profile.network).enabled } } } }
 }
 function configFailure(config: unknown, skills: unknown): string | undefined {
   const c = safeConfig(config), f = object(c.features), profile = object(object(c.permissions)["skvm-account"]), fs = object(profile.filesystem)
-  if (disabledFeatures.some(k => f[k] !== false) || f.skip_host_skill_discovery !== true || object(f.code_mode_host).enabled !== true || object(f.code_mode_host).disable_in_process_fallback !== true || c.web_search !== "disabled" || c.project_doc_max_bytes !== 0 ||
+  if (object(c.agents).enabled !== false || disabledFeatures.some(k => f[k] !== false) || f.skip_host_skill_discovery !== true || object(f.code_mode_host).enabled !== true || object(f.code_mode_host).disable_in_process_fallback !== true || c.web_search !== "disabled" || c.project_doc_max_bytes !== 0 ||
       c.default_permissions !== "skvm-account" || c.instructions !== "" || c.developer_instructions !== "" || !Array.isArray(c.project_doc_fallback_filenames) || c.project_doc_fallback_filenames.length || Object.values(object(c.mcp_servers)).some(v => object(v).enabled !== false) ||
       Object.values(object(c.plugins)).some(v => object(v).enabled !== false)) return "account-controlled-config-not-effective"
   if (profile.extends != null || Object.keys(object(profile.workspace_roots)).length || fs[":root"] !== "deny" || fs[":minimal"] !== "read" ||
@@ -188,7 +190,7 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
         void execution.then(output => { if (active) transport!.send({ id: message.id, result: output }) }); return
       }
       if (!active || params.threadId !== threadId || turnId && (params.turnId ?? params.turn?.id) !== turnId) return
-      const nativeTypes = ["commandExecution", "fileChange", "mcpToolCall", "webSearch", "collabAgentToolCall", "imageGeneration", "browserToolCall", "computerUseToolCall"]
+      const nativeTypes = ["commandExecution", "fileChange", "mcpToolCall", "webSearch", "collabAgentToolCall", "subAgentActivity", "imageGeneration", "browserToolCall", "computerUseToolCall"]
       const nativeItem = message.method?.startsWith("item/") && nativeTypes.includes(params.item?.type) ? params.item : message.method === "turn/completed" ? params.turn?.items?.find((i: { type: string }) => nativeTypes.includes(i.type)) : undefined
       if (nativeItem) { failure = "unexpected-native-account-tool:" + nativeItem.type; finish("unavailable"); return }
       if (message.method === "model/rerouted") { failure = "account-model-rerouted"; finish("unavailable") }

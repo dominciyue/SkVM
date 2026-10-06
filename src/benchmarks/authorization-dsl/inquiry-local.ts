@@ -116,11 +116,18 @@ export async function executeLocalInquiryRun(options: { inputFile: string; outDi
     await mkdir(path.join(out, "sessions"), { recursive: true }); await mkdir(sessionPath)
   })
   const save = (name: string, value: unknown) => writeFile(path.join(sessionPath, name), JSON.stringify(value, null, 2) + "\n", { encoding: "utf8", flag: "wx" })
-  const skillBytes = options.skillFile ? await readFile(path.resolve(options.skillFile)) : undefined, skillContent = skillBytes?.toString("utf8")
+  const skillBytes = options.skillFile ? await readFile(path.resolve(options.skillFile)) : undefined
+  let skillContent = skillBytes?.toString("utf8")
   const skill = skillBytes ? { path: path.resolve(options.skillFile!), sha256: createHash("sha256").update(skillBytes).digest("hex"), bytes: skillBytes.byteLength, archive: "skill-original.md" } : undefined
   const identity = { schemaVersion: "authorization-inquiry-session/v1", sessionId: id, sessionPath, createdAt: new Date().toISOString(), inputSha256: loaded.inputSha256, model: options.model, method, strategy, sourceFiles: check.sourceFiles, noAutomaticResend: true, ...(reuseOrigin ? { reuseOrigin } : {}), ...(skill ? { skill } : {}) }
   await save("session.json", identity); await writeFile(path.join(sessionPath, "input.json"), loaded.original, { encoding: "utf8", flag: "wx" }); await save("check.json", check)
   if (skillBytes) await writeFile(path.join(sessionPath, "skill-original.md"), skillBytes, { flag: "wx" })
+  if (options.skillFile) {
+    const { loadRunSkill, materializeNaturalRunTask, prepareRunWorkspace, buildRunSkillBundle } = await import("../../run/index.ts")
+    const originalSkill = await loadRunSkill(options.skillFile), task = await materializeNaturalRunTask({ prompt: loaded.value.brief ?? JSON.stringify(loaded.value.inquiry), taskPath: path.join(sessionPath, "skill-task.json") })
+    await prepareRunWorkspace({ task, skill: originalSkill, workDir: sessionPath })
+    skillContent = buildRunSkillBundle(originalSkill, "inject")!.content
+  }
   if (options.harness === "codex-account") {
     const { runCodexAccountInquiry } = await import("../../adapters/codex-account.ts")
     const accountRun = await runCodexAccountInquiry({ inputFile: options.inputFile, workDir: sessionPath, model: options.model, method, strategy, reuse, skillContent, accountBoundaryFile: options.accountBoundaryFile, timeoutMs: options.execution?.sessionTimeoutMs, maxToolCalls: options.execution?.maxToolCalls, maxDisplayBytes: options.execution?.maxDisplayBytes, maxReadBytes: options.execution?.maxReadBytes, traceDir: path.join(sessionPath, "raw") })
