@@ -171,3 +171,23 @@ test("nested source calls use an intermediate result instead of aliasing both ca
   expect(calls[0].result).not.toBe("result")
   expect(calls[1]).toMatchObject({ result: "result", arguments: [{ parameter: "resource", object: calls[0].result }] })
 })
+
+test("unknown and ambiguous source callees retain actual arguments and terminate at an explicit semantic gap", async () => {
+  for (const ambiguous of [false, true]) {
+    const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "av-unbound-call-"))
+    await writeFile(path.join(sourceRoot, "app.py"), (ambiguous ? "def gate(actor, resource):\n    return True\ndef gate(actor, resource):\n    return False\n" : "") + "def entry(actor, resource):\n    return gate(actor, resource)\n")
+    const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true })
+    const source = tools.structure!.symbols.find(s => s.name === "entry")!
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id))!, call = skeleton.anchors.find(a => a.kind === "call")!
+    expect(call.call!.arguments.map(a => a.expression)).toEqual(["actor", "resource"])
+    expect(call.call!.candidateIds.length).toBe(ambiguous ? 2 : 0)
+    const raw = { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations: skeleton.anchors.map(a => ({ anchorId: a.id, role: a.kind === "parameter" ? a.name === "actor" ? "principal" : "resource" : a.kind === "call" ? "condition" : "context", explanation: "Actual source role", ...(a.kind === "return" ? { returnOutcome: "allow" } : {}) })), unresolved: [] }
+    const lowered = api.lowerSourceInterpretation(skeleton, raw, { index: tools.structure, itemId: "w", handle: "u", questionId: "q", role: "entry" })
+    expect(lowered.diagnostics).toEqual([])
+    const flow = lowerSemanticFlow([{ ...lowered.unit, questionId: "q", source: skeleton.source, evidenceIds: skeleton.evidenceIds }])
+    expect(flow.delta.dependencies).toContainEqual(expect.objectContaining({ symbol: "gate", decisive: true }))
+    expect(flow.diagnostics).toContainEqual(expect.objectContaining({ code: "semantic-callee-uninterpreted" }))
+    expect(flow.delta.rules.filter(r => r.terminal).map(r => ({ kind: r.kind, complete: r.complete, gap: r.gap }))).toEqual([{ kind: "unresolved", complete: false, gap: "semantic-callee-uninterpreted" }])
+  }
+})

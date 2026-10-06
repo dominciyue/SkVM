@@ -1852,6 +1852,8 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 **AV6–AV7调度、上下文与同源缺口。** 三项新调度反例先失败：真实FastAPI依赖alias未补读、直接DRF方法漏框架前置、普通调用抢在条件调用前；修复进入同一worklist，读完待解释不重读。registration可生成有界context骨架，嵌套调用与局部定义的额外反例消除了结果别名/字段范围错误；关系版本升v3，旧材料按版本拒绝而非盲复用。模型prompt只保留一份原任务/政策和当前阶段说明，原文窗口保持完整，历史仍留trace。五类交付反例先失败，第六例核对未读范围，现四类gap与原始义务/当前revision对应；拒绝的新提案撤销旧终答/check，原文有效的独立说明保留为unreviewed。行为缺policy无额外失败；显式新选项允许conformance源行为继续，比较仍undetermined。327项有关回归/1610断言及主类型通过，provider/目标执行0。公开双入口、实际prompt消耗和真实采用等待AV9–AV10；这里不宣称完整源码质量。
 
+**AV5–AV7独立核验。** 两名只读AI探子分别检查源码降低与当前交付。未唯一绑定callee的空形参映射被提出为潜在问题；主代理匿名未知/双候选反例确认实际实参仍在骨架，旧语义降低器建立decisive dependency并在`semantic-callee-uninterpreted`终止，不接受后续allow。未伪造形参映射或改业务逻辑；裁定和出处见[复核原件](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/evaluations/av5-av7-independent-review.json)。17项聚焦测试/80断言通过。交付状态复核未发现合同违例；这仅是工程核验，未进行真人评阅或provider调用，继续AV8。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
