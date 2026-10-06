@@ -9,6 +9,10 @@ test("account study uses one fixed original task and distinguishes native qualit
   expect(runtimePlan({ id: "quality-owui-D-S", kind: "quality", task: "owui" })).toMatchObject({ method: "D1", domainTools: true, strategy: "operation-evidence-v4" })
   expect(() => runtimePlan({ id: "../evaluator", kind: "native", task: "other" })).toThrow()
 })
+test("author and plain account claims describe their actual common source runtime", () => {
+  expect(runtimePlan({ id: "author-download", kind: "author", task: "download" })).toMatchObject({ domainTools: false, strategy: "legacy", method: undefined })
+  expect(runtimePlan({ id: "quality-download-N", kind: "quality", task: "download" }).method).toBeUndefined()
+})
 
 test("registered changes retain all current original questions and never import older declarations", () => {
   const brief = "Inspect entry; preserve requested source and representation distinctions and unspecified owner/grants."

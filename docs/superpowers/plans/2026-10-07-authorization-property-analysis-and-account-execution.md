@@ -177,6 +177,8 @@ Files: `src/cli/run.ts`、现有 authorization inquiry CLI、`src/adapters/codex
 
 ### AX11 OWUI 真实复杂结构调试
 
+当前原native已运行并独立复核：27次回调/46宿主动作、4单元58步，账号完成但形式结果仍有Files接收者未绑定与未解释callee。自然对象关系正确，已有集合/重复hash和身份来源覆盖仍部分。公开Download原件也已运行和评阅，核心权限/版本/表示正确、路由与运行事实部分；该基线仅供材料级三变化比较，生产src tree须一致，不提升质量验收。
+
 - [ ] 使用指定 OWUI 原任务和完整 GitHub security-review skill；这是本轮明确登记的 skill/task 组合，保留其任务要求和其他职责。
 - [ ] 观察原55语义缺项中哪些因按问题需求消失、哪些仍需解释；需要的缺项由当前模型完成，不能由开发者手填正确答案作为正常模型输入。
 - [ ] 记录未知动态调用、with 退出和关键 helper 的实际影响；只影响部署/运行成功时不抹掉已足够的源码授权回答，可能改变被问行为时继续保留未决。
@@ -212,6 +214,8 @@ Files: `src/cli/run.ts`、现有 authorization inquiry CLI、`src/adapters/codex
 - [ ] 选取当前同版本 N/M-S/D-S 的自然原答逐题对照，指出成功链、错误链和仍需手动工作；避免只报一个 full 百分比。
 
 ### AX16 原件、用量与失败分账
+
+当前collector已接通9份归档的输入/答案/report SHA和首件/修订分账；133个上下文直接重建，OWUI28个上下文需2份SHA绑定源码窗口的精确脱敏重建，单列状态并保留原raw。用量是父会话可见小计，不能填内部请求/USD/额外子会话用量。作者/N运行计划已按实际common-only/legacy修正，12项研究测试/46断言与严格类型通过；完整状态/材料重放仍由AX18完成。
 
 - [ ] 每个会话记录启动/完成状态、模型/effort/harness、实际工具、有效配置、first/revision、依赖、当前源码、自然答和检查结果。
 - [ ] CLI内部 provider 请求数若不可见保持 unknown；一个 turn 不写成一次底层请求。完整输入、缓存读取、输出、持续时长按实际字段核对，缓存不双计。

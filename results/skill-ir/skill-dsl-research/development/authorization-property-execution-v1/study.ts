@@ -20,7 +20,7 @@ const sha = (raw: string | Uint8Array) => createHash("sha256").update(raw).diges
 const repo = path.resolve(root, "../../../../..")
 export function runtimePlan(p: Pick<Position, "id" | "kind" | "task">) {
   if (!["download", "owui"].includes(p.task ?? "") || !/^[a-zA-Z0-9-]+$/.test(p.id)) throw new Error("Use a registered original position")
-  const plain = p.kind === "quality" && p.id.endsWith("-N"), method = p.id.endsWith("-D-S") ? "D1" as const : "M" as const
+  const plain = p.kind === "author" || p.kind === "quality" && p.id.endsWith("-N"), method = plain ? undefined : p.id.endsWith("-D-S") ? "D1" as const : "M" as const
   return { domainTools: !plain, strategy: plain ? "legacy" as const : "operation-evidence-v4" as const, method,
     inputName: p.task === "download" ? "paperless-download-original.json" : "owui-ingestion-original.json",
     skillName: p.task === "download" ? "cloudflare-security-audit" : "github-security-review" }
@@ -61,7 +61,7 @@ export async function run(id: string, revision?: string) {
     inputFile = prepared.inputFile; binding = { authorAttemptId: authorId, authoredInputSha256: prepared.authoredInputSha256, originalBytesConsumed: true, semanticRepair: false }
   }
   const skillFile = path.resolve(root, "../authorization-domain-execution-v1/model/source-skills", plan.skillName, "SKILL.md")
-  const loaded = await loadInquiryInput(inputFile), checked = await checkAuthorizationInquiry(inputFile, plan.method, plan.strategy)
+  const loaded = await loadInquiryInput(inputFile), checked = await checkAuthorizationInquiry(inputFile, plan.method ?? "M", plan.strategy)
   if (checked.status !== "valid") throw new Error(JSON.stringify(checked))
   const attemptId = `${id}/${revision ?? "original"}`, out = path.join(root, "attempts", attemptId), b = manifest.limits
   await mkdir(path.dirname(out), { recursive: true }); await mkdir(out)
