@@ -12,11 +12,12 @@ function mock(mode = "normal") {
     if (m.method === "turn/start") { receive({ id: m.id, result: { turn: { id: "turn" } } }); queueMicrotask(() => {
       if (mode === "exit") return exited("child exit")
       if (mode === "timeout") return
-      receive({ id: "call", method: "item/tool/call", params: { threadId: "thread", turnId: "turn", callId: "tool-call", namespace: null, tool: mode === "forbidden" ? "execute_command" : "source_read", arguments: mode === "malformed" ? { path: 4 } : { path: "app.py" } } })
+      receive({ id: "call", method: "item/tool/call", params: { threadId: "thread", turnId: "turn", callId: "tool-call", namespace: null, tool: mode === "forbidden" ? "execute_command" : "source_read", arguments: ["malformed", "repair-arguments"].includes(mode) ? { path: 4 } : { path: "app.py" } } })
       if (mode === "conflicting-call") receive({ id: "conflict", method: "item/tool/call", params: { threadId: "thread", turnId: "turn", callId: "tool-call", namespace: null, tool: "source_read", arguments: { path: "elsewhere.py" } } })
       if (mode === "duplicate-call") receive({ id: "duplicate", method: "item/tool/call", params: { threadId: "thread", turnId: "turn", callId: "tool-call", namespace: null, tool: "source_read", arguments: { path: "app.py" } } })
     }) }
-    if (m.id === "call" && m.result) { emit("thread/tokenUsage/updated", usage); emit("thread/tokenUsage/updated", usage); if (mode === "foreign-usage") emit("thread/tokenUsage/updated", { ...usage, turnId: "foreign", tokenUsage: { total: { ...usage.tokenUsage.total, inputTokens: 999 } } }); emit("item/completed", { threadId: "thread", turnId: "turn", item: { id: "final", type: "agentMessage", text: mode === "empty" ? "" : "Source conclusion", phase: "final_answer" } }); emit("turn/completed", { threadId: "thread", turn: { id: "turn", status: "completed", items: [] } }) }
+    if (mode === "repair-arguments" && m.id === "call" && m.result) { queueMicrotask(() => receive({ id: "repair", method: "item/tool/call", params: { threadId: "thread", turnId: "turn", callId: "repaired-call", namespace: null, tool: "source_read", arguments: { path: "app.py" } } })); return }
+    if ((m.id === "call" || m.id === "repair") && m.result) { emit("thread/tokenUsage/updated", usage); emit("thread/tokenUsage/updated", usage); if (mode === "foreign-usage") emit("thread/tokenUsage/updated", { ...usage, turnId: "foreign", tokenUsage: { total: { ...usage.tokenUsage.total, inputTokens: 999 } } }); emit("item/completed", { threadId: "thread", turnId: "turn", item: { id: "final", type: "agentMessage", text: mode === "empty" ? "" : "Source conclusion", phase: "final_answer" } }); emit("turn/completed", { threadId: "thread", turn: { id: "turn", status: "completed", items: [] } }) }
     if (m.method === "turn/interrupt") receive({ id: m.id, result: {} })
   }, close() {} }
   const run = (extra = {}) => api.runCodexAccountSession({ model: "gpt-5.6-sol", effort: "high", cwd: ".", system: "Read-only test", prompt: "Inspect", tools: [{ name: "source_read", description: "Read", inputSchema: { type: "object", properties: { path: { type: "string" } }, required: ["path"], additionalProperties: false } }], execute: async () => { executed++; return { output: "source", exitCode: 0, durationMs: 1 } }, transportFactory: () => transport, timeoutMs: 30, ...extra })
@@ -34,6 +35,7 @@ test("official session initializes, supplies isolated dynamic tools, returns fin
 test("unregistered dynamic calls fail before execution; empty terminal is undelivered", async () => {
   const f = mock("forbidden"), r = await f.run()
   expect(f.executed()).toBe(0); expect(r.status).toBe("unavailable")
+  expect(r.events.some((e: any) => e.direction === "client" && e.result?.contentItems?.[0]?.text === "unregistered-account-tool")).toBe(true)
   expect((await mock("empty").run()).status).toBe("undelivered")
 })
 test("timeout interrupts its own turn, closes local consumers and ignores late tool calls", async () => {
@@ -113,11 +115,23 @@ test("a subAgentActivity start alone closes the account boundary before a later 
   expect(f.executed()).toBe(0)
 })
 
-test("malformed tool arguments and conflicting duplicate identities cannot execute host tools", async () => {
-  for (const [mode, reason] of [["malformed", "account-tool-arguments-invalid"], ["conflicting-call", "account-tool-call-identity-conflict"]]) {
-    const f = mock(mode), r = await f.run()
-    expect(r.status).toBe("unavailable"); expect(r.reason).toBe(reason); expect(f.executed()).toBe(0)
-  }
+test("a malformed registered call receives field diagnostics and can be repaired in the same account turn", async () => {
+  const f = mock("repair-arguments"), r = await f.run({ timeoutMs: 100 })
+  expect(r.status).toBe("completed"); expect(f.executed()).toBe(1)
+  expect(r.toolRejections).toHaveLength(1); expect(r.tools).toHaveLength(1)
+  const rejected = f.sent.find(m => m.id === "call" && m.result)
+  expect(rejected.result.success).toBe(false)
+  expect(JSON.parse(rejected.result.contentItems[0].text)).toMatchObject({ code: "account-tool-arguments-invalid", diagnostics: [expect.objectContaining({ path: "/path", keyword: "type" })] })
+  expect(f.sent.filter(m => m.method === "turn/start")).toHaveLength(1)
+})
+test("malformed calls consume the same bounded account call allowance", async () => {
+  const f = mock("repair-arguments"), r = await f.run({ maxToolCalls: 1, timeoutMs: 100 })
+  expect(r.status).toBe("unavailable"); expect(r.reason).toBe("account-tool-budget")
+  expect(f.executed()).toBe(0); expect(r.toolRejections).toHaveLength(1)
+})
+test("conflicting duplicate identities cannot execute host tools", async () => {
+  const f = mock("conflicting-call"), r = await f.run()
+  expect(r.status).toBe("unavailable"); expect(r.reason).toBe("account-tool-call-identity-conflict"); expect(f.executed()).toBe(0)
   const repeated = mock("duplicate-call")
   expect((await repeated.run()).status).toBe("completed"); expect(repeated.executed()).toBe(1)
 })
@@ -135,4 +149,10 @@ test("native execution in a controlled account turn terminates without dispatchi
     expect(r.reason).toBe("unexpected-native-account-tool:commandExecution")
     expect(f.executed()).toBe(0)
   }
+})
+
+test("account returns only after ordered asynchronous event persistence has drained", async () => {
+  const persisted: unknown[] = []
+  const r = await mock().run({ timeoutMs: 200, onEvent: async (event: unknown) => { await new Promise(resolve => setTimeout(resolve, 2)); persisted.push(event) } })
+  expect(persisted).toEqual(r.events)
 })

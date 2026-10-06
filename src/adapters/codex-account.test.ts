@@ -6,6 +6,7 @@ import { createHash } from "node:crypto"
 import { createAdapter } from "./registry.ts"
 import { runAuthorizationInquiryCli } from "../cli/authorization-inquiry.ts"
 import { executeLocalInquiryRun, initializeLocalInquiry, inspectLocalInquiry } from "../benchmarks/authorization-dsl/inquiry-local.ts"
+import { resolveInquiryContext } from "../benchmarks/authorization-dsl/inquiry-context.ts"
 const api = await import("./codex-account.ts").catch(() => ({} as any))
 const sessionApi = await import("./codex-account-session.ts").catch(() => ({} as any))
 async function fixture() {
@@ -13,8 +14,10 @@ async function fixture() {
   const inputFile = path.join(root, "input.json"); await writeFile(inputFile, JSON.stringify({ schemaVersion: "authorization-inquiry-input/v1", taskId: "t", repository: "anonymous", sourceRef: "r", sourceRoot: "source", allowedPaths: ["app.py"], brief: "Inspect entry and explain its outcome and limits." }))
   return { root, inputFile }
 }
-function fullChain(explanation = "Test-authored shown False return") {
-  let receive = (_m: any) => {}, id = 0, context: any
+function fullChain(explanation = "Test-authored shown False return", malformed = false) {
+  let receive = (_m: any) => {}, id = 0, context: any, rejectedFocus: string | undefined
+  const contexts: any[] = []
+  const readContext = (wire: any) => { const current = wire.contextSequence ? resolveInquiryContext(wire, contexts) : wire; contexts.push(wire); return current }
   const sendAction = () => {
     if (!context?.focus) return
     const f = context.focus; let controlDelta: any
@@ -22,13 +25,15 @@ function fullChain(explanation = "Test-authored shown False return") {
     else if (f.stage === "interpret") { const s = context.tasks[0].sourceSkeleton; controlDelta = { schemaVersion: "authorization-source-update/v1", kind: "interpret", focusId: f.id, interpretation: { schemaVersion: "source-interpretation/v1", revision: s.revision, annotations: [{ anchorId: s.anchors.find((a: any) => a.kind === "return").id, role: "context", explanation, returnOutcome: "deny" }], unresolved: [] } } }
     else if (f.stage === "review") controlDelta = { schemaVersion: "authorization-focused-update/v1", kind: "review", focusId: f.id, claims: context.claims.map((c: any) => ({ claim: c.id, verdict: "confirmed", explanation: "Test-authored shown source" })) }
     const final = f.stage === "answer", args = final ? { result: { schemaVersion: "authorization-focused-result/v1", focusId: f.id, answers: context.questions.map(() => ({ explanation: "Source denies", disposition: "deny", paths: context.answerSnapshot.map((p: any) => ({ path: p.path, explanation: "Source return", disposition: "deny" })) })), scope: "Only provided source" } } : { controlDelta }
+    if (malformed && f.stage === "interpret" && !rejectedFocus) { rejectedFocus = f.id; (args as any).controlDelta.interpretation.annotations[0].role = "invented-role" }
+    else if (malformed && f.stage === "interpret") expect(f.id).toBe(rejectedFocus!)
     receive({ id: `rpc-${++id}`, method: "item/tool/call", params: { threadId: "thread", turnId: "turn", callId: `tool-${id}`, tool: final ? "authorization_check_result" : "authorization_observe", arguments: args } })
   }
   const transport: any = { isolation: { kind: "test-transport", reason: "Anonymous mock owns all tools" }, onMessage(f: any) { receive = f }, onExit() {}, close() {}, send(m: any) {
     if (m.method === "initialize") receive({ id: m.id, result: {} })
     if (m.method === "thread/start") { expect(m.params.baseInstructions).toContain("FULL_SKILL_TAIL"); receive({ id: m.id, result: { thread: { id: "thread" }, model: "gpt-5.6-sol" } }) }
-    if (m.method === "turn/start") { expect(m.params.input[0].text).not.toContain("FULL_SKILL_TAIL"); context = JSON.parse(m.params.input[0].text.split("Current local explanation context: ")[1]); receive({ id: m.id, result: { turn: { id: "turn" } } }); queueMicrotask(sendAction) }
-    if (m.result?.contentItems) { const value = JSON.parse(m.result.contentItems[0].text); context = value.currentContext; if (value.toolResult?.valid) { receive({ method: "item/completed", params: { threadId: "thread", turnId: "turn", item: { type: "agentMessage", phase: "final_answer", text: "The shown entry returns False and denies this source path." } } }); receive({ method: "turn/completed", params: { threadId: "thread", turn: { id: "turn", status: "completed", items: [] } } }) } else queueMicrotask(sendAction) }
+    if (m.method === "turn/start") { expect(m.params.input[0].text).not.toContain("FULL_SKILL_TAIL"); context = readContext(JSON.parse(m.params.input[0].text.split("Current local explanation context: ")[1])); receive({ id: m.id, result: { turn: { id: "turn" } } }); queueMicrotask(sendAction) }
+    if (m.result?.contentItems) { const value = JSON.parse(m.result.contentItems[0].text); context = readContext(value.currentContext); if (value.toolResult?.valid) { receive({ method: "item/completed", params: { threadId: "thread", turnId: "turn", item: { type: "agentMessage", phase: "final_answer", text: "The shown entry returns False and denies this source path." } } }); receive({ method: "turn/completed", params: { threadId: "thread", turn: { id: "turn", status: "completed", items: [] } } }) } else queueMicrotask(sendAction) }
   } }
   return () => transport
 }
@@ -43,6 +48,22 @@ for (const strategy of ["operation-evidence-v3", "operation-evidence-v4"] as con
   expect(r.authorizationInquiry.result).toBeDefined()
   const inquiry = await api.runCodexAccountInquiry({ inputFile: f.inputFile, workDir: f.root, model: "gpt-5.6-sol", method: "M", strategy, skillContent: "FULL_SKILL_TAIL", transportFactory: fullChain(), timeoutMs: 5000 })
   expect(inquiry.account.status).toBe("completed"); expect(inquiry.native.result).toBeDefined()
+})
+
+test("account field repair preserves the v4 focus, charges its shared budget and delivers through retained context", async () => {
+  const f = await fixture()
+  const run = await api.runCodexAccountInquiry({ inputFile: f.inputFile, workDir: f.root, model: "gpt-5.6-sol", method: "M", strategy: "operation-evidence-v4", skillContent: "FULL_SKILL_TAIL", transportFactory: fullChain(undefined, true), timeoutMs: 5000 })
+  expect(run.account.status).toBe("completed"); expect(run.account.toolRejections).toHaveLength(1)
+  expect(run.native.rejectedToolCalls).toBe(1)
+  expect(run.native.history.filter((h: any) => !h.executed)).toHaveLength(1)
+  expect(run.native.domain.sourceMaterials.materials).toHaveLength(1)
+  expect(run.native.result).toBeDefined()
+  expect(run.native.contextPayloads.some((p: any) => p.references > 0)).toBe(true)
+  const sent = run.account.events.filter((e: any) => e.direction === "client" && e.result?.contentItems).map((e: any) => JSON.parse(e.result.contentItems[0].text).currentContext)
+  expect(sent.length).toBe(run.account.tools.length + run.account.toolRejections.length)
+  const initial = run.account.events.find((e: any) => e.direction === "client" && e.method === "turn/start") as any
+  const contexts = [JSON.parse(initial.params.input[0].text.split("Current local explanation context: ")[1]), ...sent]
+  for (const context of contexts) expect(resolveInquiryContext(context, contexts).focus).toBeDefined()
 })
 
 test("account boundary file admits only exact pinned instructions and is supported by both inquiry entrances", async () => {

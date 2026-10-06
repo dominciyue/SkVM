@@ -1951,6 +1951,8 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 **AX10首件与账号边界修订。** 完整Cloudflare Download首件在42fe4a84使用完整原task/skill及伴随资源，官方CLI初期连接重试后自行派生源码探子；生产边界在collab wait事件关闭，0宿主源码回调、无终答，status unavailable，reason unexpected-native-account-tool:collabAgentToolCall。可见父会话input/output/cacheRead为65251/610/51328；内部请求、额外子会话用量和USD未知。不能当作源码质量失败或抹掉首件。官方[配置定义](https://github.com/openai/codex/blob/main/codex-rs/core/config.schema.json)说明agents.enabled独立默认true；只关multi_agent/multi_agent_v2不够。本机无推理probe兑现agents.enabled:false，生产改为同时核验该值，并在第一个subAgentActivity事件即关闭。三个反例先红，40项账号/公开入口回归、406断言及主类型通过；下一次是具名同原题修订，非新首件或第三次smoke。公开inquiry同时复用普通技能部署/包装，原skill字节单独归档，伴随文件可通过现有只读工具取得。
 
+**AX10第二项真实接口缺陷。** `agents-disabled`修订在53c01783保持受控边界，并实际执行28个动态回调；宿主含自动读取共使用50/64次。模型还未产生最终自然答，在提交一个不符合当前schema的focused解释时，传输层直接关闭为account-tool-arguments-invalid。可见input/output/cacheRead为881976/2712/811136；首件与修订都保留，质量不能用已读源码数量代替。模型上下文连续增长至120946字节，源码再次发送277337字节，未接受语义单元。共享修复保留事务，将已注册工具参数错误返回具体字段诊断并计入同一预算；未知能力和身份冲突仍关闭。v4账号仅对实际已经传输且字节相同的JSON子值生成序号/路径/SHA引用，变更源或字段重新发送，保留全部源码和宿主草稿。三个红测后，同会话字段修复、相同预算、精确上下文重建和两个入口已通过；真实任务效果由后续具名修订验证，不把离线字节减少写成模型收益。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

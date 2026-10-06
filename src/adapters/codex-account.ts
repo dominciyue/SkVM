@@ -1,7 +1,8 @@
 import type { AgentAdapter, AdapterConfig, RunResult } from "../core/types.ts"
 import { emptyTokenUsage } from "../core/types.ts"
 import { createNativeInquiryRuntime } from "../benchmarks/authorization-dsl/inquiry-native.ts"
-import { parseInquiryStrategy, type InquiryStrategy } from "../task-dsl/authorization/control-slice.ts"
+import { parseInquiryStrategy, isPropertyDirectedInquiryStrategy, type InquiryStrategy } from "../task-dsl/authorization/control-slice.ts"
+import { createInquiryContextEncoder, INCREMENTAL_INQUIRY_CONTEXT_GUIDE } from "../benchmarks/authorization-dsl/inquiry-context.ts"
 import { parseNativeInquiryMethod } from "../task-dsl/authorization/operation-program.ts"
 import { runCodexAccountSession, redactCodexEvent, loadCodexAccountBoundary, type AccountTransport } from "./codex-account-session.ts"
 import type { InquiryReuseInfo, InquiryReuseSeed } from "../benchmarks/authorization-dsl/inquiry-reuse.ts"
@@ -18,18 +19,30 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
   if (options.method === "D0") throw new Error("codex-account-method-D0-unsupported: account runtime supports M or D1; it cannot substitute a different method")
   const instructionSources = await loadCodexAccountBoundary(options.accountBoundaryFile)
   const runtime = await createNativeInquiryRuntime({ ...options, method: options.method, domainTools: options.domainTools ?? true, traceRedactor: redactCodexEvent })
+  const encode = isPropertyDirectedInquiryStrategy(options.strategy) ? createInquiryContextEncoder() : undefined
+  const contextPayloads: Array<{ sequence: number; references: number; originalBytes: number; sentBytes: number }> = []
+  const contextView = async (automatic = true) => {
+    const context = await runtime.accountContext(automatic)
+    if (!encode) return context
+    const { context: encoded, ...metrics } = encode(context); contextPayloads.push(metrics); return encoded
+  }
+  const respond = async (result: Awaited<ReturnType<typeof runtime.execute>>, automatic = true) => {
+    const output = JSON.stringify({ toolResult: JSON.parse(result.output), currentContext: await contextView(automatic) })
+    runtime.accountSent(output); return { ...result, output }
+  }
   let account: Awaited<ReturnType<typeof runCodexAccountSession>>
   try {
-    const context = await runtime.accountContext(), prompt = `Current original task and full skill are declared in the system.\nCurrent local explanation context: ${JSON.stringify(context)}`
+    const context = await contextView(), prompt = `Current original task and full skill are declared in the system.\nCurrent local explanation context: ${JSON.stringify(context)}`
     runtime.accountSent(prompt)
-    account = await runCodexAccountSession({ model: options.model, effort: "high", cwd: options.workDir, system: `${options.skillContent ?? ""}\n${runtime.system}`, prompt, tools: runtime.definitions, timeoutMs: options.timeoutMs, transportFactory: options.transportFactory, instructionSources,
-      execute: async call => { const result = await runtime.execute(call); const output = JSON.stringify({ toolResult: JSON.parse(result.output), currentContext: await runtime.accountContext() }); runtime.accountSent(output); return { ...result, output } },
+    account = await runCodexAccountSession({ model: options.model, effort: "high", cwd: options.workDir, system: `${options.skillContent ?? ""}\n${runtime.system}${encode ? "\n" + INCREMENTAL_INQUIRY_CONTEXT_GUIDE : ""}`, prompt, tools: runtime.definitions, maxToolCalls: options.maxToolCalls, timeoutMs: options.timeoutMs, transportFactory: options.transportFactory, instructionSources,
+      execute: async call => respond(await runtime.execute(call)),
+      rejectArguments: async (call, diagnostics) => respond(await runtime.rejectArguments(call, diagnostics), false),
       onEvent: event => runtime.onEvent(event as any) })
   } finally { await runtime.close() }
   // Returned reports can be persisted by either entrance. Masking is applied to
   // that archive copy, never the live domain state; altered material hashes will
   // be rejected by normal restore validation instead of silently rebinding.
-  const report = runtime.report(), native = redactCodexEvent(report) as typeof report
+  const report = { ...runtime.report(), ...(encode ? { contextPayloads } : {}) }, native = redactCodexEvent(report) as typeof report
   return { account, native, ...(options.reuse ? { reuse: { ...options.reuse.info, materialsUsed: new Set(native.domain?.materialUses?.map(u => u.materialId)).size } } : {}) }
 }
 

@@ -20,14 +20,18 @@ export interface AccountTransport {
 export interface CodexAccountSessionOptions {
   model: string; effort: "high"; cwd: string; system: string; prompt: string; tools: LLMTool[]
   execute(call: LLMToolCall): Promise<{ output: string; exitCode?: number; durationMs: number }>
+  rejectArguments?(call: LLMToolCall, diagnostics: AccountArgumentDiagnostic[]): Promise<{ output: string; exitCode?: number; durationMs: number }>
+  maxToolCalls?: number
   timeoutMs?: number; signal?: AbortSignal; transportFactory?: () => AccountTransport
   instructionSources?: Array<{ path: string; sha256: string }>
   onEvent?(event: unknown): void | Promise<void>
 }
+export interface AccountArgumentDiagnostic { path: string; keyword: string; message: string; expected: unknown }
 export type AccountSessionStatus = "completed" | "undelivered" | "unavailable" | "timeout-unknown" | "completion-unknown"
 export interface AccountSessionResult {
   status: AccountSessionStatus; text: string; reason?: string; usage: TokenUsage | null; actualUsd: null; providerRequests: null
   durationMs: number; events: unknown[]; tools: LLMToolCall[]; model: string; effort: "high"; inferenceDispatched: boolean
+  toolRejections: Array<{ call: LLMToolCall; diagnostics: AccountArgumentDiagnostic[] }>
   capability?: { status: "verified-controlled"; cliVersion: string; effectiveConfig: Record<string, unknown>; instructionSources: Array<{ path: string; sha256: string }>; runtimeWorkspaceRoots: string[] }
   usageDetails?: { totalTokens: number; reasoningOutputTokens: number; inputIncludesCached: true }
 }
@@ -131,7 +135,7 @@ export function createCodexStdioTransport(): AccountTransport {
 }
 /** The official CLI owns the agent loop; this is deliberately not LLMProvider. */
 export async function runCodexAccountSession(options: CodexAccountSessionOptions): Promise<AccountSessionResult> {
-  const started = Date.now(), events: unknown[] = [], tools: LLMToolCall[] = []
+  const started = Date.now(), events: unknown[] = [], tools: LLMToolCall[] = [], toolRejections: AccountSessionResult["toolRejections"] = []
   let transport: AccountTransport | undefined, sequence = 0, threadId: string | undefined, turnId: string | undefined, active = false, inferenceDispatched = false
   let usage: TokenUsage | null = null, text = "", failure: string | undefined
   let capability: AccountSessionResult["capability"]
@@ -140,16 +144,23 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
   const pending = new Map<number, { method: string; resolve: (value: any) => void; reject: (error: Error) => void }>(), executed = new Map<string, { fingerprint: string; output: Promise<Record<string, unknown>> }>()
   let finish!: (status: AccountSessionStatus) => void, finished = false
   const terminal = new Promise<AccountSessionStatus>(resolve => { finish = status => { if (!finished) { finished = true; active = false; resolve(status) } } })
-  const record = (event: unknown) => { const safe = redactCodexEvent(event); events.push(safe); void options.onEvent?.(safe) }
+  let eventWrites = Promise.resolve(), eventWriteFailure: unknown
+  const record = (event: unknown) => {
+    const safe = redactCodexEvent(event); events.push(safe)
+    eventWrites = eventWrites.then(async () => { try { await options.onEvent?.(safe) } catch (cause) { eventWriteFailure ??= cause } })
+  }
+  const reply = (id: unknown, response: Record<string, unknown>) => { record({ direction: "client", id, result: response }); transport!.send({ id, result: response }) }
   const request = (method: string, params: unknown) => new Promise<any>((resolve, reject) => {
     const id = ++sequence; pending.set(id, { method, resolve, reject }); record({ direction: "client", id, method, params })
     try { transport!.send({ id, method, params }) } catch { pending.delete(id); reject(new Error("codex-send-failed")) }
   })
-  const result = (status: AccountSessionStatus): AccountSessionResult => redactCodexEvent({ status, text, ...(failure ? { reason: failure } : {}), usage, ...(usageDetails ? { usageDetails } : {}), actualUsd: null, providerRequests: null, durationMs: Date.now() - started, events, tools, model: options.model, effort: options.effort, inferenceDispatched, ...(capability ? { capability } : {}) })
+  const result = (status: AccountSessionStatus): AccountSessionResult => redactCodexEvent({ status, text, ...(failure ? { reason: failure } : {}), usage, ...(usageDetails ? { usageDetails } : {}), actualUsd: null, providerRequests: null, durationMs: Date.now() - started, events, tools, toolRejections, model: options.model, effort: options.effort, inferenceDispatched, ...(capability ? { capability } : {}) })
   let timer: ReturnType<typeof setTimeout> | undefined
   const abort = () => { failure = "account-session-interrupted-or-timeout"; finish("timeout-unknown"); for (const p of pending.values()) p.reject(new Error(failure)); pending.clear() }
   try {
     if (options.model !== "gpt-5.6-sol" || options.effort !== "high") { failure = "account-model-or-effort-unauthorized"; return result("unavailable") }
+    const maxToolCalls = options.maxToolCalls ?? 64
+    if (!Number.isSafeInteger(maxToolCalls) || maxToolCalls < 1) { failure = "account-tool-budget-invalid"; return result("unavailable") }
     const ajv = new Ajv({ strict: false, allErrors: true, ownProperties: true })
     for (const tool of options.tools) {
       if (validators.has(tool.name)) { failure = "duplicate-account-tool-name"; return result("unavailable") }
@@ -171,23 +182,30 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
         return
       }
       if (message.method === "item/tool/call" && message.id !== undefined) {
-        if (!active || params.threadId !== threadId || turnId && params.turnId !== turnId) { transport!.send({ id: message.id, result: { success: false, contentItems: [{ type: "inputText", text: "session-closed-or-foreign-turn" }] } }); return }
+        if (!active || params.threadId !== threadId || turnId && params.turnId !== turnId) { reply(message.id, { success: false, contentItems: [{ type: "inputText", text: "session-closed-or-foreign-turn" }] }); return }
         turnId ??= params.turnId
-        if (params.namespace || !options.tools.some(t => t.name === params.tool)) { failure = "unregistered-account-tool"; finish("unavailable"); transport!.send({ id: message.id, result: { success: false, contentItems: [{ type: "inputText", text: failure }] } }); return }
-        if (!validators.get(params.tool)!(params.arguments)) { failure = "account-tool-arguments-invalid"; finish("unavailable"); transport!.send({ id: message.id, result: { success: false, contentItems: [{ type: "inputText", text: failure }] } }); return }
+        if (params.namespace || !options.tools.some(t => t.name === params.tool)) { failure = "unregistered-account-tool"; finish("unavailable"); reply(message.id, { success: false, contentItems: [{ type: "inputText", text: failure }] }); return }
         const fingerprint = JSON.stringify([params.tool, params.arguments])
         if (typeof params.callId !== "string" || !params.callId || executed.get(params.callId)?.fingerprint && executed.get(params.callId)!.fingerprint !== fingerprint) { failure = "account-tool-call-identity-conflict"; finish("unavailable"); return }
         let execution = executed.get(params.callId)?.output
         if (!execution) {
-          const call: LLMToolCall = { id: params.callId, name: params.tool, arguments: params.arguments }; tools.push(call)
+          if (tools.length + toolRejections.length >= maxToolCalls) { failure = "account-tool-budget"; finish("unavailable"); reply(message.id, { success: false, contentItems: [{ type: "inputText", text: failure }] }); return }
+          const call: LLMToolCall = { id: params.callId, name: params.tool, arguments: params.arguments }, validator = validators.get(params.tool)!
+          const valid = validator(params.arguments)
+          const diagnostics = (validator.errors ?? []).slice(0, 8).map(e => ({ path: e.instancePath, keyword: e.keyword, message: e.message ?? "Invalid field", expected: e.params }))
+          if (valid) tools.push(call)
+          else toolRejections.push({ call, diagnostics })
           execution = Promise.resolve().then(async () => {
             if (!active) return { success: false, contentItems: [{ type: "inputText", text: "session-closed" }] }
-            const output = await options.execute(call)
+            // Known, malformed data is a local repair opportunity, never a host
+            // execution. Unknown tools, identity conflicts and native activity
+            // still close the capability boundary immediately.
+            const output = valid ? await options.execute(call) : options.rejectArguments ? await options.rejectArguments(call, diagnostics) : { output: JSON.stringify({ status: "error", code: "account-tool-arguments-invalid", diagnostics, instruction: "Correct the named fields using the supplied tool schema; the rejected call executed no tool." }), exitCode: 1, durationMs: 0 }
             return { success: active && output.exitCode !== 1, contentItems: [{ type: "inputText", text: active ? output.output : "session-closed" }] }
           }).catch(() => ({ success: false, contentItems: [{ type: "inputText", text: "dynamic-tool-execution-failed" }] }))
           executed.set(params.callId, { fingerprint, output: execution })
         }
-        void execution.then(output => { if (active) transport!.send({ id: message.id, result: output }) }); return
+        void execution.then(output => { if (active) reply(message.id, output) }); return
       }
       if (!active || params.threadId !== threadId || turnId && (params.turnId ?? params.turn?.id) !== turnId) return
       const nativeTypes = ["commandExecution", "fileChange", "mcpToolCall", "webSearch", "collabAgentToolCall", "subAgentActivity", "imageGeneration", "browserToolCall", "computerUseToolCall"]
@@ -250,5 +268,7 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
     active = false; if (timer) clearTimeout(timer); options.signal?.removeEventListener("abort", abort)
     if (inferenceDispatched && threadId && turnId && failure) { try { transport?.send({ id: ++sequence, method: "turn/interrupt", params: { threadId, turnId } }) } catch { /* Own child may already have exited. */ } }
     for (const p of pending.values()) p.reject(new Error("session-closed")); pending.clear(); await transport?.close()
+    await eventWrites
+    if (eventWriteFailure) throw new Error("account-trace-write-failed", { cause: eventWriteFailure })
   }
 }

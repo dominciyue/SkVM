@@ -71,14 +71,14 @@ export async function run(id: string, revision?: string) {
     }
     await writeFile(path.join(out, "answer-original.md"), account.text, { flag: "wx" })
     await write(path.join(out, "report.json"), { attemptId, positionId: id, status, gitRevision, inputSha256: loaded.inputSha256, sourceFiles: checked.sourceFiles, sessionPath,
-      finalPresent: !!account.text.trim(), answerSha256: sha(account.text), accountUsage: account.usage, usageDetails: account.usageDetails, inferenceDispatched: account.inferenceDispatched, capability: account.capability, hostToolCalls: account.tools.length, durationMs: account.durationMs, reason: account.reason, providerRequests: null, actualUsd: null, targetExecutions: 0, semanticQuality: "awaiting-independent-review" })
+      finalPresent: !!account.text.trim(), answerSha256: sha(account.text), accountUsage: account.usage, usageDetails: account.usageDetails, inferenceDispatched: account.inferenceDispatched, capability: account.capability, hostToolCalls: account.tools.length + (account.toolRejections?.length ?? 0), rejectedArgumentCalls: account.toolRejections?.length ?? 0, durationMs: account.durationMs, reason: account.reason, providerRequests: null, actualUsd: null, targetExecutions: 0, semanticQuality: "awaiting-independent-review" })
   } catch (cause) {
     status = "completion-unknown"
     await write(path.join(out, "report.json"), { attemptId, positionId: id, status, error: String(cause), providerRequests: null, actualUsd: null, targetExecutions: 0 })
   }
   p.status = status; await write(path.join(root, "manifest.json"), manifest)
   await state({ activeAttempts: [], ...(status.endsWith("unknown") ? { unknownCompletions: [attemptId] } : {}) })
-  console.log(JSON.stringify({ attemptId, status, hostToolCalls: account?.tools.length, finalPresent: !!account?.text.trim(), usage: account?.usage, reason: account?.reason }))
+  console.log(JSON.stringify({ attemptId, status, hostToolCalls: account ? account.tools.length + (account.toolRejections?.length ?? 0) : undefined, finalPresent: !!account?.text.trim(), usage: account?.usage, reason: account?.reason }))
 }
 export async function smoke(revision?: "bounded-code-mode") {
   const manifest = await Bun.file(path.join(root, "manifest.json")).json() as Manifest
