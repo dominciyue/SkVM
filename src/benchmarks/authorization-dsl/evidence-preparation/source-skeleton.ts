@@ -27,6 +27,7 @@ export interface SourceFlow {
 export interface SourceSkeleton {
   schemaVersion: "authorization-source-skeleton/v1" | "authorization-source-skeleton/v2"; sourceId: string; revision: string;
   controlSemantics?: "finite-control/v1";
+  propertySemantics?: "property-control/v1";
   context?: "route-registration";
   source: { id: string; path: string; sha256: string; startLine: number; endLine: number }; modelCovered: boolean; evidenceIds: string[];
   anchors: SourceAnchor[]; flow: SourceFlow[]; edges: Array<{ from: string; to: string; branch: "next" | "true" | "false" }>;
@@ -37,12 +38,12 @@ const kids = (n?: Node | null) => (n?.namedChildren ?? []).filter((c): c is Node
 const field = (n: Node, name: string) => n.childForFieldName(name)
 const descendants = (n: Node, types: string[]) => n.descendantsOfType(types).filter((c): c is Node => !!c)
 /** Read coverage is independent of AST indexing. No source meaning is inferred. */
-export async function buildSourceSkeleton(index: StructureIndex, source: StructureSymbol, windows: readonly InquiryEvidence[], receiverClass?: string, controlSemantics?: "finite-control/v1"): Promise<SourceSkeleton> {
+export async function buildSourceSkeleton(index: StructureIndex, source: StructureSymbol, windows: readonly InquiryEvidence[], receiverClass?: string, controlSemantics?: "finite-control/v1", propertyDirected = false): Promise<SourceSkeleton> {
   const selected = windows.filter(e => e.path === source.path && e.sha256 === source.sha256 && e.startLine <= source.endLine && e.endLine >= source.startLine)
   let through = source.startLine - 1
   for (const e of [...selected].sort((a, b) => a.startLine - b.startLine)) if (e.startLine <= through + 1) through = Math.max(through, e.endLine)
   const selector = { path: source.path, startLine: source.startLine, endLine: source.endLine, candidateId: source.id }
-  const skeleton: SourceSkeleton = { schemaVersion: controlSemantics ? "authorization-source-skeleton/v2" : "authorization-source-skeleton/v1", ...(controlSemantics ? { controlSemantics } : {}), sourceId: source.id, source: { id: source.id, path: source.path, sha256: source.sha256, startLine: source.startLine, endLine: source.endLine }, revision: "", modelCovered: through >= source.endLine, evidenceIds: selected.map(e => e.id), anchors: [], flow: [], edges: [], gaps: [] }
+  const skeleton: SourceSkeleton = { schemaVersion: controlSemantics ? "authorization-source-skeleton/v2" : "authorization-source-skeleton/v1", ...(controlSemantics ? { controlSemantics } : {}), ...(propertyDirected ? { propertySemantics: "property-control/v1" as const } : {}), sourceId: source.id, source: { id: source.id, path: source.path, sha256: source.sha256, startLine: source.startLine, endLine: source.endLine }, revision: "", modelCovered: through >= source.endLine, evidenceIds: selected.map(e => e.id), anchors: [], flow: [], edges: [], gaps: [] }
   if (!skeleton.modelCovered) skeleton.gaps.push({ code: "skeleton-source-unread", selector, reason: "The complete current function is not available in shown original windows; indexing is not model interpretation." })
   else await index.withSymbolSyntax(source.id, root => {
     const registration = index.routes.find(r => r.id === source.id)
@@ -99,7 +100,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     }
     const visitList = (n?: Node | null): SourceFlow[] => kids(n).flatMap(visit)
     const branchFor = (n: Node, alternatives: Node[]): SourceFlow[] => {
-      const condition = field(n, "condition")!, anchor = add(condition, "condition"), alternative = alternatives[0]
+      const condition = field(n, "condition")!, anchor = add(condition, "condition", propertyDirected ? sourceLiteral(condition) : {}), alternative = alternatives[0]
       const other = alternative ? ["if_statement", "elif_clause"].includes(alternative.type) ? branchFor(alternative, alternatives.slice(1)) : visitList(field(alternative, "body") ?? alternative) : []
       const shortCircuit = descendants(condition, ["boolean_operator", "binary_expression"]).some(c => /^(and|or|&&|\|\|)$/.test(field(c, "operator")?.text ?? kids(c).find(k => k.type === "operator")?.text ?? c.children.find(k => k && ["and", "or", "&&", "||"].includes(k.type))?.text ?? "")) && callsIn(condition).length > 0
       let calls: SourceFlow[]
@@ -175,6 +176,6 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     connect(skeleton.flow)
     skeleton.anchors.sort((a, b) => positions.get(a.id)! - positions.get(b.id)! || a.id.localeCompare(b.id))
   })
-  skeleton.revision = hash([index.parser, index.relationshipVersion, ...(controlSemantics ? [controlSemantics] : []), skeleton.source, skeleton.context, skeleton.modelCovered, skeleton.anchors, skeleton.flow, skeleton.edges, skeleton.gaps])
+  skeleton.revision = hash([index.parser, index.relationshipVersion, ...(controlSemantics ? [controlSemantics] : []), ...(propertyDirected ? [skeleton.propertySemantics] : []), skeleton.source, skeleton.context, skeleton.modelCovered, skeleton.anchors, skeleton.flow, skeleton.edges, skeleton.gaps])
   return skeleton
 }

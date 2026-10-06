@@ -8,7 +8,7 @@ import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquir
 import { createInquiryTools } from "./inquiry-tools.ts"
 import { runAuthorizationInquiry, type InquiryMethod, type RunAuthorizationInquiryOptions } from "./inquiry-run.ts"
 import type { LocalAuthorizationCliDependencies } from "./local-run.ts"
-import { parseInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInquiryStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
+import { parseInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInquiryStrategy, isFiniteControlInquiryStrategy, isPropertyDirectedInquiryStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { planInquiryReuse } from "./inquiry-reuse.ts"
 import { hasUnknownAuthorizationCompletion } from "./telemetry.ts"
 import { acceptAuthoredInquiry } from "./authoring-assist.ts"
@@ -91,7 +91,7 @@ export async function initializeLocalInquiry(from: string, outFile: string, expl
 
 async function preparePreviousInquiry(inputFile: string, previous: string, model: string | undefined, method: InquiryMethod | undefined, strategy: InquiryStrategy | undefined) {
   const report = await inspectLocalInquiry(previous), retained = await retainedInquiryDeclaration(report.sessionPath), old = retained.input, prior = retained.prior
-  const currentStrategy = strategy ?? report.strategy ?? "legacy", loaded = await loadInquiryInput(inputFile, { allowMissingPolicy: isSourceAssistedInquiryStrategy(currentStrategy) }), tools = await createInquiryTools({ ...loaded.context, structure: isOperationInquiryStrategy(currentStrategy), ...(currentStrategy === "operation-evidence-v3" ? { controlSemantics: "finite-control/v1" as const } : {}) })
+  const currentStrategy = strategy ?? report.strategy ?? "legacy", loaded = await loadInquiryInput(inputFile, { allowMissingPolicy: isSourceAssistedInquiryStrategy(currentStrategy) }), tools = await createInquiryTools({ ...loaded.context, structure: isOperationInquiryStrategy(currentStrategy), ...(isFiniteControlInquiryStrategy(currentStrategy) ? { controlSemantics: "finite-control/v1" as const, propertyDirected: isPropertyDirectedInquiryStrategy(currentStrategy) } : {}) })
   const plan = planInquiryReuse({ currentInput: loaded.value, previousInput: old, previousRun: prior, previousSessionId: report.sessionId, currentFiles: tools.files, currentStructure: tools.structure, currentMethod: method ?? report.method, previousMethod: report.method, currentStrategy, previousStrategy: report.strategy ?? "legacy", currentModel: model ?? report.model, previousModel: report.model })
   if (plan.status === "reusable") {
     const imported = tools.restoreEvidence(plan.seed.evidence)
@@ -99,7 +99,7 @@ async function preparePreviousInquiry(inputFile: string, previous: string, model
   }
   return { report, previousInput: old, plan }
 }
-export async function executeLocalInquiryRun(options: { inputFile: string; outDir: string; model: string; method?: InquiryMethod; strategy?: InquiryStrategy; previous?: string; harness?: "provider" | "codex-account"; accountBoundaryFile?: string; providerFactory?: LocalAuthorizationCliDependencies["providerFactory"]; execution?: Partial<RunAuthorizationInquiryOptions> }) {
+export async function executeLocalInquiryRun(options: { inputFile: string; outDir: string; model: string; method?: InquiryMethod; strategy?: InquiryStrategy; previous?: string; harness?: "provider" | "codex-account"; accountBoundaryFile?: string; skillFile?: string; providerFactory?: LocalAuthorizationCliDependencies["providerFactory"]; execution?: Partial<RunAuthorizationInquiryOptions> }) {
   const method = options.method ?? "D1", strategy = options.strategy ?? options.execution?.strategy ?? "legacy", check = await checkAuthorizationInquiry(options.inputFile, method, strategy)
   if (check.status !== "valid") return check
   const prior = options.previous ? await preparePreviousInquiry(options.inputFile, options.previous, options.model, method, strategy) : undefined
@@ -116,13 +116,16 @@ export async function executeLocalInquiryRun(options: { inputFile: string; outDi
     await mkdir(path.join(out, "sessions"), { recursive: true }); await mkdir(sessionPath)
   })
   const save = (name: string, value: unknown) => writeFile(path.join(sessionPath, name), JSON.stringify(value, null, 2) + "\n", { encoding: "utf8", flag: "wx" })
-  const identity = { schemaVersion: "authorization-inquiry-session/v1", sessionId: id, sessionPath, createdAt: new Date().toISOString(), inputSha256: loaded.inputSha256, model: options.model, method, strategy, sourceFiles: check.sourceFiles, noAutomaticResend: true, ...(reuseOrigin ? { reuseOrigin } : {}) }
+  const skillBytes = options.skillFile ? await readFile(path.resolve(options.skillFile)) : undefined, skillContent = skillBytes?.toString("utf8")
+  const skill = skillBytes ? { path: path.resolve(options.skillFile!), sha256: createHash("sha256").update(skillBytes).digest("hex"), bytes: skillBytes.byteLength, archive: "skill-original.md" } : undefined
+  const identity = { schemaVersion: "authorization-inquiry-session/v1", sessionId: id, sessionPath, createdAt: new Date().toISOString(), inputSha256: loaded.inputSha256, model: options.model, method, strategy, sourceFiles: check.sourceFiles, noAutomaticResend: true, ...(reuseOrigin ? { reuseOrigin } : {}), ...(skill ? { skill } : {}) }
   await save("session.json", identity); await writeFile(path.join(sessionPath, "input.json"), loaded.original, { encoding: "utf8", flag: "wx" }); await save("check.json", check)
+  if (skillBytes) await writeFile(path.join(sessionPath, "skill-original.md"), skillBytes, { flag: "wx" })
   if (options.harness === "codex-account") {
     const { runCodexAccountInquiry } = await import("../../adapters/codex-account.ts")
-    const accountRun = await runCodexAccountInquiry({ inputFile: options.inputFile, workDir: sessionPath, model: options.model, method, strategy, reuse, accountBoundaryFile: options.accountBoundaryFile, timeoutMs: options.execution?.sessionTimeoutMs, maxToolCalls: options.execution?.maxToolCalls, maxDisplayBytes: options.execution?.maxDisplayBytes, maxReadBytes: options.execution?.maxReadBytes, traceDir: path.join(sessionPath, "raw") })
+    const accountRun = await runCodexAccountInquiry({ inputFile: options.inputFile, workDir: sessionPath, model: options.model, method, strategy, reuse, skillContent, accountBoundaryFile: options.accountBoundaryFile, timeoutMs: options.execution?.sessionTimeoutMs, maxToolCalls: options.execution?.maxToolCalls, maxDisplayBytes: options.execution?.maxDisplayBytes, maxReadBytes: options.execution?.maxReadBytes, traceDir: path.join(sessionPath, "raw") })
     const { native, account } = accountRun
-    const fields = { status: account.status, method, strategy, inquiry: native.program?.originalDeclaration, program: native.program, result: native.result, final: native.result, domain: native.domain, reuse: accountRun.reuse, sourceFiles: native.sourceFiles, sourceVerification: native.sourceVerification, sourceAccounting: native.sourceAccounting, telemetry: { account, providerCalls: account.providerRequests, totalActualUsd: null }, durationMs: account.durationMs, error: account.reason, evidence: native.evidence }
+    const fields = { status: account.status, method, strategy, inquiry: native.program?.originalDeclaration, program: native.program, result: native.result, final: native.result, domain: native.domain, reuse: accountRun.reuse, sourceFiles: native.sourceFiles, sourceVerification: native.sourceVerification, sourceAccounting: native.sourceAccounting, telemetry: { account, providerCalls: account.providerRequests, totalActualUsd: null }, durationMs: account.durationMs, error: account.reason, evidence: native.evidence, ...(skill ? { skill } : {}) }
     const { redactCodexEvent } = await import("../../adapters/codex-account-session.ts")
     await save("run.json", redactCodexEvent({ ...fields, native })); const report = { ...identity, ...fields, harness: "codex-account" }
     await save("report.json", redactCodexEvent(report)); await appendFile(path.join(out, "sessions.jsonl"), JSON.stringify({ relativePath: `sessions/${id}`, status: report.status }) + "\n")
@@ -137,11 +140,11 @@ export async function executeLocalInquiryRun(options: { inputFile: string; outDi
     await save("report.json", report); await appendFile(path.join(out, "sessions.jsonl"), JSON.stringify({ relativePath: `sessions/${id}`, status: report.status }) + "\n"); return report
   }
   let requestId = 0
-  const run = await runAuthorizationInquiry({ ...options.execution, ...loaded.context, provider, method, strategy, ...(options.previous ? { reuse } : {}), inquiry: loaded.value.inquiry, brief: loaded.value.brief, mode: loaded.value.mode, policy: loaded.value.policy,
+  const run = await runAuthorizationInquiry({ ...options.execution, ...loaded.context, provider, method, strategy, ...(options.previous ? { reuse } : {}), inquiry: loaded.value.inquiry, brief: loaded.value.brief, mode: loaded.value.mode, policy: loaded.value.policy, skillContent,
     onRequest: async request => { await save(`request-${++requestId}.json`, request); await options.execution?.onRequest?.(request) },
     onEvent: async event => { await appendFile(path.join(sessionPath, "events.jsonl"), JSON.stringify(event) + "\n"); if (event.kind === "dispatch" && event.sequence === 1) await save("dispatch.json", identity); await options.execution?.onEvent?.(event) },
   })
-  await save("run.json", run)
+  await save("run.json", { ...run, ...(skill ? { skill } : {}) })
   const report = { ...identity, status: run.status, result: run.result, initial: run.initial, initialValidation: run.initialValidation, final: run.final, validation: run.validation, sourceVerification: run.sourceVerification, wireFailures: run.wireFailures, wireNormalizations: run.wireNormalizations, ...(run.reuse ? { reuse: run.reuse } : {}), ...(run.domain ? { domain: run.domain } : {}), telemetry: run.telemetry, durationMs: run.durationMs, sourceAccounting: run.sourceAccounting, error: run.error }
   await save("report.json", report); await appendFile(path.join(out, "sessions.jsonl"), JSON.stringify({ relativePath: `sessions/${id}`, status: run.status }) + "\n")
   return report
@@ -157,16 +160,17 @@ export async function inspectLocalInquiry(outDir: string) {
   const identity = JSON.parse(await readFile(path.join(root, "session.json"), "utf8"))
   if (identity.schemaVersion !== "authorization-inquiry-session/v1") throw new Error("Not an inquiry session")
   if (sha(await readFile(path.join(root, "input.json"), "utf8")) !== identity.inputSha256) throw new Error("Inquiry input archive changed")
+  if (identity.skill && createHash("sha256").update(await readFile(path.join(root, "skill-original.md"))).digest("hex") !== identity.skill.sha256) throw new Error("Inquiry skill archive changed")
   let report
   try { report = JSON.parse(await readFile(path.join(root, "report.json"), "utf8")) }
   catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; return { ...identity, status: await stat(path.join(root, "dispatch.json")).then(() => "completion-unknown", () => "initialized") } }
-  if (report.sessionId !== identity.sessionId || report.model !== identity.model || report.method !== identity.method || (report.strategy ?? "legacy") !== (identity.strategy ?? "legacy") || report.inputSha256 !== identity.inputSha256 || !isDeepStrictEqual(report.sourceFiles, identity.sourceFiles) || !isDeepStrictEqual(report.reuseOrigin, identity.reuseOrigin)) throw new Error("Inquiry report/session identity mismatch")
+  if (report.sessionId !== identity.sessionId || report.model !== identity.model || report.method !== identity.method || (report.strategy ?? "legacy") !== (identity.strategy ?? "legacy") || report.inputSha256 !== identity.inputSha256 || !isDeepStrictEqual(report.sourceFiles, identity.sourceFiles) || !isDeepStrictEqual(report.reuseOrigin, identity.reuseOrigin) || !isDeepStrictEqual(report.skill, identity.skill)) throw new Error("Inquiry report/session identity mismatch")
   let completionUnknown = hasUnknownAuthorizationCompletion(report), strategyMetadataOrigin: string | undefined
   if (report.status !== "provider-unavailable") {
     const run = JSON.parse(await readFile(path.join(root, "run.json"), "utf8"))
     const legacyAuthorMetadata = run.strategy === undefined && identity.method === "D1" && ["completed-with-diagnostics", "budget-exhausted"].includes(run.status) && !run.inquiry && !run.program && !run.domain && !run.result && run.requests?.length > 0 && run.requests.every((r: any) => r.phase === "author") && run.wireFailures?.some((r: any) => r.phase === "author") && !hasUnknownAuthorizationCompletion(run)
     const runStrategy = legacyAuthorMetadata ? identity.strategy ?? "legacy" : run.strategy ?? "legacy"
-    if (run.status !== report.status || run.method !== identity.method || runStrategy !== (identity.strategy ?? "legacy") || ["sourceFiles", "result", "initial", "initialValidation", "final", "validation", "wireFailures", "wireNormalizations", "domain", "reuse", "sourceAccounting", "sourceVerification", "telemetry"].some(key => !isDeepStrictEqual(run[key], report[key]))) throw new Error("Inquiry report/run identity mismatch")
+    if (run.status !== report.status || run.method !== identity.method || runStrategy !== (identity.strategy ?? "legacy") || ["skill", "sourceFiles", "result", "initial", "initialValidation", "final", "validation", "wireFailures", "wireNormalizations", "domain", "reuse", "sourceAccounting", "sourceVerification", "telemetry"].some(key => !isDeepStrictEqual(run[key], report[key]))) throw new Error("Inquiry report/run identity mismatch")
     if (legacyAuthorMetadata) strategyMetadataOrigin = "precompile-session-identity"
     completionUnknown ||= hasUnknownAuthorizationCompletion(run)
   }

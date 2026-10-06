@@ -299,3 +299,30 @@ test("an omitted executable source call still requires a role or an explicit unr
   const f = await fixture(), raw = { ...f.proposal, annotations: f.annotations.filter(a => a.anchorId !== f.anchor("call").id) }
   expect(api.lowerSourceInterpretation(f.skeleton, raw, f.options).diagnostics).toContainEqual(expect.objectContaining({ code: "source-interpretation-role-required", path: f.anchor("call").id }))
 })
+
+test("property source interpretation accepts only proved unreachable omissions and keeps whole source coverage separate", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ax-source-demand-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def entry(actor):\n    if False:\n        actor.mutate()\n    return True\n    actor.dead()\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["app.py"], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true } as any), source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id))!, live = skeleton.anchors.find(a => a.kind === "return" && a.literalValue === true)!
+  const result = api.lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations: [{ anchorId: live.id, role: "context", explanation: "Normal source permission exit", returnOutcome: "allow" }] }, { index: tools.structure, itemId: "w", handle: "entry", questionId: "q", role: "entry", propertyDirected: true })
+  expect(result.diagnostics).toEqual([])
+  expect(result.demand.coverage).toMatchObject({ sourceRead: true, domainInterpreted: true, propertyCovered: true, wholeAnswerSufficient: false })
+  expect(result.unit.complete).toBe(false)
+  const flow = lowerSemanticFlow([{ ...result.unit, questionId: "q", evidenceIds: skeleton.evidenceIds }], { propertyDirected: true })
+  expect(flow.diagnostics).toEqual([])
+  expect(flow.delta.rules.filter(r => r.terminal).map(r => r.outcome)).toEqual(["allow"])
+  expect(skeleton.anchors.filter(a => a.kind === "call")).toHaveLength(2)
+})
+
+test("property boolean exclusions reject a contradictory model predicate rather than executing it", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ax-source-literal-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def entry():\n    if False:\n        return True\n    return False\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["app.py"], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true } as any), source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id))!, branch = skeleton.anchors.find(a => a.kind === "condition")!
+  const result = api.lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations: skeleton.anchors.filter(a => a.kind === "condition" || a.kind === "return").map(a => ({ anchorId: a.id, role: "context", explanation: "Test-authored interpretation", ...(a.kind === "condition" ? { condition: { op: "eq", left: { literal: true }, right: { literal: true } } } : { returnOutcome: "deny" }) })) }, { index: tools.structure, itemId: "w", handle: "entry", questionId: "q", role: "entry", propertyDirected: true })
+  expect(result.unit).toBeUndefined()
+  expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "source-interpretation-literal-condition-conflict", path: branch.id }))
+})

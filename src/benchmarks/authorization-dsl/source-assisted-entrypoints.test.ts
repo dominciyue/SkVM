@@ -47,11 +47,12 @@ async function fixture(completeDeclaration = false) {
 for (const completeDeclaration of [false, true]) for (const method of ["M", "D1"] as const) test(`public source-assisted inquiry ${method} ${completeDeclaration ? "complete declaration" : "natural brief"} consumes original source annotations and checks the same natural answer`, async () => {
   const { sourceRoot } = await fixture(completeDeclaration), stages: string[] = []; let declarations = 0
   const provider: LLMProvider = { name: "mock", complete: async params => {
+    expect(params.system).toContain("FULL_ORIGINAL_TAIL")
     const author = params.tools?.[0]?.name === "submit_inquiry_declaration"
     if (author) { declarations++; return response("", [{ id: "declare", name: params.tools![0]!.name, arguments: inquiry }]) }
     return response("", [{ id: "step", name: params.tools![0]!.name, arguments: action(currentContext(params), stages) }])
   }, completeWithToolResults: async () => { throw new Error("Unused") } }
-  const run = await runAuthorizationInquiry({ sourceRoot, repository: "anonymous", sourceRef: "fixed", allowedPaths: ["app.py"], ...(completeDeclaration ? { inquiry } : { brief }), provider, method, strategy, maxDispatches: 12 })
+  const run = await runAuthorizationInquiry({ sourceRoot, repository: "anonymous", sourceRef: "fixed", allowedPaths: ["app.py"], ...(completeDeclaration ? { inquiry } : { brief }), provider, method, strategy, skillContent: "FULL_ORIGINAL_TAIL", maxDispatches: 12 })
   expect(run.status).toBe("completed")
   expect(declarations).toBe(method === "D1" && !completeDeclaration ? 1 : 0)
   expect(stages).toContain("locate"); expect(stages).toContain("interpret"); expect(stages).toContain("answer")
@@ -171,7 +172,7 @@ test("ordinary source-assisted natural-session export retains its declaration an
   expect(dispatches).toBe(before)
 })
 
-for (const native of [false, true]) test(`v3 ${native ? "native" : "inquiry"} enables finite control and saves material through the production entrance`, async () => {
+for (const finiteStrategy of ["operation-evidence-v3", "operation-evidence-v4"] as const) for (const native of [false, true]) test(`${finiteStrategy} ${native ? "native" : "inquiry"} enables finite control and saves material through the production entrance`, async () => {
   const { root, sourceRoot, inputFile } = await fixture(), stages: string[] = []
   const complete = async (params: CompletionParams) => {
     if (!params.tools?.length) return response("The original entry denies this source path.")
@@ -179,6 +180,10 @@ for (const native of [false, true]) test(`v3 ${native ? "native" : "inquiry"} en
     if (context.focus.stage === "interpret") {
       const shown = context.tasks[0]!.sourceSkeleton
       expect(shown.controlSemantics).toBe("finite-control/v1")
+      if (finiteStrategy === "operation-evidence-v4") {
+        expect(shown.propertySemantics).toBe("property-control/v1")
+        expect((context.tasks[0] as any).propertyDemand.frontier).toHaveLength(1)
+      }
       // The whole original window and annotatable identities remain available,
       // while one common source digest replaces its repetition at every anchor.
       expect((context as any).sourceWindows.some((w: any) => w.text === "1 | def entry():\n2 |     return False\n")).toBe(true)
@@ -193,12 +198,33 @@ for (const native of [false, true]) test(`v3 ${native ? "native" : "inquiry"} en
   let report: any
   if (native) {
     const adapter = new BareAgentAdapter(() => provider)
-    await adapter.setup({ model: "mock/model", maxSteps: 12, timeoutMs: 10000, providerOptions: { authorizationScope: inputFile, authorizationDomainTools: true, authorizationStrategy: "operation-evidence-v3", authorizationMethod: "M" } })
+    await adapter.setup({ model: "mock/model", maxSteps: 12, timeoutMs: 10000, providerOptions: { authorizationScope: inputFile, authorizationDomainTools: true, authorizationStrategy: finiteStrategy, authorizationMethod: "M" } })
     const run = await adapter.run({ prompt: brief, workDir: root }); expect(run.runStatus).toBe("ok"); report = (run.authorizationInquiry as any).domain
   } else {
-    const run = await runAuthorizationInquiry({ sourceRoot, repository: "anonymous", sourceRef: "fixed", allowedPaths: ["app.py"], brief, provider, method: "M", strategy: "operation-evidence-v3", maxDispatches: 12 })
+    const run = await runAuthorizationInquiry({ sourceRoot, repository: "anonymous", sourceRef: "fixed", allowedPaths: ["app.py"], brief, provider, method: "M", strategy: finiteStrategy, maxDispatches: 12 })
     expect(run.status).toBe("completed"); report = run.domain
   }
   expect(report.sourceMaterials.materials).toHaveLength(1)
   expect(report.materialUses).toHaveLength(1)
+  expect(report.sourceMaterials.materials[0].identity.semanticVersion).toBe(finiteStrategy === "operation-evidence-v4" ? "property-control/v1" : "finite-control/v1")
+})
+
+test("public inquiry consumes and verifies the original skill file bytes", async () => {
+  const { root, inputFile } = await fixture(), original = "Complete original skill.\r\nFULL_ORIGINAL_TAIL\r\n", skillFile = path.join(root, "SKILL.md"), stages: string[] = []
+  await writeFile(skillFile, original)
+  const provider: LLMProvider = { name: "mock", complete: async params => { expect(params.system).toContain(original); return response("", [{ id: "step", name: params.tools![0]!.name, arguments: action(currentContext(params), stages) }]) }, completeWithToolResults: async () => { throw new Error("Unused") } }
+  const run = await executeLocalInquiryRun({ inputFile, outDir: path.join(root, "out"), model: "mock/model", method: "M", strategy: "operation-evidence-v4", skillFile, providerFactory: () => provider, execution: { maxDispatches: 12 } })
+  expect(run.status).toBe("completed")
+  expect((run as any).skill.bytes).toBe(Buffer.byteLength(original))
+  const archived = path.join((run as any).sessionPath, "skill-original.md")
+  expect(await readFile(archived, "utf8")).toBe(original)
+  const { inspectLocalInquiry } = await import("./inquiry-local.ts")
+  expect((await inspectLocalInquiry((run as any).sessionPath)).skill.sha256).toBe((run as any).skill.sha256)
+  const runFile = path.join((run as any).sessionPath, "run.json"), runBytes = await readFile(runFile, "utf8"), archivedRun = JSON.parse(runBytes)
+  archivedRun.skill.sha256 = "altered"
+  await writeFile(runFile, JSON.stringify(archivedRun))
+  await expect(inspectLocalInquiry((run as any).sessionPath)).rejects.toThrow("report/run identity mismatch")
+  await writeFile(runFile, runBytes)
+  await writeFile(archived, original + "changed")
+  await expect(inspectLocalInquiry((run as any).sessionPath)).rejects.toThrow("skill archive changed")
 })

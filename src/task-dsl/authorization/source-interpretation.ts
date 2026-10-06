@@ -1,7 +1,8 @@
 import { z } from "zod"
 import { InquiryText, type InquiryDiagnostic } from "./inquiry.ts"
 import type { SemanticBlock } from "./semantic-flow.ts"
-import { predicateDiagnostics, FINITE_PREDICATE_GUIDE } from "./control-evaluation.ts"
+import { predicateDiagnostics, partialEvaluate, FINITE_PREDICATE_GUIDE } from "./control-evaluation.ts"
+import { buildPropertyDemand, type PropertyDemand } from "./property-demand.ts"
 import type { SourceSkeleton, SourceAnchor, SourceFlow } from "../../benchmarks/authorization-dsl/evidence-preparation/source-skeleton.ts"
 import type { StructureIndex } from "../../benchmarks/authorization-dsl/evidence-preparation/structure-index.ts"
 
@@ -28,9 +29,10 @@ export const SOURCE_INTERPRETATION_GUIDE = [
   'The source-update root may include values:[{key,value,text,questionId?}] for explicitly supplied USER premises. text must be an exact current user span for that original question; questionId defaults only to the current question and values are never shared implicitly. Use finite scalar/array/map values. Omit unspecified values, including false/null assumptions; source constants belong to source assignments rather than user values. The existing premise validator checks these values before accepting the source body.',
   FINITE_PREDICATE_GUIDE,
 ].join("\n")
+export const PROPERTY_SOURCE_GUIDE = 'operation-evidence-v4: task.propertyDemand.frontier lists the current missing source fields and affected ORIGINAL questions. Submit changed annotations only; the host retains valid earlier fields at this revision. You may interpret more actually shown necessary anchors in the same transaction. A fallthroughOutcome demand is a field on interpretation, not an annotation on sourceId. Excluded entries are host source-invariant control proofs, not model assertions of irrelevance. Unknown calls, setters, result/parameter relations and potentially changing objects still need explicit meaning or a named unresolved entry. Model context roles stay unreviewed. sourceRead, domainInterpreted and propertyCovered describe this proposed interpretation; none establishes wholeAnswerSufficient or live success. sourceSkeleton.anchors is a current field view; the complete original skeleton remains available through source_structure({symbolId:sourceSkeleton.sourceId,receiverClass?}), and original source through source_read. Do not reconstruct excluded code or resubmit every retained annotation. The original question denominator and policy remain unchanged.'
 
 /** Compile syntax that the model saw; model roles/predicates are still unreviewed. */
-export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown, options: { index?: StructureIndex; itemId: string; handle: string; questionId: string; role: "entry" | "helper"; previous?: SourceInterpretation }) {
+export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown, options: { index?: StructureIndex; itemId: string; handle: string; questionId: string; role: "entry" | "helper"; previous?: SourceInterpretation; propertyDirected?: boolean; affectedQuestionIds?: string[] }): { diagnostics: InquiryDiagnostic[]; interpretation?: SourceInterpretation; unit?: SemanticBlock; demand?: PropertyDemand } {
   const diagnostics: InquiryDiagnostic[] = []
   const fault = (code: string, path: string, message: string) => diagnostics.push({ code: `source-interpretation-${code}`, path, message, questionId: options.questionId, severity: "error" })
   let parsed = SourceInterpretationSchema.safeParse(raw)
@@ -59,22 +61,26 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
     if (!anchor) { fault("anchor-unshown", a.anchorId, "Anchor is absent from this complete displayed source skeleton."); annotations.delete(a.anchorId); continue }
     if (["principal", "resource", "permission"].includes(a.role) && !["parameter", "assignment", "call"].includes(anchor.kind) || a.role === "effect" && !["call", "assignment"].includes(anchor.kind)) fault("role", a.anchorId, "This role does not match a source object or relevant operation anchor.")
     if (a.condition) for (const code of predicateDiagnostics(a.condition)) fault(code, a.anchorId, `Use a supported finite predicate; explanation text is not executable. ${FINITE_PREDICATE_GUIDE}`)
+    if (options.propertyDirected && anchor.kind === "condition" && anchor.literalKnown && typeof anchor.literalValue === "boolean" && a.condition && partialEvaluate(a.condition, {}).truth !== String(anchor.literalValue)) fault("literal-condition-conflict", a.anchorId, "This source boolean is mechanically fixed. Omit the model condition or express the same intrinsic truth; a model predicate cannot override the exclusion proof.")
     for (const [ref, expected] of [[a.principalAnchorId, "principal"], [a.resourceAnchorId, "resource"]] as const) if (ref && (!at(ref) || annotations.get(ref)?.role !== expected)) fault("object-reference", a.anchorId, `Reference ${ref} needs a shown ${expected} role, not equal text.`)
     if (a.aliasAnchorId && (!at(a.aliasAnchorId) || bindingType(annotations.get(a.aliasAnchorId)) !== bindingType(a))) fault("alias", a.anchorId, "Alias requires a shown same-type source object interpretation.")
     if (a.guardBranch && (anchor.kind !== "condition" || !a.principalAnchorId || !a.resourceAnchorId)) fault("guard", a.anchorId, "A branch guard needs its actual condition and explicit principal/resource roles.")
     for (const ref of a.authorizedByAnchorIds ?? []) if (!at(ref) || !annotations.get(ref)?.guardBranch) fault("authorization-reference", a.anchorId, "Claimed authorizing anchor needs an explicit current branch guard.")
   }
   for (const u of interpretation.unresolved) if (!at(u.anchorId)) { fault("anchor-unshown", u.anchorId, "Unresolved must name a current shown anchor."); unresolved.delete(u.anchorId) }
-  for (const a of skeleton.anchors) if (allFlowIds.has(a.id) && !unresolved.has(a.id)) {
+  const demand = options.propertyDirected ? buildPropertyDemand(skeleton, { ...options, interpretation: { ...interpretation, annotations: [...annotations.values()], unresolved: [...unresolved.values()] } }) : undefined
+  if (demand) for (const r of demand.frontier) fault(r.field === "role" ? r.expectedRole ? "object-reference" : "role-required" : r.field === "condition" ? "condition-required" : r.field === "returnOutcome" ? "return-outcome-required" : r.field === "failureKind" ? "failure-kind-required" : r.field === "guardBranch" ? "authorization-reference" : "fallthrough-outcome-required", r.anchorId, `${r.field}${r.expectedRole ? `:${r.expectedRole}` : ""}: ${r.reason} Other valid annotations remain in this source transaction.`)
+  for (const a of skeleton.anchors) if (!demand && allFlowIds.has(a.id) && !unresolved.has(a.id)) {
     const annotation = annotations.get(a.id)
     if (a.kind === "condition" && !annotation?.condition) fault("condition-required", a.id, "Supply condition at this anchor, or mark this branch unresolved; other annotations remain in the same transaction.")
     if (a.kind === "return" && options.role === "entry" && !annotation?.returnOutcome) fault("return-outcome-required", a.id, "Supply returnOutcome at this source return, or retain it unresolved; literal return values never imply permission.")
     if (a.kind === "raise" && !annotation?.failureKind) fault("failure-kind-required", a.id, "Distinguish authorization rejection from operation failure, or mark this source raise unresolved.")
     if (a.kind === "call" && !annotation) fault("role-required", a.id, "Interpret this actual call as decisive/context/effect, or retain it unresolved.")
   }
-  if (diagnostics.length) return { diagnostics, interpretation: parsed.data.revision === skeleton.revision ? { ...interpretation, annotations: [...annotations.values()], unresolved: [...unresolved.values()] } : previous }
+  if (diagnostics.length) return { diagnostics, interpretation: parsed.data.revision === skeleton.revision ? { ...interpretation, annotations: [...annotations.values()], unresolved: [...unresolved.values()] } : previous, ...(demand ? { demand } : {}) }
   const finite = skeleton.controlSemantics === "finite-control/v1"
-  const unit: SemanticBlock = { itemId: options.itemId, handle: options.handle, op: previous ? "replace" : "add", role: options.role, start: "source-main", ...(finite ? { coverage: "path" } : {}), complete: skeleton.modelCovered && !skeleton.gaps.length && !unresolved.size, fallthrough: interpretation.fallthroughOutcome === "unknown" ? "unresolved" : interpretation.fallthroughOutcome ?? "unresolved", parameters: skeleton.anchors.filter(a => a.kind === "parameter" && a.name).map(a => ({ name: a.name!, type: bindingType(annotations.get(a.id)) })), blocks: [] }
+  const excludedMeaning = demand?.excluded.some(e => { const a = at(e.anchorId), annotation = annotations.get(e.anchorId); return a?.interpretationRequired && !annotation && !unresolved.has(e.anchorId) })
+  const unit: SemanticBlock = { itemId: options.itemId, handle: options.handle, op: previous ? "replace" : "add", role: options.role, start: "source-main", ...(finite ? { coverage: "path" } : {}), complete: skeleton.modelCovered && !skeleton.gaps.length && !unresolved.size && !excludedMeaning, fallthrough: interpretation.fallthroughOutcome === "unknown" ? "unresolved" : interpretation.fallthroughOutcome ?? "unresolved", parameters: skeleton.anchors.filter(a => a.kind === "parameter" && a.name).map(a => ({ name: a.name!, type: bindingType(annotations.get(a.id)) })), blocks: [] }
   const bind = (a: SourceAnchor): Step => ({ kind: "bind", name: `bind-${a.id}`, bindingName: objectName(a.id)!, claim: annotations.get(a.id)?.explanation ?? "Source assignment fact", type: a.literalKnown ? "value" : bindingType(annotations.get(a.id)), ...(a.literalKnown ? { value: a.literalValue! } : annotations.get(a.id)?.aliasAnchorId ? { aliasOf: objectName(annotations.get(a.id)!.aliasAnchorId)! } : {}) })
   const prologue = skeleton.anchors.filter(a => a.kind === "assignment" && !allFlowIds.has(a.id) && annotations.has(a.id) && ["principal", "resource", "permission"].includes(annotations.get(a.id)!.role)).map(bind)
   let serial = 0
@@ -87,9 +93,10 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
     const block: SemanticBlock["blocks"][number] = { name, steps: [...prefix] }; unit.blocks.push(block)
     for (const node of flow) {
       const a = anchors.get(node.anchorId)!, annotation = annotations.get(a.id), claim = annotation?.explanation ?? "Original source syntax", objects = { principal: objectName(annotation?.principalAnchorId), resource: objectName(annotation?.resourceAnchorId) }
+      if (demand && !demand.reachableAnchorIds.includes(a.id)) { block.steps.push({ kind: "unresolved", name: `excluded-${a.id}`, claim: "Located source-invariant exclusion; original remains in the host skeleton", reason: `source-excluded:${demand.excluded.find(e => e.anchorId === a.id)?.reason ?? "unreached-source"}` }); continue }
       if (node.kind === "gap" || unresolved.has(a.id)) { block.steps.push({ kind: "unresolved", name: `gap-${a.id}`, claim, reason: unresolved.get(a.id)?.reason ?? skeleton.gaps.find(g => g.selector.startLine === a.selector.startLine)?.code ?? "source-syntax-unsupported" }); continue }
       if (node.kind === "branch") {
-        const yes = `source-true-${serial}`, no = `source-false-${serial++}`, condition = annotation!.condition!
+        const yes = `source-true-${serial}`, no = `source-false-${serial++}`, condition = demand && a.literalKnown && typeof a.literalValue === "boolean" ? { op: "eq", left: { literal: a.literalValue }, right: { literal: true } } : annotation!.condition!
         const guardName = `guard-${a.id}`, guard = (branch: "true" | "false"): Step[] => annotation?.guardBranch === branch ? [{ kind: "guard", name: guardName, claim, ...objects, condition: branch === "true" ? condition : { op: "not", arg: condition } }] : []
         block.steps.push({ kind: "choose", name: `choose-${a.id}`, claim, cases: [{ condition, body: yes }], otherwise: no })
         compile(node.then ?? [], yes, guard("true")); compile(node.otherwise ?? [], no, guard("false")); continue
@@ -149,5 +156,5 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
     }
   }
   compile(skeleton.flow, unit.start, prologue)
-  return { diagnostics, interpretation, unit }
+  return { diagnostics, interpretation, unit, ...(demand ? { demand } : {}) }
 }

@@ -1,5 +1,5 @@
 import { isDeepStrictEqual } from "node:util"
-import { ControlSliceDeltaSchema, createControlSlice, mergeControlSlice, isGuidedInquiryStrategy, isSemanticInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInquiryStrategy, canonicalControl, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
+import { ControlSliceDeltaSchema, createControlSlice, mergeControlSlice, isGuidedInquiryStrategy, isSemanticInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInquiryStrategy, isFiniteControlInquiryStrategy, sourceMaterialSemanticVersion, canonicalControl, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
 import { checkControlConclusions } from "../../task-dsl/authorization/control-conclusion.ts"
 import { validateAuthorizationInquiryResult } from "../../task-dsl/authorization/inquiry-result.ts"
@@ -38,7 +38,7 @@ export function planInquiryReuse(options: {
   const premiseOnly = taskChanged && isDeepStrictEqual(withoutPremises(current), withoutPremises(old))
   const change: InquiryReuseInfo["change"] = sourceChanged ? "source-changed" : !taskChanged ? "unchanged" : policyOnly ? "policy-only" : premiseOnly ? "premise-only" : "incompatible"
   const info: InquiryReuseInfo = { previousSessionId: options.previousSessionId, change, answerReused: false, semanticSupport: "unreviewed", reusedRuleKeys: [], invalidatedPolicyKeys: [], invalidatedPremiseKeys: [] }
-  if (options.currentStrategy === "operation-evidence-v3") return planSourceMaterials(options, info)
+  if (isFiniteControlInquiryStrategy(options.currentStrategy)) return planSourceMaterials(options, info)
   if (isOperationInquiryStrategy(options.currentStrategy)) return planOperationMaterials(options, info)
   if (sourceChanged) reasons.push("Allowed source bytes or indexed file set changed; dependency closure cannot prove unaffected interpretation.")
   if (!isGuidedInquiryStrategy(options.currentStrategy) || options.currentStrategy !== options.previousStrategy || options.currentMethod !== options.previousMethod || options.currentModel !== options.previousModel) reasons.push("Model, method or exact guided strategy is incompatible with the previous extraction.")
@@ -91,7 +91,7 @@ function planSourceMaterials(options: Parameters<typeof planInquiryReuse>[0], in
   if (reasons.length) return { status: "needs-fresh-analysis" as const, info, reasons }
   info.eligible = true
   if (info.change === "incompatible") info.change = "policy-and-premise"
-  const identity = { repository: current.repository, sourceRef: current.sourceRef, semanticVersion: "finite-control/v1" }, store = createSourceMaterials(identity)
+  const identity = { repository: current.repository, sourceRef: current.sourceRef, semanticVersion: sourceMaterialSemanticVersion(options.currentStrategy) }, store = createSourceMaterials(identity)
   for (const material of snapshot!.materials.filter(m => m.current)) {
     const failures: string[] = []
     try {

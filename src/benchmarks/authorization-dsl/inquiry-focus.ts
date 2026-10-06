@@ -6,14 +6,15 @@ import { SemanticBlockSchema, SemanticStepSchema, type BoundSemanticBlock, type 
 import { summarizeProcedure } from "../../task-dsl/authorization/procedure-summary.ts"
 import type { AuthorizationInquiryProgram } from "../../task-dsl/authorization/inquiry-program.ts"
 import type { InquiryTools } from "./inquiry-tools.ts"
-import type { WorkItem } from "./inquiry-worklist.ts"
+import { propertyWorkPriority, type WorkItem } from "./inquiry-worklist.ts"
 import { localExplanationContext, type LocalExplanationTask } from "./inquiry-local-extraction.ts"
 import { SemanticResultSchema, semanticResultSkeleton } from "./inquiry-semantic.ts"
 import type { DependencyCheckState } from "../../task-dsl/authorization/control-conclusion.ts"
 import { FINITE_PERMISSION_GUIDE } from "../../task-dsl/authorization/control-evaluation.ts"
 import { selectSourceCandidates } from "./evidence-preparation/source-selector.ts"
-import { lowerSourceInterpretation, SourceInterpretationSchema, SOURCE_INTERPRETATION_GUIDE, type SourceInterpretation } from "../../task-dsl/authorization/source-interpretation.ts"
+import { lowerSourceInterpretation, SourceInterpretationSchema, SOURCE_INTERPRETATION_GUIDE, PROPERTY_SOURCE_GUIDE, type SourceInterpretation } from "../../task-dsl/authorization/source-interpretation.ts"
 import type { SourceSkeleton } from "./evidence-preparation/source-skeleton.ts"
+import { buildPropertyDemand, type PropertyDemand } from "../../task-dsl/authorization/property-demand.ts"
 
 export type FocusStage = "locate" | "interpret" | "link" | "review" | "answer"
 const binding = z.object({ key: InquiryText, value: FiniteValueSchema, text: InquiryText, questionId: InquiryText.optional() }).strict()
@@ -89,11 +90,12 @@ export function sourcePhaseGuide(stage?: FocusStage) {
 interface Focus { id: string; stage: FocusStage; questionId?: string; itemId?: string; handle?: string; source?: BoundSemanticBlock["source"]; receiverClass?: string; snapshot: string }
 const hash = (value: unknown) => createHash("sha256").update(canonicalControl(value)).digest("hex").slice(0, 24)
 const unitHandle = (item: WorkItem) => `unit-${hash([item.questionId, item.origin === "question-duty" && item.kind === "entry" ? item.id : item.selected ? [item.selected.path, item.selected.sha256, item.selected.startLine, item.selected.endLine, item.receiverClass] : item.id])}`
-export function createInquiryFocus(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; items: () => WorkItem[]; units: () => BoundSemanticBlock[]; slice: () => ControlSlice; dependencies: () => DependencyCheckState[]; diagnostics: () => InquiryDiagnostic[]; shownEvidenceIds?: () => string[]; structural?: boolean; sourceAssisted?: boolean; sourceSkeleton?: (id: string, receiverClass?: string) => SourceSkeleton | undefined; linkTargets?: (caller: BoundSemanticBlock, step: Extract<SemanticBlock["blocks"][number]["steps"][number], { kind: "call" }>) => BoundSemanticBlock[] }) {
+export function createInquiryFocus(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; items: () => WorkItem[]; units: () => BoundSemanticBlock[]; slice: () => ControlSlice; dependencies: () => DependencyCheckState[]; diagnostics: () => InquiryDiagnostic[]; shownEvidenceIds?: () => string[]; structural?: boolean; sourceAssisted?: boolean; propertyDirected?: boolean; sourceSkeleton?: (id: string, receiverClass?: string) => SourceSkeleton | undefined; linkTargets?: (caller: BoundSemanticBlock, step: Extract<SemanticBlock["blocks"][number]["steps"][number], { kind: "call" }>) => BoundSemanticBlock[] }) {
   let current: Focus | undefined, serial = 0, lastQuestion = -1, reviewedSnapshot: string | undefined
   const finished = new Set<string>(), deferred = new Set<string>(), submissions = new Map<string, string>()
   const retainedItems = new Map<string, WorkItem>()
   const sourceDrafts = new Map<string, SourceInterpretation>(), offeredSkeletons = new Map<string, SourceSkeleton>()
+  const propertyDemands = new Map<string, PropertyDemand>()
   const sourceHistory: Array<{ event: string; focusId?: string; revision?: string; raw: unknown; generated?: unknown; diagnostics: InquiryDiagnostic[] }> = []
   let transactionItem: WorkItem | undefined
   const history: Array<{ focus: Focus; event: string; reason?: string; raw?: unknown; diagnostics?: InquiryDiagnostic[] }> = []
@@ -106,6 +108,17 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
     return { ...item, ...(source ? { selected: source } : {}), receiverClass: unit.receiverClass }
   }
   const operation = (q?: string) => options.program.operationQuestions?.find(v => v.questionId === q)?.operationId ?? q
+  const demandFor = (item: WorkItem): PropertyDemand | undefined => {
+    if (!options.propertyDirected || !item.selected) return undefined
+    const skeleton = options.sourceSkeleton?.(item.selected.id, item.receiverClass)
+    if (!skeleton) return undefined
+    const unit = options.units().find(u => u.questionId === item.questionId && u.source?.id === item.selected!.id && u.receiverClass === item.receiverClass), handle = current?.itemId === item.id ? current.handle : unit?.handle ?? unitHandle(item)
+    const key = `${item.questionId}:${item.selected.id}:${item.receiverClass ?? ""}`, previous = propertyDemands.get(key), draft = handle && sourceDrafts.get(handle)
+    if (unit && !draft && current?.itemId !== item.id) return previous
+    const affectedQuestionIds = options.program.operationQuestions?.filter(q => q.operationId === operation(item.questionId)).map(q => q.questionId)
+    const demand = buildPropertyDemand(skeleton, { questionId: item.questionId, role: item.origin === "question-duty" && item.kind === "entry" ? "entry" : "helper", interpretation: draft || undefined, affectedQuestionIds: affectedQuestionIds?.length ? affectedQuestionIds : [item.questionId] })
+    propertyDemands.set(key, demand); return demand
+  }
   const sameOperation = (i: WorkItem) => !current?.questionId || operation(current.questionId) === operation(i.questionId)
   const unaccepted = (i: WorkItem) => !options.units().some(u => u.questionId === i.questionId && u.source?.id === i.selected?.id && u.receiverClass === i.receiverClass)
   const pendingSource = (i: WorkItem) => !!i.selected && ["structure-relation", "explicit-dependency"].includes(i.origin) && ["awaiting-read", "awaiting-interpretation"].includes(i.state) && unaccepted(i) && sameOperation(i)
@@ -144,10 +157,10 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
     if (options.structural && pendingLinks().some(p => p.targets.length)) { start("link"); return }
     const eligible = items.filter(i => (i.origin !== "question-duty" || i.kind === "entry") && i.code !== "source-invalidated" && !finished.has(`${i.id}:${i.selected?.id}`) && (i.state === "awaiting-interpretation" || i.state === "awaiting-binding" && i.evidenceIds.length > 0 && i.code !== "reference-relevance-unconfirmed") && unaccepted(i))
     const rotate = (a: WorkItem, b: WorkItem) => (options.program.questions.findIndex(q => q.id === a.questionId) - lastQuestion - 1 + options.program.questions.length) % options.program.questions.length - (options.program.questions.findIndex(q => q.id === b.questionId) - lastQuestion - 1 + options.program.questions.length) % options.program.questions.length
-    eligible.sort((a, b) => Number(deferred.has(a.id)) - Number(deferred.has(b.id)) || Number(b.origin === "explicit-dependency") - Number(a.origin === "explicit-dependency") || (options.sourceAssisted ? Number(b.decisive) - Number(a.decisive) : 0) || rotate(a, b))
+    eligible.sort((a, b) => Number(deferred.has(a.id)) - Number(deferred.has(b.id)) || (options.propertyDirected ? propertyWorkPriority(options.program, a, b) : 0) || Number(b.origin === "explicit-dependency") - Number(a.origin === "explicit-dependency") || (options.sourceAssisted ? Number(b.decisive) - Number(a.decisive) : 0) || rotate(a, b))
     if (eligible[0]) { deferred.delete(eligible[0].id); start("interpret", eligible[0]); return }
     const locations = items.filter(i => i.decisive && !["closed", "external-unknown", "blocked"].includes(i.state) && ["locate", "select-candidate"].includes(i.nextAction.kind))
-    locations.sort((a, b) => Number(deferred.has(a.id)) - Number(deferred.has(b.id)) || rotate(a, b))
+    locations.sort((a, b) => Number(deferred.has(a.id)) - Number(deferred.has(b.id)) || (options.propertyDirected ? propertyWorkPriority(options.program, a, b) : 0) || rotate(a, b))
     if (locations[0]) { start("locate", locations[0]); return }
     if (pendingLinks().some(p => p.targets.length)) { start("link"); return }
     if (claims().length && reviewedSnapshot !== basis()) { start("review"); return }
@@ -155,9 +168,9 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
   }
   const context = (maxSourceBytes?: number) => {
     const items = options.items(), item = sourceItem(current?.itemId)
-    const peers = options.structural && current?.stage === "interpret" ? items.filter(i => i.id !== item?.id && pendingSource(i) && i.state === "awaiting-interpretation").slice(0, 3) : []
+    const peers = options.structural && !options.propertyDirected && current?.stage === "interpret" ? items.filter(i => i.id !== item?.id && pendingSource(i) && i.state === "awaiting-interpretation").slice(0, 3) : []
     const focusItems: WorkItem[] = item ? [current?.stage === "interpret" ? { ...item, state: "awaiting-interpretation", nextAction: { kind: "interpret" as const, itemId: item.id } } : item, ...peers, ...items.filter(i => i.id === item.parentId || peers.some(p => p.parentId === i.id))] : []
-    const local = localExplanationContext(options.program, focusItems, options.tools.evidence, options.slice(), [], [], 0, { maxSourceBytes, ...(options.structural ? { maxTasks: 4, distinctSourceItems: true } : {}) })
+    const local = localExplanationContext(options.program, focusItems, options.tools.evidence, options.slice(), [], [], 0, { maxSourceBytes, ...(options.structural ? { maxTasks: options.propertyDirected ? 1 : 4, distinctSourceItems: true } : {}) })
     local.tasks = local.tasks.filter(t => t.itemId === current?.itemId || peers.some(i => i.id === t.itemId))
     if (current?.stage !== "interpret") local.tasks = []
     if (current?.stage !== "locate") local.locationTasks = []
@@ -180,7 +193,7 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
     const skeleton = semanticResultSkeleton(options.slice(), options.dependencies()), pathIndexes = new Map<string, number>()
     const answerSnapshot = skeleton.paths.map(p => { const index = pathIndexes.get(p.questionId) ?? 0; pathIndexes.set(p.questionId, index + 1); return { ...p, path: index } })
     offeredSkeletons.clear()
-    return { ...local, tasks: local.tasks.map(t => { const i = sourceItem(t.itemId), syntax = i?.selected && options.sourceAssisted ? options.sourceSkeleton?.(i.selected.id, i.receiverClass) : undefined, sourceSkeleton = syntax?.modelCovered ? { ...syntax, evidenceIds: [...t.evidenceIds] } : undefined; if (sourceSkeleton) offeredSkeletons.set(t.itemId, sourceSkeleton); return { ...t, sourceIdentity: i?.selected ? { id: i.selected.id, path: i.selected.path, startLine: i.selected.startLine, endLine: i.selected.endLine } : undefined, receiverClass: i?.receiverClass, ...(options.sourceAssisted ? { sourceSkeleton, sourceInterpretationDraft: current?.handle && current.itemId === t.itemId ? sourceDrafts.get(current.handle) : undefined } : {}) } }), supportingEvidenceIds, focus: structuredClone(current), receiverClass: item?.receiverClass, instruction: options.sourceAssisted ? sourcePhaseGuide(current?.stage) : FOCUSED_EXECUTION_GUIDE,
+    return { ...local, tasks: local.tasks.map(t => { const i = sourceItem(t.itemId), syntax = i?.selected && options.sourceAssisted ? options.sourceSkeleton?.(i.selected.id, i.receiverClass) : undefined, sourceSkeleton = syntax?.modelCovered ? { ...syntax, evidenceIds: [...t.evidenceIds] } : undefined; if (sourceSkeleton) offeredSkeletons.set(t.itemId, sourceSkeleton); return { ...t, sourceIdentity: i?.selected ? { id: i.selected.id, path: i.selected.path, startLine: i.selected.startLine, endLine: i.selected.endLine } : undefined, receiverClass: i?.receiverClass, ...(options.sourceAssisted ? { sourceSkeleton, sourceInterpretationDraft: current?.handle && current.itemId === t.itemId ? sourceDrafts.get(current.handle) : undefined } : {}), ...(i && options.propertyDirected ? { propertyDemand: demandFor(i) } : {}) } }), supportingEvidenceIds, focus: structuredClone(current), receiverClass: item?.receiverClass, instruction: options.sourceAssisted ? sourcePhaseGuide(current?.stage) + (options.propertyDirected && current?.stage === "interpret" ? "\n" + PROPERTY_SOURCE_GUIDE : "") : FOCUSED_EXECUTION_GUIDE,
       summaries: options.units().map(u => ({ handle: u.handle, questionId: u.questionId, role: u.role, source: u.source, receiverClass: u.receiverClass, parameters: u.parameters, complete: u.complete, summary: summarizeProcedure(u), ...(current?.stage === "link" || current?.stage === "review" ? { blocks: u.blocks } : {}) })),
       ...(current?.stage === "link" ? { links: pendingLinks() } : {}), ...(current?.stage === "review" ? { claims: claims() } : {}),
       ...(current?.stage === "answer" ? { answerSnapshot } : {}),
@@ -198,8 +211,9 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
     const skeleton = current?.itemId && offeredSkeletons.get(current.itemId), item = sourceItem(current?.itemId)
     if (!skeleton || !item || !current?.handle || !current.questionId) fail("source-interpretation-window", "The whole current source skeleton and original window must be offered in this dispatch.")
     if (diagnostics.length || !values.success || !skeleton || !item || !current?.handle || !current.questionId) { sourceHistory.push({ event: "envelope-rejected", focusId: current?.id, raw: structuredClone(raw), diagnostics: structuredClone(diagnostics) }); return { diagnostics } }
-    const lowered = lowerSourceInterpretation(skeleton, value.interpretation, { index: options.tools.structure, itemId: item.id, handle: current.handle, questionId: current.questionId, role: item.origin === "question-duty" && item.kind === "entry" ? "entry" : "helper", previous: sourceDrafts.get(current.handle) })
+    const lowered = lowerSourceInterpretation(skeleton, value.interpretation, { index: options.tools.structure, itemId: item.id, handle: current.handle, questionId: current.questionId, role: item.origin === "question-duty" && item.kind === "entry" ? "entry" : "helper", previous: sourceDrafts.get(current.handle), propertyDirected: options.propertyDirected, affectedQuestionIds: demandFor(item)?.affectedQuestionIds })
     if (lowered.interpretation) sourceDrafts.set(current.handle, lowered.interpretation)
+    if (lowered.demand) propertyDemands.set(`${item.questionId}:${item.selected!.id}:${item.receiverClass ?? ""}`, lowered.demand)
     sourceHistory.push({ event: lowered.diagnostics.length ? "rejected" : "lowered", focusId: current.id, revision: skeleton.revision, raw: structuredClone(raw), generated: structuredClone(lowered.unit), diagnostics: structuredClone(lowered.diagnostics) })
     if (lowered.diagnostics.length || !lowered.unit) return { diagnostics: lowered.diagnostics }
     const { itemId: _item, handle: _handle, op: _op, role: _role, ...unit } = lowered.unit
@@ -280,5 +294,5 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
       return { ...a, questionId, paths: a.paths.map(({ path, ...p }) => ({ ...p, pathId: paths[path]?.pathKey ?? `invalid-path-${path}` })), counterfactuals: a.counterfactuals.map(({ path, ...p }) => ({ ...p, pathId: paths[path]?.pathKey ?? `invalid-path-${path}` })) }
     }) }, diagnostics: [] }
   }
-  return { sync, context, prepare, prepareSource, accepted, assemble, sourceRelocated: () => { finish("source-relocated"); reviewedSnapshot = undefined }, recordFallback: (raw: unknown) => sourceHistory.push({ event: "low-level-fallback", focusId: current?.id, raw: structuredClone(raw), diagnostics: [] }), current: () => current, pendingLinks, report: () => ({ current: structuredClone(current), history: structuredClone(history), reviewedSnapshot, sourceInterpretations: structuredClone(sourceHistory), sourceDrafts: [...sourceDrafts].map(([handle, interpretation]) => ({ handle, interpretation: structuredClone(interpretation) })), summaries: options.units().map(summarizeProcedure) }) }
+  return { sync, context, prepare, prepareSource, accepted, assemble, demandFor, sourceRelocated: () => { finish("source-relocated"); reviewedSnapshot = undefined }, recordFallback: (raw: unknown) => sourceHistory.push({ event: "low-level-fallback", focusId: current?.id, raw: structuredClone(raw), diagnostics: [] }), current: () => current, pendingLinks, report: () => ({ current: structuredClone(current), history: structuredClone(history), reviewedSnapshot, sourceInterpretations: structuredClone(sourceHistory), sourceDrafts: [...sourceDrafts].map(([handle, interpretation]) => ({ handle, interpretation: structuredClone(interpretation) })), ...(options.propertyDirected ? { propertyDemands: structuredClone([...propertyDemands.values()]) } : {}), summaries: options.units().map(summarizeProcedure) }) }
 }

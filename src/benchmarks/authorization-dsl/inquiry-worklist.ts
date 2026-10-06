@@ -9,6 +9,7 @@ import { operationWork } from "./operation-work.ts"
 import type { SourceFactDependency } from "../../task-dsl/authorization/operation-facts.ts"
 import type { BoundSemanticBlock } from "../../task-dsl/authorization/semantic-flow.ts"
 import { operationCallSources } from "./operation-links.ts"
+import type { PropertyDemand } from "../../task-dsl/authorization/property-demand.ts"
 
 export type WorkState = "unlocated" | "awaiting-read" | "awaiting-interpretation" | "awaiting-binding" | "awaiting-verification" | "closed" | "external-unknown" | "blocked"
 export interface WorkItem {
@@ -18,7 +19,7 @@ export interface WorkItem {
   selectedBy?: "explicit-selection" | "explicit-discovery-selection" | "unique-index-candidate" | "accepted-entry-citation" | "source-confirmed-candidate";
   callsiteEvidenceIds: string[]; evidenceIds: string[]; semanticSupport: "unreviewed";
   nextAction: { kind: "locate" | "select-candidate" | "read" | "interpret" | "bind" | "check" | "none"; itemId: string }
-  progress?: { found: boolean; read: boolean; skeleton: boolean; interpreted: boolean; linked: boolean; checked: boolean; skeletonRevision?: string }
+  progress?: { found: boolean; read: boolean; skeleton: boolean; interpreted: boolean; linked: boolean; checked: boolean; skeletonRevision?: string; sourceRead?: boolean; domainInterpreted?: boolean; propertyCovered?: boolean; wholeAnswerSufficient?: false; requiredAnnotations?: number; pendingAnnotations?: number }
 }
 export interface WorklistAction {
   actionOrigin: "domain-worklist"; questionId: string; dependencyId: string; name: "source_read";
@@ -27,6 +28,14 @@ export interface WorklistAction {
 const stableId = (value: unknown) => "work-" + createHash("sha256").update(JSON.stringify(value)).digest("hex").slice(0, 20)
 const syntax = new Set(["if", "for", "while", "switch", "catch", "function", "func", "def", "class", "with", "match", "typeof", "sizeof", "return"])
 const priority: Record<InquiryRelation, number> = { entry: 0, "principal-binding": 1, "resource-binding": 2, guard: 3, effect: 4, exception: 5 }
+/** Scheduling weight only: explicit operation sharing never proves source meaning. */
+export function propertyWorkPriority(program: AuthorizationInquiryProgram, a: WorkItem, b: WorkItem) {
+  const affected = (item: WorkItem) => {
+    const operation = program.operationQuestions?.find(q => q.questionId === item.questionId)?.operationId
+    return operation ? program.operationQuestions!.filter(q => q.operationId === operation).length : 1
+  }
+  return Number(b.decisive) - Number(a.decisive) || (a.decisive && b.decisive ? affected(b) - affected(a) : 0)
+}
 
 /** Keep every current duty addressable; focused location tasks carry full candidate metadata. */
 export function worklistModelView(items: WorkItem[]) {
@@ -38,7 +47,7 @@ export function worklistModelView(items: WorkItem[]) {
 }
 
 /** Source candidates are lexical work, never an inferred call graph or authorization fact. */
-export function createInquiryWorklist(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; entryContext?: string; remainingActions?: () => number; dependencyStates?: () => ScheduledDependency[]; structural?: boolean; requireEntryBasis?: boolean; semanticUnits?: () => BoundSemanticBlock[]; skeletonState?: (id: string, receiverClass?: string) => { modelCovered: boolean; revision: string } | undefined }) {
+export function createInquiryWorklist(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; entryContext?: string; remainingActions?: () => number; dependencyStates?: () => ScheduledDependency[]; structural?: boolean; requireEntryBasis?: boolean; semanticUnits?: () => BoundSemanticBlock[]; skeletonState?: (id: string, receiverClass?: string) => { modelCovered: boolean; revision: string } | undefined; propertyDemand?: (item: WorkItem) => PropertyDemand | undefined }) {
   const items = new Map<string, WorkItem>(), choices = new Map<string, { candidate: DiscoverySymbol; origin: "explicit-selection" | "explicit-discovery-selection" }>(), invalidFiles = new Set<string>(), failedReads = new Map<string, string>()
   const actions: WorklistAction[] = [], questionIds = options.program.questions.map(q => q.id)
   const relations = new Map<string, { id: string; questionId: string; sourceId: string; candidateId?: string; reason: string; state: string; gap?: string }>(), frameworkDependencies = new Map<string, SourceFactDependency>()
@@ -189,7 +198,8 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
       const linked = !!unit && (unit.role === "entry" || units.some(u => u.questionId === item.questionId && u.blocks.some(b => b.steps.some(s => s.kind === "call" && s.callee === unit.handle))))
       const syntax = item.selected && options.skeletonState?.(item.selected.id, item.receiverClass)
       const read = !!item.selected && coveredThrough(item.selected) >= item.selected.endLine && item.code !== "source-invalidated"
-      item.progress = { found: !!item.selected, read, skeleton: read && !!syntax?.modelCovered, interpreted: !!unit && item.code !== "source-invalidated", linked: linked && item.code !== "source-invalidated", checked: !!unit && read && !!check?.ruleConsistency && check.taskResolution === "bounded", ...(read && syntax?.modelCovered ? { skeletonRevision: syntax.revision } : {}) }
+      const demand = options.propertyDemand?.(item)
+      item.progress = { found: !!item.selected, read, skeleton: read && !!syntax?.modelCovered, interpreted: !!unit && item.code !== "source-invalidated", linked: linked && item.code !== "source-invalidated", checked: !!unit && read && !!check?.ruleConsistency && check.taskResolution === "bounded", ...(read && syntax?.modelCovered ? { skeletonRevision: syntax.revision } : {}), ...(demand ? { ...demand.coverage, requiredAnnotations: demand.requiredAnnotationCount, pendingAnnotations: demand.pendingAnnotationCount } : {}) }
     }
     return snapshot()
   }
@@ -216,7 +226,11 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
     while (actions.length - start < limit) {
       sync(slice)
       let next: WorkItem | undefined
-      for (let offset = 1; offset <= questionIds.length; offset++) {
+      if (options.propertyDemand) {
+        const rotation = (i: WorkItem) => (questionIds.indexOf(i.questionId) - lastQuestion - 1 + questionIds.length) % questionIds.length
+        next = [...items.values()].filter(i => i.state === "awaiting-read" && i.selected?.boundary !== "uncertain").sort((a, b) => propertyWorkPriority(options.program, a, b) || rotation(a) - rotation(b) || priority[a.kind] - priority[b.kind] || a.id.localeCompare(b.id))[0]
+        if (next) lastQuestion = questionIds.indexOf(next.questionId)
+      } else for (let offset = 1; offset <= questionIds.length; offset++) {
         const index = (lastQuestion + offset) % questionIds.length
         next = [...items.values()].filter(i => i.questionId === questionIds[index] && i.state === "awaiting-read" && i.selected?.boundary !== "uncertain").sort((a, b) => Number(b.decisive) - Number(a.decisive) || priority[a.kind] - priority[b.kind] || a.id.localeCompare(b.id))[0]
         if (next) { lastQuestion = index; break }

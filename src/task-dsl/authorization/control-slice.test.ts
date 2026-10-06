@@ -8,6 +8,11 @@ const delta = (rules: unknown[] = [rule()], extra = {}) => ({ schemaVersion: "au
 test("guided execution is an explicit opt-in and legacy remains the default", () => {
   expect(api.parseInquiryStrategy(undefined)).toBe("legacy")
   expect(api.parseInquiryStrategy("guided-evidence-v2")).toBe("guided-evidence-v2")
+  expect(api.parseInquiryStrategy("operation-evidence-v4")).toBe("operation-evidence-v4")
+  expect(api.isSourceAssistedInquiryStrategy("operation-evidence-v4")).toBe(true)
+  expect(api.isFiniteControlInquiryStrategy("operation-evidence-v4")).toBe(true)
+  expect(api.isPropertyDirectedInquiryStrategy("operation-evidence-v3")).toBe(false)
+  expect(api.sourceMaterialSemanticVersion("operation-evidence-v4")).toBe("property-control/v1")
   expect(() => api.parseInquiryStrategy("guided-evidence-v99")).toThrow("inquiry-strategy")
 })
 test("control contract binds original source per question and separates policy and semantics", () => {

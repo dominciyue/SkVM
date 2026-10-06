@@ -27,21 +27,21 @@ function fullChain(explanation = "Test-authored shown False return") {
   const transport: any = { isolation: { kind: "test-transport", reason: "Anonymous mock owns all tools" }, onMessage(f: any) { receive = f }, onExit() {}, close() {}, send(m: any) {
     if (m.method === "initialize") receive({ id: m.id, result: {} })
     if (m.method === "thread/start") { expect(m.params.baseInstructions).toContain("FULL_SKILL_TAIL"); receive({ id: m.id, result: { thread: { id: "thread" }, model: "gpt-5.6-sol" } }) }
-    if (m.method === "turn/start") { context = JSON.parse(m.params.input[0].text.split("Current local explanation context: ")[1]); receive({ id: m.id, result: { turn: { id: "turn" } } }); queueMicrotask(sendAction) }
+    if (m.method === "turn/start") { expect(m.params.input[0].text).not.toContain("FULL_SKILL_TAIL"); context = JSON.parse(m.params.input[0].text.split("Current local explanation context: ")[1]); receive({ id: m.id, result: { turn: { id: "turn" } } }); queueMicrotask(sendAction) }
     if (m.result?.contentItems) { const value = JSON.parse(m.result.contentItems[0].text); context = value.currentContext; if (value.toolResult?.valid) { receive({ method: "item/completed", params: { threadId: "thread", turnId: "turn", item: { type: "agentMessage", phase: "final_answer", text: "The shown entry returns False and denies this source path." } } }); receive({ method: "turn/completed", params: { threadId: "thread", turn: { id: "turn", status: "completed", items: [] } } }) } else queueMicrotask(sendAction) }
   } }
   return () => transport
 }
 test("account adapter registry owns no LLM provider", () => { expect(createAdapter("codex-account" as any, () => { throw new Error("provider-must-not-be-used") }).name).toBe("codex-account") })
-test("account adapter and inquiry use the same source core through accepted material, check and natural final", async () => {
+for (const strategy of ["operation-evidence-v3", "operation-evidence-v4"] as const) test(`${strategy} account adapter and inquiry use the same source core through accepted material, check and natural final`, async () => {
   const f = await fixture(), adapter = new api.CodexAccountAdapter(fullChain())
-  await adapter.setup({ model: "gpt-5.6-sol", maxSteps: 12, timeoutMs: 5000, providerOptions: { authorizationScope: f.inputFile, authorizationDomainTools: true, authorizationMethod: "M", authorizationStrategy: "operation-evidence-v3" } })
+  await adapter.setup({ model: "gpt-5.6-sol", maxSteps: 12, timeoutMs: 5000, providerOptions: { authorizationScope: f.inputFile, authorizationDomainTools: true, authorizationMethod: "M", authorizationStrategy: strategy } })
   const r = await adapter.run({ prompt: "Inspect entry", workDir: f.root, skill: { content: "FULL_SKILL_TAIL", mode: "inject", meta: { name: "full", description: "full" } } })
   expect(r.runStatus).toBe("ok"); expect(r.text).toContain("returns False"); expect(r.usageAvailable).toBe(false)
   expect(r.authorizationInquiry.domain.sourceMaterials.materials).toHaveLength(1)
   expect(r.authorizationInquiry.domain.materialUses).toHaveLength(1)
   expect(r.authorizationInquiry.result).toBeDefined()
-  const inquiry = await api.runCodexAccountInquiry({ inputFile: f.inputFile, workDir: f.root, model: "gpt-5.6-sol", method: "M", strategy: "operation-evidence-v3", skillContent: "FULL_SKILL_TAIL", transportFactory: fullChain(), timeoutMs: 5000 })
+  const inquiry = await api.runCodexAccountInquiry({ inputFile: f.inputFile, workDir: f.root, model: "gpt-5.6-sol", method: "M", strategy, skillContent: "FULL_SKILL_TAIL", transportFactory: fullChain(), timeoutMs: 5000 })
   expect(inquiry.account.status).toBe("completed"); expect(inquiry.native.result).toBeDefined()
 })
 

@@ -1947,6 +1947,8 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 **AX3/AX6第一项局部合流。** 七个语义反例先红：16/64 context路径/节点上限、effect/资源/unknown setter边界、typed handler/finally、对象与条件保留、finally覆盖和单题回滚。实现只汇总同block/同invocation中连续的显式context，无授权状态变化的语义成立才可合流；未知callee从未按名称裁掉。来源序列逐项保留，all-normal/first-unknown-exception摘要不把任何结果变已知，不改127/16上限，不跨其它步骤。异常仍未知，原normal出口可表示；不同effect之前/之后的失败保留不同前驱。还修复了超限题留下fieldChanges的旧缺口，独立问题不受影响。独立只读AI复核指出合并规则仍误标第一条调用为失败来源；两项来源断言先红，修为synthetic step与有序sourceOrigin.steps，异常claim标明可能来源集合。32项语义测试全绿；与控制schema、解释、摘要、结论共86 pass、457断言，主类型通过。当前只是局部算法；需求frontier、增量覆盖和v4入口尚待接线，不能记为完整任务效果。
 
+**AX4–AX9性质需求与公开接线。** v4保留所有可能执行的call、predicate、return、raise及显式对象/别名/guard引用，只凭源码固定退出、布尔字面量分支、短路和空循环机械排除。unknown setter和异常清理不按名称去掉。八锚点字段frontier与完整宿主骨架分离，正确草稿增量保留，来源覆盖/提议含义/性质覆盖/整体充分分别报告，整体充分始终false。独立只读AI核验未发现不安全裁剪，指出部分控制仍保守过度需求。v4公开inquiry/native使用同一核心和独立property-control/v1材料版本，政策变更恢复/来源变更失效已测；多个原问题共享的决定性来源优先调度。完整skill在账号系统指令只出现一次，公开inquiry按原字节归档并核验session/report/run一致；篡改run侧skill元数据的反例先红后修。阶段红绿和当前回归记录在AX verification，尚不据此宣称真实完整任务或收益。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

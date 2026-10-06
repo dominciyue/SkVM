@@ -20,7 +20,7 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
   const runtime = await createNativeInquiryRuntime({ ...options, method: options.method, domainTools: options.domainTools ?? true, traceRedactor: redactCodexEvent })
   let account: Awaited<ReturnType<typeof runCodexAccountSession>>
   try {
-    const context = await runtime.accountContext(), prompt = `${options.skillContent ?? ""}\nCurrent original task is declared in the system.\nCurrent local explanation context: ${JSON.stringify(context)}`
+    const context = await runtime.accountContext(), prompt = `Current original task and full skill are declared in the system.\nCurrent local explanation context: ${JSON.stringify(context)}`
     runtime.accountSent(prompt)
     account = await runCodexAccountSession({ model: options.model, effort: "high", cwd: options.workDir, system: `${options.skillContent ?? ""}\n${runtime.system}`, prompt, tools: runtime.definitions, timeoutMs: options.timeoutMs, transportFactory: options.transportFactory, instructionSources,
       execute: async call => { const result = await runtime.execute(call); const output = JSON.stringify({ toolResult: JSON.parse(result.output), currentContext: await runtime.accountContext() }); runtime.accountSent(output); return { ...result, output } },
