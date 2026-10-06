@@ -6,17 +6,19 @@
 
 研究主线是 **按 skill/task 范围设计领域表达**。当前任务类为单 repo/ref、源码可见的授权与信任边界评估：围绕主体、资源、操作、条件和政策组织取证、判断与检查。质量约六成、编写复用约四成指开发投入安排，各项质量要求分别验收。
 
-**[AU0–AU21 操作级取证与授权 DSL 贯通](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md) 已以 `completed-with-unmet-criteria` 收束：`finiteQueueComplete:true`，`researchGoalAchieved:false`。** 开发模型 `gpt-6.1-sol / max`，研究基线 `ba277160`，启动 HEAD/origin `dfe7ec32`；继续本地 `skill-ir-aot`，仅发布用户 origin。操作事实、结构候选、有限源码值、义务补读、材料恢复、双入口和完整原 skill 作者/消费者接线均已实现并验证；完整质量和净收益未建立。
+**当前队列：[AV0–AV20 源码辅助解释与授权任务真实闭合](../superpowers/plans/2026-10-06-authorization-source-assisted-closure.md)，`authorized-not-started`。** 用户已授权新线程连续开发并发布，模型为 `gpt-6.1-sol / max`；Flash 未由派发接口核实。先修入口、来源选择器和身份稳定性，再将机械调用/分支骨架交给宿主，模型集中解释领域含义；接通四类缺口、只读请求局部恢复及完整 skill 实际使用。设计基线 `9d7db8e8`，新策略计划为显式 `operation-evidence-v2`；此时尚未修改生产代码或运行 AV 实验。
+
+最新已结束的 [AU0–AU21](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md) 状态为 `completed-with-unmet-criteria`：`finiteQueueComplete:true`，`researchGoalAchieved:false`。操作事实、结构候选、有限源码值、义务补读、材料恢复、双入口和完整原 skill 作者/消费者接线已有实现；完整质量和净收益未建立。
 
 32 登记首位置中 13 个实跑、19 个零调用封存，共 25 份归档尝试，全部有原件 SHA 绑定的独立 AI 评阅和主 AI 裁定。12 个质量位置中实跑 6 个：Download N 自然终答 full，其余 5 个 partial；另 6 个封存。N 形式检查不适用，实跑 M-O/D-O 均未 checked/bounded。完整原 skill 的 Gitea 原/变 native 各一份，均 partial；原/变作者最终两稿忠实合格，但原字节消费者无终答，变化消费者封存。6 个变化位置均零调用封存，不能算实际复用收益。
 
-Share 第十轮 request16 和 Gitea 原字节消费者 request22 的完成与 usage 仍未知，两任务全部 16/10 种表示保持封存。没有活动尝试或缺失登记位置，未知原请求不因队列收束而清除、重发或换身份。恢复入口是 [AU status](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/status.json)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/summary.json) 与 [accounting](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/accounting.json)。
+Share 第十轮 request16 和 Gitea 原字节消费者 request22 的完成与 usage 仍未知，AU 两任务全部 16/10 种表示保持原封存。AU 没有活动尝试或缺失登记位置，旧未知和旧分母不改。历史入口是 [AU status](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/status.json)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/summary.json) 与 [accounting](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/accounting.json)。AV 显式修订未来只读执行的恢复政策：本地执行关闭、晚答隔离及恢复预算测试通过后，可登记新的 development 运行；旧费用/完成未知继续单列，不修改旧 guard 或原件。
 
 操作共享和自动补读确已使用，但 OWUI D 仍停在无关 AuditLogger.write 入口，Download D 的决定性 root/helper 关系未闭合；没有两个不同结构的可信完整链来做预定机制比较，消融 0 调用并保留适用性理由。OWUI N/M-O 在 `5ac2d651`、D-O 在 `d50388db`；Download N/M-O 在 `d50388db`、D-O 在 `c7f201ba`。首答、修订和版本分列，不混作同版本效果；具体设计、失败责任和成本见 [研究 §7.53](skill-dsl-research.md#753-au-操作事实与结构取证原型有限队列已收束)。
 
 最终联合验证 844 pass/1 平台 skip/5472 断言，主/AU 类型通过；[零模型回放](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/verification/au18-final-replay.json)验证 87 个原件文件字节保持。累计 386 派发/384 响应，已知 fresh 10,326,651、cacheRead 1,663,488、完整 prompt 11,990,139、output 349,570；2 项 usage 未知，美元、开发/探子用量和真人时间未知，目标执行 0。有限队列结束与研究达标分别记录。
 
-**收束后复核新增三项待修责任：** 唯一词法候选把OWUI任务中的write选为audit入口；带行号pathHint导致Download已有helper无法连接；结构ID混入预算/绝对目录造成同源码身份变化。[研究§7.54](skill-dsl-research.md#754-au-收束后复核入口来源连接和身份稳定性)保存零调用复现及后续建议。77项定向测试/509断言通过；生产代码和旧AU原件未改。下一轮宜先修这三项，再减轻模型构造低层程序的负担，并调整纯只读请求超时的整任务封存规则。新开发尚未派发。
+**AV 的直接依据：** 唯一词法候选把 OWUI 任务中的 write 选为 audit 入口；带行号 pathHint 导致 Download 已有 helper 无法连接；结构 ID 混入预算/绝对目录造成同源码身份变化。[研究 §7.54](skill-dsl-research.md#754-au-收束后复核入口来源连接和身份稳定性)保留零调用复现，77项定向测试/509断言通过。[§7.55](skill-dsl-research.md#755-av-源码辅助解释与局部恢复开发决定)记录新设计、执行次序和已授权的恢复政策变化。
 
 最近的 [AT0–AT19](../superpowers/plans/2026-10-05-authorization-focused-closure-and-delivery.md) 有限队列已以 `completed-with-unmet-criteria` 收束。持久focus、宿主身份、纯有限helper摘要、字段/返回对象、源码终检和双入口已实现。[AT summary](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/summary.json)分别记录工程、实际使用、比较和成本结论；原件和封存保留。
 
@@ -37,7 +39,7 @@ AS 固定 15 质量、4 native、8 变化、2 源码变化位置，作者4稿与
 
 | 恢复所需信息 | 权威入口 |
 |---|---|
-| 最新执行及未达责任 | [AU任务书](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md)、[AU summary](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/summary.json)；已结束的 AT/AS 原件保持 |
+| 最新执行及未达责任 | [AV任务书](../superpowers/plans/2026-10-06-authorization-source-assisted-closure.md)；修复依据为 [AU summary](../../results/skill-ir/skill-dsl-research/development/authorization-operation-evidence-v1/summary.json)和收束后复核；已结束原件保持 |
 | AR 停止前状态 | [status.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/status.json)、[handoff.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/handoff.json) |
 | 普通使用的失败与裁定 | [ordinary-adjudication.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary-adjudication.json) |
 | 真实派发、响应与未知费用 | [ordinary-accounting.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary-accounting.json) |
@@ -57,9 +59,9 @@ AQ 旧/新策略 full均为2/20，原 skill checked交付为0/4；具体分母�
 ## 开发与维护入口
 
 - 普通命令和模型配置：[使用说明](../usage.md)。代码定位和检查：[开发指南](developer-guide.md)。
-- 当前队列：[当前计划](skill-ir-aot-optimization-plan.md)；方法合同：[spec AU](skill-ir-aot-optimization-spec.md#1434-au-operation-evidence-contract)。
+- 当前队列：[当前计划](skill-ir-aot-optimization-plan.md)；新执行合同：[spec AV](skill-ir-aot-optimization-spec.md#1435-av-source-assisted-closure-contract)，历史兼容见 AU 章节。
 - 分类、方法、复盘：[唯一研究正文](skill-dsl-research.md)；旧结果：[证据索引](evidence-index.md)、[历史](history.md)、[实验目录](../../results/skill-ir/experiment-catalog.json)。
 
-[治理](../superpowers/plans/2026-10-04-workspace-and-document-governance.md)已完成材料收存、旧日志压缩、正文归并和停止后的入口校正。当前阅读集 15 份，版本化材料 14 份；研究仍统一在一个正文中。原件及恢复索引在 `project-maintenance/20261004-governance/`，AR/AS 结果及 `.skvm` 保留。五份可再生成的 Python 字节码已清除；三个此前删除被拒绝的空目录保留。AS、AT、AU 有限执行均已结束，AU开发线程已停止；本次仅补充收束后的复核证据和下一步建议。Git 实时状态以实际检查为准。
+[治理](../superpowers/plans/2026-10-04-workspace-and-document-governance.md)已完成材料收存、旧日志压缩、正文归并和停止后的入口校正。当前阅读集 15 份，版本化材料 14 份；研究仍统一在一个正文中。原件及恢复索引在 `project-maintenance/20261004-governance/`，AR/AS 结果及 `.skvm` 保留。五份可再生成的 Python 字节码已清除；三个此前删除被拒绝的空目录保留。AS、AT、AU 有限执行均已结束，AU开发线程已停止；AV 派发后由新开发线程独占共享方法文档与 Git 写入责任。Git 实时状态以实际检查为准。
 
 更新本页时替换过时段落，不把逐次测试与派发日志不断追加为新的“当前状态”。
