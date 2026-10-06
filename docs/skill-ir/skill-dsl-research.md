@@ -1860,9 +1860,11 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 **AV10派发前脚本修正。** Download首次登记因runner误用缓存变量而未载入route，production报告provider-unavailable且0派发；归档又误读不存在的run.json。两项失败测试后，改为production SKVM_CACHE并失效配置缓存、按已证零调用报告归档。8项/66断言和AV类型通过，配置provider可创建但未调用。保留首次原件及699555d2实现身份；以runtime-config具名修订继续，不把这项工程失败计作源码质量或unknown completion。验证在results的verification/av10-pre-dispatch.json。
 
-**AV10首次真实使用和局部接口修正。** runtime-config为18响应/18派发，4次来源解释、2个来源单元、0图fallback；无check/终答，额外根字段complete/unit触发transport失败。usage完整、USD全未知；模型源码累计展示247868字节（重发223127）。独立AI复核及主源码点验确认路由边界应保留原字段后由当前事务严格诊断，三项新反例失败后修复，两个公共入口同focus修订通过。复核的错误文件位置、索引/物理字节混淆、读工具/图fallback混淆在evaluations/av10-runtime-config.json保留并纠正。新增提示仅澄清ID和角色合同，无正确helper或答案。
+**AV10首次真实使用和局部接口修正。** runtime-config为18响应/18派发，4次来源解释、2个来源单元、0图fallback；无check/终答，额外根字段complete/unit触发transport失败。usage完整、USD全未知；模型源码累计展示247868字节（重发223127）。独立AI复核及主源码点验确认路由边界应保留原字段后由当前事务严格诊断，三项新反例失败后修复，两个公共入口同focus修订通过。复核的错误文件位置和读工具/图fallback混淆已纠正；来源终态校验/全程读取两种计数的裁定修订在evaluations/av10-runtime-config.json保留并澄清。新增提示仅澄清ID和角色合同，无正确helper或答案。
 
 **AV11 Go机械兼容核验。** 只读探子发现multiline链式Post未成route，主复验又发现if initializer调用被skeleton静默遗漏。两个匿名前置执行/嵌套分支反例先失败，修正仅verb空白和实际initializer顺序；真实CreateIssue的POST路由、middleware与NewIssue实参/结果进入机械结构，141 anchors，loop/short-circuit等六个gap保持。零provider/目标执行probe在verification/av11-go-probe.json。联合100项/642断言通过；真实授权语义和原/变完整skill仍待执行。
+
+**AV10局部修订实际结果与终答诊断。** local-envelope派发21/响应20，原首次超时1次、显式只读恢复1次；原unknown留账。14个source提案、11次局修、2个接受单元，图fallback0、check0。草稿两份均partial，仍遗漏已可见的框架前置、根对象检查与文件选择关系；严格终答未接受，不能以trace补答。根终答内的路径conditional非法却误报外层result缺失，使一次wire修订无效。行为反例先失败，改为无损包装后严格nested诊断；53项/420断言、主类型通过。两名独立只读AI与主源码裁定见evaluations/av10-local-envelope.json，非真人评阅。完整prompt/费用有1项usage未知、21项USD未知；下一具名final-diagnostics复验同输入/预算，源语义重复局修尚未解决，工程修复不代表质量达标。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

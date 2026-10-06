@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "authorization-av-independent-evaluation/v1",
+  "positionId": "debug-paperless-download-D1",
+  "attemptId": "revision-local-envelope",
+  "implementationRevision": "d61a6879f85a6783a4dbe6a89c7c5ebef3e53239",
+  "reviewKind": "independent-readonly-AI-plus-main-source-adjudication",
+  "humanReview": false,
+  "independentReviews": [
+    {
+      "agent": "av10_local_envelope_quality",
+      "finding": "final.txt:1 is null; report.json:497 is Single structured-tool repair failed. Proposed finals at run.json:128723-128846 and 129329-129452 are nearly identical, partial, and omit the source-established class permission/model permission/manual root check order. Available linkage is over-conservatively called an interpretation gap. 14 proposals / 11 repairs remain concentrated at download-controls::entry and views.py:1835-1839. Snapshot verification and whole-run source IO are different counters.",
+      "sourceAnchors": ["views.py:1008-1022", "views.py:1834-1839", "views.py:1429-1448", "views.py:1401-1427", "permissions.py:30-53", "permissions.py:624-635", "rest_framework/permissions.py:233-246", "views.py:1388-1399", "versioning.py:169-195"]
+    },
+    {
+      "agent": "av10_final_diagnostic_review",
+      "finding": "inquiry-wire.ts:150 removes only routing kind and retains all other root fields under result for strict validation. New test at inquiry-wire.test.ts:171-187 preserves invalid conditional path value until repair, returns result.answers.0.paths.0.disposition invalid_enum_value, and preserves answer-level conditional. Focused wire tests:14 pass/0 fail. Actual attempts20/21 instead received missing result and unrecognized root focusId/schemaVersion/scope/answers. Low regression risk: exact schema version remains required and no answer coercion occurs. Malformed root finals now report result.* paths."
+    }
+  ],
+  "mainAdjudication": {
+    "acceptedDelivery": "none",
+    "proposedContent": "partial",
+    "termination": "structured-final-wire-failure-after-one-repair",
+    "recordedSessionStatus": "timeout-unknown",
+    "sourceGroundedFindings": [
+      "Draft identifies download/file_response, selected version and original/archive representation, but does not establish the requested root/file authorization relationship or the complete owner/grant branches.",
+      "DocumentViewSet configures IsAuthenticated and PaperlessObjectPermissions; inherited DjangoModelPermissions uses the subclass GET view_document map before the handler. Runtime permission results remain conditional, but source applicability is available.",
+      "The source-visible helper checks has_perms_owner_aware on root_doc before selecting file_doc. Owner absent, same owner, or guardian object permission are explicit alternatives; no grant is assumed.",
+      "The configured has_object_permission hook must not be described as automatically invoked by this custom download path; the decisive manual root check is separately visible.",
+      "Already available but unexamined helper/framework relations are source or interpretation omissions, not unknown deployment facts. Source verification alone supplies no missing final content."
+    ],
+    "personallyCheckedSource": ["views.py:1369-1448", "views.py:1835-1839", "views.py:1008-1022", "permissions.py:30-53", "permissions.py:624-635", "rest_framework/permissions.py:176-315"],
+    "fix": "Losslessly wrap the advertised root final before strict nested validation, so the one constrained repair sees the actual invalid path enum; clarify overall versus per-path disposition without business answers.",
+    "remaining": "Entry exception syntax, typed principal/resource and cross-helper return relations still produce gaps and repeated local repairs; actual quality benefit of the final diagnostic fix remains unverified.",
+    "nextAttempt": "revision-final-diagnostics; parent revision-local-envelope"
+  },
+  "actual": {
+    "providerCalls": 21,
+    "respondedCalls": 20,
+    "unknownUsageCalls": 1,
+    "unknownCostCalls": 21,
+    "originalUnknownAttempts": 1,
+    "recoveries": 1,
+    "knownTokens": {"input": 641059, "output": 20248, "cacheRead": 14848, "cacheWrite": 0},
+    "totalActualUsd": null,
+    "sourceInterpretationSubmissions": 14,
+    "localInterpretationRepairs": 11,
+    "lowLevelFallbacks": 0,
+    "acceptedSourceUnits": 2,
+    "controlSteps": 12,
+    "checkHistoryCount": 0,
+    "sourceAccounting": {"indexBytes": 1412762, "physicalReadBytes": 5318592, "toolDisplayBytes": 14851, "cumulativeModelSourceBytes": 69748, "resentSourceBytes": 54897},
+    "sourceVerification": {"valid": true, "checkedFiles": 95, "physicalReadBytes": 1412762},
+    "targetExecutions": 0
+  },
+  "verification": {
+    "expectedFailure": "Invalid advertised root final produced missing result rather than nested invalid_enum_value before implementation",
+    "afterFix": "53 pass / 420 assertions across wire, source-assisted public entrypoints and focus",
+    "mainTypecheck": "fresh exit 0",
+    "zeroCallInspection": "inspect.ts production accounting replay exit 0"
+  },
+  "researchEffectEstablished": false
+}

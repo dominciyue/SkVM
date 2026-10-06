@@ -167,3 +167,21 @@ test("routable v2 source envelopes retain forbidden raw fields for local diagnos
   expect(schemas.schema.safeParse({ ...raw, schemaVersion: "wrong" }).success).toBe(false)
   expect(api.inquiryStepSchemas("operation-evidence-v1", false, "behavior", "interpret").schema.safeParse(raw).success).toBe(false)
 })
+
+test("an invalid root final reports its actual nested field and the one wire repair can fix it", async () => {
+  const schemas = api.inquiryStepSchemas("operation-evidence-v2", true, "behavior", "answer")
+  const raw = { kind: "final", schemaVersion: "authorization-focused-result/v1", focusId: "answer", answers: [{ explanation: "Source alternatives are conditional", disposition: "conditional", paths: [{ path: 0, explanation: "This individual path is unresolved", disposition: "conditional" }] }], scope: "original source" }
+  const invalid = schemas.schema.safeParse(raw)
+  expect(invalid.success).toBe(false)
+  expect(invalid.error.issues).toContainEqual(expect.objectContaining({ path: ["result", "answers", 0, "paths", 0, "disposition"], code: "invalid_enum_value" }))
+  let calls = 0
+  const provider: any = { name: "mock", complete: async (params: any) => {
+    calls++
+    if (calls === 2) { const text = JSON.stringify(params.messages); expect(text).toContain("result.answers.0.paths.0.disposition"); expect(text).toContain("invalid_enum_value") }
+    const value = calls === 1 ? raw : { ...raw, answers: [{ ...raw.answers[0], paths: [{ ...raw.answers[0]!.paths[0], disposition: "unknown" }] }] }
+    return { text: "", toolCalls: [{ name: "submit_inquiry_step", arguments: value }], tokens: { input: 1, output: 1 }, durationMs: 0 }
+  } }
+  const result = await extractStructured({ provider, ...schemas, schemaName: "submit_inquiry_step", schemaDescription: "Current final field contract", prompt: "Deliver current source conclusions", maxRetries: 1, schemaRepair: "same-tool" })
+  expect(calls).toBe(2)
+  expect(result.result).toMatchObject({ kind: "final", result: { answers: [{ disposition: "conditional", paths: [{ disposition: "unknown" }] }] } })
+})

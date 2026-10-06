@@ -25,7 +25,7 @@
     ],
     "correctedReviewerClaims": [
       "Attempt root final.txt exists and contains null; there is no natural final answer. Reviewer searched a wrong report/final path.",
-      "1412762 is indexBytes, not physicalReadBytes. Actual physicalReadBytes is 7695554.",
+      "Disambiguate counters: sourceVerification.physicalReadBytes=1412762 for final verification, sourceAccounting.physicalReadBytes=7695554 for the run. The reviewer cited the former correctly; it must not stand for total reads.",
       "Four source interpretation submissions and two accepted source units demonstrate adoption. Recorded lowLevelFallbacks is zero; ordinary source reads are not low-level graph fallbacks. The rejected transport unit never entered the core."
     ],
     "personallyCheckedSource": [
@@ -67,5 +67,12 @@
     "mainTypecheck": "exit 0, fresh after envelope and Go fixes",
     "combined": "100 pass / 642 assertions, seven related files"
   },
-  "researchEffectEstablished": false
+  "researchEffectEstablished": false,
+  "adjudicationHistory": [
+    {
+      "claim": "1412762 is indexBytes, not physicalReadBytes. Actual physicalReadBytes is 7695554.",
+      "status": "narrowed-and-corrected",
+      "reason": "Reviewer cited physicalReadBytes within sourceVerification; that field accurately records final snapshot verification, while sourceAccounting is the full-run counter"
+    }
+  ]
 }

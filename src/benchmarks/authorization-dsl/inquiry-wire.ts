@@ -147,7 +147,7 @@ export function normalizeFocusedControlEnvelope(input: unknown, sourceAssisted =
   } else if (keys.every(k => ["kind", "controlDelta"].includes(k)) && FocusedUpdateEnvelopeSchema.safeParse(raw.controlDelta).success && (raw.kind === undefined || raw.kind === "tool")) { value = { ...raw, kind: "control" }; code = raw.kind === undefined ? "focused-control-kind-omitted" : "focused-control-tool-without-calls" }
   else if (raw.kind === undefined && keys.every(k => ["calls", "controlDelta"].includes(k)) && z.array(InquirySourceCallSchema).min(1).max(8).safeParse(raw.calls).success) { value = { ...raw, kind: "tool" }; code = "focused-tool-kind-omitted" }
   else if (raw.kind === undefined && keys.every(k => k === "result") && FocusedResultSchema.safeParse(raw.result).success) { value = { ...raw, kind: "final" }; code = "focused-final-kind-omitted" }
-  else if ((raw.kind === "final" || raw.kind === undefined) && raw.schemaVersion === "authorization-focused-result/v1") { const { kind: _kind, ...result } = raw; if (FocusedResultSchema.safeParse(result).success) { value = { kind: "final", result }; code = "focused-final-result-root" } }
+  else if ((raw.kind === "final" || raw.kind === undefined) && raw.schemaVersion === "authorization-focused-result/v1") { const { kind: _kind, ...result } = raw; value = { kind: "final", result }; code = "focused-final-result-root" }
   return code ? { value, normalization: { code: versionOmitted ? "focused-action-version-omitted" : code, originalKind: original.kind ?? null, ...(versionOmitted ? { filled: ["schemaVersion"] } : {}) } } : { value: input }
 }
 const focusedSteps = (stage?: FocusStage, parsing = false, operation = false, sourceAssisted = false) => z.discriminatedUnion("kind", [

@@ -234,7 +234,9 @@ export interface SourceInterpretation {
 
 - [x] 从 AU 原始 Download 请求和 locked-framework 源码开始一次 D1 新策略运行；未给答案或正确 helper 清单。
 
-runtime-config具名首次真实尝试为18派发/18响应，4次来源解释提案、2个来源单元、0低层图fallback；0次check、无终答，因解释根载荷多余complete/unit在transport被拒而结束。usage完整、所有实际USD未知。独立AI核验后主代理纠正“physicalReadBytes=索引字节”和“源码读即图fallback”的复核错误；不以轨迹补终答。修复工作顺序：先复现两个公共入口的额外根字段失败→保留原载荷、局部严格诊断→核相同focus修订和原件→78项/547断言及类型→具名local-envelope真实复验。ID和角色提示仅澄清结构合同，未提供业务答案；try/except、helper和框架语义缺口保留。出处与裁定在evaluations/av10-runtime-config.json。
+runtime-config具名首次真实尝试为18派发/18响应，4次来源解释提案、2个来源单元、0低层图fallback；0次check、无终答，因解释根载荷多余complete/unit在transport被拒而结束。usage完整、所有实际USD未知。独立AI核验后主代理点验来源终态校验/全程读取两种physicalReadBytes基准，并纠正“源码读即图fallback”的复核错误；计数裁定的初始过度纠正保留在history；不以轨迹补终答。修复工作顺序：先复现两个公共入口的额外根字段失败→保留原载荷、局部严格诊断→核相同focus修订和原件→78项/547断言及类型→具名local-envelope真实复验。ID和角色提示仅澄清结构合同，未提供业务答案；try/except、helper和框架语义缺口保留。出处与裁定在evaluations/av10-runtime-config.json。
+
+local-envelope实际21派发/20响应，1原timeout与1只读恢复、14提案/11局修/2单元、0fallback/check，终答未交付。独立源码核验判两份草稿partial，不能把已可见根授权/文件选择关系泛化为部署未知。终答严格拒绝的真实字段是paths[].disposition=conditional，旧root归一化误报result缺失；先失败后无损包装并保留严格nested校验，53项/420断言及主类型通过。具名`--revision=final-diagnostics --parent=revision-local-envelope`同输入/预算复验后推进原OWUI；两Python若同因停滞，再按AV11做一次共享来源接口修复，不增加容器或预算。评阅与分账在evaluations/av10-local-envelope.json。
 - [ ] 逐项检查正确入口、框架前置约束、helper 实参/对象、条件分支和最终自然说明是否经过共享机制；首次结果完整保留。
 - [ ] 每个可定位缺陷立即走第七节修复循环。若仍反复要求模型生成整张低层图，回到 AV5 修接口，不继续堆提示或扩预算。
 - [ ] evaluator 以完整原任务核对终答；已读到但未进入终答的内容仍记遗漏，不能借轨迹补答。得到真实完整链后保存可用于后续变化的基线。

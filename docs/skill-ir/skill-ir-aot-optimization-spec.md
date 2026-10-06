@@ -2540,6 +2540,8 @@ AV9已实现：inquiry/native的自然M与模型声明D1使用同一v2核心；�
 
 v2的可路由源码解释原载荷在transport完整保留（含多余字段），交当前source事务严格诊断；不将多余unit/complete应用为语义。模型合同及来源语义schema仍严格；envelope-rejected原件、当前focus和显式修订保留。错误版本/不可路由动作仍拒绝，旧协议不放宽。身份提示区分candidateId、pending itemId、evidenceId，不能靠拼写替换来源或对象关系。
 
+已广告的focused根级终答按明确result版本无损套入canonical result后严格校验；非法嵌套内容及未知键保留并报告实际字段路径，供原有一次wire repair修订。只移动机械路由kind，不填答案、删未知字段或改语义枚举。总体conditional与单路径allow/deny/unknown分开；未被接受的草稿不能计作终答交付。
+
 Go机械来源覆盖包含multiline链式route及if initializer的实际调用/实参/结果；initializer在其条件前执行，嵌套else-if仍受外层分支约束。只规范verb识别的空白，来源表达式/行范围保持。unsupported loop/short-circuit/dynamic-call不无条件展平；零调用probe仅证明语法覆盖，不判定授权语义。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
