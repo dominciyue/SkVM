@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test"
 import { compileAuthorizationInquiry } from "./inquiry-program.ts"
 import { parseInquiryStrategy } from "./control-slice.ts"
+import { isDeepStrictEqual } from "node:util"
 
 const declaration = () => ({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "create-item", request: "Assess item creation", entryHint: "items.create" }], questions: [
   { id: "behavior", request: "Which caller can create the item?", operationId: "create-item", intent: "behavior", premises: [] },
@@ -31,4 +32,20 @@ test("v1 keeps six duties per question and opt-in strategy is accepted", () => {
   const v1 = { schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "a", request: "create", premises: [] }, { id: "b", request: "create", premises: [] }] }
   expect(compileAuthorizationInquiry(v1).queue).toHaveLength(12)
   expect(parseInquiryStrategy("operation-evidence-v1")).toBe("operation-evidence-v1")
+})
+
+test("a v2 program without an entry hint preserves strict identity through JSON retention", () => {
+  const input = declaration()
+  delete (input.operations[0] as { entryHint?: string }).entryHint
+  const program = compileAuthorizationInquiry(input)
+  expect(isDeepStrictEqual(program, JSON.parse(JSON.stringify(program)))).toBe(true)
+  expect(Object.hasOwn(program.questions[0]!, "entryHint")).toBe(false)
+  const hinted = compileAuthorizationInquiry(declaration())
+  expect(hinted.questions[0]?.entryHint).toBe("items.create")
+})
+
+test("the existing v1 program also retains an omitted entry hint through JSON", () => {
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect the source operation", premises: [] }] })
+  expect(isDeepStrictEqual(program, JSON.parse(JSON.stringify(program)))).toBe(true)
+  expect(Object.hasOwn(program.operations![0]!, "entryHint")).toBe(false)
 })

@@ -78,8 +78,8 @@ export function planInquiryReuse(options: {
 
 function planOperationMaterials(options: Parameters<typeof planInquiryReuse>[0], info: InquiryReuseInfo) {
   const current = options.currentInput, old = options.previousInput, prior = options.previousRun, index = options.currentStructure, reasons: string[] = []
-  const stable = (v: AuthorizationInquiryInput) => ({ ...v, sourceRoot: undefined, policy: undefined, inquiry: v.inquiry ? { ...v.inquiry, policy: undefined, questions: v.inquiry.questions.map(q => ({ ...q, premises: [] })) } : undefined })
-  if (!current.inquiry || !old.inquiry || !isDeepStrictEqual(stable(current), stable(old))) reasons.push("Materials require the same original operation/questions/source scope; policy and explicit premises may change.")
+  const stable = (v: AuthorizationInquiryInput, omitPremises = true) => ({ ...v, sourceRoot: undefined, mode: undefined, policy: undefined, inquiry: v.inquiry ? { ...v.inquiry, mode: undefined, policy: undefined, questions: omitPremises ? v.inquiry.questions.map(q => ({ ...q, premises: [] })) : v.inquiry.questions } : undefined })
+  if (!current.inquiry || !old.inquiry || !isDeepStrictEqual(stable(current), stable(old))) reasons.push("Materials require the same original operation/questions/source scope; analysis mode, independent policy and explicit premises may change.")
   if (!index || options.previousStrategy !== options.currentStrategy || options.currentMethod !== options.previousMethod || options.currentModel !== options.previousModel) reasons.push("Current structure, model, method and exact operation strategy must match.")
   // V2 closes each local consumer before recovery. Remote billing/completion
   // uncertainty remains recorded, but cannot invalidate earlier accepted source
@@ -90,7 +90,7 @@ function planOperationMaterials(options: Parameters<typeof planInquiryReuse>[0],
   if (unsafeCompletion || prior.sourceVerification?.valid === false || !prior.domain?.operationFacts || !prior.domain.semantic?.units) reasons.push("Known retained operation materials require closed local consumers and current source; legacy unknown completion stays sealed.")
   if (reasons.length) return { status: "needs-fresh-analysis" as const, info, reasons }
   info.reuseLevel = "materials"; info.reusedMaterials = []; info.invalidatedMaterials = []
-  if (info.change === "incompatible") info.change = "policy-and-premise"
+  if (info.change === "incompatible") info.change = isDeepStrictEqual(stable(current, false), stable(old, false)) ? "policy-only" : "policy-and-premise"
   const files = new Map(options.currentFiles.map(f => [f.path, f.sha256])), sourceFacts = prior.domain!.operationFacts!, retained: BoundSemanticBlock[] = [], evidence = prior.evidence ?? []
   for (const original of prior.domain!.semantic!.units) {
     const unit = structuredClone(original)

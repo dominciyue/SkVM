@@ -7,6 +7,7 @@ import { createInquiryDomainRuntime } from "./inquiry-domain-runtime.ts"
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
 import { inquiryStepSchemas, inquiryNativeSchemas } from "./inquiry-wire.ts"
 import { zodToJsonSchema } from "../../providers/structured.ts"
+import type { SourceSkeleton } from "./evidence-preparation/source-skeleton.ts"
 
 test("operation structured result is direct while native keeps the same focused result and v2 declaration core", () => {
   const schemas = inquiryStepSchemas("operation-evidence-v1", true, "behavior", "answer")
@@ -71,4 +72,61 @@ test("direct first selection advances an ambiguous operation location to its act
   expect(context.focus.stage).toBe("locate")
   await domain.propose({ schemaVersion: "authorization-control-update/v1", workSelections: [{ questionId: "a", itemId: context.focus.itemId, candidateId: tools.locateSymbols("create")[0]!.id }] })
   expect((domain.modelContext() as any).focus.stage).toBe("interpret")
+})
+
+async function sourcePremiseFixture() {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "av-source-premise-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def entry(flag):\n    if flag:\n        return True\n    return False\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "anonymous", sourceRef: "fixed", allowedPaths: ["app.py"], structure: true })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "Inspect entry", entryHint: "entry" }], questions: [
+    { id: "known", operationId: "op", intent: "behavior", request: "Explain the current entry with flag true.", premises: [] },
+    { id: "unknown", operationId: "op", intent: "scope", request: "Explain the alternatives with flag unspecified.", premises: [] },
+  ] })
+  const domain = createInquiryDomainRuntime({ program, tools, strategy: "operation-evidence-v2", sourceAssisted: true, suppliedUserText: program.questions.map(q => q.request) })
+  await domain.sync()
+  let context: any = domain.modelContext()
+  if (context.focus.stage === "locate") {
+    await domain.propose({ schemaVersion: "authorization-focused-update/v1", kind: "select", focusId: context.focus.id, candidateId: context.locationTasks[0].candidates[0].id })
+    context = domain.modelContext()
+  }
+  const skeleton = context.tasks[0].sourceSkeleton as SourceSkeleton
+  expect(context.focus.stage).toBe("interpret")
+  const proposal = { schemaVersion: "authorization-source-update/v1", kind: "interpret", focusId: context.focus.id, interpretation: { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations: skeleton.anchors.filter(a => a.kind === "condition" || a.kind === "return").map(a => a.kind === "condition" ? { anchorId: a.id, role: "condition", explanation: "The actual branch tests flag", condition: { op: "eq", left: { binding: "flag" }, right: { literal: true } } } : { anchorId: a.id, role: "context", explanation: "The actual source return", returnOutcome: a.literalValue === true ? "allow" : "deny" }), unresolved: [] } }
+  return { domain, context, proposal }
+}
+
+test("source-assisted explicit user values select a finite branch without sharing unknown question premises", async () => {
+  const { domain, proposal } = await sourcePremiseFixture()
+  const raw = { ...proposal, values: [{ key: "flag", value: true, text: "flag true.", questionId: "known" }] }
+  const accepted = await domain.propose(raw)
+  expect(accepted.diagnostics).toEqual([])
+  expect(domain.report().slice.bindings.map(b => [b.questionId, b.key, b.value])).toEqual([["known", "flag", true]])
+  const paths = domain.feedback().paths
+  expect(paths.filter(p => p.questionId === "known" && p.state !== "inapplicable").map(p => p.disposition)).toEqual(["allow"])
+  expect(paths.filter(p => p.questionId === "unknown" && p.state !== "inapplicable")).toHaveLength(2)
+  expect(domain.deliverySnapshot().gaps).toContainEqual(expect.objectContaining({ kind: "premise-unknown", questionId: "unknown" }))
+  expect(domain.report().sourceWorkMetrics?.lowLevelFallbacks).toBe(0)
+  expect(inquiryStepSchemas("operation-evidence-v2", false, "behavior", "interpret").modelSchema.safeParse(raw).success).toBe(true)
+  expect(inquiryNativeSchemas("operation-evidence-v2", false, "interpret").authorization_observe.safeParse({ controlDelta: raw }).success).toBe(true)
+})
+
+for (const supplied of [false, true]) test(`source-assisted values reject ${supplied ? "an unspecified user value" : "a source constant presented as a user premise"} in the same source transaction`, async () => {
+  const { domain, context, proposal } = await sourcePremiseFixture()
+  const rejected = await domain.propose({ ...proposal, values: [{ key: "flag", value: true, text: supplied ? "flag unspecified." : "SOURCE_CONSTANT", questionId: supplied ? "unknown" : "known" }] })
+  expect(rejected.diagnostics.some(d => d.code === (supplied ? "premise-value-unspecified" : "premise-not-supplied"))).toBe(true)
+  expect((domain.modelContext() as any).focus.id).toBe(context.focus.id)
+  expect(domain.report().slice.bindings).toEqual([])
+  expect(domain.report().semantic?.units).toHaveLength(0)
+  expect((await domain.propose(proposal)).diagnostics).toEqual([])
+  expect(domain.report().slice.bindings).toEqual([])
+  expect(domain.report().sourceWorkMetrics?.lowLevelFallbacks).toBe(0)
+})
+
+test("flattened native user context cannot lend another question's known span to an unspecified question", async () => {
+  const { domain, context, proposal } = await sourcePremiseFixture()
+  const rejected = await domain.propose({ ...proposal, values: [{ key: "flag", value: true, text: "flag true.", questionId: "unknown" }] })
+  expect(rejected.diagnostics.some(d => d.code === "premise-not-supplied")).toBe(true)
+  expect((domain.modelContext() as any).focus.id).toBe(context.focus.id)
+  expect(domain.report().slice.bindings).toEqual([])
+  expect(domain.report().semantic?.units).toHaveLength(0)
 })

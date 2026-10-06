@@ -108,8 +108,11 @@ export function mergeControlSlice(previous: ControlSlice, input: unknown, progra
         if (group === "rules" && (item as ControlRule).kind === "binding" && (!(item as ControlRule).bindingKey || !(item as ControlRule).bindingKind)) diagnostics.push(diagnostic("binding-type-required", at, "A binding node declares a typed identity key."))
       } else if (group === "bindings") {
         const binding = item as z.infer<typeof UserBindingSchema>
-        const supplied = context.suppliedUserText ?? (q ? [q.request, ...q.premises.map(p => p.text)] : [])
-        if (!q || !supplied.some(t => t.includes(binding.text))) diagnostics.push(diagnostic("premise-not-supplied", at, "Known values require an exact span of an original supplied user statement, not a model-authored premise; mapping meaning remains unreviewed."))
+        const own = q ? [q.request, ...q.premises.map(p => p.text)] : []
+        // Native contexts may flatten all declaration questions. Such entries
+        // keep their original question scope; a separate natural brief is global.
+        const supplied = context.suppliedUserText?.filter(t => own.includes(t) || !program.questions.some(other => other.id !== item.questionId && [other.request, ...other.premises.map(p => p.text)].includes(t))) ?? own
+        if (!q || !supplied.some(t => t.includes(binding.text))) diagnostics.push(diagnostic("premise-not-supplied", at, "Known values require an exact span of an original supplied statement for this question or a global user brief, not another question or a model-authored premise; mapping meaning remains unreviewed."))
         if (/\b(?:unspecified|unknown|not (?:given|supplied|specified|provided|known))\b|未(?:给定|指定|提供)|未知/i.test(binding.text)) diagnostics.push(diagnostic("premise-value-unspecified", at, "This quoted user span explicitly leaves the value unspecified. Omit this known-value binding; null means a supplied null value, never an unknown placeholder. Other mapping meaning remains unreviewed."))
       } else {
         const p = item as z.infer<typeof PolicyRuleSchema>

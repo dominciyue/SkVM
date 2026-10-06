@@ -122,3 +122,29 @@ test("v2 reuses only frozen known materials after local consumers close, preserv
   }
   expect(planInquiryReuse({ ...args, currentStrategy: "operation-evidence-v1", previousStrategy: "operation-evidence-v1" }).status).toBe("needs-fresh-analysis")
 })
+
+test("adding an independent conformance policy restores behavior source materials without reusing a prior answer or policy mapping", async () => {
+  const f = await fixture(), previousInput = structuredClone(f.input), prior = structuredClone(f.prior)
+  previousInput.inquiry.mode = "behavior"; delete previousInput.inquiry.policy
+  prior.domain.closed = true; prior.domain.slice.policyRules = []
+  prior.attempts = [{ status: "response", localConsumer: "accepted", remoteCompletion: "response" }]
+  const args = { ...f.args, previousInput, previousRun: prior, currentStrategy: "operation-evidence-v2", previousStrategy: "operation-evidence-v2" }
+  const plan = planInquiryReuse(args)
+  expect(plan.status).toBe("reusable")
+  expect(plan.info.change).toBe("policy-only")
+  expect(plan.seed?.semanticUnits).toHaveLength(2)
+  expect(plan.seed?.delta.policyRules).toEqual([])
+  expect(plan.info.answerReused).toBe(false)
+  expect(JSON.stringify(plan.seed)).not.toContain("OLD ANSWER")
+  const domain = createInquiryDomainRuntime({ program: compileAuthorizationInquiry(f.input.inquiry), tools: f.tools, strategy: "operation-evidence-v2", sourceAssisted: true, initialDelta: plan.seed!.delta, initialSemanticUnits: plan.seed!.semanticUnits })
+  await domain.sync(false)
+  expect(domain.report().slice.rules.some(r => r.kind === "entry")).toBe(true)
+  expect(domain.report().slice.policyRules).toEqual([])
+  expect(domain.report().check).toBeUndefined()
+  for (const change of ["question", "source"] as const) {
+    const currentInput = structuredClone(f.input)
+    if (change === "question") currentInput.inquiry.questions[0].request = "Inspect another operation"
+    else currentInput.sourceRef = "another-ref"
+    expect(planInquiryReuse({ ...args, currentInput }).status).toBe("needs-fresh-analysis")
+  }
+})

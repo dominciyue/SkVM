@@ -247,10 +247,12 @@ final-diagnostics已22响应/22派发，实际nested路径诊断触发一次修�
 
 只读Go复核发现multiline链式Post未入route；匿名反例先失败，末段verb仅trim空白后真实POST /repos/{username}/{reponame}/issues及middleware绑定。主代理点验又发现if initializer中的真实NewIssue未入skeleton；匿名前置调用/else分支反例先失败，initializer保持在其条件前且仍受外层分支约束。真实CreateIssue现141 anchors、NewIssue实参/result保留，loop/short-circuit/动态表达式六个有位置gap保持。33项相关测试/147断言、实际零调用probe通过，证据在verification/av11-go-probe.json；尚未派发Go模型。
 
-- [ ] 原始 OWUI ingestion 请求首跑新策略，检验 decorator 入口和跨对象检查/效果，保留全部原义务及真实前提。
+- [x] 原始 OWUI ingestion 请求首跑新策略，检验 decorator 入口和跨对象检查/效果，保留全部原义务及真实前提。
 - [ ] 同样即时修复；只在生产机制能解释改进时计为修复有效，不修改模型输入到直接给出正确分支。
 - [x] 用已暴露 Gitea 做零调用路由/receiver/骨架兼容核对，为完整 GitHub skill 使用准备；不预填授权语义。
 - [ ] 如 Python 两任务仍同因失败，优先做一次共享接口重构及真实验证，再处置受影响比较；不把“已写单测”当成真实闭合。
+
+OWUI首次在8872acd9完成21响应/21派发，18来源提案/15局修、0接受单元/0fallback，2次check仍sourceBound=false/ruleConsistency=false；部分终答保留正确入口与输入/输出资源区别，却没有交付source-visible admin/owner分支及默认目的地。独立AI与主代理源码点验见evaluations/av11-owui-first.json。当前需要一次共享修复：source lowering对opaque控制gap内根本不执行的子调用也强制逐一role，阻止外层已支持flow的局部解释；缩小机械解释要求到当前实际flow，opaque块仍完整有位置gap，不默默展平或宣称full。先匿名try/loop及外层早退反例，再同一OWUI具名真实验证。
 
 ### AV12 两份完整原 skill 的原/变实际使用
 
@@ -267,6 +269,14 @@ final-diagnostics已22响应/22派发，实际nested路径诊断触发一次修�
 - [ ] 消费者复用同一核心和真实完整 skill，费用包含准备/声明/解释/修复。作者效度、下游完整质量和真人工时分别报告。
 
 ### AV14 政策、前提和源码变化复用
+
+准备阶段的零调用普通init暴露保留声明/program严格比较失败。只读逐字段核验确认唯一差异为v2无entryHint时编译注入own undefined，JSON原件省略后与重编译对象不等；不是声明丢失。当前工作顺序：匿名JSON往返/普通init+compare反例先失败→编译仅在hint存在时加入该字段→保留严格身份检查并对真实保留声明零调用导出。另确认v2 source-update缺少旧focused values通路：加入同形可选values，沿同一用户原文/finite value校验，不从源码填用户事实；匿名已知/未知、源值冒充及跨题映射反例验证。当前OWUI真实run完成前不改共享实现，随后记录新修订与实际变化使用。
+
+原Download基线是behavior；加入独立政策后为conformance。材料兼容目前把这个分析mode变化与源码/原问题变化混同，阻止恢复同一源码解释。小设计修订仅对operation材料层忽略mode与独立policy，仍严格保持完整原operation/questions/source scope及模型/方法/来源依赖；旧答案、check和policy映射继续丢弃。先以匿名已关闭v2基线验证behavior→conformance恢复来源、重算当前政策，另断言修改原问题或来源身份仍拒绝；不修改legacy的完整checked复用准入。
+
+独立代码复核未发现边界问题，但主代理点验shared premise validator发现native把各题文字汇总后可借另一题的已知span绑定未知题；新增行为反例实际失败。共享校验排除仅属于另一题的完整request/premise条目，保留该题文字和实际全局自然brief；相同声明中共享显式文字仍可逐题指定，映射语义保持unreviewed。该补充与普通原件导出一并验证，不把初始复核的“跨题通过”当最终结论。
+
+上述修复已通过73项/547断言和主类型；真实普通init+compare零provider通过，原final-diagnostics基线保留严格身份并恢复两份unreviewed材料，答案/check未复用。v1相同own-undefined问题也先失败后同形修正。verification/av14-retained-baseline-export.json保留实际命令结果；三种输入登记和六个付费变化位置仍待执行。
 
 - [ ] 在 Download 同一包上各登记政策、前提、源码变化，每种 fresh/materials-previous 各一位置，共六位置，完整原任务保持。
 - [ ] 政策/前提变化只修改独立输入；源码变化只改开发副本的一个真实相关控制或对象绑定，变化代码对两臂相同。

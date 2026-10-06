@@ -2544,6 +2544,12 @@ v2的可路由源码解释原载荷在transport完整保留（含多余字段）
 
 来源赋值的步骤身份与变量绑定分开：semantic bind可显式bindingName，缺省仍用旧name；源码降低按anchor生成唯一步骤name，实际变量名保存在bindingName。同变量在不同分支或顺序重赋值时，各路径保留当前对象/值，重赋值清除该变量旧helper标量结果。不能靠相同变量拼写合并不同资源。解释阶段包含完整基础及扩展有限谓词写法，非法算子只诊断不自动改写。
 
+AV14准备接口决定：v2编译的可选entryHint在无值时保持省略，确保普通JSON归档往返与保留程序严格相等；不得绕过声明/program身份检查。source-update可选values沿旧focused的{key,value,text,questionId?}合同传入同一premise updater，必须对应当前该题实际用户文字，题目之间不隐式共享。源码有限值仍在source步骤，未给/unknown用户条件不填value；错误载荷保留在当前source事务以便局修。这两项工程修订待红绿及真实普通入口验证，不预记复用成功。
+
+operation材料层允许behavior/conformance随独立policy变化；mode不属于原源码解释身份。完整原operation/questions/source scope仍严格匹配，模型/方法/策略及来源依赖继续验证，答案/check/政策映射全部重新计算。此兼容只扩展材料恢复，不放宽legacy完整checked复用；模式切换不得掩盖原问题或来源身份变化。
+
+shared premise校验在汇总用户上下文中排除仅属于另一题的完整request/premise条目，不能以另一题的已知span把当前未知值变为known。该题实际文字及独立全局自然brief仍是原文来源；同一显式文字确实供多题时各题可显式映射。此检查验证原文与题目归属，不推断自然语言映射的业务真值。
+
 Go机械来源覆盖包含multiline链式route及if initializer的实际调用/实参/结果；initializer在其条件前执行，嵌套else-if仍受外层分支约束。只规范verb识别的空白，来源表达式/行范围保持。unsupported loop/short-circuit/dynamic-call不无条件展平；零调用probe仅证明语法覆盖，不判定授权语义。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）

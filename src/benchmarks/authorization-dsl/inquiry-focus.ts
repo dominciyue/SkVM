@@ -33,9 +33,9 @@ const actions = {
 const defer = z.object({ ...common, kind: z.literal("defer"), reason: InquiryText, revisit: InquiryText.optional(), nextItemId: InquiryText.optional() }).strict()
 export const FocusedUpdateSchema = z.discriminatedUnion("kind", [actions.interpret, actions.locate, actions.link, actions.review, defer])
 export const FocusedUpdateEnvelopeSchema = z.discriminatedUnion("kind", [actions.interpret.extend({ unit: z.unknown() }), actions.locate, actions.link, actions.review, defer])
-export const SourceUpdateSchema = z.object({ schemaVersion: z.literal("authorization-source-update/v1"), kind: z.literal("interpret"), focusId: InquiryText, interpretation: SourceInterpretationSchema, reason: InquiryText.optional() }).strict()
+export const SourceUpdateSchema = z.object({ schemaVersion: z.literal("authorization-source-update/v1"), kind: z.literal("interpret"), focusId: InquiryText, interpretation: SourceInterpretationSchema, values: z.array(binding).max(32).default([]), reason: InquiryText.optional() }).strict()
 // Transport keeps a routable proposal intact; the current source transaction rejects extra fields.
-export const SourceUpdateEnvelopeSchema = SourceUpdateSchema.extend({ interpretation: z.unknown() }).passthrough()
+export const SourceUpdateEnvelopeSchema = SourceUpdateSchema.extend({ interpretation: z.unknown(), values: z.unknown().optional() }).passthrough()
 export function focusedUpdateSchema(stage?: FocusStage, parsing = false, operation = false, sourceAssisted = false) {
   const interpret = operation ? actions.interpret : actions.interpret.omit({ also: true })
   const parsedInterpret = parsing ? interpret.extend({ unit: z.unknown() }) : interpret
@@ -190,18 +190,20 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
   const prepareSource = (raw: unknown) => {
     const value = raw && typeof raw === "object" ? raw as Record<string, unknown> : {}, diagnostics: InquiryDiagnostic[] = []
     const fail = (code: string, message: string) => diagnostics.push({ code, path: current?.id ?? "focus", questionId: current?.questionId, message, severity: "error" })
-    const extra = Object.keys(value).filter(k => !["schemaVersion", "kind", "focusId", "interpretation", "reason"].includes(k))
-    if (!options.sourceAssisted || value.schemaVersion !== "authorization-source-update/v1" || value.kind !== "interpret" || extra.length) fail("source-interpretation-envelope", `Use only schemaVersion, kind, focusId, interpretation and optional reason. Remove extra root fields ${JSON.stringify(extra)}; keep the same source interpretation. Low-level unit fallback is a separate focused update with an explicit reason.`)
+    const extra = Object.keys(value).filter(k => !["schemaVersion", "kind", "focusId", "interpretation", "values", "reason"].includes(k))
+    if (!options.sourceAssisted || value.schemaVersion !== "authorization-source-update/v1" || value.kind !== "interpret" || extra.length) fail("source-interpretation-envelope", `Use only schemaVersion, kind, focusId, interpretation and optional values/reason. Remove extra root fields ${JSON.stringify(extra)}; keep the same source interpretation. Low-level unit fallback is a separate focused update with an explicit reason.`)
+    const values = z.array(binding).max(32).default([]).safeParse(value.values)
+    if (!values.success) for (const issue of values.error.issues) fail("source-interpretation-values", `${issue.path.join(".")}: ${issue.message}`)
     if (!current || current.stage !== "interpret" || value.focusId !== current.id) fail("source-interpretation-focus", "Use this current source interpretation focus.")
     const skeleton = current?.itemId && offeredSkeletons.get(current.itemId), item = sourceItem(current?.itemId)
     if (!skeleton || !item || !current?.handle || !current.questionId) fail("source-interpretation-window", "The whole current source skeleton and original window must be offered in this dispatch.")
-    if (diagnostics.length || !skeleton || !item || !current?.handle || !current.questionId) { sourceHistory.push({ event: "envelope-rejected", focusId: current?.id, raw: structuredClone(raw), diagnostics: structuredClone(diagnostics) }); return { diagnostics } }
+    if (diagnostics.length || !values.success || !skeleton || !item || !current?.handle || !current.questionId) { sourceHistory.push({ event: "envelope-rejected", focusId: current?.id, raw: structuredClone(raw), diagnostics: structuredClone(diagnostics) }); return { diagnostics } }
     const lowered = lowerSourceInterpretation(skeleton, value.interpretation, { index: options.tools.structure, itemId: item.id, handle: current.handle, questionId: current.questionId, role: item.origin === "question-duty" && item.kind === "entry" ? "entry" : "helper", previous: sourceDrafts.get(current.handle) })
     if (lowered.interpretation) sourceDrafts.set(current.handle, lowered.interpretation)
     sourceHistory.push({ event: lowered.diagnostics.length ? "rejected" : "lowered", focusId: current.id, revision: skeleton.revision, raw: structuredClone(raw), generated: structuredClone(lowered.unit), diagnostics: structuredClone(lowered.diagnostics) })
     if (lowered.diagnostics.length || !lowered.unit) return { diagnostics: lowered.diagnostics }
     const { itemId: _item, handle: _handle, op: _op, role: _role, ...unit } = lowered.unit
-    return { diagnostics: [], raw: { schemaVersion: "authorization-focused-update/v1", kind: "interpret", focusId: current.id, unit, reason: value.reason } }
+    return { diagnostics: [], raw: { schemaVersion: "authorization-focused-update/v1", kind: "interpret", focusId: current.id, unit, values: values.data, reason: value.reason } }
   }
   const prepare = (raw: unknown, offered: LocalExplanationTask[]) => {
     const parsed = FocusedUpdateSchema.safeParse(raw), diagnostics: InquiryDiagnostic[] = []

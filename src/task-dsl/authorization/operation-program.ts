@@ -18,11 +18,12 @@ export function normalizeNaturalOperation(brief: string, mode: "behavior" | "con
 export function normalizeInquiryOperations(input: AuthorizationInquiry) {
   const operations: InquiryOperation[] = input.schemaVersion === "authorization-inquiry/v2"
     ? input.operations.map(o => ({ ...o, sourceQuestionId: (input.questions.find(q => q.operationId === o.id && q.intent === "behavior") ?? input.questions.find(q => q.operationId === o.id))!.id, explicit: true }))
-    : input.questions.map(q => ({ id: `question:${q.id}`, request: q.operation ?? q.request, entryHint: q.entryHint, sourceQuestionId: q.id, explicit: false }))
+    : input.questions.map(q => ({ id: `question:${q.id}`, request: q.operation ?? q.request, ...(q.entryHint !== undefined ? { entryHint: q.entryHint } : {}), sourceQuestionId: q.id, explicit: false }))
   const operationQuestions: OperationQuestion[] = input.questions.map(q => ({ questionId: q.id, operationId: "operationId" in q ? q.operationId : `question:${q.id}`, intent: "intent" in q ? q.intent : "behavior" }))
   const questions: InquiryQuestion[] = input.questions.map(q => {
     const relation = operationQuestions.find(r => r.questionId === q.id)!, operation = operations.find(o => o.id === relation.operationId)!
-    return { ...structuredClone(q), ...(operation.explicit ? { entryHint: operation.entryHint ?? q.entryHint, operation: q.operation ?? operation.request } : {}) }
+    const entryHint = operation.entryHint ?? q.entryHint
+    return { ...structuredClone(q), ...(operation.explicit ? { ...(entryHint !== undefined ? { entryHint } : {}), operation: q.operation ?? operation.request } : {}) }
   })
   return { operations, operationQuestions, questions }
 }

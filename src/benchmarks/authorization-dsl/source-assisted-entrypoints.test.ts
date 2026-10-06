@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { mkdtemp, mkdir, writeFile } from "node:fs/promises"
+import { mkdtemp, mkdir, writeFile, readFile } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import { runAuthorizationInquiry } from "./inquiry-run.ts"
@@ -9,6 +9,7 @@ import type { LLMProvider, CompletionParams, LLMResponse } from "../../providers
 import type { InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import type { SourceSkeleton } from "./evidence-preparation/source-skeleton.ts"
 import { ProviderNetworkError } from "../../providers/errors.ts"
+import { executeLocalInquiryRun, initializeLocalInquiry, compareLocalInquiry } from "./inquiry-local.ts"
 
 const strategy = "operation-evidence-v2" as InquiryStrategy
 const brief = "Inspect entry and explain its source authorization outcome and limits."
@@ -147,4 +148,25 @@ for (const method of ["M", "D1"] as const) test(`v2 public ${method} retains sou
   const { checkAuthorizationInquiry } = await import("./inquiry-local.ts")
   expect((await checkAuthorizationInquiry(inputFile, method, strategy)).status).toBe("valid")
   expect((await checkAuthorizationInquiry(inputFile, method, "operation-evidence-v1")).status).toBe("invalid")
+})
+
+test("ordinary source-assisted natural-session export retains its declaration and compares without provider dispatch", async () => {
+  const { root, inputFile } = await fixture(), stages: string[] = []; let dispatches = 0
+  const provider: LLMProvider = { name: "mock", complete: async params => {
+    dispatches++
+    return params.tools?.[0]?.name === "submit_inquiry_declaration" ? response("", [{ id: "declare", name: params.tools[0]!.name, arguments: inquiry }]) : response("", [{ id: "step", name: params.tools![0]!.name, arguments: action(currentContext(params), stages) }])
+  }, completeWithToolResults: async () => { throw new Error("Unused") } }
+  const outDir = path.join(root, "run"), exported = path.join(root, "retained.json")
+  const run = await executeLocalInquiryRun({ inputFile, outDir, model: "mock/model", method: "D1", strategy, providerFactory: () => provider, execution: { maxDispatches: 12 } })
+  expect(run.status).toBe("completed")
+  const before = dispatches
+  expect((await initializeLocalInquiry(outDir, exported)).providerCalls).toBe(0)
+  const retained = JSON.parse(await readFile(exported, "utf8"))
+  expect(retained.inquiry).toEqual(inquiry)
+  expect(retained.sourceRoot).toBe("source")
+  expect(retained).not.toHaveProperty("brief")
+  const compared = await compareLocalInquiry(exported, outDir, strategy)
+  expect(compared.status).toBe("current")
+  expect(compared.providerCalls).toBe(0)
+  expect(dispatches).toBe(before)
 })
