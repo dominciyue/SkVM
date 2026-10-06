@@ -219,10 +219,14 @@ export interface SourceInterpretation {
 
 ### AV9 双入口和可运行薄 runner
 
-- [ ] 将 `operation-evidence-v2` 接到现有 inquiry/native 和 M/D1 前端，同一个核心、相同来源工具与预算，不复制另一套 agent。
-- [ ] 两入口 mock 测试必须实际走定位→读取→解释→检查→自然交付；覆盖旧 v1/默认、错误策略组合、完整作者声明不重复 author 调用。
-- [ ] 创建 `study.ts init|check|run <position-id>|replay`。run 只接受 manifest 中的完整唯一 ID；具名修订显式关联 parent，不复写初次目录。
-- [ ] 运行零调用 check，核 manifest、真实 full skill 清单、input/evaluator 隔离、恢复政策及脚本类型；保存实际 CLI 恢复命令。
+工作顺序：先用匿名Python原文在inquiry/native的M/D1四条路径写真实定位、读取、来源标注、当前检查和交付反例；扩展统一strategy判别、窄source envelope和两入口phase渲染，保持v1。随后接native telemetry只读白名单/空闲核验和公开request/session时限；最后以现有production API构造26个严格ID的薄runner、原件保存及零调用check/replay，不复制求值或恢复循环。
+
+- [x] 将 `operation-evidence-v2` 接到现有 inquiry/native 和 M/D1 前端，同一个核心、相同来源工具与预算，不复制另一套 agent。
+- [x] 两入口 mock 测试必须实际走定位→读取→解释→检查→自然交付；覆盖旧 v1/默认、错误策略组合、完整作者声明不重复 author 调用。
+- [x] 创建 `study.ts init|check|run <position-id>|replay`。run 只接受 manifest 中的完整唯一 ID；具名修订显式关联 parent，不复写初次目录。
+- [x] 运行零调用 check，核 manifest、真实 full skill 清单、input/evaluator 隔离、恢复政策及脚本类型；保存实际 CLI 恢复命令。
+
+139项联合测试/1029断言与主/AV严格类型通过，check/replay零provider/目标执行。26位置、5ready输入、3待AV14输入登记；实际请求300000ms/session7500000ms，各比较臂输出6000，作者12派发与一次字段修订。作者仅沿现有agent-loop/source runtime写两个根artifact，不自动恢复写阶段。独立复核发现路径/作者报告绑定缺口，失败测试后修复；完整skill/source/实际request证据将随native原件核对。AV9的工程完成不代表真实充分交付，下一命令为 `bun ./results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/study.ts run debug-paperless-download-D1`。
 
 ### AV10 Download 第一条真实纵向链
 

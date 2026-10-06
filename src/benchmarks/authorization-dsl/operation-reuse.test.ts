@@ -106,3 +106,19 @@ test("policy and premise changes retain valid source while dropping old mappings
   expect(plan.info.invalidatedPremiseKeys).toEqual(["q.enabled"])
   expect(planInquiryReuse({ ...f.args, previousRun: { ...f.prior, attempts: [{ status: "pending" }] } }).status).toBe("needs-fresh-analysis")
 })
+
+test("v2 reuses only frozen known materials after local consumers close, preserving remote unknowns", async () => {
+  const f = await fixture(), prior = structuredClone(f.prior)
+  prior.domain.closed = true
+  prior.attempts = [{ status: "timeout", localConsumer: "closed", remoteCompletion: "unknown" }, { status: "response", localConsumer: "accepted", remoteCompletion: "response" }]
+  const args = { ...f.args, previousRun: prior, currentStrategy: "operation-evidence-v2", previousStrategy: "operation-evidence-v2" }
+  const before = JSON.stringify(prior), plan = planInquiryReuse(args)
+  expect(plan.status).toBe("reusable")
+  expect(plan.seed?.semanticUnits).toHaveLength(2)
+  expect(JSON.stringify(plan.seed)).not.toContain("OLD ANSWER")
+  expect(JSON.stringify(prior)).toBe(before)
+  for (const unsafe of [{ ...prior, domain: { ...prior.domain, closed: false } }, { ...prior, attempts: [{ status: "timeout", localConsumer: "active", remoteCompletion: "unknown" }] }, { ...prior, attempts: [{ status: "pending", localConsumer: "closed" }] }, { ...prior, attempts: undefined }]) {
+    expect(planInquiryReuse({ ...args, previousRun: unsafe }).status).toBe("needs-fresh-analysis")
+  }
+  expect(planInquiryReuse({ ...args, currentStrategy: "operation-evidence-v1", previousStrategy: "operation-evidence-v1" }).status).toBe("needs-fresh-analysis")
+})

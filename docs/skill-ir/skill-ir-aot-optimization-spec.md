@@ -2504,7 +2504,7 @@ AU 计量只按原件显式 program metadata 计操作数，根级与 domain 级
 
 ### 14.35 AV source assisted closure contract
 
-2026-10-06，用户授权 [AV0–AV20](../superpowers/plans/2026-10-06-authorization-source-assisted-closure.md) 连续开发并派发 `gpt-6.1-sol / max`，另要求 Flash；派发接口尚无法核实该速度设置。当前为计划合同，生产实现和效果尚待执行。沿用原任务类和两入口，新策略计划为显式 `operation-evidence-v2`，旧默认、旧协议及实验原件保持。
+2026-10-06，用户授权 [AV0–AV20](../superpowers/plans/2026-10-06-authorization-source-assisted-closure.md) 连续开发并派发 `gpt-6.1-sol / max`，另要求 Flash；派发接口尚无法核实该速度设置。AV0–AV9已完成工程实现和mock/零调用验证，真实采用与效果待AV10起执行。沿用原任务类和两入口，新策略显式 `operation-evidence-v2`，旧默认、旧协议及实验原件保持。
 
 **来源连接。** 结构身份仅由 repository/ref、相对路径、源码内容、语法位置和相应结构版本决定，运行预算与绝对目录不参与。scheduler、operation links 和 focus 共用来源选择器；旧带行号 pathHint 只做可唯一核验的无损归一化，错误范围与 receiver 歧义明确诊断。入口候选区分显式符号、真实路由/调用关系与词法线索；普通词的唯一命中不自动绑定入口。Python decorator route 按实际 import/alias/router/prefix 关系建候选，动态关系保留缺口。
 
@@ -2533,6 +2533,10 @@ AV7已实现：结果missing兼容旧kind并增加四类精确缺口；当前del
 AV8当前实现：telemetry的显式readonlyRecovery携固定政策版本、工具白名单和verifyLocalState；本地关闭/远端完成/取消能力分列，恢复记录parentAttemptId。关闭立即拒绝本地消费并冻结已知domain报告/交付，晚答只更新原attempt计量；晚error单列lateSettlement.error而不覆盖原timeout；一次恢复再次超时即关闭，不产生第三请求。active executor或状态核验失败不恢复，恢复与continuation都计共享预算。agent-loop显式isolateLateResponses在请求、continuation、回调及工具边界隔离关闭/过时结果，旧默认保留。OpenAI-compatible支持signal到fetch/Node helper，取消后不重试；注入transport必须明确声明支持，否则能力为未核实。native等待返回后再次核关闭，opaque signal不进入JSON请求原件。公共v2接线仍待AV9，作者写入工具不具只读恢复资格。
 
 **实际使用与研究。** 先修三个确定性缺陷，再以 Download、OWUI 真实纵向链检验新分工，随后做两完整 skill 的原/变 native、作者稿原字节消费及政策/前提/源码变化。稳定版本下 N、自然前端加核心、声明前端加同核心公平比较；所有准备、恢复、修订成本留账。已知共享失败即时停止受影响派发并修复，未解决处保存具体边界，研究目标达成与有限队列终结分开记录。
+
+AV9已实现：inquiry/native的自然M与模型声明D1使用同一v2核心；完整声明不重复author。窄source动作在inquiry根字段提交，在native沿controlDelta提交；当前phase说明保留，低层fallback必须显式reason。仅新策略允许缺conformance政策继续源码行为，比较保留policy-unspecified/undetermined。新公开request/session时限以及N的显式只读恢复选项进入实际provider配置；AV登记300000/7500000ms、6000输出，恢复计同一总预算。v2材料恢复要求domain冻结、所有local consumer已accepted/closed且无pending；远端未知保留，旧v1 unknown仍封存。最终来源校验失败撤回当前delivery/check，历史检查原件保留。
+
+薄runner只调用生产inquiry/native/agent-loop/telemetry；26位置完整ID、初次目录不可覆盖，具名修订关联parent。作者沿同一loop与源码工具，仅可写两个根artifact，不自动恢复写阶段；一次字段修订与原稿分列。消费者准入绑定登记作者/attempt/输入、结构记录及原字节SHA；评阅材料不进入prompt。raw路径限制在attempt内，native从实际首请求、source index和安装bundle核来源；重放按实际attempt一次计usage/cacheRead。check/replay零provider、零目标执行；变化输入须待真实基线登记，previous不能静默换fresh。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 

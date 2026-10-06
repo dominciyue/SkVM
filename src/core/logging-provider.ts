@@ -8,6 +8,7 @@ import { addTokenUsage, emptyTokenUsage, type TokenUsage } from "./types.ts"
  */
 export class LoggingProvider implements LLMProvider {
   readonly name: string
+  get supportsAbortSignal(): boolean { return this.inner.supportsAbortSignal === true }
   private _tokens: TokenUsage = emptyTokenUsage()
 
   constructor(

@@ -3,27 +3,28 @@ import path from "node:path"
 import { createHash, randomUUID } from "node:crypto"
 import { isDeepStrictEqual } from "node:util"
 import { readFile, writeFile, appendFile, mkdir, stat } from "node:fs/promises"
-import { AuthorizationInquirySchema, AuthorizationInquiryV1Schema, AuthorizationInquiryV2Schema, InquiryText, InquiryPolicySchema } from "../../task-dsl/authorization/inquiry.ts"
+import { AuthorizationInquirySchema, AuthorizationSourceInquirySchema, AuthorizationInquiryV1Schema, AuthorizationInquiryV2Schema, InquiryText, InquiryPolicySchema } from "../../task-dsl/authorization/inquiry.ts"
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
 import { createInquiryTools } from "./inquiry-tools.ts"
 import { runAuthorizationInquiry, type InquiryMethod, type RunAuthorizationInquiryOptions } from "./inquiry-run.ts"
 import type { LocalAuthorizationCliDependencies } from "./local-run.ts"
-import { parseInquiryStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
+import { parseInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInquiryStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { planInquiryReuse } from "./inquiry-reuse.ts"
 import { hasUnknownAuthorizationCompletion } from "./telemetry.ts"
 import { acceptAuthoredInquiry } from "./authoring-assist.ts"
 
-export const AuthorizationInquiryInputSchema = z.object({
+export const authorizationInquiryInputSchema = (allowMissingPolicy = false) => z.object({
   schemaVersion: z.literal("authorization-inquiry-input/v1"), taskId: InquiryText, repository: InquiryText, sourceRef: InquiryText,
   sourceRoot: InquiryText.refine(p => !path.isAbsolute(p) && !path.win32.isAbsolute(p) && !p.includes("\0"), "Use a relative sourceRoot"),
-  allowedPaths: z.array(InquiryText).min(1), inquiry: AuthorizationInquirySchema.optional(), brief: InquiryText.optional(),
+  allowedPaths: z.array(InquiryText).min(1), inquiry: (allowMissingPolicy ? AuthorizationSourceInquirySchema : AuthorizationInquirySchema).optional(), brief: InquiryText.optional(),
   mode: z.enum(["behavior", "conformance"]).optional(), policy: InquiryPolicySchema.optional(),
 }).strict().superRefine((v, c) => {
   if (!!v.inquiry === !!v.brief) c.addIssue({ code: z.ZodIssueCode.custom, path: ["brief"], message: "Provide either complete inquiry or a natural brief" })
   if (v.inquiry && (v.mode || v.policy)) c.addIssue({ code: z.ZodIssueCode.custom, path: ["inquiry"], message: "Complete inquiry owns its mode/policy; do not duplicate them" })
-  if (v.brief && v.mode === "conformance" && !v.policy) c.addIssue({ code: z.ZodIssueCode.custom, path: ["policy"], message: "policy-required: conformance needs independently supplied policy" })
+  if (v.brief && v.mode === "conformance" && !v.policy && !allowMissingPolicy) c.addIssue({ code: z.ZodIssueCode.custom, path: ["policy"], message: "policy-required: conformance needs independently supplied policy" })
   if (v.brief && (v.mode ?? "behavior") === "behavior" && v.policy) c.addIssue({ code: z.ZodIssueCode.custom, path: ["policy"], message: "Behavior does not compare normative policy" })
 })
+export const AuthorizationInquiryInputSchema = authorizationInquiryInputSchema()
 export type AuthorizationInquiryInput = z.infer<typeof AuthorizationInquiryInputSchema>
 /** Publish the requested complete-declaration branch; Zod refinements alone do not express its mutually exclusive wire fields. */
 export function authorizationInquiryAuthoringSchema(mode: "behavior" | "conformance", version: "v1" | "v2" = "v1") {
@@ -36,8 +37,8 @@ export function authorizationInquiryAuthoringSchema(mode: "behavior" | "conforma
   return AuthorizationInquiryInputSchema.innerType().omit({ brief: true, mode: true, policy: true }).extend({ inquiry })
 }
 const sha = (value: string) => createHash("sha256").update(value).digest("hex")
-export async function loadInquiryInput(inputFile: string) {
-  const inputPath = path.resolve(inputFile), original = await readFile(inputPath, "utf8"), value = AuthorizationInquiryInputSchema.parse(JSON.parse(original))
+export async function loadInquiryInput(inputFile: string, options: { allowMissingPolicy?: boolean } = {}) {
+  const inputPath = path.resolve(inputFile), original = await readFile(inputPath, "utf8"), value = authorizationInquiryInputSchema(options.allowMissingPolicy).parse(JSON.parse(original))
   const context = { repository: value.repository, sourceRef: value.sourceRef, sourceRoot: path.resolve(path.dirname(inputPath), value.sourceRoot), allowedPaths: value.allowedPaths }
   return { value, inputPath, original, inputSha256: sha(original), context }
 }
@@ -45,22 +46,22 @@ export async function checkAuthorizationInquiry(inputFile: string, method: Inqui
   try {
     const strategy = parseInquiryStrategy(requestedStrategy)
     if (!["M", "D0", "D1"].includes(method)) throw new Error("Method must be M, D0 or D1")
-    const loaded = await loadInquiryInput(inputFile), tools = await createInquiryTools(loaded.context)
+    const sourceAssisted = isSourceAssistedInquiryStrategy(strategy), loaded = await loadInquiryInput(inputFile, { allowMissingPolicy: sourceAssisted }), tools = await createInquiryTools(loaded.context)
     return { schemaVersion: "authorization-inquiry-check/v1", status: "valid" as const, inputPath: loaded.inputPath, method, strategy,
       input: loaded.value, sourceFiles: tools.files, scopeGaps: tools.scopeGaps, sourceRefVerification: "authored", providerCalls: 0,
-      ...(loaded.value.inquiry ? { program: compileAuthorizationInquiry(loaded.value.inquiry), authorProviderRequired: false } : { authorProviderRequired: method !== "M" }), diagnostics: [] }
+      ...(loaded.value.inquiry ? { program: compileAuthorizationInquiry(loaded.value.inquiry, { allowMissingPolicy: sourceAssisted }), authorProviderRequired: false } : { authorProviderRequired: method !== "M" }), diagnostics: [] }
   } catch (error) { return { schemaVersion: "authorization-inquiry-check/v1", status: "invalid" as const, providerCalls: 0, diagnostics: [{ code: "inquiry-input-invalid", message: String(error) }] } }
 }
 
 async function retainedInquiryDeclaration(sessionPath: string) {
-  const original = AuthorizationInquiryInputSchema.parse(JSON.parse(await readFile(path.join(sessionPath, "input.json"), "utf8")))
   const prior = await readFile(path.join(sessionPath, "run.json"), "utf8").then(text => JSON.parse(text), error => { if ((error as NodeJS.ErrnoException).code === "ENOENT") return {}; throw error })
+  const allowMissingPolicy = isSourceAssistedInquiryStrategy(prior.strategy), original = authorizationInquiryInputSchema(allowMissingPolicy).parse(JSON.parse(await readFile(path.join(sessionPath, "input.json"), "utf8")))
   let input = original
   if (original.brief && prior.inquiry) {
-    const { inquiry } = acceptAuthoredInquiry(prior.inquiry, { brief: original.brief, mode: original.mode ?? "behavior", policy: original.policy })
-    if (!isDeepStrictEqual(compileAuthorizationInquiry(inquiry), prior.program)) throw new Error("Retained inquiry declaration/program mismatch")
+    const { inquiry } = acceptAuthoredInquiry(prior.inquiry, { brief: original.brief, mode: original.mode ?? "behavior", policy: original.policy, allowMissingPolicy })
+    if (!isDeepStrictEqual(compileAuthorizationInquiry(inquiry, { allowMissingPolicy }), prior.program)) throw new Error("Retained inquiry declaration/program mismatch")
     const { brief: _brief, mode: _mode, policy: _policy, ...metadata } = original
-    input = AuthorizationInquiryInputSchema.parse({ ...metadata, inquiry })
+    input = authorizationInquiryInputSchema(allowMissingPolicy).parse({ ...metadata, inquiry })
   }
   return { original, input, prior }
 }
@@ -83,14 +84,14 @@ export async function initializeLocalInquiry(from: string, outFile: string, expl
     const loaded = await loadInquiryInput(source)
     input = loaded.value; sourceRoot = explicitSourceRoot ? path.resolve(explicitSourceRoot) : loaded.context.sourceRoot
   }
-  const value = AuthorizationInquiryInputSchema.parse({ ...input, sourceRoot: path.relative(path.dirname(outputPath), sourceRoot).split(path.sep).join("/") || "." })
+  const value = authorizationInquiryInputSchema(true).parse({ ...input, sourceRoot: path.relative(path.dirname(outputPath), sourceRoot).split(path.sep).join("/") || "." })
   await writeFile(outputPath, JSON.stringify(value, null, 2) + "\n", { encoding: "utf8", flag: "wx" })
   return { status: "created" as const, outputPath, sourceRefVerification: "authored", providerCalls: 0, ...(declarationSource ? { declarationSource, semanticEquivalence: "unreviewed" } : {}) }
 }
 
 async function preparePreviousInquiry(inputFile: string, previous: string, model: string | undefined, method: InquiryMethod | undefined, strategy: InquiryStrategy | undefined) {
   const report = await inspectLocalInquiry(previous), retained = await retainedInquiryDeclaration(report.sessionPath), old = retained.input, prior = retained.prior
-  const loaded = await loadInquiryInput(inputFile), currentStrategy = strategy ?? report.strategy ?? "legacy", tools = await createInquiryTools({ ...loaded.context, structure: currentStrategy === "operation-evidence-v1" })
+  const currentStrategy = strategy ?? report.strategy ?? "legacy", loaded = await loadInquiryInput(inputFile, { allowMissingPolicy: isSourceAssistedInquiryStrategy(currentStrategy) }), tools = await createInquiryTools({ ...loaded.context, structure: isOperationInquiryStrategy(currentStrategy) })
   const plan = planInquiryReuse({ currentInput: loaded.value, previousInput: old, previousRun: prior, previousSessionId: report.sessionId, currentFiles: tools.files, currentStructure: tools.structure, currentMethod: method ?? report.method, previousMethod: report.method, currentStrategy, previousStrategy: report.strategy ?? "legacy", currentModel: model ?? report.model, previousModel: report.model })
   if (plan.status === "reusable") {
     const imported = tools.restoreEvidence(plan.seed.evidence)
@@ -109,7 +110,7 @@ export async function executeLocalInquiryRun(options: { inputFile: string; outDi
   }
   const reuse = prior?.plan.status === "reusable" ? { info: prior.plan.info, seed: prior.plan.seed } : undefined
   const reuseOrigin = prior && reuse ? { previousSessionId: prior.report.sessionId, previousSessionPath: prior.report.sessionPath, previousInputSha256: prior.report.inputSha256 } : undefined
-  const loaded = await loadInquiryInput(options.inputFile), out = path.resolve(options.outDir), id = `${new Date().toISOString().replace(/[:.]/g, "")}-${randomUUID().slice(0, 8)}`
+  const loaded = await loadInquiryInput(options.inputFile, { allowMissingPolicy: isSourceAssistedInquiryStrategy(strategy) }), out = path.resolve(options.outDir), id = `${new Date().toISOString().replace(/[:.]/g, "")}-${randomUUID().slice(0, 8)}`
   const sessionPath = path.join(out, "sessions", id); await mkdir(sessionPath, { recursive: false }).catch(async error => {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error
     await mkdir(path.join(out, "sessions"), { recursive: true }); await mkdir(sessionPath)

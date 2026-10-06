@@ -1,5 +1,5 @@
 import { isDeepStrictEqual } from "node:util"
-import { ControlSliceDeltaSchema, createControlSlice, mergeControlSlice, isGuidedInquiryStrategy, isSemanticInquiryStrategy, canonicalControl, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
+import { ControlSliceDeltaSchema, createControlSlice, mergeControlSlice, isGuidedInquiryStrategy, isSemanticInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInquiryStrategy, canonicalControl, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
 import { checkControlConclusions } from "../../task-dsl/authorization/control-conclusion.ts"
 import { validateAuthorizationInquiryResult } from "../../task-dsl/authorization/inquiry-result.ts"
@@ -36,7 +36,7 @@ export function planInquiryReuse(options: {
   const premiseOnly = taskChanged && isDeepStrictEqual(withoutPremises(current), withoutPremises(old))
   const change: InquiryReuseInfo["change"] = sourceChanged ? "source-changed" : !taskChanged ? "unchanged" : policyOnly ? "policy-only" : premiseOnly ? "premise-only" : "incompatible"
   const info: InquiryReuseInfo = { previousSessionId: options.previousSessionId, change, answerReused: false, semanticSupport: "unreviewed", reusedRuleKeys: [], invalidatedPolicyKeys: [], invalidatedPremiseKeys: [] }
-  if (options.currentStrategy === "operation-evidence-v1") return planOperationMaterials(options, info)
+  if (isOperationInquiryStrategy(options.currentStrategy)) return planOperationMaterials(options, info)
   if (sourceChanged) reasons.push("Allowed source bytes or indexed file set changed; dependency closure cannot prove unaffected interpretation.")
   if (!isGuidedInquiryStrategy(options.currentStrategy) || options.currentStrategy !== options.previousStrategy || options.currentMethod !== options.previousMethod || options.currentModel !== options.previousModel) reasons.push("Model, method or exact guided strategy is incompatible with the previous extraction.")
   if (!current.inquiry || !old.inquiry || change === "incompatible") reasons.push("Reuse requires compatible complete questions; changed natural briefs require fresh declaration and analysis.")
@@ -80,8 +80,14 @@ function planOperationMaterials(options: Parameters<typeof planInquiryReuse>[0],
   const current = options.currentInput, old = options.previousInput, prior = options.previousRun, index = options.currentStructure, reasons: string[] = []
   const stable = (v: AuthorizationInquiryInput) => ({ ...v, sourceRoot: undefined, policy: undefined, inquiry: v.inquiry ? { ...v.inquiry, policy: undefined, questions: v.inquiry.questions.map(q => ({ ...q, premises: [] })) } : undefined })
   if (!current.inquiry || !old.inquiry || !isDeepStrictEqual(stable(current), stable(old))) reasons.push("Materials require the same original operation/questions/source scope; policy and explicit premises may change.")
-  if (!index || options.previousStrategy !== "operation-evidence-v1" || options.currentMethod !== options.previousMethod || options.currentModel !== options.previousModel) reasons.push("Current structure, model, method and exact operation strategy must match.")
-  if (hasUnknownAuthorizationCompletion(prior) || !prior.domain?.operationFacts || !prior.domain.semantic?.units) reasons.push("Known retained operation materials are required; unknown completion stays sealed.")
+  if (!index || options.previousStrategy !== options.currentStrategy || options.currentMethod !== options.previousMethod || options.currentModel !== options.previousModel) reasons.push("Current structure, model, method and exact operation strategy must match.")
+  // V2 closes each local consumer before recovery. Remote billing/completion
+  // uncertainty remains recorded, but cannot invalidate earlier accepted source
+  // materials in a frozen local state. Legacy unknown sessions remain sealed.
+  const locallyFrozen = isSourceAssistedInquiryStrategy(options.currentStrategy) && prior.domain?.closed === true &&
+    !!prior.attempts?.length && prior.attempts.every(a => a.status !== "pending" && (a.localConsumer === "closed" || a.localConsumer === "accepted"))
+  const unsafeCompletion = isSourceAssistedInquiryStrategy(options.currentStrategy) ? !locallyFrozen : hasUnknownAuthorizationCompletion(prior)
+  if (unsafeCompletion || prior.sourceVerification?.valid === false || !prior.domain?.operationFacts || !prior.domain.semantic?.units) reasons.push("Known retained operation materials require closed local consumers and current source; legacy unknown completion stays sealed.")
   if (reasons.length) return { status: "needs-fresh-analysis" as const, info, reasons }
   info.reuseLevel = "materials"; info.reusedMaterials = []; info.invalidatedMaterials = []
   if (info.change === "incompatible") info.change = "policy-and-premise"

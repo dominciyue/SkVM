@@ -88,6 +88,15 @@ test("ordinary output token cap is public, positive and requires a source scope"
   expect(() => validateRunConfig(parse([...base, "--authorization-max-output-tokens=6000"]))).toThrow("scope")
   for (const value of ["0", "-1", "1.5", "9007199254740992"]) expect(() => parse([...base, "--authorization-scope=scope.json", `--authorization-max-output-tokens=${value}`])).toThrow()
 })
+test("source-assisted native methods and actual request/session timeouts are explicit public options", () => {
+  const base = ["--prompt=Inspect access", "--model=mock/test", "--adapter=bare-agent", "--authorization-scope=scope.json", "--authorization-domain-tools", "--authorization-strategy=operation-evidence-v2"]
+  for (const method of ["M", "D1"]) {
+    const parsed = RUN_FLAGS.parse([...base, `--authorization-method=${method}`, "--authorization-request-timeout-ms=300000", "--authorization-session-timeout-ms=7500000"])
+    if (parsed.help) throw new Error("Unexpected help")
+    expect(validateRunConfig(parsed).mode).toBe("source")
+    expect((parsed as Record<string, unknown>)["authorization-session-timeout-ms"]).toBe(7500000)
+  }
+})
 test("ordinary inquiry budgets bound actual public execution and reject invalid limits before a provider", async () => {
   const { input, root } = await fixture(); let output = "", calls = 0, providers = 0
   const deps = { stdout: (s: string) => output = s, stderr: () => {}, providerFactory: () => { providers++; return { name: "mock", async complete(params: any) {

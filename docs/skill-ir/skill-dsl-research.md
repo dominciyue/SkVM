@@ -1856,6 +1856,8 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 **AV8请求生命周期。** 显式只读恢复政策`authorization-readonly-recovery/v1`在同一telemetry保留原timeout/unknown，本地消费者与远端状态分账；同请求一次、位置两次恢复共享派发预算。普通agent-loop的显式隔离阻止晚tool_calls/callback/continuation进入状态；fetch与Node helper传signal、取消后停止重试。独立AI复核发现晚error覆盖原timeout和关闭后的worklist读改变报告，两项匿名反例先失败再修复：晚error单列，关闭时冻结已知domain交付。113项联合测试/619断言通过，主类型通过；[复核与裁定](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/evaluations/av8-independent-review.json)及[验证/旧风险映射](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/verification/av8.json)保留责任。旧AU/AT/AS guard、原件与unknown未改；新Gitea development只在实际只读/空闲核验成立时准入，作者写文件不自动获得恢复资格，Notes/Memos仍不适用。provider/目标执行仍0，继续AV9公共接线；工程隔离不代表真实授权质量。
 
+**AV9双入口与有限登记。** 显式operation-evidence-v2接到原inquiry和native M/D1；匿名实际定位/原文读取/来源annotation/当前check/自然交付通过，完整声明不重复作者调用。缺conformance政策继续行为并保留独立比较未知；远端unknown与已关闭本地材料分账，最终snapshot失效撤回当前交付。只读AI复核未发现公共合同缺陷；runner复核发现attempt/raw路径及作者报告绑定缺口，两项失败测试确认后修复，并补实际native首请求/source index/安装bundle证据核对。139项联合测试/1029断言、主/AV严格类型通过。薄runner登记26位置、5份ready原/变输入、3份待AV14基线输入；check/replay provider与目标执行0，300秒请求/7500秒实际session一致，不以默认20分钟截断。完整原skill及companions已绑定SHA，消费仍待实际调用。作者用现有loop与只读来源工具，仅两个根文件可写，消费者须原稿忠实性/原字节绑定通过；不新增求值或恢复循环。[AV9验证](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/verification/av9.json)和[独立复核裁定](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/evaluations/av9-independent-review.json)保留原件。真实采用、完整质量与净收益尚未建立，继续AV10。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

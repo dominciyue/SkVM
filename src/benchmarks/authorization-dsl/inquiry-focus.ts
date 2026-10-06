@@ -12,7 +12,7 @@ import { SemanticResultSchema, semanticResultSkeleton } from "./inquiry-semantic
 import type { DependencyCheckState } from "../../task-dsl/authorization/control-conclusion.ts"
 import { FINITE_PERMISSION_GUIDE } from "../../task-dsl/authorization/control-evaluation.ts"
 import { selectSourceCandidates } from "./evidence-preparation/source-selector.ts"
-import { lowerSourceInterpretation, SOURCE_INTERPRETATION_GUIDE, type SourceInterpretation } from "../../task-dsl/authorization/source-interpretation.ts"
+import { lowerSourceInterpretation, SourceInterpretationSchema, SOURCE_INTERPRETATION_GUIDE, type SourceInterpretation } from "../../task-dsl/authorization/source-interpretation.ts"
 import type { SourceSkeleton } from "./evidence-preparation/source-skeleton.ts"
 
 export type FocusStage = "locate" | "interpret" | "link" | "review" | "answer"
@@ -33,9 +33,17 @@ const actions = {
 const defer = z.object({ ...common, kind: z.literal("defer"), reason: InquiryText, revisit: InquiryText.optional(), nextItemId: InquiryText.optional() }).strict()
 export const FocusedUpdateSchema = z.discriminatedUnion("kind", [actions.interpret, actions.locate, actions.link, actions.review, defer])
 export const FocusedUpdateEnvelopeSchema = z.discriminatedUnion("kind", [actions.interpret.extend({ unit: z.unknown() }), actions.locate, actions.link, actions.review, defer])
-export function focusedUpdateSchema(stage?: FocusStage, parsing = false, operation = false) {
+export const SourceUpdateSchema = z.object({ schemaVersion: z.literal("authorization-source-update/v1"), kind: z.literal("interpret"), focusId: InquiryText, interpretation: SourceInterpretationSchema, reason: InquiryText.optional() }).strict()
+export function focusedUpdateSchema(stage?: FocusStage, parsing = false, operation = false, sourceAssisted = false) {
   const interpret = operation ? actions.interpret : actions.interpret.omit({ also: true })
   const parsedInterpret = parsing ? interpret.extend({ unit: z.unknown() }) : interpret
+  if (sourceAssisted) {
+    const source = parsing ? SourceUpdateSchema.extend({ interpretation: z.unknown() }) : SourceUpdateSchema
+    const fallback = parsedInterpret.extend({ reason: InquiryText })
+    if (stage === "answer") return defer
+    if (stage === "interpret") return z.union([source, fallback, actions.locate, defer])
+    return stage ? z.union([actions[stage], defer]) : z.union([source, fallback, actions.locate, actions.link, actions.review, defer])
+  }
   if (stage === "answer") return defer
   if (stage === "interpret") return z.union([parsedInterpret, actions.locate, defer])
   return stage ? z.union([actions[stage], defer]) : z.discriminatedUnion("kind", [parsedInterpret, actions.locate, actions.link, actions.review, defer])

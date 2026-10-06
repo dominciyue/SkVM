@@ -17,7 +17,7 @@ import { TIMEOUT_DEFAULTS } from "../core/timeouts.ts"
 import { hasUsageTelemetry } from "../core/run-record.ts"
 import { createSpinner } from "../core/spinner.ts"
 import { c } from "../core/logger.ts"
-import { InquiryStrategySchema } from "../task-dsl/authorization/control-slice.ts"
+import { InquiryStrategySchema, isOperationInquiryStrategy } from "../task-dsl/authorization/control-slice.ts"
 import { NativeInquiryMethods } from "../task-dsl/authorization/operation-program.ts"
 
 /** Tied to `SkillMode` at compile time so the flag spec cannot drift. */
@@ -78,13 +78,16 @@ export const RUN_FLAGS = defineFlags(
     "authorization-scope": { kind: "string", placeholder: "<path>", help: "Opt into bounded read-only authorization source tools using an inquiry input file (bare-agent)." },
     "authorization-domain-tools": { kind: "bool", help: "Enable inquiry compilation, relation observations and result checking in the restricted source run." },
     "authorization-strategy": { kind: "enum", values: InquiryStrategySchema.options, placeholder: "<v>", help: "Optional domain dependency scheduling, finite branch evaluation and conclusion checks; requires source scope and domain tools." },
-    "authorization-method": { kind: "enum", values: NativeInquiryMethods, placeholder: "<m>", help: "operation-evidence-v1 frontend: M preserves the whole natural task (default); D1 counts a model-authored declaration in the same run." },
+    "authorization-method": { kind: "enum", values: NativeInquiryMethods, placeholder: "<m>", help: "operation-evidence-v1/v2 frontend: M preserves the whole natural task (default); D1 counts a model-authored declaration in the same run." },
     "authorization-trace": { kind: "string", placeholder: "<path>", help: "Save the restricted authorization tool and provider trace outside target source." },
     "authorization-max-provider-calls": { kind: "int", min: 1, help: "Restricted authorization provider dispatch cap, including retries (default: 12)." },
     "authorization-max-tool-calls": { kind: "int", min: 1, help: "Restricted authorization shared source/domain tool cap (default: 24)." },
     "authorization-max-display-bytes": { kind: "int", min: 1, help: "Restricted authorization cumulative original source display cap (default: 262144)." },
     "authorization-max-read-bytes": { kind: "int", min: 1, help: "Restricted authorization physical/index source read cap (default: 8388608)." },
     "authorization-max-output-tokens": { kind: "int", min: 1, max: Number.MAX_SAFE_INTEGER, help: "Optional restricted authorization output token cap per actual provider request." },
+    "authorization-request-timeout-ms": { kind: "int", min: 1, max: Number.MAX_SAFE_INTEGER, help: "Restricted authorization per-request timeout in milliseconds (default: 300000)." },
+    "authorization-session-timeout-ms": { kind: "int", min: 1, max: Number.MAX_SAFE_INTEGER, help: "Explicit restricted authorization session cap in milliseconds; includes all requests and recoveries." },
+    "authorization-readonly-recovery": { kind: "bool", help: "Enable bounded versioned recovery for registered read-only source tools after idle/known-state checks; operation-evidence-v2 enables it by default." },
     "timeout-ms": {
       kind: "int",
       min: 1,
@@ -157,8 +160,8 @@ export type ValidatedRunConfig = {
 }
 
 export function validateRunConfig(config: RunConfig): ValidatedRunConfig {
-  if ((config["authorization-domain-tools"] || config["authorization-trace"] || config["authorization-strategy"] || config["authorization-method"] || config["authorization-max-provider-calls"] || config["authorization-max-tool-calls"] || config["authorization-max-display-bytes"] || config["authorization-max-read-bytes"] || config["authorization-max-output-tokens"]) && !config["authorization-scope"]) throw new UsageError("run: authorization tools/trace/strategy/method/budgets require --authorization-scope", RUN_FLAGS.help)
-  if (config["authorization-method"] && (config["authorization-strategy"] !== "operation-evidence-v1" || !config["authorization-domain-tools"])) throw new UsageError("run: authorization-method requires operation-evidence-v1 and --authorization-domain-tools", RUN_FLAGS.help)
+  if ((config["authorization-domain-tools"] || config["authorization-trace"] || config["authorization-strategy"] || config["authorization-method"] || config["authorization-max-provider-calls"] || config["authorization-max-tool-calls"] || config["authorization-max-display-bytes"] || config["authorization-max-read-bytes"] || config["authorization-max-output-tokens"] || config["authorization-request-timeout-ms"] || config["authorization-session-timeout-ms"] || config["authorization-readonly-recovery"]) && !config["authorization-scope"]) throw new UsageError("run: authorization tools/trace/strategy/method/budgets require --authorization-scope", RUN_FLAGS.help)
+  if (config["authorization-method"] && (!isOperationInquiryStrategy(config["authorization-strategy"]) || !config["authorization-domain-tools"])) throw new UsageError("run: authorization-method requires operation-evidence-v1 or operation-evidence-v2 and --authorization-domain-tools", RUN_FLAGS.help)
   if (config["authorization-strategy"] && config["authorization-strategy"] !== "legacy" && !config["authorization-domain-tools"]) throw new UsageError(`run: ${config["authorization-strategy"]} requires --authorization-domain-tools`, RUN_FLAGS.help)
   if (config["authorization-scope"] && (config.adapter !== "bare-agent" || config.optimize || config["resume-optimization"])) throw new UsageError("run: authorization source scope requires bare-agent source execution", RUN_FLAGS.help)
   const hasTask = config.task !== undefined
@@ -409,7 +412,7 @@ export async function runRun(config: RunConfig): Promise<void> {
     timeoutMs: runRuntime.timeoutMs,
     idleTimeoutMs: config["idle-timeout-ms"],
     mode: adapterModeRun,
-    ...(config["authorization-scope"] ? { providerOptions: { authorizationScope: path.resolve(config["authorization-scope"]), authorizationDomainTools: config["authorization-domain-tools"] === true, authorizationMaxProviderCalls: config["authorization-max-provider-calls"], authorizationMaxToolCalls: config["authorization-max-tool-calls"], authorizationMaxDisplayBytes: config["authorization-max-display-bytes"], authorizationMaxReadBytes: config["authorization-max-read-bytes"], authorizationMaxOutputTokens: config["authorization-max-output-tokens"], ...(config["authorization-method"] ? { authorizationMethod: config["authorization-method"] } : {}), ...(config["authorization-strategy"] ? { authorizationStrategy: config["authorization-strategy"] } : {}), ...(config["authorization-trace"] ? { authorizationTraceDir: path.resolve(config["authorization-trace"] + ".events") } : {}) } } : {}),
+    ...(config["authorization-scope"] ? { providerOptions: { authorizationScope: path.resolve(config["authorization-scope"]), authorizationDomainTools: config["authorization-domain-tools"] === true, authorizationMaxProviderCalls: config["authorization-max-provider-calls"], authorizationMaxToolCalls: config["authorization-max-tool-calls"], authorizationMaxDisplayBytes: config["authorization-max-display-bytes"], authorizationMaxReadBytes: config["authorization-max-read-bytes"], authorizationMaxOutputTokens: config["authorization-max-output-tokens"], authorizationRequestTimeoutMs: config["authorization-request-timeout-ms"], authorizationSessionTimeoutMs: config["authorization-session-timeout-ms"], authorizationReadonlyRecovery: config["authorization-readonly-recovery"] === true, ...(config["authorization-method"] ? { authorizationMethod: config["authorization-method"] } : {}), ...(config["authorization-strategy"] ? { authorizationStrategy: config["authorization-strategy"] } : {}), ...(config["authorization-trace"] ? { authorizationTraceDir: path.resolve(config["authorization-trace"] + ".events") } : {}) } } : {}),
   }
 
   const adapter = createAdapter(harness)

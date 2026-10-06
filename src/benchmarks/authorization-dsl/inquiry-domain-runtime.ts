@@ -1,5 +1,5 @@
 import type { AuthorizationInquiryProgram } from "../../task-dsl/authorization/inquiry-program.ts"
-import { ControlSliceDeltaSchema, createControlSlice, mergeControlSlice, isGuidedInquiryStrategy, isSemanticInquiryStrategy, isFocusedInquiryStrategy, type ControlSlice, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
+import { ControlSliceDeltaSchema, createControlSlice, mergeControlSlice, isGuidedInquiryStrategy, isSemanticInquiryStrategy, isFocusedInquiryStrategy, isOperationInquiryStrategy, type ControlSlice, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { evaluateControlPaths, checkControlConclusions, controlObjectDiagnostics, summarizeControlQuestions } from "../../task-dsl/authorization/control-conclusion.ts"
 import type { InquiryDiagnostic } from "../../task-dsl/authorization/inquiry.ts"
 import { AuthorizationInquiryResultSchema } from "../../task-dsl/authorization/inquiry-result.ts"
@@ -49,7 +49,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   let currentRejections: UpdateRejection[] = []
   const rejectedDrafts = new Map<string, RejectedDraft>()
   const draftIdentity = (p: Pick<UpdateRejection, "group" | "questionId" | "targetKey">) => JSON.stringify([p.group, p.questionId, p.targetKey])
-  const operationEvidence = options.strategy === "operation-evidence-v1"
+  const operationEvidence = isOperationInquiryStrategy(options.strategy)
   const worklist = isGuidedInquiryStrategy(options.strategy) ? createInquiryWorklist({ ...options, structural: operationEvidence, requireEntryBasis: options.sourceAssisted, semanticUnits: () => semanticUnits, dependencyStates: () => scheduler.snapshot(), skeletonState: (id, receiver) => sourceSkeletons.get(skeletonKey(id, receiver)) }) : undefined
   const facts = operationEvidence ? createOperationFacts(options.program, options.tools.identity) : undefined
   let semanticUnits: BoundSemanticBlock[] = structuredClone(options.initialSemanticUnits ?? [])
@@ -341,7 +341,17 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
       retainedSources: semanticUnits.filter(u => u.source && sourceCurrent(u.source)).map(u => ({ questionId: u.questionId, handle: u.handle, source: u.source, complete: u.complete, explanations: [...new Set(u.blocks.flatMap(b => b.steps.map(s => s.claim)))], semanticSupport: "unreviewed" as const })), semanticSupport: "unreviewed" as const }
   }
   let closedDelivery: ReturnType<typeof liveDeliverySnapshot> | undefined
-  const deliverySnapshot = () => structuredClone(closedDelivery ?? liveDeliverySnapshot())
+  const deliverySnapshot = () => {
+    const delivery = structuredClone(closedDelivery ?? liveDeliverySnapshot())
+    // Final verification runs after closing the local consumers. It is an
+    // explicit host result, not a late model update, and withdraws stale claims
+    // without changing the frozen proposal/check history.
+    if (options.sourceAssisted && options.tools.snapshotVerification?.valid === false) {
+      delivery.machineAnswer = undefined; delivery.check = undefined; delivery.retainedSources = []
+      if (!delivery.gaps.some(g => g.code === "source-invalidated")) delivery.gaps.push({ kind: "source-gap", code: "source-invalidated", detail: "Final source snapshot verification failed; retained analysis is historical and requires a fresh session.", affects: "behavior" })
+    }
+    return delivery
+  }
   const feedback = () => ({ revision: slice.revision,
     rules: slice.rules.map(({ key, questionId, pathKey, kind, after, condition, bindingKey, bindingKind, principal, resource, digest }) => ({ key, questionId, pathKey, kind, after, condition, bindingKey, bindingKind, principal, resource, digest })),
     bindings: slice.bindings, policyRules: slice.policyRules, dependencies: scheduler.snapshot(), paths: lastPaths,
@@ -427,5 +437,10 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   }
   const liveReport = () => ({ slice: structuredClone(slice), proposals: structuredClone(proposals), sourceWorkMetrics: options.sourceAssisted ? sourceWorkMetrics() : undefined, delivery: options.sourceAssisted ? deliverySnapshot() : undefined, currentRejections: structuredClone(currentRejections), localExtractions: structuredClone(localExtractions), ...(facts ? { operationFacts: facts.snapshot(), sourceLinks: structuredClone(sourceLinks), structure: options.tools.structure ? { schemaVersion: options.tools.structure.schemaVersion, revision: options.tools.structure.revision, parser: options.tools.structure.parser, relationshipVersion: options.tools.structure.relationshipVersion, preparation: options.tools.structure.preparation, diagnostics: options.tools.structure.diagnostics } : undefined } : {}), ...(isSemanticInquiryStrategy(options.strategy) ? { semantic: { units: structuredClone(semanticUnits), records: structuredClone(semanticRecords), assemblies: structuredClone(assemblies) } } : {}), ...(focus ? { focus: focus.report() } : {}), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions), ...worklist.report() } } : {}), objectFeedback: { revision: objectRevision, diagnostics: structuredClone(objectDiagnostics) }, check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed })
   let closedReport: ReturnType<typeof liveReport> | undefined
-  return { propose, sync, validate, assembleResult, feedback, modelContext, promptContext, modelFeedback, deliverySnapshot, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { if (closed) return; closed = true; closedDelivery = liveDeliverySnapshot(); closedReport = liveReport() }, report: () => structuredClone(closedReport ?? liveReport()) }
+  const report = () => {
+    const result = structuredClone(closedReport ?? liveReport())
+    if (options.sourceAssisted && options.tools.snapshotVerification?.valid === false) { result.check = undefined; result.delivery = deliverySnapshot() }
+    return result
+  }
+  return { propose, sync, validate, assembleResult, feedback, modelContext, promptContext, modelFeedback, deliverySnapshot, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { if (closed) return; closed = true; closedDelivery = liveDeliverySnapshot(); closedReport = liveReport() }, report }
 }

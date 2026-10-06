@@ -10,8 +10,9 @@ export function parseNativeInquiryMethod(value: unknown): typeof NativeInquiryMe
 export interface InquiryOperation { id: string; request: string; entryHint?: string; sourceQuestionId: string; explicit: boolean }
 export interface OperationQuestion { questionId: string; operationId: string; intent: ObligationIntent }
 /** The ordinary natural frontend preserves one full task, without source hints or model answers. */
-export function normalizeNaturalOperation(brief: string, mode: "behavior" | "conformance", policy?: AuthorizationInquiry["policy"]) {
-  return AuthorizationInquiryV2Schema.parse({ schemaVersion: "authorization-inquiry/v2", mode, operations: [{ id: "operation-1", request: brief }], questions: [{ id: "q1", operationId: "operation-1", intent: "behavior", request: brief, premises: [] }], ...(policy ? { policy: structuredClone(policy) } : {}) })
+export function normalizeNaturalOperation(brief: string, mode: "behavior" | "conformance", policy?: AuthorizationInquiry["policy"], options: { allowMissingPolicy?: boolean } = {}) {
+  const value = AuthorizationInquiryV2Schema.parse({ schemaVersion: "authorization-inquiry/v2", mode: options.allowMissingPolicy && mode === "conformance" && !policy ? "behavior" : mode, operations: [{ id: "operation-1", request: brief }], questions: [{ id: "q1", operationId: "operation-1", intent: "behavior", request: brief, premises: [] }], ...(policy ? { policy: structuredClone(policy) } : {}) })
+  return { ...value, mode }
 }
 /** v1 never guesses grouping. v2 declares shared work, not a verified source identity. */
 export function normalizeInquiryOperations(input: AuthorizationInquiry) {

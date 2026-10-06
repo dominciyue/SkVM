@@ -38,6 +38,9 @@ describe("RUN_FLAGS.parse — typed config", () => {
       "authorization-max-display-bytes": undefined,
       "authorization-max-read-bytes": undefined,
       "authorization-max-output-tokens": undefined,
+      "authorization-request-timeout-ms": undefined,
+      "authorization-session-timeout-ms": undefined,
+      "authorization-readonly-recovery": false,
       "timeout-ms": undefined,
       "idle-timeout-ms": undefined,
       "max-steps": undefined,
@@ -83,6 +86,9 @@ describe("RUN_FLAGS.parse — typed config", () => {
       "authorization-max-display-bytes": undefined,
       "authorization-max-read-bytes": undefined,
       "authorization-max-output-tokens": undefined,
+      "authorization-request-timeout-ms": undefined,
+      "authorization-session-timeout-ms": undefined,
+      "authorization-readonly-recovery": false,
       "timeout-ms": 90000,
       "idle-timeout-ms": 30000,
       "max-steps": 12,
@@ -195,13 +201,16 @@ Options:
   --authorization-scope=<path>                Opt into bounded read-only authorization source tools using an inquiry input file (bare-agent).
   --authorization-domain-tools                Enable inquiry compilation, relation observations and result checking in the restricted source run.
   --authorization-strategy=<v>                Optional domain dependency scheduling, finite branch evaluation and conclusion checks; requires source scope and domain tools.
-  --authorization-method=<m>                  operation-evidence-v1 frontend: M preserves the whole natural task (default); D1 counts a model-authored declaration in the same run.
+  --authorization-method=<m>                  operation-evidence-v1/v2 frontend: M preserves the whole natural task (default); D1 counts a model-authored declaration in the same run.
   --authorization-trace=<path>                Save the restricted authorization tool and provider trace outside target source.
   --authorization-max-provider-calls=<n>      Restricted authorization provider dispatch cap, including retries (default: 12).
   --authorization-max-tool-calls=<n>          Restricted authorization shared source/domain tool cap (default: 24).
   --authorization-max-display-bytes=<n>       Restricted authorization cumulative original source display cap (default: 262144).
   --authorization-max-read-bytes=<n>          Restricted authorization physical/index source read cap (default: 8388608).
   --authorization-max-output-tokens=<n>       Optional restricted authorization output token cap per actual provider request.
+  --authorization-request-timeout-ms=<n>      Restricted authorization per-request timeout in milliseconds (default: 300000).
+  --authorization-session-timeout-ms=<n>      Explicit restricted authorization session cap in milliseconds; includes all requests and recoveries.
+  --authorization-readonly-recovery           Enable bounded versioned recovery for registered read-only source tools after idle/known-state checks; operation-evidence-v2 enables it by default.
   --timeout-ms=<n>                            Override the per-task agent execution timeout (ms).
                                               This caps how long the target adapter spends solving
                                               one task. Falls back to task.json's \`timeoutMs\`,

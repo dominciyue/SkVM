@@ -141,7 +141,7 @@ export class BareAgentAdapter implements AgentAdapter {
   async setup(config: AdapterConfig): Promise<void> {
     if (config.providerOptions?.authorizationMethod !== undefined) {
       ;(await import("../task-dsl/authorization/operation-program.ts")).parseNativeInquiryMethod(config.providerOptions.authorizationMethod)
-      if (!config.providerOptions.authorizationScope || config.providerOptions.authorizationStrategy !== "operation-evidence-v1" || config.providerOptions.authorizationDomainTools !== true) throw new Error("authorization-method requires source scope, operation-evidence-v1 and domain-tools")
+      if (!config.providerOptions.authorizationScope || !["operation-evidence-v1", "operation-evidence-v2"].includes(String(config.providerOptions.authorizationStrategy)) || config.providerOptions.authorizationDomainTools !== true) throw new Error("authorization-method requires source scope, operation-evidence-v1 or operation-evidence-v2 and domain-tools")
     }
     if (config.providerOptions?.authorizationStrategy !== undefined) {
       const strategy = (await import("../task-dsl/authorization/control-slice.ts")).parseInquiryStrategy(config.providerOptions.authorizationStrategy)
@@ -202,10 +202,12 @@ Available skills:
 - **${skillName}**: ${task.skill!.meta.description}`
     }
     const authorizationProviderLimit = Math.min(typeof this.providerOptions.authorizationMaxProviderCalls === "number" ? this.providerOptions.authorizationMaxProviderCalls : 12, this.maxSteps)
+    const authorizationIsolated = this.providerOptions.authorizationStrategy === "operation-evidence-v2" || this.providerOptions.authorizationReadonlyRecovery === true
+    const authorizationSessionMs = typeof this.providerOptions.authorizationSessionTimeoutMs === "number" ? this.providerOptions.authorizationSessionTimeoutMs : task.timeoutMs ?? this.timeoutMs
     const restricted = typeof this.providerOptions.authorizationScope === "string"
       ? await (await import("../benchmarks/authorization-dsl/inquiry-native.ts")).createNativeInquiryRuntime({ inputFile: this.providerOptions.authorizationScope, workDir: task.workDir, domainTools: this.providerOptions.authorizationDomainTools === true, method: (await import("../task-dsl/authorization/operation-program.ts")).parseNativeInquiryMethod(this.providerOptions.authorizationMethod), strategy: (await import("../task-dsl/authorization/control-slice.ts")).parseInquiryStrategy(this.providerOptions.authorizationStrategy), skillContent: task.skill?.content, maxProviderCalls: authorizationProviderLimit, maxToolCalls: typeof this.providerOptions.authorizationMaxToolCalls === "number" ? this.providerOptions.authorizationMaxToolCalls : undefined, maxDisplayBytes: typeof this.providerOptions.authorizationMaxDisplayBytes === "number" ? this.providerOptions.authorizationMaxDisplayBytes : undefined, maxReadBytes: typeof this.providerOptions.authorizationMaxReadBytes === "number" ? this.providerOptions.authorizationMaxReadBytes : undefined, maxOutputTokens: typeof this.providerOptions.authorizationMaxOutputTokens === "number" ? this.providerOptions.authorizationMaxOutputTokens : undefined, traceDir: typeof this.providerOptions.authorizationTraceDir === "string" ? this.providerOptions.authorizationTraceDir : undefined })
       : undefined
-    const telemetry = restricted ? (await import("../benchmarks/authorization-dsl/telemetry.ts")).createTelemetryProvider(activeProvider, { executableToolNames: restricted.definitions.map(t => t.name), maxDispatches: authorizationProviderLimit, perCallTimeoutMs: 300000, unitTimeoutMs: Math.min(task.timeoutMs ?? this.timeoutMs, 1200000), beforeDispatch: restricted.beforeDispatch, onEvent: restricted.onEvent }) : undefined
+    const telemetry = restricted ? (await import("../benchmarks/authorization-dsl/telemetry.ts")).createTelemetryProvider(activeProvider, { executableToolNames: restricted.definitions.map(t => t.name), maxDispatches: authorizationProviderLimit, perCallTimeoutMs: typeof this.providerOptions.authorizationRequestTimeoutMs === "number" ? this.providerOptions.authorizationRequestTimeoutMs : 300000, unitTimeoutMs: authorizationIsolated || this.providerOptions.authorizationSessionTimeoutMs !== undefined ? authorizationSessionMs : Math.min(authorizationSessionMs, 1200000), beforeDispatch: restricted.beforeDispatch, onEvent: restricted.onEvent, ...(authorizationIsolated ? { readonlyRecovery: { policyVersion: "authorization-readonly-recovery/v1", toolNames: restricted.definitions.map(t => t.name), verifyLocalState: restricted.verifyReadonlyState } } : {}) }) : undefined
     if (restricted && telemetry) { activeProvider = telemetry.provider; system += `\n\n${restricted.system}` }
 
     // --- Hook: beforeLLM (short-circuit support) ---
@@ -229,6 +231,7 @@ Available skills:
     // Create a wrapper provider that handles beforeLLM hooks and discover mode
     const wrappedProvider: LLMProvider = {
       name: activeProvider.name,
+      supportsAbortSignal: activeProvider.supportsAbortSignal,
 
       complete: async (params) => {
         // Check beforeLLM hooks for short-circuit
@@ -291,7 +294,7 @@ Available skills:
         executeTool: restricted?.execute ?? createToolExecutor(task.workDir),
         system,
         maxIterations: this.maxSteps,
-        timeoutMs: task.timeoutMs ?? this.timeoutMs,
+        timeoutMs: restricted ? authorizationSessionMs : task.timeoutMs ?? this.timeoutMs,
         maxTokens: restricted ? 6000 : 16384,
         runtimeTrace: task.runtimeTrace,
         // bare-agent's tool executor spawns isolated shell subprocesses per
@@ -299,7 +302,7 @@ Available skills:
         // annotation: when a skill hints the model to batch independent
         // tool_use blocks in one turn, we actually execute them concurrently.
         parallelToolExecution: !restricted,
-        ...(restricted ? { toolHistoryCharacterLimit: Number.MAX_SAFE_INTEGER, stopBeforeIterationLimit: true } : {}),
+        ...(restricted ? { toolHistoryCharacterLimit: Number.MAX_SAFE_INTEGER, stopBeforeIterationLimit: true, isolateLateResponses: authorizationIsolated } : {}),
         onAfterLLM: async (response, iteration) => {
           assistantMessages++; requestedTools += response.toolCalls.length; lastResponse = response
           if (task.skill?.mode === "discover" && !discoverSkillLoaded) {
@@ -332,7 +335,7 @@ Available skills:
     } catch (cause) {
       if (!restricted || !telemetry) throw cause
       const summary = telemetry.summary(), error = cause instanceof Error ? cause : new Error(String(cause))
-      loopResult = { text: telemetry.attempts.at(-1)?.response?.text ?? "", steps: [], tokens: summary.knownTokens, llmDurationMs: telemetry.attempts.reduce((n, a) => n + (a.response?.durationMs ?? 0), 0), iterations: telemetry.attempts.length, allToolCalls, error, timedOut: error.name === "AuthorizationCallTimeoutError" }
+      loopResult = { text: (authorizationIsolated ? telemetry.attempts.filter(a => a.localConsumer === "accepted").at(-1) : telemetry.attempts.at(-1))?.response?.text ?? "", steps: [], tokens: summary.knownTokens, llmDurationMs: telemetry.attempts.reduce((n, a) => n + (a.response?.durationMs ?? 0), 0), iterations: telemetry.attempts.length, allToolCalls, error, timedOut: error.name === "AuthorizationCallTimeoutError" }
     } finally {
       await telemetry?.close("ordinary-skill-run-ended")
       await restricted?.close()

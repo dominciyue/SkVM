@@ -5,9 +5,11 @@ import type { AuthorizationInquiryProgram } from "./inquiry-program.ts"
 import type { InquiryEvidenceContext } from "./inquiry-result.ts"
 import { predicateDiagnostics, type FiniteValue } from "./control-evaluation.ts"
 
-export type InquiryStrategy = "legacy" | "domain-evidence-v1" | "guided-evidence-v2" | "semantic-flow-v1" | "focused-closure-v1" | "operation-evidence-v1"
-export const InquiryStrategySchema = z.enum(["legacy", "domain-evidence-v1", "guided-evidence-v2", "semantic-flow-v1", "focused-closure-v1", "operation-evidence-v1"])
-export const isFocusedInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "focused-closure-v1" || strategy === "operation-evidence-v1"
+export type InquiryStrategy = "legacy" | "domain-evidence-v1" | "guided-evidence-v2" | "semantic-flow-v1" | "focused-closure-v1" | "operation-evidence-v1" | "operation-evidence-v2"
+export const InquiryStrategySchema = z.enum(["legacy", "domain-evidence-v1", "guided-evidence-v2", "semantic-flow-v1", "focused-closure-v1", "operation-evidence-v1", "operation-evidence-v2"])
+export const isOperationInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "operation-evidence-v1" || strategy === "operation-evidence-v2"
+export const isSourceAssistedInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "operation-evidence-v2"
+export const isFocusedInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "focused-closure-v1" || isOperationInquiryStrategy(strategy)
 export const isSemanticInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "semantic-flow-v1" || isFocusedInquiryStrategy(strategy)
 export const isGuidedInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "guided-evidence-v2" || isSemanticInquiryStrategy(strategy)
 export function parseInquiryStrategy(input: unknown): InquiryStrategy {

@@ -38,6 +38,13 @@ export const AuthorizationInquiryV2Schema = z.object({
   value.operations.forEach((o, i) => { if (!value.questions.some(q => q.operationId === o.id)) context.addIssue({ code: z.ZodIssueCode.custom, path: ["operations", i], message: "operation-unused: each operation needs a question." }) })
 })
 export const AuthorizationInquirySchema = z.union([AuthorizationInquiryV1Schema, AuthorizationInquiryV2Schema])
+/** Source-assisted analysis can report behavior while a requested policy comparison is unresolved. */
+export const AuthorizationSourceInquirySchema = z.unknown().transform((input, context) => {
+  const absentPolicy = input && typeof input === "object" && !Array.isArray(input) && (input as Record<string, unknown>).mode === "conformance" && (input as Record<string, unknown>).policy === undefined
+  const parsed = AuthorizationInquirySchema.safeParse(absentPolicy ? { ...input, mode: "behavior" } : input)
+  if (!parsed.success) { for (const issue of parsed.error.issues) context.addIssue(issue); return z.NEVER }
+  return absentPolicy ? { ...parsed.data, mode: "conformance" as const } : parsed.data
+})
 export type AuthorizationInquiry = z.infer<typeof AuthorizationInquirySchema>
 export type ObligationIntent = z.infer<typeof ObligationIntentSchema>
 export type InquiryQuestion = z.infer<typeof InquiryQuestionSchema> & { operationId?: string; intent?: ObligationIntent }
