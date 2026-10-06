@@ -299,7 +299,7 @@ export async function runAgentLoop(
         repeatCount++
         if (repeatCount >= 3) {
           log.warn(`Loop detected: same action repeated ${repeatCount} times, breaking`)
-          finalText = response.text
+          loopError = new Error("Agent repeated tool action before natural completion")
           break
         }
       } else {

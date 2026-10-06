@@ -2556,7 +2556,11 @@ AV11共享修复决定：锚点interpretationRequired只表示该条件/call/ret
 
 Go机械来源覆盖包含multiline链式route及if initializer的实际调用/实参/结果；initializer在其条件前执行，嵌套else-if仍受外层分支约束。只规范verb识别的空白，来源表达式/行范围保持。unsupported loop/short-circuit/dynamic-call不无条件展平；零调用probe仅证明语法覆盖，不判定授权语义。
 
-模块级直接构造的唯一无重赋值实例可沿实际import绑定到唯一来源class，再经既有C3方法查找形成候选；绑定只证明来源关系，不证明查询/授权语义。动态factory、条件或重复赋值、来源同名歧义和当前函数的参数/局部shadow不得退回全局实例。来源文件、import与候选依赖必须进入原有revision合同，旧关系版本失效须可查。`source-bindings/v4`已按匿名双文件正例及shadow/rebind/global-write/条件import反例实现，模块实例声明文件SHA与class SHA进入依赖。173文件零调用probe能沿Files实例定位两真实方法；同题付费语义复验待执行，不注入预期授权答案。旧Download两份v3材料均失效，原件不修改；先当前版本普通原任务基线，再从其完整声明登记变化输入，准备/声明成本保留。
+模块级直接构造的唯一无重赋值实例可沿实际import绑定到唯一来源class，再经既有C3方法查找形成候选；绑定只证明来源关系，不证明查询/授权语义。动态factory、条件或重复赋值、来源同名歧义和当前函数的参数/局部shadow不得退回全局实例。来源文件、import与候选依赖必须进入原有revision合同，旧关系版本失效须可查。`source-bindings/v4`已按匿名双文件正例及shadow/rebind/global-write/条件import反例实现，模块实例声明文件SHA与class SHA进入依赖。173文件零调用probe及当前同题wire复验均沿Files实例定位两真实方法；解释完整性仍未达，不注入预期授权答案。旧Download两份v3材料均失效，原件不修改；当前版本普通原任务基线和完整声明变化输入已登记，准备/声明成本保留。
+
+完成状态合同：连续三次同tool action触发既有防循环时，agent-loop返回明确error并保留真实调用账，不能将中间response text提升为final或记completed。该阈值和预算不扩展，不自动补一次生成。native研究归档除正确来源/完整skill、进程退出0和自然terminal外，还必须有非空原始final；工具停止和空end_turn分别是terminal-absent/empty-final，不能计交付。该资格不替代语义质量评阅，也不限制合法的纯artifact作者任务。历史状态原件不重写，零调用重判与新实际尝试分列。
+
+当前v4实际OWUI wire复验22/22，读取两真实File方法；源关系定位采用已证明，解释仍1单元/9步骤、rule false和partial。当前普通Download基线22/22接受1单元，但没有保留source/fact dependency footprint；三种v4变化输入零compare均0恢复/1失效，不从接受单元数制造材料收益。用户暂缓六个变化与六个质量位置，新配置端点尚未调用；逻辑模型ID保持但后台身份未知。后续比较仍须绑定相同当前版本/端点，跨端点准备及失败成本单列；不将暂缓队列标为完成，不以确定性测试推断语义收益。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 

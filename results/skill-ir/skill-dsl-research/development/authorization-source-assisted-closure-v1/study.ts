@@ -183,6 +183,14 @@ export function nativeInvocation(position: Position, manifest: Manifest, options
   return args
 }
 
+export function nativeCompletionStatus(input: { arm: Position["arm"]; cliExitCode: number; processExitCode: number; terminalPresent: boolean; final: string; checkedResult: boolean; provenanceErrors: string[] }) {
+  if (input.provenanceErrors.length) return "native-provenance-mismatch"
+  if (input.cliExitCode !== 0 || input.processExitCode !== 0) return "native-process-failed"
+  if (!input.terminalPresent) return "native-terminal-absent"
+  if (!input.final.trim()) return "native-empty-final"
+  return input.arm === "N" ? "native-delivered" : input.checkedResult ? "native-checked-delivered" : "native-partial-delivered"
+}
+
 async function runAuthor(position: Position, manifest: Manifest, inputFile: string, directory: string, revision?: { label: string; parent: string }) {
   const b = manifest.budgets, loaded = await loadInquiryInput(inputFile), workDir = path.join(directory, "workspace"), skill = await loadSkill(path.resolve(root, manifest.skills[position.task].file))
   await mkdir(workDir); await copySourceSnapshot({ ...loaded.context, maxReadBytes: b.maxReadBytes, maxFiles: b.maxFiles }, path.join(workDir, "source"))
@@ -298,7 +306,7 @@ export async function run(id: string, revision?: { label: string; parent: string
       } else errors.push("Installed skill resource root is not bound in the actual request")
       await save(path.join(directory, "provenance.json"), { valid: errors.length === 0, errors, sourceFiles: provenance.sourceFiles, installedBundleSha256, originalInputSha256: originalInput.inputSha256, exactScopeSha256: sha(await readFile(scopeFile)), firstRequestFullSkill: system.includes(originalSkill.skillContent) })
       await gzipFile(traceFile, path.join(directory, "raw", "native-trace.json.gz"))
-      result = { status: errors.length ? "native-provenance-mismatch" : exitCode === 0 && observation.process.exitCode === 0 && observation.terminal.present ? position.arm === "N" ? "native-delivered" : native.result ? "native-checked-delivered" : "native-partial-delivered" : "native-process-failed", providerCalls: raw.attempts.length, raw: { kind: "native", file: "raw/native-trace.json.gz" }, final, ...(errors.length ? { error: errors.join("; ") } : exitCode || observation.process.exitCode ? { error: `CLI exit ${exitCode}, actual run exit ${observation.process.exitCode}; original stderr retained` } : {}) }
+      result = { status: nativeCompletionStatus({ arm: position.arm, cliExitCode: exitCode, processExitCode: observation.process.exitCode, terminalPresent: observation.terminal.present, final, checkedResult: !!native.result, provenanceErrors: errors }), providerCalls: raw.attempts.length, raw: { kind: "native", file: "raw/native-trace.json.gz" }, final, ...(errors.length ? { error: errors.join("; ") } : exitCode || observation.process.exitCode ? { error: `CLI exit ${exitCode}, actual run exit ${observation.process.exitCode}; original stderr retained` } : {}) }
     } else { await save(path.join(directory, "raw", "native-not-dispatched.json"), { attempts: [], events: [], exitCode }); result = { status: "native-trace-unavailable", providerCalls: null, raw: { kind: "native", file: "raw/native-not-dispatched.json" }, final: "", error: "No retained native trace; calls cannot be inferred from process output" } }
   }
   const report = AttemptReportSchema.parse({ schemaVersion: "authorization-av-attempt/v1", positionId: id, attemptId, revision: revision?.label ?? null, parent: revision?.parent ?? null, startedAt, implementationRevision, model: manifest.testedModel, inputSha256: loaded.inputSha256, sourceFiles: registration?.sourceFiles ?? manifest.inputs.find(i => i.id === `${position.task}-original`)!.sourceFiles, skillBundleSha256: position.kind === "debug" || position.kind === "variation" ? null : manifest.skills[position.task].bundleSha256, targetExecutions: 0, ...result })

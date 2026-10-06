@@ -2,7 +2,7 @@ import { expect, test } from "bun:test"
 import { mkdtemp, readFile, writeFile, mkdir } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
-import { selectPosition, modelInputPath, reserveAttempt, replayAccounting, positionTemplates, nativeInvocation, loadAdmittedAuthor, sha, archiveInquiryResult, configureStudyRuntime, currentStatus } from "./study.ts"
+import { selectPosition, modelInputPath, reserveAttempt, replayAccounting, positionTemplates, nativeInvocation, nativeCompletionStatus, loadAdmittedAuthor, sha, archiveInquiryResult, configureStudyRuntime, currentStatus } from "./study.ts"
 import { resolveConfigWritePath, invalidateConfigCache } from "../../../../../src/core/config.ts"
 import { executeLocalInquiryRun } from "../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts"
 import { RUN_FLAGS } from "../../../../../src/cli/run.ts"
@@ -69,6 +69,16 @@ test("raw replay counts one actual attempt once, including late usage, recovery 
   expect(replay.acceptedResponses).toBe(1)
   expect(replay.originalUnknownAttempts).toBe(1)
   expect(replay.summary.totalActualUsd).toBeCloseTo(0.3)
+})
+
+test("native completion requires a nonempty final from a natural terminal response", () => {
+  const base = { arm: "D-S" as const, cliExitCode: 0, processExitCode: 0, terminalPresent: true, final: "", checkedResult: false, provenanceErrors: [] as string[] }
+  expect(nativeCompletionStatus(base)).toBe("native-empty-final")
+  expect(nativeCompletionStatus({ ...base, arm: "N", checkedResult: true, final: " \n " })).toBe("native-empty-final")
+  expect(nativeCompletionStatus({ ...base, terminalPresent: false, final: "Still inspecting" })).toBe("native-terminal-absent")
+  expect(nativeCompletionStatus({ ...base, final: "Bounded report" })).toBe("native-partial-delivered")
+  expect(nativeCompletionStatus({ ...base, final: "Bounded report", checkedResult: true })).toBe("native-checked-delivered")
+  expect(nativeCompletionStatus({ ...base, arm: "N", final: "Bounded report" })).toBe("native-delivered")
 })
 
 test("all quality arms expose the same real session/output/recovery caps through the normal CLI", () => {

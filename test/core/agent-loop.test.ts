@@ -38,6 +38,18 @@ test("ordinary iteration budget prevents an unaccounted continuation and reports
   expect(result.allToolCalls).toHaveLength(1)
 })
 
+test("repeated tool actions stop as unfinished work without promoting intermediate text", async () => {
+  let calls = 0
+  const response = (): LLMResponse => ({ text: "Still investigating", toolCalls: [{ id: `c${++calls}`, name: "observe", arguments: { observations: [] } }], tokens: { input: 10, output: 5, cacheRead: 0, cacheWrite: 0 }, durationMs: 1, stopReason: "tool_use" })
+  const provider: LLMProvider = { name: "repeated-action", complete: async () => response(), completeWithToolResults: async () => response() }
+  const result = await runAgentLoop({ provider, model: "mock", tools: [], executeTool: async () => ({ output: "No new observations", durationMs: 0 }), system: "", maxIterations: 24, timeoutMs: 5000 }, [{ role: "user", content: "Inspect the source and deliver a report" }])
+  expect(calls).toBe(3)
+  expect(result.iterations).toBe(3)
+  expect(result.allToolCalls).toHaveLength(3)
+  expect(result.error?.message).toContain("repeated tool action")
+  expect(result.text).toBe("")
+})
+
 test("deferred tool history retains source identity and complete ordinary file windows", async () => {
   const body = "a".repeat(2500) + "decisive tail"
   let turn = 0, history: CompletionParams["messages"] = []

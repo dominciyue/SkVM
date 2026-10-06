@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "authorization-av-independent-review/v1",
+  "stage": "completion-state-repair",
+  "reviewer": "independent-readonly-AI-av18_completion_contract_review",
+  "status": "accepted-by-main-after-targeted-source-review",
+  "findings": [
+    { "file": "src/core/agent-loop.ts", "line": 297, "symbol": "runAgentLoop", "result": "The existing third identical action still stops the loop; it now sets loopError and never promotes intermediate response.text to finalText. Dispatch/action thresholds are unchanged." },
+    { "file": "test/core/agent-loop.test.ts", "line": 41, "result": "Regression detects the original bug with three calls/iterations/actions, explicit error, and empty final text." },
+    { "file": "src/adapters/bare-agent.ts", "line": 375, "result": "Existing loopResult.error mapping gives adapter-crashed, exit 1 and crash; terminal.present requires an ok run." },
+    { "file": "results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/study.ts", "line": 186, "symbol": "nativeCompletionStatus", "result": "Provenance/process failures precede terminal-absent and empty-final; valid nonempty N/checked/partial classifications remain." },
+    { "file": "results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/study.ts", "line": 229, "symbol": "runAuthor", "result": "Artifact admission still checks the two original files; there is no global rejection of empty prose after artifact writing." }
+  ],
+  "limits": "Readonly source review, not human review or an additional semantic model experiment. The new loop test does not directly assert adapter observation; the unchanged adapter mapping was inspected.",
+  "filesModifiedByReviewer": 0,
+  "providerCalls": 0,
+  "targetExecutions": 0
+}
