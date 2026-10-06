@@ -2,10 +2,11 @@ import path from "node:path"
 import { createHash } from "node:crypto"
 import { Parser, Language, type Node } from "@vscode/tree-sitter-wasm"
 import type { DiscoverySymbol } from "./discovery.ts"
+import type { FiniteValue } from "../../../task-dsl/authorization/control-evaluation.ts"
 
 export interface StructureSymbol extends DiscoverySymbol {
   qualifiedName: string; module: string; language: "python" | "go"; className?: string; receiver?: string;
-  parameters: Array<{ name: string; type?: string }>; returns: string[]; bases: string[]; attributes: Record<string, string>
+  parameters: Array<{ name: string; type?: string; defaultExpression?: string; defaultLiteralKnown?: boolean; defaultLiteralValue?: FiniteValue }>; returns: string[]; bases: string[]; attributes: Record<string, string>
 }
 export interface StructureCall {
   id: string; ownerId?: string; path: string; sha256: string; startLine: number; endLine: number;
@@ -32,6 +33,20 @@ export async function withSourceSyntax<T>(content: string, language: "python" | 
   parser.setLanguage(loaded.get(language)!)
   const tree = parser.parse(content)!
   try { return visit(tree.rootNode) } finally { tree.delete(); parser.delete() }
+}
+/** Finite literal syntax only; a call, field or interpolation is never evaluated. */
+export function sourceLiteral(n?: Node | null): { literalKnown: boolean; literalValue?: FiniteValue } {
+  if (!n) return { literalKnown: false }
+  if (["expression_list", "argument_list"].includes(n.type) && children(n).length === 1) return sourceLiteral(children(n)[0])
+  if (["true", "false", "none", "nil"].includes(n.type)) return { literalKnown: true, literalValue: n.text === "True" || n.text === "true" ? true : n.text === "False" || n.text === "false" ? false : null }
+  if (["integer", "float", "int_literal", "float_literal"].includes(n.type) && Number.isFinite(Number(n.text))) return { literalKnown: true, literalValue: Number(n.text) }
+  if (["string", "interpreted_string_literal"].includes(n.type)) { const match = /^(['"])([^'"\\\r\n]*)\1$/.exec(n.text); if (match) return { literalKnown: true, literalValue: match[2]! } }
+  if (n.type === "list" || n.type === "tuple") { const values = children(n).map(sourceLiteral); if (values.length <= 64 && values.every(v => v.literalKnown && (v.literalValue === null || typeof v.literalValue !== "object"))) return { literalKnown: true, literalValue: values.map(v => v.literalValue!) as FiniteValue } }
+  if (n.type === "dictionary") {
+    const entries = children(n).map(p => ({ key: sourceLiteral(field(p, "key")), value: sourceLiteral(field(p, "value")) }))
+    if (entries.length <= 64 && entries.every(e => typeof e.key.literalValue === "string" && e.value.literalKnown && (e.value.literalValue === null || typeof e.value.literalValue !== "object"))) return { literalKnown: true, literalValue: Object.fromEntries(entries.map(e => [e.key.literalValue, e.value.literalValue])) as FiniteValue }
+  }
+  return { literalKnown: false }
 }
 const cleanType = (s: string) => s.replace(/^[*]+/, "").trim()
 function moduleName(file: string, language: string) {
@@ -80,7 +95,8 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         if (parametersNode) for (const param of children(parametersNode)) {
           if (language === "python") {
             const name = field(param, "name")?.text ?? (param.type === "identifier" ? param.text : children(param)[0]?.text)
-            if (name) parameters.push({ name, ...(field(param, "type") ? { type: field(param, "type")!.text } : {}) })
+            const defaultNode = field(param, "value"), literal = sourceLiteral(defaultNode)
+            if (name && /^[A-Za-z_]\w*$/.test(name)) parameters.push({ name, ...(field(param, "type") ? { type: field(param, "type")!.text } : {}), ...(defaultNode ? { defaultExpression: defaultNode.text, defaultLiteralKnown: literal.literalKnown, ...(literal.literalKnown ? { defaultLiteralValue: literal.literalValue! } : {}) } : {}) })
           } else {
             const type = field(param, "type")?.text
             for (const id of children(param).filter(c => c.type === "identifier")) parameters.push({ name: id.text, ...(type ? { type } : {}) })

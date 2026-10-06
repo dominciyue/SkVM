@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 `@vscode/tree-sitter-wasm` Python/Go 解析器、现有 provider/telemetry 和确定性测试。按实际依赖版本查官方实现，不另建 CLI、统一 IR 或整仓安全平台。
 
-日期：2026-10-06。状态：`in-progress`，AV0–AV4完成，继续AV5。开发模型：`gpt-6.1-sol / max`；用户另要求 Flash，当前派发接口没有该设置字段，不能写成已经启用。工作目录 `D:/skill优化/SkVM`，分支 `skill-ir-aot`，仅推用户 `origin`。设计基线 `9d7db8e87c1484e119e7b8d1adece2fc6ba5079f`，启动时保留本任务书后续发布提交。
+日期：2026-10-06。状态：`in-progress`，AV0–AV5完成，继续AV6。开发模型：`gpt-6.1-sol / max`；用户另要求 Flash，当前派发接口没有该设置字段，不能写成已经启用。工作目录 `D:/skill优化/SkVM`，分支 `skill-ir-aot`，仅推用户 `origin`。设计基线 `9d7db8e87c1484e119e7b8d1adece2fc6ba5079f`，启动时保留本任务书后续发布提交。
 
 本轮约 8–12 小时是主动工作安排，约六成精力用于质量、四成用于编写与复用。完成适用工作即收口；不等待、重复全量验证或增加无目的调用凑时间。实验模型沿用 `xty/gpt-5.6-sol`，与开发线程模型分账；可用路由改变时记录并统一同一比较块。
 
@@ -187,10 +187,10 @@ export interface SourceInterpretation {
 
 ### AV5 模型解释接口减负与语义降低
 
-- [ ] 定义实际 source-interpretation 严格 schema；反例包含未显示锚点、旧 revision、错角色、缺分支、同对象混淆、自由 explanation 尚无谓词。
-- [ ] focus 只广告当前阶段需要的提案；宿主填来源、调用位置、可确定参数与分支骨架，模型补领域角色/谓词/对象关系，降低到原 semantic-flow。
-- [ ] 局部诊断返回缺失锚点与可提交字段；保持同一来源事务，修一个条件不用重交所有调用。
-- [ ] 对相同匿名源码比较旧低层表示与新来源辅助表示的求值：允许、拒绝、未知和错误路径相同；故意交换 guard/effect 对象应被检出。
+- [x] 定义实际 source-interpretation 严格 schema；反例包含未显示锚点、旧 revision、错角色、缺分支、同对象混淆、自由 explanation 尚无谓词。
+- [x] focus 只广告当前阶段需要的提案；宿主填来源、调用位置、可确定参数与分支骨架，模型补领域角色/谓词/对象关系，降低到原 semantic-flow。
+- [x] 局部诊断返回缺失锚点与可提交字段；保持同一来源事务，修一个条件不用重交所有调用。
+- [x] 对相同匿名源码比较旧低层表示与新来源辅助表示的求值：允许、拒绝、未知和错误路径相同；故意交换 guard/effect 对象应被检出。
 
 ### AV6 骨架驱动义务调度与上下文
 

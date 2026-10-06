@@ -12,6 +12,8 @@ import { SemanticResultSchema, semanticResultSkeleton } from "./inquiry-semantic
 import type { DependencyCheckState } from "../../task-dsl/authorization/control-conclusion.ts"
 import { FINITE_PERMISSION_GUIDE } from "../../task-dsl/authorization/control-evaluation.ts"
 import { selectSourceCandidates } from "./evidence-preparation/source-selector.ts"
+import { lowerSourceInterpretation, SOURCE_INTERPRETATION_GUIDE, type SourceInterpretation } from "../../task-dsl/authorization/source-interpretation.ts"
+import type { SourceSkeleton } from "./evidence-preparation/source-skeleton.ts"
 
 export type FocusStage = "locate" | "interpret" | "link" | "review" | "answer"
 const binding = z.object({ key: InquiryText, value: FiniteValueSchema, text: InquiryText, questionId: InquiryText.optional() }).strict()
@@ -68,10 +70,12 @@ export const OPERATION_STEP_EXECUTION_GUIDE = FOCUSED_EXECUTION_GUIDE
 interface Focus { id: string; stage: FocusStage; questionId?: string; itemId?: string; handle?: string; source?: BoundSemanticBlock["source"]; receiverClass?: string; snapshot: string }
 const hash = (value: unknown) => createHash("sha256").update(canonicalControl(value)).digest("hex").slice(0, 24)
 const unitHandle = (item: WorkItem) => `unit-${hash([item.questionId, item.origin === "question-duty" && item.kind === "entry" ? item.id : item.selected ? [item.selected.path, item.selected.sha256, item.selected.startLine, item.selected.endLine, item.receiverClass] : item.id])}`
-export function createInquiryFocus(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; items: () => WorkItem[]; units: () => BoundSemanticBlock[]; slice: () => ControlSlice; dependencies: () => DependencyCheckState[]; diagnostics: () => InquiryDiagnostic[]; shownEvidenceIds?: () => string[]; structural?: boolean; linkTargets?: (caller: BoundSemanticBlock, step: Extract<SemanticBlock["blocks"][number]["steps"][number], { kind: "call" }>) => BoundSemanticBlock[] }) {
+export function createInquiryFocus(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; items: () => WorkItem[]; units: () => BoundSemanticBlock[]; slice: () => ControlSlice; dependencies: () => DependencyCheckState[]; diagnostics: () => InquiryDiagnostic[]; shownEvidenceIds?: () => string[]; structural?: boolean; sourceAssisted?: boolean; sourceSkeleton?: (id: string, receiverClass?: string) => SourceSkeleton | undefined; linkTargets?: (caller: BoundSemanticBlock, step: Extract<SemanticBlock["blocks"][number]["steps"][number], { kind: "call" }>) => BoundSemanticBlock[] }) {
   let current: Focus | undefined, serial = 0, lastQuestion = -1, reviewedSnapshot: string | undefined
   const finished = new Set<string>(), deferred = new Set<string>(), submissions = new Map<string, string>()
   const retainedItems = new Map<string, WorkItem>()
+  const sourceDrafts = new Map<string, SourceInterpretation>(), offeredSkeletons = new Map<string, SourceSkeleton>()
+  const sourceHistory: Array<{ event: string; focusId?: string; revision?: string; raw: unknown; generated?: unknown; diagnostics: InquiryDiagnostic[] }> = []
   let transactionItem: WorkItem | undefined
   const history: Array<{ focus: Focus; event: string; reason?: string; raw?: unknown; diagnostics?: InquiryDiagnostic[] }> = []
   const basis = () => hash([options.program.questions, options.program.policy, options.units(), options.slice().bindings])
@@ -156,12 +160,28 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
     }
     const skeleton = semanticResultSkeleton(options.slice(), options.dependencies()), pathIndexes = new Map<string, number>()
     const answerSnapshot = skeleton.paths.map(p => { const index = pathIndexes.get(p.questionId) ?? 0; pathIndexes.set(p.questionId, index + 1); return { ...p, path: index } })
-    return { ...local, tasks: local.tasks.map(t => { const i = sourceItem(t.itemId); return { ...t, sourceIdentity: i?.selected ? { id: i.selected.id, path: i.selected.path, startLine: i.selected.startLine, endLine: i.selected.endLine } : undefined, receiverClass: i?.receiverClass } }), supportingEvidenceIds, focus: structuredClone(current), receiverClass: item?.receiverClass, instruction: FOCUSED_EXECUTION_GUIDE,
+    offeredSkeletons.clear()
+    return { ...local, tasks: local.tasks.map(t => { const i = sourceItem(t.itemId), syntax = i?.selected && options.sourceAssisted ? options.sourceSkeleton?.(i.selected.id, i.receiverClass) : undefined, sourceSkeleton = syntax?.modelCovered ? { ...syntax, evidenceIds: [...t.evidenceIds] } : undefined; if (sourceSkeleton) offeredSkeletons.set(t.itemId, sourceSkeleton); return { ...t, sourceIdentity: i?.selected ? { id: i.selected.id, path: i.selected.path, startLine: i.selected.startLine, endLine: i.selected.endLine } : undefined, receiverClass: i?.receiverClass, ...(options.sourceAssisted ? { sourceSkeleton, sourceInterpretationDraft: current?.handle && current.itemId === t.itemId ? sourceDrafts.get(current.handle) : undefined } : {}) } }), supportingEvidenceIds, focus: structuredClone(current), receiverClass: item?.receiverClass, instruction: options.sourceAssisted && current?.stage === "interpret" ? SOURCE_INTERPRETATION_GUIDE + "\n" + FINITE_PERMISSION_GUIDE : FOCUSED_EXECUTION_GUIDE,
       summaries: options.units().map(u => ({ handle: u.handle, questionId: u.questionId, role: u.role, source: u.source, receiverClass: u.receiverClass, parameters: u.parameters, complete: u.complete, summary: summarizeProcedure(u), ...(current?.stage === "link" || current?.stage === "review" ? { blocks: u.blocks } : {}) })),
       ...(current?.stage === "link" ? { links: pendingLinks() } : {}), ...(current?.stage === "review" ? { claims: claims() } : {}),
       ...(current?.stage === "answer" ? { answerSnapshot } : {}),
       ...(options.structural ? { pendingSourceWork: items.filter(pendingSource).slice(0, 48).map(i => ({ id: i.id, questionId: i.questionId, kind: i.kind, symbol: i.symbol, state: i.state, receiverClass: i.receiverClass, source: { id: i.selected!.id, path: i.selected!.path, startLine: i.selected!.startLine, endLine: i.selected!.endLine }, reason: i.question })), sourceWorkInstruction: 'These are source candidates, not accepted facts. A read candidate may be chosen with kind:"defer",reason,nextItemId:<shown id> in the current focus; the next dispatch offers its whole original window. For awaiting-read first request its exact source range. No unseen item or different operation may be substituted. Revisit an accepted handle to correct it.' } : {}),
       questions: options.program.questions.map(q => ({ id: q.id, request: q.request, premises: q.premises })), diagnostics: options.diagnostics().filter(d => !current?.questionId || !d.questionId || d.questionId === current.questionId).slice(0, 12) }
+  }
+  const prepareSource = (raw: unknown) => {
+    const value = raw && typeof raw === "object" ? raw as Record<string, unknown> : {}, diagnostics: InquiryDiagnostic[] = []
+    const fail = (code: string, message: string) => diagnostics.push({ code, path: current?.id ?? "focus", questionId: current?.questionId, message, severity: "error" })
+    if (!options.sourceAssisted || value.schemaVersion !== "authorization-source-update/v1" || value.kind !== "interpret" || Object.keys(value).some(k => !["schemaVersion", "kind", "focusId", "interpretation", "reason"].includes(k))) fail("source-interpretation-envelope", "Use the explicit source-assisted interpret envelope and current interpretation fields.")
+    if (!current || current.stage !== "interpret" || value.focusId !== current.id) fail("source-interpretation-focus", "Use this current source interpretation focus.")
+    const skeleton = current?.itemId && offeredSkeletons.get(current.itemId), item = sourceItem(current?.itemId)
+    if (!skeleton || !item || !current?.handle || !current.questionId) fail("source-interpretation-window", "The whole current source skeleton and original window must be offered in this dispatch.")
+    if (diagnostics.length || !skeleton || !item || !current?.handle || !current.questionId) return { diagnostics }
+    const lowered = lowerSourceInterpretation(skeleton, value.interpretation, { index: options.tools.structure, itemId: item.id, handle: current.handle, questionId: current.questionId, role: item.origin === "question-duty" && item.kind === "entry" ? "entry" : "helper", previous: sourceDrafts.get(current.handle) })
+    if (lowered.interpretation) sourceDrafts.set(current.handle, lowered.interpretation)
+    sourceHistory.push({ event: lowered.diagnostics.length ? "rejected" : "lowered", focusId: current.id, revision: skeleton.revision, raw: structuredClone(raw), generated: structuredClone(lowered.unit), diagnostics: structuredClone(lowered.diagnostics) })
+    if (lowered.diagnostics.length || !lowered.unit) return { diagnostics: lowered.diagnostics }
+    const { itemId: _item, handle: _handle, op: _op, role: _role, ...unit } = lowered.unit
+    return { diagnostics: [], raw: { schemaVersion: "authorization-focused-update/v1", kind: "interpret", focusId: current.id, unit, reason: value.reason } }
   }
   const prepare = (raw: unknown, offered: LocalExplanationTask[]) => {
     const parsed = FocusedUpdateSchema.safeParse(raw), diagnostics: InquiryDiagnostic[] = []
@@ -238,5 +258,5 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
       return { ...a, questionId, paths: a.paths.map(({ path, ...p }) => ({ ...p, pathId: paths[path]?.pathKey ?? `invalid-path-${path}` })), counterfactuals: a.counterfactuals.map(({ path, ...p }) => ({ ...p, pathId: paths[path]?.pathKey ?? `invalid-path-${path}` })) }
     }) }, diagnostics: [] }
   }
-  return { sync, context, prepare, accepted, assemble, sourceRelocated: () => { finish("source-relocated"); reviewedSnapshot = undefined }, current: () => current, pendingLinks, report: () => ({ current: structuredClone(current), history: structuredClone(history), reviewedSnapshot, summaries: options.units().map(summarizeProcedure) }) }
+  return { sync, context, prepare, prepareSource, accepted, assemble, sourceRelocated: () => { finish("source-relocated"); reviewedSnapshot = undefined }, recordFallback: (raw: unknown) => sourceHistory.push({ event: "low-level-fallback", focusId: current?.id, raw: structuredClone(raw), diagnostics: [] }), current: () => current, pendingLinks, report: () => ({ current: structuredClone(current), history: structuredClone(history), reviewedSnapshot, sourceInterpretations: structuredClone(sourceHistory), sourceDrafts: [...sourceDrafts].map(([handle, interpretation]) => ({ handle, interpretation: structuredClone(interpretation) })), summaries: options.units().map(summarizeProcedure) }) }
 }

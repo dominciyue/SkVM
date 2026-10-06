@@ -25,7 +25,7 @@ test("the production source view separates early return and effect branches with
   expect(skeleton.edges.some((e: any) => e.from === condition.id && e.to === returned.id && e.branch === "true")).toBe(true)
   expect(skeleton.edges.some((e: any) => e.from === condition.id && e.to === effect.id && e.branch === "false")).toBe(true)
   expect(skeleton.edges.some((e: any) => e.from === returned.id && e.to === effect.id)).toBe(false)
-  expect(effect.call.arguments).toEqual([{ expression: "actor", parameterName: "actor" }, { expression: "None", parameterName: "value" }])
+  expect(effect.call.arguments).toEqual([{ expression: "actor", parameterName: "actor" }, { expression: "None", parameterName: "value", literalKnown: true, literalValue: null }])
   expect(skeleton.anchors.every((a: any) => !Object.hasOwn(a, "permissionOutcome"))).toBe(true)
 })
 

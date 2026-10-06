@@ -2,13 +2,16 @@ import { createHash } from "node:crypto"
 import type { Node } from "@vscode/tree-sitter-wasm"
 import type { InquiryEvidence } from "../inquiry-tools.ts"
 import type { StructureIndex, StructureSymbol } from "./structure-index.ts"
+import { sourceLiteral } from "./structure-index.ts"
 import type { SourceSelector } from "./source-selector.ts"
+import type { FiniteValue } from "../../../task-dsl/authorization/control-evaluation.ts"
 
 export interface SourceAnchor {
   id: string; selector: SourceSelector; sourceSha256: string;
   kind: "parameter" | "assignment" | "condition" | "call" | "return" | "raise";
   text: string; syntax: string; name?: string; valueExpression?: string; defaultExpression?: string;
-  call?: { sourceCallId?: string; expression: string; receiver?: string; receiverClass?: string; arguments: Array<{ expression: string; parameterName?: string; spread?: boolean }>; candidateIds: string[]; resultNames: string[] }
+  literalKnown?: boolean; literalValue?: FiniteValue;
+  call?: { sourceCallId?: string; expression: string; receiver?: string; receiverClass?: string; arguments: Array<{ expression: string; parameterName?: string; spread?: boolean; literalKnown?: boolean; literalValue?: FiniteValue }>; candidateIds: string[]; resultNames: string[]; resultBinding: string }
 }
 export interface SourceFlow { kind: "step" | "branch" | "gap"; anchorId: string; then?: SourceFlow[]; otherwise?: SourceFlow[] }
 export interface SourceSkeleton {
@@ -21,7 +24,6 @@ const hash = (v: unknown) => createHash("sha256").update(JSON.stringify(v)).dige
 const kids = (n?: Node | null) => (n?.namedChildren ?? []).filter((c): c is Node => !!c)
 const field = (n: Node, name: string) => n.childForFieldName(name)
 const descendants = (n: Node, types: string[]) => n.descendantsOfType(types).filter((c): c is Node => !!c)
-
 /** Read coverage is independent of AST indexing. No source meaning is inferred. */
 export async function buildSourceSkeleton(index: StructureIndex, source: StructureSymbol, windows: readonly InquiryEvidence[], receiverClass?: string): Promise<SourceSkeleton> {
   const selected = windows.filter(e => e.path === source.path && e.sha256 === source.sha256 && e.startLine <= source.endLine && e.endLine >= source.startLine)
@@ -44,12 +46,13 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     }
     const gap = (n: Node, code: string, reason: string) => { if (!skeleton.gaps.some(g => g.code === code && g.selector.startLine === n.startPosition.row + 1)) skeleton.gaps.push({ code, selector: located(n), reason }) }
     const actualCalls = index.relatedCalls(source.id, receiverClass)
+    for (const n of descendants(fn, ["attribute", "selector_expression", "subscript", "index_expression"])) add(n, "assignment", { name: n.text, valueExpression: n.text })
     const callAnchor = (n: Node) => {
       const expression = field(n, "function")?.text ?? n.text, actual = actualCalls.find(c => c.startLine === n.startPosition.row + 1 && c.endLine === n.endPosition.row + 1 && c.expression === expression)
-      const arguments_: NonNullable<SourceAnchor["call"]>["arguments"] = kids(field(n, "arguments")).map(a => a.type === "keyword_argument" ? { expression: field(a, "value")!.text, parameterName: field(a, "name")!.text } : { expression: a.text, ...(["list_splat", "dictionary_splat", "variadic_argument"].includes(a.type) ? { spread: true } : {}) })
+      const arguments_: NonNullable<SourceAnchor["call"]>["arguments"] = kids(field(n, "arguments")).map(a => { const value = a.type === "keyword_argument" ? field(a, "value")! : a, literal = sourceLiteral(value); return { expression: value.text, ...(a.type === "keyword_argument" ? { parameterName: field(a, "name")!.text } : {}), ...(["list_splat", "dictionary_splat", "variadic_argument"].includes(a.type) ? { spread: true } : {}), ...(literal.literalKnown ? literal : {}) } })
       if (!/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(expression) && !/^super\(\)\.[A-Za-z_]\w*$/.test(expression)) gap(n, "skeleton-call-dynamic", "The actual function expression is dynamic; no unique callee or receiver is invented.")
       if (arguments_.some(a => a.spread)) gap(n, "skeleton-arguments-dynamic", "Expanded arguments require a source-supported mapping; positions are not guessed.")
-      return add(n, "call", { call: { sourceCallId: actual?.id, expression, receiver: actual?.receiver, receiverClass: actual?.receiverClass, arguments: arguments_, candidateIds: actual?.candidateIds ?? [], resultNames: actual?.resultNames ?? [] } })
+      return add(n, "call", { call: { sourceCallId: actual?.id, expression, receiver: actual?.receiver, receiverClass: actual?.receiverClass, arguments: arguments_, candidateIds: actual?.candidateIds ?? [], resultNames: actual?.resultNames ?? [], resultBinding: actual?.resultNames[0] ?? `result-${hash([source.id, n.startIndex]).slice(0, 16)}` } })
     }
     const callsIn = (n: Node) => descendants(n, source.language === "python" ? ["call"] : ["call_expression"]).filter(c => {
       let owner = c.parent
@@ -81,7 +84,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
         const alternatives = kids(n).filter(c => ["elif_clause", "else_clause"].includes(c.type) || c.id === field(n, "alternative")?.id)
         return branchFor(n, alternatives)
       }
-      if (["return_statement", "raise_statement"].includes(n.type)) return [...stepsForCalls(n), { kind: "step", anchorId: add(n, n.type === "return_statement" ? "return" : "raise", { valueExpression: kids(n)[0]?.text }).id }]
+      if (["return_statement", "raise_statement"].includes(n.type)) return [...stepsForCalls(n), { kind: "step", anchorId: add(n, n.type === "return_statement" ? "return" : "raise", { valueExpression: kids(n)[0]?.text, ...sourceLiteral(kids(n)[0]) }).id }]
       if (["for_statement", "while_statement", "try_statement", "with_statement", "switch_statement", "expression_switch_statement", "type_switch_statement", "select_statement", "defer_statement", "go_statement", "break_statement", "continue_statement", "match_statement"].includes(n.type)) {
         gap(n, "skeleton-control-unsupported", `The ${n.type} control structure needs a local interpretation; its body was not flattened into unconditional execution.`)
         for (const c of callsIn(n)) callAnchor(c)
@@ -90,7 +93,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       if (["expression_statement", "assignment", "short_var_declaration", "assignment_statement", "augmented_assignment", "inc_statement", "dec_statement"].includes(n.type)) {
         const assignment = n.type === "expression_statement" ? kids(n).find(c => c.type === "assignment" || c.type === "augmented_assignment") : n
         const calls = stepsForCalls(n)
-        return assignment && field(assignment, "left") ? [...calls, { kind: "step", anchorId: add(assignment, "assignment", { name: field(assignment, "left")!.text, valueExpression: field(assignment, "right")?.text }).id }] : calls
+        return assignment && field(assignment, "left") ? [...calls, { kind: "step", anchorId: add(assignment, "assignment", { name: field(assignment, "left")!.text, valueExpression: field(assignment, "right")?.text, ...sourceLiteral(field(assignment, "right")) }).id }] : calls
       }
       gap(n, "skeleton-statement-unsupported", `The ${n.type} statement remains explicit rather than being silently deleted.`)
       return [{ kind: "gap", anchorId: add(n, "assignment").id }]

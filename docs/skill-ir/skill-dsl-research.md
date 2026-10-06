@@ -1848,6 +1848,8 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 **AV3–AV4工程与边界。** 五个入口/路由反例及跨根alias挂载反例先失败；49项结构/worklist/reuse/runtime回归通过，主类型通过。旧入口重选撤销机制继续成立；原OWUI自然请求由源码路由选择process_file，[零模型定位](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/verification/av3-owui-route-mounts.json)仅证明实际入口进入工作队列。骨架生产接口的提前返回、未读、Go嵌套、短路/elif反例先失败，16项骨架/工具测试132断言通过。匿名Python/Go原文锚点及边见[骨架原件](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/verification/av4-anonymous-skeletons.json)。循环/异常/动态调用保持有位置的gap；有调用的短路不能无条件展开。下一步窄解释接口以revision、角色/谓词和显式对象关系进入旧降低器，真实效果尚未测。
 
+**AV5窄解释与机械降低。** 实际source-interpretation/v1引用完整当前原文锚点和revision，六种角色加有限predicate/对象引用，不要求模型手写blocks/参数表。三个基础反例先失败；关键字顺序/空字面值、默认值和fallback计数再由实际反例补齐。局部缺谓词修复只提交一个annotation，其他调用不重交；交换guard/effect对象由原检查器检出。84项有关回归/419断言通过，主类型通过；允许/拒绝/未知/操作失败与等价旧图保持有限求值一致。动态默认值、unsupported控制和用户条件未知继续保留，不由explanation猜语义。目前provider和目标执行均0，真实采用仍待AV10起检验。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

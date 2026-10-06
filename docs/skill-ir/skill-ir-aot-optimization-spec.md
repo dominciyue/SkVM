@@ -2520,6 +2520,8 @@ AV4已实现：`SourceSkeleton`含source/revision/modelCovered/evidenceIds、原
 
 AV5实际接口决定：`SourceInterpretation`以必需revision绑定骨架，annotations/unresolved可局部补充；可选fallthroughOutcome解释隐式结束。annotation保留六角色、explanation、有限condition、failureKind、returnOutcome及principal/resource锚点。额外有限字段aliasAnchorId显式解释同对象，guardBranch指定被解释的成功分支，authorizedByAnchorIds显式主张控制关系；宿主不从分支或说明自行推断这些关系。缺谓词、错角色/对象、陌生/未显示锚点返回当前锚点诊断，实际接受仍须降低到旧semantic-flow核验。
 
+AV5已实现：严格`authorization-source-update/v1`只在当前interpret focus接受当前完整骨架revision；局部annotations/unresolved合并到同一事务，拒绝的字段保留精确诊断。宿主填调用位置、实际signature/receiver/关键字顺序、已知字面值/default与resultBinding，动态default不猜。显式guardBranch为字符串`"true"|"false"`，未知return和operation failure不混作许可/授权拒绝。所有实际call必须有角色或unresolved；context是模型明确作出的相关性解释。原低层单元可兼容提交，按实际通道计fallback。匿名旧/新图在允许、拒绝、未知和操作失败上的有限求值相同，错误guard/effect对象被旧对象检查器拒绝；工程通过不证明真实任务质量。
+
 **交付。** `source-gap`、`interpretation-gap`、`premise-unknown`、`policy-unspecified` 分列；缺独立政策只影响请求的合规比较。自然答案和检查使用同一当前快照，可靠部分说明可保留；机械 valid、完整来源覆盖与独立任务质量分别评价。原始任务义务不缩减，条件答案充分性按原任务核查。
 
 **未来只读请求恢复。** AV 显式替换旧研究 runner 的全逻辑任务封存政策：本地尝试关闭、晚答与工具执行隔离、只读能力及预算核验成立后，每个超时请求最多一次恢复、每位置最多两次，计入原总派发预算。可取消时传 signal；远端无法确认完成时保留 unknown，晚答仅追加原请求计量，不接受其工具动作或改写当前结果。副作用/仍活动执行器暂停对应动作；费用未知不阻塞独立开发。旧 AU/AT/AS 封存、原请求、评价和分母不变；本轮新的已暴露 development 运行明确记录新政策与历史风险，禁止修改旧 guard 或用新身份掩盖重抽。
