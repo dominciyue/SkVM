@@ -2514,6 +2514,12 @@ AV2已实现：`selectSourceCandidates(string|SourceSelector,{candidates,paths})
 
 **源码辅助解释。** 宿主按需生成原文绑定的参数、调用、赋值、有限分支、return/raise 骨架；模型标注主体、资源、条件与授权含义。模型不再重复手写宿主可确定的位置、调用实参顺序与分支连接。窄提案引用当前已展示锚点，降低到现有 semantic-flow/求值与结论检查；语义不明确时继续请求具体谓词/对象关系，不能从自由说明猜权限事实。旧低层提案保持兼容但显式记录 fallback，结构事实不提升为源码语义真值。
 
+AV3已实现：候选`basis`区分qualified-symbol/source-route/lexical-lead/user-selected；新核心入口要求唯一来源关系，词法singleton必须选择。FastAPI/APIRouter实际import alias、模块级构造、常量和跨模块prefix/include形成decorator→handler候选；多挂载保留全部路径，动态prefix/路径、未知router与包装器保持定位诊断。关系修订为`source-bindings/v2`，旧版本依赖不盲重绑定。原OWUI请求零模型通过生产工具定位process_file，仍不构成授权结论。
+
+AV4已实现：`SourceSkeleton`含source/revision/modelCovered/evidenceIds、原文anchors、有限flow/edges及定位gaps。只在完整当前函数原窗口可用时从同一WASM解析器提取；树在提取后释放，AST索引读取与模型原文显示分账。if/elif/else和提前return/raise保留路径；循环、异常、动态调用及有调用的短路条件保持缺口，不扁平化成无条件执行。
+
+AV5实际接口决定：`SourceInterpretation`以必需revision绑定骨架，annotations/unresolved可局部补充；可选fallthroughOutcome解释隐式结束。annotation保留六角色、explanation、有限condition、failureKind、returnOutcome及principal/resource锚点。额外有限字段aliasAnchorId显式解释同对象，guardBranch指定被解释的成功分支，authorizedByAnchorIds显式主张控制关系；宿主不从分支或说明自行推断这些关系。缺谓词、错角色/对象、陌生/未显示锚点返回当前锚点诊断，实际接受仍须降低到旧semantic-flow核验。
+
 **交付。** `source-gap`、`interpretation-gap`、`premise-unknown`、`policy-unspecified` 分列；缺独立政策只影响请求的合规比较。自然答案和检查使用同一当前快照，可靠部分说明可保留；机械 valid、完整来源覆盖与独立任务质量分别评价。原始任务义务不缩减，条件答案充分性按原任务核查。
 
 **未来只读请求恢复。** AV 显式替换旧研究 runner 的全逻辑任务封存政策：本地尝试关闭、晚答与工具执行隔离、只读能力及预算核验成立后，每个超时请求最多一次恢复、每位置最多两次，计入原总派发预算。可取消时传 signal；远端无法确认完成时保留 unknown，晚答仅追加原请求计量，不接受其工具动作或改写当前结果。副作用/仍活动执行器暂停对应动作；费用未知不阻塞独立开发。旧 AU/AT/AS 封存、原请求、评价和分母不变；本轮新的已暴露 development 运行明确记录新政策与历史风险，禁止修改旧 guard 或用新身份掩盖重抽。

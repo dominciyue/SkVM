@@ -1,6 +1,31 @@
 import { expect, test } from "bun:test"
 import { buildStructureIndex } from "./structure-index.ts"
 
+test("FastAPI constructor aliases, constant prefixes and includes bind the decorated handler", async () => {
+  const index = await buildStructureIndex([
+    { path: "api/items.py", content: 'from fastapi import APIRouter as Router\nBASE = "/items"\nrouter = Router(prefix=BASE)\n@router.post("/create")\ndef create_item(request):\n    return request\n' },
+    { path: "app.py", content: 'import fastapi as web\nfrom api.items import router as items\napp = web.FastAPI()\napp.include_router(items, prefix="/v1")\n' },
+  ], { repository: "anonymous", sourceRef: "r" })
+  const handler = index.symbols.find(s => s.qualifiedName === "api.items.create_item")!
+  expect(index.routes).toContainEqual(expect.objectContaining({ method: "POST", path: "/v1/items/create", candidateIds: [handler.id], model: "fastapi-source-router/v1" }))
+  expect(index.routes.every(r => r.handlerExpression === "create_item")).toBe(true)
+})
+
+test("dynamic prefixes and pseudo routers remain gaps, while duplicate real bindings stay visible", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: 'from fastapi import APIRouter\nrouter = APIRouter()\ndynamic = APIRouter(prefix=get_prefix())\nfake = Logger()\n@router.post("/items")\ndef first(x):\n    return x\n@router.post("/items")\ndef second(x):\n    return x\n@dynamic.post("/hidden")\ndef hidden(x):\n    return x\n@fake.post("/fake")\ndef decoy(x):\n    return x\n' }], { repository: "anonymous", sourceRef: "r" })
+  expect(index.routes.map(r => r.path)).toEqual(["/items", "/items"])
+  expect(index.diagnostics).toContainEqual(expect.objectContaining({ path: "app.py", code: "route-prefix-dynamic", line: 11 }))
+  expect(index.diagnostics).toContainEqual(expect.objectContaining({ path: "app.py", code: "route-router-unresolved", line: 14 }))
+})
+
+test("cross-root import aliases and multiple static mounts preserve all route alternatives", async () => {
+  const index = await buildStructureIndex([
+    { path: "backend/pkg/items.py", content: 'from fastapi import APIRouter\nrouter = APIRouter(prefix="/items")\n@router.post("/create")\ndef create(x):\n    return x\n' },
+    { path: "backend/pkg/main.py", content: 'from fastapi import FastAPI\nfrom pkg.items import router\napp = FastAPI()\napp.include_router(router, prefix="/v1")\napp.include_router(router, prefix="/v2")\n' },
+  ], { repository: "anonymous", sourceRef: "r" })
+  expect(index.routes.map(r => r.path)).toEqual(["/v1/items/create", "/v2/items/create"])
+})
+
 test("runtime settings and traversal order do not change source identities or structural revisions", async () => {
   const files = [{ path: "app.py", content: "def outer(x):\n    return inner(x)\ndef inner(x):\n    return x\n" }, { path: "other.py", content: "def unrelated():\n    return False\n" }]
   const first = { repository: "fixture", sourceRef: "r", sourceRoot: "D:/a", maxToolCalls: 24 }

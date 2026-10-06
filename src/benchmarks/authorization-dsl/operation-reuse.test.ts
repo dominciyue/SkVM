@@ -64,7 +64,7 @@ test("legacy source IDs rebind only from unique exact originals and unchanged st
     fact.unit.source.id = unit.source.id
     fact.dependencies.push({ kind: "symbol-resolution", key: unit.source.id, revision: unit.source.sha256 })
   }
-  prior.domain.structure = { parser: f.tools.structure!.parser, relationshipVersion: "source-bindings/v1" }
+  prior.domain.structure = { parser: f.tools.structure!.parser, relationshipVersion: f.tools.structure!.relationshipVersion }
   const retained: any = planInquiryReuse({ ...f.args, previousRun: prior })
   expect(retained.seed.semanticUnits).toHaveLength(2)
   expect(retained.seed.semanticUnits.map((u: any) => u.source.id)).toEqual(f.prior.domain.semantic.units.map((u: any) => u.source.id))
@@ -73,6 +73,9 @@ test("legacy source IDs rebind only from unique exact originals and unchanged st
   const ambiguous = { ...f.tools.structure!, symbols: [...f.tools.structure!.symbols, { ...f.tools.structure!.symbols.find(s => s.id === f.prior.domain.semantic.units[0].source.id)!, id: "ambiguous" }] }
   const rejected: any = planInquiryReuse({ ...f.args, previousRun: prior, currentStructure: ambiguous })
   expect(rejected.info.invalidatedMaterials.some((m: any) => m.reasons.includes("legacy-source-ambiguous"))).toBe(true)
+  const previousBindings = structuredClone(prior)
+  previousBindings.domain.structure.relationshipVersion = "source-bindings/v1"
+  expect((planInquiryReuse({ ...f.args, previousRun: previousBindings }) as any).seed.semanticUnits).toHaveLength(0)
 })
 
 test("an unrelated file change preserves materials but an added override invalidates old MRO while read base bytes stay identical", async () => {

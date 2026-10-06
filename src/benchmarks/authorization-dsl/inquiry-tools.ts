@@ -6,6 +6,7 @@ import type { LLMTool } from "../../providers/types.ts"
 import { loadPortableSourceBundle, type SourceBundleFile } from "./inputs.ts"
 import { indexAuthorizationSymbols, type DiscoverySymbol } from "./evidence-preparation/discovery.ts"
 import { buildStructureIndex, type StructureCall } from "./evidence-preparation/structure-index.ts"
+import { buildSourceSkeleton, type SourceSkeleton } from "./evidence-preparation/source-skeleton.ts"
 
 export interface InquiryEvidence {
   id: string; repository: string; sourceRef: string; path: string; sha256: string;
@@ -16,7 +17,7 @@ export interface InquiryToolOutput {
   evidence: InquiryEvidence[]; matches: Array<{ path: string; line: number; evidenceId?: string }>;
   candidates: DiscoverySymbol[]; files?: Array<{ path: string; bytes: number; lineCount: number }>;
   truncated?: boolean; requested?: unknown; nextOffset?: number; totalMatches?: number
-  structure?: { symbolId: string; receiverClass?: string; calls: StructureCall[]; revision: string; truncated: boolean }
+  structure?: { symbolId: string; receiverClass?: string; calls: StructureCall[]; revision: string; truncated: boolean; skeleton?: SourceSkeleton }
 }
 export interface InquiryToolsOptions {
   sourceRoot: string; allowedPaths: string[]; repository: string; sourceRef: string;
@@ -101,6 +102,14 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
     scopeGaps.push(...structure.diagnostics.map(d => ({ ...d, detail: "AST relation coverage is partial; this diagnostic is not a permission fact." })))
   }
   const evidence: InquiryEvidence[] = [], history: Array<{ name: string; arguments: unknown; result: InquiryToolOutput; actionOrigin?: string; questionId?: string; dependencyId?: string; reason?: string }> = []
+  const skeletons = new Map<string, SourceSkeleton>()
+  const sourceSkeleton = async (symbolId: string, receiverClass?: string) => {
+    const symbol = structure?.symbols.find(s => s.id === symbolId)
+    if (!structure || !symbol) return undefined
+    const key = `${symbolId}:${receiverClass ?? ""}:${evidence.filter(e => e.path === symbol.path).map(e => e.id).join(",")}`
+    if (!skeletons.has(key)) skeletons.set(key, await buildSourceSkeleton(structure, symbol, evidence, receiverClass))
+    return skeletons.get(key)
+  }
   const originalWindow = (source: SourceBundleFile, start: number, end: number): InquiryEvidence => {
     const lines = linesOf(source.content), quote = lines.slice(start - 1, end).join("\n"), text = lines.slice(start - 1, end).map((line, i) => `${start + i} | ${line}\n`).join("")
     return { id: `ev-${sha([options.repository, options.sourceRef, source.relativePath, source.sha256, start, end].join("\0")).slice(0, 20)}`, repository: options.repository, sourceRef: options.sourceRef, path: source.relativePath, sha256: source.sha256, startLine: start, endLine: end, text, quote, bytes: Buffer.byteLength(text) }
@@ -188,7 +197,7 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
           else {
             const file = await current(symbol.path)
             const calls = structure.relatedCalls(symbol.id, a.receiverClass)
-            result = "status" in file ? file : { ...blank("ok"), structure: { ...a, calls: calls.slice(0, 64), revision: structure.revision, truncated: calls.length > 64 } }
+            result = "status" in file ? file : { ...blank("ok"), structure: { ...a, calls: calls.slice(0, 64), revision: structure.revision, truncated: calls.length > 64, skeleton: await sourceSkeleton(symbol.id, a.receiverClass) } }
           }
         } else if (name === "source_read") {
           const a = schemas.source_read.parse(args), file = await current(a.path)
@@ -228,11 +237,23 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
     }
     history.push({ name, arguments: structuredClone(args), result: structuredClone(result), ...origin }); return result
   }
-  return { definitions: structure ? [...INQUIRY_SOURCE_TOOLS, structureTool] : INQUIRY_SOURCE_TOOLS, execute, restoreEvidence, verifySnapshot, get snapshotVerification() { return snapshotVerification }, evidence, history, scopeGaps, structure, identity: { repository: options.repository, sourceRef: options.sourceRef },
+  return { definitions: structure ? [...INQUIRY_SOURCE_TOOLS, structureTool] : INQUIRY_SOURCE_TOOLS, execute, restoreEvidence, verifySnapshot, sourceSkeleton, get snapshotVerification() { return snapshotVerification }, evidence, history, scopeGaps, structure, identity: { repository: options.repository, sourceRef: options.sourceRef },
     files: [...files].map(([p, f]) => ({ path: p, sha256: f.sha256, bytes: Buffer.byteLength(f.content) })),
     locateSymbols: (name: string) => structuredClone(symbols.filter(s => s.name === name)),
     symbolById: (id: string) => structuredClone(symbols.find(s => s.id === id)),
-    symbolHints: (text: string) => { const names = new Set(text.match(/[A-Za-z_$][\w$]*/g) ?? []); return structuredClone(symbols.filter(s => s.name.length >= 3 && names.has(s.name))) },
+    symbolHints: (text: string): DiscoverySymbol[] => {
+      const references = new Set(text.match(/[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)+/g) ?? [])
+      const explicit = structure?.symbols.filter(s => [...references].some(r => s.qualifiedName === r || s.qualifiedName.endsWith(`.${r}`))).map(s => ({ ...s, basis: { kind: "qualified-symbol" as const, reference: [...references].find(r => s.qualifiedName === r || s.qualifiedName.endsWith(`.${r}`))!, unique: true } })) ?? []
+      if (explicit.length) return structuredClone(explicit)
+      const paths = new Set(text.match(/\/[A-Za-z0-9_{}./:-]+/g)?.map(p => p.replace(/[.:]+$/, "")) ?? [])
+      const routes = structure?.routes.filter(r => [...paths].some(p => r.path === p || r.path.endsWith(p))) ?? []
+      if (routes.length) return structuredClone([...new Set(routes.flatMap(r => r.candidateIds))].flatMap(id => {
+        const s = symbols.find(s => s.id === id), related = routes.filter(r => r.candidateIds.includes(id))
+        return s ? [{ ...s, basis: { kind: "source-route" as const, reference: related.map(r => `${r.method} ${r.path}`).join("; "), relationshipIds: related.map(r => r.id), unique: routes.length === 1 && routes[0]!.candidateIds.length === 1 } }] : []
+      }))
+      const names = new Set(text.match(/[A-Za-z_$][\w$]*/g) ?? [])
+      return structuredClone(symbols.filter(s => s.name.length >= 3 && names.has(s.name)).map(s => ({ ...s, basis: { kind: "lexical-lead" as const, reference: s.name, unique: false } })))
+    },
     get displayBytes() { return displayBytes }, get importedEvidenceBytes() { return importedEvidenceBytes }, get indexBytes() { return indexBytes }, get ioReadBytes() { return ioReadBytes }, get toolCalls() { return toolCalls }, maxToolCalls, maxDisplayBytes }
 }
 export type InquiryTools = Awaited<ReturnType<typeof createInquiryTools>>

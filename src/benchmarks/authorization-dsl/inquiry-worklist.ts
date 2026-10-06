@@ -15,7 +15,7 @@ export interface WorkItem {
   id: string; questionId: string; kind: InquiryRelation; question: string; entryHint?: string; symbol?: string;
   origin: "question-duty" | "source-reference" | "explicit-dependency" | "structure-relation"; parentId?: string; dependencyId?: string; receiverClass?: string; relationId?: string;
   state: WorkState; decisive: boolean; code?: string; reason: string; candidates: DiscoverySymbol[]; selected?: DiscoverySymbol;
-  selectedBy?: "explicit-selection" | "explicit-discovery-selection" | "unique-index-candidate" | "accepted-entry-citation";
+  selectedBy?: "explicit-selection" | "explicit-discovery-selection" | "unique-index-candidate" | "accepted-entry-citation" | "source-confirmed-candidate";
   callsiteEvidenceIds: string[]; evidenceIds: string[]; semanticSupport: "unreviewed";
   nextAction: { kind: "locate" | "select-candidate" | "read" | "interpret" | "bind" | "check" | "none"; itemId: string }
 }
@@ -37,7 +37,7 @@ export function worklistModelView(items: WorkItem[]) {
 }
 
 /** Source candidates are lexical work, never an inferred call graph or authorization fact. */
-export function createInquiryWorklist(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; entryContext?: string; remainingActions?: () => number; dependencyStates?: () => ScheduledDependency[]; structural?: boolean; semanticUnits?: () => BoundSemanticBlock[] }) {
+export function createInquiryWorklist(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; entryContext?: string; remainingActions?: () => number; dependencyStates?: () => ScheduledDependency[]; structural?: boolean; requireEntryBasis?: boolean; semanticUnits?: () => BoundSemanticBlock[] }) {
   const items = new Map<string, WorkItem>(), choices = new Map<string, { candidate: DiscoverySymbol; origin: "explicit-selection" | "explicit-discovery-selection" }>(), invalidFiles = new Set<string>(), failedReads = new Map<string, string>()
   const actions: WorklistAction[] = [], questionIds = options.program.questions.map(q => q.id)
   const relations = new Map<string, { id: string; questionId: string; sourceId: string; candidateId?: string; reason: string; state: string; gap?: string }>(), frameworkDependencies = new Map<string, SourceFactDependency>()
@@ -48,6 +48,10 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
     let candidates = duty.kind === "entry" ? options.tools.symbolHints(q.entryHint ?? "") : []
     if (duty.kind === "entry" && !candidates.length) candidates = options.tools.symbolHints([q.operation, q.request].filter(Boolean).join(" "))
     if (duty.kind === "entry" && !candidates.length && options.entryContext) candidates = options.tools.symbolHints(options.entryContext)
+    if (duty.kind === "entry" && options.requireEntryBasis) {
+      const contextual = options.tools.symbolHints([q.entryHint, q.operation, q.request, options.entryContext].filter(Boolean).join(" "))
+      if (contextual.some(c => c.basis?.kind !== "lexical-lead")) candidates = contextual
+    }
     items.set(duty.id, make(duty.id, duty.questionId, duty.kind, "question-duty", duty.question, { entryHint: q.entryHint, ...(duty.kind === "entry" ? { candidates: candidates.slice(0, 16), decisive: true } : {}) }))
   }
   const rootFor = (questionId: string) => {
@@ -154,12 +158,14 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
         transition(item, check?.ruleConsistency && check.taskResolution === "bounded" ? "closed" : represented(item, slice).length ? "awaiting-verification" : root.state === "awaiting-interpretation" ? "awaiting-interpretation" : "awaiting-binding", check?.ruleConsistency && check.taskResolution === "bounded" ? "none" : represented(item, slice).length ? "check" : "interpret", "Question duty follows actual entry evidence; optional roles are not invented. A closed duty is only coverage of proposed bounded paths.")
         continue
       }
-      const choice = choices.get(item.id), candidate = choice?.candidate ?? (item.candidates.length === 1 ? item.candidates[0] : declaredEntryLocation(item, slice))
+      const choice = choices.get(item.id), requiresBasis = options.requireEntryBasis && item.origin === "question-duty" && item.kind === "entry"
+      const singleton = item.candidates.length === 1 && (!requiresBasis || item.candidates[0]!.basis?.unique && ["qualified-symbol", "source-route"].includes(item.candidates[0]!.basis.kind))
+      const candidate = choice?.candidate ?? (singleton ? item.candidates[0] : declaredEntryLocation(item, slice))
       item.selected = candidate
-      item.selectedBy = candidate ? choice?.origin ?? (item.candidates.length === 1 ? "unique-index-candidate" : "accepted-entry-citation") : undefined
+      item.selectedBy = candidate ? choice?.origin ?? (singleton ? requiresBasis ? "source-confirmed-candidate" : "unique-index-candidate" : "accepted-entry-citation") : undefined
       if (candidate && invalidFiles.has(candidate.path)) { transition(item, "blocked", "none", "Original source changed; start a fresh session before promoting extraction.", "source-invalidated"); continue }
       if (failedReads.has(item.id)) { transition(item, "blocked", "none", "The prior actual read failed; preserve the gap without spinning.", failedReads.get(item.id)); continue }
-      if (!candidate) { transition(item, "unlocated", item.candidates.length > 1 ? "select-candidate" : "locate", "Choose an original indexed candidate; no semantic location is inferred.", item.candidates.length > 1 ? "location-ambiguous" : "location-missing"); continue }
+      if (!candidate) { transition(item, "unlocated", item.candidates.length ? "select-candidate" : "locate", "Choose an original indexed candidate; no semantic location is inferred.", item.candidates.length > 1 ? "location-ambiguous" : item.candidates.length && requiresBasis ? "entry-basis-unconfirmed" : "location-missing"); continue }
       let ancestor = item.parentId ? items.get(item.parentId) : undefined, cyclic = false
       while (ancestor) { if (candidate.id === ancestor.selected?.id && (!options.structural || item.receiverClass === ancestor.receiverClass)) cyclic = true; ancestor = ancestor.parentId ? items.get(ancestor.parentId) : undefined }
       if (cyclic) { transition(item, "blocked", "none", "The selected reference returns to an ancestor candidate; no automatic recursive read.", "reference-cycle"); continue }

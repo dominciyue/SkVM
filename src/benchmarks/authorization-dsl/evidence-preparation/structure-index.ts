@@ -13,7 +13,7 @@ export interface StructureCall {
   basis: string[]; gap?: string; resultNames: string[]
 }
 export interface StructureRoute { id: string; sourceCallId: string; sourcePath: string; startLine: number; endLine: number; method: string; path: string; handlerExpression: string; candidateIds: string[]; middlewareExpressions: string[]; model: string }
-interface FileScope { path: string; module: string; language: "python" | "go"; aliases: Record<string, string>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; groupPaths: string[] }> }
+interface FileScope { path: string; module: string; language: "python" | "go"; aliases: Record<string, string>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; groupPaths: string[] }>; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string }> }
 const hash = (v: unknown) => createHash("sha256").update(typeof v === "string" ? v : JSON.stringify(v)).digest("hex")
 let initialized: Promise<Map<string, Language>> | undefined
 function languages() {
@@ -26,6 +26,13 @@ function languages() {
 const field = (n: Node, key: string) => n.childForFieldName(key)
 const children = (n: Node | null | undefined): Node[] => (n?.namedChildren ?? []).filter((v): v is Node => !!v)
 const descendants = (n: Node, types: string[]): Node[] => n.descendantsOfType(types).filter((v): v is Node => !!v)
+/** Share the existing parser runtime; only plain facts may escape the disposed tree. */
+export async function withSourceSyntax<T>(content: string, language: "python" | "go", visit: (root: Node) => T): Promise<T> {
+  const loaded = await languages(), parser = new Parser()
+  parser.setLanguage(loaded.get(language)!)
+  const tree = parser.parse(content)!
+  try { return visit(tree.rootNode) } finally { tree.delete(); parser.delete() }
+}
 const cleanType = (s: string) => s.replace(/^[*]+/, "").trim()
 function moduleName(file: string, language: string) {
   if (language === "go") return path.posix.dirname(file).replace(/^\.\/?/, "")
@@ -108,7 +115,38 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         if (assignment && ["assignment", "short_var_declaration", "assignment_statement"].includes(assignment.type)) resultNames.push(...(children(field(assignment, "left")).length ? children(field(assignment, "left")).map(c => c.text) : [field(assignment, "left")?.text ?? ""]).filter(Boolean))
         rawCalls.push({ types, groupPaths, call: { id: `call-${hash([sourceIdentity, file.path, sha256, n.startIndex]).slice(0, 24)}`, ...(symbol ? { ownerId: symbol.id } : {}), path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, expression, ...(expression.includes(".") ? { receiver: expression.slice(0, expression.lastIndexOf(".")) } : {}), arguments: args, candidateIds: [], resolution: "unresolved", basis: [], resultNames } })
       }
-      scopes.push({ path: file.path, module, language, aliases, symbols, rawCalls })
+      const constants: Record<string, string> = {}, routers: FileScope["routers"] = [], decorators: FileScope["decorators"] = [], includes: FileScope["includes"] = []
+      if (language === "python") {
+        const assignments = children(root).flatMap(n => n.type === "expression_statement" ? children(n).filter(c => c.type === "assignment") : [])
+        const count = (name: string) => assignments.filter(n => field(n, "left")?.text === name).length
+        for (const n of assignments) {
+          const name = field(n, "left")?.text, value = field(n, "right")
+          if (!name || !value || !/^[A-Za-z_]\w*$/.test(name)) continue
+          if (count(name) === 1) constants[name] = value.text
+          if (value.type === "call") routers.push({ name, constructor: field(value, "function")?.text ?? "", prefix: children(field(value, "arguments")).find(a => a.type === "keyword_argument" && field(a, "name")?.text === "prefix")?.childForFieldName("value")?.text ?? '""', repeated: count(name) !== 1 })
+        }
+        const verbs = new Set(["get", "post", "put", "patch", "delete", "head", "options", "trace"])
+        for (const n of descendants(root, ["decorated_definition"])) {
+          const fn = children(n).find(c => c.type === "function_definition"), handler = fn && byNode.get(fn.id)
+          if (!handler) continue
+          const ds = children(n).filter(c => c.type === "decorator")
+          for (const d of ds) {
+            const call = children(d).find(c => c.type === "call"), expression = call && field(call, "function")?.text, verb = expression?.split(".").at(-1)
+            if (!call || !expression?.includes(".") || !verb || !verbs.has(verb)) continue
+            const args = children(field(call, "arguments")), raw = rawCalls.find(r => r.call.startLine === call.startPosition.row + 1 && r.call.expression === expression)
+            if (raw) decorators.push({ callId: raw.call.id, handlerId: handler.id, receiver: expression.slice(0, expression.lastIndexOf(".")), verb, path: (args.find(a => a.type !== "keyword_argument") ?? args.find(a => field(a, "name")?.text === "path")?.childForFieldName("value"))?.text ?? "", middleware: [...args.filter(a => a.type === "keyword_argument" && field(a, "name")?.text === "dependencies").map(a => a.text), ...children(field(fn!, "parameters")).filter(p => descendants(p, ["call"]).some(c => field(c, "function")?.text.endsWith("Depends"))).map(p => p.text)], wrapped: ds.length !== 1 })
+          }
+        }
+        for (const n of descendants(root, ["call"])) {
+          const expression = field(n, "function")?.text
+          if (!expression?.endsWith(".include_router")) continue
+          let ancestor = n.parent
+          while (ancestor && !["function_definition", "class_definition", "if_statement", "for_statement", "while_statement"].includes(ancestor.type)) ancestor = ancestor.parent
+          const args = children(field(n, "arguments")), raw = rawCalls.find(r => r.call.startLine === n.startPosition.row + 1 && r.call.expression === expression)
+          if (raw) includes.push({ callId: raw.call.id, receiver: expression.slice(0, -".include_router".length), child: (args.find(a => a.type !== "keyword_argument") ?? args.find(a => field(a, "name")?.text === "router")?.childForFieldName("value"))?.text ?? "", prefix: ancestor ? "$dynamic" : args.find(a => field(a, "name")?.text === "prefix")?.childForFieldName("value")?.text ?? '""' })
+        }
+      }
+      scopes.push({ path: file.path, module, language, aliases, symbols, rawCalls, constants, routers, decorators, includes })
     } finally { tree.delete(); parser.delete() }
   }
   const symbols = scopes.flatMap(f => f.symbols), scopeFor = (s: StructureSymbol) => scopes.find(f => f.path === s.path)!
@@ -197,6 +235,40 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     }
   }
   const calls = scopes.flatMap(f => f.rawCalls.map(r => resolveCall(r, f))), routes: StructureRoute[] = []
+  const pythonScopes = scopes.filter(s => s.language === "python")
+  const literal = (expression: string, scope: FileScope, seen = new Set<string>()): string | undefined => {
+    const token = /^(?:([rRuU]))?(['"])([^'"\r\n]*)\2$/.exec(expression)
+    if (token && (!token[3]!.includes("\\") || token[1])) return token[3]
+    if (!/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(expression)) return undefined
+    const name = qualified(expression, scope)
+    if (seen.has(name)) return undefined
+    seen.add(name)
+    const targets = pythonScopes.flatMap(s => Object.keys(s.constants).filter(k => `${s.module}.${k}` === name || `${s.module}.${k}`.endsWith(`.${name}`)).map(k => ({ scope: s, key: k })))
+    return targets.length === 1 ? literal(targets[0]!.scope.constants[targets[0]!.key]!, targets[0]!.scope, seen) : undefined
+  }
+  const routerDeclarations = pythonScopes.flatMap(s => s.routers.filter(r => !r.repeated && ["fastapi.APIRouter", "fastapi.FastAPI", "fastapi.routing.APIRouter", "fastapi.applications.FastAPI"].includes(qualified(r.constructor, s))).map(r => ({ name: `${s.module}.${r.name}`, prefix: literal(r.prefix, s) })))
+  const routerNames = (name: string) => { const exact = routerDeclarations.filter(r => r.name === name); return (exact.length ? exact : routerDeclarations.filter(r => r.name.endsWith(`.${name}`))).map(r => r.name) }
+  const mounts = pythonScopes.flatMap(s => s.includes.map(i => { const parents = routerNames(qualified(i.receiver, s)), children = routerNames(qualified(i.child, s)); return { ...i, parent: parents.length === 1 ? parents[0]! : "$unresolved", childNames: children, prefixValue: children.length === 1 ? literal(i.prefix, s) : undefined } }))
+  const prefixes = (name: string, active = new Set<string>()): string[] | undefined => {
+    const router = routerDeclarations.find(r => r.name === name)
+    if (!router || router.prefix === undefined || active.has(name)) return undefined
+    const parents = mounts.filter(m => m.childNames.includes(name))
+    if (!parents.length) return [router.prefix]
+    const next = new Set(active).add(name), paths: string[] = []
+    for (const parent of parents) {
+      const values = prefixes(parent.parent, next)
+      if (!values || parent.prefixValue === undefined) return undefined
+      paths.push(...values.map(p => p + parent.prefixValue + router.prefix))
+    }
+    return paths
+  }
+  for (const scope of pythonScopes) for (const d of scope.decorators) {
+    const c = scope.rawCalls.find(r => r.call.id === d.callId)!.call, names = routerNames(qualified(d.receiver, scope)), routerName = names.length === 1 ? names[0]! : "$unresolved", router = routerDeclarations.find(r => r.name === routerName), ps = prefixes(routerName), value = literal(d.path, scope)
+    const code = !router ? "route-router-unresolved" : !ps ? "route-prefix-dynamic" : value === undefined ? "route-path-dynamic" : d.wrapped ? "route-wrapper-unresolved" : undefined
+    if (code) { diagnostics.push({ path: scope.path, line: c.startLine, code }); continue }
+    const handler = symbols.find(s => s.id === d.handlerId)!
+    for (const [mount, prefix] of ps!.entries()) routes.push({ id: `route-${hash([c.id, prefix, mount]).slice(0, 24)}`, sourceCallId: c.id, sourcePath: scope.path, startLine: c.startLine, endLine: c.endLine, method: d.verb.toUpperCase(), path: prefix + value!, handlerExpression: handler.name, candidateIds: [handler.id], middlewareExpressions: d.middleware, model: "fastapi-source-router/v1" })
+  }
   for (const scope of scopes) for (const raw of scope.rawCalls) {
     const c = raw.call, verb = c.expression.split(".").at(-1)!, goRoute = scope.language === "go" && ["Get", "Post", "Put", "Patch", "Delete", "Head", "Options"].includes(verb), drf = scope.language === "python" && verb === "register"
     // Only static string tokens, including Python raw/unicode prefixes. A
@@ -214,8 +286,13 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
   const candidateRevision = (className: string, method: string) => hash([linearize(className), lookupMethod(className, method).map(s => [s.id, s.sha256]), scopes.map(s => [s.path, s.aliases])])
   const relatedCalls = (symbolId: string, receiverClass?: string) => { const route = routes.find(r => r.id === symbolId); return scopes.flatMap(f => f.rawCalls.filter(r => route ? r.call.path === route.sourcePath && r.call.id !== route.sourceCallId && r.call.startLine >= route.startLine && r.call.endLine <= route.endLine : r.call.ownerId === symbolId).map(r => resolveCall(r, f, receiverClass))) }
   const resolveName = (text: string, sourcePath: string) => { const scope = scopes.find(f => f.path === sourcePath); return scope ? matching(qualified(text, scope)) : [] }
-  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v1"
-  return { schemaVersion: "authorization-structure-index/v1" as const, parser: parserVersion, relationshipVersion, symbols, calls, routes, diagnostics, lookupMethod, attribute, linearize, candidateRevision, relatedCalls, resolveName,
+  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v2"
+  const withSymbolSyntax = <T>(symbolId: string, visit: (root: Node, symbol: StructureSymbol) => T): Promise<T> => {
+    const symbol = symbols.find(s => s.id === symbolId), file = symbol && files.find(f => f.path === symbol.path)
+    if (!symbol || !file || hash(file.content) !== symbol.sha256) throw new Error("structure-source-missing")
+    return withSourceSyntax(file.content, symbol.language, root => visit(root, symbol))
+  }
+  return { schemaVersion: "authorization-structure-index/v1" as const, parser: parserVersion, relationshipVersion, symbols, calls, routes, diagnostics, lookupMethod, attribute, linearize, candidateRevision, relatedCalls, resolveName, withSymbolSyntax,
     revision: hash([sourceIdentity, parserVersion, relationshipVersion, symbols, calls, routes, diagnostics]), preparation: { files: files.length, bytes: files.reduce((s, f) => s + Buffer.byteLength(f.content), 0), durationMs: performance.now() - started, targetExecutions: 0 } }
 }
 export type StructureIndex = Awaited<ReturnType<typeof buildStructureIndex>>

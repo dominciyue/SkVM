@@ -1846,6 +1846,8 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 **AV2来源连接。** 合法range连接、精确非法定位诊断和单行旧定位三项行为反例先失败，共用`source-selector.ts`后58项相关测试/267断言通过。scheduler保留旧range/out-of-scope代码兼容，同时保存归一化selector；operation links和focus共用同一范围合同，来源错误进入当前解释诊断而非文件不存在。Download三单元只在内存按原SHA/范围重绑定，原带行号pathHint现在得到一个真实callee绑定；另一个语义诊断仍保留，未重写参数/条件或宣称整题full。证据在[AV阶段验证](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/verification/av1-av2.json)。
 
+**AV3–AV4工程与边界。** 五个入口/路由反例及跨根alias挂载反例先失败；49项结构/worklist/reuse/runtime回归通过，主类型通过。旧入口重选撤销机制继续成立；原OWUI自然请求由源码路由选择process_file，[零模型定位](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/verification/av3-owui-route-mounts.json)仅证明实际入口进入工作队列。骨架生产接口的提前返回、未读、Go嵌套、短路/elif反例先失败，16项骨架/工具测试132断言通过。匿名Python/Go原文锚点及边见[骨架原件](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/verification/av4-anonymous-skeletons.json)。循环/异常/动态调用保持有位置的gap；有调用的短路不能无条件展开。下一步窄解释接口以revision、角色/谓词和显式对象关系进入旧降低器，真实效果尚未测。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

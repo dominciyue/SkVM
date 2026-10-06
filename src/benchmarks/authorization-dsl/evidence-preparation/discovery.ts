@@ -5,7 +5,7 @@ import { AuthorizationEvidenceRequestSchema, type AuthorizationEvidenceRequest }
 import { physicalSourceLines } from "./segments.ts"
 import { evidenceLocationId, selectEvidenceLocation, type EvidenceLocationContext, type EvidenceLocationOutcome, type EvidenceLocationSelector } from "./location-selection.ts"
 
-export interface DiscoverySymbol { id: string; sha256: string; path: string; name: string; kind: "class" | "function"; startLine: number; endLine: number; parent?: string; boundary?: "complete" | "uncertain" }
+export interface DiscoverySymbol { id: string; sha256: string; path: string; name: string; kind: "class" | "function"; startLine: number; endLine: number; parent?: string; boundary?: "complete" | "uncertain"; basis?: { kind: "qualified-symbol" | "source-route" | "lexical-lead" | "user-selected"; reference: string; relationshipIds?: string[]; unique: boolean } }
 export interface DiscoveryWindow { id: string; sha256: string; path: string; startLine: number; endLine: number; text: string; bytes: number; origin: string }
 export interface DiscoveryDiagnostic { reason: string; path?: string; symbol?: string; from?: string }
 export interface AuthorizationDiscovery {

@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 `@vscode/tree-sitter-wasm` Python/Go 解析器、现有 provider/telemetry 和确定性测试。按实际依赖版本查官方实现，不另建 CLI、统一 IR 或整仓安全平台。
 
-日期：2026-10-06。状态：`in-progress`，AV0–AV2完成，继续AV3。开发模型：`gpt-6.1-sol / max`；用户另要求 Flash，当前派发接口没有该设置字段，不能写成已经启用。工作目录 `D:/skill优化/SkVM`，分支 `skill-ir-aot`，仅推用户 `origin`。设计基线 `9d7db8e87c1484e119e7b8d1adece2fc6ba5079f`，启动时保留本任务书后续发布提交。
+日期：2026-10-06。状态：`in-progress`，AV0–AV4完成，继续AV5。开发模型：`gpt-6.1-sol / max`；用户另要求 Flash，当前派发接口没有该设置字段，不能写成已经启用。工作目录 `D:/skill优化/SkVM`，分支 `skill-ir-aot`，仅推用户 `origin`。设计基线 `9d7db8e87c1484e119e7b8d1adece2fc6ba5079f`，启动时保留本任务书后续发布提交。
 
 本轮约 8–12 小时是主动工作安排，约六成精力用于质量、四成用于编写与复用。完成适用工作即收口；不等待、重复全量验证或增加无目的调用凑时间。实验模型沿用 `xty/gpt-5.6-sol`，与开发线程模型分账；可用路由改变时记录并统一同一比较块。
 
@@ -82,12 +82,17 @@ export interface SourceSkeleton {
 }
 export interface SourceInterpretation {
   schemaVersion: "source-interpretation/v1";
+  revision: string;
+  fallthroughOutcome?: ControlRule["outcome"];
   annotations: Array<{
     anchorId: string;
     role: "principal" | "resource" | "permission" | "condition" | "effect" | "context";
     explanation: string;
     principalAnchorId?: string;
     resourceAnchorId?: string;
+    aliasAnchorId?: string;
+    guardBranch?: "true" | "false";
+    authorizedByAnchorIds?: string[];
     condition?: ControlRule["condition"];
     failureKind?: ControlRule["failureKind"];
     returnOutcome?: ControlRule["outcome"];
@@ -168,17 +173,17 @@ export interface SourceInterpretation {
 
 ### AV3 来源确认的入口与框架路由
 
-- [ ] 增加匿名 FastAPI/APIRouter import alias、prefix、重复 route、动态 prefix、伪 router 对象、无关 write singleton 反例。
-- [ ] structure-index 建真实 decorator/registration 关系；worklist 用候选依据选择入口，词法线索保持可探索但不自动绑定。
-- [ ] 测试显式候选重选能撤销错误事实，Go/DRF 原 route 兼容；不强迫用户给正确函数名。
-- [ ] 对已暴露 OWUI 原输入零模型走生产工具核对 route 候选和 entry 工作；结果记录候选而非授权结论。
+- [x] 增加匿名 FastAPI/APIRouter import alias、prefix、重复 route、动态 prefix、伪 router 对象、无关 write singleton 反例。
+- [x] structure-index 建真实 decorator/registration 关系；worklist 用候选依据选择入口，词法线索保持可探索但不自动绑定。
+- [x] 测试显式候选重选能撤销错误事实，Go/DRF 原 route 兼容；不强迫用户给正确函数名。
+- [x] 对已暴露 OWUI 原输入零模型走生产工具核对 route 候选和 entry 工作；结果记录候选而非授权结论。
 
 ### AV4 从源码生成有界骨架
 
-- [ ] source-skeleton 测试覆盖 if/else、提前 return/raise、嵌套条件、位置/关键字参数、字段值、空值与短路、动态调用、循环及异常缺口。
-- [ ] 复用解析树生成原文锚点与有限边，不执行目标代码；两个调用同名但 receiver 不同要保留区别。
-- [ ] 只为当前已读窗口/完整函数生成骨架；未展示内容不能被标成模型已解释。索引看过与模型看过分账。
-- [ ] 在 Python、Go 各输出一个匿名骨架，验证所有 anchor 回指实际字节、所有 unsupported 节点有位置，完整分支没有被截断后自动宣称完成。
+- [x] source-skeleton 测试覆盖 if/else、提前 return/raise、嵌套条件、位置/关键字参数、字段值、空值与短路、动态调用、循环及异常缺口。
+- [x] 复用解析树生成原文锚点与有限边，不执行目标代码；两个调用同名但 receiver 不同要保留区别。
+- [x] 只为当前已读窗口/完整函数生成骨架；未展示内容不能被标成模型已解释。索引看过与模型看过分账。
+- [x] 在 Python、Go 各输出一个匿名骨架，验证所有 anchor 回指实际字节、所有 unsupported 节点有位置，完整分支没有被截断后自动宣称完成。
 
 ### AV5 模型解释接口减负与语义降低
 

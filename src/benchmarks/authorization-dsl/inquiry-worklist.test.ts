@@ -5,6 +5,43 @@ import os from "node:os"
 import { createInquiryTools } from "./inquiry-tools.ts"
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
 import { createControlSlice, mergeControlSlice } from "../../task-dsl/authorization/control-slice.ts"
+
+async function sourceConfirmedWork(content: string, request: string) {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "av-entry-"))
+  await writeFile(path.join(sourceRoot, "app.py"), content)
+  const tools = await createInquiryTools({ sourceRoot, repository: "anonymous", sourceRef: "r", allowedPaths: ["."], structure: true })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request, premises: [] }] })
+  return { tools, work: api.createInquiryWorklist({ program, tools, structural: true, requireEntryBasis: true }) }
+}
+
+test("a singleton ordinary verb stays a selectable lead and never becomes the entry automatically", async () => {
+  const { tools, work } = await sourceConfirmedWork("class AuditLogger:\n    def write(self, message):\n        return message\n", "Can the caller write the requested file?")
+  await work.run(createControlSlice(), 2)
+  const entry = work.snapshot().find((w: any) => w.kind === "entry")
+  expect(entry.selected).toBeUndefined()
+  expect(entry).toMatchObject({ code: "entry-basis-unconfirmed", nextAction: { kind: "select-candidate" } })
+  expect(tools.toolCalls).toBe(0)
+  expect(work.selectCandidate({ questionId: "q", itemId: entry.id, candidateId: entry.candidates[0].id }).status).toBe("accepted")
+  await work.run(createControlSlice(), 2)
+  expect(work.snapshot().find((w: any) => w.kind === "entry").selectedBy).toBe("explicit-selection")
+})
+
+test("the natural route task selects the real handler despite an unrelated write singleton", async () => {
+  const { work } = await sourceConfirmedWork('from fastapi import APIRouter as Router\nrouter = Router()\n@router.post("/process/file")\ndef process_file(request):\n    return request\nclass AuditLogger:\n    def write(self, message):\n        return message\n', "Analyze /process/file: can a caller write another file?")
+  await work.run(createControlSlice(), 1)
+  expect(work.snapshot().find((w: any) => w.kind === "entry")).toMatchObject({ selected: { name: "process_file" }, selectedBy: "source-confirmed-candidate", state: "awaiting-interpretation" })
+})
+
+test("qualified symbols can confirm an entry but duplicate routes cannot", async () => {
+  const content = 'from fastapi import APIRouter\nrouter = APIRouter()\n@router.post("/items")\ndef first(x):\n    return x\n@router.post("/items")\ndef second(x):\n    return x\n'
+  const qualified = await sourceConfirmedWork(content, "Analyze app.first for the supplied caller")
+  await qualified.work.run(createControlSlice(), 1)
+  expect(qualified.work.snapshot().find((w: any) => w.kind === "entry").selected?.name).toBe("first")
+  const ambiguous = await sourceConfirmedWork(content, "Analyze POST /items for the supplied caller")
+  await ambiguous.work.run(createControlSlice(), 1)
+  expect(ambiguous.work.snapshot().find((w: any) => w.kind === "entry")).toMatchObject({ code: "location-ambiguous" })
+  expect(ambiguous.tools.toolCalls).toBe(0)
+})
 const api = await import("./inquiry-worklist.ts").catch(() => ({} as any))
 async function fixture(sources: Record<string, string>, questions = [{ id: "q", request: "Investigate entry", entryHint: "entry", premises: [] }]) {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ar-work-"))
