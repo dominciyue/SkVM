@@ -1910,6 +1910,23 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 **AW收束与未达。** 适用离线队列completed-with-unmet-criteria，finiteQueueComplete=true，researchGoalAchieved=false。24个逻辑真实首位置均登记undispatched-prerequisite-unmet（原native与质量D-S可共用一次原件，不能双计）；没有为消耗数量发推理，AV十二旧位置仍暂停。核心工程有界通过；真实完整链未建立；材料复用仅确定性工程；整任务收益未测；账号工具通道unavailable。独立只读账号/证据审查及主代理出处裁定后修复上述回归，最终937pass/1平台skip/5909断言、主和AW严格类型通过，8份本轮raw和11份旧原件SHA核验通过。开发gpt-6.1-sol/max、探子、真人时间、USD均缺测分别记unknown；本轮账号推理/第三方API/目标执行为0。恢复责任首先在codex-account-session的官方排他工具能力核实，其次按新实际提案完成OWUI55缺项和Downloadcallee，再进入真实debug、完整skill作者/消费、三变化和matched质量。原提案重放与test-authored接线不替这项模型工作。未新增每阶段Markdown，当前阅读集15份保持；结果见[AW summary](../../results/skill-ir/skill-dsl-research/development/authorization-control-materials-v1/summary.json)。
 
+### 7.57 AW 收束后复核：运行能力与按问题求值
+
+2026-10-07复核用户交付。接管时HEAD与用户origin均为5a25d75911af67ef2809ec74efefa015c84325ae，工作区干净。本人阅读当前合同/研究/任务书，三名default只读探子分别检索账号、有限语义与证据；结论经原文点验和零调用反例核验。本轮没有改生产代码、发起模型推理或恢复第三方API。新鲜定向回归68/68、342断言通过，未重复937项历史全量。
+
+**账号阻点的精确性质。** [createCodexStdioTransport](../../src/adapters/codex-account-session.ts)将隔离状态固定为unverified-public-cli，runCodexAccountSession只允许test-transport继续；生产路径在initialize之后、thread/start之前必然返回unavailable。当前原件证明初始化成功和本地保护分支生效，没有证明官方账号推理失败或工具配置完全不可行。官方[App Server](https://learn.chatgpt.com/docs/app-server)提供dynamicTools与工具回调；[配置说明](https://learn.chatgpt.com/docs/config-file/config-reference)提供shell、apps、multi-agent、web search控制和命名文件权限。已存本机ThreadStartParams也含config、permissions、runtimeWorkspaceRoots，ThreadStartResponse含instructionSources、activePermissionProfile。现有生产请求尚未应用这些配置。它们是否覆盖本机所有额外能力仍需版本核验，不能简单把test-transport标志设真。下一轮应把“必须有动态工具排他证明”调整为“可执行的受控能力合同”：确立来源/评价隔离、目标不执行、额外工具禁用或有界同条件计量，再做匿名真实工具会话。该调整为本次研究建议，尚未实施；原AW结果保持。用户账号实验授权持续有效。
+
+**已复现的结构性瓶颈。** [source-interpretation](../../src/task-dsl/authorization/source-interpretation.ts)要求generated flow中每个调用有role或unresolved，所有v3 context/effect调用再自动带mayRaise:true。[semantic-flow](../../src/task-dsl/authorization/semantic-flow.ts)逐项分叉未知异常，终态路径上限16；超限会撤销该question已生成rules/dependencies并只留semantic-path-limit。用零模型内存反例串联15个context调用加正常return，产生15条异常unknown和1条allow；改成16个调用就只有semantic-path-limit终态。这证明新增语法覆盖仍可能在求值规模上失效；尚无AW真实模型轨迹，不能把此反例当成已发生的模型失败。建议保留原任务全部问题，按每项授权性质筛选相关依赖、使用有来源的局部摘要、合并等价失败状态，在未知会影响资源/guard/effect时才继续展开。未知不能默认为安全，单纯增大路径上限也不能解决展开增长。
+
+**已排除和待区分的疑点。** 探子提出try body raise、空handlers和正常finally可能吞异常。主代理点验发现structuredClone保留pending，内存复现输出authorization reject、仅cleanup effect、后续effect未执行、diagnostics为空，故排除该误报。账号callId缺失风险属于异常协议输入；本机generated DynamicToolCallParams明确callId必填，不将其当成已证实的真实失败。TokenUsageBreakdown也明确cacheWriteInputTokens字段，不能凭其它版本推断当前计量必然丢失。
+
+**证据口径细化。** OWUI当前重新核验共56条诊断：41 role-required、8 condition-required、2 return-outcome-required、4 failure-kind-required、1 anchor-unshown；其中55条是必需语义注解缺项。另有两条context-exit及一条dynamic-call结构缺口。Download helper-only为1份当前可用材料、0使用；test-authored wrapper使2份材料在3个问题形成6条使用关系；三条callee缺项是各问题的记录，不能据此推出三个独立helper。24为逻辑位置，manifest允许一次原件共享后uniqueInitialPositionsIfShared=23，实际派发0。同v3元数据修订减负7.7%/18.3%属实；OWUI最终4,697,627字节仍较v2的3,877,501高21.15%，因此后续应同时记录绝对上下文、标注数和原任务答案。
+
+**相关研究与本项目落点。** [RepoAudit §3.2–3.3](https://arxiv.org/html/2501.18160v3)按目标值和函数探索/保存路径事实，仅在相关值跨函数边界时继续，并校验控制顺序和路径条件；其评测对象主要是内存错误，授权方法需另验。[CodeQL Python data flow](https://codeql.github.com/docs/codeql-language-guides/analyzing-data-flow-in-python/)通过source/sink/barrier和自定义传播组织查询。这些方法支持“围绕所问性质组织局部关系”的设计选择；不是本项目已经取得收益的证据。SkVM可继续研究主体、资源身份、guard、实际effect及独立policy之间的可执行检查，并复用AW来源材料/变化失效，不再把完整函数的每个调用都当同等重要标注任务。
+
+建议下一轮依次：核实并接通账号受控工具会话；修按问题依赖与异常状态合并的确定性反例；用完整Download原任务及一次policy/premise/source变化取得真实闭环；再检验OWUI复杂结构；最后同账号/模型/输入比较原skill、自然前端加核心、DSL加核心。每个坏表现当场定位共享原因并做具名修订，保留首件。当前只记录复核及建议，没有新任务书派发或新增效果结论。
+
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
