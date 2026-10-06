@@ -14,7 +14,7 @@ export interface StructureCall {
   basis: string[]; gap?: string; resultNames: string[]; syntaxRole: "condition" | "return" | "argument-default" | "body" | "source-context"
 }
 export interface StructureRoute { id: string; sourceCallId: string; sourcePath: string; startLine: number; endLine: number; method: string; path: string; handlerExpression: string; candidateIds: string[]; middlewareExpressions: string[]; dependencyExpressions?: string[]; model: string }
-interface FileScope { path: string; module: string; language: "python" | "go"; aliases: Record<string, string>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; groupPaths: string[] }>; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; dependencies: Array<{ constructor: string; expression: string }>; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string }> }
+interface FileScope { path: string; sha256: string; module: string; language: "python" | "go"; aliases: Record<string, string>; moduleAliases: Record<string, string>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; localNames: string[]; groupPaths: string[] }>; moduleAssignments: Record<string, number>; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; dependencies: Array<{ constructor: string; expression: string }>; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string }> }
 const hash = (v: unknown) => createHash("sha256").update(typeof v === "string" ? v : JSON.stringify(v)).digest("hex")
 let initialized: Promise<Map<string, Language>> | undefined
 function languages() {
@@ -66,7 +66,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     const parser = new Parser(); parser.setLanguage(loaded.get(language)!)
     const tree = parser.parse(file.content)!
     try {
-      const root = tree.rootNode, sha256 = hash(file.content), module = moduleName(file.path, language), aliases: Record<string, string> = {}, symbols: StructureSymbol[] = []
+      const root = tree.rootNode, sha256 = hash(file.content), module = moduleName(file.path, language), aliases: Record<string, string> = {}, moduleAliases: Record<string, string> = {}, symbols: StructureSymbol[] = []
       if (root.hasError) diagnostics.push({ path: file.path, code: "structure-parse-partial" })
       if (language === "python") for (const n of descendants(root, ["import_statement", "import_from_statement"])) {
         const from = field(n, "module_name")?.text
@@ -75,6 +75,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           const name = field(v, "name")?.text ?? v.text, alias = field(v, "alias")?.text ?? (from ? name : name.split(".")[0]!)
           const qualified = from ? `${from}.${name}` : name
           aliases[alias] = qualified.startsWith(".") ? `${module.split(".").slice(0, -1).join(".")}${qualified}` : qualified
+          if (n.parent?.id === root.id) moduleAliases[alias] = aliases[alias]!
         }
       }
       else for (const n of descendants(root, ["import_spec"])) {
@@ -115,6 +116,20 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         const s: StructureSymbol = { id: `struct-${hash([sourceIdentity, file.path, sha256, n.startIndex, qualifiedName]).slice(0, 24)}`, path: file.path, sha256, name, qualifiedName, module, language, kind: n.type === "class_definition" || n.type === "type_spec" ? "class" : "function", startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, boundary: n.hasError ? "uncertain" : "complete", ...(className ? { parent: className.split(".").at(-1), className } : {}), ...(receiver ? { receiver } : {}), parameters, returns: field(n, "return_type") || field(n, "result") ? [(field(n, "return_type") ?? field(n, "result"))!.text] : [], bases: children(field(n, "superclasses")).map(c => c.text), attributes }
         byNode.set(n.id, s); symbols.push(s)
       }
+      const localNames = new Map<string, Set<string>>(), moduleAssignments: Record<string, number> = {}, globalNames = new Map<string, Set<string>>()
+      if (language === "python") for (const n of descendants(root, ["global_statement"])) {
+        let owner = n.parent; while (owner && !byNode.has(owner.id)) owner = owner.parent
+        const symbol = owner && byNode.get(owner.id)
+        if (symbol?.kind === "function") { const names = globalNames.get(symbol.id) ?? new Set<string>(); for (const name of children(n)) if (name.type === "identifier") names.add(name.text); globalNames.set(symbol.id, names) }
+      }
+      if (language === "python") for (const n of descendants(root, ["assignment", "augmented_assignment", "named_expression", "for_statement", "as_pattern", "delete_statement", "import_statement", "import_from_statement", "function_definition", "class_definition"])) {
+        let owner = n.parent; while (owner && !byNode.has(owner.id)) owner = owner.parent
+        const symbol = owner && byNode.get(owner.id), left = field(n, "left") ?? field(n, "name") ?? field(n, "alias")
+        const names = ["import_statement", "import_from_statement"].includes(n.type) ? children(n).filter(c => c.type === "aliased_import" || c.type === "dotted_name" && c.id !== field(n, "module_name")?.id).map(c => field(c, "alias")?.text ?? (field(n, "module_name") ? field(c, "name")?.text ?? c.text : (field(c, "name")?.text ?? c.text).split(".")[0]!))
+          : left?.type === "identifier" ? [left.text] : descendants(left ?? n, ["identifier"]).filter(c => n.type === "delete_statement" || left?.type === "pattern_list" || left?.type === "as_pattern_target").map(c => c.text)
+        for (const name of names) if (!symbol || symbol.kind === "function" && globalNames.get(symbol.id)?.has(name)) moduleAssignments[name] = (moduleAssignments[name] ?? 0) + 1
+        else if (symbol.kind === "function") { const bound = localNames.get(symbol.id) ?? new Set<string>(); bound.add(name); localNames.set(symbol.id, bound) }
+      }
       const rawCalls: FileScope["rawCalls"] = []
       for (const n of descendants(root, language === "python" ? ["call"] : ["call_expression"])) {
         const fn = field(n, "function"); if (!fn) continue
@@ -141,7 +156,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           if (ancestor.type === "return_statement") { syntaxRole = "return"; break }
           ancestor = ancestor.parent
         }
-        rawCalls.push({ types, groupPaths, call: { id: `call-${hash([sourceIdentity, file.path, sha256, n.startIndex]).slice(0, 24)}`, ...(symbol ? { ownerId: symbol.id } : {}), path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, expression, ...(expression.includes(".") ? { receiver: expression.slice(0, expression.lastIndexOf(".")) } : {}), arguments: args, candidateIds: [], resolution: "unresolved", basis: [], resultNames, syntaxRole } })
+        rawCalls.push({ types, localNames: language === "python" && symbol?.kind === "function" ? [...new Set([...symbol.parameters.map(p => p.name), ...localNames.get(symbol.id) ?? []])] : [], groupPaths, call: { id: `call-${hash([sourceIdentity, file.path, sha256, n.startIndex]).slice(0, 24)}`, ...(symbol ? { ownerId: symbol.id } : {}), path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, expression, ...(expression.includes(".") ? { receiver: expression.slice(0, expression.lastIndexOf(".")) } : {}), arguments: args, candidateIds: [], resolution: "unresolved", basis: [], resultNames, syntaxRole } })
       }
       const constants: Record<string, string> = {}, routers: FileScope["routers"] = [], decorators: FileScope["decorators"] = [], includes: FileScope["includes"] = []
       if (language === "python") {
@@ -176,7 +191,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           if (raw) includes.push({ callId: raw.call.id, receiver: expression.slice(0, -".include_router".length), child: (args.find(a => a.type !== "keyword_argument") ?? args.find(a => field(a, "name")?.text === "router")?.childForFieldName("value"))?.text ?? "", prefix: ancestor ? "$dynamic" : args.find(a => field(a, "name")?.text === "prefix")?.childForFieldName("value")?.text ?? '""' })
         }
       }
-      scopes.push({ path: file.path, module, language, aliases, symbols, rawCalls, constants, routers, decorators, includes })
+      scopes.push({ path: file.path, sha256, module, language, aliases, moduleAliases, symbols, rawCalls, moduleAssignments, constants, routers, decorators, includes })
     } finally { tree.delete(); parser.delete() }
   }
   const symbols = scopes.flatMap(f => f.symbols), scopeFor = (s: StructureSymbol) => scopes.find(f => f.path === s.path)!
@@ -226,6 +241,19 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
   const attribute = (className: string, name: string): { value: string; scope: FileScope } | undefined => {
     for (const cls of linearize(className) ?? []) { const s = matching(cls).find(s => s.kind === "class"); if (s && Object.hasOwn(s.attributes, name)) return { value: s.attributes[name]!, scope: scopeFor(s) } }
   }
+  const moduleQualified = (text: string, scope: FileScope) => {
+    const parts = text.split("."), aliased = scope.moduleAliases[parts[0]!]
+    return aliased ? [aliased, ...parts.slice(1)].join(".") : text.includes(".") ? text : `${scope.module}.${text}`
+  }
+  const moduleInstances = scopes.filter(s => s.language === "python").flatMap(scope => scope.routers.flatMap(r => {
+    if (r.repeated || scope.moduleAssignments[r.name] !== 1 || !/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(r.constructor)) return []
+    const candidates = matching(moduleQualified(r.constructor, scope)).filter(s => s.kind === "class")
+    return candidates.length === 1 ? [{ name: `${scope.module}.${r.name}`, className: candidates[0]!.qualifiedName, path: scope.path, sha256: scope.sha256, classSha256: candidates[0]!.sha256 }] : []
+  }))
+  const instanceClass = (name: string) => {
+    const exact = moduleInstances.filter(v => v.name === name), candidates = exact.length ? exact : moduleInstances.filter(v => v.name.endsWith(`.${name}`))
+    return candidates.length === 1 ? candidates[0]!.className : undefined
+  }
   function resolveCall(raw: FileScope["rawCalls"][number], scope: FileScope, receiverClass?: string): StructureCall {
     const call = structuredClone(raw.call), parts = call.expression.split("."), name = parts.pop()!, root = parts[0], owner = symbols.find(s => s.id === call.ownerId)
     let candidates: StructureSymbol[] = [], basis: string[] = []
@@ -239,7 +267,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       if (candidates.length && mro) call.receiverClass = mro[0]
     }
     else if (!parts.length) { candidates = matching(qualified(name, scope)).filter(s => !s.className); basis = ["AST unqualified name in module/import scope"] }
-    else if (root && scope.aliases[root]) { candidates = matching(qualified(call.expression, scope)); basis = ["AST import/alias binding"] }
+    else if (root && raw.localNames.includes(root) && !raw.types[root]) { basis = ["AST local or parameter shadows module receiver without a bound type"] }
     else if (root && (raw.types[root] || root === "self" && receiverClass)) {
       let type = root === "self" && receiverClass ? receiverClass : qualified(raw.types[root]!, scope)
       for (const p of parts.slice(1)) { const a = attribute(type, p); type = a ? qualified(a.value, a.scope) : "" }
@@ -247,7 +275,11 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       if (classes.length === 1) type = classes[0]!.qualifiedName
       candidates = type ? lookupMethod(type, name) : []; basis = ["AST parameter/receiver type and explicit field chain", ...(owner?.className ? ["C3 inheritance/override lookup"] : [])]
       if (candidates.length && type) call.receiverClass = type
-    } else { candidates = matching(qualified(call.expression, scope)); basis = ["AST qualified source binding"] }
+    } else {
+      candidates = matching(scope.language === "python" ? moduleQualified(call.expression, scope) : qualified(call.expression, scope)); basis = [scope.aliases[root ?? ""] ? "AST import/alias binding" : "AST qualified source binding"]
+      const type = !candidates.length && scope.language === "python" && call.receiver ? instanceClass(moduleQualified(call.receiver, scope)) : undefined
+      if (type) { candidates = lookupMethod(type, name); basis.push("AST unique unreassigned module constructor instance and C3 method lookup"); if (candidates.length) call.receiverClass = type }
+    }
     call.candidateIds = candidates.map(c => c.id); call.resolution = candidates.length === 1 ? "resolved" : candidates.length > 1 ? "ambiguous" : "unresolved"; call.basis = basis
     if (!candidates.length) call.gap = "receiver/import/value binding unavailable; unique lexical name is not a call edge"
     return call
@@ -317,10 +349,10 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     routes.push(route)
     symbols.push({ id: route.id, path: c.path, sha256: c.sha256, name: `${route.method} ${route.path}`, qualifiedName: `${scope.module}.route@${c.startLine}`, module: scope.module, language: scope.language, kind: "function", startLine: c.startLine, endLine: c.endLine, boundary: "complete", parameters: [], returns: [], bases: [], attributes: { routeModel: route.model, handlerExpression: handler } })
   }
-  const candidateRevision = (className: string, method: string) => hash([linearize(className), lookupMethod(className, method).map(s => [s.id, s.sha256]), scopes.map(s => [s.path, s.aliases])])
+  const candidateRevision = (className: string, method: string) => hash([linearize(className), lookupMethod(className, method).map(s => [s.id, s.sha256]), scopes.map(s => [s.path, s.aliases]), moduleInstances])
   const relatedCalls = (symbolId: string, receiverClass?: string) => { const route = routes.find(r => r.id === symbolId); return scopes.flatMap(f => f.rawCalls.filter(r => route ? r.call.path === route.sourcePath && r.call.id !== route.sourceCallId && r.call.startLine >= route.startLine && r.call.endLine <= route.endLine : r.call.ownerId === symbolId).map(r => resolveCall(r, f, receiverClass))) }
   const resolveName = (text: string, sourcePath: string) => { const scope = scopes.find(f => f.path === sourcePath); return scope ? matching(qualified(text, scope)) : [] }
-  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v3"
+  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v4"
   const withSymbolSyntax = <T>(symbolId: string, visit: (root: Node, symbol: StructureSymbol) => T): Promise<T> => {
     const symbol = symbols.find(s => s.id === symbolId), file = symbol && files.find(f => f.path === symbol.path)
     if (!symbol || !file || hash(file.content) !== symbol.sha256) throw new Error("structure-source-missing")

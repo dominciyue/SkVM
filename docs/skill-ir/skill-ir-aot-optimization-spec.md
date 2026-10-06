@@ -2556,6 +2556,8 @@ AV11共享修复决定：锚点interpretationRequired只表示该条件/call/ret
 
 Go机械来源覆盖包含multiline链式route及if initializer的实际调用/实参/结果；initializer在其条件前执行，嵌套else-if仍受外层分支约束。只规范verb识别的空白，来源表达式/行范围保持。unsupported loop/short-circuit/dynamic-call不无条件展平；零调用probe仅证明语法覆盖，不判定授权语义。
 
+模块级直接构造的唯一无重赋值实例可沿实际import绑定到唯一来源class，再经既有C3方法查找形成候选；绑定只证明来源关系，不证明查询/授权语义。动态factory、条件或重复赋值、来源同名歧义和当前函数的参数/局部shadow不得退回全局实例。来源文件、import与候选依赖必须进入原有revision合同，旧关系版本失效须可查。`source-bindings/v4`已按匿名双文件正例及shadow/rebind/global-write/条件import反例实现，模块实例声明文件SHA与class SHA进入依赖。173文件零调用probe能沿Files实例定位两真实方法；同题付费语义复验待执行，不注入预期授权答案。旧Download两份v3材料均失效，原件不修改；先当前版本普通原任务基线，再从其完整声明登记变化输入，准备/声明成本保留。
+
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
 AT在已有授权局部语义上引入显式 `focused-closure-v1`：宿主持久管理locate/interpret/link/review/answer阶段，绑定当前来源、单元身份与更新版本；模型解释原始源码中的条件、对象、参数、返回与实际相关效果。上下文渲染不改变活动任务，拒绝修复回到同一单元；多候选与语义关系仍须显式判定。旧默认及协议保持。

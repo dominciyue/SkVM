@@ -228,6 +228,10 @@ export interface SourceInterpretation {
 
 139项联合测试/1029断言与主/AV严格类型通过，check/replay零provider/目标执行。26位置、5ready输入、3待AV14输入登记；实际请求300000ms/session7500000ms，各比较臂输出6000，作者12派发与一次字段修订。作者仅沿现有agent-loop/source runtime写两个根artifact，不自动恢复写阶段。独立复核发现路径/作者报告绑定缺口，失败测试后修复；完整skill/source/实际request证据将随native原件核对。AV9的工程完成不代表真实充分交付，下一命令为 `bun ./results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/study.ts run debug-paperless-download-D1`。
 
+后续独立位置并发的工程准备：当前runner对同一status.json作无保护read-modify-write，可能丢失另一位置的记录或读取半份JSON。待当前纵向run结束，先暴露原状态写入入口并以跨进程/同进程独立字段写入行为反例证明丢失，再以同目录短时文件锁串行合并并原子替换；错误及锁未释放必须明确失败。仅保护已有状态记录，不改变provider预算、源码/政策/任务、语义核心或独立原件。验证后允许少量独立位置同时派发，依赖位置继续顺序执行。
+
+并发JSON EOF与延迟providerCalls降低两项实际行为反例先失败；独占文件锁、同目录临时文件原子替换和计数max后10项/107断言通过，独立AI复跑同集合通过。锁含owner与时间，30秒未释放明确失败，不自动删锁。后续少量独立位置并行，原件与费用仍从各attempt重放，status.lastKnownRequest只表达最近更新。
+
 ### AV10 Download 第一条真实纵向链
 
 首次登记在provider派发前失败：runner误用`SKVM_CACHE_PATH`，未载入项目route；随后误读不存在的run.json。原始provider-unavailable报告证明0派发，已完整归档，不算模型质量失败或unknown completion。两项真实失败测试后改为`SKVM_CACHE`并失效配置缓存、按零派发报告归档；8项/66断言及runner类型通过，配置provider可创建且未调用。下一次为`--revision=runtime-config --parent=first`，保留原首次记录。证据见results的verification/av10-pre-dispatch.json。
@@ -256,6 +260,10 @@ OWUI首次在8872acd9完成21响应/21派发，18来源提案/15局修、0接受
 
 source-flow修复3反例先失败，71项/488断言和主/AV类型通过；独立AI复跑24项/133断言。原件零调用probe确认OWUI153anchors/44calls中41calls在opaque gap，当前flow仅6 required锚点；Download入口7anchors/1opaque call，0 required。精确源码及gap均保留，不把数字下降当质量/净收益。下一普通命令：`study.ts run debug-owui-ingestion-D1 --revision=flow-requirements --parent=first`。verification/av11-flow-repair.json记录工程证据及前提归属相反反例的44项/373断言；集合重叠不相加。
 
+OWUI flow-requirements具名复验在55f892fa结束：22派发/21响应、1恢复及1usage未知，来源提案18/局修13、接受1单元/13控制步骤；check sourceBound:true但rule:false/partial，终答仍未充分。独立源码核验发现终答把可见FilesTable两查询方法称不可得；其“源码能回答”被误评级为“终答complete”，主代理保留原判并按实际终答裁定partial/来源缺口错误。独立机制定位与主代理源码点验确认`Files = FilesTable()`模块级实例没有进入跨文件receiver绑定。下一小设计：只沿唯一无重赋值的直接模块构造、真实import及唯一class绑定方法候选；动态/条件/重复赋值、同名歧义及局部shadow继续gap，不用唯一词法名强连。匿名双文件正例和shadow/rebind反例先红后绿，实际173文件零probe后同题具名复验；不修改业务答案或展平opaque控制。
+
+v4模块实例绑定完成：匿名import alias/同模块/typed-local正例先红，loop/local import/嵌套class/global-write/条件import及声明文件SHA反例保持边界；52项/185断言和主/AV严格类型通过。独立AI复跑24项/66断言并点验actual Files两方法probe，未发现有证据P1/P2。下一冻结版本普通run为OWUI `--revision=module-instances --parent=revision-flow-requirements` 与Download `--revision=module-instances --parent=revision-final-diagnostics`，原任务/模型/预算保持。Download额外修订是当前方法材料基线准备，其所有author成本留账，不能混成旧修订质量收益。
+
 ### AV12 两份完整原 skill 的原/变实际使用
 
 - [ ] Cloudflare security audit 对应 Download，GitHub security review 对应 Gitea CreateIssue；保留完整 SKILL.md 和 companions，普通 native 原任务/政策变化各一次，共四位置。
@@ -280,9 +288,15 @@ source-flow修复3反例先失败，71项/488断言和主/AV类型通过；独�
 
 上述修复已通过73项/547断言和主类型；真实普通init+compare零provider通过，原final-diagnostics基线保留严格身份并恢复两份unreviewed材料，答案/check未复用。v1相同own-undefined问题也先失败后同形修正。verification/av14-retained-baseline-export.json保留实际命令结果；三种输入登记和六个付费变化位置仍待执行。
 
+当前v4实际probe使两份v3材料全部因关系/候选依赖失效；av14-input-registration.json的原v3恢复结果保持历史原件。先以原自然请求普通D1生成当前版本具名基线，再普通init导出其实际完整声明，为六个未派发位置登记新的v4输入ID。保持每个原operation、完整question request/intent；政策仅独立policy+分析mode，前提仅实际用户事实，源码仍唯一guard参数副本。fresh/previous每对同输入、同方法版本/预算；0材料如实记0，严禁手改旧footprint或静默previous→fresh。
+
 后续独立归属核验通过，但主代理补充“全局brief恰好等于其中一题request”的相反反例发现误拒；先失败后由已有host entryContext标明globalUserText，仍只保留实际supplied原件，模型无法标记全局文字。跨题泄漏与全局brief可用两个方向一起回归，不以第一次通过代替后续修订验证。
 
 - [ ] 在 Download 同一包上各登记政策、前提、源码变化，每种 fresh/materials-previous 各一位置，共六位置，完整原任务保持。
+
+AV14输入准备决定：以普通init导出的final-diagnostics完整原声明为共同父件，保留operation、所有question request/intent和来源范围。政策组仅behavior→conformance及已登记独立exact-object政策；前提组在各题显式记录调用者拥有requested document，而相关root/version文档的ownership/grants仍未给，不从此推导root授权。源码组仅复制当前95文件来源后，把`_resolve_request_and_root_doc`中owner-aware guard的单个对象实参`root_doc`改为`request_doc`，不改原件；base sourceRef保留，patch由实际文件SHA标明。两臂共享逐字相同输入和来源；先零调用compare记录两份材料恢复或因真实文件依赖失效，零恢复也不自动改fresh。原始自然任务另保留为父输入身份，声明本身不添加答案或控制图。
+
+三输入已登记，ordinary check pending/diagnostics均空、AV严格类型通过。零compare政策/前提各恢复2份，源码0恢复/2失效；answerReused:false、unreviewed。独立只读核验确认题意、前提隔离和唯一源码差异；其mode范围疑虑按既有schema及事先登记裁定为无缺陷，保留原判与限度。六个实际位置尚未派发，见verification/av14-input-registration.json及av14-input-independent-review.json。
 - [ ] 政策/前提变化只修改独立输入；源码变化只改开发副本的一个真实相关控制或对象绑定，变化代码对两臂相同。
 - [ ] previous 恢复有效材料、重算全部答案；失效依赖具体可查。partial 基础可测材料级恢复，完整任务收益须原/变真实完整。
 - [ ] 对比实际新读取/解释/调用/终答/总成本，失败不能自动换 fresh 冒充 previous 成功；环境搬移与预算不再造成伪失效。

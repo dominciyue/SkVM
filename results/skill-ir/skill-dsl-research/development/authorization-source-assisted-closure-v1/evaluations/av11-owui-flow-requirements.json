@@ -1,0 +1,4038 @@
+{
+  "schemaVersion": "authorization-av-independent-evaluation/v1",
+  "positionId": "debug-owui-ingestion-D1",
+  "attemptId": "revision-flow-requirements",
+  "implementationRevision": "55f892fa75746a372c359bd401e3941eea14d194",
+  "reviewKind": "independent-readonly-AI-plus-main-source-adjudication",
+  "humanReview": false,
+  "independentReview": {
+    "agent": "av11_flow_final_source_review",
+    "originalDutyRatings": {
+      "callerAndFile": "complete",
+      "collectionAndEffect": "complete",
+      "ownershipCases": "complete",
+      "objectRelation": "complete",
+      "inheritedControls": "partial"
+    },
+    "originalJudgment": "The available sources completely answer these duties; the final's unavailable methods and unresolved meanings contradict that source",
+    "sourceAnchors": [
+      "backend/open_webui/utils/auth.py:458-464",
+      "backend/open_webui/routers/retrieval.py:1559-1569",
+      "backend/open_webui/models/files.py:161-184",
+      "backend/open_webui/routers/retrieval.py:1673-1732",
+      "backend/open_webui/routers/retrieval.py:1761-1762"
+    ],
+    "finalExcerpts": [
+      "the implementations and authoritative call bindings were not located",
+      "The authoritative implementation of Files.get_file_by_id is unavailable in the allowed source evidence",
+      "These identifiers describe different resource domains"
+    ]
+  },
+  "mechanismReview": {
+    "agent": "av11_files_receiver_location_review",
+    "cause": "The two real Files calls have unresolved receiver/import/value binding because Files=FilesTable() is a module value absent from symbol-only lookup",
+    "sourceAnchors": [
+      "backend/open_webui/models/files.py:413",
+      "backend/open_webui/routers/retrieval.py:1560",
+      "backend/open_webui/routers/retrieval.py:1562",
+      "src/benchmarks/authorization-dsl/evidence-preparation/structure-index.ts:229"
+    ]
+  },
+  "mainAdjudication": {
+    "acceptedDelivery": "partial-final",
+    "semanticQuality": "partial",
+    "correctedReviewerClaims": [
+      "Complete source availability does not grade a delivered answer complete; all ratings below concern only the accepted final",
+      "An unresolved accepted interpretation is mechanically honest; do not grade that phrase as a false affirmative permission claim",
+      "Claims that the actual method source is unavailable are erroneous source-gap attribution; the methods exist in the registered scope. The shared receiver binding gap does not make source absent",
+      "Absence of a route-level collection validator does not by itself prove every upstream/downstream deployment lacks authorization"
+    ],
+    "duties": [
+      {
+        "questionId": "process-file-caller-flow",
+        "status": "partial",
+        "basis": "Correct route, dependencies and role split; dependency/lookup meaning and terminal source effect unresolved"
+      },
+      {
+        "questionId": "process-file-input-object",
+        "status": "partial-with-incorrect-gap",
+        "basis": "Correct two lookup names and role alternatives, but falsely unavailable methods; exact ID/user filter and 404 omitted"
+      },
+      {
+        "questionId": "process-file-destination-object",
+        "status": "partial",
+        "basis": "No destination ownership manufactured; default file-{id}, explicit target, bypass and successful vector write relation omitted"
+      },
+      {
+        "questionId": "process-file-object-relation",
+        "status": "partial",
+        "basis": "Correct distinct resource domains; concrete content/metadata/destination relation remains unknown"
+      },
+      {
+        "questionId": "process-file-ownership-cases",
+        "status": "partial-with-incorrect-gap",
+        "basis": "Speculative role split retained, but actual caller-owned/other-user/admin matrix and lookup failure result not delivered"
+      },
+      {
+        "questionId": "process-file-limits",
+        "status": "partial-with-incorrect-gap",
+        "basis": "Some interpretation, runtime and deployment limits are precise; false unavailable-source attribution proposes unnecessary source-scope expansion"
+      }
+    ],
+    "repairEffect": "Flow-local prerequisites now permit one accepted source unit and 13 steps, versus zero units/steps before the repair; full quality and net saving are not established",
+    "nextResponsibility": "Unique source module-instance receiver binding plus anonymous negative guards, exact-source zero probe and named real verification; unsupported control remains explicit"
+  },
+  "actual": {
+    "providerCalls": 22,
+    "respondedCalls": 21,
+    "unknownUsageCalls": 1,
+    "unknownCostCalls": 22,
+    "knownTokens": {
+      "input": 975620,
+      "output": 28114,
+      "cacheRead": 121856,
+      "cacheWrite": 0
+    },
+    "tokensStatus": "partial-unknown",
+    "knownActualUsdSubtotal": 0,
+    "totalActualUsd": null,
+    "actualUsdStatus": "unknown",
+    "transportAttempts": "unknown",
+    "recoveries": 1,
+    "originalUnknownAttempts": 1,
+    "sourceWorkMetrics": {
+      "sourceInterpretationSubmissions": 18,
+      "localInterpretationRepairs": 13,
+      "lowLevelFallbacks": 0,
+      "acceptedSourceUnits": 1,
+      "controlSteps": 13
+    },
+    "checkCount": 2,
+    "check": {
+      "structureValid": true,
+      "sourceBound": true,
+      "ruleConsistency": false,
+      "semanticSupport": "unreviewed",
+      "taskResolution": "partial",
+      "paths": [
+        {
+          "questionId": "process-file-caller-flow",
+          "pathKey": "sem-05ce258ba61fcabfe674fc27",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "unknown",
+            "residual": {
+              "op": "eq",
+              "left": {
+                "binding": "sem-2f69ebe68130d1c1d6262492.role"
+              },
+              "right": {
+                "literal": "admin"
+              }
+            },
+            "missingBindings": [
+              "sem-2f69ebe68130d1c1d6262492.role"
+            ],
+            "trace": [
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": false,
+                "residual": {
+                  "binding": "sem-2f69ebe68130d1c1d6262492.role"
+                },
+                "missingBindings": [
+                  "sem-2f69ebe68130d1c1d6262492.role"
+                ],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "admin",
+                "residual": {
+                  "literal": "admin"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              }
+            ]
+          },
+          "condition": {
+            "op": "all",
+            "args": [
+              {
+                "op": "eq",
+                "left": {
+                  "binding": "sem-2f69ebe68130d1c1d6262492.role"
+                },
+                "right": {
+                  "literal": "admin"
+                }
+              }
+            ]
+          },
+          "nodeKeys": [
+            "sem-263088ef59e41155e0d4c6b4",
+            "sem-e648becb5bb10e54745e7921",
+            "sem-b2f23d3c01b7815cb6f5f4cf",
+            "sem-914570d3d4a0c4e02417c3f8",
+            "sem-064098d65cadb9f539eb48fe",
+            "sem-c6d93d523a394477425e77b2",
+            "sem-a0c7ebead5350120b56c8ffe",
+            "sem-6fadd26c1feaf1cb28d50db7",
+            "sem-495cc3e98ef6a28458f39f04",
+            "sem-d41e3984b64db3e296145e02",
+            "sem-05665ce188e23e67f98ca815",
+            "sem-5675a7bbdffe58ca8e9e09b9"
+          ],
+          "terminalKeys": [
+            "sem-5675a7bbdffe58ca8e9e09b9"
+          ],
+          "gaps": [
+            "semantic-callee-uninterpreted",
+            "closure-not-proposed"
+          ],
+          "sourceBound": true,
+          "protectedEffect": "unresolved",
+          "returnValues": []
+        },
+        {
+          "questionId": "process-file-caller-flow",
+          "pathKey": "sem-5b660618d48cd8ba15a45c3f",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "unknown",
+            "residual": {
+              "op": "not",
+              "arg": {
+                "op": "eq",
+                "left": {
+                  "binding": "sem-2f69ebe68130d1c1d6262492.role"
+                },
+                "right": {
+                  "literal": "admin"
+                }
+              }
+            },
+            "missingBindings": [
+              "sem-2f69ebe68130d1c1d6262492.role"
+            ],
+            "trace": [
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "any",
+                "truth": "unknown"
+              },
+              {
+                "op": "not",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": false,
+                "residual": {
+                  "binding": "sem-2f69ebe68130d1c1d6262492.role"
+                },
+                "missingBindings": [
+                  "sem-2f69ebe68130d1c1d6262492.role"
+                ],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "admin",
+                "residual": {
+                  "literal": "admin"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              }
+            ]
+          },
+          "condition": {
+            "op": "all",
+            "args": [
+              {
+                "op": "not",
+                "arg": {
+                  "op": "any",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "sem-2f69ebe68130d1c1d6262492.role"
+                      },
+                      "right": {
+                        "literal": "admin"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "nodeKeys": [
+            "sem-263088ef59e41155e0d4c6b4",
+            "sem-e648becb5bb10e54745e7921",
+            "sem-b2f23d3c01b7815cb6f5f4cf",
+            "sem-914570d3d4a0c4e02417c3f8",
+            "sem-064098d65cadb9f539eb48fe",
+            "sem-c6d93d523a394477425e77b2",
+            "sem-a0c7ebead5350120b56c8ffe",
+            "sem-6fadd26c1feaf1cb28d50db7",
+            "sem-495cc3e98ef6a28458f39f04",
+            "sem-574e09eef1f5249033e6d4e5",
+            "sem-fb03f57964b6c43772f782aa",
+            "sem-09e8c75ae577d816820bbdd9"
+          ],
+          "terminalKeys": [
+            "sem-09e8c75ae577d816820bbdd9"
+          ],
+          "gaps": [
+            "semantic-callee-uninterpreted",
+            "closure-not-proposed"
+          ],
+          "sourceBound": true,
+          "protectedEffect": "unresolved",
+          "returnValues": []
+        },
+        {
+          "questionId": "process-file-input-object",
+          "pathKey": "sem-75c49f98f92a1a089481b1e0",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "unknown",
+            "residual": {
+              "op": "eq",
+              "left": {
+                "binding": "sem-c640a10424b5ecb0b7524cc9.role"
+              },
+              "right": {
+                "literal": "admin"
+              }
+            },
+            "missingBindings": [
+              "sem-c640a10424b5ecb0b7524cc9.role"
+            ],
+            "trace": [
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": false,
+                "residual": {
+                  "binding": "sem-c640a10424b5ecb0b7524cc9.role"
+                },
+                "missingBindings": [
+                  "sem-c640a10424b5ecb0b7524cc9.role"
+                ],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "admin",
+                "residual": {
+                  "literal": "admin"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              }
+            ]
+          },
+          "condition": {
+            "op": "all",
+            "args": [
+              {
+                "op": "eq",
+                "left": {
+                  "binding": "sem-c640a10424b5ecb0b7524cc9.role"
+                },
+                "right": {
+                  "literal": "admin"
+                }
+              }
+            ]
+          },
+          "nodeKeys": [
+            "sem-8457e8534e63edbbb816ecc6",
+            "sem-e9d8ff399aa1459357e1f2d7",
+            "sem-ac3937d2b39208373ef888a7",
+            "sem-513eed28eb1e0da8d5b1e318",
+            "sem-9b29937f5d7d4ac2280f6f88",
+            "sem-c97a6a6596537a92629bacc2",
+            "sem-01c833609c38fb86547323d4",
+            "sem-b93946cc44390425dc66f3e2",
+            "sem-0efab42f0daafd41d1a9153e",
+            "sem-f9501bee730b890eef687302",
+            "sem-f5df2a7842c0263781ff8dce",
+            "sem-eecfa291dc642ac8bcb86284"
+          ],
+          "terminalKeys": [
+            "sem-eecfa291dc642ac8bcb86284"
+          ],
+          "gaps": [
+            "semantic-callee-uninterpreted",
+            "closure-not-proposed"
+          ],
+          "sourceBound": true,
+          "protectedEffect": "unresolved",
+          "returnValues": []
+        },
+        {
+          "questionId": "process-file-input-object",
+          "pathKey": "sem-6c824b0afd700b272a9fceaf",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "unknown",
+            "residual": {
+              "op": "not",
+              "arg": {
+                "op": "eq",
+                "left": {
+                  "binding": "sem-c640a10424b5ecb0b7524cc9.role"
+                },
+                "right": {
+                  "literal": "admin"
+                }
+              }
+            },
+            "missingBindings": [
+              "sem-c640a10424b5ecb0b7524cc9.role"
+            ],
+            "trace": [
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "any",
+                "truth": "unknown"
+              },
+              {
+                "op": "not",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": false,
+                "residual": {
+                  "binding": "sem-c640a10424b5ecb0b7524cc9.role"
+                },
+                "missingBindings": [
+                  "sem-c640a10424b5ecb0b7524cc9.role"
+                ],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "admin",
+                "residual": {
+                  "literal": "admin"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              }
+            ]
+          },
+          "condition": {
+            "op": "all",
+            "args": [
+              {
+                "op": "not",
+                "arg": {
+                  "op": "any",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "sem-c640a10424b5ecb0b7524cc9.role"
+                      },
+                      "right": {
+                        "literal": "admin"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "nodeKeys": [
+            "sem-8457e8534e63edbbb816ecc6",
+            "sem-e9d8ff399aa1459357e1f2d7",
+            "sem-ac3937d2b39208373ef888a7",
+            "sem-513eed28eb1e0da8d5b1e318",
+            "sem-9b29937f5d7d4ac2280f6f88",
+            "sem-c97a6a6596537a92629bacc2",
+            "sem-01c833609c38fb86547323d4",
+            "sem-b93946cc44390425dc66f3e2",
+            "sem-0efab42f0daafd41d1a9153e",
+            "sem-84e7e5a9b5dc88284f1619f3",
+            "sem-e80836cc16d85a57e557941a",
+            "sem-10a978e95d8c4d16515e6590"
+          ],
+          "terminalKeys": [
+            "sem-10a978e95d8c4d16515e6590"
+          ],
+          "gaps": [
+            "semantic-callee-uninterpreted",
+            "closure-not-proposed"
+          ],
+          "sourceBound": true,
+          "protectedEffect": "unresolved",
+          "returnValues": []
+        },
+        {
+          "questionId": "process-file-destination-object",
+          "pathKey": "sem-75b3b88b3d6df175476e07ae",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "unknown",
+            "residual": {
+              "op": "eq",
+              "left": {
+                "binding": "sem-12183d723a03b8d2e8e7d2f6.role"
+              },
+              "right": {
+                "literal": "admin"
+              }
+            },
+            "missingBindings": [
+              "sem-12183d723a03b8d2e8e7d2f6.role"
+            ],
+            "trace": [
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": false,
+                "residual": {
+                  "binding": "sem-12183d723a03b8d2e8e7d2f6.role"
+                },
+                "missingBindings": [
+                  "sem-12183d723a03b8d2e8e7d2f6.role"
+                ],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "admin",
+                "residual": {
+                  "literal": "admin"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              }
+            ]
+          },
+          "condition": {
+            "op": "all",
+            "args": [
+              {
+                "op": "eq",
+                "left": {
+                  "binding": "sem-12183d723a03b8d2e8e7d2f6.role"
+                },
+                "right": {
+                  "literal": "admin"
+                }
+              }
+            ]
+          },
+          "nodeKeys": [
+            "sem-b217b016a12d507d5823790b",
+            "sem-4c2f24f2bcd0b1de094b7374",
+            "sem-db38a546ebd7480f24f0b552",
+            "sem-2d4606040f8ffed8d60276d5",
+            "sem-0dd6bea0fac63d9deb622088",
+            "sem-8d35e0db62fa42d35ae3e0bf",
+            "sem-306c64fdaf1f52f8f093ccf4",
+            "sem-be78bc11f2e8693905c585d5",
+            "sem-3c56e0c5998897c3f7b06937",
+            "sem-7978f86150779ca2cf0d601c",
+            "sem-11163ae7c756f45edc76b4c8",
+            "sem-784f2a4b4e4067ef23648b35"
+          ],
+          "terminalKeys": [
+            "sem-784f2a4b4e4067ef23648b35"
+          ],
+          "gaps": [
+            "semantic-callee-uninterpreted",
+            "closure-not-proposed"
+          ],
+          "sourceBound": true,
+          "protectedEffect": "unresolved",
+          "returnValues": []
+        },
+        {
+          "questionId": "process-file-destination-object",
+          "pathKey": "sem-3f18376e4f7ef67835af86df",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "unknown",
+            "residual": {
+              "op": "not",
+              "arg": {
+                "op": "eq",
+                "left": {
+                  "binding": "sem-12183d723a03b8d2e8e7d2f6.role"
+                },
+                "right": {
+                  "literal": "admin"
+                }
+              }
+            },
+            "missingBindings": [
+              "sem-12183d723a03b8d2e8e7d2f6.role"
+            ],
+            "trace": [
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "any",
+                "truth": "unknown"
+              },
+              {
+                "op": "not",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": false,
+                "residual": {
+                  "binding": "sem-12183d723a03b8d2e8e7d2f6.role"
+                },
+                "missingBindings": [
+                  "sem-12183d723a03b8d2e8e7d2f6.role"
+                ],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "admin",
+                "residual": {
+                  "literal": "admin"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              }
+            ]
+          },
+          "condition": {
+            "op": "all",
+            "args": [
+              {
+                "op": "not",
+                "arg": {
+                  "op": "any",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "sem-12183d723a03b8d2e8e7d2f6.role"
+                      },
+                      "right": {
+                        "literal": "admin"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "nodeKeys": [
+            "sem-b217b016a12d507d5823790b",
+            "sem-4c2f24f2bcd0b1de094b7374",
+            "sem-db38a546ebd7480f24f0b552",
+            "sem-2d4606040f8ffed8d60276d5",
+            "sem-0dd6bea0fac63d9deb622088",
+            "sem-8d35e0db62fa42d35ae3e0bf",
+            "sem-306c64fdaf1f52f8f093ccf4",
+            "sem-be78bc11f2e8693905c585d5",
+            "sem-3c56e0c5998897c3f7b06937",
+            "sem-00da09f029e2ecbb23198cfc",
+            "sem-0d3c2387b3f2a16013899334",
+            "sem-82144afcf70d1f8efd342c44"
+          ],
+          "terminalKeys": [
+            "sem-82144afcf70d1f8efd342c44"
+          ],
+          "gaps": [
+            "semantic-callee-uninterpreted",
+            "closure-not-proposed"
+          ],
+          "sourceBound": true,
+          "protectedEffect": "unresolved",
+          "returnValues": []
+        },
+        {
+          "questionId": "process-file-object-relation",
+          "pathKey": "sem-7da9e596d3c7d32fc195e380",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "unknown",
+            "residual": {
+              "op": "eq",
+              "left": {
+                "binding": "sem-febacc07ca2c18883d0c169b.role"
+              },
+              "right": {
+                "literal": "admin"
+              }
+            },
+            "missingBindings": [
+              "sem-febacc07ca2c18883d0c169b.role"
+            ],
+            "trace": [
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": false,
+                "residual": {
+                  "binding": "sem-febacc07ca2c18883d0c169b.role"
+                },
+                "missingBindings": [
+                  "sem-febacc07ca2c18883d0c169b.role"
+                ],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "admin",
+                "residual": {
+                  "literal": "admin"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              }
+            ]
+          },
+          "condition": {
+            "op": "all",
+            "args": [
+              {
+                "op": "eq",
+                "left": {
+                  "binding": "sem-febacc07ca2c18883d0c169b.role"
+                },
+                "right": {
+                  "literal": "admin"
+                }
+              }
+            ]
+          },
+          "nodeKeys": [
+            "sem-d54bfaf45894fb0131f5684e",
+            "sem-52b8ca54129fb53146125b95",
+            "sem-bee60d1985f885550ba23d80",
+            "sem-bc2308d394bd918e3647c299",
+            "sem-167f9d8bb90647b28695f9ba",
+            "sem-adc52835055a8165e5a6993b",
+            "sem-a85867cb1bff61fe055f92ef",
+            "sem-4b694e6d2a27e9b5187d484c",
+            "sem-912e69140b0f633e5a0e5f04",
+            "sem-655f6c1daa9757db72eb843d",
+            "sem-d668b9a8a68f1c84e2286b33",
+            "sem-e103e8abe03c76603419ab97"
+          ],
+          "terminalKeys": [
+            "sem-e103e8abe03c76603419ab97"
+          ],
+          "gaps": [
+            "semantic-callee-uninterpreted",
+            "closure-not-proposed"
+          ],
+          "sourceBound": true,
+          "protectedEffect": "unresolved",
+          "returnValues": []
+        },
+        {
+          "questionId": "process-file-object-relation",
+          "pathKey": "sem-47672a2e29458e822afa34c1",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "unknown",
+            "residual": {
+              "op": "not",
+              "arg": {
+                "op": "eq",
+                "left": {
+                  "binding": "sem-febacc07ca2c18883d0c169b.role"
+                },
+                "right": {
+                  "literal": "admin"
+                }
+              }
+            },
+            "missingBindings": [
+              "sem-febacc07ca2c18883d0c169b.role"
+            ],
+            "trace": [
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "any",
+                "truth": "unknown"
+              },
+              {
+                "op": "not",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": false,
+                "residual": {
+                  "binding": "sem-febacc07ca2c18883d0c169b.role"
+                },
+                "missingBindings": [
+                  "sem-febacc07ca2c18883d0c169b.role"
+                ],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "admin",
+                "residual": {
+                  "literal": "admin"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              }
+            ]
+          },
+          "condition": {
+            "op": "all",
+            "args": [
+              {
+                "op": "not",
+                "arg": {
+                  "op": "any",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "sem-febacc07ca2c18883d0c169b.role"
+                      },
+                      "right": {
+                        "literal": "admin"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "nodeKeys": [
+            "sem-d54bfaf45894fb0131f5684e",
+            "sem-52b8ca54129fb53146125b95",
+            "sem-bee60d1985f885550ba23d80",
+            "sem-bc2308d394bd918e3647c299",
+            "sem-167f9d8bb90647b28695f9ba",
+            "sem-adc52835055a8165e5a6993b",
+            "sem-a85867cb1bff61fe055f92ef",
+            "sem-4b694e6d2a27e9b5187d484c",
+            "sem-912e69140b0f633e5a0e5f04",
+            "sem-06e636b2bbedc8fb2507eb93",
+            "sem-06d54ba7259a68d5c982dd51",
+            "sem-b073491ca1607b8904533ae2"
+          ],
+          "terminalKeys": [
+            "sem-b073491ca1607b8904533ae2"
+          ],
+          "gaps": [
+            "semantic-callee-uninterpreted",
+            "closure-not-proposed"
+          ],
+          "sourceBound": true,
+          "protectedEffect": "unresolved",
+          "returnValues": []
+        },
+        {
+          "questionId": "process-file-ownership-cases",
+          "pathKey": "sem-185a180ecdc5ee71e32090c4",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "unknown",
+            "residual": {
+              "op": "eq",
+              "left": {
+                "binding": "sem-73747cc38d77d55793f667ff.role"
+              },
+              "right": {
+                "literal": "admin"
+              }
+            },
+            "missingBindings": [
+              "sem-73747cc38d77d55793f667ff.role"
+            ],
+            "trace": [
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": false,
+                "residual": {
+                  "binding": "sem-73747cc38d77d55793f667ff.role"
+                },
+                "missingBindings": [
+                  "sem-73747cc38d77d55793f667ff.role"
+                ],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "admin",
+                "residual": {
+                  "literal": "admin"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              }
+            ]
+          },
+          "condition": {
+            "op": "all",
+            "args": [
+              {
+                "op": "eq",
+                "left": {
+                  "binding": "sem-73747cc38d77d55793f667ff.role"
+                },
+                "right": {
+                  "literal": "admin"
+                }
+              }
+            ]
+          },
+          "nodeKeys": [
+            "sem-6ca6f1beb74cf1c2fe59b509",
+            "sem-5e1d6c94cf36d789a91ed467",
+            "sem-ccda7bb1cebb9b0fdc6f6331",
+            "sem-d4cde21b07fcd310ecbfb832",
+            "sem-d22b9aefcfa7d9c95f7a49e6",
+            "sem-e10a08ad4ac3bd484daa43f7",
+            "sem-0ccf90b5dad23e5fcb8057fb",
+            "sem-86709b019f1e8a3002e470d4",
+            "sem-d4a222cc4ad8031c294f2759",
+            "sem-a36116a74259c56264262bdd",
+            "sem-46ec057f722019113feca47f",
+            "sem-44bdc9f1e9720297495d32c1"
+          ],
+          "terminalKeys": [
+            "sem-44bdc9f1e9720297495d32c1"
+          ],
+          "gaps": [
+            "semantic-callee-uninterpreted",
+            "closure-not-proposed"
+          ],
+          "sourceBound": true,
+          "protectedEffect": "unresolved",
+          "returnValues": []
+        },
+        {
+          "questionId": "process-file-ownership-cases",
+          "pathKey": "sem-70b9962024aba9067ca0fa5f",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "unknown",
+            "residual": {
+              "op": "not",
+              "arg": {
+                "op": "eq",
+                "left": {
+                  "binding": "sem-73747cc38d77d55793f667ff.role"
+                },
+                "right": {
+                  "literal": "admin"
+                }
+              }
+            },
+            "missingBindings": [
+              "sem-73747cc38d77d55793f667ff.role"
+            ],
+            "trace": [
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "any",
+                "truth": "unknown"
+              },
+              {
+                "op": "not",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": false,
+                "residual": {
+                  "binding": "sem-73747cc38d77d55793f667ff.role"
+                },
+                "missingBindings": [
+                  "sem-73747cc38d77d55793f667ff.role"
+                ],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "admin",
+                "residual": {
+                  "literal": "admin"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              }
+            ]
+          },
+          "condition": {
+            "op": "all",
+            "args": [
+              {
+                "op": "not",
+                "arg": {
+                  "op": "any",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "sem-73747cc38d77d55793f667ff.role"
+                      },
+                      "right": {
+                        "literal": "admin"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "nodeKeys": [
+            "sem-6ca6f1beb74cf1c2fe59b509",
+            "sem-5e1d6c94cf36d789a91ed467",
+            "sem-ccda7bb1cebb9b0fdc6f6331",
+            "sem-d4cde21b07fcd310ecbfb832",
+            "sem-d22b9aefcfa7d9c95f7a49e6",
+            "sem-e10a08ad4ac3bd484daa43f7",
+            "sem-0ccf90b5dad23e5fcb8057fb",
+            "sem-86709b019f1e8a3002e470d4",
+            "sem-d4a222cc4ad8031c294f2759",
+            "sem-bb9bc32ffaef6aaa89a18658",
+            "sem-d519af833194ef2b7b97b752",
+            "sem-a9aed4afbc60937701ab1023"
+          ],
+          "terminalKeys": [
+            "sem-a9aed4afbc60937701ab1023"
+          ],
+          "gaps": [
+            "semantic-callee-uninterpreted",
+            "closure-not-proposed"
+          ],
+          "sourceBound": true,
+          "protectedEffect": "unresolved",
+          "returnValues": []
+        },
+        {
+          "questionId": "process-file-limits",
+          "pathKey": "sem-0d77daa9beb133588a24d62e",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "unknown",
+            "residual": {
+              "op": "eq",
+              "left": {
+                "binding": "sem-5fc690f071b3e0d1ce29f2b4.role"
+              },
+              "right": {
+                "literal": "admin"
+              }
+            },
+            "missingBindings": [
+              "sem-5fc690f071b3e0d1ce29f2b4.role"
+            ],
+            "trace": [
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": false,
+                "residual": {
+                  "binding": "sem-5fc690f071b3e0d1ce29f2b4.role"
+                },
+                "missingBindings": [
+                  "sem-5fc690f071b3e0d1ce29f2b4.role"
+                ],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "admin",
+                "residual": {
+                  "literal": "admin"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              }
+            ]
+          },
+          "condition": {
+            "op": "all",
+            "args": [
+              {
+                "op": "eq",
+                "left": {
+                  "binding": "sem-5fc690f071b3e0d1ce29f2b4.role"
+                },
+                "right": {
+                  "literal": "admin"
+                }
+              }
+            ]
+          },
+          "nodeKeys": [
+            "sem-d4e9d2bcc7a5368cb8278c44",
+            "sem-bb4f0b08f37978721884e065",
+            "sem-c019cf83c2214e069f32d87c",
+            "sem-a6166b7061ae30f4f7aeb406",
+            "sem-8f22903431159ad41ec375ba",
+            "sem-26bc8baa220016b2ed95ff7a",
+            "sem-28f1be0a0eb83ec94a3221b7",
+            "sem-ab4f23a2f27110ac027861da",
+            "sem-9b23352216f2aaed0a3b7149",
+            "sem-26fa2bd3b7639dc732287bb6",
+            "sem-863b7ea4ac6c444c4969ab3d",
+            "sem-b88d992323c1c78a5c549155"
+          ],
+          "terminalKeys": [
+            "sem-b88d992323c1c78a5c549155"
+          ],
+          "gaps": [
+            "semantic-callee-uninterpreted",
+            "closure-not-proposed"
+          ],
+          "sourceBound": true,
+          "protectedEffect": "unresolved",
+          "returnValues": []
+        },
+        {
+          "questionId": "process-file-limits",
+          "pathKey": "sem-27ab2cdf4b664f97137109d4",
+          "state": "blocked",
+          "disposition": "unknown",
+          "complete": false,
+          "predicate": {
+            "truth": "unknown",
+            "residual": {
+              "op": "not",
+              "arg": {
+                "op": "eq",
+                "left": {
+                  "binding": "sem-5fc690f071b3e0d1ce29f2b4.role"
+                },
+                "right": {
+                  "literal": "admin"
+                }
+              }
+            },
+            "missingBindings": [
+              "sem-5fc690f071b3e0d1ce29f2b4.role"
+            ],
+            "trace": [
+              {
+                "op": "eq",
+                "truth": "unknown"
+              },
+              {
+                "op": "any",
+                "truth": "unknown"
+              },
+              {
+                "op": "not",
+                "truth": "unknown"
+              },
+              {
+                "op": "all",
+                "truth": "unknown"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": false,
+                "residual": {
+                  "binding": "sem-5fc690f071b3e0d1ce29f2b4.role"
+                },
+                "missingBindings": [
+                  "sem-5fc690f071b3e0d1ce29f2b4.role"
+                ],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": "admin",
+                "residual": {
+                  "literal": "admin"
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "literal"
+              }
+            ]
+          },
+          "condition": {
+            "op": "all",
+            "args": [
+              {
+                "op": "not",
+                "arg": {
+                  "op": "any",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "sem-5fc690f071b3e0d1ce29f2b4.role"
+                      },
+                      "right": {
+                        "literal": "admin"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "nodeKeys": [
+            "sem-d4e9d2bcc7a5368cb8278c44",
+            "sem-bb4f0b08f37978721884e065",
+            "sem-c019cf83c2214e069f32d87c",
+            "sem-a6166b7061ae30f4f7aeb406",
+            "sem-8f22903431159ad41ec375ba",
+            "sem-26bc8baa220016b2ed95ff7a",
+            "sem-28f1be0a0eb83ec94a3221b7",
+            "sem-ab4f23a2f27110ac027861da",
+            "sem-9b23352216f2aaed0a3b7149",
+            "sem-c6334d5a7a813c12a8b6c9c7",
+            "sem-2eeb26cea7e0c4c3e2a98496",
+            "sem-12fd71a519df3f73131f5eb1"
+          ],
+          "terminalKeys": [
+            "sem-12fd71a519df3f73131f5eb1"
+          ],
+          "gaps": [
+            "semantic-callee-uninterpreted",
+            "closure-not-proposed"
+          ],
+          "sourceBound": true,
+          "protectedEffect": "unresolved",
+          "returnValues": []
+        }
+      ],
+      "diagnostics": [
+        {
+          "code": "semantic-callee-uninterpreted",
+          "path": "semanticBlocks.process-file-caller-flow.unit-cc8b6a66cdcc7841c5e5b9ef",
+          "questionId": "process-file-caller-flow",
+          "message": "Unresolved local source relation at source-true-0.call-anchor-fdabfb3dd67e62f4d028b5b8; no alternative or call meaning was inferred.",
+          "severity": "error"
+        },
+        {
+          "code": "semantic-callee-uninterpreted",
+          "path": "semanticBlocks.process-file-caller-flow.unit-cc8b6a66cdcc7841c5e5b9ef",
+          "questionId": "process-file-caller-flow",
+          "message": "Unresolved local source relation at source-false-0.call-anchor-9c5fc0ca54e0644dcbab0cfd; no alternative or call meaning was inferred.",
+          "severity": "error"
+        },
+        {
+          "code": "semantic-callee-uninterpreted",
+          "path": "semanticBlocks.process-file-input-object.unit-cc8b6a66cdcc7841c5e5b9ef",
+          "questionId": "process-file-input-object",
+          "message": "Unresolved local source relation at source-true-0.call-anchor-fdabfb3dd67e62f4d028b5b8; no alternative or call meaning was inferred.",
+          "severity": "error"
+        },
+        {
+          "code": "semantic-callee-uninterpreted",
+          "path": "semanticBlocks.process-file-input-object.unit-cc8b6a66cdcc7841c5e5b9ef",
+          "questionId": "process-file-input-object",
+          "message": "Unresolved local source relation at source-false-0.call-anchor-9c5fc0ca54e0644dcbab0cfd; no alternative or call meaning was inferred.",
+          "severity": "error"
+        },
+        {
+          "code": "semantic-callee-uninterpreted",
+          "path": "semanticBlocks.process-file-destination-object.unit-cc8b6a66cdcc7841c5e5b9ef",
+          "questionId": "process-file-destination-object",
+          "message": "Unresolved local source relation at source-true-0.call-anchor-fdabfb3dd67e62f4d028b5b8; no alternative or call meaning was inferred.",
+          "severity": "error"
+        },
+        {
+          "code": "semantic-callee-uninterpreted",
+          "path": "semanticBlocks.process-file-destination-object.unit-cc8b6a66cdcc7841c5e5b9ef",
+          "questionId": "process-file-destination-object",
+          "message": "Unresolved local source relation at source-false-0.call-anchor-9c5fc0ca54e0644dcbab0cfd; no alternative or call meaning was inferred.",
+          "severity": "error"
+        },
+        {
+          "code": "semantic-callee-uninterpreted",
+          "path": "semanticBlocks.process-file-object-relation.unit-cc8b6a66cdcc7841c5e5b9ef",
+          "questionId": "process-file-object-relation",
+          "message": "Unresolved local source relation at source-true-0.call-anchor-fdabfb3dd67e62f4d028b5b8; no alternative or call meaning was inferred.",
+          "severity": "error"
+        },
+        {
+          "code": "semantic-callee-uninterpreted",
+          "path": "semanticBlocks.process-file-object-relation.unit-cc8b6a66cdcc7841c5e5b9ef",
+          "questionId": "process-file-object-relation",
+          "message": "Unresolved local source relation at source-false-0.call-anchor-9c5fc0ca54e0644dcbab0cfd; no alternative or call meaning was inferred.",
+          "severity": "error"
+        },
+        {
+          "code": "semantic-callee-uninterpreted",
+          "path": "semanticBlocks.process-file-ownership-cases.unit-cc8b6a66cdcc7841c5e5b9ef",
+          "questionId": "process-file-ownership-cases",
+          "message": "Unresolved local source relation at source-true-0.call-anchor-fdabfb3dd67e62f4d028b5b8; no alternative or call meaning was inferred.",
+          "severity": "error"
+        },
+        {
+          "code": "semantic-callee-uninterpreted",
+          "path": "semanticBlocks.process-file-ownership-cases.unit-cc8b6a66cdcc7841c5e5b9ef",
+          "questionId": "process-file-ownership-cases",
+          "message": "Unresolved local source relation at source-false-0.call-anchor-9c5fc0ca54e0644dcbab0cfd; no alternative or call meaning was inferred.",
+          "severity": "error"
+        },
+        {
+          "code": "semantic-callee-uninterpreted",
+          "path": "semanticBlocks.process-file-limits.unit-cc8b6a66cdcc7841c5e5b9ef",
+          "questionId": "process-file-limits",
+          "message": "Unresolved local source relation at source-true-0.call-anchor-fdabfb3dd67e62f4d028b5b8; no alternative or call meaning was inferred.",
+          "severity": "error"
+        },
+        {
+          "code": "semantic-callee-uninterpreted",
+          "path": "semanticBlocks.process-file-limits.unit-cc8b6a66cdcc7841c5e5b9ef",
+          "questionId": "process-file-limits",
+          "message": "Unresolved local source relation at source-false-0.call-anchor-9c5fc0ca54e0644dcbab0cfd; no alternative or call meaning was inferred.",
+          "severity": "error"
+        },
+        {
+          "code": "source-interpretation-envelope",
+          "path": "focus-ad4abf70d55ae53e0a833075",
+          "questionId": "process-file-caller-flow",
+          "message": "Use only schemaVersion, kind, focusId, interpretation and optional values/reason. Remove extra root fields [\"unit\",\"complete\"]; keep the same source interpretation. Low-level unit fallback is a separate focused update with an explicit reason.",
+          "severity": "error"
+        },
+        {
+          "code": "semantic-counterfactual-path",
+          "path": "process-file-ownership-cases.sem-185a180ecdc5ee71e32090c4",
+          "message": "Counterfactual reference must name an excluded retained path.",
+          "severity": "error",
+          "questionId": "process-file-ownership-cases"
+        },
+        {
+          "code": "semantic-counterfactual-path",
+          "path": "process-file-ownership-cases.sem-70b9962024aba9067ca0fa5f",
+          "message": "Counterfactual reference must name an excluded retained path.",
+          "severity": "error",
+          "questionId": "process-file-ownership-cases"
+        }
+      ],
+      "policyComparisons": [],
+      "calculationCount": 24,
+      "questionChecks": [
+        {
+          "questionId": "process-file-caller-flow",
+          "ruleConsistent": false,
+          "evidenceCoverage": "unresolved",
+          "semanticReview": "unreviewed",
+          "diagnostics": [
+            {
+              "code": "semantic-callee-uninterpreted",
+              "path": "semanticBlocks.process-file-caller-flow.unit-cc8b6a66cdcc7841c5e5b9ef",
+              "questionId": "process-file-caller-flow",
+              "message": "Unresolved local source relation at source-true-0.call-anchor-fdabfb3dd67e62f4d028b5b8; no alternative or call meaning was inferred.",
+              "severity": "error"
+            },
+            {
+              "code": "semantic-callee-uninterpreted",
+              "path": "semanticBlocks.process-file-caller-flow.unit-cc8b6a66cdcc7841c5e5b9ef",
+              "questionId": "process-file-caller-flow",
+              "message": "Unresolved local source relation at source-false-0.call-anchor-9c5fc0ca54e0644dcbab0cfd; no alternative or call meaning was inferred.",
+              "severity": "error"
+            },
+            {
+              "code": "source-interpretation-envelope",
+              "path": "focus-ad4abf70d55ae53e0a833075",
+              "questionId": "process-file-caller-flow",
+              "message": "Use only schemaVersion, kind, focusId, interpretation and optional values/reason. Remove extra root fields [\"unit\",\"complete\"]; keep the same source interpretation. Low-level unit fallback is a separate focused update with an explicit reason.",
+              "severity": "error"
+            }
+          ],
+          "trace": {
+            "rules": [
+              {
+                "key": "sem-263088ef59e41155e0d4c6b4",
+                "kind": "entry",
+                "after": [],
+                "pathKey": "sem-8fbcff7bef385131ef367311",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-e648becb5bb10e54745e7921",
+                "kind": "binding",
+                "after": [
+                  "sem-263088ef59e41155e0d4c6b4"
+                ],
+                "pathKey": "sem-8fbcff7bef385131ef367311",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-b2f23d3c01b7815cb6f5f4cf",
+                "kind": "binding",
+                "after": [
+                  "sem-e648becb5bb10e54745e7921"
+                ],
+                "pathKey": "sem-8fbcff7bef385131ef367311",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-914570d3d4a0c4e02417c3f8",
+                "kind": "binding",
+                "after": [
+                  "sem-b2f23d3c01b7815cb6f5f4cf"
+                ],
+                "pathKey": "sem-8fbcff7bef385131ef367311",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-064098d65cadb9f539eb48fe",
+                "kind": "binding",
+                "after": [
+                  "sem-914570d3d4a0c4e02417c3f8"
+                ],
+                "pathKey": "sem-8fbcff7bef385131ef367311",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-c6d93d523a394477425e77b2",
+                "kind": "binding",
+                "after": [
+                  "sem-064098d65cadb9f539eb48fe"
+                ],
+                "pathKey": "sem-8fbcff7bef385131ef367311",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-a0c7ebead5350120b56c8ffe",
+                "kind": "binding",
+                "after": [
+                  "sem-c6d93d523a394477425e77b2"
+                ],
+                "pathKey": "sem-8fbcff7bef385131ef367311",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-6fadd26c1feaf1cb28d50db7",
+                "kind": "binding",
+                "after": [
+                  "sem-a0c7ebead5350120b56c8ffe"
+                ],
+                "pathKey": "sem-8fbcff7bef385131ef367311",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-495cc3e98ef6a28458f39f04",
+                "kind": "binding",
+                "after": [
+                  "sem-6fadd26c1feaf1cb28d50db7"
+                ],
+                "pathKey": "sem-8fbcff7bef385131ef367311",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-d41e3984b64db3e296145e02",
+                "kind": "continue",
+                "after": [
+                  "sem-495cc3e98ef6a28458f39f04"
+                ],
+                "pathKey": "sem-05ce258ba61fcabfe674fc27",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-05665ce188e23e67f98ca815",
+                "kind": "call",
+                "after": [
+                  "sem-d41e3984b64db3e296145e02"
+                ],
+                "pathKey": "sem-05ce258ba61fcabfe674fc27",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-5675a7bbdffe58ca8e9e09b9",
+                "kind": "unresolved",
+                "after": [
+                  "sem-05665ce188e23e67f98ca815"
+                ],
+                "pathKey": "sem-05ce258ba61fcabfe674fc27",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-574e09eef1f5249033e6d4e5",
+                "kind": "continue",
+                "after": [
+                  "sem-495cc3e98ef6a28458f39f04"
+                ],
+                "pathKey": "sem-5b660618d48cd8ba15a45c3f",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-fb03f57964b6c43772f782aa",
+                "kind": "call",
+                "after": [
+                  "sem-574e09eef1f5249033e6d4e5"
+                ],
+                "pathKey": "sem-5b660618d48cd8ba15a45c3f",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-09e8c75ae577d816820bbdd9",
+                "kind": "unresolved",
+                "after": [
+                  "sem-fb03f57964b6c43772f782aa"
+                ],
+                "pathKey": "sem-5b660618d48cd8ba15a45c3f",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              }
+            ],
+            "paths": [
+              {
+                "questionId": "process-file-caller-flow",
+                "pathKey": "sem-05ce258ba61fcabfe674fc27",
+                "state": "blocked",
+                "disposition": "unknown",
+                "complete": false,
+                "predicate": {
+                  "truth": "unknown",
+                  "residual": {
+                    "op": "eq",
+                    "left": {
+                      "binding": "sem-2f69ebe68130d1c1d6262492.role"
+                    },
+                    "right": {
+                      "literal": "admin"
+                    }
+                  },
+                  "missingBindings": [
+                    "sem-2f69ebe68130d1c1d6262492.role"
+                  ],
+                  "trace": [
+                    {
+                      "op": "eq",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "all",
+                      "truth": "unknown"
+                    }
+                  ],
+                  "diagnostics": [],
+                  "valueTrace": [
+                    {
+                      "known": false,
+                      "residual": {
+                        "binding": "sem-2f69ebe68130d1c1d6262492.role"
+                      },
+                      "missingBindings": [
+                        "sem-2f69ebe68130d1c1d6262492.role"
+                      ],
+                      "diagnostics": [],
+                      "origin": "binding"
+                    },
+                    {
+                      "known": true,
+                      "value": "admin",
+                      "residual": {
+                        "literal": "admin"
+                      },
+                      "missingBindings": [],
+                      "diagnostics": [],
+                      "origin": "literal"
+                    }
+                  ]
+                },
+                "condition": {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "sem-2f69ebe68130d1c1d6262492.role"
+                      },
+                      "right": {
+                        "literal": "admin"
+                      }
+                    }
+                  ]
+                },
+                "nodeKeys": [
+                  "sem-263088ef59e41155e0d4c6b4",
+                  "sem-e648becb5bb10e54745e7921",
+                  "sem-b2f23d3c01b7815cb6f5f4cf",
+                  "sem-914570d3d4a0c4e02417c3f8",
+                  "sem-064098d65cadb9f539eb48fe",
+                  "sem-c6d93d523a394477425e77b2",
+                  "sem-a0c7ebead5350120b56c8ffe",
+                  "sem-6fadd26c1feaf1cb28d50db7",
+                  "sem-495cc3e98ef6a28458f39f04",
+                  "sem-d41e3984b64db3e296145e02",
+                  "sem-05665ce188e23e67f98ca815",
+                  "sem-5675a7bbdffe58ca8e9e09b9"
+                ],
+                "terminalKeys": [
+                  "sem-5675a7bbdffe58ca8e9e09b9"
+                ],
+                "gaps": [
+                  "semantic-callee-uninterpreted",
+                  "closure-not-proposed"
+                ],
+                "sourceBound": true,
+                "protectedEffect": "unresolved",
+                "returnValues": []
+              },
+              {
+                "questionId": "process-file-caller-flow",
+                "pathKey": "sem-5b660618d48cd8ba15a45c3f",
+                "state": "blocked",
+                "disposition": "unknown",
+                "complete": false,
+                "predicate": {
+                  "truth": "unknown",
+                  "residual": {
+                    "op": "not",
+                    "arg": {
+                      "op": "eq",
+                      "left": {
+                        "binding": "sem-2f69ebe68130d1c1d6262492.role"
+                      },
+                      "right": {
+                        "literal": "admin"
+                      }
+                    }
+                  },
+                  "missingBindings": [
+                    "sem-2f69ebe68130d1c1d6262492.role"
+                  ],
+                  "trace": [
+                    {
+                      "op": "eq",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "any",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "not",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "all",
+                      "truth": "unknown"
+                    }
+                  ],
+                  "diagnostics": [],
+                  "valueTrace": [
+                    {
+                      "known": false,
+                      "residual": {
+                        "binding": "sem-2f69ebe68130d1c1d6262492.role"
+                      },
+                      "missingBindings": [
+                        "sem-2f69ebe68130d1c1d6262492.role"
+                      ],
+                      "diagnostics": [],
+                      "origin": "binding"
+                    },
+                    {
+                      "known": true,
+                      "value": "admin",
+                      "residual": {
+                        "literal": "admin"
+                      },
+                      "missingBindings": [],
+                      "diagnostics": [],
+                      "origin": "literal"
+                    }
+                  ]
+                },
+                "condition": {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "not",
+                      "arg": {
+                        "op": "any",
+                        "args": [
+                          {
+                            "op": "eq",
+                            "left": {
+                              "binding": "sem-2f69ebe68130d1c1d6262492.role"
+                            },
+                            "right": {
+                              "literal": "admin"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "nodeKeys": [
+                  "sem-263088ef59e41155e0d4c6b4",
+                  "sem-e648becb5bb10e54745e7921",
+                  "sem-b2f23d3c01b7815cb6f5f4cf",
+                  "sem-914570d3d4a0c4e02417c3f8",
+                  "sem-064098d65cadb9f539eb48fe",
+                  "sem-c6d93d523a394477425e77b2",
+                  "sem-a0c7ebead5350120b56c8ffe",
+                  "sem-6fadd26c1feaf1cb28d50db7",
+                  "sem-495cc3e98ef6a28458f39f04",
+                  "sem-574e09eef1f5249033e6d4e5",
+                  "sem-fb03f57964b6c43772f782aa",
+                  "sem-09e8c75ae577d816820bbdd9"
+                ],
+                "terminalKeys": [
+                  "sem-09e8c75ae577d816820bbdd9"
+                ],
+                "gaps": [
+                  "semantic-callee-uninterpreted",
+                  "closure-not-proposed"
+                ],
+                "sourceBound": true,
+                "protectedEffect": "unresolved",
+                "returnValues": []
+              }
+            ],
+            "uncovered": [
+              "semantic-callee-uninterpreted",
+              "closure-not-proposed",
+              "sem-21dd7588762c93c7677b5e21:blocked",
+              "sem-54d4c835e7c23bdbc5b1ee7d:blocked"
+            ]
+          }
+        },
+        {
+          "questionId": "process-file-input-object",
+          "ruleConsistent": false,
+          "evidenceCoverage": "unresolved",
+          "semanticReview": "unreviewed",
+          "diagnostics": [
+            {
+              "code": "semantic-callee-uninterpreted",
+              "path": "semanticBlocks.process-file-input-object.unit-cc8b6a66cdcc7841c5e5b9ef",
+              "questionId": "process-file-input-object",
+              "message": "Unresolved local source relation at source-true-0.call-anchor-fdabfb3dd67e62f4d028b5b8; no alternative or call meaning was inferred.",
+              "severity": "error"
+            },
+            {
+              "code": "semantic-callee-uninterpreted",
+              "path": "semanticBlocks.process-file-input-object.unit-cc8b6a66cdcc7841c5e5b9ef",
+              "questionId": "process-file-input-object",
+              "message": "Unresolved local source relation at source-false-0.call-anchor-9c5fc0ca54e0644dcbab0cfd; no alternative or call meaning was inferred.",
+              "severity": "error"
+            }
+          ],
+          "trace": {
+            "rules": [
+              {
+                "key": "sem-8457e8534e63edbbb816ecc6",
+                "kind": "entry",
+                "after": [],
+                "pathKey": "sem-a8635d5c75b5220a5cae246f",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-e9d8ff399aa1459357e1f2d7",
+                "kind": "binding",
+                "after": [
+                  "sem-8457e8534e63edbbb816ecc6"
+                ],
+                "pathKey": "sem-a8635d5c75b5220a5cae246f",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-ac3937d2b39208373ef888a7",
+                "kind": "binding",
+                "after": [
+                  "sem-e9d8ff399aa1459357e1f2d7"
+                ],
+                "pathKey": "sem-a8635d5c75b5220a5cae246f",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-513eed28eb1e0da8d5b1e318",
+                "kind": "binding",
+                "after": [
+                  "sem-ac3937d2b39208373ef888a7"
+                ],
+                "pathKey": "sem-a8635d5c75b5220a5cae246f",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-9b29937f5d7d4ac2280f6f88",
+                "kind": "binding",
+                "after": [
+                  "sem-513eed28eb1e0da8d5b1e318"
+                ],
+                "pathKey": "sem-a8635d5c75b5220a5cae246f",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-c97a6a6596537a92629bacc2",
+                "kind": "binding",
+                "after": [
+                  "sem-9b29937f5d7d4ac2280f6f88"
+                ],
+                "pathKey": "sem-a8635d5c75b5220a5cae246f",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-01c833609c38fb86547323d4",
+                "kind": "binding",
+                "after": [
+                  "sem-c97a6a6596537a92629bacc2"
+                ],
+                "pathKey": "sem-a8635d5c75b5220a5cae246f",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-b93946cc44390425dc66f3e2",
+                "kind": "binding",
+                "after": [
+                  "sem-01c833609c38fb86547323d4"
+                ],
+                "pathKey": "sem-a8635d5c75b5220a5cae246f",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-0efab42f0daafd41d1a9153e",
+                "kind": "binding",
+                "after": [
+                  "sem-b93946cc44390425dc66f3e2"
+                ],
+                "pathKey": "sem-a8635d5c75b5220a5cae246f",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-f9501bee730b890eef687302",
+                "kind": "continue",
+                "after": [
+                  "sem-0efab42f0daafd41d1a9153e"
+                ],
+                "pathKey": "sem-75c49f98f92a1a089481b1e0",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-f5df2a7842c0263781ff8dce",
+                "kind": "call",
+                "after": [
+                  "sem-f9501bee730b890eef687302"
+                ],
+                "pathKey": "sem-75c49f98f92a1a089481b1e0",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-eecfa291dc642ac8bcb86284",
+                "kind": "unresolved",
+                "after": [
+                  "sem-f5df2a7842c0263781ff8dce"
+                ],
+                "pathKey": "sem-75c49f98f92a1a089481b1e0",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-84e7e5a9b5dc88284f1619f3",
+                "kind": "continue",
+                "after": [
+                  "sem-0efab42f0daafd41d1a9153e"
+                ],
+                "pathKey": "sem-6c824b0afd700b272a9fceaf",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-e80836cc16d85a57e557941a",
+                "kind": "call",
+                "after": [
+                  "sem-84e7e5a9b5dc88284f1619f3"
+                ],
+                "pathKey": "sem-6c824b0afd700b272a9fceaf",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-10a978e95d8c4d16515e6590",
+                "kind": "unresolved",
+                "after": [
+                  "sem-e80836cc16d85a57e557941a"
+                ],
+                "pathKey": "sem-6c824b0afd700b272a9fceaf",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              }
+            ],
+            "paths": [
+              {
+                "questionId": "process-file-input-object",
+                "pathKey": "sem-75c49f98f92a1a089481b1e0",
+                "state": "blocked",
+                "disposition": "unknown",
+                "complete": false,
+                "predicate": {
+                  "truth": "unknown",
+                  "residual": {
+                    "op": "eq",
+                    "left": {
+                      "binding": "sem-c640a10424b5ecb0b7524cc9.role"
+                    },
+                    "right": {
+                      "literal": "admin"
+                    }
+                  },
+                  "missingBindings": [
+                    "sem-c640a10424b5ecb0b7524cc9.role"
+                  ],
+                  "trace": [
+                    {
+                      "op": "eq",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "all",
+                      "truth": "unknown"
+                    }
+                  ],
+                  "diagnostics": [],
+                  "valueTrace": [
+                    {
+                      "known": false,
+                      "residual": {
+                        "binding": "sem-c640a10424b5ecb0b7524cc9.role"
+                      },
+                      "missingBindings": [
+                        "sem-c640a10424b5ecb0b7524cc9.role"
+                      ],
+                      "diagnostics": [],
+                      "origin": "binding"
+                    },
+                    {
+                      "known": true,
+                      "value": "admin",
+                      "residual": {
+                        "literal": "admin"
+                      },
+                      "missingBindings": [],
+                      "diagnostics": [],
+                      "origin": "literal"
+                    }
+                  ]
+                },
+                "condition": {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "sem-c640a10424b5ecb0b7524cc9.role"
+                      },
+                      "right": {
+                        "literal": "admin"
+                      }
+                    }
+                  ]
+                },
+                "nodeKeys": [
+                  "sem-8457e8534e63edbbb816ecc6",
+                  "sem-e9d8ff399aa1459357e1f2d7",
+                  "sem-ac3937d2b39208373ef888a7",
+                  "sem-513eed28eb1e0da8d5b1e318",
+                  "sem-9b29937f5d7d4ac2280f6f88",
+                  "sem-c97a6a6596537a92629bacc2",
+                  "sem-01c833609c38fb86547323d4",
+                  "sem-b93946cc44390425dc66f3e2",
+                  "sem-0efab42f0daafd41d1a9153e",
+                  "sem-f9501bee730b890eef687302",
+                  "sem-f5df2a7842c0263781ff8dce",
+                  "sem-eecfa291dc642ac8bcb86284"
+                ],
+                "terminalKeys": [
+                  "sem-eecfa291dc642ac8bcb86284"
+                ],
+                "gaps": [
+                  "semantic-callee-uninterpreted",
+                  "closure-not-proposed"
+                ],
+                "sourceBound": true,
+                "protectedEffect": "unresolved",
+                "returnValues": []
+              },
+              {
+                "questionId": "process-file-input-object",
+                "pathKey": "sem-6c824b0afd700b272a9fceaf",
+                "state": "blocked",
+                "disposition": "unknown",
+                "complete": false,
+                "predicate": {
+                  "truth": "unknown",
+                  "residual": {
+                    "op": "not",
+                    "arg": {
+                      "op": "eq",
+                      "left": {
+                        "binding": "sem-c640a10424b5ecb0b7524cc9.role"
+                      },
+                      "right": {
+                        "literal": "admin"
+                      }
+                    }
+                  },
+                  "missingBindings": [
+                    "sem-c640a10424b5ecb0b7524cc9.role"
+                  ],
+                  "trace": [
+                    {
+                      "op": "eq",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "any",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "not",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "all",
+                      "truth": "unknown"
+                    }
+                  ],
+                  "diagnostics": [],
+                  "valueTrace": [
+                    {
+                      "known": false,
+                      "residual": {
+                        "binding": "sem-c640a10424b5ecb0b7524cc9.role"
+                      },
+                      "missingBindings": [
+                        "sem-c640a10424b5ecb0b7524cc9.role"
+                      ],
+                      "diagnostics": [],
+                      "origin": "binding"
+                    },
+                    {
+                      "known": true,
+                      "value": "admin",
+                      "residual": {
+                        "literal": "admin"
+                      },
+                      "missingBindings": [],
+                      "diagnostics": [],
+                      "origin": "literal"
+                    }
+                  ]
+                },
+                "condition": {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "not",
+                      "arg": {
+                        "op": "any",
+                        "args": [
+                          {
+                            "op": "eq",
+                            "left": {
+                              "binding": "sem-c640a10424b5ecb0b7524cc9.role"
+                            },
+                            "right": {
+                              "literal": "admin"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "nodeKeys": [
+                  "sem-8457e8534e63edbbb816ecc6",
+                  "sem-e9d8ff399aa1459357e1f2d7",
+                  "sem-ac3937d2b39208373ef888a7",
+                  "sem-513eed28eb1e0da8d5b1e318",
+                  "sem-9b29937f5d7d4ac2280f6f88",
+                  "sem-c97a6a6596537a92629bacc2",
+                  "sem-01c833609c38fb86547323d4",
+                  "sem-b93946cc44390425dc66f3e2",
+                  "sem-0efab42f0daafd41d1a9153e",
+                  "sem-84e7e5a9b5dc88284f1619f3",
+                  "sem-e80836cc16d85a57e557941a",
+                  "sem-10a978e95d8c4d16515e6590"
+                ],
+                "terminalKeys": [
+                  "sem-10a978e95d8c4d16515e6590"
+                ],
+                "gaps": [
+                  "semantic-callee-uninterpreted",
+                  "closure-not-proposed"
+                ],
+                "sourceBound": true,
+                "protectedEffect": "unresolved",
+                "returnValues": []
+              }
+            ],
+            "uncovered": [
+              "semantic-callee-uninterpreted",
+              "closure-not-proposed",
+              "sem-25bd3dc40be48527adeb9bb7:blocked",
+              "sem-88c871712f467e94df4e5274:blocked"
+            ]
+          }
+        },
+        {
+          "questionId": "process-file-destination-object",
+          "ruleConsistent": false,
+          "evidenceCoverage": "unresolved",
+          "semanticReview": "unreviewed",
+          "diagnostics": [
+            {
+              "code": "semantic-callee-uninterpreted",
+              "path": "semanticBlocks.process-file-destination-object.unit-cc8b6a66cdcc7841c5e5b9ef",
+              "questionId": "process-file-destination-object",
+              "message": "Unresolved local source relation at source-true-0.call-anchor-fdabfb3dd67e62f4d028b5b8; no alternative or call meaning was inferred.",
+              "severity": "error"
+            },
+            {
+              "code": "semantic-callee-uninterpreted",
+              "path": "semanticBlocks.process-file-destination-object.unit-cc8b6a66cdcc7841c5e5b9ef",
+              "questionId": "process-file-destination-object",
+              "message": "Unresolved local source relation at source-false-0.call-anchor-9c5fc0ca54e0644dcbab0cfd; no alternative or call meaning was inferred.",
+              "severity": "error"
+            }
+          ],
+          "trace": {
+            "rules": [
+              {
+                "key": "sem-b217b016a12d507d5823790b",
+                "kind": "entry",
+                "after": [],
+                "pathKey": "sem-b5a98ca63e8f03ef6972f725",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-4c2f24f2bcd0b1de094b7374",
+                "kind": "binding",
+                "after": [
+                  "sem-b217b016a12d507d5823790b"
+                ],
+                "pathKey": "sem-b5a98ca63e8f03ef6972f725",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-db38a546ebd7480f24f0b552",
+                "kind": "binding",
+                "after": [
+                  "sem-4c2f24f2bcd0b1de094b7374"
+                ],
+                "pathKey": "sem-b5a98ca63e8f03ef6972f725",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-2d4606040f8ffed8d60276d5",
+                "kind": "binding",
+                "after": [
+                  "sem-db38a546ebd7480f24f0b552"
+                ],
+                "pathKey": "sem-b5a98ca63e8f03ef6972f725",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-0dd6bea0fac63d9deb622088",
+                "kind": "binding",
+                "after": [
+                  "sem-2d4606040f8ffed8d60276d5"
+                ],
+                "pathKey": "sem-b5a98ca63e8f03ef6972f725",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-8d35e0db62fa42d35ae3e0bf",
+                "kind": "binding",
+                "after": [
+                  "sem-0dd6bea0fac63d9deb622088"
+                ],
+                "pathKey": "sem-b5a98ca63e8f03ef6972f725",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-306c64fdaf1f52f8f093ccf4",
+                "kind": "binding",
+                "after": [
+                  "sem-8d35e0db62fa42d35ae3e0bf"
+                ],
+                "pathKey": "sem-b5a98ca63e8f03ef6972f725",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-be78bc11f2e8693905c585d5",
+                "kind": "binding",
+                "after": [
+                  "sem-306c64fdaf1f52f8f093ccf4"
+                ],
+                "pathKey": "sem-b5a98ca63e8f03ef6972f725",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-3c56e0c5998897c3f7b06937",
+                "kind": "binding",
+                "after": [
+                  "sem-be78bc11f2e8693905c585d5"
+                ],
+                "pathKey": "sem-b5a98ca63e8f03ef6972f725",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-7978f86150779ca2cf0d601c",
+                "kind": "continue",
+                "after": [
+                  "sem-3c56e0c5998897c3f7b06937"
+                ],
+                "pathKey": "sem-75b3b88b3d6df175476e07ae",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-11163ae7c756f45edc76b4c8",
+                "kind": "call",
+                "after": [
+                  "sem-7978f86150779ca2cf0d601c"
+                ],
+                "pathKey": "sem-75b3b88b3d6df175476e07ae",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-784f2a4b4e4067ef23648b35",
+                "kind": "unresolved",
+                "after": [
+                  "sem-11163ae7c756f45edc76b4c8"
+                ],
+                "pathKey": "sem-75b3b88b3d6df175476e07ae",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-00da09f029e2ecbb23198cfc",
+                "kind": "continue",
+                "after": [
+                  "sem-3c56e0c5998897c3f7b06937"
+                ],
+                "pathKey": "sem-3f18376e4f7ef67835af86df",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-0d3c2387b3f2a16013899334",
+                "kind": "call",
+                "after": [
+                  "sem-00da09f029e2ecbb23198cfc"
+                ],
+                "pathKey": "sem-3f18376e4f7ef67835af86df",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-82144afcf70d1f8efd342c44",
+                "kind": "unresolved",
+                "after": [
+                  "sem-0d3c2387b3f2a16013899334"
+                ],
+                "pathKey": "sem-3f18376e4f7ef67835af86df",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              }
+            ],
+            "paths": [
+              {
+                "questionId": "process-file-destination-object",
+                "pathKey": "sem-75b3b88b3d6df175476e07ae",
+                "state": "blocked",
+                "disposition": "unknown",
+                "complete": false,
+                "predicate": {
+                  "truth": "unknown",
+                  "residual": {
+                    "op": "eq",
+                    "left": {
+                      "binding": "sem-12183d723a03b8d2e8e7d2f6.role"
+                    },
+                    "right": {
+                      "literal": "admin"
+                    }
+                  },
+                  "missingBindings": [
+                    "sem-12183d723a03b8d2e8e7d2f6.role"
+                  ],
+                  "trace": [
+                    {
+                      "op": "eq",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "all",
+                      "truth": "unknown"
+                    }
+                  ],
+                  "diagnostics": [],
+                  "valueTrace": [
+                    {
+                      "known": false,
+                      "residual": {
+                        "binding": "sem-12183d723a03b8d2e8e7d2f6.role"
+                      },
+                      "missingBindings": [
+                        "sem-12183d723a03b8d2e8e7d2f6.role"
+                      ],
+                      "diagnostics": [],
+                      "origin": "binding"
+                    },
+                    {
+                      "known": true,
+                      "value": "admin",
+                      "residual": {
+                        "literal": "admin"
+                      },
+                      "missingBindings": [],
+                      "diagnostics": [],
+                      "origin": "literal"
+                    }
+                  ]
+                },
+                "condition": {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "sem-12183d723a03b8d2e8e7d2f6.role"
+                      },
+                      "right": {
+                        "literal": "admin"
+                      }
+                    }
+                  ]
+                },
+                "nodeKeys": [
+                  "sem-b217b016a12d507d5823790b",
+                  "sem-4c2f24f2bcd0b1de094b7374",
+                  "sem-db38a546ebd7480f24f0b552",
+                  "sem-2d4606040f8ffed8d60276d5",
+                  "sem-0dd6bea0fac63d9deb622088",
+                  "sem-8d35e0db62fa42d35ae3e0bf",
+                  "sem-306c64fdaf1f52f8f093ccf4",
+                  "sem-be78bc11f2e8693905c585d5",
+                  "sem-3c56e0c5998897c3f7b06937",
+                  "sem-7978f86150779ca2cf0d601c",
+                  "sem-11163ae7c756f45edc76b4c8",
+                  "sem-784f2a4b4e4067ef23648b35"
+                ],
+                "terminalKeys": [
+                  "sem-784f2a4b4e4067ef23648b35"
+                ],
+                "gaps": [
+                  "semantic-callee-uninterpreted",
+                  "closure-not-proposed"
+                ],
+                "sourceBound": true,
+                "protectedEffect": "unresolved",
+                "returnValues": []
+              },
+              {
+                "questionId": "process-file-destination-object",
+                "pathKey": "sem-3f18376e4f7ef67835af86df",
+                "state": "blocked",
+                "disposition": "unknown",
+                "complete": false,
+                "predicate": {
+                  "truth": "unknown",
+                  "residual": {
+                    "op": "not",
+                    "arg": {
+                      "op": "eq",
+                      "left": {
+                        "binding": "sem-12183d723a03b8d2e8e7d2f6.role"
+                      },
+                      "right": {
+                        "literal": "admin"
+                      }
+                    }
+                  },
+                  "missingBindings": [
+                    "sem-12183d723a03b8d2e8e7d2f6.role"
+                  ],
+                  "trace": [
+                    {
+                      "op": "eq",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "any",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "not",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "all",
+                      "truth": "unknown"
+                    }
+                  ],
+                  "diagnostics": [],
+                  "valueTrace": [
+                    {
+                      "known": false,
+                      "residual": {
+                        "binding": "sem-12183d723a03b8d2e8e7d2f6.role"
+                      },
+                      "missingBindings": [
+                        "sem-12183d723a03b8d2e8e7d2f6.role"
+                      ],
+                      "diagnostics": [],
+                      "origin": "binding"
+                    },
+                    {
+                      "known": true,
+                      "value": "admin",
+                      "residual": {
+                        "literal": "admin"
+                      },
+                      "missingBindings": [],
+                      "diagnostics": [],
+                      "origin": "literal"
+                    }
+                  ]
+                },
+                "condition": {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "not",
+                      "arg": {
+                        "op": "any",
+                        "args": [
+                          {
+                            "op": "eq",
+                            "left": {
+                              "binding": "sem-12183d723a03b8d2e8e7d2f6.role"
+                            },
+                            "right": {
+                              "literal": "admin"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "nodeKeys": [
+                  "sem-b217b016a12d507d5823790b",
+                  "sem-4c2f24f2bcd0b1de094b7374",
+                  "sem-db38a546ebd7480f24f0b552",
+                  "sem-2d4606040f8ffed8d60276d5",
+                  "sem-0dd6bea0fac63d9deb622088",
+                  "sem-8d35e0db62fa42d35ae3e0bf",
+                  "sem-306c64fdaf1f52f8f093ccf4",
+                  "sem-be78bc11f2e8693905c585d5",
+                  "sem-3c56e0c5998897c3f7b06937",
+                  "sem-00da09f029e2ecbb23198cfc",
+                  "sem-0d3c2387b3f2a16013899334",
+                  "sem-82144afcf70d1f8efd342c44"
+                ],
+                "terminalKeys": [
+                  "sem-82144afcf70d1f8efd342c44"
+                ],
+                "gaps": [
+                  "semantic-callee-uninterpreted",
+                  "closure-not-proposed"
+                ],
+                "sourceBound": true,
+                "protectedEffect": "unresolved",
+                "returnValues": []
+              }
+            ],
+            "uncovered": [
+              "semantic-callee-uninterpreted",
+              "closure-not-proposed",
+              "sem-8ffc3ebea9aadb3d37a1d773:blocked",
+              "sem-778492629ac385b63b688755:blocked"
+            ]
+          }
+        },
+        {
+          "questionId": "process-file-object-relation",
+          "ruleConsistent": false,
+          "evidenceCoverage": "unresolved",
+          "semanticReview": "unreviewed",
+          "diagnostics": [
+            {
+              "code": "semantic-callee-uninterpreted",
+              "path": "semanticBlocks.process-file-object-relation.unit-cc8b6a66cdcc7841c5e5b9ef",
+              "questionId": "process-file-object-relation",
+              "message": "Unresolved local source relation at source-true-0.call-anchor-fdabfb3dd67e62f4d028b5b8; no alternative or call meaning was inferred.",
+              "severity": "error"
+            },
+            {
+              "code": "semantic-callee-uninterpreted",
+              "path": "semanticBlocks.process-file-object-relation.unit-cc8b6a66cdcc7841c5e5b9ef",
+              "questionId": "process-file-object-relation",
+              "message": "Unresolved local source relation at source-false-0.call-anchor-9c5fc0ca54e0644dcbab0cfd; no alternative or call meaning was inferred.",
+              "severity": "error"
+            }
+          ],
+          "trace": {
+            "rules": [
+              {
+                "key": "sem-d54bfaf45894fb0131f5684e",
+                "kind": "entry",
+                "after": [],
+                "pathKey": "sem-bd3d077db91d8a33e88d5ffb",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-52b8ca54129fb53146125b95",
+                "kind": "binding",
+                "after": [
+                  "sem-d54bfaf45894fb0131f5684e"
+                ],
+                "pathKey": "sem-bd3d077db91d8a33e88d5ffb",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-bee60d1985f885550ba23d80",
+                "kind": "binding",
+                "after": [
+                  "sem-52b8ca54129fb53146125b95"
+                ],
+                "pathKey": "sem-bd3d077db91d8a33e88d5ffb",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-bc2308d394bd918e3647c299",
+                "kind": "binding",
+                "after": [
+                  "sem-bee60d1985f885550ba23d80"
+                ],
+                "pathKey": "sem-bd3d077db91d8a33e88d5ffb",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-167f9d8bb90647b28695f9ba",
+                "kind": "binding",
+                "after": [
+                  "sem-bc2308d394bd918e3647c299"
+                ],
+                "pathKey": "sem-bd3d077db91d8a33e88d5ffb",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-adc52835055a8165e5a6993b",
+                "kind": "binding",
+                "after": [
+                  "sem-167f9d8bb90647b28695f9ba"
+                ],
+                "pathKey": "sem-bd3d077db91d8a33e88d5ffb",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-a85867cb1bff61fe055f92ef",
+                "kind": "binding",
+                "after": [
+                  "sem-adc52835055a8165e5a6993b"
+                ],
+                "pathKey": "sem-bd3d077db91d8a33e88d5ffb",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-4b694e6d2a27e9b5187d484c",
+                "kind": "binding",
+                "after": [
+                  "sem-a85867cb1bff61fe055f92ef"
+                ],
+                "pathKey": "sem-bd3d077db91d8a33e88d5ffb",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-912e69140b0f633e5a0e5f04",
+                "kind": "binding",
+                "after": [
+                  "sem-4b694e6d2a27e9b5187d484c"
+                ],
+                "pathKey": "sem-bd3d077db91d8a33e88d5ffb",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-655f6c1daa9757db72eb843d",
+                "kind": "continue",
+                "after": [
+                  "sem-912e69140b0f633e5a0e5f04"
+                ],
+                "pathKey": "sem-7da9e596d3c7d32fc195e380",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-d668b9a8a68f1c84e2286b33",
+                "kind": "call",
+                "after": [
+                  "sem-655f6c1daa9757db72eb843d"
+                ],
+                "pathKey": "sem-7da9e596d3c7d32fc195e380",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-e103e8abe03c76603419ab97",
+                "kind": "unresolved",
+                "after": [
+                  "sem-d668b9a8a68f1c84e2286b33"
+                ],
+                "pathKey": "sem-7da9e596d3c7d32fc195e380",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-06e636b2bbedc8fb2507eb93",
+                "kind": "continue",
+                "after": [
+                  "sem-912e69140b0f633e5a0e5f04"
+                ],
+                "pathKey": "sem-47672a2e29458e822afa34c1",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-06d54ba7259a68d5c982dd51",
+                "kind": "call",
+                "after": [
+                  "sem-06e636b2bbedc8fb2507eb93"
+                ],
+                "pathKey": "sem-47672a2e29458e822afa34c1",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-b073491ca1607b8904533ae2",
+                "kind": "unresolved",
+                "after": [
+                  "sem-06d54ba7259a68d5c982dd51"
+                ],
+                "pathKey": "sem-47672a2e29458e822afa34c1",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              }
+            ],
+            "paths": [
+              {
+                "questionId": "process-file-object-relation",
+                "pathKey": "sem-7da9e596d3c7d32fc195e380",
+                "state": "blocked",
+                "disposition": "unknown",
+                "complete": false,
+                "predicate": {
+                  "truth": "unknown",
+                  "residual": {
+                    "op": "eq",
+                    "left": {
+                      "binding": "sem-febacc07ca2c18883d0c169b.role"
+                    },
+                    "right": {
+                      "literal": "admin"
+                    }
+                  },
+                  "missingBindings": [
+                    "sem-febacc07ca2c18883d0c169b.role"
+                  ],
+                  "trace": [
+                    {
+                      "op": "eq",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "all",
+                      "truth": "unknown"
+                    }
+                  ],
+                  "diagnostics": [],
+                  "valueTrace": [
+                    {
+                      "known": false,
+                      "residual": {
+                        "binding": "sem-febacc07ca2c18883d0c169b.role"
+                      },
+                      "missingBindings": [
+                        "sem-febacc07ca2c18883d0c169b.role"
+                      ],
+                      "diagnostics": [],
+                      "origin": "binding"
+                    },
+                    {
+                      "known": true,
+                      "value": "admin",
+                      "residual": {
+                        "literal": "admin"
+                      },
+                      "missingBindings": [],
+                      "diagnostics": [],
+                      "origin": "literal"
+                    }
+                  ]
+                },
+                "condition": {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "sem-febacc07ca2c18883d0c169b.role"
+                      },
+                      "right": {
+                        "literal": "admin"
+                      }
+                    }
+                  ]
+                },
+                "nodeKeys": [
+                  "sem-d54bfaf45894fb0131f5684e",
+                  "sem-52b8ca54129fb53146125b95",
+                  "sem-bee60d1985f885550ba23d80",
+                  "sem-bc2308d394bd918e3647c299",
+                  "sem-167f9d8bb90647b28695f9ba",
+                  "sem-adc52835055a8165e5a6993b",
+                  "sem-a85867cb1bff61fe055f92ef",
+                  "sem-4b694e6d2a27e9b5187d484c",
+                  "sem-912e69140b0f633e5a0e5f04",
+                  "sem-655f6c1daa9757db72eb843d",
+                  "sem-d668b9a8a68f1c84e2286b33",
+                  "sem-e103e8abe03c76603419ab97"
+                ],
+                "terminalKeys": [
+                  "sem-e103e8abe03c76603419ab97"
+                ],
+                "gaps": [
+                  "semantic-callee-uninterpreted",
+                  "closure-not-proposed"
+                ],
+                "sourceBound": true,
+                "protectedEffect": "unresolved",
+                "returnValues": []
+              },
+              {
+                "questionId": "process-file-object-relation",
+                "pathKey": "sem-47672a2e29458e822afa34c1",
+                "state": "blocked",
+                "disposition": "unknown",
+                "complete": false,
+                "predicate": {
+                  "truth": "unknown",
+                  "residual": {
+                    "op": "not",
+                    "arg": {
+                      "op": "eq",
+                      "left": {
+                        "binding": "sem-febacc07ca2c18883d0c169b.role"
+                      },
+                      "right": {
+                        "literal": "admin"
+                      }
+                    }
+                  },
+                  "missingBindings": [
+                    "sem-febacc07ca2c18883d0c169b.role"
+                  ],
+                  "trace": [
+                    {
+                      "op": "eq",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "any",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "not",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "all",
+                      "truth": "unknown"
+                    }
+                  ],
+                  "diagnostics": [],
+                  "valueTrace": [
+                    {
+                      "known": false,
+                      "residual": {
+                        "binding": "sem-febacc07ca2c18883d0c169b.role"
+                      },
+                      "missingBindings": [
+                        "sem-febacc07ca2c18883d0c169b.role"
+                      ],
+                      "diagnostics": [],
+                      "origin": "binding"
+                    },
+                    {
+                      "known": true,
+                      "value": "admin",
+                      "residual": {
+                        "literal": "admin"
+                      },
+                      "missingBindings": [],
+                      "diagnostics": [],
+                      "origin": "literal"
+                    }
+                  ]
+                },
+                "condition": {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "not",
+                      "arg": {
+                        "op": "any",
+                        "args": [
+                          {
+                            "op": "eq",
+                            "left": {
+                              "binding": "sem-febacc07ca2c18883d0c169b.role"
+                            },
+                            "right": {
+                              "literal": "admin"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "nodeKeys": [
+                  "sem-d54bfaf45894fb0131f5684e",
+                  "sem-52b8ca54129fb53146125b95",
+                  "sem-bee60d1985f885550ba23d80",
+                  "sem-bc2308d394bd918e3647c299",
+                  "sem-167f9d8bb90647b28695f9ba",
+                  "sem-adc52835055a8165e5a6993b",
+                  "sem-a85867cb1bff61fe055f92ef",
+                  "sem-4b694e6d2a27e9b5187d484c",
+                  "sem-912e69140b0f633e5a0e5f04",
+                  "sem-06e636b2bbedc8fb2507eb93",
+                  "sem-06d54ba7259a68d5c982dd51",
+                  "sem-b073491ca1607b8904533ae2"
+                ],
+                "terminalKeys": [
+                  "sem-b073491ca1607b8904533ae2"
+                ],
+                "gaps": [
+                  "semantic-callee-uninterpreted",
+                  "closure-not-proposed"
+                ],
+                "sourceBound": true,
+                "protectedEffect": "unresolved",
+                "returnValues": []
+              }
+            ],
+            "uncovered": [
+              "semantic-callee-uninterpreted",
+              "closure-not-proposed",
+              "sem-33d76dcd1e59f4c4c55f7a34:blocked",
+              "sem-a752cba41347e49be50e94a4:blocked"
+            ]
+          }
+        },
+        {
+          "questionId": "process-file-ownership-cases",
+          "ruleConsistent": false,
+          "evidenceCoverage": "unresolved",
+          "semanticReview": "unreviewed",
+          "diagnostics": [
+            {
+              "code": "semantic-callee-uninterpreted",
+              "path": "semanticBlocks.process-file-ownership-cases.unit-cc8b6a66cdcc7841c5e5b9ef",
+              "questionId": "process-file-ownership-cases",
+              "message": "Unresolved local source relation at source-true-0.call-anchor-fdabfb3dd67e62f4d028b5b8; no alternative or call meaning was inferred.",
+              "severity": "error"
+            },
+            {
+              "code": "semantic-callee-uninterpreted",
+              "path": "semanticBlocks.process-file-ownership-cases.unit-cc8b6a66cdcc7841c5e5b9ef",
+              "questionId": "process-file-ownership-cases",
+              "message": "Unresolved local source relation at source-false-0.call-anchor-9c5fc0ca54e0644dcbab0cfd; no alternative or call meaning was inferred.",
+              "severity": "error"
+            },
+            {
+              "code": "semantic-counterfactual-path",
+              "path": "process-file-ownership-cases.sem-185a180ecdc5ee71e32090c4",
+              "message": "Counterfactual reference must name an excluded retained path.",
+              "severity": "error",
+              "questionId": "process-file-ownership-cases"
+            },
+            {
+              "code": "semantic-counterfactual-path",
+              "path": "process-file-ownership-cases.sem-70b9962024aba9067ca0fa5f",
+              "message": "Counterfactual reference must name an excluded retained path.",
+              "severity": "error",
+              "questionId": "process-file-ownership-cases"
+            }
+          ],
+          "trace": {
+            "rules": [
+              {
+                "key": "sem-6ca6f1beb74cf1c2fe59b509",
+                "kind": "entry",
+                "after": [],
+                "pathKey": "sem-1e975661423c2cbe23c7eb71",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-5e1d6c94cf36d789a91ed467",
+                "kind": "binding",
+                "after": [
+                  "sem-6ca6f1beb74cf1c2fe59b509"
+                ],
+                "pathKey": "sem-1e975661423c2cbe23c7eb71",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-ccda7bb1cebb9b0fdc6f6331",
+                "kind": "binding",
+                "after": [
+                  "sem-5e1d6c94cf36d789a91ed467"
+                ],
+                "pathKey": "sem-1e975661423c2cbe23c7eb71",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-d4cde21b07fcd310ecbfb832",
+                "kind": "binding",
+                "after": [
+                  "sem-ccda7bb1cebb9b0fdc6f6331"
+                ],
+                "pathKey": "sem-1e975661423c2cbe23c7eb71",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-d22b9aefcfa7d9c95f7a49e6",
+                "kind": "binding",
+                "after": [
+                  "sem-d4cde21b07fcd310ecbfb832"
+                ],
+                "pathKey": "sem-1e975661423c2cbe23c7eb71",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-e10a08ad4ac3bd484daa43f7",
+                "kind": "binding",
+                "after": [
+                  "sem-d22b9aefcfa7d9c95f7a49e6"
+                ],
+                "pathKey": "sem-1e975661423c2cbe23c7eb71",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-0ccf90b5dad23e5fcb8057fb",
+                "kind": "binding",
+                "after": [
+                  "sem-e10a08ad4ac3bd484daa43f7"
+                ],
+                "pathKey": "sem-1e975661423c2cbe23c7eb71",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-86709b019f1e8a3002e470d4",
+                "kind": "binding",
+                "after": [
+                  "sem-0ccf90b5dad23e5fcb8057fb"
+                ],
+                "pathKey": "sem-1e975661423c2cbe23c7eb71",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-d4a222cc4ad8031c294f2759",
+                "kind": "binding",
+                "after": [
+                  "sem-86709b019f1e8a3002e470d4"
+                ],
+                "pathKey": "sem-1e975661423c2cbe23c7eb71",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-a36116a74259c56264262bdd",
+                "kind": "continue",
+                "after": [
+                  "sem-d4a222cc4ad8031c294f2759"
+                ],
+                "pathKey": "sem-185a180ecdc5ee71e32090c4",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-46ec057f722019113feca47f",
+                "kind": "call",
+                "after": [
+                  "sem-a36116a74259c56264262bdd"
+                ],
+                "pathKey": "sem-185a180ecdc5ee71e32090c4",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-44bdc9f1e9720297495d32c1",
+                "kind": "unresolved",
+                "after": [
+                  "sem-46ec057f722019113feca47f"
+                ],
+                "pathKey": "sem-185a180ecdc5ee71e32090c4",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-bb9bc32ffaef6aaa89a18658",
+                "kind": "continue",
+                "after": [
+                  "sem-d4a222cc4ad8031c294f2759"
+                ],
+                "pathKey": "sem-70b9962024aba9067ca0fa5f",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-d519af833194ef2b7b97b752",
+                "kind": "call",
+                "after": [
+                  "sem-bb9bc32ffaef6aaa89a18658"
+                ],
+                "pathKey": "sem-70b9962024aba9067ca0fa5f",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-a9aed4afbc60937701ab1023",
+                "kind": "unresolved",
+                "after": [
+                  "sem-d519af833194ef2b7b97b752"
+                ],
+                "pathKey": "sem-70b9962024aba9067ca0fa5f",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              }
+            ],
+            "paths": [
+              {
+                "questionId": "process-file-ownership-cases",
+                "pathKey": "sem-185a180ecdc5ee71e32090c4",
+                "state": "blocked",
+                "disposition": "unknown",
+                "complete": false,
+                "predicate": {
+                  "truth": "unknown",
+                  "residual": {
+                    "op": "eq",
+                    "left": {
+                      "binding": "sem-73747cc38d77d55793f667ff.role"
+                    },
+                    "right": {
+                      "literal": "admin"
+                    }
+                  },
+                  "missingBindings": [
+                    "sem-73747cc38d77d55793f667ff.role"
+                  ],
+                  "trace": [
+                    {
+                      "op": "eq",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "all",
+                      "truth": "unknown"
+                    }
+                  ],
+                  "diagnostics": [],
+                  "valueTrace": [
+                    {
+                      "known": false,
+                      "residual": {
+                        "binding": "sem-73747cc38d77d55793f667ff.role"
+                      },
+                      "missingBindings": [
+                        "sem-73747cc38d77d55793f667ff.role"
+                      ],
+                      "diagnostics": [],
+                      "origin": "binding"
+                    },
+                    {
+                      "known": true,
+                      "value": "admin",
+                      "residual": {
+                        "literal": "admin"
+                      },
+                      "missingBindings": [],
+                      "diagnostics": [],
+                      "origin": "literal"
+                    }
+                  ]
+                },
+                "condition": {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "sem-73747cc38d77d55793f667ff.role"
+                      },
+                      "right": {
+                        "literal": "admin"
+                      }
+                    }
+                  ]
+                },
+                "nodeKeys": [
+                  "sem-6ca6f1beb74cf1c2fe59b509",
+                  "sem-5e1d6c94cf36d789a91ed467",
+                  "sem-ccda7bb1cebb9b0fdc6f6331",
+                  "sem-d4cde21b07fcd310ecbfb832",
+                  "sem-d22b9aefcfa7d9c95f7a49e6",
+                  "sem-e10a08ad4ac3bd484daa43f7",
+                  "sem-0ccf90b5dad23e5fcb8057fb",
+                  "sem-86709b019f1e8a3002e470d4",
+                  "sem-d4a222cc4ad8031c294f2759",
+                  "sem-a36116a74259c56264262bdd",
+                  "sem-46ec057f722019113feca47f",
+                  "sem-44bdc9f1e9720297495d32c1"
+                ],
+                "terminalKeys": [
+                  "sem-44bdc9f1e9720297495d32c1"
+                ],
+                "gaps": [
+                  "semantic-callee-uninterpreted",
+                  "closure-not-proposed"
+                ],
+                "sourceBound": true,
+                "protectedEffect": "unresolved",
+                "returnValues": []
+              },
+              {
+                "questionId": "process-file-ownership-cases",
+                "pathKey": "sem-70b9962024aba9067ca0fa5f",
+                "state": "blocked",
+                "disposition": "unknown",
+                "complete": false,
+                "predicate": {
+                  "truth": "unknown",
+                  "residual": {
+                    "op": "not",
+                    "arg": {
+                      "op": "eq",
+                      "left": {
+                        "binding": "sem-73747cc38d77d55793f667ff.role"
+                      },
+                      "right": {
+                        "literal": "admin"
+                      }
+                    }
+                  },
+                  "missingBindings": [
+                    "sem-73747cc38d77d55793f667ff.role"
+                  ],
+                  "trace": [
+                    {
+                      "op": "eq",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "any",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "not",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "all",
+                      "truth": "unknown"
+                    }
+                  ],
+                  "diagnostics": [],
+                  "valueTrace": [
+                    {
+                      "known": false,
+                      "residual": {
+                        "binding": "sem-73747cc38d77d55793f667ff.role"
+                      },
+                      "missingBindings": [
+                        "sem-73747cc38d77d55793f667ff.role"
+                      ],
+                      "diagnostics": [],
+                      "origin": "binding"
+                    },
+                    {
+                      "known": true,
+                      "value": "admin",
+                      "residual": {
+                        "literal": "admin"
+                      },
+                      "missingBindings": [],
+                      "diagnostics": [],
+                      "origin": "literal"
+                    }
+                  ]
+                },
+                "condition": {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "not",
+                      "arg": {
+                        "op": "any",
+                        "args": [
+                          {
+                            "op": "eq",
+                            "left": {
+                              "binding": "sem-73747cc38d77d55793f667ff.role"
+                            },
+                            "right": {
+                              "literal": "admin"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "nodeKeys": [
+                  "sem-6ca6f1beb74cf1c2fe59b509",
+                  "sem-5e1d6c94cf36d789a91ed467",
+                  "sem-ccda7bb1cebb9b0fdc6f6331",
+                  "sem-d4cde21b07fcd310ecbfb832",
+                  "sem-d22b9aefcfa7d9c95f7a49e6",
+                  "sem-e10a08ad4ac3bd484daa43f7",
+                  "sem-0ccf90b5dad23e5fcb8057fb",
+                  "sem-86709b019f1e8a3002e470d4",
+                  "sem-d4a222cc4ad8031c294f2759",
+                  "sem-bb9bc32ffaef6aaa89a18658",
+                  "sem-d519af833194ef2b7b97b752",
+                  "sem-a9aed4afbc60937701ab1023"
+                ],
+                "terminalKeys": [
+                  "sem-a9aed4afbc60937701ab1023"
+                ],
+                "gaps": [
+                  "semantic-callee-uninterpreted",
+                  "closure-not-proposed"
+                ],
+                "sourceBound": true,
+                "protectedEffect": "unresolved",
+                "returnValues": []
+              }
+            ],
+            "uncovered": [
+              "semantic-callee-uninterpreted",
+              "closure-not-proposed",
+              "sem-e0ba3ba86646c4e0301fcfd5:blocked",
+              "sem-2b4e8d21bc18162beac270d0:blocked"
+            ]
+          }
+        },
+        {
+          "questionId": "process-file-limits",
+          "ruleConsistent": false,
+          "evidenceCoverage": "unresolved",
+          "semanticReview": "unreviewed",
+          "diagnostics": [
+            {
+              "code": "semantic-callee-uninterpreted",
+              "path": "semanticBlocks.process-file-limits.unit-cc8b6a66cdcc7841c5e5b9ef",
+              "questionId": "process-file-limits",
+              "message": "Unresolved local source relation at source-true-0.call-anchor-fdabfb3dd67e62f4d028b5b8; no alternative or call meaning was inferred.",
+              "severity": "error"
+            },
+            {
+              "code": "semantic-callee-uninterpreted",
+              "path": "semanticBlocks.process-file-limits.unit-cc8b6a66cdcc7841c5e5b9ef",
+              "questionId": "process-file-limits",
+              "message": "Unresolved local source relation at source-false-0.call-anchor-9c5fc0ca54e0644dcbab0cfd; no alternative or call meaning was inferred.",
+              "severity": "error"
+            }
+          ],
+          "trace": {
+            "rules": [
+              {
+                "key": "sem-d4e9d2bcc7a5368cb8278c44",
+                "kind": "entry",
+                "after": [],
+                "pathKey": "sem-b9d66220ddd441cbdd17c505",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-bb4f0b08f37978721884e065",
+                "kind": "binding",
+                "after": [
+                  "sem-d4e9d2bcc7a5368cb8278c44"
+                ],
+                "pathKey": "sem-b9d66220ddd441cbdd17c505",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-c019cf83c2214e069f32d87c",
+                "kind": "binding",
+                "after": [
+                  "sem-bb4f0b08f37978721884e065"
+                ],
+                "pathKey": "sem-b9d66220ddd441cbdd17c505",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-a6166b7061ae30f4f7aeb406",
+                "kind": "binding",
+                "after": [
+                  "sem-c019cf83c2214e069f32d87c"
+                ],
+                "pathKey": "sem-b9d66220ddd441cbdd17c505",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-8f22903431159ad41ec375ba",
+                "kind": "binding",
+                "after": [
+                  "sem-a6166b7061ae30f4f7aeb406"
+                ],
+                "pathKey": "sem-b9d66220ddd441cbdd17c505",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-26bc8baa220016b2ed95ff7a",
+                "kind": "binding",
+                "after": [
+                  "sem-8f22903431159ad41ec375ba"
+                ],
+                "pathKey": "sem-b9d66220ddd441cbdd17c505",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-28f1be0a0eb83ec94a3221b7",
+                "kind": "binding",
+                "after": [
+                  "sem-26bc8baa220016b2ed95ff7a"
+                ],
+                "pathKey": "sem-b9d66220ddd441cbdd17c505",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-ab4f23a2f27110ac027861da",
+                "kind": "binding",
+                "after": [
+                  "sem-28f1be0a0eb83ec94a3221b7"
+                ],
+                "pathKey": "sem-b9d66220ddd441cbdd17c505",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-9b23352216f2aaed0a3b7149",
+                "kind": "binding",
+                "after": [
+                  "sem-ab4f23a2f27110ac027861da"
+                ],
+                "pathKey": "sem-b9d66220ddd441cbdd17c505",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-26fa2bd3b7639dc732287bb6",
+                "kind": "continue",
+                "after": [
+                  "sem-9b23352216f2aaed0a3b7149"
+                ],
+                "pathKey": "sem-0d77daa9beb133588a24d62e",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-863b7ea4ac6c444c4969ab3d",
+                "kind": "call",
+                "after": [
+                  "sem-26fa2bd3b7639dc732287bb6"
+                ],
+                "pathKey": "sem-0d77daa9beb133588a24d62e",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-b88d992323c1c78a5c549155",
+                "kind": "unresolved",
+                "after": [
+                  "sem-863b7ea4ac6c444c4969ab3d"
+                ],
+                "pathKey": "sem-0d77daa9beb133588a24d62e",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-c6334d5a7a813c12a8b6c9c7",
+                "kind": "continue",
+                "after": [
+                  "sem-9b23352216f2aaed0a3b7149"
+                ],
+                "pathKey": "sem-27ab2cdf4b664f97137109d4",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-2eeb26cea7e0c4c3e2a98496",
+                "kind": "call",
+                "after": [
+                  "sem-c6334d5a7a813c12a8b6c9c7"
+                ],
+                "pathKey": "sem-27ab2cdf4b664f97137109d4",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              },
+              {
+                "key": "sem-12fd71a519df3f73131f5eb1",
+                "kind": "unresolved",
+                "after": [
+                  "sem-2eeb26cea7e0c4c3e2a98496"
+                ],
+                "pathKey": "sem-27ab2cdf4b664f97137109d4",
+                "evidenceIds": [
+                  "ev-a479f356e1556c9f3aa3",
+                  "ev-b7a7d02caa2a24787a88"
+                ]
+              }
+            ],
+            "paths": [
+              {
+                "questionId": "process-file-limits",
+                "pathKey": "sem-0d77daa9beb133588a24d62e",
+                "state": "blocked",
+                "disposition": "unknown",
+                "complete": false,
+                "predicate": {
+                  "truth": "unknown",
+                  "residual": {
+                    "op": "eq",
+                    "left": {
+                      "binding": "sem-5fc690f071b3e0d1ce29f2b4.role"
+                    },
+                    "right": {
+                      "literal": "admin"
+                    }
+                  },
+                  "missingBindings": [
+                    "sem-5fc690f071b3e0d1ce29f2b4.role"
+                  ],
+                  "trace": [
+                    {
+                      "op": "eq",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "all",
+                      "truth": "unknown"
+                    }
+                  ],
+                  "diagnostics": [],
+                  "valueTrace": [
+                    {
+                      "known": false,
+                      "residual": {
+                        "binding": "sem-5fc690f071b3e0d1ce29f2b4.role"
+                      },
+                      "missingBindings": [
+                        "sem-5fc690f071b3e0d1ce29f2b4.role"
+                      ],
+                      "diagnostics": [],
+                      "origin": "binding"
+                    },
+                    {
+                      "known": true,
+                      "value": "admin",
+                      "residual": {
+                        "literal": "admin"
+                      },
+                      "missingBindings": [],
+                      "diagnostics": [],
+                      "origin": "literal"
+                    }
+                  ]
+                },
+                "condition": {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "eq",
+                      "left": {
+                        "binding": "sem-5fc690f071b3e0d1ce29f2b4.role"
+                      },
+                      "right": {
+                        "literal": "admin"
+                      }
+                    }
+                  ]
+                },
+                "nodeKeys": [
+                  "sem-d4e9d2bcc7a5368cb8278c44",
+                  "sem-bb4f0b08f37978721884e065",
+                  "sem-c019cf83c2214e069f32d87c",
+                  "sem-a6166b7061ae30f4f7aeb406",
+                  "sem-8f22903431159ad41ec375ba",
+                  "sem-26bc8baa220016b2ed95ff7a",
+                  "sem-28f1be0a0eb83ec94a3221b7",
+                  "sem-ab4f23a2f27110ac027861da",
+                  "sem-9b23352216f2aaed0a3b7149",
+                  "sem-26fa2bd3b7639dc732287bb6",
+                  "sem-863b7ea4ac6c444c4969ab3d",
+                  "sem-b88d992323c1c78a5c549155"
+                ],
+                "terminalKeys": [
+                  "sem-b88d992323c1c78a5c549155"
+                ],
+                "gaps": [
+                  "semantic-callee-uninterpreted",
+                  "closure-not-proposed"
+                ],
+                "sourceBound": true,
+                "protectedEffect": "unresolved",
+                "returnValues": []
+              },
+              {
+                "questionId": "process-file-limits",
+                "pathKey": "sem-27ab2cdf4b664f97137109d4",
+                "state": "blocked",
+                "disposition": "unknown",
+                "complete": false,
+                "predicate": {
+                  "truth": "unknown",
+                  "residual": {
+                    "op": "not",
+                    "arg": {
+                      "op": "eq",
+                      "left": {
+                        "binding": "sem-5fc690f071b3e0d1ce29f2b4.role"
+                      },
+                      "right": {
+                        "literal": "admin"
+                      }
+                    }
+                  },
+                  "missingBindings": [
+                    "sem-5fc690f071b3e0d1ce29f2b4.role"
+                  ],
+                  "trace": [
+                    {
+                      "op": "eq",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "any",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "not",
+                      "truth": "unknown"
+                    },
+                    {
+                      "op": "all",
+                      "truth": "unknown"
+                    }
+                  ],
+                  "diagnostics": [],
+                  "valueTrace": [
+                    {
+                      "known": false,
+                      "residual": {
+                        "binding": "sem-5fc690f071b3e0d1ce29f2b4.role"
+                      },
+                      "missingBindings": [
+                        "sem-5fc690f071b3e0d1ce29f2b4.role"
+                      ],
+                      "diagnostics": [],
+                      "origin": "binding"
+                    },
+                    {
+                      "known": true,
+                      "value": "admin",
+                      "residual": {
+                        "literal": "admin"
+                      },
+                      "missingBindings": [],
+                      "diagnostics": [],
+                      "origin": "literal"
+                    }
+                  ]
+                },
+                "condition": {
+                  "op": "all",
+                  "args": [
+                    {
+                      "op": "not",
+                      "arg": {
+                        "op": "any",
+                        "args": [
+                          {
+                            "op": "eq",
+                            "left": {
+                              "binding": "sem-5fc690f071b3e0d1ce29f2b4.role"
+                            },
+                            "right": {
+                              "literal": "admin"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "nodeKeys": [
+                  "sem-d4e9d2bcc7a5368cb8278c44",
+                  "sem-bb4f0b08f37978721884e065",
+                  "sem-c019cf83c2214e069f32d87c",
+                  "sem-a6166b7061ae30f4f7aeb406",
+                  "sem-8f22903431159ad41ec375ba",
+                  "sem-26bc8baa220016b2ed95ff7a",
+                  "sem-28f1be0a0eb83ec94a3221b7",
+                  "sem-ab4f23a2f27110ac027861da",
+                  "sem-9b23352216f2aaed0a3b7149",
+                  "sem-c6334d5a7a813c12a8b6c9c7",
+                  "sem-2eeb26cea7e0c4c3e2a98496",
+                  "sem-12fd71a519df3f73131f5eb1"
+                ],
+                "terminalKeys": [
+                  "sem-12fd71a519df3f73131f5eb1"
+                ],
+                "gaps": [
+                  "semantic-callee-uninterpreted",
+                  "closure-not-proposed"
+                ],
+                "sourceBound": true,
+                "protectedEffect": "unresolved",
+                "returnValues": []
+              }
+            ],
+            "uncovered": [
+              "semantic-callee-uninterpreted",
+              "closure-not-proposed",
+              "sem-f21a2a6bd4fd600aee9314ab:blocked",
+              "sem-1b485f166eb0608a5d059c25:blocked"
+            ]
+          }
+        }
+      ]
+    },
+    "sourceAccounting": {
+      "indexBytes": 3149729,
+      "physicalReadBytes": 6844689,
+      "toolDisplayBytes": 29567,
+      "importedEvidenceBytes": 0,
+      "cumulativeModelSourceBytes": 272245,
+      "resentSourceBytes": 242678
+    },
+    "sourceVerification": {
+      "valid": true,
+      "checkedFiles": 173,
+      "physicalReadBytes": 3149729
+    },
+    "targetExecutions": 0
+  },
+  "rawBindings": {
+    "report.json": {
+      "sha256": "3fefeb188aa1e0ea49b4072c0e02bd55a9c88deaf774ebce114a51e6b8d263a4",
+      "bytes": 50422
+    },
+    "final.txt": {
+      "sha256": "a81fae08d64e094b6407db1cdd2a68a89a4ee74cba8ed429611c282322d47769",
+      "bytes": 18044
+    },
+    "raw/inquiry-run.json.gz": {
+      "sha256": "9894f702304a5764df0c407b8b16f65b97d542c2b8c5f1cd7d1b3127e7469372",
+      "bytes": 1060797
+    }
+  },
+  "researchEffectEstablished": false
+}

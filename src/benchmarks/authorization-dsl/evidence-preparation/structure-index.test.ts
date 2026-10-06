@@ -1,6 +1,72 @@
 import { expect, test } from "bun:test"
 import { buildStructureIndex } from "./structure-index.ts"
 
+test("imported module instances bind their actual class methods across source roots and aliases", async () => {
+  const index = await buildStructureIndex([
+    { path: "backend/pkg/store.py", content: "class Table:\n    def get(self, key):\n        return key\n    def get_for(self, key, actor):\n        return key\nRecords = Table()\n" },
+    { path: "backend/pkg/entry.py", content: "from pkg.store import Records as Repo\nimport pkg.store as models\ndef entry(key, actor):\n    first = Repo.get(key)\n    second = models.Records.get_for(key, actor)\n    unknown.get(key)\n    return first\n" },
+    { path: "decoy.py", content: "class Table:\n    def get(self, key):\n        return None\n" },
+  ], { repository: "anonymous", sourceRef: "r" })
+  for (const [expression, method] of [["Repo.get", "get"], ["models.Records.get_for", "get_for"]]) {
+    const call = index.calls.find(c => c.expression === expression)!
+    expect(call.resolution).toBe("resolved")
+    expect(call.candidateIds).toEqual([index.symbols.find(s => s.qualifiedName === `backend.pkg.store.Table.${method}`)!.id])
+    expect(call.receiverClass).toBe("backend.pkg.store.Table")
+  }
+  expect(index.calls.find(c => c.expression === "unknown.get")!.resolution).toBe("unresolved")
+})
+
+test("local module instances bind without inferring dynamic or rebound receivers", async () => {
+  const content = "class Table:\n    def get(self, key):\n        return key\nReady = Table()\nDynamic = factory()\nRebound = Table()\nRebound = other()\nConditional = Table()\nif flag:\n    Conditional = other()\ndef entry(key):\n    Ready.get(key)\n    Dynamic.get(key)\n    Rebound.get(key)\n    Conditional.get(key)\n"
+  const index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" })
+  expect(index.calls.find(c => c.expression === "Ready.get")!.candidateIds).toEqual([index.symbols.find(s => s.qualifiedName === "app.Table.get")!.id])
+  for (const name of ["Dynamic", "Rebound", "Conditional"]) expect(index.calls.find(c => c.expression === `${name}.get`)!.resolution).toBe("unresolved")
+})
+
+test("parameters and local values shadow imported instances while typed local constructors remain usable", async () => {
+  const index = await buildStructureIndex([
+    { path: "store.py", content: "class Table:\n    def get(self):\n        return True\nStore = Table()\n" },
+    { path: "entry.py", content: "from store import Store\nclass Other:\n    def get(self):\n        return False\ndef parameter(Store):\n    return Store.get()\ndef literal():\n    Store = None\n    return Store.get()\ndef dynamic():\n    Store = factory()\n    return Store.get()\ndef local():\n    Store = Other()\n    return Store.get()\n" },
+  ], { repository: "anonymous", sourceRef: "r" })
+  for (const name of ["parameter", "literal", "dynamic"]) {
+    const owner = index.symbols.find(s => s.qualifiedName === `entry.${name}`)!
+    expect(index.relatedCalls(owner.id).find(c => c.expression === "Store.get")!.resolution).toBe("unresolved")
+  }
+  const local = index.symbols.find(s => s.qualifiedName === "entry.local")!
+  expect(index.relatedCalls(local.id).find(c => c.expression === "Store.get")!.candidateIds).toEqual([index.symbols.find(s => s.qualifiedName === "entry.Other.get")!.id])
+})
+
+test("an imported instance does not pick one of two source modules with the same suffix", async () => {
+  const content = "class Table:\n    def get(self):\n        return True\nStore = Table()\n"
+  const index = await buildStructureIndex([{ path: "one/pkg/store.py", content }, { path: "two/pkg/store.py", content }, { path: "entry.py", content: "from pkg.store import Store\ndef entry():\n    return Store.get()\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect(index.calls.find(c => c.expression === "Store.get")!.resolution).toBe("unresolved")
+})
+
+test("non-call module rebinding and a loop-local name do not leak the original instance", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "class Table:\n    def get(self):\n        return True\nStore = Table()\nfor Store in values:\n    pass\nClean = Table()\ndef entry():\n    Store.get()\n    for Clean in values:\n        Clean.get()\n" }], { repository: "anonymous", sourceRef: "r" })
+  for (const name of ["Store", "Clean"]) expect(index.calls.find(c => c.expression === `${name}.get`)!.resolution).toBe("unresolved")
+})
+
+test("instance declaration file changes invalidate candidate dependencies even when its class file is unchanged", async () => {
+  const files = [{ path: "table.py", content: "class Table:\n    def get(self):\n        return True\n" }, { path: "binding.py", content: "from table import Table\nStore = Table(1)\n" }, { path: "entry.py", content: "from binding import Store\ndef entry():\n    return Store.get()\n" }]
+  const first = await buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" })
+  const second = await buildStructureIndex(files.map(f => f.path === "binding.py" ? { ...f, content: f.content.replace("Table(1)", "Table(2)") } : f), { repository: "anonymous", sourceRef: "r" })
+  expect(second.calls.find(c => c.expression === "Store.get")!.resolution).toBe("resolved")
+  expect(second.candidateRevision("table.Table", "get")).not.toBe(first.candidateRevision("table.Table", "get"))
+})
+
+test("local imports and nested declarations shadow a module instance", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "class Table:\n    def get(self):\n        return True\nStore = Table()\ndef imported():\n    from unknown import Store\n    return Store.get()\ndef nested():\n    class Store:\n        pass\n    return Store.get()\n" }], { repository: "anonymous", sourceRef: "r" })
+  for (const name of ["imported", "nested"]) expect(index.relatedCalls(index.symbols.find(s => s.qualifiedName === `app.${name}`)!.id).find(c => c.expression === "Store.get")!.resolution).toBe("unresolved")
+})
+
+test("conditional imports and global writes invalidate the initial module instance", async () => {
+  for (const changed of ["if flag:\n    from unknown import Store\n", "def change():\n    global Store\n    Store = unknown()\n"]) {
+    const index = await buildStructureIndex([{ path: "app.py", content: "class Table:\n    def get(self):\n        return True\nStore = Table()\n" + changed + "def entry():\n    return Store.get()\n" }], { repository: "anonymous", sourceRef: "r" })
+    expect(index.relatedCalls(index.symbols.find(s => s.qualifiedName === "app.entry")!.id).find(c => c.expression === "Store.get")!.resolution).toBe("unresolved")
+  }
+})
+
 test("FastAPI constructor aliases, constant prefixes and includes bind the decorated handler", async () => {
   const index = await buildStructureIndex([
     { path: "api/items.py", content: 'from fastapi import APIRouter as Router\nBASE = "/items"\nrouter = Router(prefix=BASE)\n@router.post("/create")\ndef create_item(request):\n    return request\n' },

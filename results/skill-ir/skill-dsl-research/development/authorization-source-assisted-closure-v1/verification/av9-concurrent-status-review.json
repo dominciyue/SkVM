@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "authorization-av9-status-review/v1",
+  "reviewer": "independent read-only AI scout",
+  "agent": "/root/av9_concurrent_status_review",
+  "sourceAnchors": ["study.ts:152-173", "study.test.ts:23-47"],
+  "verified": ["Exclusive cross-process lock with owner metadata", "Read/merge/write under the lock and atomic same-directory rename", "Concurrent reader sees complete JSON and all 36 independent worker fields survive", "Delayed snapshots cannot lower providerCalls", "30-second lock timeout preserves the stale lock and identifies manual inspection"],
+  "verification": { "tests": 10, "passed": 10, "failed": 0, "assertions": 107 },
+  "supportedP1P2Findings": [],
+  "scoutTypeCheck": "No terminal result within its 30-second observation; not counted as passed or failed.",
+  "mainTypeCheck": "Fresh AV strict tsc exited 0, including all verification scripts.",
+  "limits": "Crash-leftover lock was not separately induced; the implementation fails explicitly rather than automatically deleting such a lock. Status lastKnownRequest remains the latest single aggregate view; individual raw archives are authoritative.",
+  "providerCalls": 0,
+  "targetExecutions": 0
+}

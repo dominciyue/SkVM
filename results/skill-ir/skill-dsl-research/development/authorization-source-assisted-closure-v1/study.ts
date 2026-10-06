@@ -1,6 +1,6 @@
 import path from "node:path"
-import { readFile, writeFile, mkdir, readdir, stat, copyFile } from "node:fs/promises"
-import { createHash } from "node:crypto"
+import { readFile, writeFile, mkdir, readdir, stat, copyFile, open, rename, unlink } from "node:fs/promises"
+import { createHash, randomUUID } from "node:crypto"
 import { execFileSync } from "node:child_process"
 import { gzipSync, gunzipSync } from "node:zlib"
 import { isDeepStrictEqual } from "node:util"
@@ -149,7 +149,29 @@ export async function replay() {
   }
   return { schemaVersion: "authorization-av-replay/v1", rows, providerCalls: rows.reduce((n, r) => n + ("summary" in r && r.summary ? r.summary.providerCalls : 0), 0), unknownUnsettledPositions: rows.filter(r => r.status === "initialized-or-unsettled").length, providerCallsDuringReplay: 0, targetExecutionsDuringReplay: 0, cacheReadBasis: "each actual attempt usage once; never add prompt cacheRead to input again", humanMinutes: null }
 }
-async function currentStatus(change: Record<string, unknown>) { const file = path.join(root, "status.json"); await save(file, { ...(z.record(z.unknown()).parse(await json(file))), ...change }, false) }
+export async function currentStatus(change: Record<string, unknown>, studyRoot = root) {
+  const file = path.join(studyRoot, "status.json"), lockFile = path.join(studyRoot, ".status-write.lock"), temporary = path.join(studyRoot, `.status-${process.pid}-${randomUUID()}.tmp`), deadline = Date.now() + 30000
+  let lock: Awaited<ReturnType<typeof open>> | undefined
+  while (!lock) {
+    try { lock = await open(lockFile, "wx") }
+    catch (cause) {
+      if ((cause as NodeJS.ErrnoException).code !== "EEXIST") throw cause
+      if (Date.now() >= deadline) throw new Error(`Status writer lock did not release: ${lockFile}; inspect its owner before removing it`)
+      await Bun.sleep(10)
+    }
+  }
+  try {
+    await lock.writeFile(JSON.stringify({ pid: process.pid, createdAt: new Date().toISOString(), lastKnownRequest: change.lastKnownRequest ?? null }) + "\n", "utf8")
+    const current = z.record(z.unknown()).parse(await json(file))
+    const next = { ...current, ...change }
+    if (typeof current.providerCalls === "number" && typeof change.providerCalls === "number") next.providerCalls = Math.max(current.providerCalls, change.providerCalls)
+    await writeFile(temporary, JSON.stringify(next, null, 2) + "\n", { encoding: "utf8", flag: "wx" })
+    await rename(temporary, file)
+  } finally {
+    try { await unlink(temporary) } catch (cause) { if ((cause as NodeJS.ErrnoException).code !== "ENOENT") throw cause }
+    finally { await lock.close(); await unlink(lockFile) }
+  }
+}
 async function latestAttempt(position: string) {
   const base = path.join(root, "positions", position), names = await readdir(base).catch(() => [])
   const reports = await Promise.all(names.map(async name => { const file = path.join(base, name, "report.json"); return await stat(file).catch(() => undefined) ? { directory: path.join(base, name), report: AttemptReportSchema.parse(await json(file)) } : undefined }))

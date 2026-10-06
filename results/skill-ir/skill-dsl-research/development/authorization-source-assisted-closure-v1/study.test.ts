@@ -2,7 +2,7 @@ import { expect, test } from "bun:test"
 import { mkdtemp, readFile, writeFile, mkdir } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
-import { selectPosition, modelInputPath, reserveAttempt, replayAccounting, positionTemplates, nativeInvocation, loadAdmittedAuthor, sha, archiveInquiryResult, configureStudyRuntime } from "./study.ts"
+import { selectPosition, modelInputPath, reserveAttempt, replayAccounting, positionTemplates, nativeInvocation, loadAdmittedAuthor, sha, archiveInquiryResult, configureStudyRuntime, currentStatus } from "./study.ts"
 import { resolveConfigWritePath, invalidateConfigCache } from "../../../../../src/core/config.ts"
 import { executeLocalInquiryRun } from "../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts"
 import { RUN_FLAGS } from "../../../../../src/cli/run.ts"
@@ -18,6 +18,32 @@ test("finite positions require exact unique registered identities and reject eva
   expect(() => selectPosition({ ...manifest, positions: [...positions, positions[0]!] }, positions[0]!.id)).toThrow()
   for (const invalid of ["evaluations/answers.json", "model/inputs/../../evaluations/answers.json", "model/inputs/task.json/other", "D:/evaluation.json"]) expect(() => modelInputPath("D:/av", invalid)).toThrow()
   expect(modelInputPath("D:/av", "model/inputs/paperless-download-original.json").replaceAll("\\", "/")).toBe("D:/av/model/inputs/paperless-download-original.json")
+})
+
+test("concurrent independent status patches preserve every position and readers receive complete JSON", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "av-status-"))
+  await writeFile(path.join(directory, "status.json"), JSON.stringify({ existing: "retained" }))
+  const worker = path.join(directory, "writer.ts")
+  await writeFile(worker, `import { currentStatus } from ${JSON.stringify(path.join(import.meta.dir, "study.ts"))};\nconst directory=process.argv[2]!, identity=process.argv[3]!;\nawait Promise.all(Array.from({length:12},(_,i)=>currentStatus({[identity+"-"+i]:"archived"},directory)));\n`)
+  const children = ["one", "two", "three"].map(identity => Bun.spawn([process.execPath, worker, directory, identity], { stdout: "pipe", stderr: "pipe" }))
+  let reading = true, readerError: unknown
+  const reader = (async () => { while (reading) { try { JSON.parse(await readFile(path.join(directory, "status.json"), "utf8")) } catch (cause) { readerError = cause; break } await Bun.sleep(1) } })()
+  const outcomes = await Promise.all(children.map(async child => ({ code: await child.exited, error: await new Response(child.stderr).text() })))
+  reading = false; await reader
+  expect(outcomes).toEqual(outcomes.map(() => ({ code: 0, error: "" })))
+  expect(readerError).toBeUndefined()
+  const recorded = JSON.parse(await readFile(path.join(directory, "status.json"), "utf8"))
+  expect(recorded.existing).toBe("retained")
+  for (const identity of ["one", "two", "three"]) for (let i = 0; i < 12; i++) expect(recorded[`${identity}-${i}`]).toBe("archived")
+}, 30000)
+
+test("a delayed accounting snapshot cannot lower the total already archived by another position", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "av-status-accounting-"))
+  await writeFile(path.join(directory, "status.json"), JSON.stringify({ providerCalls: 9 }))
+  await currentStatus({ providerCalls: 3, phase: "independent-position" }, directory)
+  expect(JSON.parse(await readFile(path.join(directory, "status.json"), "utf8"))).toMatchObject({ providerCalls: 9, phase: "independent-position" })
+  await currentStatus({ providerCalls: 12 }, directory)
+  expect(JSON.parse(await readFile(path.join(directory, "status.json"), "utf8"))).toMatchObject({ providerCalls: 12 })
 })
 
 test("first attempts cannot be overwritten and named revisions require an existing explicit parent", async () => {

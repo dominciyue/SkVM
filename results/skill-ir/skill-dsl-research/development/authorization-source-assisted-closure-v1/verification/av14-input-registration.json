@@ -1,0 +1,193 @@
+{
+  "schemaVersion": "authorization-av14-input-registration/v1",
+  "at": "2026-10-06T13:38:34.306Z",
+  "baselineInput": "verification/av14-retained-baseline.json",
+  "baselineSha256": "1735feffe143c64e6872575a68989997602878432085c97ee04df9b910bf4e77",
+  "previousPosition": "debug-paperless-download-D1",
+  "previousAttempt": "revision-final-diagnostics",
+  "originalNaturalTask": "Investigate the document Download operation in this Paperless revision. Explain how the requested document, selected version or original/archive representation, and authenticated user's authorization relate to the file returned. Identify relevant control branches and whether selecting another version changes the resource that is authorized. Ownership and object grants are unspecified: analyze relevant source branches rather than assuming a grant. State missing source or deployment facts precisely.",
+  "originalNaturalInputSha256": "351e98469db38adf77b52be538475f58cc36033dad04f43211bccb8039abe0e1",
+  "registeredSourceChange": {
+    "path": "src/documents/views.py",
+    "symbol": "DocumentViewSet._resolve_request_and_root_doc",
+    "line": 1424,
+    "originalSha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+    "currentSha256": "2ba2c123c014965b003fb9866f2b16af43921ce7a44efa591a989ed8c597e93b",
+    "from": "root_doc",
+    "to": "request_doc",
+    "scope": "one guard argument only in the developer copy; not an authorization oracle"
+  },
+  "rows": [
+    {
+      "variant": "policy",
+      "input": "model/inputs/paperless-download-policy.json",
+      "inputSha256": "79d2fbf7c7e0f222268cd3cfba8260d3bd4935a057d477e883ab56864a8e0935",
+      "changedFiles": [],
+      "comparison": {
+        "schemaVersion": "authorization-inquiry-compare/v1",
+        "status": "needs-review",
+        "taskChanged": true,
+        "sourceChanged": false,
+        "strategy": "operation-evidence-v2",
+        "strategyChanged": false,
+        "policyOnly": false,
+        "premiseOnly": false,
+        "reuseEligibility": {
+          "status": "reusable",
+          "info": {
+            "previousSessionId": "2026-10-06T114914388Z-6ef24064",
+            "change": "policy-only",
+            "answerReused": false,
+            "semanticSupport": "unreviewed",
+            "reusedRuleKeys": [],
+            "invalidatedPolicyKeys": [],
+            "invalidatedPremiseKeys": [],
+            "reuseLevel": "materials",
+            "reusedMaterials": [
+              "unit-999972b62d46700ddadbb89e",
+              "unit-6bd723445224dcd8dd2bab8a"
+            ],
+            "invalidatedMaterials": []
+          },
+          "reasons": []
+        },
+        "providerCalls": 0,
+        "affectedComputation": [
+          "current-task-analysis"
+        ],
+        "mechanicalIndexReusable": true,
+        "controlRulesReused": false,
+        "reviewReasons": [
+          "Current request, premises, policy or scope changed; recheck affected questions and paths in a fresh session."
+        ],
+        "answerReused": false
+      }
+    },
+    {
+      "variant": "premise",
+      "input": "model/inputs/paperless-download-premise.json",
+      "inputSha256": "47470b2250c41ded7a8937220f5961c9a5dec0eda5ceeaf073b35ee8b472bdee",
+      "changedFiles": [],
+      "comparison": {
+        "schemaVersion": "authorization-inquiry-compare/v1",
+        "status": "needs-review",
+        "taskChanged": true,
+        "sourceChanged": false,
+        "strategy": "operation-evidence-v2",
+        "strategyChanged": false,
+        "policyOnly": false,
+        "premiseOnly": true,
+        "reuseEligibility": {
+          "status": "reusable",
+          "info": {
+            "previousSessionId": "2026-10-06T114914388Z-6ef24064",
+            "change": "premise-only",
+            "answerReused": false,
+            "semanticSupport": "unreviewed",
+            "reusedRuleKeys": [],
+            "invalidatedPolicyKeys": [],
+            "invalidatedPremiseKeys": [],
+            "reuseLevel": "materials",
+            "reusedMaterials": [
+              "unit-999972b62d46700ddadbb89e",
+              "unit-6bd723445224dcd8dd2bab8a"
+            ],
+            "invalidatedMaterials": []
+          },
+          "reasons": []
+        },
+        "providerCalls": 0,
+        "affectedComputation": [
+          "premise-mapping",
+          "path-evaluation",
+          "policy-comparison"
+        ],
+        "mechanicalIndexReusable": true,
+        "controlRulesReused": false,
+        "reviewReasons": [
+          "Current request, premises, policy or scope changed; recheck affected questions and paths in a fresh session."
+        ],
+        "answerReused": false
+      }
+    },
+    {
+      "variant": "source",
+      "input": "model/inputs/paperless-download-source.json",
+      "inputSha256": "2e24bf922929a9d3200f9f73785edc9ab263d6b7bbd12cb87b90d6462661d331",
+      "changedFiles": [
+        {
+          "path": "src/documents/views.py",
+          "sha256": "2ba2c123c014965b003fb9866f2b16af43921ce7a44efa591a989ed8c597e93b",
+          "bytes": 211443
+        }
+      ],
+      "comparison": {
+        "schemaVersion": "authorization-inquiry-compare/v1",
+        "status": "needs-review",
+        "taskChanged": false,
+        "sourceChanged": true,
+        "strategy": "operation-evidence-v2",
+        "strategyChanged": false,
+        "policyOnly": false,
+        "premiseOnly": false,
+        "reuseEligibility": {
+          "status": "reusable",
+          "info": {
+            "previousSessionId": "2026-10-06T114914388Z-6ef24064",
+            "change": "source-changed",
+            "answerReused": false,
+            "semanticSupport": "unreviewed",
+            "reusedRuleKeys": [],
+            "invalidatedPolicyKeys": [],
+            "invalidatedPremiseKeys": [],
+            "reuseLevel": "materials",
+            "reusedMaterials": [],
+            "invalidatedMaterials": [
+              {
+                "handle": "unit-999972b62d46700ddadbb89e",
+                "reasons": [
+                  "legacy-source-unavailable",
+                  "source-span:src/documents/views.py:changed-or-unavailable",
+                  "symbol-resolution:struct-b87a4afdcea33f96a2b2fa2d:changed-or-unavailable",
+                  "candidate-set:relations:struct-b87a4afdcea33f96a2b2fa2d::changed-or-unavailable",
+                  "candidate-set:documents.views.DocumentViewSet:download:changed-or-unavailable",
+                  "original evidence changed-or-unavailable"
+                ]
+              },
+              {
+                "handle": "unit-6bd723445224dcd8dd2bab8a",
+                "reasons": [
+                  "legacy-source-unavailable",
+                  "source-span:src/documents/views.py:changed-or-unavailable",
+                  "symbol-resolution:struct-c1a6bd6945975b47fbb4b98c:changed-or-unavailable",
+                  "candidate-set:relations:struct-c1a6bd6945975b47fbb4b98c:documents.views.DocumentViewSet:changed-or-unavailable",
+                  "candidate-set:documents.views.DocumentViewSet:file_response:changed-or-unavailable",
+                  "original evidence changed-or-unavailable"
+                ]
+              }
+            ]
+          },
+          "reasons": []
+        },
+        "providerCalls": 0,
+        "affectedComputation": [
+          "source-index",
+          "control-extraction",
+          "path-evaluation",
+          "policy-comparison"
+        ],
+        "mechanicalIndexReusable": false,
+        "controlRulesReused": false,
+        "reviewReasons": [
+          "Allowed original source changed, including uncited source; extracted rules are invalidated."
+        ],
+        "answerReused": false
+      }
+    }
+  ],
+  "originalSourcePreserved": true,
+  "answersReused": false,
+  "semanticSupport": "unreviewed",
+  "providerCalls": 0,
+  "targetExecutions": 0
+}

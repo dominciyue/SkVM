@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "paperless-download",
+  "repository": "paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "sourceRoot": "../source/paperless-request-binding-v1",
+  "allowedPaths": [
+    "src/documents",
+    "src/paperless/urls.py",
+    "framework/rest_framework-3.18.1/rest_framework",
+    "source_identity.py"
+  ],
+  "inquiry": {
+    "schemaVersion": "authorization-inquiry/v2",
+    "mode": "behavior",
+    "operations": [
+      {
+        "id": "download-document",
+        "request": "Investigate downloading a document"
+      }
+    ],
+    "questions": [
+      {
+        "id": "download-document-controls",
+        "request": "Which relevant source control branches govern downloading the requested document, including endpoint and object controls, inherited permission paths, and serializer or input validation, and how do the authenticated user's authorization, the requested document, the selected version, and the original or archive representation determine the file returned?",
+        "principal": "authenticated user",
+        "resource": "requested document and selected version or original/archive representation",
+        "operation": "Download",
+        "premises": [
+          {
+            "text": "The requested operation is the document Download operation in this Paperless revision.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "download-document",
+        "intent": "behavior"
+      },
+      {
+        "id": "download-document-version-authorization",
+        "request": "Does selecting another version change the resource that is authorized, and how do the relevant source branches bind authorization to the requested document versus the selected version or original/archive representation?",
+        "principal": "authenticated user",
+        "resource": "requested document and selected version or original/archive representation",
+        "operation": "Download",
+        "premises": [
+          {
+            "text": "Ownership and object grants are unspecified.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "download-document",
+        "intent": "behavior"
+      },
+      {
+        "id": "download-document-missing-facts",
+        "request": "Which source or deployment facts are missing for determining the Download operation's authorization behavior precisely, without assuming ownership or an object grant?",
+        "principal": "authenticated user",
+        "resource": "requested document and selected version or original/archive representation",
+        "operation": "Download",
+        "premises": [
+          {
+            "text": "Ownership and object grants are unspecified.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "download-document",
+        "intent": "scope"
+      }
+    ]
+  }
+}
