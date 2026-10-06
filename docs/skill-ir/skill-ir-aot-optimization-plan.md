@@ -1,49 +1,48 @@
 # Skill IR AOT 当前执行计划
 
-更新于 2026-10-07。本页维护当前目标和未达责任，原件由研究正文与实验目录导航。
+更新于2026-10-07。本页维护当前目标与未达责任；原件由研究正文和实验目录导航。
 
 - 唯一实时入口：[current-status](current-status.md)。
-- 当前任务书：[AW0–AW22 控制语义、局部材料与账号运行](../superpowers/plans/2026-10-07-authorization-control-materials-and-account-runtime.md)，completed-with-unmet-criteria，适用离线队列结束，研究目标未达。开发模型gpt-6.1-sol/max。
-- 方法合同：[spec AW](skill-ir-aot-optimization-spec.md#1436-aw-control-materials-and-account-runtime-contract)；开发决定：[研究 §7.56](skill-dsl-research.md#756-aw-控制语义局部材料与账号运行开发决定)。
-- 代码基线 853795491c78ccf24a2387bb4ea5b65ea0ebf44a；启动时保留任务书后续提交。质量/编写复用约60/40是精力分配。
+- 当前任务书：[AX0–AX20 按授权问题求值与账号真实执行](../superpowers/plans/2026-10-07-authorization-property-analysis-and-account-execution.md)，planned-authorized。
+- 方法合同：[spec AX](skill-ir-aot-optimization-spec.md#1437-ax-property-directed-analysis-and-controlled-account-execution)；决定依据：[研究§7.57–§7.58](skill-dsl-research.md#757-aw-收束后复核运行能力与按问题求值)。
+- 复核基线ccf00985，启动时保留随后计划提交。开发模型gpt-6.1-sol/max；被测模型为已授权当前账号的gpt-5.6-sol/high。第三方API和AV十二旧位置继续暂停。
 
 ## 当前目标
 
-补齐真实授权源码中的有限正常/异常/短路关系，让来源材料在入口尚未完成时也能可靠保存、在连接成立后被实际使用。局部修复保留已有进展，减少真实上下文重复，完成原skill任务与变化使用。复用现有领域核心和CLI，新增行为显式启用。
+在现有两个入口和领域核心中，按每个授权问题组织必要依赖、局部摘要和保守异常状态合并，减少整函数标注及路径展开负担。官方账号生产transport采用安装版本可兑现的受控能力合同，完成真实工具会话，再做完整原skill任务、变化复用和同条件对照。新行为显式选择operation-evidence-v4，旧默认和归档保持。
 
-账号driver和双入口已共用native领域核心，匿名JSON-RPC全链通过。实际官方CLI元数据初始化成功，但当前版本的公开工具清单不能证明仅暴露受限动态工具，故在thread/start/turn/start前返回具体unavailable，未派发推理。24个逻辑位置已登记未满足前提；内部请求数/USD保持unknown，不能以一个turn或numeric兼容槽写成零费用。用户账号授权有效，第三方付费API继续暂停。
+AW的账号路径目前固定在initialize之后阻断；原件没有证明账号推理不可用。另一条零模型反例显示16个context潜在异常调用使整题触发路径上限。AX负责改变这两个共享机制，不能只增加mock、关掉异常或缩减原任务。
 
-## AW 队列
+## AX 队列
 
-| 阶段 | 工作 | 当前结果 |
+| 阶段 | 责任 | 验收对象 |
 |---|---|---|
-| AW0–AW2 | 接管、账号元数据/授权、真实失败测试 | 基线与三个真实原件点验、行为反例红绿及零推理协议核验完成 |
-| AW3–AW5 | 有限控制、helper摘要与局部覆盖 | 有界控制/调用展开通过；Download测试作者接线成立；OWUI旧标注55项缺项保留 |
-| AW6–AW8 | 来源材料、操作连接、变化恢复 | helper独立保存、精确实参/receiver、变化选择性失效和available/restored/used分离通过；无真实净收益 |
-| AW9–AW10 | 局部上下文、进度与最终交付 | 坏字段保留、共享进度通过；同v3元数据合并实际字节降低7.7%/18.3%，真实token未测 |
-| AW11–AW13 | 官方账号驱动/同核心接入、真实源码离线集成 | mock双入口与真实源码离线完成；官方账号工具排他性未验证，推理0 |
-| AW14–AW18 | 账号真实纵向链、完整skill/作者消费、变化及质量对照 | 条件不满足，24逻辑位置未派发；确定性机制证据另列，未替代真实效果 |
-| AW19–AW22 | 独立复核、必要回归、文档发布、逐项收束 | 独立只读复核、937pass/1skip、双类型和原件重放通过；实现19ee007a已推用户origin且SHA一致，证据收束单独提交 |
+| AX0–AX2 | 接管、实际账号配置、生产driver和真实smoke | 模型实际请求/消费宿主工具，输入与评价隔离 |
+| AX3–AX6 | 红测、按问题依赖、增量解释、异常合流 | 16/64 context反例通过，相关未知/效果次序仍保留 |
+| AX7–AX9 | helper摘要、失效、调度、inquiry/native接入 | 同核心和参数身份，旧默认兼容 |
+| AX10–AX11 | Download和OWUI完整任务真实调试 | 原skill自然终答、当前领域检查、独立源码质量 |
+| AX12–AX14 | 三变化、作者/原字节消费者、三臂对照 | fresh/previous与N/M-S/D-S按同版本评价 |
+| AX15–AX18 | 机制、计量、语义复核、必要回归 | 首件/修订及工程/效果分开；原件可重算 |
+| AX19–AX20 | 普通使用、研究复盘、发布与收束 | 六项结果状态、复制命令、具体剩余责任 |
 
-下一恢复责任：`codex-account-session.ts`核实官方排他工具清单与输入隔离后先跑匿名smoke，再进入debug；`source-interpretation/inquiry-focus`需新模型解释OWUI扩展控制及Download缺失callee。重放、test-authored接线和已读源码均不能代替这两份完整自然交付。[AW summary](../../results/skill-ir/skill-dsl-research/development/authorization-control-materials-v1/summary.json)保存五项结果及当前证据。
+20个逻辑首位置已定义，具名修订另列。质量/编写复用约60/40是精力安排，不是质量容错比例。约8–12小时是工作量规划，实际按完成情况执行；不等待、不重复验证凑时长。
+
+## 立即修复与继续规则
+
+1. 发现共享schema、连接、合流或运行缺陷，立即保留首件、写红测、修生产代码、同例复验；受影响后续派发暂停，独立工程继续。
+2. 同因两轮无进展时调整接口或任务拆分，不原样重抽。原题和完整skill职责保留。
+3. 机械排除和模型未核实的相关性分开；unknown副作用、资源替换和异常前后effect不能被裁掉。
+4. 账号配置保护具体风险：evaluator/旧答案不进入模型，目标不执行，额外能力禁用或有界同条件计量；不追求公开协议不存在的证明，也不以提示词代替边界。
+5. 账号无权限/额度时停止该通道并继续独立开发，不切付费API。内部请求或USD不可见保持unknown。
+6. partial原材料可做材料级变化诊断；完整任务收益只在相应原/变质量满足后评价。
+7. 六项状态分别是工程、账号运行、native交付、作者消费、质量比较、复用；有限队列结束不自动达成研究目标。
 
 ## 继承状态
 
-[AV](../superpowers/plans/2026-10-06-authorization-source-assisted-closure.md)保持in-progress-paid-deferred-by-user：14首位置/29尝试已归档，397派发/385响应；12旧变化/质量位置未派发。两条最新调试均partial，四份作者稿有效，消费未形成稳定完整交付。停止状态修复已发布；894pass/1skip为AV归档验证。本次复核新鲜109pass/538断言及主类型通过。原件见[AV summary](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/summary.json)。
+[AW](../superpowers/plans/2026-10-07-authorization-control-materials-and-account-runtime.md)已以completed-with-unmet-criteria收束，937pass/1skip，双类型通过；24个逻辑真实位置未派发。同v3元数据重放字节下降7.7%/18.3%，实际token/质量收益未测。原件见[AW summary](../../results/skill-ir/skill-dsl-research/development/authorization-control-materials-v1/summary.json)。
 
-AU/AT/AS/AR的失败、未知费用、封存及分母保留。AW使用新身份记录新实现及账号通道，不覆盖旧结果，不自动补跑AV十二行。
+[AV](../superpowers/plans/2026-10-06-authorization-source-assisted-closure.md)保持in-progress-paid-deferred-by-user，十二旧位置不补跑。AU/AT/AS/AR原件、失败、未知费用和封存保留；新账号研究不改旧结果，也不按新身份解除保护任务。readiness、held-out、Q1和历史0/6保持。
 
-## 失败处理与验收
+## 写入与发布
 
-1. 可定位共享故障当场写失败测试、修生产实现、同例复验；暂停受影响模型派发，独立开发继续。
-2. 一个错误字段局部修复，保留已接受解释；同因两轮无进展改接口/任务负担，不原样重抽整题。
-3. 完整原任务不缩小，条件分支可构成充分回答；来源已有却未连上应记解释缺口。oracle和旧完整答案只在evaluator。
-4. 材料保存、连接、恢复、实际采用和整体质量分别计数；旧final/check不进入缓存种子。
-5. 账号额度/权限不可用暂停该通道，不购买额度、切身份或改用付费API；继续离线工程。
-6. 工程、真实交付、比较和复用分别报告，有限队列终结不替代研究达成。
-
-## 工作边界
-
-继续skill-ir-aot，仅推用户origin，不新建分支/worktree。新开发线程接管后为本轮唯一代码/方法文档写者。保护历史原件、其他线程改动、held-out/Q1/readiness。分析允许源码，不执行目标应用。
-
-问题和修复统一追加[研究正文](skill-dsl-research.md)，长期接口更新既有组件文档。临时运行集中在project-maintenance，结果和失败进入本轮results目录；不新建每阶段Markdown、不重复历史全量审计。付费通道与账号实验授权分开记录。
+继续skill-ir-aot，只推用户origin，不创建分支/worktree。AX开发线程接管后为唯一代码和共享方法文档写者。研究问题及修复统一更新[研究正文](skill-dsl-research.md)；结果在本轮identity中，临时运行在project-maintenance。本轮不新增长期阅读文档、不清空历史材料、不重复全量审计。

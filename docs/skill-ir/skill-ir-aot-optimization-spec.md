@@ -2581,6 +2581,20 @@ Go机械来源覆盖包含multiline链式route及if initializer的实际调用/�
 账号公开入口是普通`run --adapter=codex-account`和`authorization inquiry run --harness=codex-account`，模型限定gpt-5.6-sol/high，M/D1及N普通只读工具共用native核心；D0和无法兑现的provider请求/token/请求超时/自动恢复限额明确拒绝。宿主工具/read/display/session限额继续生效。当前官方stdio transport只核实initialize；缺排他工具能力时不创建thread、不推理，内部请求数不可见本身不作为阻断理由。已知凭据字段/格式和账号标识在归档副本脱敏；不是通用秘密检测器，脱敏改动过的材料仍按原身份校验失效。原始用户输入是保留的任务声明，不读取账号凭据文件。五项结果与具体未达见[AW summary](../../results/skill-ir/skill-dsl-research/development/authorization-control-materials-v1/summary.json)。
 
 
+### 14.37 AX property directed analysis and controlled account execution
+
+2026-10-07，用户授权[AX0–AX20](../superpowers/plans/2026-10-07-authorization-property-analysis-and-account-execution.md)并指定gpt-6.1-sol/max开发。当前为planned-authorized；本段规定待实现方法，不预记工程或效果成功。新行为显式选择operation-evidence-v4，复用既有核心/两个入口，旧策略和原件保持。
+
+**性质需求与覆盖。** 从原任务、当前入口和已读源码建立每个授权问题的主体/资源、guard、effect、返回及控制/数据依赖。未进入当前需求的语句仍保存来源与排除理由；机械可证明排除和模型提出的unreviewed相关性分开。未知写作用途、动态调用、资源替换、receiver/别名和异常控制若可能影响当前性质须保留缺口。完整问题分母与源码获取能力保持；不能凭函数名、旧答案或删除难题建立相关性。增量解释只要求当前必要字段，错误字段局修不丢其它有效材料。
+
+**摘要与合流。** 来源摘要记录真实参数、正常/异常出口、guard及可能effect；当前问题关系独立实例化。求值对兼容的异常状态保守合并，保留控制位置、主体/资源、条件、出口和effects；不同对象/授权结果、异常前后的effect和finally/handler顺序不能强行等价。未知保持未知，独立已证事实不因另一问题超限被整批丢弃。保留有界资源合同，不能用一律mayRaise=false或只扩大路径上限替代修复。访问许可、效果可到达、效果发生及真实部署成功分层。
+
+**账号能力。** 用户已授权当前ChatGPT账号实验，被测gpt-5.6-sol/high，经官方CLI自管登录。AX将AW固定unverified transport分支改为版本绑定、实际生效的受控能力判断：来源范围和评价隔离、目标不执行、额外工具关闭或受同等控制及计量。read-only不自动证明读范围，提示词不充当执行隔离；也不要求本机公开协议未提供的抽象排他证明。须核实thread配置、权限和instruction sources并完成匿名真实工具smoke，不能将test-transport直接标真。凭据不进入项目，第三方付费API及AV十二旧位置继续暂停。账号无权限/额度时保留真实原因并继续独立工程。
+
+**真实交付与比较。** 使用已经暴露的Download/OWUI完整任务和Cloudflare/GitHub完整skill，执行模型不得读本任务书、oracle、过去正确答案或开发者补写正确图。原skill、自然前端加共同核心、领域声明加同核心在同模型/材料/预算下分别评价。20个逻辑首位置、具名修订及实际共享原件分开，发现共享缺陷立即修复再继续受影响运行；不能先跑完已知错误批次。材料恢复/实际采用/完整任务质量分别验收，policy/premise重算与source失效保持。内部请求、实际USD和真人时间不可见时为unknown。
+
+**交付责任。** 工程、账号运行、native交付、作者原字节消费、质量比较、变化复用六项单列。至少一个完整原skill的真实checked且源码充分答案是本轮真实链验收目标；两任务全部问题仍列入分母，复杂任务不足需给出实际修订效果。有限队列结束与研究目标达成分别报告。设计根据见[研究§7.57–§7.58](skill-dsl-research.md#757-aw-收束后复核运行能力与按问题求值)。
+
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
 AT在已有授权局部语义上引入显式 `focused-closure-v1`：宿主持久管理locate/interpret/link/review/answer阶段，绑定当前来源、单元身份与更新版本；模型解释原始源码中的条件、对象、参数、返回与实际相关效果。上下文渲染不改变活动任务，拒绝修复回到同一单元；多候选与语义关系仍须显式判定。旧默认及协议保持。
