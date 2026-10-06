@@ -1929,7 +1929,7 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 ### 7.58 AX 按授权问题求值与账号真实执行开发决定
 
-2026-10-07，用户要求撰写下一步任务书并派发gpt-6.1-sol/max开发，同时再次询问能否使用当前GPT账号的5.6 Sol实验。此前明确账号授权继续有效，本轮采用官方CLI自管登录的gpt-5.6-sol/high，不重新索取许可、不恢复第三方API。[AX0–AX20](../superpowers/plans/2026-10-07-authorization-property-analysis-and-account-execution.md)以复核提交ccf00985为依据；当前是计划发布，尚无新实现、真实账号会话或效果结论。
+2026-10-07，用户要求撰写下一步任务书并派发gpt-6.1-sol/max开发，同时再次询问能否使用当前GPT账号的5.6 Sol实验。此前明确账号授权继续有效，本轮采用官方CLI自管登录的gpt-5.6-sol/high，不重新索取许可、不恢复第三方API。[AX0–AX20](../superpowers/plans/2026-10-07-authorization-property-analysis-and-account-execution.md)以复核提交ccf00985为依据；AX正在开发，账号匿名工具链已有真实成功，完整任务和效果结论尚待验证。
 
 **为什么调整方法。** AW扩展语法后，整函数每个call的语义标注和每个潜在异常的路径枚举成为新负担。§7.57已在真实代码上复现16个context调用触发整题上限。下一步将需求绑定原任务每个授权问题，围绕主体、资源、guard、effect及控制/数据关系选择必要解释，使用参数化来源摘要和保守异常合流。原源码和全部原问题保持；模型提出的相关性不冒充宿主证明，未知副作用或对象变化仍保留影响。这是在当前领域语义和工具上深化，不再建设统一IR。
 
@@ -1938,6 +1938,10 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 **研究借鉴与验证。** [RepoAudit](https://arxiv.org/html/2501.18160v3)的需求驱动函数探索与摘要、[CodeQL Python数据流](https://codeql.github.com/docs/codeql-language-guides/analyzing-data-flow-in-python/)的source/sink/barrier组织方式，为局部依赖提供实现参考。SkVM需自行检验授权对象身份、政策与行为分离，以及例外条件下结论充分性。先写16/64 context、资源替换、异常前后effect和finally顺序反例，再在Download/OWUI真实任务上验证；不把外部项目结果当本项目增益。
 
 **执行与失败处理。** 20个首位置覆盖账号smoke、两完整skill native、Download inquiry、三变化fresh/previous、两作者/消费者和N/M-S/D-S对照。共享schema/连接/求值缺陷一旦出现，立即暂停受影响后续派发，写红测并修共享代码，首件与具名修订分开。oracle、旧正确图和开发者修补答案不进入执行模型。复杂任务尚未闭合时，独立作者/材料复用可继续，任务级收益仍依据当前完整原/变答案。六项交付状态分别记录工程、账号运行、native交付、作者消费、质量和复用。AX实际问题与解决过程继续追加本节。
+
+**AX0–AX2实际接通。** 本机CLI及generated v2 schema为0.159.0-alpha.12.1；model/list提供gpt-5.6-sol/high。生产transport先枚举元数据中的MCP/skills名称，再以逐项关闭配置重启，检查有效config和thread权限/roots/instructionSources后才turn/start。空表不会移除继承配置，project_doc_max_bytes=0也没有阻止当前全局AGENTS加载；因此保留真实来源，以开发者已完整读过的当前通用用户政策path/SHA约束，各臂一致。宿主读取由已有source scope及预算执行，session cwd在仓库外空目录；evaluator/旧答案未提供。新增严格工具参数、重复身份/晚答、外来turn用量和额外配置拒绝回归。
+
+首件`account-anonymous-tool-smoke/original`返回“code-mode host is disabled”，0宿主回调；不能记成源码失败或账号不可推理。官方[工具模式源码](https://github.com/openai/codex/blob/main/codex-rs/core/src/tools/mod.rs)表明远端model tool_mode可优先于本地开关；[受限globals](https://github.com/openai/codex/blob/main/codex-rs/code-mode-runtime/src/runtime/globals.rs)及[拒绝模块导入的resolver](https://github.com/openai/codex/blob/main/codex-rs/code-mode-runtime/src/runtime/module_loader.rs)支持约束Code Mode而非将其当Node执行器。主代理修复生产配置并恢复DynamicToolSpec的type:function，唯一具名`bounded-code-mode`修订完成一次真实宿主lookup及精确消费。首件可见input/output/cacheRead为26649/549/20352；修订为10361/105/4992，cacheRead是input内的明细，不能相加为总prompt。内部请求数和USD均null，CLI重试也未被伪记为已知请求。当前验证只证明账号工具链；性质四个红测仍失败，完整原skill/变化/作者/对照尚未派发。结果身份：[AX原件](../../results/skill-ir/skill-dsl-research/development/authorization-property-execution-v1/manifest.json)。官方源码为当时main的实现依据，安装版本兑现以有效元数据及当前真实回调为证。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

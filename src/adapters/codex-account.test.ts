@@ -2,10 +2,12 @@ import { expect, test } from "bun:test"
 import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
+import { createHash } from "node:crypto"
 import { createAdapter } from "./registry.ts"
 import { runAuthorizationInquiryCli } from "../cli/authorization-inquiry.ts"
 import { executeLocalInquiryRun, initializeLocalInquiry, inspectLocalInquiry } from "../benchmarks/authorization-dsl/inquiry-local.ts"
 const api = await import("./codex-account.ts").catch(() => ({} as any))
+const sessionApi = await import("./codex-account-session.ts").catch(() => ({} as any))
 async function fixture() {
   const root = await mkdtemp(path.join(os.tmpdir(), "aw-account-entry-")); await mkdir(path.join(root, "source")); await writeFile(path.join(root, "source/app.py"), "def entry():\n    return False\n")
   const inputFile = path.join(root, "input.json"); await writeFile(inputFile, JSON.stringify({ schemaVersion: "authorization-inquiry-input/v1", taskId: "t", repository: "anonymous", sourceRef: "r", sourceRoot: "source", allowedPaths: ["app.py"], brief: "Inspect entry and explain its outcome and limits." }))
@@ -41,6 +43,18 @@ test("account adapter and inquiry use the same source core through accepted mate
   expect(r.authorizationInquiry.result).toBeDefined()
   const inquiry = await api.runCodexAccountInquiry({ inputFile: f.inputFile, workDir: f.root, model: "gpt-5.6-sol", method: "M", strategy: "operation-evidence-v3", skillContent: "FULL_SKILL_TAIL", transportFactory: fullChain(), timeoutMs: 5000 })
   expect(inquiry.account.status).toBe("completed"); expect(inquiry.native.result).toBeDefined()
+})
+
+test("account boundary file admits only exact pinned instructions and is supported by both inquiry entrances", async () => {
+  const f = await fixture(), source = path.join(f.root, "generic-policy.md"), boundary = path.join(f.root, "boundary.json")
+  await writeFile(source, "Use bounded read-only source tools.")
+  const approved = { path: source, sha256: createHash("sha256").update(await readFile(source)).digest("hex") }
+  await writeFile(boundary, JSON.stringify({ schemaVersion: "codex-account-boundary/v1", instructionSources: [approved] }))
+  expect(await sessionApi.loadCodexAccountBoundary(boundary)).toEqual([approved])
+  await writeFile(boundary, JSON.stringify({ schemaVersion: "codex-account-boundary/v1", instructionSources: [approved], answer: "must not be silently admitted" }))
+  const transportFactory = () => { throw new Error("must-not-launch") }
+  await expect(api.runCodexAccountInquiry({ inputFile: f.inputFile, workDir: f.root, model: "gpt-5.6-sol", accountBoundaryFile: boundary, transportFactory })).rejects.toThrow("account-boundary-invalid")
+  await expect(runAuthorizationInquiryCli(["run", `--input=${f.inputFile}`, `--out=${path.join(f.root, "boundary-out")}`, "--model=unauthorized", "--harness=codex-account", `--account-boundary=${boundary}`], { stdout() {} } as any)).rejects.toThrow("account-boundary-invalid")
 })
 test("inquiry CLI accepts explicit account harness without silently dispatching a provider", async () => {
   const f = await fixture(), outputs: string[] = []

@@ -77,24 +77,26 @@
 
 ### AX0 接管与最小运行账本
 
-- [ ] 读取启动材料，检查分支、工作区和用户 origin；保留其他修改。点验 AW 两个关键代码分支和已有复现，避免重做整轮历史审计。
-- [ ] 建立本身份的 `status.json`、`manifest.json` 和原件目录；记录每个逻辑位置、共享原件关系、当前实现版本、首件/修订、dispatch/response/unknown、完成与评价状态。
-- [ ] 薄 study 只负责派发和整理生产输出；拥有自己的严格 TypeScript 配置，不能调用一套研究专用语义实现。
+- [x] 读取启动材料，检查分支、工作区和用户 origin；保留其他修改。点验 AW 两个关键代码分支和已有复现，避免重做整轮历史审计。
+- [x] 建立本身份的 `status.json`、`manifest.json` 和原件目录；记录每个逻辑位置、共享原件关系、当前实现版本、首件/修订、dispatch/response/unknown、完成与评价状态。
+- [x] 薄 study 只负责派发和整理生产输出；拥有自己的严格 TypeScript 配置，不能调用一套研究专用语义实现。
 
 ### AX1 核实账号有效配置
 
 Files: `src/adapters/codex-account-session.ts`、`codex-account-session.test.ts`、现有 inquiry/native account 接口。
 
-- [ ] 核实本机版本、model/list 与官方 schema；只读元数据不算推理成功。检查 thread config、permissions、runtimeWorkspaceRoots、instructionSources、activePermissionProfile 的实际含义。
-- [ ] 关闭或约束原生 shell/执行、网络、apps/MCP、多代理、项目/全局指令与额外 skills 的自动加载；按安装版本支持程度记录有效配置，不罗列未生效开关。使用专属干净会话目录，不以研究仓库为 model cwd。
-- [ ] 模型可见材料仅由当前原 skill、任务声明和宿主只读源码工具提供；evaluator、历史答案、标注补丁在会话可见范围之外。若保留任一原生工具，证明它受同等范围和计量控制，且所有比较臂一致。
-- [ ] 把能力判断绑定实际配置/协议版本；不绕过平台权限、不搬凭据、不把 read-only 提示当隔离。若安装版本有硬缺口，给出具体字段/行为和可行的官方受限替代；本阶段不反复耗时追求不存在的 inventory RPC。
+- [x] 核实本机版本、model/list 与官方 schema；只读元数据不算推理成功。检查 thread config、permissions、runtimeWorkspaceRoots、instructionSources、activePermissionProfile 的实际含义。
+- [x] 关闭或约束原生 shell/执行、网络、apps/MCP、多代理、项目/全局指令与额外 skills 的自动加载；按安装版本支持程度记录有效配置，不罗列未生效开关。使用专属干净会话目录，不以研究仓库为 model cwd。
+- [x] 模型可见材料仅由当前原 skill、任务声明和宿主只读源码工具提供；evaluator、历史答案、标注补丁在会话可见范围之外。若保留任一原生工具，证明它受同等范围和计量控制，且所有比较臂一致。
+- [x] 把能力判断绑定实际配置/协议版本；不绕过平台权限、不搬凭据、不把 read-only 提示当隔离。若安装版本有硬缺口，给出具体字段/行为和可行的官方受限替代；本阶段不反复耗时追求不存在的 inventory RPC。
+
+AX1实际约束：0.159.0-alpha.12.1保留官方受限Code Mode宿主，禁进程内fallback及其它执行入口。当前全局通用用户AGENTS不受doc_max=0影响，主开发者完整审阅后固定path/SHA；此一致控制材料不含任务答案/开发日志。依据及限制见研究§7.58，实际元数据和配置在AX原件目录。
 
 ### AX2 接通生产账号会话与一次真实 smoke
 
-- [ ] 先红绿覆盖配置未生效、额外 instruction source、越界读取、原生执行请求、重复工具回调、超时晚答、空 final、累计 usage 重复计数。
-- [ ] 修改实际生产 transport，而非只让注入 mock 通过。宿主负责已有动态工具执行和预算；CLI 继续拥有账号与 agent loop。
-- [ ] 运行一个匿名 lookup smoke：答案只存在宿主本次随机生成的测试表，模型必须真实调用工具获取。保留回调和最终消费；不得把答案同时写在 prompt 中。超时上限5分钟，首次失败保留，具名修复后最多一次 smoke 复验。
+- [x] 先红绿覆盖配置未生效、额外 instruction source、越界读取、原生执行请求、重复工具回调、超时晚答、空 final、累计 usage 重复计数。
+- [x] 修改实际生产 transport，而非只让注入 mock 通过。宿主负责已有动态工具执行和预算；CLI 继续拥有账号与 agent loop。
+- [x] 运行一个匿名 lookup smoke：答案只存在宿主本次随机生成的测试表，模型必须真实调用工具获取。保留回调和最终消费；不得把答案同时写在 prompt 中。超时上限5分钟，首次失败保留，具名修复后最多一次 smoke 复验。
 - [ ] 若账号权限/额度不可用，暂停真实派发并继续 AX3–AX9。固定上下文账号试答可用于定位接入问题，但不能替代动态工具或原 skill 链验收；不自动切第三方 API。
 
 ### AX3 写出会失败的语义反例

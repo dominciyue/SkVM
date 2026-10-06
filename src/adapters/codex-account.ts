@@ -3,24 +3,26 @@ import { emptyTokenUsage } from "../core/types.ts"
 import { createNativeInquiryRuntime } from "../benchmarks/authorization-dsl/inquiry-native.ts"
 import { parseInquiryStrategy, type InquiryStrategy } from "../task-dsl/authorization/control-slice.ts"
 import { parseNativeInquiryMethod } from "../task-dsl/authorization/operation-program.ts"
-import { runCodexAccountSession, redactCodexEvent, type AccountTransport } from "./codex-account-session.ts"
+import { runCodexAccountSession, redactCodexEvent, loadCodexAccountBoundary, type AccountTransport } from "./codex-account-session.ts"
 import type { InquiryReuseInfo, InquiryReuseSeed } from "../benchmarks/authorization-dsl/inquiry-reuse.ts"
 
 export interface AccountInquiryOptions {
   inputFile: string; workDir: string; model: string; method?: "M" | "D0" | "D1"; strategy?: InquiryStrategy; skillContent?: string
   domainTools?: boolean; maxToolCalls?: number; maxDisplayBytes?: number; maxReadBytes?: number; timeoutMs?: number; traceDir?: string
   reuse?: { info: InquiryReuseInfo; seed: InquiryReuseSeed }; transportFactory?: () => AccountTransport
+  accountBoundaryFile?: string
 }
 /** Both account entrances execute the existing native domain core. The official
  * CLI controls generation and history; no provider adapter or second agent loop. */
 export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
   if (options.method === "D0") throw new Error("codex-account-method-D0-unsupported: account runtime supports M or D1; it cannot substitute a different method")
+  const instructionSources = await loadCodexAccountBoundary(options.accountBoundaryFile)
   const runtime = await createNativeInquiryRuntime({ ...options, method: options.method, domainTools: options.domainTools ?? true, traceRedactor: redactCodexEvent })
   let account: Awaited<ReturnType<typeof runCodexAccountSession>>
   try {
     const context = await runtime.accountContext(), prompt = `${options.skillContent ?? ""}\nCurrent original task is declared in the system.\nCurrent local explanation context: ${JSON.stringify(context)}`
     runtime.accountSent(prompt)
-    account = await runCodexAccountSession({ model: options.model, effort: "high", cwd: options.workDir, system: `${options.skillContent ?? ""}\n${runtime.system}`, prompt, tools: runtime.definitions, timeoutMs: options.timeoutMs, transportFactory: options.transportFactory,
+    account = await runCodexAccountSession({ model: options.model, effort: "high", cwd: options.workDir, system: `${options.skillContent ?? ""}\n${runtime.system}`, prompt, tools: runtime.definitions, timeoutMs: options.timeoutMs, transportFactory: options.transportFactory, instructionSources,
       execute: async call => { const result = await runtime.execute(call); const output = JSON.stringify({ toolResult: JSON.parse(result.output), currentContext: await runtime.accountContext() }); runtime.accountSent(output); return { ...result, output } },
       onEvent: event => runtime.onEvent(event as any) })
   } finally { await runtime.close() }
@@ -47,7 +49,7 @@ export class CodexAccountAdapter implements AgentAdapter {
   }
   async run(task: Parameters<AgentAdapter["run"]>[0]): Promise<RunResult> {
     const p = this.config.providerOptions ?? {}, numeric = (key: string) => typeof p[key] === "number" ? p[key] as number : undefined
-    const { account, native } = await runCodexAccountInquiry({ inputFile: p.authorizationScope as string, workDir: task.workDir, model: this.config.model, method: parseNativeInquiryMethod(p.authorizationMethod), strategy: parseInquiryStrategy(p.authorizationStrategy), domainTools: p.authorizationDomainTools === true, skillContent: task.skill?.content, maxToolCalls: numeric("authorizationMaxToolCalls"), maxDisplayBytes: numeric("authorizationMaxDisplayBytes"), maxReadBytes: numeric("authorizationMaxReadBytes"), timeoutMs: numeric("authorizationSessionTimeoutMs") ?? task.timeoutMs ?? this.config.timeoutMs, traceDir: typeof p.authorizationTraceDir === "string" ? p.authorizationTraceDir : undefined, transportFactory: this.transportFactory })
+    const { account, native } = await runCodexAccountInquiry({ inputFile: p.authorizationScope as string, workDir: task.workDir, model: this.config.model, method: parseNativeInquiryMethod(p.authorizationMethod), strategy: parseInquiryStrategy(p.authorizationStrategy), domainTools: p.authorizationDomainTools === true, skillContent: task.skill?.content, maxToolCalls: numeric("authorizationMaxToolCalls"), maxDisplayBytes: numeric("authorizationMaxDisplayBytes"), maxReadBytes: numeric("authorizationMaxReadBytes"), timeoutMs: numeric("authorizationSessionTimeoutMs") ?? task.timeoutMs ?? this.config.timeoutMs, traceDir: typeof p.authorizationTraceDir === "string" ? p.authorizationTraceDir : undefined, accountBoundaryFile: typeof p.authorizationAccountBoundary === "string" ? p.authorizationAccountBoundary : undefined, transportFactory: this.transportFactory })
     const runStatus = account.status === "completed" ? "ok" : account.status === "timeout-unknown" ? "timeout" : account.status === "undelivered" ? "parse-failed" : "adapter-crashed"
     // Legacy RunResult requires numeric slots; availability=false prevents them
     // from becoming a zero-cost claim. Visible account tokens live in account.usage.

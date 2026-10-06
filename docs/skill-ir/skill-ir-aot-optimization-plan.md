@@ -3,7 +3,7 @@
 更新于2026-10-07。本页维护当前目标与未达责任；原件由研究正文和实验目录导航。
 
 - 唯一实时入口：[current-status](current-status.md)。
-- 当前任务书：[AX0–AX20 按授权问题求值与账号真实执行](../superpowers/plans/2026-10-07-authorization-property-analysis-and-account-execution.md)，planned-authorized。
+- 当前任务书：[AX0–AX20 按授权问题求值与账号真实执行](../superpowers/plans/2026-10-07-authorization-property-analysis-and-account-execution.md)，in-progress。
 - 方法合同：[spec AX](skill-ir-aot-optimization-spec.md#1437-ax-property-directed-analysis-and-controlled-account-execution)；决定依据：[研究§7.57–§7.58](skill-dsl-research.md#757-aw-收束后复核运行能力与按问题求值)。
 - 复核基线ccf00985，启动时保留随后计划提交。开发模型gpt-6.1-sol/max；被测模型为已授权当前账号的gpt-5.6-sol/high。第三方API和AV十二旧位置继续暂停。
 
@@ -11,7 +11,7 @@
 
 在现有两个入口和领域核心中，按每个授权问题组织必要依赖、局部摘要和保守异常状态合并，减少整函数标注及路径展开负担。官方账号生产transport采用安装版本可兑现的受控能力合同，完成真实工具会话，再做完整原skill任务、变化复用和同条件对照。新行为显式选择operation-evidence-v4，旧默认和归档保持。
 
-AW的账号路径目前固定在initialize之后阻断；原件没有证明账号推理不可用。另一条零模型反例显示16个context潜在异常调用使整题触发路径上限。AX负责改变这两个共享机制，不能只增加mock、关掉异常或缩减原任务。
+AX0–AX2已完成实际账号配置核验和一次匿名工具消费；首件失败与唯一Code Mode宿主修订分别保留。当前AX3–AX6处理16/64 context潜在异常触发整题路径/节点上限的四个红测。账号接通尚不能证明完整授权任务质量；不关掉异常或缩减原任务。
 
 ## AX 队列
 

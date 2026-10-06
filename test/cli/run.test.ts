@@ -16,6 +16,12 @@ function parseError(argv: string[]): UsageError {
 }
 
 describe("RUN_FLAGS.parse — typed config", () => {
+  test("account boundary flag requires the bounded account entrance", () => {
+    const parse = (extra: string[]) => { const c = RUN_FLAGS.parse(["--prompt=review", "--model=gpt-5.6-sol", "--authorization-account-boundary=/tmp/boundary.json", ...extra]); if (c.help) throw new Error("unexpected help"); return c }
+    expect(validateRunConfig(parse(["--adapter=codex-account", "--authorization-scope=/tmp/input.json"])).mode).toBe("source")
+    expect(() => validateRunConfig(parse(["--adapter=bare-agent", "--authorization-scope=/tmp/input.json"]))).toThrow("authorization-account-boundary")
+    expect(() => validateRunConfig(parse(["--adapter=codex-account"]))).toThrow("authorization-account-boundary")
+  })
   test("minimal valid argv → typed config with defaults", () => {
     expect(RUN_FLAGS.parse(["--task=/tmp/task.json", "--model=x/y"])).toEqual({
       help: false,
@@ -29,6 +35,7 @@ describe("RUN_FLAGS.parse — typed config", () => {
       "initial-workdir-manifest": undefined,
       "execution-observation": undefined,
       "authorization-scope": undefined,
+      "authorization-account-boundary": undefined,
       "authorization-domain-tools": false,
       "authorization-strategy": undefined,
       "authorization-method": undefined,
@@ -77,6 +84,7 @@ describe("RUN_FLAGS.parse — typed config", () => {
       "initial-workdir-manifest": undefined,
       "execution-observation": "/tmp/observation.json",
       "authorization-scope": undefined,
+      "authorization-account-boundary": undefined,
       "authorization-domain-tools": false,
       "authorization-strategy": undefined,
       "authorization-method": undefined,
@@ -199,6 +207,7 @@ Options:
   --initial-workdir-manifest=<path>           Write a pre-agent workdir manifest outside the work directory
   --execution-observation=<path>              Write a value-free execution observation JSON sidecar
   --authorization-scope=<path>                Opt into bounded read-only authorization source tools using an inquiry input file (bare-agent or codex-account).
+  --authorization-account-boundary=<path>     Pin reviewed generic account instruction sources by SHA256 (codex-account only).
   --authorization-domain-tools                Enable inquiry compilation, relation observations and result checking in the restricted source run.
   --authorization-strategy=<v>                Optional domain dependency scheduling, finite branch evaluation and conclusion checks; requires source scope and domain tools.
   --authorization-method=<m>                  operation-evidence-v1/v2/v3 frontend: M preserves the whole natural task (default); D1 counts a model-authored declaration in the same run.
