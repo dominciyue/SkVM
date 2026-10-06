@@ -11,7 +11,7 @@ const scalar = z.union([z.string(), z.number().finite(), z.boolean(), z.null()])
 const common = { name, claim: InquiryText }
 const objects = { principal: name.optional(), resource: name.optional() }
 export const SemanticStepSchema = z.discriminatedUnion("kind", [
-  z.object({ ...common, kind: z.literal("bind"), type: z.enum(["principal", "resource", "permission", "configuration", "value"]), aliasOf: name.optional(), value: FiniteValueSchema.optional() }).strict(),
+  z.object({ ...common, kind: z.literal("bind"), type: z.enum(["principal", "resource", "permission", "configuration", "value"]), bindingName: name.optional(), aliasOf: name.optional(), value: FiniteValueSchema.optional() }).strict(),
   z.object({ ...common, ...objects, kind: z.literal("guard"), condition: condition.optional() }).strict(),
   z.object({ ...common, kind: z.literal("choose"), cases: z.array(z.object({ condition, body: name }).strict()).min(1).max(16), otherwise: name.optional() }).strict(),
   z.object({ ...common, ...objects, kind: z.literal("call"), symbol: name, callee: name.optional(), result: name.optional(), arguments: z.array(z.object({ parameter: name, object: name }).strict()).max(16).default([]), pathHint: InquiryText.optional(), candidateId: InquiryText.optional() }).strict(),
@@ -111,12 +111,16 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
             if (Object.hasOwn(step, "value") && (step.type !== "value" || step.aliasOf)) { gap(u, c, instance, body, step.name, "semantic-source-value-invalid"); next.push(c); continue }
             const alias = step.aliasOf ? valueObject(c, step.aliasOf) : undefined
             if (step.aliasOf && (!alias || alias.type !== step.type)) { gap(u, c, instance, body, step.name, "semantic-alias-missing", `Alias "${step.name}" (${step.type}) references "${step.aliasOf}" (${alias?.type ?? "unbound"}). aliasOf requires an existing same-type identity; declare a source-supported typed field bind before its alias, without inventing user values.`); next.push(c); continue }
+            const bindingName = step.bindingName ?? step.name
+            delete c.values[bindingName]
             if (alias) { c.objects[step.name] = alias; append(u, c, instance, body, step.name, "continue", fields) }
             else {
               const identity = id([questionId, instance, "object", step.name]); c.objects[step.name] = { identity, type: step.type }; c.objects[`${u.handle}.${step.name}`] = c.objects[step.name]!
               if (Object.hasOwn(step, "value")) setSourceValue(c, identity, { value: step.value! })
-              append(u, c, instance, body, step.name, "binding", { ...fields, bindingKey: identity, bindingKind: step.type, bindingName: step.name })
+              append(u, c, instance, body, step.name, "binding", { ...fields, bindingKey: identity, bindingKind: step.type, bindingName })
             }
+            c.objects[bindingName] = c.objects[step.name]!
+            c.objects[`${u.handle}.${bindingName}`] = c.objects[step.name]!
           } else if (step.kind === "guard") {
             const r = append(u, c, instance, body, step.name, "guard", { ...fields, ...(step.condition ? { condition: predicate(step.condition, c) } : {}), principal: resolveObject(c, step.principal), resource: resolveObject(c, step.resource) }); c.guards[step.name] = r.key; c.guards[`${u.handle}.${step.name}`] = r.key
           } else if (step.kind === "effect") append(u, c, instance, body, step.name, "effect", { ...fields, principal: resolveObject(c, step.principal), resource: resolveObject(c, step.resource), operation: step.operation, authorizedBy: step.authorizedBy?.map(ref => c.guards[ref] ?? id([questionId, "missing-guard", ref])) })

@@ -2542,6 +2542,8 @@ v2的可路由源码解释原载荷在transport完整保留（含多余字段）
 
 已广告的focused根级终答按明确result版本无损套入canonical result后严格校验；非法嵌套内容及未知键保留并报告实际字段路径，供原有一次wire repair修订。只移动机械路由kind，不填答案、删未知字段或改语义枚举。总体conditional与单路径allow/deny/unknown分开；未被接受的草稿不能计作终答交付。
 
+来源赋值的步骤身份与变量绑定分开：semantic bind可显式bindingName，缺省仍用旧name；源码降低按anchor生成唯一步骤name，实际变量名保存在bindingName。同变量在不同分支或顺序重赋值时，各路径保留当前对象/值，重赋值清除该变量旧helper标量结果。不能靠相同变量拼写合并不同资源。解释阶段包含完整基础及扩展有限谓词写法，非法算子只诊断不自动改写。
+
 Go机械来源覆盖包含multiline链式route及if initializer的实际调用/实参/结果；initializer在其条件前执行，嵌套else-if仍受外层分支约束。只规范verb识别的空白，来源表达式/行范围保持。unsupported loop/short-circuit/dynamic-call不无条件展平；零调用probe仅证明语法覆盖，不判定授权语义。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）

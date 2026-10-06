@@ -1,7 +1,7 @@
 import { z } from "zod"
 import { InquiryText, type InquiryDiagnostic } from "./inquiry.ts"
 import type { SemanticBlock } from "./semantic-flow.ts"
-import { predicateDiagnostics } from "./control-evaluation.ts"
+import { predicateDiagnostics, FINITE_PREDICATE_GUIDE } from "./control-evaluation.ts"
 import type { SourceSkeleton, SourceAnchor, SourceFlow } from "../../benchmarks/authorization-dsl/evidence-preparation/source-skeleton.ts"
 import type { StructureIndex } from "../../benchmarks/authorization-dsl/evidence-preparation/structure-index.ts"
 
@@ -25,6 +25,7 @@ export const SOURCE_INTERPRETATION_GUIDE = [
   'Roles: principal/resource/permission bind the explicit source object; context on parameters is configuration and on calls marks source-irrelevant/contextual behavior; condition on a parameter/assignment declares a finite value, on a branch supplies its predicate, and on a call names a decisive helper; effect names an actual relevant operation. Each actual call must be interpreted or retained unresolved, not silently omitted. Conditions refer to source variable/field names or the offered call.resultBinding using the finite predicate algebra. Condition anchors describe the TRUE test of the actual if; the host keeps its false alternative and early returns. Explicit guardBranch:"true"|"false" plus principal/resource identifies the branch interpreted as an authorization guard; otherwise no authorizing guard is inferred. authorizedByAnchorIds is an explicit claim checked for the same object and source order. Distinct input/output resource anchors stay distinct.',
   'Every conditional branch needs condition or unresolved; entry returns use role:"context" with returnOutcome:allow|deny|unknown. A literal True does not establish permission. Raises use role:"context" with failureKind:authorization|operation or an unresolved entry. Only the six advertised roles exist; return/unresolved are not roles. Do not add operation, principal, resource or complete fields: use the advertised anchor reference fields; the host derives source operation names and coverage. aliasAnchorId asserts an actual same-type object relation; equal names alone do not prove it. Missing user premises stay unknown, never manufacture values from source. Unsupported syntax gaps remain bounded even with a fluent explanation.',
   'Local repair may submit only changed annotations/unresolved entries at the same focus and skeleton revision; earlier valid annotations remain in that transaction. Foreign anchors and stale revisions are rejected. Use existing select/defer/link/review and final contracts for their offered phase. Low-level unit proposals are an explicit fallback, counted separately; do not use them as the normal source-assisted interface.',
+  FINITE_PREDICATE_GUIDE,
 ].join("\n")
 
 /** Compile syntax that the model saw; model roles/predicates are still unreviewed. */
@@ -48,7 +49,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
     const anchor = at(a.anchorId)
     if (!anchor) { fault("anchor-unshown", a.anchorId, "Anchor is absent from this complete displayed source skeleton."); annotations.delete(a.anchorId); continue }
     if (["principal", "resource", "permission"].includes(a.role) && !["parameter", "assignment", "call"].includes(anchor.kind) || a.role === "effect" && !["call", "assignment"].includes(anchor.kind)) fault("role", a.anchorId, "This role does not match a source object or relevant operation anchor.")
-    if (a.condition) for (const code of predicateDiagnostics(a.condition)) fault(code, a.anchorId, "Use a supported finite predicate; explanation text is not executable.")
+    if (a.condition) for (const code of predicateDiagnostics(a.condition)) fault(code, a.anchorId, `Use a supported finite predicate; explanation text is not executable. ${FINITE_PREDICATE_GUIDE}`)
     for (const [ref, expected] of [[a.principalAnchorId, "principal"], [a.resourceAnchorId, "resource"]] as const) if (ref && (!at(ref) || annotations.get(ref)?.role !== expected)) fault("object-reference", a.anchorId, `Reference ${ref} needs a shown ${expected} role, not equal text.`)
     if (a.aliasAnchorId && (!at(a.aliasAnchorId) || bindingType(annotations.get(a.aliasAnchorId)) !== bindingType(a))) fault("alias", a.anchorId, "Alias requires a shown same-type source object interpretation.")
     if (a.guardBranch && (anchor.kind !== "condition" || !a.principalAnchorId || !a.resourceAnchorId)) fault("guard", a.anchorId, "A branch guard needs its actual condition and explicit principal/resource roles.")
@@ -65,7 +66,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
   if (diagnostics.length) return { diagnostics, interpretation: parsed.data.revision === skeleton.revision ? { ...interpretation, annotations: [...annotations.values()], unresolved: [...unresolved.values()] } : previous }
   const unit: SemanticBlock = { itemId: options.itemId, handle: options.handle, op: previous ? "replace" : "add", role: options.role, start: "source-main", complete: skeleton.modelCovered && !skeleton.gaps.length && !unresolved.size, fallthrough: interpretation.fallthroughOutcome === "unknown" ? "unresolved" : interpretation.fallthroughOutcome ?? "unresolved", parameters: skeleton.anchors.filter(a => a.kind === "parameter" && a.name).map(a => ({ name: a.name!, type: bindingType(annotations.get(a.id)) })), blocks: [] }
   const allFlowIds = new Set<string>(), collect = (flow: SourceFlow[]) => { for (const f of flow) { allFlowIds.add(f.anchorId); collect(f.then ?? []); collect(f.otherwise ?? []) } }; collect(skeleton.flow)
-  const bind = (a: SourceAnchor): Step => ({ kind: "bind", name: objectName(a.id)!, claim: annotations.get(a.id)?.explanation ?? "Source assignment fact", type: a.literalKnown ? "value" : bindingType(annotations.get(a.id)), ...(a.literalKnown ? { value: a.literalValue! } : annotations.get(a.id)?.aliasAnchorId ? { aliasOf: objectName(annotations.get(a.id)!.aliasAnchorId)! } : {}) })
+  const bind = (a: SourceAnchor): Step => ({ kind: "bind", name: `bind-${a.id}`, bindingName: objectName(a.id)!, claim: annotations.get(a.id)?.explanation ?? "Source assignment fact", type: a.literalKnown ? "value" : bindingType(annotations.get(a.id)), ...(a.literalKnown ? { value: a.literalValue! } : annotations.get(a.id)?.aliasAnchorId ? { aliasOf: objectName(annotations.get(a.id)!.aliasAnchorId)! } : {}) })
   const prologue = skeleton.anchors.filter(a => a.kind === "assignment" && !allFlowIds.has(a.id) && annotations.has(a.id) && ["principal", "resource", "permission"].includes(annotations.get(a.id)!.role)).map(bind)
   let serial = 0
   const compile = (flow: SourceFlow[], name: string, prefix: Step[] = []) => {

@@ -6,7 +6,7 @@ import { createInquiryTools } from "../../benchmarks/authorization-dsl/inquiry-t
 import { createInquiryDomainRuntime } from "../../benchmarks/authorization-dsl/inquiry-domain-runtime.ts"
 import { compileAuthorizationInquiry } from "./inquiry-program.ts"
 import { createControlSlice, mergeControlSlice } from "./control-slice.ts"
-import { lowerSemanticFlow } from "./semantic-flow.ts"
+import { lowerSemanticFlow, semanticBlockDiagnostics } from "./semantic-flow.ts"
 import { evaluateControlPaths, controlObjectDiagnostics } from "./control-conclusion.ts"
 const api = await import("./source-interpretation.ts").catch(() => ({} as any))
 
@@ -190,4 +190,47 @@ test("unknown and ambiguous source callees retain actual arguments and terminate
     expect(flow.diagnostics).toContainEqual(expect.objectContaining({ code: "semantic-callee-uninterpreted" }))
     expect(flow.delta.rules.filter(r => r.terminal).map(r => ({ kind: r.kind, complete: r.complete, gap: r.gap }))).toEqual([{ kind: "unresolved", complete: false, gap: "semantic-callee-uninterpreted" }])
   }
+})
+
+test("assignments to the same source variable retain unique steps and branch-specific values", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "av-source-rebind-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def entry(flag):\n    if flag:\n        selected = 'green'\n    else:\n        selected = 'red'\n    if selected == 'green':\n        return True\n    return False\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true }), source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id))!, raw = { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations: skeleton.anchors.map(a => ({ anchorId: a.id, role: a.kind === "condition" ? "condition" : "context", explanation: "Actual branch and source assignment", ...(a.kind === "condition" ? { condition: { op: "eq", left: { binding: a.text === "flag" ? "flag" : "selected" }, right: { literal: a.text === "flag" ? true : "green" } } } : a.kind === "return" ? { returnOutcome: a.valueExpression === "True" ? "allow" : "deny" } : {}) })), unresolved: [] }
+  const lowered = api.lowerSourceInterpretation(skeleton, raw, { index: tools.structure, itemId: "q::entry", handle: "u", questionId: "q", role: "entry" })
+  expect(lowered.diagnostics).toEqual([])
+  expect(semanticBlockDiagnostics(lowered.unit)).toEqual([])
+  const flow = lowerSemanticFlow([{ ...lowered.unit, questionId: "q", source: skeleton.source, evidenceIds: skeleton.evidenceIds }]), program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect source alternatives", premises: [] }] })
+  expect(flow.diagnostics).toEqual([])
+  const state = mergeControlSlice(createControlSlice(), flow.delta, program, { questionIds: ["q"], shownEvidenceIds: skeleton.evidenceIds }).state
+  expect(evaluateControlPaths(state).paths.filter(p => p.predicate.truth !== "false").map(p => p.disposition).sort()).toEqual(["allow", "deny"])
+})
+
+test("source reassignment replaces an earlier scalar helper result before the next condition", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "av-source-shadow-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def initial():\n    return 'old'\ndef entry():\n    selected = initial()\n    selected = 'new'\n    if selected == 'old':\n        return False\n    return True\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true }), units: any[] = []
+  for (const functionName of ["initial", "entry"]) {
+    const source = tools.structure!.symbols.find(s => s.name === functionName)!
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id))!, raw = { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations: skeleton.anchors.map(a => ({ anchorId: a.id, role: a.kind === "call" || a.kind === "condition" ? "condition" : "context", explanation: "Actual source assignment and helper result", ...(a.kind === "condition" ? { condition: { op: "eq", left: { binding: "selected" }, right: { literal: "old" } } } : a.kind === "return" && functionName === "entry" ? { returnOutcome: a.valueExpression === "True" ? "allow" : "deny" } : {}) })), unresolved: [] }
+    const lowered = api.lowerSourceInterpretation(skeleton, raw, { index: tools.structure, itemId: `q::${functionName}`, handle: functionName, questionId: "q", role: functionName === "entry" ? "entry" : "helper" })
+    expect(lowered.diagnostics).toEqual([])
+    units.push({ ...lowered.unit, questionId: "q", source: skeleton.source, evidenceIds: skeleton.evidenceIds })
+  }
+  for (const step of units.find(u => u.role === "entry").blocks.flatMap((b: any) => b.steps)) if (step.kind === "call") step.callee = "initial"
+  const flow = lowerSemanticFlow(units), program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect current assignment", premises: [] }] })
+  const state = mergeControlSlice(createControlSlice(), flow.delta, program, { questionIds: ["q"], shownEvidenceIds: [...new Set(units.flatMap(u => u.evidenceIds))] }).state
+  expect(evaluateControlPaths(state).paths.filter(p => p.predicate.truth !== "false").map(p => p.disposition)).toEqual(["allow"])
+})
+
+test("a malformed source predicate receives the complete finite operator contract without coercion", async () => {
+  const f = await fixture(), raw = structuredClone(f.proposal), annotation: any = raw.annotations.find(a => a.role === "condition")
+  annotation.condition = { op: "and", args: [annotation.condition] }
+  const failed = api.lowerSourceInterpretation(f.skeleton, raw, f.options)
+  expect(failed.diagnostics).toContainEqual(expect.objectContaining({ code: "source-interpretation-predicate-unsupported", message: expect.stringContaining('op:"all"|"any"') }))
+  expect(failed.interpretation.annotations.find((a: any) => a.role === "condition").condition.op).toBe("and")
+  const repaired = api.lowerSourceInterpretation(f.skeleton, { ...raw, annotations: [{ ...annotation, condition: { ...annotation.condition, op: "all" } }] }, { ...f.options, previous: failed.interpretation })
+  expect(repaired.diagnostics).toEqual([])
 })
