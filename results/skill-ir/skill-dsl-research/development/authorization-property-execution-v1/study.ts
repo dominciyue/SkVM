@@ -1,12 +1,85 @@
 import { createHash, randomBytes } from "node:crypto"
-import { readFile, mkdir } from "node:fs/promises"
+import { readFile, mkdir, writeFile } from "node:fs/promises"
 import path from "node:path"
-import { runCodexAccountSession } from "../../../../../src/adapters/codex-account-session.ts"
+import { gzipSync } from "node:zlib"
+import { execFileSync } from "node:child_process"
+import { runCodexAccountSession, type AccountSessionResult } from "../../../../../src/adapters/codex-account-session.ts"
+import { CodexAccountAdapter, type runCodexAccountInquiry } from "../../../../../src/adapters/codex-account.ts"
+import { loadSkill } from "../../../../../src/core/skill-loader.ts"
+import { executeRun, materializeNaturalRunTask } from "../../../../../src/run/index.ts"
+import { loadInquiryInput, checkAuthorizationInquiry, executeLocalInquiryRun, inspectLocalInquiry } from "../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts"
 
 const root = import.meta.dir
-type Position = { id: string; stage: string; kind: string; order: number; status: string; attempts: string[] }
-type Manifest = { schemaVersion: string; positions: Position[]; limits: { smokeTimeoutMs: number }; [key: string]: unknown }
+type Position = { id: string; stage: string; kind: string; task?: string; order: number; status: string; attempts: string[] }
+type Manifest = { schemaVersion: string; positions: Position[]; limits: { smokeTimeoutMs: number; sessionTimeoutMs: number; maxToolCalls: number; maxReadBytes: number; maxDisplayBytes: number }; [key: string]: unknown }
 async function write(file: string, value: unknown) { await Bun.write(file, JSON.stringify(value, null, 2) + "\n") }
+const sha = (raw: string | Uint8Array) => createHash("sha256").update(raw).digest("hex")
+const repo = path.resolve(root, "../../../../..")
+export function runtimePlan(p: Pick<Position, "id" | "kind" | "task">) {
+  if (!["download", "owui"].includes(p.task ?? "") || !/^[a-zA-Z0-9-]+$/.test(p.id)) throw new Error("Use a registered original position")
+  const plain = p.kind === "quality" && p.id.endsWith("-N"), method = p.id.endsWith("-D-S") ? "D1" as const : "M" as const
+  return { domainTools: !plain, strategy: plain ? "legacy" as const : "operation-evidence-v4" as const, method,
+    inputName: p.task === "download" ? "paperless-download-original.json" : "owui-ingestion-original.json",
+    skillName: p.task === "download" ? "cloudflare-security-audit" : "github-security-review" }
+}
+async function state(change: Record<string, unknown>) {
+  const file = path.join(root, "status.json"), prior = await Bun.file(file).json()
+  await write(file, { ...prior, ...change })
+}
+/** Thin orchestration: all source, semantics, account controls and checking stay in production APIs. */
+export async function run(id: string, revision?: string) {
+  const manifest = await Bun.file(path.join(root, "manifest.json")).json() as Manifest, p = manifest.positions.find(p => p.id === id)
+  if (!p || p.kind === "smoke" || !["native", "inquiry", "quality"].includes(p.kind)) throw new Error("Use one registered native/inquiry/quality position")
+  if (revision && (!/^[a-z0-9-]+$/.test(revision) || !p.attempts.length)) throw new Error("Named revision requires its retained original")
+  if (!revision && p.attempts.length) throw new Error("Original attempt already exists")
+  for (const previous of p.attempts) {
+    const recorded = await Bun.file(path.join(root, "attempts", previous, "report.json")).json().catch(() => undefined)
+    if (!recorded || ["timeout-unknown", "completion-unknown"].includes(recorded.status)) throw new Error("Inspect unknown original; do not resend")
+  }
+  const plan = runtimePlan(p), inputFile = path.resolve(root, "../authorization-source-assisted-closure-v1/model/inputs", plan.inputName)
+  const skillFile = path.resolve(root, "../authorization-domain-execution-v1/model/source-skills", plan.skillName, "SKILL.md")
+  const loaded = await loadInquiryInput(inputFile), checked = await checkAuthorizationInquiry(inputFile, plan.method, plan.strategy)
+  if (checked.status !== "valid") throw new Error(JSON.stringify(checked))
+  const attemptId = `${id}/${revision ?? "original"}`, out = path.join(root, "attempts", attemptId), b = manifest.limits
+  await mkdir(path.dirname(out), { recursive: true }); await mkdir(out)
+  const skill = await loadSkill(skillFile), skillIdentity = []
+  for (const file of ["SKILL.md", ...skill.bundleFiles].sort()) { const raw = await readFile(path.join(skill.skillDir, file)); skillIdentity.push({ file, sha256: sha(raw), bytes: raw.length }) }
+  await writeFile(path.join(out, "input-original.json"), loaded.original, { flag: "wx" })
+  await writeFile(path.join(out, "skill-original.md"), await readFile(skillFile), { flag: "wx" })
+  const gitRevision = execFileSync("git", ["rev-parse", "HEAD"], { cwd: repo, encoding: "utf8" }).trim()
+  await write(path.join(out, "claim.json"), { attemptId, positionId: id, kind: revision ? "revision" : "first", parent: revision ? p.attempts.at(-1) : null, gitRevision,
+    inputFile, inputSha256: loaded.inputSha256, skillFile, skillIdentity, sourceFiles: checked.sourceFiles, model: "gpt-5.6-sol", effort: "high", harness: "codex-account", ...plan, limits: b, startedAt: new Date().toISOString(), targetExecutions: 0, evaluatorProvidedToModel: false })
+  p.attempts.push(attemptId); p.status = "running"; await write(path.join(root, "manifest.json"), manifest)
+  await state({ currentStage: p.stage, activeAttempts: [attemptId] })
+  let status: string, account: AccountSessionResult | undefined, sessionPath: string | undefined
+  try {
+    if (p.kind === "inquiry") {
+      const report = await executeLocalInquiryRun({ inputFile, outDir: path.join(out, "public-inquiry"), skillFile, model: "gpt-5.6-sol", method: plan.method, strategy: plan.strategy,
+        harness: "codex-account", accountBoundaryFile: path.join(root, "account-boundary.json"), execution: { maxToolCalls: b.maxToolCalls, maxDisplayBytes: b.maxDisplayBytes, maxReadBytes: b.maxReadBytes, sessionTimeoutMs: b.sessionTimeoutMs } })
+      await write(path.join(out, "public-report.json"), report)
+      if (!("sessionPath" in report) || typeof report.sessionPath !== "string") throw new Error("No public session")
+      sessionPath = report.sessionPath; await inspectLocalInquiry(sessionPath)
+      const record = await Bun.file(path.join(sessionPath, "run.json")).json() as { telemetry: { account: AccountSessionResult } }
+      account = record.telemetry.account; status = account.status
+    } else {
+      const workDir = path.join(out, "workspace"), task = await materializeNaturalRunTask({ prompt: loaded.value.brief ?? JSON.stringify(loaded.value.inquiry), taskPath: path.join(out, "task.json") })
+      const result = await executeRun({ task, skill, adapter: new CodexAccountAdapter(), workDir, keepWorkDir: true, skillMode: "inject", adapterConfig: { model: "gpt-5.6-sol", timeoutMs: b.sessionTimeoutMs, maxSteps: b.maxToolCalls,
+        providerOptions: { authorizationScope: inputFile, authorizationDomainTools: plan.domainTools, authorizationStrategy: plan.strategy, ...(plan.domainTools ? { authorizationMethod: plan.method } : {}), authorizationAccountBoundary: path.join(root, "account-boundary.json"), authorizationTraceDir: path.join(out, "raw"), authorizationMaxToolCalls: b.maxToolCalls, authorizationMaxDisplayBytes: b.maxDisplayBytes, authorizationMaxReadBytes: b.maxReadBytes, authorizationSessionTimeoutMs: b.sessionTimeoutMs } } })
+      await writeFile(path.join(out, "run-result.json.gz"), gzipSync(JSON.stringify(result.runResult)), { flag: "wx" })
+      const native = result.runResult.authorizationInquiry as Awaited<ReturnType<typeof runCodexAccountInquiry>>["native"] & { account: AccountSessionResult }
+      account = native.account; status = account.status
+    }
+    await writeFile(path.join(out, "answer-original.md"), account.text, { flag: "wx" })
+    await write(path.join(out, "report.json"), { attemptId, positionId: id, status, gitRevision, inputSha256: loaded.inputSha256, sourceFiles: checked.sourceFiles, sessionPath,
+      finalPresent: !!account.text.trim(), answerSha256: sha(account.text), accountUsage: account.usage, usageDetails: account.usageDetails, inferenceDispatched: account.inferenceDispatched, capability: account.capability, hostToolCalls: account.tools.length, durationMs: account.durationMs, reason: account.reason, providerRequests: null, actualUsd: null, targetExecutions: 0, semanticQuality: "awaiting-independent-review" })
+  } catch (cause) {
+    status = "completion-unknown"
+    await write(path.join(out, "report.json"), { attemptId, positionId: id, status, error: String(cause), providerRequests: null, actualUsd: null, targetExecutions: 0 })
+  }
+  p.status = status; await write(path.join(root, "manifest.json"), manifest)
+  await state({ activeAttempts: [], ...(status.endsWith("unknown") ? { unknownCompletions: [attemptId] } : {}) })
+  console.log(JSON.stringify({ attemptId, status, hostToolCalls: account?.tools.length, finalPresent: !!account?.text.trim(), usage: account?.usage, reason: account?.reason }))
+}
 export async function smoke(revision?: "bounded-code-mode") {
   const manifest = await Bun.file(path.join(root, "manifest.json")).json() as Manifest
   const position = manifest.positions.find(p => p.id === "account-anonymous-tool-smoke")!
@@ -40,5 +113,6 @@ if (import.meta.main) {
   const command = process.argv[2]
   if (command === "smoke") await smoke()
   else if (command === "smoke-bounded-code-mode") await smoke("bounded-code-mode")
-  else throw new Error("Supported current study command: smoke")
+  else if (command === "run") await run(process.argv[3]!, process.argv[4])
+  else throw new Error("Supported current study commands: smoke, run <exact-position-id> [named-revision]")
 }
