@@ -1945,6 +1945,8 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 独立账号复核后，新增“仅完成事件/仅terminal items含原生执行”红测并修复，避免漏掉没有started事件的执行记录；配置同时显式关闭并核验`skills.bundled.enabled`和`skills.include_instructions`，不单靠skills/list。新字段经本机无推理配置探测确认为false；不追加第三次smoke或改写既有首件/修订。空实际instructionSources不强制生成额外准入文件；非空来源仍逐项核验当前SHA。当前31项账号/CLI回归、131断言通过。
 
+**AX3/AX6第一项局部合流。** 七个语义反例先红：16/64 context路径/节点上限、effect/资源/unknown setter边界、typed handler/finally、对象与条件保留、finally覆盖和单题回滚。实现只汇总同block/同invocation中连续的显式context，无授权状态变化的语义成立才可合流；未知callee从未按名称裁掉。来源序列逐项保留，all-normal/first-unknown-exception摘要不把任何结果变已知，不改127/16上限，不跨其它步骤。异常仍未知，原normal出口可表示；不同effect之前/之后的失败保留不同前驱。还修复了超限题留下fieldChanges的旧缺口，独立问题不受影响。独立只读AI复核指出合并规则仍误标第一条调用为失败来源；两项来源断言先红，修为synthetic step与有序sourceOrigin.steps，异常claim标明可能来源集合。32项语义测试全绿；与控制schema、解释、摘要、结论共86 pass、457断言，主类型通过。当前只是局部算法；需求frontier、增量覆盖和v4入口尚待接线，不能记为完整任务效果。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

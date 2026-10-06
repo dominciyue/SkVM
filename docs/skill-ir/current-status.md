@@ -6,7 +6,7 @@
 
 研究主线是 **按 skill/task 范围设计领域表达**。当前任务类为单 repo/ref、源码可见的授权与信任边界评估：围绕主体、资源、操作、条件和政策组织取证、判断与检查。质量约六成、编写复用约四成指开发投入安排，各项质量要求分别验收。
 
-**当前队列：[AX0–AX20 按授权问题求值与账号真实执行](../superpowers/plans/2026-10-07-authorization-property-analysis-and-account-execution.md)，`in-progress`。** 开发模型`gpt-6.1-sol/max`，账号实验`gpt-5.6-sol/high`。用户已允许消耗当前账号额度；第三方API及AV十二旧位置继续暂停。20个首位置已登记。AX0–AX2已接通版本绑定的生产账号运行：首件因关闭Code Mode宿主而未调用工具；唯一具名修订实际完成匿名工具请求、一次宿主执行和正确消费。CLI 0.159.0-alpha.12.1有效权限、空额外roots、禁用工具/skills及固定指令来源已核验，通用全局用户政策按SHA约束而未声称不存在。两次可见会话内部请求数/USD未知。AX3四个性质反例已红测，16/64 context合流与v4实现尚未完成；完整原skill、作者、变化和质量尚未派发。原件见[AX status](../../results/skill-ir/skill-dsl-research/development/authorization-property-execution-v1/status.json)。合同见[spec AX](skill-ir-aot-optimization-spec.md#1437-ax-property-directed-analysis-and-controlled-account-execution)，决定见[研究§7.58](skill-dsl-research.md#758-ax-按授权问题求值与账号真实执行开发决定)。
+**当前队列：[AX0–AX20 按授权问题求值与账号真实执行](../superpowers/plans/2026-10-07-authorization-property-analysis-and-account-execution.md)，`in-progress`。** 开发模型`gpt-6.1-sol/max`，账号实验`gpt-5.6-sol/high`。用户已允许消耗当前账号额度；第三方API及AV十二旧位置继续暂停。20个首位置已登记。AX0–AX2已接通版本绑定的生产账号运行：首件因关闭Code Mode宿主而未调用工具；唯一具名修订实际完成匿名工具请求、一次宿主执行和正确消费。CLI 0.159.0-alpha.12.1有效权限、空额外roots、禁用工具/skills及固定指令来源已核验，通用全局用户政策按SHA约束而未声称不存在。两次可见会话内部请求数/USD未知。AX3/AX6七个语义反例及独立复核的来源归因反例已通过；局部连续context合流保留正常/未知失败，86项相关回归及主类型通过。当前继续需求frontier、增量覆盖和v4入口接线；完整原skill、作者、变化和质量尚未派发。原件见[AX status](../../results/skill-ir/skill-dsl-research/development/authorization-property-execution-v1/status.json)。合同见[spec AX](skill-ir-aot-optimization-spec.md#1437-ax-property-directed-analysis-and-controlled-account-execution)，决定见[研究§7.58](skill-dsl-research.md#758-ax-按授权问题求值与账号真实执行开发决定)。
 
 **上一已结束队列：[AW0–AW22](../superpowers/plans/2026-10-07-authorization-control-materials-and-account-runtime.md)，`completed-with-unmet-criteria`。** 有限控制、来源材料、恢复和两个账号入口已有离线实现；937pass/1平台skip、双类型通过。同v3历史响应重放请求字节减少7.7%/18.3%，真实token/质量收益未测。生产transport固定在initialize后阻断，24个逻辑真实位置未派发；这不是账号推理失败的证据。Download测试作者接线和OWUI55项语义注解缺项保留。详见[AW summary](../../results/skill-ir/skill-dsl-research/development/authorization-control-materials-v1/summary.json)和[研究§7.56–§7.57](skill-dsl-research.md#756-aw-控制语义局部材料与账号运行开发决定)。
 
@@ -52,7 +52,7 @@ AS 固定 15 质量、4 native、8 变化、2 源码变化位置，作者4稿与
 
 ## 已有能力与待解决问题
 
-2026-10-07收束后复核见[研究§7.57](skill-dsl-research.md#757-aw-收束后复核运行能力与按问题求值)：当时生产账号固定阻断；AX已用真实受控会话修复该入口，完整任务效果仍待测。16/64 context潜在异常调用的整题路径/节点上限仍是当前红测。不能只改test标志、扩大路径上限或减少原问题。
+2026-10-07收束后复核见[研究§7.57](skill-dsl-research.md#757-aw-收束后复核运行能力与按问题求值)：当时生产账号固定阻断；AX已用真实受控会话修复该入口，完整任务效果仍待测。16/64连续显式context异常的局部合流已通过正反测试，公共v4和完整任务效果仍待验。不能关掉异常、扩大路径上限或减少原问题。
 
 | 路线 | 已有实现 | 当前使用边界 |
 |---|---|---|

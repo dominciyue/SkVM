@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "authorization-ax-verification/v1",
+  "date": "2026-10-07",
+  "stage": "AX3/AX6-local-context-merge",
+  "baseline": "bcaecc21",
+  "review": {
+    "kind": "independent-read-only-ai",
+    "reviewer": "/root/ax_context_merge_review",
+    "scope": ["src/task-dsl/authorization/semantic-flow.ts", "src/task-dsl/authorization/semantic-flow.test.ts"],
+    "finding": "Merged failure rule attributed all possible unknown failures to the first source context, despite retaining their ordered steps in the summary.",
+    "decision": "Confirmed attribution defect; synthetic sourceOrigin.step and ordered sourceOrigin.steps retain possible origins without naming an actual thrower.",
+    "limitations": ["Reviewer did not execute tests", "Reviewer did not inspect control-conclusion", "Model context role remains unreviewed source interpretation", "Public v4 and original-task acceptance remain pending"]
+  },
+  "verification": {
+    "attributionRed": {"pass": 30, "fail": 2, "assertions": 218},
+    "focusedCombined": {"pass": 86, "fail": 0, "assertions": 457},
+    "typecheckExitCode": 0,
+    "diffCheckExitCode": 0,
+    "accountCalls": 0,
+    "targetExecutions": 0
+  }
+}

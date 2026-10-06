@@ -47,7 +47,7 @@ export const SemanticControlRuleSchema = ControlRuleSchema.extend({
   terminal: z.boolean().optional(), outcome: z.enum(["allow", "deny", "unknown"]).optional(),
   returnValue: z.union([z.string(), z.number().finite(), z.boolean(), z.null()]).optional(), gap: InquiryText.optional(),
   failureKind: z.enum(["authorization", "operation"]).optional(),
-  sourceOrigin: z.object({ handle: key, block: key, step: key, instance: key }).strict().optional(),
+  sourceOrigin: z.object({ handle: key, block: key, step: key, instance: key, steps: z.array(key).min(1).max(160).optional() }).strict().optional(),
   bindingName: key.optional(),
 }).strict()
 export const ControlSliceV2DeltaSchema = ControlSliceV1DeltaSchema.extend({ schemaVersion: z.literal("authorization-control-slice/v2"), rules: z.array(SemanticControlRuleSchema).max(1024).default([]) }).strict()

@@ -35,18 +35,23 @@ export const SemanticBlockSchema = z.object({ itemId: name, handle: name, op: z.
 export type SemanticBlock = z.infer<typeof SemanticBlockSchema>
 export type BoundSemanticBlock = SemanticBlock & { questionId: string; evidenceIds: string[]; receiverClass?: string; source?: { id: string; path: string; sha256: string; startLine: number; endLine: number } }
 type Step = z.infer<typeof SemanticStepSchema>
+export interface PropertyContextSummary {
+  questionId: string; handle: string; instance: string; block: string; sourceSteps: string[]; failureSteps: string[]
+  semantics: "normal-all-or-first-unknown-exception"; outcomeBinding?: string; normalRuleKey?: string; exceptionRuleKey?: string
+}
 interface Exit { kind: "return" | "raise" | "break" | "continue"; claim: string; outcome?: "allow" | "deny" | "unknown"; exceptionType?: string; failureKind?: "authorization" | "operation" }
 interface Cursor { tail: string; route: string[]; objects: Record<string, { identity: string; type: string }>; guards: Record<string, string>; values: Record<string, FiniteValue>; objectValues: Record<string, FiniteValue>; operands?: Record<string, Record<string, unknown>>; stopped?: boolean; returned?: boolean; returnValue?: FiniteValue; returnObject?: { identity: string; type: string }; pending?: Exit; handledException?: Exit }
 const id = (parts: unknown[]) => "sem-" + createHash("sha256").update(canonicalControl(parts)).digest("hex").slice(0, 24)
 
 /** The host compiles only explicit source interpretations; it never parses target code into an answer. */
-export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compositional?: boolean } = {}) {
+export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compositional?: boolean; propertyDirected?: boolean } = {}) {
   let rules: ControlRule[] = [], dependencies: ControlDependency[] = []
   const diagnostics: InquiryDiagnostic[] = [], owned: Array<{ questionId: string; handle: string; ruleKeys: string[] }> = []
   const fieldChanges: Array<{ questionId: string; handle: string; step: string; object: string; field: string; value?: FiniteValue; source?: string; evidenceIds: string[] }> = []
+  const propertySummaries: PropertyContextSummary[] = []
   const fault = (q: string, handle: string, code: string, message: string) => diagnostics.push({ code, path: `semanticBlocks.${q}.${handle}`, questionId: q, message, severity: "error" })
   for (const questionId of new Set(units.map(u => u.questionId))) {
-    const local = units.filter(u => u.questionId === questionId), roots = local.filter(u => u.role === "entry"), startIndex = rules.length, dependencyIndex = dependencies.length
+    const local = units.filter(u => u.questionId === questionId), roots = local.filter(u => u.role === "entry"), startIndex = rules.length, dependencyIndex = dependencies.length, fieldIndex = fieldChanges.length, summaryIndex = propertySummaries.length
     let serial = 0, pathCount = 0
     const append = (u: BoundSemanticBlock, c: Cursor, instance: string, block: string, step: string, kind: ControlRule["kind"], fields: Partial<ControlRule> = {}) => {
       if (rules.length - startIndex >= 127) throw new Error("semantic-node-limit")
@@ -126,16 +131,33 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
       const b = u.blocks.find(b => b.name === body)
       if (!b) { for (const c of cursors.filter(c => !c.stopped && !c.returned)) gap(u, c, instance, body, "$missing", "semantic-body-missing"); return cursors }
       let current = cursors
-      for (const step of b.steps) {
+      for (let stepIndex = 0; stepIndex < b.steps.length; stepIndex++) {
+        const step = b.steps[stepIndex]!, contexts: Extract<Step, { kind: "context" }>[] = []
+        // The explicit context step has no state delta. Only adjacent such steps
+        // in this exact block/invocation can share the same failure continuation.
+        // Calls, values, objects, guards, effects and control regions end the run.
+        if (options.propertyDirected && step.kind === "context") {
+          contexts.push(step)
+          while (b.steps[stepIndex + 1]?.kind === "context") contexts.push(b.steps[++stepIndex] as Extract<Step, { kind: "context" }>)
+        }
         const next: Cursor[] = []
         for (const cursor of current) {
           if (cursor.stopped || cursor.returned || cursor.pending) { next.push(cursor); continue }
           const c = structuredClone(cursor), fields = { claim: step.claim }
-          if (u.coverage === "path" && (step.kind === "effect" || step.kind === "context") && step.mayRaise) {
-            const outcome = `${instance}.${body}.${step.name}:call-outcome`, thrown = structuredClone(cursor)
-            thrown.route.push(`${outcome}:exception`); thrown.pending = { kind: "raise", claim: `Unknown source call exception: ${step.claim}` }
-            append(u, thrown, instance, body, step.name, "continue", { ...fields, condition: { op: "eq", left: { binding: outcome }, right: { literal: "exception" } } }); next.push(thrown)
-            c.route.push(`${outcome}:normal`); append(u, c, instance, body, step.name, "continue", { ...fields, condition: { op: "eq", left: { binding: outcome }, right: { literal: "normal" } } })
+          const summary: PropertyContextSummary | undefined = contexts.length ? { questionId, handle: u.handle, instance, block: body, sourceSteps: contexts.map(s => s.name), failureSteps: u.coverage === "path" ? contexts.filter(s => s.mayRaise).map(s => s.name) : [], semantics: "normal-all-or-first-unknown-exception" } : undefined
+          if (summary) propertySummaries.push(summary)
+          const groupStep = contexts.length > 1 ? `$context-sequence-${id(contexts.map(s => s.name))}` : step.name
+          const groupOrigin = summary ? { handle: u.handle, block: body, step: groupStep, instance, steps: summary.sourceSteps } : undefined
+          if (u.coverage === "path" && ((step.kind === "effect" || step.kind === "context") && step.mayRaise || summary?.failureSteps.length)) {
+            // This abstract outcome means all source contexts returned normally,
+            // or the first unknown exception in their retained ordered origins.
+            // No per-context outcome becomes a known user/source value.
+            const outcome = contexts.length > 1 ? `${instance}.${body}:context-sequence-${id(contexts.map(s => s.name))}:call-outcome` : `${instance}.${body}.${step.name}:call-outcome`, thrown = structuredClone(cursor)
+            const failureClaim = contexts.length > 1 ? `Unknown exception in ordered source context sequence (${summary!.failureSteps.length} possible origins)` : `Unknown source call exception: ${step.claim}`
+            thrown.route.push(`${outcome}:exception`); thrown.pending = { kind: "raise", claim: failureClaim }
+            const failureRule = append(u, thrown, instance, body, groupStep, "continue", { ...fields, ...(groupOrigin ? { sourceOrigin: { ...groupOrigin, steps: summary!.failureSteps }, claim: failureClaim } : {}), condition: { op: "eq", left: { binding: outcome }, right: { literal: "exception" } } }); next.push(thrown)
+            c.route.push(`${outcome}:normal`); const normalRule = append(u, c, instance, body, groupStep, "continue", { ...fields, ...(groupOrigin ? { sourceOrigin: groupOrigin, claim: `All ${contexts.length} interpreted source contexts returned normally` } : {}), condition: { op: "eq", left: { binding: outcome }, right: { literal: "normal" } } })
+            if (summary) Object.assign(summary, { outcomeBinding: outcome, normalRuleKey: normalRule.key, exceptionRuleKey: failureRule.key })
           }
           if (step.kind === "choose") {
             const prior: unknown[] = []
@@ -248,7 +270,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
           if (step.kind === "assign-value") { assignValue(c, step.result, step.value); append(u, c, instance, body, step.name, "continue", fields) }
           else if (step.kind === "raise") { append(u, c, instance, body, step.name, "continue", fields); c.pending = step.rethrow ? c.handledException ?? { kind: "raise", claim: step.claim } : { kind: "raise", claim: step.claim, exceptionType: step.exceptionType, failureKind: step.failureKind } }
           else if (step.kind === "break" || step.kind === "continue") { append(u, c, instance, body, step.name, "continue", fields); c.pending = { kind: step.kind, claim: step.claim } }
-          else if (step.kind === "context") append(u, c, instance, body, step.name, "continue", fields)
+          else if (step.kind === "context") { if (!summary?.normalRuleKey) { const r = append(u, c, instance, body, groupStep, "continue", { ...fields, ...(groupOrigin ? { sourceOrigin: groupOrigin } : {}) }); if (summary) summary.normalRuleKey = r.key } }
           else if (step.kind === "bind") {
             if (Object.hasOwn(step, "value") && (step.type !== "value" || step.aliasOf)) { gap(u, c, instance, body, step.name, "semantic-source-value-invalid"); next.push(c); continue }
             const alias = step.aliasOf ? valueObject(c, step.aliasOf) : undefined
@@ -371,6 +393,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
       }
     } catch (error) {
       rules = rules.slice(0, startIndex); dependencies = dependencies.slice(0, dependencyIndex); pathCount = 0
+      fieldChanges.splice(fieldIndex); propertySummaries.splice(summaryIndex)
       const code = (error as Error).message, root = roots[0]!
       if (!root || !["semantic-node-limit", "semantic-path-limit"].includes(code)) throw error
       fault(questionId, root.handle, code, "Bounded expansion exhausted. This question remains unresolved; other questions are retained.")
@@ -379,7 +402,8 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
     }
     for (const u of local) owned.push({ questionId, handle: u.handle, ruleKeys: rules.slice(startIndex).filter(r => r.sourceOrigin?.handle === u.handle).map(r => r.key) })
   }
-  return { delta: { schemaVersion: "authorization-control-slice/v2" as const, rules, dependencies, bindings: [], policyRules: [] }, diagnostics, owned, fieldChanges }
+  const propertyMetrics = { contextOriginsRepresented: propertySummaries.reduce((n, s) => n + s.sourceSteps.length, 0), failureOriginsMerged: propertySummaries.reduce((n, s) => n + Math.max(0, s.failureSteps.length - 1), 0), contextSequences: propertySummaries.length }
+  return { delta: { schemaVersion: "authorization-control-slice/v2" as const, rules, dependencies, bindings: [], policyRules: [] }, diagnostics, owned, fieldChanges, propertySummaries, propertyMetrics }
 }
 
 export function semanticBlockDiagnostics(unit: SemanticBlock): InquiryDiagnostic[] {

@@ -127,6 +127,8 @@ Files: `src/task-dsl/authorization/source-interpretation.ts` 及其测试、`inq
 - [ ] 一个字段错误仅要求当前字段/对象修复；已有正确解释继续保存。加入把已读具体 helper 接入当前题的真实形状回归。
 - [ ] 覆盖报告区分源码结构已读、领域含义已解释、当前性质已覆盖和整体答案充分。不得直接把 `modelCovered` 改 true 以通过终检。
 
+AX4–AX9当前实现细节：v4需求先沿当前入口的完整控制/数据骨架保留所有可能执行的call、predicate、return、raise和显式对象引用；只机械排除来源不变的不可达关系（无条件退出后的后缀、布尔字面量分支、字面量短路与空循环）。未知setter、返回/参数映射和异常控制不凭名称裁减。每次展示最多8个缺失锚点字段，完整骨架及正确草稿留在宿主；局部修复继续同一transaction。字段/需求覆盖不替代完整答案或独立语义核验；源码变化使排除依据随SHA失效。v4使用独立语义版本，仍走共同inquiry/native核心。
+
 ### AX6 异常状态合并与局部求值
 
 Files: `src/task-dsl/authorization/semantic-flow.ts`、`control-conclusion.ts` 及相应测试。

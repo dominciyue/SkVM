@@ -2,14 +2,15 @@ import { expect, test } from "bun:test"
 import { compileAuthorizationInquiry } from "./inquiry-program.ts"
 import { createControlSlice, mergeControlSlice } from "./control-slice.ts"
 import { evaluateControlPaths, controlObjectDiagnostics } from "./control-conclusion.ts"
+import type { SemanticBlock, BoundSemanticBlock } from "./semantic-flow.ts"
 const api = await import("./semantic-flow.ts").catch(() => ({} as any))
 const plan = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Role is admin. Flag is true.", premises: [] }] })
 const eq = (binding: string, value: unknown) => ({ op: "eq", left: { binding }, right: { literal: value } })
 const block = (name: string, steps: unknown[]) => ({ name, steps })
 const unit = (blocks: any[], extra = {}) => ({ questionId: "q", evidenceIds: ["ev"], itemId: "work", handle: "entry", op: "add", role: "entry", start: "main", complete: true, fallthrough: "allow", parameters: [], blocks, ...extra })
-function lower(units: unknown[], bindings: unknown[] = []) {
+function lower(units: unknown[], bindings: unknown[] = [], options: { propertyDirected?: boolean } = {}) {
   expect(typeof api.lowerSemanticFlow).toBe("function")
-  const lowered = api.lowerSemanticFlow(units)
+  const lowered = api.lowerSemanticFlow(units, options)
   const merged = mergeControlSlice(createControlSlice(), { ...lowered.delta, bindings }, plan, { questionIds: ["q"], shownEvidenceIds: ["ev"] })
   expect(merged.diagnostics).toEqual([])
   const evaluated = evaluateControlPaths(merged.state)
@@ -250,4 +251,91 @@ test("an uncertain earlier handler is considered before a later exact or catch-a
   const unknown = structuredClone(root); (unknown.blocks[1]!.steps[0] as any).exceptionType = undefined
   ;(unknown.blocks[0]!.steps[0] as any).handlers = [{ exceptionTypes: ["Denied"], catchesAll: false, body: "early" }, { exceptionTypes: [], catchesAll: true, body: "late" }]
   expect(lower([unknown]).paths.map((p: any) => p.disposition).sort()).toEqual(["allow", "deny"])
+})
+
+function contexts(count: number): SemanticBlock["blocks"][number]["steps"] {
+  return Array.from({ length: count }, (_, i) => ({ kind: "context", name: "context" + i, claim: "Interpreted source context, no authorization object change", relationship: "dispatch-binding", mayRaise: true }))
+}
+for (const count of [16, 64]) test("property evaluation keeps normal authorization and unknown failures for " + count + " equivalent contexts", () => {
+  const root: BoundSemanticBlock = { ...finiteUnit([block("main", [...contexts(count), { kind: "return", name: "allowed", claim: "Normal source authorization exit", outcome: "allow" }])]), role: "entry", op: "add", fallthrough: "allow" }
+  expect(parseFinite(root).success).toBe(true)
+  const original = lower([root])
+  expect(original.diagnostics.map((d: { code: string }) => d.code)).toContain(count === 16 ? "semantic-path-limit" : "semantic-node-limit")
+  const current = lower([root], [], { propertyDirected: true })
+  expect(current.diagnostics.some((d: { code: string }) => /semantic-(path|node)-limit/.test(d.code))).toBe(false)
+  expect(current.paths.map((p: { disposition: string }) => p.disposition).sort()).toEqual(["allow", "unknown"])
+  expect(current.paths.find((p: { disposition: string }) => p.disposition === "unknown").complete).toBe(false)
+  expect(current.propertyMetrics.contextOriginsRepresented).toBe(count)
+  expect(current.propertyMetrics.failureOriginsMerged).toBe(count - 1)
+  expect(current.delta.rules.length).toBeLessThan(16)
+  const summary = current.propertySummaries[0], failure = current.delta.rules.find((r: { key: string }) => r.key === summary.exceptionRuleKey), normal = current.delta.rules.find((r: { key: string }) => r.key === summary.normalRuleKey)
+  expect(failure.sourceOrigin.steps).toEqual(contexts(count).map(s => s.name))
+  expect(normal.sourceOrigin.steps).toEqual(contexts(count).map(s => s.name))
+  expect(failure.sourceOrigin.step).not.toBe("context0")
+  expect(failure.claim).toContain("possible origins")
+})
+
+test("property context summaries do not cross effects, resource replacement or an unknown setter", () => {
+  const root = finiteUnit([block("main", [
+    { kind: "bind", name: "old", type: "resource", claim: "Original resource" },
+    ...contexts(16),
+    { kind: "effect", name: "write-old", resource: "old", claim: "Possible completed earlier effect", mayRaise: true },
+    { kind: "bind", name: "replacement", bindingName: "old", type: "resource", claim: "A distinct resource replaces the original" },
+    ...contexts(16).map(step => ({ ...step, name: "after-" + step.name })),
+    { kind: "call", name: "setter", symbol: "unknown_setter", resource: "old", arguments: [], claim: "Unknown mutation cannot be omitted" },
+    { kind: "return", name: "allowed", outcome: "allow", claim: "Only after the setter is understood" },
+  ])])
+  const r = lower([root], [], { propertyDirected: true })
+  expect(r.diagnostics.map((d: { code: string }) => d.code)).toContain("semantic-callee-uninterpreted")
+  expect(r.diagnostics.some((d: { code: string }) => /semantic-(path|node)-limit/.test(d.code))).toBe(false)
+  // The existing public effect status is unresolved on a reached source gap.
+  // Check the actual completed-effect ancestry to distinguish failure order.
+  const effectCounts = r.paths.map((p: { nodeKeys: string[] }) => r.delta.rules.filter((n: { kind: string; key: string }) => n.kind === "effect" && p.nodeKeys.includes(n.key)).length)
+  expect(effectCounts.sort()).toEqual([0, 0, 1, 1])
+  expect(r.propertySummaries.map((s: { sourceSteps: string[] }) => s.sourceSteps.length)).toEqual([16, 16])
+  expect(r.delta.dependencies).toHaveLength(1)
+  expect(r.paths.every((p: { disposition: string }) => p.disposition === "unknown")).toBe(true)
+})
+
+test("property merged failures still enter ordered typed handlers and execute finally before return", () => {
+  const root = finiteUnit([
+    block("main", [{ kind: "try", name: "try", claim: "Ordered exception region", body: "attempt",
+      handlers: [{ exceptionTypes: ["Denied"], catchesAll: false, body: "deny" }, { exceptionTypes: [], catchesAll: true, body: "failure" }], finally: "cleanup" }]),
+    block("attempt", [...contexts(64), { kind: "return", name: "allowed", outcome: "allow", claim: "Normal source outcome" }]),
+    block("deny", [{ kind: "return", name: "denied", outcome: "deny", claim: "Authorization failure" }]),
+    block("failure", [{ kind: "return", name: "failed", outcome: "unknown", claim: "Other runtime failures remain unknown" }]),
+    block("cleanup", [{ kind: "effect", name: "cleanup", claim: "Cleanup before every exit" }]),
+  ])
+  const r = lower([root], [], { propertyDirected: true })
+  expect(r.diagnostics.some((d: { code: string }) => /semantic-(path|node)-limit/.test(d.code))).toBe(false)
+  expect(r.paths.map((p: { disposition: string }) => p.disposition).sort()).toEqual(["allow", "deny", "unknown"])
+  expect(r.delta.rules.filter((n: { kind: string }) => n.kind === "effect")).toHaveLength(3)
+})
+
+test("a limited question withdraws its field changes without erasing another original question", () => {
+  const bad = finiteUnit([block("main", [{ kind: "bind", name: "r", type: "resource", claim: "Source resource" }, { kind: "transform", name: "write-field", object: "r", field: "flag", value: true, claim: "Source write" }, ...Array.from({ length: 128 }, (_, i) => ({ kind: "guard", name: "guard" + i, condition: eq("flag", true), claim: "Independent condition" }))])])
+  const good = finiteUnit([block("main", [{ kind: "return", name: "allowed", outcome: "allow", claim: "Other original question" }])], { questionId: "independent" })
+  const r = api.lowerSemanticFlow([bad, good], { propertyDirected: true })
+  expect(r.diagnostics.some((d: { questionId: string; code: string }) => d.questionId === "q" && d.code === "semantic-node-limit")).toBe(true)
+  expect(r.fieldChanges).toHaveLength(0)
+  expect(r.delta.rules.some((n: { questionId: string; kind: string; outcome: string }) => n.questionId === "independent" && n.kind === "return" && n.outcome === "allow")).toBe(true)
+})
+
+test("property summaries preserve guard conditions and distinct resource identities after replacement", () => {
+  const root = finiteUnit([block("main", [{ kind: "bind", name: "actor", type: "principal", claim: "Source actor" }, { kind: "bind", name: "old", type: "resource", claim: "First resource" }, { kind: "guard", name: "gate", principal: "actor", resource: "old", condition: eq("flag", true), claim: "Source condition" }, ...contexts(64), { kind: "bind", name: "new", bindingName: "old", type: "resource", claim: "Source resource replacement" }, { kind: "effect", name: "write", principal: "actor", resource: "old", authorizedBy: ["gate"], claim: "Effect on new resource" }, { kind: "return", name: "allowed", outcome: "allow", claim: "Normal source exit" }])])
+  const r = lower([root], [], { propertyDirected: true }), guard = r.delta.rules.find((n: { kind: string }) => n.kind === "guard"), effect = r.delta.rules.find((n: { kind: string }) => n.kind === "effect")
+  expect(r.diagnostics.some((d: { code: string }) => /semantic-(path|node)-limit/.test(d.code))).toBe(false)
+  expect(guard.condition).toEqual(eq("flag", true)); expect(effect.resource).not.toBe(guard.resource)
+  expect(r.propertySummaries[0].sourceSteps).toHaveLength(64)
+})
+
+test("finally overrides a merged pending exception and skipped short circuit context is never represented", () => {
+  const root = finiteUnit([block("main", [{ kind: "try", name: "region", body: "body", handlers: [], finally: "cleanup", claim: "Source finally" }, { kind: "effect", name: "late", claim: "Unreachable late effect" }]), block("body", [...contexts(64), { kind: "return", name: "allowed", outcome: "allow", claim: "Normal return" }]), block("cleanup", [{ kind: "return", name: "override", outcome: "deny", claim: "Finally overrides both exits" }])])
+  const r = lower([root], [], { propertyDirected: true })
+  expect(r.paths.map((p: { disposition: string }) => p.disposition)).toEqual(["deny", "deny"])
+  expect(r.delta.rules.some((n: { kind: string }) => n.kind === "effect")).toBe(false)
+  const skipped = finiteUnit([block("main", [{ kind: "short-circuit", name: "skip", operator: "and", language: "python", left: { literal: false }, right: { literal: true }, body: "rhs", result: "answer", claim: "False skips RHS" }, { kind: "return", name: "done", outcome: "allow", claim: "Normal exit" }]), block("rhs", contexts(64))])
+  const s = lower([skipped], [], { propertyDirected: true })
+  expect(s.paths.map((p: { disposition: string }) => p.disposition)).toEqual(["allow"])
+  expect(s.propertyMetrics.contextOriginsRepresented).toBe(0)
 })
