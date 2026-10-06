@@ -6,7 +6,7 @@
 
 研究主线是 **按 skill/task 范围设计领域表达**。当前任务类为单 repo/ref、源码可见的授权与信任边界评估：围绕主体、资源、操作、条件和政策组织取证、判断与检查。质量约六成、编写复用约四成指开发投入安排，各项质量要求分别验收。
 
-**当前队列：[AV0–AV20 源码辅助解释与授权任务真实闭合](../superpowers/plans/2026-10-06-authorization-source-assisted-closure.md)，`in-progress`。** AV0–AV9的来源身份/定位、入口/路由、骨架/窄解释、义务调度、同源缺口、有界只读恢复、公共双入口和26位置薄runner完成工程验证；139项联合测试/1029断言、主/runner类型及零调用check/replay通过，继续AV10 Download真实链。启动工作区干净，HEAD为任务书发布提交`531bc80d`；模型为`gpt-6.1-sol / max`，Flash未核实。真实搬移/预算变化恢复材料通过；Download旧三单元副本恢复一个调用链接，仍有语义缺口，不提升原结果。显式`operation-evidence-v2`已接公共入口，300秒请求/7500秒实际会话预算登记；真实模型实验尚未开始。具体进度和恢复动作见[AV status](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/status.json)。
+**当前队列：[AV0–AV20 源码辅助解释与授权任务真实闭合](../superpowers/plans/2026-10-06-authorization-source-assisted-closure.md)，`in-progress`。** AV0–AV9的来源身份/定位、入口/路由、骨架/窄解释、义务调度、同源缺口、有界只读恢复、公共双入口和26位置薄runner完成工程验证；139项联合测试/1029断言、主/runner类型及零调用check/replay通过，继续AV10 Download真实链。启动工作区干净，HEAD为任务书发布提交`531bc80d`；模型为`gpt-6.1-sol / max`，Flash未核实。真实搬移/预算变化恢复材料通过；Download旧三单元副本恢复一个调用链接，仍有语义缺口，不提升原结果。显式`operation-evidence-v2`已接公共入口，300秒请求/7500秒实际会话预算登记；Download首件派发前配置失败已归档（0调用），脚本修正后以具名修订继续。具体进度和恢复动作见[AV status](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/status.json)。
 
 最新已结束的 [AU0–AU21](../superpowers/plans/2026-10-05-authorization-operation-evidence-and-domain-closure.md) 状态为 `completed-with-unmet-criteria`：`finiteQueueComplete:true`，`researchGoalAchieved:false`。操作事实、结构候选、有限源码值、义务补读、材料恢复、双入口和完整原 skill 作者/消费者接线已有实现；完整质量和净收益未建立。
 

@@ -2,7 +2,9 @@ import { expect, test } from "bun:test"
 import { mkdtemp, readFile, writeFile, mkdir } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
-import { selectPosition, modelInputPath, reserveAttempt, replayAccounting, positionTemplates, nativeInvocation, loadAdmittedAuthor, sha } from "./study.ts"
+import { selectPosition, modelInputPath, reserveAttempt, replayAccounting, positionTemplates, nativeInvocation, loadAdmittedAuthor, sha, archiveInquiryResult, configureStudyRuntime } from "./study.ts"
+import { resolveConfigWritePath, invalidateConfigCache } from "../../../../../src/core/config.ts"
+import { executeLocalInquiryRun } from "../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts"
 import { RUN_FLAGS } from "../../../../../src/cli/run.ts"
 import { ReviewAdmissionSchema, AttemptReportSchema, type Manifest } from "./types.ts"
 import { emptyTokenUsage } from "../../../../../src/core/types.ts"
@@ -84,4 +86,21 @@ test("consumer admission binds exact author position, attempt, original input an
     await writeFile(path.join(origin, "report.json"), JSON.stringify({ ...report, ...patch }))
     expect(() => loadAdmittedAuthor(studyRoot, manifest, position, admission)).toThrow()
   }
+})
+
+test("study runtime uses the production cache environment for actual model routing", async () => {
+  const cachePath = await mkdtemp(path.join(os.tmpdir(), "av-route-")), old = process.env.SKVM_CACHE
+  try { configureStudyRuntime({ cachePath }); expect(resolveConfigWritePath()).toBe(path.join(cachePath, "skvm.config.json")) }
+  finally { if (old === undefined) delete process.env.SKVM_CACHE; else process.env.SKVM_CACHE = old; invalidateConfigCache() }
+})
+
+test("a retained provider-unavailable session archives zero actual calls without inventing run.json", async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), "av-zero-provider-")), source = path.join(directory, "source"); await mkdir(source)
+  await writeFile(path.join(source, "entry.py"), "def entry():\n    return False\n")
+  const inputFile = path.join(directory, "input.json"); await writeFile(inputFile, JSON.stringify({ schemaVersion: "authorization-inquiry-input/v1", taskId: "anonymous", repository: "anonymous", sourceRef: "r", sourceRoot: "source", allowedPaths: ["entry.py"], brief: "Inspect entry" }))
+  const report = await executeLocalInquiryRun({ inputFile, outDir: path.join(directory, "inquiry"), model: "mock/model", method: "D1", strategy: "operation-evidence-v2", providerFactory: () => { throw new Error("Controlled provider unavailable before any dispatch") } })
+  expect(report.status).toBe("provider-unavailable")
+  const archived = await archiveInquiryResult(directory, report)
+  expect(archived).toMatchObject({ status: "provider-unavailable", providerCalls: 0, raw: { kind: "inquiry", file: "raw/inquiry-not-dispatched.json" } })
+  expect(JSON.parse(await readFile(path.join(directory, archived.raw.file), "utf8"))).toMatchObject({ attempts: [], events: [], report: { providerDispatches: 0 } })
 })

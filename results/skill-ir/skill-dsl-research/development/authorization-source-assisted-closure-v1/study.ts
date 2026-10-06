@@ -16,6 +16,7 @@ import { createNativeInquiryRuntime } from "../../../../../src/benchmarks/author
 import { createTelemetryProvider, reconcileAuthorizationAttemptsFromEvents, summarizeAuthorizationAttempts, AuthorizationDispatchLimitError, hasUnknownAuthorizationCompletion, type AuthorizationProviderAttempt, type AuthorizationLifecycleEvent } from "../../../../../src/benchmarks/authorization-dsl/telemetry.ts"
 import { createProviderForModel } from "../../../../../src/providers/registry.ts"
 import type { LLMTool, LLMToolCall } from "../../../../../src/providers/types.ts"
+import { invalidateConfigCache } from "../../../../../src/core/config.ts"
 import { copySourceSnapshot } from "../authorization-semantic-lowering-v1/source-snapshot.ts"
 
 export const root = import.meta.dir, repo = path.resolve(root, "../../../../..")
@@ -81,6 +82,18 @@ export async function init() {
   return { status: "initialized", positions: manifest.positions.length, readyInputs: inputs.filter(i => i.ready).length, pendingInputs: inputs.filter(i => !i.ready).length, providerCalls: 0, targetExecutions: 0 }
 }
 const readManifest = async () => ManifestSchema.parse(await json(path.join(root, "manifest.json")))
+export function configureStudyRuntime(manifest: Pick<Manifest, "cachePath">) { process.env.SKVM_AUTO_PROBE = "0"; process.env.SKVM_CACHE = manifest.cachePath; invalidateConfigCache() }
+export async function archiveInquiryResult(directory: string, report: unknown) {
+  const recorded = z.object({ status: z.string(), sessionPath: z.string().optional(), providerCalls: z.number().optional(), providerDispatches: z.number().optional(), error: z.string().optional() }).passthrough().parse(report)
+  if (recorded.status === "provider-unavailable" && recorded.providerDispatches !== 0) throw new Error("Unavailable-provider report must prove zero dispatches")
+  if (recorded.sessionPath && recorded.status !== "provider-unavailable") {
+    const file = path.join(recorded.sessionPath, "run.json"), raw = RawRunSchema.parse(await json(file)), final = z.object({ final: z.unknown().optional() }).passthrough().parse(await json(file)).final
+    await gzipFile(file, path.join(directory, "raw", "inquiry-run.json.gz"))
+    return { status: recorded.status, providerCalls: raw.attempts.length, raw: { kind: "inquiry" as const, file: "raw/inquiry-run.json.gz" }, final: JSON.stringify(final ?? null), ...(recorded.error ? { error: recorded.error } : {}) }
+  }
+  await save(path.join(directory, "raw", "inquiry-not-dispatched.json"), { attempts: [], events: [], report })
+  return { status: recorded.status, providerCalls: 0, raw: { kind: "inquiry" as const, file: "raw/inquiry-not-dispatched.json" }, final: "", error: recorded.error ?? "No inquiry session; no automatic fresh fallback" }
+}
 export async function loadAdmittedAuthor(studyRoot: string, manifest: Manifest, position: Position, value: unknown) {
   const admission = ReviewAdmissionSchema.parse(value)
   if (admission.status !== "accepted" || admission.authorPosition !== position.authorPosition) throw new Error("Consumer requires independent faithful-task/raw-byte author admission")
@@ -197,7 +210,7 @@ async function runAuthor(position: Position, manifest: Manifest, inputFile: stri
 
 export async function run(id: string, revision?: { label: string; parent: string }) {
   const manifest = await readManifest(), position = selectPosition(manifest, id)
-  process.env.SKVM_AUTO_PROBE = "0"; process.env.SKVM_CACHE_PATH = manifest.cachePath
+  configureStudyRuntime(manifest)
   let inputFile: string, authored: { inquiry: Uint8Array; usage: Uint8Array } | undefined
   const registration = manifest.inputs.find(i => i.id === position.inputId)
   if (position.kind === "consumer") {
@@ -224,12 +237,7 @@ export async function run(id: string, revision?: { label: string; parent: string
   let result: { status: string; providerCalls: number | null; raw: AttemptReport["raw"]; final: string; error?: string }
   if (position.kind === "debug" || position.kind === "variation") {
     const b = manifest.budgets, report = await executeLocalInquiryRun({ inputFile, outDir: path.join(directory, "raw", "inquiry"), model: manifest.testedModel, method: position.method, strategy: position.strategy, ...(previous ? { previous } : {}), execution: { maxDispatches: position.providerLimit, maxToolCalls: b.maxToolCalls, maxDisplayBytes: b.maxDisplayBytes, maxReadBytes: b.maxReadBytes, maxFiles: b.maxFiles, maxTokens: b.maxTokens, perCallTimeoutMs: b.perCallTimeoutMs, sessionTimeoutMs: b.sessionTimeoutMs, onEvent: async event => { await currentStatus({ lastKnownRequest: { positionId: id, attemptId, sequence: event.sequence, kind: event.kind, providerAttemptId: event.attemptId } }) } } })
-    const recorded = z.object({ status: z.string(), sessionPath: z.string().optional(), providerCalls: z.number().optional(), error: z.string().optional() }).passthrough().parse(report)
-    if (recorded.sessionPath) {
-      const file = path.join(recorded.sessionPath, "run.json"), raw = RawRunSchema.parse(await json(file)), final = z.object({ final: z.unknown().optional() }).passthrough().parse(await json(file)).final
-      await gzipFile(file, path.join(directory, "raw", "inquiry-run.json.gz"))
-      result = { status: recorded.status, providerCalls: raw.attempts.length, raw: { kind: "inquiry", file: "raw/inquiry-run.json.gz" }, final: JSON.stringify(final ?? null), ...(recorded.error ? { error: recorded.error } : {}) }
-    } else { await save(path.join(directory, "raw", "inquiry-not-dispatched.json"), { attempts: [], events: [], report }); result = { status: recorded.status, providerCalls: 0, raw: { kind: "inquiry", file: "raw/inquiry-not-dispatched.json" }, final: "", error: "No inquiry session; no automatic fresh fallback" } }
+    result = await archiveInquiryResult(directory, report)
   } else if (position.kind === "author") result = await runAuthor(position, manifest, inputFile, directory, revision)
   else {
     const workDir = path.join(directory, "workspace"); await mkdir(workDir)

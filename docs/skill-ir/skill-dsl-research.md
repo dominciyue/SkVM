@@ -1858,6 +1858,8 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 **AV9双入口与有限登记。** 显式operation-evidence-v2接到原inquiry和native M/D1；匿名实际定位/原文读取/来源annotation/当前check/自然交付通过，完整声明不重复作者调用。缺conformance政策继续行为并保留独立比较未知；远端unknown与已关闭本地材料分账，最终snapshot失效撤回当前交付。只读AI复核未发现公共合同缺陷；runner复核发现attempt/raw路径及作者报告绑定缺口，两项失败测试确认后修复，并补实际native首请求/source index/安装bundle证据核对。139项联合测试/1029断言、主/AV严格类型通过。薄runner登记26位置、5份ready原/变输入、3份待AV14基线输入；check/replay provider与目标执行0，300秒请求/7500秒实际session一致，不以默认20分钟截断。完整原skill及companions已绑定SHA，消费仍待实际调用。作者用现有loop与只读来源工具，仅两个根文件可写，消费者须原稿忠实性/原字节绑定通过；不新增求值或恢复循环。[AV9验证](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/verification/av9.json)和[独立复核裁定](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/evaluations/av9-independent-review.json)保留原件。真实采用、完整质量与净收益尚未建立，继续AV10。
 
+**AV10派发前脚本修正。** Download首次登记因runner误用缓存变量而未载入route，production报告provider-unavailable且0派发；归档又误读不存在的run.json。两项失败测试后，改为production SKVM_CACHE并失效配置缓存、按已证零调用报告归档。8项/66断言和AV类型通过，配置provider可创建但未调用。保留首次原件及699555d2实现身份；以runtime-config具名修订继续，不把这项工程失败计作源码质量或unknown completion。验证在results的verification/av10-pre-dispatch.json。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 `@vscode/tree-sitter-wasm` Python/Go 解析器、现有 provider/telemetry 和确定性测试。按实际依赖版本查官方实现，不另建 CLI、统一 IR 或整仓安全平台。
 
-日期：2026-10-06。状态：`in-progress`，AV0–AV8完成，继续AV9。开发模型：`gpt-6.1-sol / max`；用户另要求 Flash，当前派发接口没有该设置字段，不能写成已经启用。工作目录 `D:/skill优化/SkVM`，分支 `skill-ir-aot`，仅推用户 `origin`。设计基线 `9d7db8e87c1484e119e7b8d1adece2fc6ba5079f`，启动时保留本任务书后续发布提交。
+日期：2026-10-06。状态：`in-progress`，AV0–AV9完成工程验证，继续AV10。开发模型：`gpt-6.1-sol / max`；用户另要求 Flash，当前派发接口没有该设置字段，不能写成已经启用。工作目录 `D:/skill优化/SkVM`，分支 `skill-ir-aot`，仅推用户 `origin`。设计基线 `9d7db8e87c1484e119e7b8d1adece2fc6ba5079f`，启动时保留本任务书后续发布提交。
 
 本轮约 8–12 小时是主动工作安排，约六成精力用于质量、四成用于编写与复用。完成适用工作即收口；不等待、重复全量验证或增加无目的调用凑时间。实验模型沿用 `xty/gpt-5.6-sol`，与开发线程模型分账；可用路由改变时记录并统一同一比较块。
 
@@ -229,6 +229,8 @@ export interface SourceInterpretation {
 139项联合测试/1029断言与主/AV严格类型通过，check/replay零provider/目标执行。26位置、5ready输入、3待AV14输入登记；实际请求300000ms/session7500000ms，各比较臂输出6000，作者12派发与一次字段修订。作者仅沿现有agent-loop/source runtime写两个根artifact，不自动恢复写阶段。独立复核发现路径/作者报告绑定缺口，失败测试后修复；完整skill/source/实际request证据将随native原件核对。AV9的工程完成不代表真实充分交付，下一命令为 `bun ./results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/study.ts run debug-paperless-download-D1`。
 
 ### AV10 Download 第一条真实纵向链
+
+首次登记在provider派发前失败：runner误用`SKVM_CACHE_PATH`，未载入项目route；随后误读不存在的run.json。原始provider-unavailable报告证明0派发，已完整归档，不算模型质量失败或unknown completion。两项真实失败测试后改为`SKVM_CACHE`并失效配置缓存、按零派发报告归档；8项/66断言及runner类型通过，配置provider可创建且未调用。下一次为`--revision=runtime-config --parent=first`，保留原首次记录。证据见results的verification/av10-pre-dispatch.json。
 
 - [ ] 从 AU 原始 Download 请求和 locked-framework 源码开始一次 D1 新策略运行；未给答案或正确 helper 清单。
 - [ ] 逐项检查正确入口、框架前置约束、helper 实参/对象、条件分支和最终自然说明是否经过共享机制；首次结果完整保留。
