@@ -1,0 +1,138 @@
+{
+  "schemaVersion": "au-independent-source-evaluation/v1",
+  "artifact": "runs/quality-owui-ingestion-D-O/attempt-1/report.json",
+  "sha256": "733c542068e3a07013aa3f1baabd2ebb2a16064c6593710c0446aa6624200ece",
+  "reviewedAt": "2026-10-06T01:24:22.544Z",
+  "reviewers": [
+    "au_owui_d_raw_entry_audit",
+    "au_owui_d_source_fidelity_review",
+    "au_owui_d_entry_selection_code_audit",
+    "main"
+  ],
+  "grade": "partial",
+  "originalTaskSufficient": false,
+  "naturalOutputAdequate": false,
+  "checked": false,
+  "bounded": false,
+  "formalCheck": "not-checked-bounded",
+  "completionUnknown": false,
+  "originalOperationCount": 1,
+  "originalQuestionCount": 5,
+  "compilationOrigin": "model-tool",
+  "compilationToolCalls": 1,
+  "currentSourceUnits": 1,
+  "sourceVerification": {
+    "valid": true,
+    "checkedFiles": 173,
+    "physicalReadBytes": 3149729
+  },
+  "sourceSkillUnmodified": true,
+  "installedSkillVerified": true,
+  "originalInputUnmodified": true,
+  "actualReferenceReads": [],
+  "questionAssessments": [
+    {
+      "id": "entry-and-caller",
+      "grade": "partial",
+      "reason": "Natural final describes route and owner/admin file selection, but upstream identity binding and actual files/knowledge caller chains remain unexamined in final; current formal entry is the unrelated audit logger write"
+    },
+    {
+      "id": "object-flow",
+      "grade": "partial",
+      "reason": "Correctly separates file authorization and collection effect; incorrectly equates supplied collection with truthy add=True, omitting empty collection and content-path deletion"
+    },
+    {
+      "id": "ownership",
+      "grade": "full",
+      "reason": "Describes non-admin owned-file lookup, other-user 404 and admin unrestricted-by-owner lookup without inventing destination ownership"
+    },
+    {
+      "id": "destination-scope",
+      "grade": "partial",
+      "reason": "Includes bypass, duplicate-hash rejection and existing-collection no-op; remaining available vector client and upstream source are not unavailable deployment facts"
+    },
+    {
+      "id": "independent-policy",
+      "grade": "partial",
+      "reason": "Separates unspecified collection policy from source behavior; policy uncertainty cannot complete omitted requested source paths"
+    }
+  ],
+  "entryAudit": {
+    "currentCandidate": {
+      "path": "backend/open_webui/utils/audit.py",
+      "startLine": 70,
+      "endLine": 86,
+      "symbol": "AuditLogger.write",
+      "handle": "unit-8c7f16545ab96b4348b990b8",
+      "blocks": [
+        "audit-write"
+      ]
+    },
+    "actualRouteDiscovered": true,
+    "explicitRootSelectionActions": 0,
+    "interpretRejections": [
+      {
+        "callId": "call_D0PIfgrO3pHTY3KhZSMFjZHV",
+        "codes": [
+          "focus-schema"
+        ],
+        "reason": "call result must be scalar binding name and a required step name was missing"
+      },
+      {
+        "callId": "call_TbtbV0XsBRLjFUL7mVOJ1KeB",
+        "codes": [
+          "focus-stage"
+        ],
+        "reason": "current stage answer rejects another interpretation"
+      }
+    ],
+    "publicSelectionAnchors": [
+      "src/benchmarks/authorization-dsl/inquiry-semantic.ts:22-23",
+      "src/benchmarks/authorization-dsl/inquiry-worklist.ts:183-198",
+      "src/benchmarks/authorization-dsl/inquiry-focus.ts:181-198"
+    ],
+    "sharedImplementationDefectProved": false
+  },
+  "targetExecutionAudit": {
+    "verified": true,
+    "targetExecutions": 0,
+    "rawToolCalls": 42,
+    "nativeHistoryCalls": 42,
+    "allowedRawTools": [
+      "source_list",
+      "authorization_compile",
+      "source_search",
+      "source_read",
+      "source_symbol",
+      "authorization_observe",
+      "authorization_check_result"
+    ],
+    "resultCheckActions": 5,
+    "resultCheckResults": [
+      "schema-rejection",
+      "valid:false",
+      "delivery-repair-budget",
+      "delivery-repair-budget",
+      "delivery-repair-budget"
+    ],
+    "capture": {
+      "archive": "source-capture/20261006-090110-run.conv-001-natural-46ea87740b02.jsonl.gz",
+      "sha256": "440f139d97c3e595648a9769515e171ce8e6a0135fd9945218e11746d28ccf5c",
+      "rawSha256": "8f1410580c362e76c844555d415e1c4760853f75420023ad473fcb62c2006350",
+      "rawBytes": 4635940,
+      "records": 48,
+      "requests": 24,
+      "responses": 24
+    }
+  },
+  "mainAdjudications": [
+    "The retained candidate is AuditLogger.write, not a same-name process_file declaration; current unit contains only audit-write, not an accepted route body",
+    "Defer and interpretation attempts do not prove successful root selection; raw call.arguments contains no select or workSelections action",
+    "Main inspected nested controlDiagnostics: exitCode0 does not mean an accepted interpretation; actual rejections are focus-schema and focus-stage",
+    "Raw scout undercounted budget-rejected result checks; main verified five total check actions and42raw/native tools including the declaration call",
+    "Source scout credited content-path deletion from the helper overwrite case; final never explains process_file content-path deletion",
+    "Natural prose quality remains separate from failed formal verification; no paid redraw or language expansion is justified by this report"
+  ],
+  "actualUSD": null,
+  "humanMinutes": null
+}

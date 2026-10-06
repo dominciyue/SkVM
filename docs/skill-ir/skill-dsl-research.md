@@ -1775,6 +1775,10 @@ Gitea首轮`bd9348f0`原件11派发/11响应，1操作/3问、4个current source
 
 OWUI质量N/M-O在同`5ac2d651`分别7/7和24/24已知，26/39工具，完整Cloudflare原/安装bundle与输入保持、source173文件有效、参考读取0、target0。N终答交付owner/admin与file/collection分离，漏bypass、hash拒绝、已有collection no-op、truthiness及删除控制，natural partial、formal按N不适用。M-O终答补述bypass/去重/add-no-op，但外层files/knowledge caller和可得的get_current_user认证来源未完整交付，6current units、1operation/1question不能补终答；natural仍partial、形式not-checked-bounded。主纠正源码探子引用中间解释、将自然充分性与formal混判及raw探子未定位诊断生成点：semantic-flow.ts:37/51/135将原unit的unresolved reason原样变为code。分类白名单漏此来源而误标checker/delivery，非真实宿主异常；生产lower生成匿名red转绿，56相关pass/265断言、主/AU类型和独立代码核验通过。只精确匹配current unit/宿主诊断出处，身份不符、unknown/internal/pending/source-invalid保持暂停；原M-O SHA零provider重放归model-draft，原review/check/质量不改，不增加M-O修订。新的显式SHA范围裁定允许OWUI D-O和Download三臂，Gitea/Share未知封存保持。21归档attempt311/309、fresh7582951/cache968192/output299738、2未知与实际USD/开发AI/真人未知，净收益未建立；后续首位属修后版本，不能混作同revision效果。
 
+OWUI D-O在`d50388db`24/24已知、1声明调用/1operation/5questions、42raw/native工具，source173有效、完整skill/input及reference/target0保持。自然终答仍partial，formal未闭合。当前1单元是无关AuditLogger.write；source_symbol已找到真实process_file，但raw没有select/workSelections。公开接口允许按同工作项重新选discovered候选，模型的defer及两次exit0解释不构成替换（后两次实际controlDiagnostics为focus-schema/focus-stage）。三独立核验后主纠正“same-name”、双block和4次check误述，实际5次check含3budget拒绝；未证明新宿主缺陷，不扩大语法、不付费重抽。正确prose与错误graph分别记录。
+
+Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另18自动source动作）、source95有效、完整Cloudflare原/安装bundle与原输入保持，reference/target0。N终答root授权、版本族/空参数/软删除及原件/归档选择充分，独立source/raw核验与主源码点验评natural full、formal按N不适用；M-O有正确root链和owner/grant条件表，但缺GET model permission、空version与具体文件打开的充分说明，自然partial。M的0accepted units不能形成source-bound graph；第二次check valid仅证明transport/reference/rule一致，current sourceBound:false/taskResolution:partial。旧研究分类误归共享checker；针对实际无单位/末检查与current精确一致的anonymous red转绿，只允许明确生产path/policy草稿拒绝，独立code审查的伪空数组反例亦先红后修。57相关pass/284断言、原report零调用SHA证明只放行最后D-O，不提升quality/check，不重抽M。24归档原件362/360、fresh9263844/cache1495552/output331088，2未知及USD/开发AI/真人未知，尚未建立新核心/表达净收益。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

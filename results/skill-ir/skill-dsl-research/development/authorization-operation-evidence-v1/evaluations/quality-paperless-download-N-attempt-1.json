@@ -1,0 +1,129 @@
+{
+  "schemaVersion": "au-independent-source-evaluation/v1",
+  "artifact": "runs/quality-paperless-download-N/attempt-1/report.json",
+  "sha256": "11d6cf6ddd80a0e5ad247f3a8cd475acd1ad901898fb200a57572581130f6d90",
+  "reviewedAt": "2026-10-06T01:32:21.145Z",
+  "reviewers": [
+    "au_download_n_raw_audit",
+    "au_download_n_source_review",
+    "main"
+  ],
+  "grade": "full",
+  "originalTaskSufficient": true,
+  "naturalOutputAdequate": true,
+  "checked": false,
+  "bounded": false,
+  "formalCheck": "not-applicable",
+  "completionUnknown": false,
+  "sourceVerification": {
+    "valid": true,
+    "checkedFiles": 95,
+    "physicalReadBytes": 1412762
+  },
+  "sourceSkillUnmodified": true,
+  "installedSkillVerified": true,
+  "originalInputUnmodified": true,
+  "actualReferenceReads": [],
+  "questionAssessments": [
+    {
+      "id": "request-root-and-caller-authorization",
+      "grade": "full",
+      "reason": "Separates pre-action authentication/model permission from root owner/unowned/Guardian check without assuming a concrete user grant"
+    },
+    {
+      "id": "version-family-and-authorized-object",
+      "grade": "full",
+      "reason": "Requested descendant/root, absent/empty/invalid/unrelated version and soft-deleted selection are covered; selected file row can change while root authorization remains fixed"
+    },
+    {
+      "id": "original-archive-representation-and-effect",
+      "grade": "full",
+      "reason": "Exact original=true, archive availability and selected document file properties determine the file streamed, without an invented second version permission"
+    },
+    {
+      "id": "conditional-behavior-and-limits",
+      "grade": "full",
+      "reason": "Source behavior, independent descendant ownership policy and unspecified runtime grants are distinct; merge ownership difference is conditional and no vulnerability is asserted"
+    }
+  ],
+  "sourceAnchors": [
+    {
+      "file": "src/documents/views.py",
+      "lines": [
+        1368,
+        1375,
+        1388,
+        1401,
+        1421,
+        1429,
+        1437,
+        1442,
+        1834,
+        4941
+      ]
+    },
+    {
+      "file": "src/documents/versioning.py",
+      "lines": [
+        140,
+        146,
+        159,
+        175,
+        185,
+        189,
+        193
+      ]
+    },
+    {
+      "file": "src/documents/permissions.py",
+      "lines": [
+        30,
+        624,
+        635
+      ]
+    },
+    {
+      "file": "framework/rest_framework-3.18.1/rest_framework/views.py",
+      "lines": [
+        404,
+        419,
+        420
+      ]
+    }
+  ],
+  "targetExecutionAudit": {
+    "verified": true,
+    "targetExecutions": 0,
+    "rawToolCalls": 61,
+    "nativeHistoryCalls": 61,
+    "allowedRawTools": [
+      "source_list",
+      "source_search",
+      "source_read",
+      "source_symbol"
+    ],
+    "toolCounts": {
+      "source_list": 1,
+      "source_search": 21,
+      "source_read": 29,
+      "source_symbol": 10
+    },
+    "capture": {
+      "archive": "source-capture/20261006-092429-run.conv-001-natural-f7d3a519c329.jsonl.gz",
+      "sha256": "941bb4ffc346fe9e5c6465384fe5156171de64677f139ef396e34c5cb06f2edd",
+      "rawSha256": "d466f390959e5e3f02ca2d3f76b35d7406c45c075a9bfdd304cc8d17250ebbb3",
+      "rawBytes": 1602085,
+      "records": 22,
+      "requests": 11,
+      "responses": 11
+    }
+  },
+  "mainAdjudications": [
+    "Main checked views.py:1368-1448, versioning.py:136-195, permissions.py:624-635 and DRF views.py:404-421 against final",
+    "Version presence selects the resolver and deleted-inclusive manager; empty string then selects latest. The final explains both, so minor wording does not change sufficiency",
+    "Full applies to this bounded natural task only; N formal is not-applicable, no checked/bounded or net quality/cost benefit is inferred",
+    "No shared implementation fault proved; no redraw of N"
+  ],
+  "actualUSD": null,
+  "humanMinutes": null
+}

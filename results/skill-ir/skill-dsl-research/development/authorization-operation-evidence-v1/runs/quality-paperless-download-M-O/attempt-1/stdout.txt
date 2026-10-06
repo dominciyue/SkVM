@@ -1,0 +1,244 @@
+
+skvm run v0.1.4
+  Adapter  bare-agent (built-in)
+  Model    xty/gpt-5.6-sol via openai-compatible (https://svip.xty.app/v1)
+  Task     natural prompt
+  Skill    D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\cloudflare-security-audit\SKILL.md
+  WorkDir  D:\skill优化\project-maintenance\runs\authorization-operation-evidence-v1\quality-paperless-download-M-O\attempt-1
+  Cache    D:\skill优化\SkVM\.skvm
+
+09:32:33.249 [INFO ] [run] Run task natural-f7d3a519c329: adapter=bare-agent model=xty/gpt-5.6-sol workDir=D:\skill优化\project-maintenance\runs\authorization-operation-evidence-v1\quality-paperless-download-M-O\attempt-1
+09:32:33.252 [INFO ] [conv-log] Conversation logging enabled: D:\skill优化\SkVM\.skvm\log\20261006-093233-run
+✓ Task natural-f7d3a519c329 complete  (3m 34s)
+
+=== Run Complete ===
+Task: natural-f7d3a519c329
+Skill: D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\cloudflare-security-audit\SKILL.md
+Model: xty/gpt-5.6-sol
+Adapter: bare-agent
+WorkDir: D:\skill优化\project-maintenance\runs\authorization-operation-evidence-v1\quality-paperless-download-M-O\attempt-1
+Duration: 214.5s
+Tokens: in=494142 out=8073
+
+Final output:
+# Document Download authorization review
+
+**Revision:** `paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103`  
+**Scope:** Bounded, read-only source review. No execution, network access, deployment inspection, or live-data testing.
+
+## Conclusion
+
+The concrete authorization outcome is **conditional / unknown** because the root document’s ownership and the authenticated user’s effective object grants were not supplied.
+
+The important source relationship is:
+
+1. The URL `pk` identifies a requested document row.
+2. Paperless resolves that row to its logical **root document**.
+3. The authenticated user is explicitly authorized against that **root document**.
+4. Only after that check does Paperless select the file-bearing document version.
+5. The `original` option then chooses the original or archive representation of that selected version.
+
+Consequently, selecting another valid version changes the row whose file is returned, but **does not change the resource used by the explicit authorization check**. Authorization remains attached to the logical root document.
+
+No source-visible authorization vulnerability is established by this behavior alone. Whether this is the intended policy depends on whether permissions are meant to attach to the whole document family or independently to each version or representation.
+
+## Source behavior
+
+### 1. Authentication and view configuration
+
+`DocumentViewSet` declares:
+
+```python
+permission_classes = (IsAuthenticated, PaperlessObjectPermissions)
+```
+
+[`src/documents/views.py:1008-1027`](src/documents/views.py#L1008-L1027)
+
+DRF’s `IsAuthenticated` permits the request only when `request.user` exists and is authenticated:
+
+```python
+return bool(request.user and request.user.is_authenticated)
+```
+
+[`framework/rest_framework-3.18.1/rest_framework/permissions.py:145-151`](framework/rest_framework-3.18.1/rest_framework/permissions.py#L145-L151)
+
+DRF evaluates configured view permissions before dispatch and rejects a request when any applicable `has_permission` check fails.
+
+[`framework/rest_framework-3.18.1/rest_framework/views.py:321-342`](framework/rest_framework-3.18.1/rest_framework/views.py#L321-L342)
+
+Thus, an unauthenticated caller should not reach the download action under the reviewed configuration.
+
+### 2. Requested document and authorization resource
+
+For a download, `file_response()` calls `_resolve_request_and_root_doc()` with `include_deleted=True`. The helper therefore resolves the URL `pk` through `Document.global_objects`, producing `request_doc`, and then derives `root_doc`.
+
+[`src/documents/views.py:1401-1436`](src/documents/views.py#L1401-L1436)
+
+The decisive explicit file-operation check is:
+
+```python
+has_perms_owner_aware(
+    request.user,
+    "view_document",
+    root_doc,
+)
+```
+
+Failure returns HTTP 403.
+
+[`src/documents/views.py:1417-1427`](src/documents/views.py#L1417-L1427)
+
+`has_perms_owner_aware()` allows access when any of these branches is true:
+
+- `root_doc.owner is None`;
+- `root_doc.owner == request.user`; or
+- Guardian’s `ObjectPermissionChecker` reports the requested permission on `root_doc`.
+
+[`src/documents/permissions.py:624-635`](src/documents/permissions.py#L624-L635)
+
+Ownership and grants are unspecified here, so the source supports all of the following conditional outcomes:
+
+| Root state for the authenticated caller | Explicit file authorization |
+|---|---|
+| Root is unowned | Allowed by the owner-aware helper |
+| Root is owned by this caller | Allowed by the owner-aware helper |
+| Root has an effective direct/group `view_document` grant for this caller | Allowed if recognized by the configured object-permission backend |
+| None of the above | HTTP 403 |
+
+The source does not establish which row of this table applies to the request in question.
+
+### 3. Version selection
+
+Version selection happens **after** authorization of `root_doc`.
+
+#### Explicit `version` parameter
+
+When `version` is supplied:
+
+- it must parse as an integer;
+- the identified candidate must exist; and
+- it must either be the root itself or have `root_document_id == root_doc.id`.
+
+An invalid integer is classified as invalid. A nonexistent candidate or a candidate outside the root’s version family is rejected as not found.
+
+[`src/documents/versioning.py:169-195`](src/documents/versioning.py#L169-L195)  
+[`src/documents/views.py:1375-1386`](src/documents/views.py#L1375-L1386)
+
+#### No `version` parameter
+
+When no `version` parameter is present:
+
+- if the URL `pk` already identifies a version row, that `request_doc` remains the effective file document;
+- if the URL `pk` identifies the root, the code selects the latest version, falling back to the root if there are no versions.
+
+[`src/documents/views.py:1388-1399`](src/documents/views.py#L1388-L1399)  
+[`src/documents/versioning.py:159-182`](src/documents/versioning.py#L159-L182)
+
+Therefore:
+
+> A valid version selector changes `file_doc`, but the explicit `view_document` decision remains against `root_doc`.
+
+The code does not perform a separate owner-aware permission check against the selected version row.
+
+### 4. Original versus archive representation
+
+After root authorization and version resolution, `file_response()` calls `serve_file()` with the selected `file_doc`.
+
+Its archive-selection expression is:
+
+```python
+use_archive = (
+    not self.original_requested(request)
+    and file_doc.has_archive_version
+)
+```
+
+[`src/documents/views.py:1429-1448`](src/documents/views.py#L1429-L1448)
+
+`original_requested()` is true only when the query parameter is exactly `original=true`.
+
+[`src/documents/views.py:1368-1373`](src/documents/views.py#L1368-L1373)
+
+The branches are therefore:
+
+- `original=true` → request the selected `file_doc`’s original representation.
+- No exact `original=true`, and `file_doc.has_archive_version` is true → request its archive representation.
+- No archive exists → fall back to the original representation.
+
+This representation choice does not replace `root_doc`, select another authorization resource, or cause a separate representation-specific permission check.
+
+## Control and failure branches
+
+The relevant branches are:
+
+1. **Unauthenticated caller:** denied by `IsAuthenticated` before action dispatch.
+2. **Requested `pk` does not resolve:** not-found behavior.
+3. **Root permission succeeds:** continue to version resolution.
+4. **Root permission fails:** return HTTP 403.
+5. **No explicit version:** use the URL-addressed version directly, or latest version/root for a root request.
+6. **Valid explicit family version:** use that version as `file_doc`.
+7. **Malformed version value:** not found with an invalid-version condition.
+8. **Nonexistent or unrelated version:** not found; no file is served.
+9. **`original=true`:** select the chosen version’s original representation.
+10. **Otherwise, archive available:** select the chosen version’s archive.
+11. **Otherwise:** select the chosen version’s original.
+12. **File/storage error after selection:** delivery may fail independently of authorization.
+
+## Independent policy assessment
+
+The task does not supply the intended authorization policy, so conformance is **undetermined**.
+
+- **If permissions attach to the logical document family:** the visible source is aligned. The user is authorized against the root, and an explicitly selected version must belong to that root before its file can be served.
+- **If every version row requires independent authorization:** the visible source does not implement that policy. A valid family version is served based on authorization of the root, not a separate check on the version.
+- **If original and archive representations require different permissions:** the visible source does not implement that policy either. The query flag changes representation selection only.
+
+This is a policy distinction, not by itself a confirmed vulnerability.
+
+## Missing facts
+
+The following facts are required to resolve the concrete request:
+
+1. **Root ownership**
+   - Whether the root is unowned.
+   - Whether it is owned by this authenticated user.
+
+2. **Effective object grants**
+   - Direct Guardian grants on the root.
+   - Group grants and the user’s effective group membership.
+   - Whether the deployed object-permission backend recognizes those grants as expected.
+
+3. **Request and document state**
+   - The URL `pk`.
+   - The exact `version` parameter, if any.
+   - The exact `original` parameter.
+   - Whether the requested/root/version rows are deleted.
+   - Whether the selected version has an archive representation.
+
+4. **Deployment facts**
+   - The authentication backend that established `request.user`.
+   - Deployed DRF and Guardian configuration.
+   - Routing and middleware parity with this revision.
+   - Any deployment-specific changes to permission handling.
+
+5. **File delivery**
+   - Whether the selected original or archive file exists and is readable.
+   - Storage-backend behavior.
+   - Any reverse-proxy handling of the response.
+
+These deployment and data facts should be checked only through an owner-controlled administrative view or a bounded local dummy fixture—not by probing another user’s documents.
+
+## Confidence and source self-verification
+
+**Confidence:** High for the source-visible control flow; indeterminate for the concrete allow/deny outcome and policy conformance.
+
+The source trace was checked for the distinctions requested:
+
+- caller authentication;
+- URL-addressed document versus logical root;
+- root owner/direct-or-group-grant branches;
+- explicit and implicit version selection;
+- original versus archive selection;
+- the resource authorized versus the row supplying the returned file;
+- not-found, forbidden, and later file-delivery failure branches.
+
+No target code was executed. Unrelated serializer, mutation, listing, and formatting paths were not treated as part of the download authorization decision. Deployment configuration, actual ownership/grants, and storage behavior remain unverified.

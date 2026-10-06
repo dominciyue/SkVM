@@ -1,0 +1,307 @@
+
+skvm run v0.1.4
+  Adapter  bare-agent (built-in)
+  Model    xty/gpt-5.6-sol via openai-compatible (https://svip.xty.app/v1)
+  Task     natural prompt
+  Skill    D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\cloudflare-security-audit\SKILL.md
+  WorkDir  D:\skill优化\project-maintenance\runs\authorization-operation-evidence-v1\quality-paperless-download-N\attempt-1
+  Cache    D:\skill优化\SkVM\.skvm
+
+09:24:29.522 [INFO ] [run] Run task natural-f7d3a519c329: adapter=bare-agent model=xty/gpt-5.6-sol workDir=D:\skill优化\project-maintenance\runs\authorization-operation-evidence-v1\quality-paperless-download-N\attempt-1
+09:24:29.525 [INFO ] [conv-log] Conversation logging enabled: D:\skill优化\SkVM\.skvm\log\20261006-092429-run
+✓ Task natural-f7d3a519c329 complete  (2m 35s)
+
+=== Run Complete ===
+Task: natural-f7d3a519c329
+Skill: D:\skill优化\SkVM\results\skill-ir\skill-dsl-research\development\authorization-domain-execution-v1\model\source-skills\cloudflare-security-audit\SKILL.md
+Model: xty/gpt-5.6-sol
+Adapter: bare-agent
+WorkDir: D:\skill优化\project-maintenance\runs\authorization-operation-evidence-v1\quality-paperless-download-N\attempt-1
+Duration: 155.3s
+Tokens: in=148120 out=6217
+
+Final output:
+# Bounded authorization review: document Download
+
+**Target:** `paperless-ngx/paperless-ngx@126ec414a8b65158368653a2604ae58415e43103`  
+**Dependency evidence:** Django REST Framework 3.18.1, source locked by the application lockfile [source_identity.py:1-3].  
+**Mode:** Focused, source-only behavior review. No target execution, writes, network access, or deployment inspection was available.
+
+## Conclusion
+
+The Download operation authorizes access against the **root document of the requested document family**, not separately against the version row whose file is ultimately returned.
+
+The operation separates three choices:
+
+1. **Requested document (`pk`)** identifies a document row and, through it, the root document family.
+2. **Version selection (`version`)** chooses a root or descendant row within that same family.
+3. **Representation selection (`original=true` or default archive preference)** chooses the source/original or archive file belonging to the selected row.
+
+Changing `version` can therefore change the actual `Document` row and file bytes returned, but it does **not** change the object against which the manual object-level authorization check is performed. That check remains on the root document.
+
+This is definite source behavior. Whether root-level authority is the intended independent policy for every historical version is not established by the supplied source. In particular, ownership and Guardian grants for the actual installation were not supplied, so no specific user can be said to be allowed or denied.
+
+## Request and control flow
+
+### 1. Route and baseline request permission
+
+The API router registers `UnifiedSearchViewSet` under `documents`, producing routes under `/api/documents/...` [src/paperless/urls.py:74-77, 97-105]. A legacy `/fetch/doc/<pk>` route redirects to `/api/documents/<pk>/download/` [src/paperless/urls.py:304-313].
+
+The underlying document view declares:
+
+```python
+permission_classes = (IsAuthenticated, PaperlessObjectPermissions)
+```
+
+[src/documents/views.py:1008-1027].
+
+For GET requests, `PaperlessObjectPermissions` requires the model permission `documents.view_document` [src/documents/permissions.py:30-44]. DRF performs authentication and view-level permission checks before invoking the action [framework/rest_framework-3.18.1/rest_framework/views.py:404-421]; its model-permission implementation obtains the model from the view queryset and calls `request.user.has_perms(...)` [framework/rest_framework-3.18.1/rest_framework/permissions.py:203-246].
+
+Thus, based on the supplied source, reaching the Download handler requires:
+
+- an authenticated user; and
+- satisfaction of the GET model-level `documents.view_document` permission check.
+
+That is separate from the root-document object check described below.
+
+### 2. Download dispatch
+
+The `download` action calls:
+
+```python
+self.file_response(pk, request, "attachment")
+```
+
+and translates missing document/file conditions into HTTP 404 [src/documents/views.py:1834-1839].
+
+`file_response` then performs these stages in order:
+
+1. resolve the requested row and root row;
+2. authorize the root row;
+3. resolve which document/version supplies the file;
+4. select archive or original representation;
+5. stream that file.
+
+[src/documents/views.py:1429-1448].
+
+## Authorization resource
+
+### Root document is the checked object
+
+`_resolve_request_and_root_doc` loads the row named by `pk` through `Document.global_objects`, because Download passes `include_deleted=True`. It follows `root_document` when the requested row is a version, then calls:
+
+```python
+has_perms_owner_aware(
+    request.user,
+    "view_document",
+    root_doc,
+)
+```
+
+[src/documents/views.py:1401-1427, 1429-1436].
+
+The helper grants the object check when any of the following is true:
+
+- the root is unowned;
+- the authenticated user owns the root; or
+- Guardian reports the requested object permission on the root.
+
+[src/documents/permissions.py:624-635].
+
+Consequently, the manual object authorization resource is:
+
+| Request form | Manually authorized object |
+|---|---|
+| `download/<root-id>` | that root |
+| `download/<version-id>` | the version’s root |
+| either form with `?version=<id>` | still the same resolved root |
+
+The requested version row is not passed to `has_perms_owner_aware`.
+
+A failed root object check returns an explicit `403 Insufficient permissions` from this branch [src/documents/views.py:1421-1426]. This differs from the ordinary DRF object-permission path, which can convert a failed safe-method object check into 404 [framework/rest_framework-3.18.1/rest_framework/permissions.py:289-314].
+
+### Queryset filtering is not the decisive Download check
+
+The standard document view includes `PermittedObjectsFilter`, which ordinarily restricts a queryset to superuser-visible, owned, unowned, or explicitly granted objects [src/documents/views.py:1022-1027; src/documents/filters.py:1060-1094]. But the Download implementation does not call `self.get_object()` to obtain its authorization object. It directly queries `Document.global_objects` and performs the root check described above [src/documents/views.py:1401-1427].
+
+Therefore, for this action, the decisive object-level source branch is the explicit root-document check, not whether the selected version row would independently survive `PermittedObjectsFilter`.
+
+## Version selection and returned file
+
+Documents have a self-referential `root_document` relation; descendant rows are exposed as the root’s `versions`. Each descendant can carry a `version_index` [src/documents/models.py:315-330].
+
+### No `version` query parameter
+
+Behavior depends on the `pk`:
+
+- **Root `pk`:** `_get_effective_file_doc` resolves the newest descendant by `version_index`, falling back to the root if there is no descendant.
+- **Version `pk`:** the directly requested version row is returned as the effective file document.
+
+[src/documents/views.py:1388-1399; src/documents/versioning.py:23-28, 159-166].
+
+This means:
+
+```text
+GET /api/documents/<root>/download/
+```
+
+normally returns the latest version’s file, whereas:
+
+```text
+GET /api/documents/<version>/download/
+```
+
+returns that specific version’s file. Both authorize the root.
+
+### A `version` query parameter is present
+
+Any presence of `version`, including an empty or malformed value, takes the explicit-version path [src/documents/views.py:1375-1385].
+
+Resolution works as follows:
+
+- no truthy value ultimately selects the latest version;
+- a non-integer value produces an invalid-version error;
+- a nonexistent ID produces not found;
+- an existing candidate is accepted only if it is:
+  - the root itself, or
+  - a direct descendant whose `root_document_id` is that root’s ID.
+
+An unrelated document/version is rejected as not found [src/documents/versioning.py:169-195].
+
+Because `_resolve_file_doc` sets `include_deleted=True` whenever the `version` parameter is present, an explicitly selected candidate is looked up through `Document.global_objects`, including soft-deleted versions [src/documents/views.py:1375-1385; src/documents/versioning.py:136-137, 169-195].
+
+The important authorization relationship is:
+
+```text
+requested pk
+    → resolve root
+    → authorize root
+    → resolve version constrained to that root family
+    → return selected version's file
+```
+
+Version selection is family-constrained, so it cannot name an arbitrary unrelated document. It nevertheless changes the file-producing row without causing a new authorization check on that selected row.
+
+## Original versus archive representation
+
+Once `file_doc` has been selected, `file_response` determines the representation:
+
+```python
+use_archive = (
+    not self.original_requested(request)
+    and file_doc.has_archive_version
+)
+```
+
+[src/documents/views.py:1442-1447].
+
+`original_requested` is true only when the query contains the exact string `original=true` [src/documents/views.py:1368-1373].
+
+The branches are:
+
+| Condition | Returned representation |
+|---|---|
+| `original=true` | selected row’s source/original file |
+| no exact `original=true`, selected row has archive | selected row’s archive PDF |
+| no exact `original=true`, selected row has no archive | selected row’s source/original file |
+
+`serve_file` opens `doc.archive_file` in the archive branch and `doc.source_file` otherwise [src/documents/views.py:4941-4973]. Those properties resolve respectively under the configured archive and originals directories [src/documents/models.py:452-475].
+
+Thus, `original` does not switch documents or versions and does not trigger another authorization decision. It only selects between two representations attached to the already selected `file_doc`.
+
+`follow_formatting` affects the download filename, not the underlying authorization object or file selection [src/documents/views.py:1442-1447, 4948-4965].
+
+## Does selecting another version change the authorized resource?
+
+**No, not in this source path.**
+
+Selecting another version:
+
+- can change the `Document` row supplying `source_file` or `archive_file`;
+- can change whether an archive representation exists;
+- can change the bytes, MIME type, and filename returned;
+- must remain within the root family;
+
+but does not change the object passed to the authorization helper. The checked object remains `root_doc`.
+
+Likewise, requesting a descendant directly by putting its ID in the path does not authorize that descendant independently: the code follows it to its root and checks the root.
+
+## Conditional source behavior versus independent policy
+
+### Established source behavior
+
+The following conclusions are source-confirmed:
+
+- Authentication and a GET model-permission gate occur before the action.
+- The action’s manual object check is against the root.
+- Explicit version IDs are constrained to the root or its direct descendants.
+- The selected version row supplies the actual file.
+- Archive/original selection occurs after version resolution and uses that selected row.
+- No second owner/Guardian check is made on the selected version row.
+
+### Policy that cannot be inferred
+
+The supplied source does not establish whether historical version rows are intended to be independent authorization resources or representations wholly governed by their root.
+
+There is evidence supporting a root-family policy:
+
+- newly created version rows copy `owner_id` from the root [src/documents/consumer.py:249-285];
+- public filename construction uses root metadata for version rows [src/documents/models.py:477-484];
+- the serializer presents the root and descendants together as one versions list [src/documents/serialisers.py:1094-1132].
+
+However, merged existing documents can be converted into versions by assigning `root_document_id` and `version_index`; the shown update does not rewrite the source document’s owner in that branch [src/documents/bulk_edit.py:635-682]. That means source-visible data states may exist where a descendant’s stored owner differs from the root’s owner. The examined Download path still authorizes only the root in that state.
+
+This does **not**, by itself, establish an authorization vulnerability. A version’s old ownership may intentionally cease to be authoritative when it is merged into a root family. The missing policy question is whether Paperless promises that a historical version retains independently enforceable owner or object-grant restrictions after version creation or merge.
+
+## Security disposition
+
+### Confirmed finding
+
+**None established from the supplied evidence.**
+
+There is no arbitrary cross-document selector: explicit versions are constrained to the authorized root family. Without an independent policy saying that descendant rows retain separate confidentiality boundaries, root authorization followed by family-constrained representation selection is internally coherent.
+
+### Needs validation: root grants versus descendant-version policy
+
+**Hypothesis:** A user who may view a root can download a descendant version even if that user would not independently own or hold `view_document` on the descendant row.
+
+**Source basis:** Authorization checks `root_doc`, while file resolution may select a different descendant `Document` [src/documents/views.py:1401-1448].
+
+**Exact missing facts:**
+
+1. Whether version rows are policy-defined as subordinate representations governed exclusively by the root.
+2. Whether object permissions on descendants are supported or expected to restrict version downloads independently.
+3. Whether merge-as-versions is intended to extinguish the source document’s prior ownership/grant boundary.
+4. The actual root owner, selected-version owner, user/group Guardian grants, user active status, superuser status, and global `documents.view_document` permission for any concrete request.
+5. Any deployment-layer authorization or proxy behavior outside the supplied repository scope.
+
+No severity is assigned because this is a policy-dependent hypothesis, not a demonstrated boundary violation.
+
+A safe owner-side validation would use dummy local users and documents to compare the intended policy with these cases:
+
+- user can view root but not independently selected descendant;
+- user can view descendant but not root;
+- root and descendant have different owners after merge;
+- explicit selection of a soft-deleted descendant.
+
+The expected result should be decided from product policy before treating the current root-centric behavior as correct or defective.
+
+## Confidence and source self-verification
+
+**Confidence: High** for the control flow and identity of the checked versus returned document. The relevant route, DRF pre-action permission path, Download action, root resolution, permission helper, version resolver, representation branch, and file-opening code were read directly.
+
+**Confidence: Moderate** for broader policy interpretation. Source patterns suggest versions are root-governed representations, but no supplied policy statement definitively resolves independently stored ownership or Guardian grants on descendant rows.
+
+Self-verification performed:
+
+- traced route registration to the document API;
+- separated DRF view-level permission checks from the action’s manual object check;
+- traced path `pk` through request-row and root resolution;
+- traced absent, invalid, unrelated, root, descendant, and deleted-version branches;
+- traced `original` and archive fallback to the exact file properties opened;
+- checked version ownership at creation and the merge-as-version update branch;
+- avoided assuming any user owns or has a grant on a particular object.
+
+## Remaining duties and limits
+
+This was a bounded source-only investigation, not a complete repository audit. No code was executed, and no runtime database, configured authentication backend, Guardian records, deployment configuration, proxy controls, or product-policy documentation outside the allowed source was examined. Accordingly, this report establishes conditional source behavior but does not determine authorization for an unspecified real user or confirm a vulnerability.

@@ -16,9 +16,11 @@ Share第十轮request16网络超时，16派发/15响应；同一Share逻辑任�
 
 原字节Gitea消费者在`187d2195`的request22结果检查派发后网络超时，22/21、无终答、formal unknown；source346文件有效、16current units、原稿/完整skill保持，不能用草稿单元代替交付。原件SHA `7e27e22bc5954516a8a4e22bf77cdff6af8d966cf7c2bdd7a178f271f8132dad`，raw/native计数一致；ordinary全响应守卫导致unbound诊断，不是已证明日志绑定缺陷。Gitea任务全部10种登记表示封存，剩余消费者变化位及3质量位零调用blocked，不换身份重发。SHA范围裁定保持Gitea/Share任务暂停，仅允许两个独立Python原任务的6质量首位置。
 
-OWUI N/M-O在同`5ac2d651`完整原Cloudflare包分别7/7、24/24已知，26/39工具、source173文件有效、参考读取0、目标执行0；两自然终答partial，N formal不适用、M-O未checked/bounded。N漏bypass/hash拒绝/已有collection no-op等可见分支；M-O补述这些控制，但未交付外层caller和完整认证来源，6current units、1operation/1question不替代终答。主纠正探子引用中间解释及将formal与自然充分性混判。源码reason原样成为诊断而被分类白名单遗漏；1匿名预期red转绿、56相关pass/265断言、双类型通过，独立代码审查未发现已证明错误。仅按current unit与诊断的精确来源匹配归model-draft，原report/review/质量保持，零调用SHA裁定释放余4登记行。下一OWUI D-O，再Download N/M-O/D-O；修前后版本分列。
+OWUI三臂自然终答均partial：N/M-O在`5ac2d651`为7/7、24/24，D-O在`d50388db`24/24、1声明调用/1operation/5questions。完整Cloudflare原/安装包、输入与173source文件有效，reference/target0。D-O错误入口保留AuditLogger.write，虽定位了真实process_file却未提交公开root selection，当前仅1audit-write单元；两exit0解释实际含格式/阶段拒绝。主纠正独立评阅的成功替换和遗漏计数。N formal不适用，M/D未checked/bounded；原件保留，不重抽。
 
-最新原件重算21归档尝试、311派发/309响应、2项完成与usage未知；known fresh7582951/cache968192/output299738，USD/developer/AI/human均未知，目标执行0。32原位置零provider重放通过，实际ordinary与作者原件按SHA绑定独立评阅。首答、修订、封存和未派位置分别保留；工程通过不能代替实际完整链或质量收益。恢复见AU results `status.json`，旧结果与保护输入保持。
+Download N/M-O在`d50388db`分别11/11、16/16，61/44显式raw/native工具、95source有效、完整skill/input保持、reference/target0。N自然调查full（root授权、版本族/软删除及original/archive），formal不适用。M-O自然partial，缺GET model permission、空version与具体文件打开分支；终答已有owner/grant表，主纠正探子的遗漏判断。M-O没有accepted source units，第二次check valid但sourceBound:false/taskResolution:partial，不能作为闭合。分类器误暂停checker，匿名red与独立数组反例red已修，57相关pass/284断言；精确原report零调用证明仅解除最后Download D-O的分类暂停，原check/quality不提升。剩余一个D-O首位，修前后版本分列。
+
+最新原件重算24归档尝试、362派发/360响应、2项完成与usage未知；known fresh9263844/cache1495552/output331088，USD/developer/AI/human均未知，目标执行0。实际ordinary与作者原件按SHA绑定独立评阅，首答、修订、封存和未派位置分别保留。最后首位后实施任务书的AU专属终态/根program计量TDD收口；有限执行和研究验收分开，旧结果与保护输入保持。恢复见AU results `status.json`。
 
 最近的 [AT0–AT19](../superpowers/plans/2026-10-05-authorization-focused-closure-and-delivery.md) 有限队列已以 `completed-with-unmet-criteria` 收束。持久focus、宿主身份、纯有限helper摘要、字段/返回对象、源码终检和双入口已实现。[AT summary](../../results/skill-ir/skill-dsl-research/development/authorization-focused-closure-v1/summary.json)分别记录工程、实际使用、比较和成本结论；原件和封存保留。
 

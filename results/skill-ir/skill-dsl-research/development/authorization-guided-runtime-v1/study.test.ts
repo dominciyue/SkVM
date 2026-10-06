@@ -35,6 +35,36 @@ test("native source gaps retain their model provenance without accepting unrelat
   ]) expect(api.mechanicalReview(invalid).failure.components).not.toEqual(["model-draft"])
 })
 
+test("a valid native unknown without any source interpretation remains incomplete model delivery", () => {
+  const check = { structureValid: true, sourceBound: false, ruleConsistency: true, taskResolution: "partial", paths: [], diagnostics: [] }
+  const rejected = { call: { name: "authorization_check_result" }, exitCode: 0, output: { valid: false, diagnostics: [{ code: "semantic-path-missing" }, { code: "behavior-policy-assessment" }] } }
+  const accepted = { call: { name: "authorization_check_result" }, exitCode: 0, output: { valid: true, diagnostics: [], domainCheck: check } }
+  const report = { status: "completed-with-diagnostics", ordinaryEntry: "skvm run", finalProse: "Unknown answer names the source coverage gap.", validation: { valid: false, diagnostics: [] }, sourceVerification: { valid: true }, domain: { closed: true, check, semantic: { units: [], assemblies: [{ derived: { questions: [{ questionId: "q" }] }, diagnostics: [] }] } }, history: [rejected, accepted] }
+  expect(api.mechanicalReview(report).failure.components).toEqual(["model-draft"])
+  expect(api.mechanicalReview({ ...report, history: [accepted] }).failure.components).toEqual(["model-draft"])
+  for (const value of ["", { length: 0 }]) {
+    for (const field of value === "" ? ["paths", "diagnostics"] : ["paths"]) {
+      const malformed = { ...check, [field]: value }
+      expect(api.mechanicalReview({ ...report, domain: { ...report.domain, check: malformed }, history: [rejected, { ...accepted, output: { ...accepted.output, domainCheck: malformed } }] }).failure.components).not.toEqual(["model-draft"])
+    }
+    if (value === "") expect(api.mechanicalReview({ ...report, validation: { valid: false, diagnostics: value } }).failure.components).not.toEqual(["model-draft"])
+    expect(api.mechanicalReview({ ...report, history: [rejected, { ...accepted, output: { ...accepted.output, diagnostics: value } }] }).failure.components).not.toEqual(["model-draft"])
+  }
+  for (const invalid of [
+    { ...report, attempts: [{ status: "pending" }] },
+    { ...report, sourceVerification: { valid: false } },
+    { ...report, error: "Unexpected host exception" },
+    { ...report, finalProse: "" },
+    { ...report, domain: { ...report.domain, closed: false } },
+    { ...report, domain: { ...report.domain, semantic: { ...report.domain.semantic, units: [{ handle: "unexamined" }] } } },
+    { ...report, domain: { ...report.domain, check: { ...check, sourceBound: true } } },
+    { ...report, validation: { valid: false, diagnostics: [{ code: "internal-invariant" }] } },
+    { ...report, history: [] },
+    { ...report, history: [{ ...rejected, output: { valid: false, diagnostics: [{ code: "internal-invariant" }] } }, accepted] },
+    { ...report, history: [rejected, { ...accepted, output: { ...accepted.output, domainCheck: { ...check, taskResolution: "bounded" } } }] },
+  ]) expect(api.mechanicalReview(invalid).failure.components).not.toEqual(["model-draft"])
+})
+
 test("a hash-bound model candidate reclassification permits listed same-task work but retains the original failure", async () => {
   const root = await temp(), report = focusedCandidateFailure()
   await api.developRows(root, [row("candidate")], options({ execute: async () => report, evaluate: async () => ({ failure: { category: "state/checker", rootCause: "Old broad classification", components: ["checker"] } }) }))

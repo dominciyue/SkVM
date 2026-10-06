@@ -2496,6 +2496,7 @@ Operation声明以用户实际请求的动作分组，endpoint/object/inherited/
 普通完整skill、Markdown加同核心、DSL加同核心分别观察，用真实源码和原始任务检验质量、编写及变化使用。评阅oracle、正确答案和人工正确图留在评价侧；程序自行提取候选的过程与成本可查。原答/修订分列，共享缺陷即停受影响派发、当场修复并同题复验，不要求故障首轮跑满。确定性测试、真实采用、独立源码质量与比较收益分别报告；保护输入及未知封存不因新identity绕过。
 
 AU执行失败分类须区分校验器拒绝模型草稿与共享宿主故障。source-valid、已知闭合普通报告的结果检查正常返回拒绝时，具名focus-next不可用和显式参数类型不匹配属于待审草稿责任；模型unresolved reason诊断须与current accepted unit的question/handle/block/step/reason和宿主生成path/message/severity精确对应，方可作同类归因。未知完成、无效source、宿主异常及未知诊断继续阻断。只允许用原件SHA、确定性重放证明和显式eligibleRows裁定纠正共享误分类，原失败状态/语义/终答不改，Share及Gitea任务级unknown封存保持。原件native/raw派发与响应一致但有实际未响应请求时，全响应计量守卫的拒绝不自行证明共享日志缺陷；独立任务可经retainTaskPause范围裁定继续，未知任务的其它登记表示仍零调用封存。
+结果校验的valid与source-bound/bounded分列。已知闭合且source-valid的native答复即使末检查valid，若没有accepted units且精确匹配的current check仍sourceBound:false/taskResolution:partial，也只属于未完成的模型源码交付；路径及诊断必须是真实空数组，未知前序诊断/宿主异常/冲突状态不走此归因。允许的生产具名path/policy草稿拒绝和格式修订不证明源码质量，不为同位增加重抽。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
