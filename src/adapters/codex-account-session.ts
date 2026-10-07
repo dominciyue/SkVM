@@ -58,7 +58,9 @@ export function redactCodexEvent(value: unknown): any {
   if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, /^(?:account.?id|user.?id|email|api.?key|access.?token|refresh.?token|id.?token|auth.?token|session.?token|authorization|cookie|credentials|auth|password|secret|private.?key)$/i.test(key) ? "[redacted]" : redactCodexEvent(item)]))
   return typeof value === "string" ? value.replace(/Bearer\s+[^\s"']+/gi, "Bearer [redacted]").replace(/\b(?:sk-|gh[pousr]_|github_pat_)[A-Za-z0-9_-]+/g, "[redacted]").replace(/\b((?:password|secret|api_key|access_token)\s*[=:]\s*)(?:"[^"]*"|'[^']*'|[^\s,;]+)/gi, "$1[redacted]").replace(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g, "[redacted-email]") : value
 }
-const controlledVersion = "0.159.0-alpha.12.1"
+// Admit exact versions whose experimental RPC/config contracts were inspected.
+// Every real session still rechecks effective config, roots and instruction pins.
+const controlledVersions = new Set(["0.159.0-alpha.12.1", "0.160.0"])
 const disabledFeatures = ["shell_tool", "unified_exec", "apps", "plugins", "remote_plugin", "multi_agent", "multi_agent_v2", "browser_use", "computer_use", "js_repl", "view_image", "image_generation", "hooks", "memories", "skill_search", "skill_mcp_dependency_install", "goals", "sleep_tool", "tool_suggest", "auth_elicitation", "request_permissions_tool"]
 function object(value: unknown): Record<string, unknown> { return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {} }
 function controls(config: unknown = {}, skills: unknown = {}): Record<string, unknown> {
@@ -132,7 +134,7 @@ export function createCodexStdioTransport(): AccountTransport {
     else child.kill()
   }
   start(controls())
-  return { isolation: { kind: version === controlledVersion ? "controlled-public-cli" : "unverified-public-cli", reason: "account-cli-version-not-verified:" + version, cliVersion: version },
+  return { isolation: { kind: controlledVersions.has(version) ? "controlled-public-cli" : "unverified-public-cli", reason: "account-cli-version-not-verified:" + version, cliVersion: version },
     configure: async config => { await close(); start(config) },
     send: message => { child.stdin!.write(JSON.stringify(message) + "\n") }, onMessage: f => { receive = f }, onExit: f => { exited = f }, close }
 }
@@ -245,7 +247,7 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
     if (transport.isolation.kind === "unverified-public-cli") { failure = transport.isolation.reason; return result("unavailable") }
     let cwd = options.cwd, config: Record<string, unknown> | undefined
     if (transport.isolation.kind === "controlled-public-cli") {
-      if (transport.isolation.cliVersion !== controlledVersion || !transport.configure) { failure = "account-controlled-version-or-config-unverified"; return result("unavailable") }
+      if (!controlledVersions.has(transport.isolation.cliVersion ?? "") || !transport.configure) { failure = "account-controlled-version-or-config-unverified"; return result("unavailable") }
       cwd = await mkdtemp(path.join(tmpdir(), "skvm-account-"))
       const installed = await request("config/read", { cwd, includeLayers: false }), skills = await request("skills/list", { cwds: [cwd], forceReload: true })
       config = controls(installed.config, skills)
@@ -256,7 +258,7 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
       const effective = await request("config/read", { cwd, includeLayers: false }), currentSkills = await request("skills/list", { cwds: [cwd], forceReload: true })
       failure = configFailure(effective.config, currentSkills)
       if (failure) return result("unavailable")
-      capability = { status: "verified-controlled", cliVersion: controlledVersion, effectiveConfig: safeConfig(effective.config), instructionSources: [], runtimeWorkspaceRoots: [] }
+      capability = { status: "verified-controlled", cliVersion: transport.isolation.cliVersion!, effectiveConfig: safeConfig(effective.config), instructionSources: [], runtimeWorkspaceRoots: [] }
     }
     const thread = await request("thread/start", { model: options.model, modelProvider: "openai", allowProviderModelFallback: false, cwd, environments: [],
       ...(config ? { permissions: "skvm-account", runtimeWorkspaceRoots: [], selectedCapabilityRoots: [], config, developerInstructions: "" } : { sandbox: "read-only" }),

@@ -84,10 +84,10 @@ test("credential-like natural text in skills and nested tool traces is filtered 
   expect(api.redactCodexEvent({ password: "local-secret", text: "ghp_ABC123 password='local secret' user@example.com" })).toEqual({ password: "[redacted]", text: "[redacted] password=[redacted] [redacted-email]" })
 })
 
-function controlled(mode = "normal") {
+function controlled(mode = "normal", cliVersion = "0.159.0-alpha.12.1") {
   const f = mock(mode), original = f.transport.send
   let configured: Record<string, any> = {}
-  f.transport.isolation = { kind: "controlled-public-cli", reason: "Version-bound metadata verification", cliVersion: "0.159.0-alpha.12.1" }
+  f.transport.isolation = { kind: "controlled-public-cli", reason: "Version-bound metadata verification", cliVersion }
   f.transport.configure = async (config: Record<string, any>) => { configured = config }
   f.transport.send = (m: any) => {
     if (m.method === "config/read") {
@@ -116,17 +116,22 @@ function controlled(mode = "normal") {
   return f
 }
 
-test("controlled official transport verifies effective settings and thread boundaries before a real tool turn", async () => {
-  const f = controlled(), r = await f.run({ timeoutMs: 100 })
+for (const cliVersion of ["0.159.0-alpha.12.1", "0.160.0"]) test(`${cliVersion} controlled official transport verifies effective settings and thread boundaries before a real tool turn`, async () => {
+  const f = controlled("normal", cliVersion), r = await f.run({ timeoutMs: 100 })
   expect(r.status).toBe("completed")
   const t = f.sent.find(m => m.method === "thread/start").params
   expect(t).toMatchObject({ permissions: "skvm-account", runtimeWorkspaceRoots: [], environments: [] })
   expect(t.sandbox).toBeUndefined()
   expect(r.capability?.status).toBe("verified-controlled")
-  expect(r.capability?.cliVersion).toBe("0.159.0-alpha.12.1")
+  expect(r.capability?.cliVersion).toBe(cliVersion)
   expect(t.config.features.code_mode_host).toEqual({ enabled: true, disable_in_process_fallback: true })
   expect(t.config.skills).toMatchObject({ bundled: { enabled: false }, include_instructions: false })
   expect(t.config.agents).toEqual({ enabled: false })
+})
+test("an unverified future CLI version cannot inherit capability admission", async () => {
+  const f = controlled("normal", "0.161.0"), r = await f.run({ timeoutMs: 100 })
+  expect(r.status).toBe("unavailable")
+  expect(f.sent.some(m => m.method === "turn/start")).toBe(false)
 })
 
 test("ignored account settings, extra instruction sources and extra roots refuse inference", async () => {

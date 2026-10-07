@@ -2022,6 +2022,8 @@ AY1点验表：
 
 初版依赖红测4项均按预期失败，绿测连同原demand共12项通过；生产双入口新增v5红测两项失败，修复后source-assisted/source-interpretation共43项通过。初版只机械排除未被依赖使用的局部标量常量赋值，字段/调用/context角色不证明无影响；保留原骨架与每条排除出处。工程反例不等于真实任务通过。
 
+2026-10-08首个native-download原件使用97bea268：官方CLI已升级0.160.0，旧版本准入返回unavailable/not-started，host回调0，推理未派发、自然答未交付、用量unknown。读取本机生成的experimental ThreadStartParams/Response、DynamicToolCall及TurnStatus合同后，为精确0.160.0增加兼容；每会话仍验证实际隔离配置/roots/指令pins，未核验未来版本不准入。版本红测18pass/1预期fail，账号联合37pass/260断言。另独立核验发现inspect未比对新增状态字段，篡改报告红测复现并修复；不升级原件，下一请求具名登记。
+
 **执行与账号。** 明确failed终态与completion-unknown分开，旧AX状态只追加裁定；用量缺报保持unknown。没有活动请求后，新具名尝试沿用户已授权账号通道运行。若通道仍拒绝，独立工程继续，实验待恢复；第三方API保持暂停。上下文改造从真实重复内容和重解释次数开始，不以离线字节变化冒充实际token节省。
 
 **真实闭合。** 两份完整原skill分别处理Download/OWUI，优先消费两份AX原字节作者包，完成policy/premise/source三变化fresh与previous，再做N/M-S/D-S各两次重复。必需首位置22个，修订独立追加。N/D衡量整套工具，M/D衡量表示本身；共同模型、事实和宿主预算，执行侧不接触oracle、历史终答或本文根因裁定。每次共享故障当场红绿修复再继续受影响位置，不批量运行已知错误版本。
