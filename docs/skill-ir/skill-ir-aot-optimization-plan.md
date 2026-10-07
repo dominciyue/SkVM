@@ -1,48 +1,43 @@
 # Skill IR AOT 当前执行计划
 
-更新于2026-10-07。本页维护当前目标与未达责任；原件由研究正文和实验目录导航。
+更新于2026-10-07。本页维护当前目标与未达责任，原件由研究正文和实验目录导航。
 
 - 唯一实时入口：[current-status](current-status.md)。
-- 当前任务书：[AX0–AX20 按授权问题求值与账号真实执行](../superpowers/plans/2026-10-07-authorization-property-analysis-and-account-execution.md)，in-progress-account-channel-blocked。
-- 方法合同：[spec AX](skill-ir-aot-optimization-spec.md#1437-ax-property-directed-analysis-and-controlled-account-execution)；决定依据：[研究§7.57–§7.58](skill-dsl-research.md#757-aw-收束后复核运行能力与按问题求值)。
-- 复核基线ccf00985，AX最后生产修复9039fd3f/源码树6042b79e，离线交付检查点fa8eb96d已推并核对origin。开发模型gpt-6.1-sol/max；被测模型为已授权当前账号的gpt-5.6-sol/high。第三方API和AV十二旧位置继续暂停。
+- 当前任务书：[AY0–AY23 授权问题依赖、完整使用与收益验证](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)，authorized-not-started。
+- 方法合同：[spec AY](skill-ir-aot-optimization-spec.md#1438-ay-question-dependencies-and-usable-domain-execution)；依据：[研究§7.59–§7.60](skill-dsl-research.md#759-ax-离线交付复核与下一步方法建议)。
+- 复核基线b8918e4d已推origin；AX最后生产修复9039fd3f、源码树6042b79e。开发gpt-6.1-sol/max，实验为已授权当前账号gpt-5.6-sol/high。第三方API与AV十二旧位置继续暂停。
 
 ## 当前目标
 
-在现有两个入口和领域核心中，按每个授权问题组织必要依赖、局部摘要和保守异常状态合并，减少整函数标注及路径展开负担。官方账号生产transport采用安装版本可兑现的受控能力合同，完成真实工具会话，再做完整原skill任务、变化复用和同条件对照。新行为显式选择operation-evidence-v4，旧默认和归档保持。
+形成真实可用的有界授权DSL：按原问题追源码依赖，连接框架前置权限、helper参数/返回资源和结论；同一实现完成Download与OWUI完整原skill任务、两作者包消费和三类变化复查，再比较质量和运行/复用减负。复用现有结构索引、operation、source-material、inquiry/native和CLI，新行为显式v5。
 
-AX0–AX9工程与两个生产入口已接通，真实匿名工具消费已建立；Download/OWUI原任务和两作者实际完成，原失败/修订、形式partial和自然质量分别保留。当前20首位置中9个已尝试、17份归档，最新6042生产树公开baseline因指定gpt-5.6-sol/high实验通道usageLimitExceeded而无终答，原completion-unknown不改；普通应用使用仍可用，不推断整个账号耗尽。完整418文件离线包、11公开命令、原件capture与纯核心机制比较已完成，真实消费者0，机制未显示当前草稿减负或状态合并收益。11个未派发位置及新版本baseline/成对修订待恢复；先inspect并裁定原未知请求，通道恢复后重新具名登记，不自动重发/换模型/购买/reset。六项快照及具体责任见[AX summary](../../results/skill-ir/skill-dsl-research/development/authorization-property-execution-v1/summary.json)，有限队列与研究目标均未达。
+用户希望本轮完成可用成果并取得正向收益，验收因此覆盖实际使用和效果。原题、完整skill及失败首件保留；工程可用但收益mixed时分别报告。
 
-## AX 队列
+## AY 队列
 
 | 阶段 | 责任 | 验收对象 |
 |---|---|---|
-| AX0–AX2 | 接管、实际账号配置、生产driver和真实smoke | 模型实际请求/消费宿主工具，输入与评价隔离 |
-| AX3–AX6 | 红测、按问题依赖、增量解释、异常合流 | 16/64 context反例通过，相关未知/效果次序仍保留 |
-| AX7–AX9 | helper摘要、失效、调度、inquiry/native接入 | 同核心和参数身份，旧默认兼容 |
-| AX10–AX11 | Download和OWUI完整任务真实调试 | 原skill自然终答、当前领域检查、独立源码质量 |
-| AX12–AX14 | 三变化、作者/原字节消费者、三臂对照 | fresh/previous与N/M-S/D-S按同版本评价 |
-| AX15–AX18 | 机制、计量、语义复核、必要回归 | 首件/修订及工程/效果分开；原件可重算 |
-| AX19–AX20 | 普通使用、研究复盘、发布与收束 | 六项结果状态、复制命令、具体剩余责任 |
+| AY0–AY2 | 接管、定向外部代码借鉴、账号终态/恢复 | 已知failed与unknown分开；原件状态保留 |
+| AY3–AY5 | 失败反例、问题种子、有限依赖 | 每题来源、必要/排除/未知边界 |
+| AY6–AY9 | 框架权限、对象连接、调度、逐题检查 | 同一授权链；完整原题；过期检查撤回 |
+| AY10–AY12 | 上下文、材料失效、双入口 | 减少真实重解释；自然输入和旧包兼容 |
+| AY13–AY16 | 两原skill、两作者消费者、三变化 | 当前checked及源码full；材料真实采用 |
+| AY17–AY19 | 三臂两次重复、现场修复、独立评价 | 整体工具/表示增量分开；完整成本 |
+| AY20–AY23 | 必要回归、交付、文档和发布 | 普通命令实用；六项状态；origin一致 |
 
-20个逻辑首位置已定义，具名修订另列。质量/编写复用约60/40是精力安排，不是质量容错比例。约8–12小时是工作量规划，实际按完成情况执行；不等待、不重复验证凑时长。
+22个必需首位置：2 native、2 consumer、6变化、12质量。修订和必要新作者稿追加单列。质量与编写复用约60/40指精力分配。连续按任务推进，不等待或重复实验凑时长。
 
-## 立即修复与继续规则
+## 工作规则
 
-1. 发现共享schema、连接、合流或运行缺陷，立即保留首件、写红测、修生产代码、同例复验；受影响后续派发暂停，独立工程继续。
-2. 同因两轮无进展时调整接口或任务拆分，不原样重抽。原题和完整skill职责保留。
-3. 机械排除和模型未核实的相关性分开；unknown副作用、资源替换和异常前后effect不能被裁掉。
-4. 账号配置保护具体风险：evaluator/旧答案不进入模型，目标不执行，额外能力禁用或有界同条件计量；不追求公开协议不存在的证明，也不以提示词代替边界。
-5. 账号无权限/额度时停止该通道并继续独立开发，不切付费API。内部请求或USD不可见保持unknown。
-6. partial原材料可做材料级变化诊断；完整任务收益只在相应原/变质量满足后评价。
-7. 六项状态分别是工程、账号运行、native交付、作者消费、质量比较、复用；有限队列结束不自动达成研究目标。
+1. 真实失败当场分型；共享缺陷红测→修实现→绿测→同例具名复验，再继续受影响位置。
+2. 同因两次无改善停止原样重抽，回到实际回调和代码改接口/局部拆分，其它责任继续。
+3. 复用已有MRO/DRF/callee；不按项目/skill名分支，未知副作用不强行排除。
+4. 实验只读允许源码、完整skill、用户政策前提；evaluator、旧正确答和研究根因不进入模型。
+5. 账号已授权，无需再确认。额度拒绝停无效请求、独立工程继续；新尝试确认旧执行结束，不切第三方或购买额度。
+6. 工程、账号真实运行、完整原skill、作者消费、同条件收益、变化复用分别验收。
 
-## 继承状态
+## 继承与维护
 
-[AW](../superpowers/plans/2026-10-07-authorization-control-materials-and-account-runtime.md)已以completed-with-unmet-criteria收束，937pass/1skip，双类型通过；24个逻辑真实位置未派发。同v3元数据重放字节下降7.7%/18.3%，实际token/质量收益未测。原件见[AW summary](../../results/skill-ir/skill-dsl-research/development/authorization-control-materials-v1/summary.json)。
+AX原20首位置中9已尝试、17归档、11待执行；[AX summary](../../results/skill-ir/skill-dsl-research/development/authorization-property-execution-v1/summary.json)和原unknown保持。AY建立承接映射运行新版本位置，两有效作者包及418文件离线交付复用。AW/AV/AU原结果、readiness、Q1、held-out、prospective和旧0/6保持，不重复全历史审计。
 
-[AV](../superpowers/plans/2026-10-06-authorization-source-assisted-closure.md)保持in-progress-paid-deferred-by-user，十二旧位置不补跑。AU/AT/AS/AR原件、失败、未知费用和封存保留；新账号研究不改旧结果，也不按新身份解除保护任务。readiness、held-out、Q1和历史0/6保持。
-
-## 写入与发布
-
-继续skill-ir-aot，只推用户origin，不创建分支/worktree。AX开发线程接管后为唯一代码和共享方法文档写者。研究问题及修复统一更新[研究正文](skill-dsl-research.md)；结果在本轮identity中，临时运行在project-maintenance。本轮不新增长期阅读文档、不清空历史材料、不重复全量审计。
+继续skill-ir-aot，只推用户origin。新开发线程接管后为唯一写者；研究正文更新§1/§7.60/§11，结果集中authorization-question-closure-v1，临时运行集中project-maintenance。只更新现有组件文档，不清理其它任务材料。

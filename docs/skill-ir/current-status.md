@@ -1,12 +1,14 @@
 # Skill IR 当前状态
 
-更新于2026-10-07。工作分支为`skill-ir-aot`，仅发布到用户origin。AW最终提交`5a25d759`及复核提交`ccf00985`已发布；AX离线交付`fa8eb96d`和发布记录`191a37e0`已推并核对远端，真实队列待恢复。本页是唯一实时状态入口，历史任务书和原始结果保留当时记录。
+更新于2026-10-07。工作分支为`skill-ir-aot`，仅发布到用户origin。AX离线交付`191a37e0`及复核`b8918e4d`已发布；用户已授权AY接续开发和账号实验。本页是唯一实时状态入口，历史任务书和原始结果保留当时记录。
 
 ## 当前工作
 
 研究主线是 **按 skill/task 范围设计领域表达**。当前任务类为单 repo/ref、源码可见的授权与信任边界评估：围绕主体、资源、操作、条件和政策组织取证、判断与检查。质量约六成、编写复用约四成指开发投入安排，各项质量要求分别验收。
 
-**当前队列：[AX0–AX20 按授权问题求值与账号真实执行](../superpowers/plans/2026-10-07-authorization-property-analysis-and-account-execution.md)，`in-progress-account-channel-blocked`。** 开发模型`gpt-6.1-sol/max`，官方账号实验`gpt-5.6-sol/high`；第三方API及AV十二旧位置继续暂停。20个首位置中9个已尝试，保留17份首件/具名修订，活动尝试0。当前生产树`6042b79e`的公开baseline `explicit-source-revisit`在6回调后返回`usageLimitExceeded`，无终答且原`completion-unknown`保留。普通应用仍报告可用，因此只确认指定实验通道拒绝，不能推断整个账号耗尽。11个未运行位置与当前同版本baseline/成对修订待恢复；先inspect并裁定原未知请求，不自动重发、换模型/端点、购买或使用reset credits。
+**当前队列：[AY0–AY23 授权问题依赖、完整使用与收益验证](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)，`authorized-not-started`。** 新开发线程使用`gpt-6.1-sol/max`，官方账号实验`gpt-5.6-sol/high`，用户已明确授权；第三方API及AV十二旧位置继续暂停。优先补问题相关依赖、框架权限和对象连接、逐题结论检查及真实上下文减负，复用既有核心。22首位置覆盖两完整原skill、两作者包消费、三变化fresh/previous和两任务三臂两次对照；正向效果以预登记质量/减负判据实测，首件与修订分列。方法合同见[spec AY](skill-ir-aot-optimization-spec.md#1438-ay-question-dependencies-and-usable-domain-execution)，决定见[研究§7.60](skill-dsl-research.md#760-ay-问题依赖完整使用与收益验证)。
+
+**AX承接快照：** [AX0–AX20](../superpowers/plans/2026-10-07-authorization-property-analysis-and-account-execution.md)原状态`in-progress-account-channel-blocked`保留。20首位置中9已尝试、17归档、活动0；11待运行映射到AY新版本位置，旧分母不重写。生产树`6042b79e`的`explicit-source-revisit`保存`usageLimitExceeded`及明确failed事件，旧adapter记`completion-unknown`。AY先分开终态/交付/用量并追加只读裁定，确认旧执行结束后登记新尝试；原始unknown和缺报用量保持，未知活动请求不自动重发，不切换账号/模型/端点或购买额度。指定通道是否恢复以实际运行判断。
 
 AX工程已接通性质需求/八锚点frontier、保守局部异常合流、分层覆盖、来源材料和inquiry/native共同核心。A→B→A材料重新接纳及检查后显式回访均已红绿修复，最后生产修复`9039fd3f`已发布，原失败不升级。Download和OWUI完整原skill均真实尝试并交付自然答，formal均未满足；10份已交付领域答已独立评阅和主裁定，只有旧premise fresh自然条件说明full，formal仍失败。当前N/M-S/D-S六位置尚未运行、质量和真实复用收益未建立。
 
@@ -49,7 +51,7 @@ AS 固定 15 质量、4 native、8 变化、2 源码变化位置，作者4稿与
 
 | 恢复所需信息 | 权威入口 |
 |---|---|
-| 最新执行及未达责任 | [AX任务书](../superpowers/plans/2026-10-07-authorization-property-analysis-and-account-execution.md)；AW结果保留，AV十二旧位置继续暂停；历史原件不重写 |
+| 最新执行及未达责任 | [AY任务书](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)承接AX；AW结果保留，AV十二旧位置继续暂停；历史原件不重写 |
 | AR 停止前状态 | [status.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/status.json)、[handoff.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/handoff.json) |
 | 普通使用的失败与裁定 | [ordinary-adjudication.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary-adjudication.json) |
 | 真实派发、响应与未知费用 | [ordinary-accounting.json](../../results/skill-ir/skill-dsl-research/development/authorization-guided-runtime-v1/ordinary-accounting.json) |
@@ -58,7 +60,7 @@ AS 固定 15 质量、4 native、8 变化、2 源码变化位置，作者4稿与
 
 ## 已有能力与待解决问题
 
-2026-10-07最新复核见[研究§7.59](skill-dsl-research.md#759-ax-离线交付复核与下一步方法建议)：418文件/ZIP字节复验、63项相关测试/360断言、主与AX严格类型及公开check通过，未新增模型调用。账号已具备真实动态工具运行能力；当前通道拒绝与已有语义失败分别处理。性质需求目前是源码可达性筛选与增量标注，尚缺从授权问题反向追踪依赖的实现；两份真实提案未减少标注或触发异常合流。下一轮建议优先处理问题依赖、框架继承权限及helper对象连接，再恢复受影响真实位置；这是待落实的建议，未修改AX执行计划或旧评分。原账号failed事件与应用completion-unknown的状态差异也应通过新增裁定分开记录。16/64合流反例保留，原问题和异常不删减。
+2026-10-07复核见[研究§7.59](skill-dsl-research.md#759-ax-离线交付复核与下一步方法建议)：418文件/ZIP、63项相关测试/360断言、主与AX严格类型及公开check通过，未新增模型调用。账号真实动态工具能力已经存在，通道拒绝与语义失败分开处理。性质需求目前以源码可达性和增量标注为主；已有框架/实参候选尚未形成完整问题链。该建议现已纳入AY计划，等待实施和真实验收。旧评分、16/64合流反例、原题和异常条件均保留。
 
 | 路线 | 已有实现 | 当前使用边界 |
 |---|---|---|
@@ -71,9 +73,9 @@ AQ 旧/新策略 full均为2/20，原 skill checked交付为0/4；具体分母�
 ## 开发与维护入口
 
 - 普通命令和模型配置：[使用说明](../usage.md)。代码定位和检查：[开发指南](developer-guide.md)。
-- 当前队列：[当前计划](skill-ir-aot-optimization-plan.md)；新合同：[spec AX](skill-ir-aot-optimization-spec.md#1437-ax-property-directed-analysis-and-controlled-account-execution)，历史兼容见AW/AU章节。
+- 当前队列：[当前计划](skill-ir-aot-optimization-plan.md)；新合同：[spec AY](skill-ir-aot-optimization-spec.md#1438-ay-question-dependencies-and-usable-domain-execution)，历史兼容见AX/AW/AU章节。
 - 分类、方法、复盘：[唯一研究正文](skill-dsl-research.md)；旧结果：[证据索引](evidence-index.md)、[历史](history.md)、[实验目录](../../results/skill-ir/experiment-catalog.json)。
 
-[治理](../superpowers/plans/2026-10-04-workspace-and-document-governance.md)已完成材料收存、旧日志压缩、正文归并和停止后的入口校正。当前阅读集15份、版本化材料14份，本轮未新增长期阅读文档；研究继续统一在一个正文中。原件及恢复索引在`project-maintenance/20261004-governance/`，AR/AS结果及`.skvm`保留。AS、AT、AU、AW适用有限队列已结束，AV第三方队列暂停。AX接管后独占本轮代码与共享方法文档写入；发布与Git状态以实际检查为准。
+[治理](../superpowers/plans/2026-10-04-workspace-and-document-governance.md)已完成材料收存、旧日志压缩、正文归并和停止后的入口校正。当前阅读集15份、版本化材料14份，本轮未新增长期阅读文档；研究继续统一在一个正文中。原件及恢复索引在`project-maintenance/20261004-governance/`，AR/AS结果及`.skvm`保留。AS、AT、AU、AW适用有限队列已结束，AV第三方队列暂停。AY接管后独占本轮代码与共享方法文档写入；发布与Git状态以实际检查为准。
 
 更新本页时替换过时段落，不把逐次测试与派发日志不断追加为新的“当前状态”。

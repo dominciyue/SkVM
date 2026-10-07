@@ -2607,6 +2607,24 @@ Go机械来源覆盖包含multiline链式route及if initializer的实际调用/�
 
 **完整离线交付。** 作者稿和Usage保持原字节，原自然任务取原input完整brief，完整skill包含生产loader列出的所有伴随文件。完整允许范围源码按SHA复制；允许范围以外的许可证/原来源清单只保留provenance，不扩大分析范围。原/变声明保留全部问题，policy mode转换、被新事实替代的旧前提与源码变动分别登记。公开check/init/edit/inspect/compare与ZIP字节核验只证明结构和包身份，实际消费者、当前checked源码质量与真实复用仍另验。复制命令需要当前实际reviewed boundary与已存在SkVM/Bun，不把原机器boundary自动准入另一机器。
 
+### 14.38 AY question dependencies and usable domain execution
+
+2026-10-07，用户授权[AY0–AY23](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)，开发模型gpt-6.1-sol/max，被测模型沿用当前账号gpt-5.6-sol/high。当前状态authorized-not-started。AY承接AX未运行位置与复核发现的语义缺口，旧结果和原失败不改。新行为显式选择operation-evidence-v5，复用现有运行时与CLI，旧默认兼容；详细执行、首位置和验收以AY任务书为准。
+
+**问题依赖。** 由原问题和当前源码形成主体、资源、受保护操作及待判断关系的来源种子，追踪已支持语法中的赋值、字段、参数、返回、调用及控制前驱。source-invariant可达性筛选保留，新增查询依赖不能仅以questionId或函数名代替。机械排除有具体依赖与理由；模型提出的相关性与语义保持unreviewed。未知副作用、动态receiver、资源替换和异常/finally影响作为具名边界保存，缺边不能推出无影响。
+
+**框架与对象。** 复用structure-index中的import、C3/super及receiver信息，operation-work既有框架/permission/serializer候选，operation-links与source-material-projection的精确连接。将请求分派、继承前置权限、对象检查、helper返回与受保护效果连接到当前问题，来源绑定框架版本和源码。唯一且有证据的机械关系由宿主接线；同名sibling、跨作用域同字符串、多候选及未知实参不得强连。目标是使现有关系实际进入取证与检查，不建立仓库专用路径。
+
+**解释、调度与交付。** 宿主按原问题记录已定位、已读、已解释、已连接、已检查及剩余影响，优先补当前决定性依赖。模型解释局部源码含义，宿主维护身份、组合关系、有限条件和逐题检查。最小字段修复保留其它有效材料；新增错误撤回过期检查。自然终答与结构结果同源，完整状态由原问题分母汇总；源码充分的条件答案可完整，缺失已可读取控制则partial。当前程序检查和独立源码质量分别验收。
+
+**材料与上下文。** v5材料语义身份question-control/v1，当前参数/对象投影与来源摘要分开。v4材料显式再验证才可接纳，不继承旧答案/rules/check。政策变化重新比较，前提变化重算受影响条件，源码变化按真实footprint失效。反馈保留必要源码、当前缺口和最小修复信息，原文可按需取回；真实重复轨迹决定是否进一步做局部会话，不因纸面架构增加多代理运行时。
+
+**账号状态。** 区分已知failed/interrupted、完成但未交付、超时/终态丢失以及用量不可见。明确failed的旧原件仅追加裁定，不覆盖其原completion-unknown。后续请求为新的具名尝试，先确认旧执行已结束，缺少用量不永久阻断；未知活动请求不自动重发。用户已授权账号实验，第三方API继续暂停。额度拒绝停止该通道无效请求，独立工程继续，恢复有依据后再派发。
+
+**真实使用与公平比较。** AY固定22个首位置：两完整原skill、两原字节作者包消费者、三变化各fresh/previous、两任务各N/M-S/D-S两次重复。同一模型/源码/问题/宿主预算，M/D共享当前inquiry核心。N/D评价工具组合，M/D评价表示增量。全skill职责、全部原问题及失败首件保留；开发者根因、旧正确答案和evaluator不进入模型执行材料。共享缺陷当场红绿修复并具名复验，不继续跑已知坏实现。
+
+**成果合同。** 两真实原任务和作者消费者应取得当前checked及独立源码full；三变化真实消费并正确响应。收益按预登记质量、质量保持下完整observed token下降或同质量实际复用减负判据评价，逐任务与首/修分列；工具收益不归为DSL独有表示优势。实际USD、隐藏请求和真人时间缺报仍unknown。工程、账号运行、native交付、作者消费、同条件收益、变化复用六项分别记录；全部编号有终态不代表研究达成。工程已用但收益mixed时如实交付usable-with-mixed-effect。
+
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
 AT在已有授权局部语义上引入显式 `focused-closure-v1`：宿主持久管理locate/interpret/link/review/answer阶段，绑定当前来源、单元身份与更新版本；模型解释原始源码中的条件、对象、参数、返回与实际相关效果。上下文渲染不改变活动任务，拒绝修复回到同一单元；多候选与语义关系仍须显式判定。旧默认及协议保持。
