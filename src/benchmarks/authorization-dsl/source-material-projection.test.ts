@@ -5,6 +5,7 @@ import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquir
 import { createInquiryTools } from "./inquiry-tools.ts"
 import { createInquiryDomainRuntime } from "./inquiry-domain-runtime.ts"
 import { lowerSemanticFlow } from "../../task-dsl/authorization/semantic-flow.ts"
+import { lowerSourceInterpretation } from "../../task-dsl/authorization/source-interpretation.ts"
 import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
@@ -210,4 +211,58 @@ for (const [statement, code] of [["router.dependency_overrides.update({verify: r
   const f = await requestFixture(false, true, source => source.replace("import APIRouter,", "import FastAPI as APIRouter,").replace('@router.post("/work")', `def replacement():\n    return True\nclass Middleware:\n    pass\n${statement}\n@router.post("/work")`))
   expect(lowerSemanticFlow(f.project().units).diagnostics.map(d => d.code)).toContain(code)
   expect(f.project().uses.filter((u: any) => u.kind === "framework")).toEqual([])
+})
+
+test("source-assisted local capture adoption keeps rejection before the following write and rejects a swapped capture", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-local-capture-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def entry(actor, decoy):\n    def guard():\n        selected = actor\n        raise Denied\n    guard()\n    write()\n    return True\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, accepted: any[] = []
+  for (const name of ["entry", "guard"]) {
+    const source = index.symbols.find(s => s.name === name)!, read = await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine }), skeleton = (await tools.sourceSkeleton(source.id))!
+    expect(skeleton.gaps).toEqual([])
+    const actor = skeleton.anchors.find(a => a.kind === "parameter" && a.name === "actor")!
+    if (name === "guard") expect(actor).toMatchObject({ syntax: "source_capture", selector: { startLine: 3, endLine: 3 }, capture: { ownerId: index.symbols.find(s => s.name === "entry")!.id, ownerSha256: source.sha256 } })
+    const annotations = skeleton.anchors.filter(a => a.kind === "parameter" || a.kind === "call" || a.kind === "return" || a.kind === "raise" || a.name === "selected").map(a => ({ anchorId: a.id, role: a.kind === "parameter" || a.name === "selected" ? "principal" : a.kind === "call" ? a.call!.expression === "write" ? "effect" : "condition" : "context", explanation: "Anonymous test-authored current source meaning", ...(a.name === "selected" ? { aliasAnchorId: actor.id } : {}), ...(a.kind === "raise" ? { failureKind: "authorization" } : {}), ...(a.kind === "return" ? { returnOutcome: "allow" } : {}) }))
+    const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations, unresolved: [] }, { index, itemId: name, handle: name, questionId: "q", role: name === "entry" ? "entry" : "helper" })
+    expect(result.diagnostics).toEqual([])
+    expect(result.unit!.complete).toBe(true)
+    accepted.push({ ...result.unit!, questionId: "q", evidenceIds: read.evidence.map(e => e.id), source: skeleton.source })
+  }
+  expect(accepted[1].parameters).toEqual([{ name: "actor", type: "principal" }])
+  expect(accepted[0].blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call").arguments).toEqual([{ parameter: "actor", object: "actor" }])
+  const store = () => {
+    const s = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" })
+    for (const u of accepted) s.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }], "test-authored")
+    return s.snapshot()
+  }
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect continuation", premises: [] }] })
+  const snapshot = store(), projected = api.projectSourceMaterials(p, accepted, snapshot, index, { questionDirected: true })
+  expect(projected.uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
+  const lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true })
+  expect(lowered.diagnostics).toEqual([])
+  expect(lowered.delta.rules.filter(r => r.terminal).map(r => r.outcome)).toEqual(["deny"])
+  expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(false)
+  const changed = await buildStructureIndex([{ path: "app.py", content: (await readFile(path.join(sourceRoot, "app.py"), "utf8")).replace("selected = actor", "selected = decoy") }], { repository: "anonymous", sourceRef: "r" })
+  expect(api.projectSourceMaterials(p, accepted, snapshot, changed, { questionDirected: true }).uses).toEqual([])
+  const guard = index.symbols.find(s => s.name === "guard")!, skeleton = (await tools.sourceSkeleton(guard.id))!
+  const omitted = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations: skeleton.anchors.filter(a => a.name === "selected" || a.kind === "raise").map(a => ({ anchorId: a.id, role: a.name === "selected" ? "principal" : "context", explanation: "Anonymous role without a captured actor type or alias", ...(a.kind === "raise" ? { failureKind: "authorization" } : {}) })), unresolved: [] }, { index, itemId: "guard", handle: "guard", questionId: "q", role: "helper" })
+  expect(omitted.unit!.parameters).toEqual([{ name: "actor", type: "value" }])
+  const prior = accepted[1]; accepted[1] = { ...prior, ...omitted.unit! }
+  expect(lowerSemanticFlow(api.projectSourceMaterials(p, accepted, store(), index, { questionDirected: true }).units, { compositional: true, propertyDirected: true }).diagnostics.map(d => d.code)).toContain("semantic-argument-unbound")
+  accepted[1] = prior
+  accepted[0].blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call").arguments[0].object = "decoy"
+  expect(api.projectSourceMaterials(p, accepted, store(), index, { questionDirected: true }).uses.filter((u: any) => u.kind === "call")).toEqual([])
+})
+
+test("a proved local callee remains inside the actual source branch", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-local-conditional-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def entry(actor):\n    def guard():\n        return actor\n    if False:\n        guard()\n    return True\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id))!
+  expect(skeleton.flow[0]!.kind).toBe("branch")
+  expect(skeleton.anchors.find(a => a.id === skeleton.flow[0]!.then![0]!.anchorId)!.call!.expression).toBe("guard")
+  const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations: skeleton.anchors.filter(a => a.kind === "return").map(a => ({ anchorId: a.id, role: "context", returnOutcome: "allow", explanation: "Anonymous source normal return" })), unresolved: [] }, { index: tools.structure, itemId: "entry", handle: "entry", questionId: "q", role: "entry", propertyDirected: true })
+  expect(result.diagnostics).toEqual([])
+  expect(result.unit!.blocks.flatMap(b => b.steps).filter(s => s.kind === "call")).toEqual([])
 })

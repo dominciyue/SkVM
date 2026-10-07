@@ -3,6 +3,7 @@ import { mkdtemp, writeFile } from "node:fs/promises"
 import path from "node:path"
 import os from "node:os"
 import { createInquiryTools } from "../inquiry-tools.ts"
+import { lowerSourceInterpretation } from "../../../task-dsl/authorization/source-interpretation.ts"
 
 async function fixture(content: string, extension = "py", finiteControl = false) {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "av-skeleton-"))
@@ -11,6 +12,24 @@ async function fixture(content: string, extension = "py", finiteControl = false)
   const source = tools.structure!.symbols.find(s => s.name === "entry")!
   return { tools, source, read: () => tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine }) }
 }
+
+test("context meaning cannot erase a named local callable binding gap", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-local-gap-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def entry(guard):\n    guard()\n    return True\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), source = tools.structure!.symbols[0]!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id))!, result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations: skeleton.anchors.filter(a => a.kind === "call" || a.kind === "return").map(a => ({ anchorId: a.id, role: "context", explanation: "Anonymous contextual source role", ...(a.kind === "return" ? { returnOutcome: "allow" } : {}) })), unresolved: [] }, { index: tools.structure, itemId: "entry", handle: "entry", questionId: "q", role: "entry" })
+  expect(result.diagnostics).toEqual([])
+  expect(skeleton.gaps.map(g => g.code)).toContain("source-local-callable-binding-unresolved")
+  expect(result.unit!.complete).toBe(false)
+})
+test("reading an escaped local callable body retains its capture and invocation boundary", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-local-escape-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def factory(actor):\n    def guard():\n        return actor\n    return guard\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), source = tools.structure!.symbols.find(s => s.name === "guard")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  expect((await tools.sourceSkeleton(source.id))!.gaps.map(g => g.code)).toContain("source-local-callable-escape-unmodeled")
+})
 
 test("the production source view separates early return and effect branches without inferring permission", async () => {
   const f = await fixture("def entry(actor, resource):\n    if actor is None or not actor.enabled:\n        return False\n    resource.write(actor=actor, value=None)\n    return True\n")

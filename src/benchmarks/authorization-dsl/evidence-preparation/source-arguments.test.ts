@@ -67,3 +67,18 @@ test("an untouched kwargs pack excludes the caller's regular parameter keyword",
   expect(f.bind().gap).toBeUndefined()
   expect(f.bind().bindings.map((b: any) => [b.parameter, b.expression])).toEqual([["self", "self"], ["actor", "actor"], ["options", "kwargs"]])
 })
+
+test("local capture binding is implicit and retains the actual owner source", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "def entry(actor):\n    def guard(flag=False):\n        return actor\n    guard()\n" }], { repository: "anonymous", sourceRef: "r" })
+  const caller = index.symbols.find(s => s.name === "entry")!, target = index.symbols.find(s => s.name === "guard")!, call = index.relatedCalls(caller.id)[0]!, binding = api.sourceArgumentBindings(index, call, target)
+  expect(target.parameters.map(p => p.name)).toEqual(["flag"])
+  expect(binding.gap).toBeUndefined()
+  expect(binding.bindings).toEqual([{ parameter: "flag", expression: "False", literalKnown: true, literalValue: false }, { parameter: "actor", expression: "actor", literalKnown: false, captureOwnerId: caller.id }])
+  expect(api.sourceArgumentBindings(index, { ...call, ownerId: target.id }, target).bindings).toEqual([])
+  expect(api.sourceArgumentBindings(index, call, { ...target, localCallable: { ...target.localCallable!, captures: [{ ...target.localCallable!.captures[0]!, name: "different_actor" }] } }).bindings).toEqual([])
+})
+test("an implicit capture cannot be passed as a new Python keyword", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "def entry(actor):\n    def guard():\n        return actor\n    guard(actor=actor)\n" }], { repository: "anonymous", sourceRef: "r" })
+  const caller = index.symbols.find(s => s.name === "entry")!, target = index.symbols.find(s => s.name === "guard")!
+  expect(api.sourceArgumentBindings(index, index.relatedCalls(caller.id)[0]!, target).gap).toBe("source-arguments-unexpected")
+})

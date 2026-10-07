@@ -2,7 +2,7 @@ import type { StructureCall, StructureIndex, StructureSymbol } from "./structure
 import type { FiniteValue, Scalar } from "../../../task-dsl/authorization/control-evaluation.ts"
 
 export interface SourceArgumentBinding {
-  parameter: string; expression: string; literalKnown: boolean; literalValue?: FiniteValue
+  parameter: string; expression: string; literalKnown: boolean; literalValue?: FiniteValue; captureOwnerId?: string
 }
 /** Bind source syntax only. Unknown expansion never consumes a default or a
  * regular parameter, and forwarding packs are not permission/object proofs. */
@@ -12,6 +12,11 @@ export function sourceArgumentBindings(index: StructureIndex, call: StructureCal
     const keyword = /^(\w+)\s*=(?!=)([\s\S]+)$/.exec(expression)
     return { expression: (keyword?.[2] ?? expression).trim(), parameterName: keyword?.[1], literalKnown: false }
   })
+  const currentTarget = index.symbols.find(s => s.id === target.id), local = currentTarget?.localCallable
+  if (local || target.localCallable) {
+    const actual = caller && index.relatedCalls(caller.id, call.receiverClass).find(c => c.id === call.id)
+    if (!local || local.gap || JSON.stringify(local) !== JSON.stringify(target.localCallable) || caller?.id !== local.ownerId || caller.sha256 !== local.ownerSha256 || !actual || actual.candidateIds.length !== 1 || actual.candidateIds[0] !== target.id || actual.expression !== call.expression || actual.sha256 !== call.sha256 || JSON.stringify(actual.argumentFacts) !== JSON.stringify(call.argumentFacts)) return fail("local-callable-unresolved")
+  }
   const positional = facts.filter(a => !a.parameterName && !a.spread), keywords = facts.filter(a => a.parameterName), posPacks = facts.filter(a => a.spread === "positional"), keyPacks = facts.filter(a => a.spread === "keyword")
   if (posPacks.length > 1 || keyPacks.length > 1 || new Set(keywords.map(a => a.parameterName)).size !== keywords.length) return fail("duplicate")
   if (call.arguments.some(a => /^\*/.test(a)) && !call.argumentFacts) return fail("spread-unresolved")
@@ -56,5 +61,6 @@ export function sourceArgumentBindings(index: StructureIndex, call: StructureCal
   // The caller signature excludes these keys only while its **kwargs remains
   // an unmodified, unescaped source pack. A renamed regular parameter may collide.
   if (keySource && regular.some(name => !caller!.parameters.some(p => p.name === name && !p.kind?.startsWith("variadic") && p.kind !== "positional-only"))) return fail("keyword-collision-unresolved")
+  for (const capture of local?.captures ?? []) bindings.push({ parameter: capture.name, expression: capture.name, literalKnown: false, captureOwnerId: local!.ownerId })
   return { bindings, ...(partialGap ? { gap: partialGap } : {}) }
 }

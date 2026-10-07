@@ -152,15 +152,17 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
           const args = a.call!.arguments, positional = args.filter(arg => !arg.parameterName), mapped: Array<{ parameter: string; object: string }> = []
           const actual = target && options.index?.relatedCalls(skeleton.sourceId, a.call!.receiverClass).find(c => c.id === a.call!.sourceCallId)
           const currentArguments = actual && target && questionDirected ? sourceArgumentBindings(options.index!, actual, target) : undefined
-          if (currentArguments?.gap) {
-            block.steps.push({ kind: "unresolved", name: `arguments-${a.id}`, claim: `Current source call binding: ${currentArguments.gap}`, reason: currentArguments.gap })
+          const bindingGap = currentArguments?.gap ?? a.call!.bindingGap
+          if (bindingGap) {
+            block.steps.push({ kind: "unresolved", name: `arguments-${a.id}`, claim: `Current source call binding: ${bindingGap}`, reason: bindingGap })
             unit.complete = false
           }
           let position = 0
-          for (const [i, parameter] of (target?.parameters ?? []).entries()) {
+          const parameters: NonNullable<typeof target>["parameters"] = [...target?.parameters ?? [], ...questionDirected && target?.localCallable && !target.localCallable.gap ? target.localCallable.captures.map(c => ({ name: c.name })) : []]
+          for (const [i, parameter] of parameters.entries()) {
             if (currentArguments) {
               const argument = currentArguments.bindings.find(b => b.parameter === parameter.name)
-              if (!argument || !argument.literalKnown && !args.some(p => (p.spread ? p.expression.replace(/^\*+/, "").trim() : p.expression) === argument.expression) && argument.expression !== a.call!.receiver && !/^super\(\)\./.test(a.call!.expression)) continue
+              if (!argument || !argument.literalKnown && !argument.captureOwnerId && !args.some(p => (p.spread ? p.expression.replace(/^\*+/, "").trim() : p.expression) === argument.expression) && argument.expression !== a.call!.receiver && !/^super\(\)\./.test(a.call!.expression)) continue
               const nestedResult = skeleton.anchors.find(c => c.kind === "call" && c.id !== a.id && c.text === argument.expression)?.call?.resultBinding
               const object = argument.literalKnown ? `literal-${a.id}-${parameter.name}` : nestedResult ?? sourceValue(argument.expression).binding as string
               if (argument.literalKnown) block.steps.push({ kind: "bind", name: object, claim: "Actual source literal argument/default/empty pack", type: "value", value: argument.literalValue! })

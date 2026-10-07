@@ -448,3 +448,51 @@ test("an incomplete unrelated definition cannot abort class decorator source ind
   expect(index.diagnostics.some(d => d.code === "structure-parse-partial" && d.path === "broken.py")).toBe(true)
   expect((index as any).classDecorators("app.View")).toHaveLength(1)
 })
+
+test("a unique directly called local function binds its stable outer parameter without borrowing a module namesake", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "def guard():\n    return True\ndef entry(actor):\n    def guard():\n        if actor.blocked:\n            raise Forbidden\n        return actor\n    guard()\n    return actor\n" }], { repository: "anonymous", sourceRef: "r" })
+  const entry = index.symbols.find(s => s.qualifiedName === "app.entry")!, local = index.symbols.find(s => s.qualifiedName === "app.entry.guard")!, call = index.relatedCalls(entry.id).find(c => c.expression === "guard")!
+  expect(call.candidateIds).toEqual([local.id])
+  expect((local as any).localCallable).toMatchObject({ schemaVersion: "source-local-callable/v1", ownerId: entry.id, ownerSha256: entry.sha256, captures: [{ name: "actor", use: { startLine: 5, endLine: 5 } }] })
+  expect((local as any).localCallable.gap).toBeUndefined()
+})
+for (const [body, code] of [
+  ["    actor = replacement\n    guard()\n", "source-local-capture-rebound"],
+  ["    consume(guard)\n    guard()\n", "source-local-callable-escape-unmodeled"],
+  ["    guard = replacement\n    guard()\n", "source-local-callable-binding-unresolved"],
+] as const) test(`local callable keeps ${code} instead of falling back to a global namesake`, async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "def guard():\n    return True\ndef entry(actor):\n    def guard():\n        return actor\n" + body }], { repository: "anonymous", sourceRef: "r" })
+  const call = index.relatedCalls(index.symbols.find(s => s.qualifiedName === "app.entry")!.id).find(c => c.expression === "guard")!
+  expect(call.resolution).toBe("unresolved")
+  expect(call.candidateIds).toEqual([])
+  expect(call.gap).toBe(code)
+})
+test("a callable parameter cannot borrow an unqualified module function", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "def guard():\n    return True\ndef entry(guard):\n    return guard()\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect(index.relatedCalls(index.symbols.find(s => s.qualifiedName === "app.entry")!.id)[0]!.resolution).toBe("unresolved")
+})
+for (const declaration of ["async def guard():", "@other\n    def guard():", "def guard(flag=unknown()):", "def guard(actor: unknown()):"]) test(`local callable definition retains ${declaration.split("\n")[0]}`, async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "def entry(actor):\n    " + declaration + "\n        return actor\n    guard()\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect(index.relatedCalls(index.symbols.find(s => s.qualifiedName === "app.entry")!.id).find(c => c.expression === "guard")!.resolution).toBe("unresolved")
+  expect((index.symbols.find(s => s.qualifiedName === "app.entry.guard") as any).localCallable.gap).toBe("source-local-callable-definition-unmodeled")
+})
+test("outer local values and nonlocal capture are explicit boundaries", async () => {
+  for (const body of ["def entry(actor):\n    selected = actor\n    def guard():\n        return selected\n    guard()\n", "def entry(actor):\n    def guard():\n        nonlocal actor\n        return actor\n    guard()\n"]) {
+    const index = await buildStructureIndex([{ path: "app.py", content: body }], { repository: "anonymous", sourceRef: "r" }), local = index.symbols.find(s => s.qualifiedName === "app.entry.guard")!
+    expect((local as any).localCallable.gap).toMatch(/^source-local-capture-/)
+    expect(index.relatedCalls(index.symbols.find(s => s.qualifiedName === "app.entry")!.id).find(c => c.expression === "guard")!.resolution).toBe("unresolved")
+  }
+})
+test("a call before its local declaration cannot borrow the later callable", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "def entry(actor):\n    guard()\n    def guard():\n        return actor\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect(index.relatedCalls(index.symbols.find(s => s.qualifiedName === "app.entry")!.id)[0]!.resolution).toBe("unresolved")
+})
+
+test("a local generator call cannot execute its body as an ordinary helper", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "def entry(actor):\n    def guard():\n        yield actor\n        raise Forbidden\n    guard()\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect(index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id)[0]!.gap).toBe("source-local-callable-definition-unmodeled")
+})
+for (const prefix of ["    match value:\n        case actor:\n            pass\n", "    def replace():\n        nonlocal actor\n        actor = replacement\n    replace()\n"]) test(`a capture is not stable across another source cell binding: ${prefix.trim().split("\n")[0]}`, async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "def entry(actor, value):\n" + prefix + "    def guard():\n        return actor\n    guard()\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect(index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "guard")!.gap).toMatch(/^source-local-capture-/)
+})

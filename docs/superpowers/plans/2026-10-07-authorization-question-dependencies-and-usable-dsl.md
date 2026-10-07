@@ -148,6 +148,10 @@ DRF下一小步工作计划（2026-10-08）：先从原轮次已保留且SHA一�
 
 ### AY7 实参、返回与资源身份闭合
 
+局部闭包下一小步设计：只连接当前函数中唯一、无条件、同步未装饰且仅直接调用的局部function定义；定义default/annotation有未证明动作时保留边界。捕获限已声明且整外层函数无重绑定的参数，作为带owner/SHA/使用点来源的隐式参数进入同一source skeleton、binder与typed material projection，含义仍由原六角色解释。外层局部值、nonlocal/global、escape、replacement、conditional/async/decorated定义及定义前调用不自动连接；不替Python执行factory或创建callable权限语义。合法定义声明不误当body执行，内层guard实际调用及异常按原顺序组合。匿名拒绝后写入、错capture、同名decoy及源码失效先红绿，再真实source probe；返回factory closure和ASGI callback仍另需实际调用身份。缺失Django View pin已只读定位为原lock的5.2.16，后续独立来源补充与re-export绑定另作有出处的小步，不改旧输入。
+
+本小步进展：v11直接局部函数与稳定外层参数沿同一binder/六角色/typed投影接通，Python签名不变；返回factory closure仍是来源候选。20项新反例、170focused/529断言、联合1111pass/1平台skip/6835断言及主/AY类型通过。两项独立疑点按具体反例点验：调用保留原控制区域，未知capture role与caller角色不匹配仍由既有typed checker拒绝；没有额外模型门槛。真实94冻结字节加supplement的探针保留49局部定义全部具名（26定义、21逃逸、2外层值），5个选中wrapper/factory未采用，model/read/annotation/use/target/network新增0，旧尝试不升级。下一小步依据已定位的原lock捕获Django View/base/re-export及直接decorator来源，TDD接通唯一未重绑定public import alias与失效依赖；仍不豁免class/method变换。随后继续实际closure/dispatch字段/handler及请求组合，具名账号复验，整个AY7和研究验收仍未勾选。
+
 - 当前实施顺序（2026-10-08）：先用匿名模块实例/遮蔽/重绑定反例验证实际 receiver 来源，再在 v5 source skeleton 中保留唯一未重绑定实例的 source/SHA/class 证明，并生成普通 `value` 绑定。只接机械 receiver，不推断主体、资源、授权或字段 alias；字段传给错误 principal 参数仍报类型缺口。随后核验保留 OWUI 提案的零推理效果，再进入框架组合和真实具名复验。
 - [ ] 复用 `actualArguments`、`bindOperationCalls` 和投影链，验证 positional/keyword/default/receiver、局部 alias、返回资源及替代资源；不能靠字符串相等跨作用域确认同一对象。
 - [ ] 唯一可机械证明的连接自动接线，歧义返回最小候选/差异供模型解释；不让模型重复输入 host 已确认的 ID。

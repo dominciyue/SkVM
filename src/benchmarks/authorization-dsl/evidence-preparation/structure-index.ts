@@ -8,6 +8,11 @@ export interface StructureSymbol extends DiscoverySymbol {
   qualifiedName: string; module: string; language: "python" | "go"; className?: string; receiver?: string;
   parameters: Array<{ name: string; type?: string; kind?: "positional-only" | "keyword-only" | "variadic-positional" | "variadic-keyword"; stableForwardPack?: boolean; defaultExpression?: string; defaultLiteralKnown?: boolean; defaultLiteralValue?: FiniteValue }>; returns: string[]; bases: string[]; attributes: Record<string, string>
   decorators?: Array<{ id: string; sourceCallId?: string; expression: string; startLine: number; endLine: number; arguments: Array<{ parameter?: string; expression: string; literalKnown: boolean; literalValue?: FiniteValue }> }>
+  localCallable?: {
+    schemaVersion: "source-local-callable/v1"; ownerId: string; ownerSha256: string;
+    captures: Array<{ name: string; use: { startLine: number; endLine: number; startIndex: number; endIndex: number } }>;
+    gap?: string;
+  }
 }
 export interface StructureCall {
   id: string; ownerId?: string; path: string; sha256: string; startLine: number; endLine: number;
@@ -183,7 +188,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         }
         returnedCallables.set(symbol.id, [...result])
       }
-      const localNames = new Map<string, Set<string>>(), moduleAssignments: Record<string, number> = {}, globalNames = new Map<string, Set<string>>()
+      const localNames = new Map<string, Set<string>>(), localWrites = new Map<string, Map<string, number>>(), lexicalNames = new Map<string, Set<string>>(), moduleAssignments: Record<string, number> = {}, globalNames = new Map<string, Set<string>>()
       if (language === "python") for (const n of descendants(root, ["global_statement"])) {
         let owner = n.parent; while (owner && !byNode.has(owner.id)) owner = owner.parent
         const symbol = owner && byNode.get(owner.id)
@@ -195,7 +200,45 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         const names = ["import_statement", "import_from_statement"].includes(n.type) ? children(n).filter(c => c.type === "aliased_import" || c.type === "dotted_name" && c.id !== field(n, "module_name")?.id).map(c => field(c, "alias")?.text ?? (field(n, "module_name") ? field(c, "name")?.text ?? c.text : (field(c, "name")?.text ?? c.text).split(".")[0]!))
           : left?.type === "identifier" ? [left.text] : descendants(left ?? n, ["identifier"]).filter(c => n.type === "delete_statement" || left?.type === "pattern_list" || left?.type === "as_pattern_target").map(c => c.text)
         for (const name of names) if (!symbol || symbol.kind === "function" && globalNames.get(symbol.id)?.has(name)) moduleAssignments[name] = (moduleAssignments[name] ?? 0) + 1
-        else if (symbol.kind === "function") { const bound = localNames.get(symbol.id) ?? new Set<string>(); bound.add(name); localNames.set(symbol.id, bound) }
+        else if (symbol.kind === "function") {
+          const bound = localNames.get(symbol.id) ?? new Set<string>(), writes = localWrites.get(symbol.id) ?? new Map<string, number>()
+          bound.add(name); writes.set(name, (writes.get(name) ?? 0) + 1); localNames.set(symbol.id, bound); localWrites.set(symbol.id, writes)
+        }
+      }
+      // A local declaration is a source call edge only while its identity and
+      // captured cells are fixed. Returned/passed closures need separate actual
+      // invocation evidence; finding a nested body does not execute its factory.
+      if (language === "python") for (const n of definitions.filter(d => d.type === "function_definition")) {
+        const symbol = byNode.get(n.id), body = field(n, "body")
+        let parent = n.parent; while (parent && !byNode.has(parent.id)) parent = parent.parent
+        const owner = parent && byNode.get(parent.id)
+        if (!symbol || !body || owner?.kind !== "function") continue
+        const ownerBody = field(parent!, "body")!, declaration = n.parent?.type === "decorated_definition" ? n.parent : n
+        const owned = (node: Node, definition: Node) => { let p = node.parent; while (p && !["function_definition", "class_definition", "lambda"].includes(p.type)) p = p.parent; return p?.id === definition.id }
+        const captureNames = new Set<string>(), captures: NonNullable<StructureSymbol["localCallable"]>["captures"] = []
+        let gap: string | undefined
+        if (n.hasError || declaration.parent?.id !== ownerBody.id || symbol.attributes.callableAsync || symbol.attributes.bindingWrapped || symbol.parameters.some(p => p.type || p.defaultExpression && !p.defaultLiteralKnown) || symbol.returns.length || descendants(body, ["yield"]).some(i => owned(i, n))) gap = "source-local-callable-definition-unmodeled"
+        else if (owner.parameters.some(p => p.name === symbol.name) || localWrites.get(owner.id)?.get(symbol.name) !== 1) gap = "source-local-callable-binding-unresolved"
+        const references = descendants(ownerBody, ["identifier"]).filter(i => i.text === symbol.name && i.id !== field(n, "name")?.id && !(n.startIndex <= i.startIndex && i.endIndex <= n.endIndex) && !(i.parent?.type === "attribute" && field(i.parent, "attribute")?.id === i.id) && !(i.parent?.type === "keyword_argument" && field(i.parent, "name")?.id === i.id))
+        if (!gap && references.some(i => !owned(i, parent!) || i.parent?.type !== "call" || field(i.parent, "function")?.id !== i.id)) gap = "source-local-callable-escape-unmodeled"
+        if (!gap && descendants(body, ["nonlocal_statement", "global_statement"]).some(i => owned(i, n))) gap = "source-local-capture-scope-unmodeled"
+        for (const i of descendants(body, ["identifier"]).filter(i => owned(i, n))) {
+          if (i.parent?.type === "attribute" && field(i.parent, "attribute")?.id === i.id || i.parent?.type === "keyword_argument" && field(i.parent, "name")?.id === i.id || symbol.parameters.some(p => p.name === i.text) || localNames.get(symbol.id)?.has(i.text)) continue
+          let ancestor: Node | null = parent, binding: StructureSymbol | undefined
+          while (ancestor) {
+            const scope = byNode.get(ancestor.id)
+            if (scope?.kind === "function" && (scope.parameters.some(p => p.name === i.text) || localNames.get(scope.id)?.has(i.text))) { binding = scope; break }
+            ancestor = ancestor.parent
+          }
+          if (!binding) continue
+          captureNames.add(i.text)
+          if (binding.id !== owner.id || !owner.parameters.some(p => p.name === i.text)) { gap ??= "source-local-capture-value-unresolved"; continue }
+          if (descendants(ownerBody, ["match_statement"]).some(i => owned(i, parent!)) || descendants(ownerBody, ["nonlocal_statement"]).some(s => children(s).some(c => c.text === i.text))) { gap ??= "source-local-capture-scope-unmodeled"; continue }
+          if (localWrites.get(owner.id)?.has(i.text)) { gap ??= "source-local-capture-rebound"; continue }
+          if (!captures.some(c => c.name === i.text)) captures.push({ name: i.text, use: { startLine: i.startPosition.row + 1, endLine: i.endPosition.row + 1, startIndex: i.startIndex, endIndex: i.endIndex } })
+        }
+        lexicalNames.set(symbol.id, captureNames)
+        symbol.localCallable = { schemaVersion: "source-local-callable/v1", ownerId: owner.id, ownerSha256: owner.sha256, captures, ...(gap ? { gap } : {}) }
       }
       const moduleAttributeWrites: string[] = [], routerAliases: FileScope["routerAliases"] = []
       if (language === "python") for (const n of descendants(root, ["assignment", "augmented_assignment", "delete_statement"])) {
@@ -242,7 +285,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           ancestor = ancestor.parent
         }
         const argumentFacts = language === "python" ? children(field(n, "arguments")).map(a => { const value = a.type === "keyword_argument" ? field(a, "value")! : a; return { expression: boundedText(value), ...(a.type === "keyword_argument" ? { parameterName: field(a, "name")!.text } : {}), ...(a.type === "list_splat" ? { spread: "positional" as const } : a.type === "dictionary_splat" ? { spread: "keyword" as const } : {}), ...sourceLiteral(value) } }) : undefined
-        rawCalls.push({ types, localNames: language === "python" && symbol?.kind === "function" ? [...new Set([...symbol.parameters.map(p => p.name), ...localNames.get(symbol.id) ?? []])] : [], groupPaths, registrationContext, call: { id: `call-${hash([sourceIdentity, file.path, sha256, n.startIndex]).slice(0, 24)}`, ...(symbol ? { ownerId: symbol.id } : {}), path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, expression, ...(expression.includes(".") ? { receiver: expression.slice(0, expression.lastIndexOf(".")) } : {}), arguments: args, ...(argumentFacts ? { argumentFacts } : {}), candidateIds: [], resolution: "unresolved", basis: [], resultNames, syntaxRole } })
+        rawCalls.push({ types, localNames: language === "python" && symbol?.kind === "function" ? [...new Set([...symbol.parameters.map(p => p.name), ...localNames.get(symbol.id) ?? [], ...lexicalNames.get(symbol.id) ?? []])] : [], groupPaths, registrationContext, call: { id: `call-${hash([sourceIdentity, file.path, sha256, n.startIndex]).slice(0, 24)}`, ...(symbol ? { ownerId: symbol.id } : {}), path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, expression, ...(expression.includes(".") ? { receiver: expression.slice(0, expression.lastIndexOf(".")) } : {}), arguments: args, ...(argumentFacts ? { argumentFacts } : {}), candidateIds: [], resolution: "unresolved", basis: [], resultNames, syntaxRole } })
       }
       const constants: Record<string, string> = {}, routers: FileScope["routers"] = [], decorators: FileScope["decorators"] = [], includes: FileScope["includes"] = []
       if (language === "python") {
@@ -372,6 +415,12 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       basis = ["AST zero-argument super after defining class in actual C3 receiver"]
       if (candidates.length && mro) call.receiverClass = mro[0]
     }
+    else if (!parts.length && scope.language === "python" && raw.localNames.includes(name)) {
+      const local = scope.symbols.filter(s => s.name === name && s.localCallable?.ownerId === owner?.id)
+      if (local.length === 1 && !local[0]!.localCallable!.gap && call.startLine > local[0]!.endLine) candidates = local
+      else call.gap = local.length === 1 ? local[0]!.localCallable!.gap ?? "source-local-callable-before-definition" : "source-local-callable-binding-unresolved"
+      basis = ["AST local binding shadows module/import scope; direct callable and stable parameter captures required"]
+    }
     else if (!parts.length) { candidates = matching(qualified(name, scope)).filter(s => !s.className); basis = ["AST unqualified name in module/import scope"] }
     else if (root && raw.localNames.includes(root) && !raw.types[root]) { basis = ["AST local or parameter shadows module receiver without a bound type"] }
     else if (root && (raw.types[root] || root === "self" && receiverClass)) {
@@ -393,7 +442,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       }
     }
     call.candidateIds = candidates.map(c => c.id); call.resolution = candidates.length === 1 ? "resolved" : candidates.length > 1 ? "ambiguous" : "unresolved"; call.basis = basis
-    if (!candidates.length) call.gap = "receiver/import/value binding unavailable; unique lexical name is not a call edge"
+    if (!candidates.length) call.gap ??= "receiver/import/value binding unavailable; unique lexical name is not a call edge"
     return call
   }
   // Declared return types and explicit constructor assignments are bounded
@@ -666,7 +715,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     }
     classDecoratorCache.set(receiverClass, facts); return structuredClone(facts)
   }
-  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v10"
+  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v11"
   const withSymbolSyntax = <T>(symbolId: string, visit: (root: Node, symbol: StructureSymbol) => T): Promise<T> => {
     const symbol = symbols.find(s => s.id === symbolId), file = symbol && files.find(f => f.path === symbol.path)
     if (!symbol || !file || hash(file.content) !== symbol.sha256) throw new Error("structure-source-missing")
