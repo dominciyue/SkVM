@@ -186,6 +186,8 @@ Files: `src/cli/run.ts`、现有 authorization inquiry CLI、`src/adapters/codex
 
 ### AX12 三种变化的 fresh 与材料复用
 
+policy fresh/previous与premise fresh首件已关闭并保留。同版本policy previous的两个入口材料均current:false，accepted入口仍在而materialUses为空；主线程定位createSourceMaterials.accept在A→B→A重新接纳旧ID时返回退休条目但不reactivate。受影响的材料/消费者/M-S/D-S派发暂停：先用匿名材料与真实入口投影写红测，修共享accept的当前状态与新接纳元数据；不改变含义/评分器。然后具名同原题公开baseline和新变化登记（旧输入/登记原件保留），fresh/previous在新production src tree成对复验。未用材料核心的common-only作者可先执行，消费者仍等待修复。不能把修前0采用或修后重新计算升级成原首件成功。
+
 - [ ] 使用同一 Download 任务的 policy、premise、source 三种完整变化输入，每种 fresh/previous 两次，共六个首位置。
 - [ ] previous 只传当前实现生成且来源匹配的材料；不能传原答或检查结论。policy/premise 变更保留合格源码含义，source 变更定位失效影响并重读。
 - [ ] baseline 只形成 partial 时仍可测试可复用材料的局部采用，结果标明 material-only；完整任务节省只在当前原/变质量满足时计算。
@@ -229,6 +231,8 @@ Files: `src/cli/run.ts`、现有 authorization inquiry CLI、`src/adapters/codex
 - [ ] 子代理只返回出处和疑点，主代理点验关键原文并裁定。修复仍在共享生产实现，不能修改评分器让错误过关。
 
 ### AX18 适用回归与零调用重放
+
+当前已接通严格零账号重放：按实际incoming packet核验原回调顺序/参数，以强制test-transport重执行共享账号核心，比较完整serialized native状态/材料/计数；仅排除宿主计算/源码准备的具名耗时字段。runtime src tree不一致的旧归档单列，不假装新代码重放旧实现成功。src工作树有改动/未跟踪文件时拒绝严格重放，避免HEAD tree冒充实际代码。六份同版本answer-phase、公开Download、OWUI和三份变化首件的184回调及状态/材料一致；后续关闭位置继续纳入。smoke/作者原稿字节和费用由各自capture/accounting核验，不把mock推理当真实账号。源码窗口重建额外拒绝负数、非整数、倒序及越EOF范围；previous临时公开声明在源盘创建，避免Windows跨盘relative sourceRoot失效。
 
 - [ ] 先相关单测、主类型和本轮研究脚本类型，再运行一次相关联合回归；只有新增修改/失败才重复。无需重跑整个历史研究和全部旧付费输入。
 - [ ] 本轮原件零账号重放：重算状态、材料使用和成本聚合；原模型响应保持原字节。新代码不能假装严格重放旧冻结实现成功。

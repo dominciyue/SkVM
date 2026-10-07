@@ -3,6 +3,7 @@ import { createHash } from "node:crypto"
 import { mkdtemp, rm, writeFile } from "node:fs/promises"
 import path from "node:path"
 import os from "node:os"
+import { gzipSync } from "node:zlib"
 import { auditAccountContexts, collectAccounts, sumAccountUsage } from "./accounting.ts"
 import { createInquiryContextEncoder } from "../../../../../src/benchmarks/authorization-dsl/inquiry-context.ts"
 import { redactCodexEvent } from "../../../../../src/adapters/codex-account-session.ts"
@@ -50,4 +51,23 @@ test("redacted source references require an exact source reconstruction and reta
   expect(auditAccountContexts(events, 2).status).toBe("failed")
   expect(auditAccountContexts(events, 2, new Map([[window.id, window]]))).toMatchObject({ status: "verified-with-source-reconstruction", packets: 2, restoredSourceWindows: 1, issues: [] })
   expect(auditAccountContexts(events, 2, new Map([[window.id, { ...window, text: window.text + "wrong" }]]))).toMatchObject({ status: "failed", restoredSourceWindows: 0 })
+})
+test("source reconstruction rejects malformed archived line ranges before slicing", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "ax-window-range-")), { mkdir } = await import("node:fs/promises")
+  const digest = (value: string) => createHash("sha256").update(value).digest("hex")
+  try {
+    const directory = path.join(root, "attempts", "native", "original"), sourceRoot = path.join(root, "source")
+    await mkdir(directory, { recursive: true }); await mkdir(sourceRoot)
+    const source = "def entry():\n    return True\n", input = JSON.stringify({ schemaVersion: "authorization-inquiry-input/v1", taskId: "range", repository: "anonymous", sourceRef: "r", sourceRoot: "source", allowedPaths: ["app.py"], brief: "Inspect entry authorization.", mode: "behavior" }), inputFile = path.join(root, "input.json")
+    await writeFile(path.join(sourceRoot, "app.py"), source); await writeFile(inputFile, input)
+    await writeFile(path.join(root, "manifest.json"), JSON.stringify({ positions: [{ id: "native", kind: "native", attempts: ["native/original"] }] }))
+    await writeFile(path.join(directory, "report.json"), JSON.stringify({ status: "completed" }))
+    await writeFile(path.join(directory, "claim.json"), JSON.stringify({ inputFile, inputSha256: digest(input), sourceFiles: [{ path: "app.py", sha256: digest(source) }] }))
+    for (const [startLine, endLine] of [[0, 2], [1.5, 2], [1, 99], [2, 1]]) {
+      const lines = source.replace(/\r?\n$/, "").split(/\r?\n/), text = lines.slice(startLine! - 1, endLine).map((line, i) => `${startLine! + i} | ${line}\n`).join("")
+      const evidence = { id: `ev-${digest(["anonymous", "r", "app.py", digest(source), startLine, endLine].join("\0")).slice(0, 20)}`, path: "app.py", sha256: digest(source), startLine, endLine, bytes: Buffer.byteLength(text) }
+      await writeFile(path.join(directory, "run-result.json.gz"), gzipSync(JSON.stringify({ authorizationInquiry: { evidence: [evidence], contextPayloads: [], account: { events: [] } } })))
+      await expect(collectAccounts(root)).rejects.toThrow("Window range")
+    }
+  } finally { await rm(root, { recursive: true, force: true }) }
 })

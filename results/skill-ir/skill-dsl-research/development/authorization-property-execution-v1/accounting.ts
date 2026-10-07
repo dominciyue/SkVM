@@ -61,6 +61,7 @@ async function originalSourceWindows(claim: any, evidence: any[]) {
       sourceCache.set(item.path, loaded.bundle.files[0]!.content)
     }
     const content = sourceCache.get(item.path)!, lines = content ? content.replace(/\r?\n$/, "").split(/\r?\n/) : []
+    if (!Number.isSafeInteger(item.startLine) || !Number.isSafeInteger(item.endLine) || item.startLine < 1 || item.endLine < item.startLine || item.endLine > lines.length) throw new Error("Window range is not an original source interval")
     const text = lines.slice(item.startLine - 1, item.endLine).map((line, i) => `${item.startLine + i} | ${line}\n`).join("")
     const id = `ev-${sha([input.value.repository, input.value.sourceRef, item.path, item.sha256, item.startLine, item.endLine].join("\0")).slice(0, 20)}`
     if (id !== item.id || Buffer.byteLength(text) !== item.bytes) throw new Error("Window range identity changed before audit")

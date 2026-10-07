@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "authorization-ax-code-review/v1",
+  "component": "replay.ts strict retained account replay",
+  "reviewer": "ax_zero_account_replay_review (independent read-only default scout)",
+  "finding": "HEAD:src alone does not establish the runtime identity when production src has modified or untracked files.",
+  "disposition": "fixed",
+  "remediation": "Refuse dirty production src before collecting the frozen tree and again before writing replay results. Replay only matching frozen trees and recorded incoming callbacks through the normal production inquiry runtime.",
+  "remediatedFileSha256": "c9b3036e189016489a199485dc882dadfa797943861e08bc4cec2f27468968ba",
+  "verification": "replay.test.ts: 3 tests, 10 assertions; modified/untracked src refusal, incoming callback tamper refusal, retained-state mismatch and exact operational-timing exclusions",
+  "retainedArchiveVerification": { "runtimeTree": "e1578bb1b4f38b27b509a3a209c9a9384fdc3dd9", "verifiedAttempts": 6, "callbacks": 184, "newInference": 0, "targetExecutions": 0 },
+  "limits": "Older source trees are recorded as frozen-runtime-not-replayed. Replay equality preserves existing failures and is not task quality acceptance."
+}

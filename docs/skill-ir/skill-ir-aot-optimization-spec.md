@@ -2583,7 +2583,7 @@ Go机械来源覆盖包含multiline链式route及if initializer的实际调用/�
 
 ### 14.37 AX property directed analysis and controlled account execution
 
-2026-10-07，用户授权[AX0–AX20](../superpowers/plans/2026-10-07-authorization-property-analysis-and-account-execution.md)并指定gpt-6.1-sol/max开发。当前为in-progress；账号匿名工具链已实际验证，性质求值及完整任务效果仍待实现/验证。新行为显式选择operation-evidence-v4，复用既有核心/两个入口，旧策略和原件保持。
+2026-10-07，用户授权[AX0–AX20](../superpowers/plans/2026-10-07-authorization-property-analysis-and-account-execution.md)并指定gpt-6.1-sol/max开发。当前为in-progress；账号匿名工具链已实际验证，性质求值已接通，完整任务质量及收益尚待验收。新行为显式选择operation-evidence-v4，复用既有核心/两个入口，旧策略和原件保持。
 
 **性质需求与覆盖。** 从原任务、当前入口和已读源码建立每个授权问题的主体/资源、guard、effect、返回及控制/数据依赖。未进入当前需求的语句仍保存来源与排除理由；机械可证明排除和模型提出的unreviewed相关性分开。未知写作用途、动态调用、资源替换、receiver/别名和异常控制若可能影响当前性质须保留缺口。完整问题分母与源码获取能力保持；不能凭函数名、旧答案或删除难题建立相关性。增量解释只要求当前必要字段，错误字段局修不丢其它有效材料。
 
@@ -2596,6 +2596,8 @@ Go机械来源覆盖包含multiline链式route及if initializer的实际调用/�
 **真实交付与比较。** 使用已经暴露的Download/OWUI完整任务和Cloudflare/GitHub完整skill，执行模型不得读本任务书、oracle、过去正确答案或开发者补写正确图。原skill、自然前端加共同核心、领域声明加同核心在同模型/材料/预算下分别评价。20个逻辑首位置、具名修订及实际共享原件分开，发现共享缺陷立即修复再继续受影响运行；不能先跑完已知错误批次。材料恢复/实际采用/完整任务质量分别验收，policy/premise重算与source失效保持。内部请求、实际USD和真人时间不可见时为unknown。
 
 **交付责任。** 工程、账号运行、native交付、作者原字节消费、质量比较、变化复用六项单列。至少一个完整原skill的真实checked且源码充分答案是本轮真实链验收目标；两任务全部问题仍列入分母，复杂任务不足需给出实际修订效果。有限队列结束与研究目标达成分别报告。设计根据见[研究§7.57–§7.58](skill-dsl-research.md#757-aw-收束后复核运行能力与按问题求值)。
+
+**原件核验。** 日志脱敏不改变模型实际收到的源码；需要恢复引用时，仅可用登记SHA匹配原源码按原范围/ID/bytes重建，并验证其精确脱敏结果等于实际归档发送值，单列重建状态且不修复模型语义。零账号重放使用原回调和强制test-transport，生产src tree须匹配冻结归档；比较完整状态/材料/计数，仅排除已定位的宿主耗时。新代码不把旧冻结实现列为严格重放成功，mock不产生真实用量或任务质量证据。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
