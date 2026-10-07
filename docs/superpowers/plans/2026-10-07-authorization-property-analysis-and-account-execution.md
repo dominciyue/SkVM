@@ -253,7 +253,7 @@ policy fresh/previous与premise fresh首件已关闭并保留。同版本policy 
 - [x] 更新使用说明、developer-guide、spec、current-status、当前计划及研究§7.58；给出真实可复制的 account inquiry/native/check/inspect/变化命令，账号run模板静态核实且拒绝后未再推理。
 - [x] 研究段落记录问题→根因→具体修改→同例效果→剩余限制，统一正文，不新增每阶段复盘 Markdown。
 - [x] 在根 conversation_log 记录阶段、验证和未达责任；handoff/communication 更新账号授权和下一恢复点，发布SHA在实际推送后记录。
-- [ ] 明确暂存本轮文件，提交并推用户 origin，核对远端 SHA。历史 raw、未跟踪材料及他人改动不混入。
+- [x] 明确暂存本轮文件，提交并推用户 origin，核对远端 SHA。历史 raw、未跟踪材料及他人改动不混入。离线检查点`fa8eb96dd2021ff2b48ab3952a178b9e4e695877`已推`origin/skill-ir-aot`并核对远端；63份AX暂存文件逐字节一致，当前失败输入/95来源/完整22文件skill及report/run SHA通过。三个Windows检查输出按精确路径保留CRLF格式与原SHA；生产src tree仍6042b79e，真实11待执行与研究目标false不改。
 
 ### AX20 收束与继续责任
 

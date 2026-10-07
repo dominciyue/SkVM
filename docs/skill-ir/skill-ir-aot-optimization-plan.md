@@ -5,7 +5,7 @@
 - 唯一实时入口：[current-status](current-status.md)。
 - 当前任务书：[AX0–AX20 按授权问题求值与账号真实执行](../superpowers/plans/2026-10-07-authorization-property-analysis-and-account-execution.md)，in-progress-account-channel-blocked。
 - 方法合同：[spec AX](skill-ir-aot-optimization-spec.md#1437-ax-property-directed-analysis-and-controlled-account-execution)；决定依据：[研究§7.57–§7.58](skill-dsl-research.md#757-aw-收束后复核运行能力与按问题求值)。
-- 复核基线ccf00985，启动时保留随后计划提交。开发模型gpt-6.1-sol/max；被测模型为已授权当前账号的gpt-5.6-sol/high。第三方API和AV十二旧位置继续暂停。
+- 复核基线ccf00985，AX最后生产修复9039fd3f/源码树6042b79e，离线交付检查点fa8eb96d已推并核对origin。开发模型gpt-6.1-sol/max；被测模型为已授权当前账号的gpt-5.6-sol/high。第三方API和AV十二旧位置继续暂停。
 
 ## 当前目标
 
