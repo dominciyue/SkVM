@@ -1969,6 +1969,8 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 **AX13作者准入与修后登记。** Download/OWUI两份common-only作者均完成，分别可见input/output/cacheRead为36489/4744/21760和40358/6295/25984。原稿、每次写入及使用说明保留；独立只读核验与主线程完整阅读确认全任务和剩余skill职责忠实，私有准入只绑定原字节及原输入SHA。95/173文件源码包已原字节复制且公开校验，尚未冒称模型消费。作者Usage仅有操作步骤，最终交付另补可复制的公开命令。fb808576修后Download公开baseline完成34回调，2单元/15步，1项入口材料投影，形式仍partial；34原回调严格重放一致。新具名变化登记/输入与旧路径分开，固定同生产src tree及各变化SHA，两个红测转绿、18项研究脚本74断言及严格类型通过，三变化公开检查全部valid。原policy两答仍部分，首次premise fresh自然条件说明独立评阅为充分，正式检查失败继续单列。
 
+**AX检查后显式回访修复。** afc71124树下policy fresh具名修订完成24回调，可见input/output/cacheRead为2451211/11419/2241920，当前入口材料采用1，形式仍partial；该树baseline/policy两份58回调严格零账号重放封存。独立自然评阅判两答full，主线程全文阅读后点验Paperless GET权限映射与DRF继承has_permission，确认二者只列权限类却漏掉全局view_document入口门槛，最终仍partial，核心root/file/version/representation关系正确。随后发现账号每次检查后都以finalOnly撤销已被接受的显式revisit/nextItemId；原两份真实轨迹没有请求回访，不能将失败归因为实际回访失败。匿名生产接口两个红测复现focus再次切answer，修共享context/focus区分软交付和硬预算，合法显式源码选择保留至接受/放弃；未增加预算、自动读或语义标注。十文件138项967断言、另一个待源码选择/检查耗尽反例及主类型通过；独立review的dual-field绕过猜测经原OR拒绝条件排除，account/provider先sync再硬context的源失效路径维持。修后先登记当前公开baseline和同版本变化，再继续消费者/六臂，旧首件及两个历史树快照保留。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

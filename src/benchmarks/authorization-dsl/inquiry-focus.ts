@@ -100,7 +100,7 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
   const sourceDrafts = new Map<string, SourceInterpretation>(), offeredSkeletons = new Map<string, SourceSkeleton>()
   const propertyDemands = new Map<string, PropertyDemand>()
   const sourceHistory: Array<{ event: string; focusId?: string; revision?: string; raw: unknown; generated?: unknown; diagnostics: InquiryDiagnostic[] }> = []
-  let transactionItem: WorkItem | undefined
+  let transactionItem: WorkItem | undefined, explicitSourceWork = false
   const history: Array<{ focus: Focus; event: string; reason?: string; raw?: unknown; diagnostics?: InquiryDiagnostic[] }> = []
   const basis = () => hash([options.program.questions, options.program.policy, options.units(), options.slice().bindings])
   const sourceItem = (id?: string) => id && transactionItem?.id === id ? transactionItem : options.items().find(i => i.id === id) ?? (id ? retainedItems.get(id) : undefined)
@@ -135,9 +135,10 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
     return [{ caller: u.handle, questionId: u.questionId, call: s.name, symbol: s.symbol, arguments: s.arguments, pathHint: s.pathHint, ...(sourceSelector ? { sourceSelector } : {}), targets: targets.map(t => ({ handle: t.handle, source: t.source, parameters: t.parameters })) }]
   })))
   const claims = () => options.units().flatMap(u => u.blocks.flatMap(b => b.steps.filter(s => ["transform", "effect", "call", "guard", "reject"].includes(s.kind)).map(s => ({ id: hash([u.questionId, u.handle, b.name, s.name]), questionId: u.questionId, handle: u.handle, block: b.name, step: s, source: u.source, evidenceIds: u.evidenceIds })))).slice(0, 32)
-  const start = (stage: FocusStage, item?: WorkItem, handle?: string) => {
+  const start = (stage: FocusStage, item?: WorkItem, handle?: string, explicit = false) => {
     const snapshot = basis(), source = item?.selected ? { id: item.selected.id, path: item.selected.path, sha256: item.selected.sha256, startLine: item.selected.startLine, endLine: item.selected.endLine } : undefined
     transactionItem = item ? structuredClone(item) : undefined
+    explicitSourceWork = explicit
     const accepted = item && options.units().find(u => u.questionId === item.questionId && u.source?.id === item.selected?.id && u.receiverClass === item.receiverClass && u.role === (item.origin === "question-duty" && item.kind === "entry" ? "entry" : "helper"))
     current = { id: `focus-${hash([stage, item?.id, source, snapshot, serial++])}`, stage, ...(item ? { questionId: item.questionId, itemId: item.id, handle: handle ?? accepted?.handle ?? unitHandle(item), source, receiverClass: item.receiverClass } : {}), snapshot }
     history.push({ focus: structuredClone(current), event: "started" })
@@ -146,16 +147,16 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
     if (!current) return
     history.push({ focus: structuredClone(current), event, ...(reason ? { reason } : {}) })
     if (current.itemId) { if (event === "accepted") finished.add(`${current.itemId}:${current.source?.id}`); lastQuestion = options.program.questions.findIndex(q => q.id === current!.questionId) }
-    current = undefined; transactionItem = undefined
+    current = undefined; transactionItem = undefined; explicitSourceWork = false
   }
-  const sync = (forceAnswer = false) => {
+  const sync = (forceAnswer = false, preserveExplicitSource = false) => {
     const items = options.items()
     for (const item of items) if (item.selected) retainedItems.set(item.id, structuredClone(item))
     if (current?.itemId && (sourceItem(current.itemId)?.code === "source-invalidated" || current.source && options.tools.history.some(h => {
       const selector = (h.arguments as Record<string, unknown>).path
       return h.result.code === "source-root-changed" || h.result.code === "source-changed" && (selector === undefined || selector === "." || selector === current!.source!.path || typeof selector === "string" && current!.source!.path.startsWith(`${selector}/`))
     }))) { finish("source-invalidated"); return }
-    if (forceAnswer) { if (current?.stage !== "answer") { finish("budget-delivery"); start("answer") }; return }
+    if (forceAnswer) { if (preserveExplicitSource && explicitSourceWork && current?.stage === "interpret") return; if (current?.stage !== "answer") { finish("budget-delivery"); start("answer") }; return }
     if (current) return
     if (options.structural && pendingLinks().some(p => p.targets.length)) { start("link"); return }
     const eligible = items.filter(i => (i.origin !== "question-duty" || i.kind === "entry") && i.code !== "source-invalidated" && !finished.has(`${i.id}:${i.selected?.id}`) && (i.state === "awaiting-interpretation" || i.state === "awaiting-binding" && i.evidenceIds.length > 0 && i.code !== "reference-relevance-unconfirmed") && unaccepted(i))
@@ -234,10 +235,10 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
         const item = options.items().find(i => i.id === value.nextItemId)
         if (!options.structural || value.revisit || !item?.selected || item.state !== "awaiting-interpretation" || !["structure-relation", "explicit-dependency"].includes(item.origin) || options.units().some(u => u.questionId === item.questionId && u.source?.id === item.selected!.id && u.receiverClass === item.receiverClass) || current.questionId && operation(current.questionId) !== operation(item.questionId)) { fail("focus-next-item-unavailable", "Choose an actually read, pending source item in this operation; unseen, accepted, unread or foreign work cannot be offered by this action."); return { diagnostics } }
         if (current.itemId) deferred.add(current.itemId)
-        finish("source-work-selected", value.reason); start("interpret", item); return { diagnostics, deferred: true }
+        finish("source-work-selected", value.reason); start("interpret", item, undefined, true); return { diagnostics, deferred: true }
       }
       if (current.itemId) deferred.add(current.itemId)
-      if (value.revisit) { const u = options.units().find(u => u.handle === value.revisit); if (!u) { fail("focus-revisit-missing", "Choose an existing source unit to revise."); return { diagnostics } }; const i = retainedUnitItem(u); if (!i) { fail("focus-revisit-source-missing", "The retained original source transaction is unavailable; request its source again."); return { diagnostics } }; finished.delete(`${i.id}:${i.selected?.id}`); finish("deferred", value.reason); start("interpret", i, u.handle); return { diagnostics, deferred: true } }
+      if (value.revisit) { const u = options.units().find(u => u.handle === value.revisit); if (!u) { fail("focus-revisit-missing", "Choose an existing source unit to revise."); return { diagnostics } }; const i = retainedUnitItem(u); if (!i) { fail("focus-revisit-source-missing", "The retained original source transaction is unavailable; request its source again."); return { diagnostics } }; finished.delete(`${i.id}:${i.selected?.id}`); finish("deferred", value.reason); start("interpret", i, u.handle, true); return { diagnostics, deferred: true } }
       finish("deferred", value.reason); return { diagnostics, deferred: true }
     }
     const expected = current.stage === "locate" ? "select" : current.stage

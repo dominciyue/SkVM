@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "authorization-ax-source-review/v1",
+  "attemptId": "inquiry-download-original/material-reactivation",
+  "reportSha256": "2360f0955376684cc6e617f363dbd106da272b41608625e837e9bce0e6c2caad",
+  "answerSha256": "6f5865f65a607ec06c085dc21160ad9c43f08f3e4f0724f2c64732e00b05d93b",
+  "inputSha256": "351e98469db38adf77b52be538475f58cc36033dad04f43211bccb8039abe0e1",
+  "reviewer": {
+    "kind": "independent-AI",
+    "role": "default",
+    "scout": "ax_material_baseline_policy_answer_review",
+    "targetExecution": 0
+  },
+  "overall": "full",
+  "factualErrors": [],
+  "wordingRisks": [
+    "missing version is ambiguous beside the correct no-parameter latest branch"
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/documents/permissions.py",
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "bytes": 27105
+    },
+    {
+      "path": "framework/rest_framework-3.18.1/rest_framework/permissions.py",
+      "sha256": "b4c6285334dc756081bc1896606574dd248dad44379ed4b55736a863f70e7e89",
+      "bytes": 9588
+    },
+    {
+      "path": "src/documents/views.py",
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "bytes": 211440
+    },
+    {
+      "path": "src/documents/versioning.py",
+      "sha256": "de017348cbb361787d68433537bdbd39f8b56a95185a53c3cef3aa10df365766",
+      "bytes": 8919
+    }
+  ],
+  "sourceAnchors": [
+    "src/documents/views.py:1401",
+    "src/documents/versioning.py:169",
+    "src/documents/permissions.py:624",
+    "src/documents/permissions.py:36",
+    "framework/rest_framework-3.18.1/rest_framework/permissions.py:233"
+  ],
+  "mainAdjudication": {
+    "overall": "partial",
+    "checked": [
+      "Root rather than returned file is object-authorized; ownerless/owner/Guardian, version-family, direct-version and representation branches are correct",
+      "download catches both FileNotFoundError and Document.DoesNotExist at views.py:1834-1839"
+    ],
+    "omissions": [
+      "Inherited GET global view_document permission requirement is omitted; listing the permission classes does not explain this independent entry gate"
+    ],
+    "reason": "Root ownership or an object grant alone does not establish request admission; source explicitly maps GET then calls user.has_perms(perms). Full original task asks relevant authorization control branches.",
+    "formalAcceptance": false
+  },
+  "evaluationsProvidedToExecutionModel": false,
+  "date": "2026-10-07"
+}

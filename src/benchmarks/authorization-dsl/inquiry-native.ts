@@ -207,11 +207,12 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
     // provider dispatch-count transition into the same partial answer phase.
     if (domain) await domain.sync(automatic && checks === 0 && !result && toolBudget().explorationRemaining > 0)
     ensureActive()
-    const budget = toolBudget(), finalOnly = checks > 0 || budget.explorationRemaining <= 0 || !!result
-    const current = sourceAssisted ? domain?.promptContext({ maxSourceBytes: Math.max(0, (options.maxDisplayBytes ?? 262144) - modelSourceBytes), finalOnly }) : domain?.modelContext({ finalOnly })
+    const budget = toolBudget(), finalOnly = budget.explorationRemaining <= 0 || budget.checksRemaining <= 0 || !!result, preferAnswer = checks > 0
+    const current = sourceAssisted ? domain?.promptContext({ maxSourceBytes: Math.max(0, (options.maxDisplayBytes ?? 262144) - modelSourceBytes), finalOnly, preferAnswer }) : domain?.modelContext({ finalOnly, preferAnswer })
+    const answering = finalOnly || preferAnswer && !!current && "focus" in current && current.focus?.stage === "answer"
     return current ? { ...current, state: domain!.modelFeedback(), toolBudget: budget,
       ...(result ? { currentDelivery: domain!.deliverySnapshot(), instruction: "Deliver the checked answer in the original skill prose format now." }
-        : finalOnly ? { currentDelivery: domain!.deliverySnapshot(), instruction: `${current.instruction ?? ""}\n${budget.checksRemaining > 0 ? "Use the current answer focus and exact result contract for the remaining reserved check. Preserve all original questions and current unresolved source gaps." : "Reserved checks are exhausted. Deliver the retained source conclusions and precise gaps in the original skill prose format now; label the failed check and partial/unreviewed claims. No more tools."}` } : {}) }
+        : answering ? { currentDelivery: domain!.deliverySnapshot(), instruction: `${current.instruction ?? ""}\n${budget.checksRemaining > 0 ? "Use the current answer focus and exact result contract for the remaining reserved check. Preserve all original questions and current unresolved source gaps. With exploration budget remaining, explicitly revisit an accepted handle or select a read pending source item to repair a named gap before checking." : "Reserved checks are exhausted. Deliver the retained source conclusions and precise gaps in the original skill prose format now; label the failed check and partial/unreviewed claims. No more tools."}` } : {}) }
       : { toolBudget: budget, ...(budget.totalRemaining <= 0 ? { instruction: "Deliver the original task answer and precise remaining source gaps in the original skill prose format now. No more tools." } : {}) }
   }
   const accountSent = (text: string) => {

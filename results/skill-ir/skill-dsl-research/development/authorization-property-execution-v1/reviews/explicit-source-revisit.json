@@ -1,0 +1,56 @@
+{
+  "schemaVersion": "authorization-ax-code-review/v1",
+  "date": "2026-10-07",
+  "reviewer": {
+    "kind": "independent-AI",
+    "role": "default",
+    "scout": "ax_explicit_revisit_fix_review"
+  },
+  "reviewedFiles": [
+    {
+      "path": "src/benchmarks/authorization-dsl/inquiry-focus.ts",
+      "sha256": "62b08a1ff7de0628d72db290f04518e4d019e555feaf3ecefac3324bc65a67b8"
+    },
+    {
+      "path": "src/benchmarks/authorization-dsl/inquiry-domain-runtime.ts",
+      "sha256": "cd8010402d62c3226ce16a60ef795d131ddb2838de335f8f2cc4d428a89954bc"
+    },
+    {
+      "path": "src/benchmarks/authorization-dsl/inquiry-native.ts",
+      "sha256": "4df75d697ec3cc4853fc67ed0bbeefbea8f643d165921742193c90d57704b6cf"
+    },
+    {
+      "path": "src/adapters/codex-account.test.ts",
+      "sha256": "666b908cb1eff0c9c4b9b3413711a726688790350e664d30e9fef1ddc0b160db"
+    }
+  ],
+  "mainAdjudication": {
+    "blockingIssues": [],
+    "decisions": [
+      {
+        "hypothesis": "nextItemId plus revisit bypasses source admission",
+        "status": "rejected-by-code",
+        "evidence": "inquiry-focus.ts:234-237: value.revisit is an OR rejection condition, followed by fail and return; it cannot reach start."
+      },
+      {
+        "hypothesis": "source invalidation bypasses the hard answer transition",
+        "status": "not-present-in-current-entrances",
+        "evidence": "inquiry-native.ts:178,208 first await domain.sync; inquiry-domain-runtime.ts:147 clears invalidated focus before finalOnly calls focus.sync(true). No source/semantic acceptance or extra tool budget follows."
+      },
+      {
+        "hypothesis": "provider reservation still uses hard finalOnly",
+        "status": "intentional",
+        "evidence": "Provider dispatch-count reservation remains unchanged; official account generation instead uses host exploration/check budgets."
+      }
+    ],
+    "conclusion": "Explicit admitted source choices persist only during remaining account exploration/check budgets; finish clears selection and hard finalOnly overrides it."
+  },
+  "previousBoundaryScout": {
+    "scout": "ax_answer_revisit_boundary_review",
+    "conclusion": "explicit revisit allowed",
+    "mainCorrection": "That review considered domain.sync(false) but omitted promptContext->modelContext(finalOnly)->focus.sync(true); two anonymous red tests established the latent rejection."
+  },
+  "actualRevisitFailureObserved": false,
+  "newInference": 0,
+  "targetExecutions": 0
+}

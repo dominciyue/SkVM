@@ -92,6 +92,76 @@ test("account reserved checks expose the current partial answer contract after a
     expect(delivery.instruction).toContain("authorization-focused-result/v1")
   } finally { await runtime.close() }
 })
+for (const exhaust of [false, true]) test(`account failed check retains an explicit source revisit until ${exhaust ? "exploration exhaustion" : "the source repair is accepted"}`, async () => {
+  const f = await fixture(), runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, method: "M", strategy: "operation-evidence-v4", maxToolCalls: 12 })
+  const invoke = async (name: string, args: any) => JSON.parse((await runtime.execute({ id: `${name}-${runtime.report().history.length}`, name, arguments: args })).output)
+  const accountContext = async () => { const context = await runtime.accountContext() as any; runtime.accountSent(JSON.stringify(context)); return context }
+  const returnAnchors = new Map<string, string>()
+  const interpretation = (context: any) => {
+    const skeleton = context.tasks[0].sourceSkeleton, anchor = skeleton.anchors.find((a: any) => a.kind === "return")?.id ?? returnAnchors.get(skeleton.revision)
+    if (!anchor) throw new Error("The shown or retained return anchor is missing")
+    returnAnchors.set(skeleton.revision, anchor)
+    return { schemaVersion: "authorization-source-update/v1", kind: "interpret", focusId: context.focus.id, interpretation: { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations: [{ anchorId: anchor, role: "context", explanation: "The anonymous source returns False", returnOutcome: "deny" }], unresolved: [] } }
+  }
+  try {
+    let current = await accountContext()
+    if (current.focus.stage === "locate") { await invoke("authorization_observe", { controlDelta: { schemaVersion: "authorization-focused-update/v1", kind: "select", focusId: current.focus.id, candidateId: current.locationTasks[0].candidates[0].id } }); current = await accountContext() }
+    expect(current.focus.stage).toBe("interpret")
+    const handle = current.focus.handle
+    await invoke("authorization_observe", { controlDelta: interpretation(current) })
+    const answer = await accountContext()
+    expect(answer.focus.stage).toBe("answer")
+    const failed = await invoke("authorization_check_result", { result: { schemaVersion: "authorization-focused-result/v1", focusId: answer.focus.id, answers: [{ explanation: "Intentionally inconsistent anonymous test claim", disposition: "allow", paths: answer.answerSnapshot.map((p: any) => ({ path: p.path, explanation: "Intentionally wrong allow", disposition: "allow" })) }], scope: "Anonymous source only" } })
+    expect(failed.valid).toBe(false)
+    const delivery = await accountContext()
+    await invoke("authorization_observe", { controlDelta: { schemaVersion: "authorization-focused-update/v1", kind: "defer", focusId: delivery.focus.id, revisit: handle, reason: "Correct the retained original source after the failed check" } })
+    const selected = (runtime.report() as any).domain.focus.current
+    expect(selected.stage).toBe("interpret")
+    const revisited = await accountContext()
+    expect(revisited.focus).toMatchObject({ id: selected.id, stage: "interpret", handle })
+    expect(revisited.toolBudget.checksRemaining).toBe(1)
+    expect(revisited.tasks[0].sourceInterpretationDraft).toBeDefined()
+    expect((await accountContext()).focus.id).toBe(selected.id)
+    if (exhaust) {
+      while (runtime.report().toolBudget.explorationRemaining > 0) await invoke("source_list", {})
+      const final = await accountContext()
+      expect(final.focus.stage).toBe("answer")
+      expect(final.toolBudget.explorationRemaining).toBe(0)
+      expect((await invoke("authorization_observe", { controlDelta: { schemaVersion: "authorization-focused-update/v1", kind: "defer", focusId: final.focus.id, revisit: handle, reason: "No budget remains" } })).code).toBe("exploration-budget")
+    } else {
+      const repaired = await invoke("authorization_observe", { controlDelta: interpretation(revisited) })
+      expect(repaired.controlDiagnostics).toEqual([])
+      const final = await accountContext()
+      expect(final.focus.stage).toBe("answer")
+      const checked = await invoke("authorization_check_result", { result: { schemaVersion: "authorization-focused-result/v1", focusId: final.focus.id, answers: [{ explanation: "The shown source denies", disposition: "deny", paths: final.answerSnapshot.map((p: any) => ({ path: p.path, explanation: "The shown False return", disposition: "deny" })) }], scope: "Anonymous source only" } })
+      expect(checked.valid).toBe(true)
+      expect(runtime.report().toolBudget.checksUsed).toBe(2)
+    }
+  } finally { await runtime.close() }
+})
+test("account failed check permits explicit read pending source work while check exhaustion ends it", async () => {
+  const f = await fixture("def entry():\n    return gate()\ndef gate():\n    return False\n"), runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, method: "M", strategy: "operation-evidence-v4", maxToolCalls: 12 })
+  const context = async () => { const value = await runtime.accountContext() as any; runtime.accountSent(JSON.stringify(value)); return value }
+  const invoke = async (name: string, args: any) => JSON.parse((await runtime.execute({ id: `${name}-${runtime.report().history.length}`, name, arguments: args })).output)
+  const incomplete = (current: any) => ({ result: { schemaVersion: "authorization-focused-result/v1", focusId: current.focus.id, answers: [{ explanation: "Original source remains uninterpreted", disposition: "unknown" }], scope: "Anonymous source with an explicit interpretation gap" } })
+  try {
+    await invoke("source_read", { path: "app.py", startLine: 1, endLine: 4 })
+    let first = await context()
+    if (first.focus.stage === "locate") { await invoke("authorization_observe", { controlDelta: { schemaVersion: "authorization-focused-update/v1", kind: "select", focusId: first.focus.id, candidateId: first.locationTasks[0].candidates[0].id } }); first = await context() }
+    expect((await invoke("authorization_check_result", incomplete(first))).valid).toBe(false)
+    const delivery = await context(), pending = delivery.pendingSourceWork.find((i: any) => i.symbol === "gate")
+    expect(pending.state).toBe("awaiting-interpretation")
+    await invoke("authorization_observe", { controlDelta: { schemaVersion: "authorization-focused-update/v1", kind: "defer", focusId: delivery.focus.id, nextItemId: pending.id, reason: "Interpret the actually read original helper before the remaining check" } })
+    const selected = (runtime.report() as any).domain.focus.current, next = await context()
+    expect(next.focus).toMatchObject({ id: selected.id, stage: "interpret", itemId: pending.id })
+    expect(next.tasks[0].sourceSkeleton.source.id).toBe(pending.source.id)
+    expect((await invoke("authorization_check_result", incomplete(next))).valid).toBe(false)
+    const exhausted = await context()
+    expect(exhausted.toolBudget.explorationRemaining).toBeGreaterThan(0)
+    expect(exhausted.toolBudget.checksRemaining).toBe(0)
+    expect(exhausted.focus.stage).toBe("answer")
+  } finally { await runtime.close() }
+})
 test("account exhausted exploration offers all original questions for partial delivery without another read", async () => {
   const f = await fixture(), runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, method: "M", strategy: "operation-evidence-v4", maxToolCalls: 3 })
   try {

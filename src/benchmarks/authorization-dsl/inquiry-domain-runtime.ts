@@ -380,11 +380,12 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     bindings: slice.bindings, policyRules: slice.policyRules, dependencies: scheduler.snapshot(), paths: lastPaths,
     diagnostics: [...issues.values()].flat().concat(check?.diagnostics ?? objectDiagnostics), ...(worklist ? { worklist: worklist.snapshot(), automaticActionsRemaining } : {}), semanticSupport: "unreviewed", ...(options.ablation ? { mechanismDisabled: options.ablation } : {}) })
   let contextHistoryPosition = 0, locationContextPosition = 0, explanationContextPosition = 0, fairContextPosition = 0
-  const modelContext = (limits: { maxSourceBytes?: number; finalOnly?: boolean } = {}) => {
+  const modelContext = (limits: { maxSourceBytes?: number; finalOnly?: boolean; preferAnswer?: boolean } = {}) => {
     if (closed) throw new Error("session-closed")
     worklist?.sync(slice, check)
     if (focus) {
       if (limits.finalOnly) focus.sync(true)
+      else if (limits.preferAnswer) focus.sync(true, true)
       const context = focus.context(limits.maxSourceBytes)
       offeredTasks = context.tasks
       return operationEvidence ? { ...context, repairActions: diagnosticWork(feedback().diagnostics, semanticUnits, slice) } : context
@@ -404,7 +405,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     return context
   }
   const promptPayloads: Array<{ revision: number; bytes: number; requiredAnnotations: number; pendingAnnotations: number; activeRules: number; activePaths: number }> = []
-  const promptContext = (limits: { maxSourceBytes?: number; finalOnly?: boolean } = {}) => {
+  const promptContext = (limits: { maxSourceBytes?: number; finalOnly?: boolean; preferAnswer?: boolean } = {}) => {
     const context = modelContext(limits)
     if (!options.sourceAssisted || !focus || !("questions" in context)) return context
     const skeletonView = (s: SourceSkeleton, demand?: PropertyDemand) => {
