@@ -1979,6 +1979,26 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 **AX16–AX20待恢复检查点。** 17份归档覆盖9/20首位置，11尚未派发，活动尝试0；finiteQueueComplete与researchGoalAchieved均false。全部10份领域自然答已独立评阅与主裁定，早期三份Download自然答的探子将GET门槛归于全部答，实际只source-controls写明；该答仍漏ownerless分支，其余两答还漏全局GET/明确所有权分支，保留partial。只有旧premise fresh自然条件说明full而formal失败，真实作者消费者0、质量六臂0。四份smoke/作者capture另核验可见动态调用、宿主回执、稿件字节及完整skill，私有准入没有进入可见模型输入；隐藏原生活动/内部请求不声称穷尽。可见父会话input/output/cacheRead为34358571/152441/31914752、非缓存input2443819；301上下文直接核验、OWUI28上下文/2窗口精确重建。e1578bb1的184和afc71124的58回调严格快照保留，当前严格重放0；研究脚本23测试104断言及含delivery的严格类型通过。USD、隐藏重试/子会话、开发/探子和真人时间仍unknown。六项结果与下一具体责任在[AX summary](../../results/skill-ir/skill-dsl-research/development/authorization-property-execution-v1/summary.json)：裁定未决→指定通道恢复→当前具名baseline/同版本变化→原字节消费者/六臂；源码解释/receiver/helper连接与全部原分支覆盖继续归本队列责任。
 
+### 7.59 AX 离线交付复核与下一步方法建议
+
+2026-10-07，针对`191a37e0`检查点重新阅读AX任务书、原自然答、主裁定、机制记录和共享实现，并核对用户origin。复核只执行本地确定性检查及公开资料检索，未派发项目模型推理、恢复第三方API或修改历史结果。本节区分实测事实和后续设计建议；AX原队列继续保留待恢复状态。
+
+**交付与当前能力。** 仓库外目录与ZIP的418个文件逐字节一致，manifest列出的417项长度及摘要全部匹配。重跑AX七文件研究测试和property-demand/semantic-flow测试，共63通过、360断言；主typecheck、AX严格类型和包外Download公开check通过。此前11条公开命令的归档均为exit 0，本次只另跑一条代表性check。该包携带任务、原skill和源码，依赖现有SkVM及Bun运行；两份作者稿已有真实生成和原字节准入，实际消费者仍为0。自然回答的完整程度、程序检查和可搬移材料是三项不同的交付责任。
+
+**最重要的实现差距。** `src/task-dsl/authorization/property-demand.ts`的`buildPropertyDemand`只根据固定源码退出、字面量分支、短路和空循环排除不可达锚点；85–94行继续要求全部可达call、动态condition、入口return、raise，以及草稿已经声明的对象/guard依赖。`questionId`在此层承担归属，问题中的主体、资源和effect尚未成为反向依赖切片的种子。八锚点frontier使标注可以分批，仍没有自动决定哪些可达代码会影响当前授权问题。AX最初提出的按问题减少解释负担，现阶段只完成了保守可达性及增量接口部分。
+
+实际两份合格冻结提案的标注数为3→4、7→7，排除项为空；合流前后均14规则/3终态，合并失败来源为0。16/64个显式context合流的测试证明局部算法成立，而这些真实单元没有相应的context序列。因此下一轮应把问题依赖和对象连接排在继续扩展异常合流之前。当前机制证据没有支持减负，既不能把离线envelope增加归为完整模型开销，也不能把合流未触发归为代码未接线。
+
+**具体源码遗漏。** `attempts/inquiry-download-original/material-reactivation/answer-original.md`第7行列出了权限类，随后正确解释root_doc对象授权、版本族和文件表示，却未展开GET的全局`view_document`门槛。包内`src/documents/permissions.py:36`覆盖GET映射，`framework/rest_framework-3.18.1/rest_framework/permissions.py:233`的继承`has_permission`再调用`user.has_perms(perms)`。主裁定partial有源码依据；独立AI的full意见保留但不替代该裁定。继承权限、框架入口及对象检查应进入同一条取证依赖链。另一个需避免的误诊是把lowerer不写callee视为漏接线：`inquiry-focus.ts:262`的link阶段已负责校验候选并设置callee/arguments；应定位某份真实提案为何没有完成该连接，而非重复增加一个同职责入口。
+
+**账号失败应分层表示。** 最新原件保存了`usageLimitExceeded`及`turn/completed.status=failed`。当前`src/adapters/codex-account-session.ts:216`把所有非completed终态归为completion-unknown，因此原报告继续保留该状态。按照[官方App Server事件合同](https://learn.chatgpt.com/docs/app-server)，failed是明确的turn终态；建议新增只读裁定或兼容状态，将“已知失败、没有终答”与“传输丢失而终态未知”分开，内部重试和未报告用量继续unknown。额度拒绝只限定于已观察的实验通道。原17份父会话完整input为34,358,571，其中cacheRead 31,914,752；逐会话max累计而非逐通知求和，现有检查未发现重复相加。应继续检查长会话上下文和重复解释的来源，不能从该总数推算美元或断言额度拒绝的唯一原因。
+
+**外部方法对照及适配判断。** [CodeQL Python数据流](https://codeql.github.com/docs/codeql-language-guides/analyzing-data-flow-in-python/)以表达式/参数和局部流组织追踪，[API graphs](https://codeql.github.com/docs/codeql-language-guides/using-api-graphs-in-python/)提供外部库、别名、参数和继承关系接口，并明确未提取库代码的继承需要额外模型。可借鉴到当前结构索引和源码材料层，优先补版本可核验的框架关系与参数/返回对象连接。[RepoAudit架构](https://github.com/PurCL/RepoAudit/blob/main/docs/architecture.md)将语法索引、局部语义事实、路径验证和记忆分层；其调用关系近似也有类层级等局限。[IRIS §3](https://arxiv.org/html/2405.17238v3)由LLM补充领域规格，再交给静态引擎求路径并做上下文裁定。对SkVM的推论是让模型解释局部授权含义，让宿主承担可机械确认的绑定、传播、依赖失效和结论汇总。这些项目的任务和评测各异，借鉴的是职责分工，效果需在本项目原题上验证。
+
+**建议的后续顺序。** 下一任务书宜围绕“授权问题依赖与真实单任务闭合”编排：先修明确failed与unknown的状态区分；复用source-skeleton/worklist/source-material/semantic-flow，把问题关联到当前source中的主体、资源、控制和effect，再形成可追溯的依赖切片及函数摘要；将框架继承入口、helper实参/形参/返回对象连接作为首批共享责任。动态dispatch、未知写入和未解析依赖继续保留缺口，不能因模型称无关就排除。先以现有Download全过程验证正常授权链、原全部问题和原skill交付，再做作者包实际消费与原计划变化/质量对照；发现共享失败时立即修受影响路径，不继续消耗同类位置。OWUI已有集合/重复hash/身份来源分支用于检验同方法的另一结构，不加项目名成功分支。
+
+逐问题应分别记录已读、已解释、关系已连、结论已检查及剩余影响；操作异常是否影响授权结论要有具体控制依赖依据，保留原要求中的异常分支。实验模型只能看到实际源码、用户前提和工具材料，开发者的标准答案与本节源码裁定仍留在评阅侧。运行层优先测量每次新增上下文、重复发送和同单元修复次数，再决定局部上下文/缓存改造，避免仅靠压缩说明。以上尚未实施；11个待执行首位置及所需同版本修订仍在原账中，不以新计划抹去。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
