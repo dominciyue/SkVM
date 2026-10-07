@@ -47,7 +47,7 @@ export function worklistModelView(items: WorkItem[]) {
 }
 
 /** Source candidates are lexical work, never an inferred call graph or authorization fact. */
-export function createInquiryWorklist(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; entryContext?: string; remainingActions?: () => number; dependencyStates?: () => ScheduledDependency[]; structural?: boolean; requireEntryBasis?: boolean; semanticUnits?: () => BoundSemanticBlock[]; skeletonState?: (id: string, receiverClass?: string) => { modelCovered: boolean; revision: string } | undefined; propertyDemand?: (item: WorkItem) => PropertyDemand | undefined }) {
+export function createInquiryWorklist(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; entryContext?: string; remainingActions?: () => number; dependencyStates?: () => ScheduledDependency[]; structural?: boolean; requireEntryBasis?: boolean; questionDirected?: boolean; semanticUnits?: () => BoundSemanticBlock[]; skeletonState?: (id: string, receiverClass?: string) => { modelCovered: boolean; revision: string } | undefined; propertyDemand?: (item: WorkItem) => PropertyDemand | undefined }) {
   const items = new Map<string, WorkItem>(), choices = new Map<string, { candidate: DiscoverySymbol; origin: "explicit-selection" | "explicit-discovery-selection" }>(), invalidFiles = new Set<string>(), failedReads = new Map<string, string>()
   const actions: WorklistAction[] = [], questionIds = options.program.questions.map(q => q.id)
   const relations = new Map<string, { id: string; questionId: string; sourceId: string; candidateId?: string; reason: string; state: string; gap?: string }>(), frameworkDependencies = new Map<string, SourceFactDependency>()
@@ -95,7 +95,7 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
     if (!parent.selected) return
     if (options.structural && options.tools.structure) {
       const index = options.tools.structure, interpreted = options.semanticUnits ? options.semanticUnits().filter(u => u.questionId === parent.questionId && u.source).map(u => ({ id: u.source!.id, receiverClass: u.receiverClass })) : [...items.values()].filter(i => represented(i, currentSlice).length).flatMap(i => i.selected?.id ?? [])
-      const work = operationWork(index, parent.selected.id, [...items.values()].filter(i => i.selected && coveredThrough(i.selected) >= i.selected.endLine).map(i => i.selected!.id), interpreted, parent.receiverClass, { sourceAssisted: options.requireEntryBasis, operationRoot: parent.origin === "question-duty" && parent.kind === "entry" })
+      const work = operationWork(index, parent.selected.id, [...items.values()].filter(i => i.selected && coveredThrough(i.selected) >= i.selected.endLine).map(i => i.selected!.id), interpreted, parent.receiverClass, { sourceAssisted: options.requireEntryBasis, operationRoot: parent.origin === "question-duty" && parent.kind === "entry", questionDirected: options.questionDirected })
       for (const d of work.frameworkDependencies) frameworkDependencies.set(d.key, d)
       for (const gap of work.frameworkGaps) {
         const id = stableId([parent.questionId, gap.key])

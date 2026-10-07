@@ -6,6 +6,8 @@
 
 **授权任务已有局部语义、来源材料、变化失效和账号双入口的真实实现；AX完成离线交付并取得真实工具轨迹，完整源码质量、真实复用与整体净收益仍未建立。** 当前AY已获授权，计划补问题驱动依赖、继承权限与对象连接、逐题结论检查，并完成原skill、作者包及变化消费。任务范围仍是单repo/ref、源码可见的授权与信任边界评估；质量、编写修改、复用和开销分别评价，历史结果保留。
 
+AY当前已修复普通receiver来源连接、终答枚举和跨入口框架footprint；整文件SHA粒度与完整请求组合缺口保留。确定性工程验证不替代当前任务源码完整、实际复用或净收益证据。
+
 日常先读本节与[当前状态](current-status.md)。当前执行决定见[§7.60](#760-ay-问题依赖完整使用与收益验证)，AX代码和真实反例复核见[§7.59](#759-ax-离线交付复核与下一步方法建议)，其原开发决定见[§7.58](#758-ax-按授权问题求值与账号真实执行开发决定)。方法形成过程见§4–§7.18，历史开发记录保留在§7后续章节。本地化候选保留在§8–§9，暂缓实施。
 
 ### 当前方法怎样分工
@@ -2036,6 +2038,8 @@ OWUI具名`empty-regions-current-frontier`在a7788001完成交付：37接受/2�
 
 AY7修复保留当前唯一未重绑定模块实例的source/class证明，在v5编译器只生成普通value身份，同源导入alias共享它；参数/局部遮蔽、consumer alias重绑定、模块attribute写入与旧证明撤回关系。`source-bindings/v5`使旧footprint显式再验证。匿名红测先暴露缺证明/绑定/枚举，以及别名重绑定和独立错误identity，再转绿；70focused通过，联合1011pass/1平台skip/6466断言、主/AY类型通过。原提案零推理重编译移除Files未绑定，但保留标量principal误判、未解释callee和展开上限，原件不升级。当前answerContract枚举直接来自实际schema，不coerce自由文字。只读代码核验未发现具体缺陷；其vitest环境失败不算验证，主线程Bun结果单列。见[receiver复验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/owui-receiver-replay.json)。
 
+AY11框架footprint发现两个确定性问题：每单元保存全工作队列的framework依赖，DRF修订又hash全framework目录。两个匿名红测转绿后，v5改为材料自身来源/实际receiver的`drf-source-dispatch/v2:<receiver>`，覆盖MRO、前置方法和当前permission/serializer配置的来源；v1校验不变。投影反例验证无关framework文件保留两个入口、另一入口变化只撤回它、共享前置控制改变撤回两个入口、普通helper无另一入口依赖。独立只读AI复核指出同文件无关编辑仍失效；这是既有整文件SHA契约的粒度限制，本轮明确保留，不宣称符号范围精度。24focused/78断言、联合1013pass/1平台skip/6476断言及主/AY类型通过；零实验调用，完整框架组合和真实变化消费继续。
+
 **执行与账号。** 明确failed终态与completion-unknown分开，旧AX状态只追加裁定；用量缺报保持unknown。没有活动请求后，新具名尝试沿用户已授权账号通道运行。若通道仍拒绝，独立工程继续，实验待恢复；第三方API保持暂停。上下文改造从真实重复内容和重解释次数开始，不以离线字节变化冒充实际token节省。
 
 **真实闭合。** 两份完整原skill分别处理Download/OWUI，优先消费两份AX原字节作者包，完成policy/premise/source三变化fresh与previous，再做N/M-S/D-S各两次重复。必需首位置22个，修订独立追加。N/D衡量整套工具，M/D衡量表示本身；共同模型、事实和宿主预算，执行侧不接触oracle、历史终答或本文根因裁定。每次共享故障当场红绿修复再继续受影响位置，不批量运行已知错误版本。
@@ -2124,7 +2128,7 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-05 / AS：** 局部选择/效果与同源结果已共用，两原skill及作者原稿实际消费；机制改善有原件，完整质量/变化复用/净收益未达，以completed-with-unmet-criteria收束，责任见§7.48。
 - **2026-10-05 / AT：** 持久解释事务、宿主身份、纯有限摘要、显示/读取/源码终检与通用词法修复已经实现及实际使用。12质量首位置0完整；4native原始自然说明充分2但formal0；4忠实稿消费均partial；fresh变化4partial、previous2阻断，37原件556/556。有限队列以completed-with-unmet-criteria收束；当前限制、真实修复和计量见§7.49。
 
-- **2026-10-08 / AY：** v5初版已接通，账号0.160.0的Download具名尝试与OWUI首/修订实际交付，均源码partial、结构终答缺失。OWUI修订6单元/3实际投影；receiver值绑定与枚举合同已红绿修复，框架完整组合仍未达。总token增加、fresh下降分列，真实净收益未建立。联合1011pass/1平台skip及主/AY类型通过；原件、全部成本与独立裁定保留，22首位置和完整队列见§7.60。
+- **2026-10-08 / AY：** v5初版已接通，账号0.160.0的Download具名尝试与OWUI首/修订实际交付，均源码partial、结构终答缺失。OWUI修订6单元/3实际投影；receiver值绑定、枚举合同与按receiver的框架footprint已红绿修复，框架完整组合仍未达。总token增加、fresh下降分列，真实净收益未建立。联合1013pass/1平台skip及主/AY类型通过；整文件SHA粒度、原件、全部成本与独立裁定保留，22首位置和完整队列见§7.60。
 
 ## 12. 后续追加规则
 

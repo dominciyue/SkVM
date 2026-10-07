@@ -1,0 +1,60 @@
+{
+  "schemaVersion": "authorization-ay-local-repair-review/v1",
+  "date": "2026-10-08",
+  "stage": "AY11",
+  "reviewer": "ay_framework_footprint_review",
+  "humanAnnotation": false,
+  "scopedChange": "V5 source materials keep their own source/receiver framework dependencies; v2 DRF revision excludes unrelated framework files and preserves current MRO/permission/serializer sources; legacy v1 unchanged.",
+  "independentObservation": {
+    "file": "src/benchmarks/authorization-dsl/operation-work.ts",
+    "symbol": "drfReceiverRevision",
+    "finding": "Whole-file StructureSymbol.sha256 means an unrelated edit inside a participating file still invalidates the material.",
+    "disposition": "Retained existing source-file evidence granularity; documented explicitly, no symbol-range precision claim.",
+    "underInvalidation": "No concrete counterexample found in scoped review",
+    "testsRunByReviewer": false
+  },
+  "primaryVerification": {
+    "red": {
+      "pass": 17,
+      "fail": 2,
+      "assertions": 50,
+      "expectedReasons": [
+        "v5 dependency still drf-source-dispatch/v1",
+        "runtime copied the global framework inventory"
+      ]
+    },
+    "focused": {
+      "pass": 24,
+      "fail": 0,
+      "assertions": 78
+    },
+    "joint": {
+      "pass": 1013,
+      "skip": 1,
+      "fail": 0,
+      "assertions": 6476,
+      "files": 114,
+      "durationMs": 14980
+    },
+    "mainTypecheck": "passed",
+    "ayTypecheck": "passed"
+  },
+  "observableCounterexamples": [
+    "unrelated framework file retains both entry projections",
+    "other operation source change withdraws only its entry",
+    "shared dispatch source change withdraws both entries",
+    "selected permission source change changes the receiver revision",
+    "ordinary helper does not inherit other operations' framework dependencies"
+  ],
+  "semanticQuality": "unreviewed-model-meaning",
+  "liveFrameworkComposition": "pending",
+  "realChangeConsumption": "pending",
+  "modelExecutions": 0,
+  "targetExecutions": 0,
+  "costs": {
+    "experimentTokens": 0,
+    "developerAndScoutTokens": null,
+    "usd": null,
+    "humanTime": null
+  }
+}

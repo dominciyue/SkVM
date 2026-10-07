@@ -13,7 +13,7 @@ import type { BoundSemanticBlock } from "../../task-dsl/authorization/semantic-f
 import { createInquiryFocus } from "./inquiry-focus.ts"
 import { createOperationFacts, projectOperationUnits } from "../../task-dsl/authorization/operation-facts.ts"
 import { FINITE_PERMISSION_GUIDE } from "../../task-dsl/authorization/control-evaluation.ts"
-import { diagnosticWork, sourceRelationRevision } from "./operation-work.ts"
+import { diagnosticWork, operationWork, sourceRelationRevision } from "./operation-work.ts"
 import { bindOperationCalls, operationCallTargets, type OperationSourceLink } from "./operation-links.ts"
 import type { SourceSkeleton } from "./evidence-preparation/source-skeleton.ts"
 import { createSourceMaterials, sourceMaterialId, type SourceMaterialSnapshot } from "../../task-dsl/authorization/source-materials.ts"
@@ -55,7 +55,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const draftIdentity = (p: Pick<UpdateRejection, "group" | "questionId" | "targetKey">) => JSON.stringify([p.group, p.questionId, p.targetKey])
   const operationEvidence = isOperationInquiryStrategy(options.strategy)
   const propertyDirected = isPropertyDirectedInquiryStrategy(options.strategy)
-  const worklist: ReturnType<typeof createInquiryWorklist> | undefined = isGuidedInquiryStrategy(options.strategy) ? createInquiryWorklist({ ...options, structural: operationEvidence, requireEntryBasis: options.sourceAssisted, semanticUnits: () => semanticUnits, dependencyStates: () => scheduler.snapshot(), skeletonState: (id, receiver) => sourceSkeletons.get(skeletonKey(id, receiver)), ...(propertyDirected ? { propertyDemand: item => focus?.demandFor(item) } : {}) }) : undefined
+  const worklist: ReturnType<typeof createInquiryWorklist> | undefined = isGuidedInquiryStrategy(options.strategy) ? createInquiryWorklist({ ...options, structural: operationEvidence, requireEntryBasis: options.sourceAssisted, questionDirected: isQuestionDirectedInquiryStrategy(options.strategy), semanticUnits: () => semanticUnits, dependencyStates: () => scheduler.snapshot(), skeletonState: (id, receiver) => sourceSkeletons.get(skeletonKey(id, receiver)), ...(propertyDirected ? { propertyDemand: item => focus?.demandFor(item) } : {}) }) : undefined
   const facts = operationEvidence ? createOperationFacts(options.program, options.tools.identity) : undefined
   const materials = isFiniteControlInquiryStrategy(options.strategy) ? createSourceMaterials({ ...options.tools.identity, semanticVersion: sourceMaterialSemanticVersion(options.strategy) }, options.initialSourceMaterials) : undefined
   let materialUses: SourceMaterialUse[] = []
@@ -100,7 +100,10 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const sourceDependencies = (unit: BoundSemanticBlock) => {
     const index = options.tools.structure, symbol = index?.symbols.find(s => s.id === unit.source!.id)
     const receiverClass = worklist?.snapshot().find(i => i.id === unit.itemId)?.receiverClass ?? unit.receiverClass
-    return [{ kind: "source-span" as const, key: unit.source!.path, revision: unit.source!.sha256 }, { kind: "symbol-resolution" as const, key: unit.source!.id, revision: unit.source!.sha256 }, ...(symbol && index ? [{ kind: "candidate-set" as const, key: `relations:${symbol.id}:${receiverClass ?? ""}`, revision: sourceRelationRevision(index, symbol.id, receiverClass)! }] : []), ...(symbol?.className && index ? [{ kind: "candidate-set" as const, key: `${symbol.className}:${symbol.name}`, revision: index.candidateRevision(symbol.className, symbol.name) }] : []), ...(worklist?.report().frameworkDependencies ?? [])]
+    const frameworkDependencies = isQuestionDirectedInquiryStrategy(options.strategy)
+      ? symbol && index ? operationWork(index, symbol.id, [], [], receiverClass, { sourceAssisted: options.sourceAssisted, operationRoot: unit.role === "entry", questionDirected: true }).frameworkDependencies : []
+      : worklist?.report().frameworkDependencies ?? []
+    return [{ kind: "source-span" as const, key: unit.source!.path, revision: unit.source!.sha256 }, { kind: "symbol-resolution" as const, key: unit.source!.id, revision: unit.source!.sha256 }, ...(symbol && index ? [{ kind: "candidate-set" as const, key: `relations:${symbol.id}:${receiverClass ?? ""}`, revision: sourceRelationRevision(index, symbol.id, receiverClass)! }] : []), ...(symbol?.className && index ? [{ kind: "candidate-set" as const, key: `${symbol.className}:${symbol.name}`, revision: index.candidateRevision(symbol.className, symbol.name) }] : []), ...frameworkDependencies]
   }
   const retainFacts = () => {
     if (!facts) return

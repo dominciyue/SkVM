@@ -7,8 +7,22 @@ import type { InquiryDiagnostic } from "../../task-dsl/authorization/inquiry.ts"
 
 export interface OperationWorkAction { id: string; obligation: "entry" | "principal-binding" | "resource-binding" | "guard" | "effect" | "exception"; kind: "read" | "interpret" | "link"; candidateId: string; relationId: string; reason: string; receiverClass?: string; decisive: boolean; frameworkBoundary?: boolean }
 const hash = (v: unknown) => createHash("sha256").update(JSON.stringify(v)).digest("hex")
+const drfDispatchMethods = ["dispatch", "initial", "check_permissions", "get_permissions"]
+/** Invalidation follows this receiver's source configuration; it proves no control meaning. */
+function drfReceiverRevision(index: StructureIndex, className: string) {
+  const mro = index.linearize(className)
+  if (!mro?.some(c => c.startsWith("rest_framework."))) return undefined
+  const classSources = (name: string) => (index.linearize(name) ?? [name]).map(owner => [owner, index.symbols.filter(s => s.kind === "class" && s.qualifiedName === owner).map(s => [s.id, s.path, s.sha256, s.bases])])
+  const configurations = ["permission_classes", "serializer_class"].map(name => {
+    const attribute = index.attribute(className, name)
+    if (!attribute) return [name, null]
+    const candidates = [...new Map((attribute.value.match(/[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*/g) ?? []).flatMap(value => index.resolveName(value, attribute.scope.path).filter(s => s.kind === "class")).map(s => [s.id, s])).values()]
+    return [name, attribute.value, attribute.scope.path, attribute.scope.sha256, candidates.map(s => classSources(s.qualifiedName))]
+  })
+  return hash([classSources(className), drfDispatchMethods.map(method => [method, index.candidateRevision(className, method)]), configurations])
+}
 /** Structural candidates satisfy a need to inspect a relationship, never its authorization meaning. */
-export function operationWork(index: StructureIndex, entryId: string, readSymbols: string[], interpretedSymbols: Array<string | { id: string; receiverClass?: string }>, receiverClass?: string, options: { sourceAssisted?: boolean; operationRoot?: boolean } = {}) {
+export function operationWork(index: StructureIndex, entryId: string, readSymbols: string[], interpretedSymbols: Array<string | { id: string; receiverClass?: string }>, receiverClass?: string, options: { sourceAssisted?: boolean; operationRoot?: boolean; questionDirected?: boolean } = {}) {
   const entry = index.symbols.find(s => s.id === entryId), actions: OperationWorkAction[] = [], gaps: StructureCall[] = [], frameworkDependencies: SourceFactDependency[] = [], frameworkGaps: Array<{ key: string; reason: string; receiverClass: string }> = []
   if (!entry) return { actions, gaps, frameworkDependencies, frameworkGaps }
   const add = (candidateId: string, relationId: string, reason: string, obligation: OperationWorkAction["obligation"] = "guard", context?: string, decisive = false, frameworkBoundary = false) => {
@@ -31,11 +45,12 @@ export function operationWork(index: StructureIndex, entryId: string, readSymbol
   const className = receiverClass ?? (entry.kind === "class" ? entry.qualifiedName : entry.className)
   const mro = className ? index.linearize(className) : undefined
   if ((entry.kind === "class" || options.sourceAssisted && options.operationRoot) && className && mro?.some(c => c.startsWith("rest_framework."))) {
-    const frameworkSources = index.symbols.filter(s => s.module.startsWith("rest_framework.")).map(s => [s.path, s.sha256])
-    frameworkDependencies.push({ kind: "framework-model", key: "drf-source-dispatch/v1", revision: hash(frameworkSources) })
+    frameworkDependencies.push(options.questionDirected
+      ? { kind: "framework-model", key: `drf-source-dispatch/v2:${className}`, revision: drfReceiverRevision(index, className)! }
+      : { kind: "framework-model", key: "drf-source-dispatch/v1", revision: hash(index.symbols.filter(s => s.module.startsWith("rest_framework.")).map(s => [s.path, s.sha256])) })
     const dispatch = index.lookupMethod(className, "dispatch")
     if (!dispatch.length) frameworkGaps.push({ key: `drf:${className}:dispatch`, receiverClass: className, reason: "Source-qualified DRF inheritance has no unique current dispatch body; upstream ordering remains an explicit source gap." })
-    for (const method of entry.kind === "class" ? ["dispatch", "initial", "check_permissions", "get_permissions", "create", "get_serializer", "get_serializer_class", "get_serializer_context", "perform_create"] : ["dispatch", "initial", "check_permissions", "get_permissions"]) for (const s of index.lookupMethod(className, method)) add(s.id, `drf:${className}:${method}`, `Source-qualified DRF method lookup for ${className}.${method}; inspect actual override/MRO body.`, method === "create" ? "entry" : "guard", className, true, method === "dispatch")
+    for (const method of entry.kind === "class" ? [...drfDispatchMethods, "create", "get_serializer", "get_serializer_class", "get_serializer_context", "perform_create"] : drfDispatchMethods) for (const s of index.lookupMethod(className, method)) add(s.id, `drf:${className}:${method}`, `Source-qualified DRF method lookup for ${className}.${method}; inspect actual override/MRO body.`, method === "create" ? "entry" : "guard", className, true, method === "dispatch")
     const serializer = entry.kind === "class" && index.attribute(className, "serializer_class")
     if (serializer) {
       const candidates = index.resolveName(serializer.value, serializer.scope.path).filter(s => s.kind === "class")
@@ -78,6 +93,7 @@ export function structuralDependencyRevision(index: StructureIndex, dependency: 
   }
   if (dependency.kind === "framework-model") {
     if (dependency.key === "drf-source-dispatch/v1") return hash(index.symbols.filter(s => s.module.startsWith("rest_framework.")).map(s => [s.path, s.sha256]))
+    if (dependency.key.startsWith("drf-source-dispatch/v2:")) return drfReceiverRevision(index, dependency.key.slice("drf-source-dispatch/v2:".length))
     const routes = index.routes.filter(r => `${r.model}:${r.id}` === dependency.key || r.model === dependency.key)
     if (routes.length === 1) { const r = routes[0]!; return hash([r.sourcePath, index.symbols.find(s => s.id === r.id)?.sha256, r]) }
   }

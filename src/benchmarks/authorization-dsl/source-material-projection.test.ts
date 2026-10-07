@@ -4,7 +4,7 @@ import { createSourceMaterials } from "../../task-dsl/authorization/source-mater
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
 import { createInquiryTools } from "./inquiry-tools.ts"
 import { createInquiryDomainRuntime } from "./inquiry-domain-runtime.ts"
-import { mkdtemp, writeFile } from "node:fs/promises"
+import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 const api = await import("./source-material-projection.ts").catch(() => ({} as any))
@@ -62,4 +62,33 @@ test("production v3 persists helper-only material before any entry and emits no 
   expect((domain.report() as any).sourceMaterials.materials.filter((m: any) => m.current)).toHaveLength(1)
   expect((domain.report() as any).sourceMaterials.materials.find((m: any) => m.current).interpretationSource).toBe("test-authored")
   expect(domain.report().slice.rules).toEqual([])
+})
+
+test("v5 material footprints belong to their source receiver rather than the whole work queue", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-framework-footprints-"))
+  await mkdir(path.join(sourceRoot, "rest_framework"))
+  await writeFile(path.join(sourceRoot, "rest_framework/views.py"), "class Base:\n    def dispatch(self, request):\n        return True\n")
+  await writeFile(path.join(sourceRoot, "alpha.py"), "from rest_framework.views import Base\nclass Alpha(Base):\n    def run_alpha(self, request):\n        return True\ndef helper(request):\n    return request\n")
+  await writeFile(path.join(sourceRoot, "beta.py"), "from rest_framework.views import Base\nclass Beta(Base):\n    def run_beta(self, request):\n        return True\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "alpha", request: "run_alpha", entryHint: "run_alpha" }, { id: "beta", request: "run_beta", entryHint: "run_beta" }], questions: [{ id: "a", operationId: "alpha", intent: "behavior", request: "run_alpha", premises: [] }, { id: "b", operationId: "beta", intent: "behavior", request: "run_beta", premises: [] }] })
+  const units: any[] = []
+  for (const [name, questionId] of [["run_alpha", "a"], ["run_beta", "b"], ["helper", "a"]]) {
+    const s = tools.structure!.symbols.find(s => s.name === name)!, read = await tools.execute("source_read", { path: s.path, startLine: s.startLine, endLine: s.endLine })
+    units.push({ itemId: name, handle: name, questionId, op: "add", role: name === "helper" ? "helper" : "entry", source: { id: s.id, path: s.path, sha256: s.sha256, startLine: s.startLine, endLine: s.endLine }, receiverClass: s.className, evidenceIds: read.evidence.map(e => e.id), coverage: "path", start: "body", complete: true, parameters: s.parameters.map(p => ({ name: p.name, type: "value" })), blocks: [{ name: "body", steps: [{ kind: "return", name: "done", claim: "Anonymous actual source return", value: true, ...(name === "helper" ? {} : { outcome: "allow" }) }] }] })
+  }
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "operation-evidence-v5", sourceAssisted: true, initialSemanticUnits: units })
+  await runtime.sync(false)
+  const { questionId: _q, evidenceIds: _e, source: _s, receiverClass: _r, ...replacement } = units[0]
+  await runtime.propose({ schemaVersion: "authorization-semantic-update/v1", semanticBlocks: [{ ...replacement, op: "replace" }] })
+  const materials = runtime.report().sourceMaterials!.materials.filter(m => m.current)
+  const keys = (name: string) => materials.find(m => m.unit.handle === name)!.dependencies.filter(d => d.kind === "framework-model").map(d => d.key)
+  expect(keys("run_alpha")).toEqual(["drf-source-dispatch/v2:alpha.Alpha"])
+  expect(keys("run_beta")).toEqual(["drf-source-dispatch/v2:beta.Beta"])
+  expect(keys("helper")).toEqual([])
+  const snapshot = runtime.report().sourceMaterials!, files = await Promise.all(["alpha.py", "beta.py", "rest_framework/views.py"].map(async file => ({ path: file, content: await readFile(path.join(sourceRoot, file), "utf8") })))
+  const project = async (current: typeof files) => api.projectSourceMaterials(program, units, snapshot, await buildStructureIndex(current, { repository: "anonymous", sourceRef: "r" }))
+  expect((await project([...files, { path: "rest_framework/unused.py", content: "class Unused:\n    def check(self):\n        return False\n" }])).units.map((u: any) => u.handle).sort()).toEqual(["run_alpha", "run_beta"])
+  expect((await project(files.map(f => f.path === "beta.py" ? { ...f, content: f.content.replace("True", "False") } : f))).units.map((u: any) => u.handle)).toEqual(["run_alpha"])
+  expect((await project(files.map(f => f.path === "rest_framework/views.py" ? { ...f, content: f.content.replace("True", "False") } : f))).uses).toEqual([])
 })

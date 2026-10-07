@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test"
 import { buildStructureIndex } from "./evidence-preparation/structure-index.ts"
-import { operationWork, diagnosticWork } from "./operation-work.ts"
+import { operationWork, diagnosticWork, structuralDependencyRevision } from "./operation-work.ts"
 
 test("a structurally bound omitted helper becomes a read, then an interpretation action", async () => {
   const index = await buildStructureIndex([{ path: "view.py", content: "def create(caller, item):\n    return check(caller, item)\ndef check(caller, item):\n    return caller == item.owner\n" }], { repository: "fixture", sourceRef: "r" })
@@ -103,4 +103,24 @@ test("a current source-qualified dispatch override is an explicit framework boun
   const dispatch = work.actions.find(a => index.symbols.find(s => s.id === a.candidateId)?.name === "dispatch")
   expect(dispatch).toMatchObject({ frameworkBoundary: true, decisive: true, receiverClass: "app.View" })
   expect(index.symbols.find(s => s.id === dispatch!.candidateId)!.qualifiedName).toBe("app.View.dispatch")
+})
+
+test("v5 framework footprints ignore unrelated files and retain actual inherited permission changes", async () => {
+  const files = [
+    { path: "rest_framework/views.py", content: "class Base:\n    def dispatch(self, request):\n        self.initial(request)\n        return request\n    def initial(self, request):\n        return self.check_permissions(request)\n    def check_permissions(self, request):\n        return True\n" },
+    { path: "guards.py", content: "class Permit:\n    def has_permission(self, request, view):\n        return True\n" },
+    { path: "app.py", content: "from rest_framework.views import Base\nfrom guards import Permit\nclass View(Base):\n    permission_classes = (Permit,)\n    def action(self, request):\n        return request\n" },
+    { path: "rest_framework/unused.py", content: "class Unused:\n    def check(self):\n        return True\n" },
+  ]
+  const index = await buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" })
+  const entry = index.symbols.find(s => s.qualifiedName === "app.View.action")!
+  const work = operationWork(index, entry.id, [], [], "app.View", { sourceAssisted: true, operationRoot: true, questionDirected: true })
+  const dependency = work.frameworkDependencies.find(d => d.kind === "framework-model")!
+  expect(dependency.key).toBe("drf-source-dispatch/v2:app.View")
+  const unrelated = await buildStructureIndex(files.map(f => f.path.endsWith("unused.py") ? { ...f, content: f.content.replace("True", "False") } : f), { repository: "anonymous", sourceRef: "r" })
+  expect(structuralDependencyRevision(unrelated, dependency)).toBe(dependency.revision)
+  for (const changedPath of ["rest_framework/views.py", "guards.py"]) {
+    const changed = await buildStructureIndex(files.map(f => f.path === changedPath ? { ...f, content: f.content.replace("True", "False") } : f), { repository: "anonymous", sourceRef: "r" })
+    expect(structuralDependencyRevision(changed, dependency)).not.toBe(dependency.revision)
+  }
 })
