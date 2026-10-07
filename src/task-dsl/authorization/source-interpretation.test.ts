@@ -326,3 +326,22 @@ test("property boolean exclusions reject a contradictory model predicate rather 
   expect(result.unit).toBeUndefined()
   expect(result.diagnostics).toContainEqual(expect.objectContaining({ code: "source-interpretation-literal-condition-conflict", path: branch.id }))
 })
+
+test("v5 source compilation reuses empty branches while retaining the existing path limit", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-empty-regions-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def entry(flag):\n" + Array.from({ length: 17 }, (_, i) => `    if flag == '${i}':\n        return False\n`).join("") + "    return True\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["app.py"], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
+  const source = tools.structure!.symbols.find(s => s.name === "entry")!
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect app.entry", premises: [] }] })
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "operation-evidence-v5", sourceAssisted: true })
+  await runtime.sync()
+  const context: any = runtime.promptContext(), skeleton = (await tools.sourceSkeleton(source.id))!
+  const annotations = skeleton.anchors.filter(a => a.kind === "condition" || a.kind === "return").map(a => ({ anchorId: a.id, role: a.kind === "condition" ? "condition" : "context", explanation: "Anonymous original branch and exit", ...(a.kind === "condition" ? { condition: { op: "eq", left: { binding: "flag" }, right: { literal: /'([^']+)'/.exec(a.text)![1] } } } : { returnOutcome: a.literalValue === false ? "deny" : "allow" }) }))
+  const proposed = await runtime.propose({ schemaVersion: "authorization-source-update/v1", kind: "interpret", focusId: context.focus.id, interpretation: { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations } })
+  expect(proposed.diagnostics.filter(d => d.code === "focus-schema" || d.code === "semantic-block-schema")).toEqual([])
+  const unit = runtime.report().semantic!.units[0]!
+  expect(unit).toBeDefined()
+  expect(unit.blocks.filter(b => b.steps.length === 0)).toHaveLength(1)
+  expect(unit.blocks.flatMap(b => b.steps).filter(s => s.kind === "choose")).toHaveLength(17)
+  expect(runtime.report().slice.rules.filter(r => r.terminal).map(r => r.gap)).toContain("semantic-path-limit")
+})

@@ -1,6 +1,6 @@
 # Skill 分类与领域 DSL 研究总文档
 
-更新于2026-10-07。本文件是这条研究路线唯一持续维护的**研究与开发复盘正文**，合并S0–S11、D0–D11及后续研究，并记录实现问题与修复。实时状态由[current-status](current-status.md)维护，未达责任见[当前计划](skill-ir-aot-optimization-plan.md)。
+更新于2026-10-08。本文件是这条研究路线唯一持续维护的**研究与开发复盘正文**，合并S0–S11、D0–D11及后续研究，并记录实现问题与修复。实时状态由[current-status](current-status.md)维护，未达责任见[当前计划](skill-ir-aot-optimization-plan.md)。
 
 ## 1. 当前结论
 
@@ -30,7 +30,7 @@
 
 最新AX结果补充：官方账号已实际消费只读宿主工具；20首位置中9个已尝试、17份归档，指定模型通道quota refusal后11项待执行。418文件离线包和两份有效作者稿已交付，真实消费者0；十份自然领域回答只有旧premise fresh被主裁定full，形式链仍未满足。当前性质需求主要是可达性筛选与增量接口，两份真实提案标注3→4、7→7，合流未触发；原件和复核见§7.59。AW历史元数据字节减负保留，真实token和净收益仍需实测。
 
-当前关键问题是：**从原授权问题反向追踪相关源码，把继承权限、helper实参/返回对象和结论接成同一条可用链，减少反复整函数解释。** 用户授权[AY0–AY23](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)，使用当前账号gpt-5.6-sol/high实验、gpt-6.1-sol/max开发；第三方API仍暂停。22个真实首位置覆盖两任务完整使用、作者包、三变化和三臂重复对照。质量与编写复用约60/40指精力分配。v5初版已接通；首个实际Download具名尝试交付自然答但独立源码partial、结构终答缺失。费用、人力缺报保持unknown，历史0/6、Q1、readiness和保护输入不变。
+当前关键问题是：**从原授权问题反向追踪相关源码，把继承权限、helper实参/返回对象和结论接成同一条可用链，减少反复整函数解释。** 用户授权[AY0–AY23](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)，使用当前账号gpt-5.6-sol/high实验、gpt-6.1-sol/max开发；第三方API仍暂停。22个真实首位置覆盖两任务完整使用、作者包、三变化和三臂重复对照。质量与编写复用约60/40指精力分配。v5初版已接通；Download具名尝试和OWUI首件均交付自然答、独立源码partial、结构终答缺失。OWUI源码单元的空块编译拒绝已修复，当前frontier反馈和有效字段进展提示已接通，真实闭合与收益仍待验收。费用、人力缺报保持unknown，历史0/6、Q1、readiness和保护输入不变。
 
 ## 2. 研究目标与术语
 
@@ -2028,6 +2028,10 @@ AY1点验表：
 
 本轮定位到额外宿主计数错误：传输层拒绝的两次check记为exploration，最终totalUsed64却checksRemaining2、explorationRemaining-2。红测复现后改为同一保留check槽；当前答阶段直接给机械answerContract和数字path索引说明，不替模型写语义答案。逐题分母三项红测、独立关闭/未连接candidate两项红测、dispatch缺边两项红测均转绿。相关广回归963pass/1平台skip及主类型通过；后续budget/answer-contract修复的native/account/focus联合65pass/406断言。框架前置边界已进入v5逐题检查，完整源码组合及真实复验继续。
 
+2026-10-08，`native-owui/original`在fa2c5820 completed/delivered，用量input/output/cacheRead为3748276/12912/3368960，fresh379316；29接受回调、1传输拒绝。核心输入文件/输出集合区别正确，但原答把Optional字符串“提供”当非空，漏空值对分支/add模式的影响，且未分清写向量前content更新与成功后状态更新，独立AI评阅经源码点验仍partial。七轮增量解释确有前进，最后59annotations/2unresolved生成34块/8空块/72步骤而被32块接口拒绝。v5复用无动作空块后原件零推理复验为27块/1空块/72步骤，步骤和跳转相同，单元接纳1；两个查询callee仍未解释，不升级原答。defer同时给两个目标现具名拒绝；停滞按保留有效字段值及当前缺口判断，评审所发现“状态未变但值已变”反例已红绿修复。修复后联合1008pass/1平台skip/6445断言、主/AY类型通过；评阅及原件复验见[AY reviews](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/native-owui-original.json)与[零推理复验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/owui-empty-regions-replay.json)。
+
+实际上下文按原始wire重新验证：Download40包发送1458771 bytes，OWUI31包计量2151498、脱敏归档2151323；175字节差异单列。OWUI首包473086中propertyDemand349388、dependencies296530。只改需求反馈投影的零调用探针为7850 bytes、首包131548；完整图和required/deferred仍在宿主报告，原题/原源码可取回，不改变需求或语义判定。引用bytes代表引用原值，不能当作发送尺寸；这只是机械字节减少，尚无当前新版本token收益。既有两次有用量推理input合计8144752、output28547、其中cacheRead7596288（不再相加），USD/隐藏请求/开发探子/真人时间unknown。见[上下文分账](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/context-accounting-initial.json)。
+
 **执行与账号。** 明确failed终态与completion-unknown分开，旧AX状态只追加裁定；用量缺报保持unknown。没有活动请求后，新具名尝试沿用户已授权账号通道运行。若通道仍拒绝，独立工程继续，实验待恢复；第三方API保持暂停。上下文改造从真实重复内容和重解释次数开始，不以离线字节变化冒充实际token节省。
 
 **真实闭合。** 两份完整原skill分别处理Download/OWUI，优先消费两份AX原字节作者包，完成policy/premise/source三变化fresh与previous，再做N/M-S/D-S各两次重复。必需首位置22个，修订独立追加。N/D衡量整套工具，M/D衡量表示本身；共同模型、事实和宿主预算，执行侧不接触oracle、历史终答或本文根因裁定。每次共享故障当场红绿修复再继续受影响位置，不批量运行已知错误版本。
@@ -2116,7 +2120,7 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-05 / AS：** 局部选择/效果与同源结果已共用，两原skill及作者原稿实际消费；机制改善有原件，完整质量/变化复用/净收益未达，以completed-with-unmet-criteria收束，责任见§7.48。
 - **2026-10-05 / AT：** 持久解释事务、宿主身份、纯有限摘要、显示/读取/源码终检与通用词法修复已经实现及实际使用。12质量首位置0完整；4native原始自然说明充分2但formal0；4忠实稿消费均partial；fresh变化4partial、previous2阻断，37原件556/556。有限队列以completed-with-unmet-criteria收束；当前限制、真实修复和计量见§7.49。
 
-- **2026-10-08 / AY：** v5初版已接通，账号0.160.0具名Download实际交付，但源码partial且结构检查缺失；原件、缓存含入总input的成本及独立评阅保留。逐题分母、框架前置边界和传输拒绝check计数已红绿修复；继续真实闭合，收益未建立。22首位置和完整队列见§7.60。
+- **2026-10-08 / AY：** v5初版已接通，账号0.160.0的Download具名尝试与OWUI首件实际交付，均源码partial、结构终答缺失。逐题分母、框架前置边界、传输拒绝check计数、空块编译和字段进展已红绿修复；当前frontier反馈减少机械发送字节，真实token与完整质量收益未建立。原件、全部成本与独立裁定保留；22首位置和完整队列见§7.60。
 
 ## 12. 后续追加规则
 

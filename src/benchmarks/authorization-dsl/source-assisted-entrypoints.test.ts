@@ -183,7 +183,11 @@ for (const finiteStrategy of ["operation-evidence-v3", "operation-evidence-v4", 
       if (finiteStrategy !== "operation-evidence-v3") {
         expect(shown.propertySemantics).toBe(finiteStrategy === "operation-evidence-v5" ? "question-control/v1" : "property-control/v1")
         expect((context.tasks[0] as any).propertyDemand.frontier).toHaveLength(1)
-        if (finiteStrategy === "operation-evidence-v5") expect((context.tasks[0] as any).propertyDemand.dependencies.question.request).toBeTruthy()
+        if (finiteStrategy === "operation-evidence-v5") {
+          expect((context.tasks[0] as any).propertyDemand.dependencySummary.revision).toBeTruthy()
+          expect((context.tasks[0] as any).propertyDemand.dependencies).toBeUndefined()
+          expect((context as any).questions[0].request).toBe(brief)
+        }
       }
       // The whole original window and annotatable identities remain available,
       // while one common source digest replaces its repetition at every anchor.
@@ -207,6 +211,7 @@ for (const finiteStrategy of ["operation-evidence-v3", "operation-evidence-v4", 
   }
   expect(report.sourceMaterials.materials).toHaveLength(1)
   expect(report.materialUses).toHaveLength(1)
+  if (finiteStrategy === "operation-evidence-v5") expect(report.propertyAnalysis.demands[0].dependencies.question.request).toBe(brief)
   expect(report.sourceMaterials.materials[0].identity.semanticVersion).toBe(finiteStrategy === "operation-evidence-v5" ? "question-control/v1" : finiteStrategy === "operation-evidence-v4" ? "property-control/v1" : "finite-control/v1")
 })
 

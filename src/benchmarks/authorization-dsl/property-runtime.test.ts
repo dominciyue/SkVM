@@ -72,3 +72,26 @@ test("v5 cannot close a method while the source-qualified upstream framework bou
   expect(checked.diagnostics.map(d => d.code)).toContain("decisive-dependency-open")
   expect(checked.questionChecks[0]!.evidenceCoverage).toBe("unresolved")
 })
+
+test("v5 prompt preserves the current frontier while retaining the complete dependency graph in its report", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-current-demand-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def entry(actor):\n" + Array.from({ length: 18 }, (_, i) => `    actor.operation_${i}()\n`).join("") + "    return True\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["app.py"], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect app.entry", premises: [] }] })
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "operation-evidence-v5", sourceAssisted: true })
+  await runtime.sync()
+  const context: any = runtime.promptContext(), view = context.tasks[0].propertyDemand
+  const complete = runtime.report().propertyAnalysis!.demands[0]!
+  expect(view.dependencies).toBeUndefined()
+  expect(view.required).toBeUndefined()
+  expect(view.deferred).toBeUndefined()
+  expect(view.frontier).toEqual(complete.frontier)
+  expect(view.coverage).toEqual(complete.coverage)
+  expect(view.nextWork).toEqual(complete.nextWork)
+  expect(view.dependencySummary).toMatchObject({ revision: complete.dependencies!.revision, edgeCount: complete.dependencies!.edges.length, boundaryCount: complete.dependencies!.boundaries.length })
+  expect(complete.dependencies!.edges.length).toBeGreaterThan(100)
+  expect(complete.required).toHaveLength(19)
+  expect(Buffer.byteLength(JSON.stringify(view))).toBeLessThan(Buffer.byteLength(JSON.stringify(complete)) / 2)
+  const whole = (await tools.sourceSkeleton(context.tasks[0].sourceSkeleton.sourceId))!
+  expect(whole.anchors.filter(a => a.kind === "call")).toHaveLength(18)
+})

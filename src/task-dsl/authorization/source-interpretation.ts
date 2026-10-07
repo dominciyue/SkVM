@@ -30,7 +30,7 @@ export const SOURCE_INTERPRETATION_GUIDE = [
   'The source-update root may include values:[{key,value,text,questionId?}] for explicitly supplied USER premises. text must be an exact current user span for that original question; questionId defaults only to the current question and values are never shared implicitly. Use finite scalar/array/map values. Omit unspecified values, including false/null assumptions; source constants belong to source assignments rather than user values. The existing premise validator checks these values before accepting the source body.',
   FINITE_PREDICATE_GUIDE,
 ].join("\n")
-export const PROPERTY_SOURCE_GUIDE = 'operation-evidence-v4: task.propertyDemand.frontier lists the current missing source fields and affected ORIGINAL questions. Submit changed annotations only; the host retains valid earlier fields at this revision. You may interpret more actually shown necessary anchors in the same transaction. A fallthroughOutcome demand is a field on interpretation, not an annotation on sourceId. Excluded entries are host source-invariant control proofs, not model assertions of irrelevance. Unknown calls, setters, result/parameter relations and potentially changing objects still need explicit meaning or a named unresolved entry. Model context roles stay unreviewed. sourceRead, domainInterpreted and propertyCovered describe this proposed interpretation; none establishes wholeAnswerSufficient or live success. sourceSkeleton.anchors is a current field view; the complete original skeleton remains available through source_structure({symbolId:sourceSkeleton.sourceId,receiverClass?}), and original source through source_read. Do not reconstruct excluded code or resubmit every retained annotation. The original question denominator and policy remain unchanged.'
+export const PROPERTY_SOURCE_GUIDE = 'operation-evidence-v4/v5: task.propertyDemand.frontier lists the current missing source fields and affected ORIGINAL questions. Submit changed annotations only; the host retains valid earlier fields at this revision. You may interpret more actually shown necessary anchors in the same transaction. A fallthroughOutcome demand is a field on interpretation, not an annotation on sourceId. Excluded entries carry host source/control or bounded dependency proofs; a model role never proves irrelevance. v5 dependencySummary counts describe the retained source graph, while the current frontier/coverage and all original questions remain explicit. Unknown calls, setters, result/parameter relations and potentially changing objects still need explicit meaning or a named unresolved entry. Model context roles stay unreviewed. sourceRead, domainInterpreted and propertyCovered describe this proposed interpretation; none establishes wholeAnswerSufficient or live success. sourceSkeleton.anchors is a current field view; the complete original skeleton remains available through source_structure({symbolId:sourceSkeleton.sourceId,receiverClass?}), and original source through source_read. Do not reconstruct excluded code or resubmit every retained annotation. The original question denominator and policy remain unchanged.'
 
 /** Compile syntax that the model saw; model roles/predicates are still unreviewed. */
 export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown, options: { index?: StructureIndex; itemId: string; handle: string; questionId: string; role: "entry" | "helper"; previous?: SourceInterpretation; propertyDirected?: boolean; affectedQuestionIds?: string[]; question?: DependencyQuestion }): { diagnostics: InquiryDiagnostic[]; interpretation?: SourceInterpretation; unit?: SemanticBlock; demand?: PropertyDemand } {
@@ -158,5 +158,23 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
     }
   }
   compile(skeleton.flow, unit.start, prologue)
+  if (questionDirected) {
+    // Empty source regions have no actions or exits. Sharing their continuation
+    // preserves each caller's condition/order without spending a block per arm.
+    const empty = unit.blocks.filter(b => b.steps.length === 0), canonical = empty[0]?.name
+    if (canonical && empty.length > 1) {
+      const aliases = new Map(empty.slice(1).map(b => [b.name, canonical]))
+      const body = (name: string) => aliases.get(name) ?? name
+      for (const block of unit.blocks) for (const step of block.steps) {
+        if (step.kind === "choose") { for (const alternative of step.cases) alternative.body = body(alternative.body); if (step.otherwise) step.otherwise = body(step.otherwise) }
+        else if (step.kind === "try") { step.body = body(step.body); for (const handler of step.handlers) handler.body = body(handler.body); if (step.otherwise) step.otherwise = body(step.otherwise); if (step.finally) step.finally = body(step.finally) }
+        else if (step.kind === "with") { step.enter = body(step.enter); step.body = body(step.body) }
+        else if (step.kind === "short-circuit") step.body = body(step.body)
+        else if (step.kind === "loop") { step.body = body(step.body); if (step.otherwise) step.otherwise = body(step.otherwise) }
+      }
+      unit.start = body(unit.start)
+      unit.blocks = unit.blocks.filter(b => !aliases.has(b.name))
+    }
+  }
   return { diagnostics, interpretation, unit, ...(demand ? { demand } : {}) }
 }

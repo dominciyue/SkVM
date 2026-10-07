@@ -321,6 +321,9 @@ test("operation focus exposes actual pending source work and selects a read help
   const current: any = runtime.modelContext(), item = current.pendingSourceWork?.find((i: any) => i.symbol === "guard")
   expect(item?.state).toBe("awaiting-interpretation")
   const calls = tools.toolCalls
+  const conflict = await runtime.propose({ schemaVersion: "authorization-focused-update/v1", focusId: current.focus.id, kind: "defer", reason: "Both destinations cannot select one source transaction", revisit: current.focus.handle, nextItemId: item?.id })
+  expect(conflict.diagnostics.map(d => d.code)).toEqual(["focus-defer-target-conflict"])
+  expect((runtime.modelContext() as any).focus.id).toBe(current.focus.id)
   const chosen = await runtime.propose({ schemaVersion: "authorization-focused-update/v1", focusId: current.focus.id, kind: "defer", reason: "Interpret this shown decisive helper first", nextItemId: item?.id })
   expect(chosen.diagnostics).toEqual([])
   const next: any = runtime.modelContext()

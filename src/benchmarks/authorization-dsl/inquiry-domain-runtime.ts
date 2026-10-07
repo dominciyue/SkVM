@@ -18,7 +18,7 @@ import { bindOperationCalls, operationCallTargets, type OperationSourceLink } fr
 import type { SourceSkeleton } from "./evidence-preparation/source-skeleton.ts"
 import { createSourceMaterials, sourceMaterialId, type SourceMaterialSnapshot } from "../../task-dsl/authorization/source-materials.ts"
 import { projectSourceMaterials, type SourceMaterialUse } from "./source-material-projection.ts"
-import type { PropertyDemand } from "../../task-dsl/authorization/property-demand.ts"
+import { propertyDemandModelView, type PropertyDemand } from "../../task-dsl/authorization/property-demand.ts"
 import type { SourceInterpretation } from "../../task-dsl/authorization/source-interpretation.ts"
 
 export type DomainAblation = "scheduler-off" | "checks-off"
@@ -426,7 +426,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     }
     const taskView = ({ question, policy: _policy, existingTargets: _targets, relatedDuties, duty, ...task }: LocalExplanationTask & { sourceSkeleton?: SourceSkeleton; propertyDemand?: PropertyDemand; sourceInterpretationDraft?: SourceInterpretation | "" }) => {
       const draft = task.sourceInterpretationDraft
-      return { ...task, questionId: question.id, duty: { kind: duty.kind, symbol: duty.symbol, parentId: duty.parentId, reason: duty.reason }, relatedDuties: relatedDuties.map(({ id, kind }) => ({ id, kind })), ...(task.sourceSkeleton ? { sourceSkeleton: skeletonView(task.sourceSkeleton, task.propertyDemand) } : {}), ...(propertyDirected && draft ? { sourceInterpretationDraft: { revision: draft.revision, retainedFields: draft.annotations.map(({ explanation: _explanation, ...fields }) => fields), unresolved: draft.unresolved, fallthroughOutcome: draft.fallthroughOutcome }, draftFieldNotice: "Retained host fields are state metadata, not a standalone proposal. Submit only changed fields with their explanations." } : {}) }
+      return { ...task, ...(task.propertyDemand ? { propertyDemand: propertyDemandModelView(task.propertyDemand) } : {}), questionId: question.id, duty: { kind: duty.kind, symbol: duty.symbol, parentId: duty.parentId, reason: duty.reason }, relatedDuties: relatedDuties.map(({ id, kind }) => ({ id, kind })), ...(task.sourceSkeleton ? { sourceSkeleton: skeletonView(task.sourceSkeleton, task.propertyDemand) } : {}), ...(propertyDirected && draft ? { sourceInterpretationDraft: { revision: draft.revision, retainedFields: draft.annotations.map(({ explanation: _explanation, ...fields }) => fields), unresolved: draft.unresolved, fallthroughOutcome: draft.fallthroughOutcome }, draftFieldNotice: "Retained host fields are state metadata, not a standalone proposal. Submit only changed fields with their explanations." } : {}) }
     }
     const delivery = deliverySnapshot()
     const rendered = { ...context, tasks: context.tasks.map(taskView), locationTasks: context.locationTasks.map(({ question, ...task }) => ({ ...task, questionId: question.id })), mode: options.program.mode, policy: options.program.policy, gaps: delivery.gaps.slice(0, 24), gapCount: delivery.gaps.length, obligations: delivery.obligations, deliveryRevision: delivery.revision }

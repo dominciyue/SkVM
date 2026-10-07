@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "authorization-ay-review/v1",
+  "date": "2026-10-08",
+  "attemptId": "native-owui/original",
+  "gitRevision": "fa2c5820ff4a88488b88fa9e3b132dbee8252520",
+  "answerSha256": "1372a6af1daba2dbda6f20aad03dd2f70ab84ffff70f445d9b38b70853a132fe",
+  "reviewType": "independent-readonly-AI-review-with-primary-source-adjudication",
+  "reviewers": [
+    "ay_owui_source_quality",
+    "ay_owui_protocol_failure",
+    "ay_owui_answer_adjudication"
+  ],
+  "humanAnnotation": false,
+  "quality": "partial",
+  "machineResultPresent": false,
+  "currentCheckPresent": true,
+  "currentCheckResolution": "partial",
+  "sourceFindings": [
+    {
+      "answerLines": [
+        23,
+        26,
+        42,
+        72,
+        84
+      ],
+      "judgment": "supported-central-relationships",
+      "detail": "Verified route caller, owner-filtered non-admin file lookup/admin ID lookup, independent destination selection and no visible destination access check before the vector helper call are supported.",
+      "source": [
+        "backend/open_webui/routers/retrieval.py:1540-1571",
+        "backend/open_webui/routers/retrieval.py:1694-1706",
+        "backend/open_webui/models/files.py:161-184"
+      ]
+    },
+    {
+      "answerLines": [
+        69,
+        95,
+        96
+      ],
+      "judgment": "incorrect-presence-versus-truthiness",
+      "detail": "Empty optional strings are valid inputs. content and the copy/add branch test truthiness, while fallback tests None. collection_name='' therefore retains the empty destination, skips the copy branch and sets add=False; it does not default to file-{id}. The prose only distinguishes supplied/omitted.",
+      "source": [
+        "backend/open_webui/routers/retrieval.py:1540-1543",
+        "backend/open_webui/routers/retrieval.py:1566-1571",
+        "backend/open_webui/routers/retrieval.py:1596-1628",
+        "backend/open_webui/routers/retrieval.py:1704"
+      ]
+    },
+    {
+      "answerLines": [
+        78,
+        98
+      ],
+      "judgment": "incomplete-effect-order",
+      "detail": "The answer names file updates and error status but does not distinguish the content update before embedding/vector write from completion metadata/status/hash after success. A later failure may preserve changed content while clearing hash; this matters to the requested eventual processing/effect trace.",
+      "source": [
+        "backend/open_webui/routers/retrieval.py:1666-1671",
+        "backend/open_webui/routers/retrieval.py:1709-1725",
+        "backend/open_webui/routers/retrieval.py:1738-1748"
+      ]
+    }
+  ],
+  "reviewerAdjudication": [
+    {
+      "claim": "Empty destination falls back to file-{id}.",
+      "decision": "rejected-as-inaccurate",
+      "reason": "Only None triggers that fallback; the empty string remains selected."
+    },
+    {
+      "claim": "Canonical collection deletion is omitted.",
+      "decision": "rejected",
+      "reason": "Answer line95 explicitly includes canonical deletion and its distinction from the destination."
+    },
+    {
+      "claim": "Risk is asserted without deployment qualifications.",
+      "decision": "rejected-as-partial-basis",
+      "reason": "Answer102-104 makes backend isolation/namespace impact conditional; severity alone does not establish this alleged overclaim."
+    },
+    {
+      "claim": "Every internal knowledge caller and adjacent collection policy helper must be described.",
+      "decision": "scope-qualified",
+      "reason": "These are useful adjacent investigations. This original brief identifies the direct /process/file behavior and caller identity; primary partial judgment uses visible argument conditions and effect ordering rather than extending its denominator."
+    }
+  ],
+  "protocolFindings": [
+    {
+      "originalPointer": "authorizationInquiry.domain.focus.sourceInterpretations[0..6]",
+      "detail": "Seven incremental rounds advance named required anchors and retain fields; observations pending labels do not show frontier stagnation."
+    },
+    {
+      "originalPointer": "authorizationInquiry.domain.focus.sourceInterpretations[7].generated",
+      "detail": "The host generated 34 blocks (8 empty),72 steps from 59 retained annotations and2 unresolved anchors; the shared 32-block admission rejected it.",
+      "repair": "v5 empty-block sharing; unchanged actual steps/targets and limits; zero-call replay admits1 unit, preserves unlinked callees."
+    },
+    {
+      "originalPointer": "raw/tools.jsonl call26/call28 (zero-based)",
+      "detail": "Defer supplied both an unaccepted revisit handle and a valid read pending nextItemId. Old generic unavailable diagnosis did not mean the read candidate was missing.",
+      "repair": "focus-defer-target-conflict before state mutation"
+    },
+    {
+      "originalPointer": "report.json currentCheck and terminalError",
+      "detail": "Completed/delivered with observed usage. Prior Reconnecting warning remains in terminalError; it is not a failed final terminal. Current result is absent with unresolved framework/callee obligations."
+    }
+  ],
+  "costs": {
+    "input": 3748276,
+    "output": 12912,
+    "cacheReadIncludedInInput": 3368960,
+    "freshInput": 379316,
+    "visibleCallbackAttempts": 30,
+    "acceptedCallbacks": 29,
+    "transportRejections": 1,
+    "providerRequests": null,
+    "actualUsd": null,
+    "developmentAndScouts": null,
+    "humanMinutes": null
+  },
+  "originalBytesChanged": false,
+  "evaluatorProvidedToRuntime": false,
+  "originalAttemptPromoted": false
+}

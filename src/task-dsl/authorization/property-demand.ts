@@ -25,6 +25,17 @@ export interface PropertyDemand {
   nextWork: { kind: "read" | "interpret" | "inspect-gap" | "check"; anchorId?: string; field?: string; affectedQuestionIds: string[] };
 }
 
+/** The current fields needed for local interpretation. The complete graph stays
+ * in the host report; this projection does not change source/control demand. */
+export function propertyDemandModelView(demand: PropertyDemand) {
+  const { dependencies, required, deferred, ...current } = demand
+  if (!dependencies) return demand
+  return { ...current, requiredFieldCount: required.length, deferredAnchorCount: deferred.length,
+    providedFieldCount: required.filter(r => r.status === "provided").length, unresolvedFieldCount: required.filter(r => r.status === "unresolved").length,
+    dependencySummary: { schemaVersion: dependencies.schemaVersion, revision: dependencies.revision, seedCount: dependencies.seeds.length, edgeCount: dependencies.edges.length, boundaryCount: dependencies.boundaries.length, requiredAnchorCount: dependencies.requiredAnchorIds.length },
+    fullStateLocation: "The host report retains required/deferred fields and the complete dependency graph. Current frontier/exclusions/coverage are explicit. source_structure and source_read expose the complete original syntax/facts; graph counts are not source meaning or completeness." }
+}
+
 /** Source-invariant reachability only. A model role/predicate never proves a
  * source statement irrelevant, and no task/policy value enters a source cut. */
 export function buildPropertyDemand(skeleton: SourceSkeleton, options: { questionId: string; role: "entry" | "helper"; interpretation?: SourceInterpretation; affectedQuestionIds?: string[]; maxFrontierAnchors?: number; question?: DependencyQuestion }): PropertyDemand {
