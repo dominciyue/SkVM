@@ -14,8 +14,12 @@ export interface StructureCall {
   basis: string[]; gap?: string; resultNames: string[]; syntaxRole: "condition" | "return" | "argument-default" | "body" | "source-context"
   receiverBinding?: { schemaVersion: "source-module-instance/v1"; name: string; className: string; classSha256: string; source: { path: string; sha256: string; startLine: number; endLine: number } }
 }
-export interface StructureRoute { id: string; sourceCallId: string; sourcePath: string; startLine: number; endLine: number; method: string; path: string; handlerExpression: string; candidateIds: string[]; middlewareExpressions: string[]; dependencyExpressions?: string[]; model: string }
-interface FileScope { path: string; sha256: string; module: string; language: "python" | "go"; aliases: Record<string, string>; moduleAliases: Record<string, string>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; localNames: string[]; groupPaths: string[] }>; moduleAssignments: Record<string, number>; moduleAttributeWrites: string[]; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean; startLine: number; endLine: number }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; dependencies: Array<{ constructor: string; expression: string }>; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string }> }
+export interface StructureRoute { id: string; sourceCallId: string; sourcePath: string; startLine: number; endLine: number; method: string; path: string; handlerExpression: string; candidateIds: string[]; middlewareExpressions: string[]; dependencyExpressions?: string[]; dependencyCallIds?: string[]; bindingGap?: string; bindingSources?: Array<{ path: string; sha256: string; startLine: number; endLine: number }>; model: string }
+export interface StructureRequestDependency {
+  id: string; sourceCallId: string; ownerId: string; parameter?: string; constructor: string; expression: string; candidateIds: string[];
+  resolution: "resolved" | "ambiguous" | "unresolved"; model: "fastapi-source-injection/v1"; gap?: string;
+}
+interface FileScope { path: string; sha256: string; module: string; language: "python" | "go"; aliases: Record<string, string>; moduleAliases: Record<string, string>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; localNames: string[]; groupPaths: string[] }>; moduleAssignments: Record<string, number>; moduleAttributeWrites: string[]; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean; requestOptionsUnmodeled: boolean; startLine: number; endLine: number }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; dependencies: Array<{ constructor: string; expression: string; sourceCallId: string; parameter?: string }>; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string; requestOptionsUnmodeled: boolean }> }
 const hash = (v: unknown) => createHash("sha256").update(typeof v === "string" ? v : JSON.stringify(v)).digest("hex")
 let initialized: Promise<Map<string, Language>> | undefined
 function languages() {
@@ -60,7 +64,7 @@ function moduleName(file: string, language: string) {
 /** Only AST syntax and bounded name binding. No target import, execution or permission inference. */
 export async function buildStructureIndex(files: Array<{ path: string; content: string }>, identity: { repository: string; sourceRef: string }) {
   const sourceIdentity = { repository: identity.repository, sourceRef: identity.sourceRef }
-  const started = performance.now(), loaded = await languages(), scopes: FileScope[] = [], diagnostics: Array<{ path: string; code: string; line?: number }> = []
+  const started = performance.now(), loaded = await languages(), scopes: FileScope[] = [], diagnostics: Array<{ path: string; code: string; line?: number; handlerId?: string }> = []
   for (const file of [...files].sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0)) {
     const language = file.path.endsWith(".py") ? "python" : file.path.endsWith(".go") ? "go" : undefined
     if (!language) { diagnostics.push({ path: file.path, code: "structure-language-unsupported" }); continue }
@@ -107,6 +111,11 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         if (receiverParam) { const receiverName = field(receiverParam, "name")?.text ?? children(receiverParam).find(c => c.type === "identifier")?.text; if (receiverName) parameters.unshift({ name: receiverName, type: receiverType ?? undefined }) }
         const qualifiedName = `${className ?? owner?.qualifiedName ?? module}.${name}`.replace(/^\./, "")
         const attributes: Record<string, string> = {}
+        if (language === "python") {
+          const declaration = n.parent?.type === "decorated_definition" ? n.parent : n
+          attributes.moduleBinding = declaration.parent?.id === root.id ? "unconditional" : "conditional-or-nested"
+          if (n.parent?.type === "decorated_definition") attributes.bindingWrapped = "true"
+        }
         if (language === "python" && n.parent?.type === "decorated_definition" && children(n.parent).some(d => d.type === "decorator" && d.text.trim() === "@staticmethod")) attributes.methodBinding = "static"
         if (n.type === "class_definition") for (const statement of children(field(n, "body"))) for (const assignment of statement.type === "expression_statement" ? children(statement).filter(c => c.type === "assignment") : []) {
           const key = field(assignment, "left")?.text, value = field(assignment, "right")?.text; if (key && value) attributes[key] = value
@@ -136,9 +145,10 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       if (language === "python") for (const n of descendants(root, ["assignment", "augmented_assignment", "delete_statement"])) {
         let owner = n.parent; while (owner && !byNode.has(owner.id)) owner = owner.parent
         const symbol = owner && byNode.get(owner.id), target = field(n, "left")
-        for (const left of n.type === "delete_statement" ? children(n) : target ? [target] : []) {
+        for (let left of n.type === "delete_statement" ? children(n) : target ? [target] : []) {
+          while (left.type === "subscript" && field(left, "value")) left = field(left, "value")!
           if (left.type !== "attribute" || !/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)+$/.test(left.text)) continue
-          const [rootName, ...parts] = left.text.split("."), imported = moduleAliases[rootName!]
+          const [rootName, ...parts] = left.text.split("."), imported = moduleAliases[rootName!] ?? (moduleAssignments[rootName!] ? `${module}.${rootName}` : undefined)
           if (!imported || symbol?.kind === "function" && !globalNames.get(symbol.id)?.has(rootName!) && (symbol.parameters.some(p => p.name === rootName) || localNames.get(symbol.id)?.has(rootName!))) continue
           moduleAttributeWrites.push([imported, ...parts].join("."))
         }
@@ -173,13 +183,14 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       }
       const constants: Record<string, string> = {}, routers: FileScope["routers"] = [], decorators: FileScope["decorators"] = [], includes: FileScope["includes"] = []
       if (language === "python") {
+        const requestOptionsUnmodeled = (arguments_: Node[]) => arguments_.some(a => a.type === "dictionary_splat" || a.type === "keyword_argument" && ["dependencies", "route_class", "middleware", "dependency_overrides_provider"].includes(field(a, "name")?.text ?? ""))
         const assignments = children(root).flatMap(n => n.type === "expression_statement" ? children(n).filter(c => c.type === "assignment") : [])
         const count = (name: string) => assignments.filter(n => field(n, "left")?.text === name).length
         for (const n of assignments) {
           const name = field(n, "left")?.text, value = field(n, "right")
           if (!name || !value || !/^[A-Za-z_]\w*$/.test(name)) continue
           if (count(name) === 1) constants[name] = value.text
-          if (value.type === "call") routers.push({ name, constructor: field(value, "function")?.text ?? "", prefix: children(field(value, "arguments")).find(a => a.type === "keyword_argument" && field(a, "name")?.text === "prefix")?.childForFieldName("value")?.text ?? '""', repeated: count(name) !== 1, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1 })
+          if (value.type === "call") { const args = children(field(value, "arguments")); routers.push({ name, constructor: field(value, "function")?.text ?? "", prefix: args.find(a => a.type === "keyword_argument" && field(a, "name")?.text === "prefix")?.childForFieldName("value")?.text ?? '""', repeated: count(name) !== 1, requestOptionsUnmodeled: requestOptionsUnmodeled(args), startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1 }) }
         }
         const verbs = new Set(["get", "post", "put", "patch", "delete", "head", "options", "trace"])
         for (const n of descendants(root, ["decorated_definition"])) {
@@ -191,17 +202,18 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
             if (!call || !expression?.includes(".") || !verb || !verbs.has(verb)) continue
             const args = children(field(call, "arguments")), raw = rawCalls.find(r => r.call.startLine === call.startPosition.row + 1 && r.call.expression === expression)
             const dependencyNodes = [...args.filter(a => a.type === "keyword_argument" && field(a, "name")?.text === "dependencies"), ...children(field(fn!, "parameters"))]
-            const dependencies = dependencyNodes.flatMap(p => descendants(p, ["call"]).map(c => ({ constructor: field(c, "function")?.text ?? "", expression: (children(field(c, "arguments")).find(a => a.type !== "keyword_argument") ?? children(field(c, "arguments")).find(a => field(a, "name")?.text === "dependency")?.childForFieldName("value"))?.text ?? "" })))
+            const dependencies = dependencyNodes.flatMap(p => descendants(p, ["call"]).map(c => ({ constructor: field(c, "function")?.text ?? "", expression: (children(field(c, "arguments")).find(a => a.type !== "keyword_argument") ?? children(field(c, "arguments")).find(a => field(a, "name")?.text === "dependency")?.childForFieldName("value"))?.text ?? "", sourceCallId: `call-${hash([sourceIdentity, file.path, sha256, c.startIndex]).slice(0, 24)}`, ...(p.type !== "keyword_argument" ? { parameter: field(p, "name")?.text ?? children(p)[0]?.text } : {}) })))
             if (raw) decorators.push({ callId: raw.call.id, handlerId: handler.id, receiver: expression.slice(0, expression.lastIndexOf(".")), verb, path: (args.find(a => a.type !== "keyword_argument") ?? args.find(a => field(a, "name")?.text === "path")?.childForFieldName("value"))?.text ?? "", middleware: dependencyNodes.filter(p => descendants(p, ["call"]).length).map(p => p.text), dependencies, wrapped: ds.length !== 1 })
           }
         }
         for (const n of descendants(root, ["call"])) {
           const expression = field(n, "function")?.text
-          if (!expression?.endsWith(".include_router")) continue
+          const method = expression?.split(".").at(-1)
+          if (!expression || !["include_router", "mount"].includes(method ?? "")) continue
           let ancestor = n.parent
           while (ancestor && !["function_definition", "class_definition", "if_statement", "for_statement", "while_statement"].includes(ancestor.type)) ancestor = ancestor.parent
           const args = children(field(n, "arguments")), raw = rawCalls.find(r => r.call.startLine === n.startPosition.row + 1 && r.call.expression === expression)
-          if (raw) includes.push({ callId: raw.call.id, receiver: expression.slice(0, -".include_router".length), child: (args.find(a => a.type !== "keyword_argument") ?? args.find(a => field(a, "name")?.text === "router")?.childForFieldName("value"))?.text ?? "", prefix: ancestor ? "$dynamic" : args.find(a => field(a, "name")?.text === "prefix")?.childForFieldName("value")?.text ?? '""' })
+          if (raw) includes.push({ callId: raw.call.id, receiver: expression.slice(0, expression.lastIndexOf(".")), child: (args.filter(a => a.type !== "keyword_argument")[method === "mount" ? 1 : 0] ?? args.find(a => field(a, "name")?.text === (method === "mount" ? "app" : "router"))?.childForFieldName("value"))?.text ?? "", prefix: ancestor || method === "mount" ? "$dynamic" : args.find(a => field(a, "name")?.text === "prefix")?.childForFieldName("value")?.text ?? '""', requestOptionsUnmodeled: requestOptionsUnmodeled(args) })
         }
       }
       scopes.push({ path: file.path, sha256, module, language, aliases, moduleAliases, symbols, rawCalls, moduleAssignments, moduleAttributeWrites, constants, routers, decorators, includes })
@@ -211,6 +223,11 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
   const qualified = (text: string, scope: FileScope) => {
     const value = cleanType(text), parts = value.split("."), aliased = scope.aliases[parts[0]!]
     return aliased ? [aliased, ...parts.slice(1)].join(".") : value.includes(".") ? value : `${scope.module}.${value}`.replace(/^\./, "")
+  }
+  const stableSourceBinding = (text: string, scope: FileScope, descendantWrites = true) => {
+    const name = qualified(text, scope), root = cleanType(text).split(".")[0]!
+    const unconditional = Object.hasOwn(scope.moduleAliases, root) || !Object.hasOwn(scope.aliases, root) && (Object.hasOwn(scope.constants, root) || scope.symbols.some(s => s.qualifiedName === `${scope.module}.${root}` && s.attributes.moduleBinding === "unconditional"))
+    return unconditional && scope.moduleAssignments[root] === 1 && !scopes.some(s => s.moduleAttributeWrites.some(write => write === name || descendantWrites && write.startsWith(`${name}.`) || name.startsWith(`${write}.`)))
   }
   const exactNames = new Map<string, StructureSymbol[]>(), pythonSuffixes = new Map<string, StructureSymbol[]>(), goNames = new Map<string, StructureSymbol[]>(), matchingCache = new Map<string, StructureSymbol[]>()
   const addName = (map: Map<string, StructureSymbol[]>, key: string, symbol: StructureSymbol) => map.set(key, [...(map.get(key) ?? []), symbol])
@@ -327,7 +344,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     const targets = pythonScopes.flatMap(s => Object.keys(s.constants).filter(k => `${s.module}.${k}` === name || `${s.module}.${k}`.endsWith(`.${name}`)).map(k => ({ scope: s, key: k })))
     return targets.length === 1 ? literal(targets[0]!.scope.constants[targets[0]!.key]!, targets[0]!.scope, seen) : undefined
   }
-  const routerDeclarations = pythonScopes.flatMap(s => s.routers.filter(r => !r.repeated && ["fastapi.APIRouter", "fastapi.FastAPI", "fastapi.routing.APIRouter", "fastapi.applications.FastAPI"].includes(qualified(r.constructor, s))).map(r => ({ name: `${s.module}.${r.name}`, prefix: literal(r.prefix, s) })))
+  const routerDeclarations = pythonScopes.flatMap(s => s.routers.filter(r => !r.repeated && ["fastapi.APIRouter", "fastapi.FastAPI", "fastapi.routing.APIRouter", "fastapi.applications.FastAPI"].includes(qualified(r.constructor, s))).map(r => ({ name: `${s.module}.${r.name}`, prefix: literal(r.prefix, s), requestOptionsUnmodeled: r.requestOptionsUnmodeled, stable: stableSourceBinding(r.constructor, s) && stableSourceBinding(r.name, s, false), source: { path: s.path, sha256: s.sha256, startLine: r.startLine, endLine: r.endLine } })))
   const routerNames = (name: string) => { const exact = routerDeclarations.filter(r => r.name === name); return (exact.length ? exact : routerDeclarations.filter(r => r.name.endsWith(`.${name}`))).map(r => r.name) }
   const mounts = pythonScopes.flatMap(s => s.includes.map(i => { const parents = routerNames(qualified(i.receiver, s)), children = routerNames(qualified(i.child, s)); return { ...i, parent: parents.length === 1 ? parents[0]! : "$unresolved", childNames: children, prefixValue: children.length === 1 ? literal(i.prefix, s) : undefined } }))
   const prefixes = (name: string, active = new Set<string>()): string[] | undefined => {
@@ -343,13 +360,32 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     }
     return paths
   }
+  const routerModifications = new Map<string, Array<{ call: StructureCall; gap: string }>>()
+  for (const scope of scopes) for (const raw of scope.rawCalls) {
+      const receiver = raw.call.receiver, method = raw.call.expression.split(".").at(-1)!
+      if (!receiver || raw.localNames.includes(receiver.split(".")[0]!)) continue
+      const override = receiver.endsWith(".dependency_overrides") && ["update", "clear", "setdefault", "pop", "popitem", "__setitem__", "__delitem__"].includes(method)
+      if (!override && !["add_middleware", "middleware", "add_api_route", "add_route"].includes(method)) continue
+      const owner = override ? receiver.slice(0, -".dependency_overrides".length) : receiver
+      for (const name of routerNames(qualified(owner, scope))) routerModifications.set(name, [...routerModifications.get(name) ?? [], { call: raw.call, gap: override ? "framework-dependency-overrides-unmodeled" : "framework-router-options-unmodeled" }])
+  }
+  const routeBindingSources = (name: string, active = new Set<string>()): { stable: boolean; gap?: string; sources: NonNullable<StructureRoute["bindingSources"]> } => {
+    const router = routerDeclarations.find(r => r.name === name)
+    if (!router || active.has(name)) return { stable: false, sources: [] }
+    const next = new Set(active).add(name), parents = mounts.filter(m => m.childNames.includes(name)), ancestors = parents.map(parent => routeBindingSources(parent.parent, next))
+    const overridden = scopes.some(s => s.moduleAttributeWrites.some(write => write.endsWith(".dependency_overrides") && routerNames(write.slice(0, -".dependency_overrides".length)).includes(name))), modifications = routerModifications.get(name) ?? []
+    const gap = router.requestOptionsUnmodeled || parents.some(p => p.requestOptionsUnmodeled) ? "framework-router-options-unmodeled" : overridden ? "framework-dependency-overrides-unmodeled" : modifications[0]?.gap ?? ancestors.find(a => a.gap)?.gap
+    return { stable: router.stable && ancestors.every(a => a.stable) && parents.every(parent => { const scope = scopes.find(s => s.rawCalls.some(c => c.call.id === parent.callId))!; return stableSourceBinding(`${parent.receiver}.include_router`, scope) && stableSourceBinding(parent.child, scope, false) }), ...(gap ? { gap } : {}), sources: [router.source, ...ancestors.flatMap(a => a.sources), ...parents.flatMap(parent => { const call = calls.find(c => c.id === parent.callId); return call ? [{ path: call.path, sha256: call.sha256, startLine: call.startLine, endLine: call.endLine }] : [] }), ...modifications.map(({ call }) => ({ path: call.path, sha256: call.sha256, startLine: call.startLine, endLine: call.endLine }))] }
+  }
   for (const scope of pythonScopes) for (const d of scope.decorators) {
     const c = scope.rawCalls.find(r => r.call.id === d.callId)!.call, names = routerNames(qualified(d.receiver, scope)), routerName = names.length === 1 ? names[0]! : "$unresolved", router = routerDeclarations.find(r => r.name === routerName), ps = prefixes(routerName), value = literal(d.path, scope)
     const code = !router ? "route-router-unresolved" : !ps ? "route-prefix-dynamic" : value === undefined ? "route-path-dynamic" : d.wrapped ? "route-wrapper-unresolved" : undefined
-    if (code) { diagnostics.push({ path: scope.path, line: c.startLine, code }); continue }
+    if (code) { diagnostics.push({ path: scope.path, line: c.startLine, code, handlerId: d.handlerId }); continue }
     const handler = symbols.find(s => s.id === d.handlerId)!
+    const binding = routeBindingSources(routerName), raw = scope.rawCalls.find(r => r.call.id === d.callId)!, receiverRoot = d.receiver.split(".")[0]!, owner = symbols.find(s => s.id === raw.call.ownerId)
+    const bindingGap = binding.gap ?? (!binding.stable || !stableSourceBinding(`${d.receiver}.${d.verb}`, scope) || raw.localNames.includes(receiverRoot) || owner?.kind === "class" && Object.hasOwn(owner.attributes, receiverRoot) ? "framework-route-binding-unresolved" : undefined)
     for (const [mount, prefix] of ps!.entries()) {
-      const route: StructureRoute = { id: `route-${hash([c.id, prefix, mount]).slice(0, 24)}`, sourceCallId: c.id, sourcePath: scope.path, startLine: c.startLine, endLine: c.endLine, method: d.verb.toUpperCase(), path: prefix + value!, handlerExpression: handler.name, candidateIds: [handler.id], middlewareExpressions: d.middleware, dependencyExpressions: d.dependencies.filter(dep => ["fastapi.Depends", "fastapi.params.Depends", "fastapi.Security", "fastapi.params.Security"].includes(qualified(dep.constructor, scope)) && /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(dep.expression)).map(dep => dep.expression), model: "fastapi-source-router/v1" }
+      const route: StructureRoute = { id: `route-${hash([c.id, prefix, mount]).slice(0, 24)}`, sourceCallId: c.id, sourcePath: scope.path, startLine: c.startLine, endLine: c.endLine, method: d.verb.toUpperCase(), path: prefix + value!, handlerExpression: handler.name, candidateIds: [handler.id], middlewareExpressions: d.middleware, dependencyExpressions: d.dependencies.filter(dep => ["fastapi.Depends", "fastapi.params.Depends", "fastapi.Security", "fastapi.params.Security"].includes(qualified(dep.constructor, scope)) && /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(dep.expression)).map(dep => dep.expression), dependencyCallIds: d.dependencies.filter(dep => !dep.parameter).map(dep => dep.sourceCallId), bindingSources: binding.sources, ...(bindingGap ? { bindingGap } : {}), model: "fastapi-source-router/v1" }
       routes.push(route)
       symbols.push({ id: route.id, path: c.path, sha256: c.sha256, name: `${route.method} ${route.path}`, qualifiedName: `${scope.module}.route@${c.startLine}`, module: scope.module, language: scope.language, kind: "function", startLine: c.startLine, endLine: c.endLine, boundary: "complete", parameters: [], returns: [], bases: [], attributes: { routeModel: route.model, handlerExpression: handler.name } })
     }
@@ -375,13 +411,39 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
   }
   const relatedCalls = (symbolId: string, receiverClass?: string) => { const route = routes.find(r => r.id === symbolId); return scopes.flatMap(f => f.rawCalls.filter(r => route ? r.call.path === route.sourcePath && r.call.id !== route.sourceCallId && r.call.startLine >= route.startLine && r.call.endLine <= route.endLine : r.call.ownerId === symbolId).map(r => resolveCall(r, f, receiverClass))) }
   const resolveName = (text: string, sourcePath: string) => { const scope = scopes.find(f => f.path === sourcePath); return scope ? matching(qualified(text, scope)) : [] }
-  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v5"
+  const qualifySourceName = (text: string, sourcePath: string) => { const scope = scopes.find(f => f.path === sourcePath); return scope && stableSourceBinding(text, scope) ? qualified(text, scope) : undefined }
+  const requestDependencies = (symbolId: string): StructureRequestDependency[] => {
+    const symbol = symbols.find(s => s.id === symbolId), route = routes.find(r => r.id === symbolId), scope = symbol && scopeFor(symbol)
+    if (!symbol || !scope || symbol.language !== "python" || symbol.className) return []
+    const selected: Array<{ call: StructureCall; parameter?: string; syntaxGap?: string }> = [], used = new Set<string>()
+    if (route) for (const id of route.dependencyCallIds ?? []) { const call = scope.rawCalls.find(r => r.call.id === id)?.call; if (call) selected.push({ call }) }
+    else for (const parameter of symbol.parameters) {
+      const call = scope.rawCalls.find(r => r.call.ownerId === symbolId && r.call.syntaxRole === "argument-default" && !used.has(r.call.id) && `${r.call.expression}(${r.call.arguments.join(",")})`.replace(/\s/g, "") === parameter.defaultExpression?.replace(/\s/g, ""))?.call
+      if (call) { used.add(call.id); selected.push({ call, parameter: parameter.name }) }
+      else for (const { call } of scope.rawCalls.filter(r => r.call.ownerId === symbolId && r.call.syntaxRole === "argument-default" && !used.has(r.call.id) && parameter.type?.replace(/\s/g, "").includes(`${r.call.expression}(${r.call.arguments.join(",")})`.replace(/\s/g, "")))) { used.add(call.id); selected.push({ call, parameter: parameter.name, syntaxGap: "framework-dependency-annotation-unsupported" }) }
+    }
+    return selected.flatMap(({ call, parameter, syntaxGap }) => {
+      const constructor = qualified(call.expression, scope)
+      if (!["fastapi.Depends", "fastapi.params.Depends", "fastapi.Security", "fastapi.params.Security"].includes(constructor)) return []
+      const root = call.expression.split(".")[0]!, argument = call.arguments[0]?.replace(/^dependency\s*=\s*/, "") ?? "", names = /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(argument)
+      const candidates = names ? matching(qualified(argument, scope)).filter(s => s.kind === "function" && !s.className) : []
+      const gap = syntaxGap ?? (!stableSourceBinding(call.expression, scope) ? "framework-constructor-rebound"
+        : constructor.endsWith("Security") || call.arguments.length !== 1 ? "framework-dependency-options-unsupported"
+        : !names ? "framework-dependency-target-dynamic"
+        : candidates.some(s => s.attributes.moduleBinding !== "unconditional") ? "framework-dependency-target-binding-unresolved"
+        : !stableSourceBinding(argument, scope) || candidates.some(s => !stableSourceBinding(s.name, scopeFor(s))) ? "framework-dependency-target-rebound"
+        : candidates.some(s => s.attributes.bindingWrapped && !routes.some(r => r.candidateIds.includes(s.id) && !r.bindingGap)) ? "framework-dependency-target-wrapper-unmodeled"
+        : candidates.length !== 1 ? candidates.length ? "framework-dependency-target-ambiguous" : "framework-dependency-target-missing" : undefined)
+      return [{ id: `framework-${hash([symbolId, call.id, parameter]).slice(0, 24)}`, sourceCallId: call.id, ownerId: symbolId, ...(parameter ? { parameter } : {}), constructor, expression: argument, candidateIds: candidates.map(s => s.id), resolution: gap ? candidates.length > 1 ? "ambiguous" as const : "unresolved" as const : "resolved" as const, model: "fastapi-source-injection/v1" as const, ...(gap ? { gap } : {}) }]
+    })
+  }
+  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v6"
   const withSymbolSyntax = <T>(symbolId: string, visit: (root: Node, symbol: StructureSymbol) => T): Promise<T> => {
     const symbol = symbols.find(s => s.id === symbolId), file = symbol && files.find(f => f.path === symbol.path)
     if (!symbol || !file || hash(file.content) !== symbol.sha256) throw new Error("structure-source-missing")
     return withSourceSyntax(file.content, symbol.language, root => visit(root, symbol))
   }
-  return { schemaVersion: "authorization-structure-index/v1" as const, parser: parserVersion, relationshipVersion, symbols, calls, routes, diagnostics, lookupMethod, attribute, linearize, candidateRevision, relatedCalls, resolveName, withSymbolSyntax,
+  return { schemaVersion: "authorization-structure-index/v1" as const, parser: parserVersion, relationshipVersion, symbols, calls, routes, diagnostics, lookupMethod, attribute, linearize, candidateRevision, relatedCalls, resolveName, qualifySourceName, requestDependencies, withSymbolSyntax,
     revision: hash([sourceIdentity, parserVersion, relationshipVersion, symbols, calls, routes, diagnostics]), preparation: { files: files.length, bytes: files.reduce((s, f) => s + Buffer.byteLength(f.content), 0), durationMs: performance.now() - started, targetExecutions: 0 } }
 }
 export type StructureIndex = Awaited<ReturnType<typeof buildStructureIndex>>

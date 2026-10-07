@@ -95,3 +95,46 @@ test("v5 prompt preserves the current frontier while retaining the complete depe
   const whole = (await tools.sourceSkeleton(context.tasks[0].sourceSkeleton.sourceId))!
   expect(whole.anchors.filter(a => a.kind === "call")).toHaveLength(18)
 })
+
+async function requestRuntimeFixture(repeated = false, routerConfiguration = false) {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-request-relations-"))
+  await writeFile(path.join(sourceRoot, "app.py"), `from fastapi import APIRouter, Depends, Request\ndef inner():\n    ${repeated ? "return True" : "raise Denied()"}\nrouter = APIRouter(${routerConfiguration ? "dependencies=[Depends(inner)]" : ""})\ndef outer(request: Request, flag=Depends(inner)):\n    return True\n@router.post("/work")\ndef endpoint(request: Request, actor=Depends(outer)${repeated ? ", second=Depends(outer)" : ""}):\n    return True\n`)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "POST /work", entryHint: "app.endpoint" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect POST /work", premises: [] }, { id: "other", operationId: "op", intent: "scope", request: "Explain original request limits", premises: [] }] })
+  const units: any[] = []
+  for (const name of ["endpoint", "outer", "inner", "POST /work"]) {
+    const s = tools.structure!.symbols.find(s => s.name === name)!, read = await tools.execute("source_read", { path: s.path, startLine: s.startLine, endLine: s.endLine })
+    units.push({ questionId: "q", itemId: name, handle: name, op: "add", role: name === "endpoint" ? "entry" : "helper", source: { id: s.id, path: s.path, sha256: s.sha256, startLine: s.startLine, endLine: s.endLine }, evidenceIds: read.evidence.map(e => e.id), coverage: "path", start: "body", complete: true, fallthrough: "allow", parameters: s.parameters.map(p => ({ name: p.name, type: "value" })), blocks: [{ name: "body", steps: name === "inner" && !repeated ? [{ kind: "raise", name: "denied", claim: "Actual dependency rejection", exceptionType: "Denied", failureKind: "authorization" }] : name === "POST /work" ? [{ kind: "context", name: "registration", claim: "Actual registration source", relationship: "route-registration" }] : [{ kind: "return", name: "done", value: true, claim: "Actual source return", ...(name === "endpoint" ? { outcome: "allow" } : {}) }] }] })
+  }
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "operation-evidence-v5", sourceAssisted: true, initialSemanticUnits: units })
+  await runtime.sync(false); await runtime.sync(false)
+  return { runtime, units }
+}
+test("v5 runtime links exact nested request relations and retains every original question", async () => {
+  const { runtime } = await requestRuntimeFixture()
+  const report = runtime.report(), boundaries = report.worklist!.items.filter(i => i.frameworkBoundary && i.decisive)
+  expect(new Set(boundaries.map(i => i.selected?.name))).toEqual(new Set(["POST /work", "outer", "inner"]))
+  expect(boundaries.every(i => i.progress?.read && i.progress.interpreted && i.progress.linked)).toBe(true)
+  expect(report.materialUses!.filter(u => u.kind === "framework")).toHaveLength(6)
+  expect(report.delivery!.gaps.filter(g => g.code === "framework-dependency-open")).toEqual([])
+  expect(report.slice.rules.filter(r => r.terminal).map(r => [r.questionId, r.outcome]).sort()).toEqual([["other", "deny"], ["q", "deny"]])
+})
+test("one adopted dependency occurrence cannot close another occurrence of the same source", async () => {
+  const { runtime, units } = await requestRuntimeFixture(true), sourceId = units.find(u => u.handle === "outer").source.id
+  const report = runtime.report(), boundaries = report.worklist!.frameworkBoundaries!.filter(b => b.sourceId === sourceId)
+  expect(boundaries.filter(b => b.questionId === "q").map(b => b.state).sort()).toEqual(["checked", "read"])
+  expect(boundaries.filter(b => b.questionId === "other").map(b => b.state).sort()).toEqual(["checked", "read"])
+  expect(new Set(boundaries.map(b => b.key)).size).toBe(2)
+  expect(report.delivery!.gaps.map(g => g.code)).toContain("framework-dependency-cache-unmodeled")
+  const feedback = runtime.modelFeedback()
+  if (!("questionProgress" in feedback)) throw new Error("v5 question progress is missing")
+  expect(feedback.questionProgress.every(q => q.openDependencies.some(d => d.state === "read"))).toBe(true)
+})
+test("an unsupported request configuration retains its named blocked work instead of a location task", async () => {
+  const { runtime } = await requestRuntimeFixture(false, true)
+  const gap = runtime.report().worklist!.items.find(i => i.code === "framework-router-options-unmodeled")
+  expect(gap).toMatchObject({ state: "blocked", nextAction: { kind: "none" }, decisive: true, frameworkBoundary: true })
+  const feedback = runtime.modelFeedback()
+  if (!("questionProgress" in feedback)) throw new Error("v5 question progress is missing")
+  expect(feedback.questionProgress.every(q => q.openDependencies.length > 0)).toBe(true)
+})

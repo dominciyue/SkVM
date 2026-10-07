@@ -56,6 +56,12 @@ test("missing source and conditional premises have distinct actions and no fabri
   expect(work.map(a => a.kind)).toEqual(["inspect-dependency", "conditional-answer"])
   expect(work.every(a => !a.handle && !a.source)).toBe(true)
 })
+test("a request wrapper diagnostic revisits its retained original source rather than a synthetic handle", () => {
+  const original: any = { handle: "retained", questionId: "source-question", itemId: "source-item", source: { id: "s", path: "app.py", sha256: "sha", startLine: 4, endLine: 8 }, blocks: [] }
+  const projected = { ...original, handle: "$request-relation", questionId: "other-question" }
+  const work = diagnosticWork([{ code: "semantic-return-object-incompatible", path: "questions.other-question.$request-relation", questionId: "other-question", message: "Wrong dependency return object", severity: "error" }], [original], { rules: [] } as any, [projected])
+  expect(work[0]).toMatchObject({ kind: "reinterpret", handle: "retained", questionId: "other-question", itemId: "source-item", request: { kind: "defer", revisit: "retained" } })
+})
 
 test("framework configuration is expanded at the class entry once and method work preserves its actual receiver", async () => {
   const index = await buildStructureIndex([{ path: "rest_framework/base.py", content: "class Base:\n    def initial(self):\n        return self.check_permissions()\n    def check_permissions(self):\n        return True\n    def create(self):\n        return self.perform_create()\n    def perform_create(self):\n        return True\n" }, { path: "app.py", content: "from rest_framework.base import Base\nclass Serializer:\n    def is_valid(self):\n        return self.validate()\n    def validate(self):\n        return True\nclass Permission:\n    def has_permission(self):\n        return True\nclass View(Base):\n    serializer_class = Serializer\n    permission_classes = (Permission,)\n    def perform_create(self):\n        return False\n" }], { repository: "fixture", sourceRef: "r" })
@@ -123,4 +129,13 @@ test("v5 framework footprints ignore unrelated files and retain actual inherited
     const changed = await buildStructureIndex(files.map(f => f.path === changedPath ? { ...f, content: f.content.replace("True", "False") } : f), { repository: "anonymous", sourceRef: "r" })
     expect(structuralDependencyRevision(changed, dependency)).not.toBe(dependency.revision)
   }
+})
+test("a request dependency body change revokes its owner's framework footprint through source-bound candidate IDs", async () => {
+  const files = [{ path: "auth.py", content: "def verify():\n    return True\n" }, { path: "app.py", content: 'from fastapi import APIRouter, Depends\nfrom auth import verify\nrouter = APIRouter()\n@router.post("/work")\ndef endpoint(actor=Depends(verify)):\n    return True\n' }]
+  const before = await buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" }), entry = before.symbols.find(s => s.name === "endpoint")!
+  const work = operationWork(before, entry.id, [], [], undefined, { sourceAssisted: true, operationRoot: true, questionDirected: true }), dependency = work.frameworkDependencies.find(d => d.key === `fastapi-source-injection/v1:${entry.id}`)!
+  const after = await buildStructureIndex(files.map(f => f.path === "auth.py" ? { ...f, content: f.content.replace("True", "False") } : f), { repository: "anonymous", sourceRef: "r" })
+  expect(after.symbols.find(s => s.name === "endpoint")!.id).toBe(entry.id)
+  expect(after.requestDependencies(entry.id)[0]!.candidateIds).not.toEqual(before.requestDependencies(entry.id)[0]!.candidateIds)
+  expect(structuralDependencyRevision(after, dependency)).not.toBe(dependency.revision)
 })

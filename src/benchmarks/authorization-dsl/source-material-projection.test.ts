@@ -4,6 +4,7 @@ import { createSourceMaterials } from "../../task-dsl/authorization/source-mater
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
 import { createInquiryTools } from "./inquiry-tools.ts"
 import { createInquiryDomainRuntime } from "./inquiry-domain-runtime.ts"
+import { lowerSemanticFlow } from "../../task-dsl/authorization/semantic-flow.ts"
 import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
@@ -91,4 +92,98 @@ test("v5 material footprints belong to their source receiver rather than the who
   expect((await project([...files, { path: "rest_framework/unused.py", content: "class Unused:\n    def check(self):\n        return False\n" }])).units.map((u: any) => u.handle).sort()).toEqual(["run_alpha", "run_beta"])
   expect((await project(files.map(f => f.path === "beta.py" ? { ...f, content: f.content.replace("True", "False") } : f))).units.map((u: any) => u.handle)).toEqual(["run_alpha"])
   expect((await project(files.map(f => f.path === "rest_framework/views.py" ? { ...f, content: f.content.replace("True", "False") } : f))).uses).toEqual([])
+})
+
+async function requestFixture(nested = false, registered = true, transform: (source: string) => string = source => source) {
+  const content = transform(`from fastapi import APIRouter, Depends, Request\nrouter = APIRouter()\n${nested ? "def lookup(request: Request):\n    actor = request.user\n    return actor\ndef verify(actor=Depends(lookup)):\n    return actor\n" : "def verify(request: Request):\n    raise Denied()\n"}${registered ? '@router.post("/work")\n' : ""}def endpoint(request: Request, actor=Depends(verify)):\n    resource = request.resource\n    write(actor, resource)\n    return True\n`)
+  const index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" })
+  const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" }), accepted: any[] = []
+  const accept = (name: string, role: string, steps: any[], types: Record<string, string> = {}) => {
+    const source = index.symbols.find(s => s.name === name)!, unit: any = { itemId: name, handle: name, questionId: "q", op: "add", role, source: { id: source.id, path: source.path, sha256: source.sha256, startLine: source.startLine, endLine: source.endLine }, evidenceIds: [`ev-${source.id}`], coverage: "path", start: "body", complete: true, fallthrough: "allow", parameters: source.parameters.map(p => ({ name: p.name, type: types[p.name] ?? "value" })), blocks: [{ name: "body", steps }] }
+    store.accept(unit, [{ kind: "source-span", key: source.path, revision: source.sha256 }, { kind: "symbol-resolution", key: source.id, revision: source.sha256 }], "test-authored"); accepted.push(unit); return unit
+  }
+  if (registered && index.symbols.some(s => s.name === "POST /work")) accept("POST /work", "helper", [{ kind: "context", name: "registration", claim: "Actual source registration", relationship: "route-registration" }])
+  if (nested) accept("lookup", "helper", [{ kind: "bind", name: "actor", type: "principal", claim: "Test-authored source object reading" }, { kind: "return", name: "returned", object: "actor", claim: "Actual actor return" }])
+  accept("verify", "helper", nested ? [{ kind: "return", name: "returned", object: "actor", claim: "Actual dependency return" }] : [{ kind: "raise", name: "denied", exceptionType: "Denied", failureKind: "authorization", claim: "Actual source rejection" }], nested ? { actor: "principal" } : {})
+  const entry = accept("endpoint", "entry", [{ kind: "bind", name: "resource", type: "resource", claim: "Test-authored source resource reading" }, { kind: "effect", name: "write", principal: "actor", resource: "resource", operation: "write", claim: "Actual protected source write" }, { kind: "return", name: "done", value: true, outcome: "allow", claim: "Test-authored entry outcome" }], { actor: "principal" })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "request", request: "POST /work", entryHint: "endpoint" }], questions: [{ id: "q", operationId: "request", intent: "behavior", request: "Inspect this request", premises: [] }] })
+  return { index, store, accepted, entry, program, project: (snapshot = store.snapshot()) => api.projectSourceMaterials(program, accepted, snapshot, index, { questionDirected: true }) }
+}
+test("v5 request projection runs the actual source dependency before the endpoint effect", async () => {
+  const f = await requestFixture(), projected = f.project()
+  expect(projected.uses.filter((u: any) => u.kind === "framework")).toHaveLength(2)
+  const lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true })
+  expect(lowered.diagnostics).toEqual([])
+  expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(false)
+  expect(lowered.delta.rules.filter(r => r.terminal).map(r => r.outcome)).toEqual(["deny"])
+  expect(f.store.snapshot().materials.find(m => m.unit.handle === "endpoint")!.unit.parameters.some(p => p.name === "actor")).toBe(true)
+})
+test("a proven framework request supplies Request to a dependency even without an endpoint Request parameter", async () => {
+  const f = await requestFixture(false, true, source => source.replace("def endpoint(request: Request, actor=", "def endpoint(actor=").replace("resource = request.resource", "resource = object()")), projected = f.project()
+  expect(lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true }).delta.rules.filter(r => r.terminal).map(r => r.outcome)).toEqual(["deny"])
+  expect(projected.uses.find((u: any) => u.kind === "entry").contextArguments).toEqual([{ parameter: "$request-context", object: "$request-context" }])
+  expect(projected.uses.find((u: any) => u.frameworkModel === "fastapi-source-injection/v1").arguments).toEqual([{ parameter: "request", object: "$request-context" }])
+  expect(f.entry.parameters.map((p: any) => p.name)).toEqual(["actor"])
+})
+test("v5 nested request dependencies return the same typed principal to the endpoint", async () => {
+  const f = await requestFixture(true), projected = f.project()
+  expect(projected.uses.filter((u: any) => u.kind === "framework")).toHaveLength(3)
+  const lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true })
+  expect(lowered.diagnostics).toEqual([])
+  expect(lowered.delta.rules.filter(r => r.kind === "effect").map(r => r.principal)).toEqual(lowered.delta.rules.filter(r => r.kind === "binding" && r.bindingKind === "principal").map(r => r.bindingKey))
+  expect(projected.units.find((u: any) => u.role === "entry").parameters.map((p: any) => p.name)).toEqual(["request"])
+  const outer = projected.uses.find((u: any) => u.kind === "framework" && u.sourceId === f.accepted.find(u => u.handle === "verify").source.id)
+  expect(outer.arguments).toEqual([])
+  expect(outer.contextArguments).toEqual([{ parameter: "$request-context", object: "request" }])
+})
+test("dependencies with only injected arguments need no synthetic Request parameter", async () => {
+  const f = await requestFixture(true, true, source => source.replace("def lookup(request: Request):", "def lookup():")), projected = f.project()
+  const outer = projected.uses.find((u: any) => u.kind === "framework" && u.sourceId === f.accepted.find(u => u.handle === "verify").source.id)
+  expect(outer.arguments).toEqual([])
+  expect(projected.units.find((u: any) => u.handle === outer.projectedHandle).parameters).toEqual([])
+  expect(lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true }).diagnostics).toEqual([])
+})
+test("an unadopted request dependency remains a source gap before the endpoint", async () => {
+  const f = await requestFixture(), snapshot = f.store.snapshot(); snapshot.materials = snapshot.materials.filter(m => m.unit.handle !== "verify")
+  const lowered = lowerSemanticFlow(f.project(snapshot).units, { compositional: true, propertyDirected: true })
+  expect(lowered.diagnostics.map(d => d.code)).toContain("framework-dependency-uninterpreted")
+  expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(false)
+})
+test("ordinary Python default declarations never invoke request dependencies", async () => {
+  const f = await requestFixture(false, false), projected = f.project()
+  expect(projected.uses.filter((u: any) => u.kind === "framework")).toEqual([])
+  expect(lowerSemanticFlow(projected.units).delta.rules.some(r => r.kind === "effect")).toBe(true)
+})
+for (const [statement, expected] of [["Request = replacement\n", "framework-request-argument-unbound"], ["verify = replacement\n", "framework-dependency-target-rebound"], ["verify.__code__ = replacement\n", "framework-dependency-target-rebound"], ["Depends = replacement\n", "framework-constructor-rebound"]] as const) test(`rebound request source binding ${statement.trim()} withdraws its original proof`, async () => {
+  const f = await requestFixture(false, true, source => source.replace('@router.post("/work")', `${statement}@router.post("/work")`))
+  expect(lowerSemanticFlow(f.project().units).diagnostics.map(d => d.code)).toContain(expected!)
+  expect(f.project().uses.filter((u: any) => u.kind === "framework" && u.frameworkModel === "fastapi-source-injection/v1")).toEqual([])
+})
+test("a rebound router constructor retains a boundary rather than executing a framework model", async () => {
+  const f = await requestFixture(false, true, source => source.replace("router = APIRouter()", "APIRouter = replacement\nrouter = APIRouter()"))
+  expect(lowerSemanticFlow(f.project().units).diagnostics.map(d => d.code)).toContain("framework-route-binding-unresolved")
+  expect(f.project().uses.filter((u: any) => u.kind === "framework")).toEqual([])
+})
+for (const [declaration, code] of [["if configured:\n    def verify(request: Request):\n        raise Denied()\n", "framework-dependency-target-binding-unresolved"], ["@replacement\ndef verify(request: Request):\n    raise Denied()\n", "framework-dependency-target-wrapper-unmodeled"]]) test(`request projection retains ${code}`, async () => {
+  const f = await requestFixture(false, true, source => source.replace("def verify(request: Request):\n    raise Denied()\n", declaration!))
+  expect(lowerSemanticFlow(f.project().units).diagnostics.map(d => d.code)).toContain(code!)
+})
+test("an injected Request parameter is not a proven external request environment", async () => {
+  const f = await requestFixture(true, true, source => source.replace("def endpoint(request: Request,", "def endpoint(request: Request=Depends(lookup),"))
+  expect(lowerSemanticFlow(f.project().units).diagnostics.map(d => d.code)).toContain("framework-request-argument-unbound")
+})
+test("an annotation dependency stays a named boundary until its injection form is supported", async () => {
+  const f = await requestFixture(false, true, source => "from typing import Annotated\n" + source.replace("actor=Depends(verify)", "actor: Annotated[object, Depends(verify)]"))
+  expect(lowerSemanticFlow(f.project().units).diagnostics.map(d => d.code)).toContain("framework-dependency-annotation-unsupported")
+  expect(f.project().uses.filter((u: any) => u.frameworkModel === "fastapi-source-injection/v1")).toEqual([])
+})
+for (const [replacement, code] of [["router = APIRouter(dependencies=[Depends(global_guard)])", "framework-router-options-unmodeled"], ["router = APIRouter(route_class=CustomRoute)", "framework-router-options-unmodeled"], ["router = APIRouter()\nrouter.dependency_overrides[verify] = replacement", "framework-dependency-overrides-unmodeled"]]) test(`request projection retains ${code} for source-visible request configuration`, async () => {
+  const f = await requestFixture(false, true, source => source.replace("router = APIRouter()", replacement!))
+  expect(lowerSemanticFlow(f.project().units).diagnostics.map(d => d.code)).toContain(code!)
+  expect(f.project().uses.filter((u: any) => u.kind === "framework")).toEqual([])
+})
+for (const [statement, code] of [["router.dependency_overrides.update({verify: replacement})", "framework-dependency-overrides-unmodeled"], ["router.add_middleware(Middleware)", "framework-router-options-unmodeled"], ["router.add_api_route('/other', replacement)", "framework-router-options-unmodeled"], ["parent = APIRouter()\nparent.mount('/v1', router)", "route-prefix-dynamic"]] as const) test(`source-visible framework modification ${statement} retains ${code}`, async () => {
+  const f = await requestFixture(false, true, source => source.replace("import APIRouter,", "import FastAPI as APIRouter,").replace('@router.post("/work")', `def replacement():\n    return True\nclass Middleware:\n    pass\n${statement}\n@router.post("/work")`))
+  expect(lowerSemanticFlow(f.project().units).diagnostics.map(d => d.code)).toContain(code)
+  expect(f.project().uses.filter((u: any) => u.kind === "framework")).toEqual([])
 })

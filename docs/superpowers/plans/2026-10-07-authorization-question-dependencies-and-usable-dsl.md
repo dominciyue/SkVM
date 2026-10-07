@@ -124,6 +124,8 @@ v5 使用独立的 `question-control/v1` 材料语义身份。旧 v4 材料可�
 
 2026-10-08进展：源码确认的dispatch与route/dependency已作为v5逐题前置边界；缺源码及未进入当前调用投影的项保留pending/read，匿名反例防止方法体alone误报bounded。完整dispatch顺序与请求级权限组合尚未完成，不勾选本阶段验收。
 
+当前接线顺序：源码确认的FastAPI路由及静态`Depends`参数现已进入v5临时请求投影，递归依赖先执行、typed返回再交给原入口。结构层保留constructor/import、参数、来源候选及声明call身份；`source-bindings/v6`显式撤回旧修订。模板原件不改，普通Python函数调用不执行definition default；字面默认可能被请求输入覆盖，当前不自动注入。只连接源码确认的Request与依赖结果；必要的框架Request环境以scratch参数承载，`contextArguments`与原函数实参分开。重绑定/conditional/wrapper、Annotated依赖、全局router/include配置、override与重复依赖缓存未建模时保留具名缺口，不能按同sourceId已保存就checked。方法形式的override、追加middleware/route及ASGI mount也参与具名阻断。原OWUI注释的初始零推理探针有6实际采用；补入口修改检查后发现真实app注册middleware，当前回放仅保留3普通采用，route/auth/session为read未采用、内层用户依赖及入口配置为pending。两次探针分别留档，字段类型/展开上限保留在未投影诊断，原答不升级。框架model身份和当前源码修订单列，目标安装版本/generator语义尚未核验。下一步先建立源码可见ASGI入口控制的有限模型，再接DRF实际dispatch及HTTP action映射，然后具名账号运行；本阶段整体验收仍未达。
+
 - [ ] 将已有 operation-work 的 framework 候选连接到当前 operation/question，核实 dispatch/initial/check_permissions、permission_classes、继承方法和 HTTP 方法映射的真实顺序。
 - [ ] 框架关系绑定精确包/版本与已读源码。存在用户 override、不同版本、缺依赖或 ambiguous MRO 时给出准确剩余影响，不能默认为允许或凭文档常识补齐。
 - [ ] 通用匿名框架反例和实际 Download 回归同时通过。框架知识作为源码/版本模型进入生产分析，开发者对本案例的正确结论只留在 evaluator。

@@ -22,12 +22,12 @@ function drfReceiverRevision(index: StructureIndex, className: string) {
   return hash([classSources(className), drfDispatchMethods.map(method => [method, index.candidateRevision(className, method)]), configurations])
 }
 /** Structural candidates satisfy a need to inspect a relationship, never its authorization meaning. */
-export function operationWork(index: StructureIndex, entryId: string, readSymbols: string[], interpretedSymbols: Array<string | { id: string; receiverClass?: string }>, receiverClass?: string, options: { sourceAssisted?: boolean; operationRoot?: boolean; questionDirected?: boolean } = {}) {
-  const entry = index.symbols.find(s => s.id === entryId), actions: OperationWorkAction[] = [], gaps: StructureCall[] = [], frameworkDependencies: SourceFactDependency[] = [], frameworkGaps: Array<{ key: string; reason: string; receiverClass: string }> = []
+export function operationWork(index: StructureIndex, entryId: string, readSymbols: string[], interpretedSymbols: Array<string | { id: string; receiverClass?: string }>, receiverClass?: string, options: { sourceAssisted?: boolean; operationRoot?: boolean; questionDirected?: boolean; frameworkInvocation?: boolean } = {}) {
+  const entry = index.symbols.find(s => s.id === entryId), actions: OperationWorkAction[] = [], gaps: StructureCall[] = [], frameworkDependencies: SourceFactDependency[] = [], frameworkGaps: Array<{ key: string; reason: string; receiverClass?: string; code?: string }> = []
   if (!entry) return { actions, gaps, frameworkDependencies, frameworkGaps }
   const add = (candidateId: string, relationId: string, reason: string, obligation: OperationWorkAction["obligation"] = "guard", context?: string, decisive = false, frameworkBoundary = false) => {
     const interpreted = interpretedSymbols.some(s => typeof s === "string" ? s === candidateId : s.id === candidateId && s.receiverClass === context)
-    if (interpreted && !frameworkBoundary || actions.some(a => a.candidateId === candidateId && a.receiverClass === context)) return
+    if (interpreted && !frameworkBoundary || actions.some(a => a.candidateId === candidateId && a.receiverClass === context && (!frameworkBoundary || a.frameworkBoundary && a.relationId === relationId))) return
     actions.push({ id: `opwork-${hash([entry.id, candidateId, relationId, context]).slice(0, 24)}`, obligation, kind: interpreted ? "link" : readSymbols.includes(candidateId) ? "interpret" : "read", candidateId, relationId, reason, decisive, ...(context ? { receiverClass: context } : {}), ...(frameworkBoundary ? { frameworkBoundary: true } : {}) })
   }
   for (const call of index.relatedCalls(entry.id, receiverClass)) {
@@ -35,11 +35,24 @@ export function operationWork(index: StructureIndex, entryId: string, readSymbol
     if (call.resolution === "unresolved") { gaps.push(call); continue }
     for (const candidate of call.candidateIds) add(candidate, call.id, `Inspect AST-bound ${call.expression} at ${call.path}:${call.startLine}; arguments ${JSON.stringify(call.arguments)}. Source relevance and conditions still need interpretation.`, "guard", call.receiverClass, call.syntaxRole === "condition" || call.syntaxRole === "return")
   }
-  for (const route of index.routes.filter(r => r.candidateIds.includes(entry.id))) {
+  const addRequestDependencies = (ownerId: string) => {
+    const dependencies = index.requestDependencies(ownerId)
+    if (dependencies.length) frameworkDependencies.push({ kind: "framework-model", key: `fastapi-source-injection/v1:${ownerId}`, revision: hash(dependencies) })
+    for (const dependency of dependencies) {
+      if (dependency.gap) frameworkGaps.push({ key: dependency.id, reason: `Current source ${dependency.constructor} binding: ${dependency.gap}; no request relationship is inferred.`, code: dependency.gap })
+      for (const candidate of dependency.candidateIds) add(candidate, dependency.id, `Inspect source-qualified request dependency ${dependency.expression} for ${dependency.parameter ?? "route-level prerequisite"}; current source call ${dependency.sourceCallId}. Read/interpret this function and its nested dependencies; authorization meaning remains unreviewed.`, "principal-binding", undefined, true, true)
+    }
+  }
+  const routes = index.routes.filter(r => r.candidateIds.includes(entry.id) && (!options.questionDirected || options.operationRoot))
+  if (options.questionDirected && options.operationRoot) for (const diagnostic of index.diagnostics.filter(d => d.handlerId === entry.id && d.code.startsWith("route-"))) frameworkGaps.push({ key: `route:${entry.id}:${diagnostic.code}`, reason: `Current source registration cannot bind this request: ${diagnostic.code}.`, code: diagnostic.code })
+  for (const route of routes) {
     add(route.id, route.sourceCallId, `Inspect source-bound ${route.method} ${route.path} registration, middleware ${JSON.stringify(route.middlewareExpressions)} and exact handler ${route.handlerExpression}. Registration syntax does not prove middleware meaning.`, "entry", undefined, true, true)
     frameworkDependencies.push({ kind: "framework-model", key: `${route.model}:${route.id}`, revision: hash([route.sourcePath, index.symbols.find(s => s.id === route.id)?.sha256, route]) })
-    for (const expression of route.dependencyExpressions ?? []) for (const candidate of index.resolveName(expression, route.sourcePath).filter(s => s.kind === "function")) add(candidate.id, `${route.id}:dependency:${expression}`, `Inspect actual ${route.model} dependency ${expression}; constructor/import and route bind this source, not its authorization meaning.`, "principal-binding", candidate.className, true, true)
+    if (options.questionDirected && route.bindingGap) frameworkGaps.push({ key: `route:${route.id}:binding`, reason: `Current source registration cannot bind this request: ${route.bindingGap}.`, code: route.bindingGap })
+    if (options.questionDirected && route.model === "fastapi-source-router/v1") addRequestDependencies(route.id)
+    else for (const expression of route.dependencyExpressions ?? []) for (const candidate of index.resolveName(expression, route.sourcePath).filter(s => s.kind === "function")) add(candidate.id, `${route.id}:dependency:${expression}`, `Inspect actual ${route.model} dependency ${expression}; constructor/import and route bind this source, not its authorization meaning.`, "principal-binding", candidate.className, true, true)
   }
+  if (options.questionDirected && (options.frameworkInvocation || routes.some(r => r.model === "fastapi-source-router/v1"))) addRequestDependencies(entry.id)
   // DRF dispatch is enabled by source-visible qualified inheritance. All method
   // bodies and serializer declarations remain source candidates to be read.
   const className = receiverClass ?? (entry.kind === "class" ? entry.qualifiedName : entry.className)
@@ -69,10 +82,13 @@ export function operationWork(index: StructureIndex, entryId: string, readSymbol
 }
 
 /** Turn checker feedback into existing local actions; never synthesize source meaning. */
-export function diagnosticWork(diagnostics: InquiryDiagnostic[], units: BoundSemanticBlock[], slice: ControlSlice) {
+export function diagnosticWork(diagnostics: InquiryDiagnostic[], units: BoundSemanticBlock[], slice: ControlSlice, projectedUnits: BoundSemanticBlock[] = []) {
   return diagnostics.filter((d, i, all) => d.severity === "error" && all.findIndex(v => v.code === d.code && v.path === d.path && v.questionId === d.questionId) === i).slice(0, 16).map(d => {
     const rule = slice.rules.find(r => (!d.questionId || r.questionId === d.questionId) && (d.path === r.key || d.path.endsWith(`.${r.key}`)))
-    const unit = units.find(u => (!d.questionId || u.questionId === d.questionId) && (u.handle === rule?.sourceOrigin?.handle || d.path.endsWith(`.${u.handle}`)))
+    const projected = projectedUnits.find(u => (!d.questionId || u.questionId === d.questionId) && (u.handle === rule?.sourceOrigin?.handle || d.path.endsWith(`.${u.handle}`)))
+    const origins = projected?.source ? units.filter(u => u.source?.id === projected.source!.id && u.source.sha256 === projected.source!.sha256 && u.receiverClass === projected.receiverClass) : []
+    const localOrigins = origins.filter(u => u.questionId === projected?.questionId)
+    const unit = units.find(u => (!d.questionId || u.questionId === d.questionId) && (u.handle === rule?.sourceOrigin?.handle || d.path.endsWith(`.${u.handle}`))) ?? (localOrigins.length === 1 ? localOrigins[0] : origins.length === 1 ? origins[0] : undefined)
     const kind = /argument-unbound|link-missing/.test(d.code) ? "link" : /object-|binding-|semantic-(?:return|transform|guard|entry-incomplete|helper-incomplete|path-limit|node-limit)/.test(d.code) ? "reinterpret" : /callee-uninterpreted|dependency-open/.test(d.code) ? "inspect-dependency" : /entry-missing|location-/.test(d.code) ? "locate" : /unresolved-path-condition/.test(d.code) ? "conditional-answer" : "revise-answer"
     return { id: `repair-${hash([d.code, d.path, d.questionId]).slice(0, 24)}`, kind, diagnosticCode: d.code, questionId: d.questionId ?? unit?.questionId, reason: d.message,
       ...(unit ? { handle: unit.handle, itemId: unit.itemId, source: unit.source, ...(kind === "reinterpret" ? { request: { kind: "defer", revisit: unit.handle, reason: d.message } } : {}) } : {}),
@@ -83,7 +99,7 @@ export function diagnosticWork(diagnostics: InquiryDiagnostic[], units: BoundSem
 export function sourceRelationRevision(index: StructureIndex, symbolId: string, receiverClass?: string) {
   const symbol = index.symbols.find(s => s.id === symbolId)
   if (!symbol) return undefined
-  return hash([symbol.qualifiedName, index.candidateRevision(receiverClass ?? symbol.className ?? symbol.qualifiedName, symbol.name), index.relatedCalls(symbolId, receiverClass).map(c => [c, c.candidateIds.map(id => { const s = index.symbols.find(s => s.id === id); return s && [s.id, s.path, s.sha256] })]), index.routes.filter(r => r.candidateIds.includes(symbolId)).map(r => [r, index.symbols.find(s => s.id === r.id)?.sha256])])
+  return hash([symbol.qualifiedName, index.candidateRevision(receiverClass ?? symbol.className ?? symbol.qualifiedName, symbol.name), index.relatedCalls(symbolId, receiverClass).map(c => [c, c.candidateIds.map(id => { const s = index.symbols.find(s => s.id === id); return s && [s.id, s.path, s.sha256] })]), index.routes.filter(r => r.candidateIds.includes(symbolId)).map(r => [r, index.symbols.find(s => s.id === r.id)?.sha256]), index.requestDependencies(symbolId)])
 }
 export function structuralDependencyRevision(index: StructureIndex, dependency: SourceFactDependency) {
   if (dependency.kind === "symbol-resolution") return index.symbols.find(s => s.id === dependency.key)?.sha256
@@ -94,6 +110,7 @@ export function structuralDependencyRevision(index: StructureIndex, dependency: 
   if (dependency.kind === "framework-model") {
     if (dependency.key === "drf-source-dispatch/v1") return hash(index.symbols.filter(s => s.module.startsWith("rest_framework.")).map(s => [s.path, s.sha256]))
     if (dependency.key.startsWith("drf-source-dispatch/v2:")) return drfReceiverRevision(index, dependency.key.slice("drf-source-dispatch/v2:".length))
+    if (dependency.key.startsWith("fastapi-source-injection/v1:")) { const id = dependency.key.slice("fastapi-source-injection/v1:".length); return index.symbols.some(s => s.id === id) ? hash(index.requestDependencies(id)) : undefined }
     const routes = index.routes.filter(r => `${r.model}:${r.id}` === dependency.key || r.model === dependency.key)
     if (routes.length === 1) { const r = routes[0]!; return hash([r.sourcePath, index.symbols.find(s => s.id === r.id)?.sha256, r]) }
   }

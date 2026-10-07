@@ -55,10 +55,11 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const draftIdentity = (p: Pick<UpdateRejection, "group" | "questionId" | "targetKey">) => JSON.stringify([p.group, p.questionId, p.targetKey])
   const operationEvidence = isOperationInquiryStrategy(options.strategy)
   const propertyDirected = isPropertyDirectedInquiryStrategy(options.strategy)
-  const worklist: ReturnType<typeof createInquiryWorklist> | undefined = isGuidedInquiryStrategy(options.strategy) ? createInquiryWorklist({ ...options, structural: operationEvidence, requireEntryBasis: options.sourceAssisted, questionDirected: isQuestionDirectedInquiryStrategy(options.strategy), semanticUnits: () => semanticUnits, dependencyStates: () => scheduler.snapshot(), skeletonState: (id, receiver) => sourceSkeletons.get(skeletonKey(id, receiver)), ...(propertyDirected ? { propertyDemand: item => focus?.demandFor(item) } : {}) }) : undefined
+  const worklist: ReturnType<typeof createInquiryWorklist> | undefined = isGuidedInquiryStrategy(options.strategy) ? createInquiryWorklist({ ...options, structural: operationEvidence, requireEntryBasis: options.sourceAssisted, questionDirected: isQuestionDirectedInquiryStrategy(options.strategy), semanticUnits: () => semanticUnits, projectedUnits: () => projectedSemanticUnits, frameworkUses: () => materialUses, dependencyStates: () => scheduler.snapshot(), skeletonState: (id, receiver) => sourceSkeletons.get(skeletonKey(id, receiver)), ...(propertyDirected ? { propertyDemand: item => focus?.demandFor(item) } : {}) }) : undefined
   const facts = operationEvidence ? createOperationFacts(options.program, options.tools.identity) : undefined
   const materials = isFiniteControlInquiryStrategy(options.strategy) ? createSourceMaterials({ ...options.tools.identity, semanticVersion: sourceMaterialSemanticVersion(options.strategy) }, options.initialSourceMaterials) : undefined
   let materialUses: SourceMaterialUse[] = []
+  let projectedSemanticUnits: BoundSemanticBlock[] = []
   let semanticUnits: BoundSemanticBlock[] = structuredClone(options.initialSemanticUnits ?? [])
   const sourceLinks: OperationSourceLink[] = []
   const sourceSkeletons = new Map<string, SourceSkeleton>(), skeletonKey = (id: string, receiver?: string) => `${id}:${receiver ?? ""}`
@@ -84,12 +85,12 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const evidenceContext = () => ({ questionIds: options.program.questions.map(q => q.id), shownEvidenceIds: options.shownEvidenceIds?.() ?? options.tools.evidence.map(e => e.id), suppliedUserText: options.suppliedUserText, globalUserText: options.entryContext ? [options.entryContext] : [] })
   const calculate = <T>(fn: () => T): T => { const started = performance.now(); try { return fn() } finally { computation.durationMs += performance.now() - started } }
   const sourceUnits = () => {
-    if (materials && options.tools.structure) { const projected = projectSourceMaterials(options.program, semanticUnits, materials.snapshot(), options.tools.structure); materialUses = projected.uses; return projected.units }
+    if (materials && options.tools.structure) { const projected = projectSourceMaterials(options.program, semanticUnits, materials.snapshot(), options.tools.structure, { questionDirected: isQuestionDirectedInquiryStrategy(options.strategy) }); materialUses = projected.uses; projectedSemanticUnits = projected.units; return projected.units }
     return facts ? projectOperationUnits(options.program, semanticUnits, facts.snapshot()) : semanticUnits
   }
   const currentDependencies = () => {
-    const projected = sourceUnits()
-    return [...scheduler.snapshot(), ...(isQuestionDirectedInquiryStrategy(options.strategy) ? worklist?.boundaryStates().map(d => ({ ...d, state: d.state === "checked" && !projected.some(u => u.questionId === d.questionId && u.source?.id === d.sourceId) ? "read" : d.state })) ?? [] : [])]
+    sourceUnits()
+    return [...scheduler.snapshot(), ...(isQuestionDirectedInquiryStrategy(options.strategy) ? worklist?.boundaryStates() ?? [] : [])]
   }
   let propertyEvaluation: ReturnType<typeof lowerIntoControlSlice> | undefined
   const lowerCurrent = (compositional = false) => {
@@ -101,7 +102,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     const index = options.tools.structure, symbol = index?.symbols.find(s => s.id === unit.source!.id)
     const receiverClass = worklist?.snapshot().find(i => i.id === unit.itemId)?.receiverClass ?? unit.receiverClass
     const frameworkDependencies = isQuestionDirectedInquiryStrategy(options.strategy)
-      ? symbol && index ? operationWork(index, symbol.id, [], [], receiverClass, { sourceAssisted: options.sourceAssisted, operationRoot: unit.role === "entry", questionDirected: true }).frameworkDependencies : []
+      ? symbol && index ? operationWork(index, symbol.id, [], [], receiverClass, { sourceAssisted: options.sourceAssisted, operationRoot: unit.role === "entry", questionDirected: true, frameworkInvocation: worklist?.snapshot().find(i => i.id === unit.itemId)?.frameworkBoundary }).frameworkDependencies : []
       : worklist?.report().frameworkDependencies ?? []
     return [{ kind: "source-span" as const, key: unit.source!.path, revision: unit.source!.sha256 }, { kind: "symbol-resolution" as const, key: unit.source!.id, revision: unit.source!.sha256 }, ...(symbol && index ? [{ kind: "candidate-set" as const, key: `relations:${symbol.id}:${receiverClass ?? ""}`, revision: sourceRelationRevision(index, symbol.id, receiverClass)! }] : []), ...(symbol?.className && index ? [{ kind: "candidate-set" as const, key: `${symbol.className}:${symbol.name}`, revision: index.candidateRevision(symbol.className, symbol.name) }] : []), ...frameworkDependencies]
   }
@@ -395,7 +396,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
       else if (limits.preferAnswer) focus.sync(true, true)
       const context = focus.context(limits.maxSourceBytes)
       offeredTasks = context.tasks
-      return operationEvidence ? { ...context, repairActions: diagnosticWork(feedback().diagnostics, semanticUnits, slice) } : context
+      return operationEvidence ? { ...context, repairActions: diagnosticWork(feedback().diagnostics, semanticUnits, slice, sourceUnits()) } : context
     }
     const diagnostics = feedback().diagnostics.filter(d => d.severity === "error")
     const targets = slice.rules.filter(r => diagnostics.some(d => (!d.questionId || d.questionId === r.questionId) && (d.path.includes(`${r.questionId}.${r.key}`) || d.path === r.key && (!!d.questionId || slice.rules.filter(candidate => candidate.key === d.path).length === 1))))
@@ -454,7 +455,10 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     return { ...d, message: `A changed add for this accepted target was rejected. Submit a ${rejected.group} item ${JSON.stringify(replacement)} with the corrected source fields. The host supplies revisionOf and records replacement provenance; dependency relevance reason remains required. The accepted target has not been overwritten.` }
   }
   const modelFeedback = () => {
-    if (focus) return { focus: focus.current(), worklist: undefined as ReturnType<typeof worklistModelView> | undefined, questionProgress: options.program.questions.map(q => ({ questionId: q.id, interpretedUnits: sourceUnits().filter(u => u.questionId === q.id).length, openDependencies: scheduler.snapshot().filter(d => d.questionId === q.id && !["checked", "inapplicable"].includes(d.state)).map(d => ({ symbol: d.symbol, state: d.state, code: d.code })) })), semanticSupport: "unreviewed", diagnostics: [...issues.values()].flat().slice(0, 12), ...(operationEvidence ? { repairActions: diagnosticWork(feedback().diagnostics, semanticUnits, slice) } : {}) }
+    if (focus) {
+      const dependencies = currentDependencies(), current = sourceUnits()
+      return { focus: focus.current(), worklist: undefined as ReturnType<typeof worklistModelView> | undefined, questionProgress: options.program.questions.map(q => ({ questionId: q.id, interpretedUnits: current.filter(u => u.questionId === q.id).length, openDependencies: dependencies.filter(d => d.questionId === q.id && !["checked", "inapplicable"].includes(d.state)).map(d => ({ symbol: d.symbol, state: d.state, code: "code" in d ? d.code : undefined, key: d.key, ...("sourceId" in d ? { sourceId: d.sourceId, receiverClass: d.receiverClass } : {}) })) })), semanticSupport: "unreviewed", diagnostics: [...issues.values()].flat().slice(0, 12), ...(operationEvidence ? { repairActions: diagnosticWork(feedback().diagnostics, semanticUnits, slice, current) } : {}) }
+    }
     if (options.strategy === "semantic-flow-v1") {
       const state = feedback(), diagnostics = state.diagnostics.filter((d, i, all) => all.findIndex(v => v.code === d.code && v.path === d.path && v.questionId === d.questionId && v.message === d.message) === i)
       const pending = [...new Map(semanticRecords.filter(r => !r.accepted && issues.has(`$semantic-draft.${r.draftId}`)).map(r => [r.draftId, r])).values()], rejectedBlocks: Array<Record<string, unknown>> = []

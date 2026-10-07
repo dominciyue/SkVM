@@ -2625,11 +2625,15 @@ AY初版支持域采用当前AST的局部def/use、分支合并和有限控制�
 
 AY11的v5框架依赖按材料自身来源/实际receiver保存，不复制工作队列全局依赖。DRF使用`drf-source-dispatch/v2:<receiver>`绑定当前MRO、前置方法、permission/serializer配置及已解析选择来源；旧v1修订继续原校验。无关framework文件不改变当前修订，实际继承控制或选择的permission源码改变则撤回投影。SHA保持整源文件粒度，同文件无关编辑仍保守失效；不声称符号范围精度或框架语义已经闭合。
 
+AY6的FastAPI有限请求模型以`fastapi-source-router/v1`和`fastapi-source-injection/v1`分别记录路由与依赖身份。当前AST的默认参数/route-level Depends声明绑定sourceCallId、参数及带SHA的目标候选；constructor/import和目标定义均需未重绑定、模块声明需无条件，route还保留router/include声明来源。v5仅在当前route和材料都可采用时生成临时请求调用，递归依赖先执行，typed结果赋给原参数再进入body。Request可来自原入口参数或此模型提供的未知请求环境；scratch参数及转交放在`contextArguments`，不冒充原函数`arguments`，不从Request推断主体身份或已知值。保存的源码模板、原问题及普通Python default语义不变。
+
+关系状态按question/relation/source/receiver的当前实际采用逐项计算，同一函数被采用一次不能关闭另一个未采用关系。当前缺口与可回访原source的修复动作进入反馈；投影handle不可作为模型编辑目标。Annotated依赖、Security/options、router/include全局依赖及custom route/middleware、可见dependency override（含mutator调用）、追加route及ASGI mount、动态/conditional/wrapped目标、未解释目标、重复依赖缓存和其它未证明输入保持具名边界；字面default可能被request覆盖，不自动当已知值。模型契约版本不等于目标FastAPI安装版本；未捕获安装版本、generator/session收尾和未解释框架控制仍须说明，形式关系checked不证明框架或授权源码充分。
+
 2026-10-08源码编译细化：v5只合并同一已读单元内无任何步骤的空块，重定向其源码生成的控制引用；实际条件、动作、顺序及所有出口保留。手写单元准入和求值的路径/节点上限保持，超过支持域仍为具名partial。依据为OWUI首轮的34块/8空块被32块接口拒绝；增量字段是否前进按实际保留draft与frontier变化判断，不能由自然答或observations标签推定。
 
 当前v5模型反馈只投影frontier、排除、覆盖、下一步及依赖摘要，完整required/deferred和图留在宿主报告，所有原题和原语法仍可读取。停滞指纹复用已有字段有效状态，并包含同源码revision已provided字段的实际值；无效输入和解释文字改写不计源码进展。source revision含source身份与语法。该投影和提示不改变需求/排除/接纳/结论，也不增加调用或审批；确定性发送字节与实际token收益分开验证。
 
-AY7当前receiver连接使用`source-bindings/v5`：实际调用可携带唯一未重绑定模块实例的声明位置/SHA、真实class/SHA证明。v5编译器再次对照当前索引，只生成普通value身份；同一来源的导入别名共享该普通身份。参数/局部遮蔽、consumer alias重绑定、源码可见的模块attribute写入、歧义构造器与旧证明不自动接线。该来源事实不证明principal/resource/permission或任何授权；标量字段与模型声明的主体参数不匹配仍须局部解释修复。关系版本变化使旧材料须显式重新验证。终答当前契约直接投影真实schema的枚举和数值path约束，不把自由文字改写为源码结论。
+AY7当前receiver连接使用`source-bindings/v6`：实际调用可携带唯一未重绑定模块实例的声明位置/SHA、真实class/SHA证明。v5编译器再次对照当前索引，只生成普通value身份；同一来源的导入别名共享该普通身份。参数/局部遮蔽、consumer alias重绑定、源码可见的模块attribute写入、歧义构造器与旧证明不自动接线。该来源事实不证明principal/resource/permission或任何授权；标量字段与模型声明的主体参数不匹配仍须局部解释修复。关系版本变化使旧材料须显式重新验证。终答当前契约直接投影真实schema的枚举和数值path约束，不把自由文字改写为源码结论。
 
 **账号状态。** 区分已知failed/interrupted、完成但未交付、超时/终态丢失以及用量不可见。明确failed的旧原件仅追加裁定，不覆盖其原completion-unknown。后续请求为新的具名尝试，先确认旧执行已结束，缺少用量不永久阻断；未知活动请求不自动重发。用户已授权账号实验，第三方API继续暂停。额度拒绝停止该通道无效请求，独立工程继续，恢复有依据后再派发。
 
