@@ -6,7 +6,7 @@ import { buildPropertyDemand, type PropertyDemand } from "./property-demand.ts"
 import type { DependencyQuestion } from "./property-dependencies.ts"
 import type { SourceSkeleton, SourceAnchor, SourceFlow } from "../../benchmarks/authorization-dsl/evidence-preparation/source-skeleton.ts"
 import type { StructureIndex } from "../../benchmarks/authorization-dsl/evidence-preparation/structure-index.ts"
-import { sourceArgumentBindings } from "../../benchmarks/authorization-dsl/evidence-preparation/source-arguments.ts"
+import { sourceArgumentBindings, sourceCallableParameter } from "../../benchmarks/authorization-dsl/evidence-preparation/source-arguments.ts"
 
 export const SourceAnnotationSchema = z.object({
   anchorId: InquiryText, role: z.enum(["principal", "resource", "permission", "condition", "effect", "context"]), explanation: InquiryText,
@@ -83,7 +83,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
   const finite = skeleton.controlSemantics === "finite-control/v1"
   const questionDirected = skeleton.propertySemantics === "question-control/v1"
   const excludedMeaning = !questionDirected && demand?.excluded.some(e => { const a = at(e.anchorId), annotation = annotations.get(e.anchorId); return a?.interpretationRequired && !annotation && !unresolved.has(e.anchorId) })
-  const unit: SemanticBlock = { itemId: options.itemId, handle: options.handle, op: previous ? "replace" : "add", role: options.role, start: "source-main", ...(finite ? { coverage: "path" } : {}), complete: skeleton.modelCovered && !(demand?.sourceGaps ?? skeleton.gaps).length && ![...unresolved.keys()].some(id => !questionDirected || demand?.reachableAnchorIds.includes(id)) && !excludedMeaning, fallthrough: interpretation.fallthroughOutcome === "unknown" ? "unresolved" : interpretation.fallthroughOutcome ?? "unresolved", parameters: skeleton.anchors.filter(a => a.kind === "parameter" && a.name).map(a => ({ name: a.name!, type: bindingType(annotations.get(a.id)) })), blocks: [] }
+  const unit: SemanticBlock = { itemId: options.itemId, handle: options.handle, op: previous ? "replace" : "add", role: options.role, start: "source-main", ...(finite ? { coverage: "path" } : {}), complete: skeleton.modelCovered && !(demand?.sourceGaps ?? skeleton.gaps).length && ![...unresolved.keys()].some(id => !questionDirected || demand?.reachableAnchorIds.includes(id)) && !excludedMeaning, fallthrough: interpretation.fallthroughOutcome === "unknown" ? "unresolved" : interpretation.fallthroughOutcome ?? "unresolved", parameters: skeleton.anchors.filter(a => a.kind === "parameter" && a.name).map(a => ({ name: a.name!, type: a.callableIdentity ? "value" : bindingType(annotations.get(a.id)) })), blocks: [] }
   const bind = (a: SourceAnchor): Step => ({ kind: "bind", name: `bind-${a.id}`, bindingName: objectName(a.id)!, claim: annotations.get(a.id)?.explanation ?? "Source assignment fact", type: a.literalKnown ? "value" : bindingType(annotations.get(a.id)), ...(a.literalKnown ? { value: a.literalValue! } : annotations.get(a.id)?.aliasAnchorId ? { aliasOf: objectName(annotations.get(a.id)!.aliasAnchorId)! } : {}) })
   const prologue = skeleton.anchors.filter(a => a.kind === "assignment" && !allFlowIds.has(a.id) && annotations.has(a.id) && ["principal", "resource", "permission"].includes(annotations.get(a.id)!.role)).map(bind)
   if (questionDirected && options.index) {
@@ -158,7 +158,8 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
             unit.complete = false
           }
           let position = 0
-          const parameters: NonNullable<typeof target>["parameters"] = [...target?.parameters ?? [], ...questionDirected && target?.localCallable && !target.localCallable.gap ? target.localCallable.captures.map(c => ({ name: c.name })) : []]
+          const captures = actual?.callableBinding && target?.returnedCallable ? [...target.returnedCallable.captures.map(c => ({ name: c.name })), { name: sourceCallableParameter(target.id) }] : target?.localCallable && !target.localCallable.gap ? target.localCallable.captures.map(c => ({ name: c.name })) : []
+          const parameters: NonNullable<typeof target>["parameters"] = [...target?.parameters ?? [], ...questionDirected ? captures : []]
           for (const [i, parameter] of parameters.entries()) {
             if (currentArguments) {
               const argument = currentArguments.bindings.find(b => b.parameter === parameter.name)
@@ -182,6 +183,12 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
           block.steps.push({ kind: "call", name: `call-${a.id}`, claim, symbol: a.call!.expression, ...(finite && a.call!.sourceCallId ? { sourceCallId: a.call!.sourceCallId } : {}), arguments: mapped, result: a.call!.resultBinding, ...objects, ...(target ? { pathHint: `${target.path}:${target.startLine}-${target.endLine}`, candidateId: target.id } : {}) })
         }
       } else if (a.kind === "assignment" && a.name) {
+        if (questionDirected && a.syntax === "source_callable_definition" && a.callableIdentity) {
+          const target = options.index?.symbols.find(s => s.id === a.callableIdentity!.sourceId), proof = target?.returnedCallable
+          if (proof && !proof.gap && proof.ownerId === skeleton.sourceId && proof.ownerSha256 === skeleton.source.sha256 && proof.ownerId === a.callableIdentity.ownerId && proof.ownerSha256 === a.callableIdentity.ownerSha256) block.steps.push({ kind: "bind", name: `callable-${a.id}`, bindingName: a.name, type: "value", claim: "Actual source local callable definition creates an ordinary object; its body is not executed" })
+          else { block.steps.push({ kind: "unresolved", name: `callable-${a.id}`, claim, reason: "source-callable-definition-unresolved" }); unit.complete = false }
+          continue
+        }
         if (finite && flow.some(n => n.kind === "short-circuit" && n.resultBinding === a.name)) continue
         const fromCall = skeleton.anchors.some(c => c.call?.resultNames.includes(a.name!) && c.call.expression + "(" === a.valueExpression?.slice(0, c.call.expression.length + 1))
         if (!fromCall || annotation?.aliasAnchorId) block.steps.push(finite && !annotation?.aliasAnchorId && bindingType(annotation) === "value" && !a.literalKnown ? { kind: "assign-value", name: `assign-${a.id}`, claim, result: a.name, value: sourceValue(a.valueExpression) } : bind(a))

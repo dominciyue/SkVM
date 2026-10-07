@@ -82,3 +82,12 @@ test("an implicit capture cannot be passed as a new Python keyword", async () =>
   const caller = index.symbols.find(s => s.name === "entry")!, target = index.symbols.find(s => s.name === "guard")!
   expect(api.sourceArgumentBindings(index, index.relatedCalls(caller.id)[0]!, target).gap).toBe("source-arguments-unexpected")
 })
+
+test("a returned callable binds captures from creation plus its actual result instance", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "def create(principal):\n    def guard(flag=False):\n        return principal\n    return guard\ndef entry(actor):\n    check = create(actor)\n    check()\n" }], { repository: "anonymous", sourceRef: "r" })
+  const factory = index.symbols.find(s => s.name === "create")!, target = index.symbols.find(s => s.name === "guard")!, call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "check")!, binding = api.sourceArgumentBindings(index, call, target)
+  expect(binding.gap).toBeUndefined()
+  expect(binding.bindings).toEqual([{ parameter: "flag", expression: "False", literalKnown: true, literalValue: false }, { parameter: "principal", expression: "actor", literalKnown: false, captureOwnerId: factory.id }, { parameter: api.sourceCallableParameter(target.id), expression: "check", literalKnown: false, captureOwnerId: factory.id }])
+  expect(api.sourceArgumentBindings(index, { ...call, callableBinding: { ...call.callableBinding!, creationCallId: "foreign" } }, target).bindings).toEqual([])
+  expect(api.sourceArgumentBindings(index, { ...call, callableBinding: { ...call.callableBinding!, captures: [{ parameter: "principal", expression: "other_actor", literalKnown: false }] } }, target).bindings).toEqual([])
+})

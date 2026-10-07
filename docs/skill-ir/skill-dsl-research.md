@@ -2066,6 +2066,10 @@ AY7 public import小步（2026-10-08）：v12只穿过当前唯一无条件模�
 
 原lock Django 5.2.16 wheel SHA/size已核验，追加generic/__init__.py、base.py、utils/decorators.py的原字节，94旧冻结文件不变。[新来源探针](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-django-view-replay.json)使用100文件，两条真实Paperless MRO均连接到View，所选public hop变化撤回来源修订而无关export保持；六项View/descriptor来源工作可定位。缺base来源消除后class decorator的source gap解除，invocation/transformation仍unproven；returned factory closure、descriptor、类/method变换及action receiver不因source齐全而采用。model read/application annotation/material use=0，捕获网络1、探针模型/目标/网络0，旧input/allowlist/答不升级；开发/探子token、USD与真人时间unknown。随后继续实际closure invocation/environment、实例字段/dispatch handler、完整请求和官方具名复验，当前完整使用与净收益未达。
 
+AY7返回callable小步（2026-10-08）：v13将独立来源proof与actual factory-result关系分开，当前唯一同步未装饰factory末尾return局部def、稳定capture及caller创建/调用身份沿同一binder、骨架、六角色和投影连接。factory声明生成普通value，闭包带普通instance参数以保留实际创建和原控制；匿名采用验证拒绝后不执行write，漏创建、错capture、覆盖instance、漏隐式参数和源码变化均撤回。主补两项nested function/lambda default跨层环境红测，具名阻断不完整capture。两只读核验给出的顺序/旧callee疑点经主反例未复现：未来创建尚无当前callee，旧callee先清除再绑定；未增加重复检查。投影探子的vitest收集失败不计验证，主Bun和另一探子核验分列。16新测试，228focused/704断言，新鲜联合1146pass/1平台skip/6939断言/115文件/14.02s，主/AY类型通过，见[局部核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-returned-callables.json)。
+
+真实[reviewed来源probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-returned-callables-reviewed-replay.json)核验94旧冻结字节及独立补充，共100文件、24返回定义、13来源合格、11具名缺口；初始24/15原件保留，另外2项跨层环境现在明确阻断。六项选中Django/DRF/schema wrapper均未采用，actualReturnedInvocations=0、model read/application annotation/material use=0，模型/目标/网络新增0，旧input/allowlist/答不升级。开发/探子token、USD和真人时间unknown。该工程能力仍不足以证明真实wrapped factory/descriptor/class/method请求；继续可变字段、动态handler和完整请求组合、官方账号实际复验及预登记收益比较，完整使用与正向实测收益尚未达。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

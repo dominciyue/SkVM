@@ -611,3 +611,38 @@ test("class decorator helper work retains the selected public callable binding b
   expect(changed.classDecorators("app.Entry")).not.toEqual(facts)
   expect(facts[0]!.bindingSources!.map(s => s.path)).toEqual(["package/bridge.py"])
 })
+
+const returnedSources = [{ path: "factory.py", content: "def create(principal):\n    def guard(flag=False):\n        selected = principal\n        raise Denied\n    return guard\n" }, { path: "app.py", content: "from factory import create\ndef entry(actor, decoy):\n    check = create(actor)\n    check()\n    write()\n" }]
+test("a returned callable uses the exact current factory result and stable capture environment", async () => {
+  const index = await buildStructureIndex(returnedSources, { repository: "anonymous", sourceRef: "r" }), entry = index.symbols.find(s => s.name === "entry")!, guard = index.symbols.find(s => s.name === "guard")!, calls = index.relatedCalls(entry.id)
+  const call = calls.find(c => c.expression === "check")!
+  expect(call.candidateIds).toEqual([guard.id])
+  expect((call as any).callableBinding).toMatchObject({ name: "check", creationCallId: calls.find(c => c.expression === "create")!.id, factoryId: index.symbols.find(s => s.name === "create")!.id, captures: [{ parameter: "principal", expression: "actor", literalKnown: false }] })
+  expect((guard as any).returnedCallable.gap).toBeUndefined()
+  expect(guard.localCallable!.gap).toBe("source-local-callable-escape-unmodeled")
+})
+for (const statement of ["    actor = decoy\n    check = create(actor)\n", "    check = create(actor)\n    check = replacement\n", "    if configured:\n        check = create(actor)\n", "    check = create(actor)\n    callback(check)\n"]) test(`a returned callable cannot borrow an unproved creation environment: ${statement.trim().split("\n").at(-1)}`, async () => {
+  const index = await buildStructureIndex(returnedSources.map(s => s.path === "app.py" ? { ...s, content: "from factory import create\ndef entry(actor, decoy):\n" + statement + "    check()\n" } : s), { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "check")!
+  expect(call.resolution).toBe("unresolved")
+  expect(call.gap).toMatch(/^source-returned-callable-/)
+})
+test("separate factory results retain separate actual captured values and callable instances", async () => {
+  const index = await buildStructureIndex(returnedSources.map(s => s.path === "app.py" ? { ...s, content: "from factory import create\ndef entry(actor, decoy):\n    first = create(actor)\n    second = create(decoy)\n    first()\n    second()\n" } : s), { repository: "anonymous", sourceRef: "r" })
+  const calls = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).filter(c => c.callableBinding)
+  expect(calls.map(c => [c.callableBinding!.name, c.callableBinding!.captures[0]!.expression])).toEqual([["first", "actor"], ["second", "decoy"]])
+  expect(new Set(calls.map(c => c.callableBinding!.creationCallId)).size).toBe(2)
+})
+for (const source of ["def create(principal):\n    @decorate\n    def guard():\n        return principal\n    return guard\n", "def create(principal):\n    def guard():\n        return principal\n    guard.metadata = principal\n    return guard\n", "def create(principal):\n    def guard():\n        nonlocal principal\n        return principal\n    return guard\n", "def create(principal):\n    def guard():\n        return principal\n    if principal:\n        return guard\n    return replacement\n"]) test(`a returned source proof does not waive factory or capture mechanics: ${source.split("\n")[2]!.trim()}`, async () => {
+  const index = await buildStructureIndex(returnedSources.map(s => s.path === "factory.py" ? { ...s, content: source } : s), { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "check")!
+  expect(call.resolution).toBe("unresolved")
+  expect(call.gap).toMatch(/^source-returned-callable-/)
+})
+test("a rebound source factory cannot prove a callable result from the old definition", async () => {
+  const index = await buildStructureIndex(returnedSources.map(s => s.path === "factory.py" ? { ...s, content: s.content + "create = replacement\n" } : s), { repository: "anonymous", sourceRef: "r" })
+  expect(index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "check")!.gap).toBe("source-returned-callable-factory-binding-unresolved")
+})
+for (const body of ["        return lambda value=principal.check(): value\n", "        def child():\n            return principal\n        return child\n"]) test(`a returned callable cannot omit a nested scope environment: ${body.trim().split("\n")[0]}`, async () => {
+  const index = await buildStructureIndex(returnedSources.map(s => s.path === "factory.py" ? { ...s, content: "def create(principal):\n    def guard():\n" + body + "    return guard\n" } : s), { repository: "anonymous", sourceRef: "r" })
+  expect(index.symbols.find(s => s.name === "guard")!.returnedCallable!.gap).toBe("source-returned-callable-nested-scope-unmodeled")
+  expect(index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "check")!.gap).toBe("source-returned-callable-nested-scope-unmodeled")
+})

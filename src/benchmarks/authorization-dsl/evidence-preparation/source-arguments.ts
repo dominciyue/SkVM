@@ -1,19 +1,25 @@
-import type { StructureCall, StructureIndex, StructureSymbol } from "./structure-index.ts"
+import type { StructureCall, StructureSymbol } from "./structure-index.ts"
 import type { FiniteValue, Scalar } from "../../../task-dsl/authorization/control-evaluation.ts"
 
 export interface SourceArgumentBinding {
   parameter: string; expression: string; literalKnown: boolean; literalValue?: FiniteValue; captureOwnerId?: string
 }
+export interface SourceArgumentIndex { symbols: StructureSymbol[]; relatedCalls: (symbolId: string, receiverClass?: string) => StructureCall[] }
+export const sourceCallableParameter = (symbolId: string) => `source-callable-${symbolId}`
 /** Bind source syntax only. Unknown expansion never consumes a default or a
  * regular parameter, and forwarding packs are not permission/object proofs. */
-export function sourceArgumentBindings(index: StructureIndex, call: StructureCall, target: StructureSymbol): { bindings: SourceArgumentBinding[]; gap?: string } {
+export function sourceArgumentBindings(index: SourceArgumentIndex, call: StructureCall, target: StructureSymbol): { bindings: SourceArgumentBinding[]; gap?: string } {
   const fail = (reason: string) => ({ bindings: [], gap: `source-arguments-${reason}` })
   const caller = index.symbols.find(s => s.id === call.ownerId), facts: NonNullable<StructureCall["argumentFacts"]> = call.argumentFacts ?? call.arguments.map(expression => {
     const keyword = /^(\w+)\s*=(?!=)([\s\S]+)$/.exec(expression)
     return { expression: (keyword?.[2] ?? expression).trim(), parameterName: keyword?.[1], literalKnown: false }
   })
-  const currentTarget = index.symbols.find(s => s.id === target.id), local = currentTarget?.localCallable
-  if (local || target.localCallable) {
+  const currentTarget = index.symbols.find(s => s.id === target.id), local = currentTarget?.localCallable, returned = currentTarget?.returnedCallable, instance = call.callableBinding
+  if (instance) {
+    const actual = caller && index.relatedCalls(caller.id, call.receiverClass).find(c => c.id === call.id), factory = index.symbols.find(s => s.id === instance.factoryId)
+    if (!returned || returned.gap || JSON.stringify(returned) !== JSON.stringify(target.returnedCallable) || instance.targetId !== target.id || instance.factoryId !== returned.ownerId || factory?.sha256 !== returned.ownerSha256 || instance.factorySha256 !== factory?.sha256 || !actual || actual.candidateIds.length !== 1 || actual.candidateIds[0] !== target.id || actual.expression !== call.expression || actual.sha256 !== call.sha256 || JSON.stringify(actual.argumentFacts) !== JSON.stringify(call.argumentFacts) || JSON.stringify(actual.callableBinding) !== JSON.stringify(instance)) return fail("returned-callable-unresolved")
+  }
+  else if (local || target.localCallable) {
     const actual = caller && index.relatedCalls(caller.id, call.receiverClass).find(c => c.id === call.id)
     if (!local || local.gap || JSON.stringify(local) !== JSON.stringify(target.localCallable) || caller?.id !== local.ownerId || caller.sha256 !== local.ownerSha256 || !actual || actual.candidateIds.length !== 1 || actual.candidateIds[0] !== target.id || actual.expression !== call.expression || actual.sha256 !== call.sha256 || JSON.stringify(actual.argumentFacts) !== JSON.stringify(call.argumentFacts)) return fail("local-callable-unresolved")
   }
@@ -61,6 +67,9 @@ export function sourceArgumentBindings(index: StructureIndex, call: StructureCal
   // The caller signature excludes these keys only while its **kwargs remains
   // an unmodified, unescaped source pack. A renamed regular parameter may collide.
   if (keySource && regular.some(name => !caller!.parameters.some(p => p.name === name && !p.kind?.startsWith("variadic") && p.kind !== "positional-only"))) return fail("keyword-collision-unresolved")
-  for (const capture of local?.captures ?? []) bindings.push({ parameter: capture.name, expression: capture.name, literalKnown: false, captureOwnerId: local!.ownerId })
+  if (instance && returned) {
+    for (const capture of instance.captures) bindings.push({ ...capture, captureOwnerId: returned.ownerId })
+    bindings.push({ parameter: sourceCallableParameter(target.id), expression: instance.name, literalKnown: false, captureOwnerId: returned.ownerId })
+  } else for (const capture of local?.captures ?? []) bindings.push({ parameter: capture.name, expression: capture.name, literalKnown: false, captureOwnerId: local!.ownerId })
   return { bindings, ...(partialGap ? { gap: partialGap } : {}) }
 }

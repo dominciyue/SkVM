@@ -3,7 +3,7 @@ import type { Node } from "@vscode/tree-sitter-wasm"
 import type { InquiryEvidence } from "../inquiry-tools.ts"
 import type { StructureCall, StructureIndex, StructureSymbol } from "./structure-index.ts"
 import { sourceLiteral } from "./structure-index.ts"
-import { sourceArgumentBindings } from "./source-arguments.ts"
+import { sourceArgumentBindings, sourceCallableParameter } from "./source-arguments.ts"
 import type { SourceSelector } from "./source-selector.ts"
 import type { FiniteValue } from "../../../task-dsl/authorization/control-evaluation.ts"
 
@@ -16,7 +16,8 @@ export interface SourceAnchor {
   exceptionType?: string;
   dependencyFacts?: { reads: string[]; writes: string[]; pureLocal: boolean };
   capture?: { ownerId: string; ownerSha256: string };
-  call?: { sourceCallId?: string; expression: string; receiver?: string; receiverClass?: string; receiverBinding?: StructureCall["receiverBinding"]; bindingGap?: string; arguments: Array<{ expression: string; parameterName?: string; spread?: boolean; literalKnown?: boolean; literalValue?: FiniteValue }>; candidateIds: string[]; resultNames: string[]; resultBinding: string }
+  callableIdentity?: { sourceId: string; ownerId: string; ownerSha256: string };
+  call?: { sourceCallId?: string; expression: string; receiver?: string; receiverClass?: string; receiverBinding?: StructureCall["receiverBinding"]; callableBinding?: StructureCall["callableBinding"]; bindingGap?: string; arguments: Array<{ expression: string; parameterName?: string; spread?: boolean; literalKnown?: boolean; literalValue?: FiniteValue }>; candidateIds: string[]; resultNames: string[]; resultBinding: string }
 }
 export interface SourceFlow {
   kind: "step" | "branch" | "gap" | "try" | "with" | "loop" | "break" | "continue" | "short-circuit";
@@ -77,7 +78,9 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       skeleton.anchors.push(anchor); positions.set(id, n.startIndex); return anchor
     }
     const gap = (n: Node, code: string, reason: string) => { if (!skeleton.gaps.some(g => g.code === code && g.selector.startLine === n.startPosition.row + 1)) skeleton.gaps.push({ code, selector: located(n), reason }) }
-    if (questionDirected && source.localCallable?.gap) gap(fn, source.localCallable.gap, "This local body has no proved direct callable/capture binding in its owner; reading it does not supply its invocation.")
+    const returnedInstance = source.returnedCallable && !source.returnedCallable.gap && index.calls.some(c => c.candidateIds.length === 1 && c.candidateIds[0] === source.id && c.callableBinding?.targetId === source.id)
+    const captureProof = source.localCallable && !source.localCallable.gap ? source.localCallable : returnedInstance ? source.returnedCallable : undefined
+    if (questionDirected && source.localCallable?.gap && !returnedInstance) gap(fn, source.localCallable.gap, "This local body has no proved direct callable/capture binding in its owner; reading it does not supply its invocation.")
     const actualCalls = [...index.relatedCalls(source.id, receiverClass), ...index.calls.filter(c => c.id === registration?.sourceCallId)]
     const belongsToScope = (n: Node) => {
       if (n.id === fn.id) return true
@@ -90,13 +93,14 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       const expression = field(n, "function")?.text ?? n.text, actual = actualCalls.find(c => c.startLine === n.startPosition.row + 1 && c.endLine === n.endPosition.row + 1 && c.expression === expression)
       const arguments_: NonNullable<SourceAnchor["call"]>["arguments"] = kids(field(n, "arguments")).map(a => { const value = a.type === "keyword_argument" ? field(a, "value")! : a, literal = sourceLiteral(value); return { expression: value.text, ...(a.type === "keyword_argument" ? { parameterName: field(a, "name")!.text } : {}), ...(["list_splat", "dictionary_splat", "variadic_argument"].includes(a.type) ? { spread: true } : {}), ...(literal.literalKnown ? literal : {}) } })
       if (!/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(expression) && !/^super\(\)\.[A-Za-z_]\w*$/.test(expression)) gap(n, "skeleton-call-dynamic", "The actual function expression is dynamic; no unique callee or receiver is invented.")
-      if (questionDirected && actual?.gap?.startsWith("source-local-")) gap(n, actual.gap, "The current lexical callable/capture binding is unresolved regardless of its proposed domain role.")
+      const callableGap = actual?.gap && /^(?:source-local-|source-returned-callable-)/.test(actual.gap) ? actual.gap : undefined
+      if (questionDirected && callableGap) gap(n, callableGap, "The current lexical callable/capture binding is unresolved regardless of its proposed domain role.")
       if (arguments_.some(a => a.spread)) {
         const target = actual?.candidateIds.length === 1 && index.symbols.find(s => s.id === actual.candidateIds[0] && s.kind === "function")
         const binding = actual && target && sourceArgumentBindings(index, actual, target)
         if (!questionDirected || !binding || binding.gap) gap(n, "skeleton-arguments-dynamic", `Expanded arguments require a source-supported mapping; ${binding && binding.gap || "positions are not guessed"}.`)
       }
-      return add(n, "call", { call: { sourceCallId: actual?.id, expression, receiver: actual?.receiver, receiverClass: actual?.receiverClass, ...(questionDirected && actual?.receiverBinding ? { receiverBinding: actual.receiverBinding } : {}), ...(questionDirected && actual?.gap?.startsWith("source-local-") ? { bindingGap: actual.gap } : {}), arguments: arguments_, candidateIds: actual?.candidateIds ?? [], resultNames: actual?.resultNames ?? [], resultBinding: actual?.resultNames[0] ?? `result-${hash([source.id, n.startIndex]).slice(0, 16)}` } })
+      return add(n, "call", { call: { sourceCallId: actual?.id, expression, receiver: actual?.receiver, receiverClass: actual?.receiverClass, ...(questionDirected && actual?.receiverBinding ? { receiverBinding: actual.receiverBinding } : {}), ...(questionDirected && actual?.callableBinding ? { callableBinding: actual.callableBinding } : {}), ...(questionDirected && callableGap ? { bindingGap: callableGap } : {}), arguments: arguments_, candidateIds: actual?.candidateIds ?? [], resultNames: actual?.resultNames ?? [], resultBinding: actual?.resultNames[0] ?? `result-${hash([source.id, n.startIndex]).slice(0, 16)}` } })
     }
     const callsIn = (n: Node) => descendants(n, source.language === "python" ? ["call"] : ["call_expression"]).filter(belongsToScope).sort((a, b) => a.endIndex - b.endIndex || b.startIndex - a.startIndex)
     for (const p of kids(field(fn, "parameters"))) {
@@ -105,11 +109,12 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     }
     const receiver = field(fn, "receiver")
     if (receiver) for (const p of descendants(receiver, ["parameter_declaration"])) for (const name of kids(p).filter(n => n.type === "identifier")) add(p, "parameter", { name: name.text })
-    if (questionDirected && source.localCallable && !source.localCallable.gap) for (const capture of source.localCallable.captures) {
+    if (questionDirected && captureProof) for (const capture of captureProof.captures) {
       const use = descendants(fn, ["identifier"]).find(n => n.text === capture.name && n.startIndex === capture.use.startIndex && n.endIndex === capture.use.endIndex)
-      if (use) add(use, "parameter", { name: capture.name, syntax: "source_capture", capture: { ownerId: source.localCallable.ownerId, ownerSha256: source.localCallable.ownerSha256 } })
+      if (use) add(use, "parameter", { name: capture.name, syntax: "source_capture", capture: { ownerId: captureProof.ownerId, ownerSha256: captureProof.ownerSha256 } })
       else gap(fn, "skeleton-local-capture-unavailable", "The implicit capture must point to its current original source use.")
     }
+    if (questionDirected && returnedInstance && source.returnedCallable) add(field(fn, "name")!, "parameter", { name: sourceCallableParameter(source.id), syntax: "source_callable_instance", callableIdentity: { sourceId: source.id, ownerId: source.returnedCallable.ownerId, ownerSha256: source.returnedCallable.ownerSha256 } })
     const stepsForCalls = (n: Node) => callsIn(n).map(c => ({ kind: "step" as const, anchorId: callAnchor(c).id }))
     const expressionFlow = (n: Node, resultBinding?: string): SourceFlow[] => {
       const left = field(n, "left"), right = field(n, "right"), op = field(n, "operator")?.text
@@ -142,8 +147,13 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       if (n.type === "comment" || n.type === "pass_statement") return []
       if (n.type === "block" || n.type === "statement_list") return visitList(n)
       if (["function_definition", "function_declaration", "method_declaration", "class_definition"].includes(n.type)) {
-        const local = index.symbols.find(s => s.path === source.path && s.startLine === n.startPosition.row + 1 && s.endLine === n.endPosition.row + 1)?.localCallable
+        const symbol = index.symbols.find(s => s.path === source.path && s.startLine === n.startPosition.row + 1 && s.endLine === n.endPosition.row + 1), local = symbol?.localCallable, returned = symbol?.returnedCallable
         if (questionDirected && n.type === "function_definition" && local?.ownerId === source.id && local.ownerSha256 === source.sha256 && !local.gap) return []
+        if (questionDirected && n.type === "function_definition" && returned?.ownerId === source.id && returned.ownerSha256 === source.sha256 && !returned.gap) {
+          const anchor = add(n, "assignment", { name: symbol!.name, syntax: "source_callable_definition", callableIdentity: { sourceId: symbol!.id, ownerId: source.id, ownerSha256: source.sha256 } })
+          anchor.dependencyFacts = { reads: [], writes: [symbol!.name], pureLocal: false }
+          return [{ kind: "step", anchorId: anchor.id }]
+        }
         gap(n, "skeleton-local-definition", local?.gap ?? "Nested definitions are not executed as the surrounding function."); return [{ kind: "gap", anchorId: add(n, "assignment").id }]
       }
       if (["if_statement", "elif_clause"].includes(n.type)) {

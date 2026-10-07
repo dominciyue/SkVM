@@ -31,6 +31,23 @@ test("reading an escaped local callable body retains its capture and invocation 
   expect((await tools.sourceSkeleton(source.id))!.gaps.map(g => g.code)).toContain("source-local-callable-escape-unmodeled")
 })
 
+test("a source returned callable definition creates an ordinary value while its actual instance supplies captures", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-returned-skeleton-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def create(principal):\n    def guard():\n        return principal\n    return guard\ndef entry(actor):\n    check = create(actor)\n    check()\n    return True\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
+  for (const name of ["create", "guard"]) {
+    const source = tools.structure!.symbols.find(s => s.name === name)!
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id))!
+    expect(skeleton.gaps).toEqual([])
+    if (name === "create") expect(skeleton.anchors.find(a => a.syntax === "source_callable_definition")).toMatchObject({ kind: "assignment", name: "guard", interpretationRequired: false })
+    else {
+      expect(skeleton.anchors.find(a => a.syntax === "source_capture")!.name).toBe("principal")
+      expect(skeleton.anchors.find(a => a.syntax === "source_callable_instance")).toMatchObject({ kind: "parameter" })
+    }
+  }
+})
+
 test("the production source view separates early return and effect branches without inferring permission", async () => {
   const f = await fixture("def entry(actor, resource):\n    if actor is None or not actor.enabled:\n        return False\n    resource.write(actor=actor, value=None)\n    return True\n")
   await f.read()

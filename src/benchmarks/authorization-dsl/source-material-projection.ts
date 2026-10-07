@@ -5,7 +5,7 @@ import type { StructureIndex } from "./evidence-preparation/structure-index.ts"
 import { operationCallSourceSelection, operationCallTargets } from "./operation-links.ts"
 import { structuralDependencyRevision } from "./operation-work.ts"
 import { canonicalControl } from "../../task-dsl/authorization/control-slice.ts"
-import { sourceArgumentBindings } from "./evidence-preparation/source-arguments.ts"
+import { sourceArgumentBindings, sourceCallableParameter } from "./evidence-preparation/source-arguments.ts"
 
 export interface SourceMaterialUse {
   kind: "entry" | "call" | "framework"; operationId: string; questionId: string; materialId: string; callerMaterialId?: string;
@@ -32,6 +32,11 @@ function actualArguments(index: StructureIndex, caller: BoundSemanticBlock, step
   if (!call || !symbol) return false
   const binding = sourceArgumentBindings(index, call, symbol), expected = binding.bindings, steps = caller.blocks.flatMap(b => b.steps)
   if (binding.gap || step.arguments.length !== expected.length) return false
+  if (call.callableBinding) {
+    const instance = call.callableBinding, creation = steps.find(s => s.kind === "call" && s.sourceCallId === instance.creationCallId)
+    if (target.parameters.filter(p => p.name === sourceCallableParameter(symbol.id) && p.type === "value").length !== 1 || expected.some(a => !target.parameters.some(p => p.name === a.parameter))) return false
+    if (!creation || creation.kind !== "call" || !creation.callee || creation.result !== instance.name || steps.some(s => s !== creation && (s.kind === "bind" && (s.bindingName ?? s.name) === instance.name || (s.kind === "assign-value" || s.kind === "call") && s.result === instance.name))) return false
+  }
   return expected.every(argument => {
     if (argument.expression === undefined) return !step.arguments.some(a => a.parameter === argument.parameter)
     const actual = step.arguments.filter(a => a.parameter === argument.parameter); if (actual.length !== 1) return false

@@ -284,3 +284,57 @@ test("adopted public import helpers depend on selected hop bytes while unrelated
   const unrelated = await buildStructureIndex([...files, { path: "other/__init__.py", content: "from implementation import helper\n" }], identity)
   expect(api.projectSourceMaterials(p, accepted, snapshot, unrelated, { questionDirected: true }).uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
 })
+
+test("source-assisted returned callable adoption preserves creation, capture and rejection order", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-returned-adoption-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def create(principal):\n    def guard():\n        selected = principal\n        raise Denied\n    return guard\ndef entry(actor, decoy):\n    check = create(actor)\n    check()\n    write()\n    return True\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, accepted: any[] = []
+  for (const name of ["entry", "create", "guard"]) {
+    const source = index.symbols.find(s => s.name === name)!, read = await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine }), skeleton = (await tools.sourceSkeleton(source.id))!
+    expect(skeleton.gaps).toEqual([])
+    const principal = skeleton.anchors.find(a => a.kind === "parameter" && a.name === "principal")
+    const annotations = skeleton.anchors.filter(a => a.kind === "parameter" || a.kind === "call" || a.kind === "return" || a.kind === "raise" || a.name === "selected").map(a => ({ anchorId: a.id, role: a.kind === "parameter" && a.syntax !== "source_callable_instance" || a.name === "selected" ? "principal" : a.kind === "call" ? a.call!.expression === "write" ? "effect" : "condition" : "context", explanation: "Anonymous test-authored current source meaning", ...(a.name === "selected" ? { aliasAnchorId: principal!.id } : {}), ...(a.kind === "raise" ? { failureKind: "authorization" } : {}), ...(a.kind === "return" && name === "entry" ? { returnOutcome: "allow" } : {}) }))
+    const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations, unresolved: [] }, { index, itemId: name, handle: name, questionId: "q", role: name === "entry" ? "entry" : "helper" })
+    expect(result.diagnostics).toEqual([])
+    expect(result.unit!.complete).toBe(true)
+    accepted.push({ ...result.unit!, questionId: "q", evidenceIds: read.evidence.map(e => e.id), source: skeleton.source })
+  }
+  expect(accepted[1].blocks.flatMap((b: any) => b.steps).find((s: any) => s.bindingName === "guard")).toMatchObject({ kind: "bind", type: "value" })
+  expect(accepted[2].parameters.find((p: any) => p.name.startsWith("source-callable-"))).toMatchObject({ type: "value" })
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect actual creation and continuation", premises: [] }] })
+  const project = (units = accepted, current = index) => {
+    const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" })
+    for (const u of units) store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }, { kind: "candidate-set", key: `relations:${u.source.id}`, revision: sourceRelationRevision(index, u.source.id)! }], "test-authored")
+    return api.projectSourceMaterials(p, units, store.snapshot(), current, { questionDirected: true })
+  }
+  const projected = project(), lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true })
+  expect(projected.uses.filter((u: any) => u.kind === "call")).toHaveLength(2)
+  expect(lowered.diagnostics).toEqual([])
+  expect(lowered.delta.rules.filter(r => r.terminal).map(r => r.outcome)).toEqual(["deny"])
+  expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(false)
+  const skipped = structuredClone(accepted)
+  for (const block of skipped[0].blocks) block.steps = block.steps.map((s: any) => s.kind === "call" && s.symbol === "create" ? { kind: "context", name: s.name, relationship: "dispatch-binding", claim: "Test deliberately omits actual creation" } : s)
+  expect(project(skipped).uses.filter((u: any) => u.kind === "call")).toEqual([])
+  const swapped = structuredClone(accepted)
+  swapped[0].blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call" && s.symbol === "check").arguments.find((a: any) => a.parameter === "principal").object = "decoy"
+  expect(project(swapped).uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
+  const overwritten = structuredClone(accepted)
+  overwritten[0].blocks[0].steps.splice(1, 0, { kind: "bind", name: "forged-instance", bindingName: "check", type: "value", claim: "Test overwrites the factory result" })
+  expect(project(overwritten).uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
+  const omittedInstance = structuredClone(accepted)
+  omittedInstance[2].parameters = omittedInstance[2].parameters.filter((p: any) => !p.name.startsWith("source-callable-"))
+  expect(project(omittedInstance).uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
+  const reordered = structuredClone(accepted)
+  for (const block of reordered[0].blocks) {
+    const creation = block.steps.findIndex((s: any) => s.kind === "call" && s.symbol === "create"), invocation = block.steps.findIndex((s: any) => s.kind === "call" && s.symbol === "check")
+    if (creation >= 0 && invocation >= 0) [block.steps[creation], block.steps[invocation]] = [block.steps[invocation], block.steps[creation]]
+  }
+  expect(project(reordered).uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
+  const stale = structuredClone(accepted)
+  stale[0].blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call" && s.symbol === "create").callee = "guard"
+  const rebound = project(stale)
+  expect(rebound.uses.filter((u: any) => u.kind === "call")).toHaveLength(2)
+  expect(rebound.units.find((u: any) => u.role === "entry").blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call" && s.symbol === "create").callee).toBe("create")
+  const changed = await buildStructureIndex([{ path: "app.py", content: (await readFile(path.join(sourceRoot, "app.py"), "utf8")).replace("selected = principal", "selected = None") }], { repository: "anonymous", sourceRef: "r" })
+  expect(project(accepted, changed).uses).toEqual([])
+})

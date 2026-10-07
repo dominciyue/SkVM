@@ -1,0 +1,95 @@
+{
+  "schemaVersion": "authorization-development-review/v1",
+  "date": "2026-10-08",
+  "stage": "AY7-returned-callable-instances",
+  "relationshipVersion": "source-bindings/v13",
+  "decision": "engineering-passing-real-wrapper-adoption-and-research-benefit-pending",
+  "independentReadOnlyReviews": [
+    {
+      "agent": "ay_returned_binding_review_v13",
+      "scope": "Returned source proof, lexical creation identity and shared Python argument binder",
+      "finding": "No reproduced unsound acceptance; conditional invocation raised as a contract question",
+      "verification": {
+        "pass": 131,
+        "fail": 0,
+        "assertions": 300
+      },
+      "mainVerification": "Only creation is unconditional; invocation retains its original source control region as in direct-local calls"
+    },
+    {
+      "agent": "ay_returned_projection_review_v13",
+      "scope": "Factory ordinary value, capture/instance parameters and actual projection",
+      "finding": "Suspected future creation and stale saved callee could pass projection",
+      "verification": "No runnable test evidence: vitest collection failed on bun:test",
+      "mainVerification": "Counterexamples did not reproduce: future creation has no adopted callee when invocation is visited; instantiate clears saved callee and current source binding replaces it. Main Bun regression covers both without new production gates"
+    }
+  ],
+  "mainRedGreenCounterexamples": [
+    "Previously unlinked factory result must retain exact creator, target and stable capture mapping",
+    "Conditional/rebound/escaped result and unstable caller capture cannot prove the instance",
+    "Returned definition with nested lambda default action or nested child capture previously claimed an incomplete environment as proved",
+    "Actual adoption cannot skip creator, swap capture, overwrite result or omit the ordinary instance parameter",
+    "Current source changes withdraw retained material; two factory creations retain distinct environments"
+  ],
+  "verification": {
+    "newTests": 16,
+    "focused": {
+      "pass": 228,
+      "fail": 0,
+      "assertions": 704,
+      "files": 6
+    },
+    "joint": {
+      "pass": 1146,
+      "skip": 1,
+      "fail": 0,
+      "assertions": 6939,
+      "files": 115,
+      "durationMs": 14020
+    },
+    "mainTypes": "passed",
+    "ayTypes": "passed",
+    "documentation": { "scannedFiles": 5, "brokenReferences": 0, "legacyReferences": 0, "retiredReferences": 0, "governanceErrors": 0, "existingSoftLengthWarnings": 5 },
+    "frozenSourcesVerified": 94,
+    "initialSourceProbe": {
+      "path": "verification/paperless-returned-callables-replay.json",
+      "sha256": "585f80343016d6be06196555c52ce9c5bb9c443a81bc468cb22e08379db63153",
+      "sourceFiles": 100,
+      "returnedDefinitions": 24,
+      "sourceEligible": 15
+    },
+    "reviewedSourceProbe": {
+      "path": "verification/paperless-returned-callables-reviewed-replay.json",
+      "sha256": "b6bcc8d376ffb7ca2f1149df24a33106cbe0a9b59ada9017d20fc9cbab5a06d6",
+      "sourceFiles": 100,
+      "returnedDefinitions": 24,
+      "sourceEligible": 13,
+      "namedGaps": 11,
+      "selectedWrappers": 6,
+      "actualReturnedInvocations": 0
+    }
+  },
+  "boundaries": [
+    "A source-eligible definition supplies no actual callable instance or execution proof",
+    "Further nested function/class/lambda environments and definition-time default actions remain named gaps",
+    "Stable whole-function parameter and unique creation checks are conservative, not flow-sensitive",
+    "Descriptor, decorated/async factories, passed callbacks, class/method transformation, mutable fields and dynamic handlers are not waived",
+    "Anonymous test-authored material adoption is engineering verification, not real application/model adoption"
+  ],
+  "modelReadEvidence": false,
+  "applicationSemanticUnitsAuthored": 0,
+  "materialUses": 0,
+  "modelExecutions": 0,
+  "targetExecutions": 0,
+  "networkRequests": 0,
+  "originalInputsAndAllowlistsUnmodified": true,
+  "originalAttemptPromoted": false,
+  "costs": {
+    "experimentTokens": 0,
+    "developerAndScoutTokens": null,
+    "usd": null,
+    "humanTime": null
+  },
+  "fullFrameworkComposition": "pending",
+  "researchGoalAchieved": false
+}
