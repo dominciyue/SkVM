@@ -65,6 +65,14 @@ export function operationWork(index: StructureIndex, entryId: string, readSymbol
   // bodies and serializer declarations remain source candidates to be read.
   const className = receiverClass ?? (entry.kind === "class" ? entry.qualifiedName : entry.className)
   const mro = className ? index.linearize(className) : undefined
+  if (options.questionDirected && className) {
+    const decorators = index.classDecorators(className)
+    if (decorators.length) frameworkDependencies.push({ kind: "framework-model", key: `source-class-decorator/v1:${className}`, revision: hash(decorators) })
+    for (const decorator of decorators) {
+      frameworkGaps.push({ key: decorator.id, code: decorator.gap ?? "source-class-decorator-transformation-unadopted", receiverClass: className, reason: `Class decorator ${decorator.expression} on ${decorator.declaringClass} at ${decorator.source.path}:${decorator.source.startLine}: ${decorator.gap ?? "current class/method transformation has not been adopted"}. Returned identity, mutations and exceptions remain source obligations.` })
+      for (const candidate of decorator.sourceCandidates) add(candidate.candidateId, `${decorator.id}:${candidate.role}:${candidate.candidateId}`, `Inspect ${candidate.role} source for class decorator ${decorator.expression}, declaration ${decorator.source.path}:${decorator.source.startLine}, arguments ${JSON.stringify(decorator.arguments)}, actual receiver ${className}. Factory and returned callable candidates prove no invocation or class/method transformation; retain mutation and exception control.`, "guard", undefined, true, true)
+    }
+  }
   if ((entry.kind === "class" || options.sourceAssisted && options.operationRoot) && className && mro?.some(c => c.startsWith("rest_framework."))) {
     frameworkDependencies.push(options.questionDirected
       ? { kind: "framework-model", key: `drf-source-dispatch/v2:${className}`, revision: drfReceiverRevision(index, className)! }
@@ -133,6 +141,7 @@ export function structuralDependencyRevision(index: StructureIndex, dependency: 
     if (dependency.key === "drf-source-dispatch/v1") return hash(index.symbols.filter(s => s.module.startsWith("rest_framework.")).map(s => [s.path, s.sha256]))
     if (dependency.key.startsWith("drf-source-dispatch/v2:")) return drfReceiverRevision(index, dependency.key.slice("drf-source-dispatch/v2:".length))
     if (dependency.key.startsWith("drf-source-action/v1:")) { const cls = dependency.key.slice("drf-source-action/v1:".length); return index.symbols.some(s => s.kind === "class" && s.qualifiedName === cls) ? hash(index.requestActions(cls)) : undefined }
+    if (dependency.key.startsWith("source-class-decorator/v1:")) { const cls = dependency.key.slice("source-class-decorator/v1:".length); return index.symbols.some(s => s.kind === "class" && s.qualifiedName === cls) ? hash(index.classDecorators(cls)) : undefined }
     if (dependency.key.startsWith("fastapi-source-injection/v1:")) { const id = dependency.key.slice("fastapi-source-injection/v1:".length); return index.symbols.some(s => s.id === id) ? hash(index.requestDependencies(id)) : undefined }
     if (dependency.key.startsWith("fastapi-source-asgi/v1:")) { const id = dependency.key.slice("fastapi-source-asgi/v1:".length); return index.routes.some(r => r.id === id) ? hash(index.requestMiddleware(id)) : undefined }
     const routes = index.routes.filter(r => `${r.model}:${r.id}` === dependency.key || r.model === dependency.key)

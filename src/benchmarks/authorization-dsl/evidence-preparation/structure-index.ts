@@ -35,6 +35,12 @@ export interface StructureRequestAction {
   routeIds: string[]; sourceCandidates: Array<{ role: string; candidateId: string; receiverClass?: string }>;
   sources: Array<{ id: string; path: string; sha256: string }>; mappingBinding: "unproven"; invocation: "unproven"; model: "drf-source-action/v1"; gap?: string;
 }
+export interface StructureClassDecorator {
+  id: string; receiverClass: string; declaringClass: string; sourceId: string; declarationId: string; sourceCallId?: string; expression: string; arguments: string[];
+  source: { path: string; sha256: string; startLine: number; endLine: number };
+  sourceCandidates: Array<{ role: "factory" | "decorator" | "returned-callable" | "argument-call" | "helper"; candidateId: string }>;
+  sources: Array<{ id: string; path: string; sha256: string }>; invocation: "unproven"; transformation: "unproven"; model: "source-class-decorator/v1"; gap?: string;
+}
 interface FileScope { path: string; sha256: string; module: string; language: "python" | "go"; aliases: Record<string, string>; moduleAliases: Record<string, string>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; localNames: string[]; groupPaths: string[]; registrationContext: StructureRequestMiddleware["registrationContext"] }>; routerAliases: Array<{ name: string; value: string; ownerId?: string; localNames: string[] }>; moduleAssignments: Record<string, number>; moduleAttributeWrites: string[]; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean; requestOptionsUnmodeled: boolean; startLine: number; endLine: number }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; dependencies: Array<{ constructor: string; expression: string; sourceCallId: string; parameter?: string }>; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string; requestOptionsUnmodeled: boolean }> }
 const hash = (v: unknown) => createHash("sha256").update(typeof v === "string" ? v : JSON.stringify(v)).digest("hex")
 let initialized: Promise<Map<string, Language>> | undefined
@@ -80,7 +86,7 @@ function moduleName(file: string, language: string) {
 /** Only AST syntax and bounded name binding. No target import, execution or permission inference. */
 export async function buildStructureIndex(files: Array<{ path: string; content: string }>, identity: { repository: string; sourceRef: string }) {
   const sourceIdentity = { repository: identity.repository, sourceRef: identity.sourceRef }
-  const started = performance.now(), loaded = await languages(), scopes: FileScope[] = [], diagnostics: Array<{ path: string; code: string; line?: number; handlerId?: string }> = []
+  const started = performance.now(), loaded = await languages(), scopes: FileScope[] = [], diagnostics: Array<{ path: string; code: string; line?: number; handlerId?: string }> = [], returnedCallables = new Map<string, string[]>()
   for (const file of [...files].sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0)) {
     const language = file.path.endsWith(".py") ? "python" : file.path.endsWith(".go") ? "go" : undefined
     if (!language) { diagnostics.push({ path: file.path, code: "structure-language-unsupported" }); continue }
@@ -141,6 +147,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           const declaration = n.parent?.type === "decorated_definition" ? n.parent : n
           attributes.moduleBinding = declaration.parent?.id === root.id ? "unconditional" : "conditional-or-nested"
           if (n.parent?.type === "decorated_definition") attributes.bindingWrapped = "true"
+          if (n.type === "function_definition" && n.children.some(c => c?.type === "async")) attributes.callableAsync = "true"
         }
         if (language === "python" && n.parent?.type === "decorated_definition" && children(n.parent).some(d => d.type === "decorator" && d.text.trim() === "@staticmethod")) attributes.methodBinding = "static"
         if (language === "python" && name === "__class_getitem__" && !n.hasError && !n.children.some(c => c?.type === "async") && n.parent?.type !== "decorated_definition") {
@@ -155,11 +162,26 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           for (const key of children(declaration).filter(c => c.type === "field_identifier")) if (type) attributes[key.text] = type
         }
         const s: StructureSymbol = { id: `struct-${hash([sourceIdentity, file.path, sha256, n.startIndex, qualifiedName]).slice(0, 24)}`, path: file.path, sha256, name, qualifiedName, module, language, kind: n.type === "class_definition" || n.type === "type_spec" ? "class" : "function", startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, boundary: n.hasError ? "uncertain" : "complete", ...(className ? { parent: className.split(".").at(-1), className } : {}), ...(receiver ? { receiver } : {}), parameters, returns: field(n, "return_type") || field(n, "result") ? [(field(n, "return_type") ?? field(n, "result"))!.text] : [], bases: children(field(n, "superclasses")).map(c => c.text), attributes }
-        if (language === "python" && n.type === "function_definition" && n.parent?.type === "decorated_definition") s.decorators = children(n.parent).filter(d => d.type === "decorator").map(d => {
+        if (language === "python" && n.parent?.type === "decorated_definition") s.decorators = children(n.parent).filter(d => d.type === "decorator").map(d => {
           const expression = children(d)[0]!, call = expression.type === "call" ? expression : undefined
           return { id: `decorator-${hash([sourceIdentity, file.path, sha256, d.startIndex]).slice(0, 24)}`, ...(call ? { sourceCallId: `call-${hash([sourceIdentity, file.path, sha256, call.startIndex]).slice(0, 24)}` } : {}), expression: call ? field(call, "function")!.text : expression.text, startLine: d.startPosition.row + 1, endLine: d.endPosition.row + 1, arguments: children(call && field(call, "arguments")).map(a => { const value = a.type === "keyword_argument" ? field(a, "value")! : a, literal = sourceLiteral(value); return { ...(a.type === "keyword_argument" ? { parameter: field(a, "name")!.text } : {}), expression: value.text, ...literal } }) }
         })
         byNode.set(n.id, s); symbols.push(s)
+      }
+      if (language === "python") for (const n of definitions.filter(d => d.type === "function_definition")) {
+        const symbol = byNode.get(n.id)!, body = field(n, "body")
+        if (!symbol || !body) continue
+        const owned = (node: Node) => { let parent = node.parent; while (parent && !["function_definition", "class_definition", "lambda"].includes(parent.type)) parent = parent.parent; return parent?.id === n.id }
+        const writes = descendants(body, ["assignment", "augmented_assignment", "named_expression", "for_statement", "as_pattern", "delete_statement", "import_statement", "import_from_statement", "function_definition", "class_definition"]).filter(owned)
+        const result = new Set<string>()
+        for (const ret of descendants(body, ["return_statement"]).filter(owned)) {
+          const value = children(ret)[0]
+          if (value?.type !== "identifier") continue
+          const declarations = children(body).map(d => d.type === "decorated_definition" ? children(d).find(c => c.type === "function_definition") : d).filter((d): d is Node => !!d && d.type === "function_definition" && field(d, "name")?.text === value.text && d.endIndex < ret.startIndex)
+          const bindings = writes.filter(w => { const target = field(w, "left") ?? field(w, "name") ?? field(w, "alias"); return target?.text === value.text || target && descendants(target, ["identifier"]).some(i => i.text === value.text) || ["delete_statement", "import_statement", "import_from_statement"].includes(w.type) && descendants(w, ["identifier", "dotted_name"]).some(i => i.text === value.text) })
+          if (declarations.length === 1 && bindings.length === 1) result.add(byNode.get(declarations[0]!.id)!.id)
+        }
+        returnedCallables.set(symbol.id, [...result])
       }
       const localNames = new Map<string, Set<string>>(), moduleAssignments: Record<string, number> = {}, globalNames = new Map<string, Set<string>>()
       if (language === "python") for (const n of descendants(root, ["global_statement"])) {
@@ -613,13 +635,44 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     }
     actionCache.set(receiverClass, facts); return structuredClone(facts)
   }
-  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v9"
+  const classDecoratorCache = new Map<string, StructureClassDecorator[]>()
+  /** Declarative source work only: a factory returning a local callable does
+   * not establish the class identity, mutations, exceptions or invocation. */
+  const classDecorators = (receiverClass: string): StructureClassDecorator[] => {
+    if (classDecoratorCache.has(receiverClass)) return structuredClone(classDecoratorCache.get(receiverClass)!)
+    const facts: StructureClassDecorator[] = [], mro = linearize(receiverClass), owners = mro ?? [receiverClass], receiverSources = owners.flatMap(owner => matching(owner).filter(s => s.kind === "class"))
+    const receiverBound = !!mro && owners.every(owner => matching(owner).filter(s => s.kind === "class").length === 1) && receiverSources.every(s => stableSourceBinding(s.name, scopeFor(s)))
+    for (const cls of receiverSources) for (const declaration of cls.decorators ?? []) {
+      const scope = scopeFor(cls), sourceSymbols = new Map<string, StructureSymbol>(), sourceCandidates: StructureClassDecorator["sourceCandidates"] = []
+      const retain = (s: StructureSymbol) => sourceSymbols.set(s.id, s)
+      const offer = (role: StructureClassDecorator["sourceCandidates"][number]["role"], candidates: StructureSymbol[]) => { for (const s of candidates) { retain(s); if (!sourceCandidates.some(c => c.role === role && c.candidateId === s.id)) sourceCandidates.push({ role, candidateId: s.id }) } }
+      receiverSources.forEach(retain)
+      const named = /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(declaration.expression), factoryCall = declaration.sourceCallId && calls.find(c => c.id === declaration.sourceCallId)
+      const definitionsBound = cls.attributes.moduleBinding === "unconditional", candidates = named && definitionsBound ? matching(qualified(declaration.expression, scope)).filter(s => s.kind === "function" && !s.className) : []
+      const role = declaration.sourceCallId ? "factory" : "decorator"
+      offer(role, candidates)
+      const returned = candidates.flatMap(c => returnedCallables.get(c.id) ?? []).flatMap(id => symbols.filter(s => s.id === id))
+      if (declaration.sourceCallId) offer("returned-callable", returned)
+      if (definitionsBound) for (const call of calls.filter(c => c.path === cls.path && c.startLine >= declaration.startLine && c.endLine <= declaration.endLine && c.id !== declaration.sourceCallId)) if (call.resolution === "resolved" && /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(call.expression) && stableSourceBinding(call.expression, scope)) offer("argument-call", call.candidateIds.flatMap(id => symbols.filter(s => s.id === id)))
+      for (const source of [...candidates, ...returned]) for (const call of relatedCalls(source.id)) if (call.resolution === "resolved") offer("helper", call.candidateIds.flatMap(id => symbols.filter(s => s.id === id)))
+      const gap = !definitionsBound ? "source-class-decorator-definition-binding-unresolved"
+        : !named ? "source-class-decorator-target-dynamic"
+        : !stableSourceBinding(declaration.expression, scope) || candidates.some(s => !stableSourceBinding(s.name, scopeFor(s))) ? "source-class-decorator-target-rebound"
+        : candidates.length !== 1 ? candidates.length ? "source-class-decorator-source-ambiguous" : "source-class-decorator-source-missing"
+        : candidates.some(s => s.attributes.bindingWrapped || s.attributes.callableAsync || s.boundary !== "complete") ? "source-class-decorator-callable-binding-unresolved"
+        : !receiverBound ? "source-class-decorator-receiver-binding-unresolved"
+        : declaration.sourceCallId && (!factoryCall || factoryCall.resolution !== "resolved" || !returned.length) ? "source-class-decorator-return-unresolved" : undefined
+      facts.push({ id: `class-decorator-${hash([receiverClass, cls.id, declaration.id]).slice(0, 24)}`, receiverClass, declaringClass: cls.qualifiedName, sourceId: cls.id, declarationId: declaration.id, ...(declaration.sourceCallId ? { sourceCallId: declaration.sourceCallId } : {}), expression: declaration.expression, arguments: declaration.arguments.map(a => a.parameter ? `${a.parameter}=${a.expression}` : a.expression), source: { path: cls.path, sha256: cls.sha256, startLine: declaration.startLine, endLine: declaration.endLine }, sourceCandidates, sources: [...sourceSymbols.values()].map(s => ({ id: s.id, path: s.path, sha256: s.sha256 })), invocation: "unproven", transformation: "unproven", model: "source-class-decorator/v1", ...(gap ? { gap } : {}) })
+    }
+    classDecoratorCache.set(receiverClass, facts); return structuredClone(facts)
+  }
+  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v10"
   const withSymbolSyntax = <T>(symbolId: string, visit: (root: Node, symbol: StructureSymbol) => T): Promise<T> => {
     const symbol = symbols.find(s => s.id === symbolId), file = symbol && files.find(f => f.path === symbol.path)
     if (!symbol || !file || hash(file.content) !== symbol.sha256) throw new Error("structure-source-missing")
     return withSourceSyntax(file.content, symbol.language, root => visit(root, symbol))
   }
-  return { schemaVersion: "authorization-structure-index/v1" as const, parser: parserVersion, relationshipVersion, symbols, calls, routes, diagnostics, lookupMethod, attribute, linearize, candidateRevision, relatedCalls, resolveName, qualifySourceName, requestDependencies, requestMiddleware, requestActions, withSymbolSyntax,
+  return { schemaVersion: "authorization-structure-index/v1" as const, parser: parserVersion, relationshipVersion, symbols, calls, routes, diagnostics, lookupMethod, attribute, linearize, candidateRevision, relatedCalls, resolveName, qualifySourceName, requestDependencies, requestMiddleware, requestActions, classDecorators, withSymbolSyntax,
     revision: hash([sourceIdentity, parserVersion, relationshipVersion, symbols, calls, routes, diagnostics]), preparation: { files: files.length, bytes: files.reduce((s, f) => s + Buffer.byteLength(f.content), 0), durationMs: performance.now() - started, targetExecutions: 0 } }
 }
 export type StructureIndex = Awaited<ReturnType<typeof buildStructureIndex>>

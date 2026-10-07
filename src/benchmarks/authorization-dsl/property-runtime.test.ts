@@ -158,3 +158,25 @@ test("source middleware enters the shared worklist but reading and interpreting 
   expect(report.delivery!.gaps.map(g => g.code)).toContain("framework-router-options-unmodeled")
   expect(report.materialUses!.filter(u => u.kind === "framework")).toEqual([])
 })
+
+test("reading and interpreting generic class decorator sources leaves the transformation blocked and the original question partial", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-class-decorator-"))
+  await writeFile(path.join(sourceRoot, "wrappers.py"), "def factory():\n    def apply(cls):\n        cls.changed = True\n        return cls\n    return apply\n")
+  await writeFile(path.join(sourceRoot, "app.py"), "from wrappers import factory\n@factory()\nclass View:\n    def run(self):\n        return True\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "Inspect class method", entryHint: "app.View.run" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect class method", premises: [] }] }), units: any[] = []
+  for (const name of ["app.View.run", "wrappers.factory", "wrappers.factory.apply"]) {
+    const s = tools.structure!.symbols.find(s => s.qualifiedName === name)!, read = await tools.execute("source_read", { path: s.path, startLine: s.startLine, endLine: s.endLine })
+    units.push({ questionId: "q", itemId: name, handle: name.replaceAll(".", "-"), op: "add", role: name === "app.View.run" ? "entry" : "helper", source: { id: s.id, path: s.path, sha256: s.sha256, startLine: s.startLine, endLine: s.endLine }, ...(s.className ? { receiverClass: s.className } : {}), evidenceIds: read.evidence.map(e => e.id), coverage: "path", start: "body", complete: true, parameters: s.parameters.map(p => ({ name: p.name, type: "value" })), blocks: [{ name: "body", steps: [{ kind: "return", name: "done", value: true, claim: "Anonymous test interpretation; class transformation unadopted", ...(name === "app.View.run" ? { outcome: "allow" } : {}) }] }] })
+  }
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "operation-evidence-v5", sourceAssisted: true, initialSemanticUnits: units })
+  await runtime.sync(false); await runtime.sync(false)
+  const report = runtime.report(), candidates = report.worklist!.items.filter(i => i.selected?.path === "wrappers.py")
+  expect(candidates.length).toBeGreaterThan(0)
+  expect(candidates.every(i => i.progress?.read && i.progress.interpreted && !i.progress.linked)).toBe(true)
+  expect(report.worklist!.items.find(i => i.code === "source-class-decorator-transformation-unadopted")).toMatchObject({ state: "blocked", decisive: true, frameworkBoundary: true, receiverClass: "app.View" })
+  expect(report.materialUses!.filter(u => u.kind === "framework")).toEqual([])
+  const checked = await runtime.validate({ schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q", behavior: { disposition: "allow", explanation: "Method body omits class transformation" }, branches: [], evidenceIds: units[0].evidenceIds, missing: [] }], observations: [], scope: "local" })
+  expect(checked.taskResolution).toBe("partial")
+  expect(checked.questionChecks[0]!.evidenceCoverage).toBe("unresolved")
+})

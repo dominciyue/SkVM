@@ -382,3 +382,69 @@ for (const declaration of ["async def __class_getitem__(cls, item):", "def __cla
   const index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" })
   expect(index.lookupMethod("app.View", "dispatch")).toEqual([])
 })
+
+const classDecoratorSources = [
+  { path: "helpers.py", content: "def isolate(cls, name):\n    return getattr(cls, name)\n" },
+  { path: "wrappers.py", content: "from helpers import isolate\ndef factory(**options):\n    def apply(cls):\n        isolate(cls, 'handle')\n        return cls\n    return apply\ndef configure(flag=True):\n    return flag\ndef direct(cls):\n    return cls\n" },
+]
+test("generic class decorators retain exact factories, returned closure and argument source without adopting a transformation", async () => {
+  const index = await buildStructureIndex([...classDecoratorSources, { path: "app.py", content: "from wrappers import factory as transform, configure\n@transform(handle=configure(flag=False))\nclass Parent:\n    def handle(self):\n        return True\nclass Child(Parent):\n    pass\n" }], { repository: "anonymous", sourceRef: "r" })
+  const parent = index.symbols.find(s => s.qualifiedName === "app.Parent")!, fact = (index as any).classDecorators("app.Child")[0]
+  expect(parent.decorators?.[0]).toMatchObject({ expression: "transform", sourceCallId: index.calls.find(c => c.expression === "transform")!.id })
+  expect(fact).toMatchObject({ receiverClass: "app.Child", declaringClass: "app.Parent", sourceId: parent.id, expression: "transform", arguments: ["handle=configure(flag=False)"], invocation: "unproven", transformation: "unproven", model: "source-class-decorator/v1" })
+  const candidates = fact.sourceCandidates.map((c: any) => [c.role, index.symbols.find(s => s.id === c.candidateId)!.qualifiedName])
+  expect(candidates).toContainEqual(["factory", "wrappers.factory"])
+  expect(candidates).toContainEqual(["returned-callable", "wrappers.factory.apply"])
+  expect(candidates).toContainEqual(["argument-call", "wrappers.configure"])
+  expect(candidates).toContainEqual(["helper", "helpers.isolate"])
+  expect(fact.gap).toBeUndefined()
+  expect(parent.attributes.bindingWrapped).toBe("true")
+  fact.sourceCandidates.length = 0
+  expect((index as any).classDecorators("app.Child")[0].sourceCandidates.length).toBeGreaterThan(0)
+})
+test("a bare class decorator retains its declaration rather than inventing an explicit call", async () => {
+  const index = await buildStructureIndex([...classDecoratorSources, { path: "app.py", content: "from wrappers import direct\n@direct\nclass View:\n    pass\n" }], { repository: "anonymous", sourceRef: "r" })
+  const fact = (index as any).classDecorators("app.View")[0]
+  expect(fact.sourceCallId).toBeUndefined()
+  expect(fact.sourceCandidates.map((c: any) => [c.role, index.symbols.find(s => s.id === c.candidateId)!.qualifiedName])).toEqual([["decorator", "wrappers.direct"]])
+  expect(fact.invocation).toBe("unproven")
+})
+test("class decorator sources never borrow a same-name factory from another module", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "from missing import factory\n@factory()\nclass View:\n    pass\n" }, { path: "decoy.py", content: "def factory():\n    return None\n" }], { repository: "anonymous", sourceRef: "r" })
+  const fact = (index as any).classDecorators("app.View")[0]
+  expect(fact.sourceCandidates).toEqual([])
+  expect(fact.gap).toBe("source-class-decorator-source-missing")
+})
+for (const [change, code] of [["factory = replacement\n", "source-class-decorator-target-rebound"], ["@factory()[key]\n", "source-class-decorator-target-dynamic"], ["if flag:\n    @factory()\n    class View:\n        pass\n", "source-class-decorator-definition-binding-unresolved"]] as const) test(`generic class decorator keeps ${code}`, async () => {
+  const content = "from wrappers import factory\n" + (change.startsWith("if") ? change : (change.startsWith("@") ? change : change + "@factory()\n") + "class View:\n    pass\n")
+  const index = await buildStructureIndex([...classDecoratorSources, { path: "app.py", content }], { repository: "anonymous", sourceRef: "r" })
+  expect((index as any).classDecorators("app.View")[0].gap).toBe(code)
+})
+test("a lexically shadowed class decorator does not borrow the imported factory", async () => {
+  const index = await buildStructureIndex([...classDecoratorSources, { path: "app.py", content: "from wrappers import factory\ndef build(factory):\n    @factory()\n    class View:\n        pass\n    return View\n" }], { repository: "anonymous", sourceRef: "r" })
+  const fact = (index as any).classDecorators("app.build.View")[0]
+  expect(fact.gap).toBe("source-class-decorator-definition-binding-unresolved")
+  expect(fact.sourceCandidates).toEqual([])
+})
+for (const declaration of ["async def factory():", "@unknown\ndef factory():", "def factory():"]) test(`class decorator callable source respects ${declaration.split("\n")[0]}`, async () => {
+  const source = declaration + "\n    return external\n"
+  const index = await buildStructureIndex([{ path: "wrappers.py", content: source }, { path: "app.py", content: "from wrappers import factory\n@factory()\nclass View:\n    pass\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect((index as any).classDecorators("app.View")[0].gap).toBe(declaration.startsWith("def") ? "source-class-decorator-return-unresolved" : "source-class-decorator-callable-binding-unresolved")
+})
+test("a reassigned returned local callable is not offered as the original closure", async () => {
+  const index = await buildStructureIndex([{ path: "wrappers.py", content: "def factory():\n    def apply(cls):\n        return cls\n    apply = external\n    return apply\n" }, { path: "app.py", content: "from wrappers import factory\n@factory()\nclass View:\n    pass\n" }], { repository: "anonymous", sourceRef: "r" })
+  const fact = (index as any).classDecorators("app.View")[0]
+  expect(fact.gap).toBe("source-class-decorator-return-unresolved")
+  expect(fact.sourceCandidates.some((c: any) => c.role === "returned-callable")).toBe(false)
+})
+test("repeated exact receiver definitions keep their sources as ambiguous leads with a named binding gap", async () => {
+  const index = await buildStructureIndex([...classDecoratorSources, { path: "app.py", content: "from wrappers import factory\n@factory()\nclass View:\n    pass\n@factory()\nclass View:\n    pass\n" }], { repository: "anonymous", sourceRef: "r" })
+  const facts = (index as any).classDecorators("app.View")
+  expect(facts).toHaveLength(2)
+  expect(facts.every((f: any) => f.gap === "source-class-decorator-receiver-binding-unresolved" && f.invocation === "unproven")).toBe(true)
+})
+test("an incomplete unrelated definition cannot abort class decorator source indexing", async () => {
+  const index = await buildStructureIndex([...classDecoratorSources, { path: "broken.py", content: "def ():\n    return None\n" }, { path: "app.py", content: "from wrappers import direct\n@direct\nclass View:\n    pass\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect(index.diagnostics.some(d => d.code === "structure-parse-partial" && d.path === "broken.py")).toBe(true)
+  expect((index as any).classDecorators("app.View")).toHaveLength(1)
+})

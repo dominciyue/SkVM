@@ -142,6 +142,10 @@ DRF下一小步工作计划（2026-10-08）：先从原轮次已保留且SHA一�
 
 接续进展：锁定schema wheel补充已抓取并SHA/size核验，94旧冻结文件不变；实际装饰器return原class仍会创建继承方法wrapper/复制配置，class/method变换未采用。通用v9 sourceArgumentBindings现连接v5解释和投影，保留Python签名边界、纯转发包与super实际self，动态默认显式具名；未知/逃逸/混合包、普通keyword与*args碰撞等保持边界。19新反例红绿，145focused/469断言、联合1073pass/1平台skip/6725断言/115文件及双类型通过；只读核验和主反例裁定保留。12来源/78调用的原Download源码探针显示三条initial/super初始化参数转发可绑定，dispatch实例alias和闭包handler仍未绑定，材料采用0，完整请求验收仍未勾选。下一小步实际class decorator/闭包调用关系及实例字段的source-supported参数传播，随后请求采用和账号复验；不为它们放宽pure forwarding规则。
 
+本小步设计细化：在structure-index保留普通class decorator声明/实参、精确声明class与实际receiver、当前工厂/直接装饰器、源码return的局部闭包候选及其直接helper来源，候选与invocation/transformation采用均分开。无源码、重绑定、词法遮蔽、动态表达式、async/wrapped工厂及未解析返回保留具名来源缺口；不按装饰器库名豁免。v5沿现有operation-work暴露read/interpret/link动作，类与方法变换在未采用时始终具名，精确receiver的source-class-decorator/v1依赖随当前候选SHA重算；材料自身footprint不复制全局队列。匿名TDD与真实保留来源零模型探针通过后，再推进闭包capture和实际请求动态handler，不把来源候选当成绑定证明。
+
+本小步进展：v10普通class decorator来源进入现有read/interpret/link，返回局部callable仅作来源候选，invocation/transformation仍unproven且逐题阻断。18新反例及156focused/500断言、联合1091pass/1平台skip/6775断言、主/AY类型通过；主修actual subclass footprint遗漏，独立核验的exact receiver重定义具名反例已红绿。实际材料只按自身receiver失效，无关材料保留。94旧源码核验后的真实探针保留1声明/14工作及含继承2声明/20工作，receiver gap含未捕获Django View来源；初始/reviewed原件分开保存，model read/application annotation/material use=0，原输入和答不升级。下一步补来源确认的局部闭包capture和实例字段传播，进一步捕获实际缺失base来源并闭合动态handler/请求组合，再具名账号复验；本阶段未勾选。
+
 ### AY7 实参、返回与资源身份闭合
 
 - 当前实施顺序（2026-10-08）：先用匿名模块实例/遮蔽/重绑定反例验证实际 receiver 来源，再在 v5 source skeleton 中保留唯一未重绑定实例的 source/SHA/class 证明，并生成普通 `value` 绑定。只接机械 receiver，不推断主体、资源、授权或字段 alias；字段传给错误 principal 参数仍报类型缺口。随后核验保留 OWUI 提案的零推理效果，再进入框架组合和真实具名复验。

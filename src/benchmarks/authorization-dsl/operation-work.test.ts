@@ -1,6 +1,9 @@
 import { expect, test } from "bun:test"
 import { buildStructureIndex } from "./evidence-preparation/structure-index.ts"
 import { operationWork, diagnosticWork, structuralDependencyRevision } from "./operation-work.ts"
+import { createSourceMaterials } from "../../task-dsl/authorization/source-materials.ts"
+import { projectSourceMaterials } from "./source-material-projection.ts"
+import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
 
 test("a structurally bound omitted helper becomes a read, then an interpretation action", async () => {
   const index = await buildStructureIndex([{ path: "view.py", content: "def create(caller, item):\n    return check(caller, item)\ndef check(caller, item):\n    return caller == item.owner\n" }], { repository: "fixture", sourceRef: "r" })
@@ -198,4 +201,59 @@ test("a dynamic HTTP declaration retains source work at its method entry", async
   expect(work.frameworkGaps.some(g => g.code === "framework-action-methods-dynamic")).toBe(true)
   const interpreted = operationWork(index, index.symbols.find(s => s.name === "fetch")!.id, [], work.actions.map(a => ({ id: a.candidateId, receiverClass: a.receiverClass })), "app.View", { sourceAssisted: true, operationRoot: true, questionDirected: true })
   expect(interpreted.actions.find(a => index.symbols.find(s => s.id === a.candidateId)?.qualifiedName === "rest_framework.decorators.action")).toMatchObject({ kind: "link", frameworkBoundary: true })
+})
+
+const genericDecoratorFiles = [
+  { path: "wrappers.py", content: "def factory():\n    def apply(cls):\n        cls.changed = True\n        return cls\n    return apply\n" },
+  { path: "app.py", content: "from wrappers import factory\n@factory()\nclass Parent:\n    def run(self):\n        return True\nclass Child(Parent):\n    pass\nclass Other:\n    def run(self):\n        return False\n" },
+]
+test("v5 generic class transformation remains an exact source boundary after its bodies are read and interpreted", async () => {
+  const index = await buildStructureIndex(genericDecoratorFiles, { repository: "anonymous", sourceRef: "r" }), entry = index.lookupMethod("app.Child", "run")[0]!
+  const options = { sourceAssisted: true, questionDirected: true, operationRoot: true }
+  const first = operationWork(index, entry.id, [], [], "app.Child", options)
+  const factory = index.symbols.find(s => s.qualifiedName === "wrappers.factory")!, returned = index.symbols.find(s => s.qualifiedName === "wrappers.factory.apply")!
+  expect(first.actions.filter(a => [factory.id, returned.id].includes(a.candidateId))).toHaveLength(2)
+  expect(first.actions.every(a => a.decisive && a.frameworkBoundary && !a.receiverClass)).toBe(true)
+  expect(first.frameworkGaps).toContainEqual(expect.objectContaining({ code: "source-class-decorator-transformation-unadopted", receiverClass: "app.Child" }))
+  const read = operationWork(index, entry.id, [factory.id, returned.id], [], "app.Child", options)
+  expect(read.actions.every(a => a.kind === "interpret")).toBe(true)
+  const interpreted = operationWork(index, entry.id, [], [factory.id, returned.id], "app.Child", options)
+  expect(interpreted.actions.every(a => a.kind === "link")).toBe(true)
+  expect(interpreted.frameworkGaps).toEqual(first.frameworkGaps)
+  expect(operationWork(index, entry.id, [], [], "app.Child", { sourceAssisted: true, operationRoot: true }).frameworkDependencies).toEqual([])
+})
+test("generic decorator dependency revisions follow the actual receiver and selected source, not global namesakes", async () => {
+  const before = await buildStructureIndex(genericDecoratorFiles, { repository: "anonymous", sourceRef: "r" }), entry = before.lookupMethod("app.Child", "run")[0]!
+  const options = { sourceAssisted: true, questionDirected: true, operationRoot: true }
+  const dependency = operationWork(before, entry.id, [], [], "app.Child", options).frameworkDependencies.find(d => d.key === "source-class-decorator/v1:app.Child")!
+  expect(dependency).toBeDefined()
+  expect(operationWork(before, before.lookupMethod("app.Other", "run")[0]!.id, [], [], "app.Other", options).frameworkDependencies).toEqual([])
+  const unrelated = await buildStructureIndex([...genericDecoratorFiles, { path: "decoy.py", content: "def factory():\n    return None\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect(structuralDependencyRevision(unrelated, dependency)).toBe(dependency.revision)
+  const changed = await buildStructureIndex(genericDecoratorFiles.map(f => f.path === "wrappers.py" ? { ...f, content: f.content.replace("True", "False") } : f), { repository: "anonymous", sourceRef: "r" })
+  expect(structuralDependencyRevision(changed, dependency)).not.toBe(dependency.revision)
+  const removed = await buildStructureIndex(genericDecoratorFiles.filter(f => f.path !== "wrappers.py"), { repository: "anonymous", sourceRef: "r" })
+  expect(structuralDependencyRevision(removed, dependency)).not.toBe(dependency.revision)
+})
+test("a decorator footprint retains the actual subclass bytes when its inherited declaration is unchanged", async () => {
+  const files = [...genericDecoratorFiles, { path: "child.py", content: "from app import Parent\nclass Actual(Parent):\n    flag = True\n" }], identity = { repository: "anonymous", sourceRef: "r" }
+  const index = await buildStructureIndex(files, identity), entry = index.lookupMethod("child.Actual", "run")[0]!
+  const dependency = operationWork(index, entry.id, [], [], "child.Actual", { questionDirected: true }).frameworkDependencies.find(d => d.key === "source-class-decorator/v1:child.Actual")!
+  const changed = await buildStructureIndex(files.map(f => f.path === "child.py" ? { ...f, content: f.content.replace("True", "False") } : f), identity)
+  expect(structuralDependencyRevision(changed, dependency)).not.toBe(dependency.revision)
+})
+test("decorator body changes withdraw only its receiver's material and source work never counts as framework use", async () => {
+  const identity = { repository: "anonymous", sourceRef: "r" }, index = await buildStructureIndex(genericDecoratorFiles, identity), store = createSourceMaterials({ ...identity, semanticVersion: "question-control/v1" }), units: any[] = []
+  const options = { sourceAssisted: true, questionDirected: true, operationRoot: true }
+  for (const [receiverClass, questionId] of [["app.Child", "a"], ["app.Other", "b"]]) {
+    const source = index.lookupMethod(receiverClass!, "run")[0]!, unit: any = { handle: questionId, itemId: questionId, questionId, op: "add", role: "entry", receiverClass, source: { id: source.id, path: source.path, sha256: source.sha256, startLine: source.startLine, endLine: source.endLine }, start: "body", coverage: "path", complete: true, evidenceIds: ["ev"], parameters: [{ name: "self", type: "value" }], blocks: [{ name: "body", steps: [{ kind: "return", name: "done", value: true, outcome: "allow", claim: "Anonymous source method body; decorator unadopted" }] }] }
+    store.accept(unit, [{ kind: "source-span", key: source.path, revision: source.sha256 }, { kind: "symbol-resolution", key: source.id, revision: source.sha256 }, ...operationWork(index, source.id, [], [], receiverClass, options).frameworkDependencies], "test-authored")
+    units.push(unit)
+  }
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "a", request: "First body", entryHint: "run" }, { id: "b", request: "Other body", entryHint: "run" }], questions: [{ id: "a", operationId: "a", intent: "behavior", request: "First body", premises: [] }, { id: "b", operationId: "b", intent: "behavior", request: "Other body", premises: [] }] })
+  const before = projectSourceMaterials(program, units, store.snapshot(), index)
+  expect(before.units.map(u => u.handle)).toEqual(["a", "b"])
+  expect(before.uses.filter(u => u.kind === "framework")).toEqual([])
+  const after = await buildStructureIndex(genericDecoratorFiles.map(f => f.path === "wrappers.py" ? { ...f, content: f.content.replace("True", "False") } : f), identity)
+  expect(projectSourceMaterials(program, units, store.snapshot(), after).units.map(u => u.handle)).toEqual(["b"])
 })

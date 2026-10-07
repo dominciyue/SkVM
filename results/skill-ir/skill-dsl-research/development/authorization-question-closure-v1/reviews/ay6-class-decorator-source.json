@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "authorization-ay-local-repair-review/v1",
+  "date": "2026-10-08",
+  "stage": "AY6/AY7",
+  "humanAnnotation": false,
+  "scopedChange": "Generic class decorator declaration/factory/returned-callable/argument/helper source work, receiver-scoped invalidation and explicit unadopted transformation boundary under source-bindings/v10.",
+  "independentReview": {
+    "reviewer": "ay_class_decorator_review",
+    "projectFilesEdited": false,
+    "finding": "Repeated exact receiver classes can enter fallback source work without a named ambiguity gap; all candidate sources enter its footprint.",
+    "disposition": "Confirmed missing named binding gap. A reachable same-file repeated class definition red/green now preserves source-class-decorator-receiver-binding-unresolved. These remain unproven leads; all ambiguous candidates may participate and conservatively remain dependencies. This is not evidence of framework execution adoption or full promotion."
+  },
+  "primaryAdditionalCounterexamples": [
+    { "risk": "An unchanged inherited decorator declaration omitted actual subclass bytes from its footprint.", "disposition": "Confirmed red/green; every actual MRO class source participates, and actual projection withdraws the changed receiver's material while keeping another receiver." },
+    { "risk": "An incomplete unrelated source definition might abort new return-candidate extraction.", "disposition": "Anonymous parse-partial regression passes; extraction skips missing symbols/bodies." }
+  ],
+  "primaryVerification": {
+    "initialRed": { "pass": 74, "fail": 13, "assertions": 194, "files": 2 },
+    "subclassRed": { "pass": 1, "fail": 1, "assertions": 4 },
+    "ambiguityRed": { "pass": 1, "fail": 1, "assertions": 4 },
+    "newTests": 18,
+    "focused": { "pass": 156, "fail": 0, "assertions": 500, "files": 5, "durationMs": 1313 },
+    "joint": { "pass": 1091, "skip": 1, "fail": 0, "assertions": 6775, "files": 115, "durationMs": 10700 },
+    "mainTypecheck": "passed",
+    "ayTypecheck": "passed",
+    "currentDocumentLinks": { "files": 5, "broken": 0, "legacy": 0, "retired": 0, "governanceErrors": 0, "softWarnings": "existing document length limits" },
+    "runtimeBoundary": "Read/interpreted candidate bodies remain unlinked; class transformation blocked, no framework uses and original question partial."
+  },
+  "sourceOnlyReplay": {
+    "initial": { "path": "verification/paperless-class-decorators-replay.json", "sha256": "bf86c213e69b6e253ee31ddc4531be51a07517de09e78da30f980fc1027e3093" },
+    "reviewed": { "path": "verification/paperless-class-decorators-reviewed-replay.json", "sha256": "843519f6b1920a2464a102849fbaf5049614aa63dc5eb0105ab0ab6dfef206ce" },
+    "frozenSourcesVerified": 94,
+    "receivers": [
+      { "class": "documents.views.DocumentViewSet", "declarations": 1, "sourceWork": 14 },
+      { "class": "documents.views.UnifiedSearchViewSet", "declarations": 2, "sourceWork": 20 }
+    ],
+    "invocation": "unproven",
+    "transformation": "unproven",
+    "remaining": ["receiver/MRO binding including uncaptured Django View", "closure capture and mutable instance fields", "HTTP handler/request and ASGI continuation composition"]
+  },
+  "modelReadEvidence": false,
+  "semanticUnitsAuthored": 0,
+  "materialUses": 0,
+  "originalAttemptPromoted": false,
+  "newModelInputRegistered": false,
+  "originalInputsAndAllowlistsUnmodified": true,
+  "fullFrameworkComposition": "pending",
+  "modelExecutions": 0,
+  "targetExecutions": 0,
+  "networkRequests": 0,
+  "costs": { "experimentTokens": 0, "developerAndScoutTokens": null, "usd": null, "humanTime": null }
+}

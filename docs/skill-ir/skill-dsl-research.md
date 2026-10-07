@@ -6,7 +6,7 @@
 
 **授权任务已有局部语义、来源材料、变化失效和账号双入口的真实实现；AX完成离线交付并取得真实工具轨迹，完整源码质量、真实复用与整体净收益仍未建立。** 当前AY已获授权，计划补问题驱动依赖、继承权限与对象连接、逐题结论检查，并完成原skill、作者包及变化消费。任务范围仍是单repo/ref、源码可见的授权与信任边界评估；质量、编写修改、复用和开销分别评价，历史结果保留。
 
-AY当前已修复普通receiver来源连接、终答枚举、跨入口框架footprint、静态FastAPI依赖组合、ASGI注册/方法取证及DRF action来源/identity订阅、纯转发包与super实参；真实OWUI的外部middleware来源与continuation仍使完整请求组合未闭合，整文件SHA粒度保留。确定性工程验证不替代当前任务源码完整、实际复用或净收益证据。
+AY当前已修复普通receiver来源连接、终答枚举、跨入口框架footprint、静态FastAPI依赖组合、ASGI注册/方法取证及DRF action来源/identity订阅、纯转发包与super实参，并接入普通class decorator的精确来源工作与失效；类/method变换、真实OWUI的外部middleware来源与continuation仍使完整请求组合未闭合，整文件SHA粒度保留。确定性工程验证不替代当前任务源码完整、实际复用或净收益证据。
 
 日常先读本节与[当前状态](current-status.md)。当前执行决定见[§7.60](#760-ay-问题依赖完整使用与收益验证)，AX代码和真实反例复核见[§7.59](#759-ax-离线交付复核与下一步方法建议)，其原开发决定见[§7.58](#758-ax-按授权问题求值与账号真实执行开发决定)。方法形成过程见§4–§7.18，历史开发记录保留在§7后续章节。本地化候选保留在§8–§9，暂缓实施。
 
@@ -2056,6 +2056,8 @@ AY6同轮DRF来源小步（2026-10-08）：从原轮次保留的3.18.1 wheel追�
 
 AY6/AY7参数接续（2026-10-08）：原uv.lock确定drf-spectacular 0.30.0 wheel SHA，追加utils/drainage来源且94旧文件不变。真实class decorator虽return原class，却会为继承方法创建转发wrapper并复制kwargs/schema，不能据库名或return豁免修改。先以v9通用参数binder接通签名明确且仅splat使用的普通参数包，复用到v5解释与实际投影；zero-argument super保留self。19项新反例覆盖typed signature、未知/逃逸包、重复/默认值与拒绝/异常继续。只读核验指出动态默认gap被解释层忽略，已显式unresolved；主另证实*args与keyword普通参数的实际冲突并红绿修复。探子的actor/kwargs反例被调用者签名排除，匿名Python核验与正例保留，没有盲从增添阻断。145focused/469断言，联合1073pass/1平台skip/6725断言/115文件/13.13s，主/AY类型通过。[当前来源探针](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-call-arguments-replay.json)保留12来源/78调用，三条initial/super初始化转发可绑定；dispatch alias/闭包handler仍有具名缺口，semantic units/material use均0，model read evidence=false、旧尝试不升级。来源抓取一次网络请求，模型/目标新增0；开发/探子token、USD与真人时间unknown。完整class/method绑定、动态handler和可变字段传播继续，之后具名账号复验；当前质量和正向收益未达。
 
+AY6/AY7普通类装饰器小步（2026-10-08）：v10按源码保留继承class decorator声明、实参及factory/返回局部callable/argument-call/helper候选，进入现有read/interpret/link和逐题具名边界。invocation/transformation始终unproven；return原class的配置修改/异常不能豁免。主红测发现继承声明不变时仍须把实际子类字节纳入footprint，修复后对应材料撤回而无关receiver保留。独立核验指出重复exact class来源缺少明确receiver gap，已用单文件重复定义反例红绿补齐；所有歧义候选均可能参与，继续保守依赖，不把其中任一项当已证明无关。18新测试，156focused/500断言，新鲜联合1091pass/1平台skip/6775断言/115文件/10.70s，主/AY类型通过。真实[review后来源探针](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-class-decorators-reviewed-replay.json)核验94旧文件和独立补充，保留DocumentViewSet 1声明/14工作及UnifiedSearchViewSet含继承2声明/20工作；初始探针单独保留。接收类/MRO仍具名，包括APIView尚未捕获的Django View来源。没有新application annotations、model read evidence或material use，模型/目标/网络新增0、旧尝试不升级；开发/探子token、USD和真人时间unknown。见[局部核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay6-class-decorator-source.json)。继续闭包capture/实例字段、真实dispatch组合与账号复验，完整使用和实测收益仍未达。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
@@ -2138,7 +2140,7 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-05 / AS：** 局部选择/效果与同源结果已共用，两原skill及作者原稿实际消费；机制改善有原件，完整质量/变化复用/净收益未达，以completed-with-unmet-criteria收束，责任见§7.48。
 - **2026-10-05 / AT：** 持久解释事务、宿主身份、纯有限摘要、显示/读取/源码终检与通用词法修复已经实现及实际使用。12质量首位置0完整；4native原始自然说明充分2但formal0；4忠实稿消费均partial；fresh变化4partial、previous2阻断，37原件556/556。有限队列以completed-with-unmet-criteria收束；当前限制、真实修复和计量见§7.49。
 
-- **2026-10-08 / AY：** v5初版已接通，账号0.160.0的Download具名尝试与OWUI首/修订实际交付，均源码partial、结构终答缺失。OWUI修订6单元/3实际投影；receiver值绑定、枚举合同、按receiver的框架footprint与静态Depends组合已红绿修复。当前零模型回放找到11middleware注册/11方法，具名阻断尚未证明的框架采用，完整ASGI/DRF链仍未达。总token增加、fresh下降分列，真实净收益未建立。DRF保留GET→download声明和22项来源工作，identity订阅找回继承dispatch，mapping binding与invocation未证明，类wrapper继续阻断。纯转发参数包已绑定，真实dispatch alias和闭包handler仍待；联合1073pass/1平台skip及主/AY类型通过；整文件SHA粒度、原件、全部成本与独立裁定保留，22首位置和完整队列见§7.60。
+- **2026-10-08 / AY：** v5初版已接通，账号0.160.0的Download具名尝试与OWUI首/修订实际交付，均源码partial、结构终答缺失。OWUI修订6单元/3实际投影；receiver值绑定、枚举合同、按receiver的框架footprint与静态Depends组合已红绿修复。当前零模型回放找到11middleware注册/11方法，具名阻断尚未证明的框架采用，完整ASGI/DRF链仍未达。总token增加、fresh下降分列，真实净收益未建立。DRF保留GET→download声明和22项来源工作，identity订阅找回继承dispatch，mapping binding与invocation未证明，类wrapper继续阻断。纯转发参数包已绑定，普通class decorator来源进入当前队列/精确依赖，变换采用仍0，真实dispatch alias和闭包handler仍待；联合1091pass/1平台skip及主/AY类型通过；整文件SHA粒度、原件、全部成本与独立裁定保留，22首位置和完整队列见§7.60。
 
 ## 12. 后续追加规则
 
