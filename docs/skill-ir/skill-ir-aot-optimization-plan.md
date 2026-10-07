@@ -3,7 +3,7 @@
 更新于2026-10-07。本页维护当前目标与未达责任；原件由研究正文和实验目录导航。
 
 - 唯一实时入口：[current-status](current-status.md)。
-- 当前任务书：[AX0–AX20 按授权问题求值与账号真实执行](../superpowers/plans/2026-10-07-authorization-property-analysis-and-account-execution.md)，in-progress。
+- 当前任务书：[AX0–AX20 按授权问题求值与账号真实执行](../superpowers/plans/2026-10-07-authorization-property-analysis-and-account-execution.md)，in-progress-account-channel-blocked。
 - 方法合同：[spec AX](skill-ir-aot-optimization-spec.md#1437-ax-property-directed-analysis-and-controlled-account-execution)；决定依据：[研究§7.57–§7.58](skill-dsl-research.md#757-aw-收束后复核运行能力与按问题求值)。
 - 复核基线ccf00985，启动时保留随后计划提交。开发模型gpt-6.1-sol/max；被测模型为已授权当前账号的gpt-5.6-sol/high。第三方API和AV十二旧位置继续暂停。
 
@@ -11,7 +11,7 @@
 
 在现有两个入口和领域核心中，按每个授权问题组织必要依赖、局部摘要和保守异常状态合并，减少整函数标注及路径展开负担。官方账号生产transport采用安装版本可兑现的受控能力合同，完成真实工具会话，再做完整原skill任务、变化复用和同条件对照。新行为显式选择operation-evidence-v4，旧默认和归档保持。
 
-AX0–AX2已完成实际账号配置核验和一次匿名工具消费；首件失败与唯一Code Mode宿主修订分别保留。AX3/AX6的七个语义红测已绿，局部连续context合流保留正常/未知失败及全部来源，不跨对象/效果/控制边界。当前继续AX4–AX9需求frontier、覆盖和v4入口接线。账号与局部算法尚不能证明完整授权任务质量。
+AX0–AX9工程与两个生产入口已接通，真实匿名工具消费已建立；Download/OWUI原任务和两作者实际完成，原失败/修订、形式partial和自然质量分别保留。当前20首位置中9个已尝试、17份归档，最新6042生产树公开baseline因指定gpt-5.6-sol/high实验通道usageLimitExceeded而无终答，原completion-unknown不改；普通应用使用仍可用，不推断整个账号耗尽。完整418文件离线包、11公开命令、原件capture与纯核心机制比较已完成，真实消费者0，机制未显示当前草稿减负或状态合并收益。11个未派发位置及新版本baseline/成对修订待恢复；先inspect并裁定原未知请求，通道恢复后重新具名登记，不自动重发/换模型/购买/reset。六项快照及具体责任见[AX summary](../../results/skill-ir/skill-dsl-research/development/authorization-property-execution-v1/summary.json)，有限队列与研究目标均未达。
 
 ## AX 队列
 

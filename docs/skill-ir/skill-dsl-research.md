@@ -1971,6 +1971,14 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 **AX检查后显式回访修复。** afc71124树下policy fresh具名修订完成24回调，可见input/output/cacheRead为2451211/11419/2241920，当前入口材料采用1，形式仍partial；该树baseline/policy两份58回调严格零账号重放封存。独立自然评阅判两答full，主线程全文阅读后点验Paperless GET权限映射与DRF继承has_permission，确认二者只列权限类却漏掉全局view_document入口门槛，最终仍partial，核心root/file/version/representation关系正确。随后发现账号每次检查后都以finalOnly撤销已被接受的显式revisit/nextItemId；原两份真实轨迹没有请求回访，不能将失败归因为实际回访失败。匿名生产接口两个红测复现focus再次切answer，修共享context/focus区分软交付和硬预算，合法显式源码选择保留至接受/放弃；未增加预算、自动读或语义标注。十文件138项967断言、另一个待源码选择/检查耗尽反例及主类型通过；独立review的dual-field绕过猜测经原OR拒绝条件排除，account/provider先sync再硬context的源失效路径维持。修后先登记当前公开baseline和同版本变化，再继续消费者/六臂，旧首件及两个历史树快照保留。
 
+**AX当前真实通道拒绝。** `9039fd3f`/生产树`6042b79e`的具名公开baseline `explicit-source-revisit`在6动态回调后无终答，原状态completion-unknown、reason account-turn-failed保留。可见input/output/cacheRead为151288/1725/112512、130208ms；raw含四次request-timeout重连通知与最终usageLimitExceeded/turn failed，不能把通知数当已知底层请求数。一次只读应用usage显示ordinaryUsageAllowed:true，与“整个账号耗尽”相矛盾，但不证明该实验CLI/model通道恢复。私有裁定仅保存必要去身份元数据、原report/run/events SHA及通道范围，未购买/重置/切模型或重发。先检查原未知请求，再恢复同配置实验；实际缺口不以新identity抹去。
+
+**AX15实际提案的零调用机制比较。** 当前baseline未完成，故只纳入afc71124的baseline/policy fresh冻结草稿；Git diff证明需求/合流纯核心未变，四处差异限账号测试和inquiry-native/domain-runtime/focus，不给完整新运行时或当前模型质量资格。同源草稿只重绑revision，两个源码单元的必需标注分别3→4、7→7，没有机械排除，完整离线载荷分别6429/17314→9867/23388与6629/17326→10067/23400字节。每份实际材料投影1，精确匹配原轨迹；开/关合流均14规则/3终态、失败来源合并0。未观察需求减负、真实合流采用或token/质量收益。独立核验指出投影须绑定原实际采用，主线程补缺失/不同关系负例，5测试30断言通过；total required与pending不混为一个计数，额外模型机制调用0。
+
+**AX13/AX19完整交付包。** 仓库外包含418文件及1647201字节ZIP；Download原/变各95源码文件、OWUI允许范围173文件，完整Cloudflare/GitHub skill含22/8文件。原input brief逐字保留，原作者inquiry/Usage按准入SHA不改；OWUI许可证及原174项清单另存provenance。Download三变化保留四原题，premise仅用登记所有权替换旧未指定前提，policy显式conformance，source只views.py变化。11次实际公开零推理命令全部exit0，ZIP418条逐字节对manifest；inspect/compare使用现存旧partial baseline，仅证明接口，不声称当前消费或复用。Windows带显式env启动命名bun发生ENOENT，在任何artifact写入前退出；改用已有绝对process.execPath后构建成功，未安装替代环境。两位独立只读探子核对接口/来源，主线程纠正inquiry edit与local-edit混淆、原任务应取brief和173/174清单范围，最终包独立复核无阻塞。
+
+**AX16–AX20待恢复检查点。** 17份归档覆盖9/20首位置，11尚未派发，活动尝试0；finiteQueueComplete与researchGoalAchieved均false。全部10份领域自然答已独立评阅与主裁定，早期三份Download自然答的探子将GET门槛归于全部答，实际只source-controls写明；该答仍漏ownerless分支，其余两答还漏全局GET/明确所有权分支，保留partial。只有旧premise fresh自然条件说明full而formal失败，真实作者消费者0、质量六臂0。四份smoke/作者capture另核验可见动态调用、宿主回执、稿件字节及完整skill，私有准入没有进入可见模型输入；隐藏原生活动/内部请求不声称穷尽。可见父会话input/output/cacheRead为34358571/152441/31914752、非缓存input2443819；301上下文直接核验、OWUI28上下文/2窗口精确重建。e1578bb1的184和afc71124的58回调严格快照保留，当前严格重放0；研究脚本23测试104断言及含delivery的严格类型通过。USD、隐藏重试/子会话、开发/探子和真人时间仍unknown。六项结果与下一具体责任在[AX summary](../../results/skill-ir/skill-dsl-research/development/authorization-property-execution-v1/summary.json)：裁定未决→指定通道恢复→当前具名baseline/同版本变化→原字节消费者/六臂；源码解释/receiver/helper连接与全部原分支覆盖继续归本队列责任。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

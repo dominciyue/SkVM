@@ -50,10 +50,11 @@
       "kind": "inquiry",
       "task": "download",
       "order": 3,
-      "status": "completed",
+      "status": "completion-unknown",
       "attempts": [
         "inquiry-download-original/original",
-        "inquiry-download-original/material-reactivation"
+        "inquiry-download-original/material-reactivation",
+        "inquiry-download-original/explicit-source-revisit"
       ]
     },
     {
@@ -134,10 +135,12 @@
       "kind": "author",
       "task": "download",
       "order": 11,
-      "status": "authored-awaiting-review",
+      "status": "authored-reviewed-awaiting-consumer",
       "attempts": [
         "author-download/original"
-      ]
+      ],
+      "admission": "attempts/author-download/original/author-admission.json",
+      "admissionSha256": "467395475187517c6517fa8d09df0487b0335ac4b629e92675b3064a1da2be43"
     },
     {
       "id": "consumer-download-original-bytes",
@@ -154,10 +157,12 @@
       "kind": "author",
       "task": "owui",
       "order": 13,
-      "status": "authored-awaiting-review",
+      "status": "authored-reviewed-awaiting-consumer",
       "attempts": [
         "author-owui/original"
-      ]
+      ],
+      "admission": "attempts/author-owui/original/author-admission.json",
+      "admissionSha256": "d4a933d123c4536850c67a9022a223b4f456e2294ac0581605546013b843f56d"
     },
     {
       "id": "consumer-owui-original-bytes",
@@ -236,5 +241,14 @@
   "thirdPartyApi": "paused-by-user",
   "providerRequests": null,
   "actualUsd": null,
-  "targetExecutions": 0
+  "targetExecutions": 0,
+  "executionHold": {
+    "reason": "specified experiment CLI/model channel refused with usageLimitExceeded",
+    "causeAttempt": "inquiry-download-original/explicit-source-revisit",
+    "causeReview": "reviews/explicit-source-revisit-account-refusal.json",
+    "causeReviewSha256": "40566ddbff26ce4f204170e2d46a50419826edfbb55faf0fb8b392911604454a",
+    "accountWideExhaustionProven": false,
+    "automaticResend": false,
+    "finiteQueueClosed": false
+  }
 }
