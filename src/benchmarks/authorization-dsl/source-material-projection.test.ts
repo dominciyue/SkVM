@@ -177,6 +177,30 @@ test("an annotation dependency stays a named boundary until its injection form i
   expect(lowerSemanticFlow(f.project().units).diagnostics.map(d => d.code)).toContain("framework-dependency-annotation-unsupported")
   expect(f.project().uses.filter((u: any) => u.frameworkModel === "fastapi-source-injection/v1")).toEqual([])
 })
+
+test("actual source pack forwarding adopts a rejecting helper before the following effect", async () => {
+  const source = "class Gate:\n    def entry(self, actor, *args, **kwargs):\n        self.guard(actor, *args, **kwargs)\n        write()\n        return True\n    def guard(self, actor, *rest, **options):\n        raise Denied()\n"
+  const index = await buildStructureIndex([{ path: "app.py", content: source }], { repository: "anonymous", sourceRef: "r" })
+  const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" }), accepted: any[] = []
+  const add = (name: string, steps: any[]) => {
+    const s = index.symbols.find(s => s.name === name)!, u: any = { itemId: name, handle: name, questionId: "q", op: "add", role: name === "entry" ? "entry" : "helper", source: { id: s.id, path: s.path, sha256: s.sha256, startLine: s.startLine, endLine: s.endLine }, receiverClass: "app.Gate", evidenceIds: ["ev"], start: "body", complete: true, coverage: "path", parameters: s.parameters.map(p => ({ name: p.name, type: p.name === "actor" ? "principal" : "value" })), blocks: [{ name: "body", steps }] }
+    store.accept(u, [{ kind: "source-span", key: s.path, revision: s.sha256 }, { kind: "symbol-resolution", key: s.id, revision: s.sha256 }], "test-authored"); accepted.push(u); return u
+  }
+  add("guard", [{ kind: "raise", name: "rejected", claim: "Anonymous source rejection", exceptionType: "Denied", failureKind: "authorization" }])
+  const s = index.symbols.find(s => s.name === "entry")!, call = index.relatedCalls(s.id, "app.Gate").find(c => c.expression === "self.guard")!
+  add("entry", [{ kind: "call", name: "guard", claim: "Actual source forwarding", symbol: "self.guard", sourceCallId: call.id, arguments: [{ parameter: "self", object: "self" }, { parameter: "actor", object: "actor" }, { parameter: "rest", object: "args" }, { parameter: "options", object: "kwargs" }] }, { kind: "effect", name: "write", claim: "Anonymous following operation", operation: "write" }, { kind: "return", name: "done", claim: "Anonymous source return", outcome: "allow", value: true }])
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "request", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "request", intent: "behavior", request: "Inspect source continuation", premises: [] }] })
+  const projected = api.projectSourceMaterials(p, accepted, store.snapshot(), index, { questionDirected: true })
+  expect(projected.uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
+  const lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true })
+  expect(lowered.diagnostics).toEqual([])
+  expect(lowered.delta.rules.filter(r => r.terminal).map(r => r.outcome)).toEqual(["deny"])
+  expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(false)
+  const tampered = structuredClone(accepted); tampered.find(u => u.role === "entry").blocks[0].steps[0].arguments[3].object = "different_pack"
+  const tamperedStore = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" })
+  for (const u of tampered) tamperedStore.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }], "test-authored")
+  expect(api.projectSourceMaterials(p, tampered, tamperedStore.snapshot(), index, { questionDirected: true }).uses.filter((u: any) => u.kind === "call")).toEqual([])
+})
 for (const [replacement, code] of [["router = APIRouter(dependencies=[Depends(global_guard)])", "framework-router-options-unmodeled"], ["router = APIRouter(route_class=CustomRoute)", "framework-router-options-unmodeled"], ["router = APIRouter()\nrouter.dependency_overrides[verify] = replacement", "framework-dependency-overrides-unmodeled"]]) test(`request projection retains ${code} for source-visible request configuration`, async () => {
   const f = await requestFixture(false, true, source => source.replace("router = APIRouter()", replacement!))
   expect(lowerSemanticFlow(f.project().units).diagnostics.map(d => d.code)).toContain(code!)

@@ -1,0 +1,65 @@
+{
+  "schemaVersion": "authorization-ay-local-repair-review/v1",
+  "date": "2026-10-08",
+  "stage": "AY6/AY7",
+  "humanAnnotation": false,
+  "scopedChange": "One current source argument binder for v5 lowering and helper adoption; declared pure forwarding packs, signature boundaries and actual zero-argument super receiver. Locked class-decorator source capture remains inspection evidence.",
+  "independentReview": {
+    "reviewer": "ay_argument_forwarding_review",
+    "projectFilesEdited": false,
+    "findings": [
+      {
+        "finding": "Lowering ignored the dynamic default binding gap while projection already refused adoption.",
+        "disposition": "Confirmed incomplete gap visibility, not evidence of a fully checked false promotion. Added a red/green case; v5 now retains the named unresolved step and incomplete unit with other actual bindings."
+      },
+      {
+        "finding": "entry(actor, **kwargs) forwarding actor=actor, **kwargs might receive actor twice.",
+        "disposition": "The proposed counterexample cannot reach entry: its ordinary signature excludes actor from an untouched kwargs pack. Primary verified anonymous Python binding and kept a positive regression. Escapes and positional-only names remain boundaries."
+      }
+    ]
+  },
+  "primaryAdditionalCounterexample": {
+    "source": "entry(actor, *args, **kwargs) -> guard(actor=actor, *args, **kwargs)",
+    "risk": "An unknown positional pack may fill the same regular slot before keyword binding, causing an actual duplicate.",
+    "disposition": "Confirmed by anonymous Python and red/green test; source-arguments-position-unresolved prevents adoption."
+  },
+  "primaryVerification": {
+    "initialRed": { "pass": 52, "fail": 14, "assertions": 185, "files": 3, "fixtureIssue": "One material fixture omitted its symbol-resolution dependency; corrected and rerun before production edits" },
+    "correctedProjectionRed": { "pass": 0, "fail": 1, "assertions": 1 },
+    "additionalRedGroups": ["zero-argument super missing binder", "typed variadic anchors retained stars", "positional pack keyword collision and unreported dynamic default"],
+    "newTests": 19,
+    "focused": { "pass": 145, "fail": 0, "assertions": 469, "files": 6, "durationMs": 696 },
+    "joint": { "pass": 1073, "skip": 1, "fail": 0, "assertions": 6725, "files": 115, "durationMs": 13130 },
+    "mainTypecheck": "passed",
+    "ayTypecheck": "passed",
+    "currentDocumentLinks": { "files": 5, "broken": 0, "legacy": 0, "governanceErrors": 0, "softWarnings": "existing document length limits" }
+  },
+  "sourceCapture": {
+    "path": "source-provenance/schema-decorator-source-v1.json",
+    "sha256": "176fd217737472e7868de4b976c598dfc7a1f7f0984bcc9682da92f762c488c9",
+    "package": "drf-spectacular",
+    "version": "0.30.0",
+    "wheelSha256": "006cf5921ebe20a9bd24f7c846261ebbf78780be5961b0d6e87afaa82afd62ff",
+    "sources": ["drf_spectacular/utils.py", "drf_spectacular/drainage.py"],
+    "frozenSourcesVerified": 94,
+    "networkRequests": 1
+  },
+  "replay": {
+    "path": "verification/paperless-call-arguments-replay.json",
+    "sha256": "f51e167ab39bb13dfa9b99ad54bd78f2c6bcc04b8edafba8664d7685bae57968",
+    "sources": 12,
+    "calls": 78,
+    "resolvedExpandedArgumentMappings": 3,
+    "modelReadEvidence": false,
+    "remaining": ["dispatch packs exposed through instance aliases", "closure callable and actual handler unresolved", "class/method decorator transformation unadopted"]
+  },
+  "semanticUnitsAuthored": 0,
+  "materialUses": 0,
+  "originalAttemptPromoted": false,
+  "newModelInputRegistered": false,
+  "originalInputsAndAllowlistsUnmodified": true,
+  "fullFrameworkComposition": "pending",
+  "modelExecutions": 0,
+  "targetExecutions": 0,
+  "costs": { "experimentTokens": 0, "developerAndScoutTokens": null, "usd": null, "humanTime": null }
+}

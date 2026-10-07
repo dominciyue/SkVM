@@ -3,6 +3,7 @@ import type { Node } from "@vscode/tree-sitter-wasm"
 import type { InquiryEvidence } from "../inquiry-tools.ts"
 import type { StructureCall, StructureIndex, StructureSymbol } from "./structure-index.ts"
 import { sourceLiteral } from "./structure-index.ts"
+import { sourceArgumentBindings } from "./source-arguments.ts"
 import type { SourceSelector } from "./source-selector.ts"
 import type { FiniteValue } from "../../../task-dsl/authorization/control-evaluation.ts"
 
@@ -87,12 +88,16 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       const expression = field(n, "function")?.text ?? n.text, actual = actualCalls.find(c => c.startLine === n.startPosition.row + 1 && c.endLine === n.endPosition.row + 1 && c.expression === expression)
       const arguments_: NonNullable<SourceAnchor["call"]>["arguments"] = kids(field(n, "arguments")).map(a => { const value = a.type === "keyword_argument" ? field(a, "value")! : a, literal = sourceLiteral(value); return { expression: value.text, ...(a.type === "keyword_argument" ? { parameterName: field(a, "name")!.text } : {}), ...(["list_splat", "dictionary_splat", "variadic_argument"].includes(a.type) ? { spread: true } : {}), ...(literal.literalKnown ? literal : {}) } })
       if (!/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(expression) && !/^super\(\)\.[A-Za-z_]\w*$/.test(expression)) gap(n, "skeleton-call-dynamic", "The actual function expression is dynamic; no unique callee or receiver is invented.")
-      if (arguments_.some(a => a.spread)) gap(n, "skeleton-arguments-dynamic", "Expanded arguments require a source-supported mapping; positions are not guessed.")
+      if (arguments_.some(a => a.spread)) {
+        const target = actual?.candidateIds.length === 1 && index.symbols.find(s => s.id === actual.candidateIds[0] && s.kind === "function")
+        const binding = actual && target && sourceArgumentBindings(index, actual, target)
+        if (!questionDirected || !binding || binding.gap) gap(n, "skeleton-arguments-dynamic", `Expanded arguments require a source-supported mapping; ${binding && binding.gap || "positions are not guessed"}.`)
+      }
       return add(n, "call", { call: { sourceCallId: actual?.id, expression, receiver: actual?.receiver, receiverClass: actual?.receiverClass, ...(questionDirected && actual?.receiverBinding ? { receiverBinding: actual.receiverBinding } : {}), arguments: arguments_, candidateIds: actual?.candidateIds ?? [], resultNames: actual?.resultNames ?? [], resultBinding: actual?.resultNames[0] ?? `result-${hash([source.id, n.startIndex]).slice(0, 16)}` } })
     }
     const callsIn = (n: Node) => descendants(n, source.language === "python" ? ["call"] : ["call_expression"]).filter(belongsToScope).sort((a, b) => a.endIndex - b.endIndex || b.startIndex - a.startIndex)
     for (const p of kids(field(fn, "parameters"))) {
-      const names = source.language === "go" ? kids(p).filter(n => n.type === "identifier").map(n => n.text) : [field(p, "name")?.text ?? (p.type === "identifier" ? p.text : kids(p)[0]?.text)].filter((n): n is string => !!n)
+      const names = source.language === "go" ? kids(p).filter(n => n.type === "identifier").map(n => n.text) : [field(p, "name")?.text ?? (p.type === "identifier" ? p.text : kids(p)[0]?.text)].filter((n): n is string => !!n).map(name => name.replace(/^\*+/, ""))
       for (const name of names) add(p, "parameter", { name, defaultExpression: field(p, "value")?.text })
     }
     const receiver = field(fn, "receiver")

@@ -5,6 +5,7 @@ import type { StructureIndex } from "./evidence-preparation/structure-index.ts"
 import { operationCallSourceSelection, operationCallTargets } from "./operation-links.ts"
 import { structuralDependencyRevision } from "./operation-work.ts"
 import { canonicalControl } from "../../task-dsl/authorization/control-slice.ts"
+import { sourceArgumentBindings } from "./evidence-preparation/source-arguments.ts"
 
 export interface SourceMaterialUse {
   kind: "entry" | "call" | "framework"; operationId: string; questionId: string; materialId: string; callerMaterialId?: string;
@@ -28,19 +29,14 @@ const literalArgument = (text: string): { known: boolean; value?: unknown } => {
  * unresolved expression mappings remain unlinked instead of guessing aliases. */
 function actualArguments(index: StructureIndex, caller: BoundSemanticBlock, step: Extract<BoundSemanticBlock["blocks"][number]["steps"][number], { kind: "call" }>, target: BoundSemanticBlock) {
   const call = index.relatedCalls(caller.source!.id, caller.receiverClass).find(c => c.id === step.sourceCallId), symbol = index.symbols.find(s => s.id === target.source!.id)
-  if (!call || !symbol || call.arguments.some(a => /^\*/.test(a.trim()))) return false
-  const arguments_ = call.arguments.map(expression => { const keyword = /^(\w+)\s*=(?!=)([\s\S]+)$/.exec(expression); return { parameter: keyword?.[1], expression: (keyword?.[2] ?? expression).trim() } }), positional = arguments_.filter(a => !a.parameter)
-  const steps = caller.blocks.flatMap(b => b.steps); let position = 0
-  const expected = symbol.parameters.map((parameter, i) => {
-    const receiver = i === 0 && symbol.className && symbol.attributes.methodBinding !== "static" && call.receiver
-    return { parameter: parameter.name, expression: receiver || (arguments_.find(a => a.parameter === parameter.name) ?? positional[position++])?.expression || parameter.defaultExpression }
-  })
-  if (step.arguments.length !== expected.filter(a => a.expression !== undefined).length) return false
+  if (!call || !symbol) return false
+  const binding = sourceArgumentBindings(index, call, symbol), expected = binding.bindings, steps = caller.blocks.flatMap(b => b.steps)
+  if (binding.gap || step.arguments.length !== expected.length) return false
   return expected.every(argument => {
     if (argument.expression === undefined) return !step.arguments.some(a => a.parameter === argument.parameter)
     const actual = step.arguments.filter(a => a.parameter === argument.parameter); if (actual.length !== 1) return false
     if (actual[0]!.object === argument.expression) return true
-    const literal = literalArgument(argument.expression)
+    const literal = argument.literalKnown ? { known: true, value: argument.literalValue } : literalArgument(argument.expression)
     if (literal.known && steps.some(s => s.kind === "bind" && s.type === "value" && (s.bindingName ?? s.name) === actual[0]!.object && canonicalControl(s.value) === canonicalControl(literal.value))) return true
     const nested = index.relatedCalls(caller.source!.id, caller.receiverClass).filter(c => `${c.expression}(${c.arguments.join(",")})`.replace(/\s/g, "") === argument.expression!.replace(/\s/g, ""))
     return nested.length === 1 && steps.some(s => s.kind === "call" && s.sourceCallId === nested[0]!.id && s.result === actual[0]!.object)

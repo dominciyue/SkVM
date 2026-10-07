@@ -22,6 +22,52 @@ test("source staticmethod arguments retain the supplied request rather than the 
   expect(r.unit.blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call").arguments).toEqual([{ parameter: "request", object: "request" }])
 })
 
+test("source-assisted variadic forwarding keeps the actual packs and the original exception handler", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-pack-forward-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "class Gate:\n    def entry(self, actor, *args, **kwargs):\n        try:\n            return self.guard(actor, *args, **kwargs)\n        except Denied:\n            return False\n    def guard(self, actor, *rest, **options):\n        raise Denied()\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
+  const source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id, "app.Gate"))!
+  expect(skeleton.gaps.map(g => g.code)).not.toContain("skeleton-arguments-dynamic")
+  const annotations = skeleton.anchors.filter(a => a.kind === "call" || a.kind === "return").map(a => ({ anchorId: a.id, role: a.kind === "call" ? "condition" : "context", explanation: "Test-authored actual continuation", ...(a.kind === "return" ? { returnOutcome: a.valueExpression === "False" ? "deny" : "allow" } : {}) }))
+  const result = api.lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations, unresolved: [] }, { index: tools.structure, itemId: "entry", handle: "entry", questionId: "q", role: "entry" })
+  expect(result.diagnostics).toEqual([])
+  const call = result.unit.blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call")
+  expect(call.arguments).toEqual([{ parameter: "self", object: "self" }, { parameter: "actor", object: "actor" }, { parameter: "rest", object: "args" }, { parameter: "options", object: "kwargs" }])
+  expect(result.unit.blocks.some((b: any) => b.steps.some((s: any) => s.kind === "try" && s.handlers[0].exceptionTypes[0] === "Denied"))).toBe(true)
+  call.callee = "guard"
+  const target = tools.structure!.symbols.find(s => s.name === "guard")!
+  const helper: any = { itemId: "guard", handle: "guard", questionId: "q", op: "add", role: "helper", evidenceIds: ["ev"], source: { id: target.id, path: target.path, sha256: target.sha256, startLine: target.startLine, endLine: target.endLine }, receiverClass: "app.Gate", start: "body", complete: true, coverage: "path", parameters: target.parameters.map(p => ({ name: p.name, type: "value" })), blocks: [{ name: "body", steps: [{ kind: "raise", name: "denied", claim: "Test-authored source rejection", exceptionType: "Denied", failureKind: "authorization" }] }] }
+  const lowered = lowerSemanticFlow([{ ...result.unit, questionId: "q", evidenceIds: ["ev"] }, helper], { compositional: true, propertyDirected: true })
+  expect(lowered.diagnostics).toEqual([])
+  expect(lowered.delta.rules.filter(r => r.terminal).map(r => r.outcome)).toEqual(["deny"])
+})
+
+test("typed variadic parameter anchors use the actual declared name", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-typed-pack-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def helper(*rest: object, **options: object):\n    return True\ndef entry(*args: object, **kwargs: object):\n    return helper(*args, **kwargs)\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
+  const source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id))!
+  expect(skeleton.anchors.filter(a => a.kind === "parameter").map(a => a.name)).toEqual(["args", "kwargs"])
+})
+
+test("a decisive v5 call retains its named dynamic default binding gap", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-default-gap-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def helper(actor, flag=compute()):\n    return actor\ndef entry(actor):\n    return helper(actor)\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
+  const source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id))!
+  const annotations = skeleton.anchors.filter(a => a.kind === "call" || a.kind === "return").map(a => ({ anchorId: a.id, role: a.kind === "call" ? "condition" : "context", explanation: "Test-authored actual source call", ...(a.kind === "return" ? { returnOutcome: "allow" } : {}) }))
+  const result = api.lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations, unresolved: [] }, { index: tools.structure, itemId: "entry", handle: "entry", questionId: "q", role: "entry" })
+  expect(result.diagnostics).toEqual([])
+  expect(result.unit.complete).toBe(false)
+  expect(result.unit.blocks.flatMap((b: any) => b.steps).some((s: any) => s.kind === "unresolved" && s.reason === "source-arguments-default-dynamic")).toBe(true)
+})
+
 async function fixture() {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "av-interpret-"))
   await writeFile(path.join(sourceRoot, "app.py"), "def entry(actor, a, b, flag):\n    if not flag:\n        return False\n    b.write(actor=actor)\n    return True\n")

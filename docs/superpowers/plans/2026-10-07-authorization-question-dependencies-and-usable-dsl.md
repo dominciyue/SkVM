@@ -138,6 +138,10 @@ DRF下一小步工作计划（2026-10-08）：先从原轮次已保留且SHA一�
 
 本小步已落地v8的`requestActions(receiverClass)`和`drf-source-action/v1`失效合同，mappingBinding/invocation显式unproven；默认/动态参数、重绑定、class遮蔽/wrapper和未知router具名保留。20新增匿名反例红绿，138focused/436断言，联合1054pass/1平台skip/6683断言/114文件，主与AY类型通过。原wheel追加decorators源码及94旧文件核验，Download探针从14项漏dispatch到22来源工作、保留GET→download声明；初始/订阅修复/当前探针分别留档，原source ID、原input/allowlist/答保持。当前仍无新语义/模型/目标执行，完整class wrapper/HTTP mapping实际绑定/dispatch continuation与ASGI环境/generator未采用，整阶段未勾选。接下来确认应用class decorator源码并连接实际dispatch/handler/参数/异常，再具名账号运行。
 
+接续工作计划（2026-10-08）：按原uv.lock核验并追加drf-spectacular 0.30.0 wheel中的类装饰器及直接helper源码，原冻结树/allowlist/输入保持。先检查真实装饰器的返回和方法修改，不凭库名豁免wrapper；把generic class decorator的来源、实参及候选纳入同一source work与依赖合同。实际绑定须采用当前解释并保留修改/异常，而不能以decorator源码存在消除receiver缺口。接着在原sourceCallId及receiver关系上补动态handler与有限实参展开，复用现有source interpretation和语义控制；try/权限拒绝/handler异常以实际源码顺序进入组合。匿名反例先红绿，再原Download零模型探针，完整组合后具名账号复验。
+
+接续进展：锁定schema wheel补充已抓取并SHA/size核验，94旧冻结文件不变；实际装饰器return原class仍会创建继承方法wrapper/复制配置，class/method变换未采用。通用v9 sourceArgumentBindings现连接v5解释和投影，保留Python签名边界、纯转发包与super实际self，动态默认显式具名；未知/逃逸/混合包、普通keyword与*args碰撞等保持边界。19新反例红绿，145focused/469断言、联合1073pass/1平台skip/6725断言/115文件及双类型通过；只读核验和主反例裁定保留。12来源/78调用的原Download源码探针显示三条initial/super初始化参数转发可绑定，dispatch实例alias和闭包handler仍未绑定，材料采用0，完整请求验收仍未勾选。下一小步实际class decorator/闭包调用关系及实例字段的source-supported参数传播，随后请求采用和账号复验；不为它们放宽pure forwarding规则。
+
 ### AY7 实参、返回与资源身份闭合
 
 - 当前实施顺序（2026-10-08）：先用匿名模块实例/遮蔽/重绑定反例验证实际 receiver 来源，再在 v5 source skeleton 中保留唯一未重绑定实例的 source/SHA/class 证明，并生成普通 `value` 绑定。只接机械 receiver，不推断主体、资源、授权或字段 alias；字段传给错误 principal 参数仍报类型缺口。随后核验保留 OWUI 提案的零推理效果，再进入框架组合和真实具名复验。

@@ -6,6 +6,7 @@ import { buildPropertyDemand, type PropertyDemand } from "./property-demand.ts"
 import type { DependencyQuestion } from "./property-dependencies.ts"
 import type { SourceSkeleton, SourceAnchor, SourceFlow } from "../../benchmarks/authorization-dsl/evidence-preparation/source-skeleton.ts"
 import type { StructureIndex } from "../../benchmarks/authorization-dsl/evidence-preparation/structure-index.ts"
+import { sourceArgumentBindings } from "../../benchmarks/authorization-dsl/evidence-preparation/source-arguments.ts"
 
 export const SourceAnnotationSchema = z.object({
   anchorId: InquiryText, role: z.enum(["principal", "resource", "permission", "condition", "effect", "context"]), explanation: InquiryText,
@@ -149,8 +150,22 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
         else {
           const target = a.call!.candidateIds.length === 1 ? options.index?.symbols.find(s => s.id === a.call!.candidateIds[0] && s.kind === "function") : undefined
           const args = a.call!.arguments, positional = args.filter(arg => !arg.parameterName), mapped: Array<{ parameter: string; object: string }> = []
+          const actual = target && options.index?.relatedCalls(skeleton.sourceId, a.call!.receiverClass).find(c => c.id === a.call!.sourceCallId)
+          const currentArguments = actual && target && questionDirected ? sourceArgumentBindings(options.index!, actual, target) : undefined
+          if (currentArguments?.gap) {
+            block.steps.push({ kind: "unresolved", name: `arguments-${a.id}`, claim: `Current source call binding: ${currentArguments.gap}`, reason: currentArguments.gap })
+            unit.complete = false
+          }
           let position = 0
           for (const [i, parameter] of (target?.parameters ?? []).entries()) {
+            if (currentArguments) {
+              const argument = currentArguments.bindings.find(b => b.parameter === parameter.name)
+              if (!argument || !argument.literalKnown && !args.some(p => (p.spread ? p.expression.replace(/^\*+/, "").trim() : p.expression) === argument.expression) && argument.expression !== a.call!.receiver && !/^super\(\)\./.test(a.call!.expression)) continue
+              const nestedResult = skeleton.anchors.find(c => c.kind === "call" && c.id !== a.id && c.text === argument.expression)?.call?.resultBinding
+              const object = argument.literalKnown ? `literal-${a.id}-${parameter.name}` : nestedResult ?? sourceValue(argument.expression).binding as string
+              if (argument.literalKnown) block.steps.push({ kind: "bind", name: object, claim: "Actual source literal argument/default/empty pack", type: "value", value: argument.literalValue! })
+              mapped.push({ parameter: parameter.name, object }); continue
+            }
             const receiver = i === 0 && target?.className && target.attributes.methodBinding !== "static" && a.call!.receiver
             const supplied = receiver ? undefined : args.find(arg => arg.parameterName === parameter.name) ?? positional[position++], value = (receiver || supplied?.expression) ?? parameter.defaultExpression
             if (value) {

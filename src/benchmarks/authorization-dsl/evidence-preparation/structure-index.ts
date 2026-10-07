@@ -6,7 +6,7 @@ import type { FiniteValue } from "../../../task-dsl/authorization/control-evalua
 
 export interface StructureSymbol extends DiscoverySymbol {
   qualifiedName: string; module: string; language: "python" | "go"; className?: string; receiver?: string;
-  parameters: Array<{ name: string; type?: string; defaultExpression?: string; defaultLiteralKnown?: boolean; defaultLiteralValue?: FiniteValue }>; returns: string[]; bases: string[]; attributes: Record<string, string>
+  parameters: Array<{ name: string; type?: string; kind?: "positional-only" | "keyword-only" | "variadic-positional" | "variadic-keyword"; stableForwardPack?: boolean; defaultExpression?: string; defaultLiteralKnown?: boolean; defaultLiteralValue?: FiniteValue }>; returns: string[]; bases: string[]; attributes: Record<string, string>
   decorators?: Array<{ id: string; sourceCallId?: string; expression: string; startLine: number; endLine: number; arguments: Array<{ parameter?: string; expression: string; literalKnown: boolean; literalValue?: FiniteValue }> }>
 }
 export interface StructureCall {
@@ -14,6 +14,7 @@ export interface StructureCall {
   expression: string; receiver?: string; receiverClass?: string; arguments: string[]; candidateIds: string[]; resolution: "resolved" | "ambiguous" | "unresolved";
   basis: string[]; gap?: string; resultNames: string[]; syntaxRole: "condition" | "return" | "argument-default" | "body" | "source-context"
   receiverBinding?: { schemaVersion: "source-module-instance/v1"; name: string; className: string; classSha256: string; source: { path: string; sha256: string; startLine: number; endLine: number } }
+  argumentFacts?: Array<{ expression: string; parameterName?: string; spread?: "positional" | "keyword"; literalKnown: boolean; literalValue?: FiniteValue }>
 }
 export interface StructureRoute { id: string; sourceCallId: string; sourcePath: string; startLine: number; endLine: number; method: string; path: string; handlerExpression: string; candidateIds: string[]; middlewareExpressions: string[]; dependencyExpressions?: string[]; dependencyCallIds?: string[]; bindingGap?: string; bindingSources?: Array<{ path: string; sha256: string; startLine: number; endLine: number }>; model: string }
 export interface StructureRequestDependency {
@@ -113,11 +114,21 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         const receiverType = receiverParam && field(receiverParam, "type")?.text, receiver = receiverType && cleanType(receiverType)
         const className = owner?.kind === "class" ? owner.qualifiedName : receiver ? `${module}.${receiver}` : undefined
         const parametersNode = field(n, "parameters"), parameters: StructureSymbol["parameters"] = []
+        let keywordOnly = false
         if (parametersNode) for (const param of children(parametersNode)) {
           if (language === "python") {
-            const name = field(param, "name")?.text ?? (param.type === "identifier" ? param.text : children(param)[0]?.text)
+            if (param.type === "positional_separator") { for (const p of parameters) p.kind = "positional-only"; continue }
+            if (param.type === "keyword_separator") { keywordOnly = true; continue }
+            const pattern = children(param)[0], name = field(param, "name")?.text ?? (param.type === "identifier" ? param.text : pattern && ["list_splat_pattern", "dictionary_splat_pattern"].includes(pattern.type) ? children(pattern)[0]?.text : pattern?.text)
             const defaultNode = field(param, "value"), literal = sourceLiteral(defaultNode)
-            if (name && /^[A-Za-z_]\w*$/.test(name)) parameters.push({ name, ...(field(param, "type") ? { type: field(param, "type")!.text } : {}), ...(defaultNode ? { defaultExpression: defaultNode.text, defaultLiteralKnown: literal.literalKnown, ...(literal.literalKnown ? { defaultLiteralValue: literal.literalValue! } : {}) } : {}) })
+            const kind = /^\*\*/.test(param.text) ? "variadic-keyword" : /^\*/.test(param.text) ? "variadic-positional" : keywordOnly ? "keyword-only" : undefined
+            if (kind?.startsWith("variadic")) keywordOnly = true
+            const body = field(n, "body"), uses = body ? descendants(body, ["identifier"]).filter(i => i.text === name && !(i.parent?.type === "attribute" && field(i.parent, "attribute")?.id === i.id)) : []
+            const stableForwardPack = kind?.startsWith("variadic") ? uses.every(i => {
+              let owner = i.parent; while (owner && !["function_definition", "class_definition", "lambda"].includes(owner.type)) owner = owner.parent
+              return owner?.id === n.id && i.parent?.type === (kind === "variadic-positional" ? "list_splat" : "dictionary_splat")
+            }) : undefined
+            if (name && /^[A-Za-z_]\w*$/.test(name)) parameters.push({ name, ...(kind ? { kind } : {}), ...(stableForwardPack !== undefined ? { stableForwardPack } : {}), ...(field(param, "type") ? { type: field(param, "type")!.text } : {}), ...(defaultNode ? { defaultExpression: defaultNode.text, defaultLiteralKnown: literal.literalKnown, ...(literal.literalKnown ? { defaultLiteralValue: literal.literalValue! } : {}) } : {}) })
           } else {
             const type = field(param, "type")?.text
             for (const id of children(param).filter(c => c.type === "identifier")) parameters.push({ name: id.text, ...(type ? { type } : {}) })
@@ -208,7 +219,8 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           if (ancestor.type === "return_statement") { syntaxRole = "return"; break }
           ancestor = ancestor.parent
         }
-        rawCalls.push({ types, localNames: language === "python" && symbol?.kind === "function" ? [...new Set([...symbol.parameters.map(p => p.name), ...localNames.get(symbol.id) ?? []])] : [], groupPaths, registrationContext, call: { id: `call-${hash([sourceIdentity, file.path, sha256, n.startIndex]).slice(0, 24)}`, ...(symbol ? { ownerId: symbol.id } : {}), path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, expression, ...(expression.includes(".") ? { receiver: expression.slice(0, expression.lastIndexOf(".")) } : {}), arguments: args, candidateIds: [], resolution: "unresolved", basis: [], resultNames, syntaxRole } })
+        const argumentFacts = language === "python" ? children(field(n, "arguments")).map(a => { const value = a.type === "keyword_argument" ? field(a, "value")! : a; return { expression: boundedText(value), ...(a.type === "keyword_argument" ? { parameterName: field(a, "name")!.text } : {}), ...(a.type === "list_splat" ? { spread: "positional" as const } : a.type === "dictionary_splat" ? { spread: "keyword" as const } : {}), ...sourceLiteral(value) } }) : undefined
+        rawCalls.push({ types, localNames: language === "python" && symbol?.kind === "function" ? [...new Set([...symbol.parameters.map(p => p.name), ...localNames.get(symbol.id) ?? []])] : [], groupPaths, registrationContext, call: { id: `call-${hash([sourceIdentity, file.path, sha256, n.startIndex]).slice(0, 24)}`, ...(symbol ? { ownerId: symbol.id } : {}), path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, expression, ...(expression.includes(".") ? { receiver: expression.slice(0, expression.lastIndexOf(".")) } : {}), arguments: args, ...(argumentFacts ? { argumentFacts } : {}), candidateIds: [], resolution: "unresolved", basis: [], resultNames, syntaxRole } })
       }
       const constants: Record<string, string> = {}, routers: FileScope["routers"] = [], decorators: FileScope["decorators"] = [], includes: FileScope["includes"] = []
       if (language === "python") {
@@ -601,7 +613,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     }
     actionCache.set(receiverClass, facts); return structuredClone(facts)
   }
-  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v8"
+  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v9"
   const withSymbolSyntax = <T>(symbolId: string, visit: (root: Node, symbol: StructureSymbol) => T): Promise<T> => {
     const symbol = symbols.find(s => s.id === symbolId), file = symbol && files.find(f => f.path === symbol.path)
     if (!symbol || !file || hash(file.content) !== symbol.sha256) throw new Error("structure-source-missing")
