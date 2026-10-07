@@ -307,3 +307,78 @@ test("a function's global alias write retains its possible application modificat
   expect(index.routes[0]!.bindingGap).toBe("framework-router-alias-unresolved")
   expect(index.requestMiddleware(index.routes[0]!.id)[0]!).toMatchObject({ registrationBinding: "possible", registrationContext: [{ kind: "function_definition", expression: "configure" }] })
 })
+
+const drfSources = [
+  { path: "rest_framework/decorators.py", content: "def action(methods=None, detail=None, url_path=None, **kwargs):\n    def decorator(func):\n        func.mapping = MethodMapper(func, methods)\n        return func\n    return decorator\nclass MethodMapper(dict):\n    def __init__(self, action, methods):\n        for method in methods:\n            self[method] = action.__name__\n    def post(self, func):\n        return func\n" },
+  { path: "rest_framework/routers.py", content: "class BaseRouter:\n    def register(self, prefix, viewset):\n        return viewset\nclass Router(BaseRouter):\n    def get_routes(self, viewset):\n        return viewset.get_extra_actions()\n    def _get_dynamic_route(self, route, action):\n        return action.mapping\n    def get_method_map(self, viewset, mapping):\n        return mapping\n    def get_urls(self):\n        return []\n" },
+  { path: "rest_framework/viewsets.py", content: "class ViewSet:\n    def as_view(cls, actions=None):\n        return actions\n    def get_extra_actions(cls):\n        return []\n    def dispatch(self, request):\n        return request\n" },
+]
+test("DRF action declarations retain HTTP mapping sources and actual inherited receiver", async () => {
+  const index = await buildStructureIndex([...drfSources, { path: "app.py", content: "from rest_framework.decorators import action as route\nfrom rest_framework.viewsets import ViewSet\nfrom rest_framework.routers import Router\nclass Parent(ViewSet):\n    @route(methods=['GET'], detail=True, url_path='fetch')\n    def fetch(self, request):\n        return request\n    @fetch.mapping.post\n    def replace(self, request):\n        return request\nclass Child(Parent):\n    pass\nrouter = Router()\nrouter.register('items', Child)\n" }], { repository: "anonymous", sourceRef: "r" })
+  const facts = (index as any).requestActions("app.Child")
+  expect(facts).toHaveLength(1)
+  expect(facts[0]).toMatchObject({ receiverClass: "app.Child", actionName: "fetch", detail: true, urlPath: "fetch", invocation: "unproven", model: "drf-source-action/v1" })
+  expect(facts[0].methodMappings.map((m: any) => [m.method, m.actionName, m.candidateIds])).toEqual([["GET", "fetch", [index.lookupMethod("app.Child", "fetch")[0]!.id]], ["POST", "replace", [index.lookupMethod("app.Child", "replace")[0]!.id]]])
+  expect(facts[0].sourceCallId).toBe(index.calls.find(c => c.expression === "route")!.id)
+  expect(facts[0].routeIds).toEqual([index.routes[0]!.id])
+  expect(facts[0].sourceCandidates.map((c: any) => index.symbols.find(s => s.id === c.candidateId)!.qualifiedName)).toContain("rest_framework.viewsets.ViewSet.as_view")
+  expect(facts[0].gap).toBeUndefined()
+  facts[0].methodMappings[0].method = "DELETE"
+  expect((index as any).requestActions("app.Child")[0].methodMappings[0].method).toBe("GET")
+})
+test("an undecorated override removes the inherited DRF action instead of borrowing its HTTP mapping", async () => {
+  const index = await buildStructureIndex([...drfSources, { path: "app.py", content: "from rest_framework.decorators import action\nfrom rest_framework.viewsets import ViewSet\nclass Parent(ViewSet):\n    @action(methods=['get'], detail=True)\n    def fetch(self, request):\n        return request\nclass Child(Parent):\n    def fetch(self, request):\n        return request\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect((index as any).requestActions("app.Parent")).toHaveLength(1)
+  expect((index as any).requestActions("app.Child")).toEqual([])
+})
+for (const [change, code] of [["action = replacement\n", "framework-action-constructor-rebound"], ["methods=verbs", "framework-action-methods-dynamic"], ["permission_classes=[Other]", "framework-action-options-unmodeled"], ["@wrapper\n    ", "framework-action-wrapper-unmodeled"]] as const) test(`DRF mapping retains ${code}`, async () => {
+  let content = "from rest_framework.decorators import action\nfrom rest_framework.viewsets import ViewSet\nclass View(ViewSet):\n    @action(methods=['get'], detail=True)\n    def fetch(self, request):\n        return request\n"
+  content = change.includes("replacement") ? content.replace("class View", change + "class View") : change.startsWith("@") ? content.replace("@action", change + "@action") : content.replace("methods=['get']", change)
+  const index = await buildStructureIndex([...drfSources, { path: "app.py", content }], { repository: "anonymous", sourceRef: "r" })
+  expect((index as any).requestActions("app.View")[0].gap).toBe(code)
+})
+test("a missing qualified action source never borrows a same-named local factory", async () => {
+  const index = await buildStructureIndex([...drfSources.filter(f => !f.path.endsWith("decorators.py")), { path: "decoy.py", content: "def action(x):\n    return x\n" }, { path: "app.py", content: "from rest_framework.decorators import action\nfrom rest_framework.viewsets import ViewSet\nclass View(ViewSet):\n    @action(methods=['get'], detail=True)\n    def fetch(self, request):\n        return request\n" }], { repository: "anonymous", sourceRef: "r" })
+  const fact = (index as any).requestActions("app.View")[0]
+  expect(fact.gap).toBe("framework-action-source-missing")
+  expect(fact.sourceCandidates.some((c: any) => index.symbols.find(s => s.id === c.candidateId)?.qualifiedName === "decoy.action")).toBe(false)
+})
+test("located action and mapper bodies do not prove the declared HTTP mapping", async () => {
+  const index = await buildStructureIndex([...drfSources.map(f => f.path.endsWith("decorators.py") ? { ...f, content: "def action(methods=None, detail=None):\n    return None\nclass MethodMapper:\n    def __init__(self, action, methods):\n        return None\n" } : f), { path: "app.py", content: "from rest_framework.decorators import action\nfrom rest_framework.viewsets import ViewSet\nclass View(ViewSet):\n    @action(methods=['get'], detail=True)\n    def fetch(self, request):\n        return request\n" }], { repository: "anonymous", sourceRef: "r" })
+  const fact = (index as any).requestActions("app.View")[0]
+  expect(fact).toMatchObject({ mappingBinding: "unproven", invocation: "unproven" })
+  expect(fact.sourceCandidates.map((c: any) => index.symbols.find(s => s.id === c.candidateId)!.qualifiedName)).toContain("rest_framework.decorators.action")
+})
+test("an inherited method mapper resolves its mapped name on the current request class", async () => {
+  const index = await buildStructureIndex([...drfSources, { path: "app.py", content: "from rest_framework.decorators import action\nfrom rest_framework.viewsets import ViewSet\nclass Parent(ViewSet):\n    @action(methods=['get'], detail=True)\n    def fetch(self, request):\n        return request\n    @fetch.mapping.post\n    def replace(self, request):\n        return request\nclass Child(Parent):\n    def replace(self, request):\n        return None\n" }], { repository: "anonymous", sourceRef: "r" })
+  const mapping = (index as any).requestActions("app.Child")[0].methodMappings.find((m: any) => m.method === "POST")
+  expect(mapping.candidateIds).toEqual([index.lookupMethod("app.Child", "replace")[0]!.id])
+  expect(mapping.sourceId).toBe(index.lookupMethod("app.Parent", "replace")[0]!.id)
+})
+for (const [change, code] of [["    action = replacement\n", "framework-action-constructor-shadowed"], ["View.fetch = replacement\n", "framework-action-receiver-binding-unresolved"]] as const) test(`source class binding retains ${code}`, async () => {
+  const content = "from rest_framework.decorators import action\nfrom rest_framework.viewsets import ViewSet\nclass View(ViewSet):\n" + (change.startsWith(" ") ? change : "") + "    @action(methods=['get'], detail=True)\n    def fetch(self, request):\n        return request\n" + (change.startsWith(" ") ? "" : change)
+  const index = await buildStructureIndex([...drfSources, { path: "app.py", content }], { repository: "anonymous", sourceRef: "r" })
+  expect((index as any).requestActions("app.View")[0].gap).toBe(code)
+})
+test("a register namesake retains a DRF route lead with an unproven receiver", async () => {
+  const index = await buildStructureIndex([...drfSources, { path: "app.py", content: "from rest_framework.decorators import action\nfrom rest_framework.viewsets import ViewSet\nclass View(ViewSet):\n    @action(methods=['get'], detail=True)\n    def fetch(self, request):\n        return request\nclass Fake:\n    def register(self, prefix, viewset):\n        return None\nrouter = Fake()\nrouter.register('items', View)\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect(index.routes[0]!.bindingGap).toBe("framework-drf-router-binding-unresolved")
+  expect((index as any).requestActions("app.View")[0].routeIds).toEqual([index.routes[0]!.id])
+})
+test("a source-proven class identity subscription preserves inherited dispatch through aliases", async () => {
+  const index = await buildStructureIndex([
+    { path: "base.py", content: "class Base:\n    def __class_getitem__(cls, *args, **kwargs):\n        return cls\n    def dispatch(self, request):\n        return request\nclass Parent(Base):\n    pass\n" },
+    { path: "app.py", content: "from base import Parent as Generic\nclass View(Generic[Unknown]):\n    pass\n" },
+  ], { repository: "anonymous", sourceRef: "r" })
+  expect(index.lookupMethod("app.View", "dispatch").map(s => s.qualifiedName)).toEqual(["base.Base.dispatch"])
+  expect(index.linearize("app.View")).toEqual(["app.View", "base.Parent", "base.Base"])
+})
+for (const body of ["return Other", "audit()\n        return cls", "if flag:\n            return cls\n        return Other"]) test(`a class subscription with ${body.split("\n")[0]} cannot borrow the unsubscribed base`, async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "class Base:\n    def __class_getitem__(cls, item):\n        " + body + "\n    def dispatch(self, request):\n        return request\nclass View(Base[Unknown]):\n    pass\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect(index.lookupMethod("app.View", "dispatch")).toEqual([])
+})
+for (const declaration of ["async def __class_getitem__(cls, item):", "def __class_getitem__(cls, item):"]) test(`class subscription respects ${declaration.startsWith("async") ? "async return" : "an explicit metaclass"}`, async () => {
+  const content = "class Meta:\n    def __getitem__(self, item):\n        return Other\nclass Base" + (declaration.startsWith("async") ? ":" : "(metaclass=Meta):") + "\n    " + declaration + "\n        return cls\n    def dispatch(self, request):\n        return request\nclass View(Base[Unknown]):\n    pass\n"
+  const index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" })
+  expect(index.lookupMethod("app.View", "dispatch")).toEqual([])
+})

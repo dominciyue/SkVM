@@ -6,7 +6,7 @@
 
 **授权任务已有局部语义、来源材料、变化失效和账号双入口的真实实现；AX完成离线交付并取得真实工具轨迹，完整源码质量、真实复用与整体净收益仍未建立。** 当前AY已获授权，计划补问题驱动依赖、继承权限与对象连接、逐题结论检查，并完成原skill、作者包及变化消费。任务范围仍是单repo/ref、源码可见的授权与信任边界评估；质量、编写修改、复用和开销分别评价，历史结果保留。
 
-AY当前已修复普通receiver来源连接、终答枚举、跨入口框架footprint、静态FastAPI依赖组合及ASGI注册/方法取证；真实OWUI的外部middleware来源与continuation仍使完整请求组合未闭合，整文件SHA粒度保留。确定性工程验证不替代当前任务源码完整、实际复用或净收益证据。
+AY当前已修复普通receiver来源连接、终答枚举、跨入口框架footprint、静态FastAPI依赖组合、ASGI注册/方法取证及DRF action来源/identity订阅；真实OWUI的外部middleware来源与continuation仍使完整请求组合未闭合，整文件SHA粒度保留。确定性工程验证不替代当前任务源码完整、实际复用或净收益证据。
 
 日常先读本节与[当前状态](current-status.md)。当前执行决定见[§7.60](#760-ay-问题依赖完整使用与收益验证)，AX代码和真实反例复核见[§7.59](#759-ax-离线交付复核与下一步方法建议)，其原开发决定见[§7.58](#758-ax-按授权问题求值与账号真实执行开发决定)。方法形成过程见§4–§7.18，历史开发记录保留在§7后续章节。本地化候选保留在§8–§9，暂缓实施。
 
@@ -2052,6 +2052,8 @@ AY6静态FastAPI请求组合已进入v5临时投影：源码确认的route/Depen
 
 AY6后续ASGI取证把通用配置缺口落到当前注册call及constructor/__call__/dispatch来源：`source-bindings/v7`保留参数与条件/异常/函数作用域，每route的`fastapi-source-asgi/v1`保存当前类/MRO来源，跨文件body变化撤回其footprint，无关文件不污染。注册的应用alias明确resolved/possible；探子指出重绑定alias被当确定注册，已补具名possible边界，不能从未知replacement证明app无影响，也不再把potential称为实际注册。跨root/global alias漏捕、参数遮蔽误借类、重复positional表达式丢失和source-root-qualified base被误报缺失均红绿修复。已读/已解释middleware仍无actual use，不能checked；词法顺序保持unproven。118focused/398断言，新鲜联合1034pass/1平台skip/6645断言、114文件、13.44s和双类型通过。原OWUI回放有11源码注册/11方法候选，仍3普通采用，外部类/base与continuation缺口保持；初始/current回放分别留档，原答不升级，实验调用0。见[局部复核](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay6-asgi-registration.json)与[当前来源回放](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/owui-request-middleware-replay.json)。DRF dispatch/action及ASGI完整组合继续，真实净收益未建立。
 
+AY6同轮DRF来源小步（2026-10-08）：从原轮次保留的3.18.1 wheel追加提取缺失decorators.py，核对wheel SHA及94旧冻结文件，独立来源supplement不改旧树/input/allowlist。v8保留action/secondary mapping声明、实际receiver及router/factory/mapper/as_view候选，进入逐题工作和按receiver的footprint。真实Download首先暴露GenericViewSet[Document]被当未知base、漏dispatch；仅在当前源码同步无其它动作地return原cls时保留订阅身份，其余形式保持opaque。类内遮蔽、方法替换、动态参数队列漏捕、async/metaclass及继承override反例已红绿。独立核验提醒factory存在不证明映射，现显式mappingBinding/invocation unproven，不由开发者按body形状补框架语义。138focused/436断言，新鲜联合1054pass/1平台skip/6683断言、114文件、13.24s及双类型通过。保留初始14项、订阅修复22项及当前22项来源探针；当前GET→download仍是声明，应用schema class wrapper、动态handler/参数/异常组合未采用。原source ID保留、无新annotation/实验/目标执行、旧答不升级；开发/探子token、USD与真人时间unknown。见[局部复核](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay6-drf-action-source.json)与[当前来源回放](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-action-source-replay.json)。下一步补来源确认的class decorator与请求dispatch组合，然后具名账号复验；完整使用与净收益仍未达。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
@@ -2134,7 +2136,7 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-05 / AS：** 局部选择/效果与同源结果已共用，两原skill及作者原稿实际消费；机制改善有原件，完整质量/变化复用/净收益未达，以completed-with-unmet-criteria收束，责任见§7.48。
 - **2026-10-05 / AT：** 持久解释事务、宿主身份、纯有限摘要、显示/读取/源码终检与通用词法修复已经实现及实际使用。12质量首位置0完整；4native原始自然说明充分2但formal0；4忠实稿消费均partial；fresh变化4partial、previous2阻断，37原件556/556。有限队列以completed-with-unmet-criteria收束；当前限制、真实修复和计量见§7.49。
 
-- **2026-10-08 / AY：** v5初版已接通，账号0.160.0的Download具名尝试与OWUI首/修订实际交付，均源码partial、结构终答缺失。OWUI修订6单元/3实际投影；receiver值绑定、枚举合同、按receiver的框架footprint与静态Depends组合已红绿修复。当前零模型回放找到11middleware注册/11方法，具名阻断尚未证明的框架采用，完整ASGI/DRF链仍未达。总token增加、fresh下降分列，真实净收益未建立。联合1034pass/1平台skip及主/AY类型通过；整文件SHA粒度、原件、全部成本与独立裁定保留，22首位置和完整队列见§7.60。
+- **2026-10-08 / AY：** v5初版已接通，账号0.160.0的Download具名尝试与OWUI首/修订实际交付，均源码partial、结构终答缺失。OWUI修订6单元/3实际投影；receiver值绑定、枚举合同、按receiver的框架footprint与静态Depends组合已红绿修复。当前零模型回放找到11middleware注册/11方法，具名阻断尚未证明的框架采用，完整ASGI/DRF链仍未达。总token增加、fresh下降分列，真实净收益未建立。DRF保留GET→download声明和22项来源工作，identity订阅找回继承dispatch，mapping binding与invocation未证明，类wrapper继续阻断。联合1054pass/1平台skip及主/AY类型通过；整文件SHA粒度、原件、全部成本与独立裁定保留，22首位置和完整队列见§7.60。
 
 ## 12. 后续追加规则
 

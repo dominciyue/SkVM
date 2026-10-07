@@ -132,6 +132,12 @@ v5 使用独立的 `question-control/v1` 材料语义身份。旧 v4 材料可�
 
 ASGI取证小步进展（2026-10-08）：`source-bindings/v7`的`requestMiddleware(routeId)`保留精确注册call、参数、条件/作用域、class来源及constructor/__call__/dispatch候选，沿router/include祖先进入既有operation-work/逐题队列。源码出现顺序不冒充全局执行顺序；缺外部base/类、重绑定/动态目标及未采用continuation均保留具名边界。单一稳定应用alias为resolved，重绑定/局部/全局写入的潜在alias为possible且具名未证明，不能声称它实际修改本app；这种保守来源追踪可能产生额外阻断。匿名红绿覆盖同名decoy、条件、遮蔽、重复参数、跨root/global alias及跨文件footprint。原OWUI零模型回放有11注册/11方法候选、仍3普通采用；原材料/原答不升级。118focused/398断言、联合1034pass/1平台skip及双类型通过。需要callback/ASGI环境和外部库来源的完整组合继续pending；下一步推进已有框架源码的DRF dispatch/HTTP映射，同时保留ASGI/source-version/generator缺口，不按已读method闭合。
 
+DRF下一小步工作计划（2026-10-08）：先从原轮次已保留且SHA一致的3.18.1 wheel追加提取`decorators.py`，登记独立来源补充及原冻结树不变；不扩大旧输入allowlist或回填旧答案。然后以匿名红绿反例建立实际receiver的`@action`与`.mapping.<method>`声明、继承/遮蔽、字面HTTP参数和router/as_view来源候选；来源候选与实际执行采用继续分开，动态参数、wrapper、rebind、缺源码及自定义入口保持具名边界。接入v5逐题work和当前依赖失效，用保留Download来源做零模型回放。最后在这份关系上推进实际dispatch的动态handler/实参/异常组合，完成后才恢复具名账号实验；不把声明取证当作完整请求权限组合。
+
+同轮真实来源发现并纳入小步修复：DRF的`GenericAPIView.__class_getitem__`源码为唯一`return cls`，旧索引却把`GenericViewSet[Document]`作为未知基类并漏掉dispatch候选。只对当前唯一、未替换、无其它动作/装饰器的原类返回订阅建立基类身份；未知/自定义订阅不按typing外观剥离。应用类的schema装饰器仍未解释，不能因找回MRO候选而宣称实际receiver或请求组合已证明。
+
+本小步已落地v8的`requestActions(receiverClass)`和`drf-source-action/v1`失效合同，mappingBinding/invocation显式unproven；默认/动态参数、重绑定、class遮蔽/wrapper和未知router具名保留。20新增匿名反例红绿，138focused/436断言，联合1054pass/1平台skip/6683断言/114文件，主与AY类型通过。原wheel追加decorators源码及94旧文件核验，Download探针从14项漏dispatch到22来源工作、保留GET→download声明；初始/订阅修复/当前探针分别留档，原source ID、原input/allowlist/答保持。当前仍无新语义/模型/目标执行，完整class wrapper/HTTP mapping实际绑定/dispatch continuation与ASGI环境/generator未采用，整阶段未勾选。接下来确认应用class decorator源码并连接实际dispatch/handler/参数/异常，再具名账号运行。
+
 ### AY7 实参、返回与资源身份闭合
 
 - 当前实施顺序（2026-10-08）：先用匿名模块实例/遮蔽/重绑定反例验证实际 receiver 来源，再在 v5 source skeleton 中保留唯一未重绑定实例的 source/SHA/class 证明，并生成普通 `value` 绑定。只接机械 receiver，不推断主体、资源、授权或字段 alias；字段传给错误 principal 参数仍报类型缺口。随后核验保留 OWUI 提案的零推理效果，再进入框架组合和真实具名复验。

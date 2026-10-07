@@ -169,3 +169,33 @@ test("middleware source changes invalidate its route footprint while unrelated s
   expect(changed.routes[0]!.id).toBe(before.routes[0]!.id)
   expect(structuralDependencyRevision(changed, dependency)).not.toBe(dependency.revision)
 })
+
+test("v5 DRF action work binds registration and mapping source to the actual method receiver", async () => {
+  const files = [
+    { path: "rest_framework/decorators.py", content: "def action(methods=None, detail=None):\n    return None\nclass MethodMapper:\n    def __init__(self, action, methods):\n        return None\n" },
+    { path: "rest_framework/views.py", content: "class Base:\n    def dispatch(self, request):\n        return request\n    def as_view(cls, actions=None):\n        return actions\n    def get_extra_actions(cls):\n        return []\n" },
+    { path: "app.py", content: "from rest_framework.views import Base\nfrom rest_framework.decorators import action\nclass View(Base):\n    @action(methods=['get'], detail=True)\n    def fetch(self, request):\n        return request\n" },
+  ]
+  const before = await buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" }), entry = before.symbols.find(s => s.qualifiedName === "app.View.fetch")!
+  const work = operationWork(before, entry.id, [], [], "app.View", { sourceAssisted: true, operationRoot: true, questionDirected: true })
+  const factory = work.actions.find(a => before.symbols.find(s => s.id === a.candidateId)?.qualifiedName === "rest_framework.decorators.action")!
+  expect(factory).toMatchObject({ decisive: true, frameworkBoundary: true, kind: "read" })
+  const dependency = work.frameworkDependencies.find(d => d.key === "drf-source-action/v1:app.View")!
+  expect(dependency).toBeDefined()
+  const changed = await buildStructureIndex(files.map(f => f.path.endsWith("decorators.py") ? { ...f, content: f.content.replace("None\nclass", "True\nclass") } : f), { repository: "anonymous", sourceRef: "r" })
+  expect(structuralDependencyRevision(changed, dependency)).not.toBe(dependency.revision)
+  const unrelated = await buildStructureIndex([...files, { path: "decoy.py", content: "def action():\n    return False\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect(structuralDependencyRevision(unrelated, dependency)).toBe(dependency.revision)
+  expect(work.frameworkGaps.some(g => g.code === "framework-action-registration-missing")).toBe(true)
+})
+test("a dynamic HTTP declaration retains source work at its method entry", async () => {
+  const index = await buildStructureIndex([
+    { path: "rest_framework/decorators.py", content: "def action(methods=None, detail=None):\n    return None\nclass MethodMapper:\n    def __init__(self, action, methods):\n        return None\n" },
+    { path: "rest_framework/views.py", content: "class Base:\n    def dispatch(self, request):\n        return request\n" },
+    { path: "app.py", content: "from rest_framework.views import Base\nfrom rest_framework.decorators import action\nclass View(Base):\n    @action(methods=verbs, detail=True)\n    def fetch(self, request):\n        return request\n" },
+  ], { repository: "anonymous", sourceRef: "r" })
+  const work = operationWork(index, index.symbols.find(s => s.name === "fetch")!.id, [], [], "app.View", { sourceAssisted: true, operationRoot: true, questionDirected: true })
+  expect(work.frameworkGaps.some(g => g.code === "framework-action-methods-dynamic")).toBe(true)
+  const interpreted = operationWork(index, index.symbols.find(s => s.name === "fetch")!.id, [], work.actions.map(a => ({ id: a.candidateId, receiverClass: a.receiverClass })), "app.View", { sourceAssisted: true, operationRoot: true, questionDirected: true })
+  expect(interpreted.actions.find(a => index.symbols.find(s => s.id === a.candidateId)?.qualifiedName === "rest_framework.decorators.action")).toMatchObject({ kind: "link", frameworkBoundary: true })
+})

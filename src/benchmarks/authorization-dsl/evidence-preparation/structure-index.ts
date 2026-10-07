@@ -7,6 +7,7 @@ import type { FiniteValue } from "../../../task-dsl/authorization/control-evalua
 export interface StructureSymbol extends DiscoverySymbol {
   qualifiedName: string; module: string; language: "python" | "go"; className?: string; receiver?: string;
   parameters: Array<{ name: string; type?: string; defaultExpression?: string; defaultLiteralKnown?: boolean; defaultLiteralValue?: FiniteValue }>; returns: string[]; bases: string[]; attributes: Record<string, string>
+  decorators?: Array<{ id: string; sourceCallId?: string; expression: string; startLine: number; endLine: number; arguments: Array<{ parameter?: string; expression: string; literalKnown: boolean; literalValue?: FiniteValue }> }>
 }
 export interface StructureCall {
   id: string; ownerId?: string; path: string; sha256: string; startLine: number; endLine: number;
@@ -25,6 +26,13 @@ export interface StructureRequestMiddleware {
   registrationContext: Array<{ kind: string; expression: string; startLine: number; endLine: number }>;
   candidateIds: string[]; receiverClass?: string; methodCandidates: Array<{ method: string; candidateId: string }>;
   sources: Array<{ id: string; path: string; sha256: string }>; registrationBinding: "resolved" | "possible"; executionOrder: "unproven"; model: "fastapi-source-asgi/v1"; gap?: string;
+}
+export interface StructureRequestAction {
+  id: string; receiverClass: string; actionName: string; sourceId: string; sourceCallId: string; constructor: string; arguments: string[];
+  source: { path: string; sha256: string; startLine: number; endLine: number }; detail?: boolean; urlPath?: string;
+  methodMappings: Array<{ method: string; actionName: string; candidateIds: string[]; declarationId: string; sourceId: string }>;
+  routeIds: string[]; sourceCandidates: Array<{ role: string; candidateId: string; receiverClass?: string }>;
+  sources: Array<{ id: string; path: string; sha256: string }>; mappingBinding: "unproven"; invocation: "unproven"; model: "drf-source-action/v1"; gap?: string;
 }
 interface FileScope { path: string; sha256: string; module: string; language: "python" | "go"; aliases: Record<string, string>; moduleAliases: Record<string, string>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; localNames: string[]; groupPaths: string[]; registrationContext: StructureRequestMiddleware["registrationContext"] }>; routerAliases: Array<{ name: string; value: string; ownerId?: string; localNames: string[] }>; moduleAssignments: Record<string, number>; moduleAttributeWrites: string[]; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean; requestOptionsUnmodeled: boolean; startLine: number; endLine: number }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; dependencies: Array<{ constructor: string; expression: string; sourceCallId: string; parameter?: string }>; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string; requestOptionsUnmodeled: boolean }> }
 const hash = (v: unknown) => createHash("sha256").update(typeof v === "string" ? v : JSON.stringify(v)).digest("hex")
@@ -124,6 +132,10 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           if (n.parent?.type === "decorated_definition") attributes.bindingWrapped = "true"
         }
         if (language === "python" && n.parent?.type === "decorated_definition" && children(n.parent).some(d => d.type === "decorator" && d.text.trim() === "@staticmethod")) attributes.methodBinding = "static"
+        if (language === "python" && name === "__class_getitem__" && !n.hasError && !n.children.some(c => c?.type === "async") && n.parent?.type !== "decorated_definition") {
+          const body = children(field(n, "body")).filter(s => s.type !== "comment" && !(s.type === "expression_statement" && children(s).every(v => v.type === "string")))
+          if (body.length === 1 && body[0]!.type === "return_statement" && children(body[0]!).length === 1 && children(body[0]!)[0]!.type === "identifier" && children(body[0]!)[0]!.text === parameters[0]?.name) attributes.subscriptionClassIdentity = "source-return-only/v1"
+        }
         if (n.type === "class_definition") for (const statement of children(field(n, "body"))) for (const assignment of statement.type === "expression_statement" ? children(statement).filter(c => c.type === "assignment") : []) {
           const key = field(assignment, "left")?.text, value = field(assignment, "right")?.text; if (key && value) attributes[key] = value
         }
@@ -132,6 +144,10 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           for (const key of children(declaration).filter(c => c.type === "field_identifier")) if (type) attributes[key.text] = type
         }
         const s: StructureSymbol = { id: `struct-${hash([sourceIdentity, file.path, sha256, n.startIndex, qualifiedName]).slice(0, 24)}`, path: file.path, sha256, name, qualifiedName, module, language, kind: n.type === "class_definition" || n.type === "type_spec" ? "class" : "function", startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, boundary: n.hasError ? "uncertain" : "complete", ...(className ? { parent: className.split(".").at(-1), className } : {}), ...(receiver ? { receiver } : {}), parameters, returns: field(n, "return_type") || field(n, "result") ? [(field(n, "return_type") ?? field(n, "result"))!.text] : [], bases: children(field(n, "superclasses")).map(c => c.text), attributes }
+        if (language === "python" && n.type === "function_definition" && n.parent?.type === "decorated_definition") s.decorators = children(n.parent).filter(d => d.type === "decorator").map(d => {
+          const expression = children(d)[0]!, call = expression.type === "call" ? expression : undefined
+          return { id: `decorator-${hash([sourceIdentity, file.path, sha256, d.startIndex]).slice(0, 24)}`, ...(call ? { sourceCallId: `call-${hash([sourceIdentity, file.path, sha256, call.startIndex]).slice(0, 24)}` } : {}), expression: call ? field(call, "function")!.text : expression.text, startLine: d.startPosition.row + 1, endLine: d.endPosition.row + 1, arguments: children(call && field(call, "arguments")).map(a => { const value = a.type === "keyword_argument" ? field(a, "value")! : a, literal = sourceLiteral(value); return { ...(a.type === "keyword_argument" ? { parameter: field(a, "name")!.text } : {}), expression: value.text, ...literal } }) }
+        })
         byNode.set(n.id, s); symbols.push(s)
       }
       const localNames = new Map<string, Set<string>>(), moduleAssignments: Record<string, number> = {}, globalNames = new Map<string, Set<string>>()
@@ -264,7 +280,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     if (active.includes(name)) return undefined
     const cls = matching(name).filter(s => s.kind === "class")
     if (cls.length !== 1) return [name]
-    const bases = cls[0]!.bases.map(b => qualified(b, scopeFor(cls[0]!))), lists = bases.map(b => linearize(b, [...active, name]))
+    const bases = cls[0]!.bases.map(b => qualifyBase(b, scopeFor(cls[0]!), [...active, name])), lists = bases.map(b => linearize(b, [...active, name]))
     if (lists.some(l => !l)) return undefined
     const sequences = [...lists as string[][], [...bases]], result = [cls[0]!.qualifiedName]
     while (sequences.some(s => s.length)) {
@@ -274,6 +290,19 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     }
     if (!active.length) mroCache.set(name, [...result])
     return result
+  }
+  function qualifyBase(text: string, scope: FileScope, active: string[]) {
+    const unknown = qualified(text, scope), match = /^([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)\[([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*(?:\s*,\s*[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)*)\]$/.exec(text)
+    if (!match || !stableSourceBinding(match[1]!, scope)) return unknown
+    const classes = matching(qualified(match[1]!, scope)).filter(s => s.kind === "class")
+    if (classes.length !== 1) return unknown
+    const cls = classes[0]!, owners = linearize(cls.qualifiedName, active)
+    if (!owners || owners.some(owner => /[=\[\]()]/.test(owner) || matching(owner).filter(s => s.kind === "class").some(s => s.attributes.bindingWrapped || Object.hasOwn(s.attributes, "__class_getitem__") || !stableSourceBinding(s.name, scopeFor(s))))) return unknown
+    for (const owner of owners) {
+      const methods = symbols.filter(s => s.className === owner && s.name === "__class_getitem__")
+      if (methods.length) return methods.length === 1 && methods[0]!.attributes.subscriptionClassIdentity === "source-return-only/v1" ? cls.qualifiedName : unknown
+    }
+    return unknown
   }
   const lookupMethod = (className: string, method: string) => {
     const mro = linearize(className)
@@ -440,6 +469,10 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     const candidates = matching(qualified(handler, scope)).filter(s => drf ? s.kind === "class" && linearize(s.qualifiedName)?.some(n => n.startsWith("rest_framework.")) : s.kind === "function" && !s.className)
     if (!candidates.length) continue
     const literal = hasLiteral ? token![3]! : "", route: StructureRoute = { id: `route-${hash([c.id, handler]).slice(0, 24)}`, sourceCallId: c.id, sourcePath: c.path, startLine: c.startLine, endLine: c.endLine, method: drf ? "DRF-actions" : verb.toUpperCase(), path: [...raw.groupPaths, literal].join(""), handlerExpression: handler, candidateIds: candidates.map(s => s.id), middlewareExpressions: drf ? [] : c.arguments.slice(hasLiteral ? 1 : 0, -1), model: drf ? "drf-source-router/v1" : "go-route-registration/v1" }
+    if (drf) {
+      const receiver = c.receiver && !raw.localNames.includes(c.receiver.split(".")[0]!) ? instanceBinding(moduleQualified(c.receiver, scope)) : undefined
+      if (!receiver || !linearize(receiver.className)?.includes("rest_framework.routers.BaseRouter") || !stableSourceBinding(c.receiver!, scope, false) || !stableSourceBinding(handler, scope) || raw.registrationContext.length || c.arguments.some(a => /^\*/.test(a))) route.bindingGap = "framework-drf-router-binding-unresolved"
+    }
     routes.push(route)
     symbols.push({ id: route.id, path: c.path, sha256: c.sha256, name: `${route.method} ${route.path}`, qualifiedName: `${scope.module}.route@${c.startLine}`, module: scope.module, language: scope.language, kind: "function", startLine: c.startLine, endLine: c.endLine, boundary: "complete", parameters: [], returns: [], bases: [], attributes: { routeModel: route.model, handlerExpression: handler } })
   }
@@ -504,13 +537,77 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     })
     middlewareCache.set(routeId, facts); return structuredClone(facts)
   }
-  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v7"
+  const actionCache = new Map<string, StructureRequestAction[]>()
+  /** HTTP declarations and source work only. No decorator, router or dispatch
+   * behavior is adopted merely because its current source was located. */
+  const requestActions = (receiverClass: string): StructureRequestAction[] => {
+    if (actionCache.has(receiverClass)) return structuredClone(actionCache.get(receiverClass)!)
+    const mro = linearize(receiverClass)
+    if (!mro?.some(name => name.startsWith("rest_framework."))) return []
+    const methods = [...new Set(symbols.filter(s => s.className && mro.includes(s.className)).map(s => s.name))].flatMap(name => lookupMethod(receiverClass, name))
+    const facts: StructureRequestAction[] = []
+    for (const method of methods) for (const decorator of method.decorators ?? []) {
+      const scope = scopeFor(method)
+      if (qualified(decorator.expression, scope) !== "rest_framework.decorators.action" || !decorator.sourceCallId) continue
+      const argument = (name: string, position: number) => decorator.arguments.find(a => a.parameter === name) ?? decorator.arguments.filter(a => !a.parameter)[position]
+      const declaredMethods = argument("methods", 0), detail = argument("detail", 1), url = argument("url_path", 2)
+      const verbs = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "TRACE"])
+      const httpMethods = declaredMethods?.literalKnown && Array.isArray(declaredMethods.literalValue) && declaredMethods.literalValue.every(v => typeof v === "string" && verbs.has(v.toUpperCase())) ? declaredMethods.literalValue.map(v => (v as string).toUpperCase()) : []
+      const sourceCandidates: StructureRequestAction["sourceCandidates"] = [], sourceSymbols = new Map<string, StructureSymbol>()
+      const retain = (s: StructureSymbol) => sourceSymbols.set(s.id, s)
+      const offer = (role: string, candidates: StructureSymbol[], context?: string) => { for (const s of candidates) { retain(s); if (!sourceCandidates.some(c => c.candidateId === s.id && c.receiverClass === context)) sourceCandidates.push({ role, candidateId: s.id, ...(context ? { receiverClass: context } : {}) }) } }
+      for (const owner of mro) for (const cls of matching(owner).filter(s => s.kind === "class")) retain(cls)
+      retain(method)
+      const factory = matching("rest_framework.decorators.action").filter(s => s.kind === "function" && !s.className), mapper = matching("rest_framework.decorators.MethodMapper").filter(s => s.kind === "class")
+      offer("action-factory", factory)
+      offer("action-decorator", symbols.filter(s => s.qualifiedName === "rest_framework.decorators.action.decorator"))
+      for (const cls of mapper) { retain(cls); offer("method-mapper", lookupMethod(cls.qualifiedName, "__init__"), cls.qualifiedName) }
+      const methodMappings: StructureRequestAction["methodMappings"] = httpMethods.map(verb => ({ method: verb, actionName: method.name, candidateIds: lookupMethod(receiverClass, method.name).map(s => s.id), declarationId: decorator.id, sourceId: method.id }))
+      let mappingGap: string | undefined
+      // The mapping property belongs to the declaring class's function object;
+      // the mapped name is subsequently looked up on the actual request class.
+      for (const declaration of symbols.filter(s => s.className === method.className)) for (const mapping of declaration.decorators ?? []) {
+        const match = /^([A-Za-z_]\w*)\.mapping\.([A-Za-z_]\w*)$/.exec(mapping.expression)
+        if (!match || match[1] !== method.name) continue
+        const verb = match[2]!.toUpperCase(), targets = lookupMethod(receiverClass, declaration.name)
+        retain(declaration); targets.forEach(retain)
+        if (!verbs.has(verb) || methodMappings.some(m => m.method === verb) || targets.length !== 1 || (declaration.decorators?.length ?? 0) !== 1) mappingGap = "framework-action-method-mapping-unresolved"
+        methodMappings.push({ method: verb, actionName: declaration.name, candidateIds: targets.map(s => s.id), declarationId: mapping.id, sourceId: declaration.id })
+        for (const cls of mapper) { offer("method-mapper", lookupMethod(cls.qualifiedName, match[2]!), cls.qualifiedName); offer("method-mapper", lookupMethod(cls.qualifiedName, "_map"), cls.qualifiedName) }
+      }
+      const routeIds = routes.filter(r => r.model === "drf-source-router/v1" && r.candidateIds.some(id => symbols.find(s => s.id === id)?.qualifiedName === receiverClass)).map(r => r.id)
+      for (const routeId of routeIds) {
+        const route = routes.find(r => r.id === routeId)!, raw = scopes.flatMap(f => f.rawCalls).find(r => r.call.id === route.sourceCallId)!, ownerScope = scopes.find(f => f.path === route.sourcePath)!
+        retain(symbols.find(s => s.id === routeId)!)
+        const router = raw.call.receiver && instanceBinding(moduleQualified(raw.call.receiver, ownerScope))
+        if (router) for (const name of linearize(router.className) ?? []) for (const cls of matching(name).filter(s => s.kind === "class")) retain(cls)
+        if (router) for (const name of ["register", "get_routes", "_get_dynamic_route", "get_method_map", "get_urls"]) offer("router", lookupMethod(router.className, name), router.className)
+      }
+      for (const name of ["get_extra_actions", "as_view", "initialize_request", "dispatch"]) offer("view-binding", lookupMethod(receiverClass, name), receiverClass)
+      const definingClass = symbols.find(s => s.kind === "class" && s.qualifiedName === method.className), receiverClasses = mro.flatMap(owner => matching(owner).filter(s => s.kind === "class"))
+      const gap = definingClass && Object.hasOwn(definingClass.attributes, decorator.expression.split(".")[0]!) ? "framework-action-constructor-shadowed"
+        : !stableSourceBinding(decorator.expression, scope) ? "framework-action-constructor-rebound"
+        : receiverClasses.some(cls => !stableSourceBinding(cls.name, scopeFor(cls)) || cls.attributes.bindingWrapped || Object.hasOwn(cls.attributes, method.name)) ? "framework-action-receiver-binding-unresolved"
+        : factory.length !== 1 || mapper.length !== 1 ? "framework-action-source-missing"
+        : !stableSourceBinding(factory[0]!.name, scopeFor(factory[0]!)) || factory[0]!.attributes.bindingWrapped || mapper[0]!.attributes.bindingWrapped ? "framework-action-source-binding-unresolved"
+        : method.decorators!.length !== 1 ? "framework-action-wrapper-unmodeled"
+        : decorator.arguments.some(a => a.parameter ? !["methods", "detail", "url_path", "url_name"].includes(a.parameter) : /^\*/.test(a.expression)) || decorator.arguments.filter(a => !a.parameter).length > 4 ? "framework-action-options-unmodeled"
+        : !declaredMethods ? "framework-action-methods-default-uninterpreted"
+        : !httpMethods.length || new Set(httpMethods).size !== httpMethods.length ? "framework-action-methods-dynamic"
+        : !detail?.literalKnown || typeof detail.literalValue !== "boolean" ? "framework-action-detail-dynamic"
+        : url && (!url.literalKnown || typeof url.literalValue !== "string") ? "framework-action-path-dynamic"
+        : mappingGap
+      facts.push({ id: `action-${hash([receiverClass, method.id, decorator.id]).slice(0, 24)}`, receiverClass, actionName: method.name, sourceId: method.id, sourceCallId: decorator.sourceCallId, constructor: decorator.expression, arguments: decorator.arguments.map(a => a.parameter ? `${a.parameter}=${a.expression}` : a.expression), source: { path: method.path, sha256: method.sha256, startLine: decorator.startLine, endLine: decorator.endLine }, ...(typeof detail?.literalValue === "boolean" ? { detail: detail.literalValue } : {}), ...(typeof url?.literalValue === "string" ? { urlPath: url.literalValue } : {}), methodMappings, routeIds, sourceCandidates, sources: [...sourceSymbols.values()].map(s => ({ id: s.id, path: s.path, sha256: s.sha256 })), mappingBinding: "unproven", invocation: "unproven", model: "drf-source-action/v1", ...(gap ? { gap } : {}) })
+    }
+    actionCache.set(receiverClass, facts); return structuredClone(facts)
+  }
+  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v8"
   const withSymbolSyntax = <T>(symbolId: string, visit: (root: Node, symbol: StructureSymbol) => T): Promise<T> => {
     const symbol = symbols.find(s => s.id === symbolId), file = symbol && files.find(f => f.path === symbol.path)
     if (!symbol || !file || hash(file.content) !== symbol.sha256) throw new Error("structure-source-missing")
     return withSourceSyntax(file.content, symbol.language, root => visit(root, symbol))
   }
-  return { schemaVersion: "authorization-structure-index/v1" as const, parser: parserVersion, relationshipVersion, symbols, calls, routes, diagnostics, lookupMethod, attribute, linearize, candidateRevision, relatedCalls, resolveName, qualifySourceName, requestDependencies, requestMiddleware, withSymbolSyntax,
+  return { schemaVersion: "authorization-structure-index/v1" as const, parser: parserVersion, relationshipVersion, symbols, calls, routes, diagnostics, lookupMethod, attribute, linearize, candidateRevision, relatedCalls, resolveName, qualifySourceName, requestDependencies, requestMiddleware, requestActions, withSymbolSyntax,
     revision: hash([sourceIdentity, parserVersion, relationshipVersion, symbols, calls, routes, diagnostics]), preparation: { files: files.length, bytes: files.reduce((s, f) => s + Buffer.byteLength(f.content), 0), durationMs: performance.now() - started, targetExecutions: 0 } }
 }
 export type StructureIndex = Awaited<ReturnType<typeof buildStructureIndex>>

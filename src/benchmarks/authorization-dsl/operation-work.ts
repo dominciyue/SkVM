@@ -72,6 +72,20 @@ export function operationWork(index: StructureIndex, entryId: string, readSymbol
     const dispatch = index.lookupMethod(className, "dispatch")
     if (!dispatch.length) frameworkGaps.push({ key: `drf:${className}:dispatch`, receiverClass: className, reason: "Source-qualified DRF inheritance has no unique current dispatch body; upstream ordering remains an explicit source gap." })
     for (const method of entry.kind === "class" ? [...drfDispatchMethods, "create", "get_serializer", "get_serializer_class", "get_serializer_context", "perform_create"] : drfDispatchMethods) for (const s of index.lookupMethod(className, method)) add(s.id, `drf:${className}:${method}`, `Source-qualified DRF method lookup for ${className}.${method}; inspect actual override/MRO body.`, method === "create" ? "entry" : "guard", className, true, method === "dispatch")
+    if (options.questionDirected) {
+      const mappings = index.requestActions(className), current = mappings.filter(m => entry.kind === "class" || m.sourceId === entry.id || m.methodMappings.some(method => method.candidateIds.includes(entry.id)))
+      if (current.length) frameworkDependencies.push({ kind: "framework-model", key: `drf-source-action/v1:${className}`, revision: hash(mappings) })
+      for (const mapping of current) {
+        if (mapping.gap) frameworkGaps.push({ key: mapping.id, code: mapping.gap, receiverClass: className, reason: `Current DRF HTTP declaration ${mapping.actionName}: ${mapping.gap}; execution remains unproven.` })
+        if (!mapping.routeIds.length) frameworkGaps.push({ key: `${mapping.id}:registration`, code: "framework-action-registration-missing", receiverClass: className, reason: "No current allowed router registration binds this action's actual request receiver." })
+        for (const routeId of mapping.routeIds) {
+          const route = index.routes.find(r => r.id === routeId)!
+          add(routeId, route.sourceCallId, `Inspect current DRF registration ${route.path} for actual receiver ${className}; HTTP declarations ${JSON.stringify(mapping.methodMappings)} remain source work.`, "entry", undefined, true, true)
+          if (route.bindingGap) frameworkGaps.push({ key: `${mapping.id}:${routeId}`, code: route.bindingGap, receiverClass: className, reason: `Current DRF router source binding: ${route.bindingGap}.` })
+        }
+        for (const candidate of mapping.sourceCandidates) add(candidate.candidateId, `${mapping.id}:${candidate.role}:${candidate.candidateId}`, `Inspect ${candidate.role} source for declared HTTP mapping ${mapping.actionName} on actual receiver ${className}; declaration ${mapping.source.path}:${mapping.source.startLine}, source call ${mapping.sourceCallId}. Mapping binding and invocation remain unproven; inspect the actual factory/mapper and router/as_view before adopting request dispatch or its dynamic handler.`, "guard", candidate.receiverClass, true, true)
+      }
+    }
     const serializer = entry.kind === "class" && index.attribute(className, "serializer_class")
     if (serializer) {
       const candidates = index.resolveName(serializer.value, serializer.scope.path).filter(s => s.kind === "class")
@@ -118,6 +132,7 @@ export function structuralDependencyRevision(index: StructureIndex, dependency: 
   if (dependency.kind === "framework-model") {
     if (dependency.key === "drf-source-dispatch/v1") return hash(index.symbols.filter(s => s.module.startsWith("rest_framework.")).map(s => [s.path, s.sha256]))
     if (dependency.key.startsWith("drf-source-dispatch/v2:")) return drfReceiverRevision(index, dependency.key.slice("drf-source-dispatch/v2:".length))
+    if (dependency.key.startsWith("drf-source-action/v1:")) { const cls = dependency.key.slice("drf-source-action/v1:".length); return index.symbols.some(s => s.kind === "class" && s.qualifiedName === cls) ? hash(index.requestActions(cls)) : undefined }
     if (dependency.key.startsWith("fastapi-source-injection/v1:")) { const id = dependency.key.slice("fastapi-source-injection/v1:".length); return index.symbols.some(s => s.id === id) ? hash(index.requestDependencies(id)) : undefined }
     if (dependency.key.startsWith("fastapi-source-asgi/v1:")) { const id = dependency.key.slice("fastapi-source-asgi/v1:".length); return index.routes.some(r => r.id === id) ? hash(index.requestMiddleware(id)) : undefined }
     const routes = index.routes.filter(r => `${r.model}:${r.id}` === dependency.key || r.model === dependency.key)
