@@ -85,6 +85,20 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
   const unit: SemanticBlock = { itemId: options.itemId, handle: options.handle, op: previous ? "replace" : "add", role: options.role, start: "source-main", ...(finite ? { coverage: "path" } : {}), complete: skeleton.modelCovered && !(demand?.sourceGaps ?? skeleton.gaps).length && ![...unresolved.keys()].some(id => !questionDirected || demand?.reachableAnchorIds.includes(id)) && !excludedMeaning, fallthrough: interpretation.fallthroughOutcome === "unknown" ? "unresolved" : interpretation.fallthroughOutcome ?? "unresolved", parameters: skeleton.anchors.filter(a => a.kind === "parameter" && a.name).map(a => ({ name: a.name!, type: bindingType(annotations.get(a.id)) })), blocks: [] }
   const bind = (a: SourceAnchor): Step => ({ kind: "bind", name: `bind-${a.id}`, bindingName: objectName(a.id)!, claim: annotations.get(a.id)?.explanation ?? "Source assignment fact", type: a.literalKnown ? "value" : bindingType(annotations.get(a.id)), ...(a.literalKnown ? { value: a.literalValue! } : annotations.get(a.id)?.aliasAnchorId ? { aliasOf: objectName(annotations.get(a.id)!.aliasAnchorId)! } : {}) })
   const prologue = skeleton.anchors.filter(a => a.kind === "assignment" && !allFlowIds.has(a.id) && annotations.has(a.id) && ["principal", "resource", "permission"].includes(annotations.get(a.id)!.role)).map(bind)
+  if (questionDirected && options.index) {
+    const receivers = new Map<string, Step>(), identities = new Map<string, string>()
+    for (const a of skeleton.anchors) {
+      const call = a.call, proof = call?.receiverBinding, actual = proof && options.index.calls.find(c => c.id === call.sourceCallId && c.ownerId === skeleton.sourceId)
+      const target = call?.candidateIds.length === 1 && options.index.symbols.find(s => s.id === call.candidateIds[0])
+      if (!call?.receiver || !proof || !actual?.receiverBinding || actual.receiver !== call.receiver || actual.receiverClass !== call.receiverClass || actual.candidateIds.length !== 1 || actual.candidateIds[0] !== call.candidateIds[0] || JSON.stringify(actual.receiverBinding) !== JSON.stringify(proof) || !target || target.attributes.methodBinding === "static" || !allFlowIds.has(a.id) || unresolved.has(a.id) || demand && !demand.reachableAnchorIds.includes(a.id) || !annotations.has(a.id) || ["context", "effect"].includes(annotations.get(a.id)!.role)) continue
+      if (!receivers.has(call.receiver)) {
+        const identity = JSON.stringify(proof), aliasOf = identities.get(identity)
+        receivers.set(call.receiver, { kind: "bind", name: `receiver-${a.id}`, bindingName: call.receiver, type: "value", ...(aliasOf ? { aliasOf } : {}), claim: `Actual source module instance ${proof.name} at ${proof.source.path}:${proof.source.startLine}-${proof.source.endLine}; ordinary receiver value only` })
+        identities.set(identity, aliasOf ?? call.receiver)
+      }
+    }
+    prologue.unshift(...receivers.values())
+  }
   let serial = 0
   const sourceValue = (expression?: string, literal?: { value: unknown }): Record<string, unknown> => {
     if (literal) return { literal: literal.value }

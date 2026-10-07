@@ -12,9 +12,10 @@ export interface StructureCall {
   id: string; ownerId?: string; path: string; sha256: string; startLine: number; endLine: number;
   expression: string; receiver?: string; receiverClass?: string; arguments: string[]; candidateIds: string[]; resolution: "resolved" | "ambiguous" | "unresolved";
   basis: string[]; gap?: string; resultNames: string[]; syntaxRole: "condition" | "return" | "argument-default" | "body" | "source-context"
+  receiverBinding?: { schemaVersion: "source-module-instance/v1"; name: string; className: string; classSha256: string; source: { path: string; sha256: string; startLine: number; endLine: number } }
 }
 export interface StructureRoute { id: string; sourceCallId: string; sourcePath: string; startLine: number; endLine: number; method: string; path: string; handlerExpression: string; candidateIds: string[]; middlewareExpressions: string[]; dependencyExpressions?: string[]; model: string }
-interface FileScope { path: string; sha256: string; module: string; language: "python" | "go"; aliases: Record<string, string>; moduleAliases: Record<string, string>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; localNames: string[]; groupPaths: string[] }>; moduleAssignments: Record<string, number>; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; dependencies: Array<{ constructor: string; expression: string }>; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string }> }
+interface FileScope { path: string; sha256: string; module: string; language: "python" | "go"; aliases: Record<string, string>; moduleAliases: Record<string, string>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; localNames: string[]; groupPaths: string[] }>; moduleAssignments: Record<string, number>; moduleAttributeWrites: string[]; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean; startLine: number; endLine: number }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; dependencies: Array<{ constructor: string; expression: string }>; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string }> }
 const hash = (v: unknown) => createHash("sha256").update(typeof v === "string" ? v : JSON.stringify(v)).digest("hex")
 let initialized: Promise<Map<string, Language>> | undefined
 function languages() {
@@ -131,6 +132,17 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         for (const name of names) if (!symbol || symbol.kind === "function" && globalNames.get(symbol.id)?.has(name)) moduleAssignments[name] = (moduleAssignments[name] ?? 0) + 1
         else if (symbol.kind === "function") { const bound = localNames.get(symbol.id) ?? new Set<string>(); bound.add(name); localNames.set(symbol.id, bound) }
       }
+      const moduleAttributeWrites: string[] = []
+      if (language === "python") for (const n of descendants(root, ["assignment", "augmented_assignment", "delete_statement"])) {
+        let owner = n.parent; while (owner && !byNode.has(owner.id)) owner = owner.parent
+        const symbol = owner && byNode.get(owner.id), target = field(n, "left")
+        for (const left of n.type === "delete_statement" ? children(n) : target ? [target] : []) {
+          if (left.type !== "attribute" || !/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)+$/.test(left.text)) continue
+          const [rootName, ...parts] = left.text.split("."), imported = moduleAliases[rootName!]
+          if (!imported || symbol?.kind === "function" && !globalNames.get(symbol.id)?.has(rootName!) && (symbol.parameters.some(p => p.name === rootName) || localNames.get(symbol.id)?.has(rootName!))) continue
+          moduleAttributeWrites.push([imported, ...parts].join("."))
+        }
+      }
       const rawCalls: FileScope["rawCalls"] = []
       for (const n of descendants(root, language === "python" ? ["call"] : ["call_expression"])) {
         const fn = field(n, "function"); if (!fn) continue
@@ -167,7 +179,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           const name = field(n, "left")?.text, value = field(n, "right")
           if (!name || !value || !/^[A-Za-z_]\w*$/.test(name)) continue
           if (count(name) === 1) constants[name] = value.text
-          if (value.type === "call") routers.push({ name, constructor: field(value, "function")?.text ?? "", prefix: children(field(value, "arguments")).find(a => a.type === "keyword_argument" && field(a, "name")?.text === "prefix")?.childForFieldName("value")?.text ?? '""', repeated: count(name) !== 1 })
+          if (value.type === "call") routers.push({ name, constructor: field(value, "function")?.text ?? "", prefix: children(field(value, "arguments")).find(a => a.type === "keyword_argument" && field(a, "name")?.text === "prefix")?.childForFieldName("value")?.text ?? '""', repeated: count(name) !== 1, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1 })
         }
         const verbs = new Set(["get", "post", "put", "patch", "delete", "head", "options", "trace"])
         for (const n of descendants(root, ["decorated_definition"])) {
@@ -192,7 +204,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           if (raw) includes.push({ callId: raw.call.id, receiver: expression.slice(0, -".include_router".length), child: (args.find(a => a.type !== "keyword_argument") ?? args.find(a => field(a, "name")?.text === "router")?.childForFieldName("value"))?.text ?? "", prefix: ancestor ? "$dynamic" : args.find(a => field(a, "name")?.text === "prefix")?.childForFieldName("value")?.text ?? '""' })
         }
       }
-      scopes.push({ path: file.path, sha256, module, language, aliases, moduleAliases, symbols, rawCalls, moduleAssignments, constants, routers, decorators, includes })
+      scopes.push({ path: file.path, sha256, module, language, aliases, moduleAliases, symbols, rawCalls, moduleAssignments, moduleAttributeWrites, constants, routers, decorators, includes })
     } finally { tree.delete(); parser.delete() }
   }
   const symbols = scopes.flatMap(f => f.symbols), scopeFor = (s: StructureSymbol) => scopes.find(f => f.path === s.path)!
@@ -249,11 +261,11 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
   const moduleInstances = scopes.filter(s => s.language === "python").flatMap(scope => scope.routers.flatMap(r => {
     if (r.repeated || scope.moduleAssignments[r.name] !== 1 || !/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(r.constructor)) return []
     const candidates = matching(moduleQualified(r.constructor, scope)).filter(s => s.kind === "class")
-    return candidates.length === 1 ? [{ name: `${scope.module}.${r.name}`, className: candidates[0]!.qualifiedName, path: scope.path, sha256: scope.sha256, classSha256: candidates[0]!.sha256 }] : []
-  }))
-  const instanceClass = (name: string) => {
+    return candidates.length === 1 ? [{ name: `${scope.module}.${r.name}`, className: candidates[0]!.qualifiedName, path: scope.path, sha256: scope.sha256, classSha256: candidates[0]!.sha256, source: { path: scope.path, sha256: scope.sha256, startLine: r.startLine, endLine: r.endLine } }] : []
+  })).filter(instance => !scopes.some(scope => scope.moduleAttributeWrites.some(write => instance.name === write || instance.name.endsWith(`.${write}`) || write.startsWith(`${instance.name}.`) || instance.name.split(".").some((_, i, parts) => write.startsWith(`${parts.slice(i).join(".")}.`)))))
+  const instanceBinding = (name: string) => {
     const exact = moduleInstances.filter(v => v.name === name), candidates = exact.length ? exact : moduleInstances.filter(v => v.name.endsWith(`.${name}`))
-    return candidates.length === 1 ? candidates[0]!.className : undefined
+    return candidates.length === 1 ? candidates[0] : undefined
   }
   function resolveCall(raw: FileScope["rawCalls"][number], scope: FileScope, receiverClass?: string): StructureCall {
     const call = structuredClone(raw.call), parts = call.expression.split("."), name = parts.pop()!, root = parts[0], owner = symbols.find(s => s.id === call.ownerId)
@@ -276,10 +288,16 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       if (classes.length === 1) type = classes[0]!.qualifiedName
       candidates = type ? lookupMethod(type, name) : []; basis = ["AST parameter/receiver type and explicit field chain", ...(owner?.className ? ["C3 inheritance/override lookup"] : [])]
       if (candidates.length && type) call.receiverClass = type
+    } else if (scope.language === "python" && root && scope.moduleAliases[root] && scope.moduleAssignments[root] !== 1) {
+      basis = ["AST module import alias is reassigned; the original instance is not a current receiver proof"]
     } else {
       candidates = matching(scope.language === "python" ? moduleQualified(call.expression, scope) : qualified(call.expression, scope)); basis = [scope.aliases[root ?? ""] ? "AST import/alias binding" : "AST qualified source binding"]
-      const type = !candidates.length && scope.language === "python" && call.receiver ? instanceClass(moduleQualified(call.receiver, scope)) : undefined
-      if (type) { candidates = lookupMethod(type, name); basis.push("AST unique unreassigned module constructor instance and C3 method lookup"); if (candidates.length) call.receiverClass = type }
+      const instance = !candidates.length && scope.language === "python" && call.receiver ? instanceBinding(moduleQualified(call.receiver, scope)) : undefined
+      if (instance) {
+        candidates = lookupMethod(instance.className, name); basis.push("AST unique unreassigned module constructor instance and C3 method lookup")
+        if (candidates.length === 1) { call.receiverClass = instance.className; call.receiverBinding = { schemaVersion: "source-module-instance/v1", name: instance.name, className: instance.className, classSha256: instance.classSha256, source: instance.source } }
+        else if (candidates.length) call.receiverClass = instance.className
+      }
     }
     call.candidateIds = candidates.map(c => c.id); call.resolution = candidates.length === 1 ? "resolved" : candidates.length > 1 ? "ambiguous" : "unresolved"; call.basis = basis
     if (!candidates.length) call.gap = "receiver/import/value binding unavailable; unique lexical name is not a call edge"
@@ -357,7 +375,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
   }
   const relatedCalls = (symbolId: string, receiverClass?: string) => { const route = routes.find(r => r.id === symbolId); return scopes.flatMap(f => f.rawCalls.filter(r => route ? r.call.path === route.sourcePath && r.call.id !== route.sourceCallId && r.call.startLine >= route.startLine && r.call.endLine <= route.endLine : r.call.ownerId === symbolId).map(r => resolveCall(r, f, receiverClass))) }
   const resolveName = (text: string, sourcePath: string) => { const scope = scopes.find(f => f.path === sourcePath); return scope ? matching(qualified(text, scope)) : [] }
-  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v4"
+  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v5"
   const withSymbolSyntax = <T>(symbolId: string, visit: (root: Node, symbol: StructureSymbol) => T): Promise<T> => {
     const symbol = symbols.find(s => s.id === symbolId), file = symbol && files.find(f => f.path === symbol.path)
     if (!symbol || !file || hash(file.content) !== symbol.sha256) throw new Error("structure-source-missing")

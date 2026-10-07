@@ -30,7 +30,7 @@
 
 最新AX结果补充：官方账号已实际消费只读宿主工具；20首位置中9个已尝试、17份归档，指定模型通道quota refusal后11项待执行。418文件离线包和两份有效作者稿已交付，真实消费者0；十份自然领域回答只有旧premise fresh被主裁定full，形式链仍未满足。当前性质需求主要是可达性筛选与增量接口，两份真实提案标注3→4、7→7，合流未触发；原件和复核见§7.59。AW历史元数据字节减负保留，真实token和净收益仍需实测。
 
-当前关键问题是：**从原授权问题反向追踪相关源码，把继承权限、helper实参/返回对象和结论接成同一条可用链，减少反复整函数解释。** 用户授权[AY0–AY23](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)，使用当前账号gpt-5.6-sol/high实验、gpt-6.1-sol/max开发；第三方API仍暂停。22个真实首位置覆盖两任务完整使用、作者包、三变化和三臂重复对照。质量与编写复用约60/40指精力分配。v5初版已接通；Download具名尝试和OWUI首件均交付自然答、独立源码partial、结构终答缺失。OWUI源码单元的空块编译拒绝已修复，当前frontier反馈和有效字段进展提示已接通，真实闭合与收益仍待验收。费用、人力缺报保持unknown，历史0/6、Q1、readiness和保护输入不变。
+当前关键问题是：**从原授权问题反向追踪相关源码，把继承权限、helper实参/返回对象和结论接成同一条可用链，减少反复整函数解释。** 用户授权[AY0–AY23](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)，使用当前账号gpt-5.6-sol/high实验、gpt-6.1-sol/max开发；第三方API仍暂停。22个真实首位置覆盖两任务完整使用、作者包、三变化和三臂重复对照。质量与编写复用约60/40指精力分配。v5初版已接通；Download具名尝试与OWUI首/修订均交付自然答、独立源码partial、结构终答缺失。OWUI修订接受6单元/实际3材料投影；receiver普通值绑定和终答枚举合同继续红绿修复，框架组合仍待闭合。总token未减，费用、人力缺报保持unknown；历史0/6、Q1、readiness和保护输入不变。
 
 ## 2. 研究目标与术语
 
@@ -2032,6 +2032,10 @@ AY1点验表：
 
 实际上下文按原始wire重新验证：Download40包发送1458771 bytes，OWUI31包计量2151498、脱敏归档2151323；175字节差异单列。OWUI首包473086中propertyDemand349388、dependencies296530。只改需求反馈投影的零调用探针为7850 bytes、首包131548；完整图和required/deferred仍在宿主报告，原题/原源码可取回，不改变需求或语义判定。引用bytes代表引用原值，不能当作发送尺寸；这只是机械字节减少，尚无当前新版本token收益。既有两次有用量推理input合计8144752、output28547、其中cacheRead7596288（不再相加），USD/隐藏请求/开发探子/真人时间unknown。见[上下文分账](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/context-accounting-initial.json)。
 
+OWUI具名`empty-regions-current-frontier`在a7788001完成交付：37接受/2传输拒绝，14源码提交、8局部修复、6接受单元、108步骤，实际3材料投影为入口和两文件查询。route/auth/session虽有解释尚未进入实际投影；`Files` receiver未绑定和`user.id`误标helper principal导致语义缺口。两次终答均在传输schema被拒，checkHistory0。自然答补充None/空串区别，但仍缺空content/空destination的真值分支、existing且add=False早返、写入前content更新与后失败残留，独立只读AI评阅经主点验为partial。input/output/cacheRead为4552853/18805/4283904，fresh268949；总4571658比首件3761188增加。三次有用量推理累计input12697605、output47352、cacheRead11880192、fresh817413；首次unavailable用量及USD/隐藏请求/开发/真人仍unknown。见[修订评价](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/native-owui-empty-regions-current-frontier.json)。
+
+AY7修复保留当前唯一未重绑定模块实例的source/class证明，在v5编译器只生成普通value身份，同源导入alias共享它；参数/局部遮蔽、consumer alias重绑定、模块attribute写入与旧证明撤回关系。`source-bindings/v5`使旧footprint显式再验证。匿名红测先暴露缺证明/绑定/枚举，以及别名重绑定和独立错误identity，再转绿；70focused通过，联合1011pass/1平台skip/6466断言、主/AY类型通过。原提案零推理重编译移除Files未绑定，但保留标量principal误判、未解释callee和展开上限，原件不升级。当前answerContract枚举直接来自实际schema，不coerce自由文字。只读代码核验未发现具体缺陷；其vitest环境失败不算验证，主线程Bun结果单列。见[receiver复验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/owui-receiver-replay.json)。
+
 **执行与账号。** 明确failed终态与completion-unknown分开，旧AX状态只追加裁定；用量缺报保持unknown。没有活动请求后，新具名尝试沿用户已授权账号通道运行。若通道仍拒绝，独立工程继续，实验待恢复；第三方API保持暂停。上下文改造从真实重复内容和重解释次数开始，不以离线字节变化冒充实际token节省。
 
 **真实闭合。** 两份完整原skill分别处理Download/OWUI，优先消费两份AX原字节作者包，完成policy/premise/source三变化fresh与previous，再做N/M-S/D-S各两次重复。必需首位置22个，修订独立追加。N/D衡量整套工具，M/D衡量表示本身；共同模型、事实和宿主预算，执行侧不接触oracle、历史终答或本文根因裁定。每次共享故障当场红绿修复再继续受影响位置，不批量运行已知错误版本。
@@ -2120,7 +2124,7 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-05 / AS：** 局部选择/效果与同源结果已共用，两原skill及作者原稿实际消费；机制改善有原件，完整质量/变化复用/净收益未达，以completed-with-unmet-criteria收束，责任见§7.48。
 - **2026-10-05 / AT：** 持久解释事务、宿主身份、纯有限摘要、显示/读取/源码终检与通用词法修复已经实现及实际使用。12质量首位置0完整；4native原始自然说明充分2但formal0；4忠实稿消费均partial；fresh变化4partial、previous2阻断，37原件556/556。有限队列以completed-with-unmet-criteria收束；当前限制、真实修复和计量见§7.49。
 
-- **2026-10-08 / AY：** v5初版已接通，账号0.160.0的Download具名尝试与OWUI首件实际交付，均源码partial、结构终答缺失。逐题分母、框架前置边界、传输拒绝check计数、空块编译和字段进展已红绿修复；当前frontier反馈减少机械发送字节，真实token与完整质量收益未建立。原件、全部成本与独立裁定保留；22首位置和完整队列见§7.60。
+- **2026-10-08 / AY：** v5初版已接通，账号0.160.0的Download具名尝试与OWUI首/修订实际交付，均源码partial、结构终答缺失。OWUI修订6单元/3实际投影；receiver值绑定与枚举合同已红绿修复，框架完整组合仍未达。总token增加、fresh下降分列，真实净收益未建立。联合1011pass/1平台skip及主/AY类型通过；原件、全部成本与独立裁定保留，22首位置和完整队列见§7.60。
 
 ## 12. 后续追加规则
 

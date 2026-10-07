@@ -16,6 +16,30 @@ test("imported module instances bind their actual class methods across source ro
   expect(index.calls.find(c => c.expression === "unknown.get")!.resolution).toBe("unresolved")
 })
 
+test("unique module receiver proofs retain the declaration bytes and never leak through shadowing", async () => {
+  const store = "class Registry:\n    def find(self, owner_id):\n        return owner_id\nReady = Registry()\nRebound = Registry()\nRebound = unknown()\n"
+  const index = await buildStructureIndex([
+    { path: "lib/catalog.py", content: store },
+    { path: "entry.py", content: "from lib.catalog import Ready as repo\nfrom lib.catalog import Rebound\ndef entry(actor):\n    return repo.find(actor.id)\ndef shadow(repo):\n    return repo.find(0)\ndef rebound():\n    return Rebound.find(0)\n" },
+  ], { repository: "anonymous", sourceRef: "r" })
+  const entry = index.symbols.find(s => s.qualifiedName === "entry.entry")!
+  const call: any = index.relatedCalls(entry.id)[0]!
+  expect(call.receiverBinding).toEqual({ schemaVersion: "source-module-instance/v1", name: "lib.catalog.Ready", className: "lib.catalog.Registry", classSha256: index.symbols.find(s => s.qualifiedName === "lib.catalog.Registry")!.sha256, source: { path: "lib/catalog.py", sha256: index.symbols.find(s => s.qualifiedName === "lib.catalog.Registry")!.sha256, startLine: 4, endLine: 4 } })
+  for (const name of ["shadow", "rebound"]) expect((index.relatedCalls(index.symbols.find(s => s.qualifiedName === `entry.${name}`)!.id)[0] as any).receiverBinding).toBeUndefined()
+})
+
+test("consumer alias rebindings and source-visible module attribute writes withdraw receiver proofs", async () => {
+  for (const change of ["repo = unknown()\n", "if flag:\n    repo = unknown()\n", "def change():\n    global repo\n    repo = unknown()\n", "import catalog as storage\nstorage.Ready = unknown()\n"]) {
+    const index = await buildStructureIndex([
+      { path: "catalog.py", content: "class Registry:\n    def find(self):\n        return True\nReady = Registry()\n" },
+      { path: "entry.py", content: "from catalog import Ready as repo\n" + change + "def entry():\n    return repo.find()\n" },
+    ], { repository: "anonymous", sourceRef: "r" })
+    const call: any = index.relatedCalls(index.symbols.find(s => s.qualifiedName === "entry.entry")!.id)[0]!
+    expect(call.receiverBinding).toBeUndefined()
+    expect(call.resolution).toBe("unresolved")
+  }
+})
+
 test("local module instances bind without inferring dynamic or rebound receivers", async () => {
   const content = "class Table:\n    def get(self, key):\n        return key\nReady = Table()\nDynamic = factory()\nRebound = Table()\nRebound = other()\nConditional = Table()\nif flag:\n    Conditional = other()\ndef entry(key):\n    Ready.get(key)\n    Dynamic.get(key)\n    Rebound.get(key)\n    Conditional.get(key)\n"
   const index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" })

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto"
 import type { Node } from "@vscode/tree-sitter-wasm"
 import type { InquiryEvidence } from "../inquiry-tools.ts"
-import type { StructureIndex, StructureSymbol } from "./structure-index.ts"
+import type { StructureCall, StructureIndex, StructureSymbol } from "./structure-index.ts"
 import { sourceLiteral } from "./structure-index.ts"
 import type { SourceSelector } from "./source-selector.ts"
 import type { FiniteValue } from "../../../task-dsl/authorization/control-evaluation.ts"
@@ -14,7 +14,7 @@ export interface SourceAnchor {
   interpretationRequired?: boolean;
   exceptionType?: string;
   dependencyFacts?: { reads: string[]; writes: string[]; pureLocal: boolean };
-  call?: { sourceCallId?: string; expression: string; receiver?: string; receiverClass?: string; arguments: Array<{ expression: string; parameterName?: string; spread?: boolean; literalKnown?: boolean; literalValue?: FiniteValue }>; candidateIds: string[]; resultNames: string[]; resultBinding: string }
+  call?: { sourceCallId?: string; expression: string; receiver?: string; receiverClass?: string; receiverBinding?: StructureCall["receiverBinding"]; arguments: Array<{ expression: string; parameterName?: string; spread?: boolean; literalKnown?: boolean; literalValue?: FiniteValue }>; candidateIds: string[]; resultNames: string[]; resultBinding: string }
 }
 export interface SourceFlow {
   kind: "step" | "branch" | "gap" | "try" | "with" | "loop" | "break" | "continue" | "short-circuit";
@@ -88,7 +88,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       const arguments_: NonNullable<SourceAnchor["call"]>["arguments"] = kids(field(n, "arguments")).map(a => { const value = a.type === "keyword_argument" ? field(a, "value")! : a, literal = sourceLiteral(value); return { expression: value.text, ...(a.type === "keyword_argument" ? { parameterName: field(a, "name")!.text } : {}), ...(["list_splat", "dictionary_splat", "variadic_argument"].includes(a.type) ? { spread: true } : {}), ...(literal.literalKnown ? literal : {}) } })
       if (!/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(expression) && !/^super\(\)\.[A-Za-z_]\w*$/.test(expression)) gap(n, "skeleton-call-dynamic", "The actual function expression is dynamic; no unique callee or receiver is invented.")
       if (arguments_.some(a => a.spread)) gap(n, "skeleton-arguments-dynamic", "Expanded arguments require a source-supported mapping; positions are not guessed.")
-      return add(n, "call", { call: { sourceCallId: actual?.id, expression, receiver: actual?.receiver, receiverClass: actual?.receiverClass, arguments: arguments_, candidateIds: actual?.candidateIds ?? [], resultNames: actual?.resultNames ?? [], resultBinding: actual?.resultNames[0] ?? `result-${hash([source.id, n.startIndex]).slice(0, 16)}` } })
+      return add(n, "call", { call: { sourceCallId: actual?.id, expression, receiver: actual?.receiver, receiverClass: actual?.receiverClass, ...(questionDirected && actual?.receiverBinding ? { receiverBinding: actual.receiverBinding } : {}), arguments: arguments_, candidateIds: actual?.candidateIds ?? [], resultNames: actual?.resultNames ?? [], resultBinding: actual?.resultNames[0] ?? `result-${hash([source.id, n.startIndex]).slice(0, 16)}` } })
     }
     const callsIn = (n: Node) => descendants(n, source.language === "python" ? ["call"] : ["call_expression"]).filter(belongsToScope).sort((a, b) => a.endIndex - b.endIndex || b.startIndex - a.startIndex)
     for (const p of kids(field(fn, "parameters"))) {

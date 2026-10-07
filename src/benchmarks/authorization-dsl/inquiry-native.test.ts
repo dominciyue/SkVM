@@ -57,6 +57,7 @@ test("malformed reserved checks consume check slots without stealing exploration
   const context: any = await runtime.accountContext(false)
   expect(context.focus.stage).toBe("answer")
   expect(context.answerContract).toMatchObject({ focusId: context.focus.id, questionOrder: ["q1"], pathReference: "current per-question numeric path index", hostOwnedFields: ["questionId", "evidenceIds", "pathId", "conditions"] })
+  expect(context.answerContract).toMatchObject({ answerDisposition: ["allow", "deny", "conditional", "unknown"], pathDisposition: ["allow", "deny", "unknown"], protectedEffect: ["none", "performed", "unresolved"], requiredPathFields: ["path", "explanation"], pathIndex: { type: "integer", minimum: 0 } })
   const second = JSON.parse((await runtime.rejectArguments({ ...call, id: "bad-check-repair" }, diagnostics)).output)
   expect(second.toolBudget).toMatchObject({ totalUsed: 3, checksUsed: 2, checksRemaining: 0, explorationUsed: 1, explorationRemaining: 0 })
   expect((await runtime.accountContext(false) as any).focus.id).toBe(context.focus.id)

@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "authorization-ay-review/v1",
+  "date": "2026-10-08",
+  "attemptId": "native-owui/empty-regions-current-frontier",
+  "gitRevision": "a7788001543e3e8e3e710c97e2f7b838a138b3a2",
+  "answerSha256": "fc8cc5157522644075d03fa3c8a1d0916c0821e819b048abcbf470af6d904b53",
+  "reportSha256": "07f067e10c96cde58666dd2cbc0cfef269224dfe10f3e0513372008045e86f17",
+  "archiveSha256": "4a1b57d3eeafd7e2c9fcda3757c4267c3d8972728b5ad607750062778a4e611f",
+  "reviewType": "independent-readonly-AI-review-with-primary-source-adjudication",
+  "reviewers": [
+    "ay_owui_current_frontier_quality"
+  ],
+  "humanAnnotation": false,
+  "quality": "partial",
+  "machineResultPresent": false,
+  "currentCheckPresent": false,
+  "currentCheckResolution": null,
+  "sourceFindings": [
+    {
+      "answerLines": [
+        9,
+        13,
+        26,
+        31,
+        44,
+        53,
+        110
+      ],
+      "judgment": "supported-central-relationships-and-none-empty-distinction",
+      "detail": "Caller role and input-file filtering, independent destination, absent visible destination ACL and empty-string versus None distinction are supported.",
+      "source": [
+        "backend/open_webui/routers/retrieval.py:1540-1571",
+        "backend/open_webui/utils/auth.py:458-464",
+        "backend/open_webui/models/files.py:161-184"
+      ]
+    },
+    {
+      "answerLines": [
+        105,
+        106,
+        107,
+        110
+      ],
+      "judgment": "incomplete-truthiness-and-existing-collection-behavior",
+      "detail": "Content and copying test truthiness. Empty content skips the content/delete branch; empty destination skips copying and sets add=False. With overwrite default False, an existing collection and add=False return True without inserting, while the route can still mark completion. The answer states None/empty but does not trace these actual branches.",
+      "source": [
+        "backend/open_webui/routers/retrieval.py:1340-1348",
+        "backend/open_webui/routers/retrieval.py:1458-1467",
+        "backend/open_webui/routers/retrieval.py:1571-1597",
+        "backend/open_webui/routers/retrieval.py:1694-1732"
+      ]
+    },
+    {
+      "answerLines": [
+        101,
+        105,
+        109
+      ],
+      "judgment": "incomplete-effect-order-and-failure-residue",
+      "detail": "The content update precedes embedding/vector work; the session is committed before the vector helper. Later failure marks failed and clears hash while changed content may remain. Default collection deletion precedes these stages and is independent of a supplied destination.",
+      "source": [
+        "backend/open_webui/routers/retrieval.py:1571-1580",
+        "backend/open_webui/routers/retrieval.py:1665-1694",
+        "backend/open_webui/routers/retrieval.py:1738-1749"
+      ]
+    }
+  ],
+  "reviewerAdjudication": [
+    {
+      "claim": "The proposed patch exceeds the behavior brief.",
+      "decision": "not-used-to-establish-partial",
+      "reason": "The original complete security-review skill retains reporting/remediation duties. Partial rests on missing visible behavior conditions, not a new pure-prose scope gate."
+    },
+    {
+      "claim": "Machine checker is partial, therefore source quality is partial.",
+      "decision": "not-a-quality-proof",
+      "reason": "Source quality is evaluated from the original question and actual source. Missing machine result is a separate engineering observation."
+    }
+  ],
+  "protocolFindings": [
+    {
+      "originalPointer": "authorizationInquiry.domain.semantic.units",
+      "detail": "Six source units and108 steps accepted. Three material uses are entry plus two file lookup helpers; route/auth/session bodies are accepted but not projected."
+    },
+    {
+      "originalPointer": "authorizationInquiry.domain.focus and account toolRejections",
+      "detail": "Actual Files receiver lacks an ordinary semantic binding; user.id value was interpreted as helper principal. Two result calls rejected by transport: wrong root/answer fields followed by free prose in protectedEffect. Neither produced a domain check."
+    }
+  ],
+  "costs": {
+    "input": 4552853,
+    "output": 18805,
+    "cacheReadIncludedInInput": 4283904,
+    "freshInput": 268949,
+    "visibleCallbackAttempts": 39,
+    "acceptedCallbacks": 37,
+    "transportRejections": 2,
+    "hostToolBudget": {
+      "totalLimit": 64,
+      "totalUsed": 51,
+      "totalRemaining": 13,
+      "explorationLimit": 62,
+      "explorationUsed": 49,
+      "explorationRemaining": 13,
+      "checkLimit": 2,
+      "checksUsed": 2,
+      "checksRemaining": 0
+    },
+    "durationMs": 384846,
+    "providerRequests": null,
+    "actualUsd": null,
+    "developmentAndScouts": null,
+    "humanMinutes": null
+  },
+  "originalBytesChanged": false,
+  "evaluatorProvidedToRuntime": false,
+  "originalAttemptPromoted": false
+}

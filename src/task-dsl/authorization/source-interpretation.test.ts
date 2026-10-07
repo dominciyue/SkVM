@@ -345,3 +345,36 @@ test("v5 source compilation reuses empty branches while retaining the existing p
   expect(unit.blocks.flatMap(b => b.steps).filter(s => s.kind === "choose")).toHaveLength(17)
   expect(runtime.report().slice.rules.filter(r => r.terminal).map(r => r.gap)).toContain("semantic-path-limit")
 })
+
+test("v5 unique imported receivers bind ordinary values while scalar fields never become principals", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-receiver-values-"))
+  await writeFile(path.join(sourceRoot, "catalog.py"), "class Registry:\n    def find(self, owner_id):\n        return owner_id\nReady = Registry()\n")
+  await writeFile(path.join(sourceRoot, "entry.py"), "from catalog import Ready as repo\nimport catalog as storage\ndef entry(actor):\n    repo.find(actor.id)\n    repo.find(actor.id)\n    storage.Ready.find(actor.id)\n    return True\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
+  const units: any[] = []
+  for (const name of ["find", "entry"]) {
+    const source = tools.structure!.symbols.find(s => s.name === name)!
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id))!
+    const annotations = skeleton.anchors.filter(a => a.kind === "parameter" || a.kind === "call" || a.kind === "return").map(a => ({ anchorId: a.id, role: a.kind === "parameter" && a.name === "actor" ? "principal" : a.kind === "parameter" || a.kind === "call" ? "condition" : "context", explanation: "Anonymous actual argument and scalar field", ...(a.kind === "return" && name === "entry" ? { returnOutcome: "allow" } : {}) }))
+    const lowered = api.lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index: tools.structure, itemId: name, handle: name, questionId: "q", role: name === "entry" ? "entry" : "helper", propertyDirected: true })
+    expect(lowered.diagnostics).toEqual([])
+    if (name === "entry") {
+      const binds = lowered.unit.blocks.flatMap((b: any) => b.steps).filter((s: any) => s.kind === "bind" && s.bindingName === "repo")
+      expect(binds).toHaveLength(1)
+      expect(binds[0]).toMatchObject({ type: "value" })
+      expect(binds[0].value).toBeUndefined()
+      expect(lowered.unit.blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "bind" && s.bindingName === "storage.Ready")).toMatchObject({ type: "value", aliasOf: "repo" })
+      const forged = structuredClone(skeleton)
+      for (const a of forged.anchors.filter(a => a.call?.receiverBinding)) (a.call as any).receiverBinding.source.sha256 = "stale"
+      const unproved = api.lowerSourceInterpretation(forged, { schemaVersion: "source-interpretation/v1", revision: forged.revision, annotations }, { index: tools.structure, itemId: name, handle: name, questionId: "q", role: "entry", propertyDirected: true })
+      expect(unproved.unit.blocks.flatMap((b: any) => b.steps).filter((s: any) => s.kind === "bind" && s.bindingName === "repo")).toEqual([])
+    }
+    units.push({ ...lowered.unit, questionId: "q", evidenceIds: skeleton.evidenceIds, source: skeleton.source })
+  }
+  for (const step of units.find(u => u.role === "entry").blocks.flatMap((b: any) => b.steps)) if (step.kind === "call") step.callee = "find"
+  expect(lowerSemanticFlow(units, { compositional: true, propertyDirected: true }).diagnostics).toEqual([])
+  const wrong = structuredClone(units)
+  wrong.find((u: any) => u.role === "helper").parameters.find((p: any) => p.name === "owner_id").type = "principal"
+  expect(lowerSemanticFlow(wrong, { compositional: true, propertyDirected: true }).diagnostics).toContainEqual(expect.objectContaining({ code: "semantic-argument-unbound", message: expect.stringContaining('has type value, but helper "find" parameter "owner_id" (principal) requires principal') }))
+})
