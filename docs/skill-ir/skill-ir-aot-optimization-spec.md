@@ -2576,7 +2576,7 @@ Go机械来源覆盖包含multiline链式route及if initializer的实际调用/�
 
 **比较。** 新账号运行单独身份，记录模型、effort、CLI/harness、实际可见事件和用量；旧 xty 同名模型不作为同通道基线。普通原 skill、自然前端加核心、声明前端加核心在同条件下分别评价。账号开销不能写成零，内部调用或 USD 不可见保持 unknown。所有失败和针对性修订留账，原结果不覆盖；工程、真实完整链、材料级复用和整体收益分别验收。
 
-**实施边界。** v3有限Python列表至多8项，路径/递归上限不扩大；未知异常子类型、上下文退出、动态循环后续及复杂实参仍为具体缺口。材料快照采用authorization-source-materials/v1，语义身份包含finite-control/v1，并记录model/test-authored/revalidated-original来源；同一store已retired的身份不重新激活，当前重新核验应建立新store记录。投影额外校验精确sourceCallId与实际参数顺序/keyword/default，静态方法不注入self。v3恢复只带当前有效材料、原证据及仍相同的显式前提，不带旧policy/rules/final/check。模型载荷合并共享来源元数据，完整骨架保留在宿主/raw中，原窗口/锚点/嵌套flow保留。
+**实施边界。** v3有限Python列表至多8项，路径/递归上限不扩大；未知异常子类型、上下文退出、动态循环后续及复杂实参仍为具体缺口。材料快照采用authorization-source-materials/v1，语义身份包含finite-control/v1，并记录model/test-authored/revalidated-original来源；快照恢复不激活retired身份；显式accept在当前语义和依赖校验通过后可恢复同一身份，并刷新当前绑定/证据/来源，历史退役记录保留。该规则支持A→B→A局部修正，不将旧快照或失效依赖自动提升为当前材料。投影额外校验精确sourceCallId与实际参数顺序/keyword/default，静态方法不注入self。v3恢复只带当前有效材料、原证据及仍相同的显式前提，不带旧policy/rules/final/check。模型载荷合并共享来源元数据，完整骨架保留在宿主/raw中，原窗口/锚点/嵌套flow保留。
 
 账号公开入口是普通`run --adapter=codex-account`和`authorization inquiry run --harness=codex-account`，模型限定gpt-5.6-sol/high，M/D1及N普通只读工具共用native核心；D0和无法兑现的provider请求/token/请求超时/自动恢复限额明确拒绝。宿主工具/read/display/session限额继续生效。当前官方stdio transport只核实initialize；缺排他工具能力时不创建thread、不推理，内部请求数不可见本身不作为阻断理由。已知凭据字段/格式和账号标识在归档副本脱敏；不是通用秘密检测器，脱敏改动过的材料仍按原身份校验失效。原始用户输入是保留的任务声明，不读取账号凭据文件。五项结果与具体未达见[AW summary](../../results/skill-ir/skill-dsl-research/development/authorization-control-materials-v1/summary.json)。
 

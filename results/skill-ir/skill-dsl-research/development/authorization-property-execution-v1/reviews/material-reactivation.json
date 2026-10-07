@@ -1,0 +1,18 @@
+{
+  "schemaVersion": "authorization-ax-code-review/v1",
+  "reviewer": "ax_material_reaccept_review (independent read-only default scout)",
+  "component": "createSourceMaterials.accept",
+  "sourceSha256": "d2e05a5a3ed23b9e27784eef4481ac775c281349e9d4f1804db1280e567cbdb2",
+  "blockingFindings": [],
+  "verifiedBoundaries": [
+    "source-materials.ts:40-46 refreshes the identical material with current validated unit, evidence, footprint and provenance while retaining retirement history",
+    "source-materials.ts:48-55 copies retired snapshot entries without accepting them",
+    "inquiry-reuse.ts:95-102 selects current materials and validates source identity, evidence and all dependency revisions before admission"
+  ],
+  "boundedGaps": [
+    "The store checks semantic shape and required source/symbol footprint presence, not an independent current structure index. Projection/reuse validate current dependency revisions and evidence before task use. Stored current and semantically sufficient remain distinct.",
+    "The production caller retains provenance from currently valid materials; a new acceptance after retirement may be recorded as model rather than inheriting the retired provenance. Explicit callers can supply revalidated-original."
+  ],
+  "mainDisposition": "Accept the shared reacceptance fix; keep store acceptance separate from current-source projection and semantic review. No scorer or task input changes.",
+  "verification": "84 focused tests pass, 685 assertions; main typecheck passes"
+}

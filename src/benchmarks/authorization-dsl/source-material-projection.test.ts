@@ -40,6 +40,19 @@ test("an exact call with a swapped actual argument cannot adopt otherwise valid 
   const f = await fixture(); f.entry.blocks[0].steps[0].arguments[0].object = "different_actor"; f.accept(f.helper); f.accept(f.entry)
   expect(api.projectSourceMaterials(program, [f.entry], f.store.snapshot(), f.index).uses.filter((u: any) => u.kind === "call")).toEqual([])
 })
+test("an entry reaccepted after an intermediate interpretation projects its actual reachable helper", async () => {
+  const f = await fixture(), helper = f.accept(f.helper), original = f.accept(f.entry)
+  const intermediate = structuredClone(f.entry)
+  intermediate.blocks[0].steps[0].claim = "Intermediate test-authored call interpretation"
+  f.accept(intermediate)
+  const refreshed = { ...f.entry, handle: "current-entry", itemId: "current-focus", op: "replace", evidenceIds: ["current-evidence"] }
+  f.accept(refreshed)
+  const projected = api.projectSourceMaterials(program, [refreshed], f.store.snapshot(), f.index)
+  expect(projected.units).toHaveLength(4)
+  expect(new Set(projected.uses.map((u: any) => u.materialId))).toEqual(new Set([original.id, helper.id]))
+  expect(projected.uses.filter((u: any) => u.kind === "call")).toHaveLength(2)
+  expect(projected.units.filter((u: any) => u.role === "entry").every((u: any) => u.handle === "current-entry")).toBe(true)
+})
 test("production v3 persists helper-only material before any entry and emits no answer rules", async () => {
   const f = await fixture(), sourceRoot = await mkdtemp(path.join(os.tmpdir(), "aw-material-runtime-"))
   await writeFile(path.join(sourceRoot, "app.py"), content)

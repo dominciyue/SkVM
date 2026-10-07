@@ -186,7 +186,7 @@ Files: `src/cli/run.ts`、现有 authorization inquiry CLI、`src/adapters/codex
 
 ### AX12 三种变化的 fresh 与材料复用
 
-policy fresh/previous与premise fresh首件已关闭并保留。同版本policy previous的两个入口材料均current:false，accepted入口仍在而materialUses为空；主线程定位createSourceMaterials.accept在A→B→A重新接纳旧ID时返回退休条目但不reactivate。受影响的材料/消费者/M-S/D-S派发暂停：先用匿名材料与真实入口投影写红测，修共享accept的当前状态与新接纳元数据；不改变含义/评分器。然后具名同原题公开baseline和新变化登记（旧输入/登记原件保留），fresh/previous在新production src tree成对复验。未用材料核心的common-only作者可先执行，消费者仍等待修复。不能把修前0采用或修后重新计算升级成原首件成功。
+policy fresh/previous与premise fresh首件已关闭并保留。同版本policy previous的两个入口材料均current:false，accepted入口仍在而materialUses为空；主线程定位createSourceMaterials.accept在A→B→A重新接纳旧ID时返回退休条目但不reactivate。两个匿名红测分别确认当前材料为空和入口/实际helper投影为0；共享accept已修为验证后恢复当前状态及最新绑定/证据/来源，保留退役历史。84项相关回归685断言、主类型和独立只读边界核验通过；accept是未评审材料存储，实际projection/reuse仍校验当前索引与依赖，不改变含义/评分器。受影响的材料/消费者/M-S/D-S派发继续等待提交修复：随后具名同原题公开baseline和新变化登记（旧输入/登记原件保留），fresh/previous在新production src tree成对复验。未用材料核心的common-only作者可先执行，消费者仍等待修复。不能把修前0采用或修后重新计算升级成原首件成功。
 
 - [ ] 使用同一 Download 任务的 policy、premise、source 三种完整变化输入，每种 fresh/previous 两次，共六个首位置。
 - [ ] previous 只传当前实现生成且来源匹配的材料；不能传原答或检查结论。policy/premise 变更保留合格源码含义，source 变更定位失效影响并重读。

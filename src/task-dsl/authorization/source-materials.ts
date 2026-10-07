@@ -39,9 +39,10 @@ export function createSourceMaterials(identity: SourceMaterialIdentity, initial?
     if (!unit.source || !unit.evidenceIds.length || !dependencies.some(d => d.kind === "source-span" && d.key === unit.source!.path && d.revision === unit.source!.sha256) || !dependencies.some(d => d.kind === "symbol-resolution" && d.key === unit.source!.id && d.revision === unit.source!.sha256)) throw new Error("source-material-dependency-missing")
     const id = sourceMaterialId(identity, unit, dependencies)
     for (const old of state.materials) if (old.current && old.id !== id && old.unit.role === unit.role && old.source.id === unit.source.id && old.receiverClass === unit.receiverClass) retire(old, "source-interpretation-replaced")
-    const old = state.materials.find(m => m.id === id)
-    if (old) return old
     const material: SourceMaterial = { id, identity: structuredClone(identity), source: structuredClone(unit.source), receiverClass: unit.receiverClass, dependencies: orderedDependencies(dependencies), evidenceIds: [...unit.evidenceIds], unit: structuredClone(unit), current: true, semanticSupport: "unreviewed", interpretationSource }
+    const old = state.materials.find(m => m.id === id)
+    // Reacceptance restores availability and the latest binding; retirement history remains.
+    if (old) { Object.assign(old, material); return old }
     state.materials.push(material); return material
   }
   if (initial) {
