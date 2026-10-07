@@ -9,7 +9,7 @@ import { loadSkill } from "../../../../../src/core/skill-loader.ts"
 import { executeRun, materializeNaturalRunTask } from "../../../../../src/run/index.ts"
 import { loadInquiryInput, checkAuthorizationInquiry, executeLocalInquiryRun, inspectLocalInquiry } from "../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts"
 import { executeAccountAuthor } from "./author.ts"
-import { prepareChangeInputs } from "./changes.ts"
+import { prepareChangeInputs, resolveChangeRun } from "./changes.ts"
 import { prepareConsumerInput } from "./consumer.ts"
 
 const root = import.meta.dir
@@ -30,9 +30,10 @@ async function state(change: Record<string, unknown>) {
   await write(file, { ...prior, ...change })
 }
 /** Thin orchestration: all source, semantics, account controls and checking stay in production APIs. */
-export async function run(id: string, revision?: string) {
+export async function run(id: string, revision?: string, changeRegistrationId?: string) {
   const manifest = await Bun.file(path.join(root, "manifest.json")).json() as Manifest, p = manifest.positions.find(p => p.id === id)
   if (!p || p.kind === "smoke" || !["native", "inquiry", "quality", "change", "author", "consumer"].includes(p.kind)) throw new Error("Use one registered position")
+  if (changeRegistrationId && p.kind !== "change") throw new Error("A change registration applies only to a registered change position")
   if ((await Bun.file(path.join(root, "status.json")).json()).activeAttempts.length) throw new Error("The current study account attempt must close before another dispatch")
   if (revision && (!/^[a-z0-9-]+$/.test(revision) || !p.attempts.length)) throw new Error("Named revision requires its retained original")
   if (p.kind === "author" && revision && (p.attempts.length !== 1 || revision !== "field-repair")) throw new Error("An author permits exactly one named field-repair revision")
@@ -45,13 +46,8 @@ export async function run(id: string, revision?: string) {
   const gitRevision = execFileSync("git", ["rev-parse", "HEAD"], { cwd: repo, encoding: "utf8" }).trim(), runtimeTree = execFileSync("git", ["rev-parse", "HEAD:src"], { cwd: repo, encoding: "utf8" }).trim()
   let inputFile = originalInputFile, previous: string | undefined, binding: Record<string, unknown> = {}
   if (p.kind === "change") {
-    const match = /^change-download-(policy|premise|source)-(fresh|previous)$/.exec(id)
-    if (!match) throw new Error("Unregistered change shape")
-    const registration = await Bun.file(path.join(root, "model", "change-registration.json")).json()
-    if (registration.runtimeTree !== runtimeTree) throw new Error("Changed-input comparison requires the same baseline production tree")
-    inputFile = path.join(root, "model", "inputs", `download-${match[1]}.json`)
-    previous = match[2] === "previous" ? registration.previousSessionPath : undefined
-    binding = { change: match[1], changeArm: match[2], baselineAttemptId: registration.baselineAttemptId, qualityBasis: registration.qualityBasis }
+    const resolved = await resolveChangeRun(root, id, runtimeTree, changeRegistrationId)
+    inputFile = resolved.inputFile; previous = resolved.previous; binding = resolved.binding
   } else if (p.kind === "consumer") {
     const authorId = manifest.positions.find(row => row.id === `author-${p.task}`)?.attempts.at(-1)
     if (!authorId) throw new Error("No current author original to consume")
@@ -109,12 +105,12 @@ export async function run(id: string, revision?: string) {
   await state({ activeAttempts: [], ...(status.endsWith("unknown") ? { unknownCompletions: [attemptId] } : {}) })
   console.log(JSON.stringify({ attemptId, status, hostToolCalls: account ? account.tools.length + (account.toolRejections?.length ?? 0) : undefined, finalPresent: !!account?.text.trim(), usage: account?.usage, reason: account?.reason }))
 }
-export async function prepareChanges() {
+export async function prepareChanges(registrationId?: string) {
   const manifest = await Bun.file(path.join(root, "manifest.json")).json() as Manifest, baselineAttemptId = manifest.positions.find(p => p.id === "inquiry-download-original")?.attempts.at(-1)
   if (!baselineAttemptId) throw new Error("Run the current original public Download inquiry before preparing changes")
   const baseline = await Bun.file(path.join(root, "attempts", baselineAttemptId, "report.json")).json()
   if (!baseline.sessionPath || !baseline.runtimeTree) throw new Error("Missing current public baseline identity")
-  console.log(JSON.stringify(await prepareChangeInputs(root, baseline.sessionPath, { baselineAttemptId, runtimeTree: baseline.runtimeTree })))
+  console.log(JSON.stringify(await prepareChangeInputs(root, baseline.sessionPath, { baselineAttemptId, runtimeTree: baseline.runtimeTree }, registrationId)))
 }
 export async function smoke(revision?: "bounded-code-mode") {
   const manifest = await Bun.file(path.join(root, "manifest.json")).json() as Manifest
@@ -149,7 +145,7 @@ if (import.meta.main) {
   const command = process.argv[2]
   if (command === "smoke") await smoke()
   else if (command === "smoke-bounded-code-mode") await smoke("bounded-code-mode")
-  else if (command === "run") await run(process.argv[3]!, process.argv[4])
-  else if (command === "prepare-changes") await prepareChanges()
-  else throw new Error("Supported current study commands: smoke, run <exact-position-id> [named-revision], prepare-changes")
+  else if (command === "run") await run(process.argv[3]!, process.argv[4] === "-" ? undefined : process.argv[4], process.argv[5])
+  else if (command === "prepare-changes") await prepareChanges(process.argv[3])
+  else throw new Error("Supported current study commands: smoke, run <exact-position-id> [named-revision|-] [change-registration-id], prepare-changes [registration-id]")
 }

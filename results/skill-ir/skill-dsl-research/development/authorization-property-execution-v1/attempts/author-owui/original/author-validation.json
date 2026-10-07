@@ -1,0 +1,1681 @@
+{
+  "status": "structurally-valid-awaiting-independent-admission",
+  "diagnostics": [],
+  "publicCheck": {
+    "schemaVersion": "authorization-inquiry-check/v1",
+    "status": "valid",
+    "inputPath": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-property-execution-v1\\attempts\\author-owui\\original\\workspace\\inquiry.json",
+    "method": "M",
+    "strategy": "operation-evidence-v4",
+    "input": {
+      "schemaVersion": "authorization-inquiry-input/v1",
+      "taskId": "owui-ingestion",
+      "repository": "open-webui/open-webui",
+      "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+      "sourceRoot": "source",
+      "allowedPaths": [
+        "backend/open_webui"
+      ],
+      "inquiry": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "invoke-process-file",
+            "request": "Investigate the source-defined behavior of the process_file handler for /process/file, including caller establishment and all route-level authorization gates.",
+            "entryHint": "backend/open_webui: locate process_file and the /process/file route"
+          },
+          {
+            "id": "access-input-file",
+            "request": "Trace the supplied file_id from the request through lookup, authorization, loading, and processing, including ownership-dependent branches and failures.",
+            "entryHint": "Start at process_file for /process/file and follow file model, service, and processing calls within backend/open_webui"
+          },
+          {
+            "id": "affect-destination-collection",
+            "request": "Trace the supplied collection_name through validation, authorization, processing, and any eventual vector-store read or write, without presuming destination ownership.",
+            "entryHint": "Start at process_file for /process/file and follow collection and vector-store callees within backend/open_webui"
+          }
+        ],
+        "questions": [
+          {
+            "id": "caller-resolution-and-entry-guards",
+            "request": "Identify how the caller is authenticated and represented at the endpoint, and enumerate every visible route, dependency, middleware, role, or other guard that must pass before processing. Cite source locations and separate source-visible behavior from deployment-dependent assumptions.",
+            "principal": "the caller of /process/file",
+            "resource": "the process_file endpoint",
+            "operation": "invoke process_file",
+            "entryHint": "process_file at /process/file and its authentication dependencies",
+            "premises": [
+              {
+                "text": "The investigation target is process_file at /process/file in this Open WebUI revision.",
+                "origin": "user"
+              }
+            ],
+            "operationId": "invoke-process-file",
+            "intent": "behavior"
+          },
+          {
+            "id": "file-id-authorization-flow",
+            "request": "Trace the supplied file_id from request parsing to every lookup and access-control decision. State the exact visible predicates, which principal attributes they use, the success and failure branches, and any status or error behavior. Do not treat a lookup as authorization unless the source enforces it.",
+            "principal": "the resolved caller",
+            "resource": "the file identified by the supplied file_id",
+            "operation": "load and process the input file",
+            "entryHint": "process_file request model, file lookup, ownership checks, and processing callees",
+            "premises": [
+              {
+                "text": "The request supplies file_id and destination collection_name.",
+                "origin": "user"
+              }
+            ],
+            "operationId": "access-input-file",
+            "intent": "behavior"
+          },
+          {
+            "id": "caller-owned-file-case",
+            "request": "For the caller-owned-file case, explain all visible conditions under which the request proceeds or fails, what file content or metadata reaches processing, and which side effects can occur. Preserve distinctions among authentication, ownership, existence, validation, and downstream failures.",
+            "principal": "a caller who owns the supplied file",
+            "resource": "the caller-owned file identified by file_id",
+            "operation": "process the file through /process/file",
+            "entryHint": "ownership branch and downstream processing reached from process_file",
+            "premises": [
+              {
+                "text": "The requested comparison includes a caller-owned file and another user's file.",
+                "origin": "user"
+              }
+            ],
+            "operationId": "access-input-file",
+            "intent": "behavior"
+          },
+          {
+            "id": "other-users-file-case",
+            "request": "For the another-user's-file case, explain all visible conditions under which lookup, authorization, processing, or side effects are allowed or denied. Identify any role, privilege, sharing, workspace, group, bypass, or callee condition only when visible in source, and report the exact failure behavior otherwise.",
+            "principal": "a caller who does not own the supplied file",
+            "resource": "another user's file identified by file_id",
+            "operation": "attempt to process the file through /process/file",
+            "entryHint": "file authorization branch plus any role, sharing, or downstream checks reached from process_file",
+            "premises": [
+              {
+                "text": "The requested comparison includes a caller-owned file and another user's file.",
+                "origin": "user"
+              }
+            ],
+            "operationId": "access-input-file",
+            "intent": "behavior"
+          },
+          {
+            "id": "collection-name-flow-and-authorization",
+            "request": "Trace collection_name from request parsing through defaults, normalization, derivation, forwarding, and every collection-specific authorization or validation check. Determine whether the source verifies destination ownership, membership, namespace, tenant, existence, or write permission independently of file access; do not infer such a check from authorization of file_id.",
+            "principal": "the resolved caller",
+            "resource": "the destination collection identified by collection_name",
+            "operation": "select and write the processing destination",
+            "entryHint": "process_file collection_name handling and all collection/vector-store callees",
+            "premises": [
+              {
+                "text": "The request supplies file_id and destination collection_name.",
+                "origin": "user"
+              },
+              {
+                "text": "Do not assume the caller owns the destination collection.",
+                "origin": "user"
+              }
+            ],
+            "operationId": "affect-destination-collection",
+            "intent": "behavior"
+          },
+          {
+            "id": "eventual-processing-and-vector-effects",
+            "request": "Follow successful paths into document processing and any vector-store operation. Identify the exact resource keys or collection identifiers read, created, replaced, appended to, deleted from, or otherwise mutated; identify content written and the visible conditions for each effect. Distinguish an existing supplied destination from any internally generated destination.",
+            "principal": "the resolved caller",
+            "resource": "the processed file data and destination vector collection",
+            "operation": "perform processing or a vector write",
+            "entryHint": "processing pipeline and vector database calls transitively reached from process_file",
+            "premises": [
+              {
+                "text": "The task requires tracing the eventual processing or vector write.",
+                "origin": "user"
+              }
+            ],
+            "operationId": "affect-destination-collection",
+            "intent": "behavior"
+          },
+          {
+            "id": "authorized-object-versus-affected-object",
+            "request": "Compare the object used by each input authorization decision with the object affected by processing or vector writes. Explain whether they are the same object, distinct objects, or linked by an enforced source-visible invariant, and identify any mismatch without assuming destination ownership.",
+            "principal": "the resolved caller",
+            "resource": "the input file and the destination collection",
+            "operation": "authorize input and affect output",
+            "entryHint": "join the file authorization trace with the collection/vector-write trace",
+            "premises": [
+              {
+                "text": "The task asks whether the object authorized for input and the object affected by output are the same.",
+                "origin": "user"
+              },
+              {
+                "text": "Do not assume the caller owns the destination collection.",
+                "origin": "user"
+              }
+            ],
+            "operationId": "affect-destination-collection",
+            "intent": "behavior"
+          },
+          {
+            "id": "ordering-failures-and-partial-effects",
+            "request": "Establish the source-visible order of authentication, file lookup and authorization, collection handling, processing, and writes. Report early exits, exception handling, retries, overwrite or duplicate behavior, and whether a failure can leave partial effects. Do not claim runtime atomicity or concurrency guarantees absent from source.",
+            "principal": "the resolved caller",
+            "resource": "the input file and destination collection",
+            "operation": "complete or fail the process_file workflow",
+            "entryHint": "process_file control flow and transitive processing/vector-store calls",
+            "premises": [],
+            "operationId": "invoke-process-file",
+            "intent": "behavior"
+          },
+          {
+            "id": "cross-file-protections-and-self-verification",
+            "request": "Perform a cross-file verification pass for the traced path: inspect directly relevant dependencies, middleware, models, service methods, and vector-store wrappers for protections or bypasses that could change the initial conclusion. Recheck each claimed access-control issue for missed sanitization or upstream enforcement, and clearly label unresolved indirect or runtime behavior.",
+            "principal": "the resolved caller",
+            "resource": "the complete /process/file authorization and effect path",
+            "operation": "verify the behavior conclusion",
+            "entryHint": "direct callers and callees of process_file within backend/open_webui",
+            "premises": [],
+            "operationId": "invoke-process-file",
+            "intent": "scope"
+          },
+          {
+            "id": "security-assessment-and-remediation",
+            "request": "Using only verified source evidence from this path, state whether the behavior constitutes an authentication, authorization, object-level authorization, cross-tenant, or other security issue. For every genuine finding provide category, severity, confidence, exact source evidence, attacker impact, exploit prerequisites, and mitigating conditions. For any CRITICAL or HIGH finding, propose a concrete before/after patch for human review without applying it; discard or downgrade unsubstantiated findings.",
+            "principal": "a potentially untrusted authenticated or unauthenticated caller, as the source permits",
+            "resource": "the input file and destination collection exposed by /process/file",
+            "operation": "assess exploitability of the observed behavior",
+            "entryHint": "verified endpoint-to-file-to-collection data flow",
+            "premises": [],
+            "operationId": "invoke-process-file",
+            "intent": "behavior"
+          },
+          {
+            "id": "visible-conditions-and-limits",
+            "request": "Summarize the decisive source-visible conditions for the caller-owned-file case, the another-user's-file case, and destination collection effects. List specific remaining limits, including unresolved dynamic dispatch, configuration, external storage semantics, middleware outside allowed paths, deployment state, and any fact that would require execution or network access. Use file-and-line citations and avoid an authorization graph.",
+            "principal": "the caller of /process/file",
+            "resource": "the investigated request path and its input and output objects",
+            "operation": "report behavior and evidence limits",
+            "entryHint": "all evidence gathered for the three operations",
+            "premises": [
+              {
+                "text": "The task requires visible conditions and specific remaining limits.",
+                "origin": "user"
+              }
+            ],
+            "operationId": "invoke-process-file",
+            "intent": "scope"
+          }
+        ]
+      }
+    },
+    "sourceFiles": [
+      {
+        "path": "backend/open_webui/__init__.py",
+        "sha256": "34bfb949872b4be5ce1e4bd9698f41c4e3b0d264eb63c12d0858f6a52aeb1498",
+        "bytes": 3015
+      },
+      {
+        "path": "backend/open_webui/config.py",
+        "sha256": "d43c63a6d8271b19b806157f4baacaf391ec8214e50009ad73e10f0d80596599",
+        "bytes": 139995
+      },
+      {
+        "path": "backend/open_webui/constants.py",
+        "sha256": "8cc6916bb1fd3db4ecee43a7e7a4d7174d3aa5282205d18a3f40b441dc1a1c21",
+        "bytes": 7015
+      },
+      {
+        "path": "backend/open_webui/env.py",
+        "sha256": "79acbb0364379e63ab415a1d590f3a05dfe87ecca0dcf2c9ab42d1415264dd6b",
+        "bytes": 41430
+      },
+      {
+        "path": "backend/open_webui/functions.py",
+        "sha256": "bf52d728a218c585f8c8c40fcb556f673185fda06acdb0ae75c292a8bff1af84",
+        "bytes": 12255
+      },
+      {
+        "path": "backend/open_webui/internal/db.py",
+        "sha256": "a371d9b86a69e988474fbeeba68ab8dddc7d6bc9f3d1f331657bcae19d39ad2e",
+        "bytes": 16014
+      },
+      {
+        "path": "backend/open_webui/internal/wrappers.py",
+        "sha256": "4661a71008de4c3b1b08b6d86cadfbd63928c4d93b2aa4f7e58cea37d7d114fc",
+        "bytes": 3008
+      },
+      {
+        "path": "backend/open_webui/main.py",
+        "sha256": "6ba3213da413b8fa3e10e2ed110e90e09c05f10cb65236fff281bd66618dfa95",
+        "bytes": 112835
+      },
+      {
+        "path": "backend/open_webui/models/access_grants.py",
+        "sha256": "23be9913138a0177029c9ece79e64a125951836ed8f13d7c3781a94dbb02a121",
+        "bytes": 29775
+      },
+      {
+        "path": "backend/open_webui/models/auths.py",
+        "sha256": "75484686cd4fc382c7430e62b28b8e9b21a45bbda97c5ff490ef99de72e2de99",
+        "bytes": 6168
+      },
+      {
+        "path": "backend/open_webui/models/automations.py",
+        "sha256": "59aaccafbc1e00e15105fee0a226b91fe27998a349d02fb2f6be8f6db5f260e1",
+        "bytes": 14358
+      },
+      {
+        "path": "backend/open_webui/models/calendar.py",
+        "sha256": "1153114b49c973524b47723ea194914ebcb63ac3c62365a02ead4ff0d2d6a136",
+        "bytes": 30715
+      },
+      {
+        "path": "backend/open_webui/models/channels.py",
+        "sha256": "1b84f51d820f74c065ff68e31ee4474ac1ccf68d70ad08e7ba25b994e9fba576",
+        "bytes": 36653
+      },
+      {
+        "path": "backend/open_webui/models/chat_messages.py",
+        "sha256": "ceab6d080f36a98432ea6d5d5de4fae6a0bcbaeaf5a317faeac953af9a1b836f",
+        "bytes": 26058
+      },
+      {
+        "path": "backend/open_webui/models/chats.py",
+        "sha256": "9d77fc5221293c4fbc1827a9ab21e6609733db0de74f917c5a0296a18c253579",
+        "bytes": 61118
+      },
+      {
+        "path": "backend/open_webui/models/feedbacks.py",
+        "sha256": "dd2258c611f6ff087594d9eb6ff6b0f93e002c83e706abb5a075c0167b0e0c42",
+        "bytes": 16963
+      },
+      {
+        "path": "backend/open_webui/models/files.py",
+        "sha256": "bba7349241119a4f8efcf5f8f227751ba92029e4604948d11bc6183a94d42424",
+        "bytes": 14509
+      },
+      {
+        "path": "backend/open_webui/models/folders.py",
+        "sha256": "73a394423a0dbb3f18c94b1f96c164c8d1f03a96fdd9e4b0067de0169f13ffc9",
+        "bytes": 13092
+      },
+      {
+        "path": "backend/open_webui/models/functions.py",
+        "sha256": "3756d9aa2bc353ebf880d34ff9ab616b43dc4e956eb12b0ec14b46e539682868",
+        "bytes": 16331
+      },
+      {
+        "path": "backend/open_webui/models/groups.py",
+        "sha256": "1914d0f024e2f3dfc7b52dcfb49913b90ad6dcf86a34dfe80603dcab0b1d3d59",
+        "bytes": 23096
+      },
+      {
+        "path": "backend/open_webui/models/knowledge.py",
+        "sha256": "3d46620e841fa3d6565744062ef420486477539b7be13a8ee007833bc6585edb",
+        "bytes": 25999
+      },
+      {
+        "path": "backend/open_webui/models/memories.py",
+        "sha256": "0699e07b80177c4dcbba44f6cafc0784fcce4fb96466e506b421c2b1f28a3a69",
+        "bytes": 5018
+      },
+      {
+        "path": "backend/open_webui/models/messages.py",
+        "sha256": "48a2c350ed53777e5fcf4341f6c8590c3eb76fb4e68243222a90e4dbc3b19bc1",
+        "bytes": 20404
+      },
+      {
+        "path": "backend/open_webui/models/models.py",
+        "sha256": "e54e456e500ef34b269a7a10c9d1740962ab5afcbfbff59ecda006fd11e30ea2",
+        "bytes": 22678
+      },
+      {
+        "path": "backend/open_webui/models/notes.py",
+        "sha256": "6fd515589438217b2ce57b1c5ab6019ad16aab3609bcf83efbe2ede0d2b016e2",
+        "bytes": 14820
+      },
+      {
+        "path": "backend/open_webui/models/oauth_sessions.py",
+        "sha256": "408f11c637248f4047215529397aae17e5f783d9dd5246e6c19c3cafa3936cfb",
+        "bytes": 13428
+      },
+      {
+        "path": "backend/open_webui/models/prompt_history.py",
+        "sha256": "1563c63e4d775d22fa22a38ace0ed58f1917b69ad109466bf2d5a2e8adc6bfc7",
+        "bytes": 8002
+      },
+      {
+        "path": "backend/open_webui/models/prompts.py",
+        "sha256": "ba1a8e16098e1717d45c73d12b63d61742e29bf9693099a5c36be0062221be3d",
+        "bytes": 28072
+      },
+      {
+        "path": "backend/open_webui/models/shared_chats.py",
+        "sha256": "4d1f2e0b4a30aad7db93e17e65b322fa90d3adfabc061fa4815c1ae031a9ea73",
+        "bytes": 6920
+      },
+      {
+        "path": "backend/open_webui/models/skills.py",
+        "sha256": "4c8276aff567499fa1ad85c3ed5a3d04593b3eece4b641e0e9e4ad50dbf93fdf",
+        "bytes": 12377
+      },
+      {
+        "path": "backend/open_webui/models/tags.py",
+        "sha256": "2c27d932783a5a20c4a4558a49e922fe251b876e15558db211132865c35bef35",
+        "bytes": 5191
+      },
+      {
+        "path": "backend/open_webui/models/tools.py",
+        "sha256": "ba6fc5b42e6a4c6db6789f87862b1bcacf77eb0bd93f82cf7b328b035cabe70e",
+        "bytes": 10632
+      },
+      {
+        "path": "backend/open_webui/models/users.py",
+        "sha256": "816d19722c312a7bbb6dc60e8967ed4f074939d764227a559fb6f857829244e4",
+        "bytes": 29333
+      },
+      {
+        "path": "backend/open_webui/retrieval/loaders/datalab_marker.py",
+        "sha256": "e118bc15839e10449fbd3e28f3161ae7c95daf515db25145c1f40dbf3fdfda43",
+        "bytes": 10905
+      },
+      {
+        "path": "backend/open_webui/retrieval/loaders/external_document.py",
+        "sha256": "70879979681967e7b338009b33deb29316434ffd462b303e03bd87e535e0e759",
+        "bytes": 2745
+      },
+      {
+        "path": "backend/open_webui/retrieval/loaders/external_web.py",
+        "sha256": "28804e5afd011aaf4eb4b44f747ed20ad3e30ee3697e11dcebc8ff76c8241503",
+        "bytes": 1827
+      },
+      {
+        "path": "backend/open_webui/retrieval/loaders/main.py",
+        "sha256": "0ee939bb56c6a0cb847136dcf797a0f29eced24fbdf0b9ed68daf213fedeaae7",
+        "bytes": 19330
+      },
+      {
+        "path": "backend/open_webui/retrieval/loaders/mineru.py",
+        "sha256": "1d093cb871434de66f7202757e42b6c938419066ed987d7aec2df7584b630dcc",
+        "bytes": 18665
+      },
+      {
+        "path": "backend/open_webui/retrieval/loaders/mistral.py",
+        "sha256": "9029047398ba29e441b856c8e3a4b6b6de02b21d415f45df9b8ae4f0c057cd2a",
+        "bytes": 29491
+      },
+      {
+        "path": "backend/open_webui/retrieval/loaders/paddleocr_vl.py",
+        "sha256": "1e1c85a54b62d7330545a56c62e846808aa8a9b3967af50956fb7b60084052ba",
+        "bytes": 4298
+      },
+      {
+        "path": "backend/open_webui/retrieval/loaders/tavily.py",
+        "sha256": "e26e6d811ce960776b92ed535da724f8c1977456e5f526f5ffc0d6e1df412c8d",
+        "bytes": 3970
+      },
+      {
+        "path": "backend/open_webui/retrieval/loaders/youtube.py",
+        "sha256": "f31ec036df0bd7b9f7a52a4e76b6bd4b7df150c64aca9b61a7b6de4c43f1ee55",
+        "bytes": 5613
+      },
+      {
+        "path": "backend/open_webui/retrieval/models/base_reranker.py",
+        "sha256": "f68f4705df1a75c4f4ec7a901a62bcb7f4521a426a837c79150d645ac717a8bd",
+        "bytes": 219
+      },
+      {
+        "path": "backend/open_webui/retrieval/models/colbert.py",
+        "sha256": "41afc4bf93f144629cc7c35c6cfa22c08a8253fd76a77d2a3d4a6849d2dd7d04",
+        "bytes": 3293
+      },
+      {
+        "path": "backend/open_webui/retrieval/models/external.py",
+        "sha256": "53b2fe4f30e8450b5b1be64441ab4c6137d1687d6798faf303e03eeb0f0e5f67",
+        "bytes": 2151
+      },
+      {
+        "path": "backend/open_webui/retrieval/utils.py",
+        "sha256": "c5c9140bad41a3b160acfe6a8d8270730918c41be3c9bb183d614fc10053e4ea",
+        "bytes": 56193
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/async_client.py",
+        "sha256": "75e377860c3aac8199fa0ad4bc23915e0eb83c4ad813aac91c40bd1047938c85",
+        "bytes": 5144
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/dbs/chroma.py",
+        "sha256": "fa4491a25bf04f77ad8765b5a03573be00e1baeb8671c67f1f9148faebeceada",
+        "bytes": 7008
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/dbs/elasticsearch.py",
+        "sha256": "85fe98575b034b5f7e08b9ecdc9ee1a624885a91eca229be7924ed062e77c144",
+        "bytes": 10269
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/dbs/mariadb_vector.py",
+        "sha256": "ebcac647c883585a312a96226e785b5fd19786cd0538a2a585500c5f93a15883",
+        "bytes": 22473
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/dbs/milvus.py",
+        "sha256": "19bed475c2ad388b6e6141e83ee887085ee2e34e087e93b62da6a7156ce7cd1b",
+        "bytes": 15231
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/dbs/milvus_multitenancy.py",
+        "sha256": "366085a72bafb95ac5e92de3f6ed498b4923f58eafa41bb53d79919cf2df5780",
+        "bytes": 10236
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/dbs/opengauss.py",
+        "sha256": "be3d719856e5d40fe4c7b9ca10750643ddbb0bdd2833bb168d82f529431225e2",
+        "bytes": 14247
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/dbs/opensearch.py",
+        "sha256": "6c7f8cdf878375344675e85277aa72576caf5853645a767d41826d657f2f80fd",
+        "bytes": 9215
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/dbs/oracle23ai.py",
+        "sha256": "e678321fbbee5b5fbe4efb02dbd9fc402825343b0f3bb1a24d1f549ceb4cf9d5",
+        "bytes": 32881
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/dbs/pgvector.py",
+        "sha256": "1cbb96e2f55348865dfc76b5287a3e6307278bd62d41ee2de48b76e8be70cfef",
+        "bytes": 28067
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/dbs/pinecone.py",
+        "sha256": "88549ab37532c5c886d2719377c5cb37418df2d81cf979ea50718cb936739d6e",
+        "bytes": 20799
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/dbs/qdrant.py",
+        "sha256": "f5679b9d56f568a3842f54186a86c52e7f41d9a65c8927ec9543726b95983fa0",
+        "bytes": 9368
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/dbs/qdrant_multitenancy.py",
+        "sha256": "6bd1b7c3168e034ea2f6d923c642f03f80c9b9e86303f2f7b905c9a00f4d3183",
+        "bytes": 13765
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/dbs/s3vector.py",
+        "sha256": "bfacc2b27e3aacb8ced053faafef3e8d3ee15316ad3f6a2790e8d07340d6503f",
+        "bytes": 29802
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/dbs/weaviate.py",
+        "sha256": "9b3bb333b1c281d70718bab76e31150b12d9755475a5bf6b413bcf6e17c679bb",
+        "bytes": 12401
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/factory.py",
+        "sha256": "4e9e92f8ee8ee2d8201b55525d97b855ed838ec375b98c92048b896285100d99",
+        "bytes": 3186
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/main.py",
+        "sha256": "9d701b70933917febdca1386d6057dd7cce57433c320c1c3ae1bc7fcf0cf1128",
+        "bytes": 2550
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/type.py",
+        "sha256": "a4712973a6c133787ea13d5d76e1e858ebf4adcbbdc08a03d65850c31b1d5e87",
+        "bytes": 386
+      },
+      {
+        "path": "backend/open_webui/retrieval/vector/utils.py",
+        "sha256": "c76629a74aaa6ea8077c6c72acc5afa00da0bfc145014ecf57438bd831d28325",
+        "bytes": 1065
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/azure.py",
+        "sha256": "fd225212b92786ea5c9a6b6fb0d8317c2edbc56347db92b6a1cc6cea13decd35",
+        "bytes": 4134
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/bing.py",
+        "sha256": "e5e12d0657808e56178a14be874262bc26a54a3d739d0321652c25e3af5406c3",
+        "bytes": 2012
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/bocha.py",
+        "sha256": "015e294a6b72844a3c6ebdd476ca2d765a6539a648d63948af6b081bd4c980eb",
+        "bytes": 2046
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/brave.py",
+        "sha256": "e9bbf2d52f07379f5ba2ee66e50e12e5365faaced7c591980cdcb6d41e0e155d",
+        "bytes": 1588
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/brave_llm_context.py",
+        "sha256": "9eb3e1af4dbaa64af6da723934cd2410ebc782b9e8b6deed784bb128a7c3141c",
+        "bytes": 2158
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/duckduckgo.py",
+        "sha256": "745088e99fd996cb388e53f37b2828a5f1928108745b9ad58064c1379b2c628b",
+        "bytes": 2045
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/exa.py",
+        "sha256": "3d05543a9449c0b4aed477c3dd9f8568ee176cf09bcd85649b97b03f8e7b9f5f",
+        "bytes": 1942
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/external.py",
+        "sha256": "a0b7cf43270018e9ae407501e345c12861b69893017fb1c0900f6651e4439547",
+        "bytes": 1722
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/firecrawl.py",
+        "sha256": "dec876e030840d279eddab80356704b309afe8559e9e5f1d16e4956929f4c5e1",
+        "bytes": 6884
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/google_pse.py",
+        "sha256": "1f2df72db405d6b175ce17e87a938bd179be874b1e81dd473690604d8b7d23b9",
+        "bytes": 2470
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/jina_search.py",
+        "sha256": "66d35f340779fb0dfbd3493ae97633311e5a62bc7b42cf92a0aea4d0747ffbcd",
+        "bytes": 1383
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/kagi.py",
+        "sha256": "53851131d79e94d1f59d4887d3c37d2817f531c0b3b63f18565f7f33309de722",
+        "bytes": 1307
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/main.py",
+        "sha256": "269a754d8e7579a9241bc9060fa6a967240a9e9fa3e50f4a95e1249892cc62b9",
+        "bytes": 1097
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/mojeek.py",
+        "sha256": "812ba03947fe8cb6f1cef70fec6db7cdb6adbf7af9ac840b01d52311c01c9f5c",
+        "bytes": 1117
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/ollama.py",
+        "sha256": "b89d99d4c6f4dcde87d55ca470d4d75451880d352f5472971047dcc5d3cae9be",
+        "bytes": 1592
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/perplexity.py",
+        "sha256": "f4702b2f4ed5fc7602a8599b6523e3f10fa7cd671233dc4bd98ac327c778ff30",
+        "bytes": 3162
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/perplexity_search.py",
+        "sha256": "508c576e83e98593db90a26e968220047cfe46d013e598de1d6957ecacbcb2de",
+        "bytes": 2106
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/searchapi.py",
+        "sha256": "6c2005e5d541e99b6c0571b66b3056930cc7e0c00baf19986f44cb09e12459df",
+        "bytes": 1292
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/searxng.py",
+        "sha256": "d302b0b79190830aeb104d6a8ae6a2b97a135b5f231b17ae06f7d02e307a83b6",
+        "bytes": 3216
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/serpapi.py",
+        "sha256": "ceabeb8a11883004a3e08fe49dd048c29be832f0183e21dea6074259c09c2b1f",
+        "bytes": 1274
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/serper.py",
+        "sha256": "9e8400c8fef70a64983d4e0ebc93f4502c3a22095546d227a0f773566ebdd582",
+        "bytes": 1189
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/serply.py",
+        "sha256": "a17a41ea33d984f338dd55366ab9451abf02ece5000c7fe556102e6cb06392d3",
+        "bytes": 1939
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/serpstack.py",
+        "sha256": "16c8eede3149cbefa7de8428c5e633cc3459363b71e177028a5088154e4ca24c",
+        "bytes": 1322
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/sougou.py",
+        "sha256": "516ed4145519528caeee6eb2b75849cbe48432102e042dee88b9d30a71ac0f38",
+        "bytes": 1832
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/tavily.py",
+        "sha256": "3ddd4b2de6381c7eaa69700c6a779dad37d49d7c95c6280ca8f83db2254916dc",
+        "bytes": 1330
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/utils.py",
+        "sha256": "389d9e6693547ced38659fa1cb446934e6b090bffceb844a4a38c3493a3612f9",
+        "bytes": 27229
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/yacy.py",
+        "sha256": "9e77c88c3688dba3c47de09684d12855a1afdabc2bd6c10780cd92e8796722a4",
+        "bytes": 2699
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/yandex.py",
+        "sha256": "b047ea9bd0f1413e68dd2453b3cc456fc46252c2da1c3a161a759c03ff4da2e7",
+        "bytes": 4586
+      },
+      {
+        "path": "backend/open_webui/retrieval/web/ydc.py",
+        "sha256": "949f64cf223b5e2bb66ab26f514f8abca07309d0c1cd2917dfa7e6e32f4f3736",
+        "bytes": 2077
+      },
+      {
+        "path": "backend/open_webui/routers/analytics.py",
+        "sha256": "77b6a8821577f5f6681700abffa69784e8316685ebd559db8b7fc406701870eb",
+        "bytes": 14338
+      },
+      {
+        "path": "backend/open_webui/routers/audio.py",
+        "sha256": "cf4f3a84448309e82805e36817ee6090f55fec2c5436fad61d2d17f81a3da552",
+        "bytes": 61658
+      },
+      {
+        "path": "backend/open_webui/routers/auths.py",
+        "sha256": "5d76cc41c080991b2cb07267269d454900a008ba4ddbf19a138750bc20971a56",
+        "bytes": 53492
+      },
+      {
+        "path": "backend/open_webui/routers/automations.py",
+        "sha256": "7e58cb5cc634e55068324e11cc867a7c84a2e143c8be51360f491d895caf56e6",
+        "bytes": 9319
+      },
+      {
+        "path": "backend/open_webui/routers/calendar.py",
+        "sha256": "65ec85d96b5bfbc4c0dfe0c64a3d99df395ea4a7f190fce38eaf09c047998de0",
+        "bytes": 16261
+      },
+      {
+        "path": "backend/open_webui/routers/channels.py",
+        "sha256": "e729bcc52bbb2bb5c412e679f21e20440c219b3fb0c10f2d2d0d120e4037d9c6",
+        "bytes": 67093
+      },
+      {
+        "path": "backend/open_webui/routers/chats.py",
+        "sha256": "fd210c683d603ecdd95275cd3fb5d7885efed988eb7de06797573f8677edcf93",
+        "bytes": 51594
+      },
+      {
+        "path": "backend/open_webui/routers/configs.py",
+        "sha256": "6b78abafd748edf23f4144b8d5e109639b18f1ee628925d325476e0c7ae69725",
+        "bytes": 27017
+      },
+      {
+        "path": "backend/open_webui/routers/evaluations.py",
+        "sha256": "2bc934753a8e60845caa48c5fbf3f91745e7b99bf46f9420771ac6d3c9c94935",
+        "bytes": 14499
+      },
+      {
+        "path": "backend/open_webui/routers/files.py",
+        "sha256": "f92028460061cc4e03cb8214eafd4474a07370f41f61c3066deea4d30c774b9b",
+        "bytes": 28531
+      },
+      {
+        "path": "backend/open_webui/routers/folders.py",
+        "sha256": "bf24635f2c5b9bfd28f5b1fc61e2ffc5a9c8ed7267c438471b979d1892a071db",
+        "bytes": 10606
+      },
+      {
+        "path": "backend/open_webui/routers/functions.py",
+        "sha256": "981a9908a5a645d40c047c6ecc91a1143aa6d9c79818efb191ee01bc1783c665",
+        "bytes": 18764
+      },
+      {
+        "path": "backend/open_webui/routers/groups.py",
+        "sha256": "8906223c13a92b12dc7ef7ae053196b6991cddc3ab6c899bd58d862ad447273b",
+        "bytes": 8714
+      },
+      {
+        "path": "backend/open_webui/routers/images.py",
+        "sha256": "f3f17b2a345aeb14c9fc66107676da2e09925b63b1df27de4b555292047172e3",
+        "bytes": 46042
+      },
+      {
+        "path": "backend/open_webui/routers/knowledge.py",
+        "sha256": "d59cea488d300bf3206aeaf176af980b05de95b1e86e766373765b1fcd3f1342",
+        "bytes": 35893
+      },
+      {
+        "path": "backend/open_webui/routers/memories.py",
+        "sha256": "447238a24bced91157727b21ae0389d9097e202e1cd462ec2d6958c5e9dc27eb",
+        "bytes": 11833
+      },
+      {
+        "path": "backend/open_webui/routers/models.py",
+        "sha256": "4ab6758bca8c8f31369d0f174e898279c09ab772272a4eb91e4a5fee3c7de22a",
+        "bytes": 23948
+      },
+      {
+        "path": "backend/open_webui/routers/notes.py",
+        "sha256": "046b504e11ed07e07bd6619cb327e505888adf37c3c199682f7a64fd14408a43",
+        "bytes": 15014
+      },
+      {
+        "path": "backend/open_webui/routers/ollama.py",
+        "sha256": "4532dc9d81add25fd7198ad537d6e958eed902161135bec8fb5280e87fcdf994",
+        "bytes": 57781
+      },
+      {
+        "path": "backend/open_webui/routers/openai.py",
+        "sha256": "4fdaa5442ca02d54acee8dbad222b0083d313c0541642b968059d3997b777417",
+        "bytes": 59454
+      },
+      {
+        "path": "backend/open_webui/routers/pipelines.py",
+        "sha256": "cdc3c10e3e8c2f67c60d1c24f3193b5d736ab6161201f6900fa82650aeda51ec",
+        "bytes": 16919
+      },
+      {
+        "path": "backend/open_webui/routers/prompts.py",
+        "sha256": "1ce8a4badbb676d9db22d855631ea5f05a748ec0e164ef3f11dec9e2a1c1dc9c",
+        "bytes": 22343
+      },
+      {
+        "path": "backend/open_webui/routers/retrieval.py",
+        "sha256": "87c95db081006055475b9b55cb704c7d16406e9dad2d00ddc418ed1878464e72",
+        "bytes": 121813
+      },
+      {
+        "path": "backend/open_webui/routers/scim.py",
+        "sha256": "24d395a89d403ab7c6da004940252c10eef067b4a4f84e4ef36da7955a35e279",
+        "bytes": 32242
+      },
+      {
+        "path": "backend/open_webui/routers/skills.py",
+        "sha256": "9532252119c608bcde1063b8944fe5c9c41caa1afd04a0892f7bb5812c887c4b",
+        "bytes": 13640
+      },
+      {
+        "path": "backend/open_webui/routers/tasks.py",
+        "sha256": "a377b05de0a70bf906e4327bd37c034369a9540aea9a0dd0018055101b58c6e5",
+        "bytes": 27574
+      },
+      {
+        "path": "backend/open_webui/routers/terminals.py",
+        "sha256": "4533cddc266ff8e29fb04782e1f7afac08996aab3f992fbce6841c7b26c1fa81",
+        "bytes": 12467
+      },
+      {
+        "path": "backend/open_webui/routers/tools.py",
+        "sha256": "b8139e1ea5ffccfc95beca9a47b335f407a9c7a5f9e3427a3b7bdcc57100f75b",
+        "bytes": 29658
+      },
+      {
+        "path": "backend/open_webui/routers/users.py",
+        "sha256": "ce17a927ddf54ccc8eef800dc77941c14d89885dd4a03deda4d47032b937b0b7",
+        "bytes": 21283
+      },
+      {
+        "path": "backend/open_webui/routers/utils.py",
+        "sha256": "c018378eb1a27db5d649f507e717e9cdb16af8de4549ddbeea48950f860d5f0c",
+        "bytes": 3884
+      },
+      {
+        "path": "backend/open_webui/socket/main.py",
+        "sha256": "7c183fc2b6e86baedf09d919286fb09bda3ef47b1bb81f1871390d056f7c3dd2",
+        "bytes": 31935
+      },
+      {
+        "path": "backend/open_webui/socket/utils.py",
+        "sha256": "d94de713f39c515865e426b3bc7cf3ca6d641cab1a0559caf244b87cd6b10414",
+        "bytes": 9554
+      },
+      {
+        "path": "backend/open_webui/storage/provider.py",
+        "sha256": "85c6865feb027e931941c519dda761c12bd8661e4e80c7e603734621e8676a9c",
+        "bytes": 14133
+      },
+      {
+        "path": "backend/open_webui/tasks.py",
+        "sha256": "926f7092061a2a9381a68712edd5f49b05c9781adc8989ab6349ff384b989d3d",
+        "bytes": 6862
+      },
+      {
+        "path": "backend/open_webui/tools/__init__.py",
+        "sha256": "9217b87e7d2a604accc19aa8d363c9dc39dd4150f30926584ae3b3e598b429f7",
+        "bytes": 146
+      },
+      {
+        "path": "backend/open_webui/tools/builtin.py",
+        "sha256": "1ac10d73cad6349815f6f5133ced8b376f3dab847d558d1862dd588e71118d88",
+        "bytes": 118836
+      },
+      {
+        "path": "backend/open_webui/utils/access_control/__init__.py",
+        "sha256": "c97f67f63adaedafa6d0d457c3a78a4eba04c50765ca47f5b4a00a659ed18e5d",
+        "bytes": 12486
+      },
+      {
+        "path": "backend/open_webui/utils/access_control/files.py",
+        "sha256": "2e7f9bd64036ed14d26d37f4e9d908c722a95f397b9239eb97dc0fe45855cdb7",
+        "bytes": 3399
+      },
+      {
+        "path": "backend/open_webui/utils/actions.py",
+        "sha256": "d9d96978047116be118d35e6d4f898932b575f4a2bd74b33e13a6e778aed1ef7",
+        "bytes": 4576
+      },
+      {
+        "path": "backend/open_webui/utils/anthropic.py",
+        "sha256": "430694cee25795ffaac9007f6b59b3e737b369c1f68d05e2d8d3733faf27ef5c",
+        "bytes": 25470
+      },
+      {
+        "path": "backend/open_webui/utils/asgi_middleware.py",
+        "sha256": "bcd136e780ec34e8344314ce94ada17e9a93eb777b58f877efc5072595bb2aa6",
+        "bytes": 11529
+      },
+      {
+        "path": "backend/open_webui/utils/audit.py",
+        "sha256": "a1a75bf1ba272002ed069cc7d886b535adfd6063290b70d76de6746824d2b4d2",
+        "bytes": 10054
+      },
+      {
+        "path": "backend/open_webui/utils/auth.py",
+        "sha256": "7a8fce4911892aaa82656df8a4ce4cbf7a6e46473795a629d63296cded7a3198",
+        "bytes": 16443
+      },
+      {
+        "path": "backend/open_webui/utils/automations.py",
+        "sha256": "e1237b3216ff13a1bd87ed18eafa0059ec9a7d1db3aff07cee4a4c0ebab3cfa6",
+        "bytes": 21387
+      },
+      {
+        "path": "backend/open_webui/utils/calendar.py",
+        "sha256": "fba4336b3a760e2f34c7d5e296187751ebdf9930906314a3b1edf64bff7e6dc3",
+        "bytes": 2691
+      },
+      {
+        "path": "backend/open_webui/utils/channels.py",
+        "sha256": "fd79fb8121d1b0a1af614ab4b16ac938d70bdc5682613c077272fac18f53599e",
+        "bytes": 1067
+      },
+      {
+        "path": "backend/open_webui/utils/chat.py",
+        "sha256": "d5c46fa5781c9f8b0570437a2fb981ad28393d2f36cae4db79da10ade69380c3",
+        "bytes": 13305
+      },
+      {
+        "path": "backend/open_webui/utils/code_interpreter.py",
+        "sha256": "8916424653e16b0c5990300067feeb90a94369f29b44a15a5d385481a7c21763",
+        "bytes": 7339
+      },
+      {
+        "path": "backend/open_webui/utils/embeddings.py",
+        "sha256": "c02e7066dcc6d6caca0f9db6fbb22163b971799e15ad04d2b1bb7fd0177c3084",
+        "bytes": 2893
+      },
+      {
+        "path": "backend/open_webui/utils/files.py",
+        "sha256": "e1b02701547ec69a0bd08db97ce8ac6141058aa8d373b35eb8eb5a6c98b112e0",
+        "bytes": 7461
+      },
+      {
+        "path": "backend/open_webui/utils/filter.py",
+        "sha256": "f17c8a62554801c740f2131b360e38910632f3e4876a79c636ff8c15f0138d74",
+        "bytes": 5029
+      },
+      {
+        "path": "backend/open_webui/utils/groups.py",
+        "sha256": "082d96c2c34ab5bc56a9ccc4108d97d7809ae28e63741c7c748ad8a36f8fc4a6",
+        "bytes": 686
+      },
+      {
+        "path": "backend/open_webui/utils/headers.py",
+        "sha256": "baa5a2a2601e4d88f5c636bcca53343a15023bafcc5dde66c04469e545f98b38",
+        "bytes": 1314
+      },
+      {
+        "path": "backend/open_webui/utils/images/comfyui.py",
+        "sha256": "abe2c3b05fa9721a11788cf4fd1d949dfa82df9298aeb3be34ae57b817b2c75d",
+        "bytes": 9444
+      },
+      {
+        "path": "backend/open_webui/utils/logger.py",
+        "sha256": "e90ef82131ef10a4f75aa0e29fe62a73c361c89a50ca3096776049ead5e3bfb1",
+        "bytes": 6799
+      },
+      {
+        "path": "backend/open_webui/utils/mcp/client.py",
+        "sha256": "a4785140b21426aad04617e909c649738c429040338f43c2a81e15ecfc79f102",
+        "bytes": 6837
+      },
+      {
+        "path": "backend/open_webui/utils/middleware.py",
+        "sha256": "6246723f9ae6dcf99407c706e325c4bfac285cc821fbef9cb4a7694c6c39e204",
+        "bytes": 227684
+      },
+      {
+        "path": "backend/open_webui/utils/misc.py",
+        "sha256": "f71ad7e884f2c7749000d923eb64c701e5f38461daa649f34c61578fb371ca69",
+        "bytes": 35403
+      },
+      {
+        "path": "backend/open_webui/utils/models.py",
+        "sha256": "983af4810bc64f86f7805ed22cd24dd6dfdee0d5cdc858a325c0ee96ff72845a",
+        "bytes": 17806
+      },
+      {
+        "path": "backend/open_webui/utils/oauth.py",
+        "sha256": "18225b66bfa380721cb364aae9a6fdaabb35b30d31755e651a6cc8784f58d248",
+        "bytes": 89204
+      },
+      {
+        "path": "backend/open_webui/utils/payload.py",
+        "sha256": "44b03d87b0cc41bb97d1d9c623ba0996f987f002e7af3f5cc0aeb76b46536520",
+        "bytes": 15171
+      },
+      {
+        "path": "backend/open_webui/utils/pdf_generator.py",
+        "sha256": "f6ed3303aa130a49de89bd9e7648b3fb97bc7156e678c8e40e63e7546f9dec22",
+        "bytes": 4995
+      },
+      {
+        "path": "backend/open_webui/utils/plugin.py",
+        "sha256": "3f8c8870e200c026d2c8f50a46bab856e233fee34ac326f72e4cade60ae79c49",
+        "bytes": 16378
+      },
+      {
+        "path": "backend/open_webui/utils/rate_limit.py",
+        "sha256": "1fd6b7224dbaa06a98d3f908f50022f7c5fe75edd7acb34d2e6ac8aa628b79d9",
+        "bytes": 4071
+      },
+      {
+        "path": "backend/open_webui/utils/redis.py",
+        "sha256": "fdc3427d0a3f2b8b7b874ab895d1140b3946ee3e1ecabe18418f4c4dae7f36ef",
+        "bytes": 11186
+      },
+      {
+        "path": "backend/open_webui/utils/response.py",
+        "sha256": "242e3165720f0b817aa44ad24f0109caee06f45a4dd7c35a2ebcec9717c94988",
+        "bytes": 8496
+      },
+      {
+        "path": "backend/open_webui/utils/sanitize.py",
+        "sha256": "0f2b05d09d2271fb626acbe66df8971c5c4b902a8c6c4a20210633e05b24ecd8",
+        "bytes": 1748
+      },
+      {
+        "path": "backend/open_webui/utils/security_headers.py",
+        "sha256": "5adc84b0c500322c6cca692c2009906fb46a5ea4f9abd0b50a096d1bf5d41b23",
+        "bytes": 6360
+      },
+      {
+        "path": "backend/open_webui/utils/session_pool.py",
+        "sha256": "b1b5dfc3fd6b771c0fa110931140b8a63960cb7eca78a6474774c64c1f8e5d3e",
+        "bytes": 4313
+      },
+      {
+        "path": "backend/open_webui/utils/task.py",
+        "sha256": "15d9b6bcadf9ad082d26bc4202ea14a89ed38a7202eb8b65e38f606e8070bdf6",
+        "bytes": 15033
+      },
+      {
+        "path": "backend/open_webui/utils/telemetry/__init__.py",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      {
+        "path": "backend/open_webui/utils/telemetry/constants.py",
+        "sha256": "ab337b851e4fe4b3722dec3eada180a1af5260618b8c1f0faada0e8daf8dc4f0",
+        "bytes": 623
+      },
+      {
+        "path": "backend/open_webui/utils/telemetry/instrumentors.py",
+        "sha256": "f4ad512d56bb9e7289b21887f1a3e9fbdb683d8fb3bdb625a81b2b8bfdfcd2db",
+        "bytes": 6603
+      },
+      {
+        "path": "backend/open_webui/utils/telemetry/logs.py",
+        "sha256": "682fbbf01b5ce1bd5472f8fcc489d009b158ad5ca15769c248a716bbc195573e",
+        "bytes": 1818
+      },
+      {
+        "path": "backend/open_webui/utils/telemetry/metrics.py",
+        "sha256": "47974f53cddb68311e0e95915251a8d771e7d455466ecf27bc6d37cc8cb4058b",
+        "bytes": 8979
+      },
+      {
+        "path": "backend/open_webui/utils/telemetry/setup.py",
+        "sha256": "70dcaaa6a9bcad8dac14bec7898bdab2076454e1c3fcca1488a248a598b07da7",
+        "bytes": 2192
+      },
+      {
+        "path": "backend/open_webui/utils/tools.py",
+        "sha256": "60152ea1234861bd60182efc6034c94d895b3e4d2fe21eaab63ae2861a3dadc7",
+        "bytes": 57830
+      },
+      {
+        "path": "backend/open_webui/utils/validate.py",
+        "sha256": "60a3f3b2b45a03adf6b2b5e6a4963ad937be676024f178e654245b2975551abb",
+        "bytes": 3206
+      },
+      {
+        "path": "backend/open_webui/utils/webhook.py",
+        "sha256": "5a53893c8a5e91aebcf18c20884f2ce8889746ee4a552510b2ef9bd42e565acf",
+        "bytes": 2461
+      }
+    ],
+    "scopeGaps": [],
+    "sourceRefVerification": "authored",
+    "providerCalls": 0,
+    "program": {
+      "schemaVersion": "authorization-inquiry-program/v1",
+      "status": "ready",
+      "mode": "behavior",
+      "operations": [
+        {
+          "id": "invoke-process-file",
+          "request": "Investigate the source-defined behavior of the process_file handler for /process/file, including caller establishment and all route-level authorization gates.",
+          "entryHint": "backend/open_webui: locate process_file and the /process/file route",
+          "sourceQuestionId": "caller-resolution-and-entry-guards",
+          "explicit": true
+        },
+        {
+          "id": "access-input-file",
+          "request": "Trace the supplied file_id from the request through lookup, authorization, loading, and processing, including ownership-dependent branches and failures.",
+          "entryHint": "Start at process_file for /process/file and follow file model, service, and processing calls within backend/open_webui",
+          "sourceQuestionId": "file-id-authorization-flow",
+          "explicit": true
+        },
+        {
+          "id": "affect-destination-collection",
+          "request": "Trace the supplied collection_name through validation, authorization, processing, and any eventual vector-store read or write, without presuming destination ownership.",
+          "entryHint": "Start at process_file for /process/file and follow collection and vector-store callees within backend/open_webui",
+          "sourceQuestionId": "collection-name-flow-and-authorization",
+          "explicit": true
+        }
+      ],
+      "operationQuestions": [
+        {
+          "questionId": "caller-resolution-and-entry-guards",
+          "operationId": "invoke-process-file",
+          "intent": "behavior"
+        },
+        {
+          "questionId": "file-id-authorization-flow",
+          "operationId": "access-input-file",
+          "intent": "behavior"
+        },
+        {
+          "questionId": "caller-owned-file-case",
+          "operationId": "access-input-file",
+          "intent": "behavior"
+        },
+        {
+          "questionId": "other-users-file-case",
+          "operationId": "access-input-file",
+          "intent": "behavior"
+        },
+        {
+          "questionId": "collection-name-flow-and-authorization",
+          "operationId": "affect-destination-collection",
+          "intent": "behavior"
+        },
+        {
+          "questionId": "eventual-processing-and-vector-effects",
+          "operationId": "affect-destination-collection",
+          "intent": "behavior"
+        },
+        {
+          "questionId": "authorized-object-versus-affected-object",
+          "operationId": "affect-destination-collection",
+          "intent": "behavior"
+        },
+        {
+          "questionId": "ordering-failures-and-partial-effects",
+          "operationId": "invoke-process-file",
+          "intent": "behavior"
+        },
+        {
+          "questionId": "cross-file-protections-and-self-verification",
+          "operationId": "invoke-process-file",
+          "intent": "scope"
+        },
+        {
+          "questionId": "security-assessment-and-remediation",
+          "operationId": "invoke-process-file",
+          "intent": "behavior"
+        },
+        {
+          "questionId": "visible-conditions-and-limits",
+          "operationId": "invoke-process-file",
+          "intent": "scope"
+        }
+      ],
+      "questions": [
+        {
+          "id": "caller-resolution-and-entry-guards",
+          "request": "Identify how the caller is authenticated and represented at the endpoint, and enumerate every visible route, dependency, middleware, role, or other guard that must pass before processing. Cite source locations and separate source-visible behavior from deployment-dependent assumptions.",
+          "principal": "the caller of /process/file",
+          "resource": "the process_file endpoint",
+          "operation": "invoke process_file",
+          "entryHint": "backend/open_webui: locate process_file and the /process/file route",
+          "premises": [
+            {
+              "text": "The investigation target is process_file at /process/file in this Open WebUI revision.",
+              "origin": "user"
+            }
+          ],
+          "operationId": "invoke-process-file",
+          "intent": "behavior"
+        },
+        {
+          "id": "file-id-authorization-flow",
+          "request": "Trace the supplied file_id from request parsing to every lookup and access-control decision. State the exact visible predicates, which principal attributes they use, the success and failure branches, and any status or error behavior. Do not treat a lookup as authorization unless the source enforces it.",
+          "principal": "the resolved caller",
+          "resource": "the file identified by the supplied file_id",
+          "operation": "load and process the input file",
+          "entryHint": "Start at process_file for /process/file and follow file model, service, and processing calls within backend/open_webui",
+          "premises": [
+            {
+              "text": "The request supplies file_id and destination collection_name.",
+              "origin": "user"
+            }
+          ],
+          "operationId": "access-input-file",
+          "intent": "behavior"
+        },
+        {
+          "id": "caller-owned-file-case",
+          "request": "For the caller-owned-file case, explain all visible conditions under which the request proceeds or fails, what file content or metadata reaches processing, and which side effects can occur. Preserve distinctions among authentication, ownership, existence, validation, and downstream failures.",
+          "principal": "a caller who owns the supplied file",
+          "resource": "the caller-owned file identified by file_id",
+          "operation": "process the file through /process/file",
+          "entryHint": "Start at process_file for /process/file and follow file model, service, and processing calls within backend/open_webui",
+          "premises": [
+            {
+              "text": "The requested comparison includes a caller-owned file and another user's file.",
+              "origin": "user"
+            }
+          ],
+          "operationId": "access-input-file",
+          "intent": "behavior"
+        },
+        {
+          "id": "other-users-file-case",
+          "request": "For the another-user's-file case, explain all visible conditions under which lookup, authorization, processing, or side effects are allowed or denied. Identify any role, privilege, sharing, workspace, group, bypass, or callee condition only when visible in source, and report the exact failure behavior otherwise.",
+          "principal": "a caller who does not own the supplied file",
+          "resource": "another user's file identified by file_id",
+          "operation": "attempt to process the file through /process/file",
+          "entryHint": "Start at process_file for /process/file and follow file model, service, and processing calls within backend/open_webui",
+          "premises": [
+            {
+              "text": "The requested comparison includes a caller-owned file and another user's file.",
+              "origin": "user"
+            }
+          ],
+          "operationId": "access-input-file",
+          "intent": "behavior"
+        },
+        {
+          "id": "collection-name-flow-and-authorization",
+          "request": "Trace collection_name from request parsing through defaults, normalization, derivation, forwarding, and every collection-specific authorization or validation check. Determine whether the source verifies destination ownership, membership, namespace, tenant, existence, or write permission independently of file access; do not infer such a check from authorization of file_id.",
+          "principal": "the resolved caller",
+          "resource": "the destination collection identified by collection_name",
+          "operation": "select and write the processing destination",
+          "entryHint": "Start at process_file for /process/file and follow collection and vector-store callees within backend/open_webui",
+          "premises": [
+            {
+              "text": "The request supplies file_id and destination collection_name.",
+              "origin": "user"
+            },
+            {
+              "text": "Do not assume the caller owns the destination collection.",
+              "origin": "user"
+            }
+          ],
+          "operationId": "affect-destination-collection",
+          "intent": "behavior"
+        },
+        {
+          "id": "eventual-processing-and-vector-effects",
+          "request": "Follow successful paths into document processing and any vector-store operation. Identify the exact resource keys or collection identifiers read, created, replaced, appended to, deleted from, or otherwise mutated; identify content written and the visible conditions for each effect. Distinguish an existing supplied destination from any internally generated destination.",
+          "principal": "the resolved caller",
+          "resource": "the processed file data and destination vector collection",
+          "operation": "perform processing or a vector write",
+          "entryHint": "Start at process_file for /process/file and follow collection and vector-store callees within backend/open_webui",
+          "premises": [
+            {
+              "text": "The task requires tracing the eventual processing or vector write.",
+              "origin": "user"
+            }
+          ],
+          "operationId": "affect-destination-collection",
+          "intent": "behavior"
+        },
+        {
+          "id": "authorized-object-versus-affected-object",
+          "request": "Compare the object used by each input authorization decision with the object affected by processing or vector writes. Explain whether they are the same object, distinct objects, or linked by an enforced source-visible invariant, and identify any mismatch without assuming destination ownership.",
+          "principal": "the resolved caller",
+          "resource": "the input file and the destination collection",
+          "operation": "authorize input and affect output",
+          "entryHint": "Start at process_file for /process/file and follow collection and vector-store callees within backend/open_webui",
+          "premises": [
+            {
+              "text": "The task asks whether the object authorized for input and the object affected by output are the same.",
+              "origin": "user"
+            },
+            {
+              "text": "Do not assume the caller owns the destination collection.",
+              "origin": "user"
+            }
+          ],
+          "operationId": "affect-destination-collection",
+          "intent": "behavior"
+        },
+        {
+          "id": "ordering-failures-and-partial-effects",
+          "request": "Establish the source-visible order of authentication, file lookup and authorization, collection handling, processing, and writes. Report early exits, exception handling, retries, overwrite or duplicate behavior, and whether a failure can leave partial effects. Do not claim runtime atomicity or concurrency guarantees absent from source.",
+          "principal": "the resolved caller",
+          "resource": "the input file and destination collection",
+          "operation": "complete or fail the process_file workflow",
+          "entryHint": "backend/open_webui: locate process_file and the /process/file route",
+          "premises": [],
+          "operationId": "invoke-process-file",
+          "intent": "behavior"
+        },
+        {
+          "id": "cross-file-protections-and-self-verification",
+          "request": "Perform a cross-file verification pass for the traced path: inspect directly relevant dependencies, middleware, models, service methods, and vector-store wrappers for protections or bypasses that could change the initial conclusion. Recheck each claimed access-control issue for missed sanitization or upstream enforcement, and clearly label unresolved indirect or runtime behavior.",
+          "principal": "the resolved caller",
+          "resource": "the complete /process/file authorization and effect path",
+          "operation": "verify the behavior conclusion",
+          "entryHint": "backend/open_webui: locate process_file and the /process/file route",
+          "premises": [],
+          "operationId": "invoke-process-file",
+          "intent": "scope"
+        },
+        {
+          "id": "security-assessment-and-remediation",
+          "request": "Using only verified source evidence from this path, state whether the behavior constitutes an authentication, authorization, object-level authorization, cross-tenant, or other security issue. For every genuine finding provide category, severity, confidence, exact source evidence, attacker impact, exploit prerequisites, and mitigating conditions. For any CRITICAL or HIGH finding, propose a concrete before/after patch for human review without applying it; discard or downgrade unsubstantiated findings.",
+          "principal": "a potentially untrusted authenticated or unauthenticated caller, as the source permits",
+          "resource": "the input file and destination collection exposed by /process/file",
+          "operation": "assess exploitability of the observed behavior",
+          "entryHint": "backend/open_webui: locate process_file and the /process/file route",
+          "premises": [],
+          "operationId": "invoke-process-file",
+          "intent": "behavior"
+        },
+        {
+          "id": "visible-conditions-and-limits",
+          "request": "Summarize the decisive source-visible conditions for the caller-owned-file case, the another-user's-file case, and destination collection effects. List specific remaining limits, including unresolved dynamic dispatch, configuration, external storage semantics, middleware outside allowed paths, deployment state, and any fact that would require execution or network access. Use file-and-line citations and avoid an authorization graph.",
+          "principal": "the caller of /process/file",
+          "resource": "the investigated request path and its input and output objects",
+          "operation": "report behavior and evidence limits",
+          "entryHint": "backend/open_webui: locate process_file and the /process/file route",
+          "premises": [
+            {
+              "text": "The task requires visible conditions and specific remaining limits.",
+              "origin": "user"
+            }
+          ],
+          "operationId": "invoke-process-file",
+          "intent": "scope"
+        }
+      ],
+      "originalDeclaration": {
+        "schemaVersion": "authorization-inquiry/v2",
+        "mode": "behavior",
+        "operations": [
+          {
+            "id": "invoke-process-file",
+            "request": "Investigate the source-defined behavior of the process_file handler for /process/file, including caller establishment and all route-level authorization gates.",
+            "entryHint": "backend/open_webui: locate process_file and the /process/file route"
+          },
+          {
+            "id": "access-input-file",
+            "request": "Trace the supplied file_id from the request through lookup, authorization, loading, and processing, including ownership-dependent branches and failures.",
+            "entryHint": "Start at process_file for /process/file and follow file model, service, and processing calls within backend/open_webui"
+          },
+          {
+            "id": "affect-destination-collection",
+            "request": "Trace the supplied collection_name through validation, authorization, processing, and any eventual vector-store read or write, without presuming destination ownership.",
+            "entryHint": "Start at process_file for /process/file and follow collection and vector-store callees within backend/open_webui"
+          }
+        ],
+        "questions": [
+          {
+            "id": "caller-resolution-and-entry-guards",
+            "request": "Identify how the caller is authenticated and represented at the endpoint, and enumerate every visible route, dependency, middleware, role, or other guard that must pass before processing. Cite source locations and separate source-visible behavior from deployment-dependent assumptions.",
+            "principal": "the caller of /process/file",
+            "resource": "the process_file endpoint",
+            "operation": "invoke process_file",
+            "entryHint": "process_file at /process/file and its authentication dependencies",
+            "premises": [
+              {
+                "text": "The investigation target is process_file at /process/file in this Open WebUI revision.",
+                "origin": "user"
+              }
+            ],
+            "operationId": "invoke-process-file",
+            "intent": "behavior"
+          },
+          {
+            "id": "file-id-authorization-flow",
+            "request": "Trace the supplied file_id from request parsing to every lookup and access-control decision. State the exact visible predicates, which principal attributes they use, the success and failure branches, and any status or error behavior. Do not treat a lookup as authorization unless the source enforces it.",
+            "principal": "the resolved caller",
+            "resource": "the file identified by the supplied file_id",
+            "operation": "load and process the input file",
+            "entryHint": "process_file request model, file lookup, ownership checks, and processing callees",
+            "premises": [
+              {
+                "text": "The request supplies file_id and destination collection_name.",
+                "origin": "user"
+              }
+            ],
+            "operationId": "access-input-file",
+            "intent": "behavior"
+          },
+          {
+            "id": "caller-owned-file-case",
+            "request": "For the caller-owned-file case, explain all visible conditions under which the request proceeds or fails, what file content or metadata reaches processing, and which side effects can occur. Preserve distinctions among authentication, ownership, existence, validation, and downstream failures.",
+            "principal": "a caller who owns the supplied file",
+            "resource": "the caller-owned file identified by file_id",
+            "operation": "process the file through /process/file",
+            "entryHint": "ownership branch and downstream processing reached from process_file",
+            "premises": [
+              {
+                "text": "The requested comparison includes a caller-owned file and another user's file.",
+                "origin": "user"
+              }
+            ],
+            "operationId": "access-input-file",
+            "intent": "behavior"
+          },
+          {
+            "id": "other-users-file-case",
+            "request": "For the another-user's-file case, explain all visible conditions under which lookup, authorization, processing, or side effects are allowed or denied. Identify any role, privilege, sharing, workspace, group, bypass, or callee condition only when visible in source, and report the exact failure behavior otherwise.",
+            "principal": "a caller who does not own the supplied file",
+            "resource": "another user's file identified by file_id",
+            "operation": "attempt to process the file through /process/file",
+            "entryHint": "file authorization branch plus any role, sharing, or downstream checks reached from process_file",
+            "premises": [
+              {
+                "text": "The requested comparison includes a caller-owned file and another user's file.",
+                "origin": "user"
+              }
+            ],
+            "operationId": "access-input-file",
+            "intent": "behavior"
+          },
+          {
+            "id": "collection-name-flow-and-authorization",
+            "request": "Trace collection_name from request parsing through defaults, normalization, derivation, forwarding, and every collection-specific authorization or validation check. Determine whether the source verifies destination ownership, membership, namespace, tenant, existence, or write permission independently of file access; do not infer such a check from authorization of file_id.",
+            "principal": "the resolved caller",
+            "resource": "the destination collection identified by collection_name",
+            "operation": "select and write the processing destination",
+            "entryHint": "process_file collection_name handling and all collection/vector-store callees",
+            "premises": [
+              {
+                "text": "The request supplies file_id and destination collection_name.",
+                "origin": "user"
+              },
+              {
+                "text": "Do not assume the caller owns the destination collection.",
+                "origin": "user"
+              }
+            ],
+            "operationId": "affect-destination-collection",
+            "intent": "behavior"
+          },
+          {
+            "id": "eventual-processing-and-vector-effects",
+            "request": "Follow successful paths into document processing and any vector-store operation. Identify the exact resource keys or collection identifiers read, created, replaced, appended to, deleted from, or otherwise mutated; identify content written and the visible conditions for each effect. Distinguish an existing supplied destination from any internally generated destination.",
+            "principal": "the resolved caller",
+            "resource": "the processed file data and destination vector collection",
+            "operation": "perform processing or a vector write",
+            "entryHint": "processing pipeline and vector database calls transitively reached from process_file",
+            "premises": [
+              {
+                "text": "The task requires tracing the eventual processing or vector write.",
+                "origin": "user"
+              }
+            ],
+            "operationId": "affect-destination-collection",
+            "intent": "behavior"
+          },
+          {
+            "id": "authorized-object-versus-affected-object",
+            "request": "Compare the object used by each input authorization decision with the object affected by processing or vector writes. Explain whether they are the same object, distinct objects, or linked by an enforced source-visible invariant, and identify any mismatch without assuming destination ownership.",
+            "principal": "the resolved caller",
+            "resource": "the input file and the destination collection",
+            "operation": "authorize input and affect output",
+            "entryHint": "join the file authorization trace with the collection/vector-write trace",
+            "premises": [
+              {
+                "text": "The task asks whether the object authorized for input and the object affected by output are the same.",
+                "origin": "user"
+              },
+              {
+                "text": "Do not assume the caller owns the destination collection.",
+                "origin": "user"
+              }
+            ],
+            "operationId": "affect-destination-collection",
+            "intent": "behavior"
+          },
+          {
+            "id": "ordering-failures-and-partial-effects",
+            "request": "Establish the source-visible order of authentication, file lookup and authorization, collection handling, processing, and writes. Report early exits, exception handling, retries, overwrite or duplicate behavior, and whether a failure can leave partial effects. Do not claim runtime atomicity or concurrency guarantees absent from source.",
+            "principal": "the resolved caller",
+            "resource": "the input file and destination collection",
+            "operation": "complete or fail the process_file workflow",
+            "entryHint": "process_file control flow and transitive processing/vector-store calls",
+            "premises": [],
+            "operationId": "invoke-process-file",
+            "intent": "behavior"
+          },
+          {
+            "id": "cross-file-protections-and-self-verification",
+            "request": "Perform a cross-file verification pass for the traced path: inspect directly relevant dependencies, middleware, models, service methods, and vector-store wrappers for protections or bypasses that could change the initial conclusion. Recheck each claimed access-control issue for missed sanitization or upstream enforcement, and clearly label unresolved indirect or runtime behavior.",
+            "principal": "the resolved caller",
+            "resource": "the complete /process/file authorization and effect path",
+            "operation": "verify the behavior conclusion",
+            "entryHint": "direct callers and callees of process_file within backend/open_webui",
+            "premises": [],
+            "operationId": "invoke-process-file",
+            "intent": "scope"
+          },
+          {
+            "id": "security-assessment-and-remediation",
+            "request": "Using only verified source evidence from this path, state whether the behavior constitutes an authentication, authorization, object-level authorization, cross-tenant, or other security issue. For every genuine finding provide category, severity, confidence, exact source evidence, attacker impact, exploit prerequisites, and mitigating conditions. For any CRITICAL or HIGH finding, propose a concrete before/after patch for human review without applying it; discard or downgrade unsubstantiated findings.",
+            "principal": "a potentially untrusted authenticated or unauthenticated caller, as the source permits",
+            "resource": "the input file and destination collection exposed by /process/file",
+            "operation": "assess exploitability of the observed behavior",
+            "entryHint": "verified endpoint-to-file-to-collection data flow",
+            "premises": [],
+            "operationId": "invoke-process-file",
+            "intent": "behavior"
+          },
+          {
+            "id": "visible-conditions-and-limits",
+            "request": "Summarize the decisive source-visible conditions for the caller-owned-file case, the another-user's-file case, and destination collection effects. List specific remaining limits, including unresolved dynamic dispatch, configuration, external storage semantics, middleware outside allowed paths, deployment state, and any fact that would require execution or network access. Use file-and-line citations and avoid an authorization graph.",
+            "principal": "the caller of /process/file",
+            "resource": "the investigated request path and its input and output objects",
+            "operation": "report behavior and evidence limits",
+            "entryHint": "all evidence gathered for the three operations",
+            "premises": [
+              {
+                "text": "The task requires visible conditions and specific remaining limits.",
+                "origin": "user"
+              }
+            ],
+            "operationId": "invoke-process-file",
+            "intent": "scope"
+          }
+        ]
+      },
+      "queue": [
+        {
+          "id": "caller-resolution-and-entry-guards::entry",
+          "questionId": "caller-resolution-and-entry-guards",
+          "kind": "entry",
+          "question": "Which entry and applicable upstream controls govern this requested path?",
+          "state": "pending"
+        },
+        {
+          "id": "caller-resolution-and-entry-guards::principal-binding",
+          "questionId": "caller-resolution-and-entry-guards",
+          "kind": "principal-binding",
+          "question": "How is the caller identity bound on this path? Do not invent an unspecified identity.",
+          "state": "pending"
+        },
+        {
+          "id": "caller-resolution-and-entry-guards::resource-binding",
+          "questionId": "caller-resolution-and-entry-guards",
+          "kind": "resource-binding",
+          "question": "Which resource does the request select and what resource does each control check?",
+          "state": "pending"
+        },
+        {
+          "id": "caller-resolution-and-entry-guards::guard",
+          "questionId": "caller-resolution-and-entry-guards",
+          "kind": "guard",
+          "question": "Which applicable control decides this operation and under which conditions? Not finding a guard is not proof of absence.",
+          "state": "pending"
+        },
+        {
+          "id": "caller-resolution-and-entry-guards::effect",
+          "questionId": "caller-resolution-and-entry-guards",
+          "kind": "effect",
+          "question": "Which object receives the protected effect? Does it match the control object? A decisive rejection may suffice without tracing unreachable effects.",
+          "state": "pending"
+        },
+        {
+          "id": "caller-resolution-and-entry-guards::exception",
+          "questionId": "caller-resolution-and-entry-guards",
+          "kind": "exception",
+          "question": "Which relevant role, relation or condition exceptions change this answer? Separate source gaps from external facts.",
+          "state": "pending"
+        },
+        {
+          "id": "file-id-authorization-flow::entry",
+          "questionId": "file-id-authorization-flow",
+          "kind": "entry",
+          "question": "Which entry and applicable upstream controls govern this requested path?",
+          "state": "pending"
+        },
+        {
+          "id": "file-id-authorization-flow::principal-binding",
+          "questionId": "file-id-authorization-flow",
+          "kind": "principal-binding",
+          "question": "How is the caller identity bound on this path? Do not invent an unspecified identity.",
+          "state": "pending"
+        },
+        {
+          "id": "file-id-authorization-flow::resource-binding",
+          "questionId": "file-id-authorization-flow",
+          "kind": "resource-binding",
+          "question": "Which resource does the request select and what resource does each control check?",
+          "state": "pending"
+        },
+        {
+          "id": "file-id-authorization-flow::guard",
+          "questionId": "file-id-authorization-flow",
+          "kind": "guard",
+          "question": "Which applicable control decides this operation and under which conditions? Not finding a guard is not proof of absence.",
+          "state": "pending"
+        },
+        {
+          "id": "file-id-authorization-flow::effect",
+          "questionId": "file-id-authorization-flow",
+          "kind": "effect",
+          "question": "Which object receives the protected effect? Does it match the control object? A decisive rejection may suffice without tracing unreachable effects.",
+          "state": "pending"
+        },
+        {
+          "id": "file-id-authorization-flow::exception",
+          "questionId": "file-id-authorization-flow",
+          "kind": "exception",
+          "question": "Which relevant role, relation or condition exceptions change this answer? Separate source gaps from external facts.",
+          "state": "pending"
+        },
+        {
+          "id": "collection-name-flow-and-authorization::entry",
+          "questionId": "collection-name-flow-and-authorization",
+          "kind": "entry",
+          "question": "Which entry and applicable upstream controls govern this requested path?",
+          "state": "pending"
+        },
+        {
+          "id": "collection-name-flow-and-authorization::principal-binding",
+          "questionId": "collection-name-flow-and-authorization",
+          "kind": "principal-binding",
+          "question": "How is the caller identity bound on this path? Do not invent an unspecified identity.",
+          "state": "pending"
+        },
+        {
+          "id": "collection-name-flow-and-authorization::resource-binding",
+          "questionId": "collection-name-flow-and-authorization",
+          "kind": "resource-binding",
+          "question": "Which resource does the request select and what resource does each control check?",
+          "state": "pending"
+        },
+        {
+          "id": "collection-name-flow-and-authorization::guard",
+          "questionId": "collection-name-flow-and-authorization",
+          "kind": "guard",
+          "question": "Which applicable control decides this operation and under which conditions? Not finding a guard is not proof of absence.",
+          "state": "pending"
+        },
+        {
+          "id": "collection-name-flow-and-authorization::effect",
+          "questionId": "collection-name-flow-and-authorization",
+          "kind": "effect",
+          "question": "Which object receives the protected effect? Does it match the control object? A decisive rejection may suffice without tracing unreachable effects.",
+          "state": "pending"
+        },
+        {
+          "id": "collection-name-flow-and-authorization::exception",
+          "questionId": "collection-name-flow-and-authorization",
+          "kind": "exception",
+          "question": "Which relevant role, relation or condition exceptions change this answer? Separate source gaps from external facts.",
+          "state": "pending"
+        }
+      ],
+      "diagnostics": []
+    },
+    "authorProviderRequired": false,
+    "diagnostics": []
+  },
+  "artifacts": {
+    "inquiry.json": {
+      "sha256": "bb112404f56f012ed7c0ff5c7c5a57f1e35914346e8acbbee280676c4f5bd934",
+      "bytes": 12177
+    },
+    "USAGE.md": {
+      "sha256": "82bb717bf26c4f540b795e6b96b3403b378840523fdc4cf9ae691eff43fb16a9",
+      "bytes": 7534
+    }
+  },
+  "semanticEquivalence": "unreviewed",
+  "suppliedMechanicalFields": [
+    "taskId",
+    "repository",
+    "sourceRef",
+    "sourceRoot",
+    "allowedPaths"
+  ],
+  "humanMinutes": null
+}

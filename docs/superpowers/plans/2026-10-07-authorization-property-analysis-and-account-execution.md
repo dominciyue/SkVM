@@ -186,7 +186,7 @@ Files: `src/cli/run.ts`、现有 authorization inquiry CLI、`src/adapters/codex
 
 ### AX12 三种变化的 fresh 与材料复用
 
-policy fresh/previous与premise fresh首件已关闭并保留。同版本policy previous的两个入口材料均current:false，accepted入口仍在而materialUses为空；主线程定位createSourceMaterials.accept在A→B→A重新接纳旧ID时返回退休条目但不reactivate。两个匿名红测分别确认当前材料为空和入口/实际helper投影为0；共享accept已修为验证后恢复当前状态及最新绑定/证据/来源，保留退役历史。84项相关回归685断言、主类型和独立只读边界核验通过；accept是未评审材料存储，实际projection/reuse仍校验当前索引与依赖，不改变含义/评分器。受影响的材料/消费者/M-S/D-S派发继续等待提交修复：随后具名同原题公开baseline和新变化登记（旧输入/登记原件保留），fresh/previous在新production src tree成对复验。未用材料核心的common-only作者可先执行，消费者仍等待修复。不能把修前0采用或修后重新计算升级成原首件成功。
+policy fresh/previous与premise fresh首件已关闭并保留。同版本policy previous的两个入口材料均current:false，accepted入口仍在而materialUses为空；主线程定位createSourceMaterials.accept在A→B→A重新接纳旧ID时返回退休条目但不reactivate。两个匿名红测分别确认当前材料为空和入口/实际helper投影为0；共享accept已修为验证后恢复当前状态及最新绑定/证据/来源，保留退役历史。84项相关回归685断言、主类型和独立只读边界核验通过；accept是未评审材料存储，实际projection/reuse仍校验当前索引与依赖，不改变含义/评分器。共享修复fb808576已发布，具名同原题公开baseline material-reactivation已完成34回调、2单元/15步，1个当前入口及1项材料投影保留；形式仍partial。新变化登记使用独立model/change-registrations/material-reactivation.json和model/inputs/material-reactivation/，保留旧路径与原件；run显式选择登记，核验production src tree和变化输入SHA，两个匿名红测转绿。fresh/previous在同一修后src tree成对复验，不用历史默认登记混跑。未用材料核心的common-only作者可先执行，消费者仍等待修复。不能把修前0采用或修后重新计算升级成原首件成功。
 
 - [ ] 使用同一 Download 任务的 policy、premise、source 三种完整变化输入，每种 fresh/previous 两次，共六个首位置。
 - [ ] previous 只传当前实现生成且来源匹配的材料；不能传原答或检查结论。policy/premise 变更保留合格源码含义，source 变更定位失效影响并重读。
@@ -195,7 +195,7 @@ policy fresh/previous与premise fresh首件已关闭并保留。同版本policy 
 
 ### AX13 作者与原字节消费者
 
-编排已接通生产账号会话、共享只读源码工具、两文件原稿保存、公开schema/check及原字节消费者；只登记工程完成，真实作者/准入/消费仍执行下面原验收。研究脚本5个针对性反例与严格类型通过，禁止递归测试保留workspace中的原skill附带测试。变化输入由当前公开baseline导出，保留完整原问题，单独登记policy导致的mode变化和production src tree，以同版本成对比较。
+两份完整原skill的common-only作者均已完成并保留全部稿件；独立只读核验及主线程完整阅读确认任务与skill职责忠实，原字节准入valid。已按原字节准备95文件Download和173文件OWUI源码包，公开schema/check通过；模型消费者尚未派发，不把准备包当真实消费。作者Usage提供操作步骤，最终包须补已验证公开CLI命令，原Usage字节不改。研究脚本5个针对性反例与严格类型通过，禁止递归测试保留workspace中的原skill附带测试。变化输入由当前公开baseline导出，保留完整原问题，单独登记policy导致的mode变化和production src tree，以同版本成对比较。
 
 - [ ] 两个完整原 skill 各一次模型作者任务：产出可运行声明/配置和必要的机械来源绑定，输入是原 skill、自然任务及允许源码，不提供现成授权图或答案。
 - [ ] 宿主可以机械填充身份、路径和当前版本，但不能代作者填写政策真值或决定性源码含义；原稿、机械补全和语义修订分别保留。
