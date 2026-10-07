@@ -1,0 +1,100 @@
+{
+  "schemaVersion": "authorization-ay-local-repair-review/v1",
+  "date": "2026-10-08",
+  "stage": "AY6",
+  "humanAnnotation": false,
+  "scopedChange": "Current source middleware registrations and method candidates enter v5 operation work and per-route invalidation footprints; no continuation adoption or execution order is inferred.",
+  "sourceLocationReviews": [
+    "ay_asgi_source_inventory",
+    "ay_request_source_location"
+  ],
+  "independentReview": {
+    "reviewer": "ay_asgi_registration_review",
+    "finding": "Potential rebound application aliases were represented as certain registrations.",
+    "reproduced": "alias = app; alias = replacement; alias.add_middleware(Unknown)",
+    "disposition": "Accepted the confidence distinction: unresolved aliases are possible with named gaps. The proposed definite exclusion is not justified when replacement may alias app; flow-sensitive exclusion remains unsupported.",
+    "primaryCounterexamples": [
+      "potential alias is explicitly uncertain",
+      "cross-root imported alias is captured and proven only when stable",
+      "global alias write is captured as possible",
+      "shadowed middleware parameter cannot borrow a module class"
+    ],
+    "testsRunByReviewer": "external temporary Bun probe; no project changes"
+  },
+  "primaryVerification": {
+    "red": {
+      "pass": 2,
+      "fail": 5,
+      "assertions": 6,
+      "reasons": [
+        "requestMiddleware absent",
+        "application alias mutation missed",
+        "source methods and ASGI footprint absent"
+      ]
+    },
+    "additionalRedGroups": [
+      "middleware parameter shadowing",
+      "source-root-qualified base falsely missing",
+      "repeated positional target expression lost",
+      "possible alias and cross-root import binding",
+      "global alias write"
+    ],
+    "focused": {
+      "pass": 118,
+      "fail": 0,
+      "assertions": 398,
+      "files": 5,
+      "durationMs": 1042
+    },
+    "joint": {
+      "pass": 1034,
+      "skip": 1,
+      "fail": 0,
+      "assertions": 6645,
+      "files": 114,
+      "durationMs": 13440
+    },
+    "mainTypecheck": "passed",
+    "ayTypecheck": "passed"
+  },
+  "replay": {
+    "archiveSha256": "4a1b57d3eeafd7e2c9fcda3757c4267c3d8972728b5ad607750062778a4e611f",
+    "initial": {
+      "path": "verification/owui-request-middleware-initial-replay.json",
+      "sha256": "099f62e9ef138919ca1943bceb2c7dda06d90efb878876400dbcaf567bcdd557"
+    },
+    "current": {
+      "path": "verification/owui-request-middleware-replay.json",
+      "sha256": "effe496b86908b18a8bb816daaef13865a81ed35b765ab058a5c03bc85ffa558"
+    },
+    "registrations": 11,
+    "methodCandidates": 11,
+    "allActualRegistrationsHaveSourceBinding": true,
+    "executionOrder": "unproven",
+    "materialUses": 3,
+    "frameworkUses": 0,
+    "originalSourceAndAnnotationIdsPreserved": true,
+    "originalQuestionIds": [
+      "q1"
+    ],
+    "originalAttemptPromoted": false
+  },
+  "limitations": [
+    "potential alias tracking may over-block; no complete flow-sensitive exclusion",
+    "external middleware/base source missing",
+    "continuation, ASGI environment and generator lifecycle composition pending",
+    "source-model version is not an installed target version certificate",
+    "whole-file SHA invalidation granularity"
+  ],
+  "semanticQuality": "unreviewed-model-meaning",
+  "fullFrameworkComposition": "pending",
+  "realChangeConsumption": "pending",
+  "modelExecutions": 0,
+  "targetExecutions": 0,
+  "costs": {
+    "experimentTokens": 0,
+    "developerAndScoutTokens": null,
+    "usd": null,
+    "humanTime": null
+  }
+}

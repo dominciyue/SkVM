@@ -49,6 +49,14 @@ export function operationWork(index: StructureIndex, entryId: string, readSymbol
     add(route.id, route.sourceCallId, `Inspect source-bound ${route.method} ${route.path} registration, middleware ${JSON.stringify(route.middlewareExpressions)} and exact handler ${route.handlerExpression}. Registration syntax does not prove middleware meaning.`, "entry", undefined, true, true)
     frameworkDependencies.push({ kind: "framework-model", key: `${route.model}:${route.id}`, revision: hash([route.sourcePath, index.symbols.find(s => s.id === route.id)?.sha256, route]) })
     if (options.questionDirected && route.bindingGap) frameworkGaps.push({ key: `route:${route.id}:binding`, reason: `Current source registration cannot bind this request: ${route.bindingGap}.`, code: route.bindingGap })
+    if (options.questionDirected) {
+      const middleware = index.requestMiddleware(route.id)
+      if (middleware.length) frameworkDependencies.push({ kind: "framework-model", key: `fastapi-source-asgi/v1:${route.id}`, revision: hash(middleware) })
+      for (const registration of middleware) {
+        if (registration.gap) frameworkGaps.push({ key: registration.id, reason: `Current middleware ${registration.qualifiedName} at ${registration.source.path}:${registration.source.startLine}: ${registration.gap}.`, code: registration.gap, receiverClass: registration.receiverClass })
+        for (const method of registration.methodCandidates) add(method.candidateId, `${registration.id}:${method.method}`, `Inspect source middleware reference ${registration.qualifiedName}.${method.method}, application binding ${registration.registrationBinding}, source call ${registration.sourceCallId}, configuration ${JSON.stringify(registration.arguments)} and enclosing source contexts ${JSON.stringify(registration.registrationContext)}. Source order does not prove request execution order or continuation adoption.`, "guard", registration.receiverClass, true, true)
+      }
+    }
     if (options.questionDirected && route.model === "fastapi-source-router/v1") addRequestDependencies(route.id)
     else for (const expression of route.dependencyExpressions ?? []) for (const candidate of index.resolveName(expression, route.sourcePath).filter(s => s.kind === "function")) add(candidate.id, `${route.id}:dependency:${expression}`, `Inspect actual ${route.model} dependency ${expression}; constructor/import and route bind this source, not its authorization meaning.`, "principal-binding", candidate.className, true, true)
   }
@@ -99,7 +107,7 @@ export function diagnosticWork(diagnostics: InquiryDiagnostic[], units: BoundSem
 export function sourceRelationRevision(index: StructureIndex, symbolId: string, receiverClass?: string) {
   const symbol = index.symbols.find(s => s.id === symbolId)
   if (!symbol) return undefined
-  return hash([symbol.qualifiedName, index.candidateRevision(receiverClass ?? symbol.className ?? symbol.qualifiedName, symbol.name), index.relatedCalls(symbolId, receiverClass).map(c => [c, c.candidateIds.map(id => { const s = index.symbols.find(s => s.id === id); return s && [s.id, s.path, s.sha256] })]), index.routes.filter(r => r.candidateIds.includes(symbolId)).map(r => [r, index.symbols.find(s => s.id === r.id)?.sha256]), index.requestDependencies(symbolId)])
+  return hash([symbol.qualifiedName, index.candidateRevision(receiverClass ?? symbol.className ?? symbol.qualifiedName, symbol.name), index.relatedCalls(symbolId, receiverClass).map(c => [c, c.candidateIds.map(id => { const s = index.symbols.find(s => s.id === id); return s && [s.id, s.path, s.sha256] })]), index.routes.filter(r => r.candidateIds.includes(symbolId)).map(r => [r, index.symbols.find(s => s.id === r.id)?.sha256, index.requestMiddleware(r.id)]), index.requestDependencies(symbolId)])
 }
 export function structuralDependencyRevision(index: StructureIndex, dependency: SourceFactDependency) {
   if (dependency.kind === "symbol-resolution") return index.symbols.find(s => s.id === dependency.key)?.sha256
@@ -111,6 +119,7 @@ export function structuralDependencyRevision(index: StructureIndex, dependency: 
     if (dependency.key === "drf-source-dispatch/v1") return hash(index.symbols.filter(s => s.module.startsWith("rest_framework.")).map(s => [s.path, s.sha256]))
     if (dependency.key.startsWith("drf-source-dispatch/v2:")) return drfReceiverRevision(index, dependency.key.slice("drf-source-dispatch/v2:".length))
     if (dependency.key.startsWith("fastapi-source-injection/v1:")) { const id = dependency.key.slice("fastapi-source-injection/v1:".length); return index.symbols.some(s => s.id === id) ? hash(index.requestDependencies(id)) : undefined }
+    if (dependency.key.startsWith("fastapi-source-asgi/v1:")) { const id = dependency.key.slice("fastapi-source-asgi/v1:".length); return index.routes.some(r => r.id === id) ? hash(index.requestMiddleware(id)) : undefined }
     const routes = index.routes.filter(r => `${r.model}:${r.id}` === dependency.key || r.model === dependency.key)
     if (routes.length === 1) { const r = routes[0]!; return hash([r.sourcePath, index.symbols.find(s => s.id === r.id)?.sha256, r]) }
   }

@@ -130,6 +130,8 @@ v5 使用独立的 `question-control/v1` 材料语义身份。旧 v4 材料可�
 - [ ] 框架关系绑定精确包/版本与已读源码。存在用户 override、不同版本、缺依赖或 ambiguous MRO 时给出准确剩余影响，不能默认为允许或凭文档常识补齐。
 - [ ] 通用匿名框架反例和实际 Download 回归同时通过。框架知识作为源码/版本模型进入生产分析，开发者对本案例的正确结论只留在 evaluator。
 
+ASGI取证小步进展（2026-10-08）：`source-bindings/v7`的`requestMiddleware(routeId)`保留精确注册call、参数、条件/作用域、class来源及constructor/__call__/dispatch候选，沿router/include祖先进入既有operation-work/逐题队列。源码出现顺序不冒充全局执行顺序；缺外部base/类、重绑定/动态目标及未采用continuation均保留具名边界。单一稳定应用alias为resolved，重绑定/局部/全局写入的潜在alias为possible且具名未证明，不能声称它实际修改本app；这种保守来源追踪可能产生额外阻断。匿名红绿覆盖同名decoy、条件、遮蔽、重复参数、跨root/global alias及跨文件footprint。原OWUI零模型回放有11注册/11方法候选、仍3普通采用；原材料/原答不升级。118focused/398断言、联合1034pass/1平台skip及双类型通过。需要callback/ASGI环境和外部库来源的完整组合继续pending；下一步推进已有框架源码的DRF dispatch/HTTP映射，同时保留ASGI/source-version/generator缺口，不按已读method闭合。
+
 ### AY7 实参、返回与资源身份闭合
 
 - 当前实施顺序（2026-10-08）：先用匿名模块实例/遮蔽/重绑定反例验证实际 receiver 来源，再在 v5 source skeleton 中保留唯一未重绑定实例的 source/SHA/class 证明，并生成普通 `value` 绑定。只接机械 receiver，不推断主体、资源、授权或字段 alias；字段传给错误 principal 参数仍报类型缺口。随后核验保留 OWUI 提案的零推理效果，再进入框架组合和真实具名复验。

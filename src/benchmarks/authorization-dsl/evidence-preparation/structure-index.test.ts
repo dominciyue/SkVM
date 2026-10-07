@@ -230,3 +230,80 @@ test("zero-argument super follows the actual C3 receiver after the defining clas
   expect(index.relatedCalls(first.id, "app.Alternate").find(c => c.expression === "super().create")!.candidateIds).toEqual([index.symbols.find(s => s.qualifiedName === "app.Other.create")!.id])
   expect(index.relatedCalls(index.lookupMethod("app.Dynamic", "create")[0]!.id, "app.Dynamic").find(c => c.expression === "super(unknown, self).create")!.resolution).toBe("unresolved")
 })
+
+test("current route middleware facts retain actual registration context and constructor/entry sources", async () => {
+  const index = await buildStructureIndex([
+    { path: "api.py", content: 'from fastapi import APIRouter\nrouter = APIRouter()\n@router.post("/work")\ndef endpoint():\n    return True\n' },
+    { path: "guards.py", content: "class Guard:\n    def __init__(self, app, flag=False):\n        self.app = app\n    async def __call__(self, scope, receive, send):\n        await self.app(scope, receive, send)\n" },
+    { path: "main.py", content: 'from fastapi import FastAPI\nfrom api import router\nfrom guards import Guard as Filter\napp = FastAPI()\nif enabled:\n    app.add_middleware(Filter, flag=True)\napp.include_router(router, prefix="/v1")\n' },
+  ], { repository: "anonymous", sourceRef: "r" })
+  const middleware = (index as any).requestMiddleware(index.routes[0]!.id)
+  expect(middleware).toHaveLength(1)
+  expect(middleware[0]).toMatchObject({ sourceCallId: index.calls.find(c => c.expression === "app.add_middleware")!.id, expression: "Filter", qualifiedName: "guards.Guard", arguments: ["flag=True"], receiverClass: "guards.Guard", registrationContext: [{ kind: "if_statement", expression: "enabled" }], executionOrder: "unproven" })
+  expect(middleware[0].methodCandidates.map((m: any) => index.symbols.find(s => s.id === m.candidateId)!.qualifiedName)).toEqual(["guards.Guard.__init__", "guards.Guard.__call__"])
+  expect(middleware[0].source).toMatchObject({ path: "main.py", startLine: 6, endLine: 6 })
+  expect(index.routes[0]!.bindingGap).toBe("framework-router-options-unmodeled")
+})
+
+test("middleware metadata never selects an unrelated namesake or a rebound class", async () => {
+  for (const replace of ["", "Filter = replacement\n"]) {
+    const index = await buildStructureIndex([
+      { path: "main.py", content: 'from fastapi import FastAPI\nfrom external import Cors as Filter\napp = FastAPI()\n' + replace + 'app.add_middleware(Filter)\n@app.post("/work")\ndef endpoint():\n    return True\n' },
+      { path: "decoy.py", content: "class Cors:\n    async def __call__(self, scope, receive, send):\n        return None\n" },
+    ], { repository: "anonymous", sourceRef: "r" })
+    const middleware = (index as any).requestMiddleware(index.routes[0]!.id)
+    expect(middleware[0].methodCandidates).toEqual([])
+    expect(middleware[0].gap).toBe(replace ? "framework-middleware-target-rebound" : "framework-middleware-source-missing")
+  }
+})
+
+test("a source alias that modifies the real application cannot leave its route closed", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: 'from fastapi import FastAPI\napp = FastAPI()\nalias = app\nalias.add_middleware(Unknown)\n@app.post("/work")\ndef endpoint():\n    return True\n' }], { repository: "anonymous", sourceRef: "r" })
+  expect(index.routes[0]!.bindingGap).toBe("framework-router-options-unmodeled")
+})
+
+test("middleware parameter shadowing cannot borrow a module class candidate", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: 'from fastapi import FastAPI\nclass Filter:\n    async def __call__(self, scope, receive, send):\n        return None\napp = FastAPI()\ndef configure(Filter):\n    app.add_middleware(Filter)\n@app.post("/work")\ndef endpoint():\n    return True\n' }], { repository: "anonymous", sourceRef: "r" })
+  const middleware = index.requestMiddleware(index.routes[0]!.id)[0]!
+  expect(middleware.methodCandidates).toEqual([])
+  expect(middleware.gap).toBe("framework-middleware-target-shadowed")
+})
+
+test("a source-root-qualified BaseHTTPMiddleware still offers the actual dispatch override", async () => {
+  const index = await buildStructureIndex([
+    { path: "vendor/starlette/middleware/base.py", content: "class BaseHTTPMiddleware:\n    def __init__(self, app):\n        self.app = app\n    async def __call__(self, scope, receive, send):\n        return await self.dispatch(scope, self.app)\n    async def dispatch(self, request, call_next):\n        return await call_next(request)\n" },
+    { path: "app.py", content: 'from fastapi import FastAPI\nfrom starlette.middleware.base import BaseHTTPMiddleware\nclass Header(BaseHTTPMiddleware):\n    async def dispatch(self, request, call_next):\n        response = await call_next(request)\n        response.headers.update(extra_headers)\n        return response\napp = FastAPI()\napp.add_middleware(Header)\n@app.post("/work")\ndef endpoint():\n    return True\n' },
+  ], { repository: "anonymous", sourceRef: "r" })
+  const middleware = index.requestMiddleware(index.routes[0]!.id)[0]!
+  expect(middleware.methodCandidates.map(m => index.symbols.find(s => s.id === m.candidateId)!.qualifiedName)).toContain("app.Header.dispatch")
+  expect(middleware.receiverClass).toBe("app.Header")
+  expect(middleware.gap).toBeUndefined()
+})
+
+test("middleware configuration preserves repeated positional expressions after its target", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: 'from fastapi import FastAPI\nclass Filter:\n    async def __call__(self, scope, receive, send):\n        return None\napp = FastAPI()\napp.add_middleware(Filter, Filter, option=Filter)\n@app.post("/work")\ndef endpoint():\n    return True\n' }], { repository: "anonymous", sourceRef: "r" })
+  expect(index.requestMiddleware(index.routes[0]!.id)[0]!.arguments).toEqual(["Filter", "option=Filter"])
+})
+
+test("a rebound potential application alias is explicitly uncertain rather than a proven registration", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: 'from fastapi import FastAPI\napp = FastAPI()\nalias = app\nalias = replacement\nalias.add_middleware(Unknown)\n@app.post("/work")\ndef endpoint():\n    return True\n' }], { repository: "anonymous", sourceRef: "r" })
+  const middleware = index.requestMiddleware(index.routes[0]!.id)[0]!
+  expect(middleware).toMatchObject({ registrationBinding: "possible", gap: "framework-middleware-router-alias-unresolved" })
+  expect(index.routes[0]!.bindingGap).toBe("framework-router-alias-unresolved")
+})
+
+test("cross-root imported application aliases retain the real modification and its binding proof", async () => {
+  const index = await buildStructureIndex([
+    { path: "backend/pkg/main.py", content: 'from fastapi import FastAPI\napp = FastAPI()\n@app.post("/work")\ndef endpoint():\n    return True\n' },
+    { path: "backend/pkg/binding.py", content: "from pkg.main import app\nalias = app\n" },
+    { path: "backend/pkg/configure.py", content: "from pkg.binding import alias\nalias.add_middleware(Unknown)\n" },
+  ], { repository: "anonymous", sourceRef: "r" })
+  expect(index.routes[0]!.bindingGap).toBe("framework-router-options-unmodeled")
+  expect(index.requestMiddleware(index.routes[0]!.id)).toContainEqual(expect.objectContaining({ routerName: "backend.pkg.main.app", registrationBinding: "resolved", source: expect.objectContaining({ path: "backend/pkg/configure.py" }) }))
+})
+
+test("a function's global alias write retains its possible application modification", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: 'from fastapi import FastAPI\napp = FastAPI()\nalias = None\ndef configure():\n    global alias\n    alias = app\n    alias.add_middleware(Unknown)\n@app.post("/work")\ndef endpoint():\n    return True\n' }], { repository: "anonymous", sourceRef: "r" })
+  expect(index.routes[0]!.bindingGap).toBe("framework-router-alias-unresolved")
+  expect(index.requestMiddleware(index.routes[0]!.id)[0]!).toMatchObject({ registrationBinding: "possible", registrationContext: [{ kind: "function_definition", expression: "configure" }] })
+})

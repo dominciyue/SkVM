@@ -139,3 +139,33 @@ test("a request dependency body change revokes its owner's framework footprint t
   expect(after.requestDependencies(entry.id)[0]!.candidateIds).not.toEqual(before.requestDependencies(entry.id)[0]!.candidateIds)
   expect(structuralDependencyRevision(after, dependency)).not.toBe(dependency.revision)
 })
+
+test("v5 exposes exact source middleware methods and external gaps without claiming adoption", async () => {
+  const index = await buildStructureIndex([
+    { path: "filter.py", content: "class Gate:\n    def __init__(self, app):\n        self.app = app\n    async def __call__(self, scope, receive, send):\n        await self.app(scope, receive, send)\n" },
+    { path: "app.py", content: 'from fastapi import FastAPI\nfrom filter import Gate\nfrom outside import Cors\napp = FastAPI()\napp.add_middleware(Gate)\napp.add_middleware(Cors)\n@app.post("/work")\ndef endpoint():\n    return True\n' },
+  ], { repository: "anonymous", sourceRef: "r" })
+  const entry = index.symbols.find(s => s.name === "endpoint")!, work = operationWork(index, entry.id, [], [], undefined, { sourceAssisted: true, operationRoot: true, questionDirected: true })
+  const middleware = work.actions.filter(a => a.receiverClass === "filter.Gate")
+  expect(middleware.map(a => index.symbols.find(s => s.id === a.candidateId)!.name)).toEqual(["__init__", "__call__"])
+  expect(middleware.every(a => a.frameworkBoundary && a.decisive && a.kind === "read")).toBe(true)
+  expect(work.frameworkGaps.some(g => g.code === "framework-middleware-source-missing" && g.reason.includes("outside.Cors"))).toBe(true)
+  const interpreted = operationWork(index, entry.id, middleware.map(a => a.candidateId), middleware.map(a => ({ id: a.candidateId, receiverClass: a.receiverClass })), undefined, { sourceAssisted: true, operationRoot: true, questionDirected: true })
+  expect(interpreted.actions.filter(a => a.receiverClass === "filter.Gate").every(a => a.kind === "link" && a.frameworkBoundary)).toBe(true)
+})
+
+test("middleware source changes invalidate its route footprint while unrelated source remains reusable", async () => {
+  const files = [
+    { path: "filter.py", content: "class Gate:\n    async def __call__(self, scope, receive, send):\n        return True\n" },
+    { path: "app.py", content: 'from fastapi import FastAPI\nfrom filter import Gate\napp = FastAPI()\napp.add_middleware(Gate)\n@app.post("/work")\ndef endpoint():\n    return True\n' },
+  ]
+  const before = await buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" }), entry = before.symbols.find(s => s.name === "endpoint")!
+  const work = operationWork(before, entry.id, [], [], undefined, { sourceAssisted: true, operationRoot: true, questionDirected: true })
+  const dependency = work.frameworkDependencies.find(d => d.key === `fastapi-source-asgi/v1:${before.routes[0]!.id}`)!
+  expect(dependency).toBeDefined()
+  const unrelated = await buildStructureIndex([...files, { path: "unused.py", content: "def elsewhere():\n    return False\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect(structuralDependencyRevision(unrelated, dependency)).toBe(dependency.revision)
+  const changed = await buildStructureIndex(files.map(f => f.path === "filter.py" ? { ...f, content: f.content.replace("True", "False") } : f), { repository: "anonymous", sourceRef: "r" })
+  expect(changed.routes[0]!.id).toBe(before.routes[0]!.id)
+  expect(structuralDependencyRevision(changed, dependency)).not.toBe(dependency.revision)
+})

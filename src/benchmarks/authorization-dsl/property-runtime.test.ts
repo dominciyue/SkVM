@@ -138,3 +138,23 @@ test("an unsupported request configuration retains its named blocked work instea
   if (!("questionProgress" in feedback)) throw new Error("v5 question progress is missing")
   expect(feedback.questionProgress.every(q => q.openDependencies.length > 0)).toBe(true)
 })
+
+test("source middleware enters the shared worklist but reading and interpreting it cannot prove pipeline adoption", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-source-middleware-"))
+  await writeFile(path.join(sourceRoot, "app.py"), 'from fastapi import FastAPI\nclass Filter:\n    def __init__(self, app):\n        self.app = app\n    async def __call__(self, scope, receive, send):\n        await self.app(scope, receive, send)\napp = FastAPI()\napp.add_middleware(Filter)\n@app.post("/work")\ndef endpoint():\n    return True\n')
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "POST /work", entryHint: "app.endpoint" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect POST /work", premises: [] }] })
+  const units: any[] = []
+  for (const name of ["endpoint", "__init__", "__call__", "POST /work"]) {
+    const s = tools.structure!.symbols.find(s => s.name === name)!, read = await tools.execute("source_read", { path: s.path, startLine: s.startLine, endLine: s.endLine })
+    units.push({ questionId: "q", itemId: name, handle: name, op: "add", role: name === "endpoint" ? "entry" : "helper", source: { id: s.id, path: s.path, sha256: s.sha256, startLine: s.startLine, endLine: s.endLine }, ...(s.className ? { receiverClass: s.className } : {}), evidenceIds: read.evidence.map(e => e.id), coverage: "path", start: "body", complete: true, fallthrough: "allow", parameters: s.parameters.map(p => ({ name: p.name, type: "value" })), blocks: [{ name: "body", steps: [{ kind: "return", name: "done", value: true, claim: "Test-authored source interpretation, adoption still unproven", ...(name === "endpoint" ? { outcome: "allow" } : {}) }] }] })
+  }
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "operation-evidence-v5", sourceAssisted: true, initialSemanticUnits: units })
+  await runtime.sync(false); await runtime.sync(false)
+  const report = runtime.report(), middleware = report.worklist!.items.filter(i => i.receiverClass === "app.Filter")
+  expect(middleware.map(i => i.selected!.name).sort()).toEqual(["__call__", "__init__"])
+  expect(middleware.every(i => i.progress?.read && i.progress.interpreted && !i.progress.linked)).toBe(true)
+  expect(report.worklist!.frameworkBoundaries!.filter(b => b.receiverClass === "app.Filter").every(b => b.state === "read")).toBe(true)
+  expect(report.delivery!.gaps.map(g => g.code)).toContain("framework-router-options-unmodeled")
+  expect(report.materialUses!.filter(u => u.kind === "framework")).toEqual([])
+})

@@ -19,7 +19,14 @@ export interface StructureRequestDependency {
   id: string; sourceCallId: string; ownerId: string; parameter?: string; constructor: string; expression: string; candidateIds: string[];
   resolution: "resolved" | "ambiguous" | "unresolved"; model: "fastapi-source-injection/v1"; gap?: string;
 }
-interface FileScope { path: string; sha256: string; module: string; language: "python" | "go"; aliases: Record<string, string>; moduleAliases: Record<string, string>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; localNames: string[]; groupPaths: string[] }>; moduleAssignments: Record<string, number>; moduleAttributeWrites: string[]; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean; requestOptionsUnmodeled: boolean; startLine: number; endLine: number }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; dependencies: Array<{ constructor: string; expression: string; sourceCallId: string; parameter?: string }>; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string; requestOptionsUnmodeled: boolean }> }
+export interface StructureRequestMiddleware {
+  id: string; sourceCallId: string; routerName: string; expression: string; qualifiedName: string; arguments: string[];
+  source: { path: string; sha256: string; startLine: number; endLine: number };
+  registrationContext: Array<{ kind: string; expression: string; startLine: number; endLine: number }>;
+  candidateIds: string[]; receiverClass?: string; methodCandidates: Array<{ method: string; candidateId: string }>;
+  sources: Array<{ id: string; path: string; sha256: string }>; registrationBinding: "resolved" | "possible"; executionOrder: "unproven"; model: "fastapi-source-asgi/v1"; gap?: string;
+}
+interface FileScope { path: string; sha256: string; module: string; language: "python" | "go"; aliases: Record<string, string>; moduleAliases: Record<string, string>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; localNames: string[]; groupPaths: string[]; registrationContext: StructureRequestMiddleware["registrationContext"] }>; routerAliases: Array<{ name: string; value: string; ownerId?: string; localNames: string[] }>; moduleAssignments: Record<string, number>; moduleAttributeWrites: string[]; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean; requestOptionsUnmodeled: boolean; startLine: number; endLine: number }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; dependencies: Array<{ constructor: string; expression: string; sourceCallId: string; parameter?: string }>; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string; requestOptionsUnmodeled: boolean }> }
 const hash = (v: unknown) => createHash("sha256").update(typeof v === "string" ? v : JSON.stringify(v)).digest("hex")
 let initialized: Promise<Map<string, Language>> | undefined
 function languages() {
@@ -141,10 +148,12 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         for (const name of names) if (!symbol || symbol.kind === "function" && globalNames.get(symbol.id)?.has(name)) moduleAssignments[name] = (moduleAssignments[name] ?? 0) + 1
         else if (symbol.kind === "function") { const bound = localNames.get(symbol.id) ?? new Set<string>(); bound.add(name); localNames.set(symbol.id, bound) }
       }
-      const moduleAttributeWrites: string[] = []
+      const moduleAttributeWrites: string[] = [], routerAliases: FileScope["routerAliases"] = []
       if (language === "python") for (const n of descendants(root, ["assignment", "augmented_assignment", "delete_statement"])) {
         let owner = n.parent; while (owner && !byNode.has(owner.id)) owner = owner.parent
         const symbol = owner && byNode.get(owner.id), target = field(n, "left")
+        const value = field(n, "right")
+        if (n.type === "assignment" && target?.type === "identifier" && value && /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(value.text)) routerAliases.push({ name: target.text, value: value.text, ...(symbol && !globalNames.get(symbol.id)?.has(target.text) ? { ownerId: symbol.id } : {}), localNames: symbol?.kind === "function" ? [...new Set([...symbol.parameters.map(p => p.name), ...localNames.get(symbol.id) ?? []])] : [] })
         for (let left of n.type === "delete_statement" ? children(n) : target ? [target] : []) {
           while (left.type === "subscript" && field(left, "value")) left = field(left, "value")!
           if (left.type !== "attribute" || !/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)+$/.test(left.text)) continue
@@ -161,9 +170,13 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         for (const p of symbol?.parameters ?? []) if (p.type) types[p.name] = p.type
         if (symbol?.className && language === "python") types.self = symbol.className
         const boundedText = (c: Node) => c.type === "function_literal" || c.type === "lambda" ? `source-function-body@${c.startPosition.row + 1}-${c.endPosition.row + 1}` : c.text.length > 500 ? `${c.text.slice(0, 500)} [structure-text-truncated]` : c.text
-        const expression = fn.text, args = children(field(n, "arguments")).map(boundedText), resultNames: string[] = [], groupPaths: string[] = []
+        const expression = fn.text, args = children(field(n, "arguments")).map(boundedText), resultNames: string[] = [], groupPaths: string[] = [], registrationContext: StructureRequestMiddleware["registrationContext"] = []
         let surrounding = n.parent
-        while (surrounding) { if (surrounding.type === "call_expression" && field(surrounding, "function")?.text.endsWith(".Group")) { const p = children(field(surrounding, "arguments"))[0]; if (p && /^"[^"\n]*"$/.test(p.text)) groupPaths.unshift(JSON.parse(p.text)) }; surrounding = surrounding.parent }
+        while (surrounding) {
+          if (surrounding.type === "call_expression" && field(surrounding, "function")?.text.endsWith(".Group")) { const p = children(field(surrounding, "arguments"))[0]; if (p && /^"[^"\n]*"$/.test(p.text)) groupPaths.unshift(JSON.parse(p.text)) }
+          if (["if_statement", "elif_clause", "else_clause", "try_statement", "except_clause", "finally_clause", "with_statement", "for_statement", "while_statement", "function_definition"].includes(surrounding.type)) registrationContext.unshift({ kind: surrounding.type, expression: field(surrounding, "condition")?.text ?? field(surrounding, "name")?.text ?? field(surrounding, "value")?.text ?? "", startLine: surrounding.startPosition.row + 1, endLine: surrounding.endPosition.row + 1 })
+          surrounding = surrounding.parent
+        }
         let assignment = n.parent
         while (assignment && !["assignment", "short_var_declaration", "assignment_statement", "function_definition", "function_declaration", "method_declaration"].includes(assignment.type)) assignment = assignment.parent
         if (assignment && ["assignment", "short_var_declaration", "assignment_statement"].includes(assignment.type)) {
@@ -179,7 +192,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           if (ancestor.type === "return_statement") { syntaxRole = "return"; break }
           ancestor = ancestor.parent
         }
-        rawCalls.push({ types, localNames: language === "python" && symbol?.kind === "function" ? [...new Set([...symbol.parameters.map(p => p.name), ...localNames.get(symbol.id) ?? []])] : [], groupPaths, call: { id: `call-${hash([sourceIdentity, file.path, sha256, n.startIndex]).slice(0, 24)}`, ...(symbol ? { ownerId: symbol.id } : {}), path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, expression, ...(expression.includes(".") ? { receiver: expression.slice(0, expression.lastIndexOf(".")) } : {}), arguments: args, candidateIds: [], resolution: "unresolved", basis: [], resultNames, syntaxRole } })
+        rawCalls.push({ types, localNames: language === "python" && symbol?.kind === "function" ? [...new Set([...symbol.parameters.map(p => p.name), ...localNames.get(symbol.id) ?? []])] : [], groupPaths, registrationContext, call: { id: `call-${hash([sourceIdentity, file.path, sha256, n.startIndex]).slice(0, 24)}`, ...(symbol ? { ownerId: symbol.id } : {}), path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, expression, ...(expression.includes(".") ? { receiver: expression.slice(0, expression.lastIndexOf(".")) } : {}), arguments: args, candidateIds: [], resolution: "unresolved", basis: [], resultNames, syntaxRole } })
       }
       const constants: Record<string, string> = {}, routers: FileScope["routers"] = [], decorators: FileScope["decorators"] = [], includes: FileScope["includes"] = []
       if (language === "python") {
@@ -216,7 +229,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           if (raw) includes.push({ callId: raw.call.id, receiver: expression.slice(0, expression.lastIndexOf(".")), child: (args.filter(a => a.type !== "keyword_argument")[method === "mount" ? 1 : 0] ?? args.find(a => field(a, "name")?.text === (method === "mount" ? "app" : "router"))?.childForFieldName("value"))?.text ?? "", prefix: ancestor || method === "mount" ? "$dynamic" : args.find(a => field(a, "name")?.text === "prefix")?.childForFieldName("value")?.text ?? '""', requestOptionsUnmodeled: requestOptionsUnmodeled(args) })
         }
       }
-      scopes.push({ path: file.path, sha256, module, language, aliases, moduleAliases, symbols, rawCalls, moduleAssignments, moduleAttributeWrites, constants, routers, decorators, includes })
+      scopes.push({ path: file.path, sha256, module, language, aliases, moduleAliases, symbols, rawCalls, routerAliases, moduleAssignments, moduleAttributeWrites, constants, routers, decorators, includes })
     } finally { tree.delete(); parser.delete() }
   }
   const symbols = scopes.flatMap(f => f.symbols), scopeFor = (s: StructureSymbol) => scopes.find(f => f.path === s.path)!
@@ -346,6 +359,29 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
   }
   const routerDeclarations = pythonScopes.flatMap(s => s.routers.filter(r => !r.repeated && ["fastapi.APIRouter", "fastapi.FastAPI", "fastapi.routing.APIRouter", "fastapi.applications.FastAPI"].includes(qualified(r.constructor, s))).map(r => ({ name: `${s.module}.${r.name}`, prefix: literal(r.prefix, s), requestOptionsUnmodeled: r.requestOptionsUnmodeled, stable: stableSourceBinding(r.constructor, s) && stableSourceBinding(r.name, s, false), source: { path: s.path, sha256: s.sha256, startLine: r.startLine, endLine: r.endLine } })))
   const routerNames = (name: string) => { const exact = routerDeclarations.filter(r => r.name === name); return (exact.length ? exact : routerDeclarations.filter(r => r.name.endsWith(`.${name}`))).map(r => r.name) }
+  const routerAliasEntries = pythonScopes.flatMap(scope => scope.routerAliases.filter(alias => !alias.ownerId).map(alias => ({ alias, scope, name: `${scope.module}.${alias.name}` })))
+  const matchingRouterAliases = (name: string) => {
+    const exact = routerAliasEntries.filter(a => a.name === name)
+    return exact.length ? exact : routerAliasEntries.filter(a => a.name.endsWith(`.${name}`))
+  }
+  // Potential aliases are conservative modification leads, never new route proofs.
+  const routerReferences = (text: string, scope: FileScope, ownerId?: string, localNames: string[] = [], active = new Set<string>()): string[] => {
+    if (!/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(text)) return []
+    const key = `${scope.path}:${ownerId ?? ""}:${text}`; if (active.has(key)) return []
+    const next = new Set(active).add(key), [root, ...parts] = text.split("."), local = !!ownerId && localNames.includes(root!)
+    const localAliases = local ? scope.routerAliases.filter(a => a.ownerId === ownerId && a.name === root) : []
+    if (local) return [...new Set(localAliases.flatMap(a => routerReferences([a.value, ...parts].join("."), scope, ownerId, a.localNames, next)))]
+    const name = qualified(text, scope), direct = routerNames(name), aliases = matchingRouterAliases(name)
+    return [...new Set([...direct, ...aliases.flatMap(({ alias, scope: source }) => routerReferences(alias.value, source, undefined, [], next))])]
+  }
+  const routerReferenceProof = (text: string, scope: FileScope, active = new Set<string>()): string | undefined => {
+    const key = `${scope.path}:${text}`; if (active.has(key) || !stableSourceBinding(text, scope, false)) return undefined
+    const next = new Set(active).add(key), name = qualified(text, scope), direct = routerNames(name)
+    if (direct.length) return direct.length === 1 && routerDeclarations.find(r => r.name === direct[0])?.stable ? direct[0] : undefined
+    const aliases = matchingRouterAliases(name)
+    if (aliases.length !== 1 || aliases[0]!.scope.constants[aliases[0]!.alias.name] !== aliases[0]!.alias.value) return undefined
+    return routerReferenceProof(aliases[0]!.alias.value, aliases[0]!.scope, next)
+  }
   const mounts = pythonScopes.flatMap(s => s.includes.map(i => { const parents = routerNames(qualified(i.receiver, s)), children = routerNames(qualified(i.child, s)); return { ...i, parent: parents.length === 1 ? parents[0]! : "$unresolved", childNames: children, prefixValue: children.length === 1 ? literal(i.prefix, s) : undefined } }))
   const prefixes = (name: string, active = new Set<string>()): string[] | undefined => {
     const router = routerDeclarations.find(r => r.name === name)
@@ -360,14 +396,15 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     }
     return paths
   }
-  const routerModifications = new Map<string, Array<{ call: StructureCall; gap: string }>>()
+  const routerModifications = new Map<string, Array<{ call: StructureCall; gap: string; scope: FileScope; registrationBinding: StructureRequestMiddleware["registrationBinding"]; registrationContext: StructureRequestMiddleware["registrationContext"] }>>()
   for (const scope of scopes) for (const raw of scope.rawCalls) {
       const receiver = raw.call.receiver, method = raw.call.expression.split(".").at(-1)!
-      if (!receiver || raw.localNames.includes(receiver.split(".")[0]!)) continue
+      if (!receiver) continue
       const override = receiver.endsWith(".dependency_overrides") && ["update", "clear", "setdefault", "pop", "popitem", "__setitem__", "__delitem__"].includes(method)
       if (!override && !["add_middleware", "middleware", "add_api_route", "add_route"].includes(method)) continue
       const owner = override ? receiver.slice(0, -".dependency_overrides".length) : receiver
-      for (const name of routerNames(qualified(owner, scope))) routerModifications.set(name, [...routerModifications.get(name) ?? [], { call: raw.call, gap: override ? "framework-dependency-overrides-unmodeled" : "framework-router-options-unmodeled" }])
+      const proof = raw.localNames.includes(owner.split(".")[0]!) ? undefined : routerReferenceProof(owner, scope)
+      for (const name of routerReferences(owner, scope, raw.call.ownerId, raw.localNames)) routerModifications.set(name, [...routerModifications.get(name) ?? [], { call: raw.call, gap: proof !== name ? "framework-router-alias-unresolved" : override ? "framework-dependency-overrides-unmodeled" : "framework-router-options-unmodeled", scope, registrationBinding: proof === name ? "resolved" : "possible", registrationContext: raw.registrationContext }])
   }
   const routeBindingSources = (name: string, active = new Set<string>()): { stable: boolean; gap?: string; sources: NonNullable<StructureRoute["bindingSources"]> } => {
     const router = routerDeclarations.find(r => r.name === name)
@@ -377,6 +414,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     const gap = router.requestOptionsUnmodeled || parents.some(p => p.requestOptionsUnmodeled) ? "framework-router-options-unmodeled" : overridden ? "framework-dependency-overrides-unmodeled" : modifications[0]?.gap ?? ancestors.find(a => a.gap)?.gap
     return { stable: router.stable && ancestors.every(a => a.stable) && parents.every(parent => { const scope = scopes.find(s => s.rawCalls.some(c => c.call.id === parent.callId))!; return stableSourceBinding(`${parent.receiver}.include_router`, scope) && stableSourceBinding(parent.child, scope, false) }), ...(gap ? { gap } : {}), sources: [router.source, ...ancestors.flatMap(a => a.sources), ...parents.flatMap(parent => { const call = calls.find(c => c.id === parent.callId); return call ? [{ path: call.path, sha256: call.sha256, startLine: call.startLine, endLine: call.endLine }] : [] }), ...modifications.map(({ call }) => ({ path: call.path, sha256: call.sha256, startLine: call.startLine, endLine: call.endLine }))] }
   }
+  const routeRouters = new Map<string, string>()
   for (const scope of pythonScopes) for (const d of scope.decorators) {
     const c = scope.rawCalls.find(r => r.call.id === d.callId)!.call, names = routerNames(qualified(d.receiver, scope)), routerName = names.length === 1 ? names[0]! : "$unresolved", router = routerDeclarations.find(r => r.name === routerName), ps = prefixes(routerName), value = literal(d.path, scope)
     const code = !router ? "route-router-unresolved" : !ps ? "route-prefix-dynamic" : value === undefined ? "route-path-dynamic" : d.wrapped ? "route-wrapper-unresolved" : undefined
@@ -387,6 +425,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     for (const [mount, prefix] of ps!.entries()) {
       const route: StructureRoute = { id: `route-${hash([c.id, prefix, mount]).slice(0, 24)}`, sourceCallId: c.id, sourcePath: scope.path, startLine: c.startLine, endLine: c.endLine, method: d.verb.toUpperCase(), path: prefix + value!, handlerExpression: handler.name, candidateIds: [handler.id], middlewareExpressions: d.middleware, dependencyExpressions: d.dependencies.filter(dep => ["fastapi.Depends", "fastapi.params.Depends", "fastapi.Security", "fastapi.params.Security"].includes(qualified(dep.constructor, scope)) && /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(dep.expression)).map(dep => dep.expression), dependencyCallIds: d.dependencies.filter(dep => !dep.parameter).map(dep => dep.sourceCallId), bindingSources: binding.sources, ...(bindingGap ? { bindingGap } : {}), model: "fastapi-source-router/v1" }
       routes.push(route)
+      routeRouters.set(route.id, routerName)
       symbols.push({ id: route.id, path: c.path, sha256: c.sha256, name: `${route.method} ${route.path}`, qualifiedName: `${scope.module}.route@${c.startLine}`, module: scope.module, language: scope.language, kind: "function", startLine: c.startLine, endLine: c.endLine, boundary: "complete", parameters: [], returns: [], bases: [], attributes: { routeModel: route.model, handlerExpression: handler.name } })
     }
   }
@@ -437,13 +476,41 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       return [{ id: `framework-${hash([symbolId, call.id, parameter]).slice(0, 24)}`, sourceCallId: call.id, ownerId: symbolId, ...(parameter ? { parameter } : {}), constructor, expression: argument, candidateIds: candidates.map(s => s.id), resolution: gap ? candidates.length > 1 ? "ambiguous" as const : "unresolved" as const : "resolved" as const, model: "fastapi-source-injection/v1" as const, ...(gap ? { gap } : {}) }]
     })
   }
-  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v6"
+  const middlewareCache = new Map<string, StructureRequestMiddleware[]>()
+  const requestMiddleware = (routeId: string): StructureRequestMiddleware[] => {
+    if (middlewareCache.has(routeId)) return structuredClone(middlewareCache.get(routeId)!)
+    const routerName = routeRouters.get(routeId); if (!routerName) return []
+    const ancestors = new Set<string>(), collect = (name: string) => { if (ancestors.has(name)) return; ancestors.add(name); for (const mount of mounts.filter(m => m.childNames.includes(name))) collect(mount.parent) }; collect(routerName)
+    const registrations = [...ancestors].flatMap(name => (routerModifications.get(name) ?? []).filter(m => m.call.expression.endsWith(".add_middleware")).map(m => ({ ...m, routerName: name })))
+    const facts: StructureRequestMiddleware[] = registrations.map(({ call, scope, registrationContext, registrationBinding, routerName }) => {
+      const keywordIndex = call.arguments.findIndex(a => /^middleware_class\s*=/.test(a)), targetIndex = keywordIndex >= 0 ? keywordIndex : call.arguments.findIndex(a => !/^\w+\s*=/.test(a))
+      const expression = (call.arguments[targetIndex]?.replace(/^middleware_class\s*=\s*/, "") ?? "").trim(), name = qualified(expression, scope)
+      const raw = scope.rawCalls.find(r => r.call.id === call.id)!, shadowed = raw.localNames.includes(expression.split(".")[0]!)
+      const candidates = !shadowed && /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(expression) ? matching(name).filter(s => s.kind === "class") : [], cls = candidates.length === 1 ? candidates[0] : undefined
+      const mro = cls && linearize(cls.qualifiedName), classSources = [...new Map((mro ?? []).flatMap(owner => matching(owner).filter(s => s.kind === "class")).map(s => [s.id, s])).values()]
+      const methodCandidates = cls ? ["__init__", "__call__", ...(mro?.some(owner => ["starlette.middleware.base.BaseHTTPMiddleware"].includes(owner)) ? ["dispatch"] : [])].flatMap(method => lookupMethod(cls.qualifiedName, method).map(s => ({ method, candidateId: s.id }))) : []
+      const gap = registrationBinding !== "resolved" ? "framework-middleware-router-alias-unresolved"
+        : !/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(expression) ? "framework-middleware-target-dynamic"
+        : shadowed ? "framework-middleware-target-shadowed"
+        : !stableSourceBinding(expression, scope) || candidates.some(s => !stableSourceBinding(s.name, scopeFor(s))) ? "framework-middleware-target-rebound"
+        : candidates.length !== 1 ? candidates.length ? "framework-middleware-target-ambiguous" : "framework-middleware-source-missing"
+        : classSources.some(s => s.attributes.bindingWrapped) ? "framework-middleware-target-wrapper-unmodeled"
+        : !mro ? "framework-middleware-mro-unresolved"
+        : mro.some(owner => matching(owner).filter(s => s.kind === "class").length !== 1) ? "framework-middleware-base-source-missing"
+        : classSources.some(s => ["__init__", "__call__", "dispatch"].some(method => Object.hasOwn(s.attributes, method))) ? "framework-middleware-method-binding-unresolved"
+        : methodCandidates.some(m => symbols.find(s => s.id === m.candidateId)?.attributes.bindingWrapped) ? "framework-middleware-method-wrapper-unmodeled"
+        : !methodCandidates.some(m => m.method === "__call__" || m.method === "dispatch") ? "framework-middleware-entry-missing" : undefined
+      return { id: `middleware-${hash([routeId, call.id]).slice(0, 24)}`, sourceCallId: call.id, routerName, expression, qualifiedName: cls?.qualifiedName ?? name, arguments: call.arguments.filter((_, i) => i !== targetIndex), source: { path: call.path, sha256: call.sha256, startLine: call.startLine, endLine: call.endLine }, registrationContext: structuredClone(registrationContext), candidateIds: candidates.map(s => s.id), ...(cls ? { receiverClass: cls.qualifiedName } : {}), methodCandidates, sources: classSources.map(s => ({ id: s.id, path: s.path, sha256: s.sha256 })), registrationBinding, executionOrder: "unproven", model: "fastapi-source-asgi/v1", ...(gap ? { gap } : {}) }
+    })
+    middlewareCache.set(routeId, facts); return structuredClone(facts)
+  }
+  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v7"
   const withSymbolSyntax = <T>(symbolId: string, visit: (root: Node, symbol: StructureSymbol) => T): Promise<T> => {
     const symbol = symbols.find(s => s.id === symbolId), file = symbol && files.find(f => f.path === symbol.path)
     if (!symbol || !file || hash(file.content) !== symbol.sha256) throw new Error("structure-source-missing")
     return withSourceSyntax(file.content, symbol.language, root => visit(root, symbol))
   }
-  return { schemaVersion: "authorization-structure-index/v1" as const, parser: parserVersion, relationshipVersion, symbols, calls, routes, diagnostics, lookupMethod, attribute, linearize, candidateRevision, relatedCalls, resolveName, qualifySourceName, requestDependencies, withSymbolSyntax,
+  return { schemaVersion: "authorization-structure-index/v1" as const, parser: parserVersion, relationshipVersion, symbols, calls, routes, diagnostics, lookupMethod, attribute, linearize, candidateRevision, relatedCalls, resolveName, qualifySourceName, requestDependencies, requestMiddleware, withSymbolSyntax,
     revision: hash([sourceIdentity, parserVersion, relationshipVersion, symbols, calls, routes, diagnostics]), preparation: { files: files.length, bytes: files.reduce((s, f) => s + Buffer.byteLength(f.content), 0), durationMs: performance.now() - started, targetExecutions: 0 } }
 }
 export type StructureIndex = Awaited<ReturnType<typeof buildStructureIndex>>
