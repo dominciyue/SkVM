@@ -12,6 +12,15 @@ function mock(mode = "normal") {
     if (m.method === "turn/start") { receive({ id: m.id, result: { turn: { id: "turn" } } }); queueMicrotask(() => {
       if (mode === "exit") return exited("child exit")
       if (mode === "timeout") return
+      if (["failed", "quota", "interrupted", "completed-no-usage", "quota-lost"].includes(mode)) {
+        if (mode.startsWith("quota")) emit("error", { threadId: "thread", turnId: "turn", error: { message: "Usage limit reached", codexErrorInfo: "usageLimitExceeded" }, willRetry: false })
+        if (mode === "quota-lost") return exited("transport lost")
+        emit("turn/completed", { threadId: "thread", turn: { id: "turn", status: mode === "completed-no-usage" ? "completed" : mode === "interrupted" ? "interrupted" : "failed", items: mode === "completed-no-usage" ? [{ type: "agentMessage", phase: "final_answer", text: "Source conclusion" }] : [], error: mode === "quota" ? { message: "Usage limit reached", codexErrorInfo: "usageLimitExceeded" } : null } })
+        // A closed transport may report exit or delayed unrelated events afterwards.
+        exited("late child exit")
+        emit("thread/tokenUsage/updated", { ...usage, tokenUsage: { total: { ...usage.tokenUsage.total, inputTokens: 999 } } })
+        return
+      }
       receive({ id: "call", method: "item/tool/call", params: { threadId: "thread", turnId: "turn", callId: "tool-call", namespace: null, tool: mode === "forbidden" ? "execute_command" : "source_read", arguments: ["malformed", "repair-arguments"].includes(mode) ? { path: 4 } : { path: "app.py" } } })
       if (mode === "conflicting-call") receive({ id: "conflict", method: "item/tool/call", params: { threadId: "thread", turnId: "turn", callId: "tool-call", namespace: null, tool: "source_read", arguments: { path: "elsewhere.py" } } })
       if (mode === "duplicate-call") receive({ id: "duplicate", method: "item/tool/call", params: { threadId: "thread", turnId: "turn", callId: "tool-call", namespace: null, tool: "source_read", arguments: { path: "app.py" } } })
@@ -42,6 +51,27 @@ test("timeout interrupts its own turn, closes local consumers and ignores late t
   const f = mock("timeout"), r = await f.run(); f.late(); await Promise.resolve()
   expect(r.status).toBe("timeout-unknown"); expect(f.sent.some(m => m.method === "turn/interrupt")).toBe(true); expect(f.executed()).toBe(0)
   expect((await mock("exit").run()).status).toBe("completion-unknown")
+})
+test("known failed and interrupted turns are terminal independently of delivery and missing usage", async () => {
+  for (const mode of ["failed", "quota", "interrupted"]) {
+    const f = mock(mode), r = await f.run()
+    expect(r.status).toBe(mode === "interrupted" ? "interrupted" : "failed")
+    expect(r.terminalStatus).toBe(mode === "interrupted" ? "interrupted" : "failed")
+    expect(r.answerDelivery).toBe("undelivered")
+    expect(r.usageVisibility).toBe("unknown")
+    expect(r.usage).toBeNull()
+    expect(r.reason).toBe(`account-turn-${mode === "interrupted" ? "interrupted" : "failed"}`)
+    expect(r.quotaRefused).toBe(mode === "quota")
+    expect(f.sent.some(m => m.method === "turn/interrupt")).toBe(false)
+  }
+})
+test("a completed answer with no usage and a completed empty turn expose different delivery", async () => {
+  expect(await mock("completed-no-usage").run()).toMatchObject({ status: "completed", terminalStatus: "completed", answerDelivery: "delivered", usageVisibility: "unknown", usage: null })
+  expect(await mock("empty").run()).toMatchObject({ status: "undelivered", terminalStatus: "completed", answerDelivery: "undelivered", usageVisibility: "observed" })
+})
+test("transport loss and timeout retain unknown terminal even when a quota error was observed", async () => {
+  expect(await mock("quota-lost").run()).toMatchObject({ status: "completion-unknown", terminalStatus: "unknown", answerDelivery: "undelivered", quotaRefused: true, usageVisibility: "unknown" })
+  expect(await mock("timeout").run()).toMatchObject({ status: "timeout-unknown", terminalStatus: "unknown", answerDelivery: "undelivered" })
 })
 test("unverified public CLI boundary sends no inference and logs no credentials or account identifiers", async () => {
   const f = mock(); f.transport.isolation = { kind: "unverified-public-cli", reason: "No public dynamic-only capability" }

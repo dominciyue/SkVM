@@ -172,7 +172,7 @@ test("ordinary source-assisted natural-session export retains its declaration an
   expect(dispatches).toBe(before)
 })
 
-for (const finiteStrategy of ["operation-evidence-v3", "operation-evidence-v4"] as const) for (const native of [false, true]) test(`${finiteStrategy} ${native ? "native" : "inquiry"} enables finite control and saves material through the production entrance`, async () => {
+for (const finiteStrategy of ["operation-evidence-v3", "operation-evidence-v4", "operation-evidence-v5"] as const) for (const native of [false, true]) test(`${finiteStrategy} ${native ? "native" : "inquiry"} enables finite control and saves material through the production entrance`, async () => {
   const { root, sourceRoot, inputFile } = await fixture(), stages: string[] = []
   const complete = async (params: CompletionParams) => {
     if (!params.tools?.length) return response("The original entry denies this source path.")
@@ -180,9 +180,10 @@ for (const finiteStrategy of ["operation-evidence-v3", "operation-evidence-v4"] 
     if (context.focus.stage === "interpret") {
       const shown = context.tasks[0]!.sourceSkeleton
       expect(shown.controlSemantics).toBe("finite-control/v1")
-      if (finiteStrategy === "operation-evidence-v4") {
-        expect(shown.propertySemantics).toBe("property-control/v1")
+      if (finiteStrategy !== "operation-evidence-v3") {
+        expect(shown.propertySemantics).toBe(finiteStrategy === "operation-evidence-v5" ? "question-control/v1" : "property-control/v1")
         expect((context.tasks[0] as any).propertyDemand.frontier).toHaveLength(1)
+        if (finiteStrategy === "operation-evidence-v5") expect((context.tasks[0] as any).propertyDemand.dependencies.question.request).toBeTruthy()
       }
       // The whole original window and annotatable identities remain available,
       // while one common source digest replaces its repetition at every anchor.
@@ -206,7 +207,7 @@ for (const finiteStrategy of ["operation-evidence-v3", "operation-evidence-v4"] 
   }
   expect(report.sourceMaterials.materials).toHaveLength(1)
   expect(report.materialUses).toHaveLength(1)
-  expect(report.sourceMaterials.materials[0].identity.semanticVersion).toBe(finiteStrategy === "operation-evidence-v4" ? "property-control/v1" : "finite-control/v1")
+  expect(report.sourceMaterials.materials[0].identity.semanticVersion).toBe(finiteStrategy === "operation-evidence-v5" ? "question-control/v1" : finiteStrategy === "operation-evidence-v4" ? "property-control/v1" : "finite-control/v1")
 })
 
 test("public inquiry consumes and verifies the original skill file bytes", async () => {

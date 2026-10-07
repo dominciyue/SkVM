@@ -11,7 +11,7 @@ import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquir
 import { normalizeNaturalOperation, parseNativeInquiryMethod, type NativeInquiryMethods } from "../../task-dsl/authorization/operation-program.ts"
 import { AuthorizationObservationSchema, validateInquiryObservations, inquiryObservationFeedback, validateAuthorizationInquiryResult, type AuthorizationObservation } from "../../task-dsl/authorization/inquiry-result.ts"
 import { AuthorizationDispatchLimitError, type AuthorizationLifecycleEvent } from "./telemetry.ts"
-import { parseInquiryStrategy, isGuidedInquiryStrategy, isFocusedInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInquiryStrategy, isFiniteControlInquiryStrategy, isPropertyDirectedInquiryStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
+import { parseInquiryStrategy, isGuidedInquiryStrategy, isFocusedInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInquiryStrategy, isFiniteControlInquiryStrategy, isPropertyDirectedInquiryStrategy, isQuestionDirectedInquiryStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { createInquiryDomainRuntime, DOMAIN_EXECUTION_GUIDE, GUIDED_EXECUTION_GUIDE } from "./inquiry-domain-runtime.ts"
 import { inquiryNativeDefinitions, inquiryNativeSchemas } from "./inquiry-wire.ts"
 import { ZodError } from "zod"
@@ -36,7 +36,7 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
   const method = parseNativeInquiryMethod(options.method)
   if (method && (!isOperationInquiryStrategy(strategy) || !options.domainTools)) throw new Error("authorization-method requires operation-evidence-v1 or operation-evidence-v2 and domain-tools")
   if (strategy !== "legacy" && !options.domainTools) throw new Error("strategy-requires-domain-tools: native domain strategy requires explicit domain tools")
-  const loaded = await loadInquiryInput(options.inputFile, { allowMissingPolicy: sourceAssisted }), tools = await createInquiryTools({ ...loaded.context, structure: isOperationInquiryStrategy(strategy), ...(isFiniteControlInquiryStrategy(strategy) ? { controlSemantics: "finite-control/v1" as const, propertyDirected: isPropertyDirectedInquiryStrategy(strategy) } : {}), maxToolCalls: options.maxToolCalls ?? 24, maxDisplayBytes: options.maxDisplayBytes ?? 262144, maxReadBytes: options.maxReadBytes, reserveFinalRead: true })
+  const loaded = await loadInquiryInput(options.inputFile, { allowMissingPolicy: sourceAssisted }), tools = await createInquiryTools({ ...loaded.context, structure: isOperationInquiryStrategy(strategy), ...(isFiniteControlInquiryStrategy(strategy) ? { controlSemantics: "finite-control/v1" as const, propertyDirected: isPropertyDirectedInquiryStrategy(strategy), questionDirected: isQuestionDirectedInquiryStrategy(strategy) } : {}), maxToolCalls: options.maxToolCalls ?? 24, maxDisplayBytes: options.maxDisplayBytes ?? 262144, maxReadBytes: options.maxReadBytes, reserveFinalRead: true })
   const checkLimit = options.domainTools ? 2 : 0, explorationLimit = tools.maxToolCalls - checkLimit
   if (options.domainTools && explorationLimit < 1) throw new NativeToolRejection("tool-budget", "Domain tools require at least 3 total calls: one exploration action and two result checks")
   let program: ReturnType<typeof compileAuthorizationInquiry> | undefined, result: unknown, domainCalls = 0, referenceCalls = 0, checks = 0, modelSourceBytes = 0, resentSourceBytes = 0

@@ -7,7 +7,7 @@ import { normalizeNaturalOperation } from "../../task-dsl/authorization/operatio
 import { validateAuthorizationInquiryResult, validateInquiryObservations, inquiryObservationFeedback, type AuthorizationObservation } from "../../task-dsl/authorization/inquiry-result.ts"
 import { createInquiryTools, modelSourceDisplay, type InquiryToolsOptions, type InquiryToolOutput } from "./inquiry-tools.ts"
 import { createTelemetryProvider, hasUnknownAuthorizationCompletion, AuthorizationCallTimeoutError, AuthorizationDispatchLimitError, type AuthorizationLifecycleEvent } from "./telemetry.ts"
-import { parseInquiryStrategy, isGuidedInquiryStrategy, isFocusedInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInquiryStrategy, isFiniteControlInquiryStrategy, isPropertyDirectedInquiryStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
+import { parseInquiryStrategy, isGuidedInquiryStrategy, isFocusedInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInquiryStrategy, isFiniteControlInquiryStrategy, isPropertyDirectedInquiryStrategy, isQuestionDirectedInquiryStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { createInquiryDomainRuntime, DOMAIN_EXECUTION_GUIDE, GUIDED_EXECUTION_GUIDE, type DomainAblation } from "./inquiry-domain-runtime.ts"
 import { inquiryStepSchemas, InquiryAuthorTransportSchema, inquiryAuthorModelSchema, normalizeFocusedControlEnvelope, normalizeGuidedControlEnvelope, normalizeSemanticFinalEnvelope, type InquiryStep } from "./inquiry-wire.ts"
 import type { InquiryReuseInfo, InquiryReuseSeed } from "./inquiry-reuse.ts"
@@ -55,7 +55,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
   const strategy = parseInquiryStrategy(options.strategy)
   const sourceAssisted = isSourceAssistedInquiryStrategy(strategy)
   if (options.domainAblation && (strategy !== "domain-evidence-v1" || !["scheduler-off", "checks-off"].includes(options.domainAblation))) throw new Error("Invalid domain ablation/strategy combination")
-  const startedAt = Date.now(), tools = await createInquiryTools({ ...options, structure: isOperationInquiryStrategy(strategy), ...(isFiniteControlInquiryStrategy(strategy) ? { controlSemantics: "finite-control/v1" as const, propertyDirected: isPropertyDirectedInquiryStrategy(strategy) } : {}), reserveFinalRead: true }), requests: Array<{ phase: "author" | "analysis" | "repair"; params: CompletionParams }> = []
+  const startedAt = Date.now(), tools = await createInquiryTools({ ...options, structure: isOperationInquiryStrategy(strategy), ...(isFiniteControlInquiryStrategy(strategy) ? { controlSemantics: "finite-control/v1" as const, propertyDirected: isPropertyDirectedInquiryStrategy(strategy), questionDirected: isQuestionDirectedInquiryStrategy(strategy) } : {}), reserveFinalRead: true }), requests: Array<{ phase: "author" | "analysis" | "repair"; params: CompletionParams }> = []
   let phase: "author" | "analysis" | "repair" = "analysis"
   let cumulativeModelSourceBytes = 0, resentSourceBytes = 0
   const previouslyShown = new Set<string>()

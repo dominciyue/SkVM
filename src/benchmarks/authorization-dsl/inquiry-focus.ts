@@ -111,6 +111,10 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
     return { ...item, ...(source ? { selected: source } : {}), receiverClass: unit.receiverClass }
   }
   const operation = (q?: string) => options.program.operationQuestions?.find(v => v.questionId === q)?.operationId ?? q
+  const questionSeed = (questionId: string) => {
+    const q = options.program.questions.find(q => q.id === questionId)
+    return q && { id: q.id, request: q.request, operationId: operation(q.id), premises: q.premises.map(p => p.text) }
+  }
   const demandFor = (item: WorkItem): PropertyDemand | undefined => {
     if (!options.propertyDirected || !item.selected) return undefined
     const skeleton = options.sourceSkeleton?.(item.selected.id, item.receiverClass)
@@ -119,7 +123,7 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
     const key = `${item.questionId}:${item.selected.id}:${item.receiverClass ?? ""}`, previous = propertyDemands.get(key), draft = handle && sourceDrafts.get(handle)
     if (unit && !draft && current?.itemId !== item.id) return previous
     const affectedQuestionIds = options.program.operationQuestions?.filter(q => q.operationId === operation(item.questionId)).map(q => q.questionId)
-    const demand = buildPropertyDemand(skeleton, { questionId: item.questionId, role: item.origin === "question-duty" && item.kind === "entry" ? "entry" : "helper", interpretation: draft || undefined, affectedQuestionIds: affectedQuestionIds?.length ? affectedQuestionIds : [item.questionId] })
+    const demand = buildPropertyDemand(skeleton, { questionId: item.questionId, role: item.origin === "question-duty" && item.kind === "entry" ? "entry" : "helper", question: questionSeed(item.questionId), interpretation: draft || undefined, affectedQuestionIds: affectedQuestionIds?.length ? affectedQuestionIds : [item.questionId] })
     propertyDemands.set(key, demand); return demand
   }
   const sameOperation = (i: WorkItem) => !current?.questionId || operation(current.questionId) === operation(i.questionId)
@@ -215,7 +219,7 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
     const skeleton = current?.itemId && offeredSkeletons.get(current.itemId), item = sourceItem(current?.itemId)
     if (!skeleton || !item || !current?.handle || !current.questionId) fail("source-interpretation-window", "The whole current source skeleton and original window must be offered in this dispatch.")
     if (diagnostics.length || !values.success || !skeleton || !item || !current?.handle || !current.questionId) { sourceHistory.push({ event: "envelope-rejected", focusId: current?.id, raw: structuredClone(raw), diagnostics: structuredClone(diagnostics) }); return { diagnostics } }
-    const lowered = lowerSourceInterpretation(skeleton, value.interpretation, { index: options.tools.structure, itemId: item.id, handle: current.handle, questionId: current.questionId, role: item.origin === "question-duty" && item.kind === "entry" ? "entry" : "helper", previous: sourceDrafts.get(current.handle), propertyDirected: options.propertyDirected, affectedQuestionIds: demandFor(item)?.affectedQuestionIds })
+    const lowered = lowerSourceInterpretation(skeleton, value.interpretation, { index: options.tools.structure, itemId: item.id, handle: current.handle, questionId: current.questionId, question: questionSeed(current.questionId), role: item.origin === "question-duty" && item.kind === "entry" ? "entry" : "helper", previous: sourceDrafts.get(current.handle), propertyDirected: options.propertyDirected, affectedQuestionIds: demandFor(item)?.affectedQuestionIds })
     if (lowered.interpretation) sourceDrafts.set(current.handle, lowered.interpretation)
     if (lowered.demand) propertyDemands.set(`${item.questionId}:${item.selected!.id}:${item.receiverClass ?? ""}`, lowered.demand)
     sourceHistory.push({ event: lowered.diagnostics.length ? "rejected" : "lowered", focusId: current.id, revision: skeleton.revision, raw: structuredClone(raw), generated: structuredClone(lowered.unit), diagnostics: structuredClone(lowered.diagnostics) })

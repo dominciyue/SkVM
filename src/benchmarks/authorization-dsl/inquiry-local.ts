@@ -8,7 +8,7 @@ import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquir
 import { createInquiryTools } from "./inquiry-tools.ts"
 import { runAuthorizationInquiry, type InquiryMethod, type RunAuthorizationInquiryOptions } from "./inquiry-run.ts"
 import type { LocalAuthorizationCliDependencies } from "./local-run.ts"
-import { parseInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInquiryStrategy, isFiniteControlInquiryStrategy, isPropertyDirectedInquiryStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
+import { parseInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInquiryStrategy, isFiniteControlInquiryStrategy, isPropertyDirectedInquiryStrategy, isQuestionDirectedInquiryStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { planInquiryReuse } from "./inquiry-reuse.ts"
 import { hasUnknownAuthorizationCompletion } from "./telemetry.ts"
 import { acceptAuthoredInquiry } from "./authoring-assist.ts"
@@ -91,7 +91,7 @@ export async function initializeLocalInquiry(from: string, outFile: string, expl
 
 async function preparePreviousInquiry(inputFile: string, previous: string, model: string | undefined, method: InquiryMethod | undefined, strategy: InquiryStrategy | undefined) {
   const report = await inspectLocalInquiry(previous), retained = await retainedInquiryDeclaration(report.sessionPath), old = retained.input, prior = retained.prior
-  const currentStrategy = strategy ?? report.strategy ?? "legacy", loaded = await loadInquiryInput(inputFile, { allowMissingPolicy: isSourceAssistedInquiryStrategy(currentStrategy) }), tools = await createInquiryTools({ ...loaded.context, structure: isOperationInquiryStrategy(currentStrategy), ...(isFiniteControlInquiryStrategy(currentStrategy) ? { controlSemantics: "finite-control/v1" as const, propertyDirected: isPropertyDirectedInquiryStrategy(currentStrategy) } : {}) })
+  const currentStrategy = strategy ?? report.strategy ?? "legacy", loaded = await loadInquiryInput(inputFile, { allowMissingPolicy: isSourceAssistedInquiryStrategy(currentStrategy) }), tools = await createInquiryTools({ ...loaded.context, structure: isOperationInquiryStrategy(currentStrategy), ...(isFiniteControlInquiryStrategy(currentStrategy) ? { controlSemantics: "finite-control/v1" as const, propertyDirected: isPropertyDirectedInquiryStrategy(currentStrategy), questionDirected: isQuestionDirectedInquiryStrategy(currentStrategy) } : {}) })
   const plan = planInquiryReuse({ currentInput: loaded.value, previousInput: old, previousRun: prior, previousSessionId: report.sessionId, currentFiles: tools.files, currentStructure: tools.structure, currentMethod: method ?? report.method, previousMethod: report.method, currentStrategy, previousStrategy: report.strategy ?? "legacy", currentModel: model ?? report.model, previousModel: report.model })
   if (plan.status === "reusable") {
     const imported = tools.restoreEvidence(plan.seed.evidence)
@@ -132,7 +132,7 @@ export async function executeLocalInquiryRun(options: { inputFile: string; outDi
     const { runCodexAccountInquiry } = await import("../../adapters/codex-account.ts")
     const accountRun = await runCodexAccountInquiry({ inputFile: options.inputFile, workDir: sessionPath, model: options.model, method, strategy, reuse, skillContent, accountBoundaryFile: options.accountBoundaryFile, timeoutMs: options.execution?.sessionTimeoutMs, maxToolCalls: options.execution?.maxToolCalls, maxDisplayBytes: options.execution?.maxDisplayBytes, maxReadBytes: options.execution?.maxReadBytes, traceDir: path.join(sessionPath, "raw") })
     const { native, account } = accountRun
-    const fields = { status: account.status, method, strategy, inquiry: native.program?.originalDeclaration, program: native.program, result: native.result, final: native.result, domain: native.domain, reuse: accountRun.reuse, sourceFiles: native.sourceFiles, sourceVerification: native.sourceVerification, sourceAccounting: native.sourceAccounting, telemetry: { account, providerCalls: account.providerRequests, totalActualUsd: null }, durationMs: account.durationMs, error: account.reason, evidence: native.evidence, ...(skill ? { skill } : {}) }
+    const fields = { status: account.status, terminalStatus: account.terminalStatus, answerDelivery: account.answerDelivery, usageVisibility: account.usageVisibility, quotaRefused: account.quotaRefused, method, strategy, inquiry: native.program?.originalDeclaration, program: native.program, result: native.result, final: native.result, domain: native.domain, reuse: accountRun.reuse, sourceFiles: native.sourceFiles, sourceVerification: native.sourceVerification, sourceAccounting: native.sourceAccounting, telemetry: { account, providerCalls: account.providerRequests, totalActualUsd: null }, durationMs: account.durationMs, error: account.reason, evidence: native.evidence, ...(skill ? { skill } : {}) }
     const { redactCodexEvent } = await import("../../adapters/codex-account-session.ts")
     await save("run.json", redactCodexEvent({ ...fields, native })); const report = { ...identity, ...fields, harness: "codex-account" }
     await save("report.json", redactCodexEvent(report)); await appendFile(path.join(out, "sessions.jsonl"), JSON.stringify({ relativePath: `sessions/${id}`, status: report.status }) + "\n")
@@ -177,7 +177,7 @@ export async function inspectLocalInquiry(outDir: string) {
     const run = JSON.parse(await readFile(path.join(root, "run.json"), "utf8"))
     const legacyAuthorMetadata = run.strategy === undefined && identity.method === "D1" && ["completed-with-diagnostics", "budget-exhausted"].includes(run.status) && !run.inquiry && !run.program && !run.domain && !run.result && run.requests?.length > 0 && run.requests.every((r: any) => r.phase === "author") && run.wireFailures?.some((r: any) => r.phase === "author") && !hasUnknownAuthorizationCompletion(run)
     const runStrategy = legacyAuthorMetadata ? identity.strategy ?? "legacy" : run.strategy ?? "legacy"
-    if (run.status !== report.status || run.method !== identity.method || runStrategy !== (identity.strategy ?? "legacy") || ["skill", "sourceFiles", "result", "initial", "initialValidation", "final", "validation", "wireFailures", "wireNormalizations", "domain", "reuse", "sourceAccounting", "sourceVerification", "telemetry"].some(key => !isDeepStrictEqual(run[key], report[key]))) throw new Error("Inquiry report/run identity mismatch")
+    if (run.status !== report.status || run.method !== identity.method || runStrategy !== (identity.strategy ?? "legacy") || ["terminalStatus", "answerDelivery", "usageVisibility", "quotaRefused", "skill", "sourceFiles", "result", "initial", "initialValidation", "final", "validation", "wireFailures", "wireNormalizations", "domain", "reuse", "sourceAccounting", "sourceVerification", "telemetry"].some(key => !isDeepStrictEqual(run[key], report[key]))) throw new Error("Inquiry report/run identity mismatch")
     if (legacyAuthorMetadata) strategyMetadataOrigin = "precompile-session-identity"
     completionUnknown ||= hasUnknownAuthorizationCompletion(run)
   }

@@ -2001,13 +2001,26 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 ### 7.60 AY 问题依赖完整使用与收益验证
 
-2026-10-07，用户要求用gpt-6.1-sol/max新线程继续开发，实验使用当前账号gpt-5.6-sol，争取本轮做出真正可用且有正向收益的成果。[AY0–AY23](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)据此建立完整执行队列；当前为authorized-not-started，以下为待实现设计，不是新增效果结论。
+2026-10-07，用户要求用gpt-6.1-sol/max新线程继续开发，实验使用当前账号gpt-5.6-sol，争取本轮做出真正可用且有正向收益的成果。[AY0–AY23](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)据此建立完整执行队列；当前in-progress。已登记22首位置、承接AX11位置并追加AX明确failed裁定，旧原件不改。账号终态/交付/用量分离及v5初版依赖/双入口反例已红绿验证；完整源码答案和实测收益尚未建立。
 
 **复核后的取舍。** v4已有性质frontier和合流，但真实提案未减轻标注。结构索引已提供import、C3/super、receiver、参数和有限返回信息；operation-work也有DRF前置权限候选，focus/link负责callee。新的实现责任是将这些信息按当前问题连接和实际消费，减少整函数解释与遗漏。保留既有runtime/CLI/材料层，新增显式v5与question-control/v1身份，不复制一套系统。
 
 **方法。** 原问题和当前源码产生主体/资源/effect种子；宿主追踪有限数据、调用和控制依赖，模型解释局部授权含义。机械排除有来源理由；动态dispatch、未知副作用、资源替换和异常影响保留边界。框架前置权限与对象guard进入同一链，唯一可证明的实参/返回连接由host完成。每题分别记录已读、已解释、已连接、已检查和剩余影响，最终完整性由原题分母汇总。模型语义仍需独立源码复核。
 
 **外部借鉴。** 延续§7.59的一手依据：CodeQL局部数据流/API模型用于对照节点和继承关系，RepoAudit局部探索与路径记忆用于对照摘要及失效，IRIS用于对照模型规格与确定性求值分工。AY1只进一步阅读对应实际代码和必要符号，记录采用处与反例；不引入整套外部框架，也不借其评测数字证明本项目收益。
+
+AY1点验表：
+
+| 责任 | 当前存在 | AY实际采用或缺口 |
+|---|---|---|
+| DRF/MRO/permission_classes | structure-index、operation-work已有源码候选 | 非显式callee尚未进入来源投影；继续接线 |
+| receiver/keyword/default/return | source-interpretation、operation-links、source-material-projection | 原接口复用，独立对象身份仍由typed checker验证 |
+| v4 demand | source-invariant reachability、八锚点frontier | v5增加AST def/use、控制/异常前驱、原问题及来源角色种子；未知调用不删除 |
+| 材料 | 来源模板与逐题投影已分开 | v5使用question-control/v1；旧材料不自动改身份 |
+
+定向源码实际读取：[CodeQL DataFlowPublic](https://github.com/github/codeql/blob/27a8a7e94a38c6f9a5de7405c4d216164fb3db49/python/ql/lib/semmle/python/dataflow/new/internal/DataFlowPublic.qll)的scope-entry及synthetic pre/post-update节点用于明确“未知调用可能修改对象”边界；[ApiGraphs](https://github.com/github/codeql/blob/27a8a7e94a38c6f9a5de7405c4d216164fb3db49/python/ql/lib/semmle/python/ApiGraphs.qll)的getParameter/getReturn/getASubclass和逐调用CallNode用于核对参数/返回与继承责任，未移植其求解器。RepoAudit的[IntraDataFlowAnalyzerInput](https://github.com/PurCL/RepoAudit/blob/160f5bcd378a02a2417e32e999f93ef5fa0f5e64/src/llmtool/dfbscan/intra_dataflow_analyzer.py)和[PathValidatorInput](https://github.com/PurCL/RepoAudit/blob/160f5bcd378a02a2417e32e999f93ef5fa0f5e64/src/llmtool/dfbscan/path_validator.py)用于核对函数起点、路径身份和实际源码上下文；其模型Yes/No不作为本项目确定性证明。[IRIS §3](https://arxiv.org/html/2405.17238v3)用于保持模型角色解释与确定性图求值分工。外部性能数字不进入AY收益账。
+
+初版依赖红测4项均按预期失败，绿测连同原demand共12项通过；生产双入口新增v5红测两项失败，修复后source-assisted/source-interpretation共43项通过。初版只机械排除未被依赖使用的局部标量常量赋值，字段/调用/context角色不证明无影响；保留原骨架与每条排除出处。工程反例不等于真实任务通过。
 
 **执行与账号。** 明确failed终态与completion-unknown分开，旧AX状态只追加裁定；用量缺报保持unknown。没有活动请求后，新具名尝试沿用户已授权账号通道运行。若通道仍拒绝，独立工程继续，实验待恢复；第三方API保持暂停。上下文改造从真实重复内容和重解释次数开始，不以离线字节变化冒充实际token节省。
 

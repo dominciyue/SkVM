@@ -13,6 +13,7 @@ export interface SourceAnchor {
   literalKnown?: boolean; literalValue?: FiniteValue;
   interpretationRequired?: boolean;
   exceptionType?: string;
+  dependencyFacts?: { reads: string[]; writes: string[]; pureLocal: boolean };
   call?: { sourceCallId?: string; expression: string; receiver?: string; receiverClass?: string; arguments: Array<{ expression: string; parameterName?: string; spread?: boolean; literalKnown?: boolean; literalValue?: FiniteValue }>; candidateIds: string[]; resultNames: string[]; resultBinding: string }
 }
 export interface SourceFlow {
@@ -27,7 +28,7 @@ export interface SourceFlow {
 export interface SourceSkeleton {
   schemaVersion: "authorization-source-skeleton/v1" | "authorization-source-skeleton/v2"; sourceId: string; revision: string;
   controlSemantics?: "finite-control/v1";
-  propertySemantics?: "property-control/v1";
+  propertySemantics?: "property-control/v1" | "question-control/v1";
   context?: "route-registration";
   source: { id: string; path: string; sha256: string; startLine: number; endLine: number }; modelCovered: boolean; evidenceIds: string[];
   anchors: SourceAnchor[]; flow: SourceFlow[]; edges: Array<{ from: string; to: string; branch: "next" | "true" | "false" }>;
@@ -38,12 +39,12 @@ const kids = (n?: Node | null) => (n?.namedChildren ?? []).filter((c): c is Node
 const field = (n: Node, name: string) => n.childForFieldName(name)
 const descendants = (n: Node, types: string[]) => n.descendantsOfType(types).filter((c): c is Node => !!c)
 /** Read coverage is independent of AST indexing. No source meaning is inferred. */
-export async function buildSourceSkeleton(index: StructureIndex, source: StructureSymbol, windows: readonly InquiryEvidence[], receiverClass?: string, controlSemantics?: "finite-control/v1", propertyDirected = false): Promise<SourceSkeleton> {
+export async function buildSourceSkeleton(index: StructureIndex, source: StructureSymbol, windows: readonly InquiryEvidence[], receiverClass?: string, controlSemantics?: "finite-control/v1", propertyDirected = false, questionDirected = false): Promise<SourceSkeleton> {
   const selected = windows.filter(e => e.path === source.path && e.sha256 === source.sha256 && e.startLine <= source.endLine && e.endLine >= source.startLine)
   let through = source.startLine - 1
   for (const e of [...selected].sort((a, b) => a.startLine - b.startLine)) if (e.startLine <= through + 1) through = Math.max(through, e.endLine)
   const selector = { path: source.path, startLine: source.startLine, endLine: source.endLine, candidateId: source.id }
-  const skeleton: SourceSkeleton = { schemaVersion: controlSemantics ? "authorization-source-skeleton/v2" : "authorization-source-skeleton/v1", ...(controlSemantics ? { controlSemantics } : {}), ...(propertyDirected ? { propertySemantics: "property-control/v1" as const } : {}), sourceId: source.id, source: { id: source.id, path: source.path, sha256: source.sha256, startLine: source.startLine, endLine: source.endLine }, revision: "", modelCovered: through >= source.endLine, evidenceIds: selected.map(e => e.id), anchors: [], flow: [], edges: [], gaps: [] }
+  const skeleton: SourceSkeleton = { schemaVersion: controlSemantics ? "authorization-source-skeleton/v2" : "authorization-source-skeleton/v1", ...(controlSemantics ? { controlSemantics } : {}), ...(propertyDirected ? { propertySemantics: questionDirected ? "question-control/v1" as const : "property-control/v1" as const } : {}), sourceId: source.id, source: { id: source.id, path: source.path, sha256: source.sha256, startLine: source.startLine, endLine: source.endLine }, revision: "", modelCovered: through >= source.endLine, evidenceIds: selected.map(e => e.id), anchors: [], flow: [], edges: [], gaps: [] }
   if (!skeleton.modelCovered) skeleton.gaps.push({ code: "skeleton-source-unread", selector, reason: "The complete current function is not available in shown original windows; indexing is not model interpretation." })
   else await index.withSymbolSyntax(source.id, root => {
     const registration = index.routes.find(r => r.id === source.id)
@@ -51,12 +52,26 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     if (!fn) { skeleton.gaps.push({ code: "skeleton-function-unavailable", selector, reason: "This candidate is source context rather than an exact function body." }); return }
     if (registration) skeleton.context = "route-registration"
     const positions = new Map<string, number>()
+    // Syntax facts only: attribute paths are reads, not object/alias identities.
+    const reads = (n?: Node | null): string[] => {
+      if (!n) return []
+      if (["function_definition", "lambda", "function_literal"].includes(n.type)) return []
+      if (n.type === "identifier") return [n.text]
+      if (["attribute", "selector_expression"].includes(n.type)) return [...(/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)+$/.test(n.text) ? [n.text] : []), ...reads(field(n, "object") ?? field(n, "operand") ?? kids(n)[0])]
+      if (n.type === "keyword_argument") return reads(field(n, "value"))
+      return [...new Set(kids(n).flatMap(reads))]
+    }
     const located = (n: Node): SourceSelector => ({ path: source.path, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, candidateId: source.id })
     const add = (n: Node, kind: SourceAnchor["kind"], extra: Partial<SourceAnchor> = {}) => {
       const id = `anchor-${hash([source.id, n.startIndex, n.endIndex, kind, extra.name]).slice(0, 24)}`
       const existing = skeleton.anchors.find(a => a.id === id)
       if (existing) return existing
       const anchor: SourceAnchor = { id, selector: located(n), sourceSha256: source.sha256, kind, text: n.text, syntax: n.type, interpretationRequired: false, ...extra }
+      if (questionDirected) {
+        const assignment = kind === "assignment" && ["assignment", "short_var_declaration", "assignment_statement", "augmented_assignment"].includes(n.type), right = assignment ? field(n, "right") : kind === "return" || kind === "raise" ? kids(n)[0] : n
+        const literal = sourceLiteral(right), directCall = assignment && right && ["call", "call_expression"].includes(right.type)
+        anchor.dependencyFacts = { reads: kind === "parameter" ? [] : reads(right), writes: kind === "parameter" && anchor.name ? [anchor.name] : kind === "call" ? [...new Set([...(anchor.call?.resultNames ?? []), ...(anchor.call ? [anchor.call.resultBinding] : [])])] : assignment && anchor.name && !directCall ? [anchor.name] : [], pureLocal: !!assignment && n.type !== "augmented_assignment" && !!anchor.name && /^[A-Za-z_]\w*$/.test(anchor.name) && literal.literalKnown && (literal.literalValue === null || typeof literal.literalValue !== "object") }
+      }
       skeleton.anchors.push(anchor); positions.set(id, n.startIndex); return anchor
     }
     const gap = (n: Node, code: string, reason: string) => { if (!skeleton.gaps.some(g => g.code === code && g.selector.startLine === n.startPosition.row + 1)) skeleton.gaps.push({ code, selector: located(n), reason }) }

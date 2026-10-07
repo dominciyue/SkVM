@@ -27,9 +27,12 @@ export interface CodexAccountSessionOptions {
   onEvent?(event: unknown): void | Promise<void>
 }
 export interface AccountArgumentDiagnostic { path: string; keyword: string; message: string; expected: unknown }
-export type AccountSessionStatus = "completed" | "undelivered" | "unavailable" | "timeout-unknown" | "completion-unknown"
+export type AccountSessionStatus = "completed" | "failed" | "interrupted" | "undelivered" | "unavailable" | "timeout-unknown" | "completion-unknown"
 export interface AccountSessionResult {
   status: AccountSessionStatus; text: string; reason?: string; usage: TokenUsage | null; actualUsd: null; providerRequests: null
+  terminalStatus: "completed" | "failed" | "interrupted" | "unknown" | "not-started"
+  answerDelivery: "delivered" | "undelivered"; usageVisibility: "observed" | "unknown"; quotaRefused: boolean
+  terminalError?: { message?: string; codexErrorInfo?: unknown; additionalDetails?: string }
   durationMs: number; events: unknown[]; tools: LLMToolCall[]; model: string; effort: "high"; inferenceDispatched: boolean
   toolRejections: Array<{ call: LLMToolCall; diagnostics: AccountArgumentDiagnostic[] }>
   capability?: { status: "verified-controlled"; cliVersion: string; effectiveConfig: Record<string, unknown>; instructionSources: Array<{ path: string; sha256: string }>; runtimeWorkspaceRoots: string[] }
@@ -140,6 +143,8 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
   let usage: TokenUsage | null = null, text = "", failure: string | undefined
   let capability: AccountSessionResult["capability"]
   let usageDetails: AccountSessionResult["usageDetails"]
+  let terminalStatus: AccountSessionResult["terminalStatus"] = "not-started", quotaRefused = false
+  let terminalError: AccountSessionResult["terminalError"]
   const validators = new Map<string, ReturnType<Ajv["compile"]>>()
   const pending = new Map<number, { method: string; resolve: (value: any) => void; reject: (error: Error) => void }>(), executed = new Map<string, { fingerprint: string; output: Promise<Record<string, unknown>> }>()
   let finish!: (status: AccountSessionStatus) => void, finished = false
@@ -154,7 +159,7 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
     const id = ++sequence; pending.set(id, { method, resolve, reject }); record({ direction: "client", id, method, params })
     try { transport!.send({ id, method, params }) } catch { pending.delete(id); reject(new Error("codex-send-failed")) }
   })
-  const result = (status: AccountSessionStatus): AccountSessionResult => redactCodexEvent({ status, text, ...(failure ? { reason: failure } : {}), usage, ...(usageDetails ? { usageDetails } : {}), actualUsd: null, providerRequests: null, durationMs: Date.now() - started, events, tools, toolRejections, model: options.model, effort: options.effort, inferenceDispatched, ...(capability ? { capability } : {}) })
+  const result = (status: AccountSessionStatus): AccountSessionResult => redactCodexEvent({ status, text, terminalStatus, answerDelivery: terminalStatus === "completed" && status === "completed" && text.trim() ? "delivered" : "undelivered", usageVisibility: usage ? "observed" : "unknown", quotaRefused, ...(terminalError ? { terminalError } : {}), ...(failure ? { reason: failure } : {}), usage, ...(usageDetails ? { usageDetails } : {}), actualUsd: null, providerRequests: null, durationMs: Date.now() - started, events, tools, toolRejections, model: options.model, effort: options.effort, inferenceDispatched, ...(capability ? { capability } : {}) })
   let timer: ReturnType<typeof setTimeout> | undefined
   const abort = () => { failure = "account-session-interrupted-or-timeout"; finish("timeout-unknown"); for (const p of pending.values()) p.reject(new Error(failure)); pending.clear() }
   try {
@@ -167,12 +172,15 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
       validators.set(tool.name, ajv.compile(tool.inputSchema))
     }
     transport = (options.transportFactory ?? createCodexStdioTransport)()
-    transport.onExit(reason => { failure = reason; finish(inferenceDispatched ? "completion-unknown" : "unavailable"); for (const p of pending.values()) p.reject(new Error(reason)); pending.clear() })
+    transport.onExit(reason => { if (finished) return; failure = reason; finish(inferenceDispatched ? "completion-unknown" : "unavailable"); for (const p of pending.values()) p.reject(new Error(reason)); pending.clear() })
     transport.onMessage(message => {
       const rpcMethod = typeof message.id === "number" ? pending.get(message.id)?.method : undefined
       record({ direction: "server", ...message, ...(rpcMethod === "config/read" && message.result ? { result: { config: safeConfig(message.result.config) } } : {}) })
       if (typeof message.id === "number" && !message.method) { const p = pending.get(message.id); pending.delete(message.id); if (message.error) p?.reject(new Error("codex-rpc-error")); else p?.resolve(message.result); return }
       const params = message.params ?? {}
+      // Record late events, but never let them alter a closed attempt's outcome,
+      // answer or cumulative usage. A new named attempt owns a different turn.
+      if (finished) return
       if (message.method === "thread/tokenUsage/updated" && params.threadId === threadId && (!turnId || params.turnId === turnId)) {
         const t = params.tokenUsage?.total
         if (t && [t.inputTokens, t.outputTokens, t.cachedInputTokens, t.cacheWriteInputTokens].every(v => Number.isSafeInteger(v) && v >= 0)) {
@@ -208,6 +216,14 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
         void execution.then(output => { if (active) reply(message.id, output) }); return
       }
       if (!active || params.threadId !== threadId || turnId && (params.turnId ?? params.turn?.id) !== turnId) return
+      if (message.method === "error" || message.method === "turn/completed") {
+        const error = params.error ?? params.turn?.error
+        if (error) {
+          terminalError = error
+          const code = error.codexErrorInfo
+          quotaRefused ||= typeof code === "string" ? code.toLowerCase() === "usagelimitexceeded" : Object.keys(object(code)).some(k => k.toLowerCase() === "usagelimitexceeded")
+        }
+      }
       const nativeTypes = ["commandExecution", "fileChange", "mcpToolCall", "webSearch", "collabAgentToolCall", "subAgentActivity", "imageGeneration", "browserToolCall", "computerUseToolCall"]
       const nativeItem = message.method?.startsWith("item/") && nativeTypes.includes(params.item?.type) ? params.item : message.method === "turn/completed" ? params.turn?.items?.find((i: { type: string }) => nativeTypes.includes(i.type)) : undefined
       if (nativeItem) { failure = "unexpected-native-account-tool:" + nativeItem.type; finish("unavailable"); return }
@@ -216,8 +232,10 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
       if (message.method === "turn/completed") {
         turnId ??= params.turn.id
         for (const item of params.turn.items ?? []) if (item.type === "agentMessage" && [null, undefined, "final_answer"].includes(item.phase)) text = item.text ?? ""
-        if (params.turn.status !== "completed") { failure = `account-turn-${params.turn.status}`; finish("completion-unknown") }
-        else finish(text.trim() ? "completed" : "undelivered")
+        if (["completed", "failed", "interrupted"].includes(params.turn.status)) terminalStatus = params.turn.status
+        if (params.turn.status === "failed" || params.turn.status === "interrupted") { failure = `account-turn-${params.turn.status}`; finish(params.turn.status) }
+        else if (params.turn.status === "completed") finish(text.trim() ? "completed" : "undelivered")
+        else { failure = `account-turn-${params.turn.status}`; finish("completion-unknown") }
       }
     })
     timer = setTimeout(abort, options.timeoutMs ?? 1200000); options.signal?.addEventListener("abort", abort, { once: true })
@@ -259,14 +277,14 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
       }
     }
     if (finished) return result(await terminal)
-    threadId = thread.thread.id; active = true; inferenceDispatched = true
+    threadId = thread.thread.id; active = true; inferenceDispatched = true; terminalStatus = "unknown"
     const turn = await request("turn/start", { threadId, input: [{ type: "text", text: options.prompt, text_elements: [] }], environments: [], model: options.model, effort: options.effort })
     turnId ??= turn.turn.id
     return result(await terminal)
   } catch (error) { failure ??= String(error); return result(finished ? await terminal : inferenceDispatched ? "completion-unknown" : "unavailable") }
   finally {
     active = false; if (timer) clearTimeout(timer); options.signal?.removeEventListener("abort", abort)
-    if (inferenceDispatched && threadId && turnId && failure) { try { transport?.send({ id: ++sequence, method: "turn/interrupt", params: { threadId, turnId } }) } catch { /* Own child may already have exited. */ } }
+    if (inferenceDispatched && threadId && turnId && failure && terminalStatus === "unknown") { try { transport?.send({ id: ++sequence, method: "turn/interrupt", params: { threadId, turnId } }) } catch { /* Own child may already have exited. */ } }
     for (const p of pending.values()) p.reject(new Error("session-closed")); pending.clear(); await transport?.close()
     await eventWrites
     if (eventWriteFailure) throw new Error("account-trace-write-failed", { cause: eventWriteFailure })

@@ -1,6 +1,7 @@
 import type { SourceSkeleton, SourceFlow, SourceAnchor } from "../../benchmarks/authorization-dsl/evidence-preparation/source-skeleton.ts"
 import type { SourceInterpretation } from "./source-interpretation.ts"
 import { partialEvaluate, predicateDiagnostics } from "./control-evaluation.ts"
+import { buildPropertyDependencies, type DependencyQuestion, type PropertyDependencies } from "./property-dependencies.ts"
 
 export interface PropertyRequirement {
   anchorId: string; field: "role" | "condition" | "returnOutcome" | "failureKind" | "guardBranch" | "fallthroughOutcome";
@@ -9,7 +10,7 @@ export interface PropertyRequirement {
   reason: string; selector: SourceAnchor["selector"];
 }
 export interface PropertyExclusion {
-  anchorId: string; reason: "after-source-exit" | "source-literal-branch" | "source-short-circuit" | "source-empty-loop";
+  anchorId: string; reason: "after-source-exit" | "source-literal-branch" | "source-short-circuit" | "source-empty-loop" | "source-local-unused";
   proofAnchorId: string; selector: SourceAnchor["selector"];
 }
 export interface PropertyDemand {
@@ -18,6 +19,7 @@ export interface PropertyDemand {
   required: PropertyRequirement[]; frontier: PropertyRequirement[]; excluded: PropertyExclusion[];
   deferred: Array<{ anchorId: string; selector: SourceAnchor["selector"]; reason: "source-structure-only" }>;
   reachableAnchorIds: string[]; sourceGaps: SourceSkeleton["gaps"];
+  dependencies?: PropertyDependencies;
   requiredAnnotationCount: number; pendingAnnotationCount: number;
   coverage: { sourceRead: boolean; domainInterpreted: boolean; propertyCovered: boolean; wholeAnswerSufficient: false };
   nextWork: { kind: "read" | "interpret" | "inspect-gap" | "check"; anchorId?: string; field?: string; affectedQuestionIds: string[] };
@@ -25,7 +27,7 @@ export interface PropertyDemand {
 
 /** Source-invariant reachability only. A model role/predicate never proves a
  * source statement irrelevant, and no task/policy value enters a source cut. */
-export function buildPropertyDemand(skeleton: SourceSkeleton, options: { questionId: string; role: "entry" | "helper"; interpretation?: SourceInterpretation; affectedQuestionIds?: string[]; maxFrontierAnchors?: number }): PropertyDemand {
+export function buildPropertyDemand(skeleton: SourceSkeleton, options: { questionId: string; role: "entry" | "helper"; interpretation?: SourceInterpretation; affectedQuestionIds?: string[]; maxFrontierAnchors?: number; question?: DependencyQuestion }): PropertyDemand {
   const anchors = new Map(skeleton.anchors.map(a => [a.id, a])), reachable = new Set<string>(), excluded = new Map<string, PropertyExclusion>()
   const draft = options.interpretation?.revision === skeleton.revision ? options.interpretation : undefined
   const annotations = new Map((draft?.annotations ?? []).map(a => [a.anchorId, a])), unresolved = new Set((draft?.unresolved ?? []).map(a => a.anchorId))
@@ -74,6 +76,8 @@ export function buildPropertyDemand(skeleton: SourceSkeleton, options: { questio
     return continues
   }
   const hasNormalEnd = walk(skeleton.flow), required = new Map<string, PropertyRequirement>()
+  const dependencies = skeleton.propertySemantics === "question-control/v1" ? buildPropertyDependencies(skeleton, { question: options.question ?? { id: options.questionId, request: "Interpret the current source-bound authorization question; request seed is unavailable." }, interpretation: draft, reachableAnchorIds: [...reachable] }) : undefined
+  for (const e of dependencies?.localExclusions ?? []) { excluded.set(e.anchorId, { ...e, reason: "source-local-unused" }); reachable.delete(e.anchorId) }
   const require = (anchorId: string, field: PropertyRequirement["field"], reason: string, expectedRole?: PropertyRequirement["expectedRole"]) => {
     const anchor = anchors.get(anchorId), annotation = annotations.get(anchorId)
     let provided = field === "fallthroughOutcome" ? !!draft?.fallthroughOutcome : !!annotation?.[field as keyof typeof annotation]
@@ -94,9 +98,15 @@ export function buildPropertyDemand(skeleton: SourceSkeleton, options: { questio
     for (const ref of a.authorizedByAnchorIds ?? []) require(ref, "guardBranch", `Explicit authorization control referenced by ${a.anchorId}.`)
   }
   if (hasNormalEnd && options.role === "entry") require(skeleton.source.id, "fallthroughOutcome", "Interpret the source entry's normal fallthrough outcome at the interpretation root.")
-  const list = [...required.values()], pending = list.filter(r => r.status === "missing" || r.status === "invalid"), frontierIds = [...new Set(pending.map(r => r.anchorId))].slice(0, options.maxFrontierAnchors ?? 8)
+  const list = [...required.values()], pending = list.filter(r => r.status === "missing" || r.status === "invalid")
+  if (dependencies) {
+    const decisive = new Set(dependencies.seeds.filter(s => s.origin === "source-interpretation" && ["effect", "principal", "resource", "permission"].includes(s.role)).map(s => s.anchorId))
+    for (const id of decisive) for (const e of dependencies.edges) if (e.from === id) decisive.add(e.to)
+    pending.sort((a, b) => Number(decisive.has(b.anchorId)) - Number(decisive.has(a.anchorId)) || Number(anchors.get(b.anchorId)?.kind === "condition") - Number(anchors.get(a.anchorId)?.kind === "condition"))
+  }
+  const frontierIds = [...new Set(pending.map(r => r.anchorId))].slice(0, options.maxFrontierAnchors ?? 8)
   const frontier = pending.filter(r => frontierIds.includes(r.anchorId)), sourceGaps = skeleton.gaps.filter(g => ![...excluded.values()].some(e => e.selector.path === g.selector.path && e.selector.startLine! <= g.selector.startLine! && e.selector.endLine! >= g.selector.endLine!))
   const domainInterpreted = skeleton.modelCovered && !pending.length, propertyCovered = domainInterpreted && !sourceGaps.length && !list.some(r => r.status === "unresolved")
   const affectedQuestionIds = [...new Set(options.affectedQuestionIds ?? [options.questionId])], nextWork: PropertyDemand["nextWork"] = !skeleton.modelCovered ? { kind: "read", affectedQuestionIds } : frontier[0] ? { kind: "interpret", anchorId: frontier[0].anchorId, field: frontier[0].field, affectedQuestionIds } : sourceGaps.length || list.some(r => r.status === "unresolved") ? { kind: "inspect-gap", affectedQuestionIds } : { kind: "check", affectedQuestionIds }
-  return { schemaVersion: "authorization-property-demand/v1", semanticSupport: "unreviewed", questionId: options.questionId, affectedQuestionIds, source: skeleton.source, revision: skeleton.revision, required: list, frontier, excluded: [...excluded.values()], deferred: skeleton.anchors.filter(a => !reachable.has(a.id) && !excluded.has(a.id) && !list.some(r => r.anchorId === a.id)).map(a => ({ anchorId: a.id, selector: a.selector, reason: "source-structure-only" })), reachableAnchorIds: [...reachable], sourceGaps, requiredAnnotationCount: new Set(list.map(r => r.anchorId)).size, pendingAnnotationCount: new Set(pending.map(r => r.anchorId)).size, coverage: { sourceRead: skeleton.modelCovered, domainInterpreted, propertyCovered, wholeAnswerSufficient: false }, nextWork }
+  return { schemaVersion: "authorization-property-demand/v1", semanticSupport: "unreviewed", questionId: options.questionId, affectedQuestionIds, source: skeleton.source, revision: skeleton.revision, required: list, frontier, excluded: [...excluded.values()], deferred: skeleton.anchors.filter(a => !reachable.has(a.id) && !excluded.has(a.id) && !list.some(r => r.anchorId === a.id)).map(a => ({ anchorId: a.id, selector: a.selector, reason: "source-structure-only" })), reachableAnchorIds: [...reachable], sourceGaps, ...(dependencies ? { dependencies } : {}), requiredAnnotationCount: new Set(list.map(r => r.anchorId)).size, pendingAnnotationCount: new Set(pending.map(r => r.anchorId)).size, coverage: { sourceRead: skeleton.modelCovered, domainInterpreted, propertyCovered, wholeAnswerSufficient: false }, nextWork }
 }

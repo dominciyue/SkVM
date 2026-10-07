@@ -40,7 +40,7 @@ function fullChain(explanation = "Test-authored shown False return", malformed =
   return () => transport
 }
 test("account adapter registry owns no LLM provider", () => { expect(createAdapter("codex-account" as any, () => { throw new Error("provider-must-not-be-used") }).name).toBe("codex-account") })
-for (const strategy of ["operation-evidence-v3", "operation-evidence-v4"] as const) test(`${strategy} account adapter and inquiry use the same source core through accepted material, check and natural final`, async () => {
+for (const strategy of ["operation-evidence-v3", "operation-evidence-v4", "operation-evidence-v5"] as const) test(`${strategy} account adapter and inquiry use the same source core through accepted material, check and natural final`, async () => {
   const f = await fixture(), adapter = new api.CodexAccountAdapter(fullChain())
   await adapter.setup({ model: "gpt-5.6-sol", maxSteps: 12, timeoutMs: 5000, providerOptions: { authorizationScope: f.inputFile, authorizationDomainTools: true, authorizationMethod: "M", authorizationStrategy: strategy } })
   const r = await adapter.run({ prompt: "Inspect entry", workDir: f.root, skill: { content: "FULL_SKILL_TAIL", mode: "inject", meta: { name: "full", description: "full" } } })
@@ -224,4 +224,10 @@ for (const mode of ["behavior", "conformance"] as const) test(`account inquiry $
   expect(declaration.inquiry.mode).toBe(mode)
   expect(declaration.inquiry.operations[0].request).toBe("Inspect entry and explain its outcome and limits.")
   expect(declaration).not.toHaveProperty("result"); expect(declaration).not.toHaveProperty("domain")
+  const reportFile = path.join((run as any).sessionPath, "report.json"), original = await readFile(reportFile, "utf8")
+  for (const key of ["terminalStatus", "answerDelivery", "usageVisibility", "quotaRefused"]) {
+    await writeFile(reportFile, JSON.stringify({ ...JSON.parse(original), [key]: "altered" }))
+    await expect(inspectLocalInquiry(outDir)).rejects.toThrow("report/run identity mismatch")
+  }
+  await writeFile(reportFile, original)
 })
