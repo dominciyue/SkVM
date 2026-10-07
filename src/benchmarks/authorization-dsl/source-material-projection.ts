@@ -40,10 +40,10 @@ function actualArguments(index: StructureIndex, caller: BoundSemanticBlock, step
   return expected.every(argument => {
     if (argument.expression === undefined) return !step.arguments.some(a => a.parameter === argument.parameter)
     const actual = step.arguments.filter(a => a.parameter === argument.parameter); if (actual.length !== 1) return false
-    if (actual[0]!.object === argument.expression) return true
+    if (!argument.sourceCallId && actual[0]!.object === argument.expression) return true
     const literal = argument.literalKnown ? { known: true, value: argument.literalValue } : literalArgument(argument.expression)
     if (literal.known && steps.some(s => s.kind === "bind" && s.type === "value" && (s.bindingName ?? s.name) === actual[0]!.object && canonicalControl(s.value) === canonicalControl(literal.value))) return true
-    const nested = index.relatedCalls(caller.source!.id, caller.receiverClass).filter(c => `${c.expression}(${c.arguments.join(",")})`.replace(/\s/g, "") === argument.expression!.replace(/\s/g, ""))
+    const nested = index.relatedCalls(caller.source!.id, caller.receiverClass).filter(c => argument.sourceCallId ? c.id === argument.sourceCallId : `${c.expression}(${c.arguments.join(",")})`.replace(/\s/g, "") === argument.expression!.replace(/\s/g, ""))
     return nested.length === 1 && steps.some(s => s.kind === "call" && s.sourceCallId === nested[0]!.id && s.result === actual[0]!.object)
   })
 }

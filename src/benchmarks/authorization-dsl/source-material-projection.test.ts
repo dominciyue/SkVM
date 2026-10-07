@@ -338,3 +338,99 @@ test("source-assisted returned callable adoption preserves creation, capture and
   const changed = await buildStructureIndex([{ path: "app.py", content: (await readFile(path.join(sourceRoot, "app.py"), "utf8")).replace("selected = principal", "selected = None") }], { repository: "anonymous", sourceRef: "r" })
   expect(project(accepted, changed).uses).toEqual([])
 })
+
+test("source-assisted field adoption preserves returned resource identity across current helper calls", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-field-adoption-")), content = "def select(target):\n    return target\ndef prepare(ctx, target):\n    ctx.saved = select(target)\n    return ctx.saved\ndef guard(target):\n    raise Denied\ndef entry(ctx, target, decoy):\n    selected = prepare(ctx, target)\n    guard(ctx.saved)\n    write()\n    return True\n"
+  await writeFile(path.join(sourceRoot, "app.py"), content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, units: any[] = []
+  for (const name of ["entry", "prepare", "select", "guard"]) {
+    const source = index.symbols.find(s => s.name === name)!
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id))!, annotations = skeleton.anchors.filter(a => a.kind === "parameter" || a.kind === "call" || a.kind === "return" || a.kind === "raise").map(a => ({ anchorId: a.id, role: a.kind === "parameter" ? a.name === "ctx" ? "context" : "resource" : a.kind === "call" ? a.call!.expression === "write" ? "effect" : "condition" : "context", explanation: "Anonymous source field and actual returned resource", ...(a.kind === "return" && name === "entry" ? { returnOutcome: "allow" } : {}), ...(a.kind === "raise" ? { failureKind: "authorization" } : {}) }))
+    const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index, itemId: name, handle: name, questionId: "q", role: name === "entry" ? "entry" : "helper" })
+    expect(result.diagnostics).toEqual([])
+    expect(result.unit!.complete).toBe(true)
+    units.push({ ...result.unit!, questionId: "q", evidenceIds: skeleton.evidenceIds, source: skeleton.source })
+  }
+  const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" })
+  for (const u of units) store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }, { kind: "candidate-set", key: `relations:${u.source.id}`, revision: sourceRelationRevision(index, u.source.id)! }], "test-authored")
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect current field object and following write", premises: [] }] }), snapshot = store.snapshot(), projected = api.projectSourceMaterials(p, units, snapshot, index, { questionDirected: true }), lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true })
+  expect(projected.uses.filter((u: any) => u.kind === "call")).toHaveLength(3)
+  expect(lowered.diagnostics).toEqual([])
+  expect(lowered.fieldChanges[0]!.source).toBe(lowered.delta.rules.find(r => r.bindingName === "target")!.bindingKey)
+  expect(lowered.delta.rules.filter(r => r.terminal).map(r => r.outcome)).toEqual(["deny"])
+  expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(false)
+  const changed = await buildStructureIndex([{ path: "app.py", content: content.replace("ctx.saved = select(target)", "ctx.saved = None") }], { repository: "anonymous", sourceRef: "r" })
+  expect(api.projectSourceMaterials(p, units, snapshot, changed, { questionDirected: true }).uses).toEqual([])
+})
+
+for (const nested of [false, true]) test(`repeated identical stateful calls preserve each actual result in ${nested ? "same-line arguments" : "field stores"}`, async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-field-occurrences-")), content = `def choose(ctx):
+    selected = ctx.current
+    ctx.current = ctx.next
+    return selected
+def guard(target):
+    target.checked = True
+    raise Denied
+def consume(left, right):
+    guard(right)
+def entry(ctx, a, b):
+    ctx.current = a
+    ctx.next = b
+${nested ? "    consume(choose(ctx), choose(ctx))" : "    ctx.first = choose(ctx)\n    ctx.second = choose(ctx)\n    guard(ctx.second)"}
+    write()
+    return True
+`
+  await writeFile(path.join(sourceRoot, "app.py"), content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, units: any[] = []
+  for (const name of ["entry", "choose", "guard", ...nested ? ["consume"] : []]) {
+    const source = index.symbols.find(s => s.name === name)!
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id))!, current = skeleton.anchors.find(a => a.name === "ctx.current" && !a.fieldWrite)
+    const annotations = skeleton.anchors.filter(a => ["parameter", "call", "return", "raise"].includes(a.kind) || a.name === "selected" || a.id === current?.id).map(a => ({ anchorId: a.id, role: a.name === "selected" || a.id === current?.id ? "resource" : a.kind === "parameter" ? a.name === "ctx" ? "context" : "resource" : a.kind === "call" ? a.call!.expression === "write" ? "effect" : "condition" : "context", explanation: "Anonymous current source and distinct stateful call results", ...(a.name === "selected" ? { aliasAnchorId: current!.id } : {}), ...(a.kind === "return" && name === "entry" ? { returnOutcome: "allow" } : {}), ...(a.kind === "raise" ? { failureKind: "authorization" } : {}) }))
+    const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index, itemId: name, handle: name, questionId: "q", role: name === "entry" ? "entry" : "helper" })
+    expect(result.diagnostics).toEqual([])
+    units.push({ ...result.unit!, questionId: "q", evidenceIds: skeleton.evidenceIds, source: skeleton.source })
+  }
+  const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" })
+  const snapshot = () => {
+    for (const u of units) store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }], "test-authored")
+    return store.snapshot()
+  }
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect the second actual result", premises: [] }] }), projected = api.projectSourceMaterials(p, units, snapshot(), index, { questionDirected: true }), lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true })
+  expect(projected.uses.filter((u: any) => u.kind === "call")).toHaveLength(nested ? 4 : 3)
+  expect(lowered.diagnostics).toEqual([])
+  const identity = (name: string) => lowered.delta.rules.find(r => r.bindingName === name)!.bindingKey!
+  expect(lowered.fieldChanges.find(c => c.field === "checked")!.object).toBe(identity("b"))
+  if (!nested) {
+    expect(lowered.fieldChanges.find(c => c.field === "first")!.source).toBe(identity("a"))
+    expect(lowered.fieldChanges.find(c => c.field === "second")!.source).toBe(identity("b"))
+  } else {
+    const consume = units[0].blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call" && s.symbol === "consume")
+    expect(new Set(consume.arguments.map((a: any) => a.object)).size).toBe(2)
+    consume.arguments[1].object = consume.arguments[0].object
+    expect(api.projectSourceMaterials(p, units, snapshot(), index, { questionDirected: true }).uses.filter((u: any) => u.kind === "call")).toHaveLength(2)
+  }
+  expect(lowered.delta.rules.filter(r => r.terminal).map(r => r.outcome)).toEqual(["deny"])
+  expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(false)
+})
+
+test("a new inherited setter withdraws an earlier ordinary source field store", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-field-setter-footprint-")), files = [{ path: "app.py", content: "from base import Base\nclass View(Base):\n    def entry(self, target):\n        self.saved = target\n        return True\n" }, { path: "base.py", content: "class Base:\n    pass\n" }]
+  for (const file of files) await writeFile(path.join(sourceRoot, file.path), file.content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, source = index.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id, "app.View"))!
+  expect(skeleton.gaps).toEqual([])
+  const annotations = skeleton.anchors.filter(a => a.kind === "parameter" || a.kind === "return").map(a => ({ anchorId: a.id, role: a.name === "target" ? "resource" : "context", explanation: "Anonymous current source field", ...(a.kind === "return" ? { returnOutcome: "allow" } : {}) })), result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index, itemId: "entry", handle: "entry", questionId: "q", role: "entry" })
+  expect(result.diagnostics).toEqual([])
+  const unit: any = { ...result.unit!, questionId: "q", source: skeleton.source, evidenceIds: skeleton.evidenceIds, receiverClass: "app.View" }, store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" }), revision = sourceRelationRevision(index, source.id, "app.View")!
+  store.accept(unit, [{ kind: "source-span", key: source.path, revision: source.sha256 }, { kind: "symbol-resolution", key: source.id, revision: source.sha256 }, { kind: "candidate-set", key: `relations:${source.id}:app.View`, revision }], "test-authored")
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect actual setter behavior", premises: [] }] }), snapshot = store.snapshot()
+  expect(api.projectSourceMaterials(p, [unit], snapshot, index, { questionDirected: true }).uses).toHaveLength(1)
+  const changed = await buildStructureIndex(files.map(f => f.path === "base.py" ? { ...f, content: "class Base:\n    def __setattr__(self, name, value):\n        raise Denied\n" } : f), { repository: "anonymous", sourceRef: "r" })
+  expect(sourceRelationRevision(changed, source.id, "app.View")).not.toBe(revision)
+  expect(api.projectSourceMaterials(p, [unit], snapshot, changed, { questionDirected: true }).uses).toEqual([])
+  const unrelated = await buildStructureIndex([...files, { path: "unrelated.py", content: "class Other:\n    def __setattr__(self, name, value):\n        raise Denied\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect(sourceRelationRevision(unrelated, source.id, "app.View")).toBe(revision)
+})

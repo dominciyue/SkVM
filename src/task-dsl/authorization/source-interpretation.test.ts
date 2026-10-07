@@ -424,3 +424,40 @@ test("v5 unique imported receivers bind ordinary values while scalar fields neve
   wrong.find((u: any) => u.role === "helper").parameters.find((p: any) => p.name === "owner_id").type = "principal"
   expect(lowerSemanticFlow(wrong, { compositional: true, propertyDirected: true }).diagnostics).toContainEqual(expect.objectContaining({ code: "semantic-argument-unbound", message: expect.stringContaining('has type value, but helper "find" parameter "owner_id" (principal) requires principal') }))
 })
+
+test("v5 compiles current field stores through transform rather than detached local field names", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-field-lowering-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def select(target):\n    return target\ndef entry(ctx, target, decoy):\n    ctx.saved = target\n    ctx.mode = 'read'\n    ctx.current = select(target)\n    return ctx.current\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id))!, annotations: any[] = skeleton.anchors.filter(a => a.kind === "parameter" || a.kind === "call" || a.kind === "return").map(a => ({ anchorId: a.id, role: a.kind === "parameter" ? a.name === "ctx" ? "context" : "resource" : a.kind === "call" ? "condition" : "context", explanation: "Anonymous shown source object and finite fields", ...(a.kind === "return" ? { returnOutcome: "allow" } : {}) }))
+  const interpret = (changed = annotations) => api.lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations: changed }, { index: tools.structure, itemId: "entry", handle: "entry", questionId: "q", role: "entry" }), result = interpret(), steps = result.unit.blocks.flatMap((b: any) => b.steps)
+  expect(result.diagnostics).toEqual([])
+  expect(steps.filter((s: any) => s.kind === "transform")).toEqual([expect.objectContaining({ object: "ctx", field: "saved", source: "target" }), expect.objectContaining({ object: "ctx", field: "mode", value: "read" }), expect.objectContaining({ object: "ctx", field: "current", source: steps.find((s: any) => s.kind === "call").result })])
+  const store = skeleton.anchors.find(a => a.syntax === "assignment" && a.name === "ctx.saved")!, decoy = skeleton.anchors.find(a => a.kind === "parameter" && a.name === "decoy")!
+  expect(interpret([...annotations, { anchorId: store.id, role: "resource", aliasAnchorId: decoy.id, explanation: "Deliberately contradict the current source right hand side" }]).diagnostics.map((d: any) => d.code)).toContain("source-interpretation-field-alias-mismatch")
+})
+
+test("a v5 field marked as a relevant effect stays before its actual store and retains unknown failure", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-field-effect-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def entry(ctx, target):\n    ctx.target = target\n    return True\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), source = tools.structure!.symbols[0]!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id))!, target = skeleton.anchors.find(a => a.kind === "parameter" && a.name === "target")!, annotations = skeleton.anchors.filter(a => a.kind === "parameter" || a.fieldWrite || a.kind === "return").map(a => ({ anchorId: a.id, role: a.kind === "parameter" ? a.name === "ctx" ? "context" : "resource" : a.fieldWrite ? "effect" : "context", explanation: "Anonymous current protected field mutation", ...(a.fieldWrite ? { resourceAnchorId: target.id } : {}), ...(a.kind === "return" ? { returnOutcome: "allow" } : {}) }))
+  const result = api.lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index: tools.structure, itemId: "entry", handle: "entry", questionId: "q", role: "entry" })
+  expect(result.diagnostics).toEqual([])
+  expect(result.unit.blocks[0].steps.map((s: any) => s.kind)).toEqual(["effect", "transform", "return"])
+  const lowered = lowerSemanticFlow([{ ...result.unit, questionId: "q", evidenceIds: skeleton.evidenceIds }], { propertyDirected: true })
+  expect(lowered.delta.rules.some(r => r.gap === "semantic-exception-type-unknown")).toBe(true)
+  expect(lowered.fieldChanges).toHaveLength(1)
+})
+
+test("repeated identical field RHS calls keep their own source occurrence results", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-field-occurrence-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def choose(ctx):\n    return ctx\ndef entry(ctx):\n    ctx.first = choose(ctx)\n    ctx.second = choose(ctx)\n    return ctx.second\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id))!, annotations = skeleton.anchors.filter(a => a.kind === "parameter" || a.kind === "call" || a.kind === "return").map(a => ({ anchorId: a.id, role: a.kind === "call" ? "condition" : "context", explanation: "Anonymous current call occurrence", ...(a.kind === "return" ? { returnOutcome: "allow" } : {}) })), result = api.lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index: tools.structure, itemId: "entry", handle: "entry", questionId: "q", role: "entry" }), steps = result.unit.blocks.flatMap((b: any) => b.steps)
+  expect(result.diagnostics).toEqual([])
+  expect(steps.filter((s: any) => s.kind === "transform").map((s: any) => s.source)).toEqual(steps.filter((s: any) => s.kind === "call").map((s: any) => s.result))
+})

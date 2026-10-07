@@ -175,7 +175,38 @@ test("typed field aliases name their mismatch and an explicit source field bind 
   expect(r.slice.rules.find((n: any) => n.kind === "effect").resource).toBe(r.slice.rules.find((n: any) => n.kind === "guard").resource)
 })
 
+test("explicit field object writes preserve the same typed identity across receiver aliases and helpers", () => {
+  const store = unit([block("main", [{ kind: "transform", name: "store", object: "self", field: "target", source: "target", claim: "Store this exact resource" }, { kind: "return", name: "done", claim: "Return" }])], { handle: "store", role: "helper", parameters: [{ name: "self", type: "configuration" }, { name: "target", type: "resource" }] })
+  const check = unit([block("main", [{ kind: "guard", name: "checked", resource: "target", principal: "actor", claim: "Check the supplied actual resource" }, { kind: "return", name: "done", claim: "Return" }])], { handle: "check", role: "helper", parameters: [{ name: "actor", type: "principal" }, { name: "target", type: "resource" }] })
+  const root = unit([block("main", [{ kind: "bind", name: "same", type: "configuration", aliasOf: "ctx", claim: "Same receiver" }, { kind: "call", name: "store", symbol: "store", callee: "store", arguments: [{ parameter: "self", object: "same" }, { parameter: "target", object: "original" }], claim: "Initialize receiver field" }, { kind: "call", name: "check", symbol: "check", callee: "check", arguments: [{ parameter: "actor", object: "actor" }, { parameter: "target", object: "ctx.target" }], claim: "Read exactly the stored field" }])], { parameters: [{ name: "ctx", type: "configuration" }, { name: "original", type: "resource" }, { name: "actor", type: "principal" }] })
+  const r = lower([root, store, check])
+  expect(r.diagnostics).toEqual([])
+  expect(r.slice.rules.find((s: any) => s.kind === "guard").resource).toBe(r.slice.rules.find((s: any) => s.bindingName === "original").bindingKey)
+})
+
+test("field overwrites retire slot identity without changing copied aliases or another receiver", () => {
+  const root = unit([block("main", [{ kind: "transform", name: "first", object: "left", field: "target", source: "original", claim: "Left holds original" }, { kind: "transform", name: "second", object: "right", field: "target", source: "replacement", claim: "Right holds replacement" }, { kind: "bind", name: "copied", type: "resource", aliasOf: "left.target", claim: "Copy original identity before overwrite" }, { kind: "transform", name: "overwrite", object: "left", field: "target", source: "replacement", claim: "Overwrite only left slot" }, { kind: "guard", name: "copied-check", resource: "copied", claim: "Old alias still original" }, { kind: "guard", name: "current-check", resource: "left.target", claim: "Current left is replacement" }, { kind: "guard", name: "other-check", resource: "right.target", claim: "Right remains replacement" }, { kind: "transform", name: "unknown", object: "left", field: "target", source: "unknown", claim: "Unknown scalar removes typed resource slot" }, { kind: "bind", name: "invalid", type: "resource", aliasOf: "left.target", claim: "Must not borrow stale resource type" }])], { parameters: [{ name: "left", type: "configuration" }, { name: "right", type: "configuration" }, { name: "original", type: "resource" }, { name: "replacement", type: "resource" }, { name: "unknown", type: "value" }] })
+  const r = lower([root]), resources = r.slice.rules.filter((s: any) => s.kind === "guard").map((s: any) => s.resource)
+  expect(resources[0]).toBe(r.slice.rules.find((s: any) => s.bindingName === "original").bindingKey)
+  expect(resources.slice(1)).toEqual(Array(2).fill(r.slice.rules.find((s: any) => s.bindingName === "replacement").bindingKey))
+  expect(r.diagnostics.map((d: any) => d.code)).toEqual(["semantic-alias-missing"])
+})
+
+test("nested field stores follow the bound child object and literal overwrite removes typed field assertions", () => {
+  const root = unit([block("main", [{ kind: "bind", name: "ctx.target", type: "resource", claim: "Explicit initial source field interpretation" }, { kind: "transform", name: "child", object: "ctx", field: "child", source: "child", claim: "Actual child identity" }, { kind: "transform", name: "target", object: "ctx.child", field: "target", source: "original", claim: "Write the child slot" }, { kind: "bind", name: "read", type: "resource", aliasOf: "child.target", claim: "Read through other child alias" }, { kind: "guard", name: "read-check", resource: "read", claim: "Same actual resource" }, { kind: "transform", name: "literal", object: "ctx", field: "target", value: null, claim: "Literal replaces initial resource field" }, { kind: "bind", name: "invalid", type: "resource", aliasOf: "ctx.target", claim: "Old typed field assertion is stale" }])], { parameters: [{ name: "ctx", type: "configuration" }, { name: "child", type: "configuration" }, { name: "original", type: "resource" }] })
+  const r = lower([root])
+  expect(r.slice.rules.find((s: any) => s.kind === "guard").resource).toBe(r.slice.rules.find((s: any) => s.bindingName === "original").bindingKey)
+  expect(r.diagnostics.map((d: any) => d.code)).toEqual(["semantic-alias-missing"])
+})
+
 const finiteUnit = (blocks: any[], extra = {}) => unit(blocks, { coverage: "path", ...extra })
+test("a helper returns the actual typed field identity after its source write", () => {
+  const helper = finiteUnit([block("main", [{ kind: "transform", name: "store", object: "self", field: "target", source: "target", claim: "Store the supplied resource" }, { kind: "return", name: "returned", object: "self.target", claim: "Return the current resource field" }])], { handle: "helper", role: "helper", parameters: [{ name: "self", type: "configuration" }, { name: "target", type: "resource" }] })
+  const root = finiteUnit([block("main", [{ kind: "call", name: "invoke", symbol: "helper", callee: "helper", arguments: [{ parameter: "self", object: "ctx" }, { parameter: "target", object: "original" }], result: "returned", claim: "Keep actual returned identity" }, { kind: "guard", name: "checked", resource: "returned", claim: "Check returned resource" }, { kind: "return", name: "done", outcome: "allow", claim: "Normal source exit" }])], { parameters: [{ name: "ctx", type: "configuration" }, { name: "original", type: "resource" }] })
+  const r = lower([root, helper])
+  expect(r.diagnostics).toEqual([])
+  expect(r.slice.rules.find((s: any) => s.kind === "guard").resource).toBe(r.slice.rules.find((s: any) => s.bindingName === "original").bindingKey)
+})
 const parseFinite = ({ questionId, evidenceIds, ...semantic }: any) => api.SemanticBlockSchema.safeParse(semantic)
 test("finite try matches an explicit exception and finally runs before handler return", () => {
   const root = finiteUnit([

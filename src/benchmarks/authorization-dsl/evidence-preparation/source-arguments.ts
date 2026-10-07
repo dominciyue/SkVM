@@ -2,7 +2,7 @@ import type { StructureCall, StructureSymbol } from "./structure-index.ts"
 import type { FiniteValue, Scalar } from "../../../task-dsl/authorization/control-evaluation.ts"
 
 export interface SourceArgumentBinding {
-  parameter: string; expression: string; literalKnown: boolean; literalValue?: FiniteValue; captureOwnerId?: string
+  parameter: string; expression: string; literalKnown: boolean; literalValue?: FiniteValue; captureOwnerId?: string; sourceCallId?: string
 }
 export interface SourceArgumentIndex { symbols: StructureSymbol[]; relatedCalls: (symbolId: string, receiverClass?: string) => StructureCall[] }
 export const sourceCallableParameter = (symbolId: string) => `source-callable-${symbolId}`
@@ -58,7 +58,7 @@ export function sourceArgumentBindings(index: SourceArgumentIndex, call: Structu
     regular.push(parameter.name)
     if (!expression) { partialGap ??= "source-arguments-missing"; continue }
     const literalKnown = supplied?.literalKnown ?? (!receiver && !!parameter.defaultLiteralKnown)
-    bindings.push({ parameter: parameter.name, expression, literalKnown, ...(literalKnown ? { literalValue: supplied ? supplied.literalValue! : parameter.defaultLiteralValue! } : {}) })
+    bindings.push({ parameter: parameter.name, expression, literalKnown, ...(supplied?.sourceCallId ? { sourceCallId: supplied.sourceCallId } : {}), ...(literalKnown ? { literalValue: supplied ? supplied.literalValue! : parameter.defaultLiteralValue! } : {}) })
     if (!supplied && !receiver && !literalKnown) partialGap ??= "source-arguments-default-dynamic"
     if (!supplied && !receiver && (posSource || keySource)) return fail("regular-pack-unresolved")
   }

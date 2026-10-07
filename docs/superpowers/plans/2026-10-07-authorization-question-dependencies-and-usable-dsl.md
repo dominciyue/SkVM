@@ -160,10 +160,14 @@ DRF下一小步工作计划（2026-10-08）：先从原轮次已保留且SHA一�
 
 本小步进展：v13精确factory结果、capture映射和普通instance参数已接到同一binder/骨架/六角色/实际投影。16项新增测试，228focused/704断言、联合1146pass/1平台skip/6939断言及主/AY类型通过；匿名实际采用保留创建顺序和拒绝后不写入，漏创建、错capture、覆盖instance、漏隐式参数和当前源码变化均撤回连接。主补两项跨层capture/default动作红测并具名阻断；两只读核验中的顺序/旧callee疑点由当前逐步重绑定反例否证，条件调用仍在原控制区，不增加重复门槛。100文件真实来源探针从初始24定义/15来源合格收紧至24/13，另外2项nested-scope具名，初始/reviewed原件分开；六项选中wrapper仍未采用，实际返回调用/model read/application annotation/use/模型/目标/网络新增均0。可变字段、动态handler、class/method/descriptor及完整请求组合和官方具名复验继续；AY7和完整质量/实测收益尚未达。
 
-- 当前实施顺序（2026-10-08）：先用匿名模块实例/遮蔽/重绑定反例验证实际 receiver 来源，再在 v5 source skeleton 中保留唯一未重绑定实例的 source/SHA/class 证明，并生成普通 `value` 绑定。只接机械 receiver，不推断主体、资源、授权或字段 alias；字段传给错误 principal 参数仍报类型缺口。随后核验保留 OWUI 提案的零推理效果，再进入框架组合和真实具名复验。
+字段下一小步设计（2026-10-08）：先复用既有`transform`证明同一实际receiver槽位的写入/读取，记录显式bound source对象的identity/type和有限值，跨helper按receiver identity传播；未知/字面覆盖撤回旧typed槽位，局部已复制alias仍保留原对象，另一个同名receiver不串用。普通value源仍按既有有限值复制，不借字段名推principal/resource；只有显式typed源保存槽位对象身份。随后v5骨架只给简单Python属性赋值保留fieldWrite事实，当前解释沿既有transform执行实际右值/调用结果，不再伪装局部同名bind；读取与写入锚点分开，参数/角色仍由原六角色解释。augmented/delete/复杂目标及未解释右值具名，当前self可见自定义setter明确阻断，字段语法本身不证明descriptor/__setattr__或framework执行。复核已确认两项来源错误：字段constructor结果不能拆成receiver名字；相同文本的重复调用不能共用第一个result。后者以AST位置、sourceCallId和精确valueAnchorId贯穿骨架、同一Python binder及实际投影，文本回退仅限唯一候选；返回、字段RHS和嵌套参数均保留各自发生点。先native identity/覆盖/跨receiver、source-assisted实际helper和源码失效红绿，再复核真实dispatch字段源码和原件零模型probe；动态getattr/setattr/method alias及请求组合继续另需当前调用身份，最后官方具名复验和收益比较。
 - [ ] 复用 `actualArguments`、`bindOperationCalls` 和投影链，验证 positional/keyword/default/receiver、局部 alias、返回资源及替代资源；不能靠字符串相等跨作用域确认同一对象。
 - [ ] 唯一可机械证明的连接自动接线，歧义返回最小候选/差异供模型解释；不让模型重复输入 host 已确认的 ID。
 - [ ] 连接身份含 caller、sourceCallId、当前候选、参数和源码依赖。变化失效精准撤销旧关系，不静默使用 sibling/旧 callee。
+
+字段复核补充：端到端重复调用反例另揭示读取队列按候选去重被实际接线复用，第二次相同helper无法采用。读取队列仍按候选去重；接线只在当前精确sourceCallId范围构造同一来源action，不能把已读一次与实际只调用一次混为一谈。新增字段与同一行嵌套参数的有状态helper反例共同覆盖源码发生点、投影与第二次资源身份。跨文件基类setter新增红测还证明旧method候选revision遗漏MRO类字节；将实际MRO类来源纳入同一candidateRevision，新增/改变继承setter自动撤回旧ordinary-store材料，不引入全仓类inventory。
+
+字段本小步进展：v14 typed槽位/有限值/覆盖/跨receiver/helper返回、精确调用发生点和MRO来源失效已接通，20新增反例、300focused/1085断言、新鲜联合1166pass/1平台skip/7018断言及主/AY类型通过。两轮只读核验的范围和主复现分别记录；最后两项未发现新的可复现缺陷，不宣称穷尽。真实100文件probe保留6body/15简单store，原始与reviewed输出分开；model read/application annotation/material use/模型/目标/网络新增0、旧输入/答不升级。动态handler、class/method/descriptor及完整ASGI/DRF请求还需当前调用/协议采用，随后官方具名复验与预登记收益比较；AY7和研究验收未勾选。
 
 ### AY8 调度与局部解释的闭环
 

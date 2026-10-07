@@ -10,14 +10,15 @@ import type { FiniteValue } from "../../../task-dsl/authorization/control-evalua
 export interface SourceAnchor {
   id: string; selector: SourceSelector; sourceSha256: string;
   kind: "parameter" | "assignment" | "condition" | "call" | "return" | "raise" | "control";
-  text: string; syntax: string; name?: string; valueExpression?: string; defaultExpression?: string;
+  text: string; syntax: string; name?: string; valueExpression?: string; valueAnchorId?: string; defaultExpression?: string;
   literalKnown?: boolean; literalValue?: FiniteValue;
   interpretationRequired?: boolean;
   exceptionType?: string;
   dependencyFacts?: { reads: string[]; writes: string[]; pureLocal: boolean };
   capture?: { ownerId: string; ownerSha256: string };
   callableIdentity?: { sourceId: string; ownerId: string; ownerSha256: string };
-  call?: { sourceCallId?: string; expression: string; receiver?: string; receiverClass?: string; receiverBinding?: StructureCall["receiverBinding"]; callableBinding?: StructureCall["callableBinding"]; bindingGap?: string; arguments: Array<{ expression: string; parameterName?: string; spread?: boolean; literalKnown?: boolean; literalValue?: FiniteValue }>; candidateIds: string[]; resultNames: string[]; resultBinding: string }
+  fieldWrite?: { object: string; field: string };
+  call?: { sourceCallId?: string; expression: string; receiver?: string; receiverClass?: string; receiverBinding?: StructureCall["receiverBinding"]; callableBinding?: StructureCall["callableBinding"]; bindingGap?: string; arguments: Array<{ expression: string; parameterName?: string; spread?: boolean; literalKnown?: boolean; literalValue?: FiniteValue; sourceCallId?: string }>; candidateIds: string[]; resultNames: string[]; resultBinding: string }
 }
 export interface SourceFlow {
   kind: "step" | "branch" | "gap" | "try" | "with" | "loop" | "break" | "continue" | "short-circuit";
@@ -27,6 +28,7 @@ export interface SourceFlow {
   enter?: SourceFlow[]; exitUnknown?: boolean;
   operator?: "and" | "or"; language?: "python" | "go"; leftExpression?: string; rightExpression?: string;
   leftLiteral?: FiniteValue; rightLiteral?: FiniteValue; resultBinding?: string;
+  leftValueAnchorId?: string; rightValueAnchorId?: string; iterableValueAnchorId?: string;
 }
 export interface SourceSkeleton {
   schemaVersion: "authorization-source-skeleton/v1" | "authorization-source-skeleton/v2"; sourceId: string; revision: string;
@@ -73,7 +75,8 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       if (questionDirected) {
         const assignment = kind === "assignment" && ["assignment", "short_var_declaration", "assignment_statement", "augmented_assignment"].includes(n.type), right = assignment ? field(n, "right") : kind === "return" || kind === "raise" ? kids(n)[0] : n
         const literal = sourceLiteral(right), directCall = assignment && right && ["call", "call_expression"].includes(right.type)
-        anchor.dependencyFacts = { reads: kind === "parameter" ? [] : reads(right), writes: kind === "parameter" && anchor.name ? [anchor.name] : kind === "call" ? [...new Set([...(anchor.call?.resultNames ?? []), ...(anchor.call ? [anchor.call.resultBinding] : [])])] : assignment && anchor.name && !directCall ? [anchor.name] : [], pureLocal: !!assignment && n.type !== "augmented_assignment" && !!anchor.name && /^[A-Za-z_]\w*$/.test(anchor.name) && literal.literalKnown && (literal.literalValue === null || typeof literal.literalValue !== "object") }
+        const fieldResult = anchor.fieldWrite && directCall ? skeleton.anchors.find(a => a.id === anchor.valueAnchorId)?.call?.resultBinding : undefined
+        anchor.dependencyFacts = { reads: kind === "parameter" ? [] : [...new Set([...reads(right), ...anchor.fieldWrite ? [anchor.fieldWrite.object] : [], ...fieldResult ? [fieldResult] : []])], writes: kind === "parameter" && anchor.name ? [anchor.name] : kind === "call" ? [...new Set([...(anchor.call?.resultNames ?? []).filter(name => /^[A-Za-z_]\w*$/.test(name)), ...(anchor.call ? [anchor.call.resultBinding] : [])])] : assignment && anchor.name && (!directCall || anchor.fieldWrite) ? [anchor.name] : [], pureLocal: !!assignment && n.type !== "augmented_assignment" && !!anchor.name && /^[A-Za-z_]\w*$/.test(anchor.name) && literal.literalKnown && (literal.literalValue === null || typeof literal.literalValue !== "object") }
       }
       skeleton.anchors.push(anchor); positions.set(id, n.startIndex); return anchor
     }
@@ -90,8 +93,13 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     }
     for (const n of descendants(fn, ["attribute", "selector_expression", "subscript", "index_expression"]).filter(belongsToScope)) add(n, "assignment", { name: n.text, valueExpression: n.text })
     const callAnchor = (n: Node) => {
-      const expression = field(n, "function")?.text ?? n.text, actual = actualCalls.find(c => c.startLine === n.startPosition.row + 1 && c.endLine === n.endPosition.row + 1 && c.expression === expression)
-      const arguments_: NonNullable<SourceAnchor["call"]>["arguments"] = kids(field(n, "arguments")).map(a => { const value = a.type === "keyword_argument" ? field(a, "value")! : a, literal = sourceLiteral(value); return { expression: value.text, ...(a.type === "keyword_argument" ? { parameterName: field(a, "name")!.text } : {}), ...(["list_splat", "dictionary_splat", "variadic_argument"].includes(a.type) ? { spread: true } : {}), ...(literal.literalKnown ? literal : {}) } })
+      const expression = field(n, "function")?.text ?? n.text
+      const sourceCall = (value: Node) => {
+        const candidates = actualCalls.filter(c => c.startIndex !== undefined ? c.startIndex === value.startIndex && c.endIndex === value.endIndex : c.startLine === value.startPosition.row + 1 && c.endLine === value.endPosition.row + 1 && c.expression === (field(value, "function")?.text ?? value.text))
+        return candidates.length === 1 ? candidates[0] : undefined
+      }
+      const actual = sourceCall(n)
+      const arguments_: NonNullable<SourceAnchor["call"]>["arguments"] = kids(field(n, "arguments")).map(a => { const value = a.type === "keyword_argument" ? field(a, "value")! : a, literal = sourceLiteral(value), child = ["call", "call_expression"].includes(value.type) ? sourceCall(value) : undefined; return { expression: value.text, ...(child ? { sourceCallId: child.id } : {}), ...(a.type === "keyword_argument" ? { parameterName: field(a, "name")!.text } : {}), ...(["list_splat", "dictionary_splat", "variadic_argument"].includes(a.type) ? { spread: true } : {}), ...(literal.literalKnown ? literal : {}) } })
       if (!/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(expression) && !/^super\(\)\.[A-Za-z_]\w*$/.test(expression)) gap(n, "skeleton-call-dynamic", "The actual function expression is dynamic; no unique callee or receiver is invented.")
       const callableGap = actual?.gap && /^(?:source-local-|source-returned-callable-)/.test(actual.gap) ? actual.gap : undefined
       if (questionDirected && callableGap) gap(n, callableGap, "The current lexical callable/capture binding is unresolved regardless of its proposed domain role.")
@@ -100,7 +108,8 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
         const binding = actual && target && sourceArgumentBindings(index, actual, target)
         if (!questionDirected || !binding || binding.gap) gap(n, "skeleton-arguments-dynamic", `Expanded arguments require a source-supported mapping; ${binding && binding.gap || "positions are not guessed"}.`)
       }
-      return add(n, "call", { call: { sourceCallId: actual?.id, expression, receiver: actual?.receiver, receiverClass: actual?.receiverClass, ...(questionDirected && actual?.receiverBinding ? { receiverBinding: actual.receiverBinding } : {}), ...(questionDirected && actual?.callableBinding ? { callableBinding: actual.callableBinding } : {}), ...(questionDirected && callableGap ? { bindingGap: callableGap } : {}), arguments: arguments_, candidateIds: actual?.candidateIds ?? [], resultNames: actual?.resultNames ?? [], resultBinding: actual?.resultNames[0] ?? `result-${hash([source.id, n.startIndex]).slice(0, 16)}` } })
+      const fieldResult = questionDirected && source.language === "python" && n.parent?.type === "assignment" && field(n.parent, "right")?.id === n.id && field(n.parent, "left")?.type === "attribute"
+      return add(n, "call", { call: { sourceCallId: actual?.id, expression, receiver: actual?.receiver, receiverClass: actual?.receiverClass, ...(questionDirected && actual?.receiverBinding ? { receiverBinding: actual.receiverBinding } : {}), ...(questionDirected && actual?.callableBinding ? { callableBinding: actual.callableBinding } : {}), ...(questionDirected && callableGap ? { bindingGap: callableGap } : {}), arguments: arguments_, candidateIds: actual?.candidateIds ?? [], resultNames: actual?.resultNames ?? [], resultBinding: !fieldResult && actual?.resultNames[0] || `result-${hash([source.id, n.startIndex]).slice(0, 16)}` } })
     }
     const callsIn = (n: Node) => descendants(n, source.language === "python" ? ["call"] : ["call_expression"]).filter(belongsToScope).sort((a, b) => a.endIndex - b.endIndex || b.startIndex - a.startIndex)
     for (const p of kids(field(fn, "parameters"))) {
@@ -116,12 +125,14 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     }
     if (questionDirected && returnedInstance && source.returnedCallable) add(field(fn, "name")!, "parameter", { name: sourceCallableParameter(source.id), syntax: "source_callable_instance", callableIdentity: { sourceId: source.id, ownerId: source.returnedCallable.ownerId, ownerSha256: source.returnedCallable.ownerSha256 } })
     const stepsForCalls = (n: Node) => callsIn(n).map(c => ({ kind: "step" as const, anchorId: callAnchor(c).id }))
+    const valueAnchor = (n: Node | null | undefined, flow: SourceFlow[]): string | undefined => n && (["call", "call_expression"].includes(n.type) || ["and", "or", "&&", "||"].includes(field(n, "operator")?.text ?? "")) ? flow.at(-1)?.anchorId : undefined
     const expressionFlow = (n: Node, resultBinding?: string): SourceFlow[] => {
       const left = field(n, "left"), right = field(n, "right"), op = field(n, "operator")?.text
       if (controlSemantics && left && right && ["and", "or", "&&", "||"].includes(op ?? "")) {
         const leftLiteral = sourceLiteral(left), rightLiteral = sourceLiteral(right)
         const anchor = add(n, "control", { name: resultBinding ?? `expression-${hash([source.id, n.startIndex]).slice(0, 16)}`, valueExpression: n.text })
-        return [...expressionFlow(left), { kind: "short-circuit", anchorId: anchor.id, operator: op === "and" || op === "&&" ? "and" : "or", language: source.language, leftExpression: left.text, rightExpression: right.text, ...(leftLiteral.literalKnown ? { leftLiteral: leftLiteral.literalValue } : {}), ...(rightLiteral.literalKnown ? { rightLiteral: rightLiteral.literalValue } : {}), resultBinding: anchor.name, body: expressionFlow(right) }]
+        const leftFlow = expressionFlow(left), rightFlow = expressionFlow(right)
+        return [...leftFlow, { kind: "short-circuit", anchorId: anchor.id, operator: op === "and" || op === "&&" ? "and" : "or", language: source.language, leftExpression: left.text, rightExpression: right.text, leftValueAnchorId: valueAnchor(left, leftFlow), rightValueAnchorId: valueAnchor(right, rightFlow), ...(leftLiteral.literalKnown ? { leftLiteral: leftLiteral.literalValue } : {}), ...(rightLiteral.literalKnown ? { rightLiteral: rightLiteral.literalValue } : {}), resultBinding: anchor.name, body: rightFlow }]
       }
       // Nested booleans in a call argument also execute before the outer call.
       if (controlSemantics) {
@@ -162,7 +173,8 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       }
       if (["return_statement", "raise_statement"].includes(n.type)) {
         const value = kids(n)[0], raised = value?.type === "call" ? field(value, "function")?.text : value?.text
-        return [...(value ? expressionFlow(value) : []), { kind: "step", anchorId: add(n, n.type === "return_statement" ? "return" : "raise", { valueExpression: value?.text, ...sourceLiteral(value), ...(controlSemantics && n.type === "raise_statement" && raised && /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(raised) ? { exceptionType: raised } : {}) }).id }]
+        const values = value ? expressionFlow(value) : []
+        return [...values, { kind: "step", anchorId: add(n, n.type === "return_statement" ? "return" : "raise", { valueExpression: value?.text, valueAnchorId: valueAnchor(value, values), ...sourceLiteral(value), ...(controlSemantics && n.type === "raise_statement" && raised && /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(raised) ? { exceptionType: raised } : {}) }).id }]
       }
       if (controlSemantics && n.type === "try_statement") {
         const handlers = kids(n).filter(c => c.type === "except_clause").map(c => {
@@ -185,8 +197,8 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
         return body
       }
       if (controlSemantics && ["for_statement", "while_statement"].includes(n.type) && source.language === "python") {
-        const iterable = field(n, "right"), literal = sourceLiteral(iterable), alternative = field(n, "alternative")
-        return [...(iterable ? expressionFlow(iterable) : []), { kind: "loop", anchorId: add(n, "control").id, targetName: field(n, "left")?.text, iterableExpression: iterable?.text, ...(literal.literalKnown ? { iterableValue: literal.literalValue } : {}), conditionExpression: field(n, "condition")?.text, body: visitList(field(n, "body")), otherwise: visitList(alternative ? field(alternative, "body") : null) }]
+        const iterable = field(n, "right"), literal = sourceLiteral(iterable), alternative = field(n, "alternative"), values = iterable ? expressionFlow(iterable) : []
+        return [...values, { kind: "loop", anchorId: add(n, "control").id, targetName: field(n, "left")?.text, iterableExpression: iterable?.text, iterableValueAnchorId: valueAnchor(iterable, values), ...(literal.literalKnown ? { iterableValue: literal.literalValue } : {}), conditionExpression: field(n, "condition")?.text, body: visitList(field(n, "body")), otherwise: visitList(alternative ? field(alternative, "body") : null) }]
       }
       if (controlSemantics && ["break_statement", "continue_statement"].includes(n.type)) return [{ kind: n.type === "break_statement" ? "break" : "continue", anchorId: add(n, "control").id }]
       if (["for_statement", "while_statement", "try_statement", "with_statement", "switch_statement", "expression_switch_statement", "type_switch_statement", "select_statement", "defer_statement", "go_statement", "break_statement", "continue_statement", "match_statement"].includes(n.type)) {
@@ -194,10 +206,27 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
         for (const c of callsIn(n)) callAnchor(c)
         return [{ kind: "gap", anchorId: add(n, "assignment").id }]
       }
+      if (questionDirected && source.language === "python" && n.type === "delete_statement" && descendants(n, ["attribute", "subscript"]).length) {
+        gap(n, "skeleton-field-write-unmodeled", "Field deletion needs its source protocol and current identity effect; it is not an ordinary value store.")
+        return [{ kind: "gap", anchorId: add(n, "assignment").id }]
+      }
       if (["expression_statement", "assignment", "short_var_declaration", "assignment_statement", "augmented_assignment", "inc_statement", "dec_statement"].includes(n.type)) {
         const assignment = n.type === "expression_statement" ? kids(n).find(c => c.type === "assignment" || c.type === "augmented_assignment") : n
-        const calls = expressionFlow(assignment ? field(assignment, "right") ?? n : n, assignment ? field(assignment, "left")?.text : undefined)
-        return assignment && field(assignment, "left") ? [...calls, { kind: "step", anchorId: add(assignment, "assignment", { name: field(assignment, "left")!.text, valueExpression: field(assignment, "right")?.text, ...sourceLiteral(field(assignment, "right")) }).id }] : calls
+        const target = assignment && field(assignment, "left"), right = assignment && field(assignment, "right"), match = target?.type === "attribute" && /^([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)\.([A-Za-z_]\w*)$/.exec(target.text)
+        const fieldWrite = questionDirected && source.language === "python" && match ? { object: match[1]!, field: match[2]! } : undefined
+        const calls = expressionFlow(right ?? n, fieldWrite ? `field-result-${hash([source.id, assignment!.startIndex]).slice(0, 16)}` : target?.text)
+        if (questionDirected && source.language === "python" && assignment && target && (target.type !== "identifier" || right?.type === "assignment") && (!fieldWrite || assignment.type !== "assignment" || right?.type === "assignment")) {
+          gap(assignment, "skeleton-field-write-unmodeled", "Only a simple current attribute store is modeled; augmented, indexed, unpacked and chained targets require their own source semantics.")
+          return [...calls, { kind: "gap", anchorId: add(assignment, "assignment", { name: target.text }).id }]
+        }
+        if (fieldWrite && source.className && fieldWrite.object === source.parameters[0]?.name) {
+          const classes = index.linearize(receiverClass ?? source.className) ?? [source.className]
+          if (index.symbols.some(s => s.className && classes.includes(s.className) && (s.name === "__setattr__" || s.name === fieldWrite.field && s.decorators?.some(d => d.expression === "property" || /\.(?:setter|deleter)$/.test(d.expression))))) {
+            gap(assignment!, "skeleton-field-setter-unmodeled", "A visible custom setter or descriptor cannot be replaced by an ordinary field store.")
+            return [...calls, { kind: "gap", anchorId: add(assignment!, "assignment", { name: target!.text }).id }]
+          }
+        }
+        return assignment && target ? [...calls, { kind: "step", anchorId: add(assignment, "assignment", { name: target.text, valueExpression: right?.text, valueAnchorId: valueAnchor(right, calls), ...sourceLiteral(right), ...(fieldWrite ? { fieldWrite } : {}) }).id }] : calls
       }
       gap(n, "skeleton-statement-unsupported", `The ${n.type} statement remains explicit rather than being silently deleted.`)
       return [{ kind: "gap", anchorId: add(n, "assignment").id }]

@@ -22,7 +22,7 @@ function drfReceiverRevision(index: StructureIndex, className: string) {
   return hash([classSources(className), drfDispatchMethods.map(method => [method, index.candidateRevision(className, method)]), configurations])
 }
 /** Structural candidates satisfy a need to inspect a relationship, never its authorization meaning. */
-export function operationWork(index: StructureIndex, entryId: string, readSymbols: string[], interpretedSymbols: Array<string | { id: string; receiverClass?: string }>, receiverClass?: string, options: { sourceAssisted?: boolean; operationRoot?: boolean; questionDirected?: boolean; frameworkInvocation?: boolean } = {}) {
+export function operationWork(index: StructureIndex, entryId: string, readSymbols: string[], interpretedSymbols: Array<string | { id: string; receiverClass?: string }>, receiverClass?: string, options: { sourceAssisted?: boolean; operationRoot?: boolean; questionDirected?: boolean; frameworkInvocation?: boolean; sourceCallId?: string } = {}) {
   const entry = index.symbols.find(s => s.id === entryId), actions: OperationWorkAction[] = [], gaps: StructureCall[] = [], frameworkDependencies: SourceFactDependency[] = [], frameworkGaps: Array<{ key: string; reason: string; receiverClass?: string; code?: string }> = []
   if (!entry) return { actions, gaps, frameworkDependencies, frameworkGaps }
   const add = (candidateId: string, relationId: string, reason: string, obligation: OperationWorkAction["obligation"] = "guard", context?: string, decisive = false, frameworkBoundary = false) => {
@@ -31,6 +31,7 @@ export function operationWork(index: StructureIndex, entryId: string, readSymbol
     actions.push({ id: `opwork-${hash([entry.id, candidateId, relationId, context]).slice(0, 24)}`, obligation, kind: interpreted ? "link" : readSymbols.includes(candidateId) ? "interpret" : "read", candidateId, relationId, reason, decisive, ...(context ? { receiverClass: context } : {}), ...(frameworkBoundary ? { frameworkBoundary: true } : {}) })
   }
   for (const call of index.relatedCalls(entry.id, receiverClass)) {
+    if (options.sourceCallId && call.id !== options.sourceCallId) continue
     if (call.syntaxRole === "argument-default") continue
     if (call.resolution === "unresolved") { gaps.push(call); continue }
     for (const candidate of call.candidateIds) add(candidate, call.id, `Inspect AST-bound ${call.expression} at ${call.path}:${call.startLine}; arguments ${JSON.stringify(call.arguments)}. Source relevance and conditions still need interpretation.`, "guard", call.receiverClass, call.syntaxRole === "condition" || call.syntaxRole === "return")

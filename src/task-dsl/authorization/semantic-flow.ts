@@ -40,7 +40,8 @@ export interface PropertyContextSummary {
   semantics: "normal-all-or-first-unknown-exception"; outcomeBinding?: string; normalRuleKey?: string; exceptionRuleKey?: string
 }
 interface Exit { kind: "return" | "raise" | "break" | "continue"; claim: string; outcome?: "allow" | "deny" | "unknown"; exceptionType?: string; failureKind?: "authorization" | "operation" }
-interface Cursor { tail: string; route: string[]; objects: Record<string, { identity: string; type: string }>; guards: Record<string, string>; values: Record<string, FiniteValue>; objectValues: Record<string, FiniteValue>; operands?: Record<string, Record<string, unknown>>; stopped?: boolean; returned?: boolean; returnValue?: FiniteValue; returnObject?: { identity: string; type: string }; pending?: Exit; handledException?: Exit }
+interface ObjectBinding { identity: string; type: string }
+interface Cursor { tail: string; route: string[]; objects: Record<string, ObjectBinding>; fieldObjects: Record<string, ObjectBinding | null>; guards: Record<string, string>; values: Record<string, FiniteValue>; objectValues: Record<string, FiniteValue>; operands?: Record<string, Record<string, unknown>>; stopped?: boolean; returned?: boolean; returnValue?: FiniteValue; returnObject?: ObjectBinding; pending?: Exit; handledException?: Exit }
 const id = (parts: unknown[]) => "sem-" + createHash("sha256").update(canonicalControl(parts)).digest("hex").slice(0, 24)
 
 /** The host compiles only explicit source interpretations; it never parses target code into an answer. */
@@ -64,8 +65,20 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
       append(u, c, instance, block, step, kind, { terminal: true, complete: (u.complete || u.coverage === "path") && kind !== "unresolved", ...fields }); c.stopped = true
     }
     const gap = (u: BoundSemanticBlock, c: Cursor, instance: string, block: string, step: string, code: string, detail?: string) => { fault(questionId, u.handle, code, `Unresolved local source relation at ${block}.${step}; ${detail ?? "no alternative or call meaning was inferred."}`); terminal(u, c, instance, block, step, "unresolved", { gap: code, claim: code, complete: false }) }
-    const valueObject = (c: Cursor, ref: string): { identity: string; type: string } | undefined => {
+    const valueObject = (c: Cursor, ref: string): ObjectBinding | undefined => {
+      const base = Object.keys(c.objects).sort((a, b) => b.length - a.length).find(key => ref.startsWith(`${key}.`))
+      if (base) {
+        const parent = valueObject(c, base)!
+        let projected = parent, stored = parent.identity !== c.objects[base]!.identity
+        for (const field of ref.slice(base.length + 1).split(".")) {
+          const key = `${projected.identity}.${field}`
+          stored ||= Object.hasOwn(c.fieldObjects, key)
+          projected = c.fieldObjects[key] ?? { identity: key, type: "value" }
+        }
+        if (stored || !c.objects[ref]) return projected
+      }
       if (c.objects[ref]) return c.objects[ref]
+      if (Object.hasOwn(c.fieldObjects, ref)) return c.fieldObjects[ref] ?? { identity: ref, type: "value" }
       if (Object.hasOwn(c.values, ref)) {
         const identity = id([questionId, "source-value", c.route, ref, c.values[ref]])
         setSourceValue(c, identity, { value: c.values[ref]! }); return { identity, type: "value" }
@@ -75,8 +88,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
         const mapped = valueObject(c, source)
         if (mapped) return { identity: mapped.identity, type: "value" }
       }
-      const base = Object.keys(c.objects).sort((a, b) => b.length - a.length).find(key => ref.startsWith(`${key}.`))
-      return base ? { identity: c.objects[base]!.identity + ref.slice(base.length), type: "value" } : undefined
+      return undefined
     }
     const setSourceValue = (c: Cursor, key: string, literal?: { value: FiniteValue }, parent?: string, field?: string) => {
       const previous = parent ? c.objectValues[parent] : undefined
@@ -99,15 +111,15 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
       if (typeof object.binding === "string" && Object.hasOwn(c.values, object.binding)) return { literal: c.values[object.binding] }
       if (typeof object.binding === "string" && c.operands?.[object.binding]) return structuredClone(c.operands[object.binding])
       if (typeof object.binding === "string") {
-        const reference = object.binding, name = Object.keys(c.objects).sort((a, b) => b.length - a.length).find(name => reference.startsWith(`${name}.`) || reference === name && c.objects[name]!.type === "value")
-        if (name) {
-          const key = c.objects[name]!.identity + reference.slice(name.length)
+        const reference = object.binding, resolved = valueObject(c, reference)
+        if (resolved && (resolved.type === "value" || reference.includes("."))) {
+          const key = resolved.identity
           return Object.hasOwn(c.objectValues, key) ? { literal: structuredClone(c.objectValues[key]) } : { binding: key }
         }
       }
       return Object.fromEntries(Object.entries(object).map(([key, value]) => [key, predicate(value, c)]))
     }
-    const resolveObject = (c: Cursor, ref?: string) => ref ? c.objects[ref]?.identity ?? id([questionId, "unbound-object", ref]) : undefined
+    const resolveObject = (c: Cursor, ref?: string) => ref ? valueObject(c, ref)?.identity ?? id([questionId, "unbound-object", ref]) : undefined
     const assignValue = (c: Cursor, result: string, value: Record<string, unknown>) => {
       const actual = predicate(value, c)
       delete c.values[result]; delete c.objects[result]; c.operands ??= {}; delete c.operands[result]
@@ -290,33 +302,35 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
           } else if (step.kind === "effect") append(u, c, instance, body, step.name, "effect", { ...fields, principal: resolveObject(c, step.principal), resource: resolveObject(c, step.resource), operation: step.operation, authorizedBy: step.authorizedBy?.map(ref => c.guards[ref] ?? id([questionId, "missing-guard", ref])) })
           else if (step.kind === "reject") terminal(u, c, instance, body, step.name, "reject", { ...fields, outcome: "deny", ...(step.failureKind ? { failureKind: step.failureKind } : {}) })
           else if (step.kind === "transform") {
-            const object = c.objects[step.object]
+            const object = valueObject(c, step.object)
             const sourceObject = step.source ? valueObject(c, step.source) : undefined
             if (!object || step.source && !sourceObject || Object.hasOwn(step, "value") === !!step.source) gap(u, c, instance, body, step.name, "semantic-transform-unbound")
             else {
               const key = `${object.identity}.${step.field}`, source = sourceObject?.identity
               const sourceValue = source && Object.hasOwn(c.objectValues, source) ? { value: structuredClone(c.objectValues[source]!) } : undefined
               setSourceValue(c, key, Object.hasOwn(step, "value") ? { value: step.value! } : sourceValue, object.identity, step.field)
+              for (const stored of Object.keys(c.fieldObjects)) if (stored.startsWith(`${key}.`)) delete c.fieldObjects[stored]
+              c.fieldObjects[key] = sourceObject && sourceObject.type !== "value" ? { ...sourceObject } : null
               fieldChanges.push({ questionId, handle: u.handle, step: step.name, object: object.identity, field: step.field, ...(Object.hasOwn(step, "value") ? { value: step.value } : {}), ...(source ? { source } : {}), evidenceIds: u.evidenceIds }); append(u, c, instance, body, step.name, "continue", fields)
             }
           }
           else if (step.kind === "unresolved") gap(u, c, instance, body, step.name, step.reason)
           else if (step.kind === "return") {
             if (u.coverage === "path") {
-              if (step.object && !c.objects[step.object]) { gap(u, c, instance, body, step.name, "semantic-return-object-unbound"); next.push(c); continue }
+              if (step.object && !valueObject(c, step.object)) { gap(u, c, instance, body, step.name, "semantic-return-object-unbound"); next.push(c); continue }
               append(u, c, instance, body, step.name, "continue", fields); c.pending = { kind: "return", claim: step.claim, outcome: step.outcome }
               if (Object.hasOwn(step, "value")) c.returnValue = step.value
               else if (step.valueFrom) { const value = predicate({ binding: step.valueFrom }, c); if (Object.hasOwn(value, "literal")) c.returnValue = value.literal; else c.returnObject = valueObject(c, step.valueFrom) }
-              if (step.object) c.returnObject = c.objects[step.object]
+              if (step.object) c.returnObject = valueObject(c, step.object)
             } else if (u.role === "entry") {
               const unspecified = !step.outcome || step.outcome === "unknown"
               if (unspecified) fault(questionId, u.handle, "entry-return-outcome-unspecified", `Entry return ${body}.${step.name} has no interpreted permission outcome. Explain its source-visible allow/deny outcome or retain a named source gap; scalar return values never establish permission.`)
               terminal(u, c, instance, body, step.name, unspecified ? "unresolved" : "return", { ...fields, outcome: step.outcome, returnValue: step.value, ...(unspecified ? { gap: "entry-return-outcome-unspecified" } : {}) })
             }
             else {
-              if (step.object && !c.objects[step.object]) { gap(u, c, instance, body, step.name, "semantic-return-object-unbound"); next.push(c); continue }
+              if (step.object && !valueObject(c, step.object)) { gap(u, c, instance, body, step.name, "semantic-return-object-unbound"); next.push(c); continue }
               append(u, c, instance, body, step.name, "continue", { ...fields, returnValue: step.value }); c.returned = true; if ("value" in step) c.returnValue = step.value
-              if (step.object) c.returnObject = c.objects[step.object]
+              if (step.object) c.returnObject = valueObject(c, step.object)
             }
           } else if (step.kind === "call") {
             const call = append(u, c, instance, body, step.name, "call", fields), callee = local.find(unit => unit.handle === step.callee && unit.role === "helper")
@@ -335,6 +349,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
               else if (object.type !== parameter.type) invalidArguments.push(`Object "${arg.object}" has type ${object.type}, but ${expected} requires ${parameter.type}.`)
               else {
                 child.objects[parameter.name] = object
+                child.objects[`${callee.handle}.${parameter.name}`] = object
                 for (const [key, value] of Object.entries(c.objectValues)) if (key === object.identity || key.startsWith(`${object.identity}.`)) child.objectValues[key] = structuredClone(value)
               }
             }
@@ -378,7 +393,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
     }
     try {
       for (const root of roots) {
-        const cursor: Cursor = { tail: "", route: [root.handle], objects: {}, guards: {}, values: {}, objectValues: {} }
+        const cursor: Cursor = { tail: "", route: [root.handle], objects: {}, fieldObjects: {}, guards: {}, values: {}, objectValues: {} }
         append(root, cursor, root.handle, root.start, "$entry", "entry", { claim: `Source entry ${root.handle}` })
         for (const parameter of root.parameters) {
           const identity = id([questionId, root.handle, "parameter", parameter.name])
@@ -397,7 +412,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
       const code = (error as Error).message, root = roots[0]!
       if (!root || !["semantic-node-limit", "semantic-path-limit"].includes(code)) throw error
       fault(questionId, root.handle, code, "Bounded expansion exhausted. This question remains unresolved; other questions are retained.")
-      const c: Cursor = { tail: "", route: [root.handle, "limit"], objects: {}, guards: {}, values: {}, objectValues: {} }
+      const c: Cursor = { tail: "", route: [root.handle, "limit"], objects: {}, fieldObjects: {}, guards: {}, values: {}, objectValues: {} }
       append(root, c, root.handle, root.start, "$entry", "entry"); terminal(root, c, root.handle, root.start, "$limit", "unresolved", { gap: code, claim: code, complete: false })
     }
     for (const u of local) owned.push({ questionId, handle: u.handle, ruleKeys: rules.slice(startIndex).filter(r => r.sourceOrigin?.handle === u.handle).map(r => r.key) })

@@ -192,3 +192,34 @@ test("opaque control retains child call facts without advertising them as execut
   const flowIds = skeleton.flow.map(n => n.anchorId)
   expect(flowIds).not.toContain(skeleton.anchors.find(a => a.call?.expression === "actor.write")!.id)
 })
+
+test("v5 field writes retain exact store facts while helper results use a temporary ordinary binding", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-field-syntax-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def select(target):\n    return target\ndef entry(ctx, target):\n    ctx.saved = target\n    ctx.mode = 'read'\n    ctx.current = select(target)\n    return ctx.current\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id))!, stores = skeleton.anchors.filter(a => (a as any).fieldWrite)
+  expect(stores.map(a => [(a as any).fieldWrite, a.valueExpression])).toEqual([[{ object: "ctx", field: "saved" }, "target"], [{ object: "ctx", field: "mode" }, "'read'"], [{ object: "ctx", field: "current" }, "select(target)"]])
+  expect(skeleton.anchors.find(a => a.call?.expression === "select")!.call!.resultBinding).not.toBe("ctx.current")
+  expect(skeleton.gaps).toEqual([])
+})
+for (const statement of ["ctx.count += 1", "del ctx.target", "ctx.values[key] = target", "ctx.left = ctx.right = target"]) test(`v5 keeps an unsupported field mutation named: ${statement}`, async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-field-gap-"))
+  await writeFile(path.join(sourceRoot, "app.py"), `def entry(ctx, target, key):\n    ${statement}\n    return True\n`)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), source = tools.structure!.symbols[0]!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  expect((await tools.sourceSkeleton(source.id))!.gaps.map(g => g.code)).toContain("skeleton-field-write-unmodeled")
+})
+for (const member of ["    def __setattr__(self, name, value):\n        raise Denied\n", "    @property\n    def target(self):\n        return None\n    @target.setter\n    def target(self, value):\n        raise Denied\n"]) test(`v5 visible field setter source is not waived: ${member.trim().split("\n")[0]}`, async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-field-setter-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "class Box:\n" + member + "    def entry(self, target):\n        self.target = target\n        return True\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  expect((await tools.sourceSkeleton(source.id, "app.Box"))!.gaps.map(g => g.code)).toContain("skeleton-field-setter-unmodeled")
+})
+test("same-line identical argument calls retain distinct exact source call occurrences", async () => {
+  const f = await fixture("def choose(ctx):\n    return ctx\ndef consume(first, second):\n    return first\ndef entry(ctx):\n    return consume(choose(ctx), choose(ctx))\n", "py", true)
+  await f.read()
+  const skeleton = (await f.tools.sourceSkeleton(f.source.id))!, calls = skeleton.anchors.filter(a => a.kind === "call")
+  expect(new Set(calls.map(a => a.call!.sourceCallId)).size).toBe(3)
+})

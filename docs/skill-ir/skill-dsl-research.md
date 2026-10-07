@@ -2070,6 +2070,10 @@ AY7返回callable小步（2026-10-08）：v13将独立来源proof与actual facto
 
 真实[reviewed来源probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-returned-callables-reviewed-replay.json)核验94旧冻结字节及独立补充，共100文件、24返回定义、13来源合格、11具名缺口；初始24/15原件保留，另外2项跨层环境现在明确阻断。六项选中Django/DRF/schema wrapper均未采用，actualReturnedInvocations=0、model read/application annotation/material use=0，模型/目标/网络新增0，旧input/allowlist/答不升级。开发/探子token、USD和真人时间unknown。该工程能力仍不足以证明真实wrapped factory/descriptor/class/method请求；继续可变字段、动态handler和完整请求组合、官方账号实际复验及预登记收益比较，完整使用与正向实测收益尚未达。
 
+AY7有限字段小步（2026-10-08）：v14复用transform按实际receiver identity保存显式typed字段对象，跨helper/返回共享；普通value保留有限复制，literal/unknown覆盖撤回旧typed字段，已复制alias和另一个receiver不串用。简单Python属性store保留实际RHS和effect失败顺序；augmented/delete/复杂目标及可见self setter/property具名。主先修复field constructor结果错拆receiver，再按只读核验的线索复现相同文本调用共用第一次结果；AST offset/sourceCallId/valueAnchorId现贯穿骨架、同一Python binder与投影。端到端有状态反例另暴露候选读取去重漏掉第二次实际采用，现接线按当前call ID选择而读取仍去重。主补跨文件基类新增setter红测，MRO类字节纳入candidateRevision，旧ordinary-store材料撤回而无关类稳定。
+
+20新增反例、300focused/1085断言，新鲜联合1166pass/1平台skip/7018断言/115文件/11.01s和主/AY类型通过。两轮独立只读核验分别检查来源发生点与runtime身份/失效；主按具体出处补反例，不据零发现宣称穷尽，详见[局部核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-field-state.json)。真实[reviewed字段probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-field-state-reviewed-replay.json)核验94冻结文件及独立supplements，共100文件、6body/15简单store；机械窗口不是实验模型read，初始原件分留。application annotation/material use、模型/目标/网络新增0，旧input/allowlist/答不升级；开发/探子token、USD、真人时间unknown。动态handler、class/method/descriptor及ASGI/DRF完整请求仍待实际解释/采用，继续官方具名复验与预登记收益比较，AY7及完整使用/净收益未达。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

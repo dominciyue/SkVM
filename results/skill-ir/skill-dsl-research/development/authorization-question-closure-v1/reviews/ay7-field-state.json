@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "authorization-development-review/v1",
+  "date": "2026-10-08",
+  "stage": "AY7-typed-field-state-and-exact-call-occurrences",
+  "relationshipVersion": "source-bindings/v14",
+  "decision": "engineering-passing-real-handler-framework-adoption-and-benefit-pending",
+  "mainRedGreenCounterexamples": [
+    "Explicit typed field stores retain actual object identity across receiver aliases, helper arguments and returns",
+    "Literal and unknown overwrites withdraw old typed field assertions without changing copied aliases or another receiver",
+    "A constructor assigned to self.service must not retype self by splitting its attribute target",
+    "Repeated identical field RHS calls previously selected the first textual result; exact occurrence results now differ",
+    "Same-line identical nested calls previously shared sourceCallId; AST offsets and binder child IDs now distinguish them",
+    "Candidate-deduplicated body work previously dropped a second actual call; exact call selection adopts both without duplicating reads",
+    "Adding an inherited setter previously left the candidate revision unchanged; actual MRO class bytes now withdraw old stores"
+  ],
+  "independentReadOnlyReviews": [
+    {
+      "agent": "ay_field_state_identity_review",
+      "scope": "Native typed field identity and existing/new semantic-flow tests",
+      "finding": "No concrete failure in the test file; no independent generated counterexamples",
+      "verification": { "pass": 36, "fail": 0 }
+    },
+    {
+      "agent": "ay_field_source_footprint_review",
+      "scope": "Field source lowering, dependency reads and textual result selection",
+      "finding": "Repeated identical expression results may select the first call; cross-file setter invalidation was not independently proved",
+      "verification": { "pass": 84, "fail": 0 },
+      "mainVerification": "Reproduced field RHS and same-line call identity failures; added actual stateful adoption and inherited setter red tests, then fixed exact occurrence and MRO dependencies"
+    },
+    {
+      "agent": "ay_field_occurrence_final_review",
+      "scope": "Current exact occurrence, shared binder and actual projection; existing focused tests",
+      "finding": "No new reproducible defect; dynamic or fabricated provenance was not exhaustively tested",
+      "verification": { "pass": 203, "fail": 0, "assertions": 658 }
+    },
+    {
+      "agent": "ay_field_invalidation_final_review",
+      "scope": "Current native fields, self setter boundary, MRO dependencies and source projection",
+      "finding": "No new reproducible defect; operation-work logic checked indirectly through projection tests",
+      "verification": { "pass": 209, "fail": 0, "assertions": 770 }
+    }
+  ],
+  "verification": {
+    "newTests": 20,
+    "focused": { "pass": 300, "fail": 0, "assertions": 1085, "files": 10 },
+    "joint": { "pass": 1166, "skip": 1, "fail": 0, "assertions": 7018, "files": 115, "durationMs": 11010 },
+    "mainTypes": "passed-after-test-only-optional-binding-key-assertion-repair",
+    "ayTypes": "passed",
+    "documentation": { "scannedFiles": 5, "brokenReferences": 0, "legacyReferences": 0, "retiredReferences": 0, "governanceErrors": 0, "existingSoftLengthWarnings": 5 },
+    "frozenSourcesVerified": 94,
+    "initialSourceProbe": {
+      "path": "verification/paperless-field-state-replay.json",
+      "sha256": "8755afb6c154e2738d879a5e2c6fce0c7af515fa133f429fe935b9cc4a3f09db",
+      "sourceFiles": 100,
+      "bodies": 6,
+      "simpleFieldStores": 15
+    },
+    "reviewedSourceProbe": {
+      "path": "verification/paperless-field-state-reviewed-replay.json",
+      "sha256": "bacbeefe9d31337280bf6b38f0898810a7629932a9d375f546fe34f187f51202",
+      "sourceFiles": 100,
+      "bodies": 6,
+      "simpleFieldStores": 15
+    }
+  },
+  "boundaries": [
+    "Only explicitly typed source objects supply field object identity; ordinary values keep finite-copy semantics",
+    "Simple Python stores do not certify arbitrary descriptors or dynamic object protocols",
+    "Visible self MRO custom setters and unsupported mutation targets remain named gaps",
+    "Dynamic getattr/setattr/method aliases, class/method transformation and complete ASGI/DRF requests remain pending",
+    "Whole selected files invalidate by SHA; unrelated classes do not enter the actual MRO footprint",
+    "Anonymous source-authored test adoption and mechanical source windows are not experimental model/application adoption"
+  ],
+  "modelReadEvidence": false,
+  "applicationSemanticUnitsAuthored": 0,
+  "materialUses": 0,
+  "modelExecutions": 0,
+  "targetExecutions": 0,
+  "networkRequests": 0,
+  "originalInputsAndAllowlistsUnmodified": true,
+  "originalAttemptPromoted": false,
+  "costs": { "experimentTokens": 0, "developerAndScoutTokens": null, "usd": null, "humanTime": null },
+  "fullFrameworkComposition": "pending",
+  "researchGoalAchieved": false
+}

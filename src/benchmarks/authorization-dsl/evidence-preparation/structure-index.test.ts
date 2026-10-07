@@ -646,3 +646,8 @@ for (const body of ["        return lambda value=principal.check(): value\n", " 
   expect(index.symbols.find(s => s.name === "guard")!.returnedCallable!.gap).toBe("source-returned-callable-nested-scope-unmodeled")
   expect(index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "check")!.gap).toBe("source-returned-callable-nested-scope-unmodeled")
 })
+test("a constructor assigned to a field cannot retype its owning receiver", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "class Service:\n    def handle(self):\n        return 'decoy'\nclass Container:\n    def handle(self):\n        return 'actual'\n    def entry(self):\n        self.service = Service()\n        return self.handle()\n" }], { repository: "anonymous", sourceRef: "r" }), calls = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id)
+  expect(calls.find(c => c.expression === "self.handle")!.candidateIds).toEqual([index.symbols.find(s => s.name === "handle" && s.className === "app.Container")!.id])
+  expect(calls.find(c => c.expression === "Service")!.resultNames).toEqual(["self.service"])
+})
