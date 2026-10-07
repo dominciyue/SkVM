@@ -122,6 +122,8 @@ v5 使用独立的 `question-control/v1` 材料语义身份。旧 v4 材料可�
 
 ### AY6 框架权限和入口顺序
 
+2026-10-08进展：源码确认的dispatch与route/dependency已作为v5逐题前置边界；缺源码及未进入当前调用投影的项保留pending/read，匿名反例防止方法体alone误报bounded。完整dispatch顺序与请求级权限组合尚未完成，不勾选本阶段验收。
+
 - [ ] 将已有 operation-work 的 framework 候选连接到当前 operation/question，核实 dispatch/initial/check_permissions、permission_classes、继承方法和 HTTP 方法映射的真实顺序。
 - [ ] 框架关系绑定精确包/版本与已读源码。存在用户 override、不同版本、缺依赖或 ambiguous MRO 时给出准确剩余影响，不能默认为允许或凭文档常识补齐。
 - [ ] 通用匿名框架反例和实际 Download 回归同时通过。框架知识作为源码/版本模型进入生产分析，开发者对本案例的正确结论只留在 evaluator。
@@ -139,6 +141,8 @@ v5 使用独立的 `question-control/v1` 材料语义身份。旧 v4 材料可�
 - [ ] 固定停滞检测：同一个缺口两次无新信息时检查接口/来源/调度，给出可执行的局部修复；禁止在同一坏 Schema 上继续派发其它真实行。
 
 ### AY9 逐问题条件求值与结论检查
+
+2026-10-08进展：遗漏/重复/外来结果、无路径题借用其它题闭合的反例已修复；worklist按实际questionChecks独立关闭，未连接候选不得checked。首个真实Download仍源码partial且结构终答缺失；两次schema拒绝检查误占探索额度的计数错误已红绿修复，并提供当前机械answerContract。保留原失败，继续具名复验。
 
 - [ ] 组合当前来源材料的正常/拒绝/异常出口、主体与资源关系，保留独立政策。许可、受保护源码效果可达和部署执行成功分开。
 - [ ] 每题检查结论、必要条件、证据和仍影响该题的缺口；合格条件答案可 full，遗漏允许源码中的决定性条件为 partial。

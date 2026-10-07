@@ -1,5 +1,5 @@
 import type { AuthorizationInquiryProgram } from "../../task-dsl/authorization/inquiry-program.ts"
-import { ControlSliceDeltaSchema, createControlSlice, mergeControlSlice, isGuidedInquiryStrategy, isSemanticInquiryStrategy, isFocusedInquiryStrategy, isOperationInquiryStrategy, isFiniteControlInquiryStrategy, isPropertyDirectedInquiryStrategy, sourceMaterialSemanticVersion, type ControlSlice, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
+import { ControlSliceDeltaSchema, createControlSlice, mergeControlSlice, isGuidedInquiryStrategy, isSemanticInquiryStrategy, isFocusedInquiryStrategy, isOperationInquiryStrategy, isFiniteControlInquiryStrategy, isPropertyDirectedInquiryStrategy, isQuestionDirectedInquiryStrategy, sourceMaterialSemanticVersion, type ControlSlice, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { evaluateControlPaths, checkControlConclusions, controlObjectDiagnostics, summarizeControlQuestions } from "../../task-dsl/authorization/control-conclusion.ts"
 import type { InquiryDiagnostic } from "../../task-dsl/authorization/inquiry.ts"
 import { AuthorizationInquiryResultSchema } from "../../task-dsl/authorization/inquiry-result.ts"
@@ -86,6 +86,10 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const sourceUnits = () => {
     if (materials && options.tools.structure) { const projected = projectSourceMaterials(options.program, semanticUnits, materials.snapshot(), options.tools.structure); materialUses = projected.uses; return projected.units }
     return facts ? projectOperationUnits(options.program, semanticUnits, facts.snapshot()) : semanticUnits
+  }
+  const currentDependencies = () => {
+    const projected = sourceUnits()
+    return [...scheduler.snapshot(), ...(isQuestionDirectedInquiryStrategy(options.strategy) ? worklist?.boundaryStates().map(d => ({ ...d, state: d.state === "checked" && !projected.some(u => u.questionId === d.questionId && u.source?.id === d.sourceId) ? "read" : d.state })) ?? [] : [])]
   }
   let propertyEvaluation: ReturnType<typeof lowerIntoControlSlice> | undefined
   const lowerCurrent = (compositional = false) => {
@@ -307,9 +311,9 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     await sync(false)
     if (closed) throw new Error("session-closed: domain runtime cannot continue")
     if (options.ablation === "checks-off") check = { structureValid: AuthorizationInquiryResultSchema.safeParse(result).success, sourceBound: slice.rules.length > 0 && slice.rules.every(r => r.sourceBound), semanticSupport: "unreviewed", ruleConsistency: null, taskResolution: "partial", paths: [], diagnostics: [...issues.values()].flat(), policyComparisons: [], calculationCount: 0, questionChecks: [] }
-    else { check = calculate(() => checkControlConclusions(options.program, slice, result, scheduler.snapshot())); computation.conclusionChecks++; computation.predicateEvaluations += check.calculationCount; check = { ...check, diagnostics: [...issues.values()].flat().concat(check.diagnostics) } }
+    else { check = calculate(() => checkControlConclusions(options.program, slice, result, currentDependencies())); computation.conclusionChecks++; computation.predicateEvaluations += check.calculationCount; check = { ...check, diagnostics: [...issues.values()].flat().concat(check.diagnostics) } }
     if (options.ablation !== "checks-off" && [...issues.values()].flat().some(d => d.severity === "error")) check = { ...check, ruleConsistency: false, taskResolution: "partial" }
-    if (options.ablation !== "checks-off") check.questionChecks = summarizeControlQuestions(options.program, slice, scheduler.snapshot(), check.paths, check.diagnostics)
+    if (options.ablation !== "checks-off") check.questionChecks = summarizeControlQuestions(options.program, slice, currentDependencies(), check.paths, check.diagnostics)
     worklist?.sync(slice, check)
     if (options.sourceAssisted && !issues.has("$source")) currentAnswer = structuredClone(result)
     checkHistory.push({ revision: slice.revision, slice: structuredClone(slice), result: structuredClone(result), check: structuredClone(check) })
@@ -318,7 +322,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const assembleResult = (raw: unknown) => {
     if (!isSemanticInquiryStrategy(options.strategy)) return { result: raw, diagnostics: [] }
     const prepared = focus?.assemble(raw)
-    const assembled = assembleSemanticResult(options.program, slice, scheduler.snapshot(), prepared?.raw ?? raw, { sourceAssisted: options.sourceAssisted, unknownBindingKind })
+    const assembled = assembleSemanticResult(options.program, slice, currentDependencies(), prepared?.raw ?? raw, { sourceAssisted: options.sourceAssisted, unknownBindingKind })
     if (prepared?.diagnostics.length) assembled.diagnostics.push(...prepared.diagnostics)
     if (assembled.policyRules.length && !assembled.diagnostics.some(d => d.code === "semantic-result-stale")) {
       const merged = mergeControlSlice(slice, { schemaVersion: slice.schemaVersion, policyRules: assembled.policyRules }, options.program, evidenceContext())
@@ -350,7 +354,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
       else if (!item.progress.interpreted) add({ ...base, kind: "interpretation-gap", code: "source-needs-interpretation", detail: `${item.selected.name}: original source is read; its domain role and control relation are not yet interpreted.` })
       else if (item.origin !== "question-duty" && !item.progress.linked) add({ ...base, kind: "interpretation-gap", code: "source-call-unlinked", detail: `${item.selected.name}: interpreted source is not linked to its current caller/context.` })
     }
-    for (const dependency of scheduler.snapshot().filter(d => d.decisive && !["checked", "inapplicable"].includes(d.state))) add({ kind: dependency.state === "read" ? "interpretation-gap" : "source-gap", code: dependency.code ?? "dependency-open", detail: `${dependency.symbol}: ${dependency.reason}`, questionId: dependency.questionId, decisive: true, affects: "behavior" })
+    for (const dependency of currentDependencies().filter(d => d.decisive && !["checked", "inapplicable"].includes(d.state))) add({ kind: dependency.state === "read" ? "interpretation-gap" : "source-gap", code: "code" in dependency ? dependency.code ?? "dependency-open" : "framework-dependency-open", detail: `${dependency.symbol}: ${"reason" in dependency ? dependency.reason : `${dependency.key}:${dependency.state}`}`, questionId: dependency.questionId, decisive: true, affects: "behavior" })
     for (const relation of worklist?.report().relations ?? []) if (relation.gap) add({ kind: "interpretation-gap", code: "source-relationship-unresolved", detail: `${relation.reason}: ${relation.gap}`, questionId: relation.questionId, decisive: false, affects: "behavior" })
     for (const path of lastPaths.filter(p => p.state !== "inapplicable")) for (const name of path.predicate.missingBindings) { const kind = unknownBindingKind(path.questionId, name); add({ kind, code: kind === "premise-unknown" ? "runtime-value-unspecified" : "source-value-uninterpreted", detail: `${name}: ${kind === "premise-unknown" ? "User runtime value is unspecified; retain the current residual branches." : "A source value/call relation has not been interpreted; it is not a missing user premise."}`, questionId: path.questionId, affects: "behavior" }) }
     if (options.program.mode === "conformance" && !options.program.policy) add({ kind: "policy-unspecified", code: "policy-unspecified", detail: "No independent policy is supplied; source behavior remains analyzable, conformance is undetermined.", affects: "conformance" })

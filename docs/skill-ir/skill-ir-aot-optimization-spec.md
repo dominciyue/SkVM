@@ -2609,7 +2609,7 @@ Go机械来源覆盖包含multiline链式route及if initializer的实际调用/�
 
 ### 14.38 AY question dependencies and usable domain execution
 
-2026-10-07，用户授权[AY0–AY23](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)，开发模型gpt-6.1-sol/max，被测模型沿用当前账号gpt-5.6-sol/high。当前状态authorized-not-started。AY承接AX未运行位置与复核发现的语义缺口，旧结果和原失败不改。新行为显式选择operation-evidence-v5，复用现有运行时与CLI，旧默认兼容；详细执行、首位置和验收以AY任务书为准。
+2026-10-07，用户授权[AY0–AY23](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)，开发模型gpt-6.1-sol/max，被测模型沿用当前账号gpt-5.6-sol/high。当前状态in-progress。AY承接AX未运行位置与复核发现的语义缺口，旧结果和原失败不改。新行为显式选择operation-evidence-v5，复用现有运行时与CLI，旧默认兼容；详细执行、首位置和验收以AY任务书为准。
 
 **问题依赖。** 由原问题和当前源码形成主体、资源、受保护操作及待判断关系的来源种子，追踪已支持语法中的赋值、字段、参数、返回、调用及控制前驱。source-invariant可达性筛选保留，新增查询依赖不能仅以questionId或函数名代替。机械排除有具体依赖与理由；模型提出的相关性与语义保持unreviewed。未知副作用、动态receiver、资源替换和异常/finally影响作为具名边界保存，缺边不能推出无影响。
 
@@ -2618,6 +2618,8 @@ AY初版支持域采用当前AST的局部def/use、分支合并和有限控制�
 **框架与对象。** 复用structure-index中的import、C3/super及receiver信息，operation-work既有框架/permission/serializer候选，operation-links与source-material-projection的精确连接。将请求分派、继承前置权限、对象检查、helper返回与受保护效果连接到当前问题，来源绑定框架版本和源码。唯一且有证据的机械关系由宿主接线；同名sibling、跨作用域同字符串、多候选及未知实参不得强连。目标是使现有关系实际进入取证与检查，不建立仓库专用路径。
 
 **解释、调度与交付。** 宿主按原问题记录已定位、已读、已解释、已连接、已检查及剩余影响，优先补当前决定性依赖。模型解释局部源码含义，宿主维护身份、组合关系、有限条件和逐题检查。最小字段修复保留其它有效材料；新增错误撤回过期检查。自然终答与结构结果同源，完整状态由原问题分母汇总；源码充分的条件答案可完整，缺失已可读取控制则partial。当前程序检查和独立源码质量分别验收。
+
+2026-10-08初版闭合约束：缺失、重复和外来question结果不能替代原分母；一个有界问题可独立关闭自身duties，另一问题未决不使其状态回退。结构候选只有当前entry/caller连接后才可标checked。v5把源码确认的DRF dispatch、route registration及依赖作为逐题前置边界；缺dispatch源码或尚未投影的关系保持具名pending/read，不能从方法体alone升为bounded。当前边界检查已接通，完整继承链组合仍在实施。账号传输拒绝的结果检查同样消耗保留check槽，不能误计为探索后继续宣称剩余检查。
 
 **材料与上下文。** v5材料语义身份question-control/v1，当前参数/对象投影与来源摘要分开。v4材料显式再验证才可接纳，不继承旧答案/rules/check。政策变化重新比较，前提变化重算受影响条件，源码变化按真实footprint失效。反馈保留必要源码、当前缺口和最小修复信息，原文可按需取回；真实重复轨迹决定是否进一步做局部会话，不因纸面架构增加多代理运行时。
 

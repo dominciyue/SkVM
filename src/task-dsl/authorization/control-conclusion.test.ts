@@ -141,6 +141,33 @@ test("question-level control trace isolates a wrong object and retains the other
   expect(bad.diagnostics.map((d: any) => d.code)).toContain("object-binding-missing")
   expect(bad.trace.rules.find((r: any) => r.key === "write")).toMatchObject({ kind: "effect", after: ["entry"], resource: "unbound", evidenceIds: ["ev"] })
 })
+test("omitting an original question leaves only that question unresolved", () => {
+  const multi = { ...plan, questions: [...plan.questions, { ...plan.questions[0]!, id: "other" }] }
+  const slice = state([rule("entry", "entry", []), rule("write", "effect", ["entry"], { complete: true })], {}, multi)
+  const checked = api.checkControlConclusions(multi, slice, answer("allow"), [])
+  expect(checked.taskResolution).toBe("partial")
+  expect(codes(checked)).toContain("control-question-missing")
+  expect(checked.questionChecks.find((q: any) => q.questionId === "q")).toMatchObject({ ruleConsistent: true, evidenceCoverage: "bounded" })
+  expect(checked.questionChecks.find((q: any) => q.questionId === "other")).toMatchObject({ ruleConsistent: false, evidenceCoverage: "unresolved" })
+})
+test("a duplicate or foreign answer cannot replace the original question denominator", () => {
+  const slice = state([rule("entry", "entry", []), rule("write", "effect", ["entry"], { complete: true })])
+  const raw = answer("allow")
+  const duplicate = api.checkControlConclusions(plan, slice, { ...raw, questions: [raw.questions[0], raw.questions[0]] }, [])
+  expect(codes(duplicate)).toContain("control-question-duplicate")
+  expect(duplicate.taskResolution).toBe("partial")
+  const foreign = api.checkControlConclusions(plan, slice, { ...raw, questions: [raw.questions[0], { ...raw.questions[0], questionId: "foreign" }] }, [])
+  expect(codes(foreign)).toContain("control-question-unknown")
+  expect(foreign.taskResolution).toBe("partial")
+})
+test("an acknowledged unknown question with no path cannot inherit another question's closure", () => {
+  const multi = { ...plan, questions: [...plan.questions, { ...plan.questions[0]!, id: "other" }] }
+  const slice = state([rule("entry", "entry", []), rule("write", "effect", ["entry"], { complete: true })], {}, multi)
+  const raw = answer("allow"), checked = api.checkControlConclusions(multi, slice, { ...raw, questions: [raw.questions[0], { ...raw.questions[0], questionId: "other", behavior: { disposition: "unknown", explanation: "Entry source is unread" }, missing: [{ kind: "source-gap", detail: "Entry is unread" }] }] }, [])
+  expect(checked.ruleConsistency).toBe(true)
+  expect(checked.taskResolution).toBe("partial")
+  expect(checked.questionChecks.find((q: any) => q.questionId === "other").evidenceCoverage).toBe("unresolved")
+})
 test("identical same-key binding errors in different questions are never deduplicated together", () => {
   const multi = { ...plan, questions: [...plan.questions, { ...plan.questions[0]!, id: "other" }] }
   const rules = ["q", "other"].flatMap(questionId => [rule("entry", "entry", [], { questionId }), rule("write", "effect", ["entry"], { questionId, resource: "unbound", complete: true })])

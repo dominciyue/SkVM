@@ -1,0 +1,34 @@
+{
+  "schemaVersion": "authorization-ay-verification/v1",
+  "date": "2026-10-08",
+  "stage": [
+    "AY6",
+    "AY9"
+  ],
+  "scope": "Initial per-question denominator, source-linked worklist closure, source-qualified framework boundaries, rejected check accounting and current answer contract",
+  "redEvidence": "Three missing/duplicate/foreign-question tests, two worklist tests, one framework boundary test and malformed-check budget regression failed before their corresponding shared fixes; retained in repair-events.jsonl",
+  "checks": [
+    {
+      "command": "bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl ./src/adapters/codex-account.test.ts ./src/adapters/codex-account-session.test.ts ./test/core/agent-loop.test.ts ./test/adapters/bare-agent.test.ts ./test/cli/run.test.ts",
+      "pass": 1004,
+      "skip": 1,
+      "fail": 0,
+      "assertions": 6414,
+      "files": 114
+    },
+    {
+      "command": "bun run typecheck",
+      "exitCode": 0
+    },
+    {
+      "command": "bunx tsc --noEmit -p ./results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/tsconfig.json",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "researchClaim": false,
+  "remaining": "Framework execution composition and independent full-quality real usage remain pending; native Download first delivered attempt remains partial with no machine final result."
+}

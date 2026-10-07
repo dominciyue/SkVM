@@ -222,7 +222,10 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
   }
   const rejectArguments = async (call: LLMToolCall, diagnostics: AccountArgumentDiagnostic[]) => {
     ensureActive(); argumentRejections++; rejectedToolCalls++
-    const output = { status: "error", code: "account-tool-arguments-invalid", diagnostics, toolBudget: toolBudget(), instruction: "The malformed call executed no source or semantic action. Correct only the named fields using the current phase schema and retain the same focus/draft." }
+    // Transport validation is still an actual tool attempt. A rejected result
+    // check spends its reserved slot, rather than consuming exploration twice.
+    if (call.name === "authorization_check_result" && program) checks++
+    const output = { status: "error", code: "account-tool-arguments-invalid", diagnostics, toolBudget: toolBudget(), instruction: "The malformed call executed no source or semantic action. Accepted source and drafts remain. Correct only the named fields using currentContext.focus and its current phase contract. A result check consumes one reserved check slot; answers use explanation and numeric paths[].path, with question/path/citation identity supplied by the host." }
     const record = { call, output, exitCode: 1, executed: false }; history.push(record)
     if (traceDir) await appendFile(path.join(traceDir, "tools.jsonl"), JSON.stringify(options.traceRedactor ? options.traceRedactor(record) : record) + "\n")
     return { output: JSON.stringify(output), exitCode: 1, durationMs: 0 }

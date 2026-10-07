@@ -290,3 +290,28 @@ test("accepted entry association is recomputed and source invalidation remains b
   f.work.sync(corrected)
   expect(f.work.snapshot().find((w: any) => w.kind === "entry")).toMatchObject({ state: "blocked", code: "source-invalidated" })
 })
+
+test("a checked question closes its own duties while a separate unresolved question stays open", async () => {
+  const f = await fixture({ "a.ts": "export function alpha() { return true; }\n", "b.ts": "export function beta() { return false; }\n" }, ["alpha", "beta"].map(id => ({ id, request: `Inspect ${id}`, entryHint: id, premises: [] })))
+  await f.work.run(createControlSlice(), 2)
+  const slice = mergeControlSlice(createControlSlice(), { schemaVersion: "authorization-control-slice/v1", rules: f.tools.evidence.map(e => ({ key: "entry", questionId: e.path === "a.ts" ? "alpha" : "beta", pathKey: "p", kind: "entry", after: [], claim: "Current entry", evidenceIds: [e.id] })) }, f.program, { questionIds: ["alpha", "beta"], shownEvidenceIds: f.tools.evidence.map(e => e.id) }).state
+  f.work.sync(slice, { ruleConsistency: false, taskResolution: "partial", questionChecks: [{ questionId: "alpha", ruleConsistent: true, evidenceCoverage: "bounded" }, { questionId: "beta", ruleConsistent: false, evidenceCoverage: "unresolved" }] })
+  expect(f.work.snapshot().filter((w: any) => w.questionId === "alpha").every((w: any) => w.state === "closed")).toBe(true)
+  expect(f.work.snapshot().filter((w: any) => w.questionId === "beta").some((w: any) => w.state !== "closed")).toBe(true)
+})
+
+test("an interpreted structural candidate remains unlinked until its current caller uses it", async () => {
+  const { tools } = await sourceConfirmedWork("def helper():\n    return True\ndef entry():\n    return helper()\n", "Inspect app.entry")
+  await tools.execute("source_read", { path: "app.py", startLine: 1, endLine: 4 })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect app.entry", premises: [] }] })
+  const allUnits = ["entry", "helper"].map(name => ({ questionId: "q", handle: name, role: name === "entry" ? "entry" : "helper", source: tools.symbolHints(`app.${name}`)[0], blocks: [{ name: "body", steps: [] }] }))
+  let units = allUnits.slice(0, 1)
+  const ev = tools.evidence[0]!.id, slice = { ...createControlSlice(), rules: allUnits.map(u => ({ id: u.handle, key: u.handle, questionId: "q", pathKey: "p", kind: "entry", after: [], claim: "Interpreted body", evidenceIds: [ev], sourceBound: true, sourceOrigin: { handle: u.handle } })) }
+  const work = api.createInquiryWorklist({ program, tools, structural: true, requireEntryBasis: true, semanticUnits: () => units })
+  work.sync(slice, { ruleConsistency: true, taskResolution: "bounded", questionChecks: [{ questionId: "q", ruleConsistent: true, evidenceCoverage: "bounded" }] })
+  units = allUnits
+  work.sync(slice, { ruleConsistency: true, taskResolution: "bounded", questionChecks: [{ questionId: "q", ruleConsistent: true, evidenceCoverage: "bounded" }] })
+  const helper = work.snapshot().find((w: any) => w.selected?.name === "helper")
+  expect(helper.progress).toMatchObject({ interpreted: true, linked: false, checked: false })
+  expect(helper.state).toBe("awaiting-binding")
+})

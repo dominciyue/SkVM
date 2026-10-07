@@ -88,6 +88,12 @@ export function checkControlConclusions(program: AuthorizationInquiryProgram, sl
   const rawQuestions = input && typeof input === "object" && Array.isArray((input as any).questions) ? (input as any).questions as unknown[] : []
   const answers = parsed.success ? parsed.data.questions : rawQuestions.flatMap(q => { const p = InquiryQuestionResultSchema.safeParse(q); return p.success ? [p.data] : [] })
   if (!parsed.success) diagnostics.push(diag("control-result-schema", "$", "Result has no valid complete structured envelope; usable question candidates are checked separately."))
+  for (const question of program.questions) {
+    const count = answers.filter(a => a.questionId === question.id).length
+    if (!count) diagnostics.push(diag("control-question-missing", question.id, "This original question has no valid result; another question's checked paths cannot replace it.", question.id))
+    else if (count > 1) diagnostics.push(diag("control-question-duplicate", question.id, "This original question has multiple results; provide one current result for its original identity.", question.id))
+  }
+  for (const answer of answers) if (!program.questions.some(q => q.id === answer.questionId)) diagnostics.push(diag("control-question-unknown", answer.questionId, "Result names a question outside the original request."))
   for (const conflict of slice.conflicts.filter(c => !c.resolved)) diagnostics.push(diag("control-conflict", conflict.id, "Unresolved conflicting extraction remains; explicit correction is needed.", (conflict.previous as { questionId?: string })?.questionId))
   diagnostics.push(...controlObjectDiagnostics(slice))
   for (const answer of answers) {
@@ -127,7 +133,8 @@ export function checkControlConclusions(program: AuthorizationInquiryProgram, sl
     }
   }
   const unique = diagnostics.filter((d, i) => diagnostics.findIndex(v => v.code === d.code && v.path === d.path && v.message === d.message && v.questionId === d.questionId) === i)
-  return { structureValid: parsed.success, sourceBound: slice.rules.length > 0 && slice.rules.every(r => r.sourceBound), ruleConsistency: !unique.length, semanticSupport: "unreviewed" as const, taskResolution: unique.length || !evaluated.paths.length || evaluated.paths.some(p => p.state === "blocked") || dependencies.some(d => d.decisive && !["checked", "inapplicable"].includes(d.state)) ? "partial" as const : "bounded" as const, paths: evaluated.paths, diagnostics: unique, policyComparisons, calculationCount: evaluated.calculationCount, questionChecks: summarizeControlQuestions(program, slice, dependencies, evaluated.paths, unique) }
+  const questionChecks = summarizeControlQuestions(program, slice, dependencies, evaluated.paths, unique)
+  return { structureValid: parsed.success, sourceBound: slice.rules.length > 0 && slice.rules.every(r => r.sourceBound), ruleConsistency: !unique.length, semanticSupport: "unreviewed" as const, taskResolution: unique.length || !questionChecks.length || questionChecks.some(q => !q.ruleConsistent || q.evidenceCoverage !== "bounded") ? "partial" as const : "bounded" as const, paths: evaluated.paths, diagnostics: unique, policyComparisons, calculationCount: evaluated.calculationCount, questionChecks }
 }
 /** Reuse the actual checker results; this is a scoped report, never a second semantic check. */
 export function summarizeControlQuestions(program: AuthorizationInquiryProgram, slice: ControlSlice, dependencies: DependencyCheckState[], paths: ControlPathEvaluation[], diagnostics: InquiryDiagnostic[]) {

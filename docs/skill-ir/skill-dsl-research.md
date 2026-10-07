@@ -30,7 +30,7 @@
 
 最新AX结果补充：官方账号已实际消费只读宿主工具；20首位置中9个已尝试、17份归档，指定模型通道quota refusal后11项待执行。418文件离线包和两份有效作者稿已交付，真实消费者0；十份自然领域回答只有旧premise fresh被主裁定full，形式链仍未满足。当前性质需求主要是可达性筛选与增量接口，两份真实提案标注3→4、7→7，合流未触发；原件和复核见§7.59。AW历史元数据字节减负保留，真实token和净收益仍需实测。
 
-当前关键问题是：**从原授权问题反向追踪相关源码，把继承权限、helper实参/返回对象和结论接成同一条可用链，减少反复整函数解释。** 用户授权[AY0–AY23](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)，使用当前账号gpt-5.6-sol/high实验、gpt-6.1-sol/max开发；第三方API仍暂停。22个真实首位置覆盖两任务完整使用、作者包、三变化和三臂重复对照。质量与编写复用约60/40指精力分配。新方法尚待实施和实测；费用、人力缺报保持unknown，历史0/6、Q1、readiness和保护输入不变。
+当前关键问题是：**从原授权问题反向追踪相关源码，把继承权限、helper实参/返回对象和结论接成同一条可用链，减少反复整函数解释。** 用户授权[AY0–AY23](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)，使用当前账号gpt-5.6-sol/high实验、gpt-6.1-sol/max开发；第三方API仍暂停。22个真实首位置覆盖两任务完整使用、作者包、三变化和三臂重复对照。质量与编写复用约60/40指精力分配。v5初版已接通；首个实际Download具名尝试交付自然答但独立源码partial、结构终答缺失。费用、人力缺报保持unknown，历史0/6、Q1、readiness和保护输入不变。
 
 ## 2. 研究目标与术语
 
@@ -2024,6 +2024,10 @@ AY1点验表：
 
 2026-10-08首个native-download原件使用97bea268：官方CLI已升级0.160.0，旧版本准入返回unavailable/not-started，host回调0，推理未派发、自然答未交付、用量unknown。读取本机生成的experimental ThreadStartParams/Response、DynamicToolCall及TurnStatus合同后，为精确0.160.0增加兼容；每会话仍验证实际隔离配置/roots/指令pins，未核验未来版本不准入。版本红测18pass/1预期fail，账号联合37pass/260断言。另独立核验发现inspect未比对新增状态字段，篡改报告红测复现并修复；不升级原件，下一请求具名登记。
 
+具名`native-download/capability-0-160`在2d76e592实际运行completed/delivered，31接受回调、8传输拒绝；宿主共享预算64含自动取证。可见input/output/cacheRead为4396476/15635/4227328，非缓存input169148，缓存已含input，不重复相加；USD/内部重试请求数unknown。自然答经独立只读AI核验及主代理点验为partial：请求级权限未闭合、混用非实际handler的object拒绝响应、缺省version行为误述。两次result check均被schema拒绝，checkHistory为空。评阅和诊断保存在AY results，不进入后续模型输入。
+
+本轮定位到额外宿主计数错误：传输层拒绝的两次check记为exploration，最终totalUsed64却checksRemaining2、explorationRemaining-2。红测复现后改为同一保留check槽；当前答阶段直接给机械answerContract和数字path索引说明，不替模型写语义答案。逐题分母三项红测、独立关闭/未连接candidate两项红测、dispatch缺边两项红测均转绿。相关广回归963pass/1平台skip及主类型通过；后续budget/answer-contract修复的native/account/focus联合65pass/406断言。框架前置边界已进入v5逐题检查，完整源码组合及真实复验继续。
+
 **执行与账号。** 明确failed终态与completion-unknown分开，旧AX状态只追加裁定；用量缺报保持unknown。没有活动请求后，新具名尝试沿用户已授权账号通道运行。若通道仍拒绝，独立工程继续，实验待恢复；第三方API保持暂停。上下文改造从真实重复内容和重解释次数开始，不以离线字节变化冒充实际token节省。
 
 **真实闭合。** 两份完整原skill分别处理Download/OWUI，优先消费两份AX原字节作者包，完成policy/premise/source三变化fresh与previous，再做N/M-S/D-S各两次重复。必需首位置22个，修订独立追加。N/D衡量整套工具，M/D衡量表示本身；共同模型、事实和宿主预算，执行侧不接触oracle、历史终答或本文根因裁定。每次共享故障当场红绿修复再继续受影响位置，不批量运行已知错误版本。
@@ -2112,7 +2116,7 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-05 / AS：** 局部选择/效果与同源结果已共用，两原skill及作者原稿实际消费；机制改善有原件，完整质量/变化复用/净收益未达，以completed-with-unmet-criteria收束，责任见§7.48。
 - **2026-10-05 / AT：** 持久解释事务、宿主身份、纯有限摘要、显示/读取/源码终检与通用词法修复已经实现及实际使用。12质量首位置0完整；4native原始自然说明充分2但formal0；4忠实稿消费均partial；fresh变化4partial、previous2阻断，37原件556/556。有限队列以completed-with-unmet-criteria收束；当前限制、真实修复和计量见§7.49。
 
-- **2026-10-07 / AY：** 接续AX复核，以问题依赖、框架/对象连接和真实使用为主；22首位置及正向效果判据预登记。当前开发授权，成果尚待实测，完整队列见§7.60。
+- **2026-10-08 / AY：** v5初版已接通，账号0.160.0具名Download实际交付，但源码partial且结构检查缺失；原件、缓存含入总input的成本及独立评阅保留。逐题分母、框架前置边界和传输拒绝check计数已红绿修复；继续真实闭合，收益未建立。22首位置和完整队列见§7.60。
 
 ## 12. 后续追加规则
 

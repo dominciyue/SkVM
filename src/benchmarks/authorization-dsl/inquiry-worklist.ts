@@ -14,7 +14,7 @@ import type { PropertyDemand } from "../../task-dsl/authorization/property-deman
 export type WorkState = "unlocated" | "awaiting-read" | "awaiting-interpretation" | "awaiting-binding" | "awaiting-verification" | "closed" | "external-unknown" | "blocked"
 export interface WorkItem {
   id: string; questionId: string; kind: InquiryRelation; question: string; entryHint?: string; symbol?: string;
-  origin: "question-duty" | "source-reference" | "explicit-dependency" | "structure-relation"; parentId?: string; dependencyId?: string; receiverClass?: string; relationId?: string;
+  origin: "question-duty" | "source-reference" | "explicit-dependency" | "structure-relation"; parentId?: string; dependencyId?: string; receiverClass?: string; relationId?: string; frameworkBoundary?: boolean;
   state: WorkState; decisive: boolean; code?: string; reason: string; candidates: DiscoverySymbol[]; selected?: DiscoverySymbol;
   selectedBy?: "explicit-selection" | "explicit-discovery-selection" | "unique-index-candidate" | "accepted-entry-citation" | "source-confirmed-candidate";
   callsiteEvidenceIds: string[]; evidenceIds: string[]; semanticSupport: "unreviewed";
@@ -80,6 +80,10 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
     const units = accepted && (options.structural || accepted.some(u => u.source)) ? accepted.filter(u => u.questionId === item.questionId && u.source?.id === item.selected?.id && u.receiverClass === item.receiverClass) : undefined
     return slice.rules.filter(r => r.questionId === item.questionId && (units ? units.some(u => u.handle === r.sourceOrigin?.handle) : r.evidenceIds.some(id => item.evidenceIds.includes(id))))
   }
+  const linkedUnit = (item: WorkItem) => {
+    const units = options.semanticUnits?.() ?? [], unit = units.find(u => u.questionId === item.questionId && u.source?.id === item.selected?.id && u.receiverClass === item.receiverClass)
+    return !!unit && (unit.role === "entry" || units.some(u => u.questionId === item.questionId && u.blocks.some(b => b.steps.some(s => s.kind === "call" && s.callee === unit.handle))))
+  }
   const declaredEntryLocation = (item: WorkItem, slice: ControlSlice) => {
     if (item.origin !== "question-duty" || item.kind !== "entry") return undefined
     const ids = new Set(slice.rules.filter(r => r.questionId === item.questionId && r.kind === "entry" && r.sourceBound).flatMap(r => r.evidenceIds))
@@ -93,6 +97,10 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
       const index = options.tools.structure, interpreted = options.semanticUnits ? options.semanticUnits().filter(u => u.questionId === parent.questionId && u.source).map(u => ({ id: u.source!.id, receiverClass: u.receiverClass })) : [...items.values()].filter(i => represented(i, currentSlice).length).flatMap(i => i.selected?.id ?? [])
       const work = operationWork(index, parent.selected.id, [...items.values()].filter(i => i.selected && coveredThrough(i.selected) >= i.selected.endLine).map(i => i.selected!.id), interpreted, parent.receiverClass, { sourceAssisted: options.requireEntryBasis, operationRoot: parent.origin === "question-duty" && parent.kind === "entry" })
       for (const d of work.frameworkDependencies) frameworkDependencies.set(d.key, d)
+      for (const gap of work.frameworkGaps) {
+        const id = stableId([parent.questionId, gap.key])
+        if (!items.has(id)) items.set(id, make(id, parent.questionId, "guard", "structure-relation", gap.reason, { parentId: parent.id, symbol: gap.key, relationId: gap.key, receiverClass: gap.receiverClass, frameworkBoundary: true, decisive: true, code: "framework-source-missing" }))
+      }
       for (const gap of work.gaps) relations.set(`${parent.questionId}:${gap.id}`, { id: gap.id, questionId: parent.questionId, sourceId: parent.selected.id, reason: `Inspect ${gap.expression} at ${gap.path}:${gap.startLine}`, state: gap.resolution, gap: gap.gap })
       for (const a of work.actions) {
         const candidate = options.tools.symbolById(a.candidateId); if (!candidate) continue
@@ -101,7 +109,7 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
         relations.set(`${parent.questionId}:${a.relationId}:${candidate.id}`, { id: a.relationId, questionId: parent.questionId, sourceId: parent.selected.id, candidateId: candidate.id, reason: a.reason, state: a.kind })
         if (candidate.id === parent.selected.id || [...items.values()].some(i => i.questionId === parent.questionId && i.selected?.id === candidate.id && i.receiverClass === a.receiverClass)) continue
         if ([...items.values()].filter(i => i.questionId === parent.questionId && i.origin === "structure-relation").length >= 48) { parent.code = "work-structure-limit"; break }
-        if (!items.has(id)) items.set(id, make(id, parent.questionId, a.obligation, "structure-relation", a.reason, { symbol: candidate.name, parentId: parent.id, candidates: [candidate], selected: candidate, relationId: a.relationId, receiverClass: a.receiverClass, callsiteEvidenceIds: [...parent.evidenceIds], reason: a.reason, decisive: a.decisive }))
+        if (!items.has(id)) items.set(id, make(id, parent.questionId, a.obligation, "structure-relation", a.reason, { symbol: candidate.name, parentId: parent.id, candidates: [candidate], selected: candidate, relationId: a.relationId, receiverClass: a.receiverClass, callsiteEvidenceIds: [...parent.evidenceIds], reason: a.reason, decisive: a.decisive, frameworkBoundary: a.frameworkBoundary }))
       }
       return
     }
@@ -125,8 +133,9 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
     }
   }
   let currentSlice: ControlSlice
-  const sync = (slice: ControlSlice, check?: { ruleConsistency: boolean | null; taskResolution: string }): WorkItem[] => {
+  const sync = (slice: ControlSlice, check?: { ruleConsistency: boolean | null; taskResolution: string; questionChecks?: Array<{ questionId: string; ruleConsistent: boolean | null; evidenceCoverage: string }> }): WorkItem[] => {
     currentSlice = slice
+    const questionClosed = (questionId: string) => check?.questionChecks ? check.questionChecks.some(q => q.questionId === questionId && q.ruleConsistent === true && q.evidenceCoverage === "bounded") : !!check?.ruleConsistency && check.taskResolution === "bounded"
     for (const h of options.tools.history) if (["source-changed", "source-root-changed", "symlink-escape"].includes(h.result.code ?? "")) {
       const selector = (h.arguments as Record<string, unknown>).path
       // A symbol/search selector may name a directory or omit its path entirely.
@@ -165,7 +174,7 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
       if (item.origin === "question-duty" && item.kind !== "entry") {
         item.selected = root.selected; item.selectedBy = root.selectedBy; item.evidenceIds = [...root.evidenceIds]
         if (root.selected && invalidFiles.has(root.selected.path)) { transition(item, "blocked", "none", "Entry source changed; this related duty cannot be promoted.", "source-invalidated"); continue }
-        transition(item, check?.ruleConsistency && check.taskResolution === "bounded" ? "closed" : represented(item, slice).length ? "awaiting-verification" : root.state === "awaiting-interpretation" ? "awaiting-interpretation" : "awaiting-binding", check?.ruleConsistency && check.taskResolution === "bounded" ? "none" : represented(item, slice).length ? "check" : "interpret", "Question duty follows actual entry evidence; optional roles are not invented. A closed duty is only coverage of proposed bounded paths.")
+        transition(item, questionClosed(item.questionId) ? "closed" : represented(item, slice).length ? "awaiting-verification" : root.state === "awaiting-interpretation" ? "awaiting-interpretation" : "awaiting-binding", questionClosed(item.questionId) ? "none" : represented(item, slice).length ? "check" : "interpret", "Question duty follows actual entry evidence; optional roles are not invented. A closed duty is only coverage of proposed bounded paths.")
         continue
       }
       const choice = choices.get(item.id), requiresBasis = options.requireEntryBasis && item.origin === "question-duty" && item.kind === "entry"
@@ -189,21 +198,27 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
       if (coveredThrough(candidate) < candidate.endLine) { transition(item, "awaiting-read", "read", "A unique allowed candidate still has original lines not shown.", "source-range-unread"); continue }
       const proposed = represented(item, slice)
       if (!proposed.length) transition(item, "awaiting-interpretation", "interpret", "Original source is shown. Explain its role and conditions in a local update; citation is not interpretation.", "source-needs-interpretation")
+      else if (options.structural && !linkedUnit(item)) transition(item, "awaiting-binding", "bind", "This interpreted candidate has no current entry or source-bound caller link; another checked path cannot close it.", "source-link-missing")
       else if (item.parentId && item.origin !== "structure-relation" && !proposed.some(r => controlRuleReach(slice, r).ancestors.some(a => parentRules.some(p => p.id === a.id)))) transition(item, "awaiting-binding", "bind", "Accepted interpretation still needs an explicit link to the parent source rule.", "source-link-missing")
-      else transition(item, check?.ruleConsistency && check.taskResolution === "bounded" ? "closed" : "awaiting-verification", check?.ruleConsistency && check.taskResolution === "bounded" ? "none" : "check", "Source is represented by a linked proposal; meaning remains unreviewed.")
+      else transition(item, questionClosed(item.questionId) ? "closed" : "awaiting-verification", questionClosed(item.questionId) ? "none" : "check", "Source is represented by a linked proposal; meaning remains unreviewed.")
       discoverReferences(item)
     }
     if (options.structural) for (const item of items.values()) {
       const units = options.semanticUnits?.() ?? [], unit = units.find(u => u.questionId === item.questionId && u.source?.id === item.selected?.id && u.receiverClass === item.receiverClass)
-      const linked = !!unit && (unit.role === "entry" || units.some(u => u.questionId === item.questionId && u.blocks.some(b => b.steps.some(s => s.kind === "call" && s.callee === unit.handle))))
+      const linked = linkedUnit(item)
       const syntax = item.selected && options.skeletonState?.(item.selected.id, item.receiverClass)
       const read = !!item.selected && coveredThrough(item.selected) >= item.selected.endLine && item.code !== "source-invalidated"
       const demand = options.propertyDemand?.(item)
-      item.progress = { found: !!item.selected, read, skeleton: read && !!syntax?.modelCovered, interpreted: !!unit && item.code !== "source-invalidated", linked: linked && item.code !== "source-invalidated", checked: !!unit && read && !!check?.ruleConsistency && check.taskResolution === "bounded", ...(read && syntax?.modelCovered ? { skeletonRevision: syntax.revision } : {}), ...(demand ? { ...demand.coverage, requiredAnnotations: demand.requiredAnnotationCount, pendingAnnotations: demand.pendingAnnotationCount } : {}) }
+      item.progress = { found: !!item.selected, read, skeleton: read && !!syntax?.modelCovered, interpreted: !!unit && item.code !== "source-invalidated", linked: linked && item.code !== "source-invalidated", checked: linked && read && item.code !== "source-invalidated" && questionClosed(item.questionId), ...(read && syntax?.modelCovered ? { skeletonRevision: syntax.revision } : {}), ...(demand ? { ...demand.coverage, requiredAnnotations: demand.requiredAnnotationCount, pendingAnnotations: demand.pendingAnnotationCount } : {}) }
     }
     return snapshot()
   }
   const snapshot = () => structuredClone([...items.values()])
+  const boundaryStates = () => [...items.values()].filter(i => i.frameworkBoundary && i.decisive).flatMap(item => {
+    const operation = options.program.operationQuestions?.find(q => q.questionId === item.questionId)?.operationId
+    const affected = operation ? options.program.operationQuestions!.filter(q => q.operationId === operation).map(q => q.questionId) : [item.questionId]
+    return affected.map(questionId => ({ key: item.relationId ?? item.id, questionId, pathKey: "$framework", state: item.progress?.read ? item.progress.interpreted && item.progress.linked ? "checked" : "read" : "pending", decisive: true, symbol: item.symbol ?? item.id, sourceId: item.selected?.id }))
+  })
   const selectCandidate = (selection: { questionId: string; itemId: string; candidateId: string }) => {
     const item = items.get(selection.itemId)
     if (!item) return { status: "rejected", code: "work-item-missing" }
@@ -246,5 +261,5 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
     }
     return actions.slice(start)
   }
-  return { sync, run, snapshot, selectCandidate, actions, report: () => ({ relations: structuredClone([...relations.values()]), frameworkDependencies: structuredClone([...frameworkDependencies.values()]) }) }
+  return { sync, run, snapshot, selectCandidate, actions, boundaryStates, report: () => ({ relations: structuredClone([...relations.values()]), frameworkDependencies: structuredClone([...frameworkDependencies.values()]) }) }
 }

@@ -1,0 +1,108 @@
+{
+  "schemaVersion": "authorization-ay-review/v1",
+  "date": "2026-10-08",
+  "attemptId": "native-download/capability-0-160",
+  "gitRevision": "2d76e5921ef958bf4bafc6c68d7e21eaba0d6607",
+  "answerSha256": "55d28024431d012fa9a445b526820472ee04966884d12232cf6a59068b948214",
+  "reviewType": "independent-readonly-AI-review-with-primary-source-adjudication",
+  "reviewers": [
+    "ay_native_source_review",
+    "ay_native_protocol_review"
+  ],
+  "humanAnnotation": false,
+  "quality": "partial",
+  "machineResultPresent": false,
+  "currentCheckPresent": false,
+  "sourceFindings": [
+    {
+      "answerLines": [
+        24,
+        28
+      ],
+      "judgment": "decisive-source-omission",
+      "detail": "Request-level controls were left as an assumption despite allowed source-visible dispatch/initial and class permission configuration.",
+      "source": [
+        "src/documents/views.py:1008-1022",
+        "framework/rest_framework-3.18.1/rest_framework/views.py:404-421",
+        "framework/rest_framework-3.18.1/rest_framework/views.py:490-529",
+        "src/documents/permissions.py:30-44",
+        "framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246"
+      ]
+    },
+    {
+      "answerLines": [
+        19,
+        27
+      ],
+      "judgment": "incorrect-source-path",
+      "detail": "The prose attributed the actual owner-aware handler failure to a separate DRF object-permission path. The actual helper failure returns HttpResponseForbidden.",
+      "source": [
+        "src/documents/views.py:1401-1427",
+        "src/documents/permissions.py:624-635"
+      ]
+    },
+    {
+      "answerLines": [
+        32
+      ],
+      "judgment": "incorrect-missing-versus-invalid",
+      "detail": "Absent version selects latest; invalid or unavailable explicitly requested version follows the error branches.",
+      "source": [
+        "src/documents/versioning.py:169-195"
+      ]
+    },
+    {
+      "answerLines": [
+        7,
+        11,
+        36,
+        52
+      ],
+      "judgment": "supported-local-relationships",
+      "detail": "Handler delegation, root authorization preceding effective version selection, and archive/original representation selection are supported.",
+      "source": [
+        "src/documents/views.py:1429-1448",
+        "src/documents/views.py:1834-1839",
+        "src/documents/views.py:1368-1373"
+      ]
+    }
+  ],
+  "protocolFindings": [
+    {
+      "originalPointer": "raw/lifecycle.jsonl:337-348; run-result.authorizationInquiry.history[authorization_check_result]",
+      "detail": "Both result checks rejected at transport schema; summary/gaps/id/conditions/evidenceIds and later string path were not the advertised focused result contract."
+    },
+    {
+      "originalPointer": "run-result.authorizationInquiry.toolBudget",
+      "detail": "Actual terminal budget: totalUsed64, checksUsed0, checksRemaining2, explorationUsed64, explorationRemaining-2. Transport argument rejection had been charged to exploration rather than reserved checks.",
+      "rootCause": "src/benchmarks/authorization-dsl/inquiry-native.ts:rejectArguments"
+    },
+    {
+      "originalPointer": "run-result.authorizationInquiry.domain.checkHistory",
+      "detail": "Empty. Neither rejected check entered runtime.validate; the first embedded source correction also performed no semantic action."
+    },
+    {
+      "originalPointer": "run-result.authorizationInquiry.domain.focus.history",
+      "detail": "Focus changed from retained interpretation to answer when exploration was exhausted. This was budget-delivery, not a silent accepted source repair.",
+      "reviewerClaimAdjudication": "The scout described check exhaustion; primary inspection found reserved checks incorrectly still0-used, confirmed by a red regression."
+    }
+  ],
+  "primarySpotChecks": [
+    "src/documents/views.py:1401-1448",
+    "src/documents/views.py:1008-1022",
+    "src/documents/permissions.py:30-53",
+    "framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246",
+    "src/documents/versioning.py:169-195"
+  ],
+  "evaluatorProvidedToModel": false,
+  "nextExperimentInputs": "original task/skill/source only; review and repairs remain outside runtime allowlist",
+  "costs": {
+    "input": 4396476,
+    "output": 15635,
+    "cacheRead": 4227328,
+    "nonCachedInput": 169148,
+    "inputIncludesCached": true,
+    "actualUsd": null,
+    "internalRequests": null
+  }
+}

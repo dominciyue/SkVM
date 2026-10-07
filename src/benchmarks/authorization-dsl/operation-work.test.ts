@@ -97,3 +97,10 @@ test("source-assisted DRF method entry retains dispatch permission duties once w
   expect(work.actions.every(a => a.receiverClass === "app.View")).toBe(true)
   expect(operationWork(index, entry.id, [], [], "app.View", { sourceAssisted: true, operationRoot: false }).actions).toEqual([])
 })
+test("a current source-qualified dispatch override is an explicit framework boundary", async () => {
+  const index = await buildStructureIndex([{ path: "rest_framework/views.py", content: "class Base:\n    def dispatch(self, request):\n        self.initial(request)\n        return self.handle(request)\n    def initial(self, request):\n        return True\n" }, { path: "app.py", content: "from rest_framework.views import Base\nclass View(Base):\n    def dispatch(self, request):\n        return self.handle(request)\n    def handle(self, request):\n        return True\n" }], { repository: "anonymous", sourceRef: "r" })
+  const work = operationWork(index, index.symbols.find(s => s.qualifiedName === "app.View.handle")!.id, [], [], undefined, { sourceAssisted: true, operationRoot: true })
+  const dispatch = work.actions.find(a => index.symbols.find(s => s.id === a.candidateId)?.name === "dispatch")
+  expect(dispatch).toMatchObject({ frameworkBoundary: true, decisive: true, receiverClass: "app.View" })
+  expect(index.symbols.find(s => s.id === dispatch!.candidateId)!.qualifiedName).toBe("app.View.dispatch")
+})

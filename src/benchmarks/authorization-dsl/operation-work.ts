@@ -5,15 +5,16 @@ import type { BoundSemanticBlock } from "../../task-dsl/authorization/semantic-f
 import type { ControlSlice } from "../../task-dsl/authorization/control-slice.ts"
 import type { InquiryDiagnostic } from "../../task-dsl/authorization/inquiry.ts"
 
-export interface OperationWorkAction { id: string; obligation: "entry" | "principal-binding" | "resource-binding" | "guard" | "effect" | "exception"; kind: "read" | "interpret" | "link"; candidateId: string; relationId: string; reason: string; receiverClass?: string; decisive: boolean }
+export interface OperationWorkAction { id: string; obligation: "entry" | "principal-binding" | "resource-binding" | "guard" | "effect" | "exception"; kind: "read" | "interpret" | "link"; candidateId: string; relationId: string; reason: string; receiverClass?: string; decisive: boolean; frameworkBoundary?: boolean }
 const hash = (v: unknown) => createHash("sha256").update(JSON.stringify(v)).digest("hex")
 /** Structural candidates satisfy a need to inspect a relationship, never its authorization meaning. */
 export function operationWork(index: StructureIndex, entryId: string, readSymbols: string[], interpretedSymbols: Array<string | { id: string; receiverClass?: string }>, receiverClass?: string, options: { sourceAssisted?: boolean; operationRoot?: boolean } = {}) {
-  const entry = index.symbols.find(s => s.id === entryId), actions: OperationWorkAction[] = [], gaps: StructureCall[] = [], frameworkDependencies: SourceFactDependency[] = []
-  if (!entry) return { actions, gaps, frameworkDependencies }
-  const add = (candidateId: string, relationId: string, reason: string, obligation: OperationWorkAction["obligation"] = "guard", context?: string, decisive = false) => {
-    if (interpretedSymbols.some(s => typeof s === "string" ? s === candidateId : s.id === candidateId && s.receiverClass === context) || actions.some(a => a.candidateId === candidateId && a.receiverClass === context)) return
-    actions.push({ id: `opwork-${hash([entry.id, candidateId, relationId, context]).slice(0, 24)}`, obligation, kind: readSymbols.includes(candidateId) ? "interpret" : "read", candidateId, relationId, reason, decisive, ...(context ? { receiverClass: context } : {}) })
+  const entry = index.symbols.find(s => s.id === entryId), actions: OperationWorkAction[] = [], gaps: StructureCall[] = [], frameworkDependencies: SourceFactDependency[] = [], frameworkGaps: Array<{ key: string; reason: string; receiverClass: string }> = []
+  if (!entry) return { actions, gaps, frameworkDependencies, frameworkGaps }
+  const add = (candidateId: string, relationId: string, reason: string, obligation: OperationWorkAction["obligation"] = "guard", context?: string, decisive = false, frameworkBoundary = false) => {
+    const interpreted = interpretedSymbols.some(s => typeof s === "string" ? s === candidateId : s.id === candidateId && s.receiverClass === context)
+    if (interpreted && !frameworkBoundary || actions.some(a => a.candidateId === candidateId && a.receiverClass === context)) return
+    actions.push({ id: `opwork-${hash([entry.id, candidateId, relationId, context]).slice(0, 24)}`, obligation, kind: interpreted ? "link" : readSymbols.includes(candidateId) ? "interpret" : "read", candidateId, relationId, reason, decisive, ...(context ? { receiverClass: context } : {}), ...(frameworkBoundary ? { frameworkBoundary: true } : {}) })
   }
   for (const call of index.relatedCalls(entry.id, receiverClass)) {
     if (call.syntaxRole === "argument-default") continue
@@ -21,9 +22,9 @@ export function operationWork(index: StructureIndex, entryId: string, readSymbol
     for (const candidate of call.candidateIds) add(candidate, call.id, `Inspect AST-bound ${call.expression} at ${call.path}:${call.startLine}; arguments ${JSON.stringify(call.arguments)}. Source relevance and conditions still need interpretation.`, "guard", call.receiverClass, call.syntaxRole === "condition" || call.syntaxRole === "return")
   }
   for (const route of index.routes.filter(r => r.candidateIds.includes(entry.id))) {
-    add(route.id, route.sourceCallId, `Inspect source-bound ${route.method} ${route.path} registration, middleware ${JSON.stringify(route.middlewareExpressions)} and exact handler ${route.handlerExpression}. Registration syntax does not prove middleware meaning.`, "entry")
+    add(route.id, route.sourceCallId, `Inspect source-bound ${route.method} ${route.path} registration, middleware ${JSON.stringify(route.middlewareExpressions)} and exact handler ${route.handlerExpression}. Registration syntax does not prove middleware meaning.`, "entry", undefined, true, true)
     frameworkDependencies.push({ kind: "framework-model", key: `${route.model}:${route.id}`, revision: hash([route.sourcePath, index.symbols.find(s => s.id === route.id)?.sha256, route]) })
-    for (const expression of route.dependencyExpressions ?? []) for (const candidate of index.resolveName(expression, route.sourcePath).filter(s => s.kind === "function")) add(candidate.id, `${route.id}:dependency:${expression}`, `Inspect actual ${route.model} dependency ${expression}; constructor/import and route bind this source, not its authorization meaning.`, "principal-binding", candidate.className, true)
+    for (const expression of route.dependencyExpressions ?? []) for (const candidate of index.resolveName(expression, route.sourcePath).filter(s => s.kind === "function")) add(candidate.id, `${route.id}:dependency:${expression}`, `Inspect actual ${route.model} dependency ${expression}; constructor/import and route bind this source, not its authorization meaning.`, "principal-binding", candidate.className, true, true)
   }
   // DRF dispatch is enabled by source-visible qualified inheritance. All method
   // bodies and serializer declarations remain source candidates to be read.
@@ -32,7 +33,9 @@ export function operationWork(index: StructureIndex, entryId: string, readSymbol
   if ((entry.kind === "class" || options.sourceAssisted && options.operationRoot) && className && mro?.some(c => c.startsWith("rest_framework."))) {
     const frameworkSources = index.symbols.filter(s => s.module.startsWith("rest_framework.")).map(s => [s.path, s.sha256])
     frameworkDependencies.push({ kind: "framework-model", key: "drf-source-dispatch/v1", revision: hash(frameworkSources) })
-    for (const method of entry.kind === "class" ? ["initial", "check_permissions", "get_permissions", "create", "get_serializer", "get_serializer_class", "get_serializer_context", "perform_create"] : ["initial", "check_permissions", "get_permissions"]) for (const s of index.lookupMethod(className, method)) add(s.id, `drf:${className}:${method}`, `Source-qualified DRF method lookup for ${className}.${method}; inspect actual override/MRO body.`, method === "create" ? "entry" : "guard", className, true)
+    const dispatch = index.lookupMethod(className, "dispatch")
+    if (!dispatch.length) frameworkGaps.push({ key: `drf:${className}:dispatch`, receiverClass: className, reason: "Source-qualified DRF inheritance has no unique current dispatch body; upstream ordering remains an explicit source gap." })
+    for (const method of entry.kind === "class" ? ["dispatch", "initial", "check_permissions", "get_permissions", "create", "get_serializer", "get_serializer_class", "get_serializer_context", "perform_create"] : ["dispatch", "initial", "check_permissions", "get_permissions"]) for (const s of index.lookupMethod(className, method)) add(s.id, `drf:${className}:${method}`, `Source-qualified DRF method lookup for ${className}.${method}; inspect actual override/MRO body.`, method === "create" ? "entry" : "guard", className, true, method === "dispatch")
     const serializer = entry.kind === "class" && index.attribute(className, "serializer_class")
     if (serializer) {
       const candidates = index.resolveName(serializer.value, serializer.scope.path).filter(s => s.kind === "class")
@@ -47,7 +50,7 @@ export function operationWork(index: StructureIndex, entryId: string, readSymbol
       for (const c of cls) for (const method of ["has_permission", "has_object_permission"]) for (const s of index.lookupMethod(c.qualifiedName, method)) add(s.id, `drf:permission:${c.id}:${method}`, `permission_classes source assignment names ${c.qualifiedName}; applicability remains to be interpreted.`, "guard", c.qualifiedName)
     }
   }
-  return { actions, gaps, frameworkDependencies }
+  return { actions, gaps, frameworkDependencies, frameworkGaps }
 }
 
 /** Turn checker feedback into existing local actions; never synthesize source meaning. */

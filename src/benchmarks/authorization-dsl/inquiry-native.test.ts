@@ -43,6 +43,27 @@ test("ordinary skill runtime restricts common tools and actually executes domain
   await expect(createNativeInquiryRuntime({ inputFile: input, workDir: root, domainTools: false, traceDir: path.join(root, "source/trace") })).rejects.toThrow("outside")
 })
 
+test("malformed reserved checks consume check slots without stealing exploration or losing the current answer contract", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "ay-check-fields-")); await mkdir(path.join(root, "source"))
+  await writeFile(path.join(root, "source/app.py"), "def entry():\n    return True\n")
+  const inputFile = path.join(root, "input.json")
+  await writeFile(inputFile, JSON.stringify({ schemaVersion: "authorization-inquiry-input/v1", taskId: "reserved", repository: "anonymous", sourceRef: "r", sourceRoot: "source", allowedPaths: ["."], brief: "Inspect app.entry" }))
+  const runtime = await createNativeInquiryRuntime({ inputFile, workDir: root, domainTools: true, method: "M", strategy: "operation-evidence-v5", maxToolCalls: 3 })
+  await runtime.accountContext()
+  const call = { id: "bad-check", name: "authorization_check_result", arguments: { result: { answers: [{ summary: "Wrong field" }] } } }
+  const diagnostics = [{ path: "/result/answers/0", keyword: "required", message: "explanation required", expected: { missingProperty: "explanation" } }]
+  const first = JSON.parse((await runtime.rejectArguments(call, diagnostics)).output)
+  expect(first.toolBudget).toMatchObject({ totalUsed: 2, checksUsed: 1, checksRemaining: 1, explorationUsed: 1, explorationRemaining: 0 })
+  const context: any = await runtime.accountContext(false)
+  expect(context.focus.stage).toBe("answer")
+  expect(context.answerContract).toMatchObject({ focusId: context.focus.id, questionOrder: ["q1"], pathReference: "current per-question numeric path index", hostOwnedFields: ["questionId", "evidenceIds", "pathId", "conditions"] })
+  const second = JSON.parse((await runtime.rejectArguments({ ...call, id: "bad-check-repair" }, diagnostics)).output)
+  expect(second.toolBudget).toMatchObject({ totalUsed: 3, checksUsed: 2, checksRemaining: 0, explorationUsed: 1, explorationRemaining: 0 })
+  expect((await runtime.accountContext(false) as any).focus.id).toBe(context.focus.id)
+  expect(runtime.report().domain!.checkHistory).toEqual([])
+  await runtime.close()
+})
+
 async function budgetFixture(domainTools = true, maxToolCalls?: number) {
   const root = await mkdtemp(path.join(os.tmpdir(), "native-budget-"))
   await mkdir(path.join(root, "source"))

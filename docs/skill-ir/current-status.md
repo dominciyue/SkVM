@@ -1,12 +1,12 @@
 # Skill IR 当前状态
 
-更新于2026-10-07。工作分支为`skill-ir-aot`，仅发布到用户origin。AX离线交付`191a37e0`及复核`b8918e4d`已发布；用户已授权AY接续开发和账号实验。本页是唯一实时状态入口，历史任务书和原始结果保留当时记录。
+更新于2026-10-08。工作分支为`skill-ir-aot`，仅发布到用户origin。AX离线交付`191a37e0`及复核`b8918e4d`已发布；用户已授权AY接续开发和账号实验。本页是唯一实时状态入口，历史任务书和原始结果保留当时记录。
 
 ## 当前工作
 
 研究主线是 **按 skill/task 范围设计领域表达**。当前任务类为单 repo/ref、源码可见的授权与信任边界评估：围绕主体、资源、操作、条件和政策组织取证、判断与检查。质量约六成、编写复用约四成指开发投入安排，各项质量要求分别验收。
 
-**当前队列：[AY0–AY23 授权问题依赖、完整使用与收益验证](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)，`in-progress`。** AY登记22个首位置并承接AX11个未运行位置；账号已知终态修复和v5初版依赖/双入口红绿验证通过，框架与逐题闭合继续实施，完整任务/收益尚未验证。新开发线程使用`gpt-6.1-sol/max`，官方账号实验`gpt-5.6-sol/high`，用户已明确授权；第三方API及AV十二旧位置继续暂停。22首位置覆盖两完整原skill、两作者包消费、三变化fresh/previous和两任务三臂两次对照；正向效果以预登记质量/减负判据实测，首件与修订分列。方法合同见[spec AY](skill-ir-aot-optimization-spec.md#1438-ay-question-dependencies-and-usable-domain-execution)，决定见[研究§7.60](skill-dsl-research.md#760-ay-问题依赖完整使用与收益验证)，现场状态见[AY status](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/status.json)。
+**当前队列：[AY0–AY23 授权问题依赖、完整使用与收益验证](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)，`in-progress`。** AY登记22个首位置并承接AX11个未运行位置；账号已知终态修复和v5初版依赖/双入口已接通；首个真实Download具名尝试交付自然答，但独立源码partial、结构终答缺失。逐题分母、框架前置边界及schema拒绝check计数已红绿修复；完整链和收益继续验证。新开发线程使用`gpt-6.1-sol/max`，官方账号实验`gpt-5.6-sol/high`，用户已明确授权；第三方API及AV十二旧位置继续暂停。22首位置覆盖两完整原skill、两作者包消费、三变化fresh/previous和两任务三臂两次对照；正向效果以预登记质量/减负判据实测，首件与修订分列。方法合同见[spec AY](skill-ir-aot-optimization-spec.md#1438-ay-question-dependencies-and-usable-domain-execution)，决定见[研究§7.60](skill-dsl-research.md#760-ay-问题依赖完整使用与收益验证)，现场状态见[AY status](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/status.json)。
 
 **AX承接快照：** [AX0–AX20](../superpowers/plans/2026-10-07-authorization-property-analysis-and-account-execution.md)原状态`in-progress-account-channel-blocked`保留。20首位置中9已尝试、17归档、活动0；11待运行映射到AY新版本位置，旧分母不重写。生产树`6042b79e`的`explicit-source-revisit`保存`usageLimitExceeded`及明确failed事件，旧adapter记`completion-unknown`。AY先分开终态/交付/用量并追加只读裁定，确认旧执行结束后登记新尝试；原始unknown和缺报用量保持，未知活动请求不自动重发，不切换账号/模型/端点或购买额度。指定通道是否恢复以实际运行判断。
 
