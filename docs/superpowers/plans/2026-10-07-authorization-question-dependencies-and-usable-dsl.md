@@ -152,6 +152,10 @@ DRF下一小步工作计划（2026-10-08）：先从原轮次已保留且SHA一�
 
 本小步进展：v11直接局部函数与稳定外层参数沿同一binder/六角色/typed投影接通，Python签名不变；返回factory closure仍是来源候选。20项新反例、170focused/529断言、联合1111pass/1平台skip/6835断言及主/AY类型通过。两项独立疑点按具体反例点验：调用保留原控制区域，未知capture role与caller角色不匹配仍由既有typed checker拒绝；没有额外模型门槛。真实94冻结字节加supplement的探针保留49局部定义全部具名（26定义、21逃逸、2外层值），5个选中wrapper/factory未采用，model/read/annotation/use/target/network新增0，旧尝试不升级。下一小步依据已定位的原lock捕获Django View/base/re-export及直接decorator来源，TDD接通唯一未重绑定public import alias与失效依赖；仍不豁免class/method变换。随后继续实际closure/dispatch字段/handler及请求组合，具名账号复验，整个AY7和研究验收仍未勾选。
 
+来源public import小步设计：原Django 5.2.16 wheel SHA/size和94旧字节已核验，独立保留generic/__init__.py、base.py及utils/decorators.py，不执行/安装或修改旧输入。通用Python名字解析仅穿过当前唯一无条件模块import alias，逐hop检查当前绑定、终点定义及源码可见attribute/rebinding，循环/歧义/缺源/conditional/relative-unmodeled有具名gap；不执行模块初始化或按库名假定identity。Call保留selected hop path/SHA/原import跨度；实际MRO canonical base和各框架footprint纳入同一selected class binding sources，普通receiver/候选/材料关系按这些来源重验证，而不复制全局export inventory。匿名函数调用、继承、跨root同名decoy、alias/终点变更、cycle与实际材料撤回先红绿，再独立真实Django+DRF来源探针；只修候选/来源，不豁免descriptor、装饰器或callback调用。
+
+本小步进展：v12 public import/re-export来源链、canonical MRO及精确所选hop失效已接通，19新测试、155focused/409断言、联合1130pass/1平台skip/6880断言及主/AY类型通过。两个独立只读核验提供出处；主复现并修复未带alias的dotted import错选顶层名字、重绑定公开注解沿用旧receiver，以及依赖参数/装饰器helper遗漏hop字节四个反例。整文件SHA保守失效，未执行module初始化，relative/partial/conditional/cycle/重绑定保持具名。Django 5.2.16原wheel SHA/size和94旧字节核验，独立3源码加入100文件零模型探针：真实两个receiver均连接到原View，原缺base来源解除，六项View/descriptor来源工作保留；escaped factory、class/method变换和action receiver仍未采用。捕获网络1、探针模型/目标/网络0、model read/annotation/use=0，旧input/allowlist/答不升级。下一小步连接实际factory闭包的调用身份与环境、有限实例字段/dispatch handler，再闭合请求组合和具名账号复验；本阶段和实测收益仍未达。
+
 - 当前实施顺序（2026-10-08）：先用匿名模块实例/遮蔽/重绑定反例验证实际 receiver 来源，再在 v5 source skeleton 中保留唯一未重绑定实例的 source/SHA/class 证明，并生成普通 `value` 绑定。只接机械 receiver，不推断主体、资源、授权或字段 alias；字段传给错误 principal 参数仍报类型缺口。随后核验保留 OWUI 提案的零推理效果，再进入框架组合和真实具名复验。
 - [ ] 复用 `actualArguments`、`bindOperationCalls` 和投影链，验证 positional/keyword/default/receiver、局部 alias、返回资源及替代资源；不能靠字符串相等跨作用域确认同一对象。
 - [ ] 唯一可机械证明的连接自动接线，歧义返回最小候选/差异供模型解释；不让模型重复输入 host 已确认的 ID。

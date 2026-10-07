@@ -14,17 +14,20 @@ export interface StructureSymbol extends DiscoverySymbol {
     gap?: string;
   }
 }
+export interface StructureBindingSource { path: string; sha256: string; startLine: number; endLine: number; name: string; target: string }
 export interface StructureCall {
   id: string; ownerId?: string; path: string; sha256: string; startLine: number; endLine: number;
   expression: string; receiver?: string; receiverClass?: string; arguments: string[]; candidateIds: string[]; resolution: "resolved" | "ambiguous" | "unresolved";
   basis: string[]; gap?: string; resultNames: string[]; syntaxRole: "condition" | "return" | "argument-default" | "body" | "source-context"
   receiverBinding?: { schemaVersion: "source-module-instance/v1"; name: string; className: string; classSha256: string; source: { path: string; sha256: string; startLine: number; endLine: number } }
   argumentFacts?: Array<{ expression: string; parameterName?: string; spread?: "positional" | "keyword"; literalKnown: boolean; literalValue?: FiniteValue }>
+  bindingSources?: StructureBindingSource[];
 }
 export interface StructureRoute { id: string; sourceCallId: string; sourcePath: string; startLine: number; endLine: number; method: string; path: string; handlerExpression: string; candidateIds: string[]; middlewareExpressions: string[]; dependencyExpressions?: string[]; dependencyCallIds?: string[]; bindingGap?: string; bindingSources?: Array<{ path: string; sha256: string; startLine: number; endLine: number }>; model: string }
 export interface StructureRequestDependency {
   id: string; sourceCallId: string; ownerId: string; parameter?: string; constructor: string; expression: string; candidateIds: string[];
   resolution: "resolved" | "ambiguous" | "unresolved"; model: "fastapi-source-injection/v1"; gap?: string;
+  bindingSources?: StructureBindingSource[];
 }
 export interface StructureRequestMiddleware {
   id: string; sourceCallId: string; routerName: string; expression: string; qualifiedName: string; arguments: string[];
@@ -32,6 +35,7 @@ export interface StructureRequestMiddleware {
   registrationContext: Array<{ kind: string; expression: string; startLine: number; endLine: number }>;
   candidateIds: string[]; receiverClass?: string; methodCandidates: Array<{ method: string; candidateId: string }>;
   sources: Array<{ id: string; path: string; sha256: string }>; registrationBinding: "resolved" | "possible"; executionOrder: "unproven"; model: "fastapi-source-asgi/v1"; gap?: string;
+  bindingSources?: StructureBindingSource[];
 }
 export interface StructureRequestAction {
   id: string; receiverClass: string; actionName: string; sourceId: string; sourceCallId: string; constructor: string; arguments: string[];
@@ -39,14 +43,16 @@ export interface StructureRequestAction {
   methodMappings: Array<{ method: string; actionName: string; candidateIds: string[]; declarationId: string; sourceId: string }>;
   routeIds: string[]; sourceCandidates: Array<{ role: string; candidateId: string; receiverClass?: string }>;
   sources: Array<{ id: string; path: string; sha256: string }>; mappingBinding: "unproven"; invocation: "unproven"; model: "drf-source-action/v1"; gap?: string;
+  bindingSources?: StructureBindingSource[];
 }
 export interface StructureClassDecorator {
   id: string; receiverClass: string; declaringClass: string; sourceId: string; declarationId: string; sourceCallId?: string; expression: string; arguments: string[];
   source: { path: string; sha256: string; startLine: number; endLine: number };
   sourceCandidates: Array<{ role: "factory" | "decorator" | "returned-callable" | "argument-call" | "helper"; candidateId: string }>;
   sources: Array<{ id: string; path: string; sha256: string }>; invocation: "unproven"; transformation: "unproven"; model: "source-class-decorator/v1"; gap?: string;
+  bindingSources?: StructureBindingSource[];
 }
-interface FileScope { path: string; sha256: string; module: string; language: "python" | "go"; aliases: Record<string, string>; moduleAliases: Record<string, string>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; localNames: string[]; groupPaths: string[]; registrationContext: StructureRequestMiddleware["registrationContext"] }>; routerAliases: Array<{ name: string; value: string; ownerId?: string; localNames: string[] }>; moduleAssignments: Record<string, number>; moduleAttributeWrites: string[]; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean; requestOptionsUnmodeled: boolean; startLine: number; endLine: number }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; dependencies: Array<{ constructor: string; expression: string; sourceCallId: string; parameter?: string }>; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string; requestOptionsUnmodeled: boolean }> }
+interface FileScope { path: string; sha256: string; parsePartial: boolean; module: string; language: "python" | "go"; aliases: Record<string, string>; moduleAliases: Record<string, string>; moduleAliasSources: Record<string, StructureBindingSource>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; localNames: string[]; groupPaths: string[]; registrationContext: StructureRequestMiddleware["registrationContext"] }>; routerAliases: Array<{ name: string; value: string; ownerId?: string; localNames: string[] }>; moduleAssignments: Record<string, number>; moduleAttributeWrites: string[]; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean; requestOptionsUnmodeled: boolean; startLine: number; endLine: number }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; dependencies: Array<{ constructor: string; expression: string; sourceCallId: string; parameter?: string }>; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string; requestOptionsUnmodeled: boolean }> }
 const hash = (v: unknown) => createHash("sha256").update(typeof v === "string" ? v : JSON.stringify(v)).digest("hex")
 let initialized: Promise<Map<string, Language>> | undefined
 function languages() {
@@ -98,16 +104,19 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     const parser = new Parser(); parser.setLanguage(loaded.get(language)!)
     const tree = parser.parse(file.content)!
     try {
-      const root = tree.rootNode, sha256 = hash(file.content), module = moduleName(file.path, language), aliases: Record<string, string> = {}, moduleAliases: Record<string, string> = {}, symbols: StructureSymbol[] = []
+      const root = tree.rootNode, sha256 = hash(file.content), module = moduleName(file.path, language), aliases: Record<string, string> = {}, moduleAliases: Record<string, string> = {}, moduleAliasSources: Record<string, StructureBindingSource> = {}, symbols: StructureSymbol[] = []
       if (root.hasError) diagnostics.push({ path: file.path, code: "structure-parse-partial" })
       if (language === "python") for (const n of descendants(root, ["import_statement", "import_from_statement"])) {
         const from = field(n, "module_name")?.text
         const imported = children(n).filter(c => c.type === "aliased_import" || c.type === "dotted_name" && c.id !== field(n, "module_name")?.id)
         for (const v of imported) {
           const name = field(v, "name")?.text ?? v.text, alias = field(v, "alias")?.text ?? (from ? name : name.split(".")[0]!)
-          const qualified = from ? `${from}.${name}` : name
+          const qualified = from ? `${from}.${name}` : field(v, "alias") ? name : name.split(".")[0]!
           aliases[alias] = qualified.startsWith(".") ? `${module.split(".").slice(0, -1).join(".")}${qualified}` : qualified
-          if (n.parent?.id === root.id) moduleAliases[alias] = aliases[alias]!
+          if (n.parent?.id === root.id) {
+            moduleAliases[alias] = aliases[alias]!
+            moduleAliasSources[alias] = { path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, name: `${module}.${alias}`, target: from?.startsWith(".") ? `${from}.${name}` : aliases[alias]! }
+          }
         }
       }
       else for (const n of descendants(root, ["import_spec"])) {
@@ -322,7 +331,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           if (raw) includes.push({ callId: raw.call.id, receiver: expression.slice(0, expression.lastIndexOf(".")), child: (args.filter(a => a.type !== "keyword_argument")[method === "mount" ? 1 : 0] ?? args.find(a => field(a, "name")?.text === (method === "mount" ? "app" : "router"))?.childForFieldName("value"))?.text ?? "", prefix: ancestor || method === "mount" ? "$dynamic" : args.find(a => field(a, "name")?.text === "prefix")?.childForFieldName("value")?.text ?? '""', requestOptionsUnmodeled: requestOptionsUnmodeled(args) })
         }
       }
-      scopes.push({ path: file.path, sha256, module, language, aliases, moduleAliases, symbols, rawCalls, routerAliases, moduleAssignments, moduleAttributeWrites, constants, routers, decorators, includes })
+      scopes.push({ path: file.path, sha256, parsePartial: root.hasError, module, language, aliases, moduleAliases, moduleAliasSources, symbols, rawCalls, routerAliases, moduleAssignments, moduleAttributeWrites, constants, routers, decorators, includes })
     } finally { tree.delete(); parser.delete() }
   }
   const symbols = scopes.flatMap(f => f.symbols), scopeFor = (s: StructureSymbol) => scopes.find(f => f.path === s.path)!
@@ -342,7 +351,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     if (s.language === "go") addName(goNames, s.qualifiedName.replaceAll("/", "."), s)
     else { const parts = s.qualifiedName.split("."); for (let i = 1; i < parts.length; i++) addName(pythonSuffixes, parts.slice(i).join("."), s) }
   }
-  const matching = (text: string) => {
+  const lexicalMatching = (text: string) => {
     if (matchingCache.has(text)) return matchingCache.get(text)!
     const candidates = [...(exactNames.get(text) ?? [])], parts = text.replaceAll("/", ".").split(".")
     if (!candidates.length) candidates.push(...(pythonSuffixes.get(text) ?? []))
@@ -351,6 +360,35 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     if (!candidates.length) for (let i = 0; i < parts.length; i++) { const found = goNames.get(parts.slice(i).join(".")); if (found?.length) { candidates.push(...found); break } }
     const found = [...new Map(candidates.map(c => [c.id, c])).values()]; matchingCache.set(text, found); return found
   }
+  const nameFactsCache = new Map<string, { candidates: StructureSymbol[]; sources: StructureBindingSource[]; gap?: string }>()
+  const uniqueBindingSources = (sources: StructureBindingSource[]) => [...new Map(sources.map(s => [JSON.stringify(s), s])).values()]
+  const importWrites = (name: string) => scopes.some(s => s.moduleAttributeWrites.some(write => write === name || name.startsWith(`${write}.`)))
+  // Follow only source-qualified public module imports. The chain contributes
+  // dependency bytes; importing/executing a module is never simulated here.
+  const nameFacts = (text: string, active = new Set<string>()): { candidates: StructureSymbol[]; sources: StructureBindingSource[]; gap?: string } => {
+    if (!active.size && nameFactsCache.has(text)) return nameFactsCache.get(text)!
+    if (active.has(text)) return { candidates: [], sources: [], gap: "source-import-reexport-cycle" }
+    const direct = lexicalMatching(text), parts = text.split(".")
+    let modules: FileScope[] = [], root = "", suffix: string[] = []
+    for (let i = parts.length - 1; i > 0; i--) {
+      const module = parts.slice(0, i).join("."), exact = scopes.filter(s => s.language === "python" && s.module === module), found = exact.length ? exact : scopes.filter(s => s.language === "python" && s.module.endsWith(`.${module}`))
+      if (found.length) { modules = found; root = parts[i]!; suffix = parts.slice(i + 1); break }
+    }
+    let facts: { candidates: StructureSymbol[]; sources: StructureBindingSource[]; gap?: string } = { candidates: direct, sources: [] }
+    if (modules.length > 1) facts = { candidates: [], sources: modules.flatMap(s => s.moduleAliasSources[root] ?? []), gap: "source-import-reexport-ambiguous" }
+    else if (modules.length === 1 && Object.hasOwn(modules[0]!.aliases, root)) {
+      const scope = modules[0]!, source = scope.moduleAliasSources[root], target = source?.target
+      const sources = source ? [source] : []
+      if (!source || scope.parsePartial || target?.startsWith(".") || scope.moduleAssignments[root] !== 1 || scope.moduleAliases[root] !== target || importWrites(`${scope.module}.${root}`) || importWrites(target!)) facts = { candidates: [], sources, gap: target?.startsWith(".") ? "source-import-reexport-relative-unmodeled" : "source-import-reexport-binding-unresolved" }
+      else {
+        const next = nameFacts([target, ...suffix].join("."), new Set(active).add(text)), terminalBound = next.candidates.every(s => !scopeFor(s).parsePartial && s.attributes.moduleBinding === "unconditional" && !s.attributes.bindingWrapped && s.boundary === "complete" && stableSourceBinding(s.name, scopeFor(s)))
+        facts = { candidates: terminalBound && !next.gap ? next.candidates : [], sources: uniqueBindingSources([...sources, ...next.sources]), ...(next.gap || !terminalBound || !next.candidates.length ? { gap: next.gap ?? (!terminalBound ? "source-import-reexport-target-unresolved" : "source-import-reexport-target-missing") } : {}) }
+      }
+    }
+    if (!active.size) nameFactsCache.set(text, facts)
+    return facts
+  }
+  const matching = (text: string) => nameFacts(text).candidates
   const mroCache = new Map<string, string[] | undefined>()
   const linearize = (name: string, active: string[] = []): string[] | undefined => {
     if (!active.length && mroCache.has(name)) return mroCache.get(name)?.slice()
@@ -370,7 +408,12 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
   }
   function qualifyBase(text: string, scope: FileScope, active: string[]) {
     const unknown = qualified(text, scope), match = /^([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)\[([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*(?:\s*,\s*[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)*)\]$/.exec(text)
-    if (!match || !stableSourceBinding(match[1]!, scope)) return unknown
+    if (!match) {
+      if (nameFacts(unknown).sources.length && !stableSourceBinding(text, scope)) return `source-import-reexport-unresolved:${unknown}`
+      const classes = matching(unknown).filter(s => s.kind === "class")
+      return classes.length === 1 ? classes[0]!.qualifiedName : unknown
+    }
+    if (!stableSourceBinding(match[1]!, scope)) return unknown
     const classes = matching(qualified(match[1]!, scope)).filter(s => s.kind === "class")
     if (classes.length !== 1) return unknown
     const cls = classes[0]!, owners = linearize(cls.qualifiedName, active)
@@ -387,6 +430,10 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     for (const cls of mro) { const candidates = symbols.filter(s => s.className === cls && s.name === method); if (candidates.length) return candidates }
     return []
   }
+  const classBindingSources = (className: string): StructureBindingSource[] => {
+    const owners = linearize(className) ?? [className]
+    return structuredClone(uniqueBindingSources([...nameFacts(className).sources, ...owners.flatMap(owner => matching(owner).filter(s => s.kind === "class").flatMap(cls => cls.bases.flatMap(base => nameFacts(qualified(base, scopeFor(cls))).sources)))]))
+  }
   const attribute = (className: string, name: string): { value: string; scope: FileScope } | undefined => {
     for (const cls of linearize(className) ?? []) { const s = matching(cls).find(s => s.kind === "class"); if (s && Object.hasOwn(s.attributes, name)) return { value: s.attributes[name]!, scope: scopeFor(s) } }
   }
@@ -396,8 +443,9 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
   }
   const moduleInstances = scopes.filter(s => s.language === "python").flatMap(scope => scope.routers.flatMap(r => {
     if (r.repeated || scope.moduleAssignments[r.name] !== 1 || !/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(r.constructor)) return []
+    if (nameFacts(moduleQualified(r.constructor, scope)).sources.length && !stableSourceBinding(r.constructor, scope)) return []
     const candidates = matching(moduleQualified(r.constructor, scope)).filter(s => s.kind === "class")
-    return candidates.length === 1 ? [{ name: `${scope.module}.${r.name}`, className: candidates[0]!.qualifiedName, path: scope.path, sha256: scope.sha256, classSha256: candidates[0]!.sha256, source: { path: scope.path, sha256: scope.sha256, startLine: r.startLine, endLine: r.endLine } }] : []
+    return candidates.length === 1 ? [{ name: `${scope.module}.${r.name}`, className: candidates[0]!.qualifiedName, path: scope.path, sha256: scope.sha256, classSha256: candidates[0]!.sha256, bindingSources: nameFacts(moduleQualified(r.constructor, scope)).sources, source: { path: scope.path, sha256: scope.sha256, startLine: r.startLine, endLine: r.endLine } }] : []
   })).filter(instance => !scopes.some(scope => scope.moduleAttributeWrites.some(write => instance.name === write || instance.name.endsWith(`.${write}`) || write.startsWith(`${instance.name}.`) || instance.name.split(".").some((_, i, parts) => write.startsWith(`${parts.slice(i).join(".")}.`)))))
   const instanceBinding = (name: string) => {
     const exact = moduleInstances.filter(v => v.name === name), candidates = exact.length ? exact : moduleInstances.filter(v => v.name.endsWith(`.${name}`))
@@ -421,25 +469,47 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       else call.gap = local.length === 1 ? local[0]!.localCallable!.gap ?? "source-local-callable-before-definition" : "source-local-callable-binding-unresolved"
       basis = ["AST local binding shadows module/import scope; direct callable and stable parameter captures required"]
     }
-    else if (!parts.length) { candidates = matching(qualified(name, scope)).filter(s => !s.className); basis = ["AST unqualified name in module/import scope"] }
+    else if (!parts.length) {
+      const facts = nameFacts(qualified(name, scope))
+      candidates = facts.candidates.filter(s => !s.className); basis = ["AST unqualified name in module/import scope"]
+      if (facts.sources.length) call.bindingSources = structuredClone(facts.sources)
+      call.gap = facts.gap
+      if (facts.sources.length && !stableSourceBinding(name, scope)) { candidates = []; call.gap = "source-import-reexport-consumer-binding-unresolved" }
+    }
     else if (root && raw.localNames.includes(root) && !raw.types[root]) { basis = ["AST local or parameter shadows module receiver without a bound type"] }
     else if (root && (raw.types[root] || root === "self" && receiverClass)) {
-      let type = root === "self" && receiverClass ? receiverClass : qualified(raw.types[root]!, scope)
-      for (const p of parts.slice(1)) { const a = attribute(type, p); type = a ? qualified(a.value, a.scope) : "" }
-      const classes = matching(type).filter(s => s.kind === "class")
+      const sourceType = (text: string, from: FileScope) => {
+        const type = qualified(text, from), facts = nameFacts(type)
+        if (facts.sources.length) call.bindingSources = uniqueBindingSources([...call.bindingSources ?? [], ...facts.sources])
+        if (facts.sources.length && Object.hasOwn(from.aliases, cleanType(text).split(".")[0]!) && !stableSourceBinding(text, from)) { call.gap = "source-import-reexport-consumer-binding-unresolved"; return "" }
+        return type
+      }
+      let type = root === "self" && receiverClass ? receiverClass : sourceType(raw.types[root]!, scope)
+      for (const p of parts.slice(1)) { const a = attribute(type, p); type = a ? sourceType(a.value, a.scope) : "" }
+      const facts = nameFacts(type), classes = facts.candidates.filter(s => s.kind === "class")
+      if (facts.sources.length) call.bindingSources = uniqueBindingSources([...call.bindingSources ?? [], ...facts.sources])
+      call.gap ??= facts.gap
       if (classes.length === 1) type = classes[0]!.qualifiedName
       candidates = type ? lookupMethod(type, name) : []; basis = ["AST parameter/receiver type and explicit field chain", ...(owner?.className ? ["C3 inheritance/override lookup"] : [])]
       if (candidates.length && type) call.receiverClass = type
     } else if (scope.language === "python" && root && scope.moduleAliases[root] && scope.moduleAssignments[root] !== 1) {
       basis = ["AST module import alias is reassigned; the original instance is not a current receiver proof"]
     } else {
-      candidates = matching(scope.language === "python" ? moduleQualified(call.expression, scope) : qualified(call.expression, scope)); basis = [scope.aliases[root ?? ""] ? "AST import/alias binding" : "AST qualified source binding"]
+      const facts = nameFacts(scope.language === "python" ? moduleQualified(call.expression, scope) : qualified(call.expression, scope))
+      candidates = facts.candidates; basis = [scope.aliases[root ?? ""] ? "AST import/alias binding" : "AST qualified source binding"]
+      if (facts.sources.length) call.bindingSources = structuredClone(facts.sources)
+      call.gap = facts.gap
       const instance = !candidates.length && scope.language === "python" && call.receiver ? instanceBinding(moduleQualified(call.receiver, scope)) : undefined
       if (instance) {
         candidates = lookupMethod(instance.className, name); basis.push("AST unique unreassigned module constructor instance and C3 method lookup")
+        if (instance.bindingSources.length) call.bindingSources = uniqueBindingSources([...call.bindingSources ?? [], ...instance.bindingSources])
         if (candidates.length === 1) { call.receiverClass = instance.className; call.receiverBinding = { schemaVersion: "source-module-instance/v1", name: instance.name, className: instance.className, classSha256: instance.classSha256, source: instance.source } }
         else if (candidates.length) call.receiverClass = instance.className
       }
+    }
+    if (call.receiverClass) {
+      const sources = uniqueBindingSources([...call.bindingSources ?? [], ...classBindingSources(call.receiverClass)])
+      if (sources.length) call.bindingSources = sources
     }
     call.candidateIds = candidates.map(c => c.id); call.resolution = candidates.length === 1 ? "resolved" : candidates.length > 1 ? "ambiguous" : "unresolved"; call.basis = basis
     if (!candidates.length) call.gap ??= "receiver/import/value binding unavailable; unique lexical name is not a call edge"
@@ -562,7 +632,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
   const candidateRevision = (className: string, method: string) => {
     const mro = linearize(className), owners = [className, ...(mro ?? [])]
     const relevant = scopes.filter(s => owners.some(name => name === s.module || name.startsWith(`${s.module}.`)))
-    return hash([mro, lookupMethod(className, method).map(s => [s.id, s.sha256]), relevant.map(s => [s.path, s.aliases]), moduleInstances.filter(i => owners.includes(i.className) || relevant.some(s => s.path === i.path))])
+    return hash([mro, lookupMethod(className, method).map(s => [s.id, s.sha256]), classBindingSources(className), relevant.map(s => [s.path, s.aliases]), moduleInstances.filter(i => owners.includes(i.className) || relevant.some(s => s.path === i.path))])
   }
   const relatedCalls = (symbolId: string, receiverClass?: string) => { const route = routes.find(r => r.id === symbolId); return scopes.flatMap(f => f.rawCalls.filter(r => route ? r.call.path === route.sourcePath && r.call.id !== route.sourceCallId && r.call.startLine >= route.startLine && r.call.endLine <= route.endLine : r.call.ownerId === symbolId).map(r => resolveCall(r, f, receiverClass))) }
   const resolveName = (text: string, sourcePath: string) => { const scope = scopes.find(f => f.path === sourcePath); return scope ? matching(qualified(text, scope)) : [] }
@@ -582,6 +652,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       if (!["fastapi.Depends", "fastapi.params.Depends", "fastapi.Security", "fastapi.params.Security"].includes(constructor)) return []
       const root = call.expression.split(".")[0]!, argument = call.arguments[0]?.replace(/^dependency\s*=\s*/, "") ?? "", names = /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(argument)
       const candidates = names ? matching(qualified(argument, scope)).filter(s => s.kind === "function" && !s.className) : []
+      const bindingSources = uniqueBindingSources([...nameFacts(constructor).sources, ...names ? nameFacts(qualified(argument, scope)).sources : []])
       const gap = syntaxGap ?? (!stableSourceBinding(call.expression, scope) ? "framework-constructor-rebound"
         : constructor.endsWith("Security") || call.arguments.length !== 1 ? "framework-dependency-options-unsupported"
         : !names ? "framework-dependency-target-dynamic"
@@ -589,7 +660,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         : !stableSourceBinding(argument, scope) || candidates.some(s => !stableSourceBinding(s.name, scopeFor(s))) ? "framework-dependency-target-rebound"
         : candidates.some(s => s.attributes.bindingWrapped && !routes.some(r => r.candidateIds.includes(s.id) && !r.bindingGap)) ? "framework-dependency-target-wrapper-unmodeled"
         : candidates.length !== 1 ? candidates.length ? "framework-dependency-target-ambiguous" : "framework-dependency-target-missing" : undefined)
-      return [{ id: `framework-${hash([symbolId, call.id, parameter]).slice(0, 24)}`, sourceCallId: call.id, ownerId: symbolId, ...(parameter ? { parameter } : {}), constructor, expression: argument, candidateIds: candidates.map(s => s.id), resolution: gap ? candidates.length > 1 ? "ambiguous" as const : "unresolved" as const : "resolved" as const, model: "fastapi-source-injection/v1" as const, ...(gap ? { gap } : {}) }]
+      return [{ id: `framework-${hash([symbolId, call.id, parameter]).slice(0, 24)}`, sourceCallId: call.id, ownerId: symbolId, ...(parameter ? { parameter } : {}), constructor, expression: argument, candidateIds: candidates.map(s => s.id), resolution: gap ? candidates.length > 1 ? "ambiguous" as const : "unresolved" as const : "resolved" as const, model: "fastapi-source-injection/v1" as const, ...(bindingSources.length ? { bindingSources } : {}), ...(gap ? { gap } : {}) }]
     })
   }
   const middlewareCache = new Map<string, StructureRequestMiddleware[]>()
@@ -604,7 +675,9 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       const raw = scope.rawCalls.find(r => r.call.id === call.id)!, shadowed = raw.localNames.includes(expression.split(".")[0]!)
       const candidates = !shadowed && /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(expression) ? matching(name).filter(s => s.kind === "class") : [], cls = candidates.length === 1 ? candidates[0] : undefined
       const mro = cls && linearize(cls.qualifiedName), classSources = [...new Map((mro ?? []).flatMap(owner => matching(owner).filter(s => s.kind === "class")).map(s => [s.id, s])).values()]
-      const methodCandidates = cls ? ["__init__", "__call__", ...(mro?.some(owner => ["starlette.middleware.base.BaseHTTPMiddleware"].includes(owner)) ? ["dispatch"] : [])].flatMap(method => lookupMethod(cls.qualifiedName, method).map(s => ({ method, candidateId: s.id }))) : []
+      const bindingSources = uniqueBindingSources([...nameFacts(name).sources, ...cls ? classBindingSources(cls.qualifiedName) : []])
+      const middlewareBases = matching("starlette.middleware.base.BaseHTTPMiddleware").filter(s => s.kind === "class").map(s => s.qualifiedName)
+      const methodCandidates = cls ? ["__init__", "__call__", ...(mro?.some(owner => middlewareBases.includes(owner)) ? ["dispatch"] : [])].flatMap(method => lookupMethod(cls.qualifiedName, method).map(s => ({ method, candidateId: s.id }))) : []
       const gap = registrationBinding !== "resolved" ? "framework-middleware-router-alias-unresolved"
         : !/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(expression) ? "framework-middleware-target-dynamic"
         : shadowed ? "framework-middleware-target-shadowed"
@@ -616,7 +689,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         : classSources.some(s => ["__init__", "__call__", "dispatch"].some(method => Object.hasOwn(s.attributes, method))) ? "framework-middleware-method-binding-unresolved"
         : methodCandidates.some(m => symbols.find(s => s.id === m.candidateId)?.attributes.bindingWrapped) ? "framework-middleware-method-wrapper-unmodeled"
         : !methodCandidates.some(m => m.method === "__call__" || m.method === "dispatch") ? "framework-middleware-entry-missing" : undefined
-      return { id: `middleware-${hash([routeId, call.id]).slice(0, 24)}`, sourceCallId: call.id, routerName, expression, qualifiedName: cls?.qualifiedName ?? name, arguments: call.arguments.filter((_, i) => i !== targetIndex), source: { path: call.path, sha256: call.sha256, startLine: call.startLine, endLine: call.endLine }, registrationContext: structuredClone(registrationContext), candidateIds: candidates.map(s => s.id), ...(cls ? { receiverClass: cls.qualifiedName } : {}), methodCandidates, sources: classSources.map(s => ({ id: s.id, path: s.path, sha256: s.sha256 })), registrationBinding, executionOrder: "unproven", model: "fastapi-source-asgi/v1", ...(gap ? { gap } : {}) }
+      return { id: `middleware-${hash([routeId, call.id]).slice(0, 24)}`, sourceCallId: call.id, routerName, expression, qualifiedName: cls?.qualifiedName ?? name, arguments: call.arguments.filter((_, i) => i !== targetIndex), source: { path: call.path, sha256: call.sha256, startLine: call.startLine, endLine: call.endLine }, registrationContext: structuredClone(registrationContext), candidateIds: candidates.map(s => s.id), ...(cls ? { receiverClass: cls.qualifiedName } : {}), methodCandidates, sources: classSources.map(s => ({ id: s.id, path: s.path, sha256: s.sha256 })), ...(bindingSources.length ? { bindingSources } : {}), registrationBinding, executionOrder: "unproven", model: "fastapi-source-asgi/v1", ...(gap ? { gap } : {}) }
     })
     middlewareCache.set(routeId, facts); return structuredClone(facts)
   }
@@ -637,6 +710,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       const verbs = new Set(["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "TRACE"])
       const httpMethods = declaredMethods?.literalKnown && Array.isArray(declaredMethods.literalValue) && declaredMethods.literalValue.every(v => typeof v === "string" && verbs.has(v.toUpperCase())) ? declaredMethods.literalValue.map(v => (v as string).toUpperCase()) : []
       const sourceCandidates: StructureRequestAction["sourceCandidates"] = [], sourceSymbols = new Map<string, StructureSymbol>()
+      const bindingSources = classBindingSources(receiverClass)
       const retain = (s: StructureSymbol) => sourceSymbols.set(s.id, s)
       const offer = (role: string, candidates: StructureSymbol[], context?: string) => { for (const s of candidates) { retain(s); if (!sourceCandidates.some(c => c.candidateId === s.id && c.receiverClass === context)) sourceCandidates.push({ role, candidateId: s.id, ...(context ? { receiverClass: context } : {}) }) } }
       for (const owner of mro) for (const cls of matching(owner).filter(s => s.kind === "class")) retain(cls)
@@ -663,6 +737,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         const route = routes.find(r => r.id === routeId)!, raw = scopes.flatMap(f => f.rawCalls).find(r => r.call.id === route.sourceCallId)!, ownerScope = scopes.find(f => f.path === route.sourcePath)!
         retain(symbols.find(s => s.id === routeId)!)
         const router = raw.call.receiver && instanceBinding(moduleQualified(raw.call.receiver, ownerScope))
+        if (router) bindingSources.push(...router.bindingSources, ...classBindingSources(router.className))
         if (router) for (const name of linearize(router.className) ?? []) for (const cls of matching(name).filter(s => s.kind === "class")) retain(cls)
         if (router) for (const name of ["register", "get_routes", "_get_dynamic_route", "get_method_map", "get_urls"]) offer("router", lookupMethod(router.className, name), router.className)
       }
@@ -680,7 +755,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         : !detail?.literalKnown || typeof detail.literalValue !== "boolean" ? "framework-action-detail-dynamic"
         : url && (!url.literalKnown || typeof url.literalValue !== "string") ? "framework-action-path-dynamic"
         : mappingGap
-      facts.push({ id: `action-${hash([receiverClass, method.id, decorator.id]).slice(0, 24)}`, receiverClass, actionName: method.name, sourceId: method.id, sourceCallId: decorator.sourceCallId, constructor: decorator.expression, arguments: decorator.arguments.map(a => a.parameter ? `${a.parameter}=${a.expression}` : a.expression), source: { path: method.path, sha256: method.sha256, startLine: decorator.startLine, endLine: decorator.endLine }, ...(typeof detail?.literalValue === "boolean" ? { detail: detail.literalValue } : {}), ...(typeof url?.literalValue === "string" ? { urlPath: url.literalValue } : {}), methodMappings, routeIds, sourceCandidates, sources: [...sourceSymbols.values()].map(s => ({ id: s.id, path: s.path, sha256: s.sha256 })), mappingBinding: "unproven", invocation: "unproven", model: "drf-source-action/v1", ...(gap ? { gap } : {}) })
+      facts.push({ id: `action-${hash([receiverClass, method.id, decorator.id]).slice(0, 24)}`, receiverClass, actionName: method.name, sourceId: method.id, sourceCallId: decorator.sourceCallId, constructor: decorator.expression, arguments: decorator.arguments.map(a => a.parameter ? `${a.parameter}=${a.expression}` : a.expression), source: { path: method.path, sha256: method.sha256, startLine: decorator.startLine, endLine: decorator.endLine }, ...(typeof detail?.literalValue === "boolean" ? { detail: detail.literalValue } : {}), ...(typeof url?.literalValue === "string" ? { urlPath: url.literalValue } : {}), methodMappings, routeIds, sourceCandidates, sources: [...sourceSymbols.values()].map(s => ({ id: s.id, path: s.path, sha256: s.sha256 })), ...(bindingSources.length ? { bindingSources } : {}), mappingBinding: "unproven", invocation: "unproven", model: "drf-source-action/v1", ...(gap ? { gap } : {}) })
     }
     actionCache.set(receiverClass, facts); return structuredClone(facts)
   }
@@ -697,13 +772,14 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       const offer = (role: StructureClassDecorator["sourceCandidates"][number]["role"], candidates: StructureSymbol[]) => { for (const s of candidates) { retain(s); if (!sourceCandidates.some(c => c.role === role && c.candidateId === s.id)) sourceCandidates.push({ role, candidateId: s.id }) } }
       receiverSources.forEach(retain)
       const named = /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(declaration.expression), factoryCall = declaration.sourceCallId && calls.find(c => c.id === declaration.sourceCallId)
+      const bindingSources = uniqueBindingSources([...classBindingSources(receiverClass), ...named ? nameFacts(qualified(declaration.expression, scope)).sources : []])
       const definitionsBound = cls.attributes.moduleBinding === "unconditional", candidates = named && definitionsBound ? matching(qualified(declaration.expression, scope)).filter(s => s.kind === "function" && !s.className) : []
       const role = declaration.sourceCallId ? "factory" : "decorator"
       offer(role, candidates)
       const returned = candidates.flatMap(c => returnedCallables.get(c.id) ?? []).flatMap(id => symbols.filter(s => s.id === id))
       if (declaration.sourceCallId) offer("returned-callable", returned)
-      if (definitionsBound) for (const call of calls.filter(c => c.path === cls.path && c.startLine >= declaration.startLine && c.endLine <= declaration.endLine && c.id !== declaration.sourceCallId)) if (call.resolution === "resolved" && /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(call.expression) && stableSourceBinding(call.expression, scope)) offer("argument-call", call.candidateIds.flatMap(id => symbols.filter(s => s.id === id)))
-      for (const source of [...candidates, ...returned]) for (const call of relatedCalls(source.id)) if (call.resolution === "resolved") offer("helper", call.candidateIds.flatMap(id => symbols.filter(s => s.id === id)))
+      if (definitionsBound) for (const call of calls.filter(c => c.path === cls.path && c.startLine >= declaration.startLine && c.endLine <= declaration.endLine && c.id !== declaration.sourceCallId)) if (call.resolution === "resolved" && /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(call.expression) && stableSourceBinding(call.expression, scope)) { offer("argument-call", call.candidateIds.flatMap(id => symbols.filter(s => s.id === id))); bindingSources.push(...call.bindingSources ?? []) }
+      for (const source of [...candidates, ...returned]) for (const call of relatedCalls(source.id)) if (call.resolution === "resolved") { offer("helper", call.candidateIds.flatMap(id => symbols.filter(s => s.id === id))); bindingSources.push(...call.bindingSources ?? []) }
       const gap = !definitionsBound ? "source-class-decorator-definition-binding-unresolved"
         : !named ? "source-class-decorator-target-dynamic"
         : !stableSourceBinding(declaration.expression, scope) || candidates.some(s => !stableSourceBinding(s.name, scopeFor(s))) ? "source-class-decorator-target-rebound"
@@ -711,17 +787,17 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         : candidates.some(s => s.attributes.bindingWrapped || s.attributes.callableAsync || s.boundary !== "complete") ? "source-class-decorator-callable-binding-unresolved"
         : !receiverBound ? "source-class-decorator-receiver-binding-unresolved"
         : declaration.sourceCallId && (!factoryCall || factoryCall.resolution !== "resolved" || !returned.length) ? "source-class-decorator-return-unresolved" : undefined
-      facts.push({ id: `class-decorator-${hash([receiverClass, cls.id, declaration.id]).slice(0, 24)}`, receiverClass, declaringClass: cls.qualifiedName, sourceId: cls.id, declarationId: declaration.id, ...(declaration.sourceCallId ? { sourceCallId: declaration.sourceCallId } : {}), expression: declaration.expression, arguments: declaration.arguments.map(a => a.parameter ? `${a.parameter}=${a.expression}` : a.expression), source: { path: cls.path, sha256: cls.sha256, startLine: declaration.startLine, endLine: declaration.endLine }, sourceCandidates, sources: [...sourceSymbols.values()].map(s => ({ id: s.id, path: s.path, sha256: s.sha256 })), invocation: "unproven", transformation: "unproven", model: "source-class-decorator/v1", ...(gap ? { gap } : {}) })
+      facts.push({ id: `class-decorator-${hash([receiverClass, cls.id, declaration.id]).slice(0, 24)}`, receiverClass, declaringClass: cls.qualifiedName, sourceId: cls.id, declarationId: declaration.id, ...(declaration.sourceCallId ? { sourceCallId: declaration.sourceCallId } : {}), expression: declaration.expression, arguments: declaration.arguments.map(a => a.parameter ? `${a.parameter}=${a.expression}` : a.expression), source: { path: cls.path, sha256: cls.sha256, startLine: declaration.startLine, endLine: declaration.endLine }, sourceCandidates, sources: [...sourceSymbols.values()].map(s => ({ id: s.id, path: s.path, sha256: s.sha256 })), ...(bindingSources.length ? { bindingSources: uniqueBindingSources(bindingSources) } : {}), invocation: "unproven", transformation: "unproven", model: "source-class-decorator/v1", ...(gap ? { gap } : {}) })
     }
     classDecoratorCache.set(receiverClass, facts); return structuredClone(facts)
   }
-  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v11"
+  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v12"
   const withSymbolSyntax = <T>(symbolId: string, visit: (root: Node, symbol: StructureSymbol) => T): Promise<T> => {
     const symbol = symbols.find(s => s.id === symbolId), file = symbol && files.find(f => f.path === symbol.path)
     if (!symbol || !file || hash(file.content) !== symbol.sha256) throw new Error("structure-source-missing")
     return withSourceSyntax(file.content, symbol.language, root => visit(root, symbol))
   }
-  return { schemaVersion: "authorization-structure-index/v1" as const, parser: parserVersion, relationshipVersion, symbols, calls, routes, diagnostics, lookupMethod, attribute, linearize, candidateRevision, relatedCalls, resolveName, qualifySourceName, requestDependencies, requestMiddleware, requestActions, classDecorators, withSymbolSyntax,
+  return { schemaVersion: "authorization-structure-index/v1" as const, parser: parserVersion, relationshipVersion, symbols, calls, routes, diagnostics, lookupMethod, attribute, linearize, classBindingSources, candidateRevision, relatedCalls, resolveName, qualifySourceName, requestDependencies, requestMiddleware, requestActions, classDecorators, withSymbolSyntax,
     revision: hash([sourceIdentity, parserVersion, relationshipVersion, symbols, calls, routes, diagnostics]), preparation: { files: files.length, bytes: files.reduce((s, f) => s + Buffer.byteLength(f.content), 0), durationMs: performance.now() - started, targetExecutions: 0 } }
 }
 export type StructureIndex = Awaited<ReturnType<typeof buildStructureIndex>>

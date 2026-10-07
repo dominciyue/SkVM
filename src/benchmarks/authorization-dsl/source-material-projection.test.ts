@@ -6,6 +6,7 @@ import { createInquiryTools } from "./inquiry-tools.ts"
 import { createInquiryDomainRuntime } from "./inquiry-domain-runtime.ts"
 import { lowerSemanticFlow } from "../../task-dsl/authorization/semantic-flow.ts"
 import { lowerSourceInterpretation } from "../../task-dsl/authorization/source-interpretation.ts"
+import { sourceRelationRevision } from "./operation-work.ts"
 import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
@@ -265,4 +266,21 @@ test("a proved local callee remains inside the actual source branch", async () =
   const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations: skeleton.anchors.filter(a => a.kind === "return").map(a => ({ anchorId: a.id, role: "context", returnOutcome: "allow", explanation: "Anonymous source normal return" })), unresolved: [] }, { index: tools.structure, itemId: "entry", handle: "entry", questionId: "q", role: "entry", propertyDirected: true })
   expect(result.diagnostics).toEqual([])
   expect(result.unit!.blocks.flatMap(b => b.steps).filter(s => s.kind === "call")).toEqual([])
+})
+
+test("adopted public import helpers depend on selected hop bytes while unrelated exports stay outside their footprint", async () => {
+  const files = [{ path: "app.py", content: "from api import helper\ndef entry(actor):\n    return helper(actor)\n" }, { path: "api/__init__.py", content: "from implementation import helper\n" }, { path: "implementation.py", content: "def helper(actor):\n    return actor\n" }], identity = { repository: "anonymous", sourceRef: "r" }, index = await buildStructureIndex(files, identity)
+  const entrySource = index.symbols.find(s => s.name === "entry")!, helperSource = index.symbols.find(s => s.name === "helper")!, call = index.relatedCalls(entrySource.id)[0]!, accepted: any[] = []
+  const store = createSourceMaterials({ ...identity, semanticVersion: "question-control/v1" })
+  for (const source of [entrySource, helperSource]) {
+    const u: any = { questionId: "q", itemId: source.name, handle: source.name, op: "add", role: source.name === "entry" ? "entry" : "helper", source: { id: source.id, path: source.path, sha256: source.sha256, startLine: source.startLine, endLine: source.endLine }, evidenceIds: ["ev"], coverage: "path", start: "body", complete: true, parameters: [{ name: "actor", type: "principal" }], blocks: [{ name: "body", steps: [...source.name === "entry" ? [{ kind: "call", name: "helper", claim: "Anonymous actual public source call", symbol: "helper", sourceCallId: call.id, arguments: [{ parameter: "actor", object: "actor" }] }] : [], { kind: "return", name: "returned", claim: "Anonymous actual source return", object: "actor", ...source.name === "entry" ? { outcome: "allow" } : {} }] }] }
+    accepted.push(u)
+    store.accept(u, [{ kind: "source-span", key: source.path, revision: source.sha256 }, { kind: "symbol-resolution", key: source.id, revision: source.sha256 }, { kind: "candidate-set", key: `relations:${source.id}:`, revision: sourceRelationRevision(index, source.id)! }], "test-authored")
+  }
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect source", premises: [] }] }), snapshot = store.snapshot()
+  expect(api.projectSourceMaterials(p, accepted, snapshot, index, { questionDirected: true }).uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
+  const changed = await buildStructureIndex(files.map(s => s.path === "api/__init__.py" ? { ...s, content: s.content + "# selected import bytes changed\n" } : s), identity)
+  expect(api.projectSourceMaterials(p, accepted, snapshot, changed, { questionDirected: true }).uses).toEqual([])
+  const unrelated = await buildStructureIndex([...files, { path: "other/__init__.py", content: "from implementation import helper\n" }], identity)
+  expect(api.projectSourceMaterials(p, accepted, snapshot, unrelated, { questionDirected: true }).uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
 })

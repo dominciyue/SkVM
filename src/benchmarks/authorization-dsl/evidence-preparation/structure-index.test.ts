@@ -496,3 +496,118 @@ for (const prefix of ["    match value:\n        case actor:\n            pass\n
   const index = await buildStructureIndex([{ path: "app.py", content: "def entry(actor, value):\n" + prefix + "    def guard():\n        return actor\n    guard()\n" }], { repository: "anonymous", sourceRef: "r" })
   expect(index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "guard")!.gap).toMatch(/^source-local-capture-/)
 })
+
+const publicSources = [
+  { path: "package/__init__.py", content: "from package.bridge import Actual as Public\n" },
+  { path: "package/bridge.py", content: "from package.implementation import Base as Actual\nfrom package.implementation import helper as inspect\n" },
+  { path: "package/implementation.py", content: "class Base:\n    def check(self, actor):\n        return actor\ndef helper(actor):\n    return actor\n" },
+  { path: "app.py", content: "from package import Public\nfrom package.bridge import inspect\nclass Entry(Public):\n    def entry(self, actor):\n        inspect(actor)\n        return self.check(actor)\n" },
+]
+test("a current public import chain binds its exact original class and function sources", async () => {
+  const index = await buildStructureIndex(publicSources, { repository: "anonymous", sourceRef: "r" }), entry = index.symbols.find(s => s.name === "entry")!
+  expect(index.linearize("app.Entry")).toEqual(["app.Entry", "package.implementation.Base"])
+  expect(index.resolveName("Public", "app.py").map(s => s.qualifiedName)).toEqual(["package.implementation.Base"])
+  const call = index.relatedCalls(entry.id).find(c => c.expression === "inspect")!
+  expect(call.candidateIds).toEqual([index.symbols.find(s => s.name === "helper")!.id])
+  expect((call as any).bindingSources.map((s: any) => s.path)).toEqual(["package/bridge.py"])
+  expect((index as any).classBindingSources("app.Entry").map((s: any) => s.path).sort()).toEqual(["package/__init__.py", "package/bridge.py"])
+})
+for (const replacement of ["from package.bridge import Actual as Public\nPublic = replacement\n", "if configured:\n    from package.bridge import Actual as Public\n", "import package.bridge as bridge\nfrom package.bridge import Actual as Public\nbridge.Actual = replacement\n"]) test(`public import binding stays unresolved: ${replacement.trim().split("\n").at(-1)}`, async () => {
+  const index = await buildStructureIndex(publicSources.map(s => s.path === "package/__init__.py" ? { ...s, content: replacement } : s).map(s => s.path === "app.py" ? { ...s, content: "from package import Public\ndef entry():\n    return Public()\n" } : s), { repository: "anonymous", sourceRef: "r" })
+  const call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id)[0]!
+  expect(call.resolution).toBe("unresolved")
+  expect(call.gap).toMatch(/^source-import-reexport-/)
+})
+test("rebound terminal definitions and cyclic public imports cannot supply the original target", async () => {
+  for (const extra of ["\nBase = replacement\n", ""]) {
+    const files = extra ? publicSources.map(s => s.path === "package/implementation.py" ? { ...s, content: s.content + extra } : s) : publicSources.map(s => s.path === "package/bridge.py" ? { ...s, content: "from package import Public as Actual\n" } : s)
+    const index = await buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" })
+    expect(index.resolveName("Public", "app.py")).toEqual([])
+    expect(index.lookupMethod("app.Entry", "check")).toEqual([])
+  }
+})
+test("duplicate public source modules never choose a shorter namesake target", async () => {
+  const files = [{ path: "one/package/__init__.py", content: "from one.implementation import helper as inspect\n" }, { path: "two/package/__init__.py", content: "from two.implementation import helper as inspect\n" }, { path: "one/implementation.py", content: "def helper():\n    return True\n" }, { path: "two/implementation.py", content: "def helper():\n    return False\n" }, { path: "app.py", content: "from package import inspect\ndef entry():\n    return inspect()\n" }]
+  const index = await buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id)[0]!
+  expect(call.resolution).toBe("unresolved")
+  expect(call.gap).toBe("source-import-reexport-ambiguous")
+})
+test("class source revisions include only selected import hop bytes", async () => {
+  const build = (files: typeof publicSources) => buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" }), original = await build(publicSources)
+  const commented = await build(publicSources.map(s => s.path === "package/__init__.py" ? { ...s, content: s.content + "# changed selected binding source\n" } : s))
+  const unrelated = await build([...publicSources, { path: "other/__init__.py", content: "from package.implementation import Base\n" }])
+  expect(commented.candidateRevision("app.Entry", "check")).not.toBe(original.candidateRevision("app.Entry", "check"))
+  expect(unrelated.candidateRevision("app.Entry", "check")).toBe(original.candidateRevision("app.Entry", "check"))
+})
+
+test("a real public module wins over a different-root suffix namesake", async () => {
+  const index = await buildStructureIndex([...publicSources, { path: "decoy/package.py", content: "class Public:\n    def check(self, actor):\n        return False\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect(index.linearize("app.Entry")).toEqual(["app.Entry", "package.implementation.Base"])
+})
+test("conditional terminal definitions and rebound consuming imports retain their public boundary", async () => {
+  const conditional = await buildStructureIndex(publicSources.map(s => s.path === "package/implementation.py" ? { ...s, content: "if configured:\n    class Base:\n        pass\n" } : s), { repository: "anonymous", sourceRef: "r" })
+  expect(conditional.resolveName("Public", "app.py")).toEqual([])
+  const rebound = await buildStructureIndex(publicSources.map(s => s.path === "app.py" ? { ...s, content: "from package.bridge import inspect\ninspect = replacement\ndef entry(actor):\n    return inspect(actor)\n" } : s), { repository: "anonymous", sourceRef: "r" })
+  expect(rebound.relatedCalls(rebound.symbols.find(s => s.name === "entry")!.id)[0]!.gap).toBe("source-import-reexport-consumer-binding-unresolved")
+})
+test("unmodeled relative public imports retain a named boundary", async () => {
+  const index = await buildStructureIndex(publicSources.map(s => s.path === "package/__init__.py" ? { ...s, content: "from .bridge import Actual as Public\n" } : s).map(s => s.path === "app.py" ? { ...s, content: "from package import Public\ndef entry():\n    return Public()\n" } : s), { repository: "anonymous", sourceRef: "r" })
+  expect(index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id)[0]!.gap).toBe("source-import-reexport-relative-unmodeled")
+})
+test("class decorator source footprints include the selected public base binding bytes", async () => {
+  const files = publicSources.map(s => s.path === "app.py" ? { ...s, content: s.content.replace("class Entry(Public):", "def decorate(cls):\n    return cls\n@decorate\nclass Entry(Public):") } : s)
+  const original = await buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" }), changed = await buildStructureIndex(files.map(s => s.path === "package/__init__.py" ? { ...s, content: s.content + "# current public source\n" } : s), { repository: "anonymous", sourceRef: "r" })
+  expect(original.classDecorators("app.Entry")[0]!.bindingSources!.map(s => s.path).sort()).toEqual(["package/__init__.py", "package/bridge.py"])
+  expect(changed.classDecorators("app.Entry")).not.toEqual(original.classDecorators("app.Entry"))
+})
+test("a partial public or terminal module cannot prove a current import chain", async () => {
+  for (const sourcePath of ["package/__init__.py", "package/implementation.py"]) {
+    const index = await buildStructureIndex(publicSources.map(s => s.path === sourcePath ? { ...s, content: s.content + "def ():\n    pass\n" } : s).map(s => s.path === "app.py" ? { ...s, content: "from package import Public\ndef entry():\n    return Public()\n" } : s), { repository: "anonymous", sourceRef: "r" })
+    const call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id)[0]!
+    expect(call.resolution).toBe("unresolved")
+    expect(call.gap).toMatch(/^source-import-reexport-/)
+  }
+})
+test("a module receiver retains its constructor's selected public import bytes", async () => {
+  const files = [{ path: "package/__init__.py", content: "from implementation import Gate\n" }, { path: "implementation.py", content: "class Gate:\n    def check(self, actor):\n        return actor\n" }, { path: "receivers.py", content: "from package import Gate\ngate = Gate()\n" }, { path: "app.py", content: "from receivers import gate\ndef entry(actor):\n    return gate.check(actor)\n" }]
+  const index = await buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id)[0]!
+  expect(call.candidateIds).toEqual([index.symbols.find(s => s.name === "check")!.id])
+  expect(call.bindingSources!.map(s => s.path)).toEqual(["package/__init__.py"])
+})
+test("a rebound consuming class alias cannot supply an inherited method or module receiver", async () => {
+  const inherited = await buildStructureIndex(publicSources.map(s => s.path === "app.py" ? { ...s, content: s.content.replace("class Entry(Public):", "Public = replacement\nclass Entry(Public):") } : s), { repository: "anonymous", sourceRef: "r" })
+  expect(inherited.lookupMethod("app.Entry", "check")).toEqual([])
+  const receiver = await buildStructureIndex([{ path: "package/__init__.py", content: "from implementation import Gate\n" }, { path: "implementation.py", content: "class Gate:\n    def check(self):\n        return True\n" }, { path: "app.py", content: "from package import Gate\nGate = replacement\ngate = Gate()\ndef entry():\n    return gate.check()\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect(receiver.relatedCalls(receiver.symbols.find(s => s.name === "entry")!.id)[0]!.resolution).toBe("unresolved")
+})
+
+test("an unaliased dotted import binds the top package without duplicating its module suffix", async () => {
+  const files = [{ path: "package/__init__.py", content: "def check():\n    return True\n" }, { path: "package/bridge.py", content: "def check():\n    return False\n" }, { path: "app.py", content: "import package.bridge\nimport package.bridge as bridge\ndef entry():\n    package.check()\n    package.bridge.check()\n    return bridge.check()\n" }]
+  const index = await buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" }), entry = index.symbols.find(s => s.name === "entry")!
+  expect(index.relatedCalls(entry.id).map(call => call.candidateIds.map(id => index.symbols.find(s => s.id === id)!.qualifiedName))).toEqual([["package.check"], ["package.bridge.check"], ["package.bridge.check"]])
+})
+
+test("a rebound public annotation cannot prove its original receiver class", async () => {
+  const index = await buildStructureIndex(publicSources.map(s => s.path === "app.py" ? { ...s, content: "from package import Public\nPublic = replacement\ndef entry(actor: Public):\n    return actor.check(actor)\n" } : s), { repository: "anonymous", sourceRef: "r" })
+  const call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id)[0]!
+  expect(call.resolution).toBe("unresolved")
+  expect(call.gap).toBe("source-import-reexport-consumer-binding-unresolved")
+})
+
+test("dependency facts retain the selected public callable binding bytes", async () => {
+  const files = publicSources.map(s => s.path === "app.py" ? { ...s, content: "from fastapi import Depends\nfrom package.bridge import inspect\ndef entry(actor=Depends(inspect)):\n    return actor\n" } : s)
+  const original = await buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" }), changed = await buildStructureIndex(files.map(s => s.path === "package/bridge.py" ? { ...s, content: s.content + "# current selected export\n" } : s), { repository: "anonymous", sourceRef: "r" })
+  const entry = original.symbols.find(s => s.name === "entry")!, facts = original.requestDependencies(entry.id)
+  expect(facts[0]!.resolution).toBe("resolved")
+  expect(changed.requestDependencies(entry.id)).not.toEqual(facts)
+  expect((facts[0] as any).bindingSources.map((s: any) => s.path)).toEqual(["package/bridge.py"])
+})
+
+test("class decorator helper work retains the selected public callable binding bytes", async () => {
+  const files = publicSources.map(s => s.path === "app.py" ? { ...s, content: "from package.bridge import inspect\ndef decorate(cls):\n    inspect(cls)\n    return cls\n@decorate\nclass Entry:\n    pass\n" } : s)
+  const original = await buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" }), changed = await buildStructureIndex(files.map(s => s.path === "package/bridge.py" ? { ...s, content: s.content + "# current selected export\n" } : s), { repository: "anonymous", sourceRef: "r" })
+  const facts = original.classDecorators("app.Entry")
+  expect(facts[0]!.sourceCandidates.some(c => c.role === "helper" && original.symbols.find(s => s.id === c.candidateId)?.name === "helper")).toBe(true)
+  expect(changed.classDecorators("app.Entry")).not.toEqual(facts)
+  expect(facts[0]!.bindingSources!.map(s => s.path)).toEqual(["package/bridge.py"])
+})

@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "authorization-development-review/v1",
+  "date": "2026-10-08",
+  "stage": "AY7-public-import-provenance",
+  "relationshipVersion": "source-bindings/v12",
+  "decision": "engineering-passing-request-adoption-and-research-benefit-pending",
+  "independentReadOnlyReviews": [
+    {
+      "agent": "ay_public_import_binding_review",
+      "scope": "Public re-export chain identity, current terminal binding, cycles and root ambiguity",
+      "finding": "No reproducible wrong new re-export target found; a dotted import without an alias may bind a wrong top-level name",
+      "mainVerification": "Reproduced a same-name package/module counterexample red, then fixed Python top-package binding; explicit aliases and qualified module suffixes remain valid"
+    },
+    {
+      "agent": "ay_public_import_footprint_review",
+      "scope": "Ordinary selected call/MRO import footprints and retained material withdrawal",
+      "finding": "Selected call hops enter sourceRelationRevision and selected public source changes withdraw the test material; unrelated modules stay outside the selected footprint",
+      "limits": "This did not cover dependency argument identifiers or decorator helper import hops; main targeted checks found omissions in both"
+    }
+  ],
+  "mainRedGreenCounterexamples": [
+    "Unaliased dotted import selected a same-name submodule function and duplicated the module suffix",
+    "A rebound public class parameter annotation borrowed the old receiver method",
+    "Dependency argument public import hop byte changes left framework facts unchanged",
+    "Decorator helper public import hop byte changes left framework facts unchanged"
+  ],
+  "verification": {
+    "newTests": 19,
+    "focused": { "pass": 155, "fail": 0, "assertions": 409, "files": 3 },
+    "joint": { "pass": 1130, "skip": 1, "fail": 0, "assertions": 6880, "files": 115, "durationMs": 13600 },
+    "mainTypes": "passed",
+    "ayTypes": "passed",
+    "frozenSourcesVerified": 94,
+    "djangoSupplement": { "path": "source-provenance/django-view-source-v1.json", "sha256": "2462a0db4e3157831f4c84cd584b5fed39ab466c91e96ec9b53cf27226bb806c" },
+    "realSourceProbe": { "path": "verification/paperless-django-view-replay.json", "sha256": "3b94ce831b8110114e9ad68e57ea204bfdecdf7ee6acec9b0bba55580fb67da8", "sourceFiles": 100, "viewAndDescriptorBodies": 6, "actualReceiverMros": 2 }
+  },
+  "boundaries": [
+    "Module initialization is not executed or certified by a syntactic import chain",
+    "Relative, partial, conditional, cyclic, ambiguous and rebound public names retain named gaps",
+    "Whole-file SHA conservatively invalidates any selected-hop file edit",
+    "Source candidate availability supplies no model read, descriptor application, class transformation or callback execution evidence",
+    "Returned closure invocation/environment, mutable fields, dynamic handlers and full framework requests remain pending"
+  ],
+  "modelReadEvidence": false,
+  "applicationSemanticUnitsAuthored": 0,
+  "materialUses": 0,
+  "modelExecutions": 0,
+  "targetExecutions": 0,
+  "networkRequests": { "sourceCapture": 1, "verificationProbe": 0 },
+  "originalInputsAndAllowlistsUnmodified": true,
+  "originalAttemptPromoted": false,
+  "costs": { "experimentTokens": 0, "developerAndScoutTokens": null, "usd": null, "humanTime": null },
+  "fullFrameworkComposition": "pending",
+  "researchGoalAchieved": false
+}

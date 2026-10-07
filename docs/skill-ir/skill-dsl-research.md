@@ -2062,6 +2062,10 @@ AY7直接局部capture小步（2026-10-08）：v11保留当前唯一、无条件
 
 真实[局部callable探针](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-local-callables-replay.json)核验94旧冻结文件和独立supplement；49定义均有具名边界（26定义、21逃逸、2外层值），选中5个工厂/wrapper，directSourceCalls=0。失败proof中的capture仅为部分source leads，不是绑定environment；model read/application annotation/material use=0，模型/目标/网络新增0，旧inputs/allowlists/答不升级。开发/探子token、USD与真人时间unknown，见[局部核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-local-callables.json)。原lock Django 5.2.16来源仅已定位，随后独立捕获/re-export和实际factory/dispatch字段/handler继续开发，完整请求、真实消费和净收益均未达。
 
+AY7 public import小步（2026-10-08）：v12只穿过当前唯一无条件模块alias并保留逐hop来源与canonical class，partial/relative/conditional/cycle/歧义、consumer/terminal重绑定及attribute写入具名；不执行模块初始化或据库名免除变换。两个独立只读核验返回具体出处：一项提出未带alias的多级import疑点，主以同名顶层/子模块红测复现并修复；主补查另外三项红测，修复重绑定公开注解沿用旧receiver以及依赖参数/decorator helper的hop字节遗漏。19新测试，155focused/409断言，新鲜联合1130pass/1平台skip/6880断言/115文件/13.60s，主/AY类型通过。所选hop改变使实际材料撤回，无关module不扩大footprint；同一selected文件仍为整文件SHA保守失效。独立核验范围及主补查分列于[局部核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-public-import-bindings.json)。
+
+原lock Django 5.2.16 wheel SHA/size已核验，追加generic/__init__.py、base.py、utils/decorators.py的原字节，94旧冻结文件不变。[新来源探针](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-django-view-replay.json)使用100文件，两条真实Paperless MRO均连接到View，所选public hop变化撤回来源修订而无关export保持；六项View/descriptor来源工作可定位。缺base来源消除后class decorator的source gap解除，invocation/transformation仍unproven；returned factory closure、descriptor、类/method变换及action receiver不因source齐全而采用。model read/application annotation/material use=0，捕获网络1、探针模型/目标/网络0，旧input/allowlist/答不升级；开发/探子token、USD与真人时间unknown。随后继续实际closure invocation/environment、实例字段/dispatch handler、完整请求和官方具名复验，当前完整使用与净收益未达。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
