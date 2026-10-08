@@ -187,6 +187,10 @@ getattr复核细化：已知literal selector先收窄当前普通候选，再计
 
 getattr本小步进展：v17 selector/子call结果、原receiver、ordinary token创建和精确handler call沿同一binder/六角色/投影接通；未知属性和actual fallback选择仍具名。25新增测试、375focused/1407断言、新鲜联合1241pass/1平台skip/7340断言/115文件/14.83s及主/AY类型通过，两只读核验与主红绿分别记录。100文件/6body真实probe保留6 lookup边界，binding/receiver/owner仍待证明，合格/采用0，初始/reviewed分留且SHA相同；model read/application annotation/material use/模型/目标/网络新增0，旧输入/答不升级。继续条件lookup/fallback、字段callable/wrapper和完整请求，再官方具名复验及预登记收益比较；AY7和研究验收未勾选。
 
+lookup结构容量复核（2026-10-08）：当前16候选的创建/调用两个selector合计最多35块，超过从手写接口沿用的32块结构上限，虽然实际selector helper可只返回一个已知值。先新增完整source-read/interpret/material projection/native执行反例，以14其它同签名方法加guard/fallback组成16项，确认现状拒绝；将结构块容量调到64以容纳宿主固定展开，原127节点/16终态路径求值上限保持。该修正不提高未知分支的求值预算或将超限结果升级；随后继续条件lookup及字段/完整请求组合。
+
+lookup结构容量本步进展：主完整16候选/35块用例先红测复现共享schema的32块拒绝。只读核验定位聚焦格式另有32块限制，主顺着实际source-update→focused-update路径再次红测复现`focus-schema`拒绝；现两处共用`SEMANTIC_BLOCK_LIMIT=64`。实际selector helper选择guard，source提交、材料接纳/投影及deny先于write均通过；原127节点/16终态路径与候选/source-reference预算保持。1新增用例、403focused/1550断言，新鲜联合1242pass/1平台skip/7357断言/115文件/11.42s和主/AY类型通过；只读65项/367断言核验另记。历史OWUI拒绝与真实probe不升级，无模型/目标/网络新增。继续条件lookup及字段/完整请求，AY7/研究验收未勾选。
+
 ### AY8 调度与局部解释的闭环
 
 2026-10-08真实OWUI反例细化：七轮增量字段确有前进，最后宿主生成34个块（其中8个为空）却被沿用手写接口的32块上限拒绝。先在v5源码编译器复用同单元的无动作空块，保留每个实际条件、步骤、正常/拒绝/异常出口及既有路径/节点边界；不提高求值上限。停滞按当前缺口和已保留字段进展判断，不能把observations的pending标签当源码frontier停滞。实际发送上下文与原始归档分账，引用的bytes是被引用原值大小，不是该引用包的发送大小。

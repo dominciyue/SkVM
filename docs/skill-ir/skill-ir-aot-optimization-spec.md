@@ -2691,6 +2691,8 @@ AY7的v17普通getattr连接以`StructureCall.methodLookup`保存`source-method-
 
 25新增测试、375focused/1407断言，新鲜联合1241pass/1平台skip/7340断言/115文件/14.83s及主/AY类型通过。来源独立核验192项通过后指出literal候选过宽，主新增17其它方法的红测，复现已知selector被候选上限错误阻断并修正；原runtime guard已按实际literal选择，未将该来源精度问题误记为其它方法曾执行。投影核验45项通过且未发现新的可复现缺陷，不作穷尽声明。真实100文件/6body probe保留6 lookup边界（binding/receiver/owner）、来源合格/实际采用0；初始/reviewed分留且SHA相同，model read/application annotation/material use/模型/目标/网络新增0。条件lookup、字段callable、class/method wrapper及完整请求和官方实际复验继续pending，完整质量与净收益尚未达。
 
+AY7 lookup结构容量合同补充（2026-10-08）：创建/分派各最多16个variant及两个unknown出口与root合计35块。共享与聚焦输入统一用`SEMANTIC_BLOCK_LIMIT=64`容纳机械图，源提交不再二次卡在手写接口遗留32块上限。结构容量与实际执行预算分别计量：原127 emitted-node/16终态路径边界、候选16项和worklist source-reference预算均保持；预算错误仍撤回本题规则/依赖/字段变化。主完整35块反例复现两处原拒绝后通过source-read/interpret/material projection/native提交与实际helper-selected guard执行；403focused/1550断言、联合1242pass/1平台skip/7357断言及主/AY类型通过。历史OWUI拒绝保留原版本，匿名工程验证不提供真实框架采用或实验收益。
+
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
 AT在已有授权局部语义上引入显式 `focused-closure-v1`：宿主持久管理locate/interpret/link/review/answer阶段，绑定当前来源、单元身份与更新版本；模型解释原始源码中的条件、对象、参数、返回与实际相关效果。上下文渲染不改变活动任务，拒绝修复回到同一单元；多候选与语义关系仍须显式判定。旧默认及协议保持。

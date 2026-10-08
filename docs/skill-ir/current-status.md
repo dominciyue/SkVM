@@ -4,6 +4,8 @@
 
 ## 当前工作
 
+v17后续容量修正（2026-10-08）：16候选的两个selector实际生成35块，先后红测复现共享单元与聚焦源码提交各自的32块拒绝。两处现共用64块结构容量，原127 emitted-node/16终态路径求值边界保持；完整source-read/interpret/material projection/native提交与实际guard拒绝通过。新鲜403focused/1550断言、联合1242pass/1平台skip/7357断言/115文件及主/AY类型通过。历史OWUI拒绝及真实probe不升级，本步无模型或目标执行；条件lookup与完整请求继续。
+
 研究主线是 **按 skill/task 范围设计领域表达**。当前任务类为单 repo/ref、源码可见的授权与信任边界评估：围绕主体、资源、操作、条件和政策组织取证、判断与检查。质量约六成、编写复用约四成指开发投入安排，各项质量要求分别验收。
 
 最新小步为AY7 `source-bindings/v17`普通getattr selector接线：唯一无条件创建保留原receiver、selector/子call结果身份、当前普通MRO target及eager default来源，ordinary token在真实调用点沿同一binder/六角色/投影执行；其它属性和actual fallback选择仍具名。独立核验推动已知selector先收窄再计候选上限的红绿修复；25新增测试、375focused/1407断言、联合1241pass/1平台skip/7340断言及主/AY类型通过。100文件/6body真实probe保留6 lookup缺口、合格/采用0，初始/reviewed分留；条件lookup、fallback证明、字段callable及完整请求继续，AY7、官方完整复验及净收益尚未达。

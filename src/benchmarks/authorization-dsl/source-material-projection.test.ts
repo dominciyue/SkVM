@@ -530,21 +530,33 @@ for (const selected of [true, false]) test(`finite method choice executes its or
   expect(project(units, changed).uses).toEqual([])
 })
 
-for (const selector of ["'guard'", "'fallback'", "'missing'", "selected", "pick('guard')"]) test(`getattr current source tokens preserve actual selection and unknown default: ${selector}`, async () => {
-  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-method-lookup-")), content = `def pick(value):\n    return value\nclass Gate:\n    def entry(self, actor, selected):\n        handler = getattr(self, ${selector}, self.fallback)\n        handler(actor)\n        write()\n        return True\n    def guard(self, actor):\n        raise Denied\n    def fallback(self, actor):\n        return actor\n`
+for (const { selector, extraMethods } of [...["'guard'", "'fallback'", "'missing'", "selected", "pick('guard')"].map(selector => ({ selector, extraMethods: 0 })), { selector: "pick('guard')", extraMethods: 14 }]) test(`getattr current source tokens preserve actual selection and unknown default: ${selector} with ${extraMethods} extra methods`, async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-method-lookup-")), content = `def pick(value):\n    return value\nclass Gate:\n    def entry(self, actor, selected):\n        handler = getattr(self, ${selector}, self.fallback)\n        handler(actor)\n        write()\n        return True\n    def guard(self, actor):\n        raise Denied\n    def fallback(self, actor):\n        return actor\n${Array.from({ length: extraMethods }, (_, i) => `    def other${i}(self, actor):\n        return actor\n`).join("")}`
   await writeFile(path.join(sourceRoot, "app.py"), content)
   const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, units: any[] = []
+  let entryInterpretation: any
   for (const name of ["entry", "guard", "fallback", ...selector.startsWith("pick(") ? ["pick"] : []]) {
     const source = index.symbols.find(s => s.name === name)!, receiverClass = source.className ? "app.Gate" : undefined
     await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
     const skeleton = (await tools.sourceSkeleton(source.id, receiverClass))!
     expect(skeleton.gaps.map(g => g.code)).toEqual(name === "entry" && selector === "'missing'" ? ["source-method-lookup-attribute-unmodeled"] : [])
     const annotations = skeleton.anchors.filter(a => ["parameter", "call", "return", "raise"].includes(a.kind)).map(a => ({ anchorId: a.id, role: a.kind === "parameter" ? a.name === "actor" ? "principal" : ["selected", "value"].includes(a.name!) ? "condition" : "context" : a.kind === "call" ? a.call!.expression === "write" ? "effect" : a.call!.expression === "getattr" ? "context" : "condition" : "context", explanation: "Anonymous current ordinary getattr selection", ...(a.kind === "return" && name === "entry" ? { returnOutcome: "allow" } : {}), ...(a.kind === "raise" ? { failureKind: "authorization" } : {}) }))
-    const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index, itemId: name, handle: name, questionId: "q", role: name === "entry" ? "entry" : "helper" })
+    const interpretation = { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }
+    if (name === "entry") entryInterpretation = interpretation
+    const result = lowerSourceInterpretation(skeleton, interpretation, { index, itemId: name, handle: name, questionId: "q", role: name === "entry" ? "entry" : "helper" })
     expect(result.diagnostics).toEqual([])
     units.push({ ...result.unit!, questionId: "q", evidenceIds: skeleton.evidenceIds, source: skeleton.source, receiverClass })
   }
   const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect current getattr selection", premises: [] }] })
+  if (extraMethods) {
+    const nativeProgram = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect app.Gate.entry", entryHint: "entry", premises: [] }] })
+    const runtime = createInquiryDomainRuntime({ program: nativeProgram, tools, strategy: "operation-evidence-v5", sourceAssisted: true, initialSemanticUnits: units.slice(1) })
+    await runtime.sync()
+    const current: any = runtime.promptContext()
+    const accepted = await runtime.propose({ schemaVersion: "authorization-source-update/v1", kind: "interpret", focusId: current.focus.id, interpretation: { ...entryInterpretation, revision: current.tasks[0].sourceSkeleton.revision } })
+    expect(accepted.diagnostics).toEqual([])
+    expect(runtime.report().semantic?.units.find(u => u.role === "entry")?.blocks).toHaveLength(35)
+  }
   const project = (adopted = units, current = index) => {
     const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" })
     for (const u of adopted) store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }, { kind: "candidate-set", key: `relations:${u.source.id}:app.Gate`, revision: sourceRelationRevision(index, u.source.id, "app.Gate")! }], "test-authored")

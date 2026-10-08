@@ -2,7 +2,7 @@ import { z } from "zod"
 import { createHash } from "node:crypto"
 import { InquiryText, type InquiryDiagnostic } from "../../task-dsl/authorization/inquiry.ts"
 import { canonicalControl, FiniteValueSchema, type ControlSlice } from "../../task-dsl/authorization/control-slice.ts"
-import { SemanticBlockSchema, SemanticStepSchema, type BoundSemanticBlock, type SemanticBlock } from "../../task-dsl/authorization/semantic-flow.ts"
+import { SEMANTIC_BLOCK_LIMIT, SemanticBlockSchema, SemanticStepSchema, type BoundSemanticBlock, type SemanticBlock } from "../../task-dsl/authorization/semantic-flow.ts"
 import { summarizeProcedure } from "../../task-dsl/authorization/procedure-summary.ts"
 import type { AuthorizationInquiryProgram } from "../../task-dsl/authorization/inquiry-program.ts"
 import type { InquiryTools } from "./inquiry-tools.ts"
@@ -26,7 +26,7 @@ const focusedStepSchema = z.discriminatedUnion("kind", [
   // controls as the shared semantic core. Only call.callee is host-owned.
   ...SemanticStepSchema.options.slice(10),
 ])
-export const FocusedUnitSchema = SemanticBlockSchema.omit({ itemId: true, handle: true, op: true, role: true, repairsDraftId: true }).extend({ blocks: z.array(SemanticBlockSchema.shape.blocks.element.extend({ steps: z.array(focusedStepSchema).max(160) })).min(1).max(32) })
+export const FocusedUnitSchema = SemanticBlockSchema.omit({ itemId: true, handle: true, op: true, role: true, repairsDraftId: true }).extend({ blocks: z.array(SemanticBlockSchema.shape.blocks.element.extend({ steps: z.array(focusedStepSchema).max(160) })).min(1).max(SEMANTIC_BLOCK_LIMIT) })
 const common = { schemaVersion: z.literal("authorization-focused-update/v1"), focusId: InquiryText, reason: InquiryText.optional() }
 const actions = {
   interpret: z.object({ ...common, kind: z.literal("interpret"), unit: FocusedUnitSchema, also: z.array(z.object({ itemId: InquiryText, unit: FocusedUnitSchema }).strict()).max(3).default([]), values: z.array(binding).max(32).default([]) }).strict(),

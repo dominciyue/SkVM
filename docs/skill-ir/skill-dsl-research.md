@@ -2086,6 +2086,8 @@ AY7普通getattr小步（2026-10-08）：v17以唯一无条件创建后的真实
 
 25新增测试、375focused/1407断言、新鲜联合1241pass/1平台skip/7340断言/115文件/14.83s和主/AY类型通过，见[局部核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-method-lookups.json)。真实[reviewed lookup probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-method-lookup-reviewed-replay.json)核验94冻结文件和独立supplements，共100文件/6body/6 lookup边界，binding/receiver/owner缺口保留，来源合格与采用0。初始/reviewed分留且SHA相同，模型/目标/网络新增0、无实验模型read/application annotation/material use，旧input/allowlist/答不升级，开发/探子token、USD和真人时间unknown。继续条件lookup、fallback证明、字段callable、wrapper及完整framework组合和官方具名复验，AY7及完整使用/净收益未达。
 
+AY7 lookup结构容量修正（2026-10-08）：主新增16候选/35块完整反例，先复现共享单元32块拒绝；独立只读核验又定位聚焦格式的单独32块限制，主沿实际source-update转换路径再次红测复现`focus-schema`拒绝。现由同一`SEMANTIC_BLOCK_LIMIT=64`供两处使用，helper返回已知guard时完整接纳/投影/执行且deny先于write；127 emitted-node和16终态路径预算保持，超限仍撤回本题规则。1新增用例，403focused/1550断言、新鲜联合1242pass/1平台skip/7357断言/115文件/11.42s与主/AY类型通过。只读65项/367断言的容量与边界核验另记；未改历史OWUI34块拒绝或真实source probe，实验model read/annotation/use与模型/目标/网络新增0，真实框架及净收益继续pending。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
