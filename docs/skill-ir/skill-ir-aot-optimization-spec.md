@@ -2609,9 +2609,9 @@ Go机械来源覆盖包含multiline链式route及if initializer的实际调用/�
 
 ### 14.38 AY question dependencies and usable domain execution
 
-2026-10-07，用户授权[AY0–AY23](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)，开发模型gpt-6.1-sol/max，被测模型沿用当前账号gpt-5.6-sol/high。当前状态in-progress。AY承接AX未运行位置与复核发现的语义缺口，旧结果和原失败不改。新行为显式选择operation-evidence-v5，复用现有运行时与CLI，旧默认兼容；详细执行、首位置和验收以AY任务书为准。
+2026-10-07，用户授权[AY0–AY23](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)，开发模型gpt-6.1-sol/max，被测模型沿用当前账号gpt-5.6-sol/high。本轮以 `completed-with-unmet-criteria` 收束。AY承接AX未运行位置与复核发现的语义缺口，旧结果和原失败不改。新行为显式选择operation-evidence-v5，复用现有运行时与CLI，旧默认兼容；详细执行、首位置和验收以AY任务书为准。
 
-2026-10-08用户将执行优先序调整为先运行当前链路的完整原任务：45分钟内未进入官方全流程则暂停收尾，已进入则继续有限队列。22:45:09实际turn及源码回调已满足启动条件；剩余框架/Python边界仍保留，启动不等于checked/full或收益。精确CLI 0.162.0-alpha.2增加本机schema和零推理有效config/thread核验记录，每会话继续执行同一隔离/指令SHA检查，未来未核验版本仍拒绝。作者包及变化用当前公开inquiry入口在仓外runRoot真实消费；陈旧生产src树或变更输入SHA不能沿用当前比较注册，材料可恢复不表示旧答案可复用。
+2026-10-08用户将执行优先序调整为先运行当前链路的完整原任务：45分钟内未进入官方全流程则暂停收尾，已进入则继续有限队列。22:45:09实际turn及源码回调已满足启动条件；剩余框架/Python边界仍保留，启动不等于checked/full或收益。精确CLI 0.162.0-alpha.2增加本机schema和零推理有效config/thread核验记录，每会话继续执行同一隔离/指令SHA检查，未来未核验版本仍拒绝。作者包及变化用当前公开inquiry入口在仓外runRoot真实消费；陈旧生产src树或变更输入SHA不能沿用当前比较注册，材料可恢复不表示旧答案可复用。实际完成4个原任务/消费者及3个变化fresh/previous臂；policy-previous为路由失败、source-fresh触发官方额度封顶，source-previous及12质量位置保留未运行分母。账号恢复时间为2026-10-14 16:47，当前不自动重发。
 
 **问题依赖。** 由原问题和当前源码形成主体、资源、受保护操作及待判断关系的来源种子，追踪已支持语法中的赋值、字段、参数、返回、调用及控制前驱。source-invariant可达性筛选保留，新增查询依赖不能仅以questionId或函数名代替。机械排除有具体依赖与理由；模型提出的相关性与语义保持unreviewed。未知副作用、动态receiver、资源替换和异常/finally影响作为具名边界保存，缺边不能推出无影响。
 

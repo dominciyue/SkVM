@@ -2003,9 +2003,11 @@ Download N/M-O同`d50388db`分别11/11、16/16已知、61/44显式工具（M另1
 
 ### 7.60 AY 问题依赖完整使用与收益验证
 
-2026-10-07，用户要求用gpt-6.1-sol/max新线程继续开发，实验使用当前账号gpt-5.6-sol，争取本轮做出真正可用且有正向收益的成果。[AY0–AY23](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)据此建立完整执行队列；当前in-progress。已登记22首位置、承接AX11位置并追加AX明确failed裁定，旧原件不改。账号终态/交付/用量分离及v5初版依赖/双入口反例已红绿验证；两任务同时checked/full和实测收益尚未建立。
+2026-10-07，用户要求用gpt-6.1-sol/max新线程继续开发，实验使用当前账号gpt-5.6-sol，争取本轮做出真正可用且有正向收益的成果。[AY0–AY23](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)据此建立完整执行队列；本轮以 `completed-with-unmet-criteria` 收束。已登记22首位置、承接AX11位置并追加AX明确failed裁定，旧原件不改。账号终态/交付/用量分离及v5初版依赖/双入口反例已红绿验证；两任务同时checked/full和实测收益尚未建立。
 
-2026-10-08用户要求45分钟内进入官方完整原任务实验，未进入则暂停并未达标收尾，进入则继续有限队列；这改变先补尽全部框架/Python支持再运行的执行顺序。22:45:09在开始约11分钟后实际进入正式Download turn并完成源码回调，限时启动条件已满足。CLI升级导致的首个零派发拒绝原件保留；精确0.162.0-alpha.2经本机experimental schema及实际有效配置/thread/指令SHA零推理核验后准入，38账号回归及主类型通过。其后Download/OWUI完整原skill自然任务均交付，源码均partial；Download作者原字节消费者源码full而machine check仍partial。前者遗漏继承GET全局权限/owner-aware细分，后者遗漏空字符串collection真值；作者消费者先明确选错词法入口、答阶段的更换被拒，已有defer/revisit恢复合同未被采用，不能仅凭模型抱怨认定宿主重置bug。评阅不进入执行上下文；变化/对照继续，恢复材料、实际采用、完整质量与token收益分列。
+2026-10-08用户要求45分钟内进入官方完整原任务实验，未进入则暂停并未达标收尾，进入则继续有限队列；这改变先补尽全部框架/Python支持再运行的执行顺序。22:45:09在开始约11分钟后实际进入正式Download turn并完成源码回调，限时启动条件已满足。CLI升级导致的首个零派发拒绝原件保留；精确0.162.0-alpha.2经本机experimental schema及实际有效配置/thread/指令SHA零推理核验后准入，38账号回归及主类型、授权宽回归通过。其后Download/OWUI完整原skill自然任务均交付，源码均partial；Download作者原字节消费者源码full而machine check仍partial，OWUI消费者partial且决定性向量写入callee未读。变化实际完成policy-fresh、premise-fresh/previous；policy-previous因workspace routing discovery failed、source-fresh因官方额度拒绝，source-previous及12质量位置未派发。账号返回恢复时间为2026-10-14 16:47，未自动重发。前者遗漏继承GET全局权限/owner-aware细分，后者遗漏空字符串collection真值；作者消费者先明确选错词法入口、答阶段的更换被拒，已有defer/revisit恢复合同未被采用，不能仅凭模型抱怨认定宿主重置bug。评阅不进入执行上下文；恢复材料、实际采用、完整质量与token收益分列。
+
+本轮收尾裁定：工程闭环和普通入口可运行，两个原任务与两个作者包确实完成官方账号交付/消费；完整checked/full、三变化双臂和12质量面板未完成，且当前没有任何正向质量或token收益证据。OWUI消费者的共享64单位预算中仅23条模型回调，`save_docs_to_vector_db` 和 framework 项均在预算耗尽时保持 awaiting-read，不能归因于模型主动跳过或宿主调度缺陷。官方额度封顶后保留未运行分母、失败终态和未知USD/隐藏请求/开发探子/真人时间；不自动重发、不切换身份或模型。
 
 **复核后的取舍。** v4已有性质frontier和合流，但真实提案未减轻标注。结构索引已提供import、C3/super、receiver、参数和有限返回信息；operation-work也有DRF前置权限候选，focus/link负责callee。新的实现责任是将这些信息按当前问题连接和实际消费，减少整函数解释与遗漏。保留既有runtime/CLI/材料层，新增显式v5与question-control/v1身份，不复制一套系统。
 
