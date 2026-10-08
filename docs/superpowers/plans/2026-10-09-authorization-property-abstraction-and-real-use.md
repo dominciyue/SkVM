@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、既有 Python/Go 结构索引、官方 Codex CLI/App Server、现有只读源码工具。开发 `gpt-6.1-sol / max`；实验沿用当前账号 `gpt-5.6-sol / high`。
 
-日期：2026-10-09。状态：`authorized-not-started`。复核基线：`10bc06f0a8147e14b4e0276e41f92df9ecea952a`；任务书提交在其后，启动时记录实际 HEAD。
+日期：2026-10-09。状态：`in-progress`。复核基线：`10bc06f0a8147e14b4e0276e41f92df9ecea952a`；实际接管 HEAD `501b8e12f4b10a17237f5b0d7b86c73fcce45bc0`，启动工作树干净。AZ0 已登记新 identity 和21个逻辑位置（12质量、1单性质、2消费、6变化），两个native首件以质量D首位置别名复用。
 
 ## 一、执行边界、读取顺序和继承事实
 
@@ -129,11 +129,13 @@ interface PropertyQueryContract {
 
 **落点：** 新 identity 的 `manifest.json`、`status.json`、`study.ts`、`study.test.ts`、`failure-attribution.json`；复用 AY `study.ts` 和 AX `consumer.ts` / `changes.ts` 的实际入口，不调用旧 bootstrap/run 写旧目录。
 
-- [ ] 记录 HEAD、工作树、账号已知状态、旧运行是否已结束；读取本任务必需原件，避免全历史审计。
-- [ ] 建立新状态，`requirements` 是目标、`outcomes` 初始为 `not-measured`，`researchGoalAchieved:false`。不预填 true 验收。
-- [ ] 对 AY 14 次原件追加离线多标签归因；每条区分“原记录事实”“当前代码重放诊断”“尚待假设验证”，不重写分数。
-- [ ] 建立新 runner 的 dry-run：所有输出必须落在新 identity/runRoot；误指旧 AY/AX 目录须失败。注册原问题、来源及后续位置，不从旧报告推定新成功。
-- [ ] 记录原件事实与新判断对应关系，阶段提交。
+- [x] 记录 HEAD、工作树、账号已知状态、旧运行是否已结束；读取本任务必需原件，避免全历史审计。
+- [x] 建立新状态，`requirements` 是目标、`outcomes` 初始为 `not-measured`，`researchGoalAchieved:false`。不预填 true 验收。
+- [x] 对 AY 14 次原件追加离线多标签归因；每条区分“原记录事实”“当前代码重放诊断”“尚待假设验证”，不重写分数。
+- [x] 建立新 runner 的 dry-run：所有输出必须落在新 identity/runRoot；误指旧 AY/AX 目录须失败。注册原问题、来源及后续位置，不从旧报告推定新成功。
+- [x] 记录原件事实与新判断对应关系，阶段提交。
+
+AZ0验证：新study红测为缺失runner；实现后3 tests/19 assertions通过。零推理账号元数据ordinaryUsageAllowed=true/usedPercent=5，不证明指定实验通道可用；无同identity运行进程。14条归因只映射原终态/检查诊断，currentReplay=null、hypotheses=[]；新源码重放另记。policy-previous的官方错误发生在host tools=0之前，本地代码没有该错误字面量，当前不能宣称本地路径bug已经重现。
 
 ### AZ1：补齐材料未采用的具体原因
 

@@ -2,7 +2,7 @@
 
 更新于2026-10-09。唯一实时入口为 [current-status](current-status.md)。
 
-- 当前任务书：[AZ0–AZ18：授权性质抽象、真实检查与变化复用](../superpowers/plans/2026-10-09-authorization-property-abstraction-and-real-use.md)，`authorized-not-started`。
+- 当前任务书：[AZ0–AZ18：授权性质抽象、真实检查与变化复用](../superpowers/plans/2026-10-09-authorization-property-abstraction-and-real-use.md)，`in-progress`；AZ0已登记，AZ1诊断修复开始。
 - 方法合同：[spec §14.39](skill-ir-aot-optimization-spec.md#1439-az-property-abstraction-and-real-use)；依据：[研究§7.61](skill-dsl-research.md#761-az-性质抽象材料采用与真实检查的开发决定)。
 - 复核基线 `10bc06f0`。开发 `gpt-6.1-sol/max`，实验当前官方账号 `gpt-5.6-sol/high`。第三方API与AV旧位置继续暂停。
 

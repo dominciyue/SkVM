@@ -13,6 +13,8 @@
 
 ### 当前授权开发定位
 
+AZ研究runner位于 `results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/study.ts`。`init`只创建新identity登记，`dry-run <position>`零调用返回输入/输出/入口和共同上限；旧AY/AX只读输入，不调用其bootstrap/run。所有质量位置均注册为native，native首件是D第一重复的别名。归因区分原记录事实、新重放与假设；包/变化和模型执行将在共享v6可用后接入。
+
 | 要修改的职责 | 代码起点 | 核对重点 |
 |---|---|---|
 | 任务/问题与义务 | `src/task-dsl/authorization/inquiry.ts`、`inquiry-program.ts` | behavior/conformance、真实政策来源、问题身份 |

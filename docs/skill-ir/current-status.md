@@ -4,11 +4,11 @@
 
 ## 当前工作
 
-**用户已授权 [AZ0–AZ18：授权性质抽象、真实检查与变化复用](../superpowers/plans/2026-10-09-authorization-property-abstraction-and-real-use.md)，状态 `authorized-not-started`。** 复核基线为 `10bc06f0`；本轮先完成任务书与方法合同，再派发 `gpt-6.1-sol / max` 新开发线程。尚无 AZ 生产实现或效果结果。
+**正在执行 [AZ0–AZ18：授权性质抽象、真实检查与变化复用](../superpowers/plans/2026-10-09-authorization-property-abstraction-and-real-use.md)，状态 `in-progress`。** 接管HEAD为 `501b8e12`，工作树干净。AZ0已登记新identity、原问题和21个逻辑位置，完成一次AY原诊断归因及新输出路径隔离测试；尚无AZ生产语义或效果结果。
 
 本轮重点是让原问题真正决定证据需求，扩展现有局部摘要的适用范围，补齐材料未采用诊断和有限格式恢复，并在 Download、OWUI 的完整原 skill 中验证实际检查。先做一个性质的开发里程碑，再回到全部原问题及跨结构使用。新策略计划显式启用为 `operation-evidence-v6`，复用既有 inquiry/native、结构索引、材料和 CLI，不继续无关键路径依据的通用语言语义扩张。
 
-方法合同见 [spec §14.39](skill-ir-aot-optimization-spec.md#1439-az-property-abstraction-and-real-use)，复核和取舍见 [研究 §7.61](skill-dsl-research.md#761-az-性质抽象材料采用与真实检查的开发决定)。新结果位置为 `results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/`，由新开发线程登记；现阶段不提供尚不存在的机器报告链接。
+方法合同见 [spec §14.39](skill-ir-aot-optimization-spec.md#1439-az-property-abstraction-and-real-use)，复核和取舍见 [研究 §7.61](skill-dsl-research.md#761-az-性质抽象材料采用与真实检查的开发决定)。新结果已登记为 [manifest](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/manifest.json) 和 [状态](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/status.json)；requirements与outcomes分开，researchGoalAchieved=false。
 
 ## AY 已结束的真实结果
 
