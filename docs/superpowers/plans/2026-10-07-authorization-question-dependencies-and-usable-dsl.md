@@ -12,6 +12,8 @@
 
 用户最新执行边界（2026-10-08 22:34:05 Asia/Shanghai）：45分钟内优先打通当前普通入口、来源解释、检查和交付链路，直接启动官方账号的完整原任务正式实验；截止23:19:05尚未进入时，暂停项目开发并将本任务书以未达标结束，先收尾保存已完成进展。若已进入正式全流程实验，继续有限队列、独立评价和最终交付。源码探针、通道smoke或孤立账号调用不计该里程碑；完整源码质量、checked和收益仍按真实证据分列。此最新指示调整此前等全部受影响框架/Python实现闭合再复验的顺序：不再扩大外围语法支持，先核验已有公共运行入口和完整输入，带明确剩余边界直接进入正式全流程实验，不把缺口改为成功。
 
+该优先序下 `native-download/full-flow-v35` 首次请求在推理前因本机CLI升级至0.162.0-alpha.2而拒绝，保存原件，不计全流程里程碑。随后对本机experimental schema和实际config/thread元数据完成零推理核验，证据见[精确版本兼容记录](../../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/cli-0-162-compatibility.json)。精确版本准入仍保留每会话有效配置、指令SHA和工具边界检查；下一请求使用具名修订，完整原skill和源码范围不变。
+
 ## 一、执行合同和上下文
 
 - 仓库 `D:/skill优化/SkVM`；只推用户 `origin/skill-ir-aot`。新开发线程为唯一代码、共享方法文档和 Git 写者；只读探子按 AGENTS 使用，主线程承担设计与修改。

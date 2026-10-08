@@ -60,7 +60,7 @@ export function redactCodexEvent(value: unknown): any {
 }
 // Admit exact versions whose experimental RPC/config contracts were inspected.
 // Every real session still rechecks effective config, roots and instruction pins.
-const controlledVersions = new Set(["0.159.0-alpha.12.1", "0.160.0"])
+const controlledVersions = new Set(["0.159.0-alpha.12.1", "0.160.0", "0.162.0-alpha.2"])
 const disabledFeatures = ["shell_tool", "unified_exec", "apps", "plugins", "remote_plugin", "multi_agent", "multi_agent_v2", "browser_use", "computer_use", "js_repl", "view_image", "image_generation", "hooks", "memories", "skill_search", "skill_mcp_dependency_install", "goals", "sleep_tool", "tool_suggest", "auth_elicitation", "request_permissions_tool"]
 function object(value: unknown): Record<string, unknown> { return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {} }
 function controls(config: unknown = {}, skills: unknown = {}): Record<string, unknown> {

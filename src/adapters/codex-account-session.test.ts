@@ -116,7 +116,7 @@ function controlled(mode = "normal", cliVersion = "0.159.0-alpha.12.1") {
   return f
 }
 
-for (const cliVersion of ["0.159.0-alpha.12.1", "0.160.0"]) test(`${cliVersion} controlled official transport verifies effective settings and thread boundaries before a real tool turn`, async () => {
+for (const cliVersion of ["0.159.0-alpha.12.1", "0.160.0", "0.162.0-alpha.2"]) test(`${cliVersion} controlled official transport verifies effective settings and thread boundaries before a real tool turn`, async () => {
   const f = controlled("normal", cliVersion), r = await f.run({ timeoutMs: 100 })
   expect(r.status).toBe("completed")
   const t = f.sent.find(m => m.method === "thread/start").params
