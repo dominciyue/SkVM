@@ -1,6 +1,35 @@
 import { expect, test } from "bun:test"
 import { buildStructureIndex } from "./structure-index.ts"
 
+for (const returned of [false, true]) test(`class methods capture actual stable local function definitions: ${returned}`, async () => {
+  const nested = "    def check(item):\n        return flag\n    class Local:\n        def guard(actor):\n            return check(actor)\n    Local.guard(actor)\n    return actor\n", content = returned ? "def create(flag):\n    def decorator(actor):\n" + nested.split("\n").filter(Boolean).map(s => "    " + s).join("\n") + "\n    return decorator\n" : "def make(flag, actor):\n" + nested
+  const index = await buildStructureIndex([{ path: "app.py", content: "def check(item):\n    raise Denied\n" + content }], { repository: "anonymous", sourceRef: "r" }), helper = index.symbols.find(s => s.name === "check" && s.localCallable)!, method = index.symbols.find(s => s.name === "guard")!, cls = index.symbols.find(s => s.name === "Local")!, owner = index.symbols.find(s => s.id === cls.classDefinition!.ownerId)!, call = index.relatedCalls(method.id).find(c => c.expression === "check")!
+  expect(helper.valueCallable).toBeDefined(); expect(helper.valueCallable!.gap).toBeUndefined()
+  expect(cls.classDefinition!.gap).toBeUndefined()
+  expect(method.classMethod!.captures).toEqual([expect.objectContaining({ name: "check", binding: { ownerId: owner.id, ownerSha256: owner.sha256 }, callable: { targetId: helper.id, targetSha256: helper.sha256 } })])
+  expect((call as any).capturedCallable).toEqual({ ownerId: method.id, name: "check", targetId: helper.id, targetSha256: helper.sha256, binding: { ownerId: owner.id, ownerSha256: owner.sha256 } })
+  expect(call.candidateIds).toEqual([helper.id]); expect(call.resolution).toBe("resolved")
+  if (returned) { expect(owner.returnedCallable?.gap).toBeUndefined(); expect(owner.valueCallable?.captures.map(c => c.name)).toEqual(["flag"]) }
+})
+
+for (const mode of ["before", "rebound", "conditional", "wrapped", "generator", "capture-rebound", "escape", "nonlocal", "recursive", "mutable-default"]) test(`local function object captures retain unsupported cell and definition boundaries: ${mode}`, async () => {
+  const helper = `${mode === "wrapped" ? "    @unknown\n" : ""}${mode === "conditional" ? "    if flag:\n    " : ""}    def check(${mode === "mutable-default" ? "item=[]" : "item"}):\n${mode === "nonlocal" ? "        nonlocal flag\n" : ""}        ${mode === "generator" ? "yield item" : mode === "recursive" ? "return check(item)" : "return flag"}\n`, cls = "    class Local:\n        def guard(actor):\n            return check(actor)\n"
+  const content = `def make(flag, actor):\n${mode === "before" ? cls + helper : helper + cls}${mode === "rebound" ? "    check = None\n" : mode === "capture-rebound" ? "    flag = False\n" : mode === "escape" ? "    alias = check\n" : ""}    Local.guard(actor)\n`
+  const index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), local = index.symbols.find(s => s.name === "Local")!, guard = index.symbols.find(s => s.name === "guard")!
+  expect(local.classDefinition!.gap).toBeDefined()
+  expect(index.relatedCalls(guard.id)[0]!.candidateIds).toEqual([])
+})
+
+test("local helper definitions with a nonlocal binding cannot become snapshot class captures", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "def outer(check):\n    def make(flag, actor):\n        nonlocal check\n        def check(item):\n            return flag\n        class Local:\n            def guard(actor):\n                return check(actor)\n        return Local.guard(actor)\n    return make\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect(index.symbols.find(s => s.name === "Local")!.classDefinition!.gap).toBeDefined()
+})
+
+test("captured helper calls with argument actions keep an explicit evaluation order boundary", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "def make(flag, actor):\n    def check(item):\n        return flag\n    class Local:\n        def guard(actor):\n            return check(prepare(actor))\n    return Local.guard(actor)\n" }], { repository: "anonymous", sourceRef: "r" }), guard = index.symbols.find(s => s.name === "guard")!, call = index.relatedCalls(guard.id).find(c => c.expression === "check")!
+  expect(call.gap).toBe("source-callable-capture-call-order-unmodeled"); expect(call.candidateIds).toEqual([])
+})
+
 for (const kind of ["class", "local"]) test(`returned bodies relay stable ancestor parameters needed only by an inner ${kind}`, async () => {
   const nested = kind === "class" ? "        class Local:\n            def guard(actor):\n                return flag\n        Local.guard(actor)\n" : "        def guard(actor):\n            return flag\n        guard(actor)\n"
   const content = `def create(flag):\n    def decorator(actor):\n${nested}        return actor\n    return decorator\ndef entry(actor):\n    wrapper = create(True)\n    wrapper(actor)\n`, index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), create = index.symbols.find(s => s.name === "create")!, decorator = index.symbols.find(s => s.name === "decorator")!, guard = index.symbols.find(s => s.name === "guard")!

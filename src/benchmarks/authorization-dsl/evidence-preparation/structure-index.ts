@@ -12,7 +12,7 @@ export interface StructureSymbol extends DiscoverySymbol {
   decorators?: Array<{ id: string; sourceCallId?: string; expression: string; startLine: number; endLine: number; arguments: Array<{ parameter?: string; expression: string; literalKnown: boolean; literalValue?: FiniteValue }> }>
   localCallable?: {
     schemaVersion: "source-local-callable/v1"; ownerId: string; ownerSha256: string;
-    captures: Array<{ name: string; use: { startLine: number; endLine: number; startIndex: number; endIndex: number }; binding?: { ownerId: string; ownerSha256: string }; relay?: Array<{ targetId: string; targetSha256: string }> }>;
+    captures: Array<{ name: string; use: { startLine: number; endLine: number; startIndex: number; endIndex: number }; binding?: { ownerId: string; ownerSha256: string }; callable?: { targetId: string; targetSha256: string }; relay?: Array<{ targetId: string; targetSha256: string }> }>;
     gap?: string;
   }
   returnedCallable?: { schemaVersion: "source-returned-callable/v1"; ownerId: string; ownerSha256: string; captures: NonNullable<StructureSymbol["localCallable"]>["captures"]; returnAnchorId?: string; gap?: string }
@@ -105,6 +105,7 @@ export interface StructureCall {
   methodField?: StructureFieldMethod;
   methodCapture?: StructureMethodCapture;
   callableParameter?: StructureCallableParameter;
+  capturedCallable?: { ownerId: string; name: string; targetId: string; targetSha256: string; binding: { ownerId: string; ownerSha256: string } };
   implicitClassDecorator?: { definitionAnchorId: string; decoratorId: string; valueResult: string; targetId: string; targetSha256: string };
   classNamespaceCall?: { classId: string; classSha256: string; targetId: string; targetSha256: string };
 }
@@ -399,6 +400,17 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         }
         return {}
       }
+      const classCapture = (use: Node, ownerNode: Node, declaration: Node) => {
+        const resolved = parameterCapture(use, ownerNode), owner = byNode.get(ownerNode.id)!
+        if (resolved.gap !== "value" || !localNames.get(owner.id)?.has(use.text)) return resolved
+        const targets = symbols.filter(s => s.name === use.text && s.valueCallable?.ownerId === owner.id), target = targets.length === 1 ? targets[0] : undefined
+        if (!target?.valueCallable || target.valueCallable.gap || target.valueCallable.source.endIndex >= declaration.startIndex || localWrites.get(owner.id)?.get(use.text) !== 1 || owner.parameters.some(p => p.name === use.text)) return resolved
+        return { capture: { name: use.text, use: { startLine: use.startPosition.row + 1, endLine: use.endPosition.row + 1, startIndex: use.startIndex, endIndex: use.endIndex }, binding: { ownerId: owner.id, ownerSha256: owner.sha256 }, callable: { targetId: target.id, targetSha256: target.sha256 } } }
+      }
+      // Function definitions and namespace methods depend on each other's
+      // source proofs. Recompute to a fixed point before exposing any call edge.
+      const definitionProofs = () => JSON.stringify(symbols.map(s => [s.id, s.classDefinition, s.classMethod, s.localCallable, s.valueCallable, s.returnedCallable]))
+      const resolveDefinitionProofs = () => {
       if (language === "python") for (const n of definitions.filter(d => d.type === "class_definition")) {
         let parent = n.parent; while (parent && !byNode.has(parent.id)) parent = parent.parent
         const owner = parent && byNode.get(parent.id), symbol = byNode.get(n.id)!
@@ -417,12 +429,13 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           if (["comment", "pass_statement"].includes(statement.type) || statement.type === "expression_statement" && children(statement).length === 1 && children(statement)[0]!.type === "string" && sourceLiteral(children(statement)[0]).literalKnown) continue
           if (statement.type === "function_definition") {
             const method = byNode.get(statement.id)!, body = field(statement, "body")!, captures: NonNullable<StructureSymbol["localCallable"]>["captures"] = []
+            delete method.classMethod
             const owned = (node: Node) => { let scope = node.parent; while (scope && !["function_definition", "class_definition", "lambda"].includes(scope.type)) scope = scope.parent; return scope?.id === statement.id }
             let methodGap = statement.hasError || /^__.*__$/.test(method.name) || ["constructor", "prototype"].includes(method.name) || method.attributes.callableAsync || method.attributes.callableGenerator || method.attributes.bindingWrapped || method.parameters.some(p => p.type || p.defaultExpression && (!p.defaultLiteralKnown || p.defaultLiteralValue !== null && typeof p.defaultLiteralValue === "object")) || method.returns.length || field(statement, "type_parameters") || descendants(body, ["function_definition", "class_definition", "lambda", "global_statement", "nonlocal_statement"]).length ? "source-class-definition-method-unmodeled" : undefined
             for (const use of descendants(body, ["identifier"]).filter(owned)) {
               if (use.parent?.type === "attribute" && field(use.parent, "attribute")?.id === use.id || use.parent?.type === "keyword_argument" && field(use.parent, "name")?.id === use.id || method.parameters.some(p => p.name === use.text) || localNames.get(method.id)?.has(use.text)) continue
               if (["super", "__class__"].includes(use.text)) { methodGap ??= "source-class-definition-method-cell-unmodeled"; continue }
-              const resolved = parameterCapture(use, parent)
+              const resolved = classCapture(use, parent!, declaration)
               if (resolved.gap) { methodGap ??= "source-class-definition-method-capture-unmodeled"; continue }
               if (resolved.capture && !captures.some(c => c.name === use.text)) captures.push(resolved.capture)
             }
@@ -461,6 +474,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         let parent = n.parent; while (parent && !byNode.has(parent.id)) parent = parent.parent
         const owner = parent && byNode.get(parent.id)
         if (!symbol || !body || owner?.kind !== "function") continue
+        delete symbol.valueCallable; delete symbol.returnedCallable
         const ownerBody = field(parent!, "body")!, declaration = n.parent?.type === "decorated_definition" ? n.parent : n
         const owned = (node: Node, definition: Node) => { let p = node.parent; while (p && !["function_definition", "class_definition", "lambda"].includes(p.type)) p = p.parent; return p?.id === definition.id }
         const captureNames = new Set<string>(), captures: NonNullable<StructureSymbol["localCallable"]>["captures"] = []
@@ -494,6 +508,17 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         lexicalNames.set(symbol.id, captureNames)
         symbol.localCallable = { schemaVersion: "source-local-callable/v1", ownerId: owner.id, ownerSha256: owner.sha256, captures, ...(gap ? { gap } : {}) }
         const valueUse = (i: Node) => i.parent?.type === "argument_list" && i.parent.parent?.type === "call" || i.parent?.type === "keyword_argument" && field(i.parent, "value")?.id === i.id && i.parent.parent?.parent?.type === "call"
+        const classCaptureUse = (use: Node) => {
+          if (use.parent?.type !== "call" || field(use.parent, "function")?.id !== use.id) return false
+          let methodNode = use.parent.parent; while (methodNode && !byNode.has(methodNode.id)) methodNode = methodNode.parent
+          const method = methodNode && byNode.get(methodNode.id)
+          if (!methodNode || method?.kind !== "function" || method.parameters.some(p => p.name === use.text) || localNames.get(method.id)?.has(use.text) || globalNames.get(method.id)?.has(use.text)) return false
+          let classNode = methodNode.parent; while (classNode && !byNode.has(classNode.id)) classNode = classNode.parent
+          if (classNode?.type !== "class_definition") return false
+          const classDeclaration = classNode.parent?.type === "decorated_definition" ? classNode.parent : classNode
+          let classOwner = classDeclaration.parent; while (classOwner && !byNode.has(classOwner.id)) classOwner = classOwner.parent
+          return classOwner?.id === parent!.id && n.endIndex < classDeclaration.startIndex && !descendants(field(methodNode, "body")!, ["nonlocal_statement", "global_statement"]).some(s => children(s).some(c => c.text === use.text))
+        }
         const nestedScopeUnmodeled = descendants(body, ["function_definition", "class_definition", "lambda"]).some(d => {
           const nested = byNode.get(d.id)
           if (d.type === "class_definition") return !nested?.classDefinition || !!nested.classDefinition.gap
@@ -501,8 +526,8 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           if (nested.classMethod) return !symbols.some(s => s.id === nested.classMethod!.classId && s.classDefinition && !s.classDefinition.gap)
           return !(nested.valueCallable && !nested.valueCallable.gap || nested.localCallable && !nested.localCallable.gap)
         })
-        if (references.some(valueUse)) {
-          const valueGap = definitionGap ?? captureGap ?? (owner.attributes.callableAsync || owner.attributes.callableGenerator || owner.attributes.bindingWrapped || owner.boundary !== "complete" ? "source-callable-value-owner-unmodeled" : nestedScopeUnmodeled ? "source-callable-value-nested-scope-unmodeled" : references.some(i => !owned(i, parent!) || !(valueUse(i) || i.parent?.type === "call" && field(i.parent, "function")?.id === i.id)) ? "source-callable-value-escape-unmodeled" : undefined)
+        if (references.some(i => valueUse(i) || classCaptureUse(i))) {
+          const valueGap = definitionGap ?? captureGap ?? (owner.attributes.callableAsync || owner.attributes.callableGenerator || owner.attributes.bindingWrapped || owner.boundary !== "complete" ? "source-callable-value-owner-unmodeled" : nestedScopeUnmodeled ? "source-callable-value-nested-scope-unmodeled" : references.some(i => !classCaptureUse(i) && (!owned(i, parent!) || !(valueUse(i) || i.parent?.type === "call" && field(i.parent, "function")?.id === i.id))) ? "source-callable-value-escape-unmodeled" : undefined)
           symbol.valueCallable = { schemaVersion: "source-callable-definition/v1", ownerId: owner.id, ownerSha256: owner.sha256, name: symbol.name, anchorId: sourceSyntaxAnchorId(owner.id, n.startIndex, n.endIndex, "assignment", symbol.name), captures: structuredClone(captures), source: { path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, startIndex: n.startIndex, endIndex: n.endIndex }, controls: [], order: sourceStoreOrder(n, owner.id, call => `call-${hash([sourceIdentity, file.path, sha256, call.startIndex]).slice(0, 24)}`), ...(valueGap ? { gap: valueGap } : {}) }
         }
         if (descendants(ownerBody, ["return_statement"]).filter(i => owned(i, parent!)).some(i => children(i)[0]?.type === "identifier" && children(i)[0]!.text === symbol.name)) {
@@ -515,6 +540,19 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           symbol.returnedCallable = { schemaVersion: "source-returned-callable/v1", ownerId: owner.id, ownerSha256: owner.sha256, captures: structuredClone(captures), ...(last?.type === "return_statement" ? { returnAnchorId: sourceSyntaxAnchorId(owner.id, last.startIndex, last.endIndex, "return") } : {}), ...(returnedGap ? { gap: returnedGap } : {}) }
           if (!returnedGap) symbol.valueCallable = { schemaVersion: "source-callable-definition/v1", ownerId: owner.id, ownerSha256: owner.sha256, name: symbol.name, anchorId: sourceSyntaxAnchorId(owner.id, n.startIndex, n.endIndex, "assignment", symbol.name), captures: structuredClone(captures), source: { path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, startIndex: n.startIndex, endIndex: n.endIndex }, controls: [], order: sourceStoreOrder(n, owner.id, call => `call-${hash([sourceIdentity, file.path, sha256, call.startIndex]).slice(0, 24)}`) }
         }
+      }
+      }
+      let definitionsSettled = language !== "python"
+      if (language === "python") for (let pass = 0; pass < 32; pass++) {
+        const previous = definitionProofs(); resolveDefinitionProofs()
+        if (definitionProofs() === previous) { definitionsSettled = true; break }
+      }
+      if (!definitionsSettled) for (const symbol of symbols) {
+        if (symbol.classDefinition) symbol.classDefinition.gap = "source-class-definition-proof-limit"
+        if (symbol.localCallable) symbol.localCallable.gap = "source-local-callable-proof-limit"
+        if (symbol.valueCallable) symbol.valueCallable.gap = "source-callable-value-proof-limit"
+        if (symbol.returnedCallable) symbol.returnedCallable.gap = "source-returned-callable-proof-limit"
+        delete symbol.classMethod
       }
       const moduleAttributeWrites: string[] = [], routerAliases: FileScope["routerAliases"] = [], fieldStores: FileScope["fieldStores"] = []
       if (language === "python") for (const n of descendants(root, ["assignment", "augmented_assignment", "delete_statement"])) {
@@ -925,6 +963,12 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       basis = ["AST zero-argument super after defining class in actual C3 receiver"]
       if (candidates.length && mro) call.receiverClass = mro[0]
     }
+    else if (!parts.length && scope.language === "python" && owner?.classMethod?.captures.some(c => c.name === name && c.callable)) {
+      const capture = owner.classMethod.captures.find(c => c.name === name)!, target = symbols.find(s => s.id === capture.callable!.targetId && s.sha256 === capture.callable!.targetSha256), cls = symbols.find(s => s.id === owner.classMethod!.classId)
+      call.gap = !capture.binding || !target?.valueCallable || target.valueCallable.gap || !cls?.classDefinition || cls.classDefinition.gap || raw.reboundNames.includes(name) ? "source-callable-capture-binding-unresolved" : call.argumentFacts?.some(a => a.sourceCallId) || raw.argumentEvents?.some(events => events.length) ? "source-callable-capture-call-order-unmodeled" : undefined
+      if (!call.gap) { candidates = [target!]; call.capturedCallable = { ownerId: owner.id, name, ...capture.callable!, binding: structuredClone(capture.binding!) } }
+      basis = ["AST stable local function captured by the actual namespace method; invocation requires the original function object and saved environment"]
+    }
     else if (!parts.length && scope.language === "python" && owner && callableInputKey(owner, name) && callableInputs.has(callableInputKey(owner, name)!)) {
       const key = callableInputKey(owner, name)!, choices = callableInputs.get(key)!
       call.gap = callableInputGaps.get(key) ?? (raw.reboundNames.includes(name) ? "source-callable-parameter-rebound" : owner.attributes.bindingWrapped || owner.attributes.callableAsync || owner.attributes.callableGenerator || owner.boundary !== "complete" || owner.valueCallable?.gap ? "source-callable-parameter-owner-unmodeled" : !raw.fieldControls ? "source-callable-parameter-control-unmodeled" : undefined)
@@ -1284,6 +1328,8 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           const [root, ...parts] = expression.split(".")
           if (active.has(root!)) { aliasUnresolved = true; return }
           active.add(root!)
+          const captured = owner.classMethod?.captures.find(c => c.name === root)?.callable, capturedTarget = captured && symbols.find(s => s.id === captured.targetId && s.sha256 === captured.targetSha256)
+          if (capturedTarget) functionSource(capturedTarget)
           const inputKey = callableInputKey(owner, root!), inputs = inputKey ? callableInputs.get(inputKey) : undefined
           if (inputKey && callableInputGaps.has(inputKey)) aliasUnresolved = true
           for (const input of inputs ?? []) {
@@ -1495,7 +1541,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       return choices ? [{ name, choices: structuredClone(choices), ...(callableInputGaps.get(key!) ? { gap: callableInputGaps.get(key!) } : {}) }] : []
     }) : []
   }
-  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v28"
+  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v29"
   const withSymbolSyntax = <T>(symbolId: string, visit: (root: Node, symbol: StructureSymbol) => T): Promise<T> => {
     const symbol = symbols.find(s => s.id === symbolId), file = symbol && files.find(f => f.path === symbol.path)
     if (!symbol || !file || hash(file.content) !== symbol.sha256) throw new Error("structure-source-missing")

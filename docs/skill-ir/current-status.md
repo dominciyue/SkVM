@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-最新小步为AY7 `source-bindings/v28`跨层稳定参数捕获：普通local helper/classMethod保留真实祖先parameter owner/SHA，内层需求逐层relay到实际返回closure，在原定义点保存对象环境；同名caller重绑定不替换capture，function-valued祖先输入仍核验实际sourceCallable。最近参数遮蔽、mutable cell/local值/nonlocal/global/match及未知nested body继续具名；类方法捕获名不借同名module/import函数。20新增；701focused/4315断言、联合1540pass/1平台skip/10122断言和主/AY类型通过。只读复核推动implicit argument来源owner标记的精准红绿修正，未将静态风险称已复现runtime重建。100文件/12body probe有61 capture事实/2祖先事实、relay合格与实际采用0，真实ExtendedSchema动态base及decorator nested gap仍在；无实验模型读证据。继续动态父类、局部callable捕获/super环境、模块类应用/constructor、完整请求及官方完整复验和预登记净收益，AY7未完成。
+最新小步为AY7 `source-bindings/v29`局部函数对象捕获：普通局部class method直接调用同一创建owner中唯一稳定且先定义的ordinary helper，原helper定义创建实际sourceCallable，方法保存该对象，调用从其环境读取capture而不追加caller同名变量。来源证明有界固定点后才暴露，重绑定/nonlocal/global/未知cell/递归/条件或包装定义、复杂default与嵌套实参动作继续具名。17新增；718focused/4419断言、联合1557pass/1平台skip/10226断言与主/AY类型通过；两只读范围均无可复现发现，来源核验含独立小例、投影核验以既有反例为主。100文件/12body probe有28局部函数值定义/15合格、函数对象capture候选/实际采用0；is_in_scope仍capture-rebound，ExtendedSchema仍动态base gap。无实验模型读证据或新增实验模型/目标执行。继续稳定改写后的capture环境、动态BaseSchema/super/cell、模块类应用/constructor、完整请求及官方完整复验和预登记净收益，AY7未完成。
 
 此前AY7 `source-bindings/v22`早期普通方法捕获：有嵌套实参call的同instance直接statement/assignment/return先实际捕获原方法，再按词法顺序求值实参，后以既有boundMethod/fieldMethodRead和同一binder调用；实参内slot覆盖保留原引用，捕获前覆盖或实参异常保持原阻断。简单and/or值经同一argumentFacts的机械valueFlow投影；复杂操作数、class/wrapper/descriptor不取得新资格。材料须保留精确捕获、原if/try区域、严格事件顺序和原短路body，缺失/挪动/实参倒序/追加call不采用。33新增用例；525focused/2676断言、联合1364pass/1平台skip/8483断言及主/AY类型通过；两只读核验与主红绿分列。100文件/6候选body probe声明receiver有1处early capture合格，指定应用receiver合格/实际采用0；旧probe/input/allowlist/答保留。实际class/wrapper变换、完整请求和官方复验继续，AY7和预登记净收益未达。
 

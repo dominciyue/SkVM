@@ -14,6 +14,46 @@ const api = await import("./source-material-projection.ts").catch(() => ({} as a
 const content = "def entry(actor):\n    return helper(actor)\ndef helper(actor):\n    return actor\ndef unrelated(actor):\n    return actor\n"
 const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect entry", premises: [] }, { id: "other", operationId: "op", intent: "scope", request: "Explain alternatives", premises: [] }] })
 
+for (const returned of [false, true]) test(`class methods invoke captured local helper objects and their actual environments: ${returned}`, async () => {
+  const nested = "    def check(item):\n        if flag:\n            raise Denied\n        return item\n    class Local:\n        def guard(actor):\n            return check(actor)\n    Local.guard(actor)\n    return actor\n", content = `def entry(subject):\n${returned ? "    first = create(False)\n    second = create(True)\n    check = False\n    if check:\n        raise Denied\n    first(subject)\n    second(subject)\n" : "    make(False, subject)\n    make(True, subject)\n"}    write(subject)\n    return True\n${returned ? "def create(flag):\n    def decorator(actor):\n" + nested.split("\n").filter(Boolean).map(s => "    " + s).join("\n") + "\n    return decorator\n" : "def make(flag, actor):\n" + nested}`
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-local-function-capture-")); await writeFile(path.join(sourceRoot, "app.py"), content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, units: any[] = []
+  const helper = index.symbols.find(s => s.name === "check")!, method = index.symbols.find(s => s.name === "guard")!, cls = index.symbols.find(s => s.name === "Local")!, owner = index.symbols.find(s => s.id === cls.classDefinition!.ownerId)!
+  expect(helper.valueCallable?.gap).toBeUndefined(); expect(helper.valueCallable).toBeDefined(); expect(cls.classDefinition!.gap).toBeUndefined()
+  for (const source of index.symbols.filter(s => s.kind === "function")) {
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id))!; expect(skeleton.gaps).toEqual([])
+    const annotations = skeleton.anchors.filter(a => ["parameter", "call", "return", "raise", "condition", "assignment"].includes(a.kind)).map(a => ({ anchorId: a.id, role: a.kind === "parameter" ? ["actor", "subject", "item"].includes(a.name!) ? "principal" : "condition" : a.kind === "call" && a.call!.expression === "write" ? "effect" : ["call", "condition"].includes(a.kind) ? "condition" : "context", explanation: "Anonymous actual local helper object capture", ...(a.kind === "condition" ? { condition: { op: "eq", left: { binding: a.text }, right: { literal: true } } } : {}), ...(a.kind === "return" && source.name === "entry" ? { returnOutcome: "allow" } : {}), ...(a.kind === "raise" ? { failureKind: "authorization" } : {}) }))
+    const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index, propertyDirected: true, itemId: source.id, handle: source.id, questionId: "q", role: source.name === "entry" ? "entry" : "helper" })
+    expect(result.diagnostics).toEqual([]); units.push({ ...result.unit!, questionId: "q", evidenceIds: skeleton.evidenceIds, source: skeleton.source })
+  }
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect actual captured helper environments", premises: [] }] })
+  const project = (adopted = units, current = index) => { const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" }); for (const u of adopted) store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }, { kind: "candidate-set", key: `relations:${u.source.id}:`, revision: sourceRelationRevision(index, u.source.id)! }], "test-authored"); return api.projectSourceMaterials(p, adopted, store.snapshot(), current, { questionDirected: true }) }
+  const projected = project(), lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true }), methodUnit = units.find(u => u.source.id === method.id), ownerUnit = units.find(u => u.source.id === owner.id)
+  expect(projected.uses.filter((u: any) => u.kind === "call")).toHaveLength(returned ? 6 : 4)
+  expect(methodUnit.parameters.map((p: any) => p.name)).toEqual(["actor", "check"])
+  const invocation = methodUnit.blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call")
+  expect(invocation.arguments).toEqual([{ parameter: "item", object: "actor" }]); expect(invocation.callableRead).toEqual({ object: "check", targetId: helper.id, targetSha256: helper.sha256 })
+  expect(ownerUnit.blocks.flatMap((b: any) => b.steps).filter((s: any) => s.sourceCallable)).toHaveLength(2)
+  expect(lowered.diagnostics).toEqual([]); expect(lowered.delta.rules.filter(r => r.terminal).map(r => r.outcome)).toEqual(["deny"])
+  expect(lowered.delta.rules.filter(r => r.kind === "call" && r.sourceOrigin?.handle === method.id)).toHaveLength(2)
+  expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(false)
+  if (returned) expect(units.find(u => u.role === "entry").blocks.flatMap((b: any) => b.steps).some((s: any) => s.result === "check" || s.bindingName === "check")).toBe(true)
+  for (const mutation of ["missing-definition", "helper-environment", "method-environment", "late-definition", "callee", "missing-helper-parameter"]) {
+    const changed = structuredClone(units), ownerBody = changed.find(u => u.source.id === owner.id).blocks.find((b: any) => b.steps.some((s: any) => s.sourceCallable?.targetId === helper.id)), creation = ownerBody.steps.find((s: any) => s.sourceCallable?.targetId === helper.id), methodBody = changed.find(u => u.source.id === method.id), call = methodBody.blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call")
+    if (mutation === "missing-definition") ownerBody.steps = ownerBody.steps.filter((s: any) => s !== creation)
+    if (mutation === "helper-environment") creation.sourceCallable.captures[0].object = "actor"
+    if (mutation === "method-environment") ownerBody.steps.find((s: any) => s.sourceCallable?.targetId === method.id).sourceCallable.captures[0].object = "actor"
+    if (mutation === "late-definition") ownerBody.steps.push(ownerBody.steps.splice(ownerBody.steps.indexOf(creation), 1)[0])
+    if (mutation === "callee") call.callableRead.object = "actor"
+    if (mutation === "missing-helper-parameter") changed.find(u => u.source.id === helper.id).parameters = changed.find(u => u.source.id === helper.id).parameters.filter((p: any) => p.name !== "flag")
+    const denied = lowerSemanticFlow(project(changed).units, { compositional: true, propertyDirected: true })
+    expect(denied.diagnostics.length).toBeGreaterThan(0)
+  }
+  expect(project(units, await buildStructureIndex([{ path: "app.py", content }, { path: "other.py", content: "def check(item):\n    return item\n" }], { repository: "anonymous", sourceRef: "r" })).uses).toEqual(projected.uses)
+  expect(project(units, await buildStructureIndex([{ path: "app.py", content: content.replace("if flag:", "if not flag:") }], { repository: "anonymous", sourceRef: "r" })).uses).toEqual([])
+})
+
 for (const kind of ["class", "local", "callback", "deep"]) test(`returned decorator relays actual ancestor objects through an inner ${kind}`, async () => {
   const callback = kind === "callback", nested = kind === "deep" ? "        def inner(item):\n            def guard(value):\n                if flag:\n                    raise Denied\n                return value\n            return guard(item)\n        inner(actor)\n" : kind === "local" ? "        def guard(item):\n            if flag:\n                raise Denied\n            return item\n        guard(actor)\n" : `        class Local:\n            def guard(item):\n${callback ? "                return operation(item)\n" : "                if flag:\n                    raise Denied\n                return item\n"}        Local.guard(actor)\n`
   const content = `def entry(subject):\n    first = create(${callback ? "allow" : "False"})\n    second = create(${callback ? "deny" : "True"})\n    ${callback ? "operation" : "flag"} = False\n    if ${callback ? "operation" : "flag"}:\n        raise Denied\n    first(subject)\n    second(subject)\n    return True\ndef create(${callback ? "operation" : "flag"}):\n    def decorator(actor):\n${nested}        return actor\n    return decorator\n${callback ? "def allow(item):\n    return item\ndef deny(item):\n    raise Denied\n" : ""}`

@@ -77,6 +77,15 @@ test("local capture binding is implicit and retains the actual owner source", as
   expect(api.sourceArgumentBindings(index, { ...call, ownerId: target.id }, target).bindings).toEqual([])
   expect(api.sourceArgumentBindings(index, call, { ...target, localCallable: { ...target.localCallable!, captures: [{ ...target.localCallable!.captures[0]!, name: "different_actor" }] } }).bindings).toEqual([])
 })
+
+test("a captured local helper binds only explicit arguments and rejects forged source capture proofs", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "def make(flag, actor):\n    def check(item):\n        return flag\n    class Local:\n        def guard(actor):\n            return check(actor)\n    return Local.guard(actor)\n" }], { repository: "anonymous", sourceRef: "r" }), method = index.symbols.find(s => s.name === "guard")!, helper = index.symbols.find(s => s.name === "check")!, call = index.relatedCalls(method.id)[0]!, binding = api.sourceArgumentBindings(index, call, helper)
+  expect(binding.gap).toBeUndefined(); expect(binding.bindings).toEqual([{ parameter: "item", expression: "actor", literalKnown: false }])
+  for (const field of ["targetId", "targetSha256", "ownerId", "binding"]) {
+    const forged: any = structuredClone(call); forged.capturedCallable[field] = field === "binding" ? { ownerId: "foreign", ownerSha256: "foreign" } : "foreign"
+    expect(api.sourceArgumentBindings(index, forged, helper).gap).toBe("source-arguments-captured-callable-unresolved")
+  }
+})
 test("transitive implicit arguments retain the original capture owner rather than the relay owner", async () => {
   const index = await buildStructureIndex([{ path: "app.py", content: "def create(flag):\n    def decorator(actor):\n        def guard(item):\n            return flag\n        guard(actor)\n        return actor\n    return decorator\n" }], { repository: "anonymous", sourceRef: "r" }), origin = index.symbols.find(s => s.name === "create")!, relay = index.symbols.find(s => s.name === "decorator")!, target = index.symbols.find(s => s.name === "guard")!, call = index.relatedCalls(relay.id).find(c => c.expression === "guard")!, bound = api.sourceArgumentBindings(index, call, target)
   expect(bound.gap).toBeUndefined()

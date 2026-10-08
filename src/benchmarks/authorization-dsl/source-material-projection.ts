@@ -62,7 +62,7 @@ function currentMethodStoresValid(index: StructureIndex, unit: BoundSemanticBloc
 function currentClassDefinitionsValid(index: StructureIndex, unit: BoundSemanticBlock) {
   const owner = unit.source!.id, calls = index.relatedCalls(owner), steps = unit.blocks.flatMap(b => b.steps)
   for (const call of calls) {
-    const proof = call.classNamespaceCall
+    const proof = call.classNamespaceCall ?? call.capturedCallable
     if (proof && steps.some(step => step.kind === "call" && step.sourceCallId === call.id && (canonicalControl(step.callableRead ?? null) !== canonicalControl({ object: call.expression, targetId: proof.targetId, targetSha256: proof.targetSha256 }) || step.methodRead || step.fieldMethodRead))) return false
   }
   const definitions = index.symbols.filter(s => s.classDefinition?.ownerId === owner && s.classDefinition.ownerSha256 === unit.source!.sha256 && !s.classDefinition.gap)
@@ -185,6 +185,7 @@ function actualArguments(index: StructureIndex, caller: BoundSemanticBlock, step
   if (!call || !symbol) return false
   const binding = sourceArgumentBindings(index, call, symbol), expected = binding.bindings, steps = caller.blocks.flatMap(b => b.steps)
   if (binding.gap || step.arguments.length !== expected.length) return false
+  if (call.capturedCallable && (!symbol.valueCallable || symbol.valueCallable.gap || symbol.valueCallable.captures.some(c => target.parameters.filter(p => p.name === c.name).length !== 1) || target.parameters.some(p => !symbol.parameters.some(s => s.name === p.name) && !symbol.valueCallable!.captures.some(c => c.name === p.name)))) return false
   if (call.classNamespaceCall && (!symbol.classMethod || symbol.classMethod.captures.some(c => target.parameters.filter(p => p.name === c.name).length !== 1) || target.parameters.some(p => !symbol.parameters.some(s => s.name === p.name) && !symbol.classMethod!.captures.some(c => c.name === p.name)))) return false
   const returnedCreationValid = (proof: StructureCallableBinding, controls: StructureMethodControl[]) => {
     const creations = steps.filter(s => s.kind === "call" && s.sourceCallId === proof.creationCallId), creation = creations[0], block = sourceControlBlock(caller, proof.controls)
@@ -379,7 +380,7 @@ export function projectSourceMaterials(program: AuthorizationInquiryProgram, acc
           if (methodRead) step.methodRead = methodRead
           if (call?.methodField && symbol) step.fieldMethodRead = { object: call.expression, receiver: call.methodField.receiver, targetId: symbol.id, targetSha256: symbol.sha256 }
           if (options.questionDirected && call?.methodCapture && symbol) step.fieldMethodRead = { object: sourceMethodCaptureResult(call.id), receiver: call.methodCapture.receiver, targetId: symbol.id, targetSha256: symbol.sha256 }
-          if (options.questionDirected && (call?.callableParameter || call?.callableBinding || call?.implicitClassDecorator || call?.classNamespaceCall) && symbol) step.callableRead = { object: call!.expression, targetId: symbol.id, targetSha256: symbol.sha256 }
+          if (options.questionDirected && (call?.callableParameter || call?.callableBinding || call?.capturedCallable || call?.implicitClassDecorator || call?.classNamespaceCall) && symbol) step.callableRead = { object: call!.expression, targetId: symbol.id, targetSha256: symbol.sha256 }
           step.callee = target.unit.handle
           uses.push({ kind: "call", operationId: operation.id, questionId: question.questionId, materialId: helper.id, callerMaterialId: material.id, relationId: target.relationId, receiverClass: target.receiverClass, arguments: structuredClone(step.arguments) })
           visit(helper)

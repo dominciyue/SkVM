@@ -1,0 +1,180 @@
+{
+  "schemaVersion": "authorization-readonly-review/v1",
+  "date": "2026-10-08",
+  "stage": "AY7 local function object captures v29",
+  "baseCommit": "db5c77fc",
+  "relationshipVersion": "source-bindings/v29",
+  "contract": {
+    "scope": "Ordinary class methods directly invoke stable unconditional earlier local helper definitions in the same class-creation owner.",
+    "actualIdentity": "Helper sourceCallable is created at its definition; class method captures that object; invocation reads its target/SHA and saved environment without caller reconstruction.",
+    "boundaries": [
+      "computed or mutable cells",
+      "ancestor local helper outside the same class-creation owner",
+      "rebinding and nonlocal/global",
+      "conditional/wrapped/async/generator/recursive helpers",
+      "dynamic or mutable defaults",
+      "unknown nested scopes",
+      "nested argument actions",
+      "dynamic bases/super/class cells/module initialization/constructors/full requests"
+    ],
+    "definitionResolution": "Recompute class/local source proofs to a bounded fixed point before exposing call edges; nonconvergence remains a named gap."
+  },
+  "locators": [
+    {
+      "agent": "ay_local_function_capture_locations_v29",
+      "role": "default",
+      "history": "none",
+      "status": "completed",
+      "limitation": "Only its final area summary was available; no detailed verification claim is drawn from it."
+    },
+    {
+      "agent": "ay_captured_function_dispatch_locations_v29",
+      "role": "default",
+      "history": "none",
+      "status": "completed",
+      "scope": "Actual class-method capture, class namespace dispatch, source binder/compiler, callable creation projection and candidate/object distinction",
+      "sourceAnchors": [
+        "structure-index.ts:387-433",
+        "structure-index.ts:928-965",
+        "source-arguments.ts:17-20",
+        "source-interpretation.ts:234-321",
+        "source-material-projection.ts:62-220"
+      ]
+    }
+  ],
+  "reviews": [
+    {
+      "agent": "ay_local_callable_capture_source_review_v29",
+      "role": "default",
+      "history": "none",
+      "readOnly": true,
+      "finding": "No reproducible wrong acceptance found within the requested scope.",
+      "anchors": [
+        "structure-index.ts:403-408",
+        "structure-index.ts:478-531",
+        "structure-index.ts:966-990"
+      ],
+      "verification": {
+        "tests": 284,
+        "assertions": 638,
+        "failures": 0,
+        "files": 1
+      },
+      "independentFixtures": [
+        "nearest local helper shadows an outer parameter",
+        "module namesake follows ordinary module binding without a local helper",
+        "outer helper across an intermediate owner remains a gap",
+        "definition after class remains a gap",
+        "conditional helper remains a gap",
+        "recursive helper remains a gap",
+        "nonlocal helper remains a gap"
+      ],
+      "limitation": "Index-only scope and temporary inline fixtures; no full repository or native validation."
+    },
+    {
+      "agent": "ay_local_callable_capture_projection_review_v29",
+      "role": "default",
+      "history": "none",
+      "readOnly": true,
+      "finding": "No reproducible defect found within the requested scope.",
+      "anchors": [
+        "source-arguments.ts:41-43",
+        "source-arguments.ts:101-102",
+        "source-interpretation.ts:245-269",
+        "source-material-projection.ts:65-67",
+        "source-material-projection.ts:188-221"
+      ],
+      "verification": [
+        {
+          "tests": 6,
+          "assertions": 147,
+          "failures": 0,
+          "files": 1
+        },
+        {
+          "tests": 2,
+          "assertions": 10,
+          "failures": 0,
+          "files": 1
+        }
+      ],
+      "independentFixtures": [],
+      "limitation": "Existing-test-centered; no independent new projection fixture, native test run or full type check."
+    }
+  ],
+  "mainVerification": {
+    "newTests": 17,
+    "red": {
+      "passed": 8,
+      "failed": 5,
+      "assertions": 23,
+      "reason": "Missing actual helper creation/capture and unresolved local callable binding."
+    },
+    "initialGreen": {
+      "passed": 13,
+      "failed": 0,
+      "assertions": 97
+    },
+    "additionalNonlocalCheck": {
+      "passed": 1,
+      "failed": 0,
+      "assertions": 1,
+      "productDefect": false,
+      "note": "Additional nonlocal-binding regression already passed because references invalidate valueCallable; no fix or red claim."
+    },
+    "focused": {
+      "passed": 718,
+      "failed": 0,
+      "assertions": 4419,
+      "files": 11,
+      "durationMs": 9290
+    },
+    "joint": {
+      "passed": 1557,
+      "skipped": 1,
+      "failed": 0,
+      "assertions": 10226,
+      "files": 115,
+      "durationMs": 22350
+    },
+    "mainTypes": {
+      "exitCode": 0,
+      "durationMs": 41787
+    },
+    "ayTypes": {
+      "exitCode": 0,
+      "durationMs": 7137
+    }
+  },
+  "realSourceProbe": {
+    "path": "verification/paperless-local-function-capture-replay.json",
+    "sha256": "1bd90778c0a04ffda2cf8e9914bd17bc5aa78d0c89949ce9bb489bd4c5f0ed3b",
+    "frozenSourcesVerified": 94,
+    "supplementSourceFiles": 6,
+    "selectedBodies": 12,
+    "classDefinitions": 7,
+    "eligibleClassDefinitions": 0,
+    "localCallableDefinitions": 28,
+    "eligibleLocalCallableDefinitions": 15,
+    "callableCaptureFacts": 0,
+    "capturedCallCandidates": 0,
+    "materialUses": 0,
+    "realBoundaries": [
+      "ExtendedSchema dynamic base remains source-class-definition-base-unmodeled",
+      "is_in_scope local function value has source-local-capture-rebound because methods is rewritten by its lexical owner"
+    ]
+  },
+  "originalInputsAndAllowlistsUnmodified": true,
+  "originalAttemptPromoted": false,
+  "experimentModelReadEvidence": false,
+  "modelExecutions": 0,
+  "targetExecutions": 0,
+  "probeNetworkRequests": 0,
+  "costs": {
+    "experimentTokens": 0,
+    "developerAndScoutTokens": null,
+    "usd": null,
+    "humanTime": null
+  },
+  "goalStatus": "AY7 engineering continues; full official use and preregistered measured benefit are unmet."
+}

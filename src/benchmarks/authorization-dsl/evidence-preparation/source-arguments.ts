@@ -38,7 +38,11 @@ export function sourceArgumentBindings(index: SourceArgumentIndex, call: Structu
     const proof = call.methodCapture, actual = caller && index.relatedCalls(caller.id, call.receiverClass).find(c => c.id === call.id)
     if (!actual || actual.resolution !== "resolved" || actual.candidateIds.length !== 1 || actual.candidateIds[0] !== target.id || proof.targetId !== target.id || proof.targetSha256 !== currentTarget?.sha256 || proof.source.sha256 !== caller?.sha256 || proof.receiver !== call.receiver || proof.sourceCallId !== call.id || actual.receiver !== call.receiver || actual.receiverClass !== call.receiverClass || actual.expression !== call.expression || actual.sha256 !== call.sha256 || JSON.stringify(actual.argumentFacts) !== JSON.stringify(call.argumentFacts) || JSON.stringify(actual.methodCapture) !== JSON.stringify(proof)) return fail("method-capture-unresolved")
   }
-  if (call.callableParameter) {
+  if (call.capturedCallable) {
+    const proof = call.capturedCallable, actual = caller && index.relatedCalls(caller.id, call.receiverClass).find(c => c.id === call.id), capture = caller?.classMethod?.captures.find(c => c.name === proof.name), cls = caller?.classMethod && index.symbols.find(s => s.id === caller.classMethod!.classId)
+    if (!actual || actual.resolution !== "resolved" || actual.candidateIds.length !== 1 || actual.candidateIds[0] !== target.id || proof.ownerId !== caller?.id || proof.name !== call.expression || proof.targetId !== currentTarget?.id || proof.targetSha256 !== currentTarget?.sha256 || !currentTarget.valueCallable || currentTarget.valueCallable.gap || !cls?.classDefinition || cls.classDefinition.gap || JSON.stringify(capture?.callable) !== JSON.stringify({ targetId: proof.targetId, targetSha256: proof.targetSha256 }) || JSON.stringify(capture?.binding) !== JSON.stringify(proof.binding) || JSON.stringify(currentTarget.valueCallable) !== JSON.stringify(target.valueCallable) || actual.expression !== call.expression || actual.sha256 !== call.sha256 || JSON.stringify(actual.argumentFacts) !== JSON.stringify(call.argumentFacts) || JSON.stringify(actual.capturedCallable) !== JSON.stringify(proof)) return fail("captured-callable-unresolved")
+  }
+  else if (call.callableParameter) {
     const proof = call.callableParameter, actual = caller && index.relatedCalls(caller.id, call.receiverClass).find(c => c.id === call.id)
     if (!actual || actual.resolution === "unresolved" || !actual.candidateIds.includes(target.id) || proof.ownerId !== caller?.id || proof.name !== call.expression || !proof.choices.some(c => c.targetId === target.id && c.targetSha256 === currentTarget?.sha256) || target.valueCallable?.gap || local && !target.valueCallable || actual.expression !== call.expression || actual.sha256 !== call.sha256 || JSON.stringify(actual.argumentFacts) !== JSON.stringify(call.argumentFacts) || JSON.stringify(actual.callableParameter) !== JSON.stringify(proof)) return fail("callable-parameter-unresolved")
   }
@@ -94,6 +98,6 @@ export function sourceArgumentBindings(index: SourceArgumentIndex, call: Structu
   // The caller signature excludes these keys only while its **kwargs remains
   // an unmodified, unescaped source pack. A renamed regular parameter may collide.
   if (keySource && regular.some(name => !caller!.parameters.some(p => p.name === name && !p.kind?.startsWith("variadic") && p.kind !== "positional-only"))) return fail("keyword-collision-unresolved")
-  if (!instance && !call.callableParameter) for (const capture of local?.captures ?? []) bindings.push({ parameter: capture.name, expression: capture.name, literalKnown: false, captureOwnerId: capture.binding?.ownerId ?? local!.ownerId })
+  if (!instance && !call.callableParameter && !call.capturedCallable) for (const capture of local?.captures ?? []) bindings.push({ parameter: capture.name, expression: capture.name, literalKnown: false, captureOwnerId: capture.binding?.ownerId ?? local!.ownerId })
   return { bindings, ...(partialGap ? { gap: partialGap } : {}) }
 }
