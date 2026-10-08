@@ -175,6 +175,7 @@ test("foreign-turn usage is ignored and account totals preserve cache and reason
   const r = await mock("foreign-usage").run()
   expect(r.usage).toEqual({ input: 10, output: 3, cacheRead: 4, cacheWrite: 0 })
   expect(r.usageDetails).toEqual({ totalTokens: 13, reasoningOutputTokens: 2, inputIncludesCached: true })
+  expect((r as any).usageSource).toMatchObject({ method: "thread/tokenUsage/updated", aggregation: "max-per-counter", inputIncludesCached: true, rawTotal: { inputTokens: 10, outputTokens: 3, cachedInputTokens: 4 } })
 })
 
 test("native execution in a controlled account turn terminates without dispatching a host tool", async () => {

@@ -46,6 +46,18 @@ test("semantic delivery archives omitted-kind normalization without inventing a 
   expect(run.toolHistory).toHaveLength(0)
 })
 const final = (id: string) => ({ kind: "final", result: { schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q1", behavior: { disposition: "deny", explanation: "The called guard returns false." }, evidenceIds: [id], branches: [], missing: [] }], observations: [], scope: "Read source only" } })
+test("v6 provider entrance permits two field corrections and two semantic checks within the original dispatch cap", async () => {
+  const input = await setup(), mock = scripted((params, n) => {
+    if (n < 2) return { invalid: true }
+    const current = JSON.parse(/Current local explanation context: (.*)\n\nRemaining dispatches:/s.exec(params.messages[0]!.content)![1]!)
+    return { kind: "final", schemaVersion: "authorization-focused-result/v1", focusId: current.focus.id, answers: [{ explanation: "Original entry is not yet interpreted.", disposition: n === 2 ? "allow" : "unknown", missing: [{ kind: "source-gap", detail: "Entry and helper remain uninterpreted." }] }], scope: "bounded original source" }
+  })
+  const run = await runAuthorizationInquiry({ ...input, method: "M", strategy: "operation-evidence-v6" as any, provider: mock.provider, maxDispatches: 6, maxToolCalls: 8 })
+  expect(run.wireFailures).toHaveLength(2)
+  expect(run.domain?.checkHistory).toHaveLength(2)
+  expect(mock.count()).toBe(4)
+  expect((run as any).recovery).toMatchObject({ formatCorrectionLimit: 2, formatRejections: 2, semanticCheckLimit: 2, semanticChecks: 2 })
+})
 test("closing source snapshot rejects a final after an unread indexed file changes without another provider call", async () => {
   const input = await setup(); let calls = 0
   const provider: LLMProvider = { name: "snapshot-mock", async complete(params) {

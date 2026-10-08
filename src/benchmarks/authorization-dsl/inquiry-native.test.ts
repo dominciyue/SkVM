@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { mkdtemp, mkdir, writeFile, readFile } from "node:fs/promises"
+import { mkdtemp, mkdir, writeFile, readFile, copyFile } from "node:fs/promises"
 import path from "node:path"
 import os from "node:os"
 import { createNativeInquiryRuntime } from "./inquiry-native.ts"
@@ -83,6 +83,38 @@ async function budgetFixture(domainTools = true, maxToolCalls?: number) {
   const result = (id: string) => ({ schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q1", behavior: { disposition: "deny", explanation: "Entry returns false." }, branches: [], missing: [], evidenceIds: [id] }], observations: [], scope: "entry only" })
   return { root, runtime, execute, inquiry, result }
 }
+test("v6 separates two malformed corrections from semantic checks inside one total budget and withdraws stale results", async () => {
+  const { root } = await budgetFixture(), runtime = await createNativeInquiryRuntime({ inputFile: path.join(root, "input.json"), workDir: root, domainTools: true, method: "M", strategy: "operation-evidence-v6" as any, maxToolCalls: 8 })
+  await runtime.execute({ id: "list", name: "source_list", arguments: {} })
+  await runtime.accountContext()
+  const call = { id: "bad", name: "authorization_check_result", arguments: {} }, diagnostics = [{ path: "/result", keyword: "required", message: "result required", expected: {} }]
+  for (let n = 0; n < 2; n++) await runtime.rejectArguments({ ...call, id: `bad-${n}` }, diagnostics)
+  expect(runtime.report().toolBudget).toMatchObject({ totalLimit: 8, totalUsed: 3, checksUsed: 0, checksRemaining: 2, formatRejections: 2, formatCorrectionsRemaining: 0 })
+  const context: any = await runtime.accountContext(false)
+  const result = { schemaVersion: "authorization-focused-result/v1", focusId: context.focus.id, answers: [{ explanation: "Current source remains unresolved.", disposition: "unknown", paths: [], missing: [{ kind: "source-gap", detail: "Entry source interpretation remains incomplete." }] }], scope: "entry only" }
+  for (let n = 0; n < 2; n++) await runtime.execute({ ...call, id: `semantic-${n}`, arguments: { result } })
+  expect(runtime.report().toolBudget.checksUsed).toBe(2)
+  expect(runtime.report().result).toBeDefined()
+  expect(runtime.report().toolBudget.totalUsed).toBe(5)
+  await runtime.rejectArguments({ ...call, id: "third" }, diagnostics)
+  expect(runtime.report().result).toBeUndefined()
+  expect((runtime.report().history.at(-1)!.output as any).code).toBe("format-repair-budget")
+  expect(runtime.report().toolBudget.totalUsed).toBeLessThanOrEqual(8)
+  await runtime.close()
+})
+test("native source routing survives a moved directory with spaces and isolates its original workspace", async () => {
+  const { root } = await budgetFixture(false), moved = path.join(await mkdtemp(path.join(os.tmpdir(), "az moved ")), "new workspace")
+  await mkdir(path.join(moved, "source"), { recursive: true })
+  await copyFile(path.join(root, "input.json"), path.join(moved, "input.json"))
+  await copyFile(path.join(root, "source/entry.ts"), path.join(moved, "source/entry.ts"))
+  const runtime = await createNativeInquiryRuntime({ inputFile: path.join(moved, "input.json"), workDir: moved, domainTools: false, maxToolCalls: 3 })
+  const good = JSON.parse((await runtime.execute({ id: "current", name: "source_read", arguments: { path: "entry.ts", startLine: 1, endLine: 1 } })).output)
+  expect(good.evidence[0].text).toContain("return false")
+  const outside = JSON.parse((await runtime.execute({ id: "old", name: "source_read", arguments: { path: path.join(root, "source/entry.ts"), startLine: 1, endLine: 1 } })).output)
+  expect(outside.evidence).toEqual([])
+  expect(outside.code).toBe("source-out-of-scope")
+  await runtime.close()
+})
 test("native output limit bounds every actual request while preserving a stricter caller limit and the old default", async () => {
   const { root } = await budgetFixture(false), base = { inputFile: path.join(root, "input.json"), workDir: root, domainTools: false }
   const runtime = await createNativeInquiryRuntime({ ...base, maxOutputTokens: 777 } as any)

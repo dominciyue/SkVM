@@ -17,6 +17,8 @@ AZ研究runner位于 `results/skill-ir/skill-dsl-research/development/authorizat
 
 AZ1 `projectSourceMaterials` returns `diagnostics` and `stages` alongside unchanged units/uses. Diagnostics identify question/source/material/call, candidates, required cardinality and nextAction for availability, entry, call and framework rejection. Runtime reports retain all records; model feedback caps the list at 12 with a total count. `study.ts replay-materials` reads both v35 archives and writes only AZ verification; source/check evidence and original SHA remain distinct from current mechanical projection. Verify source-material-projection and property-runtime suites.
 
+Explicit v6 reserves two malformed correction opportunities plus two semantic checks inside the same native total tool cap. Formats do not consume semantic checks; a third malformed response exhausts correction, and the latest invalid check withdraws the previous result. Provider inquiry uses the same finite counts and dispatch cap; rejected candidate data is bounded in repair context. Older strategies retain their counts. Account `usageSource` records the official cumulative raw total and max-per-counter aggregation; input includes cached tokens, so do not add cacheRead to input again. Account USD and hidden provider request count remain null. Space/move source routing is tested locally; the historical host discovery error is not reproduced or claimed fixed.
+
 | 要修改的职责 | 代码起点 | 核对重点 |
 |---|---|---|
 | 任务/问题与义务 | `src/task-dsl/authorization/inquiry.ts`、`inquiry-program.ts` | behavior/conformance、真实政策来源、问题身份 |

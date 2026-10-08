@@ -37,6 +37,7 @@ export interface AccountSessionResult {
   toolRejections: Array<{ call: LLMToolCall; diagnostics: AccountArgumentDiagnostic[] }>
   capability?: { status: "verified-controlled"; cliVersion: string; effectiveConfig: Record<string, unknown>; instructionSources: Array<{ path: string; sha256: string }>; runtimeWorkspaceRoots: string[] }
   usageDetails?: { totalTokens: number; reasoningOutputTokens: number; inputIncludesCached: true }
+  usageSource?: { method: "thread/tokenUsage/updated"; aggregation: "max-per-counter"; inputIncludesCached: true; rawTotal: Record<string, number> }
 }
 const AccountBoundarySchema = z.object({ schemaVersion: z.literal("codex-account-boundary/v1"),
   instructionSources: z.array(z.object({ path: z.string().refine(p => path.isAbsolute(p) || path.win32.isAbsolute(p)), sha256: z.string().regex(/^[a-f0-9]{64}$/) }).strict()), review: z.string().optional() }).strict()
@@ -145,6 +146,7 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
   let usage: TokenUsage | null = null, text = "", failure: string | undefined
   let capability: AccountSessionResult["capability"]
   let usageDetails: AccountSessionResult["usageDetails"]
+  let usageSource: AccountSessionResult["usageSource"]
   let terminalStatus: AccountSessionResult["terminalStatus"] = "not-started", quotaRefused = false
   let terminalError: AccountSessionResult["terminalError"]
   const validators = new Map<string, ReturnType<Ajv["compile"]>>()
@@ -161,7 +163,7 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
     const id = ++sequence; pending.set(id, { method, resolve, reject }); record({ direction: "client", id, method, params })
     try { transport!.send({ id, method, params }) } catch { pending.delete(id); reject(new Error("codex-send-failed")) }
   })
-  const result = (status: AccountSessionStatus): AccountSessionResult => redactCodexEvent({ status, text, terminalStatus, answerDelivery: terminalStatus === "completed" && status === "completed" && text.trim() ? "delivered" : "undelivered", usageVisibility: usage ? "observed" : "unknown", quotaRefused, ...(terminalError ? { terminalError } : {}), ...(failure ? { reason: failure } : {}), usage, ...(usageDetails ? { usageDetails } : {}), actualUsd: null, providerRequests: null, durationMs: Date.now() - started, events, tools, toolRejections, model: options.model, effort: options.effort, inferenceDispatched, ...(capability ? { capability } : {}) })
+  const result = (status: AccountSessionStatus): AccountSessionResult => redactCodexEvent({ status, text, terminalStatus, answerDelivery: terminalStatus === "completed" && status === "completed" && text.trim() ? "delivered" : "undelivered", usageVisibility: usage ? "observed" : "unknown", quotaRefused, ...(terminalError ? { terminalError } : {}), ...(failure ? { reason: failure } : {}), usage, ...(usageDetails ? { usageDetails } : {}), ...(usageSource ? { usageSource } : {}), actualUsd: null, providerRequests: null, durationMs: Date.now() - started, events, tools, toolRejections, model: options.model, effort: options.effort, inferenceDispatched, ...(capability ? { capability } : {}) })
   let timer: ReturnType<typeof setTimeout> | undefined
   const abort = () => { failure = "account-session-interrupted-or-timeout"; finish("timeout-unknown"); for (const p of pending.values()) p.reject(new Error(failure)); pending.clear() }
   try {
@@ -187,6 +189,7 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
         const t = params.tokenUsage?.total
         if (t && [t.inputTokens, t.outputTokens, t.cachedInputTokens, t.cacheWriteInputTokens].every(v => Number.isSafeInteger(v) && v >= 0)) {
           usage = { input: Math.max(usage?.input ?? 0, t.inputTokens), output: Math.max(usage?.output ?? 0, t.outputTokens), cacheRead: Math.max(usage?.cacheRead ?? 0, t.cachedInputTokens), cacheWrite: Math.max(usage?.cacheWrite ?? 0, t.cacheWriteInputTokens) }
+          usageSource = { method: "thread/tokenUsage/updated", aggregation: "max-per-counter", inputIncludesCached: true, rawTotal: structuredClone(t) }
           if ([t.totalTokens, t.reasoningOutputTokens].every(v => Number.isSafeInteger(v) && v >= 0)) usageDetails = { totalTokens: Math.max(usageDetails?.totalTokens ?? 0, t.totalTokens), reasoningOutputTokens: Math.max(usageDetails?.reasoningOutputTokens ?? 0, t.reasoningOutputTokens), inputIncludesCached: true }
         }
         return

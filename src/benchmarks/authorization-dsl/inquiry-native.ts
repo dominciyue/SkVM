@@ -11,7 +11,7 @@ import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquir
 import { normalizeNaturalOperation, parseNativeInquiryMethod, type NativeInquiryMethods } from "../../task-dsl/authorization/operation-program.ts"
 import { AuthorizationObservationSchema, validateInquiryObservations, inquiryObservationFeedback, validateAuthorizationInquiryResult, type AuthorizationObservation } from "../../task-dsl/authorization/inquiry-result.ts"
 import { AuthorizationDispatchLimitError, type AuthorizationLifecycleEvent } from "./telemetry.ts"
-import { parseInquiryStrategy, isGuidedInquiryStrategy, isFocusedInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInquiryStrategy, isFiniteControlInquiryStrategy, isPropertyDirectedInquiryStrategy, isQuestionDirectedInquiryStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
+import { parseInquiryStrategy, isGuidedInquiryStrategy, isFocusedInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInquiryStrategy, isFiniteControlInquiryStrategy, isPropertyDirectedInquiryStrategy, isQuestionDirectedInquiryStrategy, isPropertyAbstractionStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { createInquiryDomainRuntime, DOMAIN_EXECUTION_GUIDE, GUIDED_EXECUTION_GUIDE } from "./inquiry-domain-runtime.ts"
 import { inquiryNativeDefinitions, inquiryNativeSchemas } from "./inquiry-wire.ts"
 import { ZodError } from "zod"
@@ -37,11 +37,13 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
   if (method && (!isOperationInquiryStrategy(strategy) || !options.domainTools)) throw new Error("authorization-method requires operation-evidence-v1 or operation-evidence-v2 and domain-tools")
   if (strategy !== "legacy" && !options.domainTools) throw new Error("strategy-requires-domain-tools: native domain strategy requires explicit domain tools")
   const loaded = await loadInquiryInput(options.inputFile, { allowMissingPolicy: sourceAssisted }), tools = await createInquiryTools({ ...loaded.context, structure: isOperationInquiryStrategy(strategy), ...(isFiniteControlInquiryStrategy(strategy) ? { controlSemantics: "finite-control/v1" as const, propertyDirected: isPropertyDirectedInquiryStrategy(strategy), questionDirected: isQuestionDirectedInquiryStrategy(strategy) } : {}), maxToolCalls: options.maxToolCalls ?? 24, maxDisplayBytes: options.maxDisplayBytes ?? 262144, maxReadBytes: options.maxReadBytes, reserveFinalRead: true })
-  const checkLimit = options.domainTools ? 2 : 0, explorationLimit = tools.maxToolCalls - checkLimit
+  const separateFormats = isPropertyAbstractionStrategy(strategy), formatCorrectionLimit = separateFormats ? 2 : 0
+  const checkLimit = options.domainTools ? 2 : 0, explorationLimit = tools.maxToolCalls - checkLimit - formatCorrectionLimit
   if (options.domainTools && explorationLimit < 1) throw new NativeToolRejection("tool-budget", "Domain tools require at least 3 total calls: one exploration action and two result checks")
   let program: ReturnType<typeof compileAuthorizationInquiry> | undefined, result: unknown, domainCalls = 0, referenceCalls = 0, checks = 0, modelSourceBytes = 0, resentSourceBytes = 0
   let rejectedToolCalls = 0
   let argumentRejections = 0
+  let formatRejections = 0, formatCheckCalls = 0, formatExhausted = false
   const progress = createInquiryProgress()
   let compilationToolCalls = 0
   let domain: ReturnType<typeof createInquiryDomainRuntime> | undefined, closed = false
@@ -55,10 +57,11 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
     for (const id of imported.importedEvidenceIds) displayed.add(id)
   }
   const toolBudget = () => {
-    const totalUsed = tools.toolCalls + domainCalls + referenceCalls + argumentRejections, explorationUsed = totalUsed - checks
+    const totalUsed = tools.toolCalls + domainCalls + referenceCalls + argumentRejections, explorationUsed = totalUsed - checks - formatCheckCalls
     return { totalLimit: tools.maxToolCalls, totalUsed, totalRemaining: tools.maxToolCalls - totalUsed,
       explorationLimit, explorationUsed, explorationRemaining: explorationLimit - explorationUsed,
-      checkLimit, checksUsed: checks, checksRemaining: checkLimit - checks }
+      checkLimit, checksUsed: checks, checksRemaining: checkLimit - checks,
+      ...(separateFormats ? { formatCorrectionLimit, formatRejections, formatCorrectionsRemaining: Math.max(0, formatCorrectionLimit - formatRejections), formatBudgetExhausted: formatExhausted } : {}) }
   }
   let traceDir: string | undefined
   if (options.traceDir) {
@@ -107,6 +110,7 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
       if (!definitions.some(tool => tool.name === call.name)) throw new NativeToolRejection("tool-not-registered", "Tool not registered in this read-only runtime")
       const finalCheck = call.name === "authorization_check_result"
       if (finalCheck && !program) throw new NativeToolRejection("inquiry-not-compiled", "Compile current inquiry first")
+      if (finalCheck && formatExhausted) throw new NativeToolRejection("format-repair-budget", "Format correction budget exhausted; deliver the retained partial source account")
       if (finalCheck && checks >= checkLimit) throw new NativeToolRejection("delivery-repair-budget", "Delivery repair budget exhausted")
       const remaining = toolBudget()
       if (!remaining.totalRemaining) throw new NativeToolRejection("tool-budget", "Session tool budget exhausted")
@@ -140,8 +144,9 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
           output = { ...(output as Record<string, unknown>), ...("diagnostics" in proposedControls ? { controlDiagnostics: proposedControls.diagnostics } : {}), ...("accepted" in proposedControls && "rejected" in proposedControls && "unresolved" in proposedControls && "withdrawn" in proposedControls && "withdrawalRejected" in proposedControls ? { accepted: proposedControls.accepted, rejected: proposedControls.rejected, withdrawn: proposedControls.withdrawn, withdrawalRejected: proposedControls.withdrawalRejected, unresolved: proposedControls.unresolved } : {}), autoReads: actions.map(a => ({ ...inquiryToolModelView(a.output, isGuidedInquiryStrategy(strategy)) as Record<string, unknown>, actionOrigin: a.actionOrigin, questionId: a.questionId, dependencyId: a.dependencyId, reason: a.reason })), domain: domain.feedback() }
         }
       } else if (options.domainTools && call.name === "authorization_check_result") {
-        domainCalls++; checks++
+        domainCalls++; result = undefined; if (!separateFormats) checks++
         const args = schemas.authorization_check_result.parse(call.arguments)
+        if (separateFormats) checks++
         let autoReads: unknown[] = [], localFeedback = {}
         if (domain && "controlDelta" in args && args.controlDelta) { result = undefined; const proposed = await domain.propose(args.controlDelta); ensureActive(); autoReads = proposed.actions.map(a => inquiryToolModelView(a.output, isGuidedInquiryStrategy(strategy))); if ("accepted" in proposed) localFeedback = { accepted: proposed.accepted, rejected: proposed.rejected, withdrawn: proposed.withdrawn, withdrawalRejected: proposed.withdrawalRejected, unresolved: proposed.unresolved } }
         const assembled = domain?.assembleResult(args.result).result ?? args.result
@@ -149,7 +154,7 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
         ensureActive()
         const checked = validateAuthorizationInquiryResult(program!, assembled, context(), domainCheck); result = checked.valid ? checked.result : undefined; output = domain ? { ...checked, domainCheck, autoReads, ...localFeedback } : checked
       } else throw new Error("Tool not registered in this read-only runtime")
-    } catch (error) { if (beganOpen && closed) return closedToolResult(); if (domain && ["authorization_observe", "authorization_check_result"].includes(call.name)) result = undefined; output = { status: "error", ...(error instanceof NativeToolRejection ? { code: error.code } : {}), ...(error instanceof ZodError ? { phase: call.name, diagnostics: error.issues.map(d => ({ path: d.path.join("."), code: d.code, message: d.message })) } : {}), message: String(error) }; exitCode = 1 }
+    } catch (error) { if (beganOpen && closed) return closedToolResult(); if (["authorization_observe", "authorization_check_result"].includes(call.name)) result = undefined; if (separateFormats && executed && error instanceof ZodError) { formatExhausted ||= formatRejections >= formatCorrectionLimit; formatRejections++; if (call.name === "authorization_check_result") formatCheckCalls++ } output = { status: "error", ...(error instanceof NativeToolRejection ? { code: error.code } : separateFormats && error instanceof ZodError ? { code: formatExhausted ? "format-repair-budget" : "tool-arguments-invalid" } : {}), ...(error instanceof ZodError ? { phase: call.name, diagnostics: error.issues.map(d => ({ path: d.path.join("."), code: d.code, message: d.message })) } : {}), message: String(error) }; exitCode = 1 }
     if (beganOpen && closed) return closedToolResult()
     if (!executed) rejectedToolCalls++
     output = { ...(output as Record<string, unknown>), toolBudget: toolBudget(), ...(isFiniteControlInquiryStrategy(strategy) ? { progress: progress.record({ unit: domain?.report().focus?.current?.id ?? call.name, input: { name: call.name, arguments: call.arguments }, state: inquiryProgressState(domain?.report()), diagnostics: (output as any)?.controlDiagnostics ?? (output as any)?.diagnostics ?? [] }) } : {}) }
@@ -207,7 +212,7 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
     // provider dispatch-count transition into the same partial answer phase.
     if (domain) await domain.sync(automatic && checks === 0 && !result && toolBudget().explorationRemaining > 0)
     ensureActive()
-    const budget = toolBudget(), finalOnly = budget.explorationRemaining <= 0 || budget.checksRemaining <= 0 || !!result, preferAnswer = checks > 0
+    const budget = toolBudget(), finalOnly = budget.explorationRemaining <= 0 || budget.checksRemaining <= 0 || formatExhausted || !!result, preferAnswer = checks > 0 || formatCheckCalls > 0
     const current = sourceAssisted ? domain?.promptContext({ maxSourceBytes: Math.max(0, (options.maxDisplayBytes ?? 262144) - modelSourceBytes), finalOnly, preferAnswer }) : domain?.modelContext({ finalOnly, preferAnswer })
     const answering = finalOnly || preferAnswer && !!current && "focus" in current && current.focus?.stage === "answer"
     return current ? { ...current, state: domain!.modelFeedback(), toolBudget: budget,
@@ -224,8 +229,9 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
     ensureActive(); argumentRejections++; rejectedToolCalls++
     // Transport validation is still an actual tool attempt. A rejected result
     // check spends its reserved slot, rather than consuming exploration twice.
-    if (call.name === "authorization_check_result" && program) checks++
-    const output = { status: "error", code: "account-tool-arguments-invalid", diagnostics, toolBudget: toolBudget(), instruction: "The malformed call executed no source or semantic action. Accepted source and drafts remain. Correct only the named fields using currentContext.focus and its current phase contract. A result check consumes one reserved check slot; answers use explanation and numeric paths[].path, with question/path/citation identity supplied by the host." }
+    if (call.name === "authorization_check_result") { result = undefined; if (program) { if (separateFormats) formatCheckCalls++; else checks++ } }
+    if (separateFormats) { formatExhausted ||= formatRejections >= formatCorrectionLimit; formatRejections++ }
+    const output = { status: "error", code: formatExhausted ? "format-repair-budget" : "account-tool-arguments-invalid", diagnostics, toolBudget: toolBudget(), instruction: `The malformed call executed no source or semantic action. Accepted source and drafts remain. Correct only the named fields using currentContext.focus and its current phase contract. ${separateFormats ? formatExhausted ? "Format corrections are exhausted; deliver retained partial conclusions with the protocol failure." : "This spends the finite format correction allowance and total tools, but no semantic check." : "A result check consumes one reserved check slot."} Answers use explanation and numeric paths[].path, with question/path/citation identity supplied by the host.` }
     const record = { call, output, exitCode: 1, executed: false }; history.push(record)
     if (traceDir) await appendFile(path.join(traceDir, "tools.jsonl"), JSON.stringify(options.traceRedactor ? options.traceRedactor(record) : record) + "\n")
     return { output: JSON.stringify(output), exitCode: 1, durationMs: 0 }

@@ -152,10 +152,12 @@ AZ1验证：9个新增反例先9失败，修复后9通过/60断言；两套件21
 
 **修改：** `inquiry-native.ts`、`inquiry-run.ts`、`inquiry-local.ts` 及其测试；必要时 `src/adapters/codex-account.ts` / `codex-account-session.ts`，复用既有遥测。
 
-- [ ] 红测：2 次格式失败后仍可进行剩余有效语义检查；第三次格式失败不能无限重试；总工具预算不增加；旧策略计数不变；无效最新检查撤回旧结果。
-- [ ] 重现 AY policy-previous 的 workspace routing 失败，修宿主路径而非改任务；路径有空格、搬移目录及原工作区隔离均覆盖。
-- [ ] 报告引用官方 account usage 原值，区分 input 含缓存与分项口径；缺报不显示 cost=0 作为实测。native/inquiry 的同一会话不能重复累计。
-- [ ] 运行 `bun test ./src/benchmarks/authorization-dsl/inquiry-native.test.ts ./src/adapters/codex-account-session.test.ts ./src/adapters/codex-account.test.ts`，提交。
+- [x] 红测：2 次格式失败后仍可进行剩余有效语义检查；第三次格式失败不能无限重试；总工具预算不增加；旧策略计数不变；无效最新检查撤回旧结果。
+- [x] 调查 AY policy-previous 的 workspace routing 失败；当前未能本地重现，保留官方宿主tools=0的原错误，不修改无依据路径。路径有空格、搬移目录及原工作区隔离已用确定性回归覆盖；真正官方重现留给下一实际位置，不额外发推理探针。
+- [x] 报告引用官方 account usage 原值，区分 input 含缓存与分项口径；缺报不显示 cost=0 作为实测。native/inquiry 的同一会话不能重复累计。
+- [x] 运行 `bun test ./src/benchmarks/authorization-dsl/inquiry-native.test.ts ./src/adapters/codex-account-session.test.ts ./src/adapters/codex-account.test.ts`，提交。
+
+AZ2验证：native/provider格式预算与official usage出处红测均按缺合同失败，再通过；联合四套件93测试/650断言、主类型通过。显式v6预留2格式+2语义位置，减少同总量中的探索余量；provider格式字段修复不再偷用语义位置。旧v5测试不变。usageSource保留最后合法官方rawTotal与max-per-counter聚合口径，USD/providerRequests仍null。路由未重现是明确残余，不能写成已修复官方宿主。
 
 ### AZ3：性质查询合同与原题映射
 
