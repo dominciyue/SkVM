@@ -14,6 +14,10 @@ export function sourceArgumentBindings(index: SourceArgumentIndex, call: Structu
     return { expression: (keyword?.[2] ?? expression).trim(), parameterName: keyword?.[1], literalKnown: false }
   })
   const currentTarget = index.symbols.find(s => s.id === target.id), local = currentTarget?.localCallable, returned = currentTarget?.returnedCallable, instance = call.callableBinding
+  if (call.classInstanceCall) {
+    const proof = call.classInstanceCall, actual = caller && index.relatedCalls(caller.id, call.receiverClass).find(c => c.id === call.id), cls = index.symbols.find(s => s.id === proof.classId && s.sha256 === proof.classSha256)
+    if (!actual || actual.resolution !== "resolved" || actual.candidateIds.length !== 1 || actual.candidateIds[0] !== target.id || proof.targetId !== target.id || proof.targetSha256 !== currentTarget?.sha256 || !currentTarget?.classMethod || !cls?.classDefinition || cls.classDefinition.gap || proof.receiver !== call.receiver || call.expression !== `${proof.receiver}.${target.name}` || actual.expression !== call.expression || actual.sha256 !== call.sha256 || JSON.stringify(actual.argumentFacts) !== JSON.stringify(call.argumentFacts) || JSON.stringify(actual.classInstanceCall) !== JSON.stringify(proof)) return fail("instance-method-unresolved")
+  }
   if (call.classNamespaceCall) {
     const proof = call.classNamespaceCall, actual = caller && index.relatedCalls(caller.id, call.receiverClass).find(c => c.id === call.id), cls = index.symbols.find(s => s.id === proof.classId && s.sha256 === proof.classSha256)
     if (!actual || actual.resolution !== "resolved" || actual.candidateIds.length !== 1 || actual.candidateIds[0] !== target.id || proof.targetId !== target.id || proof.targetSha256 !== currentTarget?.sha256 || !currentTarget?.classMethod || !cls?.classDefinition || cls.classDefinition.gap || cls.classDefinition.ownerId !== caller?.id || actual.expression !== call.expression || actual.sha256 !== call.sha256 || JSON.stringify(actual.argumentFacts) !== JSON.stringify(call.argumentFacts) || JSON.stringify(actual.classNamespaceCall) !== JSON.stringify(proof)) return fail("class-namespace-unresolved")

@@ -2633,7 +2633,7 @@ AY6的FastAPI有限请求模型以`fastapi-source-router/v1`和`fastapi-source-i
 
 当前v5模型反馈只投影frontier、排除、覆盖、下一步及依赖摘要，完整required/deferred和图留在宿主报告，所有原题和原语法仍可读取。停滞指纹复用已有字段有效状态，并包含同源码revision已provided字段的实际值；无效输入和解释文字改写不计源码进展。source revision含source身份与语法。该投影和提示不改变需求/排除/接纳/结论，也不增加调用或审批；确定性发送字节与实际token收益分开验证。
 
-AY7当前receiver连接使用`source-bindings/v31`：实际调用可携带唯一未重绑定模块实例的声明位置/SHA、真实class/SHA证明。v5编译器再次对照当前索引，只生成普通value身份；同一来源的导入别名共享该普通身份。参数/局部遮蔽、consumer alias重绑定、源码可见的模块attribute写入、歧义构造器与旧证明不自动接线。该来源事实不证明principal/resource/permission或任何授权；标量字段与模型声明的主体参数不匹配仍须局部解释修复。关系版本变化使旧材料须显式重新验证。终答当前契约直接投影真实schema的枚举和数值path约束，不把自由文字改写为源码结论。
+AY7当前receiver连接使用`source-bindings/v32`：实际调用可携带唯一未重绑定模块实例的声明位置/SHA、真实class/SHA证明。v5编译器再次对照当前索引，只生成普通value身份；同一来源的导入别名共享该普通身份。参数/局部遮蔽、consumer alias重绑定、源码可见的模块attribute写入、歧义构造器与旧证明不自动接线。该来源事实不证明principal/resource/permission或任何授权；标量字段与模型声明的主体参数不匹配仍须局部解释修复。关系版本变化使旧材料须显式重新验证。终答当前契约直接投影真实schema的枚举和数值path约束，不把自由文字改写为源码结论。
 
 **账号状态。** 区分已知failed/interrupted、完成但未交付、超时/终态丢失以及用量不可见。明确failed的旧原件仅追加裁定，不覆盖其原completion-unknown。后续请求为新的具名尝试，先确认旧执行已结束，缺少用量不永久阻断；未知活动请求不自动重发。用户已授权账号实验，第三方API继续暂停。额度拒绝停止该通道无效请求，独立工程继续，恢复有依据后再派发。
 
@@ -2641,9 +2641,9 @@ AY7当前receiver连接使用`source-bindings/v31`：实际调用可携带唯一
 
 **成果合同。** 两真实原任务和作者消费者应取得当前checked及独立源码full；三变化真实消费并正确响应。收益按预登记质量、质量保持下完整observed token下降或同质量实际复用减负判据评价，逐任务与首/修分列；工具收益不归为DSL独有表示优势。实际USD、隐藏请求和真人时间缺报仍unknown。工程、账号运行、native交付、作者消费、同条件收益、变化复用六项分别记录；全部编号有终态不代表研究达成。工程已用但收益mixed时如实交付usable-with-mixed-effect。
 
-AY6的ASGI取证合同使用`source-bindings/v31`及`fastapi-source-asgi/v1`：注册保留实际call、配置参数、词法条件/异常/函数作用域、当前class/MRO来源SHA和constructor/__call__/dispatch方法候选，沿router/include祖先关联当前route。稳定单一应用alias为resolved；重绑定或未证明的潜在alias为possible并具名阻断，不声称它实际修改该app。这种保守追踪可能产生额外阻断，尚不提供赋值点的完整flow-sensitive排除。缺外部类/base、动态/遮蔽/重绑定目标及wrapped方法保留来源边界。词法顺序标为unproven，不替代框架装配顺序；读/解释方法不等于当前continuation采用。每route的ASGI footprint包含注册与当前类来源，跨文件body变化失效，无关文件保留；完整callback/environment/generator组合和目标安装版本继续独立验证。
+AY6的ASGI取证合同使用`source-bindings/v32`及`fastapi-source-asgi/v1`：注册保留实际call、配置参数、词法条件/异常/函数作用域、当前class/MRO来源SHA和constructor/__call__/dispatch方法候选，沿router/include祖先关联当前route。稳定单一应用alias为resolved；重绑定或未证明的潜在alias为possible并具名阻断，不声称它实际修改该app。这种保守追踪可能产生额外阻断，尚不提供赋值点的完整flow-sensitive排除。缺外部类/base、动态/遮蔽/重绑定目标及wrapped方法保留来源边界。词法顺序标为unproven，不替代框架装配顺序；读/解释方法不等于当前continuation采用。每route的ASGI footprint包含注册与当前类来源，跨文件body变化失效，无关文件保留；完整callback/environment/generator组合和目标安装版本继续独立验证。
 
-AY6的DRF声明取证使用`drf-source-action/v1`及当前`source-bindings/v31`：保留精确action constructor/import、call/参数/跨度、字面HTTP声明、同声明class的mapping decorator及实际C3方法候选，再关联当前router/factory/mapper/as_view来源。未装饰的override撤回继承action；secondary mapping保留原声明并按当前request class查找目标。缺源码、rebind、class遮蔽/wrapper、default/dynamic参数或未知router保留具名边界。`mappingBinding`与`invocation`均为unproven，找到了factory/mapper body不证明它建立映射；只有实际来源解释和当前采用才能闭合。每receiver的action footprint含声明、route及相关来源，变化需重新验证，不向普通Python方法默认添加请求前置逻辑。
+AY6的DRF声明取证使用`drf-source-action/v1`及当前`source-bindings/v32`：保留精确action constructor/import、call/参数/跨度、字面HTTP声明、同声明class的mapping decorator及实际C3方法候选，再关联当前router/factory/mapper/as_view来源。未装饰的override撤回继承action；secondary mapping保留原声明并按当前request class查找目标。缺源码、rebind、class遮蔽/wrapper、default/dynamic参数或未知router保留具名边界。`mappingBinding`与`invocation`均为unproven，找到了factory/mapper body不证明它建立映射；只有实际来源解释和当前采用才能闭合。每receiver的action footprint含声明、route及相关来源，变化需重新验证，不向普通Python方法默认添加请求前置逻辑。
 
 v8的基类订阅只在当前唯一、同步、未装饰的`__class_getitem__`源码恰为return原class参数时保留原基类身份，参数限简单名；其它动作/返回、async、显式metaclass、wrapper、重绑定或不透明表达式不按typing外观剥离。此规则修复实际DRF generic基类导致dispatch候选丢失的共享问题；仍是方法来源定位，不证明应用class decorator或实际执行。来源补充从已保留且SHA匹配的原wheel提取，单独登记并验证旧冻结文件；不扩大旧allowlist、不回写原答，新增模型输入需另行登记。映射来源、完整dispatch/callback/参数/异常组合与当前源码full质量分别验收。
 
@@ -2767,6 +2767,12 @@ AY7的v30 capture preparation合同：只对词法parameter接纳全部发生在
 AY7的v31 dynamic identifier base合同：原同owner稳定local class base保持；新owner parameter或local identifier须在原class创建之前完成全部plain assignment，保留binding owner/SHA及assignment source/anchor/control/order/RHS事实，不提供静态parent target。global/nonlocal/match、晚写/aug/delete/import/loop/walrus/annotation/chained以及attribute/call base表达式继续具名。实际sourceClass按已有namespace base对象与身份计算C3，实参/return保留class对象；未知或旧module marker、重复实际identity/冲突/协议变化均拒绝。动态parent不能提供静态继承方法，自己的原namespace ordinary方法可作为候选但仍须actual callableRead核验target/SHA/capture。
 
 材料合并capture/base准备写入证明，零写参数也不得新增同名bind/assign-value/call-result；漏/改/移位/额外writer及错误base列表撤回。24新增，759focused/4685断言、联合1598pass/1平台skip/10492断言/115文件/18.09s与主/AY类型通过；两只读核验以现有测试和静态读取为主，fixture更正和范围见[动态基类核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-dynamic-bases.json)。100文件/12body probe首次保留真实BaseSchema的1动态base/2原写入，ExtendedSchema转method-cell-unmodeled；复杂RHS仍需实际解释，合格类/采用0。native协议、六角色/谓词/预算不变，旧证据不升级；普通实例/super/class cell、module/constructor/request与官方完整实测/净收益继续，AY7未完成。
+
+AY7的v32 ordinary instance合同：只对同owner唯一稳定、创建在先、完整已知ordinary static local namespaceMro的零参数默认构造形成`StructureCall.classConstructor`，保存class ID/SHA、实际classObject、原result/source/control/order。未知dynamic base的定义资格不证明默认构造协议；自定义__new__/__init__/dunder、descriptor/metaclass、wrapped/重绑定和构造实参保持具名。原call无论condition或context均生成sourceInstance，其actual class对象必须有当前namespace/MRO并匹配target/SHA；独立identity不存为整实例finite literal。alias、参数、return和field保留对象，字段先查instance再查当前class namespace/MRO，__class__保留实际class。
+
+`classInstanceCall`仅给已知原自己/静态C3普通方法候选，binder核验当前proof并显式注入actual receiver；calleeRead从receiver的单一字段取实际sourceCallable、target/SHA/capture，首参数必须同一实例，不能用class-read跳过instance slot或借另一self。保存材料精确核验constructor原区域/严格事件顺序/唯一result writer及当前callee/完整参数；缺失、改SHA/class/result、早移/额外构造或伪造receiver/self撤回。未知返回实例的方法目标、动态callee/nested argument动作和协议写入不扩大资格。
+
+37新增；796focused/4872断言、联合1635pass/1平台skip/10679断言/115文件/24.22s与主/AY类型通过，见[普通实例核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-ordinary-instances.json)。两只读发现的slot绕过和dynamic基类默认构造边界由主红绿确认；来源独立脚本受Vitest import.meta.resolveSync阻断，未计独立执行通过。100文件/12body probe合格构造/方法候选及实际采用0，7构造缺口/ExtendedSchema method-cell-unmodeled保留。六角色/谓词/预算保持，旧证据不升级，实验模型/目标/probe网络新增0；继续super/class cell、module/constructor/request、官方完整使用与预登记净收益，AY7未完成。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 

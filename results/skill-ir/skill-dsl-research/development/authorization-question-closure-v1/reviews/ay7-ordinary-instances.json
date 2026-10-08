@@ -1,0 +1,137 @@
+{
+  "schemaVersion": "authorization-ordinary-instance-review/v1",
+  "date": "2026-10-08",
+  "relationshipVersion": "source-bindings/v32",
+  "status": "engineering-verified-real-adoption-pending",
+  "scope": [
+    "same-owner stable local zero-argument default constructor with complete known ordinary static local MRO",
+    "actual sourceInstance identity through aliases, arguments, returns and fields",
+    "instance fields before current actual class namespace/MRO",
+    "actual namespace function and environment with explicit same-instance self",
+    "exact current constructor source/result/control/order and exclusive material writer"
+  ],
+  "newTests": 37,
+  "tdd": {
+    "native": {
+      "red": "ordinary-instance-native-red.log",
+      "result": "0 pass / 12 fail / 12 assertions",
+      "green": "ordinary-instance-native-green.log",
+      "greenResult": "12 pass / 0 fail / 36 assertions"
+    },
+    "source": {
+      "red": "ordinary-instance-source-red.log",
+      "result": "10 pass / 9 fail / 29 assertions",
+      "green": "ordinary-instance-source-green.log",
+      "greenResult": "19 pass / 0 fail / 131 assertions",
+      "implementationRepair": "Initial source green attempt treated the first instance assignment as a rebound name; add a unique plain assignment proof instead of removing rebound protection."
+    },
+    "review": {
+      "red": "ordinary-instance-review-red.log",
+      "result": "0 pass / 6 fail / 12 assertions",
+      "green": "ordinary-instance-review-green.log",
+      "greenResult": "6 pass / 0 fail / 20 assertions",
+      "qualification": "Five cases exposed missing rejection; missing-self was already fail-closed with semantic-argument-unbound and now has the precise source-instance-self-unresolved diagnostic."
+    }
+  },
+  "independentReview": [
+    {
+      "agent": "ay_instance_native_review_v32",
+      "readOnly": true,
+      "existingSuite": {
+        "pass": 105,
+        "fail": 0,
+        "assertions": 530
+      },
+      "independentFixture": {
+        "executed": true,
+        "persisted": false,
+        "method": "Agent inline Bun fixture: instance guard slot null plus callableRead object Local.guard and receiver obj; original result diagnostics=[] and helper authorization rejection executes."
+      },
+      "finding": {
+        "severity": "high",
+        "anchor": "src/task-dsl/authorization/semantic-flow.ts:306",
+        "issue": "Receiver sourceInstance type check did not bind callableRead.object to that receiver field, allowing bypass of an instance slot."
+      },
+      "mainAdjudication": "Reproduced as class-read RED; require exact receiver.<single attribute> read. Also add other-read and same actual first-parameter identity checks. Fresh broader QA passes."
+    },
+    {
+      "agent": "ay_instance_source_review_v32",
+      "readOnly": true,
+      "independentFixture": {
+        "executed": false,
+        "pathOutsideRepo": "D:/skill优化/project-maintenance/runs/authorization-question-closure-v1/ordinary-instance-source-review.test.ts",
+        "failure": "Vitest/Vite could not execute import.meta.resolveSync; no independent assertion result."
+      },
+      "finding": {
+        "severity": "high",
+        "anchor": "src/benchmarks/authorization-dsl/evidence-preparation/structure-index.ts:939",
+        "issue": "A dynamic owner-parameter base qualified for default construction without a complete default constructor protocol."
+      },
+      "mainAdjudication": "Main Bun TDD reproduced direct and transitive unknown dynamic bases. Require complete namespaceMro for localConstructor; dynamic class creation remains available while default construction stays named unresolved."
+    }
+  ],
+  "verification": {
+    "focused": {
+      "pass": 796,
+      "fail": 0,
+      "assertions": 4872,
+      "files": 11,
+      "durationMs": 10689,
+      "log": "ordinary-instance-focused.log"
+    },
+    "joint": {
+      "pass": 1635,
+      "skip": 1,
+      "fail": 0,
+      "assertions": 10679,
+      "files": 115,
+      "durationMs": 24285,
+      "log": "ordinary-instance-joint.log"
+    },
+    "mainTypes": {
+      "exitCode": 0,
+      "durationMs": 44280,
+      "log": "ordinary-instance-main-types.log"
+    },
+    "ayTypes": {
+      "exitCode": 0,
+      "durationMs": 7292,
+      "log": "ordinary-instance-ay-types.log"
+    }
+  },
+  "probe": {
+    "path": "verification/paperless-ordinary-instance-replay.json",
+    "sha256": "23e7178bd53fcf4a4cf0fbe851b4ae2ef1bc59d8b27e7d650bdb1d2dee5a7f14",
+    "files": 100,
+    "selectedBodies": 12,
+    "eligibleClasses": 0,
+    "ordinaryConstructorCandidates": 0,
+    "instanceMethodCandidates": 0,
+    "ordinaryConstructorGaps": 7,
+    "actualMaterialUses": 0,
+    "extendedSchemaGap": "source-class-definition-method-cell-unmodeled",
+    "modelRead": false,
+    "applicationUnitsAuthored": 0,
+    "modelExecutions": 0,
+    "targetExecutions": 0,
+    "probeNetworkRequests": 0
+  },
+  "boundaries": [
+    "unknown dynamic base default construction protocol",
+    "custom constructor arguments, dunders, descriptors, metaclass and wrapped class definitions",
+    "rebound local receiver, complex callee or nested argument actions",
+    "untyped instance result method-target discovery across helper returns",
+    "super/class cells, module applications, full request composition and actual official use/benefit still pending"
+  ],
+  "costs": {
+    "newExperimentTokens": 0,
+    "developerAndScoutTokens": null,
+    "usd": null,
+    "humanTime": null
+  },
+  "originalInputsAndAllowlistsUnmodified": true,
+  "originalAnswersUnmodified": true,
+  "originalAttemptsPromoted": false,
+  "finiteQueueComplete": false,
+  "researchGoalAchieved": false
+}

@@ -1,6 +1,35 @@
 import { expect, test } from "bun:test"
 import { buildStructureIndex } from "./structure-index.ts"
 
+for (const mode of ["direct", "inherited", "self", "field"]) test("ordinary local constructor and actual instance methods retain source identity: " + mode, async () => {
+  const method = "        def guard(self, item):\n            return item\n", body = mode === "inherited" ? "    class Base:\n" + method + "    class Local(Base):\n        allowed = False\n" : "    class Local:\n" + method + (mode === "self" ? "        def relay(self, item):\n            return self.guard(item)\n" : ""), content = "def entry(actor, holder):\n" + body + (mode === "field" ? "    holder.instance = Local()\n    return holder.instance\n" : "    instance = Local()\n    return instance." + (mode === "self" ? "relay" : "guard") + "(actor)\n"), index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), entry = index.symbols.find(s => s.name === "entry")!, cls = index.symbols.find(s => s.name === "Local")!, calls = index.relatedCalls(entry.id), creation = calls.find(c => c.expression === "Local")!
+  expect(creation.resolution).toBe("resolved"); expect(creation.candidateIds).toEqual([])
+  expect(creation.classConstructor).toEqual(expect.objectContaining({ classId: cls.id, classSha256: cls.sha256, classObject: "Local", result: mode === "field" ? expect.stringMatching(/^result-/) : "instance" }))
+  if (mode !== "field") {
+    const methodCall = calls.find(c => c.expression.startsWith("instance."))!
+    expect(methodCall.classInstanceCall?.classId).toBe(cls.id); expect(methodCall.classInstanceCall?.creationCallId).toBe(creation.id); expect(methodCall.resolution).toBe("resolved")
+    if (mode === "self") { const relay = index.symbols.find(s => s.name === "relay")!, call = index.relatedCalls(relay.id).find(c => c.expression === "self.guard")!; expect(call.classInstanceCall?.receiver).toBe("self"); expect(call.resolution).toBe("resolved") }
+  }
+})
+
+for (const mode of ["args", "init", "new", "descriptor", "late", "replace", "parameter", "wrapped"]) test("ordinary default constructor preserves custom or unstable boundaries: " + mode, async () => {
+  const method = mode === "init" ? "        def __init__(self):\n            pass\n" : mode === "new" ? "        def __new__(cls):\n            return cls\n" : mode === "descriptor" ? "        def __getattr__(self, key):\n            return key\n" : "        allowed = False\n", content = "def entry(" + (mode === "parameter" ? "Local, " : "") + "actor):\n" + (mode === "late" ? "    first = Local()\n" : "") + (mode === "wrapped" ? "    @unknown\n" : "") + "    class Local:\n" + method + (mode === "replace" ? "    Local = None\n" : "") + "    instance = Local(" + (mode === "args" ? "actor" : "") + ")\n    return instance\n", index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), entry = index.symbols.find(s => s.name === "entry")!, calls = index.relatedCalls(entry.id).filter(c => c.expression === "Local")
+  const creation = mode === "late" ? calls[0]! : calls.at(-1)!
+  expect(creation.classConstructor).toBeUndefined(); expect(creation.resolution).toBe("unresolved")
+})
+
+for (const mode of ["rebound", "nested-argument"]) test("instance method candidates retain binding and original callee order boundaries: " + mode, async () => {
+  const content = "def other(actor):\n    return actor\ndef entry(actor):\n    class Local:\n        def guard(self, item):\n            return item\n    instance = Local()\n" + (mode === "rebound" ? "    instance = actor\n" : "") + "    return instance.guard(" + (mode === "nested-argument" ? "other(actor)" : "actor") + ")\n", index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "instance.guard")!
+  expect(call.classInstanceCall).toBeUndefined(); expect(call.resolution).toBe("unresolved")
+})
+
+for (const mode of ["direct", "ancestor"]) test("ordinary constructors require a completely known default construction protocol: " + mode, async () => {
+  const content = "def entry(Base, actor):\n" + (mode === "ancestor" ? "    class Parent(Base):\n        allowed = False\n" : "") + "    class Local(" + (mode === "ancestor" ? "Parent" : "Base") + "):\n        def guard(self, item):\n            return item\n    instance = Local()\n    return instance.guard(actor)\n", index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), owner = index.symbols.find(s => s.name === "entry")!, creation = index.relatedCalls(owner.id).find(c => c.expression === "Local")!
+  expect(index.symbols.find(s => s.name === "Local")!.classDefinition!.gap).toBeUndefined()
+  expect(creation.classConstructor).toBeUndefined(); expect(creation.gap).toBe("source-class-constructor-unmodeled")
+  expect(index.relatedCalls(owner.id).find(c => c.expression === "instance.guard")!.classInstanceCall).toBeUndefined()
+})
+
 for (const mode of ["parameter", "local", "conditional", "call"]) test(`dynamic identifier base retains its actual lexical binding and preparation: ${mode}`, async () => {
   const prepare = mode === "parameter" ? "" : mode === "conditional" ? "    selected = base\n    if flag:\n        selected = other\n" : mode === "call" ? "    selected = select(base)\n" : "    selected = base\n", expression = mode === "parameter" ? "base" : "selected"
   const content = "def build(base, other, flag, actor):\n" + prepare + "    class Child(" + expression + "):\n        def guard(item):\n            return item\n    Child.guard(actor)\n    return Child\n" + (mode === "call" ? "def select(value):\n    return value\n" : ""), index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), owner = index.symbols.find(s => s.name === "build")!, child = index.symbols.find(s => s.name === "Child")!, proof = child.classDefinition!

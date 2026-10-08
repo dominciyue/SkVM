@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-最新小步为AY7 `source-bindings/v31`动态标识符基类：owner parameter或创建前完成全部simple assignment的local identifier保留binding owner/SHA及原写入证明，sourceClass从实际namespace对象计算C3，类对象可沿原函数参数和return保留身份。dynamic parent不提供静态继承方法资格，自己的普通namespace方法仍须actual callableRead。零写参数也拒绝材料新增同名writer，module marker/重复实际base拒绝。24新增；759focused/4685断言、联合1598pass/1平台skip/10492断言及主/AY类型通过；两只读核验以现有测试和静态读取为主。100文件/12body probe首次保留真实BaseSchema的1基类/2写入事实，ExtendedSchema推进到method-cell-unmodeled；复杂RHS执行与实际采用仍0，无新增实验模型读/模型或目标执行。继续普通实例、super/class cell、module/constructor/request与官方完整使用/预登记净收益，AY7未完成。
+最新小步为AY7 `source-bindings/v32`普通局部实例：完整已知ordinary local C3、同owner稳定类的无参默认构造在原call点创建独立sourceInstance，alias/参数/return/字段保留实际class及实例身份，instance字段先于当前namespace查询；普通方法读实际函数/环境并传入同一self。constructor的当前SHA/result/control/order/唯一writer不得被context或材料删除/改写。独立核验推动实例slot绕过和未知dynamic基类构造协议两项红绿修复，self身份另加核验；37新增，796focused/4872断言、联合1635pass/1平台skip/10679断言及主/AY类型通过。100文件/12body probe有7构造缺口，合格构造/方法候选及真实采用0，ExtendedSchema仍method-cell-unmodeled；无新增实验模型读/模型或目标执行。继续super/class cell、module/constructor/request与官方完整使用/预登记净收益，AY7未完成。
 
 此前AY7 `source-bindings/v22`早期普通方法捕获：有嵌套实参call的同instance直接statement/assignment/return先实际捕获原方法，再按词法顺序求值实参，后以既有boundMethod/fieldMethodRead和同一binder调用；实参内slot覆盖保留原引用，捕获前覆盖或实参异常保持原阻断。简单and/or值经同一argumentFacts的机械valueFlow投影；复杂操作数、class/wrapper/descriptor不取得新资格。材料须保留精确捕获、原if/try区域、严格事件顺序和原短路body，缺失/挪动/实参倒序/追加call不采用。33新增用例；525focused/2676断言、联合1364pass/1平台skip/8483断言及主/AY类型通过；两只读核验与主红绿分列。100文件/6候选body probe声明receiver有1处early capture合格，指定应用receiver合格/实际采用0；旧probe/input/allowlist/答保留。实际class/wrapper变换、完整请求和官方复验继续，AY7和预登记净收益未达。
 

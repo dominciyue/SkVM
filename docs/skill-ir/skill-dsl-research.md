@@ -2149,6 +2149,10 @@ AY7动态标识符基类小步（2026-10-08）：v31以原sourceClass/binder/六
 
 新鲜759focused/4685断言、联合1598pass/1平台skip/10492断言/115文件/18.09s与主/AY类型通过。两只读核验312pass/710断言与175pass/2741断言，均以现有测试和静态核验为主、无独立新fixture，见[动态基类核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-dynamic-bases.json)。[新真实probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-dynamic-base-replay.json)核验94冻结/6补充源码/12body，首次保留BaseSchema的1动态base和2写入事实，ExtendedSchema由base gap推进到method-cell-unmodeled。复杂RHS实际执行未证、合格类/实际采用0；SHA `0a103efe53ee3467877dc340bd07560e3d0b1b7cd010676496c00ae7dda4d26b`。无实验模型read/应用标注或模型/目标/probe网络新增，开发/探子token、USD、真人时间unknown；旧input/allowlist/答/报告保留。继续普通实例、super/class cell、module/constructor/request及官方完整使用和预登记收益，AY7未完成。
 
+AY7普通局部实例小步（2026-10-08）：v32把同owner稳定、完整已知ordinary local C3的零参数默认构造连到原source call，sourceInstance保留独立对象和actual class/MRO。alias/参数/return/field保真，实例slot先于当前namespace；实际普通方法对象保存原环境并显式传同一self。constructor原区域、严格顺序、result/唯一writer与callee/参数均为材料采用合同，context不能删除。两个只读范围发现class-read绕过实例slot和dynamic基类误获默认构造资格，主Bun红绿确认并修正；另补self identity。native独立inline反例实际执行，source独立Vitest脚本在import.meta.resolveSync处失败，主复现与独立验证分账，见[普通实例核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-ordinary-instances.json)。
+
+37新增、新鲜796focused/4872断言、联合1635pass/1平台skip/10679断言/115文件/24.22s与主/AY类型通过。[新真实probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-ordinary-instance-replay.json)核验94冻结/6补充文件、12body；7构造缺口，合格构造/实例方法候选/实际采用0，ExtendedSchema仍method-cell-unmodeled。SHA `23e7178bd53fcf4a4cf0fbe851b4ae2ef1bc59d8b27e7d650bdb1d2dee5a7f14`；无实验模型读/应用标注/模型/目标/probe网络新增，开发/探子token、USD、真人时间unknown，旧input/allowlist/答/报告保留。未知dynamic构造协议、自定义constructor/descriptor及返回实例未知方法目标保持具名；继续super/class cell、module/constructor/request、官方完整使用和预登记净收益，AY7未完成。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

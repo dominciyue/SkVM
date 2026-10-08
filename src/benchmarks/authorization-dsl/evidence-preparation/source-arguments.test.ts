@@ -79,6 +79,16 @@ test("local capture binding is implicit and retains the actual owner source", as
 })
 
 
+test("instance method binder requires the current creation and receiver proof and explicit self", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "def entry(actor):\n    class Local:\n        def guard(self, item):\n            return item\n    instance = Local()\n    return instance.guard(actor)\n" }], { repository: "anonymous", sourceRef: "r" }), target = index.symbols.find(s => s.name === "guard")!, call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "instance.guard")!
+  expect(call.classInstanceCall).toBeDefined()
+  expect(api.sourceArgumentBindings(index, call, target).bindings).toEqual([{ parameter: "self", expression: "instance", literalKnown: false }, { parameter: "item", expression: "actor", literalKnown: false }])
+  for (const property of ["classId", "classSha256", "creationCallId", "receiver"]) {
+    const forged: any = structuredClone(call); forged.classInstanceCall[property] = "foreign"
+    expect(api.sourceArgumentBindings(index, forged, target).gap).toBe("source-arguments-instance-method-unresolved")
+  }
+})
+
 test("prepared returned environments cannot claim the initial factory literal or forged preparation anchors", async () => {
   const index = await buildStructureIndex([{ path: "app.py", content: "def create(flag):\n    flag = False\n    def check(item):\n        return flag\n    return check\ndef entry(actor):\n    operation = create(True)\n    return operation(actor)\n" }], { repository: "anonymous", sourceRef: "r" }), target = index.symbols.find(s => s.name === "check")!, call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "operation")!
   expect(api.sourceArgumentBindings(index, call, target).bindings).toEqual([{ parameter: "item", expression: "actor", literalKnown: false }])
