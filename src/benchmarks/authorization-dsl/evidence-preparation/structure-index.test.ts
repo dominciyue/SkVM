@@ -651,3 +651,35 @@ test("a constructor assigned to a field cannot retype its owning receiver", asyn
   expect(calls.find(c => c.expression === "self.handle")!.candidateIds).toEqual([index.symbols.find(s => s.name === "handle" && s.className === "app.Container")!.id])
   expect(calls.find(c => c.expression === "Service")!.resultNames).toEqual(["self.service"])
 })
+
+test("a local bound method alias retains the actual receiver and override at its own creation", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "class Base:\n    def guard(self, actor):\n        return actor\nclass Gate(Base):\n    def entry(this, actor):\n        handler = this.guard; return handler(actor)\n    def guard(self, actor):\n        raise Denied\n" }], { repository: "anonymous", sourceRef: "r" }), owner = index.symbols.find(s => s.name === "entry")!, call = index.relatedCalls(owner.id, "app.Gate").find(c => c.expression === "handler")!, target = index.symbols.find(s => s.name === "guard" && s.className === "app.Gate")!
+  expect(call.resolution).toBe("resolved")
+  expect(call.candidateIds).toEqual([target.id])
+  expect(call).toMatchObject({ receiver: "this", receiverClass: "app.Gate", methodBinding: { schemaVersion: "source-method-alias/v1", name: "handler", receiver: "this", method: "guard", targetId: target.id, targetSha256: target.sha256, source: { path: "app.py", sha256: owner.sha256, startLine: 6, endLine: 6 } } })
+})
+test("an inherited method alias uses its actual subclass but rejects an unrelated receiver context", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "class Base:\n    def entry(self, actor):\n        handler = self.guard\n        return handler(actor)\n    def guard(self, actor):\n        return actor\nclass Gate(Base):\n    def guard(self, actor):\n        raise Denied\nclass Other:\n    def guard(self, actor):\n        return actor\n" }], { repository: "anonymous", sourceRef: "r" }), owner = index.symbols.find(s => s.name === "entry")!
+  expect(index.relatedCalls(owner.id, "app.Gate")[0]!.candidateIds).toEqual([index.symbols.find(s => s.name === "guard" && s.className === "app.Gate")!.id])
+  expect(index.relatedCalls(owner.id, "app.Other")[0]!.resolution).toBe("unresolved")
+  expect(index.relatedCalls(owner.id, "app.Other")[0]!.gap).toBe("source-method-alias-class-binding-unresolved")
+})
+for (const body of ["        if configured:\n            handler = self.guard\n        return handler(actor)\n", "        handler = self.guard\n        handler = replacement\n        return handler(actor)\n", "        handler = self.guard\n        self = replacement\n        return handler(actor)\n", "        handler = self.guard\n        keep(handler)\n        return handler(actor)\n", "        handler(actor)\n        handler = self.guard\n", "        handler = self.guard\n        self.guard = replacement\n        return handler(actor)\n", "        handler = self.guard\n        setattr(self, name, replacement)\n        return handler(actor)\n", "        handler = other.guard\n        return handler(actor)\n"]) test(`a local method alias keeps an unproved source binding named: ${body.trim().split("\n")[0]}`, async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: `class Gate:\n    def entry(self, actor, other):\n${body}    def guard(self, actor):\n        return actor\n` }], { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "handler")!
+  expect(call.resolution).toBe("unresolved")
+  expect(call.gap).toMatch(/^source-method-alias-/)
+})
+for (const extra of ["    def __getattribute__(self, name):\n        return replacement\n", "    @property\n    def guard(self):\n        return replacement\n", "    @staticmethod\n    def guard(actor):\n        return actor\n", "    @classmethod\n    def guard(cls, actor):\n        return actor\n", "    @decorate\n    def guard(self, actor):\n        return actor\n", "    async def guard(self, actor):\n        return actor\n"]) test(`a source method alias does not waive a descriptor or wrapped target: ${extra.trim().split("\n")[0]}`, async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: `class Gate:\n    def entry(self, actor):\n        handler = self.guard\n        return handler(actor)\n${extra}` }], { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "handler")!
+  expect(call.resolution).toBe("unresolved")
+  expect(call.gap).toMatch(/^source-method-alias-/)
+})
+for (const definition of ["    @staticmethod\n    def entry(receiver, actor):\n", "    @classmethod\n    def entry(receiver, actor):\n", "    @decorate\n    def entry(receiver, actor):\n", "    async def entry(receiver, actor):\n"]) test(`a source method alias requires an ordinary instance method owner: ${definition.trim().split("\n")[0]}`, async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: `class Gate:\n${definition}        handler = receiver.guard\n        return handler(actor)\n    def guard(self, actor):\n        return actor\n` }], { repository: "anonymous", sourceRef: "r" }), owner = index.symbols.find(s => s.name === "entry")!
+  for (const receiverClass of [undefined, "app.Gate"]) {
+    const call = index.relatedCalls(owner.id, receiverClass).find(c => c.expression === "handler")!
+    expect(call.resolution).toBe("unresolved")
+    expect(call.gap).toBe("source-method-alias-owner-unmodeled")
+    expect(call.methodBinding).toBeUndefined()
+  }
+})

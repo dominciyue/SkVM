@@ -2074,6 +2074,10 @@ AY7有限字段小步（2026-10-08）：v14复用transform按实际receiver iden
 
 20新增反例、300focused/1085断言，新鲜联合1166pass/1平台skip/7018断言/115文件/11.01s和主/AY类型通过。两轮独立只读核验分别检查来源发生点与runtime身份/失效；主按具体出处补反例，不据零发现宣称穷尽，详见[局部核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-field-state.json)。真实[reviewed字段probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-field-state-reviewed-replay.json)核验94冻结文件及独立supplements，共100文件、6body/15简单store；机械窗口不是实验模型read，初始原件分留。application annotation/material use、模型/目标/网络新增0，旧input/allowlist/答不升级；开发/探子token、USD、真人时间unknown。动态handler、class/method/descriptor及ASGI/DRF完整请求仍待实际解释/采用，继续官方具名复验与预登记收益比较，AY7及完整使用/净收益未达。
 
+AY7普通方法别名小步（2026-10-08）：v15将唯一无条件`handler=self.guard`的创建跨度/SHA、稳定原receiver及当前MRO override保留到同一binder/六角色/投影。实际采用必须保留ordinary创建且早于调用；错receiver、context省略创建、逃逸/重绑定及source变化不能连接。可见descriptor/getter、属性覆盖、wrapped/static/class/async target和owner均具名。独立source review复现static/class owner首参误充instance；主补decorated/async四项红测并修复，显式actual receiver也不能绕过。投影只读review的80项测试通过且未发现新缺陷，不作穷尽声明。23新增反例、323focused/1161断言，新鲜联合1189pass/1平台skip/7094断言/115文件/14.37s，主/AY类型通过，见[局部核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-method-aliases.json)。
+
+真实[reviewed方法别名probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-method-alias-reviewed-replay.json)核验94冻结文件和独立supplements，共100文件/6body/9别名，来源合格0，binding/receiver缺口保留；原始与reviewed原件独立保存且SHA相同。机械窗口不提供实验模型read，application annotation/material use、模型/目标/网络新增0，旧input/allowlist/答不升级；开发/探子token、USD及真人时间unknown。真实DRF/Django两条件handler及self.head字段alias不被该静态机制自动覆盖，继续有限动态选择/字段callable、完整请求及官方具名复验，AY7与完整使用/净收益未达。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

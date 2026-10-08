@@ -169,6 +169,12 @@ DRF下一小步工作计划（2026-10-08）：先从原轮次已保留且SHA一�
 
 字段本小步进展：v14 typed槽位/有限值/覆盖/跨receiver/helper返回、精确调用发生点和MRO来源失效已接通，20新增反例、300focused/1085断言、新鲜联合1166pass/1平台skip/7018断言及主/AY类型通过。两轮只读核验的范围和主复现分别记录；最后两项未发现新的可复现缺陷，不宣称穷尽。真实100文件probe保留6body/15简单store，原始与reviewed输出分开；model read/application annotation/material use/模型/目标/网络新增0、旧输入/答不升级。动态handler、class/method/descriptor及完整ASGI/DRF请求还需当前调用/协议采用，随后官方具名复验与预登记收益比较；AY7和研究验收未勾选。
 
+方法别名下一小步设计（2026-10-08）：先保留普通局部`handler=self.guard`的source-method-alias/v1创建跨度、原receiver、所选当前MRO方法和SHA；仅唯一无条件simple assignment、稳定直接receiver参数、后续真实直接调用且不逃逸/重绑定可连接。原receiver类型仍由六角色解释，同一Python binder补实际self，不改变源码签名。投影还需原赋值沿当前骨架生成的ordinary assign-value存在且早于实际调用，不允许将方法引用标context后跳过创建。当前self属性替换/动态setattr、可见__getattribute__/__getattr__、property/static/class/decorated/async方法和class wrapper、歧义MRO/conditional/multiple来源先具名；不凭方法名或库名免除descriptor。匿名直接alias、参数包/继承override、拒绝后写入、错receiver/漏创建/当前来源失效先红绿，再真实Django/DRF source-only probe。已定位dispatch的两条件来源和Django self.head条件字段alias仍不能由该静态子机制闭合，之后另接有限动态选择/字段callable及完整请求，不扩大旧输入或回填旧答。
+
+方法别名复核补充：ordinary instance条件同样约束alias所在owner，不能只检查所选target。static/class/decorated/async owner的首参不自动证明instance receiver；四项红测（含显式强行指定actual receiver）复现后保持`source-method-alias-owner-unmodeled`，未证明wrapper/协议前不连接。
+
+方法别名本小步进展：v15当前创建proof、原receiver和MRO override沿同一binder/骨架/六角色投影接通，ordinary创建不可context省略。23新增反例、323focused/1161断言、新鲜联合1189pass/1平台skip/7094断言及主/AY类型通过；两只读核验的owner缺陷已主复现修正，投影review未发现新缺陷。100文件真实probe保留6body/9别名，零来源合格及零采用，初始/reviewed分开且SHA相同；model read/application annotation/material use/模型/目标/网络新增0，旧输入/答不升级。下一小步接有限动态method选择及字段callable，保留实际getattr/fallback和条件控制，再完整请求组合与官方具名复验；AY7和净收益未达。
+
 ### AY8 调度与局部解释的闭环
 
 2026-10-08真实OWUI反例细化：七轮增量字段确有前进，最后宿主生成34个块（其中8个为空）却被沿用手写接口的32块上限拒绝。先在v5源码编译器复用同单元的无动作空块，保留每个实际条件、步骤、正常/拒绝/异常出口及既有路径/节点边界；不提高求值上限。停滞按当前缺口和已保留字段进展判断，不能把observations的pending标签当源码frontier停滞。实际发送上下文与原始归档分账，引用的bytes是被引用原值大小，不是该引用包的发送大小。

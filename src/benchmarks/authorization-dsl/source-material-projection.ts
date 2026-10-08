@@ -32,6 +32,10 @@ function actualArguments(index: StructureIndex, caller: BoundSemanticBlock, step
   if (!call || !symbol) return false
   const binding = sourceArgumentBindings(index, call, symbol), expected = binding.bindings, steps = caller.blocks.flatMap(b => b.steps)
   if (binding.gap || step.arguments.length !== expected.length) return false
+  if (call.methodBinding) {
+    const proof = call.methodBinding, creation = steps.find(s => s.kind === "assign-value" && s.result === proof.name && canonicalControl(s.value) === canonicalControl({ binding: `${proof.receiver}.${proof.method}` }))
+    if (!creation || steps.indexOf(creation) >= steps.indexOf(step) || steps.some(s => s !== creation && (s.kind === "bind" && (s.bindingName ?? s.name) === proof.name || (s.kind === "assign-value" || s.kind === "call") && s.result === proof.name))) return false
+  }
   if (call.callableBinding) {
     const instance = call.callableBinding, creation = steps.find(s => s.kind === "call" && s.sourceCallId === instance.creationCallId)
     if (target.parameters.filter(p => p.name === sourceCallableParameter(symbol.id) && p.type === "value").length !== 1 || expected.some(a => !target.parameters.some(p => p.name === a.parameter))) return false

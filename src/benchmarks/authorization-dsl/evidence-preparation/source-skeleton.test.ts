@@ -23,6 +23,15 @@ test("context meaning cannot erase a named local callable binding gap", async ()
   expect(skeleton.gaps.map(g => g.code)).toContain("source-local-callable-binding-unresolved")
   expect(result.unit!.complete).toBe(false)
 })
+test("context meaning cannot erase a visible method alias descriptor gap", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-method-alias-gap-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "class Gate:\n    def entry(self, actor):\n        handler = self.guard\n        handler(actor)\n        return True\n    @property\n    def guard(self):\n        return replacement\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id))!, result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations: skeleton.anchors.filter(a => a.kind === "call" || a.kind === "return").map(a => ({ anchorId: a.id, role: "context", explanation: "Anonymous context cannot waive descriptor source", ...(a.kind === "return" ? { returnOutcome: "allow" } : {}) })) }, { index: tools.structure, itemId: "entry", handle: "entry", questionId: "q", role: "entry" })
+  expect(skeleton.gaps.map(g => g.code)).toContain("source-method-alias-target-unmodeled")
+  expect(result.unit!.complete).toBe(false)
+})
 test("reading an escaped local callable body retains its capture and invocation boundary", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-local-escape-"))
   await writeFile(path.join(sourceRoot, "app.py"), "def factory(actor):\n    def guard():\n        return actor\n    return guard\n")

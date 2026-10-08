@@ -1,0 +1,64 @@
+{
+  "schemaVersion": "authorization-development-review/v1",
+  "date": "2026-10-08",
+  "stage": "AY7-ordinary-method-alias-creation-and-invocation",
+  "relationshipVersion": "source-bindings/v15",
+  "decision": "engineering-passing-dynamic-handler-framework-adoption-and-benefit-pending",
+  "mainRedGreenCounterexamples": [
+    "An inherited alias uses the actual subclass override but cannot borrow an unrelated receiver class",
+    "A foreign creation SHA and mismatched receiver cannot provide current method binding",
+    "Replacing ordinary alias creation with context must not adopt the later invocation",
+    "Actual helper denial remains before write and yields no effect rule",
+    "Static/class/decorated/async owners cannot treat their first parameter as an instance, even with an explicit actual receiver"
+  ],
+  "independentReadOnlyReviews": [
+    {
+      "agent": "ay_method_alias_source_review_v15",
+      "scope": "Current source method alias eligibility, MRO and owner/target descriptor boundaries",
+      "finding": "Static and class method owners were incorrectly resolved as ordinary instance owners",
+      "mainVerification": "Four failing static/class/decorated/async owner tests reproduced the bug; source-method-alias-owner-unmodeled now blocks both implicit and explicitly supplied actual receiver contexts"
+    },
+    {
+      "agent": "ay_method_alias_projection_review_v15",
+      "scope": "Shared source binder, skeleton gap retention and actual material projection",
+      "finding": "No new reproducible defect; not an exhaustive proof",
+      "verification": { "pass": 80, "fail": 0, "assertions": 319 }
+    }
+  ],
+  "verification": {
+    "newTests": 23,
+    "focused": { "pass": 323, "fail": 0, "assertions": 1161, "files": 10 },
+    "joint": { "pass": 1189, "skip": 1, "fail": 0, "assertions": 7094, "files": 115, "durationMs": 14370 },
+    "mainTypes": "passed",
+    "ayTypes": "passed",
+    "documentation": { "scannedFiles": 5, "brokenReferences": 0, "legacyReferences": 0, "retiredReferences": 0, "governanceErrors": 0, "existingSoftLengthWarnings": 5 },
+    "initialSourceProbe": {
+      "path": "verification/paperless-method-alias-replay.json",
+      "sha256": "b2fe82f6dd172f56300d4853b31e4c32fe1f6661c1793debb142c0a9b2e88ab7",
+      "sourceFiles": 100, "bodies": 6, "aliasCalls": 9, "sourceEligible": 0
+    },
+    "reviewedSourceProbe": {
+      "path": "verification/paperless-method-alias-reviewed-replay.json",
+      "sha256": "b2fe82f6dd172f56300d4853b31e4c32fe1f6661c1793debb142c0a9b2e88ab7",
+      "sourceFiles": 100, "bodies": 6, "aliasCalls": 9, "sourceEligible": 0
+    }
+  },
+  "boundaries": [
+    "Only ordinary instance owners and current unique unconditional direct aliases qualify",
+    "Visible mutation, escape, descriptors, wrappers, async and ambiguous MROs remain named gaps",
+    "Whole-function stability is conservative and does not execute arbitrary Python attribute protocols",
+    "Conditional getattr/fallback, field callables and complete framework requests remain pending",
+    "Mechanical source windows and anonymous test adoption do not supply experimental model/application evidence"
+  ],
+  "modelReadEvidence": false,
+  "applicationSemanticUnitsAuthored": 0,
+  "materialUses": 0,
+  "modelExecutions": 0,
+  "targetExecutions": 0,
+  "networkRequests": 0,
+  "originalInputsAndAllowlistsUnmodified": true,
+  "originalAttemptPromoted": false,
+  "costs": { "experimentTokens": 0, "developerAndScoutTokens": null, "usd": null, "humanTime": null },
+  "fullFrameworkComposition": "pending",
+  "researchGoalAchieved": false
+}

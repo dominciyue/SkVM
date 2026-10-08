@@ -434,3 +434,40 @@ test("a new inherited setter withdraws an earlier ordinary source field store", 
   const unrelated = await buildStructureIndex([...files, { path: "unrelated.py", content: "class Other:\n    def __setattr__(self, name, value):\n        raise Denied\n" }], { repository: "anonymous", sourceRef: "r" })
   expect(sourceRelationRevision(unrelated, source.id, "app.View")).toBe(revision)
 })
+
+test("a source-assisted method alias adopts the actual receiver only after its ordinary creation", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-method-alias-adoption-")), content = "class Gate:\n    def entry(self, actor, decoy, *args, **kwargs):\n        handler = self.guard\n        handler(actor, *args, **kwargs)\n        write()\n        return True\n    def guard(self, actor, *rest, **options):\n        raise Denied\n"
+  await writeFile(path.join(sourceRoot, "app.py"), content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, units: any[] = []
+  for (const name of ["entry", "guard"]) {
+    const source = index.symbols.find(s => s.name === name)!
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id, "app.Gate"))!
+    expect(skeleton.gaps).toEqual([])
+    const annotations = skeleton.anchors.filter(a => ["parameter", "call", "return", "raise"].includes(a.kind)).map(a => ({ anchorId: a.id, role: a.kind === "parameter" ? a.name === "self" ? "context" : ["actor", "decoy"].includes(a.name!) ? "principal" : "condition" : a.kind === "call" ? a.call!.expression === "write" ? "effect" : "condition" : "context", explanation: "Anonymous ordinary method alias and actual receiver", ...(a.kind === "return" && name === "entry" ? { returnOutcome: "allow" } : {}), ...(a.kind === "raise" ? { failureKind: "authorization" } : {}) }))
+    const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index, itemId: name, handle: name, questionId: "q", role: name === "entry" ? "entry" : "helper" })
+    expect(result.diagnostics).toEqual([])
+    units.push({ ...result.unit!, questionId: "q", evidenceIds: skeleton.evidenceIds, source: skeleton.source, receiverClass: "app.Gate" })
+  }
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect method alias continuation", premises: [] }] })
+  const project = (adopted = units, current = index) => {
+    const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" })
+    for (const u of adopted) store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }, { kind: "candidate-set", key: `relations:${u.source.id}:app.Gate`, revision: sourceRelationRevision(index, u.source.id, "app.Gate")! }], "test-authored")
+    return api.projectSourceMaterials(p, adopted, store.snapshot(), current, { questionDirected: true })
+  }
+  const projected = project(), lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true })
+  expect(projected.uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
+  expect(lowered.diagnostics).toEqual([])
+  expect(lowered.delta.rules.filter(r => r.terminal).map(r => r.outcome)).toEqual(["deny"])
+  expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(false)
+  const skipped = structuredClone(units), entry = skipped[0].blocks.flatMap((b: any) => b.steps), creation = entry.find((s: any) => s.kind === "assign-value" && s.result === "handler")
+  expect(creation).toBeDefined()
+  Object.assign(creation, { kind: "context", relationship: "dispatch-binding" })
+  delete creation.result; delete creation.value
+  expect(project(skipped).uses.filter((u: any) => u.kind === "call")).toEqual([])
+  const swapped = structuredClone(units)
+  swapped[0].blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call").arguments[0].object = "decoy"
+  expect(project(swapped).uses.filter((u: any) => u.kind === "call")).toEqual([])
+  const changed = await buildStructureIndex([{ path: "app.py", content: content.replace("handler = self.guard", "handler = self.other") }], { repository: "anonymous", sourceRef: "r" })
+  expect(project(units, changed).uses).toEqual([])
+})

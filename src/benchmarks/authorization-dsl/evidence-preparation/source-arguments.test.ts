@@ -91,3 +91,11 @@ test("a returned callable binds captures from creation plus its actual result in
   expect(api.sourceArgumentBindings(index, { ...call, callableBinding: { ...call.callableBinding!, creationCallId: "foreign" } }, target).bindings).toEqual([])
   expect(api.sourceArgumentBindings(index, { ...call, callableBinding: { ...call.callableBinding!, captures: [{ parameter: "principal", expression: "other_actor", literalKnown: false }] } }, target).bindings).toEqual([])
 })
+
+test("a method alias uses the same actual receiver and pack binder but rejects a foreign creation proof", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "class Gate:\n    def entry(self, actor, *args, **kwargs):\n        handler = self.guard\n        return handler(actor, *args, **kwargs)\n    def guard(self, actor, *rest, **options):\n        return actor\n" }], { repository: "anonymous", sourceRef: "r" }), owner = index.symbols.find(s => s.name === "entry")!, target = index.symbols.find(s => s.name === "guard")!, call = index.relatedCalls(owner.id)[0]!, bound = api.sourceArgumentBindings(index, call, target)
+  expect(bound.gap).toBeUndefined()
+  expect(bound.bindings.map((b: any) => [b.parameter, b.expression])).toEqual([["self", "self"], ["actor", "actor"], ["rest", "args"], ["options", "kwargs"]])
+  expect(api.sourceArgumentBindings(index, { ...call, methodBinding: { ...call.methodBinding!, source: { ...call.methodBinding!.source, sha256: "foreign" } } }, target).gap).toBe("source-arguments-method-alias-unresolved")
+  expect(api.sourceArgumentBindings(index, { ...call, receiver: "different_receiver" }, target).bindings).toEqual([])
+})
