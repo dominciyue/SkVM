@@ -40,7 +40,7 @@ function fullChain(explanation = "Test-authored shown False return", malformed =
   return () => transport
 }
 test("account adapter registry owns no LLM provider", () => { expect(createAdapter("codex-account" as any, () => { throw new Error("provider-must-not-be-used") }).name).toBe("codex-account") })
-for (const strategy of ["operation-evidence-v3", "operation-evidence-v4", "operation-evidence-v5"] as const) test(`${strategy} account adapter and inquiry use the same source core through accepted material, check and natural final`, async () => {
+for (const strategy of ["operation-evidence-v3", "operation-evidence-v4", "operation-evidence-v5", "operation-evidence-v6"] as const) test(`${strategy} account adapter and inquiry use the same source core through accepted material, check and natural final`, async () => {
   const f = await fixture(), adapter = new api.CodexAccountAdapter(fullChain())
   await adapter.setup({ model: "gpt-5.6-sol", maxSteps: 12, timeoutMs: 5000, providerOptions: { authorizationScope: f.inputFile, authorizationDomainTools: true, authorizationMethod: "M", authorizationStrategy: strategy } })
   const r = await adapter.run({ prompt: "Inspect entry", workDir: f.root, skill: { content: "FULL_SKILL_TAIL", mode: "inject", meta: { name: "full", description: "full" } } })
@@ -50,6 +50,7 @@ for (const strategy of ["operation-evidence-v3", "operation-evidence-v4", "opera
   expect(r.authorizationInquiry.result).toBeDefined()
   const inquiry = await api.runCodexAccountInquiry({ inputFile: f.inputFile, workDir: f.root, model: "gpt-5.6-sol", method: "M", strategy, skillContent: "FULL_SKILL_TAIL", transportFactory: fullChain(), timeoutMs: 5000 })
   expect(inquiry.account.status).toBe("completed"); expect(inquiry.native.result).toBeDefined()
+  if (strategy === "operation-evidence-v6") expect(inquiry.native.domain.propertyAnalysis.checks).toMatchObject({ originalQuestionCount: 1, wholeTaskCertified: false })
 })
 
 test("account field repair preserves the v4 focus, charges its shared budget and delivers through retained context", async () => {

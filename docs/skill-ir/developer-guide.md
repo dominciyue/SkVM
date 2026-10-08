@@ -13,7 +13,7 @@
 
 ### 当前授权开发定位
 
-AZ研究runner位于 `results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/study.ts`。`init`只创建新identity登记，`dry-run <position>`零调用返回输入/输出/入口和共同上限；旧AY/AX只读输入，不调用其bootstrap/run。所有质量位置均注册为native，native首件是D第一重复的别名。归因区分原记录事实、新重放与假设；包/变化和模型执行将在共享v6可用后接入。
+AZ研究runner位于 `results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/study.ts`。`init`只创建新identity登记；`dry-run/prepare <position>`零调用核对入口或准备当前任务；`run <position> [named-revision]`使用指定官方账号的普通入口；`prepare-changes current`绑定本轮同生产树消费者会话。旧AY/AX只读输入，不调用其bootstrap/run。全部12质量位置通过同一native入口，D首件同时是完整原skill使用位置；单性质/两包/变化另用普通inquiry。保存原始答案、当前Git/源码树/runner/完整skill身份与官方usage出处；active/unknown及明确不可用通道阻止继续派发。包准备只复制原字节和允许源码；单性质是原任务的明确development子问题，无源码衍生绑定或答案。
 
 AZ1 `projectSourceMaterials` returns `diagnostics` and `stages` alongside unchanged units/uses. Diagnostics identify question/source/material/call, candidates, required cardinality and nextAction for availability, entry, call and framework rejection. Runtime reports retain all records; model feedback caps the list at 12 with a total count. `study.ts replay-materials` reads both v35 archives and writes only AZ verification; source/check evidence and original SHA remain distinct from current mechanical projection. Verify source-material-projection and property-runtime suites.
 

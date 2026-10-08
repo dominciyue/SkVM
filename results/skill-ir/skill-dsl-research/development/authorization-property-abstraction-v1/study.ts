@@ -2,11 +2,17 @@ import { createHash } from "node:crypto"
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { execFileSync } from "node:child_process"
-import { gunzipSync } from "node:zlib"
+import { gunzipSync, gzipSync } from "node:zlib"
 import { inputPlan } from "../authorization-question-closure-v1/study.ts"
-import { loadInquiryInput } from "../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts"
+import { loadInquiryInput, checkAuthorizationInquiry, executeLocalInquiryRun, inspectLocalInquiry } from "../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts"
 import { createInquiryTools } from "../../../../../src/benchmarks/authorization-dsl/inquiry-tools.ts"
 import { projectSourceMaterials } from "../../../../../src/benchmarks/authorization-dsl/source-material-projection.ts"
+import { prepareConsumerInput } from "../authorization-property-execution-v1/consumer.ts"
+import { prepareChangeInputs, resolveChangeRun } from "../authorization-property-execution-v1/changes.ts"
+import { CodexAccountAdapter } from "../../../../../src/adapters/codex-account.ts"
+import type { AccountSessionResult } from "../../../../../src/adapters/codex-account-session.ts"
+import { loadSkill } from "../../../../../src/core/skill-loader.ts"
+import { executeRun, materializeNaturalRunTask } from "../../../../../src/run/index.ts"
 
 export const identity = "authorization-property-abstraction-v1"
 export const root = import.meta.dir
@@ -45,6 +51,84 @@ export async function dryRun(id: string, studyRoot = root, externalRoot = runRoo
     domainTools: !plain, method: authored || position.kind === "change" ? "D1" as const : "M" as const, strategy: plain ? "legacy" as const : "operation-evidence-v6" as const,
     runRoot: externalRoot, outputs: [path.join(studyRoot, "attempts", id), path.join(externalRoot, "attempts", id)], runtimeInputFiles: [inputFile, original.skillFile, path.join(studyRoot, "account-boundary.json")],
     limits, model: "gpt-5.6-sol", effort: "high", targetExecutions: 0, evaluatorProvidedToRuntime: false }
+}
+
+export async function preparePositionInput(id: string, studyRoot = root) {
+  const plan = await dryRun(id, studyRoot), original = await loadInquiryInput(plan.originalInputFile)
+  if (positions().find(p => p.id === id)!.kind === "single") {
+    const request = "Investigate the document Download operation: determine whether selecting another version changes the resource that is authorized. Ownership and object grants are unspecified. State precise remaining source or deployment limits."
+    const { brief: _brief, mode: _mode, ...metadata } = original.value
+    const value = { ...metadata, taskId: "az-development-download-single", sourceRoot: path.relative(path.dirname(plan.inputFile), original.context.sourceRoot).split(path.sep).join("/"), inquiry: { schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "download-selected-resource", request, premises: [{ text: "Ownership and object grants are unspecified.", origin: "user" }], properties: [{ id: "selected-resource", kind: "authorized-object-matches-effect", requirement: "whether selecting another version changes the resource that is authorized" }] }] } }
+    await mkdir(path.dirname(plan.inputFile), { recursive: true })
+    try { await write(plan.inputFile, value, true); await write(path.join(path.dirname(plan.inputFile), "download-single-provenance.json"), { developmentOnly: true, originalTask: original.value, originalInputSha256: original.inputSha256, splitReason: "One relationship explicitly asked by the original brief; no source-derived guard/effect answer supplied", originalFullTaskDenominatorRetained: true }, true) }
+    catch (error) { if ((error as NodeJS.ErrnoException).code !== "EEXIST" || JSON.stringify(JSON.parse(await readFile(plan.inputFile, "utf8"))) !== JSON.stringify(value)) throw error }
+  } else if (plan.authorAttempt) await prepareConsumerInput({ originalInputFile: plan.originalInputFile, authorAttempt: plan.authorAttempt, destination: path.dirname(plan.inputFile) })
+  return plan
+}
+
+export function admitDispatch(state: { activeAttempts: string[]; unknownCompletions: string[]; accountChannel?: { status: string } }) {
+  if (state.activeAttempts.length || state.unknownCompletions.length) throw new Error("Inspect active/unknown completion before any further dispatch")
+  if (["quota-refused", "unavailable"].includes(state.accountChannel?.status ?? "")) throw new Error("Specified experiment account channel is unavailable; do not poll, resend or switch")
+}
+
+export async function prepareChanges(registrationId = "current") {
+  const manifest = JSON.parse(await readFile(path.join(root, "manifest.json"), "utf8")), baseline = manifest.positions.find((p: Position) => p.id === "consumer-download") as Position
+  if (!baseline.attempts.length || baseline.status === "running") throw new Error("A current original consumer session is required")
+  const baselineAttemptId = baseline.attempts.at(-1)!, report = JSON.parse(await readFile(path.join(root, "attempts", baselineAttemptId, "report.json"), "utf8"))
+  const runtimeTree = execFileSync("git", ["rev-parse", "HEAD:src"], { cwd: repo, encoding: "utf8" }).trim()
+  if (!report.sessionPath || report.runtimeTree !== runtimeTree) throw new Error("Changes require a current session from the same production tree")
+  return prepareChangeInputs(root, report.sessionPath, { baselineAttemptId, runtimeTree }, registrationId)
+}
+
+/** Actual ordinary entrances only. Historical study runners are never called. */
+export async function run(id: string, revision?: string) {
+  assertOwnedPaths(root, runRoot)
+  const manifestFile = path.join(root, "manifest.json"), statusFile = path.join(root, "status.json"), manifest = JSON.parse(await readFile(manifestFile, "utf8")), state = JSON.parse(await readFile(statusFile, "utf8"))
+  const position = manifest.positions.find((p: Position) => p.id === id) as Position | undefined
+  if (!position) throw new Error("Use a registered AZ position")
+  admitDispatch(state)
+  if (!revision && position.attempts.length || revision && (!/^[a-z0-9-]+$/.test(revision) || !position.attempts.length)) throw new Error("Preserve first attempts; a repair needs a new named identity")
+  if (execFileSync("git", ["diff", "HEAD", "--name-only", "--", "src"], { cwd: repo, encoding: "utf8" }).trim()) throw new Error("Commit the verified production snapshot before running")
+  const plan = await preparePositionInput(id), gitRevision = execFileSync("git", ["rev-parse", "HEAD"], { cwd: repo, encoding: "utf8" }).trim(), runtimeTree = execFileSync("git", ["rev-parse", "HEAD:src"], { cwd: repo, encoding: "utf8" }).trim()
+  let inputFile = plan.inputFile, previous: string | undefined, binding: Record<string, unknown> = {}
+  if (position.kind === "change") { const changed = await resolveChangeRun(root, id, runtimeTree, "current"); inputFile = changed.inputFile; previous = changed.previous; binding = changed.binding }
+  const loaded = await loadInquiryInput(inputFile), checked = await checkAuthorizationInquiry(inputFile, plan.method, plan.strategy)
+  if (checked.status !== "valid") throw new Error(JSON.stringify(checked.diagnostics))
+  const original = await loadInquiryInput(plan.originalInputFile), skill = await loadSkill(plan.skillFile), skillIdentity = []
+  for (const file of ["SKILL.md", ...skill.bundleFiles].sort()) { const bytes = await readFile(path.join(skill.skillDir, file)); skillIdentity.push({ file, sha256: sha(bytes), bytes: bytes.length }) }
+  const attemptId = `${id}/${revision ?? "original"}`, out = path.join(root, "attempts", attemptId), external = path.join(runRoot, "attempts", attemptId)
+  await mkdir(path.dirname(out), { recursive: true }); await mkdir(out)
+  await write(path.join(out, "claim.json"), { attemptId, positionId: id, entrance: position.entrance, gitRevision, runtimeTree, runnerSha256: sha(await readFile(import.meta.path)), inputFile, inputSha256: loaded.inputSha256, originalTaskSha256: original.inputSha256, skillIdentity, sourceFiles: checked.sourceFiles, model: "gpt-5.6-sol", effort: "high", strategy: plan.strategy, method: plan.method, limits, ...binding, startedAt: new Date().toISOString(), targetExecutions: 0, evaluatorProvidedToRuntime: false }, true)
+  position.attempts.push(attemptId); position.status = "running"; state.activeAttempts = [attemptId]; state.currentStage = position.stage
+  await write(manifestFile, manifest); await write(statusFile, state)
+  let account: AccountSessionResult | undefined, sessionPath: string | undefined, status = "completion-unknown", details: Record<string, unknown> = {}
+  try {
+    if (position.entrance === "native") {
+      const task = await materializeNaturalRunTask({ prompt: original.value.brief ?? JSON.stringify(original.value.inquiry), taskPath: path.join(out, "task.json") })
+      const result = await executeRun({ task, skill, adapter: new CodexAccountAdapter(), workDir: path.join(external, "workspace"), keepWorkDir: true, skillMode: "inject", adapterConfig: { model: "gpt-5.6-sol", timeoutMs: limits.sessionTimeoutMs, maxSteps: limits.maxToolCalls, providerOptions: { authorizationScope: inputFile, authorizationDomainTools: plan.domainTools, authorizationStrategy: plan.strategy, ...(plan.domainTools ? { authorizationMethod: plan.method } : {}), authorizationAccountBoundary: path.join(root, "account-boundary.json"), authorizationTraceDir: path.join(external, "raw"), authorizationMaxToolCalls: limits.maxToolCalls, authorizationMaxDisplayBytes: limits.maxDisplayBytes, authorizationMaxReadBytes: limits.maxReadBytes, authorizationSessionTimeoutMs: limits.sessionTimeoutMs } } })
+      await writeFile(path.join(out, "run-result.json.gz"), gzipSync(JSON.stringify(result.runResult)), { flag: "wx" })
+      const native = result.runResult.authorizationInquiry as any; account = native.account; status = account!.status
+      details = { resultPresent: !!native.result, sourceVerification: native.sourceVerification, sourceWorkMetrics: native.domain?.sourceWorkMetrics, materialUses: native.domain?.materialUses, currentCheck: native.domain?.check, propertyAnalysis: native.domain?.propertyAnalysis, sourceAccounting: native.sourceAccounting }
+    } else {
+      const report = await executeLocalInquiryRun({ inputFile, outDir: path.join(external, "public-inquiry"), skillFile: plan.skillFile, model: "gpt-5.6-sol", method: plan.method, strategy: plan.strategy, previous, harness: "codex-account", accountBoundaryFile: path.join(root, "account-boundary.json"), execution: limits })
+      status = report.status; await write(path.join(out, "public-report.json"), report, true)
+      if ("sessionPath" in report && typeof report.sessionPath === "string") {
+        sessionPath = report.sessionPath; await inspectLocalInquiry(sessionPath)
+        const saved = JSON.parse(await readFile(path.join(sessionPath, "run.json"), "utf8")); account = saved.telemetry.account
+        details = { resultPresent: !!saved.result, sourceVerification: saved.sourceVerification, sourceWorkMetrics: saved.native?.domain?.sourceWorkMetrics, materialUses: saved.domain?.materialUses, currentCheck: saved.domain?.check, propertyAnalysis: saved.domain?.propertyAnalysis, sourceAccounting: saved.sourceAccounting, reuse: saved.reuse }
+      } else details = { publicResult: report }
+    }
+  } catch (error) { details = { ...details, error: String(error) } }
+  await writeFile(path.join(out, "answer-original.md"), account?.text ?? "", { flag: "wx" })
+  await write(path.join(out, "report.json"), { attemptId, positionId: id, entrance: position.entrance, status, ...binding, ...details, gitRevision, runtimeTree, sessionPath, inputSha256: loaded.inputSha256, accountStatus: account?.status, terminalStatus: account?.terminalStatus, answerDelivery: account?.answerDelivery, quotaRefused: account?.quotaRefused, terminalError: account?.terminalError, finalPresent: !!account?.text.trim(), answerSha256: sha(account?.text ?? ""), accountUsage: account?.usage ?? null, usageDetails: account?.usageDetails, usageSource: account?.usageSource, inferenceDispatched: account?.inferenceDispatched ?? null, hostToolCalls: account ? account.tools.length + (account.toolRejections?.length ?? 0) : 0, durationMs: account?.durationMs ?? null, reason: account?.reason, providerRequests: null, actualUsd: null, targetExecutions: 0, semanticQuality: account?.text.trim() ? "awaiting-independent-review" : "undelivered" }, true)
+  position.status = status; state.activeAttempts = []
+  if (status.endsWith("unknown")) state.unknownCompletions.push(attemptId)
+  if (account?.quotaRefused || status === "unavailable") {
+    state.status = "in-progress-external-blocker"; state.accountChannel = { status: account?.quotaRefused ? "quota-refused" : "unavailable", attemptId, terminalStatus: account?.terminalStatus, reason: account?.reason, recoveryEvidence: null }
+    for (const p of manifest.positions) if (!p.attempts.length) p.status = "unrun-account-blocked"
+  }
+  await write(manifestFile, manifest); await write(statusFile, state)
+  console.log(JSON.stringify({ attemptId, status, terminalStatus: account?.terminalStatus, quotaRefused: account?.quotaRefused, finalPresent: !!account?.text.trim(), hostToolCalls: account?.tools.length, usage: account?.usage ?? null, reason: account?.reason }))
 }
 
 export function attributeFailure(report: Record<string, any>) {
@@ -102,5 +186,8 @@ if (import.meta.main) {
   if (process.argv[2] === "init") await bootstrap()
   else if (process.argv[2] === "dry-run") console.log(JSON.stringify(await dryRun(process.argv[3]!), null, 2))
   else if (process.argv[2] === "replay-materials") await replayMaterials()
-  else throw new Error("Supported: init | dry-run <registered-position> | replay-materials")
+  else if (process.argv[2] === "prepare") console.log(JSON.stringify(await preparePositionInput(process.argv[3]!)))
+  else if (process.argv[2] === "prepare-changes") console.log(JSON.stringify(await prepareChanges(process.argv[3])))
+  else if (process.argv[2] === "run") await run(process.argv[3]!, process.argv[4])
+  else throw new Error("Supported: init | dry-run/prepare/run <registered-position> [named-revision] | prepare-changes [registration] | replay-materials")
 }

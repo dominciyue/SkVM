@@ -1,6 +1,8 @@
 import { expect, test } from "bun:test"
 import path from "node:path"
-import { positions, assertOwnedPaths, dryRun, attributeFailure } from "./study.ts"
+import { mkdtemp, mkdir, readFile } from "node:fs/promises"
+import os from "node:os"
+import { positions, assertOwnedPaths, dryRun, attributeFailure, admitDispatch } from "./study.ts"
 
 test("AZ retains twelve common native quality positions and the separate development/consumer/change denominators", () => {
   const rows = positions()
@@ -35,4 +37,26 @@ test("offline attribution keeps original facts separate from replay and hypothes
   expect(attributed.currentReplay).toBeNull()
   expect(attributed.hypotheses).toEqual([])
   expect(attributed.changesOriginalScore).toBe(false)
+})
+test("known channel refusal and active or unknown runs prevent another experiment", () => {
+  const state = { activeAttempts: [], unknownCompletions: [], accountChannel: { status: "availability-unconfirmed-for-experiment" } }
+  expect(() => admitDispatch(state)).not.toThrow()
+  for (const status of ["quota-refused", "unavailable"]) expect(() => admitDispatch({ ...state, accountChannel: { status } })).toThrow("unavailable")
+  expect(() => admitDispatch({ ...state, unknownCompletions: ["first"] })).toThrow("Inspect")
+  expect(() => admitDispatch({ ...state, activeAttempts: ["first"] })).toThrow("Inspect")
+})
+
+test("single-property preparation retains the original task and binds no source-derived answer", async () => {
+  const api = await import("./study.ts") as any
+  const directory = path.join(await mkdtemp(path.join(os.tmpdir(), "az-prepare-")), "authorization-property-abstraction-v1")
+  await mkdir(directory)
+  const prepared = await api.preparePositionInput("single-download", directory)
+  const input = JSON.parse(await readFile(prepared.inputFile, "utf8"))
+  expect(input.inquiry.questions).toHaveLength(1)
+  expect(input.inquiry.questions[0].properties[0].kind).toBe("authorized-object-matches-effect")
+  expect(JSON.stringify(input)).not.toMatch(/guardAnchorId|effectAnchorId|source-interpretation|verdict/)
+  const provenance = JSON.parse(await readFile(path.join(directory, "model/inputs/download-single-provenance.json"), "utf8"))
+  expect(provenance.originalTask.brief).toContain("Investigate the document Download operation")
+  expect(prepared.entrance).toBe("inquiry")
+  expect((await dryRun("quality-download-D-repeat-1")).entrance).toBe("native")
 })
