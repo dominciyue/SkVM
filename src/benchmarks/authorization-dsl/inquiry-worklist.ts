@@ -96,7 +96,8 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
     if (!parent.selected) return
     if (options.structural && options.tools.structure) {
       const index = options.tools.structure, interpreted = options.semanticUnits ? options.semanticUnits().filter(u => u.questionId === parent.questionId && u.source).map(u => ({ id: u.source!.id, receiverClass: u.receiverClass })) : [...items.values()].filter(i => represented(i, currentSlice).length).flatMap(i => i.selected?.id ?? [])
-      const work = operationWork(index, parent.selected.id, [...items.values()].filter(i => i.selected && coveredThrough(i.selected) >= i.selected.endLine).map(i => i.selected!.id), interpreted, parent.receiverClass, { sourceAssisted: options.requireEntryBasis, operationRoot: parent.origin === "question-duty" && parent.kind === "entry", questionDirected: options.questionDirected, frameworkInvocation: parent.frameworkBoundary })
+      const work = operationWork(index, parent.selected.id, [...items.values()].filter(i => i.selected && coveredThrough(i.selected) >= i.selected.endLine).map(i => i.selected!.id), interpreted, parent.receiverClass, { sourceAssisted: options.requireEntryBasis, operationRoot: parent.origin === "question-duty" && parent.kind === "entry", questionDirected: options.questionDirected, frameworkInvocation: parent.frameworkBoundary, propertyDemand: options.propertyDemand?.(parent) })
+      for (const residual of work.propertyResiduals) for (const candidateId of residual.candidateIds) relations.set(`${parent.questionId}:${residual.sourceCallId}:${candidateId}`, { id: residual.sourceCallId, questionId: parent.questionId, sourceId: parent.selected.id, candidateId, reason: residual.reason, state: "property-residual", gap: residual.reason })
       for (const d of work.frameworkDependencies) frameworkDependencies.set(d.key, d)
       for (const gap of work.frameworkGaps) {
         const id = stableId([parent.questionId, gap.key])
@@ -187,6 +188,8 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
       item.selected = candidate
       item.selectedBy = candidate ? choice?.origin ?? (singleton ? requiresBasis ? "source-confirmed-candidate" : "unique-index-candidate" : "accepted-entry-citation") : undefined
       if (candidate && invalidFiles.has(candidate.path)) { transition(item, "blocked", "none", "Original source changed; start a fresh session before promoting extraction.", "source-invalidated"); continue }
+      const currentRelations = candidate && item.origin === "structure-relation" && !item.frameworkBoundary ? [...relations.values()].filter(r => r.questionId === item.questionId && r.candidateId === candidate.id) : []
+      if (currentRelations.length && currentRelations.every(r => r.state === "property-residual")) { transition(item, "blocked", "none", currentRelations.map(r => r.reason).join("; "), "property-scope-deferred"); continue }
       if (failedReads.has(item.id)) { transition(item, "blocked", "none", "The prior actual read failed; preserve the gap without spinning.", failedReads.get(item.id)); continue }
       if (!candidate) { transition(item, "unlocated", item.candidates.length ? "select-candidate" : "locate", "Choose an original indexed candidate; no semantic location is inferred.", item.candidates.length > 1 ? "location-ambiguous" : item.candidates.length && requiresBasis ? "entry-basis-unconfirmed" : "location-missing"); continue }
       let ancestor = item.parentId ? items.get(item.parentId) : undefined, cyclic = false

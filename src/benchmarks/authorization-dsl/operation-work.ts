@@ -4,6 +4,7 @@ import type { SourceFactDependency } from "../../task-dsl/authorization/operatio
 import type { BoundSemanticBlock } from "../../task-dsl/authorization/semantic-flow.ts"
 import type { ControlSlice } from "../../task-dsl/authorization/control-slice.ts"
 import type { InquiryDiagnostic } from "../../task-dsl/authorization/inquiry.ts"
+import type { PropertyDemand } from "../../task-dsl/authorization/property-demand.ts"
 
 export interface OperationWorkAction { id: string; obligation: "entry" | "principal-binding" | "resource-binding" | "guard" | "effect" | "exception"; kind: "read" | "interpret" | "link"; candidateId: string; relationId: string; reason: string; receiverClass?: string; decisive: boolean; frameworkBoundary?: boolean }
 const hash = (v: unknown) => createHash("sha256").update(JSON.stringify(v)).digest("hex")
@@ -22,9 +23,9 @@ function drfReceiverRevision(index: StructureIndex, className: string) {
   return hash([classSources(className), drfDispatchMethods.map(method => [method, index.candidateRevision(className, method)]), configurations])
 }
 /** Structural candidates satisfy a need to inspect a relationship, never its authorization meaning. */
-export function operationWork(index: StructureIndex, entryId: string, readSymbols: string[], interpretedSymbols: Array<string | { id: string; receiverClass?: string }>, receiverClass?: string, options: { sourceAssisted?: boolean; operationRoot?: boolean; questionDirected?: boolean; frameworkInvocation?: boolean; sourceCallId?: string } = {}) {
-  const entry = index.symbols.find(s => s.id === entryId), actions: OperationWorkAction[] = [], gaps: StructureCall[] = [], frameworkDependencies: SourceFactDependency[] = [], frameworkGaps: Array<{ key: string; reason: string; receiverClass?: string; code?: string }> = []
-  if (!entry) return { actions, gaps, frameworkDependencies, frameworkGaps }
+export function operationWork(index: StructureIndex, entryId: string, readSymbols: string[], interpretedSymbols: Array<string | { id: string; receiverClass?: string }>, receiverClass?: string, options: { sourceAssisted?: boolean; operationRoot?: boolean; questionDirected?: boolean; frameworkInvocation?: boolean; sourceCallId?: string; propertyDemand?: PropertyDemand } = {}) {
+  const entry = index.symbols.find(s => s.id === entryId), actions: OperationWorkAction[] = [], gaps: StructureCall[] = [], frameworkDependencies: SourceFactDependency[] = [], frameworkGaps: Array<{ key: string; reason: string; receiverClass?: string; code?: string }> = [], propertyResiduals: Array<{ sourceCallId: string; candidateIds: string[]; reason: string }> = []
+  if (!entry) return { actions, gaps, frameworkDependencies, frameworkGaps, propertyResiduals }
   const add = (candidateId: string, relationId: string, reason: string, obligation: OperationWorkAction["obligation"] = "guard", context?: string, decisive = false, frameworkBoundary = false) => {
     const interpreted = interpretedSymbols.some(s => typeof s === "string" ? s === candidateId : s.id === candidateId && s.receiverClass === context)
     if (interpreted && !frameworkBoundary || actions.some(a => a.candidateId === candidateId && a.receiverClass === context && (!frameworkBoundary || a.frameworkBoundary && a.relationId === relationId))) return
@@ -33,6 +34,8 @@ export function operationWork(index: StructureIndex, entryId: string, readSymbol
   for (const call of index.relatedCalls(entry.id, receiverClass)) {
     if (options.sourceCallId && call.id !== options.sourceCallId) continue
     if (call.syntaxRole === "argument-default") continue
+    const demand = options.propertyDemand, scope = demand?.source.id === entry.id && demand.source.sha256 === entry.sha256 && demand.dependencies?.schemaVersion === "authorization-property-dependencies/v2" ? demand.dependencies.callScopes?.find(s => s.sourceCallId === call.id) : undefined
+    if (scope && scope.state !== "required" && !options.frameworkInvocation) { propertyResiduals.push({ sourceCallId: call.id, candidateIds: [...call.candidateIds], reason: scope.reason }); continue }
     if (call.resolution === "unresolved") { gaps.push(call); continue }
     for (const candidate of call.candidateIds) add(candidate, call.id, `Inspect AST-bound ${call.expression} at ${call.path}:${call.startLine}; arguments ${JSON.stringify(call.arguments)}. Source relevance and conditions still need interpretation.`, "guard", call.receiverClass, call.syntaxRole === "condition" || call.syntaxRole === "return")
   }
@@ -109,7 +112,7 @@ export function operationWork(index: StructureIndex, entryId: string, readSymbol
       for (const c of cls) for (const method of ["has_permission", "has_object_permission"]) for (const s of index.lookupMethod(c.qualifiedName, method)) add(s.id, `drf:permission:${c.id}:${method}`, `permission_classes source assignment names ${c.qualifiedName}; applicability remains to be interpreted.`, "guard", c.qualifiedName)
     }
   }
-  return { actions, gaps, frameworkDependencies, frameworkGaps }
+  return { actions, gaps, frameworkDependencies, frameworkGaps, propertyResiduals }
 }
 
 /** Turn checker feedback into existing local actions; never synthesize source meaning. */

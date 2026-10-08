@@ -5,6 +5,9 @@ import path from "node:path"
 import { createInquiryTools } from "../../benchmarks/authorization-dsl/inquiry-tools.ts"
 import { buildPropertyDemand } from "./property-demand.ts"
 import { parseInquiryStrategy, sourceMaterialSemanticVersion } from "./control-slice.ts"
+import { bindSourceProcedureSummary } from "./procedure-summary.ts"
+import { operationWork } from "../../benchmarks/authorization-dsl/operation-work.ts"
+import { lowerSourceInterpretation } from "./source-interpretation.ts"
 
 async function fixture(code: string, file = "app.py") {
   const root = await mkdtemp(path.join(os.tmpdir(), "ay-question-"))
@@ -13,7 +16,7 @@ async function fixture(code: string, file = "app.py") {
   const source = tools.structure!.symbols.find(s => s.name === "entry")!
   await tools.execute("source_read", { path: file, startLine: source.startLine, endLine: source.endLine })
   const skeleton = (await tools.sourceSkeleton(source.id))!
-  return { skeleton, demand: (questionId = "q", interpretation?: any) => buildPropertyDemand(skeleton, { questionId, role: "entry", question: { id: questionId, request: "Does this caller reach the selected effect?" }, interpretation } as any) as any }
+  return { tools, skeleton, demand: (questionId = "q", interpretation?: any) => buildPropertyDemand(skeleton, { questionId, role: "entry", question: { id: questionId, request: "Does this caller reach the selected effect?" }, interpretation } as any) as any }
 }
 
 test("v5 has a distinct semantic identity and source def/use dependencies", async () => {
@@ -58,4 +61,46 @@ test("question projections stay independent and renamed source retains dependenc
   expect(first.dependencies.revision).not.toBe(second.dependencies.revision)
   expect(a.demand().dependencies.edges.map((e: any) => e.kind).sort()).toEqual(b.demand().dependencies.edges.map((e: any) => e.kind).sort())
   expect(a.demand().excluded.map((e: any) => e.reason)).toEqual(b.demand().excluded.map((e: any) => e.reason))
+})
+test("v6 bound properties change required and residual sets with a current source summary while unknown influence survives", async () => {
+  const f = await fixture("def audit(actor):\n    return actor\ndef finalize(item):\n    unknown(item)\n    return item\ndef entry(actor, item):\n    audit(actor)\n    if not check(actor, item):\n        raise Forbidden()\n    send(item)\n    finalize(item)\n    return True\n")
+  const { skeleton, tools } = f, find = (kind: string, name?: string) => skeleton.anchors.find(a => a.kind === kind && (!name || a.name === name || a.call?.expression === name))!
+  const actor = find("parameter", "actor"), item = find("parameter", "item"), guard = find("condition"), send = find("call", "send"), audit = find("call", "audit"), finalize = find("call", "finalize")
+  const symbol = tools.structure!.symbols.find(s => s.name === "audit")!
+  await tools.execute("source_read", { path: symbol.path, startLine: symbol.startLine, endLine: symbol.endLine })
+  const summary = bindSourceProcedureSummary(tools.structure!, skeleton, audit, (await tools.sourceSkeleton(symbol.id))!)!
+  expect(summary).toBeDefined()
+  const draft: any = { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, unresolved: [], annotations: [{ anchorId: actor.id, role: "principal" }, { anchorId: item.id, role: "resource" }, { anchorId: guard.id, role: "condition", guardBranch: "false", principalAnchorId: actor.id, resourceAnchorId: item.id }, { anchorId: send.id, role: "effect", principalAnchorId: actor.id, resourceAnchorId: item.id, authorizedByAnchorIds: [guard.id] }], propertyBindings: [{ propertyId: "p", effectAnchorId: send.id, guardAnchorId: guard.id }] }
+  const demand = (kind: string, summaries: any[] = [summary]) => buildPropertyDemand(skeleton, { questionId: "q", role: "entry", interpretation: draft, propertyAbstraction: true, callSummaries: summaries, question: { id: "q", request: "Inspect the selected behavior", properties: [{ id: "p", kind, requirement: "selected behavior" }] } } as any) as any
+  const auth = demand("authorization-before-effect"), complete = demand("operation-completion")
+  expect(auth.dependencies.requiredAnchorIds).not.toContain(audit.id)
+  expect(auth.dependencies.requiredAnchorIds).not.toContain(finalize.id)
+  expect(auth.dependencies.residuals).toContainEqual(expect.objectContaining({ anchorId: finalize.id, code: "outside-selected-property-horizon" }))
+  expect(complete.dependencies.requiredAnchorIds).toContain(finalize.id)
+  expect(auth.required.map((r: any) => [r.anchorId, r.field])).not.toEqual(complete.required.map((r: any) => [r.anchorId, r.field]))
+  const unknown = demand("authorization-before-effect", [])
+  expect(unknown.dependencies.requiredAnchorIds).toContain(audit.id)
+  expect(unknown.dependencies.boundaries).toContainEqual(expect.objectContaining({ anchorId: audit.id, code: "unknown-call-influence" }))
+  expect(auth.coverage.wholeAnswerSufficient).toBe(false)
+  expect(skeleton.anchors.some(a => a.id === finalize.id)).toBe(true)
+  const finalizer = tools.structure!.symbols.find(s => s.name === "finalize")!
+  const work = (d: any) => operationWork(tools.structure!, skeleton.sourceId, [], [], undefined, { propertyDemand: d } as any)
+  expect(work(auth).actions.some(a => a.candidateId === finalizer.id)).toBe(false)
+  expect(work(complete).actions.some(a => a.candidateId === finalizer.id)).toBe(true)
+  expect(work(auth).propertyResiduals).toContainEqual(expect.objectContaining({ sourceCallId: finalize.call!.sourceCallId }))
+})
+test("v6 actually adopts an unused mechanically pure call and preserves prior unknown influence", async () => {
+  const f = await fixture("def audit(actor):\n    return actor\ndef entry(actor, item):\n    opaque(actor)\n    audit(actor)\n    send(item)\n    return True\n")
+  const audit = f.skeleton.anchors.find(a => a.call?.expression === "audit")!, opaque = f.skeleton.anchors.find(a => a.call?.expression === "opaque")!, send = f.skeleton.anchors.find(a => a.call?.expression === "send")!
+  const symbol = f.tools.structure!.symbols.find(s => s.name === "audit")!
+  await f.tools.execute("source_read", { path: symbol.path, startLine: symbol.startLine, endLine: symbol.endLine })
+  const summary = bindSourceProcedureSummary(f.tools.structure!, f.skeleton, audit, (await f.tools.sourceSkeleton(symbol.id))!)!
+  const draft: any = { schemaVersion: "source-interpretation/v1", revision: f.skeleton.revision, annotations: [{ anchorId: opaque.id, role: "context", explanation: "Unresolved external influence" }, { anchorId: send.id, role: "effect", explanation: "Selected source effect" }], propertyBindings: [{ propertyId: "p", effectAnchorId: send.id }], unresolved: [] }
+  const result = lowerSourceInterpretation(f.skeleton, draft, { index: f.tools.structure!, itemId: "i", handle: "entry", questionId: "q", role: "entry", propertyDirected: true, propertyAbstraction: true, callSummaries: [summary], question: { id: "q", request: "Inspect effect reachability", properties: [{ id: "p", kind: "effect-reachability", requirement: "effect reachability" }] } })
+  expect(result.diagnostics).toEqual([])
+  expect(result.demand!.dependencies!.requiredAnchorIds).toContain(opaque.id)
+  const steps = result.unit!.blocks.flatMap(b => b.steps)
+  expect(steps).toContainEqual(expect.objectContaining({ kind: "context", name: `summary-${audit.id}`, mayRaise: false }))
+  expect(steps).toContainEqual(expect.objectContaining({ kind: "unresolved", name: `property-residual-${opaque.id}` }))
+  expect(result.unit!.complete).toBe(false)
 })

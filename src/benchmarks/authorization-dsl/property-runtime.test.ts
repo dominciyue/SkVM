@@ -6,6 +6,22 @@ import { createInquiryTools } from "./inquiry-tools.ts"
 import { createInquiryDomainRuntime } from "./inquiry-domain-runtime.ts"
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
 
+test("v6 delivery withdraws the last candidate after an invalid check", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "az-invalid-delivery-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def entry():\n    return True\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["app.py"], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect app.entry", premises: [] }] })
+  const s = tools.structure!.symbols.find(s => s.name === "entry")!, read = await tools.execute("source_read", { path: s.path, startLine: s.startLine, endLine: s.endLine })
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "operation-evidence-v6", sourceAssisted: true, initialSemanticUnits: [{ questionId: "q", itemId: "entry", op: "add", handle: "entry", role: "entry", source: { id: s.id, path: s.path, sha256: s.sha256, startLine: s.startLine, endLine: s.endLine }, evidenceIds: read.evidence.map(e => e.id), coverage: "path", start: "body", complete: true, parameters: [], blocks: [{ name: "body", steps: [{ kind: "return", name: "done", value: true, outcome: "allow", claim: "Current source returns True" }] }] }] as any })
+  const answer = { schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q", behavior: { disposition: "allow", explanation: "Current source returns True" }, branches: [], evidenceIds: read.evidence.map(e => e.id), missing: [] }], observations: [], scope: "local" }
+  expect((await runtime.validate(answer)).ruleConsistency).toBe(true)
+  expect(runtime.deliverySnapshot().machineAnswer).toBeDefined()
+  expect((await runtime.validate({ ...answer, questions: "malformed" })).structureValid).toBe(false)
+  expect(runtime.deliverySnapshot().machineAnswer).toBeUndefined()
+  expect(runtime.report().checkHistory).toHaveLength(2)
+  runtime.close()
+})
+
 test("v4 retains local source fields, advances an eight-anchor frontier and merges their unknown failures", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ax-runtime-"))
   await writeFile(path.join(sourceRoot, "app.py"), "def entry(actor):\n" + Array.from({ length: 18 }, (_, i) => `    actor.context_${i}()\n`).join("") + "    return True\n")

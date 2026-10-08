@@ -9,6 +9,8 @@ import type { StructureIndex, StructureMethodChoice } from "../../benchmarks/aut
 import { structureClassDefinition } from "../../benchmarks/authorization-dsl/evidence-preparation/structure-index.ts"
 import { sourceCallableDefinitionName, sourceCallableToken, sourceCallableValueName, sourceCallableValueResult, sourceClassToken, sourceClassValueName, sourceClassValueResult, sourceDirectMethodRead, sourceFieldMethodToken, sourceInstanceToken, sourceMethodCaptureName, sourceMethodCaptureResult, sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupSentinel, sourceMethodLookupToken, sourceSuperMethodResult, sourceSyntaxAnchorId } from "../../benchmarks/authorization-dsl/evidence-preparation/source-identities.ts"
 import { sourceArgumentBindings } from "../../benchmarks/authorization-dsl/evidence-preparation/source-arguments.ts"
+import { PropertyBindingSchema } from "./property-query.ts"
+import type { PropertyCallSummary } from "./procedure-summary.ts"
 
 export const SourceAnnotationSchema = z.object({
   anchorId: InquiryText, role: z.enum(["principal", "resource", "permission", "condition", "effect", "context"]), explanation: InquiryText,
@@ -20,8 +22,10 @@ export const SourceAnnotationSchema = z.object({
 export const SourceInterpretationSchema = z.object({ schemaVersion: z.literal("source-interpretation/v1"), revision: InquiryText,
   annotations: z.array(SourceAnnotationSchema).max(256), unresolved: z.array(z.object({ anchorId: InquiryText, reason: InquiryText }).strict()).max(128).default([]),
   fallthroughOutcome: z.enum(["allow", "deny", "unknown"]).optional(),
+  propertyBindings: z.array(PropertyBindingSchema).max(8).optional(),
 }).strict()
 export type SourceInterpretation = z.infer<typeof SourceInterpretationSchema>
+export const PROPERTY_ABSTRACTION_GUIDE = 'operation-evidence-v6: current task properties have kinds authorization-before-effect, authorized-object-matches-effect, effect-reachability, operation-completion. In interpretation.propertyBindings submit [{propertyId,effectAnchorId,guardAnchorId?}]. If no task properties were declared, include proposed:{kind,requirement:<exact span of THIS original question>} in each binding. These are task queries and current source-role bindings, never verdicts. An unbound query retains broad unknown dependencies. Context on a call never proves absence of object/control/exception influence. A host mechanical-source-shape summary may stop independent expansion; its source, actual arguments and applicability are rechecked. Outside-property residuals remain explicit and do not certify whole-task completion. Preserve original source and all original questions.'
 type Annotation = z.infer<typeof SourceAnnotationSchema>
 type Step = SemanticBlock["blocks"][number]["steps"][number]
 
@@ -36,7 +40,7 @@ export const SOURCE_INTERPRETATION_GUIDE = [
 export const PROPERTY_SOURCE_GUIDE = 'operation-evidence-v4/v5: task.propertyDemand.frontier lists the current missing source fields and affected ORIGINAL questions. Submit changed annotations only; the host retains valid earlier fields at this revision. You may interpret more actually shown necessary anchors in the same transaction. A fallthroughOutcome demand is a field on interpretation, not an annotation on sourceId. Excluded entries carry host source/control or bounded dependency proofs; a model role never proves irrelevance. v5 dependencySummary counts describe the retained source graph, while the current frontier/coverage and all original questions remain explicit. Unknown calls, setters, result/parameter relations and potentially changing objects still need explicit meaning or a named unresolved entry. Model context roles stay unreviewed. sourceRead, domainInterpreted and propertyCovered describe this proposed interpretation; none establishes wholeAnswerSufficient or live success. sourceSkeleton.anchors is a current field view; the complete original skeleton remains available through source_structure({symbolId:sourceSkeleton.sourceId,receiverClass?}), and original source through source_read. Do not reconstruct excluded code or resubmit every retained annotation. The original question denominator and policy remain unchanged.'
 
 /** Compile syntax that the model saw; model roles/predicates are still unreviewed. */
-export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown, options: { index?: StructureIndex; itemId: string; handle: string; questionId: string; role: "entry" | "helper"; previous?: SourceInterpretation; propertyDirected?: boolean; affectedQuestionIds?: string[]; question?: DependencyQuestion }): { diagnostics: InquiryDiagnostic[]; interpretation?: SourceInterpretation; unit?: SemanticBlock; demand?: PropertyDemand } {
+export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown, options: { index?: StructureIndex; itemId: string; handle: string; questionId: string; role: "entry" | "helper"; previous?: SourceInterpretation; propertyDirected?: boolean; affectedQuestionIds?: string[]; question?: DependencyQuestion; propertyAbstraction?: boolean; callSummaries?: PropertyCallSummary[] }): { diagnostics: InquiryDiagnostic[]; interpretation?: SourceInterpretation; unit?: SemanticBlock; demand?: PropertyDemand } {
   const diagnostics: InquiryDiagnostic[] = []
   const fault = (code: string, path: string, message: string) => diagnostics.push({ code: `source-interpretation-${code}`, path, message, questionId: options.questionId, severity: "error" })
   let parsed = SourceInterpretationSchema.safeParse(raw)
@@ -55,7 +59,10 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
   if (new Set(parsed.data.annotations.map(a => a.anchorId)).size !== parsed.data.annotations.length) fault("duplicate", "annotations", "Each changed anchor appears at most once.")
   for (const a of parsed.data.annotations) { annotations.set(a.anchorId, a); unresolved.delete(a.anchorId) }
   for (const u of parsed.data.unresolved) { unresolved.set(u.anchorId, u); annotations.delete(u.anchorId) }
-  const interpretation: SourceInterpretation = { ...previous, ...parsed.data, annotations: [...annotations.values()], unresolved: [...unresolved.values()], ...(parsed.data.fallthroughOutcome ?? previous?.fallthroughOutcome ? { fallthroughOutcome: parsed.data.fallthroughOutcome ?? previous?.fallthroughOutcome } : {}) }
+  const propertyBindings = new Map((previous?.propertyBindings ?? []).map(b => [b.propertyId, b]))
+  for (const b of parsed.data.propertyBindings ?? []) propertyBindings.set(b.propertyId, b)
+  if (parsed.data.propertyBindings && new Set(parsed.data.propertyBindings.map(b => b.propertyId)).size !== parsed.data.propertyBindings.length) fault("property-binding-identity", "propertyBindings", "Each changed property binding appears once.")
+  const interpretation: SourceInterpretation = { ...previous, ...parsed.data, ...(propertyBindings.size ? { propertyBindings: [...propertyBindings.values()] } : {}), annotations: [...annotations.values()], unresolved: [...unresolved.values()], ...(parsed.data.fallthroughOutcome ?? previous?.fallthroughOutcome ? { fallthroughOutcome: parsed.data.fallthroughOutcome ?? previous?.fallthroughOutcome } : {}) }
   const anchors = new Map(skeleton.anchors.map(a => [a.id, a])), at = (id?: string) => id ? anchors.get(id) : undefined
   const methodCalls = new Map(skeleton.propertySemantics === "question-control/v1" && options.index ? skeleton.anchors.flatMap(a => {
     const actual = a.call && options.index!.relatedCalls(skeleton.sourceId, a.call.receiverClass).find(c => c.id === a.call!.sourceCallId)
@@ -145,6 +152,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
   }
   for (const u of interpretation.unresolved) if (!at(u.anchorId)) { fault("anchor-unshown", u.anchorId, "Unresolved must name a current shown anchor."); unresolved.delete(u.anchorId) }
   const demand = options.propertyDirected ? buildPropertyDemand(skeleton, { ...options, interpretation: { ...interpretation, annotations: [...annotations.values()], unresolved: [...unresolved.values()] } }) : undefined
+  if (options.propertyAbstraction) for (const d of demand?.dependencies?.propertyQueries?.diagnostics.filter(d => d.code === "property-binding-identity") ?? []) fault("property-binding-identity", d.propertyId ?? "propertyBindings", d.message)
   if (demand) for (const r of demand.frontier) fault(r.field === "role" ? r.expectedRole ? "object-reference" : "role-required" : r.field === "condition" ? "condition-required" : r.field === "returnOutcome" ? "return-outcome-required" : r.field === "failureKind" ? "failure-kind-required" : r.field === "guardBranch" ? "authorization-reference" : "fallthrough-outcome-required", r.anchorId, `${r.field}${r.expectedRole ? `:${r.expectedRole}` : ""}: ${r.reason} Other valid annotations remain in this source transaction.`)
   for (const a of skeleton.anchors) if (!demand && allFlowIds.has(a.id) && !unresolved.has(a.id)) {
     const annotation = annotations.get(a.id)
@@ -194,6 +202,12 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
       const a = anchors.get(node.anchorId)!, annotation = annotations.get(a.id), claim = annotation?.explanation ?? "Original source syntax", objects = { principal: objectName(annotation?.principalAnchorId), resource: objectName(annotation?.resourceAnchorId) }
       if (demand && !demand.reachableAnchorIds.includes(a.id)) { if (!questionDirected) block.steps.push({ kind: "unresolved", name: `excluded-${a.id}`, claim: "Located source-invariant exclusion; original remains in the host skeleton", reason: `source-excluded:${demand.excluded.find(e => e.anchorId === a.id)?.reason ?? "unreached-source"}` }); continue }
       if (node.kind === "gap" || unresolved.has(a.id)) { block.steps.push({ kind: "unresolved", name: `gap-${a.id}`, claim, reason: unresolved.get(a.id)?.reason ?? skeleton.gaps.find(g => g.selector.startLine === a.selector.startLine)?.code ?? "source-syntax-unsupported" }); continue }
+      if (options.propertyAbstraction && a.kind === "call" && demand?.dependencies?.callScopes?.some(s => s.anchorId === a.id && s.state === "summary")) {
+        block.steps.push({ kind: "context", name: `summary-${a.id}`, claim: "Current source-bound flat helper has no mutation, call or exceptional branch; its actual arguments bind and its return is unused", relationship: "dispatch-binding", mayRaise: false }); continue
+      }
+      if (options.propertyAbstraction && (node.kind === "branch" && !annotation?.condition && !a.literalKnown || a.kind === "raise" && !annotation?.failureKind || a.kind === "call" && annotation?.role === "context" && !options.callSummaries?.some(s => s.anchorId === a.id && s.callerRevision === skeleton.revision))) {
+        block.steps.push({ kind: "unresolved", name: `property-residual-${a.id}`, claim, reason: "property-source-influence-unresolved" }); unit.complete = false; continue
+      }
       if (node.kind === "branch") {
         const yes = `source-true-${serial}`, no = `source-false-${serial++}`, condition = demand && a.literalKnown && typeof a.literalValue === "boolean" ? { op: "eq", left: { literal: a.literalValue }, right: { literal: true } } : annotation!.condition!
         const guardName = `guard-${a.id}`, guard = (branch: "true" | "false"): Step[] => annotation?.guardBranch === branch ? [{ kind: "guard", name: guardName, claim, ...objects, condition: branch === "true" ? condition : { op: "not", arg: condition } }] : []

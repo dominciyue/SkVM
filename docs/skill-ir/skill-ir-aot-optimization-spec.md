@@ -2802,7 +2802,7 @@ AY7的v35显式module初始化合同：Python非空文件增加kind=module的全
 
 ### 14.39 AZ property abstraction and real use
 
-2026-10-09用户批准接续开发，任务书为[AZ0–AZ18](../superpowers/plans/2026-10-09-authorization-property-abstraction-and-real-use.md)。本节是待实现的新合同；截至任务书登记，生产语义仍为AY v35，旧结果不因新合同改写。
+2026-10-09用户批准接续开发，任务书为[AZ0–AZ18](../superpowers/plans/2026-10-09-authorization-property-abstraction-and-real-use.md)。显式v6已开始落地，结构关系继续复用AY v35；旧结果不因新合同改写，真实效果尚待当前实验。
 
 **范围与复用。** 当前研究类仍是单repo/ref、源码可见的授权与信任边界评估。显式 `operation-evidence-v6` 复用property-demand/dependencies、procedure-summary、source-materials/projection、operation-work及inquiry/native，不新增独立CLI/agent/IR。已有Python/Go索引和MRO保留；新语法能力须由当前决定性性质缺口驱动，不能继续无上限补全语言。
 
@@ -2813,6 +2813,8 @@ AY7的v35显式module初始化合同：Python非空文件增加kind=module的全
 **采用与结果。** 对提交、字段有效、材料可用、当前问题采用、对象/callee连接、性质检查逐阶段记录原因。root/role不匹配、sourceCallId缺失、候选不唯一、实参绑定或材料版本失败不得仅返回空集合。保留已有整体Schema拒绝、逐题结果、条件答案与失效撤回；局部有效不提升为整题完整。自然交付同时显示源码覆盖、语义复核、机械检查范围、适用前提及未决项。
 
 AZ1已实现投影`diagnostics/stages`：包含question/source/material/call身份、候选门槛及nextAction，按当前版本/SHA/依赖、入口、调用和框架分层记录；报告保留全部诊断，模型反馈最多显示12条并带总数。拒绝与局部保留合同不变。两份v35归档的零调用重放只解释当前机械采用，不能改写历史结果或证明源码语义。
+
+AZ3–AZ8首个有界实现：性质以原题要求的精确文本跨度声明，实际guard/effect及typed对象另绑当前源码。不同性质产生不同required/residual与调度集合，完整语法图保留。当前可机械采用的源码摘要只覆盖无调用/字段写/异常区域的平坦普通函数，且实际调用的返回值未使用；参数/返回关系被记录，但其组合仍走已有有限单元。效果之后的范围收缩仅限无复杂控制的顶层horizon；try/finally、未知setter、receiver和框架关系不因此消失。性质检查输出逐原题的checked/violated/unknown、范围与残余，semanticReview仍unreviewed、wholeTaskCertified=false。完整DRF动态装饰器/分派合同尚未闭合，不能把该有限链写成AZ6已完成。
 
 **恢复预算。** v6格式拒绝计入实际工具总量与成本，最多2次格式纠正，最多2次有效语义检查，仍受同一全局工具/显示/时限合同限制。旧策略保持原行为；不得以分开计数增加隐藏预算或无限重抽。共享缺陷立即暂停受影响派发，红测→修复→绿测→具名复验，首件保留.
 

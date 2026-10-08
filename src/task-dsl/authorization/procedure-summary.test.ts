@@ -3,6 +3,11 @@ import { lowerSemanticFlow, SemanticBlockSchema, type BoundSemanticBlock } from 
 import { createControlSlice, mergeControlSlice } from "./control-slice.ts"
 import { compileAuthorizationInquiry } from "./inquiry-program.ts"
 import { evaluateControlPaths } from "./control-conclusion.ts"
+import { summarizeProcedure, summarizeSourceProcedure } from "./procedure-summary.ts"
+import { createInquiryTools } from "../../benchmarks/authorization-dsl/inquiry-tools.ts"
+import { mkdtemp, writeFile } from "node:fs/promises"
+import path from "node:path"
+import os from "node:os"
 const unit = (handle: string, role: "entry" | "helper", blocks: any[], extra = {}): BoundSemanticBlock => ({ itemId: handle, handle, role, op: "add", start: "main", complete: true, parameters: [], blocks, questionId: "q", evidenceIds: ["original"], ...extra })
 const eq = (name: string, value: any) => ({ op: "eq", left: { binding: name }, right: { literal: value } })
 const paths = (lowered: ReturnType<typeof lowerSemanticFlow>) => {
@@ -55,4 +60,22 @@ test("compositional execution preserves the order of source literals, field writ
   const compare = (compositional: boolean) => paths(lowerSemanticFlow([entry, helper], { compositional })).map(p => ({ truth: p.predicate.truth, state: p.state, effect: p.protectedEffect, disposition: p.disposition }))
   expect(compare(true)).toEqual(compare(false))
   expect(compare(true).filter(p => p.state === "checked")).toEqual([expect.objectContaining({ effect: "performed", truth: "true" })])
+})
+test("source summaries prove only bounded local input/return relations and retain context, mutation and exception residuals", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "az-summary-"))
+  await writeFile(path.join(root, "app.py"), "def identity(actor):\n    return actor\ndef mutate(actor):\n    actor.value = 0\n    return actor\ndef opaque(actor):\n    external(actor)\n    return actor\ndef replace(actor):\n    actor = 0\n    return actor\n")
+  const tools = await createInquiryTools({ sourceRoot: root, allowedPaths: ["app.py"], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", questionDirected: true })
+  const summaries: any[] = []
+  for (const name of ["identity", "mutate", "opaque", "replace"]) {
+    const symbol = tools.structure!.symbols.find(s => s.name === name)!
+    await tools.execute("source_read", { path: symbol.path, startLine: symbol.startLine, endLine: symbol.endLine })
+    summaries.push(summarizeSourceProcedure((await tools.sourceSkeleton(symbol.id))!))
+  }
+  expect(summaries[0]).toMatchObject({ usable: true, returnRelation: { parameter: "actor" }, semanticReview: "unreviewed", validation: "mechanical-source-shape" })
+  expect(summaries[1].usable).toBe(false)
+  expect(summaries[2].usable).toBe(false)
+  expect(summaries[3].usable).toBe(false)
+  const context = unit("context", "helper", [{ name: "main", steps: [{ kind: "context", name: "opaque", relationship: "dispatch-binding", claim: "Model says irrelevant" }, { kind: "return", name: "end", claim: "Return", value: true }] }])
+  const scoped: any = summarizeProcedure(context, { questionId: "q", kind: "operation-completion", object: "actor" })
+  expect(scoped.propertyScope.residuals).toContainEqual(expect.objectContaining({ questionId: "q", object: "actor", code: "summary-context-influence-unresolved" }))
 })

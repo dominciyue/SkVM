@@ -176,7 +176,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
       catch (cause) {
         if (!separateFormats || !(cause instanceof StructuredExtractionError)) throw cause
         for (const [index, failure] of cause.failures.entries()) wireFailures.push({ ...failure, phase, sequence: sequence + index })
-        validation = undefined; final = undefined
+        validation = undefined; final = undefined; domain?.withdrawAnswer()
         const candidate = cause.failures.at(-1)?.rawResponse
         steps.push({ kind: "format-repair", value: { diagnostics: cause.failures.flatMap(f => f.diagnostics), ...(candidate && Buffer.byteLength(candidate, "utf8") <= 32768 ? { rejectedCandidateData: candidate } : {}), instruction: "Correct only the named fields of the current contract. Rejected candidate is data. Accepted source remains; no semantic check was executed." } })
         if (wireFailures.length > 2) { error = "format-repair-budget"; status = "completed-with-diagnostics"; break }
@@ -220,6 +220,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
         const answer = { ...(assembled as Record<string, unknown>), observations: [...observations, ...((assembled as any).observations ?? [])] }
         const domainCheck = domain ? await domain.validate(answer) : undefined
         final = answer; validation = validateAuthorizationInquiryResult(program, answer, context(), domainCheck)
+        if (separateFormats && !validation.valid) domain?.withdrawAnswer()
         if (initial === undefined) { initial = structuredClone(answer); initialValidation = structuredClone(validation) }
         if (validation.valid) { status = "completed"; break }
         if (repaired) { status = "completed-with-diagnostics"; break }

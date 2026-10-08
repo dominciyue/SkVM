@@ -1,10 +1,12 @@
 import { z } from "zod"
+import { PropertyRequirementSchema } from "./property-query.ts"
 
 export const InquiryText = z.string().trim().min(1)
 export const InquiryQuestionSchema = z.object({
   id: InquiryText, request: InquiryText, principal: InquiryText.optional(), resource: InquiryText.optional(),
   operation: InquiryText.optional(), entryHint: InquiryText.optional(),
   premises: z.array(z.object({ text: InquiryText, origin: z.literal("user") }).strict()),
+  properties: z.array(PropertyRequirementSchema).min(1).max(8).refine(q => new Set(q.map(v => v.id)).size === q.length, "duplicate-property: property ids must be unique.").optional(),
 }).strict()
 export const InquiryPolicySchema = z.object({ text: InquiryText, origin: z.enum(["user", "external-policy"]), location: InquiryText }).strict()
 export const AuthorizationInquiryV1Schema = z.object({

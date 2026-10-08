@@ -8,6 +8,21 @@ const rule = (key: string, kind: string, after: string[], extra = {}) => ({ key,
 const state = (rules: any[], extra = {}, p = plan) => mergeControlSlice(createControlSlice(), { schemaVersion: "authorization-control-slice/v1", rules, ...extra }, p, context).state
 const answer = (disposition: string, extra = {}) => ({ schemaVersion: "authorization-inquiry-result/v1", questions: [{ questionId: "q", behavior: { disposition, explanation: "Raw model explanation retained" }, branches: [], evidenceIds: ["ev"], missing: [], ...extra }], observations: [], scope: "local" })
 const codes = (checked: any) => checked.diagnostics.map((d: any) => d.code)
+test("property checks retain original questions and reject absent guards, wrong objects and zero rules", () => {
+  const origin = (step: string) => ({ handle: "entry", block: "body", step, instance: "i" })
+  const query = { id: "p", questionId: "q", kind: "authorization-before-effect", state: "bound", effectAnchorId: "e", guardAnchorId: "g", sourceRevision: "r", source: { id: "source", sha256: "sha" } }
+  const demand = { sourceId: "source", dependencies: { propertyQueries: { queries: [query], diagnostics: [] } } }
+  const units = [{ questionId: "q", handle: "entry", source: query.source }]
+  const rules = [rule("entry", "entry", []), rule("actor", "binding", ["entry"], { bindingKey: "actor", bindingKind: "principal" }), rule("item", "binding", ["actor"], { bindingKey: "item", bindingKind: "resource" }), rule("guard", "guard", ["item"], { principal: "actor", resource: "item", sourceOrigin: origin("guard-g") }), rule("send", "effect", ["guard"], { principal: "actor", resource: "item", sourceOrigin: origin("effect-e"), complete: true })]
+  const run = (rs: any[], qs: any[] = [query], deps: any[] = []) => api.checkPropertyQueries(plan, mergeControlSlice(createControlSlice(), { schemaVersion: "authorization-control-slice/v2", rules: rs }, plan, context).state, [{ ...demand, dependencies: { propertyQueries: { queries: qs, diagnostics: [] } } }], units, deps)
+  expect(run(rules).questions[0].properties[0]).toMatchObject({ status: "checked", value: "satisfied", semanticReview: "unreviewed" })
+  expect(run(rules.map(r => r.key === "send" ? { ...r, after: ["item"] } : r)).questions[0].properties[0]).toMatchObject({ status: "violated", value: "guard-not-predecessor" })
+  const wrongObject = rules.flatMap(r => r.key === "item" ? [r, rule("other", "binding", ["item"], { bindingKey: "other", bindingKind: "resource" })] : [r.key === "guard" ? { ...r, after: ["other"], resource: "other" } : r])
+  expect(run(wrongObject, [{ ...query, kind: "authorized-object-matches-effect" }]).questions[0].properties[0].status).toBe("violated")
+  expect(run([]).questions[0].properties[0].status).toBe("unknown")
+  expect(run(rules, [query], [{ questionId: "q", key: "framework", state: "read", decisive: true }]).questions[0].properties[0].status).toBe("unknown")
+  expect(run(rules).wholeTaskCertified).toBe(false)
+})
 test("explicit ordered rejection conflicts with allow and does not certify model semantics", () => {
   expect(typeof api.checkControlConclusions).toBe("function")
   const s = state([rule("entry", "entry", []), rule("stop", "reject", ["entry"], { complete: true })])
