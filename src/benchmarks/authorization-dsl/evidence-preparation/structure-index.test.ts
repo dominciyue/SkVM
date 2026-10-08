@@ -1,6 +1,35 @@
 import { expect, test } from "bun:test"
 import { buildStructureIndex } from "./structure-index.ts"
 
+test("module decorator cannot read a function before its actual declaration", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "@replace\nclass Local:\n    allowed = False\ndef replace(cls):\n    return cls\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect(index.symbols.find(s => s.name === "Local")!.moduleClassDefinition?.gap).toBe("source-class-definition-decorator-unresolved")
+})
+for (const mode of ["class", "instance"]) test("module class method protocol remains explicit until its environment is executed: " + mode, async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "class Local:\n    def guard(self):\n        return self\n" + (mode === "instance" ? "instance = Local()\ninstance.guard()\n" : "Local.guard(Local)\n") }], { repository: "anonymous", sourceRef: "r" }), module = index.symbols.find(s => s.kind === "module")!, call = index.relatedCalls(module.id).find(c => c.expression.endsWith(".guard"))!
+  expect(call.resolution).toBe("unresolved"); expect(call.gap).toBe("source-module-class-method-unmodeled"); expect(index.symbols.find(s => s.name === "guard")!.classMethod).toBeUndefined()
+})
+
+for (const mode of ["field", "inherited", "instance", "decorator", "replacement", "branch"]) test("module initialization records original class and callable creation: " + mode, async () => {
+  const decoration = ["decorator", "replacement"].includes(mode), content = (decoration ? "def replace(cls):\n" + (mode === "replacement" ? "    class Other(cls):\n        allowed = True\n    return Other\n" : "    cls.allowed = True\n    return cls\n") : "") + (mode === "inherited" ? "class Base:\n    allowed = True\n" : "") + (mode === "branch" ? "if True:\n    class Local:\n        allowed = True\n" : (decoration ? "@replace\n" : "") + "class Local" + (mode === "inherited" ? "(Base)" : "") + ":\n    allowed = " + (decoration ? "False" : "True") + "\n") + "def check(value):\n    if value.allowed:\n        raise Denied\n    return value\n" + (mode === "instance" ? "instance = Local()\ncheck(instance)\n" : "check(Local)\n"), index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), module = index.symbols.find(s => s.kind === "module")!, cls = index.symbols.find(s => s.name === "Local")!, check = index.symbols.find(s => s.name === "check")!
+  expect(module).toBeDefined(); expect(module.parameters).toEqual([]); expect(module.startLine).toBe(1); expect(module.endLine).toBe(content.replace(/\n$/, "").split("\n").length)
+  expect(cls.qualifiedName).toBe("app.Local"); expect(check.qualifiedName).toBe("app.check"); expect(check.localCallable).toBeUndefined(); expect(check.valueCallable).toBeUndefined()
+  expect(cls.classDefinition).toBeUndefined(); expect(cls.moduleClassDefinition?.ownerId).toBe(module.id); expect(cls.moduleClassDefinition?.gap).toBeUndefined()
+  expect(module.moduleInitialization?.functions.find(f => f.targetId === check.id)?.definition.gap).toBeUndefined()
+  const call = index.relatedCalls(module.id).find(c => c.expression === "check")!
+  expect(call.moduleCallable).toEqual({ targetId: check.id, targetSha256: check.sha256 }); expect(call.resolution).toBe("resolved"); expect(call.argumentFacts?.[0]?.classValue).toBeUndefined()
+  if (mode === "inherited") expect(cls.moduleClassDefinition!.bases[0]!.targetId).toBe(index.symbols.find(s => s.name === "Base")!.id)
+  if (mode === "instance") expect(index.relatedCalls(module.id).find(c => c.expression === "Local")!.classConstructor?.classId).toBe(cls.id)
+  if (mode === "branch") expect(cls.moduleClassDefinition!.controls.map(c => c.kind)).toEqual(["branch"])
+})
+
+for (const mode of ["annotation", "default-call", "mutable-default", "wrapped", "rebound", "before-definition", "argument-call"]) test("module callable initialization retains unsupported declaration and call boundaries: " + mode, async () => {
+  const declaration = (mode === "wrapped" ? "@unknown\n" : "") + "def check(value" + (mode === "annotation" ? ": Item" : mode === "default-call" ? "=create()" : mode === "mutable-default" ? "=[]" : "") + "):\n    return value\n", content = (mode === "before-definition" ? "check(None)\n" : "") + declaration + (mode === "rebound" ? "check = None\n" : "") + "check(" + (mode === "argument-call" ? "create()" : "None") + ")\n", index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), module = index.symbols.find(s => s.kind === "module")!
+  expect(module).toBeDefined()
+  const calls = index.relatedCalls(module.id).filter(c => c.expression === "check"), call = mode === "before-definition" ? calls[0]! : calls.at(-1)!
+  expect(call.moduleCallable).toBeUndefined(); expect(call.resolution).toBe("unresolved"); expect(call.gap).toMatch(/^source-module-callable-/)
+})
+
 for (const mode of ["direct", "diamond", "renamed", "argument"]) test("local super source retains actual C3 successor candidates and original read order: " + mode, async () => {
   const diamond = mode === "diamond", receiver = mode === "renamed" ? "this" : "self", content = "def entry(actor):\n    class Base:\n        def guard(self, item):\n            return item\n    class " + (diamond ? "Left" : "Local") + "(Base):\n        def relay(" + receiver + ", item):\n            return super().guard(" + (mode === "argument" ? "prepare(item)" : "item") + ")\n" + (diamond ? "    class Right(Base):\n        def guard(self, item):\n            return item\n    class Local(Left, Right):\n        pass\n" : "") + "    instance = Local()\n    return instance.relay(actor)\ndef prepare(item):\n    return item\n", index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), method = index.symbols.find(s => s.name === "relay")!, calls = index.relatedCalls(method.id), call = calls.find(c => c.expression === "super().guard")!, proof = call.superMethod!
   expect(call.gap).toBeUndefined(); expect(proof).toBeDefined(); expect(proof.receiver).toBe(receiver)

@@ -5,6 +5,41 @@ import os from "node:os"
 import { createInquiryTools } from "../inquiry-tools.ts"
 import { lowerSourceInterpretation } from "../../../task-dsl/authorization/source-interpretation.ts"
 
+for (const alias of [false, true]) test("module function attribute writes remain explicit under context: " + alias, async () => {
+  const content = "def check(value):\n    return value\n" + (alias ? "saved = check\nsaved" : "check") + ".marker = True\ncheck(None)\n", sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-module-function-write-")); await writeFile(path.join(sourceRoot, "app.py"), content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), module = tools.structure!.symbols.find(s => s.kind === "module")!
+  await tools.execute("source_read", { path: "app.py", startLine: module.startLine, endLine: module.endLine })
+  const skeleton = (await tools.sourceSkeleton(module.id))!
+  expect(skeleton.gaps.map(g => g.code)).toContain("skeleton-function-attribute-write-unmodeled")
+  const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, fallthroughOutcome: "allow", annotations: skeleton.anchors.map(a => ({ anchorId: a.id, role: "context", explanation: "Context retains visible function modification" })) }, { index: tools.structure, propertyDirected: true, itemId: module.id, handle: module.id, questionId: "q", role: "entry" })
+  expect(result.diagnostics).toEqual([]); expect(result.unit!.complete).toBe(false); expect(result.unit!.blocks.flatMap(b => b.steps).some(s => s.kind === "unresolved")).toBe(true)
+})
+
+test("module source coverage and flow preserve initialization without executing function bodies", async () => {
+  const content = "class Local:\n    allowed = True\ndef check(value):\n    return value\ncheck(Local)\n", sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-module-skeleton-")); await writeFile(path.join(sourceRoot, "app.py"), content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), module = tools.structure!.symbols.find(s => s.kind === "module")!
+  expect(module).toBeDefined()
+  await tools.execute("source_read", { path: "app.py", startLine: 1, endLine: 2 })
+  expect((await tools.sourceSkeleton(module.id))!.gaps.map(g => g.code)).toContain("skeleton-source-unread")
+  await tools.execute("source_read", { path: "app.py", startLine: module.startLine, endLine: module.endLine })
+  const skeleton = (await tools.sourceSkeleton(module.id))!
+  expect(skeleton.context).toBe("module-initialization"); expect(skeleton.modelCovered).toBe(true); expect(skeleton.gaps).toEqual([])
+  expect(skeleton.anchors.filter(a => a.kind === "parameter" || a.kind === "return")).toEqual([])
+  expect(skeleton.anchors.filter(a => a.callableDefinition).map(a => a.name)).toEqual(["check"])
+  expect(skeleton.anchors.filter(a => a.classDefinition).map(a => a.name)).toEqual(["Local"])
+})
+
+for (const content of ["import external\n", "class Local:\n    def __init__(self):\n        pass\n", "def check(value: Item):\n    return value\n", "def check(value=create()):\n    return value\n"]) test("module initialization cannot erase unexecuted declaration protocols with context: " + content.split("\n")[0], async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-module-gap-")); await writeFile(path.join(sourceRoot, "app.py"), content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), module = tools.structure!.symbols.find(s => s.kind === "module")!
+  expect(module).toBeDefined()
+  await tools.execute("source_read", { path: "app.py", startLine: module.startLine, endLine: module.endLine })
+  const skeleton = (await tools.sourceSkeleton(module.id))!
+  expect(skeleton.gaps.length).toBeGreaterThan(0)
+  const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, fallthroughOutcome: "allow", annotations: skeleton.anchors.map(a => ({ anchorId: a.id, role: "context", explanation: "Reading a module cannot waive declaration actions" })) }, { index: tools.structure, propertyDirected: true, itemId: module.id, handle: module.id, questionId: "q", role: "entry" })
+  expect(result.diagnostics).toEqual([]); expect(result.unit!.complete).toBe(false); expect(result.unit!.blocks.flatMap(b => b.steps).some(s => s.kind === "unresolved")).toBe(true)
+})
+
 async function fixture(content: string, extension = "py", finiteControl = false) {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "av-skeleton-"))
   await writeFile(path.join(sourceRoot, `app.${extension}`), content)

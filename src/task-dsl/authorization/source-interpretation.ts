@@ -6,6 +6,7 @@ import { buildPropertyDemand, type PropertyDemand } from "./property-demand.ts"
 import type { DependencyQuestion } from "./property-dependencies.ts"
 import type { SourceSkeleton, SourceAnchor, SourceFlow } from "../../benchmarks/authorization-dsl/evidence-preparation/source-skeleton.ts"
 import type { StructureIndex, StructureMethodChoice } from "../../benchmarks/authorization-dsl/evidence-preparation/structure-index.ts"
+import { structureClassDefinition } from "../../benchmarks/authorization-dsl/evidence-preparation/structure-index.ts"
 import { sourceCallableDefinitionName, sourceCallableToken, sourceCallableValueName, sourceCallableValueResult, sourceClassToken, sourceClassValueName, sourceClassValueResult, sourceDirectMethodRead, sourceFieldMethodToken, sourceInstanceToken, sourceMethodCaptureName, sourceMethodCaptureResult, sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupSentinel, sourceMethodLookupToken, sourceSuperMethodResult, sourceSyntaxAnchorId } from "../../benchmarks/authorization-dsl/evidence-preparation/source-identities.ts"
 import { sourceArgumentBindings } from "../../benchmarks/authorization-dsl/evidence-preparation/source-arguments.ts"
 
@@ -96,23 +97,23 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
     return actual ? [[a.id, actual] as const] : []
   }) : [])
   const callableDefinitions = new Map(skeleton.propertySemantics === "question-control/v1" && options.index ? skeleton.anchors.flatMap(a => {
-    const actual = a.callableDefinition && options.index!.symbols.find(s => s.id === a.callableDefinition!.targetId && s.sha256 === a.callableDefinition!.targetSha256 && s.valueCallable && !s.valueCallable.gap && s.valueCallable.ownerId === skeleton.sourceId && s.valueCallable.ownerSha256 === skeleton.source.sha256 && s.valueCallable.anchorId === a.id && s.name === a.name && JSON.stringify(s.valueCallable) === JSON.stringify(a.callableDefinition!.definition))
-    return actual ? [[a.id, actual] as const] : []
+    const actual = a.callableDefinition && options.index!.symbols.find(s => s.id === a.callableDefinition!.targetId && s.sha256 === a.callableDefinition!.targetSha256), moduleDefinition = actual && options.index!.symbols.find(s => s.id === skeleton.sourceId)?.moduleInitialization?.functions.find(f => f.targetId === actual.id && f.targetSha256 === actual.sha256), proof = actual?.valueCallable ?? moduleDefinition?.definition
+    return actual && proof && !proof.gap && proof.ownerId === skeleton.sourceId && proof.ownerSha256 === skeleton.source.sha256 && proof.anchorId === a.id && actual.name === a.name && JSON.stringify(proof) === JSON.stringify(a.callableDefinition!.definition) ? [[a.id, { symbol: actual, definition: proof, module: !!moduleDefinition }] as const] : []
   }) : [])
   const classValues = new Map(skeleton.propertySemantics === "question-control/v1" && options.index ? skeleton.anchors.flatMap(a => {
     const actual = a.classValue && options.index!.relatedCalls(skeleton.sourceId).flatMap(c => c.argumentFacts?.flatMap(v => v.classValue ? [v.classValue] : []) ?? []).find(p => a.id === sourceClassValueName(skeleton.sourceId, p).slice("class-value-".length) && a.name === sourceClassValueResult(skeleton.sourceId, p) && a.valueExpression === p.expression && JSON.stringify(a.classValue) === JSON.stringify(p))
     return actual ? [[a.id, actual] as const] : []
   }) : [])
   const classDefinitions = new Map(skeleton.propertySemantics === "question-control/v1" && options.index ? skeleton.anchors.flatMap(a => {
-    const proof = a.classDefinition, actual = proof && options.index!.symbols.find(s => s.id === proof.targetId && s.sha256 === proof.targetSha256 && s.classDefinition?.ownerId === skeleton.sourceId && s.classDefinition.ownerSha256 === skeleton.source.sha256 && s.classDefinition.anchorId === a.id && s.name === a.name && JSON.stringify(s.classDefinition) === JSON.stringify(proof.definition))
-    return actual && !actual.classDefinition!.gap ? [[a.id, actual] as const] : []
+    const proof = a.classDefinition, actual = proof && options.index!.symbols.find(s => { const current = structureClassDefinition(s); return s.id === proof.targetId && s.sha256 === proof.targetSha256 && current?.ownerId === skeleton.sourceId && current.ownerSha256 === skeleton.source.sha256 && current.anchorId === a.id && s.name === a.name && JSON.stringify(current) === JSON.stringify(proof.definition) })
+    return actual && !structureClassDefinition(actual)!.gap ? [[a.id, actual] as const] : []
   }) : [])
   const classConstructors = new Map(skeleton.propertySemantics === "question-control/v1" && options.index ? skeleton.anchors.flatMap(a => {
     const actual = a.call?.classConstructor && options.index!.relatedCalls(skeleton.sourceId).find(c => c.id === a.call!.sourceCallId), proof = actual && actual.classConstructor
     return proof && actual.sha256 === skeleton.source.sha256 && actual.expression === a.call!.expression && proof.result === a.call!.resultBinding && JSON.stringify(actual.candidateIds) === JSON.stringify(a.call!.candidateIds) && JSON.stringify(proof) === JSON.stringify(a.call!.classConstructor) ? [[a.id, proof] as const] : []
   }) : [])
   const classDecoratorValues = new Map(skeleton.anchors.flatMap(a => {
-    const proof = a.classDecoratorValue, definition = proof && classDefinitions.get(proof.definitionAnchorId)?.classDefinition, decorator = definition?.decorators.find(d => d.id === proof!.decoratorId && !d.factoryCallId)
+    const proof = a.classDecoratorValue, definition = proof && structureClassDefinition(classDefinitions.get(proof.definitionAnchorId)), decorator = definition?.decorators.find(d => d.id === proof!.decoratorId && !d.factoryCallId)
     return decorator && a.id === sourceSyntaxAnchorId(skeleton.sourceId, decorator.source.startIndex, decorator.source.endIndex, "assignment", decorator.valueResult) && a.name === decorator.valueResult && a.valueExpression === decorator.expression ? [[a.id, decorator] as const] : []
   }))
   const objectName = (id?: string) => { const a = at(id); return a?.name ?? (a?.call?.resultNames[0]?.includes(".") ? a.call.resultBinding : a?.call?.resultNames[0]) ?? (a ? `object-${a.id}` : undefined) }
@@ -226,7 +227,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
       if (a.kind === "return") block.steps.push({ kind: "return", name: `return-${a.id}`, claim, ...(a.literalKnown && (a.literalValue === null || typeof a.literalValue !== "object") ? { value: a.literalValue } : finite && a.valueExpression ? { valueFrom: sourceValue(a.valueExpression, undefined, a.valueAnchorId).binding as string } : {}), ...(annotation?.returnOutcome ? { outcome: annotation.returnOutcome } : {}), ...(a.valueExpression && skeleton.anchors.some(s => s.name === a.valueExpression && ["resource", "principal", "permission"].includes(annotations.get(s.id)?.role ?? "")) ? { object: a.valueExpression } : {}) })
       else if (a.kind === "raise") block.steps.push(finite ? { kind: "raise", name: `raise-${a.id}`, claim, exceptionType: a.exceptionType, failureKind: annotation!.failureKind, ...(!a.valueExpression ? { rethrow: true } : {}) } : { kind: "reject", name: `raise-${a.id}`, claim, failureKind: annotation!.failureKind })
       else if (a.kind === "call") {
-        if (a.call!.bindingGap && /^source-class-(?:super|constructor|instance)-/.test(a.call!.bindingGap)) {
+        if (a.call!.bindingGap && /^(?:source-class-(?:super|constructor|instance)-|source-module-)/.test(a.call!.bindingGap)) {
           block.steps.push({ kind: "unresolved", name: `call-${a.id}`, claim, reason: a.call!.bindingGap }); unit.complete = false; continue
         }
         if (a.call!.classConstructor) {
@@ -286,7 +287,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
             }
             const methodRead = questionDirected && actual && !actual.methodCapture && target ? sourceDirectMethodRead(actual, target) : undefined
             const fieldMethodRead = questionDirected && actual && target ? actual.methodCapture ? { object: sourceMethodCaptureResult(actual.id), receiver: actual.methodCapture.receiver, targetId: target.id, targetSha256: target.sha256 } : actual.methodField ? { object: actual.expression, receiver: actual.methodField.receiver, targetId: target.id, targetSha256: target.sha256 } : undefined : undefined
-            destination.push({ kind: "call", name: `call-${a.id}${suffix}`, claim, symbol: a.call!.expression, ...(finite && a.call!.sourceCallId ? { sourceCallId: a.call!.sourceCallId } : {}), arguments: mapped, result: a.call!.resultBinding, ...objects, ...(target ? { pathHint: `${target.path}:${target.startLine}-${target.endLine}`, candidateId: target.id } : {}), ...(methodRead ? { methodRead } : {}), ...(fieldMethodRead ? { fieldMethodRead } : {}), ...((actual?.superMethod || actual?.callableParameter || actual?.callableBinding || actual?.capturedCallable || actual?.implicitClassDecorator || actual?.classNamespaceCall || actual?.classInstanceCall) && target ? { callableRead: { object: actual.superMethod ? sourceSuperMethodResult(actual.id) : actual.expression, targetId: target.id, targetSha256: target.sha256, ...(actual.superMethod ? { receiver: actual.superMethod.receiver } : actual.classInstanceCall ? { receiver: actual.classInstanceCall.receiver } : {}) } } : {}) })
+            destination.push({ kind: "call", name: `call-${a.id}${suffix}`, claim, symbol: a.call!.expression, ...(finite && a.call!.sourceCallId ? { sourceCallId: a.call!.sourceCallId } : {}), arguments: mapped, result: a.call!.resultBinding, ...objects, ...(target ? { pathHint: `${target.path}:${target.startLine}-${target.endLine}`, candidateId: target.id } : {}), ...(methodRead ? { methodRead } : {}), ...(fieldMethodRead ? { fieldMethodRead } : {}), ...((actual?.superMethod || actual?.callableParameter || actual?.callableBinding || actual?.capturedCallable || actual?.moduleCallable || actual?.implicitClassDecorator || actual?.classNamespaceCall || actual?.classInstanceCall) && target ? { callableRead: { object: actual.superMethod ? sourceSuperMethodResult(actual.id) : actual.expression, targetId: target.id, targetSha256: target.sha256, ...(actual.superMethod ? { receiver: actual.superMethod.receiver } : actual.classInstanceCall ? { receiver: actual.classInstanceCall.receiver } : {}) } } : {}) })
           }
           const proof = methodCalls.get(a.id)
           if (callableCalls.has(a.id) && finite) {
@@ -336,7 +337,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
         if (a.superMethod) { block.steps.push({ kind: "unresolved", name: `super-${a.id}`, claim, reason: "source-class-super-read-unresolved" }); unit.complete = false; continue }
         const definition = classDefinitions.get(a.id)
         if (definition) {
-          const proof = definition.classDefinition!, result = `class-original-${proof.anchorId}`
+          const proof = structureClassDefinition(definition)!, result = `class-original-${proof.anchorId}`
           block.steps.push({ kind: "assign-value", name: `class-definition-${proof.anchorId}`, claim: "Execute this original class definition without binding its public name before decorators finish", result, value: { literal: sourceClassToken({ targetId: definition.id, targetSha256: definition.sha256 }) }, sourceClass: { targetId: definition.id, targetSha256: definition.sha256, scope: "definition", namespace: true, bases: proof.bases.map(base => base.expression) } })
           for (const entry of proof.namespace) {
             if (entry.kind === "field") { const field = proof.fields.find(f => f.anchorId === entry.anchorId)!; block.steps.push({ kind: "transform", name: `class-field-${field.anchorId}`, claim: "Original finite class namespace attribute", object: result, field: field.name, value: field.value }) }
@@ -350,7 +351,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
         const decorator = classDecoratorValues.get(a.id)
         if (decorator) { block.steps.push({ kind: "assign-value", name: `class-decorator-value-${decorator.id}`, claim: "Evaluate the current ordinary decorator function before class creation", result: decorator.valueResult, value: { literal: sourceCallableToken({ targetId: decorator.targetId!, targetSha256: decorator.targetSha256! }) }, sourceCallable: { targetId: decorator.targetId!, targetSha256: decorator.targetSha256!, scope: "module", captures: [] } }); continue }
         if (a.classBinding) {
-          const definition = classDefinitions.get(a.classBinding)?.classDefinition, result = definition?.decorators[0] ? `class-applied-${definition.decorators[0].id}` : `class-original-${a.classBinding}`
+          const definition = structureClassDefinition(classDefinitions.get(a.classBinding)), result = definition?.decorators[0] ? `class-applied-${definition.decorators[0].id}` : `class-original-${a.classBinding}`
           if (definition && a.name === definition.name && a.valueExpression === result) block.steps.push({ kind: "assign-value", name: `class-bind-${a.classBinding}`, claim: "Bind the actual final decorator return value to the source class name", result: a.name, value: { binding: result } })
           else { block.steps.push({ kind: "unresolved", name: `class-bind-${a.id}`, claim, reason: "source-class-definition-binding-unresolved" }); unit.complete = false }
           continue
@@ -361,8 +362,8 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
         if (a.classValue) { block.steps.push({ kind: "unresolved", name: `class-value-${a.id}`, claim, reason: "source-class-reference-unresolved" }); unit.complete = false; continue }
         const callableValue = callableValues.get(a.id), callableDefinition = callableDefinitions.get(a.id)
         if (callableValue || callableDefinition) {
-          const target = callableValue ?? { targetId: callableDefinition!.id, targetSha256: callableDefinition!.sha256 }, captures = callableDefinition?.valueCallable?.captures.map(c => ({ parameter: c.name, object: c.name })) ?? []
-          block.steps.push({ kind: "assign-value", name: callableValue ? sourceCallableValueName(skeleton.sourceId, callableValue) : sourceCallableDefinitionName(a.id), claim: "Create or read the actual current source callable with its original stable captured objects", result: a.name, value: { literal: sourceCallableToken(target) }, sourceCallable: { targetId: target.targetId, targetSha256: target.targetSha256, ...(callableValue ? { scope: "module" } : {}), captures } })
+          const target = callableValue ?? { targetId: callableDefinition!.symbol.id, targetSha256: callableDefinition!.symbol.sha256 }, captures = callableDefinition?.definition.captures.map(c => ({ parameter: c.name, object: c.name })) ?? []
+          block.steps.push({ kind: "assign-value", name: callableValue ? sourceCallableValueName(skeleton.sourceId, callableValue) : sourceCallableDefinitionName(a.id), claim: "Create or read the actual current source callable with its original stable captured objects", result: a.name, value: { literal: sourceCallableToken(target) }, sourceCallable: { targetId: target.targetId, targetSha256: target.targetSha256, ...(callableValue || callableDefinition?.module ? { scope: "module" } : {}), captures } })
           continue
         }
         if (a.callableValue || a.callableDefinition) { block.steps.push({ kind: "unresolved", name: `function-value-${a.id}`, claim, reason: "source-callable-creation-unresolved" }); unit.complete = false; continue }

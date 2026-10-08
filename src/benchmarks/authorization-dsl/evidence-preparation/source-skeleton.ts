@@ -2,7 +2,7 @@ import { createHash } from "node:crypto"
 import type { Node } from "@vscode/tree-sitter-wasm"
 import type { InquiryEvidence } from "../inquiry-tools.ts"
 import type { StructureCall, StructureIndex, StructureSymbol, StructureMethodStore, StructureMethodCapture, StructureCallableValue, StructureCallableDefinition, StructureClassValue, StructureClassDefinition } from "./structure-index.ts"
-import { sourceLiteral } from "./structure-index.ts"
+import { sourceLiteral, structureClassDefinition } from "./structure-index.ts"
 import { sourceCallableValueResult, sourceClassValueResult, sourceMethodCaptureResult, sourceSuperMethodResult, sourceSyntaxAnchorId } from "./source-identities.ts"
 import { sourceArgumentBindings } from "./source-arguments.ts"
 import type { SourceSelector } from "./source-selector.ts"
@@ -43,7 +43,7 @@ export interface SourceSkeleton {
   schemaVersion: "authorization-source-skeleton/v1" | "authorization-source-skeleton/v2"; sourceId: string; revision: string;
   controlSemantics?: "finite-control/v1";
   propertySemantics?: "property-control/v1" | "question-control/v1";
-  context?: "route-registration";
+  context?: "route-registration" | "module-initialization";
   source: { id: string; path: string; sha256: string; startLine: number; endLine: number }; modelCovered: boolean; evidenceIds: string[];
   anchors: SourceAnchor[]; flow: SourceFlow[]; edges: Array<{ from: string; to: string; branch: "next" | "true" | "false" }>;
   gaps: Array<{ code: string; selector: SourceSelector; reason: string }>
@@ -62,9 +62,10 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
   if (!skeleton.modelCovered) skeleton.gaps.push({ code: "skeleton-source-unread", selector, reason: "The complete current function is not available in shown original windows; indexing is not model interpretation." })
   else await index.withSymbolSyntax(source.id, root => {
     const registration = index.routes.find(r => r.id === source.id)
-    const fn = descendants(root, registration ? ["call", "call_expression"] : ["function_definition", "function_declaration", "method_declaration"]).find(n => n.startPosition.row + 1 === source.startLine && n.endPosition.row + 1 === source.endLine)
+    const fn = source.kind === "module" && source.language === "python" ? root : descendants(root, registration ? ["call", "call_expression"] : ["function_definition", "function_declaration", "method_declaration"]).find(n => n.startPosition.row + 1 === source.startLine && n.endPosition.row + 1 === source.endLine)
     if (!fn) { skeleton.gaps.push({ code: "skeleton-function-unavailable", selector, reason: "This candidate is source context rather than an exact function body." }); return }
     if (registration) skeleton.context = "route-registration"
+    else if (source.kind === "module") skeleton.context = "module-initialization"
     const positions = new Map<string, number>()
     // Syntax facts only: attribute paths are reads, not object/alias identities.
     const reads = (n?: Node | null): string[] => {
@@ -111,7 +112,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       const actual = sourceCall(n)
       const arguments_: NonNullable<SourceAnchor["call"]>["arguments"] = kids(field(n, "arguments")).map(a => { const value = a.type === "keyword_argument" ? field(a, "value")! : a, literal = sourceLiteral(value), child = ["call", "call_expression"].includes(value.type) ? sourceCall(value) : undefined; return { expression: value.text, ...(child ? { sourceCallId: child.id } : {}), ...(a.type === "keyword_argument" ? { parameterName: field(a, "name")!.text } : {}), ...(["list_splat", "dictionary_splat", "variadic_argument"].includes(a.type) ? { spread: true } : {}), ...(literal.literalKnown ? literal : {}) } })
       if (!/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(expression) && !/^super\(\)\.[A-Za-z_]\w*$/.test(expression)) gap(n, "skeleton-call-dynamic", "The actual function expression is dynamic; no unique callee or receiver is invented.")
-      const callableGap = actual?.gap && /^(?:source-local-|source-callable-|source-returned-callable-|source-method-alias-|source-method-choice-|source-method-lookup-|source-field-method-|source-class-constructor-|source-class-instance-|source-class-super-)/.test(actual.gap) ? actual.gap : undefined
+      const callableGap = actual?.gap && /^(?:source-module-|source-local-|source-callable-|source-returned-callable-|source-method-alias-|source-method-choice-|source-method-lookup-|source-field-method-|source-class-constructor-|source-class-instance-|source-class-super-)/.test(actual.gap) ? actual.gap : undefined
       if (questionDirected && callableGap) gap(n, callableGap, "The current lexical callable/capture binding is unresolved regardless of its proposed domain role.")
       if (arguments_.some(a => a.spread)) {
         const targets = actual && (actual.methodChoices || actual.methodLookup || actual.methodField || actual.candidateIds.length === 1) ? actual.candidateIds.flatMap(id => index.symbols.filter(s => s.id === id && s.kind === "function")) : []
@@ -203,7 +204,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       if (n.type === "block" || n.type === "statement_list") return visitList(n)
       const classNode = n.type === "class_definition" ? n : n.type === "decorated_definition" ? kids(n).find(c => c.type === "class_definition") : undefined
       if (questionDirected && classNode) {
-        const symbol = index.symbols.find(s => s.kind === "class" && s.path === source.path && s.classDefinition?.ownerId === source.id && s.classDefinition.source.startIndex === n.startIndex && s.classDefinition.source.endIndex === n.endIndex), proof = symbol?.classDefinition
+        const symbol = index.symbols.find(s => { const proof = structureClassDefinition(s); return s.kind === "class" && s.path === source.path && proof?.ownerId === source.id && proof.source.startIndex === n.startIndex && proof.source.endIndex === n.endIndex }), proof = structureClassDefinition(symbol)
         if (symbol && proof) {
           const created = add(n, "assignment", { name: symbol.name, syntax: "source_class_definition", classDefinition: { targetId: symbol.id, targetSha256: symbol.sha256, definition: proof } })
           if (proof.gap) { gap(n, proof.gap, "This actual class definition needs its current base, namespace or decorator semantics."); return [{ kind: "gap", anchorId: created.id }] }
@@ -230,6 +231,13 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       }
       if (["function_definition", "function_declaration", "method_declaration", "class_definition"].includes(n.type)) {
         const symbol = index.symbols.find(s => s.path === source.path && s.startLine === n.startPosition.row + 1 && s.endLine === n.endPosition.row + 1), local = symbol?.localCallable
+        const moduleFunction = source.moduleInitialization?.functions.find(f => f.targetId === symbol?.id && f.targetSha256 === symbol.sha256 && f.definition.source.startIndex === n.startIndex && f.definition.source.endIndex === n.endIndex)
+        if (questionDirected && moduleFunction) {
+          const proof = moduleFunction.definition, anchor = add(n, "assignment", { name: symbol!.name, syntax: "source_callable_value_definition", callableDefinition: { targetId: symbol!.id, targetSha256: symbol!.sha256, definition: proof } })
+          anchor.dependencyFacts = { reads: [], writes: [symbol!.name], pureLocal: false }
+          if (proof.gap) { gap(n, proof.gap, "This module function declaration has unexecuted initialization actions or an unresolved binding."); return [{ kind: "gap", anchorId: anchor.id }] }
+          return [{ kind: "step", anchorId: anchor.id }]
+        }
         if (questionDirected && n.type === "function_definition" && symbol?.valueCallable && !symbol.valueCallable.gap && symbol.valueCallable.ownerId === source.id && symbol.valueCallable.ownerSha256 === source.sha256) {
           const anchor = add(n, "assignment", { name: symbol.name, syntax: "source_callable_value_definition", callableDefinition: { targetId: symbol.id, targetSha256: symbol.sha256, definition: symbol.valueCallable } })
           anchor.dependencyFacts = { reads: symbol.valueCallable.captures.map(c => c.name), writes: [symbol.name], pureLocal: false }
@@ -308,7 +316,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       gap(n, "skeleton-statement-unsupported", `The ${n.type} statement remains explicit rather than being silently deleted.`)
       return [{ kind: "gap", anchorId: add(n, "assignment").id }]
     }
-    skeleton.flow = registration ? [...callsIn(fn).filter(n => n.id !== fn.id), fn].map(n => ({ kind: "step", anchorId: callAnchor(n).id })) : visitList(field(fn, "body"))
+    skeleton.flow = registration ? [...callsIn(fn).filter(n => n.id !== fn.id), fn].map(n => ({ kind: "step", anchorId: callAnchor(n).id })) : visitList(source.kind === "module" ? fn : field(fn, "body"))
     if (fn.hasError) gap(fn, "skeleton-parse-partial", "The original function has parser errors; coverage is bounded.")
     const connect = (flow: SourceFlow[], next?: string) => {
       for (const [i, node] of flow.entries()) {

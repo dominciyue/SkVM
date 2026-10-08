@@ -2163,6 +2163,12 @@ AY7实际super/C3小步（2026-10-08）：v34以原__class__ cell的实际identi
 
 AY7 schema runtime来源接续（2026-10-08，关系仍v34）：按原pin补充5文件，[来源清单](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/source-provenance/schema-runtime-source-v1.json) SHA `a8967b374ceadb7e99b0e40902ecd20b24244fa79bcff2505878b22de8eb0caa`、[105文件probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-schema-runtime-source-replay.json) SHA `e586bcfce39a8c34ea6b02f24ded2fa4b196138b5dd8b53eecd2b5e8b425d6ac`确认三个静态MRO及继承构造器/描述符。DefaultSchema.__get__实际需要APISettings字符串import、inspector构造和view setter，不能按ordinary协议豁免；配置字面不等于部署求值。模块definition/descriptor仍pending，36super/7constructor缺口、材料0。初次probe误用prefixed qualifiedName exact equality失败，改用现有resolveName后通过；生产代码未变。捕获3次GitHub API读取/1次源下载、另2次web定位失败；probe模型/目标/网络及应用标注0，其它成本unknown。旧来源/输入/allowlist/答案/评估器/分母保持，继续module/class/constructor/request及官方完整使用/收益。
 
+AY7显式module初始化小步（2026-10-08）：v35把非空Python模块作为完整原文覆盖的独立源码单元，根class/function保留原声明/控制顺序创建，复用实际namespace/C3/装饰器返回和原native对象传递。根class不借用旧local method语义；模块函数按原声明和当前实际函数对象调用，嵌套实参动作及未执行导入/全局环境/协议仍明确阻断。实测匿名流程中，class字段、继承、instance和decorator返回替换都影响真实后继分支；不从来源资格推出应用执行。
+
+30新增；初次RED 24失败，补充反例暴露声明前decorator读取与target SHA两个漏洞并修复，最终30通过/234断言；874focused/5445断言、联合1713pass/1平台skip/11252断言/115文件/50.42s和主/AY类型通过。只读索引review构造独立反例；材料review没有独立fixture，提出helper依赖静态疑点，主线程确认module创建变化撤回root footprint、真实源码变化撤回同文件所有symbol，并未复现stale采用，见[模块初始化核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-module-initialization.json)。
+
+[105文件probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-module-initialization-replay.json) SHA `64ef2ec088c12799cdd964963456a6e3e7718ef5d9ffbe5d6ab6690b1046e76a`保存99非空模块、394 class/361 function声明事实，来源合格1 class/54 function不构成实际使用。ViewInspector仍body-unmodeled，DefaultSchema/AutoSchema仍base-unmodeled；12选定body有0super/1constructor gap、全索引36super/12constructor gap，实际材料0。root范围新增使constructor数量与旧7不可直接比较。原证据/输入/allowlist/答案/评估器/分母保留，实验模型/目标/probe网络新增0，其它成本unknown。原模块环境、constructor/descriptor/request及官方完整任务/AY22/净收益继续，AY7未完成。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

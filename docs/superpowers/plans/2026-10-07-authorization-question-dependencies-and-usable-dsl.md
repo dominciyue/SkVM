@@ -298,6 +298,15 @@ source constructor保留当前class/SHA、原call/result/control/order，native�
 
 schema runtime来源本步进展（2026-10-08）：5文件按既有wheel SHA/原appRef的Git blob/size追加，清单SHA `a8967b374ceadb7e99b0e40902ecd20b24244fa79bcff2505878b22de8eb0caa`；105文件probeSHA `e586bcfce39a8c34ea6b02f24ded2fa4b196138b5dd8b53eecd2b5e8b425d6ac`确认ViewInspector/DefaultSchema/AutoSchema静态MRO和继承__init__/__get__/__set__。原94冻结/6补充及旧输入/allowlist/答案不改。实际缺口明确包含模块definition、APISettings字符串import、descriptor getter/setter和constructor，不能按ordinary方法/field store消除。关系仍v34，36super/7constructor gap、实际材料0；代码未变，不重复上一轮844/1683回归。接续现有核心内的实际初始化/协议设计和红测，再完整请求与官方使用/收益；AY未完成。
 
+
+模块初始化最小设计（2026-10-08，v35）：在现有structure-index中为Python文件增加kind=module的显式全文件源码单元；原function/class qualifiedName和旧module引用规则保持原义，module owner在原moduleAssignments收集后加入。source_read完整覆盖仍是独立前提，骨架context=module-initialization只解释模块顶层语句，不执行函数body。根class保存独立moduleClassDefinition，复用原class创建、namespace/C3、decorator application、最终绑定与当前材料核验；不把根method改标local classMethod而改变既有receiver语义。根普通function保存moduleInitialization.functions创建事实，复用无capture sourceCallable.scope=module，并在同module直接调用时读取当前实际函数对象。可接受的函数声明无wrapper/async/generator/annotation/动态或mutable default；未建模声明操作、imports和其它协议保留具名gap，不能由context擦除。
+
+v35运行边界：支持同module已创建class作为实际参数/返回值、已创建base的普通C3继承、原field store/有限分支、无协议零参constructor和普通函数。模块内class实参不再生成空静态class引用覆盖实际namespace；当前class和function creation须保留原控制及声明/调用顺序。直接模块function调用首步只支持无嵌套实参动作，防止把callee读取移到实参副作用之后；source-visible rebinding/函数属性修改由当前绑定/native资格核验。仍不提供import/cache/export环境、跨module全局晚绑定、模块method实例协议或descriptor/constructor执行；本步只能证明被显式解释并执行的初始化单元，不称原应用模块已加载或request已完整。
+
+v35验证与接续：先写源码索引/骨架和source_read→interpret→material→native红测，覆盖未读模块、class字段/继承/实例、装饰器返回替换、实际函数读取、缺失/错SHA/移位创建、缺失实际callee、source变更及import/annotation/default/重绑定/协议反例；GREEN后跑相关集中/联合/主和AY类型检查，独立只读核验并保留105文件新probe。同步五份当前文档和阶段日志、提交仅推origin。模块前驱完成后继续原DefaultSchema/APISettings/constructor/descriptor/request和官方完整使用、AY22及预登记净收益，AY7与本轮目标仍不完成。
+
+模块初始化本步进展（2026-10-08）：v35已沿同一核心执行显式module class/function创建、原控制顺序、实际namespace/C3、装饰器返回替换、普通默认instance及参数传递；moduleCallable核验实际函数读取与当前target/SHA。30新增，初次RED24失败，补充RED发现声明前decorator/目标SHA两个漏洞后GREEN30/234断言；874focused/5445断言、联合1713pass/1平台skip/11252断言/115文件/50.42s和主/AY类型通过。索引只读review含独立fixture，材料静态疑点经主定向核验未复现stale采用，见[模块初始化核验](../../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-module-initialization.json)。105文件probeSHA `64ef2ec088c12799cdd964963456a6e3e7718ef5d9ffbe5d6ab6690b1046e76a`有99非空module，所选三schema类仍body/base gap、实际材料0；全索引36super/12constructor，12选定body0super/1constructor，新增root范围不作旧数量效果比较。导入/全局晚绑定、模块方法、真实constructor/descriptor/request及官方完整使用/收益仍必须接续，原输入/allowlist/答/旧报告不改，实验模型/目标/probe网络新增0，其它成本unknown，AY7不完成。
+
 ### AY8 调度与局部解释的闭环
 
 2026-10-08真实OWUI反例细化：七轮增量字段确有前进，最后宿主生成34个块（其中8个为空）却被沿用手写接口的32块上限拒绝。先在v5源码编译器复用同单元的无动作空块，保留每个实际条件、步骤、正常/拒绝/异常出口及既有路径/节点边界；不提高求值上限。停滞按当前缺口和已保留字段进展判断，不能把observations的pending标签当源码frontier停滞。实际发送上下文与原始归档分账，引用的bytes是被引用原值大小，不是该引用包的发送大小。

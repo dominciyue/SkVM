@@ -2,6 +2,20 @@ import { expect, test } from "bun:test"
 import { buildStructureIndex } from "./structure-index.ts"
 const api = await import("./source-arguments.ts").catch(() => ({} as any))
 
+test("module argument binding revalidates original initialization and actual function identity", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "def check(value):\n    return value\ncheck(None)\n" }], { repository: "anonymous", sourceRef: "r" }), module = index.symbols.find(s => s.kind === "module")!, target = index.symbols.find(s => s.name === "check")!, call = index.relatedCalls(module.id).find(c => c.expression === "check")!
+  expect(api.sourceArgumentBindings(index, call, target).gap).toBeUndefined()
+  for (const mode of ["proof-sha", "owner", "arguments", "target-sha", "target-parameters"]) {
+    const changed = structuredClone(call), altered = structuredClone(target)
+    if (mode === "proof-sha") changed.moduleCallable!.targetSha256 = "foreign"
+    if (mode === "owner") changed.ownerId = target.id
+    if (mode === "arguments") changed.argumentFacts![0]!.expression = "foreign"
+    if (mode === "target-sha") altered.sha256 = "foreign"
+    if (mode === "target-parameters") altered.parameters[0]!.name = "foreign"
+    expect(api.sourceArgumentBindings(index, changed, altered).gap).toBe("source-arguments-module-callable-unresolved")
+  }
+})
+
 test("actual local super binding preserves the renamed receiver and rejects altered proof", async () => {
   const index = await buildStructureIndex([{ path: "app.py", content: "def entry(actor):\n    class Base:\n        def guard(self, item):\n            return item\n    class Local(Base):\n        def relay(this, item):\n            return super().guard(item)\n    instance = Local()\n    return instance.relay(actor)\n" }], { repository: "anonymous", sourceRef: "r" }), method = index.symbols.find(s => s.name === "relay")!, target = index.symbols.find(s => s.name === "guard")!, call = index.relatedCalls(method.id).find(c => c.expression === "super().guard")!
   expect(call.superMethod).toBeDefined()
