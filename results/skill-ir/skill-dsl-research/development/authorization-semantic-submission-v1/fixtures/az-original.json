@@ -1,0 +1,1378 @@
+{
+  "schemaVersion": "authorization-ba-original-regression/v1",
+  "identity": "authorization-semantic-submission-v1",
+  "entries": [
+    {
+      "attemptId": "single-download/original",
+      "originalFile": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-property-abstraction-v1\\attempts\\single-download\\original\\public-report.json",
+      "originalSha256": "30791b8be6776e6f1091519179726cef3d24ede0dee9759589b90087753ae977",
+      "jsonPath": "$",
+      "terminal": {
+        "status": "completed",
+        "terminalStatus": "completed",
+        "quotaRefused": false,
+        "terminalError": null,
+        "usage": {
+          "input": 1003887,
+          "output": 6175,
+          "cacheRead": 860032,
+          "cacheWrite": 0
+        }
+      },
+      "toolRejections": [
+        {
+          "call": {
+            "id": "exec-da92ca9f-74a9-47b3-ac05-af6fb791b198",
+            "name": "authorization_observe",
+            "arguments": {
+              "controlDelta": {
+                "schemaVersion": "authorization-focused-update/v1",
+                "kind": "interpret",
+                "focusId": "focus-f90953c3950c9e970ea01b8c",
+                "reason": "Interpret only the currently advertised entry frontier from the shown source.",
+                "unit": {
+                  "sourceId": "struct-b87a4afdcea33f96a2b2fa2d",
+                  "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb"
+                },
+                "values": [
+                  {
+                    "anchorId": "anchor-6382981b9e6645aa52e61653",
+                    "field": "returnOutcome",
+                    "value": "returns the result of self.file_response; authorization and protected effect are delegated to that callee"
+                  },
+                  {
+                    "anchorId": "anchor-89884338f8e27dd5cc68eacb",
+                    "field": "role",
+                    "value": "delegates resource selection, authorization-relevant lookup, and response creation to DocumentViewSet.file_response using pk and request"
+                  },
+                  {
+                    "anchorId": "anchor-9156da0367911009d52fa162",
+                    "field": "failureKind",
+                    "value": "operation failure translated to HTTP 404 for missing document/file; not an authorization decision in this shown handler"
+                  },
+                  {
+                    "anchorId": "struct-b87a4afdcea33f96a2b2fa2d",
+                    "field": "fallthroughOutcome",
+                    "value": "no normal fallthrough; the action either returns the callee response or raises HTTP 404"
+                  }
+                ]
+              },
+              "observations": [
+                {
+                  "questionId": "download-selected-resource",
+                  "kind": "entry",
+                  "state": "observed",
+                  "subject": "DocumentViewSet.download",
+                  "object": "DocumentViewSet.file_response",
+                  "claim": "The GET detail action passes pk and request to file_response and returns its response; missing document/file becomes HTTP 404.",
+                  "evidenceIds": [
+                    "ev-4b5429afb274b06ee6c6",
+                    "ev-7c67b561daa3c86e0b20"
+                  ]
+                }
+              ]
+            }
+          },
+          "diagnostics": [
+            {
+              "path": "/controlDelta",
+              "keyword": "required",
+              "message": "must have required property 'interpretation'",
+              "expected": {
+                "missingProperty": "interpretation"
+              }
+            },
+            {
+              "path": "/controlDelta",
+              "keyword": "additionalProperties",
+              "message": "must NOT have additional properties",
+              "expected": {
+                "additionalProperty": "unit"
+              }
+            },
+            {
+              "path": "/controlDelta/schemaVersion",
+              "keyword": "const",
+              "message": "must be equal to constant",
+              "expected": {
+                "allowedValue": "authorization-source-update/v1"
+              }
+            },
+            {
+              "path": "/controlDelta/values/0",
+              "keyword": "required",
+              "message": "must have required property 'key'",
+              "expected": {
+                "missingProperty": "key"
+              }
+            },
+            {
+              "path": "/controlDelta/values/0",
+              "keyword": "required",
+              "message": "must have required property 'text'",
+              "expected": {
+                "missingProperty": "text"
+              }
+            },
+            {
+              "path": "/controlDelta/values/0",
+              "keyword": "additionalProperties",
+              "message": "must NOT have additional properties",
+              "expected": {
+                "additionalProperty": "anchorId"
+              }
+            },
+            {
+              "path": "/controlDelta/values/0",
+              "keyword": "additionalProperties",
+              "message": "must NOT have additional properties",
+              "expected": {
+                "additionalProperty": "field"
+              }
+            },
+            {
+              "path": "/controlDelta/values/1",
+              "keyword": "required",
+              "message": "must have required property 'key'",
+              "expected": {
+                "missingProperty": "key"
+              }
+            }
+          ]
+        },
+        {
+          "call": {
+            "id": "exec-9c5e1ad1-8ef4-4a4d-b497-0dd22d90339d",
+            "name": "authorization_observe",
+            "arguments": {
+              "controlDelta": {
+                "schemaVersion": "authorization-source-update/v1",
+                "kind": "interpret",
+                "focusId": "focus-f90953c3950c9e970ea01b8c",
+                "reason": "Interpret the exact advertised entry frontier from the shown source.",
+                "interpretation": {
+                  "sourceId": "struct-b87a4afdcea33f96a2b2fa2d",
+                  "role": "entry",
+                  "summary": "The download action delegates the protected lookup and response to file_response(pk, request, attachment), returns that result, and converts missing document/file failures to HTTP 404."
+                },
+                "values": [
+                  {
+                    "key": "anchor-6382981b9e6645aa52e61653.returnOutcome",
+                    "text": "Returns the result of self.file_response; authorization and the protected effect are delegated to that callee."
+                  },
+                  {
+                    "key": "anchor-89884338f8e27dd5cc68eacb.role",
+                    "text": "Delegates resource selection, authorization-relevant lookup, and response creation to DocumentViewSet.file_response using pk and request."
+                  },
+                  {
+                    "key": "anchor-9156da0367911009d52fa162.failureKind",
+                    "text": "Operation failure translated to HTTP 404 for a missing document or file; this handler does not itself make an authorization decision."
+                  },
+                  {
+                    "key": "struct-b87a4afdcea33f96a2b2fa2d.fallthroughOutcome",
+                    "text": "No normal fallthrough: either return the callee response or raise HTTP 404."
+                  }
+                ]
+              },
+              "observations": [
+                {
+                  "questionId": "download-selected-resource",
+                  "kind": "entry",
+                  "state": "observed",
+                  "subject": "DocumentViewSet.download",
+                  "object": "DocumentViewSet.file_response",
+                  "claim": "The detail GET action delegates to file_response(pk, request, attachment) and maps missing document/file to HTTP 404.",
+                  "evidenceIds": [
+                    "ev-4b5429afb274b06ee6c6",
+                    "ev-7c67b561daa3c86e0b20"
+                  ]
+                }
+              ]
+            }
+          },
+          "diagnostics": [
+            {
+              "path": "/controlDelta/interpretation",
+              "keyword": "required",
+              "message": "must have required property 'schemaVersion'",
+              "expected": {
+                "missingProperty": "schemaVersion"
+              }
+            },
+            {
+              "path": "/controlDelta/interpretation",
+              "keyword": "required",
+              "message": "must have required property 'revision'",
+              "expected": {
+                "missingProperty": "revision"
+              }
+            },
+            {
+              "path": "/controlDelta/interpretation",
+              "keyword": "required",
+              "message": "must have required property 'annotations'",
+              "expected": {
+                "missingProperty": "annotations"
+              }
+            },
+            {
+              "path": "/controlDelta/interpretation",
+              "keyword": "additionalProperties",
+              "message": "must NOT have additional properties",
+              "expected": {
+                "additionalProperty": "sourceId"
+              }
+            },
+            {
+              "path": "/controlDelta/interpretation",
+              "keyword": "additionalProperties",
+              "message": "must NOT have additional properties",
+              "expected": {
+                "additionalProperty": "role"
+              }
+            },
+            {
+              "path": "/controlDelta/interpretation",
+              "keyword": "additionalProperties",
+              "message": "must NOT have additional properties",
+              "expected": {
+                "additionalProperty": "summary"
+              }
+            },
+            {
+              "path": "/controlDelta/values/0",
+              "keyword": "required",
+              "message": "must have required property 'value'",
+              "expected": {
+                "missingProperty": "value"
+              }
+            },
+            {
+              "path": "/controlDelta/values/1",
+              "keyword": "required",
+              "message": "must have required property 'value'",
+              "expected": {
+                "missingProperty": "value"
+              }
+            }
+          ]
+        },
+        {
+          "call": {
+            "id": "exec-3d172db2-01c1-4d55-8e00-520eda4b5ad0",
+            "name": "authorization_check_result",
+            "arguments": {
+              "result": {
+                "schemaVersion": "authorization-focused-result/v1",
+                "focusId": "focus-f90953c3950c9e970ea01b8c",
+                "scope": "DocumentViewSet.download at source ref 126ec414a8b65158368653a2604ae58415e43103, including its file-response, version-resolution, and root-object permission path.",
+                "answers": [
+                  {
+                    "disposition": "conditional",
+                    "explanation": "Selecting another version changes the file object that receives the download effect, but it does not change the object used by the explicit authorization check. The path loads the pk as request_doc, derives root_doc, and checks request.user for view_document on root_doc. Only after that check does it choose file_doc: the requested child, the latest child, or a version query-parameter target. A version id is accepted only if it is the root itself or has root_document_id equal to that root, so an unrelated document cannot be selected through this parameter. Thus the guard object is root_doc while the served object may be another member of the same version family. Whether this caller is allowed remains conditional because root ownership and object grants were expressly left unspecified.",
+                    "paths": [
+                      {
+                        "path": 0,
+                        "disposition": "allow",
+                        "explanation": "If the caller is authenticated by the applicable DRF entry controls and has root-level view authority because the root is unowned, is owned by the caller, or grants view_document, the download proceeds. A same-root selected version may then be served even though the permission check remains on root_doc."
+                      },
+                      {
+                        "path": 1,
+                        "disposition": "deny",
+                        "explanation": "If has_perms_owner_aware fails for request.user on root_doc, the operation returns HTTP 403 before selecting or serving file_doc."
+                      },
+                      {
+                        "path": 2,
+                        "disposition": "deny",
+                        "explanation": "If version is invalid, absent from storage, or names a document outside the root's version family, resolution produces an invalid/not-found outcome and no file is served."
+                      },
+                      {
+                        "path": 3,
+                        "disposition": "unknown",
+                        "explanation": "The concrete runtime allow/deny outcome cannot be selected because ownership and object grants are unspecified."
+                      }
+                    ],
+                    "gaps": [
+                      {
+                        "kind": "premise-unknown",
+                        "detail": "The root document's owner and the caller's object-level view_document grants are unspecified; these facts decide whether the explicit root check passes."
+                      },
+                      {
+                        "kind": "source-gap",
+                        "detail": "Deployment-time authentication backend settings and any out-of-repository proxy or middleware controls were not established from the allowed source. They may add restrictions but do not alter the shown root_doc-versus-file_doc binding."
+                      }
+                    ],
+                    "policyAssessment": {
+                      "status": "not_assessed",
+                      "explanation": "No independent policy was supplied stating whether all versions must inherit root-document view authority or require separate per-version authorization."
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "diagnostics": [
+            {
+              "path": "/result/answers/0",
+              "keyword": "additionalProperties",
+              "message": "must NOT have additional properties",
+              "expected": {
+                "additionalProperty": "gaps"
+              }
+            },
+            {
+              "path": "/result/answers/0/policyAssessment/status",
+              "keyword": "enum",
+              "message": "must be equal to one of the allowed values",
+              "expected": {
+                "allowedValues": [
+                  "satisfied",
+                  "violated",
+                  "undetermined"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "sourceInterpretations": [],
+      "checkHistory": [],
+      "toolBudget": {
+        "totalLimit": 64,
+        "totalUsed": 39,
+        "totalRemaining": 25,
+        "explorationLimit": 60,
+        "explorationUsed": 38,
+        "explorationRemaining": 22,
+        "checkLimit": 2,
+        "checksUsed": 0,
+        "checksRemaining": 2,
+        "formatCorrectionLimit": 2,
+        "formatRejections": 3,
+        "formatCorrectionsRemaining": 0,
+        "formatBudgetExhausted": true
+      },
+      "runtimeObservation": {
+        "schemaVersion": "authorization-az-runtime-observation/v1",
+        "attemptId": "single-download/original",
+        "source": "D:\\skill优化\\project-maintenance\\runs\\authorization-property-abstraction-v1\\attempts\\single-download\\original\\public-inquiry\\sessions\\2026-10-08T182622882Z-eaaeb9c9/run.json",
+        "sourceSha256": "2197a96042445ea36d1d3d42f9114eb19b57c8703253526acb68b6ccb52699d7",
+        "runtimeReportUnchanged": true,
+        "domainTools": true,
+        "toolBudget": {
+          "totalLimit": 64,
+          "totalUsed": 39,
+          "totalRemaining": 25,
+          "explorationLimit": 60,
+          "explorationUsed": 38,
+          "explorationRemaining": 22,
+          "checkLimit": 2,
+          "checksUsed": 0,
+          "checksRemaining": 2,
+          "formatCorrectionLimit": 2,
+          "formatRejections": 3,
+          "formatCorrectionsRemaining": 0,
+          "formatBudgetExhausted": true
+        },
+        "sourceWorkMetrics": {
+          "sourceInterpretationSubmissions": 0,
+          "localInterpretationRepairs": 0,
+          "lowLevelFallbacks": 0,
+          "acceptedSourceUnits": 0,
+          "controlSteps": 0
+        },
+        "materialUses": 0,
+        "checkHistoryCount": 0,
+        "propertyAnalysisCollections": {
+          "metrics": "object",
+          "summaries": 0,
+          "demands": 29
+        },
+        "propertyQueryCounts": {
+          "bound": 0,
+          "summaryUses": 0
+        },
+        "currentResultPresent": false
+      }
+    },
+    {
+      "attemptId": "single-download/format-contract-1",
+      "originalFile": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-property-abstraction-v1\\attempts\\single-download\\format-contract-1\\public-report.json",
+      "originalSha256": "c52dbe1b4b88992575a265040e06d4932786e67efea5a33e4a3c9a4d3f0ec91e",
+      "jsonPath": "$",
+      "terminal": {
+        "status": "completed",
+        "terminalStatus": "completed",
+        "quotaRefused": false,
+        "terminalError": null,
+        "usage": {
+          "input": 1687694,
+          "output": 5492,
+          "cacheRead": 1501696,
+          "cacheWrite": 0
+        }
+      },
+      "toolRejections": [
+        {
+          "call": {
+            "id": "exec-44da7cfe-c50f-4b68-aa63-373ee41ce803",
+            "name": "authorization_observe",
+            "arguments": {
+              "controlDelta": {
+                "schemaVersion": "authorization-source-update/v1",
+                "kind": "interpret",
+                "focusId": "focus-f90953c3950c9e970ea01b8c",
+                "interpretation": {
+                  "schemaVersion": "source-interpretation/v1",
+                  "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb",
+                  "annotations": [
+                    {
+                      "anchorId": "anchor-6382981b9e6645aa52e61653",
+                      "field": "returnOutcome",
+                      "value": "delegated"
+                    },
+                    {
+                      "anchorId": "anchor-89884338f8e27dd5cc68eacb",
+                      "field": "role",
+                      "value": "delegate"
+                    },
+                    {
+                      "anchorId": "anchor-9156da0367911009d52fa162",
+                      "field": "failureKind",
+                      "value": "operation-failure"
+                    },
+                    {
+                      "anchorId": "struct-b87a4afdcea33f96a2b2fa2d",
+                      "field": "fallthroughOutcome",
+                      "value": "unreachable"
+                    }
+                  ],
+                  "unresolved": []
+                }
+              }
+            }
+          },
+          "diagnostics": [
+            {
+              "path": "/controlDelta/interpretation/annotations/0",
+              "keyword": "required",
+              "message": "must have required property 'role'",
+              "expected": {
+                "missingProperty": "role"
+              }
+            },
+            {
+              "path": "/controlDelta/interpretation/annotations/0",
+              "keyword": "required",
+              "message": "must have required property 'explanation'",
+              "expected": {
+                "missingProperty": "explanation"
+              }
+            },
+            {
+              "path": "/controlDelta/interpretation/annotations/0",
+              "keyword": "additionalProperties",
+              "message": "must NOT have additional properties",
+              "expected": {
+                "additionalProperty": "field"
+              }
+            },
+            {
+              "path": "/controlDelta/interpretation/annotations/0",
+              "keyword": "additionalProperties",
+              "message": "must NOT have additional properties",
+              "expected": {
+                "additionalProperty": "value"
+              }
+            },
+            {
+              "path": "/controlDelta/interpretation/annotations/1",
+              "keyword": "required",
+              "message": "must have required property 'role'",
+              "expected": {
+                "missingProperty": "role"
+              }
+            },
+            {
+              "path": "/controlDelta/interpretation/annotations/1",
+              "keyword": "required",
+              "message": "must have required property 'explanation'",
+              "expected": {
+                "missingProperty": "explanation"
+              }
+            },
+            {
+              "path": "/controlDelta/interpretation/annotations/1",
+              "keyword": "additionalProperties",
+              "message": "must NOT have additional properties",
+              "expected": {
+                "additionalProperty": "field"
+              }
+            },
+            {
+              "path": "/controlDelta/interpretation/annotations/1",
+              "keyword": "additionalProperties",
+              "message": "must NOT have additional properties",
+              "expected": {
+                "additionalProperty": "value"
+              }
+            }
+          ]
+        },
+        {
+          "call": {
+            "id": "exec-8bb0fd75-c4cc-411b-900d-789127e7b5c7",
+            "name": "authorization_observe",
+            "arguments": {
+              "controlDelta": {
+                "schemaVersion": "authorization-source-update/v1",
+                "kind": "interpret",
+                "focusId": "focus-c448e00cbfc7c89e2c7ca29c",
+                "interpretation": {
+                  "schemaVersion": "source-interpretation/v1",
+                  "revision": "efcea721f8eac86db5f605ad02af7f9f0c742f1549233715baa43c31601e365a",
+                  "annotations": [
+                    {
+                      "anchorId": "anchor-ca4ab2d0932442369e3eadee",
+                      "role": "guard",
+                      "explanation": "This branch detects the HttpResponseForbidden result from resolving and authorizing the request/root documents; when true it returns the denial instead of serving a file."
+                    }
+                  ],
+                  "unresolved": []
+                }
+              }
+            }
+          },
+          "diagnostics": [
+            {
+              "path": "/controlDelta/interpretation/annotations/0/role",
+              "keyword": "enum",
+              "message": "must be equal to one of the allowed values",
+              "expected": {
+                "allowedValues": [
+                  "principal",
+                  "resource",
+                  "permission",
+                  "condition",
+                  "effect",
+                  "context"
+                ]
+              }
+            },
+            {
+              "path": "/controlDelta",
+              "keyword": "required",
+              "message": "must have required property 'reason'",
+              "expected": {
+                "missingProperty": "reason"
+              }
+            },
+            {
+              "path": "/controlDelta",
+              "keyword": "required",
+              "message": "must have required property 'unit'",
+              "expected": {
+                "missingProperty": "unit"
+              }
+            },
+            {
+              "path": "/controlDelta",
+              "keyword": "additionalProperties",
+              "message": "must NOT have additional properties",
+              "expected": {
+                "additionalProperty": "interpretation"
+              }
+            },
+            {
+              "path": "/controlDelta/schemaVersion",
+              "keyword": "const",
+              "message": "must be equal to constant",
+              "expected": {
+                "allowedValue": "authorization-focused-update/v1"
+              }
+            },
+            {
+              "path": "/controlDelta",
+              "keyword": "required",
+              "message": "must have required property 'candidateId'",
+              "expected": {
+                "missingProperty": "candidateId"
+              }
+            },
+            {
+              "path": "/controlDelta",
+              "keyword": "additionalProperties",
+              "message": "must NOT have additional properties",
+              "expected": {
+                "additionalProperty": "interpretation"
+              }
+            },
+            {
+              "path": "/controlDelta/schemaVersion",
+              "keyword": "const",
+              "message": "must be equal to constant",
+              "expected": {
+                "allowedValue": "authorization-focused-update/v1"
+              }
+            }
+          ]
+        },
+        {
+          "call": {
+            "id": "exec-58e51da5-7c30-43ed-b80e-555d11e1d5ef",
+            "name": "authorization_check_result",
+            "arguments": {
+              "result": {
+                "schemaVersion": "authorization-focused-result/v1",
+                "focusId": "focus-c448e00cbfc7c89e2c7ca29c",
+                "scope": "download-selected-resource",
+                "answers": [
+                  {
+                    "disposition": "conditional",
+                    "explanation": "Selecting a version can change the Document instance whose bytes are served, but it does not change the object used by the explicit view-document authorization: pk resolves a request document, the code derives its root document, and has_perms_owner_aware checks request.user against that root before resolving file_doc. The version resolver accepts only the root itself or a child with root_document_id equal to that root. Because ownership and object grants are unspecified, whether this caller is allowed remains conditional.",
+                    "paths": [
+                      {
+                        "path": 0,
+                        "disposition": "allow",
+                        "explanation": "For an authenticated caller who owns the root, whose root is ownerless, or who has the root's view_document object grant, the root check passes; the selected root-family version is then served."
+                      },
+                      {
+                        "path": 1,
+                        "disposition": "deny",
+                        "explanation": "For an authenticated caller who lacks the root ownership/object permission, resolution returns HTTP 403 before version selection or file serving."
+                      }
+                    ],
+                    "policyAssessment": {
+                      "status": "not_assessed",
+                      "explanation": "This is a behavior inquiry and no independent authorization policy was supplied."
+                    },
+                    "gaps": [
+                      {
+                        "kind": "premise-unknown",
+                        "detail": "The concrete root ownership and caller object grants are unspecified, so no principal-specific allow/deny outcome can be determined."
+                      },
+                      {
+                        "kind": "source-gap",
+                        "detail": "Runtime deployment overrides or monkey patches outside the reviewed source could alter behavior; none are established by the reviewed repository."
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          "diagnostics": [
+            {
+              "path": "/result/answers/0",
+              "keyword": "additionalProperties",
+              "message": "must NOT have additional properties",
+              "expected": {
+                "additionalProperty": "gaps"
+              }
+            },
+            {
+              "path": "/result/answers/0/policyAssessment/status",
+              "keyword": "enum",
+              "message": "must be equal to one of the allowed values",
+              "expected": {
+                "allowedValues": [
+                  "satisfied",
+                  "violated",
+                  "undetermined"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "sourceInterpretations": [
+        {
+          "event": "rejected",
+          "focusId": "focus-c448e00cbfc7c89e2c7ca29c",
+          "revision": "efcea721f8eac86db5f605ad02af7f9f0c742f1549233715baa43c31601e365a",
+          "raw": {
+            "schemaVersion": "authorization-source-update/v1",
+            "kind": "interpret",
+            "focusId": "focus-c448e00cbfc7c89e2c7ca29c",
+            "interpretation": {
+              "schemaVersion": "source-interpretation/v1",
+              "revision": "efcea721f8eac86db5f605ad02af7f9f0c742f1549233715baa43c31601e365a",
+              "annotations": [
+                {
+                  "anchorId": "anchor-ca4ab2d0932442369e3eadee",
+                  "role": "condition",
+                  "explanation": "True exactly when resolving the request and root documents returned HttpResponseForbidden; this branch returns that denial before any file is selected or served."
+                }
+              ],
+              "unresolved": []
+            }
+          },
+          "diagnostics": [
+            {
+              "code": "source-interpretation-condition-required",
+              "path": "anchor-ca4ab2d0932442369e3eadee",
+              "message": "condition: The source branch controls a possible requested behavior; interpret its actual predicate. Other valid annotations remain in this source transaction.",
+              "questionId": "download-selected-resource",
+              "severity": "error"
+            },
+            {
+              "code": "source-interpretation-role-required",
+              "path": "anchor-8c381d46def5890f94e11a98",
+              "message": "role: This possible source call may change objects, return a value, authorize, perform an effect or raise; its name proves none of these. Other valid annotations remain in this source transaction.",
+              "questionId": "download-selected-resource",
+              "severity": "error"
+            },
+            {
+              "code": "source-interpretation-role-required",
+              "path": "anchor-4ce0c5e45e7c40a7a13776d0",
+              "message": "role: This possible source call may change objects, return a value, authorize, perform an effect or raise; its name proves none of these. Other valid annotations remain in this source transaction.",
+              "questionId": "download-selected-resource",
+              "severity": "error"
+            },
+            {
+              "code": "source-interpretation-role-required",
+              "path": "anchor-22ff90ff144b3a72469c33d8",
+              "message": "role: This possible source call may change objects, return a value, authorize, perform an effect or raise; its name proves none of these. Other valid annotations remain in this source transaction.",
+              "questionId": "download-selected-resource",
+              "severity": "error"
+            },
+            {
+              "code": "source-interpretation-role-required",
+              "path": "anchor-a4e848ea303537d7080cabf0",
+              "message": "role: This possible source call may change objects, return a value, authorize, perform an effect or raise; its name proves none of these. Other valid annotations remain in this source transaction.",
+              "questionId": "download-selected-resource",
+              "severity": "error"
+            },
+            {
+              "code": "source-interpretation-role-required",
+              "path": "anchor-6f09571ec5d12ac63c7aee1c",
+              "message": "role: This possible source call may change objects, return a value, authorize, perform an effect or raise; its name proves none of these. Other valid annotations remain in this source transaction.",
+              "questionId": "download-selected-resource",
+              "severity": "error"
+            },
+            {
+              "code": "source-interpretation-role-required",
+              "path": "anchor-d904c8c5d76824a34684d48f",
+              "message": "role: This possible source call may change objects, return a value, authorize, perform an effect or raise; its name proves none of these. Other valid annotations remain in this source transaction.",
+              "questionId": "download-selected-resource",
+              "severity": "error"
+            }
+          ]
+        }
+      ],
+      "checkHistory": [],
+      "toolBudget": {
+        "totalLimit": 64,
+        "totalUsed": 48,
+        "totalRemaining": 16,
+        "explorationLimit": 60,
+        "explorationUsed": 47,
+        "explorationRemaining": 13,
+        "checkLimit": 2,
+        "checksUsed": 0,
+        "checksRemaining": 2,
+        "formatCorrectionLimit": 2,
+        "formatRejections": 3,
+        "formatCorrectionsRemaining": 0,
+        "formatBudgetExhausted": true
+      },
+      "runtimeObservation": {
+        "schemaVersion": "authorization-az-runtime-observation/v1",
+        "attemptId": "single-download/format-contract-1",
+        "source": "D:\\skill优化\\project-maintenance\\runs\\authorization-property-abstraction-v1\\attempts\\single-download\\format-contract-1\\public-inquiry\\sessions\\2026-10-08T183638897Z-167c7af5/run.json",
+        "sourceSha256": "7e227b2dc10358ac040253d740b55dcbb82759f001c549cca77c277f4696368c",
+        "runtimeReportUnchanged": true,
+        "domainTools": true,
+        "toolBudget": {
+          "totalLimit": 64,
+          "totalUsed": 48,
+          "totalRemaining": 16,
+          "explorationLimit": 60,
+          "explorationUsed": 47,
+          "explorationRemaining": 13,
+          "checkLimit": 2,
+          "checksUsed": 0,
+          "checksRemaining": 2,
+          "formatCorrectionLimit": 2,
+          "formatRejections": 3,
+          "formatCorrectionsRemaining": 0,
+          "formatBudgetExhausted": true
+        },
+        "sourceWorkMetrics": {
+          "sourceInterpretationSubmissions": 1,
+          "localInterpretationRepairs": 0,
+          "lowLevelFallbacks": 0,
+          "acceptedSourceUnits": 0,
+          "controlSteps": 0
+        },
+        "materialUses": 0,
+        "checkHistoryCount": 0,
+        "propertyAnalysisCollections": {
+          "metrics": "object",
+          "summaries": 0,
+          "demands": 34
+        },
+        "propertyQueryCounts": {
+          "bound": 0,
+          "summaryUses": 0
+        },
+        "currentResultPresent": false
+      }
+    },
+    {
+      "attemptId": "quality-download-M-repeat-1/original",
+      "originalFile": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-property-abstraction-v1\\attempts\\quality-download-M-repeat-1\\original\\run-result.json.gz",
+      "originalSha256": "8bd419d77d4757473101a0d2c65e578691469bb156a56081a13531dc486e9b38",
+      "jsonPath": "$.authorizationInquiry",
+      "terminal": {
+        "status": "completed",
+        "terminalStatus": "completed",
+        "quotaRefused": false,
+        "terminalError": null,
+        "usage": {
+          "input": 1865797,
+          "output": 5174,
+          "cacheRead": 1674112,
+          "cacheWrite": 0
+        }
+      },
+      "toolRejections": [
+        {
+          "call": {
+            "id": "exec-9a5303f3-038c-4856-9628-a707f7944f3e",
+            "name": "authorization_observe",
+            "arguments": {
+              "controlDelta": {
+                "schemaVersion": "authorization-source-update/v1",
+                "kind": "interpret",
+                "focusId": "focus-11eb4b696f8a7798562f5223",
+                "interpretation": {
+                  "schemaVersion": "source-interpretation/v1",
+                  "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb",
+                  "annotations": [
+                    {
+                      "anchorId": "anchor-6382981b9e6645aa52e61653",
+                      "returnOutcome": "delegates-to-returned-call"
+                    }
+                  ],
+                  "unresolved": []
+                },
+                "reason": "The action returns the result of the file_response call; authorization and file selection are therefore delegated to that callee."
+              }
+            }
+          },
+          "diagnostics": [
+            {
+              "path": "/controlDelta/interpretation/annotations/0",
+              "keyword": "required",
+              "message": "must have required property 'role'",
+              "expected": {
+                "missingProperty": "role"
+              }
+            },
+            {
+              "path": "/controlDelta/interpretation/annotations/0",
+              "keyword": "required",
+              "message": "must have required property 'explanation'",
+              "expected": {
+                "missingProperty": "explanation"
+              }
+            },
+            {
+              "path": "/controlDelta/interpretation/annotations/0/returnOutcome",
+              "keyword": "enum",
+              "message": "must be equal to one of the allowed values",
+              "expected": {
+                "allowedValues": [
+                  "allow",
+                  "deny",
+                  "unknown"
+                ]
+              }
+            },
+            {
+              "path": "/controlDelta",
+              "keyword": "required",
+              "message": "must have required property 'unit'",
+              "expected": {
+                "missingProperty": "unit"
+              }
+            },
+            {
+              "path": "/controlDelta",
+              "keyword": "additionalProperties",
+              "message": "must NOT have additional properties",
+              "expected": {
+                "additionalProperty": "interpretation"
+              }
+            },
+            {
+              "path": "/controlDelta/schemaVersion",
+              "keyword": "const",
+              "message": "must be equal to constant",
+              "expected": {
+                "allowedValue": "authorization-focused-update/v1"
+              }
+            },
+            {
+              "path": "/controlDelta",
+              "keyword": "required",
+              "message": "must have required property 'candidateId'",
+              "expected": {
+                "missingProperty": "candidateId"
+              }
+            },
+            {
+              "path": "/controlDelta",
+              "keyword": "additionalProperties",
+              "message": "must NOT have additional properties",
+              "expected": {
+                "additionalProperty": "interpretation"
+              }
+            }
+          ]
+        },
+        {
+          "call": {
+            "id": "exec-09e2828b-b433-4e31-a518-accc6ebd00ca",
+            "name": "authorization_observe",
+            "arguments": {
+              "controlDelta": {
+                "schemaVersion": "authorization-source-update/v1",
+                "kind": "interpret",
+                "focusId": "focus-11eb4b696f8a7798562f5223",
+                "interpretation": {
+                  "schemaVersion": "source-interpretation/v1",
+                  "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb",
+                  "annotations": [
+                    {
+                      "anchorId": "anchor-6382981b9e6645aa52e61653",
+                      "role": "entry",
+                      "explanation": "The action returns the file_response call result. This wrapper alone does not decide authorization; the callee determines whether a file response is produced.",
+                      "returnOutcome": "unknown"
+                    }
+                  ],
+                  "unresolved": []
+                },
+                "reason": "The return delegates behavior to file_response, so its authorization outcome remains unknown until that callee is interpreted."
+              }
+            }
+          },
+          "diagnostics": [
+            {
+              "path": "/controlDelta/interpretation/annotations/0/role",
+              "keyword": "enum",
+              "message": "must be equal to one of the allowed values",
+              "expected": {
+                "allowedValues": [
+                  "principal",
+                  "resource",
+                  "permission",
+                  "condition",
+                  "effect",
+                  "context"
+                ]
+              }
+            },
+            {
+              "path": "/controlDelta",
+              "keyword": "required",
+              "message": "must have required property 'unit'",
+              "expected": {
+                "missingProperty": "unit"
+              }
+            },
+            {
+              "path": "/controlDelta",
+              "keyword": "additionalProperties",
+              "message": "must NOT have additional properties",
+              "expected": {
+                "additionalProperty": "interpretation"
+              }
+            },
+            {
+              "path": "/controlDelta/schemaVersion",
+              "keyword": "const",
+              "message": "must be equal to constant",
+              "expected": {
+                "allowedValue": "authorization-focused-update/v1"
+              }
+            },
+            {
+              "path": "/controlDelta",
+              "keyword": "required",
+              "message": "must have required property 'candidateId'",
+              "expected": {
+                "missingProperty": "candidateId"
+              }
+            },
+            {
+              "path": "/controlDelta",
+              "keyword": "additionalProperties",
+              "message": "must NOT have additional properties",
+              "expected": {
+                "additionalProperty": "interpretation"
+              }
+            },
+            {
+              "path": "/controlDelta/schemaVersion",
+              "keyword": "const",
+              "message": "must be equal to constant",
+              "expected": {
+                "allowedValue": "authorization-focused-update/v1"
+              }
+            },
+            {
+              "path": "/controlDelta/kind",
+              "keyword": "const",
+              "message": "must be equal to constant",
+              "expected": {
+                "allowedValue": "select"
+              }
+            }
+          ]
+        },
+        {
+          "call": {
+            "id": "exec-c91d6927-c9bc-429f-9c3f-4586ff189959",
+            "name": "authorization_observe",
+            "arguments": {
+              "controlDelta": {
+                "schemaVersion": "authorization-source-update/v1",
+                "kind": "interpret",
+                "focusId": "focus-11eb4b696f8a7798562f5223",
+                "interpretation": {
+                  "schemaVersion": "source-interpretation/v1",
+                  "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb",
+                  "annotations": [
+                    {
+                      "anchorId": "anchor-9156da0367911009d52fa162",
+                      "role": "effect",
+                      "explanation": "A missing database document or missing file is translated to HTTP 404. This branch represents lookup/file absence, not an authorization decision in this wrapper.",
+                      "failureKind": "operation-failure"
+                    }
+                  ],
+                  "unresolved": []
+                },
+                "reason": "Classify the explicit 404 branch as an operation failure distinct from permission denial."
+              }
+            }
+          },
+          "diagnostics": [
+            {
+              "path": "/controlDelta/interpretation/annotations/0/failureKind",
+              "keyword": "enum",
+              "message": "must be equal to one of the allowed values",
+              "expected": {
+                "allowedValues": [
+                  "authorization",
+                  "operation"
+                ]
+              }
+            },
+            {
+              "path": "/controlDelta",
+              "keyword": "required",
+              "message": "must have required property 'unit'",
+              "expected": {
+                "missingProperty": "unit"
+              }
+            },
+            {
+              "path": "/controlDelta",
+              "keyword": "additionalProperties",
+              "message": "must NOT have additional properties",
+              "expected": {
+                "additionalProperty": "interpretation"
+              }
+            },
+            {
+              "path": "/controlDelta/schemaVersion",
+              "keyword": "const",
+              "message": "must be equal to constant",
+              "expected": {
+                "allowedValue": "authorization-focused-update/v1"
+              }
+            },
+            {
+              "path": "/controlDelta",
+              "keyword": "required",
+              "message": "must have required property 'candidateId'",
+              "expected": {
+                "missingProperty": "candidateId"
+              }
+            },
+            {
+              "path": "/controlDelta",
+              "keyword": "additionalProperties",
+              "message": "must NOT have additional properties",
+              "expected": {
+                "additionalProperty": "interpretation"
+              }
+            },
+            {
+              "path": "/controlDelta/schemaVersion",
+              "keyword": "const",
+              "message": "must be equal to constant",
+              "expected": {
+                "allowedValue": "authorization-focused-update/v1"
+              }
+            },
+            {
+              "path": "/controlDelta/kind",
+              "keyword": "const",
+              "message": "must be equal to constant",
+              "expected": {
+                "allowedValue": "select"
+              }
+            }
+          ]
+        }
+      ],
+      "sourceInterpretations": [
+        {
+          "event": "rejected",
+          "focusId": "focus-11eb4b696f8a7798562f5223",
+          "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb",
+          "raw": {
+            "schemaVersion": "authorization-source-update/v1",
+            "kind": "interpret",
+            "focusId": "focus-11eb4b696f8a7798562f5223",
+            "interpretation": {
+              "schemaVersion": "source-interpretation/v1",
+              "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb",
+              "annotations": [
+                {
+                  "anchorId": "anchor-6382981b9e6645aa52e61653",
+                  "role": "effect",
+                  "explanation": "The action returns the file_response call result. This wrapper alone does not decide authorization; the callee determines whether a file response is produced.",
+                  "returnOutcome": "unknown"
+                }
+              ],
+              "unresolved": []
+            },
+            "reason": "The return delegates behavior to file_response, so its authorization outcome remains unknown until that callee is interpreted."
+          },
+          "diagnostics": [
+            {
+              "code": "source-interpretation-role",
+              "path": "anchor-6382981b9e6645aa52e61653",
+              "message": "This role does not match a source object or relevant operation anchor.",
+              "questionId": "q1",
+              "severity": "error"
+            },
+            {
+              "code": "source-interpretation-role-required",
+              "path": "anchor-89884338f8e27dd5cc68eacb",
+              "message": "role: This possible source call may change objects, return a value, authorize, perform an effect or raise; its name proves none of these. Other valid annotations remain in this source transaction.",
+              "questionId": "q1",
+              "severity": "error"
+            },
+            {
+              "code": "source-interpretation-failure-kind-required",
+              "path": "anchor-9156da0367911009d52fa162",
+              "message": "failureKind: Distinguish authorization rejection from operation failure without erasing the exception. Other valid annotations remain in this source transaction.",
+              "questionId": "q1",
+              "severity": "error"
+            },
+            {
+              "code": "source-interpretation-fallthrough-outcome-required",
+              "path": "struct-b87a4afdcea33f96a2b2fa2d",
+              "message": "fallthroughOutcome: Interpret the source entry's normal fallthrough outcome at the interpretation root. Other valid annotations remain in this source transaction.",
+              "questionId": "q1",
+              "severity": "error"
+            }
+          ]
+        },
+        {
+          "event": "rejected",
+          "focusId": "focus-11eb4b696f8a7798562f5223",
+          "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb",
+          "raw": {
+            "schemaVersion": "authorization-source-update/v1",
+            "kind": "interpret",
+            "focusId": "focus-11eb4b696f8a7798562f5223",
+            "interpretation": {
+              "schemaVersion": "source-interpretation/v1",
+              "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb",
+              "annotations": [
+                {
+                  "anchorId": "anchor-89884338f8e27dd5cc68eacb",
+                  "role": "effect",
+                  "explanation": "This call is the operation-producing step: it is passed the requested pk and authenticated request and returns the attachment response. Its internal selection and authorization must be traced in file_response."
+                }
+              ],
+              "unresolved": []
+            },
+            "reason": "Classify the delegated call as the operation effect and continue into its candidate implementation."
+          },
+          "diagnostics": [
+            {
+              "code": "source-interpretation-role",
+              "path": "anchor-6382981b9e6645aa52e61653",
+              "message": "This role does not match a source object or relevant operation anchor.",
+              "questionId": "q1",
+              "severity": "error"
+            },
+            {
+              "code": "source-interpretation-failure-kind-required",
+              "path": "anchor-9156da0367911009d52fa162",
+              "message": "failureKind: Distinguish authorization rejection from operation failure without erasing the exception. Other valid annotations remain in this source transaction.",
+              "questionId": "q1",
+              "severity": "error"
+            },
+            {
+              "code": "source-interpretation-fallthrough-outcome-required",
+              "path": "struct-b87a4afdcea33f96a2b2fa2d",
+              "message": "fallthroughOutcome: Interpret the source entry's normal fallthrough outcome at the interpretation root. Other valid annotations remain in this source transaction.",
+              "questionId": "q1",
+              "severity": "error"
+            }
+          ]
+        }
+      ],
+      "checkHistory": [],
+      "toolBudget": {
+        "totalLimit": 64,
+        "totalUsed": 60,
+        "totalRemaining": 4,
+        "explorationLimit": 60,
+        "explorationUsed": 60,
+        "explorationRemaining": 0,
+        "checkLimit": 2,
+        "checksUsed": 0,
+        "checksRemaining": 2,
+        "formatCorrectionLimit": 2,
+        "formatRejections": 3,
+        "formatCorrectionsRemaining": 0,
+        "formatBudgetExhausted": true
+      },
+      "runtimeObservation": {
+        "schemaVersion": "authorization-az-runtime-observation/v1",
+        "attemptId": "quality-download-M-repeat-1/original",
+        "source": "results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/attempts/quality-download-M-repeat-1/original/run-result.json.gz",
+        "sourceSha256": "8bd419d77d4757473101a0d2c65e578691469bb156a56081a13531dc486e9b38",
+        "runtimeReportUnchanged": true,
+        "domainTools": true,
+        "toolBudget": {
+          "totalLimit": 64,
+          "totalUsed": 60,
+          "totalRemaining": 4,
+          "explorationLimit": 60,
+          "explorationUsed": 60,
+          "explorationRemaining": 0,
+          "checkLimit": 2,
+          "checksUsed": 0,
+          "checksRemaining": 2,
+          "formatCorrectionLimit": 2,
+          "formatRejections": 3,
+          "formatCorrectionsRemaining": 0,
+          "formatBudgetExhausted": true
+        },
+        "sourceWorkMetrics": {
+          "sourceInterpretationSubmissions": 2,
+          "localInterpretationRepairs": 1,
+          "lowLevelFallbacks": 0,
+          "acceptedSourceUnits": 0,
+          "controlSteps": 0
+        },
+        "materialUses": 0,
+        "checkHistoryCount": 0,
+        "propertyAnalysisCollections": {
+          "metrics": "object",
+          "summaries": 0,
+          "demands": 41
+        },
+        "propertyQueryCounts": {
+          "bound": 0,
+          "summaryUses": 0
+        },
+        "currentResultPresent": false
+      }
+    },
+    {
+      "attemptId": "quality-download-D-repeat-1/original",
+      "originalFile": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-property-abstraction-v1\\attempts\\quality-download-D-repeat-1\\original\\run-result.json.gz",
+      "originalSha256": "8cc34715981afa509935c5ce16586f61d72a9fc90efa686903c7d83a19112db6",
+      "jsonPath": "$.authorizationInquiry",
+      "terminal": {
+        "status": "failed",
+        "terminalStatus": "failed",
+        "quotaRefused": false,
+        "terminalError": {
+          "message": "workspace routing discovery failed",
+          "codexErrorInfo": "other",
+          "additionalDetails": null,
+          "misalignment": null
+        },
+        "usage": null
+      },
+      "toolRejections": [],
+      "sourceInterpretations": [],
+      "checkHistory": [],
+      "toolBudget": {
+        "totalLimit": 64,
+        "totalUsed": 0,
+        "totalRemaining": 64,
+        "explorationLimit": 60,
+        "explorationUsed": 0,
+        "explorationRemaining": 60,
+        "checkLimit": 2,
+        "checksUsed": 0,
+        "checksRemaining": 2,
+        "formatCorrectionLimit": 2,
+        "formatRejections": 0,
+        "formatCorrectionsRemaining": 2,
+        "formatBudgetExhausted": false
+      },
+      "runtimeObservation": {
+        "schemaVersion": "authorization-az-runtime-observation/v1",
+        "attemptId": "quality-download-D-repeat-1/original",
+        "source": "results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/attempts/quality-download-D-repeat-1/original/run-result.json.gz",
+        "sourceSha256": "8cc34715981afa509935c5ce16586f61d72a9fc90efa686903c7d83a19112db6",
+        "runtimeReportUnchanged": true,
+        "domainTools": true,
+        "toolBudget": {
+          "totalLimit": 64,
+          "totalUsed": 0,
+          "totalRemaining": 64,
+          "explorationLimit": 60,
+          "explorationUsed": 0,
+          "explorationRemaining": 60,
+          "checkLimit": 2,
+          "checksUsed": 0,
+          "checksRemaining": 2,
+          "formatCorrectionLimit": 2,
+          "formatRejections": 0,
+          "formatCorrectionsRemaining": 2,
+          "formatBudgetExhausted": false
+        },
+        "sourceWorkMetrics": {
+          "sourceInterpretationSubmissions": 0,
+          "localInterpretationRepairs": 0,
+          "lowLevelFallbacks": 0,
+          "acceptedSourceUnits": 0,
+          "controlSteps": 0
+        },
+        "materialUses": 0,
+        "checkHistoryCount": 0,
+        "propertyAnalysisCollections": {
+          "metrics": "object",
+          "summaries": 0,
+          "demands": 0
+        },
+        "propertyQueryCounts": {
+          "bound": 0,
+          "summaryUses": 0
+        },
+        "currentResultPresent": false
+      }
+    }
+  ],
+  "newInference": 0,
+  "originalScoresChanged": false,
+  "currentReplay": null,
+  "hypotheses": [
+    "Selected-protocol diagnostics and displayed field/value slots may cause avoidable format friction; valid condition prose still lacks a computable predicate."
+  ]
+}

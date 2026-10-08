@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod/Ajv、既有源码结构索引与有限求值器、Codex Account Adapter。开发模型 `gpt-6.1-sol / max`；实验只用已授权的当前官方账号 `gpt-5.6-sol / high`。
 
-日期：2026-10-09。状态：`planned-not-started`。复核基线：`29c400fff55b74185fb518fc366d61b50967e3ea`，本地与用户 origin 一致、工作树干净。本文新增行为均是实施要求，不能作为已实现或效果证据。
+日期：2026-10-09。状态：`in-progress`（BA0已登记）。复核基线：`29c400fff55b74185fb518fc366d61b50967e3ea`；实际接管HEAD为`1c822e10121d49aae8026dba8caa5399b5e09dab`，启动工作树干净。实施及真实结果按勾选项与新identity原件区分，未勾选要求不能作为结果。
 
 ## 一、接管与事实基础
 
@@ -94,10 +94,10 @@ Schema、模型可见字段说明、空表单/匿名示例、解析器、错误�
 
 **落点：** 新 identity 的 `study.ts`、`study.test.ts`、`manifest.json`、`status.json`、`failure-analysis.json`。
 
-- [ ] 保存接管 HEAD/干净状态、账号已知终态与路径；不清理历史结果。
-- [ ] 从上述三次领域尝试提取原始参数、所见合同、局部诊断和预算变化，制作最小离线回归夹具；旧文件只读。
-- [ ] 将原件事实、当前代码重放、待验证推断分开。尤其不要把 union 的候选分支报错当成真实 focus 切换。
-- [ ] 新 runner 禁止写入 AZ/AY；登记下述22个主位置和独立修订机制，requirements 与 outcomes 分开。
+- [x] 保存接管 HEAD/干净状态、账号已知终态与路径；不清理历史结果。
+- [x] 从上述三次领域尝试提取原始参数、所见合同、局部诊断和预算变化，制作最小离线回归夹具；旧文件只读。
+- [x] 将原件事实、当前代码重放、待验证推断分开。尤其不要把 union 的候选分支报错当成真实 focus 切换。
+- [x] 新 runner 禁止写入 AZ/AY；登记下述22个主位置和独立修订机制，requirements 与 outcomes 分开。（3 tests/17 assertions通过；dispatch后续接线。）
 
 ### BA1：语义编辑合同及失败测试
 
