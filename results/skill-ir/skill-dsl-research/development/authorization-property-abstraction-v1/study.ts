@@ -71,6 +71,13 @@ export function admitDispatch(state: { activeAttempts: string[]; unknownCompleti
   if (["quota-refused", "unavailable"].includes(state.accountChannel?.status ?? "")) throw new Error("Specified experiment account channel is unavailable; do not poll, resend or switch")
 }
 
+export function accountChannelBlocker(account: Pick<AccountSessionResult, "status" | "quotaRefused" | "terminalError" | "reason">) {
+  if (account.quotaRefused) return { status: "quota-refused", kind: "quota", reason: account.reason }
+  if (account.status === "unavailable") return { status: "unavailable", kind: "account-unavailable", reason: account.reason }
+  if (account.status === "failed" && account.terminalError?.message === "workspace routing discovery failed") return { status: "unavailable", kind: "official-workspace-routing", reason: account.terminalError.message }
+  return undefined
+}
+
 export async function prepareChanges(registrationId = "current") {
   const manifest = JSON.parse(await readFile(path.join(root, "manifest.json"), "utf8")), baseline = manifest.positions.find((p: Position) => p.id === "consumer-download") as Position
   if (!baseline.attempts.length || baseline.status === "running") throw new Error("A current original consumer session is required")
@@ -123,8 +130,9 @@ export async function run(id: string, revision?: string) {
   await write(path.join(out, "report.json"), { attemptId, positionId: id, entrance: position.entrance, status, ...binding, ...details, gitRevision, runtimeTree, sessionPath, inputSha256: loaded.inputSha256, accountStatus: account?.status, terminalStatus: account?.terminalStatus, answerDelivery: account?.answerDelivery, quotaRefused: account?.quotaRefused, terminalError: account?.terminalError, finalPresent: !!account?.text.trim(), answerSha256: sha(account?.text ?? ""), accountUsage: account?.usage ?? null, usageDetails: account?.usageDetails, usageSource: account?.usageSource, inferenceDispatched: account?.inferenceDispatched ?? null, hostToolCalls: account ? account.tools.length + (account.toolRejections?.length ?? 0) : 0, durationMs: account?.durationMs ?? null, reason: account?.reason, providerRequests: null, actualUsd: null, targetExecutions: 0, semanticQuality: account?.text.trim() ? "awaiting-independent-review" : "undelivered" }, true)
   position.status = status; state.activeAttempts = []
   if (status.endsWith("unknown")) state.unknownCompletions.push(attemptId)
-  if (account?.quotaRefused || status === "unavailable") {
-    state.status = "in-progress-external-blocker"; state.accountChannel = { status: account?.quotaRefused ? "quota-refused" : "unavailable", attemptId, terminalStatus: account?.terminalStatus, reason: account?.reason, recoveryEvidence: null }
+  const blocker = account && accountChannelBlocker(account)
+  if (blocker) {
+    state.status = "in-progress-external-blocker"; state.accountChannel = { ...blocker, attemptId, terminalStatus: account?.terminalStatus, recoveryEvidence: null }
     for (const p of manifest.positions) if (!p.attempts.length) p.status = "unrun-account-blocked"
   }
   await write(manifestFile, manifest); await write(statusFile, state)

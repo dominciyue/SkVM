@@ -46,6 +46,15 @@ test("known channel refusal and active or unknown runs prevent another experimen
   expect(() => admitDispatch({ ...state, activeAttempts: ["first"] })).toThrow("Inspect")
 })
 
+test("an explicit official routing terminal blocks later positions without rewriting the failed attempt", async () => {
+  const api = await import("./study.ts") as any
+  expect(api.accountChannelBlocker({ status: "failed", quotaRefused: false, terminalError: { message: "workspace routing discovery failed" } })).toEqual({ status: "unavailable", kind: "official-workspace-routing", reason: "workspace routing discovery failed" })
+  expect(api.accountChannelBlocker({ status: "completed", quotaRefused: false })).toBeUndefined()
+  expect(api.accountChannelBlocker({ status: "failed", quotaRefused: false, terminalError: { message: "source interpretation rejected" } })).toBeUndefined()
+  expect(api.accountChannelBlocker({ status: "failed", quotaRefused: true })?.status).toBe("quota-refused")
+  expect(api.accountChannelBlocker({ status: "unavailable", quotaRefused: false })?.status).toBe("unavailable")
+})
+
 test("single-property preparation retains the original task and binds no source-derived answer", async () => {
   const api = await import("./study.ts") as any
   const directory = path.join(await mkdtemp(path.join(os.tmpdir(), "az-prepare-")), "authorization-property-abstraction-v1")
