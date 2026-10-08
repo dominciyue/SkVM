@@ -2082,6 +2082,10 @@ AY7有限方法选择小步（2026-10-08）：v16保留同一稳定普通receive
 
 27新增测试、350focused/1311断言、新鲜联合1216pass/1平台skip/7244断言/115文件/13.99s与主/AY类型通过，见[局部核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-method-choices.json)。真实[reviewed有限选择probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-method-choice-reviewed-replay.json)核验94冻结文件和独立supplements，共100文件/6body，9别名仍具名，有限选择合格0/实际采用0；初始与reviewed分留且SHA相同。机械窗口不提供实验模型read或application annotation，模型/目标/网络新增0，旧input/allowlist/答不升级，开发/探子token、USD及真人时间unknown。真实getattr/fallback、字段callable、完整framework组合及官方具名复验继续，AY7与完整使用/净收益未达。
 
+AY7普通getattr小步（2026-10-08）：v17以唯一无条件创建后的真实直接调用连接原receiver、selector/精确子call结果、当前普通MRO target与eager default来源；同一binder筛选参数可绑定的普通方法，ordinary token按实际selector生成后在handler调用点分派。default存在不证明属性不存在，未匹配属性和actual fallback选择仍具名；匿名`pick('guard')`实际返回值已沿精确call结果驱动选择，拒绝仍先于write。来源独立核验192项通过后指出literal仍列入所有同签名方法；主17额外方法红测复现已知selector被候选上限错误阻断，现先收窄再计上限。原runtime guard没有执行其它literal不匹配variant，来源精度修复与实际执行分开。投影只读核验45项/278断言通过且未发现新缺陷。
+
+25新增测试、375focused/1407断言、新鲜联合1241pass/1平台skip/7340断言/115文件/14.83s和主/AY类型通过，见[局部核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-method-lookups.json)。真实[reviewed lookup probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-method-lookup-reviewed-replay.json)核验94冻结文件和独立supplements，共100文件/6body/6 lookup边界，binding/receiver/owner缺口保留，来源合格与采用0。初始/reviewed分留且SHA相同，模型/目标/网络新增0、无实验模型read/application annotation/material use，旧input/allowlist/答不升级，开发/探子token、USD和真人时间unknown。继续条件lookup、fallback证明、字段callable、wrapper及完整framework组合和官方具名复验，AY7及完整使用/净收益未达。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

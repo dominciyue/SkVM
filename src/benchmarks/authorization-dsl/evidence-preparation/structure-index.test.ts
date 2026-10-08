@@ -717,3 +717,43 @@ for (const target of ["    @property\n    def fallback(self):\n        return re
   expect(call.gap).toBe("source-method-choice-target-unmodeled")
   expect(call.methodChoices).toBeUndefined()
 })
+
+test("getattr preserves its actual selector occurrence and compatible current method targets", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "class Base:\n    def entry(this, actor, selector):\n        handler = getattr(this, selector, this.fallback)\n        return handler(actor)\n    def guard(self, actor):\n        return actor\n    def fallback(self, actor):\n        return actor\nclass Gate(Base):\n    def guard(self, actor):\n        raise Denied\n" }], { repository: "anonymous", sourceRef: "r" }), owner = index.symbols.find(s => s.name === "entry")!, calls = index.relatedCalls(owner.id, "app.Gate"), call = calls.find(c => c.expression === "handler")!
+  expect(call.methodLookup).toMatchObject({ schemaVersion: "source-method-lookup/v1", name: "handler", receiver: "this", creationCallId: calls.find(c => c.expression === "getattr")!.id, selector: { expression: "selector", literalKnown: false }, fallbackExpression: "this.fallback", choices: [{ method: "guard", targetId: index.symbols.find(s => s.name === "guard" && s.className === "app.Gate")!.id }, { method: "fallback" }] })
+  expect(call.candidateIds).toHaveLength(2)
+  expect(index.relatedCalls(owner.id, "other.Gate").find(c => c.expression === "handler")!.gap).toBe("source-method-lookup-class-binding-unresolved")
+})
+test("a literal getattr selector narrows before the candidate limit and preserves eager default provenance", async () => {
+  const content = `class Gate:\n    def entry(self, actor):\n        handler = getattr(self, 'guard', self.fallback)\n        return handler(actor)\n    def guard(self, actor):\n        return actor\n    def fallback(self, actor):\n        return actor\n${Array.from({ length: 17 }, (_, i) => `    def other${i}(self, actor):\n        return actor\n`).join("")}`
+  const index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "handler")!, target = index.symbols.find(s => s.name === "guard")!
+  expect(call.resolution).toBe("resolved")
+  expect(call.candidateIds).toEqual([target.id])
+  expect(call.methodLookup!.choices.map(c => c.method)).toEqual(["guard"])
+  expect(call.methodLookup!.fallbackTarget!.targetId).toBe(index.symbols.find(s => s.name === "fallback")!.id)
+})
+for (const body of [
+  "        handler = getattr(self, selector)\n        handler = replacement\n",
+  "        if selected:\n            handler = getattr(self, selector)\n",
+  "        handler = getattr(self, selector)\n        keep(handler)\n",
+  "        handler = getattr(other, selector)\n",
+  "        handler = getattr(self, selector)\n        setattr(self, 'guard', replacement)\n",
+  "        handler = getattr(self, selector, unknown_default)\n",
+  "        getattr = replacement\n        handler = getattr(self, selector)\n",
+]) test(`unproved getattr values remain named: ${body.length} ${body.trim().split("\n")[0]}`, async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: `class Gate:\n    def entry(self, actor, selector, other):\n${body}        return handler(actor)\n    def guard(self, actor):\n        return actor\n` }], { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "handler")!
+  expect(call.gap).toMatch(/^source-method-lookup-/)
+  expect(call.methodLookup).toBeUndefined()
+})
+for (const definition of ["    @staticmethod\n    def entry(self, actor, selector):\n", "    @classmethod\n    def entry(self, actor, selector):\n", "    @decorate\n    def entry(self, actor, selector):\n", "    async def entry(self, actor, selector):\n"]) test(`getattr owner requires an ordinary instance: ${definition.trim().split("\n")[0]}`, async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: `class Gate:\n${definition}        handler = getattr(self, selector)\n        return handler(actor)\n    def guard(self, actor):\n        return actor\n` }], { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id, "app.Gate").find(c => c.expression === "handler")!
+  expect(call.gap).toBe("source-method-lookup-owner-unmodeled")
+})
+for (const definition of ["    @property\n    def fallback(self):\n        return other\n", "    @staticmethod\n    def fallback(actor):\n        return actor\n", "    @classmethod\n    def fallback(cls, actor):\n        return actor\n", "    async def fallback(self, actor):\n        return actor\n"]) test(`getattr eagerly evaluated default must remain ordinary: ${definition.trim().split("\n")[0]}`, async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: `class Gate:\n    def entry(self, actor, selector):\n        handler = getattr(self, selector, self.fallback)\n        return handler(actor)\n    def guard(self, actor):\n        return actor\n${definition}` }], { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "handler")!
+  expect(call.gap).toBe("source-method-lookup-default-unmodeled")
+})
+for (const name of ["__getattr__", "__getattribute__"]) test(`getattr keeps current custom attribute protocol named: ${name}`, async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: `class Gate:\n    def entry(self, actor, selector):\n        handler = getattr(self, selector)\n        return handler(actor)\n    def guard(self, actor):\n        return actor\n    def ${name}(self, name):\n        return other\n` }], { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "handler")!
+  expect(call.gap).toBe("source-method-lookup-descriptor-unmodeled")
+})

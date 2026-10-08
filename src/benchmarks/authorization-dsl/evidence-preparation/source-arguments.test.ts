@@ -110,3 +110,12 @@ test("finite method choices bind each actual target signature without accepting 
     expect(api.sourceArgumentBindings(index, { ...call, receiver: "other" }, target).bindings).toEqual([])
   }
 })
+test("getattr method targets use current self and pack mappings and reject a foreign lookup", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "class Gate:\n    def entry(self, actor, selector, *args, **kwargs):\n        handler = getattr(self, selector)\n        return handler(actor, *args, **kwargs)\n    def guard(self, actor, *rest, **options):\n        return actor\n" }], { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "handler")!, target = index.symbols.find(s => s.name === "guard")!
+  const bound = api.sourceArgumentBindings(index, call, target)
+  expect(bound.gap).toBeUndefined()
+  expect(bound.bindings.map((b: any) => b.expression)).toEqual(["self", "actor", "args", "kwargs"])
+  const forged = structuredClone(call); forged.methodLookup!.selector.expression = "other_selector"
+  expect(api.sourceArgumentBindings(index, forged, target).gap).toBe("source-arguments-method-lookup-unresolved")
+  expect(api.sourceArgumentBindings(index, { ...call, receiver: "other" }, target).bindings).toEqual([])
+})

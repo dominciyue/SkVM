@@ -181,6 +181,12 @@ DRF下一小步工作计划（2026-10-08）：先从原轮次已保留且SHA一�
 
 有限选择本小步进展：v16有限创建proof、原控制路径、ordinary sentinel/token和精确调用点choose沿同一binder/六角色/投影接通。27新增测试、350focused/1311断言，新鲜联合1216pass/1平台skip/7244断言/115文件/13.99s及主/AY类型通过；两项只读核验与主红绿分列，整体selector完整性、过晚初始化和未创建出口替换均已修。100文件/6body真实probe的9别名仍具名，有限选择合格0/采用0，初始/reviewed分留且SHA相同；model read/application annotation/material use/模型/目标/网络新增0，旧输入/答不升级。继续实际getattr selector/fallback、字段callable和完整framework请求组合，然后官方具名实际复验及预登记收益比较；AY7和研究验收未勾选。
 
+getattr下一小步设计（2026-10-08）：先连接唯一无条件`handler=getattr(receiver,selector[,receiver.fallback])`后的实际直接调用，独立`source-method-lookup/v1`保留精确creationCallId/跨度/SHA、selector表达式/子call身份、原receiver及当前MRO普通target。仅普通稳定instance owner和无getter/class wrapper的当前MRO；builtin遮蔽、重绑定/逃逸、可见receiver属性mutation、conditional创建及非ordinary fallback具名。现有Python binder筛出当前参数可绑定的普通方法，最多16项；其它属性/签名/descriptor均落到具名unknown出口，不把候选全集或fallback误认实际选择。宿主在getattr原调用点按实际有限selector值生成ordinary token，在handler原调用点按token选择同一来源call variant；未知属性的fallback行为本步仍具名，不能据default存在推断属性缺失。先匿名匹配/未知selector、拒绝先于write、参数包、漏创建/错guard/当前来源失效红绿，再真实source-only probe。随后继续conditional lookup、fallback缺失证明、字段callable及完整请求；本步不宣称真实getattr/fallback分派已经闭合。
+
+getattr复核细化：已知literal selector先收窄当前普通候选，再计16项上限；未匹配时保留具名unknown而不采用其它方法或default。独立来源review提出候选过宽，主17其它同签名方法红测复现已知guard错误被上限阻断并修正，原runtime条件已按literal分派而未执行其它方法。eager default target/SHA仍保留，不因literal选择而漏掉其求值来源。
+
+getattr本小步进展：v17 selector/子call结果、原receiver、ordinary token创建和精确handler call沿同一binder/六角色/投影接通；未知属性和actual fallback选择仍具名。25新增测试、375focused/1407断言、新鲜联合1241pass/1平台skip/7340断言/115文件/14.83s及主/AY类型通过，两只读核验与主红绿分别记录。100文件/6body真实probe保留6 lookup边界，binding/receiver/owner仍待证明，合格/采用0，初始/reviewed分留且SHA相同；model read/application annotation/material use/模型/目标/网络新增0，旧输入/答不升级。继续条件lookup/fallback、字段callable/wrapper和完整请求，再官方具名复验及预登记收益比较；AY7和研究验收未勾选。
+
 ### AY8 调度与局部解释的闭环
 
 2026-10-08真实OWUI反例细化：七轮增量字段确有前进，最后宿主生成34个块（其中8个为空）却被沿用手写接口的32块上限拒绝。先在v5源码编译器复用同单元的无动作空块，保留每个实际条件、步骤、正常/拒绝/异常出口及既有路径/节点边界；不提高求值上限。停滞按当前缺口和已保留字段进展判断，不能把observations的pending标签当源码frontier停滞。实际发送上下文与原始归档分账，引用的bytes是被引用原值大小，不是该引用包的发送大小。

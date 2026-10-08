@@ -102,10 +102,10 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       const actual = sourceCall(n)
       const arguments_: NonNullable<SourceAnchor["call"]>["arguments"] = kids(field(n, "arguments")).map(a => { const value = a.type === "keyword_argument" ? field(a, "value")! : a, literal = sourceLiteral(value), child = ["call", "call_expression"].includes(value.type) ? sourceCall(value) : undefined; return { expression: value.text, ...(child ? { sourceCallId: child.id } : {}), ...(a.type === "keyword_argument" ? { parameterName: field(a, "name")!.text } : {}), ...(["list_splat", "dictionary_splat", "variadic_argument"].includes(a.type) ? { spread: true } : {}), ...(literal.literalKnown ? literal : {}) } })
       if (!/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(expression) && !/^super\(\)\.[A-Za-z_]\w*$/.test(expression)) gap(n, "skeleton-call-dynamic", "The actual function expression is dynamic; no unique callee or receiver is invented.")
-      const callableGap = actual?.gap && /^(?:source-local-|source-returned-callable-|source-method-alias-|source-method-choice-)/.test(actual.gap) ? actual.gap : undefined
+      const callableGap = actual?.gap && /^(?:source-local-|source-returned-callable-|source-method-alias-|source-method-choice-|source-method-lookup-)/.test(actual.gap) ? actual.gap : undefined
       if (questionDirected && callableGap) gap(n, callableGap, "The current lexical callable/capture binding is unresolved regardless of its proposed domain role.")
       if (arguments_.some(a => a.spread)) {
-        const targets = actual && (actual.methodChoices || actual.candidateIds.length === 1) ? actual.candidateIds.flatMap(id => index.symbols.filter(s => s.id === id && s.kind === "function")) : []
+        const targets = actual && (actual.methodChoices || actual.methodLookup || actual.candidateIds.length === 1) ? actual.candidateIds.flatMap(id => index.symbols.filter(s => s.id === id && s.kind === "function")) : []
         const bindings = actual ? targets.map(target => sourceArgumentBindings(index, actual, target)) : []
         if (!questionDirected || !bindings.length || bindings.some(b => b.gap)) gap(n, "skeleton-arguments-dynamic", `Expanded arguments require a source-supported mapping; ${bindings.find(b => b.gap)?.gap || "positions are not guessed"}.`)
       }
