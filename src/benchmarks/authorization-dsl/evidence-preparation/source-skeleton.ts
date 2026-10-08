@@ -3,6 +3,7 @@ import type { Node } from "@vscode/tree-sitter-wasm"
 import type { InquiryEvidence } from "../inquiry-tools.ts"
 import type { StructureCall, StructureIndex, StructureSymbol } from "./structure-index.ts"
 import { sourceLiteral } from "./structure-index.ts"
+import { sourceSyntaxAnchorId } from "./source-identities.ts"
 import { sourceArgumentBindings, sourceCallableParameter } from "./source-arguments.ts"
 import type { SourceSelector } from "./source-selector.ts"
 import type { FiniteValue } from "../../../task-dsl/authorization/control-evaluation.ts"
@@ -68,7 +69,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     }
     const located = (n: Node): SourceSelector => ({ path: source.path, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, candidateId: source.id })
     const add = (n: Node, kind: SourceAnchor["kind"], extra: Partial<SourceAnchor> = {}) => {
-      const id = `anchor-${hash([source.id, n.startIndex, n.endIndex, kind, extra.name]).slice(0, 24)}`
+      const id = sourceSyntaxAnchorId(source.id, n.startIndex, n.endIndex, kind, extra.name)
       const existing = skeleton.anchors.find(a => a.id === id)
       if (existing) return existing
       const anchor: SourceAnchor = { id, selector: located(n), sourceSha256: source.sha256, kind, text: n.text, syntax: n.type, interpretationRequired: false, ...extra }
@@ -101,12 +102,12 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       const actual = sourceCall(n)
       const arguments_: NonNullable<SourceAnchor["call"]>["arguments"] = kids(field(n, "arguments")).map(a => { const value = a.type === "keyword_argument" ? field(a, "value")! : a, literal = sourceLiteral(value), child = ["call", "call_expression"].includes(value.type) ? sourceCall(value) : undefined; return { expression: value.text, ...(child ? { sourceCallId: child.id } : {}), ...(a.type === "keyword_argument" ? { parameterName: field(a, "name")!.text } : {}), ...(["list_splat", "dictionary_splat", "variadic_argument"].includes(a.type) ? { spread: true } : {}), ...(literal.literalKnown ? literal : {}) } })
       if (!/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(expression) && !/^super\(\)\.[A-Za-z_]\w*$/.test(expression)) gap(n, "skeleton-call-dynamic", "The actual function expression is dynamic; no unique callee or receiver is invented.")
-      const callableGap = actual?.gap && /^(?:source-local-|source-returned-callable-|source-method-alias-)/.test(actual.gap) ? actual.gap : undefined
+      const callableGap = actual?.gap && /^(?:source-local-|source-returned-callable-|source-method-alias-|source-method-choice-)/.test(actual.gap) ? actual.gap : undefined
       if (questionDirected && callableGap) gap(n, callableGap, "The current lexical callable/capture binding is unresolved regardless of its proposed domain role.")
       if (arguments_.some(a => a.spread)) {
-        const target = actual?.candidateIds.length === 1 && index.symbols.find(s => s.id === actual.candidateIds[0] && s.kind === "function")
-        const binding = actual && target && sourceArgumentBindings(index, actual, target)
-        if (!questionDirected || !binding || binding.gap) gap(n, "skeleton-arguments-dynamic", `Expanded arguments require a source-supported mapping; ${binding && binding.gap || "positions are not guessed"}.`)
+        const targets = actual && (actual.methodChoices || actual.candidateIds.length === 1) ? actual.candidateIds.flatMap(id => index.symbols.filter(s => s.id === id && s.kind === "function")) : []
+        const bindings = actual ? targets.map(target => sourceArgumentBindings(index, actual, target)) : []
+        if (!questionDirected || !bindings.length || bindings.some(b => b.gap)) gap(n, "skeleton-arguments-dynamic", `Expanded arguments require a source-supported mapping; ${bindings.find(b => b.gap)?.gap || "positions are not guessed"}.`)
       }
       const fieldResult = questionDirected && source.language === "python" && n.parent?.type === "assignment" && field(n.parent, "right")?.id === n.id && field(n.parent, "left")?.type === "attribute"
       return add(n, "call", { call: { sourceCallId: actual?.id, expression, receiver: actual?.receiver, receiverClass: actual?.receiverClass, ...(questionDirected && actual?.receiverBinding ? { receiverBinding: actual.receiverBinding } : {}), ...(questionDirected && actual?.callableBinding ? { callableBinding: actual.callableBinding } : {}), ...(questionDirected && callableGap ? { bindingGap: callableGap } : {}), arguments: arguments_, candidateIds: actual?.candidateIds ?? [], resultNames: actual?.resultNames ?? [], resultBinding: !fieldResult && actual?.resultNames[0] || `result-${hash([source.id, n.startIndex]).slice(0, 16)}` } })

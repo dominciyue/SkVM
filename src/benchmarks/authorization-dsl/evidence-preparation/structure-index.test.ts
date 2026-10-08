@@ -683,3 +683,37 @@ for (const definition of ["    @staticmethod\n    def entry(receiver, actor):\n"
     expect(call.methodBinding).toBeUndefined()
   }
 })
+test("conditional ordinary method values retain each creation and actual receiver target", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "class Base:\n    def entry(this, actor, selected):\n        if selected:\n            handler = this.guard\n        else:\n            handler = this.fallback\n        return handler(actor)\n    def guard(self, actor):\n        return actor\n    def fallback(self, actor):\n        return actor\nclass Gate(Base):\n    def guard(self, actor):\n        raise Denied\n" }], { repository: "anonymous", sourceRef: "r" }), owner = index.symbols.find(s => s.name === "entry")!, call = index.relatedCalls(owner.id, "app.Gate").find(c => c.expression === "handler")!
+  expect(call.resolution).toBe("ambiguous")
+  expect(call.receiver).toBe("this")
+  expect(call.methodChoices).toMatchObject({ schemaVersion: "source-method-choice/v1", name: "handler", receiver: "this", choices: [{ method: "guard", targetId: index.symbols.find(s => s.name === "guard" && s.className === "app.Gate")!.id, controls: [{ branch: "true" }] }, { method: "fallback", targetId: index.symbols.find(s => s.name === "fallback")!.id, controls: [{ branch: "false" }] }] })
+  expect(call.methodChoices!.choices[0]!.source.startLine).toBe(4)
+  expect(index.relatedCalls(owner.id, "other.Gate").find(c => c.expression === "handler")!.gap).toBe("source-method-choice-class-binding-unresolved")
+})
+for (const body of [
+  "        handler = self.guard\n        handler = self.fallback\n        handler = replacement\n",
+  "        handler = self.guard\n        handler = other.fallback\n",
+  "        handler = self.guard\n        handler = self.fallback\n        keep(handler)\n",
+  "        handler = self.guard\n        handler = self.fallback\n        self = other\n",
+  "        handler = self.guard\n        handler = self.fallback\n        setattr(self, 'fallback', replacement)\n",
+  "        handler = self.guard\n        handler = self.fallback\n        self.fallback = replacement\n",
+  "        try:\n            handler = self.guard\n        except Failed:\n            handler = self.fallback\n",
+  "        handler = self.guard\n        for item in items:\n            handler = self.fallback\n",
+  "        if selected:\n            handler = self.guard\n        elif other:\n            handler = self.fallback\n",
+  "        handler = self.guard\n        handler = self.fallback\n        def inner():\n            return handler(actor)\n",
+]) test(`unproved finite method choices remain named: ${body.trim().split("\n")[0]} ${body.length}`, async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: `class Gate:\n    def entry(self, actor, other):\n${body}        return handler(actor)\n    def guard(self, actor):\n        return actor\n    def fallback(self, actor):\n        return actor\n` }], { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "handler")!
+  expect(call.resolution).toBe("unresolved")
+  expect(call.gap).toMatch(/^source-method-choice-/)
+})
+for (const definition of ["    @staticmethod\n    def entry(self, actor):\n", "    @classmethod\n    def entry(self, actor):\n", "    @decorate\n    def entry(self, actor):\n", "    async def entry(self, actor):\n"]) test(`finite method choices require an ordinary owner: ${definition.trim().split("\n")[0]}`, async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: `class Gate:\n${definition}        handler = self.guard\n        handler = self.fallback\n        return handler(actor)\n    def guard(self, actor):\n        return actor\n    def fallback(self, actor):\n        return actor\n` }], { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id, "app.Gate").find(c => c.expression === "handler")!
+  expect(call.gap).toBe("source-method-choice-owner-unmodeled")
+  expect(call.methodChoices).toBeUndefined()
+})
+for (const target of ["    @property\n    def fallback(self):\n        return replacement\n", "    @staticmethod\n    def fallback(actor):\n        return actor\n", "    @classmethod\n    def fallback(cls, actor):\n        return actor\n", "    async def fallback(self, actor):\n        return actor\n"]) test(`finite method choices retain an unproved target boundary: ${target.trim().split("\n")[0]}`, async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: `class Gate:\n    def entry(self, actor):\n        handler = self.guard\n        handler = self.fallback\n        return handler(actor)\n    def guard(self, actor):\n        return actor\n${target}` }], { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "handler")!
+  expect(call.gap).toBe("source-method-choice-target-unmodeled")
+  expect(call.methodChoices).toBeUndefined()
+})

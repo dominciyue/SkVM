@@ -471,3 +471,61 @@ test("a source-assisted method alias adopts the actual receiver only after its o
   const changed = await buildStructureIndex([{ path: "app.py", content: content.replace("handler = self.guard", "handler = self.other") }], { repository: "anonymous", sourceRef: "r" })
   expect(project(units, changed).uses).toEqual([])
 })
+for (const selected of [true, false]) test(`finite method choice executes its original selected branch before write: ${selected}`, async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-method-choice-")), content = `class Gate:\n    def entry(self, actor):\n        if ${selected ? "True" : "False"}:\n            handler = self.guard\n        else:\n            handler = self.fallback\n        handler(actor)\n        write()\n        return True\n    def guard(self, actor):\n        raise Denied\n    def fallback(self, actor):\n        return actor\n`
+  await writeFile(path.join(sourceRoot, "app.py"), content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, units: any[] = []
+  for (const name of ["entry", "guard", "fallback"]) {
+    const source = index.symbols.find(s => s.name === name)!
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id, "app.Gate"))!
+    expect(skeleton.gaps).toEqual([])
+    const annotations = skeleton.anchors.filter(a => ["parameter", "condition", "call", "return", "raise"].includes(a.kind)).map(a => ({ anchorId: a.id, role: a.kind === "parameter" ? a.name === "self" ? "context" : "principal" : a.kind === "condition" || a.kind === "call" && a.call!.expression !== "write" ? "condition" : a.kind === "call" ? "effect" : "context", explanation: "Anonymous finite ordinary method selection", ...(a.kind === "condition" ? { condition: { op: "eq", left: { literal: selected }, right: { literal: true } } } : {}), ...(a.kind === "return" && name === "entry" ? { returnOutcome: "allow" } : {}), ...(a.kind === "raise" ? { failureKind: "authorization" } : {}) }))
+    const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index, itemId: name, handle: name, questionId: "q", role: name === "entry" ? "entry" : "helper" })
+    expect(result.diagnostics).toEqual([])
+    units.push({ ...result.unit!, questionId: "q", evidenceIds: skeleton.evidenceIds, source: skeleton.source, receiverClass: "app.Gate" })
+  }
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect current method choice", premises: [] }] })
+  const project = (adopted = units, current = index) => {
+    const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" })
+    for (const u of adopted) store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }, { kind: "candidate-set", key: `relations:${u.source.id}:app.Gate`, revision: sourceRelationRevision(index, u.source.id, "app.Gate")! }], "test-authored")
+    return api.projectSourceMaterials(p, adopted, store.snapshot(), current, { questionDirected: true })
+  }
+  const projected = project(), lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true })
+  expect(projected.uses.filter((u: any) => u.kind === "call")).toHaveLength(2)
+  expect(lowered.diagnostics.map(d => d.code)).toEqual(selected ? [] : ["semantic-exception-type-unknown"])
+  expect(lowered.delta.rules.filter(r => r.terminal && r.outcome).map(r => r.outcome)).toEqual([selected ? "deny" : "allow"])
+  expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(!selected)
+  const proof = index.relatedCalls(units[0].source.id, "app.Gate").find(c => c.expression === "handler")!.methodChoices!
+  const skipped = structuredClone(units), creation = skipped[0].blocks.flatMap((b: any) => b.steps).find((s: any) => s.name === `assign-${proof.choices[0]!.anchorId}`)
+  Object.assign(creation, { kind: "context", relationship: "dispatch-binding" }); delete creation.result; delete creation.value
+  expect(project(skipped).uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
+  const wrongGuard = structuredClone(units), choice = wrongGuard[0].blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "choose" && s.name.startsWith("method-choice-"))
+  choice.cases[0].condition.left.binding = "actor"
+  const wrongGuardUses = project(wrongGuard).uses.filter((u: any) => u.kind === "call").length
+  const moved = structuredClone(units), origin = moved[0].blocks.find((b: any) => b.steps.some((s: any) => s.name === `assign-${proof.choices[0]!.anchorId}`)), destination = moved[0].blocks.find((b: any) => b.steps.some((s: any) => s.name === `assign-${proof.choices[1]!.anchorId}`))
+  destination.steps.unshift(origin.steps.splice(origin.steps.findIndex((s: any) => s.name === `assign-${proof.choices[0]!.anchorId}`), 1)[0])
+  expect(project(moved).uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
+  const missingInit = structuredClone(units)
+  missingInit[0].blocks.find((b: any) => b.name === missingInit[0].start).steps = missingInit[0].blocks.find((b: any) => b.name === missingInit[0].start).steps.filter((s: any) => !s.name.startsWith("method-choice-init-"))
+  expect(project(missingInit).uses.filter((u: any) => u.kind === "call")).toHaveLength(0)
+  const lateInit = structuredClone(units), lateStart = lateInit[0].blocks.find((b: any) => b.name === lateInit[0].start), initIndex = lateStart.steps.findIndex((s: any) => s.name.startsWith("method-choice-init-"))
+  lateStart.steps.push(lateStart.steps.splice(initIndex, 1)[0])
+  const lateInitUses = project(lateInit).uses.filter((u: any) => u.kind === "call").length
+  const duplicate = structuredClone(units), duplicatedCreation = duplicate[0].blocks.flatMap((b: any) => b.steps).find((s: any) => s.name === `assign-${proof.choices[0]!.anchorId}`)
+  duplicate[0].blocks.find((b: any) => b.name === duplicate[0].start).steps.splice(1, 0, structuredClone(duplicatedCreation))
+  expect(() => project(duplicate)).toThrow("source-material-semantic-invalid")
+  const missingFailure = structuredClone(units), failureChoose = missingFailure[0].blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "choose" && s.name.startsWith("method-choice-"))
+  missingFailure[0].blocks.find((b: any) => b.name === failureChoose.otherwise).steps = [{ kind: "return", name: "wrong-default", claim: "Forged uncreated path", outcome: "allow", value: true }]
+  expect([lateInitUses, project(missingFailure).uses.filter((u: any) => u.kind === "call").length]).toEqual([0, 0])
+  const duplicateCall = structuredClone(units), variant = duplicateCall[0].blocks.find((b: any) => b.steps.some((s: any) => s.kind === "call" && s.symbol === "handler")), copiedCall = structuredClone(variant.steps.find((s: any) => s.kind === "call"))
+  copiedCall.name = "forged-extra-invocation"; variant.steps.push(copiedCall)
+  const duplicateProjection = project(duplicateCall)
+  expect(duplicateProjection.units.flatMap((u: any) => u.blocks.flatMap((b: any) => b.steps)).find((s: any) => s.name === copiedCall.name).callee).toBeUndefined()
+  expect([wrongGuardUses, duplicateProjection.uses.filter((u: any) => u.kind === "call").length]).toEqual([0, 0])
+  const wrongReceiver = structuredClone(units)
+  wrongReceiver[0].blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call" && s.symbol === "handler").arguments[0].object = "actor"
+  expect(project(wrongReceiver).uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
+  const changed = await buildStructureIndex([{ path: "app.py", content: content.replace("handler = self.guard", "handler = self.fallback") }], { repository: "anonymous", sourceRef: "r" })
+  expect(project(units, changed).uses).toEqual([])
+})

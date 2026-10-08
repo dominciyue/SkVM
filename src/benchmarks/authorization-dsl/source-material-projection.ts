@@ -2,10 +2,12 @@ import type { AuthorizationInquiryProgram } from "../../task-dsl/authorization/i
 import type { BoundSemanticBlock } from "../../task-dsl/authorization/semantic-flow.ts"
 import type { SourceMaterial, SourceMaterialSnapshot } from "../../task-dsl/authorization/source-materials.ts"
 import type { StructureIndex } from "./evidence-preparation/structure-index.ts"
+import { sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceSyntaxAnchorId } from "./evidence-preparation/source-identities.ts"
 import { operationCallSourceSelection, operationCallTargets } from "./operation-links.ts"
 import { structuralDependencyRevision } from "./operation-work.ts"
 import { canonicalControl } from "../../task-dsl/authorization/control-slice.ts"
 import { sourceArgumentBindings, sourceCallableParameter } from "./evidence-preparation/source-arguments.ts"
+type ChoiceStep = Extract<BoundSemanticBlock["blocks"][number]["steps"][number], { kind: "choose" }>
 
 export interface SourceMaterialUse {
   kind: "entry" | "call" | "framework"; operationId: string; questionId: string; materialId: string; callerMaterialId?: string;
@@ -35,6 +37,37 @@ function actualArguments(index: StructureIndex, caller: BoundSemanticBlock, step
   if (call.methodBinding) {
     const proof = call.methodBinding, creation = steps.find(s => s.kind === "assign-value" && s.result === proof.name && canonicalControl(s.value) === canonicalControl({ binding: `${proof.receiver}.${proof.method}` }))
     if (!creation || steps.indexOf(creation) >= steps.indexOf(step) || steps.some(s => s !== creation && (s.kind === "bind" && (s.bindingName ?? s.name) === proof.name || (s.kind === "assign-value" || s.kind === "call") && s.result === proof.name))) return false
+  }
+  if (call.methodChoices) {
+    const proof = call.methodChoices, owner = caller.source!.id, block = caller.blocks.find(b => b.steps.includes(step)), callAnchor = call.startIndex !== undefined && call.endIndex !== undefined ? sourceSyntaxAnchorId(owner, call.startIndex, call.endIndex, "call") : undefined
+    const dispatches = caller.blocks.flatMap(b => b.steps.filter((s): s is ChoiceStep => s.kind === "choose" && s.name === `method-choice-${callAnchor}`).map(dispatch => ({ block: b, dispatch })))
+    if (!block || !callAnchor || dispatches.length !== 1 || dispatches[0]!.dispatch.kind !== "choose") return false
+    const { dispatch, block: dispatchBlock } = dispatches[0]!
+    if (dispatch.cases.length !== proof.choices.length || new Set(dispatch.cases.map(c => c.body)).size !== proof.choices.length || steps.filter(s => s.kind === "call" && s.sourceCallId === call.id).length !== proof.choices.length) return false
+    for (const [i, choice] of proof.choices.entries()) {
+      const alternative = dispatch.cases[i]!, variant = caller.blocks.find(b => b.name === alternative.body), invocations = variant?.steps.filter(s => s.kind === "call")
+      if (canonicalControl(alternative.condition) !== canonicalControl({ op: "eq", left: { binding: proof.name }, right: { literal: sourceMethodChoiceToken(proof, choice) } }) || invocations?.length !== 1) return false
+      const invocation = invocations[0]!
+      if (invocation.name !== `call-${callAnchor}-method-${i}` || invocation.sourceCallId !== call.id || invocation.symbol !== call.expression || invocation.candidateId !== choice.targetId) return false
+    }
+    const selected = proof.choices.filter(choice => choice.targetId === symbol.id && dispatch.cases.some(c => c.body === block.name && canonicalControl(c.condition) === canonicalControl({ op: "eq", left: { binding: proof.name }, right: { literal: sourceMethodChoiceToken(proof, choice) } })))
+    if (selected.length !== 1) return false
+    const choice = selected[0]!, token = sourceMethodChoiceToken(proof, choice), initName = `method-choice-init-${proof.name}`, start = caller.blocks.find(b => b.name === caller.start), init = start?.steps.find(s => s.name === initName)
+    if (step.name !== `call-${callAnchor}-method-${proof.choices.indexOf(choice)}`) return false
+    if (!init || init.kind !== "assign-value" || init.result !== proof.name || canonicalControl(init.value) !== canonicalControl({ literal: sourceMethodChoiceSentinel(proof) }) || choice.source.endIndex > call.startIndex!) return false
+    if (start!.steps.slice(0, start!.steps.indexOf(init)).some(s => s.kind !== "bind" && !(s.kind === "assign-value" && s.name.startsWith("method-choice-init-")))) return false
+    const failure = caller.blocks.find(b => b.name === dispatch.otherwise)?.steps
+    if (failure?.length !== 1 || failure[0]!.kind !== "raise" || failure[0]!.exceptionType !== "UnboundLocalError" || failure[0]!.failureKind !== "operation" || failure[0]!.rethrow) return false
+    let creationBlock = start
+    for (const control of choice.controls) {
+      const parent = creationBlock, branch = parent?.steps.find(s => s.kind === "choose" && s.name === `choose-${control.anchorId}`)
+      if (!branch || branch.kind !== "choose" || branch.cases.length !== 1 || parent === dispatchBlock && parent.steps.indexOf(branch) >= parent.steps.indexOf(dispatch)) return false
+      creationBlock = caller.blocks.find(b => b.name === (control.branch === "true" ? branch.cases[0]!.body : branch.otherwise))
+    }
+    const creation = creationBlock?.steps.find(s => s.name === `assign-${choice.anchorId}`)
+    if (!creation || creation.kind !== "assign-value" || creation.result !== proof.name || canonicalControl(creation.value) !== canonicalControl({ literal: token }) || creationBlock === dispatchBlock && creationBlock.steps.indexOf(creation) >= creationBlock.steps.indexOf(dispatch)) return false
+    const permitted = new Map([[initName, sourceMethodChoiceSentinel(proof)], ...proof.choices.map(c => [`assign-${c.anchorId}`, sourceMethodChoiceToken(proof, c)] as const)])
+    if (steps.some(s => s.kind === "bind" && (s.bindingName ?? s.name) === proof.name || s.kind === "call" && s.result === proof.name || s.kind === "assign-value" && s.result === proof.name && (!permitted.has(s.name) || canonicalControl(s.value) !== canonicalControl({ literal: permitted.get(s.name) })))) return false
   }
   if (call.callableBinding) {
     const instance = call.callableBinding, creation = steps.find(s => s.kind === "call" && s.sourceCallId === instance.creationCallId)

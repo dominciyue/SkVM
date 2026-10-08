@@ -21,6 +21,35 @@ test("source staticmethod arguments retain the supplied request rather than the 
   expect(r.diagnostics).toEqual([])
   expect(r.unit.blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call").arguments).toEqual([{ parameter: "request", object: "request" }])
 })
+for (const scenario of [
+  { name: "sequential replacement", body: "        handler = self.guard\n        handler = self.fallback\n", outcomes: ["allow"], calls: 1 },
+  { name: "before either creation", body: "        handler(actor)\n        handler = self.guard\n        handler = self.fallback\n", outcomes: ["deny"], calls: 0 },
+  { name: "no creation on either false branch", body: "        if False:\n            handler = self.guard\n        if False:\n            handler = self.fallback\n", outcomes: ["deny"], calls: 0 },
+  { name: "same-line repeated method", body: "        handler = self.fallback; handler = self.fallback\n", outcomes: ["allow"], calls: 1 },
+  { name: "unknown source branch", body: "        if selected:\n            handler = self.guard\n        else:\n            handler = self.fallback\n", outcomes: ["deny", "allow"], calls: 2 },
+] satisfies Array<{ name: string; body: string; outcomes: Array<"allow" | "deny">; calls: number }>) test(`finite source method values preserve ${scenario.name}`, async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-method-choice-flow-"))
+  await writeFile(path.join(sourceRoot, "app.py"), `class Gate:\n    def entry(self, actor, selected):\n${scenario.body}        handler(actor)\n        return True\n    def guard(self, actor):\n        raise Denied\n    def fallback(self, actor):\n        return actor\n`)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, units: any[] = []
+  for (const name of ["entry", "guard", "fallback"]) {
+    const source = index.symbols.find(s => s.name === name)!
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id, "app.Gate"))!
+    expect(skeleton.gaps).toEqual([])
+    const annotations = skeleton.anchors.filter(a => ["parameter", "condition", "call", "return", "raise"].includes(a.kind)).map(a => ({ anchorId: a.id, role: a.kind === "condition" || a.kind === "call" || a.kind === "parameter" && a.name === "selected" ? "condition" : "context", explanation: "Anonymous current finite method value flow", ...(a.kind === "condition" ? { condition: { op: "eq", left: a.literalKnown ? { literal: a.literalValue } : { binding: "selected" }, right: { literal: true } } } : {}), ...(a.kind === "return" && name === "entry" ? { returnOutcome: "allow" } : {}), ...(a.kind === "raise" ? { failureKind: "authorization" } : {}) }))
+    const result = api.lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index, itemId: name, handle: name, questionId: "q", role: name === "entry" ? "entry" : "helper" })
+    expect(result.diagnostics).toEqual([])
+    expect(semanticBlockDiagnostics(result.unit)).toEqual([])
+    for (const b of result.unit.blocks) for (const step of b.steps) if (step.kind === "call") step.callee = index.symbols.find(s => s.id === step.candidateId)!.name
+    units.push({ ...result.unit, questionId: "q", evidenceIds: skeleton.evidenceIds })
+  }
+  const lowered = lowerSemanticFlow(units, { compositional: true, propertyDirected: true })
+  expect(lowered.diagnostics).toEqual([])
+  expect(lowered.delta.rules.filter(r => r.terminal).map(r => r.outcome)).toEqual(scenario.outcomes)
+  expect(lowered.delta.rules.filter(r => r.kind === "call")).toHaveLength(scenario.calls)
+  if (!scenario.calls) expect(lowered.delta.rules.filter(r => r.terminal).every(r => r.failureKind === "operation")).toBe(true)
+  if (scenario.name === "unknown source branch") expect(lowered.delta.rules.filter(r => r.sourceOrigin?.step.startsWith("choose-") && r.condition && JSON.stringify(r.condition).includes('"binding":'))).toHaveLength(2)
+})
 
 test("source-assisted variadic forwarding keeps the actual packs and the original exception handler", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-pack-forward-"))

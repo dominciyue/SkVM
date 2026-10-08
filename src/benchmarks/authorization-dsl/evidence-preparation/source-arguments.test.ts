@@ -99,3 +99,14 @@ test("a method alias uses the same actual receiver and pack binder but rejects a
   expect(api.sourceArgumentBindings(index, { ...call, methodBinding: { ...call.methodBinding!, source: { ...call.methodBinding!.source, sha256: "foreign" } } }, target).gap).toBe("source-arguments-method-alias-unresolved")
   expect(api.sourceArgumentBindings(index, { ...call, receiver: "different_receiver" }, target).bindings).toEqual([])
 })
+test("finite method choices bind each actual target signature without accepting foreign proof or receiver", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "class Gate:\n    def entry(self, actor, *args, **kwargs):\n        handler = self.guard\n        handler = self.fallback\n        return handler(actor, *args, **kwargs)\n    def guard(self, actor, *rest, **options):\n        return actor\n    def fallback(self, actor, *tail, **other):\n        return actor\n" }], { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "handler")!
+  for (const target of index.symbols.filter(s => ["guard", "fallback"].includes(s.name))) {
+    const bound = api.sourceArgumentBindings(index, call, target)
+    expect(bound.gap).toBeUndefined()
+    expect(bound.bindings.map((b: any) => b.expression)).toEqual(["self", "actor", "args", "kwargs"])
+    const forged = structuredClone(call); forged.methodChoices!.choices[0]!.source.sha256 = "foreign"
+    expect(api.sourceArgumentBindings(index, forged, target).gap).toBe("source-arguments-method-choice-unresolved")
+    expect(api.sourceArgumentBindings(index, { ...call, receiver: "other" }, target).bindings).toEqual([])
+  }
+})

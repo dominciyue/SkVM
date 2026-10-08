@@ -175,6 +175,12 @@ DRF下一小步工作计划（2026-10-08）：先从原轮次已保留且SHA一�
 
 方法别名本小步进展：v15当前创建proof、原receiver和MRO override沿同一binder/骨架/六角色投影接通，ordinary创建不可context省略。23新增反例、323focused/1161断言、新鲜联合1189pass/1平台skip/7094断言及主/AY类型通过；两只读核验的owner缺陷已主复现修正，投影review未发现新缺陷。100文件真实probe保留6body/9别名，零来源合格及零采用，初始/reviewed分开且SHA相同；model read/application annotation/material use/模型/目标/网络新增0，旧输入/答不升级。下一小步接有限动态method选择及字段callable，保留实际getattr/fallback和条件控制，再完整请求组合与官方具名复验；AY7和净收益未达。
 
+有限选择下一小步设计（2026-10-08）：先把同一普通稳定receiver的有限local method赋值（顺序覆盖或if/else内创建）保留为独立`source-method-choice/v1`，逐创建携带当前target/SHA、精确anchor和原分支路径；不把多候选缩成单一callee。复用ordinary assign-value生成无授权意义的有限方法值，入口先设未创建sentinel；在真实调用点沿既有choose按实际值分派，每个variant仍由同一Python binder补self/参数并走现有source材料投影。未创建路径保留Python UnboundLocalError/operation failure，原if、异常与deny/effect顺序保持。实际投影需逐variant验证当前proof、精确原分支内创建、选择guard和当前target，不能凭candidateId绕开。只支持直接if/else和有限simple method写入；loop/try/elif等更复杂创建、其它重绑定/逃逸、错receiver及descriptor/wrapper仍具名。先匿名分支两结果、覆盖、漏创建/错guard/错receiver、参数包及source失效红绿，再真实source-only probe；随后接getattr selector/fallback、字段callable与完整请求，不将此小步当动态dispatch已闭合。
+
+有限选择复核细化：宿主生成的整个selector先验证全部token guard和每variant唯一当前sourceCallId/target发生点，再逐variant核验实际创建与参数；改动任一guard或复制virtual call会撤回整个selector。初版只验证当前variant，独立review指出另一合法variant仍可采用，主新增整体拒绝红测并收紧。复制出的额外call本来已因发生点name不匹配而不接线（原2 uses是两个合法variant），主保留该点验，再按完整机械selector合同拒绝整个畸形图。重复creation name由既有semantic validator拒绝，复用该结果不加同义检查。
+
+有限选择本小步进展：v16有限创建proof、原控制路径、ordinary sentinel/token和精确调用点choose沿同一binder/六角色/投影接通。27新增测试、350focused/1311断言，新鲜联合1216pass/1平台skip/7244断言/115文件/13.99s及主/AY类型通过；两项只读核验与主红绿分列，整体selector完整性、过晚初始化和未创建出口替换均已修。100文件/6body真实probe的9别名仍具名，有限选择合格0/采用0，初始/reviewed分留且SHA相同；model read/application annotation/material use/模型/目标/网络新增0，旧输入/答不升级。继续实际getattr selector/fallback、字段callable和完整framework请求组合，然后官方具名实际复验及预登记收益比较；AY7和研究验收未勾选。
+
 ### AY8 调度与局部解释的闭环
 
 2026-10-08真实OWUI反例细化：七轮增量字段确有前进，最后宿主生成34个块（其中8个为空）却被沿用手写接口的32块上限拒绝。先在v5源码编译器复用同单元的无动作空块，保留每个实际条件、步骤、正常/拒绝/异常出口及既有路径/节点边界；不提高求值上限。停滞按当前缺口和已保留字段进展判断，不能把observations的pending标签当源码frontier停滞。实际发送上下文与原始归档分账，引用的bytes是被引用原值大小，不是该引用包的发送大小。

@@ -2078,6 +2078,10 @@ AY7普通方法别名小步（2026-10-08）：v15将唯一无条件`handler=self
 
 真实[reviewed方法别名probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-method-alias-reviewed-replay.json)核验94冻结文件和独立supplements，共100文件/6body/9别名，来源合格0，binding/receiver缺口保留；原始与reviewed原件独立保存且SHA相同。机械窗口不提供实验模型read，application annotation/material use、模型/目标/网络新增0，旧input/allowlist/答不升级；开发/探子token、USD及真人时间unknown。真实DRF/Django两条件handler及self.head字段alias不被该静态机制自动覆盖，继续有限动态选择/字段callable、完整请求及官方具名复验，AY7与完整使用/净收益未达。
 
+AY7有限方法选择小步（2026-10-08）：v16保留同一稳定普通receiver的有限local method创建、当前target/SHA和原if/else路径；ordinary sentinel/token与既有choose在实际调用点分派，同一binder和六角色不变。未创建路径为UnboundLocalError/operation failure，顺序覆盖和重复target仍按原发生点；loop/try/elif创建、其它重绑定/escape和descriptor/wrapper保持具名。来源独立核验196项通过且未发现新缺陷；投影核验75项通过后指出仅逐variant检查不足，主红测复现改动一guard后另一合法variant仍可采用，现整体selector完整性先于逐创建/参数核验。复制extra call本来没有callee，原2 uses属于合法variant；保留该点验后按整体机械合同撤回畸形selector，未将探子线索当成已证实额外调用。入口初始化过晚和未创建失败出口被替换也已红绿。
+
+27新增测试、350focused/1311断言、新鲜联合1216pass/1平台skip/7244断言/115文件/13.99s与主/AY类型通过，见[局部核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-method-choices.json)。真实[reviewed有限选择probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-method-choice-reviewed-replay.json)核验94冻结文件和独立supplements，共100文件/6body，9别名仍具名，有限选择合格0/实际采用0；初始与reviewed分留且SHA相同。机械窗口不提供实验模型read或application annotation，模型/目标/网络新增0，旧input/allowlist/答不升级，开发/探子token、USD及真人时间unknown。真实getattr/fallback、字段callable、完整framework组合及官方具名复验继续，AY7与完整使用/净收益未达。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

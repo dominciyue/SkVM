@@ -2633,7 +2633,7 @@ AY6的FastAPI有限请求模型以`fastapi-source-router/v1`和`fastapi-source-i
 
 当前v5模型反馈只投影frontier、排除、覆盖、下一步及依赖摘要，完整required/deferred和图留在宿主报告，所有原题和原语法仍可读取。停滞指纹复用已有字段有效状态，并包含同源码revision已provided字段的实际值；无效输入和解释文字改写不计源码进展。source revision含source身份与语法。该投影和提示不改变需求/排除/接纳/结论，也不增加调用或审批；确定性发送字节与实际token收益分开验证。
 
-AY7当前receiver连接使用`source-bindings/v15`：实际调用可携带唯一未重绑定模块实例的声明位置/SHA、真实class/SHA证明。v5编译器再次对照当前索引，只生成普通value身份；同一来源的导入别名共享该普通身份。参数/局部遮蔽、consumer alias重绑定、源码可见的模块attribute写入、歧义构造器与旧证明不自动接线。该来源事实不证明principal/resource/permission或任何授权；标量字段与模型声明的主体参数不匹配仍须局部解释修复。关系版本变化使旧材料须显式重新验证。终答当前契约直接投影真实schema的枚举和数值path约束，不把自由文字改写为源码结论。
+AY7当前receiver连接使用`source-bindings/v16`：实际调用可携带唯一未重绑定模块实例的声明位置/SHA、真实class/SHA证明。v5编译器再次对照当前索引，只生成普通value身份；同一来源的导入别名共享该普通身份。参数/局部遮蔽、consumer alias重绑定、源码可见的模块attribute写入、歧义构造器与旧证明不自动接线。该来源事实不证明principal/resource/permission或任何授权；标量字段与模型声明的主体参数不匹配仍须局部解释修复。关系版本变化使旧材料须显式重新验证。终答当前契约直接投影真实schema的枚举和数值path约束，不把自由文字改写为源码结论。
 
 **账号状态。** 区分已知failed/interrupted、完成但未交付、超时/终态丢失以及用量不可见。明确failed的旧原件仅追加裁定，不覆盖其原completion-unknown。后续请求为新的具名尝试，先确认旧执行已结束，缺少用量不永久阻断；未知活动请求不自动重发。用户已授权账号实验，第三方API继续暂停。额度拒绝停止该通道无效请求，独立工程继续，恢复有依据后再派发。
 
@@ -2641,9 +2641,9 @@ AY7当前receiver连接使用`source-bindings/v15`：实际调用可携带唯一
 
 **成果合同。** 两真实原任务和作者消费者应取得当前checked及独立源码full；三变化真实消费并正确响应。收益按预登记质量、质量保持下完整observed token下降或同质量实际复用减负判据评价，逐任务与首/修分列；工具收益不归为DSL独有表示优势。实际USD、隐藏请求和真人时间缺报仍unknown。工程、账号运行、native交付、作者消费、同条件收益、变化复用六项分别记录；全部编号有终态不代表研究达成。工程已用但收益mixed时如实交付usable-with-mixed-effect。
 
-AY6的ASGI取证合同使用`source-bindings/v15`及`fastapi-source-asgi/v1`：注册保留实际call、配置参数、词法条件/异常/函数作用域、当前class/MRO来源SHA和constructor/__call__/dispatch方法候选，沿router/include祖先关联当前route。稳定单一应用alias为resolved；重绑定或未证明的潜在alias为possible并具名阻断，不声称它实际修改该app。这种保守追踪可能产生额外阻断，尚不提供赋值点的完整flow-sensitive排除。缺外部类/base、动态/遮蔽/重绑定目标及wrapped方法保留来源边界。词法顺序标为unproven，不替代框架装配顺序；读/解释方法不等于当前continuation采用。每route的ASGI footprint包含注册与当前类来源，跨文件body变化失效，无关文件保留；完整callback/environment/generator组合和目标安装版本继续独立验证。
+AY6的ASGI取证合同使用`source-bindings/v16`及`fastapi-source-asgi/v1`：注册保留实际call、配置参数、词法条件/异常/函数作用域、当前class/MRO来源SHA和constructor/__call__/dispatch方法候选，沿router/include祖先关联当前route。稳定单一应用alias为resolved；重绑定或未证明的潜在alias为possible并具名阻断，不声称它实际修改该app。这种保守追踪可能产生额外阻断，尚不提供赋值点的完整flow-sensitive排除。缺外部类/base、动态/遮蔽/重绑定目标及wrapped方法保留来源边界。词法顺序标为unproven，不替代框架装配顺序；读/解释方法不等于当前continuation采用。每route的ASGI footprint包含注册与当前类来源，跨文件body变化失效，无关文件保留；完整callback/environment/generator组合和目标安装版本继续独立验证。
 
-AY6的DRF声明取证使用`drf-source-action/v1`及当前`source-bindings/v15`：保留精确action constructor/import、call/参数/跨度、字面HTTP声明、同声明class的mapping decorator及实际C3方法候选，再关联当前router/factory/mapper/as_view来源。未装饰的override撤回继承action；secondary mapping保留原声明并按当前request class查找目标。缺源码、rebind、class遮蔽/wrapper、default/dynamic参数或未知router保留具名边界。`mappingBinding`与`invocation`均为unproven，找到了factory/mapper body不证明它建立映射；只有实际来源解释和当前采用才能闭合。每receiver的action footprint含声明、route及相关来源，变化需重新验证，不向普通Python方法默认添加请求前置逻辑。
+AY6的DRF声明取证使用`drf-source-action/v1`及当前`source-bindings/v16`：保留精确action constructor/import、call/参数/跨度、字面HTTP声明、同声明class的mapping decorator及实际C3方法候选，再关联当前router/factory/mapper/as_view来源。未装饰的override撤回继承action；secondary mapping保留原声明并按当前request class查找目标。缺源码、rebind、class遮蔽/wrapper、default/dynamic参数或未知router保留具名边界。`mappingBinding`与`invocation`均为unproven，找到了factory/mapper body不证明它建立映射；只有实际来源解释和当前采用才能闭合。每receiver的action footprint含声明、route及相关来源，变化需重新验证，不向普通Python方法默认添加请求前置逻辑。
 
 v8的基类订阅只在当前唯一、同步、未装饰的`__class_getitem__`源码恰为return原class参数时保留原基类身份，参数限简单名；其它动作/返回、async、显式metaclass、wrapper、重绑定或不透明表达式不按typing外观剥离。此规则修复实际DRF generic基类导致dispatch候选丢失的共享问题；仍是方法来源定位，不证明应用class decorator或实际执行。来源补充从已保留且SHA匹配的原wheel提取，单独登记并验证旧冻结文件；不扩大旧allowlist、不回写原答，新增模型输入需另行登记。映射来源、完整dispatch/callback/参数/异常组合与当前源码full质量分别验收。
 
@@ -2678,6 +2678,12 @@ AY7的v14字段合同复用既有`transform`：以实际receiver identity加fiel
 AY7的v15普通方法别名以`StructureCall.methodBinding`保存`source-method-alias/v1`创建跨度/SHA、alias、receiver、所选当前MRO target/SHA。仅普通同步未装饰instance owner中唯一无条件simple assignment、稳定原首参receiver、无重绑定/逃逸且后续真实直接调用可连接。static/class/decorated/async owner不能借首参或强行指定actual receiver取得instance证明；可见getter/descriptor、method属性覆盖、wrapper/async target、class wrapper及不完整/歧义MRO保持具名。whole-function可见mutation保守阻断，不模拟任意Python属性协议。
 
 同一Python binder核验当前caller/call/完整method proof、实际receiver和target字节，再补实际self及既有参数包；Python签名和六角色保持。投影要求原`handler=receiver.method`沿当前骨架生成ordinary assign-value并先于call，不能context省略或替换创建。匿名实际采用保留deny在write之前，错receiver、漏创建、来源变化均撤回。23新增测试、323focused/1161断言、联合1189pass/1平台skip/7094断言及主/AY类型通过；独立来源review提出owner缺陷，主四项红绿修复，另一投影review未发现新缺陷。真实100文件/6body/9别名probe零来源合格和零采用，初始/reviewed分留，model read/application annotation/material use/模型/目标/网络新增0。条件getattr/fallback、字段callable和完整framework请求仍待闭合及官方实际复验；工程通过不证明完整质量或净收益。
+
+AY7的v16有限普通方法选择以`StructureCall.methodChoices`保存`source-method-choice/v1`：同一稳定普通instance receiver的2至16项local method创建逐项保留当前target/SHA、精确assignment anchor/跨度/SHA及原if/else控制路径。顺序覆盖、嵌套直接if/else和重复选择同一target保留各自创建；其它写入、escape、错receiver、loop/try/elif创建、owner/target wrapper/async/descriptor及不完整MRO仍具名。whole-function稳定性继续保守检查，不执行Python任意属性协议。
+
+宿主以ordinary assign-value设置未创建sentinel和每次创建的有限方法token，在真实sourceCallId处使用既有choose生成逐创建call variant；默认路径保留UnboundLocalError/operation failure。token没有授权含义，角色与参数仍由原六角色和同一Python binder解释。投影先核验整个selector的case数量、唯一variant、全部token guard及每variant唯一当前call发生点/target，再核验原分支内实际创建、入口初始化、失败出口和当前参数。畸形selector整体不接线，漏创建/错receiver仅撤回相应variant；旧callee仍先清除。轻量`source-identities.ts`共享anchor/token身份，不将Python parser加载到纯编译器。
+
+27新增测试、350focused/1311断言、新鲜联合1216pass/1平台skip/7244断言/115文件/13.99s及主/AY类型通过。来源只读核验196项通过且未发现新缺陷；投影核验75项通过并提出整体selector风险，主复现guard改动后另一合法variant仍采用并补红绿。额外复制call原已未采用（原2 uses为两个合法variant），现按整体合同撤回畸形图，不将该线索误写为额外call曾接线。100文件/6body真实来源probe有限选择合格0/采用0，初始和reviewed独立保留且SHA相同，model read/application annotation/material use/模型/目标/网络新增0。实际getattr selector/fallback、字段callable及完整请求和官方实际复验继续pending，工程通过不替代完整质量与净收益。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
