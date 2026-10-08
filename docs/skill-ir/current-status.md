@@ -4,7 +4,9 @@
 
 ## 当前工作
 
-最新小步为AY7 `source-bindings/v35`显式模块初始化：Python模块成为完整source_read后的源码单元，根class/function按原控制和声明顺序实际创建，class namespace/C3、装饰器返回替换、实际类/实例传参与函数读取沿原解释/材料/native核心执行。30新增；874focused/5445断言、联合1713pass/1平台skip/11252断言及主/AY类型通过；只读索引核验含独立反例，材料静态疑点经主线程定向核验未复现。105文件probe保留99非空模块的创建事实；所选三schema类仍有body/base gap，全部36super/12constructor gap、实际材料0。导入/全局环境、模块方法、实际constructor/descriptor/request和官方完整使用/净收益继续，AY7未完成。无新增实验模型/目标/probe网络，未知成本分列。
+当前优先官方完整原任务实验和有限队列收尾。用户22:34:05设定45分钟启动条件；22:45:09已实际进入Download官方turn并完成源码回调，满足启动条件后继续实验。精确CLI 0.162.0-alpha.2经本机schema/零推理元数据核验后准入，账号联合38pass/268断言及主类型通过。Download/OWUI具名完整原任务均已交付，独立源码partial、程序检查partial。原字节Download作者包在仓外公开session交付，独立源码full但程序检查仍partial；OWUI作者消费及六变化/十二对照继续。没有完整checked/full或净收益结论，原件/缺口/未知成本保留；[当前里程碑](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/official-full-flow-milestone-v35.json)不替代验收。
+
+最新生产语义仍为AY7 `source-bindings/v35`显式模块初始化，沿原解释/材料/native核心处理根class/function的原控制与声明顺序、namespace/C3及实际类/实例传参与函数读取。联合1713pass/1平台skip/11252断言及主/AY类型通过。105文件probe的99非空模块已保留创建事实；三schema类body/base与36super/12constructor gap、实际材料0继续保留。导入/全局环境、模块方法、实际constructor/descriptor/request仍未完成，本轮先带明确支持边界运行实际任务，不再扩展外围语法。
 
 此前小步为AY7 `source-bindings/v34`实际super/C3：普通local method从原__class__ cell在实际instance C3中的位置之后读取namespace函数，保留原函数环境、receiver/self身份及读→实参→分派顺序，instance slot不参与。材料核验完整候选分支及每个分支的实参，未执行分支改错也撤回。30新增，844focused/5211断言、联合1683pass/1平台skip/11018断言及主/AY类型通过；两只读既有套件核验无独立新反例。100文件/12body probe仍有36super/7constructor缺口、实际super候选与材料采用0；未知动态父类及module/constructor/request继续，尚无完整使用或净收益结论。无新增实验模型读/模型或目标执行，AY7未完成。 接续已按原pin补充schema base/descriptor/settings五文件，105文件probe确认三类静态MRO与继承__init__/__get__/__set__来源；模块类创建、描述符和配置实际求值仍pending，关系版本仍v34。
 

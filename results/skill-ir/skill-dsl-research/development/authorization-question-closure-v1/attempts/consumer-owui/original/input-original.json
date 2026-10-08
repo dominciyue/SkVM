@@ -1,0 +1,202 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "owui-ingestion",
+  "repository": "open-webui/open-webui",
+  "sourceRef": "841c9045d789005145274955e7ef60b1b11a9be9",
+  "sourceRoot": "source",
+  "allowedPaths": [
+    "backend/open_webui"
+  ],
+  "inquiry": {
+    "schemaVersion": "authorization-inquiry/v2",
+    "mode": "behavior",
+    "operations": [
+      {
+        "id": "invoke-process-file",
+        "request": "Investigate the source-defined behavior of the process_file handler for /process/file, including caller establishment and all route-level authorization gates.",
+        "entryHint": "backend/open_webui: locate process_file and the /process/file route"
+      },
+      {
+        "id": "access-input-file",
+        "request": "Trace the supplied file_id from the request through lookup, authorization, loading, and processing, including ownership-dependent branches and failures.",
+        "entryHint": "Start at process_file for /process/file and follow file model, service, and processing calls within backend/open_webui"
+      },
+      {
+        "id": "affect-destination-collection",
+        "request": "Trace the supplied collection_name through validation, authorization, processing, and any eventual vector-store read or write, without presuming destination ownership.",
+        "entryHint": "Start at process_file for /process/file and follow collection and vector-store callees within backend/open_webui"
+      }
+    ],
+    "questions": [
+      {
+        "id": "caller-resolution-and-entry-guards",
+        "request": "Identify how the caller is authenticated and represented at the endpoint, and enumerate every visible route, dependency, middleware, role, or other guard that must pass before processing. Cite source locations and separate source-visible behavior from deployment-dependent assumptions.",
+        "principal": "the caller of /process/file",
+        "resource": "the process_file endpoint",
+        "operation": "invoke process_file",
+        "entryHint": "process_file at /process/file and its authentication dependencies",
+        "premises": [
+          {
+            "text": "The investigation target is process_file at /process/file in this Open WebUI revision.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "invoke-process-file",
+        "intent": "behavior"
+      },
+      {
+        "id": "file-id-authorization-flow",
+        "request": "Trace the supplied file_id from request parsing to every lookup and access-control decision. State the exact visible predicates, which principal attributes they use, the success and failure branches, and any status or error behavior. Do not treat a lookup as authorization unless the source enforces it.",
+        "principal": "the resolved caller",
+        "resource": "the file identified by the supplied file_id",
+        "operation": "load and process the input file",
+        "entryHint": "process_file request model, file lookup, ownership checks, and processing callees",
+        "premises": [
+          {
+            "text": "The request supplies file_id and destination collection_name.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "access-input-file",
+        "intent": "behavior"
+      },
+      {
+        "id": "caller-owned-file-case",
+        "request": "For the caller-owned-file case, explain all visible conditions under which the request proceeds or fails, what file content or metadata reaches processing, and which side effects can occur. Preserve distinctions among authentication, ownership, existence, validation, and downstream failures.",
+        "principal": "a caller who owns the supplied file",
+        "resource": "the caller-owned file identified by file_id",
+        "operation": "process the file through /process/file",
+        "entryHint": "ownership branch and downstream processing reached from process_file",
+        "premises": [
+          {
+            "text": "The requested comparison includes a caller-owned file and another user's file.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "access-input-file",
+        "intent": "behavior"
+      },
+      {
+        "id": "other-users-file-case",
+        "request": "For the another-user's-file case, explain all visible conditions under which lookup, authorization, processing, or side effects are allowed or denied. Identify any role, privilege, sharing, workspace, group, bypass, or callee condition only when visible in source, and report the exact failure behavior otherwise.",
+        "principal": "a caller who does not own the supplied file",
+        "resource": "another user's file identified by file_id",
+        "operation": "attempt to process the file through /process/file",
+        "entryHint": "file authorization branch plus any role, sharing, or downstream checks reached from process_file",
+        "premises": [
+          {
+            "text": "The requested comparison includes a caller-owned file and another user's file.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "access-input-file",
+        "intent": "behavior"
+      },
+      {
+        "id": "collection-name-flow-and-authorization",
+        "request": "Trace collection_name from request parsing through defaults, normalization, derivation, forwarding, and every collection-specific authorization or validation check. Determine whether the source verifies destination ownership, membership, namespace, tenant, existence, or write permission independently of file access; do not infer such a check from authorization of file_id.",
+        "principal": "the resolved caller",
+        "resource": "the destination collection identified by collection_name",
+        "operation": "select and write the processing destination",
+        "entryHint": "process_file collection_name handling and all collection/vector-store callees",
+        "premises": [
+          {
+            "text": "The request supplies file_id and destination collection_name.",
+            "origin": "user"
+          },
+          {
+            "text": "Do not assume the caller owns the destination collection.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "affect-destination-collection",
+        "intent": "behavior"
+      },
+      {
+        "id": "eventual-processing-and-vector-effects",
+        "request": "Follow successful paths into document processing and any vector-store operation. Identify the exact resource keys or collection identifiers read, created, replaced, appended to, deleted from, or otherwise mutated; identify content written and the visible conditions for each effect. Distinguish an existing supplied destination from any internally generated destination.",
+        "principal": "the resolved caller",
+        "resource": "the processed file data and destination vector collection",
+        "operation": "perform processing or a vector write",
+        "entryHint": "processing pipeline and vector database calls transitively reached from process_file",
+        "premises": [
+          {
+            "text": "The task requires tracing the eventual processing or vector write.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "affect-destination-collection",
+        "intent": "behavior"
+      },
+      {
+        "id": "authorized-object-versus-affected-object",
+        "request": "Compare the object used by each input authorization decision with the object affected by processing or vector writes. Explain whether they are the same object, distinct objects, or linked by an enforced source-visible invariant, and identify any mismatch without assuming destination ownership.",
+        "principal": "the resolved caller",
+        "resource": "the input file and the destination collection",
+        "operation": "authorize input and affect output",
+        "entryHint": "join the file authorization trace with the collection/vector-write trace",
+        "premises": [
+          {
+            "text": "The task asks whether the object authorized for input and the object affected by output are the same.",
+            "origin": "user"
+          },
+          {
+            "text": "Do not assume the caller owns the destination collection.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "affect-destination-collection",
+        "intent": "behavior"
+      },
+      {
+        "id": "ordering-failures-and-partial-effects",
+        "request": "Establish the source-visible order of authentication, file lookup and authorization, collection handling, processing, and writes. Report early exits, exception handling, retries, overwrite or duplicate behavior, and whether a failure can leave partial effects. Do not claim runtime atomicity or concurrency guarantees absent from source.",
+        "principal": "the resolved caller",
+        "resource": "the input file and destination collection",
+        "operation": "complete or fail the process_file workflow",
+        "entryHint": "process_file control flow and transitive processing/vector-store calls",
+        "premises": [],
+        "operationId": "invoke-process-file",
+        "intent": "behavior"
+      },
+      {
+        "id": "cross-file-protections-and-self-verification",
+        "request": "Perform a cross-file verification pass for the traced path: inspect directly relevant dependencies, middleware, models, service methods, and vector-store wrappers for protections or bypasses that could change the initial conclusion. Recheck each claimed access-control issue for missed sanitization or upstream enforcement, and clearly label unresolved indirect or runtime behavior.",
+        "principal": "the resolved caller",
+        "resource": "the complete /process/file authorization and effect path",
+        "operation": "verify the behavior conclusion",
+        "entryHint": "direct callers and callees of process_file within backend/open_webui",
+        "premises": [],
+        "operationId": "invoke-process-file",
+        "intent": "scope"
+      },
+      {
+        "id": "security-assessment-and-remediation",
+        "request": "Using only verified source evidence from this path, state whether the behavior constitutes an authentication, authorization, object-level authorization, cross-tenant, or other security issue. For every genuine finding provide category, severity, confidence, exact source evidence, attacker impact, exploit prerequisites, and mitigating conditions. For any CRITICAL or HIGH finding, propose a concrete before/after patch for human review without applying it; discard or downgrade unsubstantiated findings.",
+        "principal": "a potentially untrusted authenticated or unauthenticated caller, as the source permits",
+        "resource": "the input file and destination collection exposed by /process/file",
+        "operation": "assess exploitability of the observed behavior",
+        "entryHint": "verified endpoint-to-file-to-collection data flow",
+        "premises": [],
+        "operationId": "invoke-process-file",
+        "intent": "behavior"
+      },
+      {
+        "id": "visible-conditions-and-limits",
+        "request": "Summarize the decisive source-visible conditions for the caller-owned-file case, the another-user's-file case, and destination collection effects. List specific remaining limits, including unresolved dynamic dispatch, configuration, external storage semantics, middleware outside allowed paths, deployment state, and any fact that would require execution or network access. Use file-and-line citations and avoid an authorization graph.",
+        "principal": "the caller of /process/file",
+        "resource": "the investigated request path and its input and output objects",
+        "operation": "report behavior and evidence limits",
+        "entryHint": "all evidence gathered for the three operations",
+        "premises": [
+          {
+            "text": "The task requires visible conditions and specific remaining limits.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "invoke-process-file",
+        "intent": "scope"
+      }
+    ]
+  }
+}
