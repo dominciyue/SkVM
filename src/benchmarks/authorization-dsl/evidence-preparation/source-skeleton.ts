@@ -1,9 +1,9 @@
 import { createHash } from "node:crypto"
 import type { Node } from "@vscode/tree-sitter-wasm"
 import type { InquiryEvidence } from "../inquiry-tools.ts"
-import type { StructureCall, StructureIndex, StructureSymbol, StructureMethodStore, StructureMethodCapture } from "./structure-index.ts"
+import type { StructureCall, StructureIndex, StructureSymbol, StructureMethodStore, StructureMethodCapture, StructureCallableValue, StructureCallableDefinition } from "./structure-index.ts"
 import { sourceLiteral } from "./structure-index.ts"
-import { sourceMethodCaptureResult, sourceSyntaxAnchorId } from "./source-identities.ts"
+import { sourceCallableValueResult, sourceMethodCaptureResult, sourceSyntaxAnchorId } from "./source-identities.ts"
 import { sourceArgumentBindings, sourceCallableParameter } from "./source-arguments.ts"
 import type { SourceSelector } from "./source-selector.ts"
 import type { FiniteValue } from "../../../task-dsl/authorization/control-evaluation.ts"
@@ -18,6 +18,8 @@ export interface SourceAnchor {
   dependencyFacts?: { reads: string[]; writes: string[]; pureLocal: boolean };
   capture?: { ownerId: string; ownerSha256: string };
   callableIdentity?: { sourceId: string; ownerId: string; ownerSha256: string };
+  callableValue?: StructureCallableValue;
+  callableDefinition?: { targetId: string; targetSha256: string; definition: StructureCallableDefinition };
   fieldWrite?: { object: string; field: string };
   methodStore?: StructureMethodStore;
   methodCapture?: StructureMethodCapture;
@@ -85,8 +87,8 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     }
     const gap = (n: Node, code: string, reason: string) => { if (!skeleton.gaps.some(g => g.code === code && g.selector.startLine === n.startPosition.row + 1)) skeleton.gaps.push({ code, selector: located(n), reason }) }
     const returnedInstance = source.returnedCallable && !source.returnedCallable.gap && index.calls.some(c => c.candidateIds.length === 1 && c.candidateIds[0] === source.id && c.callableBinding?.targetId === source.id)
-    const captureProof = source.localCallable && !source.localCallable.gap ? source.localCallable : returnedInstance ? source.returnedCallable : undefined
-    if (questionDirected && source.localCallable?.gap && !returnedInstance) gap(fn, source.localCallable.gap, "This local body has no proved direct callable/capture binding in its owner; reading it does not supply its invocation.")
+    const captureProof = source.valueCallable && !source.valueCallable.gap ? source.valueCallable : source.localCallable && !source.localCallable.gap ? source.localCallable : returnedInstance ? source.returnedCallable : undefined
+    if (questionDirected && source.localCallable?.gap && !returnedInstance && !(source.valueCallable && !source.valueCallable.gap)) gap(fn, source.localCallable.gap, "This local body has no proved direct callable/capture binding in its owner; reading it does not supply its invocation.")
     const actualCalls = [...index.relatedCalls(source.id, receiverClass), ...index.calls.filter(c => c.id === registration?.sourceCallId)]
     const fieldStores = questionDirected ? index.fieldStores(source.id, receiverClass) : []
     const methodStores = questionDirected ? index.methodStores(source.id, receiverClass) : []
@@ -106,7 +108,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       const actual = sourceCall(n)
       const arguments_: NonNullable<SourceAnchor["call"]>["arguments"] = kids(field(n, "arguments")).map(a => { const value = a.type === "keyword_argument" ? field(a, "value")! : a, literal = sourceLiteral(value), child = ["call", "call_expression"].includes(value.type) ? sourceCall(value) : undefined; return { expression: value.text, ...(child ? { sourceCallId: child.id } : {}), ...(a.type === "keyword_argument" ? { parameterName: field(a, "name")!.text } : {}), ...(["list_splat", "dictionary_splat", "variadic_argument"].includes(a.type) ? { spread: true } : {}), ...(literal.literalKnown ? literal : {}) } })
       if (!/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(expression) && !/^super\(\)\.[A-Za-z_]\w*$/.test(expression)) gap(n, "skeleton-call-dynamic", "The actual function expression is dynamic; no unique callee or receiver is invented.")
-      const callableGap = actual?.gap && /^(?:source-local-|source-returned-callable-|source-method-alias-|source-method-choice-|source-method-lookup-|source-field-method-)/.test(actual.gap) ? actual.gap : undefined
+      const callableGap = actual?.gap && /^(?:source-local-|source-callable-|source-returned-callable-|source-method-alias-|source-method-choice-|source-method-lookup-|source-field-method-)/.test(actual.gap) ? actual.gap : undefined
       if (questionDirected && callableGap) gap(n, callableGap, "The current lexical callable/capture binding is unresolved regardless of its proposed domain role.")
       if (arguments_.some(a => a.spread)) {
         const targets = actual && (actual.methodChoices || actual.methodLookup || actual.methodField || actual.candidateIds.length === 1) ? actual.candidateIds.flatMap(id => index.symbols.filter(s => s.id === id && s.kind === "function")) : []
@@ -133,11 +135,22 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     const valueAnchor = (n: Node | null | undefined, flow: SourceFlow[]): string | undefined => n && (["call", "call_expression"].includes(n.type) || ["and", "or", "&&", "||"].includes(field(n, "operator")?.text ?? "")) ? flow.at(-1)?.anchorId : undefined
     const expressionFlow = (n: Node, resultBinding?: string): SourceFlow[] => {
       if (questionDirected && source.language === "python" && n.type === "expression_statement") return kids(n).flatMap(a => expressionFlow(a, resultBinding))
+      if (questionDirected && source.language === "python" && n.type === "keyword_argument") return field(n, "value") ? expressionFlow(field(n, "value")!) : []
+      const callableValue = questionDirected && actualCalls.flatMap(c => c.argumentFacts?.flatMap(a => a.callableValue?.kind === "module" ? [a.callableValue] : []) ?? []).find(p => p.source.startIndex === n.startIndex && p.source.endIndex === n.endIndex)
+      if (callableValue) {
+        const anchor = add(n, "assignment", { name: sourceCallableValueResult(source.id, callableValue), syntax: "source_callable_value", valueExpression: n.text, callableValue })
+        anchor.dependencyFacts = { reads: [n.text], writes: [anchor.name!], pureLocal: false }
+        return [{ kind: "step", anchorId: anchor.id }]
+      }
       const capture = questionDirected && n.type === "call" ? actualCalls.find(c => c.startIndex === n.startIndex && c.endIndex === n.endIndex)?.methodCapture : undefined
-      if (capture) {
-        const anchor = add(field(n, "function")!, "assignment", { name: sourceMethodCaptureResult(capture.sourceCallId), syntax: "source_method_capture", valueExpression: `${capture.receiver}.${capture.method}`, methodCapture: capture })
-        anchor.dependencyFacts = { reads: [capture.receiver, `${capture.receiver}.${capture.method}`], writes: [anchor.name!], pureLocal: false }
-        return [{ kind: "step", anchorId: anchor.id }, ...kids(field(n, "arguments")).flatMap(a => expressionFlow(a)), { kind: "step", anchorId: callAnchor(n).id }]
+      if (questionDirected && source.language === "python" && n.type === "call") {
+        const prefix: SourceFlow[] = []
+        if (capture) {
+          const anchor = add(field(n, "function")!, "assignment", { name: sourceMethodCaptureResult(capture.sourceCallId), syntax: "source_method_capture", valueExpression: `${capture.receiver}.${capture.method}`, methodCapture: capture })
+          anchor.dependencyFacts = { reads: [capture.receiver, `${capture.receiver}.${capture.method}`], writes: [anchor.name!], pureLocal: false }
+          prefix.push({ kind: "step", anchorId: anchor.id })
+        } else if (field(n, "function")) prefix.push(...expressionFlow(field(n, "function")!))
+        return [...prefix, ...kids(field(n, "arguments")).flatMap(a => expressionFlow(a)), { kind: "step", anchorId: callAnchor(n).id }]
       }
       const left = field(n, "left"), right = field(n, "right"), op = field(n, "operator")?.text
       if (controlSemantics && left && right && ["and", "or", "&&", "||"].includes(op ?? "")) {
@@ -171,6 +184,11 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       if (n.type === "block" || n.type === "statement_list") return visitList(n)
       if (["function_definition", "function_declaration", "method_declaration", "class_definition"].includes(n.type)) {
         const symbol = index.symbols.find(s => s.path === source.path && s.startLine === n.startPosition.row + 1 && s.endLine === n.endPosition.row + 1), local = symbol?.localCallable, returned = symbol?.returnedCallable
+        if (questionDirected && n.type === "function_definition" && symbol?.valueCallable && !symbol.valueCallable.gap && symbol.valueCallable.ownerId === source.id && symbol.valueCallable.ownerSha256 === source.sha256) {
+          const anchor = add(n, "assignment", { name: symbol.name, syntax: "source_callable_value_definition", callableDefinition: { targetId: symbol.id, targetSha256: symbol.sha256, definition: symbol.valueCallable } })
+          anchor.dependencyFacts = { reads: symbol.valueCallable.captures.map(c => c.name), writes: [symbol.name], pureLocal: false }
+          return [{ kind: "step", anchorId: anchor.id }]
+        }
         if (questionDirected && n.type === "function_definition" && local?.ownerId === source.id && local.ownerSha256 === source.sha256 && !local.gap) return []
         if (questionDirected && n.type === "function_definition" && returned?.ownerId === source.id && returned.ownerSha256 === source.sha256 && !returned.gap) {
           const anchor = add(n, "assignment", { name: symbol!.name, syntax: "source_callable_definition", callableIdentity: { sourceId: symbol!.id, ownerId: source.id, ownerSha256: source.sha256 } })

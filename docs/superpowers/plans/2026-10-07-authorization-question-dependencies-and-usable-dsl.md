@@ -221,6 +221,15 @@ AY7 class接续核对（2026-10-08）：两项独立只读定位确认当前meth
 
 早期捕获新鲜验收：33新增、525focused/2676断言、联合1364pass/1平台skip/8483断言/115文件及主/AY类型通过；[核验记录](../../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-early-method-capture.json)保留两只读范围及主反例。probe SHA `2cde2fc6f4a40d56211423dc65f8775207540e5321e62a972fefcef20ba8c0b0`，旧报告不覆盖。五当前文档同步后发布，仅作为AY7依赖工程小步，继续后续实际使用与实测。
 
+函数值与环境接续设计（2026-10-08）：实际class decorator包含返回函数、传参调用与继承wrapper，不能凭返回原class或metadata写入就免除变换。先为同一有限核心补实际source callable对象：原定义/读取点记录当前target/SHA及稳定捕获参数的实际对象环境，普通token不提供可执行身份；经既有参数、返回、alias及transform传递，调用时核验当前函数对象与target并从该对象绑定环境，不能从调用者同名局部重建capture。捕获对象的字段仍共享身份，局部重绑定不更改已捕获对象；可变闭包cell、复杂scope、descriptor与函数属性变更不由快照推定安全。六角色继续解释原参数和capture含义，宿主metadata只连对象与来源。
+
+工作顺序：先native匿名红绿验证实际创建/传参/返回/字段/alias/两个环境、plain token及覆盖/错target/SHA/缺capture/错type/显式与隐式参数冲突；再将普通未包装module function引用与稳定外层参数local def、当前原call的function参数输入来源接入同一index/骨架/binder。来源输入只给有出处的有限候选，真正调用必须读取实际传入的callable对象；候选不等于调用。材料投影须保留原定义/读取、控制/顺序/环境、完整selector和真实参数，当前target/owner/import及负binding字节使旧材料失效。先支持可机械证明的普通函数值，复杂class/wrapper继续具名；然后继续class对象/方法变换与原请求入口，不把函数值前驱当完整AY7。依次进行完整source-read→interpret→material→native对照、独立只读核验、冻结probe和主新鲜验证；官方完整实验须在相关框架组合可用后运行。
+
+函数值设计补充（2026-10-08）：module function读取须共享同一当前target/SHA对象身份；机械`sourceCallable.scope:"module"`只用于无capture模块引用，local定义继续按实际invocation独立创建。主红测复现各次读取都新建身份会漏掉前次引用的function属性写入，现分别核验共享module、独立local及非法module capture。生成器调用不执行其body；module generator、generator/async/wrapped创建者及generator callback consumer不取得普通执行资格。性质裁剪删去正创建图时材料继续保守不采用，不将缺失事件当成原样保留。
+
+函数值本步进展（2026-10-08）：v23已连接普通module/local创建、实际参数值传递与capture环境，以及同一binder下完整selector和当前材料依赖；原参数意义仍由六角色解释，宿主只保留来源/对象关系。主红绿覆盖plain token/覆盖/错SHA/type/capture冲突、两factory环境、缺失/晚移/伪造创建、畸形selector/unknown/追加call/effect和callback顺序，另补修generator/创建者/consumer资格及module重复读取的共享identity。真实propertyDirected裁剪若删正创建图仍保守不采用。46新增；571focused/3018断言、联合1410pass/1平台skip/8825断言与主/AY类型通过；三只读复核范围与主补修见[函数值核验](../../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-callable-values.json)。100文件/12body最终probe有12模块引用、1局部引用、2稳定定义、1参数call来源合格，所选body合格/采用0；SHA `51dc754caa97159ccdd15b612e60637f606d6cce3bfa6da1f73abb678fe0603c`，三个报告分留。无实验模型或目标执行，未知成本分列。该前驱不是AY7完成；继续实际class/wrapper方法变换与原request接线，随后官方完整复验。
+
+
 ### AY8 调度与局部解释的闭环
 
 2026-10-08真实OWUI反例细化：七轮增量字段确有前进，最后宿主生成34个块（其中8个为空）却被沿用手写接口的32块上限拒绝。先在v5源码编译器复用同单元的无动作空块，保留每个实际条件、步骤、正常/拒绝/异常出口及既有路径/节点边界；不提高求值上限。停滞按当前缺口和已保留字段进展判断，不能把observations的pending标签当源码frontier停滞。实际发送上下文与原始归档分账，引用的bytes是被引用原值大小，不是该引用包的发送大小。

@@ -13,18 +13,20 @@ const objects = { principal: name.optional(), resource: name.optional() }
 const operand = z.record(z.unknown()).refine(v => !predicateDiagnostics({ op: "truthy", language: "python", value: v }).length, "Finite source operand required")
 const methodRead = z.object({ receiver: name, method: name, defaultMethod: name.optional() }).strict()
 const boundMethod = z.object({ receiver: name, targetId: name, targetSha256: name }).strict()
+const sourceCallable = z.object({ targetId: name, targetSha256: name, scope: z.literal("module").optional(), captures: z.array(z.object({ parameter: name, object: name }).strict()).max(16).refine(values => new Set(values.map(v => v.parameter)).size === values.length, "Unique captured parameters required") }).strict()
+const callableRead = z.object({ object: name, targetId: name, targetSha256: name }).strict()
 export const SemanticStepSchema = z.discriminatedUnion("kind", [
   z.object({ ...common, kind: z.literal("bind"), type: z.enum(["principal", "resource", "permission", "configuration", "value"]), bindingName: name.optional(), aliasOf: name.optional(), value: FiniteValueSchema.optional() }).strict(),
   z.object({ ...common, ...objects, kind: z.literal("guard"), condition: condition.optional() }).strict(),
   z.object({ ...common, kind: z.literal("choose"), cases: z.array(z.object({ condition, body: name }).strict()).min(1).max(16), otherwise: name.optional() }).strict(),
-  z.object({ ...common, ...objects, kind: z.literal("call"), symbol: name, sourceCallId: name.optional(), callee: name.optional(), result: name.optional(), arguments: z.array(z.object({ parameter: name, object: name }).strict()).max(16).default([]), pathHint: InquiryText.optional(), candidateId: InquiryText.optional(), methodRead: methodRead.optional(), fieldMethodRead: boundMethod.extend({ object: name }).optional() }).strict(),
+  z.object({ ...common, ...objects, kind: z.literal("call"), symbol: name, sourceCallId: name.optional(), callee: name.optional(), result: name.optional(), arguments: z.array(z.object({ parameter: name, object: name }).strict()).max(16).default([]), pathHint: InquiryText.optional(), candidateId: InquiryText.optional(), methodRead: methodRead.optional(), fieldMethodRead: boundMethod.extend({ object: name }).optional(), callableRead: callableRead.optional() }).strict(),
   z.object({ ...common, ...objects, kind: z.literal("effect"), operation: InquiryText.optional(), authorizedBy: z.array(name).max(16).optional(), mayRaise: z.boolean().optional() }).strict(),
   z.object({ ...common, kind: z.literal("return"), value: scalar.optional(), valueFrom: name.optional(), object: name.optional(), outcome: z.enum(["allow", "deny", "unknown"]).optional() }).strict(),
   z.object({ ...common, kind: z.literal("reject"), failureKind: z.enum(["authorization", "operation"]).optional() }).strict(),
   z.object({ ...common, kind: z.literal("transform"), object: name, field: name, value: FiniteValueSchema.optional(), source: name.optional() }).strict(),
   z.object({ ...common, kind: z.literal("unresolved"), reason: InquiryText }).strict(),
   z.object({ ...common, kind: z.literal("context"), relationship: z.enum(["route-registration", "class-configuration", "dispatch-binding"]), mayRaise: z.boolean().optional() }).strict(),
-  z.object({ ...common, kind: z.literal("assign-value"), result: name, value: operand, methodRead: methodRead.optional(), boundMethod: boundMethod.optional() }).strict(),
+  z.object({ ...common, kind: z.literal("assign-value"), result: name, value: operand, methodRead: methodRead.optional(), boundMethod: boundMethod.optional(), sourceCallable: sourceCallable.optional() }).strict(),
   z.object({ ...common, kind: z.literal("short-circuit"), operator: z.enum(["and", "or"]), language: z.enum(["python", "go"]), left: operand, right: operand, body: name, result: name }).strict(),
   z.object({ ...common, kind: z.literal("try"), body: name, handlers: z.array(z.object({ exceptionTypes: z.array(name).max(16), catchesAll: z.boolean(), body: name, unknownType: z.boolean().optional() }).strict()).max(16), otherwise: name.optional(), finally: name.optional() }).strict(),
   z.object({ ...common, kind: z.literal("raise"), exceptionType: name.optional(), failureKind: z.enum(["authorization", "operation"]).optional(), rethrow: z.boolean().optional() }).strict(),
@@ -43,7 +45,7 @@ export interface PropertyContextSummary {
   semantics: "normal-all-or-first-unknown-exception"; outcomeBinding?: string; normalRuleKey?: string; exceptionRuleKey?: string
 }
 interface Exit { kind: "return" | "raise" | "break" | "continue"; claim: string; outcome?: "allow" | "deny" | "unknown"; exceptionType?: string; failureKind?: "authorization" | "operation" }
-interface ObjectBinding { identity: string; type: string; boundMethod?: { receiverIdentity: string; targetId: string; targetSha256: string } }
+interface ObjectBinding { identity: string; type: string; boundMethod?: { receiverIdentity: string; targetId: string; targetSha256: string }; sourceCallable?: { targetId: string; targetSha256: string; captures: Record<string, ObjectBinding> } }
 interface Cursor { tail: string; route: string[]; objects: Record<string, ObjectBinding>; fieldObjects: Record<string, ObjectBinding | null>; guards: Record<string, string>; values: Record<string, FiniteValue>; objectValues: Record<string, FiniteValue>; operands?: Record<string, Record<string, unknown>>; stopped?: boolean; returned?: boolean; returnValue?: FiniteValue; returnObject?: ObjectBinding; pending?: Exit; handledException?: Exit }
 const id = (parts: unknown[]) => "sem-" + createHash("sha256").update(canonicalControl(parts)).digest("hex").slice(0, 24)
 
@@ -124,9 +126,10 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
     }
     const resolveObject = (c: Cursor, ref?: string) => ref ? valueObject(c, ref)?.identity ?? id([questionId, "unbound-object", ref]) : undefined
     const assignValue = (c: Cursor, result: string, value: Record<string, unknown>) => {
-      const actual = predicate(value, c)
+      const actual = predicate(value, c), reference = typeof value.binding === "string" ? valueObject(c, value.binding) : undefined
       delete c.values[result]; delete c.objects[result]; c.operands ??= {}; delete c.operands[result]
-      if (Object.hasOwn(actual, "literal")) c.values[result] = structuredClone(actual.literal)
+      if (reference?.sourceCallable || reference?.boundMethod) c.objects[result] = structuredClone(reference)
+      else if (Object.hasOwn(actual, "literal")) c.values[result] = structuredClone(actual.literal)
       else c.operands[result] = actual
     }
     const finish = (u: BoundSemanticBlock, c: Cursor, instance: string, body: string, step: string) => {
@@ -294,13 +297,23 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
             const read = step.fieldMethodRead, reference = valueObject(c, read.object)?.boundMethod, receiver = valueObject(c, read.receiver)
             if (!reference || !receiver || reference.receiverIdentity !== receiver.identity || reference.targetId !== read.targetId || reference.targetSha256 !== read.targetSha256 || Object.keys(c.fieldObjects).some(key => key === `${receiver.identity}.__class__` || key.startsWith(`${receiver.identity}.__class__.`))) { gap(u, c, instance, body, step.name, "source-field-method-value-unresolved"); next.push(c); continue }
           }
+          const callable = step.kind === "call" && step.callableRead ? valueObject(c, step.callableRead.object)?.sourceCallable : undefined
+          if (step.kind === "call" && step.callableRead && (!callable || callable.targetId !== step.callableRead.targetId || callable.targetSha256 !== step.callableRead.targetSha256)) { gap(u, c, instance, body, step.name, "source-callable-value-unresolved"); next.push(c); continue }
+          if (step.kind === "call" && step.callableRead && Object.keys(c.fieldObjects).some(key => key.startsWith(`${valueObject(c, step.callableRead!.object)!.identity}.`))) { gap(u, c, instance, body, step.name, "source-callable-attributes-written"); next.push(c); continue }
           if (step.kind === "assign-value") {
+            const captures = step.sourceCallable?.captures.map(capture => ({ parameter: capture.parameter, object: valueObject(c, capture.object) }))
+            if (step.sourceCallable && (!Object.hasOwn(step.value, "literal") || step.boundMethod || step.sourceCallable.scope === "module" && captures!.length !== 0 || captures!.some(capture => !capture.object) || new Set(captures!.map(capture => capture.parameter)).size !== captures!.length)) { gap(u, c, instance, body, step.name, "source-callable-creation-unresolved"); next.push(c); continue }
             assignValue(c, step.result, step.value)
             if (step.boundMethod) {
               const reference = step.boundMethod, receiver = valueObject(c, reference.receiver)
               if (!receiver || !step.methodRead || step.methodRead.receiver !== reference.receiver || !Object.hasOwn(step.value, "literal")) { gap(u, c, instance, body, step.name, "source-bound-method-creation-unresolved"); next.push(c); continue }
               const identity = id([questionId, instance, body, step.name, c.route, "bound-method"])
               c.objects[step.result] = { identity, type: "value", boundMethod: { receiverIdentity: receiver.identity, targetId: reference.targetId, targetSha256: reference.targetSha256 } }
+              setSourceValue(c, identity, { value: c.values[step.result]! }); delete c.values[step.result]
+            }
+            if (step.sourceCallable) {
+              const identity = step.sourceCallable.scope === "module" ? id([questionId, "module-callable", step.sourceCallable.targetId, step.sourceCallable.targetSha256]) : id([questionId, instance, body, step.name, c.route, "source-callable"])
+              c.objects[step.result] = { identity, type: "value", sourceCallable: { targetId: step.sourceCallable.targetId, targetSha256: step.sourceCallable.targetSha256, captures: Object.fromEntries(captures!.map(capture => [capture.parameter, structuredClone(capture.object!)])) } }
               setSourceValue(c, identity, { value: c.values[step.result]! }); delete c.values[step.result]
             }
             append(u, c, instance, body, step.name, "continue", fields)
@@ -335,7 +348,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
               const sourceValue = source && Object.hasOwn(c.objectValues, source) ? { value: structuredClone(c.objectValues[source]!) } : undefined
               setSourceValue(c, key, Object.hasOwn(step, "value") ? { value: step.value! } : sourceValue, object.identity, step.field)
               for (const stored of Object.keys(c.fieldObjects)) if (stored.startsWith(`${key}.`)) delete c.fieldObjects[stored]
-              c.fieldObjects[key] = sourceObject && (sourceObject.type !== "value" || sourceObject.boundMethod) ? { ...sourceObject } : null
+              c.fieldObjects[key] = sourceObject && (sourceObject.type !== "value" || sourceObject.boundMethod || sourceObject.sourceCallable) ? { ...sourceObject } : null
               fieldChanges.push({ questionId, handle: u.handle, step: step.name, object: object.identity, field: step.field, ...(Object.hasOwn(step, "value") ? { value: step.value } : {}), ...(source ? { source } : {}), evidenceIds: u.evidenceIds }); append(u, c, instance, body, step.name, "continue", fields)
             }
           }
@@ -345,7 +358,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
               if (step.object && !valueObject(c, step.object)) { gap(u, c, instance, body, step.name, "semantic-return-object-unbound"); next.push(c); continue }
               append(u, c, instance, body, step.name, "continue", fields); c.pending = { kind: "return", claim: step.claim, outcome: step.outcome }
               if (Object.hasOwn(step, "value")) c.returnValue = step.value
-              else if (step.valueFrom) { const value = predicate({ binding: step.valueFrom }, c); if (Object.hasOwn(value, "literal")) c.returnValue = value.literal; else c.returnObject = valueObject(c, step.valueFrom) }
+              else if (step.valueFrom) { const object = valueObject(c, step.valueFrom), value = predicate({ binding: step.valueFrom }, c); if (object?.sourceCallable || object?.boundMethod) c.returnObject = object; else if (Object.hasOwn(value, "literal")) c.returnValue = value.literal; else c.returnObject = object }
               if (step.object) c.returnObject = valueObject(c, step.object)
             } else if (u.role === "entry") {
               const unspecified = !step.outcome || step.outcome === "unknown"
@@ -363,15 +376,17 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
               dependencies.push({ key: id([call.key, "dependency"]), questionId, pathKey: call.pathKey, from: call.key, symbol: step.symbol, evidenceIds: u.evidenceIds, reason: step.claim, kind: "control", decisive: true, after: [call.key], ...(step.pathHint ? { pathHint: step.pathHint } : {}), ...(step.candidateId ? { candidateId: step.candidateId } : {}) })
               gap(u, c, instance, body, step.name, "semantic-callee-uninterpreted"); next.push(c); continue
             }
+            if (callable && callee.source && (callee.source.id !== callable.targetId || callee.source.sha256 !== callable.targetSha256)) { gap(u, c, instance, body, step.name, "source-callable-target-stale"); next.push(c); continue }
+            if (callable && Object.keys(callable.captures).some(parameter => step.arguments.some(argument => argument.parameter === parameter) || !callee.parameters.some(p => p.name === parameter))) { gap(u, c, instance, body, step.name, "source-callable-capture-conflict"); next.push(c); continue }
             const child: Cursor = { ...structuredClone(c), objects: Object.fromEntries(Object.entries(c.objects).filter(([key]) => key.includes("."))), values: {}, returned: false }
             delete child.returnValue; delete child.returnObject
             const invalidArguments: string[] = []
             for (const parameter of callee.parameters) {
-              const arg = step.arguments.find(arg => arg.parameter === parameter.name), object = arg && valueObject(c, arg.object)
+              const captured = callable?.captures[parameter.name], arg = step.arguments.find(arg => arg.parameter === parameter.name), object = captured ?? (arg && valueObject(c, arg.object))
               const expected = `helper "${callee.handle}" parameter "${parameter.name}" (${parameter.type})`
-              if (!arg) invalidArguments.push(`Missing argument mapping for ${expected}.`)
-              else if (!object) invalidArguments.push(`Object "${arg.object}" mapped to ${expected} is not bound in this invocation; declare an entry parameter or a typed bind.`)
-              else if (object.type !== parameter.type) invalidArguments.push(`Object "${arg.object}" has type ${object.type}, but ${expected} requires ${parameter.type}.`)
+              if (!arg && !captured) invalidArguments.push(`Missing argument mapping for ${expected}.`)
+              else if (!object) invalidArguments.push(`Object "${arg?.object ?? `capture:${parameter.name}`}" mapped to ${expected} is not bound in this invocation; declare an entry parameter or a typed bind.`)
+              else if (object.type !== parameter.type) invalidArguments.push(`Object "${arg?.object ?? `capture:${parameter.name}`}" has type ${object.type}, but ${expected} requires ${parameter.type}.`)
               else {
                 child.objects[parameter.name] = object
                 child.objects[`${callee.handle}.${parameter.name}`] = object
@@ -403,6 +418,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
               const resumed: Cursor = { ...returned, objects: structuredClone(c.objects), values: structuredClone(c.values), returned: false }
               resumed.operands = structuredClone(c.operands)
               if (resumed.pending?.kind === "return") delete resumed.pending
+              if (step.result && (Object.hasOwn(returned, "returnValue") || returned.returnObject)) { delete resumed.values[step.result]; delete resumed.objects[step.result]; if (resumed.operands) delete resumed.operands[step.result] }
               if (step.result && Object.hasOwn(returned, "returnValue")) resumed.values[step.result] = returned.returnValue!
               if (step.result && returned.returnObject) resumed.objects[step.result] = returned.returnObject
               delete resumed.returnValue; delete resumed.returnObject

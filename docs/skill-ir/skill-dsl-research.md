@@ -2110,6 +2110,13 @@ AY7早期方法捕获小步（2026-10-08）：v22复用v21实际方法身份，�
 
 新鲜验证为33新增、525focused/2676断言、联合1364pass/1平台skip/8483断言/115文件/33.76s及主/AY类型通过，见[早期捕获核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-early-method-capture.json)。源码probe SHA为`2cde2fc6f4a40d56211423dc65f8775207540e5321e62a972fefcef20ba8c0b0`；开发和探子用量未知不得以实验新增0替代。
 
+AY7函数值与环境小步（2026-10-08）：v23让当前普通module引用和稳定外层参数local定义创建/读取真实source callable对象；参数/返回/alias/字段沿原有限核心保留身份，callback从实际对象取得capture而不是调用者同名变量。主红测先保留原函数参数未接线的失败，再对缺失/晚移/错环境创建和selector/unknown/额外call/effect逐一撤回。回调顺序挪过return、function参数属性写入遗漏也由主反例修复。候选来源传播不构成实际调用，完整source-read→interpret→material→native在真实propertyDirected设置下核验；裁剪删去创建图的材料当前保守不采用。
+
+两次初始只读核验没有新可复现发现，主随后补测发现module generator被当普通callback、generator/async/wrapped创建者未阻断，以及generator consumer错误取得body执行资格，均红绿修复。另复现同module函数的各次读取都新建identity会漏掉前次function属性写入；现宿主module scope共享当前target/SHA身份，local invocation仍独立，非法module capture拒绝。最后只读复核395pass/2292断言及独立跨module/relay/mutation来源fixture通过，范围不含全量compiler审计；三复核与主补修分列，不作穷尽声明。
+
+46新增用例，新鲜571focused/3018断言、联合1410pass/1平台skip/8825断言/115文件/20.08s与主/AY类型通过，见[函数值核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-callable-values.json)。[最终真实源码probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-callable-values-final-replay.json)验证94冻结及6补充文件，12body包含6原request候选及6实际schema/decorator/wrapper body；索引全域12模块引用/1局部引用/2稳定定义/1参数调用来源合格，所选body合格参数调用及实际采用0。SHA `51dc754caa97159ccdd15b612e60637f606d6cce3bfa6da1f73abb678fe0603c`；初始/reviewed/final报告与旧input/allowlist/答保留。模型read/application annotation/use与实验模型/目标/探针网络新增0，开发/探子token、USD、真人时间unknown。class/wrapper变换、完整请求、官方复验和预登记质量/净收益继续，AY7未完成。
+
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

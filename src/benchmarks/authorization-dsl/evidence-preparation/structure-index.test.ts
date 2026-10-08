@@ -1,6 +1,41 @@
 import { expect, test } from "bun:test"
 import { buildStructureIndex } from "./structure-index.ts"
 
+test("function-valued parameter attribute writes retain possible source function protocol", async () => {
+  const index = await buildStructureIndex([{ path: "caller.py", content: "from callbacks import guard\nfrom consumer import consume\ndef entry(actor):\n    consume(guard, actor)\n" }, { path: "callbacks.py", content: "def guard(subject):\n    raise Denied\n" }, { path: "consumer.py", content: "def consume(operation, actor):\n    alias = operation\n    alias.__code__ = actor\n    return actor\n" }], { repository: "anonymous", sourceRef: "r" }), consumer = index.symbols.find(s => s.name === "consume")!, target = index.symbols.find(s => s.name === "guard")!, store = index.fieldStores(consumer.id)[0]!
+  expect(store.gap).toBe("skeleton-function-attribute-write-unmodeled")
+  expect(store.functionCandidateIds).toEqual([target.id])
+  expect(store.sources.map(s => s.path)).toContain("caller.py")
+})
+
+test("a generator consumer cannot execute its function-valued parameter at creation", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "def entry(actor):\n    consume(guard, actor)\ndef guard(subject):\n    raise Denied\ndef consume(operation, actor):\n    yield actor\n    operation(actor)\n" }], { repository: "anonymous", sourceRef: "r" }), consumer = index.symbols.find(s => s.name === "consume")!, call = index.relatedCalls(consumer.id).find(c => c.expression === "operation")!
+  expect(call.callableParameter).toBeUndefined()
+  expect(call.gap).toBe("source-callable-parameter-owner-unmodeled")
+})
+
+for (const mode of ["generator", "wrapped", "async", "module-rebound", "parameter-shadow", "local-shadow", "capture-rebound", "nonlocal", "conditional-definition", "escape"]) test(`source function values retain unsupported original execution boundaries: ${mode}`, async () => {
+  const local = ["capture-rebound", "nonlocal", "conditional-definition", "escape"].includes(mode), definition = `${mode === "wrapped" ? "@decorate\n" : ""}${mode === "async" ? "async " : ""}def guard(subject):\n    ${mode === "generator" ? "yield subject\n    " : ""}raise Denied\n`, content = local ? `def entry(flag, actor):\n${mode === "conditional-definition" ? "    if flag:\n    " : ""}    def guard(subject):\n${mode === "nonlocal" ? "        nonlocal flag\n" : ""}        if flag:\n            raise Denied\n        return subject\n${mode === "capture-rebound" ? "    flag = False\n" : mode === "escape" ? "    alias = guard\n" : ""}    consume(guard, actor)\n` : definition + `${mode === "module-rebound" ? "guard = unknown()\n" : ""}def entry(${mode === "parameter-shadow" ? "guard, " : ""}actor):\n${mode === "local-shadow" ? "    guard = actor\n" : ""}    consume(guard, actor)\n`
+  const index = await buildStructureIndex([{ path: "app.py", content: content + "def consume(operation, actor):\n    operation(actor)\n" }], { repository: "anonymous", sourceRef: "r" }), entry = index.symbols.find(s => s.name === "entry")!, consumer = index.symbols.find(s => s.name === "consume")!
+  expect(index.relatedCalls(entry.id).find(c => c.expression === "consume")!.argumentFacts![0]!.callableValue).toBeUndefined()
+  expect(index.relatedCalls(consumer.id)[0]!.callableParameter).toBeUndefined()
+})
+
+for (const local of [false, true]) test(`function parameter calls retain current callable inputs and creation source: ${local}`, async () => {
+  const content = local ? "def entry(actor, flag):\n    def guard(subject):\n        if flag:\n            raise Denied\n        return subject\n    consume(guard, actor)\ndef consume(operation, actor):\n    operation(actor)\n" : "def entry(actor):\n    consume(guard, actor)\ndef guard(subject):\n    raise Denied\ndef consume(operation, actor):\n    operation(actor)\n", index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), consumer = index.symbols.find(s => s.name === "consume")!, target = index.symbols.find(s => s.name === "guard")!, entry = index.symbols.find(s => s.name === "entry")!, supplied: any = index.relatedCalls(entry.id).find(c => c.expression === "consume")!.argumentFacts![0], call: any = index.relatedCalls(consumer.id).find(c => c.expression === "operation")!
+  expect(supplied.callableValue).toEqual(expect.objectContaining({ targetId: target.id, targetSha256: target.sha256, kind: local ? "local" : "module" }))
+  expect(call.callableParameter).toEqual(expect.objectContaining({ schemaVersion: "source-callable-parameter/v1", name: "operation" }))
+  expect(call.candidateIds).toEqual([target.id])
+  expect(content.slice(supplied.callableValue.source.startIndex, supplied.callableValue.source.endIndex)).toBe("guard")
+  if (local) expect((target as any).valueCallable.captures.map((c: any) => c.name)).toEqual(["flag"])
+})
+
+for (const mode of ["generator", "wrapped", "async"]) test(`local callable values require an ordinary actual owner invocation: ${mode}`, async () => {
+  const content = `${mode === "wrapped" ? "@decorate\n" : ""}${mode === "async" ? "async " : ""}def setup(flag, actor):\n${mode === "generator" ? "    yield actor\n" : ""}    def guard(subject):\n        if flag:\n            raise Denied\n        return subject\n    consume(guard, actor)\ndef consume(operation, actor):\n    operation(actor)\n`, index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), source = index.symbols.find(s => s.name === "setup")!, guard = index.symbols.find(s => s.name === "guard")!
+  expect(guard.valueCallable?.gap).toBe("source-callable-value-owner-unmodeled")
+  expect(index.relatedCalls(source.id).find(c => c.expression === "consume")!.argumentFacts![0]!.callableValue).toBeUndefined()
+})
+
 for (const mode of ["ordinary", "receiver-rebound", "cross-receiver", "wrapped-class", "wrapped-owner", "static-target", "async-target", "descriptor", "missing-base", "conditional-expression", "nested-outer", "loop", "plain-arguments"]) test(`early method capture facts stay within ordinary source boundaries: ${mode}`, async () => {
   const invoke = mode === "plain-arguments" ? "self.guard(actor)" : mode === "cross-receiver" ? "actor.guard(self.prepare(actor))" : "self.guard(self.prepare(actor))", statement = mode === "conditional-expression" ? `${invoke} if actor else False` : mode === "nested-outer" ? `outer(${invoke})` : invoke
   const content = `${mode === "wrapped-class" ? "@decorate\n" : ""}class Gate${mode === "missing-base" ? "(Unknown)" : ""}:\n${mode === "wrapped-owner" ? "    @decorate\n" : ""}    def entry(self, actor):\n${mode === "receiver-rebound" ? "        self = actor\n" : ""}${mode === "loop" ? `        while actor:\n            ${statement}\n` : `        ${statement}\n`}    def prepare(self, actor):\n        return actor\n${mode === "static-target" ? "    @staticmethod\n" : ""}    ${mode === "async-target" ? "async " : ""}def guard(self, actor):\n        return actor\n${mode === "descriptor" ? "    def __getattribute__(self, name):\n        return dynamic(name)\n" : ""}`

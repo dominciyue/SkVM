@@ -1,0 +1,159 @@
+{
+  "schemaVersion": "authorization-callable-values-review/v1",
+  "date": "2026-10-08",
+  "branch": "skill-ir-aot",
+  "baseCommit": "3a8e862e",
+  "relationshipVersion": "source-bindings/v23",
+  "stage": "AY7 prerequisite: actual source callable values and parameter dispatch",
+  "engineering": {
+    "status": "bounded-implemented-and-verified",
+    "newTests": 46,
+    "nativeTests": 19,
+    "indexTests": 17,
+    "sourceProjectionTests": 9,
+    "dependencyTests": 1,
+    "contracts": [
+      "Actual sourceCallable ObjectBinding captures current objects; arguments/returns/aliases/fields retain identity",
+      "Module scope uses current target/SHA identity across reads and prohibits captures; local definitions retain per-invocation identities",
+      "Callable parameter targets are possible source inputs only; dispatch requires actual callableRead object and current target/SHA",
+      "Projection validates exact original creation/read/scope/environment/control/evaluation order, complete selector/unknown branch and actual signature",
+      "Relation revision retains current callable inputs, origins, public hops and negative bindings; unrelated homonyms stay outside the footprint"
+    ],
+    "limits": [
+      "Generator module targets and generator/async/wrapped local creators remain ineligible",
+      "Generator/async/wrapped callback consumers retain an explicit source boundary",
+      "Mutable closure cells, arbitrary scopes/escapes, class/wrapper transformations, descriptors and function attribute protocol remain unmodeled",
+      "Source-invariant pruning that removes a positive creation graph conservatively prevents adoption",
+      "Six model roles, predicates and 64-block/127-node/16-path execution bounds unchanged; source propagation bounded to 16 targets, 128 origins and 128 iterations"
+    ]
+  },
+  "mainRedGreen": [
+    "End-to-end original module/local/forwarded/alternate function arguments initially lacked actual creation and/or dispatch",
+    "Missing/forged/late/foreign source creations were initially still retained; current creation validator rejects them",
+    "Callback selector moved after original return was initially linked; source control/order now required",
+    "Function parameter alias attribute write initially lacked source function protocol footprint; current possible inputs and origins retained",
+    "Module generator initially received ordinary callback qualification; current generator source flag withdraws it",
+    "Generator/async/wrapped local creators initially received actual definition qualification; owner boundary retained",
+    "Generator callback consumer initially received body execution qualification; owner boundary retained",
+    "Module-reference lifetime contract first rejected by schema, then repeated reads created fresh identities and missed prior attribute mutation; shared module identity and illegal-capture rejection now verified",
+    "Wrong-type capture diagnostics and possible source input narrowing produced type errors; corrected and both fresh type checks passed"
+  ],
+  "readonlyReviews": [
+    {
+      "agent": "ay_callable_native_review_v23",
+      "scope": "Native sourceCallable creation/capture/propagation/call identity before later generator/module-lifetime refinements",
+      "tests": {
+        "pass": 64,
+        "fail": 0,
+        "assertions": 411
+      },
+      "independentFixture": "Explicit caller parameter overlapping captured flag produced source-callable-capture-conflict, no effect",
+      "actionableFindings": [],
+      "limits": "No direct internal ObjectBinding export; result-level behavior verified"
+    },
+    {
+      "agent": "ay_callable_source_review_v23",
+      "scope": "Initial source index/skeleton/binder/compiler/projection, before final main generator/module-lifetime refinements",
+      "tests": {
+        "pass": 378,
+        "fail": 0,
+        "assertions": 2253
+      },
+      "independentFixture": "Local captured actor and ordinary module function retained separate original argument spans and owner/target proofs",
+      "actionableFindings": [],
+      "limits": "Independent fixture was index-level; no exhaustive source soundness proof"
+    },
+    {
+      "agent": "ay_callable_lifetime_review_v23",
+      "scope": "Latest generator qualification/module lifetime/source scope exactness",
+      "tests": {
+        "pass": 395,
+        "fail": 0,
+        "assertions": 2292
+      },
+      "independentFixture": "Cross-module forwarding and function parameter __code__ write retained current target and original caller/callback sources",
+      "actionableFindings": [],
+      "limits": "Fixture verifies structure/protocol metadata rather than full end-to-end mutation execution"
+    }
+  ],
+  "freshVerification": {
+    "documentation": { "scannedCurrentFiles": 5, "brokenReferences": 0, "legacyReferences": 0, "retiredReferences": 0, "governanceErrors": 0, "existingSoftLengthWarnings": 5, "log": "D:/skill优化/project-maintenance/runs/authorization-question-closure-v1/callable-values-final-docs.log" },
+    "gitDiffCheck": { "exitCode": 0 },
+    "focused": {
+      "pass": 571,
+      "fail": 0,
+      "assertions": 3018,
+      "files": 11,
+      "durationSeconds": 6.96,
+      "log": "D:/skill优化/project-maintenance/runs/authorization-question-closure-v1/callable-values-final-focused.log"
+    },
+    "joint": {
+      "pass": 1410,
+      "skip": 1,
+      "fail": 0,
+      "assertions": 8825,
+      "files": 115,
+      "durationSeconds": 20.08,
+      "log": "D:/skill优化/project-maintenance/runs/authorization-question-closure-v1/callable-values-final-joint.log"
+    },
+    "mainTypes": {
+      "command": "bunx tsc --noEmit",
+      "exitCode": 0,
+      "durationMs": 41798,
+      "log": "D:/skill优化/project-maintenance/runs/authorization-question-closure-v1/callable-values-final-types.log"
+    },
+    "researchTypes": {
+      "command": "bunx tsc --noEmit -p results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/tsconfig.json",
+      "exitCode": 0,
+      "log": "D:/skill优化/project-maintenance/runs/authorization-question-closure-v1/callable-values-final-ay-types.log"
+    }
+  },
+  "sourceProbe": {
+    "script": "verification/paperless-callable-values-replay.mjs",
+    "report": "verification/paperless-callable-values-final-replay.json",
+    "sha256": "51dc754caa97159ccdd15b612e60637f606d6cce3bfa6da1f73abb678fe0603c",
+    "sourceFiles": 100,
+    "frozenFiles": 94,
+    "supplementalFiles": 6,
+    "selectedBodies": 12,
+    "moduleReferences": 12,
+    "localReferences": 1,
+    "stableDefinitions": 2,
+    "parameterCalls": 1,
+    "selectedBodyParameterCalls": 0,
+    "materialUses": 0,
+    "mechanicalWindowOnly": true,
+    "modelReadEvidence": false,
+    "initial": {
+      "report": "verification/paperless-callable-values-replay.json",
+      "sha256": "cc13789b943170298af7c89fb741e7e7097681698f13772c8fa8e53ae0c491fb"
+    },
+    "reviewed": {
+      "report": "verification/paperless-callable-values-reviewed-replay.json",
+      "sha256": "aec87e0311666b0a7fc2b59304bdd23ed5dfa6216ae1729e8da63621d2b3d3ca"
+    }
+  },
+  "research": {
+    "applicationUnitsAuthored": 0,
+    "materialUses": 0,
+    "experimentalModelExecutions": 0,
+    "targetExecutions": 0,
+    "probeNetworkRequests": 0,
+    "originalInputsAndAllowlistsUnmodified": true,
+    "originalAttemptsPromoted": false,
+    "classTransformation": "pending",
+    "fullFrameworkComposition": "pending",
+    "officialAcceptanceReruns": "pending",
+    "AY7Complete": false,
+    "finiteQueueComplete": false,
+    "researchGoalAchieved": false
+  },
+  "costs": {
+    "experimentInputTokens": 0,
+    "experimentOutputTokens": 0,
+    "experimentCacheReadTokens": 0,
+    "developerAndScoutTokens": null,
+    "usd": null,
+    "humanTime": null
+  }
+}

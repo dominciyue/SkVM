@@ -130,7 +130,7 @@ export function diagnosticWork(diagnostics: InquiryDiagnostic[], units: BoundSem
 export function sourceRelationRevision(index: StructureIndex, symbolId: string, receiverClass?: string) {
   const symbol = index.symbols.find(s => s.id === symbolId)
   if (!symbol) return undefined
-  return hash([symbol.qualifiedName, index.candidateRevision(receiverClass ?? symbol.className ?? symbol.qualifiedName, symbol.name), index.relatedCalls(symbolId, receiverClass).map(c => [c, c.candidateIds.map(id => { const s = index.symbols.find(s => s.id === id); return s && [s.id, s.path, s.sha256] })]), index.fieldStores(symbolId, receiverClass), index.methodStores(symbolId, receiverClass), index.routes.filter(r => r.candidateIds.includes(symbolId)).map(r => [r, index.symbols.find(s => s.id === r.id)?.sha256, index.requestMiddleware(r.id)]), index.requestDependencies(symbolId)])
+  return hash([symbol.qualifiedName, index.candidateRevision(receiverClass ?? symbol.className ?? symbol.qualifiedName, symbol.name), index.relatedCalls(symbolId, receiverClass).map(c => [c, c.candidateIds.map(id => { const s = index.symbols.find(s => s.id === id); return s && [s.id, s.path, s.sha256] })]), index.fieldStores(symbolId, receiverClass), index.methodStores(symbolId, receiverClass), index.callableParameters(symbolId), index.routes.filter(r => r.candidateIds.includes(symbolId)).map(r => [r, index.symbols.find(s => s.id === r.id)?.sha256, index.requestMiddleware(r.id)]), index.requestDependencies(symbolId)])
 }
 export function structuralDependencyRevision(index: StructureIndex, dependency: SourceFactDependency) {
   if (dependency.kind === "symbol-resolution") return index.symbols.find(s => s.id === dependency.key)?.sha256

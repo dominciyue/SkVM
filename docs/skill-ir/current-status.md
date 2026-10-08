@@ -4,7 +4,9 @@
 
 ## 当前工作
 
-最新小步为AY7 `source-bindings/v22`早期普通方法捕获：有嵌套实参call的同instance直接statement/assignment/return先实际捕获原方法，再按词法顺序求值实参，后以既有boundMethod/fieldMethodRead和同一binder调用；实参内slot覆盖保留原引用，捕获前覆盖或实参异常保持原阻断。简单and/or值经同一argumentFacts的机械valueFlow投影；复杂操作数、class/wrapper/descriptor不取得新资格。材料须保留精确捕获、原if/try区域、严格事件顺序和原短路body，缺失/挪动/实参倒序/追加call不采用。33新增用例；525focused/2676断言、联合1364pass/1平台skip/8483断言及主/AY类型通过；两只读核验与主红绿分列。100文件/6候选body probe声明receiver有1处early capture合格，指定应用receiver合格/实际采用0；旧probe/input/allowlist/答保留。实际class/wrapper变换、完整请求和官方复验继续，AY7和预登记净收益未达。
+最新小步为AY7 `source-bindings/v23`实际函数对象与参数调用：模块引用和稳定外层参数local定义在原读取/定义位置保留当前target/SHA与真实捕获环境，经既有参数、返回、alias和字段传递；调用核验实际传入对象，候选列表和相同token不能代替它。模块多次读取共享身份，local两次创建保持独立环境。原控制/严格顺序/创建/selector/unknown出口与当前依赖都经投影核验；generator、async/wrapped创建者、可变cell与function属性写入继续具名。46新增；571focused/3018断言、联合1410pass/1平台skip/8825断言与主/AY类型通过，三只读核验和主补修分列。100文件/12body新probe保留12模块引用、1局部引用、2稳定定义、1参数调用来源合格，所选body合格调用/实际采用0；机械窗口不提供实验模型读证据。裁剪删去正创建图的材料仍保守不采用。实际class/wrapper变换、完整请求和官方复验及预登记净收益继续，AY7未完成。
+
+此前AY7 `source-bindings/v22`早期普通方法捕获：有嵌套实参call的同instance直接statement/assignment/return先实际捕获原方法，再按词法顺序求值实参，后以既有boundMethod/fieldMethodRead和同一binder调用；实参内slot覆盖保留原引用，捕获前覆盖或实参异常保持原阻断。简单and/or值经同一argumentFacts的机械valueFlow投影；复杂操作数、class/wrapper/descriptor不取得新资格。材料须保留精确捕获、原if/try区域、严格事件顺序和原短路body，缺失/挪动/实参倒序/追加call不采用。33新增用例；525focused/2676断言、联合1364pass/1平台skip/8483断言及主/AY类型通过；两只读核验与主红绿分列。100文件/6候选body probe声明receiver有1处early capture合格，指定应用receiver合格/实际采用0；旧probe/input/allowlist/答保留。实际class/wrapper变换、完整请求和官方复验继续，AY7和预登记净收益未达。
 
 v17后续容量修正（2026-10-08）：16候选的两个selector实际生成35块，先后红测复现共享单元与聚焦源码提交各自的32块拒绝。两处现共用64块结构容量，原127 emitted-node/16终态路径求值边界保持；完整source-read/interpret/material projection/native提交与实际guard拒绝通过。新鲜403focused/1550断言、联合1242pass/1平台skip/7357断言/115文件及主/AY类型通过。历史OWUI拒绝及真实probe不升级，本步无模型或目标执行；条件lookup与完整请求继续。
 

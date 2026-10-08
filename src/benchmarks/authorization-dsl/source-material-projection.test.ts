@@ -530,6 +530,67 @@ for (const selected of [true, false]) test(`finite method choice executes its or
   expect(project(units, changed).uses).toEqual([])
 })
 
+for (const mode of ["module", "local", "forwarded", "alternate", "branch", "skipped", "try", "captured-callback", "local-twice"]) test(`actual source function parameters dispatch the passed callable and environment: ${mode}`, async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-source-callable-")), local = mode === "local", content = `def entry(actor):\n    ${local ? "setup(True, actor)" : mode === "forwarded" ? "forward(guard, actor)" : `consume(${mode === "alternate" ? "fallback" : "guard"}, actor)`}\n    write()\n    return True\n${local ? "def setup(flag, actor):\n    def guard(subject):\n        if flag:\n            raise Denied\n        return subject\n    consume(guard, actor)\n    return actor\n" : "def guard(subject):\n    raise Denied\n"}def consume(operation, actor):\n    operation(actor)\n    return actor\n${mode === "forwarded" ? "def forward(operation, actor):\n    consume(operation, actor)\n    return actor\n" : mode === "alternate" ? "def elsewhere(actor):\n    consume(guard, actor)\n    return actor\ndef fallback(subject):\n    return subject\n" : ""}`
+  const actualContent = mode === "branch" || mode === "skipped" ? content.replace("    consume(guard, actor)", `    if ${mode === "branch" ? "True" : "False"}:\n        consume(guard, actor)`) : mode === "try" ? content.replace("    consume(guard, actor)", "    try:\n        consume(guard, actor)\n    finally:\n        pass") : mode === "captured-callback" ? content.replace("    consume(guard, actor)", "    setup(guard, actor)") + "def setup(operation, actor):\n    def invoke(subject):\n        return operation(subject)\n    consume(invoke, actor)\n    return actor\n" : mode === "local-twice" ? "def entry(actor):\n    setup(False, actor)\n    setup(True, actor)\n    write()\n    return True\ndef setup(flag, actor):\n    def guard(subject):\n        if flag:\n            raise Denied\n        return subject\n    consume(guard, actor)\n    return actor\ndef consume(operation, actor):\n    operation(actor)\n    return actor\n" : content
+  await writeFile(path.join(sourceRoot, "app.py"), actualContent)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, units: any[] = []
+  for (const source of index.symbols.filter(s => s.kind === "function")) {
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id))!, annotations = skeleton.anchors.filter(a => ["parameter", "condition", "call", "return", "raise"].includes(a.kind)).map(a => ({ anchorId: a.id, role: a.kind === "parameter" ? ["actor", "subject"].includes(a.name ?? "") ? "principal" : a.name === "flag" ? "condition" : "context" : a.kind === "call" ? a.call!.expression === "write" ? "effect" : "condition" : a.kind === "condition" ? "condition" : "context", explanation: "Anonymous original callable creation, parameter and captured environment", ...(a.kind === "condition" ? { condition: { op: "truthy", language: "python", value: a.literalKnown ? { literal: a.literalValue } : { binding: a.text } } } : {}), ...(a.kind === "return" && source.name === "entry" ? { returnOutcome: "allow" } : {}), ...(a.kind === "raise" ? { failureKind: "authorization" } : {}) })), result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index, propertyDirected: true, itemId: source.name, handle: source.name, questionId: "q", role: source.name === "entry" ? "entry" : "helper" })
+    expect(skeleton.gaps).toEqual([])
+    expect(result.diagnostics).toEqual([])
+    units.push({ ...result.unit!, questionId: "q", source: skeleton.source, evidenceIds: skeleton.evidenceIds })
+  }
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect actual passed function values", premises: [] }] }), project = (current = units) => {
+    const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" })
+    for (const u of current) store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }, { kind: "candidate-set", key: `relations:${u.source.id}:`, revision: sourceRelationRevision(index, u.source.id)! }], "test-authored")
+    return { ...api.projectSourceMaterials(p, current, store.snapshot(), index, { questionDirected: true }), materials: store.snapshot().materials }
+  }
+  const projected = project(), lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true })
+  if (mode === "skipped") {
+    // Current material retention requires its complete positive creation graph;
+    // source-invariant pruning has removed this original creation/call region.
+    expect(projected.units).toEqual([])
+    expect(projected.uses).toEqual([])
+    expect(lowered.delta.rules.some(r => r.failureKind === "authorization")).toBe(false)
+    return
+  }
+  expect(projected.units.flatMap((u: any) => u.blocks.flatMap((b: any) => b.steps)).some((s: any) => s.sourceCallable)).toBe(true)
+  expect(projected.units.flatMap((u: any) => u.blocks.flatMap((b: any) => b.steps)).some((s: any) => s.callableRead)).toBe(true)
+  expect(lowered.delta.rules.some(r => r.failureKind === "authorization")).toBe(!["alternate", "skipped"].includes(mode))
+  expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(["alternate", "skipped"].includes(mode))
+  expect(lowered.diagnostics.map(d => d.code)).toEqual(["alternate", "skipped"].includes(mode) ? ["semantic-exception-type-unknown"] : [])
+  if (["branch", "skipped", "try", "captured-callback", "local-twice"].includes(mode)) return
+  for (const change of ["missing", "metadata", "target", "token", "capture", "result", "late", "foreign", "scope"]) {
+    const forged = structuredClone(units), owner = forged.find(u => u.blocks.some((b: any) => b.steps.some((s: any) => s.sourceCallable))), block = owner.blocks.find((b: any) => b.steps.some((s: any) => s.sourceCallable)), creation = block.steps.find((s: any) => s.sourceCallable)
+    if (change === "missing") block.steps.splice(block.steps.indexOf(creation), 1)
+    if (change === "metadata") delete creation.sourceCallable
+    if (change === "target") creation.sourceCallable.targetSha256 = "forged-source"
+    if (change === "token") creation.value = { literal: "forged-token" }
+    if (change === "capture") creation.sourceCallable.captures = [{ parameter: local ? "flag" : "subject", object: "actor" }]
+    if (change === "result") creation.result = "forged-result"
+    if (change === "scope") { if (local) creation.sourceCallable.scope = "module"; else delete creation.sourceCallable.scope }
+    if (change === "late") block.steps.push(...block.steps.splice(block.steps.indexOf(creation), 1))
+    if (change === "foreign") { const extra = structuredClone(creation); extra.name = "foreign-creation"; extra.result = "foreign-callable"; block.steps.unshift(extra) }
+    expect(project(forged).units.some((u: any) => u.source?.id === owner.source.id), `${mode}:${change}`).toBe(false)
+  }
+  for (const change of ["selector", "case-target", "case-token", "extra-call", "extra-effect", "unknown", "argument", "late"]) {
+    const forged = structuredClone(units), consumer = forged.find(u => u.handle === "consume"), dispatch = consumer.blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "choose" && s.name.startsWith("function-call-")), variant = consumer.blocks.find((b: any) => b.name === dispatch.cases[0].body), invocation = variant.steps.find((s: any) => s.kind === "call")
+    if (change === "selector") dispatch.cases[0].condition.left.binding = "actor"
+    if (change === "case-target") invocation.candidateId = "forged-target"
+    if (change === "case-token") dispatch.cases[0].condition.right.literal = "forged-token"
+    if (change === "extra-call") { const extra = structuredClone(invocation); extra.name = "forged-invocation"; variant.steps.push(extra) }
+    if (change === "extra-effect") variant.steps.unshift({ kind: "effect", name: "forged-effect", claim: "Extra effect", operation: "write" })
+    if (change === "unknown") consumer.blocks.find((b: any) => b.name === dispatch.otherwise).steps = [{ kind: "return", name: "forged-default", claim: "Forged unknown", value: true }]
+    if (change === "argument") for (const b of consumer.blocks) for (const s of b.steps) if (s.kind === "call") s.arguments[0].object = "operation"
+    if (change === "late") { const parent = consumer.blocks.find((b: any) => b.steps.includes(dispatch)); parent.steps.push(...parent.steps.splice(parent.steps.indexOf(dispatch), 1)) }
+    const result = project(forged)
+    expect(result.uses.some((u: any) => u.kind === "call" && u.callerMaterialId === result.materials.find((m: any) => m.source.id === consumer.source.id)!.id), `${mode}:${change}`).toBe(false)
+    expect(result.units.find((u: any) => u.handle === "consume")?.blocks.flatMap((b: any) => b.steps).filter((s: any) => s.kind === "call").every((s: any) => !s.callee), `${mode}:${change}`).toBe(true)
+  }
+})
+
 for (const mode of ["nested-overwrite", "before-overwrite", "before-literal", "before-unknown", "argument-raise", "assignment", "return", "branch", "skipped-branch", "try", "multiple-arguments", "short-skipped", "short-or-skipped", "short-and-executed", "short-or-executed", "short-left-call", "short-multiple-arguments", "keyword-argument", "short-keyword"]) test(`ordinary direct methods capture before actual argument evaluation: ${mode}`, async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-early-method-capture-"))
   const multiple = mode.endsWith("multiple-arguments"), skippedArgument = ["short-skipped", "short-or-skipped", "short-multiple-arguments"].includes(mode), argument = mode === "multiple-arguments" ? "self.prepare(actor), self.observe(actor)" : mode === "short-multiple-arguments" ? "False and self.prepare(actor), self.observe(actor)" : mode === "short-skipped" ? "False and self.prepare(actor)" : mode === "short-or-skipped" ? "True or self.prepare(actor)" : mode === "short-and-executed" ? "True and self.prepare(actor)" : mode === "short-or-executed" ? "False or self.prepare(actor)" : mode === "short-left-call" ? "self.prepare(actor) and True" : mode === "keyword-argument" ? "actor=self.prepare(actor)" : mode === "short-keyword" ? "actor=False or self.prepare(actor)" : "self.prepare(actor)", invoke = `self.guard(${argument})`

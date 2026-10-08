@@ -5,6 +5,19 @@ import { createSourceMaterials } from "../../task-dsl/authorization/source-mater
 import { projectSourceMaterials } from "./source-material-projection.ts"
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
 
+test("callable input footprints retain external origin, reexport and current target bytes", async () => {
+  const files = [{ path: "app.py", content: "from public import gate\nfrom consumer import consume\ndef entry(actor):\n    consume(gate, actor)\n" }, { path: "public.py", content: "from callbacks import guard as gate\n" }, { path: "callbacks.py", content: "def guard(subject):\n    return subject\n" }, { path: "consumer.py", content: "def consume(operation, actor):\n    operation(actor)\n    return actor\n" }], identity = { repository: "anonymous", sourceRef: "r" }, index = await buildStructureIndex(files, identity), source = index.symbols.find(s => s.name === "consume")!, revision = sourceRelationRevision(index, source.id)
+  expect(index.callableParameters(source.id)[0]!.choices[0]!.origins[0]!.source.path).toBe("app.py")
+  expect(index.relatedCalls(source.id)[0]!.callableParameter).toBeDefined()
+  for (const changed of [files.map(f => f.path === "callbacks.py" ? { ...f, content: f.content.replace("return subject", "raise Denied") } : f), files.map(f => f.path === "public.py" ? { ...f, content: f.content + "gate = unknown()\n" } : f), files.map(f => f.path === "app.py" ? { ...f, content: f.content.replace("consume(gate, actor)", "consume(actor, actor)") } : f)]) {
+    const current = await buildStructureIndex(changed, identity)
+    expect(current.symbols.find(s => s.id === source.id)!.sha256).toBe(source.sha256)
+    expect(sourceRelationRevision(current, source.id)).not.toBe(revision)
+  }
+  const unrelated = await buildStructureIndex([...files, { path: "decoy.py", content: "def guard(subject):\n    raise Denied\n" }], identity)
+  expect(sourceRelationRevision(unrelated, source.id)).toBe(revision)
+})
+
 test("early method capture relations retain external targets and negative ordinary-class dependencies", async () => {
   const files = [{ path: "app.py", content: "from base import Parent\nclass Gate(Parent):\n    def prepare(self, actor):\n        return actor\n    def entry(self, actor):\n        return self.guard(flag=self.prepare(actor), actor=actor)\n" }, { path: "base.py", content: "class Parent:\n    def guard(self, actor, flag):\n        return actor\n" }], index = await buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" }), source = index.symbols.find(s => s.name === "entry")!, revision = sourceRelationRevision(index, source.id, "app.Gate"), call = index.relatedCalls(source.id, "app.Gate").find(c => c.expression === "self.guard")!
   expect(call.methodCapture).toBeDefined()
