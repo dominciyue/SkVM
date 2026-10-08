@@ -21,6 +21,7 @@ export interface CodexAccountSessionOptions {
   model: string; effort: "high"; cwd: string; system: string; prompt: string; tools: LLMTool[]
   execute(call: LLMToolCall): Promise<{ output: string; exitCode?: number; durationMs: number }>
   rejectArguments?(call: LLMToolCall, diagnostics: AccountArgumentDiagnostic[]): Promise<{ output: string; exitCode?: number; durationMs: number }>
+  argumentDiagnostics?(call: LLMToolCall): AccountArgumentDiagnostic[] | undefined
   maxToolCalls?: number
   timeoutMs?: number; signal?: AbortSignal; transportFactory?: () => AccountTransport
   instructionSources?: Array<{ path: string; sha256: string }>
@@ -205,7 +206,7 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
           if (tools.length + toolRejections.length >= maxToolCalls) { failure = "account-tool-budget"; finish("unavailable"); reply(message.id, { success: false, contentItems: [{ type: "inputText", text: failure }] }); return }
           const call: LLMToolCall = { id: params.callId, name: params.tool, arguments: params.arguments }, validator = validators.get(params.tool)!
           const valid = validator(params.arguments)
-          const diagnostics = (validator.errors ?? []).slice(0, 8).map(e => ({ path: e.instancePath, keyword: e.keyword, message: e.message ?? "Invalid field", expected: e.params }))
+          const diagnostics = !valid && options.argumentDiagnostics?.(call) || (validator.errors ?? []).slice(0, 8).map(e => ({ path: e.instancePath, keyword: e.keyword, message: e.message ?? "Invalid field", expected: e.params }))
           if (valid) tools.push(call)
           else toolRejections.push({ call, diagnostics })
           execution = Promise.resolve().then(async () => {

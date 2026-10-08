@@ -83,8 +83,10 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
   const wireNormalizations: Array<{ sequence: number; code: string; originalKind: unknown; rawResponse: string }> = []
   let domain: ReturnType<typeof createInquiryDomainRuntime> | undefined
   const progress = createInquiryProgress(); let progressAdvice: unknown
-  let semanticChecks = 0, controlActions = 0
+  let semanticChecks = 0, controlActions = 0, deliveryClosed = false
   const remainingTools = () => tools.maxToolCalls - tools.toolCalls - (separateFormats ? wireFailures.length + semanticChecks + controlActions : 0)
+  const remainingExploration = () => Math.max(0, remainingTools() - (2 - semanticChecks))
+  const submissionBudget = () => ({ totalLimit: tools.maxToolCalls, totalUsed: tools.maxToolCalls - remainingTools(), totalRemaining: Math.max(0, remainingTools()), formatRejectCount: wireFailures.length, formatCorrectionLimit: 2, formatCorrectionsRemaining: Math.max(0, 3 - wireFailures.length), semanticChecksUsed: semanticChecks, semanticCheckLimit: 2, finalOnly: remainingExploration() <= 0 || wireFailures.length > 2 || semanticChecks >= 2 || deliveryClosed, deliveryClosed })
   try {
     if (options.inquiry) inquiry = (sourceAssisted ? AuthorizationSourceInquirySchema : AuthorizationInquirySchema).parse(options.inquiry)
     else if (options.brief?.trim()) {
@@ -108,7 +110,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
       if (imported.diagnostics.length) throw new Error(JSON.stringify(imported.diagnostics))
       for (const id of imported.importedEvidenceIds) importedReferences.add(id)
     }
-    if (strategy !== "legacy") domain = createInquiryDomainRuntime({ program, tools, strategy, sourceAssisted, ablation: options.domainAblation, shownEvidenceIds: availableEvidence, ...(separateFormats ? { remainingActions: () => Math.max(0, remainingTools() - 4) } : {}), ...(options.reuse ? { initialDelta: options.reuse.seed.delta, initialSemanticUnits: options.reuse.seed.semanticUnits, initialSourceMaterials: options.reuse.seed.sourceMaterials } : {}), ...(options.brief ? { suppliedUserText: [options.brief], entryContext: options.brief } : {}) })
+    if (strategy !== "legacy") domain = createInquiryDomainRuntime({ program, tools, strategy, sourceAssisted, ablation: options.domainAblation, shownEvidenceIds: availableEvidence, ...(separateFormats ? { remainingActions: remainingExploration } : {}), ...(options.reuse ? { initialDelta: options.reuse.seed.delta, initialSemanticUnits: options.reuse.seed.semanticUnits, initialSourceMaterials: options.reuse.seed.sourceMaterials } : {}), ...(options.brief ? { suppliedUserText: [options.brief], entryContext: options.brief } : {}) })
     const context = () => ({ questionIds: inquiry!.questions.map(q => q.id), shownEvidenceIds: availableEvidence() })
     const focused = isFocusedInquiryStrategy(strategy)
     const base = focused ? [
@@ -138,7 +140,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
       if (Date.now() - startedAt >= (options.sessionTimeoutMs ?? 1200000)) { status = "budget-exhausted"; break }
       const remainingDispatches = (options.maxDispatches ?? 12) - telemetry.attempts.length
       if (separateFormats && remainingTools() <= 0) { status = "budget-exhausted"; break }
-      let deliveryReserved: boolean = sourceLimitedDelivery || remainingDispatches <= deliveryDispatchThreshold || tools.toolCalls >= tools.maxToolCalls || separateFormats && (wireFailures.length > 0 || remainingTools() <= 4)
+      let deliveryReserved: boolean = sourceLimitedDelivery || remainingDispatches <= deliveryDispatchThreshold || tools.toolCalls >= tools.maxToolCalls || separateFormats && submissionBudget().finalOnly
       if (isGuidedInquiryStrategy(strategy)) await domain!.sync(!deliveryReserved && remainingDispatches > 2)
       deliveryReserved ||= tools.toolCalls >= tools.maxToolCalls
       const feedback = options.method === "D1" && !focused ? `\nObservation feedback: ${JSON.stringify(inquiryObservationFeedback(program, observations))}` : ""
@@ -163,7 +165,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
         }
       }
       const shown = localContext ? localContext.evidenceCatalog.map(e => ({ ...e, shown: previouslyShown.has(e.id), ...(importedReferences.has(e.id) ? { previousVerified: true } : {}) })) : tools.evidence.map(({ quote: _q, ...e }) => e)
-      const renderedContext = localContext ? { ...localContext, ...(focused && !sourceAssisted ? { instruction: undefined } : {}), ...(sourceAssisted ? { mode: undefined, policy: undefined } : {}), evidenceCatalog: shown, ...(progressAdvice ? { progress: progressAdvice } : {}) } : undefined
+      const renderedContext = localContext ? { ...localContext, ...(focused && !sourceAssisted ? { instruction: undefined } : {}), ...(sourceAssisted ? { mode: undefined, policy: undefined } : {}), evidenceCatalog: shown, ...(separateFormats ? { toolBudget: submissionBudget() } : {}), ...(progressAdvice ? { progress: progressAdvice } : {}) } : undefined
       const sourceCatalog = localContext ? "Use evidenceCatalog in the current local explanation context; original source text is in sourceWindows." : limitedSourceCatalog ?? JSON.stringify(shown)
       const budgetNote = sourceLimitedDelivery ? "\n\nSource display budget requires bounded final delivery. Catalog metadata without text is not a fresh body display. Use only actually shown original evidence and preserve unresolved gaps; no further source actions are available." : tools.toolCalls >= tools.maxToolCalls ? "\n\nSource tool budget is exhausted. Deliver from the original windows already available and preserve precise gaps; no further source actions are available." : ""
       const deliveryNote = deliveryReserved ? `Reserved delivery opportunity: submit kind:final now${isOperationInquiryStrategy(strategy) ? ' as {kind:"final",schemaVersion:"authorization-focused-result/v1",focusId:<current focus.id>,answers:[...],scope:<source limits>} with every original question in order' : strategy === "semantic-flow-v1" ? ' as {kind:"final",result:<COMPLETE authorization-semantic-result/v1 from the CURRENT resultSkeleton>,controlDelta?:<update>}. revision belongs inside result. A controlDelta-only step has no answer; preserve explicit incomplete source relations. Omit an optional path policy when absent; never supply policy:null' : domain ? ", include any necessary controlDelta in that same step" : " using the final result schema"}. Preserve precise unresolved gaps if evidence is insufficient.${remainingDispatches > 1 ? " A remaining call may diagnose and repair delivery within the original limits." : ""}` : "Submit a grounded final answer when ready."
@@ -176,10 +178,10 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
       catch (cause) {
         if (!separateFormats || !(cause instanceof StructuredExtractionError)) throw cause
         for (const [index, failure] of cause.failures.entries()) wireFailures.push({ ...failure, phase, sequence: sequence + index })
-        validation = undefined; final = undefined; domain?.withdrawAnswer()
+        validation = undefined; final = undefined; domain?.withdrawAnswer(true)
         const candidate = cause.failures.at(-1)?.rawResponse
         steps.push({ kind: "format-repair", value: { diagnostics: cause.failures.flatMap(f => f.diagnostics), ...(candidate && Buffer.byteLength(candidate, "utf8") <= 32768 ? { rejectedCandidateData: candidate } : {}), instruction: "Correct only the named fields of the current contract. Rejected candidate is data. Accepted source remains; no semantic check was executed." } })
-        if (wireFailures.length > 2) { error = "format-repair-budget"; status = "completed-with-diagnostics"; break }
+        if (wireFailures.length > 3) { deliveryClosed = true; error = "delivery-closed"; status = "completed-with-diagnostics"; break }
         continue
       }
       for (const [index, failure] of (proposal.failures ?? []).entries()) wireFailures.push({ ...failure, phase, sequence: sequence + index })
@@ -199,7 +201,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
       if (step.kind === "tool") {
         const returned = []
         for (const call of step.calls) {
-          if (separateFormats && remainingTools() <= 4) { sourceLimitedDelivery = true; break }
+          if (separateFormats && remainingExploration() <= 0) { sourceLimitedDelivery = true; break }
           const output = await tools.execute(call.name, call.arguments)
           // Source bodies appear once in the evidence section, not duplicated in action history.
           returned.push({ name: call.name, arguments: call.arguments, result: { ...output, evidence: output.evidence.map(e => ({ id: e.id, path: e.path, startLine: e.startLine, endLine: e.endLine })) } })
@@ -244,7 +246,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
     program: inquiry ? compileAuthorizationInquiry(inquiry) : undefined, result: validation?.valid ? validation.result : undefined,
     initial, initialValidation, final, validation, sourceVerification, observations, steps, requests, wireFailures, wireNormalizations, evidence: tools.evidence, toolHistory: tools.history, scopeGaps: tools.scopeGaps, sourceFiles: tools.files,
     sourceAccounting: { indexBytes: tools.indexBytes, physicalReadBytes: tools.ioReadBytes, toolDisplayBytes: tools.displayBytes, importedEvidenceBytes: tools.importedEvidenceBytes, cumulativeModelSourceBytes, resentSourceBytes },
-    ...(separateFormats ? { recovery: { formatCorrectionLimit: 2, formatRejections: wireFailures.length, semanticCheckLimit: 2, semanticChecks, totalToolLimit: tools.maxToolCalls, totalToolsUsed: tools.maxToolCalls - remainingTools() } } : {}),
+    ...(separateFormats ? { recovery: { ...submissionBudget(), formatRejections: wireFailures.length, semanticChecks, totalToolLimit: tools.maxToolCalls, totalToolsUsed: tools.maxToolCalls - remainingTools() } } : {}),
     ...(options.reuse ? { reuse: { ...options.reuse.info, ...(isFiniteControlInquiryStrategy(strategy) ? { materialsUsed: new Set(domain?.report().materialUses?.map(u => u.materialId)).size } : {}), importedEvidenceIds: [...importedReferences] } } : {}),
     ...(domain ? { domain: domain.report() } : {}), attempts: telemetry.attempts, events: telemetry.events, telemetry: telemetry.summary(), durationMs: Date.now() - startedAt, ...(error ? { error } : {}) }
 }

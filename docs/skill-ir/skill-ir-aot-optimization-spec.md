@@ -2826,9 +2826,9 @@ AZ3–AZ8首个有界实现：性质以原题要求的精确文本跨度声明�
 
 ### 14.40 BA semantic submission and adoption
 
-2026-10-09，用户要求复核AZ并派发gpt-6.1-sol/max接续开发，任务书为[BA0–BA18](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)。以下为待实施合同，尚无BA真实效果结果；AZ原件和结论不改。
+2026-10-09，用户要求复核AZ并派发gpt-6.1-sol/max接续开发，任务书为[BA0–BA18](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)。语义编辑、选定协议诊断及预算已接入公共入口并通过离线接线测试；真实采用和效果尚待运行。AZ原件和结论不改。
 
-**语义编辑与编译。** 在既有v6上增加一个显式版本化编辑接口，建议authorization-source-edit/v1，由任务初段敲定字段。宿主管理当前事务、focus、源码revision、anchor和字段类型，模型提交有出处的角色、有限谓词、对象关系、性质绑定或具名unresolved。展示的field/value槽位和实际输入合同一致；编译回现有SourceInterpretation/semantic-flow/property checker，不复制求值器。身份/版本只从明确当前事务获取，跨题/过期/冲突拒绝；宿主不替模型填语义答案、permission/effect/allow/deny或用户前提。
+**语义编辑与编译。** 既有v6接受`{schemaVersion:"authorization-source-edit/v1",kind:"edit",transactionId,edits:[{anchorId,field,value}],values?,reason?}`。事务由当前focus及完整源码revision派生；宿主填写内部focus/revision，模型不能覆盖。普通field取现有SourceAnnotationSchema字段（anchorId除外），value沿用对应Schema；`unresolved`值为具名原因。根字段`fallthroughOutcome`和`propertyBindings`省略anchorId。槽位提供源行、相关原题、当前值、类型及必要原因，Schema和匿名表达式示例共源。跨题/过期/冲突、外来锚点、重复槽位和非法枚举拒绝，不改草稿；合法不完整字段保留，role/explanation齐备后编译回原SourceInterpretation，再由原lowering要求predicate、对象联系及出处。宿主不替模型填permission/effect/allow/deny或用户前提。原始编辑与生成的内部提案均保留，不复制求值器。
 
 **协议与局部保留。** 模型视图、Schema、解析和错误说明共用定义；按显式discriminator及当前事务反馈对应分支，不能让source-update错误要求focused-update的unit/candidateId。旧annotation/fallback继续显式兼容。合法局部草稿可保留，单元满足必要字段后才采用；条件解释文字不能替代predicate，未知值不能静默coerce为最接近枚举。答案中的缺口与政策字段按behavior/conformance显示，完整原题保留。
 

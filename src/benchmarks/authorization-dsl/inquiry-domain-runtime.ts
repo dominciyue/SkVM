@@ -83,7 +83,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const focus: ReturnType<typeof createInquiryFocus> | undefined = isFocusedInquiryStrategy(options.strategy) ? createInquiryFocus({ program: options.program, tools: options.tools, items: () => worklist?.snapshot() ?? [], units: () => semanticUnits, slice: () => slice, dependencies: () => scheduler.snapshot(), diagnostics: () => [...issues.values()].flat().concat(check?.diagnostics ?? objectDiagnostics), shownEvidenceIds: options.shownEvidenceIds, structural: operationEvidence, sourceAssisted: options.sourceAssisted, propertyDirected, propertyAbstraction: isPropertyAbstractionStrategy(options.strategy), sourceSkeleton: (id, receiver) => sourceSkeletons.get(skeletonKey(id, receiver)), ...(operationEvidence ? { linkTargets: (caller, step) => options.tools.structure ? operationCallTargets(options.tools.structure, caller, step, semanticUnits).map(t => t.unit) : [] } : {}) }) : undefined
   const checkHistory: Array<{ revision: number; slice: ControlSlice; result: unknown; check: RuntimeDomainCheck }> = []
   let currentAnswer: unknown
-  const invalidateDelivery = () => { if (options.sourceAssisted) { currentAnswer = undefined; check = undefined } }
+  const invalidateDelivery = () => { if (options.sourceAssisted) { currentAnswer = undefined; check = undefined; propertyChecks = undefined } }
   const evidenceContext = () => ({ questionIds: options.program.questions.map(q => q.id), shownEvidenceIds: options.shownEvidenceIds?.() ?? options.tools.evidence.map(e => e.id), suppliedUserText: options.suppliedUserText, globalUserText: options.entryContext ? [options.entryContext] : [] })
   const calculate = <T>(fn: () => T): T => { const started = performance.now(); try { return fn() } finally { computation.durationMs += performance.now() - started } }
   const sourceUnits = () => {
@@ -161,8 +161,8 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const propose = async (delta: unknown): Promise<ProposalResult> => {
     if (closed) throw new Error("session-closed: domain runtime cannot continue")
     invalidateDelivery()
-    if (focus && delta && typeof delta === "object" && (delta as Record<string, unknown>).schemaVersion === "authorization-source-update/v1") {
-      const prepared = focus.prepareSource(delta), currentId = focus.current()?.id ?? "absent"
+    if (focus && delta && typeof delta === "object" && ["authorization-source-update/v1", "authorization-source-edit/v1"].includes(String((delta as Record<string, unknown>).schemaVersion))) {
+      const prepared = (delta as Record<string, unknown>).schemaVersion === "authorization-source-edit/v1" ? focus.prepareEdit(delta) : focus.prepareSource(delta), currentId = focus.current()?.id ?? "absent"
       if (prepared.diagnostics.length || !prepared.raw) { issues.set(`$focus.${currentId}`, prepared.diagnostics); proposals.push({ delta: structuredClone(delta), diagnostics: prepared.diagnostics, revision: slice.revision }); return { diagnostics: prepared.diagnostics, actions: [], evaluated: { paths: lastPaths } } }
       generatedSourceDepth++
       try { const result = await propose(prepared.raw); if (closed) throw new Error("session-closed: domain runtime cannot continue"); proposals.push({ delta: structuredClone(delta), diagnostics: result.diagnostics, revision: slice.revision }); return result }
@@ -443,7 +443,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const sourceWorkMetrics = () => {
     const history = focus?.report().sourceInterpretations ?? [], sources = history.filter(e => e.event !== "low-level-fallback"), counts = new Map<string, number>()
     for (const e of sources) if (e.revision) counts.set(e.revision, (counts.get(e.revision) ?? 0) + 1)
-    return { sourceInterpretationSubmissions: proposals.filter(p => p.delta && typeof p.delta === "object" && (p.delta as Record<string, unknown>).schemaVersion === "authorization-source-update/v1").length, localInterpretationRepairs: [...counts.values()].reduce((n, c) => n + Math.max(0, c - 1), 0), lowLevelFallbacks: history.filter(e => e.event === "low-level-fallback").length, acceptedSourceUnits: semanticUnits.filter(u => u.source).length, controlSteps: semanticUnits.reduce((n, u) => n + u.blocks.reduce((m, b) => m + b.steps.length, 0), 0) }
+    return { sourceInterpretationSubmissions: proposals.filter(p => p.delta && typeof p.delta === "object" && ["authorization-source-update/v1", "authorization-source-edit/v1"].includes(String((p.delta as Record<string, unknown>).schemaVersion))).length, validSourceEdits: history.filter(e => e.event === "edited").reduce((n, e) => n + ((e as { acceptedEdits?: number }).acceptedEdits ?? 0), 0), retainedSourceDrafts: focus?.report().editDrafts.length ?? 0, localInterpretationRepairs: [...counts.values()].reduce((n, c) => n + Math.max(0, c - 1), 0), lowLevelFallbacks: history.filter(e => e.event === "low-level-fallback").length, acceptedSourceUnits: semanticUnits.filter(u => u.source).length, controlSteps: semanticUnits.reduce((n, u) => n + u.blocks.reduce((m, b) => m + b.steps.length, 0), 0) }
   }
   let rejectedFeedbackPosition = 0
   // Keep canonical/archive diagnostics intact; describe the public local operation in model feedback.
@@ -498,5 +498,5 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     if (options.sourceAssisted && options.tools.snapshotVerification?.valid === false) { result.check = undefined; result.delivery = deliverySnapshot() }
     return result
   }
-  return { propose, sync, validate, assembleResult, feedback, modelContext, promptContext, modelFeedback, deliverySnapshot, withdrawAnswer: () => { if (!closed) currentAnswer = undefined }, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { if (closed) return; closed = true; closedDelivery = liveDeliverySnapshot(); closedReport = liveReport() }, report }
+  return { propose, sync, validate, assembleResult, feedback, modelContext, promptContext, modelFeedback, deliverySnapshot, withdrawAnswer: (invalidateChecks = false) => { if (!closed) { currentAnswer = undefined; if (invalidateChecks) invalidateDelivery() } }, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { if (closed) return; closed = true; closedDelivery = liveDeliverySnapshot(); closedReport = liveReport() }, report }
 }

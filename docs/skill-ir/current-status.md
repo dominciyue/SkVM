@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**接续任务为[BA0–BA18：授权语义提交、实际采用与完整任务验证](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)，任务书已准备，实施结果尚未产生。** 开发模型 `gpt-6.1-sol/max`。复核基线 `29c400ff` 已与用户origin核对一致；下一开发线程接管同一分支。
+**当前执行[BA0–BA18：授权语义提交、实际采用与完整任务验证](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)。** 开发模型 `gpt-6.1-sol/max`，接管HEAD `1c822e10`。已登记22位置，并接通带类型局部编辑、精确官方传输诊断和有限检查预算；两个公共入口的匿名测试已走到材料采用、性质绑定与带轨迹检查。真实模型采用和质效尚待运行。
 
 本轮优先实现宿主管理的语义编辑、按实际协议反馈错误、可用的有限检查预算和临时通道恢复，再验证真实提交→材料采用→性质检查。复用v6和普通native/inquiry，不新建执行平台。格式通过后仍要补有限predicate和决定性关系，工程、采用、源码质量分别验收。
 

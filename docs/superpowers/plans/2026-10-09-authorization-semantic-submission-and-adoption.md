@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod/Ajv、既有源码结构索引与有限求值器、Codex Account Adapter。开发模型 `gpt-6.1-sol / max`；实验只用已授权的当前官方账号 `gpt-5.6-sol / high`。
 
-日期：2026-10-09。状态：`in-progress`（BA0已登记）。复核基线：`29c400fff55b74185fb518fc366d61b50967e3ea`；实际接管HEAD为`1c822e10121d49aae8026dba8caa5399b5e09dab`，启动工作树干净。实施及真实结果按勾选项与新identity原件区分，未勾选要求不能作为结果。
+日期：2026-10-09。状态：`in-progress`（BA0登记；BA1–4及BA6公共接线已实现，BA5反例/真实前沿和BA7后续进行中）。复核基线：`29c400fff55b74185fb518fc366d61b50967e3ea`；实际接管HEAD为`1c822e10121d49aae8026dba8caa5399b5e09dab`，启动工作树干净。实施及真实结果按勾选项与新identity原件区分，未勾选要求不能作为结果。共享工程验证182 tests/1394 assertions及主typecheck通过；此时新增真实模型调用为0。
 
 ## 一、接管与事实基础
 
@@ -103,40 +103,40 @@ Schema、模型可见字段说明、空表单/匿名示例、解析器、错误�
 
 **落点：** `src/benchmarks/authorization-dsl/inquiry-focus.ts`、`inquiry-wire.ts`；`src/task-dsl/authorization/source-interpretation.ts` 及对应测试。确需独立职责时只新增一个 source-edit 模块及测试。
 
-- [ ] 在本文/spec确定编辑合同、宿主/模型字段所有权、事务失效和旧格式兼容。
-- [ ] 红测：模型按展示的待填槽位提交可编译；field/value 与 annotation 不再互相误导；错误 role、无解释、无 predicate、假 anchor、过期事务、冲突版本仍准确拒绝。
-- [ ] 覆盖空/部分草稿与多次局部补齐；不预置成功语义，不把首轮坏提案改成好原件。
+- [x] 在本文/spec确定编辑合同、宿主/模型字段所有权、事务失效和旧格式兼容（spec§14.40；source-edit模块）。
+- [x] 红测：模型按展示的待填槽位提交可编译；field/value 与 annotation 不再互相误导；错误 role、无解释、无 predicate、假 anchor、过期事务、冲突版本仍准确拒绝。
+- [x] 覆盖空/部分草稿与多次局部补齐；不预置成功语义，不把首轮坏提案改成好原件。
 
 ### BA2：编译到既有语义链
 
 **落点：** 上述合同模块、`inquiry-domain-runtime.ts`、`inquiry-focus.ts`、`source-interpretation.ts`。
 
-- [ ] 实现机械路由填充、带类型局部编辑合并与旧 SourceInterpretation 编译；每个生成字段可追到当前事务/模型输入。
-- [ ] 保留已有效的同源字段，错误或旧版本字段不会污染其它题；更新解释后撤回过期检查。
-- [ ] 将完整、明确 unresolved、仍待填写分开，交付采用流水；不把 source-readable 算作 source-interpreted。
+- [x] 实现机械路由填充、带类型局部编辑合并与旧 SourceInterpretation 编译；每个生成字段可追到当前事务/模型输入。
+- [x] 保留已有效的同源字段，错误或旧版本字段不会污染其它题；更新解释后撤回过期检查。
+- [x] 将完整、明确 unresolved、仍待填写分开，交付采用流水；不把 source-readable 算作 source-interpreted。
 
 ### BA3：传输诊断与答案合同
 
 **落点：** `src/adapters/codex-account-session.ts`、`codex-account.ts`、`inquiry-wire.ts`、`inquiry-focus.ts`、`inquiry-native.ts`、`inquiry-run.ts` 及测试。
 
-- [ ] 对 AZ role=guard 的原参数重放，错误应指向 role 及允许值，不要求无关 unit/candidateId 或另一个协议版本。
-- [ ] 定义和校验从同一 Schema 生成；测试当前所有模型示例，检查静态官方注册和动态 provider 视图的等价性。
-- [ ] behavior/conformance 的答案模板覆盖 explanation、missing 的实际形状、paths 和政策状态；错 gaps/状态不静默吞掉。
-- [ ] 修复只影响授权工具时限定在该边界；不得破坏其它账号工具通用校验。
+- [x] 对 AZ role=guard 的原参数重放，错误指向 role 及六个允许值，不要求无关 unit/candidateId 或另一个协议版本（官方传输原件回归8个union错误→1个实际字段错误）。
+- [x] 定义和校验从同一 Schema 生成；测试当前模型示例，检查静态官方注册和动态 provider 视图的等价性。
+- [x] behavior/conformance 的答案模板覆盖 explanation、missing 的实际形状、paths 和政策状态；错 gaps/状态不静默吞掉。
+- [x] 修复只影响授权工具时限定在该边界；其它账号工具保留通用AJV校验及原回归。
 
 ### BA4：修复预算状态与交付接线
 
 **落点：** `inquiry-native.ts`、`inquiry-run.ts`、账号适配和对应测试。
 
 - [ ] 红测 AZ 序列：两次格式错误→一次通过 wire 但语义不完整→一次错误答案→有效的有缺口答案；每一步合法动作与真实计数一致。
-- [ ] 格式纠正耗尽后不再提供无限修复；剩余有效检查仍可执行，结果不可被旧 checked 污染。总预算不增加，失败/重放调用不双记。
-- [ ] 测试连续错误、工具去重、迟到结果、源码变更、checked后非法更新及所有原题保留。
+- [x] 格式纠正耗尽后不再提供无限修复；剩余有效检查仍可执行，结果不可被旧 checked 污染。总预算不增加，失败/重放调用不双记。
+- [x] 测试连续错误、工具去重、迟到结果、源码变更、checked后非法更新及所有原题保留。
 
 ### BA5：可填写的性质前沿与局部完成
 
 **落点：** `property-demand.ts`、`property-query.ts`、`inquiry-focus.ts`、`inquiry-worklist.ts`、`inquiry-context.ts`、`inquiry-progress.ts`。
 
-- [ ] 每个当前 slot 展示源行、所缺字段、合法类型、相关原题、当前已知值及为何必须填；不只列 missing 名称。
+- [x] 每个当前 slot 展示源行、所缺字段、合法类型、相关原题、当前已知值及为何必须填；不只列 missing 名称。
 - [ ] 针对已读源码先完成一个可表达性质所需的角色、predicate和对象联系；未知影响保持有来源的残余，不要求模型凭散文证明安全。
 - [ ] 合法局部草稿复用并只发送增量；同因没有新材料时不重复读全文件/重发整图。保留按需查看完整原文能力。
 - [ ] 匿名错对象、提前返回、检查之后才执行效果及未知helper反例；性质范围确实不同，不能仅改 revision。
@@ -146,7 +146,7 @@ Schema、模型可见字段说明、空表单/匿名示例、解析器、错误�
 **落点：** `source-assisted-entrypoints.test.ts`、`codex-account.test.ts`、`property-runtime.test.ts`、投影/有限摘要测试。
 
 - [ ] 用受限 mock 通过实际账号动态工具参数验证和普通 native/inquiry 完成读源码→语义编辑→接受单元→material use→bound query→性质检查。
-- [ ] mock只按本轮公开模型合同构造参数，不注入 initialSemanticUnits、不调用 store.accept 捷径；同时保留上述内部测试。
+- [x] mock只按本轮公开模型合同构造参数，不注入 initialSemanticUnits、不调用 store.accept 捷径；同时保留上述内部测试。匿名item写入链在官方静态工具及structured inquiry均取得1单元/1材料/1使用，性质bound、checked且trace非空；未知异常未删除。
 - [ ] 采用丢失要定位到具体门槛：root/role/receiver、实参、callee、摘要适用范围或source覆盖；仅修当前反例所需共享缺陷。
 - [ ] 旧 AZ 原参数重放仍按原含义拒绝/保留；另外生成的修正夹具明确是开发样例，不回填历史采用数。
 

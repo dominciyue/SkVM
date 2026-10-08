@@ -2,12 +2,12 @@ import { z } from "zod"
 import { InquiryText } from "../../task-dsl/authorization/inquiry.ts"
 import { AuthorizationInquirySchema, AuthorizationInquiryV1Schema, AuthorizationInquiryV2Schema } from "../../task-dsl/authorization/inquiry.ts"
 import { AuthorizationInquiryResultSchema, AuthorizationObservationSchema, InquiryQuestionResultSchema } from "../../task-dsl/authorization/inquiry-result.ts"
-import { ControlSliceV1DeltaSchema as ControlSliceDeltaSchema, canonicalControl, isFocusedInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInquiryStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
+import { ControlSliceV1DeltaSchema as ControlSliceDeltaSchema, canonicalControl, isFocusedInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInquiryStrategy, isPropertyAbstractionStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { zodToJsonSchema } from "../../providers/structured.ts"
 import type { LLMTool } from "../../providers/types.ts"
 import { LocalControlDeltaSchema, LocalControlEnvelopeSchema } from "./inquiry-control-updates.ts"
 import { SemanticUpdateSchema, SemanticUpdateEnvelopeSchema, SemanticResultSchema } from "./inquiry-semantic.ts"
-import { FocusedResultSchema, FocusedUpdateEnvelopeSchema, SourceUpdateEnvelopeSchema, focusedUpdateSchema, type FocusStage } from "./inquiry-focus.ts"
+import { FocusedResultSchema, FocusedUpdateEnvelopeSchema, SourceUpdateEnvelopeSchema, focusedUpdateSchema, selectedFocusedUpdateSchema, type FocusStage } from "./inquiry-focus.ts"
 import { InquirySourceCallSchema, OperationSourceCallSchema } from "./inquiry-tools.ts"
 
 const calls = z.array(z.object({ name: z.enum(["source_list", "source_search", "source_symbol", "source_read"]), arguments: z.record(z.unknown()) }).strict()).min(1).max(8)
@@ -116,6 +116,7 @@ export const inquiryAuthorModelSchema = (strategy?: InquiryStrategy) => isOperat
 export function normalizeFocusedControlEnvelope(input: unknown, sourceAssisted = false) {
   if (!input || typeof input !== "object" || Array.isArray(input)) return { value: input }
   const original = input as Record<string, unknown>
+  if (sourceAssisted && original.kind === "edit") return { value: { kind: "control", controlDelta: original }, normalization: { code: "source-edit-at-step-root", originalKind: original.kind } }
   if (sourceAssisted && original.kind === "interpret" && "interpretation" in original) {
     const candidate = { schemaVersion: "authorization-source-update/v1", ...original }
     const checked = SourceUpdateEnvelopeSchema.safeParse(candidate)
@@ -150,16 +151,16 @@ export function normalizeFocusedControlEnvelope(input: unknown, sourceAssisted =
   else if ((raw.kind === "final" || raw.kind === undefined) && raw.schemaVersion === "authorization-focused-result/v1") { const { kind: _kind, ...result } = raw; value = { kind: "final", result }; code = "focused-final-result-root" }
   return code ? { value, normalization: { code: versionOmitted ? "focused-action-version-omitted" : code, originalKind: original.kind ?? null, ...(versionOmitted ? { filled: ["schemaVersion"] } : {}) } } : { value: input }
 }
-const focusedSteps = (stage?: FocusStage, parsing = false, operation = false, sourceAssisted = false) => z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("tool"), calls: z.array(operation ? OperationSourceCallSchema : InquirySourceCallSchema).min(1).max(8), controlDelta: focusedUpdateSchema(stage, parsing, operation, sourceAssisted).optional(), reason: InquiryText.optional() }).strict(),
-  z.object({ kind: z.literal("control"), controlDelta: focusedUpdateSchema(stage, parsing, operation, sourceAssisted) }).strict(),
+const focusedSteps = (stage?: FocusStage, parsing = false, operation = false, sourceAssisted = false, sourceEditing = false) => z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("tool"), calls: z.array(operation ? OperationSourceCallSchema : InquirySourceCallSchema).min(1).max(8), controlDelta: focusedUpdateSchema(stage, parsing, operation, sourceAssisted, sourceEditing).optional(), reason: InquiryText.optional() }).strict(),
+  z.object({ kind: z.literal("control"), controlDelta: focusedUpdateSchema(stage, parsing, operation, sourceAssisted, sourceEditing) }).strict(),
   z.object({ kind: z.literal("final"), result: FocusedResultSchema }).strict(),
 ])
 /** One advertised routing kind; all actions still parse into the existing focused core. */
-function operationStepModelSchema(stage?: FocusStage, finalOnly = false, sourceAssisted = false) {
+function operationStepModelSchema(stage?: FocusStage, finalOnly = false, sourceAssisted = false, sourceEditing = false) {
   const final = FocusedResultSchema.extend({ kind: z.literal("final") })
   if (finalOnly) return final
-  const actions = focusedUpdateSchema(stage, false, true, sourceAssisted), options = "options" in actions ? actions.options : [actions]
+  const actions = focusedUpdateSchema(stage, false, true, sourceAssisted, sourceEditing), options = "options" in actions ? actions.options : [actions]
   const direct = options.map(action => action.extend({ schemaVersion: action.shape.schemaVersion.optional(), calls: z.array(OperationSourceCallSchema).max(8).optional() }))
   const variants = [z.object({ kind: z.literal("tool"), calls: z.array(OperationSourceCallSchema).min(1).max(8), schemaVersion: z.literal("authorization-focused-update/v1").optional(), focusId: z.string().min(1).optional(), reason: InquiryText.optional() }).strict(), ...direct, ...(stage === "answer" ? [final] : [])]
   const exact = z.union([variants[0]!, variants[1]!, ...variants.slice(2)])
@@ -186,13 +187,13 @@ const resultModelSchema = (mode?: "behavior" | "conformance") => mode ? Authoriz
 export function inquiryStepSchemas(strategy: InquiryStrategy, finalOnly = false, mode?: "behavior" | "conformance", stage?: FocusStage) {
   if (isFocusedInquiryStrategy(strategy)) {
     const sourceAssisted = isSourceAssistedInquiryStrategy(strategy)
-    const parser = focusedSteps(stage, true, isOperationInquiryStrategy(strategy), sourceAssisted), model = focusedSteps(stage, false, isOperationInquiryStrategy(strategy), sourceAssisted)
+    const parser = focusedSteps(stage, true, isOperationInquiryStrategy(strategy), sourceAssisted, isPropertyAbstractionStrategy(strategy)), model = focusedSteps(stage, false, isOperationInquiryStrategy(strategy), sourceAssisted, isPropertyAbstractionStrategy(strategy))
     const select = (schemas: typeof parser) => finalOnly ? schemas.options[2] : stage === "answer" ? schemas : z.discriminatedUnion("kind", [schemas.options[0], schemas.options[1]])
     return { schema: z.preprocess((input, context) => {
       const normalized = normalizeFocusedControlEnvelope(input, sourceAssisted)
       if (normalized.issues) { for (const issue of normalized.issues) context.addIssue({ ...issue, fatal: true }); return z.NEVER }
       return normalized.value
-    }, select(parser)), modelSchema: isOperationInquiryStrategy(strategy) ? operationStepModelSchema(stage, finalOnly, sourceAssisted) : select(model) }
+    }, select(parser)), modelSchema: isOperationInquiryStrategy(strategy) ? operationStepModelSchema(stage, finalOnly, sourceAssisted, isPropertyAbstractionStrategy(strategy)) : select(model) }
   }
   if (strategy === "semantic-flow-v1") return { schema: finalOnly ? z.preprocess(input => normalizeSemanticFinalEnvelope(input).value, semanticParserSteps.options[3]) : semanticParserSteps, modelSchema: finalOnly ? semanticModelSteps.options[3] : semanticModelSteps }
   const fullModel = strategy === "guided-evidence-v2" ? localModelSteps : strategy === "legacy" ? LegacyStepSchema : canonicalStep
@@ -208,7 +209,7 @@ export function inquiryNativeSchemas(strategy: InquiryStrategy, parsing = false,
   const guidedParsing = parsing && strategy === "guided-evidence-v2"
   const compile = z.object({ inquiry: parsing ? InquiryAuthorTransportSchema : inquiryAuthorModelSchema(strategy) }).strict()
   const result = isFocusedInquiryStrategy(strategy) ? FocusedResultSchema : strategy === "semantic-flow-v1" ? SemanticResultSchema : guidedParsing ? GuidedResultSchema : AuthorizationInquiryResultSchema
-  const delta = isFocusedInquiryStrategy(strategy) ? focusedUpdateSchema(stage, parsing, isOperationInquiryStrategy(strategy), isSourceAssistedInquiryStrategy(strategy)) : strategy === "semantic-flow-v1" ? parsing ? SemanticUpdateEnvelopeSchema : SemanticUpdateSchema : strategy === "guided-evidence-v2" ? parsing ? z.preprocess(guidedDeltaWithContextVersion, LocalControlEnvelopeSchema) : LocalControlDeltaSchema : ControlSliceDeltaSchema
+  const delta = isFocusedInquiryStrategy(strategy) ? focusedUpdateSchema(stage, parsing, isOperationInquiryStrategy(strategy), isSourceAssistedInquiryStrategy(strategy), isPropertyAbstractionStrategy(strategy)) : strategy === "semantic-flow-v1" ? parsing ? SemanticUpdateEnvelopeSchema : SemanticUpdateSchema : strategy === "guided-evidence-v2" ? parsing ? z.preprocess(guidedDeltaWithContextVersion, LocalControlEnvelopeSchema) : LocalControlDeltaSchema : ControlSliceDeltaSchema
   return {
     authorization_compile: guidedParsing ? z.preprocess(guidedCompile, compile) : compile,
     authorization_observe: domain ? z.object({ observations: observations.min(0).optional(), controlDelta: delta.optional() }).strict() : z.object({ observations: observations.min(0) }).strict(),
@@ -222,4 +223,20 @@ export function inquiryNativeDefinitions(strategy: InquiryStrategy, mode?: "beha
     authorization_check_result: "Check the final result against current questions, shown source and proposed controls; preserve diagnostics and finish in the original skill prose format.",
   }
   return Object.entries(schemas).map(([name, schema]) => ({ name, description: descriptions[name as keyof typeof descriptions], inputSchema: zodToJsonSchema(schema) }))
+}
+
+export function inquiryNativeArgumentSchema(strategy: InquiryStrategy, name: string, raw: unknown, parsing = true): z.ZodTypeAny | undefined {
+  const schemas = inquiryNativeSchemas(strategy, parsing), schema = schemas[name as keyof typeof schemas]
+  if (!schema || !isFocusedInquiryStrategy(strategy) || !raw || typeof raw !== "object" || !("controlDelta" in raw) || !raw.controlDelta || name === "authorization_compile") return schema
+  if (!(schema instanceof z.ZodObject)) return schema
+  return schema.extend({ controlDelta: selectedFocusedUpdateSchema(raw.controlDelta, parsing, isOperationInquiryStrategy(strategy), isSourceAssistedInquiryStrategy(strategy), isPropertyAbstractionStrategy(strategy)).optional() })
+}
+/** AJV still decides static transport validity; this only replaces ambiguous error feedback. */
+export function inquiryArgumentDiagnostics(strategy: InquiryStrategy, name: string, raw: unknown) {
+  const schema = inquiryNativeArgumentSchema(strategy, name, raw, false)
+  if (!schema) return undefined
+  const parsed = schema.safeParse(raw)
+  if (parsed.success) return undefined
+  return parsed.error.issues.slice(0, 8).map(issue => ({ path: "/" + issue.path.map(p => String(p).replaceAll("~", "~0").replaceAll("/", "~1")).join("/"), keyword: issue.code,
+    message: issue.message, expected: issue.code === "invalid_enum_value" ? { allowedValues: issue.options } : issue.code === "invalid_literal" ? { allowedValue: issue.expected } : issue.code === "unrecognized_keys" ? { additionalProperties: issue.keys } : issue.code === "invalid_type" ? { type: issue.expected } : null }))
 }

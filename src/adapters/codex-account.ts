@@ -36,6 +36,7 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
     runtime.accountSent(prompt)
     account = await runCodexAccountSession({ model: options.model, effort: "high", cwd: options.workDir, system: `${options.skillContent ?? ""}\n${runtime.system}${encode ? "\n" + INCREMENTAL_INQUIRY_CONTEXT_GUIDE : ""}`, prompt, tools: runtime.definitions, maxToolCalls: options.maxToolCalls, timeoutMs: options.timeoutMs, transportFactory: options.transportFactory, instructionSources,
       execute: async call => respond(await runtime.execute(call)),
+      argumentDiagnostics: runtime.argumentDiagnostics,
       rejectArguments: async (call, diagnostics) => respond(await runtime.rejectArguments(call, diagnostics), false),
       onEvent: event => runtime.onEvent(event as any) })
   } finally { await runtime.close() }
