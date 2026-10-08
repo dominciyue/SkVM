@@ -1,6 +1,20 @@
 import { expect, test } from "bun:test"
 import { buildStructureIndex } from "./structure-index.ts"
 
+for (const mode of ["direct", "diamond", "renamed", "argument"]) test("local super source retains actual C3 successor candidates and original read order: " + mode, async () => {
+  const diamond = mode === "diamond", receiver = mode === "renamed" ? "this" : "self", content = "def entry(actor):\n    class Base:\n        def guard(self, item):\n            return item\n    class " + (diamond ? "Left" : "Local") + "(Base):\n        def relay(" + receiver + ", item):\n            return super().guard(" + (mode === "argument" ? "prepare(item)" : "item") + ")\n" + (diamond ? "    class Right(Base):\n        def guard(self, item):\n            return item\n    class Local(Left, Right):\n        pass\n" : "") + "    instance = Local()\n    return instance.relay(actor)\ndef prepare(item):\n    return item\n", index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), method = index.symbols.find(s => s.name === "relay")!, calls = index.relatedCalls(method.id), call = calls.find(c => c.expression === "super().guard")!, proof = call.superMethod!
+  expect(call.gap).toBeUndefined(); expect(proof).toBeDefined(); expect(proof.receiver).toBe(receiver)
+  expect(proof.choices).toHaveLength(diamond ? 2 : 1); expect(call.candidateIds).toEqual(proof.choices.map(c => c.targetId))
+  expect(content.slice(proof.source.startIndex, proof.source.endIndex)).toBe("super().guard")
+  expect(proof.argumentEvents).toHaveLength(mode === "argument" ? 1 : 0)
+  expect(calls.find(c => c.expression === "super")!.superContext?.outerCallId).toBe(call.id)
+})
+for (const count of [15, 16]) test("super successor candidates respect the existing finite capacity: " + count, async () => {
+  const content = "def entry():\n    class Base:\n        def guard(self):\n            return self\n    class Left(Base):\n        def relay(self):\n            return super().guard()\n" + Array.from({ length: count }, (_, i) => "    class Right" + i + "(Base):\n        def guard(self):\n            return self\n    class Child" + i + "(Left, Right" + i + "):\n        pass\n").join("") + "    return Left\n", index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "relay")!.id).find(c => c.expression === "super().guard")!
+  expect(call.superMethod?.choices.length).toBe(count === 15 ? 16 : undefined)
+  expect(call.gap).toBe(count === 15 ? undefined : "source-class-super-targets-unmodeled")
+})
+
 for (const mode of ["read", "super", "renamed"]) test("ordinary namespace method records the original implicit class cell: " + mode, async () => {
   const content = "def entry(actor):\n    class Local:\n        def guard(" + (mode === "renamed" ? "this" : "self") + ", item):\n            return " + (mode === "read" ? "__class__" : "super().guard(item)") + "\n    return Local\n", index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), cls = index.symbols.find(s => s.name === "Local")!, method = index.symbols.find(s => s.name === "guard")!, proof = cls.classDefinition!.methods[0]!
   expect(cls.classDefinition!.gap).toBeUndefined(); expect(method.classMethod?.classCell).toBeDefined()

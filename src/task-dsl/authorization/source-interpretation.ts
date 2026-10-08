@@ -6,7 +6,7 @@ import { buildPropertyDemand, type PropertyDemand } from "./property-demand.ts"
 import type { DependencyQuestion } from "./property-dependencies.ts"
 import type { SourceSkeleton, SourceAnchor, SourceFlow } from "../../benchmarks/authorization-dsl/evidence-preparation/source-skeleton.ts"
 import type { StructureIndex, StructureMethodChoice } from "../../benchmarks/authorization-dsl/evidence-preparation/structure-index.ts"
-import { sourceCallableDefinitionName, sourceCallableToken, sourceCallableValueName, sourceCallableValueResult, sourceClassToken, sourceClassValueName, sourceClassValueResult, sourceDirectMethodRead, sourceFieldMethodToken, sourceInstanceToken, sourceMethodCaptureName, sourceMethodCaptureResult, sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupSentinel, sourceMethodLookupToken, sourceSyntaxAnchorId } from "../../benchmarks/authorization-dsl/evidence-preparation/source-identities.ts"
+import { sourceCallableDefinitionName, sourceCallableToken, sourceCallableValueName, sourceCallableValueResult, sourceClassToken, sourceClassValueName, sourceClassValueResult, sourceDirectMethodRead, sourceFieldMethodToken, sourceInstanceToken, sourceMethodCaptureName, sourceMethodCaptureResult, sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupSentinel, sourceMethodLookupToken, sourceSuperMethodResult, sourceSyntaxAnchorId } from "../../benchmarks/authorization-dsl/evidence-preparation/source-identities.ts"
 import { sourceArgumentBindings } from "../../benchmarks/authorization-dsl/evidence-preparation/source-arguments.ts"
 
 export const SourceAnnotationSchema = z.object({
@@ -73,6 +73,10 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
     const proof = a.methodCapture, actual = proof && options.index!.relatedCalls(skeleton.sourceId, proof.receiverClass).find(c => c.id === proof.sourceCallId)?.methodCapture
     return actual && JSON.stringify(actual) === JSON.stringify(proof) && a.name === sourceMethodCaptureResult(actual.sourceCallId) && a.valueExpression === `${actual.receiver}.${actual.method}` ? [[a.id, actual] as const] : []
   }) : [])
+  const superReads = new Map(skeleton.propertySemantics === "question-control/v1" && options.index ? skeleton.anchors.flatMap(a => {
+    const proof = a.superMethod, actual = proof && options.index!.relatedCalls(skeleton.sourceId).find(c => c.id === proof.sourceCallId)?.superMethod
+    return actual && JSON.stringify(actual) === JSON.stringify(proof) && actual.source.sha256 === skeleton.source.sha256 && a.name === sourceSuperMethodResult(actual.sourceCallId) && a.id === sourceSyntaxAnchorId(skeleton.sourceId, actual.source.startIndex, actual.source.endIndex, "assignment", a.name) ? [[a.id, actual] as const] : []
+  }) : [])
   const lookupCalls = new Map(skeleton.propertySemantics === "question-control/v1" && options.index ? skeleton.anchors.flatMap(a => {
     const actual = a.call && options.index!.relatedCalls(skeleton.sourceId, a.call.receiverClass).find(c => c.id === a.call!.sourceCallId)
     return actual?.methodLookup && actual.sha256 === skeleton.source.sha256 && actual.receiver === a.call!.receiver && JSON.stringify(actual.candidateIds) === JSON.stringify(a.call!.candidateIds) ? [[a.id, actual.methodLookup] as const] : []
@@ -84,7 +88,8 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
   }) : [])
   const callableCalls = new Map(skeleton.propertySemantics === "question-control/v1" && options.index ? skeleton.anchors.flatMap(a => {
     const actual = a.call && options.index!.relatedCalls(skeleton.sourceId, a.call.receiverClass).find(c => c.id === a.call!.sourceCallId)
-    return actual?.callableParameter && actual.sha256 === skeleton.source.sha256 && actual.expression === a.call!.expression && JSON.stringify(actual.candidateIds) === JSON.stringify(a.call!.candidateIds) ? [[a.id, actual.callableParameter] as const] : []
+    const proof = actual?.superMethod ?? actual?.callableParameter
+    return proof && actual!.sha256 === skeleton.source.sha256 && actual!.expression === a.call!.expression && JSON.stringify(actual!.candidateIds) === JSON.stringify(a.call!.candidateIds) ? [[a.id, proof] as const] : []
   }) : [])
   const callableValues = new Map(skeleton.propertySemantics === "question-control/v1" && options.index ? skeleton.anchors.flatMap(a => {
     const actual = a.callableValue && options.index!.relatedCalls(skeleton.sourceId).flatMap(c => c.argumentFacts?.flatMap(v => v.callableValue ? [v.callableValue] : []) ?? []).find(p => p.kind === "module" && a.id === sourceCallableValueName(skeleton.sourceId, p).slice("callable-value-".length) && a.name === sourceCallableValueResult(skeleton.sourceId, p) && a.valueExpression === p.expression && JSON.stringify(a.callableValue) === JSON.stringify(p))
@@ -129,6 +134,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
     if ((callableValues.has(a.anchorId) || callableDefinitions.has(a.anchorId)) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("callable-value-role", a.anchorId, "A current function value retains its actual source identity and captured environment.")
     if (classValues.has(a.anchorId) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("class-value-role", a.anchorId, "A current class reference retains its actual source identity; a role cannot replace it with another object.")
     if ((anchor.classDefinition || anchor.classDecoratorValue || anchor.classBinding) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("class-definition-role", a.anchorId, "Class creation, decorator values and final binding retain their actual source objects.")
+    if (anchor.superMethod && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("super-method-role", a.anchorId, "The actual super namespace read retains its original class cell and receiver.")
     if (anchor.call?.classConstructor && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("class-constructor-role", a.anchorId, "Ordinary construction retains its actual source class and distinct instance identity.")
     if (anchor.syntax === "source_class_decorator_application" && a.role !== "condition") fault("class-decorator-role", a.anchorId, "The implicit class decorator must execute as its actual source helper; context/effect cannot replace the application or its returned object.")
     if (anchor.call?.sourceCallId && lookupCreations.has(anchor.call.sourceCallId) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("method-lookup-role", a.anchorId, "An ordinary getattr reference keeps its current selector; its creation cannot become an authorization object or effect.")
@@ -256,7 +262,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
               unit.complete = false
             }
             let position = 0
-            const captures = actual?.callableParameter || actual?.callableBinding || actual?.capturedCallable ? [] : target?.localCallable && !target.localCallable.gap ? target.localCallable.captures.map(c => ({ name: c.name })) : []
+            const captures = actual?.superMethod || actual?.callableParameter || actual?.callableBinding || actual?.capturedCallable ? [] : target?.localCallable && !target.localCallable.gap ? target.localCallable.captures.map(c => ({ name: c.name })) : []
             const parameters: NonNullable<typeof target>["parameters"] = [...target?.parameters ?? [], ...questionDirected ? captures : []]
             for (const [i, parameter] of parameters.entries()) {
               if (currentArguments) {
@@ -280,16 +286,17 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
             }
             const methodRead = questionDirected && actual && !actual.methodCapture && target ? sourceDirectMethodRead(actual, target) : undefined
             const fieldMethodRead = questionDirected && actual && target ? actual.methodCapture ? { object: sourceMethodCaptureResult(actual.id), receiver: actual.methodCapture.receiver, targetId: target.id, targetSha256: target.sha256 } : actual.methodField ? { object: actual.expression, receiver: actual.methodField.receiver, targetId: target.id, targetSha256: target.sha256 } : undefined : undefined
-            destination.push({ kind: "call", name: `call-${a.id}${suffix}`, claim, symbol: a.call!.expression, ...(finite && a.call!.sourceCallId ? { sourceCallId: a.call!.sourceCallId } : {}), arguments: mapped, result: a.call!.resultBinding, ...objects, ...(target ? { pathHint: `${target.path}:${target.startLine}-${target.endLine}`, candidateId: target.id } : {}), ...(methodRead ? { methodRead } : {}), ...(fieldMethodRead ? { fieldMethodRead } : {}), ...((actual?.callableParameter || actual?.callableBinding || actual?.capturedCallable || actual?.implicitClassDecorator || actual?.classNamespaceCall || actual?.classInstanceCall) && target ? { callableRead: { object: actual.expression, targetId: target.id, targetSha256: target.sha256, ...(actual.classInstanceCall ? { receiver: actual.classInstanceCall.receiver } : {}) } } : {}) })
+            destination.push({ kind: "call", name: `call-${a.id}${suffix}`, claim, symbol: a.call!.expression, ...(finite && a.call!.sourceCallId ? { sourceCallId: a.call!.sourceCallId } : {}), arguments: mapped, result: a.call!.resultBinding, ...objects, ...(target ? { pathHint: `${target.path}:${target.startLine}-${target.endLine}`, candidateId: target.id } : {}), ...(methodRead ? { methodRead } : {}), ...(fieldMethodRead ? { fieldMethodRead } : {}), ...((actual?.superMethod || actual?.callableParameter || actual?.callableBinding || actual?.capturedCallable || actual?.implicitClassDecorator || actual?.classNamespaceCall || actual?.classInstanceCall) && target ? { callableRead: { object: actual.superMethod ? sourceSuperMethodResult(actual.id) : actual.expression, targetId: target.id, targetSha256: target.sha256, ...(actual.superMethod ? { receiver: actual.superMethod.receiver } : actual.classInstanceCall ? { receiver: actual.classInstanceCall.receiver } : {}) } } : {}) })
           }
           const proof = methodCalls.get(a.id)
           if (callableCalls.has(a.id) && finite) {
             const proof = callableCalls.get(a.id)!, cases = proof.choices.map((choice, i) => {
               const body = `source-function-call-${serial++}`, variant: SemanticBlock["blocks"][number] = { name: body, steps: [] }; unit.blocks.push(variant)
               emitCall(variant.steps, choice.targetId, `-callable-${i}`)
-              return { condition: { op: "eq", left: { binding: proof.name }, right: { literal: sourceCallableToken(choice) } }, body }
+              const selector = "schemaVersion" in proof && proof.schemaVersion === "source-super-method/v1" ? sourceSuperMethodResult(proof.sourceCallId) : proof.name
+              return { condition: { op: "eq", left: { binding: selector }, right: { literal: sourceCallableToken(choice) } }, body }
             }), otherwise = `source-function-unknown-${serial++}`
-            unit.blocks.push({ name: otherwise, steps: [{ kind: "unresolved", name: `function-unknown-${a.id}`, claim: "The actual passed value has no current source callable object", reason: "source-callable-value-unresolved" }] })
+            unit.blocks.push({ name: otherwise, steps: [{ kind: "unresolved", name: `function-unknown-${a.id}`, claim: "The actual function has no supported current source target", reason: "schemaVersion" in proof && proof.schemaVersion === "source-super-method/v1" ? "source-class-super-target-unmodeled" : "source-callable-value-unresolved" }] })
             block.steps.push({ kind: "choose", name: `function-call-${a.id}`, claim, cases, otherwise })
           } else if (fieldCalls.has(a.id) && finite) {
             const field = fieldCalls.get(a.id)!, cases = field.choices.map((choice, i) => {
@@ -322,6 +329,11 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
           } else emitCall(block.steps, a.call!.candidateIds.length === 1 ? a.call!.candidateIds[0] : undefined)
         }
       } else if (a.kind === "assignment" && a.name) {
+        const superMethod = superReads.get(a.id)
+        if (superMethod) {
+          block.steps.push({ kind: "assign-value", name: `call-${superMethod.creationAnchorId}`, claim: "Read the actual successor namespace function before original argument evaluation", result: a.name, value: { literal: null }, superRead: { receiver: superMethod.receiver, classCell: superMethod.classCell, classId: superMethod.classId, classSha256: superMethod.classSha256, method: superMethod.method } }); continue
+        }
+        if (a.superMethod) { block.steps.push({ kind: "unresolved", name: `super-${a.id}`, claim, reason: "source-class-super-read-unresolved" }); unit.complete = false; continue }
         const definition = classDefinitions.get(a.id)
         if (definition) {
           const proof = definition.classDefinition!, result = `class-original-${proof.anchorId}`

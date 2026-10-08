@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-最新小步为AY7 `source-bindings/v33`实际class cell：ordinary local namespace method在函数创建时捕获原class-original为隐式__class__，显式读取/alias/返回和装饰器替换public类仍保留原对象；骨架参数强制value，材料核验捕获对象、完整参数与原创建顺序。未执行的super/constructor/instance协议在context/effect前保留unresolved，修正v32 unsupported constructor-as-context遗漏阻断；super实际C3查找继续。18新增，814focused/4985断言、联合1653pass/1平台skip/10792断言及主/AY类型通过；两只读既有套件核验无新反例。100文件/12body probe有1合格类、16方法/16cell、36super缺口，真实采用0；无新增实验模型读/模型或目标执行。继续实际super、module/constructor/request与官方完整使用/预登记净收益，AY7未完成。
+最新小步为AY7 `source-bindings/v34`实际super/C3：普通local method从原__class__ cell在实际instance C3中的位置之后读取namespace函数，保留原函数环境、receiver/self身份及读→实参→分派顺序，instance slot不参与。材料核验完整候选分支及每个分支的实参，未执行分支改错也撤回。30新增，844focused/5211断言、联合1683pass/1平台skip/11018断言及主/AY类型通过；两只读既有套件核验无独立新反例。100文件/12body probe仍有36super/7constructor缺口、实际super候选与材料采用0；未知动态父类及module/constructor/request继续，尚无完整使用或净收益结论。无新增实验模型读/模型或目标执行，AY7未完成。
 
 此前AY7 `source-bindings/v22`早期普通方法捕获：有嵌套实参call的同instance直接statement/assignment/return先实际捕获原方法，再按词法顺序求值实参，后以既有boundMethod/fieldMethodRead和同一binder调用；实参内slot覆盖保留原引用，捕获前覆盖或实参异常保持原阻断。简单and/or值经同一argumentFacts的机械valueFlow投影；复杂操作数、class/wrapper/descriptor不取得新资格。材料须保留精确捕获、原if/try区域、严格事件顺序和原短路body，缺失/挪动/实参倒序/追加call不采用。33新增用例；525focused/2676断言、联合1364pass/1平台skip/8483断言及主/AY类型通过；两只读核验与主红绿分列。100文件/6候选body probe声明receiver有1处early capture合格，指定应用receiver合格/实际采用0；旧probe/input/allowlist/答保留。实际class/wrapper变换、完整请求和官方复验继续，AY7和预登记净收益未达。
 

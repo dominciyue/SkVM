@@ -2,6 +2,16 @@ import { expect, test } from "bun:test"
 import { buildStructureIndex } from "./structure-index.ts"
 const api = await import("./source-arguments.ts").catch(() => ({} as any))
 
+test("actual local super binding preserves the renamed receiver and rejects altered proof", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "def entry(actor):\n    class Base:\n        def guard(self, item):\n            return item\n    class Local(Base):\n        def relay(this, item):\n            return super().guard(item)\n    instance = Local()\n    return instance.relay(actor)\n" }], { repository: "anonymous", sourceRef: "r" }), method = index.symbols.find(s => s.name === "relay")!, target = index.symbols.find(s => s.name === "guard")!, call = index.relatedCalls(method.id).find(c => c.expression === "super().guard")!
+  expect(call.superMethod).toBeDefined()
+  expect(api.sourceArgumentBindings(index, call, target).bindings.map((b: any) => [b.parameter, b.expression])).toEqual([["self", "this"], ["item", "item"]])
+  for (const field of ["receiver", "classId", "classSha256", "creationAnchorId"]) {
+    const changed = structuredClone(call); (changed.superMethod as any)[field] = "foreign"
+    expect(api.sourceArgumentBindings(index, changed, target).gap).toBe("source-arguments-super-method-unresolved")
+  }
+})
+
 async function fixture(signature = "self, actor, *args, **kwargs", target = "self, actor, *rest, **options", expression = "self.guard(actor, *args, **kwargs)", prefix = "") {
   const index = await buildStructureIndex([{ path: "app.py", content: `class Gate:\n    def entry(${signature}):\n${prefix}        return ${expression}\n    def guard(${target}):\n        return actor\n` }], { repository: "anonymous", sourceRef: "r" })
   const caller = index.symbols.find(s => s.name === "entry")!, callee = index.symbols.find(s => s.name === "guard")!, call = index.relatedCalls(caller.id, "app.Gate").find(c => c.expression === "self.guard")!

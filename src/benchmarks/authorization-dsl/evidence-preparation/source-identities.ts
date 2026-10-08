@@ -13,6 +13,7 @@ export const sourceMethodLookupSelector = (proof: StructureMethodLookup) => proo
 export const sourceFieldMethodToken = (target: { targetId: string; targetSha256: string }) => `field-method-value-${hash(["source-field-method/v1", target.targetId, target.targetSha256])}`
 export const sourceMethodCaptureName = (sourceCallId: string) => `method-capture-${sourceCallId}`
 export const sourceMethodCaptureResult = (sourceCallId: string) => `method-capture-object-${sourceCallId}`
+export const sourceSuperMethodResult = (sourceCallId: string) => `super-method-object-${sourceCallId}`
 export const sourceCallableToken = (target: { targetId: string; targetSha256: string }) => `source-function-value-${hash(["source-callable/v1", target.targetId, target.targetSha256])}`
 export const sourceCallableValueResult = (ownerId: string, proof: Pick<StructureCallableValue, "source">) => `source-function-object-${hash([ownerId, proof.source.startIndex, proof.source.endIndex])}`
 export const sourceCallableValueAnchor = (ownerId: string, proof: Pick<StructureCallableValue, "source">) => sourceSyntaxAnchorId(ownerId, proof.source.startIndex, proof.source.endIndex, "assignment", sourceCallableValueResult(ownerId, proof))

@@ -14,6 +14,47 @@ const api = await import("./source-material-projection.ts").catch(() => ({} as a
 const content = "def entry(actor):\n    return helper(actor)\ndef helper(actor):\n    return actor\ndef unrelated(actor):\n    return actor\n"
 const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect entry", premises: [] }, { id: "other", operationId: "op", intent: "scope", request: "Explain alternatives", premises: [] }] })
 
+for (const mode of ["direct", "diamond", "renamed", "arguments", "branch"]) test("actual source super preserves C3 environment and read before arguments through material adoption: " + mode, async () => {
+  const diamond = mode === "diamond", receiver = mode === "renamed" ? "this" : "self", body = (mode === "branch" ? "            if flag:\n    " : "") + "            return super().guard(" + (mode === "arguments" ? "rewrite(holder, item)" : "item") + ")\n" + (mode === "branch" ? "            return " + receiver + "\n" : ""), content = "def entry(subject, holder):\n    first = make(False, subject, holder)\n    if first.allowed:\n        raise Denied\n    second = make(True, subject, holder)\n    write(subject)\n    return True\ndef make(flag, actor, holder):\n    class Base:\n        allowed = False\n        def guard(self, item):\n" + (diamond ? "" : "            if flag:\n                raise Denied\n") + "            return self\n    class " + (diamond ? "Left" : "Local") + "(Base):\n        def relay(" + receiver + ", item):\n" + body + (diamond ? "    class Right(Base):\n        def guard(self, item):\n            if flag:\n                raise Denied\n            return self\n    class Local(Left, Right):\n        pass\n" : "") + (mode === "arguments" ? "    holder.base = Base\n" : "") + "    instance = Local()\n    return instance.relay(actor)\n" + (mode === "arguments" ? "def rewrite(holder, item):\n    holder.base.guard = None\n    return item\n" : "")
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-super-")); await writeFile(path.join(sourceRoot, "app.py"), content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, units: any[] = [], relay = index.symbols.find(s => s.name === "relay")!, call = index.relatedCalls(relay.id).find(c => c.expression === "super().guard")!
+  expect(call.superMethod).toBeDefined()
+  for (const source of index.symbols.filter(s => s.kind === "function")) {
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id))!; expect(skeleton.gaps).toEqual([])
+    const annotations = skeleton.anchors.filter(a => ["parameter", "call", "return", "raise", "condition", "assignment"].includes(a.kind)).map(a => ({ anchorId: a.id, role: a.syntax === "source_class_cell" ? "context" : a.kind === "parameter" ? ["actor", "subject", "item"].includes(a.name!) ? "principal" : "condition" : a.kind === "call" && a.call?.expression === "write" ? "effect" : ["call", "condition"].includes(a.kind) || a.kind === "assignment" && a.name?.includes(".") ? "condition" : "context", explanation: "Actual super namespace execution", ...(a.kind === "condition" ? { condition: { op: "truthy", language: "python", value: { binding: a.text } } } : {}), ...(a.kind === "return" && source.name === "entry" ? { returnOutcome: "allow" } : {}), ...(a.kind === "raise" ? { failureKind: "authorization" } : {}) }))
+    const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index, propertyDirected: true, itemId: source.id, handle: source.id, questionId: "q", role: source.name === "entry" ? "entry" : "helper" }); expect(result.diagnostics).toEqual([])
+    units.push({ ...result.unit!, questionId: "q", evidenceIds: skeleton.evidenceIds, source: skeleton.source })
+  }
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect actual super", premises: [] }] })
+  const project = (adopted = units, current = index) => { const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" }); for (const u of adopted) store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }, { kind: "candidate-set", key: "relations:" + u.source.id + ":", revision: sourceRelationRevision(index, u.source.id)! }], "test-authored"); return api.projectSourceMaterials(p, adopted, store.snapshot(), current, { questionDirected: true }) }
+  const projected = project(), lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true })
+  expect(projected.uses.filter((u: any) => u.kind === "call")).toHaveLength(["diamond", "arguments"].includes(mode) ? 5 : 4)
+  expect(lowered.diagnostics).toEqual([]); expect(lowered.delta.rules.filter(r => r.terminal).map(r => r.outcome)).toEqual(["deny"]); expect(lowered.delta.rules.filter(r => r.kind === "effect")).toHaveLength(0)
+  for (const mutation of ["missing-read", "cell", "receiver", "sha", "result", "late", "missing-case", "wrong-case", "wrong-self", "explicit-cell", "read-metadata"]) {
+    const changed = structuredClone(units), owner = changed.find(u => u.source.id === relay.id), block = owner.blocks.find((b: any) => b.steps.some((s: any) => s.superRead)), read = block.steps.find((s: any) => s.superRead), dispatch = block.steps.find((s: any) => s.kind === "choose" && s.name.startsWith("function-call-")), invocation = owner.blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call" && s.symbol === "super().guard")
+    if (mutation === "missing-read") block.steps = block.steps.filter((s: any) => s !== read)
+    if (mutation === "cell") read.superRead.classCell = "item"
+    if (mutation === "receiver") read.superRead.receiver = "item"
+    if (mutation === "sha") read.superRead.classSha256 = "foreign"
+    if (mutation === "result") read.result = "foreign"
+    if (mutation === "late") { block.steps.splice(block.steps.indexOf(read), 1); block.steps.push(read) }
+    if (mutation === "missing-case") { if (dispatch.cases.length === 1) block.steps = block.steps.filter((s: any) => s !== dispatch); else dispatch.cases.pop() }
+    if (mutation === "wrong-case") dispatch.cases[0].condition.right.literal = "foreign"
+    if (mutation === "wrong-self") invocation.arguments[0].object = "item"
+    if (mutation === "explicit-cell") invocation.arguments.push({ parameter: "__class__", object: receiver })
+    if (mutation === "read-metadata") invocation.callableRead.object = receiver + ".guard"
+    const diagnostics = lowerSemanticFlow(project(changed).units, { compositional: true, propertyDirected: true }).diagnostics
+    if (!diagnostics.length) throw new Error(`Accepted altered ${mode} super material: ${mutation}`)
+    expect(diagnostics.length).toBeGreaterThan(0)
+  }
+  if (mode === "arguments") {
+    const changed = structuredClone(units), owner = changed.find(u => u.source.id === relay.id), block = owner.blocks.find((b: any) => b.steps.some((s: any) => s.superRead)), read = block.steps.find((s: any) => s.superRead), rewrite = block.steps.find((s: any) => s.kind === "call" && s.symbol === "rewrite"); block.steps.splice(block.steps.indexOf(read), 1); block.steps.splice(block.steps.indexOf(rewrite) + 1, 0, read)
+    expect(lowerSemanticFlow(project(changed).units, { compositional: true, propertyDirected: true }).diagnostics.length).toBeGreaterThan(0)
+  }
+  expect(project(units, await buildStructureIndex([{ path: "app.py", content: content + "# changed\n" }], { repository: "anonymous", sourceRef: "r" })).uses).toEqual([])
+})
+
 
 for (const mode of ["direct", "alias", "inherited", "decorator"]) test("source class cell preserves the original actual namespace through calls and returns: " + mode, async () => {
   const cell = mode === "alias" ? "            copy = __class__\n            return copy\n" : "            return __class__\n", content = "def entry(subject):\n    first = make(False, subject)\n    if first.allowed:\n        raise Denied\n    second = make(True, subject)\n    if second.allowed:\n        raise Denied\n    write(subject)\n    return True\ndef make(flag, actor):\n" + (mode === "decorator" ? "    @replace\n" : "") + "    class " + (mode === "inherited" ? "Base" : "Local") + ":\n        allowed = False\n        def original(item):\n" + cell + (mode === "inherited" ? "    class Local(Base):\n        allowed = True\n" : "") + (mode === "decorator" ? "" : "    " + (mode === "inherited" ? "Base" : "Local") + ".allowed = flag\n") + "    return Local.original(actor)\n" + (mode === "decorator" ? "def replace(cls):\n    class Other(cls):\n        allowed = True\n    return Other\n" : "")

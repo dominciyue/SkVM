@@ -3,7 +3,7 @@ import type { Node } from "@vscode/tree-sitter-wasm"
 import type { InquiryEvidence } from "../inquiry-tools.ts"
 import type { StructureCall, StructureIndex, StructureSymbol, StructureMethodStore, StructureMethodCapture, StructureCallableValue, StructureCallableDefinition, StructureClassValue, StructureClassDefinition } from "./structure-index.ts"
 import { sourceLiteral } from "./structure-index.ts"
-import { sourceCallableValueResult, sourceClassValueResult, sourceMethodCaptureResult, sourceSyntaxAnchorId } from "./source-identities.ts"
+import { sourceCallableValueResult, sourceClassValueResult, sourceMethodCaptureResult, sourceSuperMethodResult, sourceSyntaxAnchorId } from "./source-identities.ts"
 import { sourceArgumentBindings } from "./source-arguments.ts"
 import type { SourceSelector } from "./source-selector.ts"
 import type { FiniteValue } from "../../../task-dsl/authorization/control-evaluation.ts"
@@ -26,6 +26,7 @@ export interface SourceAnchor {
   fieldWrite?: { object: string; field: string };
   methodStore?: StructureMethodStore;
   methodCapture?: StructureMethodCapture;
+  superMethod?: StructureCall["superMethod"];
   call?: { sourceCallId?: string; expression: string; receiver?: string; receiverClass?: string; receiverBinding?: StructureCall["receiverBinding"]; callableBinding?: StructureCall["callableBinding"]; classConstructor?: StructureCall["classConstructor"]; bindingGap?: string; arguments: Array<{ expression: string; parameterName?: string; spread?: boolean; literalKnown?: boolean; literalValue?: FiniteValue; sourceCallId?: string }>; candidateIds: string[]; resultNames: string[]; resultBinding: string }
 }
 export interface SourceFlow {
@@ -142,6 +143,12 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     const expressionFlow = (n: Node, resultBinding?: string): SourceFlow[] => {
       if (questionDirected && source.language === "python" && n.type === "expression_statement") return kids(n).flatMap(a => expressionFlow(a, resultBinding))
       if (questionDirected && source.language === "python" && n.type === "keyword_argument") return field(n, "value") ? expressionFlow(field(n, "value")!) : []
+      const superMethod = questionDirected && actualCalls.find(c => c.superMethod?.source.startIndex === n.startIndex && c.superMethod.source.endIndex === n.endIndex)?.superMethod
+      if (superMethod) {
+        const anchor = add(n, "assignment", { name: sourceSuperMethodResult(superMethod.sourceCallId), syntax: "source_super_method", superMethod })
+        anchor.dependencyFacts = { reads: [superMethod.classCell, superMethod.receiver], writes: [anchor.name!], pureLocal: false }
+        return [{ kind: "step", anchorId: anchor.id }]
+      }
       const classValue = questionDirected && actualCalls.flatMap(c => c.argumentFacts?.flatMap(a => a.classValue ? [a.classValue] : []) ?? []).find(p => p.source.startIndex === n.startIndex && p.source.endIndex === n.endIndex)
       if (classValue) {
         const anchor = add(n, "assignment", { name: sourceClassValueResult(source.id, classValue), syntax: "source_class_value", valueExpression: n.text, classValue })

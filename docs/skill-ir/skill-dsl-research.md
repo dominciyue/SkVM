@@ -2157,6 +2157,10 @@ AY7实际class cell小步（2026-10-08）：v33在ordinary local namespace metho
 
 18新增、新鲜814focused/4985断言、联合1653pass/1平台skip/10792断言/115文件/25.57s及主/AY类型通过；两只读各跑既有套件无新独立反例，见[实际class cell核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-class-cells.json)。[冻结源码probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-class-cell-replay.json) SHA `f53ce003de789136d894a0b3c234548e7e28d8c0d674db5d567eff72cccf76ea`核验94原冻结/6补充文件、12body，恢复1类/16method/16cell的来源资格，36super缺口仍在，实际材料采用0。无新增实验模型读、应用标注、模型/目标/probe网络；开发/探子token、USD、真人时间unknown。既有六角色/谓词/预算与原input/allowlist/答/报告保持；继续actual super、module/constructor/request、官方完整使用与预登记净收益，AY7未完成。
 
+AY7实际super/C3小步（2026-10-08）：v34以原__class__ cell的实际identity定位receiver instance C3后继namespace，绕过instance slot，保留原sourceCallable的identity/captures和绑定receiver。读取发生在实参动作之前，后续namespace覆盖不替换已保存函数；caller不能替代cell或self。源码保留原inner-call anchor、control/order和≤16有限候选，实际function token决定diamond后继。材料完整核验分支及每个分支实参；新增反例发现未选择分支错误self只在链接点校验可能漏阻断，现复用同一actualArguments在采用前校验全体候选。
+
+30新增、844focused/5211断言、联合1683pass/1平台skip/11018断言/115文件/25.42s及主/AY类型通过；两只读仅验证现有套件、未构造新fixture，见[实际super核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-super-methods.json)。[冻结源码probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-super-method-replay.json) SHA `76422bda9ba9b6c20c47877876a6ca626c512ccfacee2103dc8d8408549deb1a`核验94原冻结/6补充文件、12body，仍有36super和7constructor gap、实际super候选0/材料采用0；未知外部动态父类的实际MRO尚未执行。此为机制工程证据，未完成真实class/module/constructor/request或官方完整任务/净收益。原输入/allowlist/答案/评估器/分母和旧结果保留；新增实验模型读/应用标注/模型/目标/probe网络0，开发/探子token、USD、真人时间unknown。继续AY队列，不勾选AY7。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

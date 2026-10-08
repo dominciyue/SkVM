@@ -76,6 +76,11 @@ export interface StructureClassConstructor {
   schemaVersion: "source-class-constructor/v1"; classId: string; classSha256: string; classObject: string; result: string;
   source: StructureMethodBinding["source"]; controls: StructureMethodControl[]; order: StructureMethodStore["order"];
 }
+export interface StructureSuperMethod {
+  schemaVersion: "source-super-method/v1"; sourceCallId: string; creationAnchorId: string; receiver: string; classCell: "__class__"; classId: string; classSha256: string; method: string;
+  source: StructureMethodBinding["source"]; controls: StructureMethodControl[]; order: StructureMethodStore["order"]; argumentEvents: string[][];
+  choices: Array<{ targetId: string; targetSha256: string }>;
+}
 export interface StructureCallableInput {
   targetId: string; targetSha256: string;
   origins: Array<{ sourceCallId: string; parameter: string; source: { id: string; path: string; sha256: string }; value?: StructureCallableValue }>;
@@ -118,6 +123,8 @@ export interface StructureCall {
   classNamespaceCall?: { classId: string; classSha256: string; targetId: string; targetSha256: string };
   classConstructor?: StructureClassConstructor;
   classInstanceCall?: { classId: string; classSha256: string; targetId: string; targetSha256: string; receiver: string; creationCallId?: string };
+  superMethod?: StructureSuperMethod;
+  superContext?: { outerCallId: string };
 }
 export interface StructureRoute { id: string; sourceCallId: string; sourcePath: string; startLine: number; endLine: number; method: string; path: string; handlerExpression: string; candidateIds: string[]; middlewareExpressions: string[]; dependencyExpressions?: string[]; dependencyCallIds?: string[]; bindingGap?: string; bindingSources?: Array<{ path: string; sha256: string; startLine: number; endLine: number }>; model: string }
 export interface StructureRequestDependency {
@@ -154,7 +161,7 @@ export interface StructureFieldStore {
   controls?: StructureMethodControl[];
   order?: StructureMethodStore["order"];
 }
-interface FileScope { path: string; sha256: string; parsePartial: boolean; module: string; language: "python" | "go"; aliases: Record<string, string>; moduleAliases: Record<string, string>; moduleAliasSources: Record<string, StructureBindingSource>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; argumentSources?: StructureMethodBinding["source"][]; sourceOrder?: StructureMethodStore["order"]; callableOrder?: StructureMethodStore["order"]; calleeEvents?: string[][]; argumentEvents?: string[][][]; reboundNames: string[]; instanceResultStable?: boolean; localNames: string[]; groupPaths: string[]; registrationContext: StructureRequestMiddleware["registrationContext"]; methodAlias?: MethodAliasFact; methodChoices?: MethodChoiceFact; methodLookup?: MethodLookupFact; fieldControls?: StructureMethodControl[]; methodCapture?: Omit<StructureMethodCapture, "schemaVersion" | "receiver" | "receiverClass" | "method" | "targetId" | "targetSha256">; callableResult?: { name: string; stable: boolean } }>; fieldStores: Array<Omit<StructureFieldStore, "model" | "functionCandidateIds" | "sources" | "bindingSources" | "gap"> & { localNames: string[] }>; routerAliases: Array<{ name: string; value: string; ownerId?: string; localNames: string[]; startLine: number; endLine: number }>; moduleAssignments: Record<string, number>; moduleAttributeWrites: string[]; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean; requestOptionsUnmodeled: boolean; startLine: number; endLine: number }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; dependencies: Array<{ constructor: string; expression: string; sourceCallId: string; parameter?: string }>; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string; requestOptionsUnmodeled: boolean }> }
+interface FileScope { path: string; sha256: string; parsePartial: boolean; module: string; language: "python" | "go"; aliases: Record<string, string>; moduleAliases: Record<string, string>; moduleAliasSources: Record<string, StructureBindingSource>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; argumentSources?: StructureMethodBinding["source"][]; sourceOrder?: StructureMethodStore["order"]; callableOrder?: StructureMethodStore["order"]; calleeEvents?: string[][]; argumentEvents?: string[][][]; reboundNames: string[]; instanceResultStable?: boolean; superCallee?: { innerCallId: string; creationAnchorId: string; source: StructureMethodBinding["source"]; topLevel: boolean }; localNames: string[]; groupPaths: string[]; registrationContext: StructureRequestMiddleware["registrationContext"]; methodAlias?: MethodAliasFact; methodChoices?: MethodChoiceFact; methodLookup?: MethodLookupFact; fieldControls?: StructureMethodControl[]; methodCapture?: Omit<StructureMethodCapture, "schemaVersion" | "receiver" | "receiverClass" | "method" | "targetId" | "targetSha256">; callableResult?: { name: string; stable: boolean } }>; fieldStores: Array<Omit<StructureFieldStore, "model" | "functionCandidateIds" | "sources" | "bindingSources" | "gap"> & { localNames: string[] }>; routerAliases: Array<{ name: string; value: string; ownerId?: string; localNames: string[]; startLine: number; endLine: number }>; moduleAssignments: Record<string, number>; moduleAttributeWrites: string[]; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean; requestOptionsUnmodeled: boolean; startLine: number; endLine: number }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; dependencies: Array<{ constructor: string; expression: string; sourceCallId: string; parameter?: string }>; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string; requestOptionsUnmodeled: boolean }> }
 const hash = (v: unknown) => createHash("sha256").update(typeof v === "string" ? v : JSON.stringify(v)).digest("hex")
 let initialized: Promise<Map<string, Language>> | undefined
 function languages() {
@@ -707,6 +714,8 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           if (controls) methodCapture = { sourceCallId: callId(n), source: { path: file.path, sha256, startLine: fn.startPosition.row + 1, endLine: fn.endPosition.row + 1, startIndex: fn.startIndex, endIndex: fn.endIndex }, controls, order: sourceStoreOrder(n, symbol.id, callId), argumentEvents: children(field(n, "arguments")).flatMap(a => sourceExpressionEvents(a, symbol.id, callId)) }
         }
         let callableResult: FileScope["rawCalls"][number]["callableResult"]
+        const superObject = fn.type === "attribute" ? field(fn, "object") : undefined
+        const superCallee = language === "python" && symbol?.kind === "function" && superObject?.type === "call" && field(superObject, "function")?.text === "super" && !children(field(superObject, "arguments")).length ? { innerCallId: callId(superObject), creationAnchorId: sourceSyntaxAnchorId(symbol.id, superObject.startIndex, superObject.endIndex, "call"), source: { path: file.path, sha256, startLine: fn.startPosition.row + 1, endLine: fn.endPosition.row + 1, startIndex: fn.startIndex, endIndex: fn.endIndex }, topLevel } : undefined
         let instanceResultStable = false
         if (language === "python" && symbol?.kind === "function" && resultNames.length === 1 && assignment) {
           const name = resultNames[0]!, body = field(owner!, "body"), declaration = assignment.parent?.type === "expression_statement" ? assignment.parent : assignment
@@ -716,7 +725,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           instanceResultStable = !root.hasError && assignment.type === "assignment" && field(assignment, "left")?.type === "identifier" && field(assignment, "right")?.id === n.id && declaration.parent?.id === body?.id && !symbol.parameters.some(p => p.name === name) && localWrites.get(symbol.id)?.get(name) === 1 && !globalNames.get(symbol.id)?.has(name) && !descendants(body!, ["nonlocal_statement", "match_statement"]).some(node => { let p = node.parent; while (p && !["function_definition", "class_definition", "lambda"].includes(p.type)) p = p.parent; return p?.id === owner!.id })
           callableResult = { name, stable }
         }
-        rawCalls.push({ types, instanceResultStable, ...(language === "python" && symbol?.kind === "function" ? { sourceOrder: sourceStoreOrder(n, symbol.id, callId), callableOrder: sourceStoreOrder(n, symbol.id, callId, true), calleeEvents: sourceExpressionEvents(field(n, "function"), symbol.id, callId), argumentEvents: children(field(n, "arguments")).map(a => sourceExpressionEvents(a.type === "keyword_argument" ? field(a, "value") : a, symbol.id, callId)) } : {}), argumentSources: children(field(n, "arguments")).map(a => { const v = a.type === "keyword_argument" ? field(a, "value")! : a; return { path: file.path, sha256, startLine: v.startPosition.row + 1, endLine: v.endPosition.row + 1, startIndex: v.startIndex, endIndex: v.endIndex } }), reboundNames: [...localWrites.get(symbol?.id ?? "")?.keys() ?? [], ...globalNames.get(symbol?.id ?? "") ?? []], ...(methodCapture ? { methodCapture } : {}), ...(language === "python" && symbol?.kind === "function" ? { fieldControls: sourceControlPath(n, field(owner!, "body")!, symbol.id) } : {}), localNames: language === "python" && symbol?.kind === "function" ? [...new Set([...symbol.parameters.map(p => p.name), ...localNames.get(symbol.id) ?? [], ...lexicalNames.get(symbol.id) ?? []])] : [], groupPaths, registrationContext, ...(methodAlias ? { methodAlias } : {}), ...(methodChoices ? { methodChoices } : {}), ...(methodLookup ? { methodLookup } : {}), ...(callableResult ? { callableResult } : {}), call: { id: `call-${hash([sourceIdentity, file.path, sha256, n.startIndex]).slice(0, 24)}`, ...(symbol ? { ownerId: symbol.id } : {}), path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, startIndex: n.startIndex, endIndex: n.endIndex, expression, ...(expression.includes(".") ? { receiver: expression.slice(0, expression.lastIndexOf(".")) } : {}), arguments: args, ...(argumentFacts ? { argumentFacts } : {}), candidateIds: [], resolution: "unresolved", basis: [], resultNames, syntaxRole } })
+        rawCalls.push({ types, instanceResultStable, ...(superCallee ? { superCallee } : {}), ...(language === "python" && symbol?.kind === "function" ? { sourceOrder: sourceStoreOrder(n, symbol.id, callId), callableOrder: sourceStoreOrder(n, symbol.id, callId, true), calleeEvents: sourceExpressionEvents(field(n, "function"), symbol.id, callId), argumentEvents: children(field(n, "arguments")).map(a => sourceExpressionEvents(a.type === "keyword_argument" ? field(a, "value") : a, symbol.id, callId)) } : {}), argumentSources: children(field(n, "arguments")).map(a => { const v = a.type === "keyword_argument" ? field(a, "value")! : a; return { path: file.path, sha256, startLine: v.startPosition.row + 1, endLine: v.endPosition.row + 1, startIndex: v.startIndex, endIndex: v.endIndex } }), reboundNames: [...localWrites.get(symbol?.id ?? "")?.keys() ?? [], ...globalNames.get(symbol?.id ?? "") ?? []], ...(methodCapture ? { methodCapture } : {}), ...(language === "python" && symbol?.kind === "function" ? { fieldControls: sourceControlPath(n, field(owner!, "body")!, symbol.id) } : {}), localNames: language === "python" && symbol?.kind === "function" ? [...new Set([...symbol.parameters.map(p => p.name), ...localNames.get(symbol.id) ?? [], ...lexicalNames.get(symbol.id) ?? []])] : [], groupPaths, registrationContext, ...(methodAlias ? { methodAlias } : {}), ...(methodChoices ? { methodChoices } : {}), ...(methodLookup ? { methodLookup } : {}), ...(callableResult ? { callableResult } : {}), call: { id: `call-${hash([sourceIdentity, file.path, sha256, n.startIndex]).slice(0, 24)}`, ...(symbol ? { ownerId: symbol.id } : {}), path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, startIndex: n.startIndex, endIndex: n.endIndex, expression, ...(expression.includes(".") ? { receiver: expression.slice(0, expression.lastIndexOf(".")) } : {}), arguments: args, ...(argumentFacts ? { argumentFacts } : {}), candidateIds: [], resolution: "unresolved", basis: [], resultNames, syntaxRole } })
       }
       const constants: Record<string, string> = {}, routers: FileScope["routers"] = [], decorators: FileScope["decorators"] = [], includes: FileScope["includes"] = []
       if (language === "python") {
@@ -952,6 +961,26 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     const proof: StructureClassConstructor = { schemaVersion: "source-class-constructor/v1", classId: cls.id, classSha256: cls.sha256, classObject: call.expression, result, source: { path: call.path, sha256: call.sha256, startLine: call.startLine, endLine: call.endLine, startIndex: call.startIndex!, endIndex: call.endIndex! }, controls: raw.fieldControls, order: raw.sourceOrder }
     return { cls, proof }
   }
+  const localSuper = (raw: FileScope["rawCalls"][number]): { proof?: StructureSuperMethod; gap?: string } => {
+    const owner = symbols.find(s => s.id === raw.call.ownerId), cls = owner?.classMethod && symbols.find(s => s.id === owner.classMethod!.classId), source = raw.superCallee, receiver = owner?.parameters[0]?.name, method = raw.call.expression.split(".").at(-1)!
+    if (!owner?.classMethod?.classCell || !cls?.classDefinition || cls.classDefinition.gap || !source || !source.topLevel || !raw.fieldControls || !raw.sourceOrder) return { gap: "source-class-super-unmodeled" }
+    if (!receiver || owner.parameters[0]?.kind || raw.reboundNames.includes(receiver) || owner.attributes.instanceReceiverRebound) return { gap: "source-class-super-receiver-unmodeled" }
+    const choices = new Map<string, { targetId: string; targetSha256: string }>()
+    for (const possible of symbols.filter(s => s.classDefinition?.ownerId === cls.classDefinition!.ownerId)) {
+      const mro = namespaceMro(possible), position = mro?.findIndex(s => s.id === cls.id) ?? -1
+      if (!mro || position < 0) continue
+      for (const base of mro.slice(position + 1)) {
+        const proof = base.classDefinition!, last = [...proof.namespace].reverse().find(entry => entry.kind === "method" ? proof.methods.some(m => m.anchorId === entry.anchorId && m.name === method) : proof.fields.some(f => f.anchorId === entry.anchorId && f.name === method))
+        if (!last) continue
+        const fn = last.kind === "method" ? proof.methods.find(m => m.anchorId === last.anchorId) : undefined, target = fn ? symbols.find(s => s.id === fn.targetId && s.sha256 === fn.targetSha256) : undefined
+        if (target?.classMethod) choices.set(target.id, { targetId: target.id, targetSha256: target.sha256 })
+        break
+      }
+    }
+    if (!choices.size) return { gap: "source-class-super-unmodeled" }
+    if (choices.size > 16) return { gap: "source-class-super-targets-unmodeled" }
+    return { proof: { schemaVersion: "source-super-method/v1", sourceCallId: raw.call.id, creationAnchorId: source.creationAnchorId, receiver, classCell: "__class__", classId: cls.id, classSha256: cls.sha256, method, source: source.source, controls: raw.fieldControls, order: raw.sourceOrder, argumentEvents: raw.argumentEvents?.flat() ?? [], choices: [...choices.values()] } }
+  }
   function resolveCall(raw: FileScope["rawCalls"][number], scope: FileScope, receiverClass?: string): StructureCall {
     const call = structuredClone(raw.call), parts = call.expression.split("."), name = parts.pop()!, root = parts[0], owner = symbols.find(s => s.id === call.ownerId)
     let candidates: StructureSymbol[] = [], basis: string[] = []
@@ -959,8 +988,12 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     const constructor = !parts.length && localConstructor(raw, scope), origins = parts.length === 1 && root && owner ? scope.rawCalls.filter(r => r.call.ownerId === owner.id && r.call.resultNames.length === 1 && r.call.resultNames[0] === root).flatMap(r => { const creation = localConstructor(r, scope); return creation ? [{ raw: r, creation }] : [] }) : []
     const selfClass = parts.length === 1 && owner?.classMethod && root === owner.parameters[0]?.name ? symbols.find(s => s.id === owner.classMethod!.classId) : undefined
     if (owner?.classMethod?.classCell && (call.expression === "super" || /^super\(\)\.[A-Za-z_]\w*$/.test(call.expression))) {
-      call.gap = "source-class-super-unmodeled"
-      basis = ["The original namespace function retains its actual class cell; successor lookup is not yet executed"]
+      const outer = call.expression === "super" ? scope.rawCalls.find(r => r.call.ownerId === owner.id && r.superCallee?.innerCallId === call.id) : raw, resolved = outer && localSuper(outer)
+      if (resolved?.proof) {
+        if (call.expression === "super") call.superContext = { outerCallId: outer!.call.id }
+        else { call.superMethod = structuredClone(resolved.proof); call.receiver = resolved.proof.receiver; candidates = resolved.proof.choices.flatMap(c => symbols.filter(s => s.id === c.targetId && s.sha256 === c.targetSha256)) }
+      } else call.gap = resolved?.gap ?? "source-class-super-unmodeled"
+      basis = ["Finite known ordinary local C3 successor candidates; actual original class cell, receiver MRO and namespace function required"]
     }
     else if (constructor) {
       if (constructor.proof) call.classConstructor = structuredClone(constructor.proof)
@@ -1124,8 +1157,8 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       value.evaluationOrder.before = [...call.methodCapture ? [[sourceMethodCaptureName(call.id)]] : raw.calleeEvents ?? [], ...events(0, position)]
       value.evaluationOrder.after = [...events(position + 1, call.argumentFacts!.length), ...value.evaluationOrder.after.slice(-1)]
     })
-    call.candidateIds = candidates.map(c => c.id); call.resolution = call.classConstructor || candidates.length === 1 ? "resolved" : candidates.length > 1 ? "ambiguous" : "unresolved"; call.basis = basis
-    if (!candidates.length && !call.classConstructor) call.gap ??= "receiver/import/value binding unavailable; unique lexical name is not a call edge"
+    call.candidateIds = candidates.map(c => c.id); call.resolution = call.classConstructor || call.superContext || candidates.length === 1 ? "resolved" : candidates.length > 1 ? "ambiguous" : "unresolved"; call.basis = basis
+    if (!candidates.length && !call.classConstructor && !call.superContext) call.gap ??= "receiver/import/value binding unavailable; unique lexical name is not a call edge"
     return call
   }
   function returnedCreation(raw: FileScope["rawCalls"][number], scope: FileScope, resolved: StructureCall, name: string) {
@@ -1611,7 +1644,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       return choices ? [{ name, choices: structuredClone(choices), ...(callableInputGaps.get(key!) ? { gap: callableInputGaps.get(key!) } : {}) }] : []
     }) : []
   }
-  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v33"
+  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v34"
   const withSymbolSyntax = <T>(symbolId: string, visit: (root: Node, symbol: StructureSymbol) => T): Promise<T> => {
     const symbol = symbols.find(s => s.id === symbolId), file = symbol && files.find(f => f.path === symbol.path)
     if (!symbol || !file || hash(file.content) !== symbol.sha256) throw new Error("structure-source-missing")

@@ -286,6 +286,14 @@ source constructor保留当前class/SHA、原call/result/control/order，native�
 
 实际class cell本步进展（2026-10-08）：v33以classMethod.classCell保留真实use，并在函数创建点通过原sourceCallable环境保存class-original为隐式__class__；装饰器public替换不影响原cell，参数固定value。材料精确核验捕获对象、原control/order及目标完整参数，错/漏/移/caller替代均撤回。super仍具名未执行，随后接实际C3；另修正v32 unsupported constructor-as-context遗漏unresolved，local class协议缺口在context/effect前保留，不以complete=false代替。18新增；814focused/4985断言、联合1653pass/1平台skip/10792断言/115文件/25.57s与主/AY类型通过，两只读既有套件核验无新反例，见[实际class cell核验](../../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-class-cells.json)。100文件/12body probe恢复1类/16method/16cell来源资格，36super缺口及实际采用0保留，SHA `f53ce003de789136d894a0b3c234548e7e28d8c0d674db5d567eff72cccf76ea`。原证据不改、实验模型/目标/probe网络新增0，未知成本分列；继续actual super/C3、module/constructor/request和官方完整使用/收益，不勾选AY7。
 
+实际super/C3接续设计（2026-10-08）：v33已保存原__class__ cell，v34在普通local namespace method的direct unshadowed zero-argument super().method原callee点读取实际receiver.sourceInstance.classObject.mro，从捕获cell的实际identity之后查当前namespace第一个同名字段；instance slot不参与该查找。复用实际sourceCallable及captures，保存绑定receiver identity，随后求值实参、核验同一self并调用。native新增机械superRead仅用于这种实际读取，不新增模型角色/谓词/预算。class cell ID/SHA和actual MRO成员身份、namespace普通函数/当前target与函数属性仍必需。
+
+源码生成StructureSuperMethod proof，保留原callee/inner-call anchor、control/order和argument events；在同一lexical owner的完整已知ordinary local C3中收集有限后继候选（≤16），实际读出的function token沿已有有限call分支选择，不借静态定义类MRO冒充实际子类顺序。inner super内建创建与立即属性读取由同一机械读表示，采用inner call的事件名，保留其它sourceStoreOrder合同；所有实参动作在读之后。源码binder核验当前proof/候选/形参和renamed首参，骨架/六角色/材料投影沿同一核心执行。材料必须精确保留read对象/结果/control/order、读→实参→dispatch以及候选完整分支；context不能删除机械read或未证明super协议。未知dynamic父类、非实例first argument、receiver重绑定、未证明嵌套callee/control、带参数/遮蔽super及原dunder/descriptor/wrapper边界保留。
+
+先native匿名actual C3（含diamond）、原cell/函数capture、instance slot bypass、namespace覆盖前后/同self和错误cell/receiver/target的RED；再源码多个候选/renamed/self/实参动作顺序、完整source-read/interpret/material/native及错漏移材料RED→GREEN。独立只读核验、新鲜QA及冻结probe后继续module/constructor/request和官方完整使用/净收益，AY7未完成。
+
+实际super/C3本步进展（2026-10-08）：v34按原cell的实际identity在receiver instance C3后继namespace读取普通函数，保留原环境和receiver/self；骨架/read→实参→实际function分派/材料沿同一核心执行。材料完整核验全部候选条件与每个分支实参，修正新增反例暴露的未选择分支错误self遗漏；unknown dynamic base等边界不猜测。30新增；844focused/5211断言、联合1683pass/1平台skip/11018断言/115文件/25.42s和主/AY类型通过，两只读既有套件核验无独立新fixture，见[实际super核验](../../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-super-methods.json)。100文件/12body probe仍36super/7constructor缺口、super候选0/实际材料0，SHA `76422bda9ba9b6c20c47877876a6ca626c512ccfacee2103dc8d8408549deb1a`。原证据不改、实验模型/目标/probe网络新增0，其它成本unknown；接续module初始化/实际constructor/request与官方完整使用/预登记收益，AY7未完成。
+
 ### AY8 调度与局部解释的闭环
 
 2026-10-08真实OWUI反例细化：七轮增量字段确有前进，最后宿主生成34个块（其中8个为空）却被沿用手写接口的32块上限拒绝。先在v5源码编译器复用同单元的无动作空块，保留每个实际条件、步骤、正常/拒绝/异常出口及既有路径/节点边界；不提高求值上限。停滞按当前缺口和已保留字段进展判断，不能把observations的pending标签当源码frontier停滞。实际发送上下文与原始归档分账，引用的bytes是被引用原值大小，不是该引用包的发送大小。
