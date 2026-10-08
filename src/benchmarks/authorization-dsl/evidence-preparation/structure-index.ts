@@ -33,13 +33,16 @@ export interface StructureMethodChoice {
   choices: Array<{ method: string; targetId: string; targetSha256: string; anchorId: string; source: StructureMethodBinding["source"]; controls: Array<{ anchorId: string; branch: "true" | "false" }> }>;
 }
 interface MethodChoiceFact extends Omit<StructureMethodChoice, "choices"> { choices: Array<Omit<StructureMethodChoice["choices"][number], "targetId" | "targetSha256">>; gap?: string }
+export type StructureMethodControl = { kind: "branch"; anchorId: string; branch: "true" | "false" } | { kind: "try"; anchorId: string; region: "body" | "handler" | "otherwise" | "finally"; handlerIndex?: number }
 export interface StructureMethodLookup {
-  schemaVersion: "source-method-lookup/v1"; name: string; receiver: string; creationCallId: string; source: StructureMethodBinding["source"];
+  schemaVersion: "source-method-lookup/v2"; name: string; receiver: string; creationCallId: string; source: StructureMethodBinding["source"];
+  controls: StructureMethodControl[]; callControls: StructureMethodControl[];
+  alternatives: Array<{ method: string; targetId: string; targetSha256: string; anchorId: string; source: StructureMethodBinding["source"]; controls: StructureMethodControl[] }>;
   selector: NonNullable<StructureCall["argumentFacts"]>[number] & { resultBinding?: string }; fallbackExpression?: string;
   fallbackTarget?: { targetId: string; targetSha256: string };
-  choices: Array<{ method: string; targetId: string; targetSha256: string }>;
+  choices: Array<{ method: string; targetId: string; targetSha256: string; lookup: boolean }>;
 }
-interface MethodLookupFact extends Omit<StructureMethodLookup, "choices" | "fallbackTarget"> { gap?: string }
+interface MethodLookupFact extends Omit<StructureMethodLookup, "choices" | "fallbackTarget" | "alternatives"> { alternatives: Array<Omit<StructureMethodLookup["alternatives"][number], "targetId" | "targetSha256">>; gap?: string }
 export interface StructureCall {
   id: string; ownerId?: string; path: string; sha256: string; startLine: number; endLine: number; startIndex?: number; endIndex?: number;
   expression: string; receiver?: string; receiverClass?: string; arguments: string[]; candidateIds: string[]; resolution: "resolved" | "ambiguous" | "unresolved";
@@ -377,16 +380,40 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           const body = field(owner!, "body")!, owned = (node: Node) => { let p = node.parent; while (p && !["function_definition", "class_definition", "lambda"].includes(p.type)) p = p.parent; return p?.id === owner!.id }
           const declarations = descendants(body, ["assignment"]).filter(a => owned(a) && field(a, "left")?.type === "identifier" && field(a, "left")?.text === expression && field(a, "right")?.type === "call" && field(field(a, "right")!, "function")?.text === "getattr")
           if (declarations.length) {
-            const a = declarations[0]!, creation = field(a, "right")!, args = children(field(creation, "arguments")), receiver = args[0]?.text ?? "", selector = args[1], fallbackExpression = args[2]?.text, statement = a.parent?.type === "expression_statement" ? a.parent : a
-            const references = descendants(body, ["identifier"]).filter(i => i.text === expression && i.id !== field(a, "left")?.id && !(i.parent?.type === "attribute" && field(i.parent, "attribute")?.id === i.id) && !(i.parent?.type === "keyword_argument" && field(i.parent, "name")?.id === i.id))
-            const gap = root.hasError || declarations.length !== 1 || statement.parent?.id !== body.id || localWrites.get(symbol.id)?.get(expression) !== 1 || symbol.parameters.some(p => p.name === expression) || globalNames.get(symbol.id)?.has(expression) || descendants(body, ["nonlocal_statement", "match_statement"]).some(owned) || !selector || args.length < 2 || args.length > 3 || args.some(c => ["keyword_argument", "list_splat", "dictionary_splat"].includes(c.type)) ? "source-method-lookup-binding-unresolved"
+            const a = declarations[0]!, creation = field(a, "right")!, args = children(field(creation, "arguments")), receiver = args[0]?.text ?? "", selector = args[1], fallbackExpression = args[2]?.text
+            const assignments = descendants(body, ["assignment"]).filter(c => owned(c) && field(c, "left")?.type === "identifier" && field(c, "left")?.text === expression), ordinary = assignments.filter(c => field(c, "right")?.type === "attribute"), leftIds = new Set(assignments.map(c => field(c, "left")!.id))
+            const controlPath = (node: Node): StructureMethodControl[] | undefined => {
+              const controls: StructureMethodControl[] = []
+              let block = node.parent
+              while (block && block.type !== "block") block = block.parent
+              while (block && block.id !== body.id) {
+                if (block.type !== "block") return
+                const parent = block.parent, outer = parent?.type === "else_clause" || parent?.type === "except_clause" || parent?.type === "finally_clause" ? parent.parent : parent
+                if (outer?.type === "if_statement" && !children(outer).some(c => c.type === "elif_clause")) {
+                  const condition = field(outer, "condition"), branch = parent?.type === "else_clause" ? "false" : field(outer, "consequence")?.id === block.id ? "true" : undefined
+                  if (!condition || !branch) return
+                  controls.unshift({ kind: "branch", anchorId: sourceSyntaxAnchorId(symbol.id, condition.startIndex, condition.endIndex, "condition"), branch })
+                } else if (outer?.type === "try_statement") {
+                  const region = parent?.type === "except_clause" ? "handler" : parent?.type === "else_clause" ? "otherwise" : parent?.type === "finally_clause" ? "finally" : field(outer, "body")?.id === block.id ? "body" : undefined
+                  if (!region) return
+                  controls.unshift({ kind: "try", anchorId: sourceSyntaxAnchorId(symbol.id, outer.startIndex, outer.endIndex, "control"), region, ...(region === "handler" ? { handlerIndex: children(outer).filter(c => c.type === "except_clause").findIndex(c => c.id === parent!.id) } : {}) })
+                } else return
+                block = outer.parent
+              }
+              return block ? controls : undefined
+            }
+            const source = (node: Node) => ({ path: file.path, sha256, startLine: node.startPosition.row + 1, endLine: node.endPosition.row + 1, startIndex: node.startIndex, endIndex: node.endIndex })
+            const controls = controlPath(a), callControls = controlPath(n), alternatives = ordinary.map(c => ({ method: field(field(c, "right")!, "attribute")!.text, anchorId: sourceSyntaxAnchorId(symbol.id, c.startIndex, c.endIndex, "assignment", expression), source: source(c), controls: controlPath(c) }))
+            const references = descendants(body, ["identifier"]).filter(i => i.text === expression && !leftIds.has(i.id) && !(i.parent?.type === "attribute" && field(i.parent, "attribute")?.id === i.id) && !(i.parent?.type === "keyword_argument" && field(i.parent, "name")?.id === i.id))
+            const gap = root.hasError || declarations.length !== 1 || !controls || !callControls || alternatives.some(c => !c.controls) || alternatives.length > 16 || assignments.length !== ordinary.length + 1 || localWrites.get(symbol.id)?.get(expression) !== assignments.length || symbol.parameters.some(p => p.name === expression) || globalNames.get(symbol.id)?.has(expression) || descendants(body, ["nonlocal_statement", "match_statement"]).some(owned) || !selector || args.length < 2 || args.length > 3 || args.some(c => ["keyword_argument", "list_splat", "dictionary_splat"].includes(c.type)) ? "source-method-lookup-binding-unresolved"
               : symbol.parameters.some(p => p.name === "getattr") || localNames.get(symbol.id)?.has("getattr") || lexicalNames.get(symbol.id)?.has("getattr") || moduleAssignments.getattr || Object.hasOwn(aliases, "getattr") ? "source-method-lookup-builtin-shadowed"
               : symbol.attributes.methodBinding === "static" || symbol.attributes.bindingWrapped || symbol.attributes.callableAsync || symbol.decorators?.length ? "source-method-lookup-owner-unmodeled"
-              : !symbol.className || receiver !== symbol.parameters[0]?.name || localWrites.get(symbol.id)?.has(receiver) ? "source-method-lookup-receiver-unresolved"
+              : !symbol.className || receiver !== symbol.parameters[0]?.name || localWrites.get(symbol.id)?.has(receiver) || ordinary.some(c => field(field(c, "right")!, "object")?.text !== receiver) ? "source-method-lookup-receiver-unresolved"
               : references.some(i => !owned(i) || i.parent?.type !== "call" || field(i.parent, "function")?.id !== i.id) ? "source-method-lookup-escape-unmodeled"
+              : references.some(i => JSON.stringify(children(field(i.parent!, "arguments")).map(c => c.text)) !== JSON.stringify(children(field(n, "arguments")).map(c => c.text))) ? "source-method-lookup-call-shape-unmodeled"
               : fallbackExpression && !new RegExp(`^${receiver}\\.[A-Za-z_]\\w*$`).test(fallbackExpression) ? "source-method-lookup-default-unmodeled"
               : descendants(body, ["assignment", "augmented_assignment", "delete_statement", "call"]).some(c => owned(c) && (c.type === "call" ? ["setattr", "delattr"].includes(field(c, "function")?.text ?? "") && children(field(c, "arguments"))[0]?.text === receiver : (c.type === "delete_statement" ? children(c) : [field(c, "left")]).some(t => t?.text.startsWith(`${receiver}.`)))) ? "source-method-lookup-target-rebound" : undefined
-            methodLookup = { schemaVersion: "source-method-lookup/v1", name: expression, receiver, creationCallId: `call-${hash([sourceIdentity, file.path, sha256, creation.startIndex]).slice(0, 24)}`, source: { path: file.path, sha256, startLine: a.startPosition.row + 1, endLine: a.endPosition.row + 1, startIndex: a.startIndex, endIndex: a.endIndex }, selector: { expression: selector?.text ?? "", ...selector ? sourceLiteral(selector) : { literalKnown: false }, ...(selector?.type === "call" ? { sourceCallId: `call-${hash([sourceIdentity, file.path, sha256, selector.startIndex]).slice(0, 24)}`, resultBinding: `result-${hash([symbol.id, selector.startIndex]).slice(0, 16)}` } : {}) }, ...(fallbackExpression ? { fallbackExpression } : {}), ...(gap ? { gap } : {}) }
+            methodLookup = { schemaVersion: "source-method-lookup/v2", name: expression, receiver, creationCallId: `call-${hash([sourceIdentity, file.path, sha256, creation.startIndex]).slice(0, 24)}`, source: source(a), controls: controls ?? [], callControls: callControls ?? [], alternatives: alternatives.map(c => ({ ...c, controls: c.controls ?? [] })), selector: { expression: selector?.text ?? "", ...selector ? sourceLiteral(selector) : { literalKnown: false }, ...(selector?.type === "call" ? { sourceCallId: `call-${hash([sourceIdentity, file.path, sha256, selector.startIndex]).slice(0, 24)}`, resultBinding: `result-${hash([symbol.id, selector.startIndex]).slice(0, 16)}` } : {}) }, ...(fallbackExpression ? { fallbackExpression } : {}), ...(gap ? { gap } : {}) }
           }
         }
         let callableResult: FileScope["rawCalls"][number]["callableResult"]
@@ -569,15 +596,18 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     else if (raw.methodLookup) {
       const proof = raw.methodLookup, actualClass = receiverClass ?? owner?.className, mro = actualClass ? linearize(actualClass) : undefined, classes = (mro ?? []).flatMap(name => symbols.filter(s => s.kind === "class" && s.qualifiedName === name))
       const ordinary = (method: string) => { const targets = actualClass ? lookupMethod(actualClass, method) : []; return targets.length === 1 && !classes.some(c => Object.hasOwn(c.attributes, method)) && !targets[0]!.attributes.bindingWrapped && !targets[0]!.attributes.callableAsync && !targets[0]!.decorators?.length ? targets[0] : undefined }
-      const choices = [...new Set(symbols.filter(s => mro?.includes(s.className ?? "") && s.kind === "function").map(s => s.name))].flatMap(method => { const target = ordinary(method); return target && !sourceArgumentBindings({ symbols, relatedCalls: () => [] }, { ...call, receiver: proof.receiver }, target).gap ? [{ method, targetId: target.id, targetSha256: target.sha256 }] : [] }).filter(c => !proof.selector.literalKnown || c.method === proof.selector.literalValue)
+      const compatible = (target?: StructureSymbol) => !!target && !sourceArgumentBindings({ symbols, relatedCalls: () => [] }, { ...call, receiver: proof.receiver }, target).gap
+      const choices = [...new Set(symbols.filter(s => mro?.includes(s.className ?? "") && s.kind === "function").map(s => s.name))].flatMap(method => { const target = ordinary(method); return target && compatible(target) ? [{ method, targetId: target.id, targetSha256: target.sha256, lookup: true }] : [] }).filter(c => !proof.selector.literalKnown || c.method === proof.selector.literalValue)
+      const alternatives = proof.alternatives.map(a => ({ a, target: ordinary(a.method) }))
+      for (const { a, target } of alternatives) if (target && compatible(target) && !choices.some(c => c.targetId === target.id)) choices.push({ method: a.method, targetId: target.id, targetSha256: target.sha256, lookup: false })
       const fallback = proof.fallbackExpression ? ordinary(proof.fallbackExpression.slice(proof.receiver.length + 1)) : undefined
-      const gap = proof.gap ?? ((call.startIndex ?? -1) < proof.source.endIndex ? "source-method-lookup-before-creation"
-        : !actualClass || !mro || !owner?.className || !mro.includes(owner.className) || mro.some(name => classes.filter(c => c.qualifiedName === name).length !== 1) || classes.some(c => c.attributes.bindingWrapped || !stableSourceBinding(c.name, scopeFor(c))) ? "source-method-lookup-class-binding-unresolved"
+      const gap = proof.gap ?? (!actualClass || !mro || !owner?.className || !mro.includes(owner.className) || mro.some(name => classes.filter(c => c.qualifiedName === name).length !== 1) || classes.some(c => c.attributes.bindingWrapped || !stableSourceBinding(c.name, scopeFor(c))) ? "source-method-lookup-class-binding-unresolved"
         : ["__getattribute__", "__getattr__"].some(name => lookupMethod(actualClass, name).length) ? "source-method-lookup-descriptor-unmodeled"
         : proof.fallbackExpression && !fallback ? "source-method-lookup-default-unmodeled"
+        : alternatives.some(c => !compatible(c.target)) ? "source-method-lookup-target-unmodeled"
         : choices.length > 16 ? "source-method-lookup-targets-unmodeled" : undefined)
       if (gap) call.gap = gap
-      else { candidates = choices.flatMap(c => symbols.filter(s => s.id === c.targetId)); call.receiver = proof.receiver; call.receiverClass = actualClass!; const { gap: _gap, ...fact } = proof; call.methodLookup = { ...fact, choices, ...(fallback ? { fallbackTarget: { targetId: fallback.id, targetSha256: fallback.sha256 } } : {}) }; if (!choices.length) call.gap = "source-method-lookup-attribute-unmodeled" }
+      else { candidates = choices.flatMap(c => symbols.filter(s => s.id === c.targetId)); call.receiver = proof.receiver; call.receiverClass = actualClass!; const { gap: _gap, ...fact } = proof; call.methodLookup = { ...fact, alternatives: alternatives.map(({ a, target }) => ({ ...a, targetId: target!.id, targetSha256: target!.sha256 })), choices, ...(fallback ? { fallbackTarget: { targetId: fallback.id, targetSha256: fallback.sha256 } } : {}) }; if (!choices.length) call.gap = "source-method-lookup-attribute-unmodeled" }
       basis = ["AST current ordinary getattr selector and subsequent direct invocation; other attributes and fallback selection remain unproved"]
     }
     else if (raw.methodChoices) {
@@ -953,7 +983,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     }
     classDecoratorCache.set(receiverClass, facts); return structuredClone(facts)
   }
-  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v17"
+  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v18"
   const withSymbolSyntax = <T>(symbolId: string, visit: (root: Node, symbol: StructureSymbol) => T): Promise<T> => {
     const symbol = symbols.find(s => s.id === symbolId), file = symbol && files.find(f => f.path === symbol.path)
     if (!symbol || !file || hash(file.content) !== symbol.sha256) throw new Error("structure-source-missing")

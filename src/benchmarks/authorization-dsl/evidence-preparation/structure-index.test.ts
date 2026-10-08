@@ -720,7 +720,7 @@ for (const target of ["    @property\n    def fallback(self):\n        return re
 
 test("getattr preserves its actual selector occurrence and compatible current method targets", async () => {
   const index = await buildStructureIndex([{ path: "app.py", content: "class Base:\n    def entry(this, actor, selector):\n        handler = getattr(this, selector, this.fallback)\n        return handler(actor)\n    def guard(self, actor):\n        return actor\n    def fallback(self, actor):\n        return actor\nclass Gate(Base):\n    def guard(self, actor):\n        raise Denied\n" }], { repository: "anonymous", sourceRef: "r" }), owner = index.symbols.find(s => s.name === "entry")!, calls = index.relatedCalls(owner.id, "app.Gate"), call = calls.find(c => c.expression === "handler")!
-  expect(call.methodLookup).toMatchObject({ schemaVersion: "source-method-lookup/v1", name: "handler", receiver: "this", creationCallId: calls.find(c => c.expression === "getattr")!.id, selector: { expression: "selector", literalKnown: false }, fallbackExpression: "this.fallback", choices: [{ method: "guard", targetId: index.symbols.find(s => s.name === "guard" && s.className === "app.Gate")!.id }, { method: "fallback" }] })
+  expect(call.methodLookup).toMatchObject({ schemaVersion: "source-method-lookup/v2", name: "handler", receiver: "this", creationCallId: calls.find(c => c.expression === "getattr")!.id, selector: { expression: "selector", literalKnown: false }, fallbackExpression: "this.fallback", choices: [{ method: "guard", targetId: index.symbols.find(s => s.name === "guard" && s.className === "app.Gate")!.id }, { method: "fallback" }] })
   expect(call.candidateIds).toHaveLength(2)
   expect(index.relatedCalls(owner.id, "other.Gate").find(c => c.expression === "handler")!.gap).toBe("source-method-lookup-class-binding-unresolved")
 })
@@ -734,7 +734,7 @@ test("a literal getattr selector narrows before the candidate limit and preserve
 })
 for (const body of [
   "        handler = getattr(self, selector)\n        handler = replacement\n",
-  "        if selected:\n            handler = getattr(self, selector)\n",
+  "        for selected in values:\n            handler = getattr(self, selector)\n",
   "        handler = getattr(self, selector)\n        keep(handler)\n",
   "        handler = getattr(other, selector)\n",
   "        handler = getattr(self, selector)\n        setattr(self, 'guard', replacement)\n",
@@ -756,4 +756,29 @@ for (const definition of ["    @property\n    def fallback(self):\n        retur
 for (const name of ["__getattr__", "__getattribute__"]) test(`getattr keeps current custom attribute protocol named: ${name}`, async () => {
   const index = await buildStructureIndex([{ path: "app.py", content: `class Gate:\n    def entry(self, actor, selector):\n        handler = getattr(self, selector)\n        return handler(actor)\n    def guard(self, actor):\n        return actor\n    def ${name}(self, name):\n        return other\n` }], { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "handler")!
   expect(call.gap).toBe("source-method-lookup-descriptor-unmodeled")
+})
+
+for (const [body, creationPath, callPath, alternatePath] of [
+  ["        try:\n            if selected:\n                handler = getattr(self, 'guard', self.fallback)\n            else:\n                handler = self.fallback\n            return handler(actor)\n        except Denied:\n            return False\n", ["body", "true"], ["body"], ["body", "false"]],
+  ["        if selected:\n            handler = getattr(self, 'guard')\n        return handler(actor)\n", ["true"], [], undefined],
+  ["        try:\n            handler = self.fallback\n        except Denied:\n            handler = getattr(self, 'guard')\n        finally:\n            handler(actor)\n", ["handler"], ["finally"], ["body"]],
+] as const) test(`conditional getattr keeps its original control regions: ${creationPath.join("/")}`, async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: `class Gate:\n    def entry(self, actor, selected):\n${body}    def guard(self, actor):\n        raise Denied\n    def fallback(self, actor):\n        return actor\n` }], { repository: "anonymous", sourceRef: "r" })
+  const call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "handler")!, proof: any = call.methodLookup
+  expect(call.gap).toBeUndefined()
+  expect(proof).toMatchObject({ schemaVersion: "source-method-lookup/v2", name: "handler", receiver: "self" })
+  expect(proof.controls.map((c: any) => c.branch ?? c.region)).toEqual(creationPath)
+  expect(proof.callControls.map((c: any) => c.branch ?? c.region)).toEqual(callPath)
+  expect(proof.alternatives[0]?.controls.map((c: any) => c.branch ?? c.region)).toEqual(alternatePath)
+  expect(proof.choices.map((c: any) => [c.method, c.lookup])).toEqual(alternatePath ? [["guard", true], ["fallback", false]] : [["guard", true]])
+})
+
+test("getattr uses with different argument shapes retain a named shared-creation boundary", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "class Gate:\n    def entry(self, actor, other, selector):\n        handler = getattr(self, selector)\n        handler(actor)\n        return handler(actor, other)\n    def guard(self, actor):\n        return actor\n    def fallback(self, actor, other):\n        return other\n" }], { repository: "anonymous", sourceRef: "r" })
+  const calls = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).filter(c => c.expression === "handler")
+  expect(calls).toHaveLength(2)
+  for (const call of calls) {
+    expect(call.gap).toBe("source-method-lookup-call-shape-unmodeled")
+    expect(call.methodLookup).toBeUndefined()
+  }
 })

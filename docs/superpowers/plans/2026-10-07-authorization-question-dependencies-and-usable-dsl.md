@@ -191,6 +191,12 @@ lookup结构容量复核（2026-10-08）：当前16候选的创建/调用两个s
 
 lookup结构容量本步进展：主完整16候选/35块用例先红测复现共享schema的32块拒绝。只读核验定位聚焦格式另有32块限制，主顺着实际source-update→focused-update路径再次红测复现`focus-schema`拒绝；现两处共用`SEMANTIC_BLOCK_LIMIT=64`。实际selector helper选择guard，source提交、材料接纳/投影及deny先于write均通过；原127节点/16终态路径与候选/source-reference预算保持。1新增用例、403focused/1550断言，新鲜联合1242pass/1平台skip/7357断言/115文件/11.42s和主/AY类型通过；只读65项/367断言核验另记。历史OWUI拒绝与真实probe不升级，无模型/目标/网络新增。继续条件lookup及字段/完整请求，AY7/研究验收未勾选。
 
+条件lookup下一小步设计（2026-10-08）：将proof更新为`source-method-lookup/v2`，保留唯一getattr创建及同一local的有限普通method赋值、原if/else与try/body/handler/else/finally区域路径、真实handler调用区域。literal lookup候选与其它直接赋值target分别取证后合成最多16个实际可绑定target；default存在仍不证明属性缺失。宿主用ordinary sentinel初始化local，在原控制区域创建selector token或普通method token，并在真实调用处按实际token分派。未创建路径通过既有raise表达UnboundLocalError/operation failure，未知属性与不受支持值仍具名；所有variant沿同一binder/六角色/材料投影。投影核验完整创建/分派、sentinel、原控制区域和直接赋值，不把机械块序当作路径证明。loop/with/elif创建、其它写入/escape、receiver mutation、descriptor/wrapper等继续具名。先匿名两条件结果/原try异常/漏创建/移出分支/篡改sentinel/错区域/失效来源红绿，再真实source-only probe；不将仍有字段/wrapper缺口的框架升级为真实采用。
+
+条件lookup实现细化：普通token身份只取精确创建/source与当前target，不含调用控制区域，两个同实参调用可在try内外共享实际创建值。不同调用实参文本暂具名`source-method-lookup-call-shape-unmodeled`，避免一处共享创建被另一调用的签名筛选覆盖；后续若扩展需显式合成创建集合并验证各调用。每次dispatch的default先核验uncreated sentinel并raise，再保留unknown值出口；16项最大机械图现37块，沿本阶段共享64块结构容量接纳，127节点/16路径执行预算不变。来源review把“分支外调用仍有已知候选”标为错误，但候选解析不证明创建必经；主未知flag反例实际保留guard拒绝和UnboundLocalError/operation两条原路径，无write。本步保留候选和原控制事实，不加会禁止正确异常路径的支配性门槛。独立意见与主实际裁定分别存档。
+
+条件lookup本步进展：v18原控制区域、普通alternate赋值、sentinel/token、精确handler分派和whole-selector投影沿同一binder/六角色接通。11新增用例、414focused/1691断言，新鲜联合1253pass/1平台skip/7498断言/115文件/14.69s及主/AY类型通过；两只读核验与主裁定分别记录。100文件/6body/6 lookup probe中，声明receiver下1个Django基类合格；指定应用receiver的3处仍合格/采用0。初始/reviewed分留，后者只增加两种receiver资格分账。实验模型read/annotation/use及模型/目标新增0，probe网络0，开发/探子及额外runner网络unknown；旧输入/答不升级。继续receiver字段mutation、class/wrapper、字段callable与完整请求，然后官方具名实际复验和预登记收益比较；AY7/研究验收未勾选。
+
 ### AY8 调度与局部解释的闭环
 
 2026-10-08真实OWUI反例细化：七轮增量字段确有前进，最后宿主生成34个块（其中8个为空）却被沿用手写接口的32块上限拒绝。先在v5源码编译器复用同单元的无动作空块，保留每个实际条件、步骤、正常/拒绝/异常出口及既有路径/节点边界；不提高求值上限。停滞按当前缺口和已保留字段进展判断，不能把observations的pending标签当源码frontier停滞。实际发送上下文与原始归档分账，引用的bytes是被引用原值大小，不是该引用包的发送大小。

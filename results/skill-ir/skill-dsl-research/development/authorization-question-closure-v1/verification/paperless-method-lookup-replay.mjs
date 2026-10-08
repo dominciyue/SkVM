@@ -43,6 +43,7 @@ const lookupCalls = index.calls.filter(c => c.methodLookup || c.gap?.startsWith(
 const record = {
   schemaVersion: "authorization-source-method-lookup-replay/v1", date: "2026-10-08", relationshipVersion: index.relationshipVersion,
   originalProvenanceSha256: sha(originalBytes), supplements, frozenSourcesVerified: original.appFiles.length + original.dependencyFiles.length, sourceFiles: files.length, sources, aliasCalls, choiceCalls, lookupCalls,
+  sourceEligibility: { declaringReceiverLookupCalls: lookupCalls.filter(a => a.call.methodLookup).length, selectedReceiverLookupCalls: sources.flatMap(s => s.calls).filter(c => c.methodLookup || c.gap?.startsWith("source-method-lookup-")).length, selectedReceiverEligible: sources.flatMap(s => s.calls).filter(c => c.methodLookup).length },
   mechanicalWindowOnly: true, modelReadEvidence: false, applicationSemanticUnitsAuthored: 0, materialUses: 0,
   dynamicHandlerBinding: "pending", fieldCallableBinding: "pending", fullFrameworkComposition: "pending",
   originalInputsAndAllowlistsUnmodified: true, newModelInputRegistered: false, originalAttemptPromoted: false,
@@ -51,4 +52,4 @@ const record = {
 if (await readFile(path.join(base, "source-provenance/locked-framework-v1.json")).then(sha) !== sha(originalBytes)) throw new Error("original-provenance-changed")
 const output = process.argv[2] ? path.resolve(process.argv[2]) : path.join(ay, "verification/paperless-method-lookup-replay.json")
 await writeFile(output, JSON.stringify(record, null, 2) + "\n", { flag: "wx" })
-console.log(JSON.stringify({ output, sha256: sha(await readFile(output)), sourceFiles: files.length, selectedBodies: sources.length, aliasCalls: aliasCalls.length, methodChoiceCalls: choiceCalls.length, sourceEligible: lookupCalls.filter(a => a.call.methodLookup).length, methodLookupCalls: lookupCalls.length, lookupGaps: [...new Set(lookupCalls.map(a => a.call.gap).filter(Boolean))], namedGaps: [...new Set(aliasCalls.map(a => a.call.gap).filter(Boolean))], modelReadEvidence: false, materialUses: 0, modelExecutions: 0, targetExecutions: 0 }))
+console.log(JSON.stringify({ output, sha256: sha(await readFile(output)), sourceFiles: files.length, selectedBodies: sources.length, aliasCalls: aliasCalls.length, methodChoiceCalls: choiceCalls.length, sourceEligible: lookupCalls.filter(a => a.call.methodLookup).length, ...record.sourceEligibility, methodLookupCalls: lookupCalls.length, lookupGaps: [...new Set(lookupCalls.map(a => a.call.gap).filter(Boolean))], namedGaps: [...new Set(aliasCalls.map(a => a.call.gap).filter(Boolean))], modelReadEvidence: false, materialUses: 0, modelExecutions: 0, targetExecutions: 0 }))

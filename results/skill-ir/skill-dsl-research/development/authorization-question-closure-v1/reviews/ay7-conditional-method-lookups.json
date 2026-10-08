@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "authorization-development-review/v1",
+  "date": "2026-10-08",
+  "stage": "AY7-conditional-getattr-and-ordinary-method-creation",
+  "relationshipVersion": "source-bindings/v18",
+  "proofVersion": "source-method-lookup/v2",
+  "decision": "engineering-passing-application-receiver-framework-use-and-benefit-pending",
+  "mainRedGreenCounterexamples": [
+    "Conditional lookup retains original if/else and try/body/handler/else/finally regions",
+    "A direct alternate method reference remains separate from actual getattr fallback selection",
+    "Original lookup, direct alternate and exact handler occurrence use the same Python binder and existing six roles",
+    "A skipped creation raises UnboundLocalError as operation failure before write",
+    "Missing or moved creation/dispatch, corrupted sentinel, alternate value and uncreated exit withdraw affected links",
+    "Two equal-argument handler calls in different try regions share the original ordinary method value",
+    "Different argument texts retain a named shared-creation boundary instead of overwriting its target set",
+    "A missing selector stays unknown on the lookup path while an explicit else assignment can choose fallback",
+    "An unknown flag keeps both guard rejection and uncreated operation-failure paths"
+  ],
+  "independentReadOnlyReviews": [
+    {
+      "agent": "ay_conditional_lookup_source_review_v18",
+      "scope": "Lookup proof control paths, receiver/source evidence and shared argument binder",
+      "verification": { "pass": 197, "fail": 0, "assertions": null },
+      "reportedFinding": "A branch-local getattr followed by a branch-external handler call still resolves current method candidates",
+      "mainDisposition": "Candidate resolution is reproduced, but unsound execution is not. Creation need not dominate a Python local call: the original branch and initialized sentinel preserve its UnboundLocalError path. The unknown-flag native regression retains guard denial and uncreated operation failure without write. No dominance gate added.",
+      "additionalSourceBinderDefectReproduced": false
+    },
+    {
+      "agent": "ay_conditional_lookup_projection_review_v18",
+      "scope": "Original creation/call/alternate regions, tokens, initialization and failure exits",
+      "verification": { "pass": 87, "fail": 0, "assertions": 587 },
+      "finding": "No new reproducible incorrect adoption; not an exhaustive proof",
+      "extraRunner": { "name": "npx vitest", "outcome": "No collection because tests import bun:test; runInBand was also unsupported", "externalNetworkRequests": null }
+    }
+  ],
+  "verification": {
+    "newTests": 11,
+    "focused": { "pass": 414, "fail": 0, "assertions": 1691, "files": 11 },
+    "joint": { "pass": 1253, "skip": 1, "fail": 0, "assertions": 7498, "files": 115, "durationMs": 14690 },
+    "mainTypes": "passed",
+    "ayTypes": "passed",
+    "initialSourceProbe": { "path": "verification/paperless-conditional-lookup-replay.json", "sha256": "4c7873e150fd0f123d53983de77a9b1fbea7d6d797ab5472403a5a8bae3ddaf3" },
+    "reviewedSourceProbe": { "path": "verification/paperless-conditional-lookup-reviewed-replay.json", "sha256": "2f69144a654573de7f85d74b26ec867e4bf41963f17d0815a30e16b096220915" },
+    "probeMetadataDifference": "The reviewed output adds sourceEligibility to distinguish declaring receivers from the selected application receiver; original source facts are preserved",
+    "probeSourceFactsEquality": "passed after removing only the added sourceEligibility metrics",
+    "documentation": { "scannedFiles": 5, "brokenReferences": 0, "legacyReferences": 0, "retiredReferences": 0, "governanceErrors": 0, "existingSoftLengthWarnings": 5 }
+  },
+  "sourceProbe": { "sourceFiles": 100, "selectedBodies": 6, "lookupCalls": 6, "declaringReceiverEligible": 1, "selectedReceiverLookupCalls": 3, "selectedReceiverEligible": 0, "actualAdoption": 0 },
+  "boundaries": [
+    "Only one getattr creation plus finite ordinary assignments from one stable instance receiver qualifies",
+    "Loop/with/elif, arbitrary writes, escape, receiver mutation, wrappers and descriptors stay named",
+    "Different actual argument texts stay named until shared creation target sets are explicitly composed",
+    "Other attributes and actual getattr fallback selection stay unresolved",
+    "Declaring-receiver source eligibility is separate from selected application-receiver eligibility and actual use",
+    "Mechanical windows and anonymous regression adoption provide no experimental model/application evidence"
+  ],
+  "executionBudgetsUnchanged": { "structuralBlocks": 64, "emittedNodes": 127, "terminalPaths": 16 },
+  "modelReadEvidence": false,
+  "applicationSemanticUnitsAuthored": 0,
+  "materialUses": 0,
+  "modelExecutions": 0,
+  "targetExecutions": 0,
+  "probeNetworkRequests": 0,
+  "reviewExtraRunnerNetworkRequests": null,
+  "originalInputsAndAllowlistsUnmodified": true,
+  "originalAttemptPromoted": false,
+  "costs": { "experimentTokens": 0, "developerAndScoutTokens": null, "usd": null, "humanTime": null },
+  "fullFrameworkComposition": "pending",
+  "researchGoalAchieved": false
+}

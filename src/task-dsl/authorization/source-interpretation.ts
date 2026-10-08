@@ -6,7 +6,7 @@ import { buildPropertyDemand, type PropertyDemand } from "./property-demand.ts"
 import type { DependencyQuestion } from "./property-dependencies.ts"
 import type { SourceSkeleton, SourceAnchor, SourceFlow } from "../../benchmarks/authorization-dsl/evidence-preparation/source-skeleton.ts"
 import type { StructureIndex, StructureMethodChoice } from "../../benchmarks/authorization-dsl/evidence-preparation/structure-index.ts"
-import { sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupToken } from "../../benchmarks/authorization-dsl/evidence-preparation/source-identities.ts"
+import { sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupSentinel, sourceMethodLookupToken } from "../../benchmarks/authorization-dsl/evidence-preparation/source-identities.ts"
 import { sourceArgumentBindings, sourceCallableParameter } from "../../benchmarks/authorization-dsl/evidence-preparation/source-arguments.ts"
 
 export const SourceAnnotationSchema = z.object({
@@ -80,6 +80,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
     if (anchor.fieldWrite && a.aliasAnchorId && objectName(a.aliasAnchorId) !== anchor.valueExpression && at(a.aliasAnchorId)?.text !== anchor.valueExpression) fault("field-alias-mismatch", a.anchorId, "This field store must preserve its actual current source right hand side, not another same-type object.")
     if ([...methodProofs.values()].some(p => p.choices.some(c => c.anchorId === a.anchorId)) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("method-choice-role", a.anchorId, "A proved ordinary method reference keeps its actual finite source value; it cannot be replaced with a domain object alias.")
     if (anchor.call?.sourceCallId && lookupCreations.has(anchor.call.sourceCallId) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("method-lookup-role", a.anchorId, "An ordinary getattr reference keeps its current selector; its creation cannot become an authorization object or effect.")
+    if ([...lookupCreations.values()].some(p => p.alternatives.some(c => c.anchorId === a.anchorId)) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("method-lookup-role", a.anchorId, "A current alternate method reference keeps its actual ordinary source value.")
     if (a.guardBranch && (anchor.kind !== "condition" || !a.principalAnchorId || !a.resourceAnchorId)) fault("guard", a.anchorId, "A branch guard needs its actual condition and explicit principal/resource roles.")
     for (const ref of a.authorizedByAnchorIds ?? []) if (!at(ref) || !annotations.get(ref)?.guardBranch) fault("authorization-reference", a.anchorId, "Claimed authorizing anchor needs an explicit current branch guard.")
   }
@@ -101,6 +102,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
   const bind = (a: SourceAnchor): Step => ({ kind: "bind", name: `bind-${a.id}`, bindingName: objectName(a.id)!, claim: annotations.get(a.id)?.explanation ?? "Source assignment fact", type: a.literalKnown ? "value" : bindingType(annotations.get(a.id)), ...(a.literalKnown ? { value: a.literalValue! } : annotations.get(a.id)?.aliasAnchorId ? { aliasOf: objectName(annotations.get(a.id)!.aliasAnchorId)! } : {}) })
   const prologue = skeleton.anchors.filter(a => a.kind === "assignment" && !allFlowIds.has(a.id) && annotations.has(a.id) && ["principal", "resource", "permission"].includes(annotations.get(a.id)!.role)).map(bind)
   for (const proof of methodProofs.values()) prologue.unshift({ kind: "assign-value", name: `method-choice-init-${proof.name}`, claim: "A source local method value is uncreated before its actual assignment", result: proof.name, value: { literal: sourceMethodChoiceSentinel(proof) } })
+  for (const proof of lookupCreations.values()) prologue.unshift({ kind: "assign-value", name: `method-lookup-init-${proof.name}`, claim: "A source local getattr method value is uncreated before its actual assignment", result: proof.name, value: { literal: sourceMethodLookupSentinel(proof) } })
   if (questionDirected && options.index) {
     const receivers = new Map<string, Step>(), identities = new Map<string, string>()
     for (const a of skeleton.anchors) {
@@ -167,11 +169,12 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
       else if (a.kind === "call") {
         const lookupCreation = a.call!.sourceCallId && lookupCreations.get(a.call!.sourceCallId)
         if (lookupCreation && finite) {
-          if (!lookupCreation.choices.length) { block.steps.push({ kind: "unresolved", name: `method-lookup-${lookupCreation.creationCallId}`, claim: "No current ordinary method matches the source selector; actual fallback selection remains unproved", reason: "source-method-lookup-attribute-unmodeled" }); continue }
-          const cases = lookupCreation.choices.map((choice, i) => {
+          if (!lookupCreation.choices.some(c => c.lookup)) { block.steps.push({ kind: "unresolved", name: `method-lookup-${lookupCreation.creationCallId}`, claim: "No current ordinary method matches the source selector; actual fallback selection remains unproved", reason: "source-method-lookup-attribute-unmodeled" }); continue }
+          const cases = lookupCreation.choices.flatMap((choice, i) => {
+            if (!choice.lookup) return []
             const body = `source-lookup-create-${serial++}`
             unit.blocks.push({ name: body, steps: [{ kind: "assign-value", name: `lookup-assign-${lookupCreation.creationCallId}-${i}`, claim: "The actual finite selector chooses this ordinary current source method", result: lookupCreation.name, value: { literal: sourceMethodLookupToken(lookupCreation, choice) } }] })
-            return { condition: { op: "eq", left: sourceMethodLookupSelector(lookupCreation), right: { literal: choice.method } }, body }
+            return [{ condition: { op: "eq", left: sourceMethodLookupSelector(lookupCreation), right: { literal: choice.method } }, body }]
           })
           const otherwise = `source-lookup-unknown-${serial++}`
           unit.blocks.push({ name: otherwise, steps: [{ kind: "unresolved", name: `lookup-unknown-${lookupCreation.creationCallId}`, claim: "Other attributes and actual fallback selection remain unproved", reason: "source-method-lookup-attribute-unmodeled" }] })
@@ -226,18 +229,25 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
             unit.blocks.push({ name: otherwise, steps: [{ kind: "raise", name: `uncreated-${a.id}`, claim: "The local method has not been created on this original source path", exceptionType: "UnboundLocalError", failureKind: "operation" }] })
             block.steps.push({ kind: "choose", name: `method-choice-${a.id}`, claim, cases, otherwise })
           } else if (lookupCalls.has(a.id) && finite) {
-            if (!lookupCalls.get(a.id)!.choices.length) { block.steps.push({ kind: "unresolved", name: `method-lookup-call-${a.id}`, claim: "The actual getattr result has no proved current ordinary method target", reason: "source-method-lookup-attribute-unmodeled" }); continue }
             const lookup = lookupCalls.get(a.id)!, cases = lookup.choices.map((choice, i) => {
               const body = `source-lookup-call-${serial++}`, variant: SemanticBlock["blocks"][number] = { name: body, steps: [] }; unit.blocks.push(variant)
               emitCall(variant.steps, choice.targetId, `-lookup-${i}`)
               return { condition: { op: "eq", left: { binding: lookup.name }, right: { literal: sourceMethodLookupToken(lookup, choice) } }, body }
             })
-            const otherwise = `source-lookup-call-unknown-${serial++}`
-            unit.blocks.push({ name: otherwise, steps: [{ kind: "unresolved", name: `lookup-call-unknown-${a.id}`, claim: "The current ordinary getattr method value is unavailable", reason: "source-method-lookup-value-unresolved" }] })
-            block.steps.push({ kind: "choose", name: `method-lookup-call-${a.id}`, claim, cases, otherwise })
+            const unknown = `source-lookup-call-unknown-${serial++}`, uncreated = `source-lookup-uncreated-${serial++}`, otherwise = `source-lookup-uncreated-check-${serial++}`
+            unit.blocks.push({ name: unknown, steps: [{ kind: "unresolved", name: `lookup-call-unknown-${a.id}`, claim: "The current ordinary getattr method value is unavailable", reason: "source-method-lookup-value-unresolved" }] }, { name: uncreated, steps: [{ kind: "raise", name: `lookup-uncreated-${a.id}`, claim: "The local method has not been created on this original source path", exceptionType: "UnboundLocalError", failureKind: "operation" }] })
+            const check = { kind: "choose" as const, name: `lookup-uncreated-check-${a.id}`, claim, cases: [{ condition: { op: "eq", left: { binding: lookup.name }, right: { literal: sourceMethodLookupSentinel(lookup) } }, body: uncreated }], otherwise: unknown }
+            if (cases.length) { unit.blocks.push({ name: otherwise, steps: [check] }); block.steps.push({ kind: "choose", name: `method-lookup-call-${a.id}`, claim, cases, otherwise }) }
+            else block.steps.push({ ...check, name: `method-lookup-call-${a.id}` })
           } else emitCall(block.steps, a.call!.candidateIds.length === 1 ? a.call!.candidateIds[0] : undefined)
         }
       } else if (a.kind === "assignment" && a.name) {
+        const lookup = [...lookupCreations.values()].find(p => p.alternatives.some(c => c.anchorId === a.id)), alternate = lookup?.alternatives.find(c => c.anchorId === a.id)
+        if (lookup && alternate) {
+          const choice = lookup.choices.find(c => c.targetId === alternate.targetId)!
+          block.steps.push({ kind: "assign-value", name: `assign-${a.id}`, claim, result: lookup.name, value: { literal: sourceMethodLookupToken(lookup, choice) } })
+          continue
+        }
         const method = [...methodProofs.values()].flatMap(proof => proof.choices.filter(c => c.anchorId === a.id).map(choice => ({ proof, choice })))[0]
         if (method) {
           block.steps.push({ kind: "assign-value", name: `assign-${a.id}`, claim, result: method.proof.name, value: { literal: sourceMethodChoiceToken(method.proof, method.choice) } })

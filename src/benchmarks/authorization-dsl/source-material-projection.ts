@@ -1,8 +1,8 @@
 import type { AuthorizationInquiryProgram } from "../../task-dsl/authorization/inquiry-program.ts"
 import type { BoundSemanticBlock } from "../../task-dsl/authorization/semantic-flow.ts"
 import type { SourceMaterial, SourceMaterialSnapshot } from "../../task-dsl/authorization/source-materials.ts"
-import type { StructureIndex } from "./evidence-preparation/structure-index.ts"
-import { sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupToken, sourceSyntaxAnchorId } from "./evidence-preparation/source-identities.ts"
+import type { StructureIndex, StructureMethodControl } from "./evidence-preparation/structure-index.ts"
+import { sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupSentinel, sourceMethodLookupToken, sourceSyntaxAnchorId } from "./evidence-preparation/source-identities.ts"
 import { operationCallSourceSelection, operationCallTargets } from "./operation-links.ts"
 import { structuralDependencyRevision } from "./operation-work.ts"
 import { canonicalControl } from "../../task-dsl/authorization/control-slice.ts"
@@ -71,21 +71,57 @@ function actualArguments(index: StructureIndex, caller: BoundSemanticBlock, step
   }
   if (call.methodLookup) {
     const proof = call.methodLookup, callAnchor = call.startIndex !== undefined && call.endIndex !== undefined ? sourceSyntaxAnchorId(caller.source!.id, call.startIndex, call.endIndex, "call") : undefined
-    const creation = steps.filter((s): s is ChoiceStep => s.kind === "choose" && s.name === `method-lookup-${proof.creationCallId}`), dispatch = steps.filter((s): s is ChoiceStep => s.kind === "choose" && s.name === `method-lookup-call-${callAnchor}`), start = caller.blocks.find(b => b.name === caller.start)
-    if (!callAnchor || creation.length !== 1 || dispatch.length !== 1 || !start?.steps.includes(creation[0]!) || steps.indexOf(creation[0]!) >= steps.indexOf(dispatch[0]!) || steps.filter(s => s.kind === "call" && s.sourceCallId === call.id).length !== proof.choices.length) return false
-    const selectors = [creation[0]!, dispatch[0]!]
-    if (selectors.some(s => s.cases.length !== proof.choices.length || new Set(s.cases.map(c => c.body)).size !== proof.choices.length)) return false
+    const creation = steps.filter(s => s.name === `method-lookup-${proof.creationCallId}`), dispatch = steps.filter((s): s is ChoiceStep => s.kind === "choose" && s.name === `method-lookup-call-${callAnchor}`), start = caller.blocks.find(b => b.name === caller.start), lookupChoices = proof.choices.filter(c => c.lookup)
+    const controlStep = (block: BoundSemanticBlock["blocks"][number] | undefined, control: StructureMethodControl) => block?.steps.find(s => s.kind === (control.kind === "branch" ? "choose" : "try") && s.name === `${control.kind === "branch" ? "choose" : "try"}-${control.anchorId}`)
+    const locate = (controls: StructureMethodControl[]) => {
+      let block = start
+      for (const control of controls) {
+        const parent = controlStep(block, control)
+        if (!parent) return
+        let name: string | undefined
+        if (control.kind === "branch" && parent.kind === "choose" && parent.cases.length === 1) name = control.branch === "true" ? parent.cases[0]!.body : parent.otherwise
+        else if (control.kind === "try" && parent.kind === "try") name = control.region === "handler" ? parent.handlers[control.handlerIndex ?? -1]?.body : parent[control.region]
+        else return
+        block = caller.blocks.find(b => b.name === name)
+      }
+      return block
+    }
+    const ordered = (controls: StructureMethodControl[], sourceIndex: number, created: typeof steps[number]) => {
+      let common = 0
+      while (common < controls.length && common < proof.callControls.length && canonicalControl(controls[common]) === canonicalControl(proof.callControls[common])) common++
+      const parent = locate(controls.slice(0, common)), before = controls[common] ? controlStep(parent, controls[common]!) : created, after = proof.callControls[common] ? controlStep(parent, proof.callControls[common]!) : dispatch[0]
+      return !!parent && !!before && !!after && (before === after || (parent.steps.indexOf(before) < parent.steps.indexOf(after)) === (sourceIndex < call.startIndex!))
+    }
+    if (!callAnchor || !start || creation.length !== 1 || dispatch.length !== 1 || !locate(proof.controls)?.steps.includes(creation[0]!) || !locate(proof.callControls)?.steps.includes(dispatch[0]!) || !ordered(proof.controls, proof.source.startIndex, creation[0]!) || steps.filter(s => s.kind === "call" && s.sourceCallId === call.id).length !== proof.choices.length) return false
+    if (dispatch[0]!.cases.length !== proof.choices.length || new Set(dispatch[0]!.cases.map(c => c.body)).size !== proof.choices.length) return false
+    const initName = `method-lookup-init-${proof.name}`, init = start.steps.find(s => s.name === initName)
+    if (!init || init.kind !== "assign-value" || init.result !== proof.name || canonicalControl(init.value) !== canonicalControl({ literal: sourceMethodLookupSentinel(proof) }) || start.steps.slice(0, start.steps.indexOf(init)).some(s => s.kind !== "bind" && !(s.kind === "assign-value" && /^(method-choice|method-lookup)-init-/.test(s.name)))) return false
+    const permitted = new Map([[initName, sourceMethodLookupSentinel(proof)]])
+    if (lookupChoices.length) {
+      const selector = creation[0]!
+      if (selector.kind !== "choose" || selector.cases.length !== lookupChoices.length || new Set(selector.cases.map(c => c.body)).size !== lookupChoices.length) return false
+      for (const [i, choice] of lookupChoices.entries()) {
+        const created = selector.cases[i]!, value = caller.blocks.find(b => b.name === created.body)?.steps, assignmentName = `lookup-assign-${proof.creationCallId}-${proof.choices.indexOf(choice)}`, token = sourceMethodLookupToken(proof, choice)
+        if (canonicalControl(created.condition) !== canonicalControl({ op: "eq", left: sourceMethodLookupSelector(proof), right: { literal: choice.method } }) || value?.length !== 1 || value[0]!.kind !== "assign-value" || value[0]!.name !== assignmentName || value[0]!.result !== proof.name || canonicalControl(value[0]!.value) !== canonicalControl({ literal: token })) return false
+        permitted.set(assignmentName, token)
+      }
+      const unknown = caller.blocks.find(b => b.name === selector.otherwise)?.steps
+      if (unknown?.length !== 1 || unknown[0]!.kind !== "unresolved" || unknown[0]!.reason !== "source-method-lookup-attribute-unmodeled") return false
+    } else if (creation[0]!.kind !== "unresolved" || creation[0]!.reason !== "source-method-lookup-attribute-unmodeled") return false
     for (const [i, choice] of proof.choices.entries()) {
-      const token = sourceMethodLookupToken(proof, choice), created = creation[0]!.cases[i]!, invocation = dispatch[0]!.cases[i]!, value = caller.blocks.find(b => b.name === created.body)?.steps, calls = caller.blocks.find(b => b.name === invocation.body)?.steps.filter(s => s.kind === "call")
-      if (canonicalControl(created.condition) !== canonicalControl({ op: "eq", left: sourceMethodLookupSelector(proof), right: { literal: choice.method } }) || value?.length !== 1 || value[0]!.kind !== "assign-value" || value[0]!.name !== `lookup-assign-${proof.creationCallId}-${i}` || value[0]!.result !== proof.name || canonicalControl(value[0]!.value) !== canonicalControl({ literal: token })) return false
+      const token = sourceMethodLookupToken(proof, choice), invocation = dispatch[0]!.cases[i]!, calls = caller.blocks.find(b => b.name === invocation.body)?.steps.filter(s => s.kind === "call")
       if (canonicalControl(invocation.condition) !== canonicalControl({ op: "eq", left: { binding: proof.name }, right: { literal: token } }) || calls?.length !== 1 || calls[0]!.name !== `call-${callAnchor}-lookup-${i}` || calls[0]!.sourceCallId !== call.id || calls[0]!.symbol !== call.expression || calls[0]!.candidateId !== choice.targetId) return false
     }
-    for (const [i, selector] of selectors.entries()) {
-      const unknown = caller.blocks.find(b => b.name === selector.otherwise)?.steps
-      if (unknown?.length !== 1 || unknown[0]!.kind !== "unresolved" || unknown[0]!.reason !== (i ? "source-method-lookup-value-unresolved" : "source-method-lookup-attribute-unmodeled")) return false
+    const fallback = caller.blocks.find(b => b.name === dispatch[0]!.otherwise)?.steps, check = fallback?.[0]
+    if (fallback?.length !== 1 || check?.kind !== "choose" || check.cases.length !== 1 || canonicalControl(check.cases[0]!.condition) !== canonicalControl({ op: "eq", left: { binding: proof.name }, right: { literal: sourceMethodLookupSentinel(proof) } })) return false
+    const uncreated = caller.blocks.find(b => b.name === check.cases[0]!.body)?.steps, unknown = caller.blocks.find(b => b.name === check.otherwise)?.steps
+    if (uncreated?.length !== 1 || uncreated[0]!.kind !== "raise" || uncreated[0]!.exceptionType !== "UnboundLocalError" || uncreated[0]!.failureKind !== "operation" || uncreated[0]!.rethrow || unknown?.length !== 1 || unknown[0]!.kind !== "unresolved" || unknown[0]!.reason !== "source-method-lookup-value-unresolved") return false
+    for (const alternate of proof.alternatives) {
+      const creation = steps.find(s => s.name === `assign-${alternate.anchorId}`), choice = proof.choices.find(c => c.targetId === alternate.targetId), token = choice && sourceMethodLookupToken(proof, choice)
+      if (!creation || !choice || creation.kind !== "assign-value" || creation.result !== proof.name || canonicalControl(creation.value) !== canonicalControl({ literal: token }) || !locate(alternate.controls)?.steps.includes(creation) || !ordered(alternate.controls, alternate.source.startIndex, creation)) return false
+      permitted.set(creation.name, token!)
     }
-    const permitted = new Set(proof.choices.map((_, i) => `lookup-assign-${proof.creationCallId}-${i}`))
-    if (steps.some(s => s.kind === "bind" && (s.bindingName ?? s.name) === proof.name || s.kind === "call" && s.result === proof.name || s.kind === "assign-value" && s.result === proof.name && !permitted.has(s.name))) return false
+    if (steps.some(s => s.kind === "bind" && (s.bindingName ?? s.name) === proof.name || s.kind === "call" && s.result === proof.name || s.kind === "assign-value" && s.result === proof.name && (!permitted.has(s.name) || canonicalControl(s.value) !== canonicalControl({ literal: permitted.get(s.name) })))) return false
   }
   if (call.callableBinding) {
     const instance = call.callableBinding, creation = steps.find(s => s.kind === "call" && s.sourceCallId === instance.creationCallId)

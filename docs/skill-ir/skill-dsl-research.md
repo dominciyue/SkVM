@@ -2088,6 +2088,10 @@ AY7普通getattr小步（2026-10-08）：v17以唯一无条件创建后的真实
 
 AY7 lookup结构容量修正（2026-10-08）：主新增16候选/35块完整反例，先复现共享单元32块拒绝；独立只读核验又定位聚焦格式的单独32块限制，主沿实际source-update转换路径再次红测复现`focus-schema`拒绝。现由同一`SEMANTIC_BLOCK_LIMIT=64`供两处使用，helper返回已知guard时完整接纳/投影/执行且deny先于write；127 emitted-node和16终态路径预算保持，超限仍撤回本题规则。1新增用例，403focused/1550断言、新鲜联合1242pass/1平台skip/7357断言/115文件/11.42s与主/AY类型通过。只读65项/367断言的容量与边界核验另记；未改历史OWUI34块拒绝或真实source probe，实验model read/annotation/use与模型/目标/网络新增0，真实框架及净收益继续pending。
 
+AY7条件lookup小步（2026-10-08）：v18将唯一getattr与有限普通method赋值的原if/else及try各区域连到真实handler调用，ordinary sentinel/token保持未创建操作异常和未知属性出口；default存在仍不证明缺失，直接else赋值fallback与getattr实际fallback分开。调用区域不进入token身份，同实参的try内外两次调用共用创建值；不同实参文本具名边界，避免按某一调用签名收窄共享创建。主来源/执行红绿后，11新增用例、414focused/1691断言、新鲜联合1253pass/1平台skip/7498断言/115文件/14.69s和主/AY类型通过，见[局部核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-conditional-method-lookups.json)。来源只读197项通过后把分支外调用仍有候选标为错误；主原区域/sentinel点验及未知flag反例未复现错误执行，保留guard拒绝和UnboundLocalError/operation两条原路径，不添加会禁止正确异常路径的支配性要求。投影只读87项/587断言通过且未发现新缺陷，不作穷尽声明。
+
+真实[reviewed条件lookup probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-conditional-lookup-reviewed-replay.json)核验94冻结文件和独立supplements，共100文件/6body/6 lookup。声明receiver下1个Django View.dispatch来源合格，指定应用receiver的3处lookup仍合格0（target-rebound/class-binding/receiver缺口），实际采用0；初始与reviewed分留，后者只新增声明/指定receiver资格分账。实验模型read/application annotation/material use/模型/目标新增0，probe网络0，开发/探子token、额外runner网络、USD及真人时间unknown。旧input/allowlist/答不升级。继续真实receiver字段mutation、class/wrapper、字段callable和完整请求，再官方具名复验；AY7与净收益未达。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

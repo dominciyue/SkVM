@@ -530,6 +530,66 @@ for (const selected of [true, false]) test(`finite method choice executes its or
   expect(project(units, changed).uses).toEqual([])
 })
 
+for (const { selected, alternate, selector, repeat } of [
+  { selected: true, alternate: true, selector: "guard", repeat: false },
+  { selected: false, alternate: true, selector: "guard", repeat: false },
+  { selected: false, alternate: false, selector: "guard", repeat: false },
+  { selected: false, alternate: true, selector: "guard", repeat: true },
+  { selected: false, alternate: true, selector: "missing", repeat: false },
+  { selected: true, alternate: true, selector: "missing", repeat: false },
+  { selected: undefined, alternate: false, selector: "guard", repeat: false },
+]) test(`conditional lookup executes original try and uncreated paths: ${selected}/${alternate}/${selector}/${repeat}`, async () => {
+  const content = `class Gate:\n    def entry(self, actor):\n        try:\n            if ${selected === undefined ? "flag" : selected ? "True" : "False"}:\n                handler = getattr(self, '${selector}', self.fallback)\n${alternate ? "            else:\n                handler = self.fallback\n" : ""}            handler(actor)\n${alternate ? "        except Denied:\n            return False\n" : "        finally:\n            pass\n"}${repeat ? "        handler(actor)\n" : ""}        write()\n        return True\n    def guard(self, actor):\n        raise Denied\n    def fallback(self, actor):\n        return actor\n`
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-conditional-lookup-"))
+  await writeFile(path.join(sourceRoot, "app.py"), content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, units: any[] = []
+  for (const name of ["entry", "guard", "fallback"]) {
+    const source = index.symbols.find(s => s.name === name)!
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id, "app.Gate"))!
+    expect(skeleton.gaps).toEqual([])
+    const annotations = skeleton.anchors.filter(a => ["parameter", "condition", "call", "return", "raise"].includes(a.kind)).map(a => ({ anchorId: a.id, role: a.kind === "parameter" ? a.name === "actor" ? "principal" : "context" : a.kind === "condition" ? "condition" : a.kind === "call" ? a.call!.expression === "write" ? "effect" : a.call!.expression === "getattr" ? "context" : "condition" : "context", explanation: "Anonymous original conditional method lookup", ...(a.kind === "condition" ? { condition: selected === undefined ? { op: "truthy", language: "python", value: { binding: "flag" } } : { op: "eq", left: { literal: selected }, right: { literal: true } } } : {}), ...(a.kind === "return" && name === "entry" ? { returnOutcome: a.literalValue === false ? "deny" : "allow" } : {}), ...(a.kind === "raise" ? { failureKind: "authorization" } : {}) }))
+    const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index, itemId: name, handle: name, questionId: "q", role: name === "entry" ? "entry" : "helper" })
+    expect(result.diagnostics).toEqual([])
+    units.push({ ...result.unit!, questionId: "q", evidenceIds: skeleton.evidenceIds, source: skeleton.source, receiverClass: "app.Gate" })
+  }
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect original conditional method lookup", premises: [] }] })
+  const project = (adopted = units, current = index) => {
+    const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" })
+    for (const u of adopted) store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }, { kind: "candidate-set", key: `relations:${u.source.id}:app.Gate`, revision: sourceRelationRevision(index, u.source.id, "app.Gate")! }], "test-authored")
+    return api.projectSourceMaterials(p, adopted, store.snapshot(), current, { questionDirected: true })
+  }
+  const projected = project(), lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true })
+  expect(projected.uses.filter((u: any) => u.kind === "call")).toHaveLength((alternate && selector === "guard" ? 2 : 1) * (repeat ? 2 : 1))
+  expect(lowered.diagnostics.map(d => d.code)).toEqual(selected && selector === "missing" ? ["source-method-lookup-attribute-unmodeled"] : !selected && alternate ? ["semantic-exception-type-unknown"] : [])
+  expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(!selected && alternate)
+  if (!(selected && selector === "missing")) expect(lowered.delta.rules.filter(r => r.terminal && r.outcome).map(r => r.outcome)).toEqual(selected === undefined ? ["deny", "deny"] : [!selected && alternate ? "allow" : "deny"])
+  if (!alternate) expect(lowered.delta.rules.some(r => r.failureKind === "operation")).toBe(true)
+  const proof = index.relatedCalls(units[0].source.id, "app.Gate").find(c => c.expression === "handler")!.methodLookup!, mutated = structuredClone(units)
+  const origin = mutated[0].blocks.find((b: any) => b.steps.some((s: any) => s.name === `method-lookup-${proof.creationCallId}`)), start = mutated[0].blocks.find((b: any) => b.name === mutated[0].start)
+  start.steps.push(origin.steps.splice(origin.steps.findIndex((s: any) => s.name === `method-lookup-${proof.creationCallId}`), 1)[0])
+  expect(project(mutated).uses.filter((u: any) => u.kind === "call")).toHaveLength(0)
+  const missingInit = structuredClone(units), initial = missingInit[0].blocks.find((b: any) => b.name === missingInit[0].start)
+  initial.steps = initial.steps.filter((s: any) => !s.name.startsWith("method-lookup-init-"))
+  expect(project(missingInit).uses.filter((u: any) => u.kind === "call")).toHaveLength(0)
+  const movedCall = structuredClone(units), callBlock = movedCall[0].blocks.find((b: any) => b.name !== movedCall[0].start && b.steps.some((s: any) => s.name.startsWith("method-lookup-call-")))
+  movedCall[0].blocks.find((b: any) => b.name === movedCall[0].start).steps.push(callBlock.steps.splice(callBlock.steps.findIndex((s: any) => s.name.startsWith("method-lookup-call-")), 1)[0])
+  expect(project(movedCall).uses.filter((u: any) => u.kind === "call")).toHaveLength(repeat ? 2 : 0)
+  const wrongSentinel = structuredClone(units), initializer = wrongSentinel[0].blocks.flatMap((b: any) => b.steps).find((s: any) => s.name.startsWith("method-lookup-init-"))
+  initializer.value = { literal: "forged-created-value" }
+  expect(project(wrongSentinel).uses.filter((u: any) => u.kind === "call")).toHaveLength(0)
+  const wrongFailure = structuredClone(units)
+  for (const b of wrongFailure[0].blocks) if (b.steps.some((s: any) => s.kind === "raise" && s.exceptionType === "UnboundLocalError")) b.steps = [{ kind: "return", name: `forged-${b.name}`, claim: "Forged uncreated success", value: true, outcome: "allow" }]
+  expect(project(wrongFailure).uses.filter((u: any) => u.kind === "call")).toHaveLength(0)
+  if (alternate) {
+    const missingAlternate = structuredClone(units), assignment = missingAlternate[0].blocks.flatMap((b: any) => b.steps).find((s: any) => s.name === `assign-${proof.alternatives[0]!.anchorId}`)
+    assignment.value = { binding: "replacement" }
+    expect(project(missingAlternate).uses.filter((u: any) => u.kind === "call")).toHaveLength(0)
+  }
+  const changed = await buildStructureIndex([{ path: "app.py", content: content.replace(`getattr(self, '${selector}'`, "getattr(self, 'fallback'") }], { repository: "anonymous", sourceRef: "r" })
+  expect(project(units, changed).uses).toEqual([])
+})
+
 for (const { selector, extraMethods } of [...["'guard'", "'fallback'", "'missing'", "selected", "pick('guard')"].map(selector => ({ selector, extraMethods: 0 })), { selector: "pick('guard')", extraMethods: 14 }]) test(`getattr current source tokens preserve actual selection and unknown default: ${selector} with ${extraMethods} extra methods`, async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-method-lookup-")), content = `def pick(value):\n    return value\nclass Gate:\n    def entry(self, actor, selected):\n        handler = getattr(self, ${selector}, self.fallback)\n        handler(actor)\n        write()\n        return True\n    def guard(self, actor):\n        raise Denied\n    def fallback(self, actor):\n        return actor\n${Array.from({ length: extraMethods }, (_, i) => `    def other${i}(self, actor):\n        return actor\n`).join("")}`
   await writeFile(path.join(sourceRoot, "app.py"), content)
@@ -555,7 +615,7 @@ for (const { selector, extraMethods } of [...["'guard'", "'fallback'", "'missing
     const current: any = runtime.promptContext()
     const accepted = await runtime.propose({ schemaVersion: "authorization-source-update/v1", kind: "interpret", focusId: current.focus.id, interpretation: { ...entryInterpretation, revision: current.tasks[0].sourceSkeleton.revision } })
     expect(accepted.diagnostics).toEqual([])
-    expect(runtime.report().semantic?.units.find(u => u.role === "entry")?.blocks).toHaveLength(35)
+    expect(runtime.report().semantic?.units.find(u => u.role === "entry")?.blocks).toHaveLength(37)
   }
   const project = (adopted = units, current = index) => {
     const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" })
