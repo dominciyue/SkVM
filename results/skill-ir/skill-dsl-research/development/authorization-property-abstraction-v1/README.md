@@ -19,7 +19,7 @@ The fixed denominator is 12 quality positions through the same native entrance, 
 The ordinary public command uses the same core:
 
 ```powershell
-bun ./src/cli.ts authorization inquiry check --input=./results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/model/inputs/download-single.json --method=M --strategy=operation-evidence-v6
+bun ./src/index.ts authorization inquiry check --input=./results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/model/inputs/download-single.json --method=M --strategy=operation-evidence-v6
 ```
 
 Account input totals already include cached input. USD, hidden provider requests, development/scout use and human time remain unknown when unreported. Offline tests and replay are engineering evidence, never fresh task quality or account usage.

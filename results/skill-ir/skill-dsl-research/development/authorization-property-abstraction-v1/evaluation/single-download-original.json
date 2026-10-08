@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "authorization-az-source-review/v1",
+  "attemptId": "single-download/original",
+  "answerSha256": "8cc0600d324765b3e0f6cdb8667bdaf4362ddd36106c8c08e767fb68ffbe4d4b",
+  "reviewScope": "Declared development question and original allowed source only",
+  "armLabelHidden": true,
+  "reviewer": "independent read-only default subagent; source points adjudicated by main agent",
+  "reviewerCost": null,
+  "sourceQuality": "partial",
+  "sourceSupportedCore": true,
+  "coreEvidence": [
+    "src/documents/views.py:1421-1448: root_doc is checked before file_doc is selected and passed to serve_file",
+    "src/documents/versioning.py:189-195: explicit candidate is constrained to the same root family",
+    "src/documents/permissions.py:624-635: unowned, caller-owned or object grant alternatives"
+  ],
+  "findings": [
+    { "kind": "ambiguous-answer", "answerLine": 23, "evidence": "src/documents/versioning.py:175-182; src/documents/views.py:1394-1399", "detail": "Missing version is ambiguous: an absent parameter selects latest for a root or the requested child; it is not necessarily failure. A nonexistent explicit target is a separate case." },
+    { "kind": "condition-omitted", "answerLine": 19, "evidence": "src/documents/views.py:1421-1427", "detail": "The explicit root permission condition is guarded by request.user is not None. Authentication configuration was left unestablished; the answer does not explicitly retain this branch." },
+    { "kind": "remaining-source-limit", "evidence": "src/documents/views.py:1375-1386,1437-1448", "detail": "Explicit version selection includes deleted records. Passing file_doc to serve_file does not establish file/storage success or complete response semantics." }
+  ],
+  "normativePolicyProvided": false,
+  "vulnerabilityClassified": false,
+  "protocol": {
+    "status": "format-budget-exhausted",
+    "acceptedSourceUnits": 0,
+    "resultPresent": false,
+    "confirmedErrors": [
+      "Focused-update root plus unit instead of source-update plus nested interpretation; values contained source annotation fields",
+      "Source-update correction omitted nested schemaVersion/revision/annotations and supplied premise values without value",
+      "Final answer used unsupported gaps and policyAssessment.status enum"
+    ],
+    "schemaMismatchProven": false,
+    "repair": "v6 schema-valid empty current source/answer templates; same finite budget, task and source"
+  },
+  "originalAnswerModified": false,
+  "runtimeReceivesReview": false,
+  "engineeringTestsAreSourceQuality": false
+}

@@ -8,6 +8,7 @@ import { compileAuthorizationInquiry } from "./inquiry-program.ts"
 import { createControlSlice, mergeControlSlice } from "./control-slice.ts"
 import { lowerSemanticFlow, semanticBlockDiagnostics } from "./semantic-flow.ts"
 import { evaluateControlPaths, controlObjectDiagnostics } from "./control-conclusion.ts"
+import { SourceUpdateSchema, FocusedResultSchema } from "../../benchmarks/authorization-dsl/inquiry-focus.ts"
 const api = await import("./source-interpretation.ts").catch(() => ({} as any))
 
 test("source staticmethod arguments retain the supplied request rather than the instance receiver", async () => {
@@ -125,6 +126,27 @@ test("the same production focus offers source anchors and accepts roles without 
   expect(accepted.diagnostics.filter(d => d.code.startsWith("source-interpretation"))).toEqual([])
   expect(runtime.report().semantic?.units).toHaveLength(1)
   expect(runtime.report().semantic?.units[0]!.blocks.some(b => b.steps.some(s => s.kind === "choose"))).toBe(true)
+})
+
+test("v6 current source and answer templates validate without inventing source meaning", async () => {
+  const f = await fixture(), runtime = createInquiryDomainRuntime({ program: f.program, tools: f.tools, strategy: "operation-evidence-v6", sourceAssisted: true })
+  await runtime.sync()
+  const context: any = runtime.promptContext(), template = context.tasks[0].sourceUpdateTemplate
+  expect(SourceUpdateSchema.safeParse(template).success).toBe(true)
+  expect(template.focusId).toBe(context.focus.id)
+  expect(template.interpretation.revision).toBe(context.tasks[0].sourceSkeleton.revision)
+  expect(template.interpretation.annotations).toEqual([])
+  expect(template.values).toBeUndefined()
+  const final: any = runtime.promptContext({ finalOnly: true })
+  expect(FocusedResultSchema.safeParse(final.answerTemplate).success).toBe(true)
+  expect(final.answerTemplate.focusId).toBe(final.focus.id)
+  expect(final.answerTemplate.answers).toHaveLength(f.program.questions.length)
+  expect(final.answerTemplate.answers[0].policyAssessment).toBeUndefined()
+  expect(final.answerTemplate.answers[0].gaps).toBeUndefined()
+  const legacy = createInquiryDomainRuntime({ program: f.program, tools: f.tools, strategy: "operation-evidence-v5", sourceAssisted: true })
+  await legacy.sync()
+  expect((legacy.promptContext() as any).tasks[0].sourceUpdateTemplate).toBeUndefined()
+  expect((legacy.promptContext({ finalOnly: true }) as any).answerTemplate).toBeUndefined()
 })
 
 test("source-assisted model context retains the original task once, current phase only and real skeleton progress", async () => {
