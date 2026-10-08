@@ -294,6 +294,10 @@ source constructor保留当前class/SHA、原call/result/control/order，native�
 
 实际super/C3本步进展（2026-10-08）：v34按原cell的实际identity在receiver instance C3后继namespace读取普通函数，保留原环境和receiver/self；骨架/read→实参→实际function分派/材料沿同一核心执行。材料完整核验全部候选条件与每个分支实参，修正新增反例暴露的未选择分支错误self遗漏；unknown dynamic base等边界不猜测。30新增；844focused/5211断言、联合1683pass/1平台skip/11018断言/115文件/25.42s和主/AY类型通过，两只读既有套件核验无独立新fixture，见[实际super核验](../../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-super-methods.json)。100文件/12body probe仍36super/7constructor缺口、super候选0/实际材料0，SHA `76422bda9ba9b6c20c47877876a6ca626c512ccfacee2103dc8d8408549deb1a`。原证据不改、实验模型/目标/probe网络新增0，其它成本unknown；接续module初始化/实际constructor/request与官方完整使用/预登记收益，AY7未完成。
 
+实际module/class接续定位与来源计划（2026-10-08）：v34已发布，但当前源码骨架仅解释函数体，模块class definition没有实际创建单元；scope=module仅为稳定引用身份，不证明初始化。两项只读定位确认ExtendedSchema的外部BaseSchema尚缺DefaultSchema/AutoSchema实现和应用DEFAULT_SCHEMA_CLASS配置。先按原appRef/uv.lock及既有wheel SHA独立追加这几个确切来源，登记source-provenance/schema-runtime-source-v1.json及新文件，旧94冻结文件、补充原件、输入/allowlist/答案/评估器/分母不改；不执行Python target或凭库名免除协议。主线程亲读相关class/constructor/descriptor与模块配置，再在现有structure-index/source-skeleton/operation-work/interpret/material/native责任内确定最小实际初始化设计和红测。源码捕获仅来源证据，不能冒充模型已读、实际采用或完整请求；后续官方完整使用/收益仍必须完成。
+
+schema runtime来源本步进展（2026-10-08）：5文件按既有wheel SHA/原appRef的Git blob/size追加，清单SHA `a8967b374ceadb7e99b0e40902ecd20b24244fa79bcff2505878b22de8eb0caa`；105文件probeSHA `e586bcfce39a8c34ea6b02f24ded2fa4b196138b5dd8b53eecd2b5e8b425d6ac`确认ViewInspector/DefaultSchema/AutoSchema静态MRO和继承__init__/__get__/__set__。原94冻结/6补充及旧输入/allowlist/答案不改。实际缺口明确包含模块definition、APISettings字符串import、descriptor getter/setter和constructor，不能按ordinary方法/field store消除。关系仍v34，36super/7constructor gap、实际材料0；代码未变，不重复上一轮844/1683回归。接续现有核心内的实际初始化/协议设计和红测，再完整请求与官方使用/收益；AY未完成。
+
 ### AY8 调度与局部解释的闭环
 
 2026-10-08真实OWUI反例细化：七轮增量字段确有前进，最后宿主生成34个块（其中8个为空）却被沿用手写接口的32块上限拒绝。先在v5源码编译器复用同单元的无动作空块，保留每个实际条件、步骤、正常/拒绝/异常出口及既有路径/节点边界；不提高求值上限。停滞按当前缺口和已保留字段进展判断，不能把observations的pending标签当源码frontier停滞。实际发送上下文与原始归档分账，引用的bytes是被引用原值大小，不是该引用包的发送大小。
