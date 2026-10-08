@@ -84,7 +84,11 @@ export interface StructureClassDecorator {
   sources: Array<{ id: string; path: string; sha256: string }>; invocation: "unproven"; transformation: "unproven"; model: "source-class-decorator/v1"; gap?: string;
   bindingSources?: StructureBindingSource[];
 }
-interface FileScope { path: string; sha256: string; parsePartial: boolean; module: string; language: "python" | "go"; aliases: Record<string, string>; moduleAliases: Record<string, string>; moduleAliasSources: Record<string, StructureBindingSource>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; localNames: string[]; groupPaths: string[]; registrationContext: StructureRequestMiddleware["registrationContext"]; methodAlias?: MethodAliasFact; methodChoices?: MethodChoiceFact; methodLookup?: MethodLookupFact; callableResult?: { name: string; stable: boolean; stableParameters: string[] } }>; routerAliases: Array<{ name: string; value: string; ownerId?: string; localNames: string[] }>; moduleAssignments: Record<string, number>; moduleAttributeWrites: string[]; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean; requestOptionsUnmodeled: boolean; startLine: number; endLine: number }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; dependencies: Array<{ constructor: string; expression: string; sourceCallId: string; parameter?: string }>; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string; requestOptionsUnmodeled: boolean }> }
+export interface StructureFieldStore {
+  model: "source-field-store/v1"; ownerId: string; object: string; field: string; valueExpression?: string; startLine: number; endLine: number; startIndex: number; endIndex: number;
+  functionCandidateIds: string[]; sources: Array<{ id: string; path: string; sha256: string }>; bindingSources?: StructureBindingSource[]; gap?: string;
+}
+interface FileScope { path: string; sha256: string; parsePartial: boolean; module: string; language: "python" | "go"; aliases: Record<string, string>; moduleAliases: Record<string, string>; moduleAliasSources: Record<string, StructureBindingSource>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; localNames: string[]; groupPaths: string[]; registrationContext: StructureRequestMiddleware["registrationContext"]; methodAlias?: MethodAliasFact; methodChoices?: MethodChoiceFact; methodLookup?: MethodLookupFact; callableResult?: { name: string; stable: boolean; stableParameters: string[] } }>; fieldStores: Array<Omit<StructureFieldStore, "model" | "functionCandidateIds" | "sources" | "bindingSources" | "gap"> & { localNames: string[] }>; routerAliases: Array<{ name: string; value: string; ownerId?: string; localNames: string[]; startLine: number; endLine: number }>; moduleAssignments: Record<string, number>; moduleAttributeWrites: string[]; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean; requestOptionsUnmodeled: boolean; startLine: number; endLine: number }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; dependencies: Array<{ constructor: string; expression: string; sourceCallId: string; parameter?: string }>; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string; requestOptionsUnmodeled: boolean }> }
 const hash = (v: unknown) => createHash("sha256").update(typeof v === "string" ? v : JSON.stringify(v)).digest("hex")
 let initialized: Promise<Map<string, Language>> | undefined
 function languages() {
@@ -293,12 +297,14 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           symbol.returnedCallable = { schemaVersion: "source-returned-callable/v1", ownerId: owner.id, ownerSha256: owner.sha256, captures: structuredClone(captures), ...(returnedGap ? { gap: returnedGap } : {}) }
         }
       }
-      const moduleAttributeWrites: string[] = [], routerAliases: FileScope["routerAliases"] = []
+      const moduleAttributeWrites: string[] = [], routerAliases: FileScope["routerAliases"] = [], fieldStores: FileScope["fieldStores"] = []
       if (language === "python") for (const n of descendants(root, ["assignment", "augmented_assignment", "delete_statement"])) {
         let owner = n.parent; while (owner && !byNode.has(owner.id)) owner = owner.parent
         const symbol = owner && byNode.get(owner.id), target = field(n, "left")
         const value = field(n, "right")
-        if (n.type === "assignment" && target?.type === "identifier" && value && /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(value.text)) routerAliases.push({ name: target.text, value: value.text, ...(symbol && !globalNames.get(symbol.id)?.has(target.text) ? { ownerId: symbol.id } : {}), localNames: symbol?.kind === "function" ? [...new Set([...symbol.parameters.map(p => p.name), ...localNames.get(symbol.id) ?? []])] : [] })
+        const store = n.type === "assignment" && target?.type === "attribute" && value?.type !== "assignment" && /^([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)\.([A-Za-z_]\w*)$/.exec(target.text)
+        if (symbol?.kind === "function" && store) fieldStores.push({ ownerId: symbol.id, object: store[1]!, field: store[2]!, ...(value && /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(value.text) ? { valueExpression: value.text } : {}), startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, startIndex: n.startIndex, endIndex: n.endIndex, localNames: [...new Set([...symbol.parameters.map(p => p.name), ...localNames.get(symbol.id) ?? [], ...lexicalNames.get(symbol.id) ?? []])] })
+        if (n.type === "assignment" && target?.type === "identifier" && value && /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(value.text)) routerAliases.push({ name: target.text, value: value.text, ...(symbol && !globalNames.get(symbol.id)?.has(target.text) ? { ownerId: symbol.id } : {}), localNames: symbol?.kind === "function" ? [...new Set([...symbol.parameters.map(p => p.name), ...localNames.get(symbol.id) ?? []])] : [], startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1 })
         for (let left of n.type === "delete_statement" ? children(n) : target ? [target] : []) {
           while (left.type === "subscript" && field(left, "value")) left = field(left, "value")!
           if (left.type !== "attribute" || !/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)+$/.test(left.text)) continue
@@ -462,7 +468,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           if (raw) includes.push({ callId: raw.call.id, receiver: expression.slice(0, expression.lastIndexOf(".")), child: (args.filter(a => a.type !== "keyword_argument")[method === "mount" ? 1 : 0] ?? args.find(a => field(a, "name")?.text === (method === "mount" ? "app" : "router"))?.childForFieldName("value"))?.text ?? "", prefix: ancestor || method === "mount" ? "$dynamic" : args.find(a => field(a, "name")?.text === "prefix")?.childForFieldName("value")?.text ?? '""', requestOptionsUnmodeled: requestOptionsUnmodeled(args) })
         }
       }
-      scopes.push({ path: file.path, sha256, parsePartial: root.hasError, module, language, aliases, moduleAliases, moduleAliasSources, symbols, rawCalls, routerAliases, moduleAssignments, moduleAttributeWrites, constants, routers, decorators, includes })
+      scopes.push({ path: file.path, sha256, parsePartial: root.hasError, module, language, aliases, moduleAliases, moduleAliasSources, symbols, rawCalls, fieldStores, routerAliases, moduleAssignments, moduleAttributeWrites, constants, routers, decorators, includes })
     } finally { tree.delete(); parser.delete() }
   }
   const symbols = scopes.flatMap(f => f.symbols), scopeFor = (s: StructureSymbol) => scopes.find(f => f.path === s.path)!
@@ -829,6 +835,118 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
   const relatedCalls = (symbolId: string, receiverClass?: string) => { const route = routes.find(r => r.id === symbolId); return scopes.flatMap(f => f.rawCalls.filter(r => route ? r.call.path === route.sourcePath && r.call.id !== route.sourceCallId && r.call.startLine >= route.startLine && r.call.endLine <= route.endLine : r.call.ownerId === symbolId).map(r => resolveCall(r, f, receiverClass))) }
   const resolveName = (text: string, sourcePath: string) => { const scope = scopes.find(f => f.path === sourcePath); return scope ? matching(qualified(text, scope)) : [] }
   const qualifySourceName = (text: string, sourcePath: string) => { const scope = scopes.find(f => f.path === sourcePath); return scope && stableSourceBinding(text, scope) ? qualified(text, scope) : undefined }
+  const fieldStoreCache = new Map<string, StructureFieldStore[]>()
+  /** Potential function objects are a protocol boundary, not a callable-body
+   * rewrite. Retain negative type/MRO sources so a new method retires old data. */
+  const fieldStores = (symbolId: string, receiverClass?: string): StructureFieldStore[] => {
+    const key = JSON.stringify([symbolId, receiverClass])
+    if (fieldStoreCache.has(key)) return structuredClone(fieldStoreCache.get(key)!)
+    const owner = symbols.find(s => s.id === symbolId), scope = owner && scopeFor(owner)
+    if (!owner || !scope) return []
+    const facts = scope.fieldStores.filter(s => s.ownerId === symbolId).map(raw => {
+      const sources = new Map<string, StructureSymbol>(), functions = new Set<string>(), bindingSources: StructureBindingSource[] = [], seenClasses = new Set<string>()
+      let aliasUnresolved = false
+      let bindingWork = 0, bindingLimit = false
+      const withinBudget = () => { if (++bindingWork <= 128) return true; bindingLimit = true; return false }
+      const retain = (s: StructureSymbol) => sources.set(s.id, s)
+      const functionSource = (s: StructureSymbol) => { retain(s); functions.add(s.id) }
+      // Possible sources may remain relevant after rebinding. Following these
+      // aliases never grants a callable invocation or proves runtime ordering.
+      const storeNames = (text: string, active = new Set<string>()): StructureSymbol[] => {
+        if (!withinBudget()) return []
+        if (active.has(text)) { aliasUnresolved = true; return [] }
+        const next = new Set(active).add(text), facts = nameFacts(text), candidates = [...facts.candidates], parts = text.split(".")
+        bindingSources.push(...facts.sources)
+        for (const source of facts.sources.filter(s => text === s.name || text.startsWith(`${s.name}.`))) if (!source.target.startsWith(".")) candidates.push(...storeNames(source.target + text.slice(source.name.length), next))
+        for (let i = 1; i <= parts.length; i++) for (const { alias, scope: aliasScope, name } of matchingRouterAliases(parts.slice(0, i).join("."))) {
+          if (active.has(name)) { aliasUnresolved = true; continue }
+          bindingSources.push({ path: aliasScope.path, sha256: aliasScope.sha256, startLine: alias.startLine, endLine: alias.endLine, name, target: qualified(alias.value, aliasScope) })
+          candidates.push(...storeNames([qualified(alias.value, aliasScope), ...parts.slice(i)].join("."), new Set(next).add(name)))
+        }
+        return [...new Map(candidates.map(s => [s.id, s])).values()]
+      }
+      const classPath = (className: string, parts: string[]) => {
+        const pending = [{ className, parts, writers: new Set<string>() }]
+        while (pending.length) {
+          if (!withinBudget()) return
+          const current = pending.pop()!, marker = JSON.stringify([current.className, current.parts, [...current.writers].sort()])
+          if (seenClasses.has(marker)) continue
+          seenClasses.add(marker)
+          const mro = linearize(current.className) ?? [current.className], classes = mro.flatMap(name => matching(name).filter(s => s.kind === "class"))
+          classes.forEach(retain); bindingSources.push(...classBindingSources(current.className))
+          if (!current.parts.length) continue
+          const methods = lookupMethod(current.className, current.parts[0]!); methods.forEach(functionSource)
+          if (methods.length) continue
+          const stored = attribute(current.className, current.parts[0]!)
+          if (stored) {
+            const declaring = classes.find(c => Object.hasOwn(c.attributes, current.parts[0]!)), local = declaring && /^[A-Za-z_]\w*$/.test(stored.value) ? symbols.filter(s => s.className === declaring.qualifiedName && s.name === stored.value) : []
+            if (local.length) local.forEach(functionSource)
+            else {
+              for (const s of storeNames(qualified(stored.value, stored.scope))) if (s.kind === "function") functionSource(s); else pending.push({ className: s.qualifiedName, parts: current.parts.slice(1), writers: current.writers })
+            }
+          }
+          for (const writerScope of scopes) for (const writer of writerScope.fieldStores.filter(s => s.field === current.parts[0] && s.valueExpression)) {
+            const method = writerScope.symbols.find(s => s.id === writer.ownerId)
+            if (!method?.className || !mro.includes(method.className) || writer.object !== method.parameters[0]?.name || method.attributes.bindingWrapped || method.attributes.methodBinding === "static") continue
+            retain(method)
+            const writerKey = `${writer.ownerId}:${writer.startIndex}`
+            if (current.writers.has(writerKey)) { aliasUnresolved = true; continue }
+            const writers = new Set(current.writers).add(writerKey), [root, ...tail] = writer.valueExpression!.split("."), remaining = current.parts.slice(1)
+            if (root === method.parameters[0]?.name) pending.push({ className: current.className, parts: [...tail, ...remaining], writers })
+            else {
+              const parameter = method.parameters.find(p => p.name === root), local = writer.localNames.includes(root!)
+              if (!local || parameter?.type) {
+                for (const s of storeNames(qualified(parameter?.type ?? writer.valueExpression!, writerScope))) if (s.kind === "function") functionSource(s); else pending.push({ className: s.qualifiedName, parts: [...parameter ? tail : [], ...remaining], writers })
+              }
+            }
+          }
+        }
+      }
+      const trace = (input: string) => {
+        let expression = input
+        const active = new Set<string>()
+        while (/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(expression)) {
+          if (!withinBudget()) return
+          const [root, ...parts] = expression.split(".")
+          if (active.has(root!)) { aliasUnresolved = true; return }
+          active.add(root!)
+          const aliases = scope.routerAliases.filter(a => a.ownerId === symbolId && a.name === root)
+          if (aliases.length > 1) { aliasUnresolved = true; return }
+          const returned = returnedInstances.get(`${symbolId}:${root}`), callable = returned && symbols.find(s => s.id === returned.targetId)
+          if (callable) { functionSource(callable); bindingSources.push(...returned!.bindingSources) }
+          for (const creation of relatedCalls(symbolId, receiverClass).filter(c => c.resultNames.includes(root!))) {
+            bindingSources.push(...creation.bindingSources ?? [])
+            for (const target of creation.candidateIds.flatMap(id => symbols.filter(s => s.id === id))) {
+              retain(target)
+              if (target.kind === "class") classPath(target.qualifiedName, parts)
+              else if (target.returns.length === 1) {
+                const type = nameFacts(qualified(target.returns[0]!, scopeFor(target))); bindingSources.push(...type.sources)
+                for (const cls of type.candidates.filter(s => s.kind === "class")) classPath(cls.qualifiedName, parts)
+              }
+            }
+          }
+          for (const local of scope.symbols.filter(s => s.kind === "function" && s.qualifiedName === `${owner.qualifiedName}.${root}`)) functionSource(local)
+          const captureOwner = owner.localCallable?.captures.some(c => c.name === root) ? symbols.find(s => s.id === owner.localCallable!.ownerId) : undefined
+          const parameter = owner.parameters.find(p => p.name === root) ?? captureOwner?.parameters.find(p => p.name === root)
+          const instance = root === owner.parameters[0]?.name && owner.className && !owner.attributes.bindingWrapped && owner.attributes.methodBinding !== "static" ? receiverClass ?? owner.className : undefined
+          if (instance) classPath(instance, parts)
+          else if (parameter?.type) {
+            const type = nameFacts(qualified(parameter.type, scope)); bindingSources.push(...type.sources)
+            for (const cls of type.candidates.filter(s => s.kind === "class")) classPath(cls.qualifiedName, parts)
+          }
+          if (!raw.localNames.includes(root!) && !parameter) for (let i = 1; i <= parts.length + 1; i++) {
+            for (const s of storeNames(qualified([root, ...parts].slice(0, i).join("."), scope))) if (s.kind === "function") functionSource(s); else classPath(s.qualifiedName, parts.slice(i - 1))
+          }
+          if (!aliases.length) return
+          expression = [aliases[0]!.value, ...parts].join(".")
+        }
+      }
+      trace(raw.object)
+      const { localNames: _localNames, ...store } = raw
+      return { ...store, model: "source-field-store/v1" as const, functionCandidateIds: [...functions].sort(), sources: [...sources.values()].sort((a, b) => a.id.localeCompare(b.id)).map(s => ({ id: s.id, path: s.path, sha256: s.sha256 })), ...(bindingSources.length ? { bindingSources: uniqueBindingSources(bindingSources) } : {}), ...(functions.size || aliasUnresolved || bindingLimit ? { gap: functions.size ? "skeleton-function-attribute-write-unmodeled" : bindingLimit ? "skeleton-field-store-binding-limit" : "skeleton-field-store-binding-unresolved" } : {}) }
+    })
+    fieldStoreCache.set(key, facts); return structuredClone(facts)
+  }
   const requestDependencies = (symbolId: string): StructureRequestDependency[] => {
     const symbol = symbols.find(s => s.id === symbolId), route = routes.find(r => r.id === symbolId), scope = symbol && scopeFor(symbol)
     if (!symbol || !scope || symbol.language !== "python" || symbol.className) return []
@@ -983,13 +1101,13 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     }
     classDecoratorCache.set(receiverClass, facts); return structuredClone(facts)
   }
-  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v19"
+  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v20"
   const withSymbolSyntax = <T>(symbolId: string, visit: (root: Node, symbol: StructureSymbol) => T): Promise<T> => {
     const symbol = symbols.find(s => s.id === symbolId), file = symbol && files.find(f => f.path === symbol.path)
     if (!symbol || !file || hash(file.content) !== symbol.sha256) throw new Error("structure-source-missing")
     return withSourceSyntax(file.content, symbol.language, root => visit(root, symbol))
   }
-  return { schemaVersion: "authorization-structure-index/v1" as const, parser: parserVersion, relationshipVersion, symbols, calls, routes, diagnostics, lookupMethod, attribute, linearize, classBindingSources, candidateRevision, relatedCalls, resolveName, qualifySourceName, requestDependencies, requestMiddleware, requestActions, classDecorators, withSymbolSyntax,
+  return { schemaVersion: "authorization-structure-index/v1" as const, parser: parserVersion, relationshipVersion, symbols, calls, routes, diagnostics, lookupMethod, attribute, linearize, classBindingSources, candidateRevision, relatedCalls, resolveName, qualifySourceName, fieldStores, requestDependencies, requestMiddleware, requestActions, classDecorators, withSymbolSyntax,
     revision: hash([sourceIdentity, parserVersion, relationshipVersion, symbols, calls, routes, diagnostics]), preparation: { files: files.length, bytes: files.reduce((s, f) => s + Buffer.byteLength(f.content), 0), durationMs: performance.now() - started, targetExecutions: 0 } }
 }
 export type StructureIndex = Awaited<ReturnType<typeof buildStructureIndex>>

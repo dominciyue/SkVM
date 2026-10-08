@@ -40,6 +40,34 @@ test("reading an escaped local callable body retains its capture and invocation 
   expect((await tools.sourceSkeleton(source.id))!.gaps.map(g => g.code)).toContain("source-local-callable-escape-unmodeled")
 })
 
+for (const { parameters, prefix, object, field = "__code__", blocked } of [
+  { parameters: "self", prefix: "", object: "self.guard.__func__", blocked: true },
+  { parameters: "self, other: Gate", prefix: "", object: "other.guard.__func__", blocked: true },
+  { parameters: "self, holder: Holder", prefix: "", object: "holder.gate.guard.__func__", blocked: true },
+  { parameters: "self, holder: Holder", prefix: "", object: "holder.callback", field: "kwargs", blocked: true },
+  { parameters: "self", prefix: "", object: "Gate.guard", blocked: true },
+  { parameters: "self", prefix: "", object: "guard", blocked: true },
+  { parameters: "self", prefix: "        saved = guard\n", object: "saved", blocked: true },
+  { parameters: "self", prefix: "        saved = self.guard\n", object: "saved.__func__", blocked: true },
+  { parameters: "self", prefix: "        saved = create()\n", object: "saved", blocked: true },
+  { parameters: "self", prefix: "        instance = Gate()\n", object: "instance.guard.__func__", blocked: true },
+  { parameters: "self", prefix: "", object: "self.saved.__func__", blocked: true },
+  { parameters: "self, guard", prefix: "", object: "guard", blocked: false },
+  { parameters: "self, actor", prefix: "        guard = actor\n", object: "guard", blocked: false },
+  { parameters: "self", prefix: "", object: "self.payload", blocked: false },
+  { parameters: "self, other: Data", prefix: "", object: "other.guard", blocked: false },
+]) test(`function object attribute writes stay explicit without rejecting ordinary data: ${parameters}/${object}/${prefix}`, async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-function-attribute-store-"))
+  await writeFile(path.join(sourceRoot, "app.py"), `from __future__ import annotations\ndef guard():\n    return True\ndef create():\n    def callback():\n        return True\n    return callback\nclass Data:\n    pass\nclass Gate:\n    def entry(${parameters}):\n${prefix}        ${object}.${field} = replacement\n        return True\n    def guard(self):\n        return True\n    def save(self):\n        self.saved = self.guard\n        return True\nclass Holder:\n    gate = Gate\n    callback = guard\n`)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id, "app.Gate"))!, result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations: skeleton.anchors.filter(a => a.kind === "parameter" || a.kind === "return" || a.kind === "call" || a.fieldWrite).map(a => ({ anchorId: a.id, role: "context", explanation: "Anonymous context does not waive a callable object protocol", ...(a.kind === "return" ? { returnOutcome: "allow" } : {}) })) }, { index: tools.structure, itemId: "entry", handle: "entry", questionId: "q", role: "entry" })
+  expect(result.diagnostics).toEqual([])
+  expect(skeleton.gaps.map(g => g.code)).toEqual(blocked ? ["skeleton-function-attribute-write-unmodeled"] : [])
+  expect(result.unit!.complete).toBe(!blocked)
+  expect(result.unit!.blocks.flatMap(b => b.steps).some(s => s.kind === "transform" && s.field === field)).toBe(!blocked)
+})
+
 test("a source returned callable definition creates an ordinary value while its actual instance supplies captures", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-returned-skeleton-"))
   await writeFile(path.join(sourceRoot, "app.py"), "def create(principal):\n    def guard():\n        return principal\n    return guard\ndef entry(actor):\n    check = create(actor)\n    check()\n    return True\n")
@@ -55,6 +83,58 @@ test("a source returned callable definition creates an ordinary value while its 
       expect(skeleton.anchors.find(a => a.syntax === "source_callable_instance")).toMatchObject({ kind: "parameter" })
     }
   }
+})
+
+test("cyclic field receiver aliases keep a named boundary rather than exhausting source inspection", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-field-store-alias-cycle-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def entry():\n    left = right.saved\n    right = left.saved\n    left.note = True\n    return True\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  expect((await tools.sourceSkeleton(source.id))!.gaps.map(g => g.code)).toEqual(["skeleton-field-store-binding-unresolved"])
+})
+
+for (const content of [
+  "left = right.saved\nright = left.saved\ndef entry():\n    left.note = True\n    return True\n",
+  "class Gate:\n    def connect(self):\n        self.left = self.right\n        self.right = self.left\n    def entry(self):\n        self.left.note = True\n        return True\n",
+]) test(`cyclic module or instance field aliases retain a finite source boundary: ${content}`, async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-field-store-writer-cycle-"))
+  await writeFile(path.join(sourceRoot, "app.py"), content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  expect((await tools.sourceSkeleton(source.id, source.className))!.gaps.map(g => g.code)).toEqual(["skeleton-field-store-binding-unresolved"])
+})
+
+test("a class-local function alias retains its own source rather than a module homonym", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-field-store-class-alias-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def guard():\n    return True\nclass Gate:\n    def guard(self):\n        raise Denied\n    saved = guard\n    def entry(self):\n        self.saved.__func__.__code__ = replacement\n        return True\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), source = tools.structure!.symbols.find(s => s.name === "entry")!, guard = tools.structure!.symbols.find(s => s.qualifiedName === "app.Gate.guard")!
+  expect(tools.structure!.fieldStores(source.id, "app.Gate")[0]!.functionCandidateIds).toEqual([guard.id])
+})
+
+for (const { declaration, object, blocked } of [
+  { declaration: "", object: "saved", blocked: true },
+  { declaration: "    saved = saved\n", object: "self.saved", blocked: true },
+  { declaration: "    def save(self):\n        self.saved = saved\n", object: "self.saved", blocked: true },
+  { declaration: "", object: "self.saved", blocked: false },
+]) test(`module function aliases require an actual receiver connection: ${object}/${declaration}`, async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-field-store-module-alias-"))
+  await writeFile(path.join(sourceRoot, "app.py"), `def guard():\n    return True\nsaved = guard\nclass Gate:\n${declaration}    def entry(self):\n        ${object}.note = True\n        return True\n`)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  expect((await tools.sourceSkeleton(source.id, "app.Gate"))!.gaps.map(g => g.code)).toEqual(blocked ? ["skeleton-function-attribute-write-unmodeled"] : [])
+})
+
+test("public function aliases retain protocol and import-hop bytes without touching unrelated modules", async () => {
+  const { buildStructureIndex } = await import("./structure-index.ts"), files = [{ path: "app.py", content: "from public import saved\ndef entry():\n    saved.note = True\n    return True\n" }, { path: "public.py", content: "from private import guard as saved\n" }, { path: "private.py", content: "def guard():\n    return True\n" }]
+  const index = await buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" }), source = index.symbols.find(s => s.name === "entry")!, facts = index.fieldStores(source.id)
+  expect(facts[0]!.gap).toBe("skeleton-function-attribute-write-unmodeled")
+  expect(facts[0]!.functionCandidateIds).toEqual([index.symbols.find(s => s.name === "guard")!.id])
+  expect(facts[0]!.bindingSources?.some(s => s.path === "public.py")).toBe(true)
+  const { sourceRelationRevision } = await import("../operation-work.ts"), revision = sourceRelationRevision(index, source.id)
+  const changed = await buildStructureIndex(files.map(f => f.path === "public.py" ? { ...f, content: "from private import guard as saved\n# import-hop bytes changed\n" } : f), { repository: "anonymous", sourceRef: "r" })
+  expect(sourceRelationRevision(changed, source.id)).not.toBe(revision)
+  const unrelated = await buildStructureIndex([...files, { path: "other.py", content: "def saved():\n    return False\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect(sourceRelationRevision(unrelated, source.id)).toBe(revision)
 })
 
 test("the production source view separates early return and effect branches without inferring permission", async () => {

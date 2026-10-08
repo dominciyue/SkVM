@@ -1,0 +1,71 @@
+{
+  "schemaVersion": "authorization-development-review/v1",
+  "date": "2026-10-08",
+  "stage": "AY7-function-object-attribute-store-boundaries",
+  "relationshipVersion": "source-bindings/v20",
+  "decision": "engineering-passing-actual-class-callable-request-use-and-benefit-pending",
+  "mainRedGreenCounterexamples": [
+    "A captured bound method still observes a helper's __func__.__code__ mutation; the old guard body must not execute",
+    "A new method behind an external explicit type retires an earlier ordinary data store; an unrelated homonym does not",
+    "Local alias paths can grow forever without a root-cycle check",
+    "A class-local function alias must retain its class function rather than a module homonym",
+    "Module function aliases need an actual class/instance connection to identify self fields; three real connections initially lost the function source"
+  ],
+  "independentReadOnlyReviews": [
+    {
+      "agent": "ay_function_store_source_review_v20",
+      "scope": "Function source tracing and store protocol boundaries",
+      "verification": { "pass": 40, "fail": 0, "assertions": null },
+      "finding": "Reported module saved=guard as a function behind self.saved without a class or instance assignment",
+      "mainDisposition": "The reported example lacks a Python receiver connection. Keep it as a data control; corrected module/class/instance examples reproduced three omissions and were fixed with explicit regression evidence"
+    },
+    {
+      "agent": "ay_function_store_footprint_review_v20",
+      "scope": "Selected positive/negative type sources, material restoration and mutation before old-body execution",
+      "verification": { "pass": 114, "fail": 0, "assertions": 893 },
+      "finding": "Confirmed external-type restoration withdrawal and the function mutation boundary; no independent public-hop case was run",
+      "typecheckAttempt": "Started without obtaining completion; it is not the final main typecheck result",
+      "mainDisposition": "Add selected public-hop and unrelated-file verification, then run fresh main and AY types"
+    },
+    {
+      "agent": "ay_function_alias_verify_v20",
+      "scope": "Revised module/class/instance aliases, selected import hops and finite cycle handling",
+      "verification": { "pass": 47, "fail": 0, "assertions": 173 },
+      "finding": "No new reproducible omission or nontermination in the inspected scope; not an exhaustive proof"
+    }
+  ],
+  "verification": {
+    "newTests": 26,
+    "focused": { "pass": 461, "fail": 0, "assertions": 2113, "files": 11, "durationMs": 2560 },
+    "joint": { "pass": 1300, "skip": 1, "fail": 0, "assertions": 7920, "files": 115, "durationMs": 24760 },
+    "mainTypes": "passed",
+    "ayTypes": "passed",
+    "documentation": { "scannedFiles": 5, "brokenReferences": 0, "legacyReferences": 0, "retiredReferences": 0, "governanceErrors": 0, "existingSoftLengthWarnings": 5 },
+    "sourceProbe": { "path": "verification/paperless-function-attribute-replay.json", "sha256": "389060ab65fef13b9c46767255fb55b0389552e2adfd8dbead32076456c7a7bd" }
+  },
+  "sourceProbe": { "sourceFiles": 100, "selectedBodies": 6, "additionalProtocolBodies": 5, "protocolStores": 17, "functionProtocolGaps": 10, "declaringReceiverEligible": 1, "selectedReceiverLookupCalls": 3, "selectedReceiverEligible": 0, "actualAdoption": 0 },
+  "boundaries": [
+    "Possible function sources and instance writers do not establish callable invocation, actual execution or assignment order",
+    "An empty function candidate set does not prove complete Python attribute safety or grant dynamic class/callable eligibility",
+    "Function metadata and replacement code remain protocol boundaries; no library-name or return-original-class waiver is introduced",
+    "Augmented/deleted/indexed/dynamic stores and existing wrapper/descriptor/class/request boundaries remain named",
+    "Early bound-reference capture before nested argument evaluation remains pending",
+    "Frozen source windows and anonymous regressions provide no experimental model-read or application-use evidence"
+  ],
+  "sourceExpansionLimitPerStore": 128,
+  "executionBudgetsUnchanged": { "structuralBlocks": 64, "emittedNodes": 127, "terminalPaths": 16 },
+  "newPredicateGrammar": false,
+  "modelRolesChanged": false,
+  "modelReadEvidence": false,
+  "applicationSemanticUnitsAuthored": 0,
+  "materialUses": 0,
+  "modelExecutions": 0,
+  "targetExecutions": 0,
+  "anonymousPythonSemanticsChecks": 1,
+  "probeNetworkRequests": 0,
+  "originalInputsAndAllowlistsUnmodified": true,
+  "originalAttemptPromoted": false,
+  "costs": { "experimentTokens": 0, "developerAndScoutTokens": null, "usd": null, "humanTime": null },
+  "fullFrameworkComposition": "pending",
+  "researchGoalAchieved": false
+}

@@ -203,6 +203,12 @@ receiver字段修复决定：匿名红测已确认helper的显式`self.guard=sel
 
 receiver方法槽位本步进展：v19已按原创建接通methodRead与实际字段状态，包含普通alias/choice/lookup/eager default和直接instance调用；删除或改receiver/method/default的创建事实撤回对应连接。21新增用例、新鲜435focused/2027断言、联合1274pass/1平台skip/7834断言及主/AY类型通过；两项只读核验无新可复现缺陷，主负责最终检查。super不检查instance槽位，原构造未知异常继续保留；直接call在嵌套实参后检查，实参内改槽位仍保守unknown，早期bound-reference capture待接。100文件/6body真实probe保留声明receiver合格1、指定应用receiver合格/采用0；APIView现为class-binding缺口。无实验模型read/annotation/use或模型/目标/探针网络新增，旧输入/答不升级，开发/探子/美元/真人成本unknown。接续class/wrapper实际变换、字段callable和完整请求及官方实验，不勾选AY7或收益。
 
+AY7 class接续核对（2026-10-08）：两项独立只读定位确认当前method lookup的class-binding guard和真实schema decorator的继承wrapper/kwargs复制；主亲读utils/drainage，不能采用“只写metadata所以不会影响绑定”的概括。在实现class变换前先验证普通方法引用的函数对象边界：instance方法槽位被替换不改变已创建bound method，但`receiver.method.__func__.__code__`等函数属性写入可以影响既有引用，不能继续按普通data字段store执行旧body。先匿名来源反例复现，再把当前可定位的函数对象属性store保留为具名protocol gap，覆盖self/其它typed receiver/公开class方法/普通function及无关data，context不得擦掉；不推断替换代码或按库名放行。嵌套实参前capture仍单列pending，完整class/callable/request及官方实验继续。
+
+反例已红测复现旧guard仍产生authorization拒绝，独立匿名Python小程序确认既有bound method实际会执行替换后的函数body。细化为同一structure-index的简单attribute store来源事实：保留当前receiver/参数type、局部alias和可能function来源及SHA；skeleton在原写入点保留protocol gap，relation footprint纳入所选正/负class与function来源，避免外部type新增同名method后继续复用旧普通data store。来源候选不冒充函数调用或已执行变换，纯data字段继续原transform。
+
+函数对象边界本步进展：v20在原store点保留可定位function protocol gap，正/负type/MRO、function/writer、module/import alias字节纳入原relation footprint；外部type新增method撤回旧data材料，无关同名文件保持。实例writer是可能来源、不证明执行顺序。主红绿修复局部alias循环和class-local同名错绑；只读报告的module变量与裸self属性并无连接，主据真实class/instance连接另复现并修复三个module alias遗漏，保留裸self数据对照及公开hop/循环测试。26新增用例、新鲜461focused/2113断言、联合1300pass/1平台skip/7920断言与主/AY类型通过；三只读核验和主点验分列。100文件/6执行候选body+5 protocol body探针保留17 stores/10函数边界，指定应用receiver合格/采用0。来源展开128步与执行64块/127节点/16路径分别保持；无实验模型调用或目标执行，另有1匿名Python语义核对，成本unknown分列。当前工程不满足AY7/完整使用/净收益，接续class/wrapper、字段callable、早期capture及完整请求和官方复验。
+
 ### AY8 调度与局部解释的闭环
 
 2026-10-08真实OWUI反例细化：七轮增量字段确有前进，最后宿主生成34个块（其中8个为空）却被沿用手写接口的32块上限拒绝。先在v5源码编译器复用同单元的无动作空块，保留每个实际条件、步骤、正常/拒绝/异常出口及既有路径/节点边界；不提高求值上限。停滞按当前缺口和已保留字段进展判断，不能把observations的pending标签当源码frontier停滞。实际发送上下文与原始归档分账，引用的bytes是被引用原值大小，不是该引用包的发送大小。

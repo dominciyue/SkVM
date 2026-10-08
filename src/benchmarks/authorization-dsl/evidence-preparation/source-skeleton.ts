@@ -86,6 +86,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     const captureProof = source.localCallable && !source.localCallable.gap ? source.localCallable : returnedInstance ? source.returnedCallable : undefined
     if (questionDirected && source.localCallable?.gap && !returnedInstance) gap(fn, source.localCallable.gap, "This local body has no proved direct callable/capture binding in its owner; reading it does not supply its invocation.")
     const actualCalls = [...index.relatedCalls(source.id, receiverClass), ...index.calls.filter(c => c.id === registration?.sourceCallId)]
+    const fieldStores = questionDirected ? index.fieldStores(source.id, receiverClass) : []
     const belongsToScope = (n: Node) => {
       if (n.id === fn.id) return true
       let owner = n.parent
@@ -226,6 +227,11 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
             gap(assignment!, "skeleton-field-setter-unmodeled", "A visible custom setter or descriptor cannot be replaced by an ordinary field store.")
             return [...calls, { kind: "gap", anchorId: add(assignment!, "assignment", { name: target!.text }).id }]
           }
+        }
+        const protocol = fieldWrite && fieldStores.find(s => s.startIndex === assignment!.startIndex && s.endIndex === assignment!.endIndex)
+        if (protocol?.gap) {
+          gap(assignment!, protocol.gap, "A current function or method source may participate in this attribute store. Its callable/descriptor protocol and function-body changes cannot be replaced by an ordinary data transform.")
+          return [...calls, { kind: "gap", anchorId: add(assignment!, "assignment", { name: target!.text, fieldWrite }).id }]
         }
         return assignment && target ? [...calls, { kind: "step", anchorId: add(assignment, "assignment", { name: target.text, valueExpression: right?.text, valueAnchorId: valueAnchor(right, calls), ...sourceLiteral(right), ...(fieldWrite ? { fieldWrite } : {}) }).id }] : calls
       }

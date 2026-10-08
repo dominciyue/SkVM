@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-最新小步为AY7 `source-bindings/v19`方法槽位状态：主红测复现helper已改方法后getattr仍执行旧guard，现由宿主methodRead在原创建检查同一receiver显式字段状态；普通数据写入保留，未知/方法/default/class槽位覆盖具名，已创建alias保持原绑定。投影核验当前读取事实并重算直接instance调用；super不检查instance槽位，嵌套实参改槽位的早期capture仍pending。21新增用例、435focused/2027断言、联合1274pass/1平台skip/7834断言、主/AY类型及两只读核验通过。100文件/6body probe声明receiver合格1、指定应用receiver合格/采用0；APIView由任意字段写入阻断推进至class-binding边界。class/wrapper实际变换、字段callable、完整请求和官方实际复验继续，AY7和净收益未达。
+最新小步为AY7 `source-bindings/v20`函数对象属性写入边界：主红测复现已捕获bound method的函数body被helper替换后仍错误执行旧guard；匿名Python核对确认它与实例方法槽位替换不同。当前可定位的函数来源在原store点保留protocol gap，普通data继续transform；简单局部/模块/类属性/实例writer别名及公开import hops保留来源，循环/超限具名。relation footprint包含所选正/负type/MRO及function/alias字节，外部type新增method会撤回旧data材料，无关文件不失效。26新增用例、461focused/2113断言、联合1300pass/1平台skip/7920断言及主/AY类型通过；三项只读核验与主反例点验分列。100文件/6执行候选body、5额外protocol body探针发现17 stores/10函数边界；声明receiver合格1、指定应用receiver合格/采用0。class/wrapper实际变换、字段callable、早期bound-reference capture、完整请求和官方实际复验继续，AY7和净收益未达。
 
 v17后续容量修正（2026-10-08）：16候选的两个selector实际生成35块，先后红测复现共享单元与聚焦源码提交各自的32块拒绝。两处现共用64块结构容量，原127 emitted-node/16终态路径求值边界保持；完整source-read/interpret/material projection/native提交与实际guard拒绝通过。新鲜403focused/1550断言、联合1242pass/1平台skip/7357断言/115文件及主/AY类型通过。历史OWUI拒绝及真实probe不升级，本步无模型或目标执行；条件lookup与完整请求继续。
 

@@ -577,6 +577,46 @@ for (const { mode, field, later, other, local } of [
   }
 })
 
+test("a captured bound method cannot execute its old source body after a helper mutates the function object", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-method-function-mutation-")), content = "class Gate:\n    def entry(self, actor):\n        handler = self.guard\n        self.prepare()\n        handler(actor)\n        write()\n        return True\n    def prepare(self):\n        self.guard.__func__.__code__ = self.fallback.__func__.__code__\n        return True\n    def guard(self, actor):\n        raise Denied\n    def fallback(self, actor):\n        return actor\n"
+  await writeFile(path.join(sourceRoot, "app.py"), content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, units: any[] = []
+  for (const name of ["entry", "prepare", "guard", "fallback"]) {
+    const source = index.symbols.find(s => s.name === name)!
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id, "app.Gate"))!
+    const annotations = skeleton.anchors.filter(a => ["parameter", "call", "return", "raise"].includes(a.kind)).map(a => ({ anchorId: a.id, role: a.kind === "parameter" ? a.name === "actor" ? "principal" : "context" : a.kind === "call" ? a.call!.expression === "write" ? "effect" : "condition" : "context", explanation: "Anonymous original source function mutation, not a callable-body proof", ...(a.kind === "return" && name === "entry" ? { returnOutcome: "allow" } : {}), ...(a.kind === "raise" ? { failureKind: "authorization" } : {}) }))
+    const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index, itemId: name, handle: name, questionId: "q", role: name === "entry" ? "entry" : "helper" })
+    expect(result.diagnostics).toEqual([])
+    units.push({ ...result.unit!, questionId: "q", evidenceIds: skeleton.evidenceIds, source: skeleton.source, receiverClass: "app.Gate" })
+  }
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect function mutation after bound method creation", premises: [] }] }), store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" })
+  for (const u of units) store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }, { kind: "candidate-set", key: `relations:${u.source.id}:app.Gate`, revision: sourceRelationRevision(index, u.source.id, "app.Gate")! }], "test-authored")
+  const projected = api.projectSourceMaterials(p, units, store.snapshot(), index, { questionDirected: true }), lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true })
+  expect(lowered.delta.rules.some(r => r.failureKind === "authorization")).toBe(false)
+  expect(lowered.diagnostics.map(d => d.code)).toContain("skeleton-function-attribute-write-unmodeled")
+  expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(false)
+})
+
+test("a new function behind an explicitly typed field withdraws an old ordinary data store", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-function-store-footprint-")), files = [{ path: "app.py", content: "from data import Data\ndef entry(subject: Data):\n    subject.saved.note = True\n    return True\n" }, { path: "data.py", content: "class Data:\n    pass\n" }]
+  for (const file of files) await writeFile(path.join(sourceRoot, file.path), file.content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, source = index.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id))!, result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations: skeleton.anchors.filter(a => a.kind === "parameter" || a.kind === "return").map(a => ({ anchorId: a.id, role: "context", explanation: "Anonymous typed data field store", ...(a.kind === "return" ? { returnOutcome: "allow" } : {}) })) }, { index, itemId: "entry", handle: "entry", questionId: "q", role: "entry" })
+  expect(skeleton.gaps).toEqual([])
+  expect(result.diagnostics).toEqual([])
+  const unit: any = { ...result.unit!, questionId: "q", source: skeleton.source, evidenceIds: skeleton.evidenceIds }, store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" }), revision = sourceRelationRevision(index, source.id)!
+  store.accept(unit, [{ kind: "source-span", key: source.path, revision: source.sha256 }, { kind: "symbol-resolution", key: source.id, revision: source.sha256 }, { kind: "candidate-set", key: `relations:${source.id}:`, revision }], "test-authored")
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect the current field protocol", premises: [] }] }), snapshot = store.snapshot()
+  expect(api.projectSourceMaterials(p, [unit], snapshot, index, { questionDirected: true }).uses).toHaveLength(1)
+  const changed = await buildStructureIndex(files.map(f => f.path === "data.py" ? { ...f, content: "class Data:\n    def saved(self):\n        raise Denied\n" } : f), { repository: "anonymous", sourceRef: "r" })
+  expect(sourceRelationRevision(changed, source.id)).not.toBe(revision)
+  expect(api.projectSourceMaterials(p, [unit], snapshot, changed, { questionDirected: true }).uses).toEqual([])
+  const unrelated = await buildStructureIndex([...files, { path: "other.py", content: "class Data:\n    def saved(self):\n        raise Denied\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect(sourceRelationRevision(unrelated, source.id)).toBe(revision)
+})
+
 for (const { selected, alternate, selector, repeat } of [
   { selected: true, alternate: true, selector: "guard", repeat: false },
   { selected: false, alternate: true, selector: "guard", repeat: false },

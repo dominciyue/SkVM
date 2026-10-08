@@ -2096,6 +2096,10 @@ AY7 receiver方法槽位小步（2026-10-08）：主红测确认helper已写`sel
 
 真实[方法槽位probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-method-slot-replay.json)核验94冻结文件及独立supplements，共100文件/6body/6 lookup。APIView指定receiver的缺口从target-rebound变为class-binding；声明receiver仍合格1，指定应用receiver的3处lookup仍合格/采用0。模型read/application annotation/material use/实验模型/目标/探针网络新增0；开发/探子token、USD与真人时间unknown，旧input/allowlist/原答不升级。完整class/wrapper、字段callable和请求及官方实际复验继续；AY7、完整质量与净收益未达。
 
+AY7函数对象边界小步（2026-10-08）：class/wrapper来源核对发现metadata写入不能统一当作普通data。主红测复现helper改`self.guard.__func__.__code__`后已创建引用仍错误执行旧body，匿名Python小程序确认实际bound method会执行替换body；v20将当前可定位的函数属性store留为protocol unknown，普通data继续既有transform，不猜替换实现。局部/模块/类属性/实例writer与公开import来源进入同一relation footprint，负type/MRO来源同样保留；外部type新增method撤回旧普通store材料，无关文件保持。循环不终止与class-local alias误指module同名函数已由主反例修复。来源探子报告的裸`self.saved`不等于module `saved`，主纠正该前提，再以真实class/instance连接复现并修复三个module alias遗漏。补修只读核验47项/173断言通过且未发现新可复现问题；另外两核验及不完整类型尝试分列保留，不作穷尽声明。
+
+26新增用例、新鲜461focused/2113断言、联合1300pass/1平台skip/7920断言/115文件/24.76s和主/AY类型通过，见[局部核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-function-attribute-stores.json)。新[函数属性probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-function-attribute-replay.json)验证94旧冻结及6独立补充文件；6执行候选body之外检查5个protocol body，17 stores中10个有函数来源边界，未解析的decorator参数不会因此取得class变换资格。声明receiver合格1、指定应用receiver合格/采用0；实验model read/application annotation/use/模型/目标/网络新增0，另有1次匿名Python语义核对，开发/探子token、USD与真人时间unknown，旧input/allowlist/答不升级。机械来源展开每store限128，原64块/127节点/16路径执行预算保持；class/wrapper实际变换、字段callable、早期bound-reference capture及完整请求和官方质量/收益继续pending。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
