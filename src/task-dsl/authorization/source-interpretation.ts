@@ -266,7 +266,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
             }
             const methodRead = questionDirected && actual && !actual.methodCapture && target ? sourceDirectMethodRead(actual, target) : undefined
             const fieldMethodRead = questionDirected && actual && target ? actual.methodCapture ? { object: sourceMethodCaptureResult(actual.id), receiver: actual.methodCapture.receiver, targetId: target.id, targetSha256: target.sha256 } : actual.methodField ? { object: actual.expression, receiver: actual.methodField.receiver, targetId: target.id, targetSha256: target.sha256 } : undefined : undefined
-            destination.push({ kind: "call", name: `call-${a.id}${suffix}`, claim, symbol: a.call!.expression, ...(finite && a.call!.sourceCallId ? { sourceCallId: a.call!.sourceCallId } : {}), arguments: mapped, result: a.call!.resultBinding, ...objects, ...(target ? { pathHint: `${target.path}:${target.startLine}-${target.endLine}`, candidateId: target.id } : {}), ...(methodRead ? { methodRead } : {}), ...(fieldMethodRead ? { fieldMethodRead } : {}), ...((actual?.callableParameter || actual?.callableBinding || actual?.implicitClassDecorator) && target ? { callableRead: { object: actual.expression, targetId: target.id, targetSha256: target.sha256 } } : {}) })
+            destination.push({ kind: "call", name: `call-${a.id}${suffix}`, claim, symbol: a.call!.expression, ...(finite && a.call!.sourceCallId ? { sourceCallId: a.call!.sourceCallId } : {}), arguments: mapped, result: a.call!.resultBinding, ...objects, ...(target ? { pathHint: `${target.path}:${target.startLine}-${target.endLine}`, candidateId: target.id } : {}), ...(methodRead ? { methodRead } : {}), ...(fieldMethodRead ? { fieldMethodRead } : {}), ...((actual?.callableParameter || actual?.callableBinding || actual?.implicitClassDecorator || actual?.classNamespaceCall) && target ? { callableRead: { object: actual.expression, targetId: target.id, targetSha256: target.sha256 } } : {}) })
           }
           const proof = methodCalls.get(a.id)
           if (callableCalls.has(a.id) && finite) {
@@ -311,8 +311,14 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
         const definition = classDefinitions.get(a.id)
         if (definition) {
           const proof = definition.classDefinition!, result = `class-original-${proof.anchorId}`
-          block.steps.push({ kind: "assign-value", name: `class-definition-${proof.anchorId}`, claim: "Execute this original class definition without binding its public name before decorators finish", result, value: { literal: sourceClassToken({ targetId: definition.id, targetSha256: definition.sha256 }) }, sourceClass: { targetId: definition.id, targetSha256: definition.sha256, scope: "definition" } })
-          for (const field of proof.fields) block.steps.push({ kind: "transform", name: `class-field-${field.anchorId}`, claim: "Original finite class namespace attribute", object: result, field: field.name, value: field.value })
+          block.steps.push({ kind: "assign-value", name: `class-definition-${proof.anchorId}`, claim: "Execute this original class definition without binding its public name before decorators finish", result, value: { literal: sourceClassToken({ targetId: definition.id, targetSha256: definition.sha256 }) }, sourceClass: { targetId: definition.id, targetSha256: definition.sha256, scope: "definition", namespace: true, bases: proof.bases.map(base => base.expression) } })
+          for (const entry of proof.namespace) {
+            if (entry.kind === "field") { const field = proof.fields.find(f => f.anchorId === entry.anchorId)!; block.steps.push({ kind: "transform", name: `class-field-${field.anchorId}`, claim: "Original finite class namespace attribute", object: result, field: field.name, value: field.value }) }
+            else {
+              const method = proof.methods.find(m => m.anchorId === entry.anchorId)!, reference = `class-function-${method.anchorId}`, target = { targetId: method.targetId, targetSha256: method.targetSha256 }
+              block.steps.push({ kind: "assign-value", name: `class-method-${method.anchorId}`, claim: "Create the original ordinary namespace function with its stable outer objects", result: reference, value: { literal: sourceCallableToken(target) }, sourceCallable: { ...target, captures: method.captures.map(capture => ({ parameter: capture.name, object: capture.name })) } }, { kind: "transform", name: `class-method-field-${method.anchorId}`, claim: "Retain the actual function object in its original class namespace", object: result, field: method.name, source: reference })
+            }
+          }
           continue
         }
         const decorator = classDecoratorValues.get(a.id)

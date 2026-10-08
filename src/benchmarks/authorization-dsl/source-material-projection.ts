@@ -61,13 +61,17 @@ function currentMethodStoresValid(index: StructureIndex, unit: BoundSemanticBloc
  * class, apply inner to outer, then bind the actual returned value. */
 function currentClassDefinitionsValid(index: StructureIndex, unit: BoundSemanticBlock) {
   const owner = unit.source!.id, calls = index.relatedCalls(owner), steps = unit.blocks.flatMap(b => b.steps)
+  for (const call of calls) {
+    const proof = call.classNamespaceCall
+    if (proof && steps.some(step => step.kind === "call" && step.sourceCallId === call.id && (canonicalControl(step.callableRead ?? null) !== canonicalControl({ object: call.expression, targetId: proof.targetId, targetSha256: proof.targetSha256 }) || step.methodRead || step.fieldMethodRead))) return false
+  }
   const definitions = index.symbols.filter(s => s.classDefinition?.ownerId === owner && s.classDefinition.ownerSha256 === unit.source!.sha256 && !s.classDefinition.gap)
   return definitions.every(symbol => {
     const proof = symbol.classDefinition!, block = sourceControlBlock(unit, proof.controls), original = `class-original-${proof.anchorId}`, creationName = `class-definition-${proof.anchorId}`, bindingName = `class-bind-${proof.anchorId}`
     const sequence: string[] = [], exclusive = (name: string) => { const found = steps.filter(s => s.name === name); return found.length === 1 ? found[0] : undefined }
     const creation = exclusive(creationName)
     if (!creation && proof.inactive) return !steps.some(s => s.name === bindingName || s.kind === "call" && proof.decorators.some(d => d.applicationCallId === s.sourceCallId))
-    if (!block || creation?.kind !== "assign-value" || creation.result !== original || canonicalControl(creation.value) !== canonicalControl({ literal: sourceClassToken({ targetId: symbol.id, targetSha256: symbol.sha256 }) }) || canonicalControl(creation.sourceClass ?? null) !== canonicalControl({ targetId: symbol.id, targetSha256: symbol.sha256, scope: "definition" }) || creation.sourceCallable || creation.boundMethod || creation.methodRead) return false
+    if (!block || creation?.kind !== "assign-value" || creation.result !== original || canonicalControl(creation.value) !== canonicalControl({ literal: sourceClassToken({ targetId: symbol.id, targetSha256: symbol.sha256 }) }) || canonicalControl(creation.sourceClass ?? null) !== canonicalControl({ targetId: symbol.id, targetSha256: symbol.sha256, scope: "definition", namespace: true, bases: proof.bases.map(base => base.expression) }) || creation.sourceCallable || creation.boundMethod || creation.methodRead) return false
     const writers = new Map<string, string>([[original, creationName]])
     for (const decorator of proof.decorators) {
       if (decorator.factoryCallId) {
@@ -88,10 +92,16 @@ function currentClassDefinitionsValid(index: StructureIndex, unit: BoundSemantic
       }
     }
     sequence.push(creationName)
-    for (const field of proof.fields) {
-      const name = `class-field-${field.anchorId}`, store = exclusive(name)
-      if (store?.kind !== "transform" || store.object !== original || store.field !== field.name || store.source || !Object.hasOwn(store, "value") || canonicalControl(store.value) !== canonicalControl(field.value)) return false
-      sequence.push(name)
+    for (const entry of proof.namespace) {
+      if (entry.kind === "field") {
+        const field = proof.fields.find(f => f.anchorId === entry.anchorId)!, name = `class-field-${field.anchorId}`, store = exclusive(name)
+        if (store?.kind !== "transform" || store.object !== original || store.field !== field.name || store.source || !Object.hasOwn(store, "value") || canonicalControl(store.value) !== canonicalControl(field.value)) return false
+        sequence.push(name)
+      } else {
+        const method = proof.methods.find(m => m.anchorId === entry.anchorId)!, name = `class-method-${method.anchorId}`, fieldName = `class-method-field-${method.anchorId}`, reference = `class-function-${method.anchorId}`, created = exclusive(name), store = exclusive(fieldName), target = { targetId: method.targetId, targetSha256: method.targetSha256 }
+        if (created?.kind !== "assign-value" || created.result !== reference || canonicalControl(created.value) !== canonicalControl({ literal: sourceCallableToken(target) }) || canonicalControl(created.sourceCallable ?? null) !== canonicalControl({ ...target, captures: method.captures.map(c => ({ parameter: c.name, object: c.name })) }) || created.sourceClass || created.boundMethod || created.methodRead || store?.kind !== "transform" || store.object !== original || store.field !== method.name || store.source !== reference || Object.hasOwn(store, "value")) return false
+        sequence.push(name, fieldName); writers.set(reference, name)
+      }
     }
     let input = original
     for (const decorator of [...proof.decorators].reverse()) {
@@ -122,7 +132,7 @@ function currentCallableCreationsValid(index: StructureIndex, unit: BoundSemanti
   const classes = [...new Map(calls.flatMap(c => c.argumentFacts?.flatMap(a => a.classValue ? [a.classValue] : []) ?? []).map(p => [sourceClassValueName(owner, p), p])).values()]
   const definitions = index.symbols.filter(s => s.valueCallable && !s.valueCallable.gap && s.valueCallable.ownerId === owner && s.valueCallable.ownerSha256 === unit.source!.sha256)
   const classDefinitions = index.symbols.filter(s => s.classDefinition?.ownerId === owner && !s.classDefinition.gap)
-  const permitted = new Set([...values.map(p => sourceCallableValueName(owner, p)), ...definitions.map(s => sourceCallableDefinitionName(s.valueCallable!.anchorId)), ...classDefinitions.flatMap(s => s.classDefinition!.decorators.filter(d => !d.factoryCallId).map(d => `class-decorator-value-${d.id}`))])
+  const permitted = new Set([...values.map(p => sourceCallableValueName(owner, p)), ...definitions.map(s => sourceCallableDefinitionName(s.valueCallable!.anchorId)), ...classDefinitions.flatMap(s => [...s.classDefinition!.decorators.filter(d => !d.factoryCallId).map(d => `class-decorator-value-${d.id}`), ...s.classDefinition!.methods.map(m => `class-method-${m.anchorId}`)])])
   if (steps.some(s => s.kind === "assign-value" && s.sourceCallable && !permitted.has(s.name))) return false
   if (steps.some(s => s.kind === "assign-value" && s.sourceClass && !classes.some(p => s.name === sourceClassValueName(owner, p)) && !classDefinitions.some(c => s.name === `class-definition-${c.classDefinition!.anchorId}`))) return false
   const validate = (name: string, result: string, target: { targetId: string; targetSha256: string }, captures: Array<{ parameter: string; object: string }>, controls: StructureMethodControl[], order: { before: string[][]; after: string[][] }, evaluation?: typeof order, classReference = false) => {
@@ -175,6 +185,7 @@ function actualArguments(index: StructureIndex, caller: BoundSemanticBlock, step
   if (!call || !symbol) return false
   const binding = sourceArgumentBindings(index, call, symbol), expected = binding.bindings, steps = caller.blocks.flatMap(b => b.steps)
   if (binding.gap || step.arguments.length !== expected.length) return false
+  if (call.classNamespaceCall && (!symbol.classMethod || symbol.classMethod.captures.some(c => target.parameters.filter(p => p.name === c.name).length !== 1) || target.parameters.some(p => !symbol.parameters.some(s => s.name === p.name) && !symbol.classMethod!.captures.some(c => c.name === p.name)))) return false
   const returnedCreationValid = (proof: StructureCallableBinding, controls: StructureMethodControl[]) => {
     const creations = steps.filter(s => s.kind === "call" && s.sourceCallId === proof.creationCallId), creation = creations[0], block = sourceControlBlock(caller, proof.controls)
     if (!block || creations.length !== 1 || creation?.kind !== "call" || !creation.callee || creation.candidateId !== proof.factoryId || creation.result !== proof.name || creation.name !== `call-${sourceSyntaxAnchorId(caller.source!.id, proof.source.startIndex, proof.source.endIndex, "call")}` || !block.steps.includes(creation)) return false
@@ -368,7 +379,7 @@ export function projectSourceMaterials(program: AuthorizationInquiryProgram, acc
           if (methodRead) step.methodRead = methodRead
           if (call?.methodField && symbol) step.fieldMethodRead = { object: call.expression, receiver: call.methodField.receiver, targetId: symbol.id, targetSha256: symbol.sha256 }
           if (options.questionDirected && call?.methodCapture && symbol) step.fieldMethodRead = { object: sourceMethodCaptureResult(call.id), receiver: call.methodCapture.receiver, targetId: symbol.id, targetSha256: symbol.sha256 }
-          if (options.questionDirected && (call?.callableParameter || call?.callableBinding || call?.implicitClassDecorator) && symbol) step.callableRead = { object: call!.expression, targetId: symbol.id, targetSha256: symbol.sha256 }
+          if (options.questionDirected && (call?.callableParameter || call?.callableBinding || call?.implicitClassDecorator || call?.classNamespaceCall) && symbol) step.callableRead = { object: call!.expression, targetId: symbol.id, targetSha256: symbol.sha256 }
           step.callee = target.unit.handle
           uses.push({ kind: "call", operationId: operation.id, questionId: question.questionId, materialId: helper.id, callerMaterialId: material.id, relationId: target.relationId, receiverClass: target.receiverClass, arguments: structuredClone(step.arguments) })
           visit(helper)

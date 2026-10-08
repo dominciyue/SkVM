@@ -2633,7 +2633,7 @@ AY6的FastAPI有限请求模型以`fastapi-source-router/v1`和`fastapi-source-i
 
 当前v5模型反馈只投影frontier、排除、覆盖、下一步及依赖摘要，完整required/deferred和图留在宿主报告，所有原题和原语法仍可读取。停滞指纹复用已有字段有效状态，并包含同源码revision已provided字段的实际值；无效输入和解释文字改写不计源码进展。source revision含source身份与语法。该投影和提示不改变需求/排除/接纳/结论，也不增加调用或审批；确定性发送字节与实际token收益分开验证。
 
-AY7当前receiver连接使用`source-bindings/v26`：实际调用可携带唯一未重绑定模块实例的声明位置/SHA、真实class/SHA证明。v5编译器再次对照当前索引，只生成普通value身份；同一来源的导入别名共享该普通身份。参数/局部遮蔽、consumer alias重绑定、源码可见的模块attribute写入、歧义构造器与旧证明不自动接线。该来源事实不证明principal/resource/permission或任何授权；标量字段与模型声明的主体参数不匹配仍须局部解释修复。关系版本变化使旧材料须显式重新验证。终答当前契约直接投影真实schema的枚举和数值path约束，不把自由文字改写为源码结论。
+AY7当前receiver连接使用`source-bindings/v27`：实际调用可携带唯一未重绑定模块实例的声明位置/SHA、真实class/SHA证明。v5编译器再次对照当前索引，只生成普通value身份；同一来源的导入别名共享该普通身份。参数/局部遮蔽、consumer alias重绑定、源码可见的模块attribute写入、歧义构造器与旧证明不自动接线。该来源事实不证明principal/resource/permission或任何授权；标量字段与模型声明的主体参数不匹配仍须局部解释修复。关系版本变化使旧材料须显式重新验证。终答当前契约直接投影真实schema的枚举和数值path约束，不把自由文字改写为源码结论。
 
 **账号状态。** 区分已知failed/interrupted、完成但未交付、超时/终态丢失以及用量不可见。明确failed的旧原件仅追加裁定，不覆盖其原completion-unknown。后续请求为新的具名尝试，先确认旧执行已结束，缺少用量不永久阻断；未知活动请求不自动重发。用户已授权账号实验，第三方API继续暂停。额度拒绝停止该通道无效请求，独立工程继续，恢复有依据后再派发。
 
@@ -2641,9 +2641,9 @@ AY7当前receiver连接使用`source-bindings/v26`：实际调用可携带唯一
 
 **成果合同。** 两真实原任务和作者消费者应取得当前checked及独立源码full；三变化真实消费并正确响应。收益按预登记质量、质量保持下完整observed token下降或同质量实际复用减负判据评价，逐任务与首/修分列；工具收益不归为DSL独有表示优势。实际USD、隐藏请求和真人时间缺报仍unknown。工程、账号运行、native交付、作者消费、同条件收益、变化复用六项分别记录；全部编号有终态不代表研究达成。工程已用但收益mixed时如实交付usable-with-mixed-effect。
 
-AY6的ASGI取证合同使用`source-bindings/v26`及`fastapi-source-asgi/v1`：注册保留实际call、配置参数、词法条件/异常/函数作用域、当前class/MRO来源SHA和constructor/__call__/dispatch方法候选，沿router/include祖先关联当前route。稳定单一应用alias为resolved；重绑定或未证明的潜在alias为possible并具名阻断，不声称它实际修改该app。这种保守追踪可能产生额外阻断，尚不提供赋值点的完整flow-sensitive排除。缺外部类/base、动态/遮蔽/重绑定目标及wrapped方法保留来源边界。词法顺序标为unproven，不替代框架装配顺序；读/解释方法不等于当前continuation采用。每route的ASGI footprint包含注册与当前类来源，跨文件body变化失效，无关文件保留；完整callback/environment/generator组合和目标安装版本继续独立验证。
+AY6的ASGI取证合同使用`source-bindings/v27`及`fastapi-source-asgi/v1`：注册保留实际call、配置参数、词法条件/异常/函数作用域、当前class/MRO来源SHA和constructor/__call__/dispatch方法候选，沿router/include祖先关联当前route。稳定单一应用alias为resolved；重绑定或未证明的潜在alias为possible并具名阻断，不声称它实际修改该app。这种保守追踪可能产生额外阻断，尚不提供赋值点的完整flow-sensitive排除。缺外部类/base、动态/遮蔽/重绑定目标及wrapped方法保留来源边界。词法顺序标为unproven，不替代框架装配顺序；读/解释方法不等于当前continuation采用。每route的ASGI footprint包含注册与当前类来源，跨文件body变化失效，无关文件保留；完整callback/environment/generator组合和目标安装版本继续独立验证。
 
-AY6的DRF声明取证使用`drf-source-action/v1`及当前`source-bindings/v26`：保留精确action constructor/import、call/参数/跨度、字面HTTP声明、同声明class的mapping decorator及实际C3方法候选，再关联当前router/factory/mapper/as_view来源。未装饰的override撤回继承action；secondary mapping保留原声明并按当前request class查找目标。缺源码、rebind、class遮蔽/wrapper、default/dynamic参数或未知router保留具名边界。`mappingBinding`与`invocation`均为unproven，找到了factory/mapper body不证明它建立映射；只有实际来源解释和当前采用才能闭合。每receiver的action footprint含声明、route及相关来源，变化需重新验证，不向普通Python方法默认添加请求前置逻辑。
+AY6的DRF声明取证使用`drf-source-action/v1`及当前`source-bindings/v27`：保留精确action constructor/import、call/参数/跨度、字面HTTP声明、同声明class的mapping decorator及实际C3方法候选，再关联当前router/factory/mapper/as_view来源。未装饰的override撤回继承action；secondary mapping保留原声明并按当前request class查找目标。缺源码、rebind、class遮蔽/wrapper、default/dynamic参数或未知router保留具名边界。`mappingBinding`与`invocation`均为unproven，找到了factory/mapper body不证明它建立映射；只有实际来源解释和当前采用才能闭合。每receiver的action footprint含声明、route及相关来源，变化需重新验证，不向普通Python方法默认添加请求前置逻辑。
 
 v8的基类订阅只在当前唯一、同步、未装饰的`__class_getitem__`源码恰为return原class参数时保留原基类身份，参数限简单名；其它动作/返回、async、显式metaclass、wrapper、重绑定或不透明表达式不按typing外观剥离。此规则修复实际DRF generic基类导致dispatch候选丢失的共享问题；仍是方法来源定位，不证明应用class decorator或实际执行。来源补充从已保留且SHA匹配的原wheel提取，单独登记并验证旧冻结文件；不扩大旧allowlist、不回写原答，新增模型输入需另行登记。映射来源、完整dispatch/callback/参数/异常组合与当前源码full质量分别验收。
 
@@ -2741,6 +2741,12 @@ AY7的v26局部类定义合同：`StructureSymbol.classDefinition`使用`source-
 材料逐项对照当前class/decorator来源、原if/try及严格内部/外部事件顺序、唯一临时result、精确factory/result/callableRead、class实参、隐式call/返回及最终绑定。缺失、挪动、错误对象或SHA、提前公开类名均撤回；原intrinsic false分支可机械裁剪，不能据此提前执行。合格类定义可位于实际返回闭包内，其它nested scope边界保持。关系footprint纳入当前owner类定义及所选decorator/import来源；没有新增模型角色、谓词或执行预算。
 
 27新增，新鲜642focused/3938断言、联合1481pass/1平台skip/9745断言/115文件/20.91s和主/AY类型通过；[类定义核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-class-definitions.json)分列两只读范围、主红绿及无效fixture更正。100文件/12body probe有7局部类/所选1类、合格及实际材料采用0，真实ExtendedSchema保留base边界。无实验模型读证据、应用标注或实验模型/目标/probe网络新增，开发/探子token、USD与真人时间unknown。实际base/方法/prototype、模块类应用、constructor、完整请求和官方质量/净收益继续，AY7未完成。
+
+AY7的v27局部namespace合同：classDefinition扩展当前base来源、普通方法的target/SHA/稳定直接外层参数capture及字段/方法原交错namespace；classMethod进入原relation footprint。方法在实际class创建阶段生成sourceCallable并写入该类对象，body由六角色分别解释。同步未装饰、无dunder/descriptor、annotation/动态或mutable default/nested scope的方法可提供事实；local/跨层capture、super/__class__ cell仍具名。base初步限同owner唯一稳定、先定义且无gap的local class identifier，最多16项；动态/参数base和旧module引用marker不能证明实际namespace。
+
+实际sourceClass以definition scope、namespace:true及实际base对象创建，计算C3身份顺序；字段读取查当前namespace和实际继承顺序，父类后续写入可见，子类覆盖不改父类，未知字段覆盖不能借旧函数执行。重复/未知/冲突/协议变化的base拒绝；namespace dunder写立即阻断，不能继续使用过期MRO。classNamespaceCall只提供原class/target/SHA候选，实际callableRead须取得当前字段中的函数及环境；class函数不隐式注入self，原显式参数仍沿同一binder。嵌套实参动作暂不合格，避免以晚callee读取替代Python原求值顺序。
+
+材料须保留精确base/method创建与storage、当前target/SHA/capture、唯一writer、namespace交错顺序、原if/try与严格前后事件、最终绑定及实际callee/完整参数；丢失/伪造/移位撤回。39新增，681focused/4187断言、联合1520pass/1平台skip/9994断言/115文件/21.55s与主/AY类型通过；两只读范围及主红绿/无效fixture更正见[namespace核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-class-namespace.json)。100文件/12body新probe保留7局部类/所选1类、合格类/base/method事实/namespace call候选与材料采用0，真实ExtendedSchema动态base仍未闭合。无实验模型读或模型/目标/probe网络新增，未知成本分列；六角色/谓词/执行预算不变。动态base与跨层方法、module应用、constructor/完整请求、官方实际使用和预登记净收益继续，AY7未完成。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 

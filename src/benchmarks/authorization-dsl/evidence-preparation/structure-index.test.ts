@@ -1,12 +1,27 @@
 import { expect, test } from "bun:test"
 import { buildStructureIndex } from "./structure-index.ts"
 
-for (const mode of ["base", "metaclass", "method", "body-call", "formatted-string", "slots", "classcell", "annotation", "parameter", "local-shadow", "rebound", "async", "loop"]) test(`local class definition preserves unsupported namespace and decorator boundaries: ${mode}`, async () => {
-  const body = mode === "method" ? "        def method(self):\n            return True\n" : mode === "body-call" ? "        flag = unknown()\n" : mode === "formatted-string" ? "        f'{unknown()}'\n" : mode === "slots" ? "        __slots__ = 123\n" : mode === "classcell" ? "        __classcell__ = False\n" : mode === "annotation" ? "        flag: unknown() = False\n" : "        flag = False\n"
+for (const mode of ["base", "metaclass", "wrapped-method", "body-call", "formatted-string", "slots", "classcell", "annotation", "parameter", "local-shadow", "rebound", "async", "loop"]) test(`local class definition preserves unsupported namespace and decorator boundaries: ${mode}`, async () => {
+  const body = mode === "wrapped-method" ? "        @unknown\n        def method(self):\n            return True\n" : mode === "body-call" ? "        flag = unknown()\n" : mode === "formatted-string" ? "        f'{unknown()}'\n" : mode === "slots" ? "        __slots__ = 123\n" : mode === "classcell" ? "        __classcell__ = False\n" : mode === "annotation" ? "        flag: unknown() = False\n" : "        flag = False\n"
   const content = `def decorate(cls):\n    return cls\n${mode === "rebound" ? "decorate = unknown()\n" : ""}${mode === "async" ? "async " : ""}def entry(${mode === "parameter" ? "decorate" : ""}):\n${mode === "local-shadow" ? "    decorate = None\n" : ""}${mode === "loop" ? "    for item in [True]:\n" : ""}${mode === "loop" ? "        " : "    "}@decorate\n${mode === "loop" ? "        " : "    "}class Local${mode === "base" ? "(Base)" : mode === "metaclass" ? "(metaclass=Meta)" : ""}:\n${mode === "loop" ? body.replace(/^/gm, "    ").trimEnd() + "\n" : body}    return Local\n`
   const index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), local = index.symbols.find(s => s.name === "Local")!
   expect(local.classDefinition).toBeDefined()
   expect(local.classDefinition!.gap).toBeDefined()
+})
+
+for (const mode of ["async", "generator", "dunder", "super", "classcell", "annotation", "default-action", "mutable-default", "nested", "capture-local", "capture-rebound", "capture-outer", "before", "rebound", "nested-argument", "field-shadow"]) test(`class namespace source keeps unsupported method and invocation boundaries: ${mode}`, async () => {
+  const body = mode === "generator" ? "            yield actor\n" : mode === "super" ? "            return super().guard(actor)\n" : mode === "classcell" ? "            return __class__\n" : mode === "nested" ? "            def inner():\n                return actor\n            return inner()\n" : ["capture-local", "capture-rebound", "capture-outer"].includes(mode) ? "            return flag\n" : "            return actor\n"
+  const source = `def outer(flag):\n    return flag\ndef entry(${mode === "capture-rebound" ? "flag, " : ""}actor):\n${mode === "capture-local" ? "    flag = True\n" : mode === "capture-outer" ? "    def factory():\n        return flag\n" : ""}${mode === "before" ? "    Local.guard(actor)\n" : ""}    class Local:\n        ${mode === "async" ? "async " : ""}def ${mode === "dunder" ? "__getattr__" : "guard"}(${mode === "annotation" ? "actor: Unknown" : mode === "default-action" ? "actor=unknown()" : mode === "mutable-default" ? "actor=[]" : "actor"}):\n${body}${mode === "field-shadow" ? "        guard = None\n" : ""}${mode === "capture-rebound" ? "    flag = False\n" : mode === "rebound" ? "    Local = None\n" : ""}    Local.guard(${mode === "nested-argument" ? "outer(actor)" : "actor"})\n`
+  const content = mode === "capture-outer" ? "def outer(flag):\n" + source.slice(source.indexOf("def entry(")).split("\n").filter(Boolean).map(line => "    " + line).join("\n") + "\n" : source
+  const index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), entry = index.symbols.find(s => s.name === "entry")!, cls = index.symbols.find(s => s.name === "Local")!
+  if (["before", "rebound", "nested-argument", "field-shadow"].includes(mode)) { const call = index.relatedCalls(entry.id).filter(c => c.expression === "Local.guard")[0]!; expect(call.classNamespaceCall).toBeUndefined(); expect(call.resolution).toBe("unresolved") }
+  else expect(cls.classDefinition!.gap).toBeDefined()
+})
+
+for (const count of [16, 17]) test(`local class base facts respect the existing native metadata capacity: ${count}`, async () => {
+  const content = "def entry():\n" + Array.from({ length: count }, (_, i) => `    class Base${i}:\n        pass\n`).join("") + `    class Local(${Array.from({ length: count }, (_, i) => `Base${i}`).join(", ")}):\n        pass\n    return Local\n`
+  const index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), proof = index.symbols.find(s => s.name === "Local")!.classDefinition!
+  expect(proof.gap).toBe(count === 16 ? undefined : "source-class-definition-base-unmodeled")
 })
 
 test("function-valued parameter attribute writes retain possible source function protocol", async () => {

@@ -15,7 +15,7 @@ const methodRead = z.object({ receiver: name, method: name, defaultMethod: name.
 const boundMethod = z.object({ receiver: name, targetId: name, targetSha256: name }).strict()
 const sourceCallable = z.object({ targetId: name, targetSha256: name, scope: z.literal("module").optional(), captures: z.array(z.object({ parameter: name, object: name }).strict()).max(16).refine(values => new Set(values.map(v => v.parameter)).size === values.length, "Unique captured parameters required") }).strict()
 const callableRead = z.object({ object: name, targetId: name, targetSha256: name }).strict()
-const sourceClass = z.object({ targetId: name, targetSha256: name, scope: z.literal("definition").optional() }).strict()
+const sourceClass = z.object({ targetId: name, targetSha256: name, scope: z.literal("definition").optional(), namespace: z.literal(true).optional(), bases: z.array(name).max(16).optional() }).strict()
 export const SemanticStepSchema = z.discriminatedUnion("kind", [
   z.object({ ...common, kind: z.literal("bind"), type: z.enum(["principal", "resource", "permission", "configuration", "value"]), bindingName: name.optional(), aliasOf: name.optional(), value: FiniteValueSchema.optional() }).strict(),
   z.object({ ...common, ...objects, kind: z.literal("guard"), condition: condition.optional() }).strict(),
@@ -46,7 +46,7 @@ export interface PropertyContextSummary {
   semantics: "normal-all-or-first-unknown-exception"; outcomeBinding?: string; normalRuleKey?: string; exceptionRuleKey?: string
 }
 interface Exit { kind: "return" | "raise" | "break" | "continue"; claim: string; outcome?: "allow" | "deny" | "unknown"; exceptionType?: string; failureKind?: "authorization" | "operation" }
-interface ObjectBinding { identity: string; type: string; boundMethod?: { receiverIdentity: string; targetId: string; targetSha256: string }; sourceCallable?: { targetId: string; targetSha256: string; captures: Record<string, ObjectBinding> }; sourceClass?: { targetId: string; targetSha256: string } }
+interface ObjectBinding { identity: string; type: string; boundMethod?: { receiverIdentity: string; targetId: string; targetSha256: string }; sourceCallable?: { targetId: string; targetSha256: string; captures: Record<string, ObjectBinding> }; sourceClass?: { targetId: string; targetSha256: string; mro?: string[] } }
 interface Cursor { tail: string; route: string[]; objects: Record<string, ObjectBinding>; fieldObjects: Record<string, ObjectBinding | null>; guards: Record<string, string>; values: Record<string, FiniteValue>; objectValues: Record<string, FiniteValue>; operands?: Record<string, Record<string, unknown>>; stopped?: boolean; returned?: boolean; returnValue?: FiniteValue; returnObject?: ObjectBinding; pending?: Exit; handledException?: Exit }
 const id = (parts: unknown[]) => "sem-" + createHash("sha256").update(canonicalControl(parts)).digest("hex").slice(0, 24)
 
@@ -77,7 +77,9 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
         const parent = valueObject(c, base)!
         let projected = parent, stored = parent.identity !== c.objects[base]!.identity
         for (const field of ref.slice(base.length + 1).split(".")) {
-          const key = `${projected.identity}.${field}`
+          const owner = projected.sourceClass?.mro?.find(identity => Object.hasOwn(c.fieldObjects, `${identity}.${field}`) || Object.hasOwn(c.objectValues, `${identity}.${field}`)) ?? projected.identity
+          const key = `${owner}.${field}`
+          stored ||= owner !== projected.identity
           stored ||= Object.hasOwn(c.fieldObjects, key)
           projected = c.fieldObjects[key] ?? { identity: key, type: "value" }
         }
@@ -303,6 +305,20 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
           if (step.kind === "call" && step.callableRead && Object.keys(c.fieldObjects).some(key => key.startsWith(`${valueObject(c, step.callableRead!.object)!.identity}.`))) { gap(u, c, instance, body, step.name, "source-callable-attributes-written"); next.push(c); continue }
           if (step.kind === "assign-value") {
             if (step.sourceClass && (!Object.hasOwn(step.value, "literal") || step.boundMethod || step.sourceCallable || step.methodRead)) { gap(u, c, instance, body, step.name, "source-class-creation-unresolved"); next.push(c); continue }
+            let classMro: string[] | undefined
+            if (step.sourceClass?.namespace || step.sourceClass?.bases) {
+              const bases = (step.sourceClass.bases ?? []).map(base => valueObject(c, base)), invalid = step.sourceClass.scope !== "definition" || !step.sourceClass.namespace || bases.some(base => !base?.sourceClass?.mro) || new Set(bases.map(base => base?.identity)).size !== bases.length
+              const protocols = bases.flatMap(base => base?.sourceClass?.mro ?? [])
+              if (invalid || Object.keys(c.fieldObjects).some(key => protocols.some(identity => key.startsWith(`${identity}.__`)))) { gap(u, c, instance, body, step.name, "source-class-base-unresolved"); next.push(c); continue }
+              const sequences = [...bases.map(base => [...base!.sourceClass!.mro!]), bases.map(base => base!.identity)], merged: string[] = []
+              while (sequences.some(sequence => sequence.length)) {
+                const head = sequences.map(sequence => sequence[0]).find(head => head && sequences.every(sequence => !sequence.slice(1).includes(head)))
+                if (!head || merged.length >= 64) break
+                merged.push(head); for (const sequence of sequences) if (sequence[0] === head) sequence.shift()
+              }
+              if (sequences.some(sequence => sequence.length)) { gap(u, c, instance, body, step.name, "source-class-base-unresolved"); next.push(c); continue }
+              classMro = merged
+            }
             const captures = step.sourceCallable?.captures.map(capture => ({ parameter: capture.parameter, object: valueObject(c, capture.object) }))
             if (step.sourceCallable && (!Object.hasOwn(step.value, "literal") || step.boundMethod || step.sourceCallable.scope === "module" && captures!.length !== 0 || captures!.some(capture => !capture.object) || new Set(captures!.map(capture => capture.parameter)).size !== captures!.length)) { gap(u, c, instance, body, step.name, "source-callable-creation-unresolved"); next.push(c); continue }
             assignValue(c, step.result, step.value)
@@ -320,7 +336,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
             }
             if (step.sourceClass) {
               const identity = step.sourceClass.scope === "definition" ? id([questionId, instance, body, step.name, c.route, "source-class"]) : id([questionId, "module-class", step.sourceClass.targetId, step.sourceClass.targetSha256])
-              c.objects[step.result] = { identity, type: "value", sourceClass: { targetId: step.sourceClass.targetId, targetSha256: step.sourceClass.targetSha256 } }
+              c.objects[step.result] = { identity, type: "value", sourceClass: { targetId: step.sourceClass.targetId, targetSha256: step.sourceClass.targetSha256, ...(classMro ? { mro: [identity, ...classMro] } : {}) } }
               // Reading a loaded module class preserves every earlier mutation.
               c.objectValues[identity] = c.values[step.result]!; delete c.values[step.result]
             }
@@ -350,6 +366,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
           else if (step.kind === "transform") {
             const object = valueObject(c, step.object)
             const sourceObject = step.source ? valueObject(c, step.source) : undefined
+            if (object?.sourceClass?.mro && /^__.*__$/.test(step.field)) { gap(u, c, instance, body, step.name, "source-class-protocol-written"); next.push(c); continue }
             if (!object || step.source && !sourceObject || Object.hasOwn(step, "value") === !!step.source) gap(u, c, instance, body, step.name, "semantic-transform-unbound")
             else {
               const key = `${object.identity}.${step.field}`, source = sourceObject?.identity

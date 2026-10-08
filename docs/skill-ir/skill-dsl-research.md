@@ -2129,6 +2129,10 @@ AY7局部类定义小步（2026-10-08）：v26保留原function内class完整声
 
 主先修正unsupported predicate和effect异常预期两个fixture问题，再以有效红绿补dunder/class-cell、无raw call的局部shadow、formatted string body call被漏掉及returned closure中合格类定义。27新增，642focused/3938断言、联合1481pass/1平台skip/9745断言/115文件/20.91s及主/AY类型通过。两独立只读核验无可复现发现，均以现有测试为主、没有独立新fixture，范围见[类定义核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-class-definitions.json)。[真实来源probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-class-definitions-replay.json)核验94冻结及6补充文件、12所选body，全域7局部类/所选1类、合格及实际采用0；ExtendedSchema仍有base-unmodeled，SHA `502f40d9ca337e7d713da0bb44b796dc01bb839bee29ec75a54fa35dddd340bc`。无实验模型读证据/应用标注，实验模型/目标/probe网络新增0，开发/探子token、USD和真人时间unknown，旧输入/答/报告保持。实际继承/方法环境、模块类应用、原request及官方完整使用/预登记净收益继续，AY7未完成。
 
+AY7局部类namespace/继承小步（2026-10-08）：v27保留原namespace内字段与普通同步方法的交错顺序，在类创建时保存实际sourceCallable及稳定直接外层参数环境；class属性中的函数沿原binder调用，不自动注入self。有限base资格来自同owner唯一稳定的先定义local class，实际创建仍须取得当前namespace对象并计算C3。主native/source端到端验证父类后续写入、子类覆盖、菱形顺序、两次factory环境、显式self/keyword及原if/try；缺失/伪造/晚移的方法、base、capture、SHA、calleeRead或参数撤回材料。跨层capture/super/class cell、动态base、module初始化及constructor不借静态候选获得执行资格。
+
+主红绿另修class原声明误计rebound、dunder写入后沿过期MRO继续、mutable default和17 base错误资格；两题program的计数fixture及运行前cross-layer fixture更正不作为产品缺陷。39新增，681focused/4187断言、联合1520pass/1平台skip/9994断言/115文件/21.55s及主/AY类型通过；两独立只读复核均无可复现发现、以现有测试为主且没有独立新fixture，范围见[namespace核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-class-namespace.json)。[新真实probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-class-namespace-replay.json)核验94冻结及6补充文件、12所选body，全域7局部类/所选1类、合格类与base/method事实、namespace调用候选及实际采用均0；ExtendedSchema保留动态base-unmodeled，SHA `8ce20c2c65dfb35adf2b638c88d7168c1fbef36754d194d9c8a3273d012f2d80`。原报告/input/allowlist/答不升级；无实验模型读证据/标注，实验模型/目标/probe网络新增0，开发/探子token、USD与真人时间unknown。继续动态BaseSchema/跨层方法环境、模块类应用、原request和官方完整使用/预登记净收益，AY7未完成。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

@@ -13,6 +13,48 @@ import path from "node:path"
 const api = await import("./source-material-projection.ts").catch(() => ({} as any))
 const content = "def entry(actor):\n    return helper(actor)\ndef helper(actor):\n    return actor\ndef unrelated(actor):\n    return actor\n"
 const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect entry", premises: [] }, { id: "other", operationId: "op", intent: "scope", request: "Explain alternatives", premises: [] }] })
+for (const mode of ["direct", "inherited", "override", "keyword", "explicit-self", "overwrite", "field-order", "try", "diamond"]) test(`local class namespace functions use actual captures and unbound class arguments: ${mode}`, async () => {
+  const signature = mode === "explicit-self" ? "self, actor" : "actor", invocation = mode === "keyword" ? "actor=subject" : mode === "explicit-self" ? "Local, subject" : "subject"
+  const method = `${mode === "field-order" ? "        guard = None\n" : ""}        def guard(${signature}):\n            if flag:\n                raise Denied\n            return actor\n`
+  const content = `def entry(subject):\n    make(True, subject)\n    return True\ndef make(flag, subject):\n${["direct", "keyword", "explicit-self", "field-order"].includes(mode) ? `    class Local:\n${method}` : `    class Base:\n${method}${mode === "diamond" ? "    class Left(Base):\n        pass\n    class Right(Base):\n        def guard(actor):\n            return actor\n" : ""}    class Local(${mode === "diamond" ? "Left, Right" : "Base"}):\n${mode === "override" ? "        def guard(actor):\n            return actor\n" : "        pass\n"}`}${mode === "overwrite" ? "    Base.guard = None\n" : ""}${mode === "try" ? `    try:\n        Local.guard(${invocation})\n    except Denied:\n        return True\n` : `    Local.guard(${invocation})\n`}    return True\n`
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-class-namespace-")); await writeFile(path.join(sourceRoot, "app.py"), content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, units: any[] = []
+  const methods = index.symbols.filter(s => s.className && s.name === "guard"), definitions = index.symbols.filter(s => s.classDefinition)
+  expect(definitions.every(s => !s.classDefinition!.gap)).toBe(true)
+  for (const source of index.symbols.filter(s => s.kind === "function")) {
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id))!; expect(skeleton.gaps).toEqual([])
+    const annotations = skeleton.anchors.filter(a => ["parameter", "call", "return", "raise", "condition", "assignment"].includes(a.kind)).map(a => ({ anchorId: a.id, role: a.kind === "parameter" ? ["actor", "subject"].includes(a.name!) ? "principal" : "condition" : a.kind === "call" || a.kind === "condition" ? "condition" : "context", explanation: "Anonymous actual class namespace interpretation", ...(a.kind === "condition" ? { condition: { op: "eq", left: { binding: "flag" }, right: { literal: true } } } : {}), ...(a.kind === "return" && source.name === "entry" ? { returnOutcome: "allow" } : {}), ...(a.kind === "raise" ? { failureKind: "authorization" } : {}) }))
+    const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index, propertyDirected: true, itemId: source.id, handle: source.id, questionId: "q", role: source.name === "entry" ? "entry" : "helper" })
+    expect(result.diagnostics).toEqual([]); units.push({ ...result.unit!, questionId: "q", evidenceIds: skeleton.evidenceIds, source: skeleton.source })
+  }
+  const entry = units.find(u => u.source.id === index.symbols.find(s => s.name === "entry")!.id), owner = units.find(u => u.source.id === index.symbols.find(s => s.name === "make")!.id), call = index.relatedCalls(owner.source.id).find(c => c.expression === "Local.guard")!
+  expect(call.resolution).toBe("resolved"); expect((call as any).classNamespaceCall).toBeDefined()
+  const namespaceProgram = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect actual namespace functions", premises: [] }] })
+  const project = (adopted = units, current = index) => { const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" }); for (const u of adopted) store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }, { kind: "candidate-set", key: `relations:${u.source.id}:`, revision: sourceRelationRevision(index, u.source.id)! }], "test-authored"); return api.projectSourceMaterials(namespaceProgram, [entry, ...adopted.filter(u => u !== entry)], store.snapshot(), current, { questionDirected: true }) }
+  const projected = project(), lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true })
+  expect(projected.uses.filter((u: any) => u.kind === "call")).toHaveLength(2)
+  expect(lowered.diagnostics.map(d => d.code)).toEqual(mode === "overwrite" ? ["source-callable-value-unresolved"] : [])
+  expect(lowered.delta.rules.filter(r => r.terminal).map(r => r.outcome)).toEqual(mode === "overwrite" ? [undefined] : ["override", "try", "diamond"].includes(mode) ? ["allow"] : ["deny"])
+  for (const mutation of ["method-sha", "capture", "missing-method", "wrong-field", "late-method", "base", "callee", "argument"]) {
+    if (mutation === "base" && !definitions.some(s => s.classDefinition!.bases?.length)) continue
+    const changed = structuredClone(units), body = changed.find(u => u.source.id === owner.source.id).blocks.find((b: any) => b.steps.some((s: any) => s.name.startsWith("class-method-"))), creation = body.steps.find((s: any) => s.kind === "assign-value" && s.sourceCallable)
+    if (mutation === "method-sha") creation.sourceCallable.targetSha256 = "forged"
+    else if (mutation === "capture") creation.sourceCallable.captures = [{ parameter: "flag", object: "subject" }]
+    else if (mutation === "missing-method") body.steps = body.steps.filter((s: any) => s !== creation)
+    else if (mutation === "wrong-field") body.steps.find((s: any) => s.name.startsWith("class-method-field-")).field = "different"
+    else if (mutation === "late-method") body.steps.push(body.steps.splice(body.steps.indexOf(creation), 1)[0])
+    else if (mutation === "base") body.steps.find((s: any) => s.sourceClass?.bases?.length).sourceClass.bases = ["subject"]
+    else { const invocation = owner && changed.find(u => u.source.id === owner.source.id).blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call" && s.sourceCallId === call.id); if (mutation === "callee") invocation.callableRead.object = "Base.guard"; else invocation.arguments[0].object = "flag" }
+    expect(project(changed).uses.filter((u: any) => u.kind === "call").length).toBeLessThan(2)
+  }
+  expect(methods.length).toBeGreaterThan(0)
+  if (mode === "direct") {
+    expect(project(units, await buildStructureIndex([{ path: "app.py", content }, { path: "unrelated.py", content: "def guard(actor):\n    return actor\n" }], { repository: "anonymous", sourceRef: "r" })).uses).toEqual(projected.uses)
+    expect(project(units, await buildStructureIndex([{ path: "app.py", content: content.replace("raise Denied", "return actor") }], { repository: "anonymous", sourceRef: "r" })).uses).toEqual([])
+  }
+})
+
 async function fixture() {
   const index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" })
   const unit = (name: string): any => { const s = index.symbols.find(s => s.name === name)!; return { questionId: "q", itemId: name, handle: name, op: "add", role: name === "entry" ? "entry" : "helper", source: { id: s.id, path: s.path, sha256: s.sha256, startLine: s.startLine, endLine: s.endLine }, evidenceIds: ["ev"], start: "body", complete: true, coverage: "path", parameters: [{ name: "actor", type: "principal" }], blocks: [{ name: "body", steps: [{ kind: "return", name: "returned", claim: "Test-authored source return", object: "actor", ...(name === "entry" ? { outcome: "allow" } : {}) }] }] } }

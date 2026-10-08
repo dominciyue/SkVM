@@ -14,6 +14,10 @@ export function sourceArgumentBindings(index: SourceArgumentIndex, call: Structu
     return { expression: (keyword?.[2] ?? expression).trim(), parameterName: keyword?.[1], literalKnown: false }
   })
   const currentTarget = index.symbols.find(s => s.id === target.id), local = currentTarget?.localCallable, returned = currentTarget?.returnedCallable, instance = call.callableBinding
+  if (call.classNamespaceCall) {
+    const proof = call.classNamespaceCall, actual = caller && index.relatedCalls(caller.id, call.receiverClass).find(c => c.id === call.id), cls = index.symbols.find(s => s.id === proof.classId && s.sha256 === proof.classSha256)
+    if (!actual || actual.resolution !== "resolved" || actual.candidateIds.length !== 1 || actual.candidateIds[0] !== target.id || proof.targetId !== target.id || proof.targetSha256 !== currentTarget?.sha256 || !currentTarget?.classMethod || !cls?.classDefinition || cls.classDefinition.gap || cls.classDefinition.ownerId !== caller?.id || actual.expression !== call.expression || actual.sha256 !== call.sha256 || JSON.stringify(actual.argumentFacts) !== JSON.stringify(call.argumentFacts) || JSON.stringify(actual.classNamespaceCall) !== JSON.stringify(proof)) return fail("class-namespace-unresolved")
+  }
   if (call.methodBinding) {
     const proof = call.methodBinding, actual = caller && index.relatedCalls(caller.id, call.receiverClass).find(c => c.id === call.id)
     if (!actual || actual.resolution !== "resolved" || actual.candidateIds.length !== 1 || actual.candidateIds[0] !== target.id || proof.targetId !== target.id || proof.targetSha256 !== currentTarget?.sha256 || proof.source.sha256 !== caller?.sha256 || proof.name !== call.expression || proof.receiver !== call.receiver || actual.receiver !== call.receiver || actual.receiverClass !== call.receiverClass || actual.expression !== call.expression || actual.sha256 !== call.sha256 || JSON.stringify(actual.argumentFacts) !== JSON.stringify(call.argumentFacts) || JSON.stringify(actual.methodBinding) !== JSON.stringify(proof)) return fail("method-alias-unresolved")
@@ -71,7 +75,7 @@ export function sourceArgumentBindings(index: SourceArgumentIndex, call: Structu
       if (isPosition) { position = positional.length; posConsumed = true } else { for (const a of extras) usedKeywords.add(a.parameterName!); keyConsumed = true }
       continue
     }
-    const receiver = i === 0 && target.className && target.attributes.methodBinding !== "static" && call.receiver
+    const receiver = !call.classNamespaceCall && i === 0 && target.className && target.attributes.methodBinding !== "static" && call.receiver
     const suppliedPosition = !receiver && parameter.kind !== "keyword-only" ? positional[position++] : undefined, keyword = keywords.find(a => a.parameterName === parameter.name)
     if (posSource && !receiver && parameter.kind !== "keyword-only" && !suppliedPosition) return fail("position-unresolved")
     if (keyword && (receiver || suppliedPosition || parameter.kind === "positional-only")) return fail("duplicate-or-positional-only")

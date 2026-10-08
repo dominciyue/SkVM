@@ -89,7 +89,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       skeleton.anchors.push(anchor); positions.set(id, n.startIndex); return anchor
     }
     const gap = (n: Node, code: string, reason: string) => { if (!skeleton.gaps.some(g => g.code === code && g.selector.startLine === n.startPosition.row + 1)) skeleton.gaps.push({ code, selector: located(n), reason }) }
-    const captureProof = source.valueCallable && !source.valueCallable.gap ? source.valueCallable : source.localCallable && !source.localCallable.gap ? source.localCallable : undefined
+    const captureProof = source.classMethod ?? (source.valueCallable && !source.valueCallable.gap ? source.valueCallable : source.localCallable && !source.localCallable.gap ? source.localCallable : undefined)
     if (questionDirected && source.localCallable?.gap && !(source.valueCallable && !source.valueCallable.gap)) gap(fn, source.localCallable.gap, "This local body has no proved direct callable/capture binding in its owner; reading it does not supply its invocation.")
     const actualCalls = [...index.relatedCalls(source.id, receiverClass), ...index.calls.filter(c => c.id === registration?.sourceCallId)]
     const fieldStores = questionDirected ? index.fieldStores(source.id, receiverClass) : []
@@ -204,7 +204,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
               value.dependencyFacts = { reads: [decorator.expression], writes: [decorator.valueResult], pureLocal: false }; flow.push({ kind: "step", anchorId: value.id })
             }
           }
-          created.dependencyFacts = { reads: [], writes: [`class-original-${proof.anchorId}`], pureLocal: false }; flow.push({ kind: "step", anchorId: created.id })
+          created.dependencyFacts = { reads: [...proof.bases.map(base => base.expression), ...proof.methods.flatMap(method => method.captures.map(c => c.name))], writes: [`class-original-${proof.anchorId}`], pureLocal: false }; flow.push({ kind: "step", anchorId: created.id })
           let result = `class-original-${proof.anchorId}`
           for (const decorator of [...proof.decorators].reverse()) {
             const actual = actualCalls.find(c => c.id === decorator.applicationCallId)!, node = nodes.find(d => d.startIndex === decorator.source.startIndex && d.endIndex === decorator.source.endIndex)!
