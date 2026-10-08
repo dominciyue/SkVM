@@ -8,6 +8,12 @@ import type { PropertyDemand } from "../../task-dsl/authorization/property-deman
 
 export interface OperationWorkAction { id: string; obligation: "entry" | "principal-binding" | "resource-binding" | "guard" | "effect" | "exception"; kind: "read" | "interpret" | "link"; candidateId: string; relationId: string; reason: string; receiverClass?: string; decisive: boolean; frameworkBoundary?: boolean }
 const hash = (v: unknown) => createHash("sha256").update(JSON.stringify(v)).digest("hex")
+/** Scheduling prose is a preview; exact arguments remain in the source index
+ * and the cited original range. Large schema/decorator strings are not duties. */
+const argumentPreview = (value: unknown) => {
+  const text = JSON.stringify(value), bytes = Buffer.byteLength(text)
+  return bytes <= 512 ? text : `<source arguments omitted: ${bytes} UTF-8 bytes; inspect the cited original source>`
+}
 const drfDispatchMethods = ["dispatch", "initial", "check_permissions", "get_permissions"]
 /** Invalidation follows this receiver's source configuration; it proves no control meaning. */
 function drfReceiverRevision(index: StructureIndex, className: string) {
@@ -37,7 +43,7 @@ export function operationWork(index: StructureIndex, entryId: string, readSymbol
     const demand = options.propertyDemand, scope = demand?.source.id === entry.id && demand.source.sha256 === entry.sha256 && demand.dependencies?.schemaVersion === "authorization-property-dependencies/v2" ? demand.dependencies.callScopes?.find(s => s.sourceCallId === call.id) : undefined
     if (scope && scope.state !== "required" && !options.frameworkInvocation) { propertyResiduals.push({ sourceCallId: call.id, candidateIds: [...call.candidateIds], reason: scope.reason }); continue }
     if (call.resolution === "unresolved") { gaps.push(call); continue }
-    for (const candidate of call.candidateIds) add(candidate, call.id, `Inspect AST-bound ${call.expression} at ${call.path}:${call.startLine}; arguments ${JSON.stringify(call.arguments)}. Source relevance and conditions still need interpretation.`, "guard", call.receiverClass, call.syntaxRole === "condition" || call.syntaxRole === "return")
+    for (const candidate of call.candidateIds) add(candidate, call.id, `Inspect AST-bound ${call.expression} at ${call.path}:${call.startLine}; arguments ${argumentPreview(call.arguments)}. Source relevance and conditions still need interpretation.`, "guard", call.receiverClass, call.syntaxRole === "condition" || call.syntaxRole === "return")
   }
   const addRequestDependencies = (ownerId: string) => {
     const dependencies = index.requestDependencies(ownerId)
@@ -58,7 +64,7 @@ export function operationWork(index: StructureIndex, entryId: string, readSymbol
       if (middleware.length) frameworkDependencies.push({ kind: "framework-model", key: `fastapi-source-asgi/v1:${route.id}`, revision: hash(middleware) })
       for (const registration of middleware) {
         if (registration.gap) frameworkGaps.push({ key: registration.id, reason: `Current middleware ${registration.qualifiedName} at ${registration.source.path}:${registration.source.startLine}: ${registration.gap}.`, code: registration.gap, receiverClass: registration.receiverClass })
-        for (const method of registration.methodCandidates) add(method.candidateId, `${registration.id}:${method.method}`, `Inspect source middleware reference ${registration.qualifiedName}.${method.method}, application binding ${registration.registrationBinding}, source call ${registration.sourceCallId}, configuration ${JSON.stringify(registration.arguments)} and enclosing source contexts ${JSON.stringify(registration.registrationContext)}. Source order does not prove request execution order or continuation adoption.`, "guard", registration.receiverClass, true, true)
+        for (const method of registration.methodCandidates) add(method.candidateId, `${registration.id}:${method.method}`, `Inspect source middleware reference ${registration.qualifiedName}.${method.method}, application binding ${registration.registrationBinding}, source call ${registration.sourceCallId}, configuration ${argumentPreview(registration.arguments)} and enclosing source contexts ${JSON.stringify(registration.registrationContext)}. Source order does not prove request execution order or continuation adoption.`, "guard", registration.receiverClass, true, true)
       }
     }
     if (options.questionDirected && route.model === "fastapi-source-router/v1") addRequestDependencies(route.id)
@@ -74,7 +80,7 @@ export function operationWork(index: StructureIndex, entryId: string, readSymbol
     if (decorators.length) frameworkDependencies.push({ kind: "framework-model", key: `source-class-decorator/v1:${className}`, revision: hash(decorators) })
     for (const decorator of decorators) {
       frameworkGaps.push({ key: decorator.id, code: decorator.gap ?? "source-class-decorator-transformation-unadopted", receiverClass: className, reason: `Class decorator ${decorator.expression} on ${decorator.declaringClass} at ${decorator.source.path}:${decorator.source.startLine}: ${decorator.gap ?? "current class/method transformation has not been adopted"}. Returned identity, mutations and exceptions remain source obligations.` })
-      for (const candidate of decorator.sourceCandidates) add(candidate.candidateId, `${decorator.id}:${candidate.role}:${candidate.candidateId}`, `Inspect ${candidate.role} source for class decorator ${decorator.expression}, declaration ${decorator.source.path}:${decorator.source.startLine}, arguments ${JSON.stringify(decorator.arguments)}, actual receiver ${className}. Factory and returned callable candidates prove no invocation or class/method transformation; retain mutation and exception control.`, "guard", undefined, true, true)
+      for (const candidate of decorator.sourceCandidates) add(candidate.candidateId, `${decorator.id}:${candidate.role}:${candidate.candidateId}`, `Inspect ${candidate.role} source for class decorator ${decorator.expression}, declaration ${decorator.source.path}:${decorator.source.startLine}, arguments ${argumentPreview(decorator.arguments)}, actual receiver ${className}. Factory and returned callable candidates prove no invocation or class/method transformation; retain mutation and exception control.`, "guard", undefined, true, true)
     }
   }
   if ((entry.kind === "class" || options.sourceAssisted && options.operationRoot) && className && mro?.some(c => c.startsWith("rest_framework."))) {

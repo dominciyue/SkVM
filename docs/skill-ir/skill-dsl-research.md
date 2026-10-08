@@ -32,7 +32,7 @@
 
 最新AY结果补充：两份原skill和两包原字节消费均已实际运行。Download消费者源码评阅full但机器partial，OWUI消费者仍漏决定性helper；政策/前提变化已有部分运行，源码变化及质量位置受账号额度阻断。[最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)记录可见完整input 32,465,835、output 125,283、其中cacheRead 29,939,200（已包含在input），USD/隐藏请求/开发/真人成本未知。旧AX、AW结果保留其当时口径。
 
-当前关键问题是：**让模型按当前源码需求提交可计算语义，并让宿主实际采用。** BA已实现宿主管理编辑、精确反馈及同题事实；首轮普通账号恢复成功，1个包装单元被采用，但0性质绑定/检查、源码答案partial。实测暴露旧新指引混用、结构role选择、39次自动读取与未绑定占位重复诊断；共享修复回归通过，等待同输入具名复验。尚无完整任务质量或复用收益；AZ原17未运行位置不补写，详见§7.62。
+当前关键问题是：**让模型按当前源码需求提交可计算语义，并让宿主实际采用。** BA已实现宿主管理编辑、精确反馈及同题事实；Download修订接受7单元但仍仅入口采用、无性质绑定、源码partial。OWUI原答按完整原题评价full且保留上游限制，机器却0采用/1绑定unknown；轨迹定位到await函数值读取和残余调用顺序身份，匿名修复通过，具名复验待执行。尚无同版本比较或复用收益；AZ原17未运行位置不补写，详见§7.62。
 
 ## 2. 研究目标与术语
 
@@ -2228,6 +2228,20 @@ AZ1诊断工程（2026-10-09）：投影现在明确报告版本/来源/依赖�
 轨迹定位到共享层：旧sourceUpdate指引与edit并列；return/raise提供不合结构的effect选项；当前解释未完成即自动展开，接受包装后装饰器的serializer候选挤过直接helper；同性质的其它source未绑定占位被当成重复绑定。分别先红测，再将v6编辑设为主指引、角色共用lowerer约束、当前事务暂停自动展开/已接受父源后优先直接调用、显式绑定优先于声明占位。未知框架边和错对象/提前返回/未知helper仍保留。静态无效final也花真实总量，因此可用检查次数取语义额度和实际剩余的较小值；不为保留两次检查退还失败成本。受影响1736 pass/1 skip/11424 assertions、主类型检查通过，两个只读独立复核无必须修复发现。具名复验前不得推断这些工程变化已改善模型质量。
 
 首轮input1,338,020（已含cacheRead1,172,352）、output6,550，123,983ms；上下文原始6,279,106字节经既有无损编码发送2,613,607字节，仍有装饰器长参数重复的待核验减负线索。USD、隐藏provider请求及开发探子费用unknown，失败和恢复成本均保留。首轮机器闭合及完整任务效果未达，主质量板暂停到确认共享缺陷修复；同输入具名复验计入同一逻辑位置。
+
+**同输入transaction-priority-1。** bfa29a6d的普通native复验completed：44动态调用+20自动读取，13次解释提交/9合法编辑，接受7源单元和54控制步。7份材料均current/available，使用仍只有entry1次，0性质绑定/检查；终答补上owner/grant分支，但仍漏实际receiver继承的GET模型权限，匿名源码复核partial。两个旧格式提案把propertyBindings放到annotation内；两个final先多questionId、后missing给string，严格拒绝符合合同，4拒绝后交付关闭。原提案及失败成本保留。
+
+对“宿主丢了六个helper/entry已生成call”的独立核验意见，主代理点验原blocks后否决：entry把self.file_response解释为primitive effect，blocks中没有call；7材料仍保存且available，投影diagnostics为空。因此该提案没有通往helper的可执行调用，不能归因投影遗失，更不能自动把模型的effect改成另一个语义。source接受/直接helper调度有进展，完整采用链仍未成立；Download同因重抽暂停，独立OWUI位置继续。input5,552,133含cache5,325,312、output19,322，325,896ms；原始context10,450,766字节、编码后2,264,838字节。更多接受单元没有证实任务质量或成本收益。
+
+本轮归档Git校验发现results强制text规则会损坏新增gzip；只为BA压缩文件增加binary规则，从未变本地原件重新暂存，并验证index字节、CRC与JSON。历史结果不改。新增零调用汇总器复用既有纯计量/固定12位置面板，首件与修订逐行保留、22位置分母及未运行原因不删、unknown不填0；2红→2绿/14断言和研究typecheck通过。
+
+**OWUI独立位置与第二层归因。** bfa29a6d同预算completed：45动态调用+12自动读取，7解释提交/183合法编辑、接受5单元/108控制步；1格式拒绝后两个有效形状检查都执行，未耗尽格式预算。5材料中root因material-callable-creation-invalid不可用，0使用；1性质绑定unknown、轨迹空。input3,817,636含cache3,528,960、output20,991，389,606ms。自然答案解释owner/admin文件查找、独立目的collection、bypass、删除/追加/重复与具体剩余限制。第一次匿名意见把全knowledge读写删算作原题要求；主代理核对原brief后否决，新独立复核按原题判full，完整知识接口审计不能追加为扣分项。允许源码未建模的上游与部署配置未知仍明示，机械采用依旧失败。
+
+精确源码1695的save_docs_to_vector_db具有模块函数值证明，原unit却无创建步骤。匿名同步版通过、await版红测；expressionFlow沿await操作数递归后第一层修复通过。原提案零调用重放仍拒绝，进一步点验发现前后db.commit/len/log调用保留为property-residual名的unresolved，既有顺序证明只识别实际call/context/effect等来源事件。第二匿名例增加前后未知调用后再次红测；lowering仅让此类调用保留context-<anchor>事件名，kind/reason/unknown及不完整状态不改，严格投影校验器完全不改。两个根因分别验证，不能把第一次匿名通过冒充真实问题已解。
+
+**减负责任。** 两Download轨迹同一装饰器待办question为10,651字节，多候选重复携带长schema参数。调度散文现在只保留512UTF-8字节内的完整参数，超出显示长度及原行查阅指引；结构索引、依赖hash和框架unknown不变。12KiB匿名装饰器红→绿证明预览有界且原参数仍可取回。该工程减负尚不证明实际token、质量或复用收益。
+
+原提案零调用重放完成：相同annotations/unresolved，仅更新宿主revision及生成步骤，5材料全可用、1entry+2call使用，原2未解释项及单元不完整保持；3个缺失/错源/晚建creation反证全部撤回root。未匹配数据库callee和router-options仍具名阻断，不能将派生3使用回填原运行的0或算真实检查成功。新受影响回归1739 pass/1 skip/0 fail、主/研究类型与15文档测试通过，两个只读复核未见必须修复代码问题。零调用实际汇总保留22位置/3attempts/2pilot、12质量未运行，输入10,707,789含缓存10,026,624、输出46,863，比较inconclusive；下一具名普通OWUI复验。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

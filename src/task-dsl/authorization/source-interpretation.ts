@@ -210,7 +210,8 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
         block.steps.push({ kind: "context", name: `summary-${a.id}`, claim: "Current source-bound flat helper has no mutation, call or exceptional branch; its actual arguments bind and its return is unused", relationship: "dispatch-binding", mayRaise: false }); continue
       }
       if (options.propertyAbstraction && (node.kind === "branch" && !annotation?.condition && !a.literalKnown || a.kind === "raise" && !annotation?.failureKind || a.kind === "call" && annotation?.role === "context" && !options.callSummaries?.some(s => s.anchorId === a.id && s.callerRevision === skeleton.revision))) {
-        block.steps.push({ kind: "unresolved", name: `property-residual-${a.id}`, claim, reason: "property-source-influence-unresolved" }); unit.complete = false; continue
+        // Preserve the actual call's source-order identity while its influence remains unknown.
+        block.steps.push({ kind: "unresolved", name: `${a.kind === "call" ? "context" : "property-residual"}-${a.id}`, claim, reason: "property-source-influence-unresolved" }); unit.complete = false; continue
       }
       if (node.kind === "branch") {
         const yes = `source-true-${serial}`, no = `source-false-${serial++}`, condition = demand && a.literalKnown && typeof a.literalValue === "boolean" ? { op: "eq", left: { literal: a.literalValue }, right: { literal: true } } : annotation!.condition!

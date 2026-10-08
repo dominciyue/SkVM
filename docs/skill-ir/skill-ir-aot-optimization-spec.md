@@ -2826,7 +2826,7 @@ AZ3–AZ8首个有界实现：性质以原题要求的精确文本跨度声明�
 
 ### 14.40 BA semantic submission and adoption
 
-2026-10-09，用户要求复核AZ并派发gpt-6.1-sol/max接续开发，任务书为[BA0–BA18](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)。语义编辑、选定协议诊断及预算已接入公共入口；首个真实Download恢复交付了1个源单元/1次材料采用，但未绑定性质、检查失败、自然答案partial。AZ原件和结论不改。
+2026-10-09，用户要求复核AZ并派发gpt-6.1-sol/max接续开发，任务书为[BA0–BA18](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)。语义编辑、选定协议诊断及预算已接入公共入口；Download原件/修订都交付但仍partial且无性质绑定。OWUI首件源码答案full，机器0采用、1绑定unknown，不能混为完整机械闭合。AZ原件和结论不改。
 
 **语义编辑与编译。** 既有v6接受`{schemaVersion:"authorization-source-edit/v1",kind:"edit",transactionId,edits:[{anchorId,field,value}],values?,reason?}`。事务由当前focus及完整源码revision派生；宿主填写内部focus/revision，模型不能覆盖。普通field取现有SourceAnnotationSchema字段（anchorId除外），value沿用对应Schema；`unresolved`值为具名原因。根字段`fallthroughOutcome`和`propertyBindings`省略anchorId。槽位提供源行、相关原题、当前值、类型及必要原因，Schema和匿名表达式示例共源。跨题/过期/冲突、外来锚点、重复槽位和非法枚举拒绝，不改草稿；合法不完整字段保留，role/explanation齐备后编译回原SourceInterpretation，再由原lowering要求predicate、对象联系及出处。宿主不替模型填permission/effect/allow/deny或用户前提。原始编辑与生成的内部提案均保留，不复制求值器。
 
@@ -2841,6 +2841,8 @@ BA新编辑模式按会话计数，不按focus重置：首个格式错误后的2
 首轮暴露边界：探索耗尽后，官方静态工具仍可能收到无效最终参数；该真实尝试不能既计入总量又凭空保住所有检查位置。宿主不再主动派发非检查动作，剩余有效检查受实际总量限制；checksRemaining取语义额度与实际剩余调用的较小值，semanticChecksUsed仍只计真正进入的检查。无效终交付不退费、不增预算。此明确了“预留”的调度边界，不能解释为外来错误尝试不消耗总量。
 
 **采用与领域推进。** 从实际公共工具参数验证经过focus/lowering/projection到property check测试；不以测试直接注入成功semantic units代替公共接线。真实采用先解决一条局部性质，再检查两完整原skill任务。框架/调用/对象关系按真实首阻断修复，未知装饰器不默认无影响；无关外围语言扩张不进入队列。结构自洽与独立源码语义评阅分别保留。
+
+Python await只沿实际操作数保留已有表达式求值和函数值读取，不新增调度/完成语义。v6 context调用的未知影响仍是unresolved、reason=property-source-influence-unresolved、单元不完整；其生成名保留context-<原anchor>，使既有严格创建/顺序证明识别实际源码位置。来源、对象、控制、唯一创建和顺序校验不放宽。调度理由中的长调用/装饰器参数只展示512 UTF-8字节内的完整值，超出则给原字节长度及查原行指引；精确索引、依赖身份和未知边界保留。
 
 **公平性和指标。** 新共同task-facts保留相同原问题、政策和前提，M/D编译为同一义务；N获得同一自然问题、完整skill和公共源码工具。旧作者稿只用于单列消费，不再成为D主面板独有预加工。22主位置为2子性质、12完整质量、2消费、6变化；首件、修订、通道恢复及epoch单列，协议失败保留端到端分母。质量、开销、编写复用分别评价；完整输入含缓存只计一次，未知USD/隐藏请求/真人成本保留unknown。未达项和研究效果如实记录，不以测试数或有限队列结束标研究成功。
 

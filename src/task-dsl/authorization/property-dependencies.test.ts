@@ -101,6 +101,6 @@ test("v6 actually adopts an unused mechanically pure call and preserves prior un
   expect(result.demand!.dependencies!.requiredAnchorIds).toContain(opaque.id)
   const steps = result.unit!.blocks.flatMap(b => b.steps)
   expect(steps).toContainEqual(expect.objectContaining({ kind: "context", name: `summary-${audit.id}`, mayRaise: false }))
-  expect(steps).toContainEqual(expect.objectContaining({ kind: "unresolved", name: `property-residual-${opaque.id}` }))
+  expect(steps).toContainEqual(expect.objectContaining({ kind: "unresolved", name: `context-${opaque.id}`, reason: "property-source-influence-unresolved" }))
   expect(result.unit!.complete).toBe(false)
 })

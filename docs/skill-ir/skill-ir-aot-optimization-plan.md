@@ -2,7 +2,7 @@
 
 更新于2026-10-09。唯一实时入口为 [current-status](current-status.md)。
 
-- 当前任务书：[BA0–BA18：授权语义提交、实际采用与完整任务验证](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)，`in-progress`；共享编辑/协议接线和首个Download试跑已完成，性质绑定及完整任务尚未达标。
+- 当前任务书：[BA0–BA18：授权语义提交、实际采用与完整任务验证](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)，`in-progress`；两pilot已交付。Download修订仍partial/无性质绑定；OWUI源码答案full但0采用、性质unknown，真实机械闭合尚未达标。
 - 方法合同：[spec §14.40](skill-ir-aot-optimization-spec.md#1440-ba-semantic-submission-and-adoption)；依据：[研究§7.62](skill-dsl-research.md#762-ba-从真实拒绝到可用语义编辑)。
 - 复核基线 `29c400ff` 与用户origin一致。开发 `gpt-6.1-sol/max`，实验当前官方账号 `gpt-5.6-sol/high`。第三方API与AV旧位置继续暂停。
 
@@ -13,6 +13,8 @@
 已有v6、结构索引、MRO、procedure-summary、source-materials、inquiry/native和CLI继续复用。新增语义编辑只是同一核心的输入适配。修复待填视图、实际Schema及错误反馈之间的冲突，保留错对象、缺predicate、未知调用和过期来源的检查。
 
 当前具名复验修复：v6首选编辑路径统一，旧模板明确列为兼容；结构角色限制共源。当前源码事务未完成时不自动展开其它候选，直接源码调用先于外围框架候选；未知装饰器和全部候选仍保留。性质声明占位不再当重复绑定，实际冲突绑定继续拒绝。首轮39自动读取、3格式拒绝/1失败检查和partial原答均保留，修订不覆盖首件。
+
+Download同因重抽暂停。OWUI原提案暴露await操作数漏建函数值，以及context调用保守降为unknown后丢了来源顺序事件名；两项分别匿名红→绿，严格投影验证器不改。先零调用重放原提案/缺失与错源与错序反证，再提交快照并具名复验。长装饰器参数只在调度散文中给512字节预览，原索引/原行/未知义务完整保留；实际成本改善待实测。
 
 ## BA 队列与验收责任
 

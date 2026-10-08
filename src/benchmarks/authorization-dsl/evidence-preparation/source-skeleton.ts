@@ -144,6 +144,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     const expressionFlow = (n: Node, resultBinding?: string): SourceFlow[] => {
       if (questionDirected && source.language === "python" && n.type === "expression_statement") return kids(n).flatMap(a => expressionFlow(a, resultBinding))
       if (questionDirected && source.language === "python" && n.type === "keyword_argument") return field(n, "value") ? expressionFlow(field(n, "value")!) : []
+      if (questionDirected && source.language === "python" && n.type === "await") return kids(n).flatMap(a => expressionFlow(a, resultBinding))
       const superMethod = questionDirected && actualCalls.find(c => c.superMethod?.source.startIndex === n.startIndex && c.superMethod.source.endIndex === n.endIndex)?.superMethod
       if (superMethod) {
         const anchor = add(n, "assignment", { name: sourceSuperMethodResult(superMethod.sourceCallId), syntax: "source_super_method", superMethod })

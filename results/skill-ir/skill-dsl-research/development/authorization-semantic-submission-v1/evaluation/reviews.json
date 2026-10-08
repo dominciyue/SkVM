@@ -38,6 +38,70 @@
       ],
       "mechanicalAndSourceMeaningSeparate": true,
       "wholeTaskFull": false
+    },
+    {
+      "sampleId": "sample-002",
+      "attemptId": "pilot-download/transaction-priority-1",
+      "answerSha256": "40774fb903a05b46413b1ac41153f1af7448d7bb6e63f3b5783de327cb2963a8",
+      "reviewMethod": "Anonymous answer plus complete original task and allowed original sources only; main exact source adjudication",
+      "sourceSemanticQuality": "partial",
+      "correct": [
+        "Root authorization versus selected version effect correctly distinguished",
+        "Ownerless/owner/Guardian branches now described",
+        "Version family and original/archive behavior correct"
+      ],
+      "omissions": [
+        {
+          "source": "src/documents/permissions.py:36-43;framework/rest_framework-3.18.1/rest_framework/permissions.py:203-216,233-246",
+          "finding": "Actual GET mapping is view_document via subclass self.perms_map; model-level request permission not resolved by merely naming PaperlessObjectPermissions."
+        },
+        {
+          "source": "src/documents/permissions.py:46-53;src/documents/views.py:1835-1839",
+          "finding": "Action object-level permission applicability/invocation not established; cannot assert a get_object check on requested version."
+        }
+      ],
+      "wholeTaskFull": false,
+      "mechanicalAndSourceMeaningSeparate": true
+    },
+    {
+      "sampleId": "sample-003",
+      "attemptId": "pilot-owui/original",
+      "answerSha256": "ef83ec65d481c3868356daf01749d8d10f8c8f13cc1f59c0786bb19d7632e2ad",
+      "reviewMethod": "Two read-only anonymous source reviews; main adjudicated the exact original brief and cited allowed source",
+      "sourceSemanticQuality": "full",
+      "correct": [
+        "Verified user/admin caller and owner-constrained normal-user input lookup",
+        "Input file and destination collection are distinct; no destination ownership assumption",
+        "Caller-owned, other-user, admin and missing-file outcomes",
+        "Content deletion, bypass, supplied/derived collection, add and duplicate branches",
+        "Explicit upstream, deployment and processing-completion limits"
+      ],
+      "omissions": [],
+      "adjudication": [
+        {
+          "advisory": "The request requires all knowledge edit/delete/read handlers",
+          "decision": "rejected",
+          "source": "model/task-facts/owui.json $.originalBrief",
+          "reason": "The original request concerns process_file, file_id, caller and destination collection, not a complete knowledge API audit"
+        },
+        {
+          "advisory": "Full conditional source answer for the actual original request",
+          "decision": "accepted",
+          "source": "backend/open_webui/routers/retrieval.py:1546-1762;models/files.py:161-184;utils/auth.py:458-464;main.py:1427",
+          "reason": "Core conditions are correct, upstream/deployment limits remain explicit, and machine adoption is scored separately"
+        }
+      ],
+      "dimensions": {
+        "inputAuthorization": "correct",
+        "destinationObjectRelation": "correct",
+        "branches": "covered",
+        "remainingLimits": "explicit",
+        "sourceCoverage": "bounded-handler-and-save-path",
+        "mechanicalCheck": "unknown-with-empty-trace",
+        "materialAdoption": "failed-root-availability"
+      },
+      "wholeTaskFull": true,
+      "mechanicalAndSourceMeaningSeparate": true
     }
   ],
   "evaluatorProvidedToRuntime": false

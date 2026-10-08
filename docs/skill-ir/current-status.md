@@ -4,11 +4,11 @@
 
 ## 当前工作
 
-**当前执行[BA0–BA18：授权语义提交、实际采用与完整任务验证](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)。** 开发模型 `gpt-6.1-sol/max`，接管HEAD `1c822e10`。已登记22位置，带类型编辑及两个公共入口已接通。首个真实Download恢复已正常交付，接受1个入口单元/1份材料/1次采用，但0绑定性质、检查失败、源码质量partial；当前修复首阻断并准备具名复验。
+**当前执行[BA0–BA18：授权语义提交、实际采用与完整任务验证](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)。** 开发模型 `gpt-6.1-sol/max`，接管HEAD `1c822e10`。22位置中两pilot已尝试，Download具名复验接受7单元/7材料、1采用、0性质绑定，源码partial；OWUI首件接受5单元、0采用、1绑定unknown，自然答案按完整原题评为full且保留上游/部署限制。当前修复真实提案暴露的await函数值读取和残余调用顺序身份，准备OWUI具名复验。
 
 本轮优先实现宿主管理的语义编辑、按实际协议反馈错误、可用的有限检查预算和临时通道恢复，再验证真实提交→材料采用→性质检查。复用v6和普通native/inquiry，不新建执行平台。格式通过后仍要补有限predicate和决定性关系，工程、采用、源码质量分别验收。
 
-BA重新登记共同任务事实与原问题，M/D共用相同义务及核心，避免AZ的1题与4/11题拆分差异；旧作者包单列消费。计划22位置（2子性质、12完整质量、2消费、6变化），所有修订与未执行项单列。首轮可见输入1,338,020（含缓存1,172,352）、输出6,550；实际USD及隐藏请求unknown，尚无收益证据。
+BA重新登记共同任务事实与原问题，M/D共用相同义务及核心，避免AZ的1题与4/11题拆分差异；旧作者包单列消费。计划22位置（2子性质、12完整质量、2消费、6变化），所有修订与未执行项单列。当前3尝试可见输入10,707,789（含缓存10,026,624）、输出46,863；实际USD及隐藏请求unknown，尚无比较收益证据。
 
 方法合同见[spec §14.40](skill-ir-aot-optimization-spec.md#1440-ba-semantic-submission-and-adoption)，复核和取舍见[研究 §7.62](skill-dsl-research.md#762-ba-从真实拒绝到可用语义编辑)。新结果写入authorization-semantic-submission-v1；任务书里的要求不能视为结果。
 
