@@ -1,6 +1,33 @@
 import { expect, test } from "bun:test"
 import { buildStructureIndex } from "./structure-index.ts"
 
+for (const mode of ["parameter", "local", "conditional", "call"]) test(`dynamic identifier base retains its actual lexical binding and preparation: ${mode}`, async () => {
+  const prepare = mode === "parameter" ? "" : mode === "conditional" ? "    selected = base\n    if flag:\n        selected = other\n" : mode === "call" ? "    selected = select(base)\n" : "    selected = base\n", expression = mode === "parameter" ? "base" : "selected"
+  const content = "def build(base, other, flag, actor):\n" + prepare + "    class Child(" + expression + "):\n        def guard(item):\n            return item\n    Child.guard(actor)\n    return Child\n" + (mode === "call" ? "def select(value):\n    return value\n" : ""), index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), owner = index.symbols.find(s => s.name === "build")!, child = index.symbols.find(s => s.name === "Child")!, proof = child.classDefinition!
+  expect(proof.gap).toBeUndefined()
+  expect(proof.bases).toEqual([expect.objectContaining({ expression, binding: { ownerId: owner.id, ownerSha256: owner.sha256 }, assignments: expect.any(Array) })])
+  expect((proof.bases[0] as any).targetId).toBeUndefined(); expect((proof.bases[0] as any).assignments).toHaveLength(mode === "parameter" ? 0 : mode === "conditional" ? 2 : 1)
+  const call = index.relatedCalls(owner.id).find(c => c.expression === "Child.guard")!
+  expect(call.classNamespaceCall?.targetId).toBe(index.symbols.find(s => s.name === "guard")!.id); expect(call.resolution).toBe("resolved")
+})
+
+test("dynamic base parameters shadow module names without borrowing their class identity", async () => {
+  const content = "class Base:\n    allowed = True\ndef build(Base):\n    class Child(Base):\n        allowed = False\n    return Child\n", index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), owner = index.symbols.find(s => s.name === "build")!, base = index.symbols.find(s => s.name === "Child")!.classDefinition!.bases[0] as any
+  expect(base).toBeDefined(); expect(base.binding?.ownerId).toBe(owner.id); expect(base.targetId).toBeUndefined()
+})
+
+for (const mode of ["inherited", "field-shadow"]) test(`dynamic parent does not lend a static inherited method candidate: ${mode}`, async () => {
+  const content = "def guard(actor):\n    return actor\ndef build(base, actor):\n    class Child(base):\n" + (mode === "field-shadow" ? "        def guard(item):\n            return item\n        guard = None\n" : "        allowed = False\n") + "    return Child.guard(actor)\n", index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), owner = index.symbols.find(s => s.name === "build")!, call = index.relatedCalls(owner.id).find(c => c.expression === "Child.guard")!
+  expect(index.symbols.find(s => s.name === "Child")!.classDefinition!.gap).toBeUndefined()
+  expect(call.classNamespaceCall).toBeUndefined(); expect(call.candidateIds).toEqual([]); expect(call.resolution).toBe("unresolved")
+})
+
+for (const mode of ["late", "augmented", "delete", "loop", "walrus", "global", "nonlocal", "attribute", "call", "duplicate", "module"]) test(`dynamic base retains unsupported writer and expression boundaries: ${mode}`, async () => {
+  const prefix = mode === "global" ? "    global base\n" : mode === "nonlocal" ? "    nonlocal base\n" : mode === "augmented" ? "    base += 1\n" : mode === "delete" ? "    del base\n" : mode === "loop" ? "    for base in []:\n        pass\n" : mode === "walrus" ? "    if (base := other):\n        pass\n" : "", expression = mode === "attribute" ? "base.child" : mode === "call" ? "base()" : mode === "duplicate" ? "base, base" : "base"
+  const content = "class base:\n    allowed = True\ndef build(" + (mode === "module" ? "" : "base, other") + "):\n" + prefix + "    class Child(" + expression + "):\n        allowed = False\n" + (mode === "late" ? "    base = other\n" : "") + "    return Child\n", index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" })
+  expect(index.symbols.find(s => s.name === "Child")!.classDefinition!.gap).toBeDefined()
+})
+
 for (const kind of ["returned", "class", "helper"]) test(`stable parameter assignments before ${kind} creation retain their exact capture preparation`, async () => {
   const nested = kind === "class" ? "    class Local:\n        def check(item):\n            return flag\n    return Local.check(actor)\n" : "    def check(item):\n        return flag\n" + (kind === "returned" ? "    return check\n" : "    return check(actor)\n")
   const content = "def create(flag, actor):\n    if flag:\n        flag = False\n" + nested + (kind === "returned" ? "def entry(actor):\n    check = create(True, actor)\n    return check(actor)\n" : ""), index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), create = index.symbols.find(s => s.name === "create")!, check = index.symbols.find(s => s.name === "check")!, proof = check.classMethod ?? check.valueCallable ?? check.localCallable!

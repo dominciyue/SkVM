@@ -2145,6 +2145,10 @@ AY7捕获前参数改写小步（2026-10-08）：v30将创建前完成的paramet
 
 新鲜735focused/4553断言、联合1574pass/1平台skip/10360断言/115文件/22.95s及主/AY类型通过。两只读复核分别294pass/664断言与169pass/2655断言，均以现有测试和静态抽查为主、无独立新fixture，见[捕获准备核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-capture-preparation.json)。[新真实probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-capture-preparation-replay.json)核验94冻结/6补充源码、12body；67 capture/5准备事实/4合格/7写入，30局部函数值定义/19合格，24返回定义/16合格。真实is_in_scope来源gap消失；methods列表计算尚无执行证明，ExtendedSchema仍动态base gap、实际采用0。SHA `cb8663984555d88fefc4656c7ff0e9fd9bee997ddceb3e000c7790182cc03765`，无实验模型read/新应用标注或模型/目标/probe网络执行；开发/探子token、USD、真人时间unknown，旧input/allowlist/答/报告保留。继续动态base/super/cell、module/constructor/request、官方完整使用与预登记净收益，AY7未完成。
 
+AY7动态标识符基类小步（2026-10-08）：v31以原sourceClass/binder/六角色接入owner parameter和创建前完成simple assignment的local identifier基类；写入来源/control/order/RHS及binding owner/SHA完整保留。actual base必须已有namespace/MRO，native按实际身份重新计算C3，函数参数和return保留该class对象。dynamic parent不供静态继承target，自有namespace ordinary方法仍须actual callableRead。匿名两factory不同base的继承字段/自己方法/返回身份及拒绝先于effect通过，duplicate actual/module marker和漏/改/移/额外writer拒绝；晚写/unknown scope/复杂base语法保持。主24新增；初始11pass/10fail转绿，conditional wrong-write未改变source的fixture更正不算产品缺陷。
+
+新鲜759focused/4685断言、联合1598pass/1平台skip/10492断言/115文件/18.09s与主/AY类型通过。两只读核验312pass/710断言与175pass/2741断言，均以现有测试和静态核验为主、无独立新fixture，见[动态基类核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-dynamic-bases.json)。[新真实probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-dynamic-base-replay.json)核验94冻结/6补充源码/12body，首次保留BaseSchema的1动态base和2写入事实，ExtendedSchema由base gap推进到method-cell-unmodeled。复杂RHS实际执行未证、合格类/实际采用0；SHA `0a103efe53ee3467877dc340bd07560e3d0b1b7cd010676496c00ae7dda4d26b`。无实验模型read/应用标注或模型/目标/probe网络新增，开发/探子token、USD、真人时间unknown；旧input/allowlist/答/报告保留。继续普通实例、super/class cell、module/constructor/request及官方完整使用和预登记收益，AY7未完成。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

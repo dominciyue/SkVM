@@ -124,15 +124,16 @@ function currentClassDefinitionsValid(index: StructureIndex, unit: BoundSemantic
   })
 }
 
-/** Capturing a prepared parameter requires its actual source writes, not just
- * a stable name after an omitted, changed or relocated assignment. */
+/** Prepared captures and dynamic bases require their actual source writes,
+ * including an unchanged parameter when the original has no writers. */
 function currentCaptureAssignmentsValid(index: StructureIndex, unit: BoundSemanticBlock) {
   const owner = unit.source!.id, steps = unit.blocks.flatMap(b => b.steps), calls = index.relatedCalls(owner)
   const captures = index.symbols.flatMap(symbol => {
     const proof = symbol.classMethod && !index.symbols.find(s => s.id === symbol.classMethod!.classId)?.classDefinition?.gap ? symbol.classMethod : symbol.valueCallable && !symbol.valueCallable.gap ? symbol.valueCallable : symbol.localCallable && !symbol.localCallable.gap ? symbol.localCallable : undefined
     return proof?.captures.filter(c => c.binding?.ownerId === owner) ?? []
   })
-  const assignments = [...new Map(captures.flatMap(c => c.assignments ?? []).map(a => [a.anchorId, a])).values()]
+  const baseBindings = index.symbols.flatMap(s => s.classDefinition && !s.classDefinition.gap ? s.classDefinition.bases.filter(b => b.binding?.ownerId === owner) : [])
+  const assignments = [...new Map([...captures.flatMap(c => c.assignments ?? []), ...baseBindings.flatMap(b => b.assignments ?? [])].map(a => [a.anchorId, a])).values()]
   const valid = assignments.every(proof => {
     const block = sourceControlBlock(unit, proof.controls), call = proof.sourceCallId && calls.find(c => c.id === proof.sourceCallId), names = call ? [`call-${sourceSyntaxAnchorId(owner, call.startIndex!, call.endIndex!, "call")}`] : [`bind-${proof.anchorId}`, `assign-${proof.anchorId}`], writers = steps.filter(s => names.includes(s.name)), writer = writers[0]
     if (proof.source.sha256 !== unit.source!.sha256 || !block || writers.length !== 1 || !writer || !block.steps.includes(writer)) return false
@@ -143,9 +144,9 @@ function currentCaptureAssignmentsValid(index: StructureIndex, unit: BoundSemant
     return ordered(proof.order.before, -1, position) && ordered(proof.order.after, position, block.steps.length)
   })
   if (!valid) return false
-  return assignments.every(proof => {
-    const permitted = assignments.filter(a => a.name === proof.name).flatMap(a => { const call = a.sourceCallId && calls.find(c => c.id === a.sourceCallId); return call ? [`call-${sourceSyntaxAnchorId(owner, call.startIndex!, call.endIndex!, "call")}`] : [`bind-${a.anchorId}`, `assign-${a.anchorId}`] })
-    return !steps.some(s => (s.kind === "bind" && (s.bindingName ?? s.name) === proof.name || (s.kind === "assign-value" || s.kind === "call") && s.result === proof.name) && !permitted.includes(s.name))
+  return [...new Set([...assignments.map(a => a.name), ...baseBindings.map(b => b.expression)])].every(name => {
+    const permitted = assignments.filter(a => a.name === name).flatMap(a => { const call = a.sourceCallId && calls.find(c => c.id === a.sourceCallId); return call ? [`call-${sourceSyntaxAnchorId(owner, call.startIndex!, call.endIndex!, "call")}`] : [`bind-${a.anchorId}`, `assign-${a.anchorId}`] })
+    return !steps.some(s => (s.kind === "bind" && (s.bindingName ?? s.name) === name || (s.kind === "assign-value" || s.kind === "call") && s.result === name) && !permitted.includes(s.name))
   })
 }
 

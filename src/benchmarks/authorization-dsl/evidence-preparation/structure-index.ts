@@ -66,7 +66,7 @@ export interface StructureClassDefinition {
   schemaVersion: "source-class-definition/v1"; ownerId: string; ownerSha256: string; name: string; anchorId: string;
   source: StructureMethodBinding["source"]; classSource: StructureMethodBinding["source"]; controls: StructureMethodControl[]; order: StructureMethodStore["order"];
   fields: Array<{ name: string; value: FiniteValue; anchorId: string }>;
-  bases: Array<{ expression: string; targetId: string; targetSha256: string }>;
+  bases: Array<{ expression: string; targetId?: string; targetSha256?: string; binding?: { ownerId: string; ownerSha256: string }; assignments?: StructureCaptureAssignment[] }>;
   methods: Array<{ name: string; targetId: string; targetSha256: string; anchorId: string; source: StructureMethodBinding["source"]; captures: NonNullable<StructureSymbol["localCallable"]>["captures"] }>;
   namespace: Array<{ kind: "field" | "method"; anchorId: string }>;
   decorators: Array<{ id: string; expression: string; source: StructureMethodBinding["source"]; valueResult: string; applicationCallId: string; targetId?: string; targetSha256?: string; factoryCallId?: string }>;
@@ -390,6 +390,16 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           const nodes = localWriteNodes.get(symbol.id) ?? new Map<string, Node[]>(); nodes.set(name, [...nodes.get(name) ?? [], n]); localWriteNodes.set(symbol.id, nodes)
         }
       }
+      const preparedAssignments = (name: string, node: Node, binding: StructureSymbol, boundary?: Node): StructureCaptureAssignment[] | undefined => {
+        const assignments: StructureCaptureAssignment[] = []
+        for (const write of localWriteNodes.get(binding.id)?.get(name) ?? []) {
+          const right = field(write, "right"), controls = sourceControlPath(write, field(node, "body")!, binding.id)
+          if (!boundary || write.type !== "assignment" || field(write, "left")?.type !== "identifier" || field(write, "type") || !right || right.type === "assignment" || write.endIndex >= boundary.startIndex || !controls) return
+          const source = { path: file.path, sha256, startLine: write.startPosition.row + 1, endLine: write.endPosition.row + 1, startIndex: write.startIndex, endIndex: write.endIndex }, literal = sourceLiteral(right)
+          assignments.push({ name, anchorId: sourceSyntaxAnchorId(binding.id, write.startIndex, write.endIndex, "assignment", name), source, controls, order: sourceStoreOrder(write, binding.id, call => `call-${hash([sourceIdentity, file.path, sha256, call.startIndex]).slice(0, 24)}`, true), valueExpression: right.text, ...literal, ...(right.type === "call" ? { sourceCallId: `call-${hash([sourceIdentity, file.path, sha256, right.startIndex]).slice(0, 24)}` } : {}) })
+        }
+        return assignments
+      }
       const parameterCapture = (use: Node, from: Node | null): { capture?: NonNullable<StructureSymbol["localCallable"]>["captures"][number]; gap?: "value" | "scope" | "rebound" } => {
         const scopes: Node[] = []
         for (let node = from; node; node = node.parent) {
@@ -402,13 +412,8 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           if (scopes.some(scope => descendants(field(scope, "body")!, ["match_statement", "nonlocal_statement", "global_statement"]).some(s => s.type === "match_statement" || children(s).some(c => c.text === use.text)))) return { gap: "scope" }
           let boundary: Node | undefined
           for (let ancestor = use.parent; ancestor && ancestor.id !== node.id; ancestor = ancestor.parent) if (["function_definition", "class_definition"].includes(ancestor.type)) boundary = ancestor.parent?.type === "decorated_definition" ? ancestor.parent : ancestor
-          const writes = localWriteNodes.get(binding.id)?.get(use.text) ?? [], assignments: StructureCaptureAssignment[] = []
-          for (const write of writes) {
-            const right = field(write, "right"), controls = sourceControlPath(write, field(node, "body")!, binding.id)
-            if (!boundary || write.type !== "assignment" || field(write, "left")?.type !== "identifier" || field(write, "type") || !right || right.type === "assignment" || write.endIndex >= boundary.startIndex || !controls) return { gap: "rebound" }
-            const source = { path: file.path, sha256, startLine: write.startPosition.row + 1, endLine: write.endPosition.row + 1, startIndex: write.startIndex, endIndex: write.endIndex }, literal = sourceLiteral(right)
-            assignments.push({ name: use.text, anchorId: sourceSyntaxAnchorId(binding.id, write.startIndex, write.endIndex, "assignment", use.text), source, controls, order: sourceStoreOrder(write, binding.id, call => `call-${hash([sourceIdentity, file.path, sha256, call.startIndex]).slice(0, 24)}`, true), valueExpression: right.text, ...literal, ...(right.type === "call" ? { sourceCallId: `call-${hash([sourceIdentity, file.path, sha256, right.startIndex]).slice(0, 24)}` } : {}) })
-          }
+          const assignments = preparedAssignments(use.text, node, binding, boundary)
+          if (!assignments) return { gap: "rebound" }
           return { capture: { name: use.text, use: { startLine: use.startPosition.row + 1, endLine: use.endPosition.row + 1, startIndex: use.startIndex, endIndex: use.endIndex }, binding: { ownerId: binding.id, ownerSha256: binding.sha256 }, ...(assignments.length ? { assignments } : {}) } }
         }
         return {}
@@ -435,8 +440,11 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         let gap = n.hasError || owner.boundary !== "complete" || owner.attributes.callableAsync || owner.attributes.callableGenerator || owner.attributes.bindingWrapped ? "source-class-definition-owner-unmodeled" : !controls ? "source-class-definition-control-unmodeled" : symbol.bases.length > 16 || field(n, "type_parameters") ? "source-class-definition-base-unmodeled" : globalNames.get(owner.id)?.has(symbol.name) || descendants(ownerBody, ["nonlocal_statement"]).some(s => children(s).some(c => c.text === symbol.name)) ? "source-class-definition-binding-unmodeled" : undefined
         for (const expression of symbol.bases) {
           const candidates = symbols.filter(s => s.kind === "class" && s.name === expression && s.classDefinition?.ownerId === owner.id), base = candidates.length === 1 ? candidates[0] : undefined
-          if (!base || base.classDefinition!.gap || base.classDefinition!.source.endIndex >= declaration.startIndex || localWrites.get(owner.id)?.get(expression) !== 1 || owner.parameters.some(p => p.name === expression) || bases.some(b => b.targetId === base.id)) { gap ??= "source-class-definition-base-unmodeled"; continue }
-          bases.push({ expression, targetId: base.id, targetSha256: base.sha256 })
+          if (bases.some(b => b.expression === expression)) { gap ??= "source-class-definition-base-unmodeled"; continue }
+          if (base && !base.classDefinition!.gap && base.classDefinition!.source.endIndex < declaration.startIndex && localWrites.get(owner.id)?.get(expression) === 1 && !owner.parameters.some(p => p.name === expression)) { bases.push({ expression, targetId: base.id, targetSha256: base.sha256 }); continue }
+          const identifier = children(field(n, "superclasses")).find(c => c.type === "identifier" && c.text === expression), assignments = identifier && preparedAssignments(expression, parent!, owner, declaration)
+          if (!identifier || !assignments || !owner.parameters.some(p => p.name === expression) && !localNames.get(owner.id)?.has(expression) || globalNames.get(owner.id)?.has(expression) || descendants(ownerBody, ["match_statement", "nonlocal_statement", "global_statement"]).some(s => s.type === "match_statement" || children(s).some(c => c.text === expression))) { gap ??= "source-class-definition-base-unmodeled"; continue }
+          bases.push({ expression, binding: { ownerId: owner.id, ownerSha256: owner.sha256 }, assignments })
         }
         for (const statement of children(field(n, "body"))) {
           if (["comment", "pass_statement"].includes(statement.type) || statement.type === "expression_statement" && children(statement).length === 1 && children(statement)[0]!.type === "string" && sourceLiteral(children(statement)[0]).literalKnown) continue
@@ -1009,7 +1017,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       basis = ["AST possible ordinary method stores on the same instance; only an actually captured current field value can dispatch"]
     }
     else if (scope.language === "python" && owner && parts.length === 1 && scope.symbols.some(s => s.name === root && s.classDefinition?.ownerId === owner.id)) {
-      const matches = scope.symbols.filter(s => s.name === root && s.classDefinition?.ownerId === owner.id), cls = matches.length === 1 ? matches[0] : undefined, mro = cls && namespaceMro(cls)
+      const matches = scope.symbols.filter(s => s.name === root && s.classDefinition?.ownerId === owner.id), cls = matches.length === 1 ? matches[0] : undefined, own = cls?.classDefinition && !cls.classDefinition.gap && cls.classDefinition.namespace.some(entry => entry.kind === "method" ? cls.classDefinition!.methods.some(m => m.anchorId === entry.anchorId && m.name === name) : cls.classDefinition!.fields.some(f => f.anchorId === entry.anchorId && f.name === name)), mro = cls && (namespaceMro(cls) ?? (own ? [cls] : undefined))
       call.gap = !cls || !mro || cls.attributes.classNamespaceBinding !== "stable" || cls.classDefinition!.source.endIndex >= call.startIndex! ? "source-class-namespace-binding-unresolved" : call.argumentFacts?.some(a => a.sourceCallId) || raw.argumentEvents?.some(events => events.length) ? "source-class-namespace-call-order-unmodeled" : undefined
       if (!call.gap) for (const base of mro!) {
         const proof = base.classDefinition!, last = [...proof.namespace].reverse().find(entry => entry.kind === "method" ? proof.methods.some(m => m.anchorId === entry.anchorId && m.name === name) : proof.fields.some(f => f.anchorId === entry.anchorId && f.name === name))
@@ -1018,7 +1026,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         if (target) { candidates = [target]; call.classNamespaceCall = { classId: cls!.id, classSha256: cls!.sha256, targetId: target.id, targetSha256: target.sha256 } }
         break
       }
-      basis = ["AST local class namespace C3 candidates; actual class attribute function object and captures required; class access supplies no implicit self"]
+      basis = ["AST known own namespace or static C3 candidates; actual class attribute function object and captures required; class access supplies no implicit self"]
     }
     else if (root && raw.localNames.includes(root) && !raw.types[root]) { basis = ["AST local or parameter shadows module receiver without a bound type"] }
     else if (root && (raw.types[root] || root === "self" && receiverClass)) {
@@ -1555,7 +1563,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       return choices ? [{ name, choices: structuredClone(choices), ...(callableInputGaps.get(key!) ? { gap: callableInputGaps.get(key!) } : {}) }] : []
     }) : []
   }
-  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v30"
+  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v31"
   const withSymbolSyntax = <T>(symbolId: string, visit: (root: Node, symbol: StructureSymbol) => T): Promise<T> => {
     const symbol = symbols.find(s => s.id === symbolId), file = symbol && files.find(f => f.path === symbol.path)
     if (!symbol || !file || hash(file.content) !== symbol.sha256) throw new Error("structure-source-missing")
