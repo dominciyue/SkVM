@@ -4,11 +4,11 @@
 
 ## 当前工作
 
-**当前执行[BA0–BA18：授权语义提交、实际采用与完整任务验证](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)。** 开发模型 `gpt-6.1-sol/max`，接管HEAD `1c822e10`。22位置中两pilot已尝试，Download具名复验接受7单元/7材料、1采用、0性质绑定，源码partial；OWUI首件接受5单元、0采用、1绑定unknown，自然答案按完整原题评为full且保留上游/部署限制。当前修复真实提案暴露的await函数值读取和残余调用顺序身份，准备OWUI具名复验。
+**[BA0–BA18：授权语义提交、实际采用与完整任务验证](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)当前为 `in-progress-external-blocker`，研究目标未达。** 开发模型 `gpt-6.1-sol/max`，接管HEAD `1c822e10`。22位置中两pilot共4尝试：3自然交付，最新OWUI具名复验在 `11dc68a5` 终态路由失败、无交付；一次恢复已用，通道暂停。20位置未执行，原因逐项保留在[summary](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-submission-v1/summary.json)。
 
-本轮优先实现宿主管理的语义编辑、按实际协议反馈错误、可用的有限检查预算和临时通道恢复，再验证真实提交→材料采用→性质检查。复用v6和普通native/inquiry，不新建执行平台。格式通过后仍要补有限predicate和决定性关系，工程、采用、源码质量分别验收。
+宿主管理语义编辑、精确协议反馈、有限检查预算及await/残余调用顺序修复已有工程证据。Download修订7单元/7材料、1采用、0性质绑定，源码partial；OWUI首件5单元、0采用、1绑定unknown，原题自然答案full且有明确上游/部署限制。离线重放恢复3采用不回填真实原件；两项完整真实机器链仍未成立。两作者包已原字节兼容、搬移恢复检查通过，实际消费与变化复用未测。
 
-BA重新登记共同任务事实与原问题，M/D共用相同义务及核心，避免AZ的1题与4/11题拆分差异；旧作者包单列消费。计划22位置（2子性质、12完整质量、2消费、6变化），所有修订与未执行项单列。当前3尝试可见输入10,707,789（含缓存10,026,624）、输出46,863；实际USD及隐藏请求unknown，尚无比较收益证据。
+BA共同任务事实保留原问题，M/D共用相同义务及核心，旧作者包单列消费。12完整质量、2消费、6变化位置均未运行；previous变化还缺合格当前Download基础。4尝试中3份用量已知：输入10,707,789（含缓存10,026,624）、输出46,863；路由失败尝试用量、实际USD及隐藏请求unknown，比较inconclusive。恢复须先取得新的外部路由证据，再核实无活动/未知完成并登记新具名OWUI复验；不重复探针或绕过暂停。
 
 方法合同见[spec §14.40](skill-ir-aot-optimization-spec.md#1440-ba-semantic-submission-and-adoption)，复核和取舍见[研究 §7.62](skill-dsl-research.md#762-ba-从真实拒绝到可用语义编辑)。新结果写入authorization-semantic-submission-v1；任务书里的要求不能视为结果。
 
@@ -30,7 +30,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 ## 账号、运行和继承边界
 
 - 开发 `gpt-6.1-sol/max`；实验沿用用户已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。
-- AY的2026-10-14额度提示及AZ的channel=unavailable保留为历史观测。AZ失败为已终态routing、quotaRefused=false；BA允许核实原会话关闭后，在已就绪真实位置做一次同账号/模型的新会话恢复，失败和成本保留。重复同因或明确quota/auth拒绝则暂停，未知完成先核查，不额外探针、轮询或切换。
+- AY的2026-10-14额度提示及AZ的channel=unavailable保留为历史观测。BA首个Download恢复成功；OWUI的await-argument-read-1再次终态 `workspace routing discovery failed`、quotaRefused=false，0模型动态调用/2宿主启动读取、用量缺报。当前 `paused-recurring-routing`，无活动或未知完成；一次恢复已用，不额外探针、轮询、普通CLI旁路或切换。
 - 不自动切账号、模型、端点或购买额度；未知完成先核查本地生命周期。缺报USD、隐藏请求、开发/探子成本和真人分钟保持unknown。
 - 保留原skill、全部原问题、允许源码、用户独立政策及前提。模型输入隔离评价器、历史答案和开发修复记录。held-out、Q1、prospective、readiness和历史 `0/6` 不变。
 - 主开发线程是代码、共享方法文档和Git的唯一写者。继续现有分支，不创建worktree；只读探子按AGENTS使用。

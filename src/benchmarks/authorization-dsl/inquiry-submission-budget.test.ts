@@ -102,3 +102,32 @@ test("usable checks cannot exceed actual remaining tools after a malformed final
     expect(runtime.report().toolBudget.checksRemaining).toBe(0)
   } finally { await runtime.close() }
 })
+
+test("the AZ mixed sequence charges formats and source repairs without consuming valid semantic checks", async () => {
+  const runtime = await fixture(16)
+  try {
+    let context: any = await runtime.accountContext()
+    if (context.focus.stage === "locate") {
+      await runtime.execute({ id: "select-entry", name: "authorization_observe", arguments: { controlDelta: { schemaVersion: "authorization-focused-update/v1", kind: "select", focusId: context.focus.id, candidateId: context.locationTasks[0].candidates[0].id } } })
+      context = await runtime.accountContext()
+    }
+    const before = runtime.report().toolBudget.totalUsed, task = context.tasks[0], anchor = task.sourceSkeleton.anchors.find((a: any) => a.kind === "return")
+    for (let i = 1; i <= 2; i++) await runtime.rejectArguments(badCall(i), diagnostics)
+    const partial = JSON.parse((await runtime.execute({ id: "valid-wire-incomplete-source", name: "authorization_observe", arguments: { controlDelta: { ...task.sourceEdit.template, edits: [{ anchorId: anchor.id, field: "role", value: "context" }, { anchorId: anchor.id, field: "explanation", value: "Source return with no outcome interpretation yet" }] } } })).output)
+    expect(JSON.stringify(partial)).toContain("source-interpretation-return-outcome-required")
+    expect(runtime.report().toolBudget.totalUsed).toBe(before + 3)
+    expect(runtime.report().toolBudget.checksUsed).toBe(0)
+    expect((runtime.report().toolBudget as any).formatRejectCount).toBe(2)
+    expect(runtime.report().domain?.sourceWorkMetrics?.acceptedSourceUnits).toBe(0)
+    await runtime.rejectArguments(badCall(3, "authorization_check_result"), diagnostics)
+    context = await runtime.accountContext()
+    expect(context.toolBudget.finalOnly).toBe(true)
+    expect(context.toolBudget.deliveryClosed).toBe(false)
+    const checked = JSON.parse((await runtime.execute({ id: "valid-partial-final", name: "authorization_check_result", arguments: { result: { ...context.answerTemplate, answers: [{ explanation: "The original source meaning is still incomplete", missing: [{ kind: "interpretation-gap", detail: "Return outcome not supplied" }] }] } } })).output)
+    expect(checked.code).not.toBe("format-repair-budget")
+    expect(runtime.report().toolBudget.totalUsed).toBe(before + 5)
+    expect(runtime.report().toolBudget.checksUsed).toBe(1)
+    expect(runtime.report().domain?.checkHistory).toHaveLength(1)
+    expect(runtime.report().result).toBeUndefined()
+  } finally { await runtime.close() }
+})

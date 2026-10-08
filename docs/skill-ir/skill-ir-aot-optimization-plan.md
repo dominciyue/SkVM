@@ -2,7 +2,7 @@
 
 更新于2026-10-09。唯一实时入口为 [current-status](current-status.md)。
 
-- 当前任务书：[BA0–BA18：授权语义提交、实际采用与完整任务验证](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)，`in-progress`；两pilot已交付。Download修订仍partial/无性质绑定；OWUI源码答案full但0采用、性质unknown，真实机械闭合尚未达标。
+- 当前任务书：[BA0–BA18：授权语义提交、实际采用与完整任务验证](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)，`in-progress-external-blocker`；两pilot共4尝试/3交付。Download修订仍partial/无性质绑定；OWUI首件源码答案full但0采用、性质unknown，修后具名复验再次终态路由失败，通道暂停。研究目标与有限队列未完成。
 - 方法合同：[spec §14.40](skill-ir-aot-optimization-spec.md#1440-ba-semantic-submission-and-adoption)；依据：[研究§7.62](skill-dsl-research.md#762-ba-从真实拒绝到可用语义编辑)。
 - 复核基线 `29c400ff` 与用户origin一致。开发 `gpt-6.1-sol/max`，实验当前官方账号 `gpt-5.6-sol/high`。第三方API与AV旧位置继续暂停。
 
@@ -14,7 +14,7 @@
 
 当前具名复验修复：v6首选编辑路径统一，旧模板明确列为兼容；结构角色限制共源。当前源码事务未完成时不自动展开其它候选，直接源码调用先于外围框架候选；未知装饰器和全部候选仍保留。性质声明占位不再当重复绑定，实际冲突绑定继续拒绝。首轮39自动读取、3格式拒绝/1失败检查和partial原答均保留，修订不覆盖首件。
 
-Download同因重抽暂停。OWUI原提案暴露await操作数漏建函数值，以及context调用保守降为unknown后丢了来源顺序事件名；两项分别匿名红→绿，严格投影验证器不改。先零调用重放原提案/缺失与错源与错序反证，再提交快照并具名复验。长装饰器参数只在调度散文中给512字节预览，原索引/原行/未知义务完整保留；实际成本改善待实测。
+Download同因重抽暂停。OWUI的await函数值和context残余来源顺序两项匿名红→绿，严格投影验证器不改；原提案零调用重放5材料可用/3采用，缺失/错源/晚建反证均拒绝，unknown保持。11dc68a5具名真实复验无模型工具调用即路由失败，故该修复真实效果未知。长参数预览有界的成本收益也未测。两包搬移恢复已原字节/源码哈希核验，实际模型消费仍阻断。
 
 ## BA 队列与验收责任
 
@@ -27,7 +27,9 @@ Download同因重抽暂停。OWUI原提案暴露await操作数漏建函数值，
 | BA15–BA16 | 质量与成本归因、针对性减负 | 共同语义标准和真实用量，协议/检查/源码状态分别评价 |
 | BA17–BA18 | 有限验证、文档、origin发布 | 公共可运行命令、未达责任和真实验收，不只标队列完成 |
 
-共22个主位置：2子性质、12完整质量、2消费者、6变化。新结果写authorization-semantic-submission-v1，修订/通道恢复归属原逻辑位置，未执行保留原因。旧作者拆题不再免费混入D质量臂。
+共22个主位置，20未执行：12质量和2消费受路由暂停阻断；3个fresh变化受路由暂停且无合格当前基线限制，3个previous变化明确缺合格当前Download基础并同时受路由暂停。原件、逐项原因与恢复责任见新identity的summary/status/verification；修订仍归属原逻辑位置，旧作者拆题不混入D质量臂。
+
+恢复顺序：先取得新的外部路由证据并核实原终态，再登记新的OWUI具名复验；修补并取得合格当前Download链后，运行同epoch12质量位置、两消费者与满足条件的6变化。当前不自动重试或另走CLI。已通过1739项受影响回归、主/研究类型检查；新增包恢复与预算混合序列另有14项定向检查。未达BA5/9/10/11–14/16责任保持open/partial，不能以文档和发布完成代替实测。
 
 ## 执行规则与外部阻断
 

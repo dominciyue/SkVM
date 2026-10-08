@@ -2826,7 +2826,7 @@ AZ3–AZ8首个有界实现：性质以原题要求的精确文本跨度声明�
 
 ### 14.40 BA semantic submission and adoption
 
-2026-10-09，用户要求复核AZ并派发gpt-6.1-sol/max接续开发，任务书为[BA0–BA18](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)。语义编辑、选定协议诊断及预算已接入公共入口；Download原件/修订都交付但仍partial且无性质绑定。OWUI首件源码答案full，机器0采用、1绑定unknown，不能混为完整机械闭合。AZ原件和结论不改。
+2026-10-09，用户要求复核AZ并派发gpt-6.1-sol/max接续开发，任务书为[BA0–BA18](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)。语义编辑、选定协议诊断及预算已接入公共入口；Download原件/修订都交付但仍partial且无性质绑定。OWUI首件源码答案full，机器0采用、1绑定unknown；修后具名复验终态路由失败，一次恢复已用，当前通道暂停、20位置未运行。离线修复和包兼容检查不能替代完整真实链或研究效果。AZ原件和结论不改。
 
 **语义编辑与编译。** 既有v6接受`{schemaVersion:"authorization-source-edit/v1",kind:"edit",transactionId,edits:[{anchorId,field,value}],values?,reason?}`。事务由当前focus及完整源码revision派生；宿主填写内部focus/revision，模型不能覆盖。普通field取现有SourceAnnotationSchema字段（anchorId除外），value沿用对应Schema；`unresolved`值为具名原因。根字段`fallthroughOutcome`和`propertyBindings`省略anchorId。槽位提供源行、相关原题、当前值、类型及必要原因，Schema和匿名表达式示例共源。跨题/过期/冲突、外来锚点、重复槽位和非法枚举拒绝，不改草稿；合法不完整字段保留，role/explanation齐备后编译回原SourceInterpretation，再由原lowering要求predicate、对象联系及出处。宿主不替模型填permission/effect/allow/deny或用户前提。原始编辑与生成的内部提案均保留，不复制求值器。
 
@@ -2837,6 +2837,8 @@ v6当前阶段以sourceEdit为首选；旧annotation空壳称为legacySourceUpda
 **预算与恢复。** 格式纠正和有效语义检查有界且共同计入总工具/成本；格式纠正耗尽时不再允许无限修复，但已有未消耗的合法检查机会应可调用，最新无效更新仍撤回旧结果。明确quota/auth拒绝暂停；未知完成先核查；已终态临时routing允许在真实就绪任务上一次同账号/模型新会话恢复，保留原attempt/失败成本，重复同因停止。无需额外付费探针证明通道可用，不自动改第三方端点。
 
 BA新编辑模式按会话计数，不按focus重置：首个格式错误后的2次纠正仍失败，则finalOnly只开放有效最终检查/自然终答；再一次格式无效关闭工具交付。有效形状进入语义检查即消耗检查额度，实际尝试只计一次总量；未消耗的2检查位置保留，格式尝试占同一非检查预算。固定总上限不增加，旧策略兼容，代码/交互模式另列。readyToDispatch由输入/源码/skill/check、预算快照和无活动/未知完成决定，不以前一次模型成功作为就绪前提。
+
+混合序列也遵守同一计量：两次格式拒绝、一次合法但语义不完整的源编辑、第三次格式拒绝，再一次形状有效的有缺口答案，共计5次真实尝试、3次格式拒绝、1次语义检查；未通过语义检查不产生当前结果。包恢复先核对声明/Usage与原作者字节，只补缺失的可再生成源码树，并沿原来源哈希和公共check核验；不修补原作者语义或计作实际模型消费。
 
 首轮暴露边界：探索耗尽后，官方静态工具仍可能收到无效最终参数；该真实尝试不能既计入总量又凭空保住所有检查位置。宿主不再主动派发非检查动作，剩余有效检查受实际总量限制；checksRemaining取语义额度与实际剩余调用的较小值，semanticChecksUsed仍只计真正进入的检查。无效终交付不退费、不增预算。此明确了“预留”的调度边界，不能解释为外来错误尝试不消耗总量。
 

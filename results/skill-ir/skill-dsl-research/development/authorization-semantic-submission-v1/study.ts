@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto"
-import { mkdir, readFile, writeFile } from "node:fs/promises"
+import { mkdir, readFile, writeFile, stat } from "node:fs/promises"
 import { execFileSync } from "node:child_process"
 import { gunzipSync, gzipSync } from "node:zlib"
 import path from "node:path"
@@ -12,6 +12,7 @@ import { loadSkill } from "../../../../../src/core/skill-loader.ts"
 import { executeRun, materializeNaturalRunTask, buildRunSkillBundle } from "../../../../../src/run/index.ts"
 import { redactCodexEvent } from "../../../../../src/adapters/codex-account-session.ts"
 import { prepareConsumerInput } from "../authorization-property-execution-v1/consumer.ts"
+import { copySourceSnapshot } from "../authorization-semantic-lowering-v1/source-snapshot.ts"
 
 export const identity = "authorization-semantic-submission-v1"
 export const root = import.meta.dir
@@ -73,6 +74,18 @@ export async function dryRun(id: string) {
   const inputFile = consumer ? path.join(root, "model/packages", position.task, "inquiry.json") : path.join(root, "model/inputs", `${position.task}-${position.kind === "pilot" ? "pilot" : plain ? "natural" : "common"}.json`)
   return { positionId: id, entrance: position.entrance, inputFile, originalInputFile: original.inputFile, skillFile: original.skillFile, ...(consumer ? { authorAttempt: original.authorAttempt } : {}), domainTools: !plain, method: position.arm === "D" || consumer ? "D1" as const : "M" as const, strategy: plain ? "legacy" as const : "operation-evidence-v6" as const, model: "gpt-5.6-sol", effort: "high", limits, evaluatorProvidedToRuntime: false }
 }
+export async function prepareConsumerPackage(options: Parameters<typeof prepareConsumerInput>[0]) {
+  const exists = (file: string) => stat(file).then(() => true, error => { if (error.code === "ENOENT") return false; throw error })
+  const destination = path.resolve(options.destination), source = path.join(destination, "source")
+  if (await exists(path.join(destination, "inquiry.json")) && !await exists(source)) {
+    for (const [local, original] of [["inquiry.json", "authored-inquiry.json"], ["USAGE.md", "authored-USAGE.md"]]) {
+      if (!(await readFile(path.join(destination, local!))).equals(await readFile(path.join(options.authorAttempt, original!)))) throw new Error("Existing consumer package identity mismatch")
+    }
+    const original = await loadInquiryInput(options.originalInputFile)
+    await copySourceSnapshot({ ...original.context, maxReadBytes: limits.maxReadBytes }, source)
+  }
+  return prepareConsumerInput(options)
+}
 async function writeSame(file: string, value: unknown) {
   await mkdir(path.dirname(file), { recursive: true })
   try { await write(file, value, true) } catch (error) { if ((error as NodeJS.ErrnoException).code !== "EEXIST" || JSON.stringify(JSON.parse(await readFile(file, "utf8"))) !== JSON.stringify(value)) throw error }
@@ -80,7 +93,7 @@ async function writeSame(file: string, value: unknown) {
 export async function preparePositionInput(id: string) {
   const plan = await dryRun(id), position = positions().find(p => p.id === id)!, original = await loadInquiryInput(plan.originalInputFile), facts = buildTaskFacts(original.value)
   await writeSame(path.join(root, "model/task-facts", `${position.task}.json`), { ...facts, originalInputFile: plan.originalInputFile, originalInputSha256: original.inputSha256 })
-  if (plan.authorAttempt) await prepareConsumerInput({ originalInputFile: plan.originalInputFile, authorAttempt: plan.authorAttempt, destination: path.dirname(plan.inputFile) })
+  if (plan.authorAttempt) await prepareConsumerPackage({ originalInputFile: plan.originalInputFile, authorAttempt: plan.authorAttempt, destination: path.dirname(plan.inputFile) })
   else {
     const { brief: _brief, mode: _mode, policy: _policy, ...metadata } = original.value
     const input = { ...metadata, sourceRoot: path.relative(path.dirname(plan.inputFile), original.context.sourceRoot).split(path.sep).join("/"), ...(position.arm === "N" ? { brief: original.value.brief, mode: original.value.mode ?? "behavior", ...(original.value.policy ? { policy: original.value.policy } : {}) } : { inquiry: facts.inquiry }) }

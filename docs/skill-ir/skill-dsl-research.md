@@ -32,7 +32,7 @@
 
 最新AY结果补充：两份原skill和两包原字节消费均已实际运行。Download消费者源码评阅full但机器partial，OWUI消费者仍漏决定性helper；政策/前提变化已有部分运行，源码变化及质量位置受账号额度阻断。[最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)记录可见完整input 32,465,835、output 125,283、其中cacheRead 29,939,200（已包含在input），USD/隐藏请求/开发/真人成本未知。旧AX、AW结果保留其当时口径。
 
-当前关键问题是：**让模型按当前源码需求提交可计算语义，并让宿主实际采用。** BA已实现宿主管理编辑、精确反馈及同题事实；Download修订接受7单元但仍仅入口采用、无性质绑定、源码partial。OWUI原答按完整原题评价full且保留上游限制，机器却0采用/1绑定unknown；轨迹定位到await函数值读取和残余调用顺序身份，匿名修复通过，具名复验待执行。尚无同版本比较或复用收益；AZ原17未运行位置不补写，详见§7.62。
+当前关键问题是：**让模型按当前源码需求提交可计算语义，并让宿主实际采用。** BA编辑、反馈及同题事实已有实现；Download修订7单元但仅入口采用、0性质绑定、源码partial。OWUI原答按完整原题评为full且有上游限制，机器0采用/1绑定unknown；await与残余顺序修复已通过匿名和原提案离线验证，具名真实复验却再次终态路由失败。一次恢复已用，通道暂停，22位置中20未执行；两包原字节搬移检查不算实际消费。研究目标未达，比较inconclusive，复用收益未测；AZ历史不补写，详见§7.62。
 
 ## 2. 研究目标与术语
 
@@ -2241,7 +2241,13 @@ AZ1诊断工程（2026-10-09）：投影现在明确报告版本/来源/依赖�
 
 **减负责任。** 两Download轨迹同一装饰器待办question为10,651字节，多候选重复携带长schema参数。调度散文现在只保留512UTF-8字节内的完整参数，超出显示长度及原行查阅指引；结构索引、依赖hash和框架unknown不变。12KiB匿名装饰器红→绿证明预览有界且原参数仍可取回。该工程减负尚不证明实际token、质量或复用收益。
 
-原提案零调用重放完成：相同annotations/unresolved，仅更新宿主revision及生成步骤，5材料全可用、1entry+2call使用，原2未解释项及单元不完整保持；3个缺失/错源/晚建creation反证全部撤回root。未匹配数据库callee和router-options仍具名阻断，不能将派生3使用回填原运行的0或算真实检查成功。新受影响回归1739 pass/1 skip/0 fail、主/研究类型与15文档测试通过，两个只读复核未见必须修复代码问题。零调用实际汇总保留22位置/3attempts/2pilot、12质量未运行，输入10,707,789含缓存10,026,624、输出46,863，比较inconclusive；下一具名普通OWUI复验。
+原提案零调用重放完成：相同annotations/unresolved，仅更新宿主revision及生成步骤，5材料全可用、1entry+2call使用，原2未解释项及单元不完整保持；3个缺失/错源/晚建creation反证全部撤回root。未匹配数据库callee和router-options仍具名阻断，不能将派生3使用回填原运行的0或算真实检查成功。新受影响回归1739 pass/1 skip/0 fail、主/研究类型与15文档测试通过，两个只读复核未见必须修复代码问题。该阶段汇总3attempts/2pilot，随后具名普通OWUI复验如下。
+
+**具名复验与外部阻断。** 11dc68a5的`pilot-owui/await-argument-read-1`在17,632ms后终态failed/workspace routing discovery failed，quotaRefused=false，0模型动态调用/2宿主启动读取，无答案且usage未报告。完整原skill/system和原题加载记录仍一致；性质checks/trace不存在，不填0伪装已检查。首个Download已用唯一同通道恢复，故当前paused-recurring-routing，无活动/未知完成，不轮询、不换模型或经普通CLI绕过。原压缩档、claim/report、空终答及外部lifecycle保留，20未运行位置逐项记录；3个previous变化另缺合格当前Download基础。修复实际采用与同版质效仍未验证。
+
+**包恢复与剩余工程。** 重新检出会保留作者声明/Usage而缺可再生成源码树，原准备器在metadata已存在时不补源码，匿名红测复现公共check失败。BA薄包装先核对两份metadata原作者字节，再按原允许来源补缺失树并沿原admission/源码哈希检查，已有源码不覆盖、原作者语义不修。匿名恢复/幂等/错metadata拒绝绿测；两实际包搬移核对95/173文件哈希一致、0模型/目标执行。另补AZ预算混合序列，5实际尝试中3格式拒绝/1语义检查，语义失败无当前结果；这只是原已修工程的回归覆盖。新增定向14 pass/112 assertions、主/研究类型通过。普通CLI的check/init/搬移和native帮助实际零调用通过，完整消费仍受阻，不能升级为BA13实测。
+
+**当前归纳。** 22逻辑位置、4尝试、3自然交付、20未执行、12质量全未运行，比较inconclusive。已知3份input10,707,789（已含cache10,026,624）、output46,863；第4份usage unknown，累计114动态调用/73自动读取、857,117ms，USD/隐藏请求/开发探子/真人成本unknown。工程修复和原字节可恢复已有证据，完整真实采用、普通两包消费、变化复用和质量增益均未建立。最小恢复先要新的外部路由证据，再登记新OWUI修订并取得合格当前Download基础；本轮不继续付费重试，研究目标及有限队列保持未完成。最终分项见[summary](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-submission-v1/summary.json)与[verification](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-submission-v1/verification/final-closure.json)。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
@@ -2306,12 +2312,12 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 | ID | 问题 | 当前依据 | 接下来的判断 |
 |---|---|---|---|
 | Q1 | 哪个任务范围共享领域语义？ | 固定来源的授权职责支持 principal/resource/operation/control/evidence；混合职责单列，见 §4–§7.10 | 保持单 repo/ref、源码可见的授权切片 |
-| Q2 | 声明如何带来实际行为？ | BA首轮1包装单元/1采用，0绑定/性质检查；不能以采用计数代替闭合 | 当前事务编辑与调度修复后具名复验，检查实际helper/对象联系 |
-| Q3 | 为什么仍漏决定性源码或分支？ | 首轮39自动读取，serializer装饰器挤过helper，owner分支漏答；GET覆写已核实 | 接受当前父源后优先直接调用，未知框架边仍保留 |
-| Q4 | 领域方法相对好说明的增量是什么？ | AZ N/M源码full/partial，D路由失败且作者拆题不同 | BA先统一M/D义务；同题自然质量与程序采用分别比较 |
-| Q5 | 作者和变化复用是否可用？ | AZ原字节兼容/搬移和离线撤回通过，2消费者/6变化未运行 | 需要当前合格基础及真实fresh/previous；不把0材料reusable资格当收益 |
+| Q2 | 声明如何带来实际行为？ | BA Download修订7单元/1采用/0绑定；OWUI原件0采用，离线修复3采用但真实复验routing失败 | 新外部路由证据后具名复验；完整实际链仍未达 |
+| Q3 | 为什么仍漏决定性源码或分支？ | 调度已修，Download仍把helper解释为primitive effect并漏GET权限；OWUI自然full但机械链失败 | 宿主不改模型含义；补真实predicate/对象/调用联系，unknown保持 |
+| Q4 | 领域方法相对好说明的增量是什么？ | BA共同M/D义务预检通过，12主质量全未运行 | 同epoch完整原题配对仍需执行，当前inconclusive |
+| Q5 | 作者和变化复用是否可用？ | BA两包原字节兼容/搬移恢复95/173文件通过；2消费/6变化受阻，previous缺当前基线 | 取得合格当前基础和真实消费；零调用兼容不算收益 |
 | Q6 | 本地化路线如何处理？ | 保留 §8–§9 设计及结构回填反例 | 暂缓；重新选择该类时再处理，不混入授权验收 |
-| Q7 | 如何评价和计量？ | BA首轮input1,338,020/output6,550，cacheRead1,172,352已含input；25动态+39自动，USD/真人未知 | 匿名源码复核须裁定错误；失败及未运行保留，协议/源码/检查分开 |
+| Q7 | 如何评价和计量？ | BA4尝试/3交付已复核，已知input10,707,789/output46,863，第4份usage unknown，114动态/73自动分列 | 保存失败/20未运行；协议/源码/检查与已知/未知成本分开 |
 
 决策沿革：
 
@@ -2330,6 +2336,8 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-09 / AZ：** 有界性质/摘要/依赖与采用诊断、有限格式恢复落地。5尝试/4自然交付，单性质未闭合，N/M源码full/partial，D官方路由失败；17位置未运行，比较inconclusive，completed-with-unmet-criteria收束。见§7.61。
 
 - **2026-10-09 / BA规划：** 原参数/代码和57项回归复核后，转向宿主管理语义编辑、精确协议反馈、可用检查预算、临时通道有限恢复和统一问题分母。任务书交付时未运行新实验，后续证据统一更新§7.62。
+
+- **2026-10-09 / BA实施与阻断：** 编辑/预算/公共核心、事务调度、await与残余来源顺序及包恢复已有有界工程证据；4尝试/3交付，Download两答partial、OWUI原答full但无真实checked链。唯一恢复后再次终态routing暂停，20位置未运行，12质量无配对、比较inconclusive，实际消费/复用未测。发布工程与失败证据不标研究目标达成，恢复责任见§7.62。
 
 ## 12. 后续追加规则
 

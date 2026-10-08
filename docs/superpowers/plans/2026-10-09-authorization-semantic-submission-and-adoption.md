@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod/Ajv、既有源码结构索引与有限求值器、Codex Account Adapter。开发模型 `gpt-6.1-sol / max`；实验只用已授权的当前官方账号 `gpt-5.6-sol / high`。
 
-日期：2026-10-09。状态：`in-progress`（Download同输入复验7单元/7材料、1采用、0绑定/性质检查、源码partial，同因重抽暂停；OWUI首件5单元、0采用、1绑定unknown，自然源码答案full，正在修复await与残余调用来源顺序并准备具名复验）。复核基线：`29c400fff55b74185fb518fc366d61b50967e3ea`；实际接管HEAD为`1c822e10121d49aae8026dba8caa5399b5e09dab`，启动工作树干净。实施及真实结果按勾选项与新identity原件区分，未勾选要求不能作为结果。事务优先修复回归1736 pass/1 skip/11424 assertions及主typecheck通过；所有首件/修订原件不可覆盖。
+日期：2026-10-09。状态：`in-progress-external-blocker`，研究目标未达、有限队列未完成。两pilot共4尝试/3交付；Download修订7单元/7材料、1采用、0性质绑定、源码partial，OWUI首件5单元/0采用/1绑定unknown而自然源码答案full。await/残余顺序修复已验证，11dc68a5具名复验终态路由失败；一次恢复已用，通道暂停，20位置未执行。复核基线：`29c400fff55b74185fb518fc366d61b50967e3ea`；接管HEAD `1c822e10121d49aae8026dba8caa5399b5e09dab`，启动工作树干净。勾选工程责任不代表未勾选真实采用/质量/复用已达；全部原件保留。受影响回归1739 pass/1 skip/11440 assertions，新增预算/包恢复及研究定向14 pass/112 assertions，主/研究类型检查通过。
 
 ## 一、接管与事实基础
 
@@ -128,7 +128,7 @@ Schema、模型可见字段说明、空表单/匿名示例、解析器、错误�
 
 **落点：** `inquiry-native.ts`、`inquiry-run.ts`、账号适配和对应测试。
 
-- [ ] 红测 AZ 序列：两次格式错误→一次通过 wire 但语义不完整→一次错误答案→有效的有缺口答案；每一步合法动作与真实计数一致。
+- [x] 覆盖 AZ 混合序列：两次格式错误→一次通过wire但语义不完整的编辑→一次错误答案→形状有效的有缺口答案；5次真实尝试/3格式拒绝/1语义检查，无伪造accepted result。预算原缺陷的红绿已在前阶段完成，此项补现有行为的序列回归（6 tests/51 assertions）。
 - [x] 格式纠正耗尽后不再提供无限修复；剩余有效检查仍可执行，结果不可被旧 checked 污染。总预算不增加，失败/重放调用不双记。
 - [x] 测试连续错误、工具去重、迟到结果、源码变更、checked后非法更新及所有原题保留。
 
@@ -156,7 +156,7 @@ Schema、模型可见字段说明、空表单/匿名示例、解析器、错误�
 
 - [x] 区分 quota、认证、已终态瞬时 routing、未知完成和本地配置失败；新runner红测→绿测，旧4完成/1失败事实保留。
 - [x] 为已终态 routing 实现一次具名恢复，连接原失败，严格同账号/模型/入口。重复routing则停止该通道而不是把全部任务标工程完成（真实恢复待BA9）。
-- [x] 使用BA9的pilot-download/original进行一次同账号恢复，已completed且通道available；保留AZ原failed生命周期、parent和成本，不额外发探针。
+- [x] 使用BA9的pilot-download/original进行一次同账号恢复并completed；后续OWUI具名复验再次终态routing，当前paused-recurring-routing。原失败/parent/未知成本保留，无活动或未知完成，不再发探针。
 
 ### BA8：统一任务事实与真实模型输入
 
@@ -166,6 +166,8 @@ Schema、模型可见字段说明、空表单/匿名示例、解析器、错误�
 - [x] M/D在运行前具有同一语义程序、义务和来源；普通入口实际消息仅任务表达按臂变化，工具/摘要/恢复政策共用（公共入口匿名测试，真实加载证据待各attempt）。
 - [ ] 检查完整skill、同源码ref、同资源预算、同原问题及oracle隔离；不把相同prompt字节当成全部公平性。
 - [ ] 复用现有skill/claim/instructionSources记录，保存原SKILL.md路径、字节数/已有摘要、实际加载来源和伴随文件清单；对比实际账号system输入或可核验加载记录，不另造摘要链。公平性结果汇入新identity的`input-equivalence.json`，缺实际加载证据要明确失败。
+
+两任务共同输入预检及4次pilot的原skill/system/原请求加载均核验；12个主质量位置没有实际加载证据，上两项保持整体未达。
 
 ### BA9：两项真实采用里程碑
 
@@ -185,7 +187,7 @@ Schema、模型可见字段说明、空表单/匿名示例、解析器、错误�
 - [ ] 动态装饰器等未知不能默认为无影响；说明其对当前性质的实际残余，不为了checked删边。外围语言能力必须给出当前关键路径证据。
 - [ ] 新支持需要真实材料采用验证；只通过内部构造图时标工程部分完成。剩余AZ框架大清单不自动全部继承为本轮开发范围。
 
-当前共享修复：实际process_file的await模块函数参数缺创建，随后context残余调用丢来源顺序名；两个匿名反例分别红→绿。原提案零调用重放恢复5可用/3使用但仍不完整，缺失/错源/晚建反证全部拒绝；投影校验器不改。受影响1739 pass/1 skip/0 fail、主/研究tsc及15文档测试通过，真实同输入具名复验待派发。该离线3使用不得回填原件0使用或算真实BA9完成。
+当前共享修复：实际process_file的await模块函数参数缺创建，随后context残余调用丢来源顺序名；两个匿名反例分别红→绿。原提案零调用重放恢复5可用/3使用但仍不完整，缺失/错源/晚建反证全部拒绝；投影校验器不改。受影响1739 pass/1 skip/0 fail、主/研究tsc及15文档测试通过。11dc68a5同输入具名复验await-argument-read-1终态路由失败，0模型动态调用/2宿主启动读取、无交付、用量unknown，因此修复实际采用效果未验证。离线3使用不回填原件0使用或算真实BA9完成。
 
 ### BA11：完整原任务第一重复
 
@@ -202,7 +204,7 @@ Schema、模型可见字段说明、空表单/匿名示例、解析器、错误�
 
 ### BA13：作者包与两入口实际消费
 
-- [ ] 旧两份作者包先原字节兼容检查；需要迁移时通过共享机械迁移器并另存身份，不主代理代填源码答案。
+- [x] 两份旧作者声明/Usage原字节兼容与公共check通过；新包恢复仅补缺失源码树，匿名红绿及实际搬移95/173文件哈希一致，无语义迁移/修补、0模型调用（verification/consumer-portability.json）。
 - [ ] 两个普通消费位置：一个 native、一个 inquiry，经同一语义编辑/采用核心，保留原完整问题、来源与原skill加载记录。
 - [ ] 搬移后依赖可取回、失效正确，实际工具确被使用；有包不等于消费者完成。作者准备/修复成本单列，不混进质量主板的D优势。
 
@@ -211,14 +213,14 @@ Schema、模型可见字段说明、空表单/匿名示例、解析器、错误�
 - [ ] 在当前同版本合格Download基础上运行3种变化×fresh/previous=6位置；两个臂共享变化和最终质量要求。
 - [ ] 政策变化保持模式不变，避免把behavior→conformance混成policy-only；前提只改用户实际给出的事实；源码变化明确受影响材料。
 - [ ] 检验旧结论撤回、未变材料采用及真实少读/少解释，恢复与准备成本全记；不能以reusable=true和0材料声称复用。
-- [ ] 无合格基础则previous具名阻断；可做partial材料或fresh诊断，但另标范围，不能补一个历史包冒充当前基础。
+- [x] 无合格当前Download基础，3个previous位置具名blocked-no-qualified-current-download-baseline；同时保留routing阻断。其余fresh未执行，未以历史包替代基础。
 
 ### BA15：独立评价与开销归因
 
-- [ ] 对所有原答和修订用相同源码、原问题标准评阅，尽量隐藏臂名；争议回到源行。记录条件完整、错误允许/拒绝、漏控制、未分析和合理unknown。
-- [ ] 分开 source-semantic quality、protocol delivery、source coverage、mechanical check、material adoption 与完整任务；不能用partial总标签盖住根因。
-- [ ] 总输入含缓存仅计一次；分别记输出、可见调用、格式失败、重复源码/Schema字节、耗时、作者/恢复成本。未知USD/隐藏请求/开发和真人分钟不填0。
-- [ ] 结果可为positive/tradeoff/no-observed-difference/negative/inconclusive。D更贵且更差就明确negative；质效不变但编写/复用方便也须有独立证据。
+- [x] 所有3份自然交付以原源码/完整原题匿名评阅；争议由主代理点验原brief/源行裁定，routing失败为undelivered，不造评分。
+- [x] source-semantic quality、delivery、coverage、机械检查、材料采用与完整任务分别记录。Download两答partial；OWUI原答full有条件，但机器链未闭合。
+- [x] 4尝试逐行保留，3份已知input10,707,789已含缓存10,026,624、output46,863；失败第4份usage unknown，114动态调用/73自动读取分列，USD/隐藏请求/开发探子/真人成本unknown。
+- [x] 当前比较inconclusive：12主质量位置未运行，无同版本配对，也无实际复用收益；不作正向或统计稳定主张。
 
 ### BA16：针对性减负与机制反证
 
@@ -228,16 +230,18 @@ Schema、模型可见字段说明、空表单/匿名示例、解析器、错误�
 
 ### BA17：有限回归、研究归纳与恢复入口
 
-- [ ] 运行受影响测试、主/研究类型检查及当前结果零调用汇总；仅对新增变更/失败重复。
-- [ ] 更新既有研究§1/§7.62/§11、spec§14.40、current-status、当前plan、实际接口涉及的usage/developer-guide。新结果只用一份summary/status/accounting/verification与短README。
-- [ ] 文档测试及本轮链接检查通过即可；4条已知冻结历史日志断链保留，不全历史清扫。不新增日期化docs/skill-ir报告。
+- [x] 受影响1739 pass/1 skip/0 fail；最终新增定向14 pass/112 assertions，主/研究类型检查通过，当前4尝试零调用汇总通过。未再次跑无新增生产修改的全组。
+- [x] 同步研究§1/§7.62/§11、spec§14.40、current-status/plan、usage/developer-guide；同一新identity保留summary/status/accounting/verification与短README。
+- [x] 15文档测试通过，本轮新增断链/治理错误0；全量链接命令exit1仅为已知AX冻结日志的4条断链，明确保留，不新增日期化docs/skill-ir报告。
 - [ ] 提供一个普通用户可执行的完整流程和具名恢复位置；命令由公共入口实际验证，不交付只有study内部能跑的实现。
+
+公共check/init/搬移检查与native帮助入口零调用实际通过；native/inquiry共享核心由公共入口mock验证。当前真实run/inspect/previous闭环受通道及合格基础阻断，不能将命令形状和内部测试计为普通用户完整实际消费。最小恢复：先有新的外部routing证据，再核实原终态并登记新OWUI修订；随后取得合格当前Download基础，继续同epoch质量、两消费和六变化，不自动重试。
 
 ### BA18：提交发布与真实验收
 
 - [ ] 按功能提交本轮代码/测试/文档/证据，暂存白名单确认，无凭据或其它线程修改；推用户origin并核对远端。
-- [ ] 状态同时列工程责任、真实使用、研究效果、未执行位置及原因。未实现的BA项继续标partial/open，不以文档写完替代执行。
-- [ ] 研究目标仅在真实完整链与对应效果条件有证据时标达成；正常质量未知、通道阻断或负结论均诚实收束。没有必要等到固定小时数，更不能承诺必须正向。
+- [x] 状态分列工程/真实使用/研究效果、20个未执行位置及原因；BA5/9/10/11–14/16未达责任保持partial/open，有限队列未完成。
+- [x] researchGoalAchieved=false；完整真实链、比较和实际复用未达，外部阻断如实保存，不作正向承诺。
 
 ## 四、位置与验收
 
@@ -270,4 +274,4 @@ python scripts/check_skill_ir_doc_links_test.py
 
 这些是已存在的定位/验证入口，不必接管即全部重跑。新study命令在BA0实现后写入本节及结果README；不把尚未存在的恢复命令展示为可执行。官方网络传输沿现有账号适配，不新增裸模型旁路。研究问题、实现缺陷及解决过程统一追加研究总文档，不新开第二份研究正文。
 
-当前已实现：`bun results/skill-ir/skill-dsl-research/development/authorization-semantic-submission-v1/study.ts dry-run|prepare|run <positionId> [named-revision]`，`equivalence`为零调用共同输入核验。真实恢复位置为`run pilot-download`；先核实原终态及ready，登记parent/reason，一次恢复后重复routing会封闭通道。变更位置要求当前合格基础，不从历史报告替代。
+已实现study的dry-run/prepare/run与equivalence、summarize；准备与汇总零调用。pilot-download/original已完成唯一恢复；pilot-owui/await-argument-read-1原件已保存且不可覆盖，下一次只能在新外部routing证据到达后另登记具名修订。当前通道暂停，普通CLI同样不得旁路恢复上限。变更位置仍要求合格当前基础。
