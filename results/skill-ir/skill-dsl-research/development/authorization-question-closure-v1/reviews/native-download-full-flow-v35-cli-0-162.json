@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "authorization-source-review/v1",
+  "attempt": "native-download/full-flow-v35-cli-0-162",
+  "answerSha256": "6fe073796e39521c31f7279e0d2ebc6d99df3930a4d668e922898f8d5d272005",
+  "reviewedAt": "2026-10-08T14:50:49.596Z",
+  "primaryVerdict": "partial",
+  "independentVerdict": "partial",
+  "finalVerdict": "partial",
+  "reviewer": "default read-only model scout; primary source spot-check",
+  "evaluatorProvidedToRuntime": false,
+  "fullOriginalQuestionDenominatorRetained": true,
+  "currentCheckedBounded": false,
+  "resultPresent": false,
+  "correct": [
+    "requested/root/file_doc version distinction",
+    "version selection leaves explicit authorization resource at root_doc",
+    "original/archive representation distinction",
+    "unspecified owner/grants kept conditional"
+  ],
+  "materialOmissions": [
+    {
+      "issue": "Allow statement omits inherited GET model permission prerequisite",
+      "source": [
+        "src/documents/views.py:1021",
+        "src/documents/permissions.py:36-44",
+        "framework/rest_framework-3.18.1/rest_framework/views.py:418-421",
+        "framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246"
+      ]
+    },
+    {
+      "issue": "Root permission helper owner-null / owner-self / guardian grant branches omitted",
+      "source": [
+        "src/documents/permissions.py:624-635"
+      ]
+    }
+  ],
+  "independentReviewRaw": "partial. Class permission chain and owner-aware branches remain source-visible omissions; requested/root/version/representation discussion substantially accurate. The object-permission override is not assumed to run in download merely because the class defines it.",
+  "primaryAdjudication": "DRF initial() invokes has_permission; GET perms_map plus inherited DjangoModelPermissions.has_permission requires global model view permission. Do not conflate that prerequisite with an unproved call to has_object_permission.",
+  "sourceVerification": {
+    "valid": true,
+    "checkedFiles": 95,
+    "physicalReadBytes": 1412762
+  },
+  "usage": {
+    "input": 2751435,
+    "output": 8784,
+    "cacheRead": 2514816,
+    "cacheWrite": 0
+  },
+  "actualUsd": null,
+  "reviewerCost": null
+}

@@ -14,6 +14,8 @@
 
 该优先序下 `native-download/full-flow-v35` 首次请求在推理前因本机CLI升级至0.162.0-alpha.2而拒绝，保存原件，不计全流程里程碑。随后对本机experimental schema和实际config/thread元数据完成零推理核验，证据见[精确版本兼容记录](../../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/cli-0-162-compatibility.json)。精确版本准入仍保留每会话有效配置、指令SHA和工具边界检查；下一请求使用具名修订，完整原skill和源码范围不变。
 
+22:45:09（开始后约11分钟），`native-download/full-flow-v35-cli-0-162` 实际进入官方turn并完成源码回调，[里程碑记录](../../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/official-full-flow-milestone-v35.json)绑定完整原任务、skill和当前代码，已满足45分钟启动条件。按用户指示继续有限实验和收尾；该Download随后交付但独立源码partial、程序检查partial，不把启动当验收成功。后续作者消费/质量辅助臂的公开会话输出显式置于仓外runRoot；模型执行cwd仍由账号adapter建立为空临时目录。
+
 ## 一、执行合同和上下文
 
 - 仓库 `D:/skill优化/SkVM`；只推用户 `origin/skill-ir-aot`。新开发线程为唯一代码、共享方法文档和 Git 写者；只读探子按 AGENTS 使用，主线程承担设计与修改。

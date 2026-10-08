@@ -99,7 +99,7 @@ export async function run(id: string, revision?: string) {
   let account: AccountSessionResult | undefined, sessionPath: string | undefined, details: Record<string, unknown> = {}, status: string
   try {
     if (position.kind === "consumer" || position.kind === "quality" && !plain) {
-      const report = await executeLocalInquiryRun({ inputFile, outDir: path.join(out, "public-inquiry"), skillFile: original.skillFile, model: manifest.experimentModel, method, strategy, harness: "codex-account", accountBoundaryFile: path.join(root, "account-boundary.json"), execution: limits })
+      const report = await executeLocalInquiryRun({ inputFile, outDir: path.join(runRoot, "attempts", attemptId, "public-inquiry"), skillFile: original.skillFile, model: manifest.experimentModel, method, strategy, harness: "codex-account", accountBoundaryFile: path.join(root, "account-boundary.json"), execution: limits })
       status = report.status; await write(path.join(out, "public-report.json"), report, true)
       if ("sessionPath" in report && typeof report.sessionPath === "string") {
         sessionPath = report.sessionPath; await inspectLocalInquiry(sessionPath)
