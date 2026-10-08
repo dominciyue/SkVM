@@ -61,7 +61,7 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
     const explorationRemaining = Math.max(0, explorationLimit - explorationUsed)
     return { totalLimit: tools.maxToolCalls, totalUsed, totalRemaining: Math.max(0, tools.maxToolCalls - totalUsed),
       explorationLimit, explorationUsed, explorationRemaining,
-      checkLimit, checksUsed: checks, checksRemaining: checkLimit - checks,
+      checkLimit, checksUsed: checks, checksRemaining: separateFormats ? Math.min(checkLimit - checks, Math.max(0, tools.maxToolCalls - totalUsed)) : checkLimit - checks,
       ...(separateFormats ? { formatCorrectionLimit, formatRejections, formatRejectCount: formatRejections, formatCorrectionsRemaining: Math.max(0, formatCorrectionLimit + 1 - formatRejections), formatBudgetExhausted: formatExhausted,
         semanticChecksUsed: checks, semanticCheckLimit: checkLimit, finalOnly: explorationRemaining <= 0 || checks >= checkLimit || formatExhausted || deliveryClosed || !!result, deliveryClosed } : {}) }
   }
@@ -238,8 +238,9 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
   }
   const rejectArguments = async (call: LLMToolCall, diagnostics: AccountArgumentDiagnostic[]) => {
     ensureActive(); argumentRejections++; rejectedToolCalls++
-    // Transport validation is still an actual tool attempt. A rejected result
-    // check spends its reserved slot, rather than consuming exploration twice.
+    // A transport rejection is one actual attempt. In v6 it never increments
+    // semantic checks, but a malformed final at the total limit still costs a
+    // real slot; usable checks are capped by actual remaining calls.
     if (call.name === "authorization_check_result") { result = undefined; if (program) { if (separateFormats) formatCheckCalls++; else checks++ } }
     if (separateFormats) recordFormatRejection()
     const output = { status: "error", code: deliveryClosed ? "delivery-closed" : formatExhausted ? "format-repair-budget" : "account-tool-arguments-invalid", diagnostics, toolBudget: toolBudget(), instruction: `The malformed call executed no source or semantic action. Accepted source and drafts remain. Correct only the named fields using currentContext.focus and its current phase contract. ${separateFormats ? deliveryClosed ? "Tool delivery is closed; deliver retained partial conclusions and the protocol failure in prose." : formatExhausted ? "Format corrections are exhausted; a shape-valid final check may still use an unconsumed reserved check. Another malformed submission closes delivery." : "This spends the finite format correction allowance and total tools, but no semantic check." : "A result check consumes one reserved check slot."} Answers use explanation and numeric paths[].path, with question/path/citation identity supplied by the host.` }

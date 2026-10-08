@@ -2826,15 +2826,19 @@ AZ3–AZ8首个有界实现：性质以原题要求的精确文本跨度声明�
 
 ### 14.40 BA semantic submission and adoption
 
-2026-10-09，用户要求复核AZ并派发gpt-6.1-sol/max接续开发，任务书为[BA0–BA18](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)。语义编辑、选定协议诊断及预算已接入公共入口并通过离线接线测试；真实采用和效果尚待运行。AZ原件和结论不改。
+2026-10-09，用户要求复核AZ并派发gpt-6.1-sol/max接续开发，任务书为[BA0–BA18](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)。语义编辑、选定协议诊断及预算已接入公共入口；首个真实Download恢复交付了1个源单元/1次材料采用，但未绑定性质、检查失败、自然答案partial。AZ原件和结论不改。
 
 **语义编辑与编译。** 既有v6接受`{schemaVersion:"authorization-source-edit/v1",kind:"edit",transactionId,edits:[{anchorId,field,value}],values?,reason?}`。事务由当前focus及完整源码revision派生；宿主填写内部focus/revision，模型不能覆盖。普通field取现有SourceAnnotationSchema字段（anchorId除外），value沿用对应Schema；`unresolved`值为具名原因。根字段`fallthroughOutcome`和`propertyBindings`省略anchorId。槽位提供源行、相关原题、当前值、类型及必要原因，Schema和匿名表达式示例共源。跨题/过期/冲突、外来锚点、重复槽位和非法枚举拒绝，不改草稿；合法不完整字段保留，role/explanation齐备后编译回原SourceInterpretation，再由原lowering要求predicate、对象联系及出处。宿主不替模型填permission/effect/allow/deny或用户前提。原始编辑与生成的内部提案均保留，不复制求值器。
 
 **协议与局部保留。** 模型视图、Schema、解析和错误说明共用定义；按显式discriminator及当前事务反馈对应分支，不能让source-update错误要求focused-update的unit/candidateId。旧annotation/fallback继续显式兼容。合法局部草稿可保留，单元满足必要字段后才采用；条件解释文字不能替代predicate，未知值不能静默coerce为最接近枚举。答案中的缺口与政策字段按behavior/conformance显示，完整原题保留。
 
+v6当前阶段以sourceEdit为首选；旧annotation空壳称为legacySourceUpdateTemplate，避免同时推广两种当前表单。每个role槽位从lowering共用的sourceAnnotationRoles给出结构允许值，选角色仍由模型负责。当前待解释事务保留时暂停自动其它读取；子候选自动读取须有已接受父单元，直接源码调用优先。此为调度顺序，不删除框架、类装饰器或未知影响，也不提升任何源码主张。property checker按原性质身份合并未绑定声明占位；同性质多个实际绑定继续报重复，单来源/性质诊断不能污染另一来源的显式绑定，决定性依赖仍独立阻断。
+
 **预算与恢复。** 格式纠正和有效语义检查有界且共同计入总工具/成本；格式纠正耗尽时不再允许无限修复，但已有未消耗的合法检查机会应可调用，最新无效更新仍撤回旧结果。明确quota/auth拒绝暂停；未知完成先核查；已终态临时routing允许在真实就绪任务上一次同账号/模型新会话恢复，保留原attempt/失败成本，重复同因停止。无需额外付费探针证明通道可用，不自动改第三方端点。
 
 BA新编辑模式按会话计数，不按focus重置：首个格式错误后的2次纠正仍失败，则finalOnly只开放有效最终检查/自然终答；再一次格式无效关闭工具交付。有效形状进入语义检查即消耗检查额度，实际尝试只计一次总量；未消耗的2检查位置保留，格式尝试占同一非检查预算。固定总上限不增加，旧策略兼容，代码/交互模式另列。readyToDispatch由输入/源码/skill/check、预算快照和无活动/未知完成决定，不以前一次模型成功作为就绪前提。
+
+首轮暴露边界：探索耗尽后，官方静态工具仍可能收到无效最终参数；该真实尝试不能既计入总量又凭空保住所有检查位置。宿主不再主动派发非检查动作，剩余有效检查受实际总量限制；checksRemaining取语义额度与实际剩余调用的较小值，semanticChecksUsed仍只计真正进入的检查。无效终交付不退费、不增预算。此明确了“预留”的调度边界，不能解释为外来错误尝试不消耗总量。
 
 **采用与领域推进。** 从实际公共工具参数验证经过focus/lowering/projection到property check测试；不以测试直接注入成功semantic units代替公共接线。真实采用先解决一条局部性质，再检查两完整原skill任务。框架/调用/对象关系按真实首阻断修复，未知装饰器不默认无影响；无关外围语言扩张不进入队列。结构自洽与独立源码语义评阅分别保留。
 

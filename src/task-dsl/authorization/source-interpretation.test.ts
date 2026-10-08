@@ -131,7 +131,7 @@ test("the same production focus offers source anchors and accepts roles without 
 test("v6 current source and answer templates validate without inventing source meaning", async () => {
   const f = await fixture(), runtime = createInquiryDomainRuntime({ program: f.program, tools: f.tools, strategy: "operation-evidence-v6", sourceAssisted: true })
   await runtime.sync()
-  const context: any = runtime.promptContext(), template = context.tasks[0].sourceUpdateTemplate
+  const context: any = runtime.promptContext(), template = context.tasks[0].legacySourceUpdateTemplate
   expect(SourceUpdateSchema.safeParse(template).success).toBe(true)
   expect(template.focusId).toBe(context.focus.id)
   expect(template.interpretation.revision).toBe(context.tasks[0].sourceSkeleton.revision)

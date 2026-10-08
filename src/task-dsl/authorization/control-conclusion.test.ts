@@ -11,7 +11,7 @@ const codes = (checked: any) => checked.diagnostics.map((d: any) => d.code)
 test("property checks retain original questions and reject absent guards, wrong objects and zero rules", () => {
   const origin = (step: string) => ({ handle: "entry", block: "body", step, instance: "i" })
   const query = { id: "p", questionId: "q", kind: "authorization-before-effect", state: "bound", effectAnchorId: "e", guardAnchorId: "g", sourceRevision: "r", source: { id: "source", sha256: "sha" } }
-  const demand = { sourceId: "source", dependencies: { propertyQueries: { queries: [query], diagnostics: [] } } }
+  const demand = { source: query.source, revision: "r", dependencies: { propertyQueries: { queries: [query], diagnostics: [] } } }
   const units = [{ questionId: "q", handle: "entry", source: query.source }]
   const rules = [rule("entry", "entry", []), rule("actor", "binding", ["entry"], { bindingKey: "actor", bindingKind: "principal" }), rule("item", "binding", ["actor"], { bindingKey: "item", bindingKind: "resource" }), rule("guard", "guard", ["item"], { principal: "actor", resource: "item", sourceOrigin: origin("guard-g") }), rule("send", "effect", ["guard"], { principal: "actor", resource: "item", sourceOrigin: origin("effect-e"), complete: true })]
   const run = (rs: any[], qs: any[] = [query], deps: any[] = []) => api.checkPropertyQueries(plan, mergeControlSlice(createControlSlice(), { schemaVersion: "authorization-control-slice/v2", rules: rs }, plan, context).state, [{ ...demand, dependencies: { propertyQueries: { queries: qs, diagnostics: [] } } }], units, deps)

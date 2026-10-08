@@ -88,3 +88,17 @@ test("structured inquiry retains a valid final check after three rejected format
   expect(run.domain?.checkHistory).toHaveLength(1)
   expect(run.result?.questions[0]?.missing[0]?.kind).toBe("interpretation-gap")
 })
+
+test("usable checks cannot exceed actual remaining tools after a malformed final attempt", async () => {
+  const runtime = await fixture(8)
+  try {
+    while (runtime.report().toolBudget.explorationRemaining > 0) await runtime.execute({ id: `read-${runtime.report().history.length}`, name: "source_list", arguments: {} })
+    await runtime.rejectArguments(badCall(1, "authorization_check_result"), diagnostics)
+    expect(runtime.report().toolBudget.totalRemaining).toBe(1)
+    expect(runtime.report().toolBudget.checksRemaining).toBe(1)
+    const current: any = await runtime.accountContext()
+    await runtime.execute({ id: "last-check", name: "authorization_check_result", arguments: { result: { ...current.answerTemplate, answers: [{ explanation: "Source interpretation is incomplete", missing: [{ kind: "interpretation-gap", detail: "No return meaning supplied" }] }] } } })
+    expect(runtime.report().toolBudget.checksUsed).toBe(1)
+    expect(runtime.report().toolBudget.checksRemaining).toBe(0)
+  } finally { await runtime.close() }
+})

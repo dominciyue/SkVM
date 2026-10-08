@@ -1,6 +1,6 @@
 # Authorization semantic submission and adoption (BA)
 
-Current status: shared typed edit/diagnostic/budget engineering is verified. Actual model adoption, whole-task quality and reuse effects are pending. This development identity preserves all 22 registered positions and the original AZ failure arguments without changing their scores.
+Current status: the first ordinary pilot restored the official channel and adopted one wrapper unit/material, but bound and checked no property; source answer quality is partial. Its original arguments, costs and failures are preserved. Shared guide/role/scheduling/property-placeholder repairs pass affected regression; same-input named retest is next. Whole-task quality and reuse effects remain pending, with all22 positions retained.
 
 Run from the repository root:
 
@@ -8,7 +8,7 @@ Run from the repository root:
 bun results/skill-ir/skill-dsl-research/development/authorization-semantic-submission-v1/study.ts dry-run pilot-download
 bun results/skill-ir/skill-dsl-research/development/authorization-semantic-submission-v1/study.ts prepare pilot-download
 bun results/skill-ir/skill-dsl-research/development/authorization-semantic-submission-v1/study.ts equivalence
-bun results/skill-ir/skill-dsl-research/development/authorization-semantic-submission-v1/study.ts run pilot-download
+bun results/skill-ir/skill-dsl-research/development/authorization-semantic-submission-v1/study.ts run pilot-download transaction-priority-1
 ```
 
 `dry-run`, `prepare` and `equivalence` make zero model calls. `run` uses the ordinary native or inquiry public entrance, the pinned current official account `gpt-5.6-sol/high`, and the registered 64-tool/768-KiB-display/32-MiB-read/45-minute cap. It preserves first attempts; a subsequent revision needs a new name after the position ID. Active or unknown completions must be inspected before another dispatch. One verified terminal routing recovery is permitted on a ready real position; repeated routing or quota/auth pauses the channel. Third-party API and old AV positions remain paused.

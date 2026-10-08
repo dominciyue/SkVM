@@ -15,7 +15,7 @@ import type { SourceMaterialUse } from "./source-material-projection.ts"
 export type WorkState = "unlocated" | "awaiting-read" | "awaiting-interpretation" | "awaiting-binding" | "awaiting-verification" | "closed" | "external-unknown" | "blocked"
 export interface WorkItem {
   id: string; questionId: string; kind: InquiryRelation; question: string; entryHint?: string; symbol?: string;
-  origin: "question-duty" | "source-reference" | "explicit-dependency" | "structure-relation"; parentId?: string; dependencyId?: string; receiverClass?: string; relationId?: string; frameworkBoundary?: boolean;
+  origin: "question-duty" | "source-reference" | "explicit-dependency" | "structure-relation"; parentId?: string; dependencyId?: string; receiverClass?: string; relationId?: string; sourceCallId?: string; frameworkBoundary?: boolean;
   state: WorkState; decisive: boolean; code?: string; reason: string; candidates: DiscoverySymbol[]; selected?: DiscoverySymbol;
   selectedBy?: "explicit-selection" | "explicit-discovery-selection" | "unique-index-candidate" | "accepted-entry-citation" | "source-confirmed-candidate";
   callsiteEvidenceIds: string[]; evidenceIds: string[]; semanticSupport: "unreviewed";
@@ -30,12 +30,12 @@ const stableId = (value: unknown) => "work-" + createHash("sha256").update(JSON.
 const syntax = new Set(["if", "for", "while", "switch", "catch", "function", "func", "def", "class", "with", "match", "typeof", "sizeof", "return"])
 const priority: Record<InquiryRelation, number> = { entry: 0, "principal-binding": 1, "resource-binding": 2, guard: 3, effect: 4, exception: 5 }
 /** Scheduling weight only: explicit operation sharing never proves source meaning. */
-export function propertyWorkPriority(program: AuthorizationInquiryProgram, a: WorkItem, b: WorkItem) {
+export function propertyWorkPriority(program: AuthorizationInquiryProgram, a: WorkItem, b: WorkItem, preferDirectCalls = false) {
   const affected = (item: WorkItem) => {
     const operation = program.operationQuestions?.find(q => q.questionId === item.questionId)?.operationId
     return operation ? program.operationQuestions!.filter(q => q.operationId === operation).length : 1
   }
-  return Number(b.decisive) - Number(a.decisive) || (a.decisive && b.decisive ? affected(b) - affected(a) : 0)
+  return (preferDirectCalls ? Number(!!b.sourceCallId && !b.frameworkBoundary) - Number(!!a.sourceCallId && !a.frameworkBoundary) : 0) || Number(b.decisive) - Number(a.decisive) || (a.decisive && b.decisive ? affected(b) - affected(a) : 0)
 }
 
 /** Keep every current duty addressable; focused location tasks carry full candidate metadata. */
@@ -48,7 +48,7 @@ export function worklistModelView(items: WorkItem[]) {
 }
 
 /** Source candidates are lexical work, never an inferred call graph or authorization fact. */
-export function createInquiryWorklist(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; entryContext?: string; remainingActions?: () => number; dependencyStates?: () => ScheduledDependency[]; structural?: boolean; requireEntryBasis?: boolean; questionDirected?: boolean; semanticUnits?: () => BoundSemanticBlock[]; projectedUnits?: () => BoundSemanticBlock[]; frameworkUses?: () => SourceMaterialUse[]; skeletonState?: (id: string, receiverClass?: string) => { modelCovered: boolean; revision: string } | undefined; propertyDemand?: (item: WorkItem) => PropertyDemand | undefined }) {
+export function createInquiryWorklist(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; entryContext?: string; remainingActions?: () => number; dependencyStates?: () => ScheduledDependency[]; structural?: boolean; requireEntryBasis?: boolean; questionDirected?: boolean; propertyTransactions?: boolean; semanticUnits?: () => BoundSemanticBlock[]; projectedUnits?: () => BoundSemanticBlock[]; frameworkUses?: () => SourceMaterialUse[]; skeletonState?: (id: string, receiverClass?: string) => { modelCovered: boolean; revision: string } | undefined; propertyDemand?: (item: WorkItem) => PropertyDemand | undefined }) {
   const items = new Map<string, WorkItem>(), choices = new Map<string, { candidate: DiscoverySymbol; origin: "explicit-selection" | "explicit-discovery-selection" }>(), invalidFiles = new Set<string>(), failedReads = new Map<string, string>()
   const actions: WorklistAction[] = [], questionIds = options.program.questions.map(q => q.id)
   const relations = new Map<string, { id: string; questionId: string; sourceId: string; candidateId?: string; receiverClass?: string; frameworkBoundary?: boolean; reason: string; state: string; gap?: string }>(), frameworkDependencies = new Map<string, SourceFactDependency>()
@@ -113,7 +113,7 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
         if (existing && a.frameworkBoundary) { existing.frameworkBoundary = true; existing.decisive ||= a.decisive }
         if (candidate.id === parent.selected.id || existing) continue
         if ([...items.values()].filter(i => i.questionId === parent.questionId && i.origin === "structure-relation").length >= 48) { parent.code = "work-structure-limit"; break }
-        if (!items.has(id)) items.set(id, make(id, parent.questionId, a.obligation, "structure-relation", a.reason, { symbol: candidate.name, parentId: parent.id, candidates: [candidate], selected: candidate, relationId: a.relationId, receiverClass: a.receiverClass, callsiteEvidenceIds: [...parent.evidenceIds], reason: a.reason, decisive: a.decisive, frameworkBoundary: a.frameworkBoundary }))
+        if (!items.has(id)) items.set(id, make(id, parent.questionId, a.obligation, "structure-relation", a.reason, { symbol: candidate.name, parentId: parent.id, candidates: [candidate], selected: candidate, relationId: a.relationId, sourceCallId: index.calls.find(c => c.id === a.relationId)?.id, receiverClass: a.receiverClass, callsiteEvidenceIds: [...parent.evidenceIds], reason: a.reason, decisive: a.decisive, frameworkBoundary: a.frameworkBoundary }))
       }
       return
     }
@@ -254,7 +254,7 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
       let next: WorkItem | undefined
       if (options.propertyDemand) {
         const rotation = (i: WorkItem) => (questionIds.indexOf(i.questionId) - lastQuestion - 1 + questionIds.length) % questionIds.length
-        next = [...items.values()].filter(i => i.state === "awaiting-read" && i.selected?.boundary !== "uncertain").sort((a, b) => propertyWorkPriority(options.program, a, b) || rotation(a) - rotation(b) || priority[a.kind] - priority[b.kind] || a.id.localeCompare(b.id))[0]
+        next = [...items.values()].filter(i => i.state === "awaiting-read" && i.selected?.boundary !== "uncertain" && (!options.propertyTransactions || !i.parentId || !!options.semanticUnits?.().some(u => u.questionId === i.questionId && u.source?.id === items.get(i.parentId!)?.selected?.id && u.receiverClass === items.get(i.parentId!)?.receiverClass))).sort((a, b) => propertyWorkPriority(options.program, a, b, options.propertyTransactions) || rotation(a) - rotation(b) || priority[a.kind] - priority[b.kind] || a.id.localeCompare(b.id))[0]
         if (next) lastQuestion = questionIds.indexOf(next.questionId)
       } else for (let offset = 1; offset <= questionIds.length; offset++) {
         const index = (lastQuestion + offset) % questionIds.length

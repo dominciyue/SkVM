@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "authorization-ba-reviews/v1",
+  "reviews": [
+    {
+      "sampleId": "sample-001",
+      "attemptId": "pilot-download/original",
+      "answerSha256": "a93b5d04568f7bdc80d5e9e8dfb650ab1cd786c52b5298c7e9d19f02c1191eb9",
+      "reviewMethod": "Read-only agent received only anonymized answer, complete original task and allowed original sources; main adjudicated exact cited source",
+      "sourceSemanticQuality": "partial",
+      "correct": [
+        "Root document authorized before selected family version is returned",
+        "Explicit version cannot cross root family",
+        "Original/archive representation belongs to selected file_doc"
+      ],
+      "omissions": [
+        {
+          "source": "src/documents/permissions.py:624-635",
+          "finding": "Root check allows ownerless, root owner, or Guardian object grant; data remains unspecified"
+        },
+        {
+          "source": "src/documents/permissions.py:30-44; framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246",
+          "finding": "PaperlessObjectPermissions overrides GET perms_map to view_document. Inherited has_permission must use that receiver mapping."
+        }
+      ],
+      "adjudication": [
+        {
+          "advisory": "GET inherited mapping empty",
+          "decision": "rejected",
+          "source": "src/documents/permissions.py:36-43",
+          "reason": "Reviewer missed subclass override; the actual receiver mapping is nonempty"
+        },
+        {
+          "advisory": "3 automatic reads",
+          "decision": "rejected",
+          "source": "run-result.json.gz $.authorizationInquiry.domain.schedulerActions",
+          "reason": "Actual array has39 automatic read actions"
+        }
+      ],
+      "mechanicalAndSourceMeaningSeparate": true,
+      "wholeTaskFull": false
+    }
+  ],
+  "evaluatorProvidedToRuntime": false
+}

@@ -1,7 +1,7 @@
 import { z } from "zod"
 import { InquiryText, type InquiryDiagnostic } from "./inquiry.ts"
 import { FiniteValueSchema } from "./control-slice.ts"
-import { SourceAnnotationSchema, SourceInterpretationSchema, type SourceInterpretation } from "./source-interpretation.ts"
+import { SourceAnnotationSchema, SourceInterpretationSchema, sourceAnnotationRoles, type SourceInterpretation } from "./source-interpretation.ts"
 import { predicateDiagnostics, FINITE_PREDICATE_GUIDE, FINITE_PERMISSION_GUIDE } from "./control-evaluation.ts"
 import type { SourceSkeleton } from "../../benchmarks/authorization-dsl/evidence-preparation/source-skeleton.ts"
 import type { PropertyDemand } from "./property-demand.ts"
@@ -37,6 +37,8 @@ export function compileSourceEdit(skeleton: SourceSkeleton, raw: unknown, option
       if (seen.has(key)) fail("duplicate", `edits.${i}`, "Each changed source slot appears once per submission.")
       seen.add(key)
       if (anchorId && !skeleton.anchors.some(a => a.id === anchorId)) fail("anchor-unshown", `edits.${i}.anchorId`, "Use an anchor from this current shown source transaction.")
+      const anchor = skeleton.anchors.find(a => a.id === anchorId)
+      if (edit.field === "role" && anchor && !sourceAnnotationRoles(anchor).some(role => role === edit.value)) fail("role", `edits.${i}.value`, `Allowed structural roles for this ${anchor.kind}: ${sourceAnnotationRoles(anchor).join(", ")}. Choose its source meaning; the host does not coerce it.`)
       if (edit.field === "condition") for (const code of predicateDiagnostics(edit.value)) fail(code, `edits.${i}.value`, `${FINITE_PREDICATE_GUIDE} ${FINITE_PERMISSION_GUIDE}`)
     }
   }
@@ -66,7 +68,7 @@ export function sourceEditModelView(skeleton: SourceSkeleton, options: { transac
     if (slots.some(s => s.anchorId === anchorId && s.field === field)) return
     const anchor = skeleton.anchors.find(a => a.id === anchorId), annotation = draft.annotations.find(a => a.anchorId === anchorId), unknown = draft.unresolved.find(u => u.anchorId === anchorId)
     const currentValue = rootFields.has(field) ? (draft as any)[field] : field === "unresolved" ? unknown?.reason : (annotation as any)?.[field]
-    slots.push({ ...(rootFields.has(field) ? {} : { anchorId }), field, currentValue, questionIds: options.questionIds, why, source: { path: skeleton.source.path, startLine: anchor?.selector.startLine ?? skeleton.source.startLine, endLine: anchor?.selector.endLine ?? skeleton.source.endLine, text: anchor?.text ?? "Current source normal fallthrough" }, type: `sourceEdit.fields.${field}`, unknownAlternative: rootFields.has(field) ? undefined : { anchorId, field: "unresolved", value: "<name the precise remaining source meaning>" } })
+    slots.push({ ...(rootFields.has(field) ? {} : { anchorId }), field, currentValue, questionIds: options.questionIds, why, source: { path: skeleton.source.path, startLine: anchor?.selector.startLine ?? skeleton.source.startLine, endLine: anchor?.selector.endLine ?? skeleton.source.endLine, text: anchor?.text ?? "Current source normal fallthrough" }, type: `sourceEdit.fields.${field}`, ...(field === "role" && anchor ? { allowedValues: sourceAnnotationRoles(anchor) } : {}), unknownAlternative: rootFields.has(field) ? undefined : { anchorId, field: "unresolved", value: "<name the precise remaining source meaning>" } })
   }
   const frontier = options.demand?.frontier ?? skeleton.anchors.filter(a => a.interpretationRequired).map(a => ({ anchorId: a.id, field: a.kind === "condition" ? "condition" : a.kind === "return" ? "returnOutcome" : a.kind === "raise" ? "failureKind" : "role", reason: "This source statement needs an explicit meaning for the current task." }))
   for (const r of frontier) {

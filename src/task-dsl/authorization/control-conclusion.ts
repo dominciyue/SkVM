@@ -156,7 +156,14 @@ export function checkPropertyQueries(program: AuthorizationInquiryProgram, slice
   const evaluated = evaluateControlPaths(slice)
   const questions = program.questions.map(question => {
     const local = demands.filter(d => d.questionId === question.id || d.dependencies?.propertyQueries?.questionId === question.id || d.dependencies?.propertyQueries?.queries.some(q => q.questionId === question.id))
-    const queries = local.flatMap(d => d.dependencies?.propertyQueries?.queries ?? [])
+    const candidates = local.flatMap(d => d.dependencies?.propertyQueries?.queries ?? []).filter(q => q.questionId === question.id)
+    // Every shown body has a declaration placeholder. Only actual proposed
+    // bindings compete for identity; an unbound helper does not duplicate or
+    // poison a binding on another source. Multiple explicit bindings still fail.
+    const queries = [...new Set(candidates.map(q => q.id))].flatMap(id => {
+      const declared = candidates.filter(q => q.id === id), explicit = declared.filter(q => q.effectAnchorId || q.guardAnchorId)
+      return explicit.length ? explicit : declared.slice(0, 1)
+    })
     const properties = queries.map(q => {
       const gaps: string[] = [], trace: string[] = []
       let status: "checked" | "violated" | "unknown" = "unknown", value = "unresolved"
@@ -165,7 +172,8 @@ export function checkPropertyQueries(program: AuthorizationInquiryProgram, slice
       const effects = slice.rules.filter(r => sameSource(r) && r.kind === "effect" && [`effect-${q.effectAnchorId}`, `field-effect-${q.effectAnchorId}`].includes(r.sourceOrigin?.step ?? ""))
       if (q.state !== "bound") gaps.push(...q.missing)
       if (queries.filter(v => v.id === q.id).length !== 1) gaps.push("property-binding-duplicate")
-      if (local.some(d => d.dependencies?.propertyQueries?.diagnostics.length)) gaps.push("property-query-diagnostics")
+      const propertyLocal = local.filter(d => d.source.id === q.source.id && d.revision === q.sourceRevision)
+      if (propertyLocal.some(d => d.dependencies?.propertyQueries?.diagnostics.some(d => !d.propertyId || d.propertyId === q.id))) gaps.push("property-query-diagnostics")
       if (!sourceUnits.length || !effects.length) gaps.push("property-source-effect-unadopted")
       if (dependencies.some(d => d.questionId === question.id && d.decisive && !["checked", "inapplicable"].includes(d.state))) gaps.push("property-dependency-open")
       const reaches = effects.map(effect => ({ effect, ...controlRuleReach(slice, effect) }))
@@ -186,7 +194,7 @@ export function checkPropertyQueries(program: AuthorizationInquiryProgram, slice
           status = "checked"; value = live.some(r => r.predicate.truth === "true") ? "reachable" : live.length ? "conditional" : "unreachable"
         } else {
           const paths = evaluated.paths.filter(p => p.questionId === question.id && p.state !== "inapplicable")
-          if (!paths.length || paths.some(p => !p.complete || !p.sourceBound) || local.some(d => d.sourceGaps?.length || d.dependencies?.residuals?.length)) gaps.push("property-completion-unresolved")
+          if (!paths.length || paths.some(p => !p.complete || !p.sourceBound) || propertyLocal.some(d => d.sourceGaps?.length || d.dependencies?.residuals?.length)) gaps.push("property-completion-unresolved")
           else { status = "checked"; value = paths.every(p => p.predicate.truth === "true") ? "bounded-control-outcomes" : "conditional-control-outcomes" }
         }
       }

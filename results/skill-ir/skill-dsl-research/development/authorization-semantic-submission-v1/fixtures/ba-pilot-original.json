@@ -1,0 +1,519 @@
+{
+  "schemaVersion": "authorization-ba-original-pilot/v1",
+  "archive": "attempts/pilot-download/original/run-result.json.gz",
+  "archiveSha256": "bf5c1bdd6c83ad16489cd892d45b57c001e40c191a6e1c479e0b55c41c06774e",
+  "jsonPath": "$.authorizationInquiry",
+  "toolRejections": [
+    {
+      "call": {
+        "id": "exec-afd57659-ef40-443c-b1b7-ec408a74b37a",
+        "name": "authorization_observe",
+        "arguments": {
+          "controlDelta": {
+            "schemaVersion": "authorization-source-update/v1",
+            "kind": "interpret",
+            "focusId": "focus-cdce1a922e55bea3f5a9083d",
+            "interpretation": {
+              "schemaVersion": "source-interpretation/v1",
+              "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb",
+              "annotations": [
+                {
+                  "anchorId": "anchor-6382981b9e6645aa52e61653",
+                  "role": "effect",
+                  "explanation": "Returns the response produced by file_response for the path-selected document identifier, with attachment disposition.",
+                  "returnOutcome": "allow"
+                },
+                {
+                  "anchorId": "anchor-89884338f8e27dd5cc68eacb",
+                  "role": "effect",
+                  "explanation": "Delegates response construction and all document/version selection to DocumentViewSet.file_response."
+                },
+                {
+                  "anchorId": "anchor-9156da0367911009d52fa162",
+                  "role": "effect",
+                  "explanation": "Converts a missing document or file into HTTP 404; this is an operation failure, not an authorization decision.",
+                  "failureKind": "operation"
+                },
+                {
+                  "anchorId": "struct-b87a4afdcea33f96a2b2fa2d",
+                  "fallthroughOutcome": "deny"
+                }
+              ],
+              "unresolved": []
+            }
+          }
+        }
+      },
+      "diagnostics": [
+        {
+          "path": "/controlDelta/interpretation/annotations/3/role",
+          "keyword": "invalid_type",
+          "message": "Required",
+          "expected": {
+            "type": "'principal' | 'resource' | 'permission' | 'condition' | 'effect' | 'context'"
+          }
+        },
+        {
+          "path": "/controlDelta/interpretation/annotations/3/explanation",
+          "keyword": "invalid_type",
+          "message": "Required",
+          "expected": {
+            "type": "string"
+          }
+        },
+        {
+          "path": "/controlDelta/interpretation/annotations/3",
+          "keyword": "unrecognized_keys",
+          "message": "Unrecognized key(s) in object: 'fallthroughOutcome'",
+          "expected": {
+            "additionalProperties": [
+              "fallthroughOutcome"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "call": {
+        "id": "exec-7d7906ef-be7f-4445-bec4-48beacf72688",
+        "name": "authorization_observe",
+        "arguments": {
+          "controlDelta": {
+            "schemaVersion": "authorization-source-update/v1",
+            "kind": "interpret",
+            "focusId": "focus-cdce1a922e55bea3f5a9083d",
+            "interpretation": {
+              "schemaVersion": "source-interpretation/v1",
+              "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb",
+              "annotations": [
+                {
+                  "anchorId": "anchor-6382981b9e6645aa52e61653",
+                  "role": "effect",
+                  "explanation": "Returns the response produced by file_response for the path-selected document identifier, with attachment disposition.",
+                  "returnOutcome": "allow"
+                },
+                {
+                  "anchorId": "anchor-89884338f8e27dd5cc68eacb",
+                  "role": "effect",
+                  "explanation": "Delegates response construction and all document/version selection to DocumentViewSet.file_response."
+                },
+                {
+                  "anchorId": "anchor-9156da0367911009d52fa162",
+                  "role": "effect",
+                  "explanation": "Converts a missing document or file into HTTP 404; this is an operation failure, not an authorization decision.",
+                  "failureKind": "operation"
+                }
+              ],
+              "unresolved": [
+                {
+                  "anchorId": "struct-b87a4afdcea33f96a2b2fa2d",
+                  "field": "fallthroughOutcome",
+                  "reason": "The function has no normal fallthrough path: it either returns file_response or raises Http404."
+                }
+              ]
+            }
+          }
+        }
+      },
+      "diagnostics": [
+        {
+          "path": "/controlDelta/interpretation/unresolved/0",
+          "keyword": "unrecognized_keys",
+          "message": "Unrecognized key(s) in object: 'field'",
+          "expected": {
+            "additionalProperties": [
+              "field"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "call": {
+        "id": "exec-fffdf93b-ef18-4e68-af9d-da2157ae1663",
+        "name": "authorization_check_result",
+        "arguments": {
+          "result": {
+            "schemaVersion": "authorization-focused-result/v1",
+            "focusId": "focus-a0a03fd1bca6354680fec9be",
+            "scope": "q1 document download behavior",
+            "answers": [
+              {
+                "questionId": "q1",
+                "disposition": "conditional",
+                "explanation": "Download is an authenticated DRF detail action. The path pk first resolves a request document and its root document. Authorization is evaluated against that root using has_perms_owner_aware(request.user, 'view_document', root_doc); failure returns 403. Only after that check does version selection choose file_doc. A direct version pk without a version query returns that version; otherwise version=<id> may select only the root or one of its versions, and no version value selects the newest version. Thus selecting another valid version changes the file-bearing document but not the authorized object: authorization remains on the common root. original=true selects the original representation; otherwise an archive is used when the selected file_doc has one. Ownership and object-grant outcomes are unspecified, so no concrete caller is classified as allowed beyond these branches.",
+                "paths": [
+                  {
+                    "path": 0,
+                    "disposition": "deny",
+                    "explanation": "If DRF authentication or configured view permission checks fail, the action is not invoked."
+                  },
+                  {
+                    "path": 1,
+                    "disposition": "deny",
+                    "explanation": "For an authenticated caller lacking owner-aware view_document permission on the resolved root document, file_response returns HTTP 403 before version or representation selection."
+                  },
+                  {
+                    "path": 2,
+                    "disposition": "deny",
+                    "explanation": "A missing path document, invalid/missing requested version, unrelated version id, or missing file yields 404/NotFound rather than file content."
+                  },
+                  {
+                    "path": 3,
+                    "disposition": "allow",
+                    "explanation": "When upstream checks pass and the caller has view_document on the resolved root, a valid selected version is served; original=true chooses its original, otherwise its archive is chosen when present."
+                  }
+                ],
+                "gaps": [
+                  {
+                    "kind": "premise-unknown",
+                    "detail": "The authenticated user's ownership and object-level grants for the resolved root document are unspecified."
+                  },
+                  {
+                    "kind": "source-gap",
+                    "detail": "The implementation of serve_file and deployment-specific file-serving/proxy behavior were not needed to determine the authorized-object relation and were not traced."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "diagnostics": [
+        {
+          "path": "/result/answers/0",
+          "keyword": "unrecognized_keys",
+          "message": "Unrecognized key(s) in object: 'questionId', 'gaps'",
+          "expected": {
+            "additionalProperties": [
+              "questionId",
+              "gaps"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "sourceInterpretations": [
+    {
+      "event": "rejected",
+      "focusId": "focus-cdce1a922e55bea3f5a9083d",
+      "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb",
+      "raw": {
+        "schemaVersion": "authorization-source-update/v1",
+        "kind": "interpret",
+        "focusId": "focus-cdce1a922e55bea3f5a9083d",
+        "interpretation": {
+          "schemaVersion": "source-interpretation/v1",
+          "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb",
+          "annotations": [
+            {
+              "anchorId": "anchor-6382981b9e6645aa52e61653",
+              "role": "effect",
+              "explanation": "Returns the response produced by file_response for the path-selected document identifier, with attachment disposition.",
+              "returnOutcome": "allow"
+            },
+            {
+              "anchorId": "anchor-89884338f8e27dd5cc68eacb",
+              "role": "effect",
+              "explanation": "Delegates response construction and all document/version selection to DocumentViewSet.file_response."
+            },
+            {
+              "anchorId": "anchor-9156da0367911009d52fa162",
+              "role": "effect",
+              "explanation": "Converts a missing document or file into HTTP 404; this is an operation failure, not an authorization decision.",
+              "failureKind": "operation"
+            }
+          ],
+          "unresolved": []
+        }
+      },
+      "diagnostics": [
+        {
+          "code": "source-interpretation-role",
+          "path": "anchor-6382981b9e6645aa52e61653",
+          "message": "This role does not match a source object or relevant operation anchor.",
+          "questionId": "q1",
+          "severity": "error"
+        },
+        {
+          "code": "source-interpretation-role",
+          "path": "anchor-9156da0367911009d52fa162",
+          "message": "This role does not match a source object or relevant operation anchor.",
+          "questionId": "q1",
+          "severity": "error"
+        },
+        {
+          "code": "source-interpretation-fallthrough-outcome-required",
+          "path": "struct-b87a4afdcea33f96a2b2fa2d",
+          "message": "fallthroughOutcome: Interpret the source entry's normal fallthrough outcome at the interpretation root. Other valid annotations remain in this source transaction.",
+          "questionId": "q1",
+          "severity": "error"
+        }
+      ]
+    },
+    {
+      "event": "edited",
+      "focusId": "focus-cdce1a922e55bea3f5a9083d",
+      "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb",
+      "raw": {
+        "schemaVersion": "authorization-source-edit/v1",
+        "kind": "edit",
+        "transactionId": "edit-aed1d2bd711254cc337986ef",
+        "edits": [
+          {
+            "field": "role",
+            "anchorId": "anchor-6382981b9e6645aa52e61653",
+            "value": "permission"
+          },
+          {
+            "field": "role",
+            "anchorId": "anchor-9156da0367911009d52fa162",
+            "value": "condition"
+          },
+          {
+            "field": "fallthroughOutcome",
+            "value": "deny"
+          }
+        ]
+      },
+      "generated": {
+        "schemaVersion": "source-interpretation/v1",
+        "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb",
+        "annotations": [
+          {
+            "anchorId": "anchor-6382981b9e6645aa52e61653",
+            "role": "permission",
+            "explanation": "Returns the response produced by file_response for the path-selected document identifier, with attachment disposition.",
+            "returnOutcome": "allow"
+          },
+          {
+            "anchorId": "anchor-89884338f8e27dd5cc68eacb",
+            "role": "effect",
+            "explanation": "Delegates response construction and all document/version selection to DocumentViewSet.file_response."
+          },
+          {
+            "anchorId": "anchor-9156da0367911009d52fa162",
+            "role": "condition",
+            "explanation": "Converts a missing document or file into HTTP 404; this is an operation failure, not an authorization decision.",
+            "failureKind": "operation"
+          }
+        ],
+        "unresolved": [],
+        "fallthroughOutcome": "deny"
+      },
+      "diagnostics": [],
+      "acceptedEdits": 3
+    },
+    {
+      "event": "rejected",
+      "focusId": "focus-cdce1a922e55bea3f5a9083d",
+      "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb",
+      "raw": {
+        "schemaVersion": "authorization-source-update/v1",
+        "kind": "interpret",
+        "focusId": "focus-cdce1a922e55bea3f5a9083d",
+        "interpretation": {
+          "schemaVersion": "source-interpretation/v1",
+          "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb",
+          "annotations": [
+            {
+              "anchorId": "anchor-6382981b9e6645aa52e61653",
+              "role": "permission",
+              "explanation": "Returns the response produced by file_response for the path-selected document identifier, with attachment disposition.",
+              "returnOutcome": "allow"
+            },
+            {
+              "anchorId": "anchor-89884338f8e27dd5cc68eacb",
+              "role": "effect",
+              "explanation": "Delegates response construction and all document/version selection to DocumentViewSet.file_response."
+            },
+            {
+              "anchorId": "anchor-9156da0367911009d52fa162",
+              "role": "condition",
+              "explanation": "Converts a missing document or file into HTTP 404; this is an operation failure, not an authorization decision.",
+              "failureKind": "operation"
+            }
+          ],
+          "unresolved": [],
+          "fallthroughOutcome": "deny"
+        }
+      },
+      "diagnostics": [
+        {
+          "code": "source-interpretation-role",
+          "path": "anchor-6382981b9e6645aa52e61653",
+          "message": "This role does not match a source object or relevant operation anchor.",
+          "questionId": "q1",
+          "severity": "error"
+        }
+      ]
+    },
+    {
+      "event": "edited",
+      "focusId": "focus-cdce1a922e55bea3f5a9083d",
+      "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb",
+      "raw": {
+        "schemaVersion": "authorization-source-edit/v1",
+        "kind": "edit",
+        "transactionId": "edit-aed1d2bd711254cc337986ef",
+        "edits": [
+          {
+            "field": "role",
+            "anchorId": "anchor-6382981b9e6645aa52e61653",
+            "value": "context"
+          }
+        ]
+      },
+      "generated": {
+        "schemaVersion": "source-interpretation/v1",
+        "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb",
+        "annotations": [
+          {
+            "anchorId": "anchor-6382981b9e6645aa52e61653",
+            "role": "context",
+            "explanation": "Returns the response produced by file_response for the path-selected document identifier, with attachment disposition.",
+            "returnOutcome": "allow"
+          },
+          {
+            "anchorId": "anchor-89884338f8e27dd5cc68eacb",
+            "role": "effect",
+            "explanation": "Delegates response construction and all document/version selection to DocumentViewSet.file_response."
+          },
+          {
+            "anchorId": "anchor-9156da0367911009d52fa162",
+            "role": "condition",
+            "explanation": "Converts a missing document or file into HTTP 404; this is an operation failure, not an authorization decision.",
+            "failureKind": "operation"
+          }
+        ],
+        "unresolved": [],
+        "fallthroughOutcome": "deny"
+      },
+      "diagnostics": [],
+      "acceptedEdits": 1
+    },
+    {
+      "event": "lowered",
+      "focusId": "focus-cdce1a922e55bea3f5a9083d",
+      "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb",
+      "raw": {
+        "schemaVersion": "authorization-source-update/v1",
+        "kind": "interpret",
+        "focusId": "focus-cdce1a922e55bea3f5a9083d",
+        "interpretation": {
+          "schemaVersion": "source-interpretation/v1",
+          "revision": "03fcc0691ed2d81d2c7dec151f5c20fb83f55ce8501b38e205ade1661a933bfb",
+          "annotations": [
+            {
+              "anchorId": "anchor-6382981b9e6645aa52e61653",
+              "role": "context",
+              "explanation": "Returns the response produced by file_response for the path-selected document identifier, with attachment disposition.",
+              "returnOutcome": "allow"
+            },
+            {
+              "anchorId": "anchor-89884338f8e27dd5cc68eacb",
+              "role": "effect",
+              "explanation": "Delegates response construction and all document/version selection to DocumentViewSet.file_response."
+            },
+            {
+              "anchorId": "anchor-9156da0367911009d52fa162",
+              "role": "condition",
+              "explanation": "Converts a missing document or file into HTTP 404; this is an operation failure, not an authorization decision.",
+              "failureKind": "operation"
+            }
+          ],
+          "unresolved": [],
+          "fallthroughOutcome": "deny"
+        }
+      },
+      "generated": {
+        "itemId": "q1::entry",
+        "handle": "unit-6e65817faee6afcdb4e56f9a",
+        "op": "replace",
+        "role": "entry",
+        "start": "source-main",
+        "coverage": "path",
+        "complete": true,
+        "fallthrough": "deny",
+        "parameters": [
+          {
+            "name": "self",
+            "type": "value"
+          },
+          {
+            "name": "request",
+            "type": "value"
+          },
+          {
+            "name": "pk",
+            "type": "value"
+          }
+        ],
+        "blocks": [
+          {
+            "name": "source-main",
+            "steps": [
+              {
+                "kind": "try",
+                "name": "try-anchor-0726b3ad44eb269ffcf5b35f",
+                "claim": "Original source syntax",
+                "body": "source-try-0",
+                "handlers": [
+                  {
+                    "exceptionTypes": [
+                      "FileNotFoundError",
+                      "Document.DoesNotExist"
+                    ],
+                    "catchesAll": false,
+                    "body": "source-handler-0-0"
+                  }
+                ],
+                "otherwise": "source-else-0",
+                "finally": "source-else-0"
+              }
+            ]
+          },
+          {
+            "name": "source-try-0",
+            "steps": [
+              {
+                "kind": "effect",
+                "name": "effect-anchor-89884338f8e27dd5cc68eacb",
+                "claim": "Delegates response construction and all document/version selection to DocumentViewSet.file_response.",
+                "operation": "self.file_response",
+                "mayRaise": true
+              },
+              {
+                "kind": "return",
+                "name": "return-anchor-6382981b9e6645aa52e61653",
+                "claim": "Returns the response produced by file_response for the path-selected document identifier, with attachment disposition.",
+                "valueFrom": "result-a4baa301a3b30639",
+                "outcome": "allow"
+              }
+            ]
+          },
+          {
+            "name": "source-else-0",
+            "steps": []
+          },
+          {
+            "name": "source-handler-0-0",
+            "steps": [
+              {
+                "kind": "raise",
+                "name": "raise-anchor-9156da0367911009d52fa162",
+                "claim": "Converts a missing document or file into HTTP 404; this is an operation failure, not an authorization decision.",
+                "exceptionType": "Http404",
+                "failureKind": "operation"
+              }
+            ]
+          }
+        ]
+      },
+      "diagnostics": []
+    }
+  ],
+  "originalArgumentsUnchanged": true,
+  "modelInput": false
+}

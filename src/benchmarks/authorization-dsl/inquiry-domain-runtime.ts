@@ -56,7 +56,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const draftIdentity = (p: Pick<UpdateRejection, "group" | "questionId" | "targetKey">) => JSON.stringify([p.group, p.questionId, p.targetKey])
   const operationEvidence = isOperationInquiryStrategy(options.strategy)
   const propertyDirected = isPropertyDirectedInquiryStrategy(options.strategy)
-  const worklist: ReturnType<typeof createInquiryWorklist> | undefined = isGuidedInquiryStrategy(options.strategy) ? createInquiryWorklist({ ...options, structural: operationEvidence, requireEntryBasis: options.sourceAssisted, questionDirected: isQuestionDirectedInquiryStrategy(options.strategy), semanticUnits: () => semanticUnits, projectedUnits: () => projectedSemanticUnits, frameworkUses: () => materialUses, dependencyStates: () => scheduler.snapshot(), skeletonState: (id, receiver) => sourceSkeletons.get(skeletonKey(id, receiver)), ...(propertyDirected ? { propertyDemand: item => focus?.demandFor(item) } : {}) }) : undefined
+  const worklist: ReturnType<typeof createInquiryWorklist> | undefined = isGuidedInquiryStrategy(options.strategy) ? createInquiryWorklist({ ...options, structural: operationEvidence, requireEntryBasis: options.sourceAssisted, questionDirected: isQuestionDirectedInquiryStrategy(options.strategy), propertyTransactions: isPropertyAbstractionStrategy(options.strategy), semanticUnits: () => semanticUnits, projectedUnits: () => projectedSemanticUnits, frameworkUses: () => materialUses, dependencyStates: () => scheduler.snapshot(), skeletonState: (id, receiver) => sourceSkeletons.get(skeletonKey(id, receiver)), ...(propertyDirected ? { propertyDemand: item => focus?.demandFor(item) } : {}) }) : undefined
   const facts = operationEvidence ? createOperationFacts(options.program, options.tools.identity) : undefined
   const materials = isFiniteControlInquiryStrategy(options.strategy) ? createSourceMaterials({ ...options.tools.identity, semanticVersion: sourceMaterialSemanticVersion(options.strategy) }, options.initialSourceMaterials) : undefined
   let materialUses: SourceMaterialUse[] = []
@@ -139,7 +139,8 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     if (closed) throw new Error("session-closed: domain runtime cannot continue")
     await scheduler.run(slice, 0)
     if (closed) throw new Error("session-closed: domain runtime cannot continue")
-    const actions = worklist ? await worklist.run(slice, execute && options.ablation !== "scheduler-off" ? automaticActionsRemaining : 0) : await scheduler.run(slice, execute && options.ablation !== "scheduler-off" ? 2 : 0)
+    const currentFocus = focus?.current(), pendingTransaction = isPropertyAbstractionStrategy(options.strategy) && currentFocus?.stage === "interpret" && !semanticUnits.some(u => u.questionId === currentFocus.questionId && u.handle === currentFocus.handle)
+    const actions = worklist ? await worklist.run(slice, execute && !pendingTransaction && options.ablation !== "scheduler-off" ? automaticActionsRemaining : 0) : await scheduler.run(slice, execute && options.ablation !== "scheduler-off" ? 2 : 0)
     if (closed) throw new Error("session-closed: domain runtime cannot continue")
     if (worklist) { automaticActionsRemaining -= actions.length; await scheduler.run(slice, 0); if (closed) throw new Error("session-closed: domain runtime cannot continue"); worklist.sync(slice, check) }
     if (options.sourceAssisted) for (const item of worklist?.snapshot() ?? []) if (item.selected && ["awaiting-interpretation", "awaiting-verification"].includes(item.state)) {

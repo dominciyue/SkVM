@@ -89,6 +89,10 @@ test("the public v6 source transaction adopts incremental edits through wire, lo
   if (context.focus.stage === "locate") { await runtime.propose({ schemaVersion: "authorization-focused-update/v1", kind: "select", focusId: context.focus.id, candidateId: f.skeleton.sourceId }); context = runtime.promptContext() }
   const form = context.tasks[0].sourceEdit
   expect(form).toBeDefined()
+  expect(context.instruction).not.toContain("task.sourceUpdateTemplate")
+  expect(context.instruction).not.toContain("interpret the CURRENT task.sourceSkeleton using")
+  expect(context.tasks[0].sourceUpdateTemplate).toBeUndefined()
+  expect(context.tasks[0].legacySourceUpdateTemplate.schemaVersion).toBe("authorization-source-update/v1")
   const partial = { ...form.template, edits: [{ anchorId: f.condition.id, field: "role", value: "condition" }] }
   const schema = inquiryNativeDefinitions("operation-evidence-v6").find(t => t.name === "authorization_observe")!.inputSchema
   expect(new Ajv({ strict: false }).compile(schema)({ controlDelta: partial })).toBe(true)
@@ -115,4 +119,14 @@ test("the public v6 source transaction adopts incremental edits through wire, lo
   const old = await runtime.propose(partial)
   expect(old.diagnostics.some(d => /stale/.test(d.code))).toBe(true)
   expect(runtime.report().semantic?.units).toHaveLength(1)
+})
+
+test("edit role choices and validation share the source anchor restriction", async () => {
+  const f = await fixture(), returned = f.skeleton.anchors.find(a => a.kind === "return")!
+  const view = api.sourceEditModelView(f.skeleton, { transactionId: f.transactionId, questionIds: ["q"] })
+  expect(view.slots.find((s: any) => s.anchorId === returned.id && s.field === "role").allowedValues).toEqual(["condition", "context"])
+  const bad = api.compileSourceEdit(f.skeleton, payload(f.transactionId, [{ anchorId: returned.id, field: "role", value: "effect" }]), { transactionId: f.transactionId })
+  expect(bad.acceptedEdits).toBe(0)
+  expect(bad.diagnostics[0].code).toBe("source-edit-role")
+  expect(bad.diagnostics[0].message).toContain("condition, context")
 })
