@@ -17,6 +17,7 @@ export interface StructureSymbol extends DiscoverySymbol {
   }
   returnedCallable?: { schemaVersion: "source-returned-callable/v1"; ownerId: string; ownerSha256: string; captures: NonNullable<StructureSymbol["localCallable"]>["captures"]; returnAnchorId?: string; gap?: string }
   valueCallable?: StructureCallableDefinition;
+  classDefinition?: StructureClassDefinition;
 }
 export interface StructureBindingSource { path: string; sha256: string; startLine: number; endLine: number; name: string; target: string }
 export interface StructureCallableBinding {
@@ -56,6 +57,13 @@ export interface StructureClassValue {
   schemaVersion: "source-class-value/v1"; expression: string; targetId: string; targetSha256: string;
   source: StructureMethodBinding["source"]; controls: StructureMethodControl[]; order: StructureMethodStore["order"]; evaluationOrder: StructureMethodStore["order"]; bindingSources?: StructureBindingSource[];
 }
+export interface StructureClassDefinition {
+  schemaVersion: "source-class-definition/v1"; ownerId: string; ownerSha256: string; name: string; anchorId: string;
+  source: StructureMethodBinding["source"]; classSource: StructureMethodBinding["source"]; controls: StructureMethodControl[]; order: StructureMethodStore["order"];
+  fields: Array<{ name: string; value: FiniteValue; anchorId: string }>;
+  decorators: Array<{ id: string; expression: string; source: StructureMethodBinding["source"]; valueResult: string; applicationCallId: string; targetId?: string; targetSha256?: string; factoryCallId?: string }>;
+  inactive?: boolean; gap?: string;
+}
 export interface StructureCallableInput {
   targetId: string; targetSha256: string;
   origins: Array<{ sourceCallId: string; parameter: string; source: { id: string; path: string; sha256: string }; value?: StructureCallableValue }>;
@@ -93,6 +101,7 @@ export interface StructureCall {
   methodField?: StructureFieldMethod;
   methodCapture?: StructureMethodCapture;
   callableParameter?: StructureCallableParameter;
+  implicitClassDecorator?: { definitionAnchorId: string; decoratorId: string; valueResult: string; targetId: string; targetSha256: string };
 }
 export interface StructureRoute { id: string; sourceCallId: string; sourcePath: string; startLine: number; endLine: number; method: string; path: string; handlerExpression: string; candidateIds: string[]; middlewareExpressions: string[]; dependencyExpressions?: string[]; dependencyCallIds?: string[]; bindingGap?: string; bindingSources?: Array<{ path: string; sha256: string; startLine: number; endLine: number }>; model: string }
 export interface StructureRequestDependency {
@@ -232,6 +241,8 @@ function sourceStoreOrder(node: Node, symbolId: string, callId: (node: Node) => 
   const event = (statement: Node): string[][] => {
     const node = statement.type === "expression_statement" ? children(statement)[0] : statement
     if (!node) return []
+    const cls = node.type === "class_definition" ? node : node.type === "decorated_definition" ? children(node).find(c => c.type === "class_definition") : undefined
+    if (cls) return [[`class-bind-${sourceSyntaxAnchorId(symbolId, node.startIndex, node.endIndex, "assignment", field(cls, "name")!.text)}`]]
     const anchor = (kind: string, name?: string) => sourceSyntaxAnchorId(symbolId, node.startIndex, node.endIndex, kind, name)
     if (node.type === "return_statement" || node.type === "raise_statement") return [...expressionEvents(children(node)[0]), [`${node.type === "return_statement" ? "return" : "raise"}-${anchor(node.type === "return_statement" ? "return" : "raise")}`]]
     if (node.type === "if_statement") { const condition = field(node, "condition"); return condition ? [...expressionEvents(condition), [`choose-${sourceSyntaxAnchorId(symbolId, condition.startIndex, condition.endIndex, "condition")}`]] : [] }
@@ -368,6 +379,35 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
           bound.add(name); writes.set(name, (writes.get(name) ?? 0) + 1); localNames.set(symbol.id, bound); localWrites.set(symbol.id, writes)
         }
       }
+      if (language === "python") for (const n of definitions.filter(d => d.type === "class_definition")) {
+        let parent = n.parent; while (parent && !byNode.has(parent.id)) parent = parent.parent
+        const owner = parent && byNode.get(parent.id), symbol = byNode.get(n.id)!
+        if (owner?.kind !== "function") continue
+        const declaration = n.parent?.type === "decorated_definition" ? n.parent : n, ownerBody = field(parent!, "body")!, controls = sourceControlPath(declaration, ownerBody, owner.id)
+        const source = (node: Node): StructureMethodBinding["source"] => ({ path: file.path, sha256, startLine: node.startPosition.row + 1, endLine: node.endPosition.row + 1, startIndex: node.startIndex, endIndex: node.endIndex })
+        const anchorId = sourceSyntaxAnchorId(owner.id, declaration.startIndex, declaration.endIndex, "assignment", symbol.name), fields: StructureClassDefinition["fields"] = []
+        let gap = n.hasError || owner.boundary !== "complete" || owner.attributes.callableAsync || owner.attributes.callableGenerator || owner.attributes.bindingWrapped ? "source-class-definition-owner-unmodeled" : !controls ? "source-class-definition-control-unmodeled" : symbol.bases.length || field(n, "type_parameters") ? "source-class-definition-base-unmodeled" : globalNames.get(owner.id)?.has(symbol.name) || descendants(ownerBody, ["nonlocal_statement"]).some(s => children(s).some(c => c.text === symbol.name)) ? "source-class-definition-binding-unmodeled" : undefined
+        for (const statement of children(field(n, "body"))) {
+          if (["comment", "pass_statement"].includes(statement.type) || statement.type === "expression_statement" && children(statement).length === 1 && children(statement)[0]!.type === "string" && sourceLiteral(children(statement)[0]).literalKnown) continue
+          const assignment = statement.type === "expression_statement" && children(statement).length === 1 ? children(statement)[0] : undefined, left = assignment && field(assignment, "left"), right = assignment && field(assignment, "right"), value = sourceLiteral(right)
+          if (assignment?.type !== "assignment" || left?.type !== "identifier" || field(assignment, "type") || !value.literalKnown || /^__.*__$/.test(left.text) || ["constructor", "prototype"].includes(left.text)) { gap ??= "source-class-definition-body-unmodeled"; continue }
+          fields.push({ name: left.text, value: value.literalValue!, anchorId: sourceSyntaxAnchorId(owner.id, assignment.startIndex, assignment.endIndex, "assignment", left.text) })
+        }
+        const decorators = children(declaration).filter(d => d.type === "decorator").map(d => {
+          const expression = children(d)[0]!, factory = expression.type === "call", id = `decorator-${hash([sourceIdentity, file.path, sha256, d.startIndex]).slice(0, 24)}`
+          return { id, expression: expression.text, source: source(d), valueResult: factory ? `result-${hash([owner.id, expression.startIndex]).slice(0, 16)}` : `class-decorator-${id}`, applicationCallId: `class-application-${hash([owner.id, id]).slice(0, 24)}`, ...(factory ? { factoryCallId: `call-${hash([sourceIdentity, file.path, sha256, expression.startIndex]).slice(0, 24)}` } : {}) }
+        })
+        if (decorators.some(d => !d.factoryCallId && (owner.parameters.some(p => p.name === d.expression.split(".")[0]) || localNames.get(owner.id)?.has(d.expression.split(".")[0]!)))) gap ??= "source-class-definition-decorator-unresolved"
+        let ancestor: Node | null = declaration, inactive = false
+        while (ancestor && ancestor.id !== parent!.id) {
+          if (ancestor.type === "block") {
+            const branch = ancestor.parent, conditional = branch?.type === "else_clause" ? branch.parent : branch
+            if (conditional?.type === "if_statement") { const condition = sourceLiteral(field(conditional, "condition")); if (typeof condition.literalValue === "boolean" && condition.literalValue !== (branch?.type !== "else_clause")) inactive = true }
+          }
+          ancestor = ancestor.parent
+        }
+        symbol.classDefinition = { schemaVersion: "source-class-definition/v1", ownerId: owner.id, ownerSha256: owner.sha256, name: symbol.name, anchorId, source: source(declaration), classSource: source(n), controls: controls ?? [], order: sourceStoreOrder(declaration, owner.id, call => `call-${hash([sourceIdentity, file.path, sha256, call.startIndex]).slice(0, 24)}`, true), fields, decorators, ...(inactive ? { inactive } : {}), ...(gap ? { gap } : {}) }
+      }
       // A local declaration is a source call edge only while its identity and
       // captured cells are fixed. Returned/passed closures need separate actual
       // invocation evidence; finding a nested body does not execute its factory.
@@ -407,14 +447,15 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         lexicalNames.set(symbol.id, captureNames)
         symbol.localCallable = { schemaVersion: "source-local-callable/v1", ownerId: owner.id, ownerSha256: owner.sha256, captures, ...(gap ? { gap } : {}) }
         const valueUse = (i: Node) => i.parent?.type === "argument_list" && i.parent.parent?.type === "call" || i.parent?.type === "keyword_argument" && field(i.parent, "value")?.id === i.id && i.parent.parent?.parent?.type === "call"
+        const nestedScopeUnmodeled = descendants(body, ["function_definition", "class_definition", "lambda"]).some(d => d.type !== "class_definition" || !byNode.get(d.id)?.classDefinition || byNode.get(d.id)!.classDefinition!.gap)
         if (references.some(valueUse)) {
-          const valueGap = definitionGap ?? captureGap ?? (owner.attributes.callableAsync || owner.attributes.callableGenerator || owner.attributes.bindingWrapped || owner.boundary !== "complete" ? "source-callable-value-owner-unmodeled" : descendants(body, ["function_definition", "class_definition", "lambda"]).length ? "source-callable-value-nested-scope-unmodeled" : references.some(i => !owned(i, parent!) || !(valueUse(i) || i.parent?.type === "call" && field(i.parent, "function")?.id === i.id)) ? "source-callable-value-escape-unmodeled" : undefined)
+          const valueGap = definitionGap ?? captureGap ?? (owner.attributes.callableAsync || owner.attributes.callableGenerator || owner.attributes.bindingWrapped || owner.boundary !== "complete" ? "source-callable-value-owner-unmodeled" : nestedScopeUnmodeled ? "source-callable-value-nested-scope-unmodeled" : references.some(i => !owned(i, parent!) || !(valueUse(i) || i.parent?.type === "call" && field(i.parent, "function")?.id === i.id)) ? "source-callable-value-escape-unmodeled" : undefined)
           symbol.valueCallable = { schemaVersion: "source-callable-definition/v1", ownerId: owner.id, ownerSha256: owner.sha256, name: symbol.name, anchorId: sourceSyntaxAnchorId(owner.id, n.startIndex, n.endIndex, "assignment", symbol.name), captures: structuredClone(captures), source: { path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, startIndex: n.startIndex, endIndex: n.endIndex }, controls: [], order: sourceStoreOrder(n, owner.id, call => `call-${hash([sourceIdentity, file.path, sha256, call.startIndex]).slice(0, 24)}`), ...(valueGap ? { gap: valueGap } : {}) }
         }
         if (descendants(ownerBody, ["return_statement"]).filter(i => owned(i, parent!)).some(i => children(i)[0]?.type === "identifier" && children(i)[0]!.text === symbol.name)) {
           const returns = descendants(ownerBody, ["return_statement"]).filter(i => owned(i, parent!)), last = children(ownerBody).filter(i => i.type !== "comment").at(-1)
           const returnedGap = definitionGap || captureGap ? `source-returned-callable-${(definitionGap ?? captureGap)!.replace(/^source-local-(?:callable-)?/, "")}`
-            : descendants(body, ["function_definition", "class_definition", "lambda"]).length ? "source-returned-callable-nested-scope-unmodeled"
+            : nestedScopeUnmodeled ? "source-returned-callable-nested-scope-unmodeled"
             : owner.attributes.callableAsync || owner.attributes.bindingWrapped || owner.boundary !== "complete" || descendants(ownerBody, ["yield"]).some(i => owned(i, parent!)) ? "source-returned-callable-factory-unmodeled"
             : returns.length !== 1 || returns[0]!.id !== last?.id || children(last!)[0]?.text !== symbol.name ? "source-returned-callable-return-unmodeled"
             : references.some(i => !owned(i, parent!) || !(i.parent?.id === last?.id || valueUse(i) || i.parent?.type === "call" && field(i.parent, "function")?.id === i.id)) ? "source-returned-callable-escape-unmodeled" : undefined
@@ -952,7 +993,29 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     if (!changed) { callableInputsSettled = true; break }
   }
   if (!callableInputsSettled) for (const key of callableInputs.keys()) callableInputGaps.set(key, "source-callable-parameter-input-limit")
-  const calls = scopes.flatMap(f => f.rawCalls.map(r => resolveCall(r, f))), routes: StructureRoute[] = []
+  const calls = scopes.flatMap(f => f.rawCalls.map(r => resolveCall(r, f))), routes: StructureRoute[] = [], classApplications: StructureCall[] = []
+  for (const symbol of symbols.filter(s => s.classDefinition)) {
+    const proof = symbol.classDefinition!, owner = symbols.find(s => s.id === proof.ownerId)!, scope = scopeFor(symbol)
+    let input = `class-original-${proof.anchorId}`
+    for (const decorator of [...proof.decorators].reverse()) {
+      let target: StructureSymbol | undefined, binding: StructureCallableBinding | undefined, bindingSources: StructureBindingSource[] = []
+      if (decorator.factoryCallId) {
+        const raw = scope.rawCalls.find(r => r.call.id === decorator.factoryCallId && r.call.ownerId === owner.id), resolved = raw && resolveCall(raw, scope), returned = raw && resolved && returnedCreation(raw, scope, resolved, decorator.valueResult)
+        if (returned?.binding) { target = symbols.find(s => s.id === returned.targetId); binding = { ...returned.binding, callControls: proof.controls }; bindingSources = returned.bindingSources }
+      } else {
+        const root = decorator.expression.split(".")[0]!, facts = nameFacts(qualified(decorator.expression, scope))
+        const shadowed = owner.parameters.some(p => p.name === root) || owner.localCallable?.captures.some(c => c.name === root) || scope.rawCalls.some(r => r.call.ownerId === owner.id && r.localNames.includes(root))
+        const targets = !shadowed && /^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(decorator.expression) && stableSourceBinding(decorator.expression, scope) && !facts.gap ? facts.candidates.filter(s => s.kind === "function" && !s.className && !s.localCallable && !s.attributes.bindingWrapped && !s.attributes.callableAsync && !s.attributes.callableGenerator && s.attributes.moduleBinding === "unconditional" && s.boundary === "complete" && stableSourceBinding(s.name, scopeFor(s))) : []
+        if (targets.length === 1) { target = targets[0]; bindingSources = facts.sources }
+      }
+      if (!target) { proof.gap ??= "source-class-definition-decorator-unresolved"; continue }
+      decorator.targetId = target.id; decorator.targetSha256 = target.sha256
+      const result = `class-applied-${decorator.id}`, application: StructureCall = { id: decorator.applicationCallId, ownerId: owner.id, path: symbol.path, sha256: symbol.sha256, startLine: decorator.source.startLine, endLine: decorator.source.endLine, startIndex: decorator.source.startIndex, endIndex: decorator.source.endIndex, expression: decorator.valueResult, arguments: [input], argumentFacts: [{ expression: input, literalKnown: false }], candidateIds: [target.id], resolution: "resolved", basis: ["Actual implicit class decorator application; expression values evaluated before class creation, applied in reverse source order"], resultNames: [result], syntaxRole: "body", implicitClassDecorator: { definitionAnchorId: proof.anchorId, decoratorId: decorator.id, valueResult: decorator.valueResult, targetId: target.id, targetSha256: target.sha256 }, ...(binding ? { callableBinding: binding } : {}), ...(bindingSources.length ? { bindingSources: structuredClone(bindingSources) } : {}) }
+      if (sourceArgumentBindings({ symbols, relatedCalls: () => [application] }, application, target).gap) proof.gap ??= "source-class-definition-decorator-arguments-unresolved"
+      classApplications.push(application); input = result
+    }
+  }
+  calls.push(...classApplications)
   const pythonScopes = scopes.filter(s => s.language === "python")
   const literal = (expression: string, scope: FileScope, seen = new Set<string>()): string | undefined => {
     const token = /^(?:([rRuU]))?(['"])([^'"\r\n]*)\2$/.exec(expression)
@@ -1060,7 +1123,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     const classSources = symbols.filter(s => s.kind === "class" && owners.includes(s.qualifiedName)).map(s => [s.id, s.path, s.sha256])
     return hash([mro, classSources, lookupMethod(className, method).map(s => [s.id, s.sha256]), classBindingSources(className), relevant.map(s => [s.path, s.aliases]), moduleInstances.filter(i => owners.includes(i.className) || relevant.some(s => s.path === i.path))])
   }
-  const relatedCalls = (symbolId: string, receiverClass?: string) => { const route = routes.find(r => r.id === symbolId); return scopes.flatMap(f => f.rawCalls.filter(r => route ? r.call.path === route.sourcePath && r.call.id !== route.sourceCallId && r.call.startLine >= route.startLine && r.call.endLine <= route.endLine : r.call.ownerId === symbolId).map(r => resolveCall(r, f, receiverClass))) }
+  const relatedCalls = (symbolId: string, receiverClass?: string) => { const route = routes.find(r => r.id === symbolId); return [...scopes.flatMap(f => f.rawCalls.filter(r => route ? r.call.path === route.sourcePath && r.call.id !== route.sourceCallId && r.call.startLine >= route.startLine && r.call.endLine <= route.endLine : r.call.ownerId === symbolId).map(r => resolveCall(r, f, receiverClass))), ...classApplications.filter(c => c.ownerId === symbolId).map(c => structuredClone(c))] }
   const resolveName = (text: string, sourcePath: string) => { const scope = scopes.find(f => f.path === sourcePath); return scope ? matching(qualified(text, scope)) : [] }
   const qualifySourceName = (text: string, sourcePath: string) => { const scope = scopes.find(f => f.path === sourcePath); return scope && stableSourceBinding(text, scope) ? qualified(text, scope) : undefined }
   const fieldStoreCache = new Map<string, StructureFieldStore[]>()
@@ -1348,7 +1411,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       return choices ? [{ name, choices: structuredClone(choices), ...(callableInputGaps.get(key!) ? { gap: callableInputGaps.get(key!) } : {}) }] : []
     }) : []
   }
-  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v25"
+  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v26"
   const withSymbolSyntax = <T>(symbolId: string, visit: (root: Node, symbol: StructureSymbol) => T): Promise<T> => {
     const symbol = symbols.find(s => s.id === symbolId), file = symbol && files.find(f => f.path === symbol.path)
     if (!symbol || !file || hash(file.content) !== symbol.sha256) throw new Error("structure-source-missing")

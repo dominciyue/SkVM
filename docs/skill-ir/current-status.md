@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-最新小步为AY7 `source-bindings/v25`普通类引用身份：唯一稳定未装饰、无base/metaclass的模块class实参在原读取点成为sourceClass普通value对象，经参数/返回/alias/字段共享实际身份；重复读取保留已发生的类字段修改，不给普通token或其它类借用状态。原if/try/求值与严格顺序、当前target/SHA/import及参数经材料核验；constructor/prototype/隐式decorator应用尚未接线。31新增；615focused/3464断言、联合1454pass/1平台skip/9271断言与主/AY类型通过，两只读核验和主跨文件/嵌套实参/异常反例分列。100文件/12body probe有19类引用来源合格，所选body合格/材料采用0，未提供实验模型读证据。实际类装饰器应用与方法变换、完整请求、官方复验及预登记净收益继续，AY7未完成。
+最新小步为AY7 `source-bindings/v26`局部类定义及隐式装饰器应用：原函数内无base/metaclass、有限literal namespace的class按实际发生点创建独立sourceClass；装饰器表达式从上到下求值、从内到外沿原binder/六角色执行，最终类名绑定实际返回对象，修改/替换/异常不由context省略。原if/try/严格事件顺序及当前target/SHA/import经材料核验；普通方法/dunder namespace/动态body及模块初始化仍具名。27新增；642focused/3938断言、联合1481pass/1平台skip/9745断言与主/AY类型通过，两只读范围及无效fixture更正单列。100文件/12body probe保留7局部类/所选1类、合格及材料采用0；真实ExtendedSchema仍有base边界，无实验模型读证据。实际继承/方法环境、模块类装饰器应用、完整请求、官方复验及预登记净收益继续，AY7未完成。
 
 此前AY7 `source-bindings/v22`早期普通方法捕获：有嵌套实参call的同instance直接statement/assignment/return先实际捕获原方法，再按词法顺序求值实参，后以既有boundMethod/fieldMethodRead和同一binder调用；实参内slot覆盖保留原引用，捕获前覆盖或实参异常保持原阻断。简单and/or值经同一argumentFacts的机械valueFlow投影；复杂操作数、class/wrapper/descriptor不取得新资格。材料须保留精确捕获、原if/try区域、严格事件顺序和原短路body，缺失/挪动/实参倒序/追加call不采用。33新增用例；525focused/2676断言、联合1364pass/1平台skip/8483断言及主/AY类型通过；两只读核验与主红绿分列。100文件/6候选body probe声明receiver有1处early capture合格，指定应用receiver合格/实际采用0；旧probe/input/allowlist/答保留。实际class/wrapper变换、完整请求和官方复验继续，AY7和预登记净收益未达。
 

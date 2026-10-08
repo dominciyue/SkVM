@@ -15,7 +15,7 @@ const methodRead = z.object({ receiver: name, method: name, defaultMethod: name.
 const boundMethod = z.object({ receiver: name, targetId: name, targetSha256: name }).strict()
 const sourceCallable = z.object({ targetId: name, targetSha256: name, scope: z.literal("module").optional(), captures: z.array(z.object({ parameter: name, object: name }).strict()).max(16).refine(values => new Set(values.map(v => v.parameter)).size === values.length, "Unique captured parameters required") }).strict()
 const callableRead = z.object({ object: name, targetId: name, targetSha256: name }).strict()
-const sourceClass = z.object({ targetId: name, targetSha256: name }).strict()
+const sourceClass = z.object({ targetId: name, targetSha256: name, scope: z.literal("definition").optional() }).strict()
 export const SemanticStepSchema = z.discriminatedUnion("kind", [
   z.object({ ...common, kind: z.literal("bind"), type: z.enum(["principal", "resource", "permission", "configuration", "value"]), bindingName: name.optional(), aliasOf: name.optional(), value: FiniteValueSchema.optional() }).strict(),
   z.object({ ...common, ...objects, kind: z.literal("guard"), condition: condition.optional() }).strict(),
@@ -319,8 +319,8 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
               setSourceValue(c, identity, { value: c.values[step.result]! }); delete c.values[step.result]
             }
             if (step.sourceClass) {
-              const identity = id([questionId, "module-class", step.sourceClass.targetId, step.sourceClass.targetSha256])
-              c.objects[step.result] = { identity, type: "value", sourceClass: structuredClone(step.sourceClass) }
+              const identity = step.sourceClass.scope === "definition" ? id([questionId, instance, body, step.name, c.route, "source-class"]) : id([questionId, "module-class", step.sourceClass.targetId, step.sourceClass.targetSha256])
+              c.objects[step.result] = { identity, type: "value", sourceClass: { targetId: step.sourceClass.targetId, targetSha256: step.sourceClass.targetSha256 } }
               // Reading a loaded module class preserves every earlier mutation.
               c.objectValues[identity] = c.values[step.result]!; delete c.values[step.result]
             }

@@ -1,6 +1,14 @@
 import { expect, test } from "bun:test"
 import { buildStructureIndex } from "./structure-index.ts"
 
+for (const mode of ["base", "metaclass", "method", "body-call", "formatted-string", "slots", "classcell", "annotation", "parameter", "local-shadow", "rebound", "async", "loop"]) test(`local class definition preserves unsupported namespace and decorator boundaries: ${mode}`, async () => {
+  const body = mode === "method" ? "        def method(self):\n            return True\n" : mode === "body-call" ? "        flag = unknown()\n" : mode === "formatted-string" ? "        f'{unknown()}'\n" : mode === "slots" ? "        __slots__ = 123\n" : mode === "classcell" ? "        __classcell__ = False\n" : mode === "annotation" ? "        flag: unknown() = False\n" : "        flag = False\n"
+  const content = `def decorate(cls):\n    return cls\n${mode === "rebound" ? "decorate = unknown()\n" : ""}${mode === "async" ? "async " : ""}def entry(${mode === "parameter" ? "decorate" : ""}):\n${mode === "local-shadow" ? "    decorate = None\n" : ""}${mode === "loop" ? "    for item in [True]:\n" : ""}${mode === "loop" ? "        " : "    "}@decorate\n${mode === "loop" ? "        " : "    "}class Local${mode === "base" ? "(Base)" : mode === "metaclass" ? "(metaclass=Meta)" : ""}:\n${mode === "loop" ? body.replace(/^/gm, "    ").trimEnd() + "\n" : body}    return Local\n`
+  const index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), local = index.symbols.find(s => s.name === "Local")!
+  expect(local.classDefinition).toBeDefined()
+  expect(local.classDefinition!.gap).toBeDefined()
+})
+
 test("function-valued parameter attribute writes retain possible source function protocol", async () => {
   const index = await buildStructureIndex([{ path: "caller.py", content: "from callbacks import guard\nfrom consumer import consume\ndef entry(actor):\n    consume(guard, actor)\n" }, { path: "callbacks.py", content: "def guard(subject):\n    raise Denied\n" }, { path: "consumer.py", content: "def consume(operation, actor):\n    alias = operation\n    alias.__code__ = actor\n    return actor\n" }], { repository: "anonymous", sourceRef: "r" }), consumer = index.symbols.find(s => s.name === "consume")!, target = index.symbols.find(s => s.name === "guard")!, store = index.fieldStores(consumer.id)[0]!
   expect(store.gap).toBe("skeleton-function-attribute-write-unmodeled")

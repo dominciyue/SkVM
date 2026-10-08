@@ -17,6 +17,17 @@ function lower(units: unknown[], bindings: unknown[] = [], options: { propertyDi
   return { ...lowered, slice: merged.state, ...evaluated, diagnostics: [...lowered.diagnostics, ...evaluated.diagnostics] }
 }
 const known = (key: string, value: unknown, text: string) => ({ questionId: "q", key, value, text, origin: "user" })
+test("each executed local class definition creates a fresh object across helper invocations", () => {
+  const creation = { kind: "assign-value", name: "created", claim: "Actual local class definition", result: "Local", value: { literal: "same-class-source" }, sourceClass: { targetId: "local-class", targetSha256: "sha", scope: "definition" } }
+  expect(api.SemanticStepSchema.safeParse(creation).success).toBe(true)
+  const make = unit([block("main", [creation, { kind: "transform", name: "field", claim: "This invocation's class field", object: "Local", field: "flag", source: "flag" }, { kind: "return", name: "result", claim: "Return this class", valueFrom: "Local" }])], { role: "helper", handle: "make", coverage: "path", parameters: [{ name: "flag", type: "value" }] })
+  const root = unit([block("main", [{ kind: "bind", name: "yes", type: "value", value: true, claim: "First actual argument" }, { kind: "bind", name: "no", type: "value", value: false, claim: "Second actual argument" }, { kind: "call", name: "first", symbol: "make", callee: "make", result: "first", arguments: [{ parameter: "flag", object: "yes" }], claim: "First definition" }, { kind: "call", name: "second", symbol: "make", callee: "make", result: "second", arguments: [{ parameter: "flag", object: "no" }], claim: "Second definition" }, { kind: "choose", name: "actual", claim: "Independent class state", cases: [{ condition: { op: "all", args: [eq("first.flag", true), eq("second.flag", false)] }, body: "deny" }], otherwise: "allow" }]), block("deny", [{ kind: "reject", name: "deny", claim: "Both actual fields", failureKind: "authorization" }]), block("allow", [{ kind: "return", name: "allow", claim: "Merged objects would reach this wrong branch", outcome: "allow" }])], { coverage: "path" })
+  const r = api.lowerSemanticFlow([root, make], { propertyDirected: true })
+  expect(r.diagnostics).toEqual([])
+  expect(r.delta.rules.filter((r: any) => r.terminal).map((r: any) => r.outcome)).toEqual(["deny"])
+  expect(new Set(r.fieldChanges.map((r: any) => r.object)).size).toBe(2)
+})
+
 for (const mode of ["direct", "return", "alias", "field", "repeat", "different", "literal", "overwrite"]) test(`source class references preserve the actual transformed object: ${mode}`, () => {
   const read = (result: string, targetId = "class-source") => ({ kind: "assign-value", name: `class-${result}`, claim: "Read current source class object", result, value: { literal: "class-token" }, sourceClass: { targetId, targetSha256: "class-sha" } })
   expect(api.SemanticStepSchema.safeParse(read("first")).success).toBe(true)

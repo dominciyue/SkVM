@@ -57,6 +57,63 @@ function currentMethodStoresValid(index: StructureIndex, unit: BoundSemanticBloc
   })
 }
 
+/** Exact local definition sequence: evaluate decorators, create the unbound
+ * class, apply inner to outer, then bind the actual returned value. */
+function currentClassDefinitionsValid(index: StructureIndex, unit: BoundSemanticBlock) {
+  const owner = unit.source!.id, calls = index.relatedCalls(owner), steps = unit.blocks.flatMap(b => b.steps)
+  const definitions = index.symbols.filter(s => s.classDefinition?.ownerId === owner && s.classDefinition.ownerSha256 === unit.source!.sha256 && !s.classDefinition.gap)
+  return definitions.every(symbol => {
+    const proof = symbol.classDefinition!, block = sourceControlBlock(unit, proof.controls), original = `class-original-${proof.anchorId}`, creationName = `class-definition-${proof.anchorId}`, bindingName = `class-bind-${proof.anchorId}`
+    const sequence: string[] = [], exclusive = (name: string) => { const found = steps.filter(s => s.name === name); return found.length === 1 ? found[0] : undefined }
+    const creation = exclusive(creationName)
+    if (!creation && proof.inactive) return !steps.some(s => s.name === bindingName || s.kind === "call" && proof.decorators.some(d => d.applicationCallId === s.sourceCallId))
+    if (!block || creation?.kind !== "assign-value" || creation.result !== original || canonicalControl(creation.value) !== canonicalControl({ literal: sourceClassToken({ targetId: symbol.id, targetSha256: symbol.sha256 }) }) || canonicalControl(creation.sourceClass ?? null) !== canonicalControl({ targetId: symbol.id, targetSha256: symbol.sha256, scope: "definition" }) || creation.sourceCallable || creation.boundMethod || creation.methodRead) return false
+    const writers = new Map<string, string>([[original, creationName]])
+    for (const decorator of proof.decorators) {
+      if (decorator.factoryCallId) {
+        const expressions = calls.filter(c => !c.implicitClassDecorator && c.startIndex! >= decorator.source.startIndex && c.endIndex! <= decorator.source.endIndex).sort((a, b) => a.endIndex! - b.endIndex! || b.startIndex! - a.startIndex!)
+        for (const expression of expressions) {
+          const name = `call-${sourceSyntaxAnchorId(owner, expression.startIndex!, expression.endIndex!, "call")}`, invocation = exclusive(name)
+          if (invocation?.kind !== "call" || invocation.sourceCallId !== expression.id || invocation.symbol !== expression.expression) return false
+          if (expression.id === decorator.factoryCallId && invocation.result !== decorator.valueResult) return false
+          sequence.push(name)
+        }
+        const factory = expressions.find(c => c.id === decorator.factoryCallId)
+        if (!factory) return false
+        writers.set(decorator.valueResult, `call-${sourceSyntaxAnchorId(owner, factory.startIndex!, factory.endIndex!, "call")}`)
+      } else {
+        const name = `class-decorator-value-${decorator.id}`, read = exclusive(name), target = { targetId: decorator.targetId!, targetSha256: decorator.targetSha256! }
+        if (read?.kind !== "assign-value" || read.result !== decorator.valueResult || canonicalControl(read.value) !== canonicalControl({ literal: sourceCallableToken(target) }) || canonicalControl(read.sourceCallable ?? null) !== canonicalControl({ ...target, scope: "module", captures: [] }) || read.sourceClass || read.boundMethod || read.methodRead) return false
+        sequence.push(name); writers.set(decorator.valueResult, name)
+      }
+    }
+    sequence.push(creationName)
+    for (const field of proof.fields) {
+      const name = `class-field-${field.anchorId}`, store = exclusive(name)
+      if (store?.kind !== "transform" || store.object !== original || store.field !== field.name || store.source || !Object.hasOwn(store, "value") || canonicalControl(store.value) !== canonicalControl(field.value)) return false
+      sequence.push(name)
+    }
+    let input = original
+    for (const decorator of [...proof.decorators].reverse()) {
+      const name = `call-${sourceSyntaxAnchorId(owner, decorator.source.startIndex, decorator.source.endIndex, "call")}`, invocation = exclusive(name), call = calls.find(c => c.id === decorator.applicationCallId), target = index.symbols.find(s => s.id === decorator.targetId && s.sha256 === decorator.targetSha256), result = `class-applied-${decorator.id}`
+      if (!call || !target || invocation?.kind !== "call" || invocation.sourceCallId !== call.id || invocation.symbol !== decorator.valueResult || invocation.candidateId !== target.id || invocation.result !== result || canonicalControl(invocation.callableRead ?? null) !== canonicalControl({ object: decorator.valueResult, targetId: target.id, targetSha256: target.sha256 })) return false
+      const binding = sourceArgumentBindings(index, call, target), argument = binding.bindings.find(a => a.expression === input)
+      if (binding.gap || !argument || invocation.arguments.filter(a => a.parameter === argument.parameter && a.object === input).length !== 1) return false
+      sequence.push(name); writers.set(result, name); input = result
+    }
+    const bound = exclusive(bindingName)
+    if (bound?.kind !== "assign-value" || bound.result !== proof.name || canonicalControl(bound.value) !== canonicalControl({ binding: input }) || bound.sourceClass || bound.sourceCallable || bound.boundMethod || bound.methodRead) return false
+    sequence.push(bindingName)
+    if (steps.some(s => (s.kind === "assign-value" || s.kind === "call") && s.result && writers.has(s.result) && writers.get(s.result) !== s.name || s.kind === "bind" && writers.has(s.bindingName ?? s.name))) return false
+    let previous = -1
+    for (const name of sequence) { const step = exclusive(name), position = step ? block.steps.indexOf(step) : -1; if (position <= previous) return false; previous = position }
+    const first = block.steps.findIndex(s => s.name === sequence[0]), last = block.steps.findIndex(s => s.name === bindingName)
+    if (block.steps.slice(first, last + 1).some(s => !sequence.includes(s.name) && !(s.kind === "bind" && s.type === "value" && s.name.startsWith("literal-") && Object.hasOwn(s, "value")))) return false
+    const ordered = (events: string[][], lower: number, upper: number) => { let prior = lower; return events.every(names => { const positions = block.steps.flatMap((s, i) => names.includes(s.name) ? [i] : []); if (positions.length !== 1 || positions[0]! <= prior || positions[0]! >= upper) return false; prior = positions[0]!; return true }) }
+    return ordered(proof.order.before, -1, first) && ordered(proof.order.after, last, block.steps.length)
+  })
+}
+
 /** A source reference or definition must create its real callable at the
  * original control/order point. The finite selector token is insufficient. */
 function currentCallableCreationsValid(index: StructureIndex, unit: BoundSemanticBlock) {
@@ -64,9 +121,10 @@ function currentCallableCreationsValid(index: StructureIndex, unit: BoundSemanti
   const values = [...new Map(calls.flatMap(c => c.argumentFacts?.flatMap(a => a.callableValue?.kind === "module" ? [a.callableValue] : []) ?? []).map(p => [sourceCallableValueName(owner, p), p])).values()]
   const classes = [...new Map(calls.flatMap(c => c.argumentFacts?.flatMap(a => a.classValue ? [a.classValue] : []) ?? []).map(p => [sourceClassValueName(owner, p), p])).values()]
   const definitions = index.symbols.filter(s => s.valueCallable && !s.valueCallable.gap && s.valueCallable.ownerId === owner && s.valueCallable.ownerSha256 === unit.source!.sha256)
-  const permitted = new Set([...values.map(p => sourceCallableValueName(owner, p)), ...definitions.map(s => sourceCallableDefinitionName(s.valueCallable!.anchorId))])
+  const classDefinitions = index.symbols.filter(s => s.classDefinition?.ownerId === owner && !s.classDefinition.gap)
+  const permitted = new Set([...values.map(p => sourceCallableValueName(owner, p)), ...definitions.map(s => sourceCallableDefinitionName(s.valueCallable!.anchorId)), ...classDefinitions.flatMap(s => s.classDefinition!.decorators.filter(d => !d.factoryCallId).map(d => `class-decorator-value-${d.id}`))])
   if (steps.some(s => s.kind === "assign-value" && s.sourceCallable && !permitted.has(s.name))) return false
-  if (steps.some(s => s.kind === "assign-value" && s.sourceClass && !classes.some(p => s.name === sourceClassValueName(owner, p)))) return false
+  if (steps.some(s => s.kind === "assign-value" && s.sourceClass && !classes.some(p => s.name === sourceClassValueName(owner, p)) && !classDefinitions.some(c => s.name === `class-definition-${c.classDefinition!.anchorId}`))) return false
   const validate = (name: string, result: string, target: { targetId: string; targetSha256: string }, captures: Array<{ parameter: string; object: string }>, controls: StructureMethodControl[], order: { before: string[][]; after: string[][] }, evaluation?: typeof order, classReference = false) => {
     const block = sourceControlBlock(unit, controls), creations = steps.filter(s => s.name === name), creation = creations[0]
     if (!block || creations.length !== 1 || creation?.kind !== "assign-value" || !block.steps.includes(creation) || creation.result !== result || canonicalControl(creation.value) !== canonicalControl({ literal: classReference ? sourceClassToken(target) : sourceCallableToken(target) }) || (classReference ? canonicalControl(creation.sourceClass ?? null) !== canonicalControl(target) || !!creation.sourceCallable : canonicalControl(creation.sourceCallable ?? null) !== canonicalControl({ ...target, ...(evaluation ? { scope: "module" } : {}), captures }) || !!creation.sourceClass) || creation.boundMethod || creation.methodRead) return false
@@ -285,7 +343,7 @@ function actualArguments(index: StructureIndex, caller: BoundSemanticBlock, step
 }
 /** Reachability comes from exact current source calls, independently of saved availability. */
 export function projectSourceMaterials(program: AuthorizationInquiryProgram, accepted: BoundSemanticBlock[], snapshot: SourceMaterialSnapshot, index: StructureIndex, options: { questionDirected?: boolean } = {}) {
-  const available = snapshot.materials.filter(m => m.current && index.symbols.some(s => s.id === m.source.id && s.sha256 === m.source.sha256) && m.dependencies.every(d => d.kind === "source-span" ? index.symbols.some(s => s.path === d.key && s.sha256 === d.revision) : d.kind === "symbol-resolution" ? index.symbols.some(s => s.id === d.key && s.sha256 === d.revision) : structuralDependencyRevision(index, d) === d.revision) && (!options.questionDirected || currentMethodStoresValid(index, m.unit) && currentCallableCreationsValid(index, m.unit)))
+  const available = snapshot.materials.filter(m => m.current && index.symbols.some(s => s.id === m.source.id && s.sha256 === m.source.sha256) && m.dependencies.every(d => d.kind === "source-span" ? index.symbols.some(s => s.path === d.key && s.sha256 === d.revision) : d.kind === "symbol-resolution" ? index.symbols.some(s => s.id === d.key && s.sha256 === d.revision) : structuralDependencyRevision(index, d) === d.revision) && (!options.questionDirected || currentMethodStoresValid(index, m.unit) && currentClassDefinitionsValid(index, m.unit) && currentCallableCreationsValid(index, m.unit)))
   const units: BoundSemanticBlock[] = [], uses: SourceMaterialUse[] = []
   for (const operation of program.operations ?? []) {
     const entry = accepted.find(u => u.questionId === operation.sourceQuestionId && u.role === "entry" && u.source)
@@ -310,7 +368,7 @@ export function projectSourceMaterials(program: AuthorizationInquiryProgram, acc
           if (methodRead) step.methodRead = methodRead
           if (call?.methodField && symbol) step.fieldMethodRead = { object: call.expression, receiver: call.methodField.receiver, targetId: symbol.id, targetSha256: symbol.sha256 }
           if (options.questionDirected && call?.methodCapture && symbol) step.fieldMethodRead = { object: sourceMethodCaptureResult(call.id), receiver: call.methodCapture.receiver, targetId: symbol.id, targetSha256: symbol.sha256 }
-          if (options.questionDirected && (call?.callableParameter || call?.callableBinding) && symbol) step.callableRead = { object: call!.expression, targetId: symbol.id, targetSha256: symbol.sha256 }
+          if (options.questionDirected && (call?.callableParameter || call?.callableBinding || call?.implicitClassDecorator) && symbol) step.callableRead = { object: call!.expression, targetId: symbol.id, targetSha256: symbol.sha256 }
           step.callee = target.unit.handle
           uses.push({ kind: "call", operationId: operation.id, questionId: question.questionId, materialId: helper.id, callerMaterialId: material.id, relationId: target.relationId, receiverClass: target.receiverClass, arguments: structuredClone(step.arguments) })
           visit(helper)

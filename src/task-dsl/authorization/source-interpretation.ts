@@ -98,6 +98,14 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
     const actual = a.classValue && options.index!.relatedCalls(skeleton.sourceId).flatMap(c => c.argumentFacts?.flatMap(v => v.classValue ? [v.classValue] : []) ?? []).find(p => a.id === sourceClassValueName(skeleton.sourceId, p).slice("class-value-".length) && a.name === sourceClassValueResult(skeleton.sourceId, p) && a.valueExpression === p.expression && JSON.stringify(a.classValue) === JSON.stringify(p))
     return actual ? [[a.id, actual] as const] : []
   }) : [])
+  const classDefinitions = new Map(skeleton.propertySemantics === "question-control/v1" && options.index ? skeleton.anchors.flatMap(a => {
+    const proof = a.classDefinition, actual = proof && options.index!.symbols.find(s => s.id === proof.targetId && s.sha256 === proof.targetSha256 && s.classDefinition?.ownerId === skeleton.sourceId && s.classDefinition.ownerSha256 === skeleton.source.sha256 && s.classDefinition.anchorId === a.id && s.name === a.name && JSON.stringify(s.classDefinition) === JSON.stringify(proof.definition))
+    return actual && !actual.classDefinition!.gap ? [[a.id, actual] as const] : []
+  }) : [])
+  const classDecoratorValues = new Map(skeleton.anchors.flatMap(a => {
+    const proof = a.classDecoratorValue, definition = proof && classDefinitions.get(proof.definitionAnchorId)?.classDefinition, decorator = definition?.decorators.find(d => d.id === proof!.decoratorId && !d.factoryCallId)
+    return decorator && a.id === sourceSyntaxAnchorId(skeleton.sourceId, decorator.source.startIndex, decorator.source.endIndex, "assignment", decorator.valueResult) && a.name === decorator.valueResult && a.valueExpression === decorator.expression ? [[a.id, decorator] as const] : []
+  }))
   const objectName = (id?: string) => { const a = at(id); return a?.name ?? (a?.call?.resultNames[0]?.includes(".") ? a.call.resultBinding : a?.call?.resultNames[0]) ?? (a ? `object-${a.id}` : undefined) }
   const bindingType = (a?: Annotation) => a && ["principal", "resource", "permission"].includes(a.role) ? a.role as "principal" | "resource" | "permission" : a?.role === "context" ? "configuration" : "value"
   const allFlowIds = new Set<string>(), collect = (flow: SourceFlow[]) => { for (const f of flow) { allFlowIds.add(f.anchorId); for (const part of [f.then, f.otherwise, f.body, f.enter, f.finally]) collect(part ?? []); for (const h of f.handlers ?? []) collect(h.body) } }; collect(skeleton.flow)
@@ -116,6 +124,8 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
     if (earlyCaptures.has(a.anchorId) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("method-capture-role", a.anchorId, "An ordinary function read keeps its source identity and receiver before argument evaluation.")
     if ((callableValues.has(a.anchorId) || callableDefinitions.has(a.anchorId)) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("callable-value-role", a.anchorId, "A current function value retains its actual source identity and captured environment.")
     if (classValues.has(a.anchorId) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("class-value-role", a.anchorId, "A current class reference retains its actual source identity; a role cannot replace it with another object.")
+    if ((anchor.classDefinition || anchor.classDecoratorValue || anchor.classBinding) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("class-definition-role", a.anchorId, "Class creation, decorator values and final binding retain their actual source objects.")
+    if (anchor.syntax === "source_class_decorator_application" && a.role !== "condition") fault("class-decorator-role", a.anchorId, "The implicit class decorator must execute as its actual source helper; context/effect cannot replace the application or its returned object.")
     if (anchor.call?.sourceCallId && lookupCreations.has(anchor.call.sourceCallId) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("method-lookup-role", a.anchorId, "An ordinary getattr reference keeps its current selector; its creation cannot become an authorization object or effect.")
     if ([...lookupCreations.values()].some(p => p.alternatives.some(c => c.anchorId === a.anchorId)) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("method-lookup-role", a.anchorId, "A current alternate method reference keeps its actual ordinary source value.")
     if (a.guardBranch && (anchor.kind !== "condition" || !a.principalAnchorId || !a.resourceAnchorId)) fault("guard", a.anchorId, "A branch guard needs its actual condition and explicit principal/resource roles.")
@@ -256,7 +266,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
             }
             const methodRead = questionDirected && actual && !actual.methodCapture && target ? sourceDirectMethodRead(actual, target) : undefined
             const fieldMethodRead = questionDirected && actual && target ? actual.methodCapture ? { object: sourceMethodCaptureResult(actual.id), receiver: actual.methodCapture.receiver, targetId: target.id, targetSha256: target.sha256 } : actual.methodField ? { object: actual.expression, receiver: actual.methodField.receiver, targetId: target.id, targetSha256: target.sha256 } : undefined : undefined
-            destination.push({ kind: "call", name: `call-${a.id}${suffix}`, claim, symbol: a.call!.expression, ...(finite && a.call!.sourceCallId ? { sourceCallId: a.call!.sourceCallId } : {}), arguments: mapped, result: a.call!.resultBinding, ...objects, ...(target ? { pathHint: `${target.path}:${target.startLine}-${target.endLine}`, candidateId: target.id } : {}), ...(methodRead ? { methodRead } : {}), ...(fieldMethodRead ? { fieldMethodRead } : {}), ...((actual?.callableParameter || actual?.callableBinding) && target ? { callableRead: { object: actual.expression, targetId: target.id, targetSha256: target.sha256 } } : {}) })
+            destination.push({ kind: "call", name: `call-${a.id}${suffix}`, claim, symbol: a.call!.expression, ...(finite && a.call!.sourceCallId ? { sourceCallId: a.call!.sourceCallId } : {}), arguments: mapped, result: a.call!.resultBinding, ...objects, ...(target ? { pathHint: `${target.path}:${target.startLine}-${target.endLine}`, candidateId: target.id } : {}), ...(methodRead ? { methodRead } : {}), ...(fieldMethodRead ? { fieldMethodRead } : {}), ...((actual?.callableParameter || actual?.callableBinding || actual?.implicitClassDecorator) && target ? { callableRead: { object: actual.expression, targetId: target.id, targetSha256: target.sha256 } } : {}) })
           }
           const proof = methodCalls.get(a.id)
           if (callableCalls.has(a.id) && finite) {
@@ -298,6 +308,22 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
           } else emitCall(block.steps, a.call!.candidateIds.length === 1 ? a.call!.candidateIds[0] : undefined)
         }
       } else if (a.kind === "assignment" && a.name) {
+        const definition = classDefinitions.get(a.id)
+        if (definition) {
+          const proof = definition.classDefinition!, result = `class-original-${proof.anchorId}`
+          block.steps.push({ kind: "assign-value", name: `class-definition-${proof.anchorId}`, claim: "Execute this original class definition without binding its public name before decorators finish", result, value: { literal: sourceClassToken({ targetId: definition.id, targetSha256: definition.sha256 }) }, sourceClass: { targetId: definition.id, targetSha256: definition.sha256, scope: "definition" } })
+          for (const field of proof.fields) block.steps.push({ kind: "transform", name: `class-field-${field.anchorId}`, claim: "Original finite class namespace attribute", object: result, field: field.name, value: field.value })
+          continue
+        }
+        const decorator = classDecoratorValues.get(a.id)
+        if (decorator) { block.steps.push({ kind: "assign-value", name: `class-decorator-value-${decorator.id}`, claim: "Evaluate the current ordinary decorator function before class creation", result: decorator.valueResult, value: { literal: sourceCallableToken({ targetId: decorator.targetId!, targetSha256: decorator.targetSha256! }) }, sourceCallable: { targetId: decorator.targetId!, targetSha256: decorator.targetSha256!, scope: "module", captures: [] } }); continue }
+        if (a.classBinding) {
+          const definition = classDefinitions.get(a.classBinding)?.classDefinition, result = definition?.decorators[0] ? `class-applied-${definition.decorators[0].id}` : `class-original-${a.classBinding}`
+          if (definition && a.name === definition.name && a.valueExpression === result) block.steps.push({ kind: "assign-value", name: `class-bind-${a.classBinding}`, claim: "Bind the actual final decorator return value to the source class name", result: a.name, value: { binding: result } })
+          else { block.steps.push({ kind: "unresolved", name: `class-bind-${a.id}`, claim, reason: "source-class-definition-binding-unresolved" }); unit.complete = false }
+          continue
+        }
+        if (a.classDefinition || a.classDecoratorValue) { block.steps.push({ kind: "unresolved", name: `class-definition-${a.id}`, claim, reason: "source-class-definition-unresolved" }); unit.complete = false; continue }
         const cls = classValues.get(a.id)
         if (cls) { block.steps.push({ kind: "assign-value", name: sourceClassValueName(skeleton.sourceId, cls), claim: "Read the actual current source class object without resetting prior transformations", result: a.name, value: { literal: sourceClassToken(cls) }, sourceClass: { targetId: cls.targetId, targetSha256: cls.targetSha256 } }); continue }
         if (a.classValue) { block.steps.push({ kind: "unresolved", name: `class-value-${a.id}`, claim, reason: "source-class-reference-unresolved" }); unit.complete = false; continue }

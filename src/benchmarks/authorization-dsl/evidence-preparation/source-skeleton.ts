@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto"
 import type { Node } from "@vscode/tree-sitter-wasm"
 import type { InquiryEvidence } from "../inquiry-tools.ts"
-import type { StructureCall, StructureIndex, StructureSymbol, StructureMethodStore, StructureMethodCapture, StructureCallableValue, StructureCallableDefinition, StructureClassValue } from "./structure-index.ts"
+import type { StructureCall, StructureIndex, StructureSymbol, StructureMethodStore, StructureMethodCapture, StructureCallableValue, StructureCallableDefinition, StructureClassValue, StructureClassDefinition } from "./structure-index.ts"
 import { sourceLiteral } from "./structure-index.ts"
 import { sourceCallableValueResult, sourceClassValueResult, sourceMethodCaptureResult, sourceSyntaxAnchorId } from "./source-identities.ts"
 import { sourceArgumentBindings } from "./source-arguments.ts"
@@ -19,6 +19,9 @@ export interface SourceAnchor {
   capture?: { ownerId: string; ownerSha256: string };
   callableValue?: StructureCallableValue;
   classValue?: StructureClassValue;
+  classDefinition?: { targetId: string; targetSha256: string; definition: StructureClassDefinition };
+  classDecoratorValue?: { definitionAnchorId: string; decoratorId: string };
+  classBinding?: string;
   callableDefinition?: { targetId: string; targetSha256: string; definition: StructureCallableDefinition };
   fieldWrite?: { object: string; field: string };
   methodStore?: StructureMethodStore;
@@ -94,7 +97,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     const belongsToScope = (n: Node) => {
       if (n.id === fn.id) return true
       let owner = n.parent
-      while (owner && owner.id !== fn.id && !["function_definition", "function_declaration", "method_declaration", "function_literal", "lambda"].includes(owner.type)) owner = owner.parent
+      while (owner && owner.id !== fn.id && !["class_definition", "function_definition", "function_declaration", "method_declaration", "function_literal", "lambda"].includes(owner.type)) owner = owner.parent
       return owner?.id === fn.id
     }
     for (const n of descendants(fn, ["attribute", "selector_expression", "subscript", "index_expression"]).filter(belongsToScope)) add(n, "assignment", { name: n.text, valueExpression: n.text })
@@ -186,6 +189,33 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     const visit = (n: Node): SourceFlow[] => {
       if (n.type === "comment" || n.type === "pass_statement") return []
       if (n.type === "block" || n.type === "statement_list") return visitList(n)
+      const classNode = n.type === "class_definition" ? n : n.type === "decorated_definition" ? kids(n).find(c => c.type === "class_definition") : undefined
+      if (questionDirected && classNode) {
+        const symbol = index.symbols.find(s => s.kind === "class" && s.path === source.path && s.classDefinition?.ownerId === source.id && s.classDefinition.source.startIndex === n.startIndex && s.classDefinition.source.endIndex === n.endIndex), proof = symbol?.classDefinition
+        if (symbol && proof) {
+          const created = add(n, "assignment", { name: symbol.name, syntax: "source_class_definition", classDefinition: { targetId: symbol.id, targetSha256: symbol.sha256, definition: proof } })
+          if (proof.gap) { gap(n, proof.gap, "This actual class definition needs its current base, namespace or decorator semantics."); return [{ kind: "gap", anchorId: created.id }] }
+          const nodes = kids(n).filter(c => c.type === "decorator"), flow: SourceFlow[] = []
+          for (const decorator of proof.decorators) {
+            const node = nodes.find(d => d.startIndex === decorator.source.startIndex && d.endIndex === decorator.source.endIndex)!, expression = kids(node)[0]!
+            if (decorator.factoryCallId) flow.push(...expressionFlow(expression))
+            else {
+              const value = add(node, "assignment", { name: decorator.valueResult, valueExpression: decorator.expression, syntax: "source_class_decorator_value", classDecoratorValue: { definitionAnchorId: proof.anchorId, decoratorId: decorator.id } })
+              value.dependencyFacts = { reads: [decorator.expression], writes: [decorator.valueResult], pureLocal: false }; flow.push({ kind: "step", anchorId: value.id })
+            }
+          }
+          created.dependencyFacts = { reads: [], writes: [`class-original-${proof.anchorId}`], pureLocal: false }; flow.push({ kind: "step", anchorId: created.id })
+          let result = `class-original-${proof.anchorId}`
+          for (const decorator of [...proof.decorators].reverse()) {
+            const actual = actualCalls.find(c => c.id === decorator.applicationCallId)!, node = nodes.find(d => d.startIndex === decorator.source.startIndex && d.endIndex === decorator.source.endIndex)!
+            const anchor = add(node, "call", { syntax: "source_class_decorator_application", call: { sourceCallId: actual.id, expression: actual.expression, arguments: [{ expression: result }], candidateIds: actual.candidateIds, resultNames: actual.resultNames, resultBinding: actual.resultNames[0]!, ...(actual.callableBinding ? { callableBinding: actual.callableBinding } : {}) } })
+            anchor.dependencyFacts = { reads: [decorator.valueResult, result], writes: [anchor.call!.resultBinding], pureLocal: false }; flow.push({ kind: "step", anchorId: anchor.id }); result = anchor.call!.resultBinding
+          }
+          const bound = add(field(classNode, "name")!, "assignment", { name: symbol.name, valueExpression: result, syntax: "source_class_binding", classBinding: proof.anchorId })
+          bound.dependencyFacts = { reads: [result], writes: [symbol.name], pureLocal: false }; flow.push({ kind: "step", anchorId: bound.id })
+          return flow
+        }
+      }
       if (["function_definition", "function_declaration", "method_declaration", "class_definition"].includes(n.type)) {
         const symbol = index.symbols.find(s => s.path === source.path && s.startLine === n.startPosition.row + 1 && s.endLine === n.endPosition.row + 1), local = symbol?.localCallable
         if (questionDirected && n.type === "function_definition" && symbol?.valueCallable && !symbol.valueCallable.gap && symbol.valueCallable.ownerId === source.id && symbol.valueCallable.ownerSha256 === source.sha256) {

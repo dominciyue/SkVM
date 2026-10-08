@@ -971,6 +971,76 @@ for (const { selected, alternate, selector, repeat } of [
   expect(project(units, changed).uses).toEqual([])
 })
 
+for (const mode of ["direct", "factory", "import", "import-factory", "order", "factory-order", "replace", "replace-class", "branch", "try", "fresh", "closure", "plain"]) test(`local class definitions execute actual implicit decorators: ${mode}`, async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-class-definition-"))
+  const helpers = `def decorate(cls):\n    cls.flag = True\n    return cls\ndef configure(flag):\n    def apply(cls):\n        cls.flag = flag\n        return cls\n    return apply\ndef reject(cls):\n    raise Denied\ndef outer(cls):\n    if cls.flag:\n        raise Denied\n    return cls\ndef replace(cls):\n    return False\ndef inspect(cls):\n    if cls.flag:\n        raise Denied\n    return False\ndef inspect_pair(first, second):\n    if first.flag and not second.flag:\n        raise Denied\n    return False\n` + (mode === "factory-order" ? `def first_factory(state):\n    state.flag = True\n    def first_apply(cls):\n        return cls\n    return first_apply\ndef second_factory(state):\n    if state.flag:\n        raise Denied\n    def second_apply(cls):\n        return cls\n    return second_apply\n` : mode === "replace-class" ? `def replace_class(cls):\n    class Replacement:\n        flag = True\n    return Replacement\n` : mode === "closure" ? `def creator(flag):\n    def deferred():\n        @configure(flag)\n        class Local:\n            flag = False\n        return Local\n    return deferred\n` : "")
+  const declaration = `${mode === "order" ? "    @outer\n    @decorate\n" : mode === "factory-order" ? "    @first_factory(state)\n    @second_factory(state)\n" : mode === "factory" ? "    @configure(True)\n" : mode === "replace" ? "    @replace\n" : mode === "replace-class" ? "    @replace_class\n" : mode === "try" ? "    @reject\n" : mode === "plain" ? "" : "    @decorate\n"}    class Local:\n        flag = ${mode === "plain" ? "True" : "False"}\n`
+  const entry = mode === "fresh" ? `def make(flag):\n    @configure(flag)\n    class Local:\n        flag = False\n    return Local\ndef entry():\n    first = make(True)\n    second = make(False)\n    inspect_pair(first, second)\n    write()\n    return True\n`
+    : mode === "closure" ? `def entry():\n    callback = creator(True)\n    inspect(callback())\n    write()\n    return True\n`
+    : mode === "branch" ? `def entry():\n    if False:\n${declaration.replace(/^/gm, "    ").trimEnd()}\n    return True\n`
+    : mode === "try" ? `def entry():\n    try:\n${declaration.replace(/^/gm, "    ").trimEnd()}\n    except Denied:\n        return False\n    write()\n    return True\n`
+    : `def entry(${mode === "factory-order" ? "state" : ""}):\n${declaration}${mode === "replace" ? "    if not Local:\n        return False\n" : "    inspect(Local)\n"}    write()\n    return True\n`
+  let content = helpers + entry
+  const files: Array<{ path: string; content: string }> = []
+  if (mode === "import" || mode === "import-factory") {
+    const external = mode === "import" ? "def decorate(cls):\n    cls.flag = True\n    return cls\n" : "def configure(flag):\n    def apply(cls):\n        cls.flag = flag\n        return cls\n    return apply\n"
+    content = `from decorators import ${mode === "import" ? "decorate" : "configure"}\n` + content.replace(external, "")
+    if (mode === "import-factory") content = content.replace("    @decorate\n    class Local", "    @configure(True)\n    class Local")
+    files.push({ path: "decorators.py", content: external })
+  }
+  files.push({ path: "app.py", content })
+  for (const file of files) await writeFile(path.join(sourceRoot, file.path), file.content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, units: any[] = []
+  const sources = index.symbols.filter(s => s.kind === "function")
+  for (const source of sources) {
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id))!
+    expect(skeleton.gaps).toEqual([])
+    const annotations = skeleton.anchors.filter(a => ["parameter", "call", "condition", "return", "raise"].includes(a.kind) || (a as any).classDefinition).map(a => ({ anchorId: a.id, role: a.kind === "call" && a.call!.expression === "write" ? "effect" : ["return", "raise"].includes(a.kind) ? "context" : "condition", explanation: "Anonymous current class definition and actual decorator application", ...(a.kind === "condition" ? { condition: a.text === "not Local" ? { op: "eq", left: { binding: "Local" }, right: { literal: false } } : a.text === "first.flag and not second.flag" ? { op: "all", args: [{ op: "eq", left: { binding: "first.flag" }, right: { literal: true } }, { op: "eq", left: { binding: "second.flag" }, right: { literal: false } }] } : { op: "eq", left: a.literalKnown ? { literal: a.literalValue } : { binding: a.text }, right: { literal: true } } } : {}), ...(a.kind === "return" && source.name === "entry" ? { returnOutcome: a.literalValue === false ? "deny" : "allow" } : {}), ...(a.kind === "raise" ? { failureKind: "authorization" } : {}) }))
+    const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index, itemId: source.name, handle: source.name, questionId: "q", role: source.name === "entry" ? "entry" : "helper", propertyDirected: true })
+    expect(result.diagnostics).toEqual([])
+    units.push({ ...result.unit!, questionId: "q", evidenceIds: skeleton.evidenceIds, source: skeleton.source })
+  }
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect current implicit class decorator execution", premises: [] }] })
+  const project = (adopted = units, current = index) => {
+    const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" })
+    for (const u of adopted) store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }, { kind: "candidate-set", key: `relations:${u.source.id}`, revision: sourceRelationRevision(index, u.source.id)! }], "test-authored")
+    return api.projectSourceMaterials(p, adopted, store.snapshot(), current, { questionDirected: true })
+  }
+  const projected = project(), lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true })
+  expect(projected.units.length).toBeGreaterThan(0)
+  expect(lowered.diagnostics).toEqual([])
+  expect(lowered.delta.rules.filter(r => r.terminal && r.outcome).map(r => r.outcome)).toEqual([mode === "branch" ? "allow" : "deny"])
+  expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(false)
+  if (mode === "factory-order") expect(lowered.delta.rules.some(r => r.sourceOrigin?.step.startsWith("class-definition-"))).toBe(false)
+  const definitionUnit = units.find(u => u.source.id === index.symbols.find(s => s.kind === "class" && s.name === "Local")!.classDefinition?.ownerId) ?? units.find(u => u.handle === "entry")
+  const creation = definitionUnit.blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "assign-value" && s.sourceClass)
+  if (mode === "branch") { expect(creation).toBeUndefined(); expect(lowered.delta.rules.some(r => r.kind === "call")).toBe(false); return }
+  expect(creation.sourceClass.scope).toBe("definition")
+  for (const mutation of ["sha", "missing", "final", "order", "application", "argument", "result", "decorator", "callee", "early-binding"]) {
+    const changed = structuredClone(units), owner = changed.find(u => u.handle === definitionUnit.handle), body = owner.blocks.find((b: any) => b.steps.some((s: any) => s.name === creation.name)), created = body.steps.find((s: any) => s.name === creation.name)
+    if (mutation === "sha") created.sourceClass.targetSha256 = "forged"
+    else if (mutation === "missing") body.steps = body.steps.filter((s: any) => s.name !== creation.name)
+    else if (mutation === "final") body.steps.find((s: any) => s.name.startsWith("class-bind-")).value = { binding: created.result }
+    else if (mutation === "order") body.steps.push(body.steps.splice(body.steps.indexOf(created), 1)[0])
+    else {
+      const application = body.steps.find((s: any) => s.kind === "call" && s.sourceCallId?.startsWith("class-application-"))
+      if (mode === "plain") continue
+      if (mutation === "application") body.steps = body.steps.filter((s: any) => s !== application)
+      if (mutation === "argument") application.arguments[0].object = "forged-class-object"
+      if (mutation === "result") application.result = "forged-class-result"
+      if (mutation === "decorator") { const read = body.steps.find((s: any) => s.name.startsWith("class-decorator-value-")); if (read) read.sourceCallable.targetSha256 = "forged"; else body.steps.find((s: any) => s.kind === "call").sourceCallId = "forged-factory-call" }
+      if (mutation === "callee") application.callableRead.object = "forged-function"
+      if (mutation === "early-binding") body.steps.splice(body.steps.indexOf(created) + 1, 0, { kind: "assign-value", name: "forged-public-binding", claim: "Original class is not bound before decorators finish", result: "Local", value: { binding: created.result } })
+    }
+    if (mutation === "final" && mode === "plain") continue
+    expect(project(changed).units.some((u: any) => u.handle === definitionUnit.handle)).toBe(false)
+  }
+  if (mode.startsWith("import")) expect(project(units, await buildStructureIndex([...files, { path: "unrelated.py", content: "def decorate(cls):\n    return False\n" }], { repository: "anonymous", sourceRef: "r" })).uses).toEqual(projected.uses)
+  const changed = await buildStructureIndex(files.map(f => ({ ...f, content: f.path === (mode.startsWith("import") ? "decorators.py" : "app.py") ? f.content.replace(mode === "import-factory" ? "cls.flag = flag" : "cls.flag = True", "cls.flag = False") : f.content })), { repository: "anonymous", sourceRef: "r" })
+  expect(project(units, changed).uses).toEqual([])
+})
+
 for (const { selector, extraMethods } of [...["'guard'", "'fallback'", "'missing'", "selected", "pick('guard')"].map(selector => ({ selector, extraMethods: 0 })), { selector: "pick('guard')", extraMethods: 14 }]) test(`getattr current source tokens preserve actual selection and unknown default: ${selector} with ${extraMethods} extra methods`, async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-method-lookup-")), content = `def pick(value):\n    return value\nclass Gate:\n    def entry(self, actor, selected):\n        handler = getattr(self, ${selector}, self.fallback)\n        handler(actor)\n        write()\n        return True\n    def guard(self, actor):\n        raise Denied\n    def fallback(self, actor):\n        return actor\n${Array.from({ length: extraMethods }, (_, i) => `    def other${i}(self, actor):\n        return actor\n`).join("")}`
   await writeFile(path.join(sourceRoot, "app.py"), content)

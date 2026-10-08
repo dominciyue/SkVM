@@ -2125,6 +2125,10 @@ AY7类引用身份小步（2026-10-08）：只读定位确认类实参仍是未�
 
 主16项预期红测转绿，补充外部class字节变化撤回未变caller材料、无关homonym保持、nested实参顺序及class修改后抛错/捕获再读对照。31新增，新鲜615focused/3464断言、联合1454pass/1平台skip/9271断言/115文件/20.22s与主/AY类型通过；两独立只读复核均未发现新可复现缺陷，主要基于现有测试，非穷尽审计，见[类引用核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-class-values.json)。[新来源probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-class-values-replay.json)核验94冻结及6补充文件、12所选body，全域19类引用来源合格，所选body合格/材料采用0；SHA `3b3c2692f1fd82a2e53afad9b0f67fdd576e6a2b346673743c0441350cce379a`。无实验模型读证据/应用标注，实验模型/目标/probe网络新增0，开发/探子token、USD和真人时间unknown，原input/allowlist/答不升级。继续实际decorator应用、class/method变换与完整请求、官方完整复验和预登记收益，AY7未完成。
 
+AY7局部类定义小步（2026-10-08）：v26保留原function内class完整声明、namespace和decorator字节及原控制/顺序，将表达式从上到下求值、每次独立类创建、反向实际application及最终返回对象绑定接到既有binder/六角色/材料/native核心。普通literal字段、bare/imported与实际factory返回callable均有端到端对照；修改/返回scalar或新class/抛错保留，context不能删除application。无base/metaclass、方法/dunder/动态body及模块初始化边界仍保守；此步不假装已经采用真实应用模块装饰器。
+
+主先修正unsupported predicate和effect异常预期两个fixture问题，再以有效红绿补dunder/class-cell、无raw call的局部shadow、formatted string body call被漏掉及returned closure中合格类定义。27新增，642focused/3938断言、联合1481pass/1平台skip/9745断言/115文件/20.91s及主/AY类型通过。两独立只读核验无可复现发现，均以现有测试为主、没有独立新fixture，范围见[类定义核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-class-definitions.json)。[真实来源probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-class-definitions-replay.json)核验94冻结及6补充文件、12所选body，全域7局部类/所选1类、合格及实际采用0；ExtendedSchema仍有base-unmodeled，SHA `502f40d9ca337e7d713da0bb44b796dc01bb839bee29ec75a54fa35dddd340bc`。无实验模型读证据/应用标注，实验模型/目标/probe网络新增0，开发/探子token、USD和真人时间unknown，旧输入/答/报告保持。实际继承/方法环境、模块类应用、原request及官方完整使用/预登记净收益继续，AY7未完成。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
