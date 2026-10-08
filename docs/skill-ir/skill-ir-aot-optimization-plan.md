@@ -1,43 +1,40 @@
 # Skill IR AOT 当前执行计划
 
-更新于2026-10-07。本页维护当前目标与未达责任，原件由研究正文和实验目录导航。
+更新于2026-10-09。唯一实时入口为 [current-status](current-status.md)。
 
-- 唯一实时入口：[current-status](current-status.md)。
-- 当前任务书：[AY0–AY23 授权问题依赖、完整使用与收益验证](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)，authorized-not-started。
-- 方法合同：[spec AY](skill-ir-aot-optimization-spec.md#1438-ay-question-dependencies-and-usable-domain-execution)；依据：[研究§7.59–§7.60](skill-dsl-research.md#759-ax-离线交付复核与下一步方法建议)。
-- 复核基线b8918e4d已推origin；AX最后生产修复9039fd3f、源码树6042b79e。开发gpt-6.1-sol/max，实验为已授权当前账号gpt-5.6-sol/high。第三方API与AV十二旧位置继续暂停。
+- 当前任务书：[AZ0–AZ18：授权性质抽象、真实检查与变化复用](../superpowers/plans/2026-10-09-authorization-property-abstraction-and-real-use.md)，`authorized-not-started`。
+- 方法合同：[spec §14.39](skill-ir-aot-optimization-spec.md#1439-az-property-abstraction-and-real-use)；依据：[研究§7.61](skill-dsl-research.md#761-az-性质抽象材料采用与真实检查的开发决定)。
+- 复核基线 `10bc06f0`。开发 `gpt-6.1-sol/max`，实验当前官方账号 `gpt-5.6-sol/high`。第三方API与AV旧位置继续暂停。
 
 ## 当前目标
 
-形成真实可用的有界授权DSL：按原问题追源码依赖，连接框架前置权限、helper参数/返回资源和结论；同一实现完成Download与OWUI完整原skill任务、两作者包消费和三类变化复查，再比较质量和运行/复用减负。复用现有结构索引、operation、source-material、inquiry/native和CLI，新行为显式v5。
+让同一授权DSL围绕原问题选择证据、采用有范围的局部摘要并形成可核对结论，完成Download和OWUI完整原skill任务，检验两包消费和三类变化复用，再比较质量与开销。单性质闭合作为开发里程碑，原问题分母不缩减。
 
-用户希望本轮完成可用成果并取得正向收益，验收因此覆盖实际使用和效果。原题、完整skill及失败首件保留；工程可用但收益mixed时分别报告。
+已有结构索引、MRO、procedure-summary、source-materials、inquiry/native和CLI继续复用。拟新增显式 `operation-evidence-v6`；不再把每个未知都扩成通用语言实现任务。真实缺陷当场红绿修复，不先跑满已知坏实现。
 
-## AY 队列
+## AZ 队列
 
-| 阶段 | 责任 | 验收对象 |
+| 阶段 | 责任 | 实际验收 |
 |---|---|---|
-| AY0–AY2 | 接管、定向外部代码借鉴、账号终态/恢复 | 已知failed与unknown分开；原件状态保留 |
-| AY3–AY5 | 失败反例、问题种子、有限依赖 | 每题来源、必要/排除/未知边界 |
-| AY6–AY9 | 框架权限、对象连接、调度、逐题检查 | 同一授权链；完整原题；过期检查撤回 |
-| AY10–AY12 | 上下文、材料失效、双入口 | 减少真实重解释；自然输入和旧包兼容 |
-| AY13–AY16 | 两原skill、两作者消费者、三变化 | 当前checked及源码full；材料真实采用 |
-| AY17–AY19 | 三臂两次重复、现场修复、独立评价 | 整体工具/表示增量分开；完整成本 |
-| AY20–AY23 | 必要回归、交付、文档和发布 | 普通命令实用；六项状态；origin一致 |
+| AZ0–AZ2 | 一次失败归因、采用诊断、格式恢复、计量与路由 | 能说明材料停在哪一层，保留拒绝与总成本 |
+| AZ3–AZ6 | 性质合同、现有摘要扩展、相关依赖、关键框架摘要 | 有依据地改变需求；未知影响不被抹去 |
+| AZ7–AZ9 | 调度、局部采用、双入口、Download单性质 | 实际来源采用与检查，独立源码复核 |
+| AZ10–AZ12 | 两个完整原任务、两包消费、三变化 | 原问题完整性、局部/整体复用分列 |
+| AZ13–AZ15 | 三臂有限比较、独立评价、外部能力校准 | 协议失败计入原分母；整体方法/表达增量分开 |
+| AZ16–AZ18 | 回归、研究归纳、文档与origin发布 | 真实可用、效果与未达分别交付 |
 
-22个必需首位置：2 native、2 consumer、6变化、12质量。修订和必要新作者稿追加单列。质量与编写复用约60/40指精力分配。连续按任务推进，不等待或重复实验凑时长。
+完整质量面板为2任务×3臂×2重复=12位置，符合相同条件的native首件可复用；另有1个单性质开发位置、2包消费和6变化位置。修订单列，不用重复调用凑时长。原件/评价隔离，源码衍生答案不得作为DSL预填事实。
 
-## 工作规则
+## 执行规则与外部阻断
 
-1. 真实失败当场分型；共享缺陷红测→修实现→绿测→同例具名复验，再继续受影响位置。
-2. 同因两次无改善停止原样重抽，回到实际回调和代码改接口/局部拆分，其它责任继续。
-3. 复用已有MRO/DRF/callee；不按项目/skill名分支，未知副作用不强行排除。
-4. 实验只读允许源码、完整skill、用户政策前提；evaluator、旧正确答和研究根因不进入模型。
-5. 账号已授权，无需再确认。额度拒绝停无效请求、独立工程继续；新尝试确认旧执行结束，不切第三方或购买额度。
-6. 工程、账号真实运行、完整原skill、作者消费、同条件收益、变化复用分别验收。
+1. 发现共享缺陷，暂停受影响位置，当场定位、红测、修复和具名复验；独立工作继续。
+2. 不因D失败无限推迟N基线；未达是结果。不同代码/合同版本不可混成同版本比较。
+3. 摘要须有来源、适用性质、参数/对象、残余及撤回条件。模型context标签不是排除证明。
+4. 账号已授权；AY旧记录提示2026-10-14 16:47恢复，当前是否可用按真实证据判断。明确额度不足时停止试探，完成独立工程并保留未运行位置，不换身份/通道或购买额度。
+5. 工程、真实原任务、作者消费、质量/开销、变化复用分别验收；不能只凭离线包将研究目标标完成。
 
 ## 继承与维护
 
-AX原20首位置中9已尝试、17归档、11待执行；[AX summary](../../results/skill-ir/skill-dsl-research/development/authorization-property-execution-v1/summary.json)和原unknown保持。AY建立承接映射运行新版本位置，两有效作者包及418文件离线交付复用。AW/AV/AU原结果、readiness、Q1、held-out、prospective和旧0/6保持，不重复全历史审计。
+AY以 `completed-with-unmet-criteria` 收束，14尝试、10交付、2不可用、2失败，12质量未运行；详情见 [final closure](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)。旧原件和所有历史分母保留，新结果写 `authorization-property-abstraction-v1`。
 
-继续skill-ir-aot，只推用户origin。新开发线程接管后为唯一写者；研究正文更新§1/§7.60/§11，结果集中authorization-question-closure-v1，临时运行集中project-maintenance。只更新现有组件文档，不清理其它任务材料。
+继续 `skill-ir-aot`，仅推用户origin，新开发线程独占写入。研究同步§1/§7.61/§11；只更新已有长期组件文档。源码和能力测试不重复全历史审计；文档只维护当前入口和本轮涉及的开发文档。

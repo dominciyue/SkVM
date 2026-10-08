@@ -2800,6 +2800,24 @@ AY7的v35显式module初始化合同：Python非空文件增加kind=module的全
 
 30新增，初次RED 0/24/24断言；补充反例RED 26/2，修复声明前decorator与target SHA漏洞后GREEN 30/0/234断言。新鲜874focused/5445断言、联合1713pass/1平台skip/11252断言/115文件/50.42s和主/AY类型通过；类型冗余分支修正后双类型重新通过。只读索引核验含独立fixture，材料复核仅静态疑点，主线程定向核验未复现stale采用，见[模块初始化核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-module-initialization.json)。[105文件probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-module-initialization-replay.json) SHA `64ef2ec088c12799cdd964963456a6e3e7718ef5d9ffbe5d6ab6690b1046e76a`保留99非空module/394 class/361 function声明事实，来源合格1 class/54 function只是创建资格；所选三schema类仍body/base gap、实际材料0。12所选body有0super/1constructor gap，整个索引36super/12constructor gap；新增root边界扩大了记录范围，不能与旧7constructor直接作效果比较。原冻结/补充/输入/allowlist/答案/评估器/分母与旧结果不改，实验模型/目标/probe网络新增0，其它成本unknown。继续实际模块环境/constructor/descriptor/request与官方完整使用及预登记收益，不勾选AY7。
 
+### 14.39 AZ property abstraction and real use
+
+2026-10-09用户批准接续开发，任务书为[AZ0–AZ18](../superpowers/plans/2026-10-09-authorization-property-abstraction-and-real-use.md)。本节是待实现的新合同；截至任务书登记，生产语义仍为AY v35，旧结果不因新合同改写。
+
+**范围与复用。** 当前研究类仍是单repo/ref、源码可见的授权与信任边界评估。显式 `operation-evidence-v6` 复用property-demand/dependencies、procedure-summary、source-materials/projection、operation-work及inquiry/native，不新增独立CLI/agent/IR。已有Python/Go索引和MRO保留；新语法能力须由当前决定性性质缺口驱动，不能继续无上限补全语言。
+
+**性质与证据。** 原问题映射为authorization-before-effect、authorized-object-matches-effect、effect-reachability、operation-completion等有限性质，记录原questionId与实际来源绑定。类型仅说明要判断什么，不预填答案。不同性质可以要求不同证据，原任务全部问题仍计入分母。模型提出的角色和相关性必须有源码出处；未知调用对主体、资源、权限、控制或相关异常的影响保留，不能凭名称或context标签排除。
+
+**局部摘要。** 扩展已有有限摘要的适用性质、参数/返回对象、条件、副作用、异常和残余影响。模型提议、来源/结构有效、独立语义复核分别记录；运行时不能读取评价器或以机械检查冒充语义证明。共享库/框架摘要绑定公开版本、receiver/override及前置条件，错误或过期摘要撤回采用；不同实验臂获得相同公共事实，准备成本单列。源码、政策和用户前提的改变按实际依赖分别重算，不继承旧答案。
+
+**采用与结果。** 对提交、字段有效、材料可用、当前问题采用、对象/callee连接、性质检查逐阶段记录原因。root/role不匹配、sourceCallId缺失、候选不唯一、实参绑定或材料版本失败不得仅返回空集合。保留已有整体Schema拒绝、逐题结果、条件答案与失效撤回；局部有效不提升为整题完整。自然交付同时显示源码覆盖、语义复核、机械检查范围、适用前提及未决项。
+
+**恢复预算。** v6格式拒绝计入实际工具总量与成本，最多2次格式纠正，最多2次有效语义检查，仍受同一全局工具/显示/时限合同限制。旧策略保持原行为；不得以分开计数增加隐藏预算或无限重抽。共享缺陷立即暂停受影响派发，红测→修复→绿测→具名复验，首件保留。
+
+**实际使用和比较。** Download一个性质是工程里程碑，之后回到Download与OWUI完整原skill问题和两包消费；三变化fresh/previous区分局部材料复用与完整任务复用。主面板2任务×N/M/D×2重复共12位置，符合全部同条件的native首件复用。N用原skill与共同源码工具，M/D共用领域核心；三臂同任务事实、源码、政策和公共摘要，M/D的任务表达差异单独比较。协议失败保留端到端分母；源码语义、程序检查和交付分别评价。失败的D不成为无限推迟N基线的理由。
+
+**成本和结论。** 完整输入含缓存的口径与分项口径明确，缓存只计一次；摘要/作者准备、失败修复和运行成本分列。USD、隐藏请求、开发/探子和真人工时缺报保持unknown。质量优劣、效率和复用可分别positive/tradeoff/no-observed-difference/negative/inconclusive，禁止预设必须成功。需求写requirements，实际写outcomes。用户授权官方账号gpt-5.6-sol/high，开发gpt-6.1-sol/max；第三方API仍暂停，额度不可用时继续独立工程，保留未运行实验而不宣称研究达标。
+
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
 AT在已有授权局部语义上引入显式 `focused-closure-v1`：宿主持久管理locate/interpret/link/review/answer阶段，绑定当前来源、单元身份与更新版本；模型解释原始源码中的条件、对象、参数、返回与实际相关效果。上下文渲染不改变活动任务，拒绝修复回到同一单元；多候选与语义关系仍须显式判定。旧默认及协议保持。
