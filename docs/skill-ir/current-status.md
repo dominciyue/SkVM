@@ -4,11 +4,13 @@
 
 ## 当前工作
 
-**正在执行 [AZ0–AZ18：授权性质抽象、真实检查与变化复用](../superpowers/plans/2026-10-09-authorization-property-abstraction-and-real-use.md)，状态 `in-progress`。** 接管HEAD为 `501b8e12`，工作树干净。AZ0已登记新identity、原问题和21个逻辑位置，完成一次AY原诊断归因及新输出路径隔离测试；尚无AZ生产语义或效果结果。
+**[AZ0–AZ18：授权性质抽象、真实检查与变化复用](../superpowers/plans/2026-10-09-authorization-property-abstraction-and-real-use.md)以 `completed-with-unmet-criteria` 收束，研究目标未达。** 显式v6的性质绑定、保守依赖收缩、窄局部摘要、采用诊断及有限格式恢复已实现。21个逻辑位置中4个已尝试，共5次尝试/4自然交付；单性质首件及具名修正均无材料采用或机器结果。生产比较快照为 `cef00a3c`。
 
-本轮重点是让原问题真正决定证据需求，扩展现有局部摘要的适用范围，补齐材料未采用诊断和有限格式恢复，并在 Download、OWUI 的完整原 skill 中验证实际检查。先做一个性质的开发里程碑，再回到全部原问题及跨结构使用。新策略计划显式启用为 `operation-evidence-v6`，复用既有 inquiry/native、结构索引、材料和 CLI，不继续无关键路径依据的通用语言语义扩张。
+本轮重点是让原问题真正决定证据需求，扩展现有局部摘要的适用范围，并在 Download、OWUI 的完整原 skill 中验证实际检查。新策略 `operation-evidence-v6`复用既有 inquiry/native、结构索引、材料和 CLI。当前机械摘要只覆盖有限的平坦普通helper；框架关系仍有残余，不能把离线垂直链写成全部AZ3–AZ8验收。
 
-方法合同见 [spec §14.39](skill-ir-aot-optimization-spec.md#1439-az-property-abstraction-and-real-use)，复核和取舍见 [研究 §7.61](skill-dsl-research.md#761-az-性质抽象材料采用与真实检查的开发决定)。新结果已登记为 [manifest](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/manifest.json) 和 [状态](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/status.json)；requirements与outcomes分开，researchGoalAchieved=false。
+12位置质量面板只运行Download N/M/D首轮：N自然源码评价full，M遗漏全局GET权限而partial，D在工具调用前因官方workspace routing discovery failed未交付；其余9质量、2消费、6变化共17位置保留未运行。没有同条件D答案、第二任务或真实复用收益，比较为inconclusive。离线包搬移和变化撤回不替代这些验收。
+
+方法合同见 [spec §14.39](skill-ir-aot-optimization-spec.md#1439-az-property-abstraction-and-real-use)，复核和取舍见 [研究 §7.61](skill-dsl-research.md#761-az-性质抽象材料采用与真实检查的开发决定)。实际结果以 [summary](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/summary.json)、[accounting](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/accounting.json)、[verification](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/verification.json) 和 [状态](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/status.json) 为准；requirements与outcomes分开，researchGoalAchieved=false。
 
 ## AY 已结束的真实结果
 
@@ -22,7 +24,7 @@
 ## 账号、运行和继承边界
 
 - 开发 `gpt-6.1-sol/max`；实验沿用用户已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。
-- AY最后记录额度拒绝，提示恢复时间2026-10-14 16:47；这是历史记录，不代表当前已恢复。新线程按AZ任务书检查可用证据，明确不可用时不发试探推理、不等待或轮询凑时长，继续所有独立工程工作。
+- AY的2026-10-14额度恢复提示保留为历史。AZ先有4次自然交付，随后D首轮出现官方路由终态故障；当前channel=unavailable。已停止余下派发，不轮询或切换；恢复须有新的外部可用性证据，不能由旧日期推定。
 - 不自动切账号、模型、端点或购买额度；未知完成先核查本地生命周期。缺报USD、隐藏请求、开发/探子成本和真人分钟保持unknown。
 - 保留原skill、全部原问题、允许源码、用户独立政策及前提。模型输入隔离评价器、历史答案和开发修复记录。held-out、Q1、prospective、readiness和历史 `0/6` 不变。
 - 主开发线程是代码、共享方法文档和Git的唯一写者。继续现有分支，不创建worktree；只读探子按AGENTS使用。

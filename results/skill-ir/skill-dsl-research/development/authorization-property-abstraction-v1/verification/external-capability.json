@@ -1,0 +1,88 @@
+{
+  "schemaVersion": "authorization-az-external-calibration/v1",
+  "date": "2026-10-09",
+  "developmentOnly": true,
+  "tool": {
+    "name": "Semgrep Community Edition",
+    "version": "1.180.0",
+    "engine": "OSS",
+    "executable": "D:/skill优化/project-maintenance/tools/az-semgrep-1.180.0/Scripts/semgrep.exe",
+    "python": "D:/anaconda/python.exe",
+    "installation": "Isolated venv; pinned semgrep==1.180.0; no global environment modification"
+  },
+  "command": "semgrep scan --config rule.yaml --metrics=off --disable-version-check --no-git-ignore --json --output semgrep-output.json fixtures",
+  "cwd": "results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/verification/external",
+  "exitCode": 0,
+  "fixtureExecution": false,
+  "localPolicy": "For this anonymous development example only, the effect object must be the checked object.",
+  "scope": "Syntactic expression equality in one flat function. No alias, interprocedural, framework or application-policy proof.",
+  "files": [
+    {
+      "file": "rule.yaml",
+      "sha256": "7c936cfd6ba8e6bca40fb487e78722b9204b32bc2d10b176804450326f098c0e"
+    },
+    {
+      "file": "fixtures/vulnerable.py",
+      "sha256": "79ed3cb4306f54965d75edc1a94417f4ab2869ade823ea1c34eead95d3dabfbe"
+    },
+    {
+      "file": "fixtures/fixed.py",
+      "sha256": "efbfd31f7544897a29f4a0fab392a0114f5a8f4e1932a78c141797688105f6c9"
+    },
+    {
+      "file": "fixtures/normal.py",
+      "sha256": "73d4a31f3a73edfe853e6d62d9420558fc9ffff438de4f1860f206791aa7f491"
+    }
+  ],
+  "expected": {
+    "vulnerable.py": 1,
+    "fixed.py": 0,
+    "normal.py": 0
+  },
+  "actual": {
+    "vulnerable.py": 1,
+    "fixed.py": 0,
+    "normal.py": 0
+  },
+  "errors": [],
+  "scanned": [
+    "fixtures\\fixed.py",
+    "fixtures\\normal.py",
+    "fixtures\\vulnerable.py"
+  ],
+  "rawOutputSha256": "d855d8545e089ea67ccf93ae9251521c1f040ce7dbe7d440deb5eabe49c0886e",
+  "time": {
+    "config_time": 0.11720395088195801,
+    "core_time": 4.818383455276489,
+    "ignores_time": 0,
+    "total_time": 4.95637321472168
+  },
+  "interpretation": "Expected narrow capability observed on three anonymous nonexecuted fixtures; not a target-application baseline or comparative superiority result.",
+  "notExecuted": [
+    {
+      "tool": "CodeQL",
+      "reason": "Not installed; library-model mechanism mapped from official documentation only."
+    },
+    {
+      "tool": "Absentia",
+      "reason": "Official repository has not released the complete implementation at inspection time."
+    },
+    {
+      "tool": "Paralegal",
+      "reason": "Rust privacy analysis is not a direct Python replacement."
+    },
+    {
+      "tool": "Semgrep Multimodal",
+      "reason": "Commercial multimodal product; only the OSS static rule was run."
+    }
+  ],
+  "references": [
+    "https://codeql.github.com/docs/codeql-language-guides/customizing-library-models-for-python/",
+    "https://arxiv.org/html/2610.00977v1",
+    "https://github.com/avduarte333/Absentia",
+    "https://www.usenix.org/conference/osdi25/presentation/adam",
+    "https://semgrep.dev/blog/2026/idor-detection-benchmark-semgrep-multimodal/",
+    "https://docs.semgrep.dev/running-rules",
+    "https://docs.semgrep.dev/metrics"
+  ]
+}

@@ -1,0 +1,16 @@
+rules:
+  - id: anonymous-checked-object-differs-from-effect
+    languages: [python]
+    severity: WARNING
+    message: The explicitly checked expression differs from the effect expression; inspect object identity and policy.
+    patterns:
+      - pattern: |
+          if not permitted($ACTOR, $CHECKED):
+              return False
+          ...
+          perform($ACTOR, $EFFECTED)
+      - pattern-not: |
+          if not permitted($ACTOR, $SAME):
+              return False
+          ...
+          perform($ACTOR, $SAME)

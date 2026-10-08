@@ -2802,7 +2802,7 @@ AY7的v35显式module初始化合同：Python非空文件增加kind=module的全
 
 ### 14.39 AZ property abstraction and real use
 
-2026-10-09用户批准接续开发，任务书为[AZ0–AZ18](../superpowers/plans/2026-10-09-authorization-property-abstraction-and-real-use.md)。显式v6已开始落地，结构关系继续复用AY v35；旧结果不因新合同改写，真实效果尚待当前实验。
+2026-10-09用户批准接续开发，任务书为[AZ0–AZ18](../superpowers/plans/2026-10-09-authorization-property-abstraction-and-real-use.md)。显式v6的首个有界实现已落地，结构关系继续复用AY v35；本轮以completed-with-unmet-criteria收束，真实采用和稳定收益未建立，旧结果不改写。
 
 **范围与复用。** 当前研究类仍是单repo/ref、源码可见的授权与信任边界评估。显式 `operation-evidence-v6` 复用property-demand/dependencies、procedure-summary、source-materials/projection、operation-work及inquiry/native，不新增独立CLI/agent/IR。已有Python/Go索引和MRO保留；新语法能力须由当前决定性性质缺口驱动，不能继续无上限补全语言。
 
@@ -2821,6 +2821,8 @@ AZ3–AZ8首个有界实现：性质以原题要求的精确文本跨度声明�
 **实际使用和比较。** Download一个性质是工程里程碑，之后回到Download与OWUI完整原skill问题和两包消费；三变化fresh/previous区分局部材料复用与完整任务复用。主面板2任务×N/M/D×2重复共12位置，符合全部同条件的native首件复用。N用原skill与共同源码工具，M/D共用领域核心；三臂同任务事实、源码、政策和公共摘要，M/D的任务表达差异单独比较。协议失败保留端到端分母；源码语义、程序检查和交付分别评价。失败的D不成为无限推迟N基线的理由。
 
 **成本和结论。** 完整输入含缓存的口径与分项口径明确，缓存只计一次；摘要/作者准备、失败修复和运行成本分列。USD、隐藏请求、开发/探子和真人工时缺报保持unknown。质量优劣、效率和复用可分别positive/tradeoff/no-observed-difference/negative/inconclusive，禁止预设必须成功。需求写requirements，实际写outcomes。用户授权官方账号gpt-5.6-sol/high，开发gpt-6.1-sol/max；第三方API仍暂停，额度不可用时继续独立工程，保留未运行实验而不宣称研究达标。
+
+**当前实测边界。** [AZ summary](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/summary.json)保留21逻辑位置/5尝试及17未运行。两次单性质和一次M均格式预算耗尽且0接受/采用/检查；N自然源码完整与M自然源码partial不受机器状态替代。D官方workspace routing失败发生在工具前，后续停止，不把重连或工具预算单位当模型请求。D旧作者稿的4/11问题拆分与M的1题规范化不同，任务事实等价不等于纯语法隔离或免费作者准备。离线compare的reusable只表示局部资格：当前0可用材料时恢复/采用仍为0，旧答案始终不复用。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 

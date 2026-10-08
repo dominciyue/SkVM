@@ -4,9 +4,9 @@
 
 ## 1. 当前结论
 
-**授权任务已有局部语义、来源材料、变化失效和官方账号双入口的真实实现；AY完成真实原skill与作者包消费，完整源码质量、完整机械检查及净收益仍未建立。** AY以completed-with-unmet-criteria结束，14次尝试中10交付、2不可用、2失败，12个质量位置未运行。用户已授权AZ接续，重点转为性质相关证据范围、现有局部摘要的采用及完整任务检查。范围仍为单repo/ref、源码可见的授权与信任边界评估。
+**授权任务已有局部语义、来源材料、变化失效和官方账号双入口的真实实现；AZ增加了性质相关范围和窄摘要，但实际材料采用、完整机械检查及稳定净收益仍未建立。** AZ以completed-with-unmet-criteria收束：21位置中4已尝试，共5尝试/4自然交付；单性质两次均未闭合，质量N/M源码评价full/partial，D官方路由失败，17位置未运行。范围仍为单repo/ref、源码可见的授权与信任边界评估。
 
-当前结构关系复用AY source-bindings/v35，显式v6已有任务性质绑定、有限摘要采用、依赖/调度范围和逐题性质检查的首个有界实现，尚无新真实质量结论。AY Download v35的3个接受单元、30个控制步骤和2次材料采用及OWUI v35为0仍属历史，两次native自然答均partial。新源码摘要仅采用未使用返回的平坦普通调用；动态框架、返回值组合和复杂异常仍用既有解释或明确残余，不能据工程测试推定完整任务收益。
+当前结构关系复用AY source-bindings/v35，显式v6已有任务性质绑定、有限摘要采用、依赖/调度范围和逐题性质检查的有界实现；AZ实际运行仍为0接受/采用/检查。AY Download v35的3单元/30步骤/2采用及OWUI v35为0保持历史口径。新源码摘要仅采用未使用返回的平坦普通调用；动态框架、返回值组合和复杂异常仍用既有解释或明确残余，不能据工程测试推定完整任务收益。
 
 日常先读本节与[当前状态](current-status.md)。当前决定见[§7.61](#761-az-性质抽象材料采用与真实检查的开发决定)，AY原实现过程和收束见[§7.60](#760-ay-问题依赖完整使用与收益验证)，AX复核见[§7.59](#759-ax-离线交付复核与下一步方法建议)。方法形成过程见§4–§7.18，历史开发记录保留在§7后续章节。本地化候选保留在§8–§9，暂缓实施。
 
@@ -32,7 +32,7 @@
 
 最新AY结果补充：两份原skill和两包原字节消费均已实际运行。Download消费者源码评阅full但机器partial，OWUI消费者仍漏决定性helper；政策/前提变化已有部分运行，源码变化及质量位置受账号额度阻断。[最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)记录可见完整input 32,465,835、output 125,283、其中cacheRead 29,939,200（已包含在input），USD/隐藏请求/开发/真人成本未知。旧AX、AW结果保留其当时口径。
 
-当前关键问题是：**让所问性质真正决定证据范围，以有来源和适用条件的局部摘要连接对象、权限与效果，减少反复整函数解释，同时保持未分析部分可见。** 用户授权[AZ0–AZ18](../superpowers/plans/2026-10-09-authorization-property-abstraction-and-real-use.md)，gpt-6.1-sol/max开发、当前账号gpt-5.6-sol/high实验；第三方API暂停。先做Download单性质，再回全部原问题及OWUI结构、两包消费、三变化和有限比较。协议失败保留端到端分母；质量与编写复用60/40仅指精力。账号明确不可用时继续独立工程，不等待或试探凑时长。
+当前关键问题仍是：**有界性质/摘要怎样进入模型真正可用的解释与检查链。** AZ的需求差异反例成立，但真实模型没有完成绑定/采用；空协议模板的一次针对性修正也未解决。下一步不能继续以通用语言扩张代替采用证据。官方通道因workspace routing终态暂停，未运行位置和缺失框架合同保留；无稳定同条件D比较或真实复用收益，不升级默认，不等待或试探凑时长。
 
 ## 2. 研究目标与术语
 
@@ -2189,9 +2189,17 @@ AY7显式module初始化小步（2026-10-08）：v35把非空Python模块作为�
 
 **外部机制。** [CodeQL库模型](https://codeql.github.com/docs/codeql-language-guides/customizing-library-models-for-python/)提供输入/输出摘要的工程参照；[Absentia](https://arxiv.org/html/2610.00977v1)的入口、不变量和反证组织可借鉴，但[其仓库](https://github.com/avduarte333/Absentia)在本次核对时未发布完整实现，不能登记为已运行外部基线。[Paralegal](https://www.usenix.org/conference/osdi25/presentation/adam)面向Rust隐私政策，[Semgrep Multimodal](https://semgrep.dev/blog/2026/idor-detection-benchmark-semgrep-multimodal/)强调授权检查与效果对象；借机制并记录适用范围，不把这些资料的数字移作项目收益。一次静态工具无发现不足以证明本工具更好。
 
+本次实际借入的是CodeQL输入/输出与适用条件的组织方式，落在procedure-summary的参数/返回、当前实参及源码失效；未导入其value/taint模型作为授权证明。Absentia的入口→关系→反证对应当前property query及错对象反例，源码归纳出的不变量仍不是用户规范政策。Paralegal的政策与依赖图分工对应保留完整图、再按性质反向取需求，未运行Rust分析器。[Semgrep CE 1.180.0校准](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/verification/external-capability.json)以本地YAML规则扫描3个匿名非执行fixture：错对象1发现，修复/正常各0，错误0；仅匹配同一函数内显式检查表达式与效果表达式，不处理alias/跨函数/框架。商业Multimodal未运行，也不把这个窄校准称为目标应用基线。
+
 **顺序与边界。** 先补诊断/恢复，再做性质与摘要，尽早验证Download单性质，然后完整Download/OWUI、两包、三变化及12位置比较。新identity为authorization-property-abstraction-v1；研究输入仍是已暴露development。账号授权保持，但旧记录提示额度至2026-10-14 16:47，是否恢复须看当前证据；不可用时做独立工程，保留未运行状态，不更换第三方通道或宣称研究达成。本轮后续问题、修复和实测统一在本节更新，§1/§11同步。
 
 AZ1诊断工程（2026-10-09）：投影现在明确报告版本/来源/依赖筛除、入口角色、调用身份、目标歧义和实参绑定失败，仍保留有效局部材料。[零调用重放](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/verification/material-adoption-v35.json)保留原归档SHA及原check；Download的3份可用材料实际采用2次，首阻断是material-target-unavailable；OWUI无接受材料，首阻断是material-root-missing。9红→9绿/60断言、相关215测试/3228断言与主类型通过；新增模型调用0。此为采用可观察性，尚无新真实任务或效果结论。
+
+**AZ实际收束。** [summary](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/summary.json)按原件重算：单性质首件0解释提交，修正后1提交但0接受；Download M首轮2提交仍0接受，三次均耗尽格式预算，无当前机器检查/结果。空模板修复了当前Schema的可见性，没有替模型填源码含义，也没有增加预算；同因一次修正后停止重抽。自然答案独立评价为单性质首件partial/修正full（仅窄题），完整Download N full、M partial；M具体遗漏继承的GET全局view_document条件，不能把列出权限类名当作分析该条件。N读原源码直接完成同一完整任务，未获得旧答案或评价器。
+
+质量快照为cef00a3c，主面板N/M/D同一native入口、原完整skill、自然brief及共同预算；D首轮在tools=0时被官方workspace routing discovery failed终止，usage未知。保留12质量分母（2交付、1未交付、9未运行），两消费及六变化也未运行；结论inconclusive。D原作者稿4/11题与N/M规范化1题不同，需将作者拆分与准备成本作为表达比较限制。可见已知input5,283,565、output23,823、cacheRead4,686,976已含input，失败D用量及USD/隐藏请求/开发/探子/真人分钟保持unknown；不把5个可见会话当provider请求数。
+
+离线包含空格外部路径check通过，95文件与原问题字节一致；当前partial单性质会话的搬移保持current，政策/前提/源码变化均needs-review、answerReused=false，当前0材料恢复/采用。新增政策同时把behavior改成conformance，不能称纯policy-only收益；既有该类确定性合同单列。1713pass/1平台skip、模板相关109pass、study/汇总8pass及类型检查是工程证据。完整框架语义摘要、完整原任务D链及真实变化复用未达，停止外围语义扩张；保留明确可证伪的下一责任：机制须在实际提交→采用→性质检查中生效，再评价收益。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
@@ -2256,12 +2264,12 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 | ID | 问题 | 当前依据 | 接下来的判断 |
 |---|---|---|---|
 | Q1 | 哪个任务范围共享领域语义？ | 固定来源的授权职责支持 principal/resource/operation/control/evidence；混合职责单列，见 §4–§7.10 | 保持单 repo/ref、源码可见的授权切片 |
-| Q2 | 声明如何带来实际行为？ | AY有真实采用，Download3单元/30步骤/2材料，OWUI v35为0；完整链未达 | AZ明确性质与摘要适用范围，补提交→采用→检查的具体原因 |
-| Q3 | 为什么仍漏决定性源码或分支？ | 当前需求仍覆盖全体可达调用，框架边界不断扩大；自然答亦有决定性遗漏 | 真正按性质反向追依赖，相关未知保留，停止无关语言扩张 |
-| Q4 | 领域方法相对好说明的增量是什么？ | AY12质量位置未运行，历史同材料比较mixed/negative | AZ12位置三臂比较；同事实/预算，协议失败保留原分母，不因D失败无限推迟N |
-| Q5 | 作者和变化复用是否可用？ | AY两包真实消费，Download源码full/机器partial；部分前提和政策变化已有实际运行 | AZ兼容原字节包，局部材料与完整任务复用分别验收 |
+| Q2 | 声明如何带来实际行为？ | AZ有界需求/摘要测试成立，但真实3次领域交付均0接受/采用/检查 | 先证明实际提交→采用→检查，不用更多语法代替 |
+| Q3 | 为什么仍漏决定性源码或分支？ | v6可改变有绑定性质的需求；实测仍未绑定，M漏全局GET权限，框架合同残余 | 解决模型可用解释接口及框架摘要，相关未知保留 |
+| Q4 | 领域方法相对好说明的增量是什么？ | AZ3/12位置尝试，N/M源码full/partial，D路由失败；结论inconclusive | 通道恢复且完整D链成立后才比较；保留12分母和作者拆分限制 |
+| Q5 | 作者和变化复用是否可用？ | AZ原字节兼容/搬移和离线撤回通过，2消费者/6变化未运行 | 需要当前合格基础及真实fresh/previous；不把0材料reusable资格当收益 |
 | Q6 | 本地化路线如何处理？ | 保留 §8–§9 设计及结构回填反例 | 暂缓；重新选择该类时再处理，不混入授权验收 |
-| Q7 | 如何评价和计量？ | AY已知input32,465,835、output125,283，cacheRead29,939,200已含input；USD/真人未知 | AZ分协议/源码/语义/机械层和准备/失败成本，requirements与outcomes分开 |
+| Q7 | 如何评价和计量？ | AZ已知input5,283,565/output23,823，cacheRead4,686,976已含input；失败D及USD/真人未知 | 原件可重放、失败及未运行保留，协议/源码/检查分开 |
 
 决策沿革：
 
@@ -2277,7 +2285,7 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 
 - **2026-10-08 / AY：** v5初版已接通，账号0.160.0的Download具名尝试与OWUI首/修订实际交付，均源码partial、结构终答缺失。OWUI修订6单元/3实际投影；receiver值绑定、枚举合同、按receiver的框架footprint与静态Depends组合已红绿修复。当前零模型回放找到11middleware注册/11方法，具名阻断尚未证明的框架采用，完整ASGI/DRF链仍未达。总token增加、fresh下降分列，真实净收益未建立。DRF保留GET→download声明和22项来源工作，identity订阅找回继承dispatch，mapping binding与invocation未证明，类wrapper继续阻断。纯转发参数包已绑定，普通class decorator来源进入当前队列/精确依赖，变换采用仍0，真实dispatch alias和闭包handler仍待；联合1091pass/1平台skip及主/AY类型通过；整文件SHA粒度、原件、全部成本与独立裁定保留，22首位置和完整队列见§7.60。
 
-- **2026-10-09 / AZ：** 外部评议经源码与原件纠偏；正式接续性质相关需求、有范围摘要、采用诊断和有限格式恢复。任务书已获授权，尚未实现或新增效果实验，见§7.61。
+- **2026-10-09 / AZ：** 有界性质/摘要/依赖与采用诊断、有限格式恢复落地。5尝试/4自然交付，单性质未闭合，N/M源码full/partial，D官方路由失败；17位置未运行，比较inconclusive，completed-with-unmet-criteria收束。见§7.61。
 
 ## 12. 后续追加规则
 
