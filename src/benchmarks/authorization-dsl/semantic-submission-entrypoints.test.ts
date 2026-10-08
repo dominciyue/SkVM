@@ -3,6 +3,7 @@ import { mkdtemp, mkdir, writeFile } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import { runAuthorizationInquiry } from "./inquiry-run.ts"
+import { createNativeInquiryRuntime } from "./inquiry-native.ts"
 import { runCodexAccountInquiry } from "../../adapters/codex-account.ts"
 import { resolveInquiryContext } from "./inquiry-context.ts"
 import { emptyTokenUsage } from "../../core/types.ts"
@@ -70,4 +71,15 @@ test("ordinary structured inquiry consumes the same public edit without injected
   const run = await runAuthorizationInquiry({ ...f, sourceRoot: f.sourceRoot, repository: "anonymous", sourceRef: "fixed", allowedPaths: ["app.py"], inquiry, brief, provider, method: "M", strategy: "operation-evidence-v6", skillContent: "FULL_ORIGINAL_TAIL", maxDispatches: 12 })
   expect(run.wireFailures).toEqual([])
   assertAdoption(run.domain)
+})
+
+test("natural and declaration frontends retain an identical host program from common facts", async () => {
+  const f = await fixture(), m = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "operation-evidence-v6", method: "M" }), d = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "operation-evidence-v6", method: "D1" })
+  try {
+    expect(m.report().program).toEqual(d.report().program)
+    expect(m.system).toContain('"naturalTask"')
+    expect(d.system).toContain('"inquiry"')
+    expect(m.system).toContain(brief); expect(d.system).toContain(brief)
+    expect(m.definitions).toEqual(d.definitions)
+  } finally { await m.close(); await d.close() }
 })

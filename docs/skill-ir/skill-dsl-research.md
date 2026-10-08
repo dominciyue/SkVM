@@ -2221,6 +2221,8 @@ AZ1诊断工程（2026-10-09）：投影现在明确报告版本/来源/依赖�
 
 独立核验后增加真实当前check断言，红测确认格式拒绝曾只撤回machineAnswer、仍保留旧当前check。修订将格式无效和新提案的交付/性质检查一起失效，历史checkHistory保留；当前形状有效但整体语义失败的性质诊断仍单列，不抹去局部检查。最终同组182 tests/1395 assertions及主typecheck通过。
 
+**BA7/8准备。** 有界通道分类和公平输入先各红测，再共享接线。两原任务M/D现在读取同字节common inquiry、同program、同源码和完整skill；整段原请求保留为q1并记录逐句原文偏移，N保留原自然输入。M的普通v6前端显示naturalTask/原事实，D1显示声明，宿主程序及工具一致；旧4/11题作者包只进入消费位置。预检两任务通过，真实加载仍待各attempt的thread/start及instructionSources证据。恢复只在ready真实位置核实原failed生命周期后一次，不以历史失败永久封闭，也不增付费探针。此阶段研究/入口8 tests/70 assertions、相关native/account44 tests/337 assertions及研究typecheck通过；尚未派发。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

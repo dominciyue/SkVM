@@ -215,7 +215,8 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
     if (traceDir) await writeFile(path.join(traceDir, `request-${requests.length}.json`), JSON.stringify(options.traceRedactor ? options.traceRedactor(record) : record, null, 2) + "\n", { encoding: "utf8", flag: "wx" })
   }
   const onEvent = async (event: AuthorizationLifecycleEvent) => { if (traceDir) await appendFile(path.join(traceDir, "lifecycle.jsonl"), JSON.stringify(options.traceRedactor ? options.traceRedactor(event) : event) + "\n") }
-  const declaration = loaded.value.inquiry ? { inquiry: loaded.value.inquiry } : { brief: loaded.value.brief, mode: loaded.value.mode ?? "behavior", ...(loaded.value.policy ? { policy: loaded.value.policy } : {}) }
+  const supplied = loaded.value.inquiry
+  const declaration = supplied ? separateFormats && method === "M" ? { naturalTask: supplied.questions.map(q => q.request).join("\n\n"), mode: supplied.mode, questionFacts: supplied.questions.map(({ request: _request, ...facts }) => facts), ...(supplied.policy ? { policy: supplied.policy } : {}) } : { inquiry: supplied } : { brief: loaded.value.brief, mode: loaded.value.mode ?? "behavior", ...(loaded.value.policy ? { policy: loaded.value.policy } : {}) }
   const accountContext = async (automatic = true) => {
     ensureActive(); domain?.beginStep()
     // The account owns generation, so its host tool budget replaces the

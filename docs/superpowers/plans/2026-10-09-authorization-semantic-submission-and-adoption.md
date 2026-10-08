@@ -154,16 +154,16 @@ Schema、模型可见字段说明、空表单/匿名示例、解析器、错误�
 
 **落点：** 新 study 的通道分类/恢复与测试，必要时共享 account/session 生命周期；旧 AZ runner不改。
 
-- [ ] 区分 quota、认证、已终态瞬时 routing、未知完成和本地配置失败；红测覆盖AZ先4完成再1失败。
-- [ ] 为已终态 routing 实现一次具名恢复，连接原失败，严格同账号/模型/入口。重复routing则停止该通道而不是把全部任务标工程完成。
+- [x] 区分 quota、认证、已终态瞬时 routing、未知完成和本地配置失败；新runner红测→绿测，旧4完成/1失败事实保留。
+- [x] 为已终态 routing 实现一次具名恢复，连接原失败，严格同账号/模型/入口。重复routing则停止该通道而不是把全部任务标工程完成（真实恢复待BA9）。
 - [ ] 使用 BA9 已就绪真实位置进行恢复，不额外发无任务探针；若明确 quota，转离线工作并留下可用恢复命令。
 
 ### BA8：统一任务事实与真实模型输入
 
 **落点：** 新 study 的 `model/task-facts`、renderer、input-equivalence 测试；必要时复用 `operation-program.ts` 的普通输入编译，避免在runner另造执行器。
 
-- [ ] 从完整原自然任务建立共同题目/前提/政策映射，逐条关联原文；原作者声明保留到作者面板。
-- [ ] M/D在运行前具有同一语义程序、义务和来源；实际消息仅任务表达按臂变化，工具/摘要/恢复政策共用。
+- [x] 从完整原自然任务建立共同题目/前提/政策映射，逐条关联原文；原作者声明保留到作者面板。整段原请求为q1，逐句requirements保留原文偏移，不填源码答案。
+- [x] M/D在运行前具有同一语义程序、义务和来源；普通入口实际消息仅任务表达按臂变化，工具/摘要/恢复政策共用（公共入口匿名测试，真实加载证据待各attempt）。
 - [ ] 检查完整skill、同源码ref、同资源预算、同原问题及oracle隔离；不把相同prompt字节当成全部公平性。
 - [ ] 复用现有skill/claim/instructionSources记录，保存原SKILL.md路径、字节数/已有摘要、实际加载来源和伴随文件清单；对比实际账号system输入或可核验加载记录，不另造摘要链。公平性结果汇入新identity的`input-equivalence.json`，缺实际加载证据要明确失败。
 
@@ -267,3 +267,5 @@ python scripts/check_skill_ir_doc_links_test.py
 ```
 
 这些是已存在的定位/验证入口，不必接管即全部重跑。新study命令在BA0实现后写入本节及结果README；不把尚未存在的恢复命令展示为可执行。官方网络传输沿现有账号适配，不新增裸模型旁路。研究问题、实现缺陷及解决过程统一追加研究总文档，不新开第二份研究正文。
+
+当前已实现：`bun results/skill-ir/skill-dsl-research/development/authorization-semantic-submission-v1/study.ts dry-run|prepare|run <positionId> [named-revision]`，`equivalence`为零调用共同输入核验。真实恢复位置为`run pilot-download`；先核实原终态及ready，登记parent/reason，一次恢复后重复routing会封闭通道。变更位置要求当前合格基础，不从历史报告替代。
