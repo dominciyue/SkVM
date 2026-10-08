@@ -78,6 +78,19 @@ test("local capture binding is implicit and retains the actual owner source", as
   expect(api.sourceArgumentBindings(index, call, { ...target, localCallable: { ...target.localCallable!, captures: [{ ...target.localCallable!.captures[0]!, name: "different_actor" }] } }).bindings).toEqual([])
 })
 
+
+test("prepared returned environments cannot claim the initial factory literal or forged preparation anchors", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "def create(flag):\n    flag = False\n    def check(item):\n        return flag\n    return check\ndef entry(actor):\n    operation = create(True)\n    return operation(actor)\n" }], { repository: "anonymous", sourceRef: "r" }), target = index.symbols.find(s => s.name === "check")!, call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "operation")!
+  expect(api.sourceArgumentBindings(index, call, target).bindings).toEqual([{ parameter: "item", expression: "actor", literalKnown: false }])
+  expect(call.callableBinding!.captures[0]!.literalKnown).toBe(false)
+  for (const mode of ["literal", "anchors", "owner"]) {
+    const forged: any = structuredClone(call), capture = forged.callableBinding.captures[0]
+    if (mode === "literal") { capture.literalKnown = true; capture.literalValue = true }
+    if (mode === "anchors") capture.environmentBinding.assignmentAnchors = []
+    if (mode === "owner") capture.environmentBinding.ownerId = "foreign"
+    expect(api.sourceArgumentBindings(index, forged, target).gap).toBe("source-arguments-returned-callable-unresolved")
+  }
+})
 test("a captured local helper binds only explicit arguments and rejects forged source capture proofs", async () => {
   const index = await buildStructureIndex([{ path: "app.py", content: "def make(flag, actor):\n    def check(item):\n        return flag\n    class Local:\n        def guard(actor):\n            return check(actor)\n    return Local.guard(actor)\n" }], { repository: "anonymous", sourceRef: "r" }), method = index.symbols.find(s => s.name === "guard")!, helper = index.symbols.find(s => s.name === "check")!, call = index.relatedCalls(method.id)[0]!, binding = api.sourceArgumentBindings(index, call, helper)
   expect(binding.gap).toBeUndefined(); expect(binding.bindings).toEqual([{ parameter: "item", expression: "actor", literalKnown: false }])

@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-最新小步为AY7 `source-bindings/v29`局部函数对象捕获：普通局部class method直接调用同一创建owner中唯一稳定且先定义的ordinary helper，原helper定义创建实际sourceCallable，方法保存该对象，调用从其环境读取capture而不追加caller同名变量。来源证明有界固定点后才暴露，重绑定/nonlocal/global/未知cell/递归/条件或包装定义、复杂default与嵌套实参动作继续具名。17新增；718focused/4419断言、联合1557pass/1平台skip/10226断言与主/AY类型通过；两只读范围均无可复现发现，来源核验含独立小例、投影核验以既有反例为主。100文件/12body probe有28局部函数值定义/15合格、函数对象capture候选/实际采用0；is_in_scope仍capture-rebound，ExtendedSchema仍动态base gap。无实验模型读证据或新增实验模型/目标执行。继续稳定改写后的capture环境、动态BaseSchema/super/cell、模块类应用/constructor、完整请求及官方完整复验和预登记净收益，AY7未完成。
+最新小步为AY7 `source-bindings/v30`捕获前参数改写：词法parameter的所有simple assignment严格早于binding scope中的最外层闭包/class创建时，保留当前owner/SHA、原控制/顺序和RHS证明；原定义捕获改写后的实际对象。returned binding以environmentBinding指回写入证明，不借初始factory literal。创建后重绑定、aug/delete/loop/walrus/nonlocal/global/未知cell继续具名，复杂RHS仍需实际执行证明。17新增；735focused/4553断言、联合1574pass/1平台skip/10360断言与主/AY类型通过；两只读核验以既有测试和静态抽查为主。主另以红绿修复额外同名writer漏检。100文件/12body probe有5准备capture事实/4合格、7写入事实；is_in_scope捕获来源现合格，但methods列表计算尚未证明，ExtendedSchema动态base仍阻断，实际采用0。无新增实验模型读/模型或目标执行。继续动态BaseSchema/super/cell、module应用/constructor、完整请求及官方完整使用和预登记净收益，AY7未完成。
 
 此前AY7 `source-bindings/v22`早期普通方法捕获：有嵌套实参call的同instance直接statement/assignment/return先实际捕获原方法，再按词法顺序求值实参，后以既有boundMethod/fieldMethodRead和同一binder调用；实参内slot覆盖保留原引用，捕获前覆盖或实参异常保持原阻断。简单and/or值经同一argumentFacts的机械valueFlow投影；复杂操作数、class/wrapper/descriptor不取得新资格。材料须保留精确捕获、原if/try区域、严格事件顺序和原短路body，缺失/挪动/实参倒序/追加call不采用。33新增用例；525focused/2676断言、联合1364pass/1平台skip/8483断言及主/AY类型通过；两只读核验与主红绿分列。100文件/6候选body probe声明receiver有1处early capture合格，指定应用receiver合格/实际采用0；旧probe/input/allowlist/答保留。实际class/wrapper变换、完整请求和官方复验继续，AY7和预登记净收益未达。
 

@@ -1,0 +1,165 @@
+{
+  "schemaVersion": "authorization-readonly-review/v1",
+  "date": "2026-10-08",
+  "stage": "AY7 capture preparation v30",
+  "baseCommit": "8bc220c8",
+  "relationshipVersion": "source-bindings/v30",
+  "contract": {
+    "scope": "Lexical parameters with only plain identifier assignments strictly before the outermost containing function/class creation in the binding scope.",
+    "actualEnvironment": "Original sourceCallable creation captures the current actual object after preparation; rewritten returned captures retain owner/SHA/assignment anchors instead of claiming the initial factory argument is their value.",
+    "assignmentProof": "Each source writer retains exact source SHA/span/anchor, original control/order and RHS facts. Material requires every exact writer and rejects absent, changed, moved or extra same-name bind/assignment/call-result writers.",
+    "boundaries": [
+      "ordinary computed local captures",
+      "late or augmented/deleted/import/loop/walrus/annotated/chained writers",
+      "nonlocal/global/match or unknown cell scopes",
+      "unproved complex RHS execution",
+      "dynamic bases/super/class cells/module initialization/constructors/full requests"
+    ],
+    "protocolsAndBudgetsChanged": false
+  },
+  "reviews": [
+    {
+      "agent": "ay_capture_preparation_source_review_v30",
+      "role": "default",
+      "history": "none",
+      "readOnly": true,
+      "finding": "No reproducible wrong qualification, boundary, shadowing or initial-value reuse issue found.",
+      "anchors": [
+        "structure-index.ts:375-414",
+        "structure-index.ts:1078-1087"
+      ],
+      "verification": {
+        "passed": 294,
+        "failed": 0,
+        "assertions": 664,
+        "files": 1
+      },
+      "independentFixtures": [],
+      "limitation": "Existing tests plus static spot checks; complex nested controls/parser boundaries not exhausted. An initial missing ./ test path was rejected without executing tests; corrected command passed."
+    },
+    {
+      "agent": "ay_capture_preparation_projection_review_v30",
+      "role": "default",
+      "history": "none",
+      "readOnly": true,
+      "finding": "No directly constructible omission found in the checked assignment projection scope.",
+      "anchors": [
+        "source-material-projection.ts:129-156",
+        "source-material-projection.test.ts:18-47"
+      ],
+      "verification": {
+        "passed": 169,
+        "failed": 0,
+        "assertions": 2655,
+        "files": 1,
+        "durationMs": 4750
+      },
+      "independentFixtures": [],
+      "limitation": "Existing-test-centered plus independent static reading; nonstandard transform or other disguised writer forms not systematically tested. Current preparation contract accepts bind/assign-value/direct call writers."
+    }
+  ],
+  "mainVerification": {
+    "newTests": 17,
+    "initialRed": {
+      "passed": 5,
+      "failed": 9,
+      "assertions": 19,
+      "files": 2,
+      "invalidFixtureFailures": 1,
+      "validExpectedFailures": 8,
+      "note": "Intervening-boundary negative fixture looked for a returned/value proof on a direct helper. Corrected to its actual localCallable and outer returnedCallable gaps."
+    },
+    "initialGreen": {
+      "passed": 14,
+      "failed": 0,
+      "assertions": 93
+    },
+    "extraWriterRed": {
+      "passed": 0,
+      "failed": 4,
+      "assertions": 67,
+      "reason": "Inserted source-absent same-name bind was accepted and could replace the captured value."
+    },
+    "extraWriterGreen": {
+      "passed": 14,
+      "failed": 0,
+      "assertions": 97
+    },
+    "initialFocused": {
+      "passed": 733,
+      "failed": 2,
+      "assertions": 4552,
+      "note": "Two historical negative fixtures wrote before closure creation, now deliberately eligible. Moved their writes after creation to preserve late mutable-cell negatives; no product regression claimed."
+    },
+    "focused": {
+      "passed": 735,
+      "failed": 0,
+      "assertions": 4553,
+      "files": 11,
+      "durationMs": 9880
+    },
+    "joint": {
+      "passed": 1574,
+      "skipped": 1,
+      "failed": 0,
+      "assertions": 10360,
+      "files": 115,
+      "durationMs": 22950
+    },
+    "mainTypes": {
+      "exitCode": 0,
+      "durationMs": 43187
+    },
+    "ayTypes": {
+      "exitCode": 0,
+      "durationMs": 7121
+    },
+    "docs": {
+      "errors": 0,
+      "existingSoftLengthWarnings": 5
+    },
+    "logsRoot": "D:/skill优化/project-maintenance/runs/authorization-question-closure-v1"
+  },
+  "realSourceProbe": {
+    "path": "verification/paperless-capture-preparation-replay.json",
+    "sha256": "cb8663984555d88fefc4656c7ff0e9fd9bee997ddceb3e000c7790182cc03765",
+    "frozenSourcesVerified": 94,
+    "supplementSourcesVerified": 6,
+    "sourceFiles": 100,
+    "selectedBodies": 12,
+    "captureFacts": 67,
+    "ancestorCaptureFacts": 3,
+    "relayCaptureFacts": 2,
+    "eligibleRelayCaptureFacts": 0,
+    "preparedCaptureFacts": 5,
+    "eligiblePreparedCaptureFacts": 4,
+    "preparationAssignmentFacts": 7,
+    "localCallableDefinitions": 30,
+    "eligibleLocalCallableDefinitions": 19,
+    "preparedLocalCallableDefinitions": 4,
+    "eligiblePreparedLocalCallableDefinitions": 4,
+    "returnedDefinitions": 24,
+    "eligibleReturnedDefinitions": 16,
+    "scopeHelperGap": null,
+    "scopeHelperComplexRhsExecutionProved": false,
+    "extendedSchemaGap": "source-class-definition-base-unmodeled",
+    "eligibleLocalClassDefinitions": 0,
+    "capturedCallCandidates": 0,
+    "materialUses": 0,
+    "modelReadEvidence": false,
+    "applicationSemanticUnitsAuthored": 0,
+    "originalInputsAndAllowlistsUnmodified": true,
+    "newModelInputRegistered": false,
+    "originalAttemptPromoted": false,
+    "modelExecutions": 0,
+    "targetExecutions": 0,
+    "networkRequests": 0,
+    "costs": {
+      "experimentTokens": 0,
+      "developerAndScoutTokens": null,
+      "usd": null,
+      "humanTime": null
+    }
+  },
+  "remaining": "Continue actual dynamic bases/super/class cells, module class applications, constructors and full requests before official complete-task usage and preregistered benefit checks. AY7 and research benefit remain incomplete."
+}

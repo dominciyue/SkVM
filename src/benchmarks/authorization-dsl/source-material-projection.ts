@@ -124,10 +124,36 @@ function currentClassDefinitionsValid(index: StructureIndex, unit: BoundSemantic
   })
 }
 
+/** Capturing a prepared parameter requires its actual source writes, not just
+ * a stable name after an omitted, changed or relocated assignment. */
+function currentCaptureAssignmentsValid(index: StructureIndex, unit: BoundSemanticBlock) {
+  const owner = unit.source!.id, steps = unit.blocks.flatMap(b => b.steps), calls = index.relatedCalls(owner)
+  const captures = index.symbols.flatMap(symbol => {
+    const proof = symbol.classMethod && !index.symbols.find(s => s.id === symbol.classMethod!.classId)?.classDefinition?.gap ? symbol.classMethod : symbol.valueCallable && !symbol.valueCallable.gap ? symbol.valueCallable : symbol.localCallable && !symbol.localCallable.gap ? symbol.localCallable : undefined
+    return proof?.captures.filter(c => c.binding?.ownerId === owner) ?? []
+  })
+  const assignments = [...new Map(captures.flatMap(c => c.assignments ?? []).map(a => [a.anchorId, a])).values()]
+  const valid = assignments.every(proof => {
+    const block = sourceControlBlock(unit, proof.controls), call = proof.sourceCallId && calls.find(c => c.id === proof.sourceCallId), names = call ? [`call-${sourceSyntaxAnchorId(owner, call.startIndex!, call.endIndex!, "call")}`] : [`bind-${proof.anchorId}`, `assign-${proof.anchorId}`], writers = steps.filter(s => names.includes(s.name)), writer = writers[0]
+    if (proof.source.sha256 !== unit.source!.sha256 || !block || writers.length !== 1 || !writer || !block.steps.includes(writer)) return false
+    if (proof.sourceCallId) { if (!call || writer.kind !== "call" || writer.sourceCallId !== call.id || writer.symbol !== call.expression || writer.result !== proof.name) return false }
+    else if (proof.literalKnown) { if (writer.kind !== "bind" || (writer.bindingName ?? writer.name) !== proof.name || writer.type !== "value" || writer.aliasOf || canonicalControl(writer.value) !== canonicalControl(proof.literalValue)) return false }
+    else if (writer.kind !== "assign-value" || writer.result !== proof.name || canonicalControl(writer.value) !== canonicalControl({ binding: proof.valueExpression }) || writer.sourceCallable || writer.sourceClass || writer.boundMethod || writer.methodRead) return false
+    const position = block.steps.indexOf(writer), ordered = (events: string[][], lower: number, upper: number) => { let previous = lower; return events.every(names => { const positions = block.steps.flatMap((s, i) => names.includes(s.name) ? [i] : []); if (positions.length !== 1 || positions[0]! <= previous || positions[0]! >= upper) return false; previous = positions[0]!; return true }) }
+    return ordered(proof.order.before, -1, position) && ordered(proof.order.after, position, block.steps.length)
+  })
+  if (!valid) return false
+  return assignments.every(proof => {
+    const permitted = assignments.filter(a => a.name === proof.name).flatMap(a => { const call = a.sourceCallId && calls.find(c => c.id === a.sourceCallId); return call ? [`call-${sourceSyntaxAnchorId(owner, call.startIndex!, call.endIndex!, "call")}`] : [`bind-${a.anchorId}`, `assign-${a.anchorId}`] })
+    return !steps.some(s => (s.kind === "bind" && (s.bindingName ?? s.name) === proof.name || (s.kind === "assign-value" || s.kind === "call") && s.result === proof.name) && !permitted.includes(s.name))
+  })
+}
+
 /** A source reference or definition must create its real callable at the
  * original control/order point. The finite selector token is insufficient. */
 function currentCallableCreationsValid(index: StructureIndex, unit: BoundSemanticBlock) {
   const owner = unit.source!.id, calls = index.relatedCalls(owner, unit.receiverClass), steps = unit.blocks.flatMap(b => b.steps)
+  if (!currentCaptureAssignmentsValid(index, unit)) return false
   const values = [...new Map(calls.flatMap(c => c.argumentFacts?.flatMap(a => a.callableValue?.kind === "module" ? [a.callableValue] : []) ?? []).map(p => [sourceCallableValueName(owner, p), p])).values()]
   const classes = [...new Map(calls.flatMap(c => c.argumentFacts?.flatMap(a => a.classValue ? [a.classValue] : []) ?? []).map(p => [sourceClassValueName(owner, p), p])).values()]
   const definitions = index.symbols.filter(s => s.valueCallable && !s.valueCallable.gap && s.valueCallable.ownerId === owner && s.valueCallable.ownerSha256 === unit.source!.sha256)
