@@ -2153,6 +2153,10 @@ AY7普通局部实例小步（2026-10-08）：v32把同owner稳定、完整已�
 
 37新增、新鲜796focused/4872断言、联合1635pass/1平台skip/10679断言/115文件/24.22s与主/AY类型通过。[新真实probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-ordinary-instance-replay.json)核验94冻结/6补充文件、12body；7构造缺口，合格构造/实例方法候选/实际采用0，ExtendedSchema仍method-cell-unmodeled。SHA `23e7178bd53fcf4a4cf0fbe851b4ae2ef1bc59d8b27e7d650bdb1d2dee5a7f14`；无实验模型读/应用标注/模型/目标/probe网络新增，开发/探子token、USD、真人时间unknown，旧input/allowlist/答/报告保留。未知dynamic构造协议、自定义constructor/descriptor及返回实例未知方法目标保持具名；继续super/class cell、module/constructor/request、官方完整使用和预登记净收益，AY7未完成。
 
+AY7实际class cell小步（2026-10-08）：v33在ordinary local namespace method创建时把原class-original对象保存为隐式__class__；显式cell读取、alias/返回与装饰器替换public类仍读取原对象。机械骨架参数固定value，材料要求精确cell捕获、原control/order、完整目标参数与类型，caller/public替代或缺/改/移均撤回。super内/外call仍具名未执行，实际C3后继查找下一步接续。新增红测发现v32未支持constructor作为context时漏掉阻断，现local class协议gap在context/effect前实际发出unresolved；旧v32原件保留，不追改其核验结论。
+
+18新增、新鲜814focused/4985断言、联合1653pass/1平台skip/10792断言/115文件/25.57s及主/AY类型通过；两只读各跑既有套件无新独立反例，见[实际class cell核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-class-cells.json)。[冻结源码probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-class-cell-replay.json) SHA `f53ce003de789136d894a0b3c234548e7e28d8c0d674db5d567eff72cccf76ea`核验94原冻结/6补充文件、12body，恢复1类/16method/16cell的来源资格，36super缺口仍在，实际材料采用0。无新增实验模型读、应用标注、模型/目标/probe网络；开发/探子token、USD、真人时间unknown。既有六角色/谓词/预算与原input/allowlist/答/报告保持；继续actual super、module/constructor/request、官方完整使用与预登记净收益，AY7未完成。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

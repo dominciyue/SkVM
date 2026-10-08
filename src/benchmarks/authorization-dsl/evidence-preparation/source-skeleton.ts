@@ -110,7 +110,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       const actual = sourceCall(n)
       const arguments_: NonNullable<SourceAnchor["call"]>["arguments"] = kids(field(n, "arguments")).map(a => { const value = a.type === "keyword_argument" ? field(a, "value")! : a, literal = sourceLiteral(value), child = ["call", "call_expression"].includes(value.type) ? sourceCall(value) : undefined; return { expression: value.text, ...(child ? { sourceCallId: child.id } : {}), ...(a.type === "keyword_argument" ? { parameterName: field(a, "name")!.text } : {}), ...(["list_splat", "dictionary_splat", "variadic_argument"].includes(a.type) ? { spread: true } : {}), ...(literal.literalKnown ? literal : {}) } })
       if (!/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(expression) && !/^super\(\)\.[A-Za-z_]\w*$/.test(expression)) gap(n, "skeleton-call-dynamic", "The actual function expression is dynamic; no unique callee or receiver is invented.")
-      const callableGap = actual?.gap && /^(?:source-local-|source-callable-|source-returned-callable-|source-method-alias-|source-method-choice-|source-method-lookup-|source-field-method-|source-class-constructor-|source-class-instance-)/.test(actual.gap) ? actual.gap : undefined
+      const callableGap = actual?.gap && /^(?:source-local-|source-callable-|source-returned-callable-|source-method-alias-|source-method-choice-|source-method-lookup-|source-field-method-|source-class-constructor-|source-class-instance-|source-class-super-)/.test(actual.gap) ? actual.gap : undefined
       if (questionDirected && callableGap) gap(n, callableGap, "The current lexical callable/capture binding is unresolved regardless of its proposed domain role.")
       if (arguments_.some(a => a.spread)) {
         const targets = actual && (actual.methodChoices || actual.methodLookup || actual.methodField || actual.candidateIds.length === 1) ? actual.candidateIds.flatMap(id => index.symbols.filter(s => s.id === id && s.kind === "function")) : []
@@ -131,6 +131,11 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       const use = descendants(fn, ["identifier"]).find(n => n.text === capture.name && n.startIndex === capture.use.startIndex && n.endIndex === capture.use.endIndex)
       if (use) add(use, "parameter", { name: capture.name, syntax: "source_capture", capture: capture.binding ?? { ownerId: captureProof.ownerId, ownerSha256: captureProof.ownerSha256 } })
       else gap(fn, "skeleton-local-capture-unavailable", "The implicit capture must point to its current original source use.")
+    }
+    if (questionDirected && source.classMethod?.classCell) {
+      const cell = source.classMethod.classCell, use = descendants(fn, ["identifier"]).find(n => ["__class__", "super"].includes(n.text) && n.startIndex === cell.startIndex && n.endIndex === cell.endIndex)
+      if (use) add(use, "parameter", { name: "__class__", syntax: "source_class_cell" })
+      else gap(fn, "skeleton-class-cell-unavailable", "The implicit class cell must point to its current original source use.")
     }
     const stepsForCalls = (n: Node) => callsIn(n).map(c => ({ kind: "step" as const, anchorId: callAnchor(c).id }))
     const valueAnchor = (n: Node | null | undefined, flow: SourceFlow[]): string | undefined => n && (["call", "call_expression"].includes(n.type) || ["and", "or", "&&", "||"].includes(field(n, "operator")?.text ?? "")) ? flow.at(-1)?.anchorId : undefined

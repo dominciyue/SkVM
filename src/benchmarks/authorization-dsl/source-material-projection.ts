@@ -108,7 +108,7 @@ function currentClassDefinitionsValid(index: StructureIndex, unit: BoundSemantic
         sequence.push(name)
       } else {
         const method = proof.methods.find(m => m.anchorId === entry.anchorId)!, name = `class-method-${method.anchorId}`, fieldName = `class-method-field-${method.anchorId}`, reference = `class-function-${method.anchorId}`, created = exclusive(name), store = exclusive(fieldName), target = { targetId: method.targetId, targetSha256: method.targetSha256 }
-        if (created?.kind !== "assign-value" || created.result !== reference || canonicalControl(created.value) !== canonicalControl({ literal: sourceCallableToken(target) }) || canonicalControl(created.sourceCallable ?? null) !== canonicalControl({ ...target, captures: method.captures.map(c => ({ parameter: c.name, object: c.name })) }) || created.sourceClass || created.boundMethod || created.methodRead || store?.kind !== "transform" || store.object !== original || store.field !== method.name || store.source !== reference || Object.hasOwn(store, "value")) return false
+        if (created?.kind !== "assign-value" || created.result !== reference || canonicalControl(created.value) !== canonicalControl({ literal: sourceCallableToken(target) }) || canonicalControl(created.sourceCallable ?? null) !== canonicalControl({ ...target, captures: [...method.captures.map(c => ({ parameter: c.name, object: c.name })), ...method.classCell ? [{ parameter: "__class__", object: original }] : []] }) || created.sourceClass || created.boundMethod || created.methodRead || store?.kind !== "transform" || store.object !== original || store.field !== method.name || store.source !== reference || Object.hasOwn(store, "value")) return false
         sequence.push(name, fieldName); writers.set(reference, name)
       }
     }
@@ -222,7 +222,11 @@ function actualArguments(index: StructureIndex, caller: BoundSemanticBlock, step
   const binding = sourceArgumentBindings(index, call, symbol), expected = binding.bindings, steps = caller.blocks.flatMap(b => b.steps)
   if (binding.gap || step.arguments.length !== expected.length) return false
   if (call.capturedCallable && (!symbol.valueCallable || symbol.valueCallable.gap || symbol.valueCallable.captures.some(c => target.parameters.filter(p => p.name === c.name).length !== 1) || target.parameters.some(p => !symbol.parameters.some(s => s.name === p.name) && !symbol.valueCallable!.captures.some(c => c.name === p.name)))) return false
-  if ((call.classNamespaceCall || call.classInstanceCall) && (!symbol.classMethod || symbol.classMethod.captures.some(c => target.parameters.filter(p => p.name === c.name).length !== 1) || target.parameters.some(p => !symbol.parameters.some(s => s.name === p.name) && !symbol.classMethod!.captures.some(c => c.name === p.name)))) return false
+  if (call.classNamespaceCall || call.classInstanceCall) {
+    if (!symbol.classMethod) return false
+    const captures = [...symbol.classMethod.captures.map(c => c.name), ...symbol.classMethod.classCell ? ["__class__"] : []]
+    if (captures.some(name => target.parameters.filter(p => p.name === name).length !== 1) || target.parameters.some(p => !symbol.parameters.some(s => s.name === p.name) && !captures.includes(p.name)) || symbol.classMethod.classCell && target.parameters.find(p => p.name === "__class__")?.type !== "value") return false
+  }
   const returnedCreationValid = (proof: StructureCallableBinding, controls: StructureMethodControl[]) => {
     const creations = steps.filter(s => s.kind === "call" && s.sourceCallId === proof.creationCallId), creation = creations[0], block = sourceControlBlock(caller, proof.controls)
     if (!block || creations.length !== 1 || creation?.kind !== "call" || !creation.callee || creation.candidateId !== proof.factoryId || creation.result !== proof.name || creation.name !== `call-${sourceSyntaxAnchorId(caller.source!.id, proof.source.startIndex, proof.source.endIndex, "call")}` || !block.steps.includes(creation)) return false

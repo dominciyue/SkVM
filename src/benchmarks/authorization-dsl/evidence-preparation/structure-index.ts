@@ -18,7 +18,7 @@ export interface StructureSymbol extends DiscoverySymbol {
   returnedCallable?: { schemaVersion: "source-returned-callable/v1"; ownerId: string; ownerSha256: string; captures: NonNullable<StructureSymbol["localCallable"]>["captures"]; returnAnchorId?: string; gap?: string }
   valueCallable?: StructureCallableDefinition;
   classDefinition?: StructureClassDefinition;
-  classMethod?: { classId: string; ownerId: string; ownerSha256: string; captures: NonNullable<StructureSymbol["localCallable"]>["captures"] };
+  classMethod?: { classId: string; ownerId: string; ownerSha256: string; captures: NonNullable<StructureSymbol["localCallable"]>["captures"]; classCell?: StructureMethodBinding["source"] };
 }
 export interface StructureBindingSource { path: string; sha256: string; startLine: number; endLine: number; name: string; target: string }
 export interface StructureCaptureAssignment {
@@ -67,7 +67,7 @@ export interface StructureClassDefinition {
   source: StructureMethodBinding["source"]; classSource: StructureMethodBinding["source"]; controls: StructureMethodControl[]; order: StructureMethodStore["order"];
   fields: Array<{ name: string; value: FiniteValue; anchorId: string }>;
   bases: Array<{ expression: string; targetId?: string; targetSha256?: string; binding?: { ownerId: string; ownerSha256: string }; assignments?: StructureCaptureAssignment[] }>;
-  methods: Array<{ name: string; targetId: string; targetSha256: string; anchorId: string; source: StructureMethodBinding["source"]; captures: NonNullable<StructureSymbol["localCallable"]>["captures"] }>;
+  methods: Array<{ name: string; targetId: string; targetSha256: string; anchorId: string; source: StructureMethodBinding["source"]; captures: NonNullable<StructureSymbol["localCallable"]>["captures"]; classCell?: StructureMethodBinding["source"] }>;
   namespace: Array<{ kind: "field" | "method"; anchorId: string }>;
   decorators: Array<{ id: string; expression: string; source: StructureMethodBinding["source"]; valueResult: string; applicationCallId: string; targetId?: string; targetSha256?: string; factoryCallId?: string }>;
   inactive?: boolean; gap?: string;
@@ -458,19 +458,28 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
             const method = byNode.get(statement.id)!, body = field(statement, "body")!, captures: NonNullable<StructureSymbol["localCallable"]>["captures"] = []
             delete method.classMethod
             const owned = (node: Node) => { let scope = node.parent; while (scope && !["function_definition", "class_definition", "lambda"].includes(scope.type)) scope = scope.parent; return scope?.id === statement.id }
+            let classCell: StructureMethodBinding["source"] | undefined
             let methodGap = statement.hasError || /^__.*__$/.test(method.name) || ["constructor", "prototype"].includes(method.name) || method.attributes.callableAsync || method.attributes.callableGenerator || method.attributes.bindingWrapped || method.parameters.some(p => p.type || p.defaultExpression && (!p.defaultLiteralKnown || p.defaultLiteralValue !== null && typeof p.defaultLiteralValue === "object")) || method.returns.length || field(statement, "type_parameters") || descendants(body, ["function_definition", "class_definition", "lambda", "global_statement", "nonlocal_statement"]).length ? "source-class-definition-method-unmodeled" : undefined
             for (const use of descendants(body, ["identifier"]).filter(owned)) {
-              if (use.parent?.type === "attribute" && field(use.parent, "attribute")?.id === use.id || use.parent?.type === "keyword_argument" && field(use.parent, "name")?.id === use.id || method.parameters.some(p => p.name === use.text) || localNames.get(method.id)?.has(use.text)) continue
-              if (["super", "__class__"].includes(use.text)) { methodGap ??= "source-class-definition-method-cell-unmodeled"; continue }
+              if (use.parent?.type === "attribute" && field(use.parent, "attribute")?.id === use.id || use.parent?.type === "keyword_argument" && field(use.parent, "name")?.id === use.id) continue
+              if (["super", "__class__"].includes(use.text)) {
+                const shadowed = method.parameters.some(p => p.name === "__class__") || localNames.get(method.id)?.has("__class__")
+                const invocation = use.parent, attribute = invocation?.parent, outer = attribute?.parent, outerBinding = use.text === "super" ? parameterCapture(use, parent!) : undefined
+                const ordinarySuper = use.text !== "super" || invocation?.type === "call" && field(invocation, "function")?.id === use.id && !children(field(invocation, "arguments")).length && attribute?.type === "attribute" && field(attribute, "object")?.id === invocation.id && outer?.type === "call" && field(outer, "function")?.id === attribute.id && !method.parameters.some(p => p.name === "super") && !localNames.get(method.id)?.has("super") && !moduleAssignments.super && !Object.hasOwn(aliases, "super") && !outerBinding?.capture && !outerBinding?.gap
+                if (shadowed || !ordinarySuper) methodGap ??= "source-class-definition-method-cell-unmodeled"
+                else classCell ??= source(use)
+                continue
+              }
+              if (method.parameters.some(p => p.name === use.text) || localNames.get(method.id)?.has(use.text)) continue
               const resolved = classCapture(use, parent!, declaration)
               if (resolved.gap) { methodGap ??= "source-class-definition-method-capture-unmodeled"; continue }
               if (resolved.capture && !captures.some(c => c.name === use.text)) captures.push(resolved.capture)
             }
-            if (methodGap || captures.length > 16) { gap ??= methodGap ?? "source-class-definition-method-capture-unmodeled"; continue }
+            if (methodGap || captures.length + (classCell ? 1 : 0) > 16) { gap ??= methodGap ?? "source-class-definition-method-capture-unmodeled"; continue }
             const methodAnchor = sourceSyntaxAnchorId(owner.id, statement.startIndex, statement.endIndex, "assignment", method.name)
-            method.classMethod = { classId: symbol.id, ownerId: owner.id, ownerSha256: owner.sha256, captures: structuredClone(captures) }
+            method.classMethod = { classId: symbol.id, ownerId: owner.id, ownerSha256: owner.sha256, captures: structuredClone(captures), ...(classCell ? { classCell } : {}) }
             lexicalNames.set(method.id, new Set(captures.map(c => c.name)))
-            methods.push({ name: method.name, targetId: method.id, targetSha256: method.sha256, anchorId: methodAnchor, source: source(statement), captures }); namespace.push({ kind: "method", anchorId: methodAnchor }); continue
+            methods.push({ name: method.name, targetId: method.id, targetSha256: method.sha256, anchorId: methodAnchor, source: source(statement), captures, ...(classCell ? { classCell } : {}) }); namespace.push({ kind: "method", anchorId: methodAnchor }); continue
           }
           const assignment = statement.type === "expression_statement" && children(statement).length === 1 ? children(statement)[0] : undefined, left = assignment && field(assignment, "left"), right = assignment && field(assignment, "right"), value = sourceLiteral(right)
           if (assignment?.type !== "assignment" || left?.type !== "identifier" || field(assignment, "type") || !value.literalKnown || /^__.*__$/.test(left.text) || ["constructor", "prototype"].includes(left.text)) { gap ??= "source-class-definition-body-unmodeled"; continue }
@@ -949,7 +958,11 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     const returned = !parts.length && owner && returnedInstances.get(`${owner.id}:${name}`)
     const constructor = !parts.length && localConstructor(raw, scope), origins = parts.length === 1 && root && owner ? scope.rawCalls.filter(r => r.call.ownerId === owner.id && r.call.resultNames.length === 1 && r.call.resultNames[0] === root).flatMap(r => { const creation = localConstructor(r, scope); return creation ? [{ raw: r, creation }] : [] }) : []
     const selfClass = parts.length === 1 && owner?.classMethod && root === owner.parameters[0]?.name ? symbols.find(s => s.id === owner.classMethod!.classId) : undefined
-    if (constructor) {
+    if (owner?.classMethod?.classCell && (call.expression === "super" || /^super\(\)\.[A-Za-z_]\w*$/.test(call.expression))) {
+      call.gap = "source-class-super-unmodeled"
+      basis = ["The original namespace function retains its actual class cell; successor lookup is not yet executed"]
+    }
+    else if (constructor) {
       if (constructor.proof) call.classConstructor = structuredClone(constructor.proof)
       else call.gap = constructor.gap
       basis = ["AST original default construction of a stable ordinary local class; actual namespace object is required"]
@@ -1598,7 +1611,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       return choices ? [{ name, choices: structuredClone(choices), ...(callableInputGaps.get(key!) ? { gap: callableInputGaps.get(key!) } : {}) }] : []
     }) : []
   }
-  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v32"
+  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v33"
   const withSymbolSyntax = <T>(symbolId: string, visit: (root: Node, symbol: StructureSymbol) => T): Promise<T> => {
     const symbol = symbols.find(s => s.id === symbolId), file = symbol && files.find(f => f.path === symbol.path)
     if (!symbol || !file || hash(file.content) !== symbol.sha256) throw new Error("structure-source-missing")
