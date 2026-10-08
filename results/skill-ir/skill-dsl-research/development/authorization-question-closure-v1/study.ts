@@ -9,6 +9,7 @@ import { loadSkill } from "../../../../../src/core/skill-loader.ts"
 import { executeRun, materializeNaturalRunTask } from "../../../../../src/run/index.ts"
 import { loadInquiryInput, checkAuthorizationInquiry, executeLocalInquiryRun, inspectLocalInquiry } from "../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts"
 import { prepareConsumerInput } from "../authorization-property-execution-v1/consumer.ts"
+import { prepareChangeInputs, resolveChangeRun } from "../authorization-property-execution-v1/changes.ts"
 
 export const root = import.meta.dir
 export const repo = path.resolve(root, "../../../../..")
@@ -69,18 +70,24 @@ export async function recordStage(id: string, status: string) {
   const row = current.stages.find((s: any) => s.id === id); if (!row) throw new Error("Unknown stage")
   row.status = status; current.currentStage = id; await write(file, current)
 }
-export async function run(id: string, revision?: string) {
+export async function run(id: string, revision?: string, changeRegistrationId?: string) {
   const manifestFile = path.join(root, "manifest.json"), statusFile = path.join(root, "status.json")
   const manifest = JSON.parse(await readFile(manifestFile, "utf8")), state = JSON.parse(await readFile(statusFile, "utf8"))
   const position = manifest.positions.find((p: Position) => p.id === id) as Position | undefined
-  if (!position || position.kind === "change") throw new Error("Use a registered native/consumer/quality position; changes require a current baseline registration")
+  if (!position) throw new Error("Use a registered position")
+  if (changeRegistrationId && position.kind !== "change") throw new Error("Change registration is only valid for a change position")
   if (state.activeAttempts.length || state.unknownCompletions.length) throw new Error("Inspect the existing active/unknown attempt before a new dispatch")
   if (state.accountChannel?.status === "quota-refused" && !state.accountChannel.recoveryEvidence) throw new Error("Known quota refusal; no new account dispatch without recovery evidence")
   if (!revision && position.attempts.length || revision && (!/^[a-z0-9-]+$/.test(revision) || !position.attempts.length)) throw new Error("Preserve the first attempt; repairs require a new named identity")
   const original = inputPlan(position.task), plain = position.kind === "quality" && position.arm === "N"
-  const method = position.kind === "consumer" || position.arm === "D-S" ? "D1" as const : "M" as const
+  const method = position.kind === "consumer" || position.kind === "change" || position.arm === "D-S" ? "D1" as const : "M" as const
   const strategy = plain ? "legacy" as const : "operation-evidence-v5" as const
-  let inputFile = original.inputFile, binding: Record<string, unknown> = {}
+  let inputFile = original.inputFile, previous: string | undefined, binding: Record<string, unknown> = {}
+  if (position.kind === "change") {
+    const runtimeTree = execFileSync("git", ["rev-parse", "HEAD:src"], { cwd: repo, encoding: "utf8" }).trim()
+    const changed = await resolveChangeRun(root, id, runtimeTree, changeRegistrationId)
+    inputFile = changed.inputFile; previous = changed.previous; binding = changed.binding
+  }
   if (position.kind === "consumer" || position.arm === "D-S") {
     const prepared = await prepareConsumerInput({ originalInputFile: original.inputFile, authorAttempt: original.authorAttempt, destination: path.join(root, "model/packages", position.task) })
     inputFile = prepared.inputFile; binding = { originalBytesConsumed: true, authoredInputSha256: prepared.authoredInputSha256, authorAttempt: original.authorAttempt, semanticRepair: false }
@@ -98,8 +105,8 @@ export async function run(id: string, revision?: string) {
   await write(manifestFile, manifest); await write(statusFile, state)
   let account: AccountSessionResult | undefined, sessionPath: string | undefined, details: Record<string, unknown> = {}, status: string
   try {
-    if (position.kind === "consumer" || position.kind === "quality" && !plain) {
-      const report = await executeLocalInquiryRun({ inputFile, outDir: path.join(runRoot, "attempts", attemptId, "public-inquiry"), skillFile: original.skillFile, model: manifest.experimentModel, method, strategy, harness: "codex-account", accountBoundaryFile: path.join(root, "account-boundary.json"), execution: limits })
+    if (position.kind === "consumer" || position.kind === "change" || position.kind === "quality" && !plain) {
+      const report = await executeLocalInquiryRun({ inputFile, outDir: path.join(runRoot, "attempts", attemptId, "public-inquiry"), skillFile: original.skillFile, model: manifest.experimentModel, method, strategy, previous, harness: "codex-account", accountBoundaryFile: path.join(root, "account-boundary.json"), execution: limits })
       status = report.status; await write(path.join(out, "public-report.json"), report, true)
       if ("sessionPath" in report && typeof report.sessionPath === "string") {
         sessionPath = report.sessionPath; await inspectLocalInquiry(sessionPath)
@@ -124,8 +131,21 @@ export async function run(id: string, revision?: string) {
   await write(manifestFile, manifest); await write(statusFile, state)
   console.log(JSON.stringify({ attemptId, status, terminalStatus: account?.terminalStatus, answerDelivery: account?.answerDelivery, usageVisibility: account?.usageVisibility, quotaRefused: account?.quotaRefused, hostToolCalls: account?.tools.length, finalPresent: !!account?.text.trim(), usage: account?.usage ?? null, reason: account?.reason }))
 }
+export async function prepareChanges(registrationId: string, studyRoot = root) {
+  if (!registrationId || !/^[a-z0-9-]+$/.test(registrationId)) throw new Error("Use an explicit named current change registration")
+  const manifest = JSON.parse(await readFile(path.join(studyRoot, "manifest.json"), "utf8"))
+  const position = manifest.positions.find((p: Position) => p.id === "consumer-download") as Position
+  const baselineAttemptId = position.attempts.at(-1)
+  if (!baselineAttemptId || position.status === "running") throw new Error("Run the current original public Download consumer before preparing changes")
+  const report = JSON.parse(await readFile(path.join(studyRoot, "attempts", baselineAttemptId, "report.json"), "utf8"))
+  if (!report.sessionPath || !report.runtimeTree) throw new Error("Current public Download consumer has no reusable session identity")
+  const runtimeTree = execFileSync("git", ["rev-parse", "HEAD:src"], { cwd: repo, encoding: "utf8" }).trim()
+  if (report.runtimeTree !== runtimeTree) throw new Error("Changed-input preparation requires the same current production tree")
+  return prepareChangeInputs(studyRoot, report.sessionPath, { baselineAttemptId, runtimeTree: report.runtimeTree }, registrationId)
+}
 if (import.meta.main) {
   if (process.argv[2] === "bootstrap") await bootstrap()
-  else if (process.argv[2] === "run") await run(process.argv[3]!, process.argv[4])
-  else throw new Error("Supported: bootstrap, run <position-id> [named-revision]")
+  else if (process.argv[2] === "prepare-changes") console.log(JSON.stringify(await prepareChanges(process.argv[3]!)))
+  else if (process.argv[2] === "run") await run(process.argv[3]!, process.argv[4] === "-" ? undefined : process.argv[4], process.argv[5])
+  else throw new Error("Supported: bootstrap, prepare-changes <named-registration>, run <position-id> [named-revision|-] [change-registration]")
 }

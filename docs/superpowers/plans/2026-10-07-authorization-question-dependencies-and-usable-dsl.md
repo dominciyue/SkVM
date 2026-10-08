@@ -375,6 +375,8 @@ v35验证与接续：先写源码索引/骨架和source_read→interpret→mater
 
 ### AY16 三种变化的真实 fresh/previous
 
+当前执行接线复用AX已测试的 `prepareChangeInputs/resolveChangeRun`，以AY仓外 `consumer-download` 当前公开session导出完整声明，再只引入预登记policy、ownership premise和sourceRoot字段；显式具名注册、同生产src树和输入SHA约束保留。原基线partial时按下述第3项只记录材料级诊断，不升级为完整任务复用收益。公开session留在runRoot，结果索引/原件留在AY结果目录。
+
 - [ ] 以当前 Download 合格消费者基线运行 policy、premise、source 三种已登记变化，各一次 fresh 和一次 previous，共 6 首位置；两臂相同变化题和源码。
 - [ ] 检查政策改后判断、前提改后条件、源码控制移除/变化后结论确有对应变化；记录哪些材料恢复、实际使用、失效和重取证。
 - [ ] 不要求为了“复用”保留过时信息。原基线未合格时允许 fresh 诊断继续，previous 保留准确依赖状态，仍在同一任务内争取修到可运行。

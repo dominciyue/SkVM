@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "authorization-source-review/v1",
+  "attempt": "native-owui/full-flow-v35-cli-0-162",
+  "answerSha256": "c2da452e635089f532525441c39e341e900f7562a8fe611a09a53c7eb61d097f",
+  "reviewedAt": "2026-10-08T15:04:33.058Z",
+  "primaryVerdict": "partial",
+  "independentVerdict": "partial",
+  "finalVerdict": "partial",
+  "reviewer": "default read-only model scout; primary adjudication",
+  "evaluatorProvidedToRuntime": false,
+  "fullOriginalQuestionDenominatorRetained": true,
+  "currentCheckedBounded": false,
+  "resultPresent": false,
+  "correct": [
+    "input File owner lookup distinct from destination collection",
+    "another-user non-admin file lookup fails before effect",
+    "custom destination reaches vector insertion without visible destination ownership gate",
+    "bypass returns before vector insertion"
+  ],
+  "materialOmissions": [
+    {
+      "issue": "Supplied collection does not always imply add=true: empty string is kept but falsy",
+      "source": [
+        "backend/open_webui/routers/retrieval.py:1540-1544",
+        "backend/open_webui/routers/retrieval.py:1566-1569",
+        "backend/open_webui/routers/retrieval.py:1694-1705",
+        "backend/open_webui/routers/retrieval.py:1459-1467"
+      ]
+    }
+  ],
+  "independentReviewRaw": "partial. Only None selects the default collection; add uses Python truthiness. Empty-string existing collection follows add=False early return. Main File lookup/destination/insert and bypass statements substantially accurate; deployment backend isolation remains conditional.",
+  "primaryAdjudication": "Source-visible empty-string control makes supplied-name and effect reachability claims overbroad; checker failure remains separate from independent source verdict.",
+  "sourceVerification": {
+    "valid": true,
+    "checkedFiles": 173,
+    "physicalReadBytes": 3149729
+  },
+  "sourceWorkMetrics": {
+    "sourceInterpretationSubmissions": 3,
+    "localInterpretationRepairs": 2,
+    "lowLevelFallbacks": 0,
+    "acceptedSourceUnits": 0,
+    "controlSteps": 0
+  },
+  "usage": {
+    "input": 1687391,
+    "output": 9934,
+    "cacheRead": 1525632,
+    "cacheWrite": 0
+  },
+  "actualUsd": null,
+  "reviewerCost": null
+}
