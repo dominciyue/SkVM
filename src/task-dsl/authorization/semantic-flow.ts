@@ -11,18 +11,19 @@ const scalar = z.union([z.string(), z.number().finite(), z.boolean(), z.null()])
 const common = { name, claim: InquiryText }
 const objects = { principal: name.optional(), resource: name.optional() }
 const operand = z.record(z.unknown()).refine(v => !predicateDiagnostics({ op: "truthy", language: "python", value: v }).length, "Finite source operand required")
+const methodRead = z.object({ receiver: name, method: name, defaultMethod: name.optional() }).strict()
 export const SemanticStepSchema = z.discriminatedUnion("kind", [
   z.object({ ...common, kind: z.literal("bind"), type: z.enum(["principal", "resource", "permission", "configuration", "value"]), bindingName: name.optional(), aliasOf: name.optional(), value: FiniteValueSchema.optional() }).strict(),
   z.object({ ...common, ...objects, kind: z.literal("guard"), condition: condition.optional() }).strict(),
   z.object({ ...common, kind: z.literal("choose"), cases: z.array(z.object({ condition, body: name }).strict()).min(1).max(16), otherwise: name.optional() }).strict(),
-  z.object({ ...common, ...objects, kind: z.literal("call"), symbol: name, sourceCallId: name.optional(), callee: name.optional(), result: name.optional(), arguments: z.array(z.object({ parameter: name, object: name }).strict()).max(16).default([]), pathHint: InquiryText.optional(), candidateId: InquiryText.optional() }).strict(),
+  z.object({ ...common, ...objects, kind: z.literal("call"), symbol: name, sourceCallId: name.optional(), callee: name.optional(), result: name.optional(), arguments: z.array(z.object({ parameter: name, object: name }).strict()).max(16).default([]), pathHint: InquiryText.optional(), candidateId: InquiryText.optional(), methodRead: methodRead.optional() }).strict(),
   z.object({ ...common, ...objects, kind: z.literal("effect"), operation: InquiryText.optional(), authorizedBy: z.array(name).max(16).optional(), mayRaise: z.boolean().optional() }).strict(),
   z.object({ ...common, kind: z.literal("return"), value: scalar.optional(), valueFrom: name.optional(), object: name.optional(), outcome: z.enum(["allow", "deny", "unknown"]).optional() }).strict(),
   z.object({ ...common, kind: z.literal("reject"), failureKind: z.enum(["authorization", "operation"]).optional() }).strict(),
   z.object({ ...common, kind: z.literal("transform"), object: name, field: name, value: FiniteValueSchema.optional(), source: name.optional() }).strict(),
   z.object({ ...common, kind: z.literal("unresolved"), reason: InquiryText }).strict(),
   z.object({ ...common, kind: z.literal("context"), relationship: z.enum(["route-registration", "class-configuration", "dispatch-binding"]), mayRaise: z.boolean().optional() }).strict(),
-  z.object({ ...common, kind: z.literal("assign-value"), result: name, value: operand }).strict(),
+  z.object({ ...common, kind: z.literal("assign-value"), result: name, value: operand, methodRead: methodRead.optional() }).strict(),
   z.object({ ...common, kind: z.literal("short-circuit"), operator: z.enum(["and", "or"]), language: z.enum(["python", "go"]), left: operand, right: operand, body: name, result: name }).strict(),
   z.object({ ...common, kind: z.literal("try"), body: name, handlers: z.array(z.object({ exceptionTypes: z.array(name).max(16), catchesAll: z.boolean(), body: name, unknownType: z.boolean().optional() }).strict()).max(16), otherwise: name.optional(), finally: name.optional() }).strict(),
   z.object({ ...common, kind: z.literal("raise"), exceptionType: name.optional(), failureKind: z.enum(["authorization", "operation"]).optional(), rethrow: z.boolean().optional() }).strict(),
@@ -279,6 +280,14 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
               }
             }
             continue
+          }
+          if ((step.kind === "assign-value" || step.kind === "call") && step.methodRead) {
+            const read = step.methodRead, receiver = valueObject(c, read.receiver)
+            if (!receiver) { gap(u, c, instance, body, step.name, "semantic-method-receiver-unbound"); next.push(c); continue }
+            // An unknown store still leaves a fieldObjects marker. Check at the
+            // original read, so later writes cannot change a copied bound method.
+            const slots = [read.method, ...(read.defaultMethod ? [read.defaultMethod] : []), "__class__"].map(field => `${receiver.identity}.${field}`)
+            if (Object.keys(c.fieldObjects).some(key => slots.some(slot => key === slot || key.startsWith(`${slot}.`)))) { gap(u, c, instance, body, step.name, "source-method-slot-written"); next.push(c); continue }
           }
           if (step.kind === "assign-value") { assignValue(c, step.result, step.value); append(u, c, instance, body, step.name, "continue", fields) }
           else if (step.kind === "raise") { append(u, c, instance, body, step.name, "continue", fields); c.pending = step.rethrow ? c.handledException ?? { kind: "raise", claim: step.claim } : { kind: "raise", claim: step.claim, exceptionType: step.exceptionType, failureKind: step.failureKind } }

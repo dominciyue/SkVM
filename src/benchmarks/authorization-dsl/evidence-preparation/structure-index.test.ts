@@ -664,7 +664,7 @@ test("an inherited method alias uses its actual subclass but rejects an unrelate
   expect(index.relatedCalls(owner.id, "app.Other")[0]!.resolution).toBe("unresolved")
   expect(index.relatedCalls(owner.id, "app.Other")[0]!.gap).toBe("source-method-alias-class-binding-unresolved")
 })
-for (const body of ["        if configured:\n            handler = self.guard\n        return handler(actor)\n", "        handler = self.guard\n        handler = replacement\n        return handler(actor)\n", "        handler = self.guard\n        self = replacement\n        return handler(actor)\n", "        handler = self.guard\n        keep(handler)\n        return handler(actor)\n", "        handler(actor)\n        handler = self.guard\n", "        handler = self.guard\n        self.guard = replacement\n        return handler(actor)\n", "        handler = self.guard\n        setattr(self, name, replacement)\n        return handler(actor)\n", "        handler = other.guard\n        return handler(actor)\n"]) test(`a local method alias keeps an unproved source binding named: ${body.trim().split("\n")[0]}`, async () => {
+for (const body of ["        if configured:\n            handler = self.guard\n        return handler(actor)\n", "        handler = self.guard\n        handler = replacement\n        return handler(actor)\n", "        handler = self.guard\n        self = replacement\n        return handler(actor)\n", "        handler = self.guard\n        keep(handler)\n        return handler(actor)\n", "        handler(actor)\n        handler = self.guard\n", "        handler = self.guard\n        self.guard += replacement\n        return handler(actor)\n", "        handler = self.guard\n        setattr(self, name, replacement)\n        return handler(actor)\n", "        handler = other.guard\n        return handler(actor)\n"]) test(`a local method alias keeps an unproved source binding named: ${body.trim().split("\n")[0]}`, async () => {
   const index = await buildStructureIndex([{ path: "app.py", content: `class Gate:\n    def entry(self, actor, other):\n${body}    def guard(self, actor):\n        return actor\n` }], { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "handler")!
   expect(call.resolution).toBe("unresolved")
   expect(call.gap).toMatch(/^source-method-alias-/)
@@ -697,7 +697,7 @@ for (const body of [
   "        handler = self.guard\n        handler = self.fallback\n        keep(handler)\n",
   "        handler = self.guard\n        handler = self.fallback\n        self = other\n",
   "        handler = self.guard\n        handler = self.fallback\n        setattr(self, 'fallback', replacement)\n",
-  "        handler = self.guard\n        handler = self.fallback\n        self.fallback = replacement\n",
+  "        handler = self.guard\n        handler = self.fallback\n        self.fallback += replacement\n",
   "        try:\n            handler = self.guard\n        except Failed:\n            handler = self.fallback\n",
   "        handler = self.guard\n        for item in items:\n            handler = self.fallback\n",
   "        if selected:\n            handler = self.guard\n        elif other:\n            handler = self.fallback\n",

@@ -197,6 +197,12 @@ lookup结构容量本步进展：主完整16候选/35块用例先红测复现共
 
 条件lookup本步进展：v18原控制区域、普通alternate赋值、sentinel/token、精确handler分派和whole-selector投影沿同一binder/六角色接通。11新增用例、414focused/1691断言，新鲜联合1253pass/1平台skip/7498断言/115文件/14.69s及主/AY类型通过；两只读核验与主裁定分别记录。100文件/6body/6 lookup probe中，声明receiver下1个Django基类合格；指定应用receiver的3处仍合格/采用0。初始/reviewed分留，后者只增加两种receiver资格分账。实验模型read/annotation/use及模型/目标新增0，probe网络0，开发/探子及额外runner网络unknown；旧输入/答不升级。继续receiver字段mutation、class/wrapper、字段callable与完整请求，然后官方具名实际复验和预登记收益比较；AY7/研究验收未勾选。
 
+receiver字段与方法稳定性接续计划（2026-10-08）：先以匿名完整source-read/interpret/material projection反例验证helper在getattr创建前改写同一receiver方法槽位时，现有静态候选是否仍错误执行旧方法；同时对照普通数据字段写入、另一个receiver、创建后覆盖及普通method alias/choice。先记录实际失败，再决定来源约束或运行状态检查的最小修复，不能仅删除全部mutation限制。若需要状态条件，必须沿现有有限求值和精确创建/投影合同，不让模型或用户前提替宿主声称槽位未写。保持未知字段callable、descriptor、动态setattr及class变换具名。完成匿名红绿与独立只读核验后重跑冻结来源probe，声明receiver资格与指定应用receiver资格/实际采用分别计数，然后继续class/wrapper、字段callable和完整请求及官方实验。
+
+receiver字段修复决定：匿名红测已确认helper的显式`self.guard=self.fallback`写入进入同一receiver状态，但后续getattr仍执行旧guard。采用现有assign-value/call上的机械`methodRead:{receiver,method,defaultMethod?}`事实，在实际引用创建时检查当前transform槽位（含未知覆盖、方法后代字段和`__class__`）；写过或receiver未绑定即具名unknown，不执行旧target。alias/choice/lookup的原创建与eager default都保留此事实，实际材料投影核验不能省略/改receiver/改method；直接普通instance调用在当前来源投影时同样补事实，super/class/static/wrapped目标不借此取得新资格。已创建alias后再覆盖仍沿原绑定调用，不在alias调用时重查。此法不新增谓词/模型角色或结构分支，64块与127节点/16路径预算保持。只放宽可由现有简单attribute transform表达的显式写入，aug/delete/索引目标/动态setattr等保持来源边界；未知字段callable尚不猜成新的target。先扩展对照反例及投影篡改红测，再最小实现、冻结来源probe、独立只读核验与主最终验证。
+
+receiver方法槽位本步进展：v19已按原创建接通methodRead与实际字段状态，包含普通alias/choice/lookup/eager default和直接instance调用；删除或改receiver/method/default的创建事实撤回对应连接。21新增用例、新鲜435focused/2027断言、联合1274pass/1平台skip/7834断言及主/AY类型通过；两项只读核验无新可复现缺陷，主负责最终检查。super不检查instance槽位，原构造未知异常继续保留；直接call在嵌套实参后检查，实参内改槽位仍保守unknown，早期bound-reference capture待接。100文件/6body真实probe保留声明receiver合格1、指定应用receiver合格/采用0；APIView现为class-binding缺口。无实验模型read/annotation/use或模型/目标/探针网络新增，旧输入/答不升级，开发/探子/美元/真人成本unknown。接续class/wrapper实际变换、字段callable和完整请求及官方实验，不勾选AY7或收益。
+
 ### AY8 调度与局部解释的闭环
 
 2026-10-08真实OWUI反例细化：七轮增量字段确有前进，最后宿主生成34个块（其中8个为空）却被沿用手写接口的32块上限拒绝。先在v5源码编译器复用同单元的无动作空块，保留每个实际条件、步骤、正常/拒绝/异常出口及既有路径/节点边界；不提高求值上限。停滞按当前缺口和已保留字段进展判断，不能把observations的pending标签当源码frontier停滞。实际发送上下文与原始归档分账，引用的bytes是被引用原值大小，不是该引用包的发送大小。

@@ -2,7 +2,7 @@ import type { AuthorizationInquiryProgram } from "../../task-dsl/authorization/i
 import type { BoundSemanticBlock } from "../../task-dsl/authorization/semantic-flow.ts"
 import type { SourceMaterial, SourceMaterialSnapshot } from "../../task-dsl/authorization/source-materials.ts"
 import type { StructureIndex, StructureMethodControl } from "./evidence-preparation/structure-index.ts"
-import { sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupSentinel, sourceMethodLookupToken, sourceSyntaxAnchorId } from "./evidence-preparation/source-identities.ts"
+import { sourceDirectMethodRead, sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupSentinel, sourceMethodLookupToken, sourceSyntaxAnchorId } from "./evidence-preparation/source-identities.ts"
 import { operationCallSourceSelection, operationCallTargets } from "./operation-links.ts"
 import { structuralDependencyRevision } from "./operation-work.ts"
 import { canonicalControl } from "../../task-dsl/authorization/control-slice.ts"
@@ -36,7 +36,7 @@ function actualArguments(index: StructureIndex, caller: BoundSemanticBlock, step
   if (binding.gap || step.arguments.length !== expected.length) return false
   if (call.methodBinding) {
     const proof = call.methodBinding, creation = steps.find(s => s.kind === "assign-value" && s.result === proof.name && canonicalControl(s.value) === canonicalControl({ binding: `${proof.receiver}.${proof.method}` }))
-    if (!creation || steps.indexOf(creation) >= steps.indexOf(step) || steps.some(s => s !== creation && (s.kind === "bind" && (s.bindingName ?? s.name) === proof.name || (s.kind === "assign-value" || s.kind === "call") && s.result === proof.name))) return false
+    if (!creation || creation.kind !== "assign-value" || canonicalControl(creation.methodRead ?? null) !== canonicalControl({ receiver: proof.receiver, method: proof.method }) || steps.indexOf(creation) >= steps.indexOf(step) || steps.some(s => s !== creation && (s.kind === "bind" && (s.bindingName ?? s.name) === proof.name || (s.kind === "assign-value" || s.kind === "call") && s.result === proof.name))) return false
   }
   if (call.methodChoices) {
     const proof = call.methodChoices, owner = caller.source!.id, block = caller.blocks.find(b => b.steps.includes(step)), callAnchor = call.startIndex !== undefined && call.endIndex !== undefined ? sourceSyntaxAnchorId(owner, call.startIndex, call.endIndex, "call") : undefined
@@ -65,7 +65,7 @@ function actualArguments(index: StructureIndex, caller: BoundSemanticBlock, step
       creationBlock = caller.blocks.find(b => b.name === (control.branch === "true" ? branch.cases[0]!.body : branch.otherwise))
     }
     const creation = creationBlock?.steps.find(s => s.name === `assign-${choice.anchorId}`)
-    if (!creation || creation.kind !== "assign-value" || creation.result !== proof.name || canonicalControl(creation.value) !== canonicalControl({ literal: token }) || creationBlock === dispatchBlock && creationBlock.steps.indexOf(creation) >= creationBlock.steps.indexOf(dispatch)) return false
+    if (!creation || creation.kind !== "assign-value" || creation.result !== proof.name || canonicalControl(creation.value) !== canonicalControl({ literal: token }) || canonicalControl(creation.methodRead ?? null) !== canonicalControl({ receiver: proof.receiver, method: choice.method }) || creationBlock === dispatchBlock && creationBlock.steps.indexOf(creation) >= creationBlock.steps.indexOf(dispatch)) return false
     const permitted = new Map([[initName, sourceMethodChoiceSentinel(proof)], ...proof.choices.map(c => [`assign-${c.anchorId}`, sourceMethodChoiceToken(proof, c)] as const)])
     if (steps.some(s => s.kind === "bind" && (s.bindingName ?? s.name) === proof.name || s.kind === "call" && s.result === proof.name || s.kind === "assign-value" && s.result === proof.name && (!permitted.has(s.name) || canonicalControl(s.value) !== canonicalControl({ literal: permitted.get(s.name) })))) return false
   }
@@ -102,7 +102,7 @@ function actualArguments(index: StructureIndex, caller: BoundSemanticBlock, step
       if (selector.kind !== "choose" || selector.cases.length !== lookupChoices.length || new Set(selector.cases.map(c => c.body)).size !== lookupChoices.length) return false
       for (const [i, choice] of lookupChoices.entries()) {
         const created = selector.cases[i]!, value = caller.blocks.find(b => b.name === created.body)?.steps, assignmentName = `lookup-assign-${proof.creationCallId}-${proof.choices.indexOf(choice)}`, token = sourceMethodLookupToken(proof, choice)
-        if (canonicalControl(created.condition) !== canonicalControl({ op: "eq", left: sourceMethodLookupSelector(proof), right: { literal: choice.method } }) || value?.length !== 1 || value[0]!.kind !== "assign-value" || value[0]!.name !== assignmentName || value[0]!.result !== proof.name || canonicalControl(value[0]!.value) !== canonicalControl({ literal: token })) return false
+        if (canonicalControl(created.condition) !== canonicalControl({ op: "eq", left: sourceMethodLookupSelector(proof), right: { literal: choice.method } }) || value?.length !== 1 || value[0]!.kind !== "assign-value" || value[0]!.name !== assignmentName || value[0]!.result !== proof.name || canonicalControl(value[0]!.value) !== canonicalControl({ literal: token }) || canonicalControl(value[0]!.methodRead ?? null) !== canonicalControl({ receiver: proof.receiver, method: choice.method, ...(proof.fallbackExpression ? { defaultMethod: proof.fallbackExpression.slice(proof.receiver.length + 1) } : {}) })) return false
         permitted.set(assignmentName, token)
       }
       const unknown = caller.blocks.find(b => b.name === selector.otherwise)?.steps
@@ -118,7 +118,7 @@ function actualArguments(index: StructureIndex, caller: BoundSemanticBlock, step
     if (uncreated?.length !== 1 || uncreated[0]!.kind !== "raise" || uncreated[0]!.exceptionType !== "UnboundLocalError" || uncreated[0]!.failureKind !== "operation" || uncreated[0]!.rethrow || unknown?.length !== 1 || unknown[0]!.kind !== "unresolved" || unknown[0]!.reason !== "source-method-lookup-value-unresolved") return false
     for (const alternate of proof.alternatives) {
       const creation = steps.find(s => s.name === `assign-${alternate.anchorId}`), choice = proof.choices.find(c => c.targetId === alternate.targetId), token = choice && sourceMethodLookupToken(proof, choice)
-      if (!creation || !choice || creation.kind !== "assign-value" || creation.result !== proof.name || canonicalControl(creation.value) !== canonicalControl({ literal: token }) || !locate(alternate.controls)?.steps.includes(creation) || !ordered(alternate.controls, alternate.source.startIndex, creation)) return false
+      if (!creation || !choice || creation.kind !== "assign-value" || creation.result !== proof.name || canonicalControl(creation.value) !== canonicalControl({ literal: token }) || canonicalControl(creation.methodRead ?? null) !== canonicalControl({ receiver: proof.receiver, method: alternate.method }) || !locate(alternate.controls)?.steps.includes(creation) || !ordered(alternate.controls, alternate.source.startIndex, creation)) return false
       permitted.set(creation.name, token!)
     }
     if (steps.some(s => s.kind === "bind" && (s.bindingName ?? s.name) === proof.name || s.kind === "call" && s.result === proof.name || s.kind === "assign-value" && s.result === proof.name && (!permitted.has(s.name) || canonicalControl(s.value) !== canonicalControl({ literal: permitted.get(s.name) })))) return false
@@ -154,10 +154,13 @@ export function projectSourceMaterials(program: AuthorizationInquiryProgram, acc
         seen.add(material.id)
         const caller = byMaterial.get(material.id)!; local.push(caller)
         for (const block of caller.blocks) for (const step of block.steps) if (step.kind === "call") {
+          delete step.methodRead
           if (!step.sourceCallId) { delete step.callee; continue }
           const selected = operationCallSourceSelection(index, caller, step), targets = operationCallTargets(index, caller, step, candidates)
           if (selected.actions.length !== 1 || targets.length !== 1 || !actualArguments(index, caller, step, targets[0]!.unit)) { delete step.callee; continue }
           const target = targets[0]!, helper = available.find(m => byMaterial.get(m.id) === target.unit)!
+          const call = index.relatedCalls(caller.source!.id, caller.receiverClass).find(c => c.id === step.sourceCallId), symbol = index.symbols.find(s => s.id === target.unit.source!.id), methodRead = call && symbol && sourceDirectMethodRead(call, symbol)
+          if (methodRead) step.methodRead = methodRead
           step.callee = target.unit.handle
           uses.push({ kind: "call", operationId: operation.id, questionId: question.questionId, materialId: helper.id, callerMaterialId: material.id, relationId: target.relationId, receiverClass: target.receiverClass, arguments: structuredClone(step.arguments) })
           visit(helper)

@@ -2092,6 +2092,10 @@ AY7条件lookup小步（2026-10-08）：v18将唯一getattr与有限普通method
 
 真实[reviewed条件lookup probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-conditional-lookup-reviewed-replay.json)核验94冻结文件和独立supplements，共100文件/6body/6 lookup。声明receiver下1个Django View.dispatch来源合格，指定应用receiver的3处lookup仍合格0（target-rebound/class-binding/receiver缺口），实际采用0；初始与reviewed分留，后者只新增声明/指定receiver资格分账。实验模型read/application annotation/material use/模型/目标新增0，probe网络0，开发/探子token、额外runner网络、USD及真人时间unknown。旧input/allowlist/答不升级。继续真实receiver字段mutation、class/wrapper、字段callable和完整请求，再官方具名复验；AY7与净收益未达。
 
+AY7 receiver方法槽位小步（2026-10-08）：主红测确认helper已写`self.guard=self.fallback`，旧getattr仍执行class guard。v19在原ordinary方法创建保留机械methodRead，沿既有transform的实际receiver状态检查方法/default、后代字段和class槽位；未知写入同样具名，不猜新的字段callable。普通数据写入不再被whole-function mutation veto误拦，已创建alias后再覆盖保留原绑定，直接instance call重算当前来源事实；super不受instance槽位覆盖影响，原receiver构造的未知异常仍保留。直接call检查在嵌套实参之后，实参内改变槽位仍保守unknown，早期bound-reference capture继续pending。两个只读核验未发现新可复现缺陷，不作穷尽声明；主21新增用例、新鲜435focused/2027断言、联合1274pass/1平台skip/7834断言/115文件/15.65s和主/AY类型通过，见[局部核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-method-read-state.json)。未增加谓词/模型角色、分支或执行预算。
+
+真实[方法槽位probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-method-slot-replay.json)核验94冻结文件及独立supplements，共100文件/6body/6 lookup。APIView指定receiver的缺口从target-rebound变为class-binding；声明receiver仍合格1，指定应用receiver的3处lookup仍合格/采用0。模型read/application annotation/material use/实验模型/目标/探针网络新增0；开发/探子token、USD与真人时间unknown，旧input/allowlist/原答不升级。完整class/wrapper、字段callable和请求及官方实际复验继续；AY7、完整质量与净收益未达。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

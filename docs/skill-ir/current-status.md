@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-最新小步为AY7 `source-bindings/v18`条件lookup：唯一getattr与有限普通方法赋值保留原if/else和try各区域，ordinary sentinel/token在实际handler处沿同一binder/六角色/投影执行；未创建路径保留UnboundLocalError/operation failure，未知属性不据default升级。11新增用例、414focused/1691断言、联合1253pass/1平台skip/7498断言及主/AY类型通过。100文件/6body probe有1个声明receiver下的Django基类lookup合格，指定应用receiver仍合格/采用0；两层来源资格分别记录。来源review的分支外候选线索已主核验为候选/实际创建之别，未知flag仍保留两条异常路径；条件字段写入、class/receiver、callable字段及完整请求和官方实际复验继续，AY7和净收益未达。
+最新小步为AY7 `source-bindings/v19`方法槽位状态：主红测复现helper已改方法后getattr仍执行旧guard，现由宿主methodRead在原创建检查同一receiver显式字段状态；普通数据写入保留，未知/方法/default/class槽位覆盖具名，已创建alias保持原绑定。投影核验当前读取事实并重算直接instance调用；super不检查instance槽位，嵌套实参改槽位的早期capture仍pending。21新增用例、435focused/2027断言、联合1274pass/1平台skip/7834断言、主/AY类型及两只读核验通过。100文件/6body probe声明receiver合格1、指定应用receiver合格/采用0；APIView由任意字段写入阻断推进至class-binding边界。class/wrapper实际变换、字段callable、完整请求和官方实际复验继续，AY7和净收益未达。
 
 v17后续容量修正（2026-10-08）：16候选的两个selector实际生成35块，先后红测复现共享单元与聚焦源码提交各自的32块拒绝。两处现共用64块结构容量，原127 emitted-node/16终态路径求值边界保持；完整source-read/interpret/material projection/native提交与实际guard拒绝通过。新鲜403focused/1550断言、联合1242pass/1平台skip/7357断言/115文件及主/AY类型通过。历史OWUI拒绝及真实probe不升级，本步无模型或目标执行；条件lookup与完整请求继续。
 

@@ -463,7 +463,7 @@ test("a source-assisted method alias adopts the actual receiver only after its o
   const skipped = structuredClone(units), entry = skipped[0].blocks.flatMap((b: any) => b.steps), creation = entry.find((s: any) => s.kind === "assign-value" && s.result === "handler")
   expect(creation).toBeDefined()
   Object.assign(creation, { kind: "context", relationship: "dispatch-binding" })
-  delete creation.result; delete creation.value
+  delete creation.result; delete creation.value; delete creation.methodRead
   expect(project(skipped).uses.filter((u: any) => u.kind === "call")).toEqual([])
   const swapped = structuredClone(units)
   swapped[0].blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call").arguments[0].object = "decoy"
@@ -498,7 +498,7 @@ for (const selected of [true, false]) test(`finite method choice executes its or
   expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(!selected)
   const proof = index.relatedCalls(units[0].source.id, "app.Gate").find(c => c.expression === "handler")!.methodChoices!
   const skipped = structuredClone(units), creation = skipped[0].blocks.flatMap((b: any) => b.steps).find((s: any) => s.name === `assign-${proof.choices[0]!.anchorId}`)
-  Object.assign(creation, { kind: "context", relationship: "dispatch-binding" }); delete creation.result; delete creation.value
+  Object.assign(creation, { kind: "context", relationship: "dispatch-binding" }); delete creation.result; delete creation.value; delete creation.methodRead
   expect(project(skipped).uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
   const wrongGuard = structuredClone(units), choice = wrongGuard[0].blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "choose" && s.name.startsWith("method-choice-"))
   choice.cases[0].condition.left.binding = "actor"
@@ -528,6 +528,53 @@ for (const selected of [true, false]) test(`finite method choice executes its or
   expect(project(wrongReceiver).uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
   const changed = await buildStructureIndex([{ path: "app.py", content: content.replace("handler = self.guard", "handler = self.fallback") }], { repository: "anonymous", sourceRef: "r" })
   expect(project(units, changed).uses).toEqual([])
+})
+
+for (const { mode, field, later, other, local } of [
+  { mode: "lookup", field: "guard" }, { mode: "lookup", field: "guard", local: true }, { mode: "lookup", field: "request", local: true },
+  { mode: "lookup", field: "guard", later: true }, { mode: "lookup", field: "request" }, { mode: "lookup", field: "fallback" }, { mode: "lookup", field: "__class__" }, { mode: "lookup", field: "guard", other: true },
+  { mode: "alias", field: "guard" }, { mode: "alias", field: "guard", later: true }, { mode: "alias", field: "guard", local: true }, { mode: "alias", field: "guard", later: true, local: true },
+  { mode: "choice", field: "guard" }, { mode: "choice", field: "guard", later: true }, { mode: "choice", field: "guard", local: true },
+  { mode: "alternate", field: "guard" }, { mode: "direct", field: "guard" }, { mode: "direct", field: "request" }, { mode: "super", field: "guard" },
+]) test(`ordinary method creation preserves receiver slot state: ${mode}/${field}/${!!later}/${!!other}/${!!local}`, async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-method-slot-overwrite-")), creation = mode === "lookup" ? "        handler = getattr(self, 'guard', self.fallback)\n" : mode === "alias" ? "        handler = self.guard\n" : mode === "direct" || mode === "super" ? "" : mode === "alternate" ? "        if False:\n            handler = getattr(self, 'guard')\n        else:\n            handler = self.guard\n" : "        if True:\n            handler = self.guard\n        else:\n            handler = self.fallback\n"
+  const preparation = local ? `        self.${field} = None\n` : `        self.prepare(${other ? "other" : ""})\n`, guard = "    def guard(self, actor):\n        raise Denied\n", invocation = mode === "super" ? "super().guard" : mode === "direct" ? "self.guard" : "handler", content = `${mode === "super" ? `class Base:\n${guard}class Gate(Base):\n` : "class Gate:\n"}    def entry(self, actor${other ? ", other" : ""}):\n${later ? creation + preparation : preparation + creation}        ${invocation}(actor)\n        write()\n        return True\n    def prepare(self${other ? ", subject" : ""}):\n        ${other ? "subject" : "self"}.${field} = self.fallback\n        return True\n${mode === "super" ? "" : guard}    def fallback(self, actor):\n        return actor\n`, blocked = mode !== "super" && field !== "request" && !later && !other, helperUses = local ? 0 : 1
+  await writeFile(path.join(sourceRoot, "app.py"), content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, units: any[] = []
+  for (const name of ["entry", "prepare", "guard", "fallback"]) {
+    const source = index.symbols.find(s => s.name === name)!
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id, "app.Gate"))!
+    expect(skeleton.gaps).toEqual([])
+    const annotations = skeleton.anchors.filter(a => ["parameter", "condition", "call", "return", "raise"].includes(a.kind)).map(a => ({ anchorId: a.id, role: a.kind === "parameter" ? a.name === "actor" ? "principal" : "context" : a.kind === "condition" ? "condition" : a.kind === "call" ? a.call!.expression === "write" ? "effect" : ["getattr", "super"].includes(a.call!.expression) ? "context" : "condition" : "context", explanation: "Anonymous current method-slot overwrite and actual creation", ...(a.kind === "condition" ? { condition: { op: "eq", left: { literal: a.literalValue }, right: { literal: true } } } : {}), ...(a.kind === "return" && name === "entry" ? { returnOutcome: "allow" } : {}), ...(a.kind === "raise" ? { failureKind: "authorization" } : {}) }))
+    const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index, itemId: name, handle: name, questionId: "q", role: name === "entry" ? "entry" : "helper" })
+    expect(result.diagnostics).toEqual([])
+    units.push({ ...result.unit!, questionId: "q", evidenceIds: skeleton.evidenceIds, source: skeleton.source, receiverClass: "app.Gate" })
+  }
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect current lookup after method-slot mutation", premises: [] }] }), store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" })
+  for (const u of units) store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }, { kind: "candidate-set", key: `relations:${u.source.id}:app.Gate`, revision: sourceRelationRevision(index, u.source.id, "app.Gate")! }], "test-authored")
+  const projected = api.projectSourceMaterials(p, units, store.snapshot(), index, { questionDirected: true }), lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true })
+  expect(projected.uses.filter((u: any) => u.kind === "call")).toHaveLength(helperUses + (mode === "choice" ? 2 : 1))
+  expect(lowered.fieldChanges.map(c => c.field)).toContain(field)
+  expect(lowered.diagnostics.map(d => d.code)).toEqual(blocked ? ["source-method-slot-written"] : mode === "super" ? ["semantic-exception-type-unknown"] : [])
+  expect(lowered.delta.rules.some(r => r.failureKind === "authorization")).toBe(!blocked)
+  expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(false)
+  if (mode !== "direct" && mode !== "super") {
+    for (const change of ["omit", "receiver", "method", ...mode === "lookup" ? ["default"] : []]) {
+      const forged = structuredClone(units)
+      for (const step of forged[0].blocks.flatMap((b: any) => b.steps)) if (step.kind === "assign-value" && step.result === "handler" && !step.name.startsWith("method-")) {
+        if (change === "omit") delete step.methodRead
+        else if (change === "default") delete step.methodRead.defaultMethod
+        else step.methodRead[change] = change === "receiver" ? "actor" : "replacement"
+      }
+      const altered = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" })
+      for (const u of forged) altered.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }], "test-authored")
+      expect(api.projectSourceMaterials(p, forged, altered.snapshot(), index, { questionDirected: true }).uses.filter((u: any) => u.kind === "call")).toHaveLength(helperUses)
+    }
+  } else {
+    const current = projected.units.find((u: any) => u.role === "entry").blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call" && s.symbol === invocation)
+    expect(current.methodRead).toEqual(mode === "super" ? undefined : { receiver: "self", method: "guard" })
+  }
 })
 
 for (const { selected, alternate, selector, repeat } of [

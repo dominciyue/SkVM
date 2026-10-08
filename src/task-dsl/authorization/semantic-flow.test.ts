@@ -124,6 +124,30 @@ test("finite field writes survive helper aliases, distinguish empty arrays from 
   expect(r.paths[0].predicate.missingBindings).toEqual([expect.stringContaining(".projects")])
 })
 
+test("ordinary method reads check actual receiver stores including unknown overwrites and eager defaults", () => {
+  const methodRead = { receiver: "left", method: "guard", defaultMethod: "fallback" }
+  const read = { kind: "assign-value", name: "created", result: "handler", value: { literal: "ordinary-method" }, methodRead, claim: "Actual ordinary source method reference" }
+  expect(api.SemanticStepSchema.safeParse(read).success).toBe(true)
+  for (const field of ["guard", "fallback", "__class__", "guard.__code__"]) {
+    const helper = unit([block("main", [{ kind: "transform", name: "overwrite", object: "receiver", field, source: "unknown", claim: "An explicit unknown source store still replaces the slot" }, { kind: "return", name: "done", claim: "Return" }])], { handle: "prepare", role: "helper", parameters: [{ name: "receiver", type: "configuration" }, { name: "unknown", type: "value" }] })
+    const root = unit([block("main", [{ kind: "call", name: "prepare", symbol: "prepare", callee: "prepare", arguments: [{ parameter: "receiver", object: "left" }, { parameter: "unknown", object: "unknown" }], claim: "Pass this receiver identity" }, read, { kind: "effect", name: "write", claim: "Following operation" }])], { parameters: [{ name: "left", type: "configuration" }, { name: "unknown", type: "value" }] })
+    const r = lower([root, helper])
+    expect(r.diagnostics.map((d: any) => d.code)).toContain("source-method-slot-written")
+    expect(r.delta.rules.some((r: any) => r.kind === "effect")).toBe(false)
+  }
+  const untouched = unit([block("main", [{ kind: "transform", name: "other", object: "right", field: "guard", value: null, claim: "A distinct receiver" }, { kind: "transform", name: "data", object: "left", field: "request", value: null, claim: "An unrelated data field" }, read, { kind: "transform", name: "later", object: "left", field: "guard", value: null, claim: "Does not change the earlier copied method" }, { kind: "guard", name: "copied", condition: eq("handler", "ordinary-method"), claim: "Retain the original bound method value" }])], { parameters: [{ name: "left", type: "configuration" }, { name: "right", type: "configuration" }] })
+  expect(lower([untouched]).diagnostics).toEqual([])
+  expect(lower([untouched]).paths[0].predicate.truth).toBe("true")
+})
+
+test("a method read cannot manufacture a receiver or take untouched state from user values", () => {
+  const methodRead = { receiver: "missing", method: "guard" }, read = { kind: "assign-value", name: "created", result: "handler", value: { literal: "ordinary-method" }, methodRead, claim: "Missing ordinary source receiver" }
+  const r = lower([unit([block("main", [read])])], [known("missing.guard", false, "Flag is true.")])
+  expect(r.diagnostics.map((d: any) => d.code)).toContain("semantic-method-receiver-unbound")
+  expect(r.paths.every((p: any) => !p.complete)).toBe(true)
+  for (const malformed of [{ receiver: "left" }, { receiver: "left", method: "guard", ignored: true }, { receiver: "left", method: "guard", defaultMethod: "" }]) expect(api.SemanticStepSchema.safeParse({ ...read, methodRead: malformed }).success).toBe(false)
+})
+
 test("source values cannot attach to principals, conflict with aliases, nest unbounded data, or leak into a same-named helper local", () => {
   for (const step of [{ kind: "bind", name: "actor", type: "principal", value: true, claim: "Invalid literal actor" }, { kind: "bind", name: "alias", type: "value", aliasOf: "other", value: true, claim: "Two conflicting origins" }]) expect(api.semanticBlockDiagnostics(unit([block("main", [step])])).map((d: any) => d.code)).toContain("semantic-source-value-invalid")
   for (const value of [Array.from({ length: 65 }, () => 1), { nested: [] }, [[1]]]) expect(api.SemanticStepSchema.safeParse({ kind: "bind", name: "constant", type: "value", value, claim: "Bounded source value" }).success).toBe(false)
