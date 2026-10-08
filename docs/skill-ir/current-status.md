@@ -10,7 +10,7 @@
 
 BA共同任务事实保留原问题，M/D共用相同义务及核心，旧作者包单列消费。12完整质量、2消费、6变化位置均未运行；previous变化还缺合格当前Download基础。4尝试中3份用量已知：输入10,707,789（含缓存10,026,624）、输出46,863；路由失败尝试用量、实际USD及隐藏请求unknown，比较inconclusive。恢复须先取得新的外部路由证据，再核实无活动/未知完成并登记新具名OWUI复验；不重复探针或绕过暂停。
 
-方法合同见[spec §14.40](skill-ir-aot-optimization-spec.md#1440-ba-semantic-submission-and-adoption)，复核和取舍见[研究 §7.62](skill-dsl-research.md#762-ba-从真实拒绝到可用语义编辑)。新结果写入authorization-semantic-submission-v1；任务书里的要求不能视为结果。
+代码与证据已发布用户origin（09e50fe8已核对远端）；发布完成不改变研究未达状态。方法合同见[spec §14.40](skill-ir-aot-optimization-spec.md#1440-ba-semantic-submission-and-adoption)，复核和取舍见[研究 §7.62](skill-dsl-research.md#762-ba-从真实拒绝到可用语义编辑)。新结果写入authorization-semantic-submission-v1；任务书里的要求不能视为结果。
 
 ## AZ 已结束的结果与本次复核
 

@@ -3,7 +3,7 @@
 更新于2026-10-09。唯一实时入口为 [current-status](current-status.md)。
 
 - 当前任务书：[BA0–BA18：授权语义提交、实际采用与完整任务验证](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)，`in-progress-external-blocker`；两pilot共4尝试/3交付。Download修订仍partial/无性质绑定；OWUI首件源码答案full但0采用、性质unknown，修后具名复验再次终态路由失败，通道暂停。研究目标与有限队列未完成。
-- 方法合同：[spec §14.40](skill-ir-aot-optimization-spec.md#1440-ba-semantic-submission-and-adoption)；依据：[研究§7.62](skill-dsl-research.md#762-ba-从真实拒绝到可用语义编辑)。
+- 工程与证据已发布用户origin并核对09e50fe8；剩余执行队列继续外部阻断。方法合同：[spec §14.40](skill-ir-aot-optimization-spec.md#1440-ba-semantic-submission-and-adoption)；依据：[研究§7.62](skill-dsl-research.md#762-ba-从真实拒绝到可用语义编辑)。
 - 复核基线 `29c400ff` 与用户origin一致。开发 `gpt-6.1-sol/max`，实验当前官方账号 `gpt-5.6-sol/high`。第三方API与AV旧位置继续暂停。
 
 ## 当前目标
