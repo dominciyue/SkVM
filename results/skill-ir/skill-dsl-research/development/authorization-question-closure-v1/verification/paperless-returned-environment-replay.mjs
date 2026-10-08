@@ -1,0 +1,40 @@
+import { readFile, writeFile } from "node:fs/promises"
+import { createHash } from "node:crypto"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
+import { buildStructureIndex } from "../../../../../../src/benchmarks/authorization-dsl/evidence-preparation/structure-index.ts"
+import { buildSourceSkeleton } from "../../../../../../src/benchmarks/authorization-dsl/evidence-preparation/source-skeleton.ts"
+
+const ay = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."), base = path.resolve(ay, "../authorization-focused-closure-v1")
+const sha = data => createHash("sha256").update(data).digest("hex")
+const originalBytes = await readFile(path.join(base, "source-provenance/locked-framework-v1.json")), original = JSON.parse(originalBytes)
+const files = await Promise.all([...original.appFiles, ...original.dependencyFiles].map(async source => {
+  const bytes = await readFile(path.join(base, "model/source/paperless-framework-v1", source.path))
+  if (sha(bytes) !== source.sha256) throw new Error(`frozen-source-changed:${source.path}`)
+  return { path: source.path, content: bytes.toString("utf8") }
+}))
+const supplements = []
+for (const name of ["drf-action-source-v1.json", "schema-decorator-source-v1.json", "django-view-source-v1.json"]) {
+  const bytes = await readFile(path.join(ay, "source-provenance", name)), supplement = JSON.parse(bytes)
+  if (sha(originalBytes) !== supplement.originalProvenanceSha256) throw new Error("original-provenance-changed")
+  for (const source of supplement.sources ?? [supplement.source]) {
+    const bytes = await readFile(path.join(ay, source.path))
+    if (sha(bytes) !== source.sha256) throw new Error(`supplement-source-changed:${source.path}`)
+    files.push({ path: source.indexPath, content: bytes.toString("utf8") })
+  }
+  supplements.push({ path: `source-provenance/${name}`, sha256: sha(bytes) })
+}
+const index = await buildStructureIndex(files, { repository: original.appRepository, sourceRef: original.appRef }), actualReceiver = "documents.views.UnifiedSearchViewSet"
+const selected = [["drf_spectacular.utils.extend_schema"], ["drf_spectacular.utils.extend_schema.decorator"], ["drf_spectacular.utils.extend_schema_view"], ["drf_spectacular.utils.extend_schema_view.decorator"], ["drf_spectacular.drainage.isolate_view_method"], ["drf_spectacular.drainage.isolate_view_method.wrapped_method"], ["rest_framework.views.APIView.dispatch", actualReceiver], ["rest_framework.viewsets.ViewSetMixin.as_view.view"], ["django.views.generic.base.View.dispatch", actualReceiver], ["django.views.generic.base.View.setup", actualReceiver], ["django.views.generic.base.View.as_view.view"], ["rest_framework.fields.SerializerMethodField.to_representation"]], sources = []
+for (const [suffix, receiverClass] of selected) {
+  const matches = index.symbols.filter(s => s.qualifiedName.endsWith(suffix))
+  if (matches.length !== 1) throw new Error(`source-not-unique:${suffix}`)
+  const source = matches[0], window = { id: `mechanical-source-probe-${source.id}`, path: source.path, sha256: source.sha256, startLine: source.startLine, endLine: source.endLine }, skeleton = await buildSourceSkeleton(index, source, [window], receiverClass, "finite-control/v1", true, true), calls = index.relatedCalls(source.id, receiverClass)
+  sources.push({ source: { id: source.id, qualifiedName: source.qualifiedName, path: source.path, sha256: source.sha256, startLine: source.startLine, endLine: source.endLine }, ...(receiverClass ? { receiverClass } : {}), returnedDefinition: source.returnedCallable ?? null, actualValueDefinition: source.valueCallable ?? null, returnedCalls: calls.filter(c => c.callableBinding), returnedArguments: calls.flatMap(c => c.argumentFacts?.flatMap(a => a.callableValue?.kind === "returned" ? [{ callId: c.id, value: a.callableValue }] : []) ?? []), gaps: skeleton.gaps })
+}
+const definitions = index.symbols.filter(s => s.returnedCallable).map(s => ({ id: s.id, qualifiedName: s.qualifiedName, returnedDefinition: s.returnedCallable, actualValueDefinition: s.valueCallable ?? null })), returnedCalls = index.calls.filter(c => c.callableBinding), returnedArguments = index.calls.flatMap(c => c.argumentFacts?.filter(a => a.callableValue?.kind === "returned") ?? [])
+const record = { schemaVersion: "authorization-returned-environment-replay/v1", date: "2026-10-08", relationshipVersion: index.relationshipVersion, originalProvenanceSha256: sha(originalBytes), supplements, frozenSourcesVerified: original.appFiles.length + original.dependencyFiles.length, sourceFiles: files.length, sources, definitions, sourceEligibility: { returnedDefinitions: definitions.length, stableReturnedDefinitions: definitions.filter(d => !d.returnedDefinition.gap).length, actualReturnedDefinitions: definitions.filter(d => d.actualValueDefinition && !d.actualValueDefinition.gap).length, returnedCalls: returnedCalls.length, returnedArguments: returnedArguments.length, selectedActualDefinitions: sources.filter(s => s.returnedDefinition && s.actualValueDefinition && !s.actualValueDefinition.gap).length, selectedReturnedCalls: sources.flatMap(s => s.returnedCalls).length, selectedReturnedArguments: sources.flatMap(s => s.returnedArguments).length }, preparation: index.preparation, mechanicalWindowOnly: true, modelReadEvidence: false, applicationSemanticUnitsAuthored: 0, materialUses: 0, classTransformation: "pending", dynamicHandlerBinding: "pending", fullFrameworkComposition: "pending", originalInputsAndAllowlistsUnmodified: true, newModelInputRegistered: false, originalAttemptPromoted: false, modelExecutions: 0, targetExecutions: 0, networkRequests: 0, costs: { experimentTokens: 0, developerAndScoutTokens: null, usd: null, humanTime: null } }
+if (await readFile(path.join(base, "source-provenance/locked-framework-v1.json")).then(sha) !== sha(originalBytes)) throw new Error("original-provenance-changed")
+const output = process.argv[2] ? path.resolve(process.argv[2]) : path.join(ay, "verification/paperless-returned-environment-replay.json")
+await writeFile(output, JSON.stringify(record, null, 2) + "\n", { flag: "wx" })
+console.log(JSON.stringify({ output, sha256: sha(await readFile(output)), sourceFiles: files.length, selectedBodies: sources.length, sourceEligibility: record.sourceEligibility, materialUses: 0, modelExecutions: 0, targetExecutions: 0 }))

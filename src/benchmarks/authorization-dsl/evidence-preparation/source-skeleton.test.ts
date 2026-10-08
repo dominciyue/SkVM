@@ -32,9 +32,9 @@ test("context meaning cannot erase a visible method alias descriptor gap", async
   expect(skeleton.gaps.map(g => g.code)).toContain("source-method-alias-target-unmodeled")
   expect(result.unit!.complete).toBe(false)
 })
-test("reading an escaped local callable body retains its capture and invocation boundary", async () => {
+test("reading a container-escaped local callable body retains its capture and invocation boundary", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-local-escape-"))
-  await writeFile(path.join(sourceRoot, "app.py"), "def factory(actor):\n    def guard():\n        return actor\n    return guard\n")
+  await writeFile(path.join(sourceRoot, "app.py"), "def factory(actor):\n    def guard():\n        return actor\n    return [guard]\n")
   const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), source = tools.structure!.symbols.find(s => s.name === "guard")!
   await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
   expect((await tools.sourceSkeleton(source.id))!.gaps.map(g => g.code)).toContain("source-local-callable-escape-unmodeled")
@@ -68,7 +68,7 @@ for (const { parameters, prefix, object, field = "__code__", blocked } of [
   expect(result.unit!.blocks.flatMap(b => b.steps).some(s => s.kind === "transform" && s.field === field)).toBe(!blocked)
 })
 
-test("a source returned callable definition creates an ordinary value while its actual instance supplies captures", async () => {
+test("a source returned callable definition creates the actual environment without a synthetic instance parameter", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-returned-skeleton-"))
   await writeFile(path.join(sourceRoot, "app.py"), "def create(principal):\n    def guard():\n        return principal\n    return guard\ndef entry(actor):\n    check = create(actor)\n    check()\n    return True\n")
   const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
@@ -77,10 +77,10 @@ test("a source returned callable definition creates an ordinary value while its 
     await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
     const skeleton = (await tools.sourceSkeleton(source.id))!
     expect(skeleton.gaps).toEqual([])
-    if (name === "create") expect(skeleton.anchors.find(a => a.syntax === "source_callable_definition")).toMatchObject({ kind: "assignment", name: "guard", interpretationRequired: false })
+    if (name === "create") expect(skeleton.anchors.find(a => a.syntax === "source_callable_value_definition")).toMatchObject({ kind: "assignment", name: "guard", interpretationRequired: false, callableDefinition: { definition: { captures: [{ name: "principal" }] } } })
     else {
       expect(skeleton.anchors.find(a => a.syntax === "source_capture")!.name).toBe("principal")
-      expect(skeleton.anchors.find(a => a.syntax === "source_callable_instance")).toMatchObject({ kind: "parameter" })
+      expect(skeleton.anchors.filter(a => a.kind === "parameter").map(a => a.name)).toEqual(["principal"])
     }
   }
 })

@@ -5,7 +5,6 @@ export interface SourceArgumentBinding {
   parameter: string; expression: string; literalKnown: boolean; literalValue?: FiniteValue; captureOwnerId?: string; sourceCallId?: string; valueFlow?: StructureArgumentValue; callableValue?: StructureCallableValue
 }
 export interface SourceArgumentIndex { symbols: StructureSymbol[]; relatedCalls: (symbolId: string, receiverClass?: string) => StructureCall[] }
-export const sourceCallableParameter = (symbolId: string) => `source-callable-${symbolId}`
 /** Bind source syntax only. Unknown expansion never consumes a default or a
  * regular parameter, and forwarding packs are not permission/object proofs. */
 export function sourceArgumentBindings(index: SourceArgumentIndex, call: StructureCall, target: StructureSymbol): { bindings: SourceArgumentBinding[]; gap?: string } {
@@ -91,9 +90,6 @@ export function sourceArgumentBindings(index: SourceArgumentIndex, call: Structu
   // The caller signature excludes these keys only while its **kwargs remains
   // an unmodified, unescaped source pack. A renamed regular parameter may collide.
   if (keySource && regular.some(name => !caller!.parameters.some(p => p.name === name && !p.kind?.startsWith("variadic") && p.kind !== "positional-only"))) return fail("keyword-collision-unresolved")
-  if (instance && returned) {
-    for (const capture of instance.captures) bindings.push({ ...capture, captureOwnerId: returned.ownerId })
-    bindings.push({ parameter: sourceCallableParameter(target.id), expression: instance.name, literalKnown: false, captureOwnerId: returned.ownerId })
-  } else if (!call.callableParameter) for (const capture of local?.captures ?? []) bindings.push({ parameter: capture.name, expression: capture.name, literalKnown: false, captureOwnerId: local!.ownerId })
+  if (!instance && !call.callableParameter) for (const capture of local?.captures ?? []) bindings.push({ parameter: capture.name, expression: capture.name, literalKnown: false, captureOwnerId: local!.ownerId })
   return { bindings, ...(partialGap ? { gap: partialGap } : {}) }
 }

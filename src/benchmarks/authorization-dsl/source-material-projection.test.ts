@@ -285,6 +285,69 @@ test("adopted public import helpers depend on selected hop bytes while unrelated
   expect(api.projectSourceMaterials(p, accepted, snapshot, unrelated, { questionDirected: true }).uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
 })
 
+for (const mode of ["direct", "passed", "inline", "forwarded", "two-environments", "caller-rebound", "direct-branch", "direct-try", "inline-branch", "inline-skipped", "inline-try"]) test(`returned source functions retain their actual factory environment: ${mode}`, async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-returned-environment-"))
+  const body = ["inline-branch", "inline-skipped"].includes(mode) ? `    if ${mode === "inline-skipped" ? "False" : "True"}:\n        consume(create(True), actor)\n` : mode === "inline-try" ? "    try:\n        consume(create(True), actor)\n    except Denied:\n        raise\n" : mode === "direct-branch" ? "    check = create(True)\n    if True:\n        check(actor)\n" : mode === "direct-try" ? "    check = create(True)\n    try:\n        check(actor)\n    except Denied:\n        raise\n" : mode === "inline" ? "    consume(create(True), actor)\n" : mode === "caller-rebound" ? "    setup(True, actor)\n" : mode === "two-environments" ? "    first = create(False)\n    second = create(True)\n    first(actor)\n    second(actor)\n" : `    check = create(True)\n    ${mode === "direct" ? "check(actor)" : mode === "forwarded" ? "forward(check, actor)" : "consume(check, actor)"}\n`
+  await writeFile(path.join(sourceRoot, "app.py"), `def entry(actor):\n${body}    write()\n    return True\ndef create(flag):\n    def guard(subject):\n        if flag:\n            raise Denied\n        return subject\n    return guard\ndef consume(operation, actor):\n    operation(actor)\n    return actor\ndef forward(operation, actor):\n    consume(operation, actor)\n    return actor\ndef setup(flag, actor):\n    check = create(flag)\n    flag = False\n    check(actor)\n    observe(flag)\n    return actor\ndef observe(flag):\n    return flag\n`)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, accepted: any[] = []
+  const names = ["entry", "create", "guard", ...["passed", "inline", "forwarded", "inline-branch", "inline-skipped", "inline-try"].includes(mode) ? ["consume"] : [], ...mode === "forwarded" ? ["forward"] : [], ...mode === "caller-rebound" ? ["setup", "observe"] : []]
+  for (const name of names) {
+    const source = index.symbols.find(s => s.name === name)!, read = await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine }), skeleton = (await tools.sourceSkeleton(source.id))!
+    expect(skeleton.gaps).toEqual([])
+    const annotations = skeleton.anchors.filter(a => ["parameter", "call", "condition", "return", "raise"].includes(a.kind)).map(a => ({ anchorId: a.id, role: a.kind === "parameter" ? ["actor", "subject"].includes(a.name!) ? "principal" : "condition" : a.kind === "call" ? a.call!.expression === "write" ? "effect" : "condition" : a.kind === "condition" ? "condition" : "context", explanation: "Anonymous test-authored actual returned function environment", ...(a.kind === "condition" && !a.literalKnown ? { condition: { op: "truthy", language: "python", value: { binding: "flag" } } } : {}), ...(a.kind === "raise" ? { failureKind: "authorization" } : {}), ...(a.kind === "return" && name === "entry" ? { returnOutcome: "allow" } : {}) }))
+    const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations, unresolved: [] }, { index, itemId: name, handle: name, questionId: "q", role: name === "entry" ? "entry" : "helper", propertyDirected: true })
+    expect(result.diagnostics).toEqual([])
+    accepted.push({ ...result.unit!, questionId: "q", evidenceIds: read.evidence.map(e => e.id), source: skeleton.source })
+  }
+  const factory = accepted.find(u => u.handle === "create"), definition = factory.blocks.flatMap((b: any) => b.steps).find((s: any) => s.sourceCallable)
+  expect(definition).toMatchObject({ kind: "assign-value", result: "guard", sourceCallable: { captures: [{ parameter: "flag", object: "flag" }] } })
+  expect(accepted.find(u => u.handle === "guard").parameters.map((p: any) => p.name)).toEqual(["subject", "flag"])
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect actual returned source object and original continuation", premises: [] }] })
+  const project = (units = accepted, current = index) => {
+    const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" })
+    for (const u of units) store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }, { kind: "candidate-set", key: `relations:${u.source.id}`, revision: sourceRelationRevision(index, u.source.id)! }], "test-authored")
+    return api.projectSourceMaterials(p, units, store.snapshot(), current, { questionDirected: true })
+  }
+  const projected = project(), lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true }), calls = projected.units.flatMap((u: any) => u.blocks.flatMap((b: any) => b.steps)).filter((s: any) => s.kind === "call" && s.callableRead)
+  if (mode === "inline-skipped") {
+    expect(calls).toEqual([])
+    expect(lowered.delta.rules.some(r => r.failureKind === "authorization")).toBe(false)
+    expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(true)
+    expect(lowered.delta.rules.some(r => r.terminal && r.outcome === "allow")).toBe(true)
+    expect(lowered.diagnostics.map(d => d.code)).toEqual(["semantic-exception-type-unknown"])
+    return
+  }
+  expect(calls.length).toBeGreaterThan(0)
+  expect(calls.every((s: any) => s.arguments.every((a: any) => a.parameter !== "flag" && !a.parameter.startsWith("source-callable-")))).toBe(true)
+  expect(lowered.diagnostics).toEqual([])
+  expect(lowered.delta.rules.filter(r => r.terminal).map(r => r.outcome)).toEqual(["deny"])
+  expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(false)
+  if (["inline-branch", "inline-try"].includes(mode)) {
+    const forged = structuredClone(accepted), entry = forged.find(u => u.handle === "entry"), original = entry.blocks.find((b: any) => b.steps.some((s: any) => s.kind === "call" && s.symbol === "create")), creation = original.steps.find((s: any) => s.kind === "call" && s.symbol === "create")
+    original.steps.splice(original.steps.indexOf(creation), 1)
+    entry.blocks.find((b: any) => b.name === entry.start).steps.unshift(creation)
+    expect(project(forged).units.find((u: any) => u.handle === "entry").blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call" && s.symbol === "consume").callee).toBeUndefined()
+  }
+  if (mode === "caller-rebound") {
+    const forged = structuredClone(accepted), setup = forged.find(u => u.handle === "setup"), block = setup.blocks.find((b: any) => b.name === setup.start), creation = block.steps.find((s: any) => s.kind === "call" && s.symbol === "create"), rebound = block.steps.find((s: any) => s.kind === "bind" && s.bindingName === "flag")
+    expect(rebound).toBeDefined()
+    block.steps.splice(block.steps.indexOf(creation), 1)
+    block.steps.splice(block.steps.indexOf(rebound) + 1, 0, creation)
+    const rejected = project(forged)
+    expect(rejected.units.find((u: any) => u.handle === "setup").blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call" && s.symbol === "check").callee).toBeUndefined()
+  }
+  for (const change of ["creation", "capture", "return", "late-return"]) {
+    const forged = structuredClone(accepted), owner = forged.find(u => u.handle === "create"), block = owner.blocks.find((b: any) => b.name === owner.start), created = block.steps.find((s: any) => s.sourceCallable), returned = block.steps.find((s: any) => s.kind === "return")
+    if (change === "creation") delete created.sourceCallable
+    if (change === "capture") created.sourceCallable.captures[0].object = "subject"
+    if (change === "return") returned.valueFrom = "flag"
+    if (change === "late-return") block.steps.unshift(...block.steps.splice(block.steps.indexOf(returned), 1))
+    const rejected = project(forged), factoryMaterial = rejected.units.find((u: any) => u.handle === "create")
+    expect(factoryMaterial).toBeUndefined()
+    expect(lowerSemanticFlow(rejected.units, { compositional: true, propertyDirected: true }).delta.rules.some(r => r.terminal && r.outcome === "deny")).toBe(false)
+  }
+})
+
 test("source-assisted returned callable adoption preserves creation, capture and rejection order", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-returned-adoption-"))
   await writeFile(path.join(sourceRoot, "app.py"), "def create(principal):\n    def guard():\n        selected = principal\n        raise Denied\n    return guard\ndef entry(actor, decoy):\n    check = create(actor)\n    check()\n    write()\n    return True\n")
@@ -299,8 +362,8 @@ test("source-assisted returned callable adoption preserves creation, capture and
     expect(result.unit!.complete).toBe(true)
     accepted.push({ ...result.unit!, questionId: "q", evidenceIds: read.evidence.map(e => e.id), source: skeleton.source })
   }
-  expect(accepted[1].blocks.flatMap((b: any) => b.steps).find((s: any) => s.bindingName === "guard")).toMatchObject({ kind: "bind", type: "value" })
-  expect(accepted[2].parameters.find((p: any) => p.name.startsWith("source-callable-"))).toMatchObject({ type: "value" })
+  expect(accepted[1].blocks.flatMap((b: any) => b.steps).find((s: any) => s.result === "guard")).toMatchObject({ kind: "assign-value", sourceCallable: { captures: [{ parameter: "principal", object: "principal" }] } })
+  expect(accepted[2].parameters.map((p: any) => p.name)).toEqual(["principal"])
   const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect actual creation and continuation", premises: [] }] })
   const project = (units = accepted, current = index) => {
     const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" })
@@ -316,14 +379,14 @@ test("source-assisted returned callable adoption preserves creation, capture and
   for (const block of skipped[0].blocks) block.steps = block.steps.map((s: any) => s.kind === "call" && s.symbol === "create" ? { kind: "context", name: s.name, relationship: "dispatch-binding", claim: "Test deliberately omits actual creation" } : s)
   expect(project(skipped).uses.filter((u: any) => u.kind === "call")).toEqual([])
   const swapped = structuredClone(accepted)
-  swapped[0].blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call" && s.symbol === "check").arguments.find((a: any) => a.parameter === "principal").object = "decoy"
+  swapped[0].blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call" && s.symbol === "check").arguments.push({ parameter: "principal", object: "decoy" })
   expect(project(swapped).uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
   const overwritten = structuredClone(accepted)
   overwritten[0].blocks[0].steps.splice(1, 0, { kind: "bind", name: "forged-instance", bindingName: "check", type: "value", claim: "Test overwrites the factory result" })
   expect(project(overwritten).uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
-  const omittedInstance = structuredClone(accepted)
-  omittedInstance[2].parameters = omittedInstance[2].parameters.filter((p: any) => !p.name.startsWith("source-callable-"))
-  expect(project(omittedInstance).uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
+  const omittedCapture = structuredClone(accepted)
+  omittedCapture[2].parameters = []
+  expect(project(omittedCapture).uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
   const reordered = structuredClone(accepted)
   for (const block of reordered[0].blocks) {
     const creation = block.steps.findIndex((s: any) => s.kind === "call" && s.symbol === "create"), invocation = block.steps.findIndex((s: any) => s.kind === "call" && s.symbol === "check")

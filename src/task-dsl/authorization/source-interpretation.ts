@@ -7,7 +7,7 @@ import type { DependencyQuestion } from "./property-dependencies.ts"
 import type { SourceSkeleton, SourceAnchor, SourceFlow } from "../../benchmarks/authorization-dsl/evidence-preparation/source-skeleton.ts"
 import type { StructureIndex, StructureMethodChoice } from "../../benchmarks/authorization-dsl/evidence-preparation/structure-index.ts"
 import { sourceCallableDefinitionName, sourceCallableToken, sourceCallableValueName, sourceCallableValueResult, sourceDirectMethodRead, sourceFieldMethodToken, sourceMethodCaptureName, sourceMethodCaptureResult, sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupSentinel, sourceMethodLookupToken, sourceSyntaxAnchorId } from "../../benchmarks/authorization-dsl/evidence-preparation/source-identities.ts"
-import { sourceArgumentBindings, sourceCallableParameter } from "../../benchmarks/authorization-dsl/evidence-preparation/source-arguments.ts"
+import { sourceArgumentBindings } from "../../benchmarks/authorization-dsl/evidence-preparation/source-arguments.ts"
 
 export const SourceAnnotationSchema = z.object({
   anchorId: InquiryText, role: z.enum(["principal", "resource", "permission", "condition", "effect", "context"]), explanation: InquiryText,
@@ -131,7 +131,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
   const questionDirected = skeleton.propertySemantics === "question-control/v1"
   const excludedMeaning = !questionDirected && demand?.excluded.some(e => { const a = at(e.anchorId), annotation = annotations.get(e.anchorId); return a?.interpretationRequired && !annotation && !unresolved.has(e.anchorId) })
   const callableParameterNames = new Set(options.index?.callableParameters(skeleton.sourceId).map(p => p.name) ?? [])
-  const unit: SemanticBlock = { itemId: options.itemId, handle: options.handle, op: previous ? "replace" : "add", role: options.role, start: "source-main", ...(finite ? { coverage: "path" } : {}), complete: skeleton.modelCovered && !(demand?.sourceGaps ?? skeleton.gaps).length && ![...unresolved.keys()].some(id => !questionDirected || demand?.reachableAnchorIds.includes(id)) && !excludedMeaning, fallthrough: interpretation.fallthroughOutcome === "unknown" ? "unresolved" : interpretation.fallthroughOutcome ?? "unresolved", parameters: skeleton.anchors.filter(a => a.kind === "parameter" && a.name).map(a => ({ name: a.name!, type: a.callableIdentity || questionDirected && callableParameterNames.has(a.name!) ? "value" : bindingType(annotations.get(a.id)) })), blocks: [] }
+  const unit: SemanticBlock = { itemId: options.itemId, handle: options.handle, op: previous ? "replace" : "add", role: options.role, start: "source-main", ...(finite ? { coverage: "path" } : {}), complete: skeleton.modelCovered && !(demand?.sourceGaps ?? skeleton.gaps).length && ![...unresolved.keys()].some(id => !questionDirected || demand?.reachableAnchorIds.includes(id)) && !excludedMeaning, fallthrough: interpretation.fallthroughOutcome === "unknown" ? "unresolved" : interpretation.fallthroughOutcome ?? "unresolved", parameters: skeleton.anchors.filter(a => a.kind === "parameter" && a.name).map(a => ({ name: a.name!, type: questionDirected && callableParameterNames.has(a.name!) ? "value" : bindingType(annotations.get(a.id)) })), blocks: [] }
   const bind = (a: SourceAnchor): Step => ({ kind: "bind", name: `bind-${a.id}`, bindingName: objectName(a.id)!, claim: annotations.get(a.id)?.explanation ?? "Source assignment fact", type: a.literalKnown ? "value" : bindingType(annotations.get(a.id)), ...(a.literalKnown ? { value: a.literalValue! } : annotations.get(a.id)?.aliasAnchorId ? { aliasOf: objectName(annotations.get(a.id)!.aliasAnchorId)! } : {}) })
   const prologue = skeleton.anchors.filter(a => a.kind === "assignment" && !allFlowIds.has(a.id) && annotations.has(a.id) && ["principal", "resource", "permission"].includes(annotations.get(a.id)!.role)).map(bind)
   for (const proof of methodProofs.values()) prologue.unshift({ kind: "assign-value", name: `method-choice-init-${proof.name}`, claim: "A source local method value is uncreated before its actual assignment", result: proof.name, value: { literal: sourceMethodChoiceSentinel(proof) } })
@@ -227,7 +227,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
               unit.complete = false
             }
             let position = 0
-            const captures = actual?.callableParameter ? [] : actual?.callableBinding && target?.returnedCallable ? [...target.returnedCallable.captures.map(c => ({ name: c.name })), { name: sourceCallableParameter(target.id) }] : target?.localCallable && !target.localCallable.gap ? target.localCallable.captures.map(c => ({ name: c.name })) : []
+            const captures = actual?.callableParameter || actual?.callableBinding ? [] : target?.localCallable && !target.localCallable.gap ? target.localCallable.captures.map(c => ({ name: c.name })) : []
             const parameters: NonNullable<typeof target>["parameters"] = [...target?.parameters ?? [], ...questionDirected ? captures : []]
             for (const [i, parameter] of parameters.entries()) {
               if (currentArguments) {
@@ -251,7 +251,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
             }
             const methodRead = questionDirected && actual && !actual.methodCapture && target ? sourceDirectMethodRead(actual, target) : undefined
             const fieldMethodRead = questionDirected && actual && target ? actual.methodCapture ? { object: sourceMethodCaptureResult(actual.id), receiver: actual.methodCapture.receiver, targetId: target.id, targetSha256: target.sha256 } : actual.methodField ? { object: actual.expression, receiver: actual.methodField.receiver, targetId: target.id, targetSha256: target.sha256 } : undefined : undefined
-            destination.push({ kind: "call", name: `call-${a.id}${suffix}`, claim, symbol: a.call!.expression, ...(finite && a.call!.sourceCallId ? { sourceCallId: a.call!.sourceCallId } : {}), arguments: mapped, result: a.call!.resultBinding, ...objects, ...(target ? { pathHint: `${target.path}:${target.startLine}-${target.endLine}`, candidateId: target.id } : {}), ...(methodRead ? { methodRead } : {}), ...(fieldMethodRead ? { fieldMethodRead } : {}), ...(actual?.callableParameter && target ? { callableRead: { object: actual.expression, targetId: target.id, targetSha256: target.sha256 } } : {}) })
+            destination.push({ kind: "call", name: `call-${a.id}${suffix}`, claim, symbol: a.call!.expression, ...(finite && a.call!.sourceCallId ? { sourceCallId: a.call!.sourceCallId } : {}), arguments: mapped, result: a.call!.resultBinding, ...objects, ...(target ? { pathHint: `${target.path}:${target.startLine}-${target.endLine}`, candidateId: target.id } : {}), ...(methodRead ? { methodRead } : {}), ...(fieldMethodRead ? { fieldMethodRead } : {}), ...((actual?.callableParameter || actual?.callableBinding) && target ? { callableRead: { object: actual.expression, targetId: target.id, targetSha256: target.sha256 } } : {}) })
           }
           const proof = methodCalls.get(a.id)
           if (callableCalls.has(a.id) && finite) {
@@ -325,12 +325,6 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
         }
         const alias = methodAliases.get(a.id)
         if (alias) { block.steps.push({ kind: "assign-value", name: `assign-${a.id}`, claim, result: alias.name, value: { binding: `${alias.receiver}.${alias.method}` }, methodRead: { receiver: alias.receiver, method: alias.method } }); continue }
-        if (questionDirected && a.syntax === "source_callable_definition" && a.callableIdentity) {
-          const target = options.index?.symbols.find(s => s.id === a.callableIdentity!.sourceId), proof = target?.returnedCallable
-          if (proof && !proof.gap && proof.ownerId === skeleton.sourceId && proof.ownerSha256 === skeleton.source.sha256 && proof.ownerId === a.callableIdentity.ownerId && proof.ownerSha256 === a.callableIdentity.ownerSha256) block.steps.push({ kind: "bind", name: `callable-${a.id}`, bindingName: a.name, type: "value", claim: "Actual source local callable definition creates an ordinary object; its body is not executed" })
-          else { block.steps.push({ kind: "unresolved", name: `callable-${a.id}`, claim, reason: "source-callable-definition-unresolved" }); unit.complete = false }
-          continue
-        }
         if (questionDirected && a.fieldWrite) {
           if (annotation?.role === "effect") block.steps.push({ kind: "effect", name: `field-effect-${a.id}`, claim, operation: a.name, ...objects, mayRaise: true, ...(annotation.authorizedByAnchorIds ? { authorizedBy: annotation.authorizedByAnchorIds.map(id => `guard-${id}`) } : {}) })
           const value = sourceValue(a.valueExpression, undefined, a.valueAnchorId), source = value.binding as string

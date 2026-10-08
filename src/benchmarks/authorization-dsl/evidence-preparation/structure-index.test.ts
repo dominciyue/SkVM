@@ -672,6 +672,14 @@ test("class decorator helper work retains the selected public callable binding b
   expect(facts[0]!.bindingSources!.map(s => s.path)).toEqual(["package/bridge.py"])
 })
 
+for (const expression of ["check", "create(actor)"]) test(`a current factory result supplies a real callable parameter source: ${expression}`, async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: `def create(principal):\n    def guard(subject):\n        selected = principal\n        return subject\n    return guard\ndef consume(operation, subject):\n    operation(subject)\ndef entry(actor):\n${expression === "check" ? "    check = create(actor)\n" : ""}    consume(${expression}, actor)\n` }], { repository: "anonymous", sourceRef: "r" }), guard = index.symbols.find(s => s.name === "guard")!, consume = index.symbols.find(s => s.name === "consume")!, entry = index.symbols.find(s => s.name === "entry")!
+  expect(guard.valueCallable).toMatchObject({ name: "guard", captures: [{ name: "principal" }] })
+  expect(guard.valueCallable?.gap).toBeUndefined()
+  expect(index.relatedCalls(entry.id).find(c => c.expression === "consume")!.argumentFacts![0]!.callableValue).toMatchObject({ kind: "returned", targetId: guard.id, targetSha256: guard.sha256 })
+  expect(index.relatedCalls(consume.id)[0]!.callableParameter?.choices.map(c => c.targetId)).toEqual([guard.id])
+})
+
 const returnedSources = [{ path: "factory.py", content: "def create(principal):\n    def guard(flag=False):\n        selected = principal\n        raise Denied\n    return guard\n" }, { path: "app.py", content: "from factory import create\ndef entry(actor, decoy):\n    check = create(actor)\n    check()\n    write()\n" }]
 test("a returned callable uses the exact current factory result and stable capture environment", async () => {
   const index = await buildStructureIndex(returnedSources, { repository: "anonymous", sourceRef: "r" }), entry = index.symbols.find(s => s.name === "entry")!, guard = index.symbols.find(s => s.name === "guard")!, calls = index.relatedCalls(entry.id)
@@ -681,10 +689,16 @@ test("a returned callable uses the exact current factory result and stable captu
   expect((guard as any).returnedCallable.gap).toBeUndefined()
   expect(guard.localCallable!.gap).toBe("source-local-callable-escape-unmodeled")
 })
-for (const statement of ["    actor = decoy\n    check = create(actor)\n", "    check = create(actor)\n    check = replacement\n", "    if configured:\n        check = create(actor)\n", "    check = create(actor)\n    callback(check)\n"]) test(`a returned callable cannot borrow an unproved creation environment: ${statement.trim().split("\n").at(-1)}`, async () => {
+for (const statement of ["    check = create(actor)\n    check = replacement\n", "    if configured:\n        check = create(actor)\n"]) test(`a returned callable cannot borrow an unproved creation environment: ${statement.trim().split("\n").at(-1)}`, async () => {
   const index = await buildStructureIndex(returnedSources.map(s => s.path === "app.py" ? { ...s, content: "from factory import create\ndef entry(actor, decoy):\n" + statement + "    check()\n" } : s), { repository: "anonymous", sourceRef: "r" }), call = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "check")!
   expect(call.resolution).toBe("unresolved")
   expect(call.gap).toMatch(/^source-returned-callable-/)
+})
+for (const statement of ["    actor = decoy\n    check = create(actor)\n", "    check = create(actor)\n    callback(check)\n"]) test(`a returned object's source survives caller binding changes and argument reads: ${statement.trim().split("\n").at(-1)}`, async () => {
+  const index = await buildStructureIndex(returnedSources.map(s => s.path === "app.py" ? { ...s, content: "from factory import create\ndef entry(actor, decoy):\n" + statement + "    check()\n" } : s), { repository: "anonymous", sourceRef: "r" }), calls = index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id), call = calls.find(c => c.expression === "check")!
+  expect(call.resolution).toBe("resolved")
+  expect(call.callableBinding?.captures).toEqual([{ parameter: "principal", expression: "actor", literalKnown: false }])
+  if (statement.includes("callback")) expect(calls.find(c => c.expression === "callback")!.resolution).toBe("unresolved")
 })
 test("separate factory results retain separate actual captured values and callable instances", async () => {
   const index = await buildStructureIndex(returnedSources.map(s => s.path === "app.py" ? { ...s, content: "from factory import create\ndef entry(actor, decoy):\n    first = create(actor)\n    second = create(decoy)\n    first()\n    second()\n" } : s), { repository: "anonymous", sourceRef: "r" })

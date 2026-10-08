@@ -15,13 +15,13 @@ export interface StructureSymbol extends DiscoverySymbol {
     captures: Array<{ name: string; use: { startLine: number; endLine: number; startIndex: number; endIndex: number } }>;
     gap?: string;
   }
-  returnedCallable?: { schemaVersion: "source-returned-callable/v1"; ownerId: string; ownerSha256: string; captures: NonNullable<StructureSymbol["localCallable"]>["captures"]; gap?: string }
+  returnedCallable?: { schemaVersion: "source-returned-callable/v1"; ownerId: string; ownerSha256: string; captures: NonNullable<StructureSymbol["localCallable"]>["captures"]; returnAnchorId?: string; gap?: string }
   valueCallable?: StructureCallableDefinition;
 }
 export interface StructureBindingSource { path: string; sha256: string; startLine: number; endLine: number; name: string; target: string }
 export interface StructureCallableBinding {
   schemaVersion: "source-returned-callable/v1"; name: string; targetId: string; factoryId: string; factorySha256: string; creationCallId: string;
-  source: { path: string; sha256: string; startLine: number; endLine: number };
+  source: StructureMethodBinding["source"]; controls: StructureMethodControl[]; order: StructureMethodStore["order"]; callControls?: StructureMethodControl[];
   captures: Array<{ parameter: string; expression: string; literalKnown: boolean; literalValue?: FiniteValue }>;
 }
 export interface StructureMethodBinding {
@@ -49,8 +49,8 @@ export interface StructureCallableDefinition {
   captures: NonNullable<StructureSymbol["localCallable"]>["captures"]; source: StructureMethodBinding["source"]; controls: StructureMethodControl[]; order: StructureMethodStore["order"]; gap?: string;
 }
 export interface StructureCallableValue {
-  schemaVersion: "source-callable-value/v1"; kind: "module" | "local"; expression: string; targetId: string; targetSha256: string;
-  source: StructureMethodBinding["source"]; controls: StructureMethodControl[]; order: StructureMethodStore["order"]; evaluationOrder: StructureMethodStore["order"]; definition?: StructureCallableDefinition; bindingSources?: StructureBindingSource[];
+  schemaVersion: "source-callable-value/v1"; kind: "module" | "local" | "returned"; expression: string; targetId: string; targetSha256: string;
+  source: StructureMethodBinding["source"]; controls: StructureMethodControl[]; order: StructureMethodStore["order"]; evaluationOrder: StructureMethodStore["order"]; definition?: StructureCallableDefinition; creation?: StructureCallableBinding; bindingSources?: StructureBindingSource[];
 }
 export interface StructureCallableInput {
   targetId: string; targetSha256: string;
@@ -125,7 +125,7 @@ export interface StructureFieldStore {
   controls?: StructureMethodControl[];
   order?: StructureMethodStore["order"];
 }
-interface FileScope { path: string; sha256: string; parsePartial: boolean; module: string; language: "python" | "go"; aliases: Record<string, string>; moduleAliases: Record<string, string>; moduleAliasSources: Record<string, StructureBindingSource>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; argumentSources?: StructureMethodBinding["source"][]; sourceOrder?: StructureMethodStore["order"]; calleeEvents?: string[][]; argumentEvents?: string[][][]; reboundNames: string[]; localNames: string[]; groupPaths: string[]; registrationContext: StructureRequestMiddleware["registrationContext"]; methodAlias?: MethodAliasFact; methodChoices?: MethodChoiceFact; methodLookup?: MethodLookupFact; fieldControls?: StructureMethodControl[]; methodCapture?: Omit<StructureMethodCapture, "schemaVersion" | "receiver" | "receiverClass" | "method" | "targetId" | "targetSha256">; callableResult?: { name: string; stable: boolean; stableParameters: string[] } }>; fieldStores: Array<Omit<StructureFieldStore, "model" | "functionCandidateIds" | "sources" | "bindingSources" | "gap"> & { localNames: string[] }>; routerAliases: Array<{ name: string; value: string; ownerId?: string; localNames: string[]; startLine: number; endLine: number }>; moduleAssignments: Record<string, number>; moduleAttributeWrites: string[]; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean; requestOptionsUnmodeled: boolean; startLine: number; endLine: number }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; dependencies: Array<{ constructor: string; expression: string; sourceCallId: string; parameter?: string }>; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string; requestOptionsUnmodeled: boolean }> }
+interface FileScope { path: string; sha256: string; parsePartial: boolean; module: string; language: "python" | "go"; aliases: Record<string, string>; moduleAliases: Record<string, string>; moduleAliasSources: Record<string, StructureBindingSource>; symbols: StructureSymbol[]; rawCalls: Array<{ call: StructureCall; types: Record<string, string>; argumentSources?: StructureMethodBinding["source"][]; sourceOrder?: StructureMethodStore["order"]; callableOrder?: StructureMethodStore["order"]; calleeEvents?: string[][]; argumentEvents?: string[][][]; reboundNames: string[]; localNames: string[]; groupPaths: string[]; registrationContext: StructureRequestMiddleware["registrationContext"]; methodAlias?: MethodAliasFact; methodChoices?: MethodChoiceFact; methodLookup?: MethodLookupFact; fieldControls?: StructureMethodControl[]; methodCapture?: Omit<StructureMethodCapture, "schemaVersion" | "receiver" | "receiverClass" | "method" | "targetId" | "targetSha256">; callableResult?: { name: string; stable: boolean } }>; fieldStores: Array<Omit<StructureFieldStore, "model" | "functionCandidateIds" | "sources" | "bindingSources" | "gap"> & { localNames: string[] }>; routerAliases: Array<{ name: string; value: string; ownerId?: string; localNames: string[]; startLine: number; endLine: number }>; moduleAssignments: Record<string, number>; moduleAttributeWrites: string[]; constants: Record<string, string>; routers: Array<{ name: string; constructor: string; prefix: string; repeated: boolean; requestOptionsUnmodeled: boolean; startLine: number; endLine: number }>; decorators: Array<{ callId: string; handlerId: string; receiver: string; verb: string; path: string; middleware: string[]; dependencies: Array<{ constructor: string; expression: string; sourceCallId: string; parameter?: string }>; wrapped: boolean }>; includes: Array<{ callId: string; receiver: string; child: string; prefix: string; requestOptionsUnmodeled: boolean }> }
 const hash = (v: unknown) => createHash("sha256").update(typeof v === "string" ? v : JSON.stringify(v)).digest("hex")
 let initialized: Promise<Map<string, Language>> | undefined
 function languages() {
@@ -220,7 +220,7 @@ function sourceArgumentValue(value: Node, symbolId: string, callId: (node: Node)
   if (!left || !right) return
   return { schemaVersion: "source-argument-value/v1", anchorId: sourceSyntaxAnchorId(symbolId, value.startIndex, value.endIndex, "control", result), result, operator: operator as "and" | "or", left: left.value, right: right.value, ...(left.callId ? { leftCallId: left.callId } : {}), ...(right.callId ? { rightCallId: right.callId } : {}) }
 }
-function sourceStoreOrder(node: Node, symbolId: string, callId: (node: Node) => string): StructureMethodStore["order"] {
+function sourceStoreOrder(node: Node, symbolId: string, callId: (node: Node) => string, localAssignments = false): StructureMethodStore["order"] {
   let statement = node
   while (statement.parent && statement.parent.type !== "block") statement = statement.parent
   const siblings = children(statement.parent), position = siblings.findIndex(s => s.id === statement.id)
@@ -236,7 +236,8 @@ function sourceStoreOrder(node: Node, symbolId: string, callId: (node: Node) => 
     if (node.type === "with_statement") return [[`with-${anchor("control")}`]]
     if (node.type === "assignment") {
       const target = field(node, "left"), isField = target?.type === "attribute", values = expressionEvents(field(node, "right"), isField ? `field-result-${hash([symbolId, node.startIndex]).slice(0, 16)}` : target?.text)
-      return [...values, ...isField ? [[`field-${anchor("assignment", target!.text)}`]] : []]
+      const right = field(node, "right"), local = localAssignments && target?.type === "identifier" && right?.type !== "call" && !["and", "or"].includes(field(right ?? node, "operator")?.text ?? "")
+      return [...values, ...isField ? [[`field-${anchor("assignment", target!.text)}`]] : local ? [[`assign-${anchor("assignment", target!.text)}`, `bind-${anchor("assignment", target!.text)}`]] : []]
     }
     return statement.type === "expression_statement" ? expressionEvents(node) : []
   }
@@ -412,8 +413,9 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
             : descendants(body, ["function_definition", "class_definition", "lambda"]).length ? "source-returned-callable-nested-scope-unmodeled"
             : owner.attributes.callableAsync || owner.attributes.bindingWrapped || owner.boundary !== "complete" || descendants(ownerBody, ["yield"]).some(i => owned(i, parent!)) ? "source-returned-callable-factory-unmodeled"
             : returns.length !== 1 || returns[0]!.id !== last?.id || children(last!)[0]?.text !== symbol.name ? "source-returned-callable-return-unmodeled"
-            : references.some(i => !owned(i, parent!) || i.parent?.id !== last?.id) ? "source-returned-callable-escape-unmodeled" : undefined
-          symbol.returnedCallable = { schemaVersion: "source-returned-callable/v1", ownerId: owner.id, ownerSha256: owner.sha256, captures: structuredClone(captures), ...(returnedGap ? { gap: returnedGap } : {}) }
+            : references.some(i => !owned(i, parent!) || !(i.parent?.id === last?.id || valueUse(i) || i.parent?.type === "call" && field(i.parent, "function")?.id === i.id)) ? "source-returned-callable-escape-unmodeled" : undefined
+          symbol.returnedCallable = { schemaVersion: "source-returned-callable/v1", ownerId: owner.id, ownerSha256: owner.sha256, captures: structuredClone(captures), ...(last?.type === "return_statement" ? { returnAnchorId: sourceSyntaxAnchorId(owner.id, last.startIndex, last.endIndex, "return") } : {}), ...(returnedGap ? { gap: returnedGap } : {}) }
+          if (!returnedGap) symbol.valueCallable = { schemaVersion: "source-callable-definition/v1", ownerId: owner.id, ownerSha256: owner.sha256, name: symbol.name, anchorId: sourceSyntaxAnchorId(owner.id, n.startIndex, n.endIndex, "assignment", symbol.name), captures: structuredClone(captures), source: { path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, startIndex: n.startIndex, endIndex: n.endIndex }, controls: [], order: sourceStoreOrder(n, owner.id, call => `call-${hash([sourceIdentity, file.path, sha256, call.startIndex]).slice(0, 24)}`) }
         }
       }
       const moduleAttributeWrites: string[] = [], routerAliases: FileScope["routerAliases"] = [], fieldStores: FileScope["fieldStores"] = []
@@ -536,12 +538,11 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         if (language === "python" && symbol?.kind === "function" && resultNames.length === 1 && assignment) {
           const name = resultNames[0]!, body = field(owner!, "body"), declaration = assignment.parent?.type === "expression_statement" ? assignment.parent : assignment
           const references = body ? descendants(body, ["identifier"]).filter(i => i.text === name && i.id !== field(assignment!, "left")?.id && !(i.parent?.type === "attribute" && field(i.parent, "attribute")?.id === i.id) && !(i.parent?.type === "keyword_argument" && field(i.parent, "name")?.id === i.id)) : []
-          const direct = (i: Node) => { let p = i.parent; while (p && !["function_definition", "class_definition", "lambda"].includes(p.type)) p = p.parent; return p?.id === owner?.id && i.parent?.type === "call" && field(i.parent, "function")?.id === i.id }
+          const direct = (i: Node) => { let p = i.parent; while (p && !["function_definition", "class_definition", "lambda"].includes(p.type)) p = p.parent; return p?.id === owner?.id && (i.parent?.type === "call" && field(i.parent, "function")?.id === i.id || i.parent?.type === "argument_list" && i.parent.parent?.type === "call" || i.parent?.type === "keyword_argument" && field(i.parent, "value")?.id === i.id && i.parent.parent?.parent?.type === "call") }
           const stable = !root.hasError && assignment.type === "assignment" && field(assignment, "left")?.type === "identifier" && field(assignment, "right")?.id === n.id && declaration.parent?.id === body?.id && !symbol.parameters.some(p => p.name === name) && localWrites.get(symbol.id)?.get(name) === 1 && references.every(direct)
-          const stableParameters = symbol.parameters.filter(p => !localWrites.get(symbol.id)?.has(p.name) && !body?.descendantsOfType("match_statement").length && !descendants(body!, ["nonlocal_statement"]).some(s => children(s).some(c => c.text === p.name))).map(p => p.name)
-          callableResult = { name, stable, stableParameters }
+          callableResult = { name, stable }
         }
-        rawCalls.push({ types, ...(language === "python" && symbol?.kind === "function" ? { sourceOrder: sourceStoreOrder(n, symbol.id, callId), calleeEvents: sourceExpressionEvents(field(n, "function"), symbol.id, callId), argumentEvents: children(field(n, "arguments")).map(a => sourceExpressionEvents(a.type === "keyword_argument" ? field(a, "value") : a, symbol.id, callId)) } : {}), argumentSources: children(field(n, "arguments")).map(a => { const v = a.type === "keyword_argument" ? field(a, "value")! : a; return { path: file.path, sha256, startLine: v.startPosition.row + 1, endLine: v.endPosition.row + 1, startIndex: v.startIndex, endIndex: v.endIndex } }), reboundNames: [...localWrites.get(symbol?.id ?? "")?.keys() ?? [], ...globalNames.get(symbol?.id ?? "") ?? []], ...(methodCapture ? { methodCapture } : {}), ...(language === "python" && symbol?.kind === "function" ? { fieldControls: sourceControlPath(n, field(owner!, "body")!, symbol.id) } : {}), localNames: language === "python" && symbol?.kind === "function" ? [...new Set([...symbol.parameters.map(p => p.name), ...localNames.get(symbol.id) ?? [], ...lexicalNames.get(symbol.id) ?? []])] : [], groupPaths, registrationContext, ...(methodAlias ? { methodAlias } : {}), ...(methodChoices ? { methodChoices } : {}), ...(methodLookup ? { methodLookup } : {}), ...(callableResult ? { callableResult } : {}), call: { id: `call-${hash([sourceIdentity, file.path, sha256, n.startIndex]).slice(0, 24)}`, ...(symbol ? { ownerId: symbol.id } : {}), path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, startIndex: n.startIndex, endIndex: n.endIndex, expression, ...(expression.includes(".") ? { receiver: expression.slice(0, expression.lastIndexOf(".")) } : {}), arguments: args, ...(argumentFacts ? { argumentFacts } : {}), candidateIds: [], resolution: "unresolved", basis: [], resultNames, syntaxRole } })
+        rawCalls.push({ types, ...(language === "python" && symbol?.kind === "function" ? { sourceOrder: sourceStoreOrder(n, symbol.id, callId), callableOrder: sourceStoreOrder(n, symbol.id, callId, true), calleeEvents: sourceExpressionEvents(field(n, "function"), symbol.id, callId), argumentEvents: children(field(n, "arguments")).map(a => sourceExpressionEvents(a.type === "keyword_argument" ? field(a, "value") : a, symbol.id, callId)) } : {}), argumentSources: children(field(n, "arguments")).map(a => { const v = a.type === "keyword_argument" ? field(a, "value")! : a; return { path: file.path, sha256, startLine: v.startPosition.row + 1, endLine: v.endPosition.row + 1, startIndex: v.startIndex, endIndex: v.endIndex } }), reboundNames: [...localWrites.get(symbol?.id ?? "")?.keys() ?? [], ...globalNames.get(symbol?.id ?? "") ?? []], ...(methodCapture ? { methodCapture } : {}), ...(language === "python" && symbol?.kind === "function" ? { fieldControls: sourceControlPath(n, field(owner!, "body")!, symbol.id) } : {}), localNames: language === "python" && symbol?.kind === "function" ? [...new Set([...symbol.parameters.map(p => p.name), ...localNames.get(symbol.id) ?? [], ...lexicalNames.get(symbol.id) ?? []])] : [], groupPaths, registrationContext, ...(methodAlias ? { methodAlias } : {}), ...(methodChoices ? { methodChoices } : {}), ...(methodLookup ? { methodLookup } : {}), ...(callableResult ? { callableResult } : {}), call: { id: `call-${hash([sourceIdentity, file.path, sha256, n.startIndex]).slice(0, 24)}`, ...(symbol ? { ownerId: symbol.id } : {}), path: file.path, sha256, startLine: n.startPosition.row + 1, endLine: n.endPosition.row + 1, startIndex: n.startIndex, endIndex: n.endIndex, expression, ...(expression.includes(".") ? { receiver: expression.slice(0, expression.lastIndexOf(".")) } : {}), arguments: args, ...(argumentFacts ? { argumentFacts } : {}), candidateIds: [], resolution: "unresolved", basis: [], resultNames, syntaxRole } })
       }
       const constants: Record<string, string> = {}, routers: FileScope["routers"] = [], decorators: FileScope["decorators"] = [], includes: FileScope["includes"] = []
       if (language === "python") {
@@ -698,14 +699,21 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     const exact = moduleInstances.filter(v => v.name === name), candidates = exact.length ? exact : moduleInstances.filter(v => v.name.endsWith(`.${name}`))
     return candidates.length === 1 ? candidates[0] : undefined
   }
-  const returnedInstances = new Map<string, { targetId: string; creationEndLine: number; binding?: StructureCallableBinding; bindingSources: StructureBindingSource[]; gap?: string }>()
+  const returnedInstances = new Map<string, { targetId: string; binding?: StructureCallableBinding; bindingSources: StructureBindingSource[]; gap?: string }>()
   const methodStoreCache = new Map<string, StructureMethodStore[]>()
   const callableInputs = new Map<string, StructureCallableInput[]>(), callableInputGaps = new Map<string, string>()
   const callableInputKey = (owner: StructureSymbol, name: string) => owner.parameters.some(p => p.name === name) ? `${owner.id}:${name}` : owner.valueCallable?.captures.some(c => c.name === name) ? `${owner.valueCallable.ownerId}:${name}` : undefined
   const callableValue = (expression: string, owner: StructureSymbol | undefined, scope: FileScope, raw: FileScope["rawCalls"][number], position: number): StructureCallableValue | undefined => {
     const source = raw.argumentSources?.[position]
-    if (!owner || !source || !raw.fieldControls || !raw.sourceOrder || !/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(expression)) return
+    if (!owner || !source || !raw.fieldControls || !raw.sourceOrder) return
     const placement = { controls: raw.fieldControls, order: raw.sourceOrder, evaluationOrder: { before: [...raw.calleeEvents ?? [], ...raw.argumentEvents?.slice(0, position).flat() ?? []], after: [...raw.argumentEvents?.slice(position + 1).flat() ?? [], [`call-${sourceSyntaxAnchorId(owner.id, raw.call.startIndex!, raw.call.endIndex!, "call")}`, `context-${sourceSyntaxAnchorId(owner.id, raw.call.startIndex!, raw.call.endIndex!, "call")}`, `effect-${sourceSyntaxAnchorId(owner.id, raw.call.startIndex!, raw.call.endIndex!, "call")}`, `function-call-${sourceSyntaxAnchorId(owner.id, raw.call.startIndex!, raw.call.endIndex!, "call")}`]] } }
+    const childId = raw.call.argumentFacts?.[position]?.sourceCallId, child = childId && scope.rawCalls.find(r => r.call.id === childId && r.call.ownerId === owner.id && r.call.startIndex === source.startIndex && r.call.endIndex === source.endIndex)
+    const returned = child ? returnedCreation(child, scope, resolveCall(child, scope), child.call.resultNames[0] ?? `result-${hash([owner.id, child.call.startIndex]).slice(0, 16)}`) : returnedInstances.get(`${owner.id}:${expression}`)
+    if (returned?.binding && (child || returned.binding.source.endIndex < source.startIndex)) {
+      const target = symbols.find(s => s.id === returned.targetId && s.valueCallable && !s.valueCallable.gap)
+      if (target) return { schemaVersion: "source-callable-value/v1", kind: "returned", expression, targetId: target.id, targetSha256: target.sha256, source, ...placement, definition: structuredClone(target.valueCallable), creation: structuredClone(returned.binding), ...(returned.bindingSources.length ? { bindingSources: structuredClone(returned.bindingSources) } : {}) }
+    }
+    if (!/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(expression)) return
     const local = scope.symbols.filter(s => s.valueCallable?.ownerId === owner.id && s.name === expression), definition = local.length === 1 ? local[0]!.valueCallable : undefined
     if (definition && !definition.gap && definition.source.endIndex < source.startIndex) return { schemaVersion: "source-callable-value/v1", kind: "local", expression, targetId: local[0]!.id, targetSha256: local[0]!.sha256, source, ...placement, definition: structuredClone(definition) }
     if (owner.parameters.some(p => p.name === expression.split(".")[0]) || scope.rawCalls.some(r => r.call.ownerId === owner.id && r.localNames.includes(expression.split(".")[0]!)) || !stableSourceBinding(expression, scope)) return
@@ -739,7 +747,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     let candidates: StructureSymbol[] = [], basis: string[] = []
     const returned = !parts.length && owner && returnedInstances.get(`${owner.id}:${name}`)
     if (returned) {
-      if (returned.binding && call.startLine > returned.creationEndLine) { candidates = symbols.filter(s => s.id === returned.targetId); call.callableBinding = structuredClone(returned.binding) }
+      if (returned.binding && call.startIndex! > returned.binding.source.endIndex && raw.fieldControls) { candidates = symbols.filter(s => s.id === returned.targetId); call.callableBinding = { ...structuredClone(returned.binding), callControls: raw.fieldControls } }
       else call.gap = returned.gap ?? "source-returned-callable-before-creation"
       if (returned.bindingSources.length) call.bindingSources = structuredClone(returned.bindingSources)
       basis = ["AST unique current factory result, subsequent direct invocation and stable captured parameter environment"]
@@ -869,6 +877,20 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     if (!candidates.length) call.gap ??= "receiver/import/value binding unavailable; unique lexical name is not a call edge"
     return call
   }
+  function returnedCreation(raw: FileScope["rawCalls"][number], scope: FileScope, resolved: StructureCall, name: string) {
+    const target = resolved.candidateIds.length === 1 ? symbols.find(s => s.id === resolved.candidateIds[0]) : undefined, returnedTargets = target ? symbols.filter(s => s.returnedCallable?.ownerId === target.id) : [], callable = returnedTargets.length === 1 ? returnedTargets[0] : undefined, proof = callable?.returnedCallable
+    if (!target || !returnedTargets.length) return
+    const arguments_ = sourceArgumentBindings({ symbols, relatedCalls: (id, receiver) => scopes.flatMap(s => s.rawCalls.filter(r => r.call.ownerId === id).map(r => resolveCall(r, s, receiver))) }, resolved, target), captures = proof?.captures.map(c => arguments_.bindings.find(b => b.parameter === c.name)) ?? []
+    const owner = symbols.find(s => s.id === raw.call.ownerId)
+    const gap = !callable || !proof ? "source-returned-callable-return-ambiguous" : proof.gap
+      ?? (raw.callableResult && !raw.callableResult.stable ? "source-returned-callable-instance-binding-unresolved"
+        : !owner || owner.attributes.callableAsync || owner.attributes.callableGenerator || owner.attributes.bindingWrapped || !raw.fieldControls || !raw.callableOrder ? "source-returned-callable-creator-unmodeled"
+        : target.localCallable || resolved.gap || !stableSourceBinding(target.name, scopeFor(target)) || !stableSourceBinding(raw.call.expression, scope) ? "source-returned-callable-factory-binding-unresolved"
+        : arguments_.gap ? `source-returned-callable-${arguments_.gap}`
+        : captures.some(c => !c) ? "source-returned-callable-capture-value-unresolved" : undefined)
+    const binding: StructureCallableBinding | undefined = !gap && callable && proof ? { schemaVersion: "source-returned-callable/v1", name, targetId: callable.id, factoryId: target.id, factorySha256: target.sha256, creationCallId: raw.call.id, source: { path: raw.call.path, sha256: raw.call.sha256, startLine: raw.call.startLine, endLine: raw.call.endLine, startIndex: raw.call.startIndex!, endIndex: raw.call.endIndex! }, controls: raw.fieldControls!, order: raw.callableOrder!, captures: captures.map(c => ({ parameter: c!.parameter, expression: c!.expression, literalKnown: c!.literalKnown, ...(c!.literalKnown ? { literalValue: c!.literalValue! } : {}) })) } : undefined
+    return { targetId: callable?.id ?? "", bindingSources: resolved.bindingSources ?? [], ...(binding ? { binding } : {}), ...(gap ? { gap } : {}) }
+  }
   // Declared return types and explicit constructor assignments are bounded
   // source bindings. Dynamic/unannotated returns do not inherit a unique name.
   for (const scope of scopes) {
@@ -876,19 +898,8 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     for (const raw of scope.rawCalls) {
       const key = raw.call.ownerId ?? "$module", known = locals.get(key) ?? {}; Object.assign(raw.types, known)
       const resolved = resolveCall(raw, scope), target = resolved.candidateIds.length === 1 ? symbols.find(s => s.id === resolved.candidateIds[0]) : undefined
-      const returnedTargets = target ? symbols.filter(s => s.returnedCallable?.ownerId === target.id) : []
-      if (raw.callableResult && target && returnedTargets.length) {
-        const callable = returnedTargets.length === 1 ? returnedTargets[0] : undefined, proof = callable?.returnedCallable
-        const arguments_ = sourceArgumentBindings({ symbols, relatedCalls: (id, receiver) => scopes.flatMap(s => s.rawCalls.filter(r => r.call.ownerId === id).map(r => resolveCall(r, s, receiver))) }, resolved, target)
-        const captures = proof?.captures.map(c => arguments_.bindings.find(b => b.parameter === c.name)) ?? []
-        const gap = !callable || !proof ? "source-returned-callable-return-ambiguous" : proof.gap
-          ?? (!raw.callableResult.stable ? "source-returned-callable-instance-binding-unresolved"
-            : target.localCallable || !stableSourceBinding(target.name, scopeFor(target)) || !stableSourceBinding(raw.call.expression, scope) ? "source-returned-callable-factory-binding-unresolved"
-            : arguments_.gap ? `source-returned-callable-${arguments_.gap}`
-            : captures.some(c => !c || !c.literalKnown && !raw.callableResult!.stableParameters.includes(c.expression)) ? "source-returned-callable-capture-value-unresolved" : undefined)
-        const binding: StructureCallableBinding | undefined = !gap && callable && proof ? { schemaVersion: "source-returned-callable/v1", name: raw.callableResult.name, targetId: callable.id, factoryId: target.id, factorySha256: target.sha256, creationCallId: raw.call.id, source: { path: raw.call.path, sha256: raw.call.sha256, startLine: raw.call.startLine, endLine: raw.call.endLine }, captures: captures.map(c => ({ parameter: c!.parameter, expression: c!.expression, literalKnown: c!.literalKnown, ...(c!.literalKnown ? { literalValue: c!.literalValue! } : {}) })) } : undefined
-        returnedInstances.set(`${key}:${raw.callableResult.name}`, { targetId: callable?.id ?? "", creationEndLine: raw.call.endLine, bindingSources: resolved.bindingSources ?? [], ...(binding ? { binding } : {}), ...(gap ? { gap } : {}) })
-      }
+      const creation = raw.callableResult && returnedCreation(raw, scope, resolved, raw.callableResult.name)
+      if (creation) returnedInstances.set(`${key}:${raw.callableResult!.name}`, creation)
       const returned = target?.kind === "class" ? target.qualifiedName : target?.returns.length === 1 && !/[(),]/.test(target.returns[0]!) ? qualified(target.returns[0]!, scopeFor(target)) : undefined
       for (const name of raw.call.resultNames.filter(name => /^[A-Za-z_]\w*$/.test(name))) if (returned) known[name] = returned; else delete known[name]
       locals.set(key, known)
@@ -1323,7 +1334,7 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
       return choices ? [{ name, choices: structuredClone(choices), ...(callableInputGaps.get(key!) ? { gap: callableInputGaps.get(key!) } : {}) }] : []
     }) : []
   }
-  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v23"
+  const parserVersion = "@vscode/tree-sitter-wasm@0.3.1", relationshipVersion = "source-bindings/v24"
   const withSymbolSyntax = <T>(symbolId: string, visit: (root: Node, symbol: StructureSymbol) => T): Promise<T> => {
     const symbol = symbols.find(s => s.id === symbolId), file = symbol && files.find(f => f.path === symbol.path)
     if (!symbol || !file || hash(file.content) !== symbol.sha256) throw new Error("structure-source-missing")

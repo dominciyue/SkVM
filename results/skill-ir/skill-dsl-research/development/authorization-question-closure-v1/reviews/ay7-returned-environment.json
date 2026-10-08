@@ -1,0 +1,105 @@
+{
+  "schemaVersion": "authorization-returned-environment-review/v1",
+  "date": "2026-10-08",
+  "relationshipVersion": "source-bindings/v24",
+  "baseline": "3bb05b53",
+  "scope": "Unify current returned source function creation and actual captured environments; engineering only.",
+  "independentReviews": [
+    {
+      "agent": "ay_returned_environment_projection_review_v24",
+      "readOnly": true,
+      "tests": {
+        "passed": 228,
+        "failed": 0,
+        "assertions": 2024,
+        "files": 4
+      },
+      "finding": "No reproducible new defect within reviewed creation, environment, return, control, order and projection checks.",
+      "limitations": [
+        "Existing-test-centered review; no exhaustive compiler audit.",
+        "An inapplicable npx vitest invocation was corrected to Bun; any associated external network/development cost is unknown."
+      ]
+    },
+    {
+      "agent": "ay_returned_environment_sources_review_v24",
+      "readOnly": true,
+      "tests": {
+        "passed": 215,
+        "failed": 0,
+        "assertions": 503
+      },
+      "finding": "Conditional inline create(...) supplied a resolved returned-function candidate.",
+      "mainDisposition": "Not an implementation defect under the current source-control contract: an inline candidate retains its exact original branch/try path, whereas a conditional assigned result still has an unmodeled binding. Main added source-to-native skipped-branch and relocated-creation counterexamples; no global dominance gate was added.",
+      "otherCoverage": [
+        "public imports/rebinding",
+        "same-name decoys",
+        "factory SHA",
+        "generator/async/wrapped",
+        "nested/default/cell boundaries",
+        "possible input propagation",
+        "function attribute writes"
+      ]
+    }
+  ],
+  "mainVerification": {
+    "addedTests": 13,
+    "focused": {
+      "passed": 584,
+      "failed": 0,
+      "assertions": 3272,
+      "files": 11
+    },
+    "joint": {
+      "passed": 1423,
+      "failed": 0,
+      "skipped": 1,
+      "assertions": 9079,
+      "files": 115
+    },
+    "mainTypes": "passed",
+    "ayTypes": "passed",
+    "redLogs": [
+      "returned-environment-red.log",
+      "returned-environment-rebinding-order-corrected-red.log"
+    ],
+    "redEvidence": "Initial eight regressions failed on missing actual returned value/proof. Corrected order regression retained the caller rebinding writer and failed with the old order fact; using callableOrder rejects moving creation after that writer.",
+    "discardedFixtureEvidence": "The first rebinding-order red fixture pruned its dead scalar writer and lacked a writer-presence assertion; it is not evidence of the implementation defect. Main corrected the fixture before the decisive red/green check.",
+    "controlCounterexamples": "Original if/try creation is adopted only in its source region; relocation removes consume adoption. A literal-false inline branch executes no returned callable and reaches the later effect, retaining the existing unknown operation-exception diagnostic."
+  },
+  "probe": {
+    "path": "verification/paperless-returned-environment-replay.json",
+    "sha256": "11eb95492b4f5142f7c0b8ac39cef5621ee829cfbd4c304ea70bcb54112f7a01",
+    "frozenFilesVerified": 94,
+    "supplementalFiles": 6,
+    "selectedBodies": 12,
+    "returnedDefinitions": 24,
+    "stableReturnedDefinitions": 13,
+    "actualReturnedDefinitions": 13,
+    "selectedActualDefinitions": 1,
+    "returnedCalls": 0,
+    "returnedArguments": 0,
+    "selectedReturnedCalls": 0,
+    "selectedReturnedArguments": 0,
+    "materialUses": 0,
+    "modelReadEvidence": false
+  },
+  "sourceSignature": "Actual returned/callback calls use original source parameters; captured parameters are bound from the actual function object, with no caller capture reconstruction or synthetic instance argument.",
+  "remaining": [
+    "mutable closure cells and arbitrary nested scopes/default actions",
+    "actual class/method decorator transformations",
+    "full DRF/ASGI request composition",
+    "official full-use experiments and preregistered measured benefit"
+  ],
+  "costs": {
+    "newExperimentModelExecutions": 0,
+    "newTargetExecutions": 0,
+    "probeNetworkRequests": 0,
+    "developerAndScoutTokens": null,
+    "otherNetworkRequests": null,
+    "usd": null,
+    "humanTime": null
+  },
+  "originalInputsAndAllowlistsUnmodified": true,
+  "originalAttemptPromoted": false,
+  "researchGoalAchieved": false
+}

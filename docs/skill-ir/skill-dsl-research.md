@@ -2117,6 +2117,10 @@ AY7函数值与环境小步（2026-10-08）：v23让当前普通module引用和�
 46新增用例，新鲜571focused/3018断言、联合1410pass/1平台skip/8825断言/115文件/20.08s与主/AY类型通过，见[函数值核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-callable-values.json)。[最终真实源码probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-callable-values-final-replay.json)验证94冻结及6补充文件，12body包含6原request候选及6实际schema/decorator/wrapper body；索引全域12模块引用/1局部引用/2稳定定义/1参数调用来源合格，所选body合格参数调用及实际采用0。SHA `51dc754caa97159ccdd15b612e60637f606d6cce3bfa6da1f73abb678fe0603c`；初始/reviewed/final报告与旧input/allowlist/答保留。模型read/application annotation/use与实验模型/目标/探针网络新增0，开发/探子token、USD、真人时间unknown。class/wrapper变换、完整请求、官方复验和预登记质量/净收益继续，AY7未完成。
 
 
+AY7返回环境统一小步（2026-10-08）：v24移除v13的placeholder/implicit instance和caller capture重建，原factory定义创建实际sourceCallable，经唯一terminal return和原result/valueFrom传递；直接调用和普通/内联/转发参数从实际对象取得环境。caller局部重绑定不替换capture，factory可变cell/nested/default等边界保持。材料须保留原创建、return/result、if/try区域与严格顺序。主补creation挪过caller重绑定反例；初始fixture的writer被裁剪、证据无效，加入实际后续读取及writer存在断言后重新红绿，保留两份记录而不把无效fixture算实现缺陷。
+
+两只读核验分别运行228pass/2024断言和215pass/503断言。后一项报告条件内联创建被接受；主核对当前合同后保留这种有原控制路径的候选，以跳过分支及creation挪出if/try的完整来源反例确认没有提前执行或错误采用，未增加重复无条件门槛。13新增，新鲜584focused/3272断言、联合1423pass/1平台skip/9079断言/115文件/20.07s及主/AY类型通过，见[返回环境核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-returned-environment.json)。[真实来源probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-returned-environment-replay.json)核验94冻结及6补充文件、12body，24返回定义/13实际定义合格，所选合格1；actual returned calls/arguments、application annotation/material use仍0，机械窗口不是实验模型read。SHA `11eb95492b4f5142f7c0b8ac39cef5621ee829cfbd4c304ea70bcb54112f7a01`；旧input/allowlist/报告/答不变。实验模型/目标/探针网络新增0，探子npx等其它网络与开发/探子token、USD和真人时间unknown。继续实际class/wrapper变换、完整请求、官方实际复验和预登记质量/净收益，AY7未完成。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
