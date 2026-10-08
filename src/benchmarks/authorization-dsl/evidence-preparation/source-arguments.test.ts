@@ -77,6 +77,13 @@ test("local capture binding is implicit and retains the actual owner source", as
   expect(api.sourceArgumentBindings(index, { ...call, ownerId: target.id }, target).bindings).toEqual([])
   expect(api.sourceArgumentBindings(index, call, { ...target, localCallable: { ...target.localCallable!, captures: [{ ...target.localCallable!.captures[0]!, name: "different_actor" }] } }).bindings).toEqual([])
 })
+test("transitive implicit arguments retain the original capture owner rather than the relay owner", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "def create(flag):\n    def decorator(actor):\n        def guard(item):\n            return flag\n        guard(actor)\n        return actor\n    return decorator\n" }], { repository: "anonymous", sourceRef: "r" }), origin = index.symbols.find(s => s.name === "create")!, relay = index.symbols.find(s => s.name === "decorator")!, target = index.symbols.find(s => s.name === "guard")!, call = index.relatedCalls(relay.id).find(c => c.expression === "guard")!, bound = api.sourceArgumentBindings(index, call, target)
+  expect(bound.gap).toBeUndefined()
+  expect(bound.bindings.find((b: any) => b.parameter === "flag")).toEqual({ parameter: "flag", expression: "flag", literalKnown: false, captureOwnerId: origin.id })
+  const forged = structuredClone(target); forged.localCallable!.captures[0]!.binding!.ownerId = relay.id
+  expect(api.sourceArgumentBindings(index, call, forged).gap).toBe("source-arguments-local-callable-unresolved")
+})
 test("an implicit capture cannot be passed as a new Python keyword", async () => {
   const index = await buildStructureIndex([{ path: "app.py", content: "def entry(actor):\n    def guard():\n        return actor\n    guard(actor=actor)\n" }], { repository: "anonymous", sourceRef: "r" })
   const caller = index.symbols.find(s => s.name === "entry")!, target = index.symbols.find(s => s.name === "guard")!

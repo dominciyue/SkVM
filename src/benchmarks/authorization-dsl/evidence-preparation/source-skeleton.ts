@@ -129,7 +129,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     if (receiver) for (const p of descendants(receiver, ["parameter_declaration"])) for (const name of kids(p).filter(n => n.type === "identifier")) add(p, "parameter", { name: name.text })
     if (questionDirected && captureProof) for (const capture of captureProof.captures) {
       const use = descendants(fn, ["identifier"]).find(n => n.text === capture.name && n.startIndex === capture.use.startIndex && n.endIndex === capture.use.endIndex)
-      if (use) add(use, "parameter", { name: capture.name, syntax: "source_capture", capture: { ownerId: captureProof.ownerId, ownerSha256: captureProof.ownerSha256 } })
+      if (use) add(use, "parameter", { name: capture.name, syntax: "source_capture", capture: capture.binding ?? { ownerId: captureProof.ownerId, ownerSha256: captureProof.ownerSha256 } })
       else gap(fn, "skeleton-local-capture-unavailable", "The implicit capture must point to its current original source use.")
     }
     const stepsForCalls = (n: Node) => callsIn(n).map(c => ({ kind: "step" as const, anchorId: callAnchor(c).id }))

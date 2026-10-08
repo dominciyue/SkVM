@@ -13,6 +13,42 @@ import path from "node:path"
 const api = await import("./source-material-projection.ts").catch(() => ({} as any))
 const content = "def entry(actor):\n    return helper(actor)\ndef helper(actor):\n    return actor\ndef unrelated(actor):\n    return actor\n"
 const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect entry", premises: [] }, { id: "other", operationId: "op", intent: "scope", request: "Explain alternatives", premises: [] }] })
+
+for (const kind of ["class", "local", "callback", "deep"]) test(`returned decorator relays actual ancestor objects through an inner ${kind}`, async () => {
+  const callback = kind === "callback", nested = kind === "deep" ? "        def inner(item):\n            def guard(value):\n                if flag:\n                    raise Denied\n                return value\n            return guard(item)\n        inner(actor)\n" : kind === "local" ? "        def guard(item):\n            if flag:\n                raise Denied\n            return item\n        guard(actor)\n" : `        class Local:\n            def guard(item):\n${callback ? "                return operation(item)\n" : "                if flag:\n                    raise Denied\n                return item\n"}        Local.guard(actor)\n`
+  const content = `def entry(subject):\n    first = create(${callback ? "allow" : "False"})\n    second = create(${callback ? "deny" : "True"})\n    ${callback ? "operation" : "flag"} = False\n    if ${callback ? "operation" : "flag"}:\n        raise Denied\n    first(subject)\n    second(subject)\n    return True\ndef create(${callback ? "operation" : "flag"}):\n    def decorator(actor):\n${nested}        return actor\n    return decorator\n${callback ? "def allow(item):\n    return item\ndef deny(item):\n    raise Denied\n" : ""}`
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-transitive-capture-")); await writeFile(path.join(sourceRoot, "app.py"), content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, units: any[] = []
+  const decorator = index.symbols.find(s => s.name === "decorator")!, guard = index.symbols.find(s => s.name === "guard")!, parameter = callback ? "operation" : "flag"
+  expect(decorator.valueCallable?.gap).toBeUndefined(); expect(decorator.valueCallable?.captures.map(c => c.name)).toEqual([parameter])
+  for (const source of index.symbols.filter(s => s.kind === "function")) {
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id))!; expect(skeleton.gaps).toEqual([])
+    const annotations = skeleton.anchors.filter(a => ["parameter", "call", "return", "raise", "condition", "assignment"].includes(a.kind)).map(a => ({ anchorId: a.id, role: a.kind === "parameter" ? ["actor", "subject", "item", "value"].includes(a.name!) ? "principal" : "condition" : ["call", "condition"].includes(a.kind) ? "condition" : "context", explanation: "Anonymous stable ancestor parameter relay", ...(a.kind === "condition" ? { condition: { op: "eq", left: { binding: a.text }, right: { literal: true } } } : {}), ...(a.kind === "return" && source.name === "entry" ? { returnOutcome: "allow" } : {}), ...(a.kind === "raise" ? { failureKind: "authorization" } : {}) }))
+    const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index, propertyDirected: true, itemId: source.id, handle: source.id, questionId: "q", role: source.name === "entry" ? "entry" : "helper" })
+    expect(result.diagnostics).toEqual([]); units.push({ ...result.unit!, questionId: "q", evidenceIds: skeleton.evidenceIds, source: skeleton.source })
+  }
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect actual returned decorator environments", premises: [] }] })
+  const project = (adopted = units, current = index) => { const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" }); for (const u of adopted) store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }, { kind: "candidate-set", key: `relations:${u.source.id}:`, revision: sourceRelationRevision(index, u.source.id)! }], "test-authored"); return api.projectSourceMaterials(p, adopted, store.snapshot(), current, { questionDirected: true }) }
+  const projected = project(), lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true })
+  expect(units.find(u => u.role === "entry").blocks.flatMap((b: any) => b.steps).some((s: any) => s.result === parameter || s.bindingName === parameter)).toBe(true)
+  expect(projected.uses.filter((u: any) => u.kind === "call")).toHaveLength(callback ? 7 : kind === "deep" ? 6 : 5)
+  expect(lowered.diagnostics).toEqual([]); expect(lowered.delta.rules.filter(r => r.terminal).map(r => r.outcome)).toEqual(["deny"])
+  expect(lowered.delta.rules.filter(r => r.kind === "call" && r.sourceOrigin?.handle === guard.id)).toHaveLength(callback ? 2 : 0)
+  expect(lowered.delta.rules.filter(r => r.kind === "call" && r.sourceOrigin?.handle === decorator.id)).toHaveLength(2)
+  for (const mutation of ["relay-environment", "missing-relay-parameter", "inner-environment"]) {
+    if (["local", "deep"].includes(kind) && mutation === "inner-environment") continue
+    const changed = structuredClone(units), create = changed.find(u => u.source.id === index.symbols.find(s => s.name === "create")!.id), captured = create.blocks.flatMap((b: any) => b.steps).find((s: any) => s.sourceCallable), inner = changed.find(u => u.source.id === decorator.id)
+    if (mutation === "relay-environment") captured.sourceCallable.captures[0].object = "forged"
+    if (mutation === "missing-relay-parameter") inner.parameters = inner.parameters.filter((p: any) => p.name !== parameter)
+    if (mutation === "inner-environment") inner.blocks.flatMap((b: any) => b.steps).find((s: any) => s.sourceCallable).sourceCallable.captures[0].object = "actor"
+    const denied = lowerSemanticFlow(project(changed).units, { compositional: true, propertyDirected: true })
+    expect(denied.diagnostics.length).toBeGreaterThan(0)
+  }
+  expect(project(units, await buildStructureIndex([{ path: "app.py", content }, { path: "other.py", content: "def guard(item):\n    return item\n" }], { repository: "anonymous", sourceRef: "r" })).uses).toEqual(projected.uses)
+  expect(project(units, await buildStructureIndex([{ path: "app.py", content: content.replace(callback ? "return operation(item)" : "if flag:", callback ? "return item" : "if not flag:") }], { repository: "anonymous", sourceRef: "r" })).uses).toEqual([])
+})
+
 for (const mode of ["direct", "inherited", "override", "keyword", "explicit-self", "overwrite", "field-order", "try", "diamond"]) test(`local class namespace functions use actual captures and unbound class arguments: ${mode}`, async () => {
   const signature = mode === "explicit-self" ? "self, actor" : "actor", invocation = mode === "keyword" ? "actor=subject" : mode === "explicit-self" ? "Local, subject" : "subject"
   const method = `${mode === "field-order" ? "        guard = None\n" : ""}        def guard(${signature}):\n            if flag:\n                raise Denied\n            return actor\n`

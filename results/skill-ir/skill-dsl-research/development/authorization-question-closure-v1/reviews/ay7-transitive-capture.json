@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "authorization-transitive-capture-review/v1",
+  "date": "2026-10-08",
+  "baseline": "cc7052a2",
+  "relationshipVersion": "source-bindings/v28",
+  "scope": "Stable lexical ancestor parameter captures, original binding owner/SHA, relayed inner function/class method needs and actual returned function environments. Mutable cells, dynamic bases, local function object captures, super/class cells and full framework execution remain pending.",
+  "locatorReviews": [
+    { "agent": "ay_transitive_capture_locations_v28", "readOnly": true, "scope": "Current direct-owner capture, nested-scope, returned instance and callable input qualification locations." },
+    { "agent": "ay_capture_lowering_locations_v28", "readOnly": true, "scope": "Skeleton, compiler, binder, projection and native actual capture object chain." }
+  ],
+  "independentReviews": [
+    {
+      "agent": "ay_transitive_capture_source_review_v28",
+      "readOnly": true,
+      "tests": { "passed": 431, "failed": 0, "assertions": 3092, "files": 2 },
+      "finding": "No reproducible qualification or relay wiring issue in the inspected source/index/projection tests.",
+      "limitations": ["Existing-test-centered static/Bun review; no independent new fixture or target Python execution.", "No network/model call or exhaustive Python AST audit."]
+    },
+    {
+      "agent": "ay_transitive_capture_environment_review_v28",
+      "readOnly": true,
+      "tests": { "passed": 338, "failed": 0, "assertions": 825, "files": 3 },
+      "finding": "Static review identified sourceArgumentBindings.captureOwnerId still naming the immediate relay owner rather than the original capture binding owner.",
+      "mainAdjudication": "Accepted as a provenance metadata inconsistency. Main inspected all consumers: the compiler currently uses captureOwnerId only as a truthy implicit-argument marker, so the proposed caller-environment reconstruction risk was not demonstrated as a runtime defect. Existing end-to-end actual-object tests passed. A new precise owner assertion failed, then the binder was corrected to use capture.binding.ownerId with the legacy fallback.",
+      "limitations": ["No independent new fixture; the reported runtime risk was a static inference.", "The proposed minimal example omitted a required explicit argument; main used a valid guard(actor) fixture for the metadata regression.", "First test command lacked ./ and matched no files; corrected command produced the results above."]
+    }
+  ],
+  "mainVerification": {
+    "addedTests": 20,
+    "redHistory": [
+      { "log": "transitive-capture-red.log", "passed": 8, "failed": 5, "assertions": 24, "reason": "Ancestor parameter relay and proved nested ordinary class/local scope creation were absent." },
+      { "log": "transitive-capture-initial-green.log", "passed": 10, "failed": 3, "assertions": 61, "validDefectEvidence": false, "reason": "Caller rebinding writer was removed by property demand, so strict original creation order correctly prevented adoption. Trace confirmed the missing writer; fixture now includes an actual later if read and an explicit writer-presence assertion." },
+      { "log": "transitive-capture-corrected-green.log", "passed": 13, "failed": 0, "assertions": 87 },
+      { "log": "transitive-capture-shadow-red.log", "passed": 4, "failed": 2, "assertions": 92, "reason": "Class method ancestor parameter names were absent from lexicalNames and could borrow same-named module/import callables." },
+      { "log": "transitive-capture-owner-red.log", "passed": 0, "failed": 1, "assertions": 2, "reason": "Review-led precise assertion confirmed implicit argument captureOwnerId reported the relay owner rather than the binding origin." }
+    ],
+    "changedBoundaryFixtures": ["The old stable capture-outer rejection now uses a rebound ancestor parameter.", "The old blanket ordinary nested-child rejection now uses a dynamic default action."],
+    "intermediateFocused": { "passed": 427, "failed": 1, "assertions": 3084, "reason": "The historical blanket nested-child expectation was updated to the remaining dynamic-default boundary; no product regression." },
+    "beforeReviewRepair": { "focusedPassed": 700, "focusedAssertions": 4312, "jointPassed": 1539, "jointAssertions": 10119, "platformSkipped": 1, "mainTypes": "passed", "ayTypes": "passed" },
+    "focused": { "passed": 701, "failed": 0, "assertions": 4315, "files": 11, "durationMs": 8990 },
+    "joint": { "passed": 1540, "failed": 0, "skipped": 1, "assertions": 10122, "files": 115, "durationMs": 22320 },
+    "mainTypes": { "exitCode": 0, "durationMs": 42839 },
+    "ayTypes": { "exitCode": 0, "durationMs": 7034 },
+    "covered": [
+      "Returned decorator with an inner ordinary class method, local helper, deeper helper and function-valued ancestor parameter.",
+      "Two actual factory invocations preserve distinct environments; first normal and second rejecting calls both execute despite caller same-name rebinding.",
+      "Nearest parameter shadows an ancestor; module/import homonyms cannot replace a captured parameter.",
+      "Root rebinding, intermediate local values, nonlocal/global/match, lambda, wrapped helper and mutable defaults retain gaps.",
+      "Original binding owner/SHA, relayed use spans and sixteen/seventeen capture capacity.",
+      "Forged relay environment, omitted target capture parameter, forged inner environment and forged binding owner prevent complete execution/adoption.",
+      "Selected source changes revoke materials; unrelated external homonyms preserve them."
+    ]
+  },
+  "probe": {
+    "path": "verification/paperless-transitive-capture-replay.json",
+    "sha256": "3fe6811437b86a5d144df2a884713bb0cf62aef43650f34dad007c9d5cc68000",
+    "frozenFilesVerified": 94,
+    "supplementalFiles": 6,
+    "selectedBodies": 12,
+    "captureFacts": 61,
+    "ancestorCaptureFacts": 2,
+    "relayCaptureFacts": 0,
+    "eligibleRelayCaptureFacts": 0,
+    "returnedDefinitions": 24,
+    "eligibleReturnedDefinitions": 13,
+    "selectedBodyEligibleReturnedDefinitions": 1,
+    "selectedClassGap": "source-class-definition-base-unmodeled",
+    "selectedDecoratorGap": "source-returned-callable-nested-scope-unmodeled",
+    "materialUses": 0,
+    "modelReadEvidence": false
+  },
+  "remaining": ["Actual dynamic BaseSchema and local callable object captures", "Super/class cells, module class initialization/application and constructors", "Full request composition and official complete actual-use", "Preregistered measured quality or token benefit"],
+  "costs": { "newExperimentModelExecutions": 0, "newTargetExecutions": 0, "probeNetworkRequests": 0, "developerAndScoutTokens": null, "usd": null, "humanTime": null },
+  "originalInputsAndAllowlistsUnmodified": true,
+  "originalAttemptPromoted": false,
+  "researchGoalAchieved": false
+}

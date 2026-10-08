@@ -94,6 +94,6 @@ export function sourceArgumentBindings(index: SourceArgumentIndex, call: Structu
   // The caller signature excludes these keys only while its **kwargs remains
   // an unmodified, unescaped source pack. A renamed regular parameter may collide.
   if (keySource && regular.some(name => !caller!.parameters.some(p => p.name === name && !p.kind?.startsWith("variadic") && p.kind !== "positional-only"))) return fail("keyword-collision-unresolved")
-  if (!instance && !call.callableParameter) for (const capture of local?.captures ?? []) bindings.push({ parameter: capture.name, expression: capture.name, literalKnown: false, captureOwnerId: local!.ownerId })
+  if (!instance && !call.callableParameter) for (const capture of local?.captures ?? []) bindings.push({ parameter: capture.name, expression: capture.name, literalKnown: false, captureOwnerId: capture.binding?.ownerId ?? local!.ownerId })
   return { bindings, ...(partialGap ? { gap: partialGap } : {}) }
 }

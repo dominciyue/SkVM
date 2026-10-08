@@ -1,6 +1,40 @@
 import { expect, test } from "bun:test"
 import { buildStructureIndex } from "./structure-index.ts"
 
+for (const kind of ["class", "local"]) test(`returned bodies relay stable ancestor parameters needed only by an inner ${kind}`, async () => {
+  const nested = kind === "class" ? "        class Local:\n            def guard(actor):\n                return flag\n        Local.guard(actor)\n" : "        def guard(actor):\n            return flag\n        guard(actor)\n"
+  const content = `def create(flag):\n    def decorator(actor):\n${nested}        return actor\n    return decorator\ndef entry(actor):\n    wrapper = create(True)\n    wrapper(actor)\n`, index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), create = index.symbols.find(s => s.name === "create")!, decorator = index.symbols.find(s => s.name === "decorator")!, guard = index.symbols.find(s => s.name === "guard")!
+  expect(decorator.returnedCallable?.gap).toBeUndefined()
+  expect(decorator.valueCallable?.captures).toEqual([expect.objectContaining({ name: "flag", binding: { ownerId: create.id, ownerSha256: create.sha256 }, relay: [expect.objectContaining({ targetId: guard.id, targetSha256: guard.sha256 })] })])
+  expect((kind === "class" ? guard.classMethod : guard.localCallable)?.captures).toEqual([expect.objectContaining({ name: "flag", binding: { ownerId: create.id, ownerSha256: create.sha256 } })])
+  expect(index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "wrapper")!.resolution).toBe("resolved")
+})
+
+for (const mode of ["root-rebound", "nonlocal", "intermediate-local", "global", "match", "lambda", "wrapped-helper", "mutable-default"]) test(`transitive captures retain mutable cell and unknown nested boundaries: ${mode}`, async () => {
+  const content = `def create(flag):\n${mode === "root-rebound" ? "    flag = False\n" : ""}    def decorator(actor):\n${mode === "intermediate-local" ? "        flag = False\n" : mode === "global" ? "        global flag\n" : mode === "match" ? "        match actor:\n            case flag:\n                pass\n" : ""}${mode === "lambda" ? "        operation = lambda: flag\n" : `${mode === "wrapped-helper" ? "        @unknown\n" : ""}        def guard(${mode === "mutable-default" ? "value=[]" : ""}):\n${mode === "nonlocal" ? "            nonlocal flag\n" : ""}            return flag\n        guard()\n`}        return actor\n    return decorator\n`, index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), decorator = index.symbols.find(s => s.name === "decorator")!
+  expect(decorator.returnedCallable?.gap).toBeDefined()
+  expect(decorator.valueCallable?.gap ?? decorator.returnedCallable?.gap).toBeDefined()
+})
+
+for (const imported of [false, true]) test(`a class method ancestor parameter shadows a same-named external callable: ${imported}`, async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: `${imported ? "from other import operation\n" : "def operation(item):\n    raise Denied\n"}def create(operation):\n    def decorator(actor):\n        class Local:\n            def guard(item):\n                return operation(item)\n        Local.guard(actor)\n        return actor\n    return decorator\n` }, ...imported ? [{ path: "other.py", content: "def operation(item):\n    raise Denied\n" }] : []], { repository: "anonymous", sourceRef: "r" }), guard = index.symbols.find(s => s.name === "guard")!, call = index.relatedCalls(guard.id).find(c => c.expression === "operation")!
+  expect(guard.classMethod?.captures.map(c => c.name)).toEqual(["operation"])
+  expect(call.resolution).toBe("unresolved"); expect(call.candidateIds).toEqual([])
+})
+
+test("an intervening parameter is the actual class method capture binding", async () => {
+  const index = await buildStructureIndex([{ path: "app.py", content: "def create(flag):\n    def decorator(flag, actor):\n        class Local:\n            def guard(item):\n                return flag\n        Local.guard(actor)\n        return actor\n    return decorator\n" }], { repository: "anonymous", sourceRef: "r" }), decorator = index.symbols.find(s => s.name === "decorator")!, guard = index.symbols.find(s => s.name === "guard")!
+  expect(decorator.valueCallable?.captures).toEqual([])
+  expect(guard.classMethod?.captures).toEqual([expect.objectContaining({ name: "flag", binding: { ownerId: decorator.id, ownerSha256: decorator.sha256 } })])
+})
+
+for (const count of [16, 17]) test(`relayed stable parameter captures respect the existing callable capacity: ${count}`, async () => {
+  const names = Array.from({ length: count }, (_, i) => `p${i}`), index = await buildStructureIndex([{ path: "app.py", content: `def create(${names.join(", ")}):\n    def decorator(actor):\n        def guard():\n            return ${names.join(" and ")}\n        guard()\n        return actor\n    return decorator\n` }], { repository: "anonymous", sourceRef: "r" }), decorator = index.symbols.find(s => s.name === "decorator")!, guard = index.symbols.find(s => s.name === "guard")!
+  expect(guard.localCallable?.gap).toBe(count === 16 ? undefined : "source-local-capture-limit")
+  expect(decorator.returnedCallable?.gap).toBe(count === 16 ? undefined : "source-returned-callable-nested-scope-unmodeled")
+  if (count === 16) expect(decorator.valueCallable?.captures.map(c => c.name)).toEqual(names)
+})
+
 for (const mode of ["base", "metaclass", "wrapped-method", "body-call", "formatted-string", "slots", "classcell", "annotation", "parameter", "local-shadow", "rebound", "async", "loop"]) test(`local class definition preserves unsupported namespace and decorator boundaries: ${mode}`, async () => {
   const body = mode === "wrapped-method" ? "        @unknown\n        def method(self):\n            return True\n" : mode === "body-call" ? "        flag = unknown()\n" : mode === "formatted-string" ? "        f'{unknown()}'\n" : mode === "slots" ? "        __slots__ = 123\n" : mode === "classcell" ? "        __classcell__ = False\n" : mode === "annotation" ? "        flag: unknown() = False\n" : "        flag = False\n"
   const content = `def decorate(cls):\n    return cls\n${mode === "rebound" ? "decorate = unknown()\n" : ""}${mode === "async" ? "async " : ""}def entry(${mode === "parameter" ? "decorate" : ""}):\n${mode === "local-shadow" ? "    decorate = None\n" : ""}${mode === "loop" ? "    for item in [True]:\n" : ""}${mode === "loop" ? "        " : "    "}@decorate\n${mode === "loop" ? "        " : "    "}class Local${mode === "base" ? "(Base)" : mode === "metaclass" ? "(metaclass=Meta)" : ""}:\n${mode === "loop" ? body.replace(/^/gm, "    ").trimEnd() + "\n" : body}    return Local\n`
@@ -9,10 +43,10 @@ for (const mode of ["base", "metaclass", "wrapped-method", "body-call", "formatt
   expect(local.classDefinition!.gap).toBeDefined()
 })
 
-for (const mode of ["async", "generator", "dunder", "super", "classcell", "annotation", "default-action", "mutable-default", "nested", "capture-local", "capture-rebound", "capture-outer", "before", "rebound", "nested-argument", "field-shadow"]) test(`class namespace source keeps unsupported method and invocation boundaries: ${mode}`, async () => {
-  const body = mode === "generator" ? "            yield actor\n" : mode === "super" ? "            return super().guard(actor)\n" : mode === "classcell" ? "            return __class__\n" : mode === "nested" ? "            def inner():\n                return actor\n            return inner()\n" : ["capture-local", "capture-rebound", "capture-outer"].includes(mode) ? "            return flag\n" : "            return actor\n"
-  const source = `def outer(flag):\n    return flag\ndef entry(${mode === "capture-rebound" ? "flag, " : ""}actor):\n${mode === "capture-local" ? "    flag = True\n" : mode === "capture-outer" ? "    def factory():\n        return flag\n" : ""}${mode === "before" ? "    Local.guard(actor)\n" : ""}    class Local:\n        ${mode === "async" ? "async " : ""}def ${mode === "dunder" ? "__getattr__" : "guard"}(${mode === "annotation" ? "actor: Unknown" : mode === "default-action" ? "actor=unknown()" : mode === "mutable-default" ? "actor=[]" : "actor"}):\n${body}${mode === "field-shadow" ? "        guard = None\n" : ""}${mode === "capture-rebound" ? "    flag = False\n" : mode === "rebound" ? "    Local = None\n" : ""}    Local.guard(${mode === "nested-argument" ? "outer(actor)" : "actor"})\n`
-  const content = mode === "capture-outer" ? "def outer(flag):\n" + source.slice(source.indexOf("def entry(")).split("\n").filter(Boolean).map(line => "    " + line).join("\n") + "\n" : source
+for (const mode of ["async", "generator", "dunder", "super", "classcell", "annotation", "default-action", "mutable-default", "nested", "capture-local", "capture-rebound", "capture-outer-rebound", "before", "rebound", "nested-argument", "field-shadow"]) test(`class namespace source keeps unsupported method and invocation boundaries: ${mode}`, async () => {
+  const body = mode === "generator" ? "            yield actor\n" : mode === "super" ? "            return super().guard(actor)\n" : mode === "classcell" ? "            return __class__\n" : mode === "nested" ? "            def inner():\n                return actor\n            return inner()\n" : ["capture-local", "capture-rebound", "capture-outer-rebound"].includes(mode) ? "            return flag\n" : "            return actor\n"
+  const source = `def outer(flag):\n    return flag\ndef entry(${mode === "capture-rebound" ? "flag, " : ""}actor):\n${mode === "capture-local" ? "    flag = True\n" : mode === "capture-outer-rebound" ? "    def factory():\n        return flag\n" : ""}${mode === "before" ? "    Local.guard(actor)\n" : ""}    class Local:\n        ${mode === "async" ? "async " : ""}def ${mode === "dunder" ? "__getattr__" : "guard"}(${mode === "annotation" ? "actor: Unknown" : mode === "default-action" ? "actor=unknown()" : mode === "mutable-default" ? "actor=[]" : "actor"}):\n${body}${mode === "field-shadow" ? "        guard = None\n" : ""}${mode === "capture-rebound" ? "    flag = False\n" : mode === "rebound" ? "    Local = None\n" : ""}    Local.guard(${mode === "nested-argument" ? "outer(actor)" : "actor"})\n`
+  const content = mode === "capture-outer-rebound" ? "def outer(flag):\n    flag = False\n" + source.slice(source.indexOf("def entry(")).split("\n").filter(Boolean).map(line => "    " + line).join("\n") + "\n" : source
   const index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), entry = index.symbols.find(s => s.name === "entry")!, cls = index.symbols.find(s => s.name === "Local")!
   if (["before", "rebound", "nested-argument", "field-shadow"].includes(mode)) { const call = index.relatedCalls(entry.id).filter(c => c.expression === "Local.guard")[0]!; expect(call.classNamespaceCall).toBeUndefined(); expect(call.resolution).toBe("unresolved") }
   else expect(cls.classDefinition!.gap).toBeDefined()
@@ -747,7 +781,7 @@ test("a rebound source factory cannot prove a callable result from the old defin
   const index = await buildStructureIndex(returnedSources.map(s => s.path === "factory.py" ? { ...s, content: s.content + "create = replacement\n" } : s), { repository: "anonymous", sourceRef: "r" })
   expect(index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "check")!.gap).toBe("source-returned-callable-factory-binding-unresolved")
 })
-for (const body of ["        return lambda value=principal.check(): value\n", "        def child():\n            return principal\n        return child\n"]) test(`a returned callable cannot omit a nested scope environment: ${body.trim().split("\n")[0]}`, async () => {
+for (const body of ["        return lambda value=principal.check(): value\n", "        def child(value=principal.check()):\n            return principal\n        return child\n"]) test(`a returned callable cannot omit a nested scope environment: ${body.trim().split("\n")[0]}`, async () => {
   const index = await buildStructureIndex(returnedSources.map(s => s.path === "factory.py" ? { ...s, content: "def create(principal):\n    def guard():\n" + body + "    return guard\n" } : s), { repository: "anonymous", sourceRef: "r" })
   expect(index.symbols.find(s => s.name === "guard")!.returnedCallable!.gap).toBe("source-returned-callable-nested-scope-unmodeled")
   expect(index.relatedCalls(index.symbols.find(s => s.name === "entry")!.id).find(c => c.expression === "check")!.gap).toBe("source-returned-callable-nested-scope-unmodeled")
