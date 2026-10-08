@@ -1,6 +1,17 @@
 import { expect, test } from "bun:test"
 import { buildStructureIndex } from "./structure-index.ts"
 
+for (const mode of ["ordinary", "receiver-rebound", "cross-receiver", "wrapped-class", "wrapped-owner", "static-target", "async-target", "descriptor", "missing-base", "conditional-expression", "nested-outer", "loop", "plain-arguments"]) test(`early method capture facts stay within ordinary source boundaries: ${mode}`, async () => {
+  const invoke = mode === "plain-arguments" ? "self.guard(actor)" : mode === "cross-receiver" ? "actor.guard(self.prepare(actor))" : "self.guard(self.prepare(actor))", statement = mode === "conditional-expression" ? `${invoke} if actor else False` : mode === "nested-outer" ? `outer(${invoke})` : invoke
+  const content = `${mode === "wrapped-class" ? "@decorate\n" : ""}class Gate${mode === "missing-base" ? "(Unknown)" : ""}:\n${mode === "wrapped-owner" ? "    @decorate\n" : ""}    def entry(self, actor):\n${mode === "receiver-rebound" ? "        self = actor\n" : ""}${mode === "loop" ? `        while actor:\n            ${statement}\n` : `        ${statement}\n`}    def prepare(self, actor):\n        return actor\n${mode === "static-target" ? "    @staticmethod\n" : ""}    ${mode === "async-target" ? "async " : ""}def guard(self, actor):\n        return actor\n${mode === "descriptor" ? "    def __getattribute__(self, name):\n        return dynamic(name)\n" : ""}`
+  const index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), owner = index.symbols.find(s => s.name === "entry")!, call = index.relatedCalls(owner.id, "app.Gate").find(c => c.expression.endsWith(".guard"))!
+  if (mode === "ordinary") {
+    expect(call.methodCapture).toEqual(expect.objectContaining({ schemaVersion: "source-method-capture/v1", receiver: "self", receiverClass: "app.Gate", method: "guard", sourceCallId: call.id, targetSha256: index.symbols.find(s => s.name === "guard")!.sha256, controls: [] }))
+    expect(content.slice(call.methodCapture!.source.startIndex, call.methodCapture!.source.endIndex)).toBe("self.guard")
+    expect(call.methodCapture!.argumentEvents).toHaveLength(1)
+  } else expect(call.methodCapture).toBeUndefined()
+})
+
 for (const mode of ["ordinary", "receiver-rebound", "cross-receiver", "wrapped-class", "static-target", "descriptor", "missing-base"]) test(`field method source proofs retain ordinary receiver boundaries: ${mode}`, async () => {
   const content = `${mode === "wrapped-class" ? "@decorate\n" : ""}class Gate${mode === "missing-base" ? "(Unknown)" : ""}:\n    def entry(self, actor):\n${mode === "receiver-rebound" ? "        self = actor\n" : ""}        ${mode === "cross-receiver" ? "actor" : "self"}.handler = self.guard\n        return self.handler(actor)\n${mode === "static-target" ? "    @staticmethod\n" : ""}    def guard(self, actor):\n        return actor\n${mode === "descriptor" ? "    def __getattribute__(self, name):\n        return dynamic(name)\n" : ""}`
   const index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), owner = index.symbols.find(s => s.name === "entry")!, stores = index.methodStores(owner.id, "app.Gate"), call = index.relatedCalls(owner.id, "app.Gate").find(c => c.expression === "self.handler")!

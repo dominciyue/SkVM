@@ -213,6 +213,14 @@ AY7 class接续核对（2026-10-08）：两项独立只读定位确认当前meth
 
 字段方法值本步进展：v21接通普通同instance原赋值捕获、跨helper transform和按实际field值的有限分派；literal token/字段未知覆盖/receiver或target SHA不匹配均不执行旧方法，后续源方法slot替换保留原捕获，函数对象写入仍v20具名。主红绿覆盖native身份及source helper缺捕获metadata、挪过提前return的错误采用，当前材料保留精确创建/相邻store/原if与try区域/相对调用和返回顺序，整体selector及实参逐项核验。31新增用例、新鲜492focused/2327断言、联合1331pass/1平台skip/8134断言及主/AY类型通过；三项只读核验分留；主最终红绿修复嵌套/短路表达式调用漏入捕获顺序，右侧调用保留原条件区域。初始/reviewed来源probe分留，100文件/6body声明receiver有1个可能store/5个字段call来源合格，指定应用receiver method store/字段call合格/采用0。source-invariant排除后缺完整正store图仍保守不采用，无实验模型或目标执行，开发/探子等成本unknown。继续class/wrapper变换、早期capture、完整请求和官方实际复验；AY7、完整使用和净收益未勾选。
 
+早期方法捕获接续设计（2026-10-08）：复用v21实际bound-method身份，先匿名完整来源红测验证`self.guard(self.prepare(actor))`在prepare改写guard槽位后仍须执行实参前取得的原guard。初步限有嵌套实参call的普通同instance顶层表达式/简单赋值RHS/return direct call、当前完整稳定MRO和未包装同步ordinary target；其它形态保留既有保守检查，不借此解除class/descriptor/wrapper。索引事实保留原function属性读取跨度、当前target/SHA、原if/try区域、原同block前后事件和逐实参表达式的call/short事件。骨架在原function读取点生成机械capture，再按实参原词法顺序执行；编译沿既有boundMethod/fieldMethodRead和同一Python binder，不扩模型角色/谓词。材料核验精确capture、原区域/前后顺序、实参前位置、真实当前call及参数，移到实参之后或越过前一条调用不得采用。先保留捕获前覆盖/实参中覆盖/实参异常/短路/多实参对照，再独立只读核验、冻结probe与主新鲜验证；随后继续class/wrapper和完整请求及官方实测，不将此小步作为AY7完成。
+
+早期捕获对照揭示实参接线缺口：简单短路实参已有原finite-control结果，但材料投影只识别literal/原binding/直接call结果，未核验并连接该机械control值。补充同一argumentFacts的source-owned value-flow事实，保留原control anchor/result/operator与简单literal/binding/direct-call操作数；投影核验原short step/调用结果/右侧body，再沿原参数binder采用该值。嵌套任意表达式不因此自动合格，不扩谓词或模型角色；与捕获、参数映射和原短路执行顺序的反例一并验证。
+
+早期捕获本步进展（2026-10-08）：v22在限定普通direct statement/assignment/return形态保留精确function read事实，实际capture→逐实参→原call，复用v21 boundMethod/fieldMethodRead。主红绿从late methodRead阻断开始，另用实际capture/fieldMethodRead存在断言排除部分实现的假通过；简单and/or有限结果增加同一argumentFacts机械valueFlow。新增倒序实参及条件RHS额外call反例曾红，现逐事件严格有序、short shape/左右结果/当前call/原条件body核验通过。捕获前函数/None/未知覆盖、实参raise、if/try、assignment/return、多实参、keyword及短路执行/跳过保持；class/wrapper/descriptor/缺base/receiver重绑定及复杂操作数不取得新资格。两只读核验未发现新可复现问题，后一份以现有测试为主；外部target/负MRO与无关homonym由主补核。100文件/6body独立probe有1 declaring-receiver early capture，指定应用receiver合格/采用0，无实验模型/目标执行，未知成本分列。当前工程仍不满足AY7/实际class或完整请求/净收益，接续实际class/wrapper调用与请求接线、官方实验。
+
+早期捕获新鲜验收：33新增、525focused/2676断言、联合1364pass/1平台skip/8483断言/115文件及主/AY类型通过；[核验记录](../../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-early-method-capture.json)保留两只读范围及主反例。probe SHA `2cde2fc6f4a40d56211423dc65f8775207540e5321e62a972fefcef20ba8c0b0`，旧报告不覆盖。五当前文档同步后发布，仅作为AY7依赖工程小步，继续后续实际使用与实测。
+
 ### AY8 调度与局部解释的闭环
 
 2026-10-08真实OWUI反例细化：七轮增量字段确有前进，最后宿主生成34个块（其中8个为空）却被沿用手写接口的32块上限拒绝。先在v5源码编译器复用同单元的无动作空块，保留每个实际条件、步骤、正常/拒绝/异常出口及既有路径/节点边界；不提高求值上限。停滞按当前缺口和已保留字段进展判断，不能把observations的pending标签当源码frontier停滞。实际发送上下文与原始归档分账，引用的bytes是被引用原值大小，不是该引用包的发送大小。

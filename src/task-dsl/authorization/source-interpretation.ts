@@ -6,7 +6,7 @@ import { buildPropertyDemand, type PropertyDemand } from "./property-demand.ts"
 import type { DependencyQuestion } from "./property-dependencies.ts"
 import type { SourceSkeleton, SourceAnchor, SourceFlow } from "../../benchmarks/authorization-dsl/evidence-preparation/source-skeleton.ts"
 import type { StructureIndex, StructureMethodChoice } from "../../benchmarks/authorization-dsl/evidence-preparation/structure-index.ts"
-import { sourceDirectMethodRead, sourceFieldMethodToken, sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupSentinel, sourceMethodLookupToken, sourceSyntaxAnchorId } from "../../benchmarks/authorization-dsl/evidence-preparation/source-identities.ts"
+import { sourceDirectMethodRead, sourceFieldMethodToken, sourceMethodCaptureName, sourceMethodCaptureResult, sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupSentinel, sourceMethodLookupToken, sourceSyntaxAnchorId } from "../../benchmarks/authorization-dsl/evidence-preparation/source-identities.ts"
 import { sourceArgumentBindings, sourceCallableParameter } from "../../benchmarks/authorization-dsl/evidence-preparation/source-arguments.ts"
 
 export const SourceAnnotationSchema = z.object({
@@ -69,6 +69,10 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
     const proof = a.methodStore, actual = proof && options.index!.methodStores(skeleton.sourceId, proof.receiverClass).find(s => s.anchorId === a.id)
     return actual && JSON.stringify(actual) === JSON.stringify(proof) && a.fieldWrite?.object === proof!.receiver && a.fieldWrite.field === proof!.field && a.valueExpression === `${proof!.receiver}.${proof!.method}` ? [[a.id, actual] as const] : []
   }) : [])
+  const earlyCaptures = new Map(skeleton.propertySemantics === "question-control/v1" && options.index ? skeleton.anchors.flatMap(a => {
+    const proof = a.methodCapture, actual = proof && options.index!.relatedCalls(skeleton.sourceId, proof.receiverClass).find(c => c.id === proof.sourceCallId)?.methodCapture
+    return actual && JSON.stringify(actual) === JSON.stringify(proof) && a.name === sourceMethodCaptureResult(actual.sourceCallId) && a.valueExpression === `${actual.receiver}.${actual.method}` ? [[a.id, actual] as const] : []
+  }) : [])
   const lookupCalls = new Map(skeleton.propertySemantics === "question-control/v1" && options.index ? skeleton.anchors.flatMap(a => {
     const actual = a.call && options.index!.relatedCalls(skeleton.sourceId, a.call.receiverClass).find(c => c.id === a.call!.sourceCallId)
     return actual?.methodLookup && actual.sha256 === skeleton.source.sha256 && actual.receiver === a.call!.receiver && JSON.stringify(actual.candidateIds) === JSON.stringify(a.call!.candidateIds) ? [[a.id, actual.methodLookup] as const] : []
@@ -93,6 +97,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
     if ([...methodProofs.values()].some(p => p.choices.some(c => c.anchorId === a.anchorId)) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("method-choice-role", a.anchorId, "A proved ordinary method reference keeps its actual finite source value; it cannot be replaced with a domain object alias.")
     if (methodAliases.has(a.anchorId) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("method-alias-role", a.anchorId, "A current ordinary method alias keeps its actual source value and receiver read.")
     if (fieldStores.has(a.anchorId) && (a.aliasAnchorId || !["condition", "context", "effect"].includes(a.role))) fault("field-method-role", a.anchorId, "A current ordinary bound method store keeps its actual source value and receiver capture.")
+    if (earlyCaptures.has(a.anchorId) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("method-capture-role", a.anchorId, "An ordinary function read keeps its source identity and receiver before argument evaluation.")
     if (anchor.call?.sourceCallId && lookupCreations.has(anchor.call.sourceCallId) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("method-lookup-role", a.anchorId, "An ordinary getattr reference keeps its current selector; its creation cannot become an authorization object or effect.")
     if ([...lookupCreations.values()].some(p => p.alternatives.some(c => c.anchorId === a.anchorId)) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("method-lookup-role", a.anchorId, "A current alternate method reference keeps its actual ordinary source value.")
     if (a.guardBranch && (anchor.kind !== "condition" || !a.principalAnchorId || !a.resourceAnchorId)) fault("guard", a.anchorId, "A branch guard needs its actual condition and explicit principal/resource roles.")
@@ -230,8 +235,8 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
                 mapped.push({ parameter: parameter.name, object })
               }
             }
-            const methodRead = questionDirected && actual && target ? sourceDirectMethodRead(actual, target) : undefined
-            const fieldMethodRead = questionDirected && actual?.methodField && target ? { object: actual.expression, receiver: actual.methodField.receiver, targetId: target.id, targetSha256: target.sha256 } : undefined
+            const methodRead = questionDirected && actual && !actual.methodCapture && target ? sourceDirectMethodRead(actual, target) : undefined
+            const fieldMethodRead = questionDirected && actual && target ? actual.methodCapture ? { object: sourceMethodCaptureResult(actual.id), receiver: actual.methodCapture.receiver, targetId: target.id, targetSha256: target.sha256 } : actual.methodField ? { object: actual.expression, receiver: actual.methodField.receiver, targetId: target.id, targetSha256: target.sha256 } : undefined : undefined
             destination.push({ kind: "call", name: `call-${a.id}${suffix}`, claim, symbol: a.call!.expression, ...(finite && a.call!.sourceCallId ? { sourceCallId: a.call!.sourceCallId } : {}), arguments: mapped, result: a.call!.resultBinding, ...objects, ...(target ? { pathHint: `${target.path}:${target.startLine}-${target.endLine}`, candidateId: target.id } : {}), ...(methodRead ? { methodRead } : {}), ...(fieldMethodRead ? { fieldMethodRead } : {}) })
           }
           const proof = methodCalls.get(a.id)
@@ -266,6 +271,11 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
           } else emitCall(block.steps, a.call!.candidateIds.length === 1 ? a.call!.candidateIds[0] : undefined)
         }
       } else if (a.kind === "assignment" && a.name) {
+        const earlyCapture = earlyCaptures.get(a.id)
+        if (earlyCapture) {
+          block.steps.push({ kind: "assign-value", name: sourceMethodCaptureName(earlyCapture.sourceCallId), claim: "Capture the actual ordinary source method before evaluating its arguments", result: sourceMethodCaptureResult(earlyCapture.sourceCallId), value: { literal: sourceFieldMethodToken(earlyCapture) }, methodRead: { receiver: earlyCapture.receiver, method: earlyCapture.method }, boundMethod: { receiver: earlyCapture.receiver, targetId: earlyCapture.targetId, targetSha256: earlyCapture.targetSha256 } })
+          continue
+        }
         const fieldMethod = fieldStores.get(a.id)
         if (fieldMethod) {
           if (annotation?.role === "effect") block.steps.push({ kind: "effect", name: `field-effect-${a.id}`, claim, operation: a.name, ...objects, mayRaise: true, ...(annotation.authorizedByAnchorIds ? { authorizedBy: annotation.authorizedByAnchorIds.map(id => `guard-${id}`) } : {}) })

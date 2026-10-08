@@ -1,9 +1,9 @@
 import { createHash } from "node:crypto"
 import type { Node } from "@vscode/tree-sitter-wasm"
 import type { InquiryEvidence } from "../inquiry-tools.ts"
-import type { StructureCall, StructureIndex, StructureSymbol, StructureMethodStore } from "./structure-index.ts"
+import type { StructureCall, StructureIndex, StructureSymbol, StructureMethodStore, StructureMethodCapture } from "./structure-index.ts"
 import { sourceLiteral } from "./structure-index.ts"
-import { sourceSyntaxAnchorId } from "./source-identities.ts"
+import { sourceMethodCaptureResult, sourceSyntaxAnchorId } from "./source-identities.ts"
 import { sourceArgumentBindings, sourceCallableParameter } from "./source-arguments.ts"
 import type { SourceSelector } from "./source-selector.ts"
 import type { FiniteValue } from "../../../task-dsl/authorization/control-evaluation.ts"
@@ -20,6 +20,7 @@ export interface SourceAnchor {
   callableIdentity?: { sourceId: string; ownerId: string; ownerSha256: string };
   fieldWrite?: { object: string; field: string };
   methodStore?: StructureMethodStore;
+  methodCapture?: StructureMethodCapture;
   call?: { sourceCallId?: string; expression: string; receiver?: string; receiverClass?: string; receiverBinding?: StructureCall["receiverBinding"]; callableBinding?: StructureCall["callableBinding"]; bindingGap?: string; arguments: Array<{ expression: string; parameterName?: string; spread?: boolean; literalKnown?: boolean; literalValue?: FiniteValue; sourceCallId?: string }>; candidateIds: string[]; resultNames: string[]; resultBinding: string }
 }
 export interface SourceFlow {
@@ -131,6 +132,13 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     const stepsForCalls = (n: Node) => callsIn(n).map(c => ({ kind: "step" as const, anchorId: callAnchor(c).id }))
     const valueAnchor = (n: Node | null | undefined, flow: SourceFlow[]): string | undefined => n && (["call", "call_expression"].includes(n.type) || ["and", "or", "&&", "||"].includes(field(n, "operator")?.text ?? "")) ? flow.at(-1)?.anchorId : undefined
     const expressionFlow = (n: Node, resultBinding?: string): SourceFlow[] => {
+      if (questionDirected && source.language === "python" && n.type === "expression_statement") return kids(n).flatMap(a => expressionFlow(a, resultBinding))
+      const capture = questionDirected && n.type === "call" ? actualCalls.find(c => c.startIndex === n.startIndex && c.endIndex === n.endIndex)?.methodCapture : undefined
+      if (capture) {
+        const anchor = add(field(n, "function")!, "assignment", { name: sourceMethodCaptureResult(capture.sourceCallId), syntax: "source_method_capture", valueExpression: `${capture.receiver}.${capture.method}`, methodCapture: capture })
+        anchor.dependencyFacts = { reads: [capture.receiver, `${capture.receiver}.${capture.method}`], writes: [anchor.name!], pureLocal: false }
+        return [{ kind: "step", anchorId: anchor.id }, ...kids(field(n, "arguments")).flatMap(a => expressionFlow(a)), { kind: "step", anchorId: callAnchor(n).id }]
+      }
       const left = field(n, "left"), right = field(n, "right"), op = field(n, "operator")?.text
       if (controlSemantics && left && right && ["and", "or", "&&", "||"].includes(op ?? "")) {
         const leftLiteral = sourceLiteral(left), rightLiteral = sourceLiteral(right)

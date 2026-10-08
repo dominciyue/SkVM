@@ -530,6 +530,66 @@ for (const selected of [true, false]) test(`finite method choice executes its or
   expect(project(units, changed).uses).toEqual([])
 })
 
+for (const mode of ["nested-overwrite", "before-overwrite", "before-literal", "before-unknown", "argument-raise", "assignment", "return", "branch", "skipped-branch", "try", "multiple-arguments", "short-skipped", "short-or-skipped", "short-and-executed", "short-or-executed", "short-left-call", "short-multiple-arguments", "keyword-argument", "short-keyword"]) test(`ordinary direct methods capture before actual argument evaluation: ${mode}`, async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-early-method-capture-"))
+  const multiple = mode.endsWith("multiple-arguments"), skippedArgument = ["short-skipped", "short-or-skipped", "short-multiple-arguments"].includes(mode), argument = mode === "multiple-arguments" ? "self.prepare(actor), self.observe(actor)" : mode === "short-multiple-arguments" ? "False and self.prepare(actor), self.observe(actor)" : mode === "short-skipped" ? "False and self.prepare(actor)" : mode === "short-or-skipped" ? "True or self.prepare(actor)" : mode === "short-and-executed" ? "True and self.prepare(actor)" : mode === "short-or-executed" ? "False or self.prepare(actor)" : mode === "short-left-call" ? "self.prepare(actor) and True" : mode === "keyword-argument" ? "actor=self.prepare(actor)" : mode === "short-keyword" ? "actor=False or self.prepare(actor)" : "self.prepare(actor)", invoke = `self.guard(${argument})`
+  const invocation = mode === "assignment" ? `        value = ${invoke}\n` : mode === "return" ? `        return ${invoke}\n` : mode === "branch" || mode === "skipped-branch" ? `        if ${mode === "branch" ? "True" : "False"}:\n            ${invoke}\n` : mode === "try" ? `        try:\n            ${invoke}\n        finally:\n            pass\n` : `        ${invoke}\n`
+  const content = `class Gate:\n    def entry(self, actor):\n${mode.startsWith("before-") ? `        self.guard = ${mode === "before-literal" ? "None" : mode === "before-unknown" ? "actor" : "self.fallback"}\n` : ""}${invocation}        write()\n        return True\n    def prepare(self, actor):\n        self.guard = self.fallback\n${multiple ? "        self.state = False\n" : mode === "argument-raise" ? "        raise Aborted\n" : ""}        return ${mode === "short-left-call" ? "True" : "actor"}\n    def guard(self, actor${multiple ? ", second" : ""}):\n        raise Denied\n    def fallback(self, actor):\n        return actor\n${multiple ? "    def observe(self, actor):\n        self.state = True\n        return actor\n" : ""}`
+  await writeFile(path.join(sourceRoot, "app.py"), content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, units: any[] = []
+  for (const name of ["entry", "prepare", "guard", "fallback", ...multiple ? ["observe"] : []]) {
+    const source = index.symbols.find(s => s.name === name)!
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id, "app.Gate"))!, annotations = skeleton.anchors.filter(a => ["parameter", "condition", "call", "return", "raise"].includes(a.kind)).map(a => ({ anchorId: a.id, role: a.kind === "parameter" ? mode.startsWith("short-") && name === "guard" && a.name === "actor" ? "condition" : ["actor", "second"].includes(a.name ?? "") ? "principal" : "context" : a.kind === "call" ? a.call!.expression === "write" ? "effect" : "condition" : a.kind === "condition" ? "condition" : "context", explanation: "Anonymous Python function read before actual argument evaluation", ...(a.kind === "condition" ? { condition: { op: "eq", left: { literal: a.literalValue }, right: { literal: true } } } : {}), ...(a.kind === "return" && name === "entry" ? { returnOutcome: "allow" } : {}), ...(a.kind === "raise" ? { failureKind: name === "prepare" ? "operation" : "authorization" } : {}) }))
+    const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index, itemId: name, handle: name, questionId: "q", role: name === "entry" ? "entry" : "helper" })
+    expect(result.diagnostics).toEqual([])
+    units.push({ ...result.unit!, questionId: "q", evidenceIds: skeleton.evidenceIds, source: skeleton.source, receiverClass: "app.Gate" })
+  }
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect actual function read before nested arguments", premises: [] }] }), project = (current = units) => {
+    const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" })
+    for (const u of current) store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }, { kind: "candidate-set", key: `relations:${u.source.id}:app.Gate`, revision: sourceRelationRevision(index, u.source.id, "app.Gate")! }], "test-authored")
+    return api.projectSourceMaterials(p, current, store.snapshot(), index, { questionDirected: true })
+  }
+  const projected = project(), lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true })
+  expect(units.find(u => u.handle === "entry").blocks.flatMap((b: any) => b.steps).filter((s: any) => s.name.startsWith("method-capture-"))).toHaveLength(1)
+  expect(projected.units.find((u: any) => u.role === "entry").blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call" && s.symbol === "self.guard").fieldMethodRead).toBeDefined()
+  if (!skippedArgument && mode !== "skipped-branch") expect(lowered.fieldChanges.map(c => c.field)).toContain("guard")
+  else expect(lowered.fieldChanges.map(c => c.field)).toEqual(mode === "short-multiple-arguments" ? ["state"] : [])
+  expect(lowered.delta.rules.some(r => r.failureKind === "authorization")).toBe(!mode.startsWith("before-") && !["argument-raise", "skipped-branch"].includes(mode))
+  expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(mode === "skipped-branch")
+  expect(lowered.diagnostics.map(d => d.code)).toEqual(mode.startsWith("before-") ? ["source-method-slot-written"] : mode === "skipped-branch" ? ["semantic-exception-type-unknown"] : [])
+  if (mode === "argument-raise") expect(lowered.delta.rules.some(r => r.failureKind === "operation")).toBe(true)
+  if (mode === "multiple-arguments") expect(lowered.fieldChanges.map(c => c.field)).toEqual(["guard", "state", "state"])
+  if (mode === "multiple-arguments") {
+    const forged = structuredClone(units), entry = forged.find(u => u.handle === "entry"), body = entry.blocks.find((b: any) => b.name === entry.start), first = body.steps.findIndex((s: any) => s.kind === "call" && s.symbol === "self.prepare"), second = body.steps.findIndex((s: any) => s.kind === "call" && s.symbol === "self.observe")
+    ;[body.steps[first], body.steps[second]] = [body.steps[second], body.steps[first]]
+    expect(project(forged).units.some((u: any) => u.source?.id === entry.source.id)).toBe(false)
+  }
+  if (mode.startsWith("short-")) for (const change of ["operator", "left", "right", "result", "body", "call-id", "after-invocation"]) {
+    const forged = structuredClone(units), entry = forged.find(u => u.handle === "entry"), body = entry.blocks.find((b: any) => b.steps.some((s: any) => s.kind === "short-circuit")), short = body.steps.find((s: any) => s.kind === "short-circuit"), right = entry.blocks.find((b: any) => b.name === short.body)
+    if (change === "operator") short.operator = short.operator === "and" ? "or" : "and"
+    if (change === "left") short.left = { literal: "forged" }
+    if (change === "right") short.right = { literal: "forged" }
+    if (change === "result") short.result = "forged-result"
+    if (change === "body") right.steps.push({ kind: "call", name: "forged-call", claim: "Forged invocation", symbol: "self.fallback", arguments: [] })
+    if (change === "call-id") { const nested = entry.blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call" && s.symbol === "self.prepare"); nested.sourceCallId = "forged-source-call" }
+    if (change === "after-invocation") body.steps.push(...body.steps.splice(body.steps.indexOf(short), 1))
+    expect(project(forged).units.find((u: any) => u.role === "entry")?.blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call" && s.symbol === "self.guard")?.callee, change).toBeUndefined()
+    expect(lowerSemanticFlow(project(forged).units, { compositional: true, propertyDirected: true }).delta.rules.some(r => r.failureKind === "authorization")).toBe(false)
+  }
+  if (mode === "nested-overwrite" || mode.startsWith("before-")) for (const changed of ["omit", "metadata", "receiver", "target", "token", "after-argument", ...mode.startsWith("before-") ? ["before-store"] : []]) {
+    const forged = structuredClone(units), entry = forged.find(u => u.handle === "entry"), body = entry.blocks.find((b: any) => b.name === entry.start), capture = body.steps.findIndex((s: any) => s.name.startsWith("method-capture-")), step = body.steps[capture]
+    if (changed === "omit") body.steps.splice(capture, 1)
+    if (changed === "metadata") delete step.boundMethod
+    if (changed === "receiver") step.boundMethod.receiver = "actor"
+    if (changed === "target") step.boundMethod.targetSha256 = "old"
+    if (changed === "token") step.value = { literal: "forged" }
+    if (changed === "after-argument") { body.steps.splice(capture, 1); body.steps.splice(body.steps.findIndex((s: any) => s.kind === "call" && s.symbol === "self.prepare") + 1, 0, step) }
+    if (changed === "before-store") { body.steps.splice(capture, 1); body.steps.unshift(step) }
+    expect(project(forged).units.some((u: any) => u.source?.id === entry.source.id)).toBe(false)
+  }
+})
+
 for (const { mode, field, later, other, local } of [
   { mode: "lookup", field: "guard" }, { mode: "lookup", field: "guard", local: true }, { mode: "lookup", field: "request", local: true },
   { mode: "lookup", field: "guard", later: true }, { mode: "lookup", field: "request" }, { mode: "lookup", field: "fallback" }, { mode: "lookup", field: "__class__" }, { mode: "lookup", field: "guard", other: true },

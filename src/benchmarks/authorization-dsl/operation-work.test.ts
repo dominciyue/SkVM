@@ -5,6 +5,20 @@ import { createSourceMaterials } from "../../task-dsl/authorization/source-mater
 import { projectSourceMaterials } from "./source-material-projection.ts"
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
 
+test("early method capture relations retain external targets and negative ordinary-class dependencies", async () => {
+  const files = [{ path: "app.py", content: "from base import Parent\nclass Gate(Parent):\n    def prepare(self, actor):\n        return actor\n    def entry(self, actor):\n        return self.guard(flag=self.prepare(actor), actor=actor)\n" }, { path: "base.py", content: "class Parent:\n    def guard(self, actor, flag):\n        return actor\n" }], index = await buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" }), source = index.symbols.find(s => s.name === "entry")!, revision = sourceRelationRevision(index, source.id, "app.Gate"), call = index.relatedCalls(source.id, "app.Gate").find(c => c.expression === "self.guard")!
+  expect(call.methodCapture).toBeDefined()
+  expect(call.argumentFacts!.map(a => a.parameterName)).toEqual(["flag", "actor"])
+  for (const content of ["class Parent:\n    def guard(self, actor, flag):\n        raise Denied\n", "class Parent:\n    def guard(self, actor, flag):\n        return actor\n    def __getattribute__(self, name):\n        return dynamic(name)\n", "@decorate\nclass Parent:\n    def guard(self, actor, flag):\n        return actor\n", "class Parent(Unknown):\n    def guard(self, actor, flag):\n        return actor\n"]) {
+    const changed = await buildStructureIndex(files.map(f => f.path === "base.py" ? { ...f, content } : f), { repository: "anonymous", sourceRef: "r" })
+    expect(changed.symbols.find(s => s.id === source.id)!.sha256).toBe(source.sha256)
+    expect(sourceRelationRevision(changed, source.id, "app.Gate")).not.toBe(revision)
+    if (!content.includes("raise Denied")) expect(changed.relatedCalls(source.id, "app.Gate").find(c => c.expression === "self.guard")!.methodCapture).toBeUndefined()
+  }
+  const unrelated = await buildStructureIndex([...files, { path: "other.py", content: "class Gate:\n    def __getattribute__(self, name):\n        return dynamic(name)\n" }], { repository: "anonymous", sourceRef: "r" })
+  expect(sourceRelationRevision(unrelated, source.id, "app.Gate")).toBe(revision)
+})
+
 test("field method captures retain external target and negative descriptor bytes without unrelated homonyms", async () => {
   const files = [{ path: "app.py", content: "from base import Parent\nclass Gate(Parent):\n    def prepare(self):\n        self.handler = self.guard\n        return True\n    def entry(self, actor):\n        self.prepare()\n        return self.handler(actor)\n" }, { path: "base.py", content: "class Parent:\n    def guard(self, actor):\n        return actor\n" }], index = await buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" })
   for (const name of ["prepare", "entry"]) {

@@ -2,7 +2,7 @@ import type { AuthorizationInquiryProgram } from "../../task-dsl/authorization/i
 import type { BoundSemanticBlock } from "../../task-dsl/authorization/semantic-flow.ts"
 import type { SourceMaterial, SourceMaterialSnapshot } from "../../task-dsl/authorization/source-materials.ts"
 import type { StructureIndex, StructureMethodControl } from "./evidence-preparation/structure-index.ts"
-import { sourceDirectMethodRead, sourceFieldMethodToken, sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupSentinel, sourceMethodLookupToken, sourceSyntaxAnchorId } from "./evidence-preparation/source-identities.ts"
+import { sourceDirectMethodRead, sourceFieldMethodToken, sourceMethodCaptureName, sourceMethodCaptureResult, sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupSentinel, sourceMethodLookupToken, sourceSyntaxAnchorId } from "./evidence-preparation/source-identities.ts"
 import { operationCallSourceSelection, operationCallTargets } from "./operation-links.ts"
 import { structuralDependencyRevision } from "./operation-work.ts"
 import { canonicalControl } from "../../task-dsl/authorization/control-slice.ts"
@@ -25,8 +25,26 @@ const sourceControlBlock = (unit: BoundSemanticBlock, controls: StructureMethodC
 /** A possible writer is not an executed capture. Retained material must preserve
  * the exact original creation, adjacent field store and source control order. */
 function currentMethodStoresValid(index: StructureIndex, unit: BoundSemanticBlock) {
-  const proofs = index.methodStores(unit.source!.id, unit.receiverClass), steps = unit.blocks.flatMap(b => b.steps), names = new Set(proofs.map(p => `field-method-value-${p.anchorId}`))
+  const proofs = index.methodStores(unit.source!.id, unit.receiverClass), captures = index.relatedCalls(unit.source!.id, unit.receiverClass).filter(c => c.methodCapture), steps = unit.blocks.flatMap(b => b.steps), names = new Set([...proofs.map(p => `field-method-value-${p.anchorId}`), ...captures.map(c => sourceMethodCaptureName(c.id))])
   if (steps.some(s => s.kind === "assign-value" && s.boundMethod && !names.has(s.name))) return false
+  for (const call of captures) {
+    const proof = call.methodCapture!, block = sourceControlBlock(unit, proof.controls), callAnchor = sourceSyntaxAnchorId(unit.source!.id, call.startIndex!, call.endIndex!, "call"), creations = steps.filter(s => s.name === sourceMethodCaptureName(call.id)), creation = creations[0], result = sourceMethodCaptureResult(call.id)
+    const invocations = steps.filter(s => ["call", "context", "effect"].includes(s.kind) && [`call-${callAnchor}`, `context-${callAnchor}`, `effect-${callAnchor}`].includes(s.name)), invocation = invocations[0]
+    if (!block || creations.length !== 1 || creation?.kind !== "assign-value" || invocations.length !== 1 || !invocation || !block.steps.includes(creation) || !block.steps.includes(invocation) || block.steps.indexOf(creation) >= block.steps.indexOf(invocation)) return false
+    if (creation.result !== result || canonicalControl(creation.value) !== canonicalControl({ literal: sourceFieldMethodToken(proof) }) || canonicalControl(creation.methodRead ?? null) !== canonicalControl({ receiver: proof.receiver, method: proof.method }) || canonicalControl(creation.boundMethod ?? null) !== canonicalControl({ receiver: proof.receiver, targetId: proof.targetId, targetSha256: proof.targetSha256 })) return false
+    if (invocation.kind === "call" && (invocation.sourceCallId !== call.id || invocation.symbol !== call.expression || invocation.candidateId !== proof.targetId || steps.filter(s => s.kind === "call" && s.sourceCallId === call.id).length !== 1)) return false
+    if (steps.some(s => s !== creation && (s.kind === "bind" && (s.bindingName ?? s.name) === result || (s.kind === "assign-value" || s.kind === "call") && s.result === result))) return false
+    const ordered = (events: string[][], lower: number, upper: number) => {
+      let previous = lower
+      return events.every(alternatives => {
+        const positions = block.steps.flatMap((s, i) => alternatives.includes(s.name) ? [i] : [])
+        if (positions.length !== 1 || positions[0]! <= previous || positions[0]! >= upper) return false
+        previous = positions[0]!
+        return true
+      })
+    }
+    if (!ordered(proof.order.before, -1, block.steps.indexOf(creation)) || !ordered(proof.argumentEvents, block.steps.indexOf(creation), block.steps.indexOf(invocation)) || !ordered(proof.order.after, block.steps.indexOf(invocation), block.steps.length)) return false
+  }
   return proofs.every(proof => {
     const block = sourceControlBlock(unit, proof.controls), creations = steps.filter(s => s.name === `field-method-value-${proof.anchorId}`), stores = steps.filter(s => s.name === `field-${proof.anchorId}`), creation = creations[0], store = stores[0], result = `field-method-object-${proof.anchorId}`
     if (!block || creations.length !== 1 || stores.length !== 1 || creation?.kind !== "assign-value" || store?.kind !== "transform" || !block.steps.includes(creation) || block.steps.indexOf(store) !== block.steps.indexOf(creation) + 1) return false
@@ -173,6 +191,17 @@ function actualArguments(index: StructureIndex, caller: BoundSemanticBlock, step
   return expected.every(argument => {
     if (argument.expression === undefined) return !step.arguments.some(a => a.parameter === argument.parameter)
     const actual = step.arguments.filter(a => a.parameter === argument.parameter); if (actual.length !== 1) return false
+    if (argument.valueFlow) {
+      const proof = argument.valueFlow, values = steps.filter(s => s.kind === "short-circuit" && s.name === `short-${proof.anchorId}`), value = values[0], body = value?.kind === "short-circuit" ? caller.blocks.find(b => b.name === value.body) : undefined, invocationBlock = caller.blocks.find(b => b.steps.includes(step))
+      if (actual[0]!.object !== proof.result || values.length !== 1 || value?.kind !== "short-circuit" || value.result !== proof.result || value.operator !== proof.operator || value.language !== "python" || canonicalControl(value.left) !== canonicalControl(proof.left) || canonicalControl(value.right) !== canonicalControl(proof.right) || !body || !invocationBlock?.steps.includes(value) || invocationBlock.steps.indexOf(value) >= invocationBlock.steps.indexOf(step)) return false
+      if (proof.leftCallId) {
+        const calls = steps.filter(s => s.kind === "call" && s.sourceCallId === proof.leftCallId), call = calls[0], block = caller.blocks.find(b => b.steps.includes(value))
+        if (calls.length !== 1 || call?.kind !== "call" || call.result !== proof.left.binding || !block?.steps.includes(call) || block.steps.indexOf(call) >= block.steps.indexOf(value)) return false
+      }
+      if (!proof.rightCallId) return body.steps.length === 0
+      const calls = body.steps.filter(s => s.kind === "call" && s.sourceCallId === proof.rightCallId), call = calls[0]
+      return calls.length === 1 && call?.kind === "call" && call.result === proof.right.binding && body.steps.every(s => s.kind === "bind" || s === call)
+    }
     if (!argument.sourceCallId && actual[0]!.object === argument.expression) return true
     const literal = argument.literalKnown ? { known: true, value: argument.literalValue } : literalArgument(argument.expression)
     if (literal.known && steps.some(s => s.kind === "bind" && s.type === "value" && (s.bindingName ?? s.name) === actual[0]!.object && canonicalControl(s.value) === canonicalControl(literal.value))) return true
@@ -202,9 +231,10 @@ export function projectSourceMaterials(program: AuthorizationInquiryProgram, acc
           const selected = operationCallSourceSelection(index, caller, step), targets = operationCallTargets(index, caller, step, candidates)
           if (selected.actions.length !== 1 || targets.length !== 1 || !actualArguments(index, caller, step, targets[0]!.unit)) { delete step.callee; continue }
           const target = targets[0]!, helper = available.find(m => byMaterial.get(m.id) === target.unit)!
-          const call = index.relatedCalls(caller.source!.id, caller.receiverClass).find(c => c.id === step.sourceCallId), symbol = index.symbols.find(s => s.id === target.unit.source!.id), methodRead = call && symbol && sourceDirectMethodRead(call, symbol)
+          const call = index.relatedCalls(caller.source!.id, caller.receiverClass).find(c => c.id === step.sourceCallId), symbol = index.symbols.find(s => s.id === target.unit.source!.id), methodRead = call && symbol && (!options.questionDirected || !call.methodCapture) && sourceDirectMethodRead(call, symbol)
           if (methodRead) step.methodRead = methodRead
           if (call?.methodField && symbol) step.fieldMethodRead = { object: call.expression, receiver: call.methodField.receiver, targetId: symbol.id, targetSha256: symbol.sha256 }
+          if (options.questionDirected && call?.methodCapture && symbol) step.fieldMethodRead = { object: sourceMethodCaptureResult(call.id), receiver: call.methodCapture.receiver, targetId: symbol.id, targetSha256: symbol.sha256 }
           step.callee = target.unit.handle
           uses.push({ kind: "call", operationId: operation.id, questionId: question.questionId, materialId: helper.id, callerMaterialId: material.id, relationId: target.relationId, receiverClass: target.receiverClass, arguments: structuredClone(step.arguments) })
           visit(helper)

@@ -2104,6 +2104,12 @@ AY7普通字段方法值小步（2026-10-08）：v21接通class/callable共用�
 
 31新增用例，新鲜492focused/2327断言、联合1331pass/1平台skip/8134断言/115文件/31.82s与主/AY类型通过，见[局部核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-field-method-values.json)。新[字段方法probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-field-method-reviewed-replay.json)核验94旧冻结和6补充文件，6候选body之外按声明receiver统计1个可能store/5个字段call来源合格；初始/reviewed报告分留，后者更新顺序事实，资格数不变；指定应用receiver的method store/字段call合格/实际采用仍0。source-invariant排除后不完整的正store图保守不采用。无实验model read/application annotation/use或模型/目标/探针网络新增，开发/探子token、USD与真人时间unknown，原输入/allowlist/答不升级；64块/127节点/16路径执行预算不变。跨receiver/任意closure/class/wrapper变换、早期capture、完整请求和官方复验及预登记质量/净收益继续。
 
+AY7早期方法捕获小步（2026-10-08）：v22复用v21实际方法身份，在有嵌套实参call的普通同instance直接statement/assignment/return处先读取方法，再词法顺序执行实参，最后调用已捕获target。主红测复现实参覆盖slot后旧late read阻断原方法，补强断言又发现部分实现没有生成capture、却已去掉late read的假通过，现同时核验实际capture及fieldMethodRead。短路实参已有有限结果但缺机械来源映射，补入同一argumentFacts的简单valueFlow；原and/or结果沿同一binder传递，不扩大谓词或角色。主反例另复现多实参倒序和短路RHS追加调用仍被采用，现要求逐事件严格顺序与精确条件body。两只读核验无新可复现发现，后一份主要使用现有测试，范围分别记录，不作穷尽证明。
+
+新[早期捕获probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-early-method-capture-replay.json)独立核验94旧冻结及6补充源码、6候选body，声明receiver下1处early capture合格，指定应用receiver下合格/实际采用均0；旧probe和实验原件保留。捕获前已覆盖、实参异常、短路跳过、未知基类/descriptor/wrapper/重绑定仍具名；外部target和负class/MRO改变撤回旧关系，无关homonym保持。无实验model read/application annotation/use或模型/目标/探针网络新增，开发/探子token、USD与真人时间unknown。实际class/wrapper变换、完整请求、官方复验和预登记净收益继续，AY7未完成。
+
+新鲜验证为33新增、525focused/2676断言、联合1364pass/1平台skip/8483断言/115文件/33.76s及主/AY类型通过，见[早期捕获核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-early-method-capture.json)。源码probe SHA为`2cde2fc6f4a40d56211423dc65f8775207540e5321e62a972fefcef20ba8c0b0`；开发和探子用量未知不得以实验新增0替代。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

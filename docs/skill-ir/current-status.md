@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-最新小步为AY7 `source-bindings/v21`普通同instance字段方法值：原`self.slot=self.method`实际捕获receiver与当前target/SHA，经既有transform跨helper保存，原字段调用按实际已存方法值沿同一binder/六角色分派。普通token不能代替捕获；未知/字面字段覆盖、错receiver/target/SHA撤回，后续源方法槽位替换保留已捕获引用，v20函数对象写入仍具名。材料须保留精确创建与紧邻store、原if/try区域和return/call/store/control顺序、完整字段selector及当前实参；删改或挪动不得采用。31新增用例、492focused/2327断言、联合1331pass/1平台skip/8134断言及主/AY类型通过；三只读核验分列；主另红绿修复短路表达式内调用未进入捕获顺序的遗漏。100文件/6候选body probe中，声明receiver有1个可能store/5个字段call来源合格，指定应用receiver合格/采用0。跨receiver、任意callback/closure、class/wrapper实际变换、早期capture、完整请求和官方实际复验继续，AY7和净收益未达。
+最新小步为AY7 `source-bindings/v22`早期普通方法捕获：有嵌套实参call的同instance直接statement/assignment/return先实际捕获原方法，再按词法顺序求值实参，后以既有boundMethod/fieldMethodRead和同一binder调用；实参内slot覆盖保留原引用，捕获前覆盖或实参异常保持原阻断。简单and/or值经同一argumentFacts的机械valueFlow投影；复杂操作数、class/wrapper/descriptor不取得新资格。材料须保留精确捕获、原if/try区域、严格事件顺序和原短路body，缺失/挪动/实参倒序/追加call不采用。33新增用例；525focused/2676断言、联合1364pass/1平台skip/8483断言及主/AY类型通过；两只读核验与主红绿分列。100文件/6候选body probe声明receiver有1处early capture合格，指定应用receiver合格/实际采用0；旧probe/input/allowlist/答保留。实际class/wrapper变换、完整请求和官方复验继续，AY7和预登记净收益未达。
 
 v17后续容量修正（2026-10-08）：16候选的两个selector实际生成35块，先后红测复现共享单元与聚焦源码提交各自的32块拒绝。两处现共用64块结构容量，原127 emitted-node/16终态路径求值边界保持；完整source-read/interpret/material projection/native提交与实际guard拒绝通过。新鲜403focused/1550断言、联合1242pass/1平台skip/7357断言/115文件及主/AY类型通过。历史OWUI拒绝及真实probe不升级，本步无模型或目标执行；条件lookup与完整请求继续。
 

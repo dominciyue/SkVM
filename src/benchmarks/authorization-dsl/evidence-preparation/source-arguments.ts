@@ -1,8 +1,8 @@
-import type { StructureCall, StructureSymbol } from "./structure-index.ts"
+import type { StructureCall, StructureSymbol, StructureArgumentValue } from "./structure-index.ts"
 import type { FiniteValue, Scalar } from "../../../task-dsl/authorization/control-evaluation.ts"
 
 export interface SourceArgumentBinding {
-  parameter: string; expression: string; literalKnown: boolean; literalValue?: FiniteValue; captureOwnerId?: string; sourceCallId?: string
+  parameter: string; expression: string; literalKnown: boolean; literalValue?: FiniteValue; captureOwnerId?: string; sourceCallId?: string; valueFlow?: StructureArgumentValue
 }
 export interface SourceArgumentIndex { symbols: StructureSymbol[]; relatedCalls: (symbolId: string, receiverClass?: string) => StructureCall[] }
 export const sourceCallableParameter = (symbolId: string) => `source-callable-${symbolId}`
@@ -30,6 +30,10 @@ export function sourceArgumentBindings(index: SourceArgumentIndex, call: Structu
   if (call.methodField) {
     const proof = call.methodField, actual = caller && index.relatedCalls(caller.id, call.receiverClass).find(c => c.id === call.id)
     if (!actual || actual.resolution === "unresolved" || !actual.candidateIds.includes(target.id) || !proof.choices.some(c => c.targetId === target.id && c.targetSha256 === currentTarget?.sha256) || proof.receiver !== call.receiver || call.expression !== `${proof.receiver}.${proof.field}` || actual.receiver !== call.receiver || actual.receiverClass !== call.receiverClass || actual.expression !== call.expression || actual.sha256 !== call.sha256 || JSON.stringify(actual.argumentFacts) !== JSON.stringify(call.argumentFacts) || JSON.stringify(actual.methodField) !== JSON.stringify(proof)) return fail("field-method-unresolved")
+  }
+  if (call.methodCapture) {
+    const proof = call.methodCapture, actual = caller && index.relatedCalls(caller.id, call.receiverClass).find(c => c.id === call.id)
+    if (!actual || actual.resolution !== "resolved" || actual.candidateIds.length !== 1 || actual.candidateIds[0] !== target.id || proof.targetId !== target.id || proof.targetSha256 !== currentTarget?.sha256 || proof.source.sha256 !== caller?.sha256 || proof.receiver !== call.receiver || proof.sourceCallId !== call.id || actual.receiver !== call.receiver || actual.receiverClass !== call.receiverClass || actual.expression !== call.expression || actual.sha256 !== call.sha256 || JSON.stringify(actual.argumentFacts) !== JSON.stringify(call.argumentFacts) || JSON.stringify(actual.methodCapture) !== JSON.stringify(proof)) return fail("method-capture-unresolved")
   }
   if (instance) {
     const actual = caller && index.relatedCalls(caller.id, call.receiverClass).find(c => c.id === call.id), factory = index.symbols.find(s => s.id === instance.factoryId)
@@ -74,7 +78,7 @@ export function sourceArgumentBindings(index: SourceArgumentIndex, call: Structu
     regular.push(parameter.name)
     if (!expression) { partialGap ??= "source-arguments-missing"; continue }
     const literalKnown = supplied?.literalKnown ?? (!receiver && !!parameter.defaultLiteralKnown)
-    bindings.push({ parameter: parameter.name, expression, literalKnown, ...(supplied?.sourceCallId ? { sourceCallId: supplied.sourceCallId } : {}), ...(literalKnown ? { literalValue: supplied ? supplied.literalValue! : parameter.defaultLiteralValue! } : {}) })
+    bindings.push({ parameter: parameter.name, expression, literalKnown, ...(supplied?.sourceCallId ? { sourceCallId: supplied.sourceCallId } : {}), ...(supplied?.valueFlow ? { valueFlow: supplied.valueFlow } : {}), ...(literalKnown ? { literalValue: supplied ? supplied.literalValue! : parameter.defaultLiteralValue! } : {}) })
     if (!supplied && !receiver && !literalKnown) partialGap ??= "source-arguments-default-dynamic"
     if (!supplied && !receiver && (posSource || keySource)) return fail("regular-pack-unresolved")
   }
