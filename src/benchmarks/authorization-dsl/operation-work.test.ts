@@ -1,9 +1,23 @@
 import { expect, test } from "bun:test"
 import { buildStructureIndex } from "./evidence-preparation/structure-index.ts"
-import { operationWork, diagnosticWork, structuralDependencyRevision } from "./operation-work.ts"
+import { operationWork, diagnosticWork, structuralDependencyRevision, sourceRelationRevision } from "./operation-work.ts"
 import { createSourceMaterials } from "../../task-dsl/authorization/source-materials.ts"
 import { projectSourceMaterials } from "./source-material-projection.ts"
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
+
+test("field method captures retain external target and negative descriptor bytes without unrelated homonyms", async () => {
+  const files = [{ path: "app.py", content: "from base import Parent\nclass Gate(Parent):\n    def prepare(self):\n        self.handler = self.guard\n        return True\n    def entry(self, actor):\n        self.prepare()\n        return self.handler(actor)\n" }, { path: "base.py", content: "class Parent:\n    def guard(self, actor):\n        return actor\n" }], index = await buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" })
+  for (const name of ["prepare", "entry"]) {
+    const source = index.symbols.find(s => s.name === name)!, revision = sourceRelationRevision(index, source.id, "app.Gate")
+    for (const content of ["class Parent:\n    def guard(self, actor):\n        raise Denied\n", "class Parent:\n    def guard(self, actor):\n        return actor\n    def __getattribute__(self, name):\n        return dynamic(name)\n"]) {
+      const changed = await buildStructureIndex(files.map(f => f.path === "base.py" ? { ...f, content } : f), { repository: "anonymous", sourceRef: "r" })
+      expect(changed.symbols.find(s => s.id === source.id)!.sha256).toBe(source.sha256)
+      expect(sourceRelationRevision(changed, source.id, "app.Gate")).not.toBe(revision)
+    }
+    const unrelated = await buildStructureIndex([...files, { path: "other.py", content: "class Gate:\n    def guard(self, actor):\n        raise Denied\n" }], { repository: "anonymous", sourceRef: "r" })
+    expect(sourceRelationRevision(unrelated, source.id, "app.Gate")).toBe(revision)
+  }
+})
 
 test("a structurally bound omitted helper becomes a read, then an interpretation action", async () => {
   const index = await buildStructureIndex([{ path: "view.py", content: "def create(caller, item):\n    return check(caller, item)\ndef check(caller, item):\n    return caller == item.owner\n" }], { repository: "fixture", sourceRef: "r" })

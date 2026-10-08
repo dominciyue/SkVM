@@ -2100,6 +2100,10 @@ AY7函数对象边界小步（2026-10-08）：class/wrapper来源核对发现met
 
 26新增用例、新鲜461focused/2113断言、联合1300pass/1平台skip/7920断言/115文件/24.76s和主/AY类型通过，见[局部核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-function-attribute-stores.json)。新[函数属性probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-function-attribute-replay.json)验证94旧冻结及6独立补充文件；6执行候选body之外检查5个protocol body，17 stores中10个有函数来源边界，未解析的decorator参数不会因此取得class变换资格。声明receiver合格1、指定应用receiver合格/采用0；实验model read/application annotation/use/模型/目标/网络新增0，另有1次匿名Python语义核对，开发/探子token、USD与真人时间unknown，旧input/allowlist/答不升级。机械来源展开每store限128，原64块/127节点/16路径执行预算保持；class/wrapper实际变换、字段callable、早期bound-reference capture及完整请求和官方质量/收益继续pending。
 
+AY7普通字段方法值小步（2026-10-08）：v21接通class/callable共用前驱，普通同instance的`self.slot=self.method`在原赋值点捕获实际receiver/target，经原transform跨helper保存，在原字段调用点按实际值分派。主红测复现普通token被当作方法及覆盖/错receiver后仍执行旧guard，另复现helper删除捕获metadata和移过提前return仍被材料采用；现分别在native身份与当前source创建/控制/相对顺序核验处撤回。后续源方法槽位替换保留已捕获target，函数对象属性变更继续v20具名边界；未引入按库名豁免、谓词或新模型角色。前两只读核验分别132项和133项/1165断言通过。主最终点验又红测复现短路赋值表达式内调用漏入顺序，移前capture仍被采用；现记录外层表达式call/short事件，右侧调用留在原控制体，另两用例和只读2项/20断言核验通过。三复核与主修复分列，不作穷尽声明；主补齐正/负descriptor字节与无关homonym检查。
+
+31新增用例，新鲜492focused/2327断言、联合1331pass/1平台skip/8134断言/115文件/31.82s与主/AY类型通过，见[局部核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-field-method-values.json)。新[字段方法probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-field-method-reviewed-replay.json)核验94旧冻结和6补充文件，6候选body之外按声明receiver统计1个可能store/5个字段call来源合格；初始/reviewed报告分留，后者更新顺序事实，资格数不变；指定应用receiver的method store/字段call合格/实际采用仍0。source-invariant排除后不完整的正store图保守不采用。无实验model read/application annotation/use或模型/目标/探针网络新增，开发/探子token、USD与真人时间unknown，原输入/allowlist/答不升级；64块/127节点/16路径执行预算不变。跨receiver/任意closure/class/wrapper变换、早期capture、完整请求和官方复验及预登记质量/净收益继续。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto"
 import type { Node } from "@vscode/tree-sitter-wasm"
 import type { InquiryEvidence } from "../inquiry-tools.ts"
-import type { StructureCall, StructureIndex, StructureSymbol } from "./structure-index.ts"
+import type { StructureCall, StructureIndex, StructureSymbol, StructureMethodStore } from "./structure-index.ts"
 import { sourceLiteral } from "./structure-index.ts"
 import { sourceSyntaxAnchorId } from "./source-identities.ts"
 import { sourceArgumentBindings, sourceCallableParameter } from "./source-arguments.ts"
@@ -19,6 +19,7 @@ export interface SourceAnchor {
   capture?: { ownerId: string; ownerSha256: string };
   callableIdentity?: { sourceId: string; ownerId: string; ownerSha256: string };
   fieldWrite?: { object: string; field: string };
+  methodStore?: StructureMethodStore;
   call?: { sourceCallId?: string; expression: string; receiver?: string; receiverClass?: string; receiverBinding?: StructureCall["receiverBinding"]; callableBinding?: StructureCall["callableBinding"]; bindingGap?: string; arguments: Array<{ expression: string; parameterName?: string; spread?: boolean; literalKnown?: boolean; literalValue?: FiniteValue; sourceCallId?: string }>; candidateIds: string[]; resultNames: string[]; resultBinding: string }
 }
 export interface SourceFlow {
@@ -87,6 +88,7 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     if (questionDirected && source.localCallable?.gap && !returnedInstance) gap(fn, source.localCallable.gap, "This local body has no proved direct callable/capture binding in its owner; reading it does not supply its invocation.")
     const actualCalls = [...index.relatedCalls(source.id, receiverClass), ...index.calls.filter(c => c.id === registration?.sourceCallId)]
     const fieldStores = questionDirected ? index.fieldStores(source.id, receiverClass) : []
+    const methodStores = questionDirected ? index.methodStores(source.id, receiverClass) : []
     const belongsToScope = (n: Node) => {
       if (n.id === fn.id) return true
       let owner = n.parent
@@ -103,10 +105,10 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
       const actual = sourceCall(n)
       const arguments_: NonNullable<SourceAnchor["call"]>["arguments"] = kids(field(n, "arguments")).map(a => { const value = a.type === "keyword_argument" ? field(a, "value")! : a, literal = sourceLiteral(value), child = ["call", "call_expression"].includes(value.type) ? sourceCall(value) : undefined; return { expression: value.text, ...(child ? { sourceCallId: child.id } : {}), ...(a.type === "keyword_argument" ? { parameterName: field(a, "name")!.text } : {}), ...(["list_splat", "dictionary_splat", "variadic_argument"].includes(a.type) ? { spread: true } : {}), ...(literal.literalKnown ? literal : {}) } })
       if (!/^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$/.test(expression) && !/^super\(\)\.[A-Za-z_]\w*$/.test(expression)) gap(n, "skeleton-call-dynamic", "The actual function expression is dynamic; no unique callee or receiver is invented.")
-      const callableGap = actual?.gap && /^(?:source-local-|source-returned-callable-|source-method-alias-|source-method-choice-|source-method-lookup-)/.test(actual.gap) ? actual.gap : undefined
+      const callableGap = actual?.gap && /^(?:source-local-|source-returned-callable-|source-method-alias-|source-method-choice-|source-method-lookup-|source-field-method-)/.test(actual.gap) ? actual.gap : undefined
       if (questionDirected && callableGap) gap(n, callableGap, "The current lexical callable/capture binding is unresolved regardless of its proposed domain role.")
       if (arguments_.some(a => a.spread)) {
-        const targets = actual && (actual.methodChoices || actual.methodLookup || actual.candidateIds.length === 1) ? actual.candidateIds.flatMap(id => index.symbols.filter(s => s.id === id && s.kind === "function")) : []
+        const targets = actual && (actual.methodChoices || actual.methodLookup || actual.methodField || actual.candidateIds.length === 1) ? actual.candidateIds.flatMap(id => index.symbols.filter(s => s.id === id && s.kind === "function")) : []
         const bindings = actual ? targets.map(target => sourceArgumentBindings(index, actual, target)) : []
         if (!questionDirected || !bindings.length || bindings.some(b => b.gap)) gap(n, "skeleton-arguments-dynamic", `Expanded arguments require a source-supported mapping; ${bindings.find(b => b.gap)?.gap || "positions are not guessed"}.`)
       }
@@ -233,7 +235,8 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
           gap(assignment!, protocol.gap, "A current function or method source may participate in this attribute store. Its callable/descriptor protocol and function-body changes cannot be replaced by an ordinary data transform.")
           return [...calls, { kind: "gap", anchorId: add(assignment!, "assignment", { name: target!.text, fieldWrite }).id }]
         }
-        return assignment && target ? [...calls, { kind: "step", anchorId: add(assignment, "assignment", { name: target.text, valueExpression: right?.text, valueAnchorId: valueAnchor(right, calls), ...sourceLiteral(right), ...(fieldWrite ? { fieldWrite } : {}) }).id }] : calls
+        const methodStore = assignment && methodStores.find(s => s.source.startIndex === assignment.startIndex && s.source.endIndex === assignment.endIndex)
+        return assignment && target ? [...calls, { kind: "step", anchorId: add(assignment, "assignment", { name: target.text, valueExpression: right?.text, valueAnchorId: valueAnchor(right, calls), ...sourceLiteral(right), ...(fieldWrite ? { fieldWrite } : {}), ...(methodStore ? { methodStore } : {}) }).id }] : calls
       }
       gap(n, "skeleton-statement-unsupported", `The ${n.type} statement remains explicit rather than being silently deleted.`)
       return [{ kind: "gap", anchorId: add(n, "assignment").id }]

@@ -577,6 +577,75 @@ for (const { mode, field, later, other, local } of [
   }
 })
 
+for (const mode of ["direct", "helper", "overwrite", "late-source-overwrite", "fallback", "uncreated", "early-return", "branch-created", "branch-skipped", "try-created", "finally-created", "nested-call-order", "right-call-order"]) test(`source field method invocation follows actual creation and store state: ${mode}`, async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-field-method-adoption-"))
+  const prefix = ["helper", "early-return", "branch-created", "branch-skipped", "try-created", "finally-created", "nested-call-order", "right-call-order"].includes(mode) ? "        self.prepare()\n" : mode === "uncreated" ? "" : `        self.handler = self.${mode === "fallback" ? "fallback" : "guard"}\n`
+  const suffix = mode === "overwrite" ? "        self.handler = None\n" : mode === "late-source-overwrite" ? "        self.guard = self.fallback\n" : ""
+  const prepare = mode.startsWith("branch-") ? `        if ${mode === "branch-created" ? "True" : "False"}:\n            self.handler = self.guard\n` : mode === "try-created" ? "        try:\n            self.handler = self.guard\n        finally:\n            pass\n" : mode === "finally-created" ? "        try:\n            return True\n        finally:\n            self.handler = self.guard\n" : `${mode === "early-return" ? "        return True\n" : mode.endsWith("call-order") ? `        value = ${mode === "right-call-order" ? "False or self.reset()" : "self.reset() and True"}\n` : ""}        self.handler = self.guard\n`
+  const content = `class Gate:\n    def entry(self, actor):\n${prefix}${suffix}        self.handler(actor)\n        write()\n        return True\n    def prepare(self):\n${prepare}        return True\n    def guard(self, actor):\n        raise Denied\n    def fallback(self, actor):\n        return actor\n${mode.endsWith("call-order") ? "    def reset(self):\n        self.guard = self.fallback\n        return True\n" : ""}`
+  await writeFile(path.join(sourceRoot, "app.py"), content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, units: any[] = []
+  for (const name of ["entry", "prepare", "guard", "fallback", ...mode.endsWith("call-order") ? ["reset"] : []]) {
+    const source = index.symbols.find(s => s.name === name)!
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id, "app.Gate"))!, annotations = skeleton.anchors.filter(a => ["parameter", "condition", "call", "return", "raise"].includes(a.kind)).map(a => ({ anchorId: a.id, role: a.kind === "parameter" ? a.name === "actor" ? "principal" : "context" : a.kind === "call" ? a.call!.expression === "write" ? "effect" : "condition" : a.kind === "condition" ? "condition" : "context", explanation: "Anonymous original field method creation and actual receiver", ...(a.kind === "condition" ? { condition: { op: "eq", left: { literal: a.literalValue }, right: { literal: true } } } : {}), ...(a.kind === "return" && name === "entry" ? { returnOutcome: "allow" } : {}), ...(a.kind === "raise" ? { failureKind: "authorization" } : {}) }))
+    const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index, itemId: name, handle: name, questionId: "q", role: name === "entry" ? "entry" : "helper" })
+    expect(result.diagnostics).toEqual([])
+    units.push({ ...result.unit!, questionId: "q", evidenceIds: skeleton.evidenceIds, source: skeleton.source, receiverClass: "app.Gate" })
+  }
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect actual stored method invocation", premises: [] }] }), project = (current = units) => {
+    const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" })
+    for (const u of current) store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }, { kind: "candidate-set", key: `relations:${u.source.id}:app.Gate`, revision: sourceRelationRevision(index, u.source.id, "app.Gate")! }], "test-authored")
+    return api.projectSourceMaterials(p, current, store.snapshot(), index, { questionDirected: true })
+  }
+  const projected = project(), lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true }), denied = ["direct", "helper", "late-source-overwrite", "branch-created", "try-created", "finally-created"].includes(mode)
+  expect(lowered.delta.rules.some(r => r.failureKind === "authorization")).toBe(denied)
+  expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(mode === "fallback")
+  if (["overwrite", "uncreated", "early-return", "branch-skipped"].includes(mode)) expect(lowered.diagnostics.map(d => d.code)).toContain("source-field-method-value-unresolved")
+  else if (mode.endsWith("call-order")) expect(lowered.diagnostics.map(d => d.code)).toContain("source-method-slot-written")
+  else expect(lowered.diagnostics.map(d => d.code)).toEqual(mode === "fallback" ? ["semantic-exception-type-unknown"] : [])
+  if (mode === "helper") {
+    const forged = structuredClone(units), prepare = forged.find(u => u.handle === "prepare"), creation = prepare.blocks.flatMap((b: any) => b.steps).find((s: any) => s.boundMethod)
+    expect(creation).toBeDefined()
+    delete creation.boundMethod
+    expect(project(forged).units.some((u: any) => u.source?.id === prepare.source.id)).toBe(false)
+    const rejected = lowerSemanticFlow(project(forged).units, { compositional: true, propertyDirected: true })
+    expect(rejected.delta.rules.some(r => r.failureKind === "authorization")).toBe(false)
+    expect(rejected.delta.rules.some(r => r.kind === "effect")).toBe(false)
+    for (const changed of ["receiver", "target", "token", "field", "source", "duplicate"]) {
+      const forged = structuredClone(units), prepare = forged.find(u => u.handle === "prepare"), body = prepare.blocks.find((b: any) => b.name === prepare.start), capture = body.steps.find((s: any) => s.boundMethod), store = body.steps.find((s: any) => s.kind === "transform")
+      if (changed === "receiver") capture.boundMethod.receiver = "actor"
+      if (changed === "target") capture.boundMethod.targetSha256 = "obsolete"
+      if (changed === "token") capture.value = { literal: "forged" }
+      if (changed === "field") store.field = "other"
+      if (changed === "source") store.source = "other"
+      if (changed === "duplicate") body.steps.unshift({ ...structuredClone(capture), name: "forged-capture", result: "forged-value" })
+      expect(project(forged).units.some((u: any) => u.source?.id === prepare.source.id)).toBe(false)
+    }
+    for (const changed of ["condition", "candidate", "otherwise", "extra-step"]) {
+      const forged = structuredClone(units), entry = forged.find(u => u.handle === "entry"), dispatch = entry.blocks.flatMap((b: any) => b.steps).find((s: any) => s.name.startsWith("field-method-call-")), variant = entry.blocks.find((b: any) => b.name === dispatch.cases[0].body), invocation = variant.steps.find((s: any) => s.kind === "call")
+      if (changed === "condition") dispatch.cases[0].condition = { op: "eq", left: { literal: true }, right: { literal: true } }
+      if (changed === "candidate") invocation.candidateId = "other"
+      if (changed === "otherwise") entry.blocks.find((b: any) => b.name === dispatch.otherwise).steps = []
+      if (changed === "extra-step") variant.steps.unshift({ kind: "effect", name: "forged-effect", claim: "Forged execution before the source call" })
+      const projected = project(forged)
+      expect(projected.units.some((u: any) => u.source?.id === units.find(u => u.handle === "guard").source.id)).toBe(false)
+      expect(lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true }).delta.rules.some(r => r.failureKind === "authorization")).toBe(false)
+    }
+  }
+  if (mode === "early-return") {
+    const forged = structuredClone(units), prepare = forged.find(u => u.handle === "prepare"), body = prepare.blocks.find((b: any) => b.name === prepare.start), returned = body.steps.findIndex((s: any) => s.kind === "return")
+    body.steps.push(...body.steps.splice(returned, 1))
+    expect(project(forged).units.some((u: any) => u.source?.id === prepare.source.id)).toBe(false)
+  }
+  if (mode.endsWith("call-order")) {
+    const forged = structuredClone(units), prepare = forged.find(u => u.handle === "prepare"), body = prepare.blocks.find((b: any) => b.name === prepare.start), capture = body.steps.findIndex((s: any) => s.boundMethod)
+    expect(capture).toBeGreaterThan(0)
+    body.steps.unshift(...body.steps.splice(capture, 2))
+    expect(project(forged).units.some((u: any) => u.source?.id === prepare.source.id)).toBe(false)
+  }
+})
+
 test("a captured bound method cannot execute its old source body after a helper mutates the function object", async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-method-function-mutation-")), content = "class Gate:\n    def entry(self, actor):\n        handler = self.guard\n        self.prepare()\n        handler(actor)\n        write()\n        return True\n    def prepare(self):\n        self.guard.__func__.__code__ = self.fallback.__func__.__code__\n        return True\n    def guard(self, actor):\n        raise Denied\n    def fallback(self, actor):\n        return actor\n"
   await writeFile(path.join(sourceRoot, "app.py"), content)

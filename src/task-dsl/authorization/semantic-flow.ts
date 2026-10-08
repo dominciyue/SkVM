@@ -12,18 +12,19 @@ const common = { name, claim: InquiryText }
 const objects = { principal: name.optional(), resource: name.optional() }
 const operand = z.record(z.unknown()).refine(v => !predicateDiagnostics({ op: "truthy", language: "python", value: v }).length, "Finite source operand required")
 const methodRead = z.object({ receiver: name, method: name, defaultMethod: name.optional() }).strict()
+const boundMethod = z.object({ receiver: name, targetId: name, targetSha256: name }).strict()
 export const SemanticStepSchema = z.discriminatedUnion("kind", [
   z.object({ ...common, kind: z.literal("bind"), type: z.enum(["principal", "resource", "permission", "configuration", "value"]), bindingName: name.optional(), aliasOf: name.optional(), value: FiniteValueSchema.optional() }).strict(),
   z.object({ ...common, ...objects, kind: z.literal("guard"), condition: condition.optional() }).strict(),
   z.object({ ...common, kind: z.literal("choose"), cases: z.array(z.object({ condition, body: name }).strict()).min(1).max(16), otherwise: name.optional() }).strict(),
-  z.object({ ...common, ...objects, kind: z.literal("call"), symbol: name, sourceCallId: name.optional(), callee: name.optional(), result: name.optional(), arguments: z.array(z.object({ parameter: name, object: name }).strict()).max(16).default([]), pathHint: InquiryText.optional(), candidateId: InquiryText.optional(), methodRead: methodRead.optional() }).strict(),
+  z.object({ ...common, ...objects, kind: z.literal("call"), symbol: name, sourceCallId: name.optional(), callee: name.optional(), result: name.optional(), arguments: z.array(z.object({ parameter: name, object: name }).strict()).max(16).default([]), pathHint: InquiryText.optional(), candidateId: InquiryText.optional(), methodRead: methodRead.optional(), fieldMethodRead: boundMethod.extend({ object: name }).optional() }).strict(),
   z.object({ ...common, ...objects, kind: z.literal("effect"), operation: InquiryText.optional(), authorizedBy: z.array(name).max(16).optional(), mayRaise: z.boolean().optional() }).strict(),
   z.object({ ...common, kind: z.literal("return"), value: scalar.optional(), valueFrom: name.optional(), object: name.optional(), outcome: z.enum(["allow", "deny", "unknown"]).optional() }).strict(),
   z.object({ ...common, kind: z.literal("reject"), failureKind: z.enum(["authorization", "operation"]).optional() }).strict(),
   z.object({ ...common, kind: z.literal("transform"), object: name, field: name, value: FiniteValueSchema.optional(), source: name.optional() }).strict(),
   z.object({ ...common, kind: z.literal("unresolved"), reason: InquiryText }).strict(),
   z.object({ ...common, kind: z.literal("context"), relationship: z.enum(["route-registration", "class-configuration", "dispatch-binding"]), mayRaise: z.boolean().optional() }).strict(),
-  z.object({ ...common, kind: z.literal("assign-value"), result: name, value: operand, methodRead: methodRead.optional() }).strict(),
+  z.object({ ...common, kind: z.literal("assign-value"), result: name, value: operand, methodRead: methodRead.optional(), boundMethod: boundMethod.optional() }).strict(),
   z.object({ ...common, kind: z.literal("short-circuit"), operator: z.enum(["and", "or"]), language: z.enum(["python", "go"]), left: operand, right: operand, body: name, result: name }).strict(),
   z.object({ ...common, kind: z.literal("try"), body: name, handlers: z.array(z.object({ exceptionTypes: z.array(name).max(16), catchesAll: z.boolean(), body: name, unknownType: z.boolean().optional() }).strict()).max(16), otherwise: name.optional(), finally: name.optional() }).strict(),
   z.object({ ...common, kind: z.literal("raise"), exceptionType: name.optional(), failureKind: z.enum(["authorization", "operation"]).optional(), rethrow: z.boolean().optional() }).strict(),
@@ -42,7 +43,7 @@ export interface PropertyContextSummary {
   semantics: "normal-all-or-first-unknown-exception"; outcomeBinding?: string; normalRuleKey?: string; exceptionRuleKey?: string
 }
 interface Exit { kind: "return" | "raise" | "break" | "continue"; claim: string; outcome?: "allow" | "deny" | "unknown"; exceptionType?: string; failureKind?: "authorization" | "operation" }
-interface ObjectBinding { identity: string; type: string }
+interface ObjectBinding { identity: string; type: string; boundMethod?: { receiverIdentity: string; targetId: string; targetSha256: string } }
 interface Cursor { tail: string; route: string[]; objects: Record<string, ObjectBinding>; fieldObjects: Record<string, ObjectBinding | null>; guards: Record<string, string>; values: Record<string, FiniteValue>; objectValues: Record<string, FiniteValue>; operands?: Record<string, Record<string, unknown>>; stopped?: boolean; returned?: boolean; returnValue?: FiniteValue; returnObject?: ObjectBinding; pending?: Exit; handledException?: Exit }
 const id = (parts: unknown[]) => "sem-" + createHash("sha256").update(canonicalControl(parts)).digest("hex").slice(0, 24)
 
@@ -88,7 +89,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
       const source = c.operands?.[ref]?.binding
       if (typeof source === "string" && source !== ref) {
         const mapped = valueObject(c, source)
-        if (mapped) return { identity: mapped.identity, type: "value" }
+        if (mapped) return { ...mapped, type: "value" }
       }
       return undefined
     }
@@ -289,7 +290,21 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
             const slots = [read.method, ...(read.defaultMethod ? [read.defaultMethod] : []), "__class__"].map(field => `${receiver.identity}.${field}`)
             if (Object.keys(c.fieldObjects).some(key => slots.some(slot => key === slot || key.startsWith(`${slot}.`)))) { gap(u, c, instance, body, step.name, "source-method-slot-written"); next.push(c); continue }
           }
-          if (step.kind === "assign-value") { assignValue(c, step.result, step.value); append(u, c, instance, body, step.name, "continue", fields) }
+          if (step.kind === "call" && step.fieldMethodRead) {
+            const read = step.fieldMethodRead, reference = valueObject(c, read.object)?.boundMethod, receiver = valueObject(c, read.receiver)
+            if (!reference || !receiver || reference.receiverIdentity !== receiver.identity || reference.targetId !== read.targetId || reference.targetSha256 !== read.targetSha256 || Object.keys(c.fieldObjects).some(key => key === `${receiver.identity}.__class__` || key.startsWith(`${receiver.identity}.__class__.`))) { gap(u, c, instance, body, step.name, "source-field-method-value-unresolved"); next.push(c); continue }
+          }
+          if (step.kind === "assign-value") {
+            assignValue(c, step.result, step.value)
+            if (step.boundMethod) {
+              const reference = step.boundMethod, receiver = valueObject(c, reference.receiver)
+              if (!receiver || !step.methodRead || step.methodRead.receiver !== reference.receiver || !Object.hasOwn(step.value, "literal")) { gap(u, c, instance, body, step.name, "source-bound-method-creation-unresolved"); next.push(c); continue }
+              const identity = id([questionId, instance, body, step.name, c.route, "bound-method"])
+              c.objects[step.result] = { identity, type: "value", boundMethod: { receiverIdentity: receiver.identity, targetId: reference.targetId, targetSha256: reference.targetSha256 } }
+              setSourceValue(c, identity, { value: c.values[step.result]! }); delete c.values[step.result]
+            }
+            append(u, c, instance, body, step.name, "continue", fields)
+          }
           else if (step.kind === "raise") { append(u, c, instance, body, step.name, "continue", fields); c.pending = step.rethrow ? c.handledException ?? { kind: "raise", claim: step.claim } : { kind: "raise", claim: step.claim, exceptionType: step.exceptionType, failureKind: step.failureKind } }
           else if (step.kind === "break" || step.kind === "continue") { append(u, c, instance, body, step.name, "continue", fields); c.pending = { kind: step.kind, claim: step.claim } }
           else if (step.kind === "context") { if (!summary?.normalRuleKey) { const r = append(u, c, instance, body, groupStep, "continue", { ...fields, ...(groupOrigin ? { sourceOrigin: groupOrigin } : {}) }); if (summary) summary.normalRuleKey = r.key } }
@@ -320,7 +335,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
               const sourceValue = source && Object.hasOwn(c.objectValues, source) ? { value: structuredClone(c.objectValues[source]!) } : undefined
               setSourceValue(c, key, Object.hasOwn(step, "value") ? { value: step.value! } : sourceValue, object.identity, step.field)
               for (const stored of Object.keys(c.fieldObjects)) if (stored.startsWith(`${key}.`)) delete c.fieldObjects[stored]
-              c.fieldObjects[key] = sourceObject && sourceObject.type !== "value" ? { ...sourceObject } : null
+              c.fieldObjects[key] = sourceObject && (sourceObject.type !== "value" || sourceObject.boundMethod) ? { ...sourceObject } : null
               fieldChanges.push({ questionId, handle: u.handle, step: step.name, object: object.identity, field: step.field, ...(Object.hasOwn(step, "value") ? { value: step.value } : {}), ...(source ? { source } : {}), evidenceIds: u.evidenceIds }); append(u, c, instance, body, step.name, "continue", fields)
             }
           }

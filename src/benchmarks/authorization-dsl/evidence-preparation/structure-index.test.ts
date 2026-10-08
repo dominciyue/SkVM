@@ -1,6 +1,20 @@
 import { expect, test } from "bun:test"
 import { buildStructureIndex } from "./structure-index.ts"
 
+for (const mode of ["ordinary", "receiver-rebound", "cross-receiver", "wrapped-class", "static-target", "descriptor", "missing-base"]) test(`field method source proofs retain ordinary receiver boundaries: ${mode}`, async () => {
+  const content = `${mode === "wrapped-class" ? "@decorate\n" : ""}class Gate${mode === "missing-base" ? "(Unknown)" : ""}:\n    def entry(self, actor):\n${mode === "receiver-rebound" ? "        self = actor\n" : ""}        ${mode === "cross-receiver" ? "actor" : "self"}.handler = self.guard\n        return self.handler(actor)\n${mode === "static-target" ? "    @staticmethod\n" : ""}    def guard(self, actor):\n        return actor\n${mode === "descriptor" ? "    def __getattribute__(self, name):\n        return dynamic(name)\n" : ""}`
+  const index = await buildStructureIndex([{ path: "app.py", content }], { repository: "anonymous", sourceRef: "r" }), owner = index.symbols.find(s => s.name === "entry")!, stores = index.methodStores(owner.id, "app.Gate"), call = index.relatedCalls(owner.id, "app.Gate").find(c => c.expression === "self.handler")!
+  if (mode === "ordinary") {
+    expect(stores).toHaveLength(1)
+    expect(stores[0]).toEqual(expect.objectContaining({ receiver: "self", receiverClass: "app.Gate", field: "handler", method: "guard", targetSha256: index.symbols.find(s => s.name === "guard")!.sha256, controls: [] }))
+    expect(call.methodField?.choices[0]?.stores).toEqual(stores)
+  } else {
+    expect(stores).toEqual([])
+    expect(call.methodField).toBeUndefined()
+    expect(call.gap).toMatch(/^source-field-method-/)
+  }
+})
+
 test("imported module instances bind their actual class methods across source roots and aliases", async () => {
   const index = await buildStructureIndex([
     { path: "backend/pkg/store.py", content: "class Table:\n    def get(self, key):\n        return key\n    def get_for(self, key, actor):\n        return key\nRecords = Table()\n" },

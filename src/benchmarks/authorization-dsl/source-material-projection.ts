@@ -2,12 +2,42 @@ import type { AuthorizationInquiryProgram } from "../../task-dsl/authorization/i
 import type { BoundSemanticBlock } from "../../task-dsl/authorization/semantic-flow.ts"
 import type { SourceMaterial, SourceMaterialSnapshot } from "../../task-dsl/authorization/source-materials.ts"
 import type { StructureIndex, StructureMethodControl } from "./evidence-preparation/structure-index.ts"
-import { sourceDirectMethodRead, sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupSentinel, sourceMethodLookupToken, sourceSyntaxAnchorId } from "./evidence-preparation/source-identities.ts"
+import { sourceDirectMethodRead, sourceFieldMethodToken, sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupSentinel, sourceMethodLookupToken, sourceSyntaxAnchorId } from "./evidence-preparation/source-identities.ts"
 import { operationCallSourceSelection, operationCallTargets } from "./operation-links.ts"
 import { structuralDependencyRevision } from "./operation-work.ts"
 import { canonicalControl } from "../../task-dsl/authorization/control-slice.ts"
 import { sourceArgumentBindings, sourceCallableParameter } from "./evidence-preparation/source-arguments.ts"
 type ChoiceStep = Extract<BoundSemanticBlock["blocks"][number]["steps"][number], { kind: "choose" }>
+const sourceControlBlock = (unit: BoundSemanticBlock, controls: StructureMethodControl[]) => {
+  let block = unit.blocks.find(b => b.name === unit.start)
+  for (const control of controls) {
+    const parents = block?.steps.filter(s => s.kind === (control.kind === "branch" ? "choose" : "try") && s.name === `${control.kind === "branch" ? "choose" : "try"}-${control.anchorId}`)
+    if (parents?.length !== 1) return
+    const parent = parents[0]!
+    let name: string | undefined
+    if (control.kind === "branch" && parent.kind === "choose" && parent.cases.length === 1) name = control.branch === "true" ? parent.cases[0]!.body : parent.otherwise
+    else if (control.kind === "try" && parent.kind === "try") name = control.region === "handler" ? parent.handlers[control.handlerIndex ?? -1]?.body : parent[control.region]
+    else return
+    block = unit.blocks.find(b => b.name === name)
+  }
+  return block
+}
+/** A possible writer is not an executed capture. Retained material must preserve
+ * the exact original creation, adjacent field store and source control order. */
+function currentMethodStoresValid(index: StructureIndex, unit: BoundSemanticBlock) {
+  const proofs = index.methodStores(unit.source!.id, unit.receiverClass), steps = unit.blocks.flatMap(b => b.steps), names = new Set(proofs.map(p => `field-method-value-${p.anchorId}`))
+  if (steps.some(s => s.kind === "assign-value" && s.boundMethod && !names.has(s.name))) return false
+  return proofs.every(proof => {
+    const block = sourceControlBlock(unit, proof.controls), creations = steps.filter(s => s.name === `field-method-value-${proof.anchorId}`), stores = steps.filter(s => s.name === `field-${proof.anchorId}`), creation = creations[0], store = stores[0], result = `field-method-object-${proof.anchorId}`
+    if (!block || creations.length !== 1 || stores.length !== 1 || creation?.kind !== "assign-value" || store?.kind !== "transform" || !block.steps.includes(creation) || block.steps.indexOf(store) !== block.steps.indexOf(creation) + 1) return false
+    if (creation.result !== result || canonicalControl(creation.value) !== canonicalControl({ literal: sourceFieldMethodToken(proof) }) || canonicalControl(creation.methodRead ?? null) !== canonicalControl({ receiver: proof.receiver, method: proof.method }) || canonicalControl(creation.boundMethod ?? null) !== canonicalControl({ receiver: proof.receiver, targetId: proof.targetId, targetSha256: proof.targetSha256 }) || store.object !== proof.receiver || store.field !== proof.field || store.source !== result || Object.hasOwn(store, "value")) return false
+    const ordered = (events: string[][], before: boolean) => events.every(alternatives => {
+      const positions = block.steps.flatMap((s, i) => alternatives.includes(s.name) ? [i] : [])
+      return positions.length === 1 && (before ? positions[0]! < block.steps.indexOf(creation) : positions[0]! > block.steps.indexOf(store))
+    })
+    return ordered(proof.order.before, true) && ordered(proof.order.after, false)
+  })
+}
 
 export interface SourceMaterialUse {
   kind: "entry" | "call" | "framework"; operationId: string; questionId: string; materialId: string; callerMaterialId?: string;
@@ -34,6 +64,18 @@ function actualArguments(index: StructureIndex, caller: BoundSemanticBlock, step
   if (!call || !symbol) return false
   const binding = sourceArgumentBindings(index, call, symbol), expected = binding.bindings, steps = caller.blocks.flatMap(b => b.steps)
   if (binding.gap || step.arguments.length !== expected.length) return false
+  if (call.methodField) {
+    const proof = call.methodField, callAnchor = call.startIndex !== undefined && call.endIndex !== undefined ? sourceSyntaxAnchorId(caller.source!.id, call.startIndex, call.endIndex, "call") : undefined, block = sourceControlBlock(caller, proof.controls)
+    const dispatches = steps.filter((s): s is ChoiceStep => s.kind === "choose" && s.name === `field-method-call-${callAnchor}`), dispatch = dispatches[0]
+    if (!callAnchor || !block || dispatches.length !== 1 || !dispatch || !block.steps.includes(dispatch) || dispatch.cases.length !== proof.choices.length || new Set(dispatch.cases.map(c => c.body)).size !== proof.choices.length || steps.filter(s => s.kind === "call" && s.sourceCallId === call.id).length !== proof.choices.length) return false
+    for (const [i, choice] of proof.choices.entries()) {
+      const alternative = dispatch.cases[i]!, variant = caller.blocks.find(b => b.name === alternative.body), invocations = variant?.steps.filter(s => s.kind === "call"), invocation = invocations?.[0]
+      if (canonicalControl(alternative.condition) !== canonicalControl({ op: "eq", left: { binding: `${proof.receiver}.${proof.field}` }, right: { literal: sourceFieldMethodToken(choice) } }) || invocations?.length !== 1 || invocation?.kind !== "call" || variant!.steps.some(s => s !== invocation && s.kind !== "bind")) return false
+      if (invocation.name !== `call-${callAnchor}-field-${i}` || invocation.sourceCallId !== call.id || invocation.symbol !== call.expression || invocation.candidateId !== choice.targetId) return false
+    }
+    const selected = proof.choices.findIndex(choice => choice.targetId === symbol.id), failure = caller.blocks.find(b => b.name === dispatch.otherwise)?.steps
+    if (selected < 0 || step.name !== `call-${callAnchor}-field-${selected}` || !caller.blocks.find(b => b.name === dispatch.cases[selected]!.body)?.steps.includes(step) || failure?.length !== 1 || failure[0]!.kind !== "unresolved" || failure[0]!.reason !== "source-field-method-value-unresolved") return false
+  }
   if (call.methodBinding) {
     const proof = call.methodBinding, creation = steps.find(s => s.kind === "assign-value" && s.result === proof.name && canonicalControl(s.value) === canonicalControl({ binding: `${proof.receiver}.${proof.method}` }))
     if (!creation || creation.kind !== "assign-value" || canonicalControl(creation.methodRead ?? null) !== canonicalControl({ receiver: proof.receiver, method: proof.method }) || steps.indexOf(creation) >= steps.indexOf(step) || steps.some(s => s !== creation && (s.kind === "bind" && (s.bindingName ?? s.name) === proof.name || (s.kind === "assign-value" || s.kind === "call") && s.result === proof.name))) return false
@@ -140,7 +182,7 @@ function actualArguments(index: StructureIndex, caller: BoundSemanticBlock, step
 }
 /** Reachability comes from exact current source calls, independently of saved availability. */
 export function projectSourceMaterials(program: AuthorizationInquiryProgram, accepted: BoundSemanticBlock[], snapshot: SourceMaterialSnapshot, index: StructureIndex, options: { questionDirected?: boolean } = {}) {
-  const available = snapshot.materials.filter(m => m.current && index.symbols.some(s => s.id === m.source.id && s.sha256 === m.source.sha256) && m.dependencies.every(d => d.kind === "source-span" ? index.symbols.some(s => s.path === d.key && s.sha256 === d.revision) : d.kind === "symbol-resolution" ? index.symbols.some(s => s.id === d.key && s.sha256 === d.revision) : structuralDependencyRevision(index, d) === d.revision))
+  const available = snapshot.materials.filter(m => m.current && index.symbols.some(s => s.id === m.source.id && s.sha256 === m.source.sha256) && m.dependencies.every(d => d.kind === "source-span" ? index.symbols.some(s => s.path === d.key && s.sha256 === d.revision) : d.kind === "symbol-resolution" ? index.symbols.some(s => s.id === d.key && s.sha256 === d.revision) : structuralDependencyRevision(index, d) === d.revision) && (!options.questionDirected || currentMethodStoresValid(index, m.unit)))
   const units: BoundSemanticBlock[] = [], uses: SourceMaterialUse[] = []
   for (const operation of program.operations ?? []) {
     const entry = accepted.find(u => u.questionId === operation.sourceQuestionId && u.role === "entry" && u.source)
@@ -155,12 +197,14 @@ export function projectSourceMaterials(program: AuthorizationInquiryProgram, acc
         const caller = byMaterial.get(material.id)!; local.push(caller)
         for (const block of caller.blocks) for (const step of block.steps) if (step.kind === "call") {
           delete step.methodRead
+          delete step.fieldMethodRead
           if (!step.sourceCallId) { delete step.callee; continue }
           const selected = operationCallSourceSelection(index, caller, step), targets = operationCallTargets(index, caller, step, candidates)
           if (selected.actions.length !== 1 || targets.length !== 1 || !actualArguments(index, caller, step, targets[0]!.unit)) { delete step.callee; continue }
           const target = targets[0]!, helper = available.find(m => byMaterial.get(m.id) === target.unit)!
           const call = index.relatedCalls(caller.source!.id, caller.receiverClass).find(c => c.id === step.sourceCallId), symbol = index.symbols.find(s => s.id === target.unit.source!.id), methodRead = call && symbol && sourceDirectMethodRead(call, symbol)
           if (methodRead) step.methodRead = methodRead
+          if (call?.methodField && symbol) step.fieldMethodRead = { object: call.expression, receiver: call.methodField.receiver, targetId: symbol.id, targetSha256: symbol.sha256 }
           step.callee = target.unit.handle
           uses.push({ kind: "call", operationId: operation.id, questionId: question.questionId, materialId: helper.id, callerMaterialId: material.id, relationId: target.relationId, receiverClass: target.receiverClass, arguments: structuredClone(step.arguments) })
           visit(helper)

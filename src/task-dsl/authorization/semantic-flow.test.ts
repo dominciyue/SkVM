@@ -17,6 +17,23 @@ function lower(units: unknown[], bindings: unknown[] = [], options: { propertyDi
   return { ...lowered, slice: merged.state, ...evaluated, diagnostics: [...lowered.diagnostics, ...evaluated.diagnostics] }
 }
 const known = (key: string, value: unknown, text: string) => ({ questionId: "q", key, value, text, origin: "user" })
+for (const mode of ["stored", "helper", "later-method-store", "overwritten", "unknown-overwrite", "class-overwrite", "other-receiver", "literal-token", "wrong-target", "wrong-sha"]) test(`bound field methods keep their actual capture and current field value: ${mode}`, () => {
+  const reference = { receiver: "self", targetId: "guard-source", targetSha256: "guard-sha" }, capture: any = { kind: "assign-value", name: "capture", claim: "Capture original ordinary bound method", result: "method", value: { literal: "method-token" }, methodRead: { receiver: "self", method: "guard" }, boundMethod: reference }, store: any = { kind: "transform", name: "store", claim: "Store the captured method", object: "self", field: "handler", source: "method" }
+  const setup = unit([block("main", [capture, store, { kind: "return", name: "done", claim: "Setup returns" }])], { handle: "setup", role: "helper", parameters: [{ name: "self", type: "configuration" }] })
+  const invoke: any = { kind: "call", name: "invoke", claim: "Invoke only the captured field method", symbol: "self.handler", callee: "guard", arguments: [{ parameter: "self", object: mode === "other-receiver" ? "other" : "self" }], fieldMethodRead: { object: "self.handler", ...reference, receiver: mode === "other-receiver" ? "other" : "self" } }
+  if (mode === "wrong-target") invoke.fieldMethodRead.targetId = "other-source"
+  if (mode === "wrong-sha") invoke.fieldMethodRead.targetSha256 = "other-sha"
+  expect(api.SemanticStepSchema.safeParse(capture).success).toBe(true)
+  expect(api.SemanticStepSchema.safeParse(invoke).success).toBe(true)
+  const prefix: any[] = mode === "helper" ? [{ kind: "call", name: "setup", claim: "Execute setup", symbol: "setup", callee: "setup", arguments: [{ parameter: "self", object: "self" }] }] : mode === "literal-token" ? [{ ...store, source: undefined, value: "method-token" }] : [capture, store]
+  if (mode === "overwritten" || mode === "later-method-store") prefix.push({ kind: "transform", name: "overwrite", claim: "Actual later field store", object: "self", field: mode === "overwritten" ? "handler" : "guard", value: null })
+  if (mode === "unknown-overwrite" || mode === "class-overwrite") prefix.push({ kind: "transform", name: "overwrite-unknown", claim: "Unknown original value still replaces the old field", object: "self", field: mode === "class-overwrite" ? "__class__" : "handler", source: "other" })
+  const root = unit([block("main", [...prefix, invoke, { kind: "effect", name: "write", claim: "Following write" }, { kind: "return", name: "done", claim: "Entry returns", outcome: "allow" }])], { parameters: [{ name: "self", type: "configuration" }, { name: "other", type: "configuration" }] }), guard = unit([block("main", [{ kind: "reject", name: "denied", claim: "Original guard rejects", failureKind: "authorization" }])], { handle: "guard", role: "helper", parameters: [{ name: "self", type: "configuration" }] })
+  const r = lower([root, setup, guard]), valid = ["stored", "helper", "later-method-store"].includes(mode)
+  expect(r.delta.rules.some((r: any) => r.failureKind === "authorization")).toBe(valid)
+  expect(r.delta.rules.some((r: any) => r.kind === "effect")).toBe(false)
+  if (!valid) expect(r.diagnostics.map((d: any) => d.code)).toContain("source-field-method-value-unresolved")
+})
 test("explicit alternatives clone their common continuation instead of ANDing mutually exclusive guards", () => {
   const r = lower([unit([block("main", [{ kind: "choose", name: "role", claim: "if else", cases: [{ condition: eq("role", "admin"), body: "admin" }], otherwise: "member" }, { kind: "effect", name: "write", claim: "mutation" }]), block("admin", []), block("member", [])])], [known("role", "admin", "Role is admin.")])
   expect(r.paths.map((p: any) => p.predicate.truth).sort()).toEqual(["false", "true"])

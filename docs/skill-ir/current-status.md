@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-最新小步为AY7 `source-bindings/v20`函数对象属性写入边界：主红测复现已捕获bound method的函数body被helper替换后仍错误执行旧guard；匿名Python核对确认它与实例方法槽位替换不同。当前可定位的函数来源在原store点保留protocol gap，普通data继续transform；简单局部/模块/类属性/实例writer别名及公开import hops保留来源，循环/超限具名。relation footprint包含所选正/负type/MRO及function/alias字节，外部type新增method会撤回旧data材料，无关文件不失效。26新增用例、461focused/2113断言、联合1300pass/1平台skip/7920断言及主/AY类型通过；三项只读核验与主反例点验分列。100文件/6执行候选body、5额外protocol body探针发现17 stores/10函数边界；声明receiver合格1、指定应用receiver合格/采用0。class/wrapper实际变换、字段callable、早期bound-reference capture、完整请求和官方实际复验继续，AY7和净收益未达。
+最新小步为AY7 `source-bindings/v21`普通同instance字段方法值：原`self.slot=self.method`实际捕获receiver与当前target/SHA，经既有transform跨helper保存，原字段调用按实际已存方法值沿同一binder/六角色分派。普通token不能代替捕获；未知/字面字段覆盖、错receiver/target/SHA撤回，后续源方法槽位替换保留已捕获引用，v20函数对象写入仍具名。材料须保留精确创建与紧邻store、原if/try区域和return/call/store/control顺序、完整字段selector及当前实参；删改或挪动不得采用。31新增用例、492focused/2327断言、联合1331pass/1平台skip/8134断言及主/AY类型通过；三只读核验分列；主另红绿修复短路表达式内调用未进入捕获顺序的遗漏。100文件/6候选body probe中，声明receiver有1个可能store/5个字段call来源合格，指定应用receiver合格/采用0。跨receiver、任意callback/closure、class/wrapper实际变换、早期capture、完整请求和官方实际复验继续，AY7和净收益未达。
 
 v17后续容量修正（2026-10-08）：16候选的两个selector实际生成35块，先后红测复现共享单元与聚焦源码提交各自的32块拒绝。两处现共用64块结构容量，原127 emitted-node/16终态路径求值边界保持；完整source-read/interpret/material projection/native提交与实际guard拒绝通过。新鲜403focused/1550断言、联合1242pass/1平台skip/7357断言/115文件及主/AY类型通过。历史OWUI拒绝及真实probe不升级，本步无模型或目标执行；条件lookup与完整请求继续。
 
