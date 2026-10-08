@@ -4,27 +4,33 @@
 
 ## 当前工作
 
-**[AZ0–AZ18：授权性质抽象、真实检查与变化复用](../superpowers/plans/2026-10-09-authorization-property-abstraction-and-real-use.md)以 `completed-with-unmet-criteria` 收束，研究目标未达。** 显式v6的性质绑定、保守依赖收缩、窄局部摘要、采用诊断及有限格式恢复已实现。21个逻辑位置中4个已尝试，共5次尝试/4自然交付；单性质首件及具名修正均无材料采用或机器结果。生产比较快照为 `cef00a3c`。
+**接续任务为[BA0–BA18：授权语义提交、实际采用与完整任务验证](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)，任务书已准备，实施结果尚未产生。** 开发模型 `gpt-6.1-sol/max`。复核基线 `29c400ff` 已与用户origin核对一致；下一开发线程接管同一分支。
 
-本轮重点是让原问题真正决定证据需求，扩展现有局部摘要的适用范围，并在 Download、OWUI 的完整原 skill 中验证实际检查。新策略 `operation-evidence-v6`复用既有 inquiry/native、结构索引、材料和 CLI。当前机械摘要只覆盖有限的平坦普通helper；框架关系仍有残余，不能把离线垂直链写成全部AZ3–AZ8验收。
+本轮优先实现宿主管理的语义编辑、按实际协议反馈错误、可用的有限检查预算和临时通道恢复，再验证真实提交→材料采用→性质检查。复用v6和普通native/inquiry，不新建执行平台。格式通过后仍要补有限predicate和决定性关系，工程、采用、源码质量分别验收。
 
-12位置质量面板只运行Download N/M/D首轮：N自然源码评价full，M遗漏全局GET权限而partial，D在工具调用前因官方workspace routing discovery failed未交付；其余9质量、2消费、6变化共17位置保留未运行。没有同条件D答案、第二任务或真实复用收益，比较为inconclusive。离线包搬移和变化撤回不替代这些验收。
+BA重新登记共同任务事实与原问题，M/D共用相同义务及核心，避免AZ的1题与4/11题拆分差异；旧作者包单列消费。计划22位置（2子性质、12完整质量、2消费、6变化），所有修订与未执行项单列。当前没有BA模型调用或收益证据。
 
-方法合同见 [spec §14.39](skill-ir-aot-optimization-spec.md#1439-az-property-abstraction-and-real-use)，复核和取舍见 [研究 §7.61](skill-dsl-research.md#761-az-性质抽象材料采用与真实检查的开发决定)。实际结果以 [summary](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/summary.json)、[accounting](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/accounting.json)、[verification](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/verification.json) 和 [状态](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/status.json) 为准；requirements与outcomes分开，researchGoalAchieved=false。
+方法合同见[spec §14.40](skill-ir-aot-optimization-spec.md#1440-ba-semantic-submission-and-adoption)，复核和取舍见[研究 §7.62](skill-dsl-research.md#762-ba-从真实拒绝到可用语义编辑)。新结果写入authorization-semantic-submission-v1；任务书里的要求不能视为结果。
+
+## AZ 已结束的结果与本次复核
+
+[AZ任务书](../superpowers/plans/2026-10-09-authorization-property-abstraction-and-real-use.md)以completed-with-unmet-criteria收束。21逻辑位置中4已尝试，共5尝试/4自然交付；3次领域运行都耗尽格式额度且0接受/采用/检查。N自然源码评价full，M漏全局GET权限而partial，D官方routing失败；17位置未运行。显式v6性质绑定、有限摘要与采用诊断已实现，完整框架关系仍缺。
+
+原参数复核发现field/value待办形状、annotation合同、union错误提示和最终答案字段之间存在摩擦；有一次合法annotation还缺可执行condition，不能只修格式就宣称链闭合。57项定向回归/331断言通过。原件与结论保持：[summary](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/summary.json)、[verification](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/verification.json)、[status](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/status.json)。
 
 ## AY 已结束的真实结果
 
 - [AY0–AY23](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md) 已以 `completed-with-unmet-criteria` 收束。14 次归档尝试：10 delivered、2 unavailable、2 failed；12 个质量位置未运行。完整可用、比较收益及研究目标尚未达成。
-- 最新生产语义为 `source-bindings/v35`。Download v35 接受3个源码单元、30个控制步骤、2次材料采用，仍有未解释callee和装饰器依赖；OWUI v35为0接受单元、0控制步骤、0材料采用，存在角色缺失及结论冲突。两次native自然终答均被独立评为partial。
+- AY结构语义为 `source-bindings/v35`，AZ v6复用它。Download v35 接受3个源码单元、30个控制步骤、2次材料采用，仍有未解释callee和装饰器依赖；OWUI v35为0接受单元、0控制步骤、0材料采用，存在角色缺失及结论冲突。两次native自然终答均被独立评为partial。
 - 两作者包已按原字节实际消费。Download消费者源码评阅full但机器partial；OWUI消费者仍有决定性helper未读。变化中policy-fresh、premise-fresh/previous已有运行；policy-previous路由失败、source-fresh额度拒绝，source-previous及质量位置保留未运行。
 - 原件、计量及验收以 [最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)、[manifest](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/manifest.json)、[状态](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/status.json) 为准。历史 `acceptance` 字段表达要求，不代表实际通过。
 
-2026-10-09只读复核确认：问题相关依赖目前仍要求全体可达调用；材料投影有原因丢失；格式拒绝消耗检查槽。`inquiry-result` 已具备整体Schema/缺题拒绝和局部有效结果保留，定向8 tests/40 assertions通过，应保持而非重复修复。详细依据统一在研究§7.61。
+AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有有界修复，形成过程保留在研究§7.61。当前新增责任以§7.62为准；`inquiry-result`的整体Schema/缺题拒绝及局部保留继续保持。
 
 ## 账号、运行和继承边界
 
 - 开发 `gpt-6.1-sol/max`；实验沿用用户已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。
-- AY的2026-10-14额度恢复提示保留为历史。AZ先有4次自然交付，随后D首轮出现官方路由终态故障；当前channel=unavailable。已停止余下派发，不轮询或切换；恢复须有新的外部可用性证据，不能由旧日期推定。
+- AY的2026-10-14额度提示及AZ的channel=unavailable保留为历史观测。AZ失败为已终态routing、quotaRefused=false；BA允许核实原会话关闭后，在已就绪真实位置做一次同账号/模型的新会话恢复，失败和成本保留。重复同因或明确quota/auth拒绝则暂停，未知完成先核查，不额外探针、轮询或切换。
 - 不自动切账号、模型、端点或购买额度；未知完成先核查本地生命周期。缺报USD、隐藏请求、开发/探子成本和真人分钟保持unknown。
 - 保留原skill、全部原问题、允许源码、用户独立政策及前提。模型输入隔离评价器、历史答案和开发修复记录。held-out、Q1、prospective、readiness和历史 `0/6` 不变。
 - 主开发线程是代码、共享方法文档和Git的唯一写者。继续现有分支，不创建worktree；只读探子按AGENTS使用。
@@ -43,7 +49,8 @@
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前AZ | [任务书](../superpowers/plans/2026-10-09-authorization-property-abstraction-and-real-use.md)、[当前计划](skill-ir-aot-optimization-plan.md)、spec§14.39、研究§7.61 |
+| 当前BA | [任务书](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)、[当前计划](skill-ir-aot-optimization-plan.md)、spec§14.40、研究§7.62 |
+| AZ | [任务书](../superpowers/plans/2026-10-09-authorization-property-abstraction-and-real-use.md)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/summary.json)，spec§14.39、研究§7.61 |
 | AY | [任务书](../superpowers/plans/2026-10-07-authorization-question-dependencies-and-usable-dsl.md)、[最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)，研究§7.60保留v5/v35形成过程 |
 | AX | [summary](../../results/skill-ir/skill-dsl-research/development/authorization-property-execution-v1/summary.json)、[离线包核验](../../results/skill-ir/skill-dsl-research/development/authorization-property-execution-v1/verification/portable-package.json)；原unknown与11个未运行位置不改 |
 | AW/AV | [AW summary](../../results/skill-ir/skill-dsl-research/development/authorization-control-materials-v1/summary.json)、[AV status](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/status.json)，第三方暂停保持 |

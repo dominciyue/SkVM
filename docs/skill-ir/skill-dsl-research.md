@@ -8,7 +8,7 @@
 
 当前结构关系复用AY source-bindings/v35，显式v6已有任务性质绑定、有限摘要采用、依赖/调度范围和逐题性质检查的有界实现；AZ实际运行仍为0接受/采用/检查。AY Download v35的3单元/30步骤/2采用及OWUI v35为0保持历史口径。新源码摘要仅采用未使用返回的平坦普通调用；动态框架、返回值组合和复杂异常仍用既有解释或明确残余，不能据工程测试推定完整任务收益。
 
-日常先读本节与[当前状态](current-status.md)。当前决定见[§7.61](#761-az-性质抽象材料采用与真实检查的开发决定)，AY原实现过程和收束见[§7.60](#760-ay-问题依赖完整使用与收益验证)，AX复核见[§7.59](#759-ax-离线交付复核与下一步方法建议)。方法形成过程见§4–§7.18，历史开发记录保留在§7后续章节。本地化候选保留在§8–§9，暂缓实施。
+日常先读本节与[当前状态](current-status.md)。接续决定见[§7.62](#762-ba-从真实拒绝到可用语义编辑)，AZ实际结果见[§7.61](#761-az-性质抽象材料采用与真实检查的开发决定)，AY形成过程见[§7.60](#760-ay-问题依赖完整使用与收益验证)。方法形成过程见§4–§7.18，历史开发记录保留在§7后续章节。本地化候选保留在§8–§9，暂缓实施。
 
 ### 当前方法怎样分工
 
@@ -32,7 +32,7 @@
 
 最新AY结果补充：两份原skill和两包原字节消费均已实际运行。Download消费者源码评阅full但机器partial，OWUI消费者仍漏决定性helper；政策/前提变化已有部分运行，源码变化及质量位置受账号额度阻断。[最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)记录可见完整input 32,465,835、output 125,283、其中cacheRead 29,939,200（已包含在input），USD/隐藏请求/开发/真人成本未知。旧AX、AW结果保留其当时口径。
 
-当前关键问题仍是：**有界性质/摘要怎样进入模型真正可用的解释与检查链。** AZ的需求差异反例成立，但真实模型没有完成绑定/采用；空协议模板的一次针对性修正也未解决。下一步不能继续以通用语言扩张代替采用证据。官方通道因workspace routing终态暂停，未运行位置和缺失框架合同保留；无稳定同条件D比较或真实复用收益，不升级默认，不等待或试探凑时长。
+当前关键问题是：**让模型按当前源码需求提交可计算语义，并让宿主实际采用。** BA复核发现待填field/value视图、annotation合同、union多分支错误和交付预算之间的冲突；另有合法annotation缺实际predicate的领域缺口。下一轮增加宿主管理的语义编辑并复用原checker，先验真实采用再回完整任务；统一M/D原问题和公共事实，临时routing按已终态有限恢复。BA目前仅任务书就绪，没有新调用/效果结果；AZ原17未运行位置不补写，详见§7.62。
 
 ## 2. 研究目标与术语
 
@@ -2201,6 +2201,20 @@ AZ1诊断工程（2026-10-09）：投影现在明确报告版本/来源/依赖�
 
 离线包含空格外部路径check通过，95文件与原问题字节一致；当前partial单性质会话的搬移保持current，政策/前提/源码变化均needs-review、answerReused=false，当前0材料恢复/采用。新增政策同时把behavior改成conformance，不能称纯policy-only收益；既有该类确定性合同单列。1713pass/1平台skip、模板相关109pass、study/汇总8pass及类型检查是工程证据。完整框架语义摘要、完整原任务D链及真实变化复用未达，停止外围语义扩张；保留明确可证伪的下一责任：机制须在实际提交→采用→性质检查中生效，再评价收益。
 
+### 7.62 BA 从真实拒绝到可用语义编辑
+
+2026-10-09，复核基线29c400ff与用户origin一致，工作树干净。用户要求接续任务书并派发gpt-6.1-sol/max开发。[BA0–BA18](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)和[spec§14.40](skill-ir-aot-optimization-spec.md#1440-ba-semantic-submission-and-adoption)记录新要求，发布任务书时尚无BA实施或实测结果。
+
+**原件说明的实际障碍。** AZ三次领域运行都formatBudgetExhausted，acceptedSourceUnits/materialUses/checkHistory均0。对`single-download/format-contract-1/public-report.json`的`telemetry.account.toolRejections`复核：第一项把frontier中的field/value写进annotations，给出delegated、delegate、operation-failure等不合法值；第二项role=guard被拒，后面却混入unit/candidateId/另一个schemaVersion的要求。这来自[inquiry-focus](../../src/benchmarks/authorization-dsl/inquiry-focus.ts)的union及[账号Ajv全错误收集](../../src/adapters/codex-account-session.ts)，不能把候选分支报错当成真实focus已切换。第三项答案使用gaps与behavior模式的not_assessed；其后的形状有效检查仍因格式额度封闭被拒。
+
+**语义问题还在下一层。** 同一原件`domain.focus.sourceInterpretations[0]`记录role改为condition后已经进入lowering，但只给自然解释、没有有限predicate；另有必要调用角色未填。草稿可以保留，完整unit尚未成立。因此“减字段”必须连同可填写的语义前沿、实际编译和材料采用验证，不能只改提示词或把无predicate放行。
+
+**通道和比较的纠偏。** AZ的D会话为已终态failed/workspace routing discovery failed，quotaRefused=false、host tools=0，不能推出账号永久不可用。[AZ runner](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/study.ts)把单次失败映射为unavailable并停止后续17位置；原记录保留，BA新增一次同通道有目的恢复，重复同因/明确额度拒绝再暂停，未知完成不重复派发。另经runner与summary复核：三臂自然prompt相同，但D使用旧作者拆成4/11题的inquiry，M规范化1题。BA主比较须共用同一原问题映射及核心语义输入，旧作者稿单列消费。
+
+**开发取舍。** 增加一个版本化语义编辑视图，宿主填写事务、版本和身份，模型填写带类型的局部含义，编译到原SourceInterpretation/有限控制；不另造平台。模型看到的slot与实际payload一致，Schema/说明/示例/解析共源；按选定分支输出精确错误，有限格式重试不封死剩余合法检查。合法草稿、完整单元、实际采用、性质检查、源码完整质量分别统计。保留旧协议、源码/对象/版本检查和unknown，不自动把错误枚举改成允许结论。
+
+**验收和新研究问题。** 先从公共wire跑通源解释→采用→检查，随后回两完整skill、12位置同条件比较、两消费者和6变化。关注编辑接口改善是否转化为实际程序采用，以及程序采用是否改善原问题质量/复用；两者分别可被否定。当前只有57 tests/331 assertions的定向复核和代码/原件证据，没有BA效果。真实运行出错需当场定位、共享修复和具名复验，避免把已知坏实现跑满，也不以更多通用语言语法替代关键使用链。本节继续记录本轮缺陷、解决与实际结果。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
@@ -2264,9 +2278,9 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 | ID | 问题 | 当前依据 | 接下来的判断 |
 |---|---|---|---|
 | Q1 | 哪个任务范围共享领域语义？ | 固定来源的授权职责支持 principal/resource/operation/control/evidence；混合职责单列，见 §4–§7.10 | 保持单 repo/ref、源码可见的授权切片 |
-| Q2 | 声明如何带来实际行为？ | AZ有界需求/摘要测试成立，但真实3次领域交付均0接受/采用/检查 | 先证明实际提交→采用→检查，不用更多语法代替 |
-| Q3 | 为什么仍漏决定性源码或分支？ | v6可改变有绑定性质的需求；实测仍未绑定，M漏全局GET权限，框架合同残余 | 解决模型可用解释接口及框架摘要，相关未知保留 |
-| Q4 | 领域方法相对好说明的增量是什么？ | AZ3/12位置尝试，N/M源码full/partial，D路由失败；结论inconclusive | 通道恢复且完整D链成立后才比较；保留12分母和作者拆分限制 |
+| Q2 | 声明如何带来实际行为？ | AZ3次领域交付0采用；BA定位待填/提交合同、union诊断及缺predicate | 宿主管理语义编辑，穿过真实wire验证采用/检查，不只补模板 |
+| Q3 | 为什么仍漏决定性源码或分支？ | v6可改变已绑定性质需求；实测尚未绑定，M漏全局GET权限，框架残余 | 可填写前沿与持久草稿，随后修真实决定性关系；unknown保留 |
+| Q4 | 领域方法相对好说明的增量是什么？ | AZ N/M源码full/partial，D路由失败且作者拆题不同 | BA先统一M/D义务；同题自然质量与程序采用分别比较 |
 | Q5 | 作者和变化复用是否可用？ | AZ原字节兼容/搬移和离线撤回通过，2消费者/6变化未运行 | 需要当前合格基础及真实fresh/previous；不把0材料reusable资格当收益 |
 | Q6 | 本地化路线如何处理？ | 保留 §8–§9 设计及结构回填反例 | 暂缓；重新选择该类时再处理，不混入授权验收 |
 | Q7 | 如何评价和计量？ | AZ已知input5,283,565/output23,823，cacheRead4,686,976已含input；失败D及USD/真人未知 | 原件可重放、失败及未运行保留，协议/源码/检查分开 |
@@ -2286,6 +2300,8 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-08 / AY：** v5初版已接通，账号0.160.0的Download具名尝试与OWUI首/修订实际交付，均源码partial、结构终答缺失。OWUI修订6单元/3实际投影；receiver值绑定、枚举合同、按receiver的框架footprint与静态Depends组合已红绿修复。当前零模型回放找到11middleware注册/11方法，具名阻断尚未证明的框架采用，完整ASGI/DRF链仍未达。总token增加、fresh下降分列，真实净收益未建立。DRF保留GET→download声明和22项来源工作，identity订阅找回继承dispatch，mapping binding与invocation未证明，类wrapper继续阻断。纯转发参数包已绑定，普通class decorator来源进入当前队列/精确依赖，变换采用仍0，真实dispatch alias和闭包handler仍待；联合1091pass/1平台skip及主/AY类型通过；整文件SHA粒度、原件、全部成本与独立裁定保留，22首位置和完整队列见§7.60。
 
 - **2026-10-09 / AZ：** 有界性质/摘要/依赖与采用诊断、有限格式恢复落地。5尝试/4自然交付，单性质未闭合，N/M源码full/partial，D官方路由失败；17位置未运行，比较inconclusive，completed-with-unmet-criteria收束。见§7.61。
+
+- **2026-10-09 / BA规划：** 原参数/代码和57项回归复核后，转向宿主管理语义编辑、精确协议反馈、可用检查预算、临时通道有限恢复和统一问题分母。任务书交付时未运行新实验，后续证据统一更新§7.62。
 
 ## 12. 后续追加规则
 
