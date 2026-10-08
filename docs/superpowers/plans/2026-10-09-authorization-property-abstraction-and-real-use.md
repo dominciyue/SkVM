@@ -141,10 +141,12 @@ AZ0验证：新study红测为缺失runner；实现后3 tests/19 assertions通过
 
 **修改：** `src/benchmarks/authorization-dsl/source-material-projection.ts`、`inquiry-domain-runtime.ts`、对应测试；按需 `src/task-dsl/authorization/source-materials.ts`。
 
-- [ ] 红测覆盖 root 不存在、entry role 不匹配、材料版本/SHA 不符、sourceCallId 缺失、多个 target、实参绑定失败；每例必须有具体诊断及 question/source 身份。
-- [ ] 返回诊断的同时保留原拒绝行为和局部有效项；不创建“默认 root”或猜测 callee。
-- [ ] 用 OWUI/Download 原始提案做零调用重放，输出每一接纳阶段的数量及首个阻断原因。旧原件仍为原结果。
-- [ ] 运行 `bun test ./src/benchmarks/authorization-dsl/source-material-projection.test.ts ./src/benchmarks/authorization-dsl/property-runtime.test.ts`，提交共享修复。
+- [x] 红测覆盖 root 不存在、entry role 不匹配、材料版本/SHA 不符、sourceCallId 缺失、多个 target、实参绑定失败；每例必须有具体诊断及 question/source 身份。
+- [x] 返回诊断的同时保留原拒绝行为和局部有效项；不创建“默认 root”或猜测 callee。
+- [x] 用 OWUI/Download 原始提案做零调用重放，输出每一接纳阶段的数量及首个阻断原因。旧原件仍为原结果。
+- [x] 运行 `bun test ./src/benchmarks/authorization-dsl/source-material-projection.test.ts ./src/benchmarks/authorization-dsl/property-runtime.test.ts`，提交共享修复。
+
+AZ1验证：9个新增反例先9失败，修复后9通过/60断言；两套件215通过/3228断言，主类型检查通过。`study.ts replay-materials`零模型重放保留原件SHA：Download saved/current/available=3/3/3、entry/call采用=1/1、首阻断material-target-unavailable；OWUI=0/0/0、采用0、首阻断material-root-missing。原检查与独立评阅不升级。
 
 ### AZ2：恢复预算、真实计量与工作区路由
 

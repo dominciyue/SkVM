@@ -15,6 +15,8 @@
 
 AZ研究runner位于 `results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/study.ts`。`init`只创建新identity登记，`dry-run <position>`零调用返回输入/输出/入口和共同上限；旧AY/AX只读输入，不调用其bootstrap/run。所有质量位置均注册为native，native首件是D第一重复的别名。归因区分原记录事实、新重放与假设；包/变化和模型执行将在共享v6可用后接入。
 
+AZ1 `projectSourceMaterials` returns `diagnostics` and `stages` alongside unchanged units/uses. Diagnostics identify question/source/material/call, candidates, required cardinality and nextAction for availability, entry, call and framework rejection. Runtime reports retain all records; model feedback caps the list at 12 with a total count. `study.ts replay-materials` reads both v35 archives and writes only AZ verification; source/check evidence and original SHA remain distinct from current mechanical projection. Verify source-material-projection and property-runtime suites.
+
 | 要修改的职责 | 代码起点 | 核对重点 |
 |---|---|---|
 | 任务/问题与义务 | `src/task-dsl/authorization/inquiry.ts`、`inquiry-program.ts` | behavior/conformance、真实政策来源、问题身份 |

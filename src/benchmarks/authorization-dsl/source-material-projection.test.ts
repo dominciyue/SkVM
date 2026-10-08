@@ -357,6 +357,43 @@ async function fixture() {
   const accept = (u: any) => store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }], "test-authored")
   return { index, entry, helper, unrelated, store, accept }
 }
+
+for (const scenario of ["root", "role", "sha", "version", "call-id", "foreign-call", "ambiguous", "arguments"] as const) test("material adoption reports its first exact blocking stage: " + scenario, async () => {
+  const f = await fixture()
+  if (scenario === "role") f.entry.role = "helper"
+  if (scenario === "call-id") delete f.entry.blocks[0].steps[0].sourceCallId
+  if (scenario === "foreign-call") f.entry.blocks[0].steps[0].sourceCallId = "foreign-call"
+  if (scenario === "arguments") f.entry.blocks[0].steps[0].arguments[0].object = "wrong-actor"
+  f.accept(f.helper)
+  if (scenario !== "root") f.accept(f.entry)
+  const snapshot = f.store.snapshot()
+  if (scenario === "sha") snapshot.materials.find(m => m.source.id === f.entry.source.id)!.source.sha256 = "changed"
+  if (scenario === "ambiguous") snapshot.materials.push({ ...structuredClone(snapshot.materials[0]!), id: "second-current-helper" })
+  const projected = api.projectSourceMaterials(program, scenario === "root" ? [] : [f.entry], snapshot, f.index, { semanticVersion: scenario === "version" ? "different-version" : "finite-control/v1" })
+  const expected = { root: "material-root-missing", role: "material-entry-role-mismatch", sha: "material-source-stale", version: "material-version-mismatch", "call-id": "material-source-call-missing", "foreign-call": "material-source-call-unmatched", ambiguous: "material-target-ambiguous", arguments: "material-arguments-unbound" }[scenario]
+  const diagnostic = projected.diagnostics.find((d: any) => d.code === expected)
+  expect(diagnostic).toBeDefined()
+  expect(diagnostic.questionId).toBe("q")
+  expect(diagnostic).toHaveProperty("sourceId")
+  expect(diagnostic.nextAction.length).toBeGreaterThan(0)
+  expect(projected.stages.saved).toBe(snapshot.materials.length)
+  expect(projected.uses.filter((u: any) => u.kind === "call")).toEqual([])
+  expect(f.store.snapshot().materials.every(m => m.current)).toBe(true)
+})
+
+test("material diagnostics preserve a valid neighbor and are visible in the shared runtime", async () => {
+  const f = await fixture(), sourceRoot = await mkdtemp(path.join(os.tmpdir(), "az-projection-diagnostic-"))
+  await writeFile(path.join(sourceRoot, "app.py"), content)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1" })
+  f.entry.blocks[0].steps[0].arguments[0].object = "wrong-actor"
+  f.accept(f.entry); f.accept(f.helper)
+  const domain = createInquiryDomainRuntime({ program, tools, strategy: "operation-evidence-v3", sourceAssisted: true, initialSemanticUnits: [f.entry, f.helper], initialSourceMaterials: f.store.snapshot() })
+  const report: any = domain.report()
+  expect(report.materialProjection.diagnostics.some((d: any) => d.code === "material-arguments-unbound")).toBe(true)
+  expect(report.materialProjection.stages.entryUses).toBe(2)
+  expect(report.sourceMaterials.materials.filter((m: any) => m.current)).toHaveLength(2)
+  expect((domain.modelFeedback() as any).materialAdoption.diagnostics.length).toBeGreaterThan(0)
+})
 test("helper-only materials have no projection; a later actual entry uses only its reachable helper", async () => {
   const f = await fixture(); const helper = f.accept(f.helper); f.accept(f.unrelated)
   expect(api.projectSourceMaterials(program, [], f.store.snapshot(), f.index).units).toEqual([])

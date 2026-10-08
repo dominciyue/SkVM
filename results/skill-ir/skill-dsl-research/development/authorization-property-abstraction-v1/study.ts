@@ -2,7 +2,11 @@ import { createHash } from "node:crypto"
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { execFileSync } from "node:child_process"
+import { gunzipSync } from "node:zlib"
 import { inputPlan } from "../authorization-question-closure-v1/study.ts"
+import { loadInquiryInput } from "../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts"
+import { createInquiryTools } from "../../../../../src/benchmarks/authorization-dsl/inquiry-tools.ts"
+import { projectSourceMaterials } from "../../../../../src/benchmarks/authorization-dsl/source-material-projection.ts"
 
 export const identity = "authorization-property-abstraction-v1"
 export const root = import.meta.dir
@@ -77,8 +81,26 @@ export async function bootstrap() {
   await writeFile(path.join(root, "account-boundary.json"), await readFile(path.join(ayRoot, "account-boundary.json")), { flag: "wx" })
 }
 
+/** Reproject retained model interpretations; never generate, revise or score an answer. */
+export async function replayMaterials(output = path.join(root, "verification/material-adoption-v35.json")) {
+  if (path.dirname(path.resolve(output)) !== path.join(root, "verification")) throw new Error("AZ replay output must belong to this identity")
+  const entries = []
+  for (const task of ["download", "owui"]) {
+    const original = path.resolve(root, `../authorization-question-closure-v1/attempts/native-${task}/full-flow-v35-cli-0-162`)
+    const bytes = await readFile(path.join(original, "run-result.json.gz")), native = JSON.parse(gunzipSync(bytes).toString("utf8")).authorizationInquiry
+    const input = await loadInquiryInput(inputPlan(task).inputFile)
+    const tools = await createInquiryTools({ ...input.context, structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true, maxReadBytes: limits.maxReadBytes })
+    const projected = projectSourceMaterials(native.program, native.domain.semantic.units, native.domain.sourceMaterials, tools.structure!, { questionDirected: true, semanticVersion: "question-control/v1" })
+    entries.push({ task, originalArchive: path.join(original, "run-result.json.gz"), originalArchiveSha256: sha(bytes), originalCheck: native.domain.check, originalStages: { ...native.domain.sourceWorkMetrics, materialsSaved: native.domain.sourceMaterials.materials.length, uses: native.domain.materialUses.length }, currentProjection: { stages: projected.stages, diagnostics: projected.diagnostics, uses: projected.uses }, firstRecordedBlocker: native.domain.check?.diagnostics[0] ?? null, firstProjectionBlocker: projected.diagnostics[0] ?? null, originalResultUnchanged: true, newModelCalls: 0, semanticReview: "not-performed-by-replay" })
+  }
+  await mkdir(path.dirname(output), { recursive: true })
+  await write(output, { schemaVersion: "authorization-az-material-replay/v1", newModelCalls: 0, entries })
+  console.log(JSON.stringify(entries.map(e => ({ task: e.task, original: e.originalStages, current: e.currentProjection.stages, blocker: e.firstProjectionBlocker?.code }))))
+}
+
 if (import.meta.main) {
   if (process.argv[2] === "init") await bootstrap()
   else if (process.argv[2] === "dry-run") console.log(JSON.stringify(await dryRun(process.argv[3]!), null, 2))
-  else throw new Error("Supported: init | dry-run <registered-position>")
+  else if (process.argv[2] === "replay-materials") await replayMaterials()
+  else throw new Error("Supported: init | dry-run <registered-position> | replay-materials")
 }

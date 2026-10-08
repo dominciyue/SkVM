@@ -2191,6 +2191,8 @@ AY7显式module初始化小步（2026-10-08）：v35把非空Python模块作为�
 
 **顺序与边界。** 先补诊断/恢复，再做性质与摘要，尽早验证Download单性质，然后完整Download/OWUI、两包、三变化及12位置比较。新identity为authorization-property-abstraction-v1；研究输入仍是已暴露development。账号授权保持，但旧记录提示额度至2026-10-14 16:47，是否恢复须看当前证据；不可用时做独立工程，保留未运行状态，不更换第三方通道或宣称研究达成。本轮后续问题、修复和实测统一在本节更新，§1/§11同步。
 
+AZ1诊断工程（2026-10-09）：投影现在明确报告版本/来源/依赖筛除、入口角色、调用身份、目标歧义和实参绑定失败，仍保留有效局部材料。[零调用重放](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/verification/material-adoption-v35.json)保留原归档SHA及原check；Download的3份可用材料实际采用2次，首阻断是material-target-unavailable；OWUI无接受材料，首阻断是material-root-missing。9红→9绿/60断言、相关215测试/3228断言与主类型通过；新增模型调用0。此为采用可观察性，尚无新真实任务或效果结论。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

@@ -232,6 +232,11 @@ export interface SourceMaterialUse {
   /** Scratch wrapper environment, never an argument declared by the source function. */
   contextArguments?: Array<{ parameter: string; object: string }>;
 }
+export interface SourceMaterialDiagnostic {
+  code: string; stage: "availability" | "entry" | "call" | "framework"; questionId: string;
+  sourceId: string | null; materialId?: string; sourceCallId?: string; candidateIds: string[];
+  requiredCandidates: number; message: string; nextAction: string;
+}
 const instantiate = (material: SourceMaterial, questionId: string, accepted: BoundSemanticBlock[]): BoundSemanticBlock => {
   const original = material.unit, handle = accepted.find(u => u.role === original.role && u.source?.id === material.source.id && u.receiverClass === material.receiverClass)?.handle ?? material.id
   const rebind = (v: unknown): any => Array.isArray(v) ? v.map(rebind) : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).filter(([key]) => key !== "callee").map(([key, value]) => [key, rebind(value)])) : typeof v === "string" && v.startsWith(`${original.handle}.`) ? `${handle}.${v.slice(original.handle.length + 1)}` : v
@@ -426,17 +431,38 @@ function actualArguments(index: StructureIndex, caller: BoundSemanticBlock, step
   })
 }
 /** Reachability comes from exact current source calls, independently of saved availability. */
-export function projectSourceMaterials(program: AuthorizationInquiryProgram, accepted: BoundSemanticBlock[], snapshot: SourceMaterialSnapshot, index: StructureIndex, options: { questionDirected?: boolean } = {}) {
-  const current = snapshot.materials.filter(m => m.current && index.symbols.some(s => s.id === m.source.id && s.sha256 === m.source.sha256) && m.dependencies.every(d => d.kind === "source-span" ? index.symbols.some(s => s.path === d.key && s.sha256 === d.revision) : d.kind === "symbol-resolution" ? index.symbols.some(s => s.id === d.key && s.sha256 === d.revision) : structuralDependencyRevision(index, d) === d.revision) && (!options.questionDirected || currentMethodStoresValid(index, m.unit) && currentSuperReadsValid(index, m.unit) && currentClassDefinitionsValid(index, m.unit) && currentCallableCreationsValid(index, m.unit)))
+export function projectSourceMaterials(program: AuthorizationInquiryProgram, accepted: BoundSemanticBlock[], snapshot: SourceMaterialSnapshot, index: StructureIndex, options: { questionDirected?: boolean; semanticVersion?: string } = {}) {
+  const diagnostics: SourceMaterialDiagnostic[] = []
+  const diagnose = (code: string, stage: SourceMaterialDiagnostic["stage"], questionId: string, sourceId: string | null, message: string, nextAction: string, details: Partial<SourceMaterialDiagnostic> = {}) => {
+    diagnostics.push({ code, stage, questionId, sourceId, candidateIds: [], requiredCandidates: 1, message, nextAction, ...details })
+  }
+  const current = snapshot.materials.filter(m => {
+    const rejected = (code: string, message: string) => { diagnose(code, "availability", m.unit.questionId, m.source.id, message, "Revalidate this source interpretation against the current source, relationship and strategy before adopting it.", { materialId: m.id }); return false }
+    if (snapshot.schemaVersion !== "authorization-source-materials/v1" || options.semanticVersion && m.identity.semanticVersion !== options.semanticVersion) return rejected("material-version-mismatch", "The saved material version does not match the selected runtime strategy.")
+    if (!m.current) return rejected("material-retired", snapshot.retired.find(r => r.id === m.id)?.reason ?? "This source interpretation was retired.")
+    if (!index.symbols.some(s => s.id === m.source.id && s.sha256 === m.source.sha256)) return rejected("material-source-stale", "The material's source identity or SHA is absent from the current source index.")
+    const dependency = m.dependencies.find(d => !(d.kind === "source-span" ? index.symbols.some(s => s.path === d.key && s.sha256 === d.revision) : d.kind === "symbol-resolution" ? index.symbols.some(s => s.id === d.key && s.sha256 === d.revision) : structuralDependencyRevision(index, d) === d.revision))
+    if (dependency) return rejected("material-dependency-stale", `Current ${dependency.kind} dependency no longer matches: ${dependency.key}.`)
+    if (options.questionDirected) {
+      for (const [name, valid] of [["method-store", currentMethodStoresValid], ["super-read", currentSuperReadsValid], ["class-definition", currentClassDefinitionsValid], ["callable-creation", currentCallableCreationsValid]] as const) if (!valid(index, m.unit)) return rejected(`material-${name}-invalid`, `The retained ${name} does not preserve its exact current source, control, object or order.`)
+    }
+    return true
+  })
   const available = current.filter(m => !options.questionDirected || index.relatedCalls(m.source.id, m.unit.receiverClass).filter(c => c.superMethod).every(call => m.unit.blocks.flatMap(b => b.steps).filter((s): s is Extract<BoundSemanticBlock["blocks"][number]["steps"][number], { kind: "call" }> => s.kind === "call" && s.sourceCallId === call.id).every(step => {
     const target = current.filter(t => t.unit.role === "helper" && !t.receiverClass && t.source.id === step.candidateId)
-    return target.length === 1 && actualArguments(index, m.unit, step, target[0]!.unit)
+    const valid = target.length === 1 && actualArguments(index, m.unit, step, target[0]!.unit)
+    if (!valid) diagnose(target.length === 1 ? "material-arguments-unbound" : target.length > 1 ? "material-target-ambiguous" : "material-target-unavailable", "availability", m.unit.questionId, m.source.id, "A current super dispatch alternative has no uniquely bindable helper material.", "Interpret the exact selected helper and correct only the reported source argument/capture fields.", { materialId: m.id, sourceCallId: call.id, candidateIds: target.map(t => t.source.id) })
+    return valid
   })))
   const units: BoundSemanticBlock[] = [], uses: SourceMaterialUse[] = []
   for (const operation of program.operations ?? []) {
     const entry = accepted.find(u => u.questionId === operation.sourceQuestionId && u.role === "entry" && u.source)
     const root = entry && available.find(m => m.unit.role === "entry" && m.source.id === entry.source!.id && m.source.sha256 === entry.source!.sha256 && m.receiverClass === entry.receiverClass)
-    if (!root) continue
+    if (!root) {
+      const proposed = accepted.find(u => u.questionId === operation.sourceQuestionId && u.source)
+      diagnose(!entry && proposed ? "material-entry-role-mismatch" : entry ? "material-root-unavailable" : "material-root-missing", "entry", operation.sourceQuestionId, proposed?.source?.id ?? null, entry ? "No available material matches the accepted entry source, SHA, role and receiver." : proposed ? "The accepted source has helper role; an operation entry is still required." : "No accepted source entry is bound to this operation.", "Locate/read the original entry and submit its source interpretation with entry role; retain existing helper materials.")
+      continue
+    }
     for (const question of program.operationQuestions?.filter(q => q.operationId === operation.id) ?? []) {
       const candidates = available.map(m => instantiate(m, question.questionId, accepted)), local: BoundSemanticBlock[] = [], seen = new Set<string>()
       const byMaterial = new Map(available.map((m, i) => [m.id, candidates[i]!]))
@@ -448,9 +474,15 @@ export function projectSourceMaterials(program: AuthorizationInquiryProgram, acc
           delete step.methodRead
           delete step.fieldMethodRead
           delete step.callableRead
-          if (!step.sourceCallId) { delete step.callee; continue }
+          if (!step.sourceCallId) { delete step.callee; diagnose("material-source-call-missing", "call", question.questionId, material.source.id, "The proposed call has no exact original sourceCallId.", "Use the call identity in the current source skeleton; do not infer a callee from its spelling.", { materialId: material.id }); continue }
           const selected = operationCallSourceSelection(index, caller, step), targets = operationCallTargets(index, caller, step, candidates)
-          if (selected.actions.length !== 1 || targets.length !== 1 || !actualArguments(index, caller, step, targets[0]!.unit)) { delete step.callee; continue }
+          if (selected.actions.length !== 1 || targets.length !== 1 || !actualArguments(index, caller, step, targets[0]!.unit)) {
+            delete step.callee
+            const code = selected.actions.length > 1 || targets.length > 1 ? "material-target-ambiguous" : selected.actions.length === 0 ? "material-source-call-unmatched" : targets.length === 0 ? "material-target-unavailable" : "material-arguments-unbound"
+            const call = index.relatedCalls(caller.source!.id, caller.receiverClass).find(c => c.id === step.sourceCallId), symbol = targets[0]?.unit.source && index.symbols.find(s => s.id === targets[0]!.unit.source!.id), binding = call && symbol ? sourceArgumentBindings(index, call, symbol) : undefined
+            diagnose(code, "call", question.questionId, material.source.id, binding?.gap ? `Source parameter binding failed: ${binding.gap}.` : `Current source candidates=${selected.actions.length}, available helper candidates=${targets.length}; actual arguments must match the original source.`, code === "material-arguments-unbound" ? "Correct the exact caller argument/capture mapping from the original source signature; keep other valid fields." : "Read/interpret the exact source-qualified helper or disambiguate the current receiver/candidate; do not select a default target.", { materialId: material.id, sourceCallId: step.sourceCallId, candidateIds: selected.actions.map(a => a.candidateId) })
+            continue
+          }
           const target = targets[0]!, helper = available.find(m => byMaterial.get(m.id) === target.unit)!
           const call = index.relatedCalls(caller.source!.id, caller.receiverClass).find(c => c.id === step.sourceCallId), symbol = index.symbols.find(s => s.id === target.unit.source!.id), methodRead = call && symbol && (!options.questionDirected || !call.methodCapture) && sourceDirectMethodRead(call, symbol)
           if (methodRead) step.methodRead = methodRead
@@ -466,7 +498,7 @@ export function projectSourceMaterials(program: AuthorizationInquiryProgram, acc
       visit(root)
       if (options.questionDirected) {
         const routes = index.routes.filter(r => r.model === "fastapi-source-router/v1" && r.candidateIds.includes(root.source.id)), entry = byMaterial.get(root.id)!
-        const gap = (unit: BoundSemanticBlock, reason: string, relationId: string) => { unit.blocks.find(b => b.name === unit.start)!.steps.unshift({ kind: "unresolved", name: `$framework-${relationId}`, claim: `Current request source relationship: ${reason}`, reason }); unit.complete = false }
+        const gap = (unit: BoundSemanticBlock, reason: string, relationId: string) => { unit.blocks.find(b => b.name === unit.start)!.steps.unshift({ kind: "unresolved", name: `$framework-${relationId}`, claim: `Current request source relationship: ${reason}`, reason }); unit.complete = false; diagnose(reason, "framework", question.questionId, unit.source?.id ?? null, `Current request relationship ${relationId} is unadopted.`, "Read/interpret the named framework source or retain this exact request boundary.", { materialId: root.id, sourceCallId: relationId }) }
         const unmodeled = index.diagnostics.find(d => d.handlerId === root.source.id && d.code.startsWith("route-"))
         if (unmodeled) gap(entry, unmodeled.code, root.source.id)
         else if (routes.length > 1) gap(entry, "framework-route-ambiguous", root.source.id)
@@ -491,7 +523,7 @@ export function projectSourceMaterials(program: AuthorizationInquiryProgram, acc
               const injected = new Set(dependencies.flatMap(d => d.parameter ?? []))
               unit.parameters = unit.parameters.filter(p => !injected.has(p.name))
               for (const dependency of dependencies) {
-                const fail = (reason: string) => { prefix.push({ kind: "unresolved", name: `$framework-${dependency.id}`, claim: `Current ${dependency.constructor} source binding: ${reason}`, reason }); unit.complete = false }
+                const fail = (reason: string) => { prefix.push({ kind: "unresolved", name: `$framework-${dependency.id}`, claim: `Current ${dependency.constructor} source binding: ${reason}`, reason }); unit.complete = false; diagnose(reason, "framework", question.questionId, material.source.id, `Current ${dependency.constructor} binding ${dependency.id} cannot be adopted.`, "Interpret the exact dependency and its request inputs or retain the named residual.", { materialId: material.id, sourceCallId: dependency.sourceCallId, candidateIds: dependency.candidateIds }) }
                 if (dependency.resolution !== "resolved" || dependency.candidateIds.length !== 1) { fail(dependency.gap ?? "framework-dependency-unresolved"); continue }
                 const targetId = dependency.candidateIds[0]!, targets = available.filter(m => m.source.id === targetId && m.unit.role === "helper" && !m.receiverClass)
                 if (targets.length !== 1) { fail("framework-dependency-uninterpreted"); continue }
@@ -537,5 +569,5 @@ export function projectSourceMaterials(program: AuthorizationInquiryProgram, acc
       units.push(...local)
     }
   }
-  return { units, uses }
+  return { units, uses, diagnostics, stages: { saved: snapshot.materials.length, current: current.length, available: available.length, projectedUnits: units.length, entryUses: uses.filter(u => u.kind === "entry").length, callUses: uses.filter(u => u.kind === "call").length, frameworkUses: uses.filter(u => u.kind === "framework").length, blocked: diagnostics.length } }
 }
