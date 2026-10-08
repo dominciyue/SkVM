@@ -2121,6 +2121,10 @@ AY7返回环境统一小步（2026-10-08）：v24移除v13的placeholder/implici
 
 两只读核验分别运行228pass/2024断言和215pass/503断言。后一项报告条件内联创建被接受；主核对当前合同后保留这种有原控制路径的候选，以跳过分支及creation挪出if/try的完整来源反例确认没有提前执行或错误采用，未增加重复无条件门槛。13新增，新鲜584focused/3272断言、联合1423pass/1平台skip/9079断言/115文件/20.07s及主/AY类型通过，见[返回环境核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-returned-environment.json)。[真实来源probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-returned-environment-replay.json)核验94冻结及6补充文件、12body，24返回定义/13实际定义合格，所选合格1；actual returned calls/arguments、application annotation/material use仍0，机械窗口不是实验模型read。SHA `11eb95492b4f5142f7c0b8ac39cef5621ee829cfbd4c304ea70bcb54112f7a01`；旧input/allowlist/报告/答不变。实验模型/目标/探针网络新增0，探子npx等其它网络与开发/探子token、USD和真人时间unknown。继续实际class/wrapper变换、完整请求、官方实际复验和预登记质量/净收益，AY7未完成。
 
+AY7类引用身份小步（2026-10-08）：只读定位确认类实参仍是未绑定文本，v25据此在原实参读取处连接唯一稳定未装饰、无base/metaclass模块class的sourceClass当前身份。参数/return/valueFrom/alias/字段共享对象，重复读取不能清空之前的字段修改；不同类/普通token/局部覆盖保持独立未知。来源投影核验精确读取、当前target/SHA/import、原if/try及严格求值/同block顺序、唯一result和完整参数，不提供constructor、prototype或隐式decorator应用证明。
+
+主16项预期红测转绿，补充外部class字节变化撤回未变caller材料、无关homonym保持、nested实参顺序及class修改后抛错/捕获再读对照。31新增，新鲜615focused/3464断言、联合1454pass/1平台skip/9271断言/115文件/20.22s与主/AY类型通过；两独立只读复核均未发现新可复现缺陷，主要基于现有测试，非穷尽审计，见[类引用核验](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-class-values.json)。[新来源probe](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/paperless-class-values-replay.json)核验94冻结及6补充文件、12所选body，全域19类引用来源合格，所选body合格/材料采用0；SHA `3b3c2692f1fd82a2e53afad9b0f67fdd576e6a2b346673743c0441350cce379a`。无实验模型读证据/应用标注，实验模型/目标/probe网络新增0，开发/探子token、USD和真人时间unknown，原input/allowlist/答不升级。继续实际decorator应用、class/method变换与完整请求、官方完整复验和预登记收益，AY7未完成。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

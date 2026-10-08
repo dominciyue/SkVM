@@ -17,6 +17,34 @@ function lower(units: unknown[], bindings: unknown[] = [], options: { propertyDi
   return { ...lowered, slice: merged.state, ...evaluated, diagnostics: [...lowered.diagnostics, ...evaluated.diagnostics] }
 }
 const known = (key: string, value: unknown, text: string) => ({ questionId: "q", key, value, text, origin: "user" })
+for (const mode of ["direct", "return", "alias", "field", "repeat", "different", "literal", "overwrite"]) test(`source class references preserve the actual transformed object: ${mode}`, () => {
+  const read = (result: string, targetId = "class-source") => ({ kind: "assign-value", name: `class-${result}`, claim: "Read current source class object", result, value: { literal: "class-token" }, sourceClass: { targetId, targetSha256: "class-sha" } })
+  expect(api.SemanticStepSchema.safeParse(read("first")).success).toBe(true)
+  const decorate = unit([block("main", [{ kind: "transform", name: "change", claim: "Actual decorator changes class field", object: "cls", field: "enabled", value: true }, { kind: "return", name: "returned", claim: "Return actual class object", valueFrom: "cls" }])], { role: "helper", handle: "decorate", coverage: "path", parameters: [{ name: "cls", type: "value" }] })
+  const steps: any[] = [read("first"), { kind: "call", name: "apply", claim: "Apply actual source decorator", symbol: "decorate", callee: "decorate", result: "returned", arguments: [{ parameter: "cls", object: "first" }] }]
+  let selected = "first"
+  if (mode === "return") selected = "returned"
+  if (mode === "alias") { steps.push({ kind: "assign-value", name: "alias", claim: "Preserve class identity", result: "alias", value: { binding: "returned" } }); selected = "alias" }
+  if (mode === "field") { steps.push({ kind: "transform", name: "store", claim: "Store actual class object", object: "context", field: "cls", source: "returned" }); selected = "context.cls" }
+  if (mode === "repeat" || mode === "different") { steps.push(read("second", mode === "repeat" ? "class-source" : "other-class-source")); selected = "second" }
+  if (mode === "literal" || mode === "overwrite") { steps.push({ kind: "assign-value", name: "replace", claim: "A plain token cannot preserve the source object", result: mode === "literal" ? "token" : "first", value: { literal: "class-token" } }); selected = mode === "literal" ? "token" : "first" }
+  steps.push({ kind: "choose", name: "state", claim: "Observe actual class modification", cases: [{ condition: eq(`${selected}.enabled`, true), body: "denied" }], otherwise: "other" })
+  const root = unit([block("main", steps), block("denied", [{ kind: "reject", name: "denied", claim: "Modified class reaches this branch", failureKind: "authorization" }]), block("other", [{ kind: "return", name: "other", claim: "Other class or value", outcome: "allow" }])], { coverage: "path", parameters: [{ name: "context", type: "configuration" }] }), r = api.lowerSemanticFlow([root, decorate], { propertyDirected: true })
+  expect(r.diagnostics).toEqual([])
+  expect(r.delta.rules.filter((r: any) => r.terminal).map((r: any) => r.outcome)).toEqual(["direct", "return", "alias", "field", "repeat"].includes(mode) ? ["deny"] : ["deny", "allow"])
+})
+
+for (const mode of ["binding", "function", "method", "read", "invoke"]) test(`source class metadata cannot fabricate function invocation: ${mode}`, () => {
+  const creation: any = { kind: "assign-value", name: "class", claim: "Current class reference", result: "cls", value: { literal: "token" }, sourceClass: { targetId: "class-source", targetSha256: "sha" } }
+  if (mode === "binding") creation.value = { binding: "unknown" }
+  if (mode === "function") creation.sourceCallable = { targetId: "function-source", targetSha256: "sha", captures: [] }
+  if (mode === "method") creation.boundMethod = { receiver: "self", targetId: "function-source", targetSha256: "sha" }
+  if (mode === "read") creation.methodRead = { receiver: "self", method: "guard" }
+  const root = unit([block("main", [creation, { kind: "call", name: "invoke", claim: "A class token supplies no source function", symbol: "cls", callee: "guard", arguments: [], callableRead: { object: "cls", targetId: "class-source", targetSha256: "sha" } }])], { coverage: "path", parameters: [{ name: "self", type: "value" }] }), guard = unit([block("main", [{ kind: "reject", name: "denied", claim: "This function must not run", failureKind: "authorization" }])], { role: "helper", handle: "guard" }), r = api.lowerSemanticFlow([root, guard], { propertyDirected: true })
+  expect(r.diagnostics.map((d: any) => d.code)).toEqual([mode === "invoke" ? "source-callable-value-unresolved" : "source-class-creation-unresolved"])
+  expect(r.delta.rules.some((r: any) => r.failureKind === "authorization")).toBe(false)
+})
+
 for (const mode of ["direct", "parameter", "helper-return", "field", "alias", "overwrite", "literal-token", "wrong-target", "wrong-sha", "missing-capture", "wrong-type", "conflicting-capture", "stale-source", "function-write", "unbound-capture"]) test(`source callable values invoke their actual captured environment: ${mode}`, () => {
   const reference = { targetId: "guard-source", targetSha256: "guard-sha" }, capture: any = { kind: "assign-value", name: "capture", claim: "Create source function with its actual environment", result: "callback", value: { literal: "function-token" }, sourceCallable: { ...reference, captures: [{ parameter: "flag", object: "flag" }] } }, read: any = { object: "callback", ...reference }
   const invoke: any = { kind: "call", name: "invoke", claim: "Invoke the actual source function", symbol: "callback", callee: "guard", arguments: [{ parameter: "actor", object: "actor" }], callableRead: read }

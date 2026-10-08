@@ -285,6 +285,47 @@ test("adopted public import helpers depend on selected hop bytes while unrelated
   expect(api.projectSourceMaterials(p, accepted, snapshot, unrelated, { questionDirected: true }).uses.filter((u: any) => u.kind === "call")).toHaveLength(1)
 })
 
+for (const mode of ["direct", "repeat", "alias", "field", "branch", "try", "import", "pair", "raised"]) test(`ordinary source class arguments retain actual decorator changes: ${mode}`, async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-source-class-")), body = mode === "raised" ? "    try:\n        decorate(Gate)\n    except Denied:\n        inspect(Gate)\n" : mode === "pair" ? "    inspect_pair(decorate(Gate), Gate)\n" : mode === "repeat" ? "    decorate(Gate)\n    inspect(Gate)\n" : mode === "alias" ? "    changed = decorate(Gate)\n    saved = changed\n    inspect(saved)\n" : mode === "field" ? "    context.saved = decorate(Gate)\n    inspect(context.saved)\n" : mode === "branch" ? "    if True:\n        changed = decorate(Gate)\n        inspect(changed)\n" : mode === "try" ? "    try:\n        changed = decorate(Gate)\n        inspect(changed)\n    except Denied:\n        raise\n" : "    changed = decorate(Gate)\n    inspect(changed)\n"
+  const content = `${mode === "import" ? "from classes import Gate\n" : "class Gate:\n    pass\n"}def entry(context):\n${body}    write()\n    return True\ndef decorate(cls):\n    cls.enabled = True\n${mode === "raised" ? "    raise Denied\n" : ""}    return cls\ndef inspect(cls):\n    if cls.enabled:\n        raise Denied\n    return cls\n${mode === "pair" ? "def inspect_pair(left, right):\n    inspect(right)\n    return left\n" : ""}`
+  await writeFile(path.join(sourceRoot, "app.py"), content)
+  if (mode === "import") await writeFile(path.join(sourceRoot, "classes.py"), "class Gate:\n    pass\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, units: any[] = []
+  for (const name of ["entry", "decorate", "inspect", ...mode === "pair" ? ["inspect_pair"] : []]) {
+    const source = index.symbols.find(s => s.name === name)!, read = await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine }), skeleton = (await tools.sourceSkeleton(source.id))!
+    const annotations = skeleton.anchors.filter(a => ["parameter", "condition", "call", "return", "raise"].includes(a.kind)).map(a => ({ anchorId: a.id, role: a.kind === "parameter" ? "condition" : a.kind === "call" ? a.call!.expression === "write" ? "effect" : "condition" : a.kind === "condition" ? "condition" : "context", explanation: "Anonymous source class object, original decorator mutation and continuation", ...(a.kind === "condition" && !a.literalKnown ? { condition: { op: "truthy", language: "python", value: { binding: "cls.enabled" } } } : {}), ...(a.kind === "raise" ? { failureKind: "authorization" } : {}), ...(a.kind === "return" && name === "entry" ? { returnOutcome: "allow" } : {}) }))
+    const result = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index, itemId: name, handle: name, questionId: "q", role: name === "entry" ? "entry" : "helper", propertyDirected: true })
+    expect(skeleton.gaps).toEqual([])
+    expect(result.diagnostics).toEqual([])
+    units.push({ ...result.unit!, questionId: "q", evidenceIds: read.evidence.map(e => e.id), source: skeleton.source })
+  }
+  const p = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect actual class mutation and original continuation", premises: [] }] }), project = (current = units, currentIndex = index) => {
+    const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "question-control/v1" })
+    for (const u of current) store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }, { kind: "candidate-set", key: `relations:${u.source.id}`, revision: sourceRelationRevision(index, u.source.id)! }], "test-authored")
+    return api.projectSourceMaterials(p, current, store.snapshot(), currentIndex, { questionDirected: true })
+  }
+  expect(units[0].blocks.flatMap((b: any) => b.steps).some((s: any) => s.sourceClass)).toBe(true)
+  const projected = project(), lowered = lowerSemanticFlow(projected.units, { compositional: true, propertyDirected: true })
+  expect(lowered.diagnostics).toEqual([])
+  expect(lowered.delta.rules.filter(r => r.terminal).map(r => r.outcome)).toEqual(["deny"])
+  expect(lowered.delta.rules.some(r => r.kind === "effect")).toBe(false)
+  for (const change of ["metadata", "token", "target", "result", "late"]) {
+    const forged = structuredClone(units), root = forged[0], block = root.blocks.find((b: any) => b.steps.some((s: any) => s.sourceClass)), creation = block.steps.find((s: any) => s.sourceClass)
+    if (change === "metadata") delete creation.sourceClass
+    if (change === "token") creation.value.literal = "forged-token"
+    if (change === "target") creation.sourceClass.targetSha256 = "old-source"
+    if (change === "result") creation.result = "other-object"
+    if (change === "late") block.steps.push(...block.steps.splice(block.steps.indexOf(creation), 1))
+    expect(project(forged).units.some((u: any) => u.source.id === root.source.id)).toBe(false)
+  }
+  const changed = await buildStructureIndex(mode === "import" ? [{ path: "app.py", content }, { path: "classes.py", content: "class Gate:\n    changed = True\n" }] : [{ path: "app.py", content: content.replace("    pass", "    changed = True") }], { repository: "anonymous", sourceRef: "r" })
+  expect(project(units, changed).uses).toEqual([])
+  if (mode === "import") {
+    const unrelated = await buildStructureIndex([{ path: "app.py", content }, { path: "classes.py", content: "class Gate:\n    pass\n" }, { path: "other.py", content: "class Gate:\n    changed = True\n" }], { repository: "anonymous", sourceRef: "r" })
+    expect(project(units, unrelated).uses.length).toBe(projected.uses.length)
+  }
+})
+
 for (const mode of ["direct", "passed", "inline", "forwarded", "two-environments", "caller-rebound", "direct-branch", "direct-try", "inline-branch", "inline-skipped", "inline-try"]) test(`returned source functions retain their actual factory environment: ${mode}`, async () => {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-returned-environment-"))
   const body = ["inline-branch", "inline-skipped"].includes(mode) ? `    if ${mode === "inline-skipped" ? "False" : "True"}:\n        consume(create(True), actor)\n` : mode === "inline-try" ? "    try:\n        consume(create(True), actor)\n    except Denied:\n        raise\n" : mode === "direct-branch" ? "    check = create(True)\n    if True:\n        check(actor)\n" : mode === "direct-try" ? "    check = create(True)\n    try:\n        check(actor)\n    except Denied:\n        raise\n" : mode === "inline" ? "    consume(create(True), actor)\n" : mode === "caller-rebound" ? "    setup(True, actor)\n" : mode === "two-environments" ? "    first = create(False)\n    second = create(True)\n    first(actor)\n    second(actor)\n" : `    check = create(True)\n    ${mode === "direct" ? "check(actor)" : mode === "forwarded" ? "forward(check, actor)" : "consume(check, actor)"}\n`

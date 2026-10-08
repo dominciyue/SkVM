@@ -234,6 +234,10 @@ AY7 class接续核对（2026-10-08）：两项独立只读定位确认当前meth
 
 返回环境本步进展（2026-10-08）：v24已将原factory local定义与唯一terminal return统一到实际sourceCallable环境；直接/传参/内联/转发call不再从caller重建capture或携带synthetic instance。主先8项预期红测转绿，再复现creation挪过caller重绑定的顺序漏洞；第一份fixture裁剪掉writer、不能作为缺陷证据，补observe及writer存在断言后重新取得有效红绿。原if/try控制保留，条件内联候选并非提前执行；只读疑点由跳过分支与移出区域反例核对，未增加全局无条件门槛。13新增，584focused/3272断言、联合1423pass/1平台skip/9079断言及主/AY类型通过；两只读范围见[核验记录](../../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-returned-environment.json)。100冻结/补充文件、12body probe保留24返回定义/13实际定义合格/所选合格1，actual returned calls/arguments/material uses为0；SHA `11eb95492b4f5142f7c0b8ac39cef5621ee829cfbd4c304ea70bcb54112f7a01`。无实验模型/目标/探针网络新增；探子npx等网络与开发成本unknown分列。实际class/wrapper变换、原request接线及官方完整复验继续，AY7/完整使用/净收益未勾选。
 
+类对象接续工作计划（2026-10-08）：只读定位确认当前ObjectBinding只有sourceCallable/boundMethod，class实参仍是未绑定文本，无法保留实际decorator修改。先在同一有限核心增加sourceClass当前来源身份；普通未装饰、唯一稳定模块class引用在原实参读取点创建共享对象，参数/return/valueFrom/alias/transform保留它，重复读取不能重置已发生字段修改，也不能把普通token当类身份。初步限无base/metaclass的当前普通class引用；不执行constructor或凭此解除wrapped receiver。索引保留精确引用/当前class SHA/import hops/原if/try及求值顺序，材料核验原读取和完整参数。匿名native与完整source-read→interpret→material→native先红绿，覆盖同类重复读/不同类/返回/别名/字段/重绑定/移位/来源失效；继而接隐式decorator application、方法变换/原请求和官方完整复验，不以类引用前驱结束队列。
+
+类引用本步进展（2026-10-08）：v25已接通当前普通无base/metaclass模块class在原实参位置的sourceClass身份，参数/返回/alias/字段保留同一对象；重复读取不清空字段修改，普通token/另一个class/覆盖保持未知而不借用已知状态。主16项预期红测转绿，另补跨文件class变化撤回未变caller、无关homonym保持、嵌套实参顺序及修改后抛错/捕获再读取。31新增；615focused/3464断言、联合1454pass/1平台skip/9271断言及主/AY类型通过，两只读范围见[核验记录](../../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/reviews/ay7-class-values.json)。100文件/12body probe有19类引用合格，所选body合格/材料采用0；SHA `3b3c2692f1fd82a2e53afad9b0f67fdd576e6a2b346673743c0441350cce379a`。实验模型/目标/probe网络新增0，未知成本分列。继续隐式decorator应用、实际返回class与方法变换/constructor/原请求和官方完整复验，AY7及预登记净收益未达。
+
 ### AY8 调度与局部解释的闭环
 
 2026-10-08真实OWUI反例细化：七轮增量字段确有前进，最后宿主生成34个块（其中8个为空）却被沿用手写接口的32块上限拒绝。先在v5源码编译器复用同单元的无动作空块，保留每个实际条件、步骤、正常/拒绝/异常出口及既有路径/节点边界；不提高求值上限。停滞按当前缺口和已保留字段进展判断，不能把observations的pending标签当源码frontier停滞。实际发送上下文与原始归档分账，引用的bytes是被引用原值大小，不是该引用包的发送大小。

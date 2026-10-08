@@ -531,6 +531,15 @@ test("a callable parameter cannot borrow an unqualified module function", async 
   const index = await buildStructureIndex([{ path: "app.py", content: "def guard():\n    return True\ndef entry(guard):\n    return guard()\n" }], { repository: "anonymous", sourceRef: "r" })
   expect(index.relatedCalls(index.symbols.find(s => s.qualifiedName === "app.entry")!.id)[0]!.resolution).toBe("unresolved")
 })
+for (const mode of ["ordinary", "import", "parameter", "local", "rebound", "wrapped", "base", "metaclass", "conditional"]) test(`source class argument qualification retains actual module binding: ${mode}`, async () => {
+  const declaration = mode === "wrapped" ? "@change\nclass Gate:\n    pass\n" : mode === "base" ? "class Gate(Base):\n    pass\n" : mode === "metaclass" ? "class Gate(metaclass=Meta):\n    pass\n" : mode === "conditional" ? "if configured:\n    class Gate:\n        pass\n" : "class Gate:\n    pass\n"
+  const files = [{ path: "types.py", content: declaration }, { path: "app.py", content: `${mode === "import" ? "from types import Gate" : declaration}\ndef consume(cls):\n    return cls\ndef entry(${mode === "parameter" ? "Gate" : ""}):\n${mode === "local" || mode === "rebound" ? "    Gate = replacement\n" : ""}    consume(Gate)\n` }]
+  const index = await buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" }), source = index.symbols.find(s => s.qualifiedName === "app.entry")!, call = index.relatedCalls(source.id)[0]!, proof = (call.argumentFacts![0] as any).classValue
+  if (["ordinary", "import"].includes(mode)) {
+    expect(proof).toMatchObject({ schemaVersion: "source-class-value/v1", expression: "Gate", targetId: index.symbols.find(s => s.qualifiedName === `${mode === "import" ? "types" : "app"}.Gate`)!.id, controls: [] })
+    expect(call.argumentFacts![0]!.callableValue).toBeUndefined()
+  } else expect(proof).toBeUndefined()
+})
 for (const declaration of ["async def guard():", "@other\n    def guard():", "def guard(flag=unknown()):", "def guard(actor: unknown()):"]) test(`local callable definition retains ${declaration.split("\n")[0]}`, async () => {
   const index = await buildStructureIndex([{ path: "app.py", content: "def entry(actor):\n    " + declaration + "\n        return actor\n    guard()\n" }], { repository: "anonymous", sourceRef: "r" })
   expect(index.relatedCalls(index.symbols.find(s => s.qualifiedName === "app.entry")!.id).find(c => c.expression === "guard")!.resolution).toBe("unresolved")

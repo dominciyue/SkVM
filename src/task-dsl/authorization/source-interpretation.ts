@@ -6,7 +6,7 @@ import { buildPropertyDemand, type PropertyDemand } from "./property-demand.ts"
 import type { DependencyQuestion } from "./property-dependencies.ts"
 import type { SourceSkeleton, SourceAnchor, SourceFlow } from "../../benchmarks/authorization-dsl/evidence-preparation/source-skeleton.ts"
 import type { StructureIndex, StructureMethodChoice } from "../../benchmarks/authorization-dsl/evidence-preparation/structure-index.ts"
-import { sourceCallableDefinitionName, sourceCallableToken, sourceCallableValueName, sourceCallableValueResult, sourceDirectMethodRead, sourceFieldMethodToken, sourceMethodCaptureName, sourceMethodCaptureResult, sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupSentinel, sourceMethodLookupToken, sourceSyntaxAnchorId } from "../../benchmarks/authorization-dsl/evidence-preparation/source-identities.ts"
+import { sourceCallableDefinitionName, sourceCallableToken, sourceCallableValueName, sourceCallableValueResult, sourceClassToken, sourceClassValueName, sourceClassValueResult, sourceDirectMethodRead, sourceFieldMethodToken, sourceMethodCaptureName, sourceMethodCaptureResult, sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupSentinel, sourceMethodLookupToken, sourceSyntaxAnchorId } from "../../benchmarks/authorization-dsl/evidence-preparation/source-identities.ts"
 import { sourceArgumentBindings } from "../../benchmarks/authorization-dsl/evidence-preparation/source-arguments.ts"
 
 export const SourceAnnotationSchema = z.object({
@@ -94,6 +94,10 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
     const actual = a.callableDefinition && options.index!.symbols.find(s => s.id === a.callableDefinition!.targetId && s.sha256 === a.callableDefinition!.targetSha256 && s.valueCallable && !s.valueCallable.gap && s.valueCallable.ownerId === skeleton.sourceId && s.valueCallable.ownerSha256 === skeleton.source.sha256 && s.valueCallable.anchorId === a.id && s.name === a.name && JSON.stringify(s.valueCallable) === JSON.stringify(a.callableDefinition!.definition))
     return actual ? [[a.id, actual] as const] : []
   }) : [])
+  const classValues = new Map(skeleton.propertySemantics === "question-control/v1" && options.index ? skeleton.anchors.flatMap(a => {
+    const actual = a.classValue && options.index!.relatedCalls(skeleton.sourceId).flatMap(c => c.argumentFacts?.flatMap(v => v.classValue ? [v.classValue] : []) ?? []).find(p => a.id === sourceClassValueName(skeleton.sourceId, p).slice("class-value-".length) && a.name === sourceClassValueResult(skeleton.sourceId, p) && a.valueExpression === p.expression && JSON.stringify(a.classValue) === JSON.stringify(p))
+    return actual ? [[a.id, actual] as const] : []
+  }) : [])
   const objectName = (id?: string) => { const a = at(id); return a?.name ?? (a?.call?.resultNames[0]?.includes(".") ? a.call.resultBinding : a?.call?.resultNames[0]) ?? (a ? `object-${a.id}` : undefined) }
   const bindingType = (a?: Annotation) => a && ["principal", "resource", "permission"].includes(a.role) ? a.role as "principal" | "resource" | "permission" : a?.role === "context" ? "configuration" : "value"
   const allFlowIds = new Set<string>(), collect = (flow: SourceFlow[]) => { for (const f of flow) { allFlowIds.add(f.anchorId); for (const part of [f.then, f.otherwise, f.body, f.enter, f.finally]) collect(part ?? []); for (const h of f.handlers ?? []) collect(h.body) } }; collect(skeleton.flow)
@@ -111,6 +115,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
     if (fieldStores.has(a.anchorId) && (a.aliasAnchorId || !["condition", "context", "effect"].includes(a.role))) fault("field-method-role", a.anchorId, "A current ordinary bound method store keeps its actual source value and receiver capture.")
     if (earlyCaptures.has(a.anchorId) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("method-capture-role", a.anchorId, "An ordinary function read keeps its source identity and receiver before argument evaluation.")
     if ((callableValues.has(a.anchorId) || callableDefinitions.has(a.anchorId)) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("callable-value-role", a.anchorId, "A current function value retains its actual source identity and captured environment.")
+    if (classValues.has(a.anchorId) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("class-value-role", a.anchorId, "A current class reference retains its actual source identity; a role cannot replace it with another object.")
     if (anchor.call?.sourceCallId && lookupCreations.has(anchor.call.sourceCallId) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("method-lookup-role", a.anchorId, "An ordinary getattr reference keeps its current selector; its creation cannot become an authorization object or effect.")
     if ([...lookupCreations.values()].some(p => p.alternatives.some(c => c.anchorId === a.anchorId)) && (a.aliasAnchorId || !["condition", "context"].includes(a.role))) fault("method-lookup-role", a.anchorId, "A current alternate method reference keeps its actual ordinary source value.")
     if (a.guardBranch && (anchor.kind !== "condition" || !a.principalAnchorId || !a.resourceAnchorId)) fault("guard", a.anchorId, "A branch guard needs its actual condition and explicit principal/resource roles.")
@@ -234,7 +239,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
                 const argument = currentArguments.bindings.find(b => b.parameter === parameter.name)
                 if (!argument || !argument.literalKnown && !argument.captureOwnerId && !args.some(p => (p.spread ? p.expression.replace(/^\*+/, "").trim() : p.expression) === argument.expression) && argument.expression !== a.call!.receiver && !/^super\(\)\./.test(a.call!.expression)) continue
                 const nestedResult = argumentResult(argument.expression, argument.sourceCallId)
-                const object = argument.literalKnown ? `literal-${a.id}-${parameter.name}${suffix}` : argument.callableValue?.kind === "module" ? sourceCallableValueResult(skeleton.sourceId, argument.callableValue) : nestedResult ?? sourceValue(argument.expression).binding as string
+                const object = argument.literalKnown ? `literal-${a.id}-${parameter.name}${suffix}` : argument.classValue ? sourceClassValueResult(skeleton.sourceId, argument.classValue) : argument.callableValue?.kind === "module" ? sourceCallableValueResult(skeleton.sourceId, argument.callableValue) : nestedResult ?? sourceValue(argument.expression).binding as string
                 if (argument.literalKnown) destination.push({ kind: "bind", name: object, claim: "Actual source literal argument/default/empty pack", type: "value", value: argument.literalValue! })
                 mapped.push({ parameter: parameter.name, object }); continue
               }
@@ -293,6 +298,9 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
           } else emitCall(block.steps, a.call!.candidateIds.length === 1 ? a.call!.candidateIds[0] : undefined)
         }
       } else if (a.kind === "assignment" && a.name) {
+        const cls = classValues.get(a.id)
+        if (cls) { block.steps.push({ kind: "assign-value", name: sourceClassValueName(skeleton.sourceId, cls), claim: "Read the actual current source class object without resetting prior transformations", result: a.name, value: { literal: sourceClassToken(cls) }, sourceClass: { targetId: cls.targetId, targetSha256: cls.targetSha256 } }); continue }
+        if (a.classValue) { block.steps.push({ kind: "unresolved", name: `class-value-${a.id}`, claim, reason: "source-class-reference-unresolved" }); unit.complete = false; continue }
         const callableValue = callableValues.get(a.id), callableDefinition = callableDefinitions.get(a.id)
         if (callableValue || callableDefinition) {
           const target = callableValue ?? { targetId: callableDefinition!.id, targetSha256: callableDefinition!.sha256 }, captures = callableDefinition?.valueCallable?.captures.map(c => ({ parameter: c.name, object: c.name })) ?? []

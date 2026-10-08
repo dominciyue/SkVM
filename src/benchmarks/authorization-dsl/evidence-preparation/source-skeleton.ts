@@ -1,9 +1,9 @@
 import { createHash } from "node:crypto"
 import type { Node } from "@vscode/tree-sitter-wasm"
 import type { InquiryEvidence } from "../inquiry-tools.ts"
-import type { StructureCall, StructureIndex, StructureSymbol, StructureMethodStore, StructureMethodCapture, StructureCallableValue, StructureCallableDefinition } from "./structure-index.ts"
+import type { StructureCall, StructureIndex, StructureSymbol, StructureMethodStore, StructureMethodCapture, StructureCallableValue, StructureCallableDefinition, StructureClassValue } from "./structure-index.ts"
 import { sourceLiteral } from "./structure-index.ts"
-import { sourceCallableValueResult, sourceMethodCaptureResult, sourceSyntaxAnchorId } from "./source-identities.ts"
+import { sourceCallableValueResult, sourceClassValueResult, sourceMethodCaptureResult, sourceSyntaxAnchorId } from "./source-identities.ts"
 import { sourceArgumentBindings } from "./source-arguments.ts"
 import type { SourceSelector } from "./source-selector.ts"
 import type { FiniteValue } from "../../../task-dsl/authorization/control-evaluation.ts"
@@ -18,6 +18,7 @@ export interface SourceAnchor {
   dependencyFacts?: { reads: string[]; writes: string[]; pureLocal: boolean };
   capture?: { ownerId: string; ownerSha256: string };
   callableValue?: StructureCallableValue;
+  classValue?: StructureClassValue;
   callableDefinition?: { targetId: string; targetSha256: string; definition: StructureCallableDefinition };
   fieldWrite?: { object: string; field: string };
   methodStore?: StructureMethodStore;
@@ -133,6 +134,12 @@ export async function buildSourceSkeleton(index: StructureIndex, source: Structu
     const expressionFlow = (n: Node, resultBinding?: string): SourceFlow[] => {
       if (questionDirected && source.language === "python" && n.type === "expression_statement") return kids(n).flatMap(a => expressionFlow(a, resultBinding))
       if (questionDirected && source.language === "python" && n.type === "keyword_argument") return field(n, "value") ? expressionFlow(field(n, "value")!) : []
+      const classValue = questionDirected && actualCalls.flatMap(c => c.argumentFacts?.flatMap(a => a.classValue ? [a.classValue] : []) ?? []).find(p => p.source.startIndex === n.startIndex && p.source.endIndex === n.endIndex)
+      if (classValue) {
+        const anchor = add(n, "assignment", { name: sourceClassValueResult(source.id, classValue), syntax: "source_class_value", valueExpression: n.text, classValue })
+        anchor.dependencyFacts = { reads: [n.text], writes: [anchor.name!], pureLocal: false }
+        return [{ kind: "step", anchorId: anchor.id }]
+      }
       const callableValue = questionDirected && actualCalls.flatMap(c => c.argumentFacts?.flatMap(a => a.callableValue?.kind === "module" ? [a.callableValue] : []) ?? []).find(p => p.source.startIndex === n.startIndex && p.source.endIndex === n.endIndex)
       if (callableValue) {
         const anchor = add(n, "assignment", { name: sourceCallableValueResult(source.id, callableValue), syntax: "source_callable_value", valueExpression: n.text, callableValue })

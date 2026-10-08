@@ -2,7 +2,7 @@ import type { AuthorizationInquiryProgram } from "../../task-dsl/authorization/i
 import type { BoundSemanticBlock } from "../../task-dsl/authorization/semantic-flow.ts"
 import type { SourceMaterial, SourceMaterialSnapshot } from "../../task-dsl/authorization/source-materials.ts"
 import type { StructureIndex, StructureMethodControl, StructureCallableBinding } from "./evidence-preparation/structure-index.ts"
-import { sourceCallableDefinitionName, sourceCallableToken, sourceCallableValueName, sourceCallableValueResult, sourceDirectMethodRead, sourceFieldMethodToken, sourceMethodCaptureName, sourceMethodCaptureResult, sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupSentinel, sourceMethodLookupToken, sourceSyntaxAnchorId } from "./evidence-preparation/source-identities.ts"
+import { sourceCallableDefinitionName, sourceCallableToken, sourceCallableValueName, sourceCallableValueResult, sourceClassToken, sourceClassValueName, sourceClassValueResult, sourceDirectMethodRead, sourceFieldMethodToken, sourceMethodCaptureName, sourceMethodCaptureResult, sourceMethodChoiceSentinel, sourceMethodChoiceToken, sourceMethodLookupSelector, sourceMethodLookupSentinel, sourceMethodLookupToken, sourceSyntaxAnchorId } from "./evidence-preparation/source-identities.ts"
 import { operationCallSourceSelection, operationCallTargets } from "./operation-links.ts"
 import { structuralDependencyRevision } from "./operation-work.ts"
 import { canonicalControl } from "../../task-dsl/authorization/control-slice.ts"
@@ -62,12 +62,14 @@ function currentMethodStoresValid(index: StructureIndex, unit: BoundSemanticBloc
 function currentCallableCreationsValid(index: StructureIndex, unit: BoundSemanticBlock) {
   const owner = unit.source!.id, calls = index.relatedCalls(owner, unit.receiverClass), steps = unit.blocks.flatMap(b => b.steps)
   const values = [...new Map(calls.flatMap(c => c.argumentFacts?.flatMap(a => a.callableValue?.kind === "module" ? [a.callableValue] : []) ?? []).map(p => [sourceCallableValueName(owner, p), p])).values()]
+  const classes = [...new Map(calls.flatMap(c => c.argumentFacts?.flatMap(a => a.classValue ? [a.classValue] : []) ?? []).map(p => [sourceClassValueName(owner, p), p])).values()]
   const definitions = index.symbols.filter(s => s.valueCallable && !s.valueCallable.gap && s.valueCallable.ownerId === owner && s.valueCallable.ownerSha256 === unit.source!.sha256)
   const permitted = new Set([...values.map(p => sourceCallableValueName(owner, p)), ...definitions.map(s => sourceCallableDefinitionName(s.valueCallable!.anchorId))])
   if (steps.some(s => s.kind === "assign-value" && s.sourceCallable && !permitted.has(s.name))) return false
-  const validate = (name: string, result: string, target: { targetId: string; targetSha256: string }, captures: Array<{ parameter: string; object: string }>, controls: StructureMethodControl[], order: { before: string[][]; after: string[][] }, evaluation?: typeof order) => {
+  if (steps.some(s => s.kind === "assign-value" && s.sourceClass && !classes.some(p => s.name === sourceClassValueName(owner, p)))) return false
+  const validate = (name: string, result: string, target: { targetId: string; targetSha256: string }, captures: Array<{ parameter: string; object: string }>, controls: StructureMethodControl[], order: { before: string[][]; after: string[][] }, evaluation?: typeof order, classReference = false) => {
     const block = sourceControlBlock(unit, controls), creations = steps.filter(s => s.name === name), creation = creations[0]
-    if (!block || creations.length !== 1 || creation?.kind !== "assign-value" || !block.steps.includes(creation) || creation.result !== result || canonicalControl(creation.value) !== canonicalControl({ literal: sourceCallableToken(target) }) || canonicalControl(creation.sourceCallable ?? null) !== canonicalControl({ ...target, ...(evaluation ? { scope: "module" } : {}), captures }) || creation.boundMethod || creation.methodRead) return false
+    if (!block || creations.length !== 1 || creation?.kind !== "assign-value" || !block.steps.includes(creation) || creation.result !== result || canonicalControl(creation.value) !== canonicalControl({ literal: classReference ? sourceClassToken(target) : sourceCallableToken(target) }) || (classReference ? canonicalControl(creation.sourceClass ?? null) !== canonicalControl(target) || !!creation.sourceCallable : canonicalControl(creation.sourceCallable ?? null) !== canonicalControl({ ...target, ...(evaluation ? { scope: "module" } : {}), captures }) || !!creation.sourceClass) || creation.boundMethod || creation.methodRead) return false
     if (steps.some(s => s !== creation && (s.kind === "bind" && (s.bindingName ?? s.name) === result || (s.kind === "assign-value" || s.kind === "call") && s.result === result))) return false
     const position = block.steps.indexOf(creation), ordered = (events: string[][], lower: number, upper: number) => {
       let previous = lower
@@ -79,7 +81,7 @@ function currentCallableCreationsValid(index: StructureIndex, unit: BoundSemanti
     }
     return ordered(order.before, -1, position) && ordered(order.after, position, block.steps.length) && (!evaluation || ordered(evaluation.before, -1, position) && ordered(evaluation.after, position, block.steps.length))
   }
-  return values.every(p => validate(sourceCallableValueName(owner, p), sourceCallableValueResult(owner, p), { targetId: p.targetId, targetSha256: p.targetSha256 }, [], p.controls, p.order, p.evaluationOrder)) && definitions.every(s => {
+  return classes.every(p => validate(sourceClassValueName(owner, p), sourceClassValueResult(owner, p), { targetId: p.targetId, targetSha256: p.targetSha256 }, [], p.controls, p.order, p.evaluationOrder, true)) && values.every(p => validate(sourceCallableValueName(owner, p), sourceCallableValueResult(owner, p), { targetId: p.targetId, targetSha256: p.targetSha256 }, [], p.controls, p.order, p.evaluationOrder)) && definitions.every(s => {
     const p = s.valueCallable!
     if (!validate(sourceCallableDefinitionName(p.anchorId), p.name, { targetId: s.id, targetSha256: s.sha256 }, p.captures.map(c => ({ parameter: c.name, object: c.name })), p.controls, p.order)) return false
     if (s.returnedCallable && !s.returnedCallable.gap) {
@@ -257,6 +259,7 @@ function actualArguments(index: StructureIndex, caller: BoundSemanticBlock, step
   return expected.every(argument => {
     if (argument.expression === undefined) return !step.arguments.some(a => a.parameter === argument.parameter)
     const actual = step.arguments.filter(a => a.parameter === argument.parameter); if (actual.length !== 1) return false
+    if (argument.classValue) return actual[0]!.object === sourceClassValueResult(caller.source!.id, argument.classValue)
     if (argument.callableValue) {
       const proof = argument.callableValue
       if (proof.kind === "returned" && (!proof.creation || !returnedCreationValid(proof.creation, proof.controls))) return false

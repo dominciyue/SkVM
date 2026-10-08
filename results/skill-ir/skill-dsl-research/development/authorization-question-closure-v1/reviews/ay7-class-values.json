@@ -1,0 +1,114 @@
+{
+  "schemaVersion": "authorization-class-values-review/v1",
+  "date": "2026-10-08",
+  "baseline": "ca7015a2",
+  "relationshipVersion": "source-bindings/v25",
+  "scope": "Actual ordinary module class references and object-preserving argument/return/alias/field propagation; no constructor, prototype or implicit decorator application.",
+  "locatorReviews": [
+    {
+      "agent": "ay_class_object_native_locations_v25",
+      "readOnly": true,
+      "scope": "Native object identity and source lowering locations."
+    },
+    {
+      "agent": "ay_class_application_source_locations_v25",
+      "readOnly": true,
+      "scope": "Class declaration/decorator source facts and receiver qualification locations."
+    }
+  ],
+  "independentReviews": [
+    {
+      "agent": "ay_class_values_native_review_v25",
+      "readOnly": true,
+      "tests": {
+        "passed": 80,
+        "failed": 0,
+        "assertions": 454
+      },
+      "finding": "No reproducible defect in inspected sourceClass identity, repeated reads, helper/state propagation and metadata separation.",
+      "limitations": [
+        "Existing-test-centered review; no independent new fixture reported.",
+        "Native class-through-caught-exception fixture was not independently run; main source-to-native raised case covers the mutation and reread path.",
+        "Wrong class target/SHA rejection is established by source projection tests; native class metadata alone is not a current-source validator."
+      ]
+    },
+    {
+      "agent": "ay_class_values_source_review_v25",
+      "readOnly": true,
+      "tests": {
+        "passed": 439,
+        "failed": 0,
+        "assertions": 2738,
+        "files": 3
+      },
+      "finding": "No reproducible defect within inspected source qualification, placement, argument mapping and projection.",
+      "limitations": [
+        "Existing-test-centered review; prior generic public-import tests do not alone demonstrate every new class-reference hop variant.",
+        "An initial Bun invocation without ./ paths collected no files; corrected invocation passed."
+      ]
+    }
+  ],
+  "mainVerification": {
+    "addedTests": 31,
+    "red": {
+      "log": "class-values-red.log",
+      "passed": 9,
+      "failed": 16,
+      "assertions": 61,
+      "explanation": "Class metadata schema and executable source class reads absent; seven qualification negatives and two existing class-source regressions already passed."
+    },
+    "focused": {
+      "passed": 615,
+      "failed": 0,
+      "assertions": 3464,
+      "files": 11
+    },
+    "joint": {
+      "passed": 1454,
+      "failed": 0,
+      "skipped": 1,
+      "assertions": 9271,
+      "files": 115,
+      "durationMs": 20220
+    },
+    "mainTypes": "passed",
+    "ayTypes": "passed",
+    "counterexamples": [
+      "Same class repeated reads retain earlier decorator mutation.",
+      "Separate class/plain token/local overwrite does not inherit a known modified field.",
+      "Actual class identity survives helper return, alias and field store.",
+      "Source if/try placement, nested argument calls and caught decorator exception retain actual state.",
+      "Metadata/token/target/result/late read forgeries prevent material adoption.",
+      "External selected class byte changes invalidate the unchanged caller material; unrelated homonym does not."
+    ]
+  },
+  "probe": {
+    "path": "verification/paperless-class-values-replay.json",
+    "sha256": "3b3c2692f1fd82a2e53afad9b0f67fdd576e6a2b346673743c0441350cce379a",
+    "frozenFilesVerified": 94,
+    "supplementalFiles": 6,
+    "selectedBodies": 12,
+    "classReferences": 19,
+    "selectedBodyClassReferences": 0,
+    "materialUses": 0,
+    "modelReadEvidence": false
+  },
+  "remaining": [
+    "base/metaclass/local/decorated class environments",
+    "implicit decorator application and returned class identity",
+    "prototype/method mutation and constructors",
+    "full request composition",
+    "official actual-use and preregistered measured benefit"
+  ],
+  "costs": {
+    "newExperimentModelExecutions": 0,
+    "newTargetExecutions": 0,
+    "probeNetworkRequests": 0,
+    "developerAndScoutTokens": null,
+    "usd": null,
+    "humanTime": null
+  },
+  "originalInputsAndAllowlistsUnmodified": true,
+  "originalAttemptPromoted": false,
+  "researchGoalAchieved": false
+}
