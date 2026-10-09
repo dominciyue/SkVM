@@ -33,6 +33,7 @@ export async function bootstrap() {
 if (import.meta.main) {
   if (process.argv[2] === "init") await bootstrap()
   else if (process.argv[2] === "status") console.log(await readFile(path.join(root, "status.json"), "utf8"))
-  else if (process.argv[2] === "help") console.log("init | status (other commands added with their implementation)")
-  else throw new Error("Use init | status | help")
+  else if (process.argv[2] === "replay") { const result = await (await import("./replay.ts")).replay(process.argv[3]); console.log(JSON.stringify({ modelCalls: result.modelCalls, newSemanticAnnotations: result.newSemanticAnnotations, entries: result.entries.map(e => ({ task: e.task, submissions: e.submissions.length, firstBlocker: e.firstBlocker })) })) }
+  else if (process.argv[2] === "help") console.log("init | status | replay <new-label> (run/summary added with their implementation)")
+  else throw new Error("Use init | status | replay <new-label> | help")
 }

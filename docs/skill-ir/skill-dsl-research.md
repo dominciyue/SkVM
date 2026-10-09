@@ -2355,6 +2355,8 @@ OWUI native消费者已加载完整原skill与11个原题请求，原声明/Usag
 
 **BC6普通入口闭合。** 无properties的原自然问题分别经provider inquiry与官方native static tools mock走prepare→公开源码读取→source-edit→实际call采用→check→final；两入口均形成两个当前文件的checked trace，源SHA/调用实例保留，完整职责仍未认证。模型mock使用当前propertyDemand.propertyQueries中的宿主ID，不注入预制unit/query。OWUI原retrieval.py:1559–1569的文件选择与1781/1824的collection检查缩成匿名反例，输入文件guard不能授权另一个collection对象；未注册middleware guard保持unknown，effect/context双角色保留真实call。33tests/318断言及主tsc通过，含义均为显式手写测试；本轮尚无真实模型结果，也不宣称第二项目成功。
 
+**BC7当前原件派生重放。** 当前BC入口独立于旧BB runner，实际重放BB consumer-download-inquiry/original和pilot-owui/original的gzip原件。Download95文件/1,412,762字节准备7.88s，OWUI173文件/3,149,729字节20.82s；分别消费2/7份解释，annotations完全同字节，两原件SHA未变。只机械更新宿主revision/合格ref revision，无新性质/源角色/模型请求。首缺分别为serve_file（views.py:4941–4995，15字段）和get_async_db_context（internal/db.py:413–419，3字段），owner/revision/下一动作单独保留。Download原四题无声明仍无机器性质，OWUI原guard及framework依赖仍unknown；未把旧缺失语义修成成功。机械迁移红绿2tests/6断言与BC类型通过；[当前派生原件](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/current-derived-replay/original/summary.json)可重算，两旧OWUI未知处置保持。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

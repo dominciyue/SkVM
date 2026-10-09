@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**当前任务书为 [BC0–BC14：任务性质准备、跨调用语义修复与可重放交付](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)，状态 `in-progress`，BC0–BC6工程阶段已实施，继续BC7原件派生重放。** 实施基线 `ee1a0522`，接管时工作树干净。11个Download逻辑位置及旧OWUI未知已登记到[BC manifest](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/manifest.json)。准备热点已实测修复，任务前端与冲突队列已接通；尚无BC真实模型请求，原包效果仍未验证。
+**当前任务书为 [BC0–BC14：任务性质准备、跨调用语义修复与可重放交付](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)，状态 `in-progress`，BC0–BC7工程及原件派生重放已实施，继续BC8真实运行生命周期。** 实施基线 `ee1a0522`，接管时工作树干净。11个Download逻辑位置及旧OWUI未知已登记到[BC manifest](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/manifest.json)。准备热点已实测修复，任务前端与冲突队列已接通；尚无BC真实模型请求，原包效果仍未验证。
 
 本轮先解决三处：原包自然问题尚未自动形成性质、跨调用参数解释缺少精确定向修复、源码准备长时间不返回。复核确认两原包4题/11题均无properties，而质量common输入各有1题/1性质；v7实际指引漏掉无声明时的提出办法。入口value与helper principal/resource不一致的拒绝有据，不通过自动改类型绕过。
 

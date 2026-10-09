@@ -195,10 +195,10 @@ expect(afterInvalidUpdate.currentCheckedVerdicts).toHaveLength(0)
 
 ### BC7 原件派生重放
 
-- [ ] 修复准备后，完整跑一次 BB 原提案的当前派生重放。原件 SHA/实际字段保留；只能机械迁移当前源身份，新增模型含义计数必须为 0。
-- [ ] 对仍 unknown 的原提案，报告第一个实际阻断及其 owner/字段；不要求旧缺失含义在新代码下无中生有地变成 checked。
-- [ ] 新性质准备、修复模型提案与原件重放放不同产物。历史完整 replay 若绑定旧实现不支持当前版，保留失败并在 BC 提供明确的当前派生入口；不改旧 runner 的断言来变绿。
-- [ ] 源码准备完成、原 proposal 被消费及当前结果可重算分别验收。若准备仍卡住，回 BC1 的已定位阶段，不重复全量探测。
+- [x] 修复准备后，完整跑一次 BB 原提案的当前派生重放。两原件SHA相同，2/7份解释标注字节相同，只机械迁移宿主revision；新增模型含义0。
+- [x] 当前派生结果归档在BC verification/current-derived-replay/original；Download首缺serve_file的15字段，OWUI首缺get_async_db_context的3字段，精确owner另存；旧无声明/guard和framework缺口仍unknown。
+- [x] 新性质准备、修复模型提案与原件重放放不同产物。旧runner/断言未改；当前入口为BC study.ts replay <new-label>。
+- [x] 源码准备完成（Download7.88s、OWUI20.82s）、原proposal被消费及当前结果可重算分别归档，零模型/零target执行。
 
 ### BC8 真实运行准备、生命周期与计量
 
