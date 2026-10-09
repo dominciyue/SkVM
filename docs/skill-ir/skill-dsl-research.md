@@ -2345,6 +2345,8 @@ OWUI native消费者已加载完整原skill与11个原题请求，原声明/Usag
 
 **BC1准备定位与修复。** 173文件/3,149,729字节的原OWUI scope实测walk/加载/词法约310ms，完整基线80.59s；config.py解析29ms而事实提取50.85s。单文件CPU样本将主要热栈定位于sourceStoreOrder重复提取兄弟语句事件，非全盘扫描。仅当前AST内部memo后19.72s，加入拥有且可终止的事实worker后21.58s；原文件清单、源码身份及结构revision均相同，见[对照](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/preparation-comparison.json)。worker传递纯语法事实，主线程仍用现有关系器；取消先等待worker退出，后处理按调用批次让出执行。无模型语义缓存/持久缓存。18准备回归/119断言与361结构回归/947断言通过；两个公开入口取消后零派发。仍约12s后处理成本，不宣称全部热点已消除；本次真实准备完成后才进入原件派生重放。
 
+**BC2实际指引接线。** 红测从无properties的原自然问题经公开read/select取得实际interpret视图，确实缺property-query-undeclared。v7现在在当前问题未声明时说明proposed形状、四kind和本题精确requirement跨度；已声明时不重复建议。没有附加冲突的旧v6采用指南。公共链23tests/234断言通过，保留跨题/stale/duplicate/null清除拒绝。该阶段只是提示接线，独立任务准备仍由BC3承担。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

@@ -104,13 +104,35 @@ for (const c of fixtures) test(`v7 public source chain ${c.id}`, async () => {
     expect(f.report.propertyAnalysis!.checks!.wholeTaskCertified).toBe(false)
   } finally { f.runtime.close() }
 })
-async function entrypointFixture() {
+async function entrypointFixture(declared = true) {
   const root = await mkdtemp(path.join(os.tmpdir(), "bb-two-entrances-")), sourceRoot = path.join(root, "source"); await mkdir(sourceRoot)
   await writeFile(path.join(sourceRoot, "app.py"), fixtures[1]!.source)
-  const inquiry = { schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request, premises: [], properties: [{ id: "auth", kind: "authorization-before-effect", requirement }] }] }
+  const inquiry = { schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request, premises: [], ...(declared ? { properties: [{ id: "auth", kind: "authorization-before-effect", requirement }] } : {}) }] }
   const inputFile = path.join(root, "input.json"); await writeFile(inputFile, JSON.stringify({ schemaVersion: "authorization-inquiry-input/v1", taskId: "t", repository: "anonymous", sourceRef: "fixed", sourceRoot: "source", allowedPaths: ["app.py"], inquiry }))
   return { root, sourceRoot, inputFile, inquiry }
 }
+test("v7 actual source task rendering explains undeclared properties and preserves declared ones", async () => {
+  for (const declared of [false, true]) {
+    const f = await entrypointFixture(declared), tools = await createInquiryTools({ ...f, repository: "anonymous", sourceRef: "fixed", allowedPaths: ["app.py"], structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
+    await tools.execute("source_read", { path: "app.py", startLine: 1, endLine: 10 })
+    const runtime = createInquiryDomainRuntime({ tools, program: compileAuthorizationInquiry(f.inquiry as any), strategy: "operation-evidence-v7", sourceAssisted: true })
+    try {
+      await runtime.sync()
+      let context: any = runtime.promptContext()
+      if (context.focus.stage === "locate") { await runtime.propose(publicAction(context)); context = runtime.promptContext() }
+      expect(context.focus.stage).toBe("interpret")
+      const rendered = JSON.stringify(context)
+      expect(rendered).toContain(request)
+      if (declared) expect(context.instruction).not.toContain("property-query-undeclared")
+      else {
+        expect(context.instruction).toContain("property-query-undeclared")
+        expect(context.instruction).toContain("proposed")
+        expect(context.instruction).toContain("exact span")
+        expect(context.instruction).toContain("authorized-object-matches-effect")
+      }
+    } finally { runtime.close() }
+  }
+})
 function publicAction(context: any) {
   if (context.focus.stage === "locate") return { schemaVersion: "authorization-focused-update/v1", kind: "select", focusId: context.focus.id, candidateId: context.locationTasks[0].candidates[0].id }
   if (context.focus.stage === "interpret") {

@@ -138,9 +138,9 @@ type TaskPropertyPreparation = {
 
 ### BC2 修复 v7 无声明指引
 
-- [ ] 在 `interprocedural-property-entrypoints.test.ts` 加红测：v7 实际发给模型的任务视图遇到无 properties 时，明确提供未声明状态、当前问题、合法提出性质的办法；已声明时不重复建议。
-- [ ] 修 `sourcePhaseGuide` 与模板接线，避免只在不可达旧 v6 分支出现说明。用真正渲染结果检查，不只搜索某个常量含单词。
-- [ ] 旧局部/跨源 binding、可选字段清除和 duplicate 拒绝仍通过。此阶段不声称已完成普通任务自动准备。
+- [x] 在 `interprocedural-property-entrypoints.test.ts` 加红测：v7 实际发给模型的任务视图遇到无 properties 时，明确提供未声明状态、当前问题、合法提出性质的办法；已声明时不重复建议。
+- [x] 修 `sourcePhaseGuide` 与模板接线，避免只在不可达旧 v6 分支出现说明。用真正渲染结果检查，不只搜索某个常量含单词。
+- [x] 旧局部/跨源 binding、可选字段清除和 duplicate 拒绝仍通过。此阶段不声称已完成普通任务自动准备。
 - [ ] 提交：`fix: expose property preparation in the v7 source workflow`。
 
 ### BC3 从自然问题准备性质
