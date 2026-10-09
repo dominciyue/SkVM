@@ -8,9 +8,16 @@
 
 **Tech Stack:** TypeScript、Bun、Zod/Ajv、已有 Python/Go 索引和有限求值器。开发 `gpt-6.1-sol / max`；实验使用已授权的当前官方账号 `gpt-5.6-sol / high`。第三方付费 API 继续暂停。
 
-**执行状态：** `paused-by-user`。用户于2026-10-09明确要求提交远端并停止本任务书，后续再重启。BB0–BB8工程通过，BB9/BB10真实pilot已完成但局部性质未闭合，BB11六位置同epoch比较已完成；BB12一个消费者交付、另一个中止且完成未知，BB13仅准备、六变化未运行。BB14已有部分计量与归因；本次保存和发布不标有限队列或研究目标完成。
+**执行状态：** `in-progress`。用户于2026-10-10重新启动，并明确批准保留原未知原件/费用后进行一次consumer-owui-native/user-resume-1具名新运行、随后继续原队列。恢复基线2e854117、起始工作树干净。原件与未知费用仍保留，其它未知完成保护不变；两pilot与六个质量位置保持已发布证据，剩余消费和变化继续，有限队列及研究目标尚未完成。
 
 **恢复入口：** 先检查 `consumer-owui-native/original` 原生命周期与保留的 `dispatch.lock`。本地runner及其直接子进程已退出，但没有已保存server终态；不要重发同请求。用户重启只撤销用户暂停，未知完成保护仍须按第六节处理。零调用状态命令为 `bun ./results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/study.ts status`。
+
+**本次恢复工作计划：**
+
+1. 核对原中止生命周期、原线程的可恢复性和三种变化输入；独立只读核验已完成。267事件、33工具调用，无turn/completed或turn/interrupt；原线程ephemeral=true、path=null，同ID本地持久会话未找到，本地原进程/直接子进程不存在，原件SHA未变。
+2. 原临时线程不能从现有原件续跑。用户已明确批准一次consumer-owui-native/user-resume-1新运行，原尝试另记“无法恢复、完成及最终费用未知”，不修改首件结果。原锁按字节存入verification，活动阻塞移至retainedUnknownCompletions历史；授权及范围见verification/user-resume-1-disposition.json。该人工例外不得用于其它未知完成。
+3. 完成可运行的包消费及三个fresh变化；previous仍按当前同方法/epoch、有identified跨源checked/violated trace的基础判定，缺基础保留blocked。
+4. 从已保存原件完成BB14漏斗与计量、BB15有限验证及文档，再按BB16聚焦提交发布。若未知保护不能结清，继续独立离线工作并如实保留未运行位置。
 
 ## 一、接管、目标与边界
 

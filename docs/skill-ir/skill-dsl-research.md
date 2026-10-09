@@ -6,7 +6,7 @@
 
 **授权任务已有局部语义、来源材料、变化失效和官方账号双入口；BA进一步接通语义编辑，但跨函数材料采用到性质检查的真实完整链仍未成立。** BA有4尝试/3自然交付：Download修订7材料仅采用入口，OWUI首件自然答案按原题评为full，机器0采用/1性质绑定unknown；具名复验routing失败。稳定质量或净收益尚未建立。范围仍为单repo/ref、源码可见的授权与信任边界评估。
 
-BB已接通v7匿名公共跨源检查及两BA原提案派生采用，两真实pilot及六个同epochN/M/D位置已评阅：Download N/D自然full、M partial，OWUI三臂partial；真实性质仍unknown/空trace。Download原包消费者交付且8采用，OWUI消费者在用户要求停止后中止、完成未知。三种变化已准备、六位置未运行。本任务书已按用户要求paused-by-user，真实局部检查及净收益未成立，BA暂停保持；后续重启先核查未知完成和原派发锁。
+BB已接通v7匿名公共跨源检查及两BA原提案派生采用，两真实pilot及六个同epochN/M/D位置已评阅：Download N/D自然full、M partial，OWUI三臂partial；真实性质仍unknown/空trace。Download原包消费者交付且8采用，OWUI原尝试中止/完成未知。用户2026-10-10重启并在恢复核验后批准一次具名新运行，原未知费用/原件保留；消费及三种变化继续，实际局部检查和净收益尚未成立，BA暂停保持。
 
 当前结构关系复用AY source-bindings/v35，显式v6已有任务性质绑定、有限摘要采用、依赖/调度范围和逐题性质检查的有界实现；AZ实际运行仍为0接受/采用/检查。AY Download v35的3单元/30步骤/2采用及OWUI v35为0保持历史口径。新源码摘要仅采用未使用返回的平坦普通调用；动态框架、返回值组合和复杂异常仍用既有解释或明确残余，不能据工程测试推定完整任务收益。
 
@@ -2313,6 +2313,8 @@ OWUI native消费者已加载完整原skill与11个原题请求，原声明/Usag
 
 **暂停范围与计量。** 16位置中10已尝试、6未运行，共11个去重真实尝试、10自然交付；完整原题full共4份包含首件/历史，不能当作当前质量面板4份full。三个fresh变化已准备但按用户要求零派发，三个previous仍缺当前同方法/epoch、checked或violated且有实际跨源trace的基础。已完成尝试input26,561,789（含cache24,095,872）/output114,442，known duration2,845,086ms；中止尝试最终量、USD、隐藏请求、开发/探子成本和真人分钟unknown。当前结论为development比较观察、净效果inconclusive；有限队列和研究目标都未完成。本次只保存、验证和发布已有工作，后续用户重启先核查未知生命周期与原派发锁。分项见[summary](../../results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/summary.json)、[accounting](../../results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/accounting.json)。
 
+**2026-10-10重启与未知处置。** 用户重启后主线程及独立只读核验确认原生命周期/工具SHA未变，267事件/33工具调用，无turn/completed或turn/interrupt；原thread/start明确ephemeral=true、path=null，同ID本地会话无匹配，本地原进程及直接子进程不存在。原临时线程无法据现有记录续跑，终态/最终费用仍unknown。用户随后明确选择保留未知原件、允许一次consumer-owui-native/user-resume-1新运行并继续原队列；授权与原锁按字节归档，原report/raw/部分usage不改。仅这一已批准原尝试移入retainedUnknownCompletions历史，其它新未知仍阻止派发，详见[恢复审计](../../results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/verification/resume-audit.json)及[人工处置](../../results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/verification/user-resume-1-disposition.json)。三种变化原题和输入SHA已复核，源码变化仅root_doc→request_doc；新增模型结果在本节后续记录，不据处置本身推断消费或效果。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
@@ -2410,6 +2412,8 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-09 / BB首件：** Download官方真实任务completed，连续routing计数重置但累计恢复与费用保留。Download首件partial、修订full；OWUI首件full，机器都unknown。null清除未实用，不推断因果；OWUI未知branch顺序名误拒绝由主线程定位、v7红绿修复，原草稿零调用0→7采用，首件不改。431项/4524断言联合通过；新epoch具名复测与主面板配齐继续，见§7.63。
 
 - **2026-10-09 / BB比较、部分消费与用户暂停：** 同epochN/M/D六位置已评阅，Download N/D full、M partial，OWUI三臂partial；D token更高、稳定净收益未建立。Download消费者partial/8采用，OWUI消费者本地中止无确认终态，保留unknown及付费锁。三种变化事实已准备但六位置未运行；保存11尝试/10自然交付及known/unknown成本，按用户要求提交并停止任务书。后续重启先核查原生命周期，不重发未知请求，见§7.63。
+
+- **2026-10-10 / BB重启：** 核验原ephemeral线程无终态/持久记录，原件SHA未变；用户明确批准保留原未知及费用后一次user-resume-1新运行并继续原队列。授权、原锁字节与retainedUnknownCompletions单列，未来未知保护不变。三种变化输入和原题已复核；22研究测试/110断言与diff检查通过，未据恢复处置本身升级实际效果，见§7.63。
 
 ## 12. 后续追加规则
 

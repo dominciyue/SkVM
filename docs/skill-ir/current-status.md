@@ -1,10 +1,10 @@
 # Skill IR 当前状态
 
-更新于2026-10-09。工作分支为 `skill-ir-aot`，仅发布到用户 `origin`。本页是唯一实时状态入口；历史任务书与结果保留当时记录。
+更新于2026-10-10。工作分支为 `skill-ir-aot`，仅发布到用户 `origin`。本页是唯一实时状态入口；历史任务书与结果保留当时记录。
 
 ## 当前工作
 
-**当前任务书为 [BB0–BB16：跨函数性质闭合、渐进解释与真实使用](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)，按用户要求暂停，状态 `paused-by-user`。** BB0–BB8工程通过，两真实pilot及同epoch六个N/M/D质量位置已评阅；Download N/D自然full、M partial，OWUI三臂partial。Download原包消费者已交付，自然partial、8次材料采用，未形成跨函数性质闭合。OWUI消费者本地运行已中止，原生命周期没有确认终态，保留completion-unknown及付费派发锁。三种变化已准备但六位置均未运行；有限队列与研究目标都未完成。现有结果见[summary](../../results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/summary.json)。
+**当前任务书为 [BB0–BB16：跨函数性质闭合、渐进解释与真实使用](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)，用户于2026-10-10重新启动，状态 `in-progress`。** 两pilot及六个同epochN/M/D位置保持已发布证据；Download N/D自然full、M partial，OWUI三臂partial。Download消费者partial/8采用。OWUI原临时线程无保存终态或可恢复rollout，用户已明确批准保留未知原件/费用后一次具名user-resume-1新运行；处置见[记录](../../results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/verification/user-resume-1-disposition.json)。其它未知保护不变，剩余消费与变化继续；有限队列和研究目标尚未完成。
 
 BB先保留effect/context标注下的源码调用，沿真实调用实例连接实参/形参/receiver/返回对象，再让跨单元性质检查消费可达路径；已解释片段逐步采用，相关未知继续保留。复用现有求值器和普通入口，新增行为显式v7。先做匿名正反例和公共链，再进入两真实任务、同条件比较、两包消费和三变化。方法合同见[spec §14.41](skill-ir-aot-optimization-spec.md#1441-bb-interprocedural-property-closure)，复核依据见[研究 §7.63](skill-dsl-research.md#763-bb-跨函数性质闭合的复核与开发决定)。
 
@@ -35,7 +35,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 - 开发 `gpt-6.1-sol/max`；实验沿用用户已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。
 - AY额度提示、AZ unavailable及BA `paused-recurring-routing`均保留。BB首个就绪真实pilot已同通道completed，连续失败数重置；累计恢复与成本保留。连续两次终态routing失败，或累计三次routing恢复仍失败，则暂停BB外部调用。quota/auth立即暂停，unknown只核查原生命周期。恢复计数及付费并发锁已测试，不额外探针、轮询或旁路。
-- 用户已要求停止本次任务书工作。后续重启前只核查已有未知完成；不自动切账号、模型、端点或购买额度。已完成尝试的已知input26,561,789（含cache24,095,872）、output114,442；中止尝试末次可见usage单列，不冒充最终总量。缺报USD、隐藏请求、开发/探子成本和真人分钟保持unknown。
+- 用户暂停已撤销；原未知完成没有被重启自动解除。当前先处理其可恢复性与独立离线责任，不切账号、模型、端点或购买额度。已完成尝试的已知input26,561,789（含cache24,095,872）、output114,442；中止末次usage单列，不冒充最终量。缺报USD、隐藏请求、开发/探子成本和真人分钟保持unknown。
 - 保留原skill、全部原问题、允许源码、用户独立政策及前提。模型输入隔离评价器、历史答案和开发修复记录。held-out、Q1、prospective、readiness和历史 `0/6` 不变。
 - 主开发线程是代码、共享方法文档和Git的唯一写者。继续现有分支，不创建worktree；只读探子按AGENTS使用。
 

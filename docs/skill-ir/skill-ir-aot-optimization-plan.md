@@ -1,8 +1,8 @@
 # Skill IR AOT 当前执行计划
 
-更新于2026-10-09。唯一实时入口为 [current-status](current-status.md)。
+更新于2026-10-10。唯一实时入口为 [current-status](current-status.md)。
 
-- 当前任务书：[BB0–BB16：跨函数性质闭合、渐进解释与真实使用](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)，`paused-by-user`；本次只收束和发布已有工作，后续由用户重启。
+- 当前任务书：[BB0–BB16：跨函数性质闭合、渐进解释与真实使用](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)，`in-progress`；用户已重启并批准原临时未知尝试的一次具名新运行，随后完成原队列及归因、验证和发布。原件/最终费用未知仍保留，其它未知保护不变。
 - 方法合同：[spec §14.41](skill-ir-aot-optimization-spec.md#1441-bb-interprocedural-property-closure)；复核依据：[研究 §7.63](skill-dsl-research.md#763-bb-跨函数性质闭合的复核与开发决定)。BB0–BB8工程通过，两pilot和六个同epochN/M/D质量位置已评阅，原M引用保留历史且费用去重。Download原包消费已交付，OWUI消费者用户中止、完成状态未知；三种变化准备完成但六位置未运行。真实跨函数性质闭合及净收益仍未建立。
 - 代码基线 `ad936715`。开发 `gpt-6.1-sol/max`，实验当前官方账号 `gpt-5.6-sol/high`；第三方API和AV旧位置继续暂停。
 
