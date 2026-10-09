@@ -32,7 +32,7 @@
 
 最新AY结果补充：两份原skill和两包原字节消费均已实际运行。Download消费者源码评阅full但机器partial，OWUI消费者仍漏决定性helper；政策/前提变化已有部分运行，源码变化及质量位置受账号额度阻断。[最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)记录可见完整input 32,465,835、output 125,283、其中cacheRead 29,939,200（已包含在input），USD/隐藏请求/开发/真人成本未知。旧AX、AW结果保留其当时口径。
 
-当前关键问题是：**保留真实源码调用，并让跨函数对象和控制关系真正进入性质检查。** 外部评阅提出了单skeleton边界，但“只增加resolver”不足以解决：effect/context lowering还会绕过call，checker也有同source限制，跨函数对象需沿调用实例证明。现有多函数求值和草稿累积保留；新BB任务书安排正反例、渐进采用、两真实结构和原包/变化使用，登记为planned-not-started，尚无新实现或效果。BA原暂停和20未运行不改，BB有独立登记的有限官方恢复规则，详见§7.63。
+当前关键问题是：**保留真实源码调用，并让跨函数对象和控制关系真正进入性质检查。** 外部评阅提出了单skeleton边界，但“只增加resolver”不足以解决；BB已沿调用实例接通v7公开read/edit、采用和性质检查，匿名正反例与双入口通过。渐进解释仍保留相关unknown和完整原题，真实Download/OWUI、原包/变化及同条件效果尚未测。BA原暂停和20未运行不改，BB有独立登记的有限官方恢复规则，详见§7.63。
 
 ## 2. 研究目标与术语
 
@@ -2251,7 +2251,7 @@ AZ1诊断工程（2026-10-09）：投影现在明确报告版本/来源/依赖�
 
 ### 7.63 BB 跨函数性质闭合的复核与开发决定
 
-2026-10-09，用户提供第二轮外部架构评阅并要求派发`gpt-6.1-sol/max`开发。复核基线ad936715与用户origin一致、工作树干净。新[BB0–BB16任务书](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)与[spec §14.41](skill-ir-aot-optimization-spec.md#1441-bb-interprocedural-property-closure)已登记；本段记录核实后的开发依据，状态planned-not-started，不是BB完成报告。
+2026-10-09，用户提供第二轮外部架构评阅并要求派发`gpt-6.1-sol/max`开发。复核基线ad936715与用户origin一致、工作树干净。新[BB0–BB16任务书](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)与[spec §14.41](skill-ir-aot-optimization-spec.md#1441-bb-interprocedural-property-closure)已执行，状态in-progress；本段分开记录开发依据、工程和真实效果。
 
 **调用关系的真实缺口。** [source-interpretation](../../src/task-dsl/authorization/source-interpretation.ts)的effect/context分支先生成对应步骤，普通emitCall在另一个分支。[projection](../../src/benchmarks/authorization-dsl/source-material-projection.ts)只为kind=call连接callee。因此“host的调用关系天然不受role影响”不符合当前执行代码。BA Download修订的7材料仍可用，但entry把self.file_response解释为primitive effect，没有生成call，正好暴露此接口问题。新实现应保留源调用结构和语义侧面，同时避免把调用或effect标签当成效果已发生。
 
@@ -2274,6 +2274,10 @@ AZ1诊断工程（2026-10-09）：投影现在明确报告版本/来源/依赖�
 **评价和外部借鉴。** 原问题自然质量、协议交付、材料采用和性质检查分层报告，协议失败仍在端到端分母，另报有效答案质量。不采用“失败超过某比例才重要”或“全部历史实验均无效”的笼统推断。[Absentia](https://arxiv.org/html/2610.00977v1)支持源码图/模型推理分层、沿调用核验授权关系及变化依赖的设计参考；[Paralegal](https://www.usenix.org/conference/osdi25/presentation/adam)提供领域属性和源码依赖分析分工的参考。本项目仍须验证模型解释和实际采用，不借用外部工具的证明保证或论文效果数。BB不会继续用外围Python/Go语法支持数代替当前授权关系闭合。
 
 本节后续追加实际开发问题、处理、真实运行和未达责任；同时更新§1与§11。工程、完整实际使用、研究收益分别验收。
+
+**BB1–BB7公共工程。** v7以实际owner的当前限定ref定位跨单元guard/effect，沿既有actual/formal、receiver/return及instance对象而非anchor拼写检查。所有源码call保留，effect/context成为附加领域含义；caller的effect只选后代真实效果，提前返回/抛错不虚构发生。P1–P3、N1–N9、U1/U2经公共source_read/edit链验证，错误对象、晚guard/缺guard和read/write不匹配给violation，未注册middleware/过期跨题引用及相关unknown给具名unknown。两个公共入口均以mock模型从原始源码编辑生成2单元/1call采用/非空跨源trace，没有注入semantic units，也没有真实账号调用。
+
+渐进恢复红测发现两个额外共享问题：切换focus按focus id丢失合法partial字段；重复绑定被拒绝后下一check还能恢复旧verdict。v7改为源handle/revision草稿，并将当前hard source拒绝带入检查直到纠正；新源码读取仍失效。所有残余留在完整任务，独立effect之后unknown不笼统阻断已覆盖的局部性质。补充指引测试又发现v6旧说法与v7采用冲突，当前phase按版本选择实际合同。12文件联合425 pass/4447断言、主typecheck通过，新增指引后公开链21 pass/209断言。只读核验提出“声明占位与显式绑定应冲突”的意见经spec§14.40和既有反例否决；显式绑定优先于占位是已有合同，两份显式绑定仍严格拒绝。当前证据只判工程，BA派生重放和真实使用继续。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
@@ -2366,6 +2370,8 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-09 / BA实施与阻断：** 编辑/预算/公共核心、事务调度、await与残余来源顺序及包恢复已有有界工程证据；4尝试/3交付，Download两答partial、OWUI原答full但无真实checked链。唯一恢复后再次终态routing暂停，20位置未运行，12质量无配对、比较inconclusive，实际消费/复用未测。发布工程与失败证据不标研究目标达成，恢复责任见§7.62。
 
 - **2026-10-09 / BB规划：** 外部评阅经代码/原件核实后，转向调用与领域角色分离、调用实例中的对象传递、跨单元性质检查及渐进采用。保留现有多函数基础、bound/checked区分和全部原问题，新增v7及独立有限通道恢复合同。BB0–BB16已登记并准备派发，尚无BB实现或效果；见§7.63。
+
+- **2026-10-09 / BB公共链：** BB1–BB6与匿名双入口已接通跨源真实call采用、对象/控制/permission反例和渐进恢复。合法partial字段跨focus保留，无效新绑定不能恢复旧verdict。联合425 tests及补充公共链21 tests通过；原件派生重放/恢复runner和真实16位置仍待执行，不能据工程测试宣称研究效果；见§7.63。
 
 ## 12. 后续追加规则
 

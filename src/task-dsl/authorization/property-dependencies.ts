@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto"
 import type { SourceAnchor, SourceFlow, SourceSkeleton } from "../../benchmarks/authorization-dsl/evidence-preparation/source-skeleton.ts"
 import type { SourceInterpretation } from "./source-interpretation.ts"
-import { bindPropertyQueries, type PropertyQuestion } from "./property-query.ts"
+import { bindPropertyQueries, type PropertyQuestion, type PropertyQueryContext } from "./property-query.ts"
 import type { PropertyCallSummary } from "./procedure-summary.ts"
 
 export interface DependencyQuestion extends PropertyQuestion { operationId?: string; premises?: string[] }
@@ -30,13 +30,13 @@ const merge = (states: State[]): State => {
 
 /** A finite, conservative source graph. Roles seed the proposed query but cannot
  * remove unknown effects. Edges are syntax provenance, never alias/type proofs. */
-export function buildPropertyDependencies(skeleton: SourceSkeleton, options: { question: DependencyQuestion; interpretation?: SourceInterpretation; reachableAnchorIds: string[]; propertyAbstraction?: boolean; callSummaries?: PropertyCallSummary[] }): PropertyDependencies {
+export function buildPropertyDependencies(skeleton: SourceSkeleton, options: { question: DependencyQuestion; interpretation?: SourceInterpretation; reachableAnchorIds: string[]; propertyAbstraction?: boolean; callSummaries?: PropertyCallSummary[]; propertyContext?: PropertyQueryContext }): PropertyDependencies {
   const reachable = new Set(options.reachableAnchorIds), anchors = new Map(skeleton.anchors.map(a => [a.id, a]))
   const edges = new Map<string, PropertyDependencies["edges"][number]>(), seeds: PropertyDependencies["seeds"] = [], boundaries: PropertyDependencies["boundaries"] = []
   const edge = (from: string, to: string, kind: PropertyDependencies["edges"][number]["kind"]) => { if (from !== to && anchors.has(from) && anchors.has(to)) edges.set(JSON.stringify([from, to, kind]), { from, to, kind }) }
   const seed = (a: SourceAnchor, role: string, origin: PropertyDependencies["seeds"][number]["origin"]) => { if (!seeds.some(s => s.anchorId === a.id && s.role === role)) seeds.push({ anchorId: a.id, role, origin, selector: a.selector }) }
   const draft = options.interpretation?.revision === skeleton.revision ? options.interpretation : undefined
-  const propertyQueries = options.propertyAbstraction ? bindPropertyQueries(options.question, skeleton, draft) : undefined
+  const propertyQueries = options.propertyAbstraction ? bindPropertyQueries(options.question, skeleton, draft, options.propertyContext) : undefined
   const selected = propertyQueries?.queries.filter(q => q.state === "bound") ?? [], narrow = !!selected.length && selected.length === propertyQueries?.queries.length && !selected.some(q => q.kind === "operation-completion") && !propertyQueries?.diagnostics.length
   const summaries = new Map((options.callSummaries ?? []).filter(s => s.callerRevision === skeleton.revision && s.summary.usable && s.targetId === s.summary.source.id && s.targetSha256 === s.summary.source.sha256 && skeleton.anchors.some(a => a.id === s.anchorId && a.call?.sourceCallId === s.sourceCallId && a.call.candidateIds.length === 1 && a.call.candidateIds[0] === s.targetId)).map(s => [s.anchorId, s]))
   const residuals: NonNullable<PropertyDependencies["residuals"]> = [], summaryUses: NonNullable<PropertyDependencies["summaryUses"]> = []

@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**当前任务书为 [BB0–BB16：跨函数性质闭合、渐进解释与真实使用](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)，已接管，状态 `in-progress`。** BB0在 `553509a6` 基线建立独立manifest/status及两份BA原件的提取回归，3项测试/15断言与本轮类型检查通过。v7实现、真实使用和研究验收仍待执行。
+**当前任务书为 [BB0–BB16：跨函数性质闭合、渐进解释与真实使用](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)，状态 `in-progress`。** BB0–BB6已实现，BB7公共双入口已通过匿名mock，BA原件派生重放及BB8恢复runner正在完成。v7定向联合425项/4447断言与主typecheck通过，补充指引后公共链21项/209断言通过。真实使用和研究验收仍未测。
 
 BB先保留effect/context标注下的源码调用，沿真实调用实例连接实参/形参/receiver/返回对象，再让跨单元性质检查消费可达路径；已解释片段逐步采用，相关未知继续保留。复用现有求值器和普通入口，新增行为显式v7。先做匿名正反例和公共链，再进入两真实任务、同条件比较、两包消费和三变化。方法合同见[spec §14.41](skill-ir-aot-optimization-spec.md#1441-bb-interprocedural-property-closure)，复核依据见[研究 §7.63](skill-dsl-research.md#763-bb-跨函数性质闭合的复核与开发决定)。
 

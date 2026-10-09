@@ -20,9 +20,9 @@ const sourceInstance = z.object({ classObject: name, targetId: name, targetSha25
 const superRead = z.object({ receiver: name, classCell: name, classId: name, classSha256: name, method: name }).strict()
 export const SemanticStepSchema = z.discriminatedUnion("kind", [
   z.object({ ...common, kind: z.literal("bind"), type: z.enum(["principal", "resource", "permission", "configuration", "value"]), bindingName: name.optional(), aliasOf: name.optional(), value: FiniteValueSchema.optional() }).strict(),
-  z.object({ ...common, ...objects, kind: z.literal("guard"), condition: condition.optional() }).strict(),
+  z.object({ ...common, ...objects, kind: z.literal("guard"), condition: condition.optional(), permission: name.optional() }).strict(),
   z.object({ ...common, kind: z.literal("choose"), cases: z.array(z.object({ condition, body: name }).strict()).min(1).max(16), otherwise: name.optional() }).strict(),
-  z.object({ ...common, ...objects, kind: z.literal("call"), symbol: name, sourceCallId: name.optional(), callee: name.optional(), result: name.optional(), arguments: z.array(z.object({ parameter: name, object: name }).strict()).max(16).default([]), pathHint: InquiryText.optional(), candidateId: InquiryText.optional(), methodRead: methodRead.optional(), fieldMethodRead: boundMethod.extend({ object: name }).optional(), callableRead: callableRead.optional() }).strict(),
+  z.object({ ...common, ...objects, kind: z.literal("call"), symbol: name, sourceCallId: name.optional(), callee: name.optional(), result: name.optional(), arguments: z.array(z.object({ parameter: name, object: name }).strict()).max(16).default([]), pathHint: InquiryText.optional(), candidateId: InquiryText.optional(), methodRead: methodRead.optional(), fieldMethodRead: boundMethod.extend({ object: name }).optional(), callableRead: callableRead.optional(), domainRoles: z.array(z.enum(["principal", "resource", "permission", "condition", "effect", "context"])).max(6).optional(), meaningGap: InquiryText.optional() }).strict(),
   z.object({ ...common, ...objects, kind: z.literal("effect"), operation: InquiryText.optional(), authorizedBy: z.array(name).max(16).optional(), mayRaise: z.boolean().optional() }).strict(),
   z.object({ ...common, kind: z.literal("return"), value: scalar.optional(), valueFrom: name.optional(), object: name.optional(), outcome: z.enum(["allow", "deny", "unknown"]).optional() }).strict(),
   z.object({ ...common, kind: z.literal("reject"), failureKind: z.enum(["authorization", "operation"]).optional() }).strict(),
@@ -391,7 +391,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
             c.objects[bindingName] = c.objects[step.name]!
             c.objects[`${u.handle}.${bindingName}`] = c.objects[step.name]!
           } else if (step.kind === "guard") {
-            const r = append(u, c, instance, body, step.name, "guard", { ...fields, ...(step.condition ? { condition: predicate(step.condition, c) } : {}), principal: resolveObject(c, step.principal), resource: resolveObject(c, step.resource) }); c.guards[step.name] = r.key; c.guards[`${u.handle}.${step.name}`] = r.key
+            const r = append(u, c, instance, body, step.name, "guard", { ...fields, ...(step.permission ? { permission: step.permission } : {}), ...(step.condition ? { condition: predicate(step.condition, c) } : {}), principal: resolveObject(c, step.principal), resource: resolveObject(c, step.resource) }); c.guards[step.name] = r.key; c.guards[`${u.handle}.${step.name}`] = r.key
           } else if (step.kind === "effect") append(u, c, instance, body, step.name, "effect", { ...fields, principal: resolveObject(c, step.principal), resource: resolveObject(c, step.resource), operation: step.operation, authorizedBy: step.authorizedBy?.map(ref => c.guards[ref] ?? id([questionId, "missing-guard", ref])) })
           else if (step.kind === "reject") terminal(u, c, instance, body, step.name, "reject", { ...fields, outcome: "deny", ...(step.failureKind ? { failureKind: step.failureKind } : {}) })
           else if (step.kind === "transform") {
@@ -428,7 +428,8 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
               if (step.object) c.returnObject = valueObject(c, step.object)
             }
           } else if (step.kind === "call") {
-            const call = append(u, c, instance, body, step.name, "call", fields), callee = local.find(unit => unit.handle === step.callee && unit.role === "helper")
+            const call = append(u, c, instance, body, step.name, "call", { ...fields, ...(step.domainRoles ? { principal: resolveObject(c, step.principal), resource: resolveObject(c, step.resource) } : {}) }), callee = local.find(unit => unit.handle === step.callee && unit.role === "helper")
+            if (step.meaningGap) { gap(u, c, instance, body, step.name, step.meaningGap); next.push(c); continue }
             if (!callee) {
               dependencies.push({ key: id([call.key, "dependency"]), questionId, pathKey: call.pathKey, from: call.key, symbol: step.symbol, evidenceIds: u.evidenceIds, reason: step.claim, kind: "control", decisive: true, after: [call.key], ...(step.pathHint ? { pathHint: step.pathHint } : {}), ...(step.candidateId ? { candidateId: step.candidateId } : {}) })
               gap(u, c, instance, body, step.name, "semantic-callee-uninterpreted"); next.push(c); continue

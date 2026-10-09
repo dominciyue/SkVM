@@ -135,47 +135,47 @@ def perform(actor, target, permitted):
 
 ### BB1 用公共链写失败测试
 
-- [ ] 先为 P1/P2/P3 和 N1–N9/U1–U2 写最小失败测试，记录原实现在哪层失败；复用已有多函数参数/receiver 测试。
-- [ ] 分清缺类型、丢 call、错对象、控制不可达、传输/通道五类原因。测试应验证行为和反例，不为新字段存在而写镜像断言。
-- [ ] 读完确切代码后确定 source ref/call context 的最小表示，写回 spec §14.41。本任务书允许该表示的局部细化，无需常规确认。
+- [x] 先为 P1/P2/P3 和 N1–N9/U1–U2 写最小失败测试，记录原实现在哪层失败；复用已有多函数参数/receiver 测试。
+- [x] 分清缺类型、丢 call、错对象、控制不可达、传输/通道五类原因。测试应验证行为和反例，不为新字段存在而写镜像断言。
+- [x] 读完确切代码后确定 source ref/call context 的最小表示，写回 spec §14.41。本任务书允许该表示的局部细化，无需常规确认。
 
 ### BB2 保留调用结构并接入多种领域含义
 
-- [ ] 修复 effect/context 分支导致 source call 不进入调用投影的问题。调用创建顺序、await、实参、receiver 及异常来源沿用既有证明。
-- [ ] 明确 effect 候选、被调用行为和已发生效果的关系；不要自动把每个 effect 标签升级成无条件执行。
-- [ ] P2、N9 红→绿；旧 primitive effect、receiver、await、来源顺序反例通过。
+- [x] 修复 effect/context 分支导致 source call 不进入调用投影的问题。调用创建顺序、await、实参、receiver 及异常来源沿用既有证明。
+- [x] 明确 effect 候选、被调用行为和已发生效果的关系；不要自动把每个 effect 标签升级成无条件执行。
+- [x] P2、N9 红→绿；旧 primitive effect、receiver、await、来源顺序反例通过。
 
 ### BB3 建立有调用上下文的跨单元对象联系
 
-- [ ] 在现有材料/运行上下文中解析当前限定引用。完整 skeleton/interpretation 从实际 owner 获取，不能假定 SourceMaterial 已包含它们。
-- [ ] 复用 actual→formal、receiver、return/alias 传递；同 helper 多次调用各自保留实例。
-- [ ] P1/P3 与 N1/N2/N4/N8 红→绿。记录身份来源和无法解析原因，杜绝按名字或全局首匹配合并。
+- [x] 在现有材料/运行上下文中解析当前限定引用。完整 skeleton/interpretation 从实际 owner 获取，不能假定 SourceMaterial 已包含它们。
+- [x] 复用 actual→formal、receiver、return/alias 传递；同 helper 多次调用各自保留实例。
+- [x] P1/P3 与 N1/N2/N4/N8 红→绿。记录身份来源和无法解析原因，杜绝按名字或全局首匹配合并。
 
 ### BB4 让性质检查消费跨单元路径
 
-- [ ] 同步 `property-query`、`property-dependencies`、`control-conclusion` 与 runtime 接线，消除只在同 source 内找 guard/effect 的隐含限制。
-- [ ] 查询支持 guard 缺失；引用有效、性质满足、性质违反和证据不足分别输出。
-- [ ] 检查控制顺序、分支、权限含义和对象关系；N3/N5/N6/N7 必须得到准确结果。检查 trace 给出真实采用的单位、调用、来源行和相关未知。
-- [ ] 逐性质隔离依赖。一个性质完成后，原问题其它未决义务继续保留。
+- [x] 同步 `property-query`、`property-dependencies`、`control-conclusion` 与 runtime 接线，消除只在同 source 内找 guard/effect 的隐含限制。
+- [x] 查询支持 guard 缺失；引用有效、性质满足、性质违反和证据不足分别输出。
+- [x] 检查控制顺序、分支、权限含义和对象关系；N3/N5/N6/N7 必须得到准确结果。检查 trace 给出真实采用的单位、调用、来源行和相关未知。
+- [x] 逐性质隔离依赖。一个性质完成后，原问题其它未决义务继续保留。
 
 ### BB5 渐进解释进入当前材料
 
-- [ ] 保留现有合法编辑累积机制，让已完成且范围有效的片段可以参与本性质；未解释点具名保留。
-- [ ] 不自动补 role/guard/predicate，不把未读源码假定无影响；完成视图告诉模型“哪一处仍阻止哪一条性质”。
-- [ ] U1/U2、无效新提交撤回旧检查、缺口后续补全和源码修订失效全部验证。
+- [x] 保留现有合法编辑累积机制，让已完成且范围有效的片段可以参与本性质；未解释点具名保留。
+- [x] 不自动补 role/guard/predicate，不把未读源码假定无影响；完成视图告诉模型“哪一处仍阻止哪一条性质”。
+- [x] U1/U2、无效新提交撤回旧检查、缺口后续补全和源码修订失效全部验证。
 
 ### BB6 面向性质的取证与当前编辑视图
 
-- [ ] 在现有 worklist/focus 中优先展示当前性质所缺的 caller/callee、对象映射、guard/effect 或相关源码，避免一次输出全部候选和重复长 Schema。
-- [ ] schema、示例、槽位和实际 wire 共源；跨单元引用由宿主列候选，模型选含义，宿主不赠送结论。
-- [ ] 开放依赖仍可查询；有界预览显示剩余数量和取回入口。保留全量原件，按显示字节而非估计 token 声称确定性减负。
+- [x] 在现有 worklist/focus 中优先展示当前性质所缺的 caller/callee、对象映射、guard/effect 或相关源码，避免一次输出全部候选和重复长 Schema。
+- [x] schema、示例、槽位和实际 wire 共源；跨单元引用由宿主列候选，模型选含义，宿主不赠送结论。
+- [x] 开放依赖仍可查询；24条有界预览显示剩余数量和source_structure/source_read入口。保留全量原件；尚无实际token减负结论。
 
 ### BB7 公共双入口与归档重放
 
-- [ ] 同一匿名任务从普通 native 和 inquiry 入口完成 read→edit→material→query→check，不能用 `initialSemanticUnits` 或直接写 store 代替实际提交。
-- [ ] 源文件、参数或政策改变后，旧结果撤回和新检查均从公共入口发生；v6 历史兼容定向测试通过。
+- [x] 同一匿名任务从普通 native 和 inquiry 入口完成 read→edit→material→query→check，不能用 `initialSemanticUnits` 或直接写 store 代替实际提交。
+- [x] 源文件、对象参数或当前绑定改变后，旧结果撤回和新检查均从公共入口发生；v6历史兼容定向测试通过。原政策变化的真实复用仍归BB13。
 - [ ] 对两份 BA 原提案做当前实现的派生重放，明确原始计数/派生计数及首阻断；不填回旧 report。
-- [ ] “bound 数增加”不作为完成标准：至少一条跨函数正例和一条错误对象反例有非空当前检查轨迹，之后进入真实 pilot。
+- [x] “bound 数增加”不作为完成标准：跨函数正例和错误对象反例均有非空当前检查轨迹，之后进入真实pilot。公共链21 pass/209断言；联合12文件425 pass/4447断言与主typecheck通过。
 
 ### BB8 有目的的官方通道恢复
 

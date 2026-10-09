@@ -23,7 +23,7 @@ export interface SourceEditDraft {
 }
 const emptyDraft = (s: SourceSkeleton): SourceEditDraft => ({ revision: s.revision, annotations: [], unresolved: [] })
 
-export function compileSourceEdit(skeleton: SourceSkeleton, raw: unknown, options: { transactionId: string; previous?: SourceEditDraft; questionId?: string }): { diagnostics: InquiryDiagnostic[]; acceptedEdits: number; draft: SourceEditDraft; interpretation?: SourceInterpretation; values?: z.infer<typeof SourceEditSchema>["values"]; reason?: string } {
+export function compileSourceEdit(skeleton: SourceSkeleton, raw: unknown, options: { transactionId: string; previous?: SourceEditDraft; questionId?: string; progressive?: boolean }): { diagnostics: InquiryDiagnostic[]; acceptedEdits: number; draft: SourceEditDraft; interpretation?: SourceInterpretation; values?: z.infer<typeof SourceEditSchema>["values"]; reason?: string } {
   const previous = options.previous?.revision === skeleton.revision ? options.previous : emptyDraft(skeleton), diagnostics: InquiryDiagnostic[] = []
   const fail = (code: string, path: string, message: string) => diagnostics.push({ code: `source-edit-${code}`, path, message, questionId: options.questionId, severity: "error" })
   const parsed = SourceEditSchema.safeParse(raw)
@@ -51,8 +51,8 @@ export function compileSourceEdit(skeleton: SourceSkeleton, raw: unknown, option
     else { const annotation = annotations.get(anchorId) ?? { anchorId }; (annotation as any)[edit.field] = structuredClone(edit.value); annotations.set(anchorId, annotation); unresolved.delete(anchorId) }
   }
   draft.annotations = [...annotations.values()]; draft.unresolved = [...unresolved.values()]
-  for (const annotation of draft.annotations) for (const field of ["role", "explanation"] as const) if (!annotation[field]) fail("draft-incomplete", `${annotation.anchorId}.${field}`, `The local field is retained. Add ${field} for this same anchor, or submit a named unresolved slot. No source unit is adopted yet.`)
-  const interpretation = diagnostics.length ? undefined : SourceInterpretationSchema.parse({ schemaVersion: "source-interpretation/v1", ...draft })
+  if (!options.progressive) for (const annotation of draft.annotations) for (const field of ["role", "explanation"] as const) if (!annotation[field]) fail("draft-incomplete", `${annotation.anchorId}.${field}`, `The local field is retained. Add ${field} for this same anchor, or submit a named unresolved slot. No source unit is adopted yet.`)
+  const interpretation = diagnostics.length ? undefined : SourceInterpretationSchema.parse({ schemaVersion: "source-interpretation/v1", ...draft, ...(options.progressive ? { annotations: draft.annotations.filter(a => a.role && a.explanation) } : {}) })
   return { diagnostics, acceptedEdits: parsed.data.edits.length, draft, ...(interpretation ? { interpretation } : {}), values: parsed.data.values, reason: parsed.data.reason }
 }
 

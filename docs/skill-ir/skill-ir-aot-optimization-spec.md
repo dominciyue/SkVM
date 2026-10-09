@@ -2850,7 +2850,7 @@ Python await只沿实际操作数保留已有表达式求值和函数值读取�
 
 ### 14.41 BB interprocedural property closure
 
-2026-10-09，用户要求派发`gpt-6.1-sol/max`继续开发，[BB0–BB16](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)登记为planned-not-started。复核基线ad936715。新identity为authorization-interprocedural-property-v1；本节是开发合同，尚无BB实现或实测结果。BA的暂停、20未运行位置和原件不改写。
+2026-10-09，用户要求派发`gpt-6.1-sol/max`继续开发，[BB0–BB16](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)已执行至公共链，状态in-progress。复核基线ad936715，新登记基线553509a6。新identity为authorization-interprocedural-property-v1；以下合同已有v7工程实现，真实任务与研究效果仍待运行。BA的暂停、20未运行位置和原件不改写。
 
 **结构与语义。** 源码call身份、实参/receiver/返回及异常联系独立于模型的permission/effect/context标注。标注不能抹掉调用，也不能令被调函数中的效果无条件发生；拒绝、提前返回和相关未知保留，caller候选与callee实际效果不重复计数。复用现有有限控制流，新增行为显式operation-evidence-v7，旧策略兼容。
 
@@ -2859,6 +2859,10 @@ Python await只沿实际操作数保留已有表达式求值和函数值读取�
 **性质与未知。** 查询允许询问缺失的守卫。引用/传输拒绝、性质checked/violated/unknown及自然答案质量分层；有依据的违例也是有效结论。bound仅表示查询定位成功，checked需要当前材料实际采用和可复查trace。已有合法编辑和范围有效的片段逐步参与检查；相关未知阻断其影响到的性质，独立残余不笼统封锁所有性质。原题全义务和相关未读源码仍保留，不把漏填role改成no-effect。
 
 **接线与失效。** 同步source-interpretation/edit、property-query/dependencies、材料投影、runtime与control-conclusion的消费边界。当前完整skeleton/interpretation从真实owner取得，SourceMaterial不是隐含全量解析上下文。源码、引用、调用映射、政策/前提变化及无效新提交撤回受影响当前检查；恢复材料不恢复旧结论。验收从公开read/edit入口开始，不能只注入成功semantic units。
+
+**v7实际表示。** `PropertySourceReference`为sourceId/sourceSha256/revision/anchorId/questionId/operationId及可选receiverClass；`PropertyQueryContext.sources`从当前已展示且SHA有效的实际owner取得skeleton和interpretation。`effectRef`和可选`guardRef`与旧局部anchor互斥兼容。绑定定位不比较参数anchor身份；检查沿slice的actual/formal、返回与调用instance消费真实对象及前驱。`requiredPermission`只能映射原问题的明确要求，guard的permission仍是未审阅的源码解释。call保留实际sourceCallId、目标、实参、receiver和result，`domainRoles`/facets只附加含义；caller effect候选只选择其真实后代primitive effects，不再生成第二个效果。无可达effect的已覆盖提前返回路径可给no-effect-on-covered-paths，相关未知仍unknown。
+
+**渐进合同与工程证据。** 合法编辑按源handle/当前revision累积；缺role/explanation的部分槽位保留，其余合法片段采用为不完整单元。相关缺字段、未解释call及开放框架依赖阻断本性质，效果之后的独立残余不阻断primitive property，仍使完整任务不完整。新无效提交保留当前拒绝状态直到纠正，不能重新显示旧verdict。12文件定向联合425 pass/4447断言与主typecheck通过；随后新增指引反例，公共链21 pass/209断言。匿名双入口mock消费同一read→edit→material→call→property链；这不是官方模型实测。
 
 **研究与使用。** 新登记2 pilot、6完整质量、2原包消费、6变化共16逻辑位置，引用同attempt去重；修订分列。N完整skill与自然任务/M等价Markdown及共享工具/D同事实声明及相同工具，原问题、源码和独立政策一致。局部跨函数闭合先于完整使用，局部合格基础可验证局部复用但不升级为完整任务收益。协议失败保留端到端分母，交付答案的语义质量另列。原件、准备/修复费用、完整input/cache/output口径与unknown均保留，工程完成不预设研究positive。
 

@@ -5,7 +5,7 @@ import { controlBindings, type ControlSlice, type BoundControlRule } from "./con
 import { partialEvaluate, equivalentPredicateConditions, type PartialPredicate } from "./control-evaluation.ts"
 import type { PropertyDemand } from "./property-demand.ts"
 import type { BoundSemanticBlock } from "./semantic-flow.ts"
-import { validatePropertyQuestionMapping } from "./property-query.ts"
+import { validatePropertyQuestionMapping, type BoundPropertyQuery, type PropertySourceReference } from "./property-query.ts"
 
 export interface DependencyCheckState { key: string; questionId: string; pathKey: string; state: string; decisive: boolean; symbol: string }
 const diag = (code: string, path: string, message: string, questionId?: string): InquiryDiagnostic => ({ code, path, message, severity: "error", ...(questionId ? { questionId } : {}) })
@@ -152,7 +152,7 @@ export function summarizeControlQuestions(program: AuthorizationInquiryProgram, 
 
 /** Check a selected property on the same source-bound slice. A checked local
  * relation never certifies interpretation meaning or the original whole task. */
-export function checkPropertyQueries(program: AuthorizationInquiryProgram, slice: ControlSlice, demands: PropertyDemand[], units: BoundSemanticBlock[], dependencies: DependencyCheckState[]) {
+export function checkPropertyQueries(program: AuthorizationInquiryProgram, slice: ControlSlice, demands: PropertyDemand[], units: BoundSemanticBlock[], dependencies: DependencyCheckState[], sourceTransactions: InquiryDiagnostic[] = []) {
   const evaluated = evaluateControlPaths(slice)
   const questions = program.questions.map(question => {
     const local = demands.filter(d => d.questionId === question.id || d.dependencies?.propertyQueries?.questionId === question.id || d.dependencies?.propertyQueries?.queries.some(q => q.questionId === question.id))
@@ -165,6 +165,7 @@ export function checkPropertyQueries(program: AuthorizationInquiryProgram, slice
       return explicit.length ? explicit : declared.slice(0, 1)
     })
     const properties = queries.map(q => {
+      if (q.bindingScope === "interprocedural-property/v1") return checkInterproceduralProperty(q, slice, local, units, dependencies, queries.filter(v => v.id === q.id).length !== 1, sourceTransactions)
       const gaps: string[] = [], trace: string[] = []
       let status: "checked" | "violated" | "unknown" = "unknown", value = "unresolved"
       const sourceUnits = units.filter(u => u.questionId === question.id && u.source?.id === q.source.id && u.source.sha256 === q.source.sha256)
@@ -203,4 +204,54 @@ export function checkPropertyQueries(program: AuthorizationInquiryProgram, slice
     return { questionId: question.id, properties, gaps: properties.length ? [] : ["property-query-undeclared"] }
   })
   return { schemaVersion: "authorization-property-check/v1" as const, revision: slice.revision, questions, diagnostics: validatePropertyQuestionMapping(program.questions.map(q => q.id), questions), originalQuestionCount: program.questions.length, wholeTaskCertified: false as const, semanticReview: "unreviewed" as const }
+}
+
+/** Consume current invocation paths from the existing evaluator. Syntax refs
+ * select sources; only mapped predecessor identities prove the local relation. */
+function checkInterproceduralProperty(q: BoundPropertyQuery, slice: ControlSlice, demands: PropertyDemand[], units: BoundSemanticBlock[], dependencies: DependencyCheckState[], duplicate: boolean, sourceTransactions: InquiryDiagnostic[]) {
+  const gaps = [...q.missing], traced = new Map<string, BoundControlRule>()
+  let status: "checked" | "violated" | "unknown" = "unknown", value = "unresolved"
+  const selectedUnits = (ref?: PropertySourceReference) => ref ? units.filter(u => u.questionId === q.questionId && u.source?.id === ref.sourceId && u.source.sha256 === ref.sourceSha256 && u.receiverClass === ref.receiverClass) : []
+  const effectUnits = selectedUnits(q.effectRef), guardUnits = selectedUnits(q.guardRef)
+  const from = (r: BoundControlRule, owners: BoundSemanticBlock[]) => r.questionId === q.questionId && owners.some(u => u.handle === r.sourceOrigin?.handle)
+  const calls = slice.rules.filter(r => from(r, effectUnits) && r.kind === "call" && (r.sourceOrigin?.step === `call-${q.effectAnchorId}` || r.sourceOrigin?.step.startsWith(`call-${q.effectAnchorId}-`)))
+  const inCall = (rule: BoundControlRule, call: BoundControlRule) => !!rule.sourceOrigin?.instance.startsWith(`${call.sourceOrigin!.instance}.${call.sourceOrigin!.step}`) && controlRuleReach(slice, rule).ancestors.some(a => a.key === call.key)
+  const effects = slice.rules.filter(r => r.questionId === q.questionId && r.kind === "effect" && (q.effectKind === "call" ? calls.some(c => inCall(r, c)) : from(r, effectUnits) && [`effect-${q.effectAnchorId}`, `field-effect-${q.effectAnchorId}`].includes(r.sourceOrigin?.step ?? "")))
+  const reaches = effects.map(effect => ({ effect, ...controlRuleReach(slice, effect) })), callReaches = calls.map(call => ({ call, ...controlRuleReach(slice, call) }))
+  const live = reaches.filter(r => r.predicate.truth !== "false" && !r.stoppedBy.length)
+  const addTrace = (rules: BoundControlRule[]) => { for (const rule of rules) traced.set(rule.key, rule) }
+  for (const reach of [...callReaches, ...reaches]) addTrace(reach.ancestors)
+  const subtree = q.effectKind === "call" ? slice.rules.filter(r => calls.some(c => inCall(r, c))) : []
+  addTrace(subtree)
+  if (duplicate) gaps.push("property-binding-duplicate")
+  for (const d of sourceTransactions.filter(d => d.severity === "error" && (!d.questionId || d.questionId === q.questionId))) gaps.push(`property-current-source-rejected:${d.code}`)
+  if (!effectUnits.length || (q.effectKind === "call" ? !calls.length : !effects.length)) gaps.push("property-source-effect-unadopted")
+  if (q.guardRef && !guardUnits.length) gaps.push("property-guard-unadopted")
+  const prefixes = [...callReaches, ...reaches]
+  if (prefixes.some(r => r.gaps.length || !r.ancestors.some(a => a.kind === "entry") || r.ancestors.some(a => !a.sourceBound || a.kind === "unresolved"))) gaps.push("property-prefix-unresolved")
+  for (const r of [...traced.values()].filter(r => r.kind === "unresolved")) gaps.push(`property-source-gap:${r.gap ?? r.key}`)
+  const relevantKeys = new Set(traced.keys()), open = dependencies.filter(d => d.questionId === q.questionId && d.decisive && !["checked", "inapplicable"].includes(d.state) && (d.pathKey === "$framework" || slice.dependencies.some(edge => edge.key === d.key && relevantKeys.has(edge.from))))
+  if (open.length) gaps.push(...open.map(d => `property-dependency-open:${d.symbol}`))
+  if (controlObjectDiagnostics(slice).some(d => d.questionId === q.questionId && d.code.startsWith("object-binding-") && relevantKeys.has(d.path))) gaps.push("property-object-binding-unresolved")
+  if (!gaps.length) {
+    if (q.kind === "authorization-before-effect" || q.kind === "authorized-object-matches-effect") {
+      if (!live.length && q.effectKind !== "call") gaps.push("property-effect-not-reachable")
+      for (const reach of live) {
+        const guard = reach.ancestors.findLast(r => from(r, guardUnits) && r.kind === "guard" && r.sourceOrigin?.step === `guard-${q.guardAnchorId}` && (q.guardRef?.sourceId !== q.effectRef?.sourceId || r.sourceOrigin.instance === reach.effect.sourceOrigin?.instance))
+        if (!guard) { status = "violated"; value = "guard-not-predecessor"; break }
+        if (!guard.principal || !guard.resource || !reach.effect.principal || !reach.effect.resource) { gaps.push("property-object-identity-unresolved"); break }
+        if (guard.principal !== reach.effect.principal || guard.resource !== reach.effect.resource) { status = "violated"; value = "authorized-object-mismatch"; break }
+        if (q.requiredPermission && !guard.permission) { gaps.push("property-permission-unresolved"); break }
+        if (q.requiredPermission && guard.permission !== q.requiredPermission) { status = "violated"; value = "permission-mismatch"; break }
+      }
+      if (status !== "violated" && !gaps.length) { status = "checked"; value = live.length ? "satisfied" : "no-effect-on-covered-paths" }
+    } else if (q.kind === "effect-reachability") { status = "checked"; value = live.some(r => r.predicate.truth === "true") ? "reachable" : live.length ? "conditional" : "unreachable" }
+    else {
+      const paths = evaluateControlPaths(slice).paths.filter(p => p.questionId === q.questionId && p.state !== "inapplicable")
+      if (!paths.length || paths.some(p => !p.complete || !p.sourceBound) || demands.some(d => d.questionId === q.questionId && (d.sourceGaps.length || d.dependencies?.residuals?.length))) gaps.push("property-completion-unresolved")
+      else { status = "checked"; value = paths.every(p => p.predicate.truth === "true") ? "bounded-control-outcomes" : "conditional-control-outcomes" }
+    }
+  }
+  if (!traced.size && effectUnits.length) addTrace(slice.rules.filter(r => from(r, effectUnits)))
+  return { propertyId: q.id, kind: q.kind, status, value, questionId: q.questionId, source: q.source, sourceRevision: q.sourceRevision, gaps: [...new Set(gaps)], trace: [...traced.keys()], traceDetails: [...traced.values()].map(r => ({ key: r.key, kind: r.kind, source: units.find(u => u.questionId === q.questionId && u.handle === r.sourceOrigin?.handle)?.source, origin: r.sourceOrigin, after: r.after, principal: r.principal, resource: r.resource, permission: r.permission, gap: r.gap })), effectOccurrences: effects.map(r => ({ key: r.key, instance: r.sourceOrigin?.instance, principal: r.principal, resource: r.resource })), semanticReview: "unreviewed" as const, scope: "current-proposed-source-relation" as const }
 }

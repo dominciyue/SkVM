@@ -3,6 +3,7 @@ import type { SourceInterpretation } from "./source-interpretation.ts"
 import { partialEvaluate, predicateDiagnostics } from "./control-evaluation.ts"
 import { buildPropertyDependencies, type DependencyQuestion, type PropertyDependencies } from "./property-dependencies.ts"
 import type { PropertyCallSummary } from "./procedure-summary.ts"
+import type { PropertyQueryContext } from "./property-query.ts"
 
 export interface PropertyRequirement {
   anchorId: string; field: "role" | "condition" | "returnOutcome" | "failureKind" | "guardBranch" | "fallthroughOutcome";
@@ -40,7 +41,7 @@ export function propertyDemandModelView(demand: PropertyDemand) {
 
 /** Source-invariant reachability only. A model role/predicate never proves a
  * source statement irrelevant, and no task/policy value enters a source cut. */
-export function buildPropertyDemand(skeleton: SourceSkeleton, options: { questionId: string; role: "entry" | "helper"; interpretation?: SourceInterpretation; affectedQuestionIds?: string[]; maxFrontierAnchors?: number; question?: DependencyQuestion; propertyAbstraction?: boolean; callSummaries?: PropertyCallSummary[] }): PropertyDemand {
+export function buildPropertyDemand(skeleton: SourceSkeleton, options: { questionId: string; role: "entry" | "helper"; interpretation?: SourceInterpretation; affectedQuestionIds?: string[]; maxFrontierAnchors?: number; question?: DependencyQuestion; propertyAbstraction?: boolean; callSummaries?: PropertyCallSummary[]; propertyContext?: PropertyQueryContext }): PropertyDemand {
   const anchors = new Map(skeleton.anchors.map(a => [a.id, a])), reachable = new Set<string>(), excluded = new Map<string, PropertyExclusion>()
   const draft = options.interpretation?.revision === skeleton.revision ? options.interpretation : undefined
   const annotations = new Map((draft?.annotations ?? []).map(a => [a.anchorId, a])), unresolved = new Set((draft?.unresolved ?? []).map(a => a.anchorId))
@@ -89,7 +90,7 @@ export function buildPropertyDemand(skeleton: SourceSkeleton, options: { questio
     return continues
   }
   const hasNormalEnd = walk(skeleton.flow), required = new Map<string, PropertyRequirement>()
-  const dependencies = skeleton.propertySemantics === "question-control/v1" ? buildPropertyDependencies(skeleton, { question: options.question ?? { id: options.questionId, request: "Interpret the current source-bound authorization question; request seed is unavailable." }, interpretation: draft, reachableAnchorIds: [...reachable], propertyAbstraction: options.propertyAbstraction, callSummaries: options.callSummaries }) : undefined
+  const dependencies = skeleton.propertySemantics === "question-control/v1" ? buildPropertyDependencies(skeleton, { question: options.question ?? { id: options.questionId, request: "Interpret the current source-bound authorization question; request seed is unavailable." }, interpretation: draft, reachableAnchorIds: [...reachable], propertyAbstraction: options.propertyAbstraction, callSummaries: options.callSummaries, propertyContext: options.propertyContext }) : undefined
   for (const e of dependencies?.localExclusions ?? []) { excluded.set(e.anchorId, { ...e, reason: "source-local-unused" }); reachable.delete(e.anchorId) }
   const require = (anchorId: string, field: PropertyRequirement["field"], reason: string, expectedRole?: PropertyRequirement["expectedRole"]) => {
     const anchor = anchors.get(anchorId), annotation = annotations.get(anchorId)

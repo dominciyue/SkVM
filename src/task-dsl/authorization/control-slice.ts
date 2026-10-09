@@ -5,13 +5,14 @@ import type { AuthorizationInquiryProgram } from "./inquiry-program.ts"
 import type { InquiryEvidenceContext } from "./inquiry-result.ts"
 import { predicateDiagnostics, type FiniteValue } from "./control-evaluation.ts"
 
-export type InquiryStrategy = "legacy" | "domain-evidence-v1" | "guided-evidence-v2" | "semantic-flow-v1" | "focused-closure-v1" | "operation-evidence-v1" | "operation-evidence-v2" | "operation-evidence-v3" | "operation-evidence-v4" | "operation-evidence-v5" | "operation-evidence-v6"
-export const InquiryStrategySchema = z.enum(["legacy", "domain-evidence-v1", "guided-evidence-v2", "semantic-flow-v1", "focused-closure-v1", "operation-evidence-v1", "operation-evidence-v2", "operation-evidence-v3", "operation-evidence-v4", "operation-evidence-v5", "operation-evidence-v6"])
-export const isPropertyAbstractionStrategy = (strategy?: InquiryStrategy) => strategy === "operation-evidence-v6"
+export type InquiryStrategy = "legacy" | "domain-evidence-v1" | "guided-evidence-v2" | "semantic-flow-v1" | "focused-closure-v1" | "operation-evidence-v1" | "operation-evidence-v2" | "operation-evidence-v3" | "operation-evidence-v4" | "operation-evidence-v5" | "operation-evidence-v6" | "operation-evidence-v7"
+export const InquiryStrategySchema = z.enum(["legacy", "domain-evidence-v1", "guided-evidence-v2", "semantic-flow-v1", "focused-closure-v1", "operation-evidence-v1", "operation-evidence-v2", "operation-evidence-v3", "operation-evidence-v4", "operation-evidence-v5", "operation-evidence-v6", "operation-evidence-v7"])
+export const isInterproceduralPropertyStrategy = (strategy?: InquiryStrategy) => strategy === "operation-evidence-v7"
+export const isPropertyAbstractionStrategy = (strategy?: InquiryStrategy) => strategy === "operation-evidence-v6" || isInterproceduralPropertyStrategy(strategy)
 export const isQuestionDirectedInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "operation-evidence-v5" || isPropertyAbstractionStrategy(strategy)
 export const isPropertyDirectedInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "operation-evidence-v4" || isQuestionDirectedInquiryStrategy(strategy)
 export const isFiniteControlInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "operation-evidence-v3" || isPropertyDirectedInquiryStrategy(strategy)
-export const sourceMaterialSemanticVersion = (strategy?: InquiryStrategy) => isPropertyAbstractionStrategy(strategy) ? "property-abstraction/v1" as const : isQuestionDirectedInquiryStrategy(strategy) ? "question-control/v1" as const : isPropertyDirectedInquiryStrategy(strategy) ? "property-control/v1" as const : "finite-control/v1" as const
+export const sourceMaterialSemanticVersion = (strategy?: InquiryStrategy) => isInterproceduralPropertyStrategy(strategy) ? "interprocedural-property/v1" as const : isPropertyAbstractionStrategy(strategy) ? "property-abstraction/v1" as const : isQuestionDirectedInquiryStrategy(strategy) ? "question-control/v1" as const : isPropertyDirectedInquiryStrategy(strategy) ? "property-control/v1" as const : "finite-control/v1" as const
 export const isOperationInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "operation-evidence-v1" || strategy === "operation-evidence-v2" || isFiniteControlInquiryStrategy(strategy)
 export const isSourceAssistedInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "operation-evidence-v2" || isFiniteControlInquiryStrategy(strategy)
 export const isFocusedInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "focused-closure-v1" || isOperationInquiryStrategy(strategy)
@@ -52,6 +53,7 @@ export const SemanticControlRuleSchema = ControlRuleSchema.extend({
   terminal: z.boolean().optional(), outcome: z.enum(["allow", "deny", "unknown"]).optional(),
   returnValue: z.union([z.string(), z.number().finite(), z.boolean(), z.null()]).optional(), gap: InquiryText.optional(),
   failureKind: z.enum(["authorization", "operation"]).optional(),
+  permission: InquiryText.optional(),
   sourceOrigin: z.object({ handle: key, block: key, step: key, instance: key, steps: z.array(key).min(1).max(160).optional() }).strict().optional(),
   bindingName: key.optional(),
 }).strict()
