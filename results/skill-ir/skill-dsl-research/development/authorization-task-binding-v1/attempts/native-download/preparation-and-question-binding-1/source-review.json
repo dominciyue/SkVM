@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "authorization-bc-source-review/v1",
+  "attemptId": "native-download/preparation-and-question-binding-1",
+  "inputSha256": "ee99327d807ccd1e130117266c8bcdca9f33113b260782152463a4b48fafb397",
+  "answerSha256": "4f78ea335a639e753403dc294cba0cc66b87dae4666749a5f4acfa1314d3f6fc",
+  "runtimeTree": "f1118a2e92ed3237aa065fa84796aeb56a8e07c5",
+  "status": "source-reviewed",
+  "reviewer": "Primary full-answer and original-question review, with independent read-only source and funnel scouts; archive hashes checked",
+  "wholeOriginalTask": "source-partial",
+  "questionReviews": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "quality": "partial",
+      "sourceSupported": true,
+      "evidence": [
+        "src/documents/views.py:1368-1448",
+        "src/documents/views.py:1834-1839",
+        "src/documents/views.py:4941-4995",
+        "src/documents/versioning.py:146-195",
+        "src/paperless/urls.py:77"
+      ],
+      "reason": "The described request/root/child/original/archive/file branches are supported. Every relevant branch is not complete: root without version selects the newest non-deleted version or root fallback, explicit version must belong to the same root, and empty version differs from absent version. The versioning helper is not explained. One views citation path is malformed."
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "quality": "full",
+      "sourceSupported": true,
+      "evidence": [
+        "src/documents/views.py:1008-1027",
+        "src/documents/views.py:1401-1448",
+        "src/documents/permissions.py:30-53",
+        "src/documents/permissions.py:624-635",
+        "framework/rest_framework-3.18.1/rest_framework/views.py:404-421"
+      ],
+      "reason": "Correctly distinguishes authenticated/model-permission entry checks, manual root authorization, ownerless/owner/Guardian branches, and selection after that check; no unsupported object-permission call is asserted."
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "quality": "full",
+      "sourceSupported": true,
+      "evidence": [
+        "src/documents/views.py:1368-1448",
+        "src/documents/views.py:1834-1839",
+        "src/documents/views.py:4941-4995",
+        "src/documents/versioning.py:146-195"
+      ],
+      "reason": "Correctly separates the explicit root authorization object from subsequent selected-version and source/archive representation; there is no later selected-child/file-field authorization check in this path."
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "quality": "full",
+      "sourceSupported": true,
+      "evidence": [
+        "src/documents/views.py:1401-1448",
+        "src/documents/views.py:1834-1839",
+        "src/documents/permissions.py:624-635"
+      ],
+      "reason": "Maps model permission, root ownership/grants, request selectors, document/archive state and backing-file existence to their blocked request-admission, root-allow, exact-file and actual-return conclusions. Deployed facts remain unproved; source ordering is retained."
+    }
+  ],
+  "propertyReviews": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "propertyId": "task-property-8affa6f1b2ffe1631b2c",
+      "kind": "operation-completion",
+      "requirement": "the selected version and original/archive representation determine the file returned",
+      "sourceSupported": false,
+      "status": "unknown",
+      "reason": "No checked/violated current cross-source property. The model left source roles and property bindings incomplete; natural source support cannot fill machine bindings."
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "propertyId": "task-property-aaeb004ad4900ecf7dc1",
+      "kind": "authorization-before-effect",
+      "requirement": "the authorization checks and branches for the authenticated user, the requested document, and the selected version or original/archive representation",
+      "sourceSupported": false,
+      "status": "unknown",
+      "reason": "No checked/violated current cross-source property. The model left source roles and property bindings incomplete; natural source support cannot fill machine bindings."
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "propertyId": "task-property-c9ce1fc5266591a31c41",
+      "kind": "authorized-object-matches-effect",
+      "requirement": "whether selecting another document version or choosing original versus archive changes the resource on which authorization is evaluated",
+      "sourceSupported": false,
+      "status": "unknown",
+      "reason": "No checked/violated current cross-source property. The model left source roles and property bindings incomplete; natural source support cannot fill machine bindings."
+    }
+  ],
+  "archiveSourceVerification": {
+    "valid": true,
+    "checkedFiles": 95,
+    "physicalReadBytes": 1412762
+  },
+  "citationFindings": [
+    {
+      "line": 21,
+      "status": "malformed-path",
+      "actual": "src/documents/views/views.py",
+      "correct": "src/documents/views.py"
+    },
+    {
+      "line": 46,
+      "status": "supported-but-broad-range",
+      "precise": "src/documents/permissions.py:30-44"
+    },
+    {
+      "line": 7,
+      "status": "verified-correct",
+      "evidence": "src/paperless/urls.py:77 actually registers documents with UnifiedSearchViewSet; the independent scout suggestion to replace this citation was rejected."
+    }
+  ],
+  "blockers": [
+    "download -> file_response protected-effect binding lacks an accepted downstream role.",
+    "All three properties remain unknown; q2/q3 declarations are now retained instead of incorrectly undeclared.",
+    "Q1 omits default/latest/fallback and explicit-version membership branches."
+  ],
+  "reviewedAt": "2026-10-09T22:23:48.347Z"
+}

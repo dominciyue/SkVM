@@ -1,0 +1,302 @@
+{
+  "attemptId": "native-download/preparation-and-question-binding-1",
+  "status": "completed",
+  "terminalStatus": "completed",
+  "actualModelInput": {
+    "systemSha256": "f0bfd1a5acd98b804d0c209e8b10614086fe822f88fc056e22950cab02293f05",
+    "systemBytes": 29078,
+    "fullOriginalBundlePrefixMatches": true,
+    "loadedBundleSha256": "cad6f93ec75b6ae3d8b4f805e7dfe65b9fc1ef481314f251e7cf46afbfb5f6c9",
+    "toolNames": [
+      "source_list",
+      "source_search",
+      "source_symbol",
+      "source_read",
+      "source_structure",
+      "skill_reference_read",
+      "authorization_prepare_properties",
+      "authorization_observe",
+      "authorization_check_result"
+    ],
+    "originalQuestionsPresent": [
+      {
+        "questionId": "requested-document-and-returned-file",
+        "present": true
+      },
+      {
+        "questionId": "authorization-and-selection-order",
+        "present": true
+      },
+      {
+        "questionId": "alternate-version-authorized-resource",
+        "present": true
+      },
+      {
+        "questionId": "missing-facts-and-conditional-conclusions",
+        "present": true
+      }
+    ],
+    "evaluatorProvidedToRuntime": false
+  },
+  "sourceVerification": {
+    "valid": true,
+    "checkedFiles": 95,
+    "physicalReadBytes": 1412762
+  },
+  "taskPreparation": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "state": "prepared",
+      "properties": [
+        {
+          "id": "task-property-8affa6f1b2ffe1631b2c",
+          "kind": "operation-completion",
+          "requirement": "the selected version and original/archive representation determine the file returned"
+        }
+      ],
+      "residualRequest": "Explain how the request identifies the document and how the selected version and original/archive representation determine the file returned, including every relevant control branch.",
+      "origin": "model-task-proposal"
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "state": "prepared",
+      "properties": [
+        {
+          "id": "task-property-aaeb004ad4900ecf7dc1",
+          "kind": "authorization-before-effect",
+          "requirement": "the authorization checks and branches for the authenticated user, the requested document, and the selected version or original/archive representation",
+          "requiredPermission": "authorization"
+        }
+      ],
+      "residualRequest": "Identify the authorization checks and branches for the authenticated user, the requested document, and the selected version or original/archive representation, and state where those checks occur relative to selection of the returned file.",
+      "origin": "model-task-proposal"
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "state": "prepared",
+      "properties": [
+        {
+          "id": "task-property-c9ce1fc5266591a31c41",
+          "kind": "authorized-object-matches-effect",
+          "requirement": "whether selecting another document version or choosing original versus archive changes the resource on which authorization is evaluated"
+        }
+      ],
+      "residualRequest": "Determine whether selecting another document version or choosing original versus archive changes the resource on which authorization is evaluated, or only changes the representation or file returned after authorization; distinguish all relevant branches.",
+      "origin": "model-task-proposal"
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "state": "residual",
+      "properties": [],
+      "residualRequest": "State precisely which source, configuration, deployment, ownership, or object-grant facts needed for a conclusion are unavailable, and identify the exact conclusion each missing fact blocks without assuming behavior outside the allowed evidence.",
+      "origin": "model-task-proposal",
+      "reason": "This is an evidence-limit and conditional-conclusion reporting request, not an asserted authorization property."
+    }
+  ],
+  "sourceWorkMetrics": {
+    "sourceInterpretationSubmissions": 3,
+    "validSourceEdits": 10,
+    "retainedSourceDrafts": 2,
+    "localInterpretationRepairs": 3,
+    "lowLevelFallbacks": 0,
+    "acceptedSourceUnits": 2,
+    "controlSteps": 15
+  },
+  "materialUses": [
+    {
+      "kind": "entry",
+      "operationId": "document-download",
+      "questionId": "requested-document-and-returned-file",
+      "materialId": "material-2a1598b312b45d0690a93e1e",
+      "arguments": []
+    },
+    {
+      "kind": "call",
+      "operationId": "document-download",
+      "questionId": "requested-document-and-returned-file",
+      "materialId": "material-3ba00c0a7f57ec262369eb21",
+      "callerMaterialId": "material-2a1598b312b45d0690a93e1e",
+      "relationId": "call-474c747edb2d44ff9dc93ddb",
+      "receiverClass": "documents.views.DocumentViewSet",
+      "arguments": [
+        {
+          "parameter": "self",
+          "object": "self"
+        },
+        {
+          "parameter": "pk",
+          "object": "pk"
+        },
+        {
+          "parameter": "request",
+          "object": "request"
+        },
+        {
+          "parameter": "disposition",
+          "object": "literal-anchor-89884338f8e27dd5cc68eacb-disposition"
+        }
+      ]
+    },
+    {
+      "kind": "entry",
+      "operationId": "document-download",
+      "questionId": "authorization-and-selection-order",
+      "materialId": "material-2a1598b312b45d0690a93e1e",
+      "arguments": []
+    },
+    {
+      "kind": "call",
+      "operationId": "document-download",
+      "questionId": "authorization-and-selection-order",
+      "materialId": "material-3ba00c0a7f57ec262369eb21",
+      "callerMaterialId": "material-2a1598b312b45d0690a93e1e",
+      "relationId": "call-474c747edb2d44ff9dc93ddb",
+      "receiverClass": "documents.views.DocumentViewSet",
+      "arguments": [
+        {
+          "parameter": "self",
+          "object": "self"
+        },
+        {
+          "parameter": "pk",
+          "object": "pk"
+        },
+        {
+          "parameter": "request",
+          "object": "request"
+        },
+        {
+          "parameter": "disposition",
+          "object": "literal-anchor-89884338f8e27dd5cc68eacb-disposition"
+        }
+      ]
+    },
+    {
+      "kind": "entry",
+      "operationId": "document-download",
+      "questionId": "alternate-version-authorized-resource",
+      "materialId": "material-2a1598b312b45d0690a93e1e",
+      "arguments": []
+    },
+    {
+      "kind": "call",
+      "operationId": "document-download",
+      "questionId": "alternate-version-authorized-resource",
+      "materialId": "material-3ba00c0a7f57ec262369eb21",
+      "callerMaterialId": "material-2a1598b312b45d0690a93e1e",
+      "relationId": "call-474c747edb2d44ff9dc93ddb",
+      "receiverClass": "documents.views.DocumentViewSet",
+      "arguments": [
+        {
+          "parameter": "self",
+          "object": "self"
+        },
+        {
+          "parameter": "pk",
+          "object": "pk"
+        },
+        {
+          "parameter": "request",
+          "object": "request"
+        },
+        {
+          "parameter": "disposition",
+          "object": "literal-anchor-89884338f8e27dd5cc68eacb-disposition"
+        }
+      ]
+    },
+    {
+      "kind": "entry",
+      "operationId": "document-download",
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "materialId": "material-2a1598b312b45d0690a93e1e",
+      "arguments": []
+    },
+    {
+      "kind": "call",
+      "operationId": "document-download",
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "materialId": "material-3ba00c0a7f57ec262369eb21",
+      "callerMaterialId": "material-2a1598b312b45d0690a93e1e",
+      "relationId": "call-474c747edb2d44ff9dc93ddb",
+      "receiverClass": "documents.views.DocumentViewSet",
+      "arguments": [
+        {
+          "parameter": "self",
+          "object": "self"
+        },
+        {
+          "parameter": "pk",
+          "object": "pk"
+        },
+        {
+          "parameter": "request",
+          "object": "request"
+        },
+        {
+          "parameter": "disposition",
+          "object": "literal-anchor-89884338f8e27dd5cc68eacb-disposition"
+        }
+      ]
+    }
+  ],
+  "properties": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "propertyId": "task-property-8affa6f1b2ffe1631b2c",
+      "kind": "operation-completion",
+      "status": "unknown",
+      "gaps": [
+        "effect-unbound",
+        "property-source-effect-unadopted",
+        "property-dependency-open:DocumentSerializer",
+        "property-dependency-open:IntegerField",
+        "property-dependency-open:DateTimeField",
+        "property-dependency-open:CharField",
+        "property-dependency-open:DictField",
+        "property-dependency-open:BooleanField",
+        "property-dependency-open:ListField",
+        "property-dependency-open:NotesSerializer",
+        "property-dependency-open:dispatch",
+        "property-dependency-open:get_extra_actions",
+        "property-dependency-open:as_view",
+        "property-dependency-open:initialize_request",
+        "property-dependency-open:class-decorator-4b6f95c2987420ca71915f15",
+        "property-dependency-open:action-ebcc2f88655beb248247fde7",
+        "property-dependency-open:action-ebcc2f88655beb248247fde7:registration"
+      ],
+      "traceSources": []
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "propertyId": "task-property-aaeb004ad4900ecf7dc1",
+      "kind": "authorization-before-effect",
+      "status": "unknown",
+      "gaps": [
+        "property-query-unbound",
+        "property-source-unlocated"
+      ],
+      "traceSources": []
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "propertyId": "task-property-c9ce1fc5266591a31c41",
+      "kind": "authorized-object-matches-effect",
+      "status": "unknown",
+      "gaps": [
+        "property-query-unbound",
+        "property-source-unlocated"
+      ],
+      "traceSources": []
+    }
+  ],
+  "qualifiedCrossSourcePropertyCount": 0,
+  "wholeTaskCertified": false,
+  "accountUsage": {
+    "input": 3623645,
+    "output": 17577,
+    "cacheRead": 3338240,
+    "cacheWrite": 0
+  },
+  "hostToolCalls": 49
+}

@@ -2898,7 +2898,7 @@ BC3的配置承载位置已确认为现有`InquiryStrategy`/strategy flag。任�
 
 BC5复用已有typed field/返回/alias表达，不扩语义schema。仅task-binding按当前实际receiver身份保留显式解释的field身份；同类型alias还需匹配当前源码RHS或返回表达式，不能替换lookup实际返回对象。当前字面量覆盖、冲突类型或未绑定receiver保持gap；角色语义仍来自提案，不根据request/pk名称升级类型。
 
-BC9补足共享操作的逐题性质事务：只有当前已采用的共享入口存在时，后续原题才可复用已接受源码解释的草稿，获得本题的空propertyBindings和当前qualified refs。模型必须显式提交本题绑定；不同问题的绑定/verdict不复制，歧义owner与stale revision继续由原validator拒绝。已准备但尚无源owner的性质仍以unknown/property-source-unlocated保留。准备deadline仅覆盖准备生命周期，complete后最终快照仍核对允许路径与所有当前文件SHA，外部取消继续有效。
+BC9补足共享操作的逐题性质事务：只有当前已采用的共享入口存在时，后续原题才可复用已接受源码解释的草稿，获得本题的空propertyBindings和当前qualified refs。模型必须显式提交本题绑定；不同问题的绑定/verdict不复制，歧义owner与stale revision继续由原validator拒绝。已准备但尚无源owner的性质仍以unknown/property-source-unlocated保留。准备deadline仅覆盖准备生命周期，complete后最终快照仍核对允许路径与所有当前文件SHA，外部取消继续有效。准备完成后progress不再发事件，最终快照耗时不计成准备耗时；原报告错误计量以独立校正记录说明，不覆盖原件。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 

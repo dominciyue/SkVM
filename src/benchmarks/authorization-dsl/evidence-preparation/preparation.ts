@@ -22,7 +22,7 @@ export function sourcePreparation(options: SourcePreparationOptions = {}) {
   return {
     events, check,
     start(next: PreparationPhase, file: string | null = null) { check(); phase = next; currentPath = file; emit("started") },
-    progress(extra: Partial<PreparationProgress> = {}) { check(); if (extra.currentPath !== undefined) currentPath = extra.currentPath; if (extra.completedFiles !== undefined) completedFiles = extra.completedFiles; if (extra.totalFiles !== undefined) totalFiles = extra.totalFiles; if (extra.bytes !== undefined) bytes = extra.bytes; emit("progress", extra) },
+    progress(extra: Partial<PreparationProgress> = {}) { check(); if (completed) return; if (extra.currentPath !== undefined) currentPath = extra.currentPath; if (extra.completedFiles !== undefined) completedFiles = extra.completedFiles; if (extra.totalFiles !== undefined) totalFiles = extra.totalFiles; if (extra.bytes !== undefined) bytes = extra.bytes; emit("progress", extra) },
     end(extra: Partial<PreparationProgress> = {}) { emit("completed", extra); check() },
     fail(error: unknown) { const message = error instanceof Error ? error.message : String(error); emit(/cancelled/.test(message) ? "cancelled" : "failed", { error: message, ...(error && typeof error === "object" && "ownedWorkerExited" in error ? { detail: "owned-worker-exited" } : {}) }) },
     complete() { check(); completed = true; phase = "complete"; currentPath = null; emit("completed") },

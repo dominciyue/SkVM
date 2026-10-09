@@ -2361,7 +2361,11 @@ OWUI native消费者已加载完整原skill与11个原题请求，原声明/Usag
 
 **BC9首件与定点修复。** 原Download四题、完整skill和95文件/1,412,762字节在8e0ce201真实消费；官方completed并交付，准备7.92s、端到端537.68s、账号528.19s，42宿主工具。模型自动提出三性质并保留第四题证据限制残余；源码解释11次、115合法字段、8采用单元，20材料使用不构成跨源checked/violated。独立源码评阅前三题full，第四题因未逐个映射缺失事实与精确被阻结论为partial；原四题整体source-partial。input3,623,050（含cache-read3,269,888）/output19,754；美元、隐藏provider请求、真人作者分钟未知。
 
-首件最终核验失败于准备deadline被沿用到8.8分钟后的walk，并非证实源码改变；独立零调用核对95个SHA全同，原失败核验仍保留。另一个真实接线缺口是共享operation已将入口/调用投影给四题，但propertyDemand/focus只支持sourceQuestion；后续性质被错报undeclared。红测先证后续原题无性质结果，现在task-binding为已采用共享入口的后续题提供独立空propertyBindings事务，复用已接受源解释，模型显式选择本题refs；声明未定位仍unknown。撤回后不复活、两源trace及旧策略反例联合99tests/643断言通过，主tsc通过；追加refs唯一性检查后再验证。原锚点错投、非法return role和未解释ORM保留正确拒绝，不用宿主写入正确角色。首次原件/评阅在[original](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/attempts/native-download/original/source-review.json)，具名同题复验尚待执行；无合格局部基础时质量/previous继续阻断。
+首件最终核验失败于准备deadline被沿用到8.8分钟后的walk，并非证实源码改变；独立零调用核对95个SHA全同，原失败核验仍保留。另一个真实接线缺口是共享operation已将入口/调用投影给四题，但propertyDemand/focus只支持sourceQuestion；后续性质被错报undeclared。红测先证后续原题无性质结果，现在task-binding为已采用共享入口的后续题提供独立空propertyBindings事务，复用已接受源解释，模型显式选择本题refs；声明未定位仍unknown。撤回后不复活、两源trace及旧策略反例联合99tests/643断言通过，主tsc通过；追加refs唯一性检查后再验证。原锚点错投、非法return role和未解释ORM保留正确拒绝，不用宿主写入正确角色。首次原件/评阅在[original](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/attempts/native-download/original/source-review.json)，原件不替换；无合格局部基础时质量/previous继续阻断。
+
+**BC9具名复验与计量校正。** a129b8fc执行`preparation-and-question-binding-1`，completed交付49工具，最终核验95文件有效。实际准备7.583s、端到端497.557s、账号488.683s；原报告把最终walk的106条progress追加到已完成准备，误记497.140s，保留原件并另存[计量校正](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/bc9-preparation-measurement-correction.json)。红绿证明complete之后progress必须保持terminal和elapsed，外部abort仍生效；38tests/180断言及主/BC类型通过。
+
+复验三性质仍unknown，两题不再错报undeclared；模型仅10合法字段/2采用，`download → file_response`下游role未解释，因此尚未达到逐题性质事务的前置采用条件。原四题独立评阅partial/full/full/full：Q1漏默认latest/root fallback、显式version成员关系及空version分支，Q4逐项缺失事实映射改善；自然充分性与机器检查分别记录。引用`urls.py:77`实际有效，探子对此的质疑经原行复核撤销；views路径笔误单列，原答未修写。input3,623,645（含cache3,338,240）/output17,577。两次原题无合格跨源性质，停止同题抽样，保留[复验诊断](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/bc9-retest-diagnosis.json)，仅继续登记的独立变化；N/D和previous资格仍未满足。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
