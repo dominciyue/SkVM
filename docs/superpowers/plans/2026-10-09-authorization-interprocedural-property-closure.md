@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod/Ajv、已有 Python/Go 索引和有限求值器。开发 `gpt-6.1-sol / max`；实验使用已授权的当前官方账号 `gpt-5.6-sol / high`。第三方付费 API 继续暂停。
 
-**执行状态：** `completed-with-unmet-criteria`，本次获准执行已收束，待发布。恢复基线2e854117。具名OWUI再次超时无终态，用户明确保留两次未知原件/费用并仅批准三个fresh各一次；policy/source交付且自然partial、premise终态routing失败未交付，三个previous无合格基础。16位置中13已尝试、3blocked，共15去重尝试/12自然交付。原两次未知仍使finiteQueueComplete=false，researchGoalAchieved=false；本次授权范围结束与完整队列/研究目标分别记录。
+**执行状态：** `completed-with-unmet-criteria`，本次获准执行已收束并已发布至用户远端。恢复基线2e854117。具名OWUI再次超时无终态，用户明确保留两次未知原件/费用并仅批准三个fresh各一次；policy/source交付且自然partial、premise终态routing失败未交付，三个previous无合格基础。16位置中13已尝试、3blocked，共15去重尝试/12自然交付。原两次未知仍使finiteQueueComplete=false，researchGoalAchieved=false；本次授权范围结束与完整队列/研究目标分别记录。
 
 **后续入口：** 读BB `verification/authorized-execution-closeout.json`和`verification/acceptance-matrix.json`。两次未知均已按各自用户限定处置保留原锁/raw，不能再据这两次批准派发OWUI或重抽fresh。下一次工作先明确未达责任；重放下一步是拆分createInquiryTools准备计时，不重复完整96步。零调用状态命令为 `bun ./results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/study.ts status`。
 
@@ -270,7 +270,7 @@ OWUI首件已completed，自然原题full，7单元/115控制步骤但0采用/�
 ### BB16 发布与可恢复交付
 
 - [x] 只暂存本轮归属文件；8份新gzip可解压解析，17份原件暂存blob与工作区逐字节相同，属性和SHA记录见verification/resume-archive-integrity.json。
-- [ ] 聚焦提交，推用户 `origin/skill-ir-aot` 并核对实际远端。不得重置其他工作或推 upstream。
+- [x] 聚焦提交并推用户 `origin/skill-ir-aot`，已核对证据提交b45cdbc3的实际远端与本地相同，记录在verification/resume-publication.json；仅补记发布元数据，不推upstream。
 - [x] 总结实际可用范围、仍未达责任、保留诊断、外部暂停条件及下一条可执行命令，见authorized-execution-closeout/acceptance-matrix。授权执行结束、完整队列与researchGoalAchieved分开。
 - [x] 已完成独立工程和上述交接；未达重放/性质/完整消费及未知外部终态如实保留，不追加探针、等待或付费重抽。
 
