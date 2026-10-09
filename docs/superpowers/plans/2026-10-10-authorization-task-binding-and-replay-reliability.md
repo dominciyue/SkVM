@@ -202,11 +202,12 @@ expect(afterInvalidUpdate.currentCheckedVerdicts).toHaveLength(0)
 
 ### BC8 真实运行准备、生命周期与计量
 
-- [ ] runner 复用既有归档/账号/单写锁，新增准备失败零派发、取消确认与本地 timeout unknown、部分 usage 不入最终数、引用去重和修订新 attempt 的测试。
-- [ ] 不新增健康探针。最近 BB source-fresh 已有 completed 终态，账号并非永久 unavailable；就绪 Download 任务直接走用户授权通道。
-- [ ] 当前新 unknown 只核查原生命周期，不能自动重抽/清锁。两旧 OWUI disposition/字节保留且不传播为新 Download 的伪零成本。
-- [ ] 实际 runtime 上限沿用现有受控配置，不用扩大预算绕过绑定缺口；输出部分进度和具名缺口应在正常退出路径保留。准备阶段耗时与模型阶段分账。
-- [ ] 提交：`fix: retain preparation and terminal evidence in task binding runs`。
+- [x] runner 复用既有归档/账号/单写锁，取消/失败先于模型派发；readiness失败另存不可覆盖的零派发记录，公开previous拒绝记blocked。56tests/318断言、主/BC类型通过。
+- [x] 不新增健康探针。最近 BB source-fresh 已有 completed 终态，账号并非永久 unavailable；就绪 Download 任务直接走用户授权通道。
+- [x] 当前新 unknown 只核查原生命周期，不能自动重抽/清锁。两旧 OWUI disposition/字节保留且不传播为新 Download 的伪零成本。wx单写锁与首件/修订身份分别验证。
+- [x] 实际上限64工具、768KiB展示、32MiB读取、45分钟；保存分阶段进度，准备计入总耗时、账号耗时另报。部分usage不入最终数、引用去重、缓存输入不重复计数。
+- [x] 基线资格核对原四题/性质含义/原源码SHA、模型/effort/预算/skill/生产树及独立评阅哈希；来源变化按原基础资格、当前依赖失效分别处理，不按consumer名称选取。
+- [x] 提交：`fix: retain preparation and terminal evidence in task binding runs`。
 
 ### BC9 Download 普通原包真实使用
 
@@ -283,6 +284,18 @@ git diff --check
 ```
 
 新增 `property-intent.test.ts` 和 BC `study.test.ts` 后分别运行其精确路径；BC `tsconfig.json` 继承现有研究配置并运行 `bunx tsc --noEmit -p ./results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/tsconfig.json`。正式派发前，新 runner 的 run/replay/summary 命令必须已经实现、help 和零调用输入验证通过，并将精确命令写回本页；不要把尚不存在的命令说成可运行。
+
+BC8已实现的当前命令（普通生产入口由runner调用；replay与prepare均零模型）：
+
+```powershell
+bun ./results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/study.ts help
+bun ./results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/study.ts prepare native-download
+bun ./results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/study.ts run native-download
+bun ./results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/study.ts summarize
+bun ./results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/study.ts replay <new-label>
+```
+
+其余run只能用已登记位置；原件保留，具名修订作为第二参数。quality位置需独立评阅的当前原任务跨源性质，previous另需可恢复会话；未满足时不会付费派发。官方unknown保留锁，routing仅在原生命周期证实终态后按有限恢复规则执行。
 
 准备故障的验证要求是原 scope 能完成且等价，或在尚未修复时以明确失败结束、可继续定位；只完成后者仍是部分工程验收。局部性质验收要求真实模型提案经公开入口、当前源采用、跨源非空 trace、checked/violated 和独立源码支持；`bound`、测试数、自然 full 单独出现均按其本来含义报告。
 

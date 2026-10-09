@@ -2,15 +2,15 @@
 
 更新于2026-10-10。唯一实时入口为 [current-status](current-status.md)。
 
-- 当前任务书：[BC0–BC14：任务性质准备、跨调用语义修复与可重放交付](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)，`in-progress`，BC0登记完成，BC1先做零模型准备定位。
-- 方法合同：[spec §14.42](skill-ir-aot-optimization-spec.md#1442-bc-task-binding-and-replay-reliability)；复核依据：[研究 §7.64](skill-dsl-research.md#764-bc-任务性质准备与跨调用修复)。基线 `b1aa7b4c`；本次只有计划和复核，没有新模型实验。
+- 当前任务书：[BC0–BC14：任务性质准备、跨调用语义修复与可重放交付](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)，`in-progress`，BC0–BC8已实施并验证，继续BC9原包真实使用。
+- 方法合同：[spec §14.42](skill-ir-aot-optimization-spec.md#1442-bc-task-binding-and-replay-reliability)；复核依据：[研究 §7.64](skill-dsl-research.md#764-bc-任务性质准备与跨调用修复)。实施基线 `ee1a0522`；准备定位/任务前端/调用修复/原件派生重放已完成，BC9前尚无新模型实验。
 - 开发 `gpt-6.1-sol/max`，实验当前官方账号 `gpt-5.6-sol/high`；继续skill-ir-aot、仅用户origin，第三方API和AV旧位置继续暂停。
 
 ## 当前目标
 
 普通用户给出原skill和自然任务后，系统先产生可追溯的性质问题，再让有源码依据的跨函数对象解释进入现有v7检查。优先修准备阶段实际故障、任务前端和定向修复；新行为显式task-binding-v1，旧默认保持。先取得Download原包的一条当前真实跨源检查，再评价完整原题、变化复用和同条件效果。
 
-两原作者包4题/11题都无properties；质量common文件各有1题/1性质，两者不是同一输入。v7渲染漏掉无声明时的提出指引。Download caller value与helper principal/resource冲突的拒绝有据；request、user、pk、document须按真实源码区分，不能自动改类型取巧。完整重放卡在createInquiryTools，内部热点还需分段测量。
+两原作者包4题/11题都无properties；质量common文件各有1题/1性质，两者不是同一输入。任务前端保留所有原题并生成独立sidecar；Download request、user、pk、document按实际源解释，不能自动改类型。准备热点已定位为重复语法遍历，拥有worker和当前树memo保留相同源身份/revision；原件派生重放仍明确保留缺失含义，不把工程修复当成真实效果。
 
 ## BC 队列与验收责任
 

@@ -6,12 +6,14 @@ import { createInquiryContextEncoder, INCREMENTAL_INQUIRY_CONTEXT_GUIDE } from "
 import { parseNativeInquiryMethod } from "../task-dsl/authorization/operation-program.ts"
 import { runCodexAccountSession, redactCodexEvent, loadCodexAccountBoundary, type AccountTransport } from "./codex-account-session.ts"
 import type { InquiryReuseInfo, InquiryReuseSeed } from "../benchmarks/authorization-dsl/inquiry-reuse.ts"
+import type { SourcePreparationOptions } from "../benchmarks/authorization-dsl/evidence-preparation/preparation.ts"
 
 export interface AccountInquiryOptions {
   inputFile: string; workDir: string; model: string; method?: "M" | "D0" | "D1"; strategy?: InquiryStrategy; skillContent?: string
   domainTools?: boolean; maxToolCalls?: number; maxDisplayBytes?: number; maxReadBytes?: number; timeoutMs?: number; traceDir?: string
   reuse?: { info: InquiryReuseInfo; seed: InquiryReuseSeed }; transportFactory?: () => AccountTransport
   accountBoundaryFile?: string
+  preparation?: SourcePreparationOptions
 }
 /** Both account entrances execute the existing native domain core. The official
  * CLI controls generation and history; no provider adapter or second agent loop. */
@@ -63,7 +65,7 @@ export class CodexAccountAdapter implements AgentAdapter {
   }
   async run(task: Parameters<AgentAdapter["run"]>[0]): Promise<RunResult> {
     const p = this.config.providerOptions ?? {}, numeric = (key: string) => typeof p[key] === "number" ? p[key] as number : undefined
-    const { account, native } = await runCodexAccountInquiry({ inputFile: p.authorizationScope as string, workDir: task.workDir, model: this.config.model, method: parseNativeInquiryMethod(p.authorizationMethod), strategy: parseInquiryStrategy(p.authorizationStrategy), domainTools: p.authorizationDomainTools === true, skillContent: task.skill?.content, maxToolCalls: numeric("authorizationMaxToolCalls"), maxDisplayBytes: numeric("authorizationMaxDisplayBytes"), maxReadBytes: numeric("authorizationMaxReadBytes"), timeoutMs: numeric("authorizationSessionTimeoutMs") ?? task.timeoutMs ?? this.config.timeoutMs, traceDir: typeof p.authorizationTraceDir === "string" ? p.authorizationTraceDir : undefined, accountBoundaryFile: typeof p.authorizationAccountBoundary === "string" ? p.authorizationAccountBoundary : undefined, transportFactory: this.transportFactory })
+    const { account, native } = await runCodexAccountInquiry({ inputFile: p.authorizationScope as string, workDir: task.workDir, model: this.config.model, method: parseNativeInquiryMethod(p.authorizationMethod), strategy: parseInquiryStrategy(p.authorizationStrategy), domainTools: p.authorizationDomainTools === true, skillContent: task.skill?.content, maxToolCalls: numeric("authorizationMaxToolCalls"), maxDisplayBytes: numeric("authorizationMaxDisplayBytes"), maxReadBytes: numeric("authorizationMaxReadBytes"), timeoutMs: numeric("authorizationSessionTimeoutMs") ?? task.timeoutMs ?? this.config.timeoutMs, traceDir: typeof p.authorizationTraceDir === "string" ? p.authorizationTraceDir : undefined, accountBoundaryFile: typeof p.authorizationAccountBoundary === "string" ? p.authorizationAccountBoundary : undefined, transportFactory: this.transportFactory, preparation: p.authorizationPreparation as SourcePreparationOptions | undefined })
     const runStatus = account.status === "completed" ? "ok" : account.status === "timeout-unknown" ? "timeout" : account.status === "undelivered" ? "parse-failed" : "adapter-crashed"
     // Legacy RunResult requires numeric slots; availability=false prevents them
     // from becoming a zero-cost claim. Visible account tokens live in account.usage.

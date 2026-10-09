@@ -2357,6 +2357,8 @@ OWUI native消费者已加载完整原skill与11个原题请求，原声明/Usag
 
 **BC7当前原件派生重放。** 当前BC入口独立于旧BB runner，实际重放BB consumer-download-inquiry/original和pilot-owui/original的gzip原件。Download95文件/1,412,762字节准备7.88s，OWUI173文件/3,149,729字节20.82s；分别消费2/7份解释，annotations完全同字节，两原件SHA未变。只机械更新宿主revision/合格ref revision，无新性质/源角色/模型请求。首缺分别为serve_file（views.py:4941–4995，15字段）和get_async_db_context（internal/db.py:413–419，3字段），owner/revision/下一动作单独保留。Download原四题无声明仍无机器性质，OWUI原guard及framework依赖仍unknown；未把旧缺失语义修成成功。机械迁移红绿2tests/6断言与BC类型通过；[当前派生原件](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/current-derived-replay/original/summary.json)可重算，两旧OWUI未知处置保持。
 
+**BC8生命周期与计量。** 当前runner走普通native/inquiry入口，保留原四题/完整skill及实际system/tool/input哈希；准备取消先终止拥有worker、不建transport，主入口和inquiry会话均保存task sidecar。首件与具名修订互不覆盖，wx单写锁在active/unknown时保留；readiness故障单独留零派发记录，公开previous拒绝明确blocked。原routing有限恢复继续复用，不开健康探针。源码准备及readiness计入总耗时，账号耗时另记，timeout局部usage不入最终费用，引用按attempt去重、cache-read不再加input。只读复核发现基线身份不够明确，补红绿：错误源码、模型/effort、性质kind/任务跨度、四题顺序、评阅answer哈希及trace源SHA均阻断，资格不绑定consumer名称；来源变化用原基础资格加当前依赖失效。56tests/318断言、主/BC类型检查通过；此阶段仍无BC真实模型请求，下一步直接执行已授权的native-download原四题。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
