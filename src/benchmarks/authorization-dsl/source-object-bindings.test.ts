@@ -46,7 +46,7 @@ for (const [mode, status] of [["same", "checked"], ["other-request", "violated"]
   try {
     const property = f.report.propertyAnalysis!.checks!.questions[0]!.properties[0]!
     expect(property.status, JSON.stringify(property)).toBe(status)
-    if (status !== "unknown") expect(new Set(("traceDetails" in property ? property.traceDetails : []).map(r => r.source.id)).size).toBeGreaterThan(1)
+    if (status !== "unknown") expect(new Set(("traceDetails" in property ? property.traceDetails : []).flatMap(r => r.source ? [r.source.id] : [])).size).toBeGreaterThan(1)
     expect(f.report.propertyAnalysis!.checks!.wholeTaskCertified).toBe(false)
   } finally { f.runtime.close() }
 })
