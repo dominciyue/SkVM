@@ -2279,6 +2279,10 @@ AZ1诊断工程（2026-10-09）：投影现在明确报告版本/来源/依赖�
 
 渐进恢复红测发现两个额外共享问题：切换focus按focus id丢失合法partial字段；重复绑定被拒绝后下一check还能恢复旧verdict。v7改为源handle/revision草稿，并将当前hard source拒绝带入检查直到纠正；新源码读取仍失效。所有残余留在完整任务，独立effect之后unknown不笼统阻断已覆盖的局部性质。补充指引测试又发现v6旧说法与v7采用冲突，当前phase按版本选择实际合同。12文件联合425 pass/4447断言、主typecheck通过，新增指引后公开链21 pass/209断言。只读核验提出“声明占位与显式绑定应冲突”的意见经spec§14.40和既有反例否决；显式绑定优先于占位是已有合同，两份显式绑定仍严格拒绝。当前证据只判工程，BA派生重放和真实使用继续。
 
+**BB7/8原件与派发准备。** 原unit/draft、program和checkHistory以压缩fixture保留，新增Git binary例外防止text过滤。公开重放起初遗漏source_symbol候选供应，并把显示裁剪视图当完整anchor全集；点验实际索引证明原来源SHA/id一致，修正为实际source_symbol结果选位及完整owner skeleton。仅宿主revision迁移，12份原解释annotations均保持原字节字段，新增含义0。Download 7材料/5采用、OWUI 5材料/5采用，原BA 1/0及原成绩不改。额外未解释caller/callee、框架与局部query unknown保留，派生检查不是模型实测；见verification/ba-derived-replay.json。
+
+恢复runner已核实BA failed lifecycle SHA982ab021...、无active/unknown。共同原任务M/D使用同份声明/源码/skill，N保留完整自然brief；两原作者包声明/Usage字节相同，95/173允许文件预检通过，实际消费pending。独立只读核验后补付费并发排他、第三次恢复失败阈值、failed部分文本不算delivered、评阅使用原输入快照并验hash，均先红→绿；计量保留input含cache与cache子集，已有inputIncludesCache合同和测试，未采纳“二者已经相加”的错误意见。研究15 pass/60断言、公开重放1 pass/8断言和研究tsc通过。仍无BB模型调用，下一步真实Download pilot，不额外探针。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

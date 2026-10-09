@@ -130,7 +130,7 @@ def perform(actor, target, permitted):
 
 - [x] 检查分支/HEAD/脏文件和活动运行，读取必读上下文。基线553509a6，起始工作树干净；BA活动/未知完成均为空。SSH远端查询失败，发布阶段重新核实同fork。
 - [x] 创建新 identity、status、manifest；分开 `requirements` 和 `outcomes`，后者初值 pending/not-measured，不用一串 true 表示验收要求。
-- [x] 提取 BA 的 Download transaction-priority-1、OWUI original 和 await 离线重放所需输入；保留出处，不复制全部历史目录。见 `fixtures/ba-original.json`；零模型调用、原件不改写。
+- [x] 提取 BA 的 Download transaction-priority-1、OWUI original 和 await 离线重放所需输入；保留出处，不复制全部历史目录。见 `fixtures/ba-original.json.gz`；零模型调用、原件不改写。
 - [x] 建立代码责任、BB 阶段和下述 16 个实际使用位置。BA 原件及未执行行不变。登记回归3 pass/15断言、本轮tsc通过。
 
 ### BB1 用公共链写失败测试
@@ -174,14 +174,14 @@ def perform(actor, target, permitted):
 
 - [x] 同一匿名任务从普通 native 和 inquiry 入口完成 read→edit→material→query→check，不能用 `initialSemanticUnits` 或直接写 store 代替实际提交。
 - [x] 源文件、对象参数或当前绑定改变后，旧结果撤回和新检查均从公共入口发生；v6历史兼容定向测试通过。原政策变化的真实复用仍归BB13。
-- [ ] 对两份 BA 原提案做当前实现的派生重放，明确原始计数/派生计数及首阻断；不填回旧 report。
+- [x] 对两份BA原提案通过公开source事务做当前实现的派生重放；Download 7材料/5采用，OWUI 5材料/5采用，原1/0不改。只迁移同SHA有效anchor的宿主revision，新增语义字段0；完整原题仍有未知，见verification/ba-derived-replay.json。
 - [x] “bound 数增加”不作为完成标准：跨函数正例和错误对象反例均有非空当前检查轨迹，之后进入真实pilot。公共链21 pass/209断言；联合12文件425 pass/4447断言与主typecheck通过。
 
 ### BB8 有目的的官方通道恢复
 
-- [ ] 将第六节规则写入新 runner 并先测 success→routing、consecutive routing、quota/auth、unknown 和重复 claim。
-- [ ] 核实 BA 最后尝试确已终态、无活动/未知完成，记录继承状态。新身份允许一次就绪真实 pilot 的重新进入，不要求先额外发 probe 证明账号可用。
-- [ ] 每次实际 dispatch 保存生命周期、终态、用量可用性及失败原因；不以环境报错当源码质量错误。
+- [x] 将第六节规则写入新runner；success→routing、连续routing、第三次恢复失败、quota/auth、unknown、重复claim和付费并发互斥均先红→绿。15 tests/60断言与研究tsc通过；original-byte评阅输入哈希及failed部分文本不算交付已补。
+- [x] 核实BA最后failed终态、无活动/未知完成，继承lifecycle SHA982ab021...与原状态保持，见verification/inherited-terminal.json。新身份允许就绪真实pilot重新进入，无额外probe。
+- [x] runner接通实际生命周期、终态、用量可用性及失败原因归档；实际dispatch证据待BB9。输入共同事实等价和两包原字节95/173文件预检通过，不算真实消费。
 
 ### BB9 Download 跨函数局部真实闭合
 

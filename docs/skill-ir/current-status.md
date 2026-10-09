@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**当前任务书为 [BB0–BB16：跨函数性质闭合、渐进解释与真实使用](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)，状态 `in-progress`。** BB0–BB6已实现，BB7公共双入口已通过匿名mock，BA原件派生重放及BB8恢复runner正在完成。v7定向联合425项/4447断言与主typecheck通过，补充指引后公共链21项/209断言通过。真实使用和研究验收仍未测。
+**当前任务书为 [BB0–BB16：跨函数性质闭合、渐进解释与真实使用](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)，状态 `in-progress`。** BB0–BB8工程完成，公开双入口与BA原提案派生重放通过，恢复runner及共同事实预检就绪。Download/OWUI派生采用均为5，原1/0不改，相关未知保持。v7联合425项/4447断言、补充公开链21项/209断言、研究15项/60断言与派生重放1项/8断言、主/研究typecheck通过。BB9真实使用即将开始，研究验收仍未测。
 
 BB先保留effect/context标注下的源码调用，沿真实调用实例连接实参/形参/receiver/返回对象，再让跨单元性质检查消费可达路径；已解释片段逐步采用，相关未知继续保留。复用现有求值器和普通入口，新增行为显式v7。先做匿名正反例和公共链，再进入两真实任务、同条件比较、两包消费和三变化。方法合同见[spec §14.41](skill-ir-aot-optimization-spec.md#1441-bb-interprocedural-property-closure)，复核依据见[研究 §7.63](skill-dsl-research.md#763-bb-跨函数性质闭合的复核与开发决定)。
 
@@ -34,7 +34,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 ## 账号、运行和继承边界
 
 - 开发 `gpt-6.1-sol/max`；实验沿用用户已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。
-- AY额度提示、AZ unavailable及BA `paused-recurring-routing`均保留。BB任务书明确允许在核实无活动/未知完成后，用一个已就绪真实pilot重新进入同官方通道；不是已恢复的事实。连续两次终态routing失败，或累计三次routing恢复仍失败，则暂停BB外部调用；成功真实任务只重置连续计数，累计失败和成本不清零。quota/auth立即暂停，unknown只核查原生命周期。规则尚待BB8实现验证，不额外探针、轮询或旁路。
+- AY额度提示、AZ unavailable及BA `paused-recurring-routing`均保留。BB已核实无活动/未知完成，并允许就绪真实pilot重新进入同官方通道；不是已恢复的事实。连续两次终态routing失败，或累计三次routing恢复仍失败，则暂停BB外部调用；成功真实任务只重置连续计数，累计失败和成本不清零。quota/auth立即暂停，unknown只核查原生命周期。恢复计数及付费并发锁已测试，不额外探针、轮询或旁路。
 - 不自动切账号、模型、端点或购买额度；未知完成先核查本地生命周期。缺报USD、隐藏请求、开发/探子成本和真人分钟保持unknown。
 - 保留原skill、全部原问题、允许源码、用户独立政策及前提。模型输入隔离评价器、历史答案和开发修复记录。held-out、Q1、prospective、readiness和历史 `0/6` 不变。
 - 主开发线程是代码、共享方法文档和Git的唯一写者。继续现有分支，不创建worktree；只读探子按AGENTS使用。
