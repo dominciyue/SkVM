@@ -2377,6 +2377,8 @@ usage使用原check/run/inspect/edit/compare，不新增CLI。实际公开check/
 
 **BC11 premise-fresh。** 769f4b14原四题completed交付，44工具，95源最终核验有效，准备7.574s、端到端441.576s；3性质prepared、1残余，7解释/6合法编辑/4采用/31步骤。最后focused结果四个paths漏explanation，第四次格式拒绝后delivery closed，实际semantic checksUsed=0；propertyAnalysis需求保留、checks与currentCheck未生成，不能记成三个unknown verdict或序列化丢失。主线程复核[原答](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/attempts/premise-fresh/original/source-review.json)为partial/partial/full/partial：requested doc所有权不等于root所有权，root授权顺序正确；框架/helper分支及源内可读的resolver规则未完成，精确缺失事实映射仍不足。探子误读的缺省deleted-inclusive及path需string经原行撤销：缺省root版本用include_deleted=false，空version才true；path为整数，缺的字段是explanation。无新工程接线故障证据，保留首件后继续独立source-fresh。input2,861,675（含cache2,745,088）/output13,526，费用未知口径保持。
 
+**BC11 source-fresh。** 89ce56d0原四题completed交付，42宿主工具、64/64总预算，95源最终核验有效；准备8.052s、端到端560.715s、账号550.124s。登记快照仅views.py:1424的guard对象由root_doc变为request_doc，[原答评阅](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/attempts/source-fresh/original/source-review.json)确认已识别该变化，四题partial/full/full/partial：Q1仍漏最新/根回退及删除过滤的完整分支，Q4错误把已有router注册列为不可用事实。4性质prepared、1题残余；12解释/146合法编辑/9采用/100步骤，最后一次结构有效的检查仍有入口call role缺失、closure未提出及无效path，4性质全部unknown/空trace。[过程诊断](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/bc11-source-fresh-diagnosis.json)未证新工程故障，不增加同题重抽。input4,096,630（含cache3,751,552）/output21,635；USD与隐藏请求均未知，不能以交付或自然源码结论替代checked/violated。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

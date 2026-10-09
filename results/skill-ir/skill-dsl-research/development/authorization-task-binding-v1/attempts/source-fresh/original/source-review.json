@@ -1,0 +1,127 @@
+{
+  "schemaVersion": "authorization-bc-source-review/v1",
+  "attemptId": "source-fresh/original",
+  "inputSha256": "ce463d689b54f71ab9569fe9e8523e84d8c3f55164c60ba4ff2a6d2b3510979c",
+  "answerSha256": "e829c05b401e88509483cb17a8c51281fdbf38d9a7870a4d973c0682f3ccc7df",
+  "runtimeTree": "60a63df39b334a9cb2000f773946a3d5e62093ea",
+  "status": "source-reviewed",
+  "reviewer": "Primary full-answer/input review and decisive changed-source-line adjudication with independent read-only natural and funnel scouts",
+  "wholeOriginalTask": "source-partial",
+  "questionReviews": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "quality": "partial",
+      "sourceSupported": true,
+      "evidence": [
+        "src/documents/views.py:1368-1448,1834-1839,4941-4995",
+        "src/documents/versioning.py:140-195"
+      ],
+      "reason": "Correct changed request_doc guard, direct-child no-version path, empty-present deleted-inclusive latest path, explicit same-family validation and representation/formatting rules. The original request requires every relevant control branch: latest fallback to root, missing-root fallback and the absence-versus-presence deleted filtering are not all explained. Independent scout full grade was narrowed on these source-known omissions."
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "quality": "full",
+      "sourceSupported": true,
+      "evidence": [
+        "src/documents/views.py:1008-1027,1401-1448",
+        "src/documents/permissions.py:30-53,624-635",
+        "framework/rest_framework-3.18.1/rest_framework/views.py:404-421,490-529"
+      ],
+      "reason": "Correct DRF authentication/model GET permission before handler; explicit ownerless/owner/Guardian object check on request_doc before effective version/file selection; null-user branch qualified by upstream authentication."
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "quality": "full",
+      "sourceSupported": true,
+      "evidence": [
+        "src/documents/views.py:1375-1448",
+        "src/documents/versioning.py:169-195"
+      ],
+      "reason": "Correctly recognizes the changed guard object is request_doc, while file_doc can be another family member. Original/archive chooses a field on file_doc without retargeting or adding a second object check. Root-family normative equivalence remains unspecified."
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "quality": "partial",
+      "sourceSupported": true,
+      "evidence": [
+        "src/paperless/urls.py:77,297",
+        "src/documents/views.py:2503-2504",
+        "src/documents/versioning.py:146-195"
+      ],
+      "reason": "Most unavailable instance/grant/storage/policy facts are appropriate. Answer line 130 incorrectly marks router registration unavailable: urls.py:77 registers documents to UnifiedSearchViewSet, views.py:2503 inherits DocumentViewSet, and urls.py:297 includes router URLs. Missing facts are grouped rather than mapped individually to exact blocked conclusions."
+    }
+  ],
+  "propertyReviews": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "propertyId": "task-property-f26600930f00984a702c",
+      "kind": "effect-reachability",
+      "requirement": "how the selected version and original/archive representation determine the file returned",
+      "status": "unknown",
+      "sourceSupported": false,
+      "reason": "Declared model task property retained, but no checked/violated adopted cross-source trace."
+    },
+    {
+      "questionId": "requested-document-and-returned-file",
+      "propertyId": "task-property-d37524e464b7c472d5f0",
+      "kind": "operation-completion",
+      "requirement": "the file returned",
+      "status": "unknown",
+      "sourceSupported": false,
+      "reason": "Declared model task property retained, but no checked/violated adopted cross-source trace."
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "propertyId": "task-property-916f524e5f49e038733d",
+      "kind": "authorization-before-effect",
+      "requirement": "Identify the authorization checks and branches for the authenticated user, the requested document, and the selected version or original/archive representation, and state where those checks occur relative to selection of the returned file.",
+      "status": "unknown",
+      "sourceSupported": false,
+      "reason": "Declared model task property retained, but no checked/violated adopted cross-source trace."
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "propertyId": "task-property-22daae92bb285e1e811b",
+      "kind": "authorized-object-matches-effect",
+      "requirement": "whether selecting another document version or choosing original versus archive changes the resource on which authorization is evaluated, or only changes the representation or file returned after authorization",
+      "status": "unknown",
+      "sourceSupported": false,
+      "reason": "Declared model task property retained, but no checked/violated adopted cross-source trace."
+    }
+  ],
+  "archiveSourceVerification": {
+    "valid": true,
+    "checkedFiles": 95,
+    "physicalReadBytes": 1412765
+  },
+  "checksPerformed": 1,
+  "propertyAnalysisPresent": true,
+  "propertyChecksPresent": true,
+  "sourceVariant": {
+    "changedFile": "src/documents/views.py",
+    "line": 1424,
+    "before": "root_doc",
+    "after": "request_doc",
+    "answerRecognizesChange": true
+  },
+  "primaryAdjudications": [
+    {
+      "evidence": "views.py:1376-1399; versioning.py:146-166; answer:26-34",
+      "decision": "Q1 remains partial because all source-known fallback and deleted filtering branches are not explained; presence-empty distinction is correctly stated."
+    },
+    {
+      "evidence": "report.json durationMs/accountDurationMs/preparation/actualUsd/providerRequests fields",
+      "decision": "Funnel scout misread preparation duration as total and unknown cost/provider fields as zero or a string. Actual total 560715ms, account 550124ms, preparation 8051.7608ms; USD and provider requests null."
+    },
+    {
+      "evidence": "raw tools 39/41/42",
+      "decision": "Tool 39 controlDelta contains unsupported explanation; 41 invalid conditional path disposition/questionId key; 42 is structurally valid but rule-inconsistent, source fields missing and nonexistent path references. One semantic check occurred; delivery alone does not close any property."
+    }
+  ],
+  "blockers": [
+    "Entry call-anchor-90d71d40db5d949449751359 missing role and closure-not-proposed in all four current paths.",
+    "Q1 effect not adopted/bound; Q2/Q3 property-query-unbound/property-source-unlocated; property traces empty.",
+    "Whole natural task still incomplete, with inaccurate unavailable-router fact."
+  ],
+  "reviewedAt": "2026-10-09T23:14:19.597Z"
+}
