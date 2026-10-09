@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "authorization-bc-source-review/v1",
+  "attemptId": "policy-fresh/original",
+  "inputSha256": "34ca777d929786316f5e4bba142f0ceda69e01385e17bf82e53e4f97d59e64f6",
+  "answerSha256": "dfa47558969997a06112dc97cec3a83f318bfd65a3e5850e297c9d3e0501538c",
+  "runtimeTree": "60a63df39b334a9cb2000f773946a3d5e62093ea",
+  "status": "source-reviewed",
+  "reviewer": "Primary full original-answer/question/policy review with independent read-only source and funnel scouts; archive hashes checked",
+  "wholeOriginalTask": "source-partial",
+  "questionReviews": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "quality": "partial",
+      "sourceSupported": true,
+      "evidence": [
+        "src/documents/views.py:1375-1448",
+        "src/documents/views.py:1834-1839",
+        "src/documents/views.py:4941-4973",
+        "src/documents/versioning.py:140-195",
+        "src/paperless/urls.py:74-77,297"
+      ],
+      "reason": "Routing, lookup, child/default/latest/root fallback, explicit integer/member/error and representation branches are accurate. The every-relevant-branch duty remains incomplete: deleted requested/explicit versions may be selected, absent version uses non-deleted latest, and empty-present version enables the deleted-inclusive latest path. Merely listing deletion state as unavailable does not describe these source-established distinctions."
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "quality": "full",
+      "sourceSupported": true,
+      "evidence": [
+        "src/documents/views.py:1008-1021",
+        "src/documents/views.py:1401-1448",
+        "src/documents/permissions.py:30-53,624-635",
+        "framework/rest_framework-3.18.1/rest_framework/views.py:404-421,490-529"
+      ],
+      "reason": "Correct entry authentication/model permission and explicit root check, ownerless/owner/Guardian branches, and authorization-before-file selection. PaperlessObjectPermissions itself maps GET to view_<model>; the independent scout suggestion to substitute ViewDocumentsPermissions was rejected against lines 30-44."
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "quality": "full",
+      "sourceSupported": true,
+      "evidence": [
+        "src/documents/views.py:1375-1448",
+        "src/documents/versioning.py:169-195",
+        "src/documents/views.py:4941-4973"
+      ],
+      "reason": "Correctly distinguishes root=selected versus distinct selected-child paths and representation-only selection. Conditional apparent nonconformance with the supplied exact-document policy is source-supported, without certifying a deployed exploit or machine verdict."
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "quality": "partial",
+      "sourceSupported": true,
+      "evidence": [
+        "src/documents/views.py:1401-1448",
+        "src/documents/views.py:1834-1839",
+        "src/documents/permissions.py:624-635"
+      ],
+      "reason": "Relevant request/ownership/grant/family/archive/file facts are accurately listed, but they are grouped as preventing a particular success rather than mapped to each exact blocked admission, authorization, document, representation or return conclusion. Static selection/order/policy observations are not blocked by missing deployment state."
+    }
+  ],
+  "propertyReviews": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "propertyId": "task-property-f26600930f00984a702c",
+      "kind": "effect-reachability",
+      "requirement": "how the selected version and original/archive representation determine the file returned",
+      "sourceSupported": false,
+      "status": "unknown",
+      "reason": "No accepted current checked/violated cross-source property. Source roles, helper closure and own-question property bindings remain incomplete."
+    },
+    {
+      "questionId": "requested-document-and-returned-file",
+      "propertyId": "task-property-d37524e464b7c472d5f0",
+      "kind": "operation-completion",
+      "requirement": "the file returned",
+      "sourceSupported": false,
+      "status": "unknown",
+      "reason": "No accepted current checked/violated cross-source property. Source roles, helper closure and own-question property bindings remain incomplete."
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "propertyId": "task-property-55a3dd727c36eb7ffbbc",
+      "kind": "authorization-before-effect",
+      "requirement": "state where those checks occur relative to selection of the returned file",
+      "sourceSupported": false,
+      "status": "unknown",
+      "reason": "No accepted current checked/violated cross-source property. Source roles, helper closure and own-question property bindings remain incomplete."
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "propertyId": "task-property-22daae92bb285e1e811b",
+      "kind": "authorized-object-matches-effect",
+      "requirement": "whether selecting another document version or choosing original versus archive changes the resource on which authorization is evaluated, or only changes the representation or file returned after authorization",
+      "sourceSupported": false,
+      "status": "unknown",
+      "reason": "No accepted current checked/violated cross-source property. Source roles, helper closure and own-question property bindings remain incomplete."
+    }
+  ],
+  "archiveSourceVerification": {
+    "valid": true,
+    "checkedFiles": 95,
+    "physicalReadBytes": 1412762
+  },
+  "citationFindings": [
+    {
+      "status": "verified-correct",
+      "evidence": "src/paperless/urls.py:77 registers documents; line 297 includes api_router.urls."
+    },
+    {
+      "status": "verified-correct",
+      "evidence": "src/documents/permissions.py:30-44 contains the cited PaperlessObjectPermissions GET map."
+    }
+  ],
+  "machineAttributionLimit": "Answer line 106 attributes formal uncertainty solely to one helper link; current framework dependencies, local isinstance meaning and unproposed closure are also open. Final array order alone does not establish causation.",
+  "blockers": [
+    "No trusted current nonempty cross-source property trace.",
+    "file_response -> _resolve_request_and_root_doc remains uninterpreted in adopted machine meaning; source-read is insufficient.",
+    "Q1 deleted-selection branches and Q4 precise missing-fact mapping remain incomplete."
+  ],
+  "reviewedAt": "2026-10-09T22:39:33.559Z"
+}

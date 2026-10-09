@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "paperless-download",
+  "repository": "paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "sourceRoot": "../../../authorization-interprocedural-property-v1/model/packages/download/source",
+  "allowedPaths": [
+    "src/documents",
+    "src/paperless/urls.py",
+    "framework/rest_framework-3.18.1/rest_framework",
+    "source_identity.py"
+  ],
+  "inquiry": {
+    "schemaVersion": "authorization-inquiry/v2",
+    "mode": "conformance",
+    "operations": [
+      {
+        "id": "document-download",
+        "request": "Trace the document Download operation from request entry through document and representation selection, authorization, and returned file.",
+        "entryHint": "Begin with Download-related routing and handlers under src/documents and src/paperless/urls.py; consult the supplied REST framework source only where framework behavior is material."
+      }
+    ],
+    "questions": [
+      {
+        "id": "requested-document-and-returned-file",
+        "request": "Explain how the request identifies the document and how the selected version and original/archive representation determine the file returned, including every relevant control branch.",
+        "principal": "authenticated user making the Download request",
+        "resource": "requested document and the selected version or original/archive file representation",
+        "operation": "download",
+        "entryHint": "Trace routing, lookup, request parameters, representation selection, and response construction within the allowed paths.",
+        "premises": [
+          {
+            "text": "The operation under investigation is the document Download operation in this Paperless revision.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "document-download",
+        "intent": "behavior"
+      },
+      {
+        "id": "authorization-and-selection-order",
+        "request": "Identify the authorization checks and branches for the authenticated user, the requested document, and the selected version or original/archive representation, and state where those checks occur relative to selection of the returned file.",
+        "principal": "authenticated user making the Download request",
+        "resource": "requested document and the file representation returned by Download",
+        "operation": "authorize and download",
+        "entryHint": "Follow application checks and any material REST framework lookup, authentication, permission, or object-permission behavior within the allowed paths.",
+        "premises": [
+          {
+            "text": "Ownership and object grants are unspecified.",
+            "origin": "user"
+          },
+          {
+            "text": "Relevant source branches must be analyzed rather than assuming a grant.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "document-download",
+        "intent": "behavior"
+      },
+      {
+        "id": "alternate-version-authorized-resource",
+        "request": "Determine whether selecting another document version or choosing original versus archive changes the resource on which authorization is evaluated, or only changes the representation or file returned after authorization; distinguish all relevant branches.",
+        "principal": "authenticated user making the Download request",
+        "resource": "requested document compared with an alternate version or original/archive representation",
+        "operation": "select representation for download",
+        "entryHint": "Compare the resource used by lookup and permission decisions with the resource or path used by the final file response.",
+        "premises": [
+          {
+            "text": "Ownership and object grants are unspecified.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "document-download",
+        "intent": "behavior"
+      },
+      {
+        "id": "missing-facts-and-conditional-conclusions",
+        "request": "State precisely which source, configuration, deployment, ownership, or object-grant facts needed for a conclusion are unavailable, and identify the exact conclusion each missing fact blocks without assuming behavior outside the allowed evidence.",
+        "principal": "authenticated user making the Download request",
+        "resource": "requested document and selected downloadable representation",
+        "operation": "assess authorization behavior and evidence limits",
+        "entryHint": "Separate conclusions established by the allowed source from conditions that depend on facts not present there.",
+        "premises": [
+          {
+            "text": "Ownership and object grants are unspecified.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "document-download",
+        "intent": "scope"
+      }
+    ],
+    "policy": {
+      "text": "Downloading any version or representation requires object-view authorization for the exact document whose file is returned; permission on a related root document alone is insufficient.",
+      "origin": "external-policy",
+      "location": "independent-development-policy:download-exact-object/av-v1"
+    }
+  }
+}

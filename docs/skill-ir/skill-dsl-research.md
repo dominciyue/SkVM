@@ -2371,6 +2371,10 @@ OWUI native消费者已加载完整原skill与11个原题请求，原声明/Usag
 
 usage使用原check/run/inspect/edit/compare，不新增CLI。实际公开check/inspect/edit/compare用显式unavailable-provider零派发会话验证，原四题/字节和premiseOnly保留，answerReused=false；该[公开命令原件](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/public-command-contract.json)只证明命令与会话合同，未证明模型准备或复用效果。研究previous资格仍要求同原任务的当前独立评阅跨源性质和可恢复会话，不能把缺失基础改称fresh。
 
+**BC11 policy-fresh。** 原四题与完整skill在5e3cd6be官方completed交付，40工具、95源最终核验有效，准备7.859s、端到端350.977s、账号341.173s。模型提出4性质，40合法字段/2采用；当前file_response到helper的含义/closure未闭合，性质全部unknown、trace为空，无新工程缺陷证据。独立探子与主线程原答/源码点验后四题partial/full/full/partial：Q1漏deleted选择差异，Q4缺逐项被阻结论；exact-document政策下root许可后返回另一file_doc的条件性apparent violation有源码支持，不能改写为机器violated。input2,583,094（含cache2,348,544）/output14,495；[当前评阅](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/attempts/policy-fresh/original/source-review.json)与[过程](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/attempts/policy-fresh/original/funnel.json)保留首件。
+
+四个quality与三个previous通过当前公开readiness判为[零派发资格阻断](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/bc10-bc11-qualified-baseline-gates.json)，不claim inference、不改称fresh。BC13联合1,833pass/1平台skip/12,044断言，主/BC类型通过；最终当前派生原件重放Download2/OWUI7份解释和原SHA保持，零新增语义，准备7.993s/20.782s，既有缺口保留。结果见[联合核验](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/bc13-joint-verification.json)。真实范围内的未达责任与独立三变化仍分别收束，不由测试数推出研究成功。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

@@ -218,7 +218,7 @@ expect(afterInvalidUpdate.currentCheckedVerdicts).toHaveLength(0)
 
 ### BC10 同条件小比较
 
-- [ ] 只在 BC9 有当前真实性质检查后，执行第七节 N/D 两次配对；同源码、同四题、同用户事实、同模型、同总代码/工具权限和预算。
+- [ ] 两次N/D配对未运行：当前原任务没有独立评阅的跨源性质；四位置已用当前公开readiness留下零派发preflight/blocked理由，没有用未知性质强行比较。
 - [ ] D 的自动准备/修订成本完整计入；N 可以自然调用相同来源工具，不把评价答案或 D 独享的人写正确性质塞进上下文。区别是任务组织方式及其真实额外开销。
 - [ ] 主要报告完整/正确/有据的原问题答案、端到端交付率、当前性质检查和总 token/耗时；不把 D 独有 checked 字段拿来定义 N 必然失败。
 - [ ] 每件交付后评阅，发现共享缺陷暂停受影响配对，修后同 epoch 重建新配对且保留首轮。两次重复仅用于看不稳定性，不声称统计显著或一般优势。
@@ -226,7 +226,7 @@ expect(afterInvalidUpdate.currentCheckedVerdicts).toHaveLength(0)
 ### BC11 同包三种变化
 
 - [x] 原用户包保持同字节；沿 BB 已登记 policy/premise/source 的真实变更，各建立 BC fresh/previous共用输入并保留原四题，不导入历史手写properties；changes.test红绿1test/15断言。实际派发仍按资格逐条判断。
-- [ ] 每种变化先核对同范围合格基础。资格按当前源码/策略/问题/性质/trace/独立评阅，不硬编码 consumer 位置 ID。
+- [x] 三种previous均以当前原任务/源码/策略/性质/trace/独立评阅资格核对，无合格可恢复基础，分别零派发blocked；不硬编码consumer位置ID。
 - [ ] policy/premise 从基础材料重算、source 撤回所有相关旧解释；每条 fresh/previous 原四题都保留，合格局部义务之外仍标残余。
 - [ ] previous 被阻断时显示缺哪个输入/基线/性质，不自动改称 fresh；fresh 自然partial不可宣传成复用收益。
 - [ ] 同组 token 包含准备、失败及修复；不假报未做的真人作者分钟或美元。
@@ -240,7 +240,7 @@ expect(afterInvalidUpdate.currentCheckedVerdicts).toHaveLength(0)
 
 ### BC13 联合验证、归因与研究复盘
 
-- [ ] 跑受影响测试、主/研究类型、文档单测和本轮改动链接；新增当前 replay 通过后不反复全历史审计。
+- [ ] 受影响联合1,833pass/1平台skip/12,044断言，主/BC类型通过；最终当前原件replay完成，2/7份解释语义字节及原SHA保持。最终文档/链接检查待收束文本完成后执行一次。
 - [ ] summary 逐项列实际事实、义务和未达责任，分清声明/源语义/实例/采用/检查/自然质量/复用/收益。
 - [ ] 记录准备性能前后、真实额外模型成本及有效行为；结果为无差异/权衡/负向时原样发布，不以调整指标宣布成功。
 - [ ] 更新研究总文档§1/§7.64/§11、spec§14.42、current-status、当前计划、usage/developer-guide相关小节及根 conversation_log。
