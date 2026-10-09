@@ -2,7 +2,7 @@
 
 更新于2026-10-10。唯一实时入口为 [current-status](current-status.md)。
 
-- 当前任务书：[BC0–BC14：任务性质准备、跨调用语义修复与可重放交付](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)，`planned-not-started`，准备派发开发。
+- 当前任务书：[BC0–BC14：任务性质准备、跨调用语义修复与可重放交付](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)，`in-progress`，BC0登记完成，BC1先做零模型准备定位。
 - 方法合同：[spec §14.42](skill-ir-aot-optimization-spec.md#1442-bc-task-binding-and-replay-reliability)；复核依据：[研究 §7.64](skill-dsl-research.md#764-bc-任务性质准备与跨调用修复)。基线 `b1aa7b4c`；本次只有计划和复核，没有新模型实验。
 - 开发 `gpt-6.1-sol/max`，实验当前官方账号 `gpt-5.6-sol/high`；继续skill-ir-aot、仅用户origin，第三方API和AV旧位置继续暂停。
 

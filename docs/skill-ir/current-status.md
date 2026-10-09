@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**当前任务书为 [BC0–BC14：任务性质准备、跨调用语义修复与可重放交付](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)，状态 `planned-not-started`，准备派发 `gpt-6.1-sol/max` 开发。** 本次仅复核和制定计划，未修改生产实现或运行新模型实验。基线 `b1aa7b4c` 已核对用户 origin 一致、工作树干净；新鲜公共入口及研究轻量回归为51 pass/362 assertions。
+**当前任务书为 [BC0–BC14：任务性质准备、跨调用语义修复与可重放交付](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)，状态 `in-progress`，开发已接管至BC1。** 实施基线 `ee1a0522`，接管时工作树干净。11个Download逻辑位置及旧OWUI未知已登记到[BC manifest](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/manifest.json)；尚无BC模型请求，先定位真实scope准备。
 
 本轮先解决三处：原包自然问题尚未自动形成性质、跨调用参数解释缺少精确定向修复、源码准备长时间不返回。复核确认两原包4题/11题均无properties，而质量common输入各有1题/1性质；v7实际指引漏掉无声明时的提出办法。入口value与helper principal/resource不一致的拒绝有据，不通过自动改类型绕过。
 

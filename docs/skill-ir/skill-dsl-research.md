@@ -2339,7 +2339,9 @@ OWUI native消费者已加载完整原skill与11个原题请求，原声明/Usag
 
 **授权与限制。** 新Download队列使用已授权官方gpt-5.6-sol/high；两旧OWUI未知不改，OWUI只做离线迁移。BB最后source-fresh已有completed终态，不能把整个账号当永久不可用；新unknown仍只核查原生命周期。第三方API、held-out/Q1、prospective/readiness和历史0/6不动。
 
-**开发记录追加规则。** 后续在本节按“具体失败→代码/输入原因→修改→公开路径/真实采用→仍未解决”追加。记录准备阶段前后耗时、性质准备成本、调用修复是否真的被采用；以原件支持效果，不用测试数量替代真实成果。当前尚无BC实际效果。
+**开发记录追加规则。** 后续在本节按“具体失败→代码/输入原因→修改→公开路径/真实采用→仍未解决”追加。记录准备阶段前后耗时、性质准备成本、调用修复是否真的被采用；以原件支持效果，不用测试数量替代真实成果。
+
+**BC0接管。** 实施基线ee1a0522，现场干净，继续skill-ir-aot，仅用户origin。11个Download位置、同模型/预算与两旧OWUI未知按字节来源登记；[继承责任](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/inherited-failure-responsibilities.json)区分目标和实际失败。登记测试先红于空队列、后绿1test/5断言；无模型请求。准备故障仍先分段实测，不从内存或总超时猜根因。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

@@ -12,7 +12,7 @@
 
 ## 1. 执行身份、权限与完成含义
 
-- 日期：2026-10-10。状态：`planned-not-started`。计划交付时没有 BC 生产改动或模型实验。
+- 日期：2026-10-10。状态：`in-progress`。计划交付时没有 BC 生产改动或模型实验；实施基线`ee1a0522bb151977947dfcafa5906bee5002356a`。
 - 开发基线：`b1aa7b4cc43a5468a873669735732f2c95e46d83`。计划提交后以启动时真实 HEAD 记录 BC implementation baseline。
 - 开发线程：`gpt-6.1-sol`，reasoning `max`。工作目录 `D:\skill优化\SkVM`，分支 `skill-ir-aot`，只发布用户 `origin`，不新建分支/worktree。
 - 新 identity：`authorization-task-binding-v1`。结果统一放 `results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/`。临时运行空间放 `D:\skill优化\project-maintenance\runs\authorization-task-binding-v1`。
@@ -123,9 +123,9 @@ type TaskPropertyPreparation = {
 
 ### BC0 接管与登记
 
-- [ ] 核对分支/远端/工作树/活跃线程，记录原有修改，不混入本轮提交。
-- [ ] 创建 BC 的 manifest/status/study 骨架，读取 BB 原件建立失败责任表；目标要求与 observed outcome 分字段。
-- [ ] 登记第七节有限运行位置、同模型/事实/预算、旧未知与本轮授权范围。BB 只读，旧空位置不补写。
+- [x] 核对分支/远端/工作树/活跃线程，记录原有修改，不混入本轮提交。
+- [x] 创建 BC 的 manifest/status/study 骨架，读取 BB 原件建立失败责任表；目标要求与 observed outcome 分字段。
+- [x] 登记第七节有限运行位置、同模型/事实/预算、旧未知与本轮授权范围。BB 只读，旧空位置不补写。
 - [ ] 提交：`docs: register task binding and replay recovery work`。
 
 ### BC1 定位并修复准备阶段
