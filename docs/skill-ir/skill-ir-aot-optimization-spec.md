@@ -2850,7 +2850,7 @@ Python await只沿实际操作数保留已有表达式求值和函数值读取�
 
 ### 14.41 BB interprocedural property closure
 
-2026-10-09，用户要求派发`gpt-6.1-sol/max`继续开发，[BB0–BB16](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)已执行至公共链，状态in-progress。复核基线ad936715，新登记基线553509a6。新identity为authorization-interprocedural-property-v1；以下合同已有v7工程实现，真实任务与研究效果仍待运行。BA的暂停、20未运行位置和原件不改写。
+2026-10-09，用户要求派发`gpt-6.1-sol/max`继续开发，[BB0–BB16](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)已实现v7公共链，并完成两pilot及六个同epoch质量位置。随后用户明确要求提交并停止，状态paused-by-user。复核基线ad936715，新登记基线553509a6。新identity为authorization-interprocedural-property-v1；真实材料采用已有观察，但跨函数性质闭合与净收益仍未建立。Download消费者交付，OWUI消费者中止/完成未知，六变化未运行；BA的暂停、20未运行位置和原件不改写。
 
 **结构与语义。** 源码call身份、实参/receiver/返回及异常联系独立于模型的permission/effect/context标注。标注不能抹掉调用，也不能令被调函数中的效果无条件发生；拒绝、提前返回和相关未知保留，caller候选与callee实际效果不重复计数。复用现有有限控制流，新增行为显式operation-evidence-v7，旧策略兼容。
 
@@ -2870,7 +2870,7 @@ Python await只沿实际操作数保留已有表达式求值和函数值读取�
 
 **研究与使用。** 新登记2 pilot、6完整质量、2原包消费、6变化共16逻辑位置，引用同attempt去重；修订分列。N完整skill与自然任务/M等价Markdown及共享工具/D同事实声明及相同工具，原问题、源码和独立政策一致。局部跨函数闭合先于完整使用，局部合格基础可验证局部复用但不升级为完整任务收益。协议失败保留端到端分母，交付答案的语义质量另列。原件、准备/修复费用、完整input/cache/output口径与unknown均保留，工程完成不预设研究positive。
 
-**BB恢复规则。** 在核实BA无活动/未知完成后，允许一个就绪真实pilot同官方账号gpt-5.6-sol/high重新进入，不要求额外健康探针。连续两次终态routing失败，或BB累计三次routing恢复仍遇失败，暂停BB外部实验；成功真实任务只重置连续计数，不清除累计失败/成本。quota/auth立即暂停，未知完成仅核查原生命周期，不换账号/端点/模型或第三方API。新规则只用于BB，BA历史暂停不撤销；实现及反例在BB8完成后才能声称已接通。
+**BB恢复规则。** 在核实BA无活动/未知完成后，允许一个就绪真实pilot同官方账号gpt-5.6-sol/high重新进入，不要求额外健康探针。连续两次终态routing失败，或BB累计三次routing恢复仍遇失败，暂停BB外部实验；成功真实任务只重置连续计数，不清除累计失败/成本。quota/auth立即暂停，未知完成仅核查原生命周期，不换账号/端点/模型或第三方API。规则及反例已在BB8接通，BA历史暂停不撤销。用户中止没有server终态时保留未知完成及原派发锁；后续用户重启不自动解除该保护。
 
 **开发原则。** 真实共享缺陷当场红绿修复和具名复验，受影响位置不继续消耗调用。已有跨函数/receiver/MRO基础优先复用，外围语言语法不进入自动扩张队列；研究依据和每次改动原因同步§7.63。最终分别验收工程、实际跨函数检查、完整任务、包消费、变化复用及收益。
 

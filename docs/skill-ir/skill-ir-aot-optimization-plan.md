@@ -2,8 +2,8 @@
 
 更新于2026-10-09。唯一实时入口为 [current-status](current-status.md)。
 
-- 当前任务书：[BB0–BB16：跨函数性质闭合、渐进解释与真实使用](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)，`in-progress`。
-- 方法合同：[spec §14.41](skill-ir-aot-optimization-spec.md#1441-bb-interprocedural-property-closure)；复核依据：[研究 §7.63](skill-dsl-research.md#763-bb-跨函数性质闭合的复核与开发决定)。BB0–BB8通过。OWUI顺序修复具名复测completed、10实际采用，自然partial/机器unknown；零调用0→7和首件0采用不改。补齐新epoch Download配对和质量面板，原M引用保留为历史观察；全部引用按完整身份核实、不新增样本或计费。
+- 当前任务书：[BB0–BB16：跨函数性质闭合、渐进解释与真实使用](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)，`paused-by-user`；本次只收束和发布已有工作，后续由用户重启。
+- 方法合同：[spec §14.41](skill-ir-aot-optimization-spec.md#1441-bb-interprocedural-property-closure)；复核依据：[研究 §7.63](skill-dsl-research.md#763-bb-跨函数性质闭合的复核与开发决定)。BB0–BB8工程通过，两pilot和六个同epochN/M/D质量位置已评阅，原M引用保留历史且费用去重。Download原包消费已交付，OWUI消费者用户中止、完成状态未知；三种变化准备完成但六位置未运行。真实跨函数性质闭合及净收益仍未建立。
 - 代码基线 `ad936715`。开发 `gpt-6.1-sol/max`，实验当前官方账号 `gpt-5.6-sol/high`；第三方API和AV旧位置继续暂停。
 
 ## 当前目标
@@ -24,6 +24,8 @@ Download入口的effect解释没有生成call，helper材料虽可用却未采�
 | BB14–BB16 | 归因、必要减负、有限验证和发布 | 真实成本/未知分账，普通命令可用，未达责任可恢复 |
 
 主登记16逻辑位置：2 pilot、6质量、2消费、6变化。同一次运行可在满足条件时引用，但不重复计样本或成本。修订和新epoch保留首件，不把不同实现的输出混成公平比较。结果目标与实际结果分别登记。
+
+恢复时先核查 `consumer-owui-native/original` 已保存生命周期及 `dispatch.lock`，确认未知完成的实际状态；不得因用户重启直接删除锁或重发。之后再决定剩余包消费与三种fresh变化的恢复顺序。三个previous位置仍缺当前同方法、同epoch且有checked/violated跨源trace的合格基础；当前暂停不等于任务书完成。
 
 ## 执行与修复规则
 

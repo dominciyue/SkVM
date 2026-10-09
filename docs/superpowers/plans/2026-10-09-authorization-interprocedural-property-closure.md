@@ -8,7 +8,9 @@
 
 **Tech Stack:** TypeScript、Bun、Zod/Ajv、已有 Python/Go 索引和有限求值器。开发 `gpt-6.1-sol / max`；实验使用已授权的当前官方账号 `gpt-5.6-sol / high`。第三方付费 API 继续暂停。
 
-**执行状态：** `in-progress`。BB0在 `553509a6` 接管并建立独立证据登记；工程与真实使用验收分别等待本轮证据。
+**执行状态：** `paused-by-user`。用户于2026-10-09明确要求提交远端并停止本任务书，后续再重启。BB0–BB8工程通过，BB9/BB10真实pilot已完成但局部性质未闭合，BB11六位置同epoch比较已完成；BB12一个消费者交付、另一个中止且完成未知，BB13仅准备、六变化未运行。BB14已有部分计量与归因；本次保存和发布不标有限队列或研究目标完成。
+
+**恢复入口：** 先检查 `consumer-owui-native/original` 原生命周期与保留的 `dispatch.lock`。本地runner及其直接子进程已退出，但没有已保存server终态；不要重发同请求。用户重启只撤销用户暂停，未知完成保护仍须按第六节处理。零调用状态命令为 `bun ./results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/study.ts status`。
 
 ## 一、接管、目标与边界
 
@@ -206,11 +208,11 @@ OWUI首件已completed，自然原题full，7单元/115控制步骤但0采用/�
 
 ### BB11 同条件完整任务比较
 
-- [ ] 两任务各运行 N/M/D 一次，共 6 个主质量位置；在实现 epoch、预算、源码和原题一致时可引用对应 pilot，不能重复计作独立样本。
-- [ ] N：完整原 skill＋原自然问题＋相同只读源码工具；M：等价任务事实的 Markdown＋当前共享领域工具；D：同事实的声明＋相同共享工具。M/D 只比较表示；N/M 比较工具整体。
-- [ ] 声明从共同事实机械渲染，作者加工成本单列。模型输入隔离 evaluator、旧答案、修复记录；全部原问题统一评价。
-- [ ] 关键共享缺陷出现就暂停受影响剩余行，修复后以新 epoch 记录对应位置；需要同版比较时补齐受影响配对，旧行全部保留。不得把跨 epoch 混表称公平比较。
-- [ ] 当前样本只支持 development 描述，不用重复抽到 DSL 获胜，也不据单次方向声称稳定收益。
+- [x] 两任务各运行 N/M/D，共6主质量位置；src7100b13f同epoch、模型/预算/原题/源码/原skill实际加载核验通过，M引用pilot去重。
+- [x] N原自然输入+只读工具；M等价Markdown+共享工具；D同事实声明+共享工具。方法差异与表示比较分列。
+- [x] 声明机械渲染，旧答案/evaluator/修复记录隔离；全部原问题独立评阅，作者/修复成本未知项保留。
+- [x] 顺序共享修复后的Download M具名配齐，旧epoch引用留历史。OWUI D根只有未知分支、未lower实际creation/body，主点验属于模型遗漏，不再修严格validator或重抽。
+- [x] development观察：Download N/D full、M partial；OWUI三臂partial。D token高于N，不能据单次或未知USD声称稳定净收益。见verification/quality-panel.json。
 
 ### BB12 两包真实消费与编写体验
 
@@ -218,12 +220,16 @@ OWUI首件已completed，自然原题full，7单元/115控制步骤但0采用/�
 - [ ] 若旧包缺本轮必要字段，宿主可进行有记录、无领域答案的机械迁移；需要新增语义的稿件单列新版本，不能继续称原字节消费。
 - [ ] 记录用户必须提供什么、宿主自动生成什么、哪些错误能在发模型前定位，以及实际修订次数。未观测真人分钟就不报告人力节省。
 
+暂停快照：Download inquiry消费者completed，自然评阅partial，2单元/8采用；原声明4827字节和Usage原件保留，完整skill与全部4题请求实际加载，四题性质均undeclared，无合格跨函数基础。OWUI native消费者已经派发、33个宿主工具回调均完成，完整skill和11题请求实际加载；用户要求停止后本地进程退出，没有最终答案/server终态。保存中止生命周期/工具原字节、末次可见usage，最终用量与完成状态unknown，付费锁保留。两包整体消费尚未验收通过。
+
 ### BB13 政策、前提、源码三种变化
 
-- [ ] 预先选 Download 的一个明确政策变化、一个前提变化和一个最小源码变化，保存共同变化事实与评价要求。不得把预期答案放入 runtime。
+- [x] 预先选 Download 的一个明确政策变化、一个前提变化和一个最小源码变化，保存共同变化事实与评价要求。不得把预期答案放入 runtime。
 - [ ] 每种 fresh/previous 配对，共 6 个位置。选择性复用必须指向当前可用材料和依赖，而不是回放旧结论。
 - [ ] 合格基础按所评估范围判断：局部性质的完整基础可测局部复用；原任务仍有缺口时不得报告完整任务复用。没有合格局部基础则 previous 明确 blocked，fresh 仍可检验新任务，不用缺少整题 full 永久封闭所有复用研究。
 - [ ] 源码删除守卫、改变对象或改变前提激活路径应触发对应失效/再分析，给出反例。局部恢复数量、实际采用和当前答案质量分开记录。
+
+`model/change-registration.json`保留三种共同变化事实及原来源，三个fresh位置因用户暂停未派发，三个previous位置因无当前同方法/epoch的checked或violated跨源trace而blocked。没有变化模型调用，不补写复用效果。
 
 ### BB14 结果归因与必要减负
 
@@ -232,6 +238,8 @@ OWUI首件已completed，自然原题full，7单元/115控制步骤但0采用/�
 - [ ] input/cache/output按 provider 原口径计量，缓存只计一次；模型请求、动态工具、自动读取、连接恢复各自统计。作者、修复和复用准备成本单列，未知 USD/隐藏请求/开发代理/真人工时保持 unknown。
 - [ ] 若轨迹证明重复完整视图是主要冗余，可做一个共享的增量反馈修复并对相同输入复验；保留原请求和质量，不在本阶段继续扩大研究范围。
 - [ ] 结论可为 positive、tradeoff、no-observed-difference、negative 或 inconclusive；局部正例、完整使用及净收益分别给证据。
+
+暂停前已保存六臂自然评阅、实际lifecycle反馈体积点验及去重计量。16位置中10已尝试/6未运行，11个真实尝试中10自然交付、1未知完成；已知input26,561,789（含cache24,095,872）/output114,442，中止尝试最终usage另标unknown。D两任务token高于N且没有自然等级优势，不据单次development观察或未知USD报告稳定净收益。BB14完整队列归因仍未完成。
 
 ### BB15 有限联合验证和文档
 

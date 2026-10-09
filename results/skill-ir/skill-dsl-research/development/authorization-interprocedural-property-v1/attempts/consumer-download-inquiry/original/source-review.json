@@ -1,15 +1,18 @@
 {
   "schemaVersion": "authorization-bb-source-review/v1",
-  "attemptId": "pilot-download/source-order-marker-1",
-  "answerSha256": "98e197a03677a2f71a434f6fdc587009f2b64ecd025a751d7cc8214905b6ce06",
-  "inputSha256": "635ceec0c17b012c6843a69986e2455694c47595b5f48464882a9eea881d9062",
+  "attemptId": "consumer-download-inquiry/original",
+  "answerSha256": "81d7f75665faba206986cbd167e63a94a9612d2b2c429fca243b8db0df386908",
+  "inputSha256": "ee99327d807ccd1e130117266c8bcdca9f33113b260782152463a4b48fafb397",
   "originalTaskSha256": "351e98469db38adf77b52be538475f58cc36033dad04f43211bccb8039abe0e1",
   "status": "source-reviewed",
   "wholeOriginalTask": "partial",
   "partialTextRetained": false,
-  "crossFunctionProperty": "natural-root-family-relation-covered-machine-unknown",
+  "crossFunctionProperty": "not-demonstrated-no-declared-property-checks",
   "originalRequest": [
-    "Investigate the document Download operation in this Paperless revision. Explain how the requested document, selected version or original/archive representation, and authenticated user's authorization relate to the file returned. Identify relevant control branches and whether selecting another version changes the resource that is authorized. Ownership and object grants are unspecified: analyze relevant source branches rather than assuming a grant. State missing source or deployment facts precisely."
+    "Explain how the request identifies the document and how the selected version and original/archive representation determine the file returned, including every relevant control branch.",
+    "Identify the authorization checks and branches for the authenticated user, the requested document, and the selected version or original/archive representation, and state where those checks occur relative to selection of the returned file.",
+    "Determine whether selecting another document version or choosing original versus archive changes the resource on which authorization is evaluated, or only changes the representation or file returned after authorization; distinguish all relevant branches.",
+    "State precisely which source, configuration, deployment, ownership, or object-grant facts needed for a conclusion are unavailable, and identify the exact conclusion each missing fact blocks without assuming behavior outside the allowed evidence."
   ],
   "allowedPaths": [
     "src/documents",
@@ -496,56 +499,61 @@
   ],
   "findings": [
     {
-      "criterion": "request-caller-and-root-authorization",
-      "status": "covered",
-      "answerLines": "7-27",
-      "source": "src/documents/views.py:1008-1027,1401-1427,1834-1839; src/documents/permissions.py:624-635; framework/rest_framework-3.18.1/rest_framework/views.py:490-529",
-      "detail": "Authenticated dispatch and explicit owner-aware permission on root document, with conditional caller facts and denial before selection."
+      "criterion": "four-original-package-questions",
+      "status": "mostly-covered",
+      "answerLines": "5-102",
+      "source": "src/documents/views.py:1375-1448,1834-1839,4941-4973; src/documents/permissions.py:30-44,624-635; src/documents/versioning.py:169-195",
+      "detail": "Caller, root owner/grants, version family, source/archive, order and missing model/object facts covered. Main separates natural content from self-reported machine partial."
     },
     {
-      "criterion": "version-and-file-effects",
-      "status": "covered",
-      "answerLines": "29-54",
-      "source": "src/documents/views.py:1375-1399,1429-1448,4941-4968; src/documents/versioning.py:140-195",
-      "detail": "Requested version/latest/root-family restriction, unrelated or invalid 404, source/archive and filename distinction."
+      "criterion": "precision-of-visible-conditions-and-citations",
+      "status": "partial",
+      "answerLines": "21-24,48,85,95-100",
+      "detail": "GET global documents.view_document predicate is not explicit. Version helper citation at views.py:169-195 should be versioning.py. Row85 calls absent version 404 while rows43/84 correctly treat omitted parameter as latest: missing version row versus absent parameter should be distinguished."
     },
     {
-      "criterion": "remaining-limits",
-      "status": "covered",
-      "answerLines": "56-68",
-      "detail": "Identity/owner/grants/version/deletion/file facts and internal null-user boundary retained, but the GET global view permission is not explicitly stated."
-    },
-    {
-      "criterion": "current-machine-funnel",
+      "criterion": "machine-funnel",
       "status": "unknown",
-      "detail": "3 submissions/34 edits/2 units/15 steps/2 uses; unresolved resolver callee and unbound effect/principal/resource yield unknown/empty trace. Three observed malformed calls exhausted format repair with total budget51/64; one semantic check used. Resolved syntax is not interpreted semantics and no shared host defect is established."
-    },
-    {
-      "criterion": "GET-global-view-permission",
-      "status": "missing-detail",
-      "answerLines": "10-12,58-64",
-      "source": "src/documents/permissions.py:30-44",
-      "detail": "PaperlessObjectPermissions overrides GET to require documents.view_document. Initial full revised to partial from exact subclass source."
+      "detail": "2 units/32 edits/16 steps, total8 uses across4 questions (eachentry1/call1), 4 empty properties arrays/property-query-undeclared and unresolved resolver callee. No checked/violated cross-function baseline. Total56/64 (49 model callbacks), 1 format reject, two checks used; official completed natural delivered."
     }
   ],
   "evaluatorProvidedToRuntime": false,
+  "packageActualInput": {
+    "declarationBytesUnchanged": true,
+    "questions": [
+      {
+        "id": "requested-document-and-returned-file",
+        "requestPresent": true
+      },
+      {
+        "id": "authorization-and-selection-order",
+        "requestPresent": true
+      },
+      {
+        "id": "alternate-version-authorized-resource",
+        "requestPresent": true
+      },
+      {
+        "id": "missing-facts-and-conditional-conclusions",
+        "requestPresent": true
+      }
+    ],
+    "usageBytesPreserved": true,
+    "usageReadByHost": true,
+    "usageModelInjection": "not-observed",
+    "originalNaturalBriefLiteralPresent": false,
+    "qualification": "original package four requests actually present, without literal concatenated natural brief"
+  },
   "reviewBasis": {
     "independentReadOnlyAgents": [
-      "bb_download_marker_quality",
-      "bb_download_marker_pipeline"
+      "bb_consumer_download_review"
     ],
     "mainSourceSpotChecks": [
-      "answer-original.md:1-68",
-      "report.json propertyAnalysis.checks and materialProjection diagnostics",
-      "src/documents/permissions.py:1-53"
+      "answer-original.md:1-102",
+      "actual retained thread/start four exact package request strings",
+      "src/documents/permissions.py:30-44"
     ],
     "fullyBlind": false,
-    "criteria": "Complete original download behavior question; machine unknown is separately recorded."
-  },
-  "reviewHistory": [
-    {
-      "wholeOriginalTask": "full",
-      "reason": "Initial reviewer mistakenly applied the base DjangoObjectPermissions GET map rather than the Paperless override"
-    }
-  ]
+    "adjudication": "Reject evaluator attribution of natural partial solely to machine status; partial instead follows named source-answer omissions/precision defects."
+  }
 }

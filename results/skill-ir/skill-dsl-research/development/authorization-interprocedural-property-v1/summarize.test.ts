@@ -1,6 +1,10 @@
 import { expect, test } from "bun:test"
 import { positions, sha } from "./study.ts"
 const api = await import("./summarize.ts").catch(() => ({})) as any
+test("BB review accepts registered uppercase quality arms and rejects foreign or traversal IDs", () => {
+  for (const id of ["quality-download-N/original", "quality-owui-D/original", "pilot-download/source-order-marker-1"]) expect(() => api.assertReviewAttempt(id)).not.toThrow()
+  for (const id of ["quality-download-X/original", "foreign/original", "pilot-download/../outside", "pilot-download/UPPER"]) expect(() => api.assertReviewAttempt(id)).toThrow()
+})
 test("BB accounting deduplicates an attempt reference and preserves unknown usage", () => {
   const first = { attemptId: "pilot/original", accountUsage: { input: 100, cacheRead: 80, output: 5 }, durationMs: 10, actualUsd: null }, failed = { attemptId: "pilot/recovery", accountUsage: null, durationMs: 20 }
   const result = api.accounting([first, first, failed])
