@@ -240,6 +240,8 @@ OWUI首件已completed，自然原题full，7单元/115控制步骤但0采用/�
 
 ### BB14 结果归因与必要减负
 
+2026-10-10恢复阶段已补summarize.ts零调用归档漏斗：逐次保留提交/接受、saved/current/available/projected、entry/call/framework采用、当前source demand的query candidates/bound及question/property去重、check verdict与自然评阅。firstRecordedDiagnostic只指按工具history顺序最早保留的诊断，不将终态诊断顺序或completed伪称首个因果失败/语义恢复；当前material/check阻断另列，归因仍依源码评阅。原中止缺失值为null、N为not-applicable，部分usage不计已知总数。6条预期红例后28pass/134断言；OWUI具名新运行及三个fresh队列尚在执行/等待，未宣称BB14完成。
+
 - [ ] 从原件生成提交→接受→材料→采用→绑定→检查→自然答案的漏斗，指出每次首阻断。协议、宿主、通道、模型语义失败可以同时记录，不能用单一 partial 覆盖原因。
 - [ ] 全部计划位置留在端到端分母；另报已交付答案的质量。不要删除协议失败来“翻正”结论，不按任意失败比例决定是否重要。
 - [ ] input/cache/output按 provider 原口径计量，缓存只计一次；模型请求、动态工具、自动读取、连接恢复各自统计。作者、修复和复用准备成本单列，未知 USD/隐藏请求/开发代理/真人工时保持 unknown。

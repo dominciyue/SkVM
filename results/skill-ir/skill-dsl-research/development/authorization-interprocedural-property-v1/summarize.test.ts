@@ -11,6 +11,56 @@ test("BB accounting deduplicates an attempt reference and preserves unknown usag
   expect(result.attempts).toBe(2); expect(result.known.input).toBe(100); expect(result.known.cacheRead).toBe(80)
   expect(result.unknownUsageAttempts).toEqual(["pilot/recovery"]); expect(result.actualUsd).toBeNull()
 })
+test("BB interrupted usage stays separately retained and never enters completed totals", () => {
+  const interrupted = { attemptId: "consumer/original", accountUsage: null, durationMs: null, lastRetainedUsage: { total: { inputTokens: 900, cachedInputTokens: 800, outputTokens: 12 } } }
+  const resumed = { attemptId: "consumer/user-resume-1", accountUsage: { input: 100, cacheRead: 70, output: 5 }, durationMs: 20 }
+  const result = api.accounting([interrupted, interrupted, resumed])
+  expect(result.known).toMatchObject({ input: 100, cacheRead: 70, output: 5 })
+  expect(result.partialPreInterruptionUsage).toEqual([{ attemptId: interrupted.attemptId, usage: interrupted.lastRetainedUsage, includedInKnownTotals: false, finalUsage: "unknown" }])
+  expect(result.unknownDurationAttempts).toEqual([interrupted.attemptId])
+})
+test("BB position rows preserve the registered reason instead of replacing it with a generic pause", () => {
+  const p = { ...positions()[0], status: "registered-not-run", attempts: [], unrunReason: "Awaiting the explicitly approved consumer run" }
+  expect(api.positionRows([p], [])[0].unrunReason).toBe(p.unrunReason)
+})
+test("BB funnel separates accepted, current, adopted, bound and checked evidence", () => {
+  const report = { attemptId: "case/original", status: "completed", terminalStatus: "completed", finalPresent: true, answerDelivery: "delivered", sourceWorkMetrics: { sourceInterpretationSubmissions: 4, acceptedSourceUnits: 3 }, hostToolCalls: 7, materialUses: [{ kind: "entry" }, { kind: "call" }], propertyAnalysis: { demands: [
+    { dependencies: { propertyQueries: { queries: [{ id: "p", questionId: "q", state: "bound" }, { id: "p", questionId: "q", state: "unbound" }] } } },
+  ], checks: { questions: [{ properties: [{ status: "unknown", trace: [] }] }] } } }
+  const raw = { domain: { materialProjection: { stages: { saved: 3, current: 2, available: 2, projectedUnits: 2, entryUses: 1, callUses: 1, frameworkUses: 0, blocked: 1 } } }, compilationToolCalls: 5, history: [{ call: { id: "read", name: "source_read" }, output: {} }] }
+  const result = api.attemptFunnel(report, raw, { wholeOriginalTask: "full" })
+  expect(result.materialStages).toMatchObject({ saved: 3, current: 2, available: 2, projectedUnits: 2 })
+  expect(result.adoptions).toEqual({ total: 2, entry: 1, call: 1, framework: 0 })
+  expect(result.queryBindings).toEqual({ candidates: 2, bound: 1, unbound: 1, distinctProperties: 1, distinctBoundProperties: 1 })
+  expect(result.propertyVerdicts).toEqual({ checked: 0, violated: 0, unknown: 1, crossFunction: 0 })
+  expect(result.naturalAnswer).toEqual({ delivered: true, wholeOriginalTask: "full" })
+  expect(result.hostToolCalls).toBe(7); expect(result.compilationToolCalls).toBe(5)
+  expect(result.sourceWorkMetrics).toEqual(report.sourceWorkMetrics)
+})
+test("BB funnel distinguishes unavailable interrupted data from a zero and a no-DSL arm", () => {
+  const unknown = api.attemptFunnel({ attemptId: "consumer/original", materialUses: [], materialUsesAvailable: false, propertyAnalysis: null, sourceWorkMetrics: null }, null, {})
+  expect(unknown.domainApplicability).toBe("unknown")
+  expect(unknown.adoptions).toBeNull(); expect(unknown.queryBindings).toBeNull(); expect(unknown.propertyVerdicts).toBeNull()
+  const noDsl = api.attemptFunnel({ attemptId: "quality-N/original", actualModelInput: { toolNames: ["source_read"] }, materialUses: [] }, { domain: null }, {})
+  expect(noDsl.domainApplicability).toBe("not-applicable")
+  expect(noDsl.materialStages).toBeNull(); expect(noDsl.adoptions).toBeNull()
+})
+test("BB first diagnostic follows retained tool chronology without inferring semantic recovery", () => {
+  const raw = { domain: {}, history: [
+    { call: { id: "a", name: "source_read" }, output: "not-json" },
+    { call: { id: "b", name: "authorization_observe" }, output: JSON.stringify({ diagnostics: [{ code: "source-edit-stale", message: "Earlier retained rejection" }] }) },
+    { call: { id: "c", name: "authorization_check_result" }, output: { diagnostics: [{ code: "semantic-callee-uninterpreted" }] } },
+  ] }
+  const result = api.attemptFunnel({ attemptId: "case/original", status: "completed", terminalStatus: "completed", finalPresent: true, answerDelivery: "delivered", materialUses: [] }, raw, {})
+  expect(result.firstRecordedDiagnostic).toMatchObject({ historyIndex: 1, callId: "b", toolName: "authorization_observe", code: "source-edit-stale", semanticRecovery: "not-inferred" })
+  expect(result.naturalAnswer.delivered).toBe(true)
+})
+test("BB public inquiry archives retain tool chronology and compilation counts in their native envelope", () => {
+  const raw = { domain: {}, native: { compilationToolCalls: 2, history: [{ call: { id: "public", name: "authorization_observe" }, output: { diagnostics: [{ code: "source-edit-stale" }] } }] }, telemetry: { account: { tools: [{ name: "source_read" }] } } }
+  const result = api.attemptFunnel({ attemptId: "public/original", materialUses: [] }, raw, {})
+  expect(result.firstRecordedDiagnostic).toMatchObject({ callId: "public", code: "source-edit-stale" })
+  expect(result.compilationToolCalls).toBe(2); expect(result.sourceReadCalls).toBe(1)
+})
 test("BB failed partial text is not a delivered answer", () => {
   expect(api.isDelivered({ status: "failed", terminalStatus: "failed", finalPresent: true, answerDelivery: "undelivered" })).toBe(false)
   expect(api.isDelivered({ status: "completed", terminalStatus: "completed", finalPresent: true, answerDelivery: "delivered" })).toBe(true)
