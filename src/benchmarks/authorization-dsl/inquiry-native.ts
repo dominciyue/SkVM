@@ -3,7 +3,7 @@ import { readdir, realpath, mkdir, appendFile, writeFile, stat } from "node:fs/p
 import type { LLMTool, LLMToolCall, CompletionParams, LLMToolResult, LLMResponse } from "../../providers/types.ts"
 import type { AccountArgumentDiagnostic } from "../../adapters/codex-account-session.ts"
 import { loadInquiryInput } from "./inquiry-local.ts"
-import { createInquiryTools, modelSourceDisplay } from "./inquiry-tools.ts"
+import { createInquiryTools, modelSourceDisplay, type InquiryToolsOptions } from "./inquiry-tools.ts"
 import { inquiryToolModelView, OPERATION_DECLARATION_GUIDE } from "./inquiry-run.ts"
 import { loadPortableSourceBundle } from "./inputs.ts"
 import { AuthorizationInquirySchema, AuthorizationSourceInquirySchema } from "../../task-dsl/authorization/inquiry.ts"
@@ -29,14 +29,14 @@ export function nativeInquiryToolModelView(output: unknown) {
   const { domain, domainCheck, questionChecks, ...rest } = output as Record<string, unknown>
   return { ...rest, ...(Array.isArray(questionChecks) ? { questionChecks: questionChecks.map(({ trace, ...question }) => question) } : {}), ...(domain || domainCheck ? { stateLocation: "Current local explanation context.state; full trace retained in native report" } : {}) }
 }
-export async function createNativeInquiryRuntime(options: { inputFile: string; workDir: string; domainTools: boolean; strategy?: InquiryStrategy; method?: typeof NativeInquiryMethods[number]; skillContent?: string; maxToolCalls?: number; maxProviderCalls?: number; maxDisplayBytes?: number; maxReadBytes?: number; maxOutputTokens?: number; traceDir?: string; traceRedactor?: (value: unknown) => unknown; reuse?: { info: InquiryReuseInfo; seed: InquiryReuseSeed } }) {
+export async function createNativeInquiryRuntime(options: { inputFile: string; workDir: string; domainTools: boolean; strategy?: InquiryStrategy; method?: typeof NativeInquiryMethods[number]; skillContent?: string; maxToolCalls?: number; maxProviderCalls?: number; maxDisplayBytes?: number; maxReadBytes?: number; maxOutputTokens?: number; traceDir?: string; traceRedactor?: (value: unknown) => unknown; reuse?: { info: InquiryReuseInfo; seed: InquiryReuseSeed }; preparation?: InquiryToolsOptions["preparation"] }) {
   if (options.maxOutputTokens !== undefined && (!Number.isSafeInteger(options.maxOutputTokens) || options.maxOutputTokens < 1)) throw new Error("Authorization output token limit must be a positive safe integer")
   const strategy = parseInquiryStrategy(options.strategy)
   const sourceAssisted = isSourceAssistedInquiryStrategy(strategy)
   const method = parseNativeInquiryMethod(options.method)
   if (method && (!isOperationInquiryStrategy(strategy) || !options.domainTools)) throw new Error("authorization-method requires operation-evidence-v1 or operation-evidence-v2 and domain-tools")
   if (strategy !== "legacy" && !options.domainTools) throw new Error("strategy-requires-domain-tools: native domain strategy requires explicit domain tools")
-  const loaded = await loadInquiryInput(options.inputFile, { allowMissingPolicy: sourceAssisted }), tools = await createInquiryTools({ ...loaded.context, structure: isOperationInquiryStrategy(strategy), ...(isFiniteControlInquiryStrategy(strategy) ? { controlSemantics: "finite-control/v1" as const, propertyDirected: isPropertyDirectedInquiryStrategy(strategy), questionDirected: isQuestionDirectedInquiryStrategy(strategy) } : {}), maxToolCalls: options.maxToolCalls ?? 24, maxDisplayBytes: options.maxDisplayBytes ?? 262144, maxReadBytes: options.maxReadBytes, reserveFinalRead: true })
+  const loaded = await loadInquiryInput(options.inputFile, { allowMissingPolicy: sourceAssisted }), tools = await createInquiryTools({ ...loaded.context, structure: isOperationInquiryStrategy(strategy), ...(isFiniteControlInquiryStrategy(strategy) ? { controlSemantics: "finite-control/v1" as const, propertyDirected: isPropertyDirectedInquiryStrategy(strategy), questionDirected: isQuestionDirectedInquiryStrategy(strategy) } : {}), maxToolCalls: options.maxToolCalls ?? 24, maxDisplayBytes: options.maxDisplayBytes ?? 262144, maxReadBytes: options.maxReadBytes, reserveFinalRead: true, preparation: options.preparation })
   const separateFormats = isPropertyAbstractionStrategy(strategy), formatCorrectionLimit = separateFormats ? 2 : 0
   const checkLimit = options.domainTools ? 2 : 0, explorationLimit = tools.maxToolCalls - checkLimit
   if (options.domainTools && explorationLimit < 1) throw new NativeToolRejection("tool-budget", "Domain tools require at least 3 total calls: one exploration action and two result checks")

@@ -7,6 +7,7 @@ import { loadPortableSourceBundle, type SourceBundleFile } from "./inputs.ts"
 import { indexAuthorizationSymbols, type DiscoverySymbol } from "./evidence-preparation/discovery.ts"
 import { buildStructureIndex, type StructureCall } from "./evidence-preparation/structure-index.ts"
 import { buildSourceSkeleton, type SourceSkeleton } from "./evidence-preparation/source-skeleton.ts"
+import { sourcePreparation, type SourcePreparationOptions } from "./evidence-preparation/preparation.ts"
 
 export interface InquiryEvidence {
   id: string; repository: string; sourceRef: string; path: string; sha256: string;
@@ -23,6 +24,7 @@ export interface InquiryToolsOptions {
   sourceRoot: string; allowedPaths: string[]; repository: string; sourceRef: string;
   maxFiles?: number; maxReadBytes?: number; maxDisplayBytes?: number; maxToolCalls?: number;
   reserveFinalRead?: boolean; structure?: boolean; controlSemantics?: "finite-control/v1"; propertyDirected?: boolean; questionDirected?: boolean
+  preparation?: SourcePreparationOptions
 }
 export interface InquirySourceVerification { valid: boolean; code?: string; message?: string; checkedFiles: number; physicalReadBytes: number }
 const excluded = new Set([".git", "node_modules", ".skvm", ".aws", ".codex", ".agents", "__pycache__", ".venv", "venv", "oracle", "oracles", "evaluator", "results", "held-out", "prospective", "tests", "__tests__"])
@@ -61,6 +63,12 @@ const structureTool = toolSchema("source_structure", "Inspect AST-bound calls an
 
 /** One bounded executor for Markdown, DSL and the opt-in ordinary adapter. */
 export async function createInquiryTools(options: InquiryToolsOptions) {
+  const preparation = sourcePreparation(options.preparation)
+  try { return await prepareInquiryTools(options, preparation) }
+  catch (error) { preparation.fail(error); throw error }
+}
+async function prepareInquiryTools(options: InquiryToolsOptions, preparation: ReturnType<typeof sourcePreparation>) {
+  preparation.start("walk")
   const sourceIdentity = { repository: options.repository, sourceRef: options.sourceRef }
   for (const value of [options.maxFiles, options.maxReadBytes, options.maxDisplayBytes, options.maxToolCalls]) if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new Error("Invalid inquiry budget")
   if (!options.allowedPaths.length || options.allowedPaths.some(p => !safePath(p, true))) throw new Error("Unsafe allowed source scope")
@@ -68,6 +76,7 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
   const maxDisplayBytes = options.maxDisplayBytes ?? 262144, maxToolCalls = options.maxToolCalls ?? 24
   const scopeGaps: Array<{ code: string; path: string; detail: string }> = [], paths: string[] = [], visited = new Set<string>()
   const walk = async (relative: string): Promise<void> => {
+    preparation.progress({ currentPath: relative })
     const candidate = path.resolve(root, relative), canonical = await realpath(candidate)
     if (!within(root, canonical)) throw new Error(`Source scope symlink-escape: ${relative}`)
     if (visited.has(canonical)) return
@@ -83,24 +92,38 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
   }
   for (const scope of options.allowedPaths) await walk(scope)
   paths.sort()
+  preparation.progress({ totalFiles: paths.length }); preparation.end()
   const snapshotPaths = [...paths]
   const files = new Map<string, SourceBundleFile>(), symbols: DiscoverySymbol[] = []
   let indexBytes = 0, displayBytes = 0, toolCalls = 0, ioReadBytes = 0, importedEvidenceBytes = 0
   for (const relative of paths) {
     if (files.size >= maxFiles) { scopeGaps.push({ code: "file-budget", path: relative, detail: "Allowed source exceeds the indexed file limit." }); continue }
-    const loaded = await loadPortableSourceBundle({ sourceRoot: root, sourceFiles: [relative], repository: options.repository, sourceRef: options.sourceRef, maxBytes: maxReadBytes - indexBytes })
+    preparation.start("load", relative)
+    const loadStarted = performance.now(), loaded = await loadPortableSourceBundle({ sourceRoot: root, sourceFiles: [relative], repository: options.repository, sourceRef: options.sourceRef, maxBytes: maxReadBytes - indexBytes })
+    preparation.end({ durationMs: performance.now() - loadStarted })
     if (!loaded.success) { scopeGaps.push(...loaded.diagnostics.map(d => ({ code: d.code, path: relative, detail: d.message }))); continue }
     const source = loaded.bundle.files[0]!
     files.set(relative, source); indexBytes += Buffer.byteLength(source.content); ioReadBytes += Buffer.byteLength(source.content)
+    preparation.start("lexical", relative)
+    const lexicalStarted = performance.now()
     symbols.push(...indexAuthorizationSymbols(relative, source.content, sourceIdentity))
+    preparation.progress({ bytes: indexBytes, completedFiles: files.size })
+    preparation.end({ durationMs: performance.now() - lexicalStarted })
   }
-  const structure = options.structure ? await buildStructureIndex([...files].map(([p, f]) => ({ path: p, content: f.content })), sourceIdentity) : undefined
+  if (options.structure) preparation.start("ast")
+  const structure = options.structure ? await buildStructureIndex([...files].map(([p, f]) => ({ path: p, content: f.content })), sourceIdentity, {
+    onFile: event => preparation.progress(event),
+    onPostprocess: () => { preparation.end(); preparation.start("postprocess") },
+    isolate: true, signal: options.preparation?.signal, timeoutMs: options.preparation?.timeoutMs ?? 180000,
+  }) : undefined
+  if (!options.structure) preparation.start("postprocess")
   if (structure) {
     // Parser boundaries replace lexical candidates only for supported languages.
     const supported = new Set(structure.symbols.map(s => s.path))
     symbols.splice(0, symbols.length, ...symbols.filter(s => !supported.has(s.path)), ...structure.symbols)
     scopeGaps.push(...structure.diagnostics.map(d => ({ ...d, detail: "AST relation coverage is partial; this diagnostic is not a permission fact." })))
   }
+  preparation.end(); preparation.complete()
   const evidence: InquiryEvidence[] = [], history: Array<{ name: string; arguments: unknown; result: InquiryToolOutput; actionOrigin?: string; questionId?: string; dependencyId?: string; reason?: string }> = []
   const skeletons = new Map<string, SourceSkeleton>()
   const sourceSkeleton = async (symbolId: string, receiverClass?: string) => {
@@ -254,6 +277,7 @@ export async function createInquiryTools(options: InquiryToolsOptions) {
       const names = new Set(text.match(/[A-Za-z_$][\w$]*/g) ?? [])
       return structuredClone(symbols.filter(s => s.name.length >= 3 && names.has(s.name)).map(s => ({ ...s, basis: { kind: "lexical-lead" as const, reference: s.name, unique: false } })))
     },
+    preparation: preparation.events,
     get displayBytes() { return displayBytes }, get importedEvidenceBytes() { return importedEvidenceBytes }, get indexBytes() { return indexBytes }, get ioReadBytes() { return ioReadBytes }, get toolCalls() { return toolCalls }, maxToolCalls, maxDisplayBytes }
 }
 export type InquiryTools = Awaited<ReturnType<typeof createInquiryTools>>

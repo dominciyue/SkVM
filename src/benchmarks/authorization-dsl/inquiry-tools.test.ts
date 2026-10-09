@@ -3,6 +3,8 @@ import { mkdtemp, mkdir, writeFile, symlink, cp } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import { createInquiryTools } from "./inquiry-tools.ts"
+import { runAuthorizationInquiry } from "./inquiry-run.ts"
+import { createNativeInquiryRuntime } from "./inquiry-native.ts"
 
 test("production source identities and restored evidence survive a real directory copy and budget change", async () => {
   const original = await mkdtemp(path.join(os.tmpdir(), "av-identity-")), moved = await mkdtemp(path.join(os.tmpdir(), "av-moved-"))
@@ -156,4 +158,62 @@ test("final snapshot detects an unmatched file edit and a new indexed path witho
     await writeFile(path.join(root, added ? "src/added.ts" : "src/entry.ts"), "export function newMatch() { return true; }\n")
     expect(await (tools as any).verifySnapshot()).toMatchObject({ valid: false, code: "source-changed" })
   }
+})
+
+test("preparation reports ordered phases and file timings within the unchanged allowed scope", async () => {
+  const { root } = await fixture(), events: any[] = []
+  await writeFile(path.join(root, "src/helper.py"), "def helper(x):\n    return x\n")
+  const tools = await createInquiryTools({ sourceRoot: root, allowedPaths: ["src/helper.py"], repository: "neutral", sourceRef: "r", structure: true, preparation: { onProgress: (event: any) => events.push(event) } } as any)
+  expect(events.filter(e => e.state === "started").map(e => e.phase)).toEqual(["walk", "load", "lexical", "ast", "postprocess"])
+  expect(events.at(-1)).toMatchObject({ phase: "complete", state: "completed", completedFiles: 1, totalFiles: 1, bytes: tools.indexBytes })
+  expect(events.every(e => e.elapsedMs >= 0)).toBe(true)
+  expect(events.filter(e => e.phase === "ast" && e.currentPath === "src/helper.py").length).toBeGreaterThan(0)
+  expect(tools.files.map(f => f.path)).toEqual(["src/helper.py"])
+})
+test("preparation failure retains its exact walk path and phase", async () => {
+  const { root } = await fixture(), events: any[] = []
+  await expect(createInquiryTools({ sourceRoot: root, allowedPaths: ["src/absent.py"], repository: "neutral", sourceRef: "r", preparation: { onProgress: (event: any) => events.push(event) } } as any)).rejects.toThrow()
+  expect(events.at(-1)).toMatchObject({ phase: "walk", state: "failed", currentPath: "src/absent.py" })
+  expect(events.at(-1).error).toContain("ENOENT")
+})
+test("cancellation during source preparation terminates before AST/runtime construction", async () => {
+  const { root } = await fixture(), events: any[] = [], controller = new AbortController()
+  await expect(createInquiryTools({ sourceRoot: root, allowedPaths: ["src/helper.ts"], repository: "neutral", sourceRef: "r", structure: true, preparation: { signal: controller.signal, onProgress: (event: any) => { events.push(event); if (event.phase === "lexical" && event.state === "completed") controller.abort() } } } as any)).rejects.toThrow("cancelled")
+  expect(events.at(-1)).toMatchObject({ state: "cancelled", phase: "lexical" })
+  expect(events.some(e => e.phase === "ast" || e.phase === "complete")).toBe(false)
+})
+test("module order extraction reuses syntax events locally and revalidates changed source bytes", async () => {
+  const { root } = await fixture(), source = Array.from({ length: 120 }, (_, i) => `v${i} = lookup(${i})`).join("\n") + "\n"
+  await writeFile(path.join(root, "large.py"), source)
+  const options = { sourceRoot: root, allowedPaths: ["large.py"], repository: "neutral", sourceRef: "r", structure: true }
+  const first = await createInquiryTools(options)
+  expect((first.structure?.preparation as any).sourceOrder).toBeDefined()
+  expect((first.structure?.preparation as any).sourceOrder.eventComputations).toBeLessThan(500)
+  expect((first.structure?.preparation as any).sourceOrder.eventCacheHits).toBeGreaterThan(120)
+  const unchanged = await createInquiryTools(options)
+  expect(unchanged.structure?.revision).toBe(first.structure?.revision)
+  await writeFile(path.join(root, "large.py"), source + "v120 = different(v1)\n")
+  const changed = await createInquiryTools(options)
+  expect(changed.structure?.revision).not.toBe(first.structure?.revision)
+  expect(changed.structure?.calls.some(c => c.expression === "different")).toBe(true)
+})
+test("AST cancellation terminates its owned worker while syntax extraction is running", async () => {
+  const { root } = await fixture(), controller = new AbortController(), events: any[] = []
+  await writeFile(path.join(root, "busy.py"), Array.from({ length: 700 }, (_, i) => `x${i} = helper(${i})`).join("\n") + "\n")
+  let heartbeat = false
+  await expect(createInquiryTools({ sourceRoot: root, allowedPaths: ["busy.py"], repository: "neutral", sourceRef: "r", structure: true, preparation: { signal: controller.signal, onProgress: (event: any) => { events.push(event); if (event.detail === "syntax-facts-start") setTimeout(() => { heartbeat = true; controller.abort() }, 1) } } } as any)).rejects.toThrow("cancelled")
+  expect(heartbeat).toBe(true)
+  expect(events.at(-1)).toMatchObject({ phase: "ast", currentPath: "busy.py", state: "cancelled", detail: "owned-worker-exited" })
+  expect(events.some(e => e.phase === "complete")).toBe(false)
+})
+test("both public entrances stop cancelled preparation before model dispatch", async () => {
+  const { root } = await fixture(), controller = new AbortController(); controller.abort()
+  const inquiry = { schemaVersion: "authorization-inquiry/v1" as const, mode: "behavior" as const, questions: [{ id: "q", request: "Inspect original source behavior", premises: [] }] }
+  let dispatches = 0
+  const provider: any = { name: "mock", complete: async () => { dispatches++; throw new Error("No model dispatch is permitted") } }
+  await expect(runAuthorizationInquiry({ sourceRoot: root, allowedPaths: ["src"], repository: "neutral", sourceRef: "r", brief: "Inspect original source behavior", inquiry, provider, method: "M", strategy: "operation-evidence-v7", preparation: { signal: controller.signal } })).rejects.toThrow("cancelled")
+  const inputFile = path.join(root, "input.json")
+  await writeFile(inputFile, JSON.stringify({ schemaVersion: "authorization-inquiry-input/v1", taskId: "t", sourceRoot: ".", allowedPaths: ["src"], repository: "neutral", sourceRef: "r", inquiry }))
+  await expect(createNativeInquiryRuntime({ inputFile, workDir: root, domainTools: true, strategy: "operation-evidence-v7", preparation: { signal: controller.signal } } as any)).rejects.toThrow("cancelled")
+  expect(dispatches).toBe(0)
 })

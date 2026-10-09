@@ -130,10 +130,10 @@ type TaskPropertyPreparation = {
 
 ### BC1 定位并修复准备阶段
 
-- [ ] 在 `inquiry-tools.test.ts` 写：准备 phase 顺序、失败阶段/文件、取消后不建 runtime/不派发、允许范围/排除目录不变的红测。若出现同步卡顿，补拥有的 worker 能退出的测试。
-- [ ] 单独准备一份 BB 原 scope，记录 walk、读字节、词法、AST、后处理的逐文件耗时；首先不做任何模型调用、source edit 或全部重放。复用 BB profile 提取方式，不重新下载源码。
-- [ ] 依据最慢阶段修复，并在相同源码/范围做一次前后对照；缓存方案另测一次 cold/warm 及修改失效。异步等待壳不是取消实现。
-- [ ] `bun test ./src/benchmarks/authorization-dsl/inquiry-tools.test.ts` 通过；慢原例能完成或返回可定位的失败且不遗留后台工作。完成真实准备才进入 BC7 全材料重放。
+- [x] 在 `inquiry-tools.test.ts` 写：准备 phase 顺序、失败阶段/文件、取消后不建 runtime/不派发、允许范围/排除目录不变的红测。若出现同步卡顿，补拥有的 worker 能退出的测试。
+- [x] 单独准备一份 BB 原 scope，记录 walk、读字节、词法、AST、后处理的逐文件耗时；首先不做任何模型调用、source edit 或全部重放。复用 BB profile 提取方式，不重新下载源码。
+- [x] 依据最慢阶段修复，并在相同源码/范围做一次前后对照；本次memo仅当前AST，无持久缓存，已测同字节revision与修改失效。异步等待壳不是取消实现。
+- [x] `bun test ./src/benchmarks/authorization-dsl/inquiry-tools.test.ts` 通过；慢原例完整完成，取消等待拥有worker退出。对照在BC verification/preparation-comparison.json。完成真实准备才进入 BC7 全材料重放。
 - [ ] 提交：`fix: make authorization source preparation diagnosable and bounded`。
 
 ### BC2 修复 v7 无声明指引

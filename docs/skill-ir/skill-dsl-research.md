@@ -2343,6 +2343,8 @@ OWUI native消费者已加载完整原skill与11个原题请求，原声明/Usag
 
 **BC0接管。** 实施基线ee1a0522，现场干净，继续skill-ir-aot，仅用户origin。11个Download位置、同模型/预算与两旧OWUI未知按字节来源登记；[继承责任](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/inherited-failure-responsibilities.json)区分目标和实际失败。登记测试先红于空队列、后绿1test/5断言；无模型请求。准备故障仍先分段实测，不从内存或总超时猜根因。
 
+**BC1准备定位与修复。** 173文件/3,149,729字节的原OWUI scope实测walk/加载/词法约310ms，完整基线80.59s；config.py解析29ms而事实提取50.85s。单文件CPU样本将主要热栈定位于sourceStoreOrder重复提取兄弟语句事件，非全盘扫描。仅当前AST内部memo后19.72s，加入拥有且可终止的事实worker后21.58s；原文件清单、源码身份及结构revision均相同，见[对照](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/preparation-comparison.json)。worker传递纯语法事实，主线程仍用现有关系器；取消先等待worker退出，后处理按调用批次让出执行。无模型语义缓存/持久缓存。18准备回归/119断言与361结构回归/947断言通过；两个公开入口取消后零派发。仍约12s后处理成本，不宣称全部热点已消除；本次真实准备完成后才进入原件派生重放。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

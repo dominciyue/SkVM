@@ -1,5 +1,7 @@
 import path from "node:path"
 import { createHash } from "node:crypto"
+import { Worker } from "node:worker_threads"
+import { setImmediate as yieldPreparation } from "node:timers/promises"
 import { Parser, Language, type Node } from "@vscode/tree-sitter-wasm"
 import type { DiscoverySymbol } from "./discovery.ts"
 import { physicalSourceLines } from "./segments.ts"
@@ -262,12 +264,16 @@ function sourceArgumentValue(value: Node, symbolId: string, callId: (node: Node)
   if (!left || !right) return
   return { schemaVersion: "source-argument-value/v1", anchorId: sourceSyntaxAnchorId(symbolId, value.startIndex, value.endIndex, "control", result), result, operator: operator as "and" | "or", left: left.value, right: right.value, ...(left.callId ? { leftCallId: left.callId } : {}), ...(right.callId ? { rightCallId: right.callId } : {}) }
 }
+interface SourceOrderMemo { events: Map<string, string[][]>; eventComputations: number; eventCacheHits: number }
+// Syntax-only memo belongs to this exact parsed tree and is discarded before
+// its disposal. It cannot carry meanings, answers or facts across source edits.
+const sourceOrderMemos = new WeakMap<object, SourceOrderMemo>()
 function sourceStoreOrder(node: Node, symbolId: string, callId: (node: Node) => string, localAssignments = false, moduleDeclarations = false): StructureMethodStore["order"] {
   let statement = node
   while (statement.parent && !["block", "module"].includes(statement.parent.type)) statement = statement.parent
   const siblings = children(statement.parent), position = siblings.findIndex(s => s.id === statement.id)
   const expressionEvents = (node: Node | null | undefined, resultBinding?: string) => sourceExpressionEvents(node, symbolId, callId, resultBinding)
-  const event = (statement: Node): string[][] => {
+  const computeEvent = (statement: Node): string[][] => {
     const node = statement.type === "expression_statement" ? children(statement)[0] : statement
     if (!node) return []
     const cls = node.type === "class_definition" ? node : node.type === "decorated_definition" ? children(node).find(c => c.type === "class_definition") : undefined
@@ -286,17 +292,36 @@ function sourceStoreOrder(node: Node, symbolId: string, callId: (node: Node) => 
     }
     return statement.type === "expression_statement" ? expressionEvents(node) : []
   }
+  const memo = sourceOrderMemos.get(node.tree)
+  const event = (statement: Node): string[][] => {
+    if (!memo) return computeEvent(statement)
+    const key = `${symbolId}:${localAssignments}:${moduleDeclarations}:${statement.id}`
+    const retained = memo.events.get(key)
+    if (retained) { memo.eventCacheHits++; return retained }
+    const events = computeEvent(statement); memo.eventComputations++; memo.events.set(key, events); return events
+  }
   return { before: siblings.slice(0, position).flatMap(event), after: siblings.slice(position + 1).flatMap(event) }
 }
-/** Only AST syntax and bounded name binding. No target import, execution or permission inference. */
-export async function buildStructureIndex(files: Array<{ path: string; content: string }>, identity: { repository: string; sourceRef: string }) {
+export interface StructurePreparationOptions {
+  onFile?: (event: { currentPath: string; durationMs?: number; detail: string }) => void;
+  onPostprocess?: () => void; signal?: AbortSignal; timeoutMs?: number; isolate?: boolean
+}
+/** Plain syntax facts only cross the owned worker boundary. */
+export async function extractStructureFacts(files: Array<{ path: string; content: string }>, identity: { repository: string; sourceRef: string }, preparation: StructurePreparationOptions = {}) {
   const sourceIdentity = { repository: identity.repository, sourceRef: identity.sourceRef }
-  const started = performance.now(), loaded = await languages(), scopes: FileScope[] = [], diagnostics: Array<{ path: string; code: string; line?: number; handlerId?: string }> = [], returnedCallables = new Map<string, string[]>()
+  const loaded = await languages(), scopes: FileScope[] = [], diagnostics: Array<{ path: string; code: string; line?: number; handlerId?: string }> = [], returnedCallables = new Map<string, string[]>()
+  const sourceOrder = { eventComputations: 0, eventCacheHits: 0 }
   for (const file of [...files].sort((a, b) => a.path < b.path ? -1 : a.path > b.path ? 1 : 0)) {
     const language = file.path.endsWith(".py") ? "python" : file.path.endsWith(".go") ? "go" : undefined
     if (!language) { diagnostics.push({ path: file.path, code: "structure-language-unsupported" }); continue }
+    preparation.onFile?.({ currentPath: file.path, detail: "parse-start" })
+    const parseStarted = performance.now()
     const parser = new Parser(); parser.setLanguage(loaded.get(language)!)
     const tree = parser.parse(file.content)!
+    const orderMemo: SourceOrderMemo = { events: new Map(), eventComputations: 0, eventCacheHits: 0 }; sourceOrderMemos.set(tree, orderMemo)
+    preparation.onFile?.({ currentPath: file.path, detail: "parse-completed", durationMs: performance.now() - parseStarted })
+    preparation.onFile?.({ currentPath: file.path, detail: "syntax-facts-start" })
+    const factsStarted = performance.now()
     try {
       const root = tree.rootNode, sha256 = hash(file.content), module = moduleName(file.path, language), aliases: Record<string, string> = {}, moduleAliases: Record<string, string> = {}, moduleAliasSources: Record<string, StructureBindingSource> = {}, symbols: StructureSymbol[] = []
       if (root.hasError) diagnostics.push({ path: file.path, code: "structure-parse-partial" })
@@ -787,7 +812,49 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
         }
       }
       scopes.push({ path: file.path, sha256, parsePartial: root.hasError, module, language, aliases, moduleAliases, moduleAliasSources, symbols, rawCalls, fieldStores, routerAliases, moduleAssignments, moduleAttributeWrites, constants, routers, decorators, includes })
-    } finally { tree.delete(); parser.delete() }
+    } finally {
+      sourceOrder.eventComputations += orderMemo.eventComputations; sourceOrder.eventCacheHits += orderMemo.eventCacheHits
+      sourceOrderMemos.delete(tree); tree.delete(); parser.delete()
+    }
+    preparation.onFile?.({ currentPath: file.path, detail: "syntax-facts-completed", durationMs: performance.now() - factsStarted })
+  }
+  return { scopes, diagnostics, returnedCallables, sourceOrder }
+}
+async function ownedStructureFacts(files: Array<{ path: string; content: string }>, identity: { repository: string; sourceRef: string }, options: StructurePreparationOptions) {
+  if (options.signal?.aborted) throw new Error("Source preparation cancelled")
+  const worker = new Worker(new URL("./structure-facts-worker.ts", import.meta.url), { workerData: { files, identity } })
+  return await new Promise<Awaited<ReturnType<typeof extractStructureFacts>>>((resolve, reject) => {
+    let settled = false
+    const finish = async (error?: Error, value?: Awaited<ReturnType<typeof extractStructureFacts>>) => {
+      if (settled) return; settled = true
+      clearTimeout(timer); options.signal?.removeEventListener("abort", abort)
+      await worker.terminate()
+      if (error) { Object.assign(error, { ownedWorkerExited: true }); reject(error) } else resolve(value!)
+    }
+    const abort = () => { void finish(new Error("Source preparation cancelled")) }
+    const timer = setTimeout(() => { void finish(new Error("Source preparation cancelled: deadline exceeded")) }, options.timeoutMs ?? 180000)
+    options.signal?.addEventListener("abort", abort, { once: true })
+    worker.on("message", message => {
+      if (settled) return
+      try {
+        if (message.event) options.onFile?.(message.event)
+        else if (message.error) void finish(new Error(message.error))
+        else if (message.value) void finish(undefined, message.value)
+      } catch (error) { void finish(error instanceof Error ? error : new Error(String(error))) }
+    })
+    worker.on("error", error => { void finish(error instanceof Error ? error : new Error(String(error))) })
+    worker.on("exit", code => { if (!settled) void finish(new Error(`Source syntax worker exited before completion (${code})`)) })
+  })
+}
+/** Only AST syntax and bounded name binding. No target import, execution or permission inference. */
+export async function buildStructureIndex(files: Array<{ path: string; content: string }>, identity: { repository: string; sourceRef: string }, preparation: StructurePreparationOptions = {}) {
+  const started = performance.now(), sourceIdentity = { repository: identity.repository, sourceRef: identity.sourceRef }
+  const { scopes, diagnostics, returnedCallables, sourceOrder } = preparation.isolate ? await ownedStructureFacts(files, identity, preparation) : await extractStructureFacts(files, identity, preparation)
+  preparation.onPostprocess?.()
+  await yieldPreparation()
+  const checkPreparation = (currentPath: string) => {
+    if (preparation.signal?.aborted || preparation.timeoutMs !== undefined && performance.now() - started >= preparation.timeoutMs) throw new Error("Source preparation cancelled during postprocess")
+    preparation.onFile?.({ currentPath, detail: "relation-postprocess" })
   }
   const symbols = scopes.flatMap(f => f.symbols), scopeFor = (s: StructureSymbol) => scopes.find(f => f.path === s.path)!
   const qualified = (text: string, scope: FileScope) => {
@@ -1258,7 +1325,14 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     if (!changed) { callableInputsSettled = true; break }
   }
   if (!callableInputsSettled) for (const key of callableInputs.keys()) callableInputGaps.set(key, "source-callable-parameter-input-limit")
-  const calls = scopes.flatMap(f => f.rawCalls.map(r => resolveCall(r, f))), routes: StructureRoute[] = [], classApplications: StructureCall[] = []
+  const calls: StructureCall[] = [], routes: StructureRoute[] = [], classApplications: StructureCall[] = []
+  for (const scope of scopes) {
+    checkPreparation(scope.path)
+    for (let offset = 0; offset < scope.rawCalls.length; offset += 64) {
+      checkPreparation(scope.path); calls.push(...scope.rawCalls.slice(offset, offset + 64).map(r => resolveCall(r, scope)))
+      await yieldPreparation()
+    }
+  }
   for (const symbol of symbols.filter(s => structureClassDefinition(s))) {
     const proof = structureClassDefinition(symbol)!, owner = symbols.find(s => s.id === proof.ownerId)!, scope = scopeFor(symbol)
     let input = `class-original-${proof.anchorId}`
@@ -1686,6 +1760,6 @@ export async function buildStructureIndex(files: Array<{ path: string; content: 
     return withSourceSyntax(file.content, symbol.language, root => visit(root, symbol))
   }
   return { schemaVersion: "authorization-structure-index/v1" as const, parser: parserVersion, relationshipVersion, symbols, calls, routes, diagnostics, lookupMethod, attribute, linearize, classBindingSources, candidateRevision, relatedCalls, resolveName, qualifySourceName, fieldStores, methodStores, callableParameters, requestDependencies, requestMiddleware, requestActions, classDecorators, withSymbolSyntax,
-    revision: hash([sourceIdentity, parserVersion, relationshipVersion, symbols, calls, routes, diagnostics]), preparation: { files: files.length, bytes: files.reduce((s, f) => s + Buffer.byteLength(f.content), 0), durationMs: performance.now() - started, targetExecutions: 0 } }
+    revision: hash([sourceIdentity, parserVersion, relationshipVersion, symbols, calls, routes, diagnostics]), preparation: { files: files.length, bytes: files.reduce((s, f) => s + Buffer.byteLength(f.content), 0), durationMs: performance.now() - started, sourceOrder, targetExecutions: 0 } }
 }
 export type StructureIndex = Awaited<ReturnType<typeof buildStructureIndex>>
