@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod/Ajv、已有 Python/Go 索引和有限求值器。开发 `gpt-6.1-sol / max`；实验使用已授权的当前官方账号 `gpt-5.6-sol / high`。第三方付费 API 继续暂停。
 
-**登记状态：** `planned-not-started`。任务书发布不代表实现或研究验收通过。
+**执行状态：** `in-progress`。BB0在 `553509a6` 接管并建立独立证据登记；工程与真实使用验收分别等待本轮证据。
 
 ## 一、接管、目标与边界
 
@@ -128,10 +128,10 @@ def perform(actor, target, permitted):
 
 ### BB0 接管和最小证据登记
 
-- [ ] 检查分支/HEAD/脏文件和活动运行，读取必读上下文。其他线程原有内容保持。
-- [ ] 创建新 identity、status、manifest；分开 `requirements` 和 `outcomes`，后者初值 pending/not-measured，不用一串 true 表示验收要求。
-- [ ] 提取 BA 的 Download transaction-priority-1、OWUI original 和 await 离线重放所需输入；保留出处，不复制全部历史目录。
-- [ ] 建立代码责任、BB 阶段和下述 16 个实际使用位置。BA 原件及未执行行不变。
+- [x] 检查分支/HEAD/脏文件和活动运行，读取必读上下文。基线553509a6，起始工作树干净；BA活动/未知完成均为空。SSH远端查询失败，发布阶段重新核实同fork。
+- [x] 创建新 identity、status、manifest；分开 `requirements` 和 `outcomes`，后者初值 pending/not-measured，不用一串 true 表示验收要求。
+- [x] 提取 BA 的 Download transaction-priority-1、OWUI original 和 await 离线重放所需输入；保留出处，不复制全部历史目录。见 `fixtures/ba-original.json`；零模型调用、原件不改写。
+- [x] 建立代码责任、BB 阶段和下述 16 个实际使用位置。BA 原件及未执行行不变。登记回归3 pass/15断言、本轮tsc通过。
 
 ### BB1 用公共链写失败测试
 
