@@ -211,8 +211,8 @@ expect(afterInvalidUpdate.currentCheckedVerdicts).toHaveLength(0)
 
 ### BC9 Download 普通原包真实使用
 
-- [ ] 使用 BB 原 Download skill、原四题、同允许源码和既有用户政策/前提，新 sidecar 由 BC3 自动生成。先记录任务性质准备，再记录解释/绑定/检查/自然交付。
-- [ ] 首件不替换。每次坏表现立即定点区分准备、前端、源码解释、关系接线、检查或通道问题；共享缺陷先红绿修复，再做一件具名同题复验。
+- [x] 使用 BB 原 Download skill、原四题、同允许源码和既有用户政策/前提，新 sidecar 由 BC3 自动生成。首件completed且自然交付；三性质prepared、一题residual，机器跨源检查未合格，原四题源码评阅full/full/full/partial。
+- [ ] 首件不替换。首件暴露准备deadline影响最终核验、共享operation只有sourceQuestion能绑定性质。先红绿修复：deadline在complete终止；已采用共享入口的后续原题获得独立空绑定事务，声明未定位仍unknown。具名`preparation-and-question-binding-1`同四题复验待执行；源锚点错投和未解释ORM仍保留拒绝。
 - [ ] 首个可信跨源 checked/violated 与原问题的映射、完整当前 trace、源码独立评阅和原四题质量均保存。单条性质成功可继续 BC11 的局部复用；四题全部充分另报 whole-task full。
 - [ ] 同因两次实测无改善转确定性诊断；不得用更多同题抽样寻找幸运结果。新根因的修复允许继续，但须更新研究和实际实现 epoch。
 

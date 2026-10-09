@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "authorization-bc-source-review/v1",
+  "attemptId": "native-download/original",
+  "inputSha256": "ee99327d807ccd1e130117266c8bcdca9f33113b260782152463a4b48fafb397",
+  "answerSha256": "e124d6d17251fd8bb39607bfda4b3071e859e6efcfa6ec82722b408aab8f524c",
+  "runtimeTree": "2572036d1ed9fd8a78b933605b5b761325e6dd06",
+  "status": "source-reviewed",
+  "reviewer": "primary source review with independent read-only scout; current claim hashes checked",
+  "wholeOriginalTask": "source-partial",
+  "questionReviews": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "quality": "full",
+      "sourceSupported": true,
+      "evidence": [
+        "src/documents/views.py:1368-1448",
+        "src/documents/views.py:1834-1839",
+        "src/documents/views.py:4941-4995",
+        "src/documents/versioning.py:130-205",
+        "src/paperless/urls.py:305-313"
+      ],
+      "reason": "Requested pk/root/version/deleted handling, latest/default/explicit-version membership, original/archive, formatting and file/lookup error branches are distinguished."
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "quality": "full",
+      "sourceSupported": true,
+      "evidence": [
+        "src/documents/views.py:1008-1027",
+        "src/documents/views.py:1401-1448",
+        "src/documents/permissions.py:24-53",
+        "src/documents/permissions.py:624-635",
+        "framework/rest_framework-3.18.1/rest_framework/views.py:404-421"
+      ],
+      "reason": "Authentication/model permissions precede the custom manual lookup; ownerless/owner/guardian view_document is checked on root before selecting the returned file."
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "quality": "full",
+      "sourceSupported": true,
+      "evidence": [
+        "src/documents/views.py:1375-1448",
+        "src/documents/versioning.py:146-205"
+      ],
+      "reason": "Correctly separates root authorization from selected root/version file-bearing object and representation; no inferred reauthorization of the selected version."
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "quality": "partial",
+      "sourceSupported": true,
+      "evidence": [
+        "src/documents/views.py:1401-1448",
+        "src/documents/views.py:1834-1839",
+        "src/documents/permissions.py:624-635"
+      ],
+      "reason": "Missing user/grant/database/file/configuration facts are accurate, but the answer groups blocked conclusions instead of mapping each missing fact to its exact conclusion; missing file existence blocks actual return success, while the 404 rule is already established."
+    }
+  ],
+  "propertyReviews": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "propertyId": "task-property-bf57c877302de855b231",
+      "kind": "operation-completion",
+      "requirement": "how the selected version and original/archive representation determine the file returned",
+      "sourceSupported": false,
+      "status": "unknown",
+      "reason": "No current checked/violated cross-source property; source edit rejection and open dependencies remain."
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "propertyId": "task-property-55a3dd727c36eb7ffbbc",
+      "kind": "authorization-before-effect",
+      "requirement": "state where those checks occur relative to selection of the returned file",
+      "sourceSupported": false,
+      "status": "unknown",
+      "reason": "No current checked/violated cross-source property; source edit rejection and open dependencies remain."
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "propertyId": "task-property-22daae92bb285e1e811b",
+      "kind": "authorized-object-matches-effect",
+      "requirement": "whether selecting another document version or choosing original versus archive changes the resource on which authorization is evaluated, or only changes the representation or file returned after authorization",
+      "sourceSupported": false,
+      "status": "unknown",
+      "reason": "No current checked/violated cross-source property; source edit rejection and open dependencies remain."
+    }
+  ],
+  "archiveSourceVerification": {
+    "valid": false,
+    "code": "source-changed",
+    "message": "Final source identity check failed: Error: Source preparation cancelled: deadline exceeded",
+    "checkedFiles": 0,
+    "physicalReadBytes": 0
+  },
+  "independentCurrentSourceIdentity": {
+    "checkedFiles": 95,
+    "mismatches": [],
+    "modelCalls": 0,
+    "doesNotReplaceArchivedCheck": true
+  },
+  "blockers": [
+    "Preparation deadline incorrectly remains active during final verification; original report remains unchanged.",
+    "Three proposed properties were retained, but only the source-question demand was addressable; other questions incorrectly report undeclared.",
+    "Source-edit transaction mismatch and return-role errors are correctly rejected; unresolved ORM call still lacks accepted meaning."
+  ],
+  "reviewedAt": "2026-10-09T21:51:05.531Z"
+}

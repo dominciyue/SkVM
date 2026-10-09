@@ -120,6 +120,8 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
   const finished = new Set<string>(), deferred = new Set<string>(), submissions = new Map<string, string>()
   const retainedItems = new Map<string, WorkItem>()
   const sourceDrafts = new Map<string, SourceInterpretation>(), offeredSkeletons = new Map<string, SourceSkeleton>()
+  const acceptedSourceDrafts = new Map<string, SourceInterpretation>(), propertyItems = new Map<string, WorkItem>()
+  const routedPropertyQuestions = new Set<string>()
   const editDrafts = new Map<string, SourceEditDraft>()
   const routedBindingRepairs = new Set<string>()
   const bindingRepairs = () => !options.taskBinding || !options.sourceSkeleton ? [] : callBindingRepairDemands(options.bindingMismatches?.() ?? [], options.bindingRepairUnits?.() ?? options.units(), options.sourceSkeleton)
@@ -149,6 +151,12 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
       const handles = units.length ? units.map(u => u.handle) : [current?.itemId === item.id ? current.handle : unitHandle(item)]
       for (const handle of handles) owners.set(JSON.stringify([item.questionId, syntax.sourceId, item.receiverClass, handle]), { questionId: item.questionId, operationId: operation(item.questionId)!, receiverClass: item.receiverClass, handle, skeleton: syntax, interpretation: handle ? sourceDrafts.get(handle) : undefined })
     }
+    if (options.taskBinding) for (const unit of options.bindingRepairUnits?.() ?? []) {
+      const syntax = unit.source && options.sourceSkeleton?.(unit.source.id, unit.receiverClass)
+      if (!syntax?.modelCovered || options.tools.symbolById(syntax.sourceId)?.sha256 !== syntax.source.sha256 || [...owners.values()].some(o => o.questionId === unit.questionId && o.skeleton.sourceId === syntax.sourceId && o.receiverClass === unit.receiverClass)) continue
+      const originals = options.units().filter(u => u.source?.id === syntax.sourceId && u.receiverClass === unit.receiverClass), draft = originals.length === 1 ? acceptedSourceDrafts.get(originals[0]!.handle) : undefined
+      owners.set(JSON.stringify([unit.questionId, syntax.sourceId, unit.receiverClass, unit.handle]), { questionId: unit.questionId, operationId: operation(unit.questionId)!, receiverClass: unit.receiverClass, handle: unit.handle, skeleton: syntax, interpretation: draft })
+    }
     return [...owners.values()]
   }
   const propertyContext = (questionId: string, receiverClass?: string) => options.interproceduralProperties ? { operationId: operation(questionId)!, receiverClass, sources: propertySources() } : undefined
@@ -169,6 +177,22 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
     const affectedQuestionIds = options.program.operationQuestions?.filter(q => q.operationId === operation(item.questionId)).map(q => q.questionId)
     const demand = buildPropertyDemand(skeleton, { questionId: item.questionId, role: item.origin === "question-duty" && item.kind === "entry" ? "entry" : "helper", question: questionSeed(item.questionId), interpretation: draft || undefined, affectedQuestionIds: affectedQuestionIds?.length ? affectedQuestionIds : [item.questionId], propertyAbstraction: options.propertyAbstraction, callSummaries: options.interproceduralProperties ? [] : callSummaries(skeleton), propertyContext: propertyContext(item.questionId, item.receiverClass) })
     propertyDemands.set(key, demand); return demand
+  }
+  const sharedPropertyWork = () => {
+    if (!options.taskBinding) return []
+    for (const q of options.program.questions.filter(q => q.properties?.length)) {
+      if (options.program.operations?.some(o => o.sourceQuestionId === q.id) || [...propertyDemands.values()].some(d => d.questionId === q.id && d.dependencies?.propertyQueries?.queries.some(p => p.state === "bound"))) continue
+      if (!options.bindingRepairUnits?.().some(u => u.questionId === q.id && u.role === "entry")) continue
+      const base = options.units().find(u => u.source && operation(u.questionId) === operation(q.id) && acceptedSourceDrafts.get(u.handle)?.propertyBindings?.length), item = base && retainedUnitItem(base), draft = base && acceptedSourceDrafts.get(base.handle)
+      if (!base || !item || !draft) continue
+      const id = `property-work-${hash([q.id, q.properties, base.source, base.receiverClass])}`
+      if (!propertyItems.has(id)) {
+        const work = { ...structuredClone(item), id, questionId: q.id, evidenceIds: [...base.evidenceIds], callsiteEvidenceIds: [], parentId: undefined, state: "awaiting-interpretation" as const, nextAction: { kind: "interpret" as const, itemId: id }, reason: "Bind this original question's declared properties to the current shared source meaning; other question bindings and verdicts are not copied." }
+        propertyItems.set(id, work); retainedItems.set(id, work)
+        sourceDrafts.set(unitHandle(work), { ...structuredClone(draft), propertyBindings: [] })
+      }
+    }
+    return [...propertyItems.values()].filter(item => !routedPropertyQuestions.has(item.id) && item.code !== "source-invalidated")
   }
   const sameOperation = (i: WorkItem) => !current?.questionId || operation(current.questionId) === operation(i.questionId)
   const unaccepted = (i: WorkItem) => !options.units().some(u => u.questionId === i.questionId && u.source?.id === i.selected?.id && u.receiverClass === i.receiverClass)
@@ -212,6 +236,8 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
       const caller = options.units().find(u => u.handle === repair.caller.handle), item = caller && retainedUnitItem(caller)
       if (caller && item) { routedBindingRepairs.add(signature); start("interpret", item, caller.handle, true); return }
     }
+    const propertyWork = sharedPropertyWork()[0]
+    if (propertyWork) { routedPropertyQuestions.add(propertyWork.id); start("interpret", propertyWork, unitHandle(propertyWork), true); return }
     if (options.structural && pendingLinks().some(p => p.targets.length)) { start("link"); return }
     const eligible = items.filter(i => (i.origin !== "question-duty" || i.kind === "entry") && i.code !== "source-invalidated" && !finished.has(`${i.id}:${i.selected?.id}`) && (i.state === "awaiting-interpretation" || i.state === "awaiting-binding" && i.evidenceIds.length > 0 && i.code !== "reference-relevance-unconfirmed") && unaccepted(i))
     const rotate = (a: WorkItem, b: WorkItem) => (options.program.questions.findIndex(q => q.id === a.questionId) - lastQuestion - 1 + options.program.questions.length) % options.program.questions.length - (options.program.questions.findIndex(q => q.id === b.questionId) - lastQuestion - 1 + options.program.questions.length) % options.program.questions.length
@@ -353,7 +379,7 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
     if (!current) return
     if (raw && typeof raw === "object" && "focusId" in raw && raw.focusId !== current.id) return
     history.push({ focus: structuredClone(current), event: diagnostics.length ? "rejected" : "accepted", raw: structuredClone(raw), diagnostics: structuredClone(diagnostics) })
-    if (!diagnostics.length) { submissions.set(current.id, hash(raw)); finish("accepted") }
+    if (!diagnostics.length) { if (current.handle && sourceDrafts.has(current.handle)) acceptedSourceDrafts.set(current.handle, structuredClone(sourceDrafts.get(current.handle)!)); submissions.set(current.id, hash(raw)); finish("accepted") }
   }
   const assemble = (raw: unknown) => {
     const parsed = FocusedResultSchema.safeParse(raw)
@@ -366,6 +392,6 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
       return { ...a, questionId, paths: a.paths.map(({ path, ...p }) => ({ ...p, pathId: paths[path]?.pathKey ?? `invalid-path-${path}` })), counterfactuals: a.counterfactuals.map(({ path, ...p }) => ({ ...p, pathId: paths[path]?.pathKey ?? `invalid-path-${path}` })) }
     }) }, diagnostics: [] }
   }
-  const refreshPropertyDemands = () => { if (options.interproceduralProperties) for (const item of options.items()) if (item.selected) demandFor(item); return structuredClone([...propertyDemands.values()]) }
+  const refreshPropertyDemands = () => { if (options.interproceduralProperties) for (const item of [...options.items(), ...propertyItems.values()]) if (item.selected) demandFor(item); return structuredClone([...propertyDemands.values()]) }
   return { sync, context, prepare, prepareSource, prepareEdit, accepted, assemble, demandFor, refreshPropertyDemands, sourceRelocated: () => { finish("source-relocated"); reviewedSnapshot = undefined }, recordFallback: (raw: unknown) => sourceHistory.push({ event: "low-level-fallback", focusId: current?.id, raw: structuredClone(raw), diagnostics: [] }), current: () => current, pendingLinks, report: () => ({ current: structuredClone(current), history: structuredClone(history), reviewedSnapshot, sourceInterpretations: structuredClone(sourceHistory), sourceDrafts: [...sourceDrafts].map(([handle, interpretation]) => ({ handle, interpretation: structuredClone(interpretation) })), editDrafts: [...editDrafts].map(([transaction, draft]) => ({ transaction, draft: structuredClone(draft) })), ...(options.propertyDirected ? { propertyDemands: refreshPropertyDemands() } : {}), summaries: options.units().map(u => summarizeProcedure(u)) }) }
 }

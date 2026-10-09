@@ -1,0 +1,55 @@
+{
+  "schemaVersion": "authorization-bc-code-review/v1",
+  "reviewedAt": "2026-10-09T22:04:14.441Z",
+  "readOnlyScouts": [
+    "review_bc_shared_property_fix",
+    "review_bc_preparation_deadline_fix"
+  ],
+  "mainAdjudication": [
+    {
+      "concern": "same-SHA stale draft",
+      "disposition": "existing validator rejects",
+      "evidence": [
+        "property-query.ts:58",
+        "property-query.ts:78-80",
+        "source-skeleton.ts:336"
+      ],
+      "reason": "Draft revision must equal current skeleton before bindings or annotations resolve; skeleton revision includes source/anchors/flow/receiver facts. Source SHA alone is not the acceptance check."
+    },
+    {
+      "concern": "duplicate owner refs",
+      "disposition": "ambiguity retained; no owner arbitrarily accepted",
+      "evidence": [
+        "property-query.ts:72-76",
+        "task-binding-shared-properties.test.ts"
+      ],
+      "reason": "All current owners remain visible and ambiguous resolution returns unbound; current shared-public test also asserts unique own-question refs."
+    },
+    {
+      "concern": "first eligible shared draft selection",
+      "disposition": "work offer only",
+      "reason": "Selection supplies a same-operation accepted source draft with empty property bindings after actual entry adoption. The model must bind its own current refs; the work selection produces no verdict."
+    }
+  ],
+  "deadlineSafety": {
+    "preparationDeadline": true,
+    "abortCheckRetained": true,
+    "ownedWorkerTerminationUnchanged": true,
+    "actualSnapshotShaChecksRetained": true
+  },
+  "existingLimitations": [
+    "Abort arriving after final walk during file-read verification is not checked between every file; this predates the deadline repair.",
+    "Final walk cancellation is classified as source-changed in the existing snapshot catch."
+  ],
+  "verification": {
+    "focused": {
+      "tests": 99,
+      "assertions": 643
+    },
+    "additionalOwnRefUniqueness": {
+      "tests": 1,
+      "assertions": 19
+    },
+    "mainTypecheck": "passed"
+  }
+}

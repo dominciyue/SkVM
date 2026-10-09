@@ -152,7 +152,7 @@ export function summarizeControlQuestions(program: AuthorizationInquiryProgram, 
 
 /** Check a selected property on the same source-bound slice. A checked local
  * relation never certifies interpretation meaning or the original whole task. */
-export function checkPropertyQueries(program: AuthorizationInquiryProgram, slice: ControlSlice, demands: PropertyDemand[], units: BoundSemanticBlock[], dependencies: DependencyCheckState[], sourceTransactions: InquiryDiagnostic[] = []) {
+export function checkPropertyQueries(program: AuthorizationInquiryProgram, slice: ControlSlice, demands: PropertyDemand[], units: BoundSemanticBlock[], dependencies: DependencyCheckState[], sourceTransactions: InquiryDiagnostic[] = [], retainDeclaredProperties = false) {
   const evaluated = evaluateControlPaths(slice)
   const questions = program.questions.map(question => {
     const local = demands.filter(d => d.questionId === question.id || d.dependencies?.propertyQueries?.questionId === question.id || d.dependencies?.propertyQueries?.queries.some(q => q.questionId === question.id))
@@ -201,7 +201,11 @@ export function checkPropertyQueries(program: AuthorizationInquiryProgram, slice
       }
       return { propertyId: q.id, kind: q.kind, status, value, questionId: question.id, source: q.source, sourceRevision: q.sourceRevision, gaps: [...new Set(gaps)], trace: [...new Set(trace)], semanticReview: "unreviewed" as const, scope: "current-proposed-source-relation" as const }
     })
-    return { questionId: question.id, properties, gaps: properties.length ? [] : ["property-query-undeclared"] }
+    // Task preparation declares the obligation before a source owner exists.
+    // Keep it visible as unknown; a missing work item is not an undeclared task.
+    const unlocated = retainDeclaredProperties ? (question.properties ?? []).filter(p => !queries.some(q => q.id === p.id)).map(p => ({ propertyId: p.id, kind: p.kind, status: "unknown" as const, value: "unresolved", questionId: question.id, source: undefined, sourceRevision: undefined, gaps: ["property-query-unbound", "property-source-unlocated"], trace: [] as string[], traceDetails: [] as ReturnType<typeof checkInterproceduralProperty>["traceDetails"], effectOccurrences: [] as ReturnType<typeof checkInterproceduralProperty>["effectOccurrences"], semanticReview: "unreviewed" as const, scope: "current-proposed-source-relation" as const })) : []
+    const retained = [...properties, ...unlocated]
+    return { questionId: question.id, properties: retained, gaps: retained.length ? [] : ["property-query-undeclared"] }
   })
   return { schemaVersion: "authorization-property-check/v1" as const, revision: slice.revision, questions, diagnostics: validatePropertyQuestionMapping(program.questions.map(q => q.id), questions), originalQuestionCount: program.questions.length, wholeTaskCertified: false as const, semanticReview: "unreviewed" as const }
 }
