@@ -42,12 +42,12 @@ const fixtures: Case[] = [
   { id: "U2", source: "def entry(actor, target):\n    mystery(target)\n    if not actor.allowed:\n        return False\n    target.sent = True\n    return True\n", guard: "entry", incomplete: "mystery", status: "unknown" },
 ]
 const reference = (s: any, anchorId: string, operationId: string) => ({ sourceId: s.sourceId, sourceSha256: s.source.sha256, revision: s.revision, anchorId, questionId: "q", operationId })
-export async function publicFixture(c: Case) {
+export async function publicFixture(c: Case, options: { strategy?: "operation-evidence-v7" | "task-binding-v1"; maxSteps?: number } = {}) {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "bb-public-property-")); await writeFile(path.join(sourceRoot, "app.py"), c.source)
   const tools = await createInquiryTools({ sourceRoot, repository: "anonymous", sourceRef: "r", allowedPaths: ["app.py"], structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
   await tools.execute("source_read", { path: "app.py", startLine: 1, endLine: c.source.split("\n").length })
   const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request, premises: [], properties: [{ id: "auth", kind: "authorization-before-effect", requirement, ...(c.requiredPermission ? { requiredPermission: c.requiredPermission } : {}) }] }] })
-  const runtime = createInquiryDomainRuntime({ program, tools, strategy: "operation-evidence-v7" as any, sourceAssisted: true })
+  const runtime = createInquiryDomainRuntime({ program, tools, strategy: options.strategy ?? "operation-evidence-v7", sourceAssisted: true })
   const owners = new Map<string, any>(), edits: any[] = []
   const symbols = tools.structure!.symbols.filter(s => s.kind === "function")
   for (const s of symbols) owners.set(s.name, await tools.sourceSkeleton(s.id))
@@ -58,7 +58,7 @@ export async function publicFixture(c: Case) {
   const operationId = program.operationQuestions![0]!.operationId
   const binding = { propertyId: "auth", effectRef: reference(effectOwner, effect.id, operationId), ...(guard ? { guardRef: reference(guardOwner, guard.id, operationId) } : {}) }
   await runtime.sync()
-  for (let step = 0; step < 24; step++) {
+  for (let step = 0; step < (options.maxSteps ?? 24); step++) {
     const context: any = runtime.promptContext()
     expect(context.focus, `v7 must enter the public source transaction (${c.id})`).toBeTruthy()
     if (context.focus.stage === "locate") {
@@ -83,6 +83,18 @@ export async function publicFixture(c: Case) {
   await runtime.validate(result)
   return { sourceRoot, tools, program, runtime, edits, binding, result, report: runtime.report() }
 }
+test("task binding returns a type conflict to the current caller draft with both source owners", async () => {
+  const f = await publicFixture({ id: "bc-conflict", source: "def entry(request, pk):\n    return perform(request, pk)\n\n" + guarded, guard: "perform", status: "unknown" }, { strategy: "task-binding-v1", maxSteps: 3 })
+  try {
+    const context: any = f.runtime.promptContext()
+    expect(context.callBindingRepairs).toHaveLength(2)
+    expect(context.focus.stage).toBe("interpret")
+    expect(context.tasks[0].sourceSkeleton.anchors.some((a: any) => a.call?.expression === "perform"), JSON.stringify({ focus: context.focus, repairs: context.callBindingRepairs })).toBe(true)
+    expect(context.tasks[0].sourceEdit.retainedDraft.annotations.length).toBeGreaterThan(0)
+    expect(context.callBindingRepairs.every((r: any) => r.caller.anchorId && r.callee.anchorId && r.caller.source.sha256 === r.callee.source.sha256)).toBe(true)
+    expect(context.callBindingRepairs.map((r: any) => [r.actualType, r.requiredType])).toEqual([["value", "principal"], ["value", "resource"]])
+  } finally { f.runtime.close() }
+})
 for (const c of fixtures) test(`v7 public source chain ${c.id}`, async () => {
   const f = await publicFixture(c)
   try {
@@ -196,6 +208,24 @@ test("v7 rejects stale and cross-question references and withdraws a previous de
     const check = f.runtime.report().propertyAnalysis!.checks!.questions[0]!.properties[0]!
     expect(check.status).toBe("unknown"); expect(check.gaps).toContain("effect-ref-stale"); expect(check.gaps).toContain("guard-ref-question-mismatch")
     expect(f.runtime.report().checkHistory.length).toBeGreaterThan(1)
+  } finally { f.runtime.close() }
+})
+test("v7 explicit binding withdrawal stays empty through the previous interpretation and later edits", async () => {
+  const f = await publicFixture(fixtures[0]!)
+  try {
+    const handle = f.report.semantic!.units.find(u => u.source?.id === f.binding.effectRef.sourceId)!.handle
+    let context: any = f.runtime.promptContext()
+    await f.runtime.propose({ schemaVersion: "authorization-focused-update/v1", kind: "defer", focusId: context.focus.id, revisit: handle, reason: "Withdraw the old property binding" }); context = f.runtime.promptContext()
+    await f.runtime.propose({ ...context.tasks[0].sourceEdit.template, edits: [{ field: "propertyBindings", value: [] }] })
+    expect(f.runtime.report().propertyAnalysis!.checks).toBeUndefined()
+    await f.runtime.validate(f.result)
+    expect(f.runtime.report().propertyAnalysis!.checks!.questions[0]!.properties[0]!.status).toBe("unknown")
+    expect(f.runtime.report().focus!.sourceDrafts.find(d => d.handle === handle)!.interpretation.propertyBindings).toEqual([])
+    context = f.runtime.promptContext(); await f.runtime.propose({ schemaVersion: "authorization-focused-update/v1", kind: "defer", focusId: context.focus.id, revisit: handle, reason: "Edit another retained field" }); context = f.runtime.promptContext()
+    const anchor = context.tasks[0].sourceSkeleton.anchors.find((a: any) => a.kind === "parameter")
+    await f.runtime.propose({ ...context.tasks[0].sourceEdit.template, edits: [{ anchorId: anchor.id, field: "explanation", value: "Same current parameter after withdrawal" }] })
+    await f.runtime.validate(f.result)
+    expect(f.runtime.report().propertyAnalysis!.checks!.questions[0]!.properties[0]!.status).toBe("unknown")
   } finally { f.runtime.close() }
 })
 test("v7 retains a partial field across focus changes and checks again after its available helper is interpreted", async () => {

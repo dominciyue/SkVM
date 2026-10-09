@@ -2349,6 +2349,8 @@ OWUI native消费者已加载完整原skill与11个原题请求，原声明/Usag
 
 **BC3任务前端。** 配置由现有strategy承载`task-binding-v1`，继承v7内核而不改默认或另造CLI。严格任务提案只含kind、当前问题精确requirement跨度和可选permission跨度；ID由宿主生成，不收源码锚点、答案或verdict。原声明不替换，原包不写，全部原问题按序保留；性质之外的完整职责仍是residualRequest，缺政策明确needs-clarification。provider的prepare阶段与native的authorization_prepare_properties共享准入，前者请求计量、后者工具计量均保留，非法提案最多一次定向修订，两次失败不建domain。红测先证入口不识别配置及前端缺失；联合96tests/671断言和主tsc通过。接线重构一度影响旧domain scheduler的shown过滤，按原条件恢复并重跑通过。此时仍无BC真实模型请求，自动性质含义的实际质量待BC9。
 
+**BC4冲突与撤回。** 当前调用求值保留结构化value→principal、value→resource mismatch，包含调用实例/参数/表达式；修复需求只从当前源SHA/revision与call/parameter anchors生成，定位两侧原行。task-binding focus自动回到保留的调用方草稿，模型可转helper更正角色，宿主不升级类型。材料拒绝亦保存原实参与提案差异，重复owner列出而不任选。红测发现编辑器已清空propertyBindings后，lowerSourceInterpretation仍从previous map带回旧绑定，导致checked复活；现以显式root数组整体替换（空数组保持撤回），省略仅保留当前数组。公开测试覆盖清空→重查unknown→其他字段编辑仍unknown，双调用实例、过期源和定向focus。370tests/4146断言通过；手写匿名含义只算工程验证，真实对象联系和普通原包效果尚待后续。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

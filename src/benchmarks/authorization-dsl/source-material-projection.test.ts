@@ -14,6 +14,39 @@ const api = await import("./source-material-projection.ts").catch(() => ({} as a
 const content = "def entry(actor):\n    return helper(actor)\ndef helper(actor):\n    return actor\ndef unrelated(actor):\n    return actor\n"
 const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v2", mode: "behavior", operations: [{ id: "op", request: "entry", entryHint: "entry" }], questions: [{ id: "q", operationId: "op", intent: "behavior", request: "Inspect entry", premises: [] }, { id: "other", operationId: "op", intent: "scope", request: "Explain alternatives", premises: [] }] })
 
+test("current call binding conflicts retain both source owners and distinct helper invocations", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "bc-call-conflict-"))
+  await writeFile(path.join(sourceRoot, "entry.py"), "from helper import permit\ndef entry(request, pk, flag):\n    if flag:\n        return permit(request, pk)\n    return permit(request, pk)\n")
+  await writeFile(path.join(sourceRoot, "helper.py"), "def permit(user, document):\n    return document\n")
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), units: any[] = [], skeletons = new Map<string, any>()
+  for (const source of tools.structure!.symbols.filter(s => s.kind === "function")) {
+    await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+    const skeleton = (await tools.sourceSkeleton(source.id))!; skeletons.set(source.id, skeleton)
+    const annotations = skeleton.anchors.filter(a => ["parameter", "call", "return", "condition"].includes(a.kind)).map(a => ({ anchorId: a.id, role: a.kind === "parameter" ? a.name === "user" ? "principal" : a.name === "document" ? "resource" : "condition" : a.kind === "return" ? "context" : "condition", explanation: "Explicit anonymous source meaning", ...(a.kind === "condition" ? { condition: { op: "truthy", language: "python", value: { binding: "flag" } } } : {}), ...(a.kind === "return" ? { returnOutcome: "unknown" } : {}) }))
+    const lowered = lowerSourceInterpretation(skeleton, { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations }, { index: tools.structure, propertyDirected: true, propertyAbstraction: true, propertyContext: { operationId: "op", sources: [] }, itemId: source.id, handle: source.name, questionId: "q", role: source.name === "entry" ? "entry" : "helper" })
+    expect(lowered.diagnostics).toEqual([]); units.push({ ...lowered.unit!, questionId: "q", evidenceIds: skeleton.evidenceIds, source: skeleton.source })
+  }
+  for (const s of units[0].blocks.flatMap((b: any) => b.steps)) if (s.kind === "call") s.callee = "permit"
+  const lowered: any = lowerSemanticFlow(units, { propertyDirected: true })
+  expect(lowered.bindingMismatches).toHaveLength(4)
+  expect(new Set(lowered.bindingMismatches.map((m: any) => m.sourceCallId)).size).toBe(2)
+  const repairApi = await import("./call-binding-repair.ts")
+  const repairs = repairApi.callBindingRepairDemands(lowered.bindingMismatches, units, id => skeletons.get(id))
+  expect(repairs).toHaveLength(4)
+  expect(repairs.every(r => r.caller.source.path === "entry.py" && r.callee.source.path === "helper.py")).toBe(true)
+  expect(repairs.every(r => r.caller.anchorId && r.callee.anchorId && (r.caller.text ?? "").includes("permit(") && r.callee.text)).toBe(true)
+  expect(repairs.map(r => [r.actualType, r.requiredType])).toEqual([["value", "principal"], ["value", "resource"], ["value", "principal"], ["value", "resource"]])
+  const stale = repairApi.callBindingRepairDemands(lowered.bindingMismatches, units, id => ({ ...skeletons.get(id), source: { ...skeletons.get(id).source, sha256: "stale" } }))
+  expect(stale.every(r => r.state === "source-unavailable")).toBe(true)
+  const changed = structuredClone(units), first = changed[0].blocks.flatMap((b: any) => b.steps).find((s: any) => s.kind === "call"); first.arguments.find((a: any) => a.parameter === "document").object = "request"
+  const store = createSourceMaterials({ repository: "anonymous", sourceRef: "r", semanticVersion: "interprocedural-property/v1" }); for (const u of changed) store.accept(u, [{ kind: "source-span", key: u.source.path, revision: u.source.sha256 }, { kind: "symbol-resolution", key: u.source.id, revision: u.source.sha256 }], "test-authored")
+  const projected = api.projectSourceMaterials(program, changed, store.snapshot(), tools.structure!, { questionDirected: true, semanticVersion: "interprocedural-property/v1" }), conflict = projected.diagnostics.find((d: any) => d.code === "material-arguments-unbound")
+  expect(conflict.callBinding.caller.path).toBe("entry.py")
+  expect(conflict.callBinding.callee.path).toBe("helper.py")
+  expect(conflict.callBinding.originalArguments.find((a: any) => a.parameter === "document").expression).toBe("pk")
+  expect(conflict.callBinding.proposedArguments.find((a: any) => a.parameter === "document").object).toBe("request")
+})
+
 for (const mode of ["field", "inherited", "instance", "decorator", "replacement", "branch"]) test("actual module initialization preserves class and function objects through source material adoption: " + mode, async () => {
   const decoration = ["decorator", "replacement"].includes(mode), content = (decoration ? "def replace(cls):\n" + (mode === "replacement" ? "    class Other(cls):\n        allowed = True\n    return Other\n" : "    cls.allowed = True\n    return cls\n") : "") + (mode === "inherited" ? "class Base:\n    allowed = True\n" : "") + (mode === "branch" ? "if True:\n    class Local:\n        allowed = True\n" : (decoration ? "@replace\n" : "") + "class Local" + (mode === "inherited" ? "(Base)" : "") + ":\n    allowed = " + (decoration ? "False" : "True") + "\n") + "def check(value):\n    if value.allowed:\n        raise Denied\n    write(value)\n    return value\n" + (mode === "instance" ? "instance = Local()\ncheck(instance)\n" : "check(Local)\n"), sourceRoot = await mkdtemp(path.join(os.tmpdir(), "ay-module-material-")); await writeFile(path.join(sourceRoot, "app.py"), content)
   const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["."], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), index = tools.structure!, module = index.symbols.find(s => s.kind === "module")!, units: any[] = []

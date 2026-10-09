@@ -22,7 +22,7 @@ export interface BoundPropertyQuery {
   bindingScope?: "interprocedural-property/v1";
   semanticReview: "unreviewed"; bindingValidation: "source-structure-only"; missing: string[];
 }
-export interface PropertyQueryDiagnostic { code: string; questionId: string; propertyId?: string; sourceId: string; message: string; nextAction: string }
+export interface PropertyQueryDiagnostic { code: string; questionId: string; propertyId?: string; sourceId: string; message: string; nextAction: string; owners?: Array<{ handle?: string; sourceId: string; sourceSha256: string; revision: string; path: string; receiverClass?: string }> }
 /** A kind is a task requirement, never a source verdict. Bind only the current
  * shown anchors; model annotations remain unreviewed source interpretations. */
 export function bindPropertyQueries(question: PropertyQuestion, skeleton: SourceSkeleton, interpretation?: SourceInterpretation, context?: PropertyQueryContext) {
@@ -70,7 +70,11 @@ function bindInterproceduralQueries(question: PropertyQuestion, skeleton: Source
       if (ref.questionId !== question.id) missing.push(`${slot}-ref-question-mismatch`)
       if (ref.operationId !== context.operationId) missing.push(`${slot}-ref-operation-mismatch`)
       const owners = sources.filter(s => s.questionId === question.id && s.operationId === context.operationId && s.skeleton.sourceId === ref.sourceId && s.receiverClass === ref.receiverClass)
-      if (owners.length !== 1) { missing.push(`${slot}-ref-${owners.length ? "ambiguous" : "unregistered"}`); return undefined }
+      if (owners.length !== 1) {
+        missing.push(`${slot}-ref-${owners.length ? "ambiguous" : "unregistered"}`)
+        if (owners.length > 1) diagnostics.push({ code: "property-reference-owner-ambiguous", questionId: question.id, propertyId: q.id, sourceId: ref.sourceId, message: `The current ${slot} reference has ${owners.length} owners; none is selected.`, nextAction: "Withdraw the duplicate source interpretation owner or use a uniquely current source/question/operation/receiver reference.", owners: owners.map(o => ({ handle: o.handle, sourceId: o.skeleton.sourceId, sourceSha256: o.skeleton.source.sha256, revision: o.skeleton.revision, path: o.skeleton.source.path, receiverClass: o.receiverClass })) })
+        return undefined
+      }
       const owner = owners[0]!, syntax = owner.skeleton, annotations = owner.interpretation?.revision === syntax.revision ? owner.interpretation.annotations : []
       if (!syntax.modelCovered) missing.push(`${slot}-ref-unread`)
       if (ref.revision !== syntax.revision || ref.sourceSha256 !== syntax.source.sha256) missing.push(`${slot}-ref-stale`)

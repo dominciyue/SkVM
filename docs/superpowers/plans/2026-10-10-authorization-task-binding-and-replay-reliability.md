@@ -162,10 +162,10 @@ expect(providerRequests.every(r => !r.includes(evaluatorSentinel))).toBe(true)
 
 ### BC4 形成跨调用修复需求
 
-- [ ] 在 `property-query.test.ts`、`source-material-projection.test.ts` 和 `source-edit-transaction.test.ts` 加红测：value→principal 冲突、value ID→resource 冲突、wrong receiver、同 helper 两次调用、过期源、重复 binding owner 的精确定位。
-- [ ] 从现有 call instance/参数映射生成结构化 mismatch，显示两侧原行、表达式、当前含义与待修字段；不在宿主写入权限语义。
-- [ ] 让 focused 下一动作回到正确源/草稿，不丢掉已完成解释；受影响 query 立即撤回旧结论。绑定撤回/替换语义测试包括“旧 binding 被清掉后不能从 previous map 自动复活”。
-- [ ] 提交：`feat: route call binding conflicts to targeted source edits`。
+- [x] 在 `property-query.test.ts`、`source-material-projection.test.ts` 和 `source-edit-transaction.test.ts` 加红测：value→principal 冲突、value ID→resource 冲突、wrong receiver、同 helper 两次调用、过期源、重复 binding owner 的精确定位。
+- [x] 从现有 call instance/参数映射生成结构化 mismatch，显示两侧原行、表达式、当前含义与待修字段；不在宿主写入权限语义。
+- [x] 让 focused 下一动作回到正确源/草稿，不丢掉已完成解释；受影响 query 立即撤回旧结论。绑定撤回/替换语义测试包括“旧 binding 被清掉后不能从 previous map 自动复活”。
+- [x] 提交：`feat: route call binding conflicts to targeted source edits`。
 
 ### BC5 补关键路径的对象联系
 

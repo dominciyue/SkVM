@@ -42,6 +42,10 @@ export const SEMANTIC_BLOCK_LIMIT = 64
 export const SemanticBlockSchema = z.object({ itemId: name, handle: name, op: z.enum(["add", "replace"]), role: z.enum(["entry", "helper"]), start: name, complete: z.boolean(), coverage: z.literal("path").optional(), repairsDraftId: name.optional(), fallthrough: z.enum(["allow", "deny", "unresolved"]).optional(), parameters: z.array(z.object({ name, type: z.enum(["principal", "resource", "permission", "configuration", "value"]) }).strict()).max(16).default([]), blocks: z.array(z.object({ name, steps: z.array(SemanticStepSchema).max(160) }).strict()).min(1).max(SEMANTIC_BLOCK_LIMIT) }).strict()
 export type SemanticBlock = z.infer<typeof SemanticBlockSchema>
 export type BoundSemanticBlock = SemanticBlock & { questionId: string; evidenceIds: string[]; receiverClass?: string; source?: { id: string; path: string; sha256: string; startLine: number; endLine: number } }
+export interface SemanticBindingMismatch {
+  questionId: string; caller: string; callee: string; block: string; call: string; instance: string; sourceCallId?: string;
+  parameter: string; expression?: string; actualType: string; requiredType: string; reason: "missing-mapping" | "unbound-object" | "type-mismatch";
+}
 type Step = z.infer<typeof SemanticStepSchema>
 export interface PropertyContextSummary {
   questionId: string; handle: string; instance: string; block: string; sourceSteps: string[]; failureSteps: string[]
@@ -58,6 +62,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
   const diagnostics: InquiryDiagnostic[] = [], owned: Array<{ questionId: string; handle: string; ruleKeys: string[] }> = []
   const fieldChanges: Array<{ questionId: string; handle: string; step: string; object: string; field: string; value?: FiniteValue; source?: string; evidenceIds: string[] }> = []
   const propertySummaries: PropertyContextSummary[] = []
+  const bindingMismatches: SemanticBindingMismatch[] = []
   const fault = (q: string, handle: string, code: string, message: string) => diagnostics.push({ code, path: `semanticBlocks.${q}.${handle}`, questionId: q, message, severity: "error" })
   for (const questionId of new Set(units.map(u => u.questionId))) {
     const local = units.filter(u => u.questionId === questionId), roots = local.filter(u => u.role === "entry"), startIndex = rules.length, dependencyIndex = dependencies.length, fieldIndex = fieldChanges.length, summaryIndex = propertySummaries.length
@@ -446,6 +451,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
             for (const parameter of callee.parameters) {
               const captured = callable?.captures[parameter.name], arg = step.arguments.find(arg => arg.parameter === parameter.name), object = captured ?? (arg && valueObject(c, arg.object))
               const expected = `helper "${callee.handle}" parameter "${parameter.name}" (${parameter.type})`
+              if (!arg && !captured || !object || object.type !== parameter.type) bindingMismatches.push({ questionId, caller: u.handle, callee: callee.handle, block: body, call: step.name, instance, sourceCallId: step.sourceCallId, parameter: parameter.name, expression: arg?.object, actualType: object?.type ?? "unbound", requiredType: parameter.type, reason: !arg && !captured ? "missing-mapping" : !object ? "unbound-object" : "type-mismatch" })
               if (!arg && !captured) invalidArguments.push(`Missing argument mapping for ${expected}.`)
               else if (!object) invalidArguments.push(`Object "${arg?.object ?? `capture:${parameter.name}`}" mapped to ${expected} is not bound in this invocation; declare an entry parameter or a typed bind.`)
               else if (object.type !== parameter.type) invalidArguments.push(`Object "${arg?.object ?? `capture:${parameter.name}`}" has type ${object.type}, but ${expected} requires ${parameter.type}.`)
@@ -521,7 +527,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
     for (const u of local) owned.push({ questionId, handle: u.handle, ruleKeys: rules.slice(startIndex).filter(r => r.sourceOrigin?.handle === u.handle).map(r => r.key) })
   }
   const propertyMetrics = { contextOriginsRepresented: propertySummaries.reduce((n, s) => n + s.sourceSteps.length, 0), failureOriginsMerged: propertySummaries.reduce((n, s) => n + Math.max(0, s.failureSteps.length - 1), 0), contextSequences: propertySummaries.length }
-  return { delta: { schemaVersion: "authorization-control-slice/v2" as const, rules, dependencies, bindings: [], policyRules: [] }, diagnostics, owned, fieldChanges, propertySummaries, propertyMetrics }
+  return { delta: { schemaVersion: "authorization-control-slice/v2" as const, rules, dependencies, bindings: [], policyRules: [] }, diagnostics, bindingMismatches, owned, fieldChanges, propertySummaries, propertyMetrics }
 }
 
 export function semanticBlockDiagnostics(unit: SemanticBlock): InquiryDiagnostic[] {

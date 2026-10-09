@@ -64,7 +64,8 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
   if (new Set(parsed.data.annotations.map(a => a.anchorId)).size !== parsed.data.annotations.length) fault("duplicate", "annotations", "Each changed anchor appears at most once.")
   for (const a of parsed.data.annotations) { annotations.set(a.anchorId, a); unresolved.delete(a.anchorId) }
   for (const u of parsed.data.unresolved) { unresolved.set(u.anchorId, u); annotations.delete(u.anchorId) }
-  const propertyBindings = new Map((previous?.propertyBindings ?? []).map(b => [b.propertyId, b]))
+  // An explicit root array is a replacement, including []; omission retains it.
+  const propertyBindings = new Map((parsed.data.propertyBindings !== undefined ? [] : previous?.propertyBindings ?? []).map(b => [b.propertyId, b]))
   for (const b of parsed.data.propertyBindings ?? []) propertyBindings.set(b.propertyId, b)
   if (parsed.data.propertyBindings && new Set(parsed.data.propertyBindings.map(b => b.propertyId)).size !== parsed.data.propertyBindings.length) fault("property-binding-identity", "propertyBindings", "Each changed property binding appears once.")
   const interpretation: SourceInterpretation = { ...previous, ...parsed.data, ...(propertyBindings.size ? { propertyBindings: [...propertyBindings.values()] } : {}), annotations: [...annotations.values()], unresolved: [...unresolved.values()], ...(parsed.data.fallthroughOutcome ?? previous?.fallthroughOutcome ? { fallthroughOutcome: parsed.data.fallthroughOutcome ?? previous?.fallthroughOutcome } : {}) }

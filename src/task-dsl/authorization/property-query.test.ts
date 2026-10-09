@@ -19,3 +19,10 @@ test("property declarations and source bindings reject missing, duplicate and fo
   expect(api.validatePropertyQuestionMapping(["q", "other"], [{ questionId: "q", properties: [] }]).map((d: any) => d.code)).toContain("property-question-missing")
   expect(api.validatePropertyQuestionMapping(["q"], [{ questionId: "foreign", properties: [] }]).map((d: any) => d.code)).toContain("property-question-unknown")
 })
+test("ambiguous qualified owners report the exact current owner handles without choosing one", () => {
+  const entry = { ...skeleton, sourceId: "entry" }, helper = { ...skeleton, sourceId: "helper", source: { ...skeleton.source, id: "helper", path: "helper.py" } }, ref = { sourceId: "helper", sourceSha256: "s", revision: "r", anchorId: "send", questionId: "q", operationId: "op" }
+  const owners = ["first", "second"].map(handle => ({ questionId: "q", operationId: "op", handle, skeleton: helper, interpretation: draft }))
+  const result = api.bindPropertyQueries(question, entry, { ...draft, propertyBindings: [{ propertyId: "auth", effectRef: ref }] }, { operationId: "op", sources: owners })
+  expect(result.queries[0].state).toBe("unbound")
+  expect(result.diagnostics.find((d: any) => d.code === "property-reference-owner-ambiguous").owners.map((o: any) => o.handle)).toEqual(["first", "second"])
+})

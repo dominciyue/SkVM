@@ -236,6 +236,16 @@ export interface SourceMaterialDiagnostic {
   code: string; stage: "availability" | "entry" | "call" | "framework"; questionId: string;
   sourceId: string | null; materialId?: string; sourceCallId?: string; candidateIds: string[];
   requiredCandidates: number; message: string; nextAction: string;
+  callBinding?: ReturnType<typeof callBindingView>;
+}
+function callBindingView(index: StructureIndex, caller: BoundSemanticBlock, step: Extract<BoundSemanticBlock["blocks"][number]["steps"][number], { kind: "call" }>, target?: BoundSemanticBlock) {
+  const call = caller.source && index.relatedCalls(caller.source.id, caller.receiverClass).find(c => c.id === step.sourceCallId)
+  const symbol = target?.source && index.symbols.find(s => s.id === target.source!.id && s.sha256 === target.source!.sha256)
+  return { caller: caller.source, callee: symbol ? { id: symbol.id, path: symbol.path, sha256: symbol.sha256, startLine: symbol.startLine, endLine: symbol.endLine } : target?.source,
+    sourceCallId: step.sourceCallId, receiverClass: caller.receiverClass,
+    callSpan: call ? { path: call.path, sha256: call.sha256, startLine: call.startLine, endLine: call.endLine, expression: call.expression, arguments: call.arguments } : undefined,
+    originalArguments: call && symbol ? sourceArgumentBindings(index, call, symbol).bindings : [], proposedArguments: structuredClone(step.arguments), parameters: target?.parameters ?? [],
+    nextFields: ["caller source argument mapping", "callee parameter roles", "current receiver/candidate identity"] }
 }
 const instantiate = (material: SourceMaterial, questionId: string, accepted: BoundSemanticBlock[]): BoundSemanticBlock => {
   const original = material.unit, handle = accepted.find(u => u.role === original.role && u.source?.id === material.source.id && u.receiverClass === material.receiverClass)?.handle ?? material.id
@@ -451,7 +461,7 @@ export function projectSourceMaterials(program: AuthorizationInquiryProgram, acc
   const available = current.filter(m => !options.questionDirected || index.relatedCalls(m.source.id, m.unit.receiverClass).filter(c => c.superMethod).every(call => m.unit.blocks.flatMap(b => b.steps).filter((s): s is Extract<BoundSemanticBlock["blocks"][number]["steps"][number], { kind: "call" }> => s.kind === "call" && s.sourceCallId === call.id).every(step => {
     const target = current.filter(t => t.unit.role === "helper" && !t.receiverClass && t.source.id === step.candidateId)
     const valid = target.length === 1 && actualArguments(index, m.unit, step, target[0]!.unit)
-    if (!valid) diagnose(target.length === 1 ? "material-arguments-unbound" : target.length > 1 ? "material-target-ambiguous" : "material-target-unavailable", "availability", m.unit.questionId, m.source.id, "A current super dispatch alternative has no uniquely bindable helper material.", "Interpret the exact selected helper and correct only the reported source argument/capture fields.", { materialId: m.id, sourceCallId: call.id, candidateIds: target.map(t => t.source.id) })
+    if (!valid) diagnose(target.length === 1 ? "material-arguments-unbound" : target.length > 1 ? "material-target-ambiguous" : "material-target-unavailable", "availability", m.unit.questionId, m.source.id, "A current super dispatch alternative has no uniquely bindable helper material.", "Interpret the exact selected helper and correct only the reported source argument/capture fields.", { materialId: m.id, sourceCallId: call.id, candidateIds: target.map(t => t.source.id), callBinding: callBindingView(index, m.unit, step, target.length === 1 ? target[0]!.unit : undefined) })
     return valid
   })))
   const units: BoundSemanticBlock[] = [], uses: SourceMaterialUse[] = []
@@ -480,7 +490,7 @@ export function projectSourceMaterials(program: AuthorizationInquiryProgram, acc
             delete step.callee
             const code = selected.actions.length > 1 || targets.length > 1 ? "material-target-ambiguous" : selected.actions.length === 0 ? "material-source-call-unmatched" : targets.length === 0 ? "material-target-unavailable" : "material-arguments-unbound"
             const call = index.relatedCalls(caller.source!.id, caller.receiverClass).find(c => c.id === step.sourceCallId), symbol = targets[0]?.unit.source && index.symbols.find(s => s.id === targets[0]!.unit.source!.id), binding = call && symbol ? sourceArgumentBindings(index, call, symbol) : undefined
-            diagnose(code, "call", question.questionId, material.source.id, binding?.gap ? `Source parameter binding failed: ${binding.gap}.` : `Current source candidates=${selected.actions.length}, available helper candidates=${targets.length}; actual arguments must match the original source.`, code === "material-arguments-unbound" ? "Correct the exact caller argument/capture mapping from the original source signature; keep other valid fields." : "Read/interpret the exact source-qualified helper or disambiguate the current receiver/candidate; do not select a default target.", { materialId: material.id, sourceCallId: step.sourceCallId, candidateIds: selected.actions.map(a => a.candidateId) })
+            diagnose(code, "call", question.questionId, material.source.id, binding?.gap ? `Source parameter binding failed: ${binding.gap}.` : `Current source candidates=${selected.actions.length}, available helper candidates=${targets.length}; actual arguments must match the original source.`, code === "material-arguments-unbound" ? "Correct the exact caller argument/capture mapping from the original source signature; keep other valid fields." : "Read/interpret the exact source-qualified helper or disambiguate the current receiver/candidate; do not select a default target.", { materialId: material.id, sourceCallId: step.sourceCallId, candidateIds: selected.actions.map(a => a.candidateId), callBinding: callBindingView(index, caller, step, targets.length === 1 ? targets[0]!.unit : undefined) })
             continue
           }
           const target = targets[0]!, helper = available.find(m => byMaterial.get(m.id) === target.unit)!
