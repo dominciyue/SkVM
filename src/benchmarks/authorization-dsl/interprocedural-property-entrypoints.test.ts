@@ -11,6 +11,8 @@ import { resolveInquiryContext } from "./inquiry-context.ts"
 import { emptyTokenUsage } from "../../core/types.ts"
 import type { LLMProvider } from "../../providers/types.ts"
 import { sourcePhaseGuide } from "./inquiry-focus.ts"
+import { inquiryNativeDefinitions, inquiryNativeSchemas, inquiryStepSchemas } from "./inquiry-wire.ts"
+import Ajv from "ajv"
 
 const requirement = "authorization before the write"
 test("v7 phase guidance preserves progressive adoption and actual call semantics", () => {
@@ -208,5 +210,32 @@ test("v7 duplicate bindings and invalid edits cannot restore a withdrawn verdict
     expect(f.runtime.report().propertyAnalysis!.checks).toBeUndefined()
     await f.runtime.validate(f.result)
     expect(f.runtime.report().propertyAnalysis!.checks!.questions[0]!.properties[0]!.status).toBe("unknown")
+  } finally { f.runtime.close() }
+})
+
+test("v7 public source edit clears an erroneous optional call guard before rechecking the original property", async () => {
+  const f = await publicFixture(fixtures[1]!)
+  try {
+    const entry = f.report.semantic!.units.find(u => u.role === "entry")!, full = (await f.tools.sourceSkeleton(entry.source!.id))!, call = full.anchors.find(a => a.call?.expression === "perform")!
+    let context: any = f.runtime.promptContext()
+    await f.runtime.propose({ schemaVersion: "authorization-focused-update/v1", kind: "defer", focusId: context.focus.id, revisit: entry.handle, reason: "Repair only the mistaken call guard field" }); context = f.runtime.promptContext()
+    const rejected = await f.runtime.propose({ ...context.tasks[0].sourceEdit.template, edits: [{ anchorId: call.id, field: "guardBranch", value: "false" }] })
+    expect(rejected.diagnostics.some(d => d.code === "source-interpretation-guard")).toBe(true)
+    await f.runtime.validate(f.result)
+    expect(f.runtime.report().propertyAnalysis!.checks!.questions[0]!.properties[0]!.status).toBe("unknown")
+    context = f.runtime.promptContext()
+    expect(context.tasks[0].sourceEdit.retainedDraft.annotations.find((a: any) => a.anchorId === call.id).guardBranch).toBe("false")
+    const repair = { ...context.tasks[0].sourceEdit.template, edits: [{ anchorId: call.id, field: "guardBranch", value: null }] }
+    expect(inquiryNativeSchemas("operation-evidence-v7", true).authorization_observe.safeParse({ controlDelta: repair }).success).toBe(true)
+    expect(inquiryStepSchemas("operation-evidence-v7", false, "behavior", "interpret").schema.safeParse(repair).success).toBe(true)
+    expect(new Ajv({ strict: false }).compile(inquiryNativeDefinitions("operation-evidence-v7").find(t => t.name === "authorization_observe")!.inputSchema)({ controlDelta: repair })).toBe(true)
+    const repaired = await f.runtime.propose(repair)
+    expect(repaired.diagnostics.filter(d => /^(source-edit-|source-interpretation-|semantic-update-schema)/.test(d.code))).toEqual([])
+    await f.runtime.validate(f.result)
+    const current = f.runtime.report(), property = current.propertyAnalysis!.checks!.questions[0]!.properties[0]!
+    expect(property.status).toBe("checked")
+    expect(new Set(("traceDetails" in property ? property.traceDetails : []).map(r => r.source?.id).filter(Boolean)).size).toBe(2)
+    expect(current.semantic!.units.find(u => u.handle === entry.handle)!.blocks.flatMap(b => b.steps).find(s => s.kind === "call")!.domainRoles).toEqual(["effect"])
+    expect(current.focus!.sourceInterpretations.some((h: any) => h.event === "rejected" && h.diagnostics.some((d: any) => d.code === "source-interpretation-guard"))).toBe(true)
   } finally { f.runtime.close() }
 })

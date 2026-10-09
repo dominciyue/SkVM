@@ -185,10 +185,12 @@ def perform(actor, target, permitted):
 
 ### BB9 Download 跨函数局部真实闭合
 
-- [ ] 用当前实现、BA 同份允许源码和原完整 skill/brief 运行首个 pilot；标明本次重点性质但保留原题全部问题。
+- [x] 用当前实现、BA 同份允许源码和原完整 skill/brief 运行首个 pilot；标明本次重点性质但保留原题全部问题。首件官方completed，完整原skill/原题实际加载；1单元/1入口采用、1性质unknown、0跨源trace，原件保留。
 - [ ] 优先检验入口→helper 的实际调用与对象联系。模型自主提出解释，不能把历史答案或手制成功 graph 送入输入。
 - [ ] 验收实际材料采用、跨单元性质 trace、相关缺口和独立源码核验。结论可以是有证据的满足或违例；unknown 如实保留。
-- [ ] 首次失败立即按第七节处理。新增特性须由当前阻断的原始代码证明必要，禁止为等待模型结果扩展外围语言。
+- [x] 首次失败立即按第七节处理。增量可选字段清除接口已按原始代码/草稿红绿修复；72 pass/565断言、主/研究typecheck和原草稿零调用点验通过，真实具名复测待。
+
+现场修复计划：首件把guardBranch附在resolver调用上，后续虽把guardRef改到实际condition，旧调用字段仍在草稿中。source-edit只能赋值，兼容完整annotation替换可移除该字段，但当前增量接口不能清除。先用匿名公共链红测，再仅为可选annotation字段支持value:null删除；role/explanation、根字段和unresolved仍不可空。清除不产生条件/对象/权限含义，继续沿原lowering与检查器重验。保存首件、源码独立partial评语及费用，修复产生新epoch，以pilot-download/optional-field-clear-1具名复测；质量面板之后统一使用新epoch，不混用首件。
 
 ### BB10 OWUI 第二种真实结构
 

@@ -35,6 +35,9 @@ test("field/value edits retain a partial role and compile after a later explanat
   const lowered = lowerSourceInterpretation(f.skeleton, second.interpretation, { itemId: "entry", handle: "entry", questionId: "q", role: "entry", propertyDirected: true })
   expect(lowered.unit).toBeUndefined()
   expect(lowered.diagnostics.some(d => d.code === "source-interpretation-condition-required")).toBe(true)
+  const unknown = api.compileSourceEdit(f.skeleton, payload(f.transactionId, [{ anchorId: f.condition.id, field: "unresolved", value: "The actual branch is still unknown" }]), { transactionId: f.transactionId })
+  const noop = api.compileSourceEdit(f.skeleton, payload(f.transactionId, [{ anchorId: f.condition.id, field: "guardBranch", value: null }]), { transactionId: f.transactionId, previous: unknown.draft })
+  expect(noop.diagnostics).toEqual([]); expect(noop.draft).toEqual(unknown.draft)
 })
 
 test("editor rejects unknown enum meanings, empty explanations and invalid finite predicates without coercion", async () => {
@@ -129,4 +132,20 @@ test("edit role choices and validation share the source anchor restriction", asy
   expect(bad.acceptedEdits).toBe(0)
   expect(bad.diagnostics[0].code).toBe("source-edit-role")
   expect(bad.diagnostics[0].message).toContain("condition, context")
+})
+
+test("optional annotation clears preserve unrelated draft fields and do not accept null for required meanings", async () => {
+  const f = await fixture(), previous = api.compileSourceEdit(f.skeleton, payload(f.transactionId, [{ anchorId: f.condition.id, field: "role", value: "condition" }, { anchorId: f.condition.id, field: "explanation", value: "Actual flag branch" }, { anchorId: f.condition.id, field: "condition", value: { op: "truthy", language: "python", value: { binding: "flag" } } }]), { transactionId: f.transactionId }).draft
+  const cleared = api.compileSourceEdit(f.skeleton, payload(f.transactionId, [{ anchorId: f.condition.id, field: "condition", value: null }]), { transactionId: f.transactionId, previous })
+  expect(cleared.diagnostics).toEqual([])
+  expect(cleared.acceptedEdits).toBe(1)
+  expect(cleared.interpretation.annotations[0]).toEqual({ anchorId: f.condition.id, role: "condition", explanation: "Actual flag branch" })
+  const lowered = lowerSourceInterpretation(f.skeleton, cleared.interpretation, { itemId: "entry", handle: "entry", questionId: "q", role: "entry", propertyDirected: true })
+  expect(lowered.unit).toBeUndefined()
+  expect(lowered.diagnostics.some(d => d.code === "source-interpretation-condition-required")).toBe(true)
+  for (const field of ["role", "explanation", "unresolved", "fallthroughOutcome", "propertyBindings"]) {
+    const edit = { field, value: null, ...(["fallthroughOutcome", "propertyBindings"].includes(field) ? {} : { anchorId: f.condition.id }) }
+    const rejected = api.compileSourceEdit(f.skeleton, payload(f.transactionId, [edit]), { transactionId: f.transactionId, previous })
+    expect(rejected.acceptedEdits).toBe(0); expect(rejected.draft).toEqual(previous)
+  }
 })

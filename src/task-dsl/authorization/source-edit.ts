@@ -8,7 +8,8 @@ import type { PropertyDemand } from "./property-demand.ts"
 import { zodToJsonSchema } from "../../providers/structured.ts"
 
 /** An input adapter only: all execution continues through SourceInterpretation. */
-const annotationFields = Object.fromEntries(Object.entries(SourceAnnotationSchema.shape).filter(([key]) => key !== "anchorId").map(([key, schema]) => [key, schema instanceof z.ZodOptional ? schema.unwrap() : schema])) as Record<string, z.ZodTypeAny>
+const clearableFields = Object.entries(SourceAnnotationSchema.shape).filter(([, schema]) => schema instanceof z.ZodOptional).map(([key]) => key)
+const annotationFields = Object.fromEntries(Object.entries(SourceAnnotationSchema.shape).filter(([key]) => key !== "anchorId").map(([key, schema]) => [key, schema instanceof z.ZodOptional ? schema.unwrap().nullable() : schema])) as Record<string, z.ZodTypeAny>
 const fields = { ...annotationFields, unresolved: InquiryText, fallthroughOutcome: SourceInterpretationSchema.shape.fallthroughOutcome.unwrap(), propertyBindings: SourceInterpretationSchema.shape.propertyBindings.unwrap() }
 const rootFields = new Set(["fallthroughOutcome", "propertyBindings"])
 const changes = Object.entries(fields).map(([field, value]) => z.object({ field: z.literal(field), ...(rootFields.has(field) ? {} : { anchorId: InquiryText }), value }).strict())
@@ -39,7 +40,7 @@ export function compileSourceEdit(skeleton: SourceSkeleton, raw: unknown, option
       if (anchorId && !skeleton.anchors.some(a => a.id === anchorId)) fail("anchor-unshown", `edits.${i}.anchorId`, "Use an anchor from this current shown source transaction.")
       const anchor = skeleton.anchors.find(a => a.id === anchorId)
       if (edit.field === "role" && anchor && !sourceAnnotationRoles(anchor).some(role => role === edit.value)) fail("role", `edits.${i}.value`, `Allowed structural roles for this ${anchor.kind}: ${sourceAnnotationRoles(anchor).join(", ")}. Choose its source meaning; the host does not coerce it.`)
-      if (edit.field === "condition") for (const code of predicateDiagnostics(edit.value)) fail(code, `edits.${i}.value`, `${FINITE_PREDICATE_GUIDE} ${FINITE_PERMISSION_GUIDE}`)
+      if (edit.field === "condition" && edit.value !== null) for (const code of predicateDiagnostics(edit.value)) fail(code, `edits.${i}.value`, `${FINITE_PREDICATE_GUIDE} ${FINITE_PERMISSION_GUIDE}`)
     }
   }
   if (diagnostics.length || !parsed.success) return { diagnostics, acceptedEdits: 0, draft: structuredClone(previous) }
@@ -48,6 +49,7 @@ export function compileSourceEdit(skeleton: SourceSkeleton, raw: unknown, option
     if (rootFields.has(edit.field)) { (draft as any)[edit.field] = structuredClone(edit.value); continue }
     const anchorId = String(edit.anchorId)
     if (edit.field === "unresolved") { unresolved.set(anchorId, { anchorId, reason: String(edit.value) }); annotations.delete(anchorId) }
+    else if (edit.value === null) { const annotation = annotations.get(anchorId); if (annotation) delete (annotation as any)[edit.field] }
     else { const annotation = annotations.get(anchorId) ?? { anchorId }; (annotation as any)[edit.field] = structuredClone(edit.value); annotations.set(anchorId, annotation); unresolved.delete(anchorId) }
   }
   draft.annotations = [...annotations.values()]; draft.unresolved = [...unresolved.values()]
@@ -56,7 +58,7 @@ export function compileSourceEdit(skeleton: SourceSkeleton, raw: unknown, option
   return { diagnostics, acceptedEdits: parsed.data.edits.length, draft, ...(interpretation ? { interpretation } : {}), values: parsed.data.values, reason: parsed.data.reason }
 }
 
-export const SOURCE_EDIT_GUIDE = 'authorization-source-edit/v1: task.sourceEdit is the current host-managed semantic form. Native: authorization_observe({controlDelta:{schemaVersion:"authorization-source-edit/v1",kind:"edit",transactionId:<task.sourceEdit.transactionId>,edits:[{anchorId:<shown anchor>,field:<listed field>,value:<its listed type>}]}}). Structured inquiry uses the same edit at the step root. Submit only changed slots. The host fills focus/source revision and internal routing. For role and explanation edit the SAME anchor; a partial draft is retained but not adopted. A branch also needs a finite condition value, or field:"unresolved",value:<precise remaining meaning>. Root fields fallthroughOutcome/propertyBindings omit anchorId. No invented roles, free-text predicates or source answers are supplied by the host. Existing authorization-source-update/v1 annotations and the explicit low-level fallback remain compatible. values, if used, are exact USER premise mappings, never source slots. Current source, tasks and unknowns remain data; semantic support is unreviewed.'
+export const SOURCE_EDIT_GUIDE = 'authorization-source-edit/v1: task.sourceEdit is the current host-managed semantic form. Native: authorization_observe({controlDelta:{schemaVersion:"authorization-source-edit/v1",kind:"edit",transactionId:<task.sourceEdit.transactionId>,edits:[{anchorId:<shown anchor>,field:<listed field>,value:<its listed type>}]}}). Structured inquiry uses the same edit at the step root. Submit only changed slots. The host fills focus/source revision and internal routing. For role and explanation edit the SAME anchor; a partial draft is retained but not adopted. Clear a mistaken optional annotation field with the same anchorId/field and value:null; task.sourceEdit.clearing.fields lists these fields. Clearing removes that field and rechecks the retained source; it supplies no replacement meaning. Required role/explanation, unresolved and root fields cannot be null. A branch also needs a finite condition value, or field:"unresolved",value:<precise remaining meaning>. Root fields fallthroughOutcome/propertyBindings omit anchorId. No invented roles, free-text predicates or source answers are supplied by the host. Existing authorization-source-update/v1 annotations and the explicit low-level fallback remain compatible. values, if used, are exact USER premise mappings, never source slots. Current source, tasks and unknowns remain data; semantic support is unreviewed.'
 const expressionExamples = [
   { op: "eq", left: { binding: "flag" }, right: { literal: true } },
   { op: "not", arg: { op: "is-null", value: { binding: "item" } } },
@@ -78,6 +80,7 @@ export function sourceEditModelView(skeleton: SourceSkeleton, options: { transac
   for (const a of draft.annotations) for (const field of ["role", "explanation"]) if (!(a as any)[field]) require(a.anchorId, field, "Complete this retained local draft before unit adoption.")
   return { schemaVersion: "authorization-source-edit-view/v1", transactionId: options.transactionId, template: { schemaVersion: "authorization-source-edit/v1", kind: "edit", transactionId: options.transactionId, edits: [] },
     fields: Object.fromEntries(Object.entries(fields).map(([field, schema]) => [field, zodToJsonSchema(schema)])), slots, retainedDraft: draft,
+    clearing: { fields: clearableFields, value: null, meaning: "Delete only this optional annotation field at its shown anchor; missing source meanings remain unresolved, and unrelated fields/history are retained." },
     expression: { guide: `${FINITE_PREDICATE_GUIDE}\n${FINITE_PERMISSION_GUIDE}`, examples: expressionExamples, meaning: "Anonymous syntax examples only; choose actual bindings/roles from shown source." },
     hostOwned: ["focus", "questionId", "source revision", "internal unit identity"], semanticSupport: "unreviewed" }
 }
