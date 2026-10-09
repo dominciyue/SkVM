@@ -8,9 +8,9 @@
 
 **Tech Stack:** TypeScript、Bun、Zod/Ajv、已有 Python/Go 索引和有限求值器。开发 `gpt-6.1-sol / max`；实验使用已授权的当前官方账号 `gpt-5.6-sol / high`。第三方付费 API 继续暂停。
 
-**执行状态：** `in-progress`。用户于2026-10-10重新启动，并明确批准保留原未知原件/费用后进行一次consumer-owui-native/user-resume-1具名新运行、随后继续原队列。恢复基线2e854117、起始工作树干净。原件与未知费用仍保留，其它未知完成保护不变；两pilot与六个质量位置保持已发布证据，剩余消费和变化继续，有限队列及研究目标尚未完成。
+**执行状态：** `completed-with-unmet-criteria`，本次获准执行已收束，待发布。恢复基线2e854117。具名OWUI再次超时无终态，用户明确保留两次未知原件/费用并仅批准三个fresh各一次；policy/source交付且自然partial、premise终态routing失败未交付，三个previous无合格基础。16位置中13已尝试、3blocked，共15去重尝试/12自然交付。原两次未知仍使finiteQueueComplete=false，researchGoalAchieved=false；本次授权范围结束与完整队列/研究目标分别记录。
 
-**恢复入口：** 先检查 `consumer-owui-native/original` 原生命周期与保留的 `dispatch.lock`。本地runner及其直接子进程已退出，但没有已保存server终态；不要重发同请求。用户重启只撤销用户暂停，未知完成保护仍须按第六节处理。零调用状态命令为 `bun ./results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/study.ts status`。
+**后续入口：** 读BB `verification/authorized-execution-closeout.json`和`verification/acceptance-matrix.json`。两次未知均已按各自用户限定处置保留原锁/raw，不能再据这两次批准派发OWUI或重抽fresh。下一次工作先明确未达责任；重放下一步是拆分createInquiryTools准备计时，不重复完整96步。零调用状态命令为 `bun ./results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/study.ts status`。
 
 **本次恢复工作计划：**
 
@@ -223,11 +223,13 @@ OWUI首件已completed，自然原题full，7单元/115控制步骤但0采用/�
 
 ### BB12 两包真实消费与编写体验
 
-- [ ] 沿用 BA 已恢复的两份真实作者包，保留原声明/Usage 字节，通过现有适配走 v7 普通入口。两位置各一次消费，记录完整 skill 和工具实际加载。
+- [x] 沿用 BA 已恢复的两份真实作者包，保留原声明/Usage 字节，通过现有适配走 v7 普通入口。两位置实际派发，记录完整 skill 和工具实际加载；OWUI两次未知，不代表两包交付验收通过。
 - [ ] 若旧包缺本轮必要字段，宿主可进行有记录、无领域答案的机械迁移；需要新增语义的稿件单列新版本，不能继续称原字节消费。
-- [ ] 记录用户必须提供什么、宿主自动生成什么、哪些错误能在发模型前定位，以及实际修订次数。未观测真人分钟就不报告人力节省。
+- [x] 记录原任务/skill/允许源码与独立政策或前提、宿主claim/快照/check/计量、实际编辑/修订次数；两原包性质undeclared，必要语义迁移未实施。真人分钟unknown，不报告人力节省。
 
 暂停快照：Download inquiry消费者completed，自然评阅partial，2单元/8采用；原声明4827字节和Usage原件保留，完整skill与全部4题请求实际加载，四题性质均undeclared，无合格跨函数基础。OWUI native消费者已经派发、33个宿主工具回调均完成，完整skill和11题请求实际加载；用户要求停止后本地进程退出，没有最终答案/server终态。保存中止生命周期/工具原字节、末次可见usage，最终用量与完成状态unknown，付费锁保留。两包整体消费尚未验收通过。
+
+2026-10-10具名新运行`consumer-owui-native/user-resume-1`在原45分钟上限后本地退出，315生命周期事件、21工具记录，无server终态或答案；全部11题请求实际加载。7接受单元不代表检查或自然交付。末次可见input13,798,358（含cache13,563,008）/output9,593仍非最终量。用户明确选择“保留未知，继续三个fresh”，仅批准三个已登记fresh位置各一次，不新增OWUI运行；两次未知原件/费用及各自锁字节保留，未来未知保护不变。见`verification/user-resume-1-timeout-audit.json`与`verification/user-resume-1-fresh-disposition.json`。
 
 ### BB13 政策、前提、源码三种变化
 
@@ -238,31 +240,39 @@ OWUI首件已completed，自然原题full，7单元/115控制步骤但0采用/�
 
 `model/change-registration.json`保留三种共同变化事实及原来源，三个fresh位置因用户暂停未派发，三个previous位置因无当前同方法/epoch的checked或violated跨源trace而blocked。没有变化模型调用，不补写复用效果。
 
+恢复时三个fresh输入均经公共check为valid、SHA与原登记一致，原题/skill/src7100b13f不变。第二次人工处置后按policy→premise→source顺序执行；没有合格consumer基础的三个previous保持blocked。就绪检查原件记录的是批准前阻塞状态，不回写为实际消费或模型结果。
+
+本次授权执行结束：policy/source均completed且自然partial，各2单元/2采用，性质均unknown/空trace；premise在工具前终态routing失败、0回调/0单元，无答案/usage。source只修改request_doc检查对象，主点验caller pk/request为value而helper要求resource/principal，语义拒绝有据，未发现新的宿主误拒绝。三个previous未运行、无复用收益。详见summary、各source-review和acceptance-matrix。
+
 ### BB14 结果归因与必要减负
 
-2026-10-10恢复阶段已补summarize.ts零调用归档漏斗：逐次保留提交/接受、saved/current/available/projected、entry/call/framework采用、当前source demand的query candidates/bound及question/property去重、check verdict与自然评阅。firstRecordedDiagnostic只指按工具history顺序最早保留的诊断，不将终态诊断顺序或completed伪称首个因果失败/语义恢复；当前material/check阻断另列，归因仍依源码评阅。原中止缺失值为null、N为not-applicable，部分usage不计已知总数。6条预期红例后28pass/134断言；OWUI具名新运行及三个fresh队列尚在执行/等待，未宣称BB14完成。
+2026-10-10恢复阶段已补summarize.ts零调用归档漏斗：逐次保留提交/接受、saved/current/available/projected、entry/call/framework采用、当前source demand的query candidates/bound及question/property去重、check verdict与自然评阅。firstRecordedDiagnostic只指按工具history顺序最早保留的诊断，不将终态诊断顺序或completed伪称首个因果失败/语义恢复；当前material/check阻断另列，归因仍依源码评阅。原中止缺失值为null、N为not-applicable，部分usage不计已知总数。6条预期红例后28pass/134断言；真实timeout报告虽有usage对象，最终量仍未知，补红测排除unknown status/terminal的计数后29pass/137断言、研究typecheck通过。三个fresh现已按限定授权各执行一次；BB14完成本次结果归因与计量，完整使用与净收益仍未达。
 
-- [ ] 从原件生成提交→接受→材料→采用→绑定→检查→自然答案的漏斗，指出每次首阻断。协议、宿主、通道、模型语义失败可以同时记录，不能用单一 partial 覆盖原因。
-- [ ] 全部计划位置留在端到端分母；另报已交付答案的质量。不要删除协议失败来“翻正”结论，不按任意失败比例决定是否重要。
-- [ ] input/cache/output按 provider 原口径计量，缓存只计一次；模型请求、动态工具、自动读取、连接恢复各自统计。作者、修复和复用准备成本单列，未知 USD/隐藏请求/开发代理/真人工时保持 unknown。
+- [x] 从15原件生成提交→接受→材料→采用→绑定→检查→自然答案漏斗。最早保留诊断与当前阻断分列，未证因果保持unknown；协议、宿主、通道、模型语义原因分层。
+- [x] 16计划位置留在端到端分母，另报12已交付答案的质量；原件、修订、引用和三blocked分列，不删除失败或改变成功分母。
+- [x] input/cache/output按provider原口径，缓存只计一次；宿主回调、预算/自动读取与恢复分列，未知请求/作者/开发/真人/USD保持unknown，两OWUI部分usage不进known。
 - [ ] 若轨迹证明重复完整视图是主要冗余，可做一个共享的增量反馈修复并对相同输入复验；保留原请求和质量，不在本阶段继续扩大研究范围。
-- [ ] 结论可为 positive、tradeoff、no-observed-difference、negative 或 inconclusive；局部正例、完整使用及净收益分别给证据。
+- [x] 结论保持development比较、净效果inconclusive；局部正例、完整使用、原包、变化与净收益在acceptance-matrix逐项给出。
 
 暂停前已保存六臂自然评阅、实际lifecycle反馈体积点验及去重计量。16位置中10已尝试/6未运行，11个真实尝试中10自然交付、1未知完成；已知input26,561,789（含cache24,095,872）/output114,442，中止尝试最终usage另标unknown。D两任务token高于N且没有自然等级优势，不据单次development观察或未知USD报告稳定净收益。BB14完整队列归因仍未完成。
 
 ### BB15 有限联合验证和文档
 
-- [ ] 跑受影响单测、主与本轮研究类型检查、BB 零调用重放和文档检查；通过后不重复全历史审计。
-- [ ] 现有 usage/组件文档补一条真实可运行命令与实际输出含义；命令来自当前 CLI 帮助和已保存示例，不写占位路径冒充复现。
-- [ ] 研究 §1/§7.63/§11 同步实际缺陷、修复、失败和结果；current-status/plan/spec同步真实状态；根 conversation_log 写简短阶段记录。
-- [ ] 验收矩阵逐项填 observed outcome 与证据位置。工程、真实跨函数闭合、完整任务、包消费、变化复用、研究收益六项分别判定。
+收束复核：受影响10文件425pass/4465断言，研究4文件29pass/137断言，主/研究typecheck通过。隔离OWUI计时提取原件157ms，createInquiryTools准备180.53秒仍未返回，尚未进入runtime提案；按有限诊断边界停止，归档在resume-replay-profile.json。未确认准备内部根因，本次完整重放未通过，工程与实测验收见acceptance-matrix逐项结果。
+
+2026-10-10恢复验证：主typecheck通过；与真实消费者并行的外部零调用replay在Bun1.3.14/Windows下303,502ms后Illegal instruction崩溃，根因未确认。一次canonical replay.test.ts尝试长时间执行且可用物理内存约3GB，核对身份后停止这一额外验证，保留取消与原运行时失败。真实通道idle后canonical仍以261,778.31ms测试超时结束（配置120,000ms，0pass/1fail/1expect），不能将并行内存压力当作已证根因。两次Download中间派生分别保存，HEAD已有完整重放的配套归档按字节恢复；下一步只做分段定向诊断，不盲目重复完整重放。不得把中间材料7/采用5或已通过类型检查冒称本次完整重放通过。
+
+- [x] 跑受影响单测、主/研究类型和零调用重放；425/29及类型通过，完整重放未通过并保存有界诊断；文档检查结果已存resume-document-checks.json，不重复全历史审计。
+- [x] 现有usage/组件文档保留真实status/help/check命令及本次status输出含义，原件和失败指针齐备。
+- [x] 研究§1/§7.63/§11及current-status/plan/spec同步，根conversation_log记录阶段；最终授权收束不升级研究目标。
+- [x] acceptance-matrix逐项给出observed outcome与证据；工程验证未达重放项、真实闭合、完整题、原包、复用与净收益各自保留。
 
 ### BB16 发布与可恢复交付
 
-- [ ] 只暂存本轮归属文件；检查新压缩原件的 Git 属性和归档可读性，避免再次被 text 过滤损坏。
+- [x] 只暂存本轮归属文件；8份新gzip可解压解析，17份原件暂存blob与工作区逐字节相同，属性和SHA记录见verification/resume-archive-integrity.json。
 - [ ] 聚焦提交，推用户 `origin/skill-ir-aot` 并核对实际远端。不得重置其他工作或推 upstream。
-- [ ] 总结实际可用范围、仍未达责任、首阻断、外部暂停条件及下一条可执行命令。有限队列结束与 researchGoalAchieved 分开。
-- [ ] 存在外部阻断时完成独立工程和上述交接；不重复探针、等待或无关工作凑运行时间。
+- [x] 总结实际可用范围、仍未达责任、保留诊断、外部暂停条件及下一条可执行命令，见authorized-execution-closeout/acceptance-matrix。授权执行结束、完整队列与researchGoalAchieved分开。
+- [x] 已完成独立工程和上述交接；未达重放/性质/完整消费及未知外部终态如实保留，不追加探针、等待或付费重抽。
 
 ## 六、真实运行分母、预算和恢复
 

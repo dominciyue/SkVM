@@ -4,11 +4,11 @@
 
 ## 当前工作
 
-**当前任务书为 [BB0–BB16：跨函数性质闭合、渐进解释与真实使用](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)，用户于2026-10-10重新启动，状态 `in-progress`。** 两pilot及六个同epochN/M/D位置保持已发布证据；Download N/D自然full、M partial，OWUI三臂partial。Download消费者partial/8采用。OWUI原临时线程无保存终态或可恢复rollout，用户已明确批准保留未知原件/费用后一次具名user-resume-1新运行；处置见[记录](../../results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/verification/user-resume-1-disposition.json)。其它未知保护不变，剩余消费与变化继续；有限队列和研究目标尚未完成。
+**当前任务书 [BB0–BB16：跨函数性质闭合、渐进解释与真实使用](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)以 `completed-with-unmet-criteria` 收束本次授权范围，待发布。** 用户2026-10-10重启后批准的一次OWUI具名运行再次超时无server终态/答案，随后限定批准三个fresh各一次。policy/source均交付、自然partial/各2采用/性质unknown；premise终态routing失败未交付。三个previous缺合格consumer基础。两次OWUI未知原件/最终费用按[限定处置](../../results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/verification/user-resume-1-fresh-disposition.json)保留。授权执行结束，完整队列及研究目标仍未达，见[收束](../../results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/verification/authorized-execution-closeout.json)和[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/verification/acceptance-matrix.json)。
 
 BB先保留effect/context标注下的源码调用，沿真实调用实例连接实参/形参/receiver/返回对象，再让跨单元性质检查消费可达路径；已解释片段逐步采用，相关未知继续保留。复用现有求值器和普通入口，新增行为显式v7。先做匿名正反例和公共链，再进入两真实任务、同条件比较、两包消费和三变化。方法合同见[spec §14.41](skill-ir-aot-optimization-spec.md#1441-bb-interprocedural-property-closure)，复核依据见[研究 §7.63](skill-dsl-research.md#763-bb-跨函数性质闭合的复核与开发决定)。
 
-结果保存在 `authorization-interprocedural-property-v1`。16个逻辑位置中10已尝试、6未运行，共11个去重尝试、10份自然答案；同一尝试引用不增加样本或费用，修订分列。工程、局部性质闭合、完整原题、包消费及研究收益分别验收。后续用户重启时，先核查 `consumer-owui-native/original` 的原生命周期和 `dispatch.lock`；重启只解除用户暂停，不解除未知完成保护，不直接重发。
+16位置中13已尝试、3previous未运行，共15去重尝试/12自然交付；M引用不增加样本或费用。当前同epoch比较仍为Download N/D full、M partial，OWUI三臂partial；Download原包partial/8采用，OWUI具名末次32采用但未交付、性质undeclared。真实跨函数trace为0。主/研究类型、425核心测试与29研究测试通过；本次完整离线重放未通过，隔离计时定位在createInquiryTools准备阶段，180.53秒未返回，内部根因未确认。后续先拆分准备阶段，不能重复完整重放或据已有授权新增OWUI/fresh重抽。
 
 ## BA 继承的实际结果
 
@@ -35,7 +35,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 - 开发 `gpt-6.1-sol/max`；实验沿用用户已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。
 - AY额度提示、AZ unavailable及BA `paused-recurring-routing`均保留。BB首个就绪真实pilot已同通道completed，连续失败数重置；累计恢复与成本保留。连续两次终态routing失败，或累计三次routing恢复仍失败，则暂停BB外部调用。quota/auth立即暂停，unknown只核查原生命周期。恢复计数及付费并发锁已测试，不额外探针、轮询或旁路。
-- 用户暂停已撤销；原未知完成没有被重启自动解除。当前先处理其可恢复性与独立离线责任，不切账号、模型、端点或购买额度。已完成尝试的已知input26,561,789（含cache24,095,872）、output114,442；中止末次usage单列，不冒充最终量。缺报USD、隐藏请求、开发/探子成本和真人分钟保持unknown。
+- 用户暂停已撤销，两次未知经过各自限定人工处置保留；后续未知保护不变。已完成尝试已知input32,038,537（含cache29,105,920）、output136,921。两OWUI部分usage单列，premise失败用量未返回；最终未知量、USD、隐藏请求、开发/探子成本和真人分钟保持unknown。本地观测duration不代表未知尝试的服务器最终耗时。
 - 保留原skill、全部原问题、允许源码、用户独立政策及前提。模型输入隔离评价器、历史答案和开发修复记录。held-out、Q1、prospective、readiness和历史 `0/6` 不变。
 - 主开发线程是代码、共享方法文档和Git的唯一写者。继续现有分支，不创建worktree；只读探子按AGENTS使用。
 

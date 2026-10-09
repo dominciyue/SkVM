@@ -270,9 +270,10 @@
       "task": "owui",
       "entrance": "native",
       "order": 10,
-      "status": "user-interrupted-completion-unknown",
+      "status": "timeout-unknown",
       "attempts": [
-        "consumer-owui-native/original"
+        "consumer-owui-native/original",
+        "consumer-owui-native/user-resume-1"
       ]
     },
     {
@@ -283,9 +284,11 @@
       "entrance": "inquiry",
       "arm": "fresh",
       "order": 11,
-      "status": "registered-not-run",
-      "attempts": [],
-      "unrunReason": "Await sequential planned dispatch after the authorized consumer revision"
+      "status": "completed",
+      "attempts": [
+        "change-download-policy-fresh/original"
+      ],
+      "unrunReason": "User authorized this registered fresh position; await sequential planned dispatch"
     },
     {
       "id": "change-download-policy-previous",
@@ -307,9 +310,11 @@
       "entrance": "inquiry",
       "arm": "fresh",
       "order": 13,
-      "status": "registered-not-run",
-      "attempts": [],
-      "unrunReason": "Await sequential planned dispatch after the authorized consumer revision"
+      "status": "failed",
+      "attempts": [
+        "change-download-premise-fresh/original"
+      ],
+      "unrunReason": "User authorized this registered fresh position; await sequential planned dispatch"
     },
     {
       "id": "change-download-premise-previous",
@@ -331,9 +336,11 @@
       "entrance": "inquiry",
       "arm": "fresh",
       "order": 15,
-      "status": "registered-not-run",
-      "attempts": [],
-      "unrunReason": "Await sequential planned dispatch after the authorized consumer revision"
+      "status": "completed",
+      "attempts": [
+        "change-download-source-fresh/original"
+      ],
+      "unrunReason": "User authorized this registered fresh position; await sequential planned dispatch"
     },
     {
       "id": "change-download-source-previous",
@@ -362,7 +369,7 @@
     "completeOriginalTasks": 4,
     "packageConsumption": 1,
     "changeReuse": {
-      "freshDelivered": 0,
+      "freshDelivered": 2,
       "previousDelivered": 0,
       "previousBlocked": [
         "change-download-policy-previous",
@@ -393,6 +400,19 @@
     "userPauseRevoked": true,
     "unknownCompletionProtectionPreserved": true,
     "authorizedNamedAttempt": "consumer-owui-native/user-resume-1",
-    "approvalAnswer": "保留未知原件，允许一次具名新运行（推荐）"
-  }
+    "approvalAnswer": "保留未知原件，允许一次具名新运行（推荐）",
+    "freshAuthorization": {
+      "date": "2026-10-09T17:41:49.314957+00:00",
+      "authorizedPositions": [
+        "change-download-policy-fresh",
+        "change-download-premise-fresh",
+        "change-download-source-fresh"
+      ],
+      "approvalAnswer": "保留未知，继续三个 fresh（推荐）",
+      "evidence": "verification/user-resume-1-fresh-disposition.json"
+    }
+  },
+  "status": "completed-with-unmet-criteria",
+  "authorizedExecutionComplete": true,
+  "authorizedExecutionCloseout": "verification/authorized-execution-closeout.json"
 }

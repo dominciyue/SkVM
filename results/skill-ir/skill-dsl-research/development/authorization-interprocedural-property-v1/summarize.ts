@@ -8,11 +8,12 @@ export const isDelivered = (report: any) => report.status === "completed" && rep
 export function assertReviewInput(bytes: Uint8Array, expected: string) { if (sha(bytes) !== expected) throw new Error("Archived review input hash differs from the dispatched claim") }
 export function accounting(reports: any[]) {
   const attempts = [...new Map(reports.map(r => [r.attemptId, r])).values()], known = { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }, unknownUsageAttempts: string[] = []
+  const completeUsage = (r: any) => r.accountUsage && r.accountUsage.available !== false && !r.status?.endsWith("unknown") && r.terminalStatus !== "unknown"
   for (const r of attempts) {
-    if (!r.accountUsage || r.accountUsage.available === false) unknownUsageAttempts.push(r.attemptId)
+    if (!completeUsage(r)) unknownUsageAttempts.push(r.attemptId)
     else for (const key of Object.keys(known) as Array<keyof typeof known>) known[key] += r.accountUsage[key] ?? 0
   }
-  const partialPreInterruptionUsage = attempts.filter(r => r.lastRetainedUsage && (!r.accountUsage || r.accountUsage.available === false)).map(r => ({ attemptId: r.attemptId, usage: r.lastRetainedUsage, includedInKnownTotals: false, finalUsage: "unknown" }))
+  const partialPreInterruptionUsage = attempts.filter(r => !completeUsage(r) && (r.lastRetainedUsage || r.accountUsage && r.accountUsage.available !== false)).map(r => ({ attemptId: r.attemptId, usage: r.lastRetainedUsage ?? r.accountUsage, includedInKnownTotals: false, finalUsage: "unknown" }))
   return { attempts: attempts.length, known, inputIncludesCache: true, unknownUsageAttempts, partialPreInterruptionUsage, durationMs: attempts.reduce((n, r) => n + (r.durationMs ?? 0), 0), unknownDurationAttempts: attempts.filter(r => r.durationMs == null).map(r => r.attemptId), actualUsd: null, providerRequests: null, developmentAndSubagentCost: null, humanMinutes: null, targetExecutions: 0 }
 }
 export function crossFunctionProperties(report: any) {

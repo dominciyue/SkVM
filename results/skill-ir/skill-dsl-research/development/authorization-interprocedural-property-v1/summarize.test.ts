@@ -19,6 +19,14 @@ test("BB interrupted usage stays separately retained and never enters completed 
   expect(result.partialPreInterruptionUsage).toEqual([{ attemptId: interrupted.attemptId, usage: interrupted.lastRetainedUsage, includedInKnownTotals: false, finalUsage: "unknown" }])
   expect(result.unknownDurationAttempts).toEqual([interrupted.attemptId])
 })
+test("BB reported counters without a known server terminal remain partial final-usage unknown", () => {
+  const unknown = { attemptId: "consumer/user-resume-1", status: "timeout-unknown", terminalStatus: "unknown", accountUsage: { input: 13798358, cacheRead: 13563008, output: 9593, cacheWrite: 0 }, durationMs: 2700010 }
+  const complete = { attemptId: "other/original", status: "completed", terminalStatus: "completed", accountUsage: { input: 100, cacheRead: 50, output: 3 }, durationMs: 10 }
+  const result = api.accounting([unknown, complete, unknown])
+  expect(result.known).toMatchObject({ input: 100, cacheRead: 50, output: 3 })
+  expect(result.unknownUsageAttempts).toEqual([unknown.attemptId])
+  expect(result.partialPreInterruptionUsage).toEqual([{ attemptId: unknown.attemptId, usage: unknown.accountUsage, includedInKnownTotals: false, finalUsage: "unknown" }])
+})
 test("BB position rows preserve the registered reason instead of replacing it with a generic pause", () => {
   const p = { ...positions()[0], status: "registered-not-run", attempts: [], unrunReason: "Awaiting the explicitly approved consumer run" }
   expect(api.positionRows([p], [])[0].unrunReason).toBe(p.unrunReason)

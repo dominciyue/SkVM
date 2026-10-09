@@ -1,12 +1,12 @@
 # Skill 分类与领域 DSL 研究总文档
 
-更新于2026-10-09。本文件是这条研究路线唯一持续维护的**研究与开发复盘正文**，合并S0–S11、D0–D11及后续研究，并记录实现问题与修复。实时状态由[current-status](current-status.md)维护，未达责任见[当前计划](skill-ir-aot-optimization-plan.md)。
+更新于2026-10-10。本文件是这条研究路线唯一持续维护的**研究与开发复盘正文**，合并S0–S11、D0–D11及后续研究，并记录实现问题与修复。实时状态由[current-status](current-status.md)维护，未达责任见[当前计划](skill-ir-aot-optimization-plan.md)。
 
 ## 1. 当前结论
 
 **授权任务已有局部语义、来源材料、变化失效和官方账号双入口；BA进一步接通语义编辑，但跨函数材料采用到性质检查的真实完整链仍未成立。** BA有4尝试/3自然交付：Download修订7材料仅采用入口，OWUI首件自然答案按原题评为full，机器0采用/1性质绑定unknown；具名复验routing失败。稳定质量或净收益尚未建立。范围仍为单repo/ref、源码可见的授权与信任边界评估。
 
-BB已接通v7匿名公共跨源检查及两BA原提案派生采用，两真实pilot及六个同epochN/M/D位置已评阅：Download N/D自然full、M partial，OWUI三臂partial；真实性质仍unknown/空trace。Download原包消费者交付且8采用，OWUI原尝试中止/完成未知。用户2026-10-10重启并在恢复核验后批准一次具名新运行，原未知费用/原件保留；消费及三种变化继续，实际局部检查和净收益尚未成立，BA暂停保持。
+BB已接通v7匿名公共跨源检查及两BA原提案派生采用，同epochN/M/D为Download N/D自然full、M partial，OWUI三臂partial；真实跨源性质trace仍0。Download原包partial/8采用，OWUI两尝试均无已保存终态/答案、最终费用未知，具名末次32采用不代表交付。用户2026-10-10限定批准的三fresh已各执行一次：policy/source自然partial/各2采用/性质unknown，premise终态routing失败未交付，三previous缺合格基础。本次授权执行以completed-with-unmet-criteria收束，16位置13尝试/3blocked、15去重尝试/12自然交付；finiteQueueComplete与researchGoalAchieved仍false，BA暂停保持。
 
 当前结构关系复用AY source-bindings/v35，显式v6已有任务性质绑定、有限摘要采用、依赖/调度范围和逐题性质检查的有界实现；AZ实际运行仍为0接受/采用/检查。AY Download v35的3单元/30步骤/2采用及OWUI v35为0保持历史口径。新源码摘要仅采用未使用返回的平坦普通调用；动态框架、返回值组合和复杂异常仍用既有解释或明确残余，不能据工程测试推定完整任务收益。
 
@@ -34,7 +34,7 @@ BB已接通v7匿名公共跨源检查及两BA原提案派生采用，两真实pi
 
 最新AY结果补充：两份原skill和两包原字节消费均已实际运行。Download消费者源码评阅full但机器partial，OWUI消费者仍漏决定性helper；政策/前提变化已有部分运行，源码变化及质量位置受账号额度阻断。[最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)记录可见完整input 32,465,835、output 125,283、其中cacheRead 29,939,200（已包含在input），USD/隐藏请求/开发/真人成本未知。旧AX、AW结果保留其当时口径。
 
-当前关键问题是：**让真实任务中的跨函数对象和控制关系进入有证据的性质检查。** BB已沿调用实例接通v7公开read/edit、采用和性质检查，匿名正反例与双入口通过；真实材料采用增加仍未带来非空跨函数性质trace。渐进解释保留相关unknown和完整原题，同条件质量与一个原包消费已有观察，变化复用未运行，稳定效果未建立。用户暂停与未知完成分别保存，恢复合同见§7.63。
+当前关键问题是：**让真实任务中的跨函数对象和控制关系进入有证据的性质检查。** BB公开read/edit、采用与检查的匿名正反例及双入口通过；真实角色/类型映射仍不完整或矛盾，原包未声明性质，采用记录没有形成非空跨源性质trace。fresh已运行但previous缺合格基础，稳定效果未建立。425核心测试、29研究测试和主/研究类型通过；本次完整离线重放未通过，隔离计时180.53秒仍在createInquiryTools准备阶段，内部根因待确认。授权执行结束、未知保留与后续责任分别见§7.63及收束原件。
 
 ## 2. 研究目标与术语
 
@@ -2315,6 +2315,14 @@ OWUI native消费者已加载完整原skill与11个原题请求，原声明/Usag
 
 **2026-10-10重启与未知处置。** 用户重启后主线程及独立只读核验确认原生命周期/工具SHA未变，267事件/33工具调用，无turn/completed或turn/interrupt；原thread/start明确ephemeral=true、path=null，同ID本地会话无匹配，本地原进程及直接子进程不存在。原临时线程无法据现有记录续跑，终态/最终费用仍unknown。用户随后明确选择保留未知原件、允许一次consumer-owui-native/user-resume-1新运行并继续原队列；授权与原锁按字节归档，原report/raw/部分usage不改。仅这一已批准原尝试移入retainedUnknownCompletions历史，其它新未知仍阻止派发，详见[恢复审计](../../results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/verification/resume-audit.json)及[人工处置](../../results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/verification/user-resume-1-disposition.json)。三种变化原题和输入SHA已复核，源码变化仅root_doc→request_doc；新增模型结果在本节后续记录，不据处置本身推断消费或效果。
 
+**具名消费者超时及限定fresh继续。** 新运行在原45分钟上限后本地退出，315事件/21工具记录中仍无server终态，无自然答案，全部11题请求实际加载。7接受单元、32采用（8entry/24call）属于最后可观测机器状态，原包没有声明性质、未保存性质verdict，不代表消费验收通过。input13,798,358（含cache13,563,008）/output9,593为末次部分usage，最终量与USD未知。用户明确批准保留两次未知原件和费用，仅继续三个已登记fresh各一次，不再运行OWUI；新锁和raw按字节归档，见[限定处置](../../results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/verification/user-resume-1-fresh-disposition.json)。真实timeout报告暴露“非null usage对象被当最终量”的聚合缺口，红测后按unknown status/terminal排除并单列partial；29研究测试/137断言及研究类型通过，独立核验无重复计费问题。
+
+**政策fresh当前观察。** 同src7100b13f、原题与skill，completed/22宿主回调；3提交/10合法编辑、2单元/15步骤、2采用。16当前source-demand query候选全部unbound，1原性质unknown、trace空。最早保留诊断是callee尚未解释，终态关键helper calls缺role；源码原稿和validator点验没有新宿主误拒绝依据。自然答案独立partial：根检查/版本返回及精确对象政策冲突判断正确，但未解释PaperlessObjectPermissions的GET全局documents.view_document要求，也缺非法/跨root版本和latest-or-root默认边界。机器unknown不是自然partial的依据。input2,222,495（含cache2,006,528）/output9,980。该中间记录时前提fresh待运行；三个previous仍无合格consumer基础，不把fresh当复用收益，最终结果见下一段。
+
+**其余fresh与最终分项结果。** premise在工具使用前终态workspace routing discovery failed，0回调/0单元，无答案/usage；该失败进入分母、费用unknown，没有重抽。source按原恢复规则进入，completed/37回调、6提交/53编辑、2单元/17步骤/2采用；结构调用已映射pk/request，但caller为value而helper要求resource/principal，检查semantic-argument-unbound有据，不按同名自动提升类型。30当前query候选全unbound、原性质unknown/trace空。自然partial：正确识别request_doc授权和file_doc可能不同，但缺GET全局权限及latest-or-root回退；“missing version”在已列无query分支的表格中属含混，不擅自判为必然反转无query行为。input3,254,253（含cache3,003,520）/output12,499。三个previous因无合格当前consumer基础保持blocked，fresh不证明复用。
+
+**验收与重放限制。** 15去重尝试/12自然交付、16逻辑位置13已尝试/3previous未运行；known input32,038,537（含cache29,105,920）/output136,921，两OWUI部分量单列、premise量未报。accounting.durationMs为本地已观测时长之和，含timeout，不能当未知服务器最终耗时。源码/研究测试425/29及两类型通过；本次完整重放发生运行时崩溃、一次取消和idle超时，原中间归档保留，历史完整结果不改。隔离OWUI profile在157ms提取原件后，createInquiryTools准备180.53秒仍未返回，提案阶段未进入；只定位阶段，内部根因未证，不写语义引擎修复。完整授权范围以completed-with-unmet-criteria收束，finiteQueueComplete仍false、researchGoalAchieved=false；各责任及后续最窄诊断见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/verification/acceptance-matrix.json)和[收束](../../results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/verification/authorized-execution-closeout.json)。没有额外OWUI或fresh重抽授权。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
@@ -2378,12 +2386,12 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 | ID | 问题 | 当前依据 | 接下来的判断 |
 |---|---|---|---|
 | Q1 | 哪个任务范围共享领域语义？ | 固定来源的授权职责支持 principal/resource/operation/control/evidence；混合职责单列，见 §4–§7.10 | 保持单 repo/ref、源码可见的授权切片 |
-| Q2 | 声明如何带来实际行为？ | BB匿名跨源公开链通过；真实OWUI复测10采用、Download消费者8采用，性质仍unknown/undeclared且无跨源trace | 用户重启后按实际绑定、对象与依赖缺口判断，不以采用数量代替性质闭合 |
-| Q3 | 为什么仍漏决定性源码或分支？ | call/顺序共享缺陷已修；真实模型仍缺principal关系、重复绑定或实际creation/body | 逐性质保留缺口，区分模型遗漏与共享根因，不自动补含义或重复抽样 |
+| Q2 | 声明如何带来实际行为？ | BB匿名跨源公开链通过；Download消费者8采用，OWUI具名末次32采用但未交付、原包性质undeclared；fresh各2采用仍unknown/空trace | 按实际绑定、对象与依赖缺口判断，原包性质输入与执行闭合分别处理，不以采用数量代替闭合 |
+| Q3 | 为什么仍漏决定性源码或分支？ | call/顺序共享缺陷已修；policy关键helper缺role，source caller value与helper resource/principal冲突；重放准备超时根因未证 | 保留模型遗漏与类型矛盾，准备阶段拆分计时；无误拒依据时不修严格validator或重抽 |
 | Q4 | 领域方法相对好说明的增量是什么？ | BB同epoch六臂：Download N/D full、M partial；OWUI三臂partial，D token更高 | 当前development观察不支持稳定净收益，USD及作者成本未知 |
-| Q5 | 作者和变化复用是否可用？ | BB Download原包消费partial/8采用；OWUI消费者中止完成未知；变化仅准备 | 先核查未知完成，previous仍需同方法/epoch有据跨源基础，不能报告已发生复用 |
+| Q5 | 作者和变化复用是否可用？ | BB Download原包partial/8采用，OWUI两次未知；fresh两partial/一routing失败，previous三blocked | 原件/作者说明与输入性质合同分别记录；previous仍需合格同方法/epoch基础，复用未测 |
 | Q6 | 本地化路线如何处理？ | 保留 §8–§9 设计及结构回填反例 | 暂缓；重新选择该类时再处理，不混入授权验收 |
-| Q7 | 如何评价和计量？ | BB16位置/11去重尝试/10自然交付，known input26,561,789/output114,442；1中止最终usage unknown，6变化未运行 | 保留端到端分母、部分usage及未知成本，用户暂停不标队列或研究完成 |
+| Q7 | 如何评价和计量？ | BB16位置/15去重尝试/12自然交付，known input32,038,537/output136,921；两OWUI终态/最终量未知、premise量未报 | 保留部分量与完整分母，已批准执行收束不升级finiteQueueComplete或研究成功，USD/隐藏/开发/真人仍unknown |
 
 决策沿革：
 
@@ -2414,6 +2422,8 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-09 / BB比较、部分消费与用户暂停：** 同epochN/M/D六位置已评阅，Download N/D full、M partial，OWUI三臂partial；D token更高、稳定净收益未建立。Download消费者partial/8采用，OWUI消费者本地中止无确认终态，保留unknown及付费锁。三种变化事实已准备但六位置未运行；保存11尝试/10自然交付及known/unknown成本，按用户要求提交并停止任务书。后续重启先核查原生命周期，不重发未知请求，见§7.63。
 
 - **2026-10-10 / BB重启：** 核验原ephemeral线程无终态/持久记录，原件SHA未变；用户明确批准保留原未知及费用后一次user-resume-1新运行并继续原队列。授权、原锁字节与retainedUnknownCompletions单列，未来未知保护不变。三种变化输入和原题已复核；22研究测试/110断言与diff检查通过，未据恢复处置本身升级实际效果，见§7.63。
+
+- **2026-10-10 / BB限定执行收束：** 具名OWUI再次timeout无终态；用户明确保留两次未知/费用后仅批准三fresh各一次。policy/source自然partial、各2采用/性质unknown，premise终态routing失败无答案/usage，previous三blocked。非null timeout usage误计已红绿修复；15去重尝试/12交付、known input32,038,537/output136,921，最终未知量单列。425核心/29研究及类型通过，完整重放本次未通过、隔离定位准备阶段；本次授权结束，完整队列与研究仍未达，见§7.63。
 
 ## 12. 后续追加规则
 

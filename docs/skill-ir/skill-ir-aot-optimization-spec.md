@@ -2874,6 +2874,10 @@ Python await只沿实际操作数保留已有表达式求值和函数值读取�
 
 **2026-10-10一次人工处置。** 原OWUI临时线程ephemeral=true/path=null、267事件/33工具调用，无终态、interrupt或同ID持久会话。用户在了解无法续跑、完成及最终费用未知后，明确批准一次consumer-owui-native/user-resume-1具名新运行并继续原队列。原report/raw、未知费用及部分usage不改，原锁按字节保存；仅这一尝试从活动阻塞移入retainedUnknownCompletions历史，授权记录在BB verification/user-resume-1-disposition.json。这不是自动重试规则，也不解除其它未知或账号限制。
 
+**2026-10-10第二次限定处置。** 具名新运行到原45分钟上限，本地进程退出但315事件没有server终态，答案未交付。用户明确批准保留两次未知原件/最终费用，仅继续已登记的policy/premise/source三个fresh各一次；新运行也移入retainedUnknownCompletions并保存原锁字节。授权在BB verification/user-resume-1-fresh-disposition.json，未授权更多OWUI运行。未来未知、quota/auth及routing合同不变；部分可见usage即使由accountUsage承载也不进入已知最终总数，previous仍须当前合格consumer基础。
+
+**本次授权收束。** 三个fresh各一次已结束，policy/source自然partial、各2采用而性质unknown，premise终态routing失败未交付；三个previous因无合格当前consumer基础保留blocked。15去重尝试/12自然交付，真实跨源性质trace为0；known input32,038,537（含cache29,105,920）/output136,921，三次缺最终完整量的尝试单列unknown。本次授权执行完成不改写未知终态、不使finiteQueueComplete或researchGoalAchieved为true。有限回归与类型通过，完整实材重放本次未通过，隔离诊断停留在源码索引准备；内部根因尚未确认。验收以BB verification/acceptance-matrix.json及authorized-execution-closeout.json为准。
+
 **开发原则。** 真实共享缺陷当场红绿修复和具名复验，受影响位置不继续消耗调用。已有跨函数/receiver/MRO基础优先复用，外围语言语法不进入自动扩张队列；研究依据和每次改动原因同步§7.63。最终分别验收工程、实际跨函数检查、完整任务、包消费、变化复用及收益。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）

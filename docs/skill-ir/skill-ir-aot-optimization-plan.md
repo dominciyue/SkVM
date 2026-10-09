@@ -2,8 +2,8 @@
 
 更新于2026-10-10。唯一实时入口为 [current-status](current-status.md)。
 
-- 当前任务书：[BB0–BB16：跨函数性质闭合、渐进解释与真实使用](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)，`in-progress`；用户已重启并批准原临时未知尝试的一次具名新运行，随后完成原队列及归因、验证和发布。原件/最终费用未知仍保留，其它未知保护不变。
-- 方法合同：[spec §14.41](skill-ir-aot-optimization-spec.md#1441-bb-interprocedural-property-closure)；复核依据：[研究 §7.63](skill-dsl-research.md#763-bb-跨函数性质闭合的复核与开发决定)。BB0–BB8工程通过，两pilot和六个同epochN/M/D质量位置已评阅，原M引用保留历史且费用去重。Download原包消费已交付，OWUI消费者用户中止、完成状态未知；三种变化准备完成但六位置未运行。真实跨函数性质闭合及净收益仍未建立。
+- 当前任务书：[BB0–BB16：跨函数性质闭合、渐进解释与真实使用](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)，`completed-with-unmet-criteria`，本次获准执行结束、待发布。两次OWUI未知原件/费用保留；三个fresh各一次结束，policy/source自然partial、premise终态routing失败未交付；其它未知保护不变。
+- 方法合同：[spec §14.41](skill-ir-aot-optimization-spec.md#1441-bb-interprocedural-property-closure)；复核依据：[研究 §7.63](skill-dsl-research.md#763-bb-跨函数性质闭合的复核与开发决定)。BB公共链与同epochN/M/D证据保持；16位置13已尝试/3previous blocked，15去重尝试/12自然交付，真实跨函数性质闭合和稳定净收益未建立。分项结果见BB verification/acceptance-matrix.json。
 - 代码基线 `ad936715`。开发 `gpt-6.1-sol/max`，实验当前官方账号 `gpt-5.6-sol/high`；第三方API和AV旧位置继续暂停。
 
 ## 当前目标
@@ -25,7 +25,7 @@ Download入口的effect解释没有生成call，helper材料虽可用却未采�
 
 主登记16逻辑位置：2 pilot、6质量、2消费、6变化。同一次运行可在满足条件时引用，但不重复计样本或成本。修订和新epoch保留首件，不把不同实现的输出混成公平比较。结果目标与实际结果分别登记。
 
-恢复时先核查 `consumer-owui-native/original` 已保存生命周期及 `dispatch.lock`，确认未知完成的实际状态；不得因用户重启直接删除锁或重发。之后再决定剩余包消费与三种fresh变化的恢复顺序。三个previous位置仍缺当前同方法、同epoch且有checked/violated跨源trace的合格基础；当前暂停不等于任务书完成。
+两次OWUI未知已按用户各自限定处置保留原report/raw/费用和锁字节，没有再次OWUI或fresh重抽授权。三fresh按policy→premise→source完成，两个交付各2采用、性质unknown。三个previous仍缺当前同方法/epoch且有checked/violated跨源trace的合格consumer基础。本次重放未通过，隔离定位createInquiryTools准备180.53秒未返回；后续拆分walk/源加载/词法/AST准备的计时，确认根因再修复，不能将RSS或本次中间采用当作验证通过。原包性质undeclared、真实角色/参数映射和完整原题缺口分别为未达责任，不把fresh当作复用测量。
 
 ## 执行与修复规则
 
