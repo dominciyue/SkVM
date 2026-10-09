@@ -2353,6 +2353,8 @@ OWUI native消费者已加载完整原skill与11个原题请求，原声明/Usag
 
 **BC5源码对象联系。** Download原download(request,pk)转交file_response(pk,request)的形状保留载体和ID，匿名三文件反例显式标注request.user与lookup返回对象。红测发现同一载体的两个typed field被分配不同身份而误报violated；task-binding现在按实际receiver身份复用显式解释的field身份，不从变量名推断角色。已有返回联系传递lookup实际返回对象，无新schema。另一红测证明同类型alias可替换查找返回物；现在alias必须对应当前源RHS/返回表达式，非法编辑撤回当前检查。同载体正例checked，另一请求、另一文档及ID相等但另一文档violated，先行未知调用unknown；请求载体冒充user及伪造lookup alias拒绝。对象矩阵与原v7提前拒绝、顺序、middleware反例联合195tests/1094断言通过。手写含义只算工程验证，尚无BC真实模型请求。
 
+**BC6普通入口闭合。** 无properties的原自然问题分别经provider inquiry与官方native static tools mock走prepare→公开源码读取→source-edit→实际call采用→check→final；两入口均形成两个当前文件的checked trace，源SHA/调用实例保留，完整职责仍未认证。模型mock使用当前propertyDemand.propertyQueries中的宿主ID，不注入预制unit/query。OWUI原retrieval.py:1559–1569的文件选择与1781/1824的collection检查缩成匿名反例，输入文件guard不能授权另一个collection对象；未注册middleware guard保持unknown，effect/context双角色保留真实call。33tests/318断言及主tsc通过，含义均为显式手写测试；本轮尚无真实模型结果，也不宣称第二项目成功。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

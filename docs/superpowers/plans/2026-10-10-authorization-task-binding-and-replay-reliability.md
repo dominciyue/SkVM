@@ -177,9 +177,9 @@ expect(providerRequests.every(r => !r.includes(evaluatorSentinel))).toBe(true)
 
 ### BC6 普通入口完整接线与第二结构反例
 
-- [ ] 公开入口测试从“原自然问题、无 properties、读源码”开始，mock 模型经过 prepare → read → edit → call link → check → final；不向 runtime 注入预制成功 query/unit。
-- [ ] 覆盖 inquiry 和 native，至少一条实际跨文件 trace；同一 trace 中 guard/effect/对象联系可回到当前源码。checked 和 violated 都可构成有效检查。
-- [ ] OWUI 已暴露源码做离线形状测试：输入文件权限与目标 collection 权限分开；role/context 不抹调用，未知 middleware 不产生授权。模型生成含义与手写测试含义分别标注，后者不算真实效果。
+- [x] 公开入口测试从“原自然问题、无 properties、读源码”开始，mock 模型经过 prepare → read → edit → call link → check → final；不向 runtime 注入预制成功 query/unit。
+- [x] 覆盖 inquiry 和官方native static tools，两入口均有当前两文件trace、实际call采用与checked；同一trace的源码身份保留。
+- [x] OWUI 已暴露源码做离线形状测试：输入文件权限与目标 collection 权限分开；role/context 不抹调用，未知 middleware 不产生授权。全部mock/手写含义只算工程证据，无OWUI模型派发。
 - [ ] 计数断言示例：
 
 ```ts
@@ -191,7 +191,7 @@ expect(afterInvalidUpdate.currentCheckedVerdicts).toHaveLength(0)
 ```
 
 这里 `current`/`afterInvalidUpdate` 是测试适配器对现有公共结果的投影，字段不要求改动生产返回形状。适配器不得伪造缺失 trace。
-- [ ] 提交：`test: cover task-to-property closure through both public entrances`。
+- [x] 提交：`test: cover task-to-property closure through both public entrances`。
 
 ### BC7 原件派生重放
 
