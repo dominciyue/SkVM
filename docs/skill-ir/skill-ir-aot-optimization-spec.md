@@ -2848,6 +2848,24 @@ Python await只沿实际操作数保留已有表达式求值和函数值读取�
 
 **公平性和指标。** 新共同task-facts保留相同原问题、政策和前提，M/D编译为同一义务；N获得同一自然问题、完整skill和公共源码工具。旧作者稿只用于单列消费，不再成为D主面板独有预加工。22主位置为2子性质、12完整质量、2消费、6变化；首件、修订、通道恢复及epoch单列，协议失败保留端到端分母。质量、开销、编写复用分别评价；完整输入含缓存只计一次，未知USD/隐藏请求/真人成本保留unknown。未达项和研究效果如实记录，不以测试数或有限队列结束标研究成功。
 
+### 14.41 BB interprocedural property closure
+
+2026-10-09，用户要求派发`gpt-6.1-sol/max`继续开发，[BB0–BB16](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)登记为planned-not-started。复核基线ad936715。新identity为authorization-interprocedural-property-v1；本节是开发合同，尚无BB实现或实测结果。BA的暂停、20未运行位置和原件不改写。
+
+**结构与语义。** 源码call身份、实参/receiver/返回及异常联系独立于模型的permission/effect/context标注。标注不能抹掉调用，也不能令被调函数中的效果无条件发生；拒绝、提前返回和相关未知保留，caller候选与callee实际效果不重复计数。复用现有有限控制流，新增行为显式operation-evidence-v7，旧策略兼容。
+
+**跨单元性质。** 引用限定当前source unit、revision、anchor、question/operation，求值绑定实际call instance。解析器只确认引用，沿已有实参/形参、receiver、返回/alias关系证明对象联系，不按名字、全局首匹配或裸anchor相等推导。不同anchor可代表传入的同一对象，同helper多次调用必须隔离。守卫须在当前可达路径上、先于对应效果，分支及权限含义与当前性质一致；未注册middleware及未知装饰器不自动具备保护作用。
+
+**性质与未知。** 查询允许询问缺失的守卫。引用/传输拒绝、性质checked/violated/unknown及自然答案质量分层；有依据的违例也是有效结论。bound仅表示查询定位成功，checked需要当前材料实际采用和可复查trace。已有合法编辑和范围有效的片段逐步参与检查；相关未知阻断其影响到的性质，独立残余不笼统封锁所有性质。原题全义务和相关未读源码仍保留，不把漏填role改成no-effect。
+
+**接线与失效。** 同步source-interpretation/edit、property-query/dependencies、材料投影、runtime与control-conclusion的消费边界。当前完整skeleton/interpretation从真实owner取得，SourceMaterial不是隐含全量解析上下文。源码、引用、调用映射、政策/前提变化及无效新提交撤回受影响当前检查；恢复材料不恢复旧结论。验收从公开read/edit入口开始，不能只注入成功semantic units。
+
+**研究与使用。** 新登记2 pilot、6完整质量、2原包消费、6变化共16逻辑位置，引用同attempt去重；修订分列。N完整skill与自然任务/M等价Markdown及共享工具/D同事实声明及相同工具，原问题、源码和独立政策一致。局部跨函数闭合先于完整使用，局部合格基础可验证局部复用但不升级为完整任务收益。协议失败保留端到端分母，交付答案的语义质量另列。原件、准备/修复费用、完整input/cache/output口径与unknown均保留，工程完成不预设研究positive。
+
+**BB恢复规则。** 在核实BA无活动/未知完成后，允许一个就绪真实pilot同官方账号gpt-5.6-sol/high重新进入，不要求额外健康探针。连续两次终态routing失败，或BB累计三次routing恢复仍遇失败，暂停BB外部实验；成功真实任务只重置连续计数，不清除累计失败/成本。quota/auth立即暂停，未知完成仅核查原生命周期，不换账号/端点/模型或第三方API。新规则只用于BB，BA历史暂停不撤销；实现及反例在BB8完成后才能声称已接通。
+
+**开发原则。** 真实共享缺陷当场红绿修复和具名复验，受影响位置不继续消耗调用。已有跨函数/receiver/MRO基础优先复用，外围语言语法不进入自动扩张队列；研究依据和每次改动原因同步§7.63。最终分别验收工程、实际跨函数检查、完整任务、包消费、变化复用及收益。
+
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
 AT在已有授权局部语义上引入显式 `focused-closure-v1`：宿主持久管理locate/interpret/link/review/answer阶段，绑定当前来源、单元身份与更新版本；模型解释原始源码中的条件、对象、参数、返回与实际相关效果。上下文渲染不改变活动任务，拒绝修复回到同一单元；多候选与语义关系仍须显式判定。旧默认及协议保持。

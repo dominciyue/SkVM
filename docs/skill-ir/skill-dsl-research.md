@@ -4,11 +4,11 @@
 
 ## 1. 当前结论
 
-**授权任务已有局部语义、来源材料、变化失效和官方账号双入口的真实实现；AZ增加了性质相关范围和窄摘要，但实际材料采用、完整机械检查及稳定净收益仍未建立。** AZ以completed-with-unmet-criteria收束：21位置中4已尝试，共5尝试/4自然交付；单性质两次均未闭合，质量N/M源码评价full/partial，D官方路由失败，17位置未运行。范围仍为单repo/ref、源码可见的授权与信任边界评估。
+**授权任务已有局部语义、来源材料、变化失效和官方账号双入口；BA进一步接通语义编辑，但跨函数材料采用到性质检查的真实完整链仍未成立。** BA有4尝试/3自然交付：Download修订7材料仅采用入口，OWUI首件自然答案按原题评为full，机器0采用/1性质绑定unknown；具名复验routing失败。稳定质量或净收益尚未建立。范围仍为单repo/ref、源码可见的授权与信任边界评估。
 
 当前结构关系复用AY source-bindings/v35，显式v6已有任务性质绑定、有限摘要采用、依赖/调度范围和逐题性质检查的有界实现；AZ实际运行仍为0接受/采用/检查。AY Download v35的3单元/30步骤/2采用及OWUI v35为0保持历史口径。新源码摘要仅采用未使用返回的平坦普通调用；动态框架、返回值组合和复杂异常仍用既有解释或明确残余，不能据工程测试推定完整任务收益。
 
-日常先读本节与[当前状态](current-status.md)。接续决定见[§7.62](#762-ba-从真实拒绝到可用语义编辑)，AZ实际结果见[§7.61](#761-az-性质抽象材料采用与真实检查的开发决定)，AY形成过程见[§7.60](#760-ay-问题依赖完整使用与收益验证)。方法形成过程见§4–§7.18，历史开发记录保留在§7后续章节。本地化候选保留在§8–§9，暂缓实施。
+日常先读本节与[当前状态](current-status.md)。当前开发决定见[§7.63](#763-bb-跨函数性质闭合的复核与开发决定)，BA实际结果见[§7.62](#762-ba-从真实拒绝到可用语义编辑)，AZ/AY形成过程保留在§7.61/§7.60。方法形成过程见§4–§7.18，历史开发记录保留在§7后续章节。本地化候选保留在§8–§9，暂缓实施。
 
 ### 当前方法怎样分工
 
@@ -32,7 +32,7 @@
 
 最新AY结果补充：两份原skill和两包原字节消费均已实际运行。Download消费者源码评阅full但机器partial，OWUI消费者仍漏决定性helper；政策/前提变化已有部分运行，源码变化及质量位置受账号额度阻断。[最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)记录可见完整input 32,465,835、output 125,283、其中cacheRead 29,939,200（已包含在input），USD/隐藏请求/开发/真人成本未知。旧AX、AW结果保留其当时口径。
 
-当前关键问题是：**让模型按当前源码需求提交可计算语义，并让宿主实际采用。** BA编辑、反馈及同题事实已有实现；Download修订7单元但仅入口采用、0性质绑定、源码partial。OWUI原答按完整原题评为full且有上游限制，机器0采用/1绑定unknown；await与残余顺序修复已通过匿名和原提案离线验证，具名真实复验却再次终态路由失败。一次恢复已用，通道暂停，22位置中20未执行；两包原字节搬移检查不算实际消费。研究目标未达，比较inconclusive，复用收益未测；AZ历史不补写，详见§7.62。
+当前关键问题是：**保留真实源码调用，并让跨函数对象和控制关系真正进入性质检查。** 外部评阅提出了单skeleton边界，但“只增加resolver”不足以解决：effect/context lowering还会绕过call，checker也有同source限制，跨函数对象需沿调用实例证明。现有多函数求值和草稿累积保留；新BB任务书安排正反例、渐进采用、两真实结构和原包/变化使用，登记为planned-not-started，尚无新实现或效果。BA原暂停和20未运行不改，BB有独立登记的有限官方恢复规则，详见§7.63。
 
 ## 2. 研究目标与术语
 
@@ -2249,6 +2249,32 @@ AZ1诊断工程（2026-10-09）：投影现在明确报告版本/来源/依赖�
 
 **当前归纳。** 22逻辑位置、4尝试、3自然交付、20未执行、12质量全未运行，比较inconclusive。已知3份input10,707,789（已含cache10,026,624）、output46,863；第4份usage unknown，累计114动态调用/73自动读取、857,117ms，USD/隐藏请求/开发探子/真人成本unknown。工程修复和原字节可恢复已有证据，完整真实采用、普通两包消费、变化复用和质量增益均未建立。最小恢复先要新的外部路由证据，再登记新OWUI修订并取得合格当前Download基础；本轮不继续付费重试，研究目标及有限队列保持未完成。最终分项见[summary](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-submission-v1/summary.json)与[verification](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-submission-v1/verification/final-closure.json)。
 
+### 7.63 BB 跨函数性质闭合的复核与开发决定
+
+2026-10-09，用户提供第二轮外部架构评阅并要求派发`gpt-6.1-sol/max`开发。复核基线ad936715与用户origin一致、工作树干净。新[BB0–BB16任务书](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)与[spec §14.41](skill-ir-aot-optimization-spec.md#1441-bb-interprocedural-property-closure)已登记；本段记录核实后的开发依据，状态planned-not-started，不是BB完成报告。
+
+**调用关系的真实缺口。** [source-interpretation](../../src/task-dsl/authorization/source-interpretation.ts)的effect/context分支先生成对应步骤，普通emitCall在另一个分支。[projection](../../src/benchmarks/authorization-dsl/source-material-projection.ts)只为kind=call连接callee。因此“host的调用关系天然不受role影响”不符合当前执行代码。BA Download修订的7材料仍可用，但entry把self.file_response解释为primitive effect，没有生成call，正好暴露此接口问题。新实现应保留源调用结构和语义侧面，同时避免把调用或effect标签当成效果已发生。
+
+**跨单元不止查找。** [property-query](../../src/task-dsl/authorization/property-query.ts)的binder接受单skeleton，局部anchors/annotations限制了引用；[control-conclusion](../../src/task-dsl/authorization/control-conclusion.ts)的性质检查又按同source/SHA找guard/effect。接线还经过[property-dependencies](../../src/task-dsl/authorization/property-dependencies.ts)，不能只改runtime签名。完整skeleton/interpretation属于focus/runtime，SourceMaterial并非它们的完整副本。
+
+源码anchor是语法位置，不是运行对象。helper的actor与caller的user可以是不同anchor但同一实际对象；同一个helper anchor在两次调用中也可作用于不同对象。全局resolver既不能证明对象等价，也不能证明调用可达。新方案沿已有actual/formal、receiver、返回与alias关系，使用当前source/revision及call instance，检查guard顺序、分支、权限和真正到达的effect。未知、过期、歧义、未注册来源分别报告。
+
+**绑定与判断的区分。** v6 binder对principal有局部身份约束，但并不要求guard和effect的两个resource anchor相等；对象一致性留给后续检查。合法的“检查A却操作B”查询应得到有据的violated或信息不足的unknown，不必一律以格式错误拒绝。查询也应能问“是否缺少必要guard”，不能先要求提交一个不存在的guard。
+
+**对真实记录的纠偏。** BA OWUI original已记录1个bound query和2次语义检查，并非真实query始终为0。该查询在propertyAnalysis的逐需求依赖中，检查保留property-source-effect-unadopted/开放依赖及空trace；所以bound未形成实际机械闭合。root此前的await创建/残余顺序有明确红绿和同提案重放，不能仅根据material-root-missing倒推出middleware跨函数是根因。真实middleware/路由注册若进入BB，只按原始源码验证。
+
+**已有基础的复用。** [semantic-flow测试](../../src/task-dsl/authorization/semantic-flow.test.ts)已有跨函数形参映射与对象隔离，[source-interpretation测试](../../src/task-dsl/authorization/source-interpretation.test.ts)已有转发、关键词/字面量和嵌套调用，[projection测试](../../src/benchmarks/authorization-dsl/source-material-projection.test.ts)已有entry/helper/super联系与缺失/错源反例。因此没有依据说“旧测试全是单函数”。待补的是公开read/edit到当前材料、查询和检查的组合反例。
+
+**渐进解释的取舍。** 现有[source-edit](../../src/task-dsl/authorization/source-edit.ts)已经保存合法草稿，显式unresolved也能进入不完整单元。BB进一步区分可用片段与阻断本性质的未解释点，改善当前前沿和采用；不把缺role自动补成context/no-effect，不删除相关未知分支/异常，不用整体modelCovered放宽替代确实需要的源码读取。逐性质隔离相关依赖，完整原题仍保留全部义务。
+
+**本轮顺序。** 先用错主体、错资源、同helper两次调用、未注册守卫、控制顺序、权限含义及过期引用等正反例修共享核心，再从native/inquiry公共入口检查实际采用。随后分别验证Download与OWUI，并回到完整原skill原题、同事实N/M/D、两原包消费和三变化。局部性质检查可先形成合格基础，局部复用据此评价；整题未达仍明确标出，不借局部完成改写完整任务质量。
+
+**实验和恢复。** BB新登记16逻辑位置，首件/修订/epoch分列，相同attempt引用不重复计量。BA原件和20未运行保持。BB在核实无活动/未知完成后可用就绪真实pilot同官方账号gpt-5.6-sol/high重新进入；连续两次routing终态失败或累计三次恢复仍失败则暂停，成功任务仅重置连续计数。quota/auth立即暂停，unknown先核查原生命周期，第三方API保持暂停。该规则在BB8实现验证前只是一项合同。
+
+**评价和外部借鉴。** 原问题自然质量、协议交付、材料采用和性质检查分层报告，协议失败仍在端到端分母，另报有效答案质量。不采用“失败超过某比例才重要”或“全部历史实验均无效”的笼统推断。[Absentia](https://arxiv.org/html/2610.00977v1)支持源码图/模型推理分层、沿调用核验授权关系及变化依赖的设计参考；[Paralegal](https://www.usenix.org/conference/osdi25/presentation/adam)提供领域属性和源码依赖分析分工的参考。本项目仍须验证模型解释和实际采用，不借用外部工具的证明保证或论文效果数。BB不会继续用外围Python/Go语法支持数代替当前授权关系闭合。
+
+本节后续追加实际开发问题、处理、真实运行和未达责任；同时更新§1与§11。工程、完整实际使用、研究收益分别验收。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
@@ -2312,10 +2338,10 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 | ID | 问题 | 当前依据 | 接下来的判断 |
 |---|---|---|---|
 | Q1 | 哪个任务范围共享领域语义？ | 固定来源的授权职责支持 principal/resource/operation/control/evidence；混合职责单列，见 §4–§7.10 | 保持单 repo/ref、源码可见的授权切片 |
-| Q2 | 声明如何带来实际行为？ | BA Download修订7单元/1采用/0绑定；OWUI原件0采用，离线修复3采用但真实复验routing失败 | 新外部路由证据后具名复验；完整实际链仍未达 |
-| Q3 | 为什么仍漏决定性源码或分支？ | 调度已修，Download仍把helper解释为primitive effect并漏GET权限；OWUI自然full但机械链失败 | 宿主不改模型含义；补真实predicate/对象/调用联系，unknown保持 |
-| Q4 | 领域方法相对好说明的增量是什么？ | BA共同M/D义务预检通过，12主质量全未运行 | 同epoch完整原题配对仍需执行，当前inconclusive |
-| Q5 | 作者和变化复用是否可用？ | BA两包原字节兼容/搬移恢复95/173文件通过；2消费/6变化受阻，previous缺当前基线 | 取得合格当前基础和真实消费；零调用兼容不算收益 |
+| Q2 | 声明如何带来实际行为？ | BA Download修订7单元/1采用/0绑定；OWUI原件0采用/1绑定unknown，离线修复3采用 | BB保留call并接通跨单元对象/路径检查，从公共入口验证实际trace |
+| Q3 | 为什么仍漏决定性源码或分支？ | effect/context会绕过call；binder/checker有同source边界；合法草稿与相关unknown已有基础 | 用调用实例连接对象，逐性质保留缺口；渐进解释不自动补含义 |
+| Q4 | 领域方法相对好说明的增量是什么？ | BA共同M/D义务预检通过，12主质量全未运行 | BB同epoch完整原题N/M/D小面板，保持端到端与语义质量分列 |
+| Q5 | 作者和变化复用是否可用？ | BA两包原字节兼容/搬移恢复95/173文件通过；实际消费与变化受阻 | BB先建范围明确的局部合格基础，再分局部/整题验证真实消费与复用 |
 | Q6 | 本地化路线如何处理？ | 保留 §8–§9 设计及结构回填反例 | 暂缓；重新选择该类时再处理，不混入授权验收 |
 | Q7 | 如何评价和计量？ | BA4尝试/3交付已复核，已知input10,707,789/output46,863，第4份usage unknown，114动态/73自动分列 | 保存失败/20未运行；协议/源码/检查与已知/未知成本分开 |
 
@@ -2338,6 +2364,8 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-09 / BA规划：** 原参数/代码和57项回归复核后，转向宿主管理语义编辑、精确协议反馈、可用检查预算、临时通道有限恢复和统一问题分母。任务书交付时未运行新实验，后续证据统一更新§7.62。
 
 - **2026-10-09 / BA实施与阻断：** 编辑/预算/公共核心、事务调度、await与残余来源顺序及包恢复已有有界工程证据；4尝试/3交付，Download两答partial、OWUI原答full但无真实checked链。唯一恢复后再次终态routing暂停，20位置未运行，12质量无配对、比较inconclusive，实际消费/复用未测。发布工程与失败证据不标研究目标达成，恢复责任见§7.62。
+
+- **2026-10-09 / BB规划：** 外部评阅经代码/原件核实后，转向调用与领域角色分离、调用实例中的对象传递、跨单元性质检查及渐进采用。保留现有多函数基础、bound/checked区分和全部原问题，新增v7及独立有限通道恢复合同。BB0–BB16已登记并准备派发，尚无BB实现或效果；见§7.63。
 
 ## 12. 后续追加规则
 
