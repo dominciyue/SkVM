@@ -2,7 +2,7 @@
 
 更新于2026-10-10。唯一实时入口为 [current-status](current-status.md)。
 
-- 当前任务书：[BC0–BC14：任务性质准备、跨调用语义修复与可重放交付](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)，`in-progress-publication`；工程、原包两件和三fresh已收束，BC14待推送核对。11位置中4尝试、7资格阻断，5去重尝试/5自然交付。
+- 当前任务书：[BC0–BC14：任务性质准备、跨调用语义修复与可重放交付](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)，`completed-with-unmet-criteria`；工程、原包两件和三fresh已收束，BC14已完成用户origin远端SHA核对。11位置中4尝试、7资格阻断，5去重尝试/5自然交付。
 - 方法合同：[spec §14.42](skill-ir-aot-optimization-spec.md#1442-bc-task-binding-and-replay-reliability)；复核依据：[研究 §7.64](skill-dsl-research.md#764-bc-任务性质准备与跨调用修复)。实施基线 `ee1a0522`；当前合格跨源性质0、完整任务均source-partial，比较和实际previous复用未达。下一动作及原件见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/acceptance-matrix.json)，不得以授权收束升级研究成功。
 - 开发 `gpt-6.1-sol/max`，实验当前官方账号 `gpt-5.6-sol/high`；继续skill-ir-aot、仅用户origin，第三方API和AV旧位置继续暂停。
 

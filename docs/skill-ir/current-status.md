@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**当前任务书为 [BC0–BC14：任务性质准备、跨调用语义修复与可重放交付](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)，状态 `in-progress-publication`；工程与已授权运行已收束，BC14待推送核对。** 实施基线 `ee1a0522`，11个Download逻辑位置中4个已尝试、7个因资格阻断未派发；5去重尝试全部completed并交付，包含原包首件/具名复验和policy/premise/source三fresh。合格跨源性质0，五份完整自然任务均source-partial，N/D比较与实际previous复用未达；`finiteQueueComplete`和`researchGoalAchieved`仍false。事实、原件与下一动作见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/acceptance-matrix.json)和[授权执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/authorized-execution-closeout.json)。
+**当前任务书为 [BC0–BC14：任务性质准备、跨调用语义修复与可重放交付](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)，状态 `completed-with-unmet-criteria`；工程与已授权运行已收束，BC14已完成用户origin远端SHA核对。** 实施基线 `ee1a0522`，11个Download逻辑位置中4个已尝试、7个因资格阻断未派发；5去重尝试全部completed并交付，包含原包首件/具名复验和policy/premise/source三fresh。合格跨源性质0，五份完整自然任务均source-partial，N/D比较与实际previous复用未达；`finiteQueueComplete`和`researchGoalAchieved`仍false。事实、原件与下一动作见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/acceptance-matrix.json)和[授权执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/authorized-execution-closeout.json)。
 
 本轮已接通无手写properties原包的任务前端、精确跨调用修复及有界源码准备。OWUI原scope173文件实测准备80.59s→21.58s，源SHA/revision保持；当前派生重放Download/OWUI准备7.99s/20.78s、2/7份原解释语义字节保持，零新模型/含义。联合1,833pass/1平台skip/12,044断言及主/BC类型通过。真实模型仍未补齐入口/effect角色、closure和本题性质绑定；premise最终格式拒绝未产生property checks，不能记为unknown verdict。准备deadline与完成后计量已红绿修复，原报告和校正分存，详见研究§7.64。
 

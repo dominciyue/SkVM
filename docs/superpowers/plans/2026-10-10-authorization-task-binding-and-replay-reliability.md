@@ -12,7 +12,7 @@
 
 ## 1. 执行身份、权限与完成含义
 
-- 日期：2026-10-10。状态：`in-progress-publication`；工程与已授权运行已收束，BC14待推送核对。计划交付时没有 BC 生产改动或模型实验；实施基线`ee1a0522bb151977947dfcafa5906bee5002356a`。
+- 日期：2026-10-10。状态：`completed-with-unmet-criteria`；工程与已授权运行已收束，BC14已完成用户origin远端SHA核对。计划交付时没有 BC 生产改动或模型实验；实施基线`ee1a0522bb151977947dfcafa5906bee5002356a`。
 - 开发基线：`b1aa7b4cc43a5468a873669735732f2c95e46d83`。计划提交后以启动时真实 HEAD 记录 BC implementation baseline。
 - 开发线程：`gpt-6.1-sol`，reasoning `max`。工作目录 `D:\skill优化\SkVM`，分支 `skill-ir-aot`，只发布用户 `origin`，不新建分支/worktree。
 - 新 identity：`authorization-task-binding-v1`。结果统一放 `results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/`。临时运行空间放 `D:\skill优化\project-maintenance\runs\authorization-task-binding-v1`。
@@ -248,7 +248,7 @@ expect(afterInvalidUpdate.currentCheckedVerdicts).toHaveLength(0)
 
 ### BC14 发布与恢复交接
 
-- [ ] 本轮文件白名单检查，保留其他线程材料，提交并推用户 origin/skill-ir-aot，读远端 SHA 核对。
+- [x] 本轮文件白名单及原字节检查通过，其他线程与历史材料保留；验收提交4fb527e3已推用户origin/skill-ir-aot，远端完整SHA与本地相同。publication.json绑定该已核对的artifactCommit；证据提交的最终HEAD另行推送和远端核对。
 - [x] 最终 status/验收矩阵将工程、有限队列、真实使用、研究目标分开；每项未达责任指向原件、代码责任和下一动作。授权运行收束不使finiteQueueComplete或researchGoalAchieved变true。
 - [x] 真实性质链仍缺入口/effect角色、closure和本题性质绑定；完整自然分支/事实映射不足另列。未达验收保持未勾选，不追加身份或幸运重抽。
 

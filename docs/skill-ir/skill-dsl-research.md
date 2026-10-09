@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**BC已接通原自然任务的性质准备、跨调用定向修复及有界源码准备，真实跨源性质仍未闭合。** 当前范围仍为单repo/ref、源码可见的授权与信任边界评估。5去重尝试全部completed交付、完整原任务均source-partial；17个model-prepared性质中12个unknown、首件2个缺逐题查询、3个未检查，合格跨源checked/violated为0。四比较与三previous位置因资格不足零派发，稳定质量、实际复用与净收益均未建立。授权运行已收束，BC14发布核对尚待完成。
+**BC已接通原自然任务的性质准备、跨调用定向修复及有界源码准备，真实跨源性质仍未闭合。** 当前范围仍为单repo/ref、源码可见的授权与信任边界评估。5去重尝试全部completed交付、完整原任务均source-partial；17个model-prepared性质中12个unknown、首件2个缺逐题查询、3个未检查，合格跨源checked/violated为0。四比较与三previous位置因资格不足零派发，稳定质量、实际复用与净收益均未建立。授权运行以未达验收收束，BC14已发布并核对用户origin。
 
 BC工程验证1,833pass/1平台skip/12,044断言及主/BC类型通过。OWUI原scope准备实测80.59s→21.58s，当前原件派生重放Download2/OWUI7份解释保持语义字节和原SHA，零新增含义或模型。原四题与完整skill保留，三fresh实际重算；source guard变为request_doc被自然回答正确识别，但入口/effect角色、closure、逐题性质绑定及完整分支仍缺。known input16,788,094（含cache15,453,312）/output86,987，USD/隐藏请求/开发/真人未知。[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/acceptance-matrix.json)保留未达责任；finiteQueueComplete与researchGoalAchieved仍false。
 
