@@ -12,7 +12,7 @@
 
 ## 1. 执行身份、权限与完成含义
 
-- 日期：2026-10-10。状态：`in-progress`。计划交付时没有 BC 生产改动或模型实验；实施基线`ee1a0522bb151977947dfcafa5906bee5002356a`。
+- 日期：2026-10-10。状态：`in-progress-publication`；工程与已授权运行已收束，BC14待推送核对。计划交付时没有 BC 生产改动或模型实验；实施基线`ee1a0522bb151977947dfcafa5906bee5002356a`。
 - 开发基线：`b1aa7b4cc43a5468a873669735732f2c95e46d83`。计划提交后以启动时真实 HEAD 记录 BC implementation baseline。
 - 开发线程：`gpt-6.1-sol`，reasoning `max`。工作目录 `D:\skill优化\SkVM`，分支 `skill-ir-aot`，只发布用户 `origin`，不新建分支/worktree。
 - 新 identity：`authorization-task-binding-v1`。结果统一放 `results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/`。临时运行空间放 `D:\skill优化\project-maintenance\runs\authorization-task-binding-v1`。
@@ -227,9 +227,10 @@ expect(afterInvalidUpdate.currentCheckedVerdicts).toHaveLength(0)
 
 - [x] 原用户包保持同字节；沿 BB 已登记 policy/premise/source 的真实变更，各建立 BC fresh/previous共用输入并保留原四题，不导入历史手写properties；changes.test红绿1test/15断言。实际派发仍按资格逐条判断。
 - [x] 三种previous均以当前原任务/源码/策略/性质/trace/独立评阅资格核对，无合格可恢复基础，分别零派发blocked；不硬编码consumer位置ID。
-- [ ] policy/premise 从基础材料重算、source 撤回所有相关旧解释；每条 fresh/previous 原四题都保留，合格局部义务之外仍标残余。
-- [ ] previous 被阻断时显示缺哪个输入/基线/性质，不自动改称 fresh；fresh 自然partial不可宣传成复用收益。
-- [ ] 同组 token 包含准备、失败及修复；不假报未做的真人作者分钟或美元。
+- [x] 三fresh从登记的变化输入重新准备，原四题/完整skill保留；source仅guard root_doc→request_doc，原答已识别但4性质unknown。policy/source各4unknown，premise3prepared但最终格式拒绝无check；自然原题均source-partial，独立评阅原件保留。
+- [ ] 三previous实际复用未发生：缺当前原任务同性质checked/violated跨源trace与可恢复合格会话，零派发blocked；fresh不替代这项验收。
+- [x] previous 阻断显示具体输入/基线/性质条件，不改称fresh；三fresh partial没有宣传成复用收益。
+- [x] 五去重attempt成本含准备、失败及具名修复；known input16,788,094含cache15,453,312/output86,987，未观测真人分钟/USD/隐藏请求保持未知。
 
 ### BC12 原包、搬移与使用交付
 
@@ -240,16 +241,16 @@ expect(afterInvalidUpdate.currentCheckedVerdicts).toHaveLength(0)
 
 ### BC13 联合验证、归因与研究复盘
 
-- [ ] 受影响联合1,833pass/1平台skip/12,044断言，主/BC类型通过；最终当前原件replay完成，2/7份解释语义字节及原SHA保持。最终文档/链接检查待收束文本完成后执行一次。
-- [ ] summary 逐项列实际事实、义务和未达责任，分清声明/源语义/实例/采用/检查/自然质量/复用/收益。
-- [ ] 记录准备性能前后、真实额外模型成本及有效行为；结果为无差异/权衡/负向时原样发布，不以调整指标宣布成功。
-- [ ] 更新研究总文档§1/§7.64/§11、spec§14.42、current-status、当前计划、usage/developer-guide相关小节及根 conversation_log。
+- [x] 受影响联合1,833pass/1平台skip/12,044断言，主/BC类型通过；最终当前原件replay完成，2/7份解释语义字节及原SHA保持。最终15文档测试、37新增本地链接、9份gzip/5对原input与answer Git字节检查及diff check通过；生产树在联合验证后未变。
+- [x] [summary](../../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/summary.json)及[验收矩阵](../../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/acceptance-matrix.json)逐项列事实、义务和未达责任，分开声明/源语义/实例/采用/检查/自然质量/复用/收益。
+- [x] 原OWUI准备80.59s→21.58s同SHA/revision，真实额外成本入账；0合格性质/五答partial/7资格阻断据实保留，无净收益主张。
+- [x] 研究§1/§7.64/§11、spec§14.42、current-status、当前计划和usage/developer-guide同步最终事实；根conversation_log保留阶段，发布核验随后追加。
 
 ### BC14 发布与恢复交接
 
 - [ ] 本轮文件白名单检查，保留其他线程材料，提交并推用户 origin/skill-ir-aot，读远端 SHA 核对。
-- [ ] 最终 status 将工程、有限队列、真实使用、研究目标分开；每个未达责任给原件路径、准确代码责任、下一条可执行动作。
-- [ ] 没有成功的真实性质链时，报告仍缺哪个语义/接线；不得将计划全部打勾当研究完成，不擅自追加下一身份。
+- [x] 最终 status/验收矩阵将工程、有限队列、真实使用、研究目标分开；每项未达责任指向原件、代码责任和下一动作。授权运行收束不使finiteQueueComplete或researchGoalAchieved变true。
+- [x] 真实性质链仍缺入口/effect角色、closure和本题性质绑定；完整自然分支/事实映射不足另列。未达验收保持未勾选，不追加身份或幸运重抽。
 
 ## 7. 有限实验登记与现场修复规则
 

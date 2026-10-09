@@ -4,7 +4,9 @@
 
 ## 1. 当前结论
 
-**授权任务已有局部语义、来源材料、变化失效和官方账号双入口；BB接通v7跨函数公共链，真实材料采用已有进展，但真实性质检查尚未闭合。** 当前范围仍为单repo/ref、源码可见的授权与信任边界评估。稳定质量或净收益尚未建立。BC下一轮转向任务性质准备、跨调用解释修复和准备阶段故障，计划已登记，尚未实施。
+**BC已接通原自然任务的性质准备、跨调用定向修复及有界源码准备，真实跨源性质仍未闭合。** 当前范围仍为单repo/ref、源码可见的授权与信任边界评估。5去重尝试全部completed交付、完整原任务均source-partial；17个model-prepared性质中12个unknown、首件2个缺逐题查询、3个未检查，合格跨源checked/violated为0。四比较与三previous位置因资格不足零派发，稳定质量、实际复用与净收益均未建立。授权运行已收束，BC14发布核对尚待完成。
+
+BC工程验证1,833pass/1平台skip/12,044断言及主/BC类型通过。OWUI原scope准备实测80.59s→21.58s，当前原件派生重放Download2/OWUI7份解释保持语义字节和原SHA，零新增含义或模型。原四题与完整skill保留，三fresh实际重算；source guard变为request_doc被自然回答正确识别，但入口/effect角色、closure、逐题性质绑定及完整分支仍缺。known input16,788,094（含cache15,453,312）/output86,987，USD/隐藏请求/开发/真人未知。[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/acceptance-matrix.json)保留未达责任；finiteQueueComplete与researchGoalAchieved仍false。
 
 BB已接通v7匿名公共跨源检查及两BA原提案派生采用，同epochN/M/D为Download N/D自然full、M partial，OWUI三臂partial；真实跨源性质trace仍0。Download原包partial/8采用，OWUI两尝试均无已保存终态/答案、最终费用未知，具名末次32采用不代表交付。用户2026-10-10限定批准的三fresh已各执行一次：policy/source自然partial/各2采用/性质unknown，premise终态routing失败未交付，三previous缺合格基础。本次授权执行以completed-with-unmet-criteria收束，16位置13尝试/3blocked、15去重尝试/12自然交付；finiteQueueComplete与researchGoalAchieved仍false，BA暂停保持。
 
@@ -34,7 +36,7 @@ BB已接通v7匿名公共跨源检查及两BA原提案派生采用，同epochN/M
 
 最新AY结果补充：两份原skill和两包原字节消费均已实际运行。Download消费者源码评阅full但机器partial，OWUI消费者仍漏决定性helper；政策/前提变化已有部分运行，源码变化及质量位置受账号额度阻断。[最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)记录可见完整input 32,465,835、output 125,283、其中cacheRead 29,939,200（已包含在input），USD/隐藏请求/开发/真人成本未知。旧AX、AW结果保留其当时口径。
 
-当前关键问题是：**让真实任务中的跨函数对象和控制关系进入有证据的性质检查。** BB公开read/edit、采用与检查的匿名正反例及双入口通过；真实角色/类型映射仍不完整或矛盾，原包未声明性质，采用记录没有形成非空跨源性质trace。fresh已运行但previous缺合格基础，稳定效果未建立。425核心测试、29研究测试和主/研究类型通过；本次完整离线重放未通过，隔离计时180.53秒仍在createInquiryTools准备阶段，内部根因待确认。授权执行结束、未知保留与后续责任分别见§7.63及收束原件。
+当前关键问题是：**让真实任务中的跨函数对象和控制关系进入有证据的性质检查，并完成原自然任务的全部职责。** BC已由无properties原包自动形成task-only sidecar；角色/绑定含义仍须模型从源码提出，不能按名称或类型猜等价。源码准备热点已实测定位为重复语法顺序遍历并修复，deadline与完成后计量另有红绿证据；原BB准备失败报告保留。实际五答的版本/删除/回退分支或精确缺失事实映射仍有缺口，采用和交付不代表跨源性质或收益。授权执行、原件及下一动作见§7.64和[BC收束](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/authorized-execution-closeout.json)，两旧OWUI未知保持§7.63的限定处置。
 
 ## 2. 研究目标与术语
 
@@ -2379,6 +2381,8 @@ usage使用原check/run/inspect/edit/compare，不新增CLI。实际公开check/
 
 **BC11 source-fresh。** 89ce56d0原四题completed交付，42宿主工具、64/64总预算，95源最终核验有效；准备8.052s、端到端560.715s、账号550.124s。登记快照仅views.py:1424的guard对象由root_doc变为request_doc，[原答评阅](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/attempts/source-fresh/original/source-review.json)确认已识别该变化，四题partial/full/full/partial：Q1仍漏最新/根回退及删除过滤的完整分支，Q4错误把已有router注册列为不可用事实。4性质prepared、1题残余；12解释/146合法编辑/9采用/100步骤，最后一次结构有效的检查仍有入口call role缺失、closure未提出及无效path，4性质全部unknown/空trace。[过程诊断](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/bc11-source-fresh-diagnosis.json)未证新工程故障，不增加同题重抽。input4,096,630（含cache3,751,552）/output21,635；USD与隐藏请求均未知，不能以交付或自然源码结论替代checked/violated。
 
+**BC13–BC14收束依据。** [验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/acceptance-matrix.json)与[授权执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/authorized-execution-closeout.json)按工程、真实局部性质、完整原题、比较、复用和成本分层：11逻辑位置中4尝试/7零派发资格阻断，5唯一attempt/5自然交付，完整自然任务均source-partial、0合格跨源性质。native首件与修订分列，premise的3性质未进入check，实际12个性质结果为unknown、首件另外2个未进入逐题查询；finiteQueueComplete和researchGoalAchieved仍false。known input16,788,094含cache15,453,312/output86,987，端到端2,388,505ms，美元/隐藏/开发与探子/真人未知。全部原件不回填；gzip和input/answer按原字节保留，BB保护记录及两实际重放原件SHA未变。局部准备性能改善有同scope证据，未测成净收益或完整任务复用。后续责任精确指向入口role/closure/本题绑定、源内完整分支及逐项事实结论；不增加无关语言语义或新幸运抽样。发布状态独立记录，远端核对后才能标BC14完成。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
@@ -2442,12 +2446,12 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 | ID | 问题 | 当前依据 | 接下来的判断 |
 |---|---|---|---|
 | Q1 | 哪个任务范围共享领域语义？ | 固定来源的授权职责支持 principal/resource/operation/control/evidence；混合职责单列，见 §4–§7.10 | 保持单 repo/ref、源码可见的授权切片 |
-| Q2 | 声明如何带来实际行为？ | BB原包4题/11题无properties，v7缺无声明准备指引；实际采用尚无跨源性质trace | BC从原问题准备性质，再经公开入口绑定/检查；准备成本及全部原题保留 |
-| Q3 | 为什么仍漏决定性源码或分支？ | caller value与helper resource/principal冲突有据；重放卡源码准备，内部热点未证 | BC定向修复两侧对象解释，先分段定位准备；不自动改类型或扩语言语法 |
-| Q4 | 领域方法相对好说明的增量是什么？ | BB同epoch六臂：Download N/D full、M partial；OWUI三臂partial，D token更高 | 当前development观察不支持稳定净收益，USD及作者成本未知 |
-| Q5 | 作者和变化复用是否可用？ | BB Download原包partial/8采用，OWUI两次未知；fresh两partial/一routing失败，previous三blocked | BC保留原包并系统生成sidecar；局部previous按实际同性质合格基础判断，完整任务复用另验 |
+| Q2 | 声明如何带来实际行为？ | BC原自然四题真实准备17性质；12unknown/首件2缺查询/3未检查，0合格跨源trace，全部原题保留 | 先补原件中入口/effect角色、closure和本题propertyBindings；不能由prepared/采用推成功 |
+| Q3 | 为什么仍漏决定性源码或分支？ | BC准备热点实测为重复语法遍历，80.59s→21.58s且SHA/revision相同；真实源角色和自然分支仍缺 | 处理当前确切语义/回退/删除分支与事实映射，不自动改类型或扩无关语法 |
+| Q4 | 领域方法相对好说明的增量是什么？ | BC四N/D因无当前合格原任务性质零派发；BB既有同epoch观察保持 | 比较未测，稳定净收益未建立；准备局部性能改善不替代任务效果 |
+| Q5 | 作者和变化复用是否可用？ | BC原包两件及三fresh均交付/source-partial，previous三缺同性质当前可恢复基础；搬移/CLI合同确定性通过 | 先有合格真实局部链和会话，再验actual previous；fresh不算复用收益，旧OWUI未知保持 |
 | Q6 | 本地化路线如何处理？ | 保留 §8–§9 设计及结构回填反例 | 暂缓；重新选择该类时再处理，不混入授权验收 |
-| Q7 | 如何评价和计量？ | BB16位置/15去重尝试/12自然交付，known input32,038,537/output136,921；两OWUI终态/最终量未知、premise量未报 | 保留部分量与完整分母，已批准执行收束不升级finiteQueueComplete或研究成功，USD/隐藏/开发/真人仍unknown |
+| Q7 | 如何评价和计量？ | BC11逻辑位置/5唯一attempt/5交付/7资格阻断，known input16,788,094含cache15,453,312/output86,987 | 原件和修订分列，完成后准备计量另存校正；授权执行结束不升级finiteQueueComplete或研究成功，USD/隐藏/开发/真人未知 |
 
 决策沿革：
 
@@ -2482,6 +2486,8 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-10 / BB限定执行收束：** 具名OWUI再次timeout无终态；用户明确保留两次未知/费用后仅批准三fresh各一次。policy/source自然partial、各2采用/性质unknown，premise终态routing失败无答案/usage，previous三blocked。非null timeout usage误计已红绿修复；15去重尝试/12交付、known input32,038,537/output136,921，最终未知量单列。425核心/29研究及类型通过，完整重放本次未通过、隔离定位准备阶段；本次授权结束，完整队列与研究仍未达，见§7.63。
 
 - **2026-10-10 / BC规划：** 核对BB最后fresh和原包输入后，选择任务性质准备、跨调用定向修复与准备阶段性能定位。复用v7、原包字节和严格对象检查；新Download有限队列、OWUI离线迁移。新鲜51tests/362断言通过；未运行新模型或生产修改，见§7.64。
+
+- **2026-10-10 / BC实施与授权收束：** task-binding前端、精确对象修复、有界准备及当前原件重放落地，1,833pass/1平台skip及类型通过。真实原包两件/三fresh全部交付但source-partial，0合格跨源性质，四比较/三previous零派发资格阻断。有限执行以未达责任收束，源内完整分支、事实映射及模型源绑定仍缺，原件和未知不回填，见§7.64；发布另按远端证据核对。
 
 ## 12. 后续追加规则
 

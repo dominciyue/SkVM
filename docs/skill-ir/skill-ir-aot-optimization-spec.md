@@ -2900,6 +2900,8 @@ BC5复用已有typed field/返回/alias表达，不扩语义schema。仅task-bin
 
 BC9补足共享操作的逐题性质事务：只有当前已采用的共享入口存在时，后续原题才可复用已接受源码解释的草稿，获得本题的空propertyBindings和当前qualified refs。模型必须显式提交本题绑定；不同问题的绑定/verdict不复制，歧义owner与stale revision继续由原validator拒绝。已准备但尚无源owner的性质仍以unknown/property-source-unlocated保留。准备deadline仅覆盖准备生命周期，complete后最终快照仍核对允许路径与所有当前文件SHA，外部取消继续有效。准备完成后progress不再发事件，最终快照耗时不计成准备耗时；原报告错误计量以独立校正记录说明，不覆盖原件。
 
+**BC实际验收边界。** 工程公开链、有界原scope准备、原包搬移及当前派生重放已通过。真实5去重尝试全部交付但完整原任务均source-partial；17个准备性质中12个unknown、首件2个缺逐题查询、premise的3个未进入检查，当前合格跨源checked/violated为0。source变化仅guard root_doc→request_doc，自然回答已识别，不等于机器性质或复用证明。四质量和三previous缺当前原任务合格基础而零派发；改变input的fresh不能被提升成原任务baseline。授权执行可结束，finiteQueueComplete与researchGoalAchieved仍false。事实、计量校正及每项下一动作见[BC验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/acceptance-matrix.json)，不改变原有研究准入或旧未知处置。
+
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
 AT在已有授权局部语义上引入显式 `focused-closure-v1`：宿主持久管理locate/interpret/link/review/answer阶段，绑定当前来源、单元身份与更新版本；模型解释原始源码中的条件、对象、参数、返回与实际相关效果。上下文渲染不改变活动任务，拒绝修复回到同一单元；多候选与语义关系仍须显式判定。旧默认及协议保持。

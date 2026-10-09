@@ -2,13 +2,13 @@
 
 更新于2026-10-10。唯一实时入口为 [current-status](current-status.md)。
 
-- 当前任务书：[BC0–BC14：任务性质准备、跨调用语义修复与可重放交付](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)，`in-progress`，BC0–BC8已验证，BC9原包两件均交付但性质unknown；继续三种独立变化。
-- 方法合同：[spec §14.42](skill-ir-aot-optimization-spec.md#1442-bc-task-binding-and-replay-reliability)；复核依据：[研究 §7.64](skill-dsl-research.md#764-bc-任务性质准备与跨调用修复)。实施基线 `ee1a0522`；准备定位/任务前端/调用修复/原件派生重放已完成，原包完整任务source-partial，N/D及previous合格基础未形成。
+- 当前任务书：[BC0–BC14：任务性质准备、跨调用语义修复与可重放交付](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)，`in-progress-publication`；工程、原包两件和三fresh已收束，BC14待推送核对。11位置中4尝试、7资格阻断，5去重尝试/5自然交付。
+- 方法合同：[spec §14.42](skill-ir-aot-optimization-spec.md#1442-bc-task-binding-and-replay-reliability)；复核依据：[研究 §7.64](skill-dsl-research.md#764-bc-任务性质准备与跨调用修复)。实施基线 `ee1a0522`；当前合格跨源性质0、完整任务均source-partial，比较和实际previous复用未达。下一动作及原件见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/acceptance-matrix.json)，不得以授权收束升级研究成功。
 - 开发 `gpt-6.1-sol/max`，实验当前官方账号 `gpt-5.6-sol/high`；继续skill-ir-aot、仅用户origin，第三方API和AV旧位置继续暂停。
 
 ## 当前目标
 
-普通用户给出原skill和自然任务后，系统先产生可追溯的性质问题，再让有源码依据的跨函数对象解释进入现有v7检查。优先修准备阶段实际故障、任务前端和定向修复；新行为显式task-binding-v1，旧默认保持。先取得Download原包的一条当前真实跨源检查，再评价完整原题、变化复用和同条件效果。
+普通用户给出原skill和自然任务后，系统先产生可追溯的性质问题，再让有源码依据的跨函数对象解释进入现有v7检查。BC已实现显式task-binding-v1及准备/定向修复，确定性公开链通过；真实入口/effect角色、closure和逐题性质绑定仍未闭合。后续先处理这些原件中的确切缺口及完整分支/缺失事实映射，再登记新的真实验证计划；不自动追加外部运行。
 
 两原作者包4题/11题都无properties；质量common文件各有1题/1性质，两者不是同一输入。任务前端保留所有原题并生成独立sidecar；Download request、user、pk、document按实际源解释，不能自动改类型。准备热点已定位为重复语法遍历，拥有worker和当前树memo保留相同源身份/revision；原件派生重放仍明确保留缺失含义，不把工程修复当成真实效果。
 
@@ -26,6 +26,8 @@
 11个逻辑位置是1个native、两次N/D配对4位置、3种fresh/previous共6位置。同一attempt仅在完全等价条件下引用且去重。修订和新epoch保留首件，结果目标与实际结果分开。OWUI只离线迁移，不重新派发未知消费。
 
 BC previous资格绑定实际同范围合格性质、当前源码/策略和trace，不硬编码consumer位置；没有完整原题基础时只评价局部复用。旧BB三previous继续blocked，不用BC结果回填。原未知和限定处置保留；当前Download新身份的具体执行责任见BC任务书。
+
+本轮实际17个model-prepared性质中12个unknown、首件2个缺逐题查询、3个因最终格式拒绝未检查，跨源checked/violated为0。四N/D与三previous分别留零派发preflight；三fresh均保留原四题并独立评阅，不能替代原任务合格基础或复用收益。known input16,788,094含cache15,453,312/output86,987，USD等未知单列；[summary](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/summary.json)与[收束](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/authorized-execution-closeout.json)分开工程、实际使用、完整队列及研究目标。
 
 ## 执行与修复规则
 

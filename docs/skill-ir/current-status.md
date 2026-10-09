@@ -4,11 +4,11 @@
 
 ## 当前工作
 
-**当前任务书为 [BC0–BC14：任务性质准备、跨调用语义修复与可重放交付](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)，状态 `in-progress`，BC0–BC8工程已验证，BC9原包首件及具名复验均交付但性质仍unknown；继续登记的三种独立变化。** 实施基线 `ee1a0522`，接管时工作树干净。11个Download逻辑位置及旧OWUI未知见[BC manifest](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/manifest.json)。复验95文件最终核验通过、准备7.58s；完整自然任务仍source-partial，当前合格跨源性质为0，N/D与previous资格未满足。准备deadline、逐题声明接线和完成后计量已定点修复；原报告保留，校正与独立评阅见研究§7.64。
+**当前任务书为 [BC0–BC14：任务性质准备、跨调用语义修复与可重放交付](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)，状态 `in-progress-publication`；工程与已授权运行已收束，BC14待推送核对。** 实施基线 `ee1a0522`，11个Download逻辑位置中4个已尝试、7个因资格阻断未派发；5去重尝试全部completed并交付，包含原包首件/具名复验和policy/premise/source三fresh。合格跨源性质0，五份完整自然任务均source-partial，N/D比较与实际previous复用未达；`finiteQueueComplete`和`researchGoalAchieved`仍false。事实、原件与下一动作见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/acceptance-matrix.json)和[授权执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/authorized-execution-closeout.json)。
 
-本轮先解决三处：原包自然问题尚未自动形成性质、跨调用参数解释缺少精确定向修复、源码准备长时间不返回。复核确认两原包4题/11题均无properties，而质量common输入各有1题/1性质；v7实际指引漏掉无声明时的提出办法。入口value与helper principal/resource不一致的拒绝有据，不通过自动改类型绕过。
+本轮已接通无手写properties原包的任务前端、精确跨调用修复及有界源码准备。OWUI原scope173文件实测准备80.59s→21.58s，源SHA/revision保持；当前派生重放Download/OWUI准备7.99s/20.78s、2/7份原解释语义字节保持，零新模型/含义。联合1,833pass/1平台skip/12,044断言及主/BC类型通过。真实模型仍未补齐入口/effect角色、closure和本题性质绑定；premise最终格式拒绝未产生property checks，不能记为unknown verdict。准备deadline与完成后计量已红绿修复，原报告和校正分存，详见研究§7.64。
 
-新identity为`authorization-task-binding-v1`。复用v7，补显式`task-binding-v1`前端与修复；先取得普通Download原包的一条真实当前跨源检查，再做同条件比较和局部变化复用，原四题全部保留。OWUI仅离线迁移，旧未知不自动解除。合同见[spec§14.42](skill-ir-aot-optimization-spec.md#1442-bc-task-binding-and-replay-reliability)，复核与方法见[研究§7.64](skill-dsl-research.md#764-bc-任务性质准备与跨调用修复)。
+identity为`authorization-task-binding-v1`，显式策略复用v7及原CLI。原四题/完整skill保留，source变更的request_doc授权对象已被自然回答识别，仍无checked/violated跨源trace。当前known input16,788,094（含cache15,453,312）、output86,987，总端到端2,388,505ms；USD/隐藏请求/开发与探子成本/真人分钟未知，见[accounting](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/accounting.json)。OWUI仅离线迁移，旧未知不解除，不追加身份或幸运重抽。合同见[spec§14.42](skill-ir-aot-optimization-spec.md#1442-bc-task-binding-and-replay-reliability)，复核与方法见[研究§7.64](skill-dsl-research.md#764-bc-任务性质准备与跨调用修复)。
 
 ## BB 已结束的实际结果
 
@@ -44,7 +44,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 - 开发 `gpt-6.1-sol/max`；实验沿用用户已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。
 - BC另登记新Download原包、两次N/D配对和三种fresh/previous共11逻辑位置；就绪才执行，引用去重、具名修订分列。当前通道最近source-fresh为completed；旧OWUI未知只离线处置，BC不新增其真实派发。新unknown只核查原生命周期，不能自动重抽。
 - AY额度提示、AZ unavailable及BA `paused-recurring-routing`均保留。BB首个就绪真实pilot已同通道completed，连续失败数重置；累计恢复与成本保留。连续两次终态routing失败，或累计三次routing恢复仍失败，则暂停BB外部调用。quota/auth立即暂停，unknown只核查原生命周期。恢复计数及付费并发锁已测试，不额外探针、轮询或旁路。
-- 用户暂停已撤销，两次未知经过各自限定人工处置保留；后续未知保护不变。已完成尝试已知input32,038,537（含cache29,105,920）、output136,921。两OWUI部分usage单列，premise失败用量未返回；最终未知量、USD、隐藏请求、开发/探子成本和真人分钟保持unknown。本地观测duration不代表未知尝试的服务器最终耗时。
+- 用户暂停已撤销，两次未知经过各自限定人工处置保留；后续未知保护不变。BB已完成尝试已知input32,038,537（含cache29,105,920）、output136,921。两OWUI部分usage单列，BB premise失败用量未返回；最终未知量、USD、隐藏请求、开发/探子成本和真人分钟保持unknown。本地观测duration不代表未知尝试的服务器最终耗时。
 - 保留原skill、全部原问题、允许源码、用户独立政策及前提。模型输入隔离评价器、历史答案和开发修复记录。held-out、Q1、prospective、readiness和历史 `0/6` 不变。
 - 主开发线程是代码、共享方法文档和Git的唯一写者。继续现有分支，不创建worktree；只读探子按AGENTS使用。
 
@@ -62,7 +62,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BC | [任务书](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)、[当前计划](skill-ir-aot-optimization-plan.md)、spec§14.42、研究§7.64；原包两件交付/性质unknown，继续独立变化 |
+| 当前BC | [任务书](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)、[当前计划](skill-ir-aot-optimization-plan.md)、[收束](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/authorized-execution-closeout.json)、spec§14.42、研究§7.64；5交付/0合格跨源性质/7资格阻断 |
 | BB | [任务书](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/verification/acceptance-matrix.json)、spec§14.41、研究§7.63 |
 | BA | [任务书](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-submission-v1/summary.json)，spec§14.40、研究§7.62 |
 | AZ | [任务书](../superpowers/plans/2026-10-09-authorization-property-abstraction-and-real-use.md)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/summary.json)，spec§14.39、研究§7.61 |
