@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "authorization-bc-source-review/v1",
+  "attemptId": "premise-fresh/original",
+  "inputSha256": "956786ffa16b96119daf5509b7ac0a966069a65a73549cd5eb124345e2487a0d",
+  "answerSha256": "99d69db5a82e9ece4b949d5b1ed277370caaf7e0fc000596b923567d83fe405d",
+  "runtimeTree": "60a63df39b334a9cb2000f773946a3d5e62093ea",
+  "status": "source-reviewed",
+  "reviewer": "Primary full-answer/input review and decisive original-line adjudication with independent read-only natural and funnel scouts",
+  "wholeOriginalTask": "source-partial",
+  "questionReviews": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "quality": "partial",
+      "sourceSupported": true,
+      "evidence": [
+        "src/documents/views.py:1368-1448,1834-1839,4941-4995",
+        "src/documents/versioning.py:140-195"
+      ],
+      "reason": "Accurate direct-child/deleted lookup, resolver-deleted flag, original/archive/formatting and FileNotFound->404 rules. Default latest/root fallback, empty-present version, integer parsing and explicit same-family rejection are delegated rather than explained. The independent scout claim that absent root version includes deleted latest was rejected: views.py:1376-1380 passes false when the parameter is absent."
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "quality": "partial",
+      "sourceSupported": true,
+      "evidence": [
+        "src/documents/views.py:1008-1021,1401-1448",
+        "src/documents/permissions.py:30-53,624-635",
+        "framework/rest_framework-3.18.1/rest_framework/views.py:404-421"
+      ],
+      "reason": "Explicit root check before selection and requested-document ownership not implying root ownership are correct. Ownerless/owner/Guardian semantics and upstream model-permission checks are not completed even though those rules are supplied in allowed source."
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "quality": "full",
+      "sourceSupported": true,
+      "evidence": [
+        "src/documents/views.py:1375-1448",
+        "src/documents/versioning.py:169-195"
+      ],
+      "reason": "Correctly separates the root predicate object from effective document and its source/archive fields; selecting version/representation does not retarget the explicit predicate, and normative version-sharing policy is unspecified. Q1 resolver incompleteness is recorded separately."
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "quality": "partial",
+      "sourceSupported": true,
+      "evidence": [
+        "src/documents/views.py:1375-1448",
+        "src/documents/versioning.py:140-195",
+        "src/documents/permissions.py:624-635"
+      ],
+      "reason": "Correctly preserves unknown related-root/other-version ownership and grants. Unread allowed-source helper semantics and resolver syntax are grouped with unavailable user/deployment facts, and missing facts are not individually mapped to exact blocked conclusions."
+    }
+  ],
+  "propertyReviews": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "propertyId": "task-property-beeec00fd7bb5ced65f6",
+      "kind": "operation-completion",
+      "requirement": "determine the file returned",
+      "status": "not-checked",
+      "sourceSupported": false,
+      "reason": "Prepared property retained in analysis demands; no accepted final authorization check, no checked/violated trace."
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "propertyId": "task-property-55a3dd727c36eb7ffbbc",
+      "kind": "authorization-before-effect",
+      "requirement": "state where those checks occur relative to selection of the returned file",
+      "status": "not-checked",
+      "sourceSupported": false,
+      "reason": "Prepared property retained in analysis demands; no accepted final authorization check, no checked/violated trace."
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "propertyId": "task-property-22daae92bb285e1e811b",
+      "kind": "authorized-object-matches-effect",
+      "requirement": "whether selecting another document version or choosing original versus archive changes the resource on which authorization is evaluated, or only changes the representation or file returned after authorization",
+      "status": "not-checked",
+      "sourceSupported": false,
+      "reason": "Prepared property retained in analysis demands; no accepted final authorization check, no checked/violated trace."
+    }
+  ],
+  "archiveSourceVerification": {
+    "valid": true,
+    "checkedFiles": 95,
+    "physicalReadBytes": 1412762
+  },
+  "checksPerformed": 0,
+  "propertyAnalysisPresent": true,
+  "propertyChecksPresent": false,
+  "primaryAdjudications": [
+    {
+      "evidence": "src/documents/views.py:1376-1380; src/documents/versioning.py:175-181",
+      "decision": "Absent version passes include_deleted=false; present empty version passes true and selects latest. The scout default-deleted claim is incorrect. The answer correctly scopes its deleted statement to the resolver, while direct deleted child is already described."
+    },
+    {
+      "evidence": "src/benchmarks/authorization-dsl/inquiry-focus.ts:73; raw tool 44 diagnostics",
+      "decision": "paths[].path is an integer index, so {path:0} is not a path-type error. The actual rejection is the missing required explanation string in each of four answers."
+    }
+  ],
+  "blockers": [
+    "Final focused result missing paths[].explanation; delivery closed after the fourth format rejection, semantic checks used=0.",
+    "Entry effect role/failureKind and helper closure remain incomplete in machine meaning.",
+    "Source-known helper rules and resolver branches remain incomplete in the natural task."
+  ],
+  "reviewedAt": "2026-10-09T22:58:37.174Z"
+}

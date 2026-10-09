@@ -2375,6 +2375,8 @@ usage使用原check/run/inspect/edit/compare，不新增CLI。实际公开check/
 
 四个quality与三个previous通过当前公开readiness判为[零派发资格阻断](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/bc10-bc11-qualified-baseline-gates.json)，不claim inference、不改称fresh。BC13联合1,833pass/1平台skip/12,044断言，主/BC类型通过；最终当前派生原件重放Download2/OWUI7份解释和原SHA保持，零新增语义，准备7.993s/20.782s，既有缺口保留。结果见[联合核验](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/bc13-joint-verification.json)。真实范围内的未达责任与独立三变化仍分别收束，不由测试数推出研究成功。
 
+**BC11 premise-fresh。** 769f4b14原四题completed交付，44工具，95源最终核验有效，准备7.574s、端到端441.576s；3性质prepared、1残余，7解释/6合法编辑/4采用/31步骤。最后focused结果四个paths漏explanation，第四次格式拒绝后delivery closed，实际semantic checksUsed=0；propertyAnalysis需求保留、checks与currentCheck未生成，不能记成三个unknown verdict或序列化丢失。主线程复核[原答](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/attempts/premise-fresh/original/source-review.json)为partial/partial/full/partial：requested doc所有权不等于root所有权，root授权顺序正确；框架/helper分支及源内可读的resolver规则未完成，精确缺失事实映射仍不足。探子误读的缺省deleted-inclusive及path需string经原行撤销：缺省root版本用include_deleted=false，空version才true；path为整数，缺的字段是explanation。无新工程接线故障证据，保留首件后继续独立source-fresh。input2,861,675（含cache2,745,088）/output13,526，费用未知口径保持。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
