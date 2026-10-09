@@ -126,7 +126,7 @@ type TaskPropertyPreparation = {
 - [x] 核对分支/远端/工作树/活跃线程，记录原有修改，不混入本轮提交。
 - [x] 创建 BC 的 manifest/status/study 骨架，读取 BB 原件建立失败责任表；目标要求与 observed outcome 分字段。
 - [x] 登记第七节有限运行位置、同模型/事实/预算、旧未知与本轮授权范围。BB 只读，旧空位置不补写。
-- [ ] 提交：`docs: register task binding and replay recovery work`。
+- [x] 提交：`docs: register task binding and replay recovery work`。
 
 ### BC1 定位并修复准备阶段
 
@@ -134,21 +134,21 @@ type TaskPropertyPreparation = {
 - [x] 单独准备一份 BB 原 scope，记录 walk、读字节、词法、AST、后处理的逐文件耗时；首先不做任何模型调用、source edit 或全部重放。复用 BB profile 提取方式，不重新下载源码。
 - [x] 依据最慢阶段修复，并在相同源码/范围做一次前后对照；本次memo仅当前AST，无持久缓存，已测同字节revision与修改失效。异步等待壳不是取消实现。
 - [x] `bun test ./src/benchmarks/authorization-dsl/inquiry-tools.test.ts` 通过；慢原例完整完成，取消等待拥有worker退出。对照在BC verification/preparation-comparison.json。完成真实准备才进入 BC7 全材料重放。
-- [ ] 提交：`fix: make authorization source preparation diagnosable and bounded`。
+- [x] 提交：`fix: make authorization source preparation diagnosable and bounded`。
 
 ### BC2 修复 v7 无声明指引
 
 - [x] 在 `interprocedural-property-entrypoints.test.ts` 加红测：v7 实际发给模型的任务视图遇到无 properties 时，明确提供未声明状态、当前问题、合法提出性质的办法；已声明时不重复建议。
 - [x] 修 `sourcePhaseGuide` 与模板接线，避免只在不可达旧 v6 分支出现说明。用真正渲染结果检查，不只搜索某个常量含单词。
 - [x] 旧局部/跨源 binding、可选字段清除和 duplicate 拒绝仍通过。此阶段不声称已完成普通任务自动准备。
-- [ ] 提交：`fix: expose property preparation in the v7 source workflow`。
+- [x] 提交：`fix: expose property preparation in the v7 source workflow`。
 
 ### BC3 从自然问题准备性质
 
-- [ ] 建立 property-intent 的失败测试：无声明、已有声明、重复、跨题 requirement、附加 verdict/答案、非法 kind、空数组、范围残余、缺政策以及原问题丢失。
-- [ ] 实现模型提案到严格宿主准入的窄前端。机械字段从当前问题生成，语义 kind/requirement 来自可追溯提案。没有真实依据时返回 needs-clarification/residual，调用者展示原题而不是删掉它。
-- [ ] `inquiry` 和 `native` 共用它；普通用户继续提供原 skill/任务/源码范围，机械 sidecar 由系统生成。原 properties 与原包不改。
-- [ ] mock 断言示例（通过新公开准备入口构造 `prepared`，不直接拼成功结果）：
+- [x] 建立 property-intent 的失败测试：无声明、已有声明、重复、跨题 requirement、附加 verdict/答案、非法 kind、空数组、范围残余、缺政策以及原问题丢失。
+- [x] 实现模型提案到严格宿主准入的窄前端。机械字段从当前问题生成，语义 kind/requirement 来自可追溯提案。没有真实依据时返回 needs-clarification/residual，调用者展示原题而不是删掉它。
+- [x] `inquiry` 和 `native` 共用它；普通用户继续提供原 skill/任务/源码范围，机械 sidecar 由系统生成。原 properties 与原包不改。
+- [x] mock 断言示例（通过新公开准备入口构造 `prepared`，不直接拼成功结果）：
 
 ```ts
 expect(prepared.questions.map(q => q.questionId)).toEqual(original.questions.map(q => q.id))
@@ -157,8 +157,8 @@ expect(originalBytesAfter).toEqual(originalBytesBefore)
 expect(providerRequests.every(r => !r.includes(evaluatorSentinel))).toBe(true)
 ```
 
-- [ ] 记录准备成本及来源，空/非法提案仅作一次针对性正常修订；反复失败归类为前端失败，不转交用户手填低层字段。
-- [ ] 提交：`feat: prepare task properties from original authorization questions`。
+- [x] 记录准备成本及来源，空/非法提案仅作一次针对性正常修订；反复失败归类为前端失败，不转交用户手填低层字段。
+- [x] 提交：`feat: prepare task properties from original authorization questions`。
 
 ### BC4 形成跨调用修复需求
 

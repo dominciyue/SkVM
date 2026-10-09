@@ -1,4 +1,6 @@
 import { z } from "zod"
+import { PropertyIntentProposalSchema } from "../../task-dsl/authorization/property-intent.ts"
+import { isTaskBindingStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { InquiryText } from "../../task-dsl/authorization/inquiry.ts"
 import { AuthorizationInquirySchema, AuthorizationInquiryV1Schema, AuthorizationInquiryV2Schema } from "../../task-dsl/authorization/inquiry.ts"
 import { AuthorizationInquiryResultSchema, AuthorizationObservationSchema, InquiryQuestionResultSchema } from "../../task-dsl/authorization/inquiry-result.ts"
@@ -211,6 +213,7 @@ export function inquiryNativeSchemas(strategy: InquiryStrategy, parsing = false,
   const result = isFocusedInquiryStrategy(strategy) ? FocusedResultSchema : strategy === "semantic-flow-v1" ? SemanticResultSchema : guidedParsing ? GuidedResultSchema : AuthorizationInquiryResultSchema
   const delta = isFocusedInquiryStrategy(strategy) ? focusedUpdateSchema(stage, parsing, isOperationInquiryStrategy(strategy), isSourceAssistedInquiryStrategy(strategy), isPropertyAbstractionStrategy(strategy)) : strategy === "semantic-flow-v1" ? parsing ? SemanticUpdateEnvelopeSchema : SemanticUpdateSchema : strategy === "guided-evidence-v2" ? parsing ? z.preprocess(guidedDeltaWithContextVersion, LocalControlEnvelopeSchema) : LocalControlDeltaSchema : ControlSliceDeltaSchema
   return {
+    ...(isTaskBindingStrategy(strategy) ? { authorization_prepare_properties: PropertyIntentProposalSchema } : {}),
     authorization_compile: guidedParsing ? z.preprocess(guidedCompile, compile) : compile,
     authorization_observe: domain ? z.object({ observations: observations.min(0).optional(), controlDelta: delta.optional() }).strict() : z.object({ observations: observations.min(0) }).strict(),
     authorization_check_result: domain ? z.object({ result, controlDelta: delta.optional() }).strict() : z.object({ result: AuthorizationInquiryResultSchema }).strict(),
@@ -218,6 +221,7 @@ export function inquiryNativeSchemas(strategy: InquiryStrategy, parsing = false,
 }
 export function inquiryNativeDefinitions(strategy: InquiryStrategy, mode?: "behavior" | "conformance", stage?: FocusStage): LLMTool[] {
   const original = inquiryNativeSchemas(strategy, false, stage), schemas = { ...original, authorization_check_result: original.authorization_check_result.extend({ result: isFocusedInquiryStrategy(strategy) ? FocusedResultSchema : strategy === "semantic-flow-v1" ? SemanticResultSchema : resultModelSchema(mode) }) }, descriptions = {
+    authorization_prepare_properties: "Prepare properties from every current undeclared question or preserve it as residual/needs-clarification. No source interpretation or verdict is admitted.",
     authorization_compile: "Compile current user questions without inferring source behavior; returns the pending relation queue.",
     authorization_observe: "Record evidence-bound observations and local controlDelta. The host returns actual dependency reads and diagnostics; semantic support remains unreviewed.",
     authorization_check_result: "Check the final result against current questions, shown source and proposed controls; preserve diagnostics and finish in the original skill prose format.",

@@ -2347,6 +2347,8 @@ OWUI native消费者已加载完整原skill与11个原题请求，原声明/Usag
 
 **BC2实际指引接线。** 红测从无properties的原自然问题经公开read/select取得实际interpret视图，确实缺property-query-undeclared。v7现在在当前问题未声明时说明proposed形状、四kind和本题精确requirement跨度；已声明时不重复建议。没有附加冲突的旧v6采用指南。公共链23tests/234断言通过，保留跨题/stale/duplicate/null清除拒绝。该阶段只是提示接线，独立任务准备仍由BC3承担。
 
+**BC3任务前端。** 配置由现有strategy承载`task-binding-v1`，继承v7内核而不改默认或另造CLI。严格任务提案只含kind、当前问题精确requirement跨度和可选permission跨度；ID由宿主生成，不收源码锚点、答案或verdict。原声明不替换，原包不写，全部原问题按序保留；性质之外的完整职责仍是residualRequest，缺政策明确needs-clarification。provider的prepare阶段与native的authorization_prepare_properties共享准入，前者请求计量、后者工具计量均保留，非法提案最多一次定向修订，两次失败不建domain。红测先证入口不识别配置及前端缺失；联合96tests/671断言和主tsc通过。接线重构一度影响旧domain scheduler的shown过滤，按原条件恢复并重跑通过。此时仍无BC真实模型请求，自动性质含义的实际质量待BC9。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

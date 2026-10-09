@@ -14,6 +14,8 @@ import type { InquiryReuseInfo, InquiryReuseSeed } from "./inquiry-reuse.ts"
 import { SEMANTIC_EXECUTION_GUIDE } from "./inquiry-semantic.ts"
 import { FOCUSED_EXECUTION_GUIDE, OPERATION_STEP_EXECUTION_GUIDE, type FocusStage } from "./inquiry-focus.ts"
 import { createInquiryProgress, inquiryProgressState } from "./inquiry-progress.ts"
+import { isTaskBindingStrategy } from "../../task-dsl/authorization/control-slice.ts"
+import { PropertyIntentProposalSchema, TaskPropertyIntentError, pendingTaskProperties, prepareTaskProperties, renderTaskPropertyPreparation, type TaskPropertyPreparation } from "../../task-dsl/authorization/property-intent.ts"
 
 export type InquiryMethod = "M" | "D0" | "D1"
 class SourceDisplayLimitError extends AuthorizationDispatchLimitError {
@@ -27,7 +29,7 @@ export interface RunAuthorizationInquiryOptions extends InquiryToolsOptions {
   skillContent?: string;
   reuse?: { info: InquiryReuseInfo; seed: InquiryReuseSeed };
   onEvent?: (event: AuthorizationLifecycleEvent) => void | Promise<void>;
-  onRequest?: (request: { phase: "author" | "analysis" | "repair"; params: CompletionParams }) => void | Promise<void>
+  onRequest?: (request: { phase: "author" | "prepare" | "analysis" | "repair"; params: CompletionParams }) => void | Promise<void>
 }
 export const inquiryAuthorGuide = [
   "Write authorization-inquiry/v1 from this CURRENT natural brief. Do not answer the source question, infer code behavior, add an expectation, future policy or unprovided premises.",
@@ -56,8 +58,8 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
   const separateFormats = isPropertyAbstractionStrategy(strategy)
   const sourceAssisted = isSourceAssistedInquiryStrategy(strategy)
   if (options.domainAblation && (strategy !== "domain-evidence-v1" || !["scheduler-off", "checks-off"].includes(options.domainAblation))) throw new Error("Invalid domain ablation/strategy combination")
-  const startedAt = Date.now(), tools = await createInquiryTools({ ...options, structure: isOperationInquiryStrategy(strategy), ...(isFiniteControlInquiryStrategy(strategy) ? { controlSemantics: "finite-control/v1" as const, propertyDirected: isPropertyDirectedInquiryStrategy(strategy), questionDirected: isQuestionDirectedInquiryStrategy(strategy) } : {}), reserveFinalRead: true }), requests: Array<{ phase: "author" | "analysis" | "repair"; params: CompletionParams }> = []
-  let phase: "author" | "analysis" | "repair" = "analysis"
+  const startedAt = Date.now(), tools = await createInquiryTools({ ...options, structure: isOperationInquiryStrategy(strategy), ...(isFiniteControlInquiryStrategy(strategy) ? { controlSemantics: "finite-control/v1" as const, propertyDirected: isPropertyDirectedInquiryStrategy(strategy), questionDirected: isQuestionDirectedInquiryStrategy(strategy) } : {}), reserveFinalRead: true }), requests: Array<{ phase: "author" | "prepare" | "analysis" | "repair"; params: CompletionParams }> = []
+  let phase: "author" | "prepare" | "analysis" | "repair" = "analysis"
   let cumulativeModelSourceBytes = 0, resentSourceBytes = 0
   const previouslyShown = new Set<string>()
   const importedReferences = new Set<string>()
@@ -69,7 +71,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
     const { signal: _signal, ...recordedParams } = params
     const request = { phase, params: structuredClone(recordedParams) }; requests.push(request); await options.onRequest?.(request); return options.provider.complete(params)
   }, completeWithToolResults: (...args) => options.provider.completeWithToolResults(...args) }
-  const telemetry = createTelemetryProvider(recordingProvider, { perCallTimeoutMs: options.perCallTimeoutMs ?? 300000, unitTimeoutMs: options.sessionTimeoutMs ?? 1200000, maxDispatches: options.maxDispatches ?? 12, onEvent: options.onEvent, ...(sourceAssisted ? { readonlyRecovery: { policyVersion: "authorization-readonly-recovery/v1", toolNames: ["submit_inquiry_declaration", "submit_inquiry_step"], verifyLocalState: () => true } } : {}) })
+  const telemetry = createTelemetryProvider(recordingProvider, { perCallTimeoutMs: options.perCallTimeoutMs ?? 300000, unitTimeoutMs: options.sessionTimeoutMs ?? 1200000, maxDispatches: options.maxDispatches ?? 12, onEvent: options.onEvent, ...(sourceAssisted ? { readonlyRecovery: { policyVersion: "authorization-readonly-recovery/v1", toolNames: ["submit_inquiry_declaration", "submit_task_properties", "submit_inquiry_step"], verifyLocalState: () => true } } : {}) })
   const boundedProvider = (provider: LLMProvider): LLMProvider => ({ name: provider.name, supportsAbortSignal: provider.supportsAbortSignal, complete(params) {
     const visibleBytes = modelSourceDisplay(tools.evidence, params.messages.map(m => m.content).join("\n"), previouslyShown).bytes
     if (cumulativeModelSourceBytes + visibleBytes > (options.maxDisplayBytes ?? 262144)) throw new SourceDisplayLimitError(options.maxDisplayBytes ?? 262144, provider.name)
@@ -84,6 +86,8 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
   let domain: ReturnType<typeof createInquiryDomainRuntime> | undefined
   const progress = createInquiryProgress(); let progressAdvice: unknown
   let semanticChecks = 0, controlActions = 0, deliveryClosed = false
+  let taskPreparation: TaskPropertyPreparation | undefined
+  const taskPreparationAttempts: Array<{ proposal?: unknown; accepted: boolean; diagnostics?: unknown; durationMs: number }> = []
   const remainingTools = () => tools.maxToolCalls - tools.toolCalls - (separateFormats ? wireFailures.length + semanticChecks + controlActions : 0)
   const remainingExploration = () => Math.max(0, remainingTools() - (2 - semanticChecks))
   const submissionBudget = () => ({ totalLimit: tools.maxToolCalls, totalUsed: tools.maxToolCalls - remainingTools(), totalRemaining: Math.max(0, remainingTools()), formatRejectCount: wireFailures.length, formatCorrectionLimit: 2, formatCorrectionsRemaining: Math.max(0, 3 - wireFailures.length), semanticChecksUsed: semanticChecks, semanticCheckLimit: 2, finalOnly: remainingExploration() <= 0 || wireFailures.length > 2 || semanticChecks >= 2 || deliveryClosed, deliveryClosed })
@@ -103,6 +107,30 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
         steps.push({ kind: "author", value: accepted })
       }
     } else throw new Error("Provide a complete inquiry or natural brief")
+    if (isTaskBindingStrategy(strategy)) {
+      if (!pendingTaskProperties(inquiry).length) taskPreparation = prepareTaskProperties(inquiry)
+      else {
+        phase = "prepare"
+        let feedback = ""
+        for (let revision = 0; revision < 2; revision++) {
+          const began = performance.now(); let proposal: unknown
+          try {
+            const submitted = await telemetry.inPhase(revision ? "domain-repair" : "initial", provider => extractStructured({ provider: boundedProvider(provider), schema: PropertyIntentProposalSchema, schemaName: "submit_task_properties", schemaDescription: "Prepare task properties or retain residual duties, without source meaning or verdicts.", prompt: renderTaskPropertyPreparation(inquiry!) + feedback, maxRetries: 0, maxTokens: options.maxTokens ?? 6000 }))
+            proposal = submitted.result
+            taskPreparation = prepareTaskProperties(inquiry, proposal)
+            taskPreparationAttempts.push({ proposal, accepted: true, durationMs: performance.now() - began }); break
+          } catch (cause) {
+            if (!(cause instanceof TaskPropertyIntentError) && !(cause instanceof StructuredExtractionError)) throw cause
+            const diagnostics = cause instanceof TaskPropertyIntentError ? cause.diagnostics : cause.failures
+            taskPreparationAttempts.push({ proposal, accepted: false, diagnostics, durationMs: performance.now() - began })
+            if (revision) throw new TaskPropertyIntentError([{ code: "property-intent-frontend-failed", message: `One targeted revision also failed: ${JSON.stringify(diagnostics)}` }])
+            feedback = `\n\nOne task-only revision: correct these named admission errors while retaining every original question: ${JSON.stringify(diagnostics)}`
+          }
+        }
+      }
+      inquiry = taskPreparation!.inquiry
+      steps.push({ kind: "task-preparation", value: taskPreparation })
+    }
     const program = compileAuthorizationInquiry(inquiry, { allowMissingPolicy: sourceAssisted })
     if (options.reuse) {
       if (!isGuidedInquiryStrategy(strategy)) throw new Error("reuse-strategy: previous extraction requires a compatible guided strategy")
@@ -234,7 +262,7 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
   } catch (cause) {
     if (cause instanceof StructuredExtractionError) for (const [index, failure] of cause.failures.entries()) wireFailures.push({ ...failure, phase, sequence: telemetry.attempts.length - cause.failures.length + index + 1 })
     error = cause instanceof Error ? cause.message : String(cause)
-    status = cause instanceof AuthorizationCallTimeoutError || hasUnknownAuthorizationCompletion({ attempts: telemetry.attempts }) ? "timeout-unknown" : cause instanceof AuthorizationDispatchLimitError ? "budget-exhausted" : inquiry ? "transport-failed" : telemetry.attempts.length ? "completed-with-diagnostics" : "needs-input"
+    status = cause instanceof AuthorizationCallTimeoutError || hasUnknownAuthorizationCompletion({ attempts: telemetry.attempts }) ? "timeout-unknown" : cause instanceof AuthorizationDispatchLimitError ? "budget-exhausted" : cause instanceof TaskPropertyIntentError ? "completed-with-diagnostics" : inquiry ? "transport-failed" : telemetry.attempts.length ? "completed-with-diagnostics" : "needs-input"
   } finally { await telemetry.close(`inquiry-${status}`); domain?.close() }
   const sourceVerification = await tools.verifySnapshot()
   if (!sourceVerification.valid && validation) {
@@ -243,7 +271,8 @@ export async function runAuthorizationInquiry(options: RunAuthorizationInquiryOp
     if (status === "completed") status = "completed-with-diagnostics"
   }
   return { schemaVersion: "authorization-inquiry-run/v1" as const, status, method: options.method, strategy, inquiry,
-    program: inquiry ? compileAuthorizationInquiry(inquiry) : undefined, result: validation?.valid ? validation.result : undefined,
+    program: inquiry ? compileAuthorizationInquiry(inquiry, { allowMissingPolicy: sourceAssisted }) : undefined, result: validation?.valid ? validation.result : undefined,
+    ...(isTaskBindingStrategy(strategy) ? { taskPreparation, taskPreparationAttempts } : {}), preparation: tools.preparation,
     initial, initialValidation, final, validation, sourceVerification, observations, steps, requests, wireFailures, wireNormalizations, evidence: tools.evidence, toolHistory: tools.history, scopeGaps: tools.scopeGaps, sourceFiles: tools.files,
     sourceAccounting: { indexBytes: tools.indexBytes, physicalReadBytes: tools.ioReadBytes, toolDisplayBytes: tools.displayBytes, importedEvidenceBytes: tools.importedEvidenceBytes, cumulativeModelSourceBytes, resentSourceBytes },
     ...(separateFormats ? { recovery: { ...submissionBudget(), formatRejections: wireFailures.length, semanticChecks, totalToolLimit: tools.maxToolCalls, totalToolsUsed: tools.maxToolCalls - remainingTools() } } : {}),

@@ -2892,6 +2892,8 @@ Python await只沿实际操作数保留已有表达式求值和函数值读取�
 
 **使用和评价。** 新行为显式task-binding-v1，复用v7核心及原CLI，不提升默认。Download原包四题先真实消费，再按当前局部checked/violated及跨源trace判断局部复用资格；无需绑定consumer位置名，但不能升级成完整任务复用。N/D同题同源码同工具/预算做两次有限配对，D准备和修复成本计入；协议故障保留端到端分母，自然质量独立评价。11逻辑位置含native、四质量及六变化，引用去重、修订分列。
 
+BC3的配置承载位置已确认为现有`InquiryStrategy`/strategy flag。任务提案合同`authorization-property-intent/v1`独立于source-edit；宿主产物`authorization-task-properties/v1`保留原question顺序、原请求、提案来源、deterministic property IDs及残余职责。inquiry/native共享严格准入，准备失败不建runtime，最多一次具名诊断修订，全部实际成本计入。该合同不包含guard/effect锚点或检查结论；源解释及跨调用检查仍使用v7合同。
+
 **授权与证据。** 开发gpt-6.1-sol/max，实验继承用户官方gpt-5.6-sol/high授权。新Download队列在实现就绪后运行；OWUI仅离线迁移，两BB未知原件/费用和限定处置保持，不因新identity重发。新unknown仅核查原生命周期，明确终态routing有限恢复，quota/auth暂停；第三方仍停。共享缺陷当场修复，不继续已知受影响面板。工程/真实局部检查/完整任务/复用/收益分别验收，研究成功不由有限队列终结推出。复核与后续过程统一见研究§7.64。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
