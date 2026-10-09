@@ -212,9 +212,9 @@ expect(afterInvalidUpdate.currentCheckedVerdicts).toHaveLength(0)
 ### BC9 Download 普通原包真实使用
 
 - [x] 使用 BB 原 Download skill、原四题、同允许源码和既有用户政策/前提，新 sidecar 由 BC3 自动生成。首件completed且自然交付；三性质prepared、一题residual，机器跨源检查未合格，原四题源码评阅full/full/full/partial。
-- [ ] 首件不替换。首件暴露准备deadline影响最终核验、共享operation只有sourceQuestion能绑定性质。先红绿修复：deadline在complete终止；已采用共享入口的后续原题获得独立空绑定事务，声明未定位仍unknown。具名`preparation-and-question-binding-1`同四题复验待执行；源锚点错投和未解释ORM仍保留拒绝。
-- [ ] 首个可信跨源 checked/violated 与原问题的映射、完整当前 trace、源码独立评阅和原四题质量均保存。单条性质成功可继续 BC11 的局部复用；四题全部充分另报 whole-task full。
-- [ ] 同因两次实测无改善转确定性诊断；不得用更多同题抽样寻找幸运结果。新根因的修复允许继续，但须更新研究和实际实现 epoch。
+- [x] 首件不替换。deadline/共享原题接线红绿修复后，具名`preparation-and-question-binding-1`completed，95文件最终核验有效；三性质仍unknown，原题partial/full/full/full。复验又暴露完成后progress误计准备耗时，红绿修复并独立校正7.583s；原报告未改，相关38tests/180断言及主/BC类型通过。
+- [ ] 首个可信跨源 checked/violated 尚未形成；原问题映射、unknown空trace、独立评阅与四题质量已保存。局部与whole-task验收仍未达，不能以自然回答代替性质资格。
+- [x] 两次原题无合格结果后转确定性诊断，不再同题幸运抽样；当前缺下游effect角色/性质绑定，只继续登记的独立变化，修复epoch与实际成本分列。
 
 ### BC10 同条件小比较
 
@@ -225,7 +225,7 @@ expect(afterInvalidUpdate.currentCheckedVerdicts).toHaveLength(0)
 
 ### BC11 同包三种变化
 
-- [ ] 原用户包保持同字节；沿 BB 已登记 policy/premise/source 的真实变更，各建立 BC fresh/previous 输入，不借此读新样本。
+- [x] 原用户包保持同字节；沿 BB 已登记 policy/premise/source 的真实变更，各建立 BC fresh/previous共用输入并保留原四题，不导入历史手写properties；changes.test红绿1test/15断言。实际派发仍按资格逐条判断。
 - [ ] 每种变化先核对同范围合格基础。资格按当前源码/策略/问题/性质/trace/独立评阅，不硬编码 consumer 位置 ID。
 - [ ] policy/premise 从基础材料重算、source 撤回所有相关旧解释；每条 fresh/previous 原四题都保留，合格局部义务之外仍标残余。
 - [ ] previous 被阻断时显示缺哪个输入/基线/性质，不自动改称 fresh；fresh 自然partial不可宣传成复用收益。
@@ -233,10 +233,10 @@ expect(afterInvalidUpdate.currentCheckedVerdicts).toHaveLength(0)
 
 ### BC12 原包、搬移与使用交付
 
-- [ ] 给出使用既有顶层命令的原包→自动准备→分析→inspect→change 示例，命令以实际实现为准写进现有 usage。
-- [ ] 原包 byte identity、当前 sidecar 来源、改变任务/源码后的重新准备与 stale check、搬移后相对路径，做一次确定性验证。
-- [ ] OWUI 原包的 11 题在离线准备合同中全保留，缺独立任务性质时显示明确入口；只使用确定性检查/mock，不为此隐含派发 OWUI 模型。不能写成已验证第二项目真实成功。
-- [ ] 没有 HTML 展示层、新大 CLI 或整库目录改造。
+- [x] 使用既有顶层命令的原包→自动准备→分析→inspect→change示例写进usage；公开CLI check/inspect/edit/compare零派发合同实测归档。Unavailable-provider fixture仅证命令/会话，不声称模型成功。
+- [x] 原包byte identity、sidecar原题来源、任务变化重新准备、源码stale后fresh索引、搬移相对路径由portable.test确定性验证，原件未改。
+- [x] OWUI原包11题全保留并经显式离线residual mock准备；无OWUI模型请求，不计第二项目真实成功。
+- [x] 没有HTML层、新大CLI或目录改造。
 
 ### BC13 联合验证、归因与研究复盘
 

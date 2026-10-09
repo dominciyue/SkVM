@@ -2367,6 +2367,10 @@ OWUI native消费者已加载完整原skill与11个原题请求，原声明/Usag
 
 复验三性质仍unknown，两题不再错报undeclared；模型仅10合法字段/2采用，`download → file_response`下游role未解释，因此尚未达到逐题性质事务的前置采用条件。原四题独立评阅partial/full/full/full：Q1漏默认latest/root fallback、显式version成员关系及空version分支，Q4逐项缺失事实映射改善；自然充分性与机器检查分别记录。引用`urls.py:77`实际有效，探子对此的质疑经原行复核撤销；views路径笔误单列，原答未修写。input3,623,645（含cache3,338,240）/output17,577。两次原题无合格跨源性质，停止同题抽样，保留[复验诊断](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/bc9-retest-diagnosis.json)，仅继续登记的独立变化；N/D和previous资格仍未满足。
 
+**BC11输入与BC12普通使用。** 三变化沿BB已登记事实单独派生，fresh/previous共用每种输入，原四题id/request/operation/intent逐字保留、不导入历史性质。policy仅加入独立政策，premise仅替换旧未知ownership并保留相关职责，source指向登记的修改快照；原包SHA未变，输入来源与SHA见[changed-inputs](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/changed-inputs.json)。搬移实际95文件及原输入字节后源身份相同，修改只发生于临时副本，旧快照失效、fresh重建源SHA且证据为空；任务变化重做sidecar。OWUI原11题全部仅经离线residual mock保留，不算真实第二项目成功。4tests/37断言和BC类型通过。
+
+usage使用原check/run/inspect/edit/compare，不新增CLI。实际公开check/inspect/edit/compare用显式unavailable-provider零派发会话验证，原四题/字节和premiseOnly保留，answerReused=false；该[公开命令原件](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/public-command-contract.json)只证明命令与会话合同，未证明模型准备或复用效果。研究previous资格仍要求同原任务的当前独立评阅跨源性质和可恢复会话，不能把缺失基础改称fresh。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

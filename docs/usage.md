@@ -83,6 +83,26 @@ The named OWUI run also timed out without a server terminal. A [second scoped de
 
 The [AX package verification](../results/skill-ir/skill-dsl-research/development/authorization-property-execution-v1/verification/portable-package.json) identifies the complete Download/OWUI delivery folder and ZIP. Open its README.md and COMMANDS.md: they include the original natural tasks, unchanged author declarations/Usage, both complete original skill bundles, allowed source snapshots and Download policy/premise/source changes. All four original Download questions remain; the new ownership fact replaces only the old unspecified-ownership premise. Eleven public commands ran without inference, and all 418 ZIP entries matched the byte manifest. This verifies a portable artifact for an existing SkVM/Bun checkout; the two actual model consumers remain pending. Full original skill investigation, validation and reporting duties continue to apply.
 
+BC adds explicit `task-binding-v1` on these same commands. Supply your complete original skill, natural questions, source scope and model configuration. The system prepares task-only properties and retains every original question, including residual evidence-limit duties; you do not have to author property IDs or source bindings first. Preparation and source interpretation remain model proposals, and a narrow checked property does not certify the whole task. The first BC Download run prepared three properties and delivered the original four-question answer, reviewed full/full/full/partial; its current cross-source property result did not qualify. The named retest passed final source identity, but all three properties remained unknown and the original task remained source-partial. [BC source review](../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/attempts/native-download/original/source-review.json) preserves that distinction.
+
+For a copy of the complete original package at `./download` and your complete skill/boundary, use the following public command shapes. Keep edited inputs beside the original input so its relative sourceRoot still resolves. Replace `<session-id>` with run's returned session; check, inspect, edit and compare make no inference request. Run uses the configured account model with high effort and includes preparation in its budget.
+
+```powershell
+bun src/index.ts authorization inquiry check --input=./download/inquiry.json --method=D1 --strategy=task-binding-v1
+bun src/index.ts authorization inquiry run --input=./download/inquiry.json --skill=./cloudflare-security-audit/SKILL.md --out=./bc-account-runs --method=D1 --strategy=task-binding-v1 --harness=codex-account --model=gpt-5.6-sol --account-boundary=./account-boundary.json --max-tool-calls=64 --max-display-bytes=786432 --max-read-bytes=33554432 --session-timeout-ms=2700000
+bun src/index.ts authorization inquiry inspect "--out=./bc-account-runs/sessions/<session-id>"
+bun src/index.ts authorization inquiry edit --input=./download/inquiry.json --edit=./premise-edit.json --out=./download/changed.json
+bun src/index.ts authorization inquiry compare --input=./download/changed.json "--previous=./bc-account-runs/sessions/<session-id>" --strategy=task-binding-v1
+```
+
+For example, `premise-edit.json` replaces only this question's premises with your explicitly supplied facts; keep any still-applicable premises in that array:
+
+```json
+{"schemaVersion":"authorization-inquiry-edit/v1","reason":"The caller's ownership is now supplied","operations":[{"kind":"premises","questionId":"authorization-and-selection-order","premises":[{"text":"The authenticated caller owns the requested document.","origin":"user"},{"text":"Relevant source branches must be analyzed rather than assuming a grant.","origin":"user"}]}]}
+```
+
+A changed task is prepared again and conclusions are recomputed. Add `--previous=<session-path>` to run only when compare permits reuse of the current same-strategy source materials; an old answer is never reused. Source changes invalidate affected interpretations. Research reuse additionally requires a current model-derived, independently reviewed cross-source property for the same original task. [BC public command verification](../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/public-command-contract.json) uses an explicit zero-inference unavailable-provider fixture; it verifies CLI/archive/edit/compare contracts, not successful model analysis or reuse. Native run selects the same behavior with `--authorization-strategy=task-binding-v1` and the existing authorization flags.
+
 From a current repository checkout with your input, complete skill and reviewed boundary, the public command shapes are below. Replace `<id>` with the session returned by run. The native example reads the exact retained task file in PowerShell; the package COMMANDS.md supplies its full paths.
 
 ```powershell
