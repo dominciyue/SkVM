@@ -186,17 +186,21 @@ def perform(actor, target, permitted):
 ### BB9 Download 跨函数局部真实闭合
 
 - [x] 用当前实现、BA 同份允许源码和原完整 skill/brief 运行首个 pilot；标明本次重点性质但保留原题全部问题。首件官方completed，完整原skill/原题实际加载；1单元/1入口采用、1性质unknown、0跨源trace，原件保留。
-- [ ] 优先检验入口→helper 的实际调用与对象联系。模型自主提出解释，不能把历史答案或手制成功 graph 送入输入。
-- [ ] 验收实际材料采用、跨单元性质 trace、相关缺口和独立源码核验。结论可以是有证据的满足或违例；unknown 如实保留。
-- [x] 首次失败立即按第七节处理。增量可选字段清除接口已按原始代码/草稿红绿修复；72 pass/565断言、主/研究typecheck和原草稿零调用点验通过，真实具名复测待。
+- [x] 检验入口→helper 的实际调用与对象联系。具名optional-field-clear-1模型自主生成2单元/2采用（1调用），完整原题自然评阅full；输入没有历史答案或手制graph。
+- [x] 验收实际材料采用、跨单元性质 trace、相关缺口和独立源码核验。性质仍unknown/空trace；入口value与helper principal/resource不一致、查询未绑定，实际局部闭合未达。
+- [x] 首次失败立即按第七节处理。可选字段清除72 pass/565断言、主/研究typecheck与原草稿零调用点验通过。具名复测completed，但null清除使用0，不能认定修复实际采用或新增采用的因果。联合428 pass/4483断言与原件重放1 pass/8断言通过。
 
 现场修复计划：首件把guardBranch附在resolver调用上，后续虽把guardRef改到实际condition，旧调用字段仍在草稿中。source-edit只能赋值，兼容完整annotation替换可移除该字段，但当前增量接口不能清除。先用匿名公共链红测，再仅为可选annotation字段支持value:null删除；role/explanation、根字段和unresolved仍不可空。清除不产生条件/对象/权限含义，继续沿原lowering与检查器重验。保存首件、源码独立partial评语及费用，修复产生新epoch，以pilot-download/optional-field-clear-1具名复测；质量面板之后统一使用新epoch，不混用首件。
+
+复测已归档：41宿主回调、总预算61/64、格式拒绝3/两检查用完；input2,559,542（含cache2,342,656）/output9,283。点验拒绝来自入口未标参数与helper标注不一致，未证明共享类型连接缺陷，不为它再抽样或自动补含义。Download M通过原输入/完整源码与skill/epoch/模型/预算/入口/方法一致性核验后引用该修订；新增模型调用0，非独立样本。
 
 ### BB10 OWUI 第二种真实结构
 
 - [ ] 使用同一共享实现运行 OWUI 原完整任务，重点判断输入文件授权与目标 collection 效果关系。
 - [ ] 不假定两种资源相同，也不预置“middleware 保护了目标”的答案；根据实际源码定位 guard/effect。
 - [ ] 记录 await/root 修复、跨调用对象和效果在真实链中的采用；自然 full 与机器状态独立评阅。同类型修复先做匿名反例再复验。
+
+OWUI首件已completed，自然原题full，7单元/115控制步骤但0采用/性质unknown。主线程点验materialProjection发现入口callable-creation-invalid：源码callback创建及调用顺序保留，后续缺condition的if却生成missing-<anchor>，源码order只识别choose-<同anchor>。现场计划仅在v7保留未知branch的源码顺序名称，step仍unresolved；不更改索引、谓词或创建/control/身份validator。匿名公开read→edit→material先验证未知branch在创建前后不误封全部材料、创建在未知branch内部仍拒绝，并保留移除/挪动/错身份反例。零调用原草稿派生诊断与新epoch具名复测分列；既有M引用保留，比较面板新epoch配对需具名补齐。
 
 ### BB11 同条件完整任务比较
 

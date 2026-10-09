@@ -210,7 +210,11 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
       const a = anchors.get(node.anchorId)!, annotation = annotations.get(a.id), claim = annotation?.explanation ?? "Original source syntax", objects = { principal: objectName(annotation?.principalAnchorId), resource: objectName(annotation?.resourceAnchorId) }
       if (demand && !demand.reachableAnchorIds.includes(a.id)) { if (!questionDirected) block.steps.push({ kind: "unresolved", name: `excluded-${a.id}`, claim: "Located source-invariant exclusion; original remains in the host skeleton", reason: `source-excluded:${demand.excluded.find(e => e.anchorId === a.id)?.reason ?? "unreached-source"}` }); continue }
       if (node.kind === "gap" || unresolved.has(a.id)) { block.steps.push({ kind: "unresolved", name: `gap-${a.id}`, claim, reason: unresolved.get(a.id)?.reason ?? skeleton.gaps.find(g => g.selector.startLine === a.selector.startLine)?.code ?? "source-syntax-unsupported" }); continue }
-      if (missingFields.has(a.id) && a.kind !== "call") { block.steps.push({ kind: "unresolved", name: `missing-${a.id}`, claim, reason: `source-fields-missing:${missingFields.get(a.id)!.join(",")}` }); continue }
+      if (missingFields.has(a.id) && a.kind !== "call") {
+        // V7 retains the actual branch's order point without inventing its predicate or body.
+        const name = options.propertyContext && node.kind === "branch" ? `choose-${a.id}` : `missing-${a.id}`
+        block.steps.push({ kind: "unresolved", name, claim, reason: `source-fields-missing:${missingFields.get(a.id)!.join(",")}` }); continue
+      }
       if (!options.propertyContext && options.propertyAbstraction && a.kind === "call" && demand?.dependencies?.callScopes?.some(s => s.anchorId === a.id && s.state === "summary")) {
         block.steps.push({ kind: "context", name: `summary-${a.id}`, claim: "Current source-bound flat helper has no mutation, call or exceptional branch; its actual arguments bind and its return is unused", relationship: "dispatch-binding", mayRaise: false }); continue
       }

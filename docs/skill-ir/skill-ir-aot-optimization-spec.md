@@ -2864,7 +2864,9 @@ Python await只沿实际操作数保留已有表达式求值和函数值读取�
 
 **渐进合同与工程证据。** 合法编辑按源handle/当前revision累积；缺role/explanation的部分槽位保留，其余合法片段采用为不完整单元。相关缺字段、未解释call及开放框架依赖阻断本性质，效果之后的独立残余不阻断primitive property，仍使完整任务不完整。新无效提交保留当前拒绝状态直到纠正，不能重新显示旧verdict。12文件定向联合425 pass/4447断言与主typecheck通过；随后新增指引反例，公共链21 pass/209断言。匿名双入口mock消费同一read→edit→material→call→property链；这不是官方模型实测。
 
-**局部字段撤回。** BB Download首件暴露增量编辑只能赋值、误填可选字段不能清除的恢复缺口。现允许可选annotation字段使用value:null删除同anchor的该字段，root/role/explanation/unresolved保持原型；它不是有限谓词的null值，也不自动改角色或推导授权。当前source identity、原草稿历史与重验合同保持，旧完整annotation替换继续兼容。公开失败→清除→重新采用/检查反例及72项/565断言通过，具名复测仍待，首件不改写。
+**局部字段撤回。** BB Download首件暴露增量编辑只能赋值、误填可选字段不能清除的恢复缺口。现允许可选annotation字段使用value:null删除同anchor的该字段，root/role/explanation/unresolved保持原型；它不是有限谓词的null值，也不自动改角色或推导授权。当前source identity、原草稿历史与重验合同保持，旧完整annotation替换继续兼容。公开失败→清除→重新采用/检查反例及72项/565断言通过。具名新epoch复测completed、原题full、2采用，但未使用null清除且性质unknown；入口参数未标角色，helper参数标为principal/resource，宿主不自动提升value类型。首件保留，不能把新增采用归因于清除接口。
+
+**未知分支的顺序位置。** OWUI首件7接受单元但0采用；原callback创建前后调用保留，后续未解释if生成missing-<anchor>，与源码order中的choose-<同anchor>不匹配，误封整个入口材料。仅v7将这种branch节点保留为名choose-<anchor>的unresolved；condition/body/guard仍缺失，不赠送含义。索引及创建/control/source/顺序validator不变，未知分支内部创建仍不可采用。公开before/after/inside及缺创建、挪动、错SHA/标记、重复/错块反例通过；原草稿零调用诊断恢复7采用、新增语义0，不修改首件或认证性质。真实复测产生新epoch，历史M引用保留，新主面板须同epoch配齐。
 
 **研究与使用。** 新登记2 pilot、6完整质量、2原包消费、6变化共16逻辑位置，引用同attempt去重；修订分列。N完整skill与自然任务/M等价Markdown及共享工具/D同事实声明及相同工具，原问题、源码和独立政策一致。局部跨函数闭合先于完整使用，局部合格基础可验证局部复用但不升级为完整任务收益。协议失败保留端到端分母，交付答案的语义质量另列。原件、准备/修复费用、完整input/cache/output口径与unknown均保留，工程完成不预设研究positive。
 

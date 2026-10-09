@@ -6,7 +6,7 @@
 
 **授权任务已有局部语义、来源材料、变化失效和官方账号双入口；BA进一步接通语义编辑，但跨函数材料采用到性质检查的真实完整链仍未成立。** BA有4尝试/3自然交付：Download修订7材料仅采用入口，OWUI首件自然答案按原题评为full，机器0采用/1性质绑定unknown；具名复验routing失败。稳定质量或净收益尚未建立。范围仍为单repo/ref、源码可见的授权与信任边界评估。
 
-BB已接通v7匿名公共跨源检查及两BA原提案派生采用。首个真实Download pilot同官方通道completed，完整原skill/原题已加载；自然根/版本关系说明有据，完整原题partial，机器1入口采用/1性质unknown/空trace。现场补可选字段清除接口，具名复测与其余有限队列继续；这次恢复不改BA暂停或建立研究收益。
+BB已接通v7匿名公共跨源检查及两BA原提案派生采用。Download修订与OWUI首件completed/自然full，机器都unknown。Download类型标注不一致不自动归为宿主缺陷；OWUI入口callable创建的未知branch顺序标记误拒绝已有共享红绿修复，原草稿零调用恢复7采用。具名新epoch复测与同epoch有限队列继续，真实局部检查及研究收益未成立，BA暂停保持。
 
 当前结构关系复用AY source-bindings/v35，显式v6已有任务性质绑定、有限摘要采用、依赖/调度范围和逐题性质检查的有界实现；AZ实际运行仍为0接受/采用/检查。AY Download v35的3单元/30步骤/2采用及OWUI v35为0保持历史口径。新源码摘要仅采用未使用返回的平坦普通调用；动态框架、返回值组合和复杂异常仍用既有解释或明确残余，不能据工程测试推定完整任务收益。
 
@@ -2289,6 +2289,16 @@ AZ1诊断工程（2026-10-09）：投影现在明确报告版本/来源/依赖�
 
 最早阻断为file_response解释中的resolver调用被附guardBranch，后续把guardRef改到condition却保留旧调用字段。当前edit只能赋值，完整annotation替换可清除但需要切换兼容接口，故补可选annotation字段value:null显式删除；不自动移动guard、补对象或权限。匿名公共链先红于wire null拒绝，再绿于明确清除后重新采用/检查，72 pass/565断言；缺condition仍报缺口，清除不存在字段不消除unresolved。原草稿零调用点验只移除该误填字段，原结果不改，具名optional-field-clear-1以新epoch复测。material-target-unavailable在helper尚未接受之后出现，不支持把首因归为receiver/projection缺陷。
 
+**BB9具名复测。** optional-field-clear-1官方completed；3提交/39有效编辑、2单元、2采用（1入口/1调用）、16控制步骤。input2,559,542（含cache2,342,656）/output9,283；完整原skill/原题加载true，USD/隐藏请求未知。独立原题评阅full，补齐GET全局权限、非法/无关版本、删除版本与文件存在性条件；其自标partial是机器状态，不代替自然语义评价。公共联合428 pass/4483断言、BA原件派生重放1 pass/8断言通过。
+
+机器仍1性质unknown/空trace、查询未绑定。原草稿点验显示入口参数保持value，helper参数由模型标为principal/resource；helper内部将request本体标principal并不等于已建request.user关系。类型拒绝符合实际提交，未支持探子提出的“宿主type-link缺陷”，不得自动提升类型或补查询含义。3次格式拒绝耗尽格式额度，两检查用完，总预算61/64；模型未调用null清除，不能证明真实采用或把增量归为该修复。保留首件与修订，以完全同输入/源码/skill/epoch/模型/预算/入口/方法核验后将修订引用为Download M位置，成本与样本去重；参考工具先红绿、零付费调用。
+
+**BB10首件与共享顺序修复。** OWUI官方completed，完整原skill/原题加载true，11提交/49有效编辑/7单元/115控制步骤，8材料但0采用/性质unknown。自然原题独立核验full，说明普通用户仅自己文件、admin主键读取、collection独立选择、bypass及错误/下游隔离边界；并未假设目的collection归属。input4,150,868（含cache3,875,584）/output14,969；25回调、45/64预算、1格式拒绝/两检查用完，未耗尽总预算。源码full与机器unknown分别保留。
+
+探子初报仅归因解释缺口，主线程点验projection发现更早的入口material-callable-creation-invalid。原callback创建及db.commit/len/log真实顺序保留，但proof.order.after还要求后续if的choose-anchor；缺condition将它lower为missing-同anchor，错误地使合法partial入口整个不可用。v7只恢复该unresolved branch的原顺序名，不生成predicate/body/guard；不改结构索引或严格validator。匿名公开链before/after红于材料误拒绝，inside仍拒绝；最小修复后相关233 pass/3436断言，另补duplicate/misnested反例。原17条根注解不增不改，零调用当前处理0→7材料采用，结果保存verification/owui-source-order-diagnostic.json；不认证性质，不把派生采用计实测。
+
+只读代码复核未发现顺序修复阻断。引用工具评阅的“wx会覆盖旧文件”经study.write的flag=wx原文否决；不为它增加重复gate。claim是派发前全身份权威来源，report只重验其实际持有的attempt/input/epoch/method/strategy及实际加载证据；补method/strategy不一致红绿。新pilot引用须具名追加并保留旧文件/history，仍费用/样本去重。源码修复产生新epoch，旧Download M引用仅作历史，新主面板需补齐。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
@@ -2383,7 +2393,7 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 
 - **2026-10-09 / BB公共链：** BB1–BB6与匿名双入口已接通跨源真实call采用、对象/控制/permission反例和渐进恢复。合法partial字段跨focus保留，无效新绑定不能恢复旧verdict。联合425 tests及补充公共链21 tests通过；原件派生重放/恢复runner和真实16位置仍待执行，不能据工程测试宣称研究效果；见§7.63。
 
-- **2026-10-09 / BB首件：** Download官方真实任务completed，连续routing计数重置但累计恢复与费用保留。完整原题partial、机器unknown；增量接口不能清除误填可选字段已有匿名公共红绿及原草稿零调用点验，具名新epoch复测继续。原始失败与源码评语保留，质量面板不混epoch；见§7.63。
+- **2026-10-09 / BB首件：** Download官方真实任务completed，连续routing计数重置但累计恢复与费用保留。Download首件partial、修订full；OWUI首件full，机器都unknown。null清除未实用，不推断因果；OWUI未知branch顺序名误拒绝由主线程定位、v7红绿修复，原草稿零调用0→7采用，首件不改。431项/4524断言联合通过；新epoch具名复测与主面板配齐继续，见§7.63。
 
 ## 12. 后续追加规则
 
