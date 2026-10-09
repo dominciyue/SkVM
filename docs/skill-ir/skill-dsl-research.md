@@ -6,7 +6,7 @@
 
 **授权任务已有局部语义、来源材料、变化失效和官方账号双入口；BA进一步接通语义编辑，但跨函数材料采用到性质检查的真实完整链仍未成立。** BA有4尝试/3自然交付：Download修订7材料仅采用入口，OWUI首件自然答案按原题评为full，机器0采用/1性质绑定unknown；具名复验routing失败。稳定质量或净收益尚未建立。范围仍为单repo/ref、源码可见的授权与信任边界评估。
 
-BB已接通v7匿名公共跨源检查及两BA原提案派生采用。Download修订与OWUI首件completed/自然full，机器都unknown。Download类型标注不一致不自动归为宿主缺陷；OWUI入口callable创建的未知branch顺序标记误拒绝已有共享红绿修复，原草稿零调用恢复7采用。具名新epoch复测与同epoch有限队列继续，真实局部检查及研究收益未成立，BA暂停保持。
+BB已接通v7匿名公共跨源检查及两BA原提案派生采用。Download清除修订与OWUI首件completed/自然full，机器都unknown。OWUI顺序修复具名复测completed、10实际采用，自然partial、性质unknown/空trace；与原草稿零调用恢复7采用分别记录。模型类型标注不一致、重复绑定及开放依赖不自动归为宿主缺陷。新epoch配对与有限队列继续，真实局部检查及研究收益未成立，BA暂停保持。
 
 当前结构关系复用AY source-bindings/v35，显式v6已有任务性质绑定、有限摘要采用、依赖/调度范围和逐题性质检查的有界实现；AZ实际运行仍为0接受/采用/检查。AY Download v35的3单元/30步骤/2采用及OWUI v35为0保持历史口径。新源码摘要仅采用未使用返回的平坦普通调用；动态框架、返回值组合和复杂异常仍用既有解释或明确残余，不能据工程测试推定完整任务收益。
 
@@ -2298,6 +2298,8 @@ AZ1诊断工程（2026-10-09）：投影现在明确报告版本/来源/依赖�
 探子初报仅归因解释缺口，主线程点验projection发现更早的入口material-callable-creation-invalid。原callback创建及db.commit/len/log真实顺序保留，但proof.order.after还要求后续if的choose-anchor；缺condition将它lower为missing-同anchor，错误地使合法partial入口整个不可用。v7只恢复该unresolved branch的原顺序名，不生成predicate/body/guard；不改结构索引或严格validator。匿名公开链before/after红于材料误拒绝，inside仍拒绝；最小修复后相关233 pass/3436断言，另补duplicate/misnested反例。原17条根注解不增不改，零调用当前处理0→7材料采用，结果保存verification/owui-source-order-diagnostic.json；不认证性质，不把派生采用计实测。
 
 只读代码复核未发现顺序修复阻断。引用工具评阅的“wx会覆盖旧文件”经study.write的flag=wx原文否决；不为它增加重复gate。claim是派发前全身份权威来源，report只重验其实际持有的attempt/input/epoch/method/strategy及实际加载证据；补method/strategy不一致红绿。新pilot引用须具名追加并保留旧文件/history，仍费用/样本去重。源码修复产生新epoch，旧Download M引用仅作历史，新主面板需补齐。
+
+**BB10具名真实复测。** 5fd3d5f7 / src tree7100b13f的source-order-marker-1保持原输入，官方completed/自然文本delivered，8提交/101有效编辑/8单元/129步骤、10采用（1入口/9调用）。原件creation误拒绝不再挡入口；两性质unknown/空trace，principal未绑定、重复property binding、effect未采用及route/framework开放依赖分别保留。24回调、48/64预算、格式拒绝3/两检查用完，非总预算耗尽；input3,063,681含cache2,880,256/output13,396。独立自然评阅partial：主要对象关系准确，完整load/error及empty/default条件未充分展开；line67已明确add=False早返，不接受评阅初报的完全遗漏。内部知识库caller调查属补充，不扩写原题范围。语义result被拒绝与官方自然文本已交付不是同层失败。未证明新共享根因，不重复抽样；同epoch配对与剩余队列继续。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

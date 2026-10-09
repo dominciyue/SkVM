@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**当前任务书为 [BB0–BB16：跨函数性质闭合、渐进解释与真实使用](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)，状态 `in-progress`。** BB0–BB8通过。Download首件completed/partial，null清除修复后具名复测completed/full、2采用含1调用，性质仍unknown；清除使用0，不推断因果。OWUI首件completed/full、7单元但0采用，暴露未知branch顺序名称导致callable创建校验误拒绝；v7共享修复已有匿名正反例，原草稿零调用诊断恢复7采用（新增语义0），首件不改。真实具名新epoch复测及同epoch有限队列继续，尚无真实跨函数性质闭合。
+**当前任务书为 [BB0–BB16：跨函数性质闭合、渐进解释与真实使用](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)，状态 `in-progress`。** BB0–BB8通过。Download首件completed/partial，null清除修订completed/full、2采用含1调用，性质仍unknown；清除使用0，不推断因果。OWUI首件completed/full、7单元但0采用；未知branch顺序误拒绝在5fd3d5f7修复。原草稿零调用恢复7采用与具名真实复测10采用分别保留；复测自然partial、性质unknown/空trace，重复绑定及开放依赖仍在。新epoch Download配对和剩余有限队列继续，尚无真实跨函数性质闭合。
 
 BB先保留effect/context标注下的源码调用，沿真实调用实例连接实参/形参/receiver/返回对象，再让跨单元性质检查消费可达路径；已解释片段逐步采用，相关未知继续保留。复用现有求值器和普通入口，新增行为显式v7。先做匿名正反例和公共链，再进入两真实任务、同条件比较、两包消费和三变化。方法合同见[spec §14.41](skill-ir-aot-optimization-spec.md#1441-bb-interprocedural-property-closure)，复核依据见[研究 §7.63](skill-dsl-research.md#763-bb-跨函数性质闭合的复核与开发决定)。
 

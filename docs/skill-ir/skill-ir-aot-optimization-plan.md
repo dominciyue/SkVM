@@ -3,7 +3,7 @@
 更新于2026-10-09。唯一实时入口为 [current-status](current-status.md)。
 
 - 当前任务书：[BB0–BB16：跨函数性质闭合、渐进解释与真实使用](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)，`in-progress`。
-- 方法合同：[spec §14.41](skill-ir-aot-optimization-spec.md#1441-bb-interprocedural-property-closure)；复核依据：[研究 §7.63](skill-dsl-research.md#763-bb-跨函数性质闭合的复核与开发决定)。BB0–BB8通过；Download修订与OWUI首件自然full、机器unknown。OWUI未知branch顺序名称误封入口材料已有v7匿名红绿和零调用原草稿0→7采用诊断。具名新epoch复测后补齐同epoch质量面板，原M引用保留为历史观察；全部引用按完整身份核实、不新增样本或计费。
+- 方法合同：[spec §14.41](skill-ir-aot-optimization-spec.md#1441-bb-interprocedural-property-closure)；复核依据：[研究 §7.63](skill-dsl-research.md#763-bb-跨函数性质闭合的复核与开发决定)。BB0–BB8通过。OWUI顺序修复具名复测completed、10实际采用，自然partial/机器unknown；零调用0→7和首件0采用不改。补齐新epoch Download配对和质量面板，原M引用保留为历史观察；全部引用按完整身份核实、不新增样本或计费。
 - 代码基线 `ad936715`。开发 `gpt-6.1-sol/max`，实验当前官方账号 `gpt-5.6-sol/high`；第三方API和AV旧位置继续暂停。
 
 ## 当前目标

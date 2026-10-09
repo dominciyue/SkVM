@@ -10,6 +10,7 @@ import { executeRun, materializeNaturalRunTask, buildRunSkillBundle } from "../.
 import { changedInputs, prepareChangeInputs } from "../authorization-property-execution-v1/changes.ts"
 import { root, repo, runRoot, sha, write, limits, assertOwnedPaths, assertAttemptClaim, admitDispatch, classifyAccountChannel, preparePositionInput } from "./study.ts"
 import type { Position } from "../authorization-semantic-submission-v1/study.ts"
+import { qualifiedConsumer } from "./summarize.ts"
 
 const json = async (file: string) => JSON.parse(await readFile(file, "utf8"))
 export async function verifyTerminal(channel: Record<string, any>) {
@@ -79,7 +80,7 @@ export async function prepareChanges() {
   try { return await json(locations) } catch (e) { if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e }
   const runtimeTree = execFileSync("git", ["rev-parse", "HEAD:src"], { cwd: repo, encoding: "utf8" }).trim(), manifest = await json(path.join(root, "manifest.json")), consumer = manifest.positions.find((p: Position) => p.id === "consumer-download-inquiry") as Position
   const attemptId = consumer.attempts.at(-1), prior = attemptId && await json(path.join(root, "attempts", attemptId, "report.json"))
-  const qualified = prior?.status === "completed" && prior?.sessionPath && prior?.runtimeTree === runtimeTree && prior?.propertyAnalysis?.checks?.questions.some((q: any) => q.properties.some((p: any) => ["checked", "violated"].includes(p.status) && p.trace?.length && new Set(p.traceDetails?.map((r: any) => r.source?.id)).size > 1))
+  const qualified = qualifiedConsumer(prior, runtimeTree)
   if (qualified) return prepareChangeInputs(root, prior.sessionPath, { baselineAttemptId: attemptId!, runtimeTree })
   const baseline = await preparePositionInput("pilot-download"), base = await loadInquiryInput(baseline.inputFile), registered = path.resolve(root, "../authorization-source-assisted-closure-v1/model/inputs"), files = ["paperless-download-policy.json", "paperless-download-premise.json", "paperless-download-source.json"].map(f => path.join(registered, f)), policy = await loadInquiryInput(files[0]!), premise = await loadInquiryInput(files[1]!), source = await loadInquiryInput(files[2]!)
   const premises = [...new Set(premise.value.inquiry!.questions.flatMap(q => q.premises).map(p => p.text).filter(t => t.startsWith("The authenticated caller owns the requested document.")))]; if (!policy.value.inquiry?.policy || premises.length !== 1) throw new Error("Independent change facts absent or ambiguous")

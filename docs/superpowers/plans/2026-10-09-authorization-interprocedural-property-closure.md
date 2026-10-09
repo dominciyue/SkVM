@@ -196,11 +196,13 @@ def perform(actor, target, permitted):
 
 ### BB10 OWUI 第二种真实结构
 
-- [ ] 使用同一共享实现运行 OWUI 原完整任务，重点判断输入文件授权与目标 collection 效果关系。
-- [ ] 不假定两种资源相同，也不预置“middleware 保护了目标”的答案；根据实际源码定位 guard/effect。
-- [ ] 记录 await/root 修复、跨调用对象和效果在真实链中的采用；自然 full 与机器状态独立评阅。同类型修复先做匿名反例再复验。
+- [x] 使用同一共享实现运行 OWUI 原完整任务，重点判断输入文件授权与目标 collection 效果关系。
+- [x] 不假定两种资源相同，也不预置“middleware 保护了目标”的答案；根据实际源码定位 guard/effect。
+- [x] 记录 await/root 修复、跨调用对象和效果在真实链中的采用；首件full、具名复测partial与机器unknown分别保留。修复已匿名红绿及真实复验，局部性质验收仍未达。
 
 OWUI首件已completed，自然原题full，7单元/115控制步骤但0采用/性质unknown。主线程点验materialProjection发现入口callable-creation-invalid：源码callback创建及调用顺序保留，后续缺condition的if却生成missing-<anchor>，源码order只识别choose-<同anchor>。现场计划仅在v7保留未知branch的源码顺序名称，step仍unresolved；不更改索引、谓词或创建/control/身份validator。匿名公开read→edit→material先验证未知branch在创建前后不误封全部材料、创建在未知branch内部仍拒绝，并保留移除/挪动/错身份反例。零调用原草稿派生诊断与新epoch具名复测分列；既有M引用保留，比较面板新epoch配对需具名补齐。
+
+具名source-order-marker-1已completed：8单元/10实际采用，官方原skill/原题加载true；2性质unknown、空trace，principal及重复绑定、开放route/framework依赖保留。自然partial，主要输入/输出对象关系正确但完整处理条件未充分展开。48/64预算、24回调、格式拒绝3/两检查用完；input3,063,681（含cache2,880,256）/output13,396。修复的真实采用恢复与局部性质未达分别记录，不为模型缺口重复派发。
 
 ### BB11 同条件完整任务比较
 
