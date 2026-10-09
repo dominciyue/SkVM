@@ -2351,6 +2351,8 @@ OWUI native消费者已加载完整原skill与11个原题请求，原声明/Usag
 
 **BC4冲突与撤回。** 当前调用求值保留结构化value→principal、value→resource mismatch，包含调用实例/参数/表达式；修复需求只从当前源SHA/revision与call/parameter anchors生成，定位两侧原行。task-binding focus自动回到保留的调用方草稿，模型可转helper更正角色，宿主不升级类型。材料拒绝亦保存原实参与提案差异，重复owner列出而不任选。红测发现编辑器已清空propertyBindings后，lowerSourceInterpretation仍从previous map带回旧绑定，导致checked复活；现以显式root数组整体替换（空数组保持撤回），省略仅保留当前数组。公开测试覆盖清空→重查unknown→其他字段编辑仍unknown，双调用实例、过期源和定向focus。370tests/4146断言通过；手写匿名含义只算工程验证，真实对象联系和普通原包效果尚待后续。
 
+**BC5源码对象联系。** Download原download(request,pk)转交file_response(pk,request)的形状保留载体和ID，匿名三文件反例显式标注request.user与lookup返回对象。红测发现同一载体的两个typed field被分配不同身份而误报violated；task-binding现在按实际receiver身份复用显式解释的field身份，不从变量名推断角色。已有返回联系传递lookup实际返回对象，无新schema。另一红测证明同类型alias可替换查找返回物；现在alias必须对应当前源RHS/返回表达式，非法编辑撤回当前检查。同载体正例checked，另一请求、另一文档及ID相等但另一文档violated，先行未知调用unknown；请求载体冒充user及伪造lookup alias拒绝。对象矩阵与原v7提前拒绝、顺序、middleware反例联合195tests/1094断言通过。手写含义只算工程验证，尚无BC真实模型请求。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

@@ -97,7 +97,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   }
   let propertyEvaluation: ReturnType<typeof lowerIntoControlSlice> | undefined
   const lowerCurrent = (compositional = false) => {
-    const lowered = lowerIntoControlSlice(slice, sourceUnits(), options.program, evidenceContext(), compositional, propertyDirected)
+    const lowered = lowerIntoControlSlice(slice, sourceUnits(), options.program, evidenceContext(), compositional, propertyDirected, isTaskBindingStrategy(options.strategy))
     if (propertyDirected) propertyEvaluation = lowered
     return lowered
   }

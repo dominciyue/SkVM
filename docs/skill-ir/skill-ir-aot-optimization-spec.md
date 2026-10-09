@@ -2896,6 +2896,8 @@ BC3的配置承载位置已确认为现有`InquiryStrategy`/strategy flag。任�
 
 **授权与证据。** 开发gpt-6.1-sol/max，实验继承用户官方gpt-5.6-sol/high授权。新Download队列在实现就绪后运行；OWUI仅离线迁移，两BB未知原件/费用和限定处置保持，不因新identity重发。新unknown仅核查原生命周期，明确终态routing有限恢复，quota/auth暂停；第三方仍停。共享缺陷当场修复，不继续已知受影响面板。工程/真实局部检查/完整任务/复用/收益分别验收，研究成功不由有限队列终结推出。复核与后续过程统一见研究§7.64。
 
+BC5复用已有typed field/返回/alias表达，不扩语义schema。仅task-binding按当前实际receiver身份保留显式解释的field身份；同类型alias还需匹配当前源码RHS或返回表达式，不能替换lookup实际返回对象。当前字面量覆盖、冲突类型或未绑定receiver保持gap；角色语义仍来自提案，不根据request/pk名称升级类型。
+
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
 AT在已有授权局部语义上引入显式 `focused-closure-v1`：宿主持久管理locate/interpret/link/review/answer阶段，绑定当前来源、单元身份与更新版本；模型解释原始源码中的条件、对象、参数、返回与实际相关效果。上下文渲染不改变活动任务，拒绝修复回到同一单元；多候选与语义关系仍须显式判定。旧默认及协议保持。

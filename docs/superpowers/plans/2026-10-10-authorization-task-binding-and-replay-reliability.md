@@ -169,11 +169,11 @@ expect(providerRequests.every(r => !r.includes(evaluatorSentinel))).toBe(true)
 
 ### BC5 补关键路径的对象联系
 
-- [ ] 从 Download 当前拒绝处抽出真实形状，保留原 `request → request.user`、`pk → lookup result → protected effect`。先证明现有表达在哪一层丢失关系。
-- [ ] 模型/测试提案显式解释对象来源，再由现有求值器传递。已有字段/返回/alias 能表达时只改前端；缺表示时补被该反例直接要求的小型来源联系，并记录为什么必要。
-- [ ] 正例接受；请求载体冒充 user、另一个 document、查 ID 相等却返回不同对象、提前拒绝、guard-after-effect、未注册 middleware、未知调用改变对象均维持拒绝/unknown/violated。
-- [ ] 不依据“让类型一致”自动升级 value，不从 oracle 提取正确角色，不增加无关 decorator/descriptor/Go/module 语义。
-- [ ] 提交：`fix: preserve source-backed objects across authorization call bindings`。
+- [x] 从 Download 当前拒绝处抽出真实形状，保留原 `request → request.user`、`pk → lookup result → protected effect`。红测定位同一载体的两个显式typed field被分配不同身份而误报violated。
+- [x] 复用既有字段/返回/alias，不扩schema。task-binding求值按实际receiver身份保留显式typed field，lookup返回已有实际对象；alias必须对应当前源RHS，不能替换为同类型对象。
+- [x] 正例接受；请求载体冒充 user、另一个 document、查 ID 相等却返回不同对象、提前拒绝、guard-after-effect、未注册 middleware、未知调用改变对象均维持拒绝/unknown/violated。新对象矩阵与既有公共v7反例联合通过。
+- [x] 不依据“让类型一致”自动升级 value，不从 oracle 提取正确角色，不增加无关 decorator/descriptor/Go/module 语义。
+- [x] 提交：`fix: preserve source-backed objects across authorization call bindings`。
 
 ### BC6 普通入口完整接线与第二结构反例
 

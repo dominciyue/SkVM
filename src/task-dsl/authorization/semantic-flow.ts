@@ -57,7 +57,7 @@ interface Cursor { tail: string; route: string[]; objects: Record<string, Object
 const id = (parts: unknown[]) => "sem-" + createHash("sha256").update(canonicalControl(parts)).digest("hex").slice(0, 24)
 
 /** The host compiles only explicit source interpretations; it never parses target code into an answer. */
-export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compositional?: boolean; propertyDirected?: boolean } = {}) {
+export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compositional?: boolean; propertyDirected?: boolean; sourceObjectBindings?: boolean } = {}) {
   let rules: ControlRule[] = [], dependencies: ControlDependency[] = []
   const diagnostics: InquiryDiagnostic[] = [], owned: Array<{ questionId: string; handle: string; ruleKeys: string[] }> = []
   const fieldChanges: Array<{ questionId: string; handle: string; step: string; object: string; field: string; value?: FiniteValue; source?: string; evidenceIds: string[] }> = []
@@ -386,12 +386,16 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
             const alias = step.aliasOf ? valueObject(c, step.aliasOf) : undefined
             if (step.aliasOf && (!alias || alias.type !== step.type)) { gap(u, c, instance, body, step.name, "semantic-alias-missing", `Alias "${step.name}" (${step.type}) references "${step.aliasOf}" (${alias?.type ?? "unbound"}). aliasOf requires an existing same-type identity; declare a source-supported typed field bind before its alias, without inventing user values.`); next.push(c); continue }
             const bindingName = step.bindingName ?? step.name
+            const fieldRead = options.sourceObjectBindings && !step.aliasOf && ["principal", "resource", "permission"].includes(step.type) && bindingName.includes(".") ? { object: bindingName.slice(0, bindingName.lastIndexOf(".")), field: bindingName.slice(bindingName.lastIndexOf(".") + 1) } : undefined
+            const parent = fieldRead && valueObject(c, fieldRead.object), fieldKey = parent && `${parent.identity}.${fieldRead!.field}`, existingField = fieldKey && c.fieldObjects[fieldKey]
+            if (fieldRead && (!parent || fieldKey && (Object.hasOwn(c.fieldObjects, fieldKey) && (!existingField || existingField.type !== step.type) || Object.hasOwn(c.objectValues, fieldKey) && !existingField))) { gap(u, c, instance, body, step.name, "semantic-field-role-conflict", "A typed source field needs its actual bound receiver and cannot replace a current literal, overwritten field or incompatible object."); next.push(c); continue }
             delete c.values[bindingName]
             if (alias) { c.objects[step.name] = alias; append(u, c, instance, body, step.name, "continue", fields) }
             else {
-              const identity = id([questionId, instance, "object", step.name]); c.objects[step.name] = { identity, type: step.type }; c.objects[`${u.handle}.${step.name}`] = c.objects[step.name]!
+              const identity = existingField ? existingField.identity : fieldKey || id([questionId, instance, "object", step.name]); c.objects[step.name] = { identity, type: step.type }; c.objects[`${u.handle}.${step.name}`] = c.objects[step.name]!
+              if (fieldKey) c.fieldObjects[fieldKey] = c.objects[step.name]!
               if (Object.hasOwn(step, "value")) setSourceValue(c, identity, { value: step.value! })
-              append(u, c, instance, body, step.name, "binding", { ...fields, bindingKey: identity, bindingKind: step.type, bindingName })
+              append(u, c, instance, body, step.name, existingField ? "continue" : "binding", existingField ? fields : { ...fields, bindingKey: identity, bindingKind: step.type, bindingName })
             }
             c.objects[bindingName] = c.objects[step.name]!
             c.objects[`${u.handle}.${bindingName}`] = c.objects[step.name]!
