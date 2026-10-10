@@ -2904,7 +2904,7 @@ BC9补足共享操作的逐题性质事务：只有当前已采用的共享入�
 
 ### 14.43 BD semantic completion and real quality
 
-2026-10-11，BC发布基线`f37ee589`与用户origin一致，5次自然交付、0合格跨源性质及7个资格阻断位置保持原结果。新[BD0–BD16](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)以`authorization-semantic-completion-v1`承接真实partial的持续补齐、独立性质检查、分阶段协议及同条件质量比较。登记时状态`ready-for-dispatch`，尚无BD实现或实验。
+2026-10-11，BC发布基线`f37ee589`与用户origin一致，5次自然交付、0合格跨源性质及7个资格阻断位置保持原结果。新[BD0–BD16](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)以`authorization-semantic-completion-v1`承接真实partial的持续补齐、独立性质检查、分阶段协议及同条件质量比较。登记时为`ready-for-dispatch`；实际实施基线`7f4ca507`，工程提交至`d747f44d`，真实比较使用共同源码树`7cb93348`，结果归档于[BD manifest](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/manifest.json)。
 
 **当前解释责任。** 显式策略`semantic-completion-v1`复用task-binding/v7。以当前question/operation/source revision/handle/receiver/call instance/anchor/field标识待补责任，来源限于当前PropertyDemand、绑定及对象/调用诊断。接受局部修改不代表全部责任完成；补字段A不关闭字段B，已接受partial仍可被调度。状态由实际材料进展更新，相同责任两次无进展后给具名残余并推进其他原题；源码或依赖真正变化可重开。不强迫整函数填满，不靠放宽对象等价或可达性获得通过。
 
@@ -2917,6 +2917,10 @@ BC9补足共享操作的逐题性质事务：只有当前已采用的共享入�
 **比较与复用准入。** 新鲜N/D答案比较只需合法共同输入、可运行传输与只读合同，不要求D已经有合格性质；协议故障在端到端分母，交付答案另做源码评阅。previous需要同性质的当前有效跨源checked/violated、非空实际trace、独立源码支持和可恢复会话；政策/前提重算、源码依赖失效，不复用旧自然答案。11逻辑位置为1局部解释诊断、2次N/D配对及3种fresh/previous。没有合格基础时6个变化位置具名未执行，仍完成质量比较和工程归纳。旧BC准入与结果不修改，新实验不能单独归因于DSL表示。
 
 **运行与结论。** 开发gpt-6.1-sol/max，实验继承用户已授权官方gpt-5.6-sol/high；第三方继续暂停。OWUI仅离线，BB未知处置保持，held-out/Q1/prospective/readiness和历史0/6不变。共享故障当场红绿修复并具名复验，不继续已知故障面板；同因两次无进展转确定性诊断，新根因可继续开发。routing有限恢复、quota/auth暂停、unknown只查原生命周期。工程、真实局部采用、完整原任务、比较、复用和收益各自验收，保留support/tradeoff/no-observed-difference/negative/inconclusive及全部已知/未知成本。过程统一见研究§7.65。
+
+**已实现的接口与验证。** `semantic-completion.ts`按字段和当前依赖签名保存责任；`semantic-completion-wire.ts`只广告`{transactionId,edits:[{slot,value}]}`，slot来自当前事务，值进入已有Zod校验，旧低层解析仅兼容接收。独立计算以捕获的完整语义快照为缓存键；`evaluationVersion:"semantic-completion/v1"`按所选调用的实际前序实例检查callee primitive effect的guard，对象等价仍严格。两种传输共用预算语义；自动读取也计总工具。普通`authorization inquiry run`加载完整skill并保存可搬移session，account-only的`--domain-tools=false`支持N，默认true；原生`skvm run`未获得inquiry归档形状。受影响公开联合测试179pass/1304断言，主类型与15文档测试通过；测试人工含义不计真实模型采用。
+
+**实际验收。** BD有限执行以`completed-with-unmet-criteria`收束：诊断与四质量首件共五次全交付，四整题均partial；D当前七性质全部unknown，零合格跨源性质。两次同期比较分别tradeoff/negative；六变化位置按无合格基础处置未运行，实际previous及净收益未建立。诊断原定一性质实际准备两性质，单性质条件也未达，归于`study.ts`诊断输入合同与`prepareTaskProperties`的范围责任。研究9pass/46断言、独立代码复核及当前文档导航验证通过，完整分母、成本、未达责任及历史链接问题见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/acceptance-matrix.json)与研究§7.65；`finiteQueueComplete/researchGoalAchieved`均false。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 

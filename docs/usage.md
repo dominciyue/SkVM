@@ -93,6 +93,8 @@ bun src/index.ts authorization inquiry run --input=./download/inquiry.json --ski
 
 For the same source-only N entrance select `--method=M --strategy=legacy --domain-tools=false`; no domain tools or checked source materials are available. The switch defaults to true and is account-only. Both entrances archive original skill bytes and ordinary sessions. Inspect accepts a moved session directory; previous still verifies current source, method, strategy and material dependencies. Native `skvm run` has not acquired this inquiry session archive shape.
 
+BD's four same-condition original-task runs all delivered partial complete-task answers. The first N/D pair was a per-question tradeoff, the second negative for D, with higher D input/output and duration in both. D retained partial source units and computed current unknown properties before final delivery; none qualified for previous, so all six change positions remained unrun. See the [BD acceptance record](../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/acceptance-matrix.json). Complete skill loading and recoverable sessions are verified interfaces; measured quality, actual reuse and net benefit remain separate outcomes.
+
 For a copy of the complete original package at `./download` and your complete skill/boundary, use the following public command shapes. Keep edited inputs beside the original input so its relative sourceRoot still resolves. Replace `<session-id>` with run's returned session; check, inspect, edit and compare make no inference request. Run uses the configured account model with high effort and includes preparation in its budget.
 
 ```powershell

@@ -4,9 +4,9 @@
 
 ## 当前工作
 
-**当前任务书为 [BD0–BD16：源码解释持续补齐、独立性质检查与真实质量比较](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)，状态 `in-progress`，当前BD0–BD1。** `gpt-6.1-sol/max`开发线程已接管，实施基线`7f4ca507`与live用户origin一致，接管时工作树干净。本轮manifest/status已登记，尚无模型实验；先从BC原partial及格式失败做公开红测。
+**[BD0–BD16：源码解释持续补齐、独立性质检查与真实质量比较](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)以`completed-with-unmet-criteria`收束，正在完成BD16发布。** 实施基线`7f4ca507`，工程至`d747f44d`；179pass/1304断言、主类型、9研究测试/46断言及15文档测试通过。1诊断与4同期质量首件全交付，四整题均partial；两对tradeoff/negative，D当前7unknown、0合格跨源性质，六变化位置具名未运行。工程、完整任务、比较、复用和收益各轴见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/acceptance-matrix.json)及[执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/authorized-execution-closeout.json)；finiteQueueComplete/researchGoalAchieved仍false。
 
-新identity为`authorization-semantic-completion-v1`，显式策略`semantic-completion-v1`复用task-binding/v7。优先处理已接收partial的持续补齐、性质计算与终答格式解耦、窄编辑协议及分阶段恢复，再接通完整原skill的可恢复会话。同期N/D答案比较不再要求D预先取得合格性质；previous仍须当前、独立源码支持的合格材料。方法见[spec§14.43](skill-ir-aot-optimization-spec.md#1443-bd-semantic-completion-and-real-quality)、[研究§7.65](skill-dsl-research.md#765-bd-解释持续补齐与独立质量比较)和[当前计划](skill-ir-aot-optimization-plan.md)。
+identity为`authorization-semantic-completion-v1`，显式策略继承task-binding/v7，已实现持续partial责任、独立性质缓存、窄编辑、分阶段恢复和完整skill inquiry会话。D1/D2实际保留3/4 partial，D2连入file_response并产生两单元trace，resolver/condition/return/closure仍缺。两对同源码epoch`7cb93348`，N1/D1逐题为P/F/F/F、F/F/F/P，N2/D2为F/F/F/P、P/P/F/P；D两次input/output及耗时均高于N。五尝试known input9,048,390（含cache8,187,392）/output46,920，254总工具含32自动单位，USD/隐藏/开发/真人未知。方法和责任见[spec§14.43](skill-ir-aot-optimization-spec.md#1443-bd-semantic-completion-and-real-quality)、[研究§7.65](skill-dsl-research.md#765-bd-解释持续补齐与独立质量比较)及[当前计划](skill-ir-aot-optimization-plan.md)。
 
 ## BC 已结束的实际结果
 
@@ -68,7 +68,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BD | [任务书](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)、[当前计划](skill-ir-aot-optimization-plan.md)、spec§14.43、研究§7.65；in-progress，已接管并登记，先做公开partial红测 |
+| 当前BD | [任务书](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/acceptance-matrix.json)、[当前计划](skill-ir-aot-optimization-plan.md)、spec§14.43、研究§7.65；有限执行结束、5交付/0整题full/0合格性质/6未运行，发布进行中 |
 | BC | [任务书](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)、[收束](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/authorized-execution-closeout.json)、spec§14.42、研究§7.64；5交付/0合格跨源性质/7资格阻断 |
 | BB | [任务书](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/verification/acceptance-matrix.json)、spec§14.41、研究§7.63 |
 | BA | [任务书](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-submission-v1/summary.json)，spec§14.40、研究§7.62 |

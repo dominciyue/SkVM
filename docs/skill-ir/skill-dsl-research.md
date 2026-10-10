@@ -12,7 +12,7 @@ BB已接通v7匿名公共跨源检查及两BA原提案派生采用，同epochN/M
 
 当前结构关系复用AY source-bindings/v35，显式v6已有任务性质绑定、有限摘要采用、依赖/调度范围和逐题性质检查的有界实现；AZ实际运行仍为0接受/采用/检查。AY Download v35的3单元/30步骤/2采用及OWUI v35为0保持历史口径。新源码摘要仅采用未使用返回的平坦普通调用；动态框架、返回值组合和复杂异常仍用既有解释或明确残余，不能据工程测试推定完整任务收益。
 
-**BD已登记，尚未实施。** 下一步让已接受partial继续完成当前问题的解释责任，独立计算已有材料上的性质，分开源码编辑与终答格式恢复，并接通可恢复的完整skill会话。同期N/D质量比较在公共运行条件具备后执行；合格源材料的门槛只约束previous复用。新任务书与方案见[§7.65](#765-bd-解释持续补齐与独立质量比较)，本次规划不产生新的研究效果。
+**BD工程已实现，有限真实执行以`completed-with-unmet-criteria`收束。** 持续partial责任、独立性质计算、窄编辑、分阶段恢复及完整skill普通会话已有公开验证。1诊断与4同期质量首件全部交付；完整原任务0/4 full，D当前7性质均unknown、0合格跨源性质。第一对tradeoff、第二对negative，D两次input/output与耗时均高于N，六变化位置因无合格材料具名未运行。实际previous和净收益未建立，finiteQueueComplete/researchGoalAchieved保持false；方法、逐题差异和成本见[§7.65](#765-bd-解释持续补齐与独立质量比较)及[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/acceptance-matrix.json)。
 
 日常先读本节与[当前状态](current-status.md)。当前开发决定见§7.65，BC实际结果见[§7.64](#764-bc-任务性质准备与跨调用修复)，BB结果见[§7.63](#763-bb-跨函数性质闭合的复核与开发决定)，BA实际结果见[§7.62](#762-ba-从真实拒绝到可用语义编辑)，AZ/AY形成过程保留在§7.61/§7.60。方法形成过程见§4–§7.18，历史开发记录保留在§7后续章节。本地化候选保留在§8–§9，暂缓实施。
 
@@ -38,7 +38,7 @@ BB已接通v7匿名公共跨源检查及两BA原提案派生采用，同epochN/M
 
 最新AY结果补充：两份原skill和两包原字节消费均已实际运行。Download消费者源码评阅full但机器partial，OWUI消费者仍漏决定性helper；政策/前提变化已有部分运行，源码变化及质量位置受账号额度阻断。[最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)记录可见完整input 32,465,835、output 125,283、其中cacheRead 29,939,200（已包含在input），USD/隐藏请求/开发/真人成本未知。旧AX、AW结果保留其当时口径。
 
-当前关键问题是：**让已接收的源码解释持续补齐原问题所需的含义，再检验它是否改善完整回答。** BC已由无properties原包形成task-only sidecar，跨源对象联系已有公开正反例；真实file_response仍缺决定性字段，premise在终答格式失败前尚无性质检查。BD先用原始partial提案做调度与协议红测，不再定位已解决的准备热点，也不自动改角色/类型。原问题的版本/删除/回退分支和事实结论映射纳入通用分支责任；质量比较与复用资格分别处理。现有结果见§7.64和[BC收束](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/authorized-execution-closeout.json)，新决定见§7.65，两旧OWUI未知处置保持。
+当前关键问题是：**保留局部工作之后，仍要用有限调度补齐决定性callee/condition/return与原题终答职责。** BD真实D1/D2保留3/4 partial单元，D2确实连入file_response并产生两单元trace，内部resolver与closure仍未闭合。分支提示没有稳定转成完整自然回答，Q4逐项事实映射仍常遗漏。现有证据支持局部机制接线，未支持完整质量或成本收益；不自动改角色/类型，不由人工fixture替代模型实际使用。质量比较与复用资格分别处理，后续方法判断以§7.65的具体未达责任为依据，两旧OWUI未知处置保持。
 
 ## 2. 研究目标与术语
 
@@ -2387,7 +2387,7 @@ usage使用原check/run/inspect/edit/compare，不新增CLI。实际公开check/
 
 ### 7.65 BD 解释持续补齐与独立质量比较
 
-2026-10-11，用户要求在BC复核后书写任务书并派发gpt-6.1-sol/max。基线`f37ee589`与用户origin一致，现场无其他新增修改；[BD0–BD16](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)及[spec§14.43](skill-ir-aot-optimization-spec.md#1443-bd-semantic-completion-and-real-quality)登记为ready-for-dispatch。本次仅做设计和文档同步，无生产代码修改或新模型实验。
+2026-10-11，用户要求在BC复核后书写任务书并派发gpt-6.1-sol/max。规划基线`f37ee589`与用户origin一致，现场无其他新增修改；[BD0–BD16](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)及[spec§14.43](skill-ir-aot-optimization-spec.md#1443-bd-semantic-completion-and-real-quality)登记时为ready-for-dispatch，规划本身没有实验成果。实际接管基线为`7f4ca507`，随后连续实施记录如下；BC历史原件及结论保持。
 
 **复核结论。** BC五次全部自然交付，原四题合计11 full/9 partial，分别Q1 1/5、Q2 4/5、Q3 5/5、Q4 1/5；这是重复任务和变化，不能当20独立任务。17 prepared中12 unknown、首件2缺逐题查询、premise3未检查，合格跨源性质为0。准备性能和当前原件重放已有证据，下一轮从真实语义交互进入，而非再扩范围/预算。上一轮复核新鲜49tests/369断言是代码基线核验；BC归档1,833pass/1skip单列，均不证明真实质量提升。
 
@@ -2404,6 +2404,37 @@ usage使用原check/run/inspect/edit/compare，不新增CLI。实际公开check/
 **验证顺序与适用边界。** 先补真实partial、多阶段协议误用及双入口红测，再做一个局部解释诊断；之后两次N/D同期比较保留完整原skill/四题、允许源码、独立政策/前提、模型/总预算。此比较检验整套领域调度/工具方案，不能单独归因于声明表示。原三变化共六fresh/previous位置需当前合格跨源材料及可恢复会话；没有基础则具名未执行，仍完成质量比较和后续工程工作。局部诊断与人工参考不计完整质量样本，修订和新epoch不替换首轮。
 
 **继承与开发复盘。** 实验使用已授权官方gpt-5.6-sol/high，第三方暂停，旧OWUI未知只离线；未读输入、Q1/prospective/readiness和历史0/6保持。共享缺陷当场修复和具名复验，routing/额度/unknown按原限定规则处理。本节后续按“具体失败→代码/输入原因→修改→公开路径/真实采用→未达项”追加，过程成本和结论五分支预先明确；工程完成不升级成研究目标完成。
+
+**BD0–BD9/BD13实际工程。** 七个目的提交`e041e903`至`d747f44d`实现显式策略，未改旧默认。`semantic-completion.ts`保存原题、来源、调用实例和字段责任，按保留的含义与依赖状态判进展；重复文字不重置次数，两次无进展转residual，依赖改变可重开。focus重新提供已采用partial的原handle，保留先前字段并轮转原题；本题唯一绑定可以关闭本题多source owner的query责任，不由其他题或重复绑定代替。窄模型表单只提交当前slot/value，宿主填写机械身份，旧完整解释仍严格兼容接收。
+
+运行时从一次捕获的program/slice/units/drafts/demands/dependencies与当前拒绝状态独立计算性质，缓存覆盖所有语义依据，report不驱动队列。合法修改、撤绑定和源失效更新或撤回current verdict；终答格式错误只撤回交付，仍有效源依据保持。公开正例暴露原求值器把caller guard与所选调用后的callee primitive effect按不同实例误判无前序；新`semantic-completion/v1`核对所选调用的真实前序实例，仍要求对应对象，不改变历史求值版本。源码/终答格式各自有界恢复，最终两次语义检查、至多四个保留交付单位都在64总量内，自动读取同样收费。
+
+原问题分支视图来自已读condition/return/raise及当前提案，列出缺的是源码含义还是用户事实，以及阻断哪题。N/D均走完整skill的普通inquiry account会话；N为M/legacy且关闭domain tools，D显式新策略。skill原文件与22个bundle文件、原输入及源快照在普通session保留，搬移inspect有mock验证。原生`skvm run`仍不承诺inquiry previous归档。受影响联合179pass/1304断言、主类型与15文档测试通过；公开人工正反例包括跨源自动checked、最终格式失败保留源依据、绑定/来源撤回、错对象/guard后置、不同原题和预算上限，均是开发fixture。
+
+**BD1/BD10原始失败与当前诊断。** [继承责任表](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/inherited-responsibilities.json)保留三件BC gzip的SHA、具体tool arguments及局部context。机械迁移native三次当前身份后，结果分别为当前not-offered、错误source-edit-role拒绝、接受partial；没有补原缺失含义，也不声称三次全成功。人工匿名跨源正例只证明表达能力。单次`extraction-download`经普通入口交付、9个host调用/10总单位、0源码编辑；两个model-prepared性质仍unknown且trace为空。诊断使用`ad42b0d4`时源码树`546a6aee`；BD13测试提交后的四质量首件共同使用`7cb93348`，两个epoch分存，诊断不混入质量面板。它没有形成性质闭合，属于局部开发诊断，不是完整任务样本。未发现由静态Schema或宿主丢失造成的可复现故障，没有追加同点幸运重抽。
+
+**实际采用与未闭合含义。** D1四次窄提交保留27个字段编辑、三个partial Download入口单元；两次link分别被focus-stale/focus-stage拒绝，sourceLinks为空。D2九次保留38个字段编辑、四个partial单元，实际连接Download与file_response。D2首次字段保留后因principal引用角色不符而lowering拒绝，下一次同事务修正成功；不能把editAccepted等同采用完成。D1/D2独立性质计算25/30次，耗时12.91/18.99ms；最终语义检查各2次，均0格式拒绝。D2三个性质有两个源码单元的9步trace，但仍unknown；`file_response`内部resolver没有采用的callee含义、condition/returnOutcome及closure仍缺。四题均未获wholeTaskCertified。当前最窄证据分别见两份[机制原件派生](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/attempts/quality-d-1/original/mechanism-evidence.json)、[D2机制关系](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/attempts/quality-d-2/original/mechanism-evidence.json)。
+
+**BD11完整原任务同期比较。** 按N1→D1、D2→N2运行，四首件无替换或修订，均completed/自然交付。共同生产源码树`7cb93348`、gpt-5.6-sol/high、完整22文件bundle、原四题/输入SHA、95允许源文件和64总工具边界均由claim与实际thread/start/tool上下文核验；评价哨兵未进入模型。独立探子意见与主线程叶节点校正留在source-review：N1关于latest manager的错误不能因初评full而漏过；D1/N2的Q4不能只列事实后给整体“具体结果未知”；D2明确的checker gap不被错当源调用不可见。
+
+| 首件 | Q1请求/版本/文件 | Q2授权及次序 | Q3授权对象 | Q4缺失事实→结论 | 整题 | input / output | 总工具（host） | 端到端ms |
+|---|---|---|---|---|---|---|---|---|
+| N1 | partial | full | full | full | partial | 589,629 / 6,196 | 63（63） | 252,025 |
+| D1 | full | full | full | partial | partial | 3,805,403 / 14,564 | 62（53） | 448,672 |
+| D2 | partial | partial | full | partial | partial | 3,382,046 / 15,138 | 62（40） | 548,818 |
+| N2 | full | full | full | partial | partial | 965,460 / 6,551 | 57（57） | 295,084 |
+
+四位置端到端完整率0/4，逐题full为Q1 2/4、Q2 3/4、Q3 4/4、Q4 1/4；这是同一暴露任务的两次重复，不能把16题格当16独立任务。第一对**tradeoff**：D1补全Q1但Q4下降，full题数相同，input/output多3,215,774/8,368、总工具少1、耗时多196,647ms。第二对**negative**：D2少2个full题，input/output多2,416,586/8,587、总工具多5、耗时多253,734ms。两次D都产生机器unknown，仍留质量分母。这是整体调度/工具方案的当前开发观察，不是DSL表示的单独因果检验或统计/跨项目优势。
+
+**BD12资格与六项未执行。** BD11后沿公开`prepare policy-fresh`做一次共享零调用资格检查，两个原任务D会话均无独立源码支持的checked/violated跨源性质；可读session和自然答案不能替代合格材料。因此policy/premise/source各fresh/previous共六位置具名`unrun-material-ineligible`，没有重复fresh补样本、没有实际previous采用。[资格原件](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/reuse-eligibility.json)及[执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/authorized-execution-closeout.json)区分允许的有限执行结束与完整队列/研究目标未达；政策/前提/源码失效的确定性测试不冒充真实变化效果。
+
+**BD14计量与未达责任。** 五去重尝试known input9,048,390，其中cacheRead8,187,392已含在input，output46,920；端到端1,777,900ms、254总工具/222host/32自动单位、0格式拒绝。诊断与四质量首件分别计，修订/变化/新未知均0；原件引用不重复收费。研究9pass/46断言及研究类型通过，计量红绿修正了自动读取漏计与同事务两次提交的lowering归因。[summary](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/summary.json)保存原题→准备→准确提交→采用→当前性质→自然终答→逐题复核；[accounting](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/accounting.json)保留USD、隐藏请求、开发/探子token和真人分钟unknown，不据account token换算账单。
+
+工程、真实局部性质、完整任务、比较、复用、净收益六轴分别收束。持续责任与独立计算已被实际使用，不能由3/4采用或测试数量推定任务成功。`inquiry-focus.ts`与源编辑/调用closure仍负责编排未完成callee、failure/condition/return含义；`inquiry-domain-runtime.ts`分支和blocked-conclusion显示还须帮助模型完成原题，当前N1 manager误解、D2分支遗漏和D1/N2逐项事实映射不足均有窄原答证据。BD10原定单性质诊断被任务准备器展开为两性质，严格单性质条件也未达，保留提案而非事后删行。`study.ts qualifiedReuse`因0合格基础阻断六变化，实际编写/复用及净收益未测。没有新增语言引擎或Paperless成功分支；下一步方法取舍须基于这些具体证据，不继续同因重抽。
+
+**BD16离线核验与代码复核。** 两个独立只读探子复核完成责任/窄协议及性质缓存/交付预算；主线程核对候选问题的完整公开路径。不允许的anchor角色虽经过窄适配器全局枚举解析，仍在`compileSourceEdit`保留草稿前被拒绝；实际return/effect复现为0接受、0保留。`sourceOrigin.step/instance`由公开Schema必填，缺失对象不能进入有类型的求值器。现有角色校验8pass/100断言及定向复现通过，未加重复校验、未改源码epoch、未追加模型尝试，依据见[代码复核](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/code-review.json)。新增五份gzip/session/输入/答案/源码绑定可读；当前变更文档链接和导航无错误。全仓检查返回1的八条失效链接均来自两份未变历史证据，目标在启动基线已缺失，保留原件并在[当前文档核验](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/current-document-links.json)单列；不把全仓检查写成全绿。有限执行结束，发布记录另存，研究目标仍未达。
+
+发布前暂存字节验证另发现结果目录的全局text规则改写五gzip，暂存件全不可解压；工作区原件未变。仅为BD attempts加`-text !eol`、gzip binary和原答Markdown硬换行保留规则，再按新属性重置暂存，五gzip恢复逐字节/SHA一致且可解压，32原件全部与暂存字节相同。移除的20MB临时解压JSON已确认是D2 gzip的完全同值副本，无独有证据。红/绿依据见[暂存原件验证](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/staged-original-bytes.json)；没有改运行源码或追加模型尝试。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
@@ -2468,12 +2499,12 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 | ID | 问题 | 当前依据 | 接下来的判断 |
 |---|---|---|---|
 | Q1 | 哪个任务范围共享领域语义？ | 固定来源的授权职责支持 principal/resource/operation/control/evidence；混合职责单列，见 §4–§7.10 | 保持单 repo/ref、源码可见的授权切片 |
-| Q2 | 声明如何带来实际行为？ | BC准备17性质、0合格跨源trace；已接收partial仍缺字段，性质计算依附最终提交 | BD保存持续解释责任、独立计算当前性质，先用真实partial红测核实调度原因 |
-| Q3 | 为什么仍漏决定性源码或分支？ | BC准备热点已修；Q1 1/5、Q4 1/5完整，分支和逐项缺失事实仍不足 | 从原文生成相关分支/责任视图，公平推进原题；未知与未解释分别处理，不猜类型或答案 |
-| Q4 | 领域方法相对好说明的增量是什么？ | BC四N/D被合格性质门槛阻断，当前没有新比较；BB历史结果保持 | BD公共运行就绪后做两次N/D配对，D未checked仍入质量比较分母；检验整体方案，不单独归因表示 |
-| Q5 | 作者和变化复用是否可用？ | BC原包及fresh均交付但无合格基础；native记录还缺previous所需sessionPath | 复用现有local inquiry完整skill会话，先核验合格真实材料，再做原三变化pair；旧OWUI未知保持 |
+| Q2 | 声明如何带来实际行为？ | BD持续责任和独立计算落地；D1/D2保留3/4 partial，D2两单元trace仍unknown，0合格性质 | 依据当前未完成callee/condition/return与closure定位调度和表达责任；不把保留编辑等同完成 |
+| Q3 | 为什么仍漏决定性源码或分支？ | BD四质量Q1 2/4、Q4 1/4 full；N1 manager错误、D2分支遗漏、Q4事实映射不足 | 原文分支提示尚未稳定转成完整回答，按窄原答与当前责任判断改进，不猜类型或答案 |
+| Q4 | 领域方法相对好说明的增量是什么？ | BD两对同条件：第一tradeoff、第二negative；四整题均partial，D两次token/耗时更高 | 当前无完整质量或净收益支持；比较整体方案，不单独归因表示或推跨项目优势 |
+| Q5 | 作者和变化复用是否可用？ | BD普通完整skill会话可inspect，真实0合格基础，六fresh/previous具名未执行 | 会话接线已有工程证据，实际变化复用仍未测；需要当前独立支持的材料，旧OWUI未知保持 |
 | Q6 | 本地化路线如何处理？ | 保留 §8–§9 设计及结构回填反例 | 暂缓；重新选择该类时再处理，不混入授权验收 |
-| Q7 | 如何评价和计量？ | BC11逻辑位置/5唯一attempt/5交付/7资格阻断，known input16,788,094含cache15,453,312/output86,987 | 原件和修订分列，完成后准备计量另存校正；授权执行结束不升级finiteQueueComplete或研究成功，USD/隐藏/开发/真人未知 |
+| Q7 | 如何评价和计量？ | BD11逻辑位置/5唯一attempt/5交付/6资格未执行；known input9,048,390含cache8,187,392/output46,920；254总工具含32自动单位 | 六验收轴与首件/诊断/修订/变化分别计，执行结束不升级完整队列或研究成功；USD/隐藏/开发/真人未知 |
 
 决策沿革：
 
@@ -2512,6 +2543,8 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-10 / BC实施与授权收束：** task-binding前端、精确对象修复、有界准备及当前原件重放落地，1,833pass/1平台skip及类型通过。真实原包两件/三fresh全部交付但source-partial，0合格跨源性质，四比较/三previous零派发资格阻断。有限执行以未达责任收束，源内完整分支、事实映射及模型源绑定仍缺，原件和未知不回填，见§7.64；发布另按远端证据核对。
 
 - **2026-10-11 / BD规划：** BC原件和代码定位后，选择持续解释责任、材料独立检查、窄交互合同及恢复会话；同期质量比较不再由DSL先成功决定能否运行，previous资格保持。BD0–BD16登记并准备派发，尚无新实现或实验；后续统一记录§7.65。
+
+- **2026-10-11 / BD实施与有限收束：** 显式semantic-completion/v7接通持续责任、独立缓存检查、窄静态工具、分阶段有界恢复和完整skill inquiry会话，179公开测试及主/研究类型通过。五首件全交付，四质量整题0full；两对tradeoff/negative，D current7unknown、0合格跨源性质，六变化具名未运行。254总工具含32自动单位，成本完整去重；以completed-with-unmet-criteria收束，完整队列、实际复用和研究目标未达，见§7.65。
 
 ## 12. 后续追加规则
 

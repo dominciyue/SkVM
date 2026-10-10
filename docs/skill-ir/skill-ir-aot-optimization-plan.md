@@ -2,7 +2,7 @@
 
 更新于2026-10-11。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BD0–BD16：源码解释持续补齐、独立性质检查与真实质量比较](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)，`in-progress`。`gpt-6.1-sol/max`线程已在干净`7f4ca507`接管，live origin同SHA；BD0登记与BD1红测进行中，尚无模型实验。
+- 当前任务书：[BD0–BD16：源码解释持续补齐、独立性质检查与真实质量比较](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)，`completed-with-unmet-criteria`，有限外部执行结束、BD16发布进行中。工程至`d747f44d`，四比较共用源码epoch`7cb93348`：N1/D1为P/F/F/F、F/F/F/P，N2/D2为F/F/F/P、P/P/F/P，四整题均partial；第一对tradeoff、第二negative，0合格跨源性质。六变化位置按任务书具名未运行，没有补fresh。实际结果见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/acceptance-matrix.json)。
 - 方法合同：[spec §14.43](skill-ir-aot-optimization-spec.md#1443-bd-semantic-completion-and-real-quality)；复核依据：[研究 §7.65](skill-dsl-research.md#765-bd-解释持续补齐与独立质量比较)。已复核开发基线`f37ee589`；实际接管时记录任务书提交后的HEAD。
 - identity：`authorization-semantic-completion-v1`。显式策略`semantic-completion-v1`继承task-binding/v7，旧默认保持。继续`skill-ir-aot`、仅用户origin，不新开分支/worktree。
 - 实验沿用当前官方账号`gpt-5.6-sol/high`；第三方API和AV旧位置继续暂停。两个旧OWUI未知仅离线处置，不追加真实派发。
@@ -13,18 +13,17 @@
 
 质量比较与材料复用采用各自的准入条件：N/D公共输入、只读和协议可运行后，就能比较最终回答，D不必预先拥有checked性质。previous仍须当前合格跨源材料、独立源码支持和可恢复会话。原题自然质量、程序检查、实际复用及总开销分别验收。
 
-## 未完成队列
+## 未达责任
 
-| 阶段 | 开发责任 | 所需验收 |
+| 层面 | 具体责任 | 当前最窄证据与后续判断 |
 |---|---|---|
-| BD0–BD1 | 接管登记、真实partial/格式原件与公开路径红测 | 区分已接收但未完成、源码缺失、格式阻断；人工参考仅在评价侧 |
-| BD2–BD3 | 持续解释责任、当前问题优先及多题公平推进 | partial不提前结束决定性责任，修一字段不清其他项，无进展具名终结 |
-| BD4 | 独立性质计算、缓存与失效 | 合法材料可在最终答案前产生检查；依赖/语义变化撤回旧结论，report不改状态 |
-| BD5–BD6 | 窄编辑提交与分阶段恢复预算 | 官方静态工具Schema和实际上下文一致；源格式错误不吃光终答修正，仍受64总量约束 |
-| BD7–BD8 | 原问题分支/事实映射、普通入口和完整skill会话 | 源内可知与用户未知分清；实际session可inspect/previous，原四题不减 |
-| BD9–BD11 | 新研究实现、局部诊断及两次N/D同期比较 | D未checked仍可参比，首件/共享修订分列，质量与全部开销实际测量 |
-| BD12 | 原三变化的fresh/previous | 当前合格局部材料才进入；确实采用/重算/失效，无基础六位置具名未执行 |
-| BD13–BD16 | 反例、有限联合验证、归纳和发布 | 工程/真实局部性质/完整任务/比较/复用/净收益分开记录，推origin核对 |
+| 真实局部性质 | focus持续责任与callee调度、窄slot语义、source-link/closure | D1三入口partial，D2四partial及一link；resolver、condition/return含义未闭合，current7unknown。先按具体责任判断原因，不再同因重抽 |
+| 完整原任务 | branch/blocked-conclusion显示及模型原题回答 | N1 manager误解，D2版本/权限分支遗漏，D1/N2逐项事实映射不足；四整题0full，保留原答案和校正 |
+| 实际复用 | study qualifiedReuse及普通inquiry previous材料准入 | 会话接线已有工程证据，当前0合格基础，六变化未执行；真实采用/重算/失效仍未测 |
+| 诊断约束 | task-only准备器的局部提案粒度 | BD10仅保留原Q2，但生成两性质，严格单性质目标未达；原提案不回删 |
+| 净收益 | 同条件质量/成本与实际作者、复用负担 | 第一tradeoff、第二negative，D两次token/耗时更高；美元/开发/真人未知，不推普遍收益 |
+
+BD0–BD9工程、BD10–BD11有限尝试、BD12无材料处置与BD13–BD15归纳已完成；BD16只剩发布核对。上述为未达研究责任，不是自动追加已收束位置的派发队列。当前受影响179pass/1304断言，主类型、研究9pass/46断言及研究类型、15文档测试通过；人工fixture与真实性质结果分存。
 
 11逻辑位置为`extraction-download`、两次N/D配对4位置及policy/premise/source的fresh/previous6位置。局部诊断12工具；完整运行64工具、768KiB显示、32MiB读取、45分钟。源码编辑与终答格式分别给予有限更正，总预算不增加；所有拒绝和修订计量。
 
