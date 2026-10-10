@@ -2902,6 +2902,22 @@ BC9补足共享操作的逐题性质事务：只有当前已采用的共享入�
 
 **BC实际验收边界。** 工程公开链、有界原scope准备、原包搬移及当前派生重放已通过。真实5去重尝试全部交付但完整原任务均source-partial；17个准备性质中12个unknown、首件2个缺逐题查询、premise的3个未进入检查，当前合格跨源checked/violated为0。source变化仅guard root_doc→request_doc，自然回答已识别，不等于机器性质或复用证明。四质量和三previous缺当前原任务合格基础而零派发；改变input的fresh不能被提升成原任务baseline。授权执行可结束，finiteQueueComplete与researchGoalAchieved仍false。事实、计量校正及每项下一动作见[BC验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/acceptance-matrix.json)，不改变原有研究准入或旧未知处置。
 
+### 14.43 BD semantic completion and real quality
+
+2026-10-11，BC发布基线`f37ee589`与用户origin一致，5次自然交付、0合格跨源性质及7个资格阻断位置保持原结果。新[BD0–BD16](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)以`authorization-semantic-completion-v1`承接真实partial的持续补齐、独立性质检查、分阶段协议及同条件质量比较。登记时状态`ready-for-dispatch`，尚无BD实现或实验。
+
+**当前解释责任。** 显式策略`semantic-completion-v1`复用task-binding/v7。以当前question/operation/source revision/handle/receiver/call instance/anchor/field标识待补责任，来源限于当前PropertyDemand、绑定及对象/调用诊断。接受局部修改不代表全部责任完成；补字段A不关闭字段B，已接受partial仍可被调度。状态由实际材料进展更新，相同责任两次无进展后给具名残余并推进其他原题；源码或依赖真正变化可重开。不强迫整函数填满，不靠放宽对象等价或可达性获得通过。
+
+**性质与最终交付。** 当前源材料的性质计算从最终答案传输中分离，复用现有checkPropertyQueries和求值器。有效材料/依赖变化触发确定性计算，缓存包括相关源版本、草稿、问题/政策/前提及依赖状态；report仅观察，不递归修改focus。无效语义编辑、绑定撤回和源码失效撤回受影响current verdict；终答仅格式失败保留仍有效的源检查，最终答案仍判传输失败。自动计算独立计次数和耗时，不消耗语义final check槽，也不代表模型含义已获独立证明。
+
+**窄提交与预算。** 模型主要提交当前源字段的含义，宿主提供事务、单位及字段身份；一种推荐source-edit合同直接映射已有严格字段校验。模糊目标、非法role/condition和旧版本拒绝，不自动补语义。官方账号thread/start工具声明静态，必须验证实际Schema、context及阶段准入一致。源码编辑与最终答案格式恢复分开，各阶段首次错误后最多两次修正，语义最终检查仍最多2次；全部动作留在64总工具/768KiB显示/32MiB读/45分钟内。保留至多4个总单位用于最终交付，不额外扩大总量。
+
+**原职责与会话。** 从允许原文及模型提案展示当前分支和未解释责任，区分源内缺解释、范围外依赖、用户未给的运行值和独立政策缺失。正确答案不进入生产指引。完整原skill和四原题保留，局部checked不覆盖其他残余。优先复用executeLocalInquiryRun的源快照、原包加载和可恢复会话；N关闭domain tools，D启用新策略，两者外围入口/模型/源码/预算相同。研究runner不私造previous所需session，原生入口若未完成会话接线则据实说明。
+
+**比较与复用准入。** 新鲜N/D答案比较只需合法共同输入、可运行传输与只读合同，不要求D已经有合格性质；协议故障在端到端分母，交付答案另做源码评阅。previous需要同性质的当前有效跨源checked/violated、非空实际trace、独立源码支持和可恢复会话；政策/前提重算、源码依赖失效，不复用旧自然答案。11逻辑位置为1局部解释诊断、2次N/D配对及3种fresh/previous。没有合格基础时6个变化位置具名未执行，仍完成质量比较和工程归纳。旧BC准入与结果不修改，新实验不能单独归因于DSL表示。
+
+**运行与结论。** 开发gpt-6.1-sol/max，实验继承用户已授权官方gpt-5.6-sol/high；第三方继续暂停。OWUI仅离线，BB未知处置保持，held-out/Q1/prospective/readiness和历史0/6不变。共享故障当场红绿修复并具名复验，不继续已知故障面板；同因两次无进展转确定性诊断，新根因可继续开发。routing有限恢复、quota/auth暂停、unknown只查原生命周期。工程、真实局部采用、完整原任务、比较、复用和收益各自验收，保留support/tradeoff/no-observed-difference/negative/inconclusive及全部已知/未知成本。过程统一见研究§7.65。
+
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
 AT在已有授权局部语义上引入显式 `focused-closure-v1`：宿主持久管理locate/interpret/link/review/answer阶段，绑定当前来源、单元身份与更新版本；模型解释原始源码中的条件、对象、参数、返回与实际相关效果。上下文渲染不改变活动任务，拒绝修复回到同一单元；多候选与语义关系仍须显式判定。旧默认及协议保持。

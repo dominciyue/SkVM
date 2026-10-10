@@ -1,10 +1,16 @@
 # Skill IR 当前状态
 
-更新于2026-10-10。工作分支为 `skill-ir-aot`，仅发布到用户 `origin`。本页是唯一实时状态入口；历史任务书与结果保留当时记录。
+更新于2026-10-11。工作分支为 `skill-ir-aot`，仅发布到用户 `origin`。本页是唯一实时状态入口；历史任务书与结果保留当时记录。
 
 ## 当前工作
 
-**当前任务书为 [BC0–BC14：任务性质准备、跨调用语义修复与可重放交付](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)，状态 `completed-with-unmet-criteria`；工程与已授权运行已收束，BC14已完成用户origin远端SHA核对。** 实施基线 `ee1a0522`，11个Download逻辑位置中4个已尝试、7个因资格阻断未派发；5去重尝试全部completed并交付，包含原包首件/具名复验和policy/premise/source三fresh。合格跨源性质0，五份完整自然任务均source-partial，N/D比较与实际previous复用未达；`finiteQueueComplete`和`researchGoalAchieved`仍false。事实、原件与下一动作见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/acceptance-matrix.json)和[授权执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/authorized-execution-closeout.json)。
+**当前任务书为 [BD0–BD16：源码解释持续补齐、独立性质检查与真实质量比较](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)，状态 `ready-for-dispatch`。** 用户已要求派发`gpt-6.1-sol/max`继续开发。已复核基线`f37ee589`与用户origin一致；本次登记只修改任务书和文档，BD尚无生产实现或模型实验。
+
+新identity为`authorization-semantic-completion-v1`，显式策略`semantic-completion-v1`复用task-binding/v7。优先处理已接收partial的持续补齐、性质计算与终答格式解耦、窄编辑协议及分阶段恢复，再接通完整原skill的可恢复会话。同期N/D答案比较不再要求D预先取得合格性质；previous仍须当前、独立源码支持的合格材料。方法见[spec§14.43](skill-ir-aot-optimization-spec.md#1443-bd-semantic-completion-and-real-quality)、[研究§7.65](skill-dsl-research.md#765-bd-解释持续补齐与独立质量比较)和[当前计划](skill-ir-aot-optimization-plan.md)。
+
+## BC 已结束的实际结果
+
+**[BC0–BC14](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)以`completed-with-unmet-criteria`收束，发布至`f37ee589`。** 实施基线`ee1a0522`，11个Download逻辑位置中4个已尝试、7个因资格阻断未派发；5去重尝试全部completed并交付，包含原包首件/具名复验和policy/premise/source三fresh。合格跨源性质0，五份完整自然任务均source-partial，N/D比较与实际previous复用未达；`finiteQueueComplete`和`researchGoalAchieved`仍false。事实与原件见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/acceptance-matrix.json)和[授权执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/authorized-execution-closeout.json)。
 
 本轮已接通无手写properties原包的任务前端、精确跨调用修复及有界源码准备。OWUI原scope173文件实测准备80.59s→21.58s，源SHA/revision保持；当前派生重放Download/OWUI准备7.99s/20.78s、2/7份原解释语义字节保持，零新模型/含义。联合1,833pass/1平台skip/12,044断言及主/BC类型通过。真实模型仍未补齐入口/effect角色、closure和本题性质绑定；premise最终格式拒绝未产生property checks，不能记为unknown verdict。准备deadline与完成后计量已红绿修复，原报告和校正分存，详见研究§7.64。
 
@@ -37,13 +43,13 @@ BB先保留effect/context标注下的源码调用，沿真实调用实例连接�
 - 两作者包已按原字节实际消费。Download消费者源码评阅full但机器partial；OWUI消费者仍有决定性helper未读。变化中policy-fresh、premise-fresh/previous已有运行；policy-previous路由失败、source-fresh额度拒绝，source-previous及质量位置保留未运行。
 - 原件、计量及验收以 [最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)、[manifest](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/manifest.json)、[状态](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/status.json) 为准。历史 `acceptance` 字段表达要求，不代表实际通过。
 
-AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有有界修复，形成过程保留在研究§7.61。当前新增责任以§7.64为准；`inquiry-result`的整体Schema/缺题拒绝及局部保留继续保持。
+AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有有界修复，形成过程保留在研究§7.61。当前新增责任以§7.65为准；`inquiry-result`的整体Schema/缺题拒绝及局部保留继续保持。
 
 ## 账号、运行和继承边界
 
 - 开发 `gpt-6.1-sol/max`；实验沿用用户已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。
-- BC另登记新Download原包、两次N/D配对和三种fresh/previous共11逻辑位置；就绪才执行，引用去重、具名修订分列。当前通道最近source-fresh为completed；旧OWUI未知只离线处置，BC不新增其真实派发。新unknown只核查原生命周期，不能自动重抽。
-- AY额度提示、AZ unavailable及BA `paused-recurring-routing`均保留。BB首个就绪真实pilot已同通道completed，连续失败数重置；累计恢复与成本保留。连续两次终态routing失败，或累计三次routing恢复仍失败，则暂停BB外部调用。quota/auth立即暂停，unknown只核查原生命周期。恢复计数及付费并发锁已测试，不额外探针、轮询或旁路。
+- BD登记1个局部解释诊断、两次完整原skill的N/D配对4位置、三种fresh/previous6位置，共11逻辑位置；修订分列。质量位置按公共输入/只读/协议就绪执行，D机器检查失败保留在分母。六个变化位置须有合格局部材料和可恢复会话；没有基础则具名未执行，不重复fresh凑结果。最近BC source-fresh为completed；旧OWUI仍只离线处置。
+- AY额度提示、AZ unavailable及BA `paused-recurring-routing`均保留；BC五次均completed。BD明确终态routing失败允许一次具名恢复，连续两次或累计三次恢复仍失败则暂停本轮外部派发。quota/auth立即暂停，unknown只核查原生命周期；历史累计成本及旧未知不清除，不额外健康探针、轮询或旁路。
 - 用户暂停已撤销，两次未知经过各自限定人工处置保留；后续未知保护不变。BB已完成尝试已知input32,038,537（含cache29,105,920）、output136,921。两OWUI部分usage单列，BB premise失败用量未返回；最终未知量、USD、隐藏请求、开发/探子成本和真人分钟保持unknown。本地观测duration不代表未知尝试的服务器最终耗时。
 - 保留原skill、全部原问题、允许源码、用户独立政策及前提。模型输入隔离评价器、历史答案和开发修复记录。held-out、Q1、prospective、readiness和历史 `0/6` 不变。
 - 主开发线程是代码、共享方法文档和Git的唯一写者。继续现有分支，不创建worktree；只读探子按AGENTS使用。
@@ -62,7 +68,8 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BC | [任务书](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)、[当前计划](skill-ir-aot-optimization-plan.md)、[收束](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/authorized-execution-closeout.json)、spec§14.42、研究§7.64；5交付/0合格跨源性质/7资格阻断 |
+| 当前BD | [任务书](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)、[当前计划](skill-ir-aot-optimization-plan.md)、spec§14.43、研究§7.65；ready-for-dispatch，尚无实现或新实验 |
+| BC | [任务书](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)、[收束](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/authorized-execution-closeout.json)、spec§14.42、研究§7.64；5交付/0合格跨源性质/7资格阻断 |
 | BB | [任务书](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/verification/acceptance-matrix.json)、spec§14.41、研究§7.63 |
 | BA | [任务书](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-submission-v1/summary.json)，spec§14.40、研究§7.62 |
 | AZ | [任务书](../superpowers/plans/2026-10-09-authorization-property-abstraction-and-real-use.md)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-property-abstraction-v1/summary.json)，spec§14.39、研究§7.61 |
