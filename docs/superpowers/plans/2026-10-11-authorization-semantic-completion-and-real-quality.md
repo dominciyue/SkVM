@@ -364,7 +364,7 @@ python scripts/check_skill_ir_doc_links_test.py
 git diff --check
 ```
 
-新文件创建后运行其精确test路径。BD9需实现并实际验证`study.ts help`、`prepare`、`run`、`replay`、`summarize`；研究tsconfig继承根配置，再运行本轮`bunx tsc --noEmit -p`。上述新入口目前尚未实现，不能声称可运行；BD9完成时将实际命令补入本节，ordinary命令同步usage。
+新文件创建后运行其精确test路径。BD9需实现并实际验证`study.ts help`、`prepare`、`run`、`replay`、`summarize`；研究tsconfig继承根配置，再运行本轮`bunx tsc --noEmit -p`。BD9已实现下列入口：`bun results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/study.ts help|prepare <position>|run <position> [named-revision]|replay|summarize`；prepare/replay零模型，run只登记位置。研究类型命令：`bunx tsc --noEmit -p ./results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/tsconfig.json`。质量不要求checked；变化pair要求独立评阅当前原四题材料和可读session。
 
 ## 9. 接管后的第一步
 
