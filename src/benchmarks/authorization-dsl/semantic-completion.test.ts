@@ -1,0 +1,47 @@
+import { test, expect } from "bun:test"
+const api: any = await import("./semantic-completion.ts").catch(() => ({}))
+const owner = (extra: any = {}) => ({ questionId: "q", operationId: "op", handle: "unit", sourceId: "source", sourceRevision: "r1", dependencyRevision: "deps1", draft: { annotations: [] }, demand: { revision: "r1", source: { id: "source" }, required: [{ anchorId: "call", field: "role", status: "missing", reason: "Source role" }, { anchorId: "branch", field: "condition", status: "missing", reason: "Source condition" }] }, ...extra })
+test("completion records retain independent missing fields and source-qualified identities", () => {
+  expect(typeof api.reconcileSemanticCompletion).toBe("function")
+  const initial = api.reconcileSemanticCompletion([], [owner()])
+  expect(initial.filter((i: any) => i.state === "pending")).toHaveLength(2)
+  const repaired = owner({ draft: { annotations: [{ anchorId: "call", role: "context", explanation: "Shown invocation" }] } })
+  repaired.demand.required[0].status = "provided"
+  const current = api.reconcileSemanticCompletion(initial, [repaired])
+  expect(current.map((i: any) => [i.field, i.state])).toEqual([["role", "resolved"], ["condition", "pending"]])
+  const instances = api.reconcileSemanticCompletion([], [owner(), owner({ receiverClass: "Child" }), owner({ callInstanceId: "second" }), owner({ sourceRevision: "r2" })])
+  expect(new Set(instances.map((i: any) => i.key)).size).toBe(8)
+})
+test("two unchanged feedbacks terminate a responsibility; prose does not reset it", () => {
+  expect(typeof api.recordSemanticCompletionFeedback).toBe("function")
+  let records = api.reconcileSemanticCompletion([], [owner()])
+  const keys = records.map((i: any) => i.key)
+  records = api.recordSemanticCompletionFeedback(records, keys, [owner()])
+  expect(records.every((i: any) => i.unchangedAttempts === 1)).toBe(true)
+  records = api.recordSemanticCompletionFeedback(records, keys, [owner({ draft: { annotations: [{ anchorId: "call", explanation: "Different prose" }] } })])
+  expect(records.every((i: any) => i.state === "residual" && i.unchangedAttempts === 2)).toBe(true)
+  expect(api.reconcileSemanticCompletion(records, [owner()]).every((i: any) => i.state === "residual")).toBe(true)
+  expect(api.reconcileSemanticCompletion(records, [owner({ dependencyRevision: "deps2" })]).every((i: any) => i.state === "pending" && i.unchangedAttempts === 0)).toBe(true)
+})
+test("stale owners and explicit unresolved meanings are retained with named reasons", () => {
+  expect(typeof api.reconcileSemanticCompletion).toBe("function")
+  const records = api.reconcileSemanticCompletion([], [owner()])
+  expect(api.reconcileSemanticCompletion(records, []).every((i: any) => i.state === "stale")).toBe(true)
+  const unresolved = owner({ draft: { annotations: [], unresolved: [{ anchorId: "call", reason: "Dynamic target outside source" }] } })
+  unresolved.demand.required[0].status = "unresolved"
+  expect(api.reconcileSemanticCompletion(records, [unresolved])[0]).toMatchObject({ state: "residual", reason: "Dynamic target outside source" })
+})
+test("call binding work separates actual instances and does not infer a successful repair", () => {
+  const records = api.reconcileSemanticCompletion([], [owner({ callBindings: ["a", "b"].map(callInstanceId => ({ anchorId: "call", callInstanceId, parameter: "actor", basis: ["value", "principal"], reason: "Actual and formal types differ" })) })])
+  expect(records.filter((i: any) => i.field === "call-binding")).toHaveLength(2)
+  expect(new Set(records.map((i: any) => i.key)).size).toBe(4)
+  expect(records.filter((i: any) => i.field === "call-binding").every((i: any) => i.state === "pending")).toBe(true)
+  expect(api.reconcileSemanticCompletion(records, [owner()]).filter((i: any) => i.field === "call-binding").every((i: any) => i.state === "resolved")).toBe(true)
+})
+test("a query binding belongs to its original question once across current source owners", () => {
+  const queries = (state: string) => ({ propertyQueries: { queries: [{ id: "p", state }] } })
+  const entry = owner({ demand: { required: [], dependencies: queries("bound") } }), helper = owner({ handle: "helper", sourceId: "helper-source", demand: { required: [], dependencies: queries("unbound") } })
+  expect(api.reconcileSemanticCompletion([], [entry, helper]).every((i: any) => i.state === "resolved")).toBe(true)
+  expect(api.reconcileSemanticCompletion([], [{ ...entry, questionId: "other" }, helper]).find((i: any) => i.questionId === "q").state).toBe("pending")
+  expect(api.reconcileSemanticCompletion([], [entry, { ...helper, demand: { required: [], dependencies: queries("bound") } }]).every((i: any) => i.state === "pending")).toBe(true)
+})

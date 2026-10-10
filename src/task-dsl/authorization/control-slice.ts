@@ -5,9 +5,10 @@ import type { AuthorizationInquiryProgram } from "./inquiry-program.ts"
 import type { InquiryEvidenceContext } from "./inquiry-result.ts"
 import { predicateDiagnostics, type FiniteValue } from "./control-evaluation.ts"
 
-export type InquiryStrategy = "legacy" | "domain-evidence-v1" | "guided-evidence-v2" | "semantic-flow-v1" | "focused-closure-v1" | "operation-evidence-v1" | "operation-evidence-v2" | "operation-evidence-v3" | "operation-evidence-v4" | "operation-evidence-v5" | "operation-evidence-v6" | "operation-evidence-v7" | "task-binding-v1"
-export const InquiryStrategySchema = z.enum(["legacy", "domain-evidence-v1", "guided-evidence-v2", "semantic-flow-v1", "focused-closure-v1", "operation-evidence-v1", "operation-evidence-v2", "operation-evidence-v3", "operation-evidence-v4", "operation-evidence-v5", "operation-evidence-v6", "operation-evidence-v7", "task-binding-v1"])
-export const isTaskBindingStrategy = (strategy?: InquiryStrategy) => strategy === "task-binding-v1"
+export type InquiryStrategy = "legacy" | "domain-evidence-v1" | "guided-evidence-v2" | "semantic-flow-v1" | "focused-closure-v1" | "operation-evidence-v1" | "operation-evidence-v2" | "operation-evidence-v3" | "operation-evidence-v4" | "operation-evidence-v5" | "operation-evidence-v6" | "operation-evidence-v7" | "task-binding-v1" | "semantic-completion-v1"
+export const InquiryStrategySchema = z.enum(["legacy", "domain-evidence-v1", "guided-evidence-v2", "semantic-flow-v1", "focused-closure-v1", "operation-evidence-v1", "operation-evidence-v2", "operation-evidence-v3", "operation-evidence-v4", "operation-evidence-v5", "operation-evidence-v6", "operation-evidence-v7", "task-binding-v1", "semantic-completion-v1"])
+export const isSemanticCompletionStrategy = (strategy?: InquiryStrategy) => strategy === "semantic-completion-v1"
+export const isTaskBindingStrategy = (strategy?: InquiryStrategy) => strategy === "task-binding-v1" || isSemanticCompletionStrategy(strategy)
 export const isInterproceduralPropertyStrategy = (strategy?: InquiryStrategy) => strategy === "operation-evidence-v7" || isTaskBindingStrategy(strategy)
 export const isPropertyAbstractionStrategy = (strategy?: InquiryStrategy) => strategy === "operation-evidence-v6" || isInterproceduralPropertyStrategy(strategy)
 export const isQuestionDirectedInquiryStrategy = (strategy?: InquiryStrategy) => strategy === "operation-evidence-v5" || isPropertyAbstractionStrategy(strategy)

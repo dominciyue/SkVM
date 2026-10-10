@@ -15,6 +15,13 @@ test("guided execution is an explicit opt-in and legacy remains the default", ()
   expect(api.sourceMaterialSemanticVersion("operation-evidence-v4")).toBe("property-control/v1")
   expect(() => api.parseInquiryStrategy("guided-evidence-v99")).toThrow("inquiry-strategy")
 })
+test("semantic completion explicitly inherits task-binding and v7 without changing the default", () => {
+  expect(api.parseInquiryStrategy("semantic-completion-v1")).toBe("semantic-completion-v1")
+  expect(api.isTaskBindingStrategy("semantic-completion-v1")).toBe(true)
+  expect(api.isInterproceduralPropertyStrategy("semantic-completion-v1")).toBe(true)
+  expect(api.sourceMaterialSemanticVersion("semantic-completion-v1")).toBe("interprocedural-property/v1")
+  expect(api.parseInquiryStrategy(undefined)).toBe("legacy")
+})
 test("control contract binds original source per question and separates policy and semantics", () => {
   expect(typeof api.mergeControlSlice).toBe("function")
   const good = api.mergeControlSlice(api.createControlSlice(), delta(), program, context)
