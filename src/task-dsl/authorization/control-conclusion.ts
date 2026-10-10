@@ -152,7 +152,7 @@ export function summarizeControlQuestions(program: AuthorizationInquiryProgram, 
 
 /** Check a selected property on the same source-bound slice. A checked local
  * relation never certifies interpretation meaning or the original whole task. */
-export function checkPropertyQueries(program: AuthorizationInquiryProgram, slice: ControlSlice, demands: PropertyDemand[], units: BoundSemanticBlock[], dependencies: DependencyCheckState[], sourceTransactions: InquiryDiagnostic[] = [], retainDeclaredProperties = false) {
+export function checkPropertyQueries(program: AuthorizationInquiryProgram, slice: ControlSlice, demands: PropertyDemand[], units: BoundSemanticBlock[], dependencies: DependencyCheckState[], sourceTransactions: InquiryDiagnostic[] = [], retainDeclaredProperties = false, evaluationVersion: "interprocedural-property/v1" | "semantic-completion/v1" = "interprocedural-property/v1") {
   const evaluated = evaluateControlPaths(slice)
   const questions = program.questions.map(question => {
     const local = demands.filter(d => d.questionId === question.id || d.dependencies?.propertyQueries?.questionId === question.id || d.dependencies?.propertyQueries?.queries.some(q => q.questionId === question.id))
@@ -165,7 +165,7 @@ export function checkPropertyQueries(program: AuthorizationInquiryProgram, slice
       return explicit.length ? explicit : declared.slice(0, 1)
     })
     const properties = queries.map(q => {
-      if (q.bindingScope === "interprocedural-property/v1") return checkInterproceduralProperty(q, slice, local, units, dependencies, queries.filter(v => v.id === q.id).length !== 1, sourceTransactions)
+      if (q.bindingScope === "interprocedural-property/v1") return checkInterproceduralProperty(q, slice, local, units, dependencies, queries.filter(v => v.id === q.id).length !== 1, sourceTransactions, evaluationVersion === "semantic-completion/v1")
       const gaps: string[] = [], trace: string[] = []
       let status: "checked" | "violated" | "unknown" = "unknown", value = "unresolved"
       const sourceUnits = units.filter(u => u.questionId === question.id && u.source?.id === q.source.id && u.source.sha256 === q.source.sha256)
@@ -207,12 +207,12 @@ export function checkPropertyQueries(program: AuthorizationInquiryProgram, slice
     const retained = [...properties, ...unlocated]
     return { questionId: question.id, properties: retained, gaps: retained.length ? [] : ["property-query-undeclared"] }
   })
-  return { schemaVersion: "authorization-property-check/v1" as const, revision: slice.revision, questions, diagnostics: validatePropertyQuestionMapping(program.questions.map(q => q.id), questions), originalQuestionCount: program.questions.length, wholeTaskCertified: false as const, semanticReview: "unreviewed" as const }
+  return { schemaVersion: "authorization-property-check/v1" as const, ...(evaluationVersion === "semantic-completion/v1" ? { evaluationVersion } : {}), revision: slice.revision, questions, diagnostics: validatePropertyQuestionMapping(program.questions.map(q => q.id), questions), originalQuestionCount: program.questions.length, wholeTaskCertified: false as const, semanticReview: "unreviewed" as const }
 }
 
 /** Consume current invocation paths from the existing evaluator. Syntax refs
  * select sources; only mapped predecessor identities prove the local relation. */
-function checkInterproceduralProperty(q: BoundPropertyQuery, slice: ControlSlice, demands: PropertyDemand[], units: BoundSemanticBlock[], dependencies: DependencyCheckState[], duplicate: boolean, sourceTransactions: InquiryDiagnostic[]) {
+function checkInterproceduralProperty(q: BoundPropertyQuery, slice: ControlSlice, demands: PropertyDemand[], units: BoundSemanticBlock[], dependencies: DependencyCheckState[], duplicate: boolean, sourceTransactions: InquiryDiagnostic[], callerGuardAtSelectedCall = false) {
   const gaps = [...q.missing], traced = new Map<string, BoundControlRule>()
   let status: "checked" | "violated" | "unknown" = "unknown", value = "unresolved"
   const selectedUnits = (ref?: PropertySourceReference) => ref ? units.filter(u => u.questionId === q.questionId && u.source?.id === ref.sourceId && u.source.sha256 === ref.sourceSha256 && u.receiverClass === ref.receiverClass) : []
@@ -241,7 +241,7 @@ function checkInterproceduralProperty(q: BoundPropertyQuery, slice: ControlSlice
     if (q.kind === "authorization-before-effect" || q.kind === "authorized-object-matches-effect") {
       if (!live.length && q.effectKind !== "call") gaps.push("property-effect-not-reachable")
       for (const reach of live) {
-        const guard = reach.ancestors.findLast(r => from(r, guardUnits) && r.kind === "guard" && r.sourceOrigin?.step === `guard-${q.guardAnchorId}` && (q.guardRef?.sourceId !== q.effectRef?.sourceId || r.sourceOrigin.instance === reach.effect.sourceOrigin?.instance))
+        const guard = reach.ancestors.findLast(r => from(r, guardUnits) && r.kind === "guard" && r.sourceOrigin?.step === `guard-${q.guardAnchorId}` && (q.guardRef?.sourceId !== q.effectRef?.sourceId || r.sourceOrigin.instance === reach.effect.sourceOrigin?.instance || callerGuardAtSelectedCall && q.effectKind === "call" && calls.some(c => inCall(reach.effect, c) && c.sourceOrigin?.instance === r.sourceOrigin?.instance && controlRuleReach(slice, c).ancestors.some(a => a.key === r.key))))
         if (!guard) { status = "violated"; value = "guard-not-predecessor"; break }
         if (!guard.principal || !guard.resource || !reach.effect.principal || !reach.effect.resource) { gaps.push("property-object-identity-unresolved"); break }
         if (guard.principal !== reach.effect.principal || guard.resource !== reach.effect.resource) { status = "violated"; value = "authorized-object-mismatch"; break }
