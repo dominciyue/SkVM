@@ -2,9 +2,10 @@ import { createHash } from "node:crypto"
 import { mkdir, readFile, writeFile } from "node:fs/promises"
 import { execFileSync } from "node:child_process"
 import path from "node:path"
+import { isDeepStrictEqual } from "node:util"
 import { loadInquiryInput, checkAuthorizationInquiry, inspectLocalInquiry } from "../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts"
 import { loadSkill } from "../../../../../src/core/skill-loader.ts"
-import { crossFunctionProperties, isDelivered, accounting } from "../authorization-task-binding-v1/summarize.ts"
+import { crossFunctionProperties, isDelivered } from "../authorization-task-binding-v1/summarize.ts"
 export const identity = "authorization-semantic-completion-v1", root = import.meta.dir, repo = path.resolve(root, "../../../../.."), runRoot = `D:/skill优化/project-maintenance/runs/${identity}`
 export const originalInput = path.resolve(root, "../authorization-interprocedural-property-v1/model/packages/download/inquiry.json")
 export const skillFile = path.resolve(root, "../authorization-domain-execution-v1/model/source-skills/cloudflare-security-audit/SKILL.md")
@@ -19,13 +20,16 @@ export function positionConfiguration(id: string) {
   return { id, entrance: "inquiry" as const, domainTools: !plain, strategy: plain ? "legacy" as const : "semantic-completion-v1" as const, method: plain ? "M" as const : "D1" as const, model: "gpt-5.6-sol", effort: "high", limits: { ...limits, ...(id === "extraction-download" ? { maxToolCalls: 12 } : {}) }, change: change?.[1], previousArm: change?.[2] === "previous" }
 }
 export const qualityReady = (check: any, completeSkill: boolean, questionCount: number) => check.status === "valid" && completeSkill && questionCount === 4
-export function qualifiedReuse(report: any, review: any, runtimeTree: string, originalSha?: string) {
+export function qualifiedReuse(report: any, review: any, runtimeTree: string, originalSha?: string, basis?: { skillIdentity: unknown; sourceFiles: Array<{ path: string; sha256: string }>; questionIds: string[] }) {
   if (!isDelivered(report) || report.strategy !== "semantic-completion-v1" || report.runtimeTree !== runtimeTree || report.sourceVerification?.valid !== true || !report.sessionPath || report.originalQuestionIds?.length !== 4 || !report.positionId?.startsWith("quality-d-")) return false
   if (originalSha && report.inputSha256 !== originalSha) return false
+  if (!basis || report.model !== "gpt-5.6-sol" || report.effort !== "high" || !isDeepStrictEqual(report.limits, limits) || !isDeepStrictEqual(report.skillIdentity, basis.skillIdentity) || !isDeepStrictEqual(report.originalQuestionIds, basis.questionIds) || report.actualModelInput?.fullOriginalBundlePrefixMatches !== true) return false
+  const sourceIdentity = (files: any[] = []) => files.map(f => [f.path, f.sha256]).sort((a, b) => a[0].localeCompare(b[0]))
+  if (!isDeepStrictEqual(sourceIdentity(report.sourceFiles), sourceIdentity(basis.sourceFiles))) return false
   if (review.status !== "source-reviewed" || review.attemptId !== report.attemptId || review.answerSha256 !== report.answerSha256 || review.inputSha256 !== report.inputSha256 || review.runtimeTree !== runtimeTree) return false
   return crossFunctionProperties(report).some((p: any) => {
     const q = report.taskPreparation?.questions.find((q: any) => q.questionId === p.questionId), declared = q?.properties.find((d: any) => d.id === p.propertyId)
-    return q?.origin === "model-task-proposal" && declared?.kind === p.kind && review.propertyReviews?.some((r: any) => r.questionId === p.questionId && r.propertyId === p.propertyId && r.sourceSupported === true)
+    return q?.origin === "model-task-proposal" && declared?.kind === p.kind && p.traceDetails.every((r: any) => !r.source || basis.sourceFiles.some(s => s.path === r.source.path && s.sha256 === r.source.sha256)) && review.propertyReviews?.some((r: any) => r.questionId === p.questionId && r.propertyId === p.propertyId && r.sourceSupported === true)
   })
 }
 export async function prepare(id: string) {
@@ -48,8 +52,9 @@ export async function prepare(id: string) {
     const manifest = await json(path.join(root, "manifest.json"))
     candidates: for (const p of manifest.positions) for (const attemptId of [...p.attempts].reverse()) {
       try {
-        const directory = path.join(root, "attempts", attemptId), report = await json(path.join(directory, "report.json")), review = await json(path.join(directory, "source-review.json"))
-        if (qualifiedReuse(report, review, runtimeTree, original.inputSha256)) { await inspectLocalInquiry(report.sessionPath); baselineAttemptId = attemptId; if (config.previousArm) previous = report.sessionPath; break candidates }
+        const directory = path.join(root, "attempts", attemptId), report = await json(path.join(directory, "report.json")), review = await json(path.join(directory, "source-review.json")), claim = await json(path.join(directory, "claim.json"))
+        const originalCheck = await checkAuthorizationInquiry(originalInput, "D1", "semantic-completion-v1")
+        if (originalCheck.status === "valid" && qualifiedReuse({ ...report, sourceFiles: claim.sourceFiles }, review, runtimeTree, original.inputSha256, { skillIdentity, sourceFiles: originalCheck.sourceFiles!, questionIds: originalQuestionIds })) { await inspectLocalInquiry(report.sessionPath); baselineAttemptId = attemptId; if (config.previousArm) previous = report.sessionPath; break candidates }
       } catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error }
     }
     if (!baselineAttemptId) throw new Error("Change pair unrun: no independently reviewed current original-task cross-source material and readable session")
@@ -59,22 +64,14 @@ export async function prepare(id: string) {
   return readiness
 }
 export async function summarize() {
-  const manifest = await json(path.join(root, "manifest.json")), reports: any[] = [], reviews: any[] = []
-  for (const p of manifest.positions) for (const attemptId of p.attempts) {
-    reports.push(await json(path.join(root, "attempts", attemptId, "report.json")))
-    try { reviews.push(await json(path.join(root, "attempts", attemptId, "source-review.json"))) } catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error }
-  }
-  const rows = manifest.positions.map((p: any) => ({ id: p.id, status: p.status, attempts: p.attempts, unrunReason: p.unrunReason ?? null, results: reports.filter(r => r.positionId === p.id).map(r => ({ attemptId: r.attemptId, runtimeTree: r.runtimeTree, delivered: isDelivered(r), toolCalls: r.hostToolCalls, independentProperties: crossFunctionProperties(r), review: reviews.find(v => v.attemptId === r.attemptId) ?? null })) }))
-  const pairs = [["quality-n-1", "quality-d-1"], ["quality-n-2", "quality-d-2"]].map(ids => ({ ids, attempts: reports.filter(r => ids.includes(r.positionId)).map(r => ({ attemptId: r.attemptId, runtimeTree: r.runtimeTree, delivered: isDelivered(r), usage: r.accountUsage, toolCalls: r.hostToolCalls, durationMs: r.durationMs, review: reviews.find(v => v.attemptId === r.attemptId) ?? null })) }))
-  const result = { schemaVersion: "authorization-bd-summary/v1", identity, rows, pairs, accounting: accounting(reports), conclusionsAllowed: ["support", "tradeoff", "no-observed-difference", "negative", "inconclusive"], inheritedUnknownsRetained: true, targetExecutions: 0 }
-  await write(path.join(root, "summary.json"), result); await write(path.join(root, "accounting.json"), result.accounting); return result
+  return (await import("./summarize.ts")).summarizeStudy(root)
 }
 if (import.meta.main) {
   const command = process.argv[2]
   if (command === "help") console.log("prepare <registered-position> | run <registered-position> [named-revision] | replay | summarize (prepare/replay are zero-model)")
-  else if (command === "prepare") console.log(JSON.stringify(await prepare(process.argv[3]!)))
+  else if (command === "prepare") { const p = await prepare(process.argv[3]!); console.log(JSON.stringify({ id: p.id, readyToDispatch: p.readyToDispatch, modelCalls: p.modelCalls, runtimeTree: p.runtimeTree, strategy: p.strategy, domainTools: p.domainTools, sourceFiles: p.sourceFiles?.length, originalQuestionIds: p.originalQuestionIds, baselineAttemptId: p.baselineAttemptId ?? null })) }
   else if (command === "run") await (await import("./runner.ts")).run(process.argv[3]!, process.argv[4])
   else if (command === "replay") console.log(JSON.stringify(await (await import("./replay.ts")).replay()))
-  else if (command === "summarize") console.log(JSON.stringify(await summarize()))
+  else if (command === "summarize") { const s = await summarize(); console.log(JSON.stringify({ status: s.status, positions: s.rows.length, attempts: s.accounting.attempts, quality: s.qualityComparison, knownUsage: s.accounting.known })) }
   else throw new Error("Use help | prepare | run | replay | summarize")
 }

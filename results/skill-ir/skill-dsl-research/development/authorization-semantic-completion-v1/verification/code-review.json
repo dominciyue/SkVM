@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "authorization-bd-code-review/v1",
+  "identity": "authorization-semantic-completion-v1",
+  "reviewedRevision": "d747f44d8e61e51ace753040434ddd1aa599ceb9",
+  "runtimeTree": "7cb93348542e7287db7d70b9167af02902dfbd34",
+  "reviewMode": "Two independent one-turn default read-only scouts; main-agent exact-source review and deterministic reproduction.",
+  "reviewers": [
+    "bd_completion_code_review",
+    "bd_runtime_code_review"
+  ],
+  "findings": [
+    {
+      "candidate": "Anchor-specific role enum is advertised, but the narrow adapter initially parses with the global role enum.",
+      "disposition": "No public-path bypass or retained illegal meaning; existing authoritative validator enforces the anchor restriction before draft mutation.",
+      "evidence": [
+        "src/benchmarks/authorization-dsl/semantic-completion-wire.ts:47",
+        "src/benchmarks/authorization-dsl/inquiry-focus.ts:357",
+        "src/benchmarks/authorization-dsl/inquiry-focus.ts:361",
+        "src/task-dsl/authorization/source-edit.ts:43",
+        "src/task-dsl/authorization/source-edit.ts:47",
+        "src/task-dsl/authorization/source-edit.test.ts:131"
+      ],
+      "observed": "An actual source return anchor with role effect expands, then compileSourceEdit returns source-edit-role, acceptedEdits=0 and no retained annotation.",
+      "action": "Reuse the existing validator; no duplicate enforcement or source change."
+    },
+    {
+      "candidate": "An existing sourceOrigin with missing step or instance could throw during call matching.",
+      "disposition": "Such objects violate the public schema and BoundControlRule type; step and instance are required whenever sourceOrigin exists.",
+      "evidence": [
+        "src/task-dsl/authorization/control-slice.ts:59",
+        "src/task-dsl/authorization/control-slice.ts:64",
+        "src/task-dsl/authorization/control-slice.ts:82",
+        "src/task-dsl/authorization/control-conclusion.ts:221"
+      ],
+      "observed": "Missing step and missing instance both fail SemanticControlRuleSchema; a complete origin passes.",
+      "action": "No guard for an impossible validated state; no source change."
+    }
+  ],
+  "deterministicReproduction": {
+    "roleProposal": {
+      "expanded": true,
+      "acceptedEdits": 0,
+      "retainedAnnotations": 0,
+      "diagnostics": [
+        "source-edit-role"
+      ]
+    },
+    "sourceOrigin": {
+      "missingStepAccepted": false,
+      "missingInstanceAccepted": false,
+      "completeOriginAccepted": true
+    }
+  },
+  "focusedExistingTests": {
+    "tests": 8,
+    "assertions": 100,
+    "exitCode": 0,
+    "output": "bun test v1.3.14 (0d9b296a)\n\nsrc\\task-dsl\\authorization\\source-edit.test.ts:\n(pass) field/value edits retain a partial role and compile after a later explanation [91.89ms]\n(pass) editor rejects unknown enum meanings, empty explanations and invalid finite predicates without coercion [59.52ms]\n(pass) empty draft, named unknown and explicit source predicate are distinct [55.38ms]\n(pass) foreign anchors, stale transaction, duplicate slots and conflicting host metadata cannot modify a draft [53.68ms]\n(pass) model view exposes schema-derived fields and validated anonymous expression examples [53.92ms]\n(pass) the public v6 source transaction adopts incremental edits through wire, lowering and projection [278.53ms]\n(pass) edit role choices and validation share the source anchor restriction [61.00ms]\n(pass) optional annotation clears preserve unrelated draft fields and do not accept null for required meanings [55.36ms]\n\n 8 pass\n 0 fail\n 100 expect() calls\nRan 8 tests across 1 file. [842.00ms]\n"
+  },
+  "mainTypeCheckPassed": true,
+  "unresolvedCodeReviewBlockers": [],
+  "newRuntimeEpoch": false,
+  "newModelAttempts": 0,
+  "initialLocalInvocation": "First PowerShell stdin invocation printed Bun usage without running assertions; corrected variable invocation produced the recorded JSON. No model request was involved.",
+  "realResearchLimitationsRemain": "Source meaning/closure, incomplete whole answers and unavailable qualified previous material remain the acceptance-matrix responsibilities."
+}

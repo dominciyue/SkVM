@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "authorization-bd-source-review/v1",
+  "status": "source-reviewed",
+  "attemptId": "quality-n-1/original",
+  "inputSha256": "ee99327d807ccd1e130117266c8bcdca9f33113b260782152463a4b48fafb397",
+  "answerSha256": "f0bc32dca3574d1fc83f85362d456e1de18bf151e5c074d34e580f5f4d79bbeb",
+  "runtimeTree": "7cb93348542e7287db7d70b9167af02902dfbd34",
+  "wholeOriginalTask": "partial",
+  "questions": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "quality": "partial",
+      "correctness": "material-source-error",
+      "answerLines": [
+        71,
+        89,
+        93
+      ],
+      "reason": "Answer line93 claims version resolution uses global_objects because file_response includes deleted. _resolve_file_doc instead derives include_deleted from presence of version; absent version latest selection uses Document.objects. Empty or explicit version does include deleted. Correct other version/representation branches do not remove this error.",
+      "sourceAnchors": [
+        "src/documents/views.py:1375-1386",
+        "src/documents/versioning.py:159-195"
+      ]
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "quality": "full",
+      "sourceSupported": true,
+      "answerLines": [
+        18,
+        65
+      ],
+      "sourceAnchors": [
+        "src/documents/views.py:1401-1448",
+        "src/documents/permissions.py:30-54",
+        "src/documents/permissions.py:624-635",
+        "framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246"
+      ]
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "quality": "full",
+      "sourceSupported": true,
+      "answerLines": [
+        139,
+        147
+      ],
+      "sourceAnchors": [
+        "src/documents/views.py:1417-1448"
+      ]
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "quality": "full",
+      "sourceSupported": true,
+      "answerLines": [
+        149,
+        169
+      ],
+      "sourceAnchors": [
+        "src/documents/views.py:1408-1448",
+        "src/documents/permissions.py:624-635"
+      ]
+    }
+  ],
+  "propertyReviews": [],
+  "independentInitialAssessment": {
+    "agent": "bd_n1_quality_review",
+    "qualities": [
+      "full",
+      "full",
+      "full",
+      "full"
+    ],
+    "mainSourceCorrection": "Q1 softened by exact include_deleted argument at views.py1376-1380; original independent assessment retained"
+  },
+  "completeSkillConsumed": true,
+  "originalQuestionsRetained": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "present": true
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "present": true
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "present": true
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "present": true
+    }
+  ],
+  "evaluatorProvidedToRuntime": false
+}

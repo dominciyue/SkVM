@@ -9,19 +9,102 @@
   "experimentModel": "gpt-5.6-sol",
   "experimentEffort": "high",
   "strategy": "semantic-completion-v1",
-  "limits": { "maxToolCalls": 64, "maxDisplayBytes": 786432, "maxReadBytes": 33554432, "sessionTimeoutMs": 2700000 },
+  "limits": {
+    "maxToolCalls": 64,
+    "maxDisplayBytes": 786432,
+    "maxReadBytes": 33554432,
+    "sessionTimeoutMs": 2700000
+  },
   "positions": [
-    { "id": "extraction-download", "stage": "BD10", "maxToolCalls": 12, "status": "pending", "attempts": [] },
-    { "id": "quality-n-1", "stage": "BD11", "status": "pending", "attempts": [] },
-    { "id": "quality-d-1", "stage": "BD11", "status": "pending", "attempts": [] },
-    { "id": "quality-d-2", "stage": "BD11", "status": "pending", "attempts": [] },
-    { "id": "quality-n-2", "stage": "BD11", "status": "pending", "attempts": [] },
-    { "id": "policy-fresh", "stage": "BD12", "status": "pending", "attempts": [] },
-    { "id": "policy-previous", "stage": "BD12", "status": "pending", "attempts": [] },
-    { "id": "premise-fresh", "stage": "BD12", "status": "pending", "attempts": [] },
-    { "id": "premise-previous", "stage": "BD12", "status": "pending", "attempts": [] },
-    { "id": "source-fresh", "stage": "BD12", "status": "pending", "attempts": [] },
-    { "id": "source-previous", "stage": "BD12", "status": "pending", "attempts": [] }
+    {
+      "id": "extraction-download",
+      "stage": "BD10",
+      "maxToolCalls": 12,
+      "status": "completed",
+      "attempts": [
+        "extraction-download/original"
+      ]
+    },
+    {
+      "id": "quality-n-1",
+      "stage": "BD11",
+      "status": "completed",
+      "attempts": [
+        "quality-n-1/original"
+      ]
+    },
+    {
+      "id": "quality-d-1",
+      "stage": "BD11",
+      "status": "completed",
+      "attempts": [
+        "quality-d-1/original"
+      ]
+    },
+    {
+      "id": "quality-d-2",
+      "stage": "BD11",
+      "status": "completed",
+      "attempts": [
+        "quality-d-2/original"
+      ]
+    },
+    {
+      "id": "quality-n-2",
+      "stage": "BD11",
+      "status": "completed",
+      "attempts": [
+        "quality-n-2/original"
+      ]
+    },
+    {
+      "id": "policy-fresh",
+      "stage": "BD12",
+      "status": "unrun-material-ineligible",
+      "attempts": [],
+      "unrunReason": "No independently source-supported current original-task checked/violated cross-source material; D1 has four unknowns and D2 three unknowns. Ordinary sessions exist, but natural answers/partial units are not qualified previous material.",
+      "eligibilityEvidence": "verification/reuse-eligibility.json"
+    },
+    {
+      "id": "policy-previous",
+      "stage": "BD12",
+      "status": "unrun-material-ineligible",
+      "attempts": [],
+      "unrunReason": "No independently source-supported current original-task checked/violated cross-source material; D1 has four unknowns and D2 three unknowns. Ordinary sessions exist, but natural answers/partial units are not qualified previous material.",
+      "eligibilityEvidence": "verification/reuse-eligibility.json"
+    },
+    {
+      "id": "premise-fresh",
+      "stage": "BD12",
+      "status": "unrun-material-ineligible",
+      "attempts": [],
+      "unrunReason": "No independently source-supported current original-task checked/violated cross-source material; D1 has four unknowns and D2 three unknowns. Ordinary sessions exist, but natural answers/partial units are not qualified previous material.",
+      "eligibilityEvidence": "verification/reuse-eligibility.json"
+    },
+    {
+      "id": "premise-previous",
+      "stage": "BD12",
+      "status": "unrun-material-ineligible",
+      "attempts": [],
+      "unrunReason": "No independently source-supported current original-task checked/violated cross-source material; D1 has four unknowns and D2 three unknowns. Ordinary sessions exist, but natural answers/partial units are not qualified previous material.",
+      "eligibilityEvidence": "verification/reuse-eligibility.json"
+    },
+    {
+      "id": "source-fresh",
+      "stage": "BD12",
+      "status": "unrun-material-ineligible",
+      "attempts": [],
+      "unrunReason": "No independently source-supported current original-task checked/violated cross-source material; D1 has four unknowns and D2 three unknowns. Ordinary sessions exist, but natural answers/partial units are not qualified previous material.",
+      "eligibilityEvidence": "verification/reuse-eligibility.json"
+    },
+    {
+      "id": "source-previous",
+      "stage": "BD12",
+      "status": "unrun-material-ineligible",
+      "attempts": [],
+      "unrunReason": "No independently source-supported current original-task checked/violated cross-source material; D1 has four unknowns and D2 three unknowns. Ordinary sessions exist, but natural answers/partial units are not qualified previous material.",
+      "eligibilityEvidence": "verification/reuse-eligibility.json"
+    }
   ],
   "inputs": {
     "original": "../authorization-interprocedural-property-v1/model/packages/download/inquiry.json",
@@ -35,14 +118,271 @@
     "comparison": "two same-condition N/D pairs; no checked-property quality gate",
     "reuse": "three fresh/previous pairs only with qualified current same-property material and readable session"
   },
-  "observedOutcomes": { "engineering": "pending", "realProperty": "pending", "wholeTask": "pending", "comparison": "pending", "reuse": "pending" },
+  "observedOutcomes": {
+    "engineering": {
+      "status": "implemented-and-verified",
+      "revision": "d747f44d8e61e51ace753040434ddd1aa599ceb9",
+      "tests": {
+        "affected": 179,
+        "assertions": 1304,
+        "research": 9,
+        "researchAssertions": 46,
+        "documentation": 15
+      },
+      "publicBoundaries": "new explicit strategy, source/final independence, strict narrow edits, 64 total units and ordinary inquiry sessions; native skvm run is not an inquiry previous archive"
+    },
+    "realProperty": {
+      "status": "unmet",
+      "qualifiedCurrentCrossSourceProperties": 0,
+      "currentDUnknowns": 7,
+      "diagnosticUnknowns": 2,
+      "details": "D2 has a nonempty two-unit trace, but all three properties remain unknown; D1 helper links were rejected and four properties remain unknown"
+    },
+    "wholeTask": {
+      "status": "unmet",
+      "denominator": 4,
+      "delivered": 4,
+      "endToEndFull": 0,
+      "wholeTaskDistribution": {
+        "partial": 4
+      },
+      "perQuestion": [
+        {
+          "questionId": "requested-document-and-returned-file",
+          "counts": {
+            "partial": 2,
+            "full": 2
+          }
+        },
+        {
+          "questionId": "authorization-and-selection-order",
+          "counts": {
+            "full": 3,
+            "partial": 1
+          }
+        },
+        {
+          "questionId": "alternate-version-authorized-resource",
+          "counts": {
+            "full": 4
+          }
+        },
+        {
+          "questionId": "missing-facts-and-conditional-conclusions",
+          "counts": {
+            "full": 1,
+            "partial": 3
+          }
+        }
+      ]
+    },
+    "comparison": {
+      "status": "completed-current-observations",
+      "pairs": [
+        {
+          "ids": [
+            "quality-n-1",
+            "quality-d-1"
+          ],
+          "sameConditions": true,
+          "conclusion": "tradeoff",
+          "fullQuestionDeltaDMinusN": 0,
+          "costsDMinusN": {
+            "input": 3215774,
+            "output": 8368,
+            "tools": -1,
+            "durationMs": 196647
+          }
+        },
+        {
+          "ids": [
+            "quality-n-2",
+            "quality-d-2"
+          ],
+          "sameConditions": true,
+          "conclusion": "negative",
+          "fullQuestionDeltaDMinusN": -2,
+          "costsDMinusN": {
+            "input": 2416586,
+            "output": 8587,
+            "tools": 5,
+            "durationMs": 253734
+          }
+        }
+      ],
+      "generalization": "Two repeated development observations of one exposed original task; no statistical or cross-project claim and no isolated representation attribution"
+    },
+    "reuse": {
+      "status": "unmet",
+      "positions": [
+        "policy-fresh",
+        "policy-previous",
+        "premise-fresh",
+        "premise-previous",
+        "source-fresh",
+        "source-previous"
+      ],
+      "actualPreviousAttempts": 0,
+      "qualifiedBasis": 0,
+      "reason": "No independently source-supported current original-task checked/violated cross-source material; D1 has four unknowns and D2 three unknowns. Ordinary sessions exist, but natural answers/partial units are not qualified previous material.",
+      "evidence": "verification/reuse-eligibility.json"
+    },
+    "netBenefit": {
+      "status": "not-established",
+      "quality": "First pair trades Q1 against Q4; second pair has fewer full questions for D",
+      "cost": "D input and output exceed N in both pairs; tool totals include automatic reads",
+      "unobserved": [
+        "actualUsd",
+        "hiddenProviderRequests",
+        "developmentAndSubagentTokens",
+        "humanMinutes"
+      ]
+    }
+  },
   "inheritedEvidence": "../authorization-task-binding-v1/verification/acceptance-matrix.json",
   "inheritedUnknownDisposition": "../authorization-interprocedural-property-v1/verification/user-resume-1-fresh-disposition.json",
-  "recovery": { "routing": "one named recovery; pause after two consecutive or three cumulative failed recoveries", "quotaAuth": "pause external dispatch", "unknown": "inspect original lifecycle only" },
+  "recovery": {
+    "routing": "one named recovery; pause after two consecutive or three cumulative failed recoveries",
+    "quotaAuth": "pause external dispatch",
+    "unknown": "inspect original lifecycle only"
+  },
   "evaluatorIsolation": "Original skill, task, allowed source, independent policy/premises and generic contract only; no evaluator/reference/history/repair notes.",
-  "status": "in-progress",
-  "executionClosed": false,
+  "status": "completed-with-unmet-criteria",
+  "executionClosed": true,
   "finiteQueueComplete": false,
   "researchGoalAchieved": false,
-  "publicationComplete": false
+  "publicationComplete": false,
+  "authorizedExecutionComplete": true,
+  "runtimeTree": "7cb93348542e7287db7d70b9167af02902dfbd34",
+  "engineeringRevision": "d747f44d8e61e51ace753040434ddd1aa599ceb9",
+  "diagnosticScope": {
+    "position": "extraction-download",
+    "originalQuestions": 1,
+    "requiredPreparedProperties": 1,
+    "observedPreparedProperties": 2,
+    "singlePropertyCriterionMet": false,
+    "qualityPanelMember": false,
+    "evidence": "verification/acceptance-matrix.json"
+  },
+  "outcomes": {
+    "engineering": {
+      "status": "implemented-and-verified",
+      "revision": "d747f44d8e61e51ace753040434ddd1aa599ceb9",
+      "tests": {
+        "affected": 179,
+        "assertions": 1304,
+        "research": 9,
+        "researchAssertions": 46,
+        "documentation": 15
+      },
+      "publicBoundaries": "new explicit strategy, source/final independence, strict narrow edits, 64 total units and ordinary inquiry sessions; native skvm run is not an inquiry previous archive"
+    },
+    "realProperty": {
+      "status": "unmet",
+      "qualifiedCurrentCrossSourceProperties": 0,
+      "currentDUnknowns": 7,
+      "diagnosticUnknowns": 2,
+      "details": "D2 has a nonempty two-unit trace, but all three properties remain unknown; D1 helper links were rejected and four properties remain unknown"
+    },
+    "wholeTask": {
+      "status": "unmet",
+      "denominator": 4,
+      "delivered": 4,
+      "endToEndFull": 0,
+      "wholeTaskDistribution": {
+        "partial": 4
+      },
+      "perQuestion": [
+        {
+          "questionId": "requested-document-and-returned-file",
+          "counts": {
+            "partial": 2,
+            "full": 2
+          }
+        },
+        {
+          "questionId": "authorization-and-selection-order",
+          "counts": {
+            "full": 3,
+            "partial": 1
+          }
+        },
+        {
+          "questionId": "alternate-version-authorized-resource",
+          "counts": {
+            "full": 4
+          }
+        },
+        {
+          "questionId": "missing-facts-and-conditional-conclusions",
+          "counts": {
+            "full": 1,
+            "partial": 3
+          }
+        }
+      ]
+    },
+    "comparison": {
+      "status": "completed-current-observations",
+      "pairs": [
+        {
+          "ids": [
+            "quality-n-1",
+            "quality-d-1"
+          ],
+          "sameConditions": true,
+          "conclusion": "tradeoff",
+          "fullQuestionDeltaDMinusN": 0,
+          "costsDMinusN": {
+            "input": 3215774,
+            "output": 8368,
+            "tools": -1,
+            "durationMs": 196647
+          }
+        },
+        {
+          "ids": [
+            "quality-n-2",
+            "quality-d-2"
+          ],
+          "sameConditions": true,
+          "conclusion": "negative",
+          "fullQuestionDeltaDMinusN": -2,
+          "costsDMinusN": {
+            "input": 2416586,
+            "output": 8587,
+            "tools": 5,
+            "durationMs": 253734
+          }
+        }
+      ],
+      "generalization": "Two repeated development observations of one exposed original task; no statistical or cross-project claim and no isolated representation attribution"
+    },
+    "reuse": {
+      "status": "unmet",
+      "positions": [
+        "policy-fresh",
+        "policy-previous",
+        "premise-fresh",
+        "premise-previous",
+        "source-fresh",
+        "source-previous"
+      ],
+      "actualPreviousAttempts": 0,
+      "qualifiedBasis": 0,
+      "reason": "No independently source-supported current original-task checked/violated cross-source material; D1 has four unknowns and D2 three unknowns. Ordinary sessions exist, but natural answers/partial units are not qualified previous material.",
+      "evidence": "verification/reuse-eligibility.json"
+    },
+    "netBenefit": {
+      "status": "not-established",
+      "quality": "First pair trades Q1 against Q4; second pair has fewer full questions for D",
+      "cost": "D input and output exceed N in both pairs; tool totals include automatic reads",
+      "unobserved": [
+        "actualUsd",
+        "hiddenProviderRequests",
+        "developmentAndSubagentTokens",
+        "humanMinutes"
+      ]
+    }
+  }
 }

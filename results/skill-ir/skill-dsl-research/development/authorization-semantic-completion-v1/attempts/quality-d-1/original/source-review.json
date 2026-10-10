@@ -1,0 +1,120 @@
+{
+  "schemaVersion": "authorization-bd-source-review/v1",
+  "status": "source-reviewed",
+  "attemptId": "quality-d-1/original",
+  "inputSha256": "ee99327d807ccd1e130117266c8bcdca9f33113b260782152463a4b48fafb397",
+  "answerSha256": "bb37a3075a1bb4505ad705609904bd87eaa809265a276cb512f54419b64de6ed",
+  "runtimeTree": "7cb93348542e7287db7d70b9167af02902dfbd34",
+  "wholeOriginalTask": "partial",
+  "questions": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "quality": "full",
+      "sourceSupported": true,
+      "answerLines": [
+        3,
+        18,
+        35,
+        62
+      ],
+      "sourceAnchors": [
+        "src/documents/views.py:1368-1448",
+        "src/documents/versioning.py:140-195",
+        "src/documents/views.py:4941-4995"
+      ]
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "quality": "full",
+      "sourceSupported": true,
+      "answerLines": [
+        8,
+        29,
+        48
+      ],
+      "sourceAnchors": [
+        "src/documents/views.py:1008-1027",
+        "src/documents/views.py:1401-1448",
+        "src/documents/permissions.py:36-53",
+        "src/documents/permissions.py:624-635",
+        "framework/rest_framework-3.18.1/rest_framework/views.py:331-342"
+      ]
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "quality": "full",
+      "sourceSupported": true,
+      "answerLines": [
+        64,
+        72
+      ],
+      "sourceAnchors": [
+        "src/documents/views.py:1401-1448"
+      ]
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "quality": "partial",
+      "sourceSupported": true,
+      "answerLines": [
+        74,
+        84
+      ],
+      "reason": "Lists the missing permission, owner/grant, request, data and file facts but only says they block the concrete outcome. The original Q4 explicitly requests the exact conclusion blocked by each fact; that per-fact mapping is not delivered. Policy uncertainty is mapped explicitly.",
+      "sourceAnchors": [
+        "src/documents/views.py:1401-1448",
+        "src/documents/permissions.py:624-635"
+      ]
+    }
+  ],
+  "propertyReviews": [],
+  "independentInitialAssessment": {
+    "agent": "bd_d1_quality_review",
+    "qualities": [
+      "full",
+      "full",
+      "full",
+      "full"
+    ],
+    "mainCorrection": "Q4 partial under the original exact fact-to-conclusion mapping requirement; initial independent assessment retained"
+  },
+  "mechanismReview": {
+    "agent": "bd_d1_mechanism_review",
+    "sourceInterpretationSubmissions": 4,
+    "acceptedSourceUnits": 3,
+    "propertyEvaluations": 25,
+    "formatRejections": 0,
+    "sourceSupportedQualifiedProperties": 0,
+    "mainCorrection": "History24 link rejected focus-stale; history25 rejected focus-stage. domain.sourceLinks is empty; domain.semantic.units contains three partial download entry units, not an accepted file_response callee. Fair focus history rotates Q1,Q2,Q3,Q1,Q2. Shared affectedQuestionIds is not evidence that another question closed the current question. No reproduced static-schema or host-adoption fault; missing raise semantics and callee interpretation remain.",
+    "evidenceFile": "mechanism-evidence.json",
+    "unmetResponsibility": {
+      "component": "inquiry-focus.ts completion-before-dependency scheduling and model use of the offered semantic-completion slots",
+      "source": "src/documents/views.py:1835-1839",
+      "fields": [
+        "failureKind",
+        "propertyBindings"
+      ],
+      "downstream": "file_response body not interpreted before exploration budget exhausted"
+    }
+  },
+  "completeSkillConsumed": true,
+  "originalQuestionsRetained": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "present": true
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "present": true
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "present": true
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "present": true
+    }
+  ],
+  "evaluatorProvidedToRuntime": false
+}

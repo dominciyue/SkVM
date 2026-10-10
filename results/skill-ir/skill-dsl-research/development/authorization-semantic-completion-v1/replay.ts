@@ -6,6 +6,7 @@ import { loadInquiryInput } from "../../../../../src/benchmarks/authorization-ds
 import { createInquiryTools } from "../../../../../src/benchmarks/authorization-dsl/inquiry-tools.ts"
 import { compileAuthorizationInquiry } from "../../../../../src/task-dsl/authorization/inquiry-program.ts"
 import { createInquiryDomainRuntime } from "../../../../../src/benchmarks/authorization-dsl/inquiry-domain-runtime.ts"
+import { resolveInquiryContext } from "../../../../../src/benchmarks/authorization-dsl/inquiry-context.ts"
 /** Development-only replays of original model arguments. No semantic values are supplied by this adapter. */
 export async function replay() {
   const historical = path.resolve(root, "../authorization-task-binding-v1"), cases = [
@@ -21,7 +22,14 @@ export async function replay() {
       const h = native.history[index], call = h.call
       const wireEvent = packets.findLastIndex((e: any) => e.direction === "server" && e.method === "item/tool/call" && e.params?.callId === call.id)
       const contextEvent = packets.slice(0, wireEvent < 0 ? packets.length : wireEvent).findLastIndex((e: any) => e.direction === "client" && (e.method === "turn/start" || e.result?.contentItems))
-      return { index, jsonPath: `${archived.authorizationInquiry ? "authorizationInquiry" : "native"}.history[${index}].call`, call, response: h.output, executed: h.executed, contextEventIndex: contextEvent, contextEvent: packets[contextEvent] }
+      const previousPackets: any[] = []; let context: any
+      for (const e of packets.slice(0, contextEvent + 1)) {
+        try {
+          const packet = e.direction === "client" && e.method === "turn/start" ? JSON.parse(e.params.input[0].text.split("Current local explanation context: ")[1]) : e.direction === "client" && e.result?.contentItems ? JSON.parse(e.result.contentItems[0].text).currentContext : undefined
+          if (packet) { context = resolveInquiryContext(packet, previousPackets); previousPackets.push(packet) }
+        } catch { /* Original pointer survives when context uses an older codec. */ }
+      }
+      return { index, jsonPath: `${archived.authorizationInquiry ? "authorizationInquiry" : "native"}.history[${index}].call`, call, response: { status: h.output?.status, code: h.output?.code, valid: h.output?.valid, diagnostics: h.output?.diagnostics ?? h.output?.controlDiagnostics, budget: h.output?.toolBudget }, executed: h.executed, contextEventIndex: contextEvent, originalContextEventSha256: sha(JSON.stringify(packets[contextEvent] ?? null)), currentContext: context ? { focus: context.focus, toolBudget: context.toolBudget, taskSources: context.tasks?.map((t: any) => ({ itemId: t.itemId, source: t.sourceSkeleton?.source, revision: t.sourceSkeleton?.revision, transactionId: t.sourceEdit?.transactionId, frontier: t.propertyDemand?.frontier })), gaps: context.gaps } : null }
     })
     entries.push({ id: c.id, file, sha256: sha(bytes), originalModelEvents: selected, finalBudget: native.toolBudget, sourceMeaningAdded: false })
   }

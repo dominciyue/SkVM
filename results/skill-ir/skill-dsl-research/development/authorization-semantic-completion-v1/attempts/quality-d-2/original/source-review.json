@@ -1,0 +1,122 @@
+{
+  "schemaVersion": "authorization-bd-source-review/v1",
+  "status": "source-reviewed",
+  "attemptId": "quality-d-2/original",
+  "inputSha256": "ee99327d807ccd1e130117266c8bcdca9f33113b260782152463a4b48fafb397",
+  "answerSha256": "689abb04e9c39f0051c817ebc4728e13bb8bf7d75c270efab76a3e2cc66239e5",
+  "runtimeTree": "7cb93348542e7287db7d70b9167af02902dfbd34",
+  "wholeOriginalTask": "partial",
+  "questions": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "quality": "partial",
+      "sourceSupported": true,
+      "answerLines": [
+        7,
+        35
+      ],
+      "reason": "The every-relevant-branch request is unmet: default latest and root fallback, version presence versus empty value, manager filtering, and explicit candidate family checks are not expanded. Initial include_deleted=True is correctly scoped to requested-document lookup.",
+      "sourceAnchors": [
+        "src/documents/views.py:1375-1448",
+        "src/documents/versioning.py:140-195",
+        "src/documents/views.py:4941-4995"
+      ]
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "quality": "partial",
+      "sourceSupported": true,
+      "answerLines": [
+        39,
+        62
+      ],
+      "reason": "Correct authorization-before-selection order and root guard, but no expansion of the GET model view permission or owner-aware branches (owner null, same owner, guardian grant); the original task asks for the checks and branches, not only configured class names.",
+      "sourceAnchors": [
+        "src/documents/permissions.py:36-53",
+        "src/documents/permissions.py:624-635",
+        "framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246",
+        "src/documents/views.py:1401-1448"
+      ]
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "quality": "full",
+      "sourceSupported": true,
+      "answerLines": [
+        17,
+        34,
+        62
+      ],
+      "sourceAnchors": [
+        "src/documents/views.py:1388-1448"
+      ]
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "quality": "partial",
+      "sourceSupported": true,
+      "answerLines": [
+        64,
+        80
+      ],
+      "reason": "Ownership/grants, request values, file availability and deployment configuration are mapped to conditional claims, but the caller model-level view grant is omitted as a distinct fact blocking entry. The reported checker linkage gap is a machine-certification caveat and is not treated as evidence that the source call is unavailable.",
+      "sourceAnchors": [
+        "src/documents/permissions.py:36-43",
+        "framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246",
+        "src/documents/views.py:1401-1448"
+      ]
+    }
+  ],
+  "propertyReviews": [],
+  "independentInitialAssessment": {
+    "agent": "bd_d2_quality_review",
+    "qualities": [
+      "partial",
+      "partial",
+      "full",
+      "partial"
+    ],
+    "mainCorrection": "Retain Q2 partial because model GET permission and has_perms_owner_aware branches are omitted. PaperlessObjectPermissions.has_object_permission is not an automatic extra Download call. Q4 partial rests on omitted model grant, not on mistaking the explicitly reported checker gap for an unavailable source call."
+  },
+  "mechanismReview": {
+    "agent": "bd_d2_mechanism_review",
+    "sourceInterpretationSubmissions": 9,
+    "validSourceEdits": 38,
+    "acceptedSourceUnits": 4,
+    "acceptedSourceLinks": 1,
+    "propertyEvaluations": 30,
+    "formatRejections": 0,
+    "sourceSupportedQualifiedProperties": 0,
+    "evidenceFile": "mechanism-evidence.json",
+    "unmetResponsibility": {
+      "component": "inquiry-focus.ts completion scheduling, semantic-completion slots, and source-link/current-query closure",
+      "source": "src/documents/views.py:1429-1448",
+      "fields": [
+        "condition",
+        "returnOutcome",
+        "call-binding"
+      ],
+      "downstream": "_resolve_request_and_root_doc has no adopted callee interpretation; read source is not equivalent to current semantic closure"
+    }
+  },
+  "completeSkillConsumed": true,
+  "originalQuestionsRetained": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "present": true
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "present": true
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "present": true
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "present": true
+    }
+  ],
+  "evaluatorProvidedToRuntime": false
+}
