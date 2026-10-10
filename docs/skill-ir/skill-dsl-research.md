@@ -2436,6 +2436,8 @@ usage使用原check/run/inspect/edit/compare，不新增CLI。实际公开check/
 
 发布前暂存字节验证另发现结果目录的全局text规则改写五gzip，暂存件全不可解压；工作区原件未变。仅为BD attempts加`-text !eol`、gzip binary和原答Markdown硬换行保留规则，再按新属性重置暂存，五gzip恢复逐字节/SHA一致且可解压，32原件全部与暂存字节相同。移除的20MB临时解压JSON已确认是D2 gzip的完全同值副本，无独有证据。红/绿依据见[暂存原件验证](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/staged-original-bytes.json)；没有改运行源码或追加模型尝试。
 
+本轮实质成果已仅推用户`origin/skill-ir-aot`至`14aeb7f1`，live远端SHA相同，32原件从该提交读回验证。`publicationComplete`为true；发布回执随后独立提交，见[发布记录](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/publication.json)。未达结果和完整队列/研究目标false保持，不把发布完成改成研究成功。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

@@ -2,7 +2,7 @@
 
 更新于2026-10-11。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BD0–BD16：源码解释持续补齐、独立性质检查与真实质量比较](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)，`completed-with-unmet-criteria`，有限外部执行结束、BD16发布进行中。工程至`d747f44d`，四比较共用源码epoch`7cb93348`：N1/D1为P/F/F/F、F/F/F/P，N2/D2为F/F/F/P、P/P/F/P，四整题均partial；第一对tradeoff、第二negative，0合格跨源性质。六变化位置按任务书具名未运行，没有补fresh。实际结果见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/acceptance-matrix.json)。
+- 当前任务书：[BD0–BD16：源码解释持续补齐、独立性质检查与真实质量比较](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)，`completed-with-unmet-criteria`，有限外部执行结束、BD16发布与远端核对已完成。工程至`d747f44d`，四比较共用源码epoch`7cb93348`：N1/D1为P/F/F/F、F/F/F/P，N2/D2为F/F/F/P、P/P/F/P，四整题均partial；第一对tradeoff、第二negative，0合格跨源性质。六变化位置按任务书具名未运行，没有补fresh。实际结果见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/acceptance-matrix.json)。
 - 方法合同：[spec §14.43](skill-ir-aot-optimization-spec.md#1443-bd-semantic-completion-and-real-quality)；复核依据：[研究 §7.65](skill-dsl-research.md#765-bd-解释持续补齐与独立质量比较)。已复核开发基线`f37ee589`；实际接管时记录任务书提交后的HEAD。
 - identity：`authorization-semantic-completion-v1`。显式策略`semantic-completion-v1`继承task-binding/v7，旧默认保持。继续`skill-ir-aot`、仅用户origin，不新开分支/worktree。
 - 实验沿用当前官方账号`gpt-5.6-sol/high`；第三方API和AV旧位置继续暂停。两个旧OWUI未知仅离线处置，不追加真实派发。
@@ -23,7 +23,7 @@
 | 诊断约束 | task-only准备器的局部提案粒度 | BD10仅保留原Q2，但生成两性质，严格单性质目标未达；原提案不回删 |
 | 净收益 | 同条件质量/成本与实际作者、复用负担 | 第一tradeoff、第二negative，D两次token/耗时更高；美元/开发/真人未知，不推普遍收益 |
 
-BD0–BD9工程、BD10–BD11有限尝试、BD12无材料处置与BD13–BD15归纳已完成；BD16只剩发布核对。上述为未达研究责任，不是自动追加已收束位置的派发队列。当前受影响179pass/1304断言，主类型、研究9pass/46断言及研究类型、15文档测试通过；人工fixture与真实性质结果分存。
+BD0–BD9工程、BD10–BD11有限尝试、BD12无材料处置与BD13–BD15归纳已完成；BD16发布与远端核对已完成。上述为未达研究责任，不是自动追加已收束位置的派发队列。当前受影响179pass/1304断言，主类型、研究9pass/46断言及研究类型、15文档测试通过；人工fixture与真实性质结果分存。
 
 11逻辑位置为`extraction-download`、两次N/D配对4位置及policy/premise/source的fresh/previous6位置。局部诊断12工具；完整运行64工具、768KiB显示、32MiB读取、45分钟。源码编辑与终答格式分别给予有限更正，总预算不增加；所有拒绝和修订计量。
 

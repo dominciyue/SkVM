@@ -12,7 +12,7 @@
 
 ## 1. 身份、授权与执行范围
 
-- 日期：2026-10-11。任务书状态：`completed-with-unmet-criteria`，有限外部执行结束、BD16发布核对进行中；实施基线`7f4ca507a853a1207a5d8fab858f838a9af566b8`，接管时live origin同SHA、工作树干净。BD0–BD9工程至`d747f44d`，联合179tests/1304断言、主类型与15文档测试通过，BD13负例在该集合；研究9tests/46断言及研究类型通过。1诊断与4质量首件全交付，四整题0full，两对tradeoff/negative，0合格跨源性质，六变化具名未运行。BD1精确机械重放与开发人工正例分存；finiteQueueComplete/researchGoalAchieved仍false。
+- 日期：2026-10-11。任务书状态：`completed-with-unmet-criteria`，有限外部执行结束、BD16已发布至`14aeb7f1`且远端SHA一致；实施基线`7f4ca507a853a1207a5d8fab858f838a9af566b8`，接管时live origin同SHA、工作树干净。BD0–BD9工程至`d747f44d`，联合179tests/1304断言、主类型与15文档测试通过，BD13负例在该集合；研究9tests/46断言及研究类型通过。1诊断与4质量首件全交付，四整题0full，两对tradeoff/negative，0合格跨源性质，六变化具名未运行。BD1精确机械重放与开发人工正例分存；finiteQueueComplete/researchGoalAchieved仍false。
 - 已复核开发基线：`f37ee589ba5c6dceaaed44b005e52d6996ea76b6`。启动时记录任务书提交后的真实 HEAD，不把它当研究结果。
 - 开发模型 `gpt-6.1-sol`，reasoning `max`。实际仓库 `D:\skill优化\SkVM`，继续 `skill-ir-aot`，仅推用户 `origin`，不新建分支/worktree。
 - 新研究 identity：`authorization-semantic-completion-v1`；结果根目录 `results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/`，本轮运行空间 `D:\skill优化\project-maintenance\runs\authorization-semantic-completion-v1`。
@@ -314,7 +314,7 @@ expect(afterStaleSource.currentCheckedVerdicts).toHaveLength(0)
 ### BD16 发布和交接
 
 - [x] 受影响测试、主/研究typecheck、文档单测、当前变更链接/导航、差异和新增原件可读性通过。全仓链接检查的八条历史失效经启动基线核实为既有问题，保留原件并单列；不写全仓全绿。有限抽核输入/答案/当前源码绑定，不再全量历史审计。
-- [ ] 仅提交本轮归属变更，推用户origin/skill-ir-aot，核对远端SHA。其他线程和历史本地材料保留。
+- [x] 仅提交本轮归属变更，推用户origin/skill-ir-aot；实质发布`14aeb7f1`与live远端SHA一致，32原件从提交读回、五gzip可解压且字节一致，[发布回执](../../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/publication.json)随后单独提交。其他线程和历史本地材料保留。
 - [x] 分别填写工程、真实局部检查、完整原任务质量、比较、复用和净收益。有限执行结束而关键项未达时保留`completed-with-unmet-criteria`，不标研究目标完成。
 - [x] 若取得正向结果，明确是哪题/性质/变化、多少真实重复和多少总成本；若没有，准确交付改善前后机制与真实结果，不再扩无关语义。
 
