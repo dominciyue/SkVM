@@ -99,6 +99,18 @@ test("current source properties are computed with zero final semantic checks", a
     expect((report.computation as any).propertyEvaluations).toBeGreaterThan(0)
   } finally { f.runtime.close() }
 })
+test("read but unexplained branches name the original conclusion they block", async () => {
+  const f = await fixture()
+  try {
+    await f.runtime.propose(partialEdit(f.context))
+    const context: any = f.runtime.promptContext(), delivery = f.runtime.deliverySnapshot()
+    expect(context.branchCoverage.some((b: any) => b.questionId === "q" && b.field === "condition" && b.status === "missing" && b.source.path === "app.py")).toBe(true)
+    const gap = delivery.gaps.find(g => g.code === "source-field-pending" && (g as any).field === "condition")!
+    expect(gap.kind).toBe("interpretation-gap")
+    expect((gap as any).blockedConclusion).toContain("q")
+    expect(delivery.gaps.some(g => g.kind === "source-gap" && g.source?.path === "app.py")).toBe(false)
+  } finally { f.runtime.close() }
+})
 test("automatic cross-source checks use a stable read-only basis and reject later invalid meaning", async () => {
   const f = await completedFixture()
   try {

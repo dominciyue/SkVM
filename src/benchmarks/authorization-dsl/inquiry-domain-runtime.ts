@@ -33,7 +33,7 @@ interface RejectedDraft {
 }
 export interface InquiryGap {
   kind: "source-gap" | "interpretation-gap" | "premise-unknown" | "policy-unspecified";
-  code: string; detail: string; questionId?: string; itemId?: string; source?: BoundSemanticBlock["source"]; decisive?: boolean; affects: "behavior" | "conformance"
+  code: string; detail: string; questionId?: string; itemId?: string; source?: BoundSemanticBlock["source"]; decisive?: boolean; affects: "behavior" | "conformance"; anchorId?: string; field?: string; blockedConclusion?: string
 }
 const RESULT_BRANCH_GUIDE = "Final result.branches lists only paths feasible under the CURRENT explicit premises and preceding rejections, using each exact pathKey as its id. A path marked inapplicable is excluded from that array. Preserve any excluded alternatives or counterfactuals explicitly requested by the user in behavior.explanation with the relevant shown citations, clearly distinguishing them from the current run. Retain their cited source rules for later premise changes. If a premise is unspecified, retain all feasible alternatives in result.branches and name the missing fact."
 export const DOMAIN_EXECUTION_GUIDE = [
@@ -382,9 +382,30 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     const unit = binding?.sourceOrigin && sourceUnits().find(u => u.questionId === questionId && u.handle === binding.sourceOrigin!.handle)
     return binding?.bindingName && unit?.parameters.some(p => p.name === binding.bindingName!.split(".")[0]) || slice.bindings.some(b => b.questionId === questionId && (name === b.key || name.startsWith(`${b.key}.`))) ? "premise-unknown" : "interpretation-gap"
   }
+  const branchCoverage = () => {
+    if (!semanticCompletion) return []
+    const state = focus?.report()
+    return (state?.propertyDemands ?? []).flatMap(demand => {
+      const unit = semanticUnits.find(u => u.questionId === demand.questionId && u.source?.id === demand.source.id), skeleton = sourceSkeletons.get(skeletonKey(demand.source.id, unit?.receiverClass))
+      if (!skeleton || !sourceCurrent(demand.source)) return []
+      const draft = state?.sourceDrafts.find(d => d.handle === unit?.handle)?.interpretation
+      return skeleton.anchors.filter(a => ["condition", "return", "raise"].includes(a.kind)).map(anchor => {
+        const field = anchor.kind === "condition" ? "condition" : anchor.kind === "return" ? "returnOutcome" : "failureKind", annotation = draft?.annotations.find(a => a.anchorId === anchor.id), exclusion = demand.excluded.find(e => e.anchorId === anchor.id), unresolved = draft?.unresolved.find(u => u.anchorId === anchor.id)
+        const status = exclusion ? "excluded-with-source-proof" : unresolved ? "unresolved" : annotation?.[field] ? "provided" : "missing"
+        return { questionId: demand.questionId, source: demand.source, anchorId: anchor.id, selector: anchor.selector, field, status, currentMeaning: annotation?.[field], reason: exclusion?.reason ?? unresolved?.reason ?? demand.required.find(r => r.anchorId === anchor.id && r.field === field)?.reason ?? "This read original branch remains part of the original question; a local property does not certify its complete answer.", blockedConclusion: `Original question ${demand.questionId}: this branch's conditional outcome cannot be determined until its ${field} is expressed or specifically bounded.` }
+      })
+    })
+  }
   const sourceGaps = () => {
     const gaps: InquiryGap[] = [], seen = new Set<string>()
-    const add = (g: InquiryGap) => { const key = JSON.stringify([g.kind, g.questionId, g.code, g.source?.id ?? g.detail]); if (!seen.has(key)) { seen.add(key); gaps.push(g) } }
+    const add = (g: InquiryGap) => { const key = JSON.stringify([g.kind, g.questionId, g.code, g.source?.id ?? g.detail, g.anchorId, g.field]); if (!seen.has(key)) { seen.add(key); gaps.push(g) } }
+    if (semanticCompletion) {
+      for (const branch of branchCoverage().filter(b => ["missing", "unresolved"].includes(b.status))) add({ kind: "interpretation-gap", code: "source-field-pending", detail: `${branch.selector.path}:${branch.selector.startLine}: ${branch.field}: ${branch.reason}`, questionId: branch.questionId, source: branch.source, anchorId: branch.anchorId, field: branch.field, blockedConclusion: branch.blockedConclusion, affects: "behavior" })
+      for (const item of focus?.report().semanticCompletion ?? []) if (["pending", "offered", "residual"].includes(item.state)) {
+        const unit = semanticUnits.find(u => u.questionId === item.questionId && u.handle === item.handle)
+        add({ kind: "interpretation-gap", code: item.state === "residual" ? "semantic-completion-residual" : "source-field-pending", detail: item.reason, questionId: item.questionId, source: unit?.source, anchorId: item.anchorId, field: item.field, blockedConclusion: `Original question ${item.questionId}: the source relation requiring ${item.field} remains unresolved.`, affects: "behavior" })
+      }
+    }
     for (const item of worklist?.snapshot() ?? []) {
       if (item.origin === "question-duty" && item.kind !== "entry" || item.state === "closed") continue
       const source = item.selected && { id: item.selected.id, path: item.selected.path, sha256: item.selected.sha256, startLine: item.selected.startLine, endLine: item.selected.endLine }, base = { questionId: item.questionId, itemId: item.id, source, decisive: item.decisive, affects: "behavior" as const }
@@ -469,14 +490,14 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
       return { ...task, ...(task.propertyDemand ? { propertyDemand: propertyDemandModelView(task.propertyDemand) } : {}), questionId: question.id, duty: { kind: duty.kind, symbol: duty.symbol, parentId: duty.parentId, reason: duty.reason }, relatedDuties: relatedDuties.map(({ id, kind }) => ({ id, kind })), ...(task.sourceSkeleton ? { sourceSkeleton: skeletonView(task.sourceSkeleton, task.propertyDemand) } : {}), ...(propertyDirected && draft ? { sourceInterpretationDraft: { revision: draft.revision, retainedFields: draft.annotations.map(({ explanation: _explanation, ...fields }) => fields), unresolved: draft.unresolved, fallthroughOutcome: draft.fallthroughOutcome, ...(isPropertyAbstractionStrategy(options.strategy) ? { propertyBindings: draft.propertyBindings } : {}) }, draftFieldNotice: "Retained host fields are state metadata, not a standalone proposal. Submit only changed fields with their explanations." } : {}) }
     }
     const delivery = deliverySnapshot()
-    const rendered = { ...context, tasks: context.tasks.map(taskView), locationTasks: context.locationTasks.map(({ question, ...task }) => ({ ...task, questionId: question.id })), mode: options.program.mode, policy: options.program.policy, gaps: delivery.gaps.slice(0, 24), gapCount: delivery.gaps.length, obligations: delivery.obligations, deliveryRevision: delivery.revision }
+    const rendered = { ...context, ...(semanticCompletion ? { branchCoverage: branchCoverage(), missingFactInstruction: "For every original question, map each decisive missing fact to the exact conditional conclusion it prevents. Read but unexplained source is an interpretation gap; unread or outside source is a source gap; unspecified user values are premise-unknown; absent independent policy is policy-unspecified. Preserve source-confirmed order and independent resolved parts. A checked local property does not complete other branches or certify deployment." } : {}), tasks: context.tasks.map(taskView), locationTasks: context.locationTasks.map(({ question, ...task }) => ({ ...task, questionId: question.id })), mode: options.program.mode, policy: options.program.policy, gaps: delivery.gaps.slice(0, 24), gapCount: delivery.gaps.length, obligations: delivery.obligations, deliveryRevision: delivery.revision }
     if (propertyDirected) promptPayloads.push({ revision: slice.revision, bytes: Buffer.byteLength(JSON.stringify(rendered)), requiredAnnotations: context.tasks.reduce((n, t) => n + (t.propertyDemand?.requiredAnnotationCount ?? 0), 0), pendingAnnotations: context.tasks.reduce((n, t) => n + (t.propertyDemand?.pendingAnnotationCount ?? 0), 0), activeRules: slice.rules.length, activePaths: lastPaths.length })
     return rendered
   }
   const sourceWorkMetrics = () => {
     const history = focus?.report().sourceInterpretations ?? [], sources = history.filter(e => e.event !== "low-level-fallback"), counts = new Map<string, number>()
     for (const e of sources) if (e.revision) counts.set(e.revision, (counts.get(e.revision) ?? 0) + 1)
-    return { sourceInterpretationSubmissions: proposals.filter(p => p.delta && typeof p.delta === "object" && ["authorization-source-update/v1", "authorization-source-edit/v1"].includes(String((p.delta as Record<string, unknown>).schemaVersion))).length, validSourceEdits: history.filter(e => e.event === "edited").reduce((n, e) => n + ((e as { acceptedEdits?: number }).acceptedEdits ?? 0), 0), retainedSourceDrafts: focus?.report().editDrafts.length ?? 0, localInterpretationRepairs: [...counts.values()].reduce((n, c) => n + Math.max(0, c - 1), 0), lowLevelFallbacks: history.filter(e => e.event === "low-level-fallback").length, acceptedSourceUnits: semanticUnits.filter(u => u.source).length, controlSteps: semanticUnits.reduce((n, u) => n + u.blocks.reduce((m, b) => m + b.steps.length, 0), 0) }
+    return { sourceInterpretationSubmissions: proposals.filter(p => p.delta && typeof p.delta === "object" && (semanticCompletion && isCompletionEditProposal(p.delta) || ["authorization-source-update/v1", "authorization-source-edit/v1"].includes(String((p.delta as Record<string, unknown>).schemaVersion)))).length, validSourceEdits: history.filter(e => e.event === "edited").reduce((n, e) => n + ((e as { acceptedEdits?: number }).acceptedEdits ?? 0), 0), retainedSourceDrafts: focus?.report().editDrafts.length ?? 0, localInterpretationRepairs: [...counts.values()].reduce((n, c) => n + Math.max(0, c - 1), 0), lowLevelFallbacks: history.filter(e => e.event === "low-level-fallback").length, acceptedSourceUnits: semanticUnits.filter(u => u.source).length, controlSteps: semanticUnits.reduce((n, u) => n + u.blocks.reduce((m, b) => m + b.steps.length, 0), 0) }
   }
   let rejectedFeedbackPosition = 0
   // Keep canonical/archive diagnostics intact; describe the public local operation in model feedback.

@@ -85,6 +85,14 @@ The [AX package verification](../results/skill-ir/skill-dsl-research/development
 
 BC adds explicit `task-binding-v1` on these same commands. Supply your complete original skill, natural questions, source scope and model configuration. The system prepares task-only properties and retains every original question, including residual evidence-limit duties; you do not have to author property IDs or source bindings first. Preparation and source interpretation remain model proposals, and a narrow checked property does not certify the whole task. BC completed five original/revised/changed Download attempts, all delivered but source-partial; none produced a qualified cross-source property. Four comparison arms and three previous arms were blocked before inference. The [BC acceptance record](../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/acceptance-matrix.json) separates engineering, actual delivery, property checks and unproven reuse or benefit.
 
+BD adds explicit `semantic-completion-v1`: accepted partial source meaning remains saved while decisive fields are offered again. Repeated unchanged feedback leaves a named residual. Current properties are calculated from source materials independently of final answer formatting; `checked` is local and does not certify the complete answer. Read branch gaps identify which original conclusion remains blocked. For ordinary recoverable use, select inquiry with your complete skill:
+
+```powershell
+bun src/index.ts authorization inquiry run --input=./download/inquiry.json --skill=./cloudflare-security-audit/SKILL.md --out=./bd-runs --method=D1 --strategy=semantic-completion-v1 --domain-tools=true --harness=codex-account --model=gpt-5.6-sol --account-boundary=./account-boundary.json --max-tool-calls=64 --max-display-bytes=786432 --max-read-bytes=33554432 --session-timeout-ms=2700000
+```
+
+For the same source-only N entrance select `--method=M --strategy=legacy --domain-tools=false`; no domain tools or checked source materials are available. The switch defaults to true and is account-only. Both entrances archive original skill bytes and ordinary sessions. Inspect accepts a moved session directory; previous still verifies current source, method, strategy and material dependencies. Native `skvm run` has not acquired this inquiry session archive shape.
+
 For a copy of the complete original package at `./download` and your complete skill/boundary, use the following public command shapes. Keep edited inputs beside the original input so its relative sourceRoot still resolves. Replace `<session-id>` with run's returned session; check, inspect, edit and compare make no inference request. Run uses the configured account model with high effort and includes preparation in its budget.
 
 ```powershell

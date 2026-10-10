@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test"
-import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises"
+import { mkdtemp, mkdir, readFile, writeFile, cp } from "node:fs/promises"
 import os from "node:os"
 import path from "node:path"
 import { createHash } from "node:crypto"
@@ -193,6 +193,28 @@ test("inquiry CLI accepts explicit account harness without silently dispatching 
   // An unauthorized model fails before launching a CLI or calling any provider.
   await runAuthorizationInquiryCli(["run", `--input=${f.inputFile}`, `--out=${path.join(f.root, "out")}`, "--model=unauthorized", "--method=M", "--strategy=operation-evidence-v3", "--harness=codex-account"], { stdout: (s: string) => outputs.push(s), providerFactory: () => { throw new Error("no-provider") } } as any)
   expect(outputs.join("\n")).toContain("account-model-or-effort-unauthorized")
+})
+test("ordinary account sessions retain an explicit N/D switch and the complete skill across relocation", async () => {
+  const f = await fixture(), skillFile = path.join(f.root, "SKILL.md")
+  await writeFile(skillFile, "---\nname: anonymous-audit\ndescription: Inspect original source\n---\nFULL_SKILL_TAIL\n")
+  let receive = (_m: any) => {}, observedTools: string[] = []
+  const transport: any = { isolation: { kind: "test-transport", reason: "Local session contract" }, onMessage(fn: any) { receive = fn }, onExit() {}, close() {}, send(m: any) {
+    if (m.method === "initialize") receive({ id: m.id, result: {} })
+    if (m.method === "thread/start") { expect(m.params.baseInstructions).toContain("FULL_SKILL_TAIL"); observedTools = m.params.dynamicTools.map((t: any) => t.name); receive({ id: m.id, result: { thread: { id: "t" }, model: "gpt-5.6-sol" } }) }
+    if (m.method === "turn/start") { receive({ id: m.id, result: { turn: { id: "turn" } } }); receive({ method: "turn/completed", params: { threadId: "t", turn: { id: "turn", status: "completed", items: [{ type: "agentMessage", text: "The provided entry returns False; broader runtime facts remain unspecified." }] } } }) }
+  } }
+  const run: any = await executeLocalInquiryRun({ inputFile: f.inputFile, outDir: path.join(f.root, "n"), model: "gpt-5.6-sol", method: "M", strategy: "legacy", harness: "codex-account", domainTools: false, skillFile, accountTransportFactory: () => transport })
+  expect(run.status).toBe("completed"); expect(run.domainTools).toBe(false)
+  expect(observedTools).toContain("source_read"); expect(observedTools).not.toContain("authorization_observe")
+  expect(run.domain).toBeUndefined()
+  expect(await readFile(path.join(run.sessionPath, "skill-original.md"), "utf8")).toBe(await readFile(skillFile, "utf8"))
+  const moved = path.join(f.root, "moved"); await cp(run.sessionPath, moved, { recursive: true })
+  expect((await inspectLocalInquiry(moved)).sessionPath).toBe(moved)
+  expect((await inspectLocalInquiry(moved)).domainTools).toBe(false)
+  let output = ""
+  await runAuthorizationInquiryCli(["run", `--input=${f.inputFile}`, `--out=${path.join(f.root, "cli-n")}`, "--model=unauthorized", "--harness=codex-account", "--domain-tools=false"], { stdout: (s: string) => output = s } as any)
+  expect(JSON.parse(output).domainTools).toBe(false)
+  await expect(runAuthorizationInquiryCli(["run", `--input=${f.inputFile}`, "--out=unused", "--model=mock", "--domain-tools=false"], { stdout() {} } as any)).rejects.toThrow("requires --harness=codex-account")
 })
 test("account traces and adapter reports filter credential-like tool text before persistence", async () => {
   const f = await fixture(), traceDir = path.join(f.root, "trace"), secret = "ghp_ABC123 password='local secret'"
