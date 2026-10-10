@@ -19,9 +19,9 @@ const caller = "from helper import perform\ndef entry(actor, target):\n    if no
 const helper = "def perform(actor, target):\n    target.sent = True\n    return target\n"
 const inquiry = { schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect entry: authorization before the write, including every relevant branch.", premises: [], properties: [{ id: "auth", kind: "authorization-before-effect", requirement: "authorization before the write" }] }] }
 const completionStrategy: InquiryStrategy = "semantic-completion-v1"
-async function fixture(customInquiry: unknown = inquiry) {
+async function fixture(customInquiry: unknown = inquiry, originalCaller = caller) {
   const root = await mkdtemp(path.join(os.tmpdir(), "bd-public-"))
-  await writeFile(path.join(root, "app.py"), caller); await writeFile(path.join(root, "helper.py"), helper)
+  await writeFile(path.join(root, "app.py"), originalCaller); await writeFile(path.join(root, "helper.py"), helper)
   const tools = await createInquiryTools({ sourceRoot: root, repository: "anonymous", sourceRef: "fixed", allowedPaths: ["."], structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
   await tools.execute("source_read", { path: "app.py", startLine: 1, endLine: 5 })
   const runtime = createInquiryDomainRuntime({ program: compileAuthorizationInquiry(customInquiry as any), tools, strategy: completionStrategy, sourceAssisted: true })
@@ -46,8 +46,8 @@ function partialEdit(context: any) {
   }
   return { ...legacyEdit(context), edits }
 }
-async function completedFixture() {
-  const f = await fixture()
+async function completedFixture(originalCaller = caller) {
+  const f = await fixture(inquiry, originalCaller)
   await f.tools.execute("source_read", { path: "helper.py", startLine: 1, endLine: 3 })
   const owners = await Promise.all(f.tools.structure!.symbols.filter(s => s.kind === "function").map(s => f.tools.sourceSkeleton(s.id)))
   const entry = owners.find(s => s!.source.path === "app.py")!, effectOwner = owners.find(s => s!.source.path === "helper.py")!
@@ -137,6 +137,47 @@ test("automatic cross-source checks use a stable read-only basis and reject late
     await f.runtime.sync(false)
     expect(f.runtime.report().propertyAnalysis!.checks!.questions[0]!.properties[0]!.status).toBe("unknown")
   } finally { f.runtime.close() }
+})
+test("binding withdrawal and changed source cannot revive a cached checked property", async () => {
+  const f = await completedFixture()
+  try {
+    expect(f.runtime.report().propertyAnalysis!.checks!.questions[0]!.properties[0]!.status).toBe("checked")
+    let context: any = f.runtime.promptContext()
+    const owner = f.runtime.report().semantic!.units.find(u => u.source?.id === f.binding.effectRef.sourceId)!
+    await f.runtime.propose({ schemaVersion: "authorization-focused-update/v1", kind: "defer", focusId: context.focus.id, revisit: owner.handle, reason: "Withdraw the actual current binding" })
+    context = f.runtime.promptContext()
+    await f.runtime.propose({ ...legacyEdit(context), edits: [{ field: "propertyBindings", value: [] }] })
+    expect(f.runtime.report().propertyAnalysis!.checks!.questions[0]!.properties[0]!.status).toBe("unknown")
+    await writeFile(path.join(f.root, "helper.py"), helper.replace("True", "False"))
+    await f.runtime.sync(false)
+    expect(f.runtime.report().propertyAnalysis!.checks?.questions[0]!.properties[0]!.status).not.toBe("checked")
+    expect(f.runtime.deliverySnapshot().machineAnswer).toBeUndefined()
+  } finally { f.runtime.close() }
+})
+for (const [name, source] of [
+  ["another resource", "from helper import perform\ndef entry(actor, target, other):\n    if not actor.allowed:\n        return False\n    return perform(actor, other)\n"],
+  ["a guard after the effect", "from helper import perform\ndef entry(actor, target):\n    perform(actor, target)\n    if not actor.allowed:\n        return False\n    return target\n"],
+]) test(`the new caller-guard rule never certifies ${name}`, async () => {
+  const f = await completedFixture(source)
+  try { expect(f.runtime.report().propertyAnalysis!.checks!.questions[0]!.properties[0]!.status).not.toBe("checked") }
+  finally { f.runtime.close() }
+})
+test("automatic reads and blocked source actions preserve the four final units inside 64", async () => {
+  const f = await fixture(), inputFile = path.join(f.root, "input.json"); f.runtime.close()
+  await writeFile(inputFile, JSON.stringify({ schemaVersion: "authorization-inquiry-input/v1", taskId: "anonymous", repository: "anonymous", sourceRef: "fixed", sourceRoot: ".", allowedPaths: ["app.py", "helper.py"], inquiry }))
+  const runtime = await createNativeInquiryRuntime({ inputFile, workDir: f.root, domainTools: true, method: "M", strategy: completionStrategy, maxToolCalls: 64 })
+  try {
+    await runtime.accountContext()
+    while (runtime.report().toolBudget.explorationRemaining > 0) await runtime.execute({ id: `list-${runtime.report().history.length}`, name: "source_list", arguments: {} })
+    const delivery: any = await runtime.accountContext()
+    expect(delivery.focus.stage).toBe("answer")
+    expect(runtime.report().toolBudget.totalRemaining).toBe(4)
+    for (let n = 0; n < 3; n++) await runtime.rejectArguments({ id: `malformed-final-${n}`, name: "authorization_check_result", arguments: {} }, [{ path: "/result", keyword: "required", message: "Missing final result", expected: {} }])
+    expect(runtime.report().toolBudget.deliveryClosed).toBe(true)
+    await runtime.execute({ id: "blocked-final", name: "authorization_check_result", arguments: {} })
+    expect(runtime.report().toolBudget.totalUsed).toBe(64)
+    expect(runtime.report().toolBudget.semanticChecksUsed).toBe(0)
+  } finally { await runtime.close() }
 })
 test("repairing one pending field preserves the other field and earlier annotations", async () => {
   const f = await fixture()
