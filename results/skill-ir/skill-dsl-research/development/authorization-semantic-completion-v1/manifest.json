@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "authorization-bd-manifest/v1",
+  "identity": "authorization-semantic-completion-v1",
+  "date": "2026-10-11",
+  "implementationBaseline": "7f4ca507a853a1207a5d8fab858f838a9af566b8",
+  "startupWorkingTree": "clean skill-ir-aot; live origin matched HEAD",
+  "developmentModel": "gpt-6.1-sol",
+  "developmentEffort": "max",
+  "experimentModel": "gpt-5.6-sol",
+  "experimentEffort": "high",
+  "strategy": "semantic-completion-v1",
+  "limits": { "maxToolCalls": 64, "maxDisplayBytes": 786432, "maxReadBytes": 33554432, "sessionTimeoutMs": 2700000 },
+  "positions": [
+    { "id": "extraction-download", "stage": "BD10", "maxToolCalls": 12, "status": "pending", "attempts": [] },
+    { "id": "quality-n-1", "stage": "BD11", "status": "pending", "attempts": [] },
+    { "id": "quality-d-1", "stage": "BD11", "status": "pending", "attempts": [] },
+    { "id": "quality-d-2", "stage": "BD11", "status": "pending", "attempts": [] },
+    { "id": "quality-n-2", "stage": "BD11", "status": "pending", "attempts": [] },
+    { "id": "policy-fresh", "stage": "BD12", "status": "pending", "attempts": [] },
+    { "id": "policy-previous", "stage": "BD12", "status": "pending", "attempts": [] },
+    { "id": "premise-fresh", "stage": "BD12", "status": "pending", "attempts": [] },
+    { "id": "premise-previous", "stage": "BD12", "status": "pending", "attempts": [] },
+    { "id": "source-fresh", "stage": "BD12", "status": "pending", "attempts": [] },
+    { "id": "source-previous", "stage": "BD12", "status": "pending", "attempts": [] }
+  ],
+  "inputs": {
+    "original": "../authorization-interprocedural-property-v1/model/packages/download/inquiry.json",
+    "skill": "../authorization-domain-execution-v1/model/source-skills/cloudflare-security-audit/SKILL.md",
+    "changes": "../authorization-task-binding-v1/model/inputs/download-{policy,premise,source}.json"
+  },
+  "requirements": {
+    "engineering": "bounded question-bound completion, independent properties, strict narrow protocol and reusable public sessions",
+    "realProperty": "model-derived current cross-source checked/violated trace and independent source support",
+    "wholeTask": "complete original skill and four original questions retained and independently reviewed",
+    "comparison": "two same-condition N/D pairs; no checked-property quality gate",
+    "reuse": "three fresh/previous pairs only with qualified current same-property material and readable session"
+  },
+  "observedOutcomes": { "engineering": "pending", "realProperty": "pending", "wholeTask": "pending", "comparison": "pending", "reuse": "pending" },
+  "inheritedEvidence": "../authorization-task-binding-v1/verification/acceptance-matrix.json",
+  "inheritedUnknownDisposition": "../authorization-interprocedural-property-v1/verification/user-resume-1-fresh-disposition.json",
+  "recovery": { "routing": "one named recovery; pause after two consecutive or three cumulative failed recoveries", "quotaAuth": "pause external dispatch", "unknown": "inspect original lifecycle only" },
+  "evaluatorIsolation": "Original skill, task, allowed source, independent policy/premises and generic contract only; no evaluator/reference/history/repair notes.",
+  "status": "in-progress",
+  "executionClosed": false,
+  "finiteQueueComplete": false,
+  "researchGoalAchieved": false,
+  "publicationComplete": false
+}

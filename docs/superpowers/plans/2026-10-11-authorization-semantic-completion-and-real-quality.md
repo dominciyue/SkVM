@@ -12,7 +12,7 @@
 
 ## 1. 身份、授权与执行范围
 
-- 日期：2026-10-11。任务书状态：`ready-for-dispatch`；本文件交付时尚无 BD 生产实现或模型实验。
+- 日期：2026-10-11。任务书状态：`in-progress`；实施基线`7f4ca507a853a1207a5d8fab858f838a9af566b8`，live origin同SHA、接管时工作树干净。当前BD2–BD6工程接通，已过115 tests/833 assertions，尚无模型实验；BD1机械重放及BD4更广失效断言仍待补。
 - 已复核开发基线：`f37ee589ba5c6dceaaed44b005e52d6996ea76b6`。启动时记录任务书提交后的真实 HEAD，不把它当研究结果。
 - 开发模型 `gpt-6.1-sol`，reasoning `max`。实际仓库 `D:\skill优化\SkVM`，继续 `skill-ir-aot`，仅推用户 `origin`，不新建分支/worktree。
 - 新研究 identity：`authorization-semantic-completion-v1`；结果根目录 `results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/`，本轮运行空间 `D:\skill优化\project-maintenance\runs\authorization-semantic-completion-v1`。
@@ -92,6 +92,8 @@ export interface SemanticCompletionItem {
 - 无效**语义编辑**必须使受影响旧 verdict 不再作为 current 使用。单纯**终答格式**错误可保留当前源检查，但不能保留已撤回的旧最终答案。raw 首件照常归档。
 - 自动检查是确定性计算，计 `propertyEvaluations` 和耗时，不冒充模型调用、不烧掉保留的 final check 槽。
 
+2026-10-11实施细节：缓存一次捕获program/slice/units/drafts/demands/dependency states和当前源码拒绝，report不驱动队列。静态通道公开mock发现原检查把“caller守卫→所选调用→callee primitive effect”的不同实例误作无前序；新`evaluationVersion:"semantic-completion/v1"`按实际所选调用的前序实例匹配，仍逐个检查效果对象。旧策略保留原求值版本。查询责任按同一原题的当前source owners唯一绑定关闭，禁止不同原题代替或重复绑定。
+
 ### 3.3 模型只承担当前阶段真正需要的语义
 
 现有任务准备继续使用。源码阶段优先复用 `source-edit`，模型看到一个当前编辑表单及实际原文；宿主提供当前事务、版本、单位和字段定位。只暴露一种推荐提交方式；旧低层完整 interpretation 作为兼容接收，不在同一提示里并列展示多种嵌套模板。
@@ -140,9 +142,9 @@ previous 继续要求同一性质、当前有效源材料、独立源码支持�
 
 ### BD0 接管、登记与原件边界
 
-- [ ] 核对分支、原有修改、其他写线程及用户origin。记录本轮实施基线。
-- [ ] 创建新identity的manifest/status与最小研究入口。区分`requirements`、`observedOutcomes`、`executionClosed`、`researchGoalAchieved`，初始成果一律pending。
-- [ ] 登记第六节位置、输入、评价、恢复规则；BC五原件、BB未知处置按原路径引用，不复制历史结果成BD成功。
+- [x] 核对分支、原有修改、其他写线程及用户origin。记录本轮实施基线。
+- [x] 创建新identity的manifest/status。区分`requirements`、`observedOutcomes`、`executionClosed`、`researchGoalAchieved`，初始成果一律pending；最小研究命令在BD9接通。
+- [x] 登记第六节位置、输入、评价、恢复规则；BC五原件、BB未知处置按原路径引用，不复制历史结果成BD成功。
 - [ ] 小范围读取三件失败事件，形成责任表：触发参数、当前context、接收结果、材料状态、下一个focus、剩余预算。重复测试输出不进研究正文。
 
 ### BD1 从真实不完整提案建立红测
@@ -166,16 +168,16 @@ expect(afterRepair.resolvedRequiredFields).toBeGreaterThan(beforeRepair.resolved
 
 ### BD2 保存当前解释责任
 
-- [ ] 实现第3.1节内部记录与从当前demand、query绑定及call mismatch生成责任的纯函数，输入全部来自当前来源。
+- [x] 实现第3.1节内部记录与从当前demand、query绑定及call mismatch生成责任的纯函数，输入全部来自当前来源。
 - [ ] 红测覆盖：保存partial不消待办、只修字段A不清字段B、相同id不同source revision/receiver/call分离、已证不相关分支不入队、源失效转stale、显式unresolved留原因。
-- [ ] 进展按实际字段/依赖状态度量，测试重复同值和只改文字不重置无进展计数。
+- [x] 进展按实际字段/依赖状态度量，测试重复同值和只改文字不重置无进展计数。
 - [ ] 提交`feat: retain question-bound semantic completion work`。
 
 ### BD3 接入focus并完成公平推进
 
-- [ ] 红测覆盖已接收`complete=false`且仍有决定性missing/invalid字段的单元被重新提供；手动`revisit`不是唯一恢复方式。
-- [ ] 复用当前`retainedUnitItem`、草稿和`start`；相同source/receiver下保留handle，过期来源先失效。不要全量删除`finished`或取消预算。
-- [ ] 以当前性质到effect/guard/对象/控制的实际缺口优先，轮转原问题；共享后续问题不得因为第一题没有成功verdict永远拿不到自己的合法绑定事务。
+- [x] 红测覆盖已接收`complete=false`且仍有决定性missing/invalid字段的单元被重新提供；手动`revisit`不是唯一恢复方式。
+- [x] 复用当前`retainedUnitItem`、草稿和`start`；相同source/receiver下保留handle，过期来源先失效。不要全量删除`finished`或取消预算。
+- [x] 以当前性质到effect/guard/对象/控制的实际缺口优先，轮转原问题；共享后续问题不得因为第一题没有成功verdict永远拿不到自己的合法绑定事务。
 - [ ] 无进展两次转residual并留下原责任；helper/源版本变化能够重新开合适项，不无限重抽。
 - [ ] 公开测试验证：第二题独立完成、第一题仍partial；source/helper修复后只关闭对应责任；不会复制另一题的propertyBinding或verdict。
 - [ ] 提交`fix: revisit adopted partial source meaning without starving questions`。
@@ -183,7 +185,7 @@ expect(afterRepair.resolvedRequiredFields).toBeGreaterThan(beforeRepair.resolved
 ### BD4 独立计算当前性质
 
 - [ ] 在`property-runtime.test.ts`与公开fixture先测：零次`authorization_check_result`时，合法源提案已使当前性质产生`checked/violated/unknown`和实际trace。
-- [ ] 从`validate()`提取共享计算；缓存当前来源、草稿、问题/政策/前提与依赖状态，渲染只读；相同状态不反复计算。
+- [x] 从`validate()`提取共享计算；缓存当前来源、草稿、问题/政策/前提与依赖状态，渲染只读；相同状态不反复计算。
 - [ ] 分别验证失效：删binding、错误新语义、源SHA变、依赖从read变checked、政策/前提变化；终答只有格式错时保留独立源检查，finalDelivery仍失败。
 
 ```ts
@@ -195,13 +197,13 @@ expect(afterMalformedFinal.currentPropertyBasis).toEqual(beforeFinal.currentProp
 expect(afterInvalidSemanticEdit.currentCheckedVerdicts).toHaveLength(0)
 ```
 
-- [ ] `wholeTaskCertified`仍false，source语义仍需独立评阅；新增计量不伪装成模型检查次数。
+- [x] `wholeTaskCertified`仍false，source语义仍需独立评阅；新增计量不伪装成模型检查次数。
 - [ ] 提交`feat: evaluate source properties independently of answer transport`。
 
 ### BD5 缩小当前模型提交合同
 
 - [ ] 把BC的四类真实格式失败写入`inquiry-wire.test.ts`/native公开测试：错误edit字段、混淆schemaVersion、缺role/explanation与null数组、终答路径缺explanation。
-- [ ] 选择一条推荐source-edit模型形式，宿主填当前机械外壳；原字段含义和非法值保持严格校验。不同时广告完整interpretation、低层unit和patch三套答案。
+- [x] 选择一条推荐source-edit模型形式，宿主填当前机械外壳；原字段含义和非法值保持严格校验。不同时广告完整interpretation、低层unit和patch三套答案。
 - [ ] 示例合同只允许宿主机械展开；完整具体Schema必须在本阶段写入代码与组件文档后再跑模型：
 
 ```ts
@@ -220,12 +222,12 @@ type CompletionEditProposal = {
 ```
 
 slot只引用本次提供的anchor/field；`value`进入现有对应Zod字段验证，unknown不代表任意语义可执行。恢复返回准确slot和允许形状，不输出正确答案。
-- [ ] 官方静态tool声明、运行时phase验证、实际context三者做公开transport mock核验。provider兼容路径也测，不以`beforeDispatch`单侧通过代替官方账号接线。
+- [x] 官方静态tool声明、运行时phase验证、实际context三者做公开transport mock核验。provider兼容路径也测，不以`beforeDispatch`单侧通过代替官方账号接线。
 - [ ] 提交`feat: simplify the current source edit contract`。
 
 ### BD6 分离编辑与终答的恢复预算
 
-- [ ] 复现premise形状：三次源码格式失败后首次终答漏字段，仍能获得独立的有限更正机会；格式错误计总工具但不计语义检查。
+- [x] 复现premise形状：三次源码格式失败后首次终答漏字段，仍能获得独立的有限更正机会；格式错误计总工具但不计语义检查。
 - [ ] 两公共路径采用一致语义。源码无进展可转residual；最终答案有效后正常结束；连续错误达到上限明确交付失败。
 - [ ] 测试总量永不超过64；保留的final单位不会被自动read吃掉；不足时给具名原因；拒绝/撤回后不能交付过期答案。
 

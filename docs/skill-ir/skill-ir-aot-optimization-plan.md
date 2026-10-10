@@ -2,7 +2,7 @@
 
 更新于2026-10-11。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BD0–BD16：源码解释持续补齐、独立性质检查与真实质量比较](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)，`ready-for-dispatch`。用户要求新`gpt-6.1-sol/max`开发线程连续实施；本次规划未修改生产代码或运行新实验。
+- 当前任务书：[BD0–BD16：源码解释持续补齐、独立性质检查与真实质量比较](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)，`in-progress`。`gpt-6.1-sol/max`线程已在干净`7f4ca507`接管，live origin同SHA；BD0登记与BD1红测进行中，尚无模型实验。
 - 方法合同：[spec §14.43](skill-ir-aot-optimization-spec.md#1443-bd-semantic-completion-and-real-quality)；复核依据：[研究 §7.65](skill-dsl-research.md#765-bd-解释持续补齐与独立质量比较)。已复核开发基线`f37ee589`；实际接管时记录任务书提交后的HEAD。
 - identity：`authorization-semantic-completion-v1`。显式策略`semantic-completion-v1`继承task-binding/v7，旧默认保持。继续`skill-ir-aot`、仅用户origin，不新开分支/worktree。
 - 实验沿用当前官方账号`gpt-5.6-sol/high`；第三方API和AV旧位置继续暂停。两个旧OWUI未知仅离线处置，不追加真实派发。

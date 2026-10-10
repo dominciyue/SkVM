@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**当前任务书为 [BD0–BD16：源码解释持续补齐、独立性质检查与真实质量比较](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)，状态 `ready-for-dispatch`。** 用户已要求派发`gpt-6.1-sol/max`继续开发。已复核基线`f37ee589`与用户origin一致；本次登记只修改任务书和文档，BD尚无生产实现或模型实验。
+**当前任务书为 [BD0–BD16：源码解释持续补齐、独立性质检查与真实质量比较](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)，状态 `in-progress`，当前BD0–BD1。** `gpt-6.1-sol/max`开发线程已接管，实施基线`7f4ca507`与live用户origin一致，接管时工作树干净。本轮manifest/status已登记，尚无模型实验；先从BC原partial及格式失败做公开红测。
 
 新identity为`authorization-semantic-completion-v1`，显式策略`semantic-completion-v1`复用task-binding/v7。优先处理已接收partial的持续补齐、性质计算与终答格式解耦、窄编辑协议及分阶段恢复，再接通完整原skill的可恢复会话。同期N/D答案比较不再要求D预先取得合格性质；previous仍须当前、独立源码支持的合格材料。方法见[spec§14.43](skill-ir-aot-optimization-spec.md#1443-bd-semantic-completion-and-real-quality)、[研究§7.65](skill-dsl-research.md#765-bd-解释持续补齐与独立质量比较)和[当前计划](skill-ir-aot-optimization-plan.md)。
 
@@ -68,7 +68,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BD | [任务书](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)、[当前计划](skill-ir-aot-optimization-plan.md)、spec§14.43、研究§7.65；ready-for-dispatch，尚无实现或新实验 |
+| 当前BD | [任务书](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)、[当前计划](skill-ir-aot-optimization-plan.md)、spec§14.43、研究§7.65；in-progress，已接管并登记，先做公开partial红测 |
 | BC | [任务书](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)、[收束](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/authorized-execution-closeout.json)、spec§14.42、研究§7.64；5交付/0合格跨源性质/7资格阻断 |
 | BB | [任务书](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/verification/acceptance-matrix.json)、spec§14.41、研究§7.63 |
 | BA | [任务书](../superpowers/plans/2026-10-09-authorization-semantic-submission-and-adoption.md)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-submission-v1/summary.json)，spec§14.40、研究§7.62 |
