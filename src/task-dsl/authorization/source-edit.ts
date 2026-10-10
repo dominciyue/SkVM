@@ -11,6 +11,7 @@ import { zodToJsonSchema } from "../../providers/structured.ts"
 const clearableFields = Object.entries(SourceAnnotationSchema.shape).filter(([, schema]) => schema instanceof z.ZodOptional).map(([key]) => key)
 const annotationFields = Object.fromEntries(Object.entries(SourceAnnotationSchema.shape).filter(([key]) => key !== "anchorId").map(([key, schema]) => [key, schema instanceof z.ZodOptional ? schema.unwrap().nullable() : schema])) as Record<string, z.ZodTypeAny>
 const fields = { ...annotationFields, unresolved: InquiryText, fallthroughOutcome: SourceInterpretationSchema.shape.fallthroughOutcome.unwrap(), propertyBindings: SourceInterpretationSchema.shape.propertyBindings.unwrap() }
+export const sourceEditFields: Readonly<Record<string, z.ZodTypeAny>> = fields
 const rootFields = new Set(["fallthroughOutcome", "propertyBindings"])
 const changes = Object.entries(fields).map(([field, value]) => z.object({ field: z.literal(field), ...(rootFields.has(field) ? {} : { anchorId: InquiryText }), value }).strict())
 export const SourceEditSchema = z.object({ schemaVersion: z.literal("authorization-source-edit/v1"), kind: z.literal("edit"), transactionId: InquiryText,
