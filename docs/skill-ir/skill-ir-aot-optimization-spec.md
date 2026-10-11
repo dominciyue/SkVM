@@ -2954,6 +2954,22 @@ BE13补齐已有有限谓词的模型可见合同：静态D声明工具和当前
 
 **当前公共实现。** H为M/question-guided-v1，独立authorization_question与共同只读工具；D为D1/question-checked-v1，共用helper，未声明性质时沿既有task-only prepare，再用authorization-question-declaration/v1提交source、statements和可选properties/fallthrough。statement/condition/object/effect/dependency/residual附原行/原文及含义，宿主解析唯一引用并编译到既有source-edit，不广告slot/transaction表。当前工具可主动定位实际符号、取回材料和保留未完源工作；D额外检查不强制结构化自然终答。R0准备fallback与R1材料投影分离，R2默认不复用，资格另验。恢复到host的材料不等于模型实际消费；材料handle、当前materialUses和实际client envelopes分别记录，R0索引资格也不表示物理读取已跳过。公开transport和真实三臂已运行，采用与质量证据见研究§7.66；H可作普通辅助候选，D保留显式研究入口，项目默认不变。
 
+### 14.45 BF executable contract and authoring
+
+2026-10-12，用户授权[BF0–BF17](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)，由新线程gpt-6.1-sol/max连续开发约8小时工作量。规划基线74bf7bef，identity为`authorization-executable-contract-v1`；本节是开发合同，尚未形成BF实际结果。先验证真实程序可表达/可执行，再修自动编写和实际消费。复用inquiry、完整skill、BB/v7、有限求值器与来源/会话机制，不重复建立语言或运行平台。
+
+**分轨。** A由开发者/开发代理依据真实原文编写程序，验证语言及核心；B由隔离实验模型独立读取共同源码生成声明，衡量自动编写；C从普通入口消费当前程序或会话，衡量实际使用/变化。A的源码语义不进入B输入，A成功不计自动生成或真人工时。完整Cloudflare skill及Download原四问继续保留，局部子性质只作为明确开发分母。
+
+**范围与条件。** request-operation保留实际请求入口及相关框架授权义务；function-contract从具名函数入口检查局部关系，保留外部前提和上游缺口。局部根不得通过把helper改成请求entry取得。作者/模型提供参数、对象、条件、正常/拒绝/异常与剩余语义，宿主验证来源和实际调用组合；source semanticSupport独立复核。调用者必须满足摘要前提后才能使用其结论，未知继续未知，假设不能包含待证明性质。局部结果和完整原任务结论分列。
+
+**单一接线。** 持久程序拟用`authorization-executable-contract/v1`窄输入，复用现有source declaration、predicate、property和evidence。宿主生成机械ID和revision，拒绝预置trusted checked、实际使用记录或evaluator分数。作者文件与模型工具共用来源解析、声明编译、保存、投影和检查核心。普通inquiry拟增加薄`--domain-program`或唯一兼容输入字段；BF3定案并同步，BF6落地前不在usage发布为可用命令。check可零模型执行有限检查，run保留自然答案，inspect/compare/previous保存范围和变化依据。
+
+**来源路由与采用。** 显式来源、当前字节、读取覆盖、operation/question/receiver决定唯一owner；focus只建议下一动作，不阻止提交另一个已读合法来源。未读、过期、多义、越界和跨题冲突具名拒绝。合法独立片段保留，依赖未完成关系不提前采用。R0准备、R1有效材料、R2当前性质继续分层，loaded/restored不能计为used；实际使用须有当前material handle、调用实例和非空trace。
+
+**验证和效果。** 先做真实作者程序和错主体/对象、guard后置/缺失、未注册调用、前提真/假/未知、源码撤回反例，再做自动H/D及同包消费。六首位置分别属于自动编写、作者使用、变化对照，不混成一张自动优化成功表。H/D共同事实、预算和自然回答一致，开发者参考实现、旧答案、评阅及本计划隔离。共享故障当场红绿修复、具名复验；不通过继续坏面板、重复重抽或扩语言全集来推进。程序检查不自证声明的源码含义，独立评价回到实际原文，含BE跨调用参数勘误。
+
+**预算与维护。** 开发精力约六成质量机制、四成编写复用；约8小时是估计工作量，提前完成按计划做有用余量，不等待凑时长。指定官方gpt-5.6-sol/high、有限恢复、第三方暂停、OWUI仅离线及全部保护证据沿用。工程、自动编写、真实消费、变化与同条件收益逐轴验收，研究目标不因有限队列结束标真。复盘统一在研究§7.67，当前进度在current-status；不新增长期阅读文档或平行哈希链。
+
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
 AT在已有授权局部语义上引入显式 `focused-closure-v1`：宿主持久管理locate/interpret/link/review/answer阶段，绑定当前来源、单元身份与更新版本；模型解释原始源码中的条件、对象、参数、返回与实际相关效果。上下文渲染不改变活动任务，拒绝修复回到同一单元；多候选与语义关系仍须显式判定。旧默认及协议保持。
