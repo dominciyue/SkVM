@@ -152,6 +152,69 @@ test("previous with an edited program excludes its omitted helper meanings", asy
   expect(previous.reuse.answerReused).toBe(false)
 })
 
+test("previous reuses source meaning after local input changes and recomputes current values", async () => {
+  const f = await contractFiles(), input = JSON.parse(await readFile(f.inputFile, "utf8")), outDir = path.join(f.root, "input-change-out")
+  input.inquiry.questions[0].request = "Inspect local: Reachability of the target write"
+  input.inquiry.questions[0].properties[0] = { id: "auth", kind: "effect-reachability", requirement: "Reachability of the target write" }
+  input.contractInputs = { q: { actor: { allowed: false } } }
+  await writeFile(f.inputFile, JSON.stringify(input))
+  const common = { inputFile: f.inputFile, outDir, model: "gpt-5.6-sol", method: "D1" as const, strategy: "question-checked-v1" as const, harness: "codex-account" as const, execution: { sessionTimeoutMs: 5000 } }
+  const property = (reply: any) => reply.toolResult.propertyChecks.questions.find((q: any) => q.questionId === "q").properties[0]
+  const first: any = await executeLocalInquiryRun({ ...common, domainProgramFile: f.domainProgramFile, accountTransportFactory: contractConsumer(reply => expect(property(reply).value).toBe("unreachable")) })
+  expect(first.status).toBe("completed")
+  for (const value of [true, undefined]) {
+    if (value === undefined) delete input.contractInputs
+    else input.contractInputs = { q: { actor: { allowed: value } } }
+    await writeFile(f.inputFile, JSON.stringify(input))
+    const compared: any = await compareLocalInquiry(f.inputFile, first.sessionPath, common.strategy)
+    expect(compared.reuseEligibility.status).toBe("reusable")
+    expect(compared.reuseEligibility.info.layers.R1.available).toBe(true)
+    const current = () => contractConsumer(reply => {
+      expect(property(reply).value).toBe("conditional")
+      expect(reply.toolResult.executableContract.conditions).toEqual(value === undefined ? {} : { actor: { allowed: true } })
+    })
+    const fresh: any = await executeLocalInquiryRun({ ...common, domainProgramFile: f.domainProgramFile, accountTransportFactory: current() })
+    const previous: any = await executeLocalInquiryRun({ ...common, previous: first.sessionPath, accountTransportFactory: current() })
+    expect(previous.status).toBe("completed")
+    expect(previous.domain.executableContract.evaluation).toEqual(fresh.domain.executableContract.evaluation)
+    expect(previous.reuse.materialsRestored).toBe(2)
+    expect(previous.reuse.materialsUsed).toBeGreaterThan(0)
+    expect(previous.reuse.answerReused).toBe(false)
+    expect(previous.reuse.layers.R2.available).toBe(false)
+  }
+  input.inquiry.questions[1].request = "A different original duty"
+  await writeFile(f.inputFile, JSON.stringify(input))
+  expect((await compareLocalInquiry(f.inputFile, first.sessionPath, common.strategy) as any).reuseEligibility.status).toBe("needs-fresh-analysis")
+})
+
+test("a complete current contract repairs only the rejected exact source declaration", async () => {
+  const f = await contractFiles()
+  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", method: "D1", domainProgramFile: f.domainProgramFile })
+  const property = () => runtime.report().domain!.executableContract!.evaluation!.questions.find(q => q.questionId === "q")!.properties[0]!
+  try {
+    expect(property().status, JSON.stringify(property().gaps)).toBe("checked")
+    const declaration = { ...f.contract.sourceDeclarations[1], questionId: "q" }
+    const rejected = JSON.parse((await runtime.execute({ id: "unowned-helper", name: "authorization_declare", arguments: declaration })).output)
+    expect(rejected.controlDiagnostics).toContainEqual(expect.objectContaining({ code: "question-source-unread-or-unowned", questionId: "q" }))
+    await runtime.accountContext(false)
+    expect(property().status).toBe("unknown")
+    const repaired = JSON.parse((await runtime.execute({ id: "complete-repair", name: "authorization_declare", arguments: f.contract })).output)
+    expect(repaired.controlDiagnostics).toEqual([])
+    expect(property().status).toBe("checked")
+    const broad = { ...declaration, source: at(1, 8) }
+    expect(JSON.parse((await runtime.execute({ id: "broad-rejection", name: "authorization_declare", arguments: broad })).output).controlDiagnostics.length).toBeGreaterThan(0)
+    await runtime.accountContext(false)
+    await runtime.execute({ id: "complete-but-not-broad-repair", name: "authorization_declare", arguments: f.contract })
+    expect(property().status).toBe("unknown")
+    expect(property().gaps).toContain("property-current-source-rejected:question-source-unread-or-unowned")
+    for (const source of [{ ...declaration.source, sha256: "0".repeat(64) }, { ...declaration.source, receiverClass: "AnotherReceiver" }]) {
+      await runtime.execute({ id: "different-source-rejection", name: "authorization_declare", arguments: { ...declaration, source } })
+      await runtime.execute({ id: "complete-but-not-other-source-repair", name: "authorization_declare", arguments: f.contract })
+      expect(property().status).toBe("unknown")
+    }
+  } finally { await runtime.close() }
+})
+
 test("replacing a native program retires only the old program's source units", async () => {
   const f = await contractFiles()
   const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", method: "D1", domainProgramFile: f.domainProgramFile })

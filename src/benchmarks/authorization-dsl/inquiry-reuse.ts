@@ -15,7 +15,7 @@ import { createSourceMaterials, sourceMaterialId, type SourceMaterialSnapshot } 
 
 export interface InquiryReuseSeed { delta: z.infer<typeof ControlSliceDeltaSchema>; evidence: InquiryEvidence[]; semanticUnits?: BoundSemanticBlock[]; sourceMaterials?: SourceMaterialSnapshot }
 export interface InquiryReuseInfo {
-  previousSessionId: string; change: "unchanged" | "policy-only" | "premise-only" | "policy-and-premise" | "source-changed" | "incompatible";
+  previousSessionId: string; change: "unchanged" | "policy-only" | "premise-only" | "policy-and-premise" | "contract-inputs-only" | "source-changed" | "incompatible";
   answerReused: false; semanticSupport: "unreviewed"; reusedRuleKeys: string[]; invalidatedPolicyKeys: string[]; invalidatedPremiseKeys: string[]
   reuseLevel?: "materials" | "preparation"; reusedMaterials?: string[]; invalidatedMaterials?: Array<{ handle: string; reasons: string[] }>
   layers?: { R0: { available: boolean; retainedEvidence: number; mechanicalIndexReusable: boolean }; R1: { available: boolean; retainedMaterials: number; reasons: string[] }; R2: { available: false; reason: string } }
@@ -34,11 +34,13 @@ export function planInquiryReuse(options: {
   const omitRoot = (v: AuthorizationInquiryInput) => ({ ...v, sourceRoot: undefined })
   const withoutPolicy = (v: AuthorizationInquiryInput) => ({ ...omitRoot(v), policy: undefined, inquiry: v.inquiry ? { ...v.inquiry, policy: undefined } : undefined })
   const withoutPremises = (v: AuthorizationInquiryInput) => ({ ...omitRoot(v), inquiry: v.inquiry ? { ...v.inquiry, questions: v.inquiry.questions.map(q => ({ ...q, premises: [] })) } : undefined })
+  const withoutContractInputs = (v: AuthorizationInquiryInput) => ({ ...omitRoot(v), contractInputs: undefined })
   const sourceChanged = !isDeepStrictEqual(options.currentFiles, prior.sourceFiles)
   const taskChanged = !isDeepStrictEqual(omitRoot(current), omitRoot(old))
   const policyOnly = taskChanged && isDeepStrictEqual(withoutPolicy(current), withoutPolicy(old))
   const premiseOnly = taskChanged && isDeepStrictEqual(withoutPremises(current), withoutPremises(old))
-  const change: InquiryReuseInfo["change"] = sourceChanged ? "source-changed" : !taskChanged ? "unchanged" : policyOnly ? "policy-only" : premiseOnly ? "premise-only" : "incompatible"
+  const contractInputsOnly = taskChanged && isDeepStrictEqual(withoutContractInputs(current), withoutContractInputs(old))
+  const change: InquiryReuseInfo["change"] = sourceChanged ? "source-changed" : !taskChanged ? "unchanged" : policyOnly ? "policy-only" : premiseOnly ? "premise-only" : contractInputsOnly ? "contract-inputs-only" : "incompatible"
   const info: InquiryReuseInfo = { previousSessionId: options.previousSessionId, change, answerReused: false, semanticSupport: "unreviewed", reusedRuleKeys: [], invalidatedPolicyKeys: [], invalidatedPremiseKeys: [] }
   if (isFiniteControlInquiryStrategy(options.currentStrategy)) {
     const materials = planSourceMaterials(options, info)
@@ -53,7 +55,7 @@ export function planInquiryReuse(options: {
   if (isOperationInquiryStrategy(options.currentStrategy)) return planOperationMaterials(options, info)
   if (sourceChanged) reasons.push("Allowed source bytes or indexed file set changed; dependency closure cannot prove unaffected interpretation.")
   if (!isGuidedInquiryStrategy(options.currentStrategy) || options.currentStrategy !== options.previousStrategy || options.currentMethod !== options.previousMethod || options.currentModel !== options.previousModel) reasons.push("Model, method or exact guided strategy is incompatible with the previous extraction.")
-  if (!current.inquiry || !old.inquiry || change === "incompatible") reasons.push("Reuse requires compatible complete questions; changed natural briefs require fresh declaration and analysis.")
+  if (!current.inquiry || !old.inquiry || change === "incompatible" || contractInputsOnly) reasons.push("Reuse requires compatible complete questions; changed natural briefs or unsupported contract inputs require fresh declaration and analysis.")
   const checks = prior.validation?.questionChecks
   if (prior.status !== "completed" || hasUnknownAuthorizationCompletion(prior) || !prior.validation?.valid || !prior.domain?.slice || !Array.isArray(prior.domain?.dependencies) || !Array.isArray(checks) || !old.inquiry?.questions.every(q => checks.some(c => c.questionId === q.id && c.deliveryStatus === "checked" && c.transportValid && c.referenceValid && c.ruleConsistent === true && c.evidenceCoverage === "bounded" && c.trace))) reasons.push("Previous session lacks checked bounded question/dependency footprints or has unknown completion; old partial output cannot be promoted.")
   if (reasons.length) return { status: "needs-fresh-analysis" as const, info, reasons }
@@ -92,7 +94,7 @@ export function planInquiryReuse(options: {
 
 function planQuestionPreparation(options: Parameters<typeof planInquiryReuse>[0], info: InquiryReuseInfo, materialReasons: string[]) {
   const current = options.currentInput, old = options.previousInput, prior = options.previousRun
-  const stable = (v: AuthorizationInquiryInput) => ({ ...v, sourceRoot: undefined, mode: undefined, policy: undefined, inquiry: v.inquiry ? { ...v.inquiry, mode: undefined, policy: undefined, questions: v.inquiry.questions.map(q => ({ ...q, premises: [] })) } : undefined })
+  const stable = (v: AuthorizationInquiryInput) => ({ ...v, sourceRoot: undefined, mode: undefined, policy: undefined, contractInputs: undefined, inquiry: v.inquiry ? { ...v.inquiry, mode: undefined, policy: undefined, questions: v.inquiry.questions.map(q => ({ ...q, premises: [] })) } : undefined })
   const reasons: string[] = []
   if (!current.inquiry || !old.inquiry || !isDeepStrictEqual(stable(current), stable(old))) reasons.push("R0 requires the same original questions and allowed source scope.")
   if (!options.currentStructure || options.currentStrategy !== options.previousStrategy || options.currentMethod !== options.previousMethod || options.currentModel !== options.previousModel) reasons.push("R0 requires the same workflow, method and model with current structure.")
@@ -112,7 +114,7 @@ function planSourceMaterials(options: Parameters<typeof planInquiryReuse>[0], in
   const current = options.currentInput, old = options.previousInput, prior = options.previousRun, index = options.currentStructure
   const snapshot = prior.domain?.sourceMaterials, evidence = prior.evidence ?? [], files = new Map(options.currentFiles.map(f => [f.path, f.sha256]))
   Object.assign(info, { reuseLevel: "materials", eligible: false, materialsAvailable: snapshot?.materials.filter(m => m.current).length ?? 0, materialsRestored: 0, materialsUsed: 0, reusedMaterials: [], invalidatedMaterials: [] })
-  const stable = (v: AuthorizationInquiryInput) => ({ ...v, sourceRoot: undefined, mode: undefined, policy: undefined, inquiry: v.inquiry ? { ...v.inquiry, mode: undefined, policy: undefined, questions: v.inquiry.questions.map(q => ({ ...q, premises: [] })) } : undefined })
+  const stable = (v: AuthorizationInquiryInput) => ({ ...v, sourceRoot: undefined, mode: undefined, policy: undefined, contractInputs: undefined, inquiry: v.inquiry ? { ...v.inquiry, mode: undefined, policy: undefined, questions: v.inquiry.questions.map(q => ({ ...q, premises: [] })) } : undefined })
   const reasons: string[] = []
   if (!current.inquiry || !old.inquiry || !isDeepStrictEqual(stable(current), stable(old))) reasons.push("Materials require the same original operation/questions/source scope.")
   if (!index || options.currentStrategy !== options.previousStrategy || options.currentMethod !== options.previousMethod || options.currentModel !== options.previousModel) reasons.push("Current structure, method, model and exact strategy must match.")
@@ -138,7 +140,9 @@ function planSourceMaterials(options: Parameters<typeof planInquiryReuse>[0], in
   }
   const sourceMaterials = store.snapshot(), semanticUnits = sourceMaterials.materials.map(m => structuredClone(m.unit)), needed = new Set(sourceMaterials.materials.flatMap(m => m.evidenceIds))
   const content = ({ id: _id, digest: _d, sourceBound: _b, semanticSupport: _s, ...item }: any) => item
-  const bindings = (prior.domain?.slice.bindings ?? []).filter(b => isDeepStrictEqual(current.inquiry!.questions.find(q => q.id === b.questionId), old.inquiry!.questions.find(q => q.id === b.questionId)))
+  // Source meanings survive new root values; bindings from the old question's
+  // inputs do not. Current contract conditions are evaluated by the new runtime.
+  const bindings = (prior.domain?.slice.bindings ?? []).filter(b => isDeepStrictEqual(current.inquiry!.questions.find(q => q.id === b.questionId), old.inquiry!.questions.find(q => q.id === b.questionId)) && isDeepStrictEqual(current.contractInputs?.[b.questionId], old.contractInputs?.[b.questionId]))
   info.invalidatedPremiseKeys = (prior.domain?.slice.bindings ?? []).filter(b => !bindings.includes(b)).map(b => `${b.questionId}.${b.key}`)
   info.invalidatedPolicyKeys = (prior.domain?.slice.policyRules ?? []).map(p => `${p.questionId}.${p.key}`)
   info.materialsRestored = sourceMaterials.materials.length

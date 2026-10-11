@@ -2978,6 +2978,8 @@ BF6已接入普通`check/run/compare --domain-program=<file>`与native `authoriz
 
 显式持久程序字节变化时，旧程序精确question/source/receiver拥有的R1不进入新会话；当前新声明重新编译，R0和独立材料仍按原资格保留。同一native会话替换程序也退役旧程序拥有的材料，不能让被删除的helper继续参与投影。拒绝诊断若有已验证的显式原问题身份，须保留questionId，避免撤回另一独立问题的性质；无效或未明确的身份保持保守，不凭focus猜owner。
 
+局部根`contractInputs`变化或省略不改变原问题/允许源码范围；R0/R1可保留同源解释，相关旧输入绑定撤回，当前根值和性质重算，`change=contract-inputs-only`另列。合法完整当前合同可替代普通来源声明的精确同question/path/range/SHA/receiver归属拒绝，仅清除该旧`question-source-unread-or-unowned`现态诊断；宽窗口、另一receiver、旧SHA、其他错误和历史提案保留。两条公共红绿回归覆盖false→true/省略及精确修复边界。previous的首次资格失败发生在模型派发/位置claim前，零请求证据保留；随后版本差异不用于严格同条件收益归因。
+
 自动 D 的声明工具明确引导已读来源→提交可表达含义→检查当前组合；已有导入/恢复材料先使用当前结果，避免重复编写。未表达含义保留具名缺口，机器检查不阻断自然交付。这是通用动作指引，不提供案例含义或强制成功门槛；H 的共享说明与工具不变，以实际账户输入的零模型合同对照确认。
 
 声明输入按显式`schemaVersion`区分同一组严格形式，格式拒绝返回具体字段位置和允许的discriminator值。D声明失败只引用其来源声明合同，不误给最终答案的`explanation/paths`形式；拒绝执行0语义动作，仍按原预算记一次格式/工具尝试。unknown版本与错误statement形状继续拒绝；不根据错误文本补源码含义。

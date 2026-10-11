@@ -217,6 +217,10 @@ Identity：`authorization-executable-contract-v1`。结果集中 `results/skill-
 
 消费原件还暴露问级诊断遗漏：一个明确声明原问1的无owner窗口被正确拒绝，但诊断丢掉 questionId，从而撤回无关局部问题的性质。公共 native 红测已复现；只为已验证的显式原问题身份保留拒绝作用域，无效/不明确身份继续保守。原问1拒绝不撤销、不代补其含义，已交付原件不重算成成功。
 
+BF13实际准备阻断（2026-10-12）：省略局部`contractInputs`被R0/R1稳定范围比较误当成原任务变化，previous在模型派发前被拒绝。先保留零派发资格原件，再补普通fresh/previous红测；局部输入变化不改变源码含义资格，但相关旧输入绑定必须撤回，当前根输入和性质重新计算。fresh原件已交付，后续previous使用修复版本，版本差异另列，不补跑fresh或占用付费修订。另核同source的拒绝是否可由合法当前完整合同修复，只在精确来源/问题/receiver已重新验证时清除被替代的诊断；宽窗口及其他未修复来源继续保留。
+
+公共修复已由两条预期红测转绿：同源局部输入false→true/省略时，fresh与previous性质一致且2个R1实际使用，R2/answer不复用；完整当前合同只清除精确同source归属拒绝，宽窗口/另一receiver/旧SHA仍未知。零派发失败保留在`verification/reuse-previous-preflight-failure.json`，原fresh模型答案和旧消费者未知结论不改写。
+
 - [ ] 从 BF10 首个可恢复 D 会话固定 R0/R1/R2资格；若无可用自动R1，则固定 BF12 作者会话，并明确切换为作者程序复用轨，不混成自动成功。
 - [ ] 固定一项已暴露变化（优先政策，其次来源可恢复条件），运行同输入 `reuse-fresh/previous`；无合格R1时仍可做R0准备诊断，但标明实际含义复用未达，不伪造材料基础。
 - [ ] policy/premise 的可用含义应被真实重新求值；source变化须撤回相关材料。逐项列 loaded/eligible/used/recomputed/withdrawn，旧自然答和旧 verdict不输入。

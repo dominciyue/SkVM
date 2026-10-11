@@ -26,6 +26,7 @@ import type { SourceInterpretation } from "../../task-dsl/authorization/source-i
 import { createHash } from "node:crypto"
 import { isCompletionEditProposal } from "./semantic-completion-wire.ts"
 import { compileExecutableContract, ExecutableContractSchema, type ExecutableContractCompilation } from "../../task-dsl/authorization/executable-contract.ts"
+import { QuestionDeclarationSchema } from "../../task-dsl/authorization/question-workflow.ts"
 type AcceptedExecutableContract = Extract<ExecutableContractCompilation, { evaluation: unknown }>
 
 export type DomainAblation = "scheduler-off" | "checks-off"
@@ -95,14 +96,21 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const focus: ReturnType<typeof createInquiryFocus> | undefined = isFocusedInquiryStrategy(options.strategy) ? createInquiryFocus({ program: options.program, tools: options.tools, items: () => worklist?.snapshot() ?? [], units: () => semanticUnits, slice: () => slice, dependencies: () => scheduler.snapshot(), diagnostics: () => [...issues.values()].flat().concat(check?.diagnostics ?? objectDiagnostics), shownEvidenceIds: options.shownEvidenceIds, structural: operationEvidence, sourceAssisted: options.sourceAssisted, propertyDirected, propertyAbstraction: isPropertyAbstractionStrategy(options.strategy), interproceduralProperties: isInterproceduralPropertyStrategy(options.strategy), taskBinding: isTaskBindingStrategy(options.strategy), semanticCompletion: isSemanticCompletionStrategy(options.strategy), bindingMismatches: () => propertyEvaluation?.bindingMismatches ?? [], bindingRepairUnits: () => projectedSemanticUnits, sourceSkeleton: (id, receiver) => sourceSkeletons.get(skeletonKey(id, receiver)), ...(operationEvidence ? { linkTargets: (caller, step) => options.tools.structure ? operationCallTargets(options.tools.structure, caller, step, semanticUnits).map(t => t.unit) : [] } : {}) }) : undefined
   const checkHistory: Array<{ revision: number; slice: ControlSlice; result: unknown; check: RuntimeDomainCheck }> = []
   const rejectedFocusOwners = new Map<string, string>()
+  const rejectedSourceDeclarations = new Map<string, { questionId: string; path: string; startLine: number; endLine: number; sha256: string; receiverClass?: string }>()
   const focusOwner = () => { const owner = focus?.current(); return owner && JSON.stringify([owner.questionId, owner.handle, owner.source, owner.receiverClass]) }
   let currentAnswer: unknown
   const invalidateDelivery = () => { if (options.sourceAssisted) { currentAnswer = undefined; check = undefined; propertyChecks = undefined; propertyBasis = undefined } }
-  const rejectSource = (diagnostics: InquiryDiagnostic[]) => {
+  const rejectSource = (diagnostics: InquiryDiagnostic[], raw?: unknown) => {
     invalidateDelivery()
     if (!semanticCompletion) return
     const key = `$focus.${focus?.current()?.id ?? "absent"}`, owner = focusOwner()
     issues.set(key, diagnostics); if (owner) rejectedFocusOwners.set(key, owner)
+    rejectedSourceDeclarations.delete(key)
+    const declaration = QuestionDeclarationSchema.safeParse(raw)
+    if (declaration.success && declaration.data.questionId && diagnostics.length && diagnostics.every(d => d.code === "question-source-unread-or-unowned" && d.questionId === declaration.data.questionId)) {
+      const { questionId, source } = declaration.data, file = options.tools.files.find(f => f.path === source.path)
+      if (file && options.program.questions.some(q => q.id === questionId)) rejectedSourceDeclarations.set(key, { questionId, path: file.path, startLine: source.startLine, endLine: source.endLine ?? source.startLine, sha256: source.sha256 ?? file.sha256, receiverClass: source.receiverClass })
+    }
     focus?.completionFeedback(true); focus?.sync()
   }
   const evidenceContext = () => ({ questionIds: options.program.questions.map(q => q.id), shownEvidenceIds: [...new Set([...(options.shownEvidenceIds?.() ?? options.tools.evidence.map(e => e.id)), ...authoredEvidenceIds])], suppliedUserText: options.suppliedUserText, globalUserText: options.entryContext ? [options.entryContext] : [] })
@@ -208,6 +216,12 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     invalidateDelivery()
     if (compiled.diagnostics.length || !("evaluation" in compiled)) { issues.set("$contract", compiled.diagnostics); evaluateCurrentProperties(); return { diagnostics: compiled.diagnostics, actions: [], evaluated: { paths: lastPaths } } }
     issues.delete("$contract")
+    // A complete current import validates its exact sources independently of
+    // focus routing. Retire only the superseded owner rejection, never a broad
+    // window, another receiver, a stale version or another declaration error.
+    for (const [key, rejected] of rejectedSourceDeclarations) if (issues.get(key)?.every(d => d.code === "question-source-unread-or-unowned" && d.questionId === rejected.questionId) && compiled.units.some(u => u.questionId === rejected.questionId && u.source?.path === rejected.path && u.source.startLine === rejected.startLine && u.source.endLine === rejected.endLine && u.source.sha256 === rejected.sha256 && u.receiverClass === rejected.receiverClass)) {
+      issues.delete(key); rejectedFocusOwners.delete(key); rejectedSourceDeclarations.delete(key)
+    }
     const oldUnits = executableContract?.compilation.units ?? []
     const ownedBy = (units: BoundSemanticBlock[], u: BoundSemanticBlock) => units.some(n => n.questionId === u.questionId && n.source?.id === u.source?.id && n.receiverClass === u.receiverClass)
     materials?.invalidate((_dependency, material) => ownedBy(oldUnits, material.unit), "domain-program-replaced")
@@ -229,7 +243,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     if (focus && delta && typeof delta === "object" && (semanticCompletion && isCompletionEditProposal(delta) || ["authorization-source-update/v1", "authorization-source-edit/v1", ...(isQuestionCheckedStrategy(options.strategy) ? ["authorization-question-declaration/v1"] : [])].includes(String((delta as Record<string, unknown>).schemaVersion)))) {
       const prepared = (delta as Record<string, unknown>).schemaVersion === "authorization-question-declaration/v1" ? focus.prepareQuestion(delta) : isCompletionEditProposal(delta) || (delta as Record<string, unknown>).schemaVersion === "authorization-source-edit/v1" ? focus.prepareEdit(delta) : focus.prepareSource(delta), currentId = focus.current()?.id ?? "absent"
       if ("sourceRouted" in prepared && prepared.sourceRouted) offeredTasks = focus.context().tasks
-      if (prepared.diagnostics.length || !prepared.raw) { if (semanticCompletion) rejectSource(prepared.diagnostics); else issues.set(`$focus.${currentId}`, prepared.diagnostics); proposals.push({ delta: structuredClone(delta), diagnostics: prepared.diagnostics, revision: slice.revision }); return { diagnostics: prepared.diagnostics, actions: [], evaluated: { paths: lastPaths } } }
+      if (prepared.diagnostics.length || !prepared.raw) { if (semanticCompletion) rejectSource(prepared.diagnostics, delta); else issues.set(`$focus.${currentId}`, prepared.diagnostics); proposals.push({ delta: structuredClone(delta), diagnostics: prepared.diagnostics, revision: slice.revision }); return { diagnostics: prepared.diagnostics, actions: [], evaluated: { paths: lastPaths } } }
       generatedSourceDepth++
       try { const result = await propose(prepared.raw); if (closed) throw new Error("session-closed: domain runtime cannot continue"); proposals.push({ delta: structuredClone(delta), diagnostics: result.diagnostics, revision: slice.revision }); return result }
       finally { generatedSourceDepth-- }
@@ -252,7 +266,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
       const recordStart = semanticRecords.length, result = await propose(prepared.delta)
       if (closed) throw new Error("session-closed: domain runtime cannot continue")
       const localDiagnostics = semanticRecords.slice(recordStart).filter(r => !r.accepted).flatMap(r => r.diagnostics).concat(result.diagnostics.filter(d => /^(?:premise-|work-selection-|semantic-update-schema)/.test(d.code) || (prepared.raw as { kind?: string })?.kind === "link" && d.code === "semantic-argument-unbound"))
-      if (!localDiagnostics.length && !prepared.diagnostics.length) { issues.delete(`$focus.${currentId}`); if (owner) for (const [key, rejectedOwner] of rejectedFocusOwners) if (rejectedOwner === owner) { issues.delete(key); rejectedFocusOwners.delete(key) } }
+      if (!localDiagnostics.length && !prepared.diagnostics.length) { issues.delete(`$focus.${currentId}`); rejectedSourceDeclarations.delete(`$focus.${currentId}`); if (owner) for (const [key, rejectedOwner] of rejectedFocusOwners) if (rejectedOwner === owner) { issues.delete(key); rejectedFocusOwners.delete(key); rejectedSourceDeclarations.delete(key) } }
       focus.accepted(prepared.raw, localDiagnostics); focus.sync(); evaluateCurrentProperties()
       proposals.push({ delta: structuredClone(delta), diagnostics: result.diagnostics, revision: slice.revision })
       return result
