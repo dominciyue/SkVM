@@ -219,6 +219,12 @@ test("a later original question obtains its own empty binding transaction while 
     expect(next.focus.questionId).toBe("second")
     expect(next.tasks[0].sourceEdit.retainedDraft.propertyBindings).toEqual([])
     expect(next.propertyReferences.every((r: any) => r.ref.questionId === "second")).toBe(true)
+    expect(next.questions.map((q: any) => q.id)).toEqual(["second"])
+    expect(next.originalQuestionIds).toEqual(["first", "second"])
+    expect(next.obligations.every((o: any) => o.questionId === "second")).toBe(true)
+    const before = f.runtime.report().semantic!.units
+    f.runtime.promptContext()
+    expect(f.runtime.report().semantic!.units).toEqual(before)
     expect(f.runtime.report().semantic!.units.find(u => u.questionId === "first")!.complete).toBe(false)
     expect(f.runtime.report().focus!.semanticCompletion!.some(i => i.questionId === "first" && ["pending", "offered"].includes(i.state))).toBe(true)
   } finally { f.runtime.close() }

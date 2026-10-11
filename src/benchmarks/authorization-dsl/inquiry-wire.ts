@@ -1,4 +1,6 @@
 import { z } from "zod"
+import { questionWorkflowDefinitions, questionWorkflowSchemas } from "./question-workflow-wire.ts"
+import { isQuestionWorkflowStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { PropertyIntentProposalSchema } from "../../task-dsl/authorization/property-intent.ts"
 import { isTaskBindingStrategy, isSemanticCompletionStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { CompletionEditProposalSchema, isCompletionEditProposal } from "./semantic-completion-wire.ts"
@@ -231,6 +233,7 @@ export function inquiryNativeSchemas(strategy: InquiryStrategy, parsing = false,
   }
 }
 export function inquiryNativeDefinitions(strategy: InquiryStrategy, mode?: "behavior" | "conformance", stage?: FocusStage): LLMTool[] {
+  if (isQuestionWorkflowStrategy(strategy)) return questionWorkflowDefinitions(strategy)
   const original = inquiryNativeSchemas(strategy, false, stage), schemas = { ...original, authorization_check_result: original.authorization_check_result.extend({ result: isFocusedInquiryStrategy(strategy) ? FocusedResultSchema : strategy === "semantic-flow-v1" ? SemanticResultSchema : resultModelSchema(mode) }) }, descriptions = {
     authorization_prepare_properties: "Prepare properties from every current undeclared question or preserve it as residual/needs-clarification. No source interpretation or verdict is admitted.",
     authorization_compile: "Compile current user questions without inferring source behavior; returns the pending relation queue.",
@@ -241,6 +244,7 @@ export function inquiryNativeDefinitions(strategy: InquiryStrategy, mode?: "beha
 }
 
 export function inquiryNativeArgumentSchema(strategy: InquiryStrategy, name: string, raw: unknown, parsing = true): z.ZodTypeAny | undefined {
+  if (isQuestionWorkflowStrategy(strategy)) return questionWorkflowSchemas(strategy)[name as keyof ReturnType<typeof questionWorkflowSchemas>]
   const schemas = inquiryNativeSchemas(strategy, parsing), schema = schemas[name as keyof typeof schemas]
   if (!schema || !isFocusedInquiryStrategy(strategy) || !raw || typeof raw !== "object" || !("controlDelta" in raw) || !raw.controlDelta || name === "authorization_compile") return schema
   if (!(schema instanceof z.ZodObject)) return schema

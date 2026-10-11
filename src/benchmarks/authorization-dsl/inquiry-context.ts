@@ -50,3 +50,63 @@ export function resolveInquiryContext(context: Record<string, any>, previous: Ar
   }
   return resolve(context) as Record<string, any>
 }
+
+type TransmissionComponents = { source: number; taskSkill: number; stateGap: number; schemaProtocol: number }
+/** Rendering is a view: all original duties remain in the host and return in
+ * the answer phase. Source meaning and question-owned bindings stay separate. */
+export function projectInquiryQuestionContext<T extends { focus?: { stage?: string; questionId?: string }; questions?: Array<{ id: string }> }>(input: T): T {
+  const questionId = input.focus?.stage === "answer" ? undefined : input.focus?.questionId
+  if (!questionId) return input
+  const value = input as T & Record<string, any>, projected: Record<string, any> = { ...value, originalQuestionIds: value.questions?.map((q: { id: string }) => q.id), scopeNotice: "Current question and its related source meaning only. All original questions and unresolved duties return in the answer phase. Retrieve original source or full syntax with source_read/source_structure." }
+  for (const key of ["questions", "summaries", "branchCoverage", "gaps", "obligations", "questionProgress", "repairActions"]) if (Array.isArray(value[key])) projected[key] = value[key].filter((row: any) => key === "questions" ? row.id === questionId : !row.questionId || row.questionId === questionId)
+  if (value.semanticCompletion) projected.semanticCompletion = { ...value.semanticCompletion, residuals: value.semanticCompletion.residuals?.filter((row: any) => row.questionId === questionId) }
+  return projected as T
+}
+/** Measure exactly the serialized values sent at the account boundary. These
+ * coarse byte categories are not a tokenizer or a causal protocol-cost model. */
+export function createInquiryTransmissionMeter() {
+  const samples: Array<{ sequence: number; kind: string; bytes: number; sha256: string; components: TransmissionComponents; repeatedBytes: number; repeatedParts: number; sourceRanges: Array<{ path: string; startLine: number; endLine: number }>; actions: string[] }> = []
+  const seen = new Set<string>()
+  const digest = (text: string) => createHash("sha256").update(text).digest("hex")
+  const classify = (key: string): keyof TransmissionComponents | undefined =>
+    /^(sourceSkeleton|sourceText|sourceExcerpt|sourceWindows|sourceStatements|relatedPropertySources|evidence|quote|content)$/.test(key) ? "source" :
+    /^(questions|originalQuestions|questionFacts|request|brief|policy|premises|naturalTask|skill)$/.test(key) ? "taskSkill" :
+    /^(schemaVersion|inputSchema|sourceEdit|template|contract|fields|instruction|predicateGuide)$/.test(key) ? "schemaProtocol" : undefined
+  const record = (kind: string, payload: unknown, text = JSON.stringify(payload), category?: keyof TransmissionComponents) => {
+    const components: TransmissionComponents = { source: 0, taskSkill: 0, stateGap: 0, schemaProtocol: 0 }, ranges = new Map<string, { path: string; startLine: number; endLine: number }>(), actions = new Set<string>()
+    let repeatedBytes = 0, repeatedParts = 0
+    const newlySeen = new Set<string>()
+    const count = (json: string, group: keyof TransmissionComponents) => {
+      const bytes = Buffer.byteLength(json); components[group] += bytes
+      if (bytes >= 128) { const key = `${group}:${digest(json)}`; if (seen.has(key)) { repeatedBytes += bytes; repeatedParts++ } else newlySeen.add(key) }
+    }
+    const metadata = (value: any) => {
+      if (!value || typeof value !== "object") return
+      if (typeof value.path === "string" && Number.isSafeInteger(value.startLine) && Number.isSafeInteger(value.endLine)) ranges.set(`${value.path}:${value.startLine}:${value.endLine}`, { path: value.path, startLine: value.startLine, endLine: value.endLine })
+      if (value.nextAction?.kind) actions.add(value.nextAction.kind)
+      if (value.focus?.stage) actions.add(value.focus.stage)
+      for (const child of Object.values(value)) metadata(child)
+    }
+    const visit = (value: any, group?: keyof TransmissionComponents) => {
+      const json = JSON.stringify(value); if (json === undefined) return 0
+      if (group || !value || typeof value !== "object") { count(json, group ?? "stateGap"); return Buffer.byteLength(json) }
+      let childBytes = 0
+      for (const [key, child] of Object.entries(value)) childBytes += visit(child, Array.isArray(value) ? undefined : value.kind === "skill-guidance" && key === "content" ? "taskSkill" : classify(key))
+      components.schemaProtocol += Buffer.byteLength(json) - childBytes
+      return Buffer.byteLength(json)
+    }
+    metadata(payload)
+    const serializedBytes = visit(payload, category)
+    components.schemaProtocol += Buffer.byteLength(text) - serializedBytes
+    for (const key of newlySeen) seen.add(key)
+    samples.push({ sequence: samples.length + 1, kind, bytes: Buffer.byteLength(text), sha256: digest(text), components, repeatedBytes, repeatedParts, sourceRanges: [...ranges.values()], actions: [...actions] })
+  }
+  const recordSystem = (system: string, skill: string) => {
+    const before = samples.length
+    record("system", system, JSON.stringify(system), "schemaProtocol")
+    const sample = samples[before]!, skillBytes = Buffer.byteLength(skill)
+    sample.bytes = Buffer.byteLength(system); sample.sha256 = digest(system); sample.components = { source: 0, taskSkill: skillBytes, stateGap: 0, schemaProtocol: sample.bytes - skillBytes }
+    sample.repeatedBytes = 0; sample.repeatedParts = 0
+  }
+  return { record, recordSystem, report: () => ({ schemaVersion: "authorization-transmission-accounting/v1", boundary: "official-account-static-tools-and-sent-envelopes", exactUtf8Bytes: true, exactComponentTokens: null, classification: "Disjoint coarse JSON field categories; JSON framing and host instructions are schemaProtocol. Skill bytes are exact. No archive domain is measured.", samples: structuredClone(samples) }) }
+}

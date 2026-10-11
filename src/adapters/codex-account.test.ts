@@ -68,6 +68,18 @@ test("account field repair preserves the v4 focus, charges its shared budget and
   const contexts = [JSON.parse(initial.params.input[0].text.split("Current local explanation context: ")[1]), ...sent]
   for (const context of contexts) expect(resolveInquiryContext(context, contexts).focus).toBeDefined()
 })
+test("account transmission accounting samples the exact static tools and sent context envelopes", async () => {
+  const f = await fixture(), run = await api.runCodexAccountInquiry({ inputFile: f.inputFile, workDir: f.root, model: "gpt-5.6-sol", method: "M", strategy: "operation-evidence-v4", skillContent: "FULL_SKILL_TAIL", transportFactory: fullChain(), timeoutMs: 5000 })
+  const start: any = run.account.events.find((e: any) => e.direction === "client" && e.method === "thread/start"), turn: any = run.account.events.find((e: any) => e.direction === "client" && e.method === "turn/start")
+  const replies = run.account.events.filter((e: any) => e.direction === "client" && e.result?.contentItems).map((e: any) => e.result.contentItems[0].text)
+  const accounting = run.native.transmissionAccounting
+  expect(accounting).toBeDefined()
+  expect(accounting.samples.map((s: any) => s.bytes)).toEqual([Buffer.byteLength(JSON.stringify(start.params.dynamicTools)), Buffer.byteLength(start.params.baseInstructions), Buffer.byteLength(turn.params.input[0].text), ...replies.map((text: string) => Buffer.byteLength(text))])
+  for (const sample of accounting.samples) expect(Object.values(sample.components).reduce((sum: number, bytes: any) => sum + bytes, 0)).toBe(sample.bytes)
+  expect(accounting.exactComponentTokens).toBeNull()
+  expect(JSON.stringify(accounting)).not.toContain("FULL_SKILL_TAIL")
+  expect(accounting.samples.slice(3).every((s: any) => s.kind === "tool-reply")).toBe(true)
+})
 test("account v4 accepts host-lowered try/finally source control through the current focus", async () => {
   const f = await fixture("def entry():\n    try:\n        return False\n    finally:\n        pass\n")
   const run = await api.runCodexAccountInquiry({ inputFile: f.inputFile, workDir: f.root, model: "gpt-5.6-sol", method: "M", strategy: "operation-evidence-v4", skillContent: "FULL_SKILL_TAIL", maxToolCalls: 12, transportFactory: fullChain(), timeoutMs: 5000 })

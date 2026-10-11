@@ -2928,6 +2928,8 @@ BC9补足共享操作的逐题性质事务：只有当前已采用的共享入�
 
 **相关职责。** operation work必须区分源可见请求receiver和普通数据对象。任意rest_framework基类不能自动带来dispatch义务；相关route/action/receiver/调用链决定哪些框架依赖真正作用于某项性质。候选取证、已确认相关义务、未知关联分开；不相关须有结构依据，未知相关性不默认忽略。真正授权检查、对象关系、调用次序与未采用框架变换保留。修复必须进入公共runtime，不能只在评价器过滤错误。
 
+当前question-directed实现用可见dispatch/initial生命周期、HTTP声明或源注册确认DRF请求适用性；get_permissions/check_permissions名称本身也可能是数据序列化职责，不能单独确认请求。run_validation/to_internal_value/to_representation来源确认为数据对象，没有这些依据则具名unconfirmed。旧非question-directed发现合同保留。框架依赖携带request/source/unconfirmed关联、来源owner、receiver及依据；局部性质用实际调用前缀匹配source关联，已证当前请求和未决关联保持决定性。完整任务的未完职责仍保留，局部checked不升级整题认证。
+
 **领域问题前端。** 模型从本次允许原文提出主体/资源/条件/守卫/效果/依赖含义及出处，宿主承担位置、版本、事务、唯一机械引用和失效。新前端将领域声明编译到已有标注/有限谓词/调用实例/性质核心，不把hash slot表单简单改名，不由开发者或evaluator提供真实答案。唯一候选可以机械绑定，多义含义保留待判断；未解释调用仍为unresolved。跨源对象等价必须沿实际值流和可达路径证明，不能只比较裸anchor ID。
 
 **共享与投影。** 源内含义按来源revision及相关receiver/调用上下文复用，逐题性质/政策/前提与结论独立。跨题复用不得让不同调用对象或假设串用；带残余材料保留残余。模型实际上下文按当前领域问题和变化按需投影，完整材料可取回，prompt渲染不推进状态。计量在账号静态tools和实际toolResult/currentContext发送边界执行，archive domain不是模型context，字节也不是精确token归因。
@@ -2941,6 +2943,8 @@ BC9补足共享操作的逐题性质事务：只有当前已采用的共享入�
 **授权、成本与交付。** 沿已授权官方gpt-5.6-sol/high与共同64工具/768KiB显示/32MiB读取/45分钟，自动动作、恢复及模型转换均计量。第三方暂停、OWUI仅离线、旧未知和held-out/Q1/prospective/readiness/0/6保持。通道按任务书有限恢复，unknown不重发，独立工程继续。input含cache则只计一次，USD/隐藏请求/开发探子/真人未知保持unknown。工程、真实采用、完整自然任务、性质、复用与收益逐轴验收；有限队列结束不代表研究成功。唯一复盘见研究§7.66；普通接口落地后同步usage/developer-guide。
 
 **执行细化。** 质量首件六position保持，复验采用同position的独立revision/attempt/codeEpoch，首件与修订分表，费用按唯一请求一次计入。D额外模型转换只看共同原任务、允许已读原文、当次声明和反馈，共享总预算；终态转换失败不额外阻断自然交付，unknown仍按通道处置。变化前用已有session快照引用登记reuse-baseline，逐项核来源/含义/性质资格并输出采用/拒绝/重算/未知，不新增平行哈希链或隐藏预加工。
+
+**当前公共实现。** H为M/question-guided-v1，独立authorization_question与共同只读工具；D为D1/question-checked-v1，共用helper，未声明性质时沿既有task-only prepare，再用authorization-question-declaration/v1提交source、statements和可选properties/fallthrough。statement/condition/object/effect/dependency/residual附原行/原文及含义，宿主解析唯一引用并编译到既有source-edit，不广告slot/transaction表。当前工具可主动定位实际符号、取回材料和保留未完源工作；D额外检查不强制结构化自然终答。R0准备fallback与R1材料投影分离，R2默认不复用，资格另验。新入口与有限study的确定性公共transport已接通；真实采用和收益须由BE后续运行与独立源码评阅建立。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 

@@ -8,7 +8,7 @@ import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquir
 import { createInquiryTools } from "./inquiry-tools.ts"
 import { runAuthorizationInquiry, type InquiryMethod, type RunAuthorizationInquiryOptions } from "./inquiry-run.ts"
 import type { LocalAuthorizationCliDependencies } from "./local-run.ts"
-import { parseInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInquiryStrategy, isFiniteControlInquiryStrategy, isPropertyDirectedInquiryStrategy, isQuestionDirectedInquiryStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
+import { parseInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInquiryStrategy, isFiniteControlInquiryStrategy, isPropertyDirectedInquiryStrategy, isQuestionDirectedInquiryStrategy, isQuestionWorkflowStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { planInquiryReuse } from "./inquiry-reuse.ts"
 import { hasUnknownAuthorizationCompletion } from "./telemetry.ts"
 import { acceptAuthoredInquiry } from "./authoring-assist.ts"
@@ -91,7 +91,7 @@ export async function initializeLocalInquiry(from: string, outFile: string, expl
 
 async function preparePreviousInquiry(inputFile: string, previous: string, model: string | undefined, method: InquiryMethod | undefined, strategy: InquiryStrategy | undefined) {
   const report = await inspectLocalInquiry(previous), retained = await retainedInquiryDeclaration(report.sessionPath), old = retained.input, prior = retained.prior
-  const currentStrategy = strategy ?? report.strategy ?? "legacy", loaded = await loadInquiryInput(inputFile, { allowMissingPolicy: isSourceAssistedInquiryStrategy(currentStrategy) }), tools = await createInquiryTools({ ...loaded.context, structure: isOperationInquiryStrategy(currentStrategy), ...(isFiniteControlInquiryStrategy(currentStrategy) ? { controlSemantics: "finite-control/v1" as const, propertyDirected: isPropertyDirectedInquiryStrategy(currentStrategy), questionDirected: isQuestionDirectedInquiryStrategy(currentStrategy) } : {}) })
+  const currentStrategy = strategy ?? report.strategy ?? "legacy", loaded = await loadInquiryInput(inputFile, { allowMissingPolicy: isSourceAssistedInquiryStrategy(currentStrategy) }), tools = await createInquiryTools({ ...loaded.context, structure: isOperationInquiryStrategy(currentStrategy) || isQuestionWorkflowStrategy(currentStrategy), ...(isFiniteControlInquiryStrategy(currentStrategy) ? { controlSemantics: "finite-control/v1" as const, propertyDirected: isPropertyDirectedInquiryStrategy(currentStrategy), questionDirected: isQuestionDirectedInquiryStrategy(currentStrategy) } : {}) })
   const plan = planInquiryReuse({ currentInput: loaded.value, previousInput: old, previousRun: prior, previousSessionId: report.sessionId, currentFiles: tools.files, currentStructure: tools.structure, currentMethod: method ?? report.method, previousMethod: report.method, currentStrategy, previousStrategy: report.strategy ?? "legacy", currentModel: model ?? report.model, previousModel: report.model })
   if (plan.status === "reusable") {
     const imported = tools.restoreEvidence(plan.seed.evidence)

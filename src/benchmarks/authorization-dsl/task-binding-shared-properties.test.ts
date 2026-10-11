@@ -50,6 +50,9 @@ test("shared operation meaning offers a separate current property transaction fo
     const questions = runtime.report().propertyAnalysis!.checks!.questions
     expect(questions.map(q => q.properties.map(p => [p.propertyId, p.status]))).toEqual([[['p-first', 'checked']], [['p-second', 'checked']]])
     expect(questions.every(q => q.properties.every(p => new Set(("traceDetails" in p ? p.traceDetails : []).map(r => r.source?.id).filter(Boolean)).size === 2))).toBe(true)
+    const materials = runtime.report().sourceMaterials!.materials.filter(m => m.current)
+    expect(materials).toHaveLength(2)
+    expect(new Set(materials.map(m => [m.source.id, m.source.sha256, m.receiverClass].join(":"))).size).toBe(2)
     const second = runtime.report().semantic!.units.find(u => u.questionId === "second")!
     const current: any = runtime.promptContext(); await runtime.propose({ schemaVersion: "authorization-focused-update/v1", kind: "defer", focusId: current.focus.id, revisit: second.handle, reason: "Withdraw the second question's explicit property binding" })
     const reoffered: any = runtime.promptContext(); await runtime.propose({ ...reoffered.tasks[0].sourceEdit.template, edits: [{ field: "propertyBindings", value: [] }] })

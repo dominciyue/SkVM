@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**当前开发决定是BE：修正检查义务范围，形成领域问题前端，并分开检验辅助工具与声明检查的价值。** [BE0–BE18](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)已授权、待新线程实施；规划基线`6c8c79e3`，没有BE效果结论。保留BB/v7跨函数机制，先修Serializer/Field误触发请求dispatch与依赖扩散，再共享源码含义、精简实际context、实现独立H及D前端。六主位置保留完整原skill/四问，三种变化按来源/含义/性质分层准入。依据与反例见[§7.66](#766-be-领域问题前端与机制价值验证)。
+**当前开发决定是BE：修正检查义务范围，形成领域问题前端，并分开检验辅助工具与声明检查的价值。** [BE0–BE18](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)实施至派发前工程验证；接管基线`be13cfc0`，尚无BE模型效果结论。请求适用性/相关依赖、实际context计量、独立H与D声明公开链已接通，复用BB/v7与现有材料仓而未重造resolver。六主位置保留完整原skill/四问，三种变化按来源/含义/性质分层准入。匿名transport和旧提案派生仅是工程证据，依据与反例见[§7.66](#766-be-领域问题前端与机制价值验证)。
 
 **BC已接通原自然任务的性质准备、跨调用定向修复及有界源码准备，真实跨源性质仍未闭合。** 当前范围仍为单repo/ref、源码可见的授权与信任边界评估。5去重尝试全部completed交付、完整原任务均source-partial；17个model-prepared性质中12个unknown、首件2个缺逐题查询、3个未检查，合格跨源checked/violated为0。四比较与三previous位置因资格不足零派发，稳定质量、实际复用与净收益均未建立。授权运行以未达验收收束，BC14已发布并核对用户origin。
 
@@ -2442,7 +2442,7 @@ usage使用原check/run/inspect/edit/compare，不新增CLI。实际公开check/
 
 ### 7.66 BE 领域问题前端与机制价值验证
 
-2026-10-11，用户在BD结果和外部模型分析的讨论后要求书写下一轮任务书并派发gpt-6.1-sol/max。规划基线`6c8c79e3`与origin一致，仓库干净；[BE0–BE18](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)及[spec§14.44](skill-ir-aot-optimization-spec.md#1444-be-question-workflow-and-mechanism-value)登记为ready-for-dispatch。这里只记录复核和获准方向，尚无BE实现或模型效果。
+2026-10-11，用户在BD结果和外部模型分析的讨论后要求书写下一轮任务书并派发gpt-6.1-sol/max。规划基线`6c8c79e3`，实际接管基线`be13cfc0`；[BE0–BE18](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)及[spec§14.44](skill-ir-aot-optimization-spec.md#1444-be-question-workflow-and-mechanism-value)进入实施。以下分别记录工程证据、实际模型采用和未达责任；派发前尚无BE模型效果。
 
 **对外部判断的核实。** BD提供了同条件的负向/取舍开发观察，值得据此调整交互方式；但“跨单元绑定仍未实现”“所有额外input都是格式重试”“填字段无需模型”不能作为当前事实。现有[property-query](../../src/task-dsl/authorization/property-query.ts)已接受PropertyQueryContext并调用bindInterproceduralQueries；[control-conclusion](../../src/task-dsl/authorization/control-conclusion.ts)会沿实际调用实例、对象与次序求值。BD已采用跨函数link，失败集中在不完整语义、有关依赖与真实交互。跨源匹配不能只扩大anchor查找范围或要求两个函数共用裸ID，必须保留实参/形参、receiver、实际可达路径与权限关系。
 
@@ -2467,6 +2467,12 @@ BD五次格式拒绝为0，D两次存在语义lowering和stale/stage拒绝、重
 **执行与后续记录。** 共享故障当场红绿修复和具名复验，不把已知坏实现跑满；同因两次无进展转确定性诊断，共同行为变化后重建受影响比较，首件保留。官方账号gpt-5.6-sol/high沿既有授权，第三方暂停、OWUI仅离线、旧未知保留。新线程唯一写代码/共享方法文档/Git。后续按“失败→根因→修复→实际采用→效果/未达”在本节追加，同时更新§1、§11和spec；工程测试或派发完成不改写为研究成功。
 
 **派发前执行核对。** 明确六首位置与同位置修订身份分离、按唯一请求计所有成本；D转换只消费本次允许输入并共享预算，终态转换失败保留自然交付；变化基线沿用原session来源/政策/前提引用，逐项核材料依赖并保留unknown。没有新增研究门槛或平行证据链。
+
+**BE1–BE3工程与现场反例。** 五个匿名数据receiver公共红测得到5fail/55pass，修请求适用范围后60pass；请求生命周期和缺失dispatch正例保留。第二个公共runtime→promptContext→源码编辑→validate红测显示：效果之后才调用的另一个类，其未知变换仍错误阻断先前效果。依赖现在携带source/request/unconfirmed关联及来源owner/receiver，按实际性质trace判定相关性并输出理由；同一变换移到效果之前仍unknown。显式当前路由middleware仍阻断，另一action响应Serializer不阻断当前性质。旧轨迹核对还发现数据类get_permissions同名方法误判请求；两匿名公共红测失败后，仅dispatch/initial或HTTP绑定确认请求，数据permission名称不再充当依据。最新这组与声明入口联合74pass/518断言；既有149pass/916断言覆盖共享材料、复用、账号和负例。红绿记录在[BE verification](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification)。
+
+**BE4–BE10公开链。** [question-workflow](../../src/task-dsl/authorization/question-workflow.ts)把statement/condition/object/effect/dependency/residual及原行/原文编译到既有source-edit；机械ID由宿主生成，条件和对象含义仍由模型提出。公开账号mock实现入口→helper声明→两来源实际trace→checked→自然交付，错主体/资源、后置/不可达guard和错权限仍violated；H通过自己的定位/读取工具自然交付，没有D草稿。原文发送缺失曾导致evidence-not-shown，已红绿修复为实际sourceWindows；H零检查额度误关工具也已定向修复。旧材料仓已按来源/receiver去重，新增当前题视图与完整材料取回，不删除question限定。源码/receiver/政策/前提/撤回回归保留。R0准备可独立回退，R1保留有效partial，R2默认未合格。
+
+实际静态tools、system/完整skill、初始context及每个tool-result/currentContext由官方adapter采样；分类和重复UTF-8字节不冒充精确token。BD D1/D2原发送可恢复，56/43样本与原sourceWindows完整性已核对，0投影解析错误；原语义标注/残余字节保持，宿主仅迁移revision，不补旧模型含义。现有[BE study](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/study.ts)登记六质量和六变化首位置，首件/修订/费用分离；公平性、unknown保护和原skill/四问/95源/22文件检查接入普通入口。研究测试/类型通过，首次summarize保留六未运行分母。工程证据不等于当前真实采用、自然质量或净收益；后续按有限队列即时核对。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
@@ -2579,6 +2585,7 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-11 / BD实施与有限收束：** 显式semantic-completion/v7接通持续责任、独立缓存检查、窄静态工具、分阶段有界恢复和完整skill inquiry会话，179公开测试及主/研究类型通过。五首件全交付，四质量整题0full；两对tradeoff/negative，D current7unknown、0合格跨源性质，六变化具名未运行。254总工具含32自动单位，成本完整去重；以completed-with-unmet-criteria收束，完整队列、实际复用和研究目标未达，见§7.65。
 
 - **2026-10-11 / BE规划：** 两次主线程复核后确认跨源绑定已存在、BD无格式拒绝，并复现数据类误触发DRF请求义务。获准修相关范围、共用源含义和实际context，接入独立H与领域声明D；六完整质量首位置加三变化分层复用，首失败当场修复。任务书已登记待派发，规划无新效果，见§7.66。
+- **2026-10-11 / BE派发前工程：** 请求/数据receiver与相关依赖公共红绿修正，独立H、D领域声明、实际发送计量与R0/R1分层恢复接通。匿名账号链和旧原提案零调用派生已核对；自然质量、当前合格性质、变化采用和三臂价值待实际运行，见§7.66及当前状态。
 
 ## 12. 后续追加规则
 

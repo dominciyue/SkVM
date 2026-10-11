@@ -1,5 +1,5 @@
 import { isDeepStrictEqual } from "node:util"
-import { ControlSliceDeltaSchema, createControlSlice, mergeControlSlice, isGuidedInquiryStrategy, isSemanticInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInquiryStrategy, isFiniteControlInquiryStrategy, sourceMaterialSemanticVersion, canonicalControl, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
+import { ControlSliceDeltaSchema, createControlSlice, mergeControlSlice, isGuidedInquiryStrategy, isSemanticInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInquiryStrategy, isFiniteControlInquiryStrategy, isQuestionWorkflowStrategy, sourceMaterialSemanticVersion, canonicalControl, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
 import { checkControlConclusions } from "../../task-dsl/authorization/control-conclusion.ts"
 import { validateAuthorizationInquiryResult } from "../../task-dsl/authorization/inquiry-result.ts"
@@ -17,7 +17,8 @@ export interface InquiryReuseSeed { delta: z.infer<typeof ControlSliceDeltaSchem
 export interface InquiryReuseInfo {
   previousSessionId: string; change: "unchanged" | "policy-only" | "premise-only" | "policy-and-premise" | "source-changed" | "incompatible";
   answerReused: false; semanticSupport: "unreviewed"; reusedRuleKeys: string[]; invalidatedPolicyKeys: string[]; invalidatedPremiseKeys: string[]
-  reuseLevel?: "materials"; reusedMaterials?: string[]; invalidatedMaterials?: Array<{ handle: string; reasons: string[] }>
+  reuseLevel?: "materials" | "preparation"; reusedMaterials?: string[]; invalidatedMaterials?: Array<{ handle: string; reasons: string[] }>
+  layers?: { R0: { available: boolean; retainedEvidence: number; mechanicalIndexReusable: boolean }; R1: { available: boolean; retainedMaterials: number; reasons: string[] }; R2: { available: false; reason: string } }
   legacyRebindings?: Array<{ handle: string; previousId: string; currentId: string }>
   eligible?: boolean; materialsAvailable?: number; materialsRestored?: number; materialsUsed?: number
 }
@@ -38,7 +39,16 @@ export function planInquiryReuse(options: {
   const premiseOnly = taskChanged && isDeepStrictEqual(withoutPremises(current), withoutPremises(old))
   const change: InquiryReuseInfo["change"] = sourceChanged ? "source-changed" : !taskChanged ? "unchanged" : policyOnly ? "policy-only" : premiseOnly ? "premise-only" : "incompatible"
   const info: InquiryReuseInfo = { previousSessionId: options.previousSessionId, change, answerReused: false, semanticSupport: "unreviewed", reusedRuleKeys: [], invalidatedPolicyKeys: [], invalidatedPremiseKeys: [] }
-  if (isFiniteControlInquiryStrategy(options.currentStrategy)) return planSourceMaterials(options, info)
+  if (isFiniteControlInquiryStrategy(options.currentStrategy)) {
+    const materials = planSourceMaterials(options, info)
+    if (!isQuestionWorkflowStrategy(options.currentStrategy)) return materials
+    if (materials.status === "reusable" && materials.seed.sourceMaterials.materials.length) {
+      info.layers = { R0: { available: true, retainedEvidence: materials.seed.evidence.length, mechanicalIndexReusable: !sourceChanged }, R1: { available: true, retainedMaterials: materials.seed.sourceMaterials.materials.length, reasons: materials.reasons }, R2: { available: false, reason: "Previous verdicts and answers are never restored; evaluate current properties separately." } }
+      return materials
+    }
+    return planQuestionPreparation(options, info, materials.reasons)
+  }
+  if (isQuestionWorkflowStrategy(options.currentStrategy)) return planQuestionPreparation(options, info, ["This workflow has no compiled source meaning."])
   if (isOperationInquiryStrategy(options.currentStrategy)) return planOperationMaterials(options, info)
   if (sourceChanged) reasons.push("Allowed source bytes or indexed file set changed; dependency closure cannot prove unaffected interpretation.")
   if (!isGuidedInquiryStrategy(options.currentStrategy) || options.currentStrategy !== options.previousStrategy || options.currentMethod !== options.previousMethod || options.currentModel !== options.previousModel) reasons.push("Model, method or exact guided strategy is incompatible with the previous extraction.")
@@ -77,6 +87,24 @@ export function planInquiryReuse(options: {
   } catch {
     return { status: "needs-fresh-analysis" as const, info, reasons: ["Previous extraction no longer matches the current bounded control schema."] }
   }
+}
+
+function planQuestionPreparation(options: Parameters<typeof planInquiryReuse>[0], info: InquiryReuseInfo, materialReasons: string[]) {
+  const current = options.currentInput, old = options.previousInput, prior = options.previousRun
+  const stable = (v: AuthorizationInquiryInput) => ({ ...v, sourceRoot: undefined, mode: undefined, policy: undefined, inquiry: v.inquiry ? { ...v.inquiry, mode: undefined, policy: undefined, questions: v.inquiry.questions.map(q => ({ ...q, premises: [] })) } : undefined })
+  const reasons: string[] = []
+  if (!current.inquiry || !old.inquiry || !isDeepStrictEqual(stable(current), stable(old))) reasons.push("R0 requires the same original questions and allowed source scope.")
+  if (!options.currentStructure || options.currentStrategy !== options.previousStrategy || options.currentMethod !== options.previousMethod || options.currentModel !== options.previousModel) reasons.push("R0 requires the same workflow, method and model with current structure.")
+  if (hasUnknownAuthorizationCompletion(prior) || prior.sourceVerification?.valid !== true || !prior.sourceFiles?.length) reasons.push("R0 requires a recoverable terminal session and verified original source preparation; inspect unknown completion without resending.")
+  const files = new Map(options.currentFiles.map(f => [f.path, f.sha256]))
+  const evidence = (prior.evidence ?? []).filter(e => e.repository === current.repository && e.sourceRef === current.sourceRef && files.get(e.path) === e.sha256)
+  info.layers = { R0: { available: !reasons.length, retainedEvidence: reasons.length ? 0 : evidence.length, mechanicalIndexReusable: !reasons.length && isDeepStrictEqual(options.currentFiles, prior.sourceFiles) }, R1: { available: false, retainedMaterials: 0, reasons: materialReasons }, R2: { available: false, reason: "No independently qualified current property is restored; old answers and verdicts are excluded." } }
+  if (reasons.length) return { status: "needs-fresh-analysis" as const, info, reasons }
+  info.reuseLevel = "preparation"; info.eligible = true; info.materialsRestored = 0; info.materialsUsed = 0
+  if (info.change === "incompatible") info.change = "policy-and-premise"
+  const delta = ControlSliceDeltaSchema.parse({ schemaVersion: "authorization-control-slice/v1", rules: [], dependencies: [], bindings: [], policyRules: [] })
+  const seed: InquiryReuseSeed = { delta, evidence: structuredClone(evidence) }
+  return { status: "reusable" as const, info, reasons: materialReasons, seed }
 }
 
 function planSourceMaterials(options: Parameters<typeof planInquiryReuse>[0], info: InquiryReuseInfo) {

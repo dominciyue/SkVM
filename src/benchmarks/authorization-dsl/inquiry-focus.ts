@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { compileQuestionDeclaration, questionDeclarationView } from "../../task-dsl/authorization/question-workflow.ts"
 import { createHash } from "node:crypto"
 import { callBindingRepairDemands } from "./call-binding-repair.ts"
 import { completionMeaning, reconcileSemanticCompletion, recordSemanticCompletionFeedback, type SemanticCompletionItem, type SemanticCompletionOwner } from "./semantic-completion.ts"
@@ -364,6 +365,16 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
     if (!edited.interpretation) return { diagnostics: edited.diagnostics }
     return prepareSource({ schemaVersion: "authorization-source-update/v1", kind: "interpret", focusId: current.id, interpretation: edited.interpretation, values: edited.values, reason: edited.reason })
   }
+  const questionContext = () => {
+    const skeleton = current?.itemId && offeredSkeletons.get(current.itemId)
+    return skeleton && current?.questionId ? questionDeclarationView(skeleton, { question: questionSeed(current.questionId), previous: current.handle ? sourceDrafts.get(current.handle) : undefined, references: propertyReferences() }) : undefined
+  }
+  const prepareQuestion = (raw: unknown) => {
+    const skeleton = current?.itemId && offeredSkeletons.get(current.itemId)
+    if (!skeleton || !current?.questionId || current.stage !== "interpret") return { diagnostics: [{ code: "question-source-unoffered", path: "source", message: "Locate and read the current source passage, or request the next source with authorization_question.", severity: "error" as const }] }
+    const compiled = compileQuestionDeclaration(skeleton, raw, { transactionId: editTransaction(skeleton), questionId: current.questionId, properties: questionSeed(current.questionId)?.properties, references: propertyReferences(), previous: current.handle ? sourceDrafts.get(current.handle) : undefined })
+    return compiled.edit ? prepareEdit(compiled.edit) : { diagnostics: compiled.diagnostics }
+  }
   const prepare = (raw: unknown, offered: LocalExplanationTask[]) => {
     const parsed = FocusedUpdateSchema.safeParse(raw), diagnostics: InquiryDiagnostic[] = []
     const fail = (code: string, message: string) => diagnostics.push({ code, path: current?.id ?? "focus", questionId: current?.questionId, message, severity: "error" })
@@ -443,5 +454,5 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
     }) }, diagnostics: [] }
   }
   const refreshPropertyDemands = () => { if (options.interproceduralProperties) for (const item of [...options.items(), ...propertyItems.values()]) if (item.selected) demandFor(item); return structuredClone([...propertyDemands.values()]) }
-  return { sync, context, prepare, prepareSource, prepareEdit, accepted, assemble, demandFor, refreshPropertyDemands, completionFeedback, sourceRelocated: () => { finish("source-relocated"); reviewedSnapshot = undefined }, recordFallback: (raw: unknown) => sourceHistory.push({ event: "low-level-fallback", focusId: current?.id, raw: structuredClone(raw), diagnostics: [] }), current: () => current, pendingLinks, report: () => ({ ...(options.semanticCompletion ? { semanticCompletion: structuredClone(completionItems) } : {}), current: structuredClone(current), history: structuredClone(history), reviewedSnapshot, sourceInterpretations: structuredClone(sourceHistory), sourceDrafts: [...sourceDrafts].map(([handle, interpretation]) => ({ handle, interpretation: structuredClone(interpretation) })), editDrafts: [...editDrafts].map(([transaction, draft]) => ({ transaction, draft: structuredClone(draft) })), ...(options.propertyDirected ? { propertyDemands: options.semanticCompletion ? structuredClone([...propertyDemands.values()]) : refreshPropertyDemands() } : {}), summaries: options.units().map(u => summarizeProcedure(u)) }) }
+  return { sync, context, prepare, prepareSource, prepareEdit, prepareQuestion, questionContext, accepted, assemble, demandFor, refreshPropertyDemands, completionFeedback, sourceRelocated: () => { finish("source-relocated"); reviewedSnapshot = undefined }, recordFallback: (raw: unknown) => sourceHistory.push({ event: "low-level-fallback", focusId: current?.id, raw: structuredClone(raw), diagnostics: [] }), current: () => current, pendingLinks, report: () => ({ ...(options.semanticCompletion ? { semanticCompletion: structuredClone(completionItems) } : {}), current: structuredClone(current), history: structuredClone(history), reviewedSnapshot, sourceInterpretations: structuredClone(sourceHistory), sourceDrafts: [...sourceDrafts].map(([handle, interpretation]) => ({ handle, interpretation: structuredClone(interpretation) })), editDrafts: [...editDrafts].map(([transaction, draft]) => ({ transaction, draft: structuredClone(draft) })), ...(options.propertyDirected ? { propertyDemands: options.semanticCompletion ? structuredClone([...propertyDemands.values()]) : refreshPropertyDemands() } : {}), summaries: options.units().map(u => summarizeProcedure(u)) }) }
 }

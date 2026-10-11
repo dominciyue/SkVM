@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、已有 structure index 和有限求值器；Python 仅用于现有文档检查。开发 `gpt-6.1-sol/max`，实验沿用用户已授权官方账号 `gpt-5.6-sol/high`。
 
-状态：`ready-for-dispatch`。规划基线 `6c8c79e31588503e6335c1c285ffe0817d7a5b3d`，与用户 origin 对齐、工作区干净。接管时另记实际 HEAD；本任务书尚未产生 BE 实现或实验结论。
+状态：`in-progress / BE11`。规划基线 `6c8c79e31588503e6335c1c285ffe0817d7a5b3d`，实际接管 `be13cfc0bea4fa7be148a997670cd0819e04d97c`。BE0–BE10公共工程已接通，最后类型与派生核对后固定版本并进入N1；当前0 BE模型请求，真实效果待测。进度与逐项证据见新identity的status/verification，旧原件不回填。
 
 Identity：`authorization-question-workflow-v1`。结果统一进入 `results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/`，临时会话统一进入 `D:/skill优化/project-maintenance/runs/authorization-question-workflow-v1/`。不得回填 BD 原件或续用其位置身份。
 
@@ -146,7 +146,7 @@ H 必须真的能独立前进，不能依赖隐藏的 D 提交、伪造全完成
 
 **Modify:** `src/task-dsl/authorization/source-materials.ts`、`src/benchmarks/authorization-dsl/source-material-projection.ts`、`inquiry-focus.ts`、`inquiry-domain-runtime.ts` 及现有源材料测试；新增模块仅在现有职责无法容纳时使用。
 
-- [ ] 先写红测：同 source/revision/receiver 的入口被两题使用，只保存一份可共用含义；题目专属 propertyBindings 不串用；两个实际调用不同主体/资源仍隔离。
+- [ ] 核验现有材料仓：同 source/revision/receiver 的入口被两题使用，只保存一份可共用含义；题目专属 propertyBindings 不串用；两个实际调用不同主体/资源仍隔离。现有去重与调用身份已实现，不重复修改核心；新增公共投影断言，新增行为仍先红测。
 - [ ] 复用现有材料仓和调用实例，不删除 questionId 验证后强行共享。用源材料到各题视图的确定性投影处理老合同。
 - [ ] 实际 currentContext 默认只含当前领域问题、有关原文/提案、变化和具名缺口；完整已读材料可以按需取回。不能重复发送全 worklist/全部草稿，也不能截断决定性分支而没有提示。
 - [ ] 源改变、receiver变化、政策/前提依赖变化、显式撤回分别测试；保持稳定身份，不把 prompt 渲染变成推进状态的动作。

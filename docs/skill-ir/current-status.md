@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**[BE0–BE18：领域问题前端、相关依赖与机制价值验证](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)已登记，状态为`ready-for-dispatch`，由新的`gpt-6.1-sol/max`线程开发。** 规划基线`6c8c79e3`，identity为`authorization-question-workflow-v1`。本次只有计划与文档更新，尚无BE代码、真实运行或效果结论。
+**[BE0–BE18：领域问题前端、相关依赖与机制价值验证](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)正在实施BE11派发前验证，由`gpt-6.1-sol/max`线程开发。** 实施基线`be13cfc0`，identity为`authorization-question-workflow-v1`。数据类错误请求义务和相关依赖已公共红绿修正；独立H、D领域声明、实际发送计量及R0/R1恢复接通。149项受影响回归、74项请求/声明公共链、研究测试/类型通过；原四问/95源/22文件skill与N/H/D真实CLI零模型check已核。BD派生仅复用原语义，原件未变；最终修订重放和类型后固定源码并开始N1。尚无BE模型运行或效果结论，恢复见[状态](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/status.json)。
 
 先修已复现的Serializer/Field误触发DRF dispatch及依赖扩散，再做源码含义跨题共享、实际上下文减负、独立H辅助与D领域声明前端。保留现有BB/v7跨源机制，不重复开发resolver或扩语言语义。两个完整原任务重复块各跑N/H/D，共6主位置；三变化fresh/previous按来源准备、语义材料、性质结论分别验资格，最多6首位置。质量比较不以checked为准入，原skill/四问、源码语义质量与机器检查各自保留。方法见[spec§14.44](skill-ir-aot-optimization-spec.md#1444-be-question-workflow-and-mechanism-value)、[研究§7.66](skill-dsl-research.md#766-be-领域问题前端与机制价值验证)及[当前计划](skill-ir-aot-optimization-plan.md)。
 

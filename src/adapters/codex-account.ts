@@ -2,7 +2,7 @@ import type { AgentAdapter, AdapterConfig, RunResult } from "../core/types.ts"
 import { emptyTokenUsage } from "../core/types.ts"
 import { createNativeInquiryRuntime } from "../benchmarks/authorization-dsl/inquiry-native.ts"
 import { parseInquiryStrategy, isPropertyDirectedInquiryStrategy, type InquiryStrategy } from "../task-dsl/authorization/control-slice.ts"
-import { createInquiryContextEncoder, INCREMENTAL_INQUIRY_CONTEXT_GUIDE } from "../benchmarks/authorization-dsl/inquiry-context.ts"
+import { createInquiryContextEncoder, createInquiryTransmissionMeter, INCREMENTAL_INQUIRY_CONTEXT_GUIDE } from "../benchmarks/authorization-dsl/inquiry-context.ts"
 import { parseNativeInquiryMethod } from "../task-dsl/authorization/operation-program.ts"
 import { runCodexAccountSession, redactCodexEvent, loadCodexAccountBoundary, type AccountTransport } from "./codex-account-session.ts"
 import type { InquiryReuseInfo, InquiryReuseSeed } from "../benchmarks/authorization-dsl/inquiry-reuse.ts"
@@ -22,6 +22,7 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
   const instructionSources = await loadCodexAccountBoundary(options.accountBoundaryFile)
   const runtime = await createNativeInquiryRuntime({ ...options, method: options.method, domainTools: options.domainTools ?? true, traceRedactor: redactCodexEvent })
   const encode = isPropertyDirectedInquiryStrategy(options.strategy) ? createInquiryContextEncoder() : undefined
+  const transmission = createInquiryTransmissionMeter()
   const contextPayloads: Array<{ sequence: number; references: number; originalBytes: number; sentBytes: number }> = []
   const contextView = async (automatic = true) => {
     const context = await runtime.accountContext(automatic)
@@ -29,14 +30,19 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
     const { context: encoded, ...metrics } = encode(context); contextPayloads.push(metrics); return encoded
   }
   const respond = async (result: Awaited<ReturnType<typeof runtime.execute>>, automatic = true) => {
-    const output = JSON.stringify({ toolResult: JSON.parse(result.output), currentContext: await contextView(automatic) })
+    const payload = { toolResult: JSON.parse(result.output), currentContext: await contextView(automatic) }, output = JSON.stringify(payload)
+    transmission.record("tool-reply", payload, output)
     runtime.accountSent(output); return { ...result, output }
   }
   let account: Awaited<ReturnType<typeof runCodexAccountSession>>
   try {
     const context = await contextView(), prompt = `Current original task and full skill are declared in the system.\nCurrent local explanation context: ${JSON.stringify(context)}`
+    const system = `${options.skillContent ?? ""}\n${runtime.system}${encode ? "\n" + INCREMENTAL_INQUIRY_CONTEXT_GUIDE : ""}`
+    transmission.record("static-tools", runtime.definitions.map(t => ({ type: "function", name: t.name, description: t.description, inputSchema: t.inputSchema })), undefined, "schemaProtocol")
+    transmission.recordSystem(system, options.skillContent ?? "")
+    transmission.record("initial-context", context, prompt)
     runtime.accountSent(prompt)
-    account = await runCodexAccountSession({ model: options.model, effort: "high", cwd: options.workDir, system: `${options.skillContent ?? ""}\n${runtime.system}${encode ? "\n" + INCREMENTAL_INQUIRY_CONTEXT_GUIDE : ""}`, prompt, tools: runtime.definitions, maxToolCalls: options.maxToolCalls, timeoutMs: options.timeoutMs, transportFactory: options.transportFactory, instructionSources,
+    account = await runCodexAccountSession({ model: options.model, effort: "high", cwd: options.workDir, system, prompt, tools: runtime.definitions, maxToolCalls: options.maxToolCalls, timeoutMs: options.timeoutMs, transportFactory: options.transportFactory, instructionSources,
       execute: async call => respond(await runtime.execute(call)),
       argumentDiagnostics: runtime.argumentDiagnostics,
       rejectArguments: async (call, diagnostics) => respond(await runtime.rejectArguments(call, diagnostics), false),
@@ -45,7 +51,7 @@ export async function runCodexAccountInquiry(options: AccountInquiryOptions) {
   // Returned reports can be persisted by either entrance. Masking is applied to
   // that archive copy, never the live domain state; altered material hashes will
   // be rejected by normal restore validation instead of silently rebinding.
-  const report = { ...runtime.report(), ...(encode ? { contextPayloads } : {}) }, native = redactCodexEvent(report) as typeof report
+  const report = { ...runtime.report(), transmissionAccounting: transmission.report(), ...(encode ? { contextPayloads } : {}) }, native = redactCodexEvent(report) as typeof report
   return { account, native, ...(options.reuse ? { reuse: { ...options.reuse.info, materialsUsed: new Set(native.domain?.materialUses?.map(u => u.materialId)).size } } : {}) }
 }
 

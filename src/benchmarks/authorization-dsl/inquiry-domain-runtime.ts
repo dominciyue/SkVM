@@ -20,6 +20,8 @@ import type { SourceSkeleton } from "./evidence-preparation/source-skeleton.ts"
 import { createSourceMaterials, sourceMaterialId, type SourceMaterialSnapshot } from "../../task-dsl/authorization/source-materials.ts"
 import { projectSourceMaterials, type SourceMaterialUse } from "./source-material-projection.ts"
 import { propertyDemandModelView, type PropertyDemand } from "../../task-dsl/authorization/property-demand.ts"
+import { projectInquiryQuestionContext } from "./inquiry-context.ts"
+import { isQuestionCheckedStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import type { SourceInterpretation } from "../../task-dsl/authorization/source-interpretation.ts"
 import { createHash } from "node:crypto"
 import { isCompletionEditProposal } from "./semantic-completion-wire.ts"
@@ -193,8 +195,8 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const propose = async (delta: unknown): Promise<ProposalResult> => {
     if (closed) throw new Error("session-closed: domain runtime cannot continue")
     invalidateDelivery()
-    if (focus && delta && typeof delta === "object" && (semanticCompletion && isCompletionEditProposal(delta) || ["authorization-source-update/v1", "authorization-source-edit/v1"].includes(String((delta as Record<string, unknown>).schemaVersion)))) {
-      const prepared = isCompletionEditProposal(delta) || (delta as Record<string, unknown>).schemaVersion === "authorization-source-edit/v1" ? focus.prepareEdit(delta) : focus.prepareSource(delta), currentId = focus.current()?.id ?? "absent"
+    if (focus && delta && typeof delta === "object" && (semanticCompletion && isCompletionEditProposal(delta) || ["authorization-source-update/v1", "authorization-source-edit/v1", ...(isQuestionCheckedStrategy(options.strategy) ? ["authorization-question-declaration/v1"] : [])].includes(String((delta as Record<string, unknown>).schemaVersion)))) {
+      const prepared = (delta as Record<string, unknown>).schemaVersion === "authorization-question-declaration/v1" ? focus.prepareQuestion(delta) : isCompletionEditProposal(delta) || (delta as Record<string, unknown>).schemaVersion === "authorization-source-edit/v1" ? focus.prepareEdit(delta) : focus.prepareSource(delta), currentId = focus.current()?.id ?? "absent"
       if (prepared.diagnostics.length || !prepared.raw) { if (semanticCompletion) rejectSource(prepared.diagnostics); else issues.set(`$focus.${currentId}`, prepared.diagnostics); proposals.push({ delta: structuredClone(delta), diagnostics: prepared.diagnostics, revision: slice.revision }); return { diagnostics: prepared.diagnostics, actions: [], evaluated: { paths: lastPaths } } }
       generatedSourceDepth++
       try { const result = await propose(prepared.raw); if (closed) throw new Error("session-closed: domain runtime cannot continue"); proposals.push({ delta: structuredClone(delta), diagnostics: result.diagnostics, revision: slice.revision }); return result }
@@ -468,7 +470,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     if (options.strategy === "semantic-flow-v1") return { ...context, instruction: SEMANTIC_EXECUTION_GUIDE, tasks: context.tasks.map(task => ({ ...task, existingTargets: [], semanticUnits: semanticUnits.filter(u => u.questionId === task.question.id) })) }
     return context
   }
-  const promptPayloads: Array<{ revision: number; bytes: number; requiredAnnotations: number; pendingAnnotations: number; activeRules: number; activePaths: number }> = []
+  const promptPayloads: Array<{ revision: number; bytes: number; unprojectedBytes?: number; requiredAnnotations: number; pendingAnnotations: number; activeRules: number; activePaths: number }> = []
   const promptContext = (limits: { maxSourceBytes?: number; finalOnly?: boolean; preferAnswer?: boolean } = {}) => {
     const context = modelContext(limits)
     if (!options.sourceAssisted || !focus || !("questions" in context)) return context
@@ -491,8 +493,9 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     }
     const delivery = deliverySnapshot()
     const rendered = { ...context, ...(semanticCompletion ? { branchCoverage: branchCoverage(), missingFactInstruction: "For every original question, map each decisive missing fact to the exact conditional conclusion it prevents. Read but unexplained source is an interpretation gap; unread or outside source is a source gap; unspecified user values are premise-unknown; absent independent policy is policy-unspecified. Preserve source-confirmed order and independent resolved parts. A checked local property does not complete other branches or certify deployment." } : {}), tasks: context.tasks.map(taskView), locationTasks: context.locationTasks.map(({ question, ...task }) => ({ ...task, questionId: question.id })), mode: options.program.mode, policy: options.program.policy, gaps: delivery.gaps.slice(0, 24), gapCount: delivery.gaps.length, obligations: delivery.obligations, deliveryRevision: delivery.revision }
-    if (propertyDirected) promptPayloads.push({ revision: slice.revision, bytes: Buffer.byteLength(JSON.stringify(rendered)), requiredAnnotations: context.tasks.reduce((n, t) => n + (t.propertyDemand?.requiredAnnotationCount ?? 0), 0), pendingAnnotations: context.tasks.reduce((n, t) => n + (t.propertyDemand?.pendingAnnotationCount ?? 0), 0), activeRules: slice.rules.length, activePaths: lastPaths.length })
-    return rendered
+    const projected = propertyDirected ? projectInquiryQuestionContext(rendered) : rendered
+    if (propertyDirected) promptPayloads.push({ revision: slice.revision, bytes: Buffer.byteLength(JSON.stringify(projected)), unprojectedBytes: Buffer.byteLength(JSON.stringify(rendered)), requiredAnnotations: context.tasks.reduce((n, t) => n + (t.propertyDemand?.requiredAnnotationCount ?? 0), 0), pendingAnnotations: context.tasks.reduce((n, t) => n + (t.propertyDemand?.pendingAnnotationCount ?? 0), 0), activeRules: slice.rules.length, activePaths: lastPaths.length })
+    return projected
   }
   const sourceWorkMetrics = () => {
     const history = focus?.report().sourceInterpretations ?? [], sources = history.filter(e => e.event !== "low-level-fallback"), counts = new Map<string, number>()
@@ -552,5 +555,5 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     if (options.sourceAssisted && options.tools.snapshotVerification?.valid === false) { result.check = undefined; result.delivery = deliverySnapshot(); if (semanticCompletion && result.propertyAnalysis) { result.propertyAnalysis.checks = undefined; result.propertyAnalysis.currentPropertyBasis = undefined; result.propertyAnalysis.propertyCheckStatus = "invalidated"; result.propertyAnalysis.finalDeliveryStatus = "unsubmitted-or-invalid" } }
     return result
   }
-  return { propose, sync, validate, assembleResult, feedback, modelContext, promptContext, modelFeedback, deliverySnapshot, rejectSource, withdrawAnswer: (invalidateChecks = false) => { if (!closed) { currentAnswer = undefined; if (invalidateChecks) invalidateDelivery() } }, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { if (closed) return; closed = true; closedDelivery = liveDeliverySnapshot(); closedReport = liveReport() }, report }
+  return { propose, sync, validate, assembleResult, feedback, modelContext, promptContext, questionContext: () => focus?.questionContext(), modelFeedback, deliverySnapshot, rejectSource, withdrawAnswer: (invalidateChecks = false) => { if (!closed) { currentAnswer = undefined; if (invalidateChecks) invalidateDelivery() } }, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { if (closed) return; closed = true; closedDelivery = liveDeliverySnapshot(); closedReport = liveReport() }, report }
 }

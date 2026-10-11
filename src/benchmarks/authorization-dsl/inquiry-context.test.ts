@@ -30,3 +30,11 @@ test("incremental account context retains exact full state and changed source wi
   const altered = JSON.parse(JSON.stringify(packets[0].context)); altered.sourceWindows[0].text += " changed"
   expect(() => api.resolveInquiryContext(packets[1].context, [altered])).toThrow("context-reference-digest")
 })
+test("transmission categories place original windows in source and host instructions in protocol", () => {
+  const meter = api.createInquiryTransmissionMeter(), sourceWindows = [{ path: "app.py", startLine: 1, endLine: 2, text: "1 def entry():\n2     return True" }], instruction = "Host protocol instruction"
+  meter.record("tool-reply", { currentContext: { sourceWindows, instruction } })
+  const row = meter.report().samples[0]
+  expect(row.components.source).toBe(Buffer.byteLength(JSON.stringify(sourceWindows)))
+  expect(row.components.schemaProtocol).toBeGreaterThanOrEqual(Buffer.byteLength(JSON.stringify(instruction)))
+  expect(Object.values(row.components).reduce((n: number, v) => n + (v as number), 0)).toBe(row.bytes)
+})
