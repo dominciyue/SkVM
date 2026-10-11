@@ -2926,6 +2926,8 @@ BC9补足共享操作的逐题性质事务：只有当前已采用的共享入�
 
 BE13补齐已有有限谓词的模型可见合同：静态D声明工具和当前source视图列出truthy的language/value及operand形状；自由文本仍拒绝，求值器/对象/顺序/权限检查不改。四个原N/H的system和工具合同经当前runtime零模型重建，与原实际thread/start逐字/结构一致，允许一次D独有具名复验引用这些control；旧首件、样本分母和唯一成本不替换。其它显式semantic策略也消费共享指南，不声称全策略提示未变。
 
+具名guide复验暴露渐进源码转换的独立异常：绑定性质的窄需求之外仍可达的未声明分支/raise，必须在解引用注解前保留`source-fields-missing:condition|failureKind`。该单元保持不完整，未知控制点不生成条件、守卫、异常类别或分支体；窄需求不是全源码含义证明。原声明零模型复演与匿名红绿覆盖这一共享修复，只允许该新根因的一次`partial-source-1`实际复验，首件和guide失败不替换。
+
 2026-10-11，用户在BD及外部评阅讨论后授权[BE0–BE18](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)，新开发线程gpt-6.1-sol/max，规划基线`6c8c79e3`。identity为`authorization-question-workflow-v1`，当前公共实现已验证，至BE13；实际效果在研究§7.66记录。范围保持单repo/ref、源码可见的授权/信任边界任务；复用BB/v7跨调用性质、BD渐进材料和独立检查，不重造resolver或扩语言语义。
 
 **相关职责。** operation work必须区分源可见请求receiver和普通数据对象。任意rest_framework基类不能自动带来dispatch义务；相关route/action/receiver/调用链决定哪些框架依赖真正作用于某项性质。候选取证、已确认相关义务、未知关联分开；不相关须有结构依据，未知相关性不默认忽略。真正授权检查、对象关系、调用次序与未采用框架变换保留。修复必须进入公共runtime，不能只在评价器过滤错误。

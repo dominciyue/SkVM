@@ -8,7 +8,7 @@ import { redactCodexEvent } from "../../../../../src/adapters/codex-account-sess
 import { root, runRoot, originalInput, skillFile, limits, json, write, sha } from "./study.ts"
 
 /** Zero-model reconstruction of the unchanged N/H model-visible contracts. */
-export async function verifyControlCompatibility() {
+export async function verifyControlCompatibility(label = "predicate-guide") {
   const skill = await loadRunSkill(skillFile), bundle = buildRunSkillBundle(skill, "inject")!.content, input = await json(originalInput)
   const controls = []
   for (const id of ["quality-n-1", "quality-h-1", "quality-h-2", "quality-n-2"]) {
@@ -30,8 +30,8 @@ export async function verifyControlCompatibility() {
       controls.push({ attemptId: `${id}/original`, originalRuntimeTree: report.runtimeTree, originalSystemSha256: report.actualModelInput.systemSha256, reconstructedSystemSha256: sha(system), originalToolContractSha256: sha(JSON.stringify(originalTools)), currentToolContractSha256: sha(JSON.stringify(currentTools)), systemUnchanged, toolsUnchanged, guideAbsent, source: "actual original thread/start versus current runtime, no inference from arm labels" })
     } finally { await runtime.close() }
   }
-  const evidence = { providerCalls: 0, controls, changedPaths: ["src/task-dsl/authorization/control-evaluation.ts:7", "src/benchmarks/authorization-dsl/question-workflow-wire.ts:19"], routingEvidence: ["src/benchmarks/authorization-dsl/question-workflow-wire.ts:13-14", "src/benchmarks/authorization-dsl/inquiry-native.ts:129-130", "src/benchmarks/authorization-dsl/inquiry-native.ts:298-301", "src/benchmarks/authorization-dsl/inquiry-native.ts:335"], interpretation: "Only the D declaration/current-source guide changes among N/H/D. Other preexisting semantic strategies also use the shared guide; no claim that all strategies are unchanged." }
-  await write(path.join(root, "verification", "predicate-guide-control-compatibility.json"), evidence)
+  const evidence = { providerCalls: 0, controls, changedPaths: label === "partial-source" ? ["src/task-dsl/authorization/source-interpretation.ts:177-182"] : ["src/task-dsl/authorization/control-evaluation.ts:7", "src/benchmarks/authorization-dsl/question-workflow-wire.ts:19"], routingEvidence: ["src/benchmarks/authorization-dsl/question-workflow-wire.ts:13-14", "src/benchmarks/authorization-dsl/inquiry-native.ts:129-130", "src/benchmarks/authorization-dsl/inquiry-native.ts:298-301", "src/benchmarks/authorization-dsl/inquiry-native.ts:335"], interpretation: label === "partial-source" ? "Exact unchanged N/H system and tool contracts. Legacy N and independent H do not lower D source interpretations; the shared progressive-source repair affects D and other existing property-context strategies, not N/H. No new model control or cost." : "Only the D declaration/current-source guide changes among N/H/D. Other preexisting semantic strategies also use the shared guide; no claim that all strategies are unchanged." }
+  await write(path.join(root, "verification", `${label}-control-compatibility.json`), evidence, true)
   return evidence
 }
-if (import.meta.main) console.log(JSON.stringify(await verifyControlCompatibility()))
+if (import.meta.main) console.log(JSON.stringify(await verifyControlCompatibility(process.argv[2])))

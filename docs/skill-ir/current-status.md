@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**[BE0–BE18：领域问题前端、相关依赖与机制价值验证](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)正在BE13具名复验，由`gpt-6.1-sol/max`线程开发。** 实施基线`be13cfc0`，identity为`authorization-question-workflow-v1`。六首件同完整skill/四问/tree`7b379ddb`全部交付，六整题均partial；D尚无非空跨源性质。已有truthy说明缺口已公共红绿修正，49pass/482断言及主/研究类型通过；四N/H模型实际system/tool与当前重建一致，允许一次D专属具名复验，首件不替换。费用、原件及恢复见[summary](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/summary.json)和[状态](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/status.json)；分层变化与最终净收益继续。
+**[BE0–BE18：领域问题前端、相关依赖与机制价值验证](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)正在BE13现场修复与具名复验，由`gpt-6.1-sol/max`线程开发。** 六首件同完整skill/四问/tree`7b379ddb`全部交付，六整题均partial；D尚无非空跨源性质。一次truthy说明复验已采用该谓词，但有效部分声明触发`annotation.condition`异常。原声明零模型复现后已修为未知控制点，78pass/614断言及主/研究类型通过；四N/H实际合同仍一致。该新根因的一次`partial-source-1`复验和六变化继续，所有首件保留。费用、原件及恢复见[summary](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/summary.json)和[状态](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/status.json)。
 
 先修已复现的Serializer/Field误触发DRF dispatch及依赖扩散，再做源码含义跨题共享、实际上下文减负、独立H辅助与D领域声明前端。保留现有BB/v7跨源机制，不重复开发resolver或扩语言语义。两个完整原任务重复块各跑N/H/D，共6主位置；三变化fresh/previous按来源准备、语义材料、性质结论分别验资格，最多6首位置。质量比较不以checked为准入，原skill/四问、源码语义质量与机器检查各自保留。方法见[spec§14.44](skill-ir-aot-optimization-spec.md#1444-be-question-workflow-and-mechanism-value)、[研究§7.66](skill-dsl-research.md#766-be-领域问题前端与机制价值验证)及[当前计划](skill-ir-aot-optimization-plan.md)。
 

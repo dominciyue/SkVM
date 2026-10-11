@@ -174,6 +174,12 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
   const questionDirected = skeleton.propertySemantics === "question-control/v1"
   const missingFields = new Map<string, string[]>()
   if (options.propertyContext) for (const r of demand?.required.filter(r => ["missing", "invalid"].includes(r.status)) ?? []) missingFields.set(r.anchorId, [...missingFields.get(r.anchorId) ?? [], r.field])
+  // A narrow property demand does not supply meanings for other reachable syntax.
+  // Keep those control points unresolved before dereferencing their annotations.
+  if (options.propertyContext) for (const a of skeleton.anchors) if (allFlowIds.has(a.id) && demand?.reachableAnchorIds.includes(a.id)) {
+    const annotation = annotations.get(a.id), field = a.kind === "condition" && !(a.literalKnown && typeof a.literalValue === "boolean") && !annotation?.condition ? "condition" : a.kind === "raise" && !annotation?.failureKind ? "failureKind" : undefined
+    if (field && !missingFields.has(a.id)) missingFields.set(a.id, [field])
+  }
   const excludedMeaning = !questionDirected && demand?.excluded.some(e => { const a = at(e.anchorId), annotation = annotations.get(e.anchorId); return a?.interpretationRequired && !annotation && !unresolved.has(e.anchorId) })
   const callableParameterNames = new Set(options.index?.callableParameters(skeleton.sourceId).map(p => p.name) ?? [])
   const unit: SemanticBlock = { itemId: options.itemId, handle: options.handle, op: previous ? "replace" : "add", role: options.role, start: "source-main", ...(finite ? { coverage: "path" } : {}), complete: skeleton.modelCovered && !missingFields.size && !(demand?.sourceGaps ?? skeleton.gaps).length && ![...unresolved.keys()].some(id => !questionDirected || demand?.reachableAnchorIds.includes(id)) && !excludedMeaning, fallthrough: interpretation.fallthroughOutcome === "unknown" ? "unresolved" : interpretation.fallthroughOutcome ?? "unresolved", parameters: skeleton.anchors.filter(a => a.kind === "parameter" && a.name).map(a => ({ name: a.name!, type: a.syntax === "source_class_cell" || questionDirected && callableParameterNames.has(a.name!) ? "value" : bindingType(annotations.get(a.id)) })), blocks: [] }

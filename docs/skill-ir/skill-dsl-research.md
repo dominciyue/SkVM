@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**当前开发决定是BE：修正检查义务范围，形成领域问题前端，并分开检验辅助工具与声明检查的价值。** [BE0–BE18](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)实施至BE13；接管基线`be13cfc0`，六首件全交付、整题均partial，D尚无合格跨源性质。请求适用性/相关依赖、实际context计量、独立H与D声明公开链已接通，复用BB/v7与现有材料仓。第二块暴露已有truthy谓词说明缺口，公共红绿修正后做一次D具名复验；首件、未变N/H对照和三变化基础分别保留，见[§7.66](#766-be-领域问题前端与机制价值验证)。
+**当前开发决定是BE：修正检查义务范围，形成领域问题前端，并分开检验辅助工具与声明检查的价值。** [BE0–BE18](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)实施至BE13；接管基线`be13cfc0`，六首件全交付、整题均partial，D尚无合格跨源性质。请求适用性/相关依赖、实际context计量、独立H与D声明公开链已接通，复用BB/v7与现有材料仓。truthy说明复验已采用谓词但暴露部分源码转换异常；保存声明复演与公共红绿已修为未知控制点，进行新根因一次复验；首件、未变N/H对照和三变化基础分别保留，见[§7.66](#766-be-领域问题前端与机制价值验证)。
 
 **BC已接通原自然任务的性质准备、跨调用定向修复及有界源码准备，真实跨源性质仍未闭合。** 当前范围仍为单repo/ref、源码可见的授权与信任边界评估。5去重尝试全部completed交付、完整原任务均source-partial；17个model-prepared性质中12个unknown、首件2个缺逐题查询、3个未检查，合格跨源checked/violated为0。四比较与三previous位置因资格不足零派发，稳定质量、实际复用与净收益均未建立。授权运行以未达验收收束，BC14已发布并核对用户origin。
 
@@ -2480,7 +2480,9 @@ D1实际7次声明，6次被拒，最后接受`serve_file`中的doc/FileResponse
 
 **BE13六首件与通用说明修正。** D2/H2/N2全部交付，仍同原source tree。D2/H2按相同源码分支标准为P/F/P/F，N2为P/F/P/P；N2缺失事实没有逐项映射到请求的精确受阻结论。六整题full仍0，H第二块只在缺失事实精度上优于N；D两块均没有优于H的自然质量。D2的5次声明全被拒、0源码单元、3unknown、0跨源检查。实际input为2,144,337/708,329/754,784、output10,441/6,637/7,523，总工具55/60/58、耗时449,639/297,868/275,546ms；机理、实际发送分类和盲评裁定保存在各attempt原件旁。
 
-D2自由文本条件拒绝促成确定性定位：现有求值器支持truthy，但实际D工具/当前指南没有说明这个语法。公共测试先12pass/2fail/89断言，补通用truthy及language/operand说明后49pass/482断言，主/研究类型通过；自由文本仍拒绝。没有改变求值语义、case含义或提供参考答案。[零模型合同核对](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/predicate-guide-control-compatibility.json)证明四个N/H当前system和tool合同与原thread/start一致。因此只登记一次`quality-d-1/predicate-guide-1`复验，引用未变N/H控制，不增加其样本/成本；D1原件仍是第一份可恢复的变化基础。该修正的实际采用与效果待复验，不把工程红绿当研究收益。
+D2自由文本条件拒绝促成确定性定位：现有求值器支持truthy，但实际D工具/当前指南没有说明这个语法。公共测试先12pass/2fail/89断言，补通用truthy及language/operand说明后49pass/482断言，主/研究类型通过；自由文本仍拒绝。没有改变求值语义、case含义或提供参考答案。[零模型合同核对](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/predicate-guide-control-compatibility.json)证明四个N/H当前system和tool合同与原thread/start一致。一次`quality-d-1/predicate-guide-1`已全交付，模型实际采用truthy/python；自然质量仍P/F/P/F，0采用源码单元、4unknown、无跨源检查。实际input1,476,526/output9,833/cache1,326,720，总工具50含1自动、366,154ms，费用独立计一次。
+
+该复验history[47]不是诊断为空的成功：它返回`status:error`/exitCode1及`annotation.condition` TypeError。19有效编辑绑定了窄性质后，仍可达的未声明文件名分支不在需求集合，lowerer直接解引用缺失注解。[原声明红/绿复演](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/partial-source-green.json)保持原语义与source SHA，重现后修为明确未知；匿名性质外branch/raise先2fail，再相关78pass/614断言，主/研究类型通过。工具机理派生现保留status/error/exitCode，避免把无诊断误称采用。四N/H合同重新零模型核对一致；仅允许此新根因的一次`partial-source-1`复验，随后六变化继续。D1/original仍是第一可恢复基础，guide和异常原件均不替换。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
@@ -2596,6 +2598,7 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-11 / BE派发前工程：** 请求/数据receiver与相关依赖公共红绿修正，独立H、D领域声明、实际发送计量与R0/R1分层恢复接通。匿名账号链和旧原提案零调用派生已核对；自然质量、当前合格性质、变化采用和三臂价值待实际运行，见§7.66及当前状态。
 - **2026-10-11 / BE12首块：** 同源码N1/H1/D1全部交付，按原四问分支同标准均P/F/P/F；D1接受1局部单元、3unknown、无非空跨源检查。费用按实际回执计一次，当前无已证共享运行错误；BE13与变化继续，见§7.66。
 - **2026-10-11 / BE13说明合同：** 六首件全交付且整题均partial，D2自由文本条件暴露已有truthy说明缺口；公共红绿49pass/482断言及主/研究类型通过。四N/H实际system/tool与当前重建一致，只做一次D具名复验，原首件和第一可恢复D基础保留，见§7.66。
+- **2026-10-11 / BE13部分源码异常：** guide复验实际使用truthy但history[47]抛异常；保存声明零模型复现、匿名2红测后修为未知分支/raise。78pass/614断言和主/研究类型通过，四N/H实际合同未变；新根因一次具名复验及六变化继续，见§7.66。
 
 ## 12. 后续追加规则
 

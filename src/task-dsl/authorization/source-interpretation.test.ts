@@ -512,3 +512,22 @@ test("repeated identical field RHS calls keep their own source occurrence result
   expect(result.diagnostics).toEqual([])
   expect(steps.filter((s: any) => s.kind === "transform").map((s: any) => s.source)).toEqual(steps.filter((s: any) => s.kind === "call").map((s: any) => s.result))
 })
+
+for (const residual of ["branch", "raise"] as const) test(`a partial v7 source retains an undemanded ${residual} as unknown`, async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "be-partial-source-"))
+  await writeFile(path.join(sourceRoot, "app.py"), `def entry(target, flag):\n    target.sent = True\n${residual === "branch" ? "    if flag:\n        target.label = 'shown'\n" : "    raise Denied\n"}    return target\n`)
+  const tools = await createInquiryTools({ sourceRoot, allowedPaths: ["app.py"], repository: "anonymous", sourceRef: "r", structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true }), source = tools.structure!.symbols.find(s => s.name === "entry")!
+  await tools.execute("source_read", { path: source.path, startLine: source.startLine, endLine: source.endLine })
+  const skeleton = (await tools.sourceSkeleton(source.id))!, effect = skeleton.anchors.find(a => a.fieldWrite?.field === "sent")!, target = skeleton.anchors.find(a => a.kind === "parameter" && a.name === "target")!, requirement = "Determine whether the target write can occur", question = { id: "q", request: requirement, properties: [{ id: "write", kind: "effect-reachability" as const, requirement }] }
+  const interpretation = { schemaVersion: "source-interpretation/v1", revision: skeleton.revision, annotations: [{ anchorId: target.id, role: "resource", explanation: "Actual source target" }, { anchorId: effect.id, role: "effect", resourceAnchorId: target.id, explanation: "Actual source target field write" }], propertyBindings: [{ propertyId: "write", effectAnchorId: effect.id }] }
+  const result = api.lowerSourceInterpretation(skeleton, interpretation, { index: tools.structure, itemId: "entry", handle: "entry", questionId: "q", question, role: "helper", propertyDirected: true, propertyAbstraction: true, propertyContext: { operationId: "op", sources: [] } })
+  expect(result.diagnostics).toEqual([])
+  expect(result.demand.dependencies.propertyQueries.queries[0].state).toBe("bound")
+  expect(result.unit.complete).toBe(false)
+  expect(semanticBlockDiagnostics(result.unit)).toEqual([])
+  const steps = result.unit.blocks.flatMap((b: any) => b.steps)
+  expect(steps).toContainEqual(expect.objectContaining({ kind: "unresolved", reason: `source-fields-missing:${residual === "branch" ? "condition" : "failureKind"}` }))
+  expect(steps.some((s: any) => s.kind === "choose" || s.kind === "guard" || s.kind === "raise")).toBe(false)
+  const lowered = lowerSemanticFlow([{ ...result.unit, questionId: "q", evidenceIds: skeleton.evidenceIds }], { propertyDirected: true })
+  expect(lowered.delta.rules.filter(r => r.terminal).every(r => r.complete === false)).toBe(true)
+})

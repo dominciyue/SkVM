@@ -2,7 +2,7 @@
 
 更新于2026-10-11。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BE0–BE18：领域问题前端、相关依赖与机制价值验证](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)，`in-progress / BE13`。规划基线`6c8c79e3`，接管基线`be13cfc0`；六首件同tree`7b379ddb`全交付、整题均partial。已有truthy说明缺口已红绿修正，四N/H实际合同未变；一次D具名复验和分层变化继续。
+- 当前任务书：[BE0–BE18：领域问题前端、相关依赖与机制价值验证](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)，`in-progress / BE13`。六首件同tree`7b379ddb`全交付、整题均partial。truthy说明复验实际采用该谓词但暴露部分源码转换异常；原声明复演与78pass/614断言已修为未知控制点，四N/H实际合同未变。新根因的一次具名复验和分层变化继续。
 - 方法合同：[spec§14.44](skill-ir-aot-optimization-spec.md#1444-be-question-workflow-and-mechanism-value)；复核与研究统一在[§7.66](skill-dsl-research.md#766-be-领域问题前端与机制价值验证)。
 - identity：`authorization-question-workflow-v1`。继续`skill-ir-aot`，只推用户origin，不创建分支/worktree；派发后新开发线程是共享代码/方法文档/Git的唯一写者。
 - 开发`gpt-6.1-sol/max`，实验沿用已授权官方账号`gpt-5.6-sol/high`。第三方暂停、旧OWUI未知只离线，held-out/Q1/prospective/readiness及历史0/6保持。
