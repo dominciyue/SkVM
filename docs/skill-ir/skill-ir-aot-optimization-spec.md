@@ -2934,6 +2934,8 @@ BE13补齐已有有限谓词的模型可见合同：静态D声明工具和当前
 
 当前question-directed实现用可见dispatch/initial生命周期、HTTP声明或源注册确认DRF请求适用性；get_permissions/check_permissions名称本身也可能是数据序列化职责，不能单独确认请求。run_validation/to_internal_value/to_representation来源确认为数据对象，没有这些依据则具名unconfirmed。旧非question-directed发现合同保留。框架依赖携带request/source/unconfirmed关联、来源owner、receiver及依据；局部性质用实际调用前缀匹配source关联，已证当前请求和未决关联保持决定性。完整任务的未完职责仍保留，局部checked不升级整题认证。
 
+普通path同样不能把“缺少association且缺少显式依赖边”当作无关证明；这类open decisive义务继续unknown，request/unconfirmed也继续阻断。有显式source边时仍按实际调用前缀限定局部性质，效果后的未知调用不会反向阻断先前局部效果。最终独立复核发现并红绿修复此回归；原模型快照只使用未改变的framework分支，源版本/检查原件不回填。
+
 **领域问题前端。** 模型从本次允许原文提出主体/资源/条件/守卫/效果/依赖含义及出处，宿主承担位置、版本、事务、唯一机械引用和失效。新前端将领域声明编译到已有标注/有限谓词/调用实例/性质核心，不把hash slot表单简单改名，不由开发者或evaluator提供真实答案。唯一候选可以机械绑定，多义含义保留待判断；未解释调用仍为unresolved。跨源对象等价必须沿实际值流和可达路径证明，不能只比较裸anchor ID。
 
 **共享与投影。** 源内含义按来源revision及相关receiver/调用上下文复用，逐题性质/政策/前提与结论独立。跨题复用不得让不同调用对象或假设串用；带残余材料保留残余。模型实际上下文按当前领域问题和变化按需投影，完整材料可取回，prompt渲染不推进状态。计量在账号静态tools和实际toolResult/currentContext发送边界执行，archive domain不是模型context，字节也不是精确token归因。
@@ -2948,7 +2950,9 @@ BE13补齐已有有限谓词的模型可见合同：静态D声明工具和当前
 
 **执行细化。** 质量首件六position保持，复验采用同position的独立revision/attempt/codeEpoch，首件与修订分表，费用按唯一请求一次计入。D额外模型转换只看共同原任务、允许已读原文、当次声明和反馈，共享总预算；终态转换失败不额外阻断自然交付，unknown仍按通道处置。变化前用已有session快照引用登记reuse-baseline，逐项核来源/含义/性质资格并输出采用/拒绝/重算/未知，不新增平行哈希链或隐藏预加工。
 
-**当前公共实现。** H为M/question-guided-v1，独立authorization_question与共同只读工具；D为D1/question-checked-v1，共用helper，未声明性质时沿既有task-only prepare，再用authorization-question-declaration/v1提交source、statements和可选properties/fallthrough。statement/condition/object/effect/dependency/residual附原行/原文及含义，宿主解析唯一引用并编译到既有source-edit，不广告slot/transaction表。当前工具可主动定位实际符号、取回材料和保留未完源工作；D额外检查不强制结构化自然终答。R0准备fallback与R1材料投影分离，R2默认不复用，资格另验。新入口与有限study的确定性公共transport已接通；真实采用和收益须由BE后续运行与独立源码评阅建立。
+本地配置失败与未知完成分列：只有`inferenceDispatched:false/terminalStatus:not-started`的原件允许同输入、源码epoch和预算的登记恢复。恢复链中其它前件也须确定未派发，最多一个实际交付；多个交付、不明状态或未登记合同不能选择“较好”答案。精确恢复已验证官方CLI及临时ASCII路径保留原allowlist、effective-config/roots/instruction/model检查，不升级生产准入。零推理尝试仍记本地耗时/工具、原归档和恢复原因，不计模型usage或吞入未知最终usage。
+
+**当前公共实现。** H为M/question-guided-v1，独立authorization_question与共同只读工具；D为D1/question-checked-v1，共用helper，未声明性质时沿既有task-only prepare，再用authorization-question-declaration/v1提交source、statements和可选properties/fallthrough。statement/condition/object/effect/dependency/residual附原行/原文及含义，宿主解析唯一引用并编译到既有source-edit，不广告slot/transaction表。当前工具可主动定位实际符号、取回材料和保留未完源工作；D额外检查不强制结构化自然终答。R0准备fallback与R1材料投影分离，R2默认不复用，资格另验。恢复到host的材料不等于模型实际消费；材料handle、当前materialUses和实际client envelopes分别记录，R0索引资格也不表示物理读取已跳过。公开transport和真实三臂已运行，采用与质量证据见研究§7.66；H可作普通辅助候选，D保留显式研究入口，项目默认不变。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 

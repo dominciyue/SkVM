@@ -18,7 +18,10 @@ function propertyDependencyRelevance(slice: ControlSlice, units: BoundSemanticBl
   return dependencies.filter(d => d.questionId === questionId && d.decisive && !["checked", "inapplicable"].includes(d.state)).map(d => {
     const association = d.association
     const owner = association?.kind === "source" && trace.some(r => units.some(u => u.questionId === questionId && u.handle === r.sourceOrigin?.handle && u.source?.id === association.sourceId && u.receiverClass === association.receiverClass))
-    const relevant = d.pathKey === "$framework" ? !association || association.kind !== "source" || owner : slice.dependencies.some(edge => edge.key === d.key && keys.has(edge.from))
+    const edges = slice.dependencies.filter(edge => edge.key === d.key)
+    // Missing provenance and a missing edge do not prove irrelevance. A known
+    // source edge outside the invocation prefix can still bound a local check.
+    const relevant = d.pathKey === "$framework" ? !association || association.kind !== "source" || owner : association?.kind === "request" || association?.kind === "unconfirmed" || edges.some(edge => keys.has(edge.from)) || !association && !edges.length
     return { key: d.key, symbol: d.symbol, relevant, reason: relevant ? association?.kind === "source" ? "Source owner is on the selected invocation prefix." : "Selected request association or unresolved relevance remains decisive." : "Source owner is outside the selected invocation prefix.", association }
   })
 }

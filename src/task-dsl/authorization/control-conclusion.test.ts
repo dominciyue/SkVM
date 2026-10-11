@@ -20,7 +20,10 @@ test("property checks retain original questions and reject absent guards, wrong 
   const wrongObject = rules.flatMap(r => r.key === "item" ? [r, rule("other", "binding", ["item"], { bindingKey: "other", bindingKind: "resource" })] : [r.key === "guard" ? { ...r, after: ["other"], resource: "other" } : r])
   expect(run(wrongObject, [{ ...query, kind: "authorized-object-matches-effect" }]).questions[0].properties[0].status).toBe("violated")
   expect(run([]).questions[0].properties[0].status).toBe("unknown")
-  expect(run(rules, [query], [{ questionId: "q", key: "framework", state: "read", decisive: true }]).questions[0].properties[0].status).toBe("unknown")
+  for (const extra of [{}, { pathKey: "unmapped" }, { pathKey: "$framework" },
+    ...["request", "unconfirmed"].map(kind => ({ pathKey: "unmapped", association: { kind, sourceId: "source", reason: "Unresolved request boundary" } })),
+  ]) expect(run(rules, [query], [{ questionId: "q", key: "framework", state: "read", decisive: true, ...extra }]).questions[0].properties[0].status).toBe("unknown")
+  expect(run(rules, [query], [{ questionId: "other", key: "framework", state: "read", decisive: true }]).questions[0].properties[0].status).toBe("checked")
   expect(run(rules).wholeTaskCertified).toBe(false)
 })
 test("explicit ordered rejection conflicts with allow and does not certify model semantics", () => {
