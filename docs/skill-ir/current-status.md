@@ -4,9 +4,9 @@
 
 ## 当前工作
 
-**[BF0–BF17：真实可执行授权 DSL、自动编写接线与变化消费](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)已获用户授权，状态为`in-progress / BF11编写指引修订与BF12消费准备`。** 规划基线`74bf7bef`，按约8小时有用工作量派发`gpt-6.1-sol/max`。真实作者程序已通过普通入口得到局部跨函数结果，隔离 H/D 首件均已自然交付；D 原件未尝试声明/检查，进行一次通用指引改进后继续同包变化消费。方法见[spec§14.45](skill-ir-aot-optimization-spec.md#1445-bf-executable-contract-and-authoring)、[研究§7.67](skill-dsl-research.md#767-bf-真实可执行程序与自动编写接线)与[当前计划](skill-ir-aot-optimization-plan.md)。实际质量及收益尚未建立。
+**[BF0–BF17：真实可执行授权 DSL、自动编写接线与变化消费](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)已获用户授权，状态为`in-progress / BF12–BF13普通消费与变化复用`。** 规划基线`74bf7bef`，按约8小时有用工作量派发`gpt-6.1-sol/max`。真实作者程序已通过普通入口得到局部跨函数结果；隔离自动编写原件及两具名D修订均交付但未采用材料，自动编写未达。基础消费已实际采用同包材料，所暴露的跨题拒绝与程序替换边界已红绿修复，继续预先登记的变化/复用。方法见[spec§14.45](skill-ir-aot-optimization-spec.md#1445-bf-executable-contract-and-authoring)、[研究§7.67](skill-dsl-research.md#767-bf-真实可执行程序与自动编写接线)与[当前计划](skill-ir-aot-optimization-plan.md)。完整自然质量及同条件收益尚未建立。
 
-BF把开发者编写的表达能力诊断、模型自动编写、普通消费与变化收益分轨。实际接管34e5e302；[manifest](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/manifest.json)与[status](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/status.json)逐轴记录。两真实可见性函数在user=null时使权限ID调用不可达，零模型check/native含实际双源trace与材料采用；撤去条件后unknown。源码变化撤回旧声明，独立政策与前提重算及第二结构普通例子已验证；file_response v4和完整Download仍缺。新鲜1863测试通过/1平台跳过、12423断言及主/BF类型通过，指引改动后20公共入口测试通过。H 推理前本地CLI版本失败后用已验证二进制具名恢复；H/D已交付原四问，D57工具中0声明/检查、0材料采用。一次 D 专用通用指引修订保留原件/费用，A含义不入B，真实C尚待运行。约8小时是工作估计，不靠等待/重复审计凑时长；账号、历史未知和保护证据边界保持，新线程为唯一开发写者。
+BF把开发者表达能力、模型自动编写、普通消费与变化收益分轨，实际接管34e5e302；[manifest](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/manifest.json)与[status](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/status.json)逐轴记录。A零模型check/native在user=null时得到双源checked/unreachable，撤去条件后unknown；源码变化撤回旧声明，第二结构普通例子已验证，完整Download仍缺。B四实际模型尝试保留0采用及自然partial；三具名修订额度已用于一次CLI恢复与两不同D原因，可选第二对因无可采用自动程序未运行。基础C为2材料/2实际采用，因原问1的拒绝丢失身份，最终局部性质unknown，原件不改。程序替换修复后1887通过/1平台skip/12579断言；后续问级修复35公共链与2复用测试通过，主/BF类型通过。后续变化/复用用新epoch，版本差异单列。A含义不入B，旧未知、保护证据和唯一开发写者边界保持。
 
 ## BE 已结束的实际结果
 

@@ -208,9 +208,12 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     invalidateDelivery()
     if (compiled.diagnostics.length || !("evaluation" in compiled)) { issues.set("$contract", compiled.diagnostics); evaluateCurrentProperties(); return { diagnostics: compiled.diagnostics, actions: [], evaluated: { paths: lastPaths } } }
     issues.delete("$contract")
+    const oldUnits = executableContract?.compilation.units ?? []
+    const ownedBy = (units: BoundSemanticBlock[], u: BoundSemanticBlock) => units.some(n => n.questionId === u.questionId && n.source?.id === u.source?.id && n.receiverClass === u.receiverClass)
+    materials?.invalidate((_dependency, material) => ownedBy(oldUnits, material.unit), "domain-program-replaced")
     executableContract = { compilation: compiled, origin }
     if (origin === "authored-file") for (const unit of compiled.units) for (const id of unit.evidenceIds) authoredEvidenceIds.add(id)
-    const replaced = (u: BoundSemanticBlock) => compiled.units.some(n => n.questionId === u.questionId && n.source?.id === u.source?.id && n.receiverClass === u.receiverClass)
+    const replaced = (u: BoundSemanticBlock) => ownedBy(oldUnits, u) || ownedBy(compiled.units, u)
     semanticUnits = semanticUnits.filter(u => !replaced(u)).concat(compiled.units)
     bindSourceCalls(); retainFacts()
     const lowered = calculate(() => lowerCurrent(true)); computation.merges++; slice = lowered.state

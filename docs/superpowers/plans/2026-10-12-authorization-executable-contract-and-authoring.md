@@ -213,6 +213,10 @@ Identity：`authorization-executable-contract-v1`。结果集中 `results/skill-
 
 ### BF13 — 实际 previous 与变化比较
 
+审查复现（2026-10-12）：显式替换持久化程序时，旧程序中被新程序删去的 helper 仍能从 R1 进入当前计算。先补公共 fresh/previous 红测，按旧程序的精确 question/source/receiver 所有权撤回其材料，保留 R0 和其他独立材料；同一 native 会话替换程序时也撤回旧程序拥有的单元。此为确定性持久化边界修复，不增加模型修订名额。已交付 `authored-use-base/original` 的旧运行版本与一次额外声明拒绝保持原样；后续变化/复用用修复后版本，版本差异单列，不据此宣称成对收益。
+
+消费原件还暴露问级诊断遗漏：一个明确声明原问1的无owner窗口被正确拒绝，但诊断丢掉 questionId，从而撤回无关局部问题的性质。公共 native 红测已复现；只为已验证的显式原问题身份保留拒绝作用域，无效/不明确身份继续保守。原问1拒绝不撤销、不代补其含义，已交付原件不重算成成功。
+
 - [ ] 从 BF10 首个可恢复 D 会话固定 R0/R1/R2资格；若无可用自动R1，则固定 BF12 作者会话，并明确切换为作者程序复用轨，不混成自动成功。
 - [ ] 固定一项已暴露变化（优先政策，其次来源可恢复条件），运行同输入 `reuse-fresh/previous`；无合格R1时仍可做R0准备诊断，但标明实际含义复用未达，不伪造材料基础。
 - [ ] policy/premise 的可用含义应被真实重新求值；source变化须撤回相关材料。逐项列 loaded/eligible/used/recomputed/withdrawn，旧自然答和旧 verdict不输入。

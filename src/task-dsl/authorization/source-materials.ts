@@ -54,8 +54,8 @@ export function createSourceMaterials(identity: SourceMaterialIdentity, initial?
     }
     state.retired = structuredClone(initial.retired)
   }
-  const invalidate = (affected: (d: SourceFactDependency) => boolean, reason: string) => {
-    for (const material of state.materials) if (material.dependencies.some(affected)) retire(material, reason)
+  const invalidate = (affected: (d: SourceFactDependency, material: SourceMaterial) => boolean, reason: string) => {
+    for (const material of state.materials) if (material.dependencies.some(d => affected(d, material))) retire(material, reason)
   }
   return { accept, invalidate, snapshot: () => structuredClone(state) }
 }

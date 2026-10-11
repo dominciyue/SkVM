@@ -371,7 +371,8 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
   }
   const prepareQuestion = (raw: unknown) => {
     const parsed = QuestionDeclarationSchema.safeParse(raw)
-    const failure = (code: string, message: string) => ({ diagnostics: [{ code: `question-${code}`, path: "source", message, severity: "error" as const }], raw: undefined })
+    const questionId = parsed.success && options.program.questions.some(q => q.id === parsed.data.questionId) ? parsed.data.questionId : undefined
+    const failure = (code: string, message: string) => ({ diagnostics: [{ code: `question-${code}`, path: "source", ...(questionId ? { questionId } : {}), message, severity: "error" as const }], raw: undefined })
     if (!parsed.success) return { diagnostics: parsed.error.issues.map(issue => ({ code: "question-declaration-shape", path: issue.path.join("."), message: issue.message, severity: "error" as const })), raw: undefined }
     const declaration = parsed.data, at = declaration.source
     if (declaration.questionId && !options.program.questions.some(q => q.id === declaration.questionId)) return failure("identity", "Use an original question identity from the current task.")

@@ -104,10 +104,11 @@ export async function initializeLocalInquiry(from: string, outFile: string, expl
   return { status: "created" as const, outputPath, sourceRefVerification: "authored", providerCalls: 0, ...(declarationSource ? { declarationSource, semanticEquivalence: "unreviewed" } : {}) }
 }
 
-async function preparePreviousInquiry(inputFile: string, previous: string, model: string | undefined, method: InquiryMethod | undefined, strategy: InquiryStrategy | undefined) {
+async function preparePreviousInquiry(inputFile: string, previous: string, model: string | undefined, method: InquiryMethod | undefined, strategy: InquiryStrategy | undefined, domainProgramFile?: string) {
   const report = await inspectLocalInquiry(previous), retained = await retainedInquiryDeclaration(report.sessionPath), old = retained.input, prior = retained.prior
   const currentStrategy = strategy ?? report.strategy ?? "legacy", loaded = await loadInquiryInput(inputFile, { allowMissingPolicy: isSourceAssistedInquiryStrategy(currentStrategy) }), tools = await createInquiryTools({ ...loaded.context, structure: isOperationInquiryStrategy(currentStrategy) || isQuestionWorkflowStrategy(currentStrategy), ...(isFiniteControlInquiryStrategy(currentStrategy) ? { controlSemantics: "finite-control/v1" as const, propertyDirected: isPropertyDirectedInquiryStrategy(currentStrategy), questionDirected: isQuestionDirectedInquiryStrategy(currentStrategy) } : {}) })
-  const plan = planInquiryReuse({ currentInput: loaded.value, previousInput: old, previousRun: prior, previousSessionId: report.sessionId, currentFiles: tools.files, currentStructure: tools.structure, currentMethod: method ?? report.method, previousMethod: report.method, currentStrategy, previousStrategy: report.strategy ?? "legacy", currentModel: model ?? report.model, previousModel: report.model })
+  const domainProgram = { previousSha256: report.domainProgram?.sha256, currentSha256: domainProgramFile ? sha(await readFile(path.resolve(domainProgramFile), "utf8")) : report.domainProgram?.sha256 }
+  const plan = planInquiryReuse({ currentInput: loaded.value, previousInput: old, previousRun: prior, previousSessionId: report.sessionId, currentFiles: tools.files, currentStructure: tools.structure, currentMethod: method ?? report.method, previousMethod: report.method, currentStrategy, previousStrategy: report.strategy ?? "legacy", currentModel: model ?? report.model, previousModel: report.model, domainProgram })
   if (plan.status === "reusable") {
     const imported = tools.restoreEvidence(plan.seed.evidence)
     if (imported.diagnostics.length) return { report, previousInput: old, currentFiles: tools.files, plan: { status: "needs-fresh-analysis" as const, info: plan.info, reasons: imported.diagnostics.map(d => `${d.code}: ${d.message}`), seed: undefined } }
@@ -117,7 +118,7 @@ async function preparePreviousInquiry(inputFile: string, previous: string, model
 export async function executeLocalInquiryRun(options: { inputFile: string; outDir: string; model: string; method?: InquiryMethod; strategy?: InquiryStrategy; previous?: string; harness?: "provider" | "codex-account"; domainTools?: boolean; accountTransportFactory?: import("../../adapters/codex-account.ts").AccountInquiryOptions["transportFactory"]; accountBoundaryFile?: string; skillFile?: string; domainProgramFile?: string; providerFactory?: LocalAuthorizationCliDependencies["providerFactory"]; execution?: Partial<RunAuthorizationInquiryOptions> }) {
   if (options.domainTools !== undefined && options.harness !== "codex-account") throw new Error("domain-tools requires --harness=codex-account")
   const method = options.method ?? "D1", strategy = options.strategy ?? options.execution?.strategy ?? "legacy"
-  const prior = options.previous ? await preparePreviousInquiry(options.inputFile, options.previous, options.model, method, strategy) : undefined
+  const prior = options.previous ? await preparePreviousInquiry(options.inputFile, options.previous, options.model, method, strategy, options.domainProgramFile) : undefined
   if (prior && prior.plan.status !== "reusable") {
     const unknown = prior.report.completionUnknown === true || ["completion-unknown", "timeout-unknown", "initialized"].includes(prior.report.status)
     const args = unknown ? ["authorization", "inquiry", "inspect", `--out=${prior.report.sessionPath}`] : ["authorization", "inquiry", "run", `--input=${path.resolve(options.inputFile)}`, `--out=${path.resolve(options.outDir)}`, `--model=${options.model}`, `--method=${method}`, `--strategy=${strategy}`]
@@ -212,7 +213,7 @@ export async function compareLocalInquiry(inputFile: string, previous: string, r
   const report = await inspectLocalInquiry(previous)
   const strategy = requestedStrategy ?? report.strategy ?? "legacy", check = await checkAuthorizationInquiry(inputFile, report.method, strategy)
   if (check.status !== "valid") return check
-  const reuse = await preparePreviousInquiry(inputFile, previous, undefined, report.method, strategy), old = reuse.previousInput
+  const reuse = await preparePreviousInquiry(inputFile, previous, undefined, report.method, strategy, domainProgramFile), old = reuse.previousInput
   const current = check.input!, omitRoot = (v: AuthorizationInquiryInput) => ({ ...v, sourceRoot: undefined })
   const taskChanged = !isDeepStrictEqual(omitRoot(old), omitRoot(current)), sourceChanged = !isDeepStrictEqual(report.sourceFiles, check.sourceFiles)
   const withoutPolicy = (v: AuthorizationInquiryInput) => ({ ...omitRoot(v), policy: undefined, inquiry: v.inquiry ? { ...v.inquiry, policy: undefined } : undefined })

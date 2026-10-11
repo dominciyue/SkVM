@@ -80,7 +80,23 @@ test("ordinary native file import and model declaration adopt the same contract 
   } finally { await model.close() }
 })
 
-function contractConsumer() {
+test("a rejected declaration for another original question preserves the local contract property", async () => {
+  const f = await contractFiles()
+  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", method: "D1", domainProgramFile: f.domainProgramFile })
+  try {
+    const rejected = JSON.parse((await runtime.execute({ id: "unowned-other", name: "authorization_declare", arguments: { schemaVersion: "authorization-question-declaration/v1", questionId: "other", source: at(1, 8), statements: [{ kind: "object", expression: "actor", as: "principal", because: "This broad window has no current owner" }] } })).output)
+    await runtime.execute({ id: "check-current", name: "authorization_check_properties", arguments: {} })
+    expect(runtime.report().domain?.propertyAnalysis?.checks?.questions.find(q => q.questionId === "q")?.properties[0]?.status).toBe("checked")
+    expect(rejected.controlDiagnostics).toContainEqual(expect.objectContaining({ code: "question-source-unread-or-unowned", questionId: "other" }))
+    expect(runtime.report().domain?.semantic?.units).toHaveLength(2)
+    expect(runtime.report().domain?.delivery?.gaps.some(g => g.questionId === "other" && g.code === "question-source-unread-or-unowned")).toBe(true)
+  } finally { await runtime.close() }
+})
+
+function contractConsumer(onCheck = (reply: any) => {
+  expect(reply.toolResult.executableContract.program.id).toBe("authored-local")
+  expect(reply.toolResult.propertyChecks.questions.find((q: any) => q.questionId === "q").properties[0].status).toBe("checked")
+}) {
   let receive = (_message: any) => {}
   return () => ({ isolation: { kind: "test-transport" as const, reason: "Anonymous finite contract consumer" }, onMessage(f: any) { receive = f }, onExit() {}, close() {}, send(message: any) {
     if (message.method === "initialize") receive({ id: message.id, result: {} })
@@ -91,8 +107,7 @@ function contractConsumer() {
     }
     if (message.result?.contentItems) {
       const reply = JSON.parse(message.result.contentItems[0].text)
-      expect(reply.toolResult.executableContract.program.id).toBe("authored-local")
-      expect(reply.toolResult.propertyChecks.questions.find((q: any) => q.questionId === "q").properties[0].status).toBe("checked")
+      onCheck(reply)
       receive({ method: "turn/completed", params: { threadId: "thread", turn: { id: "turn", status: "completed", items: [{ type: "agentMessage", phase: "final_answer", text: "The local authorization guard controls the target write. The other original duty remains unresolved." }] } } })
     }
   } })
@@ -115,6 +130,41 @@ test("ordinary run archives exact program bytes and previous restores only the c
   expect(next.reuse.materialsUsed).toBeGreaterThan(0)
   await writeFile(path.join(first.sessionPath, "domain-program.json"), "tampered archive")
   await expect(inspectLocalInquiry(first.sessionPath)).rejects.toThrow("program archive changed")
+})
+
+test("previous with an edited program excludes its omitted helper meanings", async () => {
+  const f = await contractFiles(), outDir = path.join(f.root, "edited-program-out")
+  const common = { inputFile: f.inputFile, outDir, model: "gpt-5.6-sol", method: "D1" as const, strategy: "question-checked-v1" as const, harness: "codex-account" as const, execution: { sessionTimeoutMs: 5000 } }
+  const first: any = await executeLocalInquiryRun({ ...common, domainProgramFile: f.domainProgramFile, accountTransportFactory: contractConsumer() })
+  expect(first.status).toBe("completed")
+  await writeFile(f.domainProgramFile, JSON.stringify({ ...f.contract, sourceDeclarations: [f.contract.sourceDeclarations[0]], queries: [] }))
+  const compared: any = await compareLocalInquiry(f.inputFile, first.sessionPath, "question-checked-v1", f.domainProgramFile)
+  expect(compared.domainProgramChanged).toBe(true)
+  const checkUnknown = (reply: any) => expect(reply.toolResult.propertyChecks.questions.find((q: any) => q.questionId === "q").properties[0].status).toBe("unknown")
+  const fresh: any = await executeLocalInquiryRun({ ...common, domainProgramFile: f.domainProgramFile, accountTransportFactory: contractConsumer(checkUnknown) })
+  const previous: any = await executeLocalInquiryRun({ ...common, previous: first.sessionPath, domainProgramFile: f.domainProgramFile, accountTransportFactory: contractConsumer(checkUnknown) })
+  expect(previous.status).toBe("completed")
+  expect(previous.domain.semantic.units).toEqual(fresh.domain.semantic.units)
+  expect(previous.domain.materialUses).toEqual(fresh.domain.materialUses)
+  expect(previous.domain.semantic.units).toHaveLength(1)
+  expect(previous.reuse.layers.R0.available).toBe(true)
+  expect(previous.domain.delivery.obligations.some((d: any) => d.questionId === "other")).toBe(true)
+  expect(previous.reuse.answerReused).toBe(false)
+})
+
+test("replacing a native program retires only the old program's source units", async () => {
+  const f = await contractFiles()
+  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", method: "D1", domainProgramFile: f.domainProgramFile })
+  try {
+    expect(runtime.report().domain?.semantic?.units).toHaveLength(2)
+    const result = await runtime.execute({ id: "replace", name: "authorization_declare", arguments: { ...f.contract, sourceDeclarations: [f.contract.sourceDeclarations[0]], queries: [] } })
+    expect(JSON.parse(result.output).controlDiagnostics).toEqual([])
+    expect(runtime.report().domain?.semantic?.units).toHaveLength(1)
+    expect(runtime.report().domain?.materialUses).toHaveLength(1)
+    expect(runtime.report().domain?.sourceMaterials?.materials.filter(m => m.current)).toHaveLength(1)
+    expect(runtime.report().domain?.sourceMaterials?.retired.some(m => m.reason === "domain-program-replaced")).toBe(true)
+    expect(runtime.report().program?.questions.map(q => q.id)).toEqual(["q", "other"])
+  } finally { await runtime.close() }
 })
 
 test("compare detects program edits and final source verification withdraws a stale contract verdict", async () => {

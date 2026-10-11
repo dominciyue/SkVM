@@ -28,6 +28,7 @@ export function planInquiryReuse(options: {
   previousSessionId: string; currentFiles: InquiryTools["files"]; currentMethod: InquiryMethod; previousMethod: InquiryMethod;
   currentStrategy: InquiryStrategy; previousStrategy: InquiryStrategy; currentModel: string; previousModel: string;
   currentStructure?: StructureIndex;
+  domainProgram?: { currentSha256?: string; previousSha256?: string };
 }) {
   const current = options.currentInput, old = options.previousInput, prior = options.previousRun, reasons: string[] = []
   const omitRoot = (v: AuthorizationInquiryInput) => ({ ...v, sourceRoot: undefined })
@@ -120,9 +121,12 @@ function planSourceMaterials(options: Parameters<typeof planInquiryReuse>[0], in
   info.eligible = true
   if (info.change === "incompatible") info.change = "policy-and-premise"
   const identity = { repository: current.repository, sourceRef: current.sourceRef, semanticVersion: sourceMaterialSemanticVersion(options.currentStrategy) }, store = createSourceMaterials(identity)
+  const oldContract = prior.domain?.executableContract?.program
+  const programChanged = options.domainProgram && options.domainProgram.currentSha256 !== options.domainProgram.previousSha256
   for (const material of snapshot!.materials.filter(m => m.current)) {
     const failures: string[] = []
     try {
+      if (programChanged && oldContract && material.unit.questionId === oldContract.scope.questionId && oldContract.sourceDeclarations.some(d => d.source.path === material.source.path && d.source.startLine === material.source.startLine && (d.source.endLine ?? d.source.startLine) === material.source.endLine && d.source.receiverClass === material.receiverClass)) failures.push("domain-program:changed")
       if (canonicalControl(material.identity) !== canonicalControl(identity) || material.id !== sourceMaterialId(identity, material.unit, material.dependencies)) throw new Error("material-identity")
       if (!index!.symbols.some(s => s.id === material.source.id && s.sha256 === material.source.sha256)) failures.push("source-symbol:changed-or-unavailable")
       for (const d of material.dependencies) if ((d.kind === "source-span" ? files.get(d.key) : structuralDependencyRevision(index!, d)) !== d.revision) failures.push(`${d.kind}:${d.key}:changed-or-unavailable`)
