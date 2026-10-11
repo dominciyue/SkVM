@@ -1,0 +1,124 @@
+{
+  "change": "source",
+  "status": "source-reviewed",
+  "reviewedAt": "2026-10-12",
+  "wholeOriginalTask": "partial",
+  "attemptId": "source-previous/cli-path-1",
+  "questions": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "quality": "partial",
+      "answerLines": [
+        26,
+        91,
+        97,
+        117,
+        123,
+        126,
+        161,
+        165
+      ],
+      "reason": "The answer covers explicit/empty version, original/archive, path/MIME and actual filename truthiness, but omits root lookup failure/self fallback and incorrectly says default latest is non-deleted at line 97. Download passes include_deleted=True even without an explicit version parameter.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 182,
+          "quote": "return root_doc or doc"
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1429,
+          "endLine": 1441,
+          "quote": "include_deleted=True,"
+        }
+      ]
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "quality": "full",
+      "answerLines": [
+        40,
+        42,
+        44,
+        51,
+        58,
+        60,
+        74
+      ],
+      "reason": "Authentication/model GET and manual request_doc ownership/grant check are accurate and precede selection; the answer separates view permission from the application object check and does not invent a later authorization.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1448,
+          "quote": "request_doc,"
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 635,
+          "quote": "obj.owner is None"
+        }
+      ]
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "quality": "full",
+      "answerLines": [
+        171,
+        176,
+        180,
+        185
+      ],
+      "reason": "Correctly identifies the changed URL request_doc guard for alternate versions and original/archive, with no second file_doc authorization. Missing root fallback and deleted latest coverage are retained in Q1, because neither changes the guard argument.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1421,
+          "endLine": 1448,
+          "quote": "file_doc = self._get_effective_file_doc("
+        }
+      ]
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "quality": "partial",
+      "answerLines": [
+        189,
+        205,
+        207,
+        210
+      ],
+      "reason": "Permission, requested/selected ownership/grants, pk/version/deletion, original/archive and physical/storage facts map to concrete blocked outcomes. Actual follow_formatting is not identified as missing or mapped to the precise blocked filename conclusion, so the original exact fact-mapping request remains incomplete.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1442,
+          "endLine": 1448,
+          "quote": "follow_formatting=request.query_params.get"
+        }
+      ]
+    }
+  ],
+  "independentReview": {
+    "blindLabel": "N",
+    "reviewers": [
+      "be_source_blind_final",
+      "be_mechanism_final_check"
+    ],
+    "mainChecked": [
+      "response-n complete",
+      "download-source.json fact contract",
+      "changed views.py:1401-1448",
+      "versioning.py:146-195",
+      "models.py:452-475",
+      "source consumer envelopes and deterministic seed boundary"
+    ],
+    "adjudication": "The blind scout supports P/F/F/P but missed N:97 latest non-deleted error. The primary bases Q4 partial on omitted follow_formatting-to-filename mapping under the established rubric, not on optional deployment wording or duplicating Q1 root derivation penalties. The only delivered recovery follows two definitely not-started records; no better-answer selection or extra completed control occurs. R0/R1/R2 and zero actual meaning use remain separate."
+  },
+  "schemaVersion": "authorization-be-source-review/v1",
+  "answerSha256": "fc44ca46b2e26c6e0cb2af9a76ab5bd714bdb6fde087dafe7f02662df5a5895c",
+  "inputSha256": "ce463d689b54f71ab9569fe9e8523e84d8c3f55164c60ba4ff2a6d2b3510979c",
+  "runtimeTree": "052320a65c24c5c4f6ec19e89bf050d7c06fc336"
+}

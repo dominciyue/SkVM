@@ -1,59 +1,14 @@
 {
   "modelCalls": 0,
-  "reviewer": "primary exact input and one-line source diff",
-  "entries": [
-    {
-      "kind": "policy",
-      "inputFile": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-question-workflow-v1/../authorization-task-binding-v1/model/inputs/download-policy.json",
-      "inputSha256": "34ca777d929786316f5e4bba142f0ceda69e01385e17bf82e53e4f97d59e64f6",
-      "valid": true,
-      "sourceFiles": 95,
-      "originalQuestionIds": [
-        "requested-document-and-returned-file",
-        "authorization-and-selection-order",
-        "alternate-version-authorized-resource",
-        "missing-facts-and-conditional-conclusions"
-      ],
-      "propertiesSupplied": false,
-      "changedSourcePaths": [],
-      "facts": "Independent policy requires object-view authorization on the exact returned document",
-      "evaluatorPassedToRuntime": false
-    },
-    {
-      "kind": "premise",
-      "inputFile": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-question-workflow-v1/../authorization-task-binding-v1/model/inputs/download-premise.json",
-      "inputSha256": "956786ffa16b96119daf5509b7ac0a966069a65a73549cd5eb124345e2487a0d",
-      "valid": true,
-      "sourceFiles": 95,
-      "originalQuestionIds": [
-        "requested-document-and-returned-file",
-        "authorization-and-selection-order",
-        "alternate-version-authorized-resource",
-        "missing-facts-and-conditional-conclusions"
-      ],
-      "propertiesSupplied": false,
-      "changedSourcePaths": [],
-      "facts": "Caller owns requested document; other/root ownership/grants unspecified",
-      "evaluatorPassedToRuntime": false
-    },
-    {
-      "kind": "source",
-      "inputFile": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-question-workflow-v1/../authorization-task-binding-v1/model/inputs/download-source.json",
-      "inputSha256": "ce463d689b54f71ab9569fe9e8523e84d8c3f55164c60ba4ff2a6d2b3510979c",
-      "valid": true,
-      "sourceFiles": 95,
-      "originalQuestionIds": [
-        "requested-document-and-returned-file",
-        "authorization-and-selection-order",
-        "alternate-version-authorized-resource",
-        "missing-facts-and-conditional-conclusions"
-      ],
-      "propertiesSupplied": false,
-      "changedSourcePaths": [
-        "src/documents/views.py"
-      ],
-      "facts": "Only helper authorization argument root_doc changes to request_doc at views.py:1424",
-      "evaluatorPassedToRuntime": false
-    }
-  ]
+  "originalQuestionCount": 4,
+  "sourceFilesPerInput": 95,
+  "policy": { "input": "../authorization-task-binding-v1/model/inputs/download-policy.json", "line": 94, "text": "Downloading any version or representation requires object-view authorization for the exact document whose file is returned; permission on a related root document alone is insufficient.", "origin": "external-policy", "mode": { "before": "behavior", "after": "conformance" }, "userPremisesUnchanged": true, "runtimeChangeLabel": "policy-and-premise", "labelCaveat": "The existing classifier groups the mode transition with policy; raw input diff has no premise change." },
+  "premise": { "input": "../authorization-task-binding-v1/model/inputs/download-premise.json", "line": 37, "text": "The authenticated caller owns the requested document. Ownership and object grants on related root documents and other versions are unspecified.", "origin": "user", "appliesToAllOriginalQuestions": true },
+  "source": { "input": "../authorization-task-binding-v1/model/inputs/download-source.json", "path": "src/documents/views.py", "line": 1424, "before": "root_doc,", "after": "request_doc,", "other94SourceFilesByteIdentical": true },
+  "precomputedSourceMeaningsProvided": false,
+  "correctPropertyBindingsProvided": false,
+  "oldAnswerProvided": false,
+  "scout": "be_change_fact_contract",
+  "primarySpotChecks": ["download-policy.json:93-96", "download-premise.json:32-42", "paperless-request-binding-v1/src/documents/views.py:1421-1427"],
+  "interpretation": "Confirmed existing BC fact contract; no change to original questions, no evaluator or source conclusions added. Mechanical sourceRoot relocation alone is not a semantic change."
 }

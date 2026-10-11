@@ -1,30 +1,23 @@
 # Skill IR AOT 当前执行计划
 
-更新于2026-10-11。唯一实时入口为[current-status](current-status.md)。
+更新于2026-10-12。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BE0–BE18：领域问题前端、相关依赖与机制价值验证](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)，`in-progress / BE13`。六首件同tree`7b379ddb`全交付、整题均partial。truthy说明复验实际采用该谓词但暴露部分源码转换异常；原声明复演与78pass/614断言已修为未知控制点，四N/H实际合同未变。新根因的一次具名复验和分层变化继续。
+- 当前任务书：[BE0–BE18：领域问题前端、相关依赖与机制价值验证](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)，`completed-with-unmet-criteria / BE18发布核对中`。六质量首位置、两具名D修订、六变化逻辑位置全部交付，16归档/14模型运行/2未启动；finiteQueueComplete true、researchGoalAchieved false。原质量0/6整题full、全部实际0/14，35D检查unknown、0合格跨源性质。变化为tradeoff/negative/no-observed-difference，previous实际材料使用均0，见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/acceptance-matrix.json)。
 - 方法合同：[spec§14.44](skill-ir-aot-optimization-spec.md#1444-be-question-workflow-and-mechanism-value)；复核与研究统一在[§7.66](skill-dsl-research.md#766-be-领域问题前端与机制价值验证)。
 - identity：`authorization-question-workflow-v1`。继续`skill-ir-aot`，只推用户origin，不创建分支/worktree；派发后新开发线程是共享代码/方法文档/Git的唯一写者。
 - 开发`gpt-6.1-sol/max`，实验沿用已授权官方账号`gpt-5.6-sol/high`。第三方暂停、旧OWUI未知只离线，held-out/Q1/prospective/readiness及历史0/6保持。
 
-## 当前目标
+## 当前判断
 
-修掉错误的框架检查义务和与性质无关的依赖阻断，把“源码含义”与“逐题绑定/结论”分开，减少模型重复处理机械字段和上下文。实现可独立运行的H领域辅助，以及使用同一helper、增加声明编译/组合/检查的D；保留完整原skill、全部原题与严格对象/可达性检查。
+请求义务、相关依赖、渐进转换、共享投影和独立H/D前端已实现；最后保守依赖修复不影响10份原D快照所用分支，原epoch不回填。225核心测试/1418断言、12研究测试/68断言及主/研究类型通过。H保留为普通opt-in辅助候选，D为显式研究入口；未建立一般H>N、稳定D质量/检查增量或净收益，不改变项目默认。
 
-BB已有跨单元绑定，BD已有持续partial和独立性质计算，继续复用。领域前端让模型解释原文中的授权问题，宿主填写机械身份；不重建resolver，不扩语言语义，不把开发评阅或历史答案输入实验模型。
+R0来源准备和R1含义分开：policy/premise各恢复1 partial R1而使用0，source撤回R1并保留R0，R2均false。当前D1普通会话实际搬移后公开init/check/inspect/compare零模型通过，不能据此宣称模型消费或性质收益。完整分支/事实映射、实际含义使用和合格跨源链仍是未达责任。
 
-## 连续队列
+## 收尾与后续边界
 
-| 阶段 | 工作 | 验收重点 |
-|---|---|---|
-| BE0–BE3 | 接管、DRF请求receiver红绿、相关依赖范围 | Serializer/Field不背dispatch义务；真正请求权限/未知相关边界仍保留 |
-| BE4–BE5 | 实际模型上下文计量、源码含义跨题共享、按需投影 | 量实际发送内容，不把归档当prompt；不同对象/调用/问题不串用 |
-| BE6–BE9 | 领域声明前端、独立H、D编译、普通入口和匿名反例 | H无需source-edit；D经真实公开链进入旧检查器；静态账号工具与runtime一致 |
-| BE10–BE13 | 六位置N/H/D两轮、现场修复、逐题评阅 | 同完整原任务、原skill/源码/预算；首件保留，D没有checked仍做质量比较 |
-| BE14–BE15 | 三变化分层复用、普通消费与说明 | R0来源/R1含义/R2性质分别准入，不携带旧自然答案，不伪造会话 |
-| BE16–BE18 | 研究归纳、定向验证、提交推送和接手 | 工程、自然质量、检查、复用、净收益分别报；研究未达则保持未达 |
+只剩BE18目的提交、用户origin推送与远端SHA核对，回执完成后无待派BE位置。[执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/authorized-execution-closeout.json)区分工程通过、研究未达和条件未执行。R2条件未成立，所以实际旧合格性质撤回实验未执行；不把公共fixture写成这项实际验收。
 
-首位置顺序N1/H1/D1、D2/H2/N2，共六会话；四子题属于同一任务的相关观察。另登记policy/premise/source的六fresh/previous首位置：第一份可恢复D主会话作为基础，按逐项R1/R0资格复用材料，合格R2另列。修订按新attempt保存，不覆盖原件或重复记账。
+有限原顺序N1/H1/D1、D2/H2/N2完成；四子题属于同一任务的相关观察。D1/original在变化前固定，source-previous只有两件推理前配置失败及一个实际交付恢复，未重发完成或未知请求。首件/具名修订/恢复及全部已知和未知费用保留。后续研究必须针对未达责任形成有证方法决定，不能据本轮连续授权自动追加样本。
 
 ## 失败处理与评价
 

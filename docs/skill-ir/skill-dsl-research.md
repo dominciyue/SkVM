@@ -1,10 +1,10 @@
 # Skill 分类与领域 DSL 研究总文档
 
-更新于2026-10-11。本文件是这条研究路线唯一持续维护的**研究与开发复盘正文**，合并S0–S11、D0–D11及后续研究，并记录实现问题与修复。实时状态由[current-status](current-status.md)维护，未达责任见[当前计划](skill-ir-aot-optimization-plan.md)。
+更新于2026-10-12。本文件是这条研究路线唯一持续维护的**研究与开发复盘正文**，合并S0–S11、D0–D11及后续研究，并记录实现问题与修复。实时状态由[current-status](current-status.md)维护，未达责任见[当前计划](skill-ir-aot-optimization-plan.md)。
 
 ## 1. 当前结论
 
-**当前开发决定是BE：修正检查义务范围，形成领域问题前端，并分开检验辅助工具与声明检查的价值。** [BE0–BE18](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)实施至BE13；接管基线`be13cfc0`，六首件全交付、整题均partial，D尚无合格跨源性质。请求适用性/相关依赖、实际context计量、独立H与D声明公开链已接通，复用BB/v7与现有材料仓。truthy说明复验已采用谓词但暴露部分源码转换异常；保存声明复演与公共红绿已修为未知控制点，进行新根因一次复验；首件、未变N/H对照和三变化基础分别保留，见[§7.66](#766-be-领域问题前端与机制价值验证)。
+**BE有限执行已完成，研究目标未达；H是普通辅助候选，D保留显式研究入口。** [BE0–BE18](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)的六质量首位置、两具名D修订及六变化逻辑位置均交付，16归档含14模型/2未启动；BE18发布核对中。原质量0/6整题full、全部实际0/14，10D共35检查unknown、0合格跨源性质。原同epoch两块D都未优于H而input/output/耗时更高；具名修订相对H是tradeoff，不能归为语法或6行修复的因果收益。政策/前提/source变化分别tradeoff/negative/no-observed-difference，policy/premise各恢复1 partial R1但实际使用0，source撤回R1并保留R0，R2全false。请求范围、部分源码转换及保守依赖修复经最终225核心测试/12研究测试和主/研究类型验证；有限队列true、researchGoalAchieved false，详见[§7.66](#766-be-领域问题前端与机制价值验证)和[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/acceptance-matrix.json)。
 
 **BC已接通原自然任务的性质准备、跨调用定向修复及有界源码准备，真实跨源性质仍未闭合。** 当前范围仍为单repo/ref、源码可见的授权与信任边界评估。5去重尝试全部completed交付、完整原任务均source-partial；17个model-prepared性质中12个unknown、首件2个缺逐题查询、3个未检查，合格跨源checked/violated为0。四比较与三previous位置因资格不足零派发，稳定质量、实际复用与净收益均未建立。授权运行以未达验收收束，BC14已发布并核对用户origin。
 
@@ -40,7 +40,7 @@ BB已接通v7匿名公共跨源检查及两BA原提案派生采用，同epochN/M
 
 AY历史结果补充：两份原skill和两包原字节消费均已实际运行。Download消费者源码评阅full但机器partial，OWUI消费者仍漏决定性helper；政策/前提变化已有部分运行，源码变化及质量位置受账号额度阻断。[最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)记录可见完整input 32,465,835、output 125,283、其中cacheRead 29,939,200（已包含在input），USD/隐藏请求/开发/真人成本未知。旧AX、AW结果保留其当时口径。
 
-当前关键问题是：**正确保留有关义务，减少重复解释，让领域声明接入已有跨源检查，并实测这些机制是否帮助完整原任务。** BD保留的partial与两单元trace没有变成合格性质；新复核又找到普通数据类被当成请求receiver的问题。BE先修这些可复现责任，再运行独立H与D；N/H/D均保留原四问，不用已有自然full直接推定可机械化。源码质量、机器检查和R0/R1/R2复用分别判断，当前决定见§7.66，两旧OWUI未知处置保持。
+当前关键问题是：**完整源码分支/事实映射、实际含义消费和模型语义闭合怎样带来可测增量。** BE修正了可复现的职责错误、接通独立H/D并完成原四问的有限比较，仍没有完整任务或真实合格跨源性质。H相对D的同质量低成本是当前开发观察，一般H>N、D稳定增量和净收益未建立。下一研究方法须针对这些具体未达责任形成决定，不自动追加已收束样本；源码质量、机器检查和R0/R1/R2分别判断，两旧OWUI未知处置保持。
 
 ## 2. 研究目标与术语
 
@@ -2442,7 +2442,7 @@ usage使用原check/run/inspect/edit/compare，不新增CLI。实际公开check/
 
 ### 7.66 BE 领域问题前端与机制价值验证
 
-2026-10-11，用户在BD结果和外部模型分析的讨论后要求书写下一轮任务书并派发gpt-6.1-sol/max。规划基线`6c8c79e3`，实际接管基线`be13cfc0`；[BE0–BE18](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)及[spec§14.44](skill-ir-aot-optimization-spec.md#1444-be-question-workflow-and-mechanism-value)进入实施。以下分别记录工程证据、实际模型采用和未达责任，当前至BE13。
+2026-10-11，用户在BD结果和外部模型分析的讨论后要求书写下一轮任务书并派发gpt-6.1-sol/max。规划基线`6c8c79e3`，实际接管基线`be13cfc0`；[BE0–BE18](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)及[spec§14.44](skill-ir-aot-optimization-spec.md#1444-be-question-workflow-and-mechanism-value)实施后，于2026-10-12以`completed-with-unmet-criteria`完成有限执行，BE18发布核对中。以下分别记录工程证据、实际模型采用和未达责任，执行完成不表示研究成功。
 
 **对外部判断的核实。** BD提供了同条件的负向/取舍开发观察，值得据此调整交互方式；但“跨单元绑定仍未实现”“所有额外input都是格式重试”“填字段无需模型”不能作为当前事实。现有[property-query](../../src/task-dsl/authorization/property-query.ts)已接受PropertyQueryContext并调用bindInterproceduralQueries；[control-conclusion](../../src/task-dsl/authorization/control-conclusion.ts)会沿实际调用实例、对象与次序求值。BD已采用跨函数link，失败集中在不完整语义、有关依赖与真实交互。跨源匹配不能只扩大anchor查找范围或要求两个函数共用裸ID，必须保留实参/形参、receiver、实际可达路径与权限关系。
 
@@ -2483,6 +2483,22 @@ D1实际7次声明，6次被拒，最后接受`serve_file`中的doc/FileResponse
 D2自由文本条件拒绝促成确定性定位：现有求值器支持truthy，但实际D工具/当前指南没有说明这个语法。公共测试先12pass/2fail/89断言，补通用truthy及language/operand说明后49pass/482断言，主/研究类型通过；自由文本仍拒绝。没有改变求值语义、case含义或提供参考答案。[零模型合同核对](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/predicate-guide-control-compatibility.json)证明四个N/H当前system和tool合同与原thread/start一致。一次`quality-d-1/predicate-guide-1`已全交付，模型实际采用truthy/python；自然质量仍P/F/P/F，0采用源码单元、4unknown、无跨源检查。实际input1,476,526/output9,833/cache1,326,720，总工具50含1自动、366,154ms，费用独立计一次。
 
 该复验history[47]不是诊断为空的成功：它返回`status:error`/exitCode1及`annotation.condition` TypeError。19有效编辑绑定了窄性质后，仍可达的未声明文件名分支不在需求集合，lowerer直接解引用缺失注解。[原声明红/绿复演](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/partial-source-green.json)保持原语义与source SHA，重现后修为明确未知；匿名性质外branch/raise先2fail，再相关78pass/614断言，主/研究类型通过。工具机理派生现保留status/error/exitCode，避免把无诊断误称采用。四N/H合同重新零模型核对一致；仅允许此新根因的一次`partial-source-1`复验，随后六变化继续。D1/original仍是第一可恢复基础，guide和异常原件均不替换。
+
+一次`partial-source-1`已完成：44host/45总工具含1自动准备，input3,288,259/output14,437/cache3,123,072、560,531ms，所有实际history执行错误为0；采用1个`file_response`局部单元（10步骤、complete:false），4unknown、0非空跨源检查。自然答明确`root_doc or doc`回退，Q1/Q2/Q3为full；Q4遗漏original/follow_formatting实值和存储配置到精确结论的映射，仍partial。对原H1/H2与N1是tradeoff，对N2是support；新增代价和未达性质保持。该答采用不同当前声明，不能把自然差异因果归给6行修复。原六首件、两具名修订和未变控制证明各自保留、成本唯一计一次。
+
+BE14三变化先完成零模型compare并锁定D1/original。[事实合同核对](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/change-fact-contract.json)保留四问/95source；policy转conformance并加入独立规则，原用户前提未变（现有分类器将mode变化标为policy-and-premise）；premise只增加请求文档ownership；source只改views.py:1424。policy/premise各可恢复1个partial R1、2相关证据及R0索引；source撤回该文件依赖的R1，保留25未变证据的R0并重建索引。R2全false，旧自然答案/评阅/结论排除；六普通fresh/previous的实际结果如下。
+
+政策组两首件已完成并独立复核，fresh自然P/F/P/F、previous为F/F/F/P：后者明确root/self fallback，但缺失查询实值和存储配置到精确结论的映射，故为tradeoff、两整题仍partial。两者分别input2,096,343/1,723,472、output13,141/10,905、总工具52/49、407,538/441,604ms；previous比fresh读源码19→21、声明4→5，不能据较少input直接声称解释请求减少或因果净收益。previous恢复1个partial材料，但`materialsUsed=0`、`materialUses=[]`，当前性质全部unknown、0非空跨源检查；restore、实际使用及R2分别报告。[实际消费者核对](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/policy-consumer-evidence.json)检查原client envelopes的完整旧答/评阅/性质结果缺席及当前seed构造，不冒充每个重合源码短语的语义排除。两种局部路径/selector错误保留，无非零执行失败。
+
+前提组两首件也已交付，fresh自然F/F/F/P、previous为P/F/P/P，比较negative。fresh补齐root/self fallback和raw-query truthiness，previous遗漏这些分支；两者缺失事实仍未完整映射到精确文件名/路径。input1,165,263/2,450,232、output12,643/10,283、总工具60/52、510,199/499,637ms；previous源码读取44→19、声明5→3，但input增加1,284,969。它恢复1个partial材料而实际使用仍0，3个当前性质unknown、0非空trace。[消费者核对](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/premise-consumer-evidence.json)保留完整旧产物缺席和seed边界的有限证明。没有把较少请求、缓存或host restore写成材料消费、质量或因果净收益。
+
+2026-10-12源码previous位置的两次本地失败均在推理前终止：自动升级后的CLI不在已验证allowlist；恢复原`0.162.0-alpha.2`后，中文工具路径又被`where.exe`的GBK输出/UTF-8解码破坏。13个此前实际归档均为同一alpha.2版本。官方同版本release digest、binary SHA及ASCII临时路径已确定性核对，不改app或生产适配器。两件unavailable/not-started、0模型/0工具及79,770ms本地耗时各自保留；只允许具名`cli-path-1`填补该未启动逻辑位置。汇总红绿测试要求全部前件明确未派发且同输入/源码epoch，最多一个实际交付；未知完成或第二个交付都阻断选择，不能按答案选修订。
+
+源码fresh/original与previous/cli-path-1已完成，均自然P/F/F/P、整题partial，比较no-observed-difference。两答准确识别guard改为URL的request_doc、先授权再选版本/表示且无第二次file_doc检查；它们仍漏root查询失败/self fallback，并错误称默认latest不含deleted，实际`file_response`传`include_deleted=True`。Q3的guard对象不由该选择遗漏改变，故仍full；Q4缺实际query/storage事实到精确结论的映射，fresh的original/follow_formatting和previous的follow_formatting遗漏分别保留。主线程按当前原文裁决盲评的Q4差异，不重复处罚Q1，也不称真人盲评。两次input3,228,986/3,565,459、output10,580/12,386、总工具60/57、437,744/484,662ms；previous读取19→25、声明3→5、input增加336,473。它因源码失效恢复0R1、实际使用0，接受1个partial单元但3检查unknown/空trace；[消费者核对](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/source-consumer-evidence.json)的旧完整产物/seed边界证明仍是有限的，不等于所有短语语义排除或物理读取节省。
+
+**最终保守修复与普通使用。** 独立依赖复核发现，普通path的open decisive依赖缺association且无slice edge时会被误判无关。主线程原测试补红后为0pass/1fail，修复缺依据继续unknown；第一版全阻断又被公共U1(after-effect)检出，最终保留显式source边的实际调用前缀，U1 checked/U2(before-effect) unknown。request/unconfirmed及真正请求middleware继续阻断，错主体/资源/权限/次序负例保持。[依赖证据](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/dependency-relevance-final-review.json)核10实际D末快照：只有字节未变的framework谓词输入，改变的normal-path输入0，原35unknown/空trace不回填；该有限输入证明不是新模型采用、完整性质重放或未来保证。最终源码`2c7131d2`/tree`f3bce237`，15文件225pass/1418断言、研究12pass/68断言及主/研究类型通过，后独立复核无新缺陷。[当前会话搬移](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/portable-current-session.json)保持95源/含义/归档字节，公开init/check/inspect/compare零模型通过；R0+1 partial R1可恢复、R2false，不计新真实消费。
+
+**执行、成本与方法收束。** 12逻辑位置均已交付，含六质量首件、六变化；两具名D复验及两配置未启动保留，共16唯一归档/14模型运行。原质量0/6整题full、所有实际0/14，10D共35检查均unknown、0合格跨源性质，三个previous材料实际使用0。R2条件未成立，实际旧合格verdict的变化撤回实验未执行、不计通过。known input26,118,113含cache24,207,744（非缓存1,910,369）、output141,637含reasoning57,166；模型运行5,716,127ms加未启动79,770ms为5,795,897ms总本地耗时，769总工具含8自动、格式拒绝0。input/cache、output/reasoning各只计一次；显示/发送字节不换算精确token，actual USD、provider内部请求、开发/探子成本和真人分钟unknown，见[accounting](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/accounting.json)。H在两首块与D同自然质量且成本更低，作为普通opt-in候选；一般H>N、隔离语法优势、稳定D增量及净收益未建立，D留显式研究、默认不变。有限模型队列完成true、研究目标false，逐轴责任与条件未执行见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/acceptance-matrix.json)及[执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/authorized-execution-closeout.json)。只有BE18发布核对尚在收尾；后续须针对未达责任决策，不自动重抽，历史保护/两OWUI未知保持。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
@@ -2547,12 +2563,12 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 | ID | 问题 | 当前依据 | 接下来的判断 |
 |---|---|---|---|
 | Q1 | 哪个任务范围共享领域语义？ | 固定来源的授权职责支持 principal/resource/operation/control/evidence；混合职责单列，见 §4–§7.10 | 保持单 repo/ref、源码可见的授权切片 |
-| Q2 | 声明如何带来实际行为？ | BB跨源绑定已有，BD保留partial但0合格性质；复核发现数据类误触发请求义务 | BE先修适用范围，再以领域前端接入已有编译检查，不能只重做resolver |
-| Q3 | 为什么仍漏决定性源码或分支？ | BD分支/事实映射不足；源码按题重复解释、framework依赖可能扩散 | 区分相关义务/候选/未知关联，共享有资格的源含义，测实际模型context与公开链 |
-| Q4 | 领域方法相对好说明的增量是什么？ | BD两对tradeoff/negative，D更贵；格式拒绝0，尚未单独识别辅助与声明贡献 | BE两轮N/H/D保留完整原任务，分别看工具与声明检查增量，不预设DSL胜者 |
-| Q5 | 作者和变化复用是否可用？ | BD零合格性质令六变化未运行，来源准备与partial材料资格没有单独测 | BE将R0/R1/R2分开，普通会话实际消费与失效；不带旧自然答案、不把缓存当结论 |
+| Q2 | 声明如何带来实际行为？ | BE复用v7、领域前端和公共跨源正反例接通；10实际D共35unknown、0合格跨源性质 | 模型当次guard/effect/对象/closure含义仍须闭合；不以fixture或partial采用代替真实链 |
+| Q3 | 为什么仍漏决定性源码或分支？ | BE修请求义务/相关性/渐进转换、实际context可测；root/self fallback、deleted latest与事实映射仍漏 | 针对具体语义遗漏及实际材料使用改方法；未知关联保守，已读不等于已解释 |
+| Q4 | 领域方法相对好说明的增量是什么？ | 六首件D未优于H而input/output/耗时更高；H相对N一tie一support，D修订对H tradeoff | H保留普通opt-in候选、D显式研究；一般H>N、语法独立优势及稳定净收益未建立 |
+| Q5 | 作者和变化复用是否可用？ | 六变化已交付；policy/premise各restore1但use0，source撤回R1/R0保留，全部R2false；变化tradeoff/negative/no-observed-difference | 分开资格/恢复/实际消费/收益；实际R2撤回条件未成立，不宣称因果读取或解释节省 |
 | Q6 | 本地化路线如何处理？ | 保留 §8–§9 设计及结构回填反例 | 暂缓；重新选择该类时再处理，不混入授权验收 |
-| Q7 | 如何评价和计量？ | BD11逻辑位置/5唯一attempt/5交付/6资格未执行；known input9,048,390含cache8,187,392/output46,920；254总工具含32自动单位 | 六验收轴与首件/诊断/修订/变化分别计，执行结束不升级完整队列或研究成功；USD/隐藏/开发/真人未知 |
+| Q7 | 如何评价和计量？ | BE12逻辑位置/16归档/14模型交付/2未启动；input26,118,113含cache24,207,744/output141,637；769工具含8自动 | 六首件和具名修订/恢复/变化分列、唯一费用一次；有限队列true而研究false，USD/隐藏/开发探子/真人未知 |
 
 决策沿革：
 
@@ -2599,6 +2615,7 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-11 / BE12首块：** 同源码N1/H1/D1全部交付，按原四问分支同标准均P/F/P/F；D1接受1局部单元、3unknown、无非空跨源检查。费用按实际回执计一次，当前无已证共享运行错误；BE13与变化继续，见§7.66。
 - **2026-10-11 / BE13说明合同：** 六首件全交付且整题均partial，D2自由文本条件暴露已有truthy说明缺口；公共红绿49pass/482断言及主/研究类型通过。四N/H实际system/tool与当前重建一致，只做一次D具名复验，原首件和第一可恢复D基础保留，见§7.66。
 - **2026-10-11 / BE13部分源码异常：** guide复验实际使用truthy但history[47]抛异常；保存声明零模型复现、匿名2红测后修为未知分支/raise。78pass/614断言和主/研究类型通过，四N/H实际合同未变；新根因一次具名复验及六变化继续，见§7.66。
+- **2026-10-12 / BE有限收束：** 六变化全部交付，源码previous仅两件确定未启动后一个同epoch登记恢复；16归档/14模型交付，原质量0/6、所有实际0/14整题full，0合格跨源性质/0实际previous材料使用。独立依赖复核红绿保守修复后225核心/12研究及类型通过，10原D输入不走改变分支、原epoch保持。H为普通候选、D显式研究、默认不变；有限队列true、研究false，完整责任及成本见§7.66。
 
 ## 12. 后续追加规则
 

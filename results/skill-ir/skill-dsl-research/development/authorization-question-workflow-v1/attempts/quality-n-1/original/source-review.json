@@ -1,0 +1,75 @@
+{
+  "schemaVersion": "authorization-be-source-review/v1",
+  "status": "source-reviewed",
+  "attemptId": "quality-n-1/original",
+  "answerSha256": "3fc21608d9f4afe91d64862d7ea1ab9017c5a0f10d110c327cd29a2601238296",
+  "inputSha256": "ee99327d807ccd1e130117266c8bcdca9f33113b260782152463a4b48fafb397",
+  "runtimeTree": "7b379ddbad1863e8c70b37e7da0d6bf57e3a3ea2",
+  "wholeOriginalTask": "partial",
+  "questions": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "quality": "partial",
+      "reason": "Root relation missing fallback fetch/self branch omitted, despite all relevant selection branches requested",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156,
+          "quote": "return root_doc or doc"
+        }
+      ]
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "quality": "full",
+      "reason": "Authentication/global GET model permission then owner-aware root check before selected file; exact allowed source supports order",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1448,
+          "quote": "resolved = self._resolve_request_and_root_doc("
+        }
+      ]
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "quality": "partial",
+      "reason": "Correct normal chain/representation distinction but categorical root wording omits get_root_document fallback",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156,
+          "quote": "return root_doc or doc"
+        }
+      ]
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "quality": "full",
+      "reason": "Missing current authentication/model permission, root owner/grants, version/database and storage values tied to blocked actual outcome",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1448,
+          "quote": "resolved = self._resolve_request_and_root_doc("
+        }
+      ]
+    }
+  ],
+  "independentReview": {
+    "blindLabel": "A",
+    "branches": "be_response_a_branches",
+    "authorization": "be_response_a_authorization",
+    "mainChecked": [
+      "versioning.py:146-195",
+      "views.py:1368-1448",
+      "permissions.py:624-635"
+    ],
+    "note": "Source fallback omission retained; request.user None outside authenticated principal is minor, not a separate correctness failure"
+  },
+  "reviewedAt": "2026-10-11T09:40:58.737Z"
+}

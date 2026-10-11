@@ -1,0 +1,120 @@
+{
+  "schemaVersion": "authorization-be-source-review/v1",
+  "status": "source-reviewed",
+  "attemptId": "quality-d-2/original",
+  "answerSha256": "740c7750a77107ef71ab434f162ee98d8b356c932c941ccf183376fa7f40b6b5",
+  "inputSha256": "ee99327d807ccd1e130117266c8bcdca9f33113b260782152463a4b48fafb397",
+  "runtimeTree": "7b379ddbad1863e8c70b37e7da0d6bf57e3a3ea2",
+  "wholeOriginalTask": "partial",
+  "questions": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "quality": "partial",
+      "reason": "Normal document/version/representation branches are accurate; get_root_document's missing-root lookup/self fallback is omitted despite the original every-relevant-branch requirement.",
+      "answerLines": [
+        3,
+        29,
+        31
+      ],
+      "sourceEvidence": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156,
+          "quote": "return root_doc or doc"
+        }
+      ]
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "quality": "full",
+      "reason": "Pre-handler authentication/model GET check, owner-aware guard on the resolved root_doc variable, rejection and later version/file selection are accurate. No selected-version guard is invented.",
+      "answerLines": [
+        14,
+        34,
+        42
+      ],
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1448,
+          "quote": "has_perms_owner_aware(request.user, \"view_document\", root_doc)"
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 635,
+          "quote": "obj.owner is None"
+        }
+      ]
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "quality": "partial",
+      "reason": "Accurate normal root/file distinction and absent later guard, but the universal root claim does not distinguish the source's missing-root/self fallback; no integrity fact was supplied to remove that branch.",
+      "answerLines": [
+        70
+      ],
+      "sourceEvidence": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156,
+          "quote": "return root_doc or doc"
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1448,
+          "quote": "has_perms_owner_aware(request.user, \"view_document\", root_doc)"
+        }
+      ]
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "quality": "full",
+      "reason": "Every missing permission, owner/grant, identifier/version, query, archive, storage and deployment fact is mapped to its blocked conclusion.",
+      "answerLines": [
+        96,
+        104
+      ],
+      "sourceEvidence": [
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 635,
+          "quote": "obj.owner is None"
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1368,
+          "endLine": 1448,
+          "quote": "include_deleted=True"
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1834,
+          "endLine": 1839,
+          "quote": "except (FileNotFoundError, Document.DoesNotExist):"
+        }
+      ]
+    }
+  ],
+  "independentReview": {
+    "blindLabel": "D",
+    "reviewers": [
+      "be_response_de_auth",
+      "be_response_de_branches"
+    ],
+    "mainChecked": [
+      "response-d complete",
+      "versioning.py:146-195",
+      "views.py:1368-1448,1834-1839",
+      "permissions.py:624-635",
+      "original four question wording"
+    ],
+    "adjudication": "Independent authorization review supports Q2/Q4. Branch review called Q3 full, but the primary checked the cited get_root_document self fallback and applies the same original all-branch criterion as A/B/C. The scout's physical-file 404 concern is rejected: download catches FileNotFoundError/Document.DoesNotExist at views.py:1834-1839. Machine unknown does not determine natural quality."
+  },
+  "reviewedAt": "2026-10-11"
+}

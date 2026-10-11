@@ -1,0 +1,76 @@
+{
+  "schemaVersion": "authorization-be-source-review/v1",
+  "status": "source-reviewed",
+  "attemptId": "quality-h-1/original",
+  "answerSha256": "a41ae57221c9245911544f1b6fef36b62a6616ea0006e0b942f8bfbb09c02a49",
+  "inputSha256": "ee99327d807ccd1e130117266c8bcdca9f33113b260782152463a4b48fafb397",
+  "runtimeTree": "7b379ddbad1863e8c70b37e7da0d6bf57e3a3ea2",
+  "wholeOriginalTask": "partial",
+  "questions": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "quality": "partial",
+      "reason": "Normal version/representation branches accurate, but get_root_document missing-root query/self fallback omitted under the same all-branches criterion as response A",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156,
+          "quote": "return root_doc or doc"
+        }
+      ]
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "quality": "full",
+      "reason": "Current source authorization/order or precise missing-fact conclusions complete",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1448,
+          "quote": "resolved = self._resolve_request_and_root_doc("
+        }
+      ]
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "quality": "partial",
+      "reason": "Normal version/representation branches accurate, but get_root_document missing-root query/self fallback omitted under the same all-branches criterion as response A",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156,
+          "quote": "return root_doc or doc"
+        }
+      ]
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "quality": "full",
+      "reason": "Current source authorization/order or precise missing-fact conclusions complete",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1448,
+          "quote": "resolved = self._resolve_request_and_root_doc("
+        }
+      ]
+    }
+  ],
+  "independentReview": {
+    "blindLabel": "B",
+    "branches": "be_response_b_branches",
+    "authorization": "be_response_b_authorization",
+    "mainChecked": [
+      "response-b complete",
+      "versioning.py:146-195",
+      "views.py:1368-1448",
+      "permissions.py:624-635"
+    ],
+    "adjudication": "Branch scout considered fallback omission minor/full; primary applies identical explicit all-relevant-branches standard to A/B, retaining partial on Q1/Q3. No invented DB integrity assumption."
+  },
+  "reviewedAt": "2026-10-11T09:46:32.291Z"
+}

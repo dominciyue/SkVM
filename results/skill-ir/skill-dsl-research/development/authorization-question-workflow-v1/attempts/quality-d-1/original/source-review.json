@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "authorization-be-source-review/v1",
+  "status": "source-reviewed",
+  "attemptId": "quality-d-1/original",
+  "answerSha256": "7d9db6a5ed6e8968be9c83a535c24f16951134b84a12de075e6800744c4f1864",
+  "inputSha256": "ee99327d807ccd1e130117266c8bcdca9f33113b260782152463a4b48fafb397",
+  "runtimeTree": "7b379ddbad1863e8c70b37e7da0d6bf57e3a3ea2",
+  "wholeOriginalTask": "partial",
+  "questions": [
+    {"questionId":"requested-document-and-returned-file","quality":"partial","reason":"Accurate normal version/representation branches, but root lookup failure/self fallback is omitted. The opening universal root claim does not distinguish this source branch.","answerLines":[3,34,45],"sourceEvidence":[{"path":"src/documents/versioning.py","startLine":146,"endLine":156,"quote":"return root_doc or doc"}]},
+    {"questionId":"authorization-and-selection-order","quality":"full","reason":"Authentication, model GET permission, owner-aware check on the resolved root_doc variable, rejection and subsequent selection order are accurate; no invented selected-version guard.","answerLines":[13,28],"sourceEvidence":[{"path":"src/documents/views.py","startLine":1401,"endLine":1448,"quote":"has_perms_owner_aware(request.user, \"view_document\", root_doc)"}]},
+    {"questionId":"alternate-version-authorized-resource","quality":"partial","reason":"Accurate normal root-versus-file distinction, but requested all-branch relation also needs the get_root_document missing-root/self fallback; no supplied integrity fact removes it.","answerLines":[81,90],"sourceEvidence":[{"path":"src/documents/versioning.py","startLine":146,"endLine":156,"quote":"return root_doc or doc"}]},
+    {"questionId":"missing-facts-and-conditional-conclusions","quality":"full","reason":"Missing user permissions, ownership/grants, parameters, version/deletion/file state, storage and deployment facts are tied to precise blocked conclusions.","answerLines":[92,101],"sourceEvidence":[{"path":"src/documents/permissions.py","startLine":624,"endLine":635,"quote":"obj.owner is None"},{"path":"src/documents/views.py","startLine":1368,"endLine":1448,"quote":"include_deleted=True"}]}
+  ],
+  "independentReview": {"blindLabel":"C","reviewer":"be_response_c_source","mainChecked":["response-c complete","versioning.py:146-195","views.py:1368-1448","permissions.py:624-635"],"adjudication":"Scout returned four full but did not cite get_root_document 146-156. Primary checked that specific original branch and applies the same explicit every-relevant-branch criterion used for A/B, retaining Q1/Q3 partial. Machine unknown and cost did not determine natural quality."},
+  "reviewedAt":"2026-10-11"
+}

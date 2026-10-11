@@ -1,0 +1,118 @@
+{
+  "schemaVersion": "authorization-be-source-review/v1",
+  "status": "source-reviewed",
+  "attemptId": "quality-d-1/predicate-guide-1",
+  "answerSha256": "30279989cba47b0fcc87d80cc77d4447037e7ca7e6f2a99222b3c43815575ae2",
+  "inputSha256": "ee99327d807ccd1e130117266c8bcdca9f33113b260782152463a4b48fafb397",
+  "runtimeTree": "a59b0124a8bef0112f46b652122aa7c8ca28aa4e",
+  "wholeOriginalTask": "partial",
+  "questions": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "quality": "partial",
+      "answerLines": [
+        42,
+        43,
+        66,
+        86,
+        102,
+        116
+      ],
+      "reason": "Accurate normal request/version/representation branches, including empty version and deletion managers, but missing-root/self fallback is omitted despite every-relevant-branch request.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156,
+          "quote": "return root_doc or doc"
+        }
+      ]
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "quality": "full",
+      "answerLines": [
+        18,
+        60
+      ],
+      "reason": "Authentication/model GET permission precedes the owner-aware root_doc-variable guard, rejection, selected version and representation. No later selected-object check is invented.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1448,
+          "quote": "has_perms_owner_aware(request.user, \"view_document\", root_doc)"
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 635,
+          "quote": "obj.owner is None"
+        }
+      ]
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "quality": "partial",
+      "answerLines": [
+        3,
+        5,
+        118,
+        138
+      ],
+      "reason": "Normal root/file difference is correct, but universal root-family explanation does not distinguish root lookup failure/self fallback. No integrity premise removes it.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156,
+          "quote": "return root_doc or doc"
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1448,
+          "quote": "has_perms_owner_aware(request.user, \"view_document\", root_doc)"
+        }
+      ]
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "quality": "full",
+      "answerLines": [
+        140,
+        158
+      ],
+      "reason": "Each missing global permission, owner/grant, identifier/query/version/archive, physical storage/configuration and authentication/deployment fact is mapped to the specific blocked conclusion.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1448,
+          "quote": "has_perms_owner_aware(request.user, \"view_document\", root_doc)"
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1834,
+          "endLine": 1839,
+          "quote": "except (FileNotFoundError, Document.DoesNotExist):"
+        }
+      ]
+    }
+  ],
+  "independentReview": {
+    "blindLabel": "G",
+    "reviewers": [
+      "be_response_g_actual"
+    ],
+    "mainChecked": [
+      "response-g complete",
+      "original four question wording",
+      "versioning.py:146-195",
+      "views.py:1368-1448,1834-1839",
+      "permissions.py:624-635"
+    ],
+    "adjudication": "The scout called all four full and found no substantive invented claim. The primary applies the same missing-root/self-fallback criterion used on every original: Q1/Q3 partial. Query/storage unknowns now have precise mappings so Q4 full. The separate host exception does not lower natural quality; valid finite all/not/eq/lookup declarations are not free-text expressions."
+  },
+  "reviewedAt": "2026-10-11"
+}

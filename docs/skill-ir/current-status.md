@@ -1,12 +1,12 @@
 # Skill IR 当前状态
 
-更新于2026-10-11。工作分支为 `skill-ir-aot`，仅发布到用户 `origin`。本页是唯一实时状态入口；历史任务书与结果保留当时记录。
+更新于2026-10-12。工作分支为 `skill-ir-aot`，仅发布到用户 `origin`。本页是唯一实时状态入口；历史任务书与结果保留当时记录。
 
 ## 当前工作
 
-**[BE0–BE18：领域问题前端、相关依赖与机制价值验证](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)正在BE13现场修复与具名复验，由`gpt-6.1-sol/max`线程开发。** 六首件同完整skill/四问/tree`7b379ddb`全部交付，六整题均partial；D尚无非空跨源性质。一次truthy说明复验已采用该谓词，但有效部分声明触发`annotation.condition`异常。原声明零模型复现后已修为未知控制点，78pass/614断言及主/研究类型通过；四N/H实际合同仍一致。该新根因的一次`partial-source-1`复验和六变化继续，所有首件保留。费用、原件及恢复见[summary](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/summary.json)和[状态](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/status.json)。
+**[BE0–BE18：领域问题前端、相关依赖与机制价值验证](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)以`completed-with-unmet-criteria`收束，BE18发布核对中。** 六质量首位置、两具名D修订及六变化逻辑位置均交付：16归档含14模型运行、2推理前配置失败；无BE活动/未知完成。原质量整题0/6 full，全部实际交付0/14 full；10次D共35检查均unknown、0合格跨源性质。政策/前提/source对照为tradeoff/negative/no-observed-difference，三个previous实际材料使用均0。有限模型队列已完成，研究目标保持false，见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/acceptance-matrix.json)、[执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/authorized-execution-closeout.json)及[summary](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/summary.json)。
 
-先修已复现的Serializer/Field误触发DRF dispatch及依赖扩散，再做源码含义跨题共享、实际上下文减负、独立H辅助与D领域声明前端。保留现有BB/v7跨源机制，不重复开发resolver或扩语言语义。两个完整原任务重复块各跑N/H/D，共6主位置；三变化fresh/previous按来源准备、语义材料、性质结论分别验资格，最多6首位置。质量比较不以checked为准入，原skill/四问、源码语义质量与机器检查各自保留。方法见[spec§14.44](skill-ir-aot-optimization-spec.md#1444-be-question-workflow-and-mechanism-value)、[研究§7.66](skill-dsl-research.md#766-be-领域问题前端与机制价值验证)及[当前计划](skill-ir-aot-optimization-plan.md)。
+已修请求receiver适用范围、部分源码转换异常及未知依赖误判，独立H与D领域声明接入既有BB/v7公共链。最终源码树`f3bce237`：225核心测试/1418断言、12研究测试/68断言及主/研究类型通过。H是同首件质量下比D低成本的普通辅助候选；一般H优于N、D稳定质量增量及净收益未建立，项目默认不变。D1/original固定基础，policy/premise各恢复1 partial R1但未实际使用，source撤回R1并保留R0，R2全false；当前普通会话搬移零模型通过。known input26,118,113（含cache24,207,744）/output141,637；USD/隐藏/开发探子/真人未知。方法见[spec§14.44](skill-ir-aot-optimization-spec.md#1444-be-question-workflow-and-mechanism-value)、[研究§7.66](skill-dsl-research.md#766-be-领域问题前端与机制价值验证)及[当前计划](skill-ir-aot-optimization-plan.md)。
 
 ## BD 已结束的实际结果
 
@@ -54,7 +54,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 ## 账号、运行和继承边界
 
 - 开发 `gpt-6.1-sol/max`；实验沿用用户已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。
-- BE登记N1/H1/D1、D2/H2/N2六主位置，保持完整原skill/四问；D机器失败仍留质量分母。三变化最多六fresh/previous按R0来源准备、R1语义材料、R2合格性质各自验证，不能用旧自然答案复用，也不能因无R2而一律禁止R0/R1。旧BD六未运行不补行，OWUI继续仅离线。
+- BE六质量首位置和六变化逻辑位置已完成，保持完整原skill/四问及失败分母。source-previous两件确定未派发，仅一个同输入/epoch的登记恢复交付；原件和79,770ms本地开销保留。R0/R1资格、恢复和实际使用分列，旧答案/评阅/verdict不进入previous；R2缺失使实际R2撤回实验未执行。旧BD六未运行不补行，OWUI继续仅离线。
 - AY额度提示、AZ unavailable及BA `paused-recurring-routing`均保留；BC/BD已交付不解除旧未知。BE明确终态routing失败允许一次具名恢复，连续两次或本轮累计三次恢复仍失败则暂停外部派发。quota/auth立即暂停，unknown只核查原生命周期；历史累计成本及旧未知不清除，不额外健康探针、轮询或旁路。
 - 用户暂停已撤销，两次未知经过各自限定人工处置保留；后续未知保护不变。BB已完成尝试已知input32,038,537（含cache29,105,920）、output136,921。两OWUI部分usage单列，BB premise失败用量未返回；最终未知量、USD、隐藏请求、开发/探子成本和真人分钟保持unknown。本地观测duration不代表未知尝试的服务器最终耗时。
 - 保留原skill、全部原问题、允许源码、用户独立政策及前提。模型输入隔离评价器、历史答案和开发修复记录。held-out、Q1、prospective、readiness和历史 `0/6` 不变。
@@ -74,7 +74,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BE | [任务书](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)、[当前计划](skill-ir-aot-optimization-plan.md)、spec§14.44、研究§7.66；六首件交付、整题均partial，具名D复验与变化继续 |
+| 当前BE | [任务书](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)、[执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/authorized-execution-closeout.json)、spec§14.44、研究§7.66；有限队列完成、研究未达，当前只剩发布核对，不自动重抽 |
 | BD | [任务书](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/acceptance-matrix.json)、spec§14.43、研究§7.65；有限执行结束、5交付/0整题full/0合格性质/6未运行，最终发布6c8c79e3 |
 | BC | [任务书](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)、[收束](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/authorized-execution-closeout.json)、spec§14.42、研究§7.64；5交付/0合格跨源性质/7资格阻断 |
 | BB | [任务书](../superpowers/plans/2026-10-09-authorization-interprocedural-property-closure.md)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/verification/acceptance-matrix.json)、spec§14.41、研究§7.63 |

@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "authorization-be-source-review/v1",
+  "status": "source-reviewed",
+  "attemptId": "quality-n-2/original",
+  "answerSha256": "48d0341671a043f6b8a10399e2014ba180ed6393b579be7a1b5f1d1e75e41bc8",
+  "inputSha256": "ee99327d807ccd1e130117266c8bcdca9f33113b260782152463a4b48fafb397",
+  "runtimeTree": "7b379ddbad1863e8c70b37e7da0d6bf57e3a3ea2",
+  "wholeOriginalTask": "partial",
+  "questions": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "quality": "partial",
+      "reason": "Normal document/version/representation branches are accurate; get_root_document's missing-root lookup/self fallback is omitted despite the original every-relevant-branch requirement.",
+      "answerLines": [
+        3,
+        24,
+        48,
+        62
+      ],
+      "sourceEvidence": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156,
+          "quote": "return root_doc or doc"
+        }
+      ]
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "quality": "full",
+      "reason": "Pre-handler authentication/model GET check, owner-aware guard on the resolved root_doc variable, rejection and later version/file selection are accurate. No selected-version guard is invented.",
+      "answerLines": [
+        17,
+        29,
+        37
+      ],
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1448,
+          "quote": "has_perms_owner_aware(request.user, \"view_document\", root_doc)"
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 635,
+          "quote": "obj.owner is None"
+        }
+      ]
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "quality": "partial",
+      "reason": "Accurate normal root/file distinction and absent later guard, but the universal root claim does not distinguish the source's missing-root/self fallback; no integrity fact was supplied to remove that branch.",
+      "answerLines": [
+        66,
+        71
+      ],
+      "sourceEvidence": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156,
+          "quote": "return root_doc or doc"
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1448,
+          "quote": "has_perms_owner_aware(request.user, \"view_document\", root_doc)"
+        }
+      ]
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "quality": "partial",
+      "reason": "Ownership/grants and authentication facts have blocked conclusions, but pk/version/deletion/archive/disk facts are only listed, without the exact row, representation, success/path conclusions requested. Query values and storage configuration are not stated as missing. This is a precision/coverage omission, not an invented allow/deny verdict.",
+      "answerLines": [
+        75,
+        79
+      ],
+      "sourceEvidence": [
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 635,
+          "quote": "obj.owner is None"
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1368,
+          "endLine": 1448,
+          "quote": "include_deleted=True"
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1834,
+          "endLine": 1839,
+          "quote": "except (FileNotFoundError, Document.DoesNotExist):"
+        }
+      ]
+    }
+  ],
+  "independentReview": {
+    "blindLabel": "F",
+    "reviewers": [
+      "be_response_f_actual"
+    ],
+    "mainChecked": [
+      "response-f complete",
+      "versioning.py:146-195",
+      "views.py:1368-1448,1834-1839",
+      "permissions.py:624-635",
+      "original four question wording"
+    ],
+    "adjudication": "The scout found no substantive false claim and called Q3/Q4 full. The primary checked F's complete answer and the original 'all relevant branches' and 'exact conclusion each missing fact blocks' requests: Q3 omits missing-root/self fallback and Q4 lacks those precise mappings. The same criterion is used for all six originals. CSV/charset details alone do not decide the authorization grade."
+  },
+  "reviewedAt": "2026-10-11"
+}

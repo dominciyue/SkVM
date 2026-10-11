@@ -1,0 +1,133 @@
+{
+  "change": "policy",
+  "attemptId": "policy-fresh/original",
+  "status": "source-reviewed",
+  "wholeOriginalTask": "partial",
+  "policyConformanceCoverage": "partial: the normal distinct-root/returned-child violation is accurate, but the missing-root self fallback is omitted",
+  "questions": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "quality": "partial",
+      "answerLines": [
+        39,
+        49,
+        55,
+        75,
+        81,
+        96
+      ],
+      "reason": "Normal lookup, absent/empty/explicit version, deleted inclusion, original/archive and filename branches are accurate. The source's missing-root lookup/self fallback is omitted despite the every-relevant-branch requirement.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156,
+          "quote": "return root_doc or doc"
+        }
+      ]
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "quality": "full",
+      "answerLines": [
+        25,
+        35,
+        37,
+        39,
+        47,
+        108
+      ],
+      "reason": "Authentication/model GET permission, the owner/unowned/object-grant decision on the resolved root_doc variable, failure and later file selection are accurate. The resource argument is root_doc; no selected-version check is invented. Missing derivation coverage is retained in Q1/Q3 under the same criterion used for the six originals.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1448,
+          "quote": "has_perms_owner_aware(request.user, \"view_document\", root_doc)"
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 635,
+          "quote": "obj.owner is None"
+        }
+      ]
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "quality": "partial",
+      "answerLines": [
+        3,
+        9,
+        100,
+        108
+      ],
+      "reason": "Correct normal root/file distinction and absent post-selection check, but the blanket child/root-only policy table omits the fallback where root_doc is request_doc. That branch can authorize the exact child whose file is returned; no integrity premise removes it.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156,
+          "quote": "return root_doc or doc"
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1421,
+          "endLine": 1448,
+          "quote": "file_doc = self._get_effective_file_doc("
+        }
+      ]
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "quality": "full",
+      "answerLines": [
+        112,
+        117
+      ],
+      "reason": "Actual identifiers/query values/version graph/deletion/archive, model permission and owner/grants, backends, physical files/media directories and deployment are mapped to concrete blocked document/file, access, disclosure and response conclusions. The same precise mapping criterion as original D2/H2 applies; omission of root fallback does not turn every other question partial.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1368,
+          "endLine": 1448,
+          "quote": "follow_formatting=request.query_params.get(\"follow_formatting\")"
+        },
+        {
+          "path": "src/documents/models.py",
+          "startLine": 452,
+          "endLine": 475,
+          "quote": "settings.ORIGINALS_DIR"
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 635,
+          "quote": "obj.owner is None"
+        }
+      ]
+    }
+  ],
+  "independentReview": {
+    "blindLabel": "I",
+    "reviewers": [
+      "be_policy_blind_review",
+      "be_policy_reuse_review"
+    ],
+    "mainChecked": [
+      "response-i complete",
+      "response-j complete",
+      "download-policy.json complete",
+      "versioning.py:146-195",
+      "views.py:1368-1448",
+      "permissions.py:624-635",
+      "actual client envelopes and current reuse seed boundary"
+    ],
+    "adjudication": "The blind scout supports missing-root omission in Q1/Q3, but called all four partial. The primary retains the original per-question rubric: Q2 accurately states the actual root_doc argument and owner/grant timing, while Q4 precisely maps concrete absent input/configuration facts. The root variable may be request_doc; I:49 is read as argument-position identification and its missing derivation exception is scored in Q1/Q3. Actual current unknown properties do not determine natural quality. Reuse scout's flags alone did not prove consumer exclusion: the primary checked actual envelope whole-artifact absence plus the deterministic seed construction; this remains bounded evidence, not fragment-level certification. Restored material count is one but materialsUsed is zero."
+  },
+  "schemaVersion": "authorization-be-source-review/v1",
+  "answerSha256": "26cff8ec287afb023f49418e920e2d35140ff04c191d7b95059abdd435eea4d4",
+  "inputSha256": "34ca777d929786316f5e4bba142f0ceda69e01385e17bf82e53e4f97d59e64f6",
+  "runtimeTree": "052320a65c24c5c4f6ec19e89bf050d7c06fc336",
+  "reviewedAt": "2026-10-11"
+}

@@ -1,0 +1,124 @@
+{
+  "change": "premise",
+  "attemptId": "premise-previous/original",
+  "status": "source-reviewed",
+  "wholeOriginalTask": "partial",
+  "questions": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "quality": "partial",
+      "answerLines": [
+        43,
+        53,
+        68,
+        120
+      ],
+      "reason": "Normal version/deletion/original/archive branches are accurate, but missing-root/self fallback and actual raw-query follow_formatting truthiness are omitted despite the every-relevant-branch request.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156,
+          "quote": "return root_doc or doc"
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 4952,
+          "endLine": 4965,
+          "quote": "if follow_formatting:"
+        }
+      ]
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "quality": "full",
+      "answerLines": [
+        31,
+        39,
+        43,
+        66,
+        70
+      ],
+      "reason": "Pre-handler authentication/model GET permission and owner/unowned/object-grant guard on the resolved root_doc argument precede selection and fail with 403. Owning the requested document alone does not establish model permission or a distinct root grant. Missing root-variable derivation coverage is retained in Q1/Q3, consistently with the original six reviews.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1448,
+          "quote": "has_perms_owner_aware(request.user, \"view_document\", root_doc)"
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 635,
+          "quote": "obj.owner is None"
+        }
+      ]
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "quality": "partial",
+      "answerLines": [
+        3,
+        11,
+        63,
+        66,
+        124,
+        131
+      ],
+      "reason": "Normal root/file distinction and absence of a selected-version guard are accurate. The blanket separate-root/owned-version claims do not distinguish the source fallback where root_doc is request_doc; the premise supplies no root-integrity fact to remove it.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156,
+          "quote": "return root_doc or doc"
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1435,
+          "endLine": 1448,
+          "quote": "file_doc = self._get_effective_file_doc("
+        }
+      ]
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "quality": "partial",
+      "answerLines": [
+        133,
+        151
+      ],
+      "reason": "Model permission, root owner/grants, actual pk/version/original, version graph/archive, runtime directories/files and backend facts have concrete blocked conclusions. Actual follow_formatting is not identified and mapped to the blocked filename conclusion, leaving the precise Q4 request incomplete under the same criterion as K and prior partial-source review.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1442,
+          "endLine": 1448,
+          "quote": "follow_formatting=request.query_params.get(\"follow_formatting\")"
+        }
+      ]
+    }
+  ],
+  "independentReview": {
+    "blindLabel": "L",
+    "reviewers": [
+      "be_premise_blind_review",
+      "be_premise_consumer_review"
+    ],
+    "mainChecked": [
+      "response-l complete",
+      "download-premise.json complete",
+      "versioning.py:146-195",
+      "views.py:1368-1448,4952-4965",
+      "models.py:452-475",
+      "actual client consumer evidence and seed boundary"
+    ],
+    "adjudication": "The blind scout supports Q1 partial/Q2 full and called Q3/Q4 full. The primary applies the same all-branch Q3 and exact missing-fact Q4 criteria used for the six originals: missing root/self fallback and follow_formatting-to-filename mapping remain omissions. This is natural-answer incompleteness, not a machine unknown penalty. One old material is restored but materialsUsed/currentMaterialUses are zero/empty; actual whole old final/review/property checks are absent in decoded client envelopes and excluded by the seed boundary, with the stated bounded-evidence limitation."
+  },
+  "schemaVersion": "authorization-be-source-review/v1",
+  "answerSha256": "5ccc214daa21332c9de817003c2fe29b99d6e3e8b9dd930c4d2d2ddd2d3faec9",
+  "inputSha256": "956786ffa16b96119daf5509b7ac0a966069a65a73549cd5eb124345e2487a0d",
+  "runtimeTree": "052320a65c24c5c4f6ec19e89bf050d7c06fc336",
+  "reviewedAt": "2026-10-11"
+}

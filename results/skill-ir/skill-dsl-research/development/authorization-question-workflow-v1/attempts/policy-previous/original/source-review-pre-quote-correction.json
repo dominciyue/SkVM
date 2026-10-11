@@ -1,0 +1,135 @@
+{
+  "change": "policy",
+  "attemptId": "policy-previous/original",
+  "status": "source-reviewed",
+  "wholeOriginalTask": "partial",
+  "policyConformanceCoverage": "full: exact authorization depends on file_doc/root_doc identity; root_doc's self fallback is explicit",
+  "questions": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "quality": "full",
+      "answerLines": [
+        24,
+        29,
+        66,
+        104,
+        106,
+        123
+      ],
+      "reason": "Explicit root lookup/self fallback and all absent/empty/explicit version, deleted manager, original/archive and response branches are covered.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 195,
+          "quote": "return root_doc or doc"
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1368,
+          "endLine": 1448,
+          "quote": "return request.query_params.get(\"original\", \"false\") == \"true\""
+        }
+      ]
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "quality": "full",
+      "answerLines": [
+        33,
+        64
+      ],
+      "reason": "Authentication/model GET, resolved root_doc owner/grant check, failure and later selection are accurate; the explicit fallback context also qualifies root-only terminology.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1448,
+          "quote": "has_perms_owner_aware(request.user, \"view_document\", root_doc)"
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 635,
+          "quote": "obj.owner is None"
+        }
+      ]
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "quality": "full",
+      "answerLines": [
+        5,
+        10,
+        28,
+        125,
+        143
+      ],
+      "reason": "The answer defines root_doc including self fallback before its resource table and conditions exact-object conformance on file_doc/root_doc identity. Alternate version or representation does not change the prior guard target, and no selected-version guard is invented.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156,
+          "quote": "return root_doc or doc"
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1421,
+          "endLine": 1448,
+          "quote": "file_doc = self._get_effective_file_doc(request, request_doc, root_doc)"
+        }
+      ]
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "quality": "partial",
+      "answerLines": [
+        145,
+        163
+      ],
+      "reason": "Model permission, owner/grants, version database, archive/file presence and external authentication/deployment facts have exact blocked conclusions. Actual version/original/follow_formatting query values and media directory/storage configuration are not stated and mapped as missing, unlike I. This uses the same precision/coverage criterion as N2 and partial-source revision.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1368,
+          "endLine": 1373,
+          "quote": "return request.query_params.get(\"original\", \"false\") == \"true\""
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1442,
+          "endLine": 1448,
+          "quote": "follow_formatting=request.query_params.get(\"follow_formatting\")"
+        },
+        {
+          "path": "src/documents/models.py",
+          "startLine": 452,
+          "endLine": 475,
+          "quote": "settings.ORIGINALS_DIR"
+        }
+      ]
+    }
+  ],
+  "independentReview": {
+    "blindLabel": "J",
+    "reviewers": [
+      "be_policy_blind_review",
+      "be_policy_reuse_review"
+    ],
+    "mainChecked": [
+      "response-j complete",
+      "download-policy.json complete",
+      "versioning.py:146-195",
+      "views.py:1368-1448",
+      "models.py:452-475",
+      "actual client envelopes and current reuse seed boundary"
+    ],
+    "adjudication": "The blind scout supports Q1-Q3 full and called Q4 full. The primary preserves the prior exact missing-fact mapping criterion and records J's omitted actual query values/storage configuration as Q4 partial. Thus the observed pair trades Q1/Q3 coverage for Q4 precision; neither whole task is full. One historical partial source material is restored but materialsUsed remains zero; no R2 current conclusion or causal saving is certified."
+  },
+  "schemaVersion": "authorization-be-source-review/v1",
+  "answerSha256": "12f05507c833c29b2516f5d1ec091cc1594f35bf9c821a258d75facc767ad970",
+  "inputSha256": "34ca777d929786316f5e4bba142f0ceda69e01385e17bf82e53e4f97d59e64f6",
+  "runtimeTree": "052320a65c24c5c4f6ec19e89bf050d7c06fc336",
+  "reviewedAt": "2026-10-11"
+}

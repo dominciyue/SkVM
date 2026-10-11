@@ -1,0 +1,123 @@
+{
+  "change": "source",
+  "status": "source-reviewed",
+  "reviewedAt": "2026-10-12",
+  "wholeOriginalTask": "partial",
+  "attemptId": "source-fresh/original",
+  "questions": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "quality": "partial",
+      "answerLines": [
+        16,
+        23,
+        25,
+        41
+      ],
+      "reason": "Normal request/version/original/archive/filename branches are largely accurate, but root lookup failure/self fallback is omitted and line 23 incorrectly restricts default latest selection to non-deleted versions. file_response passes include_deleted=True to the root/selection chain even without a version parameter.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 182,
+          "quote": "return root_doc or doc"
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1429,
+          "endLine": 1441,
+          "quote": "include_deleted=True,"
+        }
+      ]
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "quality": "full",
+      "answerLines": [
+        45,
+        50,
+        55,
+        57,
+        62,
+        64
+      ],
+      "reason": "Authentication/model GET checks precede the application owner/unowned/Guardian guard on request_doc; failure occurs before file selection. No automatic detail-object check or selected-file guard is invented.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1448,
+          "quote": "request_doc,"
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 635,
+          "quote": "obj.owner is None"
+        }
+      ]
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "quality": "full",
+      "answerLines": [
+        68,
+        74,
+        78,
+        81
+      ],
+      "reason": "The actual source change is recognized: every later version/representation selection keeps the URL request_doc authorization target, with no second file_doc guard. Root self fallback does not change this guard argument, so Q1 derivation omissions do not lower this question.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1421,
+          "endLine": 1448,
+          "quote": "file_doc = self._get_effective_file_doc("
+        }
+      ]
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "quality": "partial",
+      "answerLines": [
+        87,
+        93
+      ],
+      "reason": "Model permission, requested/selected ownership/grants, pk/version graph/deletion and file/archive presence map to concrete blocked conclusions. Actual original/follow_formatting query values and storage configuration are not identified and mapped to the requested precise representation/filename/absolute-path conclusions.",
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1442,
+          "endLine": 1448,
+          "quote": "follow_formatting=request.query_params.get"
+        },
+        {
+          "path": "src/documents/models.py",
+          "startLine": 452,
+          "endLine": 475,
+          "quote": "settings.ORIGINALS_DIR"
+        }
+      ]
+    }
+  ],
+  "independentReview": {
+    "blindLabel": "M",
+    "reviewers": [
+      "be_source_blind_final",
+      "be_mechanism_final_check"
+    ],
+    "mainChecked": [
+      "response-m complete",
+      "download-source.json fact contract",
+      "changed views.py:1401-1448",
+      "versioning.py:146-195",
+      "models.py:452-475",
+      "source consumer envelopes and deterministic seed boundary"
+    ],
+    "adjudication": "The blind scout supports Q1 partial/Q2-Q3 full but missed M:23 latest non-deleted error and called Q4 full. The primary applies the same exact missing-fact mapping rubric as all earlier answers and retains Q4 partial. Q3 uses the changed request_doc guard, independent of root derivation omissions. Formal unknown does not grade natural quality. The reuse review confirms invalidated R1, R0 index rebuild, zero restored/used meaning and no old whole answer/review/checks in actual envelopes; this is bounded exclusion evidence."
+  },
+  "schemaVersion": "authorization-be-source-review/v1",
+  "answerSha256": "029d007b5b8b21222df1b610671573f9479d71a84530f53749d13786498d5423",
+  "inputSha256": "ce463d689b54f71ab9569fe9e8523e84d8c3f55164c60ba4ff2a6d2b3510979c",
+  "runtimeTree": "052320a65c24c5c4f6ec19e89bf050d7c06fc336"
+}

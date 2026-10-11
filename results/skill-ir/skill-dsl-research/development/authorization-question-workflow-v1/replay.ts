@@ -81,6 +81,11 @@ export async function replay() {
     } finally { runtime.close() }
   }
   const result = { schemaVersion: "authorization-be-derived-replay/v1", modelCalls: 0, originalFilesChanged: false, newSemanticAnnotations: 0, entries }
-  await write(path.join(root, "verification", "bd-derived-replay.json"), result)
+  const completeArchive = "bd-derived-replay.json.gz"
+  await writeFile(path.join(root, "verification", completeArchive), gzipSync(JSON.stringify(result)))
+  // The readable index keeps measurements and verdicts; complete repeated ranges
+  // and demands stay in the byte-preserving derived archive, not a giant log.
+  const compactMeter = (report: any) => ({ ...report, samples: report.samples.map(({ sourceRanges, ...sample }: any) => ({ ...sample, sourceRangeCount: sourceRanges.length })) })
+  await write(path.join(root, "verification", "bd-derived-replay.json"), { ...result, completeArchive, entries: result.entries.map(e => ({ ...e, derived: { ...e.derived, propertyAnalysis: e.derived.propertyAnalysis && { propertyCheckStatus: e.derived.propertyAnalysis.propertyCheckStatus, currentPropertyBasis: e.derived.propertyAnalysis.currentPropertyBasis, checks: e.derived.propertyAnalysis.checks } }, wire: { ...e.wire, actual: compactMeter(e.wire.actual), currentProjectionOfSamePayloads: compactMeter(e.wire.currentProjectionOfSamePayloads), fullSourceRanges: completeArchive } })) })
   return { modelCalls: 0, newSemanticAnnotations: 0, entries: entries.map(e => ({ attemptId: e.attemptId, originalHashUnchanged: e.originalHashUnchanged, originalUnits: e.original.units, derivedUnits: e.derived.units, submissions: e.submissions.length, falseDataDispatchOccurrences: e.receivers.filter((r: any) => r.scope.state === "data").reduce((n: number, r: any) => n + r.oldDispatchOccurrences, 0), wireSamples: e.wire.actual.samples.length, projectionErrors: e.wire.errors.length })) }
 }

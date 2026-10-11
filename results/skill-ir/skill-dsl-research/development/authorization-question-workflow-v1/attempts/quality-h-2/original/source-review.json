@@ -1,0 +1,120 @@
+{
+  "schemaVersion": "authorization-be-source-review/v1",
+  "status": "source-reviewed",
+  "attemptId": "quality-h-2/original",
+  "answerSha256": "5b6811c284b841d99fbb882bdd1714b5a5d295bdf6e0745db1d477686129e69a",
+  "inputSha256": "ee99327d807ccd1e130117266c8bcdca9f33113b260782152463a4b48fafb397",
+  "runtimeTree": "7b379ddbad1863e8c70b37e7da0d6bf57e3a3ea2",
+  "wholeOriginalTask": "partial",
+  "questions": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "quality": "partial",
+      "reason": "Normal document/version/representation branches are accurate; get_root_document's missing-root lookup/self fallback is omitted despite the original every-relevant-branch requirement.",
+      "answerLines": [
+        19,
+        46
+      ],
+      "sourceEvidence": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156,
+          "quote": "return root_doc or doc"
+        }
+      ]
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "quality": "full",
+      "reason": "Pre-handler authentication/model GET check, owner-aware guard on the resolved root_doc variable, rejection and later version/file selection are accurate. No selected-version guard is invented.",
+      "answerLines": [
+        57,
+        68,
+        79
+      ],
+      "sourceEvidence": [
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1448,
+          "quote": "has_perms_owner_aware(request.user, \"view_document\", root_doc)"
+        },
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 635,
+          "quote": "obj.owner is None"
+        }
+      ]
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "quality": "partial",
+      "reason": "Accurate normal root/file distinction and absent later guard, but the universal root claim does not distinguish the source's missing-root/self fallback; no integrity fact was supplied to remove that branch.",
+      "answerLines": [
+        85,
+        94
+      ],
+      "sourceEvidence": [
+        {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156,
+          "quote": "return root_doc or doc"
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1448,
+          "quote": "has_perms_owner_aware(request.user, \"view_document\", root_doc)"
+        }
+      ]
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "quality": "full",
+      "reason": "Missing user grants, row/version/query/archive state, physical storage and deployment facts are tied to exact blocked conclusions; intended policy is correctly left unavailable.",
+      "answerLines": [
+        98,
+        106
+      ],
+      "sourceEvidence": [
+        {
+          "path": "src/documents/permissions.py",
+          "startLine": 624,
+          "endLine": 635,
+          "quote": "obj.owner is None"
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1368,
+          "endLine": 1448,
+          "quote": "include_deleted=True"
+        },
+        {
+          "path": "src/documents/views.py",
+          "startLine": 1834,
+          "endLine": 1839,
+          "quote": "except (FileNotFoundError, Document.DoesNotExist):"
+        }
+      ]
+    }
+  ],
+  "independentReview": {
+    "blindLabel": "E",
+    "reviewers": [
+      "be_response_de_auth",
+      "be_response_de_branches"
+    ],
+    "mainChecked": [
+      "response-e complete",
+      "versioning.py:146-195",
+      "views.py:1368-1448,1834-1839",
+      "permissions.py:624-635",
+      "original four question wording"
+    ],
+    "adjudication": "Independent auth and branch opinions are source-supported. The primary applies the same self-fallback criterion. 'archive_filename nonempty' is imprecise because has_archive_version tests is not None; this is also retained in Q1 partial. File-missing 404 is supported by the actual download wrapper."
+  },
+  "reviewedAt": "2026-10-11"
+}

@@ -1,0 +1,965 @@
+{
+  "attemptId": "policy-fresh/original",
+  "originalArchive": "inquiry-run.json.gz",
+  "originalArchiveSha256": "090324639c06c316bc0e19ac8fab7bb804b59d288d628e5908c4d88ee140ea49",
+  "runtimeTree": "052320a65c24c5c4f6ec19e89bf050d7c06fc336",
+  "actualModelInput": {
+    "fullOriginalBundlePrefixMatches": true,
+    "loadedBundleSha256": "cad6f93ec75b6ae3d8b4f805e7dfe65b9fc1ef481314f251e7cf46afbfb5f6c9",
+    "systemSha256": "f5920f0de3a1ebdcee487510da4a211aabbb08f259e2eef92fa062f46461488a",
+    "toolNames": [
+      "source_list",
+      "source_search",
+      "source_symbol",
+      "source_read",
+      "source_structure",
+      "skill_reference_read",
+      "authorization_question",
+      "authorization_declare",
+      "authorization_prepare_properties",
+      "authorization_check_properties"
+    ],
+    "originalQuestionsPresent": [
+      {
+        "questionId": "requested-document-and-returned-file",
+        "present": true
+      },
+      {
+        "questionId": "authorization-and-selection-order",
+        "present": true
+      },
+      {
+        "questionId": "alternate-version-authorized-resource",
+        "present": true
+      },
+      {
+        "questionId": "missing-facts-and-conditional-conclusions",
+        "present": true
+      }
+    ],
+    "evaluatorProvidedToRuntime": false,
+    "hiddenModelCalls": 0
+  },
+  "sourceVerification": {
+    "valid": true,
+    "checkedFiles": 95,
+    "physicalReadBytes": 1412762
+  },
+  "toolDistribution": {
+    "authorization_prepare_properties": 1,
+    "source_read": 19,
+    "source_search": 10,
+    "source_symbol": 13,
+    "source_structure": 1,
+    "authorization_declare": 4,
+    "authorization_question": 2,
+    "authorization_check_properties": 1
+  },
+  "sourceWorkMetrics": {
+    "sourceInterpretationSubmissions": 0,
+    "validSourceEdits": 16,
+    "retainedSourceDrafts": 1,
+    "localInterpretationRepairs": 1,
+    "lowLevelFallbacks": 0,
+    "acceptedSourceUnits": 1,
+    "controlSteps": 32
+  },
+  "propertyMetrics": {
+    "contextOriginsRepresented": 0,
+    "failureOriginsMerged": 0,
+    "contextSequences": 0
+  },
+  "properties": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "propertyId": "task-property-f26600930f00984a702c",
+      "status": "unknown",
+      "value": "unresolved",
+      "gaps": [
+        "guard-unbound",
+        "property-source-effect-unadopted",
+        "property-guard-unadopted",
+        "property-dependency-open:dispatch"
+      ],
+      "trace": [],
+      "traceDetails": [],
+      "semanticReview": "unreviewed"
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "propertyId": "task-property-916f524e5f49e038733d",
+      "status": "unknown",
+      "value": "unresolved",
+      "gaps": [
+        "property-query-unbound",
+        "property-source-unlocated"
+      ],
+      "trace": [],
+      "traceDetails": [],
+      "semanticReview": "unreviewed"
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "propertyId": "task-property-538657a0b64afbf509ce",
+      "status": "unknown",
+      "value": "unresolved",
+      "gaps": [
+        "property-query-unbound",
+        "property-source-unlocated"
+      ],
+      "trace": [],
+      "traceDetails": [],
+      "semanticReview": "unreviewed"
+    }
+  ],
+  "nonemptyCrossSourceChecks": 0,
+  "domainActions": [
+    {
+      "historyIndex": 0,
+      "name": "authorization_prepare_properties",
+      "arguments": {
+        "schemaVersion": "authorization-property-intent/v1",
+        "questions": [
+          {
+            "questionId": "requested-document-and-returned-file",
+            "state": "proposed",
+            "properties": [
+              {
+                "kind": "effect-reachability",
+                "requirement": "how the selected version and original/archive representation determine the file returned"
+              }
+            ]
+          },
+          {
+            "questionId": "authorization-and-selection-order",
+            "state": "proposed",
+            "properties": [
+              {
+                "kind": "authorization-before-effect",
+                "requirement": "Identify the authorization checks and branches for the authenticated user, the requested document, and the selected version or original/archive representation, and state where those checks occur relative to selection of the returned file."
+              }
+            ]
+          },
+          {
+            "questionId": "alternate-version-authorized-resource",
+            "state": "proposed",
+            "properties": [
+              {
+                "kind": "authorized-object-matches-effect",
+                "requirement": "Determine whether selecting another document version or choosing original versus archive changes the resource on which authorization is evaluated, or only changes the representation or file returned after authorization"
+              }
+            ]
+          },
+          {
+            "questionId": "missing-facts-and-conditional-conclusions",
+            "state": "residual",
+            "reason": "The question asks for unavailable facts and evidence limits rather than asserting a narrow authorization or completion property."
+          }
+        ]
+      },
+      "diagnostics": [],
+      "executed": true,
+      "exitCode": 0
+    },
+    {
+      "historyIndex": 40,
+      "name": "authorization_declare",
+      "arguments": {
+        "schemaVersion": "authorization-question-declaration/v1",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1368,
+          "endLine": 1448,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        "statements": [
+          {
+            "kind": "object",
+            "as": "principal",
+            "expression": "request.user",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1421,
+              "endLine": 1424,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "because": "The authenticated caller is read from request.user for the manual object check."
+          },
+          {
+            "kind": "object",
+            "as": "context",
+            "expression": "request_doc",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1408,
+              "endLine": 1415,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "because": "The path pk is looked up directly as the requested Document, including deleted documents for file_response."
+          },
+          {
+            "kind": "object",
+            "as": "resource",
+            "expression": "root_doc",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1417,
+              "endLine": 1425,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "because": "The manual view_document decision is made on the root document."
+          },
+          {
+            "kind": "object",
+            "as": "resource",
+            "expression": "file_doc",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1437,
+              "endLine": 1445,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "because": "The selected effective document supplies the original or archive file to serve."
+          },
+          {
+            "kind": "object",
+            "as": "permission",
+            "expression": "view_document",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1421,
+              "endLine": 1425,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "because": "The manual owner-aware check requests view_document."
+          },
+          {
+            "kind": "condition",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1421,
+              "endLine": 1425,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "test": {
+              "op": "truthy",
+              "language": "python",
+              "value": {
+                "binding": "has_perms_owner_aware(request.user, \"view_document\", root_doc)"
+              }
+            },
+            "authorizes": {
+              "principal": "request.user",
+              "resource": "root_doc",
+              "permission": "view_document",
+              "when": "true"
+            },
+            "because": "A false owner-aware result causes the immediate forbidden response; a true result permits processing to continue."
+          },
+          {
+            "kind": "statement",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1421,
+              "endLine": 1426,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "outcome": "deny",
+            "failure": "authorization",
+            "because": "Failure of the root-document owner-aware view check returns HTTP 403 before file selection."
+          },
+          {
+            "kind": "condition",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1394,
+              "endLine": 1398,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "test": {
+              "op": "all",
+              "args": [
+                {
+                  "op": "neq",
+                  "left": {
+                    "binding": "request_doc.root_document_id"
+                  },
+                  "right": {
+                    "literal": null
+                  }
+                },
+                {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "get_request_version_param(request)"
+                  }
+                }
+              ]
+            },
+            "because": "A child document addressed by pk with no version parameter is itself the effective file document."
+          },
+          {
+            "kind": "effect",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1437,
+              "endLine": 1448,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "principal": "request.user",
+            "resource": "file_doc",
+            "because": "After the root check, the code selects file_doc and passes it to serve_file; original/archive changes which file field of that document is returned."
+          },
+          {
+            "kind": "condition",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1369,
+              "endLine": 1373,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "test": {
+              "op": "all",
+              "args": [
+                {
+                  "op": "neq",
+                  "left": {
+                    "lookup": {
+                      "map": {
+                        "binding": "request.query_params"
+                      },
+                      "key": {
+                        "literal": "original"
+                      }
+                    }
+                  },
+                  "right": {
+                    "literal": null
+                  }
+                },
+                {
+                  "op": "eq",
+                  "left": {
+                    "lookup": {
+                      "map": {
+                        "binding": "request.query_params"
+                      },
+                      "key": {
+                        "literal": "original"
+                      }
+                    }
+                  },
+                  "right": {
+                    "literal": "true"
+                  }
+                }
+              ]
+            },
+            "because": "Only the literal query value original=true requests the source/original representation."
+          },
+          {
+            "kind": "condition",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1442,
+              "endLine": 1445,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "test": {
+              "op": "all",
+              "args": [
+                {
+                  "op": "not",
+                  "arg": {
+                    "op": "truthy",
+                    "language": "python",
+                    "value": {
+                      "binding": "self.original_requested(request)"
+                    }
+                  }
+                },
+                {
+                  "op": "truthy",
+                  "language": "python",
+                  "value": {
+                    "binding": "file_doc.has_archive_version"
+                  }
+                }
+              ]
+            },
+            "because": "The archive representation is used only when original=true was not requested and the selected file document has an archive."
+          },
+          {
+            "kind": "dependency",
+            "as": "permission",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1021,
+              "endLine": 1021,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "because": "The view set also depends on framework execution of IsAuthenticated and PaperlessObjectPermissions before the action."
+          },
+          {
+            "kind": "residual",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1437,
+              "endLine": 1448,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "because": "No owner-aware or framework object-permission check on file_doc appears after version selection; the explicit object check shown here remains tied to root_doc."
+          }
+        ],
+        "properties": [
+          {
+            "property": "task-property-f26600930f00984a702c",
+            "guard": {
+              "path": "src/documents/views.py",
+              "startLine": 1430,
+              "endLine": 1441,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "effect": {
+              "path": "src/documents/views.py",
+              "startLine": 1442,
+              "endLine": 1448,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            }
+          },
+          {
+            "property": "task-property-916f524e5f49e038733d",
+            "guard": {
+              "path": "src/documents/views.py",
+              "startLine": 1421,
+              "endLine": 1426,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "effect": {
+              "path": "src/documents/views.py",
+              "startLine": 1442,
+              "endLine": 1448,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            }
+          },
+          {
+            "property": "task-property-538657a0b64afbf509ce",
+            "guard": {
+              "path": "src/documents/views.py",
+              "startLine": 1421,
+              "endLine": 1425,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "effect": {
+              "path": "src/documents/views.py",
+              "startLine": 1437,
+              "endLine": 1445,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            }
+          }
+        ],
+        "fallthrough": "unknown"
+      },
+      "diagnostics": [
+        {
+          "code": "question-source-unoffered",
+          "path": "source",
+          "message": "Locate and read the current source passage, or request the next source with authorization_question.",
+          "severity": "error"
+        }
+      ],
+      "executed": true,
+      "exitCode": 0
+    },
+    {
+      "historyIndex": 41,
+      "name": "authorization_question",
+      "arguments": {
+        "action": "next-source",
+        "questionId": "requested-document-and-returned-file"
+      },
+      "diagnostics": [],
+      "executed": true,
+      "exitCode": 0
+    },
+    {
+      "historyIndex": 42,
+      "name": "authorization_declare",
+      "arguments": {
+        "schemaVersion": "authorization-question-declaration/v1",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1429,
+          "endLine": 1448,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        "statements": [
+          {
+            "kind": "object",
+            "as": "principal",
+            "expression": "request.user",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1429,
+              "endLine": 1440,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "because": "The request carries the authenticated caller used by the resolver's authorization check."
+          },
+          {
+            "kind": "object",
+            "as": "context",
+            "expression": "resolved.request_doc",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1430,
+              "endLine": 1439,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "because": "The path pk is resolved to the directly requested document."
+          },
+          {
+            "kind": "object",
+            "as": "resource",
+            "expression": "resolved.root_doc",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1430,
+              "endLine": 1439,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "because": "The resolver returns the root document on which its authorization decision was made."
+          },
+          {
+            "kind": "object",
+            "as": "resource",
+            "expression": "file_doc",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1437,
+              "endLine": 1445,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "because": "The effective selected document supplies the file representation passed to serve_file."
+          },
+          {
+            "kind": "effect",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1442,
+              "endLine": 1448,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "principal": "request.user",
+            "resource": "file_doc",
+            "because": "The returned response serves file_doc, choosing archive only when original was not requested and that document has an archive."
+          },
+          {
+            "kind": "statement",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1435,
+              "endLine": 1436,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "outcome": "deny",
+            "failure": "authorization",
+            "because": "A forbidden result from request/root resolution is returned before file selection and serving."
+          },
+          {
+            "kind": "residual",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1437,
+              "endLine": 1448,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "because": "This passage selects file_doc after the resolver has returned and contains no further object authorization on file_doc."
+          }
+        ],
+        "properties": [
+          {
+            "property": "task-property-f26600930f00984a702c",
+            "guard": {
+              "path": "src/documents/views.py",
+              "startLine": 1430,
+              "endLine": 1441,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "effect": {
+              "path": "src/documents/views.py",
+              "startLine": 1442,
+              "endLine": 1448,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            }
+          },
+          {
+            "property": "task-property-916f524e5f49e038733d",
+            "guard": {
+              "path": "src/documents/views.py",
+              "startLine": 1430,
+              "endLine": 1436,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "effect": {
+              "path": "src/documents/views.py",
+              "startLine": 1442,
+              "endLine": 1448,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            }
+          },
+          {
+            "property": "task-property-538657a0b64afbf509ce",
+            "guard": {
+              "path": "src/documents/views.py",
+              "startLine": 1430,
+              "endLine": 1441,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "effect": {
+              "path": "src/documents/views.py",
+              "startLine": 1442,
+              "endLine": 1445,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            }
+          }
+        ],
+        "fallthrough": "unknown"
+      },
+      "diagnostics": [
+        {
+          "code": "question-source-unoffered",
+          "path": "source",
+          "message": "Locate and read the current source passage, or request the next source with authorization_question.",
+          "severity": "error"
+        }
+      ],
+      "executed": true,
+      "exitCode": 0
+    },
+    {
+      "historyIndex": 43,
+      "name": "authorization_question",
+      "arguments": {
+        "action": "locate",
+        "questionId": "requested-document-and-returned-file",
+        "symbol": "documents.views.DocumentViewSet.file_response"
+      },
+      "diagnostics": [],
+      "executed": true,
+      "exitCode": 0
+    },
+    {
+      "historyIndex": 44,
+      "name": "authorization_declare",
+      "arguments": {
+        "schemaVersion": "authorization-question-declaration/v1",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 4941,
+          "endLine": 4995,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        "statements": [
+          {
+            "kind": "object",
+            "as": "resource",
+            "expression": "doc",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 4941,
+              "endLine": 4947,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "because": "The selected Document passed into serve_file supplies the returned file."
+          },
+          {
+            "kind": "condition",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 4948,
+              "endLine": 4958,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "test": {
+              "op": "truthy",
+              "language": "python",
+              "value": {
+                "binding": "use_archive"
+              }
+            },
+            "because": "When use_archive is true, the response uses doc.archive_file with PDF content type."
+          },
+          {
+            "kind": "effect",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 4952,
+              "endLine": 4958,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "resource": "doc",
+            "because": "The archive branch selects doc.archive_file and an archive filename."
+          },
+          {
+            "kind": "effect",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 4959,
+              "endLine": 4965,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "resource": "doc",
+            "because": "Otherwise the response selects doc.source_file, the original/source filename, and doc.mime_type."
+          },
+          {
+            "kind": "effect",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 4973,
+              "endLine": 4995,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "resource": "doc",
+            "because": "A FileResponse is created from the selected handle, given a Content-Disposition filename, and returned."
+          }
+        ],
+        "properties": [
+          {
+            "property": "task-property-f26600930f00984a702c",
+            "guard": {
+              "path": "src/documents/views.py",
+              "startLine": 4948,
+              "endLine": 4965,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "effect": {
+              "path": "src/documents/views.py",
+              "startLine": 4973,
+              "endLine": 4995,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            }
+          }
+        ],
+        "fallthrough": "unknown"
+      },
+      "diagnostics": [
+        {
+          "code": "question-source-ambiguous",
+          "path": "statements.at",
+          "questionId": "requested-document-and-returned-file",
+          "message": "Choose one actual statement by its original lines/text. Candidates: [{\"kind\":\"condition\",\"text\":\"use_archive\",\"startLine\":4948,\"endLine\":4948},{\"kind\":\"condition\",\"text\":\"TYPE_CHECKING\",\"startLine\":4949,\"endLine\":4949}]",
+          "severity": "error"
+        },
+        {
+          "code": "question-source-ambiguous",
+          "path": "statements.at",
+          "questionId": "requested-document-and-returned-file",
+          "message": "Choose one actual statement by its original lines/text. Candidates: [{\"kind\":\"assignment\",\"text\":\"file_handle = doc.archive_file\",\"startLine\":4952,\"endLine\":4952},{\"kind\":\"assignment\",\"text\":\"filename = (\\n            doc.archive_filename\\n            if follow_formatting\\n            else doc.get_public_filename(archive=True)\\n        )\",\"startLine\":4953,\"endLine\":4957},{\"kind\":\"call\",\"text\":\"doc.get_public_filename(archive=True)\",\"startLine\":4956,\"endLine\":4956},{\"kind\":\"assignment\",\"text\":\"mime_type = \\\"application/pdf\\\"\",\"startLine\":4958,\"endLine\":4958}]",
+          "severity": "error"
+        },
+        {
+          "code": "question-source-ambiguous",
+          "path": "statements.at",
+          "questionId": "requested-document-and-returned-file",
+          "message": "Choose one actual statement by its original lines/text. Candidates: [{\"kind\":\"assignment\",\"text\":\"assert doc.filename\",\"startLine\":4961,\"endLine\":4961},{\"kind\":\"assignment\",\"text\":\"file_handle = doc.source_file\",\"startLine\":4963,\"endLine\":4963},{\"kind\":\"assignment\",\"text\":\"filename = doc.filename if follow_formatting else doc.get_public_filename()\",\"startLine\":4964,\"endLine\":4964},{\"kind\":\"call\",\"text\":\"doc.get_public_filename()\",\"startLine\":4964,\"endLine\":4964},{\"kind\":\"assignment\",\"text\":\"mime_type = doc.mime_type\",\"startLine\":4965,\"endLine\":4965}]",
+          "severity": "error"
+        },
+        {
+          "code": "question-source-ambiguous",
+          "path": "statements.at",
+          "questionId": "requested-document-and-returned-file",
+          "message": "Choose one actual statement by its original lines/text. Candidates: [{\"kind\":\"assignment\",\"text\":\"response = FileResponse(file_handle, content_type=mime_type)\",\"startLine\":4973,\"endLine\":4973},{\"kind\":\"call\",\"text\":\"FileResponse(file_handle, content_type=mime_type)\",\"startLine\":4973,\"endLine\":4973},{\"kind\":\"assignment\",\"text\":\"filename_normalized = (\\n        normalize(\\\"NFKD\\\", filename.replace(\\\",\\\", \\\"_\\\"))\\n        .encode(\\n            \\\"ascii\\\",\\n            \\\"ignore\\\",\\n        )\\n        .decode(\\\"ascii\\\")\\n        .replace(\\\"\\\\\\\\\\\", \\\"_\\\")\\n        .replace('\\\"', \\\"_\\\")\\n    )\",\"startLine\":4978,\"endLine\":4987},{\"kind\":\"call\",\"text\":\"normalize(\\\"NFKD\\\", filename.replace(\\\",\\\", \\\"_\\\"))\\n        .encode(\\n            \\\"ascii\\\",\\n            \\\"ignore\\\",\\n        )\\n        .decode(\\\"ascii\\\")\\n        .replace(\\\"\\\\\\\\\\\", \\\"_\\\")\",\"startLine\":4979,\"endLine\":4985},{\"kind\":\"call\",\"text\":\"normalize(\\\"NFKD\\\", filename.replace(\\\",\\\", \\\"_\\\"))\\n        .encode(\\n            \\\"ascii\\\",\\n            \\\"ignore\\\",\\n        )\\n        .decode(\\\"ascii\\\")\\n        .replace(\\\"\\\\\\\\\\\", \\\"_\\\")\\n        .replace('\\\"', \\\"_\\\")\",\"startLine\":4979,\"endLine\":4986},{\"kind\":\"call\",\"text\":\"normalize(\\\"NFKD\\\", filename.replace(\\\",\\\", \\\"_\\\"))\",\"startLine\":4979,\"endLine\":4979},{\"kind\":\"call\",\"text\":\"normalize(\\\"NFKD\\\", filename.replace(\\\",\\\", \\\"_\\\"))\\n        .encode(\\n            \\\"ascii\\\",\\n            \\\"ignore\\\",\\n        )\\n        .decode(\\\"ascii\\\")\",\"startLine\":4979,\"endLine\":4984},{\"kind\":\"call\",\"text\":\"normalize(\\\"NFKD\\\", filename.replace(\\\",\\\", \\\"_\\\"))\\n        .encode(\\n            \\\"ascii\\\",\\n            \\\"ignore\\\",\\n        )\",\"startLine\":4979,\"endLine\":4983},{\"kind\":\"call\",\"text\":\"filename.replace(\\\",\\\", \\\"_\\\")\",\"startLine\":4979,\"endLine\":4979},{\"kind\":\"assignment\",\"text\":\"filename_encoded = quote(filename)\",\"startLine\":4988,\"endLine\":4988},{\"kind\":\"call\",\"text\":\"quote(filename)\",\"startLine\":4988,\"endLine\":4988},{\"kind\":\"assignment\",\"text\":\"content_disposition = (\\n        f\\\"{disposition}; \\\"\\n        f'filename=\\\"{filename_normalized}\\\"; '\\n        f\\\"filename*=utf-8''{filename_encoded}\\\"\\n    )\",\"startLine\":4989,\"endLine\":4993},{\"kind\":\"assignment\",\"text\":\"response[\\\"Content-Disposition\\\"] = content_disposition\",\"startLine\":4994,\"endLine\":4994}]",
+          "severity": "error"
+        },
+        {
+          "code": "question-property-source-unresolved",
+          "path": "properties",
+          "questionId": "requested-document-and-returned-file",
+          "message": "The property needs one current source occurrence in this question; source identity is not object equivalence. Candidates: [{\"path\":\"src/documents/views.py\",\"startLine\":4973,\"endLine\":4973,\"candidateId\":\"struct-cee4399c4960908d4f7ca1fd\",\"text\":\"FileResponse(file_handle, content_type=mime_type)\"},{\"path\":\"src/documents/views.py\",\"startLine\":4979,\"endLine\":4985,\"candidateId\":\"struct-cee4399c4960908d4f7ca1fd\",\"text\":\"normalize(\\\"NFKD\\\", filename.replace(\\\",\\\", \\\"_\\\"))\\n        .encode(\\n            \\\"ascii\\\",\\n            \\\"ignore\\\",\\n        )\\n        .decode(\\\"ascii\\\")\\n        .replace(\\\"\\\\\\\\\\\", \\\"_\\\")\"},{\"path\":\"src/documents/views.py\",\"startLine\":4979,\"endLine\":4986,\"candidateId\":\"struct-cee4399c4960908d4f7ca1fd\",\"text\":\"normalize(\\\"NFKD\\\", filename.replace(\\\",\\\", \\\"_\\\"))\\n        .encode(\\n            \\\"ascii\\\",\\n            \\\"ignore\\\",\\n        )\\n        .decode(\\\"ascii\\\")\\n        .replace(\\\"\\\\\\\\\\\", \\\"_\\\")\\n        .replace('\\\"', \\\"_\\\")\"},{\"path\":\"src/documents/views.py\",\"startLine\":4979,\"endLine\":4979,\"candidateId\":\"struct-cee4399c4960908d4f7ca1fd\",\"text\":\"normalize(\\\"NFKD\\\", filename.replace(\\\",\\\", \\\"_\\\"))\"},{\"path\":\"src/documents/views.py\",\"startLine\":4979,\"endLine\":4984,\"candidateId\":\"struct-cee4399c4960908d4f7ca1fd\",\"text\":\"normalize(\\\"NFKD\\\", filename.replace(\\\",\\\", \\\"_\\\"))\\n        .encode(\\n            \\\"ascii\\\",\\n            \\\"ignore\\\",\\n        )\\n        .decode(\\\"ascii\\\")\"},{\"path\":\"src/documents/views.py\",\"startLine\":4979,\"endLine\":4983,\"candidateId\":\"struct-cee4399c4960908d4f7ca1fd\",\"text\":\"normalize(\\\"NFKD\\\", filename.replace(\\\",\\\", \\\"_\\\"))\\n        .encode(\\n            \\\"ascii\\\",\\n            \\\"ignore\\\",\\n        )\"},{\"path\":\"src/documents/views.py\",\"startLine\":4979,\"endLine\":4979,\"candidateId\":\"struct-cee4399c4960908d4f7ca1fd\",\"text\":\"filename.replace(\\\",\\\", \\\"_\\\")\"},{\"path\":\"src/documents/views.py\",\"startLine\":4988,\"endLine\":4988,\"candidateId\":\"struct-cee4399c4960908d4f7ca1fd\",\"text\":\"quote(filename)\"}]",
+          "severity": "error"
+        },
+        {
+          "code": "question-property-source-unresolved",
+          "path": "properties",
+          "questionId": "requested-document-and-returned-file",
+          "message": "The property needs one current source occurrence in this question; source identity is not object equivalence. Candidates: [{\"path\":\"src/documents/views.py\",\"startLine\":4948,\"endLine\":4948,\"candidateId\":\"struct-cee4399c4960908d4f7ca1fd\",\"text\":\"use_archive\"},{\"path\":\"src/documents/views.py\",\"startLine\":4949,\"endLine\":4949,\"candidateId\":\"struct-cee4399c4960908d4f7ca1fd\",\"text\":\"TYPE_CHECKING\"},{\"path\":\"src/documents/views.py\",\"startLine\":4956,\"endLine\":4956,\"candidateId\":\"struct-cee4399c4960908d4f7ca1fd\",\"text\":\"doc.get_public_filename(archive=True)\"},{\"path\":\"src/documents/views.py\",\"startLine\":4960,\"endLine\":4960,\"candidateId\":\"struct-cee4399c4960908d4f7ca1fd\",\"text\":\"TYPE_CHECKING\"},{\"path\":\"src/documents/views.py\",\"startLine\":4964,\"endLine\":4964,\"candidateId\":\"struct-cee4399c4960908d4f7ca1fd\",\"text\":\"doc.get_public_filename()\"}]",
+          "severity": "error"
+        }
+      ],
+      "executed": true,
+      "exitCode": 0
+    },
+    {
+      "historyIndex": 45,
+      "name": "authorization_declare",
+      "arguments": {
+        "schemaVersion": "authorization-question-declaration/v1",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 4941,
+          "endLine": 4995,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        "statements": [
+          {
+            "kind": "object",
+            "as": "resource",
+            "expression": "doc",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 4943,
+              "endLine": 4943,
+              "text": "doc: Document",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "because": "The selected Document passed into serve_file supplies the returned file."
+          },
+          {
+            "kind": "condition",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 4948,
+              "endLine": 4948,
+              "text": "use_archive",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "test": {
+              "op": "truthy",
+              "language": "python",
+              "value": {
+                "binding": "use_archive"
+              }
+            },
+            "because": "When use_archive is true, the archive branch runs."
+          },
+          {
+            "kind": "effect",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 4952,
+              "endLine": 4952,
+              "text": "file_handle = doc.archive_file",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "resource": "doc",
+            "because": "The archive branch selects doc.archive_file."
+          },
+          {
+            "kind": "effect",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 4963,
+              "endLine": 4963,
+              "text": "file_handle = doc.source_file",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "resource": "doc",
+            "because": "The non-archive branch selects doc.source_file."
+          },
+          {
+            "kind": "effect",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 4973,
+              "endLine": 4973,
+              "text": "FileResponse(file_handle, content_type=mime_type)",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "resource": "doc",
+            "because": "A FileResponse is created from the selected handle."
+          }
+        ],
+        "properties": [
+          {
+            "property": "task-property-f26600930f00984a702c",
+            "guard": {
+              "path": "src/documents/views.py",
+              "startLine": 4948,
+              "endLine": 4948,
+              "text": "use_archive",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "effect": {
+              "path": "src/documents/views.py",
+              "startLine": 4973,
+              "endLine": 4973,
+              "text": "FileResponse(file_handle, content_type=mime_type)",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            }
+          }
+        ],
+        "fallthrough": "unknown"
+      },
+      "diagnostics": [],
+      "executed": true,
+      "exitCode": 0
+    },
+    {
+      "historyIndex": 50,
+      "name": "authorization_check_properties",
+      "arguments": {},
+      "diagnostics": [],
+      "executed": true,
+      "exitCode": 0
+    }
+  ],
+  "transmission": {
+    "boundary": "official-account-static-tools-and-sent-envelopes",
+    "exactUtf8Bytes": true,
+    "samples": 54,
+    "bytes": 728432,
+    "components": {
+      "source": 328985,
+      "taskSkill": 74431,
+      "stateGap": 156503,
+      "schemaProtocol": 168513
+    },
+    "repeatedBytes": 45370,
+    "repeatedParts": 194,
+    "exactComponentTokens": false
+  },
+  "sourceAccounting": {
+    "indexBytes": 1412762,
+    "physicalReadBytes": 7561805,
+    "toolDisplayBytes": 69673,
+    "cumulativeModelSourceBytes": 92146,
+    "resentSourceBytes": 22526
+  },
+  "toolBudget": {
+    "totalLimit": 64,
+    "totalUsed": 52,
+    "totalRemaining": 12,
+    "explorationLimit": 60,
+    "explorationUsed": 51,
+    "explorationRemaining": 9,
+    "checkLimit": 2,
+    "checksUsed": 1,
+    "checksRemaining": 1,
+    "formatCorrectionLimit": 2,
+    "formatRejections": 0,
+    "formatRejectCount": 0,
+    "formatCorrectionsRemaining": 3,
+    "formatBudgetExhausted": false,
+    "finalReserve": 4,
+    "sourceFormatRejections": 0,
+    "finalFormatRejections": 0,
+    "sourceFormatRemaining": 3,
+    "finalFormatRemaining": 3,
+    "semanticChecksUsed": 1,
+    "semanticCheckLimit": 2,
+    "finalOnly": false,
+    "deliveryClosed": false
+  },
+  "account": {
+    "usage": {
+      "input": 2096343,
+      "output": 13141,
+      "cacheRead": 1920384,
+      "cacheWrite": 0
+    },
+    "durationMs": 407538,
+    "hostToolCalls": 51
+  },
+  "interpretation": "Original native tool history and sent-envelope UTF-8 measurements. No new source meaning, cost duplication, or independent semantic certification."
+}

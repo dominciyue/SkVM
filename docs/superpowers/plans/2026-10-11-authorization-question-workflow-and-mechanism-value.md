@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、已有 structure index 和有限求值器；Python 仅用于现有文档检查。开发 `gpt-6.1-sol/max`，实验沿用用户已授权官方账号 `gpt-5.6-sol/high`。
 
-状态：`in-progress / BE13`。规划基线 `6c8c79e31588503e6335c1c285ffe0817d7a5b3d`，实际接管 `be13cfc0bea4fa7be148a997670cd0819e04d97c`。BE0–BE12及六首件已执行，同源码tree`7b379ddb`全交付，六整题均partial；第二块D/H为P/F/P/F、N为P/F/P/P。D接受单元1/0，均无非空跨源性质。已有truthy说明缺口公共红绿49pass/482断言及主/研究类型通过；四N/H实际system/tool与当前重建一致，固定源码后进行一次D专属具名复验。分层变化继续，原件/费用分账，旧记录不回填。
+状态：`completed-with-unmet-criteria / BE18发布核对中`。规划基线 `6c8c79e31588503e6335c1c285ffe0817d7a5b3d`，接管 `be13cfc0bea4fa7be148a997670cd0819e04d97c`。六质量首位置、两具名D修订及六变化逻辑位置已交付：16归档/14模型运行/2推理前失败，原质量整题0/6 full、全部实际0/14。10D共35检查unknown、0合格跨源性质；三个previous实际材料使用0，变化tradeoff/negative/no-observed-difference。最终源码树`f3bce237`；225核心测试/1418断言、12研究测试/68断言及主/研究类型通过。finiteQueueComplete true、researchGoalAchieved false；目的提交/远端核对完成后关闭BE18，原件和epoch不回填。
 
 BE13现场细化：D2反复提交自由文本`test.expression`被拒；实际归档和独立点验确认现有求值器支持truthy，发送的谓词指南却漏了它。只补通用truthy及语言/operand合同到D静态工具说明和当前指南，保留严格拒绝与旧求值语义。公共账号链先红绿，再固定源码做一次`quality-d-1/predicate-guide-1`具名复验；D独有说明改变，未变N/H只作明确引用control，不加样本/费用。六首件和第一份可恢复D变化基础不替换，不向模型提供当前案例含义或参考答案。
 
@@ -224,43 +224,47 @@ H 必须真的能独立前进，不能依赖隐藏的 D 提交、伪造全完成
 
 现场修复续项（2026-10-11）：`quality-d-1/predicate-guide-1` 已完成；模型实际采用 `truthy/python`，但 history[47] 的有效部分声明触发 `annotation.condition` TypeError。当前绑定性质缩小需求集合后，仍可达的未声明文件名分支不在 `missingFields`，lowerer 却直接解引用其注解。先用保存的原声明做零模型复现，再用匿名的性质外分支/raise 红绿测试修复为显式未知，保持严格授权、对象及调用检查；同步汇总中的工具错误字段。该新根因允许一次独立具名 `partial-source-1` 复验，不能重抽同一 guide 原因或替换首件。随后继续六个变化位置；原件、失败及新增成本全部保留。
 
-- [ ] 同合同执行 D2→H2→N2；延续 BE11 现场修复。全部实际尝试、修订、未运行原因及源码epoch可追溯，不用成功修订挤掉首轮。
-- [ ] N–H 看定位/覆盖辅助；H–D 看声明/编译/检查增量。统计逐题准确/完整、整题、交付、token含缓存/非缓存、耗时、工具/自动单位和反馈字节，不仅报 full 总数。
-- [ ] 逐题解释收益和退化，尤其是否真正找到新决定性源码或避免错误对象，而非仅改变回答措辞。同等质量的开销变化可作为工程收益，但仍报告新增准备/编译成本。
-- [ ] 若 D 稳定更贵且没有质量/可检查增量，将 H 作为明确推荐候选、D 留显式研究选项；若 D 有可复查增量，写明在哪种义务上出现。两轮不能证明所有 DSL 无效，也不据此修改全项目默认。
+- [x] 同合同执行 D2→H2→N2；延续 BE11 现场修复。全部实际尝试、修订、未运行原因及源码epoch可追溯，不用成功修订挤掉首轮。
+- [x] N–H 看定位/覆盖辅助；H–D 看声明/编译/检查增量。统计逐题准确/完整、整题、交付、token含缓存/非缓存、耗时、工具/自动单位和反馈字节，不仅报 full 总数。
+- [x] 逐题解释收益和退化，尤其是否真正找到新决定性源码或避免错误对象，而非仅改变回答措辞。同等质量的开销变化可作为工程收益，但仍报告新增准备/编译成本。
+- [x] 六首件D无优于H的自然质量；具名partial-source-1补齐root/self fallback，Q1/Q3改善、Q4退化为partial，对H为tradeoff，对N2为support，成本更高且仍无跨源性质。H作为普通取证低成本候选，D留显式研究；不把修订比较当原同epoch或因果修复收益，不改全项目默认。
 
 ### BE14 — 三种变化、分层复用与实际消费
 
 **Modify:** 普通 previous/compare 的分层接点（如尚缺）；BE变化runner与验证。
 
-- [ ] 对 policy/premise/source 先跑零调用 compare，固定可用层级和失效集合，禁止复用旧自然答案。R0准备与R1材料的资格不要求R2先成功。
-- [ ] 在普通入口对三变化分别 fresh 与 previous，最多六首位置；沿 BE10 登记事实、同模型/预算/四问。政策/前提只保留独立来源含义、重算结论；源码改动撤回受影响含义/结果，其他材料保留。
-- [ ] 记录实际 adopted/rejected/recomputed、节省的读取/解释请求及仍发生的调用。命中缓存本身不能写成质量收益；未合格的 R2 仍为 unknown。
-- [ ] 若连 R0/R1都无法恢复或官方通道不可用，具名记录缺失责任，并完成公开 CLI 的确定性修复/复演；不私造 previous session，也不拿旧作者包替代本轮基础。
-- [ ] 如果本轮获得 R2，必须验证撤守卫、换对象或政策变化使旧结论撤回；独立复核真实变化答案。局部性质复用与四问整题完整分别报告。
+2026-10-12本地恢复细化：`source-previous/original`因中断期间CLI自动升级为未验证`0.162.0-alpha.17.2`，在`turn/start`前停止（unavailable/not-started/inferenceDispatched:false）。13个已完成原归档实际版本均为`0.162.0-alpha.2`，不能据探子猜测写成0.160.0。从官方同版本release恢复独立工具目录，核release digest/本地版本，`cli-version-1`恢复版本后又在推理前遇到`where.exe`输出GBK路径被UTF-8解码的启动失败。原诊断确证中文路径变成replacement字符；同字节官方包放到独立ASCII工具目录，`cli-path-1`只恢复该未启动位置。不放松适配器版本/权限检查，不改已交付首件，不更新app安装。比较只允许同输入/源码epoch且所有前件确定未派发的登记恢复链，最多一个实际交付；原未启动位置及本地工具/准备耗时保留，不能按最好答案选修订。汇总将零推理未启动与未知完成分列，成本不掩盖。
+
+- [x] 对 policy/premise/source 先跑零调用 compare，固定可用层级和失效集合，禁止复用旧自然答案。D1/original为第一可恢复基础；policy/premise保留1 partial R1，source按依赖撤回该R1并保留R0（25证据、重建索引）；三者R2均false。
+- [x] 三变化六逻辑fresh/previous均由普通入口实际交付，同模型/预算/四问；source-previous唯一同epoch登记恢复填补未启动位置，原两件保留。政策/前提各恢复1 partial材料，source撤回R1、保留25证据R0；旧答案/结论排除。
+- [x] adopted/rejected/recomputed、实际读取/声明/费用均记录。policy、premise、source的previous读取相对fresh分别+2、-25、+6，声明+1、-2、+2；三个materialsUsed均0，不能据restore/cache或较少请求宣称实际含义消费或因果收益。
+- [x] 官方CLI自动升级及中文路径解码两项确定未派发配置失败已具名保存、确定性恢复；保留79,770ms本地开销、0模型/工具。不私造previous session或弱化生产准入，未重发完成/未知请求。
+- [x] R2条件未成立：0合格性质，实际撤守卫/换对象后的旧合格verdict撤回实验未执行、未达，不以工程负例代替。六变化答案独立源码裁定全部partial；局部资格、整题及实际使用分别列验收矩阵。
 
 ### BE15 — 普通使用与维护成本
 
 **Modify:** 现有 `docs/usage.md`、`docs/skill-ir/developer-guide.md`；必要时更新 `examples/authorization-assessment/` 中已有示例，而非复制真实答案。
 
-- [ ] 给出完整skill加自然task的 N/H/D opt-in 命令、inspect/compare/previous操作和有限边界；用户不需要手写 anchor、正确 propertyBindings 或先整理 trace。
-- [ ] 用本轮普通 session 做一次搬移后的零调用 check/inspect/compare；路径机械恢复不改源码/含义，依赖缺失明确显示。
-- [ ] 向用户分别显示“自然回答”“有证局部检查”“未分析/条件未知”“协议/通道失败”，保留原题分母，禁止 partial 一词包办所有情况。
-- [ ] 若真实效果仅支持 H，交付 H 的可用工程与 D 的局部限制；不为凑 DSL 成功改标签或掩盖负结果。
+- [x] usage/developer-guide给出完整skill加自然task的 N/H/D opt-in 命令、inspect/compare/previous操作和有限边界；用户不需要手写 anchor、正确 propertyBindings 或先整理 trace。
+- [x] 本轮D1/original普通 session搬移后公开init/check/inspect/compare零调用通过；95源、声明及归档字节保持，R0+1 partial R1可用、R2false，见portable-current-session.json。
+- [x] 使用说明分别显示“自然回答”“有证局部检查”“未分析/条件未知”“协议/通道失败”，保留原题分母，禁止 partial 一词包办所有情况。
+- [x] 六首件同自然质量下H比D低成本，交付H候选工程与D显式研究限制；不声称一般H优于N、不改项目默认，不为凑DSL成功改标签。
 
 ### BE16 — 归纳、结果与统一文档
 
-- [ ] 更新研究§1/§7.66/§11：具体失败→根因→共享修改→实际采用→效果→未达。spec§14.44记录最终实现，current-status/plan只保留当前结论和恢复入口。
-- [ ] summary/accounting/acceptance 分开工程、自然任务、合格局部性质、三臂价值、材料/结论复用及净收益；字段明确 required 与 achieved，研究未达就保持 false。
-- [ ] 成本来自实际账号usage；完整input含cache时不加第二遍，reasoning包含于output时不重复。USD、不可见请求、开发/探子、真人时间未知继续 unknown。
-- [ ] 新实验原件与派生件集中新 identity；不再增长第二份研究正文，不复制全历史流水到当前页。
+- [x] 研究§1/§7.66/§11、spec§14.44及current-status/plan同步最终根因、实现、实际采用和未达；只剩发布核对，不自动重抽。
+- [x] summary/accounting/acceptance分别记录工程、自然任务、局部性质、三臂价值、复用及净收益；required/achieved分开，研究false、有限模型队列true。
+- [x] 16唯一归档/14模型：input26,118,113含cache24,207,744，output141,637含reasoning57,166；模型运行5,716,127ms加未启动79,770ms，总本地5,795,897ms。769总工具含8自动；USD/隐藏请求/开发探子/真人未知。
+- [x] 原件和派生件集中本identity；旧BD/保护证据不回填，不新增长期阅读文档。
 
 ### BE17 — 有针对性的最终验证
 
-- [ ] 跑改动对应测试、公共入口/跨源负例、研究测试、主/研究类型；验证模型实际收到的 H/D工具和context。
-- [ ] 零模型 replay、当前文档链接/导航、`git diff --check`。旧已知历史断链单列，不为绿色数字改冻结原件。
-- [ ] 原始 gzip/binary 按现有属性字节保留，必要时只新增本 identity 精确 `.gitattributes` 规则；核一次暂存原件可读性。不要重复全仓历史摘要审计。
-- [ ] 独立只读复核限定两项：相关依赖没有放松授权检查；H/D实际路径和实验比较吻合。主线程按出处裁决，不能让探子改代码/决定方法。
+独立复核现场修复（2026-10-12）：`control-conclusion.test.ts`原有性质负例发现，无association且不是`$framework`的决定性依赖会因没有slice edge而被判无关。缺少关联和边不是无关的证据，须继续阻断；request/unconfirmed也保持决定性。已有显式source边仍按实际前缀判定，使效果之后的未知调用不反向阻断先前局部性质；公共U1/U2保留这一区别。主线程补普通path与跨题隔离红绿，保留对象/权限/次序检查；已派发原件/源码epoch不改，零模型核当前原快照性质并记录差异，不为这项确定性保守修复新增模型样本。
+
+- [x] 最终15文件225pass/0fail/1418断言、研究12pass/0fail/68断言及主/研究类型通过；实际H/D工具、原skill/四问/范围/预算由独立机制复核点验。最后保守修复对10原D快照没有适用的改变分支输入，原35unknown/空trace保持；不是新模型采用或未来保证。
+- [x] 零模型replay和普通搬移已一次通过；15文档单测、当前链接/导航errors0、`git diff --check` exit0。全历史扫描exit1仅返回已知八条原断链，软长度警告另列，冻结原件/治理inventory未改，见document-check.json。
+- [x] 一次暂存核验：16尝试的80原件、14盲评副本等字节，16原gzip与7派生gzip全可读，外部run.json及native终答原字节一致。仅本identity盲评txt新增精确.gitattributes规则；未重复全仓历史/保护摘要审计，见staged-original-bytes.json。
+- [x] 相关依赖和实际H/D/公平比较两项独立只读复核完成；依赖finding经红绿修复、后复核无新缺陷。主线程按原源码裁决盲评分歧，探子未修改代码或决定方法，AI复核不称真人评阅。
 
 ### BE18 — 发布与接手
 
@@ -270,7 +274,7 @@ H 必须真的能独立前进，不能依赖隐藏的 D 提交、伪造全完成
 
 ## 五、验证命令与实施注意
 
-在 `D:/skill优化/SkVM` 执行。新文件命令是 BE 实现后的验收入口，不代表当前已存在：
+在 `D:/skill优化/SkVM` 执行。以下入口已实现；研究tsconfig包含主脚本及evaluation脚本，不把归档/模型材料作为源码：
 
 ```powershell
 bun test ./src/benchmarks/authorization-dsl/operation-work.test.ts ./src/benchmarks/authorization-dsl/inquiry-worklist.test.ts
@@ -278,7 +282,7 @@ bun test ./src/task-dsl/authorization/property-query.test.ts ./src/benchmarks/au
 bun test ./src/task-dsl/authorization/question-workflow.test.ts ./src/benchmarks/authorization-dsl/question-workflow-entrypoints.test.ts
 bun run typecheck
 $be = './results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1'
-bun test "$be/study.test.ts" "$be/summarize.test.ts"
+bun test "$be/study.test.ts" "$be/summarize.test.ts" "$be/replay.test.ts"
 bunx tsc --noEmit -p "$be/tsconfig.json"
 bun "$be/study.ts" prepare quality-n-1
 bun "$be/study.ts" replay
