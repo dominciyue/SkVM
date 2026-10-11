@@ -8,6 +8,8 @@
 
 已修请求receiver适用范围、部分源码转换异常及未知依赖误判，独立H与D领域声明接入既有BB/v7公共链。最终源码树`f3bce237`：225核心测试/1418断言、12研究测试/68断言及主/研究类型通过。H是同首件质量下比D低成本的普通辅助候选；一般H优于N、D稳定质量增量及净收益未建立，项目默认不变。D1/original固定基础，policy/premise各恢复1 partial R1但未实际使用，source撤回R1并保留R0，R2全false；当前普通会话搬移零模型通过。known input26,118,113（含cache24,207,744）/output141,637；USD/隐藏/开发探子/真人未知。方法见[spec§14.44](skill-ir-aot-optimization-spec.md#1444-be-question-workflow-and-mechanism-value)、[研究§7.66](skill-dsl-research.md#766-be-领域问题前端与机制价值验证)及[当前计划](skill-ir-aot-optimization-plan.md)。
 
+发布后复核已追加到[研究§7.66](skill-dsl-research.md#766-be-领域问题前端与机制价值验证)：两条源码变化评阅误将请求查找的include_deleted参数传播到独立版本选择，现已勘误，原P/F/F/P和整题计数保留。实际D1/修订及policy-previous仅有可用helper、无可投影entry；后续须区分DSL可表达性、模型编写和实际材料组合，当前没有启动新实验队列。
+
 ## BD 已结束的实际结果
 
 **[BD0–BD16：源码解释持续补齐、独立性质检查与真实质量比较](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)以`completed-with-unmet-criteria`收束，BD16已发布至`14aeb7f1`并核对远端SHA。** 实施基线`7f4ca507`，工程至`d747f44d`；179pass/1304断言、主类型、9研究测试/46断言及15文档测试通过。1诊断与4同期质量首件全交付，四整题均partial；两对tradeoff/negative，D当前7unknown、0合格跨源性质，六变化位置具名未运行。工程、完整任务、比较、复用和收益各轴见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/acceptance-matrix.json)、[执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/authorized-execution-closeout.json)及[发布回执](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/publication.json)；finiteQueueComplete/researchGoalAchieved仍false。

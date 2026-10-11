@@ -2500,6 +2500,18 @@ BE14三变化先完成零模型compare并锁定D1/original。[事实合同核对
 
 **执行、成本与方法收束。** 12逻辑位置均已交付，含六质量首件、六变化；两具名D复验及两配置未启动保留，共16唯一归档/14模型运行。原质量0/6整题full、所有实际0/14，10D共35检查均unknown、0合格跨源性质，三个previous材料实际使用0。R2条件未成立，实际旧合格verdict的变化撤回实验未执行、不计通过。known input26,118,113含cache24,207,744（非缓存1,910,369）、output141,637含reasoning57,166；模型运行5,716,127ms加未启动79,770ms为5,795,897ms总本地耗时，769总工具含8自动、格式拒绝0。input/cache、output/reasoning各只计一次；显示/发送字节不换算精确token，actual USD、provider内部请求、开发/探子成本和真人分钟unknown，见[accounting](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/accounting.json)。H在两首块与D同自然质量且成本更低，作为普通opt-in候选；一般H>N、隔离语法优势、稳定D增量及净收益未建立，D留显式研究、默认不变。有限模型队列及发布完成true、研究目标false，逐轴责任与条件未执行见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/acceptance-matrix.json)及[执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/authorized-execution-closeout.json)。BE18实质成果`96ed3472`已推用户origin并核对live远端，见[发布回执](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/publication.json)；后续须针对未达责任决策，不自动重抽，历史保护/两OWUI未知保持。
 
+#### BE 发布后复核（2026-10-12）
+
+本次从`1d802399`干净同步状态复核六质量首件、两具名修订、变化评阅、原始会话和公共实现，重新通过225核心测试/1418断言、12研究测试/68断言及主/研究类型检查，未派发新实验。六首件的逐题full为N合计3/8、H为4/8、D为4/8；这些是同一四问任务的两次重复，不能按八个独立任务解释。H/D整题均0/2，D累计input4,581,875对H的1,310,626，约3.50倍；扣除已报告缓存后为316,147对199,330，约1.59倍。累计本地耗时890,247ms对598,535ms，约1.49倍。缓存只计一次，token差异不换算美元成本。相同质量下当前D的额外负担已被观察到；H相对N仅有一格完整性改善，一般收益仍待验证。
+
+**评阅理由勘误，原评分保留。** `source-fresh/original/source-review.json`的Q1理由及裁定、`source-previous/cli-path-1/source-review.json`的Q1/Q3理由及裁定，把“默认latest排除deleted”判错，误将`file_response`传给`_resolve_request_and_root_doc`的`include_deleted=True`沿用到另一次版本选择。实际变更源码[views.py](../../results/skill-ir/skill-dsl-research/development/authorization-source-assisted-closure-v1/model/source/paperless-request-binding-v1/src/documents/views.py)1375–1380行重新以`get_request_version_param(request) is not None`计算版本解析参数；没有version时为false，显式空字符串时为true。1433行只控制请求/根文档解析。已核当前文件与source-fresh原claim的文件摘要一致。故两份回答关于“无version时latest为非删除版本”的说明正确；前文BE14这项错误指控以本勘误为准。两件仍遗漏root查询失败/self fallback，Q4还有原记录的事实映射缺口，因此P/F/F/P、整题partial及no-observed-difference计数均不变。旧answer/source-review/summary原件不回填；后续引用须同时带此勘误。评阅也必须按每次调用的实参流复核，不能从同名参数推断跨调用继承。
+
+**实际机械断点。** D1/original原会话仅保存`serve_file`（views.py:4941–4995）的helper材料，具名`partial-source-1`仅保存`file_response`（1429–1448）的helper材料；两者均为partial。各自materialProjection都是saved/current/available=1、projectedUnits/entryUses/callUses/frameworkUses=0，诊断`material-entry-role-mismatch`。policy-previous恢复的也是同一份serve_file helper，仍无entry。这由[source-material-projection](../../src/benchmarks/authorization-dsl/source-material-projection.ts)的operation入口准入产生，跨单元绑定已存在。35个unknown不能统一归因为框架缺源码或缺resolver；这些轨迹首先没有形成可投影的入口材料。
+
+[question-workflow](../../src/task-dsl/authorization/question-workflow.ts)已替模型生成机械ID，但其声明仍编译到既有source-edit；[inquiry-focus](../../src/benchmarks/authorization-dsl/inquiry-focus.ts)还要求声明与当前interpret焦点相符。D1前三次声明为source-unoffered；具名partial修订后来提交resolver含义时得到source-owner和后续对象/定位诊断。真实D1首件7次声明中6次拒绝，D2的5次全拒绝。该证据支持修复来源选择/焦点接线和降低语义建模负担，不支持继续仅更换字段名称。自然答与材料可用性分开：partial修订已有三题full，但这份自然理解仍未转成当前跨源程序。
+
+**下一步讨论建议，尚未启动新队列。** 优先检验“开发者依据真实原文能否用当前DSL完整写出一个限定授权关系，并由普通入口消费”，把语言/执行核心可表达性与模型自动编写成功率拆开。手工或代理辅助编写只作开发诊断，不进入自动生成效果分母或提供给待评模型。先明确主体现身、资源选择、guard到effect关系和具名外部前提，再验证错对象、漏guard、guard后置与源码变化的行为；有源码支持的局部结论可以独立交付，但保留完整原任务缺口。当前N/H可继续用于辅助分析，D维持显式研究；暂不扩大语言语义和重复整面板。若开发者也需枚举大部分框架/格式处理才能表达一条授权关系，应调整抽象边界；若可表达而自动生成失败，集中修来源路由、声明编译与组合调用，不把二者混成一个长期补字段任务。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
