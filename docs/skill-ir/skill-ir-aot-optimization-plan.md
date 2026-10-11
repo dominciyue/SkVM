@@ -2,7 +2,7 @@
 
 更新于2026-10-12。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BE0–BE18：领域问题前端、相关依赖与机制价值验证](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)，`completed-with-unmet-criteria / BE18发布核对中`。六质量首位置、两具名D修订、六变化逻辑位置全部交付，16归档/14模型运行/2未启动；finiteQueueComplete true、researchGoalAchieved false。原质量0/6整题full、全部实际0/14，35D检查unknown、0合格跨源性质。变化为tradeoff/negative/no-observed-difference，previous实际材料使用均0，见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/acceptance-matrix.json)。
+- 当前任务书：[BE0–BE18：领域问题前端、相关依赖与机制价值验证](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)，`completed-with-unmet-criteria / BE18已发布`，实质成果`96ed3472`与live远端一致。六质量首位置、两具名D修订、六变化逻辑位置全部交付，16归档/14模型运行/2未启动；finiteQueueComplete/publicationComplete true、researchGoalAchieved false。原质量0/6整题full、全部实际0/14，35D检查unknown、0合格跨源性质。变化为tradeoff/negative/no-observed-difference，previous实际材料使用均0，见[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/acceptance-matrix.json)。
 - 方法合同：[spec§14.44](skill-ir-aot-optimization-spec.md#1444-be-question-workflow-and-mechanism-value)；复核与研究统一在[§7.66](skill-dsl-research.md#766-be-领域问题前端与机制价值验证)。
 - identity：`authorization-question-workflow-v1`。继续`skill-ir-aot`，只推用户origin，不创建分支/worktree；派发后新开发线程是共享代码/方法文档/Git的唯一写者。
 - 开发`gpt-6.1-sol/max`，实验沿用已授权官方账号`gpt-5.6-sol/high`。第三方暂停、旧OWUI未知只离线，held-out/Q1/prospective/readiness及历史0/6保持。
@@ -15,7 +15,7 @@ R0来源准备和R1含义分开：policy/premise各恢复1 partial R1而使用0�
 
 ## 收尾与后续边界
 
-只剩BE18目的提交、用户origin推送与远端SHA核对，回执完成后无待派BE位置。[执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/authorized-execution-closeout.json)区分工程通过、研究未达和条件未执行。R2条件未成立，所以实际旧合格性质撤回实验未执行；不把公共fixture写成这项实际验收。
+BE18实质成果已提交、推用户origin并核对远端SHA；[发布回执](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/publication.json)另行提交，无待派BE位置。[执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/authorized-execution-closeout.json)区分工程通过、研究未达和条件未执行。R2条件未成立，所以实际旧合格性质撤回实验未执行；不把公共fixture写成这项实际验收。
 
 有限原顺序N1/H1/D1、D2/H2/N2完成；四子题属于同一任务的相关观察。D1/original在变化前固定，source-previous只有两件推理前配置失败及一个实际交付恢复，未重发完成或未知请求。首件/具名修订/恢复及全部已知和未知费用保留。后续研究必须针对未达责任形成有证方法决定，不能据本轮连续授权自动追加样本。
 

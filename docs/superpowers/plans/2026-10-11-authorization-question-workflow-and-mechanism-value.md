@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、已有 structure index 和有限求值器；Python 仅用于现有文档检查。开发 `gpt-6.1-sol/max`，实验沿用用户已授权官方账号 `gpt-5.6-sol/high`。
 
-状态：`completed-with-unmet-criteria / BE18发布核对中`。规划基线 `6c8c79e31588503e6335c1c285ffe0817d7a5b3d`，接管 `be13cfc0bea4fa7be148a997670cd0819e04d97c`。六质量首位置、两具名D修订及六变化逻辑位置已交付：16归档/14模型运行/2推理前失败，原质量整题0/6 full、全部实际0/14。10D共35检查unknown、0合格跨源性质；三个previous实际材料使用0，变化tradeoff/negative/no-observed-difference。最终源码树`f3bce237`；225核心测试/1418断言、12研究测试/68断言及主/研究类型通过。finiteQueueComplete true、researchGoalAchieved false；目的提交/远端核对完成后关闭BE18，原件和epoch不回填。
+状态：`completed-with-unmet-criteria / BE18已发布`，实质成果`96ed3472`与live远端一致，发布回执另行提交。规划基线 `6c8c79e31588503e6335c1c285ffe0817d7a5b3d`，接管 `be13cfc0bea4fa7be148a997670cd0819e04d97c`。六质量首位置、两具名D修订及六变化逻辑位置已交付：16归档/14模型运行/2推理前失败，原质量整题0/6 full、全部实际0/14。10D共35检查unknown、0合格跨源性质；三个previous实际材料使用0，变化tradeoff/negative/no-observed-difference。最终源码树`f3bce237`；225核心测试/1418断言、12研究测试/68断言及主/研究类型通过。finiteQueueComplete/publicationComplete true、researchGoalAchieved false；BE0–BE18执行关闭，条件未执行和未达责任保留，原件和epoch不回填。
 
 BE13现场细化：D2反复提交自由文本`test.expression`被拒；实际归档和独立点验确认现有求值器支持truthy，发送的谓词指南却漏了它。只补通用truthy及语言/operand合同到D静态工具说明和当前指南，保留严格拒绝与旧求值语义。公共账号链先红绿，再固定源码做一次`quality-d-1/predicate-guide-1`具名复验；D独有说明改变，未变N/H只作明确引用control，不加样本/费用。六首件和第一份可恢复D变化基础不替换，不向模型提供当前案例含义或参考答案。
 
@@ -268,9 +268,9 @@ H 必须真的能独立前进，不能依赖隐藏的 D 提交、伪造全完成
 
 ### BE18 — 发布与接手
 
-- [ ] 只提交本轮代码/测试/文档/证据，按目的拆提交，推用户 `origin/skill-ir-aot`；不触 upstream，不覆盖他人改动。
-- [ ] 一次核对远端HEAD、当前状态及归属差异；记录最终SHA与可运行入口，根 handoff/communication/conversation log同步。
-- [ ] 逐项标已执行、未执行、工程通过、研究未达；有外部阻断则写清恢复条件。有限队列结束可以关闭执行，不能把它冒充正向研究目标完成。
+- [x] 七目的提交至96ed3472仅推用户origin/skill-ir-aot，upstream/他人改动未触；源码、研究脚本、文档和本BE证据分责提交。
+- [x] 96ed34722bea66137f1db632647f7a63e1397323与live远端一致、仓库干净同步；普通命令在usage，根三账本同步，回执最终提交SHA另记根账本/最终回复，避免自指SHA。
+- [x] 逐轴标工程通过、研究未达及R2条件未执行；12逻辑队列完成/发布完成，研究false。无BE活动/未知完成；旧OWUI未知和费用保留，无自动重抽。
 
 ## 五、验证命令与实施注意
 
