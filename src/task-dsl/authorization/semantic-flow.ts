@@ -57,7 +57,7 @@ interface Cursor { tail: string; route: string[]; objects: Record<string, Object
 const id = (parts: unknown[]) => "sem-" + createHash("sha256").update(canonicalControl(parts)).digest("hex").slice(0, 24)
 
 /** The host compiles only explicit source interpretations; it never parses target code into an answer. */
-export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compositional?: boolean; propertyDirected?: boolean; sourceObjectBindings?: boolean } = {}) {
+export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compositional?: boolean; propertyDirected?: boolean; sourceObjectBindings?: boolean; functionRoots?: Array<{ questionId: string; handle: string }> } = {}) {
   let rules: ControlRule[] = [], dependencies: ControlDependency[] = []
   const diagnostics: InquiryDiagnostic[] = [], owned: Array<{ questionId: string; handle: string; ruleKeys: string[] }> = []
   const fieldChanges: Array<{ questionId: string; handle: string; step: string; object: string; field: string; value?: FiniteValue; source?: string; evidenceIds: string[] }> = []
@@ -65,7 +65,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
   const bindingMismatches: SemanticBindingMismatch[] = []
   const fault = (q: string, handle: string, code: string, message: string) => diagnostics.push({ code, path: `semanticBlocks.${q}.${handle}`, questionId: q, message, severity: "error" })
   for (const questionId of new Set(units.map(u => u.questionId))) {
-    const local = units.filter(u => u.questionId === questionId), roots = local.filter(u => u.role === "entry"), startIndex = rules.length, dependencyIndex = dependencies.length, fieldIndex = fieldChanges.length, summaryIndex = propertySummaries.length
+    const local = units.filter(u => u.questionId === questionId), roots = local.filter(u => u.role === "entry" || options.functionRoots?.some(r => r.questionId === questionId && r.handle === u.handle)), startIndex = rules.length, dependencyIndex = dependencies.length, fieldIndex = fieldChanges.length, summaryIndex = propertySummaries.length
     let serial = 0, pathCount = 0
     const append = (u: BoundSemanticBlock, c: Cursor, instance: string, block: string, step: string, kind: ControlRule["kind"], fields: Partial<ControlRule> = {}) => {
       if (rules.length - startIndex >= 127) throw new Error("semantic-node-limit")
@@ -507,7 +507,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
     try {
       for (const root of roots) {
         const cursor: Cursor = { tail: "", route: [root.handle], objects: {}, fieldObjects: {}, guards: {}, values: {}, objectValues: {} }
-        append(root, cursor, root.handle, root.start, "$entry", "entry", { claim: `Source entry ${root.handle}` })
+        append(root, cursor, root.handle, root.start, "$entry", "entry", { claim: root.role === "entry" ? `Source entry ${root.handle}` : `Local function contract root ${root.handle}; request entry is outside scope` })
         for (const parameter of root.parameters) {
           const identity = id([questionId, root.handle, "parameter", parameter.name])
           cursor.objects[parameter.name] = { identity, type: parameter.type }; cursor.objects[`${root.handle}.${parameter.name}`] = cursor.objects[parameter.name]!

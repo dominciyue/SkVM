@@ -4,9 +4,9 @@
 
 ## 当前工作
 
-**[BF0–BF17：真实可执行授权 DSL、自动编写接线与变化消费](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)已获用户授权，状态为`planned-authorized / 待新线程接管`。** 规划基线`74bf7bef`，按约8小时有用工作量派发`gpt-6.1-sol/max`。先通过普通入口执行依据真实原文编写的局部程序，再修已读来源路由、函数/请求范围与实际材料采用，最后做隔离的自动编写和同包变化消费。方法见[spec§14.45](skill-ir-aot-optimization-spec.md#1445-bf-executable-contract-and-authoring)、[研究§7.67](skill-dsl-research.md#767-bf-真实可执行程序与自动编写接线)与[当前计划](skill-ir-aot-optimization-plan.md)。任务书登记尚未产生BF工程或效果结果。
+**[BF0–BF17：真实可执行授权 DSL、自动编写接线与变化消费](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)已获用户授权，状态为`in-progress / BF0已接管`。** 规划基线`74bf7bef`，按约8小时有用工作量派发`gpt-6.1-sol/max`。先通过普通入口执行依据真实原文编写的局部程序，再修已读来源路由、函数/请求范围与实际材料采用，最后做隔离的自动编写和同包变化消费。方法见[spec§14.45](skill-ir-aot-optimization-spec.md#1445-bf-executable-contract-and-authoring)、[研究§7.67](skill-dsl-research.md#767-bf-真实可执行程序与自动编写接线)与[当前计划](skill-ir-aot-optimization-plan.md)。任务书登记尚未产生BF工程或效果结果。
 
-BF把开发者编写的表达能力诊断、模型自动编写、普通消费与变化收益分轨。局部函数结论须带范围/前提，不能将helper伪标请求entry；现有v7跨调用核心继续复用。完整原skill与四问保留，作者参考实现不进入自动编写模型输入。约8小时是工作估计，不靠等待/重复审计凑时长；常规开发连续推进，实际共享错误当场修复。账号、历史未知和保护证据边界保持，派发后新线程为唯一开发写者。
+BF把开发者编写的表达能力诊断、模型自动编写、普通消费与变化收益分轨。实际接管34e5e302，live origin一致、工作树干净；已登记[manifest](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/manifest.json)与[status](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/status.json)，正在BF1–BF2。局部函数结论须带范围/前提，不能将helper伪标请求entry；现有v7跨调用核心继续复用。完整原skill与四问保留，作者参考实现不进入自动编写模型输入。约8小时是工作估计，不靠等待/重复审计凑时长；常规开发连续推进，实际共享错误当场修复。账号、历史未知和保护证据边界保持，新线程为唯一开发写者。
 
 ## BE 已结束的实际结果
 

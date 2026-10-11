@@ -5,7 +5,8 @@ import type { SourceSkeleton, SourceAnchor } from "../../benchmarks/authorizatio
 import type { PropertySourceReference } from "./property-query.ts"
 import { FINITE_PREDICATE_GUIDE } from "./control-evaluation.ts"
 
-const citation = z.object({ path: InquiryText.optional(), startLine: z.number().int().positive(), endLine: z.number().int().positive().optional(), text: InquiryText.optional(), sha256: InquiryText.optional(), receiverClass: InquiryText.optional() }).strict()
+export const SourceCitationSchema = z.object({ path: InquiryText.optional(), startLine: z.number().int().positive(), endLine: z.number().int().positive().optional(), text: InquiryText.optional(), sha256: InquiryText.optional(), receiverClass: InquiryText.optional() }).strict()
+const citation = SourceCitationSchema
 const because = { because: InquiryText }
 const object = z.object({ kind: z.literal("object"), expression: InquiryText, as: z.enum(["principal", "resource", "permission", "condition", "context"]), at: citation.optional(), sameAs: InquiryText.optional(), ...because }).strict()
 const condition = z.object({ kind: z.literal("condition"), at: citation, test: z.record(z.unknown()), authorizes: z.object({ principal: InquiryText, resource: InquiryText, when: z.enum(["true", "false"]), permission: InquiryText.optional() }).strict().optional(), ...because }).strict()
@@ -79,7 +80,8 @@ export function compileQuestionDeclaration(skeleton: SourceSkeleton, raw: unknow
   if (declaration.fallthrough) edits.push({ field: "fallthroughOutcome", value: declaration.fallthrough })
   if (declaration.properties) {
     const findReference = (at: Citation) => {
-      const candidates = options.references.filter(r => r.ref.questionId === options.questionId && matches(at, r.source, r.text) && (!at.receiverClass || at.receiverClass === r.ref.receiverClass) && (!at.sha256 || at.sha256 === r.ref.sourceSha256))
+      let candidates = options.references.filter(r => r.ref.questionId === options.questionId && matches(at, r.source, r.text) && (!at.receiverClass || at.receiverClass === r.ref.receiverClass) && (!at.sha256 || at.sha256 === r.ref.sourceSha256))
+      if (at.text && candidates.some(r => r.text === at.text)) candidates = candidates.filter(r => r.text === at.text)
       if (candidates.length !== 1) { fail("property-source-unresolved", "properties", "The property needs one current source occurrence in this question; source identity is not object equivalence.", candidates.map(r => ({ ...r.source, text: r.text, receiverClass: r.ref.receiverClass }))); return undefined }
       return candidates[0]!.ref
     }

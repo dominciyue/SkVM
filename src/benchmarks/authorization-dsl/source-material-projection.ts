@@ -226,7 +226,7 @@ function currentCallableCreationsValid(index: StructureIndex, unit: BoundSemanti
 }
 
 export interface SourceMaterialUse {
-  kind: "entry" | "call" | "framework"; operationId: string; questionId: string; materialId: string; callerMaterialId?: string;
+  kind: "entry" | "function-root" | "call" | "framework"; operationId: string; questionId: string; materialId: string; callerMaterialId?: string;
   relationId?: string; receiverClass?: string; arguments: Array<{ parameter: string; object: string }>;
   sourceId?: string; sourceCallId?: string; frameworkModel?: string; projectedHandle?: string;
   /** Scratch wrapper environment, never an argument declared by the source function. */
@@ -441,7 +441,8 @@ function actualArguments(index: StructureIndex, caller: BoundSemanticBlock, step
   })
 }
 /** Reachability comes from exact current source calls, independently of saved availability. */
-export function projectSourceMaterials(program: AuthorizationInquiryProgram, accepted: BoundSemanticBlock[], snapshot: SourceMaterialSnapshot, index: StructureIndex, options: { questionDirected?: boolean; semanticVersion?: string } = {}) {
+export interface SourceFunctionRoot { questionId: string; operationId: string; source: NonNullable<BoundSemanticBlock["source"]>; receiverClass?: string }
+export function projectSourceMaterials(program: AuthorizationInquiryProgram, accepted: BoundSemanticBlock[], snapshot: SourceMaterialSnapshot, index: StructureIndex, options: { questionDirected?: boolean; semanticVersion?: string; functionRoots?: SourceFunctionRoot[]; requestOperations?: boolean } = {}) {
   const diagnostics: SourceMaterialDiagnostic[] = []
   const diagnose = (code: string, stage: SourceMaterialDiagnostic["stage"], questionId: string, sourceId: string | null, message: string, nextAction: string, details: Partial<SourceMaterialDiagnostic> = {}) => {
     diagnostics.push({ code, stage, questionId, sourceId, candidateIds: [], requiredCandidates: 1, message, nextAction, ...details })
@@ -465,15 +466,18 @@ export function projectSourceMaterials(program: AuthorizationInquiryProgram, acc
     return valid
   })))
   const units: BoundSemanticBlock[] = [], uses: SourceMaterialUse[] = []
-  for (const operation of program.operations ?? []) {
-    const entry = accepted.find(u => u.questionId === operation.sourceQuestionId && u.role === "entry" && u.source)
-    const root = entry && available.find(m => m.unit.role === "entry" && m.source.id === entry.source!.id && m.source.sha256 === entry.source!.sha256 && m.receiverClass === entry.receiverClass)
+  const projections = [...(options.requestOperations === false ? [] : program.operations ?? []).map(operation => ({ operation, localRoot: undefined as SourceFunctionRoot | undefined })), ...(options.functionRoots ?? []).map(localRoot => ({ operation: { id: localRoot.operationId, sourceQuestionId: localRoot.questionId }, localRoot }))]
+  for (const { operation, localRoot } of projections) {
+    const entries = accepted.filter(u => u.questionId === operation.sourceQuestionId && u.role === (localRoot ? "helper" : "entry") && u.source && (!localRoot || u.source.id === localRoot.source.id && u.source.sha256 === localRoot.source.sha256 && u.receiverClass === localRoot.receiverClass))
+    const entry = entries.length === 1 ? entries[0] : undefined
+    const roots = entry ? available.filter(m => m.unit.role === entry.role && m.source.id === entry.source!.id && m.source.sha256 === entry.source!.sha256 && m.receiverClass === entry.receiverClass) : []
+    const root = roots.length === 1 ? roots[0] : undefined
     if (!root) {
       const proposed = accepted.find(u => u.questionId === operation.sourceQuestionId && u.source)
-      diagnose(!entry && proposed ? "material-entry-role-mismatch" : entry ? "material-root-unavailable" : "material-root-missing", "entry", operation.sourceQuestionId, proposed?.source?.id ?? null, entry ? "No available material matches the accepted entry source, SHA, role and receiver." : proposed ? "The accepted source has helper role; an operation entry is still required." : "No accepted source entry is bound to this operation.", "Locate/read the original entry and submit its source interpretation with entry role; retain existing helper materials.")
+      diagnose(localRoot ? "material-function-root-unavailable" : !entry && proposed ? "material-entry-role-mismatch" : entry ? "material-root-unavailable" : "material-root-missing", "entry", operation.sourceQuestionId, proposed?.source?.id ?? null, localRoot ? "The explicit local root needs one accepted and available helper with the exact source, SHA, question and receiver." : entry ? "No available material matches the accepted entry source, SHA, role and receiver." : proposed ? "The accepted source has helper role; an operation entry is still required." : "No accepted source entry is bound to this operation.", localRoot ? "Read and interpret the exact local root; do not change its helper role." : "Locate/read the original entry and submit its source interpretation with entry role; retain existing helper materials.")
       continue
     }
-    for (const question of program.operationQuestions?.filter(q => q.operationId === operation.id) ?? []) {
+    for (const question of localRoot ? [{ questionId: localRoot.questionId }] : program.operationQuestions?.filter(q => q.operationId === operation.id) ?? []) {
       const candidates = available.map(m => instantiate(m, question.questionId, accepted)), local: BoundSemanticBlock[] = [], seen = new Set<string>()
       const byMaterial = new Map(available.map((m, i) => [m.id, candidates[i]!]))
       const visit = (material: SourceMaterial) => {
@@ -504,9 +508,9 @@ export function projectSourceMaterials(program: AuthorizationInquiryProgram, acc
           visit(helper)
         }
       }
-      uses.push({ kind: "entry", operationId: operation.id, questionId: question.questionId, materialId: root.id, receiverClass: root.receiverClass, arguments: [] })
+      uses.push({ kind: localRoot ? "function-root" : "entry", operationId: operation.id, questionId: question.questionId, materialId: root.id, receiverClass: root.receiverClass, arguments: [] })
       visit(root)
-      if (options.questionDirected) {
+      if (options.questionDirected && !localRoot) {
         const routes = index.routes.filter(r => r.model === "fastapi-source-router/v1" && r.candidateIds.includes(root.source.id)), entry = byMaterial.get(root.id)!
         const gap = (unit: BoundSemanticBlock, reason: string, relationId: string) => { unit.blocks.find(b => b.name === unit.start)!.steps.unshift({ kind: "unresolved", name: `$framework-${relationId}`, claim: `Current request source relationship: ${reason}`, reason }); unit.complete = false; diagnose(reason, "framework", question.questionId, unit.source?.id ?? null, `Current request relationship ${relationId} is unadopted.`, "Read/interpret the named framework source or retain this exact request boundary.", { materialId: root.id, sourceCallId: relationId }) }
         const unmodeled = index.diagnostics.find(d => d.handlerId === root.source.id && d.code.startsWith("route-"))
@@ -579,5 +583,5 @@ export function projectSourceMaterials(program: AuthorizationInquiryProgram, acc
       units.push(...local)
     }
   }
-  return { units, uses, diagnostics, stages: { saved: snapshot.materials.length, current: current.length, available: available.length, projectedUnits: units.length, entryUses: uses.filter(u => u.kind === "entry").length, callUses: uses.filter(u => u.kind === "call").length, frameworkUses: uses.filter(u => u.kind === "framework").length, blocked: diagnostics.length } }
+  return { units, uses, diagnostics, stages: { saved: snapshot.materials.length, current: current.length, available: available.length, projectedUnits: units.length, entryUses: uses.filter(u => u.kind === "entry").length, functionRootUses: uses.filter(u => u.kind === "function-root").length, callUses: uses.filter(u => u.kind === "call").length, frameworkUses: uses.filter(u => u.kind === "framework").length, blocked: diagnostics.length } }
 }

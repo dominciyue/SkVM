@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**BF已获准进入真实可执行程序与自动编写接线，当前为规划状态。** [BF0–BF17](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)从74bf7bef出发，安排约8小时工程、有限实际运行和交付。先把开发者编写的真实函数范围合同经普通入口执行，再修来源/focus路由、材料采用与变化消费；开发者参考实现与自动生成实验严格分轨。保留完整原skill与四问，不将helper伪标请求entry，不继续扩大通用语言语义。方法与后续实录统一见[§7.67](#767-bf-真实可执行程序与自动编写接线)，尚无BF效果结论。
+**BF已进入真实可执行程序与自动编写接线开发，当前in-progress。** [BF0–BF17](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)从74bf7bef出发，安排约8小时工程、有限实际运行和交付。先把开发者编写的真实函数范围合同经普通入口执行，再修来源/focus路由、材料采用与变化消费；开发者参考实现与自动生成实验严格分轨。保留完整原skill与四问，不将helper伪标请求entry，不继续扩大通用语言语义。方法与后续实录统一见[§7.67](#767-bf-真实可执行程序与自动编写接线)，尚无BF效果结论。
 
 **BE有限执行已完成，研究目标未达；H是普通辅助候选，D保留显式研究入口。** [BE0–BE18](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)的六质量首位置、两具名D修订及六变化逻辑位置均交付，16归档含14模型/2未启动；BE18实质成果已发布至96ed3472并核对live远端。原质量0/6整题full、全部实际0/14，10D共35检查unknown、0合格跨源性质。原同epoch两块D都未优于H而input/output/耗时更高；具名修订相对H是tradeoff，不能归为语法或6行修复的因果收益。政策/前提/source变化分别tradeoff/negative/no-observed-difference，policy/premise各恢复1 partial R1但实际使用0，source撤回R1并保留R0，R2全false。请求范围、部分源码转换及保守依赖修复经最终225核心测试/12研究测试和主/研究类型验证；有限队列true、researchGoalAchieved false，详见[§7.66](#766-be-领域问题前端与机制价值验证)和[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/acceptance-matrix.json)。
 
@@ -2516,7 +2516,7 @@ BE14三变化先完成零模型compare并锁定D1/original。[事实合同核对
 
 ### 7.67 BF 真实可执行程序与自动编写接线
 
-2026-10-12，用户在BE复核后要求书写并派发约8小时任务，指定开发gpt-6.1-sol/max。[BF0–BF17](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)以74bf7bef为规划基线，identity为`authorization-executable-contract-v1`，当前planned-authorized，尚无新增实现/实验结果。方法见[spec§14.45](skill-ir-aot-optimization-spec.md#1445-bf-executable-contract-and-authoring)。
+2026-10-12，用户在BE复核后要求书写并派发约8小时任务，指定开发gpt-6.1-sol/max。[BF0–BF17](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)以74bf7bef为规划基线，实际接管34e5e302，identity为`authorization-executable-contract-v1`，当前in-progress。方法见[spec§14.45](skill-ir-aot-optimization-spec.md#1445-bf-executable-contract-and-authoring)。
 
 **为什么改变顺序。** BE的前端已经替模型生成机械ID，但仍编译到source-edit并依赖当前interpret焦点；已有helper保存成功而请求entry不存在，使实际投影为零。v7跨源引用和检查已存在，重造resolver或继续补语言语法没有针对这两处断点。先由开发者依据真实源码编写一份程序，才能区分语言表达/执行失败与模型编写失败。
 
@@ -2527,6 +2527,10 @@ BE14三变化先完成零模型compare并锁定D1/original。[事实合同核对
 **执行安排。** 约5小时优先做真实程序、范围/路由/采用、普通输入与变化反例，余下时间做有限自动H/D、同包消费、变化对照及发布。六首位置分三轨，可选一对确认和最多三具名修订；失败当场定位修复，不继续受已知缺陷影响的调用。第三方暂停、OWUI仅离线、已授权官方实验账号及原保护边界不变。若提前完成，补调用实例、来源顺序和真实context的共同缺陷，不以等待或重复审计凑时长。
 
 **接下来需要得到的事实。** A能否从普通入口得到源有据的局部跨函数轨迹；B能否用原稿或记录的修订实际采用；C能否用同一包回答原/变任务并正确失效。A失败定位抽象，A成功/B失败定位编写，A/B成功/C无收益定位消费和成本。不得把三种结果合成“继续补语义”或预先承诺正向效果。后续开发发现和验证直接续写本节，同时更新§1/§11。
+
+**BF1 / 首个公共失败（开发中）。** 独立`source-call-review.ts`从当前实际调用与参数绑定检查有限事实，不进入模型或授权运行时。匿名双调用已覆盖None、空字符串、显式版本以及root缺失回退；缺场景事实保持unresolved，lookup的True不能传成独立resolver的参数。整体答案复核沿显式跨问引用收集独立复核事实，缺限定或任一矛盾仍失败，BE原评分与原件不改。
+
+`authorization-executable-contract/v1`初版由来源声明、scope、queries和有来源但尚不赋值的assumptions组成；文件/工具接点尚待接线。当前编译器复用question声明/source-edit、原材料投影和性质检查。显式function-root只选择当前helper，并给原语义展开指定局部根；helper角色不变，requestOperationCertified恒false。匿名公共核心得到非空实际call trace的checked，已有v7前后未知/主体/对象/顺序/权限反例保持。Paperless原四问完整保留，新增开发局部问单列；`authoring/first-public-failure.json`保存旧focus拒绝及新局部根首个unknown，材料saved/current/available=2但callUses=0。真实A尚未闭合，自动B及消费C未运行，不记生成或收益信用。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
@@ -2647,7 +2651,10 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 
 - **2026-10-12 / BF规划：** BE发布后核清helper缺请求root、已读声明受focus阻断和两条评阅参数误传。用户授权约8小时新线程开发；先作者可执行程序与显式范围，再修自动编写/实际材料消费，最后有限H/D和同包变化。计划已登记，未运行BF模型或生产实现，见§7.67。
 
+- **2026-10-12 / BF接管与首个失败：** 实际从34e5e302接管，独立调用参数/整体答案复核与显式局部helper根核心已有红绿证据；218材料/声明/复核测试及35公共链通过。匿名局部跨call checked，真实Paperless首件仍unknown，旧focus拒绝与当前采用阻断已保存，A/B/C与实际收益未完成；继续当前任务书，见§7.67。
+
 ## 12. 后续追加规则
+
 
 1. 研究结论统一维护在本文件。更新对应主题和本轮 §7.x 记录时，同时更新第 1 节当前综合判断及第 11 节问题表，避免新结果只出现在文末。
 2. 每个问题记录触发、根因、解决、验证和未决项，链接最窄原始证据。日常重复验证、派发计数和发布流水留在机器状态、任务书与 Git。

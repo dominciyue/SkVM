@@ -1,0 +1,4435 @@
+{
+  "originalQuestionIds": [
+    "requested-document-and-returned-file",
+    "authorization-and-selection-order",
+    "alternate-version-authorized-resource",
+    "missing-facts-and-conditional-conclusions"
+  ],
+  "developmentQuestion": "local-file-contract",
+  "oldFocusPath": [
+    {
+      "code": "question-source-unoffered",
+      "path": "source",
+      "message": "Locate and read the current source passage, or request the next source with authorization_question.",
+      "severity": "error"
+    }
+  ],
+  "compilation": {
+    "diagnostics": [],
+    "contract": {
+      "schemaVersion": "authorization-executable-contract/v1",
+      "id": "paperless-local-file-response-v1",
+      "scope": {
+        "kind": "function-contract",
+        "questionId": "local-file-contract",
+        "root": {
+          "path": "src/documents/views.py",
+          "startLine": 1429,
+          "endLine": 1448,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        "upstream": [
+          "Request entry, authentication, permission classes and framework object permission dispatch remain outside this local function contract."
+        ]
+      },
+      "sourceDeclarations": [
+        {
+          "schemaVersion": "authorization-question-declaration/v1",
+          "source": {
+            "path": "src/documents/views.py",
+            "startLine": 1429,
+            "endLine": 1448,
+            "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+          },
+          "statements": [
+            {
+              "kind": "object",
+              "expression": "self",
+              "as": "context",
+              "because": "Actual local input; no authorization grant is assumed."
+            },
+            {
+              "kind": "object",
+              "expression": "pk",
+              "as": "context",
+              "because": "Actual local input; no authorization grant is assumed."
+            },
+            {
+              "kind": "object",
+              "expression": "request",
+              "as": "context",
+              "because": "Actual local input; no authorization grant is assumed."
+            },
+            {
+              "kind": "object",
+              "expression": "disposition",
+              "as": "context",
+              "because": "Actual local input; no authorization grant is assumed."
+            },
+            {
+              "kind": "dependency",
+              "at": {
+                "path": "src/documents/views.py",
+                "startLine": 1430,
+                "endLine": 1434,
+                "text": "self._resolve_request_and_root_doc(\n            pk,\n            request,\n            include_deleted=True,\n        )"
+              },
+              "as": "context",
+              "because": "Preserve the actual source call and its unknown result/control influence."
+            },
+            {
+              "kind": "dependency",
+              "at": {
+                "path": "src/documents/views.py",
+                "startLine": 1435,
+                "endLine": 1435,
+                "text": "isinstance(resolved, HttpResponseForbidden)"
+              },
+              "as": "context",
+              "because": "Preserve the actual source call and its unknown result/control influence."
+            },
+            {
+              "kind": "condition",
+              "at": {
+                "path": "src/documents/views.py",
+                "startLine": 1435,
+                "endLine": 1435,
+                "text": "isinstance(resolved, HttpResponseForbidden)"
+              },
+              "test": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "isinstance(resolved, HttpResponseForbidden)"
+                }
+              },
+              "because": "Initial unresolved source test; its meaning is not a grant or a known premise."
+            },
+            {
+              "kind": "dependency",
+              "at": {
+                "path": "src/documents/views.py",
+                "startLine": 1437,
+                "endLine": 1441,
+                "text": "self._get_effective_file_doc(\n            resolved.request_doc,\n            resolved.root_doc,\n            request,\n        )"
+              },
+              "as": "context",
+              "because": "Preserve the actual source call and its unknown result/control influence."
+            },
+            {
+              "kind": "dependency",
+              "at": {
+                "path": "src/documents/views.py",
+                "startLine": 1442,
+                "endLine": 1448,
+                "text": "serve_file(\n            doc=file_doc,\n            use_archive=not self.original_requested(request)\n            and file_doc.has_archive_version,\n            disposition=disposition,\n            follow_formatting=request.query_params.get(\"follow_formatting\", False),\n        )"
+              },
+              "as": "effect",
+              "because": "Preserve the actual source call and its unknown result/control influence."
+            },
+            {
+              "kind": "dependency",
+              "at": {
+                "path": "src/documents/views.py",
+                "startLine": 1444,
+                "endLine": 1444,
+                "text": "self.original_requested(request)"
+              },
+              "as": "context",
+              "because": "Preserve the actual source call and its unknown result/control influence."
+            },
+            {
+              "kind": "dependency",
+              "at": {
+                "path": "src/documents/views.py",
+                "startLine": 1447,
+                "endLine": 1447,
+                "text": "request.query_params.get(\"follow_formatting\", False)"
+              },
+              "as": "context",
+              "because": "Preserve the actual source call and its unknown result/control influence."
+            }
+          ]
+        },
+        {
+          "schemaVersion": "authorization-question-declaration/v1",
+          "source": {
+            "path": "src/documents/views.py",
+            "startLine": 1401,
+            "endLine": 1427,
+            "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+          },
+          "statements": [
+            {
+              "kind": "object",
+              "expression": "self",
+              "as": "context",
+              "because": "Actual local input; no authorization grant is assumed."
+            },
+            {
+              "kind": "object",
+              "expression": "pk",
+              "as": "context",
+              "because": "Actual local input; no authorization grant is assumed."
+            },
+            {
+              "kind": "object",
+              "expression": "request",
+              "as": "context",
+              "because": "Actual local input; no authorization grant is assumed."
+            },
+            {
+              "kind": "object",
+              "expression": "include_deleted",
+              "as": "context",
+              "because": "Actual local input; no authorization grant is assumed."
+            },
+            {
+              "kind": "dependency",
+              "at": {
+                "path": "src/documents/views.py",
+                "startLine": 1410,
+                "endLine": 1413,
+                "text": "manager.select_related(\n                \"owner\",\n                \"root_document\",\n            )"
+              },
+              "as": "context",
+              "because": "Preserve the actual source call and its unknown result/control influence."
+            },
+            {
+              "kind": "dependency",
+              "at": {
+                "path": "src/documents/views.py",
+                "startLine": 1410,
+                "endLine": 1413,
+                "text": "manager.select_related(\n                \"owner\",\n                \"root_document\",\n            ).get(id=pk)"
+              },
+              "as": "context",
+              "because": "Preserve the actual source call and its unknown result/control influence."
+            },
+            {
+              "kind": "dependency",
+              "at": {
+                "path": "src/documents/views.py",
+                "startLine": 1417,
+                "endLine": 1420,
+                "text": "get_root_document(\n            request_doc,\n            include_deleted=include_deleted,\n        )"
+              },
+              "as": "context",
+              "because": "Preserve the actual source call and its unknown result/control influence."
+            },
+            {
+              "kind": "condition",
+              "at": {
+                "path": "src/documents/views.py",
+                "startLine": 1421,
+                "endLine": 1425,
+                "text": "request.user is not None and not has_perms_owner_aware(\n            request.user,\n            \"view_document\",\n            root_doc,\n        )"
+              },
+              "test": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "request.user is not None and not has_perms_owner_aware(\n            request.user,\n            \"view_document\",\n            root_doc,\n        )"
+                }
+              },
+              "because": "Initial unresolved source test; its meaning is not a grant or a known premise."
+            },
+            {
+              "kind": "dependency",
+              "at": {
+                "path": "src/documents/views.py",
+                "startLine": 1421,
+                "endLine": 1425,
+                "text": "has_perms_owner_aware(\n            request.user,\n            \"view_document\",\n            root_doc,\n        )"
+              },
+              "as": "context",
+              "because": "Preserve the actual source call and its unknown result/control influence."
+            },
+            {
+              "kind": "dependency",
+              "at": {
+                "path": "src/documents/views.py",
+                "startLine": 1426,
+                "endLine": 1426,
+                "text": "HttpResponseForbidden(\"Insufficient permissions\")"
+              },
+              "as": "context",
+              "because": "Preserve the actual source call and its unknown result/control influence."
+            },
+            {
+              "kind": "dependency",
+              "at": {
+                "path": "src/documents/views.py",
+                "startLine": 1427,
+                "endLine": 1427,
+                "text": "ResolvedRequestDocs(request_doc=request_doc, root_doc=root_doc)"
+              },
+              "as": "context",
+              "because": "Preserve the actual source call and its unknown result/control influence."
+            }
+          ]
+        }
+      ],
+      "queries": [
+        {
+          "property": "local-call",
+          "effect": {
+            "path": "src/documents/views.py",
+            "startLine": 1442,
+            "endLine": 1448,
+            "text": "serve_file(\n            doc=file_doc,\n            use_archive=not self.original_requested(request)\n            and file_doc.has_archive_version,\n            disposition=disposition,\n            follow_formatting=request.query_params.get(\"follow_formatting\", False),\n        )"
+          }
+        }
+      ],
+      "assumptions": []
+    },
+    "revision": "8ab90b1c99555b3988ceadd59e94ebf193e7ba4d5bec50e43786b0dd77c060f5",
+    "scope": {
+      "kind": "function-contract",
+      "questionId": "local-file-contract",
+      "root": {
+        "path": "src/documents/views.py",
+        "startLine": 1429,
+        "endLine": 1448,
+        "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+      },
+      "upstream": [
+        "Request entry, authentication, permission classes and framework object permission dispatch remain outside this local function contract."
+      ]
+    },
+    "assumptions": [],
+    "units": [
+      {
+        "itemId": "contract-5006bb8f93ced69a30302613",
+        "handle": "contract-5006bb8f93ced69a30302613",
+        "op": "add",
+        "role": "helper",
+        "start": "source-main",
+        "coverage": "path",
+        "complete": true,
+        "fallthrough": "unresolved",
+        "parameters": [
+          {
+            "name": "self",
+            "type": "configuration"
+          },
+          {
+            "name": "pk",
+            "type": "configuration"
+          },
+          {
+            "name": "request",
+            "type": "configuration"
+          },
+          {
+            "name": "disposition",
+            "type": "configuration"
+          }
+        ],
+        "blocks": [
+          {
+            "name": "source-main",
+            "steps": [
+              {
+                "kind": "bind",
+                "name": "literal-anchor-8c381d46def5890f94e11a98-include_deleted",
+                "claim": "Actual source literal argument/default/empty pack",
+                "type": "value",
+                "value": true
+              },
+              {
+                "kind": "call",
+                "name": "call-anchor-8c381d46def5890f94e11a98",
+                "claim": "Preserve the actual source call and its unknown result/control influence.",
+                "symbol": "self._resolve_request_and_root_doc",
+                "domainRoles": [
+                  "context"
+                ],
+                "sourceCallId": "call-82799ef45b1e563164b85820",
+                "arguments": [
+                  {
+                    "parameter": "self",
+                    "object": "self"
+                  },
+                  {
+                    "parameter": "pk",
+                    "object": "pk"
+                  },
+                  {
+                    "parameter": "request",
+                    "object": "request"
+                  },
+                  {
+                    "parameter": "include_deleted",
+                    "object": "literal-anchor-8c381d46def5890f94e11a98-include_deleted"
+                  }
+                ],
+                "result": "resolved",
+                "pathHint": "src/documents/views.py:1401-1427",
+                "candidateId": "struct-4a9672f6253534ddaf14b54e",
+                "methodRead": {
+                  "receiver": "self",
+                  "method": "_resolve_request_and_root_doc"
+                }
+              },
+              {
+                "kind": "call",
+                "name": "call-anchor-4ce0c5e45e7c40a7a13776d0",
+                "claim": "Preserve the actual source call and its unknown result/control influence.",
+                "symbol": "isinstance",
+                "domainRoles": [
+                  "context"
+                ],
+                "sourceCallId": "call-c6cfc30fa5a80bb3428ee22c",
+                "arguments": [],
+                "result": "result-02fa0b3c2dc5a777"
+              },
+              {
+                "kind": "choose",
+                "name": "choose-anchor-ca4ab2d0932442369e3eadee",
+                "claim": "Initial unresolved source test; its meaning is not a grant or a known premise.",
+                "cases": [
+                  {
+                    "condition": {
+                      "op": "truthy",
+                      "language": "python",
+                      "value": {
+                        "binding": "isinstance(resolved, HttpResponseForbidden)"
+                      }
+                    },
+                    "body": "source-true-0"
+                  }
+                ],
+                "otherwise": "source-false-0"
+              },
+              {
+                "kind": "call",
+                "name": "call-anchor-22ff90ff144b3a72469c33d8",
+                "claim": "Preserve the actual source call and its unknown result/control influence.",
+                "symbol": "self._get_effective_file_doc",
+                "domainRoles": [
+                  "context"
+                ],
+                "sourceCallId": "call-878a7aff26af5b893259049f",
+                "arguments": [
+                  {
+                    "parameter": "self",
+                    "object": "self"
+                  },
+                  {
+                    "parameter": "request_doc",
+                    "object": "resolved.request_doc"
+                  },
+                  {
+                    "parameter": "root_doc",
+                    "object": "resolved.root_doc"
+                  },
+                  {
+                    "parameter": "request",
+                    "object": "request"
+                  }
+                ],
+                "result": "file_doc",
+                "pathHint": "src/documents/views.py:1388-1399",
+                "candidateId": "struct-c324d0c7523b878776417593",
+                "methodRead": {
+                  "receiver": "self",
+                  "method": "_get_effective_file_doc"
+                }
+              },
+              {
+                "kind": "call",
+                "name": "call-anchor-6f09571ec5d12ac63c7aee1c",
+                "claim": "Preserve the actual source call and its unknown result/control influence.",
+                "symbol": "self.original_requested",
+                "domainRoles": [
+                  "context"
+                ],
+                "sourceCallId": "call-cc03ccc8ef4c67dbf98fa7de",
+                "arguments": [
+                  {
+                    "parameter": "request",
+                    "object": "request"
+                  }
+                ],
+                "result": "result-3315b091cb66c59f",
+                "pathHint": "src/documents/views.py:1369-1373",
+                "candidateId": "struct-8363b0b6a86b25273c205577"
+              },
+              {
+                "kind": "short-circuit",
+                "name": "short-anchor-db8499c433e16536adcf1989",
+                "claim": "Original source syntax",
+                "operator": "and",
+                "language": "python",
+                "left": {
+                  "binding": "not self.original_requested(request)"
+                },
+                "right": {
+                  "binding": "file_doc.has_archive_version"
+                },
+                "result": "expression-712f74a749781413",
+                "body": "source-false-0"
+              },
+              {
+                "kind": "call",
+                "name": "call-anchor-d904c8c5d76824a34684d48f",
+                "claim": "Preserve the actual source call and its unknown result/control influence.",
+                "symbol": "request.query_params.get",
+                "domainRoles": [
+                  "context"
+                ],
+                "sourceCallId": "call-883f2888d91927d12175197b",
+                "arguments": [],
+                "result": "result-aa596bd5560678a7"
+              },
+              {
+                "kind": "call",
+                "name": "call-anchor-a4e848ea303537d7080cabf0",
+                "claim": "Preserve the actual source call and its unknown result/control influence.",
+                "symbol": "serve_file",
+                "domainRoles": [
+                  "effect"
+                ],
+                "sourceCallId": "call-6a2f8d15135d88065a37fbdf",
+                "arguments": [
+                  {
+                    "parameter": "doc",
+                    "object": "file_doc"
+                  },
+                  {
+                    "parameter": "use_archive",
+                    "object": "expression-712f74a749781413"
+                  },
+                  {
+                    "parameter": "disposition",
+                    "object": "disposition"
+                  },
+                  {
+                    "parameter": "follow_formatting",
+                    "object": "result-aa596bd5560678a7"
+                  }
+                ],
+                "result": "result-ed798ff6b24e643a",
+                "pathHint": "src/documents/views.py:4941-4995",
+                "candidateId": "struct-cee4399c4960908d4f7ca1fd"
+              },
+              {
+                "kind": "return",
+                "name": "return-anchor-56fad5352ec466ea695b6268",
+                "claim": "Original source syntax",
+                "valueFrom": "result-ed798ff6b24e643a"
+              }
+            ]
+          },
+          {
+            "name": "source-true-0",
+            "steps": [
+              {
+                "kind": "return",
+                "name": "return-anchor-051aa0c18d787b2d04ad74cd",
+                "claim": "Original source syntax",
+                "valueFrom": "resolved"
+              }
+            ]
+          },
+          {
+            "name": "source-false-0",
+            "steps": []
+          }
+        ],
+        "questionId": "local-file-contract",
+        "evidenceIds": [
+          "ev-2a863fd7066847e3f147"
+        ],
+        "source": {
+          "id": "struct-c1a6bd6945975b47fbb4b98c",
+          "path": "src/documents/views.py",
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+          "startLine": 1429,
+          "endLine": 1448
+        }
+      },
+      {
+        "itemId": "contract-6ca7a3d82e88914266989f7f",
+        "handle": "contract-6ca7a3d82e88914266989f7f",
+        "op": "add",
+        "role": "helper",
+        "start": "source-main",
+        "coverage": "path",
+        "complete": false,
+        "fallthrough": "unresolved",
+        "parameters": [
+          {
+            "name": "self",
+            "type": "configuration"
+          },
+          {
+            "name": "pk",
+            "type": "configuration"
+          },
+          {
+            "name": "request",
+            "type": "configuration"
+          },
+          {
+            "name": "include_deleted",
+            "type": "configuration"
+          }
+        ],
+        "blocks": [
+          {
+            "name": "source-main",
+            "steps": [
+              {
+                "kind": "assign-value",
+                "name": "assign-anchor-f8550f84531ec254673309da",
+                "claim": "Original source syntax",
+                "result": "manager",
+                "value": {
+                  "binding": "Document.global_objects if include_deleted else Document.objects"
+                }
+              },
+              {
+                "kind": "try",
+                "name": "try-anchor-2a4b44be32984e32eb86f001",
+                "claim": "Original source syntax",
+                "body": "source-try-0",
+                "handlers": [
+                  {
+                    "exceptionTypes": [
+                      "Document.DoesNotExist"
+                    ],
+                    "catchesAll": false,
+                    "body": "source-handler-0-0"
+                  }
+                ],
+                "otherwise": "source-else-0",
+                "finally": "source-else-0"
+              },
+              {
+                "kind": "call",
+                "name": "call-anchor-b067fc2b185d93a41b3e20a2",
+                "claim": "Preserve the actual source call and its unknown result/control influence.",
+                "symbol": "get_root_document",
+                "domainRoles": [
+                  "context"
+                ],
+                "sourceCallId": "call-1b6611fb1500ce49654386e3",
+                "arguments": [
+                  {
+                    "parameter": "doc",
+                    "object": "request_doc"
+                  },
+                  {
+                    "parameter": "include_deleted",
+                    "object": "include_deleted"
+                  }
+                ],
+                "result": "root_doc",
+                "pathHint": "src/documents/versioning.py:146-156",
+                "candidateId": "struct-7ab1297ea3f05dc30ca55b3d"
+              },
+              {
+                "kind": "short-circuit",
+                "name": "short-anchor-41fcfe3c300d4aeab97a93ba",
+                "claim": "Original source syntax",
+                "operator": "and",
+                "language": "python",
+                "left": {
+                  "binding": "request.user is not None"
+                },
+                "right": {
+                  "binding": "not has_perms_owner_aware(\n            request.user,\n            \"view_document\",\n            root_doc,\n        )"
+                },
+                "result": "expression-efa023adfb3c3cc8",
+                "body": "source-rhs-1"
+              },
+              {
+                "kind": "choose",
+                "name": "choose-anchor-9c8aea5c5131da5671dec309",
+                "claim": "Initial unresolved source test; its meaning is not a grant or a known premise.",
+                "cases": [
+                  {
+                    "condition": {
+                      "op": "truthy",
+                      "language": "python",
+                      "value": {
+                        "binding": "request.user is not None and not has_perms_owner_aware(\n            request.user,\n            \"view_document\",\n            root_doc,\n        )"
+                      }
+                    },
+                    "body": "source-true-2"
+                  }
+                ],
+                "otherwise": "source-else-0"
+              },
+              {
+                "kind": "call",
+                "name": "call-anchor-79f61fe12c5ac68f68076ce0",
+                "claim": "Preserve the actual source call and its unknown result/control influence.",
+                "symbol": "ResolvedRequestDocs",
+                "domainRoles": [
+                  "context"
+                ],
+                "sourceCallId": "call-f8827c59362522708140a952",
+                "arguments": [],
+                "result": "result-5844bde31396c8bc"
+              },
+              {
+                "kind": "return",
+                "name": "return-anchor-7b2e3f1d2d0973d7613ba7bb",
+                "claim": "Original source syntax",
+                "valueFrom": "result-5844bde31396c8bc"
+              }
+            ]
+          },
+          {
+            "name": "source-try-0",
+            "steps": [
+              {
+                "kind": "call",
+                "name": "call-anchor-93e63ee0ab54d203569453b8",
+                "claim": "Preserve the actual source call and its unknown result/control influence.",
+                "symbol": "manager.select_related",
+                "domainRoles": [
+                  "context"
+                ],
+                "sourceCallId": "call-89cabef1023f54fa1f77ef22",
+                "arguments": [],
+                "result": "result-42f3f10ec2eb4950"
+              },
+              {
+                "kind": "call",
+                "name": "call-anchor-b29d6f9b96996d0b50cdd9b4",
+                "claim": "Preserve the actual source call and its unknown result/control influence.",
+                "symbol": "manager.select_related(\n                \"owner\",\n                \"root_document\",\n            ).get",
+                "domainRoles": [
+                  "context"
+                ],
+                "sourceCallId": "call-89cabef1023f54fa1f77ef22",
+                "arguments": [],
+                "result": "request_doc"
+              }
+            ]
+          },
+          {
+            "name": "source-else-0",
+            "steps": []
+          },
+          {
+            "name": "source-handler-0-0",
+            "steps": [
+              {
+                "kind": "unresolved",
+                "name": "missing-anchor-ec7b89d3e1272a881ba9e466",
+                "claim": "Original source syntax",
+                "reason": "source-fields-missing:failureKind"
+              }
+            ]
+          },
+          {
+            "name": "source-rhs-1",
+            "steps": [
+              {
+                "kind": "bind",
+                "name": "literal-anchor-6ef2df3b93be385615f2aa79-perms",
+                "claim": "Actual source literal argument/default/empty pack",
+                "type": "value",
+                "value": "view_document"
+              },
+              {
+                "kind": "call",
+                "name": "call-anchor-6ef2df3b93be385615f2aa79",
+                "claim": "Preserve the actual source call and its unknown result/control influence.",
+                "symbol": "has_perms_owner_aware",
+                "domainRoles": [
+                  "context"
+                ],
+                "sourceCallId": "call-fe1fd3dd50fbb4ce08f46325",
+                "arguments": [
+                  {
+                    "parameter": "user",
+                    "object": "request.user"
+                  },
+                  {
+                    "parameter": "perms",
+                    "object": "literal-anchor-6ef2df3b93be385615f2aa79-perms"
+                  },
+                  {
+                    "parameter": "obj",
+                    "object": "root_doc"
+                  }
+                ],
+                "result": "result-afe818cd834c6632",
+                "pathHint": "src/documents/permissions.py:624-635",
+                "candidateId": "struct-0c8bed3900304fcee9a1c0b6"
+              }
+            ]
+          },
+          {
+            "name": "source-true-2",
+            "steps": [
+              {
+                "kind": "call",
+                "name": "call-anchor-7e93594c0bc3ce08eeee4623",
+                "claim": "Preserve the actual source call and its unknown result/control influence.",
+                "symbol": "HttpResponseForbidden",
+                "domainRoles": [
+                  "context"
+                ],
+                "sourceCallId": "call-c55aff397c665c6d79396905",
+                "arguments": [],
+                "result": "result-6efa09c412868063"
+              },
+              {
+                "kind": "return",
+                "name": "return-anchor-7ee48e34c178a1302448355f",
+                "claim": "Original source syntax",
+                "valueFrom": "result-6efa09c412868063"
+              }
+            ]
+          }
+        ],
+        "questionId": "local-file-contract",
+        "evidenceIds": [
+          "ev-df2bb4efa0f58fecab6b"
+        ],
+        "source": {
+          "id": "struct-4a9672f6253534ddaf14b54e",
+          "path": "src/documents/views.py",
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+          "startLine": 1401,
+          "endLine": 1427
+        }
+      }
+    ],
+    "projectedUnits": [
+      {
+        "itemId": "contract-5006bb8f93ced69a30302613",
+        "handle": "contract-5006bb8f93ced69a30302613",
+        "op": "add",
+        "role": "helper",
+        "start": "source-main",
+        "coverage": "path",
+        "complete": true,
+        "fallthrough": "unresolved",
+        "parameters": [
+          {
+            "name": "self",
+            "type": "configuration"
+          },
+          {
+            "name": "pk",
+            "type": "configuration"
+          },
+          {
+            "name": "request",
+            "type": "configuration"
+          },
+          {
+            "name": "disposition",
+            "type": "configuration"
+          }
+        ],
+        "blocks": [
+          {
+            "name": "source-main",
+            "steps": [
+              {
+                "kind": "bind",
+                "name": "literal-anchor-8c381d46def5890f94e11a98-include_deleted",
+                "claim": "Actual source literal argument/default/empty pack",
+                "type": "value",
+                "value": true
+              },
+              {
+                "kind": "call",
+                "name": "call-anchor-8c381d46def5890f94e11a98",
+                "claim": "Preserve the actual source call and its unknown result/control influence.",
+                "symbol": "self._resolve_request_and_root_doc",
+                "domainRoles": [
+                  "context"
+                ],
+                "sourceCallId": "call-82799ef45b1e563164b85820",
+                "arguments": [
+                  {
+                    "parameter": "self",
+                    "object": "self"
+                  },
+                  {
+                    "parameter": "pk",
+                    "object": "pk"
+                  },
+                  {
+                    "parameter": "request",
+                    "object": "request"
+                  },
+                  {
+                    "parameter": "include_deleted",
+                    "object": "literal-anchor-8c381d46def5890f94e11a98-include_deleted"
+                  }
+                ],
+                "result": "resolved",
+                "pathHint": "src/documents/views.py:1401-1427",
+                "candidateId": "struct-4a9672f6253534ddaf14b54e"
+              },
+              {
+                "kind": "call",
+                "name": "call-anchor-4ce0c5e45e7c40a7a13776d0",
+                "claim": "Preserve the actual source call and its unknown result/control influence.",
+                "symbol": "isinstance",
+                "domainRoles": [
+                  "context"
+                ],
+                "sourceCallId": "call-c6cfc30fa5a80bb3428ee22c",
+                "arguments": [],
+                "result": "result-02fa0b3c2dc5a777"
+              },
+              {
+                "kind": "choose",
+                "name": "choose-anchor-ca4ab2d0932442369e3eadee",
+                "claim": "Initial unresolved source test; its meaning is not a grant or a known premise.",
+                "cases": [
+                  {
+                    "condition": {
+                      "op": "truthy",
+                      "language": "python",
+                      "value": {
+                        "binding": "isinstance(resolved, HttpResponseForbidden)"
+                      }
+                    },
+                    "body": "source-true-0"
+                  }
+                ],
+                "otherwise": "source-false-0"
+              },
+              {
+                "kind": "call",
+                "name": "call-anchor-22ff90ff144b3a72469c33d8",
+                "claim": "Preserve the actual source call and its unknown result/control influence.",
+                "symbol": "self._get_effective_file_doc",
+                "domainRoles": [
+                  "context"
+                ],
+                "sourceCallId": "call-878a7aff26af5b893259049f",
+                "arguments": [
+                  {
+                    "parameter": "self",
+                    "object": "self"
+                  },
+                  {
+                    "parameter": "request_doc",
+                    "object": "resolved.request_doc"
+                  },
+                  {
+                    "parameter": "root_doc",
+                    "object": "resolved.root_doc"
+                  },
+                  {
+                    "parameter": "request",
+                    "object": "request"
+                  }
+                ],
+                "result": "file_doc",
+                "pathHint": "src/documents/views.py:1388-1399",
+                "candidateId": "struct-c324d0c7523b878776417593"
+              },
+              {
+                "kind": "call",
+                "name": "call-anchor-6f09571ec5d12ac63c7aee1c",
+                "claim": "Preserve the actual source call and its unknown result/control influence.",
+                "symbol": "self.original_requested",
+                "domainRoles": [
+                  "context"
+                ],
+                "sourceCallId": "call-cc03ccc8ef4c67dbf98fa7de",
+                "arguments": [
+                  {
+                    "parameter": "request",
+                    "object": "request"
+                  }
+                ],
+                "result": "result-3315b091cb66c59f",
+                "pathHint": "src/documents/views.py:1369-1373",
+                "candidateId": "struct-8363b0b6a86b25273c205577"
+              },
+              {
+                "kind": "short-circuit",
+                "name": "short-anchor-db8499c433e16536adcf1989",
+                "claim": "Original source syntax",
+                "operator": "and",
+                "language": "python",
+                "left": {
+                  "binding": "not self.original_requested(request)"
+                },
+                "right": {
+                  "binding": "file_doc.has_archive_version"
+                },
+                "result": "expression-712f74a749781413",
+                "body": "source-false-0"
+              },
+              {
+                "kind": "call",
+                "name": "call-anchor-d904c8c5d76824a34684d48f",
+                "claim": "Preserve the actual source call and its unknown result/control influence.",
+                "symbol": "request.query_params.get",
+                "domainRoles": [
+                  "context"
+                ],
+                "sourceCallId": "call-883f2888d91927d12175197b",
+                "arguments": [],
+                "result": "result-aa596bd5560678a7"
+              },
+              {
+                "kind": "call",
+                "name": "call-anchor-a4e848ea303537d7080cabf0",
+                "claim": "Preserve the actual source call and its unknown result/control influence.",
+                "symbol": "serve_file",
+                "domainRoles": [
+                  "effect"
+                ],
+                "sourceCallId": "call-6a2f8d15135d88065a37fbdf",
+                "arguments": [
+                  {
+                    "parameter": "doc",
+                    "object": "file_doc"
+                  },
+                  {
+                    "parameter": "use_archive",
+                    "object": "expression-712f74a749781413"
+                  },
+                  {
+                    "parameter": "disposition",
+                    "object": "disposition"
+                  },
+                  {
+                    "parameter": "follow_formatting",
+                    "object": "result-aa596bd5560678a7"
+                  }
+                ],
+                "result": "result-ed798ff6b24e643a",
+                "pathHint": "src/documents/views.py:4941-4995",
+                "candidateId": "struct-cee4399c4960908d4f7ca1fd"
+              },
+              {
+                "kind": "return",
+                "name": "return-anchor-56fad5352ec466ea695b6268",
+                "claim": "Original source syntax",
+                "valueFrom": "result-ed798ff6b24e643a"
+              }
+            ]
+          },
+          {
+            "name": "source-true-0",
+            "steps": [
+              {
+                "kind": "return",
+                "name": "return-anchor-051aa0c18d787b2d04ad74cd",
+                "claim": "Original source syntax",
+                "valueFrom": "resolved"
+              }
+            ]
+          },
+          {
+            "name": "source-false-0",
+            "steps": []
+          }
+        ],
+        "questionId": "local-file-contract",
+        "evidenceIds": [
+          "ev-2a863fd7066847e3f147"
+        ],
+        "source": {
+          "id": "struct-c1a6bd6945975b47fbb4b98c",
+          "path": "src/documents/views.py",
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+          "startLine": 1429,
+          "endLine": 1448
+        }
+      }
+    ],
+    "functionRoots": [
+      {
+        "questionId": "local-file-contract",
+        "handle": "contract-5006bb8f93ced69a30302613"
+      }
+    ],
+    "sourceMaterials": {
+      "schemaVersion": "authorization-source-materials/v1",
+      "materials": [
+        {
+          "id": "material-539c191c91b67eb2f909b49f",
+          "identity": {
+            "repository": "paperless-ngx/paperless-ngx",
+            "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+            "semanticVersion": "interprocedural-property/v1"
+          },
+          "source": {
+            "id": "struct-c1a6bd6945975b47fbb4b98c",
+            "path": "src/documents/views.py",
+            "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+            "startLine": 1429,
+            "endLine": 1448
+          },
+          "dependencies": [
+            {
+              "kind": "candidate-set",
+              "key": "relations:struct-c1a6bd6945975b47fbb4b98c:",
+              "revision": "633f1101cd510a33722f7769ea705b49cb57494be4bacc5ca9f13ce6588dd35b"
+            },
+            {
+              "kind": "source-span",
+              "key": "src/documents/views.py",
+              "revision": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            {
+              "kind": "symbol-resolution",
+              "key": "struct-c1a6bd6945975b47fbb4b98c",
+              "revision": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            }
+          ],
+          "evidenceIds": [
+            "ev-2a863fd7066847e3f147"
+          ],
+          "unit": {
+            "itemId": "contract-5006bb8f93ced69a30302613",
+            "handle": "contract-5006bb8f93ced69a30302613",
+            "op": "add",
+            "role": "helper",
+            "start": "source-main",
+            "coverage": "path",
+            "complete": true,
+            "fallthrough": "unresolved",
+            "parameters": [
+              {
+                "name": "self",
+                "type": "configuration"
+              },
+              {
+                "name": "pk",
+                "type": "configuration"
+              },
+              {
+                "name": "request",
+                "type": "configuration"
+              },
+              {
+                "name": "disposition",
+                "type": "configuration"
+              }
+            ],
+            "blocks": [
+              {
+                "name": "source-main",
+                "steps": [
+                  {
+                    "kind": "bind",
+                    "name": "literal-anchor-8c381d46def5890f94e11a98-include_deleted",
+                    "claim": "Actual source literal argument/default/empty pack",
+                    "type": "value",
+                    "value": true
+                  },
+                  {
+                    "kind": "call",
+                    "name": "call-anchor-8c381d46def5890f94e11a98",
+                    "claim": "Preserve the actual source call and its unknown result/control influence.",
+                    "symbol": "self._resolve_request_and_root_doc",
+                    "domainRoles": [
+                      "context"
+                    ],
+                    "sourceCallId": "call-82799ef45b1e563164b85820",
+                    "arguments": [
+                      {
+                        "parameter": "self",
+                        "object": "self"
+                      },
+                      {
+                        "parameter": "pk",
+                        "object": "pk"
+                      },
+                      {
+                        "parameter": "request",
+                        "object": "request"
+                      },
+                      {
+                        "parameter": "include_deleted",
+                        "object": "literal-anchor-8c381d46def5890f94e11a98-include_deleted"
+                      }
+                    ],
+                    "result": "resolved",
+                    "pathHint": "src/documents/views.py:1401-1427",
+                    "candidateId": "struct-4a9672f6253534ddaf14b54e",
+                    "methodRead": {
+                      "receiver": "self",
+                      "method": "_resolve_request_and_root_doc"
+                    }
+                  },
+                  {
+                    "kind": "call",
+                    "name": "call-anchor-4ce0c5e45e7c40a7a13776d0",
+                    "claim": "Preserve the actual source call and its unknown result/control influence.",
+                    "symbol": "isinstance",
+                    "domainRoles": [
+                      "context"
+                    ],
+                    "sourceCallId": "call-c6cfc30fa5a80bb3428ee22c",
+                    "arguments": [],
+                    "result": "result-02fa0b3c2dc5a777"
+                  },
+                  {
+                    "kind": "choose",
+                    "name": "choose-anchor-ca4ab2d0932442369e3eadee",
+                    "claim": "Initial unresolved source test; its meaning is not a grant or a known premise.",
+                    "cases": [
+                      {
+                        "condition": {
+                          "op": "truthy",
+                          "language": "python",
+                          "value": {
+                            "binding": "isinstance(resolved, HttpResponseForbidden)"
+                          }
+                        },
+                        "body": "source-true-0"
+                      }
+                    ],
+                    "otherwise": "source-false-0"
+                  },
+                  {
+                    "kind": "call",
+                    "name": "call-anchor-22ff90ff144b3a72469c33d8",
+                    "claim": "Preserve the actual source call and its unknown result/control influence.",
+                    "symbol": "self._get_effective_file_doc",
+                    "domainRoles": [
+                      "context"
+                    ],
+                    "sourceCallId": "call-878a7aff26af5b893259049f",
+                    "arguments": [
+                      {
+                        "parameter": "self",
+                        "object": "self"
+                      },
+                      {
+                        "parameter": "request_doc",
+                        "object": "resolved.request_doc"
+                      },
+                      {
+                        "parameter": "root_doc",
+                        "object": "resolved.root_doc"
+                      },
+                      {
+                        "parameter": "request",
+                        "object": "request"
+                      }
+                    ],
+                    "result": "file_doc",
+                    "pathHint": "src/documents/views.py:1388-1399",
+                    "candidateId": "struct-c324d0c7523b878776417593",
+                    "methodRead": {
+                      "receiver": "self",
+                      "method": "_get_effective_file_doc"
+                    }
+                  },
+                  {
+                    "kind": "call",
+                    "name": "call-anchor-6f09571ec5d12ac63c7aee1c",
+                    "claim": "Preserve the actual source call and its unknown result/control influence.",
+                    "symbol": "self.original_requested",
+                    "domainRoles": [
+                      "context"
+                    ],
+                    "sourceCallId": "call-cc03ccc8ef4c67dbf98fa7de",
+                    "arguments": [
+                      {
+                        "parameter": "request",
+                        "object": "request"
+                      }
+                    ],
+                    "result": "result-3315b091cb66c59f",
+                    "pathHint": "src/documents/views.py:1369-1373",
+                    "candidateId": "struct-8363b0b6a86b25273c205577"
+                  },
+                  {
+                    "kind": "short-circuit",
+                    "name": "short-anchor-db8499c433e16536adcf1989",
+                    "claim": "Original source syntax",
+                    "operator": "and",
+                    "language": "python",
+                    "left": {
+                      "binding": "not self.original_requested(request)"
+                    },
+                    "right": {
+                      "binding": "file_doc.has_archive_version"
+                    },
+                    "result": "expression-712f74a749781413",
+                    "body": "source-false-0"
+                  },
+                  {
+                    "kind": "call",
+                    "name": "call-anchor-d904c8c5d76824a34684d48f",
+                    "claim": "Preserve the actual source call and its unknown result/control influence.",
+                    "symbol": "request.query_params.get",
+                    "domainRoles": [
+                      "context"
+                    ],
+                    "sourceCallId": "call-883f2888d91927d12175197b",
+                    "arguments": [],
+                    "result": "result-aa596bd5560678a7"
+                  },
+                  {
+                    "kind": "call",
+                    "name": "call-anchor-a4e848ea303537d7080cabf0",
+                    "claim": "Preserve the actual source call and its unknown result/control influence.",
+                    "symbol": "serve_file",
+                    "domainRoles": [
+                      "effect"
+                    ],
+                    "sourceCallId": "call-6a2f8d15135d88065a37fbdf",
+                    "arguments": [
+                      {
+                        "parameter": "doc",
+                        "object": "file_doc"
+                      },
+                      {
+                        "parameter": "use_archive",
+                        "object": "expression-712f74a749781413"
+                      },
+                      {
+                        "parameter": "disposition",
+                        "object": "disposition"
+                      },
+                      {
+                        "parameter": "follow_formatting",
+                        "object": "result-aa596bd5560678a7"
+                      }
+                    ],
+                    "result": "result-ed798ff6b24e643a",
+                    "pathHint": "src/documents/views.py:4941-4995",
+                    "candidateId": "struct-cee4399c4960908d4f7ca1fd"
+                  },
+                  {
+                    "kind": "return",
+                    "name": "return-anchor-56fad5352ec466ea695b6268",
+                    "claim": "Original source syntax",
+                    "valueFrom": "result-ed798ff6b24e643a"
+                  }
+                ]
+              },
+              {
+                "name": "source-true-0",
+                "steps": [
+                  {
+                    "kind": "return",
+                    "name": "return-anchor-051aa0c18d787b2d04ad74cd",
+                    "claim": "Original source syntax",
+                    "valueFrom": "resolved"
+                  }
+                ]
+              },
+              {
+                "name": "source-false-0",
+                "steps": []
+              }
+            ],
+            "questionId": "local-file-contract",
+            "evidenceIds": [
+              "ev-2a863fd7066847e3f147"
+            ],
+            "source": {
+              "id": "struct-c1a6bd6945975b47fbb4b98c",
+              "path": "src/documents/views.py",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+              "startLine": 1429,
+              "endLine": 1448
+            }
+          },
+          "current": true,
+          "semanticSupport": "unreviewed",
+          "interpretationSource": "revalidated-original"
+        },
+        {
+          "id": "material-dbdf7b46b1b2b1d5145ea733",
+          "identity": {
+            "repository": "paperless-ngx/paperless-ngx",
+            "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+            "semanticVersion": "interprocedural-property/v1"
+          },
+          "source": {
+            "id": "struct-4a9672f6253534ddaf14b54e",
+            "path": "src/documents/views.py",
+            "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+            "startLine": 1401,
+            "endLine": 1427
+          },
+          "dependencies": [
+            {
+              "kind": "candidate-set",
+              "key": "relations:struct-4a9672f6253534ddaf14b54e:",
+              "revision": "bdee82398239aea45f51372751d6aa4e8aa89d212ab3a7000f1e3eb35078db7f"
+            },
+            {
+              "kind": "source-span",
+              "key": "src/documents/views.py",
+              "revision": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            {
+              "kind": "symbol-resolution",
+              "key": "struct-4a9672f6253534ddaf14b54e",
+              "revision": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            }
+          ],
+          "evidenceIds": [
+            "ev-df2bb4efa0f58fecab6b"
+          ],
+          "unit": {
+            "itemId": "contract-6ca7a3d82e88914266989f7f",
+            "handle": "contract-6ca7a3d82e88914266989f7f",
+            "op": "add",
+            "role": "helper",
+            "start": "source-main",
+            "coverage": "path",
+            "complete": false,
+            "fallthrough": "unresolved",
+            "parameters": [
+              {
+                "name": "self",
+                "type": "configuration"
+              },
+              {
+                "name": "pk",
+                "type": "configuration"
+              },
+              {
+                "name": "request",
+                "type": "configuration"
+              },
+              {
+                "name": "include_deleted",
+                "type": "configuration"
+              }
+            ],
+            "blocks": [
+              {
+                "name": "source-main",
+                "steps": [
+                  {
+                    "kind": "assign-value",
+                    "name": "assign-anchor-f8550f84531ec254673309da",
+                    "claim": "Original source syntax",
+                    "result": "manager",
+                    "value": {
+                      "binding": "Document.global_objects if include_deleted else Document.objects"
+                    }
+                  },
+                  {
+                    "kind": "try",
+                    "name": "try-anchor-2a4b44be32984e32eb86f001",
+                    "claim": "Original source syntax",
+                    "body": "source-try-0",
+                    "handlers": [
+                      {
+                        "exceptionTypes": [
+                          "Document.DoesNotExist"
+                        ],
+                        "catchesAll": false,
+                        "body": "source-handler-0-0"
+                      }
+                    ],
+                    "otherwise": "source-else-0",
+                    "finally": "source-else-0"
+                  },
+                  {
+                    "kind": "call",
+                    "name": "call-anchor-b067fc2b185d93a41b3e20a2",
+                    "claim": "Preserve the actual source call and its unknown result/control influence.",
+                    "symbol": "get_root_document",
+                    "domainRoles": [
+                      "context"
+                    ],
+                    "sourceCallId": "call-1b6611fb1500ce49654386e3",
+                    "arguments": [
+                      {
+                        "parameter": "doc",
+                        "object": "request_doc"
+                      },
+                      {
+                        "parameter": "include_deleted",
+                        "object": "include_deleted"
+                      }
+                    ],
+                    "result": "root_doc",
+                    "pathHint": "src/documents/versioning.py:146-156",
+                    "candidateId": "struct-7ab1297ea3f05dc30ca55b3d"
+                  },
+                  {
+                    "kind": "short-circuit",
+                    "name": "short-anchor-41fcfe3c300d4aeab97a93ba",
+                    "claim": "Original source syntax",
+                    "operator": "and",
+                    "language": "python",
+                    "left": {
+                      "binding": "request.user is not None"
+                    },
+                    "right": {
+                      "binding": "not has_perms_owner_aware(\n            request.user,\n            \"view_document\",\n            root_doc,\n        )"
+                    },
+                    "result": "expression-efa023adfb3c3cc8",
+                    "body": "source-rhs-1"
+                  },
+                  {
+                    "kind": "choose",
+                    "name": "choose-anchor-9c8aea5c5131da5671dec309",
+                    "claim": "Initial unresolved source test; its meaning is not a grant or a known premise.",
+                    "cases": [
+                      {
+                        "condition": {
+                          "op": "truthy",
+                          "language": "python",
+                          "value": {
+                            "binding": "request.user is not None and not has_perms_owner_aware(\n            request.user,\n            \"view_document\",\n            root_doc,\n        )"
+                          }
+                        },
+                        "body": "source-true-2"
+                      }
+                    ],
+                    "otherwise": "source-else-0"
+                  },
+                  {
+                    "kind": "call",
+                    "name": "call-anchor-79f61fe12c5ac68f68076ce0",
+                    "claim": "Preserve the actual source call and its unknown result/control influence.",
+                    "symbol": "ResolvedRequestDocs",
+                    "domainRoles": [
+                      "context"
+                    ],
+                    "sourceCallId": "call-f8827c59362522708140a952",
+                    "arguments": [],
+                    "result": "result-5844bde31396c8bc"
+                  },
+                  {
+                    "kind": "return",
+                    "name": "return-anchor-7b2e3f1d2d0973d7613ba7bb",
+                    "claim": "Original source syntax",
+                    "valueFrom": "result-5844bde31396c8bc"
+                  }
+                ]
+              },
+              {
+                "name": "source-try-0",
+                "steps": [
+                  {
+                    "kind": "call",
+                    "name": "call-anchor-93e63ee0ab54d203569453b8",
+                    "claim": "Preserve the actual source call and its unknown result/control influence.",
+                    "symbol": "manager.select_related",
+                    "domainRoles": [
+                      "context"
+                    ],
+                    "sourceCallId": "call-89cabef1023f54fa1f77ef22",
+                    "arguments": [],
+                    "result": "result-42f3f10ec2eb4950"
+                  },
+                  {
+                    "kind": "call",
+                    "name": "call-anchor-b29d6f9b96996d0b50cdd9b4",
+                    "claim": "Preserve the actual source call and its unknown result/control influence.",
+                    "symbol": "manager.select_related(\n                \"owner\",\n                \"root_document\",\n            ).get",
+                    "domainRoles": [
+                      "context"
+                    ],
+                    "sourceCallId": "call-89cabef1023f54fa1f77ef22",
+                    "arguments": [],
+                    "result": "request_doc"
+                  }
+                ]
+              },
+              {
+                "name": "source-else-0",
+                "steps": []
+              },
+              {
+                "name": "source-handler-0-0",
+                "steps": [
+                  {
+                    "kind": "unresolved",
+                    "name": "missing-anchor-ec7b89d3e1272a881ba9e466",
+                    "claim": "Original source syntax",
+                    "reason": "source-fields-missing:failureKind"
+                  }
+                ]
+              },
+              {
+                "name": "source-rhs-1",
+                "steps": [
+                  {
+                    "kind": "bind",
+                    "name": "literal-anchor-6ef2df3b93be385615f2aa79-perms",
+                    "claim": "Actual source literal argument/default/empty pack",
+                    "type": "value",
+                    "value": "view_document"
+                  },
+                  {
+                    "kind": "call",
+                    "name": "call-anchor-6ef2df3b93be385615f2aa79",
+                    "claim": "Preserve the actual source call and its unknown result/control influence.",
+                    "symbol": "has_perms_owner_aware",
+                    "domainRoles": [
+                      "context"
+                    ],
+                    "sourceCallId": "call-fe1fd3dd50fbb4ce08f46325",
+                    "arguments": [
+                      {
+                        "parameter": "user",
+                        "object": "request.user"
+                      },
+                      {
+                        "parameter": "perms",
+                        "object": "literal-anchor-6ef2df3b93be385615f2aa79-perms"
+                      },
+                      {
+                        "parameter": "obj",
+                        "object": "root_doc"
+                      }
+                    ],
+                    "result": "result-afe818cd834c6632",
+                    "pathHint": "src/documents/permissions.py:624-635",
+                    "candidateId": "struct-0c8bed3900304fcee9a1c0b6"
+                  }
+                ]
+              },
+              {
+                "name": "source-true-2",
+                "steps": [
+                  {
+                    "kind": "call",
+                    "name": "call-anchor-7e93594c0bc3ce08eeee4623",
+                    "claim": "Preserve the actual source call and its unknown result/control influence.",
+                    "symbol": "HttpResponseForbidden",
+                    "domainRoles": [
+                      "context"
+                    ],
+                    "sourceCallId": "call-c55aff397c665c6d79396905",
+                    "arguments": [],
+                    "result": "result-6efa09c412868063"
+                  },
+                  {
+                    "kind": "return",
+                    "name": "return-anchor-7ee48e34c178a1302448355f",
+                    "claim": "Original source syntax",
+                    "valueFrom": "result-6efa09c412868063"
+                  }
+                ]
+              }
+            ],
+            "questionId": "local-file-contract",
+            "evidenceIds": [
+              "ev-df2bb4efa0f58fecab6b"
+            ],
+            "source": {
+              "id": "struct-4a9672f6253534ddaf14b54e",
+              "path": "src/documents/views.py",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+              "startLine": 1401,
+              "endLine": 1427
+            }
+          },
+          "current": true,
+          "semanticSupport": "unreviewed",
+          "interpretationSource": "revalidated-original"
+        }
+      ],
+      "retired": []
+    },
+    "materialUses": [
+      {
+        "kind": "function-root",
+        "operationId": "document-download",
+        "questionId": "local-file-contract",
+        "materialId": "material-539c191c91b67eb2f909b49f",
+        "arguments": []
+      }
+    ],
+    "materialProjection": {
+      "diagnostics": [
+        {
+          "code": "material-target-unavailable",
+          "stage": "call",
+          "questionId": "local-file-contract",
+          "sourceId": "struct-c1a6bd6945975b47fbb4b98c",
+          "candidateIds": [
+            "struct-4a9672f6253534ddaf14b54e"
+          ],
+          "requiredCandidates": 1,
+          "message": "Current source candidates=1, available helper candidates=0; actual arguments must match the original source.",
+          "nextAction": "Read/interpret the exact source-qualified helper or disambiguate the current receiver/candidate; do not select a default target.",
+          "materialId": "material-539c191c91b67eb2f909b49f",
+          "sourceCallId": "call-82799ef45b1e563164b85820",
+          "callBinding": {
+            "caller": {
+              "id": "struct-c1a6bd6945975b47fbb4b98c",
+              "path": "src/documents/views.py",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+              "startLine": 1429,
+              "endLine": 1448
+            },
+            "sourceCallId": "call-82799ef45b1e563164b85820",
+            "callSpan": {
+              "path": "src/documents/views.py",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+              "startLine": 1430,
+              "endLine": 1434,
+              "expression": "self._resolve_request_and_root_doc",
+              "arguments": [
+                "pk",
+                "request",
+                "include_deleted=True"
+              ]
+            },
+            "originalArguments": [],
+            "proposedArguments": [
+              {
+                "parameter": "self",
+                "object": "self"
+              },
+              {
+                "parameter": "pk",
+                "object": "pk"
+              },
+              {
+                "parameter": "request",
+                "object": "request"
+              },
+              {
+                "parameter": "include_deleted",
+                "object": "literal-anchor-8c381d46def5890f94e11a98-include_deleted"
+              }
+            ],
+            "parameters": [],
+            "nextFields": [
+              "caller source argument mapping",
+              "callee parameter roles",
+              "current receiver/candidate identity"
+            ]
+          }
+        },
+        {
+          "code": "material-source-call-unmatched",
+          "stage": "call",
+          "questionId": "local-file-contract",
+          "sourceId": "struct-c1a6bd6945975b47fbb4b98c",
+          "candidateIds": [],
+          "requiredCandidates": 1,
+          "message": "Current source candidates=0, available helper candidates=0; actual arguments must match the original source.",
+          "nextAction": "Read/interpret the exact source-qualified helper or disambiguate the current receiver/candidate; do not select a default target.",
+          "materialId": "material-539c191c91b67eb2f909b49f",
+          "sourceCallId": "call-c6cfc30fa5a80bb3428ee22c",
+          "callBinding": {
+            "caller": {
+              "id": "struct-c1a6bd6945975b47fbb4b98c",
+              "path": "src/documents/views.py",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+              "startLine": 1429,
+              "endLine": 1448
+            },
+            "sourceCallId": "call-c6cfc30fa5a80bb3428ee22c",
+            "callSpan": {
+              "path": "src/documents/views.py",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+              "startLine": 1435,
+              "endLine": 1435,
+              "expression": "isinstance",
+              "arguments": [
+                "resolved",
+                "HttpResponseForbidden"
+              ]
+            },
+            "originalArguments": [],
+            "proposedArguments": [],
+            "parameters": [],
+            "nextFields": [
+              "caller source argument mapping",
+              "callee parameter roles",
+              "current receiver/candidate identity"
+            ]
+          }
+        },
+        {
+          "code": "material-target-unavailable",
+          "stage": "call",
+          "questionId": "local-file-contract",
+          "sourceId": "struct-c1a6bd6945975b47fbb4b98c",
+          "candidateIds": [
+            "struct-c324d0c7523b878776417593"
+          ],
+          "requiredCandidates": 1,
+          "message": "Current source candidates=1, available helper candidates=0; actual arguments must match the original source.",
+          "nextAction": "Read/interpret the exact source-qualified helper or disambiguate the current receiver/candidate; do not select a default target.",
+          "materialId": "material-539c191c91b67eb2f909b49f",
+          "sourceCallId": "call-878a7aff26af5b893259049f",
+          "callBinding": {
+            "caller": {
+              "id": "struct-c1a6bd6945975b47fbb4b98c",
+              "path": "src/documents/views.py",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+              "startLine": 1429,
+              "endLine": 1448
+            },
+            "sourceCallId": "call-878a7aff26af5b893259049f",
+            "callSpan": {
+              "path": "src/documents/views.py",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+              "startLine": 1437,
+              "endLine": 1441,
+              "expression": "self._get_effective_file_doc",
+              "arguments": [
+                "resolved.request_doc",
+                "resolved.root_doc",
+                "request"
+              ]
+            },
+            "originalArguments": [],
+            "proposedArguments": [
+              {
+                "parameter": "self",
+                "object": "self"
+              },
+              {
+                "parameter": "request_doc",
+                "object": "resolved.request_doc"
+              },
+              {
+                "parameter": "root_doc",
+                "object": "resolved.root_doc"
+              },
+              {
+                "parameter": "request",
+                "object": "request"
+              }
+            ],
+            "parameters": [],
+            "nextFields": [
+              "caller source argument mapping",
+              "callee parameter roles",
+              "current receiver/candidate identity"
+            ]
+          }
+        },
+        {
+          "code": "material-target-unavailable",
+          "stage": "call",
+          "questionId": "local-file-contract",
+          "sourceId": "struct-c1a6bd6945975b47fbb4b98c",
+          "candidateIds": [
+            "struct-8363b0b6a86b25273c205577"
+          ],
+          "requiredCandidates": 1,
+          "message": "Current source candidates=1, available helper candidates=0; actual arguments must match the original source.",
+          "nextAction": "Read/interpret the exact source-qualified helper or disambiguate the current receiver/candidate; do not select a default target.",
+          "materialId": "material-539c191c91b67eb2f909b49f",
+          "sourceCallId": "call-cc03ccc8ef4c67dbf98fa7de",
+          "callBinding": {
+            "caller": {
+              "id": "struct-c1a6bd6945975b47fbb4b98c",
+              "path": "src/documents/views.py",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+              "startLine": 1429,
+              "endLine": 1448
+            },
+            "sourceCallId": "call-cc03ccc8ef4c67dbf98fa7de",
+            "callSpan": {
+              "path": "src/documents/views.py",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+              "startLine": 1444,
+              "endLine": 1444,
+              "expression": "self.original_requested",
+              "arguments": [
+                "request"
+              ]
+            },
+            "originalArguments": [],
+            "proposedArguments": [
+              {
+                "parameter": "request",
+                "object": "request"
+              }
+            ],
+            "parameters": [],
+            "nextFields": [
+              "caller source argument mapping",
+              "callee parameter roles",
+              "current receiver/candidate identity"
+            ]
+          }
+        },
+        {
+          "code": "material-source-call-unmatched",
+          "stage": "call",
+          "questionId": "local-file-contract",
+          "sourceId": "struct-c1a6bd6945975b47fbb4b98c",
+          "candidateIds": [],
+          "requiredCandidates": 1,
+          "message": "Current source candidates=0, available helper candidates=0; actual arguments must match the original source.",
+          "nextAction": "Read/interpret the exact source-qualified helper or disambiguate the current receiver/candidate; do not select a default target.",
+          "materialId": "material-539c191c91b67eb2f909b49f",
+          "sourceCallId": "call-883f2888d91927d12175197b",
+          "callBinding": {
+            "caller": {
+              "id": "struct-c1a6bd6945975b47fbb4b98c",
+              "path": "src/documents/views.py",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+              "startLine": 1429,
+              "endLine": 1448
+            },
+            "sourceCallId": "call-883f2888d91927d12175197b",
+            "callSpan": {
+              "path": "src/documents/views.py",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+              "startLine": 1447,
+              "endLine": 1447,
+              "expression": "request.query_params.get",
+              "arguments": [
+                "\"follow_formatting\"",
+                "False"
+              ]
+            },
+            "originalArguments": [],
+            "proposedArguments": [],
+            "parameters": [],
+            "nextFields": [
+              "caller source argument mapping",
+              "callee parameter roles",
+              "current receiver/candidate identity"
+            ]
+          }
+        },
+        {
+          "code": "material-target-unavailable",
+          "stage": "call",
+          "questionId": "local-file-contract",
+          "sourceId": "struct-c1a6bd6945975b47fbb4b98c",
+          "candidateIds": [
+            "struct-cee4399c4960908d4f7ca1fd"
+          ],
+          "requiredCandidates": 1,
+          "message": "Current source candidates=1, available helper candidates=0; actual arguments must match the original source.",
+          "nextAction": "Read/interpret the exact source-qualified helper or disambiguate the current receiver/candidate; do not select a default target.",
+          "materialId": "material-539c191c91b67eb2f909b49f",
+          "sourceCallId": "call-6a2f8d15135d88065a37fbdf",
+          "callBinding": {
+            "caller": {
+              "id": "struct-c1a6bd6945975b47fbb4b98c",
+              "path": "src/documents/views.py",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+              "startLine": 1429,
+              "endLine": 1448
+            },
+            "sourceCallId": "call-6a2f8d15135d88065a37fbdf",
+            "callSpan": {
+              "path": "src/documents/views.py",
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+              "startLine": 1442,
+              "endLine": 1448,
+              "expression": "serve_file",
+              "arguments": [
+                "doc=file_doc",
+                "use_archive=not self.original_requested(request)\n            and file_doc.has_archive_version",
+                "disposition=disposition",
+                "follow_formatting=request.query_params.get(\"follow_formatting\", False)"
+              ]
+            },
+            "originalArguments": [],
+            "proposedArguments": [
+              {
+                "parameter": "doc",
+                "object": "file_doc"
+              },
+              {
+                "parameter": "use_archive",
+                "object": "expression-712f74a749781413"
+              },
+              {
+                "parameter": "disposition",
+                "object": "disposition"
+              },
+              {
+                "parameter": "follow_formatting",
+                "object": "result-aa596bd5560678a7"
+              }
+            ],
+            "parameters": [],
+            "nextFields": [
+              "caller source argument mapping",
+              "callee parameter roles",
+              "current receiver/candidate identity"
+            ]
+          }
+        }
+      ],
+      "stages": {
+        "saved": 2,
+        "current": 2,
+        "available": 2,
+        "projectedUnits": 1,
+        "entryUses": 0,
+        "functionRootUses": 1,
+        "callUses": 0,
+        "frameworkUses": 0,
+        "blocked": 6
+      }
+    },
+    "demands": [
+      {
+        "schemaVersion": "authorization-property-demand/v1",
+        "semanticSupport": "unreviewed",
+        "questionId": "local-file-contract",
+        "affectedQuestionIds": [
+          "local-file-contract"
+        ],
+        "source": {
+          "id": "struct-c1a6bd6945975b47fbb4b98c",
+          "path": "src/documents/views.py",
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+          "startLine": 1429,
+          "endLine": 1448
+        },
+        "revision": "efcea721f8eac86db5f605ad02af7f9f0c742f1549233715baa43c31601e365a",
+        "required": [
+          {
+            "anchorId": "anchor-8c381d46def5890f94e11a98",
+            "field": "role",
+            "status": "provided",
+            "reason": "This possible source call may change objects, return a value, authorize, perform an effect or raise; its name proves none of these.",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1430,
+              "endLine": 1434,
+              "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+            }
+          },
+          {
+            "anchorId": "anchor-4ce0c5e45e7c40a7a13776d0",
+            "field": "role",
+            "status": "provided",
+            "reason": "This possible source call may change objects, return a value, authorize, perform an effect or raise; its name proves none of these.",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1435,
+              "endLine": 1435,
+              "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+            }
+          },
+          {
+            "anchorId": "anchor-ca4ab2d0932442369e3eadee",
+            "field": "condition",
+            "status": "provided",
+            "reason": "The source branch controls a possible requested behavior; interpret its actual predicate.",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1435,
+              "endLine": 1435,
+              "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+            }
+          },
+          {
+            "anchorId": "anchor-22ff90ff144b3a72469c33d8",
+            "field": "role",
+            "status": "provided",
+            "reason": "This possible source call may change objects, return a value, authorize, perform an effect or raise; its name proves none of these.",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1437,
+              "endLine": 1441,
+              "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+            }
+          },
+          {
+            "anchorId": "anchor-a4e848ea303537d7080cabf0",
+            "field": "role",
+            "status": "provided",
+            "reason": "This possible source call may change objects, return a value, authorize, perform an effect or raise; its name proves none of these.",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1442,
+              "endLine": 1448,
+              "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+            }
+          },
+          {
+            "anchorId": "anchor-6f09571ec5d12ac63c7aee1c",
+            "field": "role",
+            "status": "provided",
+            "reason": "This possible source call may change objects, return a value, authorize, perform an effect or raise; its name proves none of these.",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1444,
+              "endLine": 1444,
+              "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+            }
+          },
+          {
+            "anchorId": "anchor-d904c8c5d76824a34684d48f",
+            "field": "role",
+            "status": "provided",
+            "reason": "This possible source call may change objects, return a value, authorize, perform an effect or raise; its name proves none of these.",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1447,
+              "endLine": 1447,
+              "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+            }
+          }
+        ],
+        "frontier": [],
+        "excluded": [],
+        "deferred": [
+          {
+            "anchorId": "anchor-3620a0776edbbc4608b2bc41",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1429,
+              "endLine": 1429,
+              "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-23364beba90d2ac88df374ed",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1429,
+              "endLine": 1429,
+              "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-a1447167c51017b24bcf8178",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1429,
+              "endLine": 1429,
+              "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-908e8eeb673a50434a489ac9",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1429,
+              "endLine": 1429,
+              "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-ebfa8eeebf01a3a289041487",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1430,
+              "endLine": 1430,
+              "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-51019dc5394ce8506a093923",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1437,
+              "endLine": 1437,
+              "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-6793b630be14eda51b50324d",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1438,
+              "endLine": 1438,
+              "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-acd2b828384b2ca940361167",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1439,
+              "endLine": 1439,
+              "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-45503cce0ddd6eba5790049f",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1444,
+              "endLine": 1444,
+              "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-6cddf3d3449f953327f7cbb5",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1445,
+              "endLine": 1445,
+              "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-48289dab5d35b20fcac5fa7a",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1447,
+              "endLine": 1447,
+              "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-b19d3655f668626955bf64db",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1447,
+              "endLine": 1447,
+              "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+            },
+            "reason": "source-structure-only"
+          }
+        ],
+        "reachableAnchorIds": [
+          "anchor-8c381d46def5890f94e11a98",
+          "anchor-5a7131cb058e6ceda7d87cf0",
+          "anchor-4ce0c5e45e7c40a7a13776d0",
+          "anchor-ca4ab2d0932442369e3eadee",
+          "anchor-051aa0c18d787b2d04ad74cd",
+          "anchor-22ff90ff144b3a72469c33d8",
+          "anchor-59cde7420db4d8c674a439e6",
+          "anchor-6f09571ec5d12ac63c7aee1c",
+          "anchor-db8499c433e16536adcf1989",
+          "anchor-d904c8c5d76824a34684d48f",
+          "anchor-a4e848ea303537d7080cabf0",
+          "anchor-56fad5352ec466ea695b6268"
+        ],
+        "sourceGaps": [],
+        "dependencies": {
+          "schemaVersion": "authorization-property-dependencies/v2",
+          "question": {
+            "id": "local-file-contract",
+            "request": "Describe a function contract for file_response: Reachability of the selected file-serving call after local refusal branches. Keep its upstream authentication and framework gaps separate from the four original questions.",
+            "premises": [],
+            "properties": [
+              {
+                "id": "local-call",
+                "kind": "effect-reachability",
+                "requirement": "Reachability of the selected file-serving call after local refusal branches"
+              }
+            ],
+            "operationId": "document-download",
+            "intent": "behavior",
+            "entryHint": "Begin with Download-related routing and handlers under src/documents and src/paperless/urls.py; consult the supplied REST framework source only where framework behavior is material.",
+            "operation": "Trace the document Download operation from request entry through document and representation selection, authorization, and returned file."
+          },
+          "seeds": [
+            {
+              "anchorId": "anchor-a4e848ea303537d7080cabf0",
+              "role": "effect-reachability",
+              "origin": "property-target",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1442,
+                "endLine": 1448,
+                "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+              }
+            },
+            {
+              "anchorId": "anchor-8c381d46def5890f94e11a98",
+              "role": "possible-effect-or-failure",
+              "origin": "unknown-call",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1430,
+                "endLine": 1434,
+                "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+              }
+            },
+            {
+              "anchorId": "anchor-4ce0c5e45e7c40a7a13776d0",
+              "role": "possible-effect-or-failure",
+              "origin": "unknown-call",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1435,
+                "endLine": 1435,
+                "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+              }
+            },
+            {
+              "anchorId": "anchor-22ff90ff144b3a72469c33d8",
+              "role": "possible-effect-or-failure",
+              "origin": "unknown-call",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1437,
+                "endLine": 1441,
+                "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+              }
+            },
+            {
+              "anchorId": "anchor-a4e848ea303537d7080cabf0",
+              "role": "possible-effect-or-failure",
+              "origin": "unknown-call",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1442,
+                "endLine": 1448,
+                "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+              }
+            },
+            {
+              "anchorId": "anchor-6f09571ec5d12ac63c7aee1c",
+              "role": "possible-effect-or-failure",
+              "origin": "unknown-call",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1444,
+                "endLine": 1444,
+                "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+              }
+            },
+            {
+              "anchorId": "anchor-d904c8c5d76824a34684d48f",
+              "role": "possible-effect-or-failure",
+              "origin": "unknown-call",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1447,
+                "endLine": 1447,
+                "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+              }
+            }
+          ],
+          "edges": [
+            {
+              "from": "anchor-8c381d46def5890f94e11a98",
+              "to": "anchor-3620a0776edbbc4608b2bc41",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-8c381d46def5890f94e11a98",
+              "to": "anchor-23364beba90d2ac88df374ed",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-8c381d46def5890f94e11a98",
+              "to": "anchor-a1447167c51017b24bcf8178",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-5a7131cb058e6ceda7d87cf0",
+              "to": "anchor-3620a0776edbbc4608b2bc41",
+              "kind": "field"
+            },
+            {
+              "from": "anchor-5a7131cb058e6ceda7d87cf0",
+              "to": "anchor-3620a0776edbbc4608b2bc41",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-5a7131cb058e6ceda7d87cf0",
+              "to": "anchor-23364beba90d2ac88df374ed",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-5a7131cb058e6ceda7d87cf0",
+              "to": "anchor-a1447167c51017b24bcf8178",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-5a7131cb058e6ceda7d87cf0",
+              "to": "anchor-8c381d46def5890f94e11a98",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-4ce0c5e45e7c40a7a13776d0",
+              "to": "anchor-8c381d46def5890f94e11a98",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-4ce0c5e45e7c40a7a13776d0",
+              "to": "anchor-8c381d46def5890f94e11a98",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-ca4ab2d0932442369e3eadee",
+              "to": "anchor-8c381d46def5890f94e11a98",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-ca4ab2d0932442369e3eadee",
+              "to": "anchor-4ce0c5e45e7c40a7a13776d0",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-051aa0c18d787b2d04ad74cd",
+              "to": "anchor-8c381d46def5890f94e11a98",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-051aa0c18d787b2d04ad74cd",
+              "to": "anchor-ca4ab2d0932442369e3eadee",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-051aa0c18d787b2d04ad74cd",
+              "to": "anchor-4ce0c5e45e7c40a7a13776d0",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-22ff90ff144b3a72469c33d8",
+              "to": "anchor-3620a0776edbbc4608b2bc41",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-22ff90ff144b3a72469c33d8",
+              "to": "anchor-8c381d46def5890f94e11a98",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-22ff90ff144b3a72469c33d8",
+              "to": "anchor-a1447167c51017b24bcf8178",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-22ff90ff144b3a72469c33d8",
+              "to": "anchor-ca4ab2d0932442369e3eadee",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-22ff90ff144b3a72469c33d8",
+              "to": "anchor-8c381d46def5890f94e11a98",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-22ff90ff144b3a72469c33d8",
+              "to": "anchor-4ce0c5e45e7c40a7a13776d0",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-59cde7420db4d8c674a439e6",
+              "to": "anchor-3620a0776edbbc4608b2bc41",
+              "kind": "field"
+            },
+            {
+              "from": "anchor-59cde7420db4d8c674a439e6",
+              "to": "anchor-3620a0776edbbc4608b2bc41",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-59cde7420db4d8c674a439e6",
+              "to": "anchor-8c381d46def5890f94e11a98",
+              "kind": "field"
+            },
+            {
+              "from": "anchor-59cde7420db4d8c674a439e6",
+              "to": "anchor-8c381d46def5890f94e11a98",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-59cde7420db4d8c674a439e6",
+              "to": "anchor-a1447167c51017b24bcf8178",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-59cde7420db4d8c674a439e6",
+              "to": "anchor-22ff90ff144b3a72469c33d8",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-59cde7420db4d8c674a439e6",
+              "to": "anchor-ca4ab2d0932442369e3eadee",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-59cde7420db4d8c674a439e6",
+              "to": "anchor-4ce0c5e45e7c40a7a13776d0",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-6f09571ec5d12ac63c7aee1c",
+              "to": "anchor-3620a0776edbbc4608b2bc41",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-6f09571ec5d12ac63c7aee1c",
+              "to": "anchor-a1447167c51017b24bcf8178",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-6f09571ec5d12ac63c7aee1c",
+              "to": "anchor-ca4ab2d0932442369e3eadee",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-6f09571ec5d12ac63c7aee1c",
+              "to": "anchor-8c381d46def5890f94e11a98",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-6f09571ec5d12ac63c7aee1c",
+              "to": "anchor-4ce0c5e45e7c40a7a13776d0",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-6f09571ec5d12ac63c7aee1c",
+              "to": "anchor-22ff90ff144b3a72469c33d8",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-db8499c433e16536adcf1989",
+              "to": "anchor-3620a0776edbbc4608b2bc41",
+              "kind": "field"
+            },
+            {
+              "from": "anchor-db8499c433e16536adcf1989",
+              "to": "anchor-3620a0776edbbc4608b2bc41",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-db8499c433e16536adcf1989",
+              "to": "anchor-a1447167c51017b24bcf8178",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-db8499c433e16536adcf1989",
+              "to": "anchor-22ff90ff144b3a72469c33d8",
+              "kind": "field"
+            },
+            {
+              "from": "anchor-db8499c433e16536adcf1989",
+              "to": "anchor-22ff90ff144b3a72469c33d8",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-db8499c433e16536adcf1989",
+              "to": "anchor-6f09571ec5d12ac63c7aee1c",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-db8499c433e16536adcf1989",
+              "to": "anchor-ca4ab2d0932442369e3eadee",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-db8499c433e16536adcf1989",
+              "to": "anchor-8c381d46def5890f94e11a98",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-db8499c433e16536adcf1989",
+              "to": "anchor-4ce0c5e45e7c40a7a13776d0",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-d904c8c5d76824a34684d48f",
+              "to": "anchor-a1447167c51017b24bcf8178",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-d904c8c5d76824a34684d48f",
+              "to": "anchor-ca4ab2d0932442369e3eadee",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-d904c8c5d76824a34684d48f",
+              "to": "anchor-db8499c433e16536adcf1989",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-d904c8c5d76824a34684d48f",
+              "to": "anchor-8c381d46def5890f94e11a98",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-d904c8c5d76824a34684d48f",
+              "to": "anchor-4ce0c5e45e7c40a7a13776d0",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-d904c8c5d76824a34684d48f",
+              "to": "anchor-22ff90ff144b3a72469c33d8",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-d904c8c5d76824a34684d48f",
+              "to": "anchor-6f09571ec5d12ac63c7aee1c",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-a4e848ea303537d7080cabf0",
+              "to": "anchor-22ff90ff144b3a72469c33d8",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-a4e848ea303537d7080cabf0",
+              "to": "anchor-3620a0776edbbc4608b2bc41",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-a4e848ea303537d7080cabf0",
+              "to": "anchor-a1447167c51017b24bcf8178",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-a4e848ea303537d7080cabf0",
+              "to": "anchor-908e8eeb673a50434a489ac9",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-a4e848ea303537d7080cabf0",
+              "to": "anchor-6f09571ec5d12ac63c7aee1c",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-a4e848ea303537d7080cabf0",
+              "to": "anchor-d904c8c5d76824a34684d48f",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-a4e848ea303537d7080cabf0",
+              "to": "anchor-ca4ab2d0932442369e3eadee",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-a4e848ea303537d7080cabf0",
+              "to": "anchor-db8499c433e16536adcf1989",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-a4e848ea303537d7080cabf0",
+              "to": "anchor-8c381d46def5890f94e11a98",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-a4e848ea303537d7080cabf0",
+              "to": "anchor-4ce0c5e45e7c40a7a13776d0",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-a4e848ea303537d7080cabf0",
+              "to": "anchor-22ff90ff144b3a72469c33d8",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-a4e848ea303537d7080cabf0",
+              "to": "anchor-6f09571ec5d12ac63c7aee1c",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-a4e848ea303537d7080cabf0",
+              "to": "anchor-d904c8c5d76824a34684d48f",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-56fad5352ec466ea695b6268",
+              "to": "anchor-22ff90ff144b3a72469c33d8",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-56fad5352ec466ea695b6268",
+              "to": "anchor-3620a0776edbbc4608b2bc41",
+              "kind": "field"
+            },
+            {
+              "from": "anchor-56fad5352ec466ea695b6268",
+              "to": "anchor-3620a0776edbbc4608b2bc41",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-56fad5352ec466ea695b6268",
+              "to": "anchor-a1447167c51017b24bcf8178",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-56fad5352ec466ea695b6268",
+              "to": "anchor-22ff90ff144b3a72469c33d8",
+              "kind": "field"
+            },
+            {
+              "from": "anchor-56fad5352ec466ea695b6268",
+              "to": "anchor-908e8eeb673a50434a489ac9",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-56fad5352ec466ea695b6268",
+              "to": "anchor-a1447167c51017b24bcf8178",
+              "kind": "field"
+            },
+            {
+              "from": "anchor-56fad5352ec466ea695b6268",
+              "to": "anchor-a4e848ea303537d7080cabf0",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-56fad5352ec466ea695b6268",
+              "to": "anchor-6f09571ec5d12ac63c7aee1c",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-56fad5352ec466ea695b6268",
+              "to": "anchor-d904c8c5d76824a34684d48f",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-56fad5352ec466ea695b6268",
+              "to": "anchor-ca4ab2d0932442369e3eadee",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-56fad5352ec466ea695b6268",
+              "to": "anchor-db8499c433e16536adcf1989",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-56fad5352ec466ea695b6268",
+              "to": "anchor-8c381d46def5890f94e11a98",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-56fad5352ec466ea695b6268",
+              "to": "anchor-4ce0c5e45e7c40a7a13776d0",
+              "kind": "data"
+            }
+          ],
+          "boundaries": [
+            {
+              "anchorId": "anchor-8c381d46def5890f94e11a98",
+              "code": "unknown-call-influence",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1430,
+                "endLine": 1434,
+                "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+              },
+              "candidateIds": [
+                "struct-4a9672f6253534ddaf14b54e"
+              ]
+            },
+            {
+              "anchorId": "anchor-4ce0c5e45e7c40a7a13776d0",
+              "code": "unknown-call-influence",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1435,
+                "endLine": 1435,
+                "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+              },
+              "candidateIds": []
+            },
+            {
+              "anchorId": "anchor-22ff90ff144b3a72469c33d8",
+              "code": "unknown-call-influence",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1437,
+                "endLine": 1441,
+                "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+              },
+              "candidateIds": [
+                "struct-c324d0c7523b878776417593"
+              ]
+            },
+            {
+              "anchorId": "anchor-a4e848ea303537d7080cabf0",
+              "code": "unknown-call-influence",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1442,
+                "endLine": 1448,
+                "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+              },
+              "candidateIds": [
+                "struct-cee4399c4960908d4f7ca1fd"
+              ]
+            },
+            {
+              "anchorId": "anchor-6f09571ec5d12ac63c7aee1c",
+              "code": "unknown-call-influence",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1444,
+                "endLine": 1444,
+                "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+              },
+              "candidateIds": [
+                "struct-8363b0b6a86b25273c205577"
+              ]
+            },
+            {
+              "anchorId": "anchor-d904c8c5d76824a34684d48f",
+              "code": "unknown-call-influence",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1447,
+                "endLine": 1447,
+                "candidateId": "struct-c1a6bd6945975b47fbb4b98c"
+              },
+              "candidateIds": []
+            }
+          ],
+          "requiredAnchorIds": [
+            "anchor-a4e848ea303537d7080cabf0",
+            "anchor-8c381d46def5890f94e11a98",
+            "anchor-4ce0c5e45e7c40a7a13776d0",
+            "anchor-22ff90ff144b3a72469c33d8",
+            "anchor-6f09571ec5d12ac63c7aee1c",
+            "anchor-d904c8c5d76824a34684d48f",
+            "anchor-3620a0776edbbc4608b2bc41",
+            "anchor-a1447167c51017b24bcf8178",
+            "anchor-908e8eeb673a50434a489ac9",
+            "anchor-ca4ab2d0932442369e3eadee",
+            "anchor-db8499c433e16536adcf1989",
+            "anchor-23364beba90d2ac88df374ed"
+          ],
+          "localExclusions": [],
+          "propertyQueries": {
+            "schemaVersion": "authorization-property-query/v1",
+            "questionId": "local-file-contract",
+            "queries": [
+              {
+                "id": "local-call",
+                "kind": "effect-reachability",
+                "requirement": "Reachability of the selected file-serving call after local refusal branches",
+                "questionId": "local-file-contract",
+                "source": {
+                  "id": "struct-c1a6bd6945975b47fbb4b98c",
+                  "path": "src/documents/views.py",
+                  "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+                  "startLine": 1429,
+                  "endLine": 1448
+                },
+                "sourceRevision": "efcea721f8eac86db5f605ad02af7f9f0c742f1549233715baa43c31601e365a",
+                "state": "bound",
+                "effectAnchorId": "anchor-a4e848ea303537d7080cabf0",
+                "effectRef": {
+                  "sourceId": "struct-c1a6bd6945975b47fbb4b98c",
+                  "sourceSha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+                  "revision": "efcea721f8eac86db5f605ad02af7f9f0c742f1549233715baa43c31601e365a",
+                  "anchorId": "anchor-a4e848ea303537d7080cabf0",
+                  "questionId": "local-file-contract",
+                  "operationId": "document-download"
+                },
+                "effectKind": "call",
+                "bindingScope": "interprocedural-property/v1",
+                "semanticReview": "unreviewed",
+                "bindingValidation": "source-structure-only",
+                "missing": []
+              }
+            ],
+            "diagnostics": [],
+            "revision": "f5a8654f5b5ed178192f3e786da7980994050cc1e0adfc3784a1bd5fce00ddd3"
+          },
+          "residuals": [],
+          "summaryUses": [],
+          "callScopes": [
+            {
+              "anchorId": "anchor-8c381d46def5890f94e11a98",
+              "sourceCallId": "call-82799ef45b1e563164b85820",
+              "state": "required",
+              "reason": "current-source-dependency"
+            },
+            {
+              "anchorId": "anchor-4ce0c5e45e7c40a7a13776d0",
+              "sourceCallId": "call-c6cfc30fa5a80bb3428ee22c",
+              "state": "required",
+              "reason": "current-source-dependency"
+            },
+            {
+              "anchorId": "anchor-22ff90ff144b3a72469c33d8",
+              "sourceCallId": "call-878a7aff26af5b893259049f",
+              "state": "required",
+              "reason": "current-source-dependency"
+            },
+            {
+              "anchorId": "anchor-a4e848ea303537d7080cabf0",
+              "sourceCallId": "call-6a2f8d15135d88065a37fbdf",
+              "state": "required",
+              "reason": "current-source-dependency"
+            },
+            {
+              "anchorId": "anchor-6f09571ec5d12ac63c7aee1c",
+              "sourceCallId": "call-cc03ccc8ef4c67dbf98fa7de",
+              "state": "required",
+              "reason": "current-source-dependency"
+            },
+            {
+              "anchorId": "anchor-d904c8c5d76824a34684d48f",
+              "sourceCallId": "call-883f2888d91927d12175197b",
+              "state": "required",
+              "reason": "current-source-dependency"
+            }
+          ],
+          "revision": "cba349bef4a0bc5c26022fdca7c09b372590b672d20d1520c85881fbbf6a9b25"
+        },
+        "requiredAnnotationCount": 7,
+        "pendingAnnotationCount": 0,
+        "coverage": {
+          "sourceRead": true,
+          "domainInterpreted": true,
+          "propertyCovered": true,
+          "wholeAnswerSufficient": false
+        },
+        "nextWork": {
+          "kind": "check",
+          "affectedQuestionIds": [
+            "local-file-contract"
+          ]
+        }
+      },
+      {
+        "schemaVersion": "authorization-property-demand/v1",
+        "semanticSupport": "unreviewed",
+        "questionId": "local-file-contract",
+        "affectedQuestionIds": [
+          "local-file-contract"
+        ],
+        "source": {
+          "id": "struct-4a9672f6253534ddaf14b54e",
+          "path": "src/documents/views.py",
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+          "startLine": 1401,
+          "endLine": 1427
+        },
+        "revision": "5a1ebd6ed96699ac321492480e89635fd7bf12753fcde4dacfac447b6c1f3093",
+        "required": [
+          {
+            "anchorId": "anchor-93e63ee0ab54d203569453b8",
+            "field": "role",
+            "status": "provided",
+            "reason": "This possible source call may change objects, return a value, authorize, perform an effect or raise; its name proves none of these.",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1410,
+              "endLine": 1413,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            }
+          },
+          {
+            "anchorId": "anchor-b29d6f9b96996d0b50cdd9b4",
+            "field": "role",
+            "status": "provided",
+            "reason": "This possible source call may change objects, return a value, authorize, perform an effect or raise; its name proves none of these.",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1410,
+              "endLine": 1413,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            }
+          },
+          {
+            "anchorId": "anchor-ec7b89d3e1272a881ba9e466",
+            "field": "failureKind",
+            "status": "missing",
+            "reason": "Distinguish authorization rejection from operation failure without erasing the exception.",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1415,
+              "endLine": 1415,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            }
+          },
+          {
+            "anchorId": "anchor-b067fc2b185d93a41b3e20a2",
+            "field": "role",
+            "status": "provided",
+            "reason": "This possible source call may change objects, return a value, authorize, perform an effect or raise; its name proves none of these.",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1417,
+              "endLine": 1420,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            }
+          },
+          {
+            "anchorId": "anchor-9c8aea5c5131da5671dec309",
+            "field": "condition",
+            "status": "provided",
+            "reason": "The source branch controls a possible requested behavior; interpret its actual predicate.",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1421,
+              "endLine": 1425,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            }
+          },
+          {
+            "anchorId": "anchor-6ef2df3b93be385615f2aa79",
+            "field": "role",
+            "status": "provided",
+            "reason": "This possible source call may change objects, return a value, authorize, perform an effect or raise; its name proves none of these.",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1421,
+              "endLine": 1425,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            }
+          },
+          {
+            "anchorId": "anchor-7e93594c0bc3ce08eeee4623",
+            "field": "role",
+            "status": "provided",
+            "reason": "This possible source call may change objects, return a value, authorize, perform an effect or raise; its name proves none of these.",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1426,
+              "endLine": 1426,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            }
+          },
+          {
+            "anchorId": "anchor-79f61fe12c5ac68f68076ce0",
+            "field": "role",
+            "status": "provided",
+            "reason": "This possible source call may change objects, return a value, authorize, perform an effect or raise; its name proves none of these.",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1427,
+              "endLine": 1427,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            }
+          }
+        ],
+        "frontier": [
+          {
+            "anchorId": "anchor-ec7b89d3e1272a881ba9e466",
+            "field": "failureKind",
+            "status": "missing",
+            "reason": "Distinguish authorization rejection from operation failure without erasing the exception.",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1415,
+              "endLine": 1415,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            }
+          }
+        ],
+        "excluded": [],
+        "deferred": [
+          {
+            "anchorId": "anchor-de3e68ae3ad6e5eeaac4a200",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1402,
+              "endLine": 1402,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-ebe0bbb609a7842911293732",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1403,
+              "endLine": 1403,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-2143ce66b1b1ff07dd63307e",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1404,
+              "endLine": 1404,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-888a55f56b2460081eb871cb",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1406,
+              "endLine": 1406,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-753f779a3cda46bb72d1922e",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1408,
+              "endLine": 1408,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-dc9cee81d7346869760254f7",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1408,
+              "endLine": 1408,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-163ee556d0eb214073c75834",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1410,
+              "endLine": 1410,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-48738345e676f16dbb005480",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1410,
+              "endLine": 1413,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-a54a628a9acd367b73718e73",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1414,
+              "endLine": 1415,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-59cf261a96a78b07967c2fdc",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1414,
+              "endLine": 1414,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-cca7daffbfc236ae11015aed",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1421,
+              "endLine": 1421,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            },
+            "reason": "source-structure-only"
+          },
+          {
+            "anchorId": "anchor-8047c03cb2f8990519f053c3",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1422,
+              "endLine": 1422,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            },
+            "reason": "source-structure-only"
+          }
+        ],
+        "reachableAnchorIds": [
+          "anchor-f8550f84531ec254673309da",
+          "anchor-2a4b44be32984e32eb86f001",
+          "anchor-93e63ee0ab54d203569453b8",
+          "anchor-b29d6f9b96996d0b50cdd9b4",
+          "anchor-bbe4bd514341d3619abc9dd9",
+          "anchor-ec7b89d3e1272a881ba9e466",
+          "anchor-b067fc2b185d93a41b3e20a2",
+          "anchor-d794d9226eb1a42ad4c0d69f",
+          "anchor-41fcfe3c300d4aeab97a93ba",
+          "anchor-6ef2df3b93be385615f2aa79",
+          "anchor-9c8aea5c5131da5671dec309",
+          "anchor-7e93594c0bc3ce08eeee4623",
+          "anchor-7ee48e34c178a1302448355f",
+          "anchor-79f61fe12c5ac68f68076ce0",
+          "anchor-7b2e3f1d2d0973d7613ba7bb"
+        ],
+        "sourceGaps": [
+          {
+            "code": "skeleton-call-dynamic",
+            "selector": {
+              "path": "src/documents/views.py",
+              "startLine": 1410,
+              "endLine": 1413,
+              "candidateId": "struct-4a9672f6253534ddaf14b54e"
+            },
+            "reason": "The actual function expression is dynamic; no unique callee or receiver is invented."
+          }
+        ],
+        "dependencies": {
+          "schemaVersion": "authorization-property-dependencies/v2",
+          "question": {
+            "id": "local-file-contract",
+            "request": "Describe a function contract for file_response: Reachability of the selected file-serving call after local refusal branches. Keep its upstream authentication and framework gaps separate from the four original questions.",
+            "premises": [],
+            "properties": [
+              {
+                "id": "local-call",
+                "kind": "effect-reachability",
+                "requirement": "Reachability of the selected file-serving call after local refusal branches"
+              }
+            ],
+            "operationId": "document-download",
+            "intent": "behavior",
+            "entryHint": "Begin with Download-related routing and handlers under src/documents and src/paperless/urls.py; consult the supplied REST framework source only where framework behavior is material.",
+            "operation": "Trace the document Download operation from request entry through document and representation selection, authorization, and returned file."
+          },
+          "seeds": [
+            {
+              "anchorId": "anchor-9c8aea5c5131da5671dec309",
+              "role": "condition",
+              "origin": "source-interpretation",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1421,
+                "endLine": 1425,
+                "candidateId": "struct-4a9672f6253534ddaf14b54e"
+              }
+            },
+            {
+              "anchorId": "anchor-93e63ee0ab54d203569453b8",
+              "role": "possible-effect-or-failure",
+              "origin": "unknown-call",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1410,
+                "endLine": 1413,
+                "candidateId": "struct-4a9672f6253534ddaf14b54e"
+              }
+            },
+            {
+              "anchorId": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "role": "possible-effect-or-failure",
+              "origin": "unknown-call",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1410,
+                "endLine": 1413,
+                "candidateId": "struct-4a9672f6253534ddaf14b54e"
+              }
+            },
+            {
+              "anchorId": "anchor-ec7b89d3e1272a881ba9e466",
+              "role": "raise",
+              "origin": "source-exit",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1415,
+                "endLine": 1415,
+                "candidateId": "struct-4a9672f6253534ddaf14b54e"
+              }
+            },
+            {
+              "anchorId": "anchor-b067fc2b185d93a41b3e20a2",
+              "role": "possible-effect-or-failure",
+              "origin": "unknown-call",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1417,
+                "endLine": 1420,
+                "candidateId": "struct-4a9672f6253534ddaf14b54e"
+              }
+            },
+            {
+              "anchorId": "anchor-6ef2df3b93be385615f2aa79",
+              "role": "possible-effect-or-failure",
+              "origin": "unknown-call",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1421,
+                "endLine": 1425,
+                "candidateId": "struct-4a9672f6253534ddaf14b54e"
+              }
+            },
+            {
+              "anchorId": "anchor-7ee48e34c178a1302448355f",
+              "role": "return",
+              "origin": "source-exit",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1426,
+                "endLine": 1426,
+                "candidateId": "struct-4a9672f6253534ddaf14b54e"
+              }
+            },
+            {
+              "anchorId": "anchor-7e93594c0bc3ce08eeee4623",
+              "role": "possible-effect-or-failure",
+              "origin": "unknown-call",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1426,
+                "endLine": 1426,
+                "candidateId": "struct-4a9672f6253534ddaf14b54e"
+              }
+            },
+            {
+              "anchorId": "anchor-7b2e3f1d2d0973d7613ba7bb",
+              "role": "return",
+              "origin": "source-exit",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1427,
+                "endLine": 1427,
+                "candidateId": "struct-4a9672f6253534ddaf14b54e"
+              }
+            },
+            {
+              "anchorId": "anchor-79f61fe12c5ac68f68076ce0",
+              "role": "possible-effect-or-failure",
+              "origin": "unknown-call",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1427,
+                "endLine": 1427,
+                "candidateId": "struct-4a9672f6253534ddaf14b54e"
+              }
+            }
+          ],
+          "edges": [
+            {
+              "from": "anchor-f8550f84531ec254673309da",
+              "to": "anchor-888a55f56b2460081eb871cb",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-2a4b44be32984e32eb86f001",
+              "to": "anchor-f8550f84531ec254673309da",
+              "kind": "field"
+            },
+            {
+              "from": "anchor-2a4b44be32984e32eb86f001",
+              "to": "anchor-f8550f84531ec254673309da",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-2a4b44be32984e32eb86f001",
+              "to": "anchor-ebe0bbb609a7842911293732",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-2a4b44be32984e32eb86f001",
+              "to": "anchor-93e63ee0ab54d203569453b8",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-2a4b44be32984e32eb86f001",
+              "to": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-93e63ee0ab54d203569453b8",
+              "to": "anchor-f8550f84531ec254673309da",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-93e63ee0ab54d203569453b8",
+              "to": "anchor-2a4b44be32984e32eb86f001",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "to": "anchor-f8550f84531ec254673309da",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "to": "anchor-ebe0bbb609a7842911293732",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "to": "anchor-93e63ee0ab54d203569453b8",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "to": "anchor-2a4b44be32984e32eb86f001",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "to": "anchor-93e63ee0ab54d203569453b8",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-bbe4bd514341d3619abc9dd9",
+              "to": "anchor-f8550f84531ec254673309da",
+              "kind": "field"
+            },
+            {
+              "from": "anchor-bbe4bd514341d3619abc9dd9",
+              "to": "anchor-f8550f84531ec254673309da",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-bbe4bd514341d3619abc9dd9",
+              "to": "anchor-ebe0bbb609a7842911293732",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-bbe4bd514341d3619abc9dd9",
+              "to": "anchor-93e63ee0ab54d203569453b8",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-bbe4bd514341d3619abc9dd9",
+              "to": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-bbe4bd514341d3619abc9dd9",
+              "to": "anchor-2a4b44be32984e32eb86f001",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-ec7b89d3e1272a881ba9e466",
+              "to": "anchor-2a4b44be32984e32eb86f001",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-ec7b89d3e1272a881ba9e466",
+              "to": "anchor-93e63ee0ab54d203569453b8",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-ec7b89d3e1272a881ba9e466",
+              "to": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-ec7b89d3e1272a881ba9e466",
+              "to": "anchor-93e63ee0ab54d203569453b8",
+              "kind": "exception"
+            },
+            {
+              "from": "anchor-ec7b89d3e1272a881ba9e466",
+              "to": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "kind": "exception"
+            },
+            {
+              "from": "anchor-ec7b89d3e1272a881ba9e466",
+              "to": "anchor-bbe4bd514341d3619abc9dd9",
+              "kind": "exception"
+            },
+            {
+              "from": "anchor-b067fc2b185d93a41b3e20a2",
+              "to": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-b067fc2b185d93a41b3e20a2",
+              "to": "anchor-888a55f56b2460081eb871cb",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-b067fc2b185d93a41b3e20a2",
+              "to": "anchor-2a4b44be32984e32eb86f001",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-b067fc2b185d93a41b3e20a2",
+              "to": "anchor-93e63ee0ab54d203569453b8",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-b067fc2b185d93a41b3e20a2",
+              "to": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-d794d9226eb1a42ad4c0d69f",
+              "to": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-d794d9226eb1a42ad4c0d69f",
+              "to": "anchor-888a55f56b2460081eb871cb",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-d794d9226eb1a42ad4c0d69f",
+              "to": "anchor-b067fc2b185d93a41b3e20a2",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-d794d9226eb1a42ad4c0d69f",
+              "to": "anchor-2a4b44be32984e32eb86f001",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-d794d9226eb1a42ad4c0d69f",
+              "to": "anchor-93e63ee0ab54d203569453b8",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-41fcfe3c300d4aeab97a93ba",
+              "to": "anchor-2143ce66b1b1ff07dd63307e",
+              "kind": "field"
+            },
+            {
+              "from": "anchor-41fcfe3c300d4aeab97a93ba",
+              "to": "anchor-2143ce66b1b1ff07dd63307e",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-41fcfe3c300d4aeab97a93ba",
+              "to": "anchor-b067fc2b185d93a41b3e20a2",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-41fcfe3c300d4aeab97a93ba",
+              "to": "anchor-6ef2df3b93be385615f2aa79",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-41fcfe3c300d4aeab97a93ba",
+              "to": "anchor-2a4b44be32984e32eb86f001",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-41fcfe3c300d4aeab97a93ba",
+              "to": "anchor-93e63ee0ab54d203569453b8",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-41fcfe3c300d4aeab97a93ba",
+              "to": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-6ef2df3b93be385615f2aa79",
+              "to": "anchor-2143ce66b1b1ff07dd63307e",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-6ef2df3b93be385615f2aa79",
+              "to": "anchor-b067fc2b185d93a41b3e20a2",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-6ef2df3b93be385615f2aa79",
+              "to": "anchor-2a4b44be32984e32eb86f001",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-6ef2df3b93be385615f2aa79",
+              "to": "anchor-41fcfe3c300d4aeab97a93ba",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-6ef2df3b93be385615f2aa79",
+              "to": "anchor-93e63ee0ab54d203569453b8",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-6ef2df3b93be385615f2aa79",
+              "to": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-6ef2df3b93be385615f2aa79",
+              "to": "anchor-b067fc2b185d93a41b3e20a2",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-9c8aea5c5131da5671dec309",
+              "to": "anchor-2143ce66b1b1ff07dd63307e",
+              "kind": "field"
+            },
+            {
+              "from": "anchor-9c8aea5c5131da5671dec309",
+              "to": "anchor-2143ce66b1b1ff07dd63307e",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-9c8aea5c5131da5671dec309",
+              "to": "anchor-b067fc2b185d93a41b3e20a2",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-9c8aea5c5131da5671dec309",
+              "to": "anchor-6ef2df3b93be385615f2aa79",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-9c8aea5c5131da5671dec309",
+              "to": "anchor-2a4b44be32984e32eb86f001",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-9c8aea5c5131da5671dec309",
+              "to": "anchor-41fcfe3c300d4aeab97a93ba",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-9c8aea5c5131da5671dec309",
+              "to": "anchor-93e63ee0ab54d203569453b8",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-9c8aea5c5131da5671dec309",
+              "to": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-7e93594c0bc3ce08eeee4623",
+              "to": "anchor-2a4b44be32984e32eb86f001",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-7e93594c0bc3ce08eeee4623",
+              "to": "anchor-41fcfe3c300d4aeab97a93ba",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-7e93594c0bc3ce08eeee4623",
+              "to": "anchor-9c8aea5c5131da5671dec309",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-7e93594c0bc3ce08eeee4623",
+              "to": "anchor-93e63ee0ab54d203569453b8",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-7e93594c0bc3ce08eeee4623",
+              "to": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-7e93594c0bc3ce08eeee4623",
+              "to": "anchor-b067fc2b185d93a41b3e20a2",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-7e93594c0bc3ce08eeee4623",
+              "to": "anchor-6ef2df3b93be385615f2aa79",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-7ee48e34c178a1302448355f",
+              "to": "anchor-7e93594c0bc3ce08eeee4623",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-7ee48e34c178a1302448355f",
+              "to": "anchor-2a4b44be32984e32eb86f001",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-7ee48e34c178a1302448355f",
+              "to": "anchor-41fcfe3c300d4aeab97a93ba",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-7ee48e34c178a1302448355f",
+              "to": "anchor-9c8aea5c5131da5671dec309",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-7ee48e34c178a1302448355f",
+              "to": "anchor-93e63ee0ab54d203569453b8",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-7ee48e34c178a1302448355f",
+              "to": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-7ee48e34c178a1302448355f",
+              "to": "anchor-b067fc2b185d93a41b3e20a2",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-7ee48e34c178a1302448355f",
+              "to": "anchor-6ef2df3b93be385615f2aa79",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-79f61fe12c5ac68f68076ce0",
+              "to": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-79f61fe12c5ac68f68076ce0",
+              "to": "anchor-b067fc2b185d93a41b3e20a2",
+              "kind": "call-argument"
+            },
+            {
+              "from": "anchor-79f61fe12c5ac68f68076ce0",
+              "to": "anchor-2a4b44be32984e32eb86f001",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-79f61fe12c5ac68f68076ce0",
+              "to": "anchor-41fcfe3c300d4aeab97a93ba",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-79f61fe12c5ac68f68076ce0",
+              "to": "anchor-9c8aea5c5131da5671dec309",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-79f61fe12c5ac68f68076ce0",
+              "to": "anchor-93e63ee0ab54d203569453b8",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-79f61fe12c5ac68f68076ce0",
+              "to": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-79f61fe12c5ac68f68076ce0",
+              "to": "anchor-b067fc2b185d93a41b3e20a2",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-79f61fe12c5ac68f68076ce0",
+              "to": "anchor-6ef2df3b93be385615f2aa79",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-7b2e3f1d2d0973d7613ba7bb",
+              "to": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-7b2e3f1d2d0973d7613ba7bb",
+              "to": "anchor-b067fc2b185d93a41b3e20a2",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-7b2e3f1d2d0973d7613ba7bb",
+              "to": "anchor-79f61fe12c5ac68f68076ce0",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-7b2e3f1d2d0973d7613ba7bb",
+              "to": "anchor-2a4b44be32984e32eb86f001",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-7b2e3f1d2d0973d7613ba7bb",
+              "to": "anchor-41fcfe3c300d4aeab97a93ba",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-7b2e3f1d2d0973d7613ba7bb",
+              "to": "anchor-9c8aea5c5131da5671dec309",
+              "kind": "control"
+            },
+            {
+              "from": "anchor-7b2e3f1d2d0973d7613ba7bb",
+              "to": "anchor-93e63ee0ab54d203569453b8",
+              "kind": "data"
+            },
+            {
+              "from": "anchor-7b2e3f1d2d0973d7613ba7bb",
+              "to": "anchor-6ef2df3b93be385615f2aa79",
+              "kind": "data"
+            }
+          ],
+          "boundaries": [
+            {
+              "anchorId": "anchor-93e63ee0ab54d203569453b8",
+              "code": "unknown-call-influence",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1410,
+                "endLine": 1413,
+                "candidateId": "struct-4a9672f6253534ddaf14b54e"
+              },
+              "candidateIds": []
+            },
+            {
+              "anchorId": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "code": "unknown-call-influence",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1410,
+                "endLine": 1413,
+                "candidateId": "struct-4a9672f6253534ddaf14b54e"
+              },
+              "candidateIds": []
+            },
+            {
+              "anchorId": "anchor-b067fc2b185d93a41b3e20a2",
+              "code": "unknown-call-influence",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1417,
+                "endLine": 1420,
+                "candidateId": "struct-4a9672f6253534ddaf14b54e"
+              },
+              "candidateIds": [
+                "struct-7ab1297ea3f05dc30ca55b3d"
+              ]
+            },
+            {
+              "anchorId": "anchor-6ef2df3b93be385615f2aa79",
+              "code": "unknown-call-influence",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1421,
+                "endLine": 1425,
+                "candidateId": "struct-4a9672f6253534ddaf14b54e"
+              },
+              "candidateIds": [
+                "struct-0c8bed3900304fcee9a1c0b6"
+              ]
+            },
+            {
+              "anchorId": "anchor-7e93594c0bc3ce08eeee4623",
+              "code": "unknown-call-influence",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1426,
+                "endLine": 1426,
+                "candidateId": "struct-4a9672f6253534ddaf14b54e"
+              },
+              "candidateIds": []
+            },
+            {
+              "anchorId": "anchor-79f61fe12c5ac68f68076ce0",
+              "code": "unknown-call-influence",
+              "selector": {
+                "path": "src/documents/views.py",
+                "startLine": 1427,
+                "endLine": 1427,
+                "candidateId": "struct-4a9672f6253534ddaf14b54e"
+              },
+              "candidateIds": [
+                "struct-1adbbb5232715656b83b3e3f"
+              ]
+            }
+          ],
+          "requiredAnchorIds": [
+            "anchor-9c8aea5c5131da5671dec309",
+            "anchor-93e63ee0ab54d203569453b8",
+            "anchor-b29d6f9b96996d0b50cdd9b4",
+            "anchor-ec7b89d3e1272a881ba9e466",
+            "anchor-b067fc2b185d93a41b3e20a2",
+            "anchor-6ef2df3b93be385615f2aa79",
+            "anchor-7ee48e34c178a1302448355f",
+            "anchor-7e93594c0bc3ce08eeee4623",
+            "anchor-7b2e3f1d2d0973d7613ba7bb",
+            "anchor-79f61fe12c5ac68f68076ce0",
+            "anchor-2143ce66b1b1ff07dd63307e",
+            "anchor-2a4b44be32984e32eb86f001",
+            "anchor-41fcfe3c300d4aeab97a93ba",
+            "anchor-f8550f84531ec254673309da",
+            "anchor-ebe0bbb609a7842911293732",
+            "anchor-bbe4bd514341d3619abc9dd9",
+            "anchor-888a55f56b2460081eb871cb"
+          ],
+          "localExclusions": [],
+          "propertyQueries": {
+            "schemaVersion": "authorization-property-query/v1",
+            "questionId": "local-file-contract",
+            "queries": [
+              {
+                "id": "local-call",
+                "kind": "effect-reachability",
+                "requirement": "Reachability of the selected file-serving call after local refusal branches",
+                "questionId": "local-file-contract",
+                "source": {
+                  "id": "struct-4a9672f6253534ddaf14b54e",
+                  "path": "src/documents/views.py",
+                  "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+                  "startLine": 1401,
+                  "endLine": 1427
+                },
+                "sourceRevision": "5a1ebd6ed96699ac321492480e89635fd7bf12753fcde4dacfac447b6c1f3093",
+                "state": "unbound",
+                "bindingScope": "interprocedural-property/v1",
+                "semanticReview": "unreviewed",
+                "bindingValidation": "source-structure-only",
+                "missing": [
+                  "effect-unbound"
+                ]
+              }
+            ],
+            "diagnostics": [
+              {
+                "code": "property-query-unbound",
+                "questionId": "local-file-contract",
+                "propertyId": "local-call",
+                "sourceId": "struct-4a9672f6253534ddaf14b54e",
+                "message": "effect-unbound",
+                "nextAction": "Choose a current offered propertyReferences candidate, interpret its actual source roles, and retain missing paths; resolving a reference does not prove object equality."
+              }
+            ],
+            "revision": "337d735e2ab20b13a597204924d209a4b08cb6cd2c38d8e604d9ce407570e52b"
+          },
+          "residuals": [],
+          "summaryUses": [],
+          "callScopes": [
+            {
+              "anchorId": "anchor-93e63ee0ab54d203569453b8",
+              "sourceCallId": "call-89cabef1023f54fa1f77ef22",
+              "state": "required",
+              "reason": "current-source-dependency"
+            },
+            {
+              "anchorId": "anchor-b29d6f9b96996d0b50cdd9b4",
+              "sourceCallId": "call-89cabef1023f54fa1f77ef22",
+              "state": "required",
+              "reason": "current-source-dependency"
+            },
+            {
+              "anchorId": "anchor-b067fc2b185d93a41b3e20a2",
+              "sourceCallId": "call-1b6611fb1500ce49654386e3",
+              "state": "required",
+              "reason": "current-source-dependency"
+            },
+            {
+              "anchorId": "anchor-6ef2df3b93be385615f2aa79",
+              "sourceCallId": "call-fe1fd3dd50fbb4ce08f46325",
+              "state": "required",
+              "reason": "current-source-dependency"
+            },
+            {
+              "anchorId": "anchor-7e93594c0bc3ce08eeee4623",
+              "sourceCallId": "call-c55aff397c665c6d79396905",
+              "state": "required",
+              "reason": "current-source-dependency"
+            },
+            {
+              "anchorId": "anchor-79f61fe12c5ac68f68076ce0",
+              "sourceCallId": "call-f8827c59362522708140a952",
+              "state": "required",
+              "reason": "current-source-dependency"
+            }
+          ],
+          "revision": "40c25bc06d927d31f3b00d1145598084c84d3fc70258efe46eadb4da7a747bcd"
+        },
+        "requiredAnnotationCount": 8,
+        "pendingAnnotationCount": 1,
+        "coverage": {
+          "sourceRead": true,
+          "domainInterpreted": false,
+          "propertyCovered": false,
+          "wholeAnswerSufficient": false
+        },
+        "nextWork": {
+          "kind": "interpret",
+          "anchorId": "anchor-ec7b89d3e1272a881ba9e466",
+          "field": "failureKind",
+          "affectedQuestionIds": [
+            "local-file-contract"
+          ]
+        }
+      }
+    ],
+    "slice": {
+      "schemaVersion": "authorization-control-slice/v2",
+      "revision": 9,
+      "rules": [
+        {
+          "key": "sem-54d814596a422ad8acc1f6a9",
+          "questionId": "local-file-contract",
+          "pathKey": "sem-467590aac8658bc2109ee6dc",
+          "kind": "entry",
+          "after": [],
+          "evidenceIds": [
+            "ev-2a863fd7066847e3f147"
+          ],
+          "claim": "Local function contract root contract-5006bb8f93ced69a30302613; request entry is outside scope",
+          "terminal": false,
+          "sourceOrigin": {
+            "handle": "contract-5006bb8f93ced69a30302613",
+            "block": "source-main",
+            "step": "$entry",
+            "instance": "contract-5006bb8f93ced69a30302613"
+          },
+          "id": "ctrl-58290b622f1cb8adef51",
+          "digest": "a0eee463504e5db1baca8f796fb0cdab2e493223a4290349c04bec7cb55d40b6",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        {
+          "key": "sem-c88fe4930a41ad6f91cd44ad",
+          "questionId": "local-file-contract",
+          "pathKey": "sem-467590aac8658bc2109ee6dc",
+          "kind": "binding",
+          "after": [
+            "sem-54d814596a422ad8acc1f6a9"
+          ],
+          "evidenceIds": [
+            "ev-2a863fd7066847e3f147"
+          ],
+          "claim": "Explicit entry parameter self (configuration)",
+          "bindingKey": "sem-94473a703db56e73e6910dab",
+          "bindingKind": "configuration",
+          "terminal": false,
+          "sourceOrigin": {
+            "handle": "contract-5006bb8f93ced69a30302613",
+            "block": "source-main",
+            "step": "$parameter.self",
+            "instance": "contract-5006bb8f93ced69a30302613"
+          },
+          "bindingName": "self",
+          "id": "ctrl-9317ec6742e2e99812ca",
+          "digest": "47eb9d0b057bc82a8b39dc3df26bc98aaf4bdc3d16052fbf4fa0a8ec7ceb7f58",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        {
+          "key": "sem-214246286cdaea1b7045b4ad",
+          "questionId": "local-file-contract",
+          "pathKey": "sem-467590aac8658bc2109ee6dc",
+          "kind": "binding",
+          "after": [
+            "sem-c88fe4930a41ad6f91cd44ad"
+          ],
+          "evidenceIds": [
+            "ev-2a863fd7066847e3f147"
+          ],
+          "claim": "Explicit entry parameter pk (configuration)",
+          "bindingKey": "sem-2e43da7ebf656810b43ef7cd",
+          "bindingKind": "configuration",
+          "terminal": false,
+          "sourceOrigin": {
+            "handle": "contract-5006bb8f93ced69a30302613",
+            "block": "source-main",
+            "step": "$parameter.pk",
+            "instance": "contract-5006bb8f93ced69a30302613"
+          },
+          "bindingName": "pk",
+          "id": "ctrl-023b248819af19b98b87",
+          "digest": "82c3932735d01e125283c0e427fbd0e2480104fb337b4999350be6a5f12a31be",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        {
+          "key": "sem-a613b1b8f9a04e0f3ffd27a2",
+          "questionId": "local-file-contract",
+          "pathKey": "sem-467590aac8658bc2109ee6dc",
+          "kind": "binding",
+          "after": [
+            "sem-214246286cdaea1b7045b4ad"
+          ],
+          "evidenceIds": [
+            "ev-2a863fd7066847e3f147"
+          ],
+          "claim": "Explicit entry parameter request (configuration)",
+          "bindingKey": "sem-47c7304ceb23fe39c7e7a1b4",
+          "bindingKind": "configuration",
+          "terminal": false,
+          "sourceOrigin": {
+            "handle": "contract-5006bb8f93ced69a30302613",
+            "block": "source-main",
+            "step": "$parameter.request",
+            "instance": "contract-5006bb8f93ced69a30302613"
+          },
+          "bindingName": "request",
+          "id": "ctrl-7d82364db47faf668a8a",
+          "digest": "39f01a441cd74feee703fd554e29f06df9d4018b2f2eaefd4af173b1d212baab",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        {
+          "key": "sem-c12716cecdbadf56ca8760c3",
+          "questionId": "local-file-contract",
+          "pathKey": "sem-467590aac8658bc2109ee6dc",
+          "kind": "binding",
+          "after": [
+            "sem-a613b1b8f9a04e0f3ffd27a2"
+          ],
+          "evidenceIds": [
+            "ev-2a863fd7066847e3f147"
+          ],
+          "claim": "Explicit entry parameter disposition (configuration)",
+          "bindingKey": "sem-11a3589bc4aceabf0cf46e8a",
+          "bindingKind": "configuration",
+          "terminal": false,
+          "sourceOrigin": {
+            "handle": "contract-5006bb8f93ced69a30302613",
+            "block": "source-main",
+            "step": "$parameter.disposition",
+            "instance": "contract-5006bb8f93ced69a30302613"
+          },
+          "bindingName": "disposition",
+          "id": "ctrl-938f67c74f499b7165b3",
+          "digest": "966b6751d9450b2214c8f4d4e3f1a22cfd1557c051adcc8ed3b3039ca9cae0f6",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        {
+          "key": "sem-58dd8e43185c0e55c7b0f991",
+          "questionId": "local-file-contract",
+          "pathKey": "sem-467590aac8658bc2109ee6dc",
+          "kind": "binding",
+          "after": [
+            "sem-c12716cecdbadf56ca8760c3"
+          ],
+          "evidenceIds": [
+            "ev-2a863fd7066847e3f147"
+          ],
+          "claim": "Actual source literal argument/default/empty pack",
+          "bindingKey": "sem-b0d8baf9ad3f347c4a175014",
+          "bindingKind": "value",
+          "terminal": false,
+          "sourceOrigin": {
+            "handle": "contract-5006bb8f93ced69a30302613",
+            "block": "source-main",
+            "step": "literal-anchor-8c381d46def5890f94e11a98-include_deleted",
+            "instance": "contract-5006bb8f93ced69a30302613"
+          },
+          "bindingName": "literal-anchor-8c381d46def5890f94e11a98-include_deleted",
+          "id": "ctrl-b373ccfce26f8ad09800",
+          "digest": "fac0923d2cb6b9c3bafa19b339ce0cdf07b66169f9e7f11a7a49ed6e3d2d71f5",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        {
+          "key": "sem-832fb1c322a36874b84d48c3",
+          "questionId": "local-file-contract",
+          "pathKey": "sem-467590aac8658bc2109ee6dc",
+          "kind": "call",
+          "after": [
+            "sem-58dd8e43185c0e55c7b0f991"
+          ],
+          "evidenceIds": [
+            "ev-2a863fd7066847e3f147"
+          ],
+          "claim": "Preserve the actual source call and its unknown result/control influence.",
+          "terminal": false,
+          "sourceOrigin": {
+            "handle": "contract-5006bb8f93ced69a30302613",
+            "block": "source-main",
+            "step": "call-anchor-8c381d46def5890f94e11a98",
+            "instance": "contract-5006bb8f93ced69a30302613"
+          },
+          "id": "ctrl-f241486d244d657fa209",
+          "digest": "8e6081bad1a4428a77e451f5ae2994921bcde3cc8dcf9447a4746e6b571b07be",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        },
+        {
+          "key": "sem-260daa148f09ef7d8a7baf6c",
+          "questionId": "local-file-contract",
+          "pathKey": "sem-467590aac8658bc2109ee6dc",
+          "kind": "unresolved",
+          "after": [
+            "sem-832fb1c322a36874b84d48c3"
+          ],
+          "evidenceIds": [
+            "ev-2a863fd7066847e3f147"
+          ],
+          "claim": "semantic-callee-uninterpreted",
+          "complete": false,
+          "terminal": true,
+          "gap": "semantic-callee-uninterpreted",
+          "sourceOrigin": {
+            "handle": "contract-5006bb8f93ced69a30302613",
+            "block": "source-main",
+            "step": "call-anchor-8c381d46def5890f94e11a98",
+            "instance": "contract-5006bb8f93ced69a30302613"
+          },
+          "id": "ctrl-a8e8b79e1c19858af694",
+          "digest": "567e0beb707c90ab422b461e7e667a377236ed2f3dc86212139efc29ae469d19",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        }
+      ],
+      "dependencies": [
+        {
+          "key": "sem-aa2f677cd7494e2a6abc569d",
+          "questionId": "local-file-contract",
+          "pathKey": "sem-467590aac8658bc2109ee6dc",
+          "from": "sem-832fb1c322a36874b84d48c3",
+          "symbol": "self._resolve_request_and_root_doc",
+          "evidenceIds": [
+            "ev-2a863fd7066847e3f147"
+          ],
+          "reason": "Preserve the actual source call and its unknown result/control influence.",
+          "kind": "control",
+          "decisive": true,
+          "after": [
+            "sem-832fb1c322a36874b84d48c3"
+          ],
+          "pathHint": "src/documents/views.py:1401-1427",
+          "candidateId": "struct-4a9672f6253534ddaf14b54e",
+          "id": "ctrl-4d8098b7951f7b340b11",
+          "digest": "aac3bacbed2541994edff0de988ad067dcac04757a33e3b84a35811b2bf19a42",
+          "sourceBound": true,
+          "semanticSupport": "unreviewed"
+        }
+      ],
+      "bindings": [],
+      "policyRules": [],
+      "conflicts": [],
+      "revisions": []
+    },
+    "loweringDiagnostics": [
+      {
+        "code": "semantic-callee-uninterpreted",
+        "path": "semanticBlocks.local-file-contract.contract-5006bb8f93ced69a30302613",
+        "questionId": "local-file-contract",
+        "message": "Unresolved local source relation at source-main.call-anchor-8c381d46def5890f94e11a98; no alternative or call meaning was inferred.",
+        "severity": "error"
+      }
+    ],
+    "evaluation": {
+      "schemaVersion": "authorization-property-check/v1",
+      "evaluationVersion": "semantic-completion/v1",
+      "revision": 9,
+      "questions": [
+        {
+          "questionId": "requested-document-and-returned-file",
+          "properties": [],
+          "gaps": [
+            "property-query-undeclared"
+          ]
+        },
+        {
+          "questionId": "authorization-and-selection-order",
+          "properties": [],
+          "gaps": [
+            "property-query-undeclared"
+          ]
+        },
+        {
+          "questionId": "alternate-version-authorized-resource",
+          "properties": [],
+          "gaps": [
+            "property-query-undeclared"
+          ]
+        },
+        {
+          "questionId": "missing-facts-and-conditional-conclusions",
+          "properties": [],
+          "gaps": [
+            "property-query-undeclared"
+          ]
+        },
+        {
+          "questionId": "local-file-contract",
+          "properties": [
+            {
+              "propertyId": "local-call",
+              "kind": "effect-reachability",
+              "status": "unknown",
+              "value": "unresolved",
+              "questionId": "local-file-contract",
+              "source": {
+                "id": "struct-c1a6bd6945975b47fbb4b98c",
+                "path": "src/documents/views.py",
+                "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+                "startLine": 1429,
+                "endLine": 1448
+              },
+              "sourceRevision": "efcea721f8eac86db5f605ad02af7f9f0c742f1549233715baa43c31601e365a",
+              "gaps": [
+                "property-source-effect-unadopted"
+              ],
+              "trace": [
+                "sem-54d814596a422ad8acc1f6a9",
+                "sem-c88fe4930a41ad6f91cd44ad",
+                "sem-214246286cdaea1b7045b4ad",
+                "sem-a613b1b8f9a04e0f3ffd27a2",
+                "sem-c12716cecdbadf56ca8760c3",
+                "sem-58dd8e43185c0e55c7b0f991",
+                "sem-832fb1c322a36874b84d48c3",
+                "sem-260daa148f09ef7d8a7baf6c"
+              ],
+              "dependencyRelevance": [],
+              "traceDetails": [
+                {
+                  "key": "sem-54d814596a422ad8acc1f6a9",
+                  "kind": "entry",
+                  "source": {
+                    "id": "struct-c1a6bd6945975b47fbb4b98c",
+                    "path": "src/documents/views.py",
+                    "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+                    "startLine": 1429,
+                    "endLine": 1448
+                  },
+                  "origin": {
+                    "handle": "contract-5006bb8f93ced69a30302613",
+                    "block": "source-main",
+                    "step": "$entry",
+                    "instance": "contract-5006bb8f93ced69a30302613"
+                  },
+                  "after": []
+                },
+                {
+                  "key": "sem-c88fe4930a41ad6f91cd44ad",
+                  "kind": "binding",
+                  "source": {
+                    "id": "struct-c1a6bd6945975b47fbb4b98c",
+                    "path": "src/documents/views.py",
+                    "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+                    "startLine": 1429,
+                    "endLine": 1448
+                  },
+                  "origin": {
+                    "handle": "contract-5006bb8f93ced69a30302613",
+                    "block": "source-main",
+                    "step": "$parameter.self",
+                    "instance": "contract-5006bb8f93ced69a30302613"
+                  },
+                  "after": [
+                    "sem-54d814596a422ad8acc1f6a9"
+                  ]
+                },
+                {
+                  "key": "sem-214246286cdaea1b7045b4ad",
+                  "kind": "binding",
+                  "source": {
+                    "id": "struct-c1a6bd6945975b47fbb4b98c",
+                    "path": "src/documents/views.py",
+                    "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+                    "startLine": 1429,
+                    "endLine": 1448
+                  },
+                  "origin": {
+                    "handle": "contract-5006bb8f93ced69a30302613",
+                    "block": "source-main",
+                    "step": "$parameter.pk",
+                    "instance": "contract-5006bb8f93ced69a30302613"
+                  },
+                  "after": [
+                    "sem-c88fe4930a41ad6f91cd44ad"
+                  ]
+                },
+                {
+                  "key": "sem-a613b1b8f9a04e0f3ffd27a2",
+                  "kind": "binding",
+                  "source": {
+                    "id": "struct-c1a6bd6945975b47fbb4b98c",
+                    "path": "src/documents/views.py",
+                    "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+                    "startLine": 1429,
+                    "endLine": 1448
+                  },
+                  "origin": {
+                    "handle": "contract-5006bb8f93ced69a30302613",
+                    "block": "source-main",
+                    "step": "$parameter.request",
+                    "instance": "contract-5006bb8f93ced69a30302613"
+                  },
+                  "after": [
+                    "sem-214246286cdaea1b7045b4ad"
+                  ]
+                },
+                {
+                  "key": "sem-c12716cecdbadf56ca8760c3",
+                  "kind": "binding",
+                  "source": {
+                    "id": "struct-c1a6bd6945975b47fbb4b98c",
+                    "path": "src/documents/views.py",
+                    "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+                    "startLine": 1429,
+                    "endLine": 1448
+                  },
+                  "origin": {
+                    "handle": "contract-5006bb8f93ced69a30302613",
+                    "block": "source-main",
+                    "step": "$parameter.disposition",
+                    "instance": "contract-5006bb8f93ced69a30302613"
+                  },
+                  "after": [
+                    "sem-a613b1b8f9a04e0f3ffd27a2"
+                  ]
+                },
+                {
+                  "key": "sem-58dd8e43185c0e55c7b0f991",
+                  "kind": "binding",
+                  "source": {
+                    "id": "struct-c1a6bd6945975b47fbb4b98c",
+                    "path": "src/documents/views.py",
+                    "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+                    "startLine": 1429,
+                    "endLine": 1448
+                  },
+                  "origin": {
+                    "handle": "contract-5006bb8f93ced69a30302613",
+                    "block": "source-main",
+                    "step": "literal-anchor-8c381d46def5890f94e11a98-include_deleted",
+                    "instance": "contract-5006bb8f93ced69a30302613"
+                  },
+                  "after": [
+                    "sem-c12716cecdbadf56ca8760c3"
+                  ]
+                },
+                {
+                  "key": "sem-832fb1c322a36874b84d48c3",
+                  "kind": "call",
+                  "source": {
+                    "id": "struct-c1a6bd6945975b47fbb4b98c",
+                    "path": "src/documents/views.py",
+                    "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+                    "startLine": 1429,
+                    "endLine": 1448
+                  },
+                  "origin": {
+                    "handle": "contract-5006bb8f93ced69a30302613",
+                    "block": "source-main",
+                    "step": "call-anchor-8c381d46def5890f94e11a98",
+                    "instance": "contract-5006bb8f93ced69a30302613"
+                  },
+                  "after": [
+                    "sem-58dd8e43185c0e55c7b0f991"
+                  ]
+                },
+                {
+                  "key": "sem-260daa148f09ef7d8a7baf6c",
+                  "kind": "unresolved",
+                  "source": {
+                    "id": "struct-c1a6bd6945975b47fbb4b98c",
+                    "path": "src/documents/views.py",
+                    "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+                    "startLine": 1429,
+                    "endLine": 1448
+                  },
+                  "origin": {
+                    "handle": "contract-5006bb8f93ced69a30302613",
+                    "block": "source-main",
+                    "step": "call-anchor-8c381d46def5890f94e11a98",
+                    "instance": "contract-5006bb8f93ced69a30302613"
+                  },
+                  "after": [
+                    "sem-832fb1c322a36874b84d48c3"
+                  ],
+                  "gap": "semantic-callee-uninterpreted"
+                }
+              ],
+              "effectOccurrences": [],
+              "semanticReview": "unreviewed",
+              "scope": "current-proposed-source-relation"
+            }
+          ],
+          "gaps": []
+        }
+      ],
+      "diagnostics": [],
+      "originalQuestionCount": 5,
+      "wholeTaskCertified": false,
+      "semanticReview": "unreviewed"
+    },
+    "requestOperationCertified": false,
+    "semanticReview": "unreviewed"
+  },
+  "modelCalls": 0,
+  "scope": "development-authored; no automatic generation credit"
+}

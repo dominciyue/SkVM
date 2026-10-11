@@ -2964,6 +2964,8 @@ BE13补齐已有有限谓词的模型可见合同：静态D声明工具和当前
 
 **单一接线。** 持久程序拟用`authorization-executable-contract/v1`窄输入，复用现有source declaration、predicate、property和evidence。宿主生成机械ID和revision，拒绝预置trusted checked、实际使用记录或evaluator分数。作者文件与模型工具共用来源解析、声明编译、保存、投影和检查核心。普通inquiry拟增加薄`--domain-program`或唯一兼容输入字段；BF3定案并同步，BF6落地前不在usage发布为可用命令。check可零模型执行有限检查，run保留自然答案，inspect/compare/previous保存范围和变化依据。
 
+BF初版已定sourceDeclarations为既有QuestionDeclaration数组，scope.root为完整当前来源引用；id及语义由作者给出，revision/anchor/argument由宿主生成。function-root复用材料投影并给既有lowering指定局部根，保留helper原角色；request-operation只能用已有host-confirmed entry，不能从导入文件重标角色。assumptions暂只保存来源、不向有限求值器赋值，不能以文字假设获得checked。初版公共核心得到匿名跨调用checked，真实Paperless仍unknown，普通文件/工具接点与条件摘要表达仍开发中；完整证据在研究§7.67。
+
 **来源路由与采用。** 显式来源、当前字节、读取覆盖、operation/question/receiver决定唯一owner；focus只建议下一动作，不阻止提交另一个已读合法来源。未读、过期、多义、越界和跨题冲突具名拒绝。合法独立片段保留，依赖未完成关系不提前采用。R0准备、R1有效材料、R2当前性质继续分层，loaded/restored不能计为used；实际使用须有当前material handle、调用实例和非空trace。
 
 **验证和效果。** 先做真实作者程序和错主体/对象、guard后置/缺失、未注册调用、前提真/假/未知、源码撤回反例，再做自动H/D及同包消费。六首位置分别属于自动编写、作者使用、变化对照，不混成一张自动优化成功表。H/D共同事实、预算和自然回答一致，开发者参考实现、旧答案、评阅及本计划隔离。共享故障当场红绿修复、具名复验；不通过继续坏面板、重复重抽或扩语言全集来推进。程序检查不自证声明的源码含义，独立评价回到实际原文，含BE跨调用参数勘误。

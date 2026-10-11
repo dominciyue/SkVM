@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有源码索引与有限控制求值器、官方账号 adapter。开发 `gpt-6.1-sol/max`；研究模型沿用已授权的官方账号 `gpt-5.6-sol/high`。
 
-状态：`planned-authorized / 待新线程接管`。规划基线 `74bf7befa80f8b0d73187d07d1b08e8a27875bdf`。用户已授权书写、派发并连续开发约 8 小时工作量；常规阶段无需再确认。本文件是新队列，不继续向 BE 已关闭位置补行。
+状态：`in-progress / BF0已接管`。规划基线 `74bf7befa80f8b0d73187d07d1b08e8a27875bdf`，实际接管 `34e5e302b9d725ee09937ddc651e77f7a1d7159e`（2026-10-12 03:10 Asia/Shanghai，工作树干净、live origin一致）。用户已授权书写、派发并连续开发约 8 小时工作量；常规阶段无需再确认。本文件是新队列，不继续向 BE 已关闭位置补行。
 
 Identity：`authorization-executable-contract-v1`。结果集中 `results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/`；临时运行集中 `D:/skill优化/project-maintenance/runs/authorization-executable-contract-v1/`。继续 `skill-ir-aot`，只推用户 `origin`，不开分支或 worktree。
 
@@ -93,16 +93,16 @@ Identity：`authorization-executable-contract-v1`。结果集中 `results/skill-
 
 **Files:** 本任务书；新 identity 的 `manifest.json/status.json`；根阶段日志。
 
-- [ ] 确认分支、工作树、最新 plan 提交；保留其他线程内容。记录实际接管 SHA，不把规划基线冒充实现版本。
-- [ ] 登记 A/B/C 三轨、8 小时安排、必需工程与条件实验；requirements 与 outcomes 分开，未测值 pending/null。
-- [ ] 读取 BE 复核定位的几份材料并确认首阻断；不再统计全历史 unknown 或重复1700项全套回归来启动。
+- [x] 确认分支、工作树、最新 plan 提交；保留其他线程内容。实际接管34e5e302，live origin一致。
+- [x] 登记 A/B/C 三轨、8 小时安排、必需工程与条件实验；manifest/status分开requirements与outcomes，未测值pending/null。
+- [x] 读取 BE 验收与定位字段：两件helper saved/current/available=1、projected/used=0，首阻断material-entry-role-mismatch；声明首阻断question-source-unoffered。旧原件保持。
 
 ### BF1 — 修正评价前提并保留原题
 
 **Files:** BF 研究测试/评价合同；必要时调用现有 evidence preparation 接点，不修改 BE scorer 或原评阅。
 
-- [ ] 用匿名双调用 fixture 复现 `lookup(include_deleted=True)` 与独立 `select(include_deleted=version_present)`，覆盖无参数、空字符串、显式值、root 缺失回退。测试必须发现跨调用误传参数，不能只断言一段固定答案文字。
-- [ ] 新评价器根据实际参数流核定事实；把 BE 勘误作为开发回归依据，隔离于实验模型输入。
+- [x] 用匿名双调用 fixture 复现 `lookup(include_deleted=True)` 与独立 `select(include_deleted=version_present)`，覆盖无参数、空字符串、显式值、root 缺失回退。测试必须发现跨调用误传参数，不能只断言一段固定答案文字。
+- [x] 新评价器根据实际参数流核定事实；把 BE 勘误作为开发回归依据，隔离于实验模型输入。source-call-review以实际sourceCallId/签名绑定；缺场景值保持unresolved。
 - [ ] 四问答案整体阅读全文后评价：相同事实已在别段说清楚可以交叉引用，不强制重复特定措辞。保留必要分支、对象、事实到结论映射，不降低正确性要求。
 
 ### BF2 — 先亲自写一份真实可执行程序
@@ -111,7 +111,7 @@ Identity：`authorization-executable-contract-v1`。结果集中 `results/skill-
 
 - [ ] 亲读真实 `views.py`、直接 helper 和所需权限/版本定义，写一份小而完整的函数范围合同；每项含义定位原文，保留外部前提和剩余框架职责。
 - [ ] 第一性质覆盖真正的授权行为，例如拒绝分支能否阻止指定效果、guard 所约束对象如何传到下游。不要只验证“两个 ID 相同”或采用恒真性质获得成功。
-- [ ] 从公开声明编译/工具接点执行原字节程序，记录第一个失败。禁止直接手造 semanticUnits、modelCovered、最终 graph、checked 标志绕过生产入口。
+- [x] 从公开声明编译/工具接点执行原字节程序，记录第一个失败。禁止直接手造 semanticUnits、modelCovered、最终 graph、checked 标志绕过生产入口。authoring/first-public-failure.json保存旧工具question-source-unoffered和新核心局部根首个unknown；真实A尚未闭合。
 - [ ] 如旧合同无法表达局部范围，保存最小反例交 BF3；如能够表达，优先复用并缩减 BF3，不重复造语言。开发者程序可带源码语义，但不能进入 B 自动编写模型上下文。
 
 ### BF3 — 有界程序与条件范围
