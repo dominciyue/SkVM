@@ -257,5 +257,5 @@ export function inquiryArgumentDiagnostics(strategy: InquiryStrategy, name: stri
   const parsed = schema.safeParse(raw)
   if (parsed.success) return undefined
   return parsed.error.issues.slice(0, 8).map(issue => ({ path: "/" + issue.path.map(p => String(p).replaceAll("~", "~0").replaceAll("/", "~1")).join("/"), keyword: issue.code,
-    message: issue.message, expected: issue.code === "invalid_enum_value" ? { allowedValues: issue.options } : issue.code === "invalid_literal" ? { allowedValue: issue.expected } : issue.code === "unrecognized_keys" ? { additionalProperties: issue.keys } : issue.code === "invalid_type" ? { type: issue.expected } : null }))
+    message: issue.message, expected: issue.code === "invalid_enum_value" || issue.code === "invalid_union_discriminator" ? { allowedValues: issue.options } : issue.code === "invalid_literal" ? { allowedValue: issue.expected } : issue.code === "unrecognized_keys" ? { additionalProperties: issue.keys } : issue.code === "invalid_type" ? { type: issue.expected } : null }))
 }

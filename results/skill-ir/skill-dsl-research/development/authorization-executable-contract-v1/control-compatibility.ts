@@ -8,7 +8,7 @@ import { redactCodexEvent } from "../../../../../src/adapters/codex-account-sess
 import { root, runRoot, originalInput, skillFile, limits, json, write, sha } from "./study.ts"
 
 /** Compare current H against its actual account input without dispatching inference. */
-export async function verifyControlCompatibility() {
+export async function verifyControlCompatibility(label: "program-authoring" | "declaration-feedback" = "program-authoring") {
   const attemptId = "auto-h-1/cli-path-1", directory = path.join(root, "attempts", attemptId)
   const report = await json(path.join(directory, "report.json")), run = JSON.parse(gunzipSync(await readFile(path.join(directory, "inquiry-run.json.gz"))).toString("utf8"))
   const start = run.telemetry.account.events.find((event: any) => event.direction === "client" && event.method === "thread/start").params
@@ -23,9 +23,9 @@ export async function verifyControlCompatibility() {
     const currentTools = JSON.parse(JSON.stringify(redactCodexEvent(runtime.definitions.map(project)))), originalTools = start.dynamicTools.map(project)
     const systemUnchanged = start.baseInstructions.includes(system), toolsUnchanged = isDeepStrictEqual(currentTools, originalTools)
     if (!systemUnchanged || !toolsUnchanged) throw new Error(`H contract changed: system=${systemUnchanged}, tools=${toolsUnchanged}`)
-    const evidence = { providerCalls: 0, attemptId, originalRuntimeTree: report.runtimeTree, originalSystemSha256: report.actualModelInput.systemSha256, reconstructedSystemFragmentSha256: sha(system), originalToolContractSha256: sha(JSON.stringify(originalTools)), currentToolContractSha256: sha(JSON.stringify(currentTools)), systemUnchanged, toolsUnchanged, originalInputSha256: sha(await readFile(originalInput)), changedPath: "src/benchmarks/authorization-dsl/question-workflow-wire.ts:20", interpretation: "Only the D declaration tool description changed. Actual H system and tool contracts are unchanged; no paired H inference or additional model cost." }
-    await write(path.join(root, "verification/program-authoring-control-compatibility.json"), evidence)
+    const evidence = { providerCalls: 0, attemptId, originalRuntimeTree: report.runtimeTree, originalSystemSha256: report.actualModelInput.systemSha256, reconstructedSystemFragmentSha256: sha(system), originalToolContractSha256: sha(JSON.stringify(originalTools)), currentToolContractSha256: sha(JSON.stringify(currentTools)), systemUnchanged, toolsUnchanged, originalInputSha256: sha(await readFile(originalInput)), changedPaths: label === "program-authoring" ? ["src/benchmarks/authorization-dsl/question-workflow-wire.ts:20"] : ["src/benchmarks/authorization-dsl/question-workflow-wire.ts:15", "src/benchmarks/authorization-dsl/inquiry-wire.ts:260", "src/benchmarks/authorization-dsl/inquiry-native.ts:334-335"], interpretation: label === "program-authoring" ? "Only the D declaration tool description changed. Actual H system and tool contracts are unchanged; no paired H inference or additional model cost." : "D declaration schemaVersion selects the same strict accepted forms; D malformed-declaration feedback uses its own source contract. Actual H system/tool contracts are unchanged. H has no declaration union and its existing repair branches are unchanged; no paired H inference." }
+    await write(path.join(root, `verification/${label}-control-compatibility.json`), evidence)
     return evidence
   } finally { await runtime.close() }
 }
-if (import.meta.main) console.log(JSON.stringify(await verifyControlCompatibility()))
+if (import.meta.main) console.log(JSON.stringify(await verifyControlCompatibility(process.argv[2] as "declaration-feedback" | undefined)))

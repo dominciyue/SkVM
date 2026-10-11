@@ -8,6 +8,7 @@ import { resolveInquiryContext } from "./inquiry-context.ts"
 import { executeLocalInquiryRun, inspectLocalInquiry, compareLocalInquiry } from "./inquiry-local.ts"
 import { runAuthorizationInquiryCli } from "../../cli/authorization-inquiry.ts"
 import { questionWorkflowDefinitions } from "./question-workflow-wire.ts"
+import { inquiryArgumentDiagnostics, inquiryNativeArgumentSchema } from "./inquiry-wire.ts"
 async function fixture(source = "def entry(actor, target):\n    return perform(actor, target)\n\ndef perform(actor, target):\n    if not actor.allowed:\n        return False\n    target.sent = True\n    return target\n", requiredPermission?: string) {
   const root = await mkdtemp(path.join(os.tmpdir(), "be-question-entrance-")); await writeFile(path.join(root, "app.py"), source)
   const inquiry = { schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect app.entry: authorization before the write", entryHint: "app.entry", premises: [], properties: [{ id: "auth", kind: "authorization-before-effect", requirement: "authorization before the write", ...(requiredPermission ? { requiredPermission } : {}) }] }] }
@@ -27,6 +28,34 @@ test("only D's account tool contract directs source authoring and checking while
   expect(instruction).toMatch(/After reading.+submit.+authorization_check_properties/)
   expect(instruction).toContain("imported or restored materials")
   expect(instruction).toContain("unexpressed meanings as named gaps")
+})
+test("D declaration rejection names fields in the explicit schema version without accepting prose statement shapes", () => {
+  const source = { path: "app.py", startLine: 1, endLine: 2 }
+  const malformed = { schemaVersion: "authorization-question-declaration/v1", source, statements: [{ meaning: "A source-supported explanation is still missing its statement kind" }] }
+  const diagnostics = inquiryArgumentDiagnostics("question-checked-v1", "authorization_declare", malformed)!
+  expect(diagnostics).toContainEqual(expect.objectContaining({ path: "/statements/0/kind", expected: { allowedValues: ["object", "condition", "effect", "statement", "dependency", "residual"] } }))
+  const executable = { schemaVersion: "authorization-executable-contract/v1", id: "anonymous", scope: { kind: "function-contract", questionId: "q", root: source, upstream: [] }, sourceDeclarations: [malformed], queries: [], assumptions: [] }
+  expect(inquiryArgumentDiagnostics("question-checked-v1", "authorization_declare", executable)).toContainEqual(expect.objectContaining({ path: "/sourceDeclarations/0/statements/0/kind" }))
+  expect(inquiryArgumentDiagnostics("question-checked-v1", "authorization_declare", { ...malformed, schemaVersion: "unknown" })).toContainEqual(expect.objectContaining({ path: "/schemaVersion" }))
+  const corrected = { ...malformed, statements: [{ kind: "residual", at: { startLine: 2 }, because: "Meaning remains unresolved" }] }
+  expect(inquiryNativeArgumentSchema("question-checked-v1", "authorization_declare", corrected)!.safeParse(corrected).success).toBe(true)
+  expect(inquiryArgumentDiagnostics("question-checked-v1", "authorization_declare", corrected)).toBeUndefined()
+})
+test("D malformed declaration feedback uses its source contract and retains the budget and meanings", async () => {
+  const f = await fixture(), runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, method: "D1", strategy: "question-checked-v1" })
+  try {
+    const call = { id: "malformed-source", name: "authorization_declare", arguments: { schemaVersion: "authorization-question-declaration/v1", source: { path: "app.py", startLine: 1, endLine: 2 }, statements: [{ explanation: "Wrong result form", paths: [{ path: [1, 2] }] }] } }
+    const before = runtime.report().toolBudget
+    const output = JSON.parse((await runtime.rejectArguments(call, runtime.argumentDiagnostics(call)!)).output)
+    expect(output.code).toBe("account-tool-arguments-invalid")
+    expect(output.instruction).toContain("currentContext.questionWorkflow")
+    expect(output.instruction).toContain("kind and because")
+    expect(output.instruction).not.toContain("Answers use explanation and numeric paths")
+    expect(output.toolBudget.totalUsed).toBe(before.totalUsed + 1)
+    expect(output.toolBudget.checksUsed).toBe(before.checksUsed)
+    expect(runtime.report().history.at(-1)!.executed).toBe(false)
+    expect(runtime.report().domain!.semantic!.units).toEqual([])
+  } finally { await runtime.close() }
 })
 function declaration(context: any) {
   const view = context.questionWorkflow, statements: any[] = [], source = view.currentSource

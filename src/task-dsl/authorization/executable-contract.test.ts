@@ -137,3 +137,17 @@ test("a source predicate consumes the actual helper boolean return without autho
     expect(result.materialUses.some((u: any) => u.kind === "call")).toBe(true)
   }
 })
+test("identical call text in one predicate is rejected instead of selecting an arbitrary invocation", async () => {
+  const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "bf-call-condition-ambiguous-"))
+  await writeFile(path.join(sourceRoot, "app.py"), "def local(actor):\n    if check(actor) and check(actor):\n        return True\n    return False\n\ndef check(who):\n    return True\n")
+  const tools = await createInquiryTools({ sourceRoot, repository: "anonymous", sourceRef: "r", allowedPaths: ["app.py"], structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
+  await tools.execute("source_read", { path: "app.py", startLine: 1, endLine: 7 })
+  const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect the local branch", premises: [] }] })
+  const test = { op: "all", args: Array.from({ length: 2 }, () => ({ op: "truthy", language: "python", value: { binding: "check(actor)" } })) }
+  const raw = { schemaVersion: "authorization-executable-contract/v1", id: "ambiguous-return", scope: { kind: "function-contract", questionId: "q", root: cite(1, 4), upstream: ["Request duties remain outside the contract"] }, sourceDeclarations: [declaration(1, 4, [{ kind: "object", expression: "actor", as: "principal", because: "Actual formal" }, { kind: "condition", at: cite(2, 2, "check(actor) and check(actor)"), test, because: "Two actual calls have the same text" }, { kind: "statement", at: cite(3), because: "Actual return" }, { kind: "statement", at: cite(4), because: "Actual fallback" }])], queries: [], assumptions: [] }
+  const result = await api.compileExecutableContract(raw, { tools, program })
+  expect(result.diagnostics.some((diagnostic: any) => diagnostic.code === "source-interpretation-predicate-call-ambiguous"), JSON.stringify(result.diagnostics)).toBe(true)
+  expect(result.units).toEqual([])
+  expect(result.materialUses).toEqual([])
+  expect(result.evaluation).toBeUndefined()
+})
