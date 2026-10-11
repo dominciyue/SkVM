@@ -109,16 +109,16 @@ Identity：`authorization-executable-contract-v1`。结果集中 `results/skill-
 
 **Files:** BF `authoring/developer/`；生产 `question-workflow.test.ts`、`interprocedural-property-entrypoints.test.ts` 的必要公共链红测。
 
-- [ ] 亲读真实 `views.py`、直接 helper 和所需权限/版本定义，写一份小而完整的函数范围合同；每项含义定位原文，保留外部前提和剩余框架职责。
-- [ ] 第一性质覆盖真正的授权行为，例如拒绝分支能否阻止指定效果、guard 所约束对象如何传到下游。不要只验证“两个 ID 相同”或采用恒真性质获得成功。
+- [x] 亲读真实 `views.py`、直接 helper 和所需权限/版本定义，写一份小而完整的函数范围合同；每项含义定位原文，保留外部前提和剩余框架职责。visibility-v2覆盖实际两函数返回与短路；file_response v4未知保留。
+- [x] 第一性质覆盖真正的授权行为，例如拒绝分支能否阻止指定效果、guard 所约束对象如何传到下游。不要只验证“两个 ID 相同”或采用恒真性质获得成功。实际null-user的no-filter分支阻止permission-ID调用；非请求认证结论。
 - [x] 从公开声明编译/工具接点执行原字节程序，记录第一个失败。禁止直接手造 semanticUnits、modelCovered、最终 graph、checked 标志绕过生产入口。authoring/first-public-failure.json保存旧工具question-source-unoffered和新核心局部根首个unknown；真实A尚未闭合。
-- [ ] 如旧合同无法表达局部范围，保存最小反例交 BF3；如能够表达，优先复用并缩减 BF3，不重复造语言。开发者程序可带源码语义，但不能进入 B 自动编写模型上下文。
+- [x] 如旧合同无法表达局部范围，保存最小反例交 BF3；如能够表达，优先复用并缩减 BF3，不重复造语言。开发者程序可带源码语义，但不能进入 B 自动编写模型上下文。仅补函数根、actual-formal输入及实际call前缀查询，复用原核心。
 
 ### BF3 — 有界程序与条件范围
 
 **Modify:** `src/task-dsl/authorization/question-workflow.ts`、`property-query.ts`、`control-conclusion.ts`、`source-materials.ts`；新职责确需单独模块时创建 `executable-contract.ts` 及对应测试。
 
-- [ ] 定义并验证程序来源、两种 scope、假设来源、查询与残余；同一条件可以在不同赋值下重新计算，未知前提保留 unknown。
+- [x] 定义并验证程序来源、两种 scope、假设来源、查询与残余；同一条件可以在不同赋值下重新计算，未知前提保留 unknown。
 - [x] 用公共核心测试局部 helper 可作为函数合同的根，但不能因此成为请求 entry；缺上游授权时局部结论可交付，whole-request 状态仍保留缺口。匿名核心/native/file均有实际call trace，原问题保留，requestOperationCertified=false。
 - [ ] 覆盖真/假/未知前提、guard 后置、错主体/错对象/错权限、未注册调用、不同调用实例和假设循环；缺失不能当无影响，假设不能自证待检查性质。
 - [ ] 保持源码含义由作者/模型负责，宿主从实际调用绑定对象。基于问题范围裁剪必须给关联依据，不靠放宽步数/路径上限或忽略所有 unknown 获得结论。
@@ -126,23 +126,27 @@ Identity：`authorization-executable-contract-v1`。结果集中 `results/skill-
 
 **当前细化（2026-10-12）：** 复用 question-declaration、source material 与 finite-control 的共同核心；函数合同保持 helper 原角色。可变条件作为 inquiry 的 `contractInputs[questionId]`，只绑定局部根的实际形参，接受已有有限标量/数组/平面记录；未知值省略。不得给内部 guard、性质、调用结果或 verdict 赋值。源码字面量仍来自实际调用绑定，假设文字只记录来源、不直接证明性质；宿主显式输入与模型已读覆盖分别记账。此接点用于同一程序重算，未扩大为 Python 解释器或请求级认证。
 
+**真实A暴露的查询边界：** v4已修actual include_deleted布尔类型并采用file_response→resolver；首缺口是未解释数据库调用，文件效果仍unknown。现有effect-reachability选call时检查callee内的实际效果，不能回答“此调用点是否被拒绝/短路”。增加`call-reachability`，只接受当前实际call引用，复用同一predecessor/predicate检查至调用点；callee未解释可以留在调用之后，但此前缺口仍阻断。它不证明callee效果、权限或whole-request，callOccurrences与effectOccurrences分列。追加真实ViewDocumentsPermissions.has_permission的null-user拒绝与未知输入合同，与原v4并列；保留v4失败，不把局部调用可达性替代原四问或完整文件授权关系。亲读permissions624–635确认ObjectPermissionChecker构造先于owner短路，不能凭owner分支忽略此前未解释构造。
+
+**A共同绑定修复与固定选择：** visibility-v2覆盖permissions411–433及436–457，v1引用歧义和v2首件conditional均保留。原call表达式→唯一实际调用结果，以及裸形参有限值→谓词由两个红测定位、公共核心修复；不改v2语义、谓词或原源码。当前check/native两源trace10节点、function-root/call实际采用、null-user下checked/unreachable；省略user后unknown。只读源码复核支持该局部范围，source-call残余映射诊断保留。authoring-selection.json在任何consumer模型派发前固定此程序及null→unspecified变化；A含义不进入自动B。
+
 ### BF4 — 修已读来源提交与渐进声明
 
 **Modify:** `inquiry-focus.ts`、`question-workflow.ts`、`question-workflow-wire.ts`、`inquiry-domain-runtime.ts` 及相应测试。
 
 - [x] 红测：读 source A、焦点移至 B、提交 A 的合法声明；A 应路由到它自己的当前唯一 owner，不因当前 stage/source 不同丢弃。等价职责共用一个当前owner，跨题/receiver/过期/范围外具名拒绝。
-- [ ] 测试未读/过期/范围外/重复 owner/跨题/receiver 不匹配；明确诊断，不用固定函数名成功分支。
-- [ ] 编译合法的独立片段，保留有位置的残余；依赖缺失的对象/条件/性质不提前编译为成功。拒绝某字段不清空其他已接受含义，无效更新须撤回受影响旧结论。
-- [ ] 用 BE 已保存原提案零调用派生一次，区分仅修路由即可接受与仍缺源码含义。不给旧提案补答案，不回填真实采用统计。
+- [x] 测试未读/过期/范围外/重复 owner/跨题/receiver 不匹配；明确诊断，不用固定函数名成功分支。
+- [x] 编译合法的独立片段，保留有位置的残余；依赖缺失的对象/条件/性质不提前编译为成功。拒绝某字段不清空其他已接受含义，无效更新须撤回受影响旧结论。
+- [x] 用 BE 已保存原提案零调用派生一次，区分仅修路由即可接受与仍缺源码含义。不给旧提案补答案，不回填真实采用统计。原历史0–46当前为unread-or-unowned，原isinstance含义未补；派生不计真实采用。
 
 ### BF5 — 程序到材料、调用及检查的真实接线
 
 **Modify:** `source-material-projection.ts`、`inquiry-domain-runtime.ts`、`inquiry-reuse.ts`、`source-material-reuse.test.ts`、`interprocedural-property-entrypoints.test.ts`。
 
-- [ ] A 程序走共同核心产生当前材料、实际 call/argument 绑定和非空性质 trace；局部根使用独立 scope，不改 helper 的原始角色。
-- [ ] 将来源声明→保存→范围选择→调用采用→性质检查串成一条可读轨迹，记录实际使用的 handle 与当前依赖，不把 loaded/restored 计成 used。
-- [ ] 证明两个函数中的关系沿真正调用实例组合；未被调用的 guard、同名异对象、前后顺序与权限不符仍给正确反例结果。
-- [ ] BF2 程序若仍无结果，查看首阻断并修一次共同接口或摘要表达。仅以“模型还没写好”为由继续跑研究不合格；A 程序也失败时先完成这个可诊断工程责任。
+- [x] A 程序走共同核心产生当前材料、实际 call/argument 绑定和非空性质 trace；局部根使用独立 scope，不改 helper 的原始角色。
+- [x] 将来源声明→保存→范围选择→调用采用→性质检查串成一条可读轨迹，记录实际使用的 handle 与当前依赖，不把 loaded/restored 计成 used。
+- [x] 证明两个函数中的关系沿真正调用实例组合；未被调用的 guard、同名异对象、前后顺序与权限不符仍给正确反例结果。实际A与已有匿名interprocedural反例共同验证。
+- [x] BF2 程序若仍无结果，查看首阻断并修一次共同接口或摘要表达。仅以“模型还没写好”为由继续跑研究不合格；A 程序也失败时先完成这个可诊断工程责任。
 
 ### BF6 — 普通入口、文件导入与持久会话
 
@@ -176,10 +180,10 @@ Identity：`authorization-executable-contract-v1`。结果集中 `results/skill-
 
 **Create:** BF 的薄 `study.ts`/研究测试/`tsconfig.json`；复用已有 runner 与归档函数，不复制整套平台。
 
-- [ ] 原输入仍为 `results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/model/packages/download/inquiry.json`；完整 skill 仍为 `results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/model/source-skills/cloudflare-security-audit/SKILL.md`。两者均相对仓库根，核对允许来源与完整四问。
-- [ ] 注册六个首位置：`auto-h-1`、`auto-d-1`、`authored-use-base`、`authored-use-change`、`reuse-fresh`、`reuse-previous`。前两同条件完整四问；作者两次为同包真实使用；复用两次为明确同材料基础的变化比较，三种分母分开。
-- [ ] B 自动输入只含完整原任务、skill、共同源码/政策/前提及通用语法说明；不含 A 程序、真实案例专用语义模板、旧回答、评语、本任务书或开发日志。示例仅可用语义不同的匿名小例。
-- [ ] 用真实账号 thread/start 静态工具合同和 mock transport 走一次读取→声明→编译→检查→自然交付；测试作者文件入口与模型工具入口调用同一核心。
+- [x] 原输入仍为 `results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/model/packages/download/inquiry.json`；完整 skill 仍为 `results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/model/source-skills/cloudflare-security-audit/SKILL.md`。两者均相对仓库根，核对允许来源与完整四问。
+- [x] 注册六个首位置：`auto-h-1`、`auto-d-1`、`authored-use-base`、`authored-use-change`、`reuse-fresh`、`reuse-previous`。前两同条件完整四问；作者两次为同包真实使用；复用两次为明确同材料基础的变化比较，三种分母分开。
+- [x] B 自动输入只含完整原任务、skill、共同源码/政策/前提及通用语法说明；不含 A 程序、真实案例专用语义模板、旧回答、评语、本任务书或开发日志。示例仅可用语义不同的匿名小例。
+- [x] 用真实账号 thread/start 静态工具合同和 mock transport 走一次读取→声明→编译→检查→自然交付；测试作者文件入口与模型工具入口调用同一核心。公共入口account mock通过，实际边界由首件保存。
 - [ ] 保存本 epoch 输入与提示差异清单；H/D共同定位辅助、模型、高阶前提、自然回答要求及预算一致，D多出的编译/检查/恢复完整计入。
 
 ### BF10 — 自动编写首对及立即定位

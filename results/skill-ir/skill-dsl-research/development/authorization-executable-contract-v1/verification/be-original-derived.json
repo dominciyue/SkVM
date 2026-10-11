@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "authorization-bf-be-replay/v1",
+  "modelCalls": 0,
+  "newSourceMeanings": 0,
+  "originalFile": "D:\\skill优化\\SkVM\\results\\skill-ir\\skill-dsl-research\\development\\authorization-question-workflow-v1\\attempts\\quality-d-1\\original\\inquiry-run.json.gz",
+  "originalSha256": "0d67f278506b5276edb532876c88cce78a01cf4bbe1d3b2be34bd3ae2742b701",
+  "originalFileUnchanged": true,
+  "replayRange": [
+    0,
+    46
+  ],
+  "originalProposal": {
+    "schemaVersion": "authorization-question-declaration/v1",
+    "source": {
+      "path": "src/documents/views.py",
+      "startLine": 1429,
+      "endLine": 1448,
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+    },
+    "fallthrough": "unknown",
+    "statements": [
+      {
+        "kind": "object",
+        "as": "resource",
+        "expression": "resolved.root_doc",
+        "at": {
+          "path": "src/documents/views.py",
+          "startLine": 1437,
+          "endLine": 1440
+        },
+        "because": "The resolved root document is passed into effective file selection after the forbidden branch."
+      },
+      {
+        "kind": "object",
+        "as": "resource",
+        "expression": "file_doc",
+        "at": {
+          "path": "src/documents/views.py",
+          "startLine": 1437,
+          "endLine": 1445
+        },
+        "because": "This selected document supplies the returned file."
+      },
+      {
+        "kind": "condition",
+        "at": {
+          "path": "src/documents/views.py",
+          "startLine": 1435,
+          "endLine": 1436
+        },
+        "test": {
+          "isinstance": [
+            "resolved",
+            "HttpResponseForbidden"
+          ]
+        },
+        "authorizes": {
+          "principal": "request.user",
+          "permission": "view_document",
+          "resource": "resolved.root_doc",
+          "when": "false"
+        },
+        "because": "A forbidden resolution is returned immediately; only a non-forbidden resolution reaches file selection."
+      },
+      {
+        "kind": "effect",
+        "at": {
+          "path": "src/documents/views.py",
+          "startLine": 1442,
+          "endLine": 1448
+        },
+        "principal": "request.user",
+        "resource": "file_doc",
+        "because": "serve_file returns the source/archive file of file_doc."
+      }
+    ],
+    "properties": [
+      {
+        "property": "task-property-b67a694918196794af98",
+        "guard": {
+          "path": "src/documents/views.py",
+          "startLine": 1435,
+          "endLine": 1436
+        },
+        "effect": {
+          "path": "src/documents/views.py",
+          "startLine": 1442,
+          "endLine": 1448
+        }
+      },
+      {
+        "property": "task-property-538657a0b64afbf509ce",
+        "guard": {
+          "path": "src/documents/views.py",
+          "startLine": 1435,
+          "endLine": 1436
+        },
+        "effect": {
+          "path": "src/documents/views.py",
+          "startLine": 1437,
+          "endLine": 1445
+        }
+      },
+      {
+        "property": "task-property-beeec00fd7bb5ced65f6",
+        "effect": {
+          "path": "src/documents/views.py",
+          "startLine": 1442,
+          "endLine": 1448
+        }
+      }
+    ]
+  },
+  "originalDiagnostics": [
+    {
+      "code": "question-source-unoffered",
+      "path": "source",
+      "message": "Locate and read the current source passage, or request the next source with authorization_question.",
+      "severity": "error"
+    }
+  ],
+  "currentExitCode": 0,
+  "currentOutput": "{\"controlDiagnostics\":[{\"code\":\"question-source-unread-or-unowned\",\"path\":\"source\",\"message\":\"Read the whole current original passage and establish its question/operation owner, or use an explicit function contract. Focus alone cannot establish that owner.\",\"severity\":\"error\"}],\"autoReads\":[],\"semanticSupport\":\"unreviewed\",\"toolBudget\":{\"totalLimit\":128,\"totalUsed\":47,\"totalRemaining\":81,\"explorationLimit\":124,\"explorationUsed\":47,\"explorationRemaining\":77,\"checkLimit\":2,\"checksUsed\":0,\"checksRemaining\":2,\"formatCorrectionLimit\":2,\"formatRejections\":0,\"formatRejectCount\":0,\"formatCorrectionsRemaining\":3,\"formatBudgetExhausted\":false,\"finalReserve\":4,\"sourceFormatRejections\":0,\"finalFormatRejections\":0,\"sourceFormatRemaining\":3,\"finalFormatRemaining\":3,\"semanticChecksUsed\":0,\"semanticCheckLimit\":2,\"finalOnly\":false,\"deliveryClosed\":false},\"progress\":{\"action\":\"continue\",\"repetitions\":1,\"fingerprint\":\"8f397816e786e4b981890d9d49a8d5b2722c15d5652bf2ac10bd2b5754980369\",\"instruction\":\"Continue from current state; preserve checks and final delivery within the existing budget.\"}}",
+  "adoptedMaterials": 0,
+  "actualMaterialUses": [],
+  "sourceVerification": {
+    "valid": true,
+    "checkedFiles": 95,
+    "physicalReadBytes": 1412762
+  },
+  "archive": "be-original-derived.json.gz",
+  "automaticGenerationCredit": false,
+  "changedExperimentScore": false
+}

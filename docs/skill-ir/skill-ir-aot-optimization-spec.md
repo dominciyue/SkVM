@@ -2970,6 +2970,10 @@ BF6已接入普通`check/run/compare --domain-program=<file>`与native `authoriz
 
 可变条件采用普通input的`contractInputs[questionId]`，仅绑定function-contract根的实际形参，复用既有有限scalar/array/flat-record值域；未给值省略。禁止内部guard、property、call result或verdict注入，request-operation仍由原host入口负责。assumptions文字只保留来源、不参与求值，不能自证目标性质。值沿实际argument身份传播；显式输入下保留带false谓词的源码分支以证明不可达，原节点/路径界不放宽。允许条件不消除操作异常，因而正常效果仍可能conditional；拒绝条件则可排除效果。compare区分条件变化与程序/来源变化，零模型重算而不恢复旧答案。匿名搬移与true/false/unknown公共入口已有工程证据，实际A/B/C另计。
 
+`call-reachability`是独立的局部查询，只检查实际call引用及其调用前缀；原`effect-reachability`仍检查实际效果。callee内未解语义保留，但不能反向否定已经完整覆盖的调用前缀；调用前未知、来源拒绝、未确认请求依赖仍阻断。source依赖只有匹配当前source owner与actual sourceCallId时可排除为该callee内部责任，不能只凭edge挂在调用点排除caller前置条件。结果使用`current-proposed-call-prefix`范围，`calleeEffectsCertified=false`，`callOccurrences`与`effectOccurrences`分列；不证明callee执行成功、权限或请求安全。
+
+当前owner身份包含实际receiver。条件operand引用原call表达式时，宿主只把唯一当前调用的结果绑定到该operand，不生成谓词运算或授权含义；多调用歧义具名拒绝。实际形参的有限已知值也适用于裸principal/resource条件，例如null测试；未提供值保持未知。真实A的两个可见性函数沿实际boolean返回组合，null-user时权限ID查询不可达；这是局部过滤行为，非匿名请求认证或完整Download安全证明。
+
 **来源路由与采用。** 显式来源、当前字节、读取覆盖、operation/question/receiver决定唯一owner；focus只建议下一动作，不阻止提交另一个已读合法来源。未读、过期、多义、越界和跨题冲突具名拒绝。合法独立片段保留，依赖未完成关系不提前采用。R0准备、R1有效材料、R2当前性质继续分层，loaded/restored不能计为used；实际使用须有当前material handle、调用实例和非空trace。
 
 **验证和效果。** 先做真实作者程序和错主体/对象、guard后置/缺失、未注册调用、前提真/假/未知、源码撤回反例，再做自动H/D及同包消费。六首位置分别属于自动编写、作者使用、变化对照，不混成一张自动优化成功表。H/D共同事实、预算和自然回答一致，开发者参考实现、旧答案、评阅及本计划隔离。共享故障当场红绿修复、具名复验；不通过继续坏面板、重复重抽或扩语言全集来推进。程序检查不自证声明的源码含义，独立评价回到实际原文，含BE跨调用参数勘误。

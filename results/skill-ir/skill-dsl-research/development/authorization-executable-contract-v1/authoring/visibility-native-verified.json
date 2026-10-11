@@ -1,0 +1,839 @@
+{
+  "modelCalls": 0,
+  "program": {
+    "schemaVersion": "authorization-inquiry-program/v1",
+    "status": "ready",
+    "mode": "behavior",
+    "operations": [
+      {
+        "id": "document-download",
+        "request": "Trace the document Download operation from request entry through document and representation selection, authorization, and returned file.",
+        "entryHint": "Begin with Download-related routing and handlers under src/documents and src/paperless/urls.py; consult the supplied REST framework source only where framework behavior is material.",
+        "sourceQuestionId": "requested-document-and-returned-file",
+        "explicit": true
+      }
+    ],
+    "operationQuestions": [
+      {
+        "questionId": "requested-document-and-returned-file",
+        "operationId": "document-download",
+        "intent": "behavior"
+      },
+      {
+        "questionId": "authorization-and-selection-order",
+        "operationId": "document-download",
+        "intent": "behavior"
+      },
+      {
+        "questionId": "alternate-version-authorized-resource",
+        "operationId": "document-download",
+        "intent": "behavior"
+      },
+      {
+        "questionId": "missing-facts-and-conditional-conclusions",
+        "operationId": "document-download",
+        "intent": "scope"
+      },
+      {
+        "questionId": "local-visibility-filter",
+        "operationId": "document-download",
+        "intent": "behavior"
+      }
+    ],
+    "questions": [
+      {
+        "id": "requested-document-and-returned-file",
+        "request": "Explain how the request identifies the document and how the selected version and original/archive representation determine the file returned, including every relevant control branch.",
+        "principal": "authenticated user making the Download request",
+        "resource": "requested document and the selected version or original/archive file representation",
+        "operation": "download",
+        "entryHint": "Begin with Download-related routing and handlers under src/documents and src/paperless/urls.py; consult the supplied REST framework source only where framework behavior is material.",
+        "premises": [
+          {
+            "text": "The operation under investigation is the document Download operation in this Paperless revision.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "document-download",
+        "intent": "behavior"
+      },
+      {
+        "id": "authorization-and-selection-order",
+        "request": "Identify the authorization checks and branches for the authenticated user, the requested document, and the selected version or original/archive representation, and state where those checks occur relative to selection of the returned file.",
+        "principal": "authenticated user making the Download request",
+        "resource": "requested document and the file representation returned by Download",
+        "operation": "authorize and download",
+        "entryHint": "Begin with Download-related routing and handlers under src/documents and src/paperless/urls.py; consult the supplied REST framework source only where framework behavior is material.",
+        "premises": [
+          {
+            "text": "Ownership and object grants are unspecified.",
+            "origin": "user"
+          },
+          {
+            "text": "Relevant source branches must be analyzed rather than assuming a grant.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "document-download",
+        "intent": "behavior"
+      },
+      {
+        "id": "alternate-version-authorized-resource",
+        "request": "Determine whether selecting another document version or choosing original versus archive changes the resource on which authorization is evaluated, or only changes the representation or file returned after authorization; distinguish all relevant branches.",
+        "principal": "authenticated user making the Download request",
+        "resource": "requested document compared with an alternate version or original/archive representation",
+        "operation": "select representation for download",
+        "entryHint": "Begin with Download-related routing and handlers under src/documents and src/paperless/urls.py; consult the supplied REST framework source only where framework behavior is material.",
+        "premises": [
+          {
+            "text": "Ownership and object grants are unspecified.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "document-download",
+        "intent": "behavior"
+      },
+      {
+        "id": "missing-facts-and-conditional-conclusions",
+        "request": "State precisely which source, configuration, deployment, ownership, or object-grant facts needed for a conclusion are unavailable, and identify the exact conclusion each missing fact blocks without assuming behavior outside the allowed evidence.",
+        "principal": "authenticated user making the Download request",
+        "resource": "requested document and selected downloadable representation",
+        "operation": "assess authorization behavior and evidence limits",
+        "entryHint": "Begin with Download-related routing and handlers under src/documents and src/paperless/urls.py; consult the supplied REST framework source only where framework behavior is material.",
+        "premises": [
+          {
+            "text": "Ownership and object grants are unspecified.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "document-download",
+        "intent": "scope"
+      },
+      {
+        "id": "local-visibility-filter",
+        "request": "Inspect restrict_queryset_to_visible as a local function contract: Reachability of restricted permission-ID lookup after unrestricted-user short-circuit. Preserve all original Download duties and upstream request authentication; a null local user means no filtering requested in this helper, not an authenticated request.",
+        "premises": [],
+        "properties": [
+          {
+            "id": "restricted-permission-lookup",
+            "kind": "call-reachability",
+            "requirement": "Reachability of restricted permission-ID lookup after unrestricted-user short-circuit"
+          }
+        ],
+        "operationId": "document-download",
+        "intent": "behavior",
+        "entryHint": "Begin with Download-related routing and handlers under src/documents and src/paperless/urls.py; consult the supplied REST framework source only where framework behavior is material.",
+        "operation": "Trace the document Download operation from request entry through document and representation selection, authorization, and returned file."
+      }
+    ],
+    "originalDeclaration": {
+      "schemaVersion": "authorization-inquiry/v2",
+      "mode": "behavior",
+      "operations": [
+        {
+          "id": "document-download",
+          "request": "Trace the document Download operation from request entry through document and representation selection, authorization, and returned file.",
+          "entryHint": "Begin with Download-related routing and handlers under src/documents and src/paperless/urls.py; consult the supplied REST framework source only where framework behavior is material."
+        }
+      ],
+      "questions": [
+        {
+          "id": "requested-document-and-returned-file",
+          "request": "Explain how the request identifies the document and how the selected version and original/archive representation determine the file returned, including every relevant control branch.",
+          "principal": "authenticated user making the Download request",
+          "resource": "requested document and the selected version or original/archive file representation",
+          "operation": "download",
+          "entryHint": "Trace routing, lookup, request parameters, representation selection, and response construction within the allowed paths.",
+          "premises": [
+            {
+              "text": "The operation under investigation is the document Download operation in this Paperless revision.",
+              "origin": "user"
+            }
+          ],
+          "operationId": "document-download",
+          "intent": "behavior"
+        },
+        {
+          "id": "authorization-and-selection-order",
+          "request": "Identify the authorization checks and branches for the authenticated user, the requested document, and the selected version or original/archive representation, and state where those checks occur relative to selection of the returned file.",
+          "principal": "authenticated user making the Download request",
+          "resource": "requested document and the file representation returned by Download",
+          "operation": "authorize and download",
+          "entryHint": "Follow application checks and any material REST framework lookup, authentication, permission, or object-permission behavior within the allowed paths.",
+          "premises": [
+            {
+              "text": "Ownership and object grants are unspecified.",
+              "origin": "user"
+            },
+            {
+              "text": "Relevant source branches must be analyzed rather than assuming a grant.",
+              "origin": "user"
+            }
+          ],
+          "operationId": "document-download",
+          "intent": "behavior"
+        },
+        {
+          "id": "alternate-version-authorized-resource",
+          "request": "Determine whether selecting another document version or choosing original versus archive changes the resource on which authorization is evaluated, or only changes the representation or file returned after authorization; distinguish all relevant branches.",
+          "principal": "authenticated user making the Download request",
+          "resource": "requested document compared with an alternate version or original/archive representation",
+          "operation": "select representation for download",
+          "entryHint": "Compare the resource used by lookup and permission decisions with the resource or path used by the final file response.",
+          "premises": [
+            {
+              "text": "Ownership and object grants are unspecified.",
+              "origin": "user"
+            }
+          ],
+          "operationId": "document-download",
+          "intent": "behavior"
+        },
+        {
+          "id": "missing-facts-and-conditional-conclusions",
+          "request": "State precisely which source, configuration, deployment, ownership, or object-grant facts needed for a conclusion are unavailable, and identify the exact conclusion each missing fact blocks without assuming behavior outside the allowed evidence.",
+          "principal": "authenticated user making the Download request",
+          "resource": "requested document and selected downloadable representation",
+          "operation": "assess authorization behavior and evidence limits",
+          "entryHint": "Separate conclusions established by the allowed source from conditions that depend on facts not present there.",
+          "premises": [
+            {
+              "text": "Ownership and object grants are unspecified.",
+              "origin": "user"
+            }
+          ],
+          "operationId": "document-download",
+          "intent": "scope"
+        },
+        {
+          "id": "local-visibility-filter",
+          "request": "Inspect restrict_queryset_to_visible as a local function contract: Reachability of restricted permission-ID lookup after unrestricted-user short-circuit. Preserve all original Download duties and upstream request authentication; a null local user means no filtering requested in this helper, not an authenticated request.",
+          "premises": [],
+          "properties": [
+            {
+              "id": "restricted-permission-lookup",
+              "kind": "call-reachability",
+              "requirement": "Reachability of restricted permission-ID lookup after unrestricted-user short-circuit"
+            }
+          ],
+          "operationId": "document-download",
+          "intent": "behavior"
+        }
+      ]
+    },
+    "queue": [
+      {
+        "id": "requested-document-and-returned-file::entry",
+        "questionId": "requested-document-and-returned-file",
+        "kind": "entry",
+        "question": "Which entry and applicable upstream controls govern this requested path?",
+        "state": "pending"
+      },
+      {
+        "id": "requested-document-and-returned-file::principal-binding",
+        "questionId": "requested-document-and-returned-file",
+        "kind": "principal-binding",
+        "question": "How is the caller identity bound on this path? Do not invent an unspecified identity.",
+        "state": "pending"
+      },
+      {
+        "id": "requested-document-and-returned-file::resource-binding",
+        "questionId": "requested-document-and-returned-file",
+        "kind": "resource-binding",
+        "question": "Which resource does the request select and what resource does each control check?",
+        "state": "pending"
+      },
+      {
+        "id": "requested-document-and-returned-file::guard",
+        "questionId": "requested-document-and-returned-file",
+        "kind": "guard",
+        "question": "Which applicable control decides this operation and under which conditions? Not finding a guard is not proof of absence.",
+        "state": "pending"
+      },
+      {
+        "id": "requested-document-and-returned-file::effect",
+        "questionId": "requested-document-and-returned-file",
+        "kind": "effect",
+        "question": "Which object receives the protected effect? Does it match the control object? A decisive rejection may suffice without tracing unreachable effects.",
+        "state": "pending"
+      },
+      {
+        "id": "requested-document-and-returned-file::exception",
+        "questionId": "requested-document-and-returned-file",
+        "kind": "exception",
+        "question": "Which relevant role, relation or condition exceptions change this answer? Separate source gaps from external facts.",
+        "state": "pending"
+      }
+    ],
+    "diagnostics": []
+  },
+  "executableContract": {
+    "program": {
+      "schemaVersion": "authorization-executable-contract/v1",
+      "id": "paperless-visibility-filter-v2",
+      "scope": {
+        "kind": "function-contract",
+        "questionId": "local-visibility-filter",
+        "root": {
+          "path": "src/documents/permissions.py",
+          "startLine": 436,
+          "endLine": 457,
+          "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+        },
+        "upstream": [
+          "Local queryset visibility filtering; request authentication, dispatch, object checks and returned download file remain independent duties.",
+          "A null user is only this helper's explicit no-filter input. Original four questions retain their authenticated-user and unspecified ownership/grant premises."
+        ]
+      },
+      "sourceDeclarations": [
+        {
+          "schemaVersion": "authorization-question-declaration/v1",
+          "source": {
+            "path": "src/documents/permissions.py",
+            "startLine": 436,
+            "endLine": 457,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+          },
+          "questionId": "local-visibility-filter",
+          "statements": [
+            {
+              "kind": "object",
+              "expression": "queryset",
+              "as": "resource",
+              "because": "Actual formal; no permission grant is supplied."
+            },
+            {
+              "kind": "object",
+              "expression": "user",
+              "as": "principal",
+              "because": "Actual formal; no permission grant is supplied."
+            },
+            {
+              "kind": "object",
+              "expression": "perm",
+              "as": "permission",
+              "because": "Actual formal; no permission grant is supplied."
+            },
+            {
+              "kind": "dependency",
+              "at": {
+                "path": "src/documents/permissions.py",
+                "startLine": 455,
+                "endLine": 455,
+                "text": "user_is_unrestricted(user)",
+                "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+              },
+              "as": "condition",
+              "because": "The actual helper returns a boolean controlling the early return."
+            },
+            {
+              "kind": "condition",
+              "at": {
+                "path": "src/documents/permissions.py",
+                "startLine": 455,
+                "endLine": 455,
+                "text": "user_is_unrestricted(user)",
+                "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+              },
+              "test": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "user_is_unrestricted(user)"
+                }
+              },
+              "because": "An unrestricted user returns the original queryset before the permission-ID lookup."
+            },
+            {
+              "kind": "statement",
+              "at": {
+                "path": "src/documents/permissions.py",
+                "startLine": 456,
+                "endLine": 456,
+                "text": "return queryset",
+                "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+              },
+              "because": "Actual unchanged resource return; no grant or protected effect is inferred."
+            },
+            {
+              "kind": "dependency",
+              "at": {
+                "path": "src/documents/permissions.py",
+                "startLine": 457,
+                "endLine": 457,
+                "text": "permitted_object_ids(user, queryset.model, perm)",
+                "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+              },
+              "as": "context",
+              "because": "Actual restricted permission-ID lookup remains uninterpreted beyond its invocation site."
+            },
+            {
+              "kind": "dependency",
+              "at": {
+                "path": "src/documents/permissions.py",
+                "startLine": 457,
+                "endLine": 457,
+                "text": "queryset.filter(pk__in=permitted_object_ids(user, queryset.model, perm))",
+                "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+              },
+              "as": "context",
+              "because": "The actual downstream queryset filter and its external behavior remain unknown."
+            },
+            {
+              "kind": "statement",
+              "at": {
+                "path": "src/documents/permissions.py",
+                "startLine": 457,
+                "endLine": 457,
+                "text": "return queryset.filter(pk__in=permitted_object_ids(user, queryset.model, perm))",
+                "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+              },
+              "because": "Actual restricted return; unknown external result is retained."
+            }
+          ]
+        },
+        {
+          "schemaVersion": "authorization-question-declaration/v1",
+          "source": {
+            "path": "src/documents/permissions.py",
+            "startLine": 411,
+            "endLine": 433,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+          },
+          "questionId": "local-visibility-filter",
+          "statements": [
+            {
+              "kind": "object",
+              "expression": "user",
+              "as": "principal",
+              "because": "Actual formal; no permission grant is supplied."
+            },
+            {
+              "kind": "condition",
+              "at": {
+                "path": "src/documents/permissions.py",
+                "startLine": 427,
+                "endLine": 427,
+                "text": "user is None",
+                "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+              },
+              "test": {
+                "op": "is-null",
+                "value": {
+                  "binding": "user"
+                }
+              },
+              "because": "The source explicitly treats absent user as no filtering requested."
+            },
+            {
+              "kind": "statement",
+              "at": {
+                "path": "src/documents/permissions.py",
+                "startLine": 428,
+                "endLine": 428,
+                "text": "return True",
+                "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+              },
+              "because": "Actual literal boolean return, not a supplied permission."
+            },
+            {
+              "kind": "dependency",
+              "at": {
+                "path": "src/documents/permissions.py",
+                "startLine": 430,
+                "endLine": 430,
+                "text": "getattr(user, \"is_authenticated\", False)",
+                "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+              },
+              "as": "condition",
+              "because": "Retain actual non-null-user property lookup and its unresolved meaning."
+            },
+            {
+              "kind": "dependency",
+              "at": {
+                "path": "src/documents/permissions.py",
+                "startLine": 431,
+                "endLine": 431,
+                "text": "getattr(user, \"is_active\", False)",
+                "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+              },
+              "as": "condition",
+              "because": "Retain actual non-null-user property lookup and its unresolved meaning."
+            },
+            {
+              "kind": "dependency",
+              "at": {
+                "path": "src/documents/permissions.py",
+                "startLine": 432,
+                "endLine": 432,
+                "text": "getattr(user, \"is_superuser\", False)",
+                "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+              },
+              "as": "condition",
+              "because": "Retain actual non-null-user property lookup and its unresolved meaning."
+            },
+            {
+              "kind": "statement",
+              "at": {
+                "path": "src/documents/permissions.py",
+                "startLine": 429,
+                "endLine": 433,
+                "text": "return (\n        getattr(user, \"is_authenticated\", False)\n        and getattr(user, \"is_active\", False)\n        and getattr(user, \"is_superuser\", False)\n    )",
+                "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+              },
+              "because": "Actual non-null-user conjunction return; no missing attribute value is invented."
+            }
+          ]
+        }
+      ],
+      "queries": [
+        {
+          "property": "restricted-permission-lookup",
+          "effect": {
+            "path": "src/documents/permissions.py",
+            "startLine": 457,
+            "endLine": 457,
+            "text": "permitted_object_ids(user, queryset.model, perm)",
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+          }
+        }
+      ],
+      "assumptions": []
+    },
+    "origin": "authored-file",
+    "revision": "84225c99e0adb618d1976a2615fc032f7cd31d5515e8f409baddde4d57595bbe",
+    "scope": {
+      "kind": "function-contract",
+      "questionId": "local-visibility-filter",
+      "root": {
+        "path": "src/documents/permissions.py",
+        "startLine": 436,
+        "endLine": 457,
+        "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+      },
+      "upstream": [
+        "Local queryset visibility filtering; request authentication, dispatch, object checks and returned download file remain independent duties.",
+        "A null user is only this helper's explicit no-filter input. Original four questions retain their authenticated-user and unspecified ownership/grant premises."
+      ]
+    },
+    "assumptions": [],
+    "conditions": {
+      "user": null
+    },
+    "status": "current",
+    "evaluation": {
+      "schemaVersion": "authorization-property-check/v1",
+      "evaluationVersion": "semantic-completion/v1",
+      "revision": 19,
+      "questions": [
+        {
+          "questionId": "requested-document-and-returned-file",
+          "properties": [],
+          "gaps": [
+            "property-query-undeclared"
+          ]
+        },
+        {
+          "questionId": "authorization-and-selection-order",
+          "properties": [],
+          "gaps": [
+            "property-query-undeclared"
+          ]
+        },
+        {
+          "questionId": "alternate-version-authorized-resource",
+          "properties": [],
+          "gaps": [
+            "property-query-undeclared"
+          ]
+        },
+        {
+          "questionId": "missing-facts-and-conditional-conclusions",
+          "properties": [],
+          "gaps": [
+            "property-query-undeclared"
+          ]
+        },
+        {
+          "questionId": "local-visibility-filter",
+          "properties": [
+            {
+              "propertyId": "restricted-permission-lookup",
+              "kind": "call-reachability",
+              "status": "checked",
+              "value": "unreachable",
+              "questionId": "local-visibility-filter",
+              "source": {
+                "id": "struct-80e730eb92736b6b0b518ce3",
+                "path": "src/documents/permissions.py",
+                "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                "startLine": 436,
+                "endLine": 457
+              },
+              "sourceRevision": "99a5b7274abef1ecb3e7423300785a413d65ad29835f6432eeaeb014af2cb4c2",
+              "gaps": [],
+              "trace": [
+                "sem-3bc701a806933fb985bbcf39",
+                "sem-77e0fd3e6552dd32abf91096",
+                "sem-b0dfad72ebe2870905de7256",
+                "sem-98b41b85166faaa80b278ed5",
+                "sem-2e45fd5693459ec66b8b8d7f",
+                "sem-a656994e74aa156764dc723e",
+                "sem-1bd6b6909437699202463570",
+                "sem-4c15c9a4a848579bbba5e00e",
+                "sem-2cda19b61c288da699e9ccc4",
+                "sem-72a18967986b34e655daf98f"
+              ],
+              "dependencyRelevance": [],
+              "traceDetails": [
+                {
+                  "key": "sem-3bc701a806933fb985bbcf39",
+                  "kind": "entry",
+                  "source": {
+                    "id": "struct-80e730eb92736b6b0b518ce3",
+                    "path": "src/documents/permissions.py",
+                    "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                    "startLine": 436,
+                    "endLine": 457
+                  },
+                  "origin": {
+                    "handle": "contract-1d5233dd843d902df221169a",
+                    "block": "source-main",
+                    "step": "$entry",
+                    "instance": "contract-1d5233dd843d902df221169a"
+                  },
+                  "after": []
+                },
+                {
+                  "key": "sem-77e0fd3e6552dd32abf91096",
+                  "kind": "binding",
+                  "source": {
+                    "id": "struct-80e730eb92736b6b0b518ce3",
+                    "path": "src/documents/permissions.py",
+                    "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                    "startLine": 436,
+                    "endLine": 457
+                  },
+                  "origin": {
+                    "handle": "contract-1d5233dd843d902df221169a",
+                    "block": "source-main",
+                    "step": "$parameter.queryset",
+                    "instance": "contract-1d5233dd843d902df221169a"
+                  },
+                  "after": [
+                    "sem-3bc701a806933fb985bbcf39"
+                  ]
+                },
+                {
+                  "key": "sem-b0dfad72ebe2870905de7256",
+                  "kind": "binding",
+                  "source": {
+                    "id": "struct-80e730eb92736b6b0b518ce3",
+                    "path": "src/documents/permissions.py",
+                    "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                    "startLine": 436,
+                    "endLine": 457
+                  },
+                  "origin": {
+                    "handle": "contract-1d5233dd843d902df221169a",
+                    "block": "source-main",
+                    "step": "$parameter.user",
+                    "instance": "contract-1d5233dd843d902df221169a"
+                  },
+                  "after": [
+                    "sem-77e0fd3e6552dd32abf91096"
+                  ]
+                },
+                {
+                  "key": "sem-98b41b85166faaa80b278ed5",
+                  "kind": "binding",
+                  "source": {
+                    "id": "struct-80e730eb92736b6b0b518ce3",
+                    "path": "src/documents/permissions.py",
+                    "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                    "startLine": 436,
+                    "endLine": 457
+                  },
+                  "origin": {
+                    "handle": "contract-1d5233dd843d902df221169a",
+                    "block": "source-main",
+                    "step": "$parameter.perm",
+                    "instance": "contract-1d5233dd843d902df221169a"
+                  },
+                  "after": [
+                    "sem-b0dfad72ebe2870905de7256"
+                  ]
+                },
+                {
+                  "key": "sem-2e45fd5693459ec66b8b8d7f",
+                  "kind": "call",
+                  "source": {
+                    "id": "struct-80e730eb92736b6b0b518ce3",
+                    "path": "src/documents/permissions.py",
+                    "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                    "startLine": 436,
+                    "endLine": 457
+                  },
+                  "origin": {
+                    "handle": "contract-1d5233dd843d902df221169a",
+                    "block": "source-main",
+                    "step": "call-anchor-b30d9187fb8a017b7e33ba11",
+                    "instance": "contract-1d5233dd843d902df221169a"
+                  },
+                  "after": [
+                    "sem-98b41b85166faaa80b278ed5"
+                  ]
+                },
+                {
+                  "key": "sem-a656994e74aa156764dc723e",
+                  "kind": "continue",
+                  "source": {
+                    "id": "struct-e304de1d5ce1389e0a3ba09d",
+                    "path": "src/documents/permissions.py",
+                    "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                    "startLine": 411,
+                    "endLine": 433
+                  },
+                  "origin": {
+                    "handle": "contract-7d483220a1f1f6c62ce29d4f",
+                    "block": "source-main",
+                    "step": "choose-anchor-1bcb447358b109f035dd92f2",
+                    "instance": "contract-1d5233dd843d902df221169a.call-anchor-b30d9187fb8a017b7e33ba11"
+                  },
+                  "after": [
+                    "sem-2e45fd5693459ec66b8b8d7f"
+                  ]
+                },
+                {
+                  "key": "sem-1bd6b6909437699202463570",
+                  "kind": "continue",
+                  "source": {
+                    "id": "struct-e304de1d5ce1389e0a3ba09d",
+                    "path": "src/documents/permissions.py",
+                    "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                    "startLine": 411,
+                    "endLine": 433
+                  },
+                  "origin": {
+                    "handle": "contract-7d483220a1f1f6c62ce29d4f",
+                    "block": "source-true-0",
+                    "step": "return-anchor-067943a14ad12ea9f25df11d",
+                    "instance": "contract-1d5233dd843d902df221169a.call-anchor-b30d9187fb8a017b7e33ba11"
+                  },
+                  "after": [
+                    "sem-a656994e74aa156764dc723e"
+                  ]
+                },
+                {
+                  "key": "sem-4c15c9a4a848579bbba5e00e",
+                  "kind": "continue",
+                  "source": {
+                    "id": "struct-80e730eb92736b6b0b518ce3",
+                    "path": "src/documents/permissions.py",
+                    "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                    "startLine": 436,
+                    "endLine": 457
+                  },
+                  "origin": {
+                    "handle": "contract-1d5233dd843d902df221169a",
+                    "block": "source-main",
+                    "step": "choose-anchor-029e76cf351065ee6a4411d6",
+                    "instance": "contract-1d5233dd843d902df221169a"
+                  },
+                  "after": [
+                    "sem-1bd6b6909437699202463570"
+                  ]
+                },
+                {
+                  "key": "sem-2cda19b61c288da699e9ccc4",
+                  "kind": "binding",
+                  "source": {
+                    "id": "struct-80e730eb92736b6b0b518ce3",
+                    "path": "src/documents/permissions.py",
+                    "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                    "startLine": 436,
+                    "endLine": 457
+                  },
+                  "origin": {
+                    "handle": "contract-1d5233dd843d902df221169a",
+                    "block": "source-main",
+                    "step": "literal-anchor-0428bec461ff8b0e797857e7-include_deleted",
+                    "instance": "contract-1d5233dd843d902df221169a"
+                  },
+                  "after": [
+                    "sem-4c15c9a4a848579bbba5e00e"
+                  ]
+                },
+                {
+                  "key": "sem-72a18967986b34e655daf98f",
+                  "kind": "call",
+                  "source": {
+                    "id": "struct-80e730eb92736b6b0b518ce3",
+                    "path": "src/documents/permissions.py",
+                    "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                    "startLine": 436,
+                    "endLine": 457
+                  },
+                  "origin": {
+                    "handle": "contract-1d5233dd843d902df221169a",
+                    "block": "source-main",
+                    "step": "call-anchor-0428bec461ff8b0e797857e7",
+                    "instance": "contract-1d5233dd843d902df221169a"
+                  },
+                  "after": [
+                    "sem-2cda19b61c288da699e9ccc4"
+                  ]
+                }
+              ],
+              "effectOccurrences": [],
+              "semanticReview": "unreviewed",
+              "scope": "current-proposed-call-prefix",
+              "calleeEffectsCertified": false,
+              "callOccurrences": [
+                {
+                  "key": "sem-72a18967986b34e655daf98f",
+                  "instance": "contract-1d5233dd843d902df221169a",
+                  "reachability": "false"
+                }
+              ]
+            }
+          ],
+          "gaps": []
+        }
+      ],
+      "diagnostics": [],
+      "originalQuestionCount": 5,
+      "wholeTaskCertified": false,
+      "semanticReview": "unreviewed"
+    },
+    "requestOperationCertified": false
+  },
+  "materialUses": [
+    {
+      "kind": "function-root",
+      "operationId": "document-download",
+      "questionId": "local-visibility-filter",
+      "materialId": "material-029e8527b3f0a8ba80d9f429",
+      "arguments": []
+    },
+    {
+      "kind": "call",
+      "operationId": "document-download",
+      "questionId": "local-visibility-filter",
+      "materialId": "material-792ff79b0719747f73fed796",
+      "callerMaterialId": "material-029e8527b3f0a8ba80d9f429",
+      "relationId": "call-5d5caf4ac5d13458909eb891",
+      "arguments": [
+        {
+          "parameter": "user",
+          "object": "user"
+        }
+      ]
+    }
+  ],
+  "sourceVerification": {
+    "valid": true,
+    "checkedFiles": 95,
+    "physicalReadBytes": 1412762
+  }
+}

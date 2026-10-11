@@ -1,0 +1,514 @@
+{
+  "modelCalls": 0,
+  "originalQuestionIds": [
+    "requested-document-and-returned-file",
+    "authorization-and-selection-order",
+    "alternate-version-authorized-resource",
+    "missing-facts-and-conditional-conclusions",
+    "local-file-contract",
+    "local-global-permission-gate"
+  ],
+  "executableContract": {
+    "program": {
+      "schemaVersion": "authorization-executable-contract/v1",
+      "id": "paperless-global-permission-gate-v1",
+      "scope": {
+        "kind": "function-contract",
+        "questionId": "local-global-permission-gate",
+        "root": {
+          "path": "src/documents/permissions.py",
+          "startLine": 649,
+          "endLine": 653,
+          "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+          "receiverClass": "documents.permissions.ViewDocumentsPermissions"
+        },
+        "upstream": [
+          "This is the permission method entry; original request routing/authentication and object permissions remain independent duties.",
+          "The explicit null request.user input applies only to this local development question; the original four questions still investigate an authenticated user with unspecified ownership/grants."
+        ]
+      },
+      "sourceDeclarations": [
+        {
+          "schemaVersion": "authorization-question-declaration/v1",
+          "source": {
+            "path": "src/documents/permissions.py",
+            "startLine": 649,
+            "endLine": 653,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+            "receiverClass": "documents.permissions.ViewDocumentsPermissions"
+          },
+          "questionId": "local-global-permission-gate",
+          "statements": [
+            {
+              "kind": "object",
+              "expression": "self",
+              "as": "context",
+              "because": "Actual method formal; no permission value is inferred."
+            },
+            {
+              "kind": "object",
+              "expression": "request",
+              "as": "context",
+              "because": "Actual method formal; no permission value is inferred."
+            },
+            {
+              "kind": "object",
+              "expression": "view",
+              "as": "context",
+              "because": "Actual method formal; no permission value is inferred."
+            },
+            {
+              "kind": "condition",
+              "at": {
+                "path": "src/documents/permissions.py",
+                "startLine": 650,
+                "endLine": 650,
+                "text": "not request.user or (not request.user.is_authenticated)",
+                "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+              },
+              "test": {
+                "op": "any",
+                "args": [
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "truthy",
+                      "language": "python",
+                      "value": {
+                        "binding": "request.user"
+                      }
+                    }
+                  },
+                  {
+                    "op": "not",
+                    "arg": {
+                      "op": "truthy",
+                      "language": "python",
+                      "value": {
+                        "binding": "request.user.is_authenticated"
+                      }
+                    }
+                  }
+                ]
+              },
+              "because": "The actual source rejects a falsy user or unauthenticated user before global-permission lookup."
+            },
+            {
+              "kind": "statement",
+              "at": {
+                "path": "src/documents/permissions.py",
+                "startLine": 651,
+                "endLine": 651,
+                "text": "return False",
+                "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+              },
+              "outcome": "deny",
+              "because": "The source method refuses permission and terminates this local function."
+            },
+            {
+              "kind": "dependency",
+              "at": {
+                "path": "src/documents/permissions.py",
+                "startLine": 653,
+                "endLine": 653,
+                "text": "self.perms_map.get(request.method, [])",
+                "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+              },
+              "as": "context",
+              "because": "Actual argument evaluation selects global model permissions; its body/result remain outside this invocation-prefix query."
+            },
+            {
+              "kind": "dependency",
+              "at": {
+                "path": "src/documents/permissions.py",
+                "startLine": 653,
+                "endLine": 653,
+                "text": "request.user.has_perms(self.perms_map.get(request.method, []))",
+                "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+              },
+              "as": "condition",
+              "because": "The actual downstream permission decision is retained, not replaced by a grant or an effect."
+            },
+            {
+              "kind": "statement",
+              "at": {
+                "path": "src/documents/permissions.py",
+                "startLine": 653,
+                "endLine": 653,
+                "text": "return request.user.has_perms(self.perms_map.get(request.method, []))",
+                "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+              },
+              "outcome": "unknown",
+              "because": "The actual method returns the unresolved external global-permission result."
+            }
+          ]
+        }
+      ],
+      "queries": [
+        {
+          "property": "permission-lookup-invocation",
+          "effect": {
+            "path": "src/documents/permissions.py",
+            "startLine": 653,
+            "endLine": 653,
+            "text": "self.perms_map.get(request.method, [])",
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+          }
+        }
+      ],
+      "assumptions": []
+    },
+    "origin": "authored-file",
+    "revision": "ddae49522f2d18975c620bf5e85c7d3ae79f60df69304b76abe976cb2ed986d8",
+    "scope": {
+      "kind": "function-contract",
+      "questionId": "local-global-permission-gate",
+      "root": {
+        "path": "src/documents/permissions.py",
+        "startLine": 649,
+        "endLine": 653,
+        "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+        "receiverClass": "documents.permissions.ViewDocumentsPermissions"
+      },
+      "upstream": [
+        "This is the permission method entry; original request routing/authentication and object permissions remain independent duties.",
+        "The explicit null request.user input applies only to this local development question; the original four questions still investigate an authenticated user with unspecified ownership/grants."
+      ]
+    },
+    "assumptions": [],
+    "conditions": {
+      "request": {
+        "user": null
+      }
+    },
+    "status": "current",
+    "evaluation": {
+      "schemaVersion": "authorization-property-check/v1",
+      "evaluationVersion": "semantic-completion/v1",
+      "revision": 20,
+      "questions": [
+        {
+          "questionId": "requested-document-and-returned-file",
+          "properties": [],
+          "gaps": [
+            "property-query-undeclared"
+          ]
+        },
+        {
+          "questionId": "authorization-and-selection-order",
+          "properties": [],
+          "gaps": [
+            "property-query-undeclared"
+          ]
+        },
+        {
+          "questionId": "alternate-version-authorized-resource",
+          "properties": [],
+          "gaps": [
+            "property-query-undeclared"
+          ]
+        },
+        {
+          "questionId": "missing-facts-and-conditional-conclusions",
+          "properties": [],
+          "gaps": [
+            "property-query-undeclared"
+          ]
+        },
+        {
+          "questionId": "local-file-contract",
+          "properties": [
+            {
+              "propertyId": "local-call",
+              "kind": "effect-reachability",
+              "status": "unknown",
+              "value": "unresolved",
+              "questionId": "local-file-contract",
+              "gaps": [
+                "property-query-unbound",
+                "property-source-unlocated"
+              ],
+              "trace": [],
+              "traceDetails": [],
+              "effectOccurrences": [],
+              "semanticReview": "unreviewed",
+              "scope": "current-proposed-source-relation"
+            }
+          ],
+          "gaps": []
+        },
+        {
+          "questionId": "local-global-permission-gate",
+          "properties": [
+            {
+              "propertyId": "permission-lookup-invocation",
+              "kind": "call-reachability",
+              "status": "checked",
+              "value": "unreachable",
+              "questionId": "local-global-permission-gate",
+              "source": {
+                "id": "struct-c025392fdb0f4542afbfd75e",
+                "path": "src/documents/permissions.py",
+                "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                "startLine": 649,
+                "endLine": 653
+              },
+              "sourceRevision": "cbc4e95fef1aee91c6fc9c307a39b4f87ea39a9a9fb8aa25a34be5b1dcfec8de",
+              "gaps": [],
+              "trace": [
+                "sem-842373b55ad339d41fdae11c",
+                "sem-c9c607db61be57ed73e4009c",
+                "sem-f727aa9528f3504340dc6c35",
+                "sem-82b5ef25296ab8d65a8477bb",
+                "sem-7dd998e03a28216300676988",
+                "sem-f8e411fc06a922899268abf0",
+                "sem-7db218f599143d68d7d376f1",
+                "sem-3e775481bf8c135c007e6ecb",
+                "sem-fb684ffc310c6f7f7bdc7a02",
+                "sem-425e0c1a6d4613c31e5c3e5c"
+              ],
+              "dependencyRelevance": [],
+              "traceDetails": [
+                {
+                  "key": "sem-842373b55ad339d41fdae11c",
+                  "kind": "entry",
+                  "source": {
+                    "id": "struct-c025392fdb0f4542afbfd75e",
+                    "path": "src/documents/permissions.py",
+                    "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                    "startLine": 649,
+                    "endLine": 653
+                  },
+                  "origin": {
+                    "handle": "contract-b6dc159e24c703c4b56a2be6",
+                    "block": "source-main",
+                    "step": "$entry",
+                    "instance": "contract-b6dc159e24c703c4b56a2be6"
+                  },
+                  "after": []
+                },
+                {
+                  "key": "sem-c9c607db61be57ed73e4009c",
+                  "kind": "binding",
+                  "source": {
+                    "id": "struct-c025392fdb0f4542afbfd75e",
+                    "path": "src/documents/permissions.py",
+                    "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                    "startLine": 649,
+                    "endLine": 653
+                  },
+                  "origin": {
+                    "handle": "contract-b6dc159e24c703c4b56a2be6",
+                    "block": "source-main",
+                    "step": "$parameter.self",
+                    "instance": "contract-b6dc159e24c703c4b56a2be6"
+                  },
+                  "after": [
+                    "sem-842373b55ad339d41fdae11c"
+                  ]
+                },
+                {
+                  "key": "sem-f727aa9528f3504340dc6c35",
+                  "kind": "binding",
+                  "source": {
+                    "id": "struct-c025392fdb0f4542afbfd75e",
+                    "path": "src/documents/permissions.py",
+                    "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                    "startLine": 649,
+                    "endLine": 653
+                  },
+                  "origin": {
+                    "handle": "contract-b6dc159e24c703c4b56a2be6",
+                    "block": "source-main",
+                    "step": "$parameter.request",
+                    "instance": "contract-b6dc159e24c703c4b56a2be6"
+                  },
+                  "after": [
+                    "sem-c9c607db61be57ed73e4009c"
+                  ]
+                },
+                {
+                  "key": "sem-82b5ef25296ab8d65a8477bb",
+                  "kind": "binding",
+                  "source": {
+                    "id": "struct-c025392fdb0f4542afbfd75e",
+                    "path": "src/documents/permissions.py",
+                    "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                    "startLine": 649,
+                    "endLine": 653
+                  },
+                  "origin": {
+                    "handle": "contract-b6dc159e24c703c4b56a2be6",
+                    "block": "source-main",
+                    "step": "$parameter.view",
+                    "instance": "contract-b6dc159e24c703c4b56a2be6"
+                  },
+                  "after": [
+                    "sem-f727aa9528f3504340dc6c35"
+                  ]
+                },
+                {
+                  "key": "sem-7dd998e03a28216300676988",
+                  "kind": "continue",
+                  "source": {
+                    "id": "struct-c025392fdb0f4542afbfd75e",
+                    "path": "src/documents/permissions.py",
+                    "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                    "startLine": 649,
+                    "endLine": 653
+                  },
+                  "origin": {
+                    "handle": "contract-b6dc159e24c703c4b56a2be6",
+                    "block": "source-main",
+                    "step": "short-anchor-8706769236f3d0f11d542f1d",
+                    "instance": "contract-b6dc159e24c703c4b56a2be6"
+                  },
+                  "after": [
+                    "sem-82b5ef25296ab8d65a8477bb"
+                  ]
+                },
+                {
+                  "key": "sem-f8e411fc06a922899268abf0",
+                  "kind": "continue",
+                  "source": {
+                    "id": "struct-c025392fdb0f4542afbfd75e",
+                    "path": "src/documents/permissions.py",
+                    "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                    "startLine": 649,
+                    "endLine": 653
+                  },
+                  "origin": {
+                    "handle": "contract-b6dc159e24c703c4b56a2be6",
+                    "block": "source-main",
+                    "step": "choose-anchor-2d89eda50a7e58ce855bdd34",
+                    "instance": "contract-b6dc159e24c703c4b56a2be6"
+                  },
+                  "after": [
+                    "sem-7dd998e03a28216300676988"
+                  ]
+                },
+                {
+                  "key": "sem-7db218f599143d68d7d376f1",
+                  "kind": "call",
+                  "source": {
+                    "id": "struct-c025392fdb0f4542afbfd75e",
+                    "path": "src/documents/permissions.py",
+                    "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                    "startLine": 649,
+                    "endLine": 653
+                  },
+                  "origin": {
+                    "handle": "contract-b6dc159e24c703c4b56a2be6",
+                    "block": "source-main",
+                    "step": "call-anchor-5001800e0f76b905162a9552",
+                    "instance": "contract-b6dc159e24c703c4b56a2be6"
+                  },
+                  "after": [
+                    "sem-f8e411fc06a922899268abf0"
+                  ]
+                },
+                {
+                  "key": "sem-3e775481bf8c135c007e6ecb",
+                  "kind": "continue",
+                  "source": {
+                    "id": "struct-c025392fdb0f4542afbfd75e",
+                    "path": "src/documents/permissions.py",
+                    "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                    "startLine": 649,
+                    "endLine": 653
+                  },
+                  "origin": {
+                    "handle": "contract-b6dc159e24c703c4b56a2be6",
+                    "block": "source-main",
+                    "step": "short-anchor-8706769236f3d0f11d542f1d",
+                    "instance": "contract-b6dc159e24c703c4b56a2be6"
+                  },
+                  "after": [
+                    "sem-82b5ef25296ab8d65a8477bb"
+                  ]
+                },
+                {
+                  "key": "sem-fb684ffc310c6f7f7bdc7a02",
+                  "kind": "continue",
+                  "source": {
+                    "id": "struct-c025392fdb0f4542afbfd75e",
+                    "path": "src/documents/permissions.py",
+                    "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                    "startLine": 649,
+                    "endLine": 653
+                  },
+                  "origin": {
+                    "handle": "contract-b6dc159e24c703c4b56a2be6",
+                    "block": "source-main",
+                    "step": "choose-anchor-2d89eda50a7e58ce855bdd34",
+                    "instance": "contract-b6dc159e24c703c4b56a2be6"
+                  },
+                  "after": [
+                    "sem-3e775481bf8c135c007e6ecb"
+                  ]
+                },
+                {
+                  "key": "sem-425e0c1a6d4613c31e5c3e5c",
+                  "kind": "call",
+                  "source": {
+                    "id": "struct-c025392fdb0f4542afbfd75e",
+                    "path": "src/documents/permissions.py",
+                    "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+                    "startLine": 649,
+                    "endLine": 653
+                  },
+                  "origin": {
+                    "handle": "contract-b6dc159e24c703c4b56a2be6",
+                    "block": "source-main",
+                    "step": "call-anchor-5001800e0f76b905162a9552",
+                    "instance": "contract-b6dc159e24c703c4b56a2be6"
+                  },
+                  "after": [
+                    "sem-fb684ffc310c6f7f7bdc7a02"
+                  ]
+                }
+              ],
+              "effectOccurrences": [],
+              "semanticReview": "unreviewed",
+              "scope": "current-proposed-call-prefix",
+              "calleeEffectsCertified": false,
+              "callOccurrences": [
+                {
+                  "key": "sem-7db218f599143d68d7d376f1",
+                  "instance": "contract-b6dc159e24c703c4b56a2be6",
+                  "reachability": "false"
+                },
+                {
+                  "key": "sem-425e0c1a6d4613c31e5c3e5c",
+                  "instance": "contract-b6dc159e24c703c4b56a2be6",
+                  "reachability": "false"
+                }
+              ]
+            }
+          ],
+          "gaps": []
+        }
+      ],
+      "diagnostics": [],
+      "originalQuestionCount": 6,
+      "wholeTaskCertified": false,
+      "semanticReview": "unreviewed"
+    },
+    "requestOperationCertified": false
+  },
+  "materialUses": [
+    {
+      "kind": "function-root",
+      "operationId": "document-download",
+      "questionId": "local-global-permission-gate",
+      "materialId": "material-1644ab350c3dfe6eb7a6e3a7",
+      "receiverClass": "documents.permissions.ViewDocumentsPermissions",
+      "arguments": []
+    }
+  ],
+  "sourceVerification": {
+    "valid": true,
+    "checkedFiles": 95,
+    "physicalReadBytes": 1412762
+  }
+}

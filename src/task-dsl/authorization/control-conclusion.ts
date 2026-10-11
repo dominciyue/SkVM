@@ -13,16 +13,17 @@ export interface DependencyCheckState {
 }
 /** A discovery boundary is relevant through its actual source owner or the
  * selected request, never merely because it was found in the same operation. */
-function propertyDependencyRelevance(slice: ControlSlice, units: BoundSemanticBlock[], trace: BoundControlRule[], dependencies: DependencyCheckState[], questionId: string) {
+function propertyDependencyRelevance(slice: ControlSlice, units: BoundSemanticBlock[], trace: BoundControlRule[], dependencies: DependencyCheckState[], questionId: string, invocationBoundary?: { keys: Set<string>; calls: Set<string>; owners: Set<string> }) {
   const keys = new Set(trace.map(r => r.key))
   return dependencies.filter(d => d.questionId === questionId && d.decisive && !["checked", "inapplicable"].includes(d.state)).map(d => {
     const association = d.association
     const owner = association?.kind === "source" && trace.some(r => units.some(u => u.questionId === questionId && u.handle === r.sourceOrigin?.handle && u.source?.id === association.sourceId && u.receiverClass === association.receiverClass))
     const edges = slice.dependencies.filter(edge => edge.key === d.key)
+    const selectedCallee = invocationBoundary && (!association ? edges.some(edge => invocationBoundary.keys.has(edge.from)) : association.kind === "source" && invocationBoundary.owners.has(JSON.stringify([association.sourceId, association.receiverClass])) && !!association.sourceCallId && invocationBoundary.calls.has(association.sourceCallId))
     // Missing provenance and a missing edge do not prove irrelevance. A known
     // source edge outside the invocation prefix can still bound a local check.
-    const relevant = d.pathKey === "$framework" ? !association || association.kind !== "source" || owner : association?.kind === "request" || association?.kind === "unconfirmed" || edges.some(edge => keys.has(edge.from)) || !association && !edges.length
-    return { key: d.key, symbol: d.symbol, relevant, reason: relevant ? association?.kind === "source" ? "Source owner is on the selected invocation prefix." : "Selected request association or unresolved relevance remains decisive." : "Source owner is outside the selected invocation prefix.", association }
+    const relevant = selectedCallee ? false : d.pathKey === "$framework" ? !association || association.kind !== "source" || owner : association?.kind === "request" || association?.kind === "unconfirmed" || edges.some(edge => keys.has(edge.from)) || !association && !edges.length
+    return { key: d.key, symbol: d.symbol, relevant, reason: selectedCallee ? "The actual selected invocation is reached before its callee body, which this query does not certify." : relevant ? association?.kind === "source" ? "Source owner is on the selected invocation prefix." : "Selected request association or unresolved relevance remains decisive." : "Source owner is outside the selected invocation prefix.", association }
   })
 }
 const diag = (code: string, path: string, message: string, questionId?: string): InquiryDiagnostic => ({ code, path, message, severity: "error", ...(questionId ? { questionId } : {}) })
@@ -232,6 +233,7 @@ export function checkPropertyQueries(program: AuthorizationInquiryProgram, slice
  * select sources; only mapped predecessor identities prove the local relation. */
 function checkInterproceduralProperty(q: BoundPropertyQuery, slice: ControlSlice, demands: PropertyDemand[], units: BoundSemanticBlock[], dependencies: DependencyCheckState[], duplicate: boolean, sourceTransactions: InquiryDiagnostic[], callerGuardAtSelectedCall = false) {
   const gaps = [...q.missing], traced = new Map<string, BoundControlRule>()
+  const callQuery = q.kind === "call-reachability"
   let status: "checked" | "violated" | "unknown" = "unknown", value = "unresolved"
   const selectedUnits = (ref?: PropertySourceReference) => ref ? units.filter(u => u.questionId === q.questionId && u.source?.id === ref.sourceId && u.source.sha256 === ref.sourceSha256 && u.receiverClass === ref.receiverClass) : []
   const effectUnits = selectedUnits(q.effectRef), guardUnits = selectedUnits(q.guardRef)
@@ -240,19 +242,20 @@ function checkInterproceduralProperty(q: BoundPropertyQuery, slice: ControlSlice
   const inCall = (rule: BoundControlRule, call: BoundControlRule) => !!rule.sourceOrigin?.instance.startsWith(`${call.sourceOrigin!.instance}.${call.sourceOrigin!.step}`) && controlRuleReach(slice, rule).ancestors.some(a => a.key === call.key)
   const effects = slice.rules.filter(r => r.questionId === q.questionId && r.kind === "effect" && (q.effectKind === "call" ? calls.some(c => inCall(r, c)) : from(r, effectUnits) && [`effect-${q.effectAnchorId}`, `field-effect-${q.effectAnchorId}`].includes(r.sourceOrigin?.step ?? "")))
   const reaches = effects.map(effect => ({ effect, ...controlRuleReach(slice, effect) })), callReaches = calls.map(call => ({ call, ...controlRuleReach(slice, call) }))
-  const live = reaches.filter(r => r.predicate.truth !== "false" && !r.stoppedBy.length)
+  const live = (callQuery ? callReaches.map(r => ({ ...r, effect: r.call })) : reaches).filter(r => r.predicate.truth !== "false" && !r.stoppedBy.length)
   const addTrace = (rules: BoundControlRule[]) => { for (const rule of rules) traced.set(rule.key, rule) }
-  for (const reach of [...callReaches, ...reaches]) addTrace(reach.ancestors)
-  const subtree = q.effectKind === "call" ? slice.rules.filter(r => calls.some(c => inCall(r, c))) : []
+  for (const reach of callQuery ? callReaches : [...callReaches, ...reaches]) addTrace(reach.ancestors)
+  const subtree = !callQuery && q.effectKind === "call" ? slice.rules.filter(r => calls.some(c => inCall(r, c))) : []
   addTrace(subtree)
   if (duplicate) gaps.push("property-binding-duplicate")
   for (const d of sourceTransactions.filter(d => d.severity === "error" && (!d.questionId || d.questionId === q.questionId))) gaps.push(`property-current-source-rejected:${d.code}`)
   if (!effectUnits.length || (q.effectKind === "call" ? !calls.length : !effects.length)) gaps.push("property-source-effect-unadopted")
   if (q.guardRef && !guardUnits.length) gaps.push("property-guard-unadopted")
-  const prefixes = [...callReaches, ...reaches]
+  const prefixes = callQuery ? callReaches : [...callReaches, ...reaches]
   if (prefixes.some(r => r.gaps.length || !r.ancestors.some(a => a.kind === "entry") || r.ancestors.some(a => !a.sourceBound || a.kind === "unresolved"))) gaps.push("property-prefix-unresolved")
   for (const r of [...traced.values()].filter(r => r.kind === "unresolved")) gaps.push(`property-source-gap:${r.gap ?? r.key}`)
-  const relevantKeys = new Set(traced.keys()), dependencyRelevance = propertyDependencyRelevance(slice, units, [...traced.values()], dependencies, q.questionId), open = dependencyRelevance.filter(d => d.relevant)
+  const invocationBoundary = callQuery ? { keys: new Set(calls.map(c => c.key)), owners: new Set(effectUnits.map(u => JSON.stringify([u.source!.id, u.receiverClass]))), calls: new Set(effectUnits.flatMap(u => u.blocks.flatMap(b => b.steps.filter(s => s.kind === "call" && calls.some(c => c.sourceOrigin?.step === s.name)).flatMap(s => s.kind === "call" && s.sourceCallId ? [s.sourceCallId] : [])))) } : undefined
+  const relevantKeys = new Set(traced.keys()), dependencyRelevance = propertyDependencyRelevance(slice, units, [...traced.values()], dependencies, q.questionId, invocationBoundary), open = dependencyRelevance.filter(d => d.relevant)
   if (open.length) gaps.push(...open.map(d => `property-dependency-open:${d.symbol}`))
   if (controlObjectDiagnostics(slice).some(d => d.questionId === q.questionId && d.code.startsWith("object-binding-") && relevantKeys.has(d.path))) gaps.push("property-object-binding-unresolved")
   if (!gaps.length) {
@@ -267,7 +270,7 @@ function checkInterproceduralProperty(q: BoundPropertyQuery, slice: ControlSlice
         if (q.requiredPermission && guard.permission !== q.requiredPermission) { status = "violated"; value = "permission-mismatch"; break }
       }
       if (status !== "violated" && !gaps.length) { status = "checked"; value = live.length ? "satisfied" : "no-effect-on-covered-paths" }
-    } else if (q.kind === "effect-reachability") { status = "checked"; value = live.some(r => r.predicate.truth === "true") ? "reachable" : live.length ? "conditional" : "unreachable" }
+    } else if (q.kind === "effect-reachability" || callQuery) { status = "checked"; value = live.some(r => r.predicate.truth === "true") ? "reachable" : live.length ? "conditional" : "unreachable" }
     else {
       const paths = evaluateControlPaths(slice).paths.filter(p => p.questionId === q.questionId && p.state !== "inapplicable")
       if (!paths.length || paths.some(p => !p.complete || !p.sourceBound) || demands.some(d => d.questionId === q.questionId && (d.sourceGaps.length || d.dependencies?.residuals?.length))) gaps.push("property-completion-unresolved")
@@ -275,5 +278,5 @@ function checkInterproceduralProperty(q: BoundPropertyQuery, slice: ControlSlice
     }
   }
   if (!traced.size && effectUnits.length) addTrace(slice.rules.filter(r => from(r, effectUnits)))
-  return { propertyId: q.id, kind: q.kind, status, value, questionId: q.questionId, source: q.source, sourceRevision: q.sourceRevision, gaps: [...new Set(gaps)], trace: [...traced.keys()], dependencyRelevance, traceDetails: [...traced.values()].map(r => ({ key: r.key, kind: r.kind, source: units.find(u => u.questionId === q.questionId && u.handle === r.sourceOrigin?.handle)?.source, origin: r.sourceOrigin, after: r.after, principal: r.principal, resource: r.resource, permission: r.permission, gap: r.gap })), effectOccurrences: effects.map(r => ({ key: r.key, instance: r.sourceOrigin?.instance, principal: r.principal, resource: r.resource })), semanticReview: "unreviewed" as const, scope: "current-proposed-source-relation" as const }
+  return { propertyId: q.id, kind: q.kind, status, value, questionId: q.questionId, source: q.source, sourceRevision: q.sourceRevision, gaps: [...new Set(gaps)], trace: [...traced.keys()], dependencyRelevance, traceDetails: [...traced.values()].map(r => ({ key: r.key, kind: r.kind, source: units.find(u => u.questionId === q.questionId && u.handle === r.sourceOrigin?.handle)?.source, origin: r.sourceOrigin, after: r.after, principal: r.principal, resource: r.resource, permission: r.permission, gap: r.gap })), effectOccurrences: (callQuery ? [] : effects).map(r => ({ key: r.key, instance: r.sourceOrigin?.instance, principal: r.principal, resource: r.resource })), semanticReview: "unreviewed" as const, scope: callQuery ? "current-proposed-call-prefix" as const : "current-proposed-source-relation" as const, ...(callQuery ? { calleeEffectsCertified: false as const, callOccurrences: callReaches.map(r => ({ key: r.call.key, instance: r.call.sourceOrigin?.instance, reachability: r.predicate.truth })) } : {}) }
 }

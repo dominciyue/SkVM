@@ -135,6 +135,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
       if (typeof object.binding === "string" && c.operands?.[object.binding]) return structuredClone(c.operands[object.binding])
       if (typeof object.binding === "string") {
         const reference = object.binding, resolved = valueObject(c, reference)
+        if (resolved && Object.hasOwn(c.objectValues, resolved.identity)) return { literal: structuredClone(c.objectValues[resolved.identity]) }
         if (resolved && (resolved.type === "value" || reference.includes("."))) {
           const key = resolved.identity
           return Object.hasOwn(c.objectValues, key) ? { literal: structuredClone(c.objectValues[key]) } : { binding: key }

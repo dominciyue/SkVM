@@ -208,6 +208,20 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
     const selected = exact ?? (matches.length === 1 ? matches[0] : undefined), generated = selected?.call?.resultBinding ?? (selected?.kind === "control" ? selected.name : undefined)
     return { binding: generated ?? expression ?? "$source-value-unknown" }
   }
+  const sourceCondition = (condition: Record<string, unknown>, owner: SourceAnchor): Record<string, unknown> => {
+    const visit = (value: unknown): unknown => {
+      if (Array.isArray(value)) return value.map(visit)
+      if (!value || typeof value !== "object") return value
+      const operand = value as Record<string, unknown>
+      if (Object.keys(operand).length === 1 && typeof operand.binding === "string") {
+        const matches = skeleton.anchors.filter(a => a.call && a.text === operand.binding), local = matches.filter(a => a.selector.startLine !== undefined && a.selector.endLine !== undefined && owner.selector.startLine !== undefined && owner.selector.endLine !== undefined && a.selector.startLine >= owner.selector.startLine && a.selector.endLine <= owner.selector.endLine), candidates = local.length ? local : matches
+        if (candidates.length === 1) return { binding: candidates[0]!.call!.resultBinding }
+        if (candidates.length > 1) fault("predicate-call-ambiguous", owner.id, "The source call expression names multiple actual invocations; cite its current call result explicitly.")
+      }
+      return Object.fromEntries(Object.entries(operand).map(([key, nested]) => [key, key === "literal" ? nested : visit(nested)]))
+    }
+    return visit(condition) as Record<string, unknown>
+  }
   const argumentResult = (expression: string, sourceCallId?: string) => {
     const matches = skeleton.anchors.filter(a => a.call && (sourceCallId ? a.call.sourceCallId === sourceCallId : a.text === expression))
     return matches.length === 1 ? matches[0]!.call!.resultBinding : undefined
@@ -231,7 +245,7 @@ export function lowerSourceInterpretation(skeleton: SourceSkeleton, raw: unknown
         block.steps.push({ kind: "unresolved", name: `${a.kind === "call" ? "context" : "property-residual"}-${a.id}`, claim, reason: "property-source-influence-unresolved" }); unit.complete = false; continue
       }
       if (node.kind === "branch") {
-        const yes = `source-true-${serial}`, no = `source-false-${serial++}`, condition = demand && a.literalKnown && typeof a.literalValue === "boolean" ? { op: "eq", left: { literal: a.literalValue }, right: { literal: true } } : annotation!.condition!
+        const yes = `source-true-${serial}`, no = `source-false-${serial++}`, condition = demand && a.literalKnown && typeof a.literalValue === "boolean" ? { op: "eq", left: { literal: a.literalValue }, right: { literal: true } } : sourceCondition(annotation!.condition!, a)
         const guardName = `guard-${a.id}`, guard = (branch: "true" | "false"): Step[] => annotation?.guardBranch === branch ? [{ kind: "guard", name: guardName, claim, ...objects, ...(annotation.permission ? { permission: annotation.permission } : {}), condition: branch === "true" ? condition : { op: "not", arg: condition } }] : []
         block.steps.push({ kind: "choose", name: `choose-${a.id}`, claim, cases: [{ condition, body: yes }], otherwise: no })
         compile(node.then ?? [], yes, guard("true")); compile(node.otherwise ?? [], no, guard("false")); continue

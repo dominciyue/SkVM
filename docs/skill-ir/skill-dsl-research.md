@@ -2536,6 +2536,14 @@ BE14三变化先完成零模型compare并锁定D1/original。[事实合同核对
 
 **BF3/BF4接线细化。** 当前输入增加仅绑定局部根实际形参的`contractInputs`，不接受内部guard/性质/结果赋值；同一源码程序在true/false/unknown下重算。true仍保留实际字段操作的异常条件，false得到不可达，未知保留输入残余；不以“允许”推成“效果必达”。来源receiver从实际声明作用域唯一规范化。已读A在焦点转到B后可按当前owner提交，过期/跨题/receiver/越界具名拒绝，重复的等价工作职责可共用同一owner，冲突owner仍拒绝。当前22项公共声明/文件/核心测试203断言通过，另启动授权全链回归与类型检查；这仍是匿名工程证据，真实程序v3已采用file_response→resolver调用但include_deleted初稿类型仍待修，未派BF模型。
 
+**BF2/BF3当前实物。** 亲读permissions624–635确认ObjectPermissionChecker先于owner短路，不能忽略此前构造。真实file_response程序v4已采用到resolver，修正include_deleted的布尔形参后仍因数据库选择调用未解释而unknown；原稿与失败保留。新增调用点查询把callee效果和调用前缀分开：真实ViewDocumentsPermissions.has_permission的null-user拒绝使全局权限查找不可达；同一原程序撤去该局部输入后变为conditional。文件check及native零模型结果都当前有效，但这一单函数授权分支没有满足完整文件授权或真实跨函数A验收，不能计自动生成或研究目标达成。
+
+BF4用BE D1原调用历史0–46零模型派生，原文件SHA不变、没有新语义。旧question-source-unoffered已改为question-source-unread-or-unowned：原历史虽然读过该段，仍未建立其当前question/operation owner，且原提案还含未支持的isinstance谓词；路由修复不等于原稿可执行。当前授权全链1862通过、1平台跳过、12407断言，主类型及BF执行器类型通过；独立只读调用前缀核验找到caller依赖误排除风险，主代理红绿修复后41项核心/公共入口测试通过。新BF执行器只登记位置并调用原普通inquiry，不复制账号、准备或复用实现；原四问/95源码/完整22文件skill与A/B隔离有确定性检查，真实模型尚未派发。
+
+**BF2/BF5真实跨函数A（派发前固定）。** 亲读permissions.py:411–433、436–457，依据原文声明`restrict_queryset_to_visible`→`user_is_unrestricted`。v1返回语句引用多义，v2仅改为完整原返回文字。首次v2执行暴露两个公共绑定缺陷：原call表达式未绑定实际结果、裸principal的显式null未用于谓词。匿名红测复现后修共同lowering/evaluator；v2语义字节不变，文件与native零模型均得到checked/unreachable，10节点trace覆盖两个真实函数，实际function-root和call材料采用各非零。撤去`user=null`后同程序unknown/unresolved，外部getattr语义仍缺；残余source-call映射诊断保留，未宣称完整语义映射。独立只读复核支持局部返回/短路含义，主代理裁决其范围仅为权限ID调用点；原file_response v4未知仍保留，完整原四問未因该子性质获得成功。
+
+新鲜授权全链1863通过、1平台跳过、12423断言，主及BF类型通过。消费固定`visibility-program-v2.json`和原四问加一明确开发局部问；基础输入null、变化输入省略该形参，程序不改。A作者来源、编写失败/修订和零模型结果单列，B仍用原输入且不接收这些含义；真实自动/消费效果待后续原件。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

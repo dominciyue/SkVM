@@ -1,0 +1,231 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "paperless-visibility-filter-v1",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "local-visibility-filter",
+    "root": {
+      "path": "src/documents/permissions.py",
+      "startLine": 436,
+      "endLine": 457,
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+    },
+    "upstream": [
+      "Local queryset visibility filtering; request authentication, dispatch, object checks and returned download file remain independent duties.",
+      "A null user is only this helper's explicit no-filter input. Original four questions retain their authenticated-user and unspecified ownership/grant premises."
+    ]
+  },
+  "sourceDeclarations": [
+    {
+      "schemaVersion": "authorization-question-declaration/v1",
+      "questionId": "local-visibility-filter",
+      "source": {
+        "path": "src/documents/permissions.py",
+        "startLine": 436,
+        "endLine": 457,
+        "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+      },
+      "statements": [
+        {
+          "kind": "object",
+          "expression": "queryset",
+          "as": "resource",
+          "because": "Actual formal; no permission grant is supplied."
+        },
+        {
+          "kind": "object",
+          "expression": "user",
+          "as": "principal",
+          "because": "Actual formal; no permission grant is supplied."
+        },
+        {
+          "kind": "object",
+          "expression": "perm",
+          "as": "permission",
+          "because": "Actual formal; no permission grant is supplied."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/permissions.py",
+            "startLine": 455,
+            "endLine": 455,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+            "text": "user_is_unrestricted(user)"
+          },
+          "as": "condition",
+          "because": "The actual helper returns a boolean controlling the early return."
+        },
+        {
+          "kind": "condition",
+          "at": {
+            "path": "src/documents/permissions.py",
+            "startLine": 455,
+            "endLine": 455,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+            "text": "user_is_unrestricted(user)"
+          },
+          "test": {
+            "op": "truthy",
+            "language": "python",
+            "value": {
+              "binding": "user_is_unrestricted(user)"
+            }
+          },
+          "because": "An unrestricted user returns the original queryset before the permission-ID lookup."
+        },
+        {
+          "kind": "statement",
+          "at": {
+            "path": "src/documents/permissions.py",
+            "startLine": 456,
+            "endLine": 456,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+            "text": "return queryset"
+          },
+          "because": "Actual unchanged resource return; no grant or protected effect is inferred."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/permissions.py",
+            "startLine": 457,
+            "endLine": 457,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+            "text": "permitted_object_ids(user, queryset.model, perm)"
+          },
+          "as": "context",
+          "because": "Actual restricted permission-ID lookup remains uninterpreted beyond its invocation site."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/permissions.py",
+            "startLine": 457,
+            "endLine": 457,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+            "text": "queryset.filter(pk__in=permitted_object_ids(user, queryset.model, perm))"
+          },
+          "as": "context",
+          "because": "The actual downstream queryset filter and its external behavior remain unknown."
+        },
+        {
+          "kind": "statement",
+          "at": {
+            "path": "src/documents/permissions.py",
+            "startLine": 457,
+            "endLine": 457,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+            "text": "return queryset.filter(pk__in=permitted_object_ids(user, queryset.model, perm))"
+          },
+          "because": "Actual restricted return; unknown external result is retained."
+        }
+      ]
+    },
+    {
+      "schemaVersion": "authorization-question-declaration/v1",
+      "questionId": "local-visibility-filter",
+      "source": {
+        "path": "src/documents/permissions.py",
+        "startLine": 411,
+        "endLine": 433,
+        "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+      },
+      "statements": [
+        {
+          "kind": "object",
+          "expression": "user",
+          "as": "principal",
+          "because": "Actual formal; no permission grant is supplied."
+        },
+        {
+          "kind": "condition",
+          "at": {
+            "path": "src/documents/permissions.py",
+            "startLine": 427,
+            "endLine": 427,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+            "text": "user is None"
+          },
+          "test": {
+            "op": "is-null",
+            "value": {
+              "binding": "user"
+            }
+          },
+          "because": "The source explicitly treats absent user as no filtering requested."
+        },
+        {
+          "kind": "statement",
+          "at": {
+            "path": "src/documents/permissions.py",
+            "startLine": 428,
+            "endLine": 428,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+            "text": "return True"
+          },
+          "because": "Actual literal boolean return, not a supplied permission."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/permissions.py",
+            "startLine": 430,
+            "endLine": 430,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+            "text": "getattr(user, \"is_authenticated\", False)"
+          },
+          "as": "condition",
+          "because": "Retain actual non-null-user property lookup and its unresolved meaning."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/permissions.py",
+            "startLine": 431,
+            "endLine": 431,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+            "text": "getattr(user, \"is_active\", False)"
+          },
+          "as": "condition",
+          "because": "Retain actual non-null-user property lookup and its unresolved meaning."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/permissions.py",
+            "startLine": 432,
+            "endLine": 432,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+            "text": "getattr(user, \"is_superuser\", False)"
+          },
+          "as": "condition",
+          "because": "Retain actual non-null-user property lookup and its unresolved meaning."
+        },
+        {
+          "kind": "statement",
+          "at": {
+            "path": "src/documents/permissions.py",
+            "startLine": 429,
+            "endLine": 433,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+          },
+          "because": "Actual non-null-user conjunction return; no missing attribute value is invented."
+        }
+      ]
+    }
+  ],
+  "queries": [
+    {
+      "property": "restricted-permission-lookup",
+      "effect": {
+        "path": "src/documents/permissions.py",
+        "startLine": 457,
+        "endLine": 457,
+        "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+        "text": "permitted_object_ids(user, queryset.model, perm)"
+      }
+    }
+  ],
+  "assumptions": []
+}

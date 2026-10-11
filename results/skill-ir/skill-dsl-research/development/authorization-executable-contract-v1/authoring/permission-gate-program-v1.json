@@ -1,0 +1,149 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "paperless-global-permission-gate-v1",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "local-global-permission-gate",
+    "root": {
+      "path": "src/documents/permissions.py",
+      "startLine": 649,
+      "endLine": 653,
+      "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+      "receiverClass": "documents.permissions.ViewDocumentsPermissions"
+    },
+    "upstream": [
+      "This is the permission method entry; original request routing/authentication and object permissions remain independent duties.",
+      "The explicit null request.user input applies only to this local development question; the original four questions still investigate an authenticated user with unspecified ownership/grants."
+    ]
+  },
+  "sourceDeclarations": [
+    {
+      "schemaVersion": "authorization-question-declaration/v1",
+      "questionId": "local-global-permission-gate",
+      "source": {
+        "path": "src/documents/permissions.py",
+        "startLine": 649,
+        "endLine": 653,
+        "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+        "receiverClass": "documents.permissions.ViewDocumentsPermissions"
+      },
+      "statements": [
+        {
+          "kind": "object",
+          "expression": "self",
+          "as": "context",
+          "because": "Actual method formal; no permission value is inferred."
+        },
+        {
+          "kind": "object",
+          "expression": "request",
+          "as": "context",
+          "because": "Actual method formal; no permission value is inferred."
+        },
+        {
+          "kind": "object",
+          "expression": "view",
+          "as": "context",
+          "because": "Actual method formal; no permission value is inferred."
+        },
+        {
+          "kind": "condition",
+          "at": {
+            "path": "src/documents/permissions.py",
+            "startLine": 650,
+            "endLine": 650,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+            "text": "not request.user or (not request.user.is_authenticated)"
+          },
+          "test": {
+            "op": "any",
+            "args": [
+              {
+                "op": "not",
+                "arg": {
+                  "op": "truthy",
+                  "language": "python",
+                  "value": {
+                    "binding": "request.user"
+                  }
+                }
+              },
+              {
+                "op": "not",
+                "arg": {
+                  "op": "truthy",
+                  "language": "python",
+                  "value": {
+                    "binding": "request.user.is_authenticated"
+                  }
+                }
+              }
+            ]
+          },
+          "because": "The actual source rejects a falsy user or unauthenticated user before global-permission lookup."
+        },
+        {
+          "kind": "statement",
+          "at": {
+            "path": "src/documents/permissions.py",
+            "startLine": 651,
+            "endLine": 651,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+            "text": "return False"
+          },
+          "outcome": "deny",
+          "because": "The source method refuses permission and terminates this local function."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/permissions.py",
+            "startLine": 653,
+            "endLine": 653,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+            "text": "self.perms_map.get(request.method, [])"
+          },
+          "as": "context",
+          "because": "Actual argument evaluation selects global model permissions; its body/result remain outside this invocation-prefix query."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/permissions.py",
+            "startLine": 653,
+            "endLine": 653,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+            "text": "request.user.has_perms(self.perms_map.get(request.method, []))"
+          },
+          "as": "condition",
+          "because": "The actual downstream permission decision is retained, not replaced by a grant or an effect."
+        },
+        {
+          "kind": "statement",
+          "at": {
+            "path": "src/documents/permissions.py",
+            "startLine": 653,
+            "endLine": 653,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+            "text": "return request.user.has_perms(self.perms_map.get(request.method, []))"
+          },
+          "outcome": "unknown",
+          "because": "The actual method returns the unresolved external global-permission result."
+        }
+      ]
+    }
+  ],
+  "queries": [
+    {
+      "property": "permission-lookup-invocation",
+      "effect": {
+        "path": "src/documents/permissions.py",
+        "startLine": 653,
+        "endLine": 653,
+        "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065",
+        "text": "self.perms_map.get(request.method, [])"
+      }
+    }
+  ],
+  "assumptions": []
+}

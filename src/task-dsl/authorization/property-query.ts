@@ -3,7 +3,7 @@ import { createHash } from "node:crypto"
 import type { SourceSkeleton } from "../../benchmarks/authorization-dsl/evidence-preparation/source-skeleton.ts"
 import type { SourceInterpretation } from "./source-interpretation.ts"
 const text = z.string().trim().min(1)
-export const PropertyKindSchema = z.enum(["authorization-before-effect", "authorized-object-matches-effect", "effect-reachability", "operation-completion"])
+export const PropertyKindSchema = z.enum(["authorization-before-effect", "authorized-object-matches-effect", "effect-reachability", "call-reachability", "operation-completion"])
 export type PropertyKind = z.infer<typeof PropertyKindSchema>
 export const PropertyRequirementSchema = z.object({ id: text, kind: PropertyKindSchema, requirement: text, requiredPermission: text.optional() }).strict()
 /** Qualified syntax identity. Actual object and call-instance identities are host owned. */
@@ -36,6 +36,7 @@ export function bindPropertyQueries(question: PropertyQuestion, skeleton: Source
   const queries: BoundPropertyQuery[] = declarations.map(q => {
     const binding = bindings.filter(b => b.propertyId === q.id), b = binding.length === 1 ? binding[0] : undefined, effect = b?.effectAnchorId && annotations.get(b.effectAnchorId), guard = b?.guardAnchorId && annotations.get(b.guardAnchorId)
     const missing: string[] = []
+    if (q.kind === "call-reachability") missing.push("call-reachability-requires-invocation-context")
     if (declarations.filter(v => v.id === q.id).length !== 1) missing.push("duplicate-property")
     if (!question.request.includes(q.requirement)) missing.push("requirement-not-current-task-span")
     if (!draft || !b?.effectAnchorId || !anchors.has(b.effectAnchorId) || !effect || effect.role !== "effect") missing.push("effect-unbound")
@@ -87,7 +88,10 @@ function bindInterproceduralQueries(question: PropertyQuestion, skeleton: Source
     const effect = resolve(effectRef, "effect"), guard = resolve(guardRef, "guard")
     if (declarations.filter(v => v.id === q.id).length !== 1) missing.push("duplicate-property")
     if (!question.request.includes(q.requirement) || q.requiredPermission && !q.requirement.includes(q.requiredPermission)) missing.push("requirement-not-current-task-span")
-    if (effect?.annotation?.role !== "effect") missing.push("effect-unbound")
+    if (q.kind === "call-reachability") {
+      if (effect?.anchor?.kind !== "call") missing.push("call-reference-required")
+      if (!effect?.annotation) missing.push("call-role-unbound")
+    } else if (effect?.annotation?.role !== "effect") missing.push("effect-unbound")
     if (guardRef && (guard?.anchor?.kind !== "condition" || !guard.annotation?.guardBranch || !guard.annotation.condition)) missing.push("guard-unbound")
     if (["authorization-before-effect", "authorized-object-matches-effect"].includes(q.kind)) {
       for (const [label, role] of [["principalAnchorId", "principal"], ["resourceAnchorId", "resource"]] as const) {

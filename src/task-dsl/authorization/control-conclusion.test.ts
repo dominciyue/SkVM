@@ -26,6 +26,24 @@ test("property checks retain original questions and reject absent guards, wrong 
   expect(run(rules, [query], [{ questionId: "other", key: "framework", state: "read", decisive: true }]).questions[0].properties[0].status).toBe("checked")
   expect(run(rules).wholeTaskCertified).toBe(false)
 })
+test("a call-prefix boundary requires actual invocation provenance before excluding a source dependency", () => {
+  const source = { id: "caller-source", sha256: "sha" }, origin = (step: string) => ({ handle: "caller", block: "body", step, instance: "i" })
+  const query = { id: "invoke", questionId: "q", kind: "call-reachability", state: "bound", missing: [], bindingScope: "interprocedural-property/v1", effectKind: "call", effectAnchorId: "target", effectRef: { sourceId: source.id, sourceSha256: source.sha256 }, sourceRevision: "r", source }
+  const units = [{ questionId: "q", handle: "caller", source, blocks: [{ steps: [{ kind: "call", name: "call-target", sourceCallId: "actual-invocation" }] }] }]
+  const dependencies = ["caller-prerequisite", "callee-body"].map(key => ({ key, questionId: "q", pathKey: "p", from: "invoke", symbol: key, evidenceIds: ["ev"], reason: key, kind: "control", decisive: true }))
+  const slice = mergeControlSlice(createControlSlice(), { schemaVersion: "authorization-control-slice/v2", rules: [rule("entry", "entry", [], { sourceOrigin: origin("entry") }), rule("invoke", "call", ["entry"], { sourceOrigin: origin("call-target") })], dependencies }, plan, context).state
+  const demand = { source, revision: "r", dependencies: { propertyQueries: { queries: [query], diagnostics: [] } } }
+  const check = (current: any[]) => api.checkPropertyQueries(plan, slice, [demand], units, current).questions[0].properties[0]
+  const prerequisite = { key: "caller-prerequisite", questionId: "q", pathKey: "p", symbol: "caller prerequisite", state: "read", decisive: true, association: { kind: "source", sourceId: source.id, reason: "Caller-owned prerequisite; the edge alone is not callee provenance" } }
+  const downstream = { key: "callee-body", questionId: "q", pathKey: "p", symbol: "callee body", state: "read", decisive: true, association: { kind: "source", sourceId: source.id, sourceCallId: "actual-invocation", reason: "Actual selected invocation body" } }
+  expect(check([downstream]).status).toBe("checked")
+  const bounded = check([prerequisite, downstream])
+  expect(bounded.status).toBe("unknown")
+  expect(bounded.gaps).toContain("property-dependency-open:caller prerequisite")
+  expect(bounded.dependencyRelevance.find((d: any) => d.key === "callee-body").relevant).toBe(false)
+  expect(check([{ ...prerequisite, association: { ...prerequisite.association, sourceCallId: "different-invocation" } }]).status).toBe("unknown")
+  expect(check([{ ...downstream, association: { ...downstream.association, receiverClass: "foreign.Receiver" } }]).status).toBe("unknown")
+})
 test("explicit ordered rejection conflicts with allow and does not certify model semantics", () => {
   expect(typeof api.checkControlConclusions).toBe("function")
   const s = state([rule("entry", "entry", []), rule("stop", "reject", ["entry"], { complete: true })])
