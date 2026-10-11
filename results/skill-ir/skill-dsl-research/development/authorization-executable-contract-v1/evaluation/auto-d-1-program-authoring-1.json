@@ -1,0 +1,208 @@
+{
+  "identity": "authorization-executable-contract-v1",
+  "attemptId": "auto-d-1/program-authoring-1",
+  "provenance": "main-primary-source-review",
+  "answerSha256": "63a7c140fc7d1a1b64a3e2cb3445f0153b3f62a35da49a47d69432ed639b2fe5",
+  "originalAnswerChanged": false,
+  "evaluatorProvidedToRuntime": false,
+  "wholeAnswerRead": true,
+  "crossSectionsAccepted": true,
+  "questions": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "grade": "partial"
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "grade": "full"
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "grade": "partial"
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "grade": "full"
+    }
+  ],
+  "wholeTask": "partial",
+  "facts": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "facts": [
+        {
+          "id": "lookup",
+          "status": "consistent"
+        },
+        {
+          "id": "version-branches",
+          "status": "consistent"
+        },
+        {
+          "id": "deleted-call-boundaries",
+          "status": "consistent"
+        },
+        {
+          "id": "file-response",
+          "status": "consistent"
+        },
+        {
+          "id": "root-fallback",
+          "status": "contradiction"
+        }
+      ]
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "facts": [
+        {
+          "id": "request-model-permission",
+          "status": "consistent"
+        },
+        {
+          "id": "root-check-order",
+          "status": "consistent"
+        },
+        {
+          "id": "manual-object-check",
+          "status": "consistent"
+        }
+      ]
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "references": [
+        "requested-document-and-returned-file",
+        "authorization-and-selection-order"
+      ],
+      "facts": [
+        {
+          "id": "version-tree-boundary",
+          "status": "consistent"
+        },
+        {
+          "id": "authorized-object-vs-returned-file",
+          "status": "consistent"
+        }
+      ]
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "references": [
+        "requested-document-and-returned-file",
+        "authorization-and-selection-order",
+        "alternate-version-authorized-resource"
+      ],
+      "facts": [
+        {
+          "id": "grant-unknown",
+          "status": "consistent"
+        },
+        {
+          "id": "configuration-unknown",
+          "status": "consistent"
+        },
+        {
+          "id": "file-state-unknown",
+          "status": "consistent"
+        },
+        {
+          "id": "conditional-conclusions",
+          "status": "consistent"
+        }
+      ]
+    }
+  ],
+  "wholeFactReview": {
+    "equivalent": false,
+    "questions": [
+      {
+        "questionId": "requested-document-and-returned-file",
+        "equivalent": false,
+        "missing": [
+          "root-fallback"
+        ],
+        "conflicts": [
+          "root-fallback"
+        ],
+        "readTogether": [
+          "requested-document-and-returned-file"
+        ]
+      },
+      {
+        "questionId": "authorization-and-selection-order",
+        "equivalent": true,
+        "missing": [],
+        "conflicts": [],
+        "readTogether": [
+          "authorization-and-selection-order"
+        ]
+      },
+      {
+        "questionId": "alternate-version-authorized-resource",
+        "equivalent": false,
+        "missing": [
+          "root-fallback"
+        ],
+        "conflicts": [
+          "root-fallback"
+        ],
+        "readTogether": [
+          "alternate-version-authorized-resource",
+          "requested-document-and-returned-file",
+          "authorization-and-selection-order"
+        ]
+      },
+      {
+        "questionId": "missing-facts-and-conditional-conclusions",
+        "equivalent": true,
+        "missing": [],
+        "conflicts": [],
+        "readTogether": [
+          "missing-facts-and-conditional-conclusions",
+          "requested-document-and-returned-file",
+          "authorization-and-selection-order",
+          "alternate-version-authorized-resource"
+        ]
+      }
+    ],
+    "diagnostics": [],
+    "basis": "independent-whole-answer-source-review"
+  },
+  "findings": [
+    {
+      "id": "root-fallback",
+      "answerLines": [
+        5,
+        15,
+        32,
+        49,
+        52
+      ],
+      "status": "missing-and-overstated",
+      "source": "src/documents/versioning.py:146-156",
+      "reason": "Normally points to its root does not explain the missing-root fallback. The original code retains request_doc when its referenced root cannot be obtained; unconditional root-family-only conclusions omit the effective object in that branch."
+    }
+  ],
+  "supportedDetails": [
+    "None vs empty vs explicit version parameter",
+    "request/root lookup includes deleted independently of version resolution",
+    "global GET model permission precedes explicit owner-aware object check and selection",
+    "same-root version boundary",
+    "unspecified grants/configuration/data/storage mapped to conditional conclusions"
+  ],
+  "comparisonToH": {
+    "wholeGradeUnchanged": true,
+    "factualDifference": "D resolves the independent include_deleted version-call boundary correctly; root fallback is absent in both.",
+    "netBenefitEstablished": false
+  },
+  "humanBlindReview": false,
+  "costs": {
+    "reviewModelCallsThroughStudy": 0,
+    "developmentAndScoutCosts": "unknown"
+  },
+  "machineLimitAcknowledged": {
+    "answerLine": 65,
+    "statement": "unbound machine results do not certify the natural answer"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "anonymous-local-send",
+  "repository": "anonymous-local-example",
+  "sourceRef": "example-v1",
+  "sourceRoot": "project",
+  "allowedPaths": [
+    "app.py"
+  ],
+  "inquiry": {
+    "schemaVersion": "authorization-inquiry/v1",
+    "mode": "behavior",
+    "questions": [
+      {
+        "id": "local",
+        "request": "Inspect local: The actual guard must precede the same actor and target write. Reachability of the target write.",
+        "premises": [],
+        "properties": [
+          {
+            "id": "guarded",
+            "kind": "authorization-before-effect",
+            "requirement": "The actual guard must precede the same actor and target write"
+          },
+          {
+            "id": "written",
+            "kind": "effect-reachability",
+            "requirement": "Reachability of the target write"
+          }
+        ]
+      },
+      {
+        "id": "request",
+        "request": "Which request authentication, middleware and upstream permission duties remain unresolved by this local contract?",
+        "premises": []
+      }
+    ]
+  },
+  "contractInputs": {
+    "local": {
+      "actor": {
+        "allowed": true
+      }
+    }
+  }
+}

@@ -1,0 +1,164 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "anonymous-local-write",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "local",
+    "root": {
+      "path": "app.py",
+      "startLine": 9,
+      "endLine": 10
+    },
+    "upstream": [
+      "Request authentication, dispatch and the external permission middleware remain independent, unresolved request duties"
+    ]
+  },
+  "sourceDeclarations": [
+    {
+      "schemaVersion": "authorization-question-declaration/v1",
+      "source": {
+        "path": "app.py",
+        "startLine": 9,
+        "endLine": 10
+      },
+      "statements": [
+        {
+          "kind": "object",
+          "expression": "actor",
+          "as": "principal",
+          "because": "Actual local formal"
+        },
+        {
+          "kind": "object",
+          "expression": "target",
+          "as": "resource",
+          "because": "Actual local formal"
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "app.py",
+            "startLine": 10,
+            "endLine": 10,
+            "text": "perform(actor, target)"
+          },
+          "because": "Actual helper invocation"
+        },
+        {
+          "kind": "statement",
+          "at": {
+            "path": "app.py",
+            "startLine": 10,
+            "endLine": 10,
+            "text": "return perform(actor, target)"
+          },
+          "because": "Actual returned helper result"
+        }
+      ]
+    },
+    {
+      "schemaVersion": "authorization-question-declaration/v1",
+      "source": {
+        "path": "app.py",
+        "startLine": 12,
+        "endLine": 16
+      },
+      "statements": [
+        {
+          "kind": "object",
+          "expression": "who",
+          "as": "principal",
+          "because": "Actual helper formal"
+        },
+        {
+          "kind": "object",
+          "expression": "item",
+          "as": "resource",
+          "because": "Actual helper formal"
+        },
+        {
+          "kind": "condition",
+          "at": {
+            "path": "app.py",
+            "startLine": 13,
+            "endLine": 13,
+            "text": "not who.allowed"
+          },
+          "test": {
+            "op": "not",
+            "arg": {
+              "op": "truthy",
+              "language": "python",
+              "value": {
+                "binding": "who.allowed"
+              }
+            }
+          },
+          "authorizes": {
+            "principal": "who",
+            "resource": "item",
+            "when": "false"
+          },
+          "because": "Only the false source rejection condition continues to the write"
+        },
+        {
+          "kind": "statement",
+          "at": {
+            "path": "app.py",
+            "startLine": 14,
+            "endLine": 14
+          },
+          "because": "Actual refusal return"
+        },
+        {
+          "kind": "effect",
+          "at": {
+            "path": "app.py",
+            "startLine": 15,
+            "endLine": 15,
+            "text": "item.sent = True"
+          },
+          "principal": "who",
+          "resource": "item",
+          "because": "Actual same-target write"
+        },
+        {
+          "kind": "statement",
+          "at": {
+            "path": "app.py",
+            "startLine": 16,
+            "endLine": 16
+          },
+          "because": "Actual resource return"
+        }
+      ]
+    }
+  ],
+  "queries": [
+    {
+      "property": "guarded",
+      "effect": {
+        "path": "app.py",
+        "startLine": 15,
+        "endLine": 15,
+        "text": "item.sent = True"
+      },
+      "guard": {
+        "path": "app.py",
+        "startLine": 13,
+        "endLine": 13,
+        "text": "not who.allowed"
+      }
+    },
+    {
+      "property": "written",
+      "effect": {
+        "path": "app.py",
+        "startLine": 15,
+        "endLine": 15,
+        "text": "item.sent = True"
+      }
+    }
+  ],
+  "assumptions": []
+}

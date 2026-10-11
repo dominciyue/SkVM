@@ -1,0 +1,197 @@
+{
+  "identity": "authorization-executable-contract-v1",
+  "secondStructure": "FastAPI request with unknown external PermissionMiddleware; explicit local two-helper contract",
+  "sourceExecuted": false,
+  "reports": [
+    {
+      "input": "examples/authorization-assessment/local-contract/input.json",
+      "status": "valid",
+      "modelCalls": 0,
+      "providerCalls": 0,
+      "conditions": {
+        "actor": {
+          "allowed": false
+        }
+      },
+      "scope": {
+        "kind": "function-contract",
+        "questionId": "local",
+        "root": {
+          "path": "app.py",
+          "startLine": 9,
+          "endLine": 10
+        },
+        "upstream": [
+          "Request authentication, dispatch and the external permission middleware remain independent, unresolved request duties"
+        ]
+      },
+      "properties": [
+        {
+          "questionId": "local",
+          "properties": [
+            {
+              "id": "guarded",
+              "status": "unknown",
+              "value": "unresolved",
+              "gaps": [
+                "property-effect-not-reachable"
+              ],
+              "traceSources": [
+                "struct-fe5a8915a5def9afbe4cf4fa",
+                "struct-d3dc65b53eec25a539a20cba"
+              ]
+            },
+            {
+              "id": "written",
+              "status": "checked",
+              "value": "unreachable",
+              "gaps": [],
+              "traceSources": [
+                "struct-fe5a8915a5def9afbe4cf4fa",
+                "struct-d3dc65b53eec25a539a20cba"
+              ]
+            }
+          ],
+          "gaps": []
+        },
+        {
+          "questionId": "request",
+          "properties": [],
+          "gaps": [
+            "property-query-undeclared"
+          ]
+        }
+      ],
+      "materialUses": [
+        {
+          "kind": "function-root",
+          "operationId": "question:local",
+          "questionId": "local",
+          "materialId": "material-e2ca3a7d18ad7fa238830776",
+          "arguments": []
+        },
+        {
+          "kind": "call",
+          "operationId": "question:local",
+          "questionId": "local",
+          "materialId": "material-d89a342961b2e675366fe063",
+          "callerMaterialId": "material-e2ca3a7d18ad7fa238830776",
+          "relationId": "call-1c1bda748a4e1cc4394dea3e",
+          "arguments": [
+            {
+              "parameter": "who",
+              "object": "actor"
+            },
+            {
+              "parameter": "item",
+              "object": "target"
+            }
+          ]
+        }
+      ],
+      "requestOperationCertified": false,
+      "wholeTaskCertified": false
+    },
+    {
+      "input": "examples/authorization-assessment/local-contract/input-change.json",
+      "status": "valid",
+      "modelCalls": 0,
+      "providerCalls": 0,
+      "conditions": {
+        "actor": {
+          "allowed": true
+        }
+      },
+      "scope": {
+        "kind": "function-contract",
+        "questionId": "local",
+        "root": {
+          "path": "app.py",
+          "startLine": 9,
+          "endLine": 10
+        },
+        "upstream": [
+          "Request authentication, dispatch and the external permission middleware remain independent, unresolved request duties"
+        ]
+      },
+      "properties": [
+        {
+          "questionId": "local",
+          "properties": [
+            {
+              "id": "guarded",
+              "status": "checked",
+              "value": "satisfied",
+              "gaps": [],
+              "traceSources": [
+                "struct-fe5a8915a5def9afbe4cf4fa",
+                "struct-d3dc65b53eec25a539a20cba"
+              ]
+            },
+            {
+              "id": "written",
+              "status": "checked",
+              "value": "conditional",
+              "gaps": [],
+              "traceSources": [
+                "struct-fe5a8915a5def9afbe4cf4fa",
+                "struct-d3dc65b53eec25a539a20cba"
+              ]
+            }
+          ],
+          "gaps": []
+        },
+        {
+          "questionId": "request",
+          "properties": [],
+          "gaps": [
+            "property-query-undeclared"
+          ]
+        }
+      ],
+      "materialUses": [
+        {
+          "kind": "function-root",
+          "operationId": "question:local",
+          "questionId": "local",
+          "materialId": "material-e2ca3a7d18ad7fa238830776",
+          "arguments": []
+        },
+        {
+          "kind": "call",
+          "operationId": "question:local",
+          "questionId": "local",
+          "materialId": "material-d89a342961b2e675366fe063",
+          "callerMaterialId": "material-e2ca3a7d18ad7fa238830776",
+          "relationId": "call-1c1bda748a4e1cc4394dea3e",
+          "arguments": [
+            {
+              "parameter": "who",
+              "object": "actor"
+            },
+            {
+              "parameter": "item",
+              "object": "target"
+            }
+          ]
+        }
+      ],
+      "requestOperationCertified": false,
+      "wholeTaskCertified": false
+    }
+  ],
+  "existingIsolationRegression": {
+    "file": "src/benchmarks/authorization-dsl/interprocedural-property-entrypoints.test.ts",
+    "fixture": "N4",
+    "test": "v7 public source chain N4",
+    "twoInvocationInstances": true,
+    "differentResourcesRejected": true,
+    "freshRegression": "1863 pass/1 platform skip; unchanged current production epoch"
+  },
+  "requestBoundaryRegression": {
+    "file": "src/benchmarks/authorization-dsl/interprocedural-property-entrypoints.test.ts",
+    "test": "a permission middleware registered on the current request still blocks the public property chain",
+    "requestAssociationRemainsDecisive": true
+  },
+  "receiverInstanceClaim": false
+}

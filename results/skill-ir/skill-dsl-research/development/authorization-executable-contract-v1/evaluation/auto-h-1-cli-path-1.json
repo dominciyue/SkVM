@@ -1,0 +1,215 @@
+{
+  "identity": "authorization-executable-contract-v1",
+  "attemptId": "auto-h-1/cli-path-1",
+  "provenance": "main-primary-source-review-with-independent-AI-review",
+  "answerSha256": "b1780f3819e468429eb5d1e3cff2c5c1de7c9fc6c23227991df28514ef58af7c",
+  "originalAnswerChanged": false,
+  "evaluatorProvidedToRuntime": false,
+  "wholeAnswerRead": true,
+  "crossSectionsAccepted": true,
+  "questions": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "grade": "partial"
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "grade": "full"
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "grade": "partial"
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "grade": "full"
+    }
+  ],
+  "wholeTask": "partial",
+  "facts": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "facts": [
+        {
+          "id": "lookup",
+          "status": "consistent"
+        },
+        {
+          "id": "version-branches",
+          "status": "consistent"
+        },
+        {
+          "id": "file-response",
+          "status": "consistent"
+        },
+        {
+          "id": "deleted-call-boundaries",
+          "status": "contradiction"
+        },
+        {
+          "id": "root-fallback",
+          "status": "contradiction"
+        }
+      ]
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "facts": [
+        {
+          "id": "request-model-permission",
+          "status": "consistent"
+        },
+        {
+          "id": "root-check-order",
+          "status": "consistent"
+        },
+        {
+          "id": "manual-object-check",
+          "status": "consistent"
+        }
+      ]
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "references": [
+        "requested-document-and-returned-file",
+        "authorization-and-selection-order"
+      ],
+      "facts": [
+        {
+          "id": "version-tree-boundary",
+          "status": "consistent"
+        },
+        {
+          "id": "authorized-object-vs-returned-file",
+          "status": "consistent"
+        }
+      ]
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "references": [
+        "requested-document-and-returned-file",
+        "authorization-and-selection-order",
+        "alternate-version-authorized-resource"
+      ],
+      "facts": [
+        {
+          "id": "grant-unknown",
+          "status": "consistent"
+        },
+        {
+          "id": "configuration-unknown",
+          "status": "consistent"
+        },
+        {
+          "id": "file-state-unknown",
+          "status": "consistent"
+        },
+        {
+          "id": "conditional-conclusions",
+          "status": "consistent"
+        }
+      ]
+    }
+  ],
+  "wholeFactReview": {
+    "equivalent": false,
+    "questions": [
+      {
+        "questionId": "requested-document-and-returned-file",
+        "equivalent": false,
+        "missing": [
+          "root-fallback",
+          "deleted-call-boundaries"
+        ],
+        "conflicts": [
+          "root-fallback",
+          "deleted-call-boundaries"
+        ],
+        "readTogether": [
+          "requested-document-and-returned-file"
+        ]
+      },
+      {
+        "questionId": "authorization-and-selection-order",
+        "equivalent": true,
+        "missing": [],
+        "conflicts": [],
+        "readTogether": [
+          "authorization-and-selection-order"
+        ]
+      },
+      {
+        "questionId": "alternate-version-authorized-resource",
+        "equivalent": false,
+        "missing": [
+          "root-fallback"
+        ],
+        "conflicts": [
+          "root-fallback"
+        ],
+        "readTogether": [
+          "alternate-version-authorized-resource",
+          "requested-document-and-returned-file",
+          "authorization-and-selection-order"
+        ]
+      },
+      {
+        "questionId": "missing-facts-and-conditional-conclusions",
+        "equivalent": true,
+        "missing": [],
+        "conflicts": [],
+        "readTogether": [
+          "missing-facts-and-conditional-conclusions",
+          "requested-document-and-returned-file",
+          "authorization-and-selection-order",
+          "alternate-version-authorized-resource"
+        ]
+      }
+    ],
+    "diagnostics": [],
+    "basis": "independent-whole-answer-source-review"
+  },
+  "findings": [
+    {
+      "id": "deleted-call-boundaries",
+      "answerLine": 91,
+      "status": "contradiction",
+      "source": [
+        "src/documents/views.py:1375-1386,1388-1399,1429-1434",
+        "src/documents/versioning.py:159-195"
+      ],
+      "reason": "Initial request/root lookup uses True; independent version resolution uses parameter presence. None is False, empty string is present/True but falsy/latest; explicit value is True."
+    },
+    {
+      "id": "root-fallback",
+      "answerLines": [
+        9,
+        20,
+        118
+      ],
+      "status": "missing-and-overstated",
+      "source": "src/documents/versioning.py:146-156",
+      "reason": "The original code falls back to request_doc when the referenced root cannot be obtained. Unconditional root-only wording omits that fallback, which changes the effective object bound to the check and resolver."
+    }
+  ],
+  "independentReview": {
+    "recommendedGrades": [
+      "partial",
+      "full",
+      "full",
+      "full"
+    ],
+    "wholeTask": "partial",
+    "numericalEstimateNotUsed": true
+  },
+  "adjudication": {
+    "disagreement": "Third question downgraded from the independent review: it asks all relevant authorized-resource branches, and the original get_root_document fallback is absent. Full-text cross-reference review cannot recover a fact absent from the entire answer.",
+    "humanBlindReview": false
+  },
+  "costs": {
+    "reviewModelCallsThroughStudy": 0,
+    "developmentAndScoutCosts": "unknown; not counted as consumer savings"
+  }
+}
