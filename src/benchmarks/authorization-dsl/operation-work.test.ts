@@ -5,6 +5,37 @@ import { createSourceMaterials } from "../../task-dsl/authorization/source-mater
 import { projectSourceMaterials } from "./source-material-projection.ts"
 import { compileAuthorizationInquiry } from "../../task-dsl/authorization/inquiry-program.ts"
 
+const receiverScopeFiles = [
+  { path: "rest_framework/serializers.py", content: "class Serializer:\n    def to_internal_value(self, data):\n        return data\n" },
+  { path: "rest_framework/fields.py", content: "class Field:\n    def run_validation(self, data):\n        return data\nclass IntegerField(Field):\n    pass\n" },
+  { path: "rest_framework/views.py", content: "class RequestBase:\n    def dispatch(self, request):\n        self.initial(request)\n        return request\n    def initial(self, request):\n        return self.check_permissions(request)\n    def check_permissions(self, request):\n        return True\n" },
+  { path: "rest_framework/utility.py", content: "class Transformer:\n    def transform(self, data):\n        return data\n" },
+  { path: "app.py", content: "from rest_framework.serializers import Serializer as PayloadBase\nfrom rest_framework.views import RequestBase as Lifecycle\nfrom rest_framework.utility import Transformer\nclass DataSerializer(PayloadBase):\n    pass\nclass RenamedPayload(Transformer):\n    pass\nclass Endpoint(Lifecycle):\n    def fetch(self, request):\n        return request\n" },
+]
+for (const qualifiedName of ["rest_framework.serializers.Serializer", "rest_framework.fields.Field", "rest_framework.fields.IntegerField", "app.DataSerializer", "app.RenamedPayload"]) test(`ordinary data receiver ${qualifiedName} has no DRF dispatch duty through public operation work`, async () => {
+  const index = await buildStructureIndex(receiverScopeFiles, { repository: "anonymous", sourceRef: "r" }), entry = index.symbols.find(s => s.qualifiedName === qualifiedName)!
+  const work = operationWork(index, entry.id, [], [], undefined, { sourceAssisted: true, questionDirected: true })
+  expect(work.frameworkGaps.filter(g => g.key === `drf:${qualifiedName}:dispatch`)).toEqual([])
+  expect(work.frameworkDependencies.filter(d => d.key.startsWith("drf-source-dispatch"))).toEqual([])
+})
+test("renamed inherited request receiver keeps dispatch and permission work and reports a missing dispatch body", async () => {
+  for (const removeDispatch of [false, true]) {
+    const files = receiverScopeFiles.map(f => removeDispatch && f.path === "rest_framework/views.py" ? { ...f, content: "class RequestBase:\n    def initial(self, request):\n        return self.check_permissions(request)\n    def check_permissions(self, request):\n        return True\n" } : f)
+    const index = await buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" }), entry = index.symbols.find(s => s.qualifiedName === "app.Endpoint.fetch")!
+    const work = operationWork(index, entry.id, [], [], undefined, { sourceAssisted: true, operationRoot: true, questionDirected: true })
+    expect(work.actions.some(a => a.relationId === "drf:app.Endpoint:check_permissions" && a.decisive)).toBe(true)
+    expect(work.frameworkGaps.some(g => g.key === "drf:app.Endpoint:dispatch")).toBe(removeDispatch)
+    expect(work.actions.some(a => a.relationId === "drf:app.Endpoint:dispatch" && a.frameworkBoundary)).toBe(!removeDispatch)
+  }
+})
+for (const method of ["get_permissions", "check_permissions"]) test(`a data object's ${method} method alone is not a request lifecycle`, async () => {
+  const files = receiverScopeFiles.map(f => f.path === "app.py" ? { ...f, content: f.content + `\nclass RuleReport(PayloadBase):\n    def ${method}(self, obj):\n        return obj\n` } : f)
+  const index = await buildStructureIndex(files, { repository: "anonymous", sourceRef: "r" }), entry = index.symbols.find(s => s.qualifiedName === "app.RuleReport")!
+  const work = operationWork(index, entry.id, [], [], undefined, { sourceAssisted: true, questionDirected: true, operationRoot: true })
+  expect(work.frameworkGaps.some(g => g.key === "drf:app.RuleReport:dispatch")).toBe(false)
+  expect(work.actions.some(a => a.relationId.startsWith("drf:app.RuleReport:"))).toBe(false)
+})
+
 test("callable input footprints retain external origin, reexport and current target bytes", async () => {
   const files = [{ path: "app.py", content: "from public import gate\nfrom consumer import consume\ndef entry(actor):\n    consume(gate, actor)\n" }, { path: "public.py", content: "from callbacks import guard as gate\n" }, { path: "callbacks.py", content: "def guard(subject):\n    return subject\n" }, { path: "consumer.py", content: "def consume(operation, actor):\n    operation(actor)\n    return actor\n" }], identity = { repository: "anonymous", sourceRef: "r" }, index = await buildStructureIndex(files, identity), source = index.symbols.find(s => s.name === "consume")!, revision = sourceRelationRevision(index, source.id)
   expect(index.callableParameters(source.id)[0]!.choices[0]!.origins[0]!.source.path).toBe("app.py")

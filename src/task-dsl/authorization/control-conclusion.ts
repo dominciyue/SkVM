@@ -7,7 +7,21 @@ import type { PropertyDemand } from "./property-demand.ts"
 import type { BoundSemanticBlock } from "./semantic-flow.ts"
 import { validatePropertyQuestionMapping, type BoundPropertyQuery, type PropertySourceReference } from "./property-query.ts"
 
-export interface DependencyCheckState { key: string; questionId: string; pathKey: string; state: string; decisive: boolean; symbol: string }
+export interface DependencyCheckState {
+  key: string; questionId: string; pathKey: string; state: string; decisive: boolean; symbol: string;
+  association?: { kind: "request" | "source" | "unconfirmed"; sourceId: string; receiverClass?: string; sourceCallId?: string; reason: string }
+}
+/** A discovery boundary is relevant through its actual source owner or the
+ * selected request, never merely because it was found in the same operation. */
+function propertyDependencyRelevance(slice: ControlSlice, units: BoundSemanticBlock[], trace: BoundControlRule[], dependencies: DependencyCheckState[], questionId: string) {
+  const keys = new Set(trace.map(r => r.key))
+  return dependencies.filter(d => d.questionId === questionId && d.decisive && !["checked", "inapplicable"].includes(d.state)).map(d => {
+    const association = d.association
+    const owner = association?.kind === "source" && trace.some(r => units.some(u => u.questionId === questionId && u.handle === r.sourceOrigin?.handle && u.source?.id === association.sourceId && u.receiverClass === association.receiverClass))
+    const relevant = d.pathKey === "$framework" ? !association || association.kind !== "source" || owner : slice.dependencies.some(edge => edge.key === d.key && keys.has(edge.from))
+    return { key: d.key, symbol: d.symbol, relevant, reason: relevant ? association?.kind === "source" ? "Source owner is on the selected invocation prefix." : "Selected request association or unresolved relevance remains decisive." : "Source owner is outside the selected invocation prefix.", association }
+  })
+}
 const diag = (code: string, path: string, message: string, questionId?: string): InquiryDiagnostic => ({ code, path, message, severity: "error", ...(questionId ? { questionId } : {}) })
 export function diagnosticQuestionId(program: AuthorizationInquiryProgram, d: InquiryDiagnostic) {
   return questionIdForDiagnostic(program.questions.map(q => q.id), d)
@@ -176,8 +190,9 @@ export function checkPropertyQueries(program: AuthorizationInquiryProgram, slice
       const propertyLocal = local.filter(d => d.source.id === q.source.id && d.revision === q.sourceRevision)
       if (propertyLocal.some(d => d.dependencies?.propertyQueries?.diagnostics.some(d => !d.propertyId || d.propertyId === q.id))) gaps.push("property-query-diagnostics")
       if (!sourceUnits.length || !effects.length) gaps.push("property-source-effect-unadopted")
-      if (dependencies.some(d => d.questionId === question.id && d.decisive && !["checked", "inapplicable"].includes(d.state))) gaps.push("property-dependency-open")
       const reaches = effects.map(effect => ({ effect, ...controlRuleReach(slice, effect) }))
+      const dependencyRelevance = propertyDependencyRelevance(slice, units, reaches.flatMap(r => r.ancestors), dependencies, question.id)
+      if (dependencyRelevance.some(d => d.relevant)) gaps.push("property-dependency-open")
       if (reaches.some(r => r.gaps.length || !r.ancestors.some(a => a.kind === "entry") || r.ancestors.some(a => !a.sourceBound || a.kind === "unresolved"))) gaps.push("property-prefix-unresolved")
       if (controlObjectDiagnostics(slice).some(d => d.questionId === question.id && d.code.startsWith("object-binding-"))) gaps.push("property-object-binding-unresolved")
       const live = reaches.filter(r => r.predicate.truth !== "false" && !r.stoppedBy.length)
@@ -199,7 +214,7 @@ export function checkPropertyQueries(program: AuthorizationInquiryProgram, slice
           else { status = "checked"; value = paths.every(p => p.predicate.truth === "true") ? "bounded-control-outcomes" : "conditional-control-outcomes" }
         }
       }
-      return { propertyId: q.id, kind: q.kind, status, value, questionId: question.id, source: q.source, sourceRevision: q.sourceRevision, gaps: [...new Set(gaps)], trace: [...new Set(trace)], semanticReview: "unreviewed" as const, scope: "current-proposed-source-relation" as const }
+      return { propertyId: q.id, kind: q.kind, status, value, questionId: question.id, source: q.source, sourceRevision: q.sourceRevision, gaps: [...new Set(gaps)], trace: [...new Set(trace)], dependencyRelevance, semanticReview: "unreviewed" as const, scope: "current-proposed-source-relation" as const }
     })
     // Task preparation declares the obligation before a source owner exists.
     // Keep it visible as unknown; a missing work item is not an undeclared task.
@@ -234,7 +249,7 @@ function checkInterproceduralProperty(q: BoundPropertyQuery, slice: ControlSlice
   const prefixes = [...callReaches, ...reaches]
   if (prefixes.some(r => r.gaps.length || !r.ancestors.some(a => a.kind === "entry") || r.ancestors.some(a => !a.sourceBound || a.kind === "unresolved"))) gaps.push("property-prefix-unresolved")
   for (const r of [...traced.values()].filter(r => r.kind === "unresolved")) gaps.push(`property-source-gap:${r.gap ?? r.key}`)
-  const relevantKeys = new Set(traced.keys()), open = dependencies.filter(d => d.questionId === q.questionId && d.decisive && !["checked", "inapplicable"].includes(d.state) && (d.pathKey === "$framework" || slice.dependencies.some(edge => edge.key === d.key && relevantKeys.has(edge.from))))
+  const relevantKeys = new Set(traced.keys()), dependencyRelevance = propertyDependencyRelevance(slice, units, [...traced.values()], dependencies, q.questionId), open = dependencyRelevance.filter(d => d.relevant)
   if (open.length) gaps.push(...open.map(d => `property-dependency-open:${d.symbol}`))
   if (controlObjectDiagnostics(slice).some(d => d.questionId === q.questionId && d.code.startsWith("object-binding-") && relevantKeys.has(d.path))) gaps.push("property-object-binding-unresolved")
   if (!gaps.length) {
@@ -257,5 +272,5 @@ function checkInterproceduralProperty(q: BoundPropertyQuery, slice: ControlSlice
     }
   }
   if (!traced.size && effectUnits.length) addTrace(slice.rules.filter(r => from(r, effectUnits)))
-  return { propertyId: q.id, kind: q.kind, status, value, questionId: q.questionId, source: q.source, sourceRevision: q.sourceRevision, gaps: [...new Set(gaps)], trace: [...traced.keys()], traceDetails: [...traced.values()].map(r => ({ key: r.key, kind: r.kind, source: units.find(u => u.questionId === q.questionId && u.handle === r.sourceOrigin?.handle)?.source, origin: r.sourceOrigin, after: r.after, principal: r.principal, resource: r.resource, permission: r.permission, gap: r.gap })), effectOccurrences: effects.map(r => ({ key: r.key, instance: r.sourceOrigin?.instance, principal: r.principal, resource: r.resource })), semanticReview: "unreviewed" as const, scope: "current-proposed-source-relation" as const }
+  return { propertyId: q.id, kind: q.kind, status, value, questionId: q.questionId, source: q.source, sourceRevision: q.sourceRevision, gaps: [...new Set(gaps)], trace: [...traced.keys()], dependencyRelevance, traceDetails: [...traced.values()].map(r => ({ key: r.key, kind: r.kind, source: units.find(u => u.questionId === q.questionId && u.handle === r.sourceOrigin?.handle)?.source, origin: r.sourceOrigin, after: r.after, principal: r.principal, resource: r.resource, permission: r.permission, gap: r.gap })), effectOccurrences: effects.map(r => ({ key: r.key, instance: r.sourceOrigin?.instance, principal: r.principal, resource: r.resource })), semanticReview: "unreviewed" as const, scope: "current-proposed-source-relation" as const }
 }

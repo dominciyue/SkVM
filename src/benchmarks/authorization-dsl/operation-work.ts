@@ -6,7 +6,8 @@ import type { ControlSlice } from "../../task-dsl/authorization/control-slice.ts
 import type { InquiryDiagnostic } from "../../task-dsl/authorization/inquiry.ts"
 import type { PropertyDemand } from "../../task-dsl/authorization/property-demand.ts"
 
-export interface OperationWorkAction { id: string; obligation: "entry" | "principal-binding" | "resource-binding" | "guard" | "effect" | "exception"; kind: "read" | "interpret" | "link"; candidateId: string; relationId: string; reason: string; receiverClass?: string; decisive: boolean; frameworkBoundary?: boolean }
+export type FrameworkBoundaryScope = "request" | "source" | "unconfirmed"
+export interface OperationWorkAction { id: string; obligation: "entry" | "principal-binding" | "resource-binding" | "guard" | "effect" | "exception"; kind: "read" | "interpret" | "link"; candidateId: string; relationId: string; reason: string; receiverClass?: string; decisive: boolean; frameworkBoundary?: boolean; boundaryScope?: FrameworkBoundaryScope }
 const hash = (v: unknown) => createHash("sha256").update(JSON.stringify(v)).digest("hex")
 /** Scheduling prose is a preview; exact arguments remain in the source index
  * and the cited original range. Large schema/decorator strings are not duties. */
@@ -15,6 +16,21 @@ const argumentPreview = (value: unknown) => {
   return bytes <= 512 ? text : `<source arguments omitted: ${bytes} UTF-8 bytes; inspect the cited original source>`
 }
 const drfDispatchMethods = ["dispatch", "initial", "check_permissions", "get_permissions"]
+/** Package membership is only provenance. Request duties need a visible lifecycle
+ * or an actual HTTP declaration/registration on this receiver. */
+export function drfReceiverScope(index: StructureIndex, className: string) {
+  const mro = index.linearize(className)
+  if (!mro?.some(c => c.startsWith("rest_framework."))) return { state: "not-drf" as const, sourceIds: [] as string[] }
+  // Permission-named data methods can serialize permission metadata. Only a
+  // visible dispatch/initial lifecycle or HTTP source binding establishes a request.
+  const lifecycle = ["dispatch", "initial"].flatMap(method => index.lookupMethod(className, method))
+  const declarations = index.requestActions(className)
+  const owners = index.symbols.filter(s => s.kind === "class" && mro.includes(s.qualifiedName))
+  const registrations = index.routes.filter(r => r.candidateIds.some(id => owners.some(s => s.id === id)))
+  if (lifecycle.length || declarations.length || registrations.length) return { state: "request" as const, sourceIds: [...new Set([...lifecycle.map(s => s.id), ...declarations.map(d => d.sourceId), ...registrations.map(r => r.id)])] }
+  const data = ["run_validation", "to_internal_value", "to_representation"].flatMap(method => index.lookupMethod(className, method))
+  return { state: data.length ? "data" as const : "unconfirmed" as const, sourceIds: data.map(s => s.id) }
+}
 /** Invalidation follows this receiver's source configuration; it proves no control meaning. */
 function drfReceiverRevision(index: StructureIndex, className: string) {
   const mro = index.linearize(className)
@@ -30,12 +46,12 @@ function drfReceiverRevision(index: StructureIndex, className: string) {
 }
 /** Structural candidates satisfy a need to inspect a relationship, never its authorization meaning. */
 export function operationWork(index: StructureIndex, entryId: string, readSymbols: string[], interpretedSymbols: Array<string | { id: string; receiverClass?: string }>, receiverClass?: string, options: { sourceAssisted?: boolean; operationRoot?: boolean; questionDirected?: boolean; frameworkInvocation?: boolean; sourceCallId?: string; propertyDemand?: PropertyDemand } = {}) {
-  const entry = index.symbols.find(s => s.id === entryId), actions: OperationWorkAction[] = [], gaps: StructureCall[] = [], frameworkDependencies: SourceFactDependency[] = [], frameworkGaps: Array<{ key: string; reason: string; receiverClass?: string; code?: string }> = [], propertyResiduals: Array<{ sourceCallId: string; candidateIds: string[]; reason: string }> = []
+  const entry = index.symbols.find(s => s.id === entryId), actions: OperationWorkAction[] = [], gaps: StructureCall[] = [], frameworkDependencies: SourceFactDependency[] = [], frameworkGaps: Array<{ key: string; reason: string; receiverClass?: string; code?: string; boundaryScope?: FrameworkBoundaryScope }> = [], propertyResiduals: Array<{ sourceCallId: string; candidateIds: string[]; reason: string }> = []
   if (!entry) return { actions, gaps, frameworkDependencies, frameworkGaps, propertyResiduals }
-  const add = (candidateId: string, relationId: string, reason: string, obligation: OperationWorkAction["obligation"] = "guard", context?: string, decisive = false, frameworkBoundary = false) => {
+  const add = (candidateId: string, relationId: string, reason: string, obligation: OperationWorkAction["obligation"] = "guard", context?: string, decisive = false, frameworkBoundary = false, boundaryScope: FrameworkBoundaryScope = "source") => {
     const interpreted = interpretedSymbols.some(s => typeof s === "string" ? s === candidateId : s.id === candidateId && s.receiverClass === context)
     if (interpreted && !frameworkBoundary || actions.some(a => a.candidateId === candidateId && a.receiverClass === context && (!frameworkBoundary || a.frameworkBoundary && a.relationId === relationId))) return
-    actions.push({ id: `opwork-${hash([entry.id, candidateId, relationId, context]).slice(0, 24)}`, obligation, kind: interpreted ? "link" : readSymbols.includes(candidateId) ? "interpret" : "read", candidateId, relationId, reason, decisive, ...(context ? { receiverClass: context } : {}), ...(frameworkBoundary ? { frameworkBoundary: true } : {}) })
+    actions.push({ id: `opwork-${hash([entry.id, candidateId, relationId, context]).slice(0, 24)}`, obligation, kind: interpreted ? "link" : readSymbols.includes(candidateId) ? "interpret" : "read", candidateId, relationId, reason, decisive, ...(context ? { receiverClass: context } : {}), ...(frameworkBoundary ? { frameworkBoundary: true, boundaryScope } : {}) })
   }
   for (const call of index.relatedCalls(entry.id, receiverClass)) {
     if (options.sourceCallId && call.id !== options.sourceCallId) continue
@@ -49,8 +65,8 @@ export function operationWork(index: StructureIndex, entryId: string, readSymbol
     const dependencies = index.requestDependencies(ownerId)
     if (dependencies.length) frameworkDependencies.push({ kind: "framework-model", key: `fastapi-source-injection/v1:${ownerId}`, revision: hash(dependencies) })
     for (const dependency of dependencies) {
-      if (dependency.gap) frameworkGaps.push({ key: dependency.id, reason: `Current source ${dependency.constructor} binding: ${dependency.gap}; no request relationship is inferred.`, code: dependency.gap })
-      for (const candidate of dependency.candidateIds) add(candidate, dependency.id, `Inspect source-qualified request dependency ${dependency.expression} for ${dependency.parameter ?? "route-level prerequisite"}; current source call ${dependency.sourceCallId}. Read/interpret this function and its nested dependencies; authorization meaning remains unreviewed.`, "principal-binding", undefined, true, true)
+      if (dependency.gap) frameworkGaps.push({ key: dependency.id, reason: `Current source ${dependency.constructor} binding: ${dependency.gap}; no request relationship is inferred.`, code: dependency.gap, boundaryScope: "request" })
+      for (const candidate of dependency.candidateIds) add(candidate, dependency.id, `Inspect source-qualified request dependency ${dependency.expression} for ${dependency.parameter ?? "route-level prerequisite"}; current source call ${dependency.sourceCallId}. Read/interpret this function and its nested dependencies; authorization meaning remains unreviewed.`, "principal-binding", undefined, true, true, "request")
     }
   }
   const routes = index.routes.filter(r => r.candidateIds.includes(entry.id) && (!options.questionDirected || options.operationRoot))
@@ -71,8 +87,12 @@ export function operationWork(index: StructureIndex, entryId: string, readSymbol
     else for (const expression of route.dependencyExpressions ?? []) for (const candidate of index.resolveName(expression, route.sourcePath).filter(s => s.kind === "function")) add(candidate.id, `${route.id}:dependency:${expression}`, `Inspect actual ${route.model} dependency ${expression}; constructor/import and route bind this source, not its authorization meaning.`, "principal-binding", candidate.className, true, true)
   }
   if (options.questionDirected && (options.frameworkInvocation || routes.some(r => r.model === "fastapi-source-router/v1"))) addRequestDependencies(entry.id)
-  // DRF dispatch is enabled by source-visible qualified inheritance. All method
-  // bodies and serializer declarations remain source candidates to be read.
+  // Everything above is tied to the selected source request registration or
+  // injection. Class transformations below instead belong to their source owner.
+  for (const action of actions) if (action.frameworkBoundary) action.boundaryScope = "request"
+  for (const gap of frameworkGaps) gap.boundaryScope ??= "request"
+  // Source-visible request lifecycle/declarations establish applicability only;
+  // they never establish authorization meaning or runtime adoption.
   const className = receiverClass ?? (entry.kind === "class" ? entry.qualifiedName : entry.className)
   const mro = className ? index.linearize(className) : undefined
   if (options.questionDirected && className) {
@@ -83,25 +103,27 @@ export function operationWork(index: StructureIndex, entryId: string, readSymbol
       for (const candidate of decorator.sourceCandidates) add(candidate.candidateId, `${decorator.id}:${candidate.role}:${candidate.candidateId}`, `Inspect ${candidate.role} source for class decorator ${decorator.expression}, declaration ${decorator.source.path}:${decorator.source.startLine}, arguments ${argumentPreview(decorator.arguments)}, actual receiver ${className}. Factory and returned callable candidates prove no invocation or class/method transformation; retain mutation and exception control.`, "guard", undefined, true, true)
     }
   }
-  if ((entry.kind === "class" || options.sourceAssisted && options.operationRoot) && className && mro?.some(c => c.startsWith("rest_framework."))) {
+  const receiverScope = className ? drfReceiverScope(index, className) : undefined
+  if (options.questionDirected && options.operationRoot && className && receiverScope?.state === "unconfirmed") frameworkGaps.push({ key: `drf:${className}:request-association`, code: "framework-request-receiver-unconfirmed", receiverClass: className, boundaryScope: "unconfirmed", reason: "DRF package provenance has no visible request lifecycle or registration for this selected operation receiver; request applicability remains unconfirmed, rather than inventing a dispatch obligation." })
+  if ((entry.kind === "class" || options.sourceAssisted && options.operationRoot) && className && mro?.some(c => c.startsWith("rest_framework.")) && (!options.questionDirected || receiverScope?.state === "request")) {
     frameworkDependencies.push(options.questionDirected
       ? { kind: "framework-model", key: `drf-source-dispatch/v2:${className}`, revision: drfReceiverRevision(index, className)! }
       : { kind: "framework-model", key: "drf-source-dispatch/v1", revision: hash(index.symbols.filter(s => s.module.startsWith("rest_framework.")).map(s => [s.path, s.sha256])) })
     const dispatch = index.lookupMethod(className, "dispatch")
-    if (!dispatch.length) frameworkGaps.push({ key: `drf:${className}:dispatch`, receiverClass: className, reason: "Source-qualified DRF inheritance has no unique current dispatch body; upstream ordering remains an explicit source gap." })
-    for (const method of entry.kind === "class" ? [...drfDispatchMethods, "create", "get_serializer", "get_serializer_class", "get_serializer_context", "perform_create"] : drfDispatchMethods) for (const s of index.lookupMethod(className, method)) add(s.id, `drf:${className}:${method}`, `Source-qualified DRF method lookup for ${className}.${method}; inspect actual override/MRO body.`, method === "create" ? "entry" : "guard", className, true, method === "dispatch")
+    if (!dispatch.length) frameworkGaps.push({ key: `drf:${className}:dispatch`, receiverClass: className, boundaryScope: "request", reason: "Source-qualified DRF inheritance has no unique current dispatch body; upstream ordering remains an explicit source gap." })
+    for (const method of entry.kind === "class" ? [...drfDispatchMethods, "create", "get_serializer", "get_serializer_class", "get_serializer_context", "perform_create"] : drfDispatchMethods) for (const s of index.lookupMethod(className, method)) add(s.id, `drf:${className}:${method}`, `Source-qualified DRF method lookup for ${className}.${method}; inspect actual override/MRO body.`, method === "create" ? "entry" : "guard", className, true, method === "dispatch", "request")
     if (options.questionDirected) {
       const mappings = index.requestActions(className), current = mappings.filter(m => entry.kind === "class" || m.sourceId === entry.id || m.methodMappings.some(method => method.candidateIds.includes(entry.id)))
       if (current.length) frameworkDependencies.push({ kind: "framework-model", key: `drf-source-action/v1:${className}`, revision: hash(mappings) })
       for (const mapping of current) {
-        if (mapping.gap) frameworkGaps.push({ key: mapping.id, code: mapping.gap, receiverClass: className, reason: `Current DRF HTTP declaration ${mapping.actionName}: ${mapping.gap}; execution remains unproven.` })
-        if (!mapping.routeIds.length) frameworkGaps.push({ key: `${mapping.id}:registration`, code: "framework-action-registration-missing", receiverClass: className, reason: "No current allowed router registration binds this action's actual request receiver." })
+        if (mapping.gap) frameworkGaps.push({ key: mapping.id, code: mapping.gap, receiverClass: className, boundaryScope: "request", reason: `Current DRF HTTP declaration ${mapping.actionName}: ${mapping.gap}; execution remains unproven.` })
+        if (!mapping.routeIds.length) frameworkGaps.push({ key: `${mapping.id}:registration`, code: "framework-action-registration-missing", receiverClass: className, boundaryScope: "request", reason: "No current allowed router registration binds this action's actual request receiver." })
         for (const routeId of mapping.routeIds) {
           const route = index.routes.find(r => r.id === routeId)!
-          add(routeId, route.sourceCallId, `Inspect current DRF registration ${route.path} for actual receiver ${className}; HTTP declarations ${JSON.stringify(mapping.methodMappings)} remain source work.`, "entry", undefined, true, true)
-          if (route.bindingGap) frameworkGaps.push({ key: `${mapping.id}:${routeId}`, code: route.bindingGap, receiverClass: className, reason: `Current DRF router source binding: ${route.bindingGap}.` })
+          add(routeId, route.sourceCallId, `Inspect current DRF registration ${route.path} for actual receiver ${className}; HTTP declarations ${JSON.stringify(mapping.methodMappings)} remain source work.`, "entry", undefined, true, true, "request")
+          if (route.bindingGap) frameworkGaps.push({ key: `${mapping.id}:${routeId}`, code: route.bindingGap, receiverClass: className, boundaryScope: "request", reason: `Current DRF router source binding: ${route.bindingGap}.` })
         }
-        for (const candidate of mapping.sourceCandidates) add(candidate.candidateId, `${mapping.id}:${candidate.role}:${candidate.candidateId}`, `Inspect ${candidate.role} source for declared HTTP mapping ${mapping.actionName} on actual receiver ${className}; declaration ${mapping.source.path}:${mapping.source.startLine}, source call ${mapping.sourceCallId}. Mapping binding and invocation remain unproven; inspect the actual factory/mapper and router/as_view before adopting request dispatch or its dynamic handler.`, "guard", candidate.receiverClass, true, true)
+        for (const candidate of mapping.sourceCandidates) add(candidate.candidateId, `${mapping.id}:${candidate.role}:${candidate.candidateId}`, `Inspect ${candidate.role} source for declared HTTP mapping ${mapping.actionName} on actual receiver ${className}; declaration ${mapping.source.path}:${mapping.source.startLine}, source call ${mapping.sourceCallId}. Mapping binding and invocation remain unproven; inspect the actual factory/mapper and router/as_view before adopting request dispatch or its dynamic handler.`, "guard", candidate.receiverClass, true, true, "request")
       }
     }
     const serializer = entry.kind === "class" && index.attribute(className, "serializer_class")

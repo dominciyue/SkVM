@@ -13,6 +13,7 @@ import type { LLMProvider } from "../../providers/types.ts"
 import { sourcePhaseGuide } from "./inquiry-focus.ts"
 import { inquiryNativeDefinitions, inquiryNativeSchemas, inquiryStepSchemas } from "./inquiry-wire.ts"
 import Ajv from "ajv"
+import { operationWork } from "./operation-work.ts"
 
 const requirement = "authorization before the write"
 test("v7 phase guidance preserves progressive adoption and actual call semantics", () => {
@@ -22,7 +23,7 @@ test("v7 phase guidance preserves progressive adoption and actual call semantics
   expect(guide).not.toContain("a partial draft is retained but not adopted")
 })
 const request = `Inspect app.entry: ${requirement}. In this anonymous fixture actor.allowed authorizes writing the supplied target; distinct input objects stay distinct.`
-type Case = { id: string; source: string; status: "checked" | "violated" | "unknown"; value?: string; guard?: string; queryCall?: boolean; callRole?: string; incomplete?: string; requiredPermission?: string }
+type Case = { id: string; source: string; status: "checked" | "violated" | "unknown"; value?: string; guard?: string; queryCall?: boolean; callRole?: string; incomplete?: string; requiredPermission?: string; extraSources?: Record<string, string> }
 const guarded = "def perform(actor, target):\n    if not actor.allowed:\n        return False\n    target.sent = True\n    return target\n"
 const fixtures: Case[] = [
   { id: "P1", source: "def entry(user, document):\n    return perform(user, document)\n\n" + guarded, guard: "perform", status: "checked", value: "satisfied" },
@@ -44,7 +45,8 @@ const fixtures: Case[] = [
 const reference = (s: any, anchorId: string, operationId: string) => ({ sourceId: s.sourceId, sourceSha256: s.source.sha256, revision: s.revision, anchorId, questionId: "q", operationId })
 export async function publicFixture(c: Case, options: { strategy?: "operation-evidence-v7" | "task-binding-v1"; maxSteps?: number } = {}) {
   const sourceRoot = await mkdtemp(path.join(os.tmpdir(), "bb-public-property-")); await writeFile(path.join(sourceRoot, "app.py"), c.source)
-  const tools = await createInquiryTools({ sourceRoot, repository: "anonymous", sourceRef: "r", allowedPaths: ["app.py"], structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
+  for (const [file, text] of Object.entries(c.extraSources ?? {})) { await mkdir(path.dirname(path.join(sourceRoot, file)), { recursive: true }); await writeFile(path.join(sourceRoot, file), text) }
+  const tools = await createInquiryTools({ sourceRoot, repository: "anonymous", sourceRef: "r", allowedPaths: ["app.py", ...Object.keys(c.extraSources ?? {})], structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
   await tools.execute("source_read", { path: "app.py", startLine: 1, endLine: c.source.split("\n").length })
   const program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request, premises: [], properties: [{ id: "auth", kind: "authorization-before-effect", requirement, ...(c.requiredPermission ? { requiredPermission: c.requiredPermission } : {}) }] }] })
   const runtime = createInquiryDomainRuntime({ program, tools, strategy: options.strategy ?? "operation-evidence-v7", sourceAssisted: true })
@@ -114,6 +116,42 @@ for (const c of fixtures) test(`v7 public source chain ${c.id}`, async () => {
     if (c.id === "N3") expect(checked.gaps.some(g => /unregistered|unbound|unavailable/.test(g))).toBe(true)
     if (c.id === "U1") { expect(f.report.semantic!.units[0]!.complete).toBe(false); expect(f.report.slice.rules.some(r => r.kind === "unresolved")).toBe(true) }
     expect(f.report.propertyAnalysis!.checks!.wholeTaskCertified).toBe(false)
+  } finally { f.runtime.close() }
+})
+for (const before of [false, true]) test(`question dependency scope keeps a class transformation ${before ? "before" : "after"} the selected effect local to its invocation`, async () => {
+  const peripheral = "Other.touch()", entry = `def entry(user, document):\n    ${before ? peripheral : "perform(user, document)"}\n    ${before ? "perform(user, document)" : peripheral}\n    return True\n\n`
+  const f = await publicFixture({ id: `dependency-${before}`, source: entry + guarded + "\ndef transform(cls):\n    return cls\n\n@transform\nclass Other:\n    @staticmethod\n    def touch():\n        return True\n", guard: "perform", status: before ? "unknown" : "checked" })
+  try {
+    const property = f.report.propertyAnalysis!.checks!.questions[0]!.properties[0]!
+    expect(f.report.worklist!.frameworkBoundaries!.some((d: any) => /class-decorator/.test(d.key))).toBe(true)
+    expect(property.status, JSON.stringify(property)).toBe(before ? "unknown" : "checked")
+    if (before) expect(property.gaps.some(g => g.startsWith("property-dependency-open:"))).toBe(true)
+    else expect(property.gaps.some(g => g.startsWith("property-dependency-open:"))).toBe(false)
+  } finally { f.runtime.close() }
+})
+test("a permission middleware registered on the current request still blocks the public property chain", async () => {
+  const source = 'from fastapi import FastAPI\nfrom outside import PermissionMiddleware\napp = FastAPI()\napp.add_middleware(PermissionMiddleware)\n@app.post("/download")\ndef entry(user, document):\n    return perform(user, document)\n\n' + guarded
+  const f = await publicFixture({ id: "registered-middleware", source, guard: "perform", status: "unknown" })
+  try {
+    const property = f.report.propertyAnalysis!.checks!.questions[0]!.properties[0]!
+    const item = f.report.worklist!.items.find(d => d.code === "framework-middleware-source-missing")!
+    const boundary = f.report.worklist!.frameworkBoundaries!.find(d => d.key === item.relationId)!
+    expect(boundary.association?.kind).toBe("request")
+    expect(property.status).toBe("unknown")
+    expect(property.gaps.some(g => g.includes(boundary.key))).toBe(true)
+    expect("dependencyRelevance" in property && property.dependencyRelevance.some(d => d.key === boundary.key && d.relevant)).toBe(true)
+    expect((f.runtime.promptContext() as any).questions.map((q: { id: string }) => q.id)).toContain("q")
+  } finally { f.runtime.close() }
+})
+test("a response Serializer from another action does not block the current public download property", async () => {
+  const source = "from rest_framework.serializers import Serializer\n\ndef entry(user, document):\n    return perform(user, document)\n\n" + guarded + "\nclass ExportSerializer(Serializer):\n    pass\n\ndef other_action(document):\n    return ExportSerializer(document)\n"
+  const f = await publicFixture({ id: "other-action-response", source, guard: "perform", status: "checked", extraSources: { "rest_framework/serializers.py": "class Serializer:\n    def to_representation(self, value):\n        return value\n" } })
+  try {
+    const serializer = f.tools.structure!.symbols.find(s => s.qualifiedName === "app.ExportSerializer")!
+    const work = operationWork(f.tools.structure!, serializer.id, [], [], serializer.qualifiedName, { sourceAssisted: true, questionDirected: true, operationRoot: true })
+    expect(work.frameworkGaps.some(g => g.key === "drf:app.ExportSerializer:dispatch")).toBe(false)
+    expect(f.report.propertyAnalysis!.checks!.questions[0]!.properties[0]!.status).toBe("checked")
+    expect(f.report.worklist!.frameworkBoundaries!.some(b => b.key === "drf:app.ExportSerializer:dispatch")).toBe(false)
   } finally { f.runtime.close() }
 })
 async function entrypointFixture(declared = true) {

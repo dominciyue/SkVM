@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto"
 import type { AuthorizationInquiryProgram, InquiryRelation } from "../../task-dsl/authorization/inquiry-program.ts"
-import { controlRuleReach } from "../../task-dsl/authorization/control-conclusion.ts"
+import { controlRuleReach, type DependencyCheckState } from "../../task-dsl/authorization/control-conclusion.ts"
 import type { ControlSlice } from "../../task-dsl/authorization/control-slice.ts"
 import type { DiscoverySymbol } from "./evidence-preparation/discovery.ts"
 import type { InquiryTools, InquiryToolOutput } from "./inquiry-tools.ts"
@@ -16,6 +16,7 @@ export type WorkState = "unlocated" | "awaiting-read" | "awaiting-interpretation
 export interface WorkItem {
   id: string; questionId: string; kind: InquiryRelation; question: string; entryHint?: string; symbol?: string;
   origin: "question-duty" | "source-reference" | "explicit-dependency" | "structure-relation"; parentId?: string; dependencyId?: string; receiverClass?: string; relationId?: string; sourceCallId?: string; frameworkBoundary?: boolean;
+  association?: DependencyCheckState["association"];
   state: WorkState; decisive: boolean; code?: string; reason: string; candidates: DiscoverySymbol[]; selected?: DiscoverySymbol;
   selectedBy?: "explicit-selection" | "explicit-discovery-selection" | "unique-index-candidate" | "accepted-entry-citation" | "source-confirmed-candidate";
   callsiteEvidenceIds: string[]; evidenceIds: string[]; semanticSupport: "unreviewed";
@@ -51,7 +52,7 @@ export function worklistModelView(items: WorkItem[]) {
 export function createInquiryWorklist(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; entryContext?: string; remainingActions?: () => number; dependencyStates?: () => ScheduledDependency[]; structural?: boolean; requireEntryBasis?: boolean; questionDirected?: boolean; propertyTransactions?: boolean; semanticUnits?: () => BoundSemanticBlock[]; projectedUnits?: () => BoundSemanticBlock[]; frameworkUses?: () => SourceMaterialUse[]; skeletonState?: (id: string, receiverClass?: string) => { modelCovered: boolean; revision: string } | undefined; propertyDemand?: (item: WorkItem) => PropertyDemand | undefined }) {
   const items = new Map<string, WorkItem>(), choices = new Map<string, { candidate: DiscoverySymbol; origin: "explicit-selection" | "explicit-discovery-selection" }>(), invalidFiles = new Set<string>(), failedReads = new Map<string, string>()
   const actions: WorklistAction[] = [], questionIds = options.program.questions.map(q => q.id)
-  const relations = new Map<string, { id: string; questionId: string; sourceId: string; candidateId?: string; receiverClass?: string; frameworkBoundary?: boolean; reason: string; state: string; gap?: string }>(), frameworkDependencies = new Map<string, SourceFactDependency>()
+  const relations = new Map<string, { id: string; questionId: string; sourceId: string; candidateId?: string; receiverClass?: string; frameworkBoundary?: boolean; association?: DependencyCheckState["association"]; reason: string; state: string; gap?: string }>(), frameworkDependencies = new Map<string, SourceFactDependency>()
   let lastQuestion = -1
   const make = (id: string, questionId: string, kind: InquiryRelation, origin: WorkItem["origin"], question: string, extra: Partial<WorkItem> = {}): WorkItem => ({ id, questionId, kind, origin, question, state: "unlocated", decisive: false, reason: "Locate original source or an explicit question relation.", candidates: [], callsiteEvidenceIds: [], evidenceIds: [], semanticSupport: "unreviewed", nextAction: { kind: "locate", itemId: id }, ...extra })
   for (const duty of options.program.queue) {
@@ -101,14 +102,15 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
       for (const d of work.frameworkDependencies) frameworkDependencies.set(d.key, d)
       for (const gap of work.frameworkGaps) {
         const id = stableId([parent.questionId, gap.key])
-        if (!items.has(id)) items.set(id, make(id, parent.questionId, "guard", "structure-relation", gap.reason, { parentId: parent.id, symbol: gap.key, relationId: gap.key, receiverClass: gap.receiverClass, frameworkBoundary: true, decisive: true, code: gap.code ?? "framework-source-missing" }))
+        if (!items.has(id)) items.set(id, make(id, parent.questionId, "guard", "structure-relation", gap.reason, { parentId: parent.id, symbol: gap.key, relationId: gap.key, receiverClass: gap.receiverClass, frameworkBoundary: true, decisive: true, code: gap.code ?? "framework-source-missing", association: { kind: gap.boundaryScope ?? "source", sourceId: parent.selected.id, receiverClass: parent.receiverClass, reason: gap.reason } }))
       }
       for (const gap of work.gaps) relations.set(`${parent.questionId}:${gap.id}`, { id: gap.id, questionId: parent.questionId, sourceId: parent.selected.id, reason: `Inspect ${gap.expression} at ${gap.path}:${gap.startLine}`, state: gap.resolution, gap: gap.gap })
       for (const a of work.actions) {
         const candidate = options.tools.symbolById(a.candidateId); if (!candidate) continue
         // One body per operation/receiver context; retain multiple relation records.
         const id = stableId([parent.questionId, "structure", candidate.id, a.receiverClass])
-        relations.set(`${parent.questionId}:${a.relationId}:${candidate.id}`, { id: a.relationId, questionId: parent.questionId, sourceId: parent.selected.id, candidateId: candidate.id, receiverClass: a.receiverClass, frameworkBoundary: a.frameworkBoundary, reason: a.reason, state: a.kind })
+        const association = a.frameworkBoundary ? { kind: a.boundaryScope ?? "source" as const, sourceId: parent.selected.id, receiverClass: parent.receiverClass, sourceCallId: index.calls.find(c => c.id === a.relationId)?.id, reason: a.reason } : undefined
+        relations.set(`${parent.questionId}:${a.relationId}:${candidate.id}`, { id: a.relationId, questionId: parent.questionId, sourceId: parent.selected.id, candidateId: candidate.id, receiverClass: a.receiverClass, frameworkBoundary: a.frameworkBoundary, association, reason: a.reason, state: a.kind })
         const existing = [...items.values()].find(i => i.questionId === parent.questionId && i.selected?.id === candidate.id && i.receiverClass === a.receiverClass)
         if (existing && a.frameworkBoundary) { existing.frameworkBoundary = true; existing.decisive ||= a.decisive }
         if (candidate.id === parent.selected.id || existing) continue
@@ -227,7 +229,7 @@ export function createInquiryWorklist(options: { program: AuthorizationInquiryPr
     const affected = operation ? options.program.operationQuestions!.filter(q => q.operationId === operation).map(q => q.questionId) : [item.questionId]
     return affected.map(questionId => {
       const key = relation?.id ?? item.relationId ?? item.id, linked = options.questionDirected ? options.frameworkUses?.().some(use => use.kind === "framework" && use.questionId === questionId && use.relationId === key && use.sourceId === item.selected?.id && use.receiverClass === item.receiverClass) : item.progress?.linked
-      return { key, questionId, pathKey: "$framework", state: item.progress?.read ? item.progress.interpreted && linked ? "checked" : "read" : "pending", decisive: true, symbol: item.symbol ?? item.id, sourceId: item.selected?.id, receiverClass: item.receiverClass }
+      return { key, questionId, pathKey: "$framework", state: item.progress?.read ? item.progress.interpreted && linked ? "checked" : "read" : "pending", decisive: true, symbol: item.symbol ?? item.id, sourceId: item.selected?.id, receiverClass: item.receiverClass, association: relation?.association ?? item.association }
     })
   })
   const selectCandidate = (selection: { questionId: string; itemId: string; candidateId: string }) => {
