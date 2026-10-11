@@ -2532,6 +2532,10 @@ BE14三变化先完成零模型compare并锁定D1/original。[事实合同核对
 
 `authorization-executable-contract/v1`初版由来源声明、scope、queries和有来源但尚不赋值的assumptions组成；文件/工具接点尚待接线。当前编译器复用question声明/source-edit、原材料投影和性质检查。显式function-root只选择当前helper，并给原语义展开指定局部根；helper角色不变，requestOperationCertified恒false。匿名公共核心得到非空实际call trace的checked，已有v7前后未知/主体/对象/顺序/权限反例保持。Paperless原四问完整保留，新增开发局部问单列；`authoring/first-public-failure.json`保存旧focus拒绝及新局部根首个unknown，材料saved/current/available=2但callUses=0。真实A尚未闭合，自动B及消费C未运行，不记生成或收益信用。
 
+**BF6普通入口（匿名工程验证）。** `check/run/compare --domain-program`与模型native声明已进入共同核心；真实原字节随会话归档，SHA防止外部文件改动或归档篡改混淆。普通账户mock消费后可inspect和previous恢复同一原程序，当前材料实际采用非零，旧答案/verdict不恢复。程序改动由零模型compare报告，最终源码校验失败撤回合同结果。4项新入口测试、21项原账户入口测试通过，共25测试/212断言；这一证据只算工程，不计真实消费或自动编写。A的真实返回对象/条件抽象仍在处理。
+
+**BF3/BF4接线细化。** 当前输入增加仅绑定局部根实际形参的`contractInputs`，不接受内部guard/性质/结果赋值；同一源码程序在true/false/unknown下重算。true仍保留实际字段操作的异常条件，false得到不可达，未知保留输入残余；不以“允许”推成“效果必达”。来源receiver从实际声明作用域唯一规范化。已读A在焦点转到B后可按当前owner提交，过期/跨题/receiver/越界具名拒绝，重复的等价工作职责可共用同一owner，冲突owner仍拒绝。当前22项公共声明/文件/核心测试203断言通过，另启动授权全链回归与类型检查；这仍是匿名工程证据，真实程序v3已采用file_response→resolver调用但include_deleted初稿类型仍待修，未派BF模型。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

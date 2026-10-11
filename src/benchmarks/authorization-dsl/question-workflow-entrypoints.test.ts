@@ -146,3 +146,24 @@ test("D domain location selects one actual source through the existing public fo
     expect(context.currentStage).toBe("interpret"); expect(context.questionWorkflow.currentSource.startLine).toBe(1)
   } finally { await runtime.close() }
 })
+
+test("D declaration of already read A routes to its owner after focus moves to B", async () => {
+  const f = await fixture(), runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, method: "D1", strategy: "question-checked-v1", maxToolCalls: 24 })
+  try {
+    const first: any = await runtime.accountContext(); runtime.accountSent(JSON.stringify(first))
+    const declaredA = declaration(first)
+    await runtime.execute({ id: "first-A", name: "authorization_declare", arguments: declaredA })
+    await runtime.execute({ id: "next-B", name: "authorization_question", arguments: { action: "next-source" } })
+    const second: any = await runtime.accountContext(); runtime.accountSent(JSON.stringify(second))
+    expect(second.questionWorkflow.currentSource.startLine).toBe(4)
+    const reply = JSON.parse((await runtime.execute({ id: "again-A", name: "authorization_declare", arguments: declaredA })).output)
+    expect(reply.controlDiagnostics.map((d: any) => d.code)).not.toContain("question-source-owner")
+    expect(reply.controlDiagnostics.map((d: any) => d.code)).not.toContain("question-source-unoffered")
+    expect(runtime.report().domain!.semantic!.units.some(u => u.source?.startLine === 1)).toBe(true)
+    const invalid = async (source: any, questionId?: string) => JSON.parse((await runtime.execute({ id: "invalid-A", name: "authorization_declare", arguments: { ...declaredA, source, ...(questionId ? { questionId } : {}) } })).output).controlDiagnostics.map((d: any) => d.code)
+    expect(await invalid({ ...declaredA.source, sha256: "stale" })).toContain("question-source-stale")
+    expect(await invalid({ ...declaredA.source, receiverClass: "UnrelatedClass" })).toContain("question-source-receiver")
+    expect(await invalid({ ...declaredA.source, path: "outside.py" })).toContain("question-source-out-of-scope")
+    expect(await invalid(declaredA.source, "foreign")).toContain("question-identity")
+  } finally { await runtime.close() }
+})

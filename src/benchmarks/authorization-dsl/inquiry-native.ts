@@ -1,5 +1,5 @@
 import path from "node:path"
-import { readdir, realpath, mkdir, appendFile, writeFile, stat } from "node:fs/promises"
+import { readdir, realpath, mkdir, appendFile, writeFile, readFile, stat } from "node:fs/promises"
 import type { LLMTool, LLMToolCall, CompletionParams, LLMToolResult, LLMResponse } from "../../providers/types.ts"
 import type { AccountArgumentDiagnostic } from "../../adapters/codex-account-session.ts"
 import { loadInquiryInput } from "./inquiry-local.ts"
@@ -34,7 +34,7 @@ export function nativeInquiryToolModelView(output: unknown) {
   const { domain, domainCheck, questionChecks, ...rest } = output as Record<string, unknown>
   return { ...rest, ...(Array.isArray(questionChecks) ? { questionChecks: questionChecks.map(({ trace, ...question }) => question) } : {}), ...(domain || domainCheck ? { stateLocation: "Current local explanation context.state; full trace retained in native report" } : {}) }
 }
-export async function createNativeInquiryRuntime(options: { inputFile: string; workDir: string; domainTools: boolean; strategy?: InquiryStrategy; method?: typeof NativeInquiryMethods[number]; skillContent?: string; maxToolCalls?: number; maxProviderCalls?: number; maxDisplayBytes?: number; maxReadBytes?: number; maxOutputTokens?: number; traceDir?: string; traceRedactor?: (value: unknown) => unknown; reuse?: { info: InquiryReuseInfo; seed: InquiryReuseSeed }; preparation?: InquiryToolsOptions["preparation"] }) {
+export async function createNativeInquiryRuntime(options: { inputFile: string; workDir: string; domainTools: boolean; strategy?: InquiryStrategy; method?: typeof NativeInquiryMethods[number]; skillContent?: string; domainProgramFile?: string; maxToolCalls?: number; maxProviderCalls?: number; maxDisplayBytes?: number; maxReadBytes?: number; maxOutputTokens?: number; traceDir?: string; traceRedactor?: (value: unknown) => unknown; reuse?: { info: InquiryReuseInfo; seed: InquiryReuseSeed }; preparation?: InquiryToolsOptions["preparation"] }) {
   if (options.maxOutputTokens !== undefined && (!Number.isSafeInteger(options.maxOutputTokens) || options.maxOutputTokens < 1)) throw new Error("Authorization output token limit must be a positive safe integer")
   const strategy = parseInquiryStrategy(options.strategy)
   const sourceAssisted = isSourceAssistedInquiryStrategy(strategy)
@@ -119,12 +119,17 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
   const hostCompiled = options.domainTools && isGuidedInquiryStrategy(strategy) && !!hostInquiry
   let taskPreparation: TaskPropertyPreparation | undefined, taskPreparationFailed = false
   const taskPreparationAttempts: Array<{ proposal: unknown; accepted: boolean; diagnostics?: unknown; durationMs: number }> = []
-  const preparationPending = () => isTaskBindingStrategy(strategy) && !!hostInquiry && !taskPreparation && !taskPreparationFailed
+  const preparationPending = () => isTaskBindingStrategy(strategy) && !!hostInquiry && !taskPreparation && !taskPreparationFailed && !(options.domainProgramFile && program)
   const compileCurrent = (inquiry: AuthorizationInquiry) => {
     program = compileAuthorizationInquiry(inquiry, { allowMissingPolicy: sourceAssisted })
-    if (strategy !== "legacy") domain = createInquiryDomainRuntime({ program, tools, strategy, sourceAssisted, entryContext: loaded.value.brief, remainingActions: () => toolBudget().explorationRemaining, ...(isGuidedInquiryStrategy(strategy) ? { shownEvidenceIds: () => [...displayed] } : {}), ...(options.reuse ? { initialDelta: options.reuse.seed.delta, initialSemanticUnits: options.reuse.seed.semanticUnits, initialSourceMaterials: options.reuse.seed.sourceMaterials } : {}), suppliedUserText: hostNatural ? [loaded.value.brief!] : inquiry.questions.flatMap(q => [q.request, ...q.premises.map(p => p.text)]) })
+    if (strategy !== "legacy") domain = createInquiryDomainRuntime({ program, tools, strategy, sourceAssisted, contractInputs: loaded.value.contractInputs, entryContext: loaded.value.brief, remainingActions: () => toolBudget().explorationRemaining, ...(isGuidedInquiryStrategy(strategy) ? { shownEvidenceIds: () => [...displayed] } : {}), ...(options.reuse ? { initialDelta: options.reuse.seed.delta, initialSemanticUnits: options.reuse.seed.semanticUnits, initialSourceMaterials: options.reuse.seed.sourceMaterials } : {}), suppliedUserText: hostNatural ? [loaded.value.brief!] : inquiry.questions.flatMap(q => [q.request, ...q.premises.map(p => p.text)]) })
   }
-  if (hostCompiled && (!isTaskBindingStrategy(strategy) || !pendingTaskProperties(hostInquiry!).length)) { if (isTaskBindingStrategy(strategy)) taskPreparation = prepareTaskProperties(hostInquiry!); compileCurrent(taskPreparation?.inquiry ?? hostInquiry!) }
+  if (hostCompiled && (options.domainProgramFile || !isTaskBindingStrategy(strategy) || !pendingTaskProperties(hostInquiry!).length)) { if (isTaskBindingStrategy(strategy) && !pendingTaskProperties(hostInquiry!).length) taskPreparation = prepareTaskProperties(hostInquiry!); compileCurrent(taskPreparation?.inquiry ?? hostInquiry!) }
+  if (options.domainProgramFile) {
+    if (!questionChecked || !domain) throw new Error("contract-input: an authored program needs a complete inquiry and question-checked-v1 with domain tools")
+    const imported = await domain.importProgram(JSON.parse(await readFile(options.domainProgramFile, "utf8")), "authored-file", true)
+    if (imported.diagnostics.length) throw new Error(`contract-import-invalid: ${JSON.stringify(imported.diagnostics)}`)
+  }
   const preparationContext = () => ({ taskPreparation: { state: taskPreparationFailed ? "frontend-failed" : "pending", attempts: taskPreparationAttempts, originalQuestions: hostInquiry!.questions }, toolBudget: toolBudget(), instruction: taskPreparationFailed ? "Task property preparation failed after one targeted revision. Deliver the retained original questions and named preparation gaps in prose; no current property check exists." : renderTaskPropertyPreparation(hostInquiry!) + "\nUse authorization_prepare_properties before source work. One diagnosed revision is available." })
   const schemas = inquiryNativeSchemas(strategy, true), domainDefinitions = inquiryNativeDefinitions(strategy, loaded.value.inquiry?.mode ?? loaded.value.mode ?? "behavior").filter(d => !hostCompiled || d.name !== "authorization_compile")
   const definitions: LLMTool[] = [...tools.definitions, ...(referenceRoot ? [{ name: "skill_reference_read", description: `Read installed original skill companions as data: ${references.map(r => r.path).join(", ")}`, inputSchema: { type: "object", properties: { path: { type: "string" } }, required: ["path"], additionalProperties: false } }] : []), ...(options.domainTools ? domainDefinitions : [])]
@@ -174,7 +179,7 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
         output = { controlDiagnostics: proposed.diagnostics, autoReads: proposed.actions.map(a => inquiryToolModelView(a.output, true)), propertyChecks: domain.report().propertyAnalysis?.checks, semanticSupport: "unreviewed" }
       } else if (call.name === "authorization_check_properties" && questionChecked && domain) {
         domainCalls++; checks++; await domain.sync(false); ensureActive()
-        output = { propertyChecks: domain.report().propertyAnalysis?.checks, wholeTaskCertified: false, semanticSupport: "unreviewed", instruction: "Render the original task naturally; preserve all unresolved properties and source limits." }
+        output = { propertyChecks: domain.report().propertyAnalysis?.checks, executableContract: domain.executableContractReport(), wholeTaskCertified: false, semanticSupport: "unreviewed", instruction: "Render the original task naturally; preserve all unresolved properties and source limits." }
       } else if (call.name === "authorization_prepare_properties") {
         domainCalls++
         if (!preparationPending()) throw new NativeToolRejection("task-properties-already-prepared", "This task is already prepared or has not been declared")
@@ -298,7 +303,7 @@ export async function createNativeInquiryRuntime(options: { inputFile: string; w
       const local: any = domain?.promptContext({ maxSourceBytes: Math.max(0, (options.maxDisplayBytes ?? 262144) - modelSourceBytes), finalOnly: questionChecked && finalOnly })
       const questionId = local?.focus?.stage === "answer" ? undefined : local?.focus?.questionId
       const propertyChecks = domain?.report().propertyAnalysis?.checks
-      return { guidance: guidance.context(undefined, questionId), toolBudget: budget, ...(domain ? { questionWorkflow: domain.questionContext(), sourceWindows: local?.sourceWindows, currentStage: local?.focus?.stage, machine: { properties: propertyChecks && { ...propertyChecks, questions: propertyChecks.questions.filter(q => !questionId || q.questionId === questionId) }, gaps: local?.gaps, gapCount: local?.gapCount, wholeTaskCertified: false, semanticSupport: "unreviewed" }, sourceCandidates: local?.pendingSourceWork?.filter((candidate: any) => !questionId || candidate.questionId === questionId).map(({ id: _id, ...candidate }: any) => candidate), diagnostics: local?.diagnostics } : {}), instruction: `${QUESTION_WORKFLOW_GUIDE}${budget.explorationRemaining <= 0 || questionChecked && checks >= checkLimit ? " Exploration is exhausted. Deliver all original questions now in the original skill format; retain machine unknowns." : ""}` }
+      return { guidance: guidance.context(undefined, questionId), toolBudget: budget, executableContract: domain?.executableContractReport(), ...(domain ? { questionWorkflow: domain.questionContext(), sourceWindows: local?.sourceWindows, currentStage: local?.focus?.stage, machine: { properties: propertyChecks && { ...propertyChecks, questions: propertyChecks.questions.filter(q => !questionId || q.questionId === questionId) }, gaps: local?.gaps, gapCount: local?.gapCount, wholeTaskCertified: false, semanticSupport: "unreviewed" }, sourceCandidates: local?.pendingSourceWork?.filter((candidate: any) => !questionId || candidate.questionId === questionId).map(({ id: _id, ...candidate }: any) => candidate), diagnostics: local?.diagnostics } : {}), instruction: `${QUESTION_WORKFLOW_GUIDE}${budget.explorationRemaining <= 0 || questionChecked && checks >= checkLimit ? " Exploration is exhausted. Deliver all original questions now in the original skill format; retain machine unknowns." : ""}` }
     }
     const current = sourceAssisted ? domain?.promptContext({ maxSourceBytes: Math.max(0, (options.maxDisplayBytes ?? 262144) - modelSourceBytes), finalOnly, preferAnswer }) : domain?.modelContext({ finalOnly, preferAnswer })
     const answering = finalOnly || preferAnswer && !!current && "focus" in current && current.focus?.stage === "answer"

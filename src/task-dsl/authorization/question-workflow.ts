@@ -15,6 +15,7 @@ const statement = z.object({ kind: z.literal("statement"), at: citation, outcome
 const dependency = z.object({ kind: z.literal("dependency"), at: citation, as: z.enum(["principal", "resource", "permission", "condition", "effect", "context"]).default("context"), principal: InquiryText.optional(), resource: InquiryText.optional(), ...because }).strict()
 const residual = z.object({ kind: z.literal("residual"), at: citation, ...because }).strict()
 export const QuestionDeclarationSchema = z.object({ schemaVersion: z.literal("authorization-question-declaration/v1"), source: citation,
+  questionId: InquiryText.optional(),
   statements: z.array(z.discriminatedUnion("kind", [object, condition, effect, statement, dependency, residual])).max(128),
   properties: z.array(z.object({ property: InquiryText, effect: citation, guard: citation.optional() }).strict()).max(8).optional(),
   fallthrough: z.enum(["allow", "deny", "unknown"]).optional(),
@@ -32,6 +33,7 @@ export function compileQuestionDeclaration(skeleton: SourceSkeleton, raw: unknow
   const fail = (code: string, path: string, message: string, candidates?: unknown) => diagnostics.push({ code: `question-${code}`, path, questionId: options.questionId, message: `${message}${candidates ? ` Candidates: ${JSON.stringify(candidates)}` : ""}`, severity: "error" })
   if (!parsed.success) { for (const issue of parsed.error.issues) fail("declaration-shape", issue.path.join("."), issue.message); return { diagnostics } }
   const declaration = parsed.data
+  if (declaration.questionId && declaration.questionId !== options.questionId) fail("identity", "questionId", "This source owner belongs to another original question.")
   if (declaration.source.path && declaration.source.path !== skeleton.source.path || declaration.source.startLine !== skeleton.source.startLine || (declaration.source.endLine ?? declaration.source.startLine) !== skeleton.source.endLine) fail("source-owner", "source", "Declare the currently offered complete source passage; the host owns its routing.")
   if (declaration.source.sha256 && declaration.source.sha256 !== skeleton.source.sha256) fail("source-stale", "source", "This source version has changed; read and interpret the current original.")
   if (!skeleton.modelCovered) fail("source-unread", "source", "Read the complete current source passage before declaring its meaning.")

@@ -5,7 +5,7 @@ import type { AuthorizationInquiryProgram } from "../../task-dsl/authorization/i
 import { InquiryQuestionResultSchema } from "../../task-dsl/authorization/inquiry-result.ts"
 import { canonicalControl, mergeControlSlice, type ControlSlice } from "../../task-dsl/authorization/control-slice.ts"
 import { controlRuleReach, evaluateControlPaths, type DependencyCheckState } from "../../task-dsl/authorization/control-conclusion.ts"
-import { SemanticBlockSchema, lowerSemanticFlow, semanticBlockDiagnostics, type BoundSemanticBlock } from "../../task-dsl/authorization/semantic-flow.ts"
+import { SemanticBlockSchema, lowerSemanticFlow, semanticBlockDiagnostics, type BoundSemanticBlock, type FunctionContractRoot } from "../../task-dsl/authorization/semantic-flow.ts"
 import { LocalUpdateItemSchemas, type LocalExplanationTask } from "./inquiry-local-extraction.ts"
 import { WorkSelectionSchema } from "./inquiry-control-updates.ts"
 import { FINITE_PERMISSION_GUIDE } from "../../task-dsl/authorization/control-evaluation.ts"
@@ -62,7 +62,7 @@ export function applySemanticBlocks(previous: BoundSemanticBlock[], raw: unknown
   return { units, records, diagnostics }
 }
 
-export function lowerIntoControlSlice(previous: ControlSlice, units: BoundSemanticBlock[], program: AuthorizationInquiryProgram, context: Parameters<typeof mergeControlSlice>[3], compositional = false, propertyDirected = false, sourceObjectBindings = false, functionRoots?: Array<{ questionId: string; handle: string }>) {
+export function lowerIntoControlSlice(previous: ControlSlice, units: BoundSemanticBlock[], program: AuthorizationInquiryProgram, context: Parameters<typeof mergeControlSlice>[3], compositional = false, propertyDirected = false, sourceObjectBindings = false, functionRoots?: FunctionContractRoot[]) {
   const lowered = lowerSemanticFlow(units, { compositional, propertyDirected, sourceObjectBindings, functionRoots }), base = structuredClone(previous)
   // Replace only host-owned semantic expansions. Raw canonical/other question facts stay intact.
   base.rules = base.rules.filter(r => !r.sourceOrigin)

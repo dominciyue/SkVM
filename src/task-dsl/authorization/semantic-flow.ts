@@ -42,6 +42,7 @@ export const SEMANTIC_BLOCK_LIMIT = 64
 export const SemanticBlockSchema = z.object({ itemId: name, handle: name, op: z.enum(["add", "replace"]), role: z.enum(["entry", "helper"]), start: name, complete: z.boolean(), coverage: z.literal("path").optional(), repairsDraftId: name.optional(), fallthrough: z.enum(["allow", "deny", "unresolved"]).optional(), parameters: z.array(z.object({ name, type: z.enum(["principal", "resource", "permission", "configuration", "value"]) }).strict()).max(16).default([]), blocks: z.array(z.object({ name, steps: z.array(SemanticStepSchema).max(160) }).strict()).min(1).max(SEMANTIC_BLOCK_LIMIT) }).strict()
 export type SemanticBlock = z.infer<typeof SemanticBlockSchema>
 export type BoundSemanticBlock = SemanticBlock & { questionId: string; evidenceIds: string[]; receiverClass?: string; source?: { id: string; path: string; sha256: string; startLine: number; endLine: number } }
+export interface FunctionContractRoot { questionId: string; handle: string; inputs?: Record<string, FiniteValue> }
 export interface SemanticBindingMismatch {
   questionId: string; caller: string; callee: string; block: string; call: string; instance: string; sourceCallId?: string;
   parameter: string; expression?: string; actualType: string; requiredType: string; reason: "missing-mapping" | "unbound-object" | "type-mismatch";
@@ -57,7 +58,7 @@ interface Cursor { tail: string; route: string[]; objects: Record<string, Object
 const id = (parts: unknown[]) => "sem-" + createHash("sha256").update(canonicalControl(parts)).digest("hex").slice(0, 24)
 
 /** The host compiles only explicit source interpretations; it never parses target code into an answer. */
-export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compositional?: boolean; propertyDirected?: boolean; sourceObjectBindings?: boolean; functionRoots?: Array<{ questionId: string; handle: string }> } = {}) {
+export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compositional?: boolean; propertyDirected?: boolean; sourceObjectBindings?: boolean; functionRoots?: FunctionContractRoot[] } = {}) {
   let rules: ControlRule[] = [], dependencies: ControlDependency[] = []
   const diagnostics: InquiryDiagnostic[] = [], owned: Array<{ questionId: string; handle: string; ruleKeys: string[] }> = []
   const fieldChanges: Array<{ questionId: string; handle: string; step: string; object: string; field: string; value?: FiniteValue; source?: string; evidenceIds: string[] }> = []
@@ -66,6 +67,11 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
   const fault = (q: string, handle: string, code: string, message: string) => diagnostics.push({ code, path: `semanticBlocks.${q}.${handle}`, questionId: q, message, severity: "error" })
   for (const questionId of new Set(units.map(u => u.questionId))) {
     const local = units.filter(u => u.questionId === questionId), roots = local.filter(u => u.role === "entry" || options.functionRoots?.some(r => r.questionId === questionId && r.handle === u.handle)), startIndex = rules.length, dependencyIndex = dependencies.length, fieldIndex = fieldChanges.length, summaryIndex = propertySummaries.length
+    // Retain explicit source alternatives when checking changed function inputs.
+    // Their false predicates prove exclusion; pruning would erase the selected
+    // effect and confuse an unreachable effect with unadopted source meaning.
+    // The existing node/path bounds still apply to this expansion.
+    const retainInputAlternatives = options.functionRoots?.some(r => r.questionId === questionId && Object.keys(r.inputs ?? {}).length > 0)
     let serial = 0, pathCount = 0
     const append = (u: BoundSemanticBlock, c: Cursor, instance: string, block: string, step: string, kind: ControlRule["kind"], fields: Partial<ControlRule> = {}) => {
       if (rules.length - startIndex >= 127) throw new Error("semantic-node-limit")
@@ -151,7 +157,8 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
         if (!exit.exceptionType || !exit.failureKind) gap(u, c, instance, body, step, "semantic-exception-type-unknown")
         else terminal(u, c, instance, body, step, "reject", { claim: exit.claim, outcome: "deny", failureKind: exit.failureKind })
       } else if (exit.kind === "return") {
-        if (!exit.outcome || exit.outcome === "unknown") gap(u, c, instance, body, step, "entry-return-outcome-unspecified")
+        if (u.role === "helper" && options.functionRoots?.some(root => root.questionId === questionId && root.handle === u.handle)) terminal(u, c, instance, body, step, "return", { claim: exit.claim, outcome: exit.outcome ?? "unknown", ...(isScalar(c.returnValue) ? { returnValue: c.returnValue } : {}) })
+        else if (!exit.outcome || exit.outcome === "unknown") gap(u, c, instance, body, step, "entry-return-outcome-unspecified")
         else terminal(u, c, instance, body, step, "return", { claim: exit.claim, outcome: exit.outcome, ...(isScalar(c.returnValue) ? { returnValue: c.returnValue } : {}) })
       } else gap(u, c, instance, body, step, "semantic-loop-exit-outside-loop")
     }
@@ -194,12 +201,12 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
             for (const [index, branch] of step.cases.entries()) {
               const alternative = structuredClone(c); alternative.route.push(`${instance}.${body}.${step.name}:${index}`)
               const test = predicate(branch.condition, c), reach = prior.length ? { op: "all", args: [test, { op: "not", arg: { op: "any", args: [...prior] } }] } : test
-              if (u.coverage === "path" && partialEvaluate(reach, {}).truth === "false") { prior.push(test); continue }
+              if (!retainInputAlternatives && u.coverage === "path" && partialEvaluate(reach, {}).truth === "false") { prior.push(test); continue }
               append(u, alternative, instance, body, step.name, "continue", { ...fields, condition: reach }); next.push(...walk(u, branch.body, [alternative], instance, [...stack, marker])); prior.push(test)
             }
             const other = structuredClone(c); other.route.push(`${instance}.${body}.${step.name}:else`)
             const otherwiseCondition = { op: "not", arg: { op: "any", args: prior } }
-            if (u.coverage === "path" && partialEvaluate(otherwiseCondition, {}).truth === "false") continue
+            if (!retainInputAlternatives && u.coverage === "path" && partialEvaluate(otherwiseCondition, {}).truth === "false") continue
             if (step.otherwise) { append(u, other, instance, body, step.name, "continue", { ...fields, condition: otherwiseCondition }); next.push(...walk(u, step.otherwise, [other], instance, [...stack, marker])) }
             else { gap(u, other, instance, body, step.name, "choice-uncovered"); next.push(other) }
             continue
@@ -251,7 +258,7 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
             if (truth.diagnostics.length) { gap(u, c, instance, body, step.name, "semantic-short-circuit-type-error"); next.push(c); continue }
             for (const executeRight of [false, true]) {
               const condition = executeRight === (step.operator === "and") ? test : { op: "not", arg: test }
-              if (partialEvaluate(condition, {}).truth === "false") continue
+              if (!retainInputAlternatives && partialEvaluate(condition, {}).truth === "false") continue
               const selected = structuredClone(c); selected.route.push(`${instance}.${step.name}:${executeRight ? "rhs" : "left"}`)
               append(u, selected, instance, body, step.name, "continue", { ...fields, condition })
               if (!executeRight) { assignValue(selected, step.result, step.left); next.push(selected) }
@@ -512,6 +519,8 @@ export function lowerSemanticFlow(units: BoundSemanticBlock[], options: { compos
           const identity = id([questionId, root.handle, "parameter", parameter.name])
           cursor.objects[parameter.name] = { identity, type: parameter.type }; cursor.objects[`${root.handle}.${parameter.name}`] = cursor.objects[parameter.name]!
           append(root, cursor, root.handle, root.start, `$parameter.${parameter.name}`, "binding", { claim: `Explicit entry parameter ${parameter.name} (${parameter.type})`, bindingKey: identity, bindingKind: parameter.type, bindingName: parameter.name })
+          const inputs = options.functionRoots?.find(r => r.questionId === questionId && r.handle === root.handle)?.inputs
+          if (inputs && Object.hasOwn(inputs, parameter.name)) setSourceValue(cursor, identity, { value: inputs[parameter.name]! })
         }
         for (const c of walk(root, root.start, [cursor], root.handle, [])) if (!c.stopped) {
           if (c.pending) finish(root, c, root.handle, root.start, "$exit")

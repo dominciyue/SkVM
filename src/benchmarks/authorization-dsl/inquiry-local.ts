@@ -12,17 +12,21 @@ import { parseInquiryStrategy, isOperationInquiryStrategy, isSourceAssistedInqui
 import { planInquiryReuse } from "./inquiry-reuse.ts"
 import { hasUnknownAuthorizationCompletion } from "./telemetry.ts"
 import { acceptAuthoredInquiry } from "./authoring-assist.ts"
+import { compileExecutableContract } from "../../task-dsl/authorization/executable-contract.ts"
+import { isQuestionCheckedStrategy, FiniteValueSchema } from "../../task-dsl/authorization/control-slice.ts"
 
 export const authorizationInquiryInputSchema = (allowMissingPolicy = false) => z.object({
   schemaVersion: z.literal("authorization-inquiry-input/v1"), taskId: InquiryText, repository: InquiryText, sourceRef: InquiryText,
   sourceRoot: InquiryText.refine(p => !path.isAbsolute(p) && !path.win32.isAbsolute(p) && !p.includes("\0"), "Use a relative sourceRoot"),
   allowedPaths: z.array(InquiryText).min(1), inquiry: (allowMissingPolicy ? AuthorizationSourceInquirySchema : AuthorizationInquirySchema).optional(), brief: InquiryText.optional(),
   mode: z.enum(["behavior", "conformance"]).optional(), policy: InquiryPolicySchema.optional(),
+  contractInputs: z.record(z.record(FiniteValueSchema)).optional(),
 }).strict().superRefine((v, c) => {
   if (!!v.inquiry === !!v.brief) c.addIssue({ code: z.ZodIssueCode.custom, path: ["brief"], message: "Provide either complete inquiry or a natural brief" })
   if (v.inquiry && (v.mode || v.policy)) c.addIssue({ code: z.ZodIssueCode.custom, path: ["inquiry"], message: "Complete inquiry owns its mode/policy; do not duplicate them" })
   if (v.brief && v.mode === "conformance" && !v.policy && !allowMissingPolicy) c.addIssue({ code: z.ZodIssueCode.custom, path: ["policy"], message: "policy-required: conformance needs independently supplied policy" })
   if (v.brief && (v.mode ?? "behavior") === "behavior" && v.policy) c.addIssue({ code: z.ZodIssueCode.custom, path: ["policy"], message: "Behavior does not compare normative policy" })
+  if (v.contractInputs) for (const id of Object.keys(v.contractInputs)) if (!v.inquiry?.questions.some(q => q.id === id)) c.addIssue({ code: z.ZodIssueCode.custom, path: ["contractInputs", id], message: "Explicit function inputs require a current complete question identity" })
 })
 export const AuthorizationInquiryInputSchema = authorizationInquiryInputSchema()
 export type AuthorizationInquiryInput = z.infer<typeof AuthorizationInquiryInputSchema>
@@ -42,14 +46,25 @@ export async function loadInquiryInput(inputFile: string, options: { allowMissin
   const context = { repository: value.repository, sourceRef: value.sourceRef, sourceRoot: path.resolve(path.dirname(inputPath), value.sourceRoot), allowedPaths: value.allowedPaths }
   return { value, inputPath, original, inputSha256: sha(original), context }
 }
-export async function checkAuthorizationInquiry(inputFile: string, method: InquiryMethod = "D1", requestedStrategy: InquiryStrategy = "legacy") {
+export async function checkAuthorizationInquiry(inputFile: string, method: InquiryMethod = "D1", requestedStrategy: InquiryStrategy = "legacy", domainProgramFile?: string) {
   try {
     const strategy = parseInquiryStrategy(requestedStrategy)
     if (!["M", "D0", "D1"].includes(method)) throw new Error("Method must be M, D0 or D1")
-    const sourceAssisted = isSourceAssistedInquiryStrategy(strategy), loaded = await loadInquiryInput(inputFile, { allowMissingPolicy: sourceAssisted }), tools = await createInquiryTools(loaded.context)
+    const sourceAssisted = isSourceAssistedInquiryStrategy(strategy), loaded = await loadInquiryInput(inputFile, { allowMissingPolicy: sourceAssisted }), tools = await createInquiryTools({ ...loaded.context, ...(domainProgramFile ? { structure: true, controlSemantics: "finite-control/v1" as const, propertyDirected: true, questionDirected: true, maxToolCalls: 64 } : {}) })
+    let executableContract, domainProgram
+    if (domainProgramFile) {
+      if (!isQuestionCheckedStrategy(strategy) || !loaded.value.inquiry) throw new Error("contract-input: check needs a complete inquiry and question-checked-v1")
+      const original = await readFile(path.resolve(domainProgramFile), "utf8"), raw = JSON.parse(original)
+      const { ExecutableContractSchema } = await import("../../task-dsl/authorization/executable-contract.ts")
+      const parsed = ExecutableContractSchema.safeParse(raw)
+      if (parsed.success) for (const declaration of parsed.data.sourceDeclarations) await tools.execute("source_read", { path: declaration.source.path, startLine: declaration.source.startLine, endLine: declaration.source.endLine ?? declaration.source.startLine })
+      executableContract = await compileExecutableContract(raw, { tools, program: compileAuthorizationInquiry(loaded.value.inquiry, { allowMissingPolicy: sourceAssisted }), ...(parsed.success ? { inputs: loaded.value.contractInputs?.[parsed.data.scope.questionId] } : {}), interpretationSource: "authored-file" })
+      domainProgram = { path: path.resolve(domainProgramFile), sha256: sha(original), bytes: Buffer.byteLength(original), archive: "domain-program.json" }
+      if (executableContract.diagnostics.length) return { schemaVersion: "authorization-inquiry-check/v1", status: "invalid" as const, providerCalls: 0, diagnostics: executableContract.diagnostics, executableContract, domainProgram }
+    }
     return { schemaVersion: "authorization-inquiry-check/v1", status: "valid" as const, inputPath: loaded.inputPath, method, strategy,
       input: loaded.value, sourceFiles: tools.files, scopeGaps: tools.scopeGaps, sourceRefVerification: "authored", providerCalls: 0,
-      ...(loaded.value.inquiry ? { program: compileAuthorizationInquiry(loaded.value.inquiry, { allowMissingPolicy: sourceAssisted }), authorProviderRequired: false } : { authorProviderRequired: method !== "M" }), diagnostics: [] }
+      ...(loaded.value.inquiry ? { program: compileAuthorizationInquiry(loaded.value.inquiry, { allowMissingPolicy: sourceAssisted }), authorProviderRequired: false } : { authorProviderRequired: method !== "M" }), ...(domainProgram ? { domainProgram, executableContract, sourceAccounting: { toolCalls: tools.toolCalls, readBytes: tools.ioReadBytes, displayBytes: tools.displayBytes } } : {}), diagnostics: [] }
   } catch (error) { return { schemaVersion: "authorization-inquiry-check/v1", status: "invalid" as const, providerCalls: 0, diagnostics: [{ code: "inquiry-input-invalid", message: String(error) }] } }
 }
 
@@ -95,20 +110,23 @@ async function preparePreviousInquiry(inputFile: string, previous: string, model
   const plan = planInquiryReuse({ currentInput: loaded.value, previousInput: old, previousRun: prior, previousSessionId: report.sessionId, currentFiles: tools.files, currentStructure: tools.structure, currentMethod: method ?? report.method, previousMethod: report.method, currentStrategy, previousStrategy: report.strategy ?? "legacy", currentModel: model ?? report.model, previousModel: report.model })
   if (plan.status === "reusable") {
     const imported = tools.restoreEvidence(plan.seed.evidence)
-    if (imported.diagnostics.length) return { report, previousInput: old, plan: { status: "needs-fresh-analysis" as const, info: plan.info, reasons: imported.diagnostics.map(d => `${d.code}: ${d.message}`) } }
+    if (imported.diagnostics.length) return { report, previousInput: old, currentFiles: tools.files, plan: { status: "needs-fresh-analysis" as const, info: plan.info, reasons: imported.diagnostics.map(d => `${d.code}: ${d.message}`), seed: undefined } }
   }
-  return { report, previousInput: old, plan }
+  return { report, previousInput: old, plan, currentFiles: tools.files }
 }
-export async function executeLocalInquiryRun(options: { inputFile: string; outDir: string; model: string; method?: InquiryMethod; strategy?: InquiryStrategy; previous?: string; harness?: "provider" | "codex-account"; domainTools?: boolean; accountTransportFactory?: import("../../adapters/codex-account.ts").AccountInquiryOptions["transportFactory"]; accountBoundaryFile?: string; skillFile?: string; providerFactory?: LocalAuthorizationCliDependencies["providerFactory"]; execution?: Partial<RunAuthorizationInquiryOptions> }) {
+export async function executeLocalInquiryRun(options: { inputFile: string; outDir: string; model: string; method?: InquiryMethod; strategy?: InquiryStrategy; previous?: string; harness?: "provider" | "codex-account"; domainTools?: boolean; accountTransportFactory?: import("../../adapters/codex-account.ts").AccountInquiryOptions["transportFactory"]; accountBoundaryFile?: string; skillFile?: string; domainProgramFile?: string; providerFactory?: LocalAuthorizationCliDependencies["providerFactory"]; execution?: Partial<RunAuthorizationInquiryOptions> }) {
   if (options.domainTools !== undefined && options.harness !== "codex-account") throw new Error("domain-tools requires --harness=codex-account")
-  const method = options.method ?? "D1", strategy = options.strategy ?? options.execution?.strategy ?? "legacy", check = await checkAuthorizationInquiry(options.inputFile, method, strategy)
-  if (check.status !== "valid") return check
+  const method = options.method ?? "D1", strategy = options.strategy ?? options.execution?.strategy ?? "legacy"
   const prior = options.previous ? await preparePreviousInquiry(options.inputFile, options.previous, options.model, method, strategy) : undefined
   if (prior && prior.plan.status !== "reusable") {
     const unknown = prior.report.completionUnknown === true || ["completion-unknown", "timeout-unknown", "initialized"].includes(prior.report.status)
     const args = unknown ? ["authorization", "inquiry", "inspect", `--out=${prior.report.sessionPath}`] : ["authorization", "inquiry", "run", `--input=${path.resolve(options.inputFile)}`, `--out=${path.resolve(options.outDir)}`, `--model=${options.model}`, `--method=${method}`, `--strategy=${strategy}`]
     return { status: "needs-fresh-analysis" as const, providerCalls: 0, noAutomaticResend: true, reuseEligibility: prior.plan, recovery: { kind: unknown ? "inspect-previous" : "fresh-analysis", command: `skvm ${args.map(a => `'${a.replace(/'/g, "''")}'`).join(" ")}`, arguments: args, instruction: unknown ? "Inspect and adjudicate the unresolved previous request. Do not resend it or bypass its identity." : "Run fresh analysis without --previous; the old session remains unchanged." } }
   }
+  const retainedProgram = !options.domainProgramFile && prior?.report.domainProgram && prior.plan.status === "reusable" && isDeepStrictEqual(prior.currentFiles, prior.report.sourceFiles) ? path.join(prior.report.sessionPath, "domain-program.json") : undefined
+  const programFile = options.domainProgramFile ?? retainedProgram
+  const check = await checkAuthorizationInquiry(options.inputFile, method, strategy, programFile)
+  if (check.status !== "valid") return check
   const reuse = prior?.plan.status === "reusable" ? { info: prior.plan.info, seed: prior.plan.seed } : undefined
   const reuseOrigin = prior && reuse ? { previousSessionId: prior.report.sessionId, previousSessionPath: prior.report.sessionPath, previousInputSha256: prior.report.inputSha256 } : undefined
   const loaded = await loadInquiryInput(options.inputFile, { allowMissingPolicy: isSourceAssistedInquiryStrategy(strategy) }), out = path.resolve(options.outDir), id = `${new Date().toISOString().replace(/[:.]/g, "")}-${randomUUID().slice(0, 8)}`
@@ -120,9 +138,13 @@ export async function executeLocalInquiryRun(options: { inputFile: string; outDi
   const skillBytes = options.skillFile ? await readFile(path.resolve(options.skillFile)) : undefined
   let skillContent = skillBytes?.toString("utf8")
   const skill = skillBytes ? { path: path.resolve(options.skillFile!), sha256: createHash("sha256").update(skillBytes).digest("hex"), bytes: skillBytes.byteLength, archive: "skill-original.md" } : undefined
-  const identity = { schemaVersion: "authorization-inquiry-session/v1", sessionId: id, sessionPath, createdAt: new Date().toISOString(), inputSha256: loaded.inputSha256, model: options.model, method, strategy, sourceFiles: check.sourceFiles, noAutomaticResend: true, ...(options.harness === "codex-account" ? { domainTools: options.domainTools ?? true } : {}), ...(reuseOrigin ? { reuseOrigin } : {}), ...(skill ? { skill } : {}) }
+  const programBytes = programFile ? await readFile(path.resolve(programFile)) : undefined
+  if (programBytes && createHash("sha256").update(programBytes).digest("hex") !== check.domainProgram?.sha256) throw new Error("Inquiry program changed after check; no model was dispatched")
+  const domainProgram = programBytes ? { ...check.domainProgram!, origin: retainedProgram ? "previous-program" as const : "authored-file" as const } : undefined
+  const identity = { schemaVersion: "authorization-inquiry-session/v1", sessionId: id, sessionPath, createdAt: new Date().toISOString(), inputSha256: loaded.inputSha256, model: options.model, method, strategy, sourceFiles: check.sourceFiles, noAutomaticResend: true, ...(options.harness === "codex-account" ? { domainTools: options.domainTools ?? true } : {}), ...(reuseOrigin ? { reuseOrigin } : {}), ...(skill ? { skill } : {}), ...(domainProgram ? { domainProgram } : {}) }
   await save("session.json", identity); await writeFile(path.join(sessionPath, "input.json"), loaded.original, { encoding: "utf8", flag: "wx" }); await save("check.json", check)
   if (skillBytes) await writeFile(path.join(sessionPath, "skill-original.md"), skillBytes, { flag: "wx" })
+  if (programBytes) await writeFile(path.join(sessionPath, "domain-program.json"), programBytes, { flag: "wx" })
   if (options.skillFile) {
     const { loadRunSkill, materializeNaturalRunTask, prepareRunWorkspace, buildRunSkillBundle } = await import("../../run/index.ts")
     const originalSkill = await loadRunSkill(options.skillFile), task = await materializeNaturalRunTask({ prompt: loaded.value.brief ?? JSON.stringify(loaded.value.inquiry), taskPath: path.join(sessionPath, "skill-task.json") })
@@ -131,12 +153,12 @@ export async function executeLocalInquiryRun(options: { inputFile: string; outDi
   }
   if (options.harness === "codex-account") {
     const { runCodexAccountInquiry } = await import("../../adapters/codex-account.ts")
-    const accountRun = await runCodexAccountInquiry({ inputFile: options.inputFile, workDir: sessionPath, model: options.model, method: options.domainTools === false ? undefined : method, strategy, domainTools: options.domainTools, transportFactory: options.accountTransportFactory, reuse, skillContent, accountBoundaryFile: options.accountBoundaryFile, timeoutMs: options.execution?.sessionTimeoutMs, maxToolCalls: options.execution?.maxToolCalls, maxDisplayBytes: options.execution?.maxDisplayBytes, maxReadBytes: options.execution?.maxReadBytes, traceDir: path.join(sessionPath, "raw"), preparation: options.execution?.preparation })
+    const accountRun = await runCodexAccountInquiry({ inputFile: options.inputFile, workDir: sessionPath, model: options.model, method: options.domainTools === false ? undefined : method, strategy, domainTools: options.domainTools, transportFactory: options.accountTransportFactory, reuse, skillContent, domainProgramFile: programBytes ? path.join(sessionPath, "domain-program.json") : undefined, accountBoundaryFile: options.accountBoundaryFile, timeoutMs: options.execution?.sessionTimeoutMs, maxToolCalls: options.execution?.maxToolCalls, maxDisplayBytes: options.execution?.maxDisplayBytes, maxReadBytes: options.execution?.maxReadBytes, traceDir: path.join(sessionPath, "raw"), preparation: options.execution?.preparation })
     const { native, account } = accountRun
     const preparationFields = { preparation: native.preparation, taskPreparation: native.taskPreparation, taskPreparationAttempts: native.taskPreparationAttempts, taskPreparationFailed: native.taskPreparationFailed }
     const fields = { status: account.status, terminalStatus: account.terminalStatus, answerDelivery: account.answerDelivery, usageVisibility: account.usageVisibility, quotaRefused: account.quotaRefused, method, strategy, domainTools: options.domainTools ?? true, inquiry: native.program?.originalDeclaration, program: native.program, result: native.result, final: native.result, domain: native.domain, reuse: accountRun.reuse, sourceFiles: native.sourceFiles, sourceVerification: native.sourceVerification, sourceAccounting: native.sourceAccounting, telemetry: { account, providerCalls: account.providerRequests, totalActualUsd: null }, durationMs: account.durationMs, error: account.reason, evidence: native.evidence, ...(skill ? { skill } : {}) }
     const { redactCodexEvent } = await import("../../adapters/codex-account-session.ts")
-    await save("run.json", redactCodexEvent({ ...fields, ...preparationFields, native })); const report = { ...identity, ...fields, ...preparationFields, harness: "codex-account" }
+    await save("run.json", redactCodexEvent({ ...fields, ...preparationFields, ...(domainProgram ? { domainProgram } : {}), native })); const report = { ...identity, ...fields, ...preparationFields, harness: "codex-account" }
     await save("report.json", redactCodexEvent(report)); await appendFile(path.join(out, "sessions.jsonl"), JSON.stringify({ relativePath: `sessions/${id}`, status: report.status }) + "\n")
     return report
   }
@@ -149,11 +171,11 @@ export async function executeLocalInquiryRun(options: { inputFile: string; outDi
     await save("report.json", report); await appendFile(path.join(out, "sessions.jsonl"), JSON.stringify({ relativePath: `sessions/${id}`, status: report.status }) + "\n"); return report
   }
   let requestId = 0
-  const run = await runAuthorizationInquiry({ ...options.execution, ...loaded.context, provider, method, strategy, ...(options.previous ? { reuse } : {}), inquiry: loaded.value.inquiry, brief: loaded.value.brief, mode: loaded.value.mode, policy: loaded.value.policy, skillContent,
+  const run = await runAuthorizationInquiry({ ...options.execution, ...loaded.context, provider, method, strategy, ...(options.previous ? { reuse } : {}), inquiry: loaded.value.inquiry, brief: loaded.value.brief, mode: loaded.value.mode, policy: loaded.value.policy, contractInputs: loaded.value.contractInputs, skillContent, ...(programBytes ? { domainProgram: JSON.parse(programBytes.toString("utf8")) } : {}),
     onRequest: async request => { await save(`request-${++requestId}.json`, request); await options.execution?.onRequest?.(request) },
     onEvent: async event => { await appendFile(path.join(sessionPath, "events.jsonl"), JSON.stringify(event) + "\n"); if (event.kind === "dispatch" && event.sequence === 1) await save("dispatch.json", identity); await options.execution?.onEvent?.(event) },
   })
-  await save("run.json", { ...run, ...(skill ? { skill } : {}) })
+  await save("run.json", { ...run, ...(skill ? { skill } : {}), ...(domainProgram ? { domainProgram } : {}) })
   const report = { ...identity, status: run.status, result: run.result, initial: run.initial, initialValidation: run.initialValidation, final: run.final, validation: run.validation, sourceVerification: run.sourceVerification, wireFailures: run.wireFailures, wireNormalizations: run.wireNormalizations, ...(run.reuse ? { reuse: run.reuse } : {}), ...(run.domain ? { domain: run.domain } : {}), telemetry: run.telemetry, durationMs: run.durationMs, sourceAccounting: run.sourceAccounting, error: run.error }
   await save("report.json", report); await appendFile(path.join(out, "sessions.jsonl"), JSON.stringify({ relativePath: `sessions/${id}`, status: run.status }) + "\n")
   return report
@@ -170,22 +192,23 @@ export async function inspectLocalInquiry(outDir: string) {
   if (identity.schemaVersion !== "authorization-inquiry-session/v1") throw new Error("Not an inquiry session")
   if (sha(await readFile(path.join(root, "input.json"), "utf8")) !== identity.inputSha256) throw new Error("Inquiry input archive changed")
   if (identity.skill && createHash("sha256").update(await readFile(path.join(root, "skill-original.md"))).digest("hex") !== identity.skill.sha256) throw new Error("Inquiry skill archive changed")
+  if (identity.domainProgram && createHash("sha256").update(await readFile(path.join(root, "domain-program.json"))).digest("hex") !== identity.domainProgram.sha256) throw new Error("Inquiry program archive changed")
   let report
   try { report = JSON.parse(await readFile(path.join(root, "report.json"), "utf8")) }
   catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; return { ...identity, status: await stat(path.join(root, "dispatch.json")).then(() => "completion-unknown", () => "initialized") } }
-  if (report.sessionId !== identity.sessionId || report.model !== identity.model || report.method !== identity.method || (report.strategy ?? "legacy") !== (identity.strategy ?? "legacy") || report.domainTools !== identity.domainTools || report.inputSha256 !== identity.inputSha256 || !isDeepStrictEqual(report.sourceFiles, identity.sourceFiles) || !isDeepStrictEqual(report.reuseOrigin, identity.reuseOrigin) || !isDeepStrictEqual(report.skill, identity.skill)) throw new Error("Inquiry report/session identity mismatch")
+  if (report.sessionId !== identity.sessionId || report.model !== identity.model || report.method !== identity.method || (report.strategy ?? "legacy") !== (identity.strategy ?? "legacy") || report.domainTools !== identity.domainTools || report.inputSha256 !== identity.inputSha256 || !isDeepStrictEqual(report.sourceFiles, identity.sourceFiles) || !isDeepStrictEqual(report.reuseOrigin, identity.reuseOrigin) || !isDeepStrictEqual(report.skill, identity.skill) || !isDeepStrictEqual(report.domainProgram, identity.domainProgram)) throw new Error("Inquiry report/session identity mismatch")
   let completionUnknown = hasUnknownAuthorizationCompletion(report), strategyMetadataOrigin: string | undefined
   if (report.status !== "provider-unavailable") {
     const run = JSON.parse(await readFile(path.join(root, "run.json"), "utf8"))
     const legacyAuthorMetadata = run.strategy === undefined && identity.method === "D1" && ["completed-with-diagnostics", "budget-exhausted"].includes(run.status) && !run.inquiry && !run.program && !run.domain && !run.result && run.requests?.length > 0 && run.requests.every((r: any) => r.phase === "author") && run.wireFailures?.some((r: any) => r.phase === "author") && !hasUnknownAuthorizationCompletion(run)
     const runStrategy = legacyAuthorMetadata ? identity.strategy ?? "legacy" : run.strategy ?? "legacy"
-    if (run.status !== report.status || run.method !== identity.method || runStrategy !== (identity.strategy ?? "legacy") || ["terminalStatus", "answerDelivery", "usageVisibility", "quotaRefused", "domainTools", "skill", "sourceFiles", "result", "initial", "initialValidation", "final", "validation", "wireFailures", "wireNormalizations", "domain", "reuse", "sourceAccounting", "sourceVerification", "telemetry"].some(key => !isDeepStrictEqual(run[key], report[key]))) throw new Error("Inquiry report/run identity mismatch")
+    if (run.status !== report.status || run.method !== identity.method || runStrategy !== (identity.strategy ?? "legacy") || ["terminalStatus", "answerDelivery", "usageVisibility", "quotaRefused", "domainTools", "skill", "domainProgram", "sourceFiles", "result", "initial", "initialValidation", "final", "validation", "wireFailures", "wireNormalizations", "domain", "reuse", "sourceAccounting", "sourceVerification", "telemetry"].some(key => !isDeepStrictEqual(run[key], report[key]))) throw new Error("Inquiry report/run identity mismatch")
     if (legacyAuthorMetadata) strategyMetadataOrigin = "precompile-session-identity"
     completionUnknown ||= hasUnknownAuthorizationCompletion(run)
   }
   return { ...report, sessionPath: root, ...(completionUnknown ? { completionUnknown: true } : {}), ...(strategyMetadataOrigin ? { strategyMetadataOrigin } : {}) }
 }
-export async function compareLocalInquiry(inputFile: string, previous: string, requestedStrategy?: InquiryStrategy) {
+export async function compareLocalInquiry(inputFile: string, previous: string, requestedStrategy?: InquiryStrategy, domainProgramFile?: string) {
   const report = await inspectLocalInquiry(previous)
   const strategy = requestedStrategy ?? report.strategy ?? "legacy", check = await checkAuthorizationInquiry(inputFile, report.method, strategy)
   if (check.status !== "valid") return check
@@ -196,13 +219,19 @@ export async function compareLocalInquiry(inputFile: string, previous: string, r
   const withoutPremises = (v: AuthorizationInquiryInput) => ({ ...omitRoot(v), inquiry: v.inquiry ? { ...v.inquiry, questions: v.inquiry.questions.map(q => ({ ...q, premises: [] })) } : undefined })
   const policyOnly = taskChanged && !sourceChanged && isDeepStrictEqual(withoutPolicy(old), withoutPolicy(current))
   const premiseOnly = taskChanged && !sourceChanged && isDeepStrictEqual(withoutPremises(old), withoutPremises(current))
+  const contractInputsChanged = !isDeepStrictEqual(old.contractInputs ?? {}, current.contractInputs ?? {})
+  const contractInputsOnly = contractInputsChanged && !sourceChanged && isDeepStrictEqual({ ...omitRoot(old), contractInputs: undefined }, { ...omitRoot(current), contractInputs: undefined })
   const strategyChanged = strategy !== (report.strategy ?? "legacy")
+  const currentProgramSha = domainProgramFile ? createHash("sha256").update(await readFile(path.resolve(domainProgramFile))).digest("hex") : report.domainProgram?.sha256
+  const domainProgramChanged = currentProgramSha !== report.domainProgram?.sha256
+  const contractCheck = domainProgramFile || report.domainProgram ? await checkAuthorizationInquiry(inputFile, report.method, strategy, domainProgramFile ?? path.join(report.sessionPath, "domain-program.json")) : undefined
   const { seed: _seed, ...reuseEligibility } = reuse.plan
-  return { schemaVersion: "authorization-inquiry-compare/v1", status: taskChanged || sourceChanged || strategyChanged ? "needs-review" : "current", taskChanged, sourceChanged, strategy, strategyChanged, policyOnly, premiseOnly,
+  return { schemaVersion: "authorization-inquiry-compare/v1", status: taskChanged || sourceChanged || strategyChanged || domainProgramChanged || contractCheck?.status === "invalid" ? "needs-review" : "current", taskChanged, sourceChanged, strategy, strategyChanged, policyOnly, premiseOnly, contractInputsChanged, contractInputsOnly, domainProgramChanged,
+    ...(contractCheck ? { executableContract: contractCheck.executableContract, contractDiagnostics: contractCheck.diagnostics } : {}),
     reuseEligibility, providerCalls: 0,
-    affectedComputation: sourceChanged ? ["source-index", "control-extraction", "path-evaluation", "policy-comparison"] : policyOnly ? ["policy-mapping", "policy-comparison"] : premiseOnly ? ["premise-mapping", "path-evaluation", "policy-comparison"] : taskChanged || strategyChanged ? ["current-task-analysis"] : [],
+    affectedComputation: sourceChanged ? ["source-index", "control-extraction", "path-evaluation", "policy-comparison"] : domainProgramChanged ? ["source-declarations", "material-projection", "path-evaluation", "policy-comparison"] : contractInputsOnly ? ["function-entry-values", "path-evaluation", "policy-comparison"] : policyOnly ? ["policy-mapping", "policy-comparison"] : premiseOnly ? ["premise-mapping", "path-evaluation", "policy-comparison"] : taskChanged || strategyChanged ? ["current-task-analysis"] : [],
     mechanicalIndexReusable: !sourceChanged && isDeepStrictEqual(old.allowedPaths, current.allowedPaths), controlRulesReused: false,
-    reviewReasons: [...(taskChanged ? [policyOnly ? "Independent policy changed; source behavior dependencies are unchanged, map and check the new policy in a fresh session." : "Current request, premises, policy or scope changed; recheck affected questions and paths in a fresh session."] : []), ...(sourceChanged ? ["Allowed original source changed, including uncited source; extracted rules are invalidated."] : []), ...(strategyChanged ? ["Execution strategy changed; previous checks do not establish the new strategy result."] : [])], answerReused: false }
+    reviewReasons: [...(taskChanged ? [contractInputsOnly ? "Explicit local function inputs changed; the current source contract was recomputed without a model call. Other original duties remain separate." : policyOnly ? "Independent policy changed; source behavior dependencies are unchanged, map and check the new policy in a fresh session." : "Current request, premises, policy or scope changed; recheck affected questions and paths in a fresh session."] : []), ...(domainProgramChanged ? ["The source declaration program changed; its current declarations and scope were checked again."] : []), ...(sourceChanged ? ["Allowed original source changed, including uncited source; extracted rules are invalidated."] : []), ...(strategyChanged ? ["Execution strategy changed; previous checks do not establish the new strategy result."] : [])], answerReused: false }
 }
 export function editAuthorizationInquiry(input: unknown, patch: unknown): AuthorizationInquiryInput {
   const value = AuthorizationInquiryInputSchema.parse(input), draft = structuredClone(value)

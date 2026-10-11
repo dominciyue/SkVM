@@ -1,0 +1,270 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "paperless-local-file-response-v2",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "local-file-contract",
+    "root": {
+      "path": "src/documents/views.py",
+      "startLine": 1429,
+      "endLine": 1448,
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "receiverClass": "DocumentViewSet"
+    },
+    "upstream": [
+      "Request entry, authentication, permission classes and framework object permission dispatch remain outside this local function contract."
+    ]
+  },
+  "sourceDeclarations": [
+    {
+      "schemaVersion": "authorization-question-declaration/v1",
+      "source": {
+        "path": "src/documents/views.py",
+        "startLine": 1429,
+        "endLine": 1448,
+        "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+        "receiverClass": "DocumentViewSet"
+      },
+      "statements": [
+        {
+          "kind": "object",
+          "expression": "self",
+          "as": "context",
+          "because": "Actual local input; no authorization grant is assumed."
+        },
+        {
+          "kind": "object",
+          "expression": "pk",
+          "as": "context",
+          "because": "Actual local input; no authorization grant is assumed."
+        },
+        {
+          "kind": "object",
+          "expression": "request",
+          "as": "context",
+          "because": "Actual local input; no authorization grant is assumed."
+        },
+        {
+          "kind": "object",
+          "expression": "disposition",
+          "as": "context",
+          "because": "Actual local input; no authorization grant is assumed."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1430,
+            "endLine": 1434,
+            "text": "self._resolve_request_and_root_doc(\n            pk,\n            request,\n            include_deleted=True,\n        )"
+          },
+          "as": "context",
+          "because": "Preserve the actual source call and its unknown result/control influence."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1435,
+            "endLine": 1435,
+            "text": "isinstance(resolved, HttpResponseForbidden)"
+          },
+          "as": "context",
+          "because": "Preserve the actual source call and its unknown result/control influence."
+        },
+        {
+          "kind": "condition",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1435,
+            "endLine": 1435,
+            "text": "isinstance(resolved, HttpResponseForbidden)"
+          },
+          "test": {
+            "op": "truthy",
+            "language": "python",
+            "value": {
+              "binding": "isinstance(resolved, HttpResponseForbidden)"
+            }
+          },
+          "because": "Initial unresolved source test; its meaning is not a grant or a known premise."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1437,
+            "endLine": 1441,
+            "text": "self._get_effective_file_doc(\n            resolved.request_doc,\n            resolved.root_doc,\n            request,\n        )"
+          },
+          "as": "context",
+          "because": "Preserve the actual source call and its unknown result/control influence."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1442,
+            "endLine": 1448,
+            "text": "serve_file(\n            doc=file_doc,\n            use_archive=not self.original_requested(request)\n            and file_doc.has_archive_version,\n            disposition=disposition,\n            follow_formatting=request.query_params.get(\"follow_formatting\", False),\n        )"
+          },
+          "as": "effect",
+          "because": "Preserve the actual source call and its unknown result/control influence."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1444,
+            "endLine": 1444,
+            "text": "self.original_requested(request)"
+          },
+          "as": "context",
+          "because": "Preserve the actual source call and its unknown result/control influence."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1447,
+            "endLine": 1447,
+            "text": "request.query_params.get(\"follow_formatting\", False)"
+          },
+          "as": "context",
+          "because": "Preserve the actual source call and its unknown result/control influence."
+        }
+      ]
+    },
+    {
+      "schemaVersion": "authorization-question-declaration/v1",
+      "source": {
+        "path": "src/documents/views.py",
+        "startLine": 1401,
+        "endLine": 1427,
+        "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+        "receiverClass": "DocumentViewSet"
+      },
+      "statements": [
+        {
+          "kind": "object",
+          "expression": "self",
+          "as": "context",
+          "because": "Actual local input; no authorization grant is assumed."
+        },
+        {
+          "kind": "object",
+          "expression": "pk",
+          "as": "context",
+          "because": "Actual local input; no authorization grant is assumed."
+        },
+        {
+          "kind": "object",
+          "expression": "request",
+          "as": "context",
+          "because": "Actual local input; no authorization grant is assumed."
+        },
+        {
+          "kind": "object",
+          "expression": "include_deleted",
+          "as": "context",
+          "because": "Actual local input; no authorization grant is assumed."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1410,
+            "endLine": 1413,
+            "text": "manager.select_related(\n                \"owner\",\n                \"root_document\",\n            )"
+          },
+          "as": "context",
+          "because": "Preserve the actual source call and its unknown result/control influence."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1410,
+            "endLine": 1413,
+            "text": "manager.select_related(\n                \"owner\",\n                \"root_document\",\n            ).get(id=pk)"
+          },
+          "as": "context",
+          "because": "Preserve the actual source call and its unknown result/control influence."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1417,
+            "endLine": 1420,
+            "text": "get_root_document(\n            request_doc,\n            include_deleted=include_deleted,\n        )"
+          },
+          "as": "context",
+          "because": "Preserve the actual source call and its unknown result/control influence."
+        },
+        {
+          "kind": "condition",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1421,
+            "endLine": 1425,
+            "text": "request.user is not None and not has_perms_owner_aware(\n            request.user,\n            \"view_document\",\n            root_doc,\n        )"
+          },
+          "test": {
+            "op": "truthy",
+            "language": "python",
+            "value": {
+              "binding": "request.user is not None and not has_perms_owner_aware(\n            request.user,\n            \"view_document\",\n            root_doc,\n        )"
+            }
+          },
+          "because": "Initial unresolved source test; its meaning is not a grant or a known premise."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1421,
+            "endLine": 1425,
+            "text": "has_perms_owner_aware(\n            request.user,\n            \"view_document\",\n            root_doc,\n        )"
+          },
+          "as": "context",
+          "because": "Preserve the actual source call and its unknown result/control influence."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1426,
+            "endLine": 1426,
+            "text": "HttpResponseForbidden(\"Insufficient permissions\")"
+          },
+          "as": "context",
+          "because": "Preserve the actual source call and its unknown result/control influence."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1427,
+            "endLine": 1427,
+            "text": "ResolvedRequestDocs(request_doc=request_doc, root_doc=root_doc)"
+          },
+          "as": "context",
+          "because": "Preserve the actual source call and its unknown result/control influence."
+        }
+      ]
+    }
+  ],
+  "queries": [
+    {
+      "property": "local-call",
+      "effect": {
+        "path": "src/documents/views.py",
+        "startLine": 1442,
+        "endLine": 1448,
+        "text": "serve_file(\n            doc=file_doc,\n            use_archive=not self.original_requested(request)\n            and file_doc.has_archive_version,\n            disposition=disposition,\n            follow_formatting=request.query_params.get(\"follow_formatting\", False),\n        )"
+      }
+    }
+  ],
+  "assumptions": []
+}

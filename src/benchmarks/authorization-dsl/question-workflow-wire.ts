@@ -2,6 +2,7 @@ import { z } from "zod"
 import { zodToJsonSchema } from "../../providers/structured.ts"
 import type { LLMTool } from "../../providers/types.ts"
 import { QuestionDeclarationSchema } from "../../task-dsl/authorization/question-workflow.ts"
+import { ExecutableContractSchema } from "../../task-dsl/authorization/executable-contract.ts"
 import { FINITE_PREDICATE_GUIDE } from "../../task-dsl/authorization/control-evaluation.ts"
 import { PropertyIntentProposalSchema } from "../../task-dsl/authorization/property-intent.ts"
 import { isQuestionCheckedStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
@@ -11,12 +12,12 @@ import type { InquiryTools } from "./inquiry-tools.ts"
 export const QuestionGuidanceSchema = z.object({ action: z.enum(["status", "locate", "next-question", "next-source", "materials"]).default("status"), questionId: z.string().min(1).optional(), symbol: z.string().min(1).optional() }).strict()
 export const QUESTION_WORKFLOW_GUIDE = "Use authorization_question for optional question-oriented location, coverage and source candidates. This helper is independent of semantic drafts: continue using common source tools and deliver the original skill's natural answer with citations and precise limits. Candidates and read counts are not authorization evidence. Map every decisive unspecified fact to the conclusion it prevents. The checked strategy additionally accepts source-supported domain statements with authorization_declare and current property queries with authorization_check_properties. No machine result is required to save natural delivery; report unknown machine relations honestly. Do not infer source meaning from this helper."
 export function questionWorkflowSchemas(strategy: InquiryStrategy): Record<string, z.ZodTypeAny> {
-  return { authorization_question: QuestionGuidanceSchema, ...(isQuestionCheckedStrategy(strategy) ? { authorization_declare: QuestionDeclarationSchema, authorization_prepare_properties: PropertyIntentProposalSchema, authorization_check_properties: z.object({}).strict() } : {}) }
+  return { authorization_question: QuestionGuidanceSchema, ...(isQuestionCheckedStrategy(strategy) ? { authorization_declare: z.union([QuestionDeclarationSchema, ExecutableContractSchema]), authorization_prepare_properties: PropertyIntentProposalSchema, authorization_check_properties: z.object({}).strict() } : {}) }
 }
 export function questionWorkflowDefinitions(strategy: InquiryStrategy): LLMTool[] {
   const descriptions: Record<string, string> = {
     authorization_question: "Get optional current-question source locations, read coverage or retained materials. H requires no declarations. next-source advances the checked strategy to an available read candidate while keeping old meanings and gaps; H simply offers the next candidate.",
-    authorization_declare: "Explain the currently offered source passage using cited domain objects, conditions, effects, statements, dependencies and residuals. The host supplies syntax identities and compiles into the existing checker; partial meanings keep unresolved gaps. Each condition test uses this finite predicate contract: " + FINITE_PREDICATE_GUIDE,
+    authorization_declare: "Explain a current read source passage, or submit authorization-executable-contract/v1 with id, scope (function-contract or confirmed request-operation, questionId, complete root citation, upstream gaps), sourceDeclarations, queries and assumptions with provenance. Every declared complete source must already be read. A local root keeps its helper role; upstream request duties stay unresolved. The host supplies syntax identities and actual call mapping through the same checker; partial meanings keep named gaps. No trusted verdict or use record is accepted. Each condition test uses this finite predicate contract: " + FINITE_PREDICATE_GUIDE,
     authorization_prepare_properties: "Declare queries from the exact original task requirements for every undeclared question, or preserve the task uncertainty. This contains no source interpretation or verdict.",
     authorization_check_properties: "Inspect/recompute current local properties from adopted source meanings and actual call instances. Unknown is retained and never blocks the original natural answer.",
   }

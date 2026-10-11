@@ -7,7 +7,7 @@ export interface SourceMaterialIdentity { repository: string; sourceRef: string;
 export interface SourceMaterial {
   id: string; identity: SourceMaterialIdentity; source: NonNullable<BoundSemanticBlock["source"]>; receiverClass?: string;
   dependencies: SourceFactDependency[]; evidenceIds: string[]; unit: BoundSemanticBlock; current: boolean;
-  semanticSupport: "unreviewed"; interpretationSource: "model" | "test-authored" | "revalidated-original";
+  semanticSupport: "unreviewed"; interpretationSource: "model" | "authored-file" | "test-authored" | "revalidated-original";
 }
 export interface SourceMaterialSnapshot {
   schemaVersion: "authorization-source-materials/v1"; materials: SourceMaterial[]; retired: Array<{ id: string; reason: string }>;

@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { compileQuestionDeclaration, questionDeclarationView } from "../../task-dsl/authorization/question-workflow.ts"
+import { compileQuestionDeclaration, questionDeclarationView, QuestionDeclarationSchema } from "../../task-dsl/authorization/question-workflow.ts"
 import { createHash } from "node:crypto"
 import { callBindingRepairDemands } from "./call-binding-repair.ts"
 import { completionMeaning, reconcileSemanticCompletion, recordSemanticCompletionFeedback, type SemanticCompletionItem, type SemanticCompletionOwner } from "./semantic-completion.ts"
@@ -370,10 +370,36 @@ export function createInquiryFocus(options: { program: AuthorizationInquiryProgr
     return skeleton && current?.questionId ? questionDeclarationView(skeleton, { question: questionSeed(current.questionId), previous: current.handle ? sourceDrafts.get(current.handle) : undefined, references: propertyReferences() }) : undefined
   }
   const prepareQuestion = (raw: unknown) => {
+    const parsed = QuestionDeclarationSchema.safeParse(raw)
+    const failure = (code: string, message: string) => ({ diagnostics: [{ code: `question-${code}`, path: "source", message, severity: "error" as const }], raw: undefined })
+    if (!parsed.success) return { diagnostics: parsed.error.issues.map(issue => ({ code: "question-declaration-shape", path: issue.path.join("."), message: issue.message, severity: "error" as const })), raw: undefined }
+    const declaration = parsed.data, at = declaration.source
+    if (declaration.questionId && !options.program.questions.some(q => q.id === declaration.questionId)) return failure("identity", "Use an original question identity from the current task.")
+    if (at.path && !options.tools.files.some(f => f.path === at.path)) return failure("source-out-of-scope", "The original passage is outside the current allowed source files.")
+    let owners = propertySources().filter(owner => (!at.path || owner.skeleton.source.path === at.path) && owner.skeleton.source.startLine === at.startLine && owner.skeleton.source.endLine === (at.endLine ?? at.startLine))
+    if (at.sha256 && owners.length && owners.every(owner => owner.skeleton.source.sha256 !== at.sha256)) return failure("source-stale", "Read and interpret the current original source bytes.")
+    if (at.receiverClass && owners.length && owners.every(owner => owner.receiverClass !== at.receiverClass)) return failure("source-receiver", "This receiver is not a current source owner of the cited passage.")
+    if (declaration.questionId && owners.length && owners.every(owner => owner.questionId !== declaration.questionId)) return failure("source-question-mismatch", "The cited source owner belongs to a different original question; request that question's source explicitly.")
+    owners = owners.filter(owner => (!at.sha256 || owner.skeleton.source.sha256 === at.sha256) && (!at.receiverClass || owner.receiverClass === at.receiverClass) && (!declaration.questionId || owner.questionId === declaration.questionId))
+    if (!owners.length) return failure("source-unread-or-unowned", "Read the whole current original passage and establish its question/operation owner, or use an explicit function contract. Focus alone cannot establish that owner.")
+    // Several work duties may cite one owner. They are not distinct question or
+    // receiver identities; retain its accepted handle or explicit transaction.
+    const identities = new Set(owners.map(owner => JSON.stringify([owner.questionId, owner.operationId, owner.skeleton.sourceId, owner.receiverClass])))
+    if (identities.size === 1 && owners.length > 1) {
+      const units = options.units().filter(u => u.questionId === owners[0]!.questionId && u.source?.id === owners[0]!.skeleton.sourceId && u.receiverClass === owners[0]!.receiverClass)
+      const witness = units.length === 1 ? owners.find(owner => owner.handle === units[0]!.handle) : !units.length ? owners.find(owner => owner.handle === current?.handle) : undefined
+      if (witness) owners = [witness]
+    }
+    if (owners.length !== 1) return failure("source-owner-ambiguous", "The current source has multiple question/receiver owners; supply its questionId and receiverClass. No owner was selected.")
+    const owner = owners[0]!, items = [...options.items(), ...retainedItems.values(), ...transactionItem ? [transactionItem] : []]
+    const item = items.find(i => i.questionId === owner.questionId && i.selected?.id === owner.skeleton.sourceId && i.receiverClass === owner.receiverClass && (options.units().find(u => u.handle === owner.handle)?.itemId === i.id || unitHandle(i) === owner.handle))
+    if (!item) return failure("source-unowned", "The current source transaction is unavailable; request its original source again.")
+    const routed = current?.stage !== "interpret" || current.handle !== owner.handle || current.questionId !== owner.questionId
+    if (routed) { finish("source-declaration-routed"); start("interpret", item, owner.handle, true); context() }
     const skeleton = current?.itemId && offeredSkeletons.get(current.itemId)
-    if (!skeleton || !current?.questionId || current.stage !== "interpret") return { diagnostics: [{ code: "question-source-unoffered", path: "source", message: "Locate and read the current source passage, or request the next source with authorization_question.", severity: "error" as const }] }
+    if (!skeleton || !current?.questionId) return failure("source-unoffered", "The current original source window is unavailable.")
     const compiled = compileQuestionDeclaration(skeleton, raw, { transactionId: editTransaction(skeleton), questionId: current.questionId, properties: questionSeed(current.questionId)?.properties, references: propertyReferences(), previous: current.handle ? sourceDrafts.get(current.handle) : undefined })
-    return compiled.edit ? prepareEdit(compiled.edit) : { diagnostics: compiled.diagnostics }
+    return { ...(compiled.edit ? prepareEdit(compiled.edit) : { diagnostics: compiled.diagnostics }), sourceRouted: routed }
   }
   const prepare = (raw: unknown, offered: LocalExplanationTask[]) => {
     const parsed = FocusedUpdateSchema.safeParse(raw), diagnostics: InquiryDiagnostic[] = []

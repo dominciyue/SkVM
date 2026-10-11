@@ -119,16 +119,18 @@ Identity：`authorization-executable-contract-v1`。结果集中 `results/skill-
 **Modify:** `src/task-dsl/authorization/question-workflow.ts`、`property-query.ts`、`control-conclusion.ts`、`source-materials.ts`；新职责确需单独模块时创建 `executable-contract.ts` 及对应测试。
 
 - [ ] 定义并验证程序来源、两种 scope、假设来源、查询与残余；同一条件可以在不同赋值下重新计算，未知前提保留 unknown。
-- [ ] 用公共核心测试局部 helper 可作为函数合同的根，但不能因此成为请求 entry；缺上游授权时局部结论可交付，whole-request 状态仍保留缺口。
+- [x] 用公共核心测试局部 helper 可作为函数合同的根，但不能因此成为请求 entry；缺上游授权时局部结论可交付，whole-request 状态仍保留缺口。匿名核心/native/file均有实际call trace，原问题保留，requestOperationCertified=false。
 - [ ] 覆盖真/假/未知前提、guard 后置、错主体/错对象/错权限、未注册调用、不同调用实例和假设循环；缺失不能当无影响，假设不能自证待检查性质。
 - [ ] 保持源码含义由作者/模型负责，宿主从实际调用绑定对象。基于问题范围裁剪必须给关联依据，不靠放宽步数/路径上限或忽略所有 unknown 获得结论。
-- [ ] 在 BF 设计记录和 spec14.45 写清选择；这个已授权范围内的细化不等待额外审批。若需要整体架构改向，记录方案并交付可独立完成部分，不偷偷扩大目标。
+- [x] 在 BF 设计记录和 spec14.45 写清选择；这个已授权范围内的细化不等待额外审批。当前采用actual-formal contractInputs，未知省略、假设不赋值，操作异常不被授权条件抹去。
+
+**当前细化（2026-10-12）：** 复用 question-declaration、source material 与 finite-control 的共同核心；函数合同保持 helper 原角色。可变条件作为 inquiry 的 `contractInputs[questionId]`，只绑定局部根的实际形参，接受已有有限标量/数组/平面记录；未知值省略。不得给内部 guard、性质、调用结果或 verdict 赋值。源码字面量仍来自实际调用绑定，假设文字只记录来源、不直接证明性质；宿主显式输入与模型已读覆盖分别记账。此接点用于同一程序重算，未扩大为 Python 解释器或请求级认证。
 
 ### BF4 — 修已读来源提交与渐进声明
 
 **Modify:** `inquiry-focus.ts`、`question-workflow.ts`、`question-workflow-wire.ts`、`inquiry-domain-runtime.ts` 及相应测试。
 
-- [ ] 红测：读 source A、焦点移至 B、提交 A 的合法声明；A 应路由到它自己的当前唯一 owner，不因当前 stage/source 不同丢弃。
+- [x] 红测：读 source A、焦点移至 B、提交 A 的合法声明；A 应路由到它自己的当前唯一 owner，不因当前 stage/source 不同丢弃。等价职责共用一个当前owner，跨题/receiver/过期/范围外具名拒绝。
 - [ ] 测试未读/过期/范围外/重复 owner/跨题/receiver 不匹配；明确诊断，不用固定函数名成功分支。
 - [ ] 编译合法的独立片段，保留有位置的残余；依赖缺失的对象/条件/性质不提前编译为成功。拒绝某字段不清空其他已接受含义，无效更新须撤回受影响旧结论。
 - [ ] 用 BE 已保存原提案零调用派生一次，区分仅修路由即可接受与仍缺源码含义。不给旧提案补答案，不回填真实采用统计。
@@ -146,11 +148,11 @@ Identity：`authorization-executable-contract-v1`。结果集中 `results/skill-
 
 **Modify:** `src/cli/authorization-inquiry.ts`、`inquiry-local.ts`、`inquiry-native.ts`；按需新增 `executable-contract-entrypoints.test.ts`。
 
-- [ ] 实现 §3.3 选定的单一薄入口；check/run/tool 提交共用一个 compiler/evaluator，持久程序相对路径可搬移，拒绝越出允许源码范围。
-- [ ] `check` 明确区分结构有效、执行结果与来源语义复核；`run` 保留完整 skill 和自然任务，机器 unknown 不吞自然回答。
-- [ ] session 存输入程序、实际来源和消费轨迹；inspect 可指出范围/条件/剩余任务，compare 能解释源码、政策、前提及程序修改的影响。
-- [ ] 作者输入拒绝预置 verdict、trusted 身份和伪造已读状态；由宿主实际读取授权原文建立编译覆盖。这类读取与模型已读覆盖分别记账。
-- [ ] 同一程序搬到新目录，通过普通入口执行；不要求用户手填内部 anchor/hash 或构造研究 session。目标源码不执行。
+- [x] 实现 §3.3 选定的单一薄入口；check/run/tool 提交共用一个 compiler/evaluator，持久程序相对路径可搬移，拒绝越出允许源码范围。
+- [x] `check` 明确区分结构有效、执行结果与来源语义复核；`run` 保留完整 skill 和自然任务，机器 unknown 不吞自然回答。匿名account mock消费/自然交付已验证；真实使用另计。
+- [x] session 存输入程序、实际来源和消费轨迹；inspect 可指出范围/条件/剩余任务，compare 能解释源码、政策、前提及程序修改的影响。归档SHA、previous重算、final失效均有公共入口测试。
+- [x] 作者输入拒绝预置 verdict、trusted 身份和伪造已读状态；由宿主实际读取授权原文建立编译覆盖。这类读取与模型已读覆盖分别记账。
+- [x] 同一程序搬到新目录，通过普通入口执行；不要求用户手填内部 anchor/hash 或构造研究 session。匿名package搬移true/false/unknown通过；目标源码不执行。
 
 ### BF7 — 同一个程序的变化行为
 

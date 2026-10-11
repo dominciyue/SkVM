@@ -44,3 +44,42 @@ test("unread, stale, wrong question and trusted verdict fields are rejected", as
     for (const [raw, code] of [[{ ...contract(), verdict: "checked" }, "contract-shape"], [{ ...contract(), scope: { ...contract().scope, questionId: "wrong" } }, "contract-question"], [{ ...contract(), sourceDeclarations: [{ ...contract().sourceDeclarations[0]!, source: { ...contract().sourceDeclarations[0]!.source, sha256: "stale" } }, contract().sourceDeclarations[1]] }, "contract-source-stale"]] as const) expect((await api.compileExecutableContract(raw, f)).diagnostics.some((d: any) => d.code === code)).toBe(true)
   } finally { await f.tools.verifySnapshot() }
 })
+
+test("class receiver citations resolve uniquely from original scope and reject a foreign receiver", async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), "bf-contract-receiver-"))
+  await writeFile(path.join(root, "app.py"), "class Box:\n    def local(self, actor, target):\n        return self.perform(actor, target)\n\n    def perform(self, who, item):\n        if not who.allowed:\n            return False\n        item.sent = True\n        return item\n\nclass Other:\n    pass\n")
+  const tools = await createInquiryTools({ sourceRoot: root, repository: "anonymous", sourceRef: "r", allowedPaths: ["app.py"], structure: true, controlSemantics: "finite-control/v1", propertyDirected: true, questionDirected: true })
+  await tools.execute("source_read", { path: "app.py", startLine: 1, endLine: 12 })
+  const f = await fixture(), raw: any = contract()
+  raw.scope.root = { ...cite(2, 3), receiverClass: "Box" }
+  raw.sourceDeclarations[0].source = { ...cite(2, 3), receiverClass: "Box" }
+  raw.sourceDeclarations[1].source = { ...cite(5, 9), receiverClass: "Box" }
+  for (const declaration of raw.sourceDeclarations) {
+    declaration.statements.unshift({ kind: "object", expression: "self", as: "context", because: "Actual receiver formal" })
+    for (const statement of declaration.statements) if (statement.at) { statement.at.startLine++; statement.at.endLine++; if (statement.at.text?.includes("perform(actor, target)")) statement.at.text = statement.at.text.replace("perform(actor, target)", "self.perform(actor, target)") }
+  }
+  raw.queries[0].effect = cite(8, 8, "item.sent = True"); raw.queries[0].guard = cite(6, 6, "not who.allowed")
+  const result = await api.compileExecutableContract(raw, { tools, program: f.program })
+  expect(result.diagnostics).toEqual([])
+  expect(result.units.every((u: any) => u.receiverClass === "app.Box")).toBe(true)
+  expect(result.materialUses.some((u: any) => u.kind === "call")).toBe(true)
+  const foreign = structuredClone(raw); foreign.sourceDeclarations[1].source.receiverClass = "Other"
+  expect((await api.compileExecutableContract(foreign, { tools, program: f.program })).diagnostics.some((d: any) => d.code === "contract-source-receiver")).toBe(true)
+})
+
+test("the same local source contract recomputes true false and unknown entry inputs without assuming its property", async () => {
+  const f = await fixture(), program = compileAuthorizationInquiry({ schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect local: Reachability of the target write", premises: [], properties: [{ id: "auth", kind: "effect-reachability", requirement: "Reachability of the target write" }] }, { id: "original-other", request: "Retain all original duties", premises: [] }] })
+  for (const [inputs, expected] of [[{ actor: { allowed: true } }, "conditional"], [{ actor: { allowed: false } }, "unreachable"], [undefined, "conditional"]] as const) {
+    const result = await api.compileExecutableContract(contract(), { tools: f.tools, program, inputs })
+    expect(result.diagnostics).toEqual([])
+    const property = result.evaluation.questions[0].properties[0]
+    expect(property.status, JSON.stringify(property)).toBe("checked")
+    expect(property.value, JSON.stringify({ property, rules: result.slice.rules, roots: result.functionRoots })).toBe(expected)
+    expect(result.conditions).toEqual(inputs ?? {})
+    expect(result.requestOperationCertified).toBe(false)
+    const guard = result.slice.rules.find((r: any) => r.kind === "guard")
+    if (inputs) expect(JSON.stringify(guard?.condition)).toContain(`\"literal\":${inputs.actor.allowed}`)
+    else expect(JSON.stringify(guard?.condition)).toContain(".allowed")
+  }
+  expect((await api.compileExecutableContract(contract(), { tools: f.tools, program, inputs: { "$guard": true } })).diagnostics.some((d: any) => d.code === "contract-input-parameter")).toBe(true)
+})

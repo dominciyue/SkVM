@@ -2966,6 +2966,10 @@ BE13补齐已有有限谓词的模型可见合同：静态D声明工具和当前
 
 BF初版已定sourceDeclarations为既有QuestionDeclaration数组，scope.root为完整当前来源引用；id及语义由作者给出，revision/anchor/argument由宿主生成。function-root复用材料投影并给既有lowering指定局部根，保留helper原角色；request-operation只能用已有host-confirmed entry，不能从导入文件重标角色。assumptions暂只保存来源、不向有限求值器赋值，不能以文字假设获得checked。初版公共核心得到匿名跨调用checked，真实Paperless仍unknown，普通文件/工具接点与条件摘要表达仍开发中；完整证据在研究§7.67。
 
+BF6已接入普通`check/run/compare --domain-program=<file>`与native `authorization_declare`共同核心。程序原字节、SHA和大小随session保存，inspect验证归档身份；compatible previous仅在当前来源相同且材料可恢复时导入旧原程序，再生成当前检查，不恢复答案/verdict。check区分结构诊断、有限执行结果和未复核来源语义。作者文件由宿主真实读取原文建立单独覆盖，不冒称模型已读；读取计入运行预算。最终来源失效撤回当前合同结果，保留历史提案。真实A闭合和可搬移使用证据仍待完成。
+
+可变条件采用普通input的`contractInputs[questionId]`，仅绑定function-contract根的实际形参，复用既有有限scalar/array/flat-record值域；未给值省略。禁止内部guard、property、call result或verdict注入，request-operation仍由原host入口负责。assumptions文字只保留来源、不参与求值，不能自证目标性质。值沿实际argument身份传播；显式输入下保留带false谓词的源码分支以证明不可达，原节点/路径界不放宽。允许条件不消除操作异常，因而正常效果仍可能conditional；拒绝条件则可排除效果。compare区分条件变化与程序/来源变化，零模型重算而不恢复旧答案。匿名搬移与true/false/unknown公共入口已有工程证据，实际A/B/C另计。
+
 **来源路由与采用。** 显式来源、当前字节、读取覆盖、operation/question/receiver决定唯一owner；focus只建议下一动作，不阻止提交另一个已读合法来源。未读、过期、多义、越界和跨题冲突具名拒绝。合法独立片段保留，依赖未完成关系不提前采用。R0准备、R1有效材料、R2当前性质继续分层，loaded/restored不能计为used；实际使用须有当前material handle、调用实例和非空trace。
 
 **验证和效果。** 先做真实作者程序和错主体/对象、guard后置/缺失、未注册调用、前提真/假/未知、源码撤回反例，再做自动H/D及同包消费。六首位置分别属于自动编写、作者使用、变化对照，不混成一张自动优化成功表。H/D共同事实、预算和自然回答一致，开发者参考实现、旧答案、评阅及本计划隔离。共享故障当场红绿修复、具名复验；不通过继续坏面板、重复重抽或扩语言全集来推进。程序检查不自证声明的源码含义，独立评价回到实际原文，含BE跨调用参数勘误。
