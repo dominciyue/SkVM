@@ -2,6 +2,7 @@ import { z } from "zod"
 import { zodToJsonSchema } from "../../providers/structured.ts"
 import type { LLMTool } from "../../providers/types.ts"
 import { QuestionDeclarationSchema } from "../../task-dsl/authorization/question-workflow.ts"
+import { FINITE_PREDICATE_GUIDE } from "../../task-dsl/authorization/control-evaluation.ts"
 import { PropertyIntentProposalSchema } from "../../task-dsl/authorization/property-intent.ts"
 import { isQuestionCheckedStrategy, type InquiryStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import type { AuthorizationInquiry } from "../../task-dsl/authorization/inquiry.ts"
@@ -15,7 +16,7 @@ export function questionWorkflowSchemas(strategy: InquiryStrategy): Record<strin
 export function questionWorkflowDefinitions(strategy: InquiryStrategy): LLMTool[] {
   const descriptions: Record<string, string> = {
     authorization_question: "Get optional current-question source locations, read coverage or retained materials. H requires no declarations. next-source advances the checked strategy to an available read candidate while keeping old meanings and gaps; H simply offers the next candidate.",
-    authorization_declare: "Explain the currently offered source passage using cited domain objects, conditions, effects, statements, dependencies and residuals. The host supplies syntax identities and compiles into the existing checker; partial meanings keep unresolved gaps.",
+    authorization_declare: "Explain the currently offered source passage using cited domain objects, conditions, effects, statements, dependencies and residuals. The host supplies syntax identities and compiles into the existing checker; partial meanings keep unresolved gaps. Each condition test uses this finite predicate contract: " + FINITE_PREDICATE_GUIDE,
     authorization_prepare_properties: "Declare queries from the exact original task requirements for every undeclared question, or preserve the task uncertainty. This contains no source interpretation or verdict.",
     authorization_check_properties: "Inspect/recompute current local properties from adopted source meanings and actual call instances. Unknown is retained and never blocks the original natural answer.",
   }

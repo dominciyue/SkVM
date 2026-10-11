@@ -1,6 +1,6 @@
 # BE0–BE18：领域问题前端、相关依赖与机制价值验证
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan. Use test-driven development for production changes. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan. Use test-driven development for production changes. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** 修掉真实任务中错误的框架义务和重复上下文，让模型围绕源码中的授权问题提交含义，宿主承担定位、身份、连接、组合和失效；交付可独立运行的领域辅助 H 与声明检查 D，并用完整原 skill 的 N/H/D 同条件运行判断实际价值。
 
@@ -8,7 +8,9 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、已有 structure index 和有限求值器；Python 仅用于现有文档检查。开发 `gpt-6.1-sol/max`，实验沿用用户已授权官方账号 `gpt-5.6-sol/high`。
 
-状态：`in-progress / BE11`。规划基线 `6c8c79e31588503e6335c1c285ffe0817d7a5b3d`，实际接管 `be13cfc0bea4fa7be148a997670cd0819e04d97c`。BE0–BE10公共工程已接通，最后类型与派生核对后固定版本并进入N1；当前0 BE模型请求，真实效果待测。进度与逐项证据见新identity的status/verification，旧原件不回填。
+状态：`in-progress / BE13`。规划基线 `6c8c79e31588503e6335c1c285ffe0817d7a5b3d`，实际接管 `be13cfc0bea4fa7be148a997670cd0819e04d97c`。BE0–BE12及六首件已执行，同源码tree`7b379ddb`全交付，六整题均partial；第二块D/H为P/F/P/F、N为P/F/P/P。D接受单元1/0，均无非空跨源性质。已有truthy说明缺口公共红绿49pass/482断言及主/研究类型通过；四N/H实际system/tool与当前重建一致，固定源码后进行一次D专属具名复验。分层变化继续，原件/费用分账，旧记录不回填。
+
+BE13现场细化：D2反复提交自由文本`test.expression`被拒；实际归档和独立点验确认现有求值器支持truthy，发送的谓词指南却漏了它。只补通用truthy及语言/operand合同到D静态工具说明和当前指南，保留严格拒绝与旧求值语义。公共账号链先红绿，再固定源码做一次`quality-d-1/predicate-guide-1`具名复验；D独有说明改变，未变N/H只作明确引用control，不加样本/费用。六首件和第一份可恢复D变化基础不替换，不向模型提供当前案例含义或参考答案。
 
 Identity：`authorization-question-workflow-v1`。结果统一进入 `results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/`，临时会话统一进入 `D:/skill优化/project-maintenance/runs/authorization-question-workflow-v1/`。不得回填 BD 原件或续用其位置身份。
 
@@ -99,19 +101,19 @@ H 必须真的能独立前进，不能依赖隐藏的 D 提交、伪造全完成
 
 **Files:** 本任务书；新结果目录 `manifest.json`、`status.json`；只追加根 conversation log。
 
-- [ ] 确认分支、工作树和最新提交；记录其他改动并保留，不清理历史材料。
-- [ ] 记录本轮仅 6 主质量位置和 6 条件变化位置。requirements 与 outcomes 分开，未测结果用 pending/null，不能把验收目标写成已成功的 true。
-- [ ] 按本计划读取具体原件和修改代码；将“已实现跨源绑定”“BD无格式拒绝”“实际context和归档不同”登记为防重复开发约束。
-- [ ] 建立阶段状态和恢复命令，先进入 BE1，不启动额外账号健康探针。
+- [x] 确认分支、工作树和最新提交；记录其他改动并保留，不清理历史材料。
+- [x] 记录本轮仅 6 主质量位置和 6 条件变化位置。requirements 与 outcomes 分开，未测结果用 pending/null，不能把验收目标写成已成功的 true。
+- [x] 按本计划读取具体原件和修改代码；将“已实现跨源绑定”“BD无格式拒绝”“实际context和归档不同”登记为防重复开发约束。
+- [x] 建立阶段状态和恢复命令，先进入 BE1，不启动额外账号健康探针。
 
 ### BE1 — 把错误 DRF 义务写成公共红测
 
 **Modify:** `src/benchmarks/authorization-dsl/operation-work.test.ts`；按需补 `inquiry-worklist.test.ts`。
 
-- [ ] 加一个匿名来源 fixture：`rest_framework/serializers.py` 中 Serializer；`rest_framework/fields.py` 中 Field/IntegerField；应用里的 DataSerializer 和一个真正的 View/dispatch/permission 链。
-- [ ] 通过 `buildStructureIndex` → `operationWork(...,{sourceAssisted:true,questionDirected:true})` 调用现有公开路径；断言普通数据类不产生 `drf:<class>:dispatch`，真正 request receiver 仍有必需检查和缺失诊断。
-- [ ] 原谓词应使 Serializer/IntegerField 两项失败；先运行并保存这个实际红证据，不能只写过滤 helper 的镜像测试。
-- [ ] 追加“同包名但非请求对象”“应用改名/别名”“真实 view 的继承权限缺失”反例，避免靠名称白名单修好案例。
+- [x] 加一个匿名来源 fixture：`rest_framework/serializers.py` 中 Serializer；`rest_framework/fields.py` 中 Field/IntegerField；应用里的 DataSerializer 和一个真正的 View/dispatch/permission 链。
+- [x] 通过 `buildStructureIndex` → `operationWork(...,{sourceAssisted:true,questionDirected:true})` 调用现有公开路径；断言普通数据类不产生 `drf:<class>:dispatch`，真正 request receiver 仍有必需检查和缺失诊断。
+- [x] 原谓词应使 Serializer/IntegerField 两项失败；先运行并保存这个实际红证据，不能只写过滤 helper 的镜像测试。
+- [x] 追加“同包名但非请求对象”“应用改名/别名”“真实 view 的继承权限缺失”反例，避免靠名称白名单修好案例。
 
 测试命令：`bun test ./src/benchmarks/authorization-dsl/operation-work.test.ts ./src/benchmarks/authorization-dsl/inquiry-worklist.test.ts`。
 
@@ -119,104 +121,104 @@ H 必须真的能独立前进，不能依赖隐藏的 D 提交、伪造全完成
 
 **Modify:** `src/benchmarks/authorization-dsl/operation-work.ts`；仅必要时修改现有 receiver/frame context 类型。
 
-- [ ] 用现有 route/action/receiver/可见继承来源判定请求职责，替换任意 `rest_framework.*` 基类即强制 dispatch 的逻辑。
-- [ ] 区分“确认数据对象”“确认请求 receiver”“请求关联尚未证实”。真正请求入口的 dispatch、initial、GET模型权限、对象权限和未采用框架次序仍保留。
-- [ ] 未知 decorator 的影响不能通过“只是文档元数据”猜测消除；纯候选来源不直接升级为所有原题的必需授权义务。
-- [ ] BE1 红绿通过；保存一个 BD 当前提案派生比较：错误义务减少多少、真正义务是否保留。旧归档字节不改，派生件不算真实模型成功。
+- [x] 用现有 route/action/receiver/可见继承来源判定请求职责，替换任意 `rest_framework.*` 基类即强制 dispatch 的逻辑。
+- [x] 区分“确认数据对象”“确认请求 receiver”“请求关联尚未证实”。真正请求入口的 dispatch、initial、GET模型权限、对象权限和未采用框架次序仍保留。
+- [x] 未知 decorator 的影响不能通过“只是文档元数据”猜测消除；纯候选来源不直接升级为所有原题的必需授权义务。
+- [x] BE1 红绿通过；保存一个 BD 当前提案派生比较：错误义务减少多少、真正义务是否保留。旧归档字节不改，派生件不算真实模型成功。
 
 ### BE3 — 限定真正相关的阻断依赖
 
 **Modify:** `src/benchmarks/authorization-dsl/inquiry-worklist.ts`、`src/task-dsl/authorization/control-conclusion.ts`；相关测试。
 
-- [ ] 先测：另一个 action 的响应 Serializer 不阻断当前下载性质；注册在当前路由的权限 middleware 仍阻断；未知变换若可能影响当前 receiver 则具名保留。
-- [ ] 给依赖保留来源、具体 receiver/调用/路径及关联依据。候选发现、取证待办、决定性检查义务分开，避免把所有 `$framework` 缺口扇出到所有题。
-- [ ] 依赖不相关须有结构依据；未解决相关性不能默认当无关。日志能解释为何某缺口作用于哪项性质。
-- [ ] 通过普通 runtime/promptContext/validate 的公共链验证，而非只在 scorer 中过滤 diagnostics；确认错对象、未注册、guard后置等旧反例仍拒绝。
+- [x] 先测：另一个 action 的响应 Serializer 不阻断当前下载性质；注册在当前路由的权限 middleware 仍阻断；未知变换若可能影响当前 receiver 则具名保留。
+- [x] 给依赖保留来源、具体 receiver/调用/路径及关联依据。候选发现、取证待办、决定性检查义务分开，避免把所有 `$framework` 缺口扇出到所有题。
+- [x] 依赖不相关须有结构依据；未解决相关性不能默认当无关。日志能解释为何某缺口作用于哪项性质。
+- [x] 通过普通 runtime/promptContext/validate 的公共链验证，而非只在 scorer 中过滤 diagnostics；确认错对象、未注册、guard后置等旧反例仍拒绝。
 
 ### BE4 — 测量实际上下文与反馈
 
 **Modify:** `src/benchmarks/authorization-dsl/inquiry-native.ts`、`inquiry-domain-runtime.ts`、`src/adapters/codex-account.ts` 的现有计量/回执接点及测试。
 
-- [ ] 在实际 `runtime.definitions` 与 `{toolResult,currentContext}` 发送边界采样，不把 archive `report.domain`/完整 worklist 当模型收到的内容。
-- [ ] 记录每次上下文各部分字节、稳定部分重复次数、当前可选动作和源范围；正常日志不重复存放巨型全文或凭据。
-- [ ] 用 BD 的可恢复原轨迹做零调用派生；明确不可恢复的实际发送字段，缺少的量保持 unknown。
-- [ ] 公共 mock transport 断言计量与实际发送对象一致。当前渲染字节和历史 provider token 分列，不能声称测到历史精确协议 token。
+- [x] 在实际 `runtime.definitions` 与 `{toolResult,currentContext}` 发送边界采样，不把 archive `report.domain`/完整 worklist 当模型收到的内容。
+- [x] 记录每次上下文各部分字节、稳定部分重复次数、当前可选动作和源范围；正常日志不重复存放巨型全文或凭据。
+- [x] 用 BD 的可恢复原轨迹做零调用派生；明确不可恢复的实际发送字段，缺少的量保持 unknown。
+- [x] 公共 mock transport 断言计量与实际发送对象一致。当前渲染字节和历史 provider token 分列，不能声称测到历史精确协议 token。
 
 ### BE5 — 共享源码解释与按需上下文
 
 **Modify:** `src/task-dsl/authorization/source-materials.ts`、`src/benchmarks/authorization-dsl/source-material-projection.ts`、`inquiry-focus.ts`、`inquiry-domain-runtime.ts` 及现有源材料测试；新增模块仅在现有职责无法容纳时使用。
 
-- [ ] 核验现有材料仓：同 source/revision/receiver 的入口被两题使用，只保存一份可共用含义；题目专属 propertyBindings 不串用；两个实际调用不同主体/资源仍隔离。现有去重与调用身份已实现，不重复修改核心；新增公共投影断言，新增行为仍先红测。
-- [ ] 复用现有材料仓和调用实例，不删除 questionId 验证后强行共享。用源材料到各题视图的确定性投影处理老合同。
-- [ ] 实际 currentContext 默认只含当前领域问题、有关原文/提案、变化和具名缺口；完整已读材料可以按需取回。不能重复发送全 worklist/全部草稿，也不能截断决定性分支而没有提示。
-- [ ] 源改变、receiver变化、政策/前提依赖变化、显式撤回分别测试；保持稳定身份，不把 prompt 渲染变成推进状态的动作。
-- [ ] 按同一可重放调用序列报告 before/after 发送字节与保留信息，真实 token 收益留给 BE12–BE13。
+- [x] 核验现有材料仓：同 source/revision/receiver 的入口被两题使用，只保存一份可共用含义；题目专属 propertyBindings 不串用；两个实际调用不同主体/资源仍隔离。现有去重与调用身份已实现，不重复修改核心；新增公共投影断言，新增行为仍先红测。
+- [x] 复用现有材料仓和调用实例，不删除 questionId 验证后强行共享。用源材料到各题视图的确定性投影处理老合同。
+- [x] 实际 currentContext 默认只含当前领域问题、有关原文/提案、变化和具名缺口；完整已读材料可以按需取回。不能重复发送全 worklist/全部草稿，也不能截断决定性分支而没有提示。
+- [x] 源改变、receiver变化、政策/前提依赖变化、显式撤回分别测试；保持稳定身份，不把 prompt 渲染变成推进状态的动作。
+- [x] 按同一可重放调用序列报告 before/after 发送字节与保留信息，真实 token 收益留给 BE12–BE13。
 
 ### BE6 — 领域问题与语义声明前端
 
 **Create:** `src/task-dsl/authorization/question-workflow.ts`、`question-workflow.test.ts`，承载一个窄、可演进的领域前端。**Modify:** 既有 source-edit/任务性质准备的适配接点；不复制整个 lowering 核心。
 
-- [ ] 定义来源支持的 statement/condition/object/effect/dependency/residual 语义，复用已有有限谓词和引用。模型可以解释一段相关源码，宿主生成机械标识；无需按每题重填同一整段函数的全部 slot。
-- [ ] 前端反馈用当前领域问题与具体语义缺口表达，例如“所述守卫约束的对象尚不明确”，保留原文引用；不要只列十几个哈希字段让模型猜值。
-- [ ] 对存在多义的调用、对象和条件提供候选出处，不把其含义写死。可唯一推导的绑定来自当前真实模型材料和源码，不来自评价器。
-- [ ] 写匿名跨函数 positive 和错主体、错资源、guard不可达/后置、缺权限、失效版本 negative。正例必须从领域声明经公开适配器进入现有 v7 检查，不直接手造最终 checked 对象。
-- [ ] 同一调用兼有语义作用时保留真实 call 关系；支持已有合法表示，表达不了时给具名残余，不把未解释 call 当无作用。
+- [x] 定义来源支持的 statement/condition/object/effect/dependency/residual 语义，复用已有有限谓词和引用。模型可以解释一段相关源码，宿主生成机械标识；无需按每题重填同一整段函数的全部 slot。
+- [x] 前端反馈用当前领域问题与具体语义缺口表达，例如“所述守卫约束的对象尚不明确”，保留原文引用；不要只列十几个哈希字段让模型猜值。
+- [x] 对存在多义的调用、对象和条件提供候选出处，不把其含义写死。可唯一推导的绑定来自当前真实模型材料和源码，不来自评价器。
+- [x] 写匿名跨函数 positive 和错主体、错资源、guard不可达/后置、缺权限、失效版本 negative。正例必须从领域声明经公开适配器进入现有 v7 检查，不直接手造最终 checked 对象。
+- [x] 同一调用兼有语义作用时保留真实 call 关系；支持已有合法表示，表达不了时给具名残余，不把未解释 call 当无作用。
 
 ### BE7 — H 独立取证与 D 编译接线
 
 **Modify:** `control-slice.ts` 策略登记、`inquiry-domain-runtime.ts`、`inquiry-focus.ts`、`inquiry-wire.ts`、`inquiry-native.ts`。必要时新增单一 `question-workflow-wire.ts`，职责仅为前端工具合同。
 
-- [ ] 显式登记 `question-guided-v1`/`question-checked-v1`，保留旧默认和历史策略可读性。H 不自动继承会强制 source-edit 的 isFocused/isSemantic 链。
-- [ ] H：只读定位、有关领域问题、覆盖与缺口可运行；没有 D 草稿也能继续读源码和自然交付。工具和 context 均不暗含必填低层协议。
-- [ ] D：前端声明→既有角色/谓词/对象连接→性质候选→独立求值，状态/诊断可见；机械推导唯一候选，多义保持待判断。
-- [ ] D 同时保存自然回答和机器材料状态；机器 unknown 不吞掉自然答，答案也不能把 unknown 偷写成 confirmed safe。
-- [ ] 若转换需要额外模型调用，使用同次实验隔离上下文，完整计入请求、用量、时限和修复账；不得用开发代理在后台补正确语义。
+- [x] 显式登记 `question-guided-v1`/`question-checked-v1`，保留旧默认和历史策略可读性。H 不自动继承会强制 source-edit 的 isFocused/isSemantic 链。
+- [x] H：只读定位、有关领域问题、覆盖与缺口可运行；没有 D 草稿也能继续读源码和自然交付。工具和 context 均不暗含必填低层协议。
+- [x] D：前端声明→既有角色/谓词/对象连接→性质候选→独立求值，状态/诊断可见；机械推导唯一候选，多义保持待判断。
+- [x] D 同时保存自然回答和机器材料状态；机器 unknown 不吞掉自然答，答案也不能把 unknown 偷写成 confirmed safe。
+- [x] 若转换需要额外模型调用，使用同次实验隔离上下文，完整计入请求、用量、时限和修复账；不得用开发代理在后台补正确语义。
 
 ### BE8 — 普通入口、账号静态 Schema 与可恢复会话
 
 **Modify:** `src/cli/authorization-inquiry.ts`、`inquiry-local.ts`、`adapters/codex-account.test.ts`；新增 `question-workflow-entrypoints.test.ts`。
 
-- [ ] 验证 `check/run/inspect/compare` 的显式策略组合；完整 skill 继续用 loadRunSkill/materializeNaturalRunTask/buildRunSkillBundle，不在研究 runner 自造替代包。
-- [ ] 静态 thread/start tool Schema、实际模型反馈、参数 parser、阶段准入共同测试。官方账号不是只测 provider beforeDispatch 就算接通。
-- [ ] 一条 transport 测试走原文读取、H领域定位和自然交付；另一条走 D声明/编译/跨源求值/自然交付/会话存档；断言不存在 oracle、root开发文档或旧答案注入。
-- [ ] 普通 session 支持 R0/R1/R2 分层 inspect/compare/previous。含义复用仍带出处与缺口；没有 R2 时不能沿用旧结论。
-- [ ] 在 usage 补可运行命令前，先在真实 CLI 路由上执行零模型 check 和 mock consumer。不要发布尚不存在的选项。
+- [x] 验证 `check/run/inspect/compare` 的显式策略组合；完整 skill 继续用 loadRunSkill/materializeNaturalRunTask/buildRunSkillBundle，不在研究 runner 自造替代包。
+- [x] 静态 thread/start tool Schema、实际模型反馈、参数 parser、阶段准入共同测试。官方账号不是只测 provider beforeDispatch 就算接通。
+- [x] 一条 transport 测试走原文读取、H领域定位和自然交付；另一条走 D声明/编译/跨源求值/自然交付/会话存档；断言不存在 oracle、root开发文档或旧答案注入。
+- [x] 普通 session 支持 R0/R1/R2 分层 inspect/compare/previous。含义复用仍带出处与缺口；没有 R2 时不能沿用旧结论。
+- [x] 在 usage 补可运行命令前，先在真实 CLI 路由上执行零模型 check 和 mock consumer。不要发布尚不存在的选项。
 
 ### BE9 — 机制反例与当前派生诊断
 
 **Modify:** BE结果 `verification/` 中的诊断脚本与测试；生产反例仍在对应模块测试。
 
-- [ ] 合并 BE1–BE8 的公共链红绿记录；零模型重放 BD D1/D2提案，报告错误框架义务、材料数、重复单元、实际context和性质状态变化。
-- [ ] 不为旧模型提案补新含义；不能兼容的新前端字段保留“没有原始提案”，用匿名 fixture 检查表达能力另列。
-- [ ] 核对核心跨源反例：实际相同调用/对象才能组合；未注册守卫、不同principal/resource、两次调用实例、源撤回和权限不符均不能 checked。
-- [ ] 若字段减少但公共链仍要求模型处理原全部 slot，回到 BE6–BE7修正，不能直接用更多真实调用试运气。
+- [x] 合并 BE1–BE8 的公共链红绿记录；零模型重放 BD D1/D2提案，报告错误框架义务、材料数、重复单元、实际context和性质状态变化。
+- [x] 不为旧模型提案补新含义；不能兼容的新前端字段保留“没有原始提案”，用匿名 fixture 检查表达能力另列。
+- [x] 核对核心跨源反例：实际相同调用/对象才能组合；未注册守卫、不同principal/resource、两次调用实例、源撤回和权限不符均不能 checked。
+- [x] 若字段减少但公共链仍要求模型处理原全部 slot，回到 BE6–BE7修正，不能直接用更多真实调用试运气。
 
 ### BE10 — 有限研究入口与公平性测试
 
 **Create:** 新 identity 下 `study.ts`、`runner.ts`、`summarize.ts`、对应测试和 `tsconfig.json`；适度复用 BD runner 支持函数，不修改旧 study/manifest/replay。
 
-- [ ] 六主位置：`quality-n-1`、`quality-h-1`、`quality-d-1`、`quality-d-2`、`quality-h-2`、`quality-n-2`，按此顺序执行。同一完整任务重复两轮，每轮三臂；四子题是相关观察。
-- [ ] 原 skill：`results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/model/source-skills/cloudflare-security-audit/SKILL.md`。
-- [ ] 原输入：`results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/model/packages/download/inquiry.json`。沿源快照确认四问、95允许源及22文件skill；复制或重定位仅改机械路径，不人工准备 D 独有答案声明。
-- [ ] 新 study 提供 `prepare <position>`、`run <position> [named-revision]`、`replay`、`summarize`。prepare 不调用模型，检查公共输入/工具边界/输出未占用；质量准入没有 qualified property 条件。
-- [ ] 变化登记 policy/premise/source 各 fresh/previous 六位置；沿 BC 同三变化事实与文件，先人工确认事实合同但不向模型写正确结论。按 §3.4 独立选择材料层级，不能因为 D0性质就统一封存所有变化。
-- [ ] 公平性红测覆盖旧答案泄漏、D 独有预加工、缺题、不同预算、隐藏模型转换、首件覆盖和同一费用重复计数。
+- [x] 六主位置：`quality-n-1`、`quality-h-1`、`quality-d-1`、`quality-d-2`、`quality-h-2`、`quality-n-2`，按此顺序执行。同一完整任务重复两轮，每轮三臂；四子题是相关观察。
+- [x] 原 skill：`results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/model/source-skills/cloudflare-security-audit/SKILL.md`。
+- [x] 原输入：`results/skill-ir/skill-dsl-research/development/authorization-interprocedural-property-v1/model/packages/download/inquiry.json`。沿源快照确认四问、95允许源及22文件skill；复制或重定位仅改机械路径，不人工准备 D 独有答案声明。
+- [x] 新 study 提供 `prepare <position>`、`run <position> [named-revision]`、`replay`、`summarize`。prepare 不调用模型，检查公共输入/工具边界；run在派发前核对位置及输出未占用。质量准入没有 qualified property 条件。
+- [x] 变化登记 policy/premise/source 各 fresh/previous 六位置；沿 BC 同三变化事实与文件，先人工确认事实合同但不向模型写正确结论。按 §3.4 独立选择材料层级，不能因为 D0性质就统一封存所有变化。
+- [x] 公平性红测覆盖旧答案泄漏、D 独有预加工、缺题、不同预算、隐藏模型转换、首件覆盖和同一费用重复计数。
 
 ### BE11 — 离线准备与实际失败后的现场修复
 
-- [ ] 先通过新入口匿名正反例、主/研究类型和受影响回归，再准备第一个实际主位置；不单独调用模型健康检查。
-- [ ] 每次真实响应立刻检查：通道/传输、回答逐题、源码材料/性质、实际context、预算。失败先保留原件并定位，不能等六位置跑完再改已知共享缺陷。
-- [ ] 可复现实现错误：红测→共享修复→绿测→具名复验；其他独立任务继续。语义遗漏：据当前原文检查是没有读、错误调度、表达缺口还是模型判断，作一次有依据的通用修复和具名复验，不向模型给参考答案。
-- [ ] 没有可证共享改动时保留自然失败，给可检查诊断；禁止为了“当场修一次”编造代码或幸运重抽。同因两次无保留进展转确定性定位，新根因可继续处理。
-- [ ] 每个修订有名称/理由/实际代码版本；首件永不替换。共同 helper/提示行为改变时重建受影响比较；仅 D 独有处理改变可引用未变 N/H 作明确的修订比较，引用不增加样本或重复记费用。
-- [ ] 质量position身份保持六个，首件各一次；复验归入同一position的独立revision/attemptId/codeEpoch。首件表与各epoch修订表分别汇总，不能把两者混成一轮。总成本按唯一attempt/request计一次，包含转换、修复和复验；引用旧control只引用证据，不再累加样本或费用。新修订必须写明与哪些control仍可比较及原因。
+- [x] 先通过新入口匿名正反例、主/研究类型和受影响回归，再准备第一个实际主位置；不单独调用模型健康检查。
+- [x] 每次真实响应立刻检查：通道/传输、回答逐题、源码材料/性质、实际context、预算。失败先保留原件并定位，不能等六位置跑完再改已知共享缺陷。
+- [x] 可复现实现错误：红测→共享修复→绿测→具名复验；其他独立任务继续。语义遗漏：据当前原文检查是没有读、错误调度、表达缺口还是模型判断，作一次有依据的通用修复和具名复验，不向模型给参考答案。
+- [x] 没有可证共享改动时保留自然失败，给可检查诊断；禁止为了“当场修一次”编造代码或幸运重抽。同因两次无保留进展转确定性定位，新根因可继续处理。
+- [x] 每个修订有名称/理由/实际代码版本；首件永不替换。共同 helper/提示行为改变时重建受影响比较；仅 D 独有处理改变可引用未变 N/H 作明确的修订比较，引用不增加样本或重复记费用。
+- [x] 质量position身份保持六个，首件各一次；复验归入同一position的独立revision/attemptId/codeEpoch。首件表与各epoch修订表分别汇总，不能把两者混成一轮。总成本按唯一attempt/request计一次，包含转换、修复和复验；引用旧control只引用证据，不再累加样本或费用。新修订必须写明与哪些control仍可比较及原因。
 
 ### BE12 — 完成首轮三臂并即时评阅
 
-- [ ] 执行 N1→H1→D1，保留完整四问，不把 Q3 已知容易改成唯一问题。原答评阅逐项回到允许源码，分支遗漏、事实到结论映射及错误陈述分别记录。
-- [ ] 评阅尽量在不知道臂名/成本时先裁定；独立只读意见仍由主线程核对具体出处，不能照搬旧 source-review 结论。
-- [ ] D 的失败同时定位前端、采用、调用组合、相关依赖、性质/终答，不以机器 partial 推导自然质量 partial。
-- [ ] 有合格当前性质则记录非空真实trace、跨源定位及独立源码支持；无则列第一个实质缺口，继续 H/N质量及 BE13，不能把此条件变成总闸门。
+- [x] 执行 N1→H1→D1，保留完整四问，不把 Q3 已知容易改成唯一问题。原答评阅逐项回到允许源码，分支遗漏、事实到结论映射及错误陈述分别记录。
+- [x] 评阅尽量在不知道臂名/成本时先裁定；独立只读意见仍由主线程核对具体出处，不能照搬旧 source-review 结论。
+- [x] D 的失败同时定位前端、采用、调用组合、相关依赖、性质/终答，不以机器 partial 推导自然质量 partial。
+- [x] 有合格当前性质则记录非空真实trace、跨源定位及独立源码支持；无则列第一个实质缺口，继续 H/N质量及 BE13，不能把此条件变成总闸门。
 
 ### BE13 — 第二轮与机制价值判断
 

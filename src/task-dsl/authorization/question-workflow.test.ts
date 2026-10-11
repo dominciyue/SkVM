@@ -30,6 +30,13 @@ test("source-supported domain statements compile mechanical identities without a
   expect(JSON.stringify(view)).not.toContain("anchorId")
   expect(JSON.stringify(view)).not.toContain("transactionId")
   expect(view.instruction).toContain("unresolved")
+  expect(view.predicateGuide).toContain('op:"truthy"')
+  expect(view.predicateGuide).toContain('language:"python"|"go"')
+})
+test("free-text conditions are rejected rather than interpreted as a finite predicate", async () => {
+  const f = await fixture(), raw = declaration()
+  ;(raw.statements[2] as any).test = { expression: "not actor.allowed" }
+  expect(api.compileQuestionDeclaration(f.skeleton, raw, f.options).diagnostics.some((d: any) => d.code === "source-edit-predicate-unsupported")).toBe(true)
 })
 test("a stale source, unshown object and ambiguous citation remain named domain gaps", async () => {
   const f = await fixture()
