@@ -4,9 +4,9 @@
 
 ## 当前工作
 
-**[BF0–BF17：真实可执行授权 DSL、自动编写接线与变化消费](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)已获用户授权，状态为`in-progress / BF9准备与BF10自动首对`。** 规划基线`74bf7bef`，按约8小时有用工作量派发`gpt-6.1-sol/max`。真实作者程序已通过普通入口得到局部跨函数结果，接下来做隔离的自动编写和同包变化消费。方法见[spec§14.45](skill-ir-aot-optimization-spec.md#1445-bf-executable-contract-and-authoring)、[研究§7.67](skill-dsl-research.md#767-bf-真实可执行程序与自动编写接线)与[当前计划](skill-ir-aot-optimization-plan.md)。实际质量及收益尚未建立。
+**[BF0–BF17：真实可执行授权 DSL、自动编写接线与变化消费](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)已获用户授权，状态为`in-progress / BF11编写指引修订与BF12消费准备`。** 规划基线`74bf7bef`，按约8小时有用工作量派发`gpt-6.1-sol/max`。真实作者程序已通过普通入口得到局部跨函数结果，隔离 H/D 首件均已自然交付；D 原件未尝试声明/检查，进行一次通用指引改进后继续同包变化消费。方法见[spec§14.45](skill-ir-aot-optimization-spec.md#1445-bf-executable-contract-and-authoring)、[研究§7.67](skill-dsl-research.md#767-bf-真实可执行程序与自动编写接线)与[当前计划](skill-ir-aot-optimization-plan.md)。实际质量及收益尚未建立。
 
-BF把开发者编写的表达能力诊断、模型自动编写、普通消费与变化收益分轨。实际接管34e5e302；[manifest](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/manifest.json)与[status](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/status.json)逐轴记录。两真实可见性函数在user=null时使权限ID调用不可达，零模型check/native含实际双源trace与材料采用；撤去条件后unknown。file_response v4的数据库解释缺口仍保留，完整Download尚未闭合。新鲜1863测试通过/1平台跳过、12423断言及主/BF类型通过。helper不改请求entry，完整原skill与四问保留，A原稿不进入B；尚无BF模型请求或真实C消费。约8小时是工作估计，不靠等待/重复审计凑时长；账号、历史未知和保护证据边界保持，新线程为唯一开发写者。
+BF把开发者编写的表达能力诊断、模型自动编写、普通消费与变化收益分轨。实际接管34e5e302；[manifest](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/manifest.json)与[status](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/status.json)逐轴记录。两真实可见性函数在user=null时使权限ID调用不可达，零模型check/native含实际双源trace与材料采用；撤去条件后unknown。源码变化撤回旧声明，独立政策与前提重算及第二结构普通例子已验证；file_response v4和完整Download仍缺。新鲜1863测试通过/1平台跳过、12423断言及主/BF类型通过，指引改动后20公共入口测试通过。H 推理前本地CLI版本失败后用已验证二进制具名恢复；H/D已交付原四问，D57工具中0声明/检查、0材料采用。一次 D 专用通用指引修订保留原件/费用，A含义不入B，真实C尚待运行。约8小时是工作估计，不靠等待/重复审计凑时长；账号、历史未知和保护证据边界保持，新线程为唯一开发写者。
 
 ## BE 已结束的实际结果
 

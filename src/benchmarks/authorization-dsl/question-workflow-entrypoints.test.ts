@@ -7,6 +7,7 @@ import { isFocusedInquiryStrategy, isSemanticInquiryStrategy, parseInquiryStrate
 import { resolveInquiryContext } from "./inquiry-context.ts"
 import { executeLocalInquiryRun, inspectLocalInquiry, compareLocalInquiry } from "./inquiry-local.ts"
 import { runAuthorizationInquiryCli } from "../../cli/authorization-inquiry.ts"
+import { questionWorkflowDefinitions } from "./question-workflow-wire.ts"
 async function fixture(source = "def entry(actor, target):\n    return perform(actor, target)\n\ndef perform(actor, target):\n    if not actor.allowed:\n        return False\n    target.sent = True\n    return target\n", requiredPermission?: string) {
   const root = await mkdtemp(path.join(os.tmpdir(), "be-question-entrance-")); await writeFile(path.join(root, "app.py"), source)
   const inquiry = { schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect app.entry: authorization before the write", entryHint: "app.entry", premises: [], properties: [{ id: "auth", kind: "authorization-before-effect", requirement: "authorization before the write", ...(requiredPermission ? { requiredPermission } : {}) }] }] }
@@ -17,6 +18,15 @@ test("explicit H stays outside the focused semantic chain while D uses the exist
   const h = parseInquiryStrategy("question-guided-v1"), d = parseInquiryStrategy("question-checked-v1")
   expect(isFocusedInquiryStrategy(h)).toBe(false); expect(isSemanticInquiryStrategy(h)).toBe(false)
   expect(isFocusedInquiryStrategy(d)).toBe(true)
+})
+test("only D's account tool contract directs source authoring and checking while allowing existing materials", () => {
+  const h = questionWorkflowDefinitions("question-guided-v1"), d = questionWorkflowDefinitions("question-checked-v1")
+  expect(h.some(tool => tool.name === "authorization_declare")).toBe(false)
+  expect(d.find(tool => tool.name === "authorization_question")).toEqual(h.find(tool => tool.name === "authorization_question"))
+  const instruction = d.find(tool => tool.name === "authorization_declare")!.description
+  expect(instruction).toMatch(/After reading.+submit.+authorization_check_properties/)
+  expect(instruction).toContain("imported or restored materials")
+  expect(instruction).toContain("unexpressed meanings as named gaps")
 })
 function declaration(context: any) {
   const view = context.questionWorkflow, statements: any[] = [], source = view.currentSource
