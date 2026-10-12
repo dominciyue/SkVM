@@ -8,6 +8,8 @@
 
 identity为`authorization-practical-execution-v1`。请求10→授权根10→文件11/archive；只把version由null改为空串，同程序实际消费改为文件12/original，采用1份旧源码材料。10个零模型变体覆盖拒绝/缺失/回退；源码副本检查发现并修复helper来源依赖遗漏，当前权限摘要失效而无关选择保留。DSL同期答案四问full；首件及同信息Markdown均Q1 partial，其余full。自动编写产出3源合同，但无资源主链、0采用，完整自动化未达。同期一对DSL多21,797输入/1,489输出，快68,510ms；净收益/泛化不成立。known input5,308,698（含cache4,672,000）/output46,982，211工具；USD、隐藏请求、开发/探子成本和真人分钟unknown。方法见[spec§14.46](skill-ir-aot-optimization-spec.md#1446-bg-practical-end-to-end-execution)、[研究§7.68](skill-dsl-research.md#768-bg-全流程优先与同任务执行决定)。旧BF队列与保护证据不变。
 
+实质成果已发布至`35a91c2a`，用户origin远端逐字核对一致，见[发布回执](../../results/skill-ir/skill-dsl-research/development/authorization-practical-execution-v1/publication.json)。授权相关1918通过/1平台skip/12792断言、主/研究类型和15文档测试通过；本轮未跑全src，旧104失败不称已修。
+
 ## BF 已结束的实际结果
 
 **[BF0–BF17：真实可执行授权 DSL、自动编写接线与变化消费](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)以`completed-with-unmet-criteria`收束，BF17实质成果已发布至4a002635并核对用户origin远端。** 六首位置均有已知终态，9归档含8模型交付和1推理前失败，无BF活动/未知请求。作者程序从普通入口得到局部跨函数结果，自动编写未产生可采用材料；给定程序的普通消费及R1实际复用成立，整题质量和同条件净收益未达。各轴见[summary](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/summary.json)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/verification/acceptance-matrix.json)、[执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/verification/authorized-execution-closeout.json)及[发布回执](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/verification/publication.json)；方法及复盘见[spec§14.45](skill-ir-aot-optimization-spec.md#1445-bf-executable-contract-and-authoring)、[研究§7.67](skill-dsl-research.md#767-bf-真实可执行程序与自动编写接线)与[当前计划](skill-ir-aot-optimization-plan.md)。
@@ -68,7 +70,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 ## 账号、运行和继承边界
 
 - BG开发 `gpt-6-astra/high`，按用户“astra6 high”派发；实验沿用已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。
-- BG按新任务书连续推进，先真实普通全流程、再自动编写/变化/必要对照；具体上限若确实截断有效运行可具名调整，账号未知与费用风险仍按有限恢复处理。不增加日常审批或重复历史审计。
+- BG有限执行已收束，无活动或未知请求；自动编写与重复上下文成本为未达项，不自动增加样本。后续新任务继续遵守具名恢复、账号未知和成本记录边界。
 - BF六首位置及三具名修订已处置，可选反序第二对因自动R1未达未运行。自动编写、作者给定程序消费及变化复用各自分母；不会自动追加模型。新范围不升级旧readiness或改变项目默认。
 - BE六质量首位置和六变化逻辑位置已完成，保持完整原skill/四问及失败分母。source-previous两件确定未派发，仅一个同输入/epoch的登记恢复交付；原件和79,770ms本地开销保留。R0/R1资格、恢复和实际使用分列，旧答案/评阅/verdict不进入previous；R2缺失使实际R2撤回实验未执行。旧BD六未运行不补行，OWUI继续仅离线。
 - AY额度提示、AZ unavailable及BA `paused-recurring-routing`均保留；BC/BD已交付不解除旧未知。BE明确终态routing失败允许一次具名恢复，连续两次或本轮累计三次恢复仍失败则暂停外部派发。quota/auth立即暂停，unknown只核查原生命周期；历史累计成本及旧未知不清除，不额外健康探针、轮询或旁路。

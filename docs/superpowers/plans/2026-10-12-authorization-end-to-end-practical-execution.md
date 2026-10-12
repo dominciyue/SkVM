@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有源码工具/有限求值器/官方账号 adapter。开发 **gpt-6-astra/high**，实验使用已授权官方账号 **gpt-5.6-sol/high**。
 
-状态：`completed-with-unmet-criteria / BG0–BG15实质交付，BG16发布收尾`。规划基线 `ff37395b119dd85030c61ea38d4a6f98d1fd5be7`；实际从规划提交 `4a247638` 的干净skill-ir-aot接管。7归档/5模型交付/2推理前CLI版本拒绝，无活动或未知请求；各轴见本轮summary/status/accounting/review/comparison。勾选表示该项工作已处置，不表示自动编写或收益获胜。
+状态：`completed-with-unmet-criteria / BG0–BG16已收束，实质成果35a91c2a已发布并核远端`。规划基线 `ff37395b119dd85030c61ea38d4a6f98d1fd5be7`；实际从规划提交 `4a247638` 的干净skill-ir-aot接管。7归档/5模型交付/2推理前CLI版本拒绝，无活动或未知请求；各轴见本轮summary/status/accounting/review/comparison。勾选表示该项工作已处置，不表示自动编写或收益获胜。
 
 实际验收：25步Download、10离线变体、普通完整skill消费和单事实变化成立，程序SHA保持且变化实际采用1份材料；源码副本曾暴露helper footprint遗漏，已补sources[]并红绿验证。同期DSL四问full，首件及Markdown为P/F/F/F；自动稿3源但0资源步骤/0采用，完整自动化未达。1918通过/1平台skip/12792断言及主/研究类型通过。可用入口为examples/authorization-assessment/download-workflow/run.ps1；过程在普通session/execution.md。来源依赖修复在账号运行后，只以零模型确认，旧账号原件不回填。重复上下文token优化和一般收益仍未达，不通过增加模型样本追求获胜。
 
