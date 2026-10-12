@@ -2,27 +2,28 @@
 
 更新于2026-10-13。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BI0–BI23](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)已以`completed-with-unmet-criteria`发布。八个有限账号位置全部交付，无活动/未知请求；当前没有待派模型或实施队列。
-- 方法合同：[spec§14.48](skill-ir-aot-optimization-spec.md#1448-bi-authoring-closure-and-reliable-consumption)；复盘统一在[研究§7.70](skill-dsl-research.md#770-bi-作者目标有序修稿与保真消费)。BH实际结果见§7.69及[summary](../../results/skill-ir/skill-dsl-research/development/authorization-incremental-program-v1/summary.json)。
-- identity：`authorization-authoring-closure-v1`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；新线程独占代码、共享方法文档与Git写入。
+- 当前任务书：[BJ0–BJ25](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)已授权、待派发实施，尚无BJ实现或实验结果。
+- 方法合同：[spec§14.49](skill-ir-aot-optimization-spec.md#1449-bj-authoring-loop-and-program-completion)；复核和后续开发过程统一在[研究§7.71](skill-dsl-research.md#771-bj-输入接线与自动编写运行闭环)。BI实际结果保留在§7.70。
+- identity：`authorization-authoring-loop-v1`，实施基线`ace945fa`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；派发后新线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6.1-sol/max`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停，OWUI/历史未知ShareLink仅离线，旧未知和保护证据保持。
 
-工程提交00053b32、c9749483；已实施方法与实际验证由上述spec、研究复盘和任务书承载。本计划仅保留下列未达责任，约12小时工作量估算不要求凑等待或新增面板。
+约12小时有效开发量：输入/普通入口约2小时、实际反馈和修稿约2.5小时、自动主链约2.5小时、同稿变化/恢复约2.5小时、比较/计量约1.5小时、必要交付约1小时。尽早在2–3小时内让真实作者使用共享修复；不等全部离线工作结束才运行。10小时左右复查剩余优先级，12小时附近完成当前有界动作并交接；不等待、重复审计或盲目抽样凑时长。
 
-## 未达责任与下一责任人
+## 当前开发责任
 
-| 责任 | 实际缺口 | 下一责任 |
+| 责任 | 实际缺口 | BJ动作 |
 |---|---|---|
-| 自动输入绑定 | A2/C1/C2当前inputs为空，原/变均conditional | 模型作者依据inputBindings选择原题scope或修声明；宿主不移用其他题的事实 |
-| 版本与最终文件 | None/empty/explicit选择和latest排序未完整计算 | 作者从允许源码编写现有有限关系，保留原任务和原稿来源 |
-| 授权与root关系 | 非owner权限仍外部结果、加载root/失查回退未完整表达 | 作者提供source-supported关系，外部grant/构造/部署仍分别条件化 |
-| 完整任务 | A1 P/F/P/F、C1 F/P/F/F、P1 compact F/F/F/P | 后续范围须针对具体漏项；自然full与机器computed分开 |
-| 稳定收益 | P0 tradeoff、P1 negative；两对开发者材料不能证明自动化或泛化 | 当前默认full，不自动加样本、升项目默认或算未知USD盈亏 |
+| 空草稿详情 | 无candidate与无currentRevision相等后访问undefined | 公共路径失败测试和局部修复 |
+| 自动输入绑定 | A2/C1/C2按语义题目查不到事实 | 显式同operation数据绑定；resourceInputs/externalAssumptions共核，contractInputs保留语义scope |
+| 作者运行闭环 | 首次提交太晚，最后薄反馈无实际确认 | 早期草稿、实际数据、执行/阻断反馈、当场修复并真实确认 |
+| 版本、权限与root关系 | 有输入仍缺空version、拒绝与失查回退 | 模型从允许源码补规则，外部grant/构造与源码分支分开 |
+| 编写与复用 | 恢复成功和从零成功易被混用 | R/F/C/S各自留账，固定自动原稿检验变化；第二结构离线验证 |
+| 质量与成本 | BI P0取舍、P1负向 | full默认；同期原skill基线与自动稿消费反序配对，完整四问、作者成本和unknown费用分别报告 |
 
-普通自动稿命令及可读结果见[Download说明](../../examples/authorization-assessment/download-workflow/README.md)，实际分轴记录见[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/summary.json)。开发者25步参考程序是另一路径，默认展示不能替换自动产物。
+普通入口继续使用[Download说明](../../examples/authorization-assessment/download-workflow/README.md)。发现共享缺陷先修再确认，不继续派发受其影响的位置；修复前后版本及失败均保留。九个主用途之外可以运行有明确代码依据的具名确认，不以首位置已跑完替代工程责任完成。自动作者隔离评价器、参考程序和历史答案；恢复作者只能读自己的旧稿。
 
-## 后续范围
+## 继承的真实结果
 
-本轮实现/验证/原件已发布至3cce2d02并核对用户origin，见[发布回执](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/publication.json)。1942授权联合通过/1平台skip/12930断言、主/研究类型、15文档单测及当前链接锚点通过；实际搬移、原字节入库和发送对账保持。
+BI最终发布ace945fa，八位置全部交付、无BI活动/未知请求。A2恢复稿12步但原/变消费均无文件计算；自然整题5/8 full分属作者、自动稿消费者和开发者材料，P0 tradeoff/P1 negative。[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/summary.json)及旧原件保持，开发者25步程序不替代自动成功。历史1942授权联合通过/1平台skip、类型和15文档测试是BI验证记录。
 
-有限队列完成，研究目标仍false。以上未达责任表供后续明确范围使用，不授权自动追加第三作者、P面板或历史未知重发。BH/BE及held-out/prospective/Q1/readiness、历史0-of-6和全src旧104失败保留。记录的接管至实质成果远端核对为约2.6小时，工作量估算不作为凑时长目标。
+发布后定向复核68测试/502断言通过，公开运行仍conditional。诊断性补入输入仅用于定位剩余含义缺口，不回填BI或记为自动成功。BJ重新承接未达责任，不向BI补行；BH/BE及held-out/prospective/Q1/readiness、历史0-of-6、旧未知与全src旧104失败保持。

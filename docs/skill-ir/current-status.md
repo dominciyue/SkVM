@@ -4,6 +4,12 @@
 
 ## 当前工作
 
+**BJ0–BJ25已授权，准备派发实施；当前尚无BJ实现或实验结果。** [任务书](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)按约12小时有效开发量安排，由新的`gpt-6.1-sol/max`线程推进，identity为`authorization-authoring-loop-v1`。优先接通显式数据输入绑定、早期试编译及运行反馈，再让自动作者补齐版本、权限和root回退关系；full保持默认。方法见[spec§14.49](skill-ir-aot-optimization-spec.md#1449-bj-authoring-loop-and-program-completion)及[研究§7.71](skill-dsl-research.md#771-bj-输入接线与自动编写运行闭环)。派发后由新开发线程独占代码、共享执行状态和Git写入。
+
+实施基线为BI最终提交`ace945fa`。发布后复核的68项定向测试、502断言通过，普通自动稿仍为conditional且无文件返回；仅诊断性补入输入后仍暴露空version、拒绝及root回退缺口，未计为自动成功。空草稿details还可触发TypeError。BJ要求共享修复得到实际作者确认，恢复修稿、独立新编写、固定原稿消费与对照分别留账。
+
+## BI 已结束的实际结果
+
 **BI0–BI23以`completed-with-unmet-criteria`收束，八个真实位置全部交付，无活动或未知请求。** [任务书](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)的共享工程已落地至c9749483；授权联合1942通过/1平台skip/12930断言、主/研究类型、15文档测试及当前链接锚点通过。实质成果已发布至3cce2d02并核对用户origin同SHA，见[回执](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/publication.json)。identity为`authorization-authoring-closure-v1`，开发模型`gpt-6.1-sol/max`，实验`gpt-5.6-sol/high`。方法见[spec§14.48](skill-ir-aot-optimization-spec.md#1448-bi-authoring-closure-and-reliable-consumption)、[研究§7.70](skill-dsl-research.md#770-bi-作者目标有序修稿与保真消费)。
 
 A2十二步原稿在C1/C2之前冻结；原/变输入下均因question/input绑定及版本、权限、root回退关系缺口无computed文件返回。自然四问分别为A1 P/F/P/F、A2 F/F/F/F、C1 F/P/F/F、C2 F/F/F/F；给定材料P0两臂均full，P1 compact第四问partial、full全full。P0为tradeoff，P1为negative，未建立稳定净收益，示例默认full、compact显式使用。自动稿普通命令及实际conditional结果见[Download说明](../../examples/authorization-assessment/download-workflow/README.md)，详细依据见[逐题评阅](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/quality.json)、[配对成本](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/comparison.json)与[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/summary.json)。共享输入绑定反馈不回填冻结稿，也不追抽第三作者。
@@ -77,11 +83,11 @@ BB先保留effect/context标注下的源码调用，沿真实调用实例连接�
 - 两作者包已按原字节实际消费。Download消费者源码评阅full但机器partial；OWUI消费者仍有决定性helper未读。变化中policy-fresh、premise-fresh/previous已有运行；policy-previous路由失败、source-fresh额度拒绝，source-previous及质量位置保留未运行。
 - 原件、计量及验收以 [最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)、[manifest](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/manifest.json)、[状态](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/status.json) 为准。历史 `acceptance` 字段表达要求，不代表实际通过。
 
-AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有有界修复，形成过程保留在研究§7.61。当前新增责任以§7.70和BI任务书为准；既有严格路径保留，渐进执行继续按实际结果标注。
+AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有有界修复，形成过程保留在研究§7.61。当前新增责任以§7.71和BJ任务书为准；既有严格路径保留，渐进执行继续按实际结果标注。
 
 ## 账号、运行和继承边界
 
-- BI开发 `gpt-6.1-sol/max`，按用户指定派发；实验沿用已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。BI八首位置及BH有限队列均已结束，不自动追加作者或模型面板。
+- BJ开发 `gpt-6.1-sol/max`，按用户指定派发；实验沿用已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。BJ使用新identity执行具名作者、消费、基线与修复确认；BI八首位置及BH有限队列均保持结束，不向旧结果补行。
 - BG有限执行已收束，无活动或未知请求；自动编写与重复上下文成本为未达项，不自动增加样本。后续新任务继续遵守具名恢复、账号未知和成本记录边界。
 - BF六首位置及三具名修订已处置，可选反序第二对因自动R1未达未运行。自动编写、作者给定程序消费及变化复用各自分母；不会自动追加模型。新范围不升级旧readiness或改变项目默认。
 - BE六质量首位置和六变化逻辑位置已完成，保持完整原skill/四问及失败分母。source-previous两件确定未派发，仅一个同输入/epoch的登记恢复交付；原件和79,770ms本地开销保留。R0/R1资格、恢复和实际使用分列，旧答案/评阅/verdict不进入previous；R2缺失使实际R2撤回实验未执行。旧BD六未运行不补行，OWUI继续仅离线。
@@ -104,7 +110,8 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BI | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)、spec§14.48、研究§7.70；已发布，工程与有限队列完成，自动主链及稳定收益未达，不自动追加模型 |
+| 当前BJ | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)、spec§14.49、研究§7.71；已授权、待实施，约12小时有效开发量，尚无BJ结果 |
+| BI | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)、spec§14.48、研究§7.70；已发布，工程与有限队列完成，自动主链及稳定收益未达 |
 | BH | [任务书](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)、spec§14.47、研究§7.69；有限队列完成、自动主链与稳定收益未达；实际程序、首失败、修复和分轴结论已归档 |
 | BG | [任务书](../superpowers/plans/2026-10-12-authorization-end-to-end-practical-execution.md)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-practical-execution-v1/summary.json)、spec§14.46、研究§7.68；主链运行/变化成立，自动编写和净收益未达 |
 | BF | [任务书](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/verification/acceptance-matrix.json)、spec§14.45、研究§7.67；工程/有限队列收束，整题质量与净收益未达 |
