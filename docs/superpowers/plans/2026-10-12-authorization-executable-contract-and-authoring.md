@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有源码索引与有限控制求值器、官方账号 adapter。开发 `gpt-6.1-sol/max`；研究模型沿用已授权的官方账号 `gpt-5.6-sol/high`。
 
-状态：`in-progress / BF0已接管`。规划基线 `74bf7befa80f8b0d73187d07d1b08e8a27875bdf`，实际接管 `34e5e302b9d725ee09937ddc651e77f7a1d7159e`（2026-10-12 03:10 Asia/Shanghai，工作树干净、live origin一致）。用户已授权书写、派发并连续开发约 8 小时工作量；常规阶段无需再确认。本文件是新队列，不继续向 BE 已关闭位置补行。
+状态：`completed-with-unmet-criteria / BF17待发布核对`。规划基线 `74bf7befa80f8b0d73187d07d1b08e8a27875bdf`，实际接管 `34e5e302b9d725ee09937ddc651e77f7a1d7159e`（2026-10-12 03:10 Asia/Shanghai，工作树干净、live origin一致），最终源码 `869c0cbe`。工程及六首位置有限队列已处置，自动编写、整题质量和同条件净收益未达。约8小时是有用工作量估计，BF16已处置，未等待或追加调用凑时间。本文件保留本轮计划与阶段证据，不继续向BE或BF关闭位置补行。
 
 Identity：`authorization-executable-contract-v1`。结果集中 `results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/`；临时运行集中 `D:/skill优化/project-maintenance/runs/authorization-executable-contract-v1/`。继续 `skill-ir-aot`，只推用户 `origin`，不开分支或 worktree。
 
@@ -79,7 +79,7 @@ Identity：`authorization-executable-contract-v1`。结果集中 `results/skill-
 
 声明归属由显式来源、当前字节、读取覆盖、operation/question 与 receiver 唯一确定。当前 focus 用于建议下一步，不再作为已读合法来源唯一提交渠道。来源多义、越界、未读、过期和跨题身份错误继续给具名反馈，绝不静默选第一个。独立有效片段可以保留，依赖未成立的关系不得提前采用。
 
-普通 CLI 的目标是给现有 inquiry `check/run` 增加薄的 `--domain-program=<file>`（这是待实现接口），`inspect/compare/previous` 随现有 session 保存和检查。`check` 可零模型编译并执行有限机械检查，明确 semanticSupport 未由机器证明；`run` 把程序的实际结果和具名缺口交给普通消费者。若现有输入字段能完整承载同样职责，BF3 可选择兼容字段方案并统一文档，不同时留下两套重复入口。
+普通CLI已给现有inquiry `check/run/compare`增加薄的`--domain-program=<file>`，`inspect/previous`随现有session保存和检查。`check`零模型编译并执行有限机械检查，明确semanticSupport未由机器证明；`run`把程序的实际结果和具名缺口交给普通消费者，命令与可搬移example已交付。
 
 ### 3.4 首次失败就在本轮处理
 
@@ -103,7 +103,7 @@ Identity：`authorization-executable-contract-v1`。结果集中 `results/skill-
 
 - [x] 用匿名双调用 fixture 复现 `lookup(include_deleted=True)` 与独立 `select(include_deleted=version_present)`，覆盖无参数、空字符串、显式值、root 缺失回退。测试必须发现跨调用误传参数，不能只断言一段固定答案文字。
 - [x] 新评价器根据实际参数流核定事实；把 BE 勘误作为开发回归依据，隔离于实验模型输入。source-call-review以实际sourceCallId/签名绑定；缺场景值保持unresolved。
-- [ ] 四问答案整体阅读全文后评价：相同事实已在别段说清楚可以交叉引用，不强制重复特定措辞。保留必要分支、对象、事实到结论映射，不降低正确性要求。
+- [x] 四问答案整体阅读全文后评价：相同事实已在别段说清楚可以交叉引用，不强制重复特定措辞。保留必要分支、对象、事实到结论映射，不降低正确性要求。
 
 ### BF2 — 先亲自写一份真实可执行程序
 
@@ -120,11 +120,13 @@ Identity：`authorization-executable-contract-v1`。结果集中 `results/skill-
 
 - [x] 定义并验证程序来源、两种 scope、假设来源、查询与残余；同一条件可以在不同赋值下重新计算，未知前提保留 unknown。
 - [x] 用公共核心测试局部 helper 可作为函数合同的根，但不能因此成为请求 entry；缺上游授权时局部结论可交付，whole-request 状态仍保留缺口。匿名核心/native/file均有实际call trace，原问题保留，requestOperationCertified=false。
-- [ ] 覆盖真/假/未知前提、guard 后置、错主体/错对象/错权限、未注册调用、不同调用实例和假设循环；缺失不能当无影响，假设不能自证待检查性质。
-- [ ] 保持源码含义由作者/模型负责，宿主从实际调用绑定对象。基于问题范围裁剪必须给关联依据，不靠放宽步数/路径上限或忽略所有 unknown 获得结论。
+- [x] 覆盖真/假/未知前提、guard 后置、错主体/错对象/错权限、未注册调用、不同调用实例和假设循环；缺失不能当无影响，假设不能自证待检查性质。
+- [x] 保持源码含义由作者/模型负责，宿主从实际调用绑定对象。基于问题范围裁剪必须给关联依据，不靠放宽步数/路径上限或忽略所有 unknown 获得结论。
 - [x] 在 BF 设计记录和 spec14.45 写清选择；这个已授权范围内的细化不等待额外审批。当前采用actual-formal contractInputs，未知省略、假设不赋值，操作异常不被授权条件抹去。
 
 **当前细化（2026-10-12）：** 复用 question-declaration、source material 与 finite-control 的共同核心；函数合同保持 helper 原角色。可变条件作为 inquiry 的 `contractInputs[questionId]`，只绑定局部根的实际形参，接受已有有限标量/数组/平面记录；未知值省略。不得给内部 guard、性质、调用结果或 verdict 赋值。源码字面量仍来自实际调用绑定，假设文字只记录来源、不直接证明性质；宿主显式输入与模型已读覆盖分别记账。此接点用于同一程序重算，未扩大为 Python 解释器或请求级认证。
+
+BF3反例处置：普通入口true/false/unknown与搬移、已有错主体/对象/权限、guard后置/未注册调用及双实例公共测试均经最后相关集验证。assumptions不产生求值绑定，不能形成自证或循环证明；实际调用前未知和异常保留，caller依赖误排除由本轮红绿修复。范围/语义支持保持局部，不将匿名反例通过计真实整题证明。
 
 **真实A暴露的查询边界：** v4已修actual include_deleted布尔类型并采用file_response→resolver；首缺口是未解释数据库调用，文件效果仍unknown。现有effect-reachability选call时检查callee内的实际效果，不能回答“此调用点是否被拒绝/短路”。增加`call-reachability`，只接受当前实际call引用，复用同一predecessor/predicate检查至调用点；callee未解释可以留在调用之后，但此前缺口仍阻断。它不证明callee效果、权限或whole-request，callOccurrences与effectOccurrences分列。追加真实ViewDocumentsPermissions.has_permission的null-user拒绝与未知输入合同，与原v4并列；保留v4失败，不把局部调用可达性替代原四问或完整文件授权关系。亲读permissions624–635确认ObjectPermissionChecker构造先于owner短路，不能凭owner分支忽略此前未解释构造。
 
@@ -164,7 +166,7 @@ Identity：`authorization-executable-contract-v1`。结果集中 `results/skill-
 
 - [x] 先用 A 同一程序零模型检查政策、前提、源码三种已暴露变化：只重算相关责任，改变源码使相关声明过期，保留无关材料。`real-program-changes.json`记录当前三变，源码SHA粒度撤回同文件两声明；无关材料保留由既有失效测试验证。
 - [x] 若有条件前提改变，重新求值而非复制旧结果；若 guard/对象源码改变，旧 checked/violated 撤回直至新解释，不能仅把 input hash 更新后继续用旧语义。
-- [ ] 检查旧自然答案、评价与结论不会进入 previous 模型输入。材料恢复资格与实际 use 事件均能被普通 inspect 看到。
+- [x] 检查旧自然答案、评价与结论不会进入 previous 模型输入。材料恢复资格与实际 use 事件均能被普通 inspect 看到。
 - [x] 这是确定性程序/失效证据；源语义未重新解释时不得声称真实变化任务已完成或节省模型成本。
 
 ### BF8 — 第二种结构与抽象边界压力测试
@@ -199,17 +201,21 @@ Identity：`authorization-executable-contract-v1`。结果集中 `results/skill-
 
 修订现场原件暴露另一个具名原因：两次错误声明均应拒绝，但反馈只给顶层`invalid_union`，并误给`explanation/paths`回答格式，第二次声明随之采用该错误形式。先红测→严格按schemaVersion区分声明分支→给出kind等具体字段诊断与D声明专用反馈→绿测。有效形状集合和源码语义不放宽，H接口不变，保留两次原拒绝；只允许最后一个具名`declaration-feedback-1`复验，不重复编写指引抽样。之后无论自动结果如何都继续既定作者消费/变化责任。
 
-- [ ] 每个实际共享缺陷依次原件→红测→公共修复→绿测→具名复验；同一问题首件、修订独立，成本不覆盖。模型纯语义误解不自动要求改代码。
-- [ ] 正常预留最多3个具名修订会话用于不同已定位原因。若其中改变H/D共同机制，复验需成对且计入余量；D独有修订可以引用未变H，但必须标明修订比较。
-- [ ] 仅当首对已有可采用程序且需要确认质量/费用方向、并仍有有效时间时，登记第二对 `auto-d-2` → `auto-h-2`。第二对有意反转先后顺序，以减少固定顺序影响；两臂条件及预算仍一致。它是可选确认，不为达到固定数量而运行。
-- [ ] 没有可用自动程序时继续 A 程序和普通作者使用责任；自动失败按实报告，不通过修改其原字节伪装模型成功。
+- [x] 每个实际共享缺陷依次原件→红测→公共修复→绿测→具名复验；同一问题首件、修订独立，成本不覆盖。模型纯语义误解不自动要求改代码。
+- [x] 正常预留最多3个具名修订会话用于不同已定位原因。若其中改变H/D共同机制，复验需成对且计入余量；D独有修订可以引用未变H，但必须标明修订比较。
+- [x] 仅当首对已有可采用程序且需要确认质量/费用方向、并仍有有效时间时，登记第二对 `auto-d-2` → `auto-h-2`。第二对有意反转先后顺序，以减少固定顺序影响；两臂条件及预算仍一致。它是可选确认，不为达到固定数量而运行。
+- [x] 没有可用自动程序时继续 A 程序和普通作者使用责任；自动失败按实报告，不通过修改其原字节伪装模型成功。
+
+BF11最终处置：三具名位置分别用于推理前CLI恢复、D无声明的通用动作指引、strict声明错误反馈；都独立完成并计成本。两D修订均无有效声明/材料/采用；可选auto-d-2/auto-h-2因无可采用自动R1未运行，此checkbox记录条件处置，非新增执行。未追加同因重抽。
 
 ### BF12 — 同包普通消费者与作者边界
 
-- [ ] 使用 BF6 的 A 程序或第一份实际合格自动程序，先固定来源类型和基线，不事后挑最好结果。两次作者使用均用同一包，第二次只改变预先指定政策/前提。
-- [ ] 运行 `authored-use-base/change`，完整原 skill 和四问保留。检查普通消费者实际取用了程序结果/缺口，不能只统计文件被加载。
-- [ ] 作者程序可含作者读源码得到的含义；其使用结果单列为“给定程序的消费”。不得与未获这些含义的 H 主对照直接宣称自动优化优势。
-- [ ] 报告程序编写/修订步骤和开发代理用量可见部分；无计时真人参与就保持真人分钟未知。程序被使用也不自动证明回答更好。
+- [x] 使用 BF6 的 A 程序或第一份实际合格自动程序，先固定来源类型和基线，不事后挑最好结果。两次作者使用均用同一包，第二次只改变预先指定政策/前提。
+- [x] 运行 `authored-use-base/change`，完整原 skill 和四问保留。检查普通消费者实际取用了程序结果/缺口，不能只统计文件被加载。
+- [x] 作者程序可含作者读源码得到的含义；其使用结果单列为“给定程序的消费”。不得与未获这些含义的 H 主对照直接宣称自动优化优势。
+- [x] 报告程序编写/修订步骤和开发代理用量可见部分；无计时真人参与就保持真人分钟未知。程序被使用也不自动证明回答更好。
+
+BF12两consumer最终实际使用2/1，原四问均P/F/P/F。base固定程序未变、原问1拒绝污染局部检查unknown的原件保留；change自行替换root-only v3，helper退役且最终unknown，不能以初始程序SHA冒称最终仍是同一程序。源语义来自开发代理，开发/探子用量与真人分钟未知，自动B输入不含A。
 
 ### BF13 — 实际 previous 与变化比较
 
@@ -221,34 +227,40 @@ BF13实际准备阻断（2026-10-12）：省略局部`contractInputs`被R0/R1稳
 
 公共修复已由两条预期红测转绿：同源局部输入false→true/省略时，fresh与previous性质一致且2个R1实际使用，R2/answer不复用；完整当前合同只清除精确同source归属拒绝，宽窗口/另一receiver/旧SHA仍未知。零派发失败保留在`verification/reuse-previous-preflight-failure.json`，原fresh模型答案和旧消费者未知结论不改写。
 
-- [ ] 从 BF10 首个可恢复 D 会话固定 R0/R1/R2资格；若无可用自动R1，则固定 BF12 作者会话，并明确切换为作者程序复用轨，不混成自动成功。
-- [ ] 固定一项已暴露变化（优先政策，其次来源可恢复条件），运行同输入 `reuse-fresh/previous`；无合格R1时仍可做R0准备诊断，但标明实际含义复用未达，不伪造材料基础。
-- [ ] policy/premise 的可用含义应被真实重新求值；source变化须撤回相关材料。逐项列 loaded/eligible/used/recomputed/withdrawn，旧自然答和旧 verdict不输入。
-- [ ] 比较自然逐题/整题、实际材料/性质、阅读/解释次数、输入含缓存及非缓存、输出、耗时。更少read或cached bytes不直接归因净收益。
+- [x] 从 BF10 首个可恢复 D 会话固定 R0/R1/R2资格；若无可用自动R1，则固定 BF12 作者会话，并明确切换为作者程序复用轨，不混成自动成功。
+- [x] 固定一项已暴露变化（优先政策，其次来源可恢复条件），运行同输入 `reuse-fresh/previous`；无合格R1时仍可做R0准备诊断，但标明实际含义复用未达，不伪造材料基础。
+- [x] policy/premise 的可用含义应被真实重新求值；source变化须撤回相关材料。逐项列 loaded/eligible/used/recomputed/withdrawn，旧自然答和旧 verdict不输入。
+- [x] 比较自然逐题/整题、实际材料/性质、阅读/解释次数、输入含缓存及非缓存、输出、耗时。更少read或cached bytes不直接归因净收益。
+
+BF13真实终态：自动D均R1=0，派发前固定作者base为复用基础。fresh/previous共用省略局部user的输入，previous恢复2/实际用2，R0证据2、R2 false，当前输入为空后unknown/unresolved8节点、无旧verdict/答案。fresh运行旧epoch且最终替换v3；previous新epoch保留v2，新增请求草稿8个owner错误拒绝，合同invalidated且无evaluation。整题均partial，逐题fresh3/4、previous2/4；费用仅作描述性tradeoff，strict同条件收益inconclusive。
 
 ### BF14 — 评价、机制价值与当前责任
 
-- [ ] 对模型答案按原四问和原文复核；适用时只读独立复核一份自然答和一条实际程序轨迹，主开发者点验引用并裁决。AI复核不称真人盲评。
-- [ ] 一张表分别列 A可表达/执行、B自动编写、C实际使用/变化、自然质量和同条件收益。局部程序结论同时列 scope/assumptions/semanticSupport，不藏 whole-request缺口。
-- [ ] 宿主校验的是声明和已绑定源码关系的组合；独立源码评阅负责确认声明含义。自动稿valid、bound、checked、语义支持及整体full各自记录。
-- [ ] 保留support/tradeoff/no-observed-difference/negative/inconclusive；没有同条件收益就交付工程成果和具体未达责任，不写“本轮保证正向”。
+- [x] 对模型答案按原四问和原文复核；适用时只读独立复核一份自然答和一条实际程序轨迹，主开发者点验引用并裁决。AI复核不称真人盲评。
+- [x] 一张表分别列 A可表达/执行、B自动编写、C实际使用/变化、自然质量和同条件收益。局部程序结论同时列 scope/assumptions/semanticSupport，不藏 whole-request缺口。
+- [x] 宿主校验的是声明和已绑定源码关系的组合；独立源码评阅负责确认声明含义。自动稿valid、bound、checked、语义支持及整体full各自记录。
+- [x] 保留support/tradeoff/no-observed-difference/negative/inconclusive；没有同条件收益就交付工程成果和具体未达责任，不写“本轮保证正向”。
 
 ### BF15 — 相关验证与普通文档
 
 **Files:** `docs/usage.md`、`docs/skill-ir/developer-guide.md`、既有 `examples/authorization-assessment/` 下一个小型可搬移示例；研究§1/§7.67/§11、spec14.45、current-status、plan。
 
-- [ ] 运行受影响公共链/类型/研究测试；源码修复后才重跑对应集，最后合并一次必要验证。不重复全历史归档核验、全仓实验或全量依赖安装。
-- [ ] 例子给出真实可复制的check/run/inspect/compare命令，明确待提供的源码目录与真实前提；不得在说明中发布未实现选项。示例不包含评阅答案。
-- [ ] 状态/summary/acceptance/accounting共用已有原件身份，记录原稿、修订、未运行原因、unknown费用与旧暂停。input已含cache则不再相加。
-- [ ] 更新统一研究正文，不另建日期化组件正文；根日志和handoff/communication本地同步。当前导航只保留必要指针。
+- [x] 运行受影响公共链/类型/研究测试；源码修复后才重跑对应集，最后合并一次必要验证。不重复全历史归档核验、全仓实验或全量依赖安装。
+- [x] 例子给出真实可复制的check/run/inspect/compare命令，明确待提供的源码目录与真实前提；不得在说明中发布未实现选项。示例不包含评阅答案。
+- [x] 状态/summary/acceptance/accounting共用已有原件身份，记录原稿、修订、未运行原因、unknown费用与旧暂停。input已含cache则不再相加。
+- [x] 更新统一研究正文，不另建日期化组件正文；根日志和handoff/communication本地同步。当前导航只保留必要指针。
+
+BF15新鲜验证：`bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl ./src/adapters`为1902pass/1平台skip/12662断言/140文件；主类型、BF类型、BF2研究测试14断言通过。先前封装误跑`bun test ./src`为3844pass/8skip/104fail/564文件，日志保留，失败集中历史冻结身份/缺本地prospective输入，未逐个重判104项；保护锁未改，不称全仓通过。普通例子check/run/inspect/compare已核，summary/acceptance/accounting原件身份一致，文档与根日志同步、发布另核远端。
 
 ### BF16 — 提前完成后的有用余量
 
 按剩余时间顺序实施，全部仍用同一核心和当前已暴露材料。不得用额外付费面板凑时长。
 
-- [ ] 先补任意顺序读源/提交、同callee两调用实例、搬移根路径后的稳定性，定位并修实际缺陷；已有覆盖则记录引用而不重复测试。
-- [ ] 再检查真实发送边界的重复声明/完整源码是否可按需取回，做不丢决定性信息的确定性减负；只报告实际字节差，token效果另测。
-- [ ] 最后删掉本轮新引入的重复适配、补一条开发者排障说明，减少后续作者需要知道的内部细节。不要趁余量清理历史证据或扩新语言/任务类。
+- [x] 先补任意顺序读源/提交、同callee两调用实例、搬移根路径后的稳定性，定位并修实际缺陷；已有覆盖则记录引用而不重复测试。
+- [x] 再检查真实发送边界的重复声明/完整源码是否可按需取回，做不丢决定性信息的确定性减负；只报告实际字节差，token效果另测。
+- [x] 最后删掉本轮新引入的重复适配、补一条开发者排障说明，减少后续作者需要知道的内部细节。不要趁余量清理历史证据或扩新语言/任务类。
+
+BF16处置：来源A已读、focus转B后提交由`question-workflow-entrypoints.test.ts:189`覆盖；两个同callee实例及原实参冲突由`source-material-projection.test.ts:17`覆盖；搬移输入由`executable-contract-entrypoints.test.ts:33`覆盖。相关1902项新鲜验证均通过，不重复加等价测试。真实变化消费53个发送包全部可无损重建，完整state1,947,932bytes、实际610,768bytes；D已继承现有encoder，重新编码候选与实际完全相同，新增减负0bytes。没有新增重复适配需要删除，保留唯一当前check里的完整程序；developer-guide补初始/最终程序、archive/current材料、history对象与wire文字的排障说明。没有追加模型或token收益结论。
 
 ### BF17 — 发布与接手
 
@@ -287,3 +299,5 @@ git diff --check
 | 真实效果 | 同条件答案不靠预给含义占优；质量/成本各列原件和差异 | 负向/取舍如实保留，D继续显式，H候选/项目默认不变 |
 
 局部程序执行成功是本轮明确工程目标；完整原skill自动优化、所有问题full、DSL稳定优势和人力节省仍需各自实证。若A也始终无实际链，最后结论必须给出不可表达的最小真实关系和已尝试修订；若A成功而B失败，下一责任聚焦编写；若A/B成功而C无收益，下一责任聚焦任务组织与消费成本。不要再把三种情况合写成“继续补语言语义”。
+
+最终逐轴验收见BF `verification/acceptance-matrix.json`、`summary.json`与`accounting.json`：A局部真实程序met，B自动编写unmet，C实际使用met但完整质量/合同状态有缺口；六首位置9归档/8模型全部已知终态，有限队列true而researchGoalAchieved false。原四问17/32逐题full、0/8整题full，input12,734,868含cache11,745,280/output73,991，USD/开发探子/真人未知。下一责任是通用可执行编写、完整分支事实及相同epoch/最终程序下的消费成本。H候选、D显式、默认与保护证据保持。

@@ -2956,17 +2956,17 @@ BE13补齐已有有限谓词的模型可见合同：静态D声明工具和当前
 
 ### 14.45 BF executable contract and authoring
 
-2026-10-12，用户授权[BF0–BF17](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)，由新线程gpt-6.1-sol/max连续开发约8小时工作量。规划基线74bf7bef，identity为`authorization-executable-contract-v1`；本节是开发合同，尚未形成BF实际结果。先验证真实程序可表达/可执行，再修自动编写和实际消费。复用inquiry、完整skill、BB/v7、有限求值器与来源/会话机制，不重复建立语言或运行平台。
+2026-10-12，用户授权[BF0–BF17](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)，由gpt-6.1-sol/max按约8小时有用工作量实施。规划基线74bf7bef、接管34e5e302，identity为`authorization-executable-contract-v1`。工程与六首位置有限执行已收束，自动编写、整题质量及同条件净收益未达，实际结果见研究§7.67和[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/verification/acceptance-matrix.json)。复用inquiry、完整skill、BB/v7、有限求值器与来源/会话机制，未重建语言或运行平台。
 
 **分轨。** A由开发者/开发代理依据真实原文编写程序，验证语言及核心；B由隔离实验模型独立读取共同源码生成声明，衡量自动编写；C从普通入口消费当前程序或会话，衡量实际使用/变化。A的源码语义不进入B输入，A成功不计自动生成或真人工时。完整Cloudflare skill及Download原四问继续保留，局部子性质只作为明确开发分母。
 
 **范围与条件。** request-operation保留实际请求入口及相关框架授权义务；function-contract从具名函数入口检查局部关系，保留外部前提和上游缺口。局部根不得通过把helper改成请求entry取得。作者/模型提供参数、对象、条件、正常/拒绝/异常与剩余语义，宿主验证来源和实际调用组合；source semanticSupport独立复核。调用者必须满足摘要前提后才能使用其结论，未知继续未知，假设不能包含待证明性质。局部结果和完整原任务结论分列。
 
-**单一接线。** 持久程序拟用`authorization-executable-contract/v1`窄输入，复用现有source declaration、predicate、property和evidence。宿主生成机械ID和revision，拒绝预置trusted checked、实际使用记录或evaluator分数。作者文件与模型工具共用来源解析、声明编译、保存、投影和检查核心。普通inquiry拟增加薄`--domain-program`或唯一兼容输入字段；BF3定案并同步，BF6落地前不在usage发布为可用命令。check可零模型执行有限检查，run保留自然答案，inspect/compare/previous保存范围和变化依据。
+**单一接线。** 持久程序使用已实现的`authorization-executable-contract/v1`窄输入，复用现有source declaration、predicate、property和evidence。宿主生成机械ID和revision，拒绝预置trusted checked、实际使用记录或evaluator分数。作者文件与模型工具共用来源解析、声明编译、保存、投影和检查核心。普通inquiry采用`--domain-program=<file>`；check零模型执行有限检查，run保留自然答案，inspect/compare/previous保存范围和变化依据，命令见usage与可搬移example。
 
-BF初版已定sourceDeclarations为既有QuestionDeclaration数组，scope.root为完整当前来源引用；id及语义由作者给出，revision/anchor/argument由宿主生成。function-root复用材料投影并给既有lowering指定局部根，保留helper原角色；request-operation只能用已有host-confirmed entry，不能从导入文件重标角色。assumptions暂只保存来源、不向有限求值器赋值，不能以文字假设获得checked。初版公共核心得到匿名跨调用checked，真实Paperless仍unknown，普通文件/工具接点与条件摘要表达仍开发中；完整证据在研究§7.67。
+sourceDeclarations为既有QuestionDeclaration数组，scope.root为完整当前来源引用；id及语义由作者给出，revision/anchor/argument由宿主生成。function-root复用材料投影并给既有lowering指定局部根，保留helper原角色；request-operation只能用已有host-confirmed entry，不能从导入文件重标角色。assumptions只保存来源、不向有限求值器赋值，不能以文字假设获得checked。真实可见性两函数在显式null输入下call-prefix checked/unreachable；file_response的数据库选择关系仍unknown，完整证据在研究§7.67。
 
-BF6已接入普通`check/run/compare --domain-program=<file>`与native `authorization_declare`共同核心。程序原字节、SHA和大小随session保存，inspect验证归档身份；compatible previous仅在当前来源相同且材料可恢复时导入旧原程序，再生成当前检查，不恢复答案/verdict。check区分结构诊断、有限执行结果和未复核来源语义。作者文件由宿主真实读取原文建立单独覆盖，不冒称模型已读；读取计入运行预算。最终来源失效撤回当前合同结果，保留历史提案。真实A闭合和可搬移使用证据仍待完成。
+BF6已接入普通`check/run/compare --domain-program=<file>`与native `authorization_declare`共同核心。程序原字节、SHA和大小随session保存，inspect验证归档身份；compatible previous仅在当前来源相同且材料可恢复时导入旧原程序，再生成当前检查，不恢复答案/verdict。check区分结构诊断、有限执行结果和未复核来源语义。作者文件由宿主真实读取原文建立单独覆盖，不冒称模型已读；读取计入运行预算。最终来源失效撤回当前合同结果，保留历史提案。真实A、普通消费者、实际previous及可搬移例子均有记录；模型可替换导入程序，初始SHA与最终program必须分别判断。
 
 可变条件采用普通input的`contractInputs[questionId]`，仅绑定function-contract根的实际形参，复用既有有限scalar/array/flat-record值域；未给值省略。禁止内部guard、property、call result或verdict注入，request-operation仍由原host入口负责。assumptions文字只保留来源、不参与求值，不能自证目标性质。值沿实际argument身份传播；显式输入下保留带false谓词的源码分支以证明不可达，原节点/路径界不放宽。允许条件不消除操作异常，因而正常效果仍可能conditional；拒绝条件则可排除效果。compare区分条件变化与程序/来源变化，零模型重算而不恢复旧答案。匿名搬移与true/false/unknown公共入口已有工程证据，实际A/B/C另计。
 
@@ -2985,6 +2985,8 @@ BF6已接入普通`check/run/compare --domain-program=<file>`与native `authoriz
 声明输入按显式`schemaVersion`区分同一组严格形式，格式拒绝返回具体字段位置和允许的discriminator值。D声明失败只引用其来源声明合同，不误给最终答案的`explanation/paths`形式；拒绝执行0语义动作，仍按原预算记一次格式/工具尝试。unknown版本与错误statement形状继续拒绝；不根据错误文本补源码含义。
 
 **验证和效果。** 先做真实作者程序和错主体/对象、guard后置/缺失、未注册调用、前提真/假/未知、源码撤回反例，再做自动H/D及同包消费。六首位置分别属于自动编写、作者使用、变化对照，不混成一张自动优化成功表。H/D共同事实、预算和自然回答一致，开发者参考实现、旧答案、评阅及本计划隔离。共享故障当场红绿修复、具名复验；不通过继续坏面板、重复重抽或扩语言全集来推进。程序检查不自证声明的源码含义，独立评价回到实际原文，含BE跨调用参数勘误。
+
+BF最终源码869c0cbe的相关1902测试/1平台skip/12662断言、2研究测试及主/BF类型通过；全src误跑104失败原件保留，不称全仓通过。六首位置9归档/8交付，自动D三件0材料/实际采用；作者消费及previous有当前actual uses。previous恢复2并用2，省略旧null输入后重算unknown，不复制旧unreachable；另提交请求程序因owner拒绝使合同invalidated且无evaluation。`propertyCheckStatus=current`仅表示检查freshness，须同时读property status/value/gaps和contract status，不能推成认证。原四问整题0/8 full；不同epoch/最终程序的费用取舍不作同条件收益。当前context encoder已覆盖D，53真实包无损重建的候选与实际一致，新减负0bytes，无新增适配或token收益主张。
 
 **预算与维护。** 开发精力约六成质量机制、四成编写复用；约8小时是估计工作量，提前完成按计划做有用余量，不等待凑时长。指定官方gpt-5.6-sol/high、有限恢复、第三方暂停、OWUI仅离线及全部保护证据沿用。工程、自动编写、真实消费、变化与同条件收益逐轴验收，研究目标不因有限队列结束标真。复盘统一在研究§7.67，当前进度在current-status；不新增长期阅读文档或平行哈希链。
 

@@ -2,31 +2,27 @@
 
 更新于2026-10-12。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BF0–BF17：真实可执行授权 DSL、自动编写接线与变化消费](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)，`planned-authorized / 待新线程接管`，规划基线`74bf7bef`。用户授权约8小时连续开发；任务书已登记，尚无BF实现或效果。
+- 当前任务书：[BF0–BF17：真实可执行授权 DSL、自动编写接线与变化消费](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)，`completed-with-unmet-criteria / BF17待发布核对`。规划基线`74bf7bef`、实际接管`34e5e302`；最终源码`869c0cbe`，六首位置及三具名修订均已处置。
 - 方法合同：[spec§14.45](skill-ir-aot-optimization-spec.md#1445-bf-executable-contract-and-authoring)；复盘统一在[研究§7.67](skill-dsl-research.md#767-bf-真实可执行程序与自动编写接线)，依据为§7.66发布后复核。
 - identity：`authorization-executable-contract-v1`。继续`skill-ir-aot`，只推用户origin，不创建分支/worktree；派发后新开发线程是代码、共享方法文档和Git的唯一写者。
 - 开发`gpt-6.1-sol/max`，实验用已授权官方账号`gpt-5.6-sol/high`。第三方暂停、OWUI仅离线、旧未知和held-out/Q1/prospective/readiness/历史0/6保持。
 
-## 本轮要解决的具体问题
+## 已完成的工程与未达责任
 
-BE公开v7链与H/D前端已实现，但D1及修订只有可用helper、无可投影entry；previous恢复材料却未实际使用。声明还受当前focus与窗口限制，合法已读source无法独立提交。跨源绑定本身已经存在，不重复造resolver。
+BF已接通作者文件、模型工具与previous共同核心，显式函数范围、实际调用前缀、当前输入重算及来源/程序失效。真实两函数可见性程序在null输入下checked/unreachable，普通可搬移例子与关键反例通过。相关1902测试/1平台skip、2研究测试及主/BF类型通过；全src误跑104失败原件保留，保护锁未动，不称全仓通过。
 
-因此先把三个问题拆开：开发者能否写出真实可执行程序；模型能否经同一核心自动编写；普通使用及变化能否获益。开发者程序可以有源码语义，但只作表达诊断/给定程序消费，禁止进入自动编写输入后冒充生成成功。
+隔离自动编写三份D均0采用；作者消费和previous实际使用成立，但四问整题0/8 full。变化/fresh替换了给定程序，previous在修复后epoch恢复2/使用2，当前unknown且新请求程序拒绝导致合同invalidated。运行版本与最终程序不同，观察费用取舍不能称同条件净收益。作者含义继续与自动B隔离。
 
-## 约8小时队列
+## 下一责任
 
-| 阶段 | 工作 | 预计投入 |
-|---|---|---:|
-| BF0–BF1 | 接管、评价勘误、原题与失败输入 | 0.5h |
-| BF2–BF3 | 真实程序、条件范围与表达反例 | 1h |
-| BF4–BF5 | 已读来源路由、声明保留与实际材料接线 | 1.25h |
-| BF6–BF7 | 现有CLI薄接入、持久会话与变化检查 | 1.25h |
-| BF8–BF9 | 第二结构离线压力检查、普通消费与输入隔离 | 1h |
-| BF10–BF12 | 隔离自动编写、当场修复、同包实际使用 | 1.5h |
-| BF13–BF14 | 分层previous、独立评阅与成本 | 0.75h |
-| BF15–BF17 | 有用余量、相关验证、文档及发布 | 0.75h |
+| 责任 | 当前证据 | 继续工作的边界 |
+|---|---|---|
+| 自动可执行编写 | 原D无声明；两具名D修订只提交无效形状，0自动R1 | 改进通用编写与source owner定位，不能把A含义给B或放宽错误声明 |
+| 完整原任务质量 | 根查找回退和独立deleted版本参数仍有漏项/错误，17/32逐题full | 保留原四问、整篇交叉阅读及实际调用参数流；局部性质不替代完整回答 |
+| 给定程序消费成本 | previous恢复2并实际用2，fresh/previous的epoch和最终程序不同 | 等运行版本/最终程序下再测质量和全成本；不恢复旧答案/verdict |
+| 请求级证明 | 当前局部call-prefix可运行，callee效果/框架认证与数据库选择仍缺 | 针对具体真实缺口改表达/消费，不无边界扩语言或借helper局部成功认证请求 |
 
-时间为工作量估计，不保证研究结论。提前完成先处理任务书内有用余量，不等待/重跑凑时长；实验通道暂停时继续独立工程。常规检查点不等待用户。
+约8小时是工作量估计。BF16已核现有来源顺序/双调用/搬移覆盖，并重建53个真实发送包；现有encoder候选与实际一致，新增减负0bytes。有限调用已关闭，不等待凑时长或自动追加新面板。
 
 ## 范围和验收
 
@@ -37,9 +33,9 @@ BE公开v7链与H/D前端已实现，但D1及修订只有可用helper、无可�
 5. 六首位置分自动H/D、同包作者消费、变化fresh/previous三轨；可选第二H/D对与最多三具名修订。研究输入排除开发者参考程序、旧答案和evaluator。
 6. 官方账号沿64总工具/768KiB显示/32MiB读取/45分钟会话；恢复及unknown规则见任务书。费用按唯一尝试记一次，cache不重复相加，USD/隐藏请求/真人分钟未知保留。
 
-## 已有证据与维护
+## 验收与维护
 
-BE有限执行完成、研究未达；六质量首件N/H/D逐题full为3/8、4/8、4/8（同任务重复），D相比Hinput约3.50倍、非缓存约1.59倍、耗时约1.49倍。14模型运行全部交付、整题0/14、35D检查unknown、0合格跨源性质；previous实际材料使用0。H保留普通opt-in候选，D显式研究，项目默认不变。
+BF [验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/verification/acceptance-matrix.json)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/summary.json)与[accounting](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/accounting.json)按A/B/C记录。9归档/8模型交付，known input12,734,868含cache11,745,280/output73,991；实际USD、隐藏、开发探子与真人成本未知。同epoch原H/D均2/4逐题full；D累计input/output/耗时更高、非缓存input较低，不据账号token推算实际美元优势。H保留普通opt-in候选，D显式研究，项目默认不变。
 
 `74bf7bef`已修正研究正文中的include_deleted跨调用误判：原两件P/F/F/P保留，后续评价按各次调用实参重新核定。旧BE回答/评阅/统计不改；新测试与证据放BF identity。完整历史见current-status、研究§7.66及Git。
 
