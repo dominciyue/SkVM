@@ -3054,11 +3054,15 @@ check/run/compare已接入`--execution-policy=progressive`，strict仍为默认�
 
 ### 14.49 BJ authoring loop and program completion
 
-2026-10-13用户授权[BJ0–BJ25](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)，实施基线ace945fa，identity为`authorization-authoring-loop-v1`。本节是待实施合同，尚无BJ运行结果。目标是自动作者在现有普通入口内完成“读源码、提交草稿、看实际执行、修稿、同稿变化消费”，按约12小时安排开发量。复用既有DSL、宿主及账号适配器，继续skill-ir-aot，只推用户origin。
+2026-10-13用户授权[BJ0–BJ25](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)，实施基线ace945fa，identity为`authorization-authoring-loop-v1`。BJ0–BJ6共享接线已实现并通过离线验证，真实采用尚待确认。目标是自动作者在现有普通入口内完成“读源码、提交草稿、看实际执行、修稿、同稿变化消费”，按约12小时安排开发量。复用既有DSL、宿主及账号适配器，继续skill-ir-aot，只推用户origin。
 
 **显式数据绑定。** executable contract增加可选顶层`inputBinding: { questionId: string }`；语义职责仍由`scope.questionId`承载。省略时保留原精确同题查找；显式绑定只能引用`program.operationQuestions`所确认的同一operation中的原题，仅选择该题的resourceInputs与externalAssumptions。contractInputs、政策和语义前提仍按原scope，不跨题合并、继承或补值。缺失、歧义、越operation引用均给具名诊断。空数据和仅外部事实的合法情况保留。canonical/input schema、编译、ordinary check、运行、恢复、摘要和报告使用同一解析器。有序patch中省略表示保留，对象表示替换，null表示撤销；旧合同保持兼容。
 
 **实际反馈接线。** 修复无candidate时的details访问；反馈展示作者可访问的实际输入结构与值、活动/草稿版本、首个阻断及其下游缺口。在足够源码已读后尽早试编译，不允许整轮预算几乎耗尽才首次提交。每次program/patch后返回当前执行反馈，模型继续读源码并修订；不另建agent框架或靠新增准入门槛代替接线。宿主只提供机械事实、失败位置及诊断，不把预期文件、权限结论或开发者程序传给作者。
+
+**共享实现与接口。** `program-input-binding.ts`导出`ProgramInputBindingSchema`、`resolveProgramInputBinding`及`programInputBindingSummary`；解析器是无文件/模型调用的纯函数，失败不注入数据，默认缺数据为warning、显式缺数据为error。`executable-contract.ts`将绑定摘要与当前resource/external值纳入digest；public check与domain import/patch传入同一解析结果，execution/v2归档显示该摘要，v1历史投影保持原格式。`program-authoring-context.ts`的共享投影给出选中数据的值/结构、三条集合样例与完整值读回位置；其它题的数据仅列字段结构，不能隐式采用。当前draft只消费同revision candidate preview。实际事件中的缺输入沿step依赖传播为一个root及受影响步骤，详情保持原事件。`createProgramAuthorLoop`按model提案记录首次有效草稿工具单位、patch次数及新/移除值；已恢复稿不冒充fresh首稿。无稿、至少12个source探索单位且完整函数已读时，在既有回复中保留一次checkpoint，后续source工具继续可用。external名的精确当前函数候选单列为待编写边界；候选/read状态本身不提供函数含义。
+
+**使用与验证。** 原程序省略inputBinding即可保留同题规则；显式对象及patch的null撤销沿既有`authorization_program`/`authorization_program_patch`入口，`authorization_program_details({view:'draft'})`可在首稿前调用。普通命令继续为`authorization inquiry check/run/inspect`与`--previous`，full默认。聚焦验证用`bun test ./src/task-dsl/authorization/program-input-binding.test.ts ./src/task-dsl/authorization/resource-program-draft.test.ts ./src/task-dsl/authorization/program-authoring-context.test.ts ./src/task-dsl/authorization/program-consumption-context.test.ts ./src/benchmarks/authorization-dsl/executable-contract-entrypoints.test.ts`及主类型检查。新增/修改数据键、operation映射、报告投影或反馈时维护同一解析器和匿名公共路径测试；字段结构不支持时保留unknown，不能自动补值或扩张语义职责。BJ派生BI binding-only诊断只新增顶层绑定，原BI字节不变，该结果属于developer-assisted，不能计自动成功。
 
 **语义责任。** 模型从源码表达请求对象、root与缺失回退、版本选择、owner/非owner分流、权限拒绝、文件及表示选择。源码可见的分支应成为程序；真正的外部grant、检查器构造和部署事实分别保留条件。条件候选文件与获准返回区分，整体conditional可以伴随已计算的局部步骤。原skill和四问继续保留，程序执行、源码质量、自然补答分轴评价。
 

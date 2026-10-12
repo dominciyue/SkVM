@@ -27,8 +27,10 @@ import { createHash } from "node:crypto"
 import { isCompletionEditProposal } from "./semantic-completion-wire.ts"
 import { compileExecutableContract, readExecutableContractSources, normalizeExecutableContract, type ExecutableContractCompilation, type ExecutionPolicy, type ProgramMode } from "../../task-dsl/authorization/executable-contract.ts"
 import type { ResourceProgramInputs } from "../../task-dsl/authorization/resource-relations.ts"
+import { resolveProgramInputBinding } from "../../task-dsl/authorization/program-input-binding.ts"
 import { QuestionDeclarationSchema } from "../../task-dsl/authorization/question-workflow.ts"
 import { createProgramDraft, patchProgramDraft, type ProgramDraft } from "../../task-dsl/authorization/resource-program-draft.ts"
+import { createProgramAuthorLoop } from "../../task-dsl/authorization/program-authoring-context.ts"
 type AcceptedExecutableContract = Extract<ExecutableContractCompilation, { evaluation: unknown }>
 
 export type DomainAblation = "scheduler-off" | "checks-off"
@@ -57,12 +59,14 @@ export const DOMAIN_EXECUTION_GUIDE = [
 export const GUIDED_EXECUTION_GUIDE = [LOCAL_CONTROL_GUIDE, LOCAL_EXTRACTION_GUIDE, ...DOMAIN_EXECUTION_GUIDE.split("\n").slice(2, 6).map(line => line.replace(/Known bindings are only explicit USER premises:.*?This mapping is a model interpretation, not source truth\./, "Only known premiseValues from exact current user spans enter evaluation; mapping meaning remains unreviewed.").replace(/\{key,questionId/g, "{op,targetKey,questionId")), RESULT_BRANCH_GUIDE, "For unspecified values, retain alternative feasible outcomes and name the missing fact. Local extraction and mapping meaning remain unreviewed."].join("\n")
 
 /** One shared state machine used by structured inquiry and ordinary native tools. */
-export function createInquiryDomainRuntime(options: ResourceProgramInputs & { executionPolicy?: ExecutionPolicy; programMode?: ProgramMode; program: AuthorizationInquiryProgram; tools: InquiryTools; strategy?: InquiryStrategy; sourceAssisted?: boolean; entryContext?: string; remainingActions?: () => number; ablation?: DomainAblation; suppliedUserText?: string[]; shownEvidenceIds?: () => string[]; initialDelta?: unknown; initialSemanticUnits?: BoundSemanticBlock[]; initialSourceMaterials?: SourceMaterialSnapshot; contractInputs?: Record<string, Record<string, import("../../task-dsl/authorization/control-evaluation.ts").FiniteValue>> }) {
+export function createInquiryDomainRuntime(options: ResourceProgramInputs & { executionPolicy?: ExecutionPolicy; programMode?: ProgramMode; program: AuthorizationInquiryProgram; tools: InquiryTools; strategy?: InquiryStrategy; sourceAssisted?: boolean; entryContext?: string; remainingActions?: () => number; toolUnit?: () => number; explorationUnits?: () => number; ablation?: DomainAblation; suppliedUserText?: string[]; shownEvidenceIds?: () => string[]; initialDelta?: unknown; initialSemanticUnits?: BoundSemanticBlock[]; initialSourceMaterials?: SourceMaterialSnapshot; contractInputs?: Record<string, Record<string, import("../../task-dsl/authorization/control-evaluation.ts").FiniteValue>> }) {
   let slice: ControlSlice = createControlSlice(), check: RuntimeDomainCheck | undefined, closed = false
   let propertyChecks: ReturnType<typeof checkPropertyQueries> | undefined
   let executableContract: { compilation: AcceptedExecutableContract; origin: "authored-file" | "model"; adoptedDraft: ProgramDraft } | undefined
   const programMode = options.programMode ?? "consume", programDrafts: Array<{ raw: unknown; diagnostics: InquiryDiagnostic[]; baseRevision?: string; draftRevision?: string }> = []
   let currentDraft: ProgramDraft | undefined, candidatePreview: AcceptedExecutableContract | undefined
+  const authorLoop = createProgramAuthorLoop()
+  let restoredDraftRevision: string | undefined
   let initialProgramRevision: string | undefined
   const retainProgramDraft = (raw: unknown, diagnostics: InquiryDiagnostic[]) => { programDrafts.push({ raw: structuredClone(raw), diagnostics, baseRevision: executableContract?.compilation.revision, draftRevision: currentDraft?.revision }); return { diagnostics, actions: [], evaluated: { paths: lastPaths } } }
   const authoredEvidenceIds = new Set<string>()
@@ -219,7 +223,7 @@ export function createInquiryDomainRuntime(options: ResourceProgramInputs & { ex
     return { actions, evaluated }
   }
   type ProposalResult = Partial<Pick<ReturnType<typeof applyControlUpdates>, "accepted" | "rejected" | "withdrawn" | "withdrawalRejected" | "unresolved">> & { diagnostics: InquiryDiagnostic[]; actions: Awaited<ReturnType<typeof sync>>["actions"]; evaluated: { paths: typeof lastPaths } }
-  const importProgram = async (raw: unknown, origin: "authored-file" | "model" = "model", readSources = false): Promise<ProposalResult> => {
+  const importProgram = async (raw: unknown, origin: "authored-file" | "model" = "model", readSources = false, proposalKind: "program" | "patch" = "program"): Promise<ProposalResult> => {
     if (closed) throw new Error("session-closed")
     if (!isQuestionCheckedStrategy(options.strategy)) throw new Error("contract-strategy: executable programs require question-checked-v1")
     const submitted = raw
@@ -228,8 +232,10 @@ export function createInquiryDomainRuntime(options: ResourceProgramInputs & { ex
     candidatePreview = undefined
     const normalized = readSources ? await readExecutableContractSources(raw, options.tools) : normalizeExecutableContract(raw, options.tools.structure)
     const questionId = normalized.value?.scope?.questionId
-    const compiled = await compileExecutableContract(raw, { tools: options.tools, program: options.program, confirmedEntries: semanticUnits, inputs: options.contractInputs?.[questionId], resourceInputs: options.resourceInputs?.[questionId], externalAssumptions: options.externalAssumptions?.[questionId], executionPolicy: options.executionPolicy, interpretationSource: origin })
+    const inputResolution = resolveProgramInputBinding(normalized.value, options.program, options)
+    const compiled = await compileExecutableContract(raw, { tools: options.tools, program: options.program, confirmedEntries: semanticUnits, inputs: options.contractInputs?.[questionId], resourceInputs: inputResolution.resourceInputs, externalAssumptions: inputResolution.externalAssumptions, inputResolution, executionPolicy: options.executionPolicy, interpretationSource: origin })
     if ("evaluation" in compiled) candidatePreview = compiled
+    if (origin === "model") authorLoop.record({ kind: proposalKind, toolUnit: options.toolUnit?.(), revision: currentDraft.revision, valid: "evaluation" in compiled && !compiled.diagnostics.some(d => d.severity === "error"), execution: "evaluation" in compiled ? compiled.resourceExecution : undefined })
     if (origin === "model" && executableContract && (programMode === "consume" || compiled.diagnostics.some(d => d.severity === "error"))) return retainProgramDraft(submitted, [...compiled.diagnostics, { code: programMode === "consume" ? "program-consume-draft" : "program-candidate-not-adopted", path: "$", message: "Candidate preview is separate; the active program remains unchanged. Repair the current draft revision with a patch.", severity: "warning" }])
     if (!("evaluation" in compiled) || compiled.diagnostics.some(d => d.severity === "error") && options.executionPolicy !== "progressive") {
       if (executableContract) return retainProgramDraft(submitted, compiled.diagnostics)
@@ -260,18 +266,25 @@ export function createInquiryDomainRuntime(options: ResourceProgramInputs & { ex
   }
   const patchProgram = async (raw: unknown): Promise<ProposalResult> => {
     const merged = patchProgramDraft(currentDraft, raw)
-    if (merged.diagnostics.length || !merged.draft) return retainProgramDraft(raw, merged.diagnostics)
-    const result = await importProgram(merged.draft.raw)
+    if (merged.diagnostics.length || !merged.draft) { authorLoop.record({ kind: "patch", toolUnit: options.toolUnit?.(), revision: currentDraft?.revision, valid: false }); return retainProgramDraft(raw, merged.diagnostics) }
+    const result = await importProgram(merged.draft.raw, "model", false, "patch")
     proposals.push({ delta: structuredClone(raw), diagnostics: result.diagnostics, revision: slice.revision })
     return result
   }
   const restoreProgramDraft = (draft: ProgramDraft) => {
     const restored = createProgramDraft(draft.raw)
     if (restored.revision !== draft.revision) throw new Error("program-draft-revision-mismatch")
-    currentDraft = restored; candidatePreview = undefined
+    currentDraft = restored; restoredDraftRevision = restored.revision; candidatePreview = undefined
   }
-  const programDraftReport = () => ({ programMode, executionPolicy: options.executionPolicy ?? "strict", currentDraft: structuredClone(currentDraft), currentDraftDiagnostics: structuredClone(candidatePreview?.diagnostics ?? programDrafts.at(-1)?.diagnostics ?? []), candidate: candidatePreview && { revision: currentDraft?.revision, adopted: candidatePreview === executableContract?.compilation, diagnostics: candidatePreview.diagnostics, resourceExecution: !issues.has("$source") && options.tools.snapshotVerification?.valid !== false ? candidatePreview.resourceExecution : undefined } })
-  const executableContractReport = () => executableContract && { ...programDraftReport(), adoptedDraft: structuredClone(executableContract.adoptedDraft), program: executableContract.compilation.contract, origin: executableContract.origin, programMode, executionPolicy: options.executionPolicy ?? "strict", initialRevision: initialProgramRevision, drafts: structuredClone(programDrafts), diagnostics: executableContract.compilation.diagnostics, normalizations: executableContract.compilation.normalizations, resourceExecution: !issues.has("$source") && options.tools.snapshotVerification?.valid !== false ? executableContract.compilation.resourceExecution : undefined, revision: executableContract.compilation.revision, scope: executableContract.compilation.scope, assumptions: executableContract.compilation.assumptions, conditions: executableContract.compilation.conditions, status: propertyChecks && propertyBasis && !issues.has("$source") && !issues.has("$contract") ? "current" as const : "invalidated" as const, evaluation: propertyChecks && propertyBasis && !issues.has("$source") && !issues.has("$contract") ? structuredClone(propertyChecks) : undefined, requestOperationCertified: false as const }
+  const externalBoundaries = () => {
+    const steps = (currentDraft?.raw as any)?.resourceWorkflow?.steps
+    return (Array.isArray(steps) ? steps : []).filter(step => step?.op === "external" && typeof step.name === "string").map(step => {
+      const candidates = (options.tools.structure?.symbols ?? []).filter(s => s.kind === "function" && (s.name === step.name || s.qualifiedName === step.name)).map(s => ({ path: s.path, symbol: s.qualifiedName, startLine: s.startLine, endLine: s.endLine, boundary: s.boundary, read: options.tools.evidence.some(e => e.path === s.path && e.sha256 === s.sha256 && e.startLine <= s.startLine && e.endLine >= s.endLine) }))
+      return { stepId: step.id, name: step.name, kind: candidates.length ? "source-visible-unwritten" : "no-exact-source-candidate", candidates, instruction: candidates.length ? "This resource step uses an external approximation for a name with current source candidates. Inspect the actual source and express its supported finite relations, or retain a named authoring gap. Candidate identity/read coverage supplies no source meaning or permission result." : "No exact function-name candidate is indexed for this external name. Investigate source relationships as needed; only exact current supplied assumptions can resolve the external result." }
+    })
+  }
+  const programDraftReport = () => ({ programMode, executionPolicy: options.executionPolicy ?? "strict", currentDraft: structuredClone(currentDraft), restoredDraftRevision, externalBoundaries: externalBoundaries(), authorLoop: programMode === "edit" ? authorLoop.snapshot({ toolUnit: options.toolUnit?.() ?? options.tools.toolCalls, explorationUnits: options.explorationUnits?.() ?? options.tools.toolCalls, hasDraft: !!currentDraft, completeSources: (options.tools.structure?.symbols ?? []).filter(s => s.kind === "function" && s.boundary === "complete" && options.tools.evidence.some(e => e.path === s.path && e.sha256 === s.sha256 && e.startLine <= s.startLine && e.endLine >= s.endLine)).map(s => ({ path: s.path, symbol: s.qualifiedName, startLine: s.startLine, endLine: s.endLine })) }) : undefined, currentDraftDiagnostics: structuredClone(candidatePreview?.diagnostics ?? programDrafts.at(-1)?.diagnostics ?? []), candidate: candidatePreview && { revision: currentDraft?.revision, adopted: candidatePreview === executableContract?.compilation, diagnostics: candidatePreview.diagnostics, inputBinding: candidatePreview.inputBinding, resourceExecution: !issues.has("$source") && options.tools.snapshotVerification?.valid !== false ? candidatePreview.resourceExecution : undefined } })
+  const executableContractReport = () => executableContract && { ...programDraftReport(), adoptedDraft: structuredClone(executableContract.adoptedDraft), program: executableContract.compilation.contract, origin: executableContract.origin, programMode, executionPolicy: options.executionPolicy ?? "strict", initialRevision: initialProgramRevision, drafts: structuredClone(programDrafts), diagnostics: executableContract.compilation.diagnostics, normalizations: executableContract.compilation.normalizations, inputBinding: executableContract.compilation.inputBinding, resourceExecution: !issues.has("$source") && options.tools.snapshotVerification?.valid !== false ? executableContract.compilation.resourceExecution : undefined, revision: executableContract.compilation.revision, scope: executableContract.compilation.scope, assumptions: executableContract.compilation.assumptions, conditions: executableContract.compilation.conditions, status: propertyChecks && propertyBasis && !issues.has("$source") && !issues.has("$contract") ? "current" as const : "invalidated" as const, evaluation: propertyChecks && propertyBasis && !issues.has("$source") && !issues.has("$contract") ? structuredClone(propertyChecks) : undefined, requestOperationCertified: false as const }
   const propose = async (delta: unknown): Promise<ProposalResult> => {
     if (closed) throw new Error("session-closed: domain runtime cannot continue")
     if (executableContract && programMode === "consume") return retainProgramDraft(delta, [{ code: "program-consume-draft", path: "$", message: "Inspect the active program; proposed changes remain drafts in consume mode.", severity: "warning" }])

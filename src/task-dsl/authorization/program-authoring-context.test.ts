@@ -1,0 +1,61 @@
+import { expect, test } from "bun:test"
+import { executeResourceWorkflow } from "./resource-relations.ts"
+import * as author from "./program-authoring-context.ts"
+const at = { path: "app.py", startLine: 1, endLine: 8 }
+const questions = [{ id: "meaning", request: "Retain all requested meanings" }, { id: "data" }]
+const operationQuestions = questions.map(q => ({ questionId: q.id, operationId: "same" }))
+test("author feedback shows selected facts shapes and exact external calls without moving duties", () => {
+  const raw = { scope: { questionId: "meaning" }, inputBinding: { questionId: "data" }, resourceWorkflow: { inputs: ["actor", "rows", "missing"], steps: [] } }
+  const context: any = author.projectProgramTaskContext({ report: { currentDraft: { revision: "draft", raw } }, questions, operationQuestions, programMode: "edit", resourceInputs: { data: { actor: { id: 17 }, rows: [{ key: 2 }, { key: 3 }, { key: 4 }, { key: 5 }] } }, externalAssumptions: { data: [{ name: "service", arguments: { actor: 17 }, value: true, reason: "Supplied scenario fact" }] } } as any)
+  expect(context.authoring.inputBindings.inputQuestionId).toBe("data")
+  expect(context.authoring.inputBindings.missingDeclaredNames).toEqual(["missing"])
+  expect(context.authoring.inputBindings.values.actor.values).toEqual({ id: 17 })
+  expect(context.authoring.inputBindings.values.rows).toEqual({ kind: "collection", rowCount: 4, fields: ["key"], sample: [{ key: 2 }, { key: 3 }, { key: 4 }], truncated: true })
+  expect(context.authoring.inputBindings.externalAssumptions[0].arguments).toEqual({ actor: 17 })
+  expect(context.authoring.inputBindings.suppliedScopes[0].valueShapes.actor.fields).toEqual(["id"])
+  expect(context.remainingDuties.map((q: any) => q.questionId)).toEqual(["meaning", "data"])
+  expect(context.authoring.completion).toBe("unreviewed")
+})
+test("one absent input produces one root blocker with downstream steps from actual events", () => {
+  const workflow = { inputs: ["documents"], steps: [
+    { id: "selected", op: "select", from: "documents", where: { op: "eq", left: { binding: "row.id" }, right: { literal: 1 } }, source: at },
+    { id: "permitted", op: "external", name: "service", arguments: { key: { field: { of: { ref: "selected" }, key: "id" } } }, source: at },
+    { id: "guard", op: "guard", test: { op: "truthy", language: "python", value: { binding: "permitted" } }, failure: "denied", source: at },
+    { id: "key", op: "value", value: { field: { of: { ref: "selected" }, key: "id" } }, source: at },
+    { id: "result", op: "return", value: { ref: "key" }, source: at },
+  ] }
+  const execution = executeResourceWorkflow(workflow, {})
+  const report = { currentDraft: { revision: "draft", raw: { scope: { questionId: "meaning" }, resourceWorkflow: workflow } }, candidate: { revision: "draft", resourceExecution: execution } }
+  const feedback: any = author.projectProgramAuthoring(report, questions, undefined, { resourceInputs: { meaning: {} } })
+  expect(feedback.firstBlocker).toEqual(expect.objectContaining({ stepId: "selected", code: "missing-input", dependencies: ["documents"], affectedStepIds: ["selected", "permitted", "guard", "key", "result"] }))
+  expect(feedback.rootBlockers).toHaveLength(1)
+  expect(feedback.rootBlockers[0].inputs.from).toBe("documents")
+  expect(feedback.computed.termination).toBe("return")
+  const fixed = executeResourceWorkflow(workflow, { documents: [{ id: 1 }] }, { externalAssumptions: [{ name: "service", arguments: { key: 1 }, value: true, reason: "Current scenario fact" }] })
+  const repaired: any = author.projectProgramAuthoring({ ...report, candidate: { revision: "draft", resourceExecution: fixed } }, questions, undefined, { resourceInputs: { meaning: { documents: [{ id: 1 }] } } })
+  expect(repaired.rootBlockers).toEqual([])
+  expect(repaired.computed.returned).toBe(1)
+  expect(execution.events.every(event => event.outputs.known === false)).toBe(true)
+  const stale = { ...report, candidate: { revision: "old", resourceExecution: execution }, resourceExecution: { returned: 999 } }
+  expect(author.projectProgramAuthoring(stale, questions).computed).toBeUndefined()
+})
+test("author loop records actual first valid draft repairs and new values and triggers one early checkpoint", () => {
+  const loop = (author as any).createProgramAuthorLoop()
+  expect(loop.snapshot({ toolUnit: 12, explorationUnits: 12, completeSources: [] }).checkpoint).toBeUndefined()
+  const source = { path: "app.py", symbol: "local", startLine: 1, endLine: 8 }
+  const checkpoint = loop.snapshot({ toolUnit: 13, explorationUnits: 12, completeSources: [source] }).checkpoint
+  expect(checkpoint.toolUnit).toBe(13)
+  expect(loop.snapshot({ toolUnit: 18, explorationUnits: 17, completeSources: [source] }).checkpoint).toEqual(checkpoint)
+  loop.record({ kind: "program", toolUnit: 19, revision: "invalid", valid: false })
+  expect(loop.snapshot().firstDraftToolUnit).toBeUndefined()
+  loop.record({ kind: "program", toolUnit: 20, revision: "good", valid: true, execution: { values: { selected: 7 }, returned: 7, gaps: [] } })
+  loop.record({ kind: "patch", toolUnit: 21, revision: "better", valid: true, execution: { values: { selected: 9 }, returned: 9, gaps: [] } })
+  const feedback = loop.snapshot()
+  expect(feedback.firstProgramToolUnit).toBe(19)
+  expect(feedback.firstDraftToolUnit).toBe(20)
+  expect(feedback.patchCount).toBe(1)
+  expect(feedback.changes.at(-1).newValues).toEqual({ selected: 9 })
+  expect(feedback.changes.at(-1).returned).toBe(9)
+  const restored = (author as any).createProgramAuthorLoop()
+  expect(restored.snapshot({ toolUnit: 20, explorationUnits: 18, completeSources: [source], hasDraft: true }).checkpoint).toBeUndefined()
+})

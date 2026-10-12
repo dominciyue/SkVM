@@ -1,6 +1,24 @@
 import { expect, test } from "bun:test"
 import { executeResourceWorkflow, inspectResourceDraft } from "./resource-relations.ts"
 const api = await import("./resource-program-draft.ts").catch(() => ({} as any))
+test("input binding patch retains replaces and revokes the override atomically", () => {
+  const first = api.createProgramDraft({ id: "p", scope: { questionId: "q" }, inputBinding: { questionId: "data" }, resourceWorkflow: { inputs: [], steps: [{ id: "a", op: "return", value: { literal: 7 } }] } })
+  const unchanged = api.patchProgramDraft(first, { baseRevision: first.revision, upsertSteps: [] }).draft
+  expect(unchanged.raw.inputBinding).toEqual(first.raw.inputBinding)
+  const replaced = api.patchProgramDraft(first, { baseRevision: first.revision, inputBinding: { questionId: "new" }, upsertSteps: [] })
+  expect(replaced.diagnostics).toEqual([])
+  expect(replaced.draft.raw.inputBinding).toEqual({ questionId: "new" })
+  expect(replaced.draft.revision).not.toBe(first.revision)
+  const cleared = api.patchProgramDraft(replaced.draft, { baseRevision: replaced.draft.revision, inputBinding: null, upsertSteps: [] })
+  expect(cleared.diagnostics).toEqual([])
+  expect(Object.hasOwn(cleared.draft.raw, "inputBinding")).toBe(false)
+  for (const patch of [{ baseRevision: "old", stepOrder: ["a"] }, { baseRevision: first.revision, stepOrder: [] }]) {
+    const rejected = api.patchProgramDraft(first, { ...patch, inputBinding: null, upsertSteps: [] })
+    expect(rejected.diagnostics.length).toBeGreaterThan(0)
+    expect(rejected.draft).toEqual(first)
+  }
+  expect(first.raw.inputBinding).toEqual({ questionId: "data" })
+})
 
 test("draft revisions merge only explicit step edits and survive serialization", () => {
   expect(typeof api.createProgramDraft).toBe("function")

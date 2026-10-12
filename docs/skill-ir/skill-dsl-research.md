@@ -2692,6 +2692,8 @@ ShareLink第二离线开发程序使用同一select/guard/return核，六场景�
 
 **派发前复核。** 两项独立只读核验确认普通check也需接入输入解析器、patch需显式null撤销、独立编写与恢复稿要分开，以及比较次序和版本影响要记录。评价器隔离采用匿名泄漏测试和一次实际首包抽查，不再逐次增加等价审计。此阶段只写计划和导航；没有修改生产代码、启动模型实验或回填历史证据。
 
+**BJ0–BJ6实施。** 空草稿TypeError先红测再局部修复；shared inputBinding已连入canonical/input schema、patch、省略/对象/null、digest、普通check/run、previous与execution/v2展示，性质contractInputs仍取原语义题。作者共享反馈使用同一resolver，实际值/集合结构和external参数可见，草稿错版不显示旧active计算。一个缺documents的五步链沿实际事件归并为一个根因；补输入后立即消失，旧事件保留。首个有效稿工具单位、patch次数、新计算值及一次12探索单位后的试写提示来自实际宿主状态，提示不封闭源码工具；source-visible external候选仅定位待解释函数，不注入含义。native/structured mock完整经历空稿详情、读源、缺数据草稿、绑定patch、算值、插入拒绝guard与全部原题自然交付。最新53测试/433断言及主/BJ类型通过，此前相关495测试/2783断言通过；两项只读接口/反馈核验未发现物料缺陷。BI原稿在BJ目录仅加绑定的developer-assisted诊断得到文档11/archive条件候选，原稿与剩余权限/版本/回退缺口保持。这是离线接线证据，尚无BJ真实作者采用、完整自动主链或消费收益；R0是下一动作。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

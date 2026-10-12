@@ -146,9 +146,9 @@ type AuthorLoopFeedback = {
 
 ### BJ0 — 接管并建立有结果区别的状态
 
-- [ ] 核对本分支、HEAD、工作区、用户origin及其他活动写者；基线为BI终态，规划提交另记录。
-- [ ] 新建BJ `status.json`、`attempts.json`。阶段行动、工程验收、自动主链、原四问和收益分开，未测值为null/not-run。
-- [ ] 精读本任务书/spec§14.49；把第一个动作设为BJ1反例，不重复旧全仓审计。
+- [x] 核对本分支、HEAD、工作区、用户origin及其他活动写者；基线为BI终态，规划提交另记录。
+- [x] 新建BJ `status.json`、`attempts.json`。阶段行动、工程验收、自动主链、原四问和收益分开，未测值为null/not-run。
+- [x] 精读本任务书/spec§14.49；把第一个动作设为BJ1反例，不重复旧全仓审计。
 
 ### BJ1 — 空草稿工具可用
 
@@ -161,7 +161,7 @@ test("draft details without a candidate stays readable", () => {
 })
 ```
 
-- [ ] 将候选存在性加入执行选择条件，避免undefined revision相等：
+- [x] 将候选存在性加入执行选择条件，避免undefined revision相等：
 
 ```ts
 const candidate = report.candidate
@@ -171,41 +171,41 @@ const execution = args.view === "draft"
   : report.resourceExecution
 ```
 
-- [ ] 无report、空report、只有raw、只有旧active、candidate与draft错版五种状态各自反馈正确；旧有效详情不回归。
-- [ ] 在native/structured mock回合先details后首次program实际走通。提交聚焦修复。
+- [x] 无report、空report、只有raw、只有旧active、candidate与draft错版五种状态各自反馈正确；旧有效详情不回归。
+- [x] 在native/structured mock回合先details后首次program实际走通。提交聚焦修复。
 
 ### BJ2 — 统一输入绑定解析
 
-- [ ] 按§3.1增加程序可选inputBinding和共享resolver；接口直接接收当前问题/operation映射及已有两个输入map，不读文件或模型。
-- [ ] 红测覆盖：缺省同题兼容；显式同operation跨题；不存在ID；跨operation；空数据集；只有external假设；缺省无输入不自动挑候选。
-- [ ] 结果带原scope、选择的数据键、绑定来源和诊断；相关失败只使试算数据不可用，原问题/草稿保留。
-- [ ] 用匿名两题fixture证明同样actor/object数据不再因程序回答另一题而消失；不能把两题前提合并。
+- [x] 按§3.1增加程序可选inputBinding和共享resolver；接口直接接收当前问题/operation映射及已有两个输入map，不读文件或模型。
+- [x] 红测覆盖：缺省同题兼容；显式同operation跨题；不存在ID；跨operation；空数据集；只有external假设；缺省无输入不自动挑候选。
+- [x] 结果带原scope、选择的数据键、绑定来源和诊断；相关失败只使试算数据不可用，原问题/草稿保留。
+- [x] 用匿名两题fixture证明同样actor/object数据不再因程序回答另一题而消失；不能把两题前提合并。
 
 ### BJ3 — 修改、采用与恢复使用同一绑定
 
-- [ ] `ProgramStepPatchSchema`接inputBinding；省略/对象/null和步骤修改一起原子应用，过期revision拒绝且不改原稿。
-- [ ] `inquiry-domain-runtime.ts:231`及 `inquiry-local.ts:90`两条直接编译路径均替换resourceInputs/externalAssumptions接线；program/patch/import/recompute与普通check共用resolver，contractInputs仍取语义题。不能只修真实run留下零调用check使用旧路由。
-- [ ] 在恢复中切换绑定后必须重算；旧input/外部假设/候选结果不得沿用；撤销覆盖回到旧行为。
-- [ ] 更新shared wire帮助和实际公开工具schema，并用真实mock参数验证，不只检查字符串。
+- [x] `ProgramStepPatchSchema`接inputBinding；省略/对象/null和步骤修改一起原子应用，过期revision拒绝且不改原稿。
+- [x] `inquiry-domain-runtime.ts:231`及 `inquiry-local.ts:90`两条直接编译路径均替换resourceInputs/externalAssumptions接线；program/patch/import/recompute与普通check共用resolver，contractInputs仍取语义题。不能只修真实run留下零调用check使用旧路由。
+- [x] 在恢复中切换绑定后必须重算；旧input/外部假设/候选结果不得沿用；撤销覆盖回到旧行为。
+- [x] 更新shared wire帮助和实际公开工具schema，并用真实mock参数验证，不只检查字符串。
 
 ### BJ4 — 普通入口呈现与小范围验证
 
-- [ ] `check/run/inspect/previous`均显示“回答哪道题、用哪份场景数据、哪些值仍未知”；使用者无需打开巨大原件查接线。
-- [ ] 在BJ派生目录对BI原稿只加显式绑定做零调用诊断，标developer-assisted；原BI原稿不变。
-- [ ] 运行相关确定性测试和主类型检查，通过后即可进入真实作者准备，不等待其它离线工程全完。
+- [x] `check/run/inspect/previous`均显示“回答哪道题、用哪份场景数据、哪些值仍未知”；使用者无需打开巨大原件查接线。
+- [x] 在BJ派生目录对BI原稿只加显式绑定做零调用诊断，标developer-assisted；原BI原稿不变。
+- [x] 运行相关确定性测试和主类型检查，通过后即可进入真实作者准备，不等待其它离线工程全完。
 
 ### BJ5 — 作者看到数据结构和第一阻断点
 
-- [ ] 在 `program-authoring-context.ts`中使用共享绑定结果。字段名、记录结构、外部调用名字/参数/已提供前提均可查看，实际值来自用户场景，不来自expected。
-- [ ] 从resourceExecution形成去重的根因反馈：缺输入、缺对象字段、选择歧义、未提供external、无效表达式、未知guard分别给出step与依赖；保留详情原件。
-- [ ] 匿名测试中一个缺失输入导致五个下游unknown，应显示一个根因和五个受影响项；修输入后反馈立即消失，原执行记录不擦除。
+- [x] 在 `program-authoring-context.ts`中使用共享绑定结果。字段名、记录结构、外部调用名字/参数/已提供前提均可查看，实际值来自用户场景，不来自expected。
+- [x] 从resourceExecution形成去重的根因反馈：缺输入、缺对象字段、选择歧义、未提供external、无效表达式、未知guard分别给出step与依赖；保留详情原件。
+- [x] 匿名测试中一个缺失输入导致五个下游unknown，应显示一个根因和五个受影响项；修输入后反馈立即消失，原执行记录不擦除。
 
 ### BJ6 — 将试写、试算、修稿接入真实循环
 
-- [ ] 记录首次program工具单位与实际草稿状态，在探索前段触发一次机械checkpoint；草稿存在时引导修首个阻断而非重新全文浏览。
-- [ ] 每个program/patch用当前输入自动试算并返回变化摘要；新候选无效时仍可读原稿和诊断，旧active明确标旧版本。
-- [ ] native与structured共用反馈。mock完整执行“读源→草稿→数据缺口→绑定patch→值计算→guard变化→拒绝→自然交付”。
-- [ ] 不能因自然答案已写完便丢掉草稿职责；因真实边界无法完成时可交付partial并保存原因，不能无限循环。
+- [x] 记录首次program工具单位与实际草稿状态，在探索前段触发一次机械checkpoint；草稿存在时引导修首个阻断而非重新全文浏览。
+- [x] 每个program/patch用当前输入自动试算并返回变化摘要；新候选无效时仍可读原稿和诊断，旧active明确标旧版本。
+- [x] native与structured共用反馈。mock完整执行“读源→草稿→数据缺口→绑定patch→值计算→guard变化→拒绝→自然交付”。
+- [x] 不能因自然答案已写完便丢掉草稿职责；因真实边界无法完成时可交付partial并保存原因，不能无限循环。
 
 ### BJ7 — 独立评价和真实运行准备
 

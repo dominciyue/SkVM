@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**BJ0–BJ25已授权，准备派发实施；当前尚无BJ实现或实验结果。** [任务书](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)按约12小时有效开发量安排，由新的`gpt-6.1-sol/max`线程推进，identity为`authorization-authoring-loop-v1`。优先接通显式数据输入绑定、早期试编译及运行反馈，再让自动作者补齐版本、权限和root回退关系；full保持默认。方法见[spec§14.49](skill-ir-aot-optimization-spec.md#1449-bj-authoring-loop-and-program-completion)及[研究§7.71](skill-dsl-research.md#771-bj-输入接线与自动编写运行闭环)。派发后由新开发线程独占代码、共享执行状态和Git写入。
+**BJ正在实施；BJ0–BJ6共享接线及离线验证完成，真实作者确认待运行。** [任务书](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)按约12小时有效开发量安排，由`gpt-6.1-sol/max`线程独占代码、共享状态和Git写入，identity为`authorization-authoring-loop-v1`。显式同operation输入绑定、空草稿详情、实际值/根因反馈、首稿与补丁计量、一次早期试写提示已接通；full保持默认。当前53项聚焦测试/433断言、主及BJ研究类型通过，先前495项相关回归/2783断言通过。下一动作是R0恢复BI A2自身稿取得真实确认；模型补齐版本、权限和root关系及收益仍未测。方法见[spec§14.49](skill-ir-aot-optimization-spec.md#1449-bj-authoring-loop-and-program-completion)及[研究§7.71](skill-dsl-research.md#771-bj-输入接线与自动编写运行闭环)，实际状态见[BJ status](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/status.json)。
 
 实施基线为BI最终提交`ace945fa`。发布后复核的68项定向测试、502断言通过，普通自动稿仍为conditional且无文件返回；仅诊断性补入输入后仍暴露空version、拒绝及root回退缺口，未计为自动成功。空草稿details还可触发TypeError。BJ要求共享修复得到实际作者确认，恢复修稿、独立新编写、固定原稿消费与对照分别留账。
 
@@ -110,7 +110,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BJ | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)、spec§14.49、研究§7.71；已授权、待实施，约12小时有效开发量，尚无BJ结果 |
+| 当前BJ | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)、spec§14.49、研究§7.71；BJ0–BJ6离线完成，准备R0真实确认，工程/自动主链/收益分轴留账 |
 | BI | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)、spec§14.48、研究§7.70；已发布，工程与有限队列完成，自动主链及稳定收益未达 |
 | BH | [任务书](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)、spec§14.47、研究§7.69；有限队列完成、自动主链与稳定收益未达；实际程序、首失败、修复和分轴结论已归档 |
 | BG | [任务书](../superpowers/plans/2026-10-12-authorization-end-to-end-practical-execution.md)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-practical-execution-v1/summary.json)、spec§14.46、研究§7.68；主链运行/变化成立，自动编写和净收益未达 |

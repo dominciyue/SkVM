@@ -1,9 +1,10 @@
 import { createHash } from "node:crypto"
 import { z } from "zod"
 import type { InquiryDiagnostic } from "./inquiry.ts"
+import { ProgramInputBindingSchema } from "./program-input-binding.ts"
 
 const id = z.string().min(1).max(256).refine(v => !["__proto__", "prototype", "constructor"].includes(v))
-export const ProgramStepPatchSchema = z.object({ baseRevision: z.string().min(1), upsertSteps: z.array(z.object({ id }).passthrough()).max(128), removeStepIds: z.array(id).max(128).optional(), inputNames: z.array(id).max(64).optional(), stepOrder: z.array(id).max(128).optional() }).strict()
+export const ProgramStepPatchSchema = z.object({ baseRevision: z.string().min(1), upsertSteps: z.array(z.object({ id }).passthrough()).max(128), removeStepIds: z.array(id).max(128).optional(), inputNames: z.array(id).max(64).optional(), stepOrder: z.array(id).max(128).optional(), inputBinding: ProgramInputBindingSchema.nullable().optional() }).strict()
 export interface ProgramDraft { revision: string; raw: any }
 const identity = (v: any) => JSON.stringify([v?.id, v?.scope?.questionId])
 export function createProgramDraft(raw: unknown, previous?: ProgramDraft): ProgramDraft {
@@ -41,6 +42,10 @@ export function patchProgramDraft(current: ProgramDraft | undefined, raw: unknow
     workflow.steps = order.map(id => byId.get(id))
   }
   if (patch.inputNames) workflow.inputs = patch.inputNames
+  if (Object.hasOwn(patch, "inputBinding")) {
+    if (patch.inputBinding === null) delete value.inputBinding
+    else value.inputBinding = patch.inputBinding
+  }
   value.resourceWorkflow = workflow
   const moved = workflow.steps.flatMap((s: any, index: number) => ids.indexOf(s.id) !== index ? [s.id as string] : [])
   return { draft: createProgramDraft(value), diagnostics: [], changedStepIds: [...new Set([...upsertIds, ...remove, ...moved])] }

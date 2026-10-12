@@ -9,6 +9,106 @@ import { runAuthorizationInquiry } from "./inquiry-run.ts"
 import { emptyTokenUsage } from "../../core/types.ts"
 import { createProgramDraft } from "../../task-dsl/authorization/resource-program-draft.ts"
 import { questionWorkflowDefinitions, RESOURCE_PROGRAM_TEMPLATE } from "./question-workflow-wire.ts"
+test("native author inspects an empty draft then reads and submits its first program", async () => {
+  const f = await contractFiles()
+  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive" })
+  try {
+    await runtime.execute({ id: "prepare", name: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: [{ questionId: "other", state: "residual", reason: "Retain the original duty" }] } })
+    const empty = JSON.parse((await runtime.execute({ id: "empty", name: "authorization_program_details", arguments: { view: "draft" } })).output)
+    expect(empty.events).toEqual([])
+    expect(empty.steps).toEqual([])
+    await runtime.execute({ id: "read", name: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 8 } })
+    await runtime.execute({ id: "first", name: "authorization_program", arguments: { ...f.contract, resourceWorkflow: { inputs: [], steps: [{ id: "helper", op: "external", name: "perform", arguments: {}, source: at(4, 8) }, { id: "result", op: "return", value: { literal: 7 }, source: at(8) }] } } })
+    expect(runtime.report().domain!.executableContract!.resourceExecution!.returned).toBe(7)
+    const context: any = await runtime.accountContext(false)
+    expect(context.authoring.firstDraftToolUnit).toBe(4)
+    expect(context.authoring.changes.at(-1).returned).toBe(7)
+    expect(context.authoring.externalBoundaries[0].kind).toBe("source-visible-unwritten")
+    expect(context.authoring.externalBoundaries[0].candidates[0].read).toBe(true)
+  } finally { await runtime.close() }
+})
+test("fresh account author cannot receive evaluator or reference bytes from its sibling workspace", async () => {
+  const f = await contractFiles(), marker = "BJ_PRIVATE_EVALUATION_728491"
+  await mkdir(path.join(f.root, "evaluation")); await writeFile(path.join(f.root, "evaluation/expected.json"), JSON.stringify({ marker }))
+  await writeFile(path.join(f.root, "reference-program.json"), JSON.stringify({ marker }))
+  let packetChecked = false
+  const report: any = await executeLocalInquiryRun({ inputFile: f.inputFile, outDir: path.join(f.root, "isolation-out"), model: "gpt-5.6-sol", strategy: "question-checked-v1", harness: "codex-account", programMode: "edit", executionPolicy: "progressive", accountTransportFactory: contractConsumer(() => {}, { tool: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: [{ questionId: "other", state: "residual", reason: "Retain original duty" }] } }, packet => {
+    packetChecked = true
+    expect(JSON.stringify(packet)).not.toContain(marker)
+    expect(JSON.stringify(packet)).not.toContain("reference-program.json")
+  }), execution: { sessionTimeoutMs: 5000 } })
+  expect(report.status).toBe("completed")
+  expect(packetChecked).toBe(true)
+  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", programMode: "edit" })
+  try {
+    await runtime.execute({ id: "prepare", name: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: [{ questionId: "other", state: "residual", reason: "Retain duty" }] } })
+    const reply = await runtime.execute({ id: "excluded", name: "source_read", arguments: { path: "../evaluation/expected.json", startLine: 1, endLine: 1 } })
+    expect(reply.output).not.toContain(marker)
+    expect(JSON.stringify(await runtime.accountContext(false))).not.toContain(marker)
+    expect(runtime.report().sourceFiles.map(file => file.path)).toEqual(["app.py"])
+  } finally { await runtime.close() }
+})
+test("native early checkpoint keeps source reads available and occurs once after twelve exploration units", async () => {
+  const f = await contractFiles()
+  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive", maxToolCalls: 32 })
+  try {
+    await runtime.execute({ id: "prepare", name: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: [{ questionId: "other", state: "residual", reason: "Retain the original duty" }] } })
+    for (let unit = 1; unit <= 12; unit++) await runtime.execute({ id: `read-${unit}`, name: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 8 } })
+    const first: any = await runtime.accountContext(false)
+    expect(first.authoring.checkpoint.explorationUnits).toBe(12)
+    expect(first.authoring.checkpoint.completeSources[0].symbol).toContain("local")
+    expect(first.authoring.remainingActions).toBeGreaterThan(0)
+    const after = await runtime.execute({ id: "continue-read", name: "source_read", arguments: { path: "app.py", startLine: 4, endLine: 8 } })
+    expect(after.exitCode).toBe(0)
+    const next: any = await runtime.accountContext(false)
+    expect(next.authoring.checkpoint).toEqual(first.authoring.checkpoint)
+    expect(next.remainingDuties.map((q: any) => q.questionId)).toEqual(["q", "other"])
+  } finally { await runtime.close() }
+})
+test("explicit same-operation binding survives check native patch previous and current-input recomputation", async () => {
+  const f = await contractFiles(), input = JSON.parse(await readFile(f.inputFile, "utf8"))
+  input.inquiry = { ...input.inquiry, schemaVersion: "authorization-inquiry/v2", operations: [{ id: "operation", request: "Inspect the local operation" }], questions: input.inquiry.questions.map((q: any) => ({ ...q, operationId: "operation", intent: "behavior" })) }
+  input.resourceInputs = { q: { item: { id: 17 } } }
+  input.externalAssumptions = { q: [{ name: "store", arguments: { key: 17 }, value: true, reason: "Current scenario fact" }] }
+  input.contractInputs = { q: { actor: { allowed: false } }, other: { actor: { allowed: true } } }
+  const program = { ...f.contract, queries: [], scope: { ...f.contract.scope, questionId: "other" }, inputBinding: { questionId: "q" }, resourceWorkflow: { inputs: ["item"], steps: [
+    { id: "store", op: "external", name: "store", arguments: { key: { field: { of: { ref: "item" }, key: "id" } } }, source: at(8) },
+    { id: "permitted", op: "guard", test: { op: "truthy", language: "python", value: { binding: "store" } }, failure: "denied", source: at(5) },
+    { id: "result", op: "return", value: { field: { of: { ref: "item" }, key: "id" } }, source: at(8) },
+  ] } }
+  await writeFile(f.inputFile, JSON.stringify(input)); await writeFile(f.domainProgramFile, JSON.stringify(program))
+  const checked: any = await checkAuthorizationInquiry(f.inputFile, "D1", "question-checked-v1", f.domainProgramFile, { executionPolicy: "progressive" })
+  expect(checked.status, JSON.stringify(checked.diagnostics)).toBe("valid")
+  expect(checked.executableContract.resourceExecution.returned).toBe(17)
+  expect(checked.executableContract.conditions).toEqual(input.contractInputs.other)
+  expect(checked.executableContract.inputBinding.inputQuestionId).toBe("q")
+  const native = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", domainProgramFile: f.domainProgramFile, programMode: "edit", executionPolicy: "progressive" })
+  try {
+    expect(native.argumentDiagnostics({ id: "program", name: "authorization_program", arguments: program })).toBeUndefined()
+    expect(native.report().domain!.executableContract!.resourceExecution!.returned).toBe(17)
+    const initial: any = native.report().domain!.executableContract!
+    await native.execute({ id: "revoke", name: "authorization_program_patch", arguments: { baseRevision: initial.currentDraft.revision, inputBinding: null, upsertSteps: [] } })
+    expect(native.report().domain!.executableContract!.resourceExecution!.returned).toBeUndefined()
+    const unbound: any = native.report().domain!.executableContract!
+    await native.execute({ id: "bind", name: "authorization_program_patch", arguments: { baseRevision: unbound.currentDraft.revision, inputBinding: { questionId: "q" }, upsertSteps: [] } })
+    expect(native.report().domain!.executableContract!.resourceExecution!.returned).toBe(17)
+  } finally { await native.close() }
+  const common = { inputFile: f.inputFile, outDir: path.join(f.root, "binding-out"), model: "gpt-5.6-sol", strategy: "question-checked-v1" as const, harness: "codex-account" as const, programMode: "edit" as const, executionPolicy: "progressive" as const, execution: { sessionTimeoutMs: 5000 } }
+  const consumer = (value: number) => contractConsumer(reply => {
+    expect(reply.toolResult.executableContract.resourceExecution.returned).toBe(value)
+    expect(reply.toolResult.executableContract.conditions).toEqual(input.contractInputs.other)
+  })
+  const first: any = await executeLocalInquiryRun({ ...common, domainProgramFile: f.domainProgramFile, accountTransportFactory: consumer(17) })
+  expect(first.status).toBe("completed")
+  input.resourceInputs.q.item.id = 19; input.externalAssumptions.q[0].arguments.key = 19
+  await writeFile(f.inputFile, JSON.stringify(input))
+  const next: any = await executeLocalInquiryRun({ ...common, previous: first.sessionPath, accountTransportFactory: consumer(19) })
+  expect(next.status).toBe("completed")
+  expect(next.reuse.answerReused).toBe(false)
+  const inspected = await inspectLocalInquiry(next.sessionPath)
+  expect(inspected.execution.inputBinding.inputQuestionId).toBe("q")
+  expect(await readFile(path.join(next.sessionPath, "execution.md"), "utf8")).toContain('"inputQuestionId": "q"')
+})
 test("native and structured author input binding exposes a real question mismatch without injecting its facts", async () => {
   const f = await contractFiles(), input = JSON.parse(await readFile(f.inputFile, "utf8"))
   input.resourceInputs = { q: { item: { id: 17 } } }
@@ -101,24 +201,34 @@ test("native recovery restores the raw author draft after task preparation creat
 
 test("structured author uses program then ordered patch then details and delivers all original duties", async () => {
   const f = await contractFiles(), input = JSON.parse(await readFile(f.inputFile, "utf8")); let count = 0
-  const value = { id: "value", op: "value", value: { literal: 7 }, source: at(8) }
-  const initial = { ...f.contract, resourceWorkflow: { inputs: [], steps: [value, { id: "result", op: "return", value: { ref: "value" }, source: at(8) }] } }
+  input.inquiry.questions[1].properties = [{ id: "remaining", kind: "effect-reachability", requirement: input.inquiry.questions[1].request }]
+  input.inquiry = { ...input.inquiry, schemaVersion: "authorization-inquiry/v2", operations: [{ id: "operation", request: "Inspect local operation" }], questions: input.inquiry.questions.map((q: any) => ({ ...q, operationId: "operation", intent: "behavior" })) }
+  input.resourceInputs = { q: { item: { id: 7 } } }
+  const value = { id: "value", op: "value", value: { field: { of: { ref: "item" }, key: "id" } }, source: at(8) }
+  const initial = { ...f.contract, scope: { ...f.contract.scope, questionId: "other" }, queries: [], resourceWorkflow: { inputs: ["item"], steps: [value, { id: "result", op: "return", value: { ref: "value" }, source: at(8) }] } }
   const contexts: any[] = []
   const provider: any = { name: "ordered-author", async complete(params: any) {
     const text = params.messages.map((m: any) => m.content).join("\n"), n = count++
     const current = JSON.parse(text.split("Current local explanation context: ").at(-1)!.split("\n\nRemaining dispatches:")[0]!)
     contexts.push(current)
     const revision = current.authoring?.draftRevision
-    const action = n === 0 ? { kind: "program", name: "authorization_program", arguments: initial } : n === 1 ? { kind: "program", name: "authorization_program_patch", arguments: { baseRevision: revision, upsertSteps: [{ id: "permission", op: "guard", test: { op: "eq", left: { literal: 1 }, right: { literal: 2 } }, failure: "denied", source: at(5) }], stepOrder: ["value", "permission", "result"] } } : n === 2 ? { kind: "program", name: "authorization_program_details", arguments: { view: "draft", expectedRevision: revision } } : { kind: "final", schemaVersion: "authorization-focused-result/v1", focusId: current.focus.id, answers: ["Finite guard rejected; source meanings remain unreviewed.", "Other original duty remains unresolved."].map(explanation => ({ explanation, missing: [{ kind: "source-gap", detail: "Original source duty still needs investigation" }] })), scope: "Local fixture only" }
+    const action = n === 0 ? { kind: "program", name: "authorization_program_details", arguments: { view: "draft" } } : n === 1 ? { kind: "tool", calls: [{ name: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 8 } }] } : n === 2 ? { kind: "program", name: "authorization_program", arguments: initial } : n === 3 ? { kind: "program", name: "authorization_program_patch", arguments: { baseRevision: revision, inputBinding: { questionId: "q" }, upsertSteps: [] } } : n === 4 ? { kind: "program", name: "authorization_program_patch", arguments: { baseRevision: revision, upsertSteps: [{ id: "permission", op: "guard", test: { op: "eq", left: { literal: 1 }, right: { literal: 2 } }, failure: "denied", source: at(5) }], stepOrder: ["value", "permission", "result"] } } : n === 5 ? { kind: "program", name: "authorization_program_details", arguments: { view: "draft", expectedRevision: revision } } : { kind: "final", schemaVersion: "authorization-focused-result/v1", focusId: current.focus.id, answers: ["Finite guard rejected; source meanings remain unreviewed.", "Other original duty remains unresolved."].map(explanation => ({ explanation, missing: [{ kind: "source-gap", detail: "Original source duty still needs investigation" }] })), scope: "Local fixture only" }
     return { text: "", toolCalls: [{ id: `ordered-${n}`, name: params.tools[0].name, arguments: action }], stopReason: "tool_use", tokens: emptyTokenUsage(), durationMs: 0 }
   }, async completeWithToolResults() { throw new Error("unused") } }
-  const run = await runAuthorizationInquiry({ ...input, sourceRoot: path.join(f.root, "source"), provider, method: "D1", strategy: "question-checked-v1", domainProgram: f.contract, programMode: "edit", executionPolicy: "progressive", programContext: "compact", maxDispatches: 8 })
+  const run = await runAuthorizationInquiry({ ...input, sourceRoot: path.join(f.root, "source"), provider, method: "D1", strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive", programContext: "compact", maxDispatches: 11 })
   expect(contexts[1].authoring.goal).toContain("Continue authoring")
   expect(run.wireFailures).toEqual([])
+  expect(contexts[3].authoring.inputBindings.missingDeclaredNames).toEqual(["item"])
+  expect(contexts[4].authoring.computed.returned).toBe(7)
   expect(run.domain!.executableContract!.resourceExecution!.termination).toBe("denied")
   expect(run.domain!.executableContract!.resourceExecution!.events.map(e => e.id)).toEqual(["value", "permission"])
-  expect((run.steps.find(s => s.kind === "program" && (s.value as any).name === "authorization_program_details")!.value as any).output.events).toHaveLength(2)
+  const details: any[] = run.steps.filter(s => s.kind === "program" && (s.value as any).name === "authorization_program_details")
+  expect(details[0].value.output.events).toEqual([])
+  expect(details[1].value.output.events).toHaveLength(2)
   expect((run.final as any).questions.map((q: any) => q.questionId)).toEqual(["q", "other"])
+  const loop: any = run.domain!.executableContract
+  expect(loop.authorLoop.firstDraftToolUnit).toBe(3)
+  expect(loop.authorLoop.patchCount).toBe(2)
 })
 test("structured provider can patch a draft and request actual compact program details", async () => {
   const f = await contractFiles(), input = JSON.parse(await readFile(f.inputFile, "utf8")); let count = 0
@@ -411,12 +521,13 @@ test("a rejected declaration for another original question preserves the local c
 function contractConsumer(onCheck = (reply: any) => {
   expect(reply.toolResult.executableContract.program.id).toBe("authored-local")
   expect(reply.toolResult.propertyChecks.questions.find((q: any) => q.questionId === "q").properties[0].status).toBe("checked")
-}, call: { tool: string; arguments: unknown } = { tool: "authorization_check_properties", arguments: {} }) {
+}, call: { tool: string; arguments: unknown } = { tool: "authorization_check_properties", arguments: {} }, onStart = (_packet: any) => {}) {
   let receive = (_message: any) => {}
   return () => ({ isolation: { kind: "test-transport" as const, reason: "Anonymous finite contract consumer" }, onMessage(f: any) { receive = f }, onExit() {}, close() {}, send(message: any) {
     if (message.method === "initialize") receive({ id: message.id, result: {} })
     if (message.method === "thread/start") receive({ id: message.id, result: { thread: { id: "thread" }, model: "gpt-5.6-sol" } })
     if (message.method === "turn/start") {
+      onStart(message.params)
       receive({ id: message.id, result: { turn: { id: "turn" } } })
       queueMicrotask(() => receive({ id: "rpc-check", method: "item/tool/call", params: { threadId: "thread", turnId: "turn", callId: "check", ...call } }))
     }

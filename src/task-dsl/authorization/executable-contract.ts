@@ -17,12 +17,14 @@ import { projectSourceMaterials, type SourceFunctionRoot } from "../../benchmark
 import { sourceRelationRevision } from "../../benchmarks/authorization-dsl/operation-work.ts"
 import { lowerIntoControlSlice } from "../../benchmarks/authorization-dsl/inquiry-semantic.ts"
 import { ResourceWorkflowSchema, ResourceWorkflowDraftSchema, inspectResourceDraft, executeResourceWorkflow, type ResourceValue, type ExternalAssumptionsSchema } from "./resource-relations.ts"
+import { ProgramInputBindingSchema, programInputBindingSummary, type ProgramInputResolution } from "./program-input-binding.ts"
 
 const scope = z.object({ kind: z.enum(["function-contract", "request-operation"]), questionId: InquiryText, operationId: InquiryText.optional(), root: SourceCitationSchema, upstream: z.array(InquiryText).max(32) }).strict()
 export const ExecutableContractSchema = z.object({ schemaVersion: z.literal("authorization-executable-contract/v1"), id: InquiryText, scope,
   sourceDeclarations: z.array(QuestionDeclarationSchema).min(1).max(32), queries: QuestionDeclarationSchema.shape.properties.unwrap().default([]),
   assumptions: z.array(z.object({ text: InquiryText, origin: z.enum(["user", "source", "development-premise"]), source: SourceCitationSchema.optional() }).strict()).max(32).default([]),
   resourceWorkflow: ResourceWorkflowSchema.optional(),
+  inputBinding: ProgramInputBindingSchema.optional(),
 }).strict()
 const sourceInput = z.union([SourceCitationSchema, z.object({ symbol: InquiryText, path: InquiryText.optional(), receiverClass: InquiryText.optional(), sha256: InquiryText.optional() }).strict()])
 /** Author-facing mechanical omissions; normalization still resolves source identity in the live index. */
@@ -81,7 +83,7 @@ export async function readExecutableContractSources(raw: unknown, tools: Inquiry
 /** One source-declaration compiler, material projector and property evaluator.
  * Files and native tools call this same host function. It never reads source on
  * behalf of a model, accepts verdicts, or promotes a local root to request entry. */
-export async function compileExecutableContract(raw: unknown, options: { tools: InquiryTools; program: AuthorizationInquiryProgram; confirmedEntries?: BoundSemanticBlock[]; inputs?: Record<string, FiniteValue>; interpretationSource?: SourceMaterial["interpretationSource"]; executionPolicy?: ExecutionPolicy; resourceInputs?: Record<string, ResourceValue>; externalAssumptions?: z.infer<typeof ExternalAssumptionsSchema> }) {
+export async function compileExecutableContract(raw: unknown, options: { tools: InquiryTools; program: AuthorizationInquiryProgram; confirmedEntries?: BoundSemanticBlock[]; inputs?: Record<string, FiniteValue>; interpretationSource?: SourceMaterial["interpretationSource"]; executionPolicy?: ExecutionPolicy; resourceInputs?: Record<string, ResourceValue>; externalAssumptions?: z.infer<typeof ExternalAssumptionsSchema>; inputResolution?: ProgramInputResolution }) {
   const progressive = options.executionPolicy === "progressive", normalized = normalizeExecutableContract(raw, options.tools.structure)
   const diagnostics: InquiryDiagnostic[] = [], candidate: any = normalized.value
   if (progressive && Array.isArray(candidate?.sourceDeclarations)) candidate.sourceDeclarations = candidate.sourceDeclarations.filter((d: unknown, i: number) => {
@@ -188,6 +190,7 @@ export async function compileExecutableContract(raw: unknown, options: { tools: 
   if (contract.resourceWorkflow) for (const step of inspectResourceDraft(contract.resourceWorkflow).unreachableSteps)
     diagnostics.push({ code: "contract-resource-unreachable", path: `resourceWorkflow.steps.${step.index}`, questionId: question.id, severity: "warning", message: `Step ${step.id} follows declared unconditional return ${step.after} and is unreachable when that return executes. Use an explicit complete stepOrder in authorization_program_patch to move it before the return if supported by source; no implicit reordering occurs.` })
   const resourceInputs = { ...options.resourceInputs }
+  if (contract.resourceWorkflow && options.inputResolution) diagnostics.push(...options.inputResolution.diagnostics)
   if (progressive && contract.resourceWorkflow) for (const key of Object.keys(resourceInputs)) if (!contract.resourceWorkflow.inputs.includes(key)) {
     delete resourceInputs[key]
     diagnostics.push({ code: "contract-resource-input-unused", path: `resourceInputs.${key}`, message: "This supplied scenario fact is not declared by the draft and was not used.", severity: "warning" })
@@ -203,5 +206,5 @@ export async function compileExecutableContract(raw: unknown, options: { tools: 
   // Lowering gaps remain source rules. They are not rejected source transactions:
   // a later return/exception gap cannot invalidate an already covered prefix.
   const evaluation = checkPropertyQueries(options.program, lowered.state, demands, projected.units, [], progressive ? [] : diagnostics, true, "semantic-completion/v1")
-  return { diagnostics, normalizations: normalized.normalizations, resourceExecution, contract, revision: digest([contract, options.program, conditions, options.resourceInputs, options.externalAssumptions, owners.map(o => o.skeleton.revision)]), scope: contract.scope, assumptions: contract.assumptions, conditions: structuredClone(conditions), units, projectedUnits: projected.units, functionRoots, sourceMaterials: materials.snapshot(), materialUses: projected.uses, materialProjection: { diagnostics: projected.diagnostics, stages: projected.stages }, demands, slice: lowered.state, loweringDiagnostics: lowered.diagnostics, evaluation, requestOperationCertified: false as const, semanticReview: "unreviewed" as const }
+  return { diagnostics, normalizations: normalized.normalizations, resourceExecution, inputBinding: options.inputResolution && programInputBindingSummary(options.inputResolution), contract, revision: digest([contract, options.program, conditions, options.resourceInputs, options.externalAssumptions, options.inputResolution && programInputBindingSummary(options.inputResolution), owners.map(o => o.skeleton.revision)]), scope: contract.scope, assumptions: contract.assumptions, conditions: structuredClone(conditions), units, projectedUnits: projected.units, functionRoots, sourceMaterials: materials.snapshot(), materialUses: projected.uses, materialProjection: { diagnostics: projected.diagnostics, stages: projected.stages }, demands, slice: lowered.state, loweringDiagnostics: lowered.diagnostics, evaluation, requestOperationCertified: false as const, semanticReview: "unreviewed" as const }
 }

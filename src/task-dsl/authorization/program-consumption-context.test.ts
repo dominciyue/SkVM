@@ -1,6 +1,16 @@
 import { expect, test } from "bun:test"
 const api = await import("./program-consumption-context.ts").catch(() => ({} as any))
 const author = await import("./program-authoring-context.ts")
+test("draft details without a candidate stays readable", () => {
+  for (const report of [undefined, {}, { currentDraft: { raw: {} } }, { revision: "old", resourceExecution: { events: [{ id: "old" }] } }]) {
+    expect(() => api.programConsumptionDetails(report, { view: "draft" })).not.toThrow()
+    expect(api.programConsumptionDetails(report, { view: "draft" }).steps).toEqual([])
+    expect(api.programConsumptionDetails(report, { view: "draft" }).events).toEqual([])
+  }
+  const report = { currentDraft: { revision: "draft", raw: { resourceWorkflow: { steps: [{ id: "new" }] } } }, candidate: { revision: "other", resourceExecution: { events: [{ id: "old" }] } } }
+  expect(api.programConsumptionDetails(report, { view: "draft" }).steps).toEqual([{ id: "new" }])
+  expect(api.programConsumptionDetails(report, { view: "draft" }).events).toEqual([])
+})
 test("author input binding identifies the draft question gap without copying other question facts", () => {
   const questions = [{ id: "available" }, { id: "chosen" }]
   const report = { scope: { questionId: "available" }, currentDraft: { raw: { scope: { questionId: "chosen" }, resourceWorkflow: { inputs: ["actor", "rows"] } } } }
@@ -8,7 +18,7 @@ test("author input binding identifies the draft question gap without copying oth
   const progress = context.authoring!
   expect(progress.inputBindings.questionId).toBe("chosen")
   expect(progress.inputBindings.missingDeclaredNames).toEqual(["actor", "rows"])
-  expect(progress.inputBindings.suppliedScopes).toEqual([{ questionId: "available", inputNames: ["actor", "rows"], externalAssumptionNames: [] }])
+  expect(progress.inputBindings.suppliedScopes).toEqual([{ questionId: "available", inputNames: ["actor", "rows"], valueShapes: { actor: { kind: "object", fields: ["id"] }, rows: { kind: "collection", rowCount: 0, fields: [] } }, externalAssumptionNames: [], operationId: undefined }])
   expect(JSON.stringify(progress.inputBindings)).not.toContain("934827")
 })
 test("malformed raw workflow stays inspectable during author recovery without leaking the active execution", () => {

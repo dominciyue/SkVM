@@ -11,7 +11,7 @@ export function projectProgramConsumption(report: any, questions: readonly { id:
   if (!report || mode === "full") return report
   const execution = report.resourceExecution, events: any[] = execution?.events ?? []
   return { schemaVersion: "authorization-program-context/v1", programId: report.program?.id, revision: report.revision, inputRevision: revision(execution?.inputs), draftRevision: report.currentDraft?.revision, status: report.status, programMode: report.programMode, origin: report.origin, scope: report.scope,
-    termination: execution?.termination, returned: execution?.returned, conditions: execution?.conditions, gaps: execution?.gaps ?? [],
+    inputBinding: report.inputBinding, termination: execution?.termination, returned: execution?.returned, conditions: execution?.conditions, gaps: execution?.gaps ?? [],
     // Current values alone cannot explain a different input or an unexecuted branch.
     // Keep authored rules once, without copied input populations or candidate history.
     rules: (report.program?.resourceWorkflow?.steps ?? []).map((s: any) => s && typeof s === "object" ? Object.fromEntries(["id", "op", "when", "value", "from", "where", "order", "unique", "test", "failure", "principal", "resource", "permission", "name", "arguments", "source", "sources", "because"].filter(k => s[k] !== undefined).map(k => [k, s[k]])) : { invalidStep: s }),
@@ -27,7 +27,8 @@ export function programConsumptionDetails(report: any, query: z.input<typeof Pro
   const program = args.view === "draft" ? report.currentDraft?.raw : report.program
   const currentRevision = args.view === "draft" ? report.currentDraft?.revision : report.revision
   if (args.expectedRevision && args.expectedRevision !== currentRevision) return { status: "stale-program-reference", view: args.view, expectedRevision: args.expectedRevision, revision: currentRevision, instruction: "Inspect the current view revision before requesting its details or patching the draft.", steps: [], events: [] }
-  const execution = args.view === "draft" ? report.candidate?.revision === currentRevision ? report.candidate.resourceExecution : undefined : report.resourceExecution
+  const candidate = report.candidate
+  const execution = args.view === "draft" ? candidate && currentRevision !== undefined && candidate.revision === currentRevision ? candidate.resourceExecution : undefined : report.resourceExecution
   const relevant = !args.questionId || program?.scope?.questionId === args.questionId
   const match = (s: any) => relevant && (!args.stepId || s?.id === args.stepId)
   const steps = (Array.isArray(program?.resourceWorkflow?.steps) ? program.resourceWorkflow.steps : []).filter(match), events = (execution?.events ?? []).filter(match)

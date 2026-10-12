@@ -2,9 +2,9 @@
 
 更新于2026-10-13。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BJ0–BJ25](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)已授权、待派发实施，尚无BJ实现或实验结果。
+- 当前任务书：[BJ0–BJ25](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)正在实施；BJ0–BJ6共享接线已离线验证，下一动作为R0真实作者确认。完整工程、自动主链和比较收益仍待后续证据。
 - 方法合同：[spec§14.49](skill-ir-aot-optimization-spec.md#1449-bj-authoring-loop-and-program-completion)；复核和后续开发过程统一在[研究§7.71](skill-dsl-research.md#771-bj-输入接线与自动编写运行闭环)。BI实际结果保留在§7.70。
-- identity：`authorization-authoring-loop-v1`，实施基线`ace945fa`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；派发后新线程独占代码、共享方法文档与Git写入。
+- identity：`authorization-authoring-loop-v1`，实施基线`ace945fa`，接管规划HEAD`3f1b7991`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；开发线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6.1-sol/max`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停，OWUI/历史未知ShareLink仅离线，旧未知和保护证据保持。
 
 约12小时有效开发量：输入/普通入口约2小时、实际反馈和修稿约2.5小时、自动主链约2.5小时、同稿变化/恢复约2.5小时、比较/计量约1.5小时、必要交付约1小时。尽早在2–3小时内让真实作者使用共享修复；不等全部离线工作结束才运行。10小时左右复查剩余优先级，12小时附近完成当前有界动作并交接；不等待、重复审计或盲目抽样凑时长。
