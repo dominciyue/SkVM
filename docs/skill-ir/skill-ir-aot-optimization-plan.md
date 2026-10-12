@@ -2,41 +2,45 @@
 
 更新于2026-10-12。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BF0–BF17：真实可执行授权 DSL、自动编写接线与变化消费](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)，`completed-with-unmet-criteria / BF17已发布`。规划基线`74bf7bef`、实际接管`34e5e302`；最终源码`869c0cbe`，实质成果`4a002635`已推用户origin并核对，六首位置及三具名修订均已处置。
-- 方法合同：[spec§14.45](skill-ir-aot-optimization-spec.md#1445-bf-executable-contract-and-authoring)；复盘统一在[研究§7.67](skill-dsl-research.md#767-bf-真实可执行程序与自动编写接线)，依据为§7.66发布后复核。
-- identity：`authorization-executable-contract-v1`。继续`skill-ir-aot`，只推用户origin，不创建分支/worktree；派发后新开发线程是代码、共享方法文档和Git的唯一写者。
-- 开发`gpt-6.1-sol/max`，实验用已授权官方账号`gpt-5.6-sol/high`。第三方暂停、OWUI仅离线、旧未知和held-out/Q1/prospective/readiness/历史0/6保持。
+- 当前任务书：[BG0–BG16：真实任务 DSL 全流程运行、渐进执行与可读结果](../superpowers/plans/2026-10-12-authorization-end-to-end-practical-execution.md)，`planned-authorized / 待新线程接管`。规划基线`ff37395b`；本次只有计划与方法同步，尚无BG实现或实验结果。
+- 方法合同：[spec§14.46](skill-ir-aot-optimization-spec.md#1446-bg-practical-end-to-end-execution)；复盘统一在[研究§7.68](skill-dsl-research.md#768-bg-全流程优先与同任务执行决定)。BF原结果和复核依据保留在§7.67。
+- identity：`authorization-practical-execution-v1`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；派发后新线程独占代码、共享方法文档与Git写入。
+- 开发`gpt-6-astra/high`，按用户指定的astra6 high；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停、OWUI仅离线、旧未知和保护证据保持。
 
-## 已完成的工程与未达责任
+## 本轮主要交付
 
-BF已接通作者文件、模型工具与previous共同核心，显式函数范围、实际调用前缀、当前输入重算及来源/程序失效。真实两函数可见性程序在null输入下checked/unreachable，普通可搬移例子与关键反例通过。相关1902测试/1平台skip、2研究测试及主/BF类型通过；全src误跑104失败原件保留，保护锁未动，不称全仓通过。
+同一个真实Download任务，从完整原skill/原四问和允许源码出发，交付可读DSL程序、ordinary run、实际逐步轨迹、自然结果及同程序变化重跑。首先保证一次有实质计算与结果的完整流程，自动编写和稳定收益随后分别评价。
 
-隔离自动编写三份D均0采用；作者消费和previous实际使用成立，但四问整题0/8 full。变化/fresh替换了给定程序，previous在修复后epoch恢复2/使用2，当前unknown且新请求程序拒绝导致合同invalidated。运行版本与最终程序不同，观察费用取舍不能称同条件净收益。作者含义继续与自动B隔离。
-
-## 下一责任
-
-| 责任 | 当前证据 | 继续工作的边界 |
+| 阶段 | 主要工作 | 留下的实物 |
 |---|---|---|
-| 自动可执行编写 | 原D无声明；两具名D修订只提交无效形状，0自动R1 | 改进通用编写与source owner定位，不能把A含义给B或放宽错误声明 |
-| 完整原任务质量 | 根查找回退和独立deleted版本参数仍有漏项/错误，17/32逐题full | 保留原四问、整篇交叉阅读及实际调用参数流；局部性质不替代完整回答 |
-| 给定程序消费成本 | previous恢复2并实际用2，fresh/previous的epoch和最终程序不同 | 等运行版本/最终程序下再测质量和全成本；不恢复旧答案/verdict |
-| 请求级证明 | 当前局部call-prefix可运行，callee效果/框架认证与数据库选择仍缺 | 针对具体真实缺口改表达/消费，不无边界扩语言或借helper局部成功认证请求 |
+| BG0–BG1 | 接管、阅读主链并写真实程序 | 同任务程序初稿及首个公共阻断 |
+| BG2–BG4 | 薄作者前端、局部继续、资源/选择/授权/返回关系 | 进入公共核心的可执行程序 |
+| BG5–BG7 | consume/edit、可读trace、正常/拒绝/缺失/回退 | 同程序的离线主链与变体结果 |
+| BG8 | 第一次普通官方账号全流程 | 完整skill/四问、实际DSL执行和最终答案 |
+| BG9–BG12 | 同任务自动编写、变化消费、必要公平对照和源码复核 | 原稿/修订、实际使用及分层评价 |
+| BG13–BG16 | 相关验证、可搬移例、当前文档和发布 | 可复制命令与原件支持的结果 |
 
-约8小时是工作量估计。BF16已核现有来源顺序/双调用/搬移覆盖，并重建53个真实发送包；现有encoder候选与实际一致，新增减负0bytes。有限调用已关闭，不等待凑时长或自动追加新面板。
+预计约8小时有用工作量，首个普通全流程优先在前2–3小时取得；不等全部检查、自动编写或质量对照成功才运行，不用等待或重复审计凑时间。
 
-## 范围和验收
+## 方法调整
 
-1. 明确区分request-operation与function-contract，局部结论携带假设和剩余上游职责。helper不伪标请求entry；假设不能自证待检查性质。
-2. 作者文件、模型工具和previous共用来源/编译/检查核心，宿主填机械身份，作者或模型提供源码含义。普通入口复用现有inquiry，不另造CLI平台。
-3. 原完整skill和四问保留。局部程序checked/violated、source语义支持、整题质量和收益各自判断；任何缺失或unknown不能默认为安全。
-4. 首次共享故障保存原件、红绿修复再具名复验，不把已知坏实现跑满；同因两次无进展转确定性定位，失败与费用不覆盖。
-5. 六首位置分自动H/D、同包作者消费、变化fresh/previous三轨；可选第二H/D对与最多三具名修订。研究输入排除开发者参考程序、旧答案和evaluator。
-6. 官方账号沿64总工具/768KiB显示/32MiB读取/45分钟会话；恢复及unknown规则见任务书。费用按唯一尝试记一次，cache不重复相加，USD/隐藏请求/真人分钟未知保留。
+1. 局部缺口不清空全程序。progressive保留独立有效片段，受影响处为条件/具名缺口，模型可继续带引用解释。
+2. 宿主补机械字段与唯一来源定位；含义由作者或模型读源提供。源码、主体/对象与变化失效仍准确，不把未知改成许可。
+3. 导入程序的消费保持活动版本，模型新稿独立保存；有效替换只在显式edit进行。真实source变化照常撤回相关旧结论。
+4. 优先复用现有跨源与有限求值能力，只补主链所需领域关系；不重建Python全集、研究专用执行器或另一套CLI。
+5. A开发者编写、B模型独立编写、C消费均用同一个主任务。BF visibility helper仅作回归，不继续替代Download主链。
+6. 原四问全部保留；逐题计算/模型解释/未解、整体质量、自动化、实际收益各自报告。C给定程序对照的Markdown获得相同源码含义。
 
-## 验收与维护
+## 执行与恢复
 
-BF [验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/verification/acceptance-matrix.json)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/summary.json)与[accounting](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/accounting.json)按A/B/C记录。9归档/8模型交付，known input12,734,868含cache11,745,280/output73,991；实际USD、隐藏、开发探子与真人成本未知。同epoch原H/D均2/4逐题full；D累计input/output/耗时更高、非缓存input较低，不据账号token推算实际美元优势。H保留普通opt-in候选，D显式研究，项目默认不变。
+首次共享错误原件留存，当场红测→共享修复→绿测→具名确认；同因两次无进展转本地根因分析，不把坏面板跑满，也不按任意修订总数停止工程。已定位的预算截断允许有理由调整，同版配对保持共同条件。
 
-`74bf7bef`已修正研究正文中的include_deleted跨调用误判：原两件P/F/F/P保留，后续评价按各次调用实参重新核定。旧BE回答/评阅/统计不改；新测试与证据放BF identity。完整历史见current-status、研究§7.66及Git。
+官方通道明确routing失败一次具名恢复，连续两次仍失败暂停外部派发；quota/auth暂停该通道，unknown核原生命周期而不自动重发。独立工程和零模型运行继续。成本按实际回执唯一计量，cache含在input时不重复相加，USD/隐藏/开发代理/真人时间未知保留。
 
-研究统一更新§1/§7.67/§11；spec14.45写方法，usage/developer-guide写已实现接口。根conversation_log/handoff/communication仅本地同步。不新增阶段化组件正文，不重复全历史审计；当前修改所需测试、类型与文档核验通过后按目的提交并只推用户origin。
+当前仅规划发布；BG调用与状态由接管线程在本轮results目录记录。旧BF的9归档/8模型、17/32逐题full、0/8整题full及104项全src失败原件保持，见[BF验收](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/verification/acceptance-matrix.json)。不重新打开旧队列。
+
+## 文档与验证
+
+主文档更新spec14.46、研究§1/§7.68/§11、current-status与本计划；普通接口落地后更新usage/developer-guide，不新增长期组件正文。根账本仅本地。
+
+开发用相关红绿、主/研究类型、一次必要授权联合回归；文档按当前更改与已有retired/governance配置验证。不重跑全历史/全src审计或为了通过而改保护锁。最终先展示怎样运行及真实结果，再说明剩余责任。

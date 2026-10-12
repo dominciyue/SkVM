@@ -4,6 +4,12 @@
 
 ## 当前工作
 
+**[BG0–BG16：真实任务 DSL 全流程运行、渐进执行与可读结果](../superpowers/plans/2026-10-12-authorization-end-to-end-practical-execution.md)已获用户授权，待新开发线程接管。** 规划基线`ff37395b`，开发模型`gpt-6-astra/high`。首要交付是同一个真实Download任务的可读程序、普通入口实际执行、逐步轨迹、最终答案及同程序变化运行；允许局部缺口继续、机械字段自动补全和模型处理未支持含义。完整检查、自动编写及效果获胜分别评价，不再作为全流程的共同启动条件。本次只有任务书与方法文档，无BG实现或实验成果。
+
+identity为`authorization-practical-execution-v1`。A开发者编写、B模型独立编写、C消费均围绕Download主链；不再用visibility helper代替主任务可表达性。优先修局部编译全局拒绝、活动程序/草稿污染和消费中暗换程序，再补资源选择/回退/权限对象/返回对象关系。方法见[spec§14.46](skill-ir-aot-optimization-spec.md#1446-bg-practical-end-to-end-execution)、[研究§7.68](skill-dsl-research.md#768-bg-全流程优先与同任务执行决定)与[当前计划](skill-ir-aot-optimization-plan.md)。新线程接管后更新实际阶段；旧BF队列保持关闭。
+
+## BF 已结束的实际结果
+
 **[BF0–BF17：真实可执行授权 DSL、自动编写接线与变化消费](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)以`completed-with-unmet-criteria`收束，BF17实质成果已发布至4a002635并核对用户origin远端。** 六首位置均有已知终态，9归档含8模型交付和1推理前失败，无BF活动/未知请求。作者程序从普通入口得到局部跨函数结果，自动编写未产生可采用材料；给定程序的普通消费及R1实际复用成立，整题质量和同条件净收益未达。各轴见[summary](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/summary.json)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/verification/acceptance-matrix.json)、[执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/verification/authorized-execution-closeout.json)及[发布回执](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/verification/publication.json)；方法及复盘见[spec§14.45](skill-ir-aot-optimization-spec.md#1445-bf-executable-contract-and-authoring)、[研究§7.67](skill-dsl-research.md#767-bf-真实可执行程序与自动编写接线)与[当前计划](skill-ir-aot-optimization-plan.md)。
 
 BF最终源码提交869c0cbe，源码树1da810d9。A在user=null时得到双源checked/unreachable、10节点实际轨迹；省略输入后unknown，完整Download与callee效果不获认证。C基础/变化/fresh/previous最终实际采用2/1/1/2；变化和fresh自行替换为仅根函数程序，previous恢复并使用两材料、当前输入为空且性质unknown。previous另提交的新请求程序被拒，合同invalidated且无当前evaluation，不能把检查freshness=current称为成功。原答案均保留，原四问共17/32逐题full、0/8整题full。known input12,734,868（含cache11,745,280）/output73,991，408工具单位含8作者读取；USD/隐藏/开发探子/真人未知，见[accounting](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/accounting.json)。最新1902通过/1平台skip/12662断言、2研究测试及主/BF类型通过；误跑全src留下104失败，集中历史冻结身份与缺本地prospective输入，未改保护锁，全仓验证未通过。三具名修订已用，可选第二对因无自动R1未运行；有限队列true、研究false，H候选/D显式/项目默认不变。
@@ -57,11 +63,12 @@ BB先保留effect/context标注下的源码调用，沿真实调用实例连接�
 - 两作者包已按原字节实际消费。Download消费者源码评阅full但机器partial；OWUI消费者仍有决定性helper未读。变化中policy-fresh、premise-fresh/previous已有运行；policy-previous路由失败、source-fresh额度拒绝，source-previous及质量位置保留未运行。
 - 原件、计量及验收以 [最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)、[manifest](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/manifest.json)、[状态](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/status.json) 为准。历史 `acceptance` 字段表达要求，不代表实际通过。
 
-AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有有界修复，形成过程保留在研究§7.61。当前新增责任以§7.67为准；`inquiry-result`的整体Schema/缺题拒绝及局部保留继续保持。
+AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有有界修复，形成过程保留在研究§7.61。当前新增责任以§7.68和BG任务书为准；既有严格路径保留，新的渐进执行显式启用并按实际结果标注。
 
 ## 账号、运行和继承边界
 
-- 开发 `gpt-6.1-sol/max`；实验沿用用户已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。
+- BG开发 `gpt-6-astra/high`，按用户“astra6 high”派发；实验沿用已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。
+- BG按新任务书连续推进，先真实普通全流程、再自动编写/变化/必要对照；具体上限若确实截断有效运行可具名调整，账号未知与费用风险仍按有限恢复处理。不增加日常审批或重复历史审计。
 - BF六首位置及三具名修订已处置，可选反序第二对因自动R1未达未运行。自动编写、作者给定程序消费及变化复用各自分母；不会自动追加模型。新范围不升级旧readiness或改变项目默认。
 - BE六质量首位置和六变化逻辑位置已完成，保持完整原skill/四问及失败分母。source-previous两件确定未派发，仅一个同输入/epoch的登记恢复交付；原件和79,770ms本地开销保留。R0/R1资格、恢复和实际使用分列，旧答案/评阅/verdict不进入previous；R2缺失使实际R2撤回实验未执行。旧BD六未运行不补行，OWUI继续仅离线。
 - AY额度提示、AZ unavailable及BA `paused-recurring-routing`均保留；BC/BD已交付不解除旧未知。BE明确终态routing失败允许一次具名恢复，连续两次或本轮累计三次恢复仍失败则暂停外部派发。quota/auth立即暂停，unknown只核查原生命周期；历史累计成本及旧未知不清除，不额外健康探针、轮询或旁路。
@@ -83,7 +90,8 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BF | [任务书](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/verification/acceptance-matrix.json)、spec§14.45、研究§7.67；工程/有限队列收束，整题质量与净收益未达 |
+| 当前BG | [任务书](../superpowers/plans/2026-10-12-authorization-end-to-end-practical-execution.md)、spec§14.46、研究§7.68；已授权待接管，尚无新结果 |
+| BF | [任务书](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/verification/acceptance-matrix.json)、spec§14.45、研究§7.67；工程/有限队列收束，整题质量与净收益未达 |
 | BE | [任务书](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)、[执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/authorized-execution-closeout.json)、[发布回执](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/publication.json)、spec§14.44、研究§7.66；有限队列及发布完成、研究未达，不自动重抽 |
 | BD | [任务书](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/acceptance-matrix.json)、spec§14.43、研究§7.65；有限执行结束、5交付/0整题full/0合格性质/6未运行，最终发布6c8c79e3 |
 | BC | [任务书](../superpowers/plans/2026-10-10-authorization-task-binding-and-replay-reliability.md)、[收束](../../results/skill-ir/skill-dsl-research/development/authorization-task-binding-v1/verification/authorized-execution-closeout.json)、spec§14.42、研究§7.64；5交付/0合格跨源性质/7资格阻断 |
