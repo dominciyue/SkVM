@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有源码索引与有限控制求值器、官方账号 adapter。开发 `gpt-6.1-sol/max`；研究模型沿用已授权的官方账号 `gpt-5.6-sol/high`。
 
-状态：`completed-with-unmet-criteria / BF17待发布核对`。规划基线 `74bf7befa80f8b0d73187d07d1b08e8a27875bdf`，实际接管 `34e5e302b9d725ee09937ddc651e77f7a1d7159e`（2026-10-12 03:10 Asia/Shanghai，工作树干净、live origin一致），最终源码 `869c0cbe`。工程及六首位置有限队列已处置，自动编写、整题质量和同条件净收益未达。约8小时是有用工作量估计，BF16已处置，未等待或追加调用凑时间。本文件保留本轮计划与阶段证据，不继续向BE或BF关闭位置补行。
+状态：`completed-with-unmet-criteria / BF17已发布`。规划基线 `74bf7befa80f8b0d73187d07d1b08e8a27875bdf`，实际接管 `34e5e302b9d725ee09937ddc651e77f7a1d7159e`（2026-10-12 03:10 Asia/Shanghai，工作树干净、live origin一致），最终源码 `869c0cbe`，实质成果`4a002635`已推用户origin并核对，发布回执另存。工程及六首位置有限队列已处置，自动编写、整题质量和同条件净收益未达。约8小时是有用工作量估计，BF16已处置，未等待或追加调用凑时间。本文件保留本轮计划与阶段证据，不继续向BE或BF关闭位置补行。
 
 Identity：`authorization-executable-contract-v1`。结果集中 `results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/`；临时运行集中 `D:/skill优化/project-maintenance/runs/authorization-executable-contract-v1/`。继续 `skill-ir-aot`，只推用户 `origin`，不开分支或 worktree。
 
@@ -264,9 +264,11 @@ BF16处置：来源A已读、focus转B后提交由`question-workflow-entrypoints
 
 ### BF17 — 发布与接手
 
-- [ ] 按责任做少量目的提交，只暂存本轮修改；检查新原件可读/未被行尾转换和敏感信息一次，推用户origin/skill-ir-aot，核对远端SHA。
-- [ ] 最终说明“现在能实际运行什么”“哪条程序真的执行”“自动生成走到哪”“哪些收益已测”“哪些责任仍缺”，附普通入口与准确恢复命令。
-- [ ] 工程、有限队列处置、研究目标分别收束；条件未满足/时间未运行的实验写未运行，不冒充已执行或已满足验收。未知活动请求不重发。
+- [x] 按责任做少量目的提交，只暂存本轮修改；检查新原件可读/未被行尾转换和敏感信息一次，推用户origin/skill-ir-aot，核对远端SHA。
+- [x] 最终说明“现在能实际运行什么”“哪条程序真的执行”“自动生成走到哪”“哪些收益已测”“哪些责任仍缺”，附普通入口与准确恢复命令。
+- [x] 工程、有限队列处置、研究目标分别收束；条件未满足/时间未运行的实验写未运行，不冒充已执行或已满足验收。未知活动请求不重发。
+
+BF17发布：证据20abd0e9与文档4a002635为两个目的提交；实质成果4a0026352891bb11289d17904d31ab7c3ff7b16f已推用户origin/skill-ir-aot，live SHA核对相同，源码tree仍1da810d9。新62证据暂存与工作字节一致、5gzip可读、敏感凭据模式0；日志24处原空行尾空格及一份JSON的CRLF由两个精确文件属性保留，复查staged diff通过。发布回执`verification/publication.json`引用稳定实质提交，回执自身身份由Git记录，不建立自哈希链。
 
 ## 五、验证接点与有限调用安排
 

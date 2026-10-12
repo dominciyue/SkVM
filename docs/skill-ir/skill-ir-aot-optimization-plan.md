@@ -2,7 +2,7 @@
 
 更新于2026-10-12。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BF0–BF17：真实可执行授权 DSL、自动编写接线与变化消费](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)，`completed-with-unmet-criteria / BF17待发布核对`。规划基线`74bf7bef`、实际接管`34e5e302`；最终源码`869c0cbe`，六首位置及三具名修订均已处置。
+- 当前任务书：[BF0–BF17：真实可执行授权 DSL、自动编写接线与变化消费](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)，`completed-with-unmet-criteria / BF17已发布`。规划基线`74bf7bef`、实际接管`34e5e302`；最终源码`869c0cbe`，实质成果`4a002635`已推用户origin并核对，六首位置及三具名修订均已处置。
 - 方法合同：[spec§14.45](skill-ir-aot-optimization-spec.md#1445-bf-executable-contract-and-authoring)；复盘统一在[研究§7.67](skill-dsl-research.md#767-bf-真实可执行程序与自动编写接线)，依据为§7.66发布后复核。
 - identity：`authorization-executable-contract-v1`。继续`skill-ir-aot`，只推用户origin，不创建分支/worktree；派发后新开发线程是代码、共享方法文档和Git的唯一写者。
 - 开发`gpt-6.1-sol/max`，实验用已授权官方账号`gpt-5.6-sol/high`。第三方暂停、OWUI仅离线、旧未知和held-out/Q1/prospective/readiness/历史0/6保持。
