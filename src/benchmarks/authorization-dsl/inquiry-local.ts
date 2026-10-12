@@ -44,12 +44,20 @@ export function authorizationInquiryAuthoringSchema(mode: "behavior" | "conforma
   return AuthorizationInquiryInputSchema.innerType().omit({ brief: true, mode: true, policy: true }).extend({ inquiry })
 }
 const sha = (value: string) => createHash("sha256").update(value).digest("hex")
-function executionProjection(domain: any) {
+function executionProjection(domain: any, questions: readonly { id: string; request?: string }[] = [], version = "authorization-execution/v2"): any {
   const contract = domain?.executableContract
-  return contract ? { schemaVersion: "authorization-execution/v1", initialRevision: contract.initialRevision, finalRevision: contract.revision, programMode: contract.programMode, executionPolicy: contract.executionPolicy, status: contract.status, scope: contract.scope, diagnostics: contract.diagnostics, normalizations: contract.normalizations, drafts: contract.drafts, resourceExecution: contract.resourceExecution, propertyChecks: contract.evaluation, semanticSupport: "unreviewed", requestOperationCertified: false } : undefined
+  const legacy = contract ? { schemaVersion: "authorization-execution/v1", initialRevision: contract.initialRevision, finalRevision: contract.revision, programMode: contract.programMode, executionPolicy: contract.executionPolicy, status: contract.status, scope: contract.scope, diagnostics: contract.diagnostics, normalizations: contract.normalizations, drafts: contract.drafts, resourceExecution: contract.resourceExecution, propertyChecks: contract.evaluation, semanticSupport: "unreviewed", requestOperationCertified: false } : undefined
+  if (version === "authorization-execution/v1") return legacy
+  if (version !== "authorization-execution/v2") throw new Error("Unknown inquiry execution archive version")
+  const draft = domain?.programDraft ?? contract, currentDraft = draft?.currentDraft
+  if (!contract && !currentDraft) return undefined
+  const returned = contract?.resourceExecution?.returned
+  return { ...legacy, schemaVersion: version, programMode: contract?.programMode ?? draft?.programMode, executionPolicy: contract?.executionPolicy ?? draft?.executionPolicy, status: contract?.status ?? "draft-only", adoptedDraft: contract?.adoptedDraft, currentDraft, candidate: draft?.candidate, currentDraftDiagnostics: draft?.currentDraftDiagnostics,
+    remainingDuties: questions.map(q => ({ questionId: q.id, request: q.request, semanticCoverage: "unreviewed", computedFields: q.id === contract?.scope?.questionId && returned && typeof returned === "object" && !Array.isArray(returned) ? Object.keys(returned) : [] })),
+    semanticSupport: "unreviewed", requestOperationCertified: false }
 }
-async function archiveExecution(sessionPath: string, domain: unknown) {
-  const execution = executionProjection(domain)
+async function archiveExecution(sessionPath: string, domain: unknown, questions?: readonly { id: string; request?: string }[]) {
+  const execution = executionProjection(domain, questions)
   if (!execution) return undefined
   const json = JSON.stringify(execution, null, 2) + "\n"
   const lines = ["# Source program execution", "", `Mode: ${execution.programMode}; policy: ${execution.executionPolicy}; status: ${execution.status}.`, "", "Source meanings remain unreviewed; this is not request-wide certification.", ""]
@@ -57,6 +65,7 @@ async function archiveExecution(sessionPath: string, domain: unknown) {
   lines.push("## Current result", "", "```json", JSON.stringify({ initialRevision: execution.initialRevision, currentRevision: execution.finalRevision, inputs: Object.fromEntries(Object.entries(resource?.inputs ?? {}).map(([k, v]) => [k, Array.isArray(v) ? { finiteRecords: v.length } : v])), termination: resource?.termination, returned: resource?.returned, conditions: resource?.conditions, gaps: resource?.gaps }, null, 2), "```", "", "Detailed inputs and events: execution.json. In a live session use authorization_program_details with a stepId/questionId.", "")
   for (const event of resource?.events ?? []) lines.push(`## ${event.sequence}. ${event.id} — ${event.outcome}`, "", `${event.because}`, "", `Executor: ${event.executor}; meaning: ${event.meaningOrigin}. Source: ${event.source ? `${event.source.path}:${event.source.startLine}–${event.source.endLine ?? event.source.startLine}` : "missing (unadopted draft)"}.`, "", "```json", JSON.stringify({ additionalSources: event.sources, ...(event.op === "guard" || event.op === "external" ? { inputs: event.inputs } : {}), outputs: event.outputs, condition: event.condition, gaps: event.gaps }, null, 2), "```", "")
   lines.push("## Draft proposals", "", `${execution.drafts?.length ?? 0} retained proposals. Full candidates and diagnostics are in execution.json/report.json.`, "")
+  lines.push("## Current raw draft", "", "The raw author proposal is retained separately from the active program and candidate preview. A candidate result is not an adopted execution.", "", "```json", JSON.stringify({ draftRevision: execution.currentDraft?.revision, activeRevision: execution.finalRevision, candidateRevision: execution.candidate?.revision, candidateAdopted: execution.candidate?.adopted, stepOrder: execution.currentDraft?.raw?.resourceWorkflow?.steps?.map((s: any) => s.id), diagnostics: execution.currentDraftDiagnostics }, null, 2), "```", "", "## Remaining original duties", "", ...execution.remainingDuties.map((q: any) => `- ${q.questionId}: ${q.request ?? "Original question"}. Semantic coverage remains unreviewed; computed fields: ${q.computedFields.join(", ") || "none"}.`), "")
   const markdown = lines.join("\n")
   await writeFile(path.join(sessionPath, "execution.json"), json, { encoding: "utf8", flag: "wx" })
   await writeFile(path.join(sessionPath, "execution.md"), markdown, { encoding: "utf8", flag: "wx" })
@@ -79,7 +88,7 @@ export async function checkAuthorizationInquiry(inputFile: string, method: Inqui
       const normalized = await readExecutableContractSources(raw, tools), questionId = normalized.value?.scope?.questionId
       executableContract = await compileExecutableContract(raw, { tools, program: compileAuthorizationInquiry(loaded.value.inquiry, { allowMissingPolicy: sourceAssisted }), inputs: loaded.value.contractInputs?.[questionId], resourceInputs: loaded.value.resourceInputs?.[questionId], externalAssumptions: loaded.value.externalAssumptions?.[questionId], executionPolicy: options.executionPolicy, interpretationSource: "authored-file" })
       domainProgram = { path: path.resolve(domainProgramFile), sha256: sha(original), bytes: Buffer.byteLength(original), archive: "domain-program.json" }
-      if (!("evaluation" in executableContract) || executableContract.diagnostics.length && options.executionPolicy !== "progressive") return { schemaVersion: "authorization-inquiry-check/v1", status: "invalid" as const, providerCalls: 0, diagnostics: executableContract.diagnostics, executableContract, domainProgram }
+      if (!("evaluation" in executableContract) || executableContract.diagnostics.some(d => d.severity === "error") && options.executionPolicy !== "progressive") return { schemaVersion: "authorization-inquiry-check/v1", status: "invalid" as const, providerCalls: 0, diagnostics: executableContract.diagnostics, executableContract, domainProgram }
     }
     const sourceVerification = await tools.verifySnapshot()
     if (!sourceVerification.valid) throw new Error("Source changed during check")
@@ -102,7 +111,7 @@ export async function saveLocalInquiryCheck(inputFile: string, domainProgramFile
   const fields = { status: "completed", method: check.method, strategy: check.strategy, inquiry: loaded.value.inquiry, program: "program" in check ? check.program : undefined, domain, sourceFiles: check.sourceFiles, sourceVerification: check.sourceVerification, sourceAccounting: check.sourceAccounting, telemetry: { providerCalls: 0, totalActualUsd: 0 }, domainProgram }
   await save("session.json", identity); await save("check.json", check); await writeFile(path.join(sessionPath, "input.json"), loaded.original, { encoding: "utf8", flag: "wx" }); await writeFile(path.join(sessionPath, "domain-program.json"), bytes, { flag: "wx" })
   await save("run.json", fields)
-  const executionArchive = await archiveExecution(sessionPath, domain)
+  const executionArchive = await archiveExecution(sessionPath, domain, fields.program?.questions)
   await save("report.json", { ...identity, ...fields, executionArchive }); await appendFile(path.join(out, "sessions.jsonl"), JSON.stringify({ relativePath: `sessions/${id}`, status: "completed" }) + "\n")
   return { ...check, sessionPath, executionArchive }
 }
@@ -198,7 +207,7 @@ export async function executeLocalInquiryRun(options: { programContext?: import(
     const preparationFields = { preparation: native.preparation, taskPreparation: native.taskPreparation, taskPreparationAttempts: native.taskPreparationAttempts, taskPreparationFailed: native.taskPreparationFailed }
     const fields = { status: account.status, terminalStatus: account.terminalStatus, answerDelivery: account.answerDelivery, usageVisibility: account.usageVisibility, quotaRefused: account.quotaRefused, method, strategy, domainTools: options.domainTools ?? true, inquiry: native.program?.originalDeclaration, program: native.program, result: native.result, final: native.result, domain: native.domain, reuse: accountRun.reuse, sourceFiles: native.sourceFiles, sourceVerification: native.sourceVerification, sourceAccounting: native.sourceAccounting, telemetry: { account, providerCalls: account.providerRequests, totalActualUsd: null }, durationMs: account.durationMs, error: account.reason, evidence: native.evidence, ...(skill ? { skill } : {}) }
     const { redactCodexEvent } = await import("../../adapters/codex-account-session.ts")
-    const executionArchive = await archiveExecution(sessionPath, redactCodexEvent(fields.domain))
+    const executionArchive = await archiveExecution(sessionPath, redactCodexEvent(fields.domain), fields.program?.questions)
     await save("run.json", redactCodexEvent({ ...fields, ...preparationFields, ...(domainProgram ? { domainProgram } : {}), native })); const report = { ...identity, ...fields, ...preparationFields, harness: "codex-account", executionArchive }
     await save("report.json", redactCodexEvent(report)); await appendFile(path.join(out, "sessions.jsonl"), JSON.stringify({ relativePath: `sessions/${id}`, status: report.status }) + "\n")
     return report
@@ -217,8 +226,8 @@ export async function executeLocalInquiryRun(options: { programContext?: import(
     onEvent: async event => { await appendFile(path.join(sessionPath, "events.jsonl"), JSON.stringify(event) + "\n"); if (event.kind === "dispatch" && event.sequence === 1) await save("dispatch.json", identity); await options.execution?.onEvent?.(event) },
   })
   await save("run.json", { ...run, ...(skill ? { skill } : {}), ...(domainProgram ? { domainProgram } : {}) })
-  const report = { ...identity, status: run.status, result: run.result, initial: run.initial, initialValidation: run.initialValidation, final: run.final, validation: run.validation, sourceVerification: run.sourceVerification, wireFailures: run.wireFailures, wireNormalizations: run.wireNormalizations, ...(run.reuse ? { reuse: run.reuse } : {}), ...(run.domain ? { domain: run.domain } : {}), telemetry: run.telemetry, durationMs: run.durationMs, sourceAccounting: run.sourceAccounting, error: run.error }
-  const executionArchive = await archiveExecution(sessionPath, run.domain)
+  const report = { ...identity, status: run.status, inquiry: run.inquiry, program: run.program, result: run.result, initial: run.initial, initialValidation: run.initialValidation, final: run.final, validation: run.validation, sourceVerification: run.sourceVerification, wireFailures: run.wireFailures, wireNormalizations: run.wireNormalizations, ...(run.reuse ? { reuse: run.reuse } : {}), ...(run.domain ? { domain: run.domain } : {}), telemetry: run.telemetry, durationMs: run.durationMs, sourceAccounting: run.sourceAccounting, error: run.error }
+  const executionArchive = await archiveExecution(sessionPath, run.domain, run.program?.questions)
   await save("report.json", { ...report, executionArchive }); await appendFile(path.join(out, "sessions.jsonl"), JSON.stringify({ relativePath: `sessions/${id}`, status: run.status }) + "\n")
   return { ...report, executionArchive }
 }
@@ -253,7 +262,7 @@ export async function inspectLocalInquiry(outDir: string) {
     const json = await readFile(path.join(root, "execution.json"), "utf8"), markdown = await readFile(path.join(root, "execution.md"), "utf8")
     if (sha(json) !== report.executionArchive.jsonSha256 || sha(markdown) !== report.executionArchive.markdownSha256) throw new Error("Inquiry execution archive changed")
     execution = JSON.parse(json)
-    if (!isDeepStrictEqual(execution, JSON.parse(JSON.stringify(executionProjection(report.domain))))) throw new Error("Inquiry execution/report mismatch")
+    if (!isDeepStrictEqual(execution, JSON.parse(JSON.stringify(executionProjection(report.domain, report.program?.questions ?? report.inquiry?.questions, execution.schemaVersion))))) throw new Error("Inquiry execution/report mismatch")
   }
   return { ...report, execution, sessionPath: root, ...(completionUnknown ? { completionUnknown: true } : {}), ...(strategyMetadataOrigin ? { strategyMetadataOrigin } : {}) }
 }

@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**BI0–BI23已获用户授权，当前为`planned-not-started`，开发模型`gpt-6.1-sol/max`，按约12小时实质工作量安排。** [任务书](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)承接BH的自动主链和消费质量缺口：作者模式持续、有序patch、完整任务上下文、真实自动稿原/变消费及两组full/compact对照。方法见[spec§14.48](skill-ir-aot-optimization-spec.md#1448-bi-authoring-closure-and-reliable-consumption)、[研究§7.70](skill-dsl-research.md#770-bi-作者目标有序修稿与保真消费)。identity为`authorization-authoring-closure-v1`；结果由执行线程建立，不把计划当已实施成果。共享错误现场修复，通道暂停时继续确定性工程；不等待或重测凑时长。
+**BI0–BI23已获用户授权，当前为`in-progress`（BI0–BI11工程已通过定向红绿，准备首次真实作者），开发模型`gpt-6.1-sol/max`，按约12小时实质工作量安排。** [任务书](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)承接BH的自动主链和消费质量缺口：作者模式持续、有序patch、完整任务上下文、真实自动稿原/变消费及两组full/compact对照。方法见[spec§14.48](skill-ir-aot-optimization-spec.md#1448-bi-authoring-closure-and-reliable-consumption)、[研究§7.70](skill-dsl-research.md#770-bi-作者目标有序修稿与保真消费)。identity为`authorization-authoring-closure-v1`；结果由执行线程建立，不把计划当已实施成果。共享错误现场修复，通道暂停时继续确定性工程；不等待或重测凑时长。
 
 ## BH 已结束的实际结果
 

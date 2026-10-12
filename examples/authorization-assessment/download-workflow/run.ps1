@@ -3,7 +3,7 @@ param(
   [ValidateSet('root-default', 'empty-version', 'denied', 'missing-owner', 'root-fallback')][string]$Variant = 'root-default',
   [string]$Out,
   [string]$AccountBoundary,
-  [ValidateSet('full', 'compact')][string]$ProgramContext = 'compact'
+  [ValidateSet('full', 'compact')][string]$ProgramContext = 'full'
 )
 $ErrorActionPreference = 'Stop'
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path

@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**BI已授权待实施，优先修作者目标持续、有序patch和完整任务上下文。** 用户指定`gpt-6.1-sol/max`新线程，按约12小时实质工作量推进[BI0–BI23](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)。目标是自动原稿实际接管主链并完成同稿变化消费，同时检验保留质量的compact；尚无BI运行或效果结论。复核依据与方法选择见[§7.70](#770-bi-作者目标有序修稿与保真消费)。
+**BI已开始实施，先修作者目标持续、有序patch和完整任务上下文。** 用户指定`gpt-6.1-sol/max`新线程，按约12小时实质工作量推进[BI0–BI23](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)。目标是自动原稿实际接管主链并完成同稿变化消费，同时检验保留质量的compact；尚无BI运行或效果结论。复核依据与方法选择见[§7.70](#770-bi-作者目标有序修稿与保真消费)。
 
 **BH有限队列以`completed-with-unmet-criteria`收束，6次真实调用全部交付，无活动/未知请求。渐进编译、持久草稿、patch、compact/full和按需详情已接通；自动稿三次保留4步但未补齐版本/文件主链。Download与ShareLink共14离线场景通过。首个同epoch P对照为tradeoff：compact成本降低但答案退化；一次规则投影修复确认另列。** 真实数据、修复经过与边界见[§7.69](#769-bh-发布后复核与渐进编写消费决定)及[summary](../../results/skill-ir/skill-dsl-research/development/authorization-incremental-program-v1/summary.json)。
 
@@ -2653,6 +2653,8 @@ ShareLink第二离线开发程序使用同一select/guard/return核，六场景�
 **自动与给定材料分开检验。** A1隔离原skill/源码编写，条件性A2仅恢复其自己的稿；C1/C2固定同一自动原字节，观察文件/表示变化真由程序计算还是自然补答。两组P固定现有开发者程序分别对原输入和空version比较full/compact，反序运行并核对同epoch。自动产物失败不阻断独立消费工程；partial程序允许先用，原四问的质量仍完整评阅。ShareLink只作离线共享机制验证，不增加旧未知请求。
 
 **执行安排。** spec§14.48与任务书规定BI12尽早进入真实作者，首个共享错误现场红绿修复，不继续跑受已知缺陷影响的样本。约12小时包含作者/编辑/消费/变化、第二任务离线和必要发布；模型通道暂停或提前完成主线时，推进恢复、发送计量、搬移等明确工程责任。规划阶段不增加效果证据，也不保证实验正向。实际token含cache一次，作者/消费/修复分账，USD和真人成本未知仍未知。
+
+**BI0–BI11实际工程（2026-10-13）。** native和structured-provider现在共用mode优先的作者投影；已有computed局部结果仍带当前草稿版本、完整原问题、源码索引/窗口及剩余编写职责。stepOrder校验合并后的完整唯一ID排列并原子拒绝；旧append保留原顺序，严格/渐进编译均诊断无条件return后的有效节点。红测另发现严格普通入口把warning当拒绝、延迟任务准备丢弃恢复草稿，已分别修复。详情expectedRevision绑定所选active/draft视图，旧版本不混入新事件。活动程序单独保存adoptedDraft原稿；execution/v2保留原稿/候选/活动及原职责，未采用草稿也有可读归档，旧v1按原投影核查。63项定向测试、474个断言及主/研究类型通过；此为工程证据，尚非自动主链或消费收益结论。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 

@@ -3,7 +3,7 @@ import { z } from "zod"
 import type { InquiryDiagnostic } from "./inquiry.ts"
 
 const id = z.string().min(1).max(256).refine(v => !["__proto__", "prototype", "constructor"].includes(v))
-export const ProgramStepPatchSchema = z.object({ baseRevision: z.string().min(1), upsertSteps: z.array(z.object({ id }).passthrough()).max(128), removeStepIds: z.array(id).max(128).optional(), inputNames: z.array(id).max(64).optional() }).strict()
+export const ProgramStepPatchSchema = z.object({ baseRevision: z.string().min(1), upsertSteps: z.array(z.object({ id }).passthrough()).max(128), removeStepIds: z.array(id).max(128).optional(), inputNames: z.array(id).max(64).optional(), stepOrder: z.array(id).max(128).optional() }).strict()
 export interface ProgramDraft { revision: string; raw: any }
 const identity = (v: any) => JSON.stringify([v?.id, v?.scope?.questionId])
 export function createProgramDraft(raw: unknown, previous?: ProgramDraft): ProgramDraft {
@@ -11,7 +11,7 @@ export function createProgramDraft(raw: unknown, previous?: ProgramDraft): Progr
   if (value && typeof value === "object" && !Array.isArray(value) && !Object.hasOwn(value, "resourceWorkflow") && previous && identity(value) === identity(previous.raw) && previous.raw?.resourceWorkflow) value.resourceWorkflow = structuredClone(previous.raw.resourceWorkflow)
   return { revision: createHash("sha256").update(JSON.stringify(value) ?? "null").digest("hex"), raw: value }
 }
-/** Pure merge; omission preserves steps, replacement preserves their order. */
+/** Pure atomic merge. Omitted order preserves positions and appends new steps. */
 export function patchProgramDraft(current: ProgramDraft | undefined, raw: unknown): { draft?: ProgramDraft; diagnostics: InquiryDiagnostic[]; changedStepIds?: string[] } {
   const fail = (code: string, message: string) => ({ draft: current, diagnostics: [{ code, path: "$patch", message, severity: "error" as const }] })
   const parsed = ProgramStepPatchSchema.safeParse(raw)
@@ -31,7 +31,17 @@ export function patchProgramDraft(current: ProgramDraft | undefined, raw: unknow
     else workflow.steps[position] = step
   }
   if (workflow.steps.length > 128) return fail("program-patch-bound", "The workflow supports at most 128 steps.")
+  if (patch.stepOrder) {
+    const remainingIds = workflow.steps.map((s: any) => s?.id), order = patch.stepOrder
+    const missing = remainingIds.filter((id: unknown) => !order.includes(id as string))
+    const unknown = order.filter(id => !remainingIds.includes(id))
+    if (new Set(order).size !== order.length || new Set(remainingIds).size !== remainingIds.length || order.length !== remainingIds.length || missing.length || unknown.length)
+      return fail("program-patch-order", `stepOrder must list every remaining step ID exactly once after upsert/remove. Missing: ${JSON.stringify(missing)}; unknown/removed: ${JSON.stringify(unknown)}. Inspect the current draft; no part of this patch was applied.`)
+    const byId = new Map(workflow.steps.map((s: any) => [s.id, s]))
+    workflow.steps = order.map(id => byId.get(id))
+  }
   if (patch.inputNames) workflow.inputs = patch.inputNames
   value.resourceWorkflow = workflow
-  return { draft: createProgramDraft(value), diagnostics: [], changedStepIds: [...upsertIds, ...remove] }
+  const moved = workflow.steps.flatMap((s: any, index: number) => ids.indexOf(s.id) !== index ? [s.id as string] : [])
+  return { draft: createProgramDraft(value), diagnostics: [], changedStepIds: [...new Set([...upsertIds, ...remove, ...moved])] }
 }

@@ -29,3 +29,14 @@ test("compact consumption preserves current results and gaps while details recov
   expect(stale.returned).toBeUndefined()
   expect(stale.status).toBe("invalidated")
 })
+
+test("draft details enforce their own revision and do not expose the active preview as candidate output", () => {
+  const report = { revision: "active-1", scope: { questionId: "q" }, program: { scope: { questionId: "q" }, resourceWorkflow: { steps: [{ id: "result", value: 7 }] } }, resourceExecution: { events: [{ id: "result", outputs: { value: 7 } }] }, currentDraft: { revision: "draft-2", raw: { scope: { questionId: "other" }, resourceWorkflow: { steps: [{ id: "result", value: 9 }] } } }, candidate: { revision: "draft-2", adopted: false, diagnostics: ["bad source"] } }
+  expect(api.programConsumptionDetails(report, { view: "draft", expectedRevision: "active-1" }).status).toBe("stale-program-reference")
+  const current = api.programConsumptionDetails(report, { view: "draft", expectedRevision: "draft-2", stepId: "result" })
+  expect(current.steps[0].value).toBe(9)
+  expect(current.events).toEqual([])
+  expect(current.activeRevision).toBe("active-1")
+  expect(api.programConsumptionDetails(report, { view: "draft", questionId: "q" }).steps).toEqual([])
+  expect(api.programConsumptionDetails(report, { stepId: "absent" }).status).toBe("program-detail-not-found")
+})

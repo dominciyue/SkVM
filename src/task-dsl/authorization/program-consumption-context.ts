@@ -2,7 +2,7 @@ import { createHash } from "node:crypto"
 import { z } from "zod"
 
 export type ProgramContext = "full" | "compact"
-export const ProgramDetailsSchema = z.object({ stepId: z.string().min(1).max(256).optional(), questionId: z.string().min(1).max(256).optional(), view: z.enum(["active", "draft"]).default("active") }).strict()
+export const ProgramDetailsSchema = z.object({ stepId: z.string().min(1).max(256).optional(), questionId: z.string().min(1).max(256).optional(), view: z.enum(["active", "draft"]).default("active"), expectedRevision: z.string().min(1).max(256).optional() }).strict()
 const revision = (v: unknown) => createHash("sha256").update(JSON.stringify(v) ?? "null").digest("hex")
 const propertySummary = (evaluation: any) => evaluation && { revision: evaluation.revision, questions: evaluation.questions?.map((q: any) => ({ questionId: q.questionId, properties: q.properties?.map((p: any) => ({ id: p.id ?? p.propertyId, status: p.status, value: p.value, gaps: p.gaps })) })) }
 
@@ -25,10 +25,13 @@ export function programConsumptionDetails(report: any, query: z.input<typeof Pro
   const args = ProgramDetailsSchema.parse(query)
   if (!report) return { status: "no-active-program", steps: [], events: [] }
   const program = args.view === "draft" ? report.currentDraft?.raw : report.program
-  const execution = args.view === "draft" ? report.candidate?.resourceExecution : report.resourceExecution
-  const relevant = !args.questionId || program?.scope?.questionId === args.questionId || report.scope?.questionId === args.questionId
+  const currentRevision = args.view === "draft" ? report.currentDraft?.revision : report.revision
+  if (args.expectedRevision && args.expectedRevision !== currentRevision) return { status: "stale-program-reference", view: args.view, expectedRevision: args.expectedRevision, revision: currentRevision, instruction: "Inspect the current view revision before requesting its details or patching the draft.", steps: [], events: [] }
+  const execution = args.view === "draft" ? report.candidate?.revision === currentRevision ? report.candidate.resourceExecution : undefined : report.resourceExecution
+  const relevant = !args.questionId || program?.scope?.questionId === args.questionId
   const match = (s: any) => relevant && (!args.stepId || s?.id === args.stepId)
-  return { view: args.view, revision: args.view === "draft" ? report.currentDraft?.revision : report.revision, status: report.status, ...(args.stepId || args.questionId ? {} : { program, execution, currentDraft: report.currentDraft }), steps: (program?.resourceWorkflow?.steps ?? []).filter(match), events: (execution?.events ?? []).filter(match), diagnostics: args.view === "draft" ? report.candidate?.diagnostics : report.diagnostics, semanticSupport: "unreviewed" }
+  const steps = (program?.resourceWorkflow?.steps ?? []).filter(match), events = (execution?.events ?? []).filter(match)
+  return { view: args.view, revision: currentRevision, activeRevision: report.revision, draftRevision: report.currentDraft?.revision, status: args.stepId && !steps.length ? "program-detail-not-found" : report.status, ...(args.stepId || args.questionId ? {} : { program, execution, currentDraft: report.currentDraft }), steps, events, diagnostics: args.view === "draft" ? report.candidate?.diagnostics ?? report.currentDraftDiagnostics : report.diagnostics, semanticSupport: "unreviewed" }
 }
 
 export function projectProgramToolOutput(output: any, questions: readonly { id: string; request?: string }[], mode: ProgramContext = "full") {

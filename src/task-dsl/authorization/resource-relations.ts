@@ -52,7 +52,9 @@ export function inspectResourceDraft(raw: unknown) {
     if ((counts.get(id) ?? 0) > 1) issues.push({ path: `steps.${index}.id`, message: `Duplicate input/computed identity:${id}` })
     return { raw, index, id, parsed, issues }
   })
-  return { workflow, steps, duplicateIds: [...counts].filter(([, count]) => count > 1).map(([id]) => id) }
+  const terminal = steps.find(s => s.parsed.success && !s.issues.length && s.parsed.data.op === "return" && !s.parsed.data.when)
+  const unreachableSteps = terminal ? steps.filter(s => s.index > terminal.index).map(s => ({ id: s.id, index: s.index, after: terminal.id })) : []
+  return { workflow, steps, duplicateIds: [...counts].filter(([, count]) => count > 1).map(([id]) => id), unreachableSteps }
 }
 export const ExternalAssumptionsSchema = z.array(z.object({ name, arguments: z.record(name, z.custom<FiniteValue>(finiteValue)), value: z.custom<FiniteValue>(finiteValue), reason: z.string().min(1) }).strict()).max(64)
 export interface ResourceProgramInputs { resourceInputs?: Record<string, Record<string, ResourceValue>>; externalAssumptions?: Record<string, z.infer<typeof ExternalAssumptionsSchema>> }

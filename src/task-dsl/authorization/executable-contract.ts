@@ -185,6 +185,8 @@ export async function compileExecutableContract(raw: unknown, options: { tools: 
     }
   }
   if (diagnostics.length && !progressive) return empty()
+  if (contract.resourceWorkflow) for (const step of inspectResourceDraft(contract.resourceWorkflow).unreachableSteps)
+    diagnostics.push({ code: "contract-resource-unreachable", path: `resourceWorkflow.steps.${step.index}`, questionId: question.id, severity: "warning", message: `Step ${step.id} follows declared unconditional return ${step.after} and is unreachable when that return executes. Use an explicit complete stepOrder in authorization_program_patch to move it before the return if supported by source; no implicit reordering occurs.` })
   const resourceInputs = { ...options.resourceInputs }
   if (progressive && contract.resourceWorkflow) for (const key of Object.keys(resourceInputs)) if (!contract.resourceWorkflow.inputs.includes(key)) {
     delete resourceInputs[key]

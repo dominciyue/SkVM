@@ -146,6 +146,20 @@ test("resource summaries share contract source coverage and preserve independent
 const source = "def local(actor, target):\n    return perform(actor, target)\n\ndef perform(who, item):\n    if not who.allowed:\n        return False\n    item.sent = True\n    return item\n"
 const cite = (startLine: number, endLine = startLine, text?: string) => ({ path: "app.py", startLine, endLine, ...(text ? { text } : {}) })
 const declaration = (startLine: number, endLine: number, statements: unknown[]) => ({ schemaVersion: "authorization-question-declaration/v1", source: cite(startLine, endLine), statements })
+test("valid unreachable guard is diagnosed without moving it or rejecting the prior computed return", async () => {
+  const f = await fixture(), raw: any = contract()
+  raw.resourceWorkflow = { inputs: [], steps: [
+    { id: "result", op: "return", value: { literal: 7 }, source: cite(8) },
+    { id: "permission", op: "guard", test: { op: "eq", left: { literal: 1 }, right: { literal: 2 } }, failure: "denied", source: cite(5) },
+  ] }
+  for (const executionPolicy of ["strict", "progressive"] as const) {
+    const r = await api.compileExecutableContract(raw, { ...f, executionPolicy })
+    expect(r.resourceExecution.returned).toBe(7)
+    expect(r.resourceExecution.events.map((e: any) => e.id)).toEqual(["result"])
+    expect(r.diagnostics).toContainEqual(expect.objectContaining({ code: "contract-resource-unreachable", severity: "warning", message: expect.stringContaining("permission") }))
+    expect(r.diagnostics.find((d: any) => d.code === "contract-resource-unreachable").message).toContain("stepOrder")
+  }
+})
 const contract = () => ({ schemaVersion: "authorization-executable-contract/v1", id: "local-contract", scope: { kind: "function-contract", questionId: "q", root: cite(1, 2), upstream: ["Request authentication and dispatch are outside this local contract."] }, sourceDeclarations: [
   declaration(1, 2, [{ kind: "object", expression: "actor", as: "principal", because: "Actual formal" }, { kind: "object", expression: "target", as: "resource", because: "Actual formal" }, { kind: "dependency", at: cite(2, 2, "perform(actor, target)"), because: "Actual invocation" }, { kind: "statement", at: cite(2, 2, "return perform(actor, target)"), because: "Actual returned value" }]),
   declaration(4, 8, [{ kind: "object", expression: "who", as: "principal", because: "Actual formal" }, { kind: "object", expression: "item", as: "resource", because: "Actual formal" }, { kind: "condition", at: cite(5, 5, "not who.allowed"), test: { op: "not", arg: { op: "truthy", language: "python", value: { binding: "who.allowed" } } }, authorizes: { principal: "who", resource: "item", when: "false" }, because: "False source test continues to the write" }, { kind: "statement", at: cite(6), because: "Source refusal returns" }, { kind: "effect", at: cite(7), principal: "who", resource: "item", because: "Actual field write" }, { kind: "statement", at: cite(8), because: "Actual object return" }]),

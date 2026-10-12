@@ -37,12 +37,12 @@ To run the original complete skill and four questions using the official account
 
 ```powershell
 ./examples/authorization-assessment/download-workflow/run.ps1 -Mode account
-./examples/authorization-assessment/download-workflow/run.ps1 -Mode account -ProgramContext full
+./examples/authorization-assessment/download-workflow/run.ps1 -Mode account -ProgramContext compact
 ```
 
 This uses `gpt-5.6-sol/high`, the reviewed account boundary, `consume` mode and
-`progressive` policy and an explicit compact context by default in this example.
-The ordinary CLI still defaults to full. Compact keeps the current result, guards,
+`progressive` policy and full context by default, matching the ordinary CLI.
+Compact is an explicit option. It keeps the current result, guards,
 sources and gaps; `authorization_program_details` retrieves exact steps or the
 full program/trace on request. Complete raw objects remain in the session.
 On another machine, pass `-AccountBoundary` with that
@@ -76,5 +76,13 @@ The model can submit `authorization_program`, then patch named steps with
 `authorization_program_patch` and the exact current `baseRevision`. Missing workflow
 fields preserve a same-identity draft. Invalid updates retain a distinct candidate
 preview; they do not replace an existing active result. Inspect both before reuse.
+To insert a guard or computed value before an existing return, supply `stepOrder`
+containing every merged step ID exactly once. Without it, replacements keep their
+position and new steps append; unreachable steps are diagnosed, never moved by the
+host. `authorization_program_details` can bind `expectedRevision` to the selected
+active/draft view. Edit mode retains all original authoring duties even when a
+partial program computes values. New `execution.json` archives retain raw draft,
+candidate preview, adopted original and remaining duties separately; old sessions
+remain inspectable.
 BH's actual author/consumer results are recorded under
 `results/skill-ir/skill-dsl-research/development/authorization-incremental-program-v1/`.

@@ -3048,6 +3048,8 @@ check/run/compare已接入`--execution-policy=progressive`，strict仍为默认�
 
 **验收和持续执行。** 追求自动原稿真正计算授权对象/最终文件/表示及变化关系，验收不看固定步骤数；自然补答单列。原四问逐题独立评阅，质量和程序检查分开。共享缺陷当场修，不把已知坏协议继续跑满；跨epoch不拼配对。账号已授权、第三方暂停与旧未知规则保持；通道暂停继续确定性工程。工作量约12小时，附恢复/编辑/计量等补充队列，不等待或重复验证凑时长。结果可如实未达，根因及解决记录统一研究§7.70。
 
+**BI已落地接口。** 原子patch保留旧位置/append兼容，显式stepOrder覆盖合并后所有步骤；无条件return后的有效步骤为warning，不触发严格入口的error拒绝。native/structured共用mode优先的作者/任务投影；author状态固定unreviewed，计算输出字段不能自动关闭原问题。details可带expectedRevision；不匹配时返回当前版本而无步骤/事件。adoptedDraft独立保留最近采用的原对象，currentDraft及候选可更晚；恢复不借用旧候选结果。execution/v2包括三者和完整原职责，draft-only也归档，inspect按v1/v2分别核查；source/语义有效性仍由既有验证负责。
+
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
 
