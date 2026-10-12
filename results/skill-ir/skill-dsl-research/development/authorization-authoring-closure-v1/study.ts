@@ -57,7 +57,7 @@ async function run(position: string, attempt = "first") {
       if (adopted?.raw?.resourceWorkflow?.steps?.length) await save(path.join(base, `authoring/automatic-program-${position}.json`), adopted.raw)
       if (report.domain.programDraft?.currentDraft) await save(path.join(base, `authoring/current-draft-${position}.json`), report.domain.programDraft.currentDraft)
     }
-    await save(ledgerFile, ledger); console.log(JSON.stringify(entry))
+    await save(ledgerFile, ledger); console.log(JSON.stringify({ position, attempt, status: entry.status, terminalStatus: entry.terminalStatus, answerDelivery: entry.answerDelivery, session: entry.session, usage: entry.usage, durationMs: entry.durationMs, resourceSteps: entry.resourceSteps, returned: entry.returned, quotaOrAuth: entry.quotaOrAuth, routingFailure: entry.routingFailure }))
   } catch (error) {
     Object.assign(entry, { status: "unknown", error: String(error), endedAt: new Date().toISOString(), recovery: "Inspect this exact output directory and lifecycle before any dispatch" }); await save(ledgerFile, ledger); throw error
   }

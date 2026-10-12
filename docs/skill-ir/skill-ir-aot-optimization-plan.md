@@ -2,7 +2,7 @@
 
 更新于2026-10-13。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BI0–BI23](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)，`planned-not-started`。复核基线8745aee0，实际接管由执行线程记录。
+- 当前任务书：[BI0–BI23](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)，`in-progress`。实际接管fde04c26，工程提交00053b32；A1/A2及C1已交付，C2正在消费同一冻结原稿。
 - 方法合同：[spec§14.48](skill-ir-aot-optimization-spec.md#1448-bi-authoring-closure-and-reliable-consumption)；复盘统一在[研究§7.70](skill-dsl-research.md#770-bi-作者目标有序修稿与保真消费)。BH实际结果见§7.69及[summary](../../results/skill-ir/skill-dsl-research/development/authorization-incremental-program-v1/summary.json)。
 - identity：`authorization-authoring-closure-v1`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；新线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6.1-sol/max`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停，OWUI/历史未知ShareLink仅离线，旧未知和保护证据保持。
@@ -30,6 +30,8 @@
 4. compact保留原问题、剩余任务、分支规则和可访问源码线索，只减少重复表达；普通CLI默认兼容，示例先回full。
 5. A1无开发者程序/答案/评阅；A2只恢复其自己的稿。C1/C2固定自动原字节，P两组固定已有开发者程序，自动与给定材料效果分账。
 6. 不用全局checked阻挡局部运行，也不通过删除问题、造来源或改unknown换成功。程序贡献与自然补答逐项说明。
+
+实际作者形成12步并采用，但scope选择第二题、场景事实在第一题下，输入为空且执行未知；空version、非owner授权和root失查回退仍未闭合。C1/C2先按同一冻结原稿和同一源码epoch完成，不手工改稿。随后BI20只补通用的作者输入绑定提示：显示当前scope实际可用的输入名字及其他原题下已有输入名字，不复制值、不跨题注入、不替模型选择scope。这个确定性补强不追加第三次作者重抽，也不把已有原稿升级为成功。
 
 ## 执行与恢复
 

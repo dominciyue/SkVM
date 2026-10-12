@@ -1,5 +1,34 @@
 # Download: input → source program → execution → result
 
+## BI model-authored original
+
+The current automatic artifact is
+`results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/authoring/automatic-program.json`.
+It is A2's adopted raw proposal, frozen before C1/C2 without developer semantic
+edits. Run that exact file from the repository root:
+
+```powershell
+./examples/authorization-assessment/download-workflow/run.ps1 -ProgramFile ./results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/authoring/automatic-program.json
+./examples/authorization-assessment/download-workflow/run.ps1 -Variant empty-version -ProgramFile ./results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/authoring/automatic-program.json
+```
+
+Both zero-model runs are conditional and return no file descriptor. The program
+binds to `authorization-and-selection-order`; the supplied finite inputs belong
+to `requested-document-and-returned-file`, so its actual input map is empty and
+all twelve events remain unresolved. Its source expressions also leave explicit
+and empty-version selection, owner-aware permission behavior and missing-root
+fallback incomplete. These are visible in the printed `execution.md` and
+`execution.json`; all four original duties remain in the archive. Natural
+explanations of these branches do not establish automatic computation.
+
+Add `-Mode account` to consume this same file with the original skill and four
+questions. `-Previous <saved-session-directory>` restores eligible evidence and
+recomputes current inputs; it does not reuse the prior natural answer. Use
+`-Mode author -Previous <saved-author-session-directory>` to continue that
+session's own raw draft without supplying a reference program.
+
+## Developer reference
+
 The supplied development scenario asks for document 10 as actor 7. Document 10 is
 the root; document 11 is its newest visible version with an archive. Document 12
 has a higher version index but is deleted. The source program computes:

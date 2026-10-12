@@ -8,6 +8,58 @@ import { checkAuthorizationInquiry, executeLocalInquiryRun, inspectLocalInquiry,
 import { runAuthorizationInquiry } from "./inquiry-run.ts"
 import { emptyTokenUsage } from "../../core/types.ts"
 import { createProgramDraft } from "../../task-dsl/authorization/resource-program-draft.ts"
+import { questionWorkflowDefinitions, RESOURCE_PROGRAM_TEMPLATE } from "./question-workflow-wire.ts"
+test("native and structured author input binding exposes a real question mismatch without injecting its facts", async () => {
+  const f = await contractFiles(), input = JSON.parse(await readFile(f.inputFile, "utf8"))
+  input.resourceInputs = { q: { item: { id: 17 } } }
+  const program = { ...f.contract, scope: { ...f.contract.scope, questionId: "other" }, resourceWorkflow: { inputs: ["item"], steps: [{ id: "result", op: "return", value: { binding: "item.id" }, source: at(8) }] } }
+  await writeFile(f.inputFile, JSON.stringify(input)); await writeFile(f.domainProgramFile, JSON.stringify(program))
+  const native = await createNativeInquiryRuntime({ inputFile: f.inputFile, domainProgramFile: f.domainProgramFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", programMode: "edit", programContext: "compact", executionPolicy: "progressive" })
+  let expected: any
+  try {
+    const context: any = await native.accountContext(false)
+    expected = context.authoring.inputBindings
+    expect(expected.questionId).toBe("other")
+    expect(expected.missingDeclaredNames).toEqual(["item"])
+    expect(expected.suppliedScopes[0].questionId).toBe("q")
+    expect(native.report().domain!.executableContract!.resourceExecution!.inputs).toEqual({})
+    expect(native.report().domain!.executableContract!.resourceExecution!.returned).toBeUndefined()
+  } finally { await native.close() }
+  let count = 0, structured: any
+  const provider: any = { name: "input-binding-mock", async complete(params: any) {
+    const text = params.messages.map((m: any) => m.content).join("\n")
+    const current = JSON.parse(text.split("Current local explanation context: ").at(-1)!.split("\n\nRemaining dispatches:")[0]!)
+    structured = current.authoring.inputBindings
+    const action = count++ === 0 ? { kind: "program", name: "authorization_program_details", arguments: { stepId: "result" } } : { kind: "final", schemaVersion: "authorization-focused-result/v1", focusId: current.focus.id, answers: ["The chosen question has no item input.", "The other original duty remains unresolved."].map(explanation => ({ explanation, missing: [{ kind: "source-gap", detail: "Current input binding is unresolved" }] })), scope: "Local fixture only" }
+    return { text: "", toolCalls: [{ id: `binding-${count}`, name: params.tools[0].name, arguments: action }], stopReason: "tool_use", tokens: emptyTokenUsage(), durationMs: 0 }
+  }, async completeWithToolResults() { throw new Error("unused") } }
+  const run = await runAuthorizationInquiry({ ...input, sourceRoot: path.join(f.root, "source"), provider, method: "D1", strategy: "question-checked-v1", domainProgram: program, programMode: "edit", executionPolicy: "progressive", programContext: "compact", maxDispatches: 4 })
+  expect(structured).toEqual(expected)
+  expect(run.domain!.executableContract!.resourceExecution!.inputs).toEqual({})
+  expect(run.domain!.executableContract!.resourceExecution!.returned).toBeUndefined()
+})
+test("ordinary account rejects a malformed workflow without changing the archived adopted original", async () => {
+  const f = await contractFiles(), invalid = { ...f.contract, resourceWorkflow: { inputs: [], steps: { broken: true } } }
+  const report: any = await executeLocalInquiryRun({ inputFile: f.inputFile, domainProgramFile: f.domainProgramFile, outDir: path.join(f.root, "malformed-archive"), model: "gpt-5.6-sol", strategy: "question-checked-v1", harness: "codex-account", programMode: "edit", executionPolicy: "progressive", accountTransportFactory: contractConsumer(reply => expect(reply.toolResult.code).toBe("account-tool-arguments-invalid"), { tool: "authorization_program", arguments: invalid }), execution: { sessionTimeoutMs: 5000 } })
+  const inspected = await inspectLocalInquiry(report.sessionPath)
+  expect(inspected.execution.currentDraft.raw).toEqual(f.contract)
+  expect(inspected.execution.adoptedDraft.raw).toEqual(f.contract)
+  expect(await readFile(path.join(report.sessionPath, "execution.md"), "utf8")).toContain("Current raw draft")
+})
+test("advertised author template provides a complete declaration envelope and executes after source substitution", async () => {
+  const f = await contractFiles(), template: any = structuredClone(RESOURCE_PROGRAM_TEMPLATE)
+  expect(template.sourceDeclarations[0].source).toBeDefined()
+  expect(template.sourceDeclarations[0].statements).toEqual([])
+  expect(questionWorkflowDefinitions("question-checked-v1").find(t => t.name === "authorization_program")!.description).toContain(JSON.stringify(RESOURCE_PROGRAM_TEMPLATE))
+  template.scope.questionId = "q"; template.scope.root = at(1, 2)
+  template.sourceDeclarations[0].source = at(1, 2)
+  template.resourceWorkflow = { inputs: [], steps: [{ id: "result", op: "return", value: { literal: 7 }, source: at(8) }] }
+  await writeFile(f.domainProgramFile, JSON.stringify(template))
+  const check: any = await checkAuthorizationInquiry(f.inputFile, "D1", "question-checked-v1", f.domainProgramFile, { executionPolicy: "progressive" })
+  expect(check.status).toBe("valid")
+  expect(check.executableContract.resourceExecution.returned).toBe(7)
+  expect(check.executableContract.evaluation.questions[1].properties).toEqual([])
+})
 test("strict ordinary entry accepts a runnable program with an unreachable-step warning", async () => {
   const f = await contractFiles()
   await writeFile(f.domainProgramFile, JSON.stringify({ ...f.contract, resourceWorkflow: { inputs: [], steps: [{ id: "result", op: "return", value: { literal: 7 }, source: at(8) }, { id: "late", op: "guard", test: { op: "eq", left: { literal: 1 }, right: { literal: 2 } }, failure: "denied", source: at(5) }] } }))
@@ -359,14 +411,14 @@ test("a rejected declaration for another original question preserves the local c
 function contractConsumer(onCheck = (reply: any) => {
   expect(reply.toolResult.executableContract.program.id).toBe("authored-local")
   expect(reply.toolResult.propertyChecks.questions.find((q: any) => q.questionId === "q").properties[0].status).toBe("checked")
-}) {
+}, call: { tool: string; arguments: unknown } = { tool: "authorization_check_properties", arguments: {} }) {
   let receive = (_message: any) => {}
   return () => ({ isolation: { kind: "test-transport" as const, reason: "Anonymous finite contract consumer" }, onMessage(f: any) { receive = f }, onExit() {}, close() {}, send(message: any) {
     if (message.method === "initialize") receive({ id: message.id, result: {} })
     if (message.method === "thread/start") receive({ id: message.id, result: { thread: { id: "thread" }, model: "gpt-5.6-sol" } })
     if (message.method === "turn/start") {
       receive({ id: message.id, result: { turn: { id: "turn" } } })
-      queueMicrotask(() => receive({ id: "rpc-check", method: "item/tool/call", params: { threadId: "thread", turnId: "turn", callId: "check", tool: "authorization_check_properties", arguments: {} } }))
+      queueMicrotask(() => receive({ id: "rpc-check", method: "item/tool/call", params: { threadId: "thread", turnId: "turn", callId: "check", ...call } }))
     }
     if (message.result?.contentItems) {
       const reply = JSON.parse(message.result.contentItems[0].text)

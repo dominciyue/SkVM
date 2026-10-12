@@ -1,5 +1,28 @@
 import { expect, test } from "bun:test"
 const api = await import("./program-consumption-context.ts").catch(() => ({} as any))
+const author = await import("./program-authoring-context.ts")
+test("author input binding identifies the draft question gap without copying other question facts", () => {
+  const questions = [{ id: "available" }, { id: "chosen" }]
+  const report = { scope: { questionId: "available" }, currentDraft: { raw: { scope: { questionId: "chosen" }, resourceWorkflow: { inputs: ["actor", "rows"] } } } }
+  const context = author.projectProgramTaskContext({ report, questions, programMode: "edit", resourceInputs: { available: { actor: { id: 934827 }, rows: [] } } })
+  const progress = context.authoring!
+  expect(progress.inputBindings.questionId).toBe("chosen")
+  expect(progress.inputBindings.missingDeclaredNames).toEqual(["actor", "rows"])
+  expect(progress.inputBindings.suppliedScopes).toEqual([{ questionId: "available", inputNames: ["actor", "rows"], externalAssumptionNames: [] }])
+  expect(JSON.stringify(progress.inputBindings)).not.toContain("934827")
+})
+test("malformed raw workflow stays inspectable during author recovery without leaking the active execution", () => {
+  const raw = { scope: { questionId: "q" }, resourceWorkflow: { steps: { broken: true } } }, before = structuredClone(raw)
+  const report = { currentDraft: { revision: "draft-bad", raw }, currentDraftDiagnostics: [{ code: "contract-resource-shape" }], revision: "active", resourceExecution: { events: [{ id: "old", outputs: { value: 7 } }] } }
+  const context = author.projectProgramAuthoring(report, [{ id: "q" }])
+  expect(context.draftRevision).toBe("draft-bad")
+  const details: any = api.programConsumptionDetails(report, { view: "draft", expectedRevision: "draft-bad" })
+  expect(details.program).toEqual(raw)
+  expect(details.steps).toEqual([])
+  expect(details.events).toEqual([])
+  expect(details.diagnostics[0].code).toBe("contract-resource-shape")
+  expect(raw).toEqual(before)
+})
 test("compact preserves the authored branch rule even when a scenario skips it", () => {
   const rule = { id: "include_hidden", op: "value", value: { test: { op: "not", arg: { op: "is-null", value: { binding: "request.selection" } } } }, when: { op: "truthy", language: "python", value: { binding: "enabled" } }, source: { path: "a.py", startLine: 1 }, because: "Actual source condition" }
   const report = { program: { id: "p", resourceWorkflow: { inputs: ["request"], steps: [rule] } }, resourceExecution: { events: [{ id: rule.id, op: rule.op, outcome: "skipped", outputs: { value: null }, gaps: [] }] } }

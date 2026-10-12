@@ -3,6 +3,8 @@ param(
   [ValidateSet('root-default', 'empty-version', 'denied', 'missing-owner', 'root-fallback')][string]$Variant = 'root-default',
   [string]$Out,
   [string]$AccountBoundary,
+  [string]$ProgramFile,
+  [string]$Previous,
   [ValidateSet('full', 'compact')][string]$ProgramContext = 'full'
 )
 $ErrorActionPreference = 'Stop'
@@ -13,7 +15,18 @@ $Out = [IO.Path]::GetFullPath($Out)
 $command = @('src/index.ts', 'authorization', 'inquiry')
 if ($Mode -eq 'zero') { $command += 'check' } else { $command += 'run' }
 $command += @("--input=$PSScriptRoot/inputs/$Variant.json", '--strategy=question-checked-v1', '--execution-policy=progressive', "--program-context=$ProgramContext", "--out=$Out")
-if ($Mode -eq 'author') { $command += '--program-mode=edit' } else { $command += @("--domain-program=$PSScriptRoot/program.json", '--program-mode=consume') }
+if ($Mode -eq 'author') {
+  if ($ProgramFile) { throw 'Author mode starts without a supplied program; use -Previous for a saved author session.' }
+  $command += '--program-mode=edit'
+} else {
+  if (-not $ProgramFile) { $ProgramFile = Join-Path $PSScriptRoot 'program.json' }
+  $ProgramFile = (Resolve-Path -LiteralPath $ProgramFile).Path
+  $command += @("--domain-program=$ProgramFile", '--program-mode=consume')
+}
+if ($Previous) {
+  if ($Mode -eq 'zero') { throw '-Previous is for a model session; zero mode recomputes the supplied program directly.' }
+  $command += "--previous=$([IO.Path]::GetFullPath($Previous))"
+}
 if ($Mode -ne 'zero') {
   if (-not $AccountBoundary) { $AccountBoundary = Join-Path $repo 'results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/account-boundary.json' }
   $skill = Join-Path $repo 'results/skill-ir/skill-dsl-research/development/authorization-domain-execution-v1/model/source-skills/cloudflare-security-audit/SKILL.md'
@@ -28,7 +41,11 @@ try {
   $result = ($output -join "`n") | ConvertFrom-Json
   Write-Output "Session: $($result.sessionPath)"
   Write-Output "Steps: $($result.sessionPath)/execution.md"
+  if ($ProgramFile) { Write-Output "Program: $ProgramFile" }
   $execution = if ($Mode -eq 'zero') { $result.executableContract.resourceExecution } else { $result.domain.executableContract.resourceExecution }
   $execution | Select-Object status, returned, termination, gaps | ConvertTo-Json -Depth 8
+  if ($Mode -eq 'author' -and -not $execution) {
+    Write-Output "No active resource execution. Raw draft and remaining original duties are retained in execution.json/md."
+  }
   if ($Mode -ne 'zero') { Write-Output $result.telemetry.account.text }
 } finally { Pop-Location }

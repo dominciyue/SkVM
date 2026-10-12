@@ -3036,7 +3036,7 @@ check/run/compare已接入`--execution-policy=progressive`，strict仍为默认�
 
 ### 14.48 BI authoring closure and reliable consumption
 
-2026-10-13，用户授权[BI0–BI23](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)，指定`gpt-6.1-sol/max`新线程、约12小时实质开发。复核基线8745aee0，identity `authorization-authoring-closure-v1`；本节为待实施合同，不新增效果结论。BH工程/六次真实结果及原件保持。
+2026-10-13，用户授权[BI0–BI23](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)，指定`gpt-6.1-sol/max`新线程、约12小时实质开发。实际接管fde04c26，identity `authorization-authoring-closure-v1`；共享接口已实施，真实结果按下述分轴合同评价。BH工程/六次真实结果及原件保持。
 
 **作者目标。** native与structured-provider共用作者进度投影。programMode=edit在已有局部活动程序后仍明确编写目标，full/compact不改变模式；current表示来源/版本关系，computed表示实际计算，都不能推导作者已完成。显示当前草稿/活动revision、已计算输出、原问题中的剩余职责及可用编辑工具。允许带缺口自然结束，原稿和自然答案分别保存；宿主不补模型未提供的授权含义。
 
@@ -3049,6 +3049,8 @@ check/run/compare已接入`--execution-policy=progressive`，strict仍为默认�
 **验收和持续执行。** 追求自动原稿真正计算授权对象/最终文件/表示及变化关系，验收不看固定步骤数；自然补答单列。原四问逐题独立评阅，质量和程序检查分开。共享缺陷当场修，不把已知坏协议继续跑满；跨epoch不拼配对。账号已授权、第三方暂停与旧未知规则保持；通道暂停继续确定性工程。工作量约12小时，附恢复/编辑/计量等补充队列，不等待或重复验证凑时长。结果可如实未达，根因及解决记录统一研究§7.70。
 
 **BI已落地接口。** 原子patch保留旧位置/append兼容，显式stepOrder覆盖合并后所有步骤；无条件return后的有效步骤为warning，不触发严格入口的error拒绝。native/structured共用mode优先的作者/任务投影；author状态固定unreviewed，计算输出字段不能自动关闭原问题。details可带expectedRevision；不匹配时返回当前版本而无步骤/事件。adoptedDraft独立保留最近采用的原对象，currentDraft及候选可更晚；恢复不借用旧候选结果。execution/v2包括三者和完整原职责，draft-only也归档，inspect按v1/v2分别核查；source/语义有效性仍由既有验证负责。
+
+**实际失败后的薄反馈。** 工具帮助给完整匿名source/statements包络，不注入任务分支。作者输入绑定列当前raw scope的已声明/可用/缺失名字及其他原题的输入/外部假设名字，值仍取原任务；不跨题自动绑定、不替作者选scope、不增准入门槛。畸形草稿仅在投影层按数组形状显示，原数据及公开schema准入不改写。新反馈不回填已冻结A2，未新增第三作者重抽；其实际主链缺口记录于研究§7.70。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 

@@ -2656,6 +2656,12 @@ ShareLink第二离线开发程序使用同一select/guard/return核，六场景�
 
 **BI0–BI11实际工程（2026-10-13）。** native和structured-provider现在共用mode优先的作者投影；已有computed局部结果仍带当前草稿版本、完整原问题、源码索引/窗口及剩余编写职责。stepOrder校验合并后的完整唯一ID排列并原子拒绝；旧append保留原顺序，严格/渐进编译均诊断无条件return后的有效节点。红测另发现严格普通入口把warning当拒绝、延迟任务准备丢弃恢复草稿，已分别修复。详情expectedRevision绑定所选active/draft视图，旧版本不混入新事件。活动程序单独保存adoptedDraft原稿；execution/v2保留原稿/候选/活动及原职责，未采用草稿也有可读归档，旧v1按原投影核查。63项定向测试、474个断言及主/研究类型通过；此为工程证据，尚非自动主链或消费收益结论。
 
+**BI12现场（A1）。** 首作者交付自然解释，使用60工具单位；前59单位为源码发现/读取/详情，最后提交6步草稿但sourceDeclarations写成裸path/symbol/complete，缺必需source/statements，未产生活动程序。不是共享求值成功，也不因自然答正确替代自动主链。复核发现author-facing宽松schema没有展示声明内部包络，原通用例只展示步骤；增加无任务含义的完整inventory包络、function-contract默认说明及guard身份表达式示例，定向红绿3项/15断言通过。A2仅恢复A1自己的原稿和已核查来源，不给参考答案。
+
+**BI13–BI14实际观察。** A2实际修稿采用12步，原稿在消费者之前冻结。它选择authorization-and-selection-order为scope，supplied resourceInputs却属于requested-document-and-returned-file，因此当前执行inputs为空，十二个事件未解析、无returned。最新版本选择始终筛deleted=false，也未表达空version/显式版本、非owner授权展开及root失查回退；自然答案可以解释这些，不能算程序已完成。C1普通consume/full及C2同原稿empty-version/previous均交付，同epoch且仍conditional。公开零模型入口也保留相同缺口。随后只补通用输入绑定可见性，native/provider反例红绿2项/12断言，不改自动原稿或追加第三作者。
+
+**具名补强。** 畸形raw.steps为对象的离线反例使作者/详情投影抛错，已加数组形状检查；账号公开schema本来在执行前拒绝这种输入，恢复/本地草稿可见性仍需健壮处理。归档原始客户端载荷可重建发送边界，A1/A2/C1分别63/54/54条、1486525/1735652/1260526字节，逐条UTF-8及SHA与receipt完全相符；字段分类通过同一分类器复算，不称独立语义分类。necessary source核查和重复状态的用途另评，不按重复哈希直接扣成本。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。

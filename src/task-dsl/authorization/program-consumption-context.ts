@@ -30,7 +30,7 @@ export function programConsumptionDetails(report: any, query: z.input<typeof Pro
   const execution = args.view === "draft" ? report.candidate?.revision === currentRevision ? report.candidate.resourceExecution : undefined : report.resourceExecution
   const relevant = !args.questionId || program?.scope?.questionId === args.questionId
   const match = (s: any) => relevant && (!args.stepId || s?.id === args.stepId)
-  const steps = (program?.resourceWorkflow?.steps ?? []).filter(match), events = (execution?.events ?? []).filter(match)
+  const steps = (Array.isArray(program?.resourceWorkflow?.steps) ? program.resourceWorkflow.steps : []).filter(match), events = (execution?.events ?? []).filter(match)
   return { view: args.view, revision: currentRevision, activeRevision: report.revision, draftRevision: report.currentDraft?.revision, status: args.stepId && !steps.length ? "program-detail-not-found" : report.status, ...(args.stepId || args.questionId ? {} : { program, execution, currentDraft: report.currentDraft }), steps, events, diagnostics: args.view === "draft" ? report.candidate?.diagnostics ?? report.currentDraftDiagnostics : report.diagnostics, semanticSupport: "unreviewed" }
 }
 
