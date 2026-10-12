@@ -1,0 +1,86 @@
+## 结论
+
+Download 先对**请求文档所属的根文档**授权，随后才选择具体版本及 original/archive 文件。选择同一版本链中的其他版本不会改变被授权对象；它只改变授权成功后返回的文件对象和文件表示。
+
+### 1. 请求入口与文档定位
+
+- `UnifiedSearchViewSet` 继承 `DocumentViewSet`，以 `documents` 注册到 `/api/` 下的 DRF router。[src/paperless/urls.py:74-77] [src/paperless/urls.py:97-100] [src/paperless/urls.py:297] [src/documents/views.py:2503-2507]
+- `download` 是 `GET` 的 detail action；router 把 URL 中的 lookup 值交给 `pk`。实际路径按默认 router 是 `/api/documents/{pk}/download/`，但尾斜杠最终仍取决于 router 配置。[src/documents/views.py:1834-1839] [framework/rest_framework-3.18.1/rest_framework/routers.py:93-130]
+- `download()` 调用 `file_response(pk, request, "attachment")`；存储文件不存在或出现 `Document.DoesNotExist` 时转换为 404。[src/documents/views.py:1835-1839]
+- `file_response()` 使用 `include_deleted=True`，所以请求文档查询选用 `Document.global_objects`，并按 `id=pk` 获取；不存在即 404。[src/documents/views.py:1401-1415] [src/documents/views.py:1429-1436]
+
+### 2. 授权顺序和对象
+
+在进入 `download()` 前，DRF `initial()` 依次进行认证、视图级权限检查和限流，然后才调用 handler。[framework/rest_framework-3.18.1/rest_framework/views.py:404-421] [framework/rest_framework-3.18.1/rest_framework/views.py:490-520]
+
+`DocumentViewSet` 的权限类是：
+
+1. `IsAuthenticated`；
+2. `PaperlessObjectPermissions`。[src/documents/views.py:1008-1027]
+
+对于 GET，`PaperlessObjectPermissions` 要求 `documents.view_document`；继承的 `has_permission()` 以**不带对象参数**的 `request.user.has_perms(...)` 执行该检查。[src/documents/permissions.py:30-44] [framework/rest_framework-3.18.1/rest_framework/permissions.py:203-246]
+
+进入应用代码后：
+
+1. 加载 `request_doc`。
+2. 确定 `root_doc`：
+   - 请求根文档时，根就是自身；
+   - 请求版本时，优先使用已加载的 `root_document`；
+   - 否则按 `root_document_id` 查询；
+   - 根找不到时退回请求文档自身。[src/documents/versioning.py:146-156]
+3. 对 `root_doc` 执行 `has_perms_owner_aware(user, "view_document", root_doc)`；失败立即返回 403。[src/documents/views.py:1417-1427]
+4. owner-aware 检查在以下任一条件成立时允许：
+   - 根文档没有 owner；
+   - 当前用户就是根文档 owner；
+   - `ObjectPermissionChecker` 确认用户具有该根文档的 `view_document` 对象权限。[src/documents/permissions.py:624-635]
+5. 只有通过这一步后，才选择具体版本及 original/archive 文件。[src/documents/views.py:1429-1448]
+
+该自定义 action 没有调用 DRF 的 `get_object()` 或 `check_object_permissions()`；在所追踪路径中，实际对象级控制就是上述针对 `root_doc` 的手工检查。
+
+### 3. 版本选择的全部主要分支
+
+| 请求情况 | 返回所依据的 `file_doc` |
+|---|---|
+| `pk` 本身是某个版本，并且完全没有 `version` 参数 | 直接使用该请求版本。[src/documents/views.py:1388-1399] |
+| 请求根文档且没有 `version` 参数 | 选择该根的最新非删除版本；没有版本则退回根文档。[src/documents/views.py:1375-1381] [src/documents/versioning.py:159-182] |
+| 存在 `version=`，但值为空字符串 | “参数存在”令 `include_deleted=True`，但空字符串又是 falsey，因此选择包括删除记录在内的最新版本。[src/documents/views.py:1375-1381] [src/documents/versioning.py:175-182] |
+| `version` 为非空整数 | 从包含删除记录的 manager 中按该 ID 查找候选；候选必须是授权根自身，或其 `root_document_id` 等于授权根 ID。[src/documents/versioning.py:184-195] |
+| `version` 不能转为整数 | `NotFound("Invalid version parameter")`。[src/documents/versioning.py:184-187] [src/documents/views.py:1382-1383] |
+| 版本不存在或属于另一版本链 | 404。[src/documents/versioning.py:189-195] [src/documents/views.py:1384-1385] |
+
+最新版本按 `version_index`、再按 `id` 降序处理。[src/documents/versioning.py:114-122]
+
+因此，显式版本只能在已经授权的根版本链内选择，但选择后的版本没有第二次独立 owner/object-grant 检查。
+
+### 4. original/archive 如何决定实际文件
+
+授权及版本选择完成后：
+
+- 只有查询参数严格等于 `original=true` 才算请求原件；缺失、`false`、大小写不同等都不是。[src/documents/views.py:1368-1373]
+- 若未请求原件且所选 `file_doc.has_archive_version` 为真，返回 `archive_file`，MIME 固定为 `application/pdf`。
+- 否则返回 `source_file`，使用文档的原始 MIME 类型。[src/documents/views.py:1442-1448] [src/documents/views.py:4941-4965]
+- `follow_formatting` 只影响下载文件名，不改变所读文件。由于代码直接测试其真值，类似非空字符串 `"false"` 也会被当作真。[src/documents/views.py:1447-1447] [src/documents/views.py:4952-4965]
+- 最终构造 `FileResponse`，并以 `attachment` 生成 `Content-Disposition`。[src/documents/views.py:4973-4995]
+
+### 5. 给定开发场景
+
+条件是请求已经通过 DRF 的认证和全局模型权限检查：
+
+- `pk=10` 得到根文档 10。
+- 用户 7 是根文档 10 的 owner，所以根授权通过；版本 11、12 的 owner 为 9 不会触发新的授权。
+- `version=""` 是“存在但为空”：版本查询包含删除记录，而空值选择最新版本，因此选择版本 12。
+- `original` 缺失，不算请求原件；但版本 12 没有 archive，所以退回其 source 文件。
+- 条件性结果是：**返回版本 12 的 `v2-original.txt`，disposition 为 attachment**。
+
+这不是对真实请求成功的无条件结论：还需要请求级权限以及文件实际可打开。
+
+### 6. 仍缺少、且会阻止结论的事实
+
+- **认证方式和真实认证状态**：阻止判断请求是否能进入 `download()`。
+- **用户是否拥有不带对象参数的 `documents.view_document` 权限，以及实际权限 backend 的行为**：阻止判断视图级权限是否通过。
+- **真实根文档 owner 和对象授权记录**：阻止判断手工根授权是否通过。
+- **真实数据库中的版本链、删除状态及根关系**：阻止判断最终选择哪个 `file_doc`。
+- **存储中 source/archive 文件的存在性和可读性**：阻止判断是否真正产生文件流，而不是 404。
+- **尾斜杠、认证 backend、存储及代理配置**不在给定证据范围内；它们不能从这些源码片段推定。
+
+机器属性检查仍为未声明查询状态，因此以上结论来自所列源码路径，而不是机器认证结果。

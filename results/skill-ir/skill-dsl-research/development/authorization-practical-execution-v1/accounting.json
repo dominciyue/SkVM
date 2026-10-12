@@ -1,0 +1,419 @@
+{
+  "identity": "authorization-practical-execution-v1",
+  "unit": "official account observed tokens; input includes cached input",
+  "totals": {
+    "input": 5308698,
+    "output": 46982,
+    "cacheRead": 4672000,
+    "nonCachedInput": 636698,
+    "toolCalls": 211
+  },
+  "actualUsd": null,
+  "hiddenRequests": null,
+  "developmentModelCost": null,
+  "subagentCost": null,
+  "humanMinutes": null,
+  "authoringCostIncludedAsSeparateProcess": true,
+  "rows": [
+    {
+      "name": "authored-base",
+      "session": "runs/authored-base/sessions/2026-10-12T081753215Z-71579ee2",
+      "status": "unavailable",
+      "inferenceDispatched": false,
+      "answerDelivery": "undelivered",
+      "usage": null,
+      "nonCachedInput": null,
+      "actualUsd": null,
+      "providerRequests": null,
+      "toolCalls": 0,
+      "durationMs": 577,
+      "sourceAccounting": {
+        "indexBytes": 1412762,
+        "physicalReadBytes": 5056567,
+        "toolDisplayBytes": 6556,
+        "cumulativeModelSourceBytes": 6556,
+        "resentSourceBytes": 0
+      },
+      "programSha256": "68ad431e28149106b9466577988dd0fe733c9adcff23530902761fb572a182ef",
+      "activeProgram": {
+        "origin": "authored-file",
+        "initialRevision": "0c24d8cca7194d6a0ddae6b9fb91dbc3d937dfbeeb2866ae81674a02149c8c50",
+        "finalRevision": "0c24d8cca7194d6a0ddae6b9fb91dbc3d937dfbeeb2866ae81674a02149c8c50",
+        "status": "current",
+        "drafts": 0,
+        "sourceDeclarations": 1,
+        "resourceSteps": 25,
+        "conditions": [
+          {
+            "step": "request_found",
+            "test": {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "request_doc"
+                }
+              }
+            },
+            "otherwise": "Http404-request"
+          },
+          {
+            "step": "root_authorized",
+            "identityGaps": [
+              "actor",
+              "request_doc.root_document_id",
+              "documents",
+              "related_root"
+            ]
+          },
+          {
+            "step": "root_authorized",
+            "test": {
+              "op": "any",
+              "args": [
+                {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "actor"
+                  }
+                },
+                {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "root_doc.owner_id"
+                  }
+                },
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "root_doc.owner_id"
+                  },
+                  "right": {
+                    "binding": "actor.id"
+                  }
+                },
+                {
+                  "op": "truthy",
+                  "language": "python",
+                  "value": {
+                    "binding": "object_grant"
+                  }
+                }
+              ]
+            },
+            "otherwise": "HttpResponseForbidden"
+          }
+        ],
+        "materialUses": 1
+      },
+      "unknown": false
+    },
+    {
+      "name": "authored-base-cli-recovery",
+      "session": "runs/authored-base-cli-recovery/sessions/2026-10-12T082510676Z-4826162c",
+      "status": "completed",
+      "inferenceDispatched": true,
+      "answerDelivery": "delivered",
+      "usage": {
+        "input": 837620,
+        "output": 6994,
+        "cacheRead": 720128,
+        "cacheWrite": 0
+      },
+      "nonCachedInput": 117492,
+      "actualUsd": null,
+      "providerRequests": null,
+      "toolCalls": 32,
+      "durationMs": 333243,
+      "sourceAccounting": {
+        "indexBytes": 1412762,
+        "physicalReadBytes": 7440738,
+        "toolDisplayBytes": 57471,
+        "cumulativeModelSourceBytes": 63203,
+        "resentSourceBytes": 5732
+      },
+      "programSha256": "68ad431e28149106b9466577988dd0fe733c9adcff23530902761fb572a182ef",
+      "activeProgram": {
+        "origin": "authored-file",
+        "initialRevision": "0c24d8cca7194d6a0ddae6b9fb91dbc3d937dfbeeb2866ae81674a02149c8c50",
+        "finalRevision": "0c24d8cca7194d6a0ddae6b9fb91dbc3d937dfbeeb2866ae81674a02149c8c50",
+        "status": "current",
+        "drafts": 1,
+        "sourceDeclarations": 1,
+        "resourceSteps": 25,
+        "conditions": [
+          {
+            "step": "request_found",
+            "test": {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "request_doc"
+                }
+              }
+            },
+            "otherwise": "Http404-request"
+          },
+          {
+            "step": "root_authorized",
+            "identityGaps": [
+              "actor",
+              "request_doc.root_document_id",
+              "documents",
+              "related_root"
+            ]
+          },
+          {
+            "step": "root_authorized",
+            "test": {
+              "op": "any",
+              "args": [
+                {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "actor"
+                  }
+                },
+                {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "root_doc.owner_id"
+                  }
+                },
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "root_doc.owner_id"
+                  },
+                  "right": {
+                    "binding": "actor.id"
+                  }
+                },
+                {
+                  "op": "truthy",
+                  "language": "python",
+                  "value": {
+                    "binding": "object_grant"
+                  }
+                }
+              ]
+            },
+            "otherwise": "HttpResponseForbidden"
+          }
+        ],
+        "materialUses": 1
+      },
+      "unknown": false
+    },
+    {
+      "name": "authored-change",
+      "session": "runs/authored-change/sessions/2026-10-12T084828219Z-011a3ada",
+      "status": "completed",
+      "inferenceDispatched": true,
+      "answerDelivery": "delivered",
+      "usage": {
+        "input": 1640815,
+        "output": 9029,
+        "cacheRead": 1433216,
+        "cacheWrite": 0
+      },
+      "nonCachedInput": 207599,
+      "actualUsd": null,
+      "providerRequests": null,
+      "toolCalls": 41,
+      "durationMs": 573036,
+      "sourceAccounting": {
+        "indexBytes": 1412762,
+        "physicalReadBytes": 7689430,
+        "toolDisplayBytes": 76092,
+        "cumulativeModelSourceBytes": 91204,
+        "resentSourceBytes": 19824
+      },
+      "programSha256": "68ad431e28149106b9466577988dd0fe733c9adcff23530902761fb572a182ef",
+      "activeProgram": {
+        "origin": "authored-file",
+        "initialRevision": "e8eb0c980dc76cef9a7b9abaa95f22f85fd6b9e8adc4e6145f8cd4b2b9952b0f",
+        "finalRevision": "e8eb0c980dc76cef9a7b9abaa95f22f85fd6b9e8adc4e6145f8cd4b2b9952b0f",
+        "status": "current",
+        "drafts": 1,
+        "sourceDeclarations": 1,
+        "resourceSteps": 25,
+        "returned": {
+          "requested_id": 10,
+          "authorized_root_id": 10,
+          "file_document_id": 12,
+          "representation": "original",
+          "path": "v2-original.txt",
+          "disposition": "attachment"
+        },
+        "conditions": [],
+        "materialUses": 1
+      },
+      "reuse": {
+        "previousSessionId": "2026-10-12T083748641Z-043a6399",
+        "change": "contract-inputs-only",
+        "answerReused": false,
+        "semanticSupport": "unreviewed",
+        "reusedRuleKeys": [],
+        "invalidatedPolicyKeys": [],
+        "invalidatedPremiseKeys": [],
+        "reuseLevel": "materials",
+        "eligible": true,
+        "materialsAvailable": 1,
+        "materialsRestored": 1,
+        "materialsUsed": 1,
+        "reusedMaterials": [
+          "material-9899434b0e32a04d5f9f9080"
+        ],
+        "invalidatedMaterials": [],
+        "layers": {
+          "R0": {
+            "available": true,
+            "retainedEvidence": 1,
+            "mechanicalIndexReusable": true
+          },
+          "R1": {
+            "available": true,
+            "retainedMaterials": 1,
+            "reasons": []
+          },
+          "R2": {
+            "available": false,
+            "reason": "Previous verdicts and answers are never restored; evaluate current properties separately."
+          }
+        }
+      },
+      "unknown": false
+    },
+    {
+      "name": "authored-scenario",
+      "session": "runs/authored-scenario/sessions/2026-10-12T083748641Z-043a6399",
+      "status": "completed",
+      "inferenceDispatched": true,
+      "answerDelivery": "delivered",
+      "usage": {
+        "input": 700128,
+        "output": 9150,
+        "cacheRead": 612352,
+        "cacheWrite": 0
+      },
+      "nonCachedInput": 87776,
+      "actualUsd": null,
+      "providerRequests": null,
+      "toolCalls": 43,
+      "durationMs": 407669,
+      "sourceAccounting": {
+        "indexBytes": 1412762,
+        "physicalReadBytes": 10799950,
+        "toolDisplayBytes": 74051,
+        "cumulativeModelSourceBytes": 66495,
+        "resentSourceBytes": 28989
+      },
+      "programSha256": "68ad431e28149106b9466577988dd0fe733c9adcff23530902761fb572a182ef",
+      "activeProgram": {
+        "origin": "authored-file",
+        "initialRevision": "54331ff6fd5fc8f6aa3aa216f3ba9cb38b888aea2f12868918b93ba7821c42d8",
+        "finalRevision": "54331ff6fd5fc8f6aa3aa216f3ba9cb38b888aea2f12868918b93ba7821c42d8",
+        "status": "current",
+        "drafts": 0,
+        "sourceDeclarations": 1,
+        "resourceSteps": 25,
+        "returned": {
+          "requested_id": 10,
+          "authorized_root_id": 10,
+          "file_document_id": 11,
+          "representation": "archive",
+          "path": "v1-archive.pdf",
+          "disposition": "attachment"
+        },
+        "conditions": [],
+        "materialUses": 1
+      },
+      "unknown": false
+    },
+    {
+      "name": "auto-author",
+      "session": "runs/auto-author/sessions/2026-10-12T081937071Z-5ce3cd09",
+      "status": "unavailable",
+      "inferenceDispatched": false,
+      "answerDelivery": "undelivered",
+      "usage": null,
+      "nonCachedInput": null,
+      "actualUsd": null,
+      "providerRequests": null,
+      "toolCalls": 0,
+      "durationMs": 466,
+      "sourceAccounting": {
+        "indexBytes": 1412762,
+        "physicalReadBytes": 2825524,
+        "toolDisplayBytes": 0,
+        "cumulativeModelSourceBytes": 0,
+        "resentSourceBytes": 0
+      },
+      "unknown": false
+    },
+    {
+      "name": "auto-author-cli-recovery",
+      "session": "runs/auto-author-cli-recovery/sessions/2026-10-12T082856436Z-9de5f95e",
+      "status": "completed",
+      "inferenceDispatched": true,
+      "answerDelivery": "delivered",
+      "usage": {
+        "input": 1451804,
+        "output": 14148,
+        "cacheRead": 1305600,
+        "cacheWrite": 0
+      },
+      "nonCachedInput": 146204,
+      "actualUsd": null,
+      "providerRequests": null,
+      "toolCalls": 49,
+      "durationMs": 497548,
+      "sourceAccounting": {
+        "indexBytes": 1412762,
+        "physicalReadBytes": 5683069,
+        "toolDisplayBytes": 75828,
+        "cumulativeModelSourceBytes": 90147,
+        "resentSourceBytes": 14319
+      },
+      "activeProgram": {
+        "origin": "model",
+        "initialRevision": "fbd10e7f7d4a5a52582c528a8f5c790b7df26f8f1b552610c713b7524fe7f29f",
+        "finalRevision": "fbd10e7f7d4a5a52582c528a8f5c790b7df26f8f1b552610c713b7524fe7f29f",
+        "status": "current",
+        "drafts": 0,
+        "sourceDeclarations": 3,
+        "resourceSteps": 0,
+        "materialUses": 0
+      },
+      "unknown": false
+    },
+    {
+      "name": "matched-markdown",
+      "session": "runs/matched-markdown/sessions/2026-10-12T083750685Z-dd0fffe5",
+      "status": "completed",
+      "inferenceDispatched": true,
+      "answerDelivery": "delivered",
+      "usage": {
+        "input": 678331,
+        "output": 7661,
+        "cacheRead": 600704,
+        "cacheWrite": 0
+      },
+      "nonCachedInput": 77627,
+      "actualUsd": null,
+      "providerRequests": null,
+      "toolCalls": 46,
+      "durationMs": 476179,
+      "sourceAccounting": {
+        "indexBytes": 1412762,
+        "physicalReadBytes": 5991925,
+        "toolDisplayBytes": 82804,
+        "cumulativeModelSourceBytes": 82804,
+        "resentSourceBytes": 5986
+      },
+      "unknown": false
+    }
+  ]
+}

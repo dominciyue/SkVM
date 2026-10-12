@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "download-workflow-draft-1",
+  "scope": {"kind": "function-contract", "questionId": "requested-document-and-returned-file", "root": {"path": "src/documents/views.py", "startLine": 1429, "endLine": 1448, "receiverClass": "DocumentViewSet"}, "upstream": ["Authentication, global request permission, and storage success remain outside the local file_response execution."]},
+  "sourceDeclarations": [{"schemaVersion": "authorization-question-declaration/v1", "source": {"path": "src/documents/views.py", "startLine": 1429, "endLine": 1448, "receiverClass": "DocumentViewSet"}, "statements": [{"kind": "object", "expression": "pk", "as": "context", "because": "The original caller supplies the requested primary key."}]}],
+  "queries": [],
+  "assumptions": [],
+  "resourceWorkflow": {
+    "inputs": ["request", "documents"],
+    "steps": [
+      {"id": "request_doc", "op": "select", "from": "documents", "where": {"op": "eq", "left": {"binding": "row.id"}, "right": {"binding": "request.pk"}}, "source": {"path": "src/documents/views.py", "startLine": 1408, "endLine": 1415}, "because": "file_response passes include_deleted=True to its request lookup."},
+      {"id": "root_doc", "op": "fallback", "value": "root_lookup", "otherwise": "request_doc", "source": {"path": "src/documents/versioning.py", "startLine": 146, "endLine": 156}, "because": "An unavailable root lookup falls back to the request document."}
+    ],
+    "gaps": ["Specify related-root lookup, own per-call deleted visibility, permission receiver, version absence versus empty string, representation and return selection as executable relations."]
+  }
+}

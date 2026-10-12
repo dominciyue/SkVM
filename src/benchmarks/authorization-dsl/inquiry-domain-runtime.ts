@@ -25,7 +25,8 @@ import { isQuestionCheckedStrategy } from "../../task-dsl/authorization/control-
 import type { SourceInterpretation } from "../../task-dsl/authorization/source-interpretation.ts"
 import { createHash } from "node:crypto"
 import { isCompletionEditProposal } from "./semantic-completion-wire.ts"
-import { compileExecutableContract, ExecutableContractSchema, type ExecutableContractCompilation } from "../../task-dsl/authorization/executable-contract.ts"
+import { compileExecutableContract, readExecutableContractSources, normalizeExecutableContract, type ExecutableContractCompilation, type ExecutionPolicy, type ProgramMode } from "../../task-dsl/authorization/executable-contract.ts"
+import type { ResourceProgramInputs } from "../../task-dsl/authorization/resource-relations.ts"
 import { QuestionDeclarationSchema } from "../../task-dsl/authorization/question-workflow.ts"
 type AcceptedExecutableContract = Extract<ExecutableContractCompilation, { evaluation: unknown }>
 
@@ -55,12 +56,20 @@ export const DOMAIN_EXECUTION_GUIDE = [
 export const GUIDED_EXECUTION_GUIDE = [LOCAL_CONTROL_GUIDE, LOCAL_EXTRACTION_GUIDE, ...DOMAIN_EXECUTION_GUIDE.split("\n").slice(2, 6).map(line => line.replace(/Known bindings are only explicit USER premises:.*?This mapping is a model interpretation, not source truth\./, "Only known premiseValues from exact current user spans enter evaluation; mapping meaning remains unreviewed.").replace(/\{key,questionId/g, "{op,targetKey,questionId")), RESULT_BRANCH_GUIDE, "For unspecified values, retain alternative feasible outcomes and name the missing fact. Local extraction and mapping meaning remain unreviewed."].join("\n")
 
 /** One shared state machine used by structured inquiry and ordinary native tools. */
-export function createInquiryDomainRuntime(options: { program: AuthorizationInquiryProgram; tools: InquiryTools; strategy?: InquiryStrategy; sourceAssisted?: boolean; entryContext?: string; remainingActions?: () => number; ablation?: DomainAblation; suppliedUserText?: string[]; shownEvidenceIds?: () => string[]; initialDelta?: unknown; initialSemanticUnits?: BoundSemanticBlock[]; initialSourceMaterials?: SourceMaterialSnapshot; contractInputs?: Record<string, Record<string, import("../../task-dsl/authorization/control-evaluation.ts").FiniteValue>> }) {
+export function createInquiryDomainRuntime(options: ResourceProgramInputs & { executionPolicy?: ExecutionPolicy; programMode?: ProgramMode; program: AuthorizationInquiryProgram; tools: InquiryTools; strategy?: InquiryStrategy; sourceAssisted?: boolean; entryContext?: string; remainingActions?: () => number; ablation?: DomainAblation; suppliedUserText?: string[]; shownEvidenceIds?: () => string[]; initialDelta?: unknown; initialSemanticUnits?: BoundSemanticBlock[]; initialSourceMaterials?: SourceMaterialSnapshot; contractInputs?: Record<string, Record<string, import("../../task-dsl/authorization/control-evaluation.ts").FiniteValue>> }) {
   let slice: ControlSlice = createControlSlice(), check: RuntimeDomainCheck | undefined, closed = false
   let propertyChecks: ReturnType<typeof checkPropertyQueries> | undefined
   let executableContract: { compilation: AcceptedExecutableContract; origin: "authored-file" | "model" } | undefined
+  const programMode = options.programMode ?? "consume", programDrafts: Array<{ raw: unknown; diagnostics: InquiryDiagnostic[]; baseRevision: string }> = []
+  let initialProgramRevision: string | undefined
+  const retainProgramDraft = (raw: unknown, diagnostics: InquiryDiagnostic[]) => { programDrafts.push({ raw: structuredClone(raw), diagnostics, baseRevision: executableContract!.compilation.revision }); return { diagnostics, actions: [], evaluated: { paths: lastPaths } } }
   const authoredEvidenceIds = new Set<string>()
-  const contractRoots = () => executableContract?.compilation.scope.kind === "function-contract" ? [{ questionId: executableContract.compilation.scope.questionId, operationId: options.program.operationQuestions?.find(q => q.questionId === executableContract!.compilation.scope.questionId)?.operationId ?? `question:${executableContract.compilation.scope.questionId}`, source: executableContract.compilation.units.find(u => u.source?.path === executableContract!.compilation.scope.root.path && u.source?.startLine === executableContract!.compilation.scope.root.startLine && u.source?.endLine === executableContract!.compilation.scope.root.endLine)!.source!, receiverClass: executableContract.compilation.scope.root.receiverClass }] : []
+  const contractRoots = () => {
+    const compiled = executableContract?.compilation
+    if (compiled?.scope.kind !== "function-contract") return []
+    const source = compiled.units.find(u => u.source?.path === compiled.scope.root.path && u.source?.startLine === compiled.scope.root.startLine && u.source?.endLine === compiled.scope.root.endLine)?.source
+    return source ? [{ questionId: compiled.scope.questionId, operationId: options.program.operationQuestions?.find(q => q.questionId === compiled.scope.questionId)?.operationId ?? `question:${compiled.scope.questionId}`, source, receiverClass: compiled.scope.root.receiverClass }] : []
+  }
   const semanticCompletion = isSemanticCompletionStrategy(options.strategy)
   let propertyBasis: string | undefined, cachedPropertyBasis: string | undefined, cachedPropertyChecks: typeof propertyChecks
   const scheduler = createInquiryDomainScheduler({ ...options, evaluateConditions: options.ablation !== "checks-off" }), proposals: Array<{ delta: unknown; diagnostics: InquiryDiagnostic[]; revision: number; accepted?: UpdateAcceptance[]; rejected?: UpdateRejection[]; withdrawn?: UpdateWithdrawal[]; withdrawalRejected?: UpdateRejection[]; unresolved?: unknown[] }> = []
@@ -101,6 +110,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   let currentAnswer: unknown
   const invalidateDelivery = () => { if (options.sourceAssisted) { currentAnswer = undefined; check = undefined; propertyChecks = undefined; propertyBasis = undefined } }
   const rejectSource = (diagnostics: InquiryDiagnostic[], raw?: unknown) => {
+    if (executableContract && programMode === "consume") { retainProgramDraft(raw, diagnostics); return }
     invalidateDelivery()
     if (!semanticCompletion) return
     const key = `$focus.${focus?.current()?.id ?? "absent"}`, owner = focusOwner()
@@ -210,11 +220,15 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
   const importProgram = async (raw: unknown, origin: "authored-file" | "model" = "model", readSources = false): Promise<ProposalResult> => {
     if (closed) throw new Error("session-closed")
     if (!isQuestionCheckedStrategy(options.strategy)) throw new Error("contract-strategy: executable programs require question-checked-v1")
-    const parsed = ExecutableContractSchema.safeParse(raw)
-    if (readSources && parsed.success) for (const declaration of parsed.data.sourceDeclarations) await options.tools.execute("source_read", { path: declaration.source.path, startLine: declaration.source.startLine, endLine: declaration.source.endLine ?? declaration.source.startLine })
-    const compiled = await compileExecutableContract(raw, { tools: options.tools, program: options.program, confirmedEntries: semanticUnits, ...(parsed.success ? { inputs: options.contractInputs?.[parsed.data.scope.questionId] } : {}), interpretationSource: origin })
+    if (origin === "model" && executableContract && programMode === "consume") return retainProgramDraft(raw, [{ code: "program-consume-draft", path: "$", message: "The active program is in consume mode; this proposal was retained as a draft without replacing it.", severity: "warning" }])
+    const normalized = readSources ? await readExecutableContractSources(raw, options.tools) : normalizeExecutableContract(raw, options.tools.structure)
+    const questionId = normalized.value?.scope?.questionId
+    const compiled = await compileExecutableContract(raw, { tools: options.tools, program: options.program, confirmedEntries: semanticUnits, inputs: options.contractInputs?.[questionId], resourceInputs: options.resourceInputs?.[questionId], externalAssumptions: options.externalAssumptions?.[questionId], executionPolicy: options.executionPolicy, interpretationSource: origin })
+    if (!("evaluation" in compiled) || compiled.diagnostics.length && options.executionPolicy !== "progressive") {
+      if (executableContract) return retainProgramDraft(raw, compiled.diagnostics)
+      issues.set("$contract", compiled.diagnostics); evaluateCurrentProperties(); return { diagnostics: compiled.diagnostics, actions: [], evaluated: { paths: lastPaths } }
+    }
     invalidateDelivery()
-    if (compiled.diagnostics.length || !("evaluation" in compiled)) { issues.set("$contract", compiled.diagnostics); evaluateCurrentProperties(); return { diagnostics: compiled.diagnostics, actions: [], evaluated: { paths: lastPaths } } }
     issues.delete("$contract")
     // A complete current import validates its exact sources independently of
     // focus routing. Retire only the superseded owner rejection, never a broad
@@ -226,6 +240,7 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     const ownedBy = (units: BoundSemanticBlock[], u: BoundSemanticBlock) => units.some(n => n.questionId === u.questionId && n.source?.id === u.source?.id && n.receiverClass === u.receiverClass)
     materials?.invalidate((_dependency, material) => ownedBy(oldUnits, material.unit), "domain-program-replaced")
     executableContract = { compilation: compiled, origin }
+    initialProgramRevision ??= compiled.revision
     if (origin === "authored-file") for (const unit of compiled.units) for (const id of unit.evidenceIds) authoredEvidenceIds.add(id)
     const replaced = (u: BoundSemanticBlock) => ownedBy(oldUnits, u) || ownedBy(compiled.units, u)
     semanticUnits = semanticUnits.filter(u => !replaced(u)).concat(compiled.units)
@@ -235,9 +250,10 @@ export function createInquiryDomainRuntime(options: { program: AuthorizationInqu
     proposals.push({ delta: structuredClone(raw), diagnostics: compiled.diagnostics, revision: slice.revision })
     return { diagnostics: compiled.diagnostics, actions: [], evaluated: { paths: lastPaths } }
   }
-  const executableContractReport = () => executableContract && { program: executableContract.compilation.contract, origin: executableContract.origin, revision: executableContract.compilation.revision, scope: executableContract.compilation.scope, assumptions: executableContract.compilation.assumptions, conditions: executableContract.compilation.conditions, status: propertyChecks && propertyBasis && !issues.has("$source") && !issues.has("$contract") ? "current" as const : "invalidated" as const, evaluation: propertyChecks && propertyBasis && !issues.has("$source") && !issues.has("$contract") ? structuredClone(propertyChecks) : undefined, requestOperationCertified: false as const }
+  const executableContractReport = () => executableContract && { program: executableContract.compilation.contract, origin: executableContract.origin, programMode, executionPolicy: options.executionPolicy ?? "strict", initialRevision: initialProgramRevision, drafts: structuredClone(programDrafts), diagnostics: executableContract.compilation.diagnostics, normalizations: executableContract.compilation.normalizations, resourceExecution: !issues.has("$source") && options.tools.snapshotVerification?.valid !== false ? executableContract.compilation.resourceExecution : undefined, revision: executableContract.compilation.revision, scope: executableContract.compilation.scope, assumptions: executableContract.compilation.assumptions, conditions: executableContract.compilation.conditions, status: propertyChecks && propertyBasis && !issues.has("$source") && !issues.has("$contract") ? "current" as const : "invalidated" as const, evaluation: propertyChecks && propertyBasis && !issues.has("$source") && !issues.has("$contract") ? structuredClone(propertyChecks) : undefined, requestOperationCertified: false as const }
   const propose = async (delta: unknown): Promise<ProposalResult> => {
     if (closed) throw new Error("session-closed: domain runtime cannot continue")
+    if (executableContract && programMode === "consume") return retainProgramDraft(delta, [{ code: "program-consume-draft", path: "$", message: "Inspect the active program; proposed changes remain drafts in consume mode.", severity: "warning" }])
     if (delta && typeof delta === "object" && "schemaVersion" in delta && delta.schemaVersion === "authorization-executable-contract/v1") return importProgram(delta)
     invalidateDelivery()
     if (focus && delta && typeof delta === "object" && (semanticCompletion && isCompletionEditProposal(delta) || ["authorization-source-update/v1", "authorization-source-edit/v1", ...(isQuestionCheckedStrategy(options.strategy) ? ["authorization-question-declaration/v1"] : [])].includes(String((delta as Record<string, unknown>).schemaVersion)))) {

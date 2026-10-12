@@ -2992,15 +2992,15 @@ BF最终源码869c0cbe的相关1902测试/1平台skip/12662断言、2研究测�
 
 ### 14.46 BG practical end-to-end execution
 
-2026-10-12，用户要求下一轮看到DSL真实运行过程和结果，并明确允许放宽阻挡运行的完整性限制，授权[BG0–BG16](../superpowers/plans/2026-10-12-authorization-end-to-end-practical-execution.md)由`gpt-6-astra/high`开发。规划基线ff37395b，identity为`authorization-practical-execution-v1`；本段是实施合同，尚无BG结果。继续单repo/ref源码可见授权任务，复用SkVM基础与已实现的跨源核心。
+2026-10-12，用户要求看到DSL真实运行过程和结果，并允许放宽阻挡运行的完整性限制，授权[BG0–BG16](../superpowers/plans/2026-10-12-authorization-end-to-end-practical-execution.md)由`gpt-6-astra/high`开发。规划基线ff37395b，实际从4a247638接管，identity为`authorization-practical-execution-v1`。本合同已实施，结果以[summary](../../results/skill-ir/skill-dsl-research/development/authorization-practical-execution-v1/summary.json)分轴记录；单repo/ref边界及未执行目标系统保持。
 
 **目标与范围。** 首要交付为同一个Paperless Download主链的可读程序、普通运行、实际步骤、结果与变化重跑。开发者/开发代理可依据源码先写程序，隔离实验模型随后对同任务独立编写，消费者使用注明来源的当前程序。原完整Cloudflare skill和Download四问保留；visibility helper只作BF回归。开发者程序使用与自动编写分账，主任务可用性不以自动编写成功或稳定收益为准入条件。
 
-**渐进运行。** 计划增加显式`execution-policy=progressive`，旧默认strict兼容。按实际依赖保留可用来源声明和局部运行结果；单个不相关草稿错误不清空整合同。受影响关系保留具名缺口、条件分支或模型带引用解释，其余步骤继续。源码身份、允许范围、对象对应和变化失效继续校验；未知不能自动转成许可。顶层不可解析/来源越界拒绝当前草稿，不阻断独立已有效程序的消费。
+**渐进运行。** 已增加显式`execution-policy=progressive`，旧默认strict兼容。按实际依赖保留可用来源声明和局部运行结果；单个不相关草稿错误不清空整合同。受影响关系保留具名缺口、条件分支或模型带引用解释，其余步骤继续。源码身份、允许范围、对象对应和变化失效继续校验；未知不能自动转成许可。顶层不可解析/来源越界拒绝当前草稿，不阻断独立已有效程序的消费。
 
 **领域含义。** 优先复用已有v1；确有表达缺口时允许薄的资源来源、选择、回退、检查对象、拒绝返回及返回对象关系前端，连入当前材料/有限求值核心。关系声明的含义由作者或模型读源提供，宿主生成机械定位与调用身份并执行已表达组合。数据库/框架动态结果保持符号值或具名外部前提，不重建Python全集。模型处理未支持含义的请求计入同一会话/登记尝试，不新增隐藏通道；自然解释与机械结果分别显示。
 
-**编写和消费。** 宿主补固定版本/唯一来源引用/空可选集合等机械字段，语义错误给精确反馈；新前端避免同时暴露多个深层union。拟增加`program-mode=consume|edit`：导入程序的BG消费保持活动版本，模型提案只入草稿；显式edit的有效替换按旧所有权撤回材料。无效新草稿与活动合同诊断分开；真实源码、输入或依赖变化仍重算/失效。工具能力、公共文件入口与previous执行同一规则，不能仅靠提示要求不修改。
+**编写和消费。** 宿主补固定版本/唯一来源引用/空可选集合等机械字段，语义错误给精确反馈；新前端避免同时暴露多个深层union。已增加`program-mode=consume|edit`：导入程序的BG消费保持活动版本，模型提案只入草稿；显式edit的有效替换按旧所有权撤回材料。无效新草稿与活动合同诊断分开；真实源码、输入或依赖变化仍重算/失效。工具能力、公共文件入口与previous执行同一规则，不能仅靠提示要求不修改。
 
 **可见运行。** 普通session由实际事件产生逐步JSON与简短可读说明，包含当前输入、来源、每次调用实参、资源选择、分支、guard对象、返回对象、结果和缺口。区分作者/模型含义与host计算，renderer只投影事件不另造结论。场景数据标为开发输入，实际部署事实未知保留；零模型条件执行与账号完整消费各有原件。界面沿用CLI/inspect，可有薄启动包装，不建设HTML层。
 
@@ -3008,7 +3008,14 @@ BF最终源码869c0cbe的相关1902测试/1平台skip/12662断言、2研究测�
 
 **授权与维护。** 实验官方gpt-5.6-sol/high沿用授权；第三方暂停、OWUI仅离线、旧未知和保护证据保持。通道明确失败有限恢复、未知不重发、额度/auth拒绝暂停外部调用；独立工程继续。当前结果和开发复盘统一写研究§7.68；源码/接口、结果、成本按实际计量，不新增平行冻结/哈希审计体系。预计约8小时是有用工作安排，首个普通全流程优先尽早取得，不等待凑时长。
 
+**BG实施细化（2026-10-12）。** `resourceWorkflow`作为同一v1程序的可选有限摘要，步骤由当前已读源码的path/range/SHA绑定；含义仍由作者提供。复用`partialEvaluate`计算有限谓词，增加有限记录集合select、空值coalesce、条件choose、guard/拒绝、具名external及返回描述符；没有数据库访问或Python执行。`resourceInputs[questionId]`只给请求字段、主体/对象记录和完整有限集合；`externalAssumptions[questionId]`按具名服务及完整实参匹配，事件标为外部前提。最多64输入/64行、128步骤、表达式深度12/128节点。每次调用独立表达参数；null与未知、presence与truthiness分开，排序nulls-first/last显式指定。超出安全整数或支持语法保持未知。复合摘要通过`sources`补充最多16条必要来源；任一来源过期则撤回该步。来源完整性仍需作者复核，宿主不从散文推断。未知/过期控制步骤使后续事件明确conditional，避免局部computed被误读为路径确定。
+
+check/run/compare已接入`--execution-policy=progressive`，strict仍为默认。局部坏声明/过期摘要撤回相关含义；顶层、根和范围错误仍拒绝。导入运行默认consume，模型提案保存draft；edit有效替换退役旧所有权，无效整程序不污染活动版本。文件归一化补固定版本、保留原稿说明、定位唯一symbol，不猜语义。新工具`authorization_program`只广告整程序，`authorization_declare`只广告单源声明，旧解析兼容。普通session保存初终revision、draft及`execution.json/md`，inspect验证归档和report投影；`check --out`也生成普通零模型session。25步Download的10场景、源码变化、完整skill账号消费和同程序变化均有原件；check.valid仍不等于语义正确。官方CLI 0.162.0-alpha.17.2经本地协议/有效配置复核接入，首次2件推理前拒绝保留，不放松账号边界。
+
+实际结果：作者给定程序可计算有内容的条件描述符，同期DSL答案四问full，自动编写只有三源合同且0主链资源步骤/0采用；一对DSL/同信息Markdown呈质量与token成本取舍，净收益未建立。源码变化首次发现权限helper footprint遗漏，已补依赖后零模型验证；最终程序与账号原件之间只增加来源依赖，不把旧原件伪称为修订后模型运行。完整成本和限制见研究§7.68。
+
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
+
 
 AT在已有授权局部语义上引入显式 `focused-closure-v1`：宿主持久管理locate/interpret/link/review/answer阶段，绑定当前来源、单元身份与更新版本；模型解释原始源码中的条件、对象、参数、返回与实际相关效果。上下文渲染不改变活动任务，拒绝修复回到同一单元；多候选与语义关系仍须显式判定。旧默认及协议保持。
 

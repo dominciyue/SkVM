@@ -1,0 +1,262 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "document-download-trace",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "requested-document-and-returned-file",
+    "root": {
+      "path": "src/documents/views.py",
+      "startLine": 1835,
+      "endLine": 1839,
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "receiverClass": "documents.views.DocumentViewSet"
+    },
+    "upstream": [
+      "DRF routing to this inherited action and APIView authentication/permission checks remain upstream request-operation duties.",
+      "The bodies of serve_file and has_perms_owner_aware are not yet source-declared.",
+      "Ownership and object-grant runtime facts are unspecified."
+    ]
+  },
+  "sourceDeclarations": [
+    {
+      "schemaVersion": "authorization-question-declaration/v1",
+      "source": {
+        "path": "src/documents/views.py",
+        "startLine": 1835,
+        "endLine": 1839,
+        "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+        "receiverClass": "documents.views.DocumentViewSet"
+      },
+      "questionId": "requested-document-and-returned-file",
+      "statements": [
+        {
+          "kind": "object",
+          "expression": "request.user",
+          "as": "principal",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1835,
+            "endLine": 1835
+          },
+          "because": "The action receives the request whose authenticated user is the principal."
+        },
+        {
+          "kind": "object",
+          "expression": "pk",
+          "as": "resource",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1835,
+            "endLine": 1835
+          },
+          "because": "The detail action receives the URL-supplied primary-key value as pk."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1837,
+            "endLine": 1837
+          },
+          "as": "effect",
+          "because": "The download action delegates response construction to file_response(pk, request, \"attachment\")."
+        },
+        {
+          "kind": "effect",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1837,
+            "endLine": 1837
+          },
+          "principal": "request.user",
+          "resource": "pk",
+          "because": "The result of file_response is returned to the requester."
+        },
+        {
+          "kind": "residual",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1836,
+            "endLine": 1839
+          },
+          "because": "FileNotFoundError and Document.DoesNotExist are translated to Http404."
+        }
+      ],
+      "fallthrough": "unknown"
+    },
+    {
+      "schemaVersion": "authorization-question-declaration/v1",
+      "source": {
+        "path": "src/documents/views.py",
+        "startLine": 1429,
+        "endLine": 1448,
+        "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+        "receiverClass": "documents.views.DocumentViewSet"
+      },
+      "questionId": "requested-document-and-returned-file",
+      "statements": [
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1430,
+            "endLine": 1434
+          },
+          "as": "resource",
+          "because": "_resolve_request_and_root_doc selects the request document and its root document, including deleted rows."
+        },
+        {
+          "kind": "condition",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1435,
+            "endLine": 1436
+          },
+          "test": {
+            "op": "truthy",
+            "language": "python",
+            "value": {
+              "binding": "is_forbidden_response"
+            }
+          },
+          "authorizes": {
+            "principal": "request.user",
+            "resource": "resolved.root_doc",
+            "when": "false",
+            "permission": "view_document"
+          },
+          "because": "A forbidden resolution is returned immediately and prevents later file selection."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1437,
+            "endLine": 1441
+          },
+          "as": "resource",
+          "because": "_get_effective_file_doc selects the concrete version document after successful root-document authorization."
+        },
+        {
+          "kind": "effect",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1442,
+            "endLine": 1448
+          },
+          "principal": "request.user",
+          "resource": "file_doc",
+          "because": "serve_file constructs the response for the selected file_doc, choosing archive only when original was not explicitly requested and that document has an archive."
+        }
+      ],
+      "fallthrough": "unknown"
+    },
+    {
+      "schemaVersion": "authorization-question-declaration/v1",
+      "source": {
+        "path": "src/documents/views.py",
+        "startLine": 1401,
+        "endLine": 1427,
+        "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+        "receiverClass": "documents.views.DocumentViewSet"
+      },
+      "questionId": "authorization-and-selection-order",
+      "statements": [
+        {
+          "kind": "object",
+          "expression": "request_doc",
+          "as": "resource",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1408,
+            "endLine": 1415
+          },
+          "because": "The pk is looked up directly in the selected Document manager."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1417,
+            "endLine": 1420
+          },
+          "as": "resource",
+          "because": "get_root_document maps the requested row to the authorization resource."
+        },
+        {
+          "kind": "object",
+          "expression": "view_document",
+          "as": "permission",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1421,
+            "endLine": 1425
+          },
+          "because": "The explicit object-aware check requests view_document on root_doc."
+        },
+        {
+          "kind": "condition",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1421,
+            "endLine": 1426
+          },
+          "test": {
+            "op": "all",
+            "args": [
+              {
+                "op": "not",
+                "arg": {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "request.user"
+                  }
+                }
+              },
+              {
+                "op": "not",
+                "arg": {
+                  "op": "truthy",
+                  "language": "python",
+                  "value": {
+                    "binding": "has_perms_owner_aware_result"
+                  }
+                }
+              }
+            ]
+          },
+          "authorizes": {
+            "principal": "request.user",
+            "resource": "root_doc",
+            "when": "false",
+            "permission": "view_document"
+          },
+          "because": "A non-null user lacking owner-aware view_document permission on root_doc receives a forbidden response."
+        },
+        {
+          "kind": "effect",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1426,
+            "endLine": 1426
+          },
+          "principal": "request.user",
+          "resource": "root_doc",
+          "because": "The failed explicit permission check returns HTTP 403."
+        }
+      ],
+      "fallthrough": "allow"
+    }
+  ],
+  "queries": [],
+  "assumptions": [
+    {
+      "text": "The operation under investigation is the document Download operation in this Paperless revision.",
+      "origin": "user"
+    },
+    {
+      "text": "Ownership and object grants are unspecified.",
+      "origin": "user"
+    }
+  ]
+}

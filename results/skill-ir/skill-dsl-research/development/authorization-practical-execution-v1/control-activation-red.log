@@ -1,0 +1,28 @@
+bun test v1.3.14 (0d9b296a)
+
+src\task-dsl\authorization\resource-relations.test.ts:
+17 |     { id: "gate", op: "guard", when: { op: "truthy", language: "python", value: { binding: "missing" } }, test: { op: "eq", left: { literal: 1 }, right: { literal: 2 } }, failure: "denied", source, because: "Unknown activation may reject" },
+18 |     { id: "result", op: "return", value: { field: { of: { literal: {} }, key: "x", default: { literal: false } } }, source, because: "Explicit false default" }
+19 |   ] }
+20 |   const run = api.executeResourceWorkflow(raw, {})
+21 |   expect(run.returned).toBe(false)
+22 |   expect(run.events.at(-1).outcome).toBe("conditional")
+                                         ^
+error: expect(received).toBe(expected)
+
+Expected: "conditional"
+Received: "computed"
+
+      at <anonymous> (D:\skill优化\SkVM\src\task-dsl\authorization\resource-relations.test.ts:22:37)
+(fail) unknown control activation keeps subsequent events conditional while invalid returns preserve siblings [3.04ms]
+(pass) skips are recorded and unsupported integer syntax remains unknown [0.45ms]
+(pass) source-bound resource relations compute selection, fallback, guard object and return with actual events [1.45ms]
+(pass) rejection stops return, absent facts remain conditional and independent values still compute [0.95ms]
+(pass) selectors keep independent arguments, null and empty version semantics and source changes local [0.90ms]
+(pass) external assumptions match the current argument objects and cannot become computed permission evidence [0.39ms]
+(pass) numeric ordering supports explicit nulls last including negative values [0.35ms]
+
+ 6 pass
+ 1 fail
+ 42 expect() calls
+Ran 7 tests across 1 file. [73.00ms]

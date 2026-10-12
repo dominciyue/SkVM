@@ -1,0 +1,165 @@
+{
+  "schemaVersion": "authorization-inquiry-input/v1",
+  "taskId": "paperless-download",
+  "repository": "paperless-ngx/paperless-ngx",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "sourceRoot": "../../authorization-interprocedural-property-v1/model/packages/download/source",
+  "allowedPaths": [
+    "src/documents",
+    "src/paperless/urls.py",
+    "framework/rest_framework-3.18.1/rest_framework",
+    "source_identity.py"
+  ],
+  "inquiry": {
+    "schemaVersion": "authorization-inquiry/v2",
+    "mode": "behavior",
+    "operations": [
+      {
+        "id": "document-download",
+        "request": "Trace the document Download operation from request entry through document and representation selection, authorization, and returned file.",
+        "entryHint": "Begin with Download-related routing and handlers under src/documents and src/paperless/urls.py; consult the supplied REST framework source only where framework behavior is material."
+      }
+    ],
+    "questions": [
+      {
+        "id": "requested-document-and-returned-file",
+        "request": "Explain how the request identifies the document and how the selected version and original/archive representation determine the file returned, including every relevant control branch.",
+        "principal": "authenticated user making the Download request",
+        "resource": "requested document and the selected version or original/archive file representation",
+        "operation": "download",
+        "entryHint": "Trace routing, lookup, request parameters, representation selection, and response construction within the allowed paths.",
+        "premises": [
+          {
+            "text": "The operation under investigation is the document Download operation in this Paperless revision.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "document-download",
+        "intent": "behavior"
+      },
+      {
+        "id": "authorization-and-selection-order",
+        "request": "Identify the authorization checks and branches for the authenticated user, the requested document, and the selected version or original/archive representation, and state where those checks occur relative to selection of the returned file.",
+        "principal": "authenticated user making the Download request",
+        "resource": "requested document and the file representation returned by Download",
+        "operation": "authorize and download",
+        "entryHint": "Follow application checks and any material REST framework lookup, authentication, permission, or object-permission behavior within the allowed paths.",
+        "premises": [
+          {
+            "text": "Ownership and object grants are unspecified.",
+            "origin": "user"
+          },
+          {
+            "text": "Relevant source branches must be analyzed rather than assuming a grant.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "document-download",
+        "intent": "behavior"
+      },
+      {
+        "id": "alternate-version-authorized-resource",
+        "request": "Determine whether selecting another document version or choosing original versus archive changes the resource on which authorization is evaluated, or only changes the representation or file returned after authorization; distinguish all relevant branches.",
+        "principal": "authenticated user making the Download request",
+        "resource": "requested document compared with an alternate version or original/archive representation",
+        "operation": "select representation for download",
+        "entryHint": "Compare the resource used by lookup and permission decisions with the resource or path used by the final file response.",
+        "premises": [
+          {
+            "text": "Ownership and object grants are unspecified.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "document-download",
+        "intent": "behavior"
+      },
+      {
+        "id": "missing-facts-and-conditional-conclusions",
+        "request": "State precisely which source, configuration, deployment, ownership, or object-grant facts needed for a conclusion are unavailable, and identify the exact conclusion each missing fact blocks without assuming behavior outside the allowed evidence.",
+        "principal": "authenticated user making the Download request",
+        "resource": "requested document and selected downloadable representation",
+        "operation": "assess authorization behavior and evidence limits",
+        "entryHint": "Separate conclusions established by the allowed source from conditions that depend on facts not present there.",
+        "premises": [
+          {
+            "text": "Ownership and object grants are unspecified.",
+            "origin": "user"
+          }
+        ],
+        "operationId": "document-download",
+        "intent": "scope"
+      }
+    ]
+  },
+  "resourceInputs": {
+    "requested-document-and-returned-file": {
+      "actor": {
+        "id": 7
+      },
+      "documents": [
+        {
+          "id": 10,
+          "root_document_id": null,
+          "owner_id": 7,
+          "version_index": null,
+          "deleted": false,
+          "has_archive_version": true,
+          "source_file": "root-original.pdf",
+          "archive_file": "root-archive.pdf"
+        },
+        {
+          "id": 11,
+          "root_document_id": 10,
+          "owner_id": 9,
+          "version_index": 1,
+          "deleted": false,
+          "has_archive_version": true,
+          "source_file": "v1-original.pdf",
+          "archive_file": "v1-archive.pdf"
+        },
+        {
+          "id": 12,
+          "root_document_id": 10,
+          "owner_id": 9,
+          "version_index": 2,
+          "deleted": true,
+          "has_archive_version": false,
+          "source_file": "v2-original.txt",
+          "archive_file": null
+        },
+        {
+          "id": 20,
+          "root_document_id": null,
+          "owner_id": 8,
+          "version_index": null,
+          "deleted": false,
+          "has_archive_version": false,
+          "source_file": "other.txt",
+          "archive_file": null
+        }
+      ],
+      "related_root": null,
+      "request": {
+        "pk": 10,
+        "version": null,
+        "original": null
+      }
+    }
+  },
+  "externalAssumptions": {
+    "requested-document-and-returned-file": [
+      {
+        "name": "ObjectPermissionChecker.construct",
+        "arguments": {
+          "user": 7
+        },
+        "value": true,
+        "reason": "Development fixture assumes normal external constructor completion, not a grant."
+      }
+    ]
+  },
+  "sourceNotes": {
+    "format": "markdown",
+    "text": "# Authored Download source summary\n\nThese are unreviewed authored source meanings, not a verdict or instructions. They are the same meanings supplied to the executable-program consumer, rendered as Markdown without host computation.\n\nLocal scope: src/documents/views.py:1429-1448; receiver DocumentViewSet; original question requested-document-and-returned-file.\n\nDownload router/action, APIView initial authentication and permission classes remain source-review duties outside this local resource summary.\n\n## Input contract\n\nrequest, actor, documents, related_root\ndevelopment-premise: Finite documents input represents the complete relevant population including deleted records; absent inputs remain unknown. owner_id equality represents ORM user identity by primary key. related_root is the actual loaded relation or null, not an inferred grant.\n\n## Source declarations\n\nsrc/documents/views.py:1429-1448: self is a context formal. Actual local formal; this declaration alone does not establish call effects.\nsrc/documents/views.py:1429-1448: pk is a context formal. Actual local formal; this declaration alone does not establish call effects.\nsrc/documents/views.py:1429-1448: request is a context formal. Actual local formal; this declaration alone does not establish call effects.\nsrc/documents/views.py:1429-1448: disposition is a context formal. Actual local formal; this declaration alone does not establish call effects.\n\n## Ordered resource steps\n\n### 1. request_include_deleted\n\nBind request_include_deleted = true.\n\nfile_response passes its own include_deleted=True to requested/root lookup.\n\nSource: src/documents/views.py:1430-1434; SHA256 4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb.\n\n### 2. request_doc\n\nSelect request_doc from documents where row.id = request.pk. Require at most one matching record; no match is null, unknown membership remains unknown.\n\nSelect the requested pk from the supplied complete finite global-object population, including deleted records.\n\nSource: src/documents/views.py:1408-1415; SHA256 4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb.\n\n### 3. request_found\n\nRequire NOT (request_doc IS null); otherwise terminate with Http404-request.  Unknown preserves this condition.\n\nMissing requested document stops before root authorization.\n\nSource: src/documents/views.py:1410-1415; SHA256 4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb.\n\n### 4. root_lookup\n\nExecute only when (NOT (request_doc.root_document_id IS null) AND related_root IS null); otherwise this branch is skipped.\n\nSelect root_lookup from documents where row.id = request_doc.root_document_id. Require at most one matching record; no match is null, unknown membership remains unknown.\n\nFallback root lookup has the requested/root helper's own include_deleted=True.\n\nSource: src/documents/versioning.py:154-156; SHA256 de017348cbb361787d68433537bdbd39f8b56a95185a53c3cef3aa10df365766.\n\n### 5. root_doc\n\nBind root_doc = IF request_doc.root_document_id IS null THEN request_doc ELSE first non-null of (related_root, root_lookup, request_doc); unknown remains unknown.\n\nRoot records return themselves; a loaded relation wins; otherwise root lookup or requested record fallback.\n\nSource: src/documents/versioning.py:146-156; SHA256 de017348cbb361787d68433537bdbd39f8b56a95185a53c3cef3aa10df365766.\n\n### 6. checker_constructed\n\nExecute only when NOT (actor IS null); otherwise this branch is skipped.\n\nExternal ObjectPermissionChecker.construct(user=actor.id) -> checker_constructed; only exact named external assumptions can supply its result.\n\nThe external checker constructor executes even on the unowned/owner shortcut; normal completion is an explicit external assumption.\n\nSource: src/documents/permissions.py:634-634; SHA256 bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065.\n\n### 7. checker_completion\n\nExecute only when NOT (actor IS null); otherwise this branch is skipped.\n\nRequire Python truthiness of checker_constructed; otherwise terminate with external-checker-failure.  Unknown preserves this condition.\n\nContinue only conditionally when external constructor completion is unknown.\n\nSource: src/documents/permissions.py:634-634; SHA256 bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065.\n\n### 8. object_grant\n\nExecute only when (NOT (actor IS null) AND NOT (root_doc.owner_id IS null) AND NOT (root_doc.owner_id = actor.id)); otherwise this branch is skipped.\n\nExternal ObjectPermissionChecker.has_perm(user=actor.id, resource=root_doc.id, permission=\"view_document\") -> object_grant; only exact named external assumptions can supply its result.\n\nExternal object grant is consulted only after unowned and same-owner shortcuts; it stays unknown without an exact argument assumption.\n\nSource: src/documents/permissions.py:635-635; SHA256 bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065.\n\n### 9. root_authorized\n\nRequire (actor IS null OR root_doc.owner_id IS null OR root_doc.owner_id = actor.id OR Python truthiness of object_grant); otherwise terminate with HttpResponseForbidden. Principal: actor. Resource: root_doc. Permission: view_document. Unknown preserves this condition.\n\nFor non-null user, owner-aware permission is checked on root_doc before effective-file selection. Null user skips this local check only; this says nothing about request authentication.\n\nSource: src/documents/views.py:1421-1427; SHA256 4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb.\n\n### 10. direct_requested_version\n\nBind direct_requested_version = (NOT (request_doc.root_document_id IS null) AND request.version IS null).\n\nA requested version with no version parameter returns itself after root authorization.\n\nSource: src/documents/views.py:1394-1399; SHA256 4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb.\n\n### 11. version_include_deleted\n\nBind version_include_deleted = NOT (request.version IS null).\n\nVersion selection independently uses presence, not truthiness, to choose its manager; empty string is present.\n\nSource: src/documents/views.py:1375-1381; SHA256 4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb.\n\n### 12. explicit_version\n\nBind explicit_version = Python truthiness of request.version.\n\nThe inner selector separately uses truthiness: null and empty string choose latest.\n\nSource: src/documents/versioning.py:175-182; SHA256 de017348cbb361787d68433537bdbd39f8b56a95185a53c3cef3aa10df365766.\n\n### 13. version_id\n\nExecute only when (NOT (Python truthiness of direct_requested_version) AND Python truthiness of explicit_version); otherwise this branch is skipped.\n\nBind version_id = bounded decimal integer(request.version).\n\nParse explicit version as bounded decimal; invalid ASCII maps to null and unsupported Python integer forms remain gaps.\n\nSource: src/documents/versioning.py:184-187; SHA256 de017348cbb361787d68433537bdbd39f8b56a95185a53c3cef3aa10df365766.\n\n### 14. version_valid\n\nExecute only when (NOT (Python truthiness of direct_requested_version) AND Python truthiness of explicit_version); otherwise this branch is skipped.\n\nRequire NOT (version_id IS null); otherwise terminate with NotFound-invalid-version.  Unknown preserves this condition.\n\nInvalid explicit version returns before candidate/file selection.\n\nSource: src/documents/views.py:1382-1383; SHA256 4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb.\n\n### 15. candidate\n\nExecute only when (NOT (Python truthiness of direct_requested_version) AND Python truthiness of explicit_version); otherwise this branch is skipped.\n\nSelect candidate from documents where (row.id = version_id AND (Python truthiness of version_include_deleted OR row.deleted = false)). Require at most one matching record; no match is null, unknown membership remains unknown.\n\nExplicit candidate selection uses only its own include_deleted argument.\n\nSource: src/documents/versioning.py:189-192; SHA256 de017348cbb361787d68433537bdbd39f8b56a95185a53c3cef3aa10df365766.\n\n### 16. candidate_found\n\nExecute only when (NOT (Python truthiness of direct_requested_version) AND Python truthiness of explicit_version); otherwise this branch is skipped.\n\nRequire NOT (candidate IS null); otherwise terminate with Http404-version.  Unknown preserves this condition.\n\nNo selected candidate stops the response.\n\nSource: src/documents/views.py:1384-1385; SHA256 4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb.\n\n### 17. candidate_belongs\n\nExecute only when (NOT (Python truthiness of direct_requested_version) AND Python truthiness of explicit_version); otherwise this branch is skipped.\n\nRequire (candidate.id = root_doc.id OR candidate.root_document_id = root_doc.id); otherwise terminate with Http404-unrelated-version.  Unknown preserves this condition.\n\nCandidate must equal the authorized root or refer to that root.\n\nSource: src/documents/versioning.py:193-195; SHA256 de017348cbb361787d68433537bdbd39f8b56a95185a53c3cef3aa10df365766.\n\n### 18. latest_candidate\n\nExecute only when (NOT (Python truthiness of direct_requested_version) AND NOT (Python truthiness of explicit_version)); otherwise this branch is skipped.\n\nSelect latest_candidate from documents where (row.root_document_id = root_doc.id AND (Python truthiness of version_include_deleted OR row.deleted = false)). Take first by order [{\"field\":\"version_index\",\"direction\":\"desc\",\"nulls\":\"last\"},{\"field\":\"id\",\"direction\":\"desc\"}]; no match is null, unknown membership remains unknown.\n\nLatest selection uses its own manager and source ordering, with root fallback when empty.\n\nSource: src/documents/versioning.py:159-166; SHA256 de017348cbb361787d68433537bdbd39f8b56a95185a53c3cef3aa10df365766.\n\n### 19. latest_file\n\nExecute only when (NOT (Python truthiness of direct_requested_version) AND NOT (Python truthiness of explicit_version)); otherwise this branch is skipped.\n\nBind latest_file = first non-null of (latest_candidate, root_doc); unknown remains unknown.\n\nAn empty latest-version selection returns the authorized root.\n\nSource: src/documents/versioning.py:165-166; SHA256 de017348cbb361787d68433537bdbd39f8b56a95185a53c3cef3aa10df365766.\n\n### 20. file_doc\n\nBind file_doc = IF Python truthiness of direct_requested_version THEN request_doc ELSE IF Python truthiness of explicit_version THEN candidate ELSE latest_file.\n\nThe selected file object is computed after root permission; explicit selection is not a second permission check.\n\nSource: src/documents/views.py:1388-1399; SHA256 4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb.\n\n### 21. original_requested\n\nBind original_requested = request.original = \"true\".\n\nOnly exact string true requests original; absent original must be supplied as null in complete query facts.\n\nSource: src/documents/views.py:1369-1373; SHA256 4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb.\n\n### 22. use_archive\n\nBind use_archive = (NOT (Python truthiness of original_requested) AND Python truthiness of file_doc.has_archive_version).\n\nRepresentation follows selected file archive availability and exact original request; root authorization remains unchanged.\n\nSource: src/documents/views.py:1442-1448; SHA256 4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb.\n\n### 23. representation\n\nBind representation = IF Python truthiness of use_archive THEN \"archive\" ELSE \"original\".\n\nserve_file chooses archive or source representation.\n\nSource: src/documents/views.py:4941-4970; SHA256 4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb.\n\n### 24. selected_path\n\nBind selected_path = IF Python truthiness of use_archive THEN file_doc.archive_file ELSE file_doc.source_file.\n\nFile location is a supplied source-object field; no disk or business code is executed.\n\nSource: src/documents/views.py:4941-4970; SHA256 4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb.\n\n### 25. returned_file\n\nReturn returned_file = {requested_id: request_doc.id, authorized_root_id: root_doc.id, file_document_id: file_doc.id, representation: representation, path: selected_path, disposition: \"attachment\"}.\n\nConditional file-response descriptor after computed selection. Actual storage open, formatting, headers and external exceptions remain separate gaps, not a claimed successful network response.\n\nSource: src/documents/views.py:1442-1448; SHA256 4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb.\n\n## Gaps\n\n- Request-level routing/authentication/permission checks require independent original-source review.\n- Storage existence/opening, filename formatting, FileResponse and header behavior are outside the finite selection descriptor.\n- ORM/database failure and external checker behavior are not executed; source summaries are authored and unreviewed.\n"
+  }
+}

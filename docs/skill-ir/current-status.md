@@ -4,9 +4,9 @@
 
 ## 当前工作
 
-**[BG0–BG16：真实任务 DSL 全流程运行、渐进执行与可读结果](../superpowers/plans/2026-10-12-authorization-end-to-end-practical-execution.md)已获用户授权，待新开发线程接管。** 规划基线`ff37395b`，开发模型`gpt-6-astra/high`。首要交付是同一个真实Download任务的可读程序、普通入口实际执行、逐步轨迹、最终答案及同程序变化运行；允许局部缺口继续、机械字段自动补全和模型处理未支持含义。完整检查、自动编写及效果获胜分别评价，不再作为全流程的共同启动条件。本次只有任务书与方法文档，无BG实现或实验成果。
+**[BG0–BG16：真实任务 DSL 全流程运行、渐进执行与可读结果](../superpowers/plans/2026-10-12-authorization-end-to-end-practical-execution.md)已完成实质执行，以`completed-with-unmet-criteria`收束。** Download的25步作者程序已从普通入口运行，保留完整原skill/四问、实际轨迹和自然答案。7次归档含5次模型交付、2次CLI版本检查在推理前拒绝，无活动或未知请求。直接使用[可运行示例](../../examples/authorization-assessment/download-workflow/README.md)，分轴结论见[summary](../../results/skill-ir/skill-dsl-research/development/authorization-practical-execution-v1/summary.json)。
 
-identity为`authorization-practical-execution-v1`。A开发者编写、B模型独立编写、C消费均围绕Download主链；不再用visibility helper代替主任务可表达性。优先修局部编译全局拒绝、活动程序/草稿污染和消费中暗换程序，再补资源选择/回退/权限对象/返回对象关系。方法见[spec§14.46](skill-ir-aot-optimization-spec.md#1446-bg-practical-end-to-end-execution)、[研究§7.68](skill-dsl-research.md#768-bg-全流程优先与同任务执行决定)与[当前计划](skill-ir-aot-optimization-plan.md)。新线程接管后更新实际阶段；旧BF队列保持关闭。
+identity为`authorization-practical-execution-v1`。请求10→授权根10→文件11/archive；只把version由null改为空串，同程序实际消费改为文件12/original，采用1份旧源码材料。10个零模型变体覆盖拒绝/缺失/回退；源码副本检查发现并修复helper来源依赖遗漏，当前权限摘要失效而无关选择保留。DSL同期答案四问full；首件及同信息Markdown均Q1 partial，其余full。自动编写产出3源合同，但无资源主链、0采用，完整自动化未达。同期一对DSL多21,797输入/1,489输出，快68,510ms；净收益/泛化不成立。known input5,308,698（含cache4,672,000）/output46,982，211工具；USD、隐藏请求、开发/探子成本和真人分钟unknown。方法见[spec§14.46](skill-ir-aot-optimization-spec.md#1446-bg-practical-end-to-end-execution)、[研究§7.68](skill-dsl-research.md#768-bg-全流程优先与同任务执行决定)。旧BF队列与保护证据不变。
 
 ## BF 已结束的实际结果
 
@@ -90,7 +90,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BG | [任务书](../superpowers/plans/2026-10-12-authorization-end-to-end-practical-execution.md)、spec§14.46、研究§7.68；已授权待接管，尚无新结果 |
+| 当前BG | [任务书](../superpowers/plans/2026-10-12-authorization-end-to-end-practical-execution.md)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-practical-execution-v1/summary.json)、spec§14.46、研究§7.68；主链运行/变化成立，自动编写和净收益未达 |
 | BF | [任务书](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/verification/acceptance-matrix.json)、spec§14.45、研究§7.67；工程/有限队列收束，整题质量与净收益未达 |
 | BE | [任务书](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)、[执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/authorized-execution-closeout.json)、[发布回执](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/publication.json)、spec§14.44、研究§7.66；有限队列及发布完成、研究未达，不自动重抽 |
 | BD | [任务书](../superpowers/plans/2026-10-11-authorization-semantic-completion-and-real-quality.md)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/acceptance-matrix.json)、spec§14.43、研究§7.65；有限执行结束、5交付/0整题full/0合格性质/6未运行，最终发布6c8c79e3 |

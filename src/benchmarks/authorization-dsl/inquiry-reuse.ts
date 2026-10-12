@@ -34,7 +34,7 @@ export function planInquiryReuse(options: {
   const omitRoot = (v: AuthorizationInquiryInput) => ({ ...v, sourceRoot: undefined })
   const withoutPolicy = (v: AuthorizationInquiryInput) => ({ ...omitRoot(v), policy: undefined, inquiry: v.inquiry ? { ...v.inquiry, policy: undefined } : undefined })
   const withoutPremises = (v: AuthorizationInquiryInput) => ({ ...omitRoot(v), inquiry: v.inquiry ? { ...v.inquiry, questions: v.inquiry.questions.map(q => ({ ...q, premises: [] })) } : undefined })
-  const withoutContractInputs = (v: AuthorizationInquiryInput) => ({ ...omitRoot(v), contractInputs: undefined })
+  const withoutContractInputs = (v: AuthorizationInquiryInput) => ({ ...omitRoot(v), contractInputs: undefined, resourceInputs: undefined, externalAssumptions: undefined })
   const sourceChanged = !isDeepStrictEqual(options.currentFiles, prior.sourceFiles)
   const taskChanged = !isDeepStrictEqual(omitRoot(current), omitRoot(old))
   const policyOnly = taskChanged && isDeepStrictEqual(withoutPolicy(current), withoutPolicy(old))
@@ -94,7 +94,7 @@ export function planInquiryReuse(options: {
 
 function planQuestionPreparation(options: Parameters<typeof planInquiryReuse>[0], info: InquiryReuseInfo, materialReasons: string[]) {
   const current = options.currentInput, old = options.previousInput, prior = options.previousRun
-  const stable = (v: AuthorizationInquiryInput) => ({ ...v, sourceRoot: undefined, mode: undefined, policy: undefined, contractInputs: undefined, inquiry: v.inquiry ? { ...v.inquiry, mode: undefined, policy: undefined, questions: v.inquiry.questions.map(q => ({ ...q, premises: [] })) } : undefined })
+  const stable = (v: AuthorizationInquiryInput) => ({ ...v, sourceRoot: undefined, mode: undefined, policy: undefined, contractInputs: undefined, resourceInputs: undefined, externalAssumptions: undefined, inquiry: v.inquiry ? { ...v.inquiry, mode: undefined, policy: undefined, questions: v.inquiry.questions.map(q => ({ ...q, premises: [] })) } : undefined })
   const reasons: string[] = []
   if (!current.inquiry || !old.inquiry || !isDeepStrictEqual(stable(current), stable(old))) reasons.push("R0 requires the same original questions and allowed source scope.")
   if (!options.currentStructure || options.currentStrategy !== options.previousStrategy || options.currentMethod !== options.previousMethod || options.currentModel !== options.previousModel) reasons.push("R0 requires the same workflow, method and model with current structure.")
@@ -114,7 +114,7 @@ function planSourceMaterials(options: Parameters<typeof planInquiryReuse>[0], in
   const current = options.currentInput, old = options.previousInput, prior = options.previousRun, index = options.currentStructure
   const snapshot = prior.domain?.sourceMaterials, evidence = prior.evidence ?? [], files = new Map(options.currentFiles.map(f => [f.path, f.sha256]))
   Object.assign(info, { reuseLevel: "materials", eligible: false, materialsAvailable: snapshot?.materials.filter(m => m.current).length ?? 0, materialsRestored: 0, materialsUsed: 0, reusedMaterials: [], invalidatedMaterials: [] })
-  const stable = (v: AuthorizationInquiryInput) => ({ ...v, sourceRoot: undefined, mode: undefined, policy: undefined, contractInputs: undefined, inquiry: v.inquiry ? { ...v.inquiry, mode: undefined, policy: undefined, questions: v.inquiry.questions.map(q => ({ ...q, premises: [] })) } : undefined })
+  const stable = (v: AuthorizationInquiryInput) => ({ ...v, sourceRoot: undefined, mode: undefined, policy: undefined, contractInputs: undefined, resourceInputs: undefined, externalAssumptions: undefined, inquiry: v.inquiry ? { ...v.inquiry, mode: undefined, policy: undefined, questions: v.inquiry.questions.map(q => ({ ...q, premises: [] })) } : undefined })
   const reasons: string[] = []
   if (!current.inquiry || !old.inquiry || !isDeepStrictEqual(stable(current), stable(old))) reasons.push("Materials require the same original operation/questions/source scope.")
   if (!index || options.currentStrategy !== options.previousStrategy || options.currentMethod !== options.previousMethod || options.currentModel !== options.previousModel) reasons.push("Current structure, method, model and exact strategy must match.")

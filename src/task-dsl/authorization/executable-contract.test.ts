@@ -5,6 +5,63 @@ import path from "node:path"
 import { createInquiryTools } from "../../benchmarks/authorization-dsl/inquiry-tools.ts"
 import { compileAuthorizationInquiry } from "./inquiry-program.ts"
 const api = await import("./executable-contract.ts").catch(() => ({} as any))
+
+test("progressive compilation retains independent valid owners and isolates a malformed sibling", async () => {
+  const f = await fixture(), raw: any = contract()
+  raw.sourceDeclarations.push({ source: { path: "app.py", startLine: 100 }, statements: [{ kind: "invented" }] })
+  const strict = await api.compileExecutableContract(raw, f)
+  expect(strict.units).toEqual([])
+  const progressive = await api.compileExecutableContract(raw, { ...f, executionPolicy: "progressive" })
+  expect(progressive.units.length).toBe(2)
+  expect(progressive.diagnostics.length).toBeGreaterThan(0)
+  expect(progressive.evaluation.questions[0].properties[0].status).toBe("checked")
+  expect(progressive.materialUses.some((u: any) => u.kind === "call")).toBe(true)
+})
+
+test("progressive missing decisive helper remains unknown while root is retained", async () => {
+  const f = await fixture(), raw: any = contract()
+  raw.sourceDeclarations.pop()
+  const result = await api.compileExecutableContract(raw, { ...f, executionPolicy: "progressive" })
+  expect(result.units.length).toBe(1)
+  expect(result.evaluation.questions[0].properties[0].status).toBe("unknown")
+})
+
+test("thin authored input fills mechanical versions and unique source owners without guessing meaning", async () => {
+  const f = await fixture(), raw: any = contract()
+  delete raw.schemaVersion
+  raw.description = "Nonsemantic author note"
+  raw.scope.root = { path: "app.py", symbol: "local" }
+  for (const [i, d] of raw.sourceDeclarations.entries()) { delete d.schemaVersion; d.source = { path: "app.py", symbol: i ? "perform" : "local" } }
+  const result = await api.compileExecutableContract(raw, { ...f, executionPolicy: "progressive" })
+  expect(result.diagnostics).toEqual([])
+  expect(result.units.length).toBe(2)
+  expect(result.normalizations.length).toBeGreaterThan(0)
+  expect(result.contract.scope.root.startLine).toBe(1)
+  raw.sourceDeclarations[1].statements[2].test = { op: "allow-because-owner" }
+  const bad = await api.compileExecutableContract(raw, { ...f, executionPolicy: "progressive" })
+  expect(bad.diagnostics.length).toBeGreaterThan(0)
+  expect(bad.evaluation.questions[0].properties[0].status).toBe("unknown")
+})
+
+test("resource summaries share contract source coverage and preserve independent source-current steps", async () => {
+  const f = await fixture(), raw: any = contract()
+  raw.resourceWorkflow = { inputs: ["request"], steps: [{ id: "identity", op: "value", value: { field: { of: { ref: "request" }, key: "id" } }, source: cite(1, 2), because: "Authored source summary" }, { id: "result", op: "return", value: { ref: "identity" }, source: { ...cite(8), sha256: "stale" }, because: "Must reject changed evidence" }] }
+  const strict = await api.compileExecutableContract(raw, { ...f, resourceInputs: { request: { id: 7 } } })
+  expect(strict.units).toEqual([])
+  const result = await api.compileExecutableContract(raw, { ...f, executionPolicy: "progressive", resourceInputs: { request: { id: 7 } } })
+  expect(result.resourceExecution.values.identity).toBe(7)
+  expect(result.resourceExecution.returned).toBeUndefined()
+  expect(result.resourceExecution.gaps).toContain("resource-source-stale:app.py")
+  raw.resourceWorkflow.steps[1].source = cite(8)
+  const current = await api.compileExecutableContract(raw, { ...f, resourceInputs: { request: { id: 7 } } })
+  expect(current.resourceExecution.returned).toBe(7)
+  expect(current.resourceExecution.events.every((e: any) => e.source.sha256)).toBe(true)
+  raw.resourceWorkflow.steps[1].sources = [{ ...cite(5), sha256: "stale-helper" }]
+  const dependent = await api.compileExecutableContract(raw, { ...f, executionPolicy: "progressive", resourceInputs: { request: { id: 7 } } })
+  expect(dependent.resourceExecution.values.identity).toBe(7)
+  expect(dependent.resourceExecution.returned).toBeUndefined()
+  expect(dependent.resourceExecution.gaps).toContain("resource-source-stale:app.py")
+})
 const source = "def local(actor, target):\n    return perform(actor, target)\n\ndef perform(who, item):\n    if not who.allowed:\n        return False\n    item.sent = True\n    return item\n"
 const cite = (startLine: number, endLine = startLine, text?: string) => ({ path: "app.py", startLine, endLine, ...(text ? { text } : {}) })
 const declaration = (startLine: number, endLine: number, statements: unknown[]) => ({ schemaVersion: "authorization-question-declaration/v1", source: cite(startLine, endLine), statements })

@@ -2,7 +2,7 @@
 
 更新于2026-10-12。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BG0–BG16：真实任务 DSL 全流程运行、渐进执行与可读结果](../superpowers/plans/2026-10-12-authorization-end-to-end-practical-execution.md)，`planned-authorized / 待新线程接管`。规划基线`ff37395b`；本次只有计划与方法同步，尚无BG实现或实验结果。
+- 当前任务书：[BG0–BG16：真实任务 DSL 全流程运行、渐进执行与可读结果](../superpowers/plans/2026-10-12-authorization-end-to-end-practical-execution.md)，`completed-with-unmet-criteria`。从`4a247638`接管；实际程序、会话、计量及分轴结果见[summary](../../results/skill-ir/skill-dsl-research/development/authorization-practical-execution-v1/summary.json)。
 - 方法合同：[spec§14.46](skill-ir-aot-optimization-spec.md#1446-bg-practical-end-to-end-execution)；复盘统一在[研究§7.68](skill-dsl-research.md#768-bg-全流程优先与同任务执行决定)。BF原结果和复核依据保留在§7.67。
 - identity：`authorization-practical-execution-v1`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；派发后新线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6-astra/high`，按用户指定的astra6 high；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停、OWUI仅离线、旧未知和保护证据保持。
@@ -37,7 +37,7 @@
 
 官方通道明确routing失败一次具名恢复，连续两次仍失败暂停外部派发；quota/auth暂停该通道，unknown核原生命周期而不自动重发。独立工程和零模型运行继续。成本按实际回执唯一计量，cache含在input时不重复相加，USD/隐藏/开发代理/真人时间未知保留。
 
-当前仅规划发布；BG调用与状态由接管线程在本轮results目录记录。旧BF的9归档/8模型、17/32逐题full、0/8整题full及104项全src失败原件保持，见[BF验收](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/verification/acceptance-matrix.json)。不重新打开旧队列。
+BG现有7归档/5模型交付，原作者程序与同程序变化均实际消费；10变体、源码变化失效及可读普通会话已落地。自动编写只有3源局部合同，未产生资源主链；一对同信息比较为质量/时间与token成本的取舍，净收益未建立。继续工作应针对自动表达及重复上下文成本，不自动增加模型样本。旧BF的9归档/8模型、17/32逐题full、0/8整题full及104项全src失败原件保持，见[BF验收](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/verification/acceptance-matrix.json)。
 
 ## 文档与验证
 

@@ -7,6 +7,97 @@ import { createNativeInquiryRuntime } from "./inquiry-native.ts"
 import { checkAuthorizationInquiry, executeLocalInquiryRun, inspectLocalInquiry, compareLocalInquiry } from "./inquiry-local.ts"
 const source = "def local(actor, target):\n    return perform(actor, target)\n\ndef perform(who, item):\n    if not who.allowed:\n        return False\n    item.sent = True\n    return item\n"
 const at = (startLine: number, endLine = startLine, text?: string) => ({ path: "app.py", startLine, endLine, ...(text ? { text } : {}) })
+test("progressive public check keeps local diagnostics and exposes resource computation", async () => {
+  const f = await contractFiles(), input = JSON.parse(await readFile(f.inputFile, "utf8"))
+  input.resourceInputs = { q: { object: { id: 17 } } }
+  await writeFile(f.inputFile, JSON.stringify(input))
+  await writeFile(f.domainProgramFile, JSON.stringify({ ...f.contract, sourceDeclarations: [...f.contract.sourceDeclarations, { bad: true }], resourceWorkflow: { inputs: ["object"], steps: [{ id: "result", op: "return", value: { ref: "object" }, source: at(8), because: "Return selected item" }] } }))
+  const output: string[] = []
+  expect(await runAuthorizationInquiryCli(["check", `--input=${f.inputFile}`, "--strategy=question-checked-v1", `--domain-program=${f.domainProgramFile}`, "--execution-policy=progressive"], { stdout: text => output.push(text), stderr: () => {} })).toBe(0)
+  const checked = JSON.parse(output[0]!)
+  expect(checked.executableContract.units).toHaveLength(2)
+  expect(checked.executableContract.resourceExecution.returned).toEqual({ id: 17 })
+  expect(checked.executableContract.diagnostics.length).toBeGreaterThan(0)
+})
+test("zero-model check can save an ordinary inspectable execution session", async () => {
+  const f = await contractFiles(), output: string[] = []
+  expect(await runAuthorizationInquiryCli(["check", `--input=${f.inputFile}`, `--out=${path.join(f.root, "offline")}`, "--strategy=question-checked-v1", `--domain-program=${f.domainProgramFile}`], { stdout: text => output.push(text), stderr: () => {} })).toBe(0)
+  const checked = JSON.parse(output[0]!), report = await inspectLocalInquiry(checked.sessionPath)
+  expect(report.model).toBe("none")
+  expect(report.telemetry.providerCalls).toBe(0)
+  expect(report.execution.finalRevision).toBe(checked.executableContract.revision)
+})
+test("consume retains accepted program and checks while model proposals become drafts", async () => {
+  const f = await contractFiles()
+  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", domainProgramFile: f.domainProgramFile })
+  try {
+    const before = runtime.report().domain!.executableContract!
+    await runtime.execute({ id: "replace", name: "authorization_declare", arguments: { ...f.contract, id: "replacement" } })
+    await runtime.rejectArguments({ id: "bad", name: "authorization_declare", arguments: {} }, [{ code: "invalid", path: "$", message: "Malformed draft" }] as any)
+    const after: any = runtime.report().domain!.executableContract!
+    expect(after.revision).toBe(before.revision)
+    expect(after.evaluation).toEqual(before.evaluation)
+    expect(after.programMode).toBe("consume")
+    expect(after.drafts).toHaveLength(2)
+  } finally { await runtime.close() }
+})
+test("native program authoring has one advertised action while legacy declarations still parse", async () => {
+  const f = await contractFiles()
+  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive" })
+  try {
+    expect(runtime.definitions.find(d => d.name === "authorization_program")?.inputSchema.type).toBe("object")
+    expect(runtime.definitions.find(d => d.name === "authorization_declare")?.inputSchema.oneOf).toBeUndefined()
+    const thin: any = structuredClone(f.contract)
+    delete thin.schemaVersion
+    thin.notes = "Preserved author explanation"
+    thin.scope.root = { symbol: "local" }
+    for (const [i, declaration] of thin.sourceDeclarations.entries()) { delete declaration.schemaVersion; declaration.source = { symbol: i ? "perform" : "local" } }
+    expect(runtime.argumentDiagnostics({ id: "thin", name: "authorization_program", arguments: thin })).toBeUndefined()
+    await runtime.execute({ id: "prepare", name: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: [{ questionId: "other", state: "residual", reason: "Retain original duty" }] } })
+    await runtime.execute({ id: "source", name: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 8 } })
+    const proposed = JSON.parse((await runtime.execute({ id: "program", name: "authorization_program", arguments: thin })).output)
+    expect(proposed.controlDiagnostics).toEqual([])
+    expect(runtime.report().domain?.executableContract?.program.id).toBe(f.contract.id)
+  } finally { await runtime.close() }
+})
+test("matched Markdown supplies original source meanings as data without creating a program", async () => {
+  const f = await contractFiles(), input = JSON.parse(await readFile(f.inputFile, "utf8"))
+  input.sourceNotes = { format: "markdown", text: "Authored source summary: local calls perform; meaning remains unreviewed." }
+  input.resourceInputs = { q: { object: { id: 7 } } }
+  await writeFile(f.inputFile, JSON.stringify(input))
+  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-guided-v1", method: "M" })
+  try {
+    expect(runtime.system).toContain(input.sourceNotes.text)
+    expect(runtime.system).toContain('"object":{"id":7}')
+    expect(runtime.report().domain?.executableContract).toBeUndefined()
+  } finally { await runtime.close() }
+})
+test("ordinary session archives host execution and inspect verifies its projection", async () => {
+  const f = await contractFiles()
+  await writeFile(f.domainProgramFile, JSON.stringify({ ...f.contract, resourceWorkflow: { inputs: [], steps: [{ id: "result", op: "return", value: { literal: 17 }, source: at(8), because: "Example finite return" }] } }))
+  const report: any = await executeLocalInquiryRun({ inputFile: f.inputFile, domainProgramFile: f.domainProgramFile, outDir: path.join(f.root, "execution-out"), model: "gpt-5.6-sol", strategy: "question-checked-v1", harness: "codex-account", accountTransportFactory: contractConsumer(), execution: { sessionTimeoutMs: 5000 } })
+  const execution = JSON.parse(await readFile(path.join(report.sessionPath, "execution.json"), "utf8"))
+  expect(execution.resourceExecution.events[0].executor).toBe("host")
+  expect(await readFile(path.join(report.sessionPath, "execution.md"), "utf8")).toContain("Example finite return")
+  expect((await inspectLocalInquiry(report.sessionPath)).execution.resourceExecution.returned).toBe(17)
+  await writeFile(path.join(report.sessionPath, "execution.json"), "{}")
+  await expect(inspectLocalInquiry(report.sessionPath)).rejects.toThrow("execution archive changed")
+})
+test("resource-only input change preserves R1 and recomputes the same archived program", async () => {
+  const f = await contractFiles(), input = JSON.parse(await readFile(f.inputFile, "utf8"))
+  input.resourceInputs = { q: { selected: { id: 1 } } }
+  await writeFile(f.inputFile, JSON.stringify(input))
+  await writeFile(f.domainProgramFile, JSON.stringify({ ...f.contract, resourceWorkflow: { inputs: ["selected"], steps: [{ id: "returned", op: "return", value: { ref: "selected" }, source: at(8), because: "Return selected object" }] } }))
+  const report: any = await executeLocalInquiryRun({ inputFile: f.inputFile, domainProgramFile: f.domainProgramFile, outDir: path.join(f.root, "change-out"), model: "gpt-5.6-sol", strategy: "question-checked-v1", harness: "codex-account", accountTransportFactory: contractConsumer(), execution: { sessionTimeoutMs: 5000 } })
+  input.resourceInputs.q.selected.id = 2
+  await writeFile(f.inputFile, JSON.stringify(input))
+  const compared: any = await compareLocalInquiry(f.inputFile, report.sessionPath)
+  expect(compared.reuseEligibility.info.layers.R1.available).toBe(true)
+  expect(compared.resourceInputsOnly).toBe(true)
+  expect(compared.executableContract.resourceExecution.returned).toEqual({ id: 2 })
+  expect(compared.providerCalls).toBe(0)
+  expect(compared.answerReused).toBe(false)
+})
 export async function contractFiles() {
   const root = await mkdtemp(path.join(os.tmpdir(), "bf-contract-entry-")); await mkdir(path.join(root, "source")); await writeFile(path.join(root, "source/app.py"), source)
   const inquiry = { schemaVersion: "authorization-inquiry/v1", mode: "behavior", questions: [{ id: "q", request: "Inspect local: Authorization before the target write", premises: [], properties: [{ id: "auth", kind: "authorization-before-effect", requirement: "Authorization before the target write" }] }, { id: "other", request: "Retain the other original duty", premises: [] }] }
@@ -82,7 +173,7 @@ test("ordinary native file import and model declaration adopt the same contract 
 
 test("a rejected declaration for another original question preserves the local contract property", async () => {
   const f = await contractFiles()
-  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", method: "D1", domainProgramFile: f.domainProgramFile })
+  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", method: "D1", domainProgramFile: f.domainProgramFile, programMode: "edit" })
   try {
     const rejected = JSON.parse((await runtime.execute({ id: "unowned-other", name: "authorization_declare", arguments: { schemaVersion: "authorization-question-declaration/v1", questionId: "other", source: at(1, 8), statements: [{ kind: "object", expression: "actor", as: "principal", because: "This broad window has no current owner" }] } })).output)
     await runtime.execute({ id: "check-current", name: "authorization_check_properties", arguments: {} })
@@ -189,7 +280,7 @@ test("previous reuses source meaning after local input changes and recomputes cu
 
 test("a complete current contract repairs only the rejected exact source declaration", async () => {
   const f = await contractFiles()
-  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", method: "D1", domainProgramFile: f.domainProgramFile })
+  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", method: "D1", domainProgramFile: f.domainProgramFile, programMode: "edit" })
   const property = () => runtime.report().domain!.executableContract!.evaluation!.questions.find(q => q.questionId === "q")!.properties[0]!
   try {
     expect(property().status, JSON.stringify(property().gaps)).toBe("checked")
@@ -217,7 +308,7 @@ test("a complete current contract repairs only the rejected exact source declara
 
 test("replacing a native program retires only the old program's source units", async () => {
   const f = await contractFiles()
-  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", method: "D1", domainProgramFile: f.domainProgramFile })
+  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", method: "D1", domainProgramFile: f.domainProgramFile, programMode: "edit" })
   try {
     expect(runtime.report().domain?.semantic?.units).toHaveLength(2)
     const result = await runtime.execute({ id: "replace", name: "authorization_declare", arguments: { ...f.contract, sourceDeclarations: [f.contract.sourceDeclarations[0]], queries: [] } })
@@ -241,7 +332,7 @@ test("compare detects program edits and final source verification withdraws a st
   expect(compared.domainProgramChanged).toBe(true)
   expect(compared.providerCalls).toBe(0)
   expect(compared.status).toBe("needs-review")
-  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", method: "D1", domainProgramFile: f.domainProgramFile })
+  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", method: "D1", domainProgramFile: f.domainProgramFile, programMode: "edit" })
   await writeFile(path.join(f.root, "source/app.py"), source.replace("item.sent = True", "item.sent = False"))
   await runtime.close()
   expect(runtime.report().sourceVerification?.valid).toBe(false)
