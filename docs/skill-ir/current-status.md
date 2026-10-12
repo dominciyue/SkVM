@@ -1,8 +1,12 @@
 # Skill IR 当前状态
 
-更新于2026-10-12。工作分支为 `skill-ir-aot`，仅发布到用户 `origin`。本页是唯一实时状态入口；历史任务书与结果保留当时记录。
+更新于2026-10-13。工作分支为 `skill-ir-aot`，仅发布到用户 `origin`。本页是唯一实时状态入口；历史任务书与结果保留当时记录。
 
 ## 当前工作
+
+**BI0–BI23已获用户授权，当前为`planned-not-started`，开发模型`gpt-6.1-sol/max`，按约12小时实质工作量安排。** [任务书](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)承接BH的自动主链和消费质量缺口：作者模式持续、有序patch、完整任务上下文、真实自动稿原/变消费及两组full/compact对照。方法见[spec§14.48](skill-ir-aot-optimization-spec.md#1448-bi-authoring-closure-and-reliable-consumption)、[研究§7.70](skill-dsl-research.md#770-bi-作者目标有序修稿与保真消费)。identity为`authorization-authoring-closure-v1`；结果由执行线程建立，不把计划当已实施成果。共享错误现场修复，通道暂停时继续确定性工程；不等待或重测凑时长。
+
+## BH 已结束的实际结果
 
 **BH有限队列以`completed-with-unmet-criteria`收束，6次真实调用全部交付，无活动/未知请求。渐进编译、持久草稿、patch、compact/full和按需详情已接通；自动稿三次保留4步但未补齐版本/文件主链。Download与ShareLink共14离线场景通过。首个同epoch P对照为tradeoff：compact成本降低但答案退化；一次规则投影修复确认另列。** [可运行Download](../../examples/authorization-assessment/download-workflow/README.md)、[ShareLink离线例](../../examples/authorization-assessment/share-create-workflow/README.md)、[结果与分轴结论](../../results/skill-ir/skill-dsl-research/development/authorization-incremental-program-v1/summary.json)。当前最小剩余责任是隔离作者补齐source-supported版本/返回关系，并保持备选分支可见；未建立稳定净收益。
 
@@ -71,11 +75,11 @@ BB先保留effect/context标注下的源码调用，沿真实调用实例连接�
 - 两作者包已按原字节实际消费。Download消费者源码评阅full但机器partial；OWUI消费者仍有决定性helper未读。变化中policy-fresh、premise-fresh/previous已有运行；policy-previous路由失败、source-fresh额度拒绝，source-previous及质量位置保留未运行。
 - 原件、计量及验收以 [最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)、[manifest](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/manifest.json)、[状态](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/status.json) 为准。历史 `acceptance` 字段表达要求，不代表实际通过。
 
-AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有有界修复，形成过程保留在研究§7.61。当前新增责任以§7.69和BH任务书为准；既有严格路径保留，新的渐进执行显式启用并按实际结果标注。
+AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有有界修复，形成过程保留在研究§7.61。当前新增责任以§7.70和BI任务书为准；既有严格路径保留，渐进执行继续按实际结果标注。
 
 ## 账号、运行和继承边界
 
-- BH开发 `gpt-6-astra/high`，按用户“gpt6astra high”派发；实验沿用已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。
+- BI开发 `gpt-6.1-sol/max`，按用户指定派发；实验沿用已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。BH有限队列已关闭；BI在新identity中登记首件及具名修复。
 - BG有限执行已收束，无活动或未知请求；自动编写与重复上下文成本为未达项，不自动增加样本。后续新任务继续遵守具名恢复、账号未知和成本记录边界。
 - BF六首位置及三具名修订已处置，可选反序第二对因自动R1未达未运行。自动编写、作者给定程序消费及变化复用各自分母；不会自动追加模型。新范围不升级旧readiness或改变项目默认。
 - BE六质量首位置和六变化逻辑位置已完成，保持完整原skill/四问及失败分母。source-previous两件确定未派发，仅一个同输入/epoch的登记恢复交付；原件和79,770ms本地开销保留。R0/R1资格、恢复和实际使用分列，旧答案/评阅/verdict不进入previous；R2缺失使实际R2撤回实验未执行。旧BD六未运行不补行，OWUI继续仅离线。
@@ -98,7 +102,8 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BH | [任务书](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)、spec§14.47、研究§7.69；有限队列完成、自动主链与稳定收益未达；实际程序、首失败、修复和分轴结论已归档 |
+| 当前BI | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)、spec§14.48、研究§7.70；已授权待实施，约12小时工程与有限实际队列，先修作者目标和有序编辑，再验自动稿与消费 |
+| BH | [任务书](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)、spec§14.47、研究§7.69；有限队列完成、自动主链与稳定收益未达；实际程序、首失败、修复和分轴结论已归档 |
 | BG | [任务书](../superpowers/plans/2026-10-12-authorization-end-to-end-practical-execution.md)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-practical-execution-v1/summary.json)、spec§14.46、研究§7.68；主链运行/变化成立，自动编写和净收益未达 |
 | BF | [任务书](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/verification/acceptance-matrix.json)、spec§14.45、研究§7.67；工程/有限队列收束，整题质量与净收益未达 |
 | BE | [任务书](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)、[执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/authorized-execution-closeout.json)、[发布回执](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/publication.json)、spec§14.44、研究§7.66；有限队列及发布完成、研究未达，不自动重抽 |

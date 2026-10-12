@@ -1,46 +1,46 @@
 # Skill IR AOT 当前执行计划
 
-更新于2026-10-12。唯一实时入口为[current-status](current-status.md)。
+更新于2026-10-13。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BH0–BH17](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)，`completed-with-unmet-criteria`。实际接管2c64f50f；工程及有限队列完成，自动主链与稳定收益未达，见[summary](../../results/skill-ir/skill-dsl-research/development/authorization-incremental-program-v1/summary.json)。
-- 方法合同：[spec§14.47](skill-ir-aot-optimization-spec.md#1447-bh-incremental-program-authoring-and-consumption)；复盘统一在[研究§7.69](skill-dsl-research.md#769-bh-发布后复核与渐进编写消费决定)。BG已有结果见§7.68和[summary](../../results/skill-ir/skill-dsl-research/development/authorization-practical-execution-v1/summary.json)。
-- identity：`authorization-incremental-program-v1`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；派发后新线程独占代码、共享方法文档与Git写入。
-- 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停，OWUI/历史未知ShareLink仅离线，旧未知和保护证据保持。
+- 当前任务书：[BI0–BI23](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)，`planned-not-started`。复核基线8745aee0，实际接管由执行线程记录。
+- 方法合同：[spec§14.48](skill-ir-aot-optimization-spec.md#1448-bi-authoring-closure-and-reliable-consumption)；复盘统一在[研究§7.70](skill-dsl-research.md#770-bi-作者目标有序修稿与保真消费)。BH实际结果见§7.69及[summary](../../results/skill-ir/skill-dsl-research/development/authorization-incremental-program-v1/summary.json)。
+- identity：`authorization-authoring-closure-v1`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；新线程独占代码、共享方法文档与Git写入。
+- 开发`gpt-6.1-sol/max`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停，OWUI/历史未知ShareLink仅离线，旧未知和保护证据保持。
 
 ## 本轮主要交付
 
-先修已复现的resourceWorkflow整体拒绝与自动修稿丢失，再让模型对同一Download逐步编写、普通消费者按当前结果完成四问。紧凑消费保留原件与按需源码，第二已暴露任务ShareLink做离线共享算子检验。自动编写、真实使用和净收益各有自己的证据。
+已有程序能实际运行，自动作者仍只补成4步；compact降低首对成本却遗漏完整任务条件。本轮修作者目标持续、有序补丁和任务上下文，让模型原稿接管资源选择主链，并用原/变同稿与两组同期full/compact检验实际可用性。
 
 | 阶段 | 主要工作 | 留下的实物 |
 |---|---|---|
-| BH0–BH2 | 接管、坏步骤红测、局部解析及控制缺口 | 好步骤继续、坏控制不丢失的公共编译器 |
-| BH3–BH6 | 薄source、持久草稿、patch和工具接线 | 普通入口内增量修稿/执行/inspect |
-| BH7–BH9 | compact/full消费、可读轨迹、当前程序来源回归 | 按需详情及当前值/缺口保真的消费投影 |
-| BH10–BH11 | 同任务隔离作者与原/变消费者 | 自动原稿、修改和同程序实际消费 |
-| BH12–BH14 | 第二任务离线迁移、一次消费配对、独立核对 | 共享算子结果、逐题质量与真实开销 |
-| BH15–BH17 | 必要验证、统一文档与发布 | 可运行例、分轴结论与origin交付 |
+| BI0–BI2 | 接管、实际发送上下文/顺序反例、共享红测 | 作者被消费提示覆盖、guard落在return后的准确复现 |
+| BI3–BI7 | 作者进度、原子stepOrder、候选/活动、普通工具共核 | 能在正确位置补链的实际author/patch/run/inspect |
+| BI8–BI11 | 原问题与剩余职责、compact、保存恢复、离线场景 | 保留分支和源码线索的紧凑上下文 |
+| BI12–BI16 | 隔离作者、现场修复、同稿变化、两组消费配对 | 自动原稿/修订、机器轨迹、逐题质量与真实成本 |
+| BI17–BI21 | 第二任务离线复用、可用交付、实质补强与文档 | 共享机制、普通命令与明确未达责任 |
+| BI22–BI23 | 必要联合验证、聚焦提交推送 | origin同步及分轴验收 |
 
-预计约8小时有用工作量。先取得普通入口局部修稿后仍可运行的成果，再推进模型编写和使用；不等待全仓/完整质量才演示，不用睡眠、重复验证或额外面板凑时长。
+预计约12小时有用工作量，真实作者在中段尽早运行，不等全部离线工作完成。提前完成或通道暂停时继续任务书中的恢复、编辑、发送计量和可搬移性补强；不通过睡眠、重复审计或新增面板凑时长。
 
 ## 方法调整
 
-1. progressive按资源步骤编译；坏value的数据依赖和坏guard/return的控制影响分别传播。保留顺序及诊断，独立结果继续。
-2. 宿主只补唯一来源及固定机械字段；缺说明不造理由，缺source不造含义，source变化仍撤回相关结果。
-3. 持久草稿按revision增量修改，省略不删除；consume不改活动程序，edit的候选/采用/旧活动结果清楚区分。
-4. 共用原有限求值/来源/普通入口，compact只投影当前状态并允许实际详情读取，不隐藏原职责或增加另一执行器。
-5. A1作者不见开发者程序/评阅；C1/C2消费自动原字节，P配对固定同一给定程序，仅消费视图不同。第二任务仅离线。
-6. 原四问逐题质量、自动编写、材料使用、完整调用tokens和耗时各自报告；字节变短不当作真实净收益。
+1. edit在活动程序出现后仍保持作者目标；current、computed、作者完成分开，允许带缺口交付。
+2. patch增加显式stepOrder，精确排列合并后的全部ID；缺省保持旧行为，非法排列原子拒绝，新增不可达步骤给诊断，不自动移动guard/return。
+3. 原稿、候选预览、活动程序与各自revision分开；恢复和source变化重算，不能使用旧结果掩盖新稿失败。
+4. compact保留原问题、剩余任务、分支规则和可访问源码线索，只减少重复表达；普通CLI默认兼容，示例先回full。
+5. A1无开发者程序/答案/评阅；A2只恢复其自己的稿。C1/C2固定自动原字节，P两组固定已有开发者程序，自动与给定材料效果分账。
+6. 不用全局checked阻挡局部运行，也不通过删除问题、造来源或改unknown换成功。程序贡献与自然补答逐项说明。
 
 ## 执行与恢复
 
-首次共享错误原件留存，当场红测→共享修复→绿测→具名确认；同因两次无进展转本地根因分析，不把坏面板跑满，也不按任意修订总数停止工程。已定位的预算截断允许有理由调整，同版配对保持共同条件。
+首次共享错误原件留存，当场红测→共享修复→绿测→具名确认；不跑完已知有缺陷的面板。同因两次无进展转本地分析，不按任意修订总数停止工程。配对代码改变时旧臂保留，当前两臂须重新对齐。
 
-官方通道明确routing失败一次具名恢复，连续两次仍失败暂停外部派发；quota/auth暂停该通道，unknown核原生命周期而不自动重发。独立工程和零模型运行继续。成本按实际回执唯一计量，cache含在input时不重复相加，USD/隐藏/开发代理/真人时间未知保留。
+官方通道明确routing失败一次具名恢复，连续两次或累计三次恢复仍失败暂停外部派发；quota/auth暂停，unknown核原生命周期不自动重发。独立工程和零模型运行继续。完整input含cache一次，作者/消费/修复分账，USD/隐藏/开发代理/真人时间未知保留。
 
-BH模型队列为A1、C1/C2、P-full/P-compact五首位置。自动资源程序缺失则C零调用结束，partial产物可以带缺口实际消费；P已有程序继续。新共享根因当场修复并具名确认，旧失败不改。BG7归档/5交付、3源自动稿/0资源步骤、同信息取舍及BF104项全src失败均保持；第二ShareLink的未知逻辑请求不自动重派。
+BI最多8个首位置：A1、条件性A2、C1/C2、P0-full/compact与P1-compact/full。A2无需运行或C无程序时具名零调用，P继续；partial程序可实际消费。具名修复额外记录，不反复抽样追胜。旧全src104失败、BG/BH原件及第二ShareLink未知保持。
 
 ## 文档与验证
 
-主文档更新spec14.47、研究§1/§7.69/§11、current-status与本计划；普通接口落地后更新usage/developer-guide，不新增长期组件正文。根账本仅本地。
+更新spec14.48、研究§1/§7.70/§11、current-status与本计划；公共接口落地后更新usage/developer-guide和例子README，不新增长期组件正文。根账本仅本地。
 
-开发用相关红绿、主/研究类型、一次必要授权联合回归；文档按当前更改与已有retired/governance配置验证。不重跑全历史/全src审计或为了通过而改保护锁。最终先展示怎样运行及真实结果，再说明剩余责任。
+开发用相关红绿、主/研究类型、一次必要授权联合回归；文档按当前更改与已有retired/governance配置验证。不重跑全历史/全src审计或为了通过而改保护锁。最终先给自动稿怎样运行及其实际结果，再报告工程、自动主链、完整任务质量与收益。

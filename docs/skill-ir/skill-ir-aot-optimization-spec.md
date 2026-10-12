@@ -3034,6 +3034,20 @@ check/run/compare已接入`--execution-policy=progressive`，strict仍为默认�
 
 **实施细化。** 草稿身份采用程序ID/原问题，修正root行号或receiver时省略workflow仍保留原稿数据；这不沿用旧scope结果，每个候选重新编译。已有活动程序下含错误的新候选保留独立预览、不替换活动结果；无旧活动时progressive可采用带局部缺口的首稿。复用恢复只装载经revision核对的草稿原值，不恢复预览。compact投影、详情工具、普通patch和缺source归档已有红绿；结构化provider通过kind:program接同核导入/patch/details。首次P配对显示仅提供当前值会丢失备选分支规则，故compact还保留active程序的when/value/test/select等原规则，不带输入集合及旧候选历史；full投影不变。首件错误与具名修复确认分别保留，不将修后结果覆盖首件。重复input/computed身份在执行前失效，strict拒绝、progressive具名诊断。资源输入声明仅使用当前场景中的声明子集，未声明事实给unused警告而不崩溃、不自动改名或补值。
 
+### 14.48 BI authoring closure and reliable consumption
+
+2026-10-13，用户授权[BI0–BI23](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)，指定`gpt-6.1-sol/max`新线程、约12小时实质开发。复核基线8745aee0，identity `authorization-authoring-closure-v1`；本节为待实施合同，不新增效果结论。BH工程/六次真实结果及原件保持。
+
+**作者目标。** native与structured-provider共用作者进度投影。programMode=edit在已有局部活动程序后仍明确编写目标，full/compact不改变模式；current表示来源/版本关系，computed表示实际计算，都不能推导作者已完成。显示当前草稿/活动revision、已计算输出、原问题中的剩余职责及可用编辑工具。允许带缺口自然结束，原稿和自然答案分别保存；宿主不补模型未提供的授权含义。
+
+**有序patch。** 在BH patch上增加可选stepOrder，显式给出upsert/remove后全部剩余步骤ID的精确排列，沿用128步上限。重复、漏项、未知ID、removed ID、过期revision原子拒绝，原稿与活动结果不变。缺省维持原位替换/新步追加，新增无条件return后不可达步骤给具名诊断；不自动拓扑排序guard/return，也不删掉坏控制。原稿、编译、事件与恢复顺序一致。本条是对BH仅追加合同的明确扩展。
+
+**保真消费。** compact除了当前规则/事件/来源/缺口，还保留全部原问题、当前阶段、剩余职责和可访问源码线索；允许用同revision索引及详情减少重复，不能把剩余职责当作已完成。候选位置、已读和程序computed不升级语义覆盖。full兼容，Download示例先默认full，compact显式选择；项目全局默认不自动变化。发送字节、token及实际详情成本分别记录，材料选择变化不全归因于格式压缩。
+
+**真实队列。** A1从完整原skill/原四问/允许源码/输入事实独立编写；不见开发者程序、历史答案或评价。A2仅在A1未完成时从自己的保存稿恢复，修订与独立成功分开。C1/C2固定自动原字节用于root-default/empty-version；无资源程序时具名未运行，有partial程序则实际消费。两组P固定现有开发者程序，同epoch/源码/任务/模型/预算比较full与compact，第二组反序。自动、给定材料、恢复及修复各自分账。ShareLink仅离线检验共享机制，旧未知不重发。
+
+**验收和持续执行。** 追求自动原稿真正计算授权对象/最终文件/表示及变化关系，验收不看固定步骤数；自然补答单列。原四问逐题独立评阅，质量和程序检查分开。共享缺陷当场修，不把已知坏协议继续跑满；跨epoch不拼配对。账号已授权、第三方暂停与旧未知规则保持；通道暂停继续确定性工程。工作量约12小时，附恢复/编辑/计量等补充队列，不等待或重复验证凑时长。结果可如实未达，根因及解决记录统一研究§7.70。
+
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
 
