@@ -1,3 +1,4 @@
+import argparse
 import importlib.util
 import json
 import re
@@ -9,7 +10,11 @@ from urllib.parse import unquote
 
 BASE = Path(__file__).resolve().parent
 ROOT = BASE.parents[4]
-checks = {}
+parser = argparse.ArgumentParser()
+parser.add_argument("--docs-only", action="store_true", help="Reuse passed code checks while refreshing closing documentation and source stability evidence.")
+options = parser.parse_args()
+previous = json.loads((BASE / "verification/final.json").read_text(encoding="utf-8")) if options.docs_only else {}
+checks = previous.get("checks", {})
 
 
 def command(name, args):
@@ -19,7 +24,7 @@ def command(name, args):
 
 
 engineering = json.loads((BASE / "verification/engineering-stage-2.json").read_text(encoding="utf-8"))
-unchanged = command("unchangedProductionSource", ["git", "diff", "--exit-code", "--", "src"])
+unchanged = command("unchangedProductionSource", ["git", "diff", "--exit-code", "c974948365ad8f8df39b280d48271625db02cb7c", "--", "src"])
 checks["mainType"] = {
     "exitCode": engineering["freshAfterTestTypeCorrection"]["mainTypeExit"],
     "basis": "Fresh main type result after final production/test changes; source unchanged since c9749483. No repeated main check for result/doc-only edits.",
@@ -27,12 +32,15 @@ checks["mainType"] = {
 }
 suite = engineering["affectedAuthorizationSuite"]
 checks["affectedAuthorizationSuite"] = {"exitCode": 0 if suite["fail"] == 0 and unchanged.returncode == 0 else 1, **suite, "evidence": "verification/authorization-suite-final.log"}
-bun_path = Path(shutil.which("bun"))
-npm_native = bun_path.parent / "node_modules/bun/bin/bun.exe"
-if npm_native.is_file():
-    bun_path = npm_native
-command("researchType", [str(bun_path), "x", "tsc", "--noEmit", "-p", str(BASE.relative_to(ROOT) / "tsconfig.json")])
-command("documentTests", ["python", "scripts/check_skill_ir_doc_links_test.py"])
+if options.docs_only:
+    command("unchangedResearchAndDocumentCheckCode", ["git", "diff", "--exit-code", "3cce2d02526121b1ea91d7db8850eba2108013f7", "--", str(BASE.relative_to(ROOT) / "*.ts"), str(BASE.relative_to(ROOT) / "tsconfig.json"), "scripts/check_skill_ir_doc_links.py", "scripts/check_skill_ir_doc_links_test.py"])
+if not options.docs_only:
+    bun_path = Path(shutil.which("bun"))
+    npm_native = bun_path.parent / "node_modules/bun/bin/bun.exe"
+    if npm_native.is_file():
+        bun_path = npm_native
+    command("researchType", [str(bun_path), "x", "tsc", "--noEmit", "-p", str(BASE.relative_to(ROOT) / "tsconfig.json")])
+    command("documentTests", ["python", "scripts/check_skill_ir_doc_links_test.py"])
 
 changed = subprocess.check_output(["git", "diff", "--name-only", "fde04c26f35635366d4a7e6eddbfce15f309cd1c", "--", "docs", "examples"], cwd=ROOT, text=True, encoding="utf-8").splitlines()
 changed = [name for name in changed if name.endswith(".md")]
@@ -61,7 +69,8 @@ for source in changed:
             anchor_errors.append({"source": source, "target": target})
 checks["changedDocumentLinks"] = {"exitCode": 0 if not references["brokenReferences"] and not references["legacyReferences"] and not anchor_errors else 1, "files": changed, **references, "newAnchorsChecked": anchors_checked, "anchorErrors": anchor_errors, "scope": "Changed Markdown only, with existing retired-pair configuration; no full historical scan."}
 command("diffCheck", ["git", "diff", "--check"])
-verification = {"verifiedAt": datetime.now(timezone.utc).isoformat(), "coreCommit": "c974948365ad8f8df39b280d48271625db02cb7c", "checks": checks, "derivationRepair": "Initial Python invocation could not launch the PowerShell-only bunx shim (WinError 2). Resolved its documented npm native bun executable and used bun x; no production or account-session change.", "limits": "Current affected authorization suite and main type evidence reused while src is unchanged. Research type, doc tests, changed links/anchors and diff are fresh. No all-src run or protected evidence edits."}
+command("stagedDiffCheck", ["git", "diff", "--cached", "--check"])
+verification = {"verifiedAt": datetime.now(timezone.utc).isoformat(), "coreCommit": "c974948365ad8f8df39b280d48271625db02cb7c", "checks": checks, "derivationRepair": "Initial Python invocation could not launch the PowerShell-only bunx shim (WinError 2). Resolved its documented npm native bun executable and used bun x; no production or account-session change.", "limits": "Closing documentation mode: passed authorization suite, main/research types and 15 documentation tests retained while their code is unchanged; changed links/anchors, production stability since c9749483 and diff refreshed. No all-src run or protected evidence edits." if options.docs_only else "Current affected authorization suite and main type evidence reused while src is unchanged. Research type, doc tests, changed links/anchors and diff are fresh. No all-src run or protected evidence edits."}
 (BASE / "verification/final.json").write_text(json.dumps(verification, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 print(json.dumps({"checks": {name: value["exitCode"] for name, value in checks.items()}, "documents": len(changed), "newAnchors": anchors_checked, "anchorErrors": anchor_errors}, ensure_ascii=False))
 raise SystemExit(0 if all(c["exitCode"] == 0 for c in checks.values()) else 1)

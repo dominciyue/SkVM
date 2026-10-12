@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**BI共享工程和八个真实位置已完成，自动主链未达；当前收束验证与发布。** [BI0–BI23](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)已接通持续作者目标、原子stepOrder、revision详情、原稿/候选/活动归档及完整任务消费。A2恢复修稿采用12步，冻结原稿在C1/C2仍因question/input绑定和版本、权限、root回退缺口无文件返回；自然答案不能替代计算。原四问整题5/8 full是不同轨道的描述计数：A1 partial、A2恢复full，自动原稿C1 partial/C2 full，开发者材料P0两臂full/P1 compact partial/full full。
+**BI以`completed-with-unmet-criteria`发布，工程和八个有限真实位置完成，自动主链未达。** [BI0–BI23](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)已接通持续作者目标、原子stepOrder、revision详情、原稿/候选/活动归档及完整任务消费。A2恢复修稿采用12步，冻结原稿在C1/C2仍因question/input绑定和版本、权限、root回退缺口无文件返回；自然答案不能替代计算。原四问整题5/8 full是不同轨道的描述计数：A1 partial、A2恢复full，自动原稿C1 partial/C2 full，开发者材料P0两臂full/P1 compact partial/full full。
 
 两组同epoch开发者材料对照为P0 tradeoff、P1 negative：首对质量保持但input/工具增加，反序空version对compact第四问漏外部权限检查器构造/后端限制且各项观测成本均增加。稳定净收益未成立，示例默认full、compact显式使用。已知input15,938,854（含cache14,767,744）/output86,379，386模型工具调用；USD、隐藏请求、开发/探子及真人分钟仍未知。1942授权相关测试/1平台skip/12930断言及类型通过，15离线观察和实际会话搬移通过。自动稿普通命令见[Download说明](../../examples/authorization-assessment/download-workflow/README.md)，分轴依据见[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/summary.json)、[逐题评阅](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/quality.json)及[§7.70](#770-bi-作者目标有序修稿与保真消费)。研究目标保持false，保护证据及项目默认不变。
 
