@@ -1,0 +1,133 @@
+{
+  "identity": "authorization-executable-contract-v1",
+  "at": "2026-10-11T23:18:17.353Z",
+  "kind": "derived-zero-provider-replay",
+  "modelCalls": 0,
+  "historicalAttempt": "authored-use-base/original",
+  "historicalArchiveSha256": "ad28c6b2a80c1cf7bd34f22750dd266f02c3e3040e6fee46d13368faa6805887",
+  "historicalCurrentProperty": "unknown",
+  "historicalAnswerOrVerdictChanged": false,
+  "replayedNativeHistoryIndex": 42,
+  "replayedCall": {
+    "id": "exec-5fc7f0b6-7f90-49ca-a188-a1061878427b",
+    "name": "authorization_declare",
+    "arguments": {
+      "schemaVersion": "authorization-question-declaration/v1",
+      "source": {
+        "path": "src/documents/views.py",
+        "startLine": 1350,
+        "endLine": 1450,
+        "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+      },
+      "questionId": "requested-document-and-returned-file",
+      "statements": [
+        {
+          "kind": "object",
+          "expression": "pk",
+          "as": "resource",
+          "because": "The path-bound primary key is passed from download to file_response and used to load request_doc."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1408,
+            "endLine": 1415,
+            "text": "manager = Document.global_objects if include_deleted else Document.objects\n        try:\n            request_doc = manager.select_related(\n                \"owner\",\n                \"root_document\",\n            ).get(id=pk)\n        except Document.DoesNotExist:\n            raise Http404",
+            "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+          },
+          "as": "context",
+          "because": "This is the actual request-document lookup and missing-document branch."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1417,
+            "endLine": 1420,
+            "text": "root_doc = get_root_document(\n            request_doc,\n            include_deleted=include_deleted,\n        )",
+            "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+          },
+          "as": "context",
+          "because": "This derives the root document from the path-selected request document."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1437,
+            "endLine": 1441,
+            "text": "file_doc = self._get_effective_file_doc(\n            resolved.request_doc,\n            resolved.root_doc,\n            request,\n        )",
+            "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+          },
+          "as": "context",
+          "because": "This selects the effective version document after request/root resolution."
+        },
+        {
+          "kind": "dependency",
+          "at": {
+            "path": "src/documents/views.py",
+            "startLine": 1442,
+            "endLine": 1447,
+            "text": "return serve_file(\n            doc=file_doc,\n            use_archive=not self.original_requested(request)\n            and file_doc.has_archive_version,\n            disposition=disposition,\n            follow_formatting=request.query_params.get(\"follow_formatting\", False),\n        )",
+            "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+          },
+          "as": "context",
+          "because": "This constructs the response from the selected version and chooses archive unless exact original selection disables it or no archive exists."
+        }
+      ]
+    }
+  },
+  "currentRuntimeTree": "d51d7c2ddc32ac413b001b027bef6512ecc52ed0",
+  "precondition": "Current ordinary file import of the same fixed A program; historical exploratory reads are not replayed.",
+  "before": {
+    "status": "checked",
+    "value": "unreachable",
+    "scope": "current-proposed-call-prefix",
+    "gaps": [],
+    "traceNodes": 10
+  },
+  "diagnostics": [
+    {
+      "code": "question-source-unread-or-unowned",
+      "path": "source",
+      "questionId": "requested-document-and-returned-file",
+      "message": "Read the whole current original passage and establish its question/operation owner, or use an explicit function contract. Focus alone cannot establish that owner.",
+      "severity": "error"
+    }
+  ],
+  "after": {
+    "status": "checked",
+    "value": "unreachable",
+    "scope": "current-proposed-call-prefix",
+    "gaps": [],
+    "traceNodes": 10
+  },
+  "materialUses": [
+    {
+      "kind": "function-root",
+      "operationId": "document-download",
+      "questionId": "local-visibility-filter",
+      "materialId": "material-029e8527b3f0a8ba80d9f429",
+      "arguments": []
+    },
+    {
+      "kind": "call",
+      "operationId": "document-download",
+      "questionId": "local-visibility-filter",
+      "materialId": "material-792ff79b0719747f73fed796",
+      "callerMaterialId": "material-029e8527b3f0a8ba80d9f429",
+      "relationId": "call-5d5caf4ac5d13458909eb891",
+      "arguments": [
+        {
+          "parameter": "user",
+          "object": "user"
+        }
+      ]
+    }
+  ],
+  "conclusion": "The rejected original-question declaration remains rejected with its explicit questionId and no longer changes the unrelated local contract property.",
+  "newRealConsumerCredit": false,
+  "automaticGenerationCredit": false,
+  "requestOperationCertified": false
+}

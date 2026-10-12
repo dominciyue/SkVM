@@ -1,0 +1,267 @@
+{
+  "identity": "authorization-executable-contract-v1",
+  "attemptId": "reuse-fresh/original",
+  "provenance": "main-primary-source-whole-answer-review",
+  "answerSha256": "b1593c40d354a528817fb582b151d2792a5c11f5fd9ace1eabd3ca800e8c8aa5",
+  "originalAnswerChanged": false,
+  "evaluatorProvidedToRuntime": false,
+  "wholeAnswerRead": true,
+  "crossSectionsAccepted": true,
+  "originalQuestionCount": 4,
+  "additionalDevelopmentQuestionCount": 1,
+  "questions": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "grade": "partial"
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "grade": "full"
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "grade": "full"
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "grade": "full"
+    }
+  ],
+  "wholeTask": "partial",
+  "facts": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "facts": [
+        {
+          "id": "lookup",
+          "status": "consistent"
+        },
+        {
+          "id": "version-branches",
+          "status": "consistent"
+        },
+        {
+          "id": "deleted-call-boundaries",
+          "status": "contradiction"
+        },
+        {
+          "id": "file-response",
+          "status": "consistent"
+        },
+        {
+          "id": "root-fallback",
+          "status": "consistent"
+        }
+      ]
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "facts": [
+        {
+          "id": "request-model-permission",
+          "status": "consistent"
+        },
+        {
+          "id": "root-check-order",
+          "status": "consistent"
+        },
+        {
+          "id": "manual-object-check",
+          "status": "consistent"
+        }
+      ]
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "references": [
+        "requested-document-and-returned-file",
+        "authorization-and-selection-order"
+      ],
+      "facts": [
+        {
+          "id": "version-tree-boundary",
+          "status": "consistent"
+        },
+        {
+          "id": "authorized-object-vs-returned-file",
+          "status": "consistent"
+        }
+      ]
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "references": [
+        "requested-document-and-returned-file",
+        "authorization-and-selection-order",
+        "alternate-version-authorized-resource"
+      ],
+      "facts": [
+        {
+          "id": "grant-unknown",
+          "status": "consistent"
+        },
+        {
+          "id": "configuration-unknown",
+          "status": "consistent"
+        },
+        {
+          "id": "file-state-unknown",
+          "status": "consistent"
+        },
+        {
+          "id": "conditional-conclusions",
+          "status": "consistent"
+        }
+      ]
+    }
+  ],
+  "wholeFactReview": {
+    "equivalent": false,
+    "questions": [
+      {
+        "questionId": "requested-document-and-returned-file",
+        "equivalent": false,
+        "missing": [
+          "deleted-call-boundaries"
+        ],
+        "conflicts": [
+          "deleted-call-boundaries"
+        ],
+        "readTogether": [
+          "requested-document-and-returned-file"
+        ]
+      },
+      {
+        "questionId": "authorization-and-selection-order",
+        "equivalent": true,
+        "missing": [],
+        "conflicts": [],
+        "readTogether": [
+          "authorization-and-selection-order"
+        ]
+      },
+      {
+        "questionId": "alternate-version-authorized-resource",
+        "equivalent": true,
+        "missing": [],
+        "conflicts": [],
+        "readTogether": [
+          "alternate-version-authorized-resource",
+          "requested-document-and-returned-file",
+          "authorization-and-selection-order"
+        ]
+      },
+      {
+        "questionId": "missing-facts-and-conditional-conclusions",
+        "equivalent": true,
+        "missing": [],
+        "conflicts": [],
+        "readTogether": [
+          "missing-facts-and-conditional-conclusions",
+          "requested-document-and-returned-file",
+          "authorization-and-selection-order",
+          "alternate-version-authorized-resource"
+        ]
+      }
+    ],
+    "diagnostics": [],
+    "basis": "independent-whole-answer-source-review"
+  },
+  "findings": [
+    {
+      "id": "deleted-call-boundaries",
+      "status": "contradiction",
+      "answerLines": [
+        95,
+        96
+      ],
+      "source": "src/documents/views.py:1375-1381; src/documents/versioning.py:140-143,159-166",
+      "reason": "The separate effective-file resolver derives include_deleted from actual version-key presence. An absent key chooses Document.objects for latest; file_response's earlier True is not propagated."
+    },
+    {
+      "id": "root-fallback",
+      "status": "supported-by-cross-section",
+      "answerLines": [
+        58,
+        59,
+        147,
+        162
+      ],
+      "source": "src/documents/versioning.py:146-156",
+      "reason": "Line58 explicitly covers failed-root fallback to request_doc; later root-only wording names that resolved variable and is read together rather than treated as an omitted branch."
+    }
+  ],
+  "localContractAnswer": {
+    "questionId": "local-visibility-filter",
+    "sourceMeaning": "supported",
+    "source": "src/documents/permissions.py:411-433,436-457",
+    "answerLines": [
+      170,
+      171,
+      172,
+      173,
+      177,
+      179
+    ],
+    "machineUnknownExplicitlyDelivered": true,
+    "currentProperty": {
+      "status": "unknown",
+      "value": "unresolved",
+      "scope": "current-proposed-call-prefix",
+      "gaps": [
+        "property-current-source-rejected:question-source-unread-or-unowned",
+        "property-source-effect-unadopted"
+      ],
+      "traceNodes": 6
+    },
+    "finalCurrentProgramId": "paperless-visibility-filter-v3",
+    "fixedProgramSha256": "0cd4c555a9cd85ac2841c75e829bde8e587f3c8d4d19c525c7b96ef7e5a27401",
+    "fixedProgramProvided": true,
+    "fixedProgramUnchangedAtFinal": false,
+    "sourceMaterialCount": 3,
+    "finalActualMaterialUses": [
+      {
+        "kind": "function-root",
+        "operationId": "document-download",
+        "questionId": "local-visibility-filter",
+        "materialId": "material-4e8581dd9d10deb5d31615b8",
+        "arguments": []
+      }
+    ],
+    "crossFunctionMaterialUseAtFinal": false,
+    "requestOperationCertified": false,
+    "originalDownloadQualityCredit": false
+  },
+  "independentReview": {
+    "readOnlyDefaultScouts": [
+      "bf_reuse_fresh_answer_readonly"
+    ],
+    "supported": [
+      "Default-latest manager contradiction",
+      "Permission/selection order and conditional missing facts"
+    ],
+    "adjudications": [
+      {
+        "claim": "Root fallback is omitted and Q3 must be partial",
+        "accepted": false,
+        "reason": "The current fresh answer explicitly explains this branch at line58. The scout compared stronger shorthand to an earlier base evaluation; whole-answer cross references must count the current explicit fallback. The manager contradiction independently makes Q1/whole partial."
+      }
+    ],
+    "humanBlindReview": false
+  },
+  "runtimeTree": "d51d7c2ddc32ac413b001b027bef6512ecc52ed0",
+  "costs": {
+    "studyModelUsage": {
+      "input": 2503088,
+      "output": 10464,
+      "cacheRead": 2336384,
+      "cacheWrite": 0
+    },
+    "inputIncludesCacheRead": true,
+    "actualUsd": "unknown",
+    "developmentAndScoutCosts": "unknown"
+  },
+  "automaticGenerationCredit": false,
+  "netBenefitEstablished": false,
+  "comparisonLimitation": "Previous's zero-dispatch preparation exposed a public bug; previous uses a repaired production epoch. The saved fresh answer is not rerun or retrospectively promoted."
+}

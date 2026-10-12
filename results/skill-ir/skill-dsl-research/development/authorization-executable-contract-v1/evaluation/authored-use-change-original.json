@@ -1,0 +1,256 @@
+{
+  "identity": "authorization-executable-contract-v1",
+  "attemptId": "authored-use-change/original",
+  "provenance": "main-primary-source-whole-answer-review",
+  "answerSha256": "1c45359199a3ec93d9a84d5d6b4958631f1c761a577d6e088b06e3344aa23fd1",
+  "originalAnswerChanged": false,
+  "evaluatorProvidedToRuntime": false,
+  "wholeAnswerRead": true,
+  "crossSectionsAccepted": true,
+  "originalQuestionCount": 4,
+  "additionalDevelopmentQuestionCount": 1,
+  "questions": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "grade": "partial"
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "grade": "full"
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "grade": "partial"
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "grade": "full"
+    }
+  ],
+  "wholeTask": "partial",
+  "facts": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "facts": [
+        {
+          "id": "lookup",
+          "status": "consistent"
+        },
+        {
+          "id": "version-branches",
+          "status": "consistent"
+        },
+        {
+          "id": "deleted-call-boundaries",
+          "status": "consistent"
+        },
+        {
+          "id": "file-response",
+          "status": "consistent"
+        },
+        {
+          "id": "root-fallback",
+          "status": "contradiction"
+        }
+      ]
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "facts": [
+        {
+          "id": "request-model-permission",
+          "status": "consistent"
+        },
+        {
+          "id": "root-check-order",
+          "status": "consistent"
+        },
+        {
+          "id": "manual-object-check",
+          "status": "consistent"
+        }
+      ]
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "references": [
+        "requested-document-and-returned-file",
+        "authorization-and-selection-order"
+      ],
+      "facts": [
+        {
+          "id": "version-tree-boundary",
+          "status": "consistent"
+        },
+        {
+          "id": "authorized-object-vs-returned-file",
+          "status": "consistent"
+        }
+      ]
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "references": [
+        "requested-document-and-returned-file",
+        "authorization-and-selection-order",
+        "alternate-version-authorized-resource"
+      ],
+      "facts": [
+        {
+          "id": "grant-unknown",
+          "status": "consistent"
+        },
+        {
+          "id": "configuration-unknown",
+          "status": "consistent"
+        },
+        {
+          "id": "file-state-unknown",
+          "status": "consistent"
+        },
+        {
+          "id": "conditional-conclusions",
+          "status": "consistent"
+        }
+      ]
+    }
+  ],
+  "wholeFactReview": {
+    "equivalent": false,
+    "questions": [
+      {
+        "questionId": "requested-document-and-returned-file",
+        "equivalent": false,
+        "missing": [
+          "root-fallback"
+        ],
+        "conflicts": [
+          "root-fallback"
+        ],
+        "readTogether": [
+          "requested-document-and-returned-file"
+        ]
+      },
+      {
+        "questionId": "authorization-and-selection-order",
+        "equivalent": true,
+        "missing": [],
+        "conflicts": [],
+        "readTogether": [
+          "authorization-and-selection-order"
+        ]
+      },
+      {
+        "questionId": "alternate-version-authorized-resource",
+        "equivalent": false,
+        "missing": [
+          "root-fallback"
+        ],
+        "conflicts": [
+          "root-fallback"
+        ],
+        "readTogether": [
+          "alternate-version-authorized-resource",
+          "requested-document-and-returned-file",
+          "authorization-and-selection-order"
+        ]
+      },
+      {
+        "questionId": "missing-facts-and-conditional-conclusions",
+        "equivalent": true,
+        "missing": [],
+        "conflicts": [],
+        "readTogether": [
+          "missing-facts-and-conditional-conclusions",
+          "requested-document-and-returned-file",
+          "authorization-and-selection-order",
+          "alternate-version-authorized-resource"
+        ]
+      }
+    ],
+    "diagnostics": [],
+    "basis": "independent-whole-answer-source-review"
+  },
+  "findings": [
+    {
+      "id": "root-fallback",
+      "answerLines": [
+        6,
+        38,
+        102,
+        130
+      ],
+      "status": "missing-and-overstated",
+      "source": "src/documents/versioning.py:146-156",
+      "reason": "The failed related-root lookup returns the requested document itself. General root-document-only conclusions omit this effective fallback object."
+    }
+  ],
+  "localContractAnswer": {
+    "questionId": "local-visibility-filter",
+    "sourceMeaning": "supported",
+    "source": "src/documents/permissions.py:411-433,436-457",
+    "answerLines": [
+      110,
+      112,
+      113,
+      114,
+      115,
+      117,
+      120
+    ],
+    "machineUnknownExplicitlyDelivered": true,
+    "currentProperty": {
+      "status": "unknown",
+      "value": "unresolved",
+      "scope": "current-proposed-call-prefix",
+      "gaps": [
+        "property-current-source-rejected:question-source-unread-or-unowned",
+        "property-source-effect-unadopted"
+      ],
+      "traceNodes": 6
+    },
+    "finalCurrentProgramId": "paperless-visibility-filter-v3",
+    "fixedProgramSha256": "0cd4c555a9cd85ac2841c75e829bde8e587f3c8d4d19c525c7b96ef7e5a27401",
+    "fixedProgramProvided": true,
+    "fixedProgramUnchangedAtFinal": false,
+    "sourceMaterialCount": 3,
+    "finalActualMaterialUses": [
+      {
+        "kind": "function-root",
+        "operationId": "document-download",
+        "questionId": "local-visibility-filter",
+        "materialId": "material-f415e967f2caf5cfd84cb88f",
+        "arguments": []
+      }
+    ],
+    "crossFunctionMaterialUseAtFinal": false,
+    "requestOperationCertified": false,
+    "originalDownloadQualityCredit": false
+  },
+  "independentReview": {
+    "review": "main source and native-history point verification",
+    "finalReplacement": {
+      "historyIndex": 44,
+      "accepted": true,
+      "programId": "paperless-visibility-filter-v3",
+      "sourceDeclarations": 1,
+      "originalHelperOmitted": true,
+      "oldProgramUnitsWithdrawn": true,
+      "pairedFrozenProgramBenefitClaim": false
+    }
+  },
+  "netBenefitEstablished": false,
+  "automaticGenerationCredit": false,
+  "runtimeTree": "d51d7c2ddc32ac413b001b027bef6512ecc52ed0",
+  "costs": {
+    "studyModelUsage": {
+      "input": 2218185,
+      "output": 9325,
+      "cacheRead": 2071680,
+      "cacheWrite": 0
+    },
+    "inputIncludesCacheRead": true,
+    "actualUsd": "unknown",
+    "developmentAndScoutCosts": "unknown"
+  }
+}

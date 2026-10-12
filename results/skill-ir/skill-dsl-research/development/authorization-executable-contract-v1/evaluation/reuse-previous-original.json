@@ -1,0 +1,363 @@
+{
+  "identity": "authorization-executable-contract-v1",
+  "attemptId": "reuse-previous/original",
+  "provenance": "main-primary-source-whole-answer-review",
+  "answerSha256": "127eb1c712cf121326c4193193bcbf0a023324842f334eadc90836637aab6616",
+  "originalAnswerChanged": false,
+  "evaluatorProvidedToRuntime": false,
+  "wholeAnswerRead": true,
+  "crossSectionsAccepted": true,
+  "originalQuestionCount": 4,
+  "additionalDevelopmentQuestionCount": 1,
+  "questions": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "grade": "partial"
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "grade": "full"
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "grade": "partial"
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "grade": "full"
+    }
+  ],
+  "wholeTask": "partial",
+  "facts": [
+    {
+      "questionId": "requested-document-and-returned-file",
+      "facts": [
+        {
+          "id": "lookup",
+          "status": "consistent"
+        },
+        {
+          "id": "version-branches",
+          "status": "consistent"
+        },
+        {
+          "id": "deleted-call-boundaries",
+          "status": "contradiction"
+        },
+        {
+          "id": "file-response",
+          "status": "consistent"
+        },
+        {
+          "id": "root-fallback",
+          "status": "contradiction"
+        }
+      ]
+    },
+    {
+      "questionId": "authorization-and-selection-order",
+      "facts": [
+        {
+          "id": "request-model-permission",
+          "status": "consistent"
+        },
+        {
+          "id": "root-check-order",
+          "status": "consistent"
+        },
+        {
+          "id": "manual-object-check",
+          "status": "consistent"
+        }
+      ]
+    },
+    {
+      "questionId": "alternate-version-authorized-resource",
+      "references": [
+        "requested-document-and-returned-file",
+        "authorization-and-selection-order"
+      ],
+      "facts": [
+        {
+          "id": "version-tree-boundary",
+          "status": "consistent"
+        },
+        {
+          "id": "authorized-object-vs-returned-file",
+          "status": "consistent"
+        }
+      ]
+    },
+    {
+      "questionId": "missing-facts-and-conditional-conclusions",
+      "references": [
+        "requested-document-and-returned-file",
+        "authorization-and-selection-order",
+        "alternate-version-authorized-resource"
+      ],
+      "facts": [
+        {
+          "id": "grant-unknown",
+          "status": "consistent"
+        },
+        {
+          "id": "configuration-unknown",
+          "status": "consistent"
+        },
+        {
+          "id": "file-state-unknown",
+          "status": "consistent"
+        },
+        {
+          "id": "conditional-conclusions",
+          "status": "consistent"
+        }
+      ]
+    }
+  ],
+  "wholeFactReview": {
+    "equivalent": false,
+    "questions": [
+      {
+        "questionId": "requested-document-and-returned-file",
+        "equivalent": false,
+        "missing": [
+          "root-fallback",
+          "deleted-call-boundaries"
+        ],
+        "conflicts": [
+          "root-fallback",
+          "deleted-call-boundaries"
+        ],
+        "readTogether": [
+          "requested-document-and-returned-file"
+        ]
+      },
+      {
+        "questionId": "authorization-and-selection-order",
+        "equivalent": true,
+        "missing": [],
+        "conflicts": [],
+        "readTogether": [
+          "authorization-and-selection-order"
+        ]
+      },
+      {
+        "questionId": "alternate-version-authorized-resource",
+        "equivalent": false,
+        "missing": [
+          "root-fallback"
+        ],
+        "conflicts": [
+          "root-fallback"
+        ],
+        "readTogether": [
+          "alternate-version-authorized-resource",
+          "requested-document-and-returned-file",
+          "authorization-and-selection-order"
+        ]
+      },
+      {
+        "questionId": "missing-facts-and-conditional-conclusions",
+        "equivalent": true,
+        "missing": [],
+        "conflicts": [],
+        "readTogether": [
+          "missing-facts-and-conditional-conclusions",
+          "requested-document-and-returned-file",
+          "authorization-and-selection-order",
+          "alternate-version-authorized-resource"
+        ]
+      }
+    ],
+    "diagnostics": [],
+    "basis": "independent-whole-answer-source-review"
+  },
+  "findings": [
+    {
+      "id": "root-fallback",
+      "status": "missing-and-overstated",
+      "answerLines": [
+        3,
+        44,
+        45,
+        109,
+        114
+      ],
+      "source": "src/documents/versioning.py:146-156",
+      "reason": "The complete answer gives the resolved object as root_doc but never explains failed related-root/manager lookup returning request_doc itself."
+    },
+    {
+      "id": "deleted-call-boundaries",
+      "status": "contradiction",
+      "answerLines": [
+        72
+      ],
+      "source": "src/documents/views.py:1375-1381; src/documents/versioning.py:140-143,159-166",
+      "reason": "Without a version key, the separate latest resolver uses Document.objects; the earlier request lookup True is not passed through."
+    }
+  ],
+  "localContractAnswer": {
+    "questionId": "local-visibility-filter",
+    "sourceMeaning": "supported",
+    "source": "src/documents/permissions.py:411-433,436-457",
+    "answerLines": [
+      124,
+      125,
+      126,
+      127,
+      137,
+      139
+    ],
+    "machineUnknownExplicitlyDelivered": true,
+    "currentProperty": {
+      "status": "unknown",
+      "value": "unresolved",
+      "scope": "current-proposed-call-prefix",
+      "gaps": [
+        "property-source-effect-unadopted"
+      ],
+      "traceNodes": 8
+    },
+    "finalCurrentProgramId": "paperless-visibility-filter-v2",
+    "fixedProgramSha256": "0cd4c555a9cd85ac2841c75e829bde8e587f3c8d4d19c525c7b96ef7e5a27401",
+    "fixedProgramProvided": true,
+    "fixedProgramUnchangedAtFinal": true,
+    "sourceMaterialCount": 2,
+    "finalActualMaterialUses": [
+      {
+        "kind": "function-root",
+        "operationId": "document-download",
+        "questionId": "local-visibility-filter",
+        "materialId": "material-029e8527b3f0a8ba80d9f429",
+        "arguments": []
+      },
+      {
+        "kind": "call",
+        "operationId": "document-download",
+        "questionId": "local-visibility-filter",
+        "materialId": "material-792ff79b0719747f73fed796",
+        "callerMaterialId": "material-029e8527b3f0a8ba80d9f429",
+        "relationId": "call-5d5caf4ac5d13458909eb891",
+        "arguments": [
+          {
+            "parameter": "user",
+            "object": "user"
+          }
+        ]
+      }
+    ],
+    "crossFunctionMaterialUseAtFinal": true,
+    "requestOperationCertified": false,
+    "originalDownloadQualityCredit": false,
+    "contractStatus": "invalidated",
+    "contractEvaluationPresent": false,
+    "propertyCheckStatus": "current",
+    "currentSourceMaterialCount": 2,
+    "materialsRestored": 2,
+    "materialsUsed": 2,
+    "currentConditions": {},
+    "answerReused": false,
+    "previousVerdictRestored": false
+  },
+  "rejectedConsumerProgram": {
+    "nativeHistoryIndex": 47,
+    "programId": "paperless-document-download-v1",
+    "declarationCount": 11,
+    "diagnostics": [
+      {
+        "code": "contract-source-owner",
+        "path": "sourceDeclarations.0.source",
+        "message": "A complete current source owner must resolve uniquely; candidates=0.",
+        "severity": "error",
+        "questionId": "requested-document-and-returned-file"
+      },
+      {
+        "code": "contract-source-owner",
+        "path": "sourceDeclarations.1.source",
+        "message": "A complete current source owner must resolve uniquely; candidates=0.",
+        "severity": "error",
+        "questionId": "requested-document-and-returned-file"
+      },
+      {
+        "code": "contract-source-owner",
+        "path": "sourceDeclarations.2.source",
+        "message": "A complete current source owner must resolve uniquely; candidates=0.",
+        "severity": "error",
+        "questionId": "requested-document-and-returned-file"
+      },
+      {
+        "code": "contract-source-owner",
+        "path": "sourceDeclarations.3.source",
+        "message": "A complete current source owner must resolve uniquely; candidates=0.",
+        "severity": "error",
+        "questionId": "requested-document-and-returned-file"
+      },
+      {
+        "code": "contract-source-owner",
+        "path": "sourceDeclarations.4.source",
+        "message": "A complete current source owner must resolve uniquely; candidates=0.",
+        "severity": "error",
+        "questionId": "requested-document-and-returned-file"
+      },
+      {
+        "code": "contract-source-owner",
+        "path": "sourceDeclarations.5.source",
+        "message": "A complete current source owner must resolve uniquely; candidates=0.",
+        "severity": "error",
+        "questionId": "requested-document-and-returned-file"
+      },
+      {
+        "code": "contract-source-owner",
+        "path": "sourceDeclarations.6.source",
+        "message": "A complete current source owner must resolve uniquely; candidates=0.",
+        "severity": "error",
+        "questionId": "requested-document-and-returned-file"
+      },
+      {
+        "code": "contract-source-owner",
+        "path": "sourceDeclarations.9.source",
+        "message": "A complete current source owner must resolve uniquely; candidates=0.",
+        "severity": "error",
+        "questionId": "requested-document-and-returned-file"
+      }
+    ],
+    "accepted": false,
+    "automaticGenerationCredit": false,
+    "limitation": "A new request contract was rejected; the unchanged original source materials still drive a fresh unknown local check. The executable contract report is invalidated and has no current certified evaluation."
+  },
+  "independentReview": {
+    "readOnlyDefaultScouts": [
+      "bf_previous_trace_readonly"
+    ],
+    "supported": [
+      "two exact restored source materials actually used",
+      "current conditions empty and old unreachable verdict absent",
+      "actual final check unknown cited by answer139",
+      "new request program rejected with eight owner errors"
+    ],
+    "adjudications": [
+      {
+        "claim": "propertyCheckStatus=current versus contract invalidated is false certification",
+        "accepted": false,
+        "reason": "current denotes recomputed-check freshness. The actual property is unknown with no call/effect occurrences, source semanticReview remains unreviewed, wholeTaskCertified/requestOperationCertified are false and the contract exposes no evaluation. No current-success pollution was observed."
+      }
+    ],
+    "humanBlindReview": false
+  },
+  "runtimeTree": "1da810d9ed552f5fc24d817ae53a80dee6d3618f",
+  "costs": {
+    "studyModelUsage": {
+      "input": 1954242,
+      "output": 12501,
+      "cacheRead": 1805568,
+      "cacheWrite": 0
+    },
+    "inputIncludesCacheRead": true,
+    "actualUsd": "unknown",
+    "developmentAndScoutCosts": "unknown"
+  },
+  "automaticGenerationCredit": false,
+  "netBenefitEstablished": false,
+  "comparisonLimitation": "The saved fresh uses the older production epoch and replaced the program; previous preserves the given programme and contains a rejected new request draft. Observed quality/cost differences are descriptive, not a strict controlled reuse effect."
+}
