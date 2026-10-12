@@ -37,10 +37,15 @@ To run the original complete skill and four questions using the official account
 
 ```powershell
 ./examples/authorization-assessment/download-workflow/run.ps1 -Mode account
+./examples/authorization-assessment/download-workflow/run.ps1 -Mode account -ProgramContext full
 ```
 
 This uses `gpt-5.6-sol/high`, the reviewed account boundary, `consume` mode and
-`progressive` policy. On another machine, pass `-AccountBoundary` with that
+`progressive` policy and an explicit compact context by default in this example.
+The ordinary CLI still defaults to full. Compact keeps the current result, guards,
+sources and gaps; `authorization_program_details` retrieves exact steps or the
+full program/trace on request. Complete raw objects remain in the session.
+On another machine, pass `-AccountBoundary` with that
 machine's reviewed generic-instruction boundary; do not copy an unverified pin.
 The account CLI must be a reviewed supported version. The original answer and
 usage are in `report.json`; proposed model edits stay separate from the active
@@ -64,3 +69,12 @@ Actual BG results and independent review are in
 `results/skill-ir/skill-dsl-research/development/authorization-practical-execution-v1/summary.json`.
 Automatic authoring is a separate partial result; this hand-authored example must
 not be counted as its success or as evidence of general cost savings.
+
+To author from the same complete skill, original four questions and scenario,
+without sending the developer program, use `./examples/authorization-assessment/download-workflow/run.ps1 -Mode author`.
+The model can submit `authorization_program`, then patch named steps with
+`authorization_program_patch` and the exact current `baseRevision`. Missing workflow
+fields preserve a same-identity draft. Invalid updates retain a distinct candidate
+preview; they do not replace an existing active result. Inspect both before reuse.
+BH's actual author/consumer results are recorded under
+`results/skill-ir/skill-dsl-research/development/authorization-incremental-program-v1/`.

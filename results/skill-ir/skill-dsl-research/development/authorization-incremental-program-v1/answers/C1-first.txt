@@ -1,0 +1,166 @@
+## 结论
+
+Download 首先按 URL 中的 `pk` 找到 `request_doc`，再解析其版本族的 `root_doc`，并且**始终针对 `root_doc` 做对象级 `view_document` 检查**。检查通过后，代码才根据 `version` 选择实际提供文件的 `file_doc`，最后在该 `file_doc` 的 original/archive 两种表示之间选择。
+
+因此：
+
+- `version` 可以改变提供文件的 Document 记录；
+- `original` 只改变该记录的文件表示；
+- 二者都**不会把对象级授权目标从 `root_doc` 改成所选 `file_doc`**；
+- Download 路径中没有再对所选版本的 owner 或对象权限单独检查。
+
+## 请求到文件的完整路径
+
+1. `DocumentViewSet` 通过路由器注册在 `documents` 资源下；`download` 是只接受 GET 的 detail action，因此路径中的 detail `pk` 传给 `download(request, pk)`。  
+   `src/paperless/urls.py:74-77`、`src/paperless/urls.py:297`、`src/documents/views.py:1834-1839`
+
+2. `download` 调用：
+
+   ```python
+   self.file_response(pk, request, "attachment")
+   ```
+
+   所以响应使用 attachment disposition。文件缺失或 `Document.DoesNotExist` 被转换成 `Http404`。  
+   `src/documents/views.py:1835-1839`
+
+3. `file_response` 以 `include_deleted=True` 调用 `_resolve_request_and_root_doc`。因此初始 `pk` 查询使用 `Document.global_objects`，可以找到已删除记录；找不到则 404。  
+   `src/documents/views.py:1401-1415`、`src/documents/views.py:1429-1434`
+
+4. 从 `request_doc` 解析 `root_doc`：
+
+   - 没有 `root_document_id`：文档自身就是 root；
+   - 有 root 关联：按 `root_document_id` 取得 root；
+   - 相应 root 不存在时，辅助函数回退到传入文档。  
+   `src/documents/versioning.py:146-156`
+
+5. 对 `root_doc` 检查 `view_document`。失败返回 `403 Insufficient permissions`；成功后才继续版本和文件表示选择。  
+   `src/documents/views.py:1421-1427`
+
+6. `_get_effective_file_doc` 选择实际文件文档：  
+   `src/documents/views.py:1388-1399`
+
+   | 条件 | `file_doc` |
+   |---|---|
+   | URL 的 `pk` 本身是版本文档，且没有 `version` 参数 | 直接使用该 `request_doc` |
+   | 其他情况 | 从 `root_doc` 解析请求的版本 |
+
+7. `version` 参数的含义是 **Document ID，不是 `version_index`**：  
+   `src/documents/versioning.py:140-143`、`src/documents/versioning.py:169-195`
+
+   - 参数缺失或值为空：选择 root 版本族中的 latest；
+   - 非整数：`NotFound("Invalid version parameter")`；
+   - ID 不存在：404；
+   - ID 对应文档不属于该 root 版本族：404；
+   - ID 对应 root 自身或其版本：使用该文档。
+   - 当 `version` 参数存在时，解析器允许查询 deleted 记录；特别地，`?version=` 是“参数存在但值为空”，因而会选择包含 deleted 记录范围内的 latest。
+
+8. 最后选择 original/archive：
+
+   ```python
+   use_archive = (
+       not self.original_requested(request)
+       and file_doc.has_archive_version
+   )
+   ```
+
+   `original_requested` 只有在参数存在且值**精确等于字符串 `"true"`**时才成立。  
+   `src/documents/views.py:1369-1373`、`src/documents/views.py:1442-1448`
+
+   所以：
+
+   - `original=true`：返回 `file_doc` 的 original；
+   - 参数缺失、`false`、大小写不同或其他值：
+     - 有 archive：返回 archive；
+     - 没有 archive：回退到 original。
+   - `follow_formatting` 被原样传给 `serve_file`，默认 `False`；它影响响应文件名处理，不改变所选文件文档或 original/archive 决策。  
+     `src/documents/views.py:1442-1448`
+   - `serve_file` 打开相应 original/archive 文件并构造 `FileResponse` 和下载文件名。  
+     `src/documents/views.py:4941-4995`
+
+## 授权顺序和授权对象
+
+`DocumentViewSet` 声明：
+
+```python
+permission_classes = (IsAuthenticated, PaperlessObjectPermissions)
+```
+
+`src/documents/views.py:1008-1021`
+
+REST framework 在进入 action 前执行认证和 view-level permissions；`PaperlessObjectPermissions` 把 GET 映射为模型级 `view_document` 权限。因此通常必须先满足：
+
+1. 用户已认证；
+2. 用户具有 Document 模型的 GET/view 权限。
+
+`framework/rest_framework-3.18.1/rest_framework/views.py:404-421`、`framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246`、`src/documents/permissions.py:30-53`
+
+随后 Download 自行执行对象检查，而不是调用常规的 `get_object()`：
+
+```python
+has_perms_owner_aware(request.user, "view_document", root_doc)
+```
+
+该辅助函数在以下任一条件成立时允许：
+
+- `root_doc.owner is None`；
+- `root_doc.owner == request.user`；
+- Guardian `ObjectPermissionChecker` 对 `root_doc` 返回 `view_document` grant。
+
+`src/documents/permissions.py:624-635`
+
+关键顺序是：
+
+```text
+认证和模型权限
+→ 按 pk 读取 request_doc
+→ 解析 root_doc
+→ 授权 root_doc
+→ 选择 file_doc/version
+→ 选择 original 或 archive
+→ 打开并返回文件
+```
+
+没有第二次针对 `request_doc`、显式选择的版本、`file_doc`、original 文件或 archive 文件的对象权限检查。版本必须属于已授权 root 的版本族，但版本自己的 owner 不参与这条 Download 授权决策。
+
+## 给定开发场景
+
+请求为：
+
+```text
+actor.id = 7
+pk = 10
+version = null
+original = null
+```
+
+在给定 fixture 中：
+
+1. `request_doc` 是 root 文档 10；
+2. 授权对象也是 root 10；
+3. actor 7 是 root 10 的 owner，因此 owner-aware 对象检查通过；
+4. 没有 `version` 参数，选择最新的未删除版本，即文档 11；
+5. `original` 未指定，而且文档 11 有 archive；
+6. 因此实际文件为 **`v1-archive.pdf`**。
+
+文档 11 的 owner 是 9 并不触发额外检查，因为代码授权的是 root 10。
+
+不过这仍以用户通过前置模型权限为条件：fixture 没有给出 actor 7 是否具有 GET 所要求的 Document 模型 `view_document` 权限。若没有，该请求会在进入 Download handler 前被拒绝。
+
+## 未知事实及其阻断的结论
+
+- **用户实际拥有的 Document 模型权限未知**  
+  阻断“请求能否到达 `download` handler”的结论。
+
+- **一般情况下 root 的 owner 和 Guardian grants 未指定**  
+  阻断“任意实际用户是否通过 root 对象检查”的结论。无 owner 或用户就是 owner 时直接允许；否则取决于 Guardian grant。
+
+- **实际数据库中的 `pk`、版本关系、deleted 状态和 latest 排序结果未知**  
+  阻断“实际选择哪个 `file_doc`”的结论。
+
+- **所选文档是否有 archive、底层文件是否存在未知**  
+  阻断“返回 archive、original，还是最终 404”的结论。
+
+- **外部 URL 前缀、代理和部署认证配置不在允许证据中**  
+  阻断对部署后完整公网 URL及部署层额外限制的判断，但不改变上述应用内选择顺序。
+
+自动化的有限场景程序只确认了 fixture 中 `pk=10`、root 10 及 owner shortcut；它没有获得整项操作认证，也没有计算版本和表示分支。上述版本及文件结论来自所列源代码。

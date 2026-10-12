@@ -1,0 +1,150 @@
+{
+  "schemaVersion": "authorization-execution/v1",
+  "initialRevision": "5443a836c2950d236707fd39d19bc6e12cb773b294706c9fa00859d782ae7d10",
+  "finalRevision": "5443a836c2950d236707fd39d19bc6e12cb773b294706c9fa00859d782ae7d10",
+  "programMode": "consume",
+  "executionPolicy": "progressive",
+  "status": "current",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "share-create",
+    "root": {
+      "path": "src/documents/serialisers.py",
+      "startLine": 2873,
+      "endLine": 2886,
+      "receiverClass": "documents.serialisers.ShareLinkSerializer"
+    },
+    "upstream": [
+      "DRF inherited CreateModelMixin and relation field execution are declared assumptions, not supplied framework source in this task."
+    ]
+  },
+  "diagnostics": [],
+  "normalizations": [
+    "sourceDeclarations.0.schemaVersion"
+  ],
+  "drafts": [],
+  "resourceExecution": {
+    "status": "conditional",
+    "inputs": {
+      "actor": null,
+      "request": {
+        "document_id": 10
+      },
+      "documents": [
+        {
+          "id": 10,
+          "owner_id": 9
+        },
+        {
+          "id": 20,
+          "owner_id": 8
+        }
+      ],
+      "model_grants": [
+        {
+          "actor_id": 7,
+          "permission": "documents.add_sharelink"
+        },
+        {
+          "actor_id": 7,
+          "permission": "documents.view_document"
+        }
+      ],
+      "object_grants": [
+        {
+          "actor_id": 7,
+          "document_id": 10,
+          "permission": "view_document"
+        }
+      ]
+    },
+    "values": {
+      "authenticated": false
+    },
+    "events": [
+      {
+        "sequence": 1,
+        "id": "authenticated",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 4696,
+          "endLine": 4710,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        "inputs": {
+          "test": {
+            "truth": "false",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "true"
+              },
+              {
+                "op": "not",
+                "truth": "false"
+              },
+              {
+                "op": "all",
+                "truth": "false"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": null,
+                "residual": {
+                  "literal": null
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": false,
+          "known": true
+        },
+        "outcome": "rejected",
+        "gaps": [],
+        "because": "IsAuthenticated is the first inherited endpoint permission; fixture authentication is an explicit fact."
+      }
+    ],
+    "termination": "endpoint-authentication-denied",
+    "conditions": [],
+    "gaps": [
+      "No target creation or storage access is executed.",
+      "DRF inherited create and relation-field implementation is not included in this task's allowed snapshot.",
+      "Effective grant rows and ORM user identity by primary key are supplied development facts; deployed authentication/backend state remains unknown."
+    ],
+    "semanticSupport": "unreviewed",
+    "requestOperationCertified": false
+  },
+  "propertyChecks": {
+    "schemaVersion": "authorization-property-check/v1",
+    "evaluationVersion": "semantic-completion/v1",
+    "revision": 13,
+    "questions": [
+      {
+        "questionId": "share-create",
+        "properties": [],
+        "gaps": [
+          "property-query-undeclared"
+        ]
+      }
+    ],
+    "diagnostics": [],
+    "originalQuestionCount": 1,
+    "wholeTaskCertified": false,
+    "semanticReview": "unreviewed"
+  },
+  "semanticSupport": "unreviewed",
+  "requestOperationCertified": false
+}

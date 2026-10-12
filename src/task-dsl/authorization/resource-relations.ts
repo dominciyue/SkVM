@@ -36,7 +36,8 @@ export const ResourceStepSchema = z.discriminatedUnion("op", [
   z.object({ ...base, op: z.literal("return"), value: expression }).strict(),
 ])
 export const ResourceWorkflowSchema = z.object({ inputs: z.array(name).max(64), steps: z.array(ResourceStepSchema).min(1).max(128), gaps: z.array(z.string()).max(64).default([]) }).strict().superRefine((v, c) => {
-  const seen = new Set(v.inputs)
+  const seen = new Set<string>()
+  for (const [i, id] of v.inputs.entries()) { if (seen.has(id)) c.addIssue({ code: "custom", path: ["inputs", i], message: "Input identities must be unique" }); seen.add(id) }
   for (const [i, s] of v.steps.entries()) { if (seen.has(s.id)) c.addIssue({ code: "custom", path: ["steps", i, "id"], message: "Input and computed identities must be distinct and unique" }); seen.add(s.id) }
 })
 /** The envelope is bounded; individual authored steps may still need repair. */
@@ -51,7 +52,7 @@ export function inspectResourceDraft(raw: unknown) {
     if ((counts.get(id) ?? 0) > 1) issues.push({ path: `steps.${index}.id`, message: `Duplicate input/computed identity:${id}` })
     return { raw, index, id, parsed, issues }
   })
-  return { workflow, steps }
+  return { workflow, steps, duplicateIds: [...counts].filter(([, count]) => count > 1).map(([id]) => id) }
 }
 export const ExternalAssumptionsSchema = z.array(z.object({ name, arguments: z.record(name, z.custom<FiniteValue>(finiteValue)), value: z.custom<FiniteValue>(finiteValue), reason: z.string().min(1) }).strict()).max(64)
 export interface ResourceProgramInputs { resourceInputs?: Record<string, Record<string, ResourceValue>>; externalAssumptions?: Record<string, z.infer<typeof ExternalAssumptionsSchema>> }
@@ -71,7 +72,7 @@ export function executeResourceWorkflow(raw: unknown, supplied: unknown, options
   const draft = inspectResourceDraft(options.progressive ? raw : ResourceWorkflowSchema.parse(raw)), workflow = draft.workflow, inputs = ResourceInputsSchema.parse(supplied), external = ExternalAssumptionsSchema.parse(options.externalAssumptions ?? [])
   for (const k of Object.keys(inputs)) if (!workflow.inputs.includes(k)) throw new Error(`resource-input-not-declared:${k}`)
   const env: Record<string, Evaluated> = Object.create(null), values: Record<string, ResourceValue> = Object.create(null), events: ResourceEvent[] = [], conditions: unknown[] = []
-  for (const k of workflow.inputs) env[k] = Object.hasOwn(inputs, k) ? known(inputs[k]!) : missing(k)
+  for (const k of workflow.inputs) env[k] = draft.duplicateIds.includes(k) ? missing(`duplicate-identity:${k}`) : Object.hasOwn(inputs, k) ? known(inputs[k]!) : missing(k)
   let termination: string | undefined, returned: ResourceValue | undefined
   const bindings = (row?: Record<string, Scalar>) => {
     const out: Record<string, FiniteValue> = Object.create(null)

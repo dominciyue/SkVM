@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { questionWorkflowDefinitions, questionWorkflowSchemas } from "./question-workflow-wire.ts"
-import { isQuestionWorkflowStrategy } from "../../task-dsl/authorization/control-slice.ts"
+import { isQuestionWorkflowStrategy, isQuestionCheckedStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { PropertyIntentProposalSchema } from "../../task-dsl/authorization/property-intent.ts"
 import { isTaskBindingStrategy, isSemanticCompletionStrategy } from "../../task-dsl/authorization/control-slice.ts"
 import { CompletionEditProposalSchema, isCompletionEditProposal } from "./semantic-completion-wire.ts"
@@ -196,9 +196,15 @@ function operationStepModelSchema(stage?: FocusStage, finalOnly = false, sourceA
     if (!parsed.success) for (const issue of parsed.error.issues) context.addIssue(issue)
   })
 }
-export type InquiryStep = InquiryControlStep | z.infer<typeof localParserSteps> | z.infer<typeof semanticParserSteps> | z.infer<ReturnType<typeof focusedSteps>>
+const ProgramActionSchema = z.object({ kind: z.literal("program"), name: z.enum(["authorization_program", "authorization_program_patch", "authorization_program_details"]), arguments: z.record(z.unknown()) }).strict()
+export type InquiryStep = InquiryControlStep | z.infer<typeof localParserSteps> | z.infer<typeof semanticParserSteps> | z.infer<ReturnType<typeof focusedSteps>> | z.infer<typeof ProgramActionSchema>
 const resultModelSchema = (mode?: "behavior" | "conformance") => mode ? AuthorizationInquiryResultSchema.extend({ questions: z.array(mode === "behavior" ? InquiryQuestionResultSchema.omit({ policyAssessment: true }) : InquiryQuestionResultSchema.extend({ policyAssessment: InquiryQuestionResultSchema.shape.policyAssessment.unwrap() })) }) : AuthorizationInquiryResultSchema
 export function inquiryStepSchemas(strategy: InquiryStrategy, finalOnly = false, mode?: "behavior" | "conformance", stage?: FocusStage) {
+  const schemas = baseInquiryStepSchemas(strategy, finalOnly, mode, stage)
+  if (!isQuestionCheckedStrategy(strategy) || finalOnly) return schemas
+  return { schema: z.union([ProgramActionSchema, schemas.schema]), modelSchema: z.union([ProgramActionSchema, schemas.modelSchema]) }
+}
+function baseInquiryStepSchemas(strategy: InquiryStrategy, finalOnly = false, mode?: "behavior" | "conformance", stage?: FocusStage) {
   if (isFocusedInquiryStrategy(strategy)) {
     const sourceAssisted = isSourceAssistedInquiryStrategy(strategy)
     const semanticCompletion = isSemanticCompletionStrategy(strategy)

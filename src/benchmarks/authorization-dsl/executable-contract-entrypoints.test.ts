@@ -5,6 +5,25 @@ import path from "node:path"
 import { runAuthorizationInquiryCli } from "../../cli/authorization-inquiry.ts"
 import { createNativeInquiryRuntime } from "./inquiry-native.ts"
 import { checkAuthorizationInquiry, executeLocalInquiryRun, inspectLocalInquiry, compareLocalInquiry } from "./inquiry-local.ts"
+import { runAuthorizationInquiry } from "./inquiry-run.ts"
+import { emptyTokenUsage } from "../../core/types.ts"
+test("structured provider can patch a draft and request actual compact program details", async () => {
+  const f = await contractFiles(), input = JSON.parse(await readFile(f.inputFile, "utf8")); let count = 0
+  const program = { ...f.contract, resourceWorkflow: { inputs: [], steps: [{ id: "result", op: "return", value: { literal: 7 }, source: at(8) }] } }
+  const provider: any = { name: "program-mock", async complete(params: any) {
+    const text = params.messages.map((m: any) => m.content).join("\n"), n = count++
+    const revision = /"draftRevision":"([a-f0-9]+)"/.exec(text)?.[1]
+    const value = n === 0 ? { kind: "program", name: "authorization_program_patch", arguments: { baseRevision: revision, upsertSteps: [{ id: "result", op: "return", value: { literal: 19 }, source: at(8) }] } } : { kind: "program", name: "authorization_program_details", arguments: { stepId: "result" } }
+    if (n >= 2) throw new Error("mock-stop-after-details")
+    return { text: "", toolCalls: [{ id: `p${n}`, name: params.tools[0].name, arguments: value }], stopReason: "tool_use", tokens: emptyTokenUsage(), durationMs: 0 }
+  }, async completeWithToolResults() { throw new Error("unused") } }
+  const run = await runAuthorizationInquiry({ ...input, sourceRoot: path.join(f.root, "source"), provider, method: "D1", strategy: "question-checked-v1", domainProgram: program, programMode: "edit", executionPolicy: "progressive", programContext: "compact", maxDispatches: 12 })
+  expect(run.wireFailures.filter(failure => failure.sequence <= 2)).toHaveLength(0)
+  expect(run.domain!.executableContract!.resourceExecution!.returned).toBe(19)
+  const details: any = run.steps.find((s: any) => s.kind === "program" && s.value.name === "authorization_program_details")
+  expect(details.value.output.events[0].outputs.value).toBe(19)
+  expect(run.requests[1]!.params.messages.map(m => m.content).join("\n")).not.toContain('"currentDraft":{"revision"')
+})
 const source = "def local(actor, target):\n    return perform(actor, target)\n\ndef perform(who, item):\n    if not who.allowed:\n        return False\n    item.sent = True\n    return item\n"
 const at = (startLine: number, endLine = startLine, text?: string) => ({ path: "app.py", startLine, endLine, ...(text ? { text } : {}) })
 test("a saved candidate can be restored for a revision patch without adopting its old result", async () => {

@@ -1,0 +1,2713 @@
+{
+  "schemaVersion": "authorization-execution/v1",
+  "initialRevision": "0e448f6a44a0ace785613818f8c42d4893d4bdbe5336f40550d0a776d1eaaa5c",
+  "finalRevision": "0e448f6a44a0ace785613818f8c42d4893d4bdbe5336f40550d0a776d1eaaa5c",
+  "programMode": "consume",
+  "executionPolicy": "progressive",
+  "status": "current",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "requested-document-and-returned-file",
+    "operationId": "document-download",
+    "root": {
+      "path": "src/documents/views.py",
+      "startLine": 1429,
+      "endLine": 1448,
+      "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+      "receiverClass": "documents.views.DocumentViewSet"
+    },
+    "upstream": [
+      "Download router/action, APIView initial authentication and permission classes remain source-review duties outside this local resource summary."
+    ]
+  },
+  "diagnostics": [],
+  "normalizations": [],
+  "drafts": [
+    {
+      "raw": {
+        "schemaVersion": "authorization-question-declaration/v1",
+        "questionId": "requested-document-and-returned-file",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1429,
+          "endLine": 1448,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+          "receiverClass": "documents.views.DocumentViewSet"
+        },
+        "statements": [
+          {
+            "kind": "object",
+            "as": "principal",
+            "expression": "request.user",
+            "because": "The helper evaluates the requesting user.",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1421,
+              "endLine": 1425,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            }
+          },
+          {
+            "kind": "object",
+            "as": "resource",
+            "expression": "root_doc",
+            "because": "The explicit view_document check is performed on the resolved root document.",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1417,
+              "endLine": 1425,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            }
+          },
+          {
+            "kind": "object",
+            "as": "permission",
+            "expression": "view_document",
+            "because": "The helper passes this permission to has_perms_owner_aware.",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1421,
+              "endLine": 1425,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            }
+          },
+          {
+            "kind": "condition",
+            "test": {
+              "op": "any",
+              "args": [
+                {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "root_doc.owner"
+                  }
+                },
+                {
+                  "op": "eq",
+                  "left": {
+                    "binding": "root_doc.owner"
+                  },
+                  "right": {
+                    "binding": "request.user"
+                  }
+                },
+                {
+                  "op": "truthy",
+                  "language": "python",
+                  "value": {
+                    "binding": "object_permission_grant"
+                  }
+                }
+              ]
+            },
+            "authorizes": {
+              "principal": "request.user",
+              "resource": "root_doc",
+              "permission": "view_document",
+              "when": "true"
+            },
+            "because": "Ownerless documents, ownership, or an object grant satisfy the explicit helper.",
+            "at": {
+              "path": "src/documents/permissions.py",
+              "startLine": 624,
+              "endLine": 635,
+              "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+            }
+          },
+          {
+            "kind": "effect",
+            "principal": "request.user",
+            "resource": "file_doc",
+            "because": "After root authorization and effective-version selection, serve_file returns the selected representation.",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1437,
+              "endLine": 1448,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            }
+          },
+          {
+            "kind": "dependency",
+            "as": "resource",
+            "resource": "file_doc",
+            "because": "file_doc can be the directly requested version or a version resolved from root_doc according to the version parameter.",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1388,
+              "endLine": 1399,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            }
+          },
+          {
+            "kind": "residual",
+            "because": "Router dispatch, runtime authentication backends, database contents, object grants, storage existence, and response I/O are not established by this local function.",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1429,
+              "endLine": 1448,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            }
+          }
+        ],
+        "fallthrough": "unknown"
+      },
+      "diagnostics": [
+        {
+          "code": "program-consume-draft",
+          "path": "$",
+          "message": "Inspect the active program; proposed changes remain drafts in consume mode.",
+          "severity": "warning"
+        }
+      ],
+      "baseRevision": "0e448f6a44a0ace785613818f8c42d4893d4bdbe5336f40550d0a776d1eaaa5c",
+      "draftRevision": "cb3d90a257eb6f139100b29f52c1c1c62f8b621c947fc0b7e33b2b292843c574"
+    }
+  ],
+  "resourceExecution": {
+    "status": "conditional",
+    "inputs": {
+      "actor": {
+        "id": 7
+      },
+      "documents": [
+        {
+          "id": 10,
+          "root_document_id": null,
+          "owner_id": 7,
+          "version_index": null,
+          "deleted": false,
+          "has_archive_version": true,
+          "source_file": "root-original.pdf",
+          "archive_file": "root-archive.pdf"
+        },
+        {
+          "id": 11,
+          "root_document_id": 10,
+          "owner_id": 9,
+          "version_index": 1,
+          "deleted": false,
+          "has_archive_version": true,
+          "source_file": "v1-original.pdf",
+          "archive_file": "v1-archive.pdf"
+        },
+        {
+          "id": 12,
+          "root_document_id": 10,
+          "owner_id": 9,
+          "version_index": 2,
+          "deleted": true,
+          "has_archive_version": false,
+          "source_file": "v2-original.txt",
+          "archive_file": null
+        },
+        {
+          "id": 20,
+          "root_document_id": null,
+          "owner_id": 8,
+          "version_index": null,
+          "deleted": false,
+          "has_archive_version": false,
+          "source_file": "other.txt",
+          "archive_file": null
+        }
+      ],
+      "related_root": null,
+      "request": {
+        "pk": 10,
+        "version": null,
+        "original": null
+      }
+    },
+    "values": {
+      "request_include_deleted": true,
+      "request_doc": {
+        "id": 10,
+        "root_document_id": null,
+        "owner_id": 7,
+        "version_index": null,
+        "deleted": false,
+        "has_archive_version": true,
+        "source_file": "root-original.pdf",
+        "archive_file": "root-archive.pdf"
+      },
+      "request_found": true,
+      "root_doc": {
+        "id": 10,
+        "root_document_id": null,
+        "owner_id": 7,
+        "version_index": null,
+        "deleted": false,
+        "has_archive_version": true,
+        "source_file": "root-original.pdf",
+        "archive_file": "root-archive.pdf"
+      },
+      "checker_constructed": true,
+      "checker_completion": true,
+      "root_authorized": true,
+      "direct_requested_version": false,
+      "version_include_deleted": false,
+      "explicit_version": false,
+      "latest_candidate": {
+        "id": 11,
+        "root_document_id": 10,
+        "owner_id": 9,
+        "version_index": 1,
+        "deleted": false,
+        "has_archive_version": true,
+        "source_file": "v1-original.pdf",
+        "archive_file": "v1-archive.pdf"
+      },
+      "latest_file": {
+        "id": 11,
+        "root_document_id": 10,
+        "owner_id": 9,
+        "version_index": 1,
+        "deleted": false,
+        "has_archive_version": true,
+        "source_file": "v1-original.pdf",
+        "archive_file": "v1-archive.pdf"
+      },
+      "file_doc": {
+        "id": 11,
+        "root_document_id": 10,
+        "owner_id": 9,
+        "version_index": 1,
+        "deleted": false,
+        "has_archive_version": true,
+        "source_file": "v1-original.pdf",
+        "archive_file": "v1-archive.pdf"
+      },
+      "original_requested": false,
+      "use_archive": true,
+      "representation": "archive",
+      "selected_path": "v1-archive.pdf",
+      "returned_file": {
+        "requested_id": 10,
+        "authorized_root_id": 10,
+        "file_document_id": 11,
+        "representation": "archive",
+        "path": "v1-archive.pdf",
+        "disposition": "attachment"
+      }
+    },
+    "events": [
+      {
+        "sequence": 1,
+        "id": "request_include_deleted",
+        "op": "value",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1430,
+          "endLine": 1434,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        "inputs": {
+          "expression": {
+            "literal": true
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "file_response passes its own include_deleted=True to requested/root lookup."
+      },
+      {
+        "sequence": 2,
+        "id": "request_doc",
+        "op": "select",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1408,
+          "endLine": 1415,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        "inputs": {
+          "from": "documents",
+          "rows": {
+            "known": true,
+            "value": [
+              {
+                "id": 10,
+                "root_document_id": null,
+                "owner_id": 7,
+                "version_index": null,
+                "deleted": false,
+                "has_archive_version": true,
+                "source_file": "root-original.pdf",
+                "archive_file": "root-archive.pdf"
+              },
+              {
+                "id": 11,
+                "root_document_id": 10,
+                "owner_id": 9,
+                "version_index": 1,
+                "deleted": false,
+                "has_archive_version": true,
+                "source_file": "v1-original.pdf",
+                "archive_file": "v1-archive.pdf"
+              },
+              {
+                "id": 12,
+                "root_document_id": 10,
+                "owner_id": 9,
+                "version_index": 2,
+                "deleted": true,
+                "has_archive_version": false,
+                "source_file": "v2-original.txt",
+                "archive_file": null
+              },
+              {
+                "id": 20,
+                "root_document_id": null,
+                "owner_id": 8,
+                "version_index": null,
+                "deleted": false,
+                "has_archive_version": false,
+                "source_file": "other.txt",
+                "archive_file": null
+              }
+            ],
+            "gaps": []
+          },
+          "where": {
+            "op": "eq",
+            "left": {
+              "binding": "row.id"
+            },
+            "right": {
+              "binding": "request.pk"
+            }
+          },
+          "candidates": [
+            {
+              "row": {
+                "id": 10,
+                "root_document_id": null,
+                "owner_id": 7,
+                "version_index": null,
+                "deleted": false,
+                "has_archive_version": true,
+                "source_file": "root-original.pdf",
+                "archive_file": "root-archive.pdf"
+              },
+              "predicate": {
+                "truth": "true",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "true"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": 10,
+                    "residual": {
+                      "literal": 10
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 10,
+                    "residual": {
+                      "literal": 10
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "id": 11,
+                "root_document_id": 10,
+                "owner_id": 9,
+                "version_index": 1,
+                "deleted": false,
+                "has_archive_version": true,
+                "source_file": "v1-original.pdf",
+                "archive_file": "v1-archive.pdf"
+              },
+              "predicate": {
+                "truth": "false",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "false"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": 11,
+                    "residual": {
+                      "literal": 11
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 10,
+                    "residual": {
+                      "literal": 10
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "id": 12,
+                "root_document_id": 10,
+                "owner_id": 9,
+                "version_index": 2,
+                "deleted": true,
+                "has_archive_version": false,
+                "source_file": "v2-original.txt",
+                "archive_file": null
+              },
+              "predicate": {
+                "truth": "false",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "false"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": 12,
+                    "residual": {
+                      "literal": 12
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 10,
+                    "residual": {
+                      "literal": 10
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "id": 20,
+                "root_document_id": null,
+                "owner_id": 8,
+                "version_index": null,
+                "deleted": false,
+                "has_archive_version": false,
+                "source_file": "other.txt",
+                "archive_file": null
+              },
+              "predicate": {
+                "truth": "false",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "false"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": 20,
+                    "residual": {
+                      "literal": 20
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 10,
+                    "residual": {
+                      "literal": 10
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "outputs": {
+          "value": {
+            "id": 10,
+            "root_document_id": null,
+            "owner_id": 7,
+            "version_index": null,
+            "deleted": false,
+            "has_archive_version": true,
+            "source_file": "root-original.pdf",
+            "archive_file": "root-archive.pdf"
+          },
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Select the requested pk from the supplied complete finite global-object population, including deleted records."
+      },
+      {
+        "sequence": 3,
+        "id": "request_found",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1410,
+          "endLine": 1415,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        "inputs": {
+          "test": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": {
+                  "id": 10,
+                  "root_document_id": null,
+                  "owner_id": 7,
+                  "version_index": null,
+                  "deleted": false,
+                  "has_archive_version": true,
+                  "source_file": "root-original.pdf",
+                  "archive_file": "root-archive.pdf"
+                },
+                "residual": {
+                  "literal": {
+                    "id": 10,
+                    "root_document_id": null,
+                    "owner_id": 7,
+                    "version_index": null,
+                    "deleted": false,
+                    "has_archive_version": true,
+                    "source_file": "root-original.pdf",
+                    "archive_file": "root-archive.pdf"
+                  }
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Missing requested document stops before root authorization."
+      },
+      {
+        "sequence": 4,
+        "id": "root_lookup",
+        "op": "select",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/versioning.py",
+          "startLine": 154,
+          "endLine": 156,
+          "sha256": "de017348cbb361787d68433537bdbd39f8b56a95185a53c3cef3aa10df365766"
+        },
+        "inputs": {
+          "when": {
+            "truth": "false",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "true"
+              },
+              {
+                "op": "not",
+                "truth": "false"
+              },
+              {
+                "op": "all",
+                "truth": "false"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": null,
+                "residual": {
+                  "literal": null
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "known": true,
+          "value": null
+        },
+        "outcome": "skipped",
+        "gaps": [],
+        "because": "Fallback root lookup has the requested/root helper's own include_deleted=True.",
+        "condition": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "request_doc.root_document_id"
+                }
+              }
+            },
+            {
+              "op": "is-null",
+              "value": {
+                "binding": "related_root"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "sequence": 5,
+        "id": "root_doc",
+        "op": "value",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/versioning.py",
+          "startLine": 146,
+          "endLine": 156,
+          "sha256": "de017348cbb361787d68433537bdbd39f8b56a95185a53c3cef3aa10df365766"
+        },
+        "inputs": {
+          "expression": {
+            "choose": {
+              "test": {
+                "op": "is-null",
+                "value": {
+                  "binding": "request_doc.root_document_id"
+                }
+              },
+              "then": {
+                "ref": "request_doc"
+              },
+              "else": {
+                "coalesce": [
+                  {
+                    "ref": "related_root"
+                  },
+                  {
+                    "ref": "root_lookup"
+                  },
+                  {
+                    "ref": "request_doc"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "outputs": {
+          "value": {
+            "id": 10,
+            "root_document_id": null,
+            "owner_id": 7,
+            "version_index": null,
+            "deleted": false,
+            "has_archive_version": true,
+            "source_file": "root-original.pdf",
+            "archive_file": "root-archive.pdf"
+          },
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Root records return themselves; a loaded relation wins; otherwise root lookup or requested record fallback."
+      },
+      {
+        "sequence": 6,
+        "id": "checker_constructed",
+        "op": "external",
+        "executor": "host",
+        "meaningOrigin": "external-assumption",
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 634,
+          "endLine": 634,
+          "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+        },
+        "inputs": {
+          "when": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": {
+                  "id": 7
+                },
+                "residual": {
+                  "literal": {
+                    "id": 7
+                  }
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          },
+          "arguments": {
+            "user": {
+              "known": true,
+              "value": 7,
+              "gaps": []
+            }
+          },
+          "name": "ObjectPermissionChecker.construct",
+          "assumption": {
+            "name": "ObjectPermissionChecker.construct",
+            "arguments": {
+              "user": 7
+            },
+            "value": true,
+            "reason": "Development fixture assumes normal external constructor completion, not a grant."
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "The external checker constructor executes even on the unowned/owner shortcut; normal completion is an explicit external assumption.",
+        "condition": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "actor"
+            }
+          }
+        }
+      },
+      {
+        "sequence": 7,
+        "id": "checker_completion",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 634,
+          "endLine": 634,
+          "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+        },
+        "inputs": {
+          "when": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": {
+                  "id": 7
+                },
+                "residual": {
+                  "literal": {
+                    "id": 7
+                  }
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          },
+          "test": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "truthy",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": true,
+                "residual": {
+                  "literal": true
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Continue only conditionally when external constructor completion is unknown.",
+        "condition": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "actor"
+            }
+          }
+        }
+      },
+      {
+        "sequence": 8,
+        "id": "object_grant",
+        "op": "external",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/permissions.py",
+          "startLine": 635,
+          "endLine": 635,
+          "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+        },
+        "inputs": {
+          "when": {
+            "truth": "false",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              },
+              {
+                "op": "is-null",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              },
+              {
+                "op": "eq",
+                "truth": "true"
+              },
+              {
+                "op": "not",
+                "truth": "false"
+              },
+              {
+                "op": "all",
+                "truth": "false"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": {
+                  "id": 7
+                },
+                "residual": {
+                  "literal": {
+                    "id": 7
+                  }
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": 7,
+                "residual": {
+                  "literal": 7
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": 7,
+                "residual": {
+                  "literal": 7
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": 7,
+                "residual": {
+                  "literal": 7
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "known": true,
+          "value": null
+        },
+        "outcome": "skipped",
+        "gaps": [],
+        "because": "External object grant is consulted only after unowned and same-owner shortcuts; it stays unknown without an exact argument assumption.",
+        "condition": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "actor"
+                }
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "root_doc.owner_id"
+                }
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "eq",
+                "left": {
+                  "binding": "root_doc.owner_id"
+                },
+                "right": {
+                  "binding": "actor.id"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "sequence": 9,
+        "id": "root_authorized",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1421,
+          "endLine": 1427,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        "sources": [
+          {
+            "path": "src/documents/permissions.py",
+            "startLine": 624,
+            "endLine": 635,
+            "sha256": "bb2af1efd059d69f489dea57fb579cf78967e607455820cedc2ea21226475065"
+          }
+        ],
+        "inputs": {
+          "test": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "is-null",
+                "truth": "false"
+              },
+              {
+                "op": "is-null",
+                "truth": "false"
+              },
+              {
+                "op": "eq",
+                "truth": "true"
+              },
+              {
+                "op": "any",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": {
+                  "id": 7
+                },
+                "residual": {
+                  "literal": {
+                    "id": 7
+                  }
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": 7,
+                "residual": {
+                  "literal": 7
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": 7,
+                "residual": {
+                  "literal": 7
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": 7,
+                "residual": {
+                  "literal": 7
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          },
+          "permission": "view_document",
+          "principal": {
+            "id": 7
+          },
+          "resource": {
+            "id": 10,
+            "root_document_id": null,
+            "owner_id": 7,
+            "version_index": null,
+            "deleted": false,
+            "has_archive_version": true,
+            "source_file": "root-original.pdf",
+            "archive_file": "root-archive.pdf"
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "For non-null user, owner-aware permission is checked on root_doc before effective-file selection. Null user skips this local check only; this says nothing about request authentication."
+      },
+      {
+        "sequence": 10,
+        "id": "direct_requested_version",
+        "op": "value",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1394,
+          "endLine": 1399,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        "inputs": {
+          "expression": {
+            "test": {
+              "op": "all",
+              "args": [
+                {
+                  "op": "not",
+                  "arg": {
+                    "op": "is-null",
+                    "value": {
+                      "binding": "request_doc.root_document_id"
+                    }
+                  }
+                },
+                {
+                  "op": "is-null",
+                  "value": {
+                    "binding": "request.version"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "outputs": {
+          "value": false,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "A requested version with no version parameter returns itself after root authorization."
+      },
+      {
+        "sequence": 11,
+        "id": "version_include_deleted",
+        "op": "value",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1375,
+          "endLine": 1381,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        "inputs": {
+          "expression": {
+            "test": {
+              "op": "not",
+              "arg": {
+                "op": "is-null",
+                "value": {
+                  "binding": "request.version"
+                }
+              }
+            }
+          }
+        },
+        "outputs": {
+          "value": false,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Version selection independently uses presence, not truthiness, to choose its manager; empty string is present."
+      },
+      {
+        "sequence": 12,
+        "id": "explicit_version",
+        "op": "value",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/versioning.py",
+          "startLine": 175,
+          "endLine": 182,
+          "sha256": "de017348cbb361787d68433537bdbd39f8b56a95185a53c3cef3aa10df365766"
+        },
+        "inputs": {
+          "expression": {
+            "test": {
+              "op": "truthy",
+              "language": "python",
+              "value": {
+                "binding": "request.version"
+              }
+            }
+          }
+        },
+        "outputs": {
+          "value": false,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "The inner selector separately uses truthiness: null and empty string choose latest."
+      },
+      {
+        "sequence": 13,
+        "id": "version_id",
+        "op": "value",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/versioning.py",
+          "startLine": 184,
+          "endLine": 187,
+          "sha256": "de017348cbb361787d68433537bdbd39f8b56a95185a53c3cef3aa10df365766"
+        },
+        "inputs": {
+          "when": {
+            "truth": "false",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "truthy",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              },
+              {
+                "op": "truthy",
+                "truth": "false"
+              },
+              {
+                "op": "all",
+                "truth": "false"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": false,
+                "residual": {
+                  "literal": false
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": false,
+                "residual": {
+                  "literal": false
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "known": true,
+          "value": null
+        },
+        "outcome": "skipped",
+        "gaps": [],
+        "because": "Parse explicit version as bounded decimal; invalid ASCII maps to null and unsupported Python integer forms remain gaps.",
+        "condition": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "direct_requested_version"
+                }
+              }
+            },
+            {
+              "op": "truthy",
+              "language": "python",
+              "value": {
+                "binding": "explicit_version"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "sequence": 14,
+        "id": "version_valid",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1382,
+          "endLine": 1383,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        "inputs": {
+          "when": {
+            "truth": "false",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "truthy",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              },
+              {
+                "op": "truthy",
+                "truth": "false"
+              },
+              {
+                "op": "all",
+                "truth": "false"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": false,
+                "residual": {
+                  "literal": false
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": false,
+                "residual": {
+                  "literal": false
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "known": true,
+          "value": null
+        },
+        "outcome": "skipped",
+        "gaps": [],
+        "because": "Invalid explicit version returns before candidate/file selection.",
+        "condition": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "direct_requested_version"
+                }
+              }
+            },
+            {
+              "op": "truthy",
+              "language": "python",
+              "value": {
+                "binding": "explicit_version"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "sequence": 15,
+        "id": "candidate",
+        "op": "select",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/versioning.py",
+          "startLine": 189,
+          "endLine": 192,
+          "sha256": "de017348cbb361787d68433537bdbd39f8b56a95185a53c3cef3aa10df365766"
+        },
+        "inputs": {
+          "when": {
+            "truth": "false",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "truthy",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              },
+              {
+                "op": "truthy",
+                "truth": "false"
+              },
+              {
+                "op": "all",
+                "truth": "false"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": false,
+                "residual": {
+                  "literal": false
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": false,
+                "residual": {
+                  "literal": false
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "known": true,
+          "value": null
+        },
+        "outcome": "skipped",
+        "gaps": [],
+        "because": "Explicit candidate selection uses only its own include_deleted argument.",
+        "condition": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "direct_requested_version"
+                }
+              }
+            },
+            {
+              "op": "truthy",
+              "language": "python",
+              "value": {
+                "binding": "explicit_version"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "sequence": 16,
+        "id": "candidate_found",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1384,
+          "endLine": 1385,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        "inputs": {
+          "when": {
+            "truth": "false",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "truthy",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              },
+              {
+                "op": "truthy",
+                "truth": "false"
+              },
+              {
+                "op": "all",
+                "truth": "false"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": false,
+                "residual": {
+                  "literal": false
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": false,
+                "residual": {
+                  "literal": false
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "known": true,
+          "value": null
+        },
+        "outcome": "skipped",
+        "gaps": [],
+        "because": "No selected candidate stops the response.",
+        "condition": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "direct_requested_version"
+                }
+              }
+            },
+            {
+              "op": "truthy",
+              "language": "python",
+              "value": {
+                "binding": "explicit_version"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "sequence": 17,
+        "id": "candidate_belongs",
+        "op": "guard",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/versioning.py",
+          "startLine": 193,
+          "endLine": 195,
+          "sha256": "de017348cbb361787d68433537bdbd39f8b56a95185a53c3cef3aa10df365766"
+        },
+        "inputs": {
+          "when": {
+            "truth": "false",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "truthy",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              },
+              {
+                "op": "truthy",
+                "truth": "false"
+              },
+              {
+                "op": "all",
+                "truth": "false"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": false,
+                "residual": {
+                  "literal": false
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": false,
+                "residual": {
+                  "literal": false
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "known": true,
+          "value": null
+        },
+        "outcome": "skipped",
+        "gaps": [],
+        "because": "Candidate must equal the authorized root or refer to that root.",
+        "condition": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "direct_requested_version"
+                }
+              }
+            },
+            {
+              "op": "truthy",
+              "language": "python",
+              "value": {
+                "binding": "explicit_version"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "sequence": 18,
+        "id": "latest_candidate",
+        "op": "select",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/versioning.py",
+          "startLine": 159,
+          "endLine": 166,
+          "sha256": "de017348cbb361787d68433537bdbd39f8b56a95185a53c3cef3aa10df365766"
+        },
+        "inputs": {
+          "when": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "truthy",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              },
+              {
+                "op": "truthy",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              },
+              {
+                "op": "all",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": false,
+                "residual": {
+                  "literal": false
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": false,
+                "residual": {
+                  "literal": false
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          },
+          "from": "documents",
+          "rows": {
+            "known": true,
+            "value": [
+              {
+                "id": 10,
+                "root_document_id": null,
+                "owner_id": 7,
+                "version_index": null,
+                "deleted": false,
+                "has_archive_version": true,
+                "source_file": "root-original.pdf",
+                "archive_file": "root-archive.pdf"
+              },
+              {
+                "id": 11,
+                "root_document_id": 10,
+                "owner_id": 9,
+                "version_index": 1,
+                "deleted": false,
+                "has_archive_version": true,
+                "source_file": "v1-original.pdf",
+                "archive_file": "v1-archive.pdf"
+              },
+              {
+                "id": 12,
+                "root_document_id": 10,
+                "owner_id": 9,
+                "version_index": 2,
+                "deleted": true,
+                "has_archive_version": false,
+                "source_file": "v2-original.txt",
+                "archive_file": null
+              },
+              {
+                "id": 20,
+                "root_document_id": null,
+                "owner_id": 8,
+                "version_index": null,
+                "deleted": false,
+                "has_archive_version": false,
+                "source_file": "other.txt",
+                "archive_file": null
+              }
+            ],
+            "gaps": []
+          },
+          "where": {
+            "op": "all",
+            "args": [
+              {
+                "op": "eq",
+                "left": {
+                  "binding": "row.root_document_id"
+                },
+                "right": {
+                  "binding": "root_doc.id"
+                }
+              },
+              {
+                "op": "any",
+                "args": [
+                  {
+                    "op": "truthy",
+                    "language": "python",
+                    "value": {
+                      "binding": "version_include_deleted"
+                    }
+                  },
+                  {
+                    "op": "eq",
+                    "left": {
+                      "binding": "row.deleted"
+                    },
+                    "right": {
+                      "literal": false
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "candidates": [
+            {
+              "row": {
+                "id": 10,
+                "root_document_id": null,
+                "owner_id": 7,
+                "version_index": null,
+                "deleted": false,
+                "has_archive_version": true,
+                "source_file": "root-original.pdf",
+                "archive_file": "root-archive.pdf"
+              },
+              "predicate": {
+                "truth": "false",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "false"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "false"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": null,
+                    "residual": {
+                      "literal": null
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 10,
+                    "residual": {
+                      "literal": 10
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "id": 11,
+                "root_document_id": 10,
+                "owner_id": 9,
+                "version_index": 1,
+                "deleted": false,
+                "has_archive_version": true,
+                "source_file": "v1-original.pdf",
+                "archive_file": "v1-archive.pdf"
+              },
+              "predicate": {
+                "truth": "true",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "true"
+                  },
+                  {
+                    "op": "truthy",
+                    "truth": "false"
+                  },
+                  {
+                    "op": "eq",
+                    "truth": "true"
+                  },
+                  {
+                    "op": "any",
+                    "truth": "true"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "true"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": 10,
+                    "residual": {
+                      "literal": 10
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 10,
+                    "residual": {
+                      "literal": 10
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": false,
+                    "residual": {
+                      "literal": false
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": false,
+                    "residual": {
+                      "literal": false
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": false,
+                    "residual": {
+                      "literal": false
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "literal"
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "id": 12,
+                "root_document_id": 10,
+                "owner_id": 9,
+                "version_index": 2,
+                "deleted": true,
+                "has_archive_version": false,
+                "source_file": "v2-original.txt",
+                "archive_file": null
+              },
+              "predicate": {
+                "truth": "false",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "true"
+                  },
+                  {
+                    "op": "truthy",
+                    "truth": "false"
+                  },
+                  {
+                    "op": "eq",
+                    "truth": "false"
+                  },
+                  {
+                    "op": "any",
+                    "truth": "false"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "false"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": 10,
+                    "residual": {
+                      "literal": 10
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 10,
+                    "residual": {
+                      "literal": 10
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": false,
+                    "residual": {
+                      "literal": false
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": true,
+                    "residual": {
+                      "literal": true
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": false,
+                    "residual": {
+                      "literal": false
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "literal"
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "id": 20,
+                "root_document_id": null,
+                "owner_id": 8,
+                "version_index": null,
+                "deleted": false,
+                "has_archive_version": false,
+                "source_file": "other.txt",
+                "archive_file": null
+              },
+              "predicate": {
+                "truth": "false",
+                "residual": null,
+                "missingBindings": [],
+                "trace": [
+                  {
+                    "op": "eq",
+                    "truth": "false"
+                  },
+                  {
+                    "op": "all",
+                    "truth": "false"
+                  }
+                ],
+                "diagnostics": [],
+                "valueTrace": [
+                  {
+                    "known": true,
+                    "value": null,
+                    "residual": {
+                      "literal": null
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  },
+                  {
+                    "known": true,
+                    "value": 10,
+                    "residual": {
+                      "literal": 10
+                    },
+                    "missingBindings": [],
+                    "diagnostics": [],
+                    "origin": "binding"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "outputs": {
+          "value": {
+            "id": 11,
+            "root_document_id": 10,
+            "owner_id": 9,
+            "version_index": 1,
+            "deleted": false,
+            "has_archive_version": true,
+            "source_file": "v1-original.pdf",
+            "archive_file": "v1-archive.pdf"
+          },
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Latest selection uses its own manager and source ordering, with root fallback when empty.",
+        "condition": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "direct_requested_version"
+                }
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "explicit_version"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "sequence": 19,
+        "id": "latest_file",
+        "op": "value",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/versioning.py",
+          "startLine": 165,
+          "endLine": 166,
+          "sha256": "de017348cbb361787d68433537bdbd39f8b56a95185a53c3cef3aa10df365766"
+        },
+        "inputs": {
+          "when": {
+            "truth": "true",
+            "residual": null,
+            "missingBindings": [],
+            "trace": [
+              {
+                "op": "truthy",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              },
+              {
+                "op": "truthy",
+                "truth": "false"
+              },
+              {
+                "op": "not",
+                "truth": "true"
+              },
+              {
+                "op": "all",
+                "truth": "true"
+              }
+            ],
+            "diagnostics": [],
+            "valueTrace": [
+              {
+                "known": true,
+                "value": false,
+                "residual": {
+                  "literal": false
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              },
+              {
+                "known": true,
+                "value": false,
+                "residual": {
+                  "literal": false
+                },
+                "missingBindings": [],
+                "diagnostics": [],
+                "origin": "binding"
+              }
+            ]
+          },
+          "expression": {
+            "coalesce": [
+              {
+                "ref": "latest_candidate"
+              },
+              {
+                "ref": "root_doc"
+              }
+            ]
+          }
+        },
+        "outputs": {
+          "value": {
+            "id": 11,
+            "root_document_id": 10,
+            "owner_id": 9,
+            "version_index": 1,
+            "deleted": false,
+            "has_archive_version": true,
+            "source_file": "v1-original.pdf",
+            "archive_file": "v1-archive.pdf"
+          },
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "An empty latest-version selection returns the authorized root.",
+        "condition": {
+          "op": "all",
+          "args": [
+            {
+              "op": "not",
+              "arg": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "direct_requested_version"
+                }
+              }
+            },
+            {
+              "op": "not",
+              "arg": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "explicit_version"
+                }
+              }
+            }
+          ]
+        }
+      },
+      {
+        "sequence": 20,
+        "id": "file_doc",
+        "op": "value",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1388,
+          "endLine": 1399,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        "inputs": {
+          "expression": {
+            "choose": {
+              "test": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "direct_requested_version"
+                }
+              },
+              "then": {
+                "ref": "request_doc"
+              },
+              "else": {
+                "choose": {
+                  "test": {
+                    "op": "truthy",
+                    "language": "python",
+                    "value": {
+                      "binding": "explicit_version"
+                    }
+                  },
+                  "then": {
+                    "ref": "candidate"
+                  },
+                  "else": {
+                    "ref": "latest_file"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "outputs": {
+          "value": {
+            "id": 11,
+            "root_document_id": 10,
+            "owner_id": 9,
+            "version_index": 1,
+            "deleted": false,
+            "has_archive_version": true,
+            "source_file": "v1-original.pdf",
+            "archive_file": "v1-archive.pdf"
+          },
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "The selected file object is computed after root permission; explicit selection is not a second permission check."
+      },
+      {
+        "sequence": 21,
+        "id": "original_requested",
+        "op": "value",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1369,
+          "endLine": 1373,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        "inputs": {
+          "expression": {
+            "test": {
+              "op": "eq",
+              "left": {
+                "binding": "request.original"
+              },
+              "right": {
+                "literal": "true"
+              }
+            }
+          }
+        },
+        "outputs": {
+          "value": false,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Only exact string true requests original; absent original must be supplied as null in complete query facts."
+      },
+      {
+        "sequence": 22,
+        "id": "use_archive",
+        "op": "value",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1442,
+          "endLine": 1448,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        "inputs": {
+          "expression": {
+            "test": {
+              "op": "all",
+              "args": [
+                {
+                  "op": "not",
+                  "arg": {
+                    "op": "truthy",
+                    "language": "python",
+                    "value": {
+                      "binding": "original_requested"
+                    }
+                  }
+                },
+                {
+                  "op": "truthy",
+                  "language": "python",
+                  "value": {
+                    "binding": "file_doc.has_archive_version"
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "outputs": {
+          "value": true,
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Representation follows selected file archive availability and exact original request; root authorization remains unchanged."
+      },
+      {
+        "sequence": 23,
+        "id": "representation",
+        "op": "value",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 4941,
+          "endLine": 4970,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        "inputs": {
+          "expression": {
+            "choose": {
+              "test": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "use_archive"
+                }
+              },
+              "then": {
+                "literal": "archive"
+              },
+              "else": {
+                "literal": "original"
+              }
+            }
+          }
+        },
+        "outputs": {
+          "value": "archive",
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "serve_file chooses archive or source representation."
+      },
+      {
+        "sequence": 24,
+        "id": "selected_path",
+        "op": "value",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 4941,
+          "endLine": 4970,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        "inputs": {
+          "expression": {
+            "choose": {
+              "test": {
+                "op": "truthy",
+                "language": "python",
+                "value": {
+                  "binding": "use_archive"
+                }
+              },
+              "then": {
+                "field": {
+                  "of": {
+                    "ref": "file_doc"
+                  },
+                  "key": "archive_file"
+                }
+              },
+              "else": {
+                "field": {
+                  "of": {
+                    "ref": "file_doc"
+                  },
+                  "key": "source_file"
+                }
+              }
+            }
+          }
+        },
+        "outputs": {
+          "value": "v1-archive.pdf",
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "File location is a supplied source-object field; no disk or business code is executed."
+      },
+      {
+        "sequence": 25,
+        "id": "returned_file",
+        "op": "return",
+        "executor": "host",
+        "meaningOrigin": "authored-program",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1442,
+          "endLine": 1448,
+          "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+        },
+        "inputs": {
+          "expression": {
+            "record": {
+              "requested_id": {
+                "field": {
+                  "of": {
+                    "ref": "request_doc"
+                  },
+                  "key": "id"
+                }
+              },
+              "authorized_root_id": {
+                "field": {
+                  "of": {
+                    "ref": "root_doc"
+                  },
+                  "key": "id"
+                }
+              },
+              "file_document_id": {
+                "field": {
+                  "of": {
+                    "ref": "file_doc"
+                  },
+                  "key": "id"
+                }
+              },
+              "representation": {
+                "ref": "representation"
+              },
+              "path": {
+                "ref": "selected_path"
+              },
+              "disposition": {
+                "literal": "attachment"
+              }
+            }
+          }
+        },
+        "outputs": {
+          "value": {
+            "requested_id": 10,
+            "authorized_root_id": 10,
+            "file_document_id": 11,
+            "representation": "archive",
+            "path": "v1-archive.pdf",
+            "disposition": "attachment"
+          },
+          "known": true
+        },
+        "outcome": "computed",
+        "gaps": [],
+        "because": "Conditional file-response descriptor after computed selection. Actual storage open, formatting, headers and external exceptions remain separate gaps, not a claimed successful network response."
+      }
+    ],
+    "returned": {
+      "requested_id": 10,
+      "authorized_root_id": 10,
+      "file_document_id": 11,
+      "representation": "archive",
+      "path": "v1-archive.pdf",
+      "disposition": "attachment"
+    },
+    "termination": "return",
+    "conditions": [],
+    "gaps": [
+      "Request-level routing/authentication/permission checks require independent original-source review.",
+      "Storage existence/opening, filename formatting, FileResponse and header behavior are outside the finite selection descriptor.",
+      "ORM/database failure and external checker behavior are not executed; source summaries are authored and unreviewed."
+    ],
+    "semanticSupport": "unreviewed",
+    "requestOperationCertified": false
+  },
+  "propertyChecks": {
+    "schemaVersion": "authorization-property-check/v1",
+    "evaluationVersion": "semantic-completion/v1",
+    "revision": 8,
+    "questions": [
+      {
+        "questionId": "requested-document-and-returned-file",
+        "properties": [],
+        "gaps": [
+          "property-query-undeclared"
+        ]
+      },
+      {
+        "questionId": "authorization-and-selection-order",
+        "properties": [],
+        "gaps": [
+          "property-query-undeclared"
+        ]
+      },
+      {
+        "questionId": "alternate-version-authorized-resource",
+        "properties": [],
+        "gaps": [
+          "property-query-undeclared"
+        ]
+      },
+      {
+        "questionId": "missing-facts-and-conditional-conclusions",
+        "properties": [],
+        "gaps": [
+          "property-query-undeclared"
+        ]
+      }
+    ],
+    "diagnostics": [],
+    "originalQuestionCount": 4,
+    "wholeTaskCertified": false,
+    "semanticReview": "unreviewed"
+  },
+  "semanticSupport": "unreviewed",
+  "requestOperationCertified": false
+}

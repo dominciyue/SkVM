@@ -2,7 +2,7 @@
 
 更新于2026-10-12。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BH0–BH17：DSL渐进编写、有效草稿保留与高效消费](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)，`planned-authorized`。基线`4595339f`；保留BG已运行的Download程序，规划未新增生产实现或模型结果。
+- 当前任务书：[BH0–BH17](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)，`completed-with-unmet-criteria`。实际接管2c64f50f；工程及有限队列完成，自动主链与稳定收益未达，见[summary](../../results/skill-ir/skill-dsl-research/development/authorization-incremental-program-v1/summary.json)。
 - 方法合同：[spec§14.47](skill-ir-aot-optimization-spec.md#1447-bh-incremental-program-authoring-and-consumption)；复盘统一在[研究§7.69](skill-dsl-research.md#769-bh-发布后复核与渐进编写消费决定)。BG已有结果见§7.68和[summary](../../results/skill-ir/skill-dsl-research/development/authorization-practical-execution-v1/summary.json)。
 - identity：`authorization-incremental-program-v1`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；派发后新线程独占代码、共享方法文档与Git写入。
 - 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停，OWUI/历史未知ShareLink仅离线，旧未知和保护证据保持。

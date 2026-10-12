@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile, readdir } from "node:fs/promises"
 import path from "node:path"
 import { createHash } from "node:crypto"
+import { execFileSync } from "node:child_process"
 import { checkAuthorizationInquiry, saveLocalInquiryCheck, inspectLocalInquiry, executeLocalInquiryRun } from "../../../../../src/benchmarks/authorization-dsl/inquiry-local.ts"
 import { createNativeInquiryRuntime } from "../../../../../src/benchmarks/authorization-dsl/inquiry-native.ts"
 import { projectProgramConsumption } from "../../../../../src/task-dsl/authorization/program-consumption-context.ts"
@@ -63,6 +64,8 @@ async function run(position: string, attempt = "first") {
   const inputFile = path.join(base, `inputs/${position === "C2" ? "empty-version" : "root-default"}.json`), outDir = path.join(base, "runs", `${position}-${attempt}`)
   const c1 = [...ledger].reverse().find(r => r.position === "C1" && r.status === "completed")
   const entry: any = { position, attempt, status: "running", startedAt: new Date().toISOString(), model: "gpt-5.6-sol", effort: "high", programContext: position === "P-full" ? "full" : "compact", inputHash: hash(await load(inputFile)), programHash: domainProgramFile ? hash(await load(domainProgramFile)) : null, input: relative(inputFile), source: "original allowed snapshot", originalQuestions: 4, limits: { maxToolCalls: 64, maxDisplayBytes: 786432, maxReadBytes: 33554432, sessionTimeoutMs: 2700000 } }
+  entry.codeEpoch = execFileSync("git", ["rev-parse", "HEAD"], { cwd: repo, encoding: "utf8" }).trim()
+  entry.sourceDiffHash = hash(execFileSync("git", ["diff", "HEAD", "--", "src"], { cwd: repo, encoding: "utf8" }))
   ledger.push(entry); await save(ledgerFile, ledger)
   try {
     const report: any = await executeLocalInquiryRun({ inputFile, domainProgramFile, outDir, model: "gpt-5.6-sol", method: "D1", strategy: "question-checked-v1", harness: "codex-account", programMode: position === "A1" ? "edit" : "consume", executionPolicy: "progressive", programContext: entry.programContext, ...(position === "C2" && c1 ? { previous: path.join(repo, c1.session) } : {}), accountBoundaryFile: path.resolve(base, "../authorization-executable-contract-v1/account-boundary.json"), skillFile: path.resolve(base, "../authorization-domain-execution-v1/model/source-skills/cloudflare-security-audit/SKILL.md"), execution: entry.limits })

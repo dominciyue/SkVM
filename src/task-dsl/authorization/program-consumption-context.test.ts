@@ -1,5 +1,14 @@
 import { expect, test } from "bun:test"
 const api = await import("./program-consumption-context.ts").catch(() => ({} as any))
+test("compact preserves the authored branch rule even when a scenario skips it", () => {
+  const rule = { id: "include_hidden", op: "value", value: { test: { op: "not", arg: { op: "is-null", value: { binding: "request.selection" } } } }, when: { op: "truthy", language: "python", value: { binding: "enabled" } }, source: { path: "a.py", startLine: 1 }, because: "Actual source condition" }
+  const report = { program: { id: "p", resourceWorkflow: { inputs: ["request"], steps: [rule] } }, resourceExecution: { events: [{ id: rule.id, op: rule.op, outcome: "skipped", outputs: { value: null }, gaps: [] }] } }
+  const compact = api.projectProgramConsumption(report, [], "compact")
+  expect(compact.rules[0].value).toEqual(rule.value)
+  expect(compact.rules[0].when).toEqual(rule.when)
+  expect(compact.rules[0].source).toEqual(rule.source)
+  expect(api.projectProgramConsumption(report, [], "full")).toBe(report)
+})
 test("compact consumption preserves current results and gaps while details recover exact events", () => {
   expect(typeof api.projectProgramConsumption).toBe("function")
   const event = { id: "selected", op: "select", outcome: "computed", source: { path: "a.py", startLine: 1, sha256: "current" }, inputs: { candidates: Array(64).fill({ id: 1, large: "x".repeat(300) }) }, outputs: { known: true, value: { id: 1 } }, gaps: [], meaningOrigin: "authored-program" }

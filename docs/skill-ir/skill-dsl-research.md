@@ -4,7 +4,7 @@
 
 ## 1. 当前结论
 
-**当前 BH 开发已获授权，聚焦渐进编写和实际消费。** 发布后复核确认资源步骤仍有整份 schema 阻断、自动修稿会丢失 workflow，消费时也存在重复状态与源码探索。保留 BG 可运行主链，优先修这些共享接点，再做同任务自动作者、同程序变化与一对 full/compact 消费比较；第二真实任务仅作离线共用验证。方法与复核依据见[§7.69](#769-bh-发布后复核与渐进编写消费决定)，规划尚无新增效果。
+**BH有限队列以`completed-with-unmet-criteria`收束，6次真实调用全部交付，无活动/未知请求。渐进编译、持久草稿、patch、compact/full和按需详情已接通；自动稿三次保留4步但未补齐版本/文件主链。Download与ShareLink共14离线场景通过。首个同epoch P对照为tradeoff：compact成本降低但答案退化；一次规则投影修复确认另列。** 真实数据、修复经过与边界见[§7.69](#769-bh-发布后复核与渐进编写消费决定)及[summary](../../results/skill-ir/skill-dsl-research/development/authorization-incremental-program-v1/summary.json)。
 
 **BG已交付同一个Download主链的可执行程序、普通会话、实际轨迹、答案和变化消费。** 25步作者程序在开发输入下算出请求10→授权根10→文件11/archive；仅把version从null改为空串，实际同程序消费得到文件12/original。同期DSL四问full，自动编写仍只有局部三源合同；同信息Markdown比较为质量/耗时与token成本取舍，净收益未建立。7归档含5模型交付、2推理前拒绝，无活动/未知请求。详见[§7.68](#768-bg-全流程优先与同任务执行决定)和[可运行示例](../../examples/authorization-assessment/download-workflow/README.md)。
 
@@ -2630,6 +2630,14 @@ previous实际使用原root和helper的同源材料，通过实际user实参进�
 
 **BH普通修稿与消费接线。** 工具层的深资源schema拒绝已由薄外壳取代，普通测试按“好/坏两步→只patch坏步→实际返回9→拒绝过期patch→inspect”通过。缺source草稿首次归档暴露renderer空指针，已红绿修为显示缺来源。草稿revision和活动程序分离，保存恢复后仅恢复原稿、重算当前结果。首轮61相关测试/498断言及双类型通过；后来新增root修正保留与联合诊断红绿。BG三稿回放发现第三稿把root1834修正到1835并增加receiver；草稿身份因此以程序ID/问题为准，源码和scope重新校验，不能用旧结果代新稿。compact纯投影/实际详情工具与首屏轨迹已接线；投影字节只是工程量，尚无新模型成本或质量结果。
 
+**BH实际作者与离线迁移。** A1三次整稿均保留4步，实际计算requested/root/owner shortcut并返回两个ID，未补成version/file主链；当前原字节hash为287faf78…，不是主线程回填。C1/C2均消费该稿，C2只把version从null改为空串；机器返回仍为两个ID，12/original来自自然源码解释，不能算自动程序已实现变化。三件分别45/55/61工具，完整input合计4,544,482（含cache4,123,904）、output36,018；已有原稿不等于节省探索。BG三原提案零调用重放现在均保住7步，但未修它们的source/permission/undefined-ref语义。
+
+ShareLink第二离线开发程序使用同一select/guard/return核，六场景覆盖允许、拒绝、null主体、错资源、错主体、缺授权事实；原用户政策与源码条件分开。serializer在global view_document后调用exact document的owner-aware helper；grant表是给定有效后台事实，DRF继承执行/关系字段与正常构造仍为明确前提。程序只返回分析描述符，不创建共享。Download八变体及Share六变体共14项普通零模型检查通过；显式version首测试误用了版本序号2，原件显示正确404，已按源码改为文档主键12，生产程序无需改。strict重复inputs及较早返回读取冲突输入的两个独立红测均已修复；结构化provider新增同核program/patch/details实际回合测试。独立评阅的源根缺失报告在主线程实际原文读取中未复现；C2评阅曾用root-default误判，按原始empty-version输入纠正，评语不直接充当事实。
+
+**BH首配对与现场修复。** 相同源码epoch/diff、同25步程序、同输入/skill/模型/预算的P-full/P-compact均交付11/archive。full为1,109,450 input/9,380 output/35工具/403,797ms；compact为584,867/6,908/40工具/354,145ms，实际发送763,120→405,326字节。虽然input少524,583、output少2,472、快49,652ms，但compact首答把include_deleted误关联original，遗漏空串version、root失查回退及follow_formatting truthiness；full覆盖决定性分支。首对结论为tradeoff，不是quality-preserving improvement。缺口是compact只带当前值/事件，备选分支表达式须另查；新增匿名跳过分支红测后，纯投影保留active原规则及when/source，仍不发输入全集或旧稿。39相关测试/319断言转绿，full投影恒等；只做一次shared-fix-compact-rules确认，不将模型语义错误包装成已证明的单因果归因，也不重抽full追胜。作者成本、修复调用和首件均进accounting；原同epoch对照保持。
+
+**BH最终收束。** 六次逻辑尝试全部completed；input合计7,177,622（含cache6,413,824）/output60,368，275工具。具名compact规则确认使用938,823 input/8,062 output/39工具/372,098ms，逐题结论为['partial', 'partial', 'partial', 'partial']，整题partial。该件是presentation修订后的单独确认，不能覆盖首同epoch配对的tradeoff；模型美元、开发/审阅成本和真人时间未知。联合确认1943通过/1平台skip/0失败，12982断言；首5秒timeout保留，15秒时限确认；最终投影修改后39定向/319断言、主与研究类型通过。15文档测试及当前更改链接无错误；全历史扫描10个旧结果retired链接与文档软长度警告保持。finiteQueueComplete=true、researchGoalAchieved=false；下一最小责任是隔离自动作者补齐非owner授权、root回退和版本/文件关系，并继续核对完整任务质量，而非追加同因重抽。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
@@ -2693,12 +2701,12 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 | ID | 问题 | 当前依据 | 接下来的判断 |
 |---|---|---|---|
 | Q1 | 哪个任务范围共享领域语义？ | 固定来源的授权职责支持 principal/resource/operation/control/evidence；混合职责单列，见 §4–§7.10 | 保持单 repo/ref、源码可见的授权切片 |
-| Q2 | 声明如何带来实际行为？ | BG的25步Download主链已执行；自动首稿七步因字段/语义缺口未采用，后稿只留三源合同 | BH局部编译与持久草稿，通用算子辅助模型自己补主链 |
+| Q2 | 声明如何带来实际行为？ | BH公共渐进/patch可运行；自动原稿4步实际返回请求/根ID，开发者25步返回文件，Share六场景复用公共算子 | 自动作者还需从source补非owner授权、root回退和版本/文件关系 |
 | Q3 | 为什么仍漏决定性源码或分支？ | BF17/32逐题full、0/8整题full；root回退及独立deleted调用仍有错漏，fresh跨段事实已接受 | 依据整篇原答与各实际调用实参区分遗漏/评价错误；局部性质不替代整题 |
-| Q4 | 领域方法相对好说明的增量是什么？ | BG同信息一对token更高、耗时更低；质量差异部分来自自然补充；消费者仍有重复完整状态接点 | BH同程序full/compact配对，测实际发送、必要/重复读取和逐题质量；稳定净收益仍待测 |
-| Q5 | 作者和变化复用是否可用？ | BG给定程序变化实际采用1份材料；发布后复现坏资源步骤整体拒绝和自动稿丢workflow | BH修局部草稿/patch及控制依赖，再测同一自动原稿消费；来源变化仍撤回相关含义 |
+| Q4 | 领域方法相对好说明的增量是什么？ | BH同程序首对compact减少524583input/2472output、快49652ms，但质量退化；规则投影修复确认单列 | 首对tradeoff；当前结果不足以建立稳定质量保持和净收益 |
+| Q5 | 作者和变化复用是否可用？ | 草稿保留/修补/恢复及当前重算通过；C2同自动原稿仍仅返回两个ID，文件变化来自自然解释 | 不把自然补充算成自动程序计算；缺源与控制未知持续具名 |
 | Q6 | 本地化路线如何处理？ | 保留 §8–§9 设计及结构回填反例 | 暂缓；重新选择该类时再处理，不混入授权验收 |
-| Q7 | 如何评价和计量？ | BG7归档/5模型交付，input5,308,698含cache4,672,000/output46,982，211工具；费用和真人未知 | BH自动作者与给定程序使用分别计量；字节投影减负、实际tokens和摊销成本分列；原失败保留 |
+| Q7 | 如何评价和计量？ | BH六真实交付，input7,177,622含cache6,413,824/output60,368，275工具；首件与修复均保留 | 作者/消费者/修复分账，实际发送字节与tokens分开；USD/开发/真人未知，不计算无依据的摊销盈亏点 |
 
 决策沿革：
 

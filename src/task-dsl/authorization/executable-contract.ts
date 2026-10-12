@@ -95,7 +95,11 @@ export async function compileExecutableContract(raw: unknown, options: { tools: 
   const empty = () => ({ diagnostics, normalizations: normalized.normalizations, units: [] as BoundSemanticBlock[], materialUses: [] as ReturnType<typeof projectSourceMaterials>["uses"], requestOperationCertified: false as const })
   if (!parsed.success) { for (const issue of parsed.error.issues) fail("shape", issue.path.join("."), issue.message); return empty() }
   const contract = parsed.data, index = options.tools.structure, question = options.program.questions.find(q => q.id === contract.scope.questionId)
-  if (contract.resourceWorkflow) for (const slot of inspectResourceDraft(contract.resourceWorkflow).steps) for (const issue of slot.issues) fail("resource-shape", `resourceWorkflow.${issue.path}`, issue.message)
+  if (contract.resourceWorkflow) {
+    const draft = inspectResourceDraft(contract.resourceWorkflow)
+    for (const id of draft.duplicateIds) fail("resource-shape", "resourceWorkflow.identities", `Duplicate input/computed identity:${id}`)
+    for (const slot of draft.steps) for (const issue of slot.issues) fail("resource-shape", `resourceWorkflow.${issue.path}`, issue.message)
+  }
   if (!index) fail("structure", "$", "The current strategy needs the original source structure index.")
   if (!question) fail("question", "scope.questionId", "The contract must keep one current original question identity.")
   if (!index || !question) return empty()

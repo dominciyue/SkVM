@@ -1,6 +1,19 @@
 import { expect, test } from "bun:test"
 const api = await import("./resource-relations.ts").catch(() => ({} as any))
 const source = { path: "app.py", startLine: 1, endLine: 8, sha256: "current" }
+test("ambiguous input identity is unavailable even before its conflicting step", () => {
+  for (const inputs of [["actor"], ["actor", "actor"]]) {
+    const run = api.executeResourceWorkflow({ inputs, steps: [
+      { id: "result", op: "return", value: { ref: "actor" }, source },
+      { id: "actor", op: "value", value: { literal: 9 }, source },
+    ] }, { actor: 7 }, { progressive: true })
+    expect(run.returned).toBeUndefined()
+    expect(run.gaps.join(" ")).toContain("duplicate-identity:actor")
+  }
+})
+test("strict rejects repeated input declarations even without a conflicting step", () => {
+  expect(() => api.executeResourceWorkflow({ inputs: ["actor", "actor"], steps: [{ id: "result", op: "return", value: { ref: "actor" }, source }] }, { actor: 7 })).toThrow()
+})
 const ref = (name: string) => ({ ref: name })
 const field = (name: string, key: string) => ({ field: { of: ref(name), key } })
 const eq = (a: string, b: string) => ({ op: "eq", left: { binding: a }, right: { binding: b } })

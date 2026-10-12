@@ -1,0 +1,171 @@
+{
+  "reviewer": "main source adjudication with narrow read-only independent scouts",
+  "date": "2026-10-12",
+  "questionOrder": [
+    "requested-document-and-returned-file",
+    "authorization-and-selection-order",
+    "alternate-version-authorized-resource",
+    "missing-facts-and-conditional-conclusions"
+  ],
+  "answers": {
+    "A1": {
+      "quality": [
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "wholeTask": "full-with-editorial-citation-defect",
+      "evidence": [
+        "A1-first.txt:9-15,47-63,95-102",
+        "A1-first.txt:23-41",
+        "A1-first.txt:85-91",
+        "A1-first.txt:106-115"
+      ],
+      "issues": [
+        "Line79 URL mistakenly adds views/; label is correct."
+      ]
+    },
+    "C1": {
+      "quality": [
+        "partial",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "wholeTask": "partial",
+      "evidence": [
+        "C1-first.txt:26-78,127-147",
+        "C1-first.txt:90-123",
+        "C1-first.txt:3-10,123",
+        "C1-first.txt:149-166"
+      ],
+      "issues": [
+        "Line75 describes follow_formatting as raw but omits nonempty string false truthiness and exact filename alternatives; Q1 coverage limitation."
+      ]
+    },
+    "C2": {
+      "quality": [
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "wholeTask": "full-with-editorial-citation-defect",
+      "evidence": [
+        "C2-first.txt:52-106,127-138",
+        "C2-first.txt:7-44",
+        "C2-first.txt:110-123",
+        "C2-first.txt:140-151"
+      ],
+      "issues": [
+        "Line7 URL adds views/; label is correct."
+      ]
+    },
+    "P-full": {
+      "quality": [
+        "pass",
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "wholeTask": "full",
+      "evidence": [
+        "P-full-first.txt:28-38,94-166,195-208",
+        "P-full-first.txt:52-88",
+        "P-full-first.txt:170-189",
+        "P-full-first.txt:210-223"
+      ],
+      "minorLimits": [
+        "Newest-order tie/null detail is not stated; no observed wrong result follows in this scenario."
+      ]
+    },
+    "P-compact-shared-fix-compact-rules": {
+      "quality": ["partial", "partial", "partial", "partial"],
+      "wholeTask": "partial",
+      "reviewer": "main source adjudication",
+      "evidence": [
+        "P-compact-shared-fix-compact-rules.txt:5-18,45-83",
+        "P-compact-shared-fix-compact-rules.txt:22-39",
+        "P-compact-shared-fix-compact-rules.txt:85-96",
+        "P-compact-shared-fix-compact-rules.txt:100-125"
+      ],
+      "improvements": ["Lines61-66 correctly separate version presence, empty-string truthiness and independent include_deleted behavior."],
+      "issues": [
+        "Lines14-16 and90 omit failed-root lookup fallback to the requested document while stating unconditional root normalization.",
+        "Lines22-39 name PaperlessObjectPermissions without explaining the inherited global GET view_document gate; the scenario and missing-facts table omit this condition.",
+        "Line80 omits raw nonempty follow_formatting string truthiness and concrete filename alternatives.",
+        "Line5 names DocumentViewSet as the router registration; actual urls.py77 registers its subclass UnifiedSearchViewSet. The two URL citations do not cover the registration."
+      ],
+      "source": ["versioning.py146-156", "permissions.py30-44 and inherited DjangoModelPermissions.has_permission", "views.py1447,4953-4964", "urls.py77"],
+      "interpretation": "Presentation repair restores alternate-input rules, but this separate confirmation does not establish stable whole-task quality or replace the first fair pair. No further resampling."
+    },
+    "P-compact": {
+      "quality": [
+        "fail",
+        "pass",
+        "partial",
+        "pass"
+      ],
+      "wholeTask": "partial-with-semantic-error",
+      "evidence": [
+        "P-compact-first.txt:11,39-41,61",
+        "P-compact-first.txt:15-31",
+        "P-compact-first.txt:3,73-76",
+        "P-compact-first.txt:102-114"
+      ],
+      "issues": [
+        "Line41 ties include_deleted to original instead of version presence.",
+        "Missing explicit null versus empty-string version branch.",
+        "Missing failed-root lookup fallback despite unconditional root phrasing.",
+        "Missing follow_formatting nonempty-string truthiness."
+      ],
+      "source": [
+        "views.py1375-1380,1447",
+        "versioning.py146-156,175-195",
+        "views.py4953-4964"
+      ]
+    }
+  },
+  "automaticProgram": {
+    "source": "authoring/automatic-program.json",
+    "proposals": 3,
+    "retainedSteps": [
+      4,
+      4,
+      4
+    ],
+    "meaning": "Partial request/root/owner-shortcut program; not a complete Download main chain",
+    "gaps": [
+      "No loaded-root/failing-root lookup fallback despite related_root input",
+      "Non-owner guard stops instead of modeling the missing Guardian branch conditionally; failure wording alone does not execute it",
+      "No permission-checker construction",
+      "No version choice, returned file, representation or filename computation",
+      "Source declarations and property queries retain unresolved/ambiguous diagnostics"
+    ],
+    "changedInputObservation": "C2 retains C1 program hash; host return remains request_document_id=10, authorized_root_id=10. File12/original comes from natural source explanation.",
+    "notRepairedByDeveloper": true
+  },
+  "developerPrograms": {
+    "download": "Main verified original versioning.py146-156,185-195; views.py1375-1448; permissions.py624-635. Existing 25-step program is unchanged.",
+    "share": "Main verified views.py406-428,4696-4717; serialisers.py2851-2886; permissions.py30-53,624-635. Exact document owner-aware check follows global view_document; DRF inherited execution and effective grant rows remain explicit assumptions.",
+    "remainingDuties": [
+      "Request authentication/global permissions",
+      "Storage/target execution",
+      "Filename and raw follow_formatting truthiness at views.py1447,4953-4964",
+      "Real ORM/backend/deployment state"
+    ],
+    "portabilityClaim": "Two exposed developer-authored tasks use the same operators; no unseen-skill automatic-transfer claim"
+  },
+  "reviewCorrections": [
+    "A scout reported absent sourceRoot; main actual original reads confirmed existence and cited functions. Its source-unavailability inference is rejected.",
+    "An answer scout used default null input for C2. The actual C2 ledger/input uses empty string; file12 is correct.",
+    "Different root/helper functions and source-level symbols versus workflow binding names alone are not semantic errors; actual property diagnostics remain.",
+    "Explicit full-details output is the advertised escape hatch, not accidental compact duplication."
+  ],
+  "codeReview": {
+    "finding": "Strict inputs accepted duplicate names",
+    "resolution": "Failing test then strict uniqueness fix and progressive diagnostics; earlier input/step collisions also become unavailable before execution",
+    "otherCriticalFindings": 0
+  }
+}

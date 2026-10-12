@@ -4,9 +4,9 @@
 
 ## 当前工作
 
-**[BH0–BH17：DSL 渐进编写、有效草稿保留与高效消费](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)正在实施。** 从规划提交 `2c64f50f` 接管，独占代码、共享文档和 Git。三个普通零模型基线保持；资源逐项编译的四项红测已复现并修复，22项核心测试通过。当前推进持久草稿和工具闭环，尚无BH模型结果，分轴状态见[status](../../results/skill-ir/skill-dsl-research/development/authorization-incremental-program-v1/status.json)。
+**BH有限队列以`completed-with-unmet-criteria`收束，6次真实调用全部交付，无活动/未知请求。渐进编译、持久草稿、patch、compact/full和按需详情已接通；自动稿三次保留4步但未补齐版本/文件主链。Download与ShareLink共14离线场景通过。首个同epoch P对照为tradeoff：compact成本降低但答案退化；一次规则投影修复确认另列。** [可运行Download](../../examples/authorization-assessment/download-workflow/README.md)、[ShareLink离线例](../../examples/authorization-assessment/share-create-workflow/README.md)、[结果与分轴结论](../../results/skill-ir/skill-dsl-research/development/authorization-incremental-program-v1/summary.json)。当前最小剩余责任是隔离作者补齐source-supported版本/返回关系，并保持备选分支可见；未建立稳定净收益。
 
-发布后复核确认：给成功程序追加一个仅漏 because 的无关步骤，progressive 仍整份拒绝；自动首稿七个资源步骤因字段及语义缺口没有采用，后稿删掉 workflow；消费者仍需区分补职责与重复源码读取。本轮承接这些具体责任，方法见[spec§14.47](skill-ir-aot-optimization-spec.md#1447-bh-incremental-program-authoring-and-consumption)、[研究§7.69](skill-dsl-research.md#769-bh-发布后复核与渐进编写消费决定)。identity 为 `authorization-incremental-program-v1`；五个有限模型首位置见任务书，ShareLink/OWUI 旧未知不重发，第二任务仅离线。状态、自动化、质量与收益分别验收。
+BG发布后复核曾复现坏资源步骤导致整份拒绝、自动修稿丢掉workflow；BH已修复局部编译与草稿保留，重放可保住七步，原提案语义缺口仍在。方法与真实观察见[任务书BH0–BH17](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)、[spec§14.47](skill-ir-aot-optimization-spec.md#1447-bh-incremental-program-authoring-and-consumption)、[研究§7.69](skill-dsl-research.md#769-bh-发布后复核与渐进编写消费决定)。identity为`authorization-incremental-program-v1`；五个首位置及一次具名确认均已结束，不追加同因重抽。ShareLink/OWUI旧未知不重发，第二任务仅离线；工程、自动化、质量与收益分轴记录。
 
 ## BG 已结束的实际结果
 
@@ -98,7 +98,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BH | [任务书](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)、spec§14.47、研究§7.69；已授权待开发，聚焦资源步骤局部修复、持久草稿与实际消费减负 |
+| 当前BH | [任务书](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)、spec§14.47、研究§7.69；有限队列完成、自动主链与稳定收益未达；实际程序、首失败、修复和分轴结论已归档 |
 | BG | [任务书](../superpowers/plans/2026-10-12-authorization-end-to-end-practical-execution.md)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-practical-execution-v1/summary.json)、spec§14.46、研究§7.68；主链运行/变化成立，自动编写和净收益未达 |
 | BF | [任务书](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/verification/acceptance-matrix.json)、spec§14.45、研究§7.67；工程/有限队列收束，整题质量与净收益未达 |
 | BE | [任务书](../superpowers/plans/2026-10-11-authorization-question-workflow-and-mechanism-value.md)、[执行收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/authorized-execution-closeout.json)、[发布回执](../../results/skill-ir/skill-dsl-research/development/authorization-question-workflow-v1/verification/publication.json)、spec§14.44、研究§7.66；有限队列及发布完成、研究未达，不自动重抽 |

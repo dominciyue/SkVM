@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有有限求值器与账号入口。开发 **gpt-6-astra/high**；真实实验沿用已授权的官方账号 **gpt-5.6-sol/high**。
 
-状态：`in-progress`。规划基线 `4595339f201239e3dbba7c422d315f29df8de276`，实际接管 `2c64f50f`。BH0三个普通零模型基线保持；BH1–BH3资源核心四红测→22通过/178断言，正在接持久草稿和工具闭环。模型队列尚未派发。
+状态：`completed-with-unmet-criteria`。BH有限队列以`completed-with-unmet-criteria`收束，6次真实调用全部交付，无活动/未知请求。渐进编译、持久草稿、patch、compact/full和按需详情已接通；自动稿三次保留4步但未补齐版本/文件主链。Download与ShareLink共14离线场景通过。首个同epoch P对照为tradeoff：compact成本降低但答案退化；一次规则投影修复确认另列。 联合1943pass/1skip，末次投影修复后39定向pass；双类型、15文档测试及当前链接检查通过。以下勾选表示执行责任已处理（条件项含不适用），不表示每个研究验收目标达标；实际值见本轮summary/acceptance-matrix/review/accounting。
 
 Identity：`authorization-incremental-program-v1`。结果目录 `results/skill-ir/skill-dsl-research/development/authorization-incremental-program-v1/`；临时运行放在 `D:/skill优化/project-maintenance/runs/authorization-incremental-program-v1/`。继续 `skill-ir-aot`，只推用户 `origin`，不开分支/worktree。派发后的新线程是唯一代码、共享方法文档及 Git 写者。
 
@@ -118,13 +118,13 @@ compact 显示：程序及当前输入 revision、执行到哪里、关键计算
 
 ### BH0 接管和保存基线
 
-- [ ] 读取上述入口，确认分支、HEAD、脏文件和无其它写者；记录接管 SHA，不回退其它线程改动。
-- [ ] 从现有五个运行场景选 root-default/empty-version/denied 各零模型运行一次，保存当前计算/缺口；不重跑 BG 全量历史。
-- [ ] 创建本轮状态：工程、自动编写、实际消费、第二任务、质量、收益分别初始 pending；requirements 与 observations 字段分开。
+- [x] 读取上述入口，确认分支、HEAD、脏文件和无其它写者；记录接管 SHA，不回退其它线程改动。
+- [x] 从现有五个运行场景选 root-default/empty-version/denied 各零模型运行一次，保存当前计算/缺口；不重跑 BG 全量历史。
+- [x] 创建本轮状态：工程、自动编写、实际消费、第二任务、质量、收益分别初始 pending；requirements 与 observations 字段分开。
 
 ### BH1 写能复现当前问题的失败测试
 
-- [ ] 在 `executable-contract.test.ts` 使用现有 fixture/contract/cite 写以下红测，然后运行该文件。当前应因整合同丢失而失败：
+- [x] 在 `executable-contract.test.ts` 使用现有 fixture/contract/cite 写以下红测，然后运行该文件。当前应因整合同丢失而失败：
 
 ```ts
 test("progressive resource draft preserves valid work beside a bad value step", async () => {
@@ -142,91 +142,91 @@ test("progressive resource draft preserves valid work beside a bad value step", 
 })
 ```
 
-- [ ] 分别补红测：只缺 because 的无关步骤、未知 guard 后 return、未识别 op、重复 ID、缺 source、未定义 ref。错误控制不得像错误 value 一样消失；有效 strict 调用结果保持。
+- [x] 分别补红测：只缺 because 的无关步骤、未知 guard 后 return、未识别 op、重复 ID、缺 source、未定义 ref。错误控制不得像错误 value 一样消失；有效 strict 调用结果保持。
 
 ### BH2 实现局部编译与控制缺口
 
-- [ ] 将 progressive 顶层与资源逐项校验分离，使用现有 `invalidSteps`/三值结果表达已定位失效，保留有序坏步骤与诊断。
-- [ ] 使独立值继续、坏依赖下游 unknown、坏 guard 后结果 conditional；对 return 前后及 when=false 的路径分别验证，避免用「所有步骤都依赖所有错误」退回全局阻断。
-- [ ] 运行 `bun test ./src/task-dsl/authorization/resource-relations.test.ts ./src/task-dsl/authorization/executable-contract.test.ts`，修到红测与旧测试通过后提交。
+- [x] 将 progressive 顶层与资源逐项校验分离，使用现有 `invalidSteps`/三值结果表达已定位失效，保留有序坏步骤与诊断。
+- [x] 使独立值继续、坏依赖下游 unknown、坏 guard 后结果 conditional；对 return 前后及 when=false 的路径分别验证，避免用「所有步骤都依赖所有错误」退回全局阻断。
+- [x] 运行 `bun test ./src/task-dsl/authorization/resource-relations.test.ts ./src/task-dsl/authorization/executable-contract.test.ts`，修到红测与旧测试通过后提交。
 
 ### BH3 薄作者 source 与必要说明
 
-- [ ] 将既有唯一 sourceInput 解析复用于 resourceWorkflow.steps 的 source/sources；具体含义不自动补。
-- [ ] 非语义 because 可缺省但保留“作者未说明”；缺 source 只生成局部不可采用诊断；越界仍拒绝候选。
-- [ ] 用唯一符号、同名歧义、helper sources 漏/补、旧 SHA 四类测试验证。普通文件与工具入口结果相同；不可把后续宿主读取伪称模型此前已读。
+- [x] 将既有唯一 sourceInput 解析复用于 resourceWorkflow.steps 的 source/sources；具体含义不自动补。
+- [x] 非语义 because 可缺省但保留“作者未说明”；缺 source 只生成局部不可采用诊断；越界仍拒绝候选。
+- [x] 用唯一符号、同名歧义、helper sources 漏/补、旧 SHA 四类测试验证。普通文件与工具入口结果相同；不可把后续宿主读取伪称模型此前已读。
 
 ### BH4 持久草稿与增量步骤编辑
 
-- [ ] 增加上述有界 patch 合同及草稿 revision，先写“新增一节点—坏更新—修该节点—删除被引用节点—过期 patch”的状态测试。
-- [ ] 合并保留未触及的资源步骤；拒绝或缺字段不擦掉整段 workflow。显式整稿替换仍可用，作用域改变撤回相应旧结果。
-- [ ] 验证 consume 不替换活动程序，edit 的候选/当前采用和旧活动结果显示清楚。保存/恢复后继续 patch，ID/顺序/缺口相同。
+- [x] 增加上述有界 patch 合同及草稿 revision，先写“新增一节点—坏更新—修该节点—删除被引用节点—过期 patch”的状态测试。
+- [x] 合并保留未触及的资源步骤；拒绝或缺字段不擦掉整段 workflow。显式整稿替换仍可用，作用域改变撤回相应旧结果。
+- [x] 验证 consume 不替换活动程序，edit 的候选/当前采用和旧活动结果显示清楚。保存/恢复后继续 patch，ID/顺序/缺口相同。
 
 ### BH5 工具接线与作者指导
 
-- [ ] 在 `question-workflow-wire.ts` 及 native 参数处理接通薄 envelope；本应局部修复的稿件能够到达编译器，不被另一层深 schema 提前整体拒绝。
-- [ ] 提供一份匿名资源查找/拒绝/返回的通用小例；不含 Paperless/Download 答案。工具反馈给原字段、当前值、引用或来源问题和支持语法，不替模型生成授权结论。
-- [ ] 将 BG 三次实际提案按原顺序零模型重放：保留首次七步，指出 source、permission、archive_selection 与 external 语义缺口；后续省略 workflow 不消灭草稿。记录可保留多少、仍不能执行多少，不宣称重放取得新模型收益。
+- [x] 在 `question-workflow-wire.ts` 及 native 参数处理接通薄 envelope；本应局部修复的稿件能够到达编译器，不被另一层深 schema 提前整体拒绝。
+- [x] 提供一份匿名资源查找/拒绝/返回的通用小例；不含 Paperless/Download 答案。工具反馈给原字段、当前值、引用或来源问题和支持语法，不替模型生成授权结论。
+- [x] 将 BG 三次实际提案按原顺序零模型重放：保留首次七步，指出 source、permission、archive_selection 与 external 语义缺口；后续省略 workflow 不消灭草稿。记录可保留多少、仍不能执行多少，不宣称重放取得新模型收益。
 
 ### BH6 第一条普通修稿闭环
 
-- [ ] 在现有 entrypoints 测试增加如下真实次序：模型提案含一好一坏步骤 → 工具返回局部结果/诊断 → 只改坏步骤 → 当前输入实际执行 → inspect 重放。
-- [ ] 文件 check、native tool、账号 mock 与 previous 使用同一编译/草稿核心；不在研究 runner 拼出有效程序代替生产入口。
-- [ ] 将 review 的 invalid-sibling 反例在普通入口重现为“主链仍有结果、无关诊断可见”，把首次失败和修复证据放本轮 results；此时应能继续演示，不等后面实验成功。
+- [x] 在现有 entrypoints 测试增加如下真实次序：模型提案含一好一坏步骤 → 工具返回局部结果/诊断 → 只改坏步骤 → 当前输入实际执行 → inspect 重放。
+- [x] 文件 check、native tool、账号 mock 与 previous 使用同一编译/草稿核心；不在研究 runner 拼出有效程序代替生产入口。
+- [x] 将 review 的 invalid-sibling 反例在普通入口重现为“主链仍有结果、无关诊断可见”，把首次失败和修复证据放本轮 results；此时应能继续演示，不等后面实验成功。
 
 ### BH7 紧凑消费投影
 
-- [ ] 基于 BG 43 工具原件量测实际发送的重复部分，按 program/report/trace/source/history 分类；不把所有源码读取算浪费。
-- [ ] 实现纯 `full|compact` 投影及按 step/question 的详情读取，更新 `inquiry-run.ts` 与 `inquiry-native.ts` 的所有可达反馈接点。
-- [ ] 测试相同输入时不重复发完整大对象、值/缺口/来源不变，changed/stale 时新状态可见；详情可从实际工具取回。保存原件完整，投影可复算。字节减少仅记工程减负。
+- [x] 基于 BG 43 工具原件量测实际发送的重复部分，按 program/report/trace/source/history 分类；不把所有源码读取算浪费。
+- [x] 实现纯 `full|compact` 投影及按 step/question 的详情读取，更新 `inquiry-run.ts` 与 `inquiry-native.ts` 的所有可达反馈接点。
+- [x] 测试相同输入时不重复发完整大对象、值/缺口/来源不变，changed/stale 时新状态可见；详情可从实际工具取回。保存原件完整，投影可复算。字节减少仅记工程减负。
 
 ### BH8 普通使用和可读轨迹
 
-- [ ] 接通显式 `--program-context=compact` 与旧 full，默认保持兼容。导入程序后宿主执行一次，结果进入消费者上下文，不强迫模型重复 author/check 才能使用。
-- [ ] execution.md 首屏给输入变化、关键 guard/对象/返回、外部前提和未解问题；详细事件留 execution.json 并可按步骤查看，不逐步反复打印整个对象集合。
-- [ ] 更新 run.ps1/README 的实际接口，验证零模型运行、普通模型命令参数、inspect 和搬移；不为“更易用”建立新 CLI 系统。
+- [x] 接通显式 `--program-context=compact` 与旧 full，默认保持兼容。导入程序后宿主执行一次，结果进入消费者上下文，不强迫模型重复 author/check 才能使用。
+- [x] execution.md 首屏给输入变化、关键 guard/对象/返回、外部前提和未解问题；详细事件留 execution.json 并可按步骤查看，不逐步反复打印整个对象集合。
+- [x] 更新 run.ps1/README 的实际接口，验证零模型运行、普通模型命令参数、inspect 和搬移；不为“更易用”建立新 CLI 系统。
 
 ### BH9 主程序与来源回归
 
-- [ ] 用当前最终 program.json 核查 root-default/空 version/显式 version/denied/missing-owner/root-fallback，以及各调用独立 include_deleted；原四问全部保留。
-- [ ] helper 来源删除或改变时只撤回依赖步骤；错误权限对象、错误 actor、unknown/null 分别测试。不得把附件 disposition 固定值误判为错误：Download 入口本来显式传 attachment。
-- [ ] 给定程序的语义修订若确需发生，保存前后和源码理由；公平消费对照固定同一个修订后程序。程序覆盖不到文件名/请求全局门槛时保留模型责任。
+- [x] 用当前最终 program.json 核查 root-default/空 version/显式 version/denied/missing-owner/root-fallback，以及各调用独立 include_deleted；原四问全部保留。
+- [x] helper 来源删除或改变时只撤回依赖步骤；错误权限对象、错误 actor、unknown/null 分别测试。不得把附件 disposition 固定值误判为错误：Download 入口本来显式传 attachment。
+- [x] 给定程序的语义修订若确需发生，保存前后和源码理由；公平消费对照固定同一个修订后程序。程序覆盖不到文件名/请求全局门槛时保留模型责任。
 
 ### BH10 同任务自动编写
 
-- [ ] 按第六节 A1 输入隔离运行普通官方账号；不提供开发者程序或源码答案。模型实际提出、修改并预览资源流程；源码/场景/工具/原稿/接受步骤均归档。
-- [ ] 首个共享实现错误当场留件→红测→修共享核心→绿测→一次具名恢复，不继续跑已知坏下游。
-- [ ] 若只是模型语义错误，让模型看到精确源问题和自己的局部诊断；不由主代理代写答案回填“自动稿”。最终没有可计算主链也照实报告，继续给定程序消费和工程工作。
+- [x] 按第六节 A1 输入隔离运行普通官方账号；不提供开发者程序或源码答案。模型实际提出、修改并预览资源流程；源码/场景/工具/原稿/接受步骤均归档。
+- [x] 首个共享实现错误当场留件→红测→修共享核心→绿测→一次具名恢复，不继续跑已知坏下游。
+- [x] 若只是模型语义错误，让模型看到精确源问题和自己的局部诊断；不由主代理代写答案回填“自动稿”。最终没有可计算主链也照实报告，继续给定程序消费和工程工作。
 
 ### BH11 自动原稿消费与同程序变化
 
-- [ ] 对 A1 最终有界程序原字节进行 C1 普通消费；partial 程序也可以消费，明确计算/模型补充/缺口各有多少。
-- [ ] 对同一程序 C2 只改 version 输入重跑，记录当前计算变化与实际材料使用；不能为了通过重新生成程序。源码失效和拒绝变体先做零模型验证。
-- [ ] 若 A1 没有任何资源程序，C1/C2 明确记录前置产物缺失，零调用；A 的开发者程序在 BH13 仍正常消费，不能替代后把本轨标成功。
+- [x] 对 A1 最终有界程序原字节进行 C1 普通消费；partial 程序也可以消费，明确计算/模型补充/缺口各有多少。
+- [x] 对同一程序 C2 只改 version 输入重跑，记录当前计算变化与实际材料使用；不能为了通过重新生成程序。源码失效和拒绝变体先做零模型验证。
+- [x] 若 A1 没有任何资源程序，C1/C2 明确记录前置产物缺失，零调用；A 的开发者程序在 BH13 仍正常消费，不能替代后把本轨标成功。
 
 ### BH12 第二真实任务离线复用
 
-- [ ] 读取已暴露 ShareLink create 源码及原用户政策，独立写出选择 exact document、endpoint/model 门槛、对象门槛、拒绝或 create 描述符的有限程序；结果只表示分析，不执行目标创建。
-- [ ] 使用与 Download 相同公共入口和算子，验证允许、拒绝、主体缺失、资源换错等四种有限场景。缺外部事实保持条件；不要把预先设 true 的权限答案算作推导。
-- [ ] 若现有算子缺一项真正共享操作，以匿名反例及两程序需要解释再补；不扩 Go/通用框架语义、不按 skill/仓库名称通过。旧未知调用保持，本任务零模型完成。
-- [ ] 报告两任务哪些语义/算子共享、哪些仍不同。这是两个已暴露开发任务的工程可移植性，尚无新 skill 自动编写/跨仓库效果主张。
+- [x] 读取已暴露 ShareLink create 源码及原用户政策，独立写出选择 exact document、endpoint/model 门槛、对象门槛、拒绝或 create 描述符的有限程序；结果只表示分析，不执行目标创建。
+- [x] 使用与 Download 相同公共入口和算子，验证允许、拒绝、主体缺失、资源换错等四种有限场景。缺外部事实保持条件；不要把预先设 true 的权限答案算作推导。
+- [x] 若现有算子缺一项真正共享操作，以匿名反例及两程序需要解释再补；不扩 Go/通用框架语义、不按 skill/仓库名称通过。旧未知调用保持，本任务零模型完成。
+- [x] 报告两任务哪些语义/算子共享、哪些仍不同。这是两个已暴露开发任务的工程可移植性，尚无新 skill 自动编写/跨仓库效果主张。
 
 ### BH13 同程序旧/新消费比较
 
-- [ ] 按第六节 P-full/P-compact 各运行一次，配对用当前同代码、同程序 A、同 skill/四问/source/输入/预算/模型。两臂只有消费上下文形态不同。
-- [ ] 从 provider 回执比较完整 input（cache 不重复相加）、output、工具分类、耗时及首答/最终逐题质量。查询详情新增开销计入 compact，不只比较初始 prompt。
-- [ ] 若 compact 丢掉决定性信息导致退化，先修投影并独立保留一次具名确认；不反复重抽追胜。历史 BG Markdown 对照只作背景，不拼成同期公平样本。
+- [x] 按第六节 P-full/P-compact 各运行一次，配对用当前同代码、同程序 A、同 skill/四问/source/输入/预算/模型。两臂只有消费上下文形态不同。
+- [x] 从 provider 回执比较完整 input（cache 不重复相加）、output、工具分类、耗时及首答/最终逐题质量。查询详情新增开销计入 compact，不只比较初始 prompt。
+- [x] 若 compact 丢掉决定性信息导致退化，先修投影并独立保留一次具名确认；不反复重抽追胜。历史 BG Markdown 对照只作背景，不拼成同期公平样本。
 
 ### BH14 独立语义核对与现场修复
 
-- [ ] 主线程或窄只读探子核程序实际来源、执行事件和四问原答，重点 root 回退、请求/返回对象、include_deleted、null/空字符串、follow_formatting 及 upstream。
-- [ ] 每次不佳结果写出首个实际阻断及归属：作者语义、局部协议、source footprint、消费遗漏、通道或未知事实；共享 bug 当场修、相关反例当场测，不把整个队列留到末尾修。
-- [ ] 同因两次无改善就读实际回调/源码，调整接口或记录能力边界；不要加相同提示重抽。研究轴未达不妨碍归档已运行的程序和可用命令。
+- [x] 主线程或窄只读探子核程序实际来源、执行事件和四问原答，重点 root 回退、请求/返回对象、include_deleted、null/空字符串、follow_formatting 及 upstream。
+- [x] 每次不佳结果写出首个实际阻断及归属：作者语义、局部协议、source footprint、消费遗漏、通道或未知事实；共享 bug 当场修、相关反例当场测，不把整个队列留到末尾修。
+- [x] 同因两次无改善就读实际回调/源码，调整接口或记录能力边界；不要加相同提示重抽。研究轴未达不妨碍归档已运行的程序和可用命令。
 
 ### BH15 有限联合验证
 
-- [ ] 开发过程运行相关红绿；最后一次受影响授权联合回归、主与研究类型检查、普通零模型 inspect/replay、文档测试与当前改动链接检查。
-- [ ] 基础命令：
+- [x] 开发过程运行相关红绿；最后一次受影响授权联合回归、主与研究类型检查、普通零模型 inspect/replay、文档测试与当前改动链接检查。
+- [x] 基础命令：
 
 ```powershell
 bun test ./src/task-dsl/authorization/resource-relations.test.ts ./src/task-dsl/authorization/executable-contract.test.ts ./src/benchmarks/authorization-dsl/executable-contract-entrypoints.test.ts
@@ -235,19 +235,19 @@ python scripts/check_skill_ir_doc_links_test.py
 git diff --check
 ```
 
-- [ ] 新增模块测试纳入相应回归，研究 tsconfig 沿实际当前研究工具配置定位。旧 104 全 src 失败及保护锁不改；不为测试数好看重跑历史或更改 scorer。
+- [x] 新增模块测试纳入相应回归，研究 tsconfig 沿实际当前研究工具配置定位。旧 104 全 src 失败及保护锁不改；不为测试数好看重跑历史或更改 scorer。
 
 ### BH16 当前文档与实际结果
 
-- [ ] 更新 spec14.47、研究 §1/§7.69/§11、current-status、当前 plan、usage/developer-guide；按触发→根因→修改→真实观察写一次复盘，根日志保留阶段记录。
-- [ ] 结果以 `summary.json`、`accounting.json`、`acceptance-matrix.json` 及普通会话为主，不再增加每阶段结果 Markdown。验收字段只填观测值，预期写 requirements。
-- [ ] 展示实际可运行程序/命令、首屏轨迹、原/变结果、自动作者原稿/修订和实际消费成本。分清源语义来源、宿主计算、独立核验与未实现职责。
+- [x] 更新 spec14.47、研究 §1/§7.69/§11、current-status、当前 plan、usage/developer-guide；按触发→根因→修改→真实观察写一次复盘，根日志保留阶段记录。
+- [x] 结果以 `summary.json`、`accounting.json`、`acceptance-matrix.json` 及普通会话为主，不再增加每阶段结果 Markdown。验收字段只填观测值，预期写 requirements。
+- [x] 展示实际可运行程序/命令、首屏轨迹、原/变结果、自动作者原稿/修订和实际消费成本。分清源语义来源、宿主计算、独立核验与未实现职责。
 
 ### BH17 发布和交接
 
-- [ ] 检查本轮 diff、敏感信息与明确暂存路径，分目的提交到 skill-ir-aot，只推用户 origin；核对 live remote 与本地。
-- [ ] 在 current-status/handoff 写明已完成/未达/真实调用终态及下一最小技术责任。工程完成、自动化、质量、收益分别结论；有限队列收束不得自动标整体研究完成。
-- [ ] 队列结束即交付；还有必要共享 bug 则处理到可用边界，无必要工作时不等待凑时长、不启动新实验 identity。
+- [x] 检查本轮 diff、敏感信息与明确暂存路径，分目的提交到 skill-ir-aot，只推用户 origin；核对 live remote 与本地。
+- [x] 在 current-status/handoff 写明已完成/未达/真实调用终态及下一最小技术责任。工程完成、自动化、质量、收益分别结论；有限队列收束不得自动标整体研究完成。
+- [x] 队列结束即交付；还有必要共享 bug 则处理到可用边界，无必要工作时不等待凑时长、不启动新实验 identity。
 
 ## 六、真实运行、预算与公平性
 

@@ -1,0 +1,114 @@
+## 结论
+
+Download 的权限对象始终被归一化为**请求文档所属的根文档**。版本参数或直接请求某个版本可以改变最终提供文件的 `file_doc`；`original` 可以在该 `file_doc` 的原始文件和归档文件之间切换。但这些选择都发生在根文档权限检查之后，且不会触发对所选版本或文件表示的第二次对象权限检查。
+
+### 1. 请求入口与文档识别
+
+- `DocumentViewSet` 被配置为文档 API 的视图集；`download` 是一个 `GET`、`detail=True` 的 action，因此路径中的 `pk` 是最初请求的文档 ID。`download()` 将请求交给 `file_response(..., disposition="attachment")`。[src/documents/views.py:1834-1839](src/documents/views.py#L1834-L1839)
+- 该视图集使用 `IsAuthenticated` 和 `PaperlessObjectPermissions`。[src/documents/views.py:1008-1021](src/documents/views.py#L1008-L1021)
+- DRF 在调用 action 前依次执行认证和请求级权限检查。[framework/rest_framework-3.18.1/rest_framework/views.py:404-421](framework/rest_framework-3.18.1/rest_framework/views.py#L404-L421)
+- `file_response` 以 `include_deleted=True` 解析 `pk`，所以最初的 ID 查询使用可包含已删除文档的管理器；不存在则抛出 `Http404`。[src/documents/views.py:1401-1415](src/documents/views.py#L1401-L1415) [src/documents/views.py:1429-1436](src/documents/views.py#L1429-L1436)
+- 随后将该记录归一化为根文档：若请求的是版本记录，则取得其 `root_document`；否则请求记录本身就是根文档。[src/documents/views.py:1417-1420](src/documents/views.py#L1417-L1420) [src/documents/versioning.py:146-156](src/documents/versioning.py#L146-L156)
+
+### 2. 授权及其顺序
+
+授权顺序如下：
+
+1. DRF 先认证用户并运行视图集的请求级权限类。
+2. 应用查询 `pk` 对应的请求文档，并解析其根文档。
+3. 应用对**根文档**执行显式 `view_document` 检查。
+4. 只有通过该检查后，才选择最终版本和原始/归档表示。
+5. 最后调用 `serve_file` 构造文件响应。
+
+根文档检查为：
+
+- 根文档没有 owner；或
+- 根文档 owner 就是当前用户；或
+- `ObjectPermissionChecker` 确认用户对根文档具有 `view_document` 对象权限。
+
+否则立即返回 `403 Insufficient permissions`。[src/documents/views.py:1421-1427](src/documents/views.py#L1421-L1427) [src/documents/permissions.py:624-635](src/documents/permissions.py#L624-L635)
+
+`PaperlessObjectPermissions` 还把 GET 映射到模型的 `view_<model>` 权限。[src/documents/permissions.py:30-53](src/documents/permissions.py#L30-L53) 但 Download 没有通过通常的 `get_object()` 路径取得最终对象；其关键对象级控制是上述手工根文档检查。
+
+### 3. 版本选择的全部相关分支
+
+根文档授权通过后，代码确定 `file_doc`：
+
+- **URL 中的 `pk` 已指向某个版本，且没有 `version` 查询参数**：直接使用该请求版本作为 `file_doc`。[src/documents/views.py:1388-1399](src/documents/views.py#L1388-L1399)
+- **请求根文档，或者提供了 `version` 参数**：从根文档解析版本。
+  - 未显式指定版本时，选择该根文档的最新可用版本；若没有适用版本，则按版本辅助逻辑回退到相应根文档。[src/documents/versioning.py:159-166](src/documents/versioning.py#L159-L166)
+  - 显式 `version` 值被解析为版本文档 ID；目标不存在、值无效，或目标不属于当前根文档的版本链时，不会任意跨到其他文档，而是进入无效/未找到路径。[src/documents/versioning.py:175-195](src/documents/versioning.py#L175-L195) [src/documents/views.py:1375-1385](src/documents/views.py#L1375-L1385)
+  - 版本解析是否包含已删除版本由该分支的 `include_deleted` 决定；这里与是否明确请求原始文件相关。[src/documents/views.py:1375-1385](src/documents/views.py#L1375-L1385)
+
+因此，最初 `pk` 查询允许找到已删除记录，并不意味着所有后续“最新版本”选择都会自动包含已删除版本。
+
+### 4. 原始文件与归档文件
+
+`original` 只有在查询参数存在且值**精确等于字符串 `"true"`** 时才算真；其他值以及参数缺失均算假。[src/documents/views.py:1369-1373](src/documents/views.py#L1369-L1373)
+
+传给 `serve_file` 的选择规则是：
+
+```text
+use_archive = not original_requested and file_doc.has_archive_version
+```
+
+所以：
+
+- `original=true`：使用 `file_doc` 的原始文件；
+- 未请求原始文件且 `file_doc` 有归档版本：使用归档文件；
+- 未请求原始文件但没有归档版本：回退到原始文件。
+
+`follow_formatting` 也从查询参数传入，缺省为 `False`；它影响对外文件名处理，而不改变权限对象或所选文档版本。Download 的 disposition 是 `attachment`。[src/documents/views.py:1442-1448](src/documents/views.py#L1442-L1448) [src/documents/views.py:4941-4970](src/documents/views.py#L4941-L4970)
+
+## 授权对象与返回对象是否一致
+
+不一定一致：
+
+- **授权资源**：`root_doc`
+- **实际文件所属文档**：`file_doc`
+- **实际表示**：`file_doc.source_file` 或 `file_doc.archive_file`
+
+因此：
+
+- 直接请求版本记录时，检查的仍是其根文档；
+- `version=<另一版本ID>` 只要属于同一个版本链，就改变 `file_doc`，不会把权限检查改为该版本；
+- `original=true` 或归档回退只改变文件表示，不改变授权资源；
+- 所选版本自己的 owner 或对象授权不会在 Download 流程中被再次检查。
+
+这是一种“根文档权限覆盖整个版本链”的实现语义。是否符合产品策略需要由项目方确认；仅从当前源码不能把它直接定性为授权漏洞。
+
+## 给定开发场景的结果
+
+对于示例输入：
+
+- 用户 `7` 请求 `pk=10`；
+- 根文档 `10` 的 owner 是 `7`，故根权限检查通过；
+- 没有 `version`，于是选择最新未删除版本 `11`，而不是已删除的版本 `12`；
+- 没有精确的 `original=true`，且版本 `11` 有归档文件；
+- 返回 `v1-archive.pdf`，attachment disposition。
+
+即：
+
+```text
+requested document: 10
+authorized resource: root document 10
+file document: version 11
+representation: archive
+returned path: v1-archive.pdf
+```
+
+这只是给定开发 fixture 的计算结果，不代表实际部署数据。
+
+## 缺失事实及其阻断的结论
+
+| 缺失事实 | 无法得出的结论 |
+|---|---|
+| 实际认证配置、凭据及认证结果 | 不能断言某个现实请求会到达 Download action |
+| 用户的模型权限、根文档 owner 和对象授权 | 不能断言现实用户会通过或被拒绝 |
+| 实际数据库中的文档、版本链、删除状态 | 不能确定实际 `file_doc`，也不能确定是否返回 404 |
+| 实际 `version`、`original`、`follow_formatting` 参数 | 不能确定所选版本、表示或下载文件名 |
+| 存储中原始/归档文件是否存在且可打开 | 不能断言请求最终成功返回字节，而不是发生存储错误 |
+| 代理、部署和存储后端行为 | 不能进一步断言最终传输、缓存或外部响应头行为 |
+| 产品对版本链授权的预期 | 不能判定“只授权根文档”是有意策略还是安全缺陷 |
+
+源码能够确定的是控制流及授权对象：**先授权根文档，后选择版本和文件表示；这些后续选择不会改变被授权的资源。**

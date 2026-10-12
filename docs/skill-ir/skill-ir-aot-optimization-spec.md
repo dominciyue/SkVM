@@ -3016,7 +3016,7 @@ check/run/compare已接入`--execution-policy=progressive`，strict仍为默认�
 
 ### 14.47 BH incremental program authoring and consumption
 
-2026-10-12，用户授权[新任务书 BH0–BH17](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)并指定 `gpt-6-astra/high` 开发。基线 `4595339f`，实际接管 `2c64f50f`，identity `authorization-incremental-program-v1`。本节合同正在实施；BG原件保持。资源逐项编译和控制屏障已有红绿证据，实际编写/消费效果仍待运行。
+2026-10-12，用户授权[新任务书 BH0–BH17](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)并指定 `gpt-6-astra/high` 开发。基线 `4595339f`，实际接管 `2c64f50f`，identity `authorization-incremental-program-v1`。本节工程与有限队列已收束；BG原件保持。自动4步原稿仍未补齐主链；P首对tradeoff及一次具名规则投影确认分别保留，稳定净收益未建立。
 
 **重点。** 复核发现 resourceWorkflow 整体 schema 仍会清空渐进结果；自动稿首次七步缺机械字段、滥用 external 并有未定义引用，后稿直接省略该流程；消费报告与原件存在重复进入上下文的接点。BH 沿真实 Download 主链补局部编译、增量编写及消费减负，不扩通用语言解释器或另建 runtime。
 
@@ -3032,7 +3032,7 @@ check/run/compare已接入`--execution-policy=progressive`，strict仍为默认�
 
 **评价与维护。** 局部可用、自动编写、当前消费、同程序变化、源码质量与收益分轴。原四问逐题评阅；P 对照共享原 skill/输入/来源/作者含义/模型/预算，只有消费视图变化。完整实际 input/output/cache、工具、时间和作者成本分列；一对结果如实为 improvement/tradeoff/no-observed-difference/negative/inconclusive。共享错误出现就修再继续，保留首次和具名确认，不重复同因模型调用；账号/第三方/旧未知/保护证据边界沿用。根因与结果更新研究§1/§7.69/§11，约8小时用于有用工作，不人为等待。
 
-**实施细化。** 草稿身份采用程序ID/原问题，修正root行号或receiver时省略workflow仍保留原稿数据；这不沿用旧scope结果，每个候选重新编译。已有活动程序下含错误的新候选保留独立预览、不替换活动结果；无旧活动时progressive可采用带局部缺口的首稿。复用恢复只装载经revision核对的草稿原值，不恢复预览。当前compact投影、详情工具、普通patch和缺source归档已有红绿；实际模型效果待测。资源输入声明仅使用当前场景中的声明子集，未声明事实给unused警告而不崩溃、不自动改名或补值。
+**实施细化。** 草稿身份采用程序ID/原问题，修正root行号或receiver时省略workflow仍保留原稿数据；这不沿用旧scope结果，每个候选重新编译。已有活动程序下含错误的新候选保留独立预览、不替换活动结果；无旧活动时progressive可采用带局部缺口的首稿。复用恢复只装载经revision核对的草稿原值，不恢复预览。compact投影、详情工具、普通patch和缺source归档已有红绿；结构化provider通过kind:program接同核导入/patch/details。首次P配对显示仅提供当前值会丢失备选分支规则，故compact还保留active程序的when/value/test/select等原规则，不带输入集合及旧候选历史；full投影不变。首件错误与具名修复确认分别保留，不将修后结果覆盖首件。重复input/computed身份在执行前失效，strict拒绝、progressive具名诊断。资源输入声明仅使用当前场景中的声明子集，未声明事实给unused警告而不崩溃、不自动改名或补值。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
