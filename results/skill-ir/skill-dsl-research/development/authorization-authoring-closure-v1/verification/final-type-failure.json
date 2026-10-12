@@ -1,0 +1,86 @@
+{
+  "verifiedAt": "2026-10-12T19:51:38.059593+00:00",
+  "coreCommit": "c974948365ad8f8df39b280d48271625db02cb7c",
+  "checks": {
+    "unchangedProductionSource": {
+      "command": [
+        "git",
+        "diff",
+        "--exit-code",
+        "--",
+        "src"
+      ],
+      "exitCode": 0,
+      "output": ""
+    },
+    "mainType": {
+      "exitCode": 0,
+      "basis": "Fresh main type result after final production/test changes; source unchanged since c9749483. No repeated main check for result/doc-only edits.",
+      "evidence": "verification/engineering-stage-2.json"
+    },
+    "affectedAuthorizationSuite": {
+      "exitCode": 0,
+      "command": "bun test ./src/task-dsl/authorization ./src/benchmarks/authorization-dsl ./src/adapters/codex-account.test.ts ./src/adapters/codex-account-session.test.ts",
+      "pass": 1942,
+      "skip": 1,
+      "fail": 0,
+      "assertions": 12930,
+      "files": 140,
+      "durationMs": 70900,
+      "log": "verification/authorization-suite-final.log",
+      "evidence": "verification/authorization-suite-final.log"
+    },
+    "researchType": {
+      "command": [
+        "C:\\Users\\14182\\AppData\\Roaming\\npm\\node_modules\\bun\\bin\\bun.exe",
+        "x",
+        "tsc",
+        "--noEmit",
+        "-p",
+        "results\\skill-ir\\skill-dsl-research\\development\\authorization-authoring-closure-v1\\tsconfig.json"
+      ],
+      "exitCode": 2,
+      "output": "results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/summarize.ts(29,111): error TS2532: Object is possibly 'undefined'.\nresults/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/summarize.ts(29,145): error TS2532: Object is possibly 'undefined'."
+    },
+    "documentTests": {
+      "command": [
+        "python",
+        "scripts/check_skill_ir_doc_links_test.py"
+      ],
+      "exitCode": 0,
+      "output": "...............\n----------------------------------------------------------------------\nRan 15 tests in 0.020s\n\nOK"
+    },
+    "changedDocumentLinks": {
+      "exitCode": 0,
+      "files": [
+        "docs/skill-ir/current-status.md",
+        "docs/skill-ir/developer-guide.md",
+        "docs/skill-ir/skill-dsl-research.md",
+        "docs/skill-ir/skill-ir-aot-optimization-plan.md",
+        "docs/skill-ir/skill-ir-aot-optimization-spec.md",
+        "docs/superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md",
+        "docs/usage.md",
+        "examples/authorization-assessment/download-workflow/README.md"
+      ],
+      "schemaVersion": "skill-ir-doc-link-check/v1",
+      "scannedFiles": 8,
+      "brokenReferences": [],
+      "legacyReferences": [],
+      "retiredReferences": [],
+      "newAnchorsChecked": 3,
+      "anchorErrors": [],
+      "scope": "Changed Markdown only, with existing retired-pair configuration; no full historical scan."
+    },
+    "diffCheck": {
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "output": "warning: in the working copy of 'docs/skill-ir/current-status.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/skill-ir/skill-dsl-research.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'docs/superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md', LF will be replaced by CRLF the next time Git touches it\nwarning: in the working copy of 'examples/authorization-assessment/download-workflow/README.md', LF will be replaced by CRLF the next time Git touches it"
+    }
+  },
+  "derivationRepair": "Initial Python invocation could not launch the PowerShell-only bunx shim (WinError 2). Resolved its documented npm native bun executable and used bun x; no production or account-session change.",
+  "limits": "Current affected authorization suite and main type evidence reused while src is unchanged. Research type, doc tests, changed links/anchors and diff are fresh. No all-src run or protected evidence edits."
+}

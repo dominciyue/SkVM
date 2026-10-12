@@ -1,0 +1,198 @@
+## 结论
+
+Download 的 URL 路径参数 `pk` 先选出“请求文档”，随后代码把它归一到其根文档，并且**授权始终针对根文档**。授权通过后，才根据 `version` 选择实际提供文件的文档版本，再根据 `original` 和 `has_archive_version` 选择原件或归档文件。
+
+因此：
+
+- 选择另一个版本不会改用该版本作为授权对象；
+- 选择 original/archive 也不会产生新的授权检查；
+- 子版本的 `owner` 不参与该下载路径的显式对象检查；
+- 根文档的权限控制整个版本链及其原件/归档表示。
+
+## 1. 请求入口与文档定位
+
+`UnifiedSearchViewSet` 继承 `DocumentViewSet`，并以 `documents` 前缀注册在 `/api/` 下；DRF 的 detail action 路由格式为 `{prefix}/{lookup}/{url_path}/`。所以应用内路径是：
+
+```text
+GET /api/documents/{pk}/download/
+```
+
+依据：
+
+- 路由注册：[src/paperless/urls.py:74-77](src/paperless/urls.py#L74-L77)、[src/paperless/urls.py:97-100](src/paperless/urls.py#L97-L100)
+- 继承关系：[src/documents/views.py:2503-2507](src/documents/views.py#L2503-L2507)
+- DRF detail action 路由：[framework/rest_framework-3.18.1/rest_framework/routers.py:128-135](framework/rest_framework-3.18.1/rest_framework/routers.py#L128-L135)
+- Download action：[src/documents/views.py:1834-1839](src/documents/views.py#L1834-L1839)
+
+`download()` 将 `pk`、request 和 `"attachment"` 交给 `file_response()`；文件或文档不存在时转成 404。[src/documents/views.py:1835-1839](src/documents/views.py#L1835-L1839)
+
+`file_response()` 以 `include_deleted=True` 调用 `_resolve_request_and_root_doc()`，因此使用 `Document.global_objects` 按 `id=pk` 取 `request_doc`；没有该 ID 则 404。[src/documents/views.py:1401-1415](src/documents/views.py#L1401-L1415)、[src/documents/views.py:1429-1436](src/documents/views.py#L1429-L1436)
+
+随后：
+
+- 若 `request_doc.root_document_id is None`，根文档就是自身；
+- 否则优先使用已加载的 `root_document`；
+- 再否则用相同的 manager 查询根 ID；
+- 最后的防御性回退是把 `request_doc` 自身当成根文档。
+
+参见 [src/documents/versioning.py:146-156](src/documents/versioning.py#L146-L156)。模型中 `root_document` 是指向根文档的自引用外键，`version_index` 表示版本序号。[src/documents/models.py:315-330](src/documents/models.py#L315-L330)
+
+## 2. 授权检查及顺序
+
+### 第一层：进入 action 前的 DRF 检查
+
+`DocumentViewSet` 配置：
+
+```python
+permission_classes = (IsAuthenticated, PaperlessObjectPermissions)
+```
+
+[src/documents/views.py:1008-1027](src/documents/views.py#L1008-L1027)
+
+DRF 在调用 handler 前依次执行认证和 view-level permissions。[framework/rest_framework-3.18.1/rest_framework/views.py:404-420](framework/rest_framework-3.18.1/rest_framework/views.py#L404-L420)、[framework/rest_framework-3.18.1/rest_framework/views.py:513-523](framework/rest_framework-3.18.1/rest_framework/views.py#L513-L523)
+
+`PaperlessObjectPermissions` 把 GET 映射为 `documents.view_document`。[src/documents/permissions.py:30-44](src/documents/permissions.py#L30-L44) 其继承的 `has_permission()` 要求用户已经认证，并执行 `request.user.has_perms(...)`。[framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246](framework/rest_framework-3.18.1/rest_framework/permissions.py#L233-L246)
+
+所以用户必须先：
+
+1. 通过实际认证后端；
+2. 拥有模型级 `documents.view_document` 权限。
+
+### 第二层：应用内显式根文档检查
+
+取出 `request_doc` 和 `root_doc` 后，代码执行：
+
+```python
+has_perms_owner_aware(request.user, "view_document", root_doc)
+```
+
+失败立即返回 403；只有成功后才选择实际文件版本。[src/documents/views.py:1417-1427](src/documents/views.py#L1417-L1427)、[src/documents/views.py:1435-1441](src/documents/views.py#L1435-L1441)
+
+该检查在以下任一条件下通过：
+
+- 根文档没有 owner；
+- 根文档 owner 就是当前用户；
+- Guardian 的 `ObjectPermissionChecker` 对根文档确认了 `view_document`。
+
+[src/documents/permissions.py:624-635](src/documents/permissions.py#L624-L635)
+
+虽然权限类实现了对象权限检查，但这条 Download 路径没有调用 `get_object()` 或 `check_object_permissions()`；它依赖上述手工的、owner-aware 的根文档检查。DRF 的对象权限检查只有被调用时才遍历 `has_object_permission()`。[framework/rest_framework-3.18.1/rest_framework/views.py:344-355](framework/rest_framework-3.18.1/rest_framework/views.py#L344-L355)
+
+## 3. 版本选择的所有分支
+
+授权通过后，`_get_effective_file_doc(request_doc, root_doc, request)` 决定 `file_doc`。[src/documents/views.py:1388-1399](src/documents/views.py#L1388-L1399)
+
+### A. URL 的 `pk` 本身是子版本，且完全没有 `version` 参数
+
+当：
+
+```python
+request_doc.root_document_id is not None
+and request.query_params.get("version") is None
+```
+
+直接返回 URL 指定的 `request_doc`。不会自动改成最新版本。
+
+### B. 其他情况
+
+包括：
+
+- URL 指向根文档；
+- URL 指向子版本但请求中存在 `version` 参数。
+
+这些情况进入 `_resolve_file_doc(root_doc, request)`。[src/documents/views.py:1375-1386](src/documents/views.py#L1375-L1386)
+
+具体分支如下：
+
+| `version` 状态 | 行为 |
+|---|---|
+| 参数不存在，即 `None` | 使用 `Document.objects` 查找根文档的最新版本；没有版本则返回根文档 |
+| 参数存在但为空字符串，如 `?version=` | `version_requested` 为真，所以使用 `global_objects`；但空字符串又是 falsy，因此走“最新版本”分支。这可能选到已删除版本 |
+| 非空且可转换为整数 | 使用该整数作为候选文档 ID；因为参数存在，使用 `global_objects` |
+| 非空但不是整数 | `NotFound("Invalid version parameter")`，即 404 |
+| 整数 ID 不存在 | 404 |
+| ID 存在但既不是根文档自身，也不是该根的直接版本 | 404 |
+| ID 是根自身或该根的版本 | 以该文档作为 `file_doc` |
+
+参见 [src/documents/versioning.py:140-143](src/documents/versioning.py#L140-L143)、[src/documents/versioning.py:169-195](src/documents/versioning.py#L169-L195)。
+
+“最新”按 `version_index` 降序、再按 ID 降序确定；无版本则回退根文档。[src/documents/versioning.py:23-28](src/documents/versioning.py#L23-L28)、[src/documents/versioning.py:159-166](src/documents/versioning.py#L159-L166)
+
+一个重要边界是：**缺少 `version` 与空的 `version=` 不等价**。前者设置 `include_deleted=False`；后者设置 `include_deleted=True`，但仍要求“最新版本”。
+
+## 4. 原件/归档表示与响应
+
+`original_requested()` 只有在参数存在且值**精确等于小写字符串 `"true"`** 时才返回真。[src/documents/views.py:1368-1373](src/documents/views.py#L1368-L1373)
+
+于是：
+
+| 条件 | 返回的文件 |
+|---|---|
+| `original=true` | `file_doc.source_file` |
+| `original` 缺失或不是精确的 `"true"`，且 `file_doc.has_archive_version` | `file_doc.archive_file` |
+| 没有归档版本 | `file_doc.source_file` |
+
+该判断发生在版本文档选定之后：[src/documents/views.py:1437-1448](src/documents/views.py#L1437-L1448)。
+
+`serve_file()` 的最终行为：
+
+- 归档：打开 `archive_file`，MIME 固定为 `application/pdf`；
+- 原件：打开 `source_file`，使用文档的 `mime_type`；
+- `follow_formatting` 只改变下载文件名的来源，不改变文件内容；
+- 响应是 `FileResponse`，Download 使用 `Content-Disposition: attachment`。
+
+[src/documents/views.py:4941-4973](src/documents/views.py#L4941-L4973)、[src/documents/views.py:4978-4995](src/documents/views.py#L4978-L4995)
+
+代码直接把 `request.query_params.get("follow_formatting", False)` 当布尔值使用，因此任何非空字符串——包括 `"false"`——在 Python 中都是真值，会启用磁盘文件名分支。
+
+## 5. 授权对象与返回资源是否一致
+
+它们不一定是同一数据库行：
+
+```text
+URL pk
+  → request_doc
+  → root_doc             ← 对此执行 owner/Guardian 授权
+  → file_doc             ← 授权之后根据 version 选择
+  → source_file/archive_file
+```
+
+所以：
+
+- URL 指定子版本时，授权对象仍是其根文档；
+- URL 指定根文档时，返回文件可能来自最新子版本；
+- 显式 `version` 可以选择同一版本链中的根或另一个子版本；
+- 选中的子版本即使 owner 不同，也没有再次按子版本 owner 检查；
+- original/archive 只是 `file_doc` 的不同文件表示，没有独立授权。
+
+这表明源码采用了“根文档权限覆盖整个版本链及所有文件表示”的权限模型。它是否符合产品安全不变量，需要产品层确认；源码本身并未把版本行或 archive 文件当作新的授权资源。
+
+## 6. 给定开发场景
+
+若 fixture 中的 `"version": ""` 表示请求确实包含 `?version=`：
+
+1. `pk=10` 选中根文档 10；
+2. actor 7 是根文档 10 的 owner，所以显式 owner-aware 根检查通过；
+3. 空 `version=` 被视为“参数存在”，故版本查询使用 `global_objects`；
+4. 空字符串又是 falsy，因此选择最新版本；
+5. 按 `version_index`，已删除的版本 12 比版本 11 新；
+6. 版本 12 没有 archive，故返回 `v2-original.txt`。
+
+但此结果还以用户先通过模型级 `documents.view_document` 检查为条件；fixture 没有提供该权限事实。`ObjectPermissionChecker.construct=true` 只表示构造器能完成，并不代表授予任何权限。
+
+如果 fixture 的空字符串实际是“参数缺失”的占位符，则源码收到的是 `None`：这时使用默认 manager，预期选择未删除的版本 11，并因其存在 archive 而返回 `v1-archive.pdf`。因此必须明确 fixture 如何映射到实际 query string，才能在这两个结果间作最终选择。
+
+## 7. 尚缺事实及其阻塞的结论
+
+| 缺少的事实 | 无法确定的结论 |
+|---|---|
+| 实际认证设置和凭据 | 请求能否成为已认证用户并进入 action |
+| 用户是否有模型级 `documents.view_document` | 能否通过 DRF 的前置 permission check |
+| 根文档实际 owner、是否无 owner、Guardian grants | 显式根文档检查返回允许还是 403 |
+| 实际 `pk`、`version`、`original`、`follow_formatting` | 选中哪一版本、哪一文件及文件名分支 |
+| 实际版本链、删除状态、`version_index` | “最新版本”是哪一行 |
+| `SoftDeleteModel` manager 的完整实现不在允许证据中 | `objects` 与 `global_objects` 的精确过滤语义；当前代码只明确按 `include_deleted` 在两者间切换 |
+| `has_archive_version` 和存储中的实际文件 | archive/source 分支能否成功打开文件，还是最终 404 |
+| 外部代理、部署路径和附加访问控制 | 对外 URL 及部署层是否还有额外限制；它们不能从该源码范围推断 |
+
+辅助授权程序的语义状态仍是 `unreviewed`，因此上述结论来自所引源码，而不是把该机器结果当作授权证明。

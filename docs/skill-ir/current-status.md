@@ -4,7 +4,9 @@
 
 ## 当前工作
 
-**BI0–BI23已获用户授权，当前为`in-progress`（BI0–BI11工程已通过定向红绿，准备首次真实作者），开发模型`gpt-6.1-sol/max`，按约12小时实质工作量安排。** [任务书](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)承接BH的自动主链和消费质量缺口：作者模式持续、有序patch、完整任务上下文、真实自动稿原/变消费及两组full/compact对照。方法见[spec§14.48](skill-ir-aot-optimization-spec.md#1448-bi-authoring-closure-and-reliable-consumption)、[研究§7.70](skill-dsl-research.md#770-bi-作者目标有序修稿与保真消费)。identity为`authorization-authoring-closure-v1`；结果由执行线程建立，不把计划当已实施成果。共享错误现场修复，通道暂停时继续确定性工程；不等待或重测凑时长。
+**BI八个真实位置全部交付，无活动或未知请求；当前为`in-progress`（BI23验证与发布收束）。** [任务书](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)的共享工程已落地至c9749483；授权联合1942通过/1平台skip/12930断言，主/研究类型通过。identity为`authorization-authoring-closure-v1`，开发模型`gpt-6.1-sol/max`，实验`gpt-5.6-sol/high`。方法见[spec§14.48](skill-ir-aot-optimization-spec.md#1448-bi-authoring-closure-and-reliable-consumption)、[研究§7.70](skill-dsl-research.md#770-bi-作者目标有序修稿与保真消费)。
+
+A2十二步原稿在C1/C2之前冻结；原/变输入下均因question/input绑定及版本、权限、root回退关系缺口无computed文件返回。自然四问分别为A1 P/F/P/F、A2 F/F/F/F、C1 F/P/F/F、C2 F/F/F/F；给定材料P0两臂均full，P1 compact第四问partial、full全full。P0为tradeoff，P1为negative，未建立稳定净收益，示例默认full、compact显式使用。自动稿普通命令及实际conditional结果见[Download说明](../../examples/authorization-assessment/download-workflow/README.md)，详细依据见[逐题评阅](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/quality.json)、[配对成本](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/comparison.json)与[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/summary.json)。共享输入绑定反馈不回填冻结稿，也不追抽第三作者。
 
 ## BH 已结束的实际结果
 
@@ -79,7 +81,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 ## 账号、运行和继承边界
 
-- BI开发 `gpt-6.1-sol/max`，按用户指定派发；实验沿用已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。BH有限队列已关闭；BI在新identity中登记首件及具名修复。
+- BI开发 `gpt-6.1-sol/max`，按用户指定派发；实验沿用已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。BI八首位置及BH有限队列均已结束，不自动追加作者或模型面板。
 - BG有限执行已收束，无活动或未知请求；自动编写与重复上下文成本为未达项，不自动增加样本。后续新任务继续遵守具名恢复、账号未知和成本记录边界。
 - BF六首位置及三具名修订已处置，可选反序第二对因自动R1未达未运行。自动编写、作者给定程序消费及变化复用各自分母；不会自动追加模型。新范围不升级旧readiness或改变项目默认。
 - BE六质量首位置和六变化逻辑位置已完成，保持完整原skill/四问及失败分母。source-previous两件确定未派发，仅一个同输入/epoch的登记恢复交付；原件和79,770ms本地开销保留。R0/R1资格、恢复和实际使用分列，旧答案/评阅/verdict不进入previous；R2缺失使实际R2撤回实验未执行。旧BD六未运行不补行，OWUI继续仅离线。
@@ -102,7 +104,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BI | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)、spec§14.48、研究§7.70；已授权待实施，约12小时工程与有限实际队列，先修作者目标和有序编辑，再验自动稿与消费 |
+| 当前BI | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)、spec§14.48、研究§7.70；工程与八位置已验证，自动主链及稳定收益未达，BI23发布收束 |
 | BH | [任务书](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)、spec§14.47、研究§7.69；有限队列完成、自动主链与稳定收益未达；实际程序、首失败、修复和分轴结论已归档 |
 | BG | [任务书](../superpowers/plans/2026-10-12-authorization-end-to-end-practical-execution.md)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-practical-execution-v1/summary.json)、spec§14.46、研究§7.68；主链运行/变化成立，自动编写和净收益未达 |
 | BF | [任务书](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)、[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/verification/acceptance-matrix.json)、spec§14.45、研究§7.67；工程/有限队列收束，整题质量与净收益未达 |

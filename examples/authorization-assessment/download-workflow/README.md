@@ -21,6 +21,12 @@ fallback incomplete. These are visible in the printed `execution.md` and
 `execution.json`; all four original duties remain in the archive. Natural
 explanations of these branches do not establish automatic computation.
 
+BI's eight recorded account sessions completed. A2's recovered natural answer
+and C2's changed-input answer cover all four questions, while A1 and C1 have
+specific omissions. These labels describe natural explanations, separately from
+the unresolved automatic program. See the [question review](../../../results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/quality.json)
+and [summary](../../../results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/summary.json).
+
 Add `-Mode account` to consume this same file with the original skill and four
 questions. `-Previous <saved-session-directory>` restores eligible evidence and
 recomputes current inputs; it does not reuse the prior natural answer. Use
@@ -74,6 +80,10 @@ This uses `gpt-5.6-sol/high`, the reviewed account boundary, `consume` mode and
 Compact is an explicit option. It keeps the current result, guards,
 sources and gaps; `authorization_program_details` retrieves exact steps or the
 full program/trace on request. Complete raw objects remain in the session.
+BI's two fixed-reference full/compact pairs are [tradeoff and negative](../../../results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/comparison.json).
+P0 preserves all four answers with mixed observed costs. P1 compact omits an
+external permission-checker limitation and costs more on every measured axis.
+The pairs establish neither general savings nor automatic authoring success.
 On another machine, pass `-AccountBoundary` with that
 machine's reviewed generic-instruction boundary; do not copy an unverified pin.
 The account CLI must be a reviewed supported version. The original answer and

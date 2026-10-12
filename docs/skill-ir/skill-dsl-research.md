@@ -4,7 +4,9 @@
 
 ## 1. 当前结论
 
-**BI已开始实施，先修作者目标持续、有序patch和完整任务上下文。** 用户指定`gpt-6.1-sol/max`新线程，按约12小时实质工作量推进[BI0–BI23](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)。目标是自动原稿实际接管主链并完成同稿变化消费，同时检验保留质量的compact；尚无BI运行或效果结论。复核依据与方法选择见[§7.70](#770-bi-作者目标有序修稿与保真消费)。
+**BI共享工程和八个真实位置已完成，自动主链未达；当前收束验证与发布。** [BI0–BI23](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)已接通持续作者目标、原子stepOrder、revision详情、原稿/候选/活动归档及完整任务消费。A2恢复修稿采用12步，冻结原稿在C1/C2仍因question/input绑定和版本、权限、root回退缺口无文件返回；自然答案不能替代计算。原四问整题5/8 full是不同轨道的描述计数：A1 partial、A2恢复full，自动原稿C1 partial/C2 full，开发者材料P0两臂full/P1 compact partial/full full。
+
+两组同epoch开发者材料对照为P0 tradeoff、P1 negative：首对质量保持但input/工具增加，反序空version对compact第四问漏外部权限检查器构造/后端限制且各项观测成本均增加。稳定净收益未成立，示例默认full、compact显式使用。已知input15,938,854（含cache14,767,744）/output86,379，386模型工具调用；USD、隐藏请求、开发/探子及真人分钟仍未知。1942授权相关测试/1平台skip/12930断言及类型通过，15离线观察和实际会话搬移通过。自动稿普通命令见[Download说明](../../examples/authorization-assessment/download-workflow/README.md)，分轴依据见[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/summary.json)、[逐题评阅](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/quality.json)及[§7.70](#770-bi-作者目标有序修稿与保真消费)。研究目标保持false，保护证据及项目默认不变。
 
 **BH有限队列以`completed-with-unmet-criteria`收束，6次真实调用全部交付，无活动/未知请求。渐进编译、持久草稿、patch、compact/full和按需详情已接通；自动稿三次保留4步但未补齐版本/文件主链。Download与ShareLink共14离线场景通过。首个同epoch P对照为tradeoff：compact成本降低但答案退化；一次规则投影修复确认另列。** 真实数据、修复经过与边界见[§7.69](#769-bh-发布后复核与渐进编写消费决定)及[summary](../../results/skill-ir/skill-dsl-research/development/authorization-incremental-program-v1/summary.json)。
 
@@ -2642,7 +2644,7 @@ ShareLink第二离线开发程序使用同一select/guard/return核，六场景�
 
 ### 7.70 BI 作者目标、有序修稿与保真消费
 
-2026-10-13，用户授权[BI0–BI23](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)，指定`gpt-6.1-sol/max`新线程、约12小时工作量。复核基线8745aee0。此处记录已核对的工程行为和待检验的修复假设，实施结果由新线程追加；BH首件、修订及费用不改写。
+2026-10-13，用户授权[BI0–BI23](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)，指定`gpt-6.1-sol/max`新线程、约12小时工作量。复核基线8745aee0，实际接管fde04c26。以下保留最初修复依据并记录同一线程的实际工程、失败、消费与评价；BH首件、修订及费用不改写。
 
 **作者目标丢失。** native的compact分支在executableContract出现后立即发送使用结果、读源码完成剩余职责的消费指导，没有按edit保留编写目标。BH作者三次整稿始终4步，末段仍有探索额度，未调用patch。因此下一轮要在edit下持续提供当前草稿/活动版本、实际计算输出和剩余编写职责；“current”或能算两个ID不能代表自动主链完成。这是共享接口问题，是否改善模型补齐仍需真实作者确认。
 
@@ -2661,6 +2663,14 @@ ShareLink第二离线开发程序使用同一select/guard/return核，六场景�
 **BI13–BI14实际观察。** A2实际修稿采用12步，原稿在消费者之前冻结。它选择authorization-and-selection-order为scope，supplied resourceInputs却属于requested-document-and-returned-file，因此当前执行inputs为空，十二个事件未解析、无returned。最新版本选择始终筛deleted=false，也未表达空version/显式版本、非owner授权展开及root失查回退；自然答案可以解释这些，不能算程序已完成。C1普通consume/full及C2同原稿empty-version/previous均交付，同epoch且仍conditional。公开零模型入口也保留相同缺口。随后只补通用输入绑定可见性，native/provider反例红绿2项/12断言，不改自动原稿或追加第三作者。
 
 **具名补强。** 畸形raw.steps为对象的离线反例使作者/详情投影抛错，已加数组形状检查；账号公开schema本来在执行前拒绝这种输入，恢复/本地草稿可见性仍需健壮处理。归档原始客户端载荷可重建发送边界，A1/A2/C1分别63/54/54条、1486525/1735652/1260526字节，逐条UTF-8及SHA与receipt完全相符；字段分类通过同一分类器复算，不称独立语义分类。necessary source核查和重复状态的用途另评，不按重复哈希直接扣成本。
+
+**BI15–BI16同期消费。** P0按full→compact，P1按compact→full；两对均同c9749483/无src diff、原skill、程序、输入、来源身份、模型、effort和预算，四个位置均首次交付。开发者原程序在P0两臂返回11/archive，在P1两臂返回12/original；这不是自动稿成功。P0逐题均full，compact相对full input+1,749、output−1,520、工具+20、耗时−66,928ms、实际发送−14,561字节，结论tradeoff。P1 full四问full，compact前三问full/第四问partial：实际检查器构造和后端失败在缺事实表中缺失，不能以对象grant或一般部署未知替代；已有主张source-supported。P1 compact input+676,520、output+3,215、工具+8、耗时+107,611ms、实际发送+178,703字节，结论negative。质量与费用分别裁决，不按ID相同宣称完整，不以两对开发观察升项目默认或声称稳定收益。
+
+**完整任务与读源码原因。** A1原答案P/F/P/F，缺空version也使Q1的全分支职责未达；A2恢复答案full但程序conditional。C1为F/P/F/F，命名权限类没有解释GET的全局view_document条件；其两个permissions.py取回因exploration-budget实际未执行，此前有重复源码范围。这是遗漏与预算的可观测关联，不能直接证明重复读取是单一原因。C2四問full，程序仍conditional。P0两臂full、P1 compact F/F/F/P/full F/F/F/F；源码支持标签不擦除漏项。按原件工具记录区分执行/拒绝/重复范围，调用意图未被直接观测；必要核查不能一律算浪费。独立评阅只给线索，主线程按具体原文纠正A1、C1和P1 compact，不另重抽模型。
+
+**BI17–BI20离线复用与搬移。** Download八变体、ShareLink六变体及一次ShareLink有序插入/删除/坏排列原子拒绝/恢复，共15观察零账号调用。匿名红绿覆盖两种工具入口及三版本恢复；实际A2保存会话复制到新普通目录后inspect、显式source-root init、empty-version compare及零模型归档通过，原revision和源码身份保持，answerReused=false、四职责保留。原输入与模型增补报告曾被搬移脚本错误比较、已按input.json纠正；source_read审计脚本曾重复JSON.parse已解码对象、已修类型分支，均是派生脚本问题，无生产修复必要。两个任务现有有限算子可表达已暴露参考关系，不据自动含义缺口扩Python全语义。
+
+**成本与验证边界。** 八账号会话completed/delivered、无活动/未知或追加修复会话；known input15,938,854（cache14,767,744仅单列一次）/output86,379，386模型工具调用，已记录会话耗时合计3,522,692ms。作者、自动稿消费、开发者参考消费input/output分别6,317,629/25,894、3,306,148/23,928、6,315,077/36,557；USD、providerRequests、隐藏工作、开发/探子与真人成本未知。所有实际发送字节从客户端原件逐条SHA/UTF-8对账，分类仍为已有分类器的粗字段划分，不能变成精确组件token或因果协议成本。最终生产代码c9749483，授权联合1942通过/1平台skip/0失败/12930断言，主类型及研究脚本类型通过；后续只因脚本/文档变化补必要检查，不重跑全src或改旧104失败/保护锁。原稿、自然任务、质量和收益分轴；本轮有限队列结束后以completed-with-unmet-criteria发布，不承诺耗尽约12小时估算，不自动追加第三作者。
 
 ## 8. 技术文档本地化候选：已设计到哪里
 
@@ -2725,12 +2735,12 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 | ID | 问题 | 当前依据 | 接下来的判断 |
 |---|---|---|---|
 | Q1 | 哪个任务范围共享领域语义？ | 固定来源的授权职责支持 principal/resource/operation/control/evidence；混合职责单列，见 §4–§7.10 | 保持单 repo/ref、源码可见的授权切片 |
-| Q2 | 声明如何带来实际行为？ | BH自动原稿4步仅返回请求/根ID；compact出现程序后切消费指导，增量新步骤只能追加 | BI保留作者目标并支持显式顺序，模型仍需从源码补主链含义 |
-| Q3 | 为什么仍漏决定性源码或分支？ | BH补规则后仍partial；compact还省略阶段、源码窗口和候选线索，程序外职责需要继续处理 | BI保留原问题/剩余职责/来源线索，用真实消费检验，不预定单因果 |
-| Q4 | 领域方法相对好说明的增量是什么？ | BH同程序首对compact减少524583input/2472output、快49652ms，但质量退化；修复确认另列 | BI做两组同epoch full/compact；当前仍tradeoff，稳定净收益未建立 |
-| Q5 | 作者和变化复用是否可用？ | 草稿恢复已有基础；BH C2文件变化来自自然解释，有序局部插入缺失 | BI固定自动原稿做原/变消费，分别核对计算与自然补答 |
+| Q2 | 声明如何带来实际行为？ | BI作者目标/stepOrder已修；A2恢复采用12步但scope与输入题不一致、主链含义缺失 | 用薄inputBindings反馈继续由作者选scope和从源码写版本/权限/回退；不手工修冻结稿 |
+| Q3 | 为什么仍漏决定性源码或分支？ | BI已保留原问题、规则及源码线索；C1漏全局GET，P1 compact漏外部checker完成事实 | 区分必要范围、预算拒绝及重复读取，保留具体漏项；不预定单因果或删职责 |
+| Q4 | 领域方法相对好说明的增量是什么？ | BI两组同epochP为tradeoff/negative，首对质量保持、反序对第四问下降 | 稳定净收益未建立；默认full、compact显式，新的效果范围须另行定义 |
+| Q5 | 作者和变化复用是否可用？ | A2同原稿C1/C2实际消费及会话搬移成立，但空输入使两次机器均无文件返回 | 区分恢复材料可用、自然补答完整与自动关系重算；未达主链由模型作者补 |
 | Q6 | 本地化路线如何处理？ | 保留 §8–§9 设计及结构回填反例 | 暂缓；重新选择该类时再处理，不混入授权验收 |
-| Q7 | 如何评价和计量？ | BH六真实交付，input7,177,622含cache6,413,824/output60,368，275工具；首件与修复均保留 | 作者/消费者/修复分账，实际发送字节与tokens分开；USD/开发/真人未知，不计算无依据的摊销盈亏点 |
+| Q7 | 如何评价和计量？ | BI八真实交付，input15,938,854含cache14,767,744/output86,379，386工具；实际payload逐条对账 | 自动作者/恢复/自动消费/给定消费分母分开；USD/provider隐藏/开发探子/真人未知，不计算无依据的净收益 |
 
 决策沿革：
 
@@ -2790,6 +2800,8 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-12 / BH规划：** 延续BG实际可用程序，先修资源步骤局部拒绝与草稿丢失，再测隔离作者、同程序变化和紧凑消费；ShareLink仅离线检验共享算子。新开发gpt-6-astra/high，规划未新增模型或效果结果，见§7.69。
 
 - **2026-10-13 / BI规划：** 发布后复核定位作者提示切消费、有序patch缺失及compact任务上下文丢失；安排共享修复、隔离自动编写/同稿变化和两组消费对照。用户指定gpt-6.1-sol/max与约12小时工作量，规划未增加实现或效果证据，见§7.70。
+
+- **2026-10-13 / BI实施与有限收束：** mode优先作者进度、原子排序、三版本归档和当前详情落地；真实A2恢复采用12步但原/变自动消费无文件计算。八件全交付，自然整题5/8 full、自动与给定材料分母分开；同期P0 tradeoff/P1 negative，稳定净收益未达。1942相关测试/1平台skip、类型、15文档测试和当前链接锚点通过；15零模型观察、实际搬移及发送原件对账成立。有限队列结束，研究false，默认full/compact显式；剩余作者绑定及源内版本/权限/回退含义不由主线程回填、不追第三稿，见§7.70。
 
 ## 12. 后续追加规则
 

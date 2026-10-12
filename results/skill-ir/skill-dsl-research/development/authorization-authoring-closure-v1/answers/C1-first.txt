@@ -1,0 +1,182 @@
+## Request-to-file trace
+
+### 1. Routing and request identity
+
+`UnifiedSearchViewSet`, which inherits `DocumentViewSet`, is registered as the `documents` API resource. The `download` method is a GET detail action, producing the router endpoint:
+
+```text
+GET /api/documents/{pk}/download/
+```
+
+The router registration is at `src/paperless/urls.py:74-77`; the action and handler are at `src/documents/views.py:1834-1839`.
+
+The route `{pk}` is the requested document ID. `download()` calls:
+
+```python
+self.file_response(pk, request, "attachment")
+```
+
+so successful responses always use attachment disposition. `FileNotFoundError` or `Document.DoesNotExist` becomes HTTP 404 (`src/documents/views.py:1835-1839`).
+
+### 2. Framework-level authorization
+
+`DocumentViewSet` declares `IsAuthenticated` and `PaperlessObjectPermissions` (`src/documents/views.py:1008-1021`). DRF authenticates and runs view-level permission checks before dispatching the action (`framework/rest_framework-3.18.1/rest_framework/views.py:331-340,390-425`).
+
+Ordinarily, DRF performs object-permission checks when `GenericAPIView.get_object()` calls `check_object_permissions()` (`framework/rest_framework-3.18.1/rest_framework/generics.py:79-105`). Download does **not** use `get_object()`: it performs its own lookup and explicit owner-aware check. Therefore, the material application object authorization is the root-document check described below, rather than a framework object check on the eventual `file_doc`.
+
+## Document lookup and root authorization
+
+`file_response()` invokes `_resolve_request_and_root_doc(pk, request, include_deleted=True)` before selecting a version or representation (`src/documents/views.py:1429-1441`).
+
+That helper:
+
+1. Uses `Document.global_objects` because `include_deleted=True`.
+2. Fetches document ID `pk`, with its owner and `root_document`.
+3. Returns 404 if it does not exist.
+4. Normalizes the requested document to its root:
+   - if `root_document_id` is null, the requested document is the root;
+   - otherwise, its `root_document` is used;
+   - the general helper has a fallback to the requested document if the referenced root cannot be resolved.
+5. Checks `view_document` on that **root document**.
+6. Returns HTTP 403 `"Insufficient permissions"` on failure.
+
+See `src/documents/views.py:1401-1427` and `src/documents/versioning.py:146-156`.
+
+For a non-null authenticated user, `has_perms_owner_aware()` permits access when any of these is true:
+
+- `root_doc.owner is None`;
+- `root_doc.owner == request.user`;
+- Guardian's `ObjectPermissionChecker` reports `view_document` on `root_doc`.
+
+Otherwise it denies (`src/documents/permissions.py:624-635`).
+
+Thus the order is:
+
+```text
+authenticate / view-level permissions
+→ look up requested pk
+→ derive root document
+→ authorize root document
+→ select effective version
+→ select original/archive representation
+→ open and return file
+```
+
+A 403 exits before version or representation selection (`src/documents/views.py:1421-1441`).
+
+## Effective version selection
+
+After root authorization, `_get_effective_file_doc()` selects `file_doc` (`src/documents/views.py:1388-1399`).
+
+| Request condition | Selected `file_doc` |
+|---|---|
+| `{pk}` identifies a version and the `version` query parameter is absent | That exact requested version, including a deleted version because the initial lookup used `global_objects` |
+| Otherwise, no `version` value | Newest non-deleted version belonging to the root; if none exists, the root itself |
+| Valid explicit `version=<id>` | The identified root or a version whose `root_document_id` equals this root ID; deleted candidates are included |
+| Non-integer explicit version | 404, with `"Invalid version parameter"` |
+| Missing version ID | 404 |
+| Existing document outside this root's version family | 404 |
+
+The relevant logic is at:
+
+- `src/documents/views.py:1375-1399`
+- `src/documents/versioning.py:159-166`
+- `src/documents/versioning.py:169-195`
+
+A subtle branch is an explicitly present but empty/falsy version value: parameter presence makes version lookup include deleted documents, while the resolver's falsy-value branch chooses “latest.” Consequently, that branch can choose the newest version from the include-deleted manager.
+
+## Original versus archive selection
+
+Once `file_doc` has been selected:
+
+```python
+use_archive = (
+    not original_requested(request)
+    and file_doc.has_archive_version
+)
+```
+
+`original_requested()` is true only when the query contains exactly:
+
+```text
+original=true
+```
+
+The comparison is case-sensitive; absent or any other value is false (`src/documents/views.py:1369-1373,1442-1448`).
+
+Therefore:
+
+| Condition | File returned |
+|---|---|
+| `original=true` | `file_doc.source_file` |
+| Original not explicitly requested and an archive exists | `file_doc.archive_file` |
+| Original not explicitly requested but no archive exists | `file_doc.source_file` |
+
+`serve_file()` implements these branches:
+
+- Archive: archive file, PDF MIME type, archive public filename.
+- Original: source file and document MIME type.
+- Text types gain UTF-8 charset.
+- The CSV inline-preview conversion does not apply here because Download passes `"attachment"`.
+- `follow_formatting` changes the filename choice, not the document or file representation.
+- `Content-Disposition` is constructed as attachment with normalized ASCII and UTF-8 filename forms.
+
+See `src/documents/views.py:4941-4995`.
+
+## Which resource is authorized?
+
+The three relevant objects are distinct:
+
+- **`request_doc`**: identified by route `{pk}`.
+- **`root_doc`**: the resource checked for `view_document`.
+- **`file_doc`**: the root/version from which the physical file is returned.
+
+Selecting another version does **not** change the authorized resource: authorization remains against `root_doc`. The explicit version resolver only ensures that the selected document is the root itself or belongs to that root.
+
+Likewise, choosing original versus archive changes only the representation taken from `file_doc`; it performs no new permission check.
+
+Consequently, neither of these is separately checked:
+
+- the owner or object grants of an alternate version;
+- the source-file versus archive-file representation.
+
+This is a root-scoped authorization model. Whether version records are supposed to possess independent authorization is a domain invariant not established by the reviewed source, so the difference alone is not evidence of a vulnerability.
+
+## Supplied development scenario
+
+For the supplied illustrative inputs:
+
+- actor: ID 7;
+- requested PK: 10;
+- no `version`;
+- no `original`;
+- root document 10 is owned by actor 7;
+- version 11 is the only non-deleted version;
+- version 11 has an archive.
+
+The source path yields:
+
+```text
+requested document: 10
+authorized resource: root 10
+file document: version 11
+returned file: v1-archive.pdf
+```
+
+Version 11's owner being user 9 does not change that result: authorization was already granted using root 10 and there is no later version-owner check. Deleted version 12 is excluded from the default latest-version lookup.
+
+This is only the supplied development example, not evidence of actual deployed ownership or grants.
+
+## Missing facts and blocked conclusions
+
+| Missing fact | Conclusion it prevents |
+|---|---|
+| Actual authentication credentials and configured authentication backends | Whether a real request reaches the action as the claimed user |
+| Actual result of the view-level permission classes | Whether framework authorization allows dispatch before the handler |
+| Root ownership and Guardian `view_document` grants | Whether a particular authenticated user receives the file or HTTP 403 |
+| Actual document rows, root relationships, deletion state, and version order | Which `request_doc`, `root_doc`, and `file_doc` are selected, or whether selection returns 404 |
+| Physical source/archive availability and storage behavior | Whether response construction succeeds or becomes 404 |
+| Domain rule for whether versions may have independent owners or grants | Whether root-only authorization is intended or represents an authorization defect |
+| Reverse-proxy/base-path configuration | The externally visible URL; source establishes the application API route, not deployment rewriting |
+
+No ownership or Guardian grant should therefore be assumed for an actual deployment.

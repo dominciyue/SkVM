@@ -1,0 +1,362 @@
+[
+  {
+    "task": "download",
+    "variant": "root-default",
+    "providerCalls": 0,
+    "returned": {
+      "requested_id": 10,
+      "authorized_root_id": 10,
+      "file_document_id": 11,
+      "representation": "archive",
+      "path": "v1-archive.pdf",
+      "disposition": "attachment"
+    },
+    "termination": "return",
+    "conditions": [],
+    "gaps": [
+      "Request-level routing/authentication/permission checks require independent original-source review.",
+      "Storage existence/opening, filename formatting, FileResponse and header behavior are outside the finite selection descriptor.",
+      "ORM/database failure and external checker behavior are not executed; source summaries are authored and unreviewed."
+    ],
+    "diagnostics": []
+  },
+  {
+    "task": "download",
+    "variant": "empty-version",
+    "providerCalls": 0,
+    "returned": {
+      "requested_id": 10,
+      "authorized_root_id": 10,
+      "file_document_id": 12,
+      "representation": "original",
+      "path": "v2-original.txt",
+      "disposition": "attachment"
+    },
+    "termination": "return",
+    "conditions": [],
+    "gaps": [
+      "Request-level routing/authentication/permission checks require independent original-source review.",
+      "Storage existence/opening, filename formatting, FileResponse and header behavior are outside the finite selection descriptor.",
+      "ORM/database failure and external checker behavior are not executed; source summaries are authored and unreviewed."
+    ],
+    "diagnostics": []
+  },
+  {
+    "task": "download",
+    "variant": "denied",
+    "providerCalls": 0,
+    "termination": "HttpResponseForbidden",
+    "conditions": [],
+    "gaps": [
+      "Request-level routing/authentication/permission checks require independent original-source review.",
+      "Storage existence/opening, filename formatting, FileResponse and header behavior are outside the finite selection descriptor.",
+      "ORM/database failure and external checker behavior are not executed; source summaries are authored and unreviewed."
+    ],
+    "diagnostics": []
+  },
+  {
+    "task": "download",
+    "variant": "missing-owner",
+    "providerCalls": 0,
+    "returned": {
+      "requested_id": 10,
+      "authorized_root_id": 10,
+      "file_document_id": 11,
+      "representation": "archive",
+      "path": "v1-archive.pdf",
+      "disposition": "attachment"
+    },
+    "termination": "return",
+    "conditions": [
+      {
+        "step": "checker_completion",
+        "test": {
+          "op": "truthy",
+          "language": "python",
+          "value": {
+            "binding": "checker_constructed"
+          }
+        },
+        "otherwise": "external-checker-failure"
+      },
+      {
+        "step": "root_authorized",
+        "test": {
+          "op": "any",
+          "args": [
+            {
+              "op": "eq",
+              "left": {
+                "literal": 7
+              },
+              "right": {
+                "binding": "actor.id"
+              }
+            },
+            {
+              "op": "truthy",
+              "language": "python",
+              "value": {
+                "binding": "object_grant"
+              }
+            }
+          ]
+        },
+        "otherwise": "HttpResponseForbidden"
+      }
+    ],
+    "gaps": [
+      "Request-level routing/authentication/permission checks require independent original-source review.",
+      "Storage existence/opening, filename formatting, FileResponse and header behavior are outside the finite selection descriptor.",
+      "ORM/database failure and external checker behavior are not executed; source summaries are authored and unreviewed.",
+      "external:ObjectPermissionChecker.construct",
+      "field-missing:id",
+      "checker_constructed",
+      "actor.id",
+      "object_grant"
+    ],
+    "diagnostics": []
+  },
+  {
+    "task": "download",
+    "variant": "root-fallback",
+    "providerCalls": 0,
+    "returned": {
+      "requested_id": 11,
+      "authorized_root_id": 11,
+      "file_document_id": 11,
+      "representation": "archive",
+      "path": "v1-archive.pdf",
+      "disposition": "attachment"
+    },
+    "termination": "return",
+    "conditions": [],
+    "gaps": [
+      "Request-level routing/authentication/permission checks require independent original-source review.",
+      "Storage existence/opening, filename formatting, FileResponse and header behavior are outside the finite selection descriptor.",
+      "ORM/database failure and external checker behavior are not executed; source summaries are authored and unreviewed."
+    ],
+    "diagnostics": []
+  },
+  {
+    "task": "download",
+    "variant": "explicit-version",
+    "providerCalls": 0,
+    "returned": {
+      "requested_id": 10,
+      "authorized_root_id": 10,
+      "file_document_id": 12,
+      "representation": "original",
+      "path": "v2-original.txt",
+      "disposition": "attachment"
+    },
+    "termination": "return",
+    "conditions": [],
+    "gaps": [
+      "Request-level routing/authentication/permission checks require independent original-source review.",
+      "Storage existence/opening, filename formatting, FileResponse and header behavior are outside the finite selection descriptor.",
+      "ORM/database failure and external checker behavior are not executed; source summaries are authored and unreviewed."
+    ],
+    "diagnostics": []
+  },
+  {
+    "task": "download",
+    "variant": "null-actor",
+    "providerCalls": 0,
+    "returned": {
+      "requested_id": 10,
+      "authorized_root_id": 10,
+      "file_document_id": 11,
+      "representation": "archive",
+      "path": "v1-archive.pdf",
+      "disposition": "attachment"
+    },
+    "termination": "return",
+    "conditions": [],
+    "gaps": [
+      "Request-level routing/authentication/permission checks require independent original-source review.",
+      "Storage existence/opening, filename formatting, FileResponse and header behavior are outside the finite selection descriptor.",
+      "ORM/database failure and external checker behavior are not executed; source summaries are authored and unreviewed."
+    ],
+    "diagnostics": []
+  },
+  {
+    "task": "download",
+    "variant": "stale-helper",
+    "providerCalls": 0,
+    "returned": {
+      "requested_id": 10,
+      "authorized_root_id": 10,
+      "file_document_id": 11,
+      "representation": "archive",
+      "path": "v1-archive.pdf",
+      "disposition": "attachment"
+    },
+    "termination": "return",
+    "conditions": [
+      {
+        "step": "checker_completion",
+        "controlGaps": [
+          "resource-source-stale:src/documents/permissions.py"
+        ],
+        "otherwise": "external-checker-failure"
+      },
+      {
+        "step": "root_authorized",
+        "controlGaps": [
+          "resource-source-stale:src/documents/permissions.py"
+        ],
+        "otherwise": "HttpResponseForbidden"
+      }
+    ],
+    "gaps": [
+      "Request-level routing/authentication/permission checks require independent original-source review.",
+      "Storage existence/opening, filename formatting, FileResponse and header behavior are outside the finite selection descriptor.",
+      "ORM/database failure and external checker behavior are not executed; source summaries are authored and unreviewed.",
+      "resource-source-stale:src/documents/permissions.py"
+    ],
+    "diagnostics": [
+      {
+        "code": "contract-resource-source",
+        "path": "resourceWorkflow.steps.5.source",
+        "message": "resource-source-stale:src/documents/permissions.py",
+        "severity": "error",
+        "questionId": "requested-document-and-returned-file"
+      },
+      {
+        "code": "contract-resource-source",
+        "path": "resourceWorkflow.steps.6.source",
+        "message": "resource-source-stale:src/documents/permissions.py",
+        "severity": "error",
+        "questionId": "requested-document-and-returned-file"
+      },
+      {
+        "code": "contract-resource-source",
+        "path": "resourceWorkflow.steps.7.source",
+        "message": "resource-source-stale:src/documents/permissions.py",
+        "severity": "error",
+        "questionId": "requested-document-and-returned-file"
+      },
+      {
+        "code": "contract-resource-source",
+        "path": "resourceWorkflow.steps.8.source",
+        "message": "resource-source-stale:src/documents/permissions.py",
+        "severity": "error",
+        "questionId": "requested-document-and-returned-file"
+      }
+    ]
+  },
+  {
+    "task": "share",
+    "variant": "allowed",
+    "providerCalls": 0,
+    "returned": {
+      "operation": "create-share-analysis-only",
+      "actor_id": 7,
+      "document_id": 10,
+      "effect": "serializer-valid; creation remains external"
+    },
+    "termination": "return",
+    "conditions": [],
+    "gaps": [
+      "No target creation or storage access is executed.",
+      "DRF inherited create and relation-field implementation is not included in this task's allowed snapshot.",
+      "Effective grant rows and ORM user identity by primary key are supplied development facts; deployed authentication/backend state remains unknown."
+    ],
+    "diagnostics": []
+  },
+  {
+    "task": "share",
+    "variant": "ordered-edit-rejected-order-removal-and-restore",
+    "providerCalls": 0,
+    "passed": true,
+    "semanticSupport": "developer-authored development check"
+  },
+  {
+    "task": "share",
+    "variant": "denied",
+    "providerCalls": 0,
+    "termination": "serializer-object-permission-denied",
+    "conditions": [],
+    "gaps": [
+      "No target creation or storage access is executed.",
+      "DRF inherited create and relation-field implementation is not included in this task's allowed snapshot.",
+      "Effective grant rows and ORM user identity by primary key are supplied development facts; deployed authentication/backend state remains unknown."
+    ],
+    "diagnostics": []
+  },
+  {
+    "task": "share",
+    "variant": "missing-principal",
+    "providerCalls": 0,
+    "termination": "endpoint-authentication-denied",
+    "conditions": [],
+    "gaps": [
+      "No target creation or storage access is executed.",
+      "DRF inherited create and relation-field implementation is not included in this task's allowed snapshot.",
+      "Effective grant rows and ORM user identity by primary key are supplied development facts; deployed authentication/backend state remains unknown."
+    ],
+    "diagnostics": []
+  },
+  {
+    "task": "share",
+    "variant": "wrong-resource",
+    "providerCalls": 0,
+    "termination": "serializer-object-permission-denied",
+    "conditions": [],
+    "gaps": [
+      "No target creation or storage access is executed.",
+      "DRF inherited create and relation-field implementation is not included in this task's allowed snapshot.",
+      "Effective grant rows and ORM user identity by primary key are supplied development facts; deployed authentication/backend state remains unknown."
+    ],
+    "diagnostics": []
+  },
+  {
+    "task": "share",
+    "variant": "wrong-actor",
+    "providerCalls": 0,
+    "termination": "serializer-object-permission-denied",
+    "conditions": [],
+    "gaps": [
+      "No target creation or storage access is executed.",
+      "DRF inherited create and relation-field implementation is not included in this task's allowed snapshot.",
+      "Effective grant rows and ORM user identity by primary key are supplied development facts; deployed authentication/backend state remains unknown."
+    ],
+    "diagnostics": []
+  },
+  {
+    "task": "share",
+    "variant": "unknown-grants",
+    "providerCalls": 0,
+    "returned": {
+      "operation": "create-share-analysis-only",
+      "actor_id": 7,
+      "document_id": 10,
+      "effect": "serializer-valid; creation remains external"
+    },
+    "termination": "return",
+    "conditions": [
+      {
+        "step": "object_allowed",
+        "test": {
+          "op": "not",
+          "arg": {
+            "op": "is-null",
+            "value": {
+              "binding": "object_grant"
+            }
+          }
+        },
+        "otherwise": "serializer-object-permission-denied"
+      }
+    ],
+    "gaps": [
+      "No target creation or storage access is executed.",
+      "DRF inherited create and relation-field implementation is not included in this task's allowed snapshot.",
+      "Effective grant rows and ORM user identity by primary key are supplied development facts; deployed authentication/backend state remains unknown.",
+      "object_grants",
+      "object_grant"
+    ],
+    "diagnostics": []
+  }
+]

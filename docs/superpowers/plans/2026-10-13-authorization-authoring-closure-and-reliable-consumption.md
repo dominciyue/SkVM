@@ -8,7 +8,7 @@
 
 **Tech stack:** TypeScript、Bun、Zod、现有 SkVM CLI、PowerShell 示例、官方账号实验通道。开发模型 `gpt-6.1-sol/max`；实验模型沿用 `gpt-5.6-sol/high`。
 
-**状态：** in-progress（BI0–BI11确定性工程，准备进入BI12）。2026-10-13实际接管 `fde04c26f35635366d4a7e6eddbfce15f309cd1c`，`skill-ir-aot`及origin一致、工作区干净。复核基线 `8745aee0e1133e2a783de75aa75946617854e462`。新 identity：`authorization-authoring-closure-v1`。结果统一放到 `results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/`；不要在旧 BH 目录补行或修改原件。
+**状态：** in-progress（BI23验证与发布收束；八首位置全部交付，无活动/未知，自动主链未达，P0 tradeoff/P1 negative）。2026-10-13实际接管 `fde04c26f35635366d4a7e6eddbfce15f309cd1c`，`skill-ir-aot`及origin一致、工作区干净；共享工程提交00053b32、c9749483。复核基线 `8745aee0e1133e2a783de75aa75946617854e462`。新 identity：`authorization-authoring-closure-v1`。结果统一放到 `results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/`；不要在旧 BH 目录补行或修改原件。
 
 ## 一、这轮要解决的具体问题
 

@@ -1,0 +1,19 @@
+{
+  "origin": "Independent allowed source and unchanged original questions; never supplied to authors or consumers",
+  "sourceRef": "126ec414a8b65158368653a2604ae58415e43103",
+  "questions": [
+    {"questionId": "requested-document-and-returned-file", "required": ["request lookup uses pk and global manager", "root relation can fall back to requested document", "authorization applies to resolved root", "requested version child without version bypasses latest selection", "root/latest and explicit version selection use independent arguments", "original=true versus archive availability selects representation", "filename/MIME and follow_formatting depend on selected file document"], "anchors": ["src/documents/views.py:1368-1448", "src/documents/versioning.py:140-195", "src/documents/views.py:4941-4994"]},
+    {"questionId": "authorization-and-selection-order", "required": ["route/action and inherited authentication/global GET permissions", "root authorization before file version and representation selection", "non-null actor check; owner/unowned shortcut or exact root Guardian permission", "selected child ownership is not a new explicit download permission check", "framework/external assumptions and runtime failures remain conditional"], "anchors": ["src/paperless/urls.py:74-100", "src/documents/views.py:1834-1839", "src/documents/views.py:1401-1448", "src/documents/permissions.py:30-53", "src/documents/permissions.py:624-654"]},
+    {"questionId": "alternate-version-authorized-resource", "required": ["None differs from an empty query string in version_requested", "explicit integer/invalid/missing/unrelated version branches", "non-root without version returns request document", "empty string uses latest and permits deleted versions", "root lookup failure fallback can change authorized object", "version/file choice does not transfer authorization to its owner"], "anchors": ["src/documents/views.py:1375-1399", "src/documents/versioning.py:146-195"]},
+    {"questionId": "missing-facts-and-conditional-conclusions", "required": ["separate finite fixture from real request/deployment", "authentication/global view_document, exact root owner or object grant", "database root/version/deleted state and storage existence", "original/follow_formatting query values, naming and MIME settings", "external constructor assumption is not a grant", "no actual HTTP success or safety guarantee"], "anchors": ["src/documents/views.py:1401-1448", "src/documents/views.py:4941-4994", "src/documents/file_handling.py:125-190", "src/documents/permissions.py:624-654"]}
+  ],
+  "finiteScenarios": {
+    "root-default": {"requestedDocument": 10, "authorizedRoot": 10, "fileDocument": 11, "representation": "archive", "file": "v1-archive.pdf"},
+    "empty-version": {"requestedDocument": 10, "authorizedRoot": 10, "fileDocument": 12, "representation": "original", "file": "v2-original.txt"}
+  },
+  "primarySpotCheck": "The independent scout conflated include_deleted=True at request/root lookup with version selection. views.py:1375-1380 independently sets include_deleted from version is not None. Primary read corrected the criterion before evaluation; source root lookup and version lookup are distinct.",
+  "qualityLabels": ["full", "partial", "incorrect", "not-delivered"],
+  "machineLabels": ["computed", "not-computed", "conditional"],
+  "semanticLabels": ["source-supported", "partially-supported", "unsupported"],
+  "frozenEvidence": "Existing historical/held-out/prospective/Q1/readiness and 0-of-6 evidence unchanged"
+}

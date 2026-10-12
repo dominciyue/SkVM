@@ -1,0 +1,207 @@
+## 结论
+
+Download 的核心资源模型是：
+
+1. URL 中的 `pk` 先选出 **请求文档** `request_doc`；
+2. 从它解析出 **根文档** `root_doc`，并在该根文档上执行所有者感知的 `view_document` 检查；
+3. 授权成功后，才根据 `version` 选择实际提供文件的 `file_doc`；
+4. 再根据 `original` 和 `file_doc.has_archive_version` 选择原始文件或归档文件。
+
+因此，选择其他版本或选择 original/archive **不会改变已授权的资源**：通常授权对象始终是 `root_doc`，而版本和 original/archive 只是授权后的文件选择。Download 路径没有对所选版本或文件表示再次执行对象权限检查。
+
+## 1. 请求入口与文档标识
+
+`UnifiedSearchViewSet` 继承 `DocumentViewSet`，并以 `documents` 前缀注册到 `DefaultRouter`。`download` 是 `detail=True` 的 GET action，所以生成的入口是：
+
+```text
+GET /api/documents/{pk}/download/
+```
+
+另有 `/fetch/doc/{pk}` 重定向到该地址。[src/paperless/urls.py:74-78](src/paperless/urls.py#L74-L78) [src/paperless/urls.py:297-312](src/paperless/urls.py#L297-L312) [framework/rest_framework-3.18.1/rest_framework/routers.py:128-134](framework/rest_framework-3.18.1/rest_framework/routers.py#L128-L134)
+
+`download()` 将路由中的 `pk`、请求对象和固定的 `"attachment"` disposition 交给 `file_response()`；存储文件不存在或出现 `Document.DoesNotExist` 时转成 404。[src/documents/views.py:1834-1839](src/documents/views.py#L1834-L1839)
+
+`file_response()` 使用：
+
+```python
+Document.global_objects.select_related("owner", "root_document").get(id=pk)
+```
+
+查找请求文档，因此这里明确选择了 `global_objects`，包括通常被默认管理器隐藏的已删除记录；找不到则 404。[src/documents/views.py:1401-1415](src/documents/views.py#L1401-L1415) [src/documents/views.py:1429-1434](src/documents/views.py#L1429-L1434)
+
+## 2. 请求级与对象级授权顺序
+
+### 请求进入 action 前
+
+`DocumentViewSet` 声明：
+
+```python
+permission_classes = (IsAuthenticated, PaperlessObjectPermissions)
+```
+
+[src/documents/views.py:1008-1027](src/documents/views.py#L1008-L1027)
+
+DRF 在调用 `download()` 之前依次执行认证、权限检查和限流。[framework/rest_framework-3.18.1/rest_framework/views.py:404-421](framework/rest_framework-3.18.1/rest_framework/views.py#L404-L421) [framework/rest_framework-3.18.1/rest_framework/views.py:507-529](framework/rest_framework-3.18.1/rest_framework/views.py#L507-L529)
+
+这带来两个请求级门槛：
+
+- `IsAuthenticated` 要求 `request.user` 存在且 `is_authenticated` 为真。[framework/rest_framework-3.18.1/rest_framework/permissions.py:145-151](framework/rest_framework-3.18.1/rest_framework/permissions.py#L145-L151)
+- `PaperlessObjectPermissions` 将 GET 映射为模型的 `view_document` 权限；其继承的 `has_permission()` 使用 `request.user.has_perms(...)` 做模型级检查。[src/documents/permissions.py:30-44](src/documents/permissions.py#L30-L44) [framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246](framework/rest_framework-3.18.1/rest_framework/permissions.py#L233-L246)
+
+### action 内的对象授权
+
+请求文档加载后，代码解析 `root_doc`：
+
+- `request_doc.root_document_id is None`：请求文档自身就是根；
+- 已加载的 `request_doc.root_document` 非空：使用该根；
+- 否则通过相同的 include-deleted 管理器按根 ID 查询；
+- 根仍找不到时回退为 `request_doc` 自身。[src/documents/versioning.py:146-156](src/documents/versioning.py#L146-L156)
+
+然后在 `root_doc` 上执行：
+
+```python
+has_perms_owner_aware(request.user, "view_document", root_doc)
+```
+
+失败直接返回 403。该检查发生在版本选择之前。[src/documents/views.py:1417-1427](src/documents/views.py#L1417-L1427)
+
+其允许分支是：
+
+1. `root_doc.owner is None`；
+2. 根文档所有者就是请求用户；
+3. 否则 Guardian `ObjectPermissionChecker.has_perm("view_document", root_doc)` 返回真。
+
+[src/documents/permissions.py:624-635](src/documents/permissions.py#L624-L635)
+
+虽然该局部代码在 `request.user is None` 时跳过检查，但正常 Download 请求前面还有 `IsAuthenticated`，所以不能将这个局部分支解释为匿名下载能力。
+
+### 没有发生的对象检查
+
+DRF 的对象权限检查是单独的 `check_object_permissions()`；标准 `GenericAPIView.get_object()` 会调用它。[framework/rest_framework-3.18.1/rest_framework/views.py:331-355](framework/rest_framework-3.18.1/rest_framework/views.py#L331-L355) [framework/rest_framework-3.18.1/rest_framework/generics.py:79-104](framework/rest_framework-3.18.1/rest_framework/generics.py#L79-L104)
+
+Download 没有调用 `get_object()`，而是自行查询 `Document.global_objects` 并执行上述根文档检查。因此：
+
+- `PaperlessObjectPermissions.has_object_permission()` 不会在这里自动应用于 `request_doc`；
+- 后续选出的 `file_doc` 也没有第二次对象权限检查；
+- 所选版本自身的 owner 或 Guardian grant 不参与本路径的授权决定。
+
+## 3. 版本选择的全部分支
+
+授权通过后，`_get_effective_file_doc()` 决定 `file_doc`。[src/documents/views.py:1388-1399](src/documents/views.py#L1388-L1399)
+
+### A. URL 的 `pk` 本身指向一个版本，且没有 `version` 参数
+
+如果：
+
+```python
+request_doc.root_document_id is not None
+and get_request_version_param(request) is None
+```
+
+就直接返回 `request_doc`。即 `/documents/{version-id}/download/` 在完全没有 `version` 参数时提供该 URL 所指版本。[src/documents/views.py:1394-1399](src/documents/views.py#L1394-L1399)
+
+### B. 其他情况
+
+代码以 `root_doc` 为基准解析版本。
+
+#### 没有 `version` 参数
+
+选择根文档下按 `version_index DESC NULLS LAST, id DESC` 排序的第一个版本；没有版本则回退到根文档自身。由于参数不存在，使用默认 `Document.objects` 管理器。[src/documents/versioning.py:23-28](src/documents/versioning.py#L23-L28) [src/documents/versioning.py:159-166](src/documents/versioning.py#L159-L166)
+
+#### `version=` 是空字符串
+
+这是一个特别分支：
+
+- 外层用 `is not None` 判断参数是否存在，因此选择 include-deleted/global manager；
+- 内层用 `if not version_param` 判断，空字符串因此仍走“最新版本”分支。
+
+结果是：空 `version` 参数会选择 global manager 可见范围内的最新版本，而不是普通的无参数分支。[src/documents/views.py:1375-1381](src/documents/views.py#L1375-L1381) [src/documents/versioning.py:175-182](src/documents/versioning.py#L175-L182)
+
+#### 非空 `version`
+
+1. 使用 `int(version_param)` 解析；失败产生 `"Invalid version parameter"` 的 404；
+2. 按该整数作为文档 ID 查询；
+3. 不存在则 404；
+4. 候选必须：
+   - 就是 `root_doc`，或
+   - `candidate.root_document_id == root_doc.id`；
+5. 不属于已授权根文档的候选也返回 404。
+
+[src/documents/versioning.py:184-195](src/documents/versioning.py#L184-L195) [src/documents/views.py:1382-1386](src/documents/views.py#L1382-L1386)
+
+所以 `version` 不能用于选择任意无关文档，但它可以选择同一已授权根文档下的另一个版本，包括 global manager 可见的版本。
+
+## 4. original/archive 及响应构造
+
+版本确定后：
+
+```python
+use_archive = (
+    not original_requested(request)
+    and file_doc.has_archive_version
+)
+```
+
+只有查询值严格为小写字符串 `original=true` 才算请求原始文件；缺失、`false`、`True` 或其他值都不算。[src/documents/views.py:1368-1373](src/documents/views.py#L1368-L1373) [src/documents/views.py:1442-1448](src/documents/views.py#L1442-L1448)
+
+分支如下：
+
+| 条件 | 返回内容 |
+|---|---|
+| `original=true` | `file_doc.source_file` |
+| 未请求 original，且有 archive | `file_doc.archive_file` |
+| 未请求 original，但无 archive | `file_doc.source_file` |
+
+Archive 固定使用 `application/pdf`；original 使用文档的 `mime_type`，文本类型会附加 UTF-8 charset。[src/documents/views.py:4948-4971](src/documents/views.py#L4948-L4971)
+
+Download 固定返回 attachment。`follow_formatting` 只改变下载文件名：
+
+- 真值时使用内部 `archive_filename`/`filename`；
+- 否则使用 public filename；
+- 该参数未经布尔解析，非空字符串（包括 `"false"`）在 Python 中也是真值。
+
+最终构造 `FileResponse` 并设置兼容 ASCII 和 RFC 5987 的 `Content-Disposition`。[src/documents/views.py:4973-4995](src/documents/views.py#L4973-L4995)
+
+## 5. 授权资源与返回资源是否一致
+
+它们可能不是同一数据库行：
+
+- **授权对象**：`root_doc`；
+- **请求对象**：URL `pk` 找到的 `request_doc`；
+- **文件对象**：授权后根据 `version` 规则得到的 `file_doc`；
+- **表示**：`file_doc.source_file` 或 `file_doc.archive_file`。
+
+因此选择另一个版本确实可能改变最终读取的文档行和文件，但不会把授权对象改成那个版本；original/archive 更只改变同一 `file_doc` 上的文件字段。根文档授权发生在所有这些选择之前。
+
+唯一的根解析例外是：带有 `root_document_id` 的请求文档无法取得对应根时，`get_root_document()` 会回退到请求文档本身；这时实际被授权的就是该回退文档。[src/documents/versioning.py:146-156](src/documents/versioning.py#L146-L156)
+
+## 6. 给定开发场景
+
+在题目提供的有限示例中，**假设前置 DRF 权限门槛通过且文件可打开**：
+
+1. `pk=10` 找到根文档 10；
+2. 用户 7 是根文档 10 的 owner，所以局部根权限检查通过；
+3. 没有 `version` 参数；
+4. 文档 11 是最新的非删除版本；删除的文档 12 不进入该分支；
+5. 没有 `original=true`，且文档 11 有 archive；
+6. 因此选择文档 11 的 archive，即 `v1-archive.pdf`，以 attachment 返回。
+
+文档 11 的 owner 是用户 9 不会触发拒绝，因为权限检查已经在根文档 10 上完成，文档 11 没有第二次检查。
+
+这仍不是完整 HTTP 成功结论：示例没有给出用户 7 的模型级 `view_document` 权限，也没有证明存储文件实际存在。
+
+## 7. 尚缺事实及各自阻塞的结论
+
+| 缺失事实 | 阻塞的确切结论 |
+|---|---|
+| 实际认证器配置、凭据及用户状态 | 请求能否作为题设的已认证用户进入 handler，以及认证失败最终是 401 还是 403 |
+| 用户是否拥有 GET 所需的模型级 `view_document` 权限 | 即便已认证，是否能通过 `PaperlessObjectPermissions.has_permission()` |
+| 根文档实际 owner、用户/组的 Guardian 对象 grant | 根文档局部授权是允许还是返回 403 |
+| 实际 `pk` 和数据库内容，包括根关系 | 哪一行是 `request_doc`、哪一行最终成为 `root_doc`，或是否为 404 |
+| 实际 `version` 参数、版本关系、管理器可见记录和排序字段 | 最终 `file_doc` 是请求版本、最新版本、显式版本还是根文档 |
+| `original`、`has_archive_version` 及相关文件字段 | 返回 source 还是 archive |
+| 存储对象是否存在、可读及后端打开行为 | 能否实际返回字节；`FileNotFoundError` 会变成 404 |
+| `follow_formatting`、文件名和 MIME 元数据 | 最终下载文件名及 Content-Type |
+| 代理或部署层的响应处理 | 客户端是否原样收到源码构造的流和响应头；不影响源码中的授权/选择顺序 |
+
+所以源码可以确定授权与选择的结构及顺序，但在未给出这些运行时事实时，不能断言某个真实用户最终获准下载哪一个真实文件。
