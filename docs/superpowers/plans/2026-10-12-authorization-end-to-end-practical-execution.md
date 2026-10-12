@@ -110,7 +110,7 @@ A 的程序含有人或开发代理的源码理解，使用它是合法的产品
 - edit：新草稿校验后以显式替换动作激活；旧程序保留版本，相关材料按现有所有权撤回。
 - 拒绝新草稿：记录 draft diagnostics，不污染无关活动程序。若当前源码或输入已变，相关旧结论照常失效，不以“保留活动程序”沿用旧结论。
 
-上述选项为**计划接口，当前尚未实现**。实际接口落地后同步 usage；不得在完成前标为现成命令。
+上述选项已在BG实现并同步usage。发布后复核发现resourceWorkflow仍有局部错误触发整体schema拒绝的问题，由后续[任务书BH](2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)承接；BG原件及结果保持。
 
 ## 四、文件责任与验收测试
 

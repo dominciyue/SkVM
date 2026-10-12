@@ -3014,6 +3014,24 @@ check/run/compare已接入`--execution-policy=progressive`，strict仍为默认�
 
 实际结果：作者给定程序可计算有内容的条件描述符，同期DSL答案四问full，自动编写只有三源合同且0主链资源步骤/0采用；一对DSL/同信息Markdown呈质量与token成本取舍，净收益未建立。源码变化首次发现权限helper footprint遗漏，已补依赖后零模型验证；最终程序与账号原件之间只增加来源依赖，不把旧原件伪称为修订后模型运行。完整成本和限制见研究§7.68。
 
+### 14.47 BH incremental program authoring and consumption
+
+2026-10-12，用户授权[新任务书 BH0–BH17](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)并指定 `gpt-6-astra/high` 开发。基线 `4595339f`，identity `authorization-incremental-program-v1`。本节为已批准的待实现合同，BG 既有实现和原件保持；尚无 BH 生产修改或效果结果。
+
+**重点。** 复核发现 resourceWorkflow 整体 schema 仍会清空渐进结果；自动稿首次七步缺机械字段、滥用 external 并有未定义引用，后稿直接省略该流程；消费报告与原件存在重复进入上下文的接点。BH 沿真实 Download 主链补局部编译、增量编写及消费减负，不扩通用语言解释器或另建 runtime。
+
+**局部有效性。** progressive 先验有界顶层，再逐步解析。缺非语义 because 不阻断独立计算，缺来源/表达式错误保持局部诊断。无效步骤保留身份与顺序；value 的数据依赖、guard/return 的控制影响分别传播，不能简单过滤坏控制后产生许可。未知 op 保守保留控制缺口；有效 return 后无关草稿错误不倒流清空结果。顶层语法、来源越界或任务身份错误拒绝候选，旧 strict 兼容。
+
+**草稿与编辑。** 复用同一 executable-contract 编译器，保留原字节、候选和活动版本。增加薄的步骤 patch，明确 baseRevision、upsertSteps、removeStepIds 和可选 inputNames；省略不表示删除，修改不重排控制顺序，过期 revision 不自动合并。无效候选与旧活动结果分开显示，consume 只存提案，edit 明确采用可用部分。初次整稿入口仍兼容；工具 envelope 不在共享核心之前整体拒绝可局部处置的稿件。resource source/sources 可由唯一机械定位补足；宿主不补作者未提供的授权语义。
+
+**自动编写。** 原完整 skill、四问、允许源码、开发输入与通用算子例交给隔离作者，不包含开发者 Download 程序、历史答案或评阅。作者从原文选择 select/coalesce/choose/guard/return 等关系；动态外部事实单列 external，不把整个主链全部外包后记作成功。局部反馈定位问题与支持语法，模型自行补含义。开发者语义改稿与自动原稿独立记账。
+
+**消费。** 提供显式 program-context=full|compact，旧默认兼容。普通/native 入口共用纯投影，compact 提供当前执行结果、question/step 关系、来源身份、外部前提、具名缺口和可实际访问的详情。完整程序/事件仍归档，同 revision 不反复注入整份状态；输入/source 变化触发新投影。保留完整原职责与来源读取工具，允许必要核对，不能为了减工具次数隐藏未覆盖部分。执行和来源 current 不是独立语义核验。
+
+**实际队列与第二任务。** 同任务 A1 自动编写、C1 原稿消费、C2 同程序变化，加当前同版本/同程序 P-full/P-compact 一对。partial 产物可以消费；没有资源程序时 C 记录前置产物缺失，不偷换开发者程序。ShareLink create 用现有公开源码离线检验第二任务的共享算子，其历史未知调用继续封存；OWUI 同样仅离线。两已暴露任务的离线复用不升级为跨仓库自动泛化。
+
+**评价与维护。** 局部可用、自动编写、当前消费、同程序变化、源码质量与收益分轴。原四问逐题评阅；P 对照共享原 skill/输入/来源/作者含义/模型/预算，只有消费视图变化。完整实际 input/output/cache、工具、时间和作者成本分列；一对结果如实为 improvement/tradeoff/no-observed-difference/negative/inconclusive。共享错误出现就修再继续，保留首次和具名确认，不重复同因模型调用；账号/第三方/旧未知/保护证据边界沿用。根因与结果更新研究§1/§7.69/§11，约8小时用于有用工作，不人为等待。
+
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 
 

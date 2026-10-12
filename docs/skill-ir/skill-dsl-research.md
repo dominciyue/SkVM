@@ -4,6 +4,8 @@
 
 ## 1. 当前结论
 
+**当前 BH 开发已获授权，聚焦渐进编写和实际消费。** 发布后复核确认资源步骤仍有整份 schema 阻断、自动修稿会丢失 workflow，消费时也存在重复状态与源码探索。保留 BG 可运行主链，优先修这些共享接点，再做同任务自动作者、同程序变化与一对 full/compact 消费比较；第二真实任务仅作离线共用验证。方法与复核依据见[§7.69](#769-bh-发布后复核与渐进编写消费决定)，规划尚无新增效果。
+
 **BG已交付同一个Download主链的可执行程序、普通会话、实际轨迹、答案和变化消费。** 25步作者程序在开发输入下算出请求10→授权根10→文件11/archive；仅把version从null改为空串，实际同程序消费得到文件12/original。同期DSL四问full，自动编写仍只有局部三源合同；同信息Markdown比较为质量/耗时与token成本取舍，净收益未建立。7归档含5模型交付、2推理前拒绝，无活动/未知请求。详见[§7.68](#768-bg-全流程优先与同任务执行决定)和[可运行示例](../../examples/authorization-assessment/download-workflow/README.md)。
 
 **BF工程与有限队列以`completed-with-unmet-criteria`收束：真实局部程序可执行，自动编写、整题质量和净收益未达。** [BF0–BF17](../superpowers/plans/2026-10-12-authorization-executable-contract-and-authoring.md)得到两真实函数、10节点checked/unreachable调用前缀，完整原skill/四问仍保留。9归档含8模型交付/1推理前失败，自动D三件0采用；给定程序消费者最终实际采用2/1/1/2，previous恢复并使用两同源材料、当前输入为空后重算unknown，R2/旧答案不恢复。整题0/8 full，逐题17/32；版本和最终程序不同的费用取舍不作同条件净收益。最终源码869c0cbe，1902相关测试/1平台skip、2研究测试及主/BF类型通过；全src误跑104失败原件保留，不称全仓通过。结果与边界见[§7.67](#767-bf-真实可执行程序与自动编写接线)和[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-executable-contract-v1/verification/acceptance-matrix.json)。H候选/D显式/项目默认不变。
@@ -20,7 +22,7 @@ BB已接通v7匿名公共跨源检查及两BA原提案派生采用，同epochN/M
 
 **BD工程已实现，有限真实执行以`completed-with-unmet-criteria`收束。** 持续partial责任、独立性质计算、窄编辑、分阶段恢复及完整skill普通会话已有公开验证。1诊断与4同期质量首件全部交付；完整原任务0/4 full，D当前7性质均unknown、0合格跨源性质。第一对tradeoff、第二对negative，D两次input/output与耗时均高于N，六变化位置因无合格材料具名未运行。实际previous和净收益未建立，finiteQueueComplete/researchGoalAchieved保持false；方法、逐题差异和成本见[§7.65](#765-bd-解释持续补齐与独立质量比较)及[验收矩阵](../../results/skill-ir/skill-dsl-research/development/authorization-semantic-completion-v1/verification/acceptance-matrix.json)。
 
-日常先读本节与[当前状态](current-status.md)。当前开发决定见§7.68，BF结果见§7.67，BE实际结果与发布后复核见§7.66，BD实际结果见§7.65，BC实际结果见[§7.64](#764-bc-任务性质准备与跨调用修复)，BB结果见[§7.63](#763-bb-跨函数性质闭合的复核与开发决定)，BA实际结果见[§7.62](#762-ba-从真实拒绝到可用语义编辑)，AZ/AY形成过程保留在§7.61/§7.60。方法形成过程见§4–§7.18，历史开发记录保留在§7后续章节。本地化候选保留在§8–§9，暂缓实施。
+日常先读本节与[当前状态](current-status.md)。当前开发决定见§7.69，BG结果见§7.68，BF结果见§7.67，BE实际结果与发布后复核见§7.66，BD实际结果见§7.65，BC实际结果见[§7.64](#764-bc-任务性质准备与跨调用修复)，BB结果见[§7.63](#763-bb-跨函数性质闭合的复核与开发决定)，BA实际结果见[§7.62](#762-ba-从真实拒绝到可用语义编辑)，AZ/AY形成过程保留在§7.61/§7.60。方法形成过程见§4–§7.18，历史开发记录保留在§7后续章节。本地化候选保留在§8–§9，暂缓实施。
 
 ### 当前方法怎样分工
 
@@ -44,7 +46,7 @@ BB已接通v7匿名公共跨源检查及两BA原提案派生采用，同epochN/M
 
 AY历史结果补充：两份原skill和两包原字节消费均已实际运行。Download消费者源码评阅full但机器partial，OWUI消费者仍漏决定性helper；政策/前提变化已有部分运行，源码变化及质量位置受账号额度阻断。[最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)记录可见完整input 32,465,835、output 125,283、其中cacheRead 29,939,200（已包含在input），USD/隐藏请求/开发/真人成本未知。旧AX、AW结果保留其当时口径。
 
-当前关键问题是：**同一个真实任务能否用DSL编写、运行、查看过程并在变化后继续使用。** BF已证实真实双函数局部合同，但成功helper与自动编写的Download不是同一条主链。BG先让开发者参与编写的Download程序实际运行，自动编写随后独立检验；局部缺口继续、普通消费固定程序、条件和来源变化明确重算。原四问质量、自动R1和净收益分别观察，不再一起充当运行门槛。BE/BF旧计数与两旧OWUI未知保持各自记录。
+当前关键问题是：**已有程序能运行之后，怎样让模型更容易把同任务编写完整，并让消费者真正少做重复工作。** BG 已证明开发者程序可执行和同程序输入变化；BH 用局部编译、草稿保留和紧凑消费承接自动编写及开销问题。原四问质量、自动程序与净收益分别观察；有效部分可以先用，受影响的缺口继续显示。BE/BF旧计数及旧未知保持各自记录。
 
 ## 2. 研究目标与术语
 
@@ -2610,6 +2612,20 @@ previous实际使用原root和helper的同源材料，通过实际user实参进�
 
 **交付与边界。** [summary](../../results/skill-ir/skill-dsl-research/development/authorization-practical-execution-v1/summary.json)、[review](../../results/skill-ir/skill-dsl-research/development/authorization-practical-execution-v1/review.json)、[comparison](../../results/skill-ir/skill-dsl-research/development/authorization-practical-execution-v1/comparison.json)及[accounting](../../results/skill-ir/skill-dsl-research/development/authorization-practical-execution-v1/accounting.json)分列六轴。pipelineComplete/meaningfulDslExecution成立；源码支持限有限摘要，整体质量按答案分列，完整自动编写和净收益未达。可搬移示例有实际运行过的零模型命令及普通账号命令。重复上下文成本仍是后续优化点，本轮不宣称token压缩获胜。旧历史104失败未重跑/未修，保护锁、第三方暂停、OWUI旧未知、H候选和D显式默认均不变。方法合同见[spec§14.46](skill-ir-aot-optimization-spec.md#1446-bg-practical-end-to-end-execution)。
 
+### 7.69 BH 发布后复核与渐进编写消费决定
+
+2026-10-12，BG最终发布4595339f后，主线程核对代码、原提案、原答与费用，运行36项定向测试/306断言及五个普通零模型场景。当前工作区与用户origin一致；本复核没有生产修改或新模型调用。用户随后授权[BH0–BH17](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)，指定gpt-6-astra/high新线程开发。本节先记录规划依据，实施结果后续追加于此。
+
+**可复现的局部容错缺口。** 在成功25步程序后追加无关value步骤，仅漏because，普通progressive check仍exit1、contract-shape、0步骤/0源码单元。原因是executable-contract只对sourceDeclarations逐项过滤，resourceWorkflow仍通过整体schema；工具入口的深schema也会提前拒绝。BH将步骤解析、可用值和控制缺口分开；坏guard/return保留顺序与影响，禁止通过删除坏步骤获得错误许可。缺说明可以容忍，缺必要来源不能当作已支持。
+
+**自动编写的两个问题。** BG原tools显示第一次提案已有7个资源步骤，缺source/because，guard.permission为错误形状；后两稿workflow消失。这要求增量草稿和精确机械反馈。同时首稿几乎全用external，return引用未定义archive_selection，说明领域表达尚未补成。只让JSON通过不会自动得到真实主链。BH提供与目标无关的通用算子例和当前缺口，模型从原文补含义；A开发者程序、历史答案和主代理修正不进入独立作者。
+
+**消费的具体开销。** DSL消费者43工具中29read/6search/6symbol，Markdown46工具中27read/13search/1symbol；有些读取承担上游或文件名职责。inquiry-run的当前完整合同、native反馈及check工具存在重复完整report接点。BH先量测实际发送包，再用同核compact投影与按需详情减少重复；不把全部源码读取算成浪费，也不删除原职责。BG一对多21,797input/1,489output、快68,510ms；Q1质量差异在自然follow_formatting说明，不能直接归功于DSL已计算。新比较固定当前同一程序和作者含义，只比较full/compact使用方式。
+
+**继续与保留。** 同一Download做自动编写、原稿消费与单事实变化；已有开发者程序保持可用，不等自动化成功。第二任务选择已暴露ShareLink创建，复用选择、guard、对象及返回算子作离线开发检验；旧AU ShareLink未知完成禁止重发，OWUI也仅离线。不存在来源丢失或Download disposition常量错误：原source目录可读，Download入口明确传attachment，先前外围疑点经原文消除，不列修复任务。
+
+**本轮合同。** spec§14.47规定progressive逐步编译、同revision增量草稿、活动程序与候选分离、来源依赖与compact消费。原件、首失败及具名修复保持；有限队列五首位置，未生成资源程序时C轨据实零调用，P给定程序照常运行。工程/自动化/实际使用/语义质量/净收益分轴，开发预计约8小时但不凑时长，沿用官方gpt-5.6-sol/high授权与第三方暂停。规划本身不增加研究证据。
+
 ## 8. 技术文档本地化候选：已设计到哪里
 
 以下为 D 阶段候选设计的完整要点，**暂缓实施，不作为所有类别的统一设计**。
@@ -2673,12 +2689,12 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 | ID | 问题 | 当前依据 | 接下来的判断 |
 |---|---|---|---|
 | Q1 | 哪个任务范围共享领域语义？ | 固定来源的授权职责支持 principal/resource/operation/control/evidence；混合职责单列，见 §4–§7.10 | 保持单 repo/ref、源码可见的授权切片 |
-| Q2 | 声明如何带来实际行为？ | BG的25步Download主链已执行；自动稿只有3源合同/0资源步骤 | 保留主链示例，继续研究自动表达；源码含义仍须独立核验 |
+| Q2 | 声明如何带来实际行为？ | BG的25步Download主链已执行；自动首稿七步因字段/语义缺口未采用，后稿只留三源合同 | BH局部编译与持久草稿，通用算子辅助模型自己补主链 |
 | Q3 | 为什么仍漏决定性源码或分支？ | BF17/32逐题full、0/8整题full；root回退及独立deleted调用仍有错漏，fresh跨段事实已接受 | 依据整篇原答与各实际调用实参区分遗漏/评价错误；局部性质不替代整题 |
-| Q4 | 领域方法相对好说明的增量是什么？ | BF同epochH/D粗质量相同；D累计input/output/耗时更高而非缓存input较低，实际USD未知；复用tradeoff且epoch/最终程序不同 | H保留普通opt-in候选、D显式研究；同条件稳定净收益、表示独立优势未建立 |
-| Q5 | 作者和变化复用是否可用？ | BG消费程序保持，version单事实变化实际采用1份材料；helper来源依赖遗漏已修 | 来源完整性和自动编写仍是责任；不恢复旧答案/verdict，不等待R2才用R1 |
+| Q4 | 领域方法相对好说明的增量是什么？ | BG同信息一对token更高、耗时更低；质量差异部分来自自然补充；消费者仍有重复完整状态接点 | BH同程序full/compact配对，测实际发送、必要/重复读取和逐题质量；稳定净收益仍待测 |
+| Q5 | 作者和变化复用是否可用？ | BG给定程序变化实际采用1份材料；发布后复现坏资源步骤整体拒绝和自动稿丢workflow | BH修局部草稿/patch及控制依赖，再测同一自动原稿消费；来源变化仍撤回相关含义 |
 | Q6 | 本地化路线如何处理？ | 保留 §8–§9 设计及结构回填反例 | 暂缓；重新选择该类时再处理，不混入授权验收 |
-| Q7 | 如何评价和计量？ | BF六首位置/9归档/8模型交付/1未启动，input12,734,868含cache11,745,280/output73,991，408工具含8作者读取；104全src失败留存 | A/B/C与初始/最终程序分开，费用唯一一次；有限队列true、研究false，USD/隐藏/开发探子/真人未知 |
+| Q7 | 如何评价和计量？ | BG7归档/5模型交付，input5,308,698含cache4,672,000/output46,982，211工具；费用和真人未知 | BH自动作者与给定程序使用分别计量；字节投影减负、实际tokens和摊销成本分列；原失败保留 |
 
 决策沿革：
 
@@ -2734,6 +2750,8 @@ D 曾提出两任务的小面板、“无需人工修复即可发布”的主指
 - **2026-10-12 / BF实施与有限收束：** 普通作者/工具/previous同核、条件/调用前缀与精确失效修复落地，真实A双源局部checked、previous恢复2/用2并重新unknown。9归档/8交付、自动D0采用、17/32逐题full与0/8整题full；不同epoch/最终程序的复用为tradeoff/inconclusive。1902相关测试/1平台skip、2研究及类型通过，误跑全src104失败原件保留。工程/有限队列true、研究false；下一责任聚焦通用编写、完整原分支与等条件消费成本，见§7.67。
 
 - **2026-10-12 / BG规划：** 用户明确将真实DSL全流程作为首要交付，允许放宽完整性和交互限制。以ff37395b为基线，同一个Download任务先A可运行程序，再B隔离编写/C同包消费；逐步trace、局部继续和活动程序/草稿分离进入本轮责任。开发gpt-6-astra/high、官方实验gpt-5.6-sol/high；任务书已登记，尚无BG实现/模型结果，见§7.68。
+
+- **2026-10-12 / BH规划：** 延续BG实际可用程序，先修资源步骤局部拒绝与草稿丢失，再测隔离作者、同程序变化和紧凑消费；ShareLink仅离线检验共享算子。新开发gpt-6-astra/high，规划未新增模型或效果结果，见§7.69。
 
 ## 12. 后续追加规则
 
