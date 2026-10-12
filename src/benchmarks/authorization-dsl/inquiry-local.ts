@@ -53,8 +53,10 @@ async function archiveExecution(sessionPath: string, domain: unknown) {
   if (!execution) return undefined
   const json = JSON.stringify(execution, null, 2) + "\n"
   const lines = ["# Source program execution", "", `Mode: ${execution.programMode}; policy: ${execution.executionPolicy}; status: ${execution.status}.`, "", "Source meanings remain unreviewed; this is not request-wide certification.", ""]
-  for (const event of execution.resourceExecution?.events ?? []) lines.push(`## ${event.sequence}. ${event.id} — ${event.outcome}`, "", `${event.because}`, "", `Executor: ${event.executor}; meaning: ${event.meaningOrigin}. Source: ${event.source.path}:${event.source.startLine}–${event.source.endLine ?? event.source.startLine}.`, "", "```json", JSON.stringify({ additionalSources: event.sources, inputs: event.inputs, outputs: event.outputs, condition: event.condition, gaps: event.gaps }, null, 2), "```", "")
-  lines.push("## Remaining gaps", "", JSON.stringify(execution.resourceExecution?.gaps ?? []), "", "## Draft proposals", "", JSON.stringify(execution.drafts ?? [], null, 2), "")
+  const resource = execution.resourceExecution
+  lines.push("## Current result", "", "```json", JSON.stringify({ initialRevision: execution.initialRevision, currentRevision: execution.finalRevision, inputs: Object.fromEntries(Object.entries(resource?.inputs ?? {}).map(([k, v]) => [k, Array.isArray(v) ? { finiteRecords: v.length } : v])), termination: resource?.termination, returned: resource?.returned, conditions: resource?.conditions, gaps: resource?.gaps }, null, 2), "```", "", "Detailed inputs and events: execution.json. In a live session use authorization_program_details with a stepId/questionId.", "")
+  for (const event of resource?.events ?? []) lines.push(`## ${event.sequence}. ${event.id} — ${event.outcome}`, "", `${event.because}`, "", `Executor: ${event.executor}; meaning: ${event.meaningOrigin}. Source: ${event.source ? `${event.source.path}:${event.source.startLine}–${event.source.endLine ?? event.source.startLine}` : "missing (unadopted draft)"}.`, "", "```json", JSON.stringify({ additionalSources: event.sources, ...(event.op === "guard" || event.op === "external" ? { inputs: event.inputs } : {}), outputs: event.outputs, condition: event.condition, gaps: event.gaps }, null, 2), "```", "")
+  lines.push("## Draft proposals", "", `${execution.drafts?.length ?? 0} retained proposals. Full candidates and diagnostics are in execution.json/report.json.`, "")
   const markdown = lines.join("\n")
   await writeFile(path.join(sessionPath, "execution.json"), json, { encoding: "utf8", flag: "wx" })
   await writeFile(path.join(sessionPath, "execution.md"), markdown, { encoding: "utf8", flag: "wx" })
@@ -65,7 +67,7 @@ export async function loadInquiryInput(inputFile: string, options: { allowMissin
   const context = { repository: value.repository, sourceRef: value.sourceRef, sourceRoot: path.resolve(path.dirname(inputPath), value.sourceRoot), allowedPaths: value.allowedPaths }
   return { value, inputPath, original, inputSha256: sha(original), context }
 }
-export async function checkAuthorizationInquiry(inputFile: string, method: InquiryMethod = "D1", requestedStrategy: InquiryStrategy = "legacy", domainProgramFile?: string, options: { executionPolicy?: ExecutionPolicy; programMode?: ProgramMode } = {}) {
+export async function checkAuthorizationInquiry(inputFile: string, method: InquiryMethod = "D1", requestedStrategy: InquiryStrategy = "legacy", domainProgramFile?: string, options: { programContext?: import("../../task-dsl/authorization/program-consumption-context.ts").ProgramContext; executionPolicy?: ExecutionPolicy; programMode?: ProgramMode } = {}) {
   try {
     const strategy = parseInquiryStrategy(requestedStrategy)
     if (!["M", "D0", "D1"].includes(method)) throw new Error("Method must be M, D0 or D1")
@@ -88,7 +90,7 @@ export async function checkAuthorizationInquiry(inputFile: string, method: Inqui
 }
 
 /** Optional zero-model archive uses the same ordinary session/inspect contract. */
-export async function saveLocalInquiryCheck(inputFile: string, domainProgramFile: string, outDir: string, check: Awaited<ReturnType<typeof checkAuthorizationInquiry>>, options: { executionPolicy?: ExecutionPolicy; programMode?: ProgramMode } = {}) {
+export async function saveLocalInquiryCheck(inputFile: string, domainProgramFile: string, outDir: string, check: Awaited<ReturnType<typeof checkAuthorizationInquiry>>, options: { programContext?: import("../../task-dsl/authorization/program-consumption-context.ts").ProgramContext; executionPolicy?: ExecutionPolicy; programMode?: ProgramMode } = {}) {
   if (check.status !== "valid" || !check.executableContract || !("evaluation" in check.executableContract) || !check.domainProgram) throw new Error("check-archive-needs-valid-program")
   const loaded = await loadInquiryInput(inputFile, { allowMissingPolicy: true }), bytes = await readFile(domainProgramFile), c = check.executableContract
   if (sha(bytes.toString("utf8")) !== check.domainProgram.sha256 || !isDeepStrictEqual(loaded.value, check.input)) throw new Error("Check inputs changed before archive")
@@ -152,7 +154,7 @@ async function preparePreviousInquiry(inputFile: string, previous: string, model
   }
   return { report, previousInput: old, plan, currentFiles: tools.files }
 }
-export async function executeLocalInquiryRun(options: { executionPolicy?: ExecutionPolicy; programMode?: ProgramMode; inputFile: string; outDir: string; model: string; method?: InquiryMethod; strategy?: InquiryStrategy; previous?: string; harness?: "provider" | "codex-account"; domainTools?: boolean; accountTransportFactory?: import("../../adapters/codex-account.ts").AccountInquiryOptions["transportFactory"]; accountBoundaryFile?: string; skillFile?: string; domainProgramFile?: string; providerFactory?: LocalAuthorizationCliDependencies["providerFactory"]; execution?: Partial<RunAuthorizationInquiryOptions> }) {
+export async function executeLocalInquiryRun(options: { programContext?: import("../../task-dsl/authorization/program-consumption-context.ts").ProgramContext; executionPolicy?: ExecutionPolicy; programMode?: ProgramMode; inputFile: string; outDir: string; model: string; method?: InquiryMethod; strategy?: InquiryStrategy; previous?: string; harness?: "provider" | "codex-account"; domainTools?: boolean; accountTransportFactory?: import("../../adapters/codex-account.ts").AccountInquiryOptions["transportFactory"]; accountBoundaryFile?: string; skillFile?: string; domainProgramFile?: string; providerFactory?: LocalAuthorizationCliDependencies["providerFactory"]; execution?: Partial<RunAuthorizationInquiryOptions> }) {
   if (options.domainTools !== undefined && options.harness !== "codex-account") throw new Error("domain-tools requires --harness=codex-account")
   const method = options.method ?? "D1", strategy = options.strategy ?? options.execution?.strategy ?? "legacy"
   const prior = options.previous ? await preparePreviousInquiry(options.inputFile, options.previous, options.model, method, strategy, options.domainProgramFile) : undefined
@@ -191,7 +193,7 @@ export async function executeLocalInquiryRun(options: { executionPolicy?: Execut
   }
   if (options.harness === "codex-account") {
     const { runCodexAccountInquiry } = await import("../../adapters/codex-account.ts")
-    const accountRun = await runCodexAccountInquiry({ inputFile: options.inputFile, workDir: sessionPath, model: options.model, method: options.domainTools === false ? undefined : method, strategy, executionPolicy: options.executionPolicy, programMode: options.programMode, domainTools: options.domainTools, transportFactory: options.accountTransportFactory, reuse, skillContent, domainProgramFile: programBytes ? path.join(sessionPath, "domain-program.json") : undefined, accountBoundaryFile: options.accountBoundaryFile, timeoutMs: options.execution?.sessionTimeoutMs, maxToolCalls: options.execution?.maxToolCalls, maxDisplayBytes: options.execution?.maxDisplayBytes, maxReadBytes: options.execution?.maxReadBytes, traceDir: path.join(sessionPath, "raw"), preparation: options.execution?.preparation })
+    const accountRun = await runCodexAccountInquiry({ inputFile: options.inputFile, workDir: sessionPath, model: options.model, method: options.domainTools === false ? undefined : method, strategy, executionPolicy: options.executionPolicy, programMode: options.programMode, programContext: options.programContext, domainTools: options.domainTools, transportFactory: options.accountTransportFactory, reuse, skillContent, domainProgramFile: programBytes ? path.join(sessionPath, "domain-program.json") : undefined, accountBoundaryFile: options.accountBoundaryFile, timeoutMs: options.execution?.sessionTimeoutMs, maxToolCalls: options.execution?.maxToolCalls, maxDisplayBytes: options.execution?.maxDisplayBytes, maxReadBytes: options.execution?.maxReadBytes, traceDir: path.join(sessionPath, "raw"), preparation: options.execution?.preparation })
     const { native, account } = accountRun
     const preparationFields = { preparation: native.preparation, taskPreparation: native.taskPreparation, taskPreparationAttempts: native.taskPreparationAttempts, taskPreparationFailed: native.taskPreparationFailed }
     const fields = { status: account.status, terminalStatus: account.terminalStatus, answerDelivery: account.answerDelivery, usageVisibility: account.usageVisibility, quotaRefused: account.quotaRefused, method, strategy, domainTools: options.domainTools ?? true, inquiry: native.program?.originalDeclaration, program: native.program, result: native.result, final: native.result, domain: native.domain, reuse: accountRun.reuse, sourceFiles: native.sourceFiles, sourceVerification: native.sourceVerification, sourceAccounting: native.sourceAccounting, telemetry: { account, providerCalls: account.providerRequests, totalActualUsd: null }, durationMs: account.durationMs, error: account.reason, evidence: native.evidence, ...(skill ? { skill } : {}) }
@@ -210,7 +212,7 @@ export async function executeLocalInquiryRun(options: { executionPolicy?: Execut
     await save("report.json", report); await appendFile(path.join(out, "sessions.jsonl"), JSON.stringify({ relativePath: `sessions/${id}`, status: report.status }) + "\n"); return report
   }
   let requestId = 0
-  const run = await runAuthorizationInquiry({ ...options.execution, ...loaded.context, provider, method, strategy, ...(options.previous ? { reuse } : {}), inquiry: loaded.value.inquiry, brief: loaded.value.brief, mode: loaded.value.mode, policy: loaded.value.policy, contractInputs: loaded.value.contractInputs, resourceInputs: loaded.value.resourceInputs, externalAssumptions: loaded.value.externalAssumptions, sourceNotes: loaded.value.sourceNotes, executionPolicy: options.executionPolicy, programMode: options.programMode, skillContent, ...(programBytes ? { domainProgram: JSON.parse(programBytes.toString("utf8")) } : {}),
+  const run = await runAuthorizationInquiry({ ...options.execution, ...loaded.context, provider, method, strategy, ...(options.previous ? { reuse } : {}), inquiry: loaded.value.inquiry, brief: loaded.value.brief, mode: loaded.value.mode, policy: loaded.value.policy, contractInputs: loaded.value.contractInputs, resourceInputs: loaded.value.resourceInputs, externalAssumptions: loaded.value.externalAssumptions, sourceNotes: loaded.value.sourceNotes, executionPolicy: options.executionPolicy, programMode: options.programMode, programContext: options.programContext, skillContent, ...(programBytes ? { domainProgram: JSON.parse(programBytes.toString("utf8")) } : {}),
     onRequest: async request => { await save(`request-${++requestId}.json`, request); await options.execution?.onRequest?.(request) },
     onEvent: async event => { await appendFile(path.join(sessionPath, "events.jsonl"), JSON.stringify(event) + "\n"); if (event.kind === "dispatch" && event.sequence === 1) await save("dispatch.json", identity); await options.execution?.onEvent?.(event) },
   })
@@ -255,7 +257,7 @@ export async function inspectLocalInquiry(outDir: string) {
   }
   return { ...report, execution, sessionPath: root, ...(completionUnknown ? { completionUnknown: true } : {}), ...(strategyMetadataOrigin ? { strategyMetadataOrigin } : {}) }
 }
-export async function compareLocalInquiry(inputFile: string, previous: string, requestedStrategy?: InquiryStrategy, domainProgramFile?: string, options: { executionPolicy?: ExecutionPolicy; programMode?: ProgramMode } = {}) {
+export async function compareLocalInquiry(inputFile: string, previous: string, requestedStrategy?: InquiryStrategy, domainProgramFile?: string, options: { programContext?: import("../../task-dsl/authorization/program-consumption-context.ts").ProgramContext; executionPolicy?: ExecutionPolicy; programMode?: ProgramMode } = {}) {
   const report = await inspectLocalInquiry(previous)
   const strategy = requestedStrategy ?? report.strategy ?? "legacy", check = await checkAuthorizationInquiry(inputFile, report.method, strategy)
   if (check.status !== "valid") return check

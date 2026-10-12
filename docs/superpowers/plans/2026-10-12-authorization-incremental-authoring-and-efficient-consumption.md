@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有有限求值器与账号入口。开发 **gpt-6-astra/high**；真实实验沿用已授权的官方账号 **gpt-5.6-sol/high**。
 
-状态：`planned-authorized`。规划基线 `4595339f201239e3dbba7c422d315f29df8de276`。用户已授权编写并派发新线程；本次登记未修改生产代码或启动实验。
+状态：`in-progress`。规划基线 `4595339f201239e3dbba7c422d315f29df8de276`，实际接管 `2c64f50f`。BH0三个普通零模型基线保持；BH1–BH3资源核心四红测→22通过/178断言，正在接持久草稿和工具闭环。模型队列尚未派发。
 
 Identity：`authorization-incremental-program-v1`。结果目录 `results/skill-ir/skill-dsl-research/development/authorization-incremental-program-v1/`；临时运行放在 `D:/skill优化/project-maintenance/runs/authorization-incremental-program-v1/`。继续 `skill-ir-aot`，只推用户 `origin`，不开分支/worktree。派发后的新线程是唯一代码、共享方法文档及 Git 写者。
 

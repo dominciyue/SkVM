@@ -7,6 +7,69 @@ import { createNativeInquiryRuntime } from "./inquiry-native.ts"
 import { checkAuthorizationInquiry, executeLocalInquiryRun, inspectLocalInquiry, compareLocalInquiry } from "./inquiry-local.ts"
 const source = "def local(actor, target):\n    return perform(actor, target)\n\ndef perform(who, item):\n    if not who.allowed:\n        return False\n    item.sent = True\n    return item\n"
 const at = (startLine: number, endLine = startLine, text?: string) => ({ path: "app.py", startLine, endLine, ...(text ? { text } : {}) })
+test("a saved candidate can be restored for a revision patch without adopting its old result", async () => {
+  const f = await contractFiles()
+  const opts = { inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1" as const, domainProgramFile: f.domainProgramFile, programMode: "edit" as const, executionPolicy: "progressive" as const }
+  const first = await createNativeInquiryRuntime(opts)
+  await first.execute({ id: "draft", name: "authorization_program", arguments: { ...f.contract, resourceWorkflow: { inputs: [], steps: [{ id: "result", op: "return", value: { bad: true }, source: at(8) }] } } })
+  const draft = JSON.parse(JSON.stringify((first.report().domain!.executableContract as any).currentDraft))
+  await first.close()
+  const next = await createNativeInquiryRuntime({ ...opts, reuse: { info: {} as any, seed: { delta: { schemaVersion: "authorization-control-slice/v1", rules: [], dependencies: [], bindings: [], policyRules: [] }, evidence: [], programDraft: draft } } } as any)
+  try {
+    const before: any = next.report().domain!.executableContract!
+    expect(before.currentDraft.revision).toBe(draft.revision)
+    expect(before.resourceExecution).toBeUndefined()
+    await next.execute({ id: "patch", name: "authorization_program_patch", arguments: { baseRevision: draft.revision, upsertSteps: [{ id: "result", op: "return", value: { literal: 19 }, source: at(8) }] } })
+    expect(next.report().domain!.executableContract!.resourceExecution!.returned).toBe(19)
+  } finally { await next.close() }
+})
+test("compact native feedback sends summaries and actual detail tools retain source and events", async () => {
+  const f = await contractFiles()
+  await writeFile(f.domainProgramFile, JSON.stringify({ ...f.contract, resourceWorkflow: { inputs: [], steps: [{ id: "result", op: "return", value: { literal: 17 }, source: at(8), because: "Source return" }] } }))
+  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", domainProgramFile: f.domainProgramFile, programContext: "compact" } as any)
+  try {
+    const context: any = await runtime.accountContext(false)
+    expect(context.executableContract.returned).toBe(17)
+    expect(context.executableContract.program).toBeUndefined()
+    const checked = JSON.parse((await runtime.execute({ id: "check", name: "authorization_check_properties", arguments: {} })).output)
+    expect(checked.executableContract.program).toBeUndefined()
+    expect(checked.executableContract.returned).toBe(17)
+    const details = JSON.parse((await runtime.execute({ id: "details", name: "authorization_program_details", arguments: { stepId: "result" } })).output)
+    expect(details.events[0].outputs.value).toBe(17)
+    expect(details.steps[0].source.path).toBe("app.py")
+    expect(runtime.report().domain!.executableContract!.resourceExecution!.events[0]!.inputs).toEqual({ expression: { literal: 17 } })
+  } finally { await runtime.close() }
+})
+test("ordinary native partial program patch repairs only one node and archives missing source", async () => {
+  const f = await contractFiles()
+  const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive" })
+  const program = { ...f.contract, resourceWorkflow: { inputs: [], steps: [
+    { id: "kept", op: "value", value: { literal: 7 }, source: at(1, 2) },
+    { id: "broken", op: "value", value: { bad: true } },
+    { id: "result", op: "return", value: { ref: "broken" }, source: at(8) },
+  ] } }
+  try {
+    await runtime.execute({ id: "prepare", name: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: [{ questionId: "other", state: "residual", reason: "Retain original duty" }] } })
+    await runtime.execute({ id: "read", name: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 8 } })
+    expect(runtime.argumentDiagnostics({ id: "draft", name: "authorization_program", arguments: program })).toBeUndefined()
+    await runtime.execute({ id: "draft", name: "authorization_program", arguments: program })
+    const before: any = runtime.report().domain!.executableContract!
+    expect(before.resourceExecution.values.kept).toBe(7)
+    expect(before.resourceExecution.returned).toBeUndefined()
+    const patch = { baseRevision: before.currentDraft.revision, upsertSteps: [{ id: "broken", op: "value", value: { literal: 9 }, source: at(1, 2) }] }
+    expect(runtime.argumentDiagnostics({ id: "patch", name: "authorization_program_patch", arguments: patch })).toBeUndefined()
+    await runtime.execute({ id: "patch", name: "authorization_program_patch", arguments: patch })
+    const after: any = runtime.report().domain!.executableContract!
+    expect(after.resourceExecution.returned).toBe(9)
+    expect(after.program.resourceWorkflow.steps.map((s: any) => s.id)).toEqual(["kept", "broken", "result"])
+    await runtime.execute({ id: "stale", name: "authorization_program_patch", arguments: patch })
+    expect(runtime.report().domain!.executableContract!.revision).toBe(after.revision)
+    await writeFile(f.domainProgramFile, JSON.stringify(program))
+    const output: string[] = [], errors: string[] = []
+    expect(await runAuthorizationInquiryCli(["check", `--input=${f.inputFile}`, `--out=${path.join(f.root, "partial")}`, "--strategy=question-checked-v1", "--execution-policy=progressive", `--domain-program=${f.domainProgramFile}`], { stdout: t => output.push(t), stderr: t => errors.push(t) }), errors.join("\n")).toBe(0)
+    expect((await inspectLocalInquiry(JSON.parse(output[0]!).sessionPath)).execution.resourceExecution.values.kept).toBe(7)
+  } finally { await runtime.close() }
+})
 test("progressive public check keeps local diagnostics and exposes resource computation", async () => {
   const f = await contractFiles(), input = JSON.parse(await readFile(f.inputFile, "utf8"))
   input.resourceInputs = { q: { object: { id: 17 } } }
@@ -78,7 +141,10 @@ test("ordinary session archives host execution and inspect verifies its projecti
   const report: any = await executeLocalInquiryRun({ inputFile: f.inputFile, domainProgramFile: f.domainProgramFile, outDir: path.join(f.root, "execution-out"), model: "gpt-5.6-sol", strategy: "question-checked-v1", harness: "codex-account", accountTransportFactory: contractConsumer(), execution: { sessionTimeoutMs: 5000 } })
   const execution = JSON.parse(await readFile(path.join(report.sessionPath, "execution.json"), "utf8"))
   expect(execution.resourceExecution.events[0].executor).toBe("host")
-  expect(await readFile(path.join(report.sessionPath, "execution.md"), "utf8")).toContain("Example finite return")
+  const readable = await readFile(path.join(report.sessionPath, "execution.md"), "utf8")
+  expect(readable).toContain("Example finite return")
+  expect(readable.indexOf("Current result")).toBeLessThan(readable.indexOf("## 1."))
+  expect(readable).toContain("Detailed inputs and events: execution.json")
   expect((await inspectLocalInquiry(report.sessionPath)).execution.resourceExecution.returned).toBe(17)
   await writeFile(path.join(report.sessionPath, "execution.json"), "{}")
   await expect(inspectLocalInquiry(report.sessionPath)).rejects.toThrow("execution archive changed")

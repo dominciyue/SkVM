@@ -3016,7 +3016,7 @@ check/run/compare已接入`--execution-policy=progressive`，strict仍为默认�
 
 ### 14.47 BH incremental program authoring and consumption
 
-2026-10-12，用户授权[新任务书 BH0–BH17](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)并指定 `gpt-6-astra/high` 开发。基线 `4595339f`，identity `authorization-incremental-program-v1`。本节为已批准的待实现合同，BG 既有实现和原件保持；尚无 BH 生产修改或效果结果。
+2026-10-12，用户授权[新任务书 BH0–BH17](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)并指定 `gpt-6-astra/high` 开发。基线 `4595339f`，实际接管 `2c64f50f`，identity `authorization-incremental-program-v1`。本节合同正在实施；BG原件保持。资源逐项编译和控制屏障已有红绿证据，实际编写/消费效果仍待运行。
 
 **重点。** 复核发现 resourceWorkflow 整体 schema 仍会清空渐进结果；自动稿首次七步缺机械字段、滥用 external 并有未定义引用，后稿直接省略该流程；消费报告与原件存在重复进入上下文的接点。BH 沿真实 Download 主链补局部编译、增量编写及消费减负，不扩通用语言解释器或另建 runtime。
 
@@ -3031,6 +3031,8 @@ check/run/compare已接入`--execution-policy=progressive`，strict仍为默认�
 **实际队列与第二任务。** 同任务 A1 自动编写、C1 原稿消费、C2 同程序变化，加当前同版本/同程序 P-full/P-compact 一对。partial 产物可以消费；没有资源程序时 C 记录前置产物缺失，不偷换开发者程序。ShareLink create 用现有公开源码离线检验第二任务的共享算子，其历史未知调用继续封存；OWUI 同样仅离线。两已暴露任务的离线复用不升级为跨仓库自动泛化。
 
 **评价与维护。** 局部可用、自动编写、当前消费、同程序变化、源码质量与收益分轴。原四问逐题评阅；P 对照共享原 skill/输入/来源/作者含义/模型/预算，只有消费视图变化。完整实际 input/output/cache、工具、时间和作者成本分列；一对结果如实为 improvement/tradeoff/no-observed-difference/negative/inconclusive。共享错误出现就修再继续，保留首次和具名确认，不重复同因模型调用；账号/第三方/旧未知/保护证据边界沿用。根因与结果更新研究§1/§7.69/§11，约8小时用于有用工作，不人为等待。
+
+**实施细化。** 草稿身份采用程序ID/原问题，修正root行号或receiver时省略workflow仍保留原稿数据；这不沿用旧scope结果，每个候选重新编译。已有活动程序下含错误的新候选保留独立预览、不替换活动结果；无旧活动时progressive可采用带局部缺口的首稿。复用恢复只装载经revision核对的草稿原值，不恢复预览。当前compact投影、详情工具、普通patch和缺source归档已有红绿；实际模型效果待测。资源输入声明仅使用当前场景中的声明子集，未声明事实给unused警告而不崩溃、不自动改名或补值。
 
 ### AT 开发合同（2026-10-05，有限队列已收束，完整质量未达）
 

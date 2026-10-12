@@ -16,7 +16,7 @@ import type { InquiryTools } from "../../benchmarks/authorization-dsl/inquiry-to
 import { projectSourceMaterials, type SourceFunctionRoot } from "../../benchmarks/authorization-dsl/source-material-projection.ts"
 import { sourceRelationRevision } from "../../benchmarks/authorization-dsl/operation-work.ts"
 import { lowerIntoControlSlice } from "../../benchmarks/authorization-dsl/inquiry-semantic.ts"
-import { ResourceWorkflowSchema, executeResourceWorkflow, type ResourceValue, type ExternalAssumptionsSchema } from "./resource-relations.ts"
+import { ResourceWorkflowSchema, ResourceWorkflowDraftSchema, inspectResourceDraft, executeResourceWorkflow, type ResourceValue, type ExternalAssumptionsSchema } from "./resource-relations.ts"
 
 const scope = z.object({ kind: z.enum(["function-contract", "request-operation"]), questionId: InquiryText, operationId: InquiryText.optional(), root: SourceCitationSchema, upstream: z.array(InquiryText).max(32) }).strict()
 export const ExecutableContractSchema = z.object({ schemaVersion: z.literal("authorization-executable-contract/v1"), id: InquiryText, scope,
@@ -29,7 +29,8 @@ const sourceInput = z.union([SourceCitationSchema, z.object({ symbol: InquiryTex
 export const ExecutableContractInputSchema = ExecutableContractSchema.extend({
   schemaVersion: ExecutableContractSchema.shape.schemaVersion.optional(),
   scope: scope.extend({ root: sourceInput }),
-  sourceDeclarations: z.array(QuestionDeclarationSchema.extend({ schemaVersion: QuestionDeclarationSchema.shape.schemaVersion.optional(), source: sourceInput })).min(1).max(32),
+  sourceDeclarations: z.array(z.record(z.unknown())).min(1).max(32),
+  resourceWorkflow: ResourceWorkflowDraftSchema.optional(),
   notes: z.string().optional(), description: z.string().optional(),
 })
 export type ExecutableContract = z.infer<typeof ExecutableContractSchema>
@@ -56,6 +57,10 @@ export function normalizeExecutableContract(raw: unknown, index: InquiryTools["s
     for (const key of ["description", "notes"]) if (typeof value[key] === "string") { delete value[key]; normalizations.push(`$.${key}:retained-in-raw`) }
     source(value.scope?.root, "scope.root")
     if (Array.isArray(value.sourceDeclarations)) for (const [i, d] of value.sourceDeclarations.entries()) { version(d, "authorization-question-declaration/v1", `sourceDeclarations.${i}`); if (object(d)) source(d.source, `sourceDeclarations.${i}.source`) }
+    if (Array.isArray(value.resourceWorkflow?.steps)) for (const [i, step] of value.resourceWorkflow.steps.entries()) if (object(step)) {
+      source(step.source, `resourceWorkflow.steps.${i}.source`)
+      if (Array.isArray(step.sources)) for (const [j, at] of step.sources.entries()) source(at, `resourceWorkflow.steps.${i}.sources.${j}`)
+    }
   }
   return { value, normalizations }
 }
@@ -85,11 +90,12 @@ export async function compileExecutableContract(raw: unknown, options: { tools: 
     for (const issue of result.error.issues) diagnostics.push({ code: "contract-local-shape", path: `sourceDeclarations.${i}.${issue.path.join(".")}`, message: issue.message, severity: "error" })
     return false
   })
-  const parsed = ExecutableContractSchema.safeParse(candidate)
+  const parsed = (progressive ? ExecutableContractSchema.extend({ resourceWorkflow: ResourceWorkflowDraftSchema.optional() }) : ExecutableContractSchema).safeParse(candidate)
   const fail = (code: string, path: string, message: string) => diagnostics.push({ code: `contract-${code}`, path, message, severity: "error", ...(parsed.success ? { questionId: parsed.data.scope.questionId } : {}) })
   const empty = () => ({ diagnostics, normalizations: normalized.normalizations, units: [] as BoundSemanticBlock[], materialUses: [] as ReturnType<typeof projectSourceMaterials>["uses"], requestOperationCertified: false as const })
   if (!parsed.success) { for (const issue of parsed.error.issues) fail("shape", issue.path.join("."), issue.message); return empty() }
   const contract = parsed.data, index = options.tools.structure, question = options.program.questions.find(q => q.id === contract.scope.questionId)
+  if (contract.resourceWorkflow) for (const slot of inspectResourceDraft(contract.resourceWorkflow).steps) for (const issue of slot.issues) fail("resource-shape", `resourceWorkflow.${issue.path}`, issue.message)
   if (!index) fail("structure", "$", "The current strategy needs the original source structure index.")
   if (!question) fail("question", "scope.questionId", "The contract must keep one current original question identity.")
   if (!index || !question) return empty()
@@ -158,18 +164,29 @@ export async function compileExecutableContract(raw: unknown, options: { tools: 
   }
   if (diagnostics.length && !progressive) return empty()
   const invalidSteps: Record<string, string[]> = {}
-  for (const [i, step] of (contract.resourceWorkflow?.steps ?? []).entries()) {
-    for (const at of [step.source, ...(step.sources ?? [])]) {
+  if (contract.resourceWorkflow) for (const slot of inspectResourceDraft(contract.resourceWorkflow).steps) {
+    const step: any = slot.raw, i = slot.index
+    for (const rawAt of [step?.source, ...(Array.isArray(step?.sources) ? step.sources : [])]) {
+    // Even malformed steps cannot smuggle an out-of-scope citation.
+    if (rawAt && typeof rawAt.path === "string" && !options.tools.files.some(f => f.path === rawAt.path)) { fail("source-scope", `resourceWorkflow.steps.${i}.source`, "The resource summary source is outside the allowed files."); return empty() }
+    const citation = SourceCitationSchema.safeParse(rawAt)
+    if (!citation.success) continue
+    const at = citation.data
     const file = options.tools.files.find(f => f.path === at.path)
     if (!file) { fail("source-scope", `resourceWorkflow.steps.${i}.source`, "The resource summary source is outside the allowed files."); return empty() }
     const evidence = options.tools.evidence.find(e => e.path === at.path && e.sha256 === file.sha256 && e.startLine <= at.startLine && e.endLine >= (at.endLine ?? at.startLine))
     const reason = at.sha256 && at.sha256 !== file.sha256 ? `resource-source-stale:${at.path}` : !evidence ? `resource-source-unread:${at.path}:${at.startLine}` : undefined
-    if (reason) { (invalidSteps[step.id] ??= []).push(reason); fail("resource-source", `resourceWorkflow.steps.${i}.source`, reason) }
-    else at.sha256 = file.sha256
+    if (reason) { (invalidSteps[slot.id] ??= []).push(reason); fail("resource-source", `resourceWorkflow.steps.${i}.source`, reason) }
+    else rawAt.sha256 = file.sha256
     }
   }
   if (diagnostics.length && !progressive) return empty()
-  const resourceExecution = contract.resourceWorkflow ? executeResourceWorkflow(contract.resourceWorkflow, options.resourceInputs ?? {}, { invalidSteps, externalAssumptions: options.externalAssumptions }) : undefined
+  const resourceInputs = { ...options.resourceInputs }
+  if (progressive && contract.resourceWorkflow) for (const key of Object.keys(resourceInputs)) if (!contract.resourceWorkflow.inputs.includes(key)) {
+    delete resourceInputs[key]
+    diagnostics.push({ code: "contract-resource-input-unused", path: `resourceInputs.${key}`, message: "This supplied scenario fact is not declared by the draft and was not used.", severity: "warning" })
+  }
+  const resourceExecution = contract.resourceWorkflow ? executeResourceWorkflow(contract.resourceWorkflow, resourceInputs, { progressive, invalidSteps, externalAssumptions: options.externalAssumptions }) : undefined
   const semanticVersion = sourceMaterialSemanticVersion("question-checked-v1"), materials = createSourceMaterials({ ...options.tools.identity, semanticVersion })
   for (const unit of units) materials.accept(unit, [{ kind: "source-span", key: unit.source!.path, revision: unit.source!.sha256 }, { kind: "symbol-resolution", key: unit.source!.id, revision: unit.source!.sha256 }, { kind: "candidate-set", key: `relations:${unit.source!.id}:${unit.receiverClass ?? ""}`, revision: sourceRelationRevision(index, unit.source!.id, unit.receiverClass)! }], options.interpretationSource ?? "model")
   const localRoot: SourceFunctionRoot = { questionId: question.id, operationId, source: root.source, receiverClass: rootAt.receiverClass }

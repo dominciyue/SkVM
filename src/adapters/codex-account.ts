@@ -9,7 +9,7 @@ import type { InquiryReuseInfo, InquiryReuseSeed } from "../benchmarks/authoriza
 import type { SourcePreparationOptions } from "../benchmarks/authorization-dsl/evidence-preparation/preparation.ts"
 
 export interface AccountInquiryOptions {
-  executionPolicy?: import("../task-dsl/authorization/executable-contract.ts").ExecutionPolicy; programMode?: import("../task-dsl/authorization/executable-contract.ts").ProgramMode
+  programContext?: import("../task-dsl/authorization/program-consumption-context.ts").ProgramContext; executionPolicy?: import("../task-dsl/authorization/executable-contract.ts").ExecutionPolicy; programMode?: import("../task-dsl/authorization/executable-contract.ts").ProgramMode
   inputFile: string; workDir: string; model: string; method?: "M" | "D0" | "D1"; strategy?: InquiryStrategy; skillContent?: string
   domainTools?: boolean; maxToolCalls?: number; maxDisplayBytes?: number; maxReadBytes?: number; timeoutMs?: number; traceDir?: string
   reuse?: { info: InquiryReuseInfo; seed: InquiryReuseSeed }; transportFactory?: () => AccountTransport

@@ -13,7 +13,7 @@ import type { StructureIndex } from "./evidence-preparation/structure-index.ts"
 import { structuralDependencyRevision } from "./operation-work.ts"
 import { createSourceMaterials, sourceMaterialId, type SourceMaterialSnapshot } from "../../task-dsl/authorization/source-materials.ts"
 
-export interface InquiryReuseSeed { delta: z.infer<typeof ControlSliceDeltaSchema>; evidence: InquiryEvidence[]; semanticUnits?: BoundSemanticBlock[]; sourceMaterials?: SourceMaterialSnapshot }
+export interface InquiryReuseSeed { delta: z.infer<typeof ControlSliceDeltaSchema>; evidence: InquiryEvidence[]; semanticUnits?: BoundSemanticBlock[]; sourceMaterials?: SourceMaterialSnapshot; programDraft?: import("../../task-dsl/authorization/resource-program-draft.ts").ProgramDraft }
 export interface InquiryReuseInfo {
   previousSessionId: string; change: "unchanged" | "policy-only" | "premise-only" | "policy-and-premise" | "contract-inputs-only" | "source-changed" | "incompatible";
   answerReused: false; semanticSupport: "unreviewed"; reusedRuleKeys: string[]; invalidatedPolicyKeys: string[]; invalidatedPremiseKeys: string[]
@@ -47,7 +47,9 @@ export function planInquiryReuse(options: {
     if (!isQuestionWorkflowStrategy(options.currentStrategy)) return materials
     if (materials.status === "reusable" && materials.seed.sourceMaterials.materials.length) {
       info.layers = { R0: { available: true, retainedEvidence: materials.seed.evidence.length, mechanicalIndexReusable: !sourceChanged }, R1: { available: true, retainedMaterials: materials.seed.sourceMaterials.materials.length, reasons: materials.reasons }, R2: { available: false, reason: "Previous verdicts and answers are never restored; evaluate current properties separately." } }
-      return materials
+      const seed: InquiryReuseSeed = materials.seed
+      if (!options.domainProgram || options.domainProgram.currentSha256 === options.domainProgram.previousSha256) seed.programDraft = structuredClone(prior.domain?.executableContract?.currentDraft ?? prior.domain?.programDraft?.currentDraft)
+      return { ...materials, seed }
     }
     return planQuestionPreparation(options, info, materials.reasons)
   }
@@ -107,6 +109,7 @@ function planQuestionPreparation(options: Parameters<typeof planInquiryReuse>[0]
   if (info.change === "incompatible") info.change = "policy-and-premise"
   const delta = ControlSliceDeltaSchema.parse({ schemaVersion: "authorization-control-slice/v1", rules: [], dependencies: [], bindings: [], policyRules: [] })
   const seed: InquiryReuseSeed = { delta, evidence: structuredClone(evidence) }
+  if (!options.domainProgram || options.domainProgram.currentSha256 === options.domainProgram.previousSha256) seed.programDraft = structuredClone(prior.domain?.executableContract?.currentDraft ?? prior.domain?.programDraft?.currentDraft)
   return { status: "reusable" as const, info, reasons: materialReasons, seed }
 }
 

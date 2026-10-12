@@ -27,7 +27,7 @@ const expression = z.custom<ResourceExpression>(value => {
   }
   return visit(value, 0)
 }, "Invalid or unbounded resource expression")
-const base = { id: name, source: SourceCitationSchema, sources: z.array(SourceCitationSchema).max(16).optional(), because: z.string().min(1), when: predicate.optional() }
+const base = { id: name, source: SourceCitationSchema, sources: z.array(SourceCitationSchema).max(16).optional(), because: z.string().min(1).default("Author explanation not supplied."), when: predicate.optional() }
 export const ResourceStepSchema = z.discriminatedUnion("op", [
   z.object({ ...base, op: z.literal("value"), value: expression }).strict(),
   z.object({ ...base, op: z.literal("select"), from: name, where: predicate, order: z.array(z.object({ field: name, direction: z.enum(["asc", "desc"]), nullAs: z.number().optional(), nulls: z.enum(["first", "last"]).optional() }).strict()).max(4).optional(), unique: z.boolean().default(true) }).strict(),
@@ -39,12 +39,26 @@ export const ResourceWorkflowSchema = z.object({ inputs: z.array(name).max(64), 
   const seen = new Set(v.inputs)
   for (const [i, s] of v.steps.entries()) { if (seen.has(s.id)) c.addIssue({ code: "custom", path: ["steps", i, "id"], message: "Input and computed identities must be distinct and unique" }); seen.add(s.id) }
 })
+/** The envelope is bounded; individual authored steps may still need repair. */
+export const ResourceWorkflowDraftSchema = z.object({ inputs: z.array(name).max(64), steps: z.array(z.unknown()).min(1).max(128), gaps: z.array(z.string()).max(64).default([]) }).strict()
+export function inspectResourceDraft(raw: unknown) {
+  const workflow = ResourceWorkflowDraftSchema.parse(raw)
+  const counts = new Map<string, number>()
+  for (const id of [...workflow.inputs, ...workflow.steps.flatMap(s => object(s) && typeof s.id === "string" ? [s.id] : [])]) counts.set(id, (counts.get(id) ?? 0) + 1)
+  const steps = workflow.steps.map((raw, index) => {
+    const parsed = ResourceStepSchema.safeParse(raw), id = object(raw) && name.safeParse(raw.id).success ? raw.id as string : `$invalid-step-${index}`
+    const issues = parsed.success ? [] : parsed.error.issues.map(i => ({ path: `steps.${index}.${i.path.join(".")}`, message: i.message }))
+    if ((counts.get(id) ?? 0) > 1) issues.push({ path: `steps.${index}.id`, message: `Duplicate input/computed identity:${id}` })
+    return { raw, index, id, parsed, issues }
+  })
+  return { workflow, steps }
+}
 export const ExternalAssumptionsSchema = z.array(z.object({ name, arguments: z.record(name, z.custom<FiniteValue>(finiteValue)), value: z.custom<FiniteValue>(finiteValue), reason: z.string().min(1) }).strict()).max(64)
 export interface ResourceProgramInputs { resourceInputs?: Record<string, Record<string, ResourceValue>>; externalAssumptions?: Record<string, z.infer<typeof ExternalAssumptionsSchema>> }
 export type ResourceWorkflow = z.infer<typeof ResourceWorkflowSchema>
 export interface ResourceEvent {
   sequence: number; id: string; op: string; executor: "host"; meaningOrigin: "authored-program" | "external-assumption";
-  source: z.infer<typeof SourceCitationSchema>; sources?: z.infer<typeof SourceCitationSchema>[]; inputs: Record<string, unknown>; outputs: Record<string, unknown>;
+  source?: z.infer<typeof SourceCitationSchema>; sources?: z.infer<typeof SourceCitationSchema>[]; inputs: Record<string, unknown>; outputs: Record<string, unknown>;
   outcome: "computed" | "conditional" | "unresolved" | "rejected" | "skipped"; gaps: string[]; because: string; condition?: unknown
 }
 interface Evaluated { known: boolean; value?: ResourceValue; gaps: string[] }
@@ -53,8 +67,8 @@ const known = (value: ResourceValue): Evaluated => ({ known: true, value, gaps: 
 
 /** Finite source-authored resource summaries, using the existing three-valued
  * predicate core. No target code, database, permission service or model runs. */
-export function executeResourceWorkflow(raw: unknown, supplied: unknown, options: { invalidSteps?: Record<string, string[]>; externalAssumptions?: z.infer<typeof ExternalAssumptionsSchema> } = {}) {
-  const workflow = ResourceWorkflowSchema.parse(raw), inputs = ResourceInputsSchema.parse(supplied), external = ExternalAssumptionsSchema.parse(options.externalAssumptions ?? [])
+export function executeResourceWorkflow(raw: unknown, supplied: unknown, options: { progressive?: boolean; invalidSteps?: Record<string, string[]>; externalAssumptions?: z.infer<typeof ExternalAssumptionsSchema> } = {}) {
+  const draft = inspectResourceDraft(options.progressive ? raw : ResourceWorkflowSchema.parse(raw)), workflow = draft.workflow, inputs = ResourceInputsSchema.parse(supplied), external = ExternalAssumptionsSchema.parse(options.externalAssumptions ?? [])
   for (const k of Object.keys(inputs)) if (!workflow.inputs.includes(k)) throw new Error(`resource-input-not-declared:${k}`)
   const env: Record<string, Evaluated> = Object.create(null), values: Record<string, ResourceValue> = Object.create(null), events: ResourceEvent[] = [], conditions: unknown[] = []
   for (const k of workflow.inputs) env[k] = Object.hasOwn(inputs, k) ? known(inputs[k]!) : missing(k)
@@ -94,7 +108,20 @@ export function executeResourceWorkflow(raw: unknown, supplied: unknown, options
     if (fields.some(([, v]) => !v.known || !scalar(v.value))) return missing(...fields.flatMap(([k, v]) => v.gaps.length ? v.gaps : !scalar(v.value) ? [`record-scalar-required:${k}`] : []))
     return known(Object.fromEntries(fields.map(([k, v]) => [k, v.value as Scalar])))
   }
-  for (const step of workflow.steps) {
+  for (const slot of draft.steps) {
+    if (!slot.parsed.success || slot.issues.length) {
+      const raw = object(slot.raw) ? slot.raw : {}, gaps = slot.issues.map(i => `resource-step:${i.path}:${i.message}`)
+      const source = SourceCitationSchema.safeParse(raw.source), when = predicate.safeParse(raw.when)
+      // Only a current, supported activation can exclude a malformed control slot.
+      const inactive = source.success && !options.invalidSteps?.[slot.id] && when.success && test(when.data).truth === "false"
+      const barrier = !["value", "select", "external"].includes(raw.op)
+      if (barrier && !inactive) conditions.push({ step: slot.id, controlGaps: gaps, otherwise: "unresolved-control" })
+      env[slot.id] = missing(...gaps)
+      delete values[slot.id]
+      events.push({ sequence: events.length + 1, id: slot.id, op: typeof raw.op === "string" ? raw.op : "unknown", executor: "host", meaningOrigin: "authored-program", ...(source.success ? { source: source.data } : {}), inputs: {}, outputs: { known: false }, outcome: inactive ? "skipped" : "unresolved", gaps: inactive ? [] : gaps, because: typeof raw.because === "string" ? raw.because : "Author explanation not supplied." })
+      continue
+    }
+    const step = slot.parsed.data
     const event: ResourceEvent = { sequence: events.length + 1, id: step.id, op: step.op, executor: "host", meaningOrigin: "authored-program", source: step.source, ...(step.sources ? { sources: step.sources } : {}), inputs: {}, outputs: {}, outcome: "computed", gaps: [], because: step.because }
     let result: Evaluated = missing(step.id), active = true
     if (options.invalidSteps?.[step.id]) { result = missing(...options.invalidSteps[step.id]!); active = false }

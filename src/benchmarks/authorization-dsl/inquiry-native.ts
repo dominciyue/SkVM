@@ -1,4 +1,5 @@
 import path from "node:path"
+import { projectProgramConsumption, projectProgramToolOutput, programConsumptionDetails, type ProgramContext } from "../../task-dsl/authorization/program-consumption-context.ts"
 import { readdir, realpath, mkdir, appendFile, writeFile, readFile, stat } from "node:fs/promises"
 import type { LLMTool, LLMToolCall, CompletionParams, LLMToolResult, LLMResponse } from "../../providers/types.ts"
 import type { AccountArgumentDiagnostic } from "../../adapters/codex-account-session.ts"
@@ -35,7 +36,7 @@ export function nativeInquiryToolModelView(output: unknown) {
   const { domain, domainCheck, questionChecks, ...rest } = output as Record<string, unknown>
   return { ...rest, ...(Array.isArray(questionChecks) ? { questionChecks: questionChecks.map(({ trace, ...question }) => question) } : {}), ...(domain || domainCheck ? { stateLocation: "Current local explanation context.state; full trace retained in native report" } : {}) }
 }
-export async function createNativeInquiryRuntime(options: { executionPolicy?: ExecutionPolicy; programMode?: ProgramMode; inputFile: string; workDir: string; domainTools: boolean; strategy?: InquiryStrategy; method?: typeof NativeInquiryMethods[number]; skillContent?: string; domainProgramFile?: string; maxToolCalls?: number; maxProviderCalls?: number; maxDisplayBytes?: number; maxReadBytes?: number; maxOutputTokens?: number; traceDir?: string; traceRedactor?: (value: unknown) => unknown; reuse?: { info: InquiryReuseInfo; seed: InquiryReuseSeed }; preparation?: InquiryToolsOptions["preparation"] }) {
+export async function createNativeInquiryRuntime(options: { programContext?: import("../../task-dsl/authorization/program-consumption-context.ts").ProgramContext; executionPolicy?: ExecutionPolicy; programMode?: ProgramMode; inputFile: string; workDir: string; domainTools: boolean; strategy?: InquiryStrategy; method?: typeof NativeInquiryMethods[number]; skillContent?: string; domainProgramFile?: string; maxToolCalls?: number; maxProviderCalls?: number; maxDisplayBytes?: number; maxReadBytes?: number; maxOutputTokens?: number; traceDir?: string; traceRedactor?: (value: unknown) => unknown; reuse?: { info: InquiryReuseInfo; seed: InquiryReuseSeed }; preparation?: InquiryToolsOptions["preparation"] }) {
   if (options.maxOutputTokens !== undefined && (!Number.isSafeInteger(options.maxOutputTokens) || options.maxOutputTokens < 1)) throw new Error("Authorization output token limit must be a positive safe integer")
   const strategy = parseInquiryStrategy(options.strategy)
   const sourceAssisted = isSourceAssistedInquiryStrategy(strategy)
@@ -131,6 +132,7 @@ export async function createNativeInquiryRuntime(options: { executionPolicy?: Ex
     const imported = await domain.importProgram(JSON.parse(await readFile(options.domainProgramFile, "utf8")), "authored-file", true)
     if (!domain.executableContractReport()) throw new Error(`contract-import-invalid: ${JSON.stringify(imported.diagnostics)}`)
   }
+  if (options.reuse?.seed.programDraft) domain?.restoreProgramDraft(options.reuse.seed.programDraft)
   const preparationContext = () => ({ taskPreparation: { state: taskPreparationFailed ? "frontend-failed" : "pending", attempts: taskPreparationAttempts, originalQuestions: hostInquiry!.questions }, toolBudget: toolBudget(), instruction: taskPreparationFailed ? "Task property preparation failed after one targeted revision. Deliver the retained original questions and named preparation gaps in prose; no current property check exists." : renderTaskPropertyPreparation(hostInquiry!) + "\nUse authorization_prepare_properties before source work. One diagnosed revision is available." })
   const schemas = inquiryNativeSchemas(strategy, true), domainDefinitions = inquiryNativeDefinitions(strategy, loaded.value.inquiry?.mode ?? loaded.value.mode ?? "behavior").filter(d => !hostCompiled || d.name !== "authorization_compile")
   const definitions: LLMTool[] = [...tools.definitions, ...(referenceRoot ? [{ name: "skill_reference_read", description: `Read installed original skill companions as data: ${references.map(r => r.path).join(", ")}`, inputSchema: { type: "object", properties: { path: { type: "string" } }, required: ["path"], additionalProperties: false } }] : []), ...(options.domainTools ? domainDefinitions : [])]
@@ -174,10 +176,13 @@ export async function createNativeInquiryRuntime(options: { executionPolicy?: Ex
           if (local.focus) await domain.propose({ schemaVersion: "authorization-focused-update/v1", kind: "defer", focusId: local.focus.id, reason: "Continue to available source while retaining current meanings and named gaps.", ...(next ? { nextItemId: next.id } : {}) })
         }
         output = { ...guidance.execute(args), ...(location ? { location } : {}), ...(args.action === "materials" ? { retainedMaterials: domain?.report().sourceMaterials ?? { sourceRanges: tools.evidence.map(({ quote: _quote, ...range }) => range), semanticMeanings: [] } } : {}) }
-      } else if (["authorization_declare", "authorization_program"].includes(call.name) && questionChecked && domain) {
+      } else if (["authorization_declare", "authorization_program", "authorization_program_patch"].includes(call.name) && questionChecked && domain) {
         domainCalls++
-        const proposed = call.name === "authorization_program" ? await domain.importProgram(call.arguments) : await domain.propose(call.arguments); ensureActive()
-        output = { controlDiagnostics: proposed.diagnostics, autoReads: proposed.actions.map(a => inquiryToolModelView(a.output, true)), propertyChecks: domain.report().propertyAnalysis?.checks, semanticSupport: "unreviewed" }
+        const proposed = call.name === "authorization_program_patch" ? await domain.patchProgram(call.arguments) : call.name === "authorization_program" ? await domain.importProgram(call.arguments) : await domain.propose(call.arguments); ensureActive()
+        output = { controlDiagnostics: proposed.diagnostics, autoReads: proposed.actions.map(a => inquiryToolModelView(a.output, true)), propertyChecks: domain.report().propertyAnalysis?.checks, ...domain.programDraftReport(), executableContract: domain.executableContractReport(), semanticSupport: "unreviewed" }
+      } else if (call.name === "authorization_program_details" && questionChecked && domain) {
+        domainCalls++
+        output = programConsumptionDetails(domain.executableContractReport() ?? { ...domain.programDraftReport(), status: "draft-only" }, call.arguments)
       } else if (call.name === "authorization_check_properties" && questionChecked && domain) {
         domainCalls++; checks++; await domain.sync(false); ensureActive()
         output = { propertyChecks: domain.report().propertyAnalysis?.checks, executableContract: domain.executableContractReport(), wholeTaskCertified: false, semanticSupport: "unreviewed", instruction: "Render the original task naturally; preserve all unresolved properties and source limits." }
@@ -238,7 +243,8 @@ export async function createNativeInquiryRuntime(options: { executionPolicy?: Ex
     output = { ...(output as Record<string, unknown>), toolBudget: toolBudget(), ...(isFiniteControlInquiryStrategy(strategy) ? { progress: progress.record({ unit: domain?.report().focus?.current?.id ?? call.name, input: { name: call.name, arguments: call.arguments }, state: inquiryProgressState(domain?.report()), diagnostics: (output as any)?.controlDiagnostics ?? (output as any)?.diagnostics ?? [] }) } : {}) }
     const record = { call, output, exitCode, executed }; history.push(record)
     if (traceDir) await appendFile(path.join(traceDir, "tools.jsonl"), JSON.stringify(options.traceRedactor ? options.traceRedactor(record) : record) + "\n")
-    return { output: JSON.stringify(isGuidedInquiryStrategy(strategy) ? nativeInquiryToolModelView(output) : output), exitCode, durationMs: performance.now() - started }
+    const sent = projectProgramToolOutput(output, program?.questions ?? [], options.programContext)
+    return { output: JSON.stringify(isGuidedInquiryStrategy(strategy) ? nativeInquiryToolModelView(sent) : sent), exitCode, durationMs: performance.now() - started }
   }
   const execute = async (call: LLMToolCall) => {
     activeExecutors++
@@ -305,6 +311,7 @@ export async function createNativeInquiryRuntime(options: { executionPolicy?: Ex
       const local: any = domain?.promptContext({ maxSourceBytes: Math.max(0, (options.maxDisplayBytes ?? 262144) - modelSourceBytes), finalOnly: questionChecked && finalOnly })
       const questionId = local?.focus?.stage === "answer" ? undefined : local?.focus?.questionId
       const propertyChecks = domain?.report().propertyAnalysis?.checks
+      if (options.programContext === "compact" && domain?.executableContractReport()) return { guidance: guidance.context(undefined, questionId), toolBudget: budget, executableContract: projectProgramConsumption(domain.executableContractReport(), program?.questions ?? [], "compact"), instruction: QUESTION_WORKFLOW_GUIDE + " The imported program has already run under current inputs. Use its computed results; read sources for remaining duties or independent review, and request exact program details only when needed." }
       return { guidance: guidance.context(undefined, questionId), toolBudget: budget, executableContract: domain?.executableContractReport(), ...(domain ? { questionWorkflow: domain.questionContext(), sourceWindows: local?.sourceWindows, currentStage: local?.focus?.stage, machine: { properties: propertyChecks && { ...propertyChecks, questions: propertyChecks.questions.filter(q => !questionId || q.questionId === questionId) }, gaps: local?.gaps, gapCount: local?.gapCount, wholeTaskCertified: false, semanticSupport: "unreviewed" }, sourceCandidates: local?.pendingSourceWork?.filter((candidate: any) => !questionId || candidate.questionId === questionId).map(({ id: _id, ...candidate }: any) => candidate), diagnostics: local?.diagnostics } : {}), instruction: `${QUESTION_WORKFLOW_GUIDE}${budget.explorationRemaining <= 0 || questionChecked && checks >= checkLimit ? " Exploration is exhausted. Deliver all original questions now in the original skill format; retain machine unknowns." : ""}` }
     }
     const current = sourceAssisted ? domain?.promptContext({ maxSourceBytes: Math.max(0, (options.maxDisplayBytes ?? 262144) - modelSourceBytes), finalOnly, preferAnswer }) : domain?.modelContext({ finalOnly, preferAnswer })

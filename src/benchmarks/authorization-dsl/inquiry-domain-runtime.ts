@@ -28,6 +28,7 @@ import { isCompletionEditProposal } from "./semantic-completion-wire.ts"
 import { compileExecutableContract, readExecutableContractSources, normalizeExecutableContract, type ExecutableContractCompilation, type ExecutionPolicy, type ProgramMode } from "../../task-dsl/authorization/executable-contract.ts"
 import type { ResourceProgramInputs } from "../../task-dsl/authorization/resource-relations.ts"
 import { QuestionDeclarationSchema } from "../../task-dsl/authorization/question-workflow.ts"
+import { createProgramDraft, patchProgramDraft, type ProgramDraft } from "../../task-dsl/authorization/resource-program-draft.ts"
 type AcceptedExecutableContract = Extract<ExecutableContractCompilation, { evaluation: unknown }>
 
 export type DomainAblation = "scheduler-off" | "checks-off"
@@ -60,9 +61,10 @@ export function createInquiryDomainRuntime(options: ResourceProgramInputs & { ex
   let slice: ControlSlice = createControlSlice(), check: RuntimeDomainCheck | undefined, closed = false
   let propertyChecks: ReturnType<typeof checkPropertyQueries> | undefined
   let executableContract: { compilation: AcceptedExecutableContract; origin: "authored-file" | "model" } | undefined
-  const programMode = options.programMode ?? "consume", programDrafts: Array<{ raw: unknown; diagnostics: InquiryDiagnostic[]; baseRevision: string }> = []
+  const programMode = options.programMode ?? "consume", programDrafts: Array<{ raw: unknown; diagnostics: InquiryDiagnostic[]; baseRevision?: string; draftRevision?: string }> = []
+  let currentDraft: ProgramDraft | undefined, candidatePreview: AcceptedExecutableContract | undefined
   let initialProgramRevision: string | undefined
-  const retainProgramDraft = (raw: unknown, diagnostics: InquiryDiagnostic[]) => { programDrafts.push({ raw: structuredClone(raw), diagnostics, baseRevision: executableContract!.compilation.revision }); return { diagnostics, actions: [], evaluated: { paths: lastPaths } } }
+  const retainProgramDraft = (raw: unknown, diagnostics: InquiryDiagnostic[]) => { programDrafts.push({ raw: structuredClone(raw), diagnostics, baseRevision: executableContract?.compilation.revision, draftRevision: currentDraft?.revision }); return { diagnostics, actions: [], evaluated: { paths: lastPaths } } }
   const authoredEvidenceIds = new Set<string>()
   const contractRoots = () => {
     const compiled = executableContract?.compilation
@@ -220,12 +222,18 @@ export function createInquiryDomainRuntime(options: ResourceProgramInputs & { ex
   const importProgram = async (raw: unknown, origin: "authored-file" | "model" = "model", readSources = false): Promise<ProposalResult> => {
     if (closed) throw new Error("session-closed")
     if (!isQuestionCheckedStrategy(options.strategy)) throw new Error("contract-strategy: executable programs require question-checked-v1")
-    if (origin === "model" && executableContract && programMode === "consume") return retainProgramDraft(raw, [{ code: "program-consume-draft", path: "$", message: "The active program is in consume mode; this proposal was retained as a draft without replacing it.", severity: "warning" }])
+    const submitted = raw
+    currentDraft = createProgramDraft(raw, currentDraft)
+    raw = currentDraft.raw
+    candidatePreview = undefined
     const normalized = readSources ? await readExecutableContractSources(raw, options.tools) : normalizeExecutableContract(raw, options.tools.structure)
     const questionId = normalized.value?.scope?.questionId
     const compiled = await compileExecutableContract(raw, { tools: options.tools, program: options.program, confirmedEntries: semanticUnits, inputs: options.contractInputs?.[questionId], resourceInputs: options.resourceInputs?.[questionId], externalAssumptions: options.externalAssumptions?.[questionId], executionPolicy: options.executionPolicy, interpretationSource: origin })
+    if ("evaluation" in compiled) candidatePreview = compiled
+    if (origin === "model" && executableContract && (programMode === "consume" || compiled.diagnostics.some(d => d.severity === "error"))) return retainProgramDraft(submitted, [...compiled.diagnostics, { code: programMode === "consume" ? "program-consume-draft" : "program-candidate-not-adopted", path: "$", message: "Candidate preview is separate; the active program remains unchanged. Repair the current draft revision with a patch.", severity: "warning" }])
     if (!("evaluation" in compiled) || compiled.diagnostics.length && options.executionPolicy !== "progressive") {
-      if (executableContract) return retainProgramDraft(raw, compiled.diagnostics)
+      if (executableContract) return retainProgramDraft(submitted, compiled.diagnostics)
+      retainProgramDraft(submitted, compiled.diagnostics)
       issues.set("$contract", compiled.diagnostics); evaluateCurrentProperties(); return { diagnostics: compiled.diagnostics, actions: [], evaluated: { paths: lastPaths } }
     }
     invalidateDelivery()
@@ -247,10 +255,23 @@ export function createInquiryDomainRuntime(options: ResourceProgramInputs & { ex
     bindSourceCalls(); retainFacts()
     const lowered = calculate(() => lowerCurrent(true)); computation.merges++; slice = lowered.state
     await sync(false); evaluateCurrentProperties()
-    proposals.push({ delta: structuredClone(raw), diagnostics: compiled.diagnostics, revision: slice.revision })
+    proposals.push({ delta: structuredClone(submitted), diagnostics: compiled.diagnostics, revision: slice.revision })
     return { diagnostics: compiled.diagnostics, actions: [], evaluated: { paths: lastPaths } }
   }
-  const executableContractReport = () => executableContract && { program: executableContract.compilation.contract, origin: executableContract.origin, programMode, executionPolicy: options.executionPolicy ?? "strict", initialRevision: initialProgramRevision, drafts: structuredClone(programDrafts), diagnostics: executableContract.compilation.diagnostics, normalizations: executableContract.compilation.normalizations, resourceExecution: !issues.has("$source") && options.tools.snapshotVerification?.valid !== false ? executableContract.compilation.resourceExecution : undefined, revision: executableContract.compilation.revision, scope: executableContract.compilation.scope, assumptions: executableContract.compilation.assumptions, conditions: executableContract.compilation.conditions, status: propertyChecks && propertyBasis && !issues.has("$source") && !issues.has("$contract") ? "current" as const : "invalidated" as const, evaluation: propertyChecks && propertyBasis && !issues.has("$source") && !issues.has("$contract") ? structuredClone(propertyChecks) : undefined, requestOperationCertified: false as const }
+  const patchProgram = async (raw: unknown): Promise<ProposalResult> => {
+    const merged = patchProgramDraft(currentDraft, raw)
+    if (merged.diagnostics.length || !merged.draft) return retainProgramDraft(raw, merged.diagnostics)
+    const result = await importProgram(merged.draft.raw)
+    proposals.push({ delta: structuredClone(raw), diagnostics: result.diagnostics, revision: slice.revision })
+    return result
+  }
+  const restoreProgramDraft = (draft: ProgramDraft) => {
+    const restored = createProgramDraft(draft.raw)
+    if (restored.revision !== draft.revision) throw new Error("program-draft-revision-mismatch")
+    currentDraft = restored; candidatePreview = undefined
+  }
+  const programDraftReport = () => ({ currentDraft: structuredClone(currentDraft), candidate: candidatePreview && { revision: currentDraft?.revision, adopted: candidatePreview === executableContract?.compilation, diagnostics: candidatePreview.diagnostics, resourceExecution: !issues.has("$source") && options.tools.snapshotVerification?.valid !== false ? candidatePreview.resourceExecution : undefined } })
+  const executableContractReport = () => executableContract && { ...programDraftReport(), program: executableContract.compilation.contract, origin: executableContract.origin, programMode, executionPolicy: options.executionPolicy ?? "strict", initialRevision: initialProgramRevision, drafts: structuredClone(programDrafts), diagnostics: executableContract.compilation.diagnostics, normalizations: executableContract.compilation.normalizations, resourceExecution: !issues.has("$source") && options.tools.snapshotVerification?.valid !== false ? executableContract.compilation.resourceExecution : undefined, revision: executableContract.compilation.revision, scope: executableContract.compilation.scope, assumptions: executableContract.compilation.assumptions, conditions: executableContract.compilation.conditions, status: propertyChecks && propertyBasis && !issues.has("$source") && !issues.has("$contract") ? "current" as const : "invalidated" as const, evaluation: propertyChecks && propertyBasis && !issues.has("$source") && !issues.has("$contract") ? structuredClone(propertyChecks) : undefined, requestOperationCertified: false as const }
   const propose = async (delta: unknown): Promise<ProposalResult> => {
     if (closed) throw new Error("session-closed: domain runtime cannot continue")
     if (executableContract && programMode === "consume") return retainProgramDraft(delta, [{ code: "program-consume-draft", path: "$", message: "Inspect the active program; proposed changes remain drafts in consume mode.", severity: "warning" }])
@@ -610,7 +631,7 @@ export function createInquiryDomainRuntime(options: ResourceProgramInputs & { ex
     }
     return { ...state, ...(fullWorklist ? { worklist: worklistModelView(fullWorklist) } : {}), diagnostics: diagnostics.slice(0, 16).map(modelDiagnostic), diagnosticCount: diagnostics.length, rejectedTargets, rejectedTargetCount: rejections.length }
   }
-  const liveReport = () => ({ executableContract: executableContractReport(), ...(propertyDirected ? { propertyAnalysis: { metrics: propertyEvaluation?.propertyMetrics ?? { contextOriginsRepresented: 0, failureOriginsMerged: 0, contextSequences: 0 }, summaries: structuredClone(propertyEvaluation?.propertySummaries ?? []), demands: focus?.report().propertyDemands ?? [], ...(semanticCompletion ? { propertyCheckStatus: propertyChecks && propertyBasis ? "current" as const : "invalidated" as const, currentPropertyBasis: propertyBasis, finalDeliveryStatus: currentAnswer ? "valid" as const : "unsubmitted-or-invalid" as const } : {}), ...(propertyChecks && propertyChecks.revision === slice.revision ? { checks: structuredClone(propertyChecks) } : {}) }, promptPayloads: structuredClone(promptPayloads) } : {}), slice: structuredClone(slice), proposals: structuredClone(proposals), sourceWorkMetrics: options.sourceAssisted ? sourceWorkMetrics() : undefined, delivery: options.sourceAssisted ? deliverySnapshot() : undefined, currentRejections: structuredClone(currentRejections), localExtractions: structuredClone(localExtractions), ...(materials ? { sourceMaterials: materials.snapshot(), materialUses: structuredClone(materialUses), materialProjection: structuredClone(materialProjection) } : {}), ...(facts ? { operationFacts: facts.snapshot(), sourceLinks: structuredClone(sourceLinks), structure: options.tools.structure ? { schemaVersion: options.tools.structure.schemaVersion, revision: options.tools.structure.revision, parser: options.tools.structure.parser, relationshipVersion: options.tools.structure.relationshipVersion, preparation: options.tools.structure.preparation, diagnostics: options.tools.structure.diagnostics } : undefined } : {}), ...(isSemanticInquiryStrategy(options.strategy) ? { semantic: { units: structuredClone(semanticUnits), records: structuredClone(semanticRecords), assemblies: structuredClone(assemblies) } } : {}), ...(focus ? { focus: focus.report() } : {}), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions), ...worklist.report() } } : {}), objectFeedback: { revision: objectRevision, diagnostics: structuredClone(objectDiagnostics) }, check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed })
+  const liveReport = () => ({ programDraft: { ...programDraftReport(), rejected: structuredClone(programDrafts) }, executableContract: executableContractReport(), ...(propertyDirected ? { propertyAnalysis: { metrics: propertyEvaluation?.propertyMetrics ?? { contextOriginsRepresented: 0, failureOriginsMerged: 0, contextSequences: 0 }, summaries: structuredClone(propertyEvaluation?.propertySummaries ?? []), demands: focus?.report().propertyDemands ?? [], ...(semanticCompletion ? { propertyCheckStatus: propertyChecks && propertyBasis ? "current" as const : "invalidated" as const, currentPropertyBasis: propertyBasis, finalDeliveryStatus: currentAnswer ? "valid" as const : "unsubmitted-or-invalid" as const } : {}), ...(propertyChecks && propertyChecks.revision === slice.revision ? { checks: structuredClone(propertyChecks) } : {}) }, promptPayloads: structuredClone(promptPayloads) } : {}), slice: structuredClone(slice), proposals: structuredClone(proposals), sourceWorkMetrics: options.sourceAssisted ? sourceWorkMetrics() : undefined, delivery: options.sourceAssisted ? deliverySnapshot() : undefined, currentRejections: structuredClone(currentRejections), localExtractions: structuredClone(localExtractions), ...(materials ? { sourceMaterials: materials.snapshot(), materialUses: structuredClone(materialUses), materialProjection: structuredClone(materialProjection) } : {}), ...(facts ? { operationFacts: facts.snapshot(), sourceLinks: structuredClone(sourceLinks), structure: options.tools.structure ? { schemaVersion: options.tools.structure.schemaVersion, revision: options.tools.structure.revision, parser: options.tools.structure.parser, relationshipVersion: options.tools.structure.relationshipVersion, preparation: options.tools.structure.preparation, diagnostics: options.tools.structure.diagnostics } : undefined } : {}), ...(isSemanticInquiryStrategy(options.strategy) ? { semantic: { units: structuredClone(semanticUnits), records: structuredClone(semanticRecords), assemblies: structuredClone(assemblies) } } : {}), ...(focus ? { focus: focus.report() } : {}), dependencies: scheduler.snapshot(), schedulerActions: structuredClone([...scheduler.actions, ...(worklist?.actions ?? [])]), ...(worklist ? { worklist: { items: worklist.snapshot(), actions: structuredClone(worklist.actions), ...worklist.report() } } : {}), objectFeedback: { revision: objectRevision, diagnostics: structuredClone(objectDiagnostics) }, check, checkHistory: structuredClone(checkHistory), computation: { ...computation }, ablation: options.ablation, closed })
   let closedReport: ReturnType<typeof liveReport> | undefined
   const report = () => {
     const result = structuredClone(closedReport ?? liveReport())
@@ -618,5 +639,5 @@ export function createInquiryDomainRuntime(options: ResourceProgramInputs & { ex
     if (options.sourceAssisted && options.tools.snapshotVerification?.valid === false) { result.check = undefined; result.delivery = deliverySnapshot(); if (semanticCompletion && result.propertyAnalysis) { result.propertyAnalysis.checks = undefined; result.propertyAnalysis.currentPropertyBasis = undefined; result.propertyAnalysis.propertyCheckStatus = "invalidated"; result.propertyAnalysis.finalDeliveryStatus = "unsubmitted-or-invalid" } }
     return result
   }
-  return { propose, sync, importProgram, executableContractReport, validate, assembleResult, feedback, modelContext, promptContext, questionContext: () => focus?.questionContext(), modelFeedback, deliverySnapshot, rejectSource, withdrawAnswer: (invalidateChecks = false) => { if (!closed) { currentAnswer = undefined; if (invalidateChecks) invalidateDelivery() } }, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { if (closed) return; closed = true; closedDelivery = liveDeliverySnapshot(); closedReport = liveReport() }, report }
+  return { propose, sync, importProgram, patchProgram, restoreProgramDraft, programDraftReport, executableContractReport, validate, assembleResult, feedback, modelContext, promptContext, questionContext: () => focus?.questionContext(), modelFeedback, deliverySnapshot, rejectSource, withdrawAnswer: (invalidateChecks = false) => { if (!closed) { currentAnswer = undefined; if (invalidateChecks) invalidateDelivery() } }, beginStep: () => { if (closed) throw new Error("session-closed"); automaticActionsRemaining = 2 }, close: () => { if (closed) return; closed = true; closedDelivery = liveDeliverySnapshot(); closedReport = liveReport() }, report }
 }

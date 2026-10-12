@@ -211,6 +211,8 @@ For a saved source program, inquiry `check/run/compare` accept `--domain-program
 
 Use `check --out=<directory>` to retain a zero-model execution session. The [Download workflow example](../examples/authorization-assessment/download-workflow/README.md) includes tested PowerShell commands, the 25-step program, ordinary/empty-version/denied/unknown/root-fallback inputs and the original source location. These options are for `authorization inquiry`; generic `skvm run` does not advertise these new flags.
 
+Select `--program-context=compact` for a current execution summary; `full` remains the default. The complete original skill and questions remain. Native/account consumers can call `authorization_program_details` with optional `stepId`, `questionId` and `view: active|draft` to recover actual saved details and source citations. Authors use `authorization_program_patch` with the returned `baseRevision`, `upsertSteps`, optional `removeStepIds` and optional `inputNames`; omission keeps other steps. Invalid candidate previews are distinct from the still-active program. `execution.md` starts with current inputs/result/conditions and keeps detailed inputs in `execution.json`.
+
 For an existing security skill and a scope file containing your natural question, source identity, relative source folder and independent policy:
 
 ```sh

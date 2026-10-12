@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**[BH0–BH17：DSL 渐进编写、有效草稿保留与高效消费](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)已获授权，状态为 `planned-authorized`。** 以发布后的 `4595339f` 为基线，由新本地线程 `gpt-6-astra/high` 开发。继续已跑通的 Download 主链，先修资源步骤的局部失败和草稿丢失，再做同任务自动编写、紧凑消费及另一已暴露任务的离线共用。规划尚无新增生产实现或模型结果。
+**[BH0–BH17：DSL 渐进编写、有效草稿保留与高效消费](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)正在实施。** 从规划提交 `2c64f50f` 接管，独占代码、共享文档和 Git。三个普通零模型基线保持；资源逐项编译的四项红测已复现并修复，22项核心测试通过。当前推进持久草稿和工具闭环，尚无BH模型结果，分轴状态见[status](../../results/skill-ir/skill-dsl-research/development/authorization-incremental-program-v1/status.json)。
 
 发布后复核确认：给成功程序追加一个仅漏 because 的无关步骤，progressive 仍整份拒绝；自动首稿七个资源步骤因字段及语义缺口没有采用，后稿删掉 workflow；消费者仍需区分补职责与重复源码读取。本轮承接这些具体责任，方法见[spec§14.47](skill-ir-aot-optimization-spec.md#1447-bh-incremental-program-authoring-and-consumption)、[研究§7.69](skill-dsl-research.md#769-bh-发布后复核与渐进编写消费决定)。identity 为 `authorization-incremental-program-v1`；五个有限模型首位置见任务书，ShareLink/OWUI 旧未知不重发，第二任务仅离线。状态、自动化、质量与收益分别验收。
 

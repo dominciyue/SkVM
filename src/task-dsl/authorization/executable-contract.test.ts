@@ -5,6 +5,87 @@ import path from "node:path"
 import { createInquiryTools } from "../../benchmarks/authorization-dsl/inquiry-tools.ts"
 import { compileAuthorizationInquiry } from "./inquiry-program.ts"
 const api = await import("./executable-contract.ts").catch(() => ({} as any))
+test("a root rejection still reports local resource defects for the same repair pass", async () => {
+  const f = await fixture(), raw: any = contract()
+  raw.scope.root.startLine = 99
+  raw.resourceWorkflow = { inputs: [], steps: [{ id: "broken", op: "return", value: { ref: "missing" } }] }
+  const r = await api.compileExecutableContract(raw, { ...f, executionPolicy: "progressive" })
+  expect(r.units).toEqual([])
+  expect(r.diagnostics.some((d: any) => d.path === "resourceWorkflow.steps.0.source")).toBe(true)
+})
+test("progressive author subset of scenario inputs does not throw or invent undeclared facts", async () => {
+  const f = await fixture(), raw: any = contract()
+  raw.resourceWorkflow = { inputs: ["request"], steps: [{ id: "result", op: "return", value: { ref: "request" }, source: cite(8) }] }
+  const r = await api.compileExecutableContract(raw, { ...f, executionPolicy: "progressive", resourceInputs: { request: 7, other: 9 } })
+  expect(r.resourceExecution.returned).toBe(7)
+  expect(r.resourceExecution.inputs.other).toBeUndefined()
+  expect(r.diagnostics.some((d: any) => d.code === "contract-resource-input-unused")).toBe(true)
+})
+
+test("progressive resource draft preserves valid work beside a bad value step", async () => {
+  const f = await fixture(), raw: any = contract()
+  raw.resourceWorkflow = { inputs: [], steps: [
+    { id: "kept", op: "value", value: { literal: 7 }, source: cite(1, 2), because: "Finite source example" },
+    { id: "broken", op: "value", value: { madeUp: true }, source: cite(1, 2) },
+    { id: "result", op: "return", value: { ref: "kept" }, source: cite(8), because: "Independent return" },
+  ] }
+  const result = await api.compileExecutableContract(raw, { ...f, executionPolicy: "progressive" })
+  expect(result.units.length).toBeGreaterThan(0)
+  expect(result.resourceExecution.values.kept).toBe(7)
+  expect(result.resourceExecution.returned).toBe(7)
+  expect(result.diagnostics.some((d: any) => d.path.includes("steps.1"))).toBe(true)
+})
+
+test("progressive resource failures preserve ordered control barriers and reject ambiguous identities", async () => {
+  const f = await fixture()
+  for (const bad of [
+    { id: "bad", op: "guard", test: { nonsense: true }, failure: "deny", source: cite(5) },
+    { id: "bad", op: "return", value: { nonsense: true }, source: cite(5) },
+    { id: "bad", op: "invented", source: cite(5) },
+    { id: "bad", op: "guard", test: { op: "literal", value: true }, failure: "deny" },
+  ]) {
+    const raw: any = contract()
+    raw.resourceWorkflow = { inputs: [], steps: [bad, { id: "result", op: "return", value: { literal: 7 }, source: cite(8), because: "Return" }] }
+    const r = await api.compileExecutableContract(raw, { ...f, executionPolicy: "progressive" })
+    expect(r.resourceExecution?.returned).toBe(7)
+    expect(r.resourceExecution.conditions.length).toBeGreaterThan(0)
+    expect(r.resourceExecution.events.at(-1).outcome).toBe("conditional")
+  }
+  const raw: any = contract()
+  raw.resourceWorkflow = { inputs: [], steps: [1, 2].map(value => ({ id: "dup", op: "value", value: { literal: value }, source: cite(1, 2), because: "Ambiguous" })) }
+  raw.resourceWorkflow.steps.push({ id: "result", op: "return", value: { ref: "dup" }, source: cite(8), because: "Unknown" })
+  const r = await api.compileExecutableContract(raw, { ...f, executionPolicy: "progressive" })
+  expect(r.resourceExecution).toBeDefined()
+  expect(r.resourceExecution.values.dup).toBeUndefined()
+  expect(r.resourceExecution.returned).toBeUndefined()
+})
+
+test("missing explanation is nonsemantic and post-return errors do not poison executed results", async () => {
+  const f = await fixture(), raw: any = contract()
+  raw.resourceWorkflow = { inputs: [], steps: [
+    { id: "result", op: "return", value: { literal: 7 }, source: cite(8) },
+    { id: "bad", op: "guard", test: { nonsense: true }, source: cite(5) },
+  ] }
+  const r = await api.compileExecutableContract(raw, { ...f, executionPolicy: "progressive" })
+  expect(r.resourceExecution?.returned).toBe(7)
+  expect(r.resourceExecution.status).toBe("computed")
+  expect(r.diagnostics.length).toBeGreaterThan(0)
+  expect((await api.compileExecutableContract(raw, f)).units).toEqual([])
+})
+
+test("resource source symbols normalize uniquely and missing sources stay local", async () => {
+  const f = await fixture(), raw: any = contract()
+  raw.resourceWorkflow = { inputs: [], steps: [
+    { id: "missing", op: "value", value: { literal: 4 } },
+    { id: "undefined", op: "value", value: { ref: "not_defined" }, source: cite(1, 2) },
+    { id: "result", op: "return", value: { literal: 7 }, source: { path: "app.py", symbol: "local" }, sources: [{ path: "app.py", symbol: "perform" }] },
+  ] }
+  const r = await api.compileExecutableContract(raw, { ...f, executionPolicy: "progressive" })
+  expect(r.resourceExecution?.returned).toBe(7)
+  expect(r.resourceExecution.values.missing).toBeUndefined()
+  expect(r.resourceExecution.gaps).toContain("not_defined")
+  expect(r.resourceExecution.events.at(-1).sources[0].startLine).toBe(4)
+})
 
 test("progressive compilation retains independent valid owners and isolates a malformed sibling", async () => {
   const f = await fixture(), raw: any = contract()
