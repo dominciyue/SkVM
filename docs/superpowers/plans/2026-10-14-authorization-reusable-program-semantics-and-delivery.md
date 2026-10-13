@@ -179,9 +179,9 @@ type AuthoringTarget = {
 
 ### BL7 — 薄研究入口与早期A0准备
 
-- [ ] 提供 `status`、`offline`、`run <purpose> <attempt>`、`summarize`、`verify`，所有运行调用普通production路径。
-- [ ] 模型allowlist与evaluator目录分开。开发者任务书、BK原稿、历史答案、评阅、修复解释不进入作者。
-- [ ] 启动前一次确定性检查确认工具确实可用、请求输入无oracle；不额外付费做健康探针。
+- [x] 本identity study.ts提供上述命令及prepare/preflight/freeze；模型运行只调executeLocalInquiryRun，离线只调check/compare。
+- [x] 作者输入仅四问/原skill/允许源码/current事实及四组development事实；evaluation和其他作者资料隔离。18场景矩阵另列可见与评价专用development，非held-out。
+- [x] 一次preflight确认95文件、13工具（含trial）、四组事实无expected，provider=0；研究类型与1测试/44断言通过。
 
 ### BL8 — A0：独立编写、试算与当场修稿
 
