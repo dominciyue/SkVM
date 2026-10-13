@@ -4,11 +4,17 @@
 
 ## 当前工作
 
+**BK0–BK19 已获授权，计划就绪，尚未实施。** [新任务书](../superpowers/plans/2026-10-13-authorization-recoverable-authoring-and-real-delivery.md)由用户指定的 `gpt-6-astra/high` 新线程执行，identity 为 `authorization-recoverable-authoring-v1`，基线 `af226837`。先修账号生命周期和全局 unknown 等待，再完成一次真实自动写稿—试算—修稿，随后检验同稿变化、消费与成本。方法见 [spec§14.50](skill-ir-aot-optimization-spec.md#1450-bk-recoverable-authoring-and-real-delivery)、[研究§7.72](skill-dsl-research.md#772-bj-复核与-bk-可恢复自动编写决定)。规划不构成实现或效果结果。
+
+本次明确调整后续恢复规则：BJ R0 原请求继续 unknown、不重发、不改费用；新独立 A0 在核查本地宿主关闭、做有界只读核查并记录隔离后可以执行，不再以找回旧 ephemeral 终态为永久前置。相同未知请求仍不得自动重发，额度/认证和重复通道故障仍暂停对应通道。实验沿用已授权官方账号 `gpt-5.6-sol/high`，第三方暂停。full默认、完整原skill/四问和保护证据保持。
+
+## BJ 已结束的实际结果
+
 **BJ以completed-with-unmet-criteria发布实质成果b43886c0，用户origin同SHA；实际自动主链与收益未达，R0原生命周期仍为completion-unknown。** [任务书](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)由`gpt-6.1-sol/max`线程实施，identity为`authorization-authoring-loop-v1`。同operation绑定、空稿详情、实际值/根因、首稿/patch计量、一次早期试写及源码变化的旧稿来源检查已接通；full默认。R0 child退出4，没有provider完成事件、模型工具或答案，后续外部派发暂停、不重发。14变体×2离线轨道保留原四问：BI原稿值匹配0/14，developer-assisted binding-only为6/14，两轨完整有限行为匹配均0/14。真实副本变化撤回旧返回、搬移后三场景fresh/previous一致，ShareLink绑定/撤销/恢复/拒绝和匿名双operation通过，均零provider。最新授权联合1950pass/1平台skip/12975断言及主/BJ类型通过。方法见[spec§14.49](skill-ir-aot-optimization-spec.md#1449-bj-authoring-loop-and-program-completion)、[研究§7.71](skill-dsl-research.md#771-bj-输入接线与自动编写运行闭环)；分轴、费用unknown和具名后续见[BJ summary](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/summary.json)与[status](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/status.json)。
 
 实施基线为BI最终提交`ace945fa`。发布后复核的68项定向测试、502断言通过，普通自动稿仍为conditional且无文件返回；仅诊断性补入输入后仍暴露空version、拒绝及root回退缺口，未计为自动成功。空草稿details还可触发TypeError。BJ要求共享修复得到实际作者确认，恢复修稿、独立新编写、固定原稿消费与对照分别留账。
 
-BJ生产源码`d811309d`及实质证据`b43886c0`已推送并核对用户origin，见[发布回执](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/publication.json)。本轮适用开发已收束；真实确认须等原R0可信新终态，不能另开身份绕过未知。
+BJ生产源码`d811309d`、实质证据`b43886c0`及终态提交`af226837`已推送并核对用户origin，见[发布回执](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-loop-v1/publication.json)。BJ适用开发已收束，当时采用等待原R0终态的规则；BK依上方新合同隔离旧未知并开展独立工作，BJ原结果不回填。
 
 ## BI 已结束的实际结果
 
@@ -85,16 +91,16 @@ BB先保留effect/context标注下的源码调用，沿真实调用实例连接�
 - 两作者包已按原字节实际消费。Download消费者源码评阅full但机器partial；OWUI消费者仍有决定性helper未读。变化中policy-fresh、premise-fresh/previous已有运行；policy-previous路由失败、source-fresh额度拒绝，source-previous及质量位置保留未运行。
 - 原件、计量及验收以 [最终收束](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/verification/final-closure-v35.json)、[manifest](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/manifest.json)、[状态](../../results/skill-ir/skill-dsl-research/development/authorization-question-closure-v1/status.json) 为准。历史 `acceptance` 字段表达要求，不代表实际通过。
 
-AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有有界修复，形成过程保留在研究§7.61。当前新增责任以§7.71和BJ任务书为准；既有严格路径保留，渐进执行继续按实际结果标注。
+AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有有界修复，形成过程保留在研究§7.61。当前新增责任以§7.72和BK任务书为准；既有严格路径保留，渐进执行继续按实际结果标注。
 
 ## 账号、运行和继承边界
 
-- BJ开发 `gpt-6.1-sol/max`，按用户指定派发；实验沿用已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。BJ使用新identity执行具名作者、消费、基线与修复确认；BI八首位置及BH有限队列均保持结束，不向旧结果补行。
+- BK开发 `gpt-6-astra/high`，按用户指定派发；实验沿用已授权的当前官方账号 `gpt-5.6-sol/high`，无需再次确认。第三方API和AV旧位置继续暂停。BK在新identity登记独立作者、消费、基线与具名修订；BJ/BI/BH旧队列保持结束，不向旧结果补行。
 - BG有限执行已收束，无活动或未知请求；自动编写与重复上下文成本为未达项，不自动增加样本。后续新任务继续遵守具名恢复、账号未知和成本记录边界。
 - BF六首位置及三具名修订已处置，可选反序第二对因自动R1未达未运行。自动编写、作者给定程序消费及变化复用各自分母；不会自动追加模型。新范围不升级旧readiness或改变项目默认。
 - BE六质量首位置和六变化逻辑位置已完成，保持完整原skill/四问及失败分母。source-previous两件确定未派发，仅一个同输入/epoch的登记恢复交付；原件和79,770ms本地开销保留。R0/R1资格、恢复和实际使用分列，旧答案/评阅/verdict不进入previous；R2缺失使实际R2撤回实验未执行。旧BD六未运行不补行，OWUI继续仅离线。
-- AY额度提示、AZ unavailable及BA `paused-recurring-routing`均保留；BC/BD已交付不解除旧未知。BE明确终态routing失败允许一次具名恢复，连续两次或本轮累计三次恢复仍失败则暂停外部派发。quota/auth立即暂停，unknown只核查原生命周期；历史累计成本及旧未知不清除，不额外健康探针、轮询或旁路。
-- 用户暂停已撤销，两次未知经过各自限定人工处置保留；后续未知保护不变。BB已完成尝试已知input32,038,537（含cache29,105,920）、output136,921。两OWUI部分usage单列，BB premise失败用量未返回；最终未知量、USD、隐藏请求、开发/探子成本和真人分钟保持unknown。本地观测duration不代表未知尝试的服务器最终耗时。
+- AY额度提示、AZ unavailable及BA `paused-recurring-routing`均保留；BC/BD已交付不解除旧未知。BE/BJ当时的暂停与恢复决定保留历史语境。BK将终态、宿主活动和处置分开：核查后无法恢复的unknown可隔离，允许已授权的新独立用途；相同请求不自动重发。新同因通道故障的一次有据恢复仍失败则暂停该通道，quota/auth立即暂停。不额外健康模型探针或重复轮询。
+- 用户暂停已撤销，旧未知费用与原终态保留，BK的隔离决定不升级这些旧结果。BB已完成尝试已知input32,038,537（含cache29,105,920）、output136,921。两OWUI部分usage单列，BB premise失败用量未返回；最终未知量、USD、隐藏请求、开发/探子成本和真人分钟保持unknown。本地观测duration不代表未知尝试的服务器最终耗时。
 - 保留原skill、全部原问题、允许源码、用户独立政策及前提。模型输入隔离评价器、历史答案和开发修复记录。held-out、Q1、prospective、readiness和历史 `0/6` 不变。
 - 主开发线程是代码、共享方法文档和Git的唯一写者。继续现有分支，不创建worktree；只读探子按AGENTS使用。
 
@@ -112,7 +118,8 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BJ | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)、spec§14.49、研究§7.71；离线工程已验证，R0原生命周期unknown且不重发，自动主链/四问交付/收益未达 |
+| 当前BK | [任务书](../superpowers/plans/2026-10-13-authorization-recoverable-authoring-and-real-delivery.md)、spec§14.50、研究§7.72；计划就绪，恢复规则调整与自动主链待实施 |
+| BJ | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)、spec§14.49、研究§7.71；离线工程已验证，R0原生命周期unknown且不重发，自动主链/四问交付/收益未达 |
 | BI | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)、spec§14.48、研究§7.70；已发布，工程与有限队列完成，自动主链及稳定收益未达 |
 | BH | [任务书](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)、spec§14.47、研究§7.69；有限队列完成、自动主链与稳定收益未达；实际程序、首失败、修复和分轴结论已归档 |
 | BG | [任务书](../superpowers/plans/2026-10-12-authorization-end-to-end-practical-execution.md)、[summary](../../results/skill-ir/skill-dsl-research/development/authorization-practical-execution-v1/summary.json)、spec§14.46、研究§7.68；主链运行/变化成立，自动编写和净收益未达 |
