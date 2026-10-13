@@ -378,6 +378,40 @@ test("public account author continues twice with one runtime budget and archives
   expect(run.account.authorContinuation.stopReason).toBe("author-continuation-limit")
 })
 const at = (startLine: number, endLine = startLine, text?: string) => ({ path: "app.py", startLine, endLine, ...(text ? { text } : {}) })
+for (const ending of ["interrupted", "unknown"] as const) test(`failed ${ending} final phase preserves the stale task answer in ordinary inspect without another turn`, async () => {
+  const f = await contractFiles(), raw = { ...f.contract, queries: [], resourceWorkflow: { inputs: [], steps: [{ id: "result", op: "return", value: { literal: 7 }, source: at(8) }] } }
+  let turn = 0, calls = 0
+  const factory: any = () => {
+    let receive = (_m: any) => {}, exit = (_reason: string) => {}, actions: any[] = []
+    const next = () => { const action = actions.shift(); if (action) receive({ id: `rpc-${++calls}`, method: "item/tool/call", params: { threadId: "own", turnId: `t${turn}`, callId: `c${calls}`, ...action } }); else receive({ method: "turn/completed", params: { threadId: "own", turn: { id: `t${turn}`, status: "completed", items: [{ type: "agentMessage", phase: "final_answer", text: turn === 1 ? "Original task answer" : "Editing only" }] } } }) }
+    return { isolation: { kind: "test-transport", reason: "failed final delivery" }, onMessage(f: any) { receive = f }, onExit(f: any) { exit = f }, close() {}, send(m: any) {
+      if (m.method === "initialize") receive({ id: m.id, result: {} })
+      if (m.method === "thread/read") receive({ id: m.id, result: { thread: { id: "own", ephemeral: false, turns: [{ id: `t${turn}`, status: "completed" }] } } })
+      if (["thread/start", "thread/resume"].includes(m.method)) receive({ id: m.id, result: { thread: { id: "own", ephemeral: false }, model: "gpt-5.6-sol" } })
+      if (m.method === "turn/start") {
+        turn++; receive({ id: m.id, result: { turn: { id: `t${turn}` } } })
+        if (turn === 3) {
+          expect(m.params.input[0].text).toContain("Deliver a complete standalone answer")
+          queueMicrotask(() => ending === "unknown" ? exit("mock-final-exit") : receive({ method: "turn/completed", params: { threadId: "own", turn: { id: `t${turn}`, status: "interrupted", items: [] } } }))
+        } else {
+          actions = turn === 1 ? [{ tool: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: [{ questionId: "other", state: "residual", reason: "Keep duty" }] } }, { tool: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 8 } }] : [{ tool: "authorization_program", arguments: raw }]
+          queueMicrotask(next)
+        }
+      }
+      if (m.result?.contentItems) queueMicrotask(next)
+    } }
+  }
+  const report: any = await executeLocalInquiryRun({ inputFile: f.inputFile, outDir: path.join(f.root, "failed-final"), model: "gpt-5.6-sol", harness: "codex-account", strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive", accountTransportFactory: factory, execution: { maxToolCalls: 16, maxAuthorContinuations: 1, sessionTimeoutMs: 5000 } })
+  expect(turn).toBe(3)
+  expect(report.answerDelivery).toBe("undelivered")
+  expect(report.delivery.status).toBe("stale")
+  expect(report.text).toBe("Original task answer")
+  expect(report.delivery.records.map((r: any) => r.phase)).toEqual(["task-answer", "author-edit", "final-answer"])
+  const inspected: any = await inspectLocalInquiry(report.sessionPath)
+  expect(inspected.delivery).toEqual(report.delivery)
+  expect(inspected.firstAnswer.answer).toBe("Original task answer")
+  expect(inspected.telemetry.account.lifecycle.localExecution).toBe("closed")
+})
 test("public account consume exposes no program or patch writer", async () => {
   const f = await contractFiles()
   let names: string[] = []
