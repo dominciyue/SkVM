@@ -1,29 +1,29 @@
 # Skill IR AOT 当前执行计划
 
-更新于2026-10-13。唯一实时入口为[current-status](current-status.md)。
+更新于2026-10-14。唯一实时入口为[current-status](current-status.md)。
 
-- 当前任务书：[BK0–BK19](../superpowers/plans/2026-10-13-authorization-recoverable-authoring-and-real-delivery.md)，计划就绪、尚未实施。先处理会话持久记录/未知隔离，再取得真实自动稿、同稿变化和消费比较。
-- 方法合同：[spec§14.50](skill-ir-aot-optimization-spec.md#1450-bk-recoverable-authoring-and-real-delivery)；复核和开发过程统一在[研究§7.72](skill-dsl-research.md#772-bj-复核与-bk-可恢复自动编写决定)。BJ实际结果保留在§7.71。
-- identity：`authorization-recoverable-authoring-v1`，实施基线`af226837`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；开发线程独占代码、共享方法文档与Git写入。
-- 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停，OWUI/历史未知ShareLink仅离线，旧未知和保护证据保持。
+- 当前任务书：[BL0–BL21](../superpowers/plans/2026-10-14-authorization-reusable-program-semantics-and-delivery.md)，计划就绪、尚未实施。可复用作者目标、多输入试算和可靠最终交付优先，随后固定自动原稿消费与有限比较。
+- 方法合同：[spec§14.51](skill-ir-aot-optimization-spec.md#1451-bl-reusable-program-semantics-and-delivery)；复核和开发过程统一在[研究§7.73](skill-dsl-research.md#773-bk-复核与-bl-可复用程序开发决定)。BK实际结果保留在§7.72。
+- identity：`authorization-reusable-program-v1`，已核对生产基线`02b79e4b`。继续`skill-ir-aot`，只推用户origin，不建分支/worktree；开发线程独占代码、共享方法文档与Git写入。
+- 开发`gpt-6-astra/high`，按用户指定；实验沿已授权官方账号`gpt-5.6-sol/high`。第三方暂停，OWUI/历史未知ShareLink仅离线，旧未知和保护证据保持。tracked干净，原有未跟踪`.tmp/`不清理。
 
-约8–12小时为参考实质任务窗口，不等待或重复验证凑时长。BJ原R0不重发、不改终态/费用。BK将历史unknown与本地运行状态分开；已有核查无法恢复、宿主已关闭且独立用途已授权时，可隔离旧请求继续A0。新额度/认证及重复通道故障按任务书暂停对应通道，仍推进独立工程。
+约8–12小时为参考实质任务窗口，不等待或重复验证凑时长。沿BK恢复合同区分旧unknown、本地宿主与研究处置；不重发原请求、不改终态/费用，核查隔离后可开展已授权独立用途。新额度/认证及重复通道故障按任务书暂停对应通道，仍推进独立工程。
 
 ## 当前开发责任
 
-| 责任 | 实际缺口 | BK动作 |
+| 责任 | 实际缺口 | BL动作 |
 |---|---|---|
-| 会话与恢复 | ephemeral不可读回与全局unknown锁造成等待 | 分离服务器终态/本地宿主/研究处置，持久读取与原稿检查点，隔离旧R0 |
-| 输入与原稿 | 显式绑定已接入，实际作者尚未采用 | 复用BJ接口，用A0真实program/patch验证 |
-| 作者运行闭环 | 早期checkpoint主要是提示 | 进度与有界继续接入普通循环，共享总预算，保存首稿/执行/修订/自然答 |
-| 版本、权限与root关系 | BI两轨有限完整匹配均0/14 | 源码可见关系由作者补写，同自动原稿跑变化矩阵，精确外部条件保留 |
-| 编写与复用 | BJ没有新自动稿/消费者 | A0产物固定后C0/C1/C2实际消费，S0在可恢复程序上做源码变化 |
-| 质量与成本 | BJ无实际比较，未知费用保留 | C0→B0、B1→C1同期比较，原四问和编写/修稿总成本分账 |
+| 可复用编写 | 当前fixture无显式version被当成不实现分支的理由 | 目标与实例分开，保留源内覆盖待办，实际trial→patch |
+| 参数与选择 | 外部实参形状不匹配、unique默认及排序含义遗漏 | 精确差异反馈、已有算子接线，不自动猜grant或增加语言全谱 |
+| 普通试算 | 变化矩阵主要在研究评价侧 | 同核有界trial接入account/structured/本地，原输入/程序不受污染 |
+| 最终交付 | 修稿反馈覆盖了有内容的任务答复 | 按任务/来源/输入/程序版本管理交付，保留原回合及stale |
+| 编写与复用 | BK值7/14、有限行为5/14，C1自然纠错未改原稿 | A0/A1独立编写，同一A0原稿变化与消费，S0源码维护 |
+| 质量与成本 | BK两对C均更贵，质量持平 | 实际重复量测与保真减负，C0→B0、B1→C1及作者成本分账 |
 
-普通入口继续使用[Download说明](../../examples/authorization-assessment/download-workflow/README.md)中的BI自动原稿显式命令；BK尚无新产物。BJ授权联合1950pass/1平台skip/12975断言及类型通过，发布后99定向测试/740断言、两次公开零模型运行复核通过；这不是BK实施证据。BK交付当前自动稿后再更新示例，不回落到开发者程序冒称成功。
+普通入口当前使用[Download说明](../../examples/authorization-assessment/download-workflow/README.md)中的BK自动原稿，默认返回文件11且conditional。发布后105定向测试/667断言、三次普通运行核对了默认/空版本/拒绝仍返回同值的缺口；没有BL实现证据。BL交付当前自动原稿后再更新示例，不以历史或开发者稿补位。
 
 ## 继承的真实结果
 
-BI最终发布ace945fa，八位置全部交付、无BI活动/未知请求。A2恢复稿12步但原/变消费均无文件计算；自然整题5/8 full分属作者、自动稿消费者和开发者材料，P0 tradeoff/P1 negative。[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/summary.json)及旧原件保持，开发者25步程序不替代自动成功。历史1942授权联合通过/1平台skip、类型和15文档测试是BI验证记录。
+BK最终发布02b79e4b，A0/A1实际写稿、C0/C1消费、S0单点源码维护均发生；A0有限行为5/14。两对原四问均P/F/F/F，C的input/output/耗时更高；C2原unknown只读追加interrupted，未交付、不重发。[汇总](../../results/skill-ir/skill-dsl-research/development/authorization-recoverable-authoring-v1/summary.json)及旧原件保持。已观察input15,126,421（含cache、C2部分用量）/output84,408；最终USD、开发和真人成本未知。
 
-发布后定向复核68测试/502断言通过，公开运行仍conditional。诊断性补入输入仅用于定位剩余含义缺口，不回填BI或记为自动成功。BJ重新承接未达责任，不向BI补行；BH/BE及held-out/prospective/Q1/readiness、历史0-of-6、旧未知与全src旧104失败保持。
+BL承接未达责任，不向BK补行。BI/BJ及更早原件、held-out/prospective/Q1/readiness、历史0-of-6、旧未知与全src旧104失败保持。工程完成、实际自动主链、四问质量与净收益分别验收。
