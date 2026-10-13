@@ -1,10 +1,12 @@
 # Skill IR 当前状态
 
-更新于2026-10-13。工作分支为 `skill-ir-aot`，仅发布到用户 `origin`。本页是唯一实时状态入口；历史任务书与结果保留当时记录。
+更新于2026-10-14（Asia/Shanghai）。工作分支为 `skill-ir-aot`，仅发布到用户 `origin`。本页是唯一实时状态入口；历史任务书与结果保留当时记录。
 
 ## 当前工作
 
-**BK0–BK19 正在实施，账号恢复与公共作者循环已接线，真实 A0 待派发。** [新任务书](../superpowers/plans/2026-10-13-authorization-recoverable-authoring-and-real-delivery.md)由用户指定的 `gpt-6-astra/high` 新线程执行，identity 为 `authorization-recoverable-authoring-v1`，基线 `af226837`。先修账号生命周期和全局 unknown 等待，再完成一次真实自动写稿—试算—修稿，随后检验同稿变化、消费与成本。方法见 [spec§14.50](skill-ir-aot-optimization-spec.md#1450-bk-recoverable-authoring-and-real-delivery)、[研究§7.72](skill-dsl-research.md#772-bj-复核与-bk-可恢复自动编写决定)。规划不构成实现或效果结果。
+**BK0–BK19以completed-with-unmet-criteria收束：恢复工程和有限队列已完成，完整自动主链与稳定净收益未达。** A0真实写稿并同线程修订为12步原稿，消费前固定；默认计算文件11/archive/v1-archive.pdf，仍为conditional。14变化场景值匹配7/14、值及有限条件匹配5/14。A1独立算出空版本文件12；C1自然补答纠正原稿文件11，但没有改好固定程序。C0/B0、B1/C1四题均partial/full/full/full，两对C的input/output/时间更高，未见整题质量提升。C2本地超时未交付，随后只读查到interrupted；原unknown记录及最终费用未知保留、不重发。S0单回合真实patch适应副本权限反转，当前场景在文件选择前403，未替换消费稿。
+
+新identity为`authorization-recoverable-authoring-v1`，开发`gpt-6-astra/high`、实验官方`gpt-5.6-sol/high`。8用途、9attempt、13已观察turn；已知用量input15,126,421（含cache13,788,416）/output84,408，其中C2仅部分用量，最终USD、隐藏请求、开发/探子和真人成本未知。原件、逐步过程与逐题评价见[BK summary](../../results/skill-ir/skill-dsl-research/development/authorization-recoverable-authoring-v1/summary.json)、[execution](../../results/skill-ir/skill-dsl-research/development/authorization-recoverable-authoring-v1/execution.md)及[任务书处置](../superpowers/plans/2026-10-13-authorization-recoverable-authoring-and-real-delivery.md)。方法见[spec§14.50](skill-ir-aot-optimization-spec.md#1450-bk-recoverable-authoring-and-real-delivery)、[研究§7.72](skill-dsl-research.md#772-bj-复核与-bk-可恢复自动编写决定)。下一责任是原稿版本/root查询/排序/外部参数缺口与最终自然交付保真，不追加本轮抽样。
 
 本次明确调整后续恢复规则：BJ R0 原请求继续 unknown、不重发、不改费用；新独立 A0 在核查本地宿主关闭、做有界只读核查并记录隔离后可以执行，不再以找回旧 ephemeral 终态为永久前置。相同未知请求仍不得自动重发，额度/认证和重复通道故障仍暂停对应通道。实验沿用已授权官方账号 `gpt-5.6-sol/high`，第三方暂停。full默认、完整原skill/四问和保护证据保持。
 
@@ -118,7 +120,7 @@ AZ启动前复核发现的依赖范围、投影诊断和格式计数问题已有
 
 | 阶段 | 保留记录 |
 |---|---|
-| 当前BK | [任务书](../superpowers/plans/2026-10-13-authorization-recoverable-authoring-and-real-delivery.md)、spec§14.50、研究§7.72；计划就绪，恢复规则调整与自动主链待实施 |
+| 当前BK | [任务书](../superpowers/plans/2026-10-13-authorization-recoverable-authoring-and-real-delivery.md)、spec§14.50、研究§7.72；适用工程/有限队列结束，自动主链和净收益未达 |
 | BJ | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-loop-and-program-completion.md)、spec§14.49、研究§7.71；离线工程已验证，R0原生命周期unknown且不重发，自动主链/四问交付/收益未达 |
 | BI | [任务书](../superpowers/plans/2026-10-13-authorization-authoring-closure-and-reliable-consumption.md)、spec§14.48、研究§7.70；已发布，工程与有限队列完成，自动主链及稳定收益未达 |
 | BH | [任务书](../superpowers/plans/2026-10-12-authorization-incremental-authoring-and-efficient-consumption.md)、spec§14.47、研究§7.69；有限队列完成、自动主链与稳定收益未达；实际程序、首失败、修复和分轴结论已归档 |
