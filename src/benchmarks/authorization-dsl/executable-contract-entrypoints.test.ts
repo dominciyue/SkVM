@@ -32,12 +32,13 @@ test("fresh account author cannot receive evaluator or reference bytes from its 
   await mkdir(path.join(f.root, "evaluation")); await writeFile(path.join(f.root, "evaluation/expected.json"), JSON.stringify({ marker }))
   await writeFile(path.join(f.root, "reference-program.json"), JSON.stringify({ marker }))
   let packetChecked = false
-  const report: any = await executeLocalInquiryRun({ inputFile: f.inputFile, outDir: path.join(f.root, "isolation-out"), model: "gpt-5.6-sol", strategy: "question-checked-v1", harness: "codex-account", programMode: "edit", executionPolicy: "progressive", accountTransportFactory: contractConsumer(() => {}, { tool: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: [{ questionId: "other", state: "residual", reason: "Retain original duty" }] } }, packet => {
+  const report: any = await executeLocalInquiryRun({ inputFile: f.inputFile, outDir: path.join(f.root, "isolation-out"), purpose: "isolation-author", attempt: "first", model: "gpt-5.6-sol", strategy: "question-checked-v1", harness: "codex-account", programMode: "edit", executionPolicy: "progressive", accountTransportFactory: contractConsumer(() => {}, { tool: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: [{ questionId: "other", state: "residual", reason: "Retain original duty" }] } }, packet => {
     packetChecked = true
     expect(JSON.stringify(packet)).not.toContain(marker)
     expect(JSON.stringify(packet)).not.toContain("reference-program.json")
   }), execution: { sessionTimeoutMs: 5000 } })
   expect(report.status).toBe("completed")
+  expect(report.telemetry.account.turns[0].lifecycle.purpose).toBe("isolation-author")
   expect(packetChecked).toBe(true)
   const runtime = await createNativeInquiryRuntime({ inputFile: f.inputFile, workDir: f.root, domainTools: true, strategy: "question-checked-v1", programMode: "edit" })
   try {
@@ -248,6 +249,50 @@ test("structured provider can patch a draft and request actual compact program d
   expect(run.requests[1]!.params.messages.map(m => m.content).join("\n")).not.toContain('"currentDraft":{"revision"')
 })
 const source = "def local(actor, target):\n    return perform(actor, target)\n\ndef perform(who, item):\n    if not who.allowed:\n        return False\n    item.sent = True\n    return item\n"
+test("public account author continues twice with one runtime budget and archives every answer and draft before reply", async () => {
+  const { runCodexAccountInquiry } = await import("../../adapters/codex-account.ts")
+  const { resolveInquiryContext } = await import("./inquiry-context.ts")
+  const contexts: any[] = []
+  const decode = (wire: any) => { const value = resolveInquiryContext(wire, contexts); contexts.push(wire); return value }
+  const f = await contractFiles(), input = JSON.parse(await readFile(f.inputFile, "utf8"))
+  input.inquiry = { ...input.inquiry, schemaVersion: "authorization-inquiry/v2", operations: [{ id: "operation", request: "Inspect local" }], questions: input.inquiry.questions.map((q: any) => ({ ...q, operationId: "operation", intent: "behavior" })) }
+  input.resourceInputs = { q: { item: { id: 7 } } }; await writeFile(f.inputFile, JSON.stringify(input))
+  const raw = { ...f.contract, scope: { ...f.contract.scope, questionId: "other" }, queries: [], resourceWorkflow: { inputs: ["item"], steps: [{ id: "value", op: "value", value: { field: { of: { ref: "item" }, key: "id" } }, source: at(8) }, { id: "result", op: "return", value: { ref: "value" }, source: at(8) }] } }
+  let turn = 0, calls = 0, context: any, checkpointSeen = false
+  const traceDir = path.join(f.root, "raw")
+  const factory = () => {
+    let receive = (_m: any) => {}, actions: any[] = []
+    const finish = () => receive({ method: "turn/completed", params: { threadId: "thread", turn: { id: `turn-${turn}`, status: "completed", items: [{ type: "agentMessage", phase: "final_answer", text: `answer-${turn}` }] } } })
+    const next = () => { const action = actions.shift(); if (!action) return finish(); receive({ id: `rpc-${++calls}`, method: "item/tool/call", params: { threadId: "thread", turnId: `turn-${turn}`, callId: `call-${calls}`, ...action } }) }
+    return { isolation: { kind: "test-transport" as const, reason: "anonymous author" }, onMessage(f: any) { receive = f }, onExit() {}, close() {}, send(m: any) {
+      if (m.method === "initialize") receive({ id: m.id, result: {} })
+      if (m.method === "thread/read") receive({ id: m.id, result: { thread: { id: "thread", ephemeral: false, turns: [{ id: `turn-${turn}`, status: "completed" }] } } })
+      if (["thread/start", "thread/resume"].includes(m.method)) receive({ id: m.id, result: { thread: { id: "thread", ephemeral: false }, model: "gpt-5.6-sol" } })
+      if (m.method === "turn/start") {
+        turn++; context = decode(JSON.parse(m.params.input[0].text.split("Current local explanation context: ")[1]))
+        actions = turn === 1 ? [{ tool: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: [{ questionId: "other", state: "residual", reason: "Keep duty" }] } }, { tool: "source_read", arguments: { path: "app.py", startLine: 1, endLine: 8 } }] : turn === 2 ? [{ tool: "authorization_program", arguments: raw }] : [{ tool: "authorization_program_patch", arguments: { baseRevision: context.authoring.draftRevision, inputBinding: { questionId: "q" }, upsertSteps: [] } }]
+        receive({ id: m.id, result: { turn: { id: `turn-${turn}` } } }); queueMicrotask(next)
+      }
+      if (m.result?.contentItems) {
+        const reply = JSON.parse(m.result.contentItems[0].text); context = decode(reply.currentContext)
+        if (turn === 2) {
+          const saved = JSON.parse(require("node:fs").readFileSync(path.join(traceDir, "program-checkpoint-1.json"), "utf8"))
+          expect(saved.draft.currentDraft.raw).toEqual(raw)
+          expect(saved.identity).toMatchObject({ threadId: "thread", turnId: "turn-2" }); checkpointSeen = true
+        }
+        queueMicrotask(next)
+      }
+    } }
+  }
+  const run: any = await runCodexAccountInquiry({ inputFile: f.inputFile, workDir: f.root, model: "gpt-5.6-sol", strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive", maxToolCalls: 16, timeoutMs: 5000, traceDir, transportFactory: factory })
+  expect(turn, JSON.stringify(run.account.authorContinuation)).toBe(3)
+  expect(checkpointSeen).toBe(true)
+  expect(run.account.turns.map((t: any) => t.text)).toEqual(["answer-1", "answer-2", "answer-3"])
+  expect(run.native.toolBudget.totalUsed).toBe(4)
+  expect(run.native.toolBudget.totalLimit).toBe(16)
+  expect(run.native.domain.executableContract.candidate.resourceExecution.returned, JSON.stringify(run.native.domain.executableContract.candidate.diagnostics)).toBe(7)
+  expect(run.account.authorContinuation.stopReason).toBe("author-continuation-limit")
+})
 const at = (startLine: number, endLine = startLine, text?: string) => ({ path: "app.py", startLine, endLine, ...(text ? { text } : {}) })
 test("compact edit keeps authoring responsibility after computation and consume stays read-only", async () => {
   const f = await contractFiles()

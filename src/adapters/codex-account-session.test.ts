@@ -215,3 +215,87 @@ test("account returns only after ordered asynchronous event persistence has drai
   const r = await mock().run({ timeoutMs: 200, onEvent: async (event: unknown) => { await new Promise(resolve => setTimeout(resolve, 2)); persisted.push(event) } })
   expect(persisted).toEqual(r.events)
 })
+
+test("durable identity is persisted before turn dispatch and records confirmation and local closure", async () => {
+  const f = mock(), persisted: any[] = []
+  const send = f.transport.send
+  f.transport.send = (m: any) => {
+    if (m.method === "turn/start") expect(persisted.some(e => e.method === "skvm/account/identity" && e.identity?.threadId === "thread")).toBe(true)
+    send(m)
+  }
+  const r = await f.run({ purpose: "author", attempt: "A0-first", onEvent: async (e: any) => { persisted.push(e) } })
+  expect(f.sent.find(m => m.method === "thread/start").params.ephemeral).toBe(false)
+  expect(r.lifecycle).toMatchObject({ purpose: "author", attempt: "A0-first", threadId: "thread", turnId: "turn", turnStartAttempted: true, turnStartAcknowledged: true, providerTerminalObserved: true, localExecution: "closed", persistence: "requested" })
+})
+
+test("lost start acknowledgement is unknown while pre-dispatch exit is not-started", async () => {
+  for (const method of ["initialize", "turn/start"]) {
+    const f = mock(), send = f.transport.send
+    f.transport.send = (m: any) => { if (m.method === method) throw new Error("lost"); send(m) }
+    const r = await f.run()
+    expect(r.terminalStatus).toBe(method === "initialize" ? "not-started" : "unknown")
+    expect(r.lifecycle).toMatchObject({ turnStartAttempted: method === "turn/start", turnStartAcknowledged: false, providerTerminalObserved: false, localExecution: "closed" })
+  }
+})
+
+test("stored thread inspection only reads and never invokes old tools or starts a turn", async () => {
+  const f = mock(), send = f.transport.send
+  f.transport.send = (m: any) => {
+    if (m.method === "thread/read") {
+      f.sent.push(m)
+      f.late()
+      f.transport.emitResponse(m.id, { thread: { id: "thread", ephemeral: false, turns: [{ id: "turn", status: "completed", items: [{ type: "agentMessage", text: "saved answer" }] }] } })
+    } else send(m)
+  }
+  const r = await api.readCodexAccountThread({ threadId: "thread", turnId: "turn", transportFactory: () => f.transport, timeoutMs: 100 })
+  expect(r).toMatchObject({ status: "terminal-found", terminalStatus: "completed", threadId: "thread", turnId: "turn", ephemeral: false })
+  expect(f.sent.filter(m => m.method).map(m => m.method)).toEqual(["initialize", "initialized", "thread/read"])
+  expect(f.executed()).toBe(0)
+})
+
+test("read failure is unavailable and missing turn is not-found without a replacement request", async () => {
+  for (const mode of ["missing", "failure"]) {
+    const f = mock(), send = f.transport.send
+    f.transport.send = (m: any) => {
+      if (m.method !== "thread/read") return send(m)
+      if (mode === "failure") throw new Error("offline")
+      f.transport.emitResponse(m.id, { thread: { id: "thread", ephemeral: false, turns: [] } })
+    }
+    const r = await api.readCodexAccountThread({ threadId: "thread", turnId: "turn", transportFactory: () => f.transport, timeoutMs: 100 })
+    expect(r.status).toBe(mode === "missing" ? "not-found" : "unavailable")
+    expect(r.terminalStatus).toBe("unknown")
+    expect(f.sent.some(m => /turn\/start|thread\/resume/.test(m.method))).toBe(false)
+  }
+})
+
+test("known own terminal resumes the same durable thread with matching tools and usage delta", async () => {
+  const previous = await mock().run()
+  const f = mock(), send = f.transport.send
+  f.transport.send = (m: any) => {
+    if (m.method === "thread/read") { f.sent.push(m); return f.transport.emitResponse(m.id, { thread: { id: "thread", ephemeral: false, turns: [{ id: "turn", status: "completed", items: [] }] } }) }
+    if (m.method === "thread/resume") { f.sent.push(m); return f.transport.emitResponse(m.id, { thread: { id: "thread", ephemeral: false }, model: "gpt-5.6-sol" }) }
+    if (m.method === "turn/start") {
+      f.sent.push(m); f.transport.emitResponse(m.id, { turn: { id: "turn-2" } })
+      queueMicrotask(() => {
+        f.transport.emitEvent("thread/tokenUsage/updated", { threadId: "thread", turnId: "turn-2", tokenUsage: { total: { inputTokens: 25, cachedInputTokens: 10, cacheWriteInputTokens: 0, outputTokens: 8, totalTokens: 33, reasoningOutputTokens: 4 } } })
+        f.transport.emitEvent("turn/completed", { threadId: "thread", turn: { id: "turn-2", status: "completed", items: [{ type: "agentMessage", text: "revision", phase: "final_answer" }] } })
+      }); return
+    }
+    send(m)
+  }
+  const r = await f.run({ resumeAfter: previous, attempt: "A0-continuation-1" })
+  expect(f.sent.some(m => m.method === "thread/resume")).toBe(true)
+  expect(f.sent.some(m => m.method === "thread/start")).toBe(false)
+  expect(r.lifecycle).toMatchObject({ threadId: "thread", turnId: "turn-2", resumedFromTurnId: "turn" })
+  expect(r.usage).toEqual({ input: 15, cacheRead: 6, cacheWrite: 0, output: 5 })
+})
+
+test("unknown own attempt and changed tool definitions cannot resume or dispatch", async () => {
+  const previous = await mock("exit").run()
+  const f = mock()
+  expect((await f.run({ resumeAfter: previous })).status).toBe("unavailable")
+  expect(f.sent.some(m => /thread\/(start|resume)|turn\/start/.test(m.method))).toBe(false)
+  const known = await mock().run(), g = mock()
+  expect((await g.run({ resumeAfter: known, tools: [] })).reason).toBe("account-resume-tools-changed")
+  expect(g.sent.some(m => m.method === "turn/start")).toBe(false)
+})

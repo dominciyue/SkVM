@@ -4,6 +4,32 @@ import * as author from "./program-authoring-context.ts"
 const at = { path: "app.py", startLine: 1, endLine: 8 }
 const questions = [{ id: "meaning", request: "Retain all requested meanings" }, { id: "data" }]
 const operationQuestions = questions.map(q => ({ questionId: q.id, operationId: "same" }))
+test("proof locator errors do not hide executable missing inputs and external conditions are separate", () => {
+  const raw = { scope: { questionId: "meaning" }, resourceWorkflow: { inputs: ["rows"], steps: [] } }
+  const proof = { code: "question-property-source-unresolved", path: "properties", severity: "error", message: "ambiguous locator" }
+  const report = { currentDraft: { revision: "r", raw }, candidate: { revision: "r", diagnostics: [proof], resourceExecution: { events: [{ id: "pick", op: "select", gaps: ["rows"], inputs: {} }, { id: "outside", op: "external", gaps: ["external:remote"], inputs: {} }] } } }
+  const feedback: any = author.projectProgramAuthoring(report, questions, 8, { resourceInputs: { meaning: {} } })
+  expect(feedback.feedbackGroups.proof).toEqual([proof])
+  expect(feedback.feedbackGroups.execution[0].code).toBe("missing-input")
+  expect(feedback.feedbackGroups.external[0].dependencies).toEqual(["external:remote"])
+  expect(feedback.firstBlocker.code).toBe("missing-input")
+  expect(feedback.diagnostics).toContainEqual(proof)
+})
+
+test("author continuations require a known terminal, budget, actionable work and new progress", () => {
+  const decide = (author as any).decideProgramAuthorContinuation
+  const context = { authoring: { draftRevision: "r", phase: "repair", feedbackGroups: { inputStructure: [], execution: [{ code: "missing-input" }], proof: [], external: [] } }, toolBudget: { explorationRemaining: 4, totalRemaining: 6 }, sourceIndex: [] }
+  const base = { mode: "edit", terminal: "completed", continuations: 0, remainingMs: 1000, context }
+  const next = decide(base)
+  expect(next.continue).toBe(true)
+  expect(decide({ ...base, terminal: "unknown" }).continue).toBe(false)
+  expect(decide({ ...base, mode: "consume" }).continue).toBe(false)
+  expect(decide({ ...base, continuations: 2 }).continue).toBe(false)
+  expect(decide({ ...base, remainingMs: 0 }).continue).toBe(false)
+  expect(decide({ ...base, previousProgress: next.progress, continuations: 1 }).reason).toBe("no-new-author-progress")
+  expect(decide({ ...base, context: { ...context, authoring: { ...context.authoring, feedbackGroups: { inputStructure: [], execution: [], proof: [], external: [{ code: "external-assumption" }] } } } }).continue).toBe(false)
+  expect(decide({ ...base, context: { ...context, toolBudget: { totalRemaining: 2, explorationRemaining: 0 } } }).continue).toBe(false)
+})
 test("author feedback shows selected facts shapes and exact external calls without moving duties", () => {
   const raw = { scope: { questionId: "meaning" }, inputBinding: { questionId: "data" }, resourceWorkflow: { inputs: ["actor", "rows", "missing"], steps: [] } }
   const context: any = author.projectProgramTaskContext({ report: { currentDraft: { revision: "draft", raw } }, questions, operationQuestions, programMode: "edit", resourceInputs: { data: { actor: { id: 17 }, rows: [{ key: 2 }, { key: 3 }, { key: 4 }, { key: 5 }] } }, externalAssumptions: { data: [{ name: "service", arguments: { actor: 17 }, value: true, reason: "Supplied scenario fact" }] } } as any)

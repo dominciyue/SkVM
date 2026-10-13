@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript、Bun、Zod、现有 Codex app-server 接口和 PowerShell 示例。开发 `gpt-6-astra/high`；实验继续使用已经授权的官方账号 `gpt-5.6-sol/high`。第三方付费 API 仍暂停，不自行改实验模型。
 
-**状态：** planned-not-started。基线 `af2268377ddafc542b0d899057c4e9bc1eeb9c34`；分支 `skill-ir-aot`；新 identity `authorization-recoverable-authoring-v1`。本任务书是当前新工作合同，BJ 队列及原件维持结束状态。约 8–12 小时表示实质工作量和优先级窗口，不承诺耗满时间，不等待、不重复审计、不重复模型抽样凑时长。
+**状态：** in-progress；BK0–BK1已提交，BK2/3/5/6账号接线定向验证通过，真实A0待派发；structured入口与其余责任继续实施。基线 `af2268377ddafc542b0d899057c4e9bc1eeb9c34`；分支 `skill-ir-aot`；新 identity `authorization-recoverable-authoring-v1`。本任务书是当前新工作合同，BJ 队列及原件维持结束状态。约 8–12 小时表示实质工作量和优先级窗口，不承诺耗满时间，不等待、不重复审计、不重复模型抽样凑时长。
 
 ## 一、复核依据与明确改变
 

@@ -4,7 +4,7 @@
 
 ## 当前工作
 
-**BK0–BK19 已获授权，计划就绪，尚未实施。** [新任务书](../superpowers/plans/2026-10-13-authorization-recoverable-authoring-and-real-delivery.md)由用户指定的 `gpt-6-astra/high` 新线程执行，identity 为 `authorization-recoverable-authoring-v1`，基线 `af226837`。先修账号生命周期和全局 unknown 等待，再完成一次真实自动写稿—试算—修稿，随后检验同稿变化、消费与成本。方法见 [spec§14.50](skill-ir-aot-optimization-spec.md#1450-bk-recoverable-authoring-and-real-delivery)、[研究§7.72](skill-dsl-research.md#772-bj-复核与-bk-可恢复自动编写决定)。规划不构成实现或效果结果。
+**BK0–BK19 正在实施，账号恢复与公共作者循环已接线，真实 A0 待派发。** [新任务书](../superpowers/plans/2026-10-13-authorization-recoverable-authoring-and-real-delivery.md)由用户指定的 `gpt-6-astra/high` 新线程执行，identity 为 `authorization-recoverable-authoring-v1`，基线 `af226837`。先修账号生命周期和全局 unknown 等待，再完成一次真实自动写稿—试算—修稿，随后检验同稿变化、消费与成本。方法见 [spec§14.50](skill-ir-aot-optimization-spec.md#1450-bk-recoverable-authoring-and-real-delivery)、[研究§7.72](skill-dsl-research.md#772-bj-复核与-bk-可恢复自动编写决定)。规划不构成实现或效果结果。
 
 本次明确调整后续恢复规则：BJ R0 原请求继续 unknown、不重发、不改费用；新独立 A0 在核查本地宿主关闭、做有界只读核查并记录隔离后可以执行，不再以找回旧 ephemeral 终态为永久前置。相同未知请求仍不得自动重发，额度/认证和重复通道故障仍暂停对应通道。实验沿用已授权官方账号 `gpt-5.6-sol/high`，第三方暂停。full默认、完整原skill/四问和保护证据保持。
 

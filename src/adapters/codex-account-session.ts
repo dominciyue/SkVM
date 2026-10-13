@@ -18,6 +18,8 @@ export interface AccountTransport {
   close(): void | Promise<void>
 }
 export interface CodexAccountSessionOptions {
+  purpose?: string; attempt?: string
+  resumeAfter?: AccountSessionResult
   model: string; effort: "high"; cwd: string; system: string; prompt: string; tools: LLMTool[]
   execute(call: LLMToolCall): Promise<{ output: string; exitCode?: number; durationMs: number }>
   rejectArguments?(call: LLMToolCall, diagnostics: AccountArgumentDiagnostic[]): Promise<{ output: string; exitCode?: number; durationMs: number }>
@@ -30,6 +32,7 @@ export interface CodexAccountSessionOptions {
 export interface AccountArgumentDiagnostic { path: string; keyword: string; message: string; expected: unknown }
 export type AccountSessionStatus = "completed" | "failed" | "interrupted" | "undelivered" | "unavailable" | "timeout-unknown" | "completion-unknown"
 export interface AccountSessionResult {
+  lifecycle?: AccountSessionLifecycle
   status: AccountSessionStatus; text: string; reason?: string; usage: TokenUsage | null; actualUsd: null; providerRequests: null
   terminalStatus: "completed" | "failed" | "interrupted" | "unknown" | "not-started"
   answerDelivery: "delivered" | "undelivered"; usageVisibility: "observed" | "unknown"; quotaRefused: boolean
@@ -40,6 +43,68 @@ export interface AccountSessionResult {
   capability?: { status: "verified-controlled"; cliVersion: string; effectiveConfig: Record<string, unknown>; instructionSources: Array<{ path: string; sha256: string }>; runtimeWorkspaceRoots: string[] }
   usageDetails?: { totalTokens: number; reasoningOutputTokens: number; inputIncludesCached: true }
   usageSource?: { method: "thread/tokenUsage/updated"; aggregation: "max-per-counter"; inputIncludesCached: true; rawTotal: Record<string, number> }
+}
+export interface AccountSessionLifecycle {
+  purpose?: string; attempt?: string; threadId?: string; turnId?: string
+  resumedFromTurnId?: string
+  turnStartAttempted: boolean; turnStartAcknowledged: boolean; providerTerminalObserved: boolean
+  localExecution: "active" | "closed" | "unconfirmed"
+  persistence: "requested" | "confirmed"; toolsSha256: string
+}
+
+/** Shared request bookkeeping; callers own notifications and capability checks. */
+function createAccountRpc(send: (message: Record<string, unknown>) => void, record: (event: unknown) => void) {
+  let sequence = 0
+  const pending = new Map<number, { method: string; resolve: (value: any) => void; reject: (error: Error) => void }>()
+  return {
+    method: (id: unknown) => typeof id === "number" ? pending.get(id)?.method : undefined,
+    request: (method: string, params: unknown) => new Promise<any>((resolve, reject) => {
+      const id = ++sequence; pending.set(id, { method, resolve, reject }); record({ direction: "client", id, method, params })
+      try { send({ id, method, params }) } catch { pending.delete(id); reject(new Error("codex-send-failed")) }
+    }),
+    receive(message: any) {
+      if (typeof message.id !== "number" || message.method) return false
+      const p = pending.get(message.id); pending.delete(message.id)
+      if (message.error) p?.reject(new Error("codex-rpc-error:" + String(redactCodexEvent(message.error.message ?? message.error.code))))
+      else p?.resolve(message.result)
+      return true
+    },
+    close(reason: string) { for (const p of pending.values()) p.reject(new Error(reason)); pending.clear() },
+  }
+}
+
+export interface AccountThreadObservation {
+  status: "terminal-found" | "not-found" | "unavailable" | "nonterminal"
+  threadId: string; turnId: string; terminalStatus: AccountSessionResult["terminalStatus"]
+  ephemeral?: boolean; reason?: string; events: unknown[]
+}
+/** Inspection never resumes, starts a turn, or dispatches a persisted tool call. */
+export async function readCodexAccountThread(options: {
+  threadId: string; turnId: string; timeoutMs?: number; transportFactory?: () => AccountTransport
+  onEvent?(event: unknown): void | Promise<void>
+}): Promise<AccountThreadObservation> {
+  const events: unknown[] = []; let writes = Promise.resolve(), transport: AccountTransport | undefined
+  const record = (event: unknown) => { const safe = redactCodexEvent(event); events.push(safe); writes = writes.then(async () => { await options.onEvent?.(safe) }) }
+  const rpc = createAccountRpc(message => transport!.send(message), record)
+  const timer = setTimeout(() => rpc.close("account-read-timeout"), options.timeoutMs ?? 15000)
+  const base = { threadId: options.threadId, turnId: options.turnId, terminalStatus: "unknown" as const, events }
+  try {
+    transport = (options.transportFactory ?? createCodexStdioTransport)()
+    transport.onExit(reason => rpc.close(reason))
+    transport.onMessage(message => { record({ direction: "server", ...message }); rpc.receive(message) })
+    await rpc.request("initialize", { clientInfo: { name: "skvm", version: "1" }, capabilities: { experimentalApi: true, requestAttestation: false } })
+    transport.send({ method: "initialized", params: {} })
+    if (transport.isolation.kind === "unverified-public-cli") return { ...base, status: "unavailable", reason: transport.isolation.reason }
+    const result = await rpc.request("thread/read", { threadId: options.threadId, includeTurns: true })
+    if (result.thread?.id !== options.threadId) return { ...base, status: "not-found" }
+    const turn = result.thread.turns?.find((t: any) => t.id === options.turnId)
+    if (!turn) return { ...base, status: "not-found", ephemeral: result.thread.ephemeral }
+    const known = ["completed", "failed", "interrupted"].includes(turn.status)
+    return { ...base, status: known ? "terminal-found" : "nonterminal", terminalStatus: known ? turn.status : "unknown", ephemeral: result.thread.ephemeral }
+  } catch (error) {
+    const reason = String(redactCodexEvent(String(error)))
+    return { ...base, status: /thread.*not found|no rollout found|thread.*does not exist/i.test(reason) ? "not-found" : "unavailable", reason }
+  } finally { clearTimeout(timer); rpc.close("inspection-closed"); await transport?.close(); await writes }
 }
 const AccountBoundarySchema = z.object({ schemaVersion: z.literal("codex-account-boundary/v1"),
   instructionSources: z.array(z.object({ path: z.string().refine(p => path.isAbsolute(p) || path.win32.isAbsolute(p)), sha256: z.string().regex(/^[a-f0-9]{64}$/) }).strict()), review: z.string().optional() }).strict()
@@ -164,7 +229,11 @@ export function createCodexStdioTransport(): AccountTransport {
 /** The official CLI owns the agent loop; this is deliberately not LLMProvider. */
 export async function runCodexAccountSession(options: CodexAccountSessionOptions): Promise<AccountSessionResult> {
   const started = Date.now(), events: unknown[] = [], tools: LLMToolCall[] = [], toolRejections: AccountSessionResult["toolRejections"] = []
-  let transport: AccountTransport | undefined, sequence = 0, threadId: string | undefined, turnId: string | undefined, active = false, inferenceDispatched = false
+  let transport: AccountTransport | undefined, threadId: string | undefined, turnId: string | undefined, active = false, inferenceDispatched = false
+  const lifecycle: AccountSessionLifecycle = { purpose: options.purpose, attempt: options.attempt, turnStartAttempted: false, turnStartAcknowledged: false, providerTerminalObserved: false, localExecution: "unconfirmed", persistence: "requested", toolsSha256: createHash("sha256").update(JSON.stringify(options.tools)).digest("hex") }
+  let lastResult: AccountSessionResult | undefined
+  const previous = options.resumeAfter
+  if (previous?.lifecycle) lifecycle.resumedFromTurnId = previous.lifecycle.turnId
   let usage: TokenUsage | null = null, text = "", failure: string | undefined
   let capability: AccountSessionResult["capability"]
   let usageDetails: AccountSessionResult["usageDetails"]
@@ -173,23 +242,22 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
   let terminalError: AccountSessionResult["terminalError"]
   let transportExit: AccountSessionResult["transportExit"]
   const validators = new Map<string, ReturnType<Ajv["compile"]>>()
-  const pending = new Map<number, { method: string; resolve: (value: any) => void; reject: (error: Error) => void }>(), executed = new Map<string, { fingerprint: string; output: Promise<Record<string, unknown>> }>()
+  const executed = new Map<string, { fingerprint: string; output: Promise<Record<string, unknown>> }>()
   let finish!: (status: AccountSessionStatus) => void, finished = false
   const terminal = new Promise<AccountSessionStatus>(resolve => { finish = status => { if (!finished) { finished = true; active = false; resolve(status) } } })
   let eventWrites = Promise.resolve(), eventWriteFailure: unknown
   const record = (event: unknown) => {
-    const safe = redactCodexEvent(event); events.push(safe)
+    const safe = redactCodexEvent({ ...object(event), identity: { purpose: options.purpose, attempt: options.attempt, threadId, turnId } }); events.push(safe)
     eventWrites = eventWrites.then(async () => { try { await options.onEvent?.(safe) } catch (cause) { eventWriteFailure ??= cause } })
   }
   const reply = (id: unknown, response: Record<string, unknown>) => { record({ direction: "client", id, result: response }); transport!.send({ id, result: response }) }
-  const request = (method: string, params: unknown) => new Promise<any>((resolve, reject) => {
-    const id = ++sequence; pending.set(id, { method, resolve, reject }); record({ direction: "client", id, method, params })
-    try { transport!.send({ id, method, params }) } catch { pending.delete(id); reject(new Error("codex-send-failed")) }
-  })
-  const result = (status: AccountSessionStatus): AccountSessionResult => redactCodexEvent({ status, text, terminalStatus, answerDelivery: terminalStatus === "completed" && status === "completed" && text.trim() ? "delivered" : "undelivered", usageVisibility: usage ? "observed" : "unknown", quotaRefused, ...(terminalError ? { terminalError } : {}), ...(transportExit ? { transportExit } : {}), ...(failure ? { reason: failure } : {}), usage, ...(usageDetails ? { usageDetails } : {}), ...(usageSource ? { usageSource } : {}), actualUsd: null, providerRequests: null, durationMs: Date.now() - started, events, tools, toolRejections, model: options.model, effort: options.effort, inferenceDispatched, ...(capability ? { capability } : {}) })
+  const rpc = createAccountRpc(message => transport!.send(message), record), request = rpc.request
+  const result = (status: AccountSessionStatus): AccountSessionResult => lastResult = redactCodexEvent({ status, text, lifecycle: { ...lifecycle, threadId, turnId }, terminalStatus, answerDelivery: terminalStatus === "completed" && status === "completed" && text.trim() ? "delivered" : "undelivered", usageVisibility: usage ? "observed" : "unknown", quotaRefused, ...(terminalError ? { terminalError } : {}), ...(transportExit ? { transportExit } : {}), ...(failure ? { reason: failure } : {}), usage, ...(usageDetails ? { usageDetails } : {}), ...(usageSource ? { usageSource } : {}), actualUsd: null, providerRequests: null, durationMs: Date.now() - started, events, tools, toolRejections, model: options.model, effort: options.effort, inferenceDispatched, ...(capability ? { capability } : {}) })
   let timer: ReturnType<typeof setTimeout> | undefined
-  const abort = () => { failure = "account-session-interrupted-or-timeout"; finish("timeout-unknown"); for (const p of pending.values()) p.reject(new Error(failure)); pending.clear() }
+  const abort = () => { failure = "account-session-interrupted-or-timeout"; finish(inferenceDispatched ? "timeout-unknown" : "unavailable"); rpc.close(failure) }
   try {
+    if (previous && (!previous.lifecycle?.threadId || !previous.lifecycle.turnId || previous.lifecycle.localExecution !== "closed" || !["completed", "failed", "interrupted"].includes(previous.terminalStatus) || previous.quotaRefused)) { failure = "account-resume-known-closed-terminal-required"; return result("unavailable") }
+    if (previous && previous.lifecycle?.toolsSha256 !== lifecycle.toolsSha256) { failure = "account-resume-tools-changed"; return result("unavailable") }
     if (options.model !== "gpt-5.6-sol" || options.effort !== "high") { failure = "account-model-or-effort-unauthorized"; return result("unavailable") }
     const maxToolCalls = options.maxToolCalls ?? 64
     if (!Number.isSafeInteger(maxToolCalls) || maxToolCalls < 1) { failure = "account-tool-budget-invalid"; return result("unavailable") }
@@ -199,16 +267,17 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
       validators.set(tool.name, ajv.compile(tool.inputSchema))
     }
     transport = (options.transportFactory ?? createCodexStdioTransport)()
-    transport.onExit(reason => { if (finished) return; failure = reason; finish(inferenceDispatched ? "completion-unknown" : "unavailable"); for (const p of pending.values()) p.reject(new Error(reason)); pending.clear() })
+    lifecycle.localExecution = "active"
+    transport.onExit(reason => { if (finished) return; failure = reason; finish(inferenceDispatched ? "completion-unknown" : "unavailable"); rpc.close(reason) })
     transport.onMessage(message => {
       if (message.method === "skvm/transport/exit") {
         if (!finished) transportExit = { reason: String(message.params?.reason ?? "transport-exit"), stderrTail: String(message.params?.stderrTail ?? "").slice(-8192), stderrTruncated: !!message.params?.stderrTruncated }
         record({ direction: "transport", method: message.method, params: transportExit })
         return
       }
-      const rpcMethod = typeof message.id === "number" ? pending.get(message.id)?.method : undefined
+      const rpcMethod = rpc.method(message.id)
       record({ direction: "server", ...message, ...(rpcMethod === "config/read" && message.result ? { result: { config: safeConfig(message.result.config) } } : {}) })
-      if (typeof message.id === "number" && !message.method) { const p = pending.get(message.id); pending.delete(message.id); if (message.error) p?.reject(new Error("codex-rpc-error")); else p?.resolve(message.result); return }
+      if (rpc.receive(message)) return
       const params = message.params ?? {}
       // Record late events, but never let them alter a closed attempt's outcome,
       // answer or cumulative usage. A new named attempt owns a different turn.
@@ -216,7 +285,11 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
       if (message.method === "thread/tokenUsage/updated" && params.threadId === threadId && (!turnId || params.turnId === turnId)) {
         const t = params.tokenUsage?.total
         if (t && [t.inputTokens, t.outputTokens, t.cachedInputTokens, t.cacheWriteInputTokens].every(v => Number.isSafeInteger(v) && v >= 0)) {
-          usage = { input: Math.max(usage?.input ?? 0, t.inputTokens), output: Math.max(usage?.output ?? 0, t.outputTokens), cacheRead: Math.max(usage?.cacheRead ?? 0, t.cachedInputTokens), cacheWrite: Math.max(usage?.cacheWrite ?? 0, t.cacheWriteInputTokens) }
+          const baseline = previous?.usageSource?.rawTotal
+          const delta = (key: string) => t[key] - (baseline?.[key] ?? 0)
+          if (!previous || baseline && ["inputTokens", "outputTokens", "cachedInputTokens", "cacheWriteInputTokens"].every(k => Number.isSafeInteger(baseline[k]) && delta(k) >= 0)) {
+            usage = { input: Math.max(usage?.input ?? 0, delta("inputTokens")), output: Math.max(usage?.output ?? 0, delta("outputTokens")), cacheRead: Math.max(usage?.cacheRead ?? 0, delta("cachedInputTokens")), cacheWrite: Math.max(usage?.cacheWrite ?? 0, delta("cacheWriteInputTokens")) }
+          }
           usageSource = { method: "thread/tokenUsage/updated", aggregation: "max-per-counter", inputIncludesCached: true, rawTotal: structuredClone(t) }
           if ([t.totalTokens, t.reasoningOutputTokens].every(v => Number.isSafeInteger(v) && v >= 0)) usageDetails = { totalTokens: Math.max(usageDetails?.totalTokens ?? 0, t.totalTokens), reasoningOutputTokens: Math.max(usageDetails?.reasoningOutputTokens ?? 0, t.reasoningOutputTokens), inputIncludesCached: true }
         }
@@ -227,6 +300,8 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
         turnId ??= params.turnId
         if (params.namespace || !options.tools.some(t => t.name === params.tool)) { failure = "unregistered-account-tool"; finish("unavailable"); reply(message.id, { success: false, contentItems: [{ type: "inputText", text: failure }] }); return }
         const fingerprint = JSON.stringify([params.tool, params.arguments])
+        const oldCall = previous && [...previous.tools, ...previous.toolRejections.map(r => r.call)].find(c => c.id === params.callId)
+        if (oldCall) { failure = JSON.stringify([oldCall.name, oldCall.arguments]) === fingerprint ? "account-tool-call-from-prior-turn" : "account-tool-call-identity-conflict"; finish("unavailable"); return }
         if (typeof params.callId !== "string" || !params.callId || executed.get(params.callId)?.fingerprint && executed.get(params.callId)!.fingerprint !== fingerprint) { failure = "account-tool-call-identity-conflict"; finish("unavailable"); return }
         let execution = executed.get(params.callId)?.output
         if (!execution) {
@@ -265,7 +340,7 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
       if (message.method === "turn/completed") {
         turnId ??= params.turn.id
         for (const item of params.turn.items ?? []) if (item.type === "agentMessage" && [null, undefined, "final_answer"].includes(item.phase)) text = item.text ?? ""
-        if (["completed", "failed", "interrupted"].includes(params.turn.status)) terminalStatus = params.turn.status
+        if (["completed", "failed", "interrupted"].includes(params.turn.status)) { terminalStatus = params.turn.status; lifecycle.providerTerminalObserved = true }
         if (params.turn.status === "failed" || params.turn.status === "interrupted") { failure = `account-turn-${params.turn.status}`; finish(params.turn.status) }
         else if (params.turn.status === "completed") finish(text.trim() ? "completed" : "undelivered")
         else { failure = `account-turn-${params.turn.status}`; finish("completion-unknown") }
@@ -291,9 +366,19 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
       if (failure) return result("unavailable")
       capability = { status: "verified-controlled", cliVersion: transport.isolation.cliVersion!, effectiveConfig: safeConfig(effective.config), instructionSources: [], runtimeWorkspaceRoots: [] }
     }
-    const thread = await request("thread/start", { model: options.model, modelProvider: "openai", allowProviderModelFallback: false, cwd, environments: [],
-      ...(config ? { permissions: "skvm-account", runtimeWorkspaceRoots: [], selectedCapabilityRoots: [], config, developerInstructions: "" } : { sandbox: "read-only" }),
-      approvalPolicy: "never", ephemeral: true, baseInstructions: options.system, dynamicTools: options.tools.map(t => ({ type: "function", name: t.name, description: t.description, inputSchema: t.inputSchema })) })
+    if (previous) {
+      const stored = await request("thread/read", { threadId: previous.lifecycle!.threadId, includeTurns: true })
+      const turns = stored.thread?.turns
+      if (stored.thread?.id !== previous.lifecycle!.threadId || stored.thread?.ephemeral !== false || !Array.isArray(turns) || turns.at(-1)?.id !== previous.lifecycle!.turnId || turns.at(-1)?.status !== previous.terminalStatus) { failure = "account-resume-terminal-not-confirmed"; return result("unavailable") }
+    }
+    const thread = await request(previous ? "thread/resume" : "thread/start", { model: options.model, modelProvider: "openai", cwd,
+      ...(previous ? { threadId: previous.lifecycle!.threadId } : { allowProviderModelFallback: false, environments: [], selectedCapabilityRoots: [], ephemeral: false, dynamicTools: options.tools.map(t => ({ type: "function", name: t.name, description: t.description, inputSchema: t.inputSchema })) }),
+      ...(config ? { permissions: "skvm-account", runtimeWorkspaceRoots: [], config, developerInstructions: "" } : { sandbox: "read-only" }),
+      approvalPolicy: "never", baseInstructions: options.system })
+    threadId = thread.thread.id
+    if (thread.thread.ephemeral === false) lifecycle.persistence = "confirmed"
+    record({ method: "skvm/account/identity", lifecycle: { ...lifecycle, threadId } }); await eventWrites
+    if (eventWriteFailure) throw new Error("account-identity-write-failed")
     if (thread.model !== options.model) { failure = "account-model-selection-unverified"; return result("unavailable") }
     if (capability) {
       const roots = thread.runtimeWorkspaceRoots, sources = thread.instructionSources
@@ -310,16 +395,22 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
       }
     }
     if (finished) return result(await terminal)
-    threadId = thread.thread.id; active = true; inferenceDispatched = true; terminalStatus = "unknown"
+    active = true; inferenceDispatched = true; terminalStatus = "unknown"; lifecycle.turnStartAttempted = true
     const turn = await request("turn/start", { threadId, input: [{ type: "text", text: options.prompt, text_elements: [] }], environments: [], model: options.model, effort: options.effort })
     turnId ??= turn.turn.id
+    lifecycle.turnStartAcknowledged = true
+    record({ method: "skvm/account/identity", lifecycle: { ...lifecycle, threadId, turnId } })
     return result(await terminal)
   } catch (error) { failure ??= String(error); return result(finished ? await terminal : inferenceDispatched ? "completion-unknown" : "unavailable") }
   finally {
-    active = false; if (timer) clearTimeout(timer); options.signal?.removeEventListener("abort", abort)
-    if (inferenceDispatched && threadId && turnId && failure && terminalStatus === "unknown") { try { transport?.send({ id: ++sequence, method: "turn/interrupt", params: { threadId, turnId } }) } catch { /* Own child may already have exited. */ } }
-    for (const p of pending.values()) p.reject(new Error("session-closed")); pending.clear(); await transport?.close()
+    finished = true; active = false; if (timer) clearTimeout(timer); options.signal?.removeEventListener("abort", abort)
+    if (inferenceDispatched && threadId && turnId && failure && terminalStatus === "unknown") { try { transport?.send({ id: "interrupt-on-close", method: "turn/interrupt", params: { threadId, turnId } }) } catch { /* Own child may already have exited. */ } }
+    rpc.close("session-closed"); await transport?.close()
+    await Promise.allSettled([...executed.values()].map(e => e.output))
+    lifecycle.localExecution = "closed"
+    record({ method: "skvm/account/closed", lifecycle: { ...lifecycle, threadId, turnId } })
     await eventWrites
+    if (lastResult) { lastResult.lifecycle = { ...lifecycle, threadId, turnId }; lastResult.events = events; lastResult.durationMs = Date.now() - started }
     if (eventWriteFailure) throw new Error("account-trace-write-failed", { cause: eventWriteFailure })
   }
 }
