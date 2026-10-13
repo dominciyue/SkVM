@@ -1,0 +1,66 @@
+## Draft-feedback disposition
+
+No further source-supported patch is valid:
+
+- **Input-structure, execution, and proof feedback:** clear.
+- **External feedback:** `ObjectPermissionChecker.has_perm` remains unresolved because no object-grant result was supplied. Inventing one would be incorrect.
+- **Authored-scope feedback:** retained intentionally for authentication configuration, model permissions, explicit-version cases absent from the fixture, deployment state, and backing-file existence.
+- The scenario workflow remains adopted and computes document `10` → authorized root `10` → returned version `11` → archive `v1-archive.pdf`.
+
+## Request, version, and file selection
+
+The router exposes the inherited GET detail `download` action under the documents API. `download` calls `file_response(pk, request, "attachment")`. [`src/paperless/urls.py:74-100`, `src/documents/views.py:1834-1839`, `src/documents/views.py:2503-2516`]
+
+`file_response`:
+
+1. Looks up `pk` through `Document.global_objects`.
+2. Resolves the requested document’s root.
+3. Performs root authorization.
+4. Selects `file_doc`.
+5. Selects its original or archive file. [`src/documents/views.py:1401-1448`]
+
+Version branches are:
+
+- Directly requested child with no `version`: return that child.
+- Root with no `version`: latest ordinary-manager child, or root fallback.
+- Explicit integer `version`: accept only the root or a direct child of that root.
+- Invalid integer, missing candidate, or unrelated candidate: 404.
+- Empty `version=` activates include-deleted selection but is falsey and therefore selects latest. [`src/documents/views.py:1375-1399`, `src/documents/versioning.py:159-195`]
+
+`original=true` selects `source_file`. Otherwise an available archive is selected; without one, source is used. [`src/documents/views.py:1369-1373`, `src/documents/views.py:1442-1448`, `src/documents/views.py:4941-4995`]
+
+## Authorization and ordering
+
+DRF authenticates and checks permissions before invoking the action. The view requires `IsAuthenticated` and `PaperlessObjectPermissions`; GET maps to model permission `view_document`. [`framework/rest_framework-3.18.1/rest_framework/views.py:404-421`, `src/documents/views.py:1008-1027`, `src/documents/permissions.py:30-44`]
+
+The action does not call DRF `get_object()`, so its automatic object-permission call is not used. [`framework/rest_framework-3.18.1/rest_framework/generics.py:79-105`]
+
+Paperless instead checks:
+
+```python
+has_perms_owner_aware(user, "view_document", root_doc)
+```
+
+This permits an unowned root, an actor-owned root, or a Guardian grant; otherwise it returns 403. The check occurs before `file_doc` and original/archive selection. [`src/documents/views.py:1417-1448`, `src/documents/permissions.py:624-635`]
+
+## Alternate authorized and returned resources
+
+Selecting another version does not change the authorization resource:
+
+- authorized object: `root_doc`
+- returned document: `file_doc`
+- returned representation: `file_doc.archive_file` or `file_doc.source_file`
+
+No second owner/object-grant check is applied to the selected version or file representation. Whether root authorization is intended to authorize the whole version family remains a missing policy fact, so this source behavior alone is not a confirmed vulnerability.
+
+## Missing facts
+
+- Authentication configuration and credentials block a conclusion that a real request passes authentication.
+- Global `view_document` permission blocks a conclusion that DRF reaches the handler.
+- Root ownership and Guardian grants block a general authorization result.
+- Version-family policy blocks a vulnerability verdict.
+- Actual rows and deletion state block a production `file_doc` result.
+- Archive flags and file existence block a production file-response result.
+- Deployment and proxy configuration block conclusions about external reachability.
+
+The automated operation-wide properties remain unresolved and the function contract does not certify the complete request operation. The source trace above—and the scenario-bound computation—remain the supported conclusions.

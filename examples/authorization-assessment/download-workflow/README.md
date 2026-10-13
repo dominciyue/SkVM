@@ -1,8 +1,26 @@
 # Download: input → source program → execution → result
 
-## BI model-authored original
+## Current BK model-authored original
 
-The latest retained automatic artifact is the BI program at
+The default script now runs the [BK A0 automatic raw program](../../../results/skill-ir/skill-dsl-research/development/authorization-recoverable-authoring-v1/authoring/automatic-program.json), selected before consumption with no developer semantic edits:
+
+```powershell
+./examples/authorization-assessment/download-workflow/run.ps1
+./examples/authorization-assessment/download-workflow/run.ps1 -Variant empty-version
+./examples/authorization-assessment/download-workflow/run.ps1 -Variant denied
+```
+
+The 12-step program computes the default candidate `{requested_document_id: 10, authorization_root_document_id: 10, returned_document_id: 11, archive_representation: true, returned_file: "v1-archive.pdf"}`. This is conditional: the raw program still calls Guardian with arguments that do not match the supplied premise. Empty-version, explicit-version and missing-root behavior remain incomplete. A computed candidate does not certify an authorized download. The [14-case matrix](../../../results/skill-ir/skill-dsl-research/development/authorization-recoverable-authoring-v1/evaluation/selected/variation-matrix.json) records both exact JSON shape and semantic field comparisons, retaining all conditions.
+
+The first A0 draft computed only the requested ID. Its named shared-feedback repair resumed the same known terminal thread and produced this later raw program in three turns. All four natural duties remain in every session. Fresh/previous zero-model execution agrees after moving the package; a changed copied permission branch withdraws the old return. Raw sessions and copied source stay local; compact provenance and results are retained in the repository.
+
+See the [actual authoring and execution timeline](../../../results/skill-ir/skill-dsl-research/development/authorization-recoverable-authoring-v1/execution.md), [question reviews](../../../results/skill-ir/skill-dsl-research/development/authorization-recoverable-authoring-v1/evaluation/quality.json), and [paired comparison](../../../results/skill-ir/skill-dsl-research/development/authorization-recoverable-authoring-v1/evaluation/comparison.json). Both consumer/baseline pairs remain partial/full/full/full and consumption uses more input/output tokens and time. The empty-version consumer corrects the program in prose to file 12; the raw program still computes file 11. The denied consumer delivered no answer before timeout; a later read-only observation found an interrupted turn. A separate one-turn source-change author patched the inverted guard and rejected the current request before file selection. That maintenance raw does not replace this example's selected program.
+
+Add `-Mode account` for ordinary consumption or `-Mode author` to start without a supplied program. `-Previous <session>` rebuilds eligible material and recomputes current inputs; it does not import the prior answer. Inspect the printed session using `bun src/index.ts authorization inquiry inspect --out=<session>`. Script failures preserve partial output and return the actual command exit code.
+
+## Historical BI model-authored original
+
+The historical BI artifact is the program at
 `results/skill-ir/skill-dsl-research/development/authorization-authoring-closure-v1/authoring/automatic-program.json`.
 It is A2's adopted raw proposal, frozen before C1/C2 without developer semantic
 edits. Run that exact file from the repository root:
@@ -91,8 +109,8 @@ the host's execution does not certify them.
 From the repository root, run the zero-model example (Bun dependencies installed):
 
 ```powershell
-./examples/authorization-assessment/download-workflow/run.ps1
-./examples/authorization-assessment/download-workflow/run.ps1 -Variant empty-version
+./examples/authorization-assessment/download-workflow/run.ps1 -ProgramFile ./examples/authorization-assessment/download-workflow/program.json
+./examples/authorization-assessment/download-workflow/run.ps1 -Variant empty-version -ProgramFile ./examples/authorization-assessment/download-workflow/program.json
 ```
 
 The command prints the new session path and its `execution.md`. That file is
@@ -107,8 +125,8 @@ bun src/index.ts authorization inquiry inspect --out=<printed-session-directory>
 To run the original complete skill and four questions using the official account:
 
 ```powershell
-./examples/authorization-assessment/download-workflow/run.ps1 -Mode account
-./examples/authorization-assessment/download-workflow/run.ps1 -Mode account -ProgramContext compact
+./examples/authorization-assessment/download-workflow/run.ps1 -Mode account -ProgramFile ./examples/authorization-assessment/download-workflow/program.json
+./examples/authorization-assessment/download-workflow/run.ps1 -Mode account -ProgramContext compact -ProgramFile ./examples/authorization-assessment/download-workflow/program.json
 ```
 
 This uses `gpt-5.6-sol/high`, the reviewed account boundary, `consume` mode and

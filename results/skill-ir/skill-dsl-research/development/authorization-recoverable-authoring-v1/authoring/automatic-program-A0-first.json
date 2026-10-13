@@ -1,0 +1,93 @@
+{
+  "schemaVersion": "authorization-executable-contract/v1",
+  "id": "document-request-resolution",
+  "description": "Finite summary of request document lookup inside the download path.",
+  "scope": {
+    "kind": "function-contract",
+    "questionId": "requested-document-and-returned-file",
+    "root": {
+      "path": "src/documents/views.py",
+      "startLine": 1401,
+      "endLine": 1427
+    },
+    "upstream": [
+      "The caller, DRF request dispatch, and downstream version/representation selection remain unresolved."
+    ]
+  },
+  "inputBinding": {
+    "questionId": "requested-document-and-returned-file"
+  },
+  "sourceDeclarations": [
+    {
+      "source": {
+        "path": "src/documents/views.py",
+        "startLine": 1401,
+        "endLine": 1427
+      },
+      "statements": []
+    }
+  ],
+  "queries": [],
+  "assumptions": [
+    {
+      "origin": "user",
+      "text": "The operation under investigation is the document Download operation in this Paperless revision."
+    }
+  ],
+  "resourceWorkflow": {
+    "inputs": [
+      "actor",
+      "documents",
+      "related_root",
+      "request"
+    ],
+    "steps": [
+      {
+        "id": "request_doc",
+        "op": "select",
+        "from": "documents",
+        "where": {
+          "op": "eq",
+          "left": {
+            "binding": "row.id"
+          },
+          "right": {
+            "binding": "request.pk"
+          }
+        },
+        "unique": true,
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1408,
+          "endLine": 1415
+        }
+      },
+      {
+        "id": "lookup_result",
+        "op": "return",
+        "value": {
+          "record": {
+            "requested_document_id": {
+              "field": {
+                "of": {
+                  "ref": "request_doc"
+                },
+                "key": "id"
+              }
+            }
+          }
+        },
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1410,
+          "endLine": 1415
+        }
+      }
+    ],
+    "gaps": [
+      "Root-document resolution and owner-aware authorization are not encoded in this initial finite relation.",
+      "Version selection, original/archive selection, and response construction occur outside this root.",
+      "The complete natural answer must retain all original questions and framework evidence limits."
+    ]
+  }
+}

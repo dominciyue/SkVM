@@ -1,0 +1,2844 @@
+{
+  "session": "results/skill-ir/skill-dsl-research/development/authorization-recoverable-authoring-v1/runs/A0-first/sessions/2026-10-13T120951230Z-5b75f438",
+  "active": {
+    "programMode": "edit",
+    "executionPolicy": "progressive",
+    "currentDraft": {
+      "revision": "3c95f880b118d1a371bbbe25d84c9275a5753b025619f23a6c09039233bcff69",
+      "raw": {
+        "schemaVersion": "authorization-executable-contract/v1",
+        "id": "document-request-resolution",
+        "description": "Finite summary of request document lookup inside the download path.",
+        "scope": {
+          "kind": "function-contract",
+          "questionId": "requested-document-and-returned-file",
+          "root": {
+            "path": "src/documents/views.py",
+            "startLine": 1401,
+            "endLine": 1427
+          },
+          "upstream": [
+            "The caller, DRF request dispatch, and downstream version/representation selection remain unresolved."
+          ]
+        },
+        "inputBinding": {
+          "questionId": "requested-document-and-returned-file"
+        },
+        "sourceDeclarations": [
+          {
+            "source": {
+              "path": "src/documents/views.py",
+              "startLine": 1401,
+              "endLine": 1427
+            },
+            "statements": []
+          }
+        ],
+        "queries": [],
+        "assumptions": [
+          {
+            "origin": "user",
+            "text": "The operation under investigation is the document Download operation in this Paperless revision."
+          }
+        ],
+        "resourceWorkflow": {
+          "inputs": [
+            "actor",
+            "documents",
+            "related_root",
+            "request"
+          ],
+          "steps": [
+            {
+              "id": "request_doc",
+              "op": "select",
+              "from": "documents",
+              "where": {
+                "op": "eq",
+                "left": {
+                  "binding": "row.id"
+                },
+                "right": {
+                  "binding": "request.pk"
+                }
+              },
+              "unique": true,
+              "source": {
+                "path": "src/documents/views.py",
+                "startLine": 1408,
+                "endLine": 1415
+              }
+            },
+            {
+              "id": "lookup_result",
+              "op": "return",
+              "value": {
+                "record": {
+                  "requested_document_id": {
+                    "field": {
+                      "of": {
+                        "ref": "request_doc"
+                      },
+                      "key": "id"
+                    }
+                  }
+                }
+              },
+              "source": {
+                "path": "src/documents/views.py",
+                "startLine": 1410,
+                "endLine": 1415
+              }
+            }
+          ],
+          "gaps": [
+            "Root-document resolution and owner-aware authorization are not encoded in this initial finite relation.",
+            "Version selection, original/archive selection, and response construction occur outside this root.",
+            "The complete natural answer must retain all original questions and framework evidence limits."
+          ]
+        }
+      }
+    },
+    "externalBoundaries": [],
+    "authorLoop": {
+      "firstProgramToolUnit": 24,
+      "firstProposalToolUnit": 24,
+      "firstDraftToolUnit": 26,
+      "patchCount": 0,
+      "programCount": 3,
+      "changes": [
+        {
+          "kind": "program",
+          "toolUnit": 24,
+          "revision": "3147d99d6f7ae92532029c75b1db2f19a50817008f5cce4a9b237a29500ef916",
+          "valid": false
+        },
+        {
+          "kind": "program",
+          "toolUnit": 25,
+          "revision": "46338f89347627e66dabad9cac21fd91e9d09498640c33c9b397d97335a9d01f",
+          "valid": false
+        },
+        {
+          "kind": "program",
+          "toolUnit": 26,
+          "revision": "3c95f880b118d1a371bbbe25d84c9275a5753b025619f23a6c09039233bcff69",
+          "valid": true,
+          "newValues": {
+            "request_doc": {
+              "id": 10,
+              "root_document_id": null,
+              "owner_id": 7,
+              "version_index": null,
+              "deleted": false,
+              "has_archive_version": true,
+              "source_file": "root-original.pdf",
+              "archive_file": "root-archive.pdf"
+            },
+            "lookup_result": {
+              "requested_document_id": 10
+            }
+          },
+          "removedValues": [],
+          "returned": {
+            "requested_document_id": 10
+          },
+          "termination": "return",
+          "unresolvedGaps": [
+            "Root-document resolution and owner-aware authorization are not encoded in this initial finite relation.",
+            "Version selection, original/archive selection, and response construction occur outside this root.",
+            "The complete natural answer must retain all original questions and framework evidence limits."
+          ]
+        }
+      ],
+      "checkpoint": {
+        "toolUnit": 13,
+        "explorationUnits": 12,
+        "completeSources": [
+          {
+            "path": "src/documents/views.py",
+            "symbol": "documents.views.DocumentViewSet.destroy",
+            "startLine": 1352,
+            "endLine": 1366
+          },
+          {
+            "path": "src/documents/views.py",
+            "symbol": "documents.views.DocumentViewSet.original_requested",
+            "startLine": 1369,
+            "endLine": 1373
+          },
+          {
+            "path": "src/documents/views.py",
+            "symbol": "documents.views.DocumentViewSet._resolve_file_doc",
+            "startLine": 1375,
+            "endLine": 1386
+          },
+          {
+            "path": "src/documents/views.py",
+            "symbol": "documents.views.DocumentViewSet._get_effective_file_doc",
+            "startLine": 1388,
+            "endLine": 1399
+          },
+          {
+            "path": "src/documents/views.py",
+            "symbol": "documents.views.DocumentViewSet._resolve_request_and_root_doc",
+            "startLine": 1401,
+            "endLine": 1427
+          },
+          {
+            "path": "src/documents/views.py",
+            "symbol": "documents.views.DocumentViewSet.file_response",
+            "startLine": 1429,
+            "endLine": 1448
+          },
+          {
+            "path": "src/documents/views.py",
+            "symbol": "documents.views.DocumentViewSet.get_metadata",
+            "startLine": 1450,
+            "endLine": 1468
+          },
+          {
+            "path": "src/documents/views.py",
+            "symbol": "documents.views.DocumentViewSet.get_filesize",
+            "startLine": 1470,
+            "endLine": 1473
+          }
+        ],
+        "instruction": "Early authoring checkpoint: a complete current source function is available. Submit a small source-supported authorization_program now, inspect its actual preview, then patch its named gaps while continuing necessary source reads. Retain every original duty; this checkpoint neither supplies source meanings nor closes source tools."
+      }
+    },
+    "currentDraftDiagnostics": [],
+    "candidate": {
+      "revision": "3c95f880b118d1a371bbbe25d84c9275a5753b025619f23a6c09039233bcff69",
+      "adopted": true,
+      "diagnostics": [],
+      "inputBinding": {
+        "scopeQuestionId": "requested-document-and-returned-file",
+        "inputQuestionId": "requested-document-and-returned-file",
+        "origin": "explicit",
+        "datasetPresent": true,
+        "diagnostics": []
+      },
+      "resourceExecution": {
+        "status": "conditional",
+        "inputs": {
+          "actor": {
+            "id": 7
+          },
+          "documents": [
+            {
+              "id": 10,
+              "root_document_id": null,
+              "owner_id": 7,
+              "version_index": null,
+              "deleted": false,
+              "has_archive_version": true,
+              "source_file": "root-original.pdf",
+              "archive_file": "root-archive.pdf"
+            },
+            {
+              "id": 11,
+              "root_document_id": 10,
+              "owner_id": 9,
+              "version_index": 1,
+              "deleted": false,
+              "has_archive_version": true,
+              "source_file": "v1-original.pdf",
+              "archive_file": "v1-archive.pdf"
+            },
+            {
+              "id": 12,
+              "root_document_id": 10,
+              "owner_id": 9,
+              "version_index": 2,
+              "deleted": true,
+              "has_archive_version": false,
+              "source_file": "v2-original.txt",
+              "archive_file": null
+            },
+            {
+              "id": 20,
+              "root_document_id": null,
+              "owner_id": 8,
+              "version_index": null,
+              "deleted": false,
+              "has_archive_version": false,
+              "source_file": "other.txt",
+              "archive_file": null
+            }
+          ],
+          "related_root": null,
+          "request": {
+            "pk": 10,
+            "version": null,
+            "original": null
+          }
+        },
+        "values": {
+          "request_doc": {
+            "id": 10,
+            "root_document_id": null,
+            "owner_id": 7,
+            "version_index": null,
+            "deleted": false,
+            "has_archive_version": true,
+            "source_file": "root-original.pdf",
+            "archive_file": "root-archive.pdf"
+          },
+          "lookup_result": {
+            "requested_document_id": 10
+          }
+        },
+        "events": [
+          {
+            "sequence": 1,
+            "id": "request_doc",
+            "op": "select",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "src/documents/views.py",
+              "startLine": 1408,
+              "endLine": 1415,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "inputs": {
+              "from": "documents",
+              "rows": {
+                "known": true,
+                "value": [
+                  {
+                    "id": 10,
+                    "root_document_id": null,
+                    "owner_id": 7,
+                    "version_index": null,
+                    "deleted": false,
+                    "has_archive_version": true,
+                    "source_file": "root-original.pdf",
+                    "archive_file": "root-archive.pdf"
+                  },
+                  {
+                    "id": 11,
+                    "root_document_id": 10,
+                    "owner_id": 9,
+                    "version_index": 1,
+                    "deleted": false,
+                    "has_archive_version": true,
+                    "source_file": "v1-original.pdf",
+                    "archive_file": "v1-archive.pdf"
+                  },
+                  {
+                    "id": 12,
+                    "root_document_id": 10,
+                    "owner_id": 9,
+                    "version_index": 2,
+                    "deleted": true,
+                    "has_archive_version": false,
+                    "source_file": "v2-original.txt",
+                    "archive_file": null
+                  },
+                  {
+                    "id": 20,
+                    "root_document_id": null,
+                    "owner_id": 8,
+                    "version_index": null,
+                    "deleted": false,
+                    "has_archive_version": false,
+                    "source_file": "other.txt",
+                    "archive_file": null
+                  }
+                ],
+                "gaps": []
+              },
+              "where": {
+                "op": "eq",
+                "left": {
+                  "binding": "row.id"
+                },
+                "right": {
+                  "binding": "request.pk"
+                }
+              },
+              "candidates": [
+                {
+                  "row": {
+                    "id": 10,
+                    "root_document_id": null,
+                    "owner_id": 7,
+                    "version_index": null,
+                    "deleted": false,
+                    "has_archive_version": true,
+                    "source_file": "root-original.pdf",
+                    "archive_file": "root-archive.pdf"
+                  },
+                  "predicate": {
+                    "truth": "true",
+                    "residual": null,
+                    "missingBindings": [],
+                    "trace": [
+                      {
+                        "op": "eq",
+                        "truth": "true"
+                      }
+                    ],
+                    "diagnostics": [],
+                    "valueTrace": [
+                      {
+                        "known": true,
+                        "value": 10,
+                        "residual": {
+                          "literal": 10
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": 10,
+                        "residual": {
+                          "literal": 10
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "row": {
+                    "id": 11,
+                    "root_document_id": 10,
+                    "owner_id": 9,
+                    "version_index": 1,
+                    "deleted": false,
+                    "has_archive_version": true,
+                    "source_file": "v1-original.pdf",
+                    "archive_file": "v1-archive.pdf"
+                  },
+                  "predicate": {
+                    "truth": "false",
+                    "residual": null,
+                    "missingBindings": [],
+                    "trace": [
+                      {
+                        "op": "eq",
+                        "truth": "false"
+                      }
+                    ],
+                    "diagnostics": [],
+                    "valueTrace": [
+                      {
+                        "known": true,
+                        "value": 11,
+                        "residual": {
+                          "literal": 11
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": 10,
+                        "residual": {
+                          "literal": 10
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "row": {
+                    "id": 12,
+                    "root_document_id": 10,
+                    "owner_id": 9,
+                    "version_index": 2,
+                    "deleted": true,
+                    "has_archive_version": false,
+                    "source_file": "v2-original.txt",
+                    "archive_file": null
+                  },
+                  "predicate": {
+                    "truth": "false",
+                    "residual": null,
+                    "missingBindings": [],
+                    "trace": [
+                      {
+                        "op": "eq",
+                        "truth": "false"
+                      }
+                    ],
+                    "diagnostics": [],
+                    "valueTrace": [
+                      {
+                        "known": true,
+                        "value": 12,
+                        "residual": {
+                          "literal": 12
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": 10,
+                        "residual": {
+                          "literal": 10
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "row": {
+                    "id": 20,
+                    "root_document_id": null,
+                    "owner_id": 8,
+                    "version_index": null,
+                    "deleted": false,
+                    "has_archive_version": false,
+                    "source_file": "other.txt",
+                    "archive_file": null
+                  },
+                  "predicate": {
+                    "truth": "false",
+                    "residual": null,
+                    "missingBindings": [],
+                    "trace": [
+                      {
+                        "op": "eq",
+                        "truth": "false"
+                      }
+                    ],
+                    "diagnostics": [],
+                    "valueTrace": [
+                      {
+                        "known": true,
+                        "value": 20,
+                        "residual": {
+                          "literal": 20
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": 10,
+                        "residual": {
+                          "literal": 10
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "outputs": {
+              "value": {
+                "id": 10,
+                "root_document_id": null,
+                "owner_id": 7,
+                "version_index": null,
+                "deleted": false,
+                "has_archive_version": true,
+                "source_file": "root-original.pdf",
+                "archive_file": "root-archive.pdf"
+              },
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 2,
+            "id": "lookup_result",
+            "op": "return",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "src/documents/views.py",
+              "startLine": 1410,
+              "endLine": 1415,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "inputs": {
+              "expression": {
+                "record": {
+                  "requested_document_id": {
+                    "field": {
+                      "of": {
+                        "ref": "request_doc"
+                      },
+                      "key": "id"
+                    }
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "value": {
+                "requested_document_id": 10
+              },
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Author explanation not supplied."
+          }
+        ],
+        "returned": {
+          "requested_document_id": 10
+        },
+        "termination": "return",
+        "conditions": [],
+        "gaps": [
+          "Root-document resolution and owner-aware authorization are not encoded in this initial finite relation.",
+          "Version selection, original/archive selection, and response construction occur outside this root.",
+          "The complete natural answer must retain all original questions and framework evidence limits."
+        ],
+        "semanticSupport": "unreviewed",
+        "requestOperationCertified": false
+      }
+    },
+    "adoptedDraft": {
+      "revision": "3c95f880b118d1a371bbbe25d84c9275a5753b025619f23a6c09039233bcff69",
+      "raw": {
+        "schemaVersion": "authorization-executable-contract/v1",
+        "id": "document-request-resolution",
+        "description": "Finite summary of request document lookup inside the download path.",
+        "scope": {
+          "kind": "function-contract",
+          "questionId": "requested-document-and-returned-file",
+          "root": {
+            "path": "src/documents/views.py",
+            "startLine": 1401,
+            "endLine": 1427
+          },
+          "upstream": [
+            "The caller, DRF request dispatch, and downstream version/representation selection remain unresolved."
+          ]
+        },
+        "inputBinding": {
+          "questionId": "requested-document-and-returned-file"
+        },
+        "sourceDeclarations": [
+          {
+            "source": {
+              "path": "src/documents/views.py",
+              "startLine": 1401,
+              "endLine": 1427
+            },
+            "statements": []
+          }
+        ],
+        "queries": [],
+        "assumptions": [
+          {
+            "origin": "user",
+            "text": "The operation under investigation is the document Download operation in this Paperless revision."
+          }
+        ],
+        "resourceWorkflow": {
+          "inputs": [
+            "actor",
+            "documents",
+            "related_root",
+            "request"
+          ],
+          "steps": [
+            {
+              "id": "request_doc",
+              "op": "select",
+              "from": "documents",
+              "where": {
+                "op": "eq",
+                "left": {
+                  "binding": "row.id"
+                },
+                "right": {
+                  "binding": "request.pk"
+                }
+              },
+              "unique": true,
+              "source": {
+                "path": "src/documents/views.py",
+                "startLine": 1408,
+                "endLine": 1415
+              }
+            },
+            {
+              "id": "lookup_result",
+              "op": "return",
+              "value": {
+                "record": {
+                  "requested_document_id": {
+                    "field": {
+                      "of": {
+                        "ref": "request_doc"
+                      },
+                      "key": "id"
+                    }
+                  }
+                }
+              },
+              "source": {
+                "path": "src/documents/views.py",
+                "startLine": 1410,
+                "endLine": 1415
+              }
+            }
+          ],
+          "gaps": [
+            "Root-document resolution and owner-aware authorization are not encoded in this initial finite relation.",
+            "Version selection, original/archive selection, and response construction occur outside this root.",
+            "The complete natural answer must retain all original questions and framework evidence limits."
+          ]
+        }
+      }
+    },
+    "program": {
+      "schemaVersion": "authorization-executable-contract/v1",
+      "id": "document-request-resolution",
+      "scope": {
+        "kind": "function-contract",
+        "questionId": "requested-document-and-returned-file",
+        "root": {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1427
+        },
+        "upstream": [
+          "The caller, DRF request dispatch, and downstream version/representation selection remain unresolved."
+        ]
+      },
+      "sourceDeclarations": [
+        {
+          "schemaVersion": "authorization-question-declaration/v1",
+          "source": {
+            "path": "src/documents/views.py",
+            "startLine": 1401,
+            "endLine": 1427
+          },
+          "statements": []
+        }
+      ],
+      "queries": [],
+      "assumptions": [
+        {
+          "text": "The operation under investigation is the document Download operation in this Paperless revision.",
+          "origin": "user"
+        }
+      ],
+      "resourceWorkflow": {
+        "inputs": [
+          "actor",
+          "documents",
+          "related_root",
+          "request"
+        ],
+        "steps": [
+          {
+            "id": "request_doc",
+            "op": "select",
+            "from": "documents",
+            "where": {
+              "op": "eq",
+              "left": {
+                "binding": "row.id"
+              },
+              "right": {
+                "binding": "request.pk"
+              }
+            },
+            "unique": true,
+            "source": {
+              "path": "src/documents/views.py",
+              "startLine": 1408,
+              "endLine": 1415,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            }
+          },
+          {
+            "id": "lookup_result",
+            "op": "return",
+            "value": {
+              "record": {
+                "requested_document_id": {
+                  "field": {
+                    "of": {
+                      "ref": "request_doc"
+                    },
+                    "key": "id"
+                  }
+                }
+              }
+            },
+            "source": {
+              "path": "src/documents/views.py",
+              "startLine": 1410,
+              "endLine": 1415,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            }
+          }
+        ],
+        "gaps": [
+          "Root-document resolution and owner-aware authorization are not encoded in this initial finite relation.",
+          "Version selection, original/archive selection, and response construction occur outside this root.",
+          "The complete natural answer must retain all original questions and framework evidence limits."
+        ]
+      },
+      "inputBinding": {
+        "questionId": "requested-document-and-returned-file"
+      }
+    },
+    "origin": "model",
+    "initialRevision": "a9993e2f30c6492e6cabc72416443a9e2ab96186c9be394793e66a7d447647c1",
+    "drafts": [
+      {
+        "raw": {
+          "schemaVersion": "authorization-executable-contract/v1",
+          "id": "document-download-selection",
+          "description": "Finite summary of the request document lookup; later version, permission, and file-selection branches remain explicit gaps.",
+          "scope": {
+            "kind": "request-operation",
+            "operationId": "document-download",
+            "questionId": "requested-document-and-returned-file",
+            "root": {
+              "path": "src/documents/views.py",
+              "symbol": "DocumentViewSet.download"
+            },
+            "upstream": [
+              "DRF routing, authentication, and permission dispatch are not yet modeled.",
+              "The source-visible root/version and representation-selection helpers remain to be incorporated."
+            ]
+          },
+          "inputBinding": {
+            "questionId": "requested-document-and-returned-file"
+          },
+          "sourceDeclarations": [
+            {
+              "source": {
+                "path": "src/documents/views.py",
+                "symbol": "DocumentViewSet._resolve_request_and_root_doc"
+              },
+              "statements": []
+            },
+            {
+              "source": {
+                "path": "src/documents/views.py",
+                "symbol": "DocumentViewSet.download"
+              },
+              "statements": []
+            }
+          ],
+          "queries": [],
+          "assumptions": [
+            {
+              "origin": "user",
+              "text": "The operation under investigation is the document Download operation in this Paperless revision."
+            }
+          ],
+          "resourceWorkflow": {
+            "inputs": [
+              "actor",
+              "documents",
+              "related_root",
+              "request"
+            ],
+            "steps": [
+              {
+                "id": "request_doc",
+                "op": "select",
+                "from": "documents",
+                "where": {
+                  "op": "eq",
+                  "left": {
+                    "binding": "row.id"
+                  },
+                  "right": {
+                    "binding": "request.pk"
+                  }
+                },
+                "unique": true,
+                "source": {
+                  "path": "src/documents/views.py",
+                  "symbol": "DocumentViewSet._resolve_request_and_root_doc"
+                },
+                "because": "The helper looks up the request document by id=pk."
+              },
+              {
+                "id": "lookup_result",
+                "op": "return",
+                "value": {
+                  "record": {
+                    "requested_document_id": {
+                      "field": {
+                        "of": {
+                          "ref": "request_doc"
+                        },
+                        "key": "id"
+                      }
+                    }
+                  }
+                },
+                "source": {
+                  "path": "src/documents/views.py",
+                  "symbol": "DocumentViewSet._resolve_request_and_root_doc"
+                }
+              }
+            ],
+            "gaps": [
+              "Root-document resolution is not yet modeled.",
+              "Authorization and version/original/archive selection are not yet modeled.",
+              "This finite workflow is a partial relation, not a complete authorization conclusion."
+            ]
+          }
+        },
+        "diagnostics": [
+          {
+            "code": "contract-local-shape",
+            "path": "sourceDeclarations.0.source.startLine",
+            "message": "Required",
+            "severity": "error"
+          },
+          {
+            "code": "contract-local-shape",
+            "path": "sourceDeclarations.0.source",
+            "message": "Unrecognized key(s) in object: 'symbol'",
+            "severity": "error"
+          },
+          {
+            "code": "contract-local-shape",
+            "path": "sourceDeclarations.1.source.startLine",
+            "message": "Required",
+            "severity": "error"
+          },
+          {
+            "code": "contract-local-shape",
+            "path": "sourceDeclarations.1.source",
+            "message": "Unrecognized key(s) in object: 'symbol'",
+            "severity": "error"
+          },
+          {
+            "code": "contract-shape",
+            "path": "scope.root.startLine",
+            "message": "Required",
+            "severity": "error"
+          },
+          {
+            "code": "contract-shape",
+            "path": "scope.root",
+            "message": "Unrecognized key(s) in object: 'symbol'",
+            "severity": "error"
+          },
+          {
+            "code": "contract-shape",
+            "path": "sourceDeclarations",
+            "message": "Array must contain at least 1 element(s)",
+            "severity": "error"
+          }
+        ],
+        "draftRevision": "3147d99d6f7ae92532029c75b1db2f19a50817008f5cce4a9b237a29500ef916"
+      },
+      {
+        "raw": {
+          "schemaVersion": "authorization-executable-contract/v1",
+          "id": "document-download-selection",
+          "description": "Finite summary of the request document lookup; later version, permission, and file-selection branches remain explicit gaps.",
+          "scope": {
+            "kind": "request-operation",
+            "operationId": "document-download",
+            "questionId": "requested-document-and-returned-file",
+            "root": {
+              "path": "src/documents/views.py",
+              "startLine": 1834,
+              "endLine": 1839
+            },
+            "upstream": [
+              "DRF routing, authentication, and permission dispatch are not yet modeled.",
+              "The source-visible root/version and representation-selection helpers remain to be incorporated."
+            ]
+          },
+          "inputBinding": {
+            "questionId": "requested-document-and-returned-file"
+          },
+          "sourceDeclarations": [
+            {
+              "source": {
+                "path": "src/documents/views.py",
+                "startLine": 1401,
+                "endLine": 1427
+              },
+              "statements": []
+            },
+            {
+              "source": {
+                "path": "src/documents/views.py",
+                "startLine": 1834,
+                "endLine": 1839
+              },
+              "statements": []
+            }
+          ],
+          "queries": [],
+          "assumptions": [
+            {
+              "origin": "user",
+              "text": "The operation under investigation is the document Download operation in this Paperless revision."
+            }
+          ],
+          "resourceWorkflow": {
+            "inputs": [
+              "actor",
+              "documents",
+              "related_root",
+              "request"
+            ],
+            "steps": [
+              {
+                "id": "request_doc",
+                "op": "select",
+                "from": "documents",
+                "where": {
+                  "op": "eq",
+                  "left": {
+                    "binding": "row.id"
+                  },
+                  "right": {
+                    "binding": "request.pk"
+                  }
+                },
+                "unique": true,
+                "source": {
+                  "path": "src/documents/views.py",
+                  "startLine": 1408,
+                  "endLine": 1415
+                },
+                "because": "The helper looks up the request document by id=pk."
+              },
+              {
+                "id": "lookup_result",
+                "op": "return",
+                "value": {
+                  "record": {
+                    "requested_document_id": {
+                      "field": {
+                        "of": {
+                          "ref": "request_doc"
+                        },
+                        "key": "id"
+                      }
+                    }
+                  }
+                },
+                "source": {
+                  "path": "src/documents/views.py",
+                  "startLine": 1410,
+                  "endLine": 1415
+                }
+              }
+            ],
+            "gaps": [
+              "Root-document resolution is not yet modeled.",
+              "Authorization and version/original/archive selection are not yet modeled.",
+              "This finite workflow is a partial relation, not a complete authorization conclusion."
+            ]
+          }
+        },
+        "diagnostics": [
+          {
+            "code": "contract-source-owner",
+            "path": "sourceDeclarations.1.source",
+            "message": "A complete current source owner must resolve uniquely; candidates=0.",
+            "severity": "error",
+            "questionId": "requested-document-and-returned-file"
+          },
+          {
+            "code": "contract-root",
+            "path": "scope.root",
+            "message": "The root must be one uniquely current declared complete source.",
+            "severity": "error",
+            "questionId": "requested-document-and-returned-file"
+          },
+          {
+            "code": "contract-entry-unconfirmed",
+            "path": "scope",
+            "message": "A request operation needs the existing host-confirmed request entry; a helper cannot be relabeled through an import.",
+            "severity": "error",
+            "questionId": "requested-document-and-returned-file"
+          }
+        ],
+        "draftRevision": "46338f89347627e66dabad9cac21fd91e9d09498640c33c9b397d97335a9d01f"
+      }
+    ],
+    "diagnostics": [],
+    "normalizations": [
+      "$.description:retained-in-raw",
+      "sourceDeclarations.0.schemaVersion"
+    ],
+    "inputBinding": {
+      "scopeQuestionId": "requested-document-and-returned-file",
+      "inputQuestionId": "requested-document-and-returned-file",
+      "origin": "explicit",
+      "datasetPresent": true,
+      "diagnostics": []
+    },
+    "resourceExecution": {
+      "status": "conditional",
+      "inputs": {
+        "actor": {
+          "id": 7
+        },
+        "documents": [
+          {
+            "id": 10,
+            "root_document_id": null,
+            "owner_id": 7,
+            "version_index": null,
+            "deleted": false,
+            "has_archive_version": true,
+            "source_file": "root-original.pdf",
+            "archive_file": "root-archive.pdf"
+          },
+          {
+            "id": 11,
+            "root_document_id": 10,
+            "owner_id": 9,
+            "version_index": 1,
+            "deleted": false,
+            "has_archive_version": true,
+            "source_file": "v1-original.pdf",
+            "archive_file": "v1-archive.pdf"
+          },
+          {
+            "id": 12,
+            "root_document_id": 10,
+            "owner_id": 9,
+            "version_index": 2,
+            "deleted": true,
+            "has_archive_version": false,
+            "source_file": "v2-original.txt",
+            "archive_file": null
+          },
+          {
+            "id": 20,
+            "root_document_id": null,
+            "owner_id": 8,
+            "version_index": null,
+            "deleted": false,
+            "has_archive_version": false,
+            "source_file": "other.txt",
+            "archive_file": null
+          }
+        ],
+        "related_root": null,
+        "request": {
+          "pk": 10,
+          "version": null,
+          "original": null
+        }
+      },
+      "values": {
+        "request_doc": {
+          "id": 10,
+          "root_document_id": null,
+          "owner_id": 7,
+          "version_index": null,
+          "deleted": false,
+          "has_archive_version": true,
+          "source_file": "root-original.pdf",
+          "archive_file": "root-archive.pdf"
+        },
+        "lookup_result": {
+          "requested_document_id": 10
+        }
+      },
+      "events": [
+        {
+          "sequence": 1,
+          "id": "request_doc",
+          "op": "select",
+          "executor": "host",
+          "meaningOrigin": "authored-program",
+          "source": {
+            "path": "src/documents/views.py",
+            "startLine": 1408,
+            "endLine": 1415,
+            "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+          },
+          "inputs": {
+            "from": "documents",
+            "rows": {
+              "known": true,
+              "value": [
+                {
+                  "id": 10,
+                  "root_document_id": null,
+                  "owner_id": 7,
+                  "version_index": null,
+                  "deleted": false,
+                  "has_archive_version": true,
+                  "source_file": "root-original.pdf",
+                  "archive_file": "root-archive.pdf"
+                },
+                {
+                  "id": 11,
+                  "root_document_id": 10,
+                  "owner_id": 9,
+                  "version_index": 1,
+                  "deleted": false,
+                  "has_archive_version": true,
+                  "source_file": "v1-original.pdf",
+                  "archive_file": "v1-archive.pdf"
+                },
+                {
+                  "id": 12,
+                  "root_document_id": 10,
+                  "owner_id": 9,
+                  "version_index": 2,
+                  "deleted": true,
+                  "has_archive_version": false,
+                  "source_file": "v2-original.txt",
+                  "archive_file": null
+                },
+                {
+                  "id": 20,
+                  "root_document_id": null,
+                  "owner_id": 8,
+                  "version_index": null,
+                  "deleted": false,
+                  "has_archive_version": false,
+                  "source_file": "other.txt",
+                  "archive_file": null
+                }
+              ],
+              "gaps": []
+            },
+            "where": {
+              "op": "eq",
+              "left": {
+                "binding": "row.id"
+              },
+              "right": {
+                "binding": "request.pk"
+              }
+            },
+            "candidates": [
+              {
+                "row": {
+                  "id": 10,
+                  "root_document_id": null,
+                  "owner_id": 7,
+                  "version_index": null,
+                  "deleted": false,
+                  "has_archive_version": true,
+                  "source_file": "root-original.pdf",
+                  "archive_file": "root-archive.pdf"
+                },
+                "predicate": {
+                  "truth": "true",
+                  "residual": null,
+                  "missingBindings": [],
+                  "trace": [
+                    {
+                      "op": "eq",
+                      "truth": "true"
+                    }
+                  ],
+                  "diagnostics": [],
+                  "valueTrace": [
+                    {
+                      "known": true,
+                      "value": 10,
+                      "residual": {
+                        "literal": 10
+                      },
+                      "missingBindings": [],
+                      "diagnostics": [],
+                      "origin": "binding"
+                    },
+                    {
+                      "known": true,
+                      "value": 10,
+                      "residual": {
+                        "literal": 10
+                      },
+                      "missingBindings": [],
+                      "diagnostics": [],
+                      "origin": "binding"
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "id": 11,
+                  "root_document_id": 10,
+                  "owner_id": 9,
+                  "version_index": 1,
+                  "deleted": false,
+                  "has_archive_version": true,
+                  "source_file": "v1-original.pdf",
+                  "archive_file": "v1-archive.pdf"
+                },
+                "predicate": {
+                  "truth": "false",
+                  "residual": null,
+                  "missingBindings": [],
+                  "trace": [
+                    {
+                      "op": "eq",
+                      "truth": "false"
+                    }
+                  ],
+                  "diagnostics": [],
+                  "valueTrace": [
+                    {
+                      "known": true,
+                      "value": 11,
+                      "residual": {
+                        "literal": 11
+                      },
+                      "missingBindings": [],
+                      "diagnostics": [],
+                      "origin": "binding"
+                    },
+                    {
+                      "known": true,
+                      "value": 10,
+                      "residual": {
+                        "literal": 10
+                      },
+                      "missingBindings": [],
+                      "diagnostics": [],
+                      "origin": "binding"
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "id": 12,
+                  "root_document_id": 10,
+                  "owner_id": 9,
+                  "version_index": 2,
+                  "deleted": true,
+                  "has_archive_version": false,
+                  "source_file": "v2-original.txt",
+                  "archive_file": null
+                },
+                "predicate": {
+                  "truth": "false",
+                  "residual": null,
+                  "missingBindings": [],
+                  "trace": [
+                    {
+                      "op": "eq",
+                      "truth": "false"
+                    }
+                  ],
+                  "diagnostics": [],
+                  "valueTrace": [
+                    {
+                      "known": true,
+                      "value": 12,
+                      "residual": {
+                        "literal": 12
+                      },
+                      "missingBindings": [],
+                      "diagnostics": [],
+                      "origin": "binding"
+                    },
+                    {
+                      "known": true,
+                      "value": 10,
+                      "residual": {
+                        "literal": 10
+                      },
+                      "missingBindings": [],
+                      "diagnostics": [],
+                      "origin": "binding"
+                    }
+                  ]
+                }
+              },
+              {
+                "row": {
+                  "id": 20,
+                  "root_document_id": null,
+                  "owner_id": 8,
+                  "version_index": null,
+                  "deleted": false,
+                  "has_archive_version": false,
+                  "source_file": "other.txt",
+                  "archive_file": null
+                },
+                "predicate": {
+                  "truth": "false",
+                  "residual": null,
+                  "missingBindings": [],
+                  "trace": [
+                    {
+                      "op": "eq",
+                      "truth": "false"
+                    }
+                  ],
+                  "diagnostics": [],
+                  "valueTrace": [
+                    {
+                      "known": true,
+                      "value": 20,
+                      "residual": {
+                        "literal": 20
+                      },
+                      "missingBindings": [],
+                      "diagnostics": [],
+                      "origin": "binding"
+                    },
+                    {
+                      "known": true,
+                      "value": 10,
+                      "residual": {
+                        "literal": 10
+                      },
+                      "missingBindings": [],
+                      "diagnostics": [],
+                      "origin": "binding"
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "outputs": {
+            "value": {
+              "id": 10,
+              "root_document_id": null,
+              "owner_id": 7,
+              "version_index": null,
+              "deleted": false,
+              "has_archive_version": true,
+              "source_file": "root-original.pdf",
+              "archive_file": "root-archive.pdf"
+            },
+            "known": true
+          },
+          "outcome": "computed",
+          "gaps": [],
+          "because": "Author explanation not supplied."
+        },
+        {
+          "sequence": 2,
+          "id": "lookup_result",
+          "op": "return",
+          "executor": "host",
+          "meaningOrigin": "authored-program",
+          "source": {
+            "path": "src/documents/views.py",
+            "startLine": 1410,
+            "endLine": 1415,
+            "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+          },
+          "inputs": {
+            "expression": {
+              "record": {
+                "requested_document_id": {
+                  "field": {
+                    "of": {
+                      "ref": "request_doc"
+                    },
+                    "key": "id"
+                  }
+                }
+              }
+            }
+          },
+          "outputs": {
+            "value": {
+              "requested_document_id": 10
+            },
+            "known": true
+          },
+          "outcome": "computed",
+          "gaps": [],
+          "because": "Author explanation not supplied."
+        }
+      ],
+      "returned": {
+        "requested_document_id": 10
+      },
+      "termination": "return",
+      "conditions": [],
+      "gaps": [
+        "Root-document resolution and owner-aware authorization are not encoded in this initial finite relation.",
+        "Version selection, original/archive selection, and response construction occur outside this root.",
+        "The complete natural answer must retain all original questions and framework evidence limits."
+      ],
+      "semanticSupport": "unreviewed",
+      "requestOperationCertified": false
+    },
+    "revision": "a9993e2f30c6492e6cabc72416443a9e2ab96186c9be394793e66a7d447647c1",
+    "scope": {
+      "kind": "function-contract",
+      "questionId": "requested-document-and-returned-file",
+      "root": {
+        "path": "src/documents/views.py",
+        "startLine": 1401,
+        "endLine": 1427
+      },
+      "upstream": [
+        "The caller, DRF request dispatch, and downstream version/representation selection remain unresolved."
+      ]
+    },
+    "assumptions": [
+      {
+        "text": "The operation under investigation is the document Download operation in this Paperless revision.",
+        "origin": "user"
+      }
+    ],
+    "conditions": {},
+    "status": "current",
+    "evaluation": {
+      "schemaVersion": "authorization-property-check/v1",
+      "evaluationVersion": "semantic-completion/v1",
+      "revision": 8,
+      "questions": [
+        {
+          "questionId": "requested-document-and-returned-file",
+          "properties": [
+            {
+              "propertyId": "task-property-ef601fc1c56c75f759ce",
+              "kind": "effect-reachability",
+              "status": "unknown",
+              "value": "unresolved",
+              "questionId": "requested-document-and-returned-file",
+              "source": {
+                "id": "struct-4a9672f6253534ddaf14b54e",
+                "path": "src/documents/views.py",
+                "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+                "startLine": 1401,
+                "endLine": 1427
+              },
+              "sourceRevision": "5a1ebd6ed96699ac321492480e89635fd7bf12753fcde4dacfac447b6c1f3093",
+              "gaps": [
+                "effect-unbound",
+                "property-current-source-rejected:question-source-unread-or-unowned",
+                "property-source-effect-unadopted"
+              ],
+              "trace": [],
+              "dependencyRelevance": [],
+              "traceDetails": [],
+              "effectOccurrences": [],
+              "semanticReview": "unreviewed",
+              "scope": "current-proposed-source-relation"
+            },
+            {
+              "propertyId": "task-property-beeec00fd7bb5ced65f6",
+              "kind": "operation-completion",
+              "status": "unknown",
+              "value": "unresolved",
+              "questionId": "requested-document-and-returned-file",
+              "source": {
+                "id": "struct-4a9672f6253534ddaf14b54e",
+                "path": "src/documents/views.py",
+                "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb",
+                "startLine": 1401,
+                "endLine": 1427
+              },
+              "sourceRevision": "5a1ebd6ed96699ac321492480e89635fd7bf12753fcde4dacfac447b6c1f3093",
+              "gaps": [
+                "effect-unbound",
+                "property-current-source-rejected:question-source-unread-or-unowned",
+                "property-source-effect-unadopted"
+              ],
+              "trace": [],
+              "dependencyRelevance": [],
+              "traceDetails": [],
+              "effectOccurrences": [],
+              "semanticReview": "unreviewed",
+              "scope": "current-proposed-source-relation"
+            }
+          ],
+          "gaps": []
+        },
+        {
+          "questionId": "authorization-and-selection-order",
+          "properties": [
+            {
+              "propertyId": "task-property-916f524e5f49e038733d",
+              "kind": "authorization-before-effect",
+              "status": "unknown",
+              "value": "unresolved",
+              "questionId": "authorization-and-selection-order",
+              "gaps": [
+                "property-query-unbound",
+                "property-source-unlocated"
+              ],
+              "trace": [],
+              "traceDetails": [],
+              "effectOccurrences": [],
+              "semanticReview": "unreviewed",
+              "scope": "current-proposed-source-relation"
+            }
+          ],
+          "gaps": []
+        },
+        {
+          "questionId": "alternate-version-authorized-resource",
+          "properties": [
+            {
+              "propertyId": "task-property-538657a0b64afbf509ce",
+              "kind": "authorized-object-matches-effect",
+              "status": "unknown",
+              "value": "unresolved",
+              "questionId": "alternate-version-authorized-resource",
+              "gaps": [
+                "property-query-unbound",
+                "property-source-unlocated"
+              ],
+              "trace": [],
+              "traceDetails": [],
+              "effectOccurrences": [],
+              "semanticReview": "unreviewed",
+              "scope": "current-proposed-source-relation"
+            }
+          ],
+          "gaps": []
+        },
+        {
+          "questionId": "missing-facts-and-conditional-conclusions",
+          "properties": [],
+          "gaps": [
+            "property-query-undeclared"
+          ]
+        }
+      ],
+      "diagnostics": [],
+      "originalQuestionCount": 4,
+      "wholeTaskCertified": false,
+      "semanticReview": "unreviewed"
+    },
+    "requestOperationCertified": false
+  },
+  "draft": {
+    "programMode": "edit",
+    "executionPolicy": "progressive",
+    "currentDraft": {
+      "revision": "3c95f880b118d1a371bbbe25d84c9275a5753b025619f23a6c09039233bcff69",
+      "raw": {
+        "schemaVersion": "authorization-executable-contract/v1",
+        "id": "document-request-resolution",
+        "description": "Finite summary of request document lookup inside the download path.",
+        "scope": {
+          "kind": "function-contract",
+          "questionId": "requested-document-and-returned-file",
+          "root": {
+            "path": "src/documents/views.py",
+            "startLine": 1401,
+            "endLine": 1427
+          },
+          "upstream": [
+            "The caller, DRF request dispatch, and downstream version/representation selection remain unresolved."
+          ]
+        },
+        "inputBinding": {
+          "questionId": "requested-document-and-returned-file"
+        },
+        "sourceDeclarations": [
+          {
+            "source": {
+              "path": "src/documents/views.py",
+              "startLine": 1401,
+              "endLine": 1427
+            },
+            "statements": []
+          }
+        ],
+        "queries": [],
+        "assumptions": [
+          {
+            "origin": "user",
+            "text": "The operation under investigation is the document Download operation in this Paperless revision."
+          }
+        ],
+        "resourceWorkflow": {
+          "inputs": [
+            "actor",
+            "documents",
+            "related_root",
+            "request"
+          ],
+          "steps": [
+            {
+              "id": "request_doc",
+              "op": "select",
+              "from": "documents",
+              "where": {
+                "op": "eq",
+                "left": {
+                  "binding": "row.id"
+                },
+                "right": {
+                  "binding": "request.pk"
+                }
+              },
+              "unique": true,
+              "source": {
+                "path": "src/documents/views.py",
+                "startLine": 1408,
+                "endLine": 1415
+              }
+            },
+            {
+              "id": "lookup_result",
+              "op": "return",
+              "value": {
+                "record": {
+                  "requested_document_id": {
+                    "field": {
+                      "of": {
+                        "ref": "request_doc"
+                      },
+                      "key": "id"
+                    }
+                  }
+                }
+              },
+              "source": {
+                "path": "src/documents/views.py",
+                "startLine": 1410,
+                "endLine": 1415
+              }
+            }
+          ],
+          "gaps": [
+            "Root-document resolution and owner-aware authorization are not encoded in this initial finite relation.",
+            "Version selection, original/archive selection, and response construction occur outside this root.",
+            "The complete natural answer must retain all original questions and framework evidence limits."
+          ]
+        }
+      }
+    },
+    "externalBoundaries": [],
+    "authorLoop": {
+      "firstProgramToolUnit": 24,
+      "firstProposalToolUnit": 24,
+      "firstDraftToolUnit": 26,
+      "patchCount": 0,
+      "programCount": 3,
+      "changes": [
+        {
+          "kind": "program",
+          "toolUnit": 24,
+          "revision": "3147d99d6f7ae92532029c75b1db2f19a50817008f5cce4a9b237a29500ef916",
+          "valid": false
+        },
+        {
+          "kind": "program",
+          "toolUnit": 25,
+          "revision": "46338f89347627e66dabad9cac21fd91e9d09498640c33c9b397d97335a9d01f",
+          "valid": false
+        },
+        {
+          "kind": "program",
+          "toolUnit": 26,
+          "revision": "3c95f880b118d1a371bbbe25d84c9275a5753b025619f23a6c09039233bcff69",
+          "valid": true,
+          "newValues": {
+            "request_doc": {
+              "id": 10,
+              "root_document_id": null,
+              "owner_id": 7,
+              "version_index": null,
+              "deleted": false,
+              "has_archive_version": true,
+              "source_file": "root-original.pdf",
+              "archive_file": "root-archive.pdf"
+            },
+            "lookup_result": {
+              "requested_document_id": 10
+            }
+          },
+          "removedValues": [],
+          "returned": {
+            "requested_document_id": 10
+          },
+          "termination": "return",
+          "unresolvedGaps": [
+            "Root-document resolution and owner-aware authorization are not encoded in this initial finite relation.",
+            "Version selection, original/archive selection, and response construction occur outside this root.",
+            "The complete natural answer must retain all original questions and framework evidence limits."
+          ]
+        }
+      ],
+      "checkpoint": {
+        "toolUnit": 13,
+        "explorationUnits": 12,
+        "completeSources": [
+          {
+            "path": "src/documents/views.py",
+            "symbol": "documents.views.DocumentViewSet.destroy",
+            "startLine": 1352,
+            "endLine": 1366
+          },
+          {
+            "path": "src/documents/views.py",
+            "symbol": "documents.views.DocumentViewSet.original_requested",
+            "startLine": 1369,
+            "endLine": 1373
+          },
+          {
+            "path": "src/documents/views.py",
+            "symbol": "documents.views.DocumentViewSet._resolve_file_doc",
+            "startLine": 1375,
+            "endLine": 1386
+          },
+          {
+            "path": "src/documents/views.py",
+            "symbol": "documents.views.DocumentViewSet._get_effective_file_doc",
+            "startLine": 1388,
+            "endLine": 1399
+          },
+          {
+            "path": "src/documents/views.py",
+            "symbol": "documents.views.DocumentViewSet._resolve_request_and_root_doc",
+            "startLine": 1401,
+            "endLine": 1427
+          },
+          {
+            "path": "src/documents/views.py",
+            "symbol": "documents.views.DocumentViewSet.file_response",
+            "startLine": 1429,
+            "endLine": 1448
+          },
+          {
+            "path": "src/documents/views.py",
+            "symbol": "documents.views.DocumentViewSet.get_metadata",
+            "startLine": 1450,
+            "endLine": 1468
+          },
+          {
+            "path": "src/documents/views.py",
+            "symbol": "documents.views.DocumentViewSet.get_filesize",
+            "startLine": 1470,
+            "endLine": 1473
+          }
+        ],
+        "instruction": "Early authoring checkpoint: a complete current source function is available. Submit a small source-supported authorization_program now, inspect its actual preview, then patch its named gaps while continuing necessary source reads. Retain every original duty; this checkpoint neither supplies source meanings nor closes source tools."
+      }
+    },
+    "currentDraftDiagnostics": [],
+    "candidate": {
+      "revision": "3c95f880b118d1a371bbbe25d84c9275a5753b025619f23a6c09039233bcff69",
+      "adopted": true,
+      "diagnostics": [],
+      "inputBinding": {
+        "scopeQuestionId": "requested-document-and-returned-file",
+        "inputQuestionId": "requested-document-and-returned-file",
+        "origin": "explicit",
+        "datasetPresent": true,
+        "diagnostics": []
+      },
+      "resourceExecution": {
+        "status": "conditional",
+        "inputs": {
+          "actor": {
+            "id": 7
+          },
+          "documents": [
+            {
+              "id": 10,
+              "root_document_id": null,
+              "owner_id": 7,
+              "version_index": null,
+              "deleted": false,
+              "has_archive_version": true,
+              "source_file": "root-original.pdf",
+              "archive_file": "root-archive.pdf"
+            },
+            {
+              "id": 11,
+              "root_document_id": 10,
+              "owner_id": 9,
+              "version_index": 1,
+              "deleted": false,
+              "has_archive_version": true,
+              "source_file": "v1-original.pdf",
+              "archive_file": "v1-archive.pdf"
+            },
+            {
+              "id": 12,
+              "root_document_id": 10,
+              "owner_id": 9,
+              "version_index": 2,
+              "deleted": true,
+              "has_archive_version": false,
+              "source_file": "v2-original.txt",
+              "archive_file": null
+            },
+            {
+              "id": 20,
+              "root_document_id": null,
+              "owner_id": 8,
+              "version_index": null,
+              "deleted": false,
+              "has_archive_version": false,
+              "source_file": "other.txt",
+              "archive_file": null
+            }
+          ],
+          "related_root": null,
+          "request": {
+            "pk": 10,
+            "version": null,
+            "original": null
+          }
+        },
+        "values": {
+          "request_doc": {
+            "id": 10,
+            "root_document_id": null,
+            "owner_id": 7,
+            "version_index": null,
+            "deleted": false,
+            "has_archive_version": true,
+            "source_file": "root-original.pdf",
+            "archive_file": "root-archive.pdf"
+          },
+          "lookup_result": {
+            "requested_document_id": 10
+          }
+        },
+        "events": [
+          {
+            "sequence": 1,
+            "id": "request_doc",
+            "op": "select",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "src/documents/views.py",
+              "startLine": 1408,
+              "endLine": 1415,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "inputs": {
+              "from": "documents",
+              "rows": {
+                "known": true,
+                "value": [
+                  {
+                    "id": 10,
+                    "root_document_id": null,
+                    "owner_id": 7,
+                    "version_index": null,
+                    "deleted": false,
+                    "has_archive_version": true,
+                    "source_file": "root-original.pdf",
+                    "archive_file": "root-archive.pdf"
+                  },
+                  {
+                    "id": 11,
+                    "root_document_id": 10,
+                    "owner_id": 9,
+                    "version_index": 1,
+                    "deleted": false,
+                    "has_archive_version": true,
+                    "source_file": "v1-original.pdf",
+                    "archive_file": "v1-archive.pdf"
+                  },
+                  {
+                    "id": 12,
+                    "root_document_id": 10,
+                    "owner_id": 9,
+                    "version_index": 2,
+                    "deleted": true,
+                    "has_archive_version": false,
+                    "source_file": "v2-original.txt",
+                    "archive_file": null
+                  },
+                  {
+                    "id": 20,
+                    "root_document_id": null,
+                    "owner_id": 8,
+                    "version_index": null,
+                    "deleted": false,
+                    "has_archive_version": false,
+                    "source_file": "other.txt",
+                    "archive_file": null
+                  }
+                ],
+                "gaps": []
+              },
+              "where": {
+                "op": "eq",
+                "left": {
+                  "binding": "row.id"
+                },
+                "right": {
+                  "binding": "request.pk"
+                }
+              },
+              "candidates": [
+                {
+                  "row": {
+                    "id": 10,
+                    "root_document_id": null,
+                    "owner_id": 7,
+                    "version_index": null,
+                    "deleted": false,
+                    "has_archive_version": true,
+                    "source_file": "root-original.pdf",
+                    "archive_file": "root-archive.pdf"
+                  },
+                  "predicate": {
+                    "truth": "true",
+                    "residual": null,
+                    "missingBindings": [],
+                    "trace": [
+                      {
+                        "op": "eq",
+                        "truth": "true"
+                      }
+                    ],
+                    "diagnostics": [],
+                    "valueTrace": [
+                      {
+                        "known": true,
+                        "value": 10,
+                        "residual": {
+                          "literal": 10
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": 10,
+                        "residual": {
+                          "literal": 10
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "row": {
+                    "id": 11,
+                    "root_document_id": 10,
+                    "owner_id": 9,
+                    "version_index": 1,
+                    "deleted": false,
+                    "has_archive_version": true,
+                    "source_file": "v1-original.pdf",
+                    "archive_file": "v1-archive.pdf"
+                  },
+                  "predicate": {
+                    "truth": "false",
+                    "residual": null,
+                    "missingBindings": [],
+                    "trace": [
+                      {
+                        "op": "eq",
+                        "truth": "false"
+                      }
+                    ],
+                    "diagnostics": [],
+                    "valueTrace": [
+                      {
+                        "known": true,
+                        "value": 11,
+                        "residual": {
+                          "literal": 11
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": 10,
+                        "residual": {
+                          "literal": 10
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "row": {
+                    "id": 12,
+                    "root_document_id": 10,
+                    "owner_id": 9,
+                    "version_index": 2,
+                    "deleted": true,
+                    "has_archive_version": false,
+                    "source_file": "v2-original.txt",
+                    "archive_file": null
+                  },
+                  "predicate": {
+                    "truth": "false",
+                    "residual": null,
+                    "missingBindings": [],
+                    "trace": [
+                      {
+                        "op": "eq",
+                        "truth": "false"
+                      }
+                    ],
+                    "diagnostics": [],
+                    "valueTrace": [
+                      {
+                        "known": true,
+                        "value": 12,
+                        "residual": {
+                          "literal": 12
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": 10,
+                        "residual": {
+                          "literal": 10
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "row": {
+                    "id": 20,
+                    "root_document_id": null,
+                    "owner_id": 8,
+                    "version_index": null,
+                    "deleted": false,
+                    "has_archive_version": false,
+                    "source_file": "other.txt",
+                    "archive_file": null
+                  },
+                  "predicate": {
+                    "truth": "false",
+                    "residual": null,
+                    "missingBindings": [],
+                    "trace": [
+                      {
+                        "op": "eq",
+                        "truth": "false"
+                      }
+                    ],
+                    "diagnostics": [],
+                    "valueTrace": [
+                      {
+                        "known": true,
+                        "value": 20,
+                        "residual": {
+                          "literal": 20
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      },
+                      {
+                        "known": true,
+                        "value": 10,
+                        "residual": {
+                          "literal": 10
+                        },
+                        "missingBindings": [],
+                        "diagnostics": [],
+                        "origin": "binding"
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            "outputs": {
+              "value": {
+                "id": 10,
+                "root_document_id": null,
+                "owner_id": 7,
+                "version_index": null,
+                "deleted": false,
+                "has_archive_version": true,
+                "source_file": "root-original.pdf",
+                "archive_file": "root-archive.pdf"
+              },
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Author explanation not supplied."
+          },
+          {
+            "sequence": 2,
+            "id": "lookup_result",
+            "op": "return",
+            "executor": "host",
+            "meaningOrigin": "authored-program",
+            "source": {
+              "path": "src/documents/views.py",
+              "startLine": 1410,
+              "endLine": 1415,
+              "sha256": "4875a5d3c0c82923d7cf8f8fb3a2b2d7fc7768a952eaa857390136b923d5b1eb"
+            },
+            "inputs": {
+              "expression": {
+                "record": {
+                  "requested_document_id": {
+                    "field": {
+                      "of": {
+                        "ref": "request_doc"
+                      },
+                      "key": "id"
+                    }
+                  }
+                }
+              }
+            },
+            "outputs": {
+              "value": {
+                "requested_document_id": 10
+              },
+              "known": true
+            },
+            "outcome": "computed",
+            "gaps": [],
+            "because": "Author explanation not supplied."
+          }
+        ],
+        "returned": {
+          "requested_document_id": 10
+        },
+        "termination": "return",
+        "conditions": [],
+        "gaps": [
+          "Root-document resolution and owner-aware authorization are not encoded in this initial finite relation.",
+          "Version selection, original/archive selection, and response construction occur outside this root.",
+          "The complete natural answer must retain all original questions and framework evidence limits."
+        ],
+        "semanticSupport": "unreviewed",
+        "requestOperationCertified": false
+      }
+    },
+    "rejected": [
+      {
+        "raw": {
+          "schemaVersion": "authorization-executable-contract/v1",
+          "id": "document-download-selection",
+          "description": "Finite summary of the request document lookup; later version, permission, and file-selection branches remain explicit gaps.",
+          "scope": {
+            "kind": "request-operation",
+            "operationId": "document-download",
+            "questionId": "requested-document-and-returned-file",
+            "root": {
+              "path": "src/documents/views.py",
+              "symbol": "DocumentViewSet.download"
+            },
+            "upstream": [
+              "DRF routing, authentication, and permission dispatch are not yet modeled.",
+              "The source-visible root/version and representation-selection helpers remain to be incorporated."
+            ]
+          },
+          "inputBinding": {
+            "questionId": "requested-document-and-returned-file"
+          },
+          "sourceDeclarations": [
+            {
+              "source": {
+                "path": "src/documents/views.py",
+                "symbol": "DocumentViewSet._resolve_request_and_root_doc"
+              },
+              "statements": []
+            },
+            {
+              "source": {
+                "path": "src/documents/views.py",
+                "symbol": "DocumentViewSet.download"
+              },
+              "statements": []
+            }
+          ],
+          "queries": [],
+          "assumptions": [
+            {
+              "origin": "user",
+              "text": "The operation under investigation is the document Download operation in this Paperless revision."
+            }
+          ],
+          "resourceWorkflow": {
+            "inputs": [
+              "actor",
+              "documents",
+              "related_root",
+              "request"
+            ],
+            "steps": [
+              {
+                "id": "request_doc",
+                "op": "select",
+                "from": "documents",
+                "where": {
+                  "op": "eq",
+                  "left": {
+                    "binding": "row.id"
+                  },
+                  "right": {
+                    "binding": "request.pk"
+                  }
+                },
+                "unique": true,
+                "source": {
+                  "path": "src/documents/views.py",
+                  "symbol": "DocumentViewSet._resolve_request_and_root_doc"
+                },
+                "because": "The helper looks up the request document by id=pk."
+              },
+              {
+                "id": "lookup_result",
+                "op": "return",
+                "value": {
+                  "record": {
+                    "requested_document_id": {
+                      "field": {
+                        "of": {
+                          "ref": "request_doc"
+                        },
+                        "key": "id"
+                      }
+                    }
+                  }
+                },
+                "source": {
+                  "path": "src/documents/views.py",
+                  "symbol": "DocumentViewSet._resolve_request_and_root_doc"
+                }
+              }
+            ],
+            "gaps": [
+              "Root-document resolution is not yet modeled.",
+              "Authorization and version/original/archive selection are not yet modeled.",
+              "This finite workflow is a partial relation, not a complete authorization conclusion."
+            ]
+          }
+        },
+        "diagnostics": [
+          {
+            "code": "contract-local-shape",
+            "path": "sourceDeclarations.0.source.startLine",
+            "message": "Required",
+            "severity": "error"
+          },
+          {
+            "code": "contract-local-shape",
+            "path": "sourceDeclarations.0.source",
+            "message": "Unrecognized key(s) in object: 'symbol'",
+            "severity": "error"
+          },
+          {
+            "code": "contract-local-shape",
+            "path": "sourceDeclarations.1.source.startLine",
+            "message": "Required",
+            "severity": "error"
+          },
+          {
+            "code": "contract-local-shape",
+            "path": "sourceDeclarations.1.source",
+            "message": "Unrecognized key(s) in object: 'symbol'",
+            "severity": "error"
+          },
+          {
+            "code": "contract-shape",
+            "path": "scope.root.startLine",
+            "message": "Required",
+            "severity": "error"
+          },
+          {
+            "code": "contract-shape",
+            "path": "scope.root",
+            "message": "Unrecognized key(s) in object: 'symbol'",
+            "severity": "error"
+          },
+          {
+            "code": "contract-shape",
+            "path": "sourceDeclarations",
+            "message": "Array must contain at least 1 element(s)",
+            "severity": "error"
+          }
+        ],
+        "draftRevision": "3147d99d6f7ae92532029c75b1db2f19a50817008f5cce4a9b237a29500ef916"
+      },
+      {
+        "raw": {
+          "schemaVersion": "authorization-executable-contract/v1",
+          "id": "document-download-selection",
+          "description": "Finite summary of the request document lookup; later version, permission, and file-selection branches remain explicit gaps.",
+          "scope": {
+            "kind": "request-operation",
+            "operationId": "document-download",
+            "questionId": "requested-document-and-returned-file",
+            "root": {
+              "path": "src/documents/views.py",
+              "startLine": 1834,
+              "endLine": 1839
+            },
+            "upstream": [
+              "DRF routing, authentication, and permission dispatch are not yet modeled.",
+              "The source-visible root/version and representation-selection helpers remain to be incorporated."
+            ]
+          },
+          "inputBinding": {
+            "questionId": "requested-document-and-returned-file"
+          },
+          "sourceDeclarations": [
+            {
+              "source": {
+                "path": "src/documents/views.py",
+                "startLine": 1401,
+                "endLine": 1427
+              },
+              "statements": []
+            },
+            {
+              "source": {
+                "path": "src/documents/views.py",
+                "startLine": 1834,
+                "endLine": 1839
+              },
+              "statements": []
+            }
+          ],
+          "queries": [],
+          "assumptions": [
+            {
+              "origin": "user",
+              "text": "The operation under investigation is the document Download operation in this Paperless revision."
+            }
+          ],
+          "resourceWorkflow": {
+            "inputs": [
+              "actor",
+              "documents",
+              "related_root",
+              "request"
+            ],
+            "steps": [
+              {
+                "id": "request_doc",
+                "op": "select",
+                "from": "documents",
+                "where": {
+                  "op": "eq",
+                  "left": {
+                    "binding": "row.id"
+                  },
+                  "right": {
+                    "binding": "request.pk"
+                  }
+                },
+                "unique": true,
+                "source": {
+                  "path": "src/documents/views.py",
+                  "startLine": 1408,
+                  "endLine": 1415
+                },
+                "because": "The helper looks up the request document by id=pk."
+              },
+              {
+                "id": "lookup_result",
+                "op": "return",
+                "value": {
+                  "record": {
+                    "requested_document_id": {
+                      "field": {
+                        "of": {
+                          "ref": "request_doc"
+                        },
+                        "key": "id"
+                      }
+                    }
+                  }
+                },
+                "source": {
+                  "path": "src/documents/views.py",
+                  "startLine": 1410,
+                  "endLine": 1415
+                }
+              }
+            ],
+            "gaps": [
+              "Root-document resolution is not yet modeled.",
+              "Authorization and version/original/archive selection are not yet modeled.",
+              "This finite workflow is a partial relation, not a complete authorization conclusion."
+            ]
+          }
+        },
+        "diagnostics": [
+          {
+            "code": "contract-source-owner",
+            "path": "sourceDeclarations.1.source",
+            "message": "A complete current source owner must resolve uniquely; candidates=0.",
+            "severity": "error",
+            "questionId": "requested-document-and-returned-file"
+          },
+          {
+            "code": "contract-root",
+            "path": "scope.root",
+            "message": "The root must be one uniquely current declared complete source.",
+            "severity": "error",
+            "questionId": "requested-document-and-returned-file"
+          },
+          {
+            "code": "contract-entry-unconfirmed",
+            "path": "scope",
+            "message": "A request operation needs the existing host-confirmed request entry; a helper cannot be relabeled through an import.",
+            "severity": "error",
+            "questionId": "requested-document-and-returned-file"
+          }
+        ],
+        "draftRevision": "46338f89347627e66dabad9cac21fd91e9d09498640c33c9b397d97335a9d01f"
+      }
+    ]
+  },
+  "proposals": [
+    {
+      "delta": {
+        "schemaVersion": "authorization-executable-contract/v1",
+        "id": "document-request-resolution",
+        "description": "Finite summary of request document lookup inside the download path.",
+        "scope": {
+          "kind": "function-contract",
+          "questionId": "requested-document-and-returned-file",
+          "root": {
+            "path": "src/documents/views.py",
+            "startLine": 1401,
+            "endLine": 1427
+          },
+          "upstream": [
+            "The caller, DRF request dispatch, and downstream version/representation selection remain unresolved."
+          ]
+        },
+        "inputBinding": {
+          "questionId": "requested-document-and-returned-file"
+        },
+        "sourceDeclarations": [
+          {
+            "source": {
+              "path": "src/documents/views.py",
+              "startLine": 1401,
+              "endLine": 1427
+            },
+            "statements": []
+          }
+        ],
+        "queries": [],
+        "assumptions": [
+          {
+            "origin": "user",
+            "text": "The operation under investigation is the document Download operation in this Paperless revision."
+          }
+        ],
+        "resourceWorkflow": {
+          "inputs": [
+            "actor",
+            "documents",
+            "related_root",
+            "request"
+          ],
+          "steps": [
+            {
+              "id": "request_doc",
+              "op": "select",
+              "from": "documents",
+              "where": {
+                "op": "eq",
+                "left": {
+                  "binding": "row.id"
+                },
+                "right": {
+                  "binding": "request.pk"
+                }
+              },
+              "unique": true,
+              "source": {
+                "path": "src/documents/views.py",
+                "startLine": 1408,
+                "endLine": 1415
+              }
+            },
+            {
+              "id": "lookup_result",
+              "op": "return",
+              "value": {
+                "record": {
+                  "requested_document_id": {
+                    "field": {
+                      "of": {
+                        "ref": "request_doc"
+                      },
+                      "key": "id"
+                    }
+                  }
+                }
+              },
+              "source": {
+                "path": "src/documents/views.py",
+                "startLine": 1410,
+                "endLine": 1415
+              }
+            }
+          ],
+          "gaps": [
+            "Root-document resolution and owner-aware authorization are not encoded in this initial finite relation.",
+            "Version selection, original/archive selection, and response construction occur outside this root.",
+            "The complete natural answer must retain all original questions and framework evidence limits."
+          ]
+        }
+      },
+      "diagnostics": [],
+      "revision": 8
+    },
+    {
+      "delta": {
+        "schemaVersion": "authorization-question-declaration/v1",
+        "questionId": "authorization-and-selection-order",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1429,
+          "endLine": 1448
+        },
+        "fallthrough": "unknown",
+        "statements": [
+          {
+            "kind": "object",
+            "as": "principal",
+            "expression": "request.user",
+            "because": "The download file-response path passes the request into the helper that performs the owner-aware check.",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1429,
+              "endLine": 1434
+            }
+          },
+          {
+            "kind": "object",
+            "as": "resource",
+            "expression": "resolved.root_doc",
+            "because": "The lookup helper resolves the requested document to its root document before the authorization decision.",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1417,
+              "endLine": 1424
+            }
+          },
+          {
+            "kind": "object",
+            "as": "resource",
+            "expression": "file_doc",
+            "because": "After a non-forbidden resolution, a later helper chooses the document whose file will be served.",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1437,
+              "endLine": 1443
+            }
+          },
+          {
+            "kind": "object",
+            "as": "permission",
+            "expression": "view_document",
+            "because": "The manual owner-aware authorization check requests view_document.",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1421,
+              "endLine": 1424
+            }
+          },
+          {
+            "kind": "statement",
+            "outcome": "deny",
+            "failure": "authorization",
+            "because": "A failed owner-aware check returns HttpResponseForbidden and file selection is not reached.",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1421,
+              "endLine": 1436
+            }
+          },
+          {
+            "kind": "effect",
+            "principal": "request.user",
+            "resource": "file_doc",
+            "because": "The successful branch calls serve_file with the selected file document.",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1442,
+              "endLine": 1448
+            }
+          },
+          {
+            "kind": "dependency",
+            "as": "condition",
+            "because": "Whether the helper authorizes the user on the root document depends on has_perms_owner_aware.",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1421,
+              "endLine": 1426
+            },
+            "principal": "request.user",
+            "resource": "resolved.root_doc"
+          },
+          {
+            "kind": "residual",
+            "because": "Authentication backends, actual ownership, and object grants are runtime facts not fixed by this function.",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1421,
+              "endLine": 1426
+            }
+          }
+        ],
+        "properties": [
+          {
+            "property": "task-property-916f524e5f49e038733d",
+            "guard": {
+              "path": "src/documents/views.py",
+              "startLine": 1421,
+              "endLine": 1426
+            },
+            "effect": {
+              "path": "src/documents/views.py",
+              "startLine": 1442,
+              "endLine": 1448
+            }
+          }
+        ]
+      },
+      "diagnostics": [
+        {
+          "code": "question-source-unread-or-unowned",
+          "path": "source",
+          "questionId": "authorization-and-selection-order",
+          "message": "Read the whole current original passage and establish its question/operation owner, or use an explicit function contract. Focus alone cannot establish that owner.",
+          "severity": "error"
+        }
+      ],
+      "revision": 8
+    },
+    {
+      "delta": {
+        "schemaVersion": "authorization-question-declaration/v1",
+        "questionId": "requested-document-and-returned-file",
+        "source": {
+          "path": "src/documents/views.py",
+          "startLine": 1401,
+          "endLine": 1427
+        },
+        "fallthrough": "unknown",
+        "statements": [
+          {
+            "kind": "object",
+            "as": "principal",
+            "expression": "request.user",
+            "because": "The helper uses the request user in the owner-aware check.",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1421,
+              "endLine": 1426
+            }
+          },
+          {
+            "kind": "object",
+            "as": "resource",
+            "expression": "root_doc",
+            "because": "The requested document is normalized to its root document before the owner-aware check.",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1417,
+              "endLine": 1424
+            }
+          },
+          {
+            "kind": "object",
+            "as": "permission",
+            "expression": "view_document",
+            "because": "The helper requests view_document from has_perms_owner_aware.",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1421,
+              "endLine": 1424
+            }
+          },
+          {
+            "kind": "statement",
+            "outcome": "deny",
+            "failure": "authorization",
+            "because": "For a non-null user whose owner-aware view check fails, the helper returns HttpResponseForbidden.",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1421,
+              "endLine": 1426
+            }
+          },
+          {
+            "kind": "effect",
+            "principal": "request.user",
+            "resource": "root_doc",
+            "because": "On the non-forbidden branch the helper returns both request_doc and root_doc to the caller.",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1427,
+              "endLine": 1427
+            }
+          },
+          {
+            "kind": "residual",
+            "because": "Actual user ownership and Guardian object grants are runtime facts outside this source passage.",
+            "at": {
+              "path": "src/documents/views.py",
+              "startLine": 1421,
+              "endLine": 1426
+            }
+          }
+        ],
+        "properties": []
+      },
+      "diagnostics": [
+        {
+          "code": "question-source-unread-or-unowned",
+          "path": "source",
+          "questionId": "requested-document-and-returned-file",
+          "message": "Read the whole current original passage and establish its question/operation owner, or use an explicit function contract. Focus alone cannot establish that owner.",
+          "severity": "error"
+        }
+      ],
+      "revision": 8
+    }
+  ]
+}

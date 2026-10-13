@@ -19,7 +19,7 @@ if ($Mode -eq 'author') {
   if ($ProgramFile) { throw 'Author mode starts without a supplied program; use -Previous for a saved author session.' }
   $command += '--program-mode=edit'
 } else {
-  if (-not $ProgramFile) { $ProgramFile = Join-Path $PSScriptRoot 'program.json' }
+  if (-not $ProgramFile) { $ProgramFile = Join-Path $repo 'results/skill-ir/skill-dsl-research/development/authorization-recoverable-authoring-v1/authoring/automatic-program.json' }
   $ProgramFile = (Resolve-Path -LiteralPath $ProgramFile).Path
   $command += @("--domain-program=$ProgramFile", '--program-mode=consume')
 }
@@ -37,7 +37,7 @@ try {
   $output = & bun @command
   $code = $LASTEXITCODE
   [IO.File]::WriteAllText((Join-Path $Out 'command-result.json'), ($output -join "`n"), [Text.UTF8Encoding]::new($false))
-  if ($code -ne 0) { throw "Execution did not complete. Inspect $Out/command-result.json; do not automatically resend." }
+  if ($code -ne 0) { Write-Error "Execution did not complete. Inspect $Out/command-result.json; do not automatically resend." -ErrorAction Continue; exit $code }
   $result = ($output -join "`n") | ConvertFrom-Json
   Write-Output "Session: $($result.sessionPath)"
   Write-Output "Steps: $($result.sessionPath)/execution.md"

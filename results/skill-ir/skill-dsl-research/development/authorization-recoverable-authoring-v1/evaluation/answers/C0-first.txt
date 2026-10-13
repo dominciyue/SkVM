@@ -1,0 +1,98 @@
+## Trace summary
+
+`GET /api/documents/{pk}/download/` is a DRF detail action. The router registers `UnifiedSearchViewSet` under `documents`; that viewset inherits `DocumentViewSet`, whose `download()` action calls `file_response(..., "attachment")` [src/paperless/urls.py:74-77](src/paperless/urls.py#L74-L77), [src/documents/views.py:2503-2507](src/documents/views.py#L2503-L2507), [src/documents/views.py:1834-1840](src/documents/views.py#L1834-L1840).
+
+### 1. Request, document, version, and file selection
+
+1. **Path document lookup**
+   - `{pk}` is looked up as `Document.id`.
+   - Download passes `include_deleted=True`, so this initial lookup uses `Document.global_objects`; a missing ID produces 404.
+   - The resulting object is `request_doc` [src/documents/views.py:1401-1415](src/documents/views.py#L1401-L1415), [src/documents/views.py:1429-1434](src/documents/views.py#L1429-L1434).
+
+2. **Root resolution**
+   - A root document remains itself.
+   - A version normally resolves to its `root_document`; if that relation cannot be obtained, the helper falls back to the requested document itself [src/documents/versioning.py:146-156](src/documents/versioning.py#L146-L156).
+
+3. **Effective version (`file_doc`)**
+   
+   | Request branch | Effective document |
+   |---|---|
+   | `pk` identifies a version and `version` is absent | That exact version, including a deleted version found through `global_objects`. |
+   | `pk` identifies a root and `version` is absent | Newest non-deleted child version; root if no child exists. |
+   | `version=` is present but empty | Treated as “no specific ID,” but because the parameter is present, newest selection includes deleted versions. |
+   | `version=<integer>` | That ID, including deleted records, but only if it is the root itself or a child of that root. |
+   | Non-integer `version` | 404 with “Invalid version parameter.” |
+   | Missing ID or document from another root family | 404. |
+
+   These branches come from `_get_effective_file_doc()`, `_resolve_file_doc()`, and `resolve_requested_version_for_root()` [src/documents/views.py:1375-1399](src/documents/views.py#L1375-L1399), [src/documents/versioning.py:169-195](src/documents/versioning.py#L169-L195).
+
+4. **Original versus archive**
+   - Only the exact query value `original=true` requests the original.
+   - Otherwise the archive is used when `file_doc.has_archive_version` is true.
+   - If there is no archive, the source/original file is used even without `original=true` [src/documents/views.py:1368-1373](src/documents/views.py#L1368-L1373), [src/documents/views.py:1442-1447](src/documents/views.py#L1442-L1447).
+
+5. **Response**
+   - Archive branch opens `file_doc.archive_file`, reports PDF MIME type, and chooses the archive public filename.
+   - Original branch opens `file_doc.source_file` and uses the document MIME type and public filename.
+   - `follow_formatting` changes the response filename, not which file is returned.
+   - Download uses `Content-Disposition: attachment`; missing documents/files encountered by the action become 404 responses [src/documents/views.py:1834-1840](src/documents/views/views.py#L1834-L1840), [src/documents/views.py:4941-4995](src/documents/views.py#L4941-L4995).
+
+### 2. Authorization and its ordering
+
+Before `download()` runs, DRF performs authentication and view-level permission checks [framework/rest_framework-3.18.1/rest_framework/views.py:404-421](framework/rest_framework-3.18.1/rest_framework/views.py#L404-L421), [framework/rest_framework-3.18.1/rest_framework/views.py:490-523](framework/rest_framework-3.18.1/rest_framework/views.py#L490-L523).
+
+`DocumentViewSet` specifies:
+
+- `IsAuthenticated`, requiring an authenticated user.
+- `PaperlessObjectPermissions`, whose GET mapping requires the model permission `documents.view_document` [src/documents/views.py:1008-1027](src/documents/views.py#L1008-L1027), [src/documents/permissions.py:30-44](src/documents/permissions.py#L30-L44), [framework/rest_framework-3.18.1/rest_framework/permissions.py:145-151](framework/rest_framework-3.18.1/rest_framework/permissions.py#L145-L151).
+
+The action does **not** call DRF’s `get_object()`. Consequently, the usual automatic `check_object_permissions()` call associated with `GenericAPIView.get_object()` is not executed here [framework/rest_framework-3.18.1/rest_framework/generics.py:79-105](framework/rest_framework-3.18.1/rest_framework/generics.py#L79-L105).
+
+Instead, Download performs its own object check:
+
+1. Look up `request_doc`.
+2. Derive `root_doc`.
+3. Require `view_document` on **`root_doc`** through `has_perms_owner_aware`.
+4. Return 403 if that check fails.
+5. Only after it passes, select `file_doc`, then choose original/archive and construct the response [src/documents/views.py:1408-1448](src/documents/views.py#L1408-L1448).
+
+`has_perms_owner_aware` allows access when:
+
+- the root is unowned;
+- the requester owns the root; or
+- Guardian reports `view_document` on the root.
+
+Otherwise it denies [src/documents/permissions.py:624-635](src/documents/permissions.py#L624-L635).
+
+### 3. Does alternate selection change the authorized resource?
+
+No. The explicit object authorization remains attached to the root derived from the path `{pk}`.
+
+- Choosing another version changes `file_doc`, but the candidate must be that root or one of its children.
+- Choosing original versus archive changes only the file field on `file_doc`.
+- Neither operation performs a second owner/object-grant check on the selected version or its file representation.
+
+Thus the authorized object and returned object need not be identical: a user authorized through root ownership or a root grant may receive a child version whose own `owner` differs. In the supplied fixture, version 11 is owned by user 9, but authorization is against root 10, owned by actor 7.
+
+### 4. Supplied fixture result and unresolved facts
+
+For the development fixture (`actor=7`, `pk=10`, no `version`, no `original`):
+
+- `request_doc` and authorization root: document 10.
+- Local root check: passes because actor 7 owns root 10.
+- Effective document: version 11, the newest non-deleted version; deleted version 12 is excluded.
+- Representation: archive, because `original=true` was not supplied and version 11 has an archive.
+- Selected file: **`v1-archive.pdf`**.
+
+That result remains conditional on the upstream DRF authentication and model-level `documents.view_document` check passing.
+
+Unavailable facts and what they prevent:
+
+- **Actual authentication configuration/credentials:** prevents concluding that a real deployed request authenticates, and whether an authentication failure appears as 401 or 403.
+- **User’s model-level Django permission:** prevents concluding that DRF permits the request to enter `download()`.
+- **Actual root ownership and Guardian grants:** prevents deciding the custom root check for requests outside the supplied fixture.
+- **Actual document/version rows and query parameters:** prevents naming the effective version for another request.
+- **Archive state and backing-file availability/readability:** prevents guaranteeing successful streaming of the selected file.
+- **Deployment or proxy configuration:** not needed to establish the source ordering above, but unavailable for claims about externally deployed routing or additional controls.
+
+The auxiliary machine property check remained undeclared/unreviewed, so it did not certify the complete operation; the conclusions above are based on the cited source trace.

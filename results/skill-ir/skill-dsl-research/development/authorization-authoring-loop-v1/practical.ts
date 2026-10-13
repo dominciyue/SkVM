@@ -10,7 +10,7 @@ const save = async (file: string, value: unknown) => { await mkdir(path.dirname(
 const sha = (value: string | Buffer) => createHash("sha256").update(value).digest("hex")
 const relative = (file: string) => path.relative(repo, file).split(path.sep).join("/")
 function assert(truth: unknown, message: string): asserts truth { if (!truth) throw new Error(message) }
-const owned = (suffix: string) => { const target = path.resolve(base, "verification", suffix); assert(target.startsWith(path.join(base, "verification") + path.sep), "Output escaped BJ verification"); return target }
+const owned = (suffix: string, root = base) => { const target = path.resolve(root, "verification", suffix); assert(target.startsWith(path.join(root, "verification") + path.sep), "Output escaped owned verification"); return target }
 async function copyTree(source: string, destination: string) {
   // Resume a partial owned copy without overwriting any existing file.
   await mkdir(path.dirname(destination), { recursive: true })
@@ -74,19 +74,20 @@ export async function verifySourceChange() {
   return result
 }
 
-export async function verifyShareLink() {
-  const resultFile = owned("sharelink-result.json"), prior = await load(resultFile).catch(() => undefined)
+export async function verifyShareLink(outputRoot = base) {
+  const own = (suffix: string) => owned(suffix, outputRoot)
+  const resultFile = own("sharelink-result.json"), prior = await load(resultFile).catch(() => undefined)
   if (prior) return prior
   const example = path.join(repo, "examples/authorization-assessment/share-create-workflow"), originalInputFile = path.join(example, "inputs/allowed.json"), originalProgramFile = path.join(example, "program.json")
   const originalProgramBytes = await readFile(originalProgramFile), input = await load(originalInputFile), originalData = input.resourceInputs["share-create"]
   const dataQuestion = "scenario-facts", operationId = "share-action"
   input.inquiry = { ...input.inquiry, schemaVersion: "authorization-inquiry/v2", operations: [{ id: operationId, request: "Inspect the original share operation" }], questions: [...input.inquiry.questions.map((q: any) => ({ ...q, operationId, intent: "policy-comparison" })), { id: dataQuestion, operationId, intent: "scope", request: "Retain supplied development scenario facts", premises: [] }] }
   input.resourceInputs = { [dataQuestion]: originalData }
-  const inputFile = path.join(base, "inputs/share-link-allowed.json"), sourceRoot = path.resolve(path.dirname(originalInputFile), input.sourceRoot)
+  const inputFile = path.join(outputRoot, "inputs/share-link-allowed.json"), sourceRoot = path.resolve(path.dirname(originalInputFile), input.sourceRoot)
   input.sourceRoot = path.relative(path.dirname(inputFile), sourceRoot).split(path.sep).join("/"); await save(inputFile, input)
   const raw = { ...JSON.parse(originalProgramBytes.toString("utf8")), inputBinding: { questionId: dataQuestion } }
-  const programFile = owned("developer-assisted/sharelink-bound.json"); await save(programFile, raw)
-  const runtime = await createNativeInquiryRuntime({ inputFile, workDir: base, domainTools: true, method: "D1", strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive", maxToolCalls: 32, maxDisplayBytes: 786432, maxReadBytes: 33554432 })
+  const programFile = own("developer-assisted/sharelink-bound.json"); await save(programFile, raw)
+  const runtime = await createNativeInquiryRuntime({ inputFile, workDir: outputRoot, domainTools: true, method: "D1", strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive", maxToolCalls: 32, maxDisplayBytes: 786432, maxReadBytes: 33554432 })
   const phases: any[] = []; let retained: any, evidence: any[] = [], firstReport: any
   try {
     await runtime.execute({ id: "prepare", name: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: input.inquiry.questions.map((q: any) => ({ questionId: q.id, state: "residual", reason: "Original duties remain for source explanation" })) } })
@@ -108,11 +109,11 @@ export async function verifyShareLink() {
     const details = JSON.parse((await runtime.execute({ id: "details", name: "authorization_program_details", arguments: { view: "draft", expectedRevision: accepted.revision, stepId: "create_descriptor" } })).output)
     assert(details.events.some((e: any) => e.outputs?.value?.document_id === 10), "Draft detail lost the actual descriptor")
     retained = JSON.parse(JSON.stringify(runtime.report().domain!.programDraft.currentDraft)); evidence = runtime.report().evidence; firstReport = runtime.report()
-    await save(owned("developer-assisted/sharelink-retained-draft.json"), retained)
+    await save(own("developer-assisted/sharelink-retained-draft.json"), retained)
   } finally { await runtime.close() }
   const denied = structuredClone(input); denied.resourceInputs[dataQuestion].object_grants = []
-  const deniedFile = path.join(base, "inputs/share-link-denied.json"); await save(deniedFile, denied)
-  const resumed = await createNativeInquiryRuntime({ inputFile: deniedFile, workDir: base, domainTools: true, method: "D1", strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive", maxToolCalls: 32, reuse: { info: { answerReused: false } as any, seed: { delta: { schemaVersion: "authorization-control-slice/v1", rules: [], dependencies: [], bindings: [], policyRules: [] }, evidence, programDraft: retained } } })
+  const deniedFile = path.join(outputRoot, "inputs/share-link-denied.json"); await save(deniedFile, denied)
+  const resumed = await createNativeInquiryRuntime({ inputFile: deniedFile, workDir: outputRoot, domainTools: true, method: "D1", strategy: "question-checked-v1", programMode: "edit", executionPolicy: "progressive", maxToolCalls: 32, reuse: { info: { answerReused: false } as any, seed: { delta: { schemaVersion: "authorization-control-slice/v1", rules: [], dependencies: [], bindings: [], policyRules: [] }, evidence, programDraft: retained } } })
   let second: any
   try {
     await resumed.execute({ id: "prepare", name: "authorization_prepare_properties", arguments: { schemaVersion: "authorization-property-intent/v1", questions: denied.inquiry.questions.map((q: any) => ({ questionId: q.id, state: "residual", reason: "Original duties retained" })) } })
@@ -124,7 +125,7 @@ export async function verifyShareLink() {
   } finally { await resumed.close() }
   const checked: any = await checkAuthorizationInquiry(deniedFile, "D1", "question-checked-v1", programFile, { executionPolicy: "progressive" })
   assert(checked.status === "valid" && checked.providerCalls === 0, "ShareLink public check failed")
-  const archived = await saveLocalInquiryCheck(deniedFile, programFile, owned("archives/sharelink"), checked, { executionPolicy: "progressive" }), inspected: any = await inspectLocalInquiry(archived.sessionPath)
+  const archived = await saveLocalInquiryCheck(deniedFile, programFile, own("archives/sharelink"), checked, { executionPolicy: "progressive" }), inspected: any = await inspectLocalInquiry(archived.sessionPath)
   assert(inspected.execution.resourceExecution.termination === "serializer-object-permission-denied", "ShareLink archive lost rejection")
   assert(sha(await readFile(originalProgramFile)) === sha(originalProgramBytes), "Original ShareLink program changed")
   const result = { scope: "Developer offline verification only; historical ShareLink unknowns sealed and no account call", providerCalls: 0, originalProgramUnchanged: true, input: relative(inputFile), deniedInput: relative(deniedFile), program: relative(programFile), phases, firstAuthorLoop: firstReport.domain.programDraft.authorLoop, restoredDraftRevision: second.domain.programDraft.restoredDraftRevision, secondAuthorLoop: second.domain.programDraft.authorLoop, deniedExecution: second.domain.executableContract.resourceExecution, remainingDuties: second.program.questions.map((q: any) => q.id), semanticPolicyQuestion: "share-create", inputQuestion: dataQuestion, originalPolicyPreserved: isDeepStrictEqual(input.inquiry.policy, denied.inquiry.policy), actualTargetWrites: 0, session: relative(archived.sessionPath) }

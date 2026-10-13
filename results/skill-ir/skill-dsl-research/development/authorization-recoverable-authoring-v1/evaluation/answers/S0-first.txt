@@ -1,0 +1,103 @@
+## Request and routing
+
+`UnifiedSearchViewSet` is registered as `documents` under the `/api/` router and inherits `DocumentViewSet`. Its detail `download` action therefore handles `GET /api/documents/{pk}/download/`; the legacy `/fetch/doc/{pk}` route redirects there. [`src/paperless/urls.py:74-78`](src/paperless/urls.py#L74-L78) [`src/paperless/urls.py:297-312`](src/paperless/urls.py#L297-L312) [`src/documents/views.py:2503-2507`](src/documents/views.py#L2503-L2507)
+
+The action calls `file_response(pk, request, "attachment")`; missing document/file conditions become 404 responses. [`src/documents/views.py:1834-1839`](src/documents/views.py#L1834-L1839)
+
+## Authorization and selection order
+
+The effective order is:
+
+1. **DRF authentication and model permission**
+   - Before the action executes, DRF performs authentication and `check_permissions`. [`framework/rest_framework-3.18.1/rest_framework/views.py:404-421`](framework/rest_framework-3.18.1/rest_framework/views.py#L404-L421)
+   - `DocumentViewSet` requires `IsAuthenticated` and `PaperlessObjectPermissions`. [`src/documents/views.py:1008-1027`](src/documents/views.py#L1008-L1027)
+   - For GET, `PaperlessObjectPermissions` requires the global `documents.view_document` permission. Its inherited `has_permission` checks `request.user.has_perms(...)` against the model, not a particular document. [`src/documents/permissions.py:30-44`](src/documents/permissions.py#L30-L44) [`framework/rest_framework-3.18.1/rest_framework/permissions.py:233-246`](framework/rest_framework-3.18.1/rest_framework/permissions.py#L233-L246)
+
+2. **Request document lookup**
+   - `pk` is looked up directly through `Document.global_objects`, because `file_response` passes `include_deleted=True`.
+   - Consequently, even a deleted document may be the URL-selected `request_doc`.
+   - No match produces 404. [`src/documents/views.py:1401-1415`](src/documents/views.py#L1401-L1415) [`src/documents/views.py:1429-1436`](src/documents/views.py#L1429-L1436)
+
+3. **Authorization root selection**
+   - A root document authorizes as itself.
+   - A version normally authorizes against its related root.
+   - If the root relation/lookup is unavailable, `get_root_document` falls back to the requested version itself. [`src/documents/versioning.py:146-156`](src/documents/versioning.py#L146-L156)
+
+4. **Application-level owner/object-permission branch**
+   - `has_perms_owner_aware(user, "view_document", root_doc)` returns true when the root is unowned, owned by the user, or Guardian reports an object grant. [`src/documents/permissions.py:624-635`](src/documents/permissions.py#L624-L635)
+   - **Important: in this revision the caller’s condition is inverted from the apparent intent.** It returns HTTP 403 when that helper returns **true**; only a false result proceeds:
+     ```python
+     if request.user is not None and has_perms_owner_aware(...):
+         return HttpResponseForbidden(...)
+     ```
+     [`src/documents/views.py:1421-1427`](src/documents/views.py#L1421-L1427)
+
+   Thus, as written:
+
+   - owner, unowned-document access, or an object grant → **403**;
+   - non-owner with no applicable object grant → continues, provided the earlier global model-permission check passed.
+
+   DRF’s separate `has_object_permission` machinery is not invoked here: `initial()` performs only request-level permission checks, while this action directly performs its own database lookup and never calls `check_object_permissions`. [`framework/rest_framework-3.18.1/rest_framework/views.py:330-355`](framework/rest_framework-3.18.1/rest_framework/views.py#L330-L355)
+
+5. **Version/file document selection**
+   This occurs only after the preceding local branch permits continuation. [`src/documents/views.py:1435-1441`](src/documents/views.py#L1435-L1441)
+
+## Version-selection branches
+
+Let `request_doc` be the document named by `pk`, and `root_doc` the authorization root.
+
+- **`pk` names a version and no `version` query key is present:** return that exact `request_doc`; it may be deleted because the initial lookup used `global_objects`. [`src/documents/views.py:1388-1399`](src/documents/views/views.py#L1388-L1399)
+- **Otherwise, no/falsy version value:** choose the root’s newest version, ordered by descending `version_index` and then ID; fall back to the root if there are no versions. [`src/documents/versioning.py:23-28`](src/documents/versioning.py#L23-L28) [`src/documents/versioning.py:159-166`](src/documents/versioning.py#L159-L166)
+  - Completely absent `version` means deleted versions are excluded.
+  - An explicitly present but empty `version=` is falsy for selection, but `version_requested` is true, so the newest lookup includes deleted versions.
+- **Truthy `version`:**
+  - it must parse as an integer or the response is 404 “Invalid version parameter”;
+  - the candidate may be deleted;
+  - it must be either the root itself or a direct version whose `root_document_id` equals the selected root;
+  - missing or unrelated candidates produce 404. [`src/documents/views.py:1375-1386`](src/documents/views.py#L1375-L1386) [`src/documents/versioning.py:169-195`](src/documents/versioning.py#L169-L195)
+
+Therefore `version` may switch the returned `file_doc` among a root and its versions, but it does **not** change the already evaluated authorization resource, `root_doc`.
+
+## Original versus archive
+
+After `file_doc` is chosen:
+
+- `original` is true only for the exact query value `original=true`.
+- Otherwise, if `file_doc.has_archive_version` is true, the archive is selected by default.
+- If no archive exists, or `original=true`, the source/original file is selected. [`src/documents/views.py:1368-1373`](src/documents/views.py#L1368-L1373) [`src/documents/views.py:1442-1448`](src/documents/views.py#L1442-L1448)
+
+`serve_file` then returns:
+
+- archive: `doc.archive_file`, PDF MIME type;
+- original: `doc.source_file`, `doc.mime_type`;
+- `Content-Disposition: attachment` with a normalized and encoded filename.
+
+`follow_formatting` changes the response filename, not which file representation is opened. [`src/documents/views.py:4941-4995`](src/documents/views.py#L4941-L4995)
+
+Choosing original versus archive therefore changes only the representation and response metadata; it causes no additional authorization check.
+
+## Supplied development scenario
+
+For actor `7`, `pk=10`, no `version`, and no `original`:
+
+- document 10 is both `request_doc` and `root_doc`;
+- actor 7 owns root 10;
+- `has_perms_owner_aware` therefore returns true without needing the unspecified Guardian result;
+- as the source is written, the request returns **403 before version or representation selection**.
+
+Accordingly, the scenario returns neither `root-archive.pdf` nor `v1-archive.pdf`, assuming the request first passes DRF authentication and the global `documents.view_document` check.
+
+## Missing facts and blocked conclusions
+
+| Missing fact | Conclusion it prevents |
+|---|---|
+| Actual authentication result | Whether the request reaches the action at all |
+| Whether the user has global `documents.view_document` | Whether DRF permits entry into `download` |
+| Actual ownership and Guardian grants | Whether the inverted local branch returns 403 or proceeds for a non-owner |
+| Actual `pk`, `version`, and `original` values | Which lookup/version/representation branch is taken |
+| Current document relationships, deletion state, and version ordering | Which `file_doc` is selected |
+| `has_archive_version` and stored file availability/readability | Whether archive or source is opened and whether the operation ends in 404 |
+| Authentication/permission backend behavior outside the supplied source | Concrete grant results for an actual deployment |
+| Proxy or deployment controls | Whether an otherwise valid route is externally reachable; they do not change the source-level selection order |
+
+The source establishes the inverted authorization behavior, but unspecified real users, global permissions, ownership, and grants prevent concluding that a particular deployed principal can exploit it. The auxiliary machine property checker likewise left the operation-wide properties unresolved; it did not certify the complete request operation.
