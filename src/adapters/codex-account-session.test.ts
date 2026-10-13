@@ -307,3 +307,18 @@ test("unknown own attempt and changed tool definitions cannot resume or dispatch
   expect((await g.run({ resumeAfter: known, tools: [] })).reason).toBe("account-resume-tools-changed")
   expect(g.sent.some(m => m.method === "turn/start")).toBe(false)
 })
+test("resume must return the requested durable thread before dispatch", async () => {
+  const previous = await mock().run()
+  for (const thread of [{ id: "foreign", ephemeral: false }, { id: "thread", ephemeral: true }]) {
+    const f = mock(), send = f.transport.send
+    f.transport.send = (m: any) => {
+      if (m.method === "thread/read") { f.sent.push(m); return f.transport.emitResponse(m.id, { thread: { id: "thread", ephemeral: false, turns: [{ id: "turn", status: "completed" }] } }) }
+      if (m.method === "thread/resume") { f.sent.push(m); return f.transport.emitResponse(m.id, { thread, model: "gpt-5.6-sol" }) }
+      send(m)
+    }
+    const result = await f.run({ resumeAfter: previous })
+    expect(result.reason).toBe("account-resume-thread-not-confirmed")
+    expect(result.inferenceDispatched).toBe(false)
+    expect(f.sent.some(m => m.method === "turn/start")).toBe(false)
+  }
+})

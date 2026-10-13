@@ -30,6 +30,7 @@ test("author continuations require a known terminal, budget, actionable work and
   expect(decide({ ...base, previousProgress: next.progress, continuations: 1 }).reason).toBe("no-new-author-progress")
   expect(decide({ ...base, context: { ...context, authoring: { ...context.authoring, feedbackGroups: { inputStructure: [], execution: [], proof: [], external: [{ code: "external-assumption" }] } } } }).continue).toBe(false)
   expect(decide({ ...base, context: { ...context, toolBudget: { totalRemaining: 2, explorationRemaining: 0 } } }).continue).toBe(false)
+  expect(decide({ ...base, context: { ...context, toolBudget: { totalRemaining: 9, explorationRemaining: 7, checksRemaining: 0, finalOnly: true } } }).reason).toBe("author-budget-exhausted")
 })
 test("a computed partial identifier still exposes authored scope gaps for bounded source review", () => {
   const raw = { scope: { questionId: "meaning", upstream: ["Caller relations remain unencoded"] }, resourceWorkflow: { inputs: [], steps: [], gaps: ["Selection and response relations remain unencoded"] } }

@@ -378,6 +378,7 @@ export async function runCodexAccountSession(options: CodexAccountSessionOptions
       ...(previous ? { threadId: previous.lifecycle!.threadId } : { allowProviderModelFallback: false, environments: [], selectedCapabilityRoots: [], ephemeral: false, dynamicTools: options.tools.map(t => ({ type: "function", name: t.name, description: t.description, inputSchema: t.inputSchema })) }),
       ...(config ? { permissions: "skvm-account", runtimeWorkspaceRoots: [], config, developerInstructions: "" } : { sandbox: "read-only" }),
       approvalPolicy: "never", baseInstructions: options.system })
+    if (previous && (thread.thread?.id !== previous.lifecycle!.threadId || thread.thread?.ephemeral !== false)) { failure = "account-resume-thread-not-confirmed"; return result("unavailable") }
     threadId = thread.thread.id
     if (thread.thread.ephemeral === false) lifecycle.persistence = "confirmed"
     record({ method: "skvm/account/identity", lifecycle: { ...lifecycle, threadId } }); await eventWrites
